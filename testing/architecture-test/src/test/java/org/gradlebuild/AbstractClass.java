@@ -16,6 +16,4 @@
 
 package org.gradlebuild;
 
-public abstract class AbstractClass {
-
-}
+public abstract class AbstractClass {}

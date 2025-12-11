@@ -22,29 +22,20 @@ public interface JavadocLexer {
     void visit(TokenVisitor visitor);
 
     class TokenVisitor {
-        void onStartHtmlElement(String name) {
-        }
+        void onStartHtmlElement(String name) {}
 
-        void onHtmlElementAttribute(String name, String value) {
-        }
+        void onHtmlElementAttribute(String name, String value) {}
 
-        void onStartHtmlElementComplete(String name) {
-        }
+        void onStartHtmlElementComplete(String name) {}
 
-        void onEndHtmlElement(String name) {
-        }
+        void onEndHtmlElement(String name) {}
 
-        void onStartJavadocTag(String name) {
-        }
+        void onStartJavadocTag(String name) {}
 
-        void onEndJavadocTag(String name) {
-        }
+        void onEndJavadocTag(String name) {}
 
-        void onText(String text) {
-        }
+        void onText(String text) {}
 
-        void onEnd() {
-        }
+        void onEnd() {}
     }
-
 }

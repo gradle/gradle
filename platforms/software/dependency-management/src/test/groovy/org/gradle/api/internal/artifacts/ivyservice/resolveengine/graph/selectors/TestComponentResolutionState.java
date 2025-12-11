@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
+import java.util.Collections;
+import java.util.Set;
+import javax.annotation.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
@@ -22,10 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-
-import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.Set;
 
 public class TestComponentResolutionState implements ComponentResolutionState {
     private ComponentIdentifier componentIdentifier;
@@ -64,8 +63,7 @@ public class TestComponentResolutionState implements ComponentResolutionState {
     }
 
     @Override
-    public void addCause(ComponentSelectionDescriptorInternal componentSelectionDescriptor) {
-    }
+    public void addCause(ComponentSelectionDescriptorInternal componentSelectionDescriptor) {}
 
     @Override
     public void reject() {

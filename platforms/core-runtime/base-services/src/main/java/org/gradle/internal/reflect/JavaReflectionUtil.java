@@ -18,13 +18,12 @@ package org.gradle.internal.reflect;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.reflect.TypeToken;
-import org.gradle.internal.UncheckedException;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.ParameterizedType;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 public class JavaReflectionUtil {
 
@@ -49,8 +48,10 @@ public class JavaReflectionUtil {
      * @param typeParameterIndex the index of the parameter
      * @return a TypeToken
      */
-    public static <T> TypeToken<?> extractNestedType(TypeToken<T> beanType, Class<? super T> parameterizedClass, int typeParameterIndex) {
-        ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedClass).getType();
+    public static <T> TypeToken<?> extractNestedType(
+            TypeToken<T> beanType, Class<? super T> parameterizedClass, int typeParameterIndex) {
+        ParameterizedType type =
+                (ParameterizedType) beanType.getSupertype(parameterizedClass).getType();
         return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
     }
 

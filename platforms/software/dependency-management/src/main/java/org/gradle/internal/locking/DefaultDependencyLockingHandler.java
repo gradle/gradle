@@ -16,6 +16,7 @@
 
 package org.gradle.internal.locking;
 
+import java.util.function.Supplier;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.LockMode;
@@ -24,8 +25,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 
-import java.util.function.Supplier;
-
 public class DefaultDependencyLockingHandler implements DependencyLockingHandler {
 
     private final Supplier<ConfigurationContainer> configurationContainer;
@@ -33,7 +32,9 @@ public class DefaultDependencyLockingHandler implements DependencyLockingHandler
 
     private ConfigurationContainer configurations;
 
-    public DefaultDependencyLockingHandler(Supplier<ConfigurationContainer> configurationContainer, DependencyLockingProvider dependencyLockingProvider) {
+    public DefaultDependencyLockingHandler(
+            Supplier<ConfigurationContainer> configurationContainer,
+            DependencyLockingProvider dependencyLockingProvider) {
         this.configurationContainer = configurationContainer;
         this.dependencyLockingProvider = dependencyLockingProvider;
     }
@@ -47,16 +48,16 @@ public class DefaultDependencyLockingHandler implements DependencyLockingHandler
 
     @Override
     public void lockAllConfigurations() {
-        getConfigurations().configureEach(configuration ->
-            configuration.getResolutionStrategy().activateDependencyLocking()
-        );
+        getConfigurations()
+                .configureEach(
+                        configuration -> configuration.getResolutionStrategy().activateDependencyLocking());
     }
 
     @Override
     public void unlockAllConfigurations() {
-        getConfigurations().configureEach(configuration ->
-            configuration.getResolutionStrategy().deactivateDependencyLocking()
-        );
+        getConfigurations()
+                .configureEach(
+                        configuration -> configuration.getResolutionStrategy().deactivateDependencyLocking());
     }
 
     @Override

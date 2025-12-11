@@ -15,41 +15,36 @@
  */
 package org.gradle.internal.component.model;
 
+import java.util.Collection;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 
-import java.util.Collection;
-
 public interface AttributeMatchingExplanationBuilder {
-    AttributeMatchingExplanationBuilder NO_OP = new AttributeMatchingExplanationBuilder() { };
+    AttributeMatchingExplanationBuilder NO_OP = new AttributeMatchingExplanationBuilder() {};
 
     static AttributeMatchingExplanationBuilder logging() {
         return LoggingAttributeMatchingExplanationBuilder.logging();
     }
 
-    default void noCandidates(ImmutableAttributes requested) {
+    default void noCandidates(ImmutableAttributes requested) {}
 
-    }
+    default void singleMatch(
+            ImmutableAttributes candidate,
+            Collection<ImmutableAttributes> candidates,
+            AttributeContainerInternal requested) {}
 
-    default void singleMatch(ImmutableAttributes candidate, Collection<ImmutableAttributes> candidates, AttributeContainerInternal requested) {
+    default void candidateDoesNotMatchAttributes(ImmutableAttributes candidate, AttributeContainerInternal requested) {}
 
-    }
+    default void candidateAttributeDoesNotMatch(
+            ImmutableAttributes candidate,
+            Attribute<?> attribute,
+            Object requestedValue,
+            ImmutableAttributesEntry<?> candidateEntry) {}
 
-    default void candidateDoesNotMatchAttributes(ImmutableAttributes candidate, AttributeContainerInternal requested) {
+    default void candidateAttributeMissing(
+            ImmutableAttributes candidate, Attribute<?> attribute, Object requestedValue) {}
 
-    }
-
-    default void candidateAttributeDoesNotMatch(ImmutableAttributes candidate, Attribute<?> attribute, Object requestedValue, ImmutableAttributesEntry<?> candidateEntry) {
-
-    }
-
-    default void candidateAttributeMissing(ImmutableAttributes candidate, Attribute<?> attribute, Object requestedValue) {
-
-    }
-
-    default void candidateIsSuperSetOfAllOthers(ImmutableAttributes candidate) {
-
-    }
+    default void candidateIsSuperSetOfAllOthers(ImmutableAttributes candidate) {}
 }

@@ -16,11 +16,10 @@
 
 package org.gradle.internal.io;
 
-import org.gradle.internal.UncheckedException;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.io.Writer;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 public class WriterTextStream implements TextStream {
     private final Writer delegate;

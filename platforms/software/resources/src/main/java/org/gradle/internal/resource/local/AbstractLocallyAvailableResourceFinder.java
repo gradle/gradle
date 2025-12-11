@@ -16,19 +16,19 @@
 
 package org.gradle.internal.resource.local;
 
-import org.gradle.internal.Factory;
-import org.gradle.internal.hash.ChecksumService;
-
 import java.io.File;
 import java.util.List;
 import java.util.function.Function;
+import org.gradle.internal.Factory;
+import org.gradle.internal.hash.ChecksumService;
 
 public class AbstractLocallyAvailableResourceFinder<C> implements LocallyAvailableResourceFinder<C> {
 
     private final Function<C, Factory<List<File>>> producer;
     private final ChecksumService checksumService;
 
-    public AbstractLocallyAvailableResourceFinder(Function<C, Factory<List<File>>> producer, ChecksumService checksumService) {
+    public AbstractLocallyAvailableResourceFinder(
+            Function<C, Factory<List<File>>> producer, ChecksumService checksumService) {
         this.producer = producer;
         this.checksumService = checksumService;
     }

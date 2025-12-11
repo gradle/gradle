@@ -15,9 +15,8 @@
  */
 package org.gradle.internal.resolve;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-
 import java.util.List;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 
 public class ArtifactNotFoundException extends ArtifactResolveException {
     public ArtifactNotFoundException(ComponentArtifactIdentifier artifact, List<String> attemptedLocations) {

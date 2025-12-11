@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.cache.ExclusiveCacheAccessCoordinator;
 import org.gradle.cache.IndexedCache;
 import org.gradle.internal.serialize.Serializer;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Provides synchronized access to the artifact cache.

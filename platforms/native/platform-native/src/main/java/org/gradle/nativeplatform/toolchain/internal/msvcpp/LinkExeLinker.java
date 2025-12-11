@@ -16,6 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.tasks.WorkResult;
@@ -30,19 +35,24 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
-
 class LinkExeLinker extends AbstractCompiler<LinkerSpec> {
 
     private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
     private final CommandLineToolContext invocationContext;
 
-    LinkExeLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<LinkerSpec, LinkerSpec> specTransformer, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new LinkerArgsTransformer(), true, workerLeaseService);
+    LinkExeLinker(
+            BuildOperationExecutor buildOperationExecutor,
+            CommandLineToolInvocationWorker commandLineToolInvocationWorker,
+            CommandLineToolContext invocationContext,
+            Transformer<LinkerSpec, LinkerSpec> specTransformer,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                buildOperationExecutor,
+                commandLineToolInvocationWorker,
+                invocationContext,
+                new LinkerArgsTransformer(),
+                true,
+                workerLeaseService);
         this.invocationContext = invocationContext;
         this.specTransformer = specTransformer;
     }
@@ -55,9 +65,10 @@ class LinkExeLinker extends AbstractCompiler<LinkerSpec> {
     }
 
     @Override
-    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final LinkerSpec spec, List<String> args) {
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(
+            final LinkerSpec spec, List<String> args) {
         final CommandLineToolInvocation invocation = invocationContext.createInvocation(
-            "linking " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
+                "linking " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
 
         return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override

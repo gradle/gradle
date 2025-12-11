@@ -36,7 +36,11 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     private final TestExceptionFormatter exceptionFormatter;
     private final TestLogging testLogging;
 
-    public TestEventLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter) {
+    public TestEventLogger(
+            StyledTextOutputFactory textOutputFactory,
+            LogLevel logLevel,
+            TestLogging testLogging,
+            TestExceptionFormatter exceptionFormatter) {
         super(textOutputFactory, logLevel, testLogging.getDisplayGranularity());
         this.exceptionFormatter = exceptionFormatter;
         this.testLogging = testLogging;
@@ -83,17 +87,22 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
         TestLogEvent event = getEvent(result);
 
         if (shouldLogEvent(descriptor, event)) {
-            String details = shouldLogExceptions(result) ? exceptionFormatter.format(descriptor, result.getExceptions()) : null;
+            String details =
+                    shouldLogExceptions(result) ? exceptionFormatter.format(descriptor, result.getExceptions()) : null;
             logEvent(descriptor, event, details);
         }
     }
 
     private TestLogEvent getEvent(TestResult result) {
         switch (result.getResultType()) {
-            case SUCCESS: return TestLogEvent.PASSED;
-            case FAILURE: return TestLogEvent.FAILED;
-            case SKIPPED: return TestLogEvent.SKIPPED;
-            default: throw new AssertionError();
+            case SUCCESS:
+                return TestLogEvent.PASSED;
+            case FAILURE:
+                return TestLogEvent.FAILED;
+            case SKIPPED:
+                return TestLogEvent.SKIPPED;
+            default:
+                throw new AssertionError();
         }
     }
 
@@ -107,9 +116,9 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
 
     private boolean isLoggedGranularity(TestDescriptor descriptor) {
         int level = getLevel(descriptor);
-        return ((testLogging.getMinGranularity() == -1 && !descriptor.isComposite()) ||
-            (testLogging.getMinGranularity() > -1 && level >= testLogging.getMinGranularity())) &&
-            (testLogging.getMaxGranularity() == -1 || level <= testLogging.getMaxGranularity());
+        return ((testLogging.getMinGranularity() == -1 && !descriptor.isComposite())
+                        || (testLogging.getMinGranularity() > -1 && level >= testLogging.getMinGranularity()))
+                && (testLogging.getMaxGranularity() == -1 || level <= testLogging.getMaxGranularity());
     }
 
     private int getLevel(TestDescriptor descriptor) {

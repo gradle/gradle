@@ -17,12 +17,11 @@
 package org.gradle.api.publish.internal.metadata;
 
 import com.google.gson.stream.JsonWriter;
+import java.io.IOException;
+import java.io.Writer;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
-
-import java.io.IOException;
-import java.io.Writer;
 
 /**
  * <p>The Gradle module metadata file generator is responsible for generating a JSON file
@@ -42,10 +41,7 @@ public class GradleModuleMetadataWriter {
     private final BuildInvocationScopeId buildInvocationScopeId;
     private final ChecksumService checksumService;
 
-    public GradleModuleMetadataWriter(
-        BuildInvocationScopeId buildInvocationScopeId,
-        ChecksumService checksumService
-    ) {
+    public GradleModuleMetadataWriter(BuildInvocationScopeId buildInvocationScopeId, ChecksumService checksumService) {
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.checksumService = checksumService;
     }
@@ -58,11 +54,13 @@ public class GradleModuleMetadataWriter {
         jsonWriter.setIndent("  ");
 
         new ModuleMetadataJsonWriter(
-            jsonWriter,
-            metadata,
-            metadata.mustIncludeBuildId ? buildInvocationScopeId.getId().asString() : null,
-            checksumService
-        ).write();
+                        jsonWriter,
+                        metadata,
+                        metadata.mustIncludeBuildId
+                                ? buildInvocationScopeId.getId().asString()
+                                : null,
+                        checksumService)
+                .write();
 
         jsonWriter.flush();
         writer.append('\n');

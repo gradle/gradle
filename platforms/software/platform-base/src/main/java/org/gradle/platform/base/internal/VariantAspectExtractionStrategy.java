@@ -17,6 +17,7 @@
 package org.gradle.platform.base.internal;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
 import org.gradle.api.Named;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.internal.manage.schema.ModelProperty;
@@ -29,23 +30,29 @@ import org.gradle.model.internal.manage.schema.extract.PropertyAccessorExtractio
 import org.gradle.platform.base.Variant;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 public class VariantAspectExtractionStrategy implements ModelSchemaAspectExtractionStrategy {
     @Nullable
     @Override
-    public ModelSchemaAspectExtractionResult extract(ModelSchemaExtractionContext<?> extractionContext, final List<ModelPropertyExtractionResult<?>> propertyResults) {
+    public ModelSchemaAspectExtractionResult extract(
+            ModelSchemaExtractionContext<?> extractionContext,
+            final List<ModelPropertyExtractionResult<?>> propertyResults) {
         ImmutableSet.Builder<ModelProperty<?>> dimensionsBuilder = ImmutableSet.builder();
         for (ModelPropertyExtractionResult<?> propertyResult : propertyResults) {
             ModelProperty<?> property = propertyResult.getProperty();
             for (PropertyAccessorExtractionContext accessor : propertyResult.getAccessors()) {
                 if (accessor.isAnnotationPresent(Variant.class)) {
                     if (accessor.getAccessorType() == PropertyAccessorType.SETTER) {
-                        throw invalidProperty(extractionContext, property, "@Variant annotation is only allowed on getter methods");
+                        throw invalidProperty(
+                                extractionContext, property, "@Variant annotation is only allowed on getter methods");
                     }
                     Class<?> propertyType = property.getType().getRawClass();
                     if (!String.class.equals(propertyType) && !Named.class.isAssignableFrom(propertyType)) {
-                        throw invalidProperty(extractionContext, property, String.format("@Variant annotation only allowed for properties of type String and %s, but property has type %s", Named.class.getName(), propertyType.getName()));
+                        throw invalidProperty(
+                                extractionContext,
+                                property,
+                                String.format(
+                                        "@Variant annotation only allowed for properties of type String and %s, but property has type %s",
+                                        Named.class.getName(), propertyType.getName()));
                     }
                     dimensionsBuilder.add(property);
                 }
@@ -58,7 +65,9 @@ public class VariantAspectExtractionStrategy implements ModelSchemaAspectExtract
         return new ModelSchemaAspectExtractionResult(new VariantAspect(dimensions));
     }
 
-    protected InvalidManagedModelElementTypeException invalidProperty(ModelSchemaExtractionContext<?> extractionContext, ModelProperty<?> property, String message) {
-        return new InvalidManagedModelElementTypeException(extractionContext, String.format("%s (invalid property: %s)", message, property.getName()));
+    protected InvalidManagedModelElementTypeException invalidProperty(
+            ModelSchemaExtractionContext<?> extractionContext, ModelProperty<?> property, String message) {
+        return new InvalidManagedModelElementTypeException(
+                extractionContext, String.format("%s (invalid property: %s)", message, property.getName()));
     }
 }

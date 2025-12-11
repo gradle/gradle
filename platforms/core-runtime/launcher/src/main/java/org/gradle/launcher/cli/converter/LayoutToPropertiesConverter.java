@@ -16,6 +16,16 @@
 
 package org.gradle.launcher.cli.converter;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import org.gradle.api.Project;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.ParallelismBuildOptions;
@@ -34,17 +44,6 @@ import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
 public class LayoutToPropertiesConverter {
 
     private final List<BuildOption<?>> allBuildOptions = new ArrayList<>();
@@ -54,8 +53,10 @@ public class LayoutToPropertiesConverter {
         this.buildLayoutFactory = buildLayoutFactory;
         allBuildOptions.addAll(new BuildLayoutParametersBuildOptions().getAllOptions());
         allBuildOptions.addAll(new StartParameterBuildOptions().getAllOptions());
-        allBuildOptions.addAll(new LoggingConfigurationBuildOptions().getAllOptions()); // TODO maybe a new converter also here
-        allBuildOptions.addAll(new WelcomeMessageBuildOptions().getAllOptions()); // TODO maybe a new converter also here
+        allBuildOptions.addAll(
+                new LoggingConfigurationBuildOptions().getAllOptions()); // TODO maybe a new converter also here
+        allBuildOptions.addAll(
+                new WelcomeMessageBuildOptions().getAllOptions()); // TODO maybe a new converter also here
         allBuildOptions.addAll(new DaemonBuildOptions().getAllOptions());
         allBuildOptions.addAll(new ParallelismBuildOptions().getAllOptions());
         allBuildOptions.addAll(ToolchainBuildOptions.forToolChainConfiguration().getAllOptions());
@@ -95,7 +96,8 @@ public class LayoutToPropertiesConverter {
 
     private void configureFromDaemonJVMProperties(BuildLayoutResult layoutResult, Map<String, String> result) {
         BuildLayout layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
-        configureFrom(new File(layout.getRootDirectory(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE), result);
+        configureFrom(
+                new File(layout.getRootDirectory(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE), result);
     }
 
     private void configureFrom(File propertiesFile, Map<String, String> result) {
@@ -109,8 +111,10 @@ public class LayoutToPropertiesConverter {
         Properties properties = readProperties(propertiesFile);
         for (final Object key : properties.keySet()) {
             String keyAsString = key.toString();
-            BuildOption<?> validOption = CollectionUtils.findFirst(allBuildOptions,
-                option -> keyAsString.equals(option.getProperty()) || keyAsString.equals(option.getDeprecatedProperty()));
+            BuildOption<?> validOption = CollectionUtils.findFirst(
+                    allBuildOptions,
+                    option -> keyAsString.equals(option.getProperty())
+                            || keyAsString.equals(option.getDeprecatedProperty()));
 
             if (validOption != null) {
                 result.put(key.toString(), properties.get(key).toString());
@@ -139,7 +143,10 @@ public class LayoutToPropertiesConverter {
         private final Map<String, String> daemonJvmProperties;
         private final InitialProperties initialProperties;
 
-        public Result(Map<String, String> properties, Map<String, String> daemonJvmProperties, InitialProperties initialProperties) {
+        public Result(
+                Map<String, String> properties,
+                Map<String, String> daemonJvmProperties,
+                InitialProperties initialProperties) {
             this.properties = properties;
             this.daemonJvmProperties = daemonJvmProperties;
             this.initialProperties = initialProperties;

@@ -18,6 +18,21 @@ package org.gradle.api.internal;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
@@ -55,23 +70,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.NavigableSet;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
-public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
+public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T>
+        implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
 
     private final Instantiator instantiator;
     private final Namer<? super T> namer;
@@ -83,7 +83,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private final Set<String> applyingRulesFor = new HashSet<String>();
     private ImmutableActionSet<ElementInfo<T>> whenKnown = ImmutableActionSet.empty();
 
-    public DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackActionDecorator) {
+    public DefaultNamedDomainObjectCollection(
+            Class<? extends T> type,
+            ElementSource<T> store,
+            Instantiator instantiator,
+            Namer<? super T> namer,
+            CollectionCallbackActionDecorator callbackActionDecorator) {
         super(type, store, callbackActionDecorator);
         this.instantiator = instantiator;
         this.namer = namer;
@@ -97,7 +102,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    protected DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer) {
+    protected DefaultNamedDomainObjectCollection(
+            Class<? extends T> type,
+            ElementSource<T> store,
+            CollectionEventRegister<T> eventRegister,
+            Index<T> index,
+            Instantiator instantiator,
+            Namer<? super T> namer) {
         super(type, store, eventRegister);
         this.instantiator = instantiator;
         this.namer = namer;
@@ -105,18 +116,27 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     // should be protected, but use of the class generator forces it to be public
-    public DefaultNamedDomainObjectCollection(DefaultNamedDomainObjectCollection<? super T> collection, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer) {
+    public DefaultNamedDomainObjectCollection(
+            DefaultNamedDomainObjectCollection<? super T> collection,
+            CollectionFilter<T> elementFilter,
+            Instantiator instantiator,
+            Namer<? super T> namer) {
         this(collection, Specs.satisfyAll(), elementFilter, instantiator, namer);
     }
 
     protected DefaultNamedDomainObjectCollection(
-        DefaultNamedDomainObjectCollection<? super T> collection,
-        Spec<String> nameFilter,
-        CollectionFilter<T> elementFilter,
-        Instantiator instantiator,
-        Namer<? super T> namer
-    ) {
-        this(elementFilter.getType(), collection.filteredStore(elementFilter), collection.filteredEvents(elementFilter), collection.filteredIndex(nameFilter, elementFilter), instantiator, namer);
+            DefaultNamedDomainObjectCollection<? super T> collection,
+            Spec<String> nameFilter,
+            CollectionFilter<T> elementFilter,
+            Instantiator instantiator,
+            Namer<? super T> namer) {
+        this(
+                elementFilter.getType(),
+                collection.filteredStore(elementFilter),
+                collection.filteredEvents(elementFilter),
+                collection.filteredIndex(nameFilter, elementFilter),
+                instantiator,
+                namer);
     }
 
     @Override
@@ -177,7 +197,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             whenKnown.execute(new ObjectBackedElementInfo<T>(namer.determineName(next), next));
         }
 
-        for (Map.Entry<String, ProviderInternal<? extends T>> entry : index.getPendingAsMap().entrySet()) {
+        for (Map.Entry<String, ProviderInternal<? extends T>> entry :
+                index.getPendingAsMap().entrySet()) {
             deferredElementKnown(entry.getKey(), entry.getValue());
         }
     }
@@ -228,7 +249,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
      */
     protected void assertElementNotPresent(String name) {
         if (hasWithName(name)) {
-            throw new InvalidUserDataException(String.format("Cannot add a %s with name '%s' as a %s with that name already exists.", getTypeDisplayName(), name, getTypeDisplayName()));
+            throw new InvalidUserDataException(String.format(
+                    "Cannot add a %s with name '%s' as a %s with that name already exists.",
+                    getTypeDisplayName(), name, getTypeDisplayName()));
         }
     }
 
@@ -257,14 +280,17 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
      */
     @Override
     protected <S extends T> DefaultNamedDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
-        return Cast.uncheckedNonnullCast(instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, instantiator, namer));
+        return Cast.uncheckedNonnullCast(
+                instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, instantiator, namer));
     }
 
     /**
      * Creates a filtered version of this collection.
      */
-    protected <S extends T> DefaultNamedDomainObjectCollection<S> filtered(Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
-        return Cast.uncheckedNonnullCast(instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, nameFilter, elementFilter, instantiator, namer));
+    protected <S extends T> DefaultNamedDomainObjectCollection<S> filtered(
+            Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
+        return Cast.uncheckedNonnullCast(instantiator.newInstance(
+                DefaultNamedDomainObjectCollection.class, this, nameFilter, elementFilter, instantiator, namer));
     }
 
     @Override
@@ -350,7 +376,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             return it;
         } else {
             // unclear what the best thing to do here would be
-            throw new IllegalStateException(String.format("found '%s' with name '%s' but remove() returned false", it, name));
+            throw new IllegalStateException(
+                    String.format("found '%s' with name '%s' but remove() returned false", it, name));
         }
     }
 
@@ -391,7 +418,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    public NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException {
+    public NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction)
+            throws UnknownDomainObjectException {
         assertEagerContext("named(String, Action)");
         NamedDomainObjectProvider<T> provider = named(name);
         provider.configure(configurationAction);
@@ -399,7 +427,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException {
+    public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type)
+            throws UnknownDomainObjectException {
         AbstractNamedDomainObjectProvider<S> provider = Cast.uncheckedCast(named(name));
         Class<S> actual = provider.type;
         if (!type.isAssignableFrom(actual)) {
@@ -409,11 +438,14 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected InvalidUserDataException createWrongTypeException(String name, Class expected, Class actual) {
-        return new InvalidUserDataException(String.format("The domain object '%s' (%s) is not a subclass of the given type (%s).", name, actual.getCanonicalName(), expected.getCanonicalName()));
+        return new InvalidUserDataException(String.format(
+                "The domain object '%s' (%s) is not a subclass of the given type (%s).",
+                name, actual.getCanonicalName(), expected.getCanonicalName()));
     }
 
     @Override
-    public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException {
+    public <S extends T> NamedDomainObjectProvider<S> named(
+            String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException {
         assertEagerContext("named(String, Class, Action)");
         NamedDomainObjectProvider<S> provider = named(name, type);
         provider.configure(configurationAction);
@@ -504,7 +536,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         });
     }
 
-    private static abstract class RuleAdapter implements Rule {
+    private abstract static class RuleAdapter implements Rule {
 
         private final String description;
 
@@ -529,8 +561,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected UnknownDomainObjectException createNotFoundException(String name) {
-        return new UnknownDomainObjectException(String.format("%s with name '%s' not found.", getTypeDisplayName(),
-            name));
+        return new UnknownDomainObjectException(
+                String.format("%s with name '%s' not found.", getTypeDisplayName(), name));
     }
 
     protected Spec<T> convertNameToElementFilter(Spec<String> nameFilter) {
@@ -726,10 +758,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         @Override
         public <S extends T> Index<S> filter(Spec<String> nameFilter, CollectionFilter<S> collectionFilter) {
             return new FilteredIndex<>(
-                delegate,
-                Specs.intersect(this.nameFilter, nameFilter),
-                this.elementFilter.and(collectionFilter)
-            );
+                    delegate, Specs.intersect(this.nameFilter, nameFilter), this.elementFilter.and(collectionFilter));
         }
 
         @Nullable
@@ -781,7 +810,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             }
             return false;
         }
-
     }
 
     public interface ElementInfo<T> {
@@ -862,11 +890,14 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected NamedDomainObjectProvider<? extends T> createExistingProvider(String name, T object) {
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name, new DslObject(object).getDeclaredType()));
+        return Cast.uncheckedCast(getInstantiator()
+                .newInstance(
+                        ExistingNamedDomainObjectProvider.class, this, name, new DslObject(object).getDeclaredType()));
     }
 
     @NonExtensible
-    protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractMinimalProvider<I> implements Named, NamedDomainObjectProvider<I> {
+    protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractMinimalProvider<I>
+            implements Named, NamedDomainObjectProvider<I> {
         private final String name;
         private final Class<I> type;
 
@@ -928,15 +959,18 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    public abstract class AbstractDomainObjectCreatingProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
+    public abstract class AbstractDomainObjectCreatingProvider<I extends T>
+            extends AbstractNamedDomainObjectProvider<I> {
         private I object;
         private RuntimeException failure;
         protected ImmutableActionSet<I> onCreate;
         private boolean removedBeforeRealized = false;
 
-        public AbstractDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
+        public AbstractDomainObjectCreatingProvider(
+                String name, Class<I> type, @Nullable Action<? super I> configureAction) {
             super(name, type);
-            this.onCreate = ImmutableActionSet.<I>empty().mergeFrom(getEventRegister().getAddActions());
+            this.onCreate =
+                    ImmutableActionSet.<I>empty().mergeFrom(getEventRegister().getAddActions());
 
             if (configureAction != null) {
                 configure(configureAction);
@@ -957,7 +991,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             }
 
             Action<? super I> wrappedAction = wrapLazyAction(action);
-            Action<? super I> decoratedAction = getEventRegister().getDecorator().decorate(wrappedAction);
+            Action<? super I> decoratedAction =
+                    getEventRegister().getDecorator().decorate(wrappedAction);
 
             if (object != null) {
                 // Already realized, just run the action now
@@ -1003,8 +1038,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
                     object = createDomainObject();
                     // Configuring the domain object may cause circular evaluation, but after initializing this.object
                     // calculateOwnValue short-circuits it at a cost of exposing a partially constructed value.
-                    // Because of that the circular evaluation that goes through this provider doesn't cause stack overflow.
-                    // To avoid breaking existing code, we open a nested evaluation scope here to allow re-entering the chain.
+                    // Because of that the circular evaluation that goes through this provider doesn't cause stack
+                    // overflow.
+                    // To avoid breaking existing code, we open a nested evaluation scope here to allow re-entering the
+                    // chain.
                     try (EvaluationScopeContext ignored = scope.nested()) {
                         // Register the domain object
                         doAdd(object, onCreate);
@@ -1041,11 +1078,19 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         protected RuntimeException domainObjectCreationException(Throwable cause) {
-            return new InvalidUserCodeException(String.format("Could not create domain object '%s' (%s) in %s", getName(), getType().getSimpleName(), DefaultNamedDomainObjectCollection.this.getDisplayName()), cause);
+            return new InvalidUserCodeException(
+                    String.format(
+                            "Could not create domain object '%s' (%s) in %s",
+                            getName(),
+                            getType().getSimpleName(),
+                            DefaultNamedDomainObjectCollection.this.getDisplayName()),
+                    cause);
         }
     }
 
     private static RuntimeException domainObjectRemovedException(String name, Class<?> type) {
-        return new IllegalStateException(String.format("The domain object '%s' (%s) for this provider is no longer present in its container.", name, type.getSimpleName()));
+        return new IllegalStateException(String.format(
+                "The domain object '%s' (%s) for this provider is no longer present in its container.",
+                name, type.getSimpleName()));
     }
 }

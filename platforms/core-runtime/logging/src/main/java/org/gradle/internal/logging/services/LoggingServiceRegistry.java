@@ -80,7 +80,8 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
      */
     public static ServiceRegistry newCommandLineProcessLogging() {
         ServiceRegistry loggingServices = createCommandLineLogging();
-        LoggingManagerInternal rootLoggingManager = loggingServices.get(LoggingManagerFactory.class).getRoot();
+        LoggingManagerInternal rootLoggingManager =
+                loggingServices.get(LoggingManagerFactory.class).getRoot();
         rootLoggingManager.captureSystemSources();
         rootLoggingManager.attachSystemOutAndErr();
         return loggingServices;
@@ -116,16 +117,16 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
      */
     public static ServiceRegistry newNestedLogging() {
         return ServiceRegistryBuilder.builder()
-            .displayName("logging services")
-            .provider(new NestedLogging())
-            .build();
+                .displayName("logging services")
+                .provider(new NestedLogging())
+                .build();
     }
 
     private static ServiceRegistry createCommandLineLogging() {
         return ServiceRegistryBuilder.builder()
-            .displayName("logging services")
-            .provider(new CommandLineLogging())
-            .build();
+                .displayName("logging services")
+                .provider(new CommandLineLogging())
+                .build();
     }
 
     @Provides
@@ -151,14 +152,15 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
 
         LoggingSourceSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), clock);
         stdout.setLevel(LogLevel.QUIET);
-        LoggingSourceSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(outputEventBroadcaster), clock);
+        LoggingSourceSystem stderr =
+                new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(outputEventBroadcaster), clock);
         stderr.setLevel(LogLevel.ERROR);
         return new DefaultLoggingManagerFactory(
-            renderer,
-            new LoggingSystemAdapter(new Slf4jLoggingConfigurer(outputEventBroadcaster)),
-            new JavaUtilLoggingSystem(),
-            stdout,
-            stderr);
+                renderer,
+                new LoggingSystemAdapter(new Slf4jLoggingConfigurer(outputEventBroadcaster)),
+                new JavaUtilLoggingSystem(),
+                stdout,
+                stderr);
     }
 
     @Provides
@@ -183,8 +185,7 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
         return eventRenderer;
     }
 
-    private static class CommandLineLogging extends LoggingServiceRegistry {
-    }
+    private static class CommandLineLogging extends LoggingServiceRegistry {}
 
     private static class NestedLogging extends LoggingServiceRegistry {
 
@@ -193,12 +194,11 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
         protected LoggingManagerFactory createLoggingManagerFactory(Clock clock) {
             // Don't configure anything
             return new DefaultLoggingManagerFactory(
-                renderer,
-                new NoOpLoggingSystem(),
-                new NoOpLoggingSystem(),
-                new NoOpLoggingSystem(),
-                new NoOpLoggingSystem()
-            );
+                    renderer,
+                    new NoOpLoggingSystem(),
+                    new NoOpLoggingSystem(),
+                    new NoOpLoggingSystem(),
+                    new NoOpLoggingSystem());
         }
     }
 }

@@ -16,6 +16,11 @@
 
 package org.gradle.tooling.internal.provider;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -27,12 +32,6 @@ import org.gradle.launcher.daemon.client.DaemonStopClientExecuter;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.registry.DaemonDir;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Keeps track of all started daemons and stops them when the service is stopped.
@@ -52,7 +51,9 @@ public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
 
     public ShutdownCoordinator(DaemonStopClientExecuter client) {
         this.client = client;
-        this.incorrectDaemonRegistryPath = new DaemonParameters(new BuildLayoutConverter().defaultValues().getGradleUserHomeDir(), null).getBaseDir();
+        this.incorrectDaemonRegistryPath = new DaemonParameters(
+                        new BuildLayoutConverter().defaultValues().getGradleUserHomeDir(), null)
+                .getBaseDir();
     }
 
     @Override
@@ -74,7 +75,10 @@ public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
             Set<DaemonConnectDetails> startedDaemons = daemons.get(daemonBaseDir);
             if (startedDaemons != null && !startedDaemons.isEmpty()) {
                 try {
-                    client.execute(requestSpecificLoggingServices, daemonBaseDir, daemonStopClient -> daemonStopClient.gracefulStop(startedDaemons));
+                    client.execute(
+                            requestSpecificLoggingServices,
+                            daemonBaseDir,
+                            daemonStopClient -> daemonStopClient.gracefulStop(startedDaemons));
                 } finally {
                     startedDaemons.clear();
                 }
@@ -92,13 +96,16 @@ public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
             //
             // We should instead create services for each known daemon registry or make it so a different shutdown
             // is used for each daemon registry.
-            // 
+            //
             // This has complications in TestKit because we shutdown all running daemons in a shutdown hook
             // Our integration testing infrastructure does not expect any tests to write to test file directories
             // when the test process stops. This is treated as an error.
             for (Set<DaemonConnectDetails> startedDaemons : daemons.values()) {
                 try {
-                    client.execute(requestSpecificLoggingServices, incorrectDaemonRegistryPath, daemonStopClient -> daemonStopClient.gracefulStop(startedDaemons));
+                    client.execute(
+                            requestSpecificLoggingServices,
+                            incorrectDaemonRegistryPath,
+                            daemonStopClient -> daemonStopClient.gracefulStop(startedDaemons));
                 } finally {
                     startedDaemons.clear();
                 }

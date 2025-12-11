@@ -16,14 +16,13 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import java.util.List;
+import java.util.Optional;
+import javax.inject.Inject;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
 import org.gradle.jvm.toolchain.JavaToolchainRequest;
 import org.gradle.jvm.toolchain.JavaToolchainResolver;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException;
-
-import javax.inject.Inject;
-import java.util.List;
-import java.util.Optional;
 
 public class DefaultJavaToolchainResolverService implements JavaToolchainResolverService {
 
@@ -36,11 +35,14 @@ public class DefaultJavaToolchainResolverService implements JavaToolchainResolve
 
     @Override
     public Optional<JavaToolchainDownload> tryResolve(JavaToolchainRequest request) {
-        List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
+        List<? extends RealizedJavaToolchainRepository> repositories =
+                toolchainResolverRegistry.requestedRepositories();
         if (repositories.isEmpty()) {
-            throw new ToolchainProvisioningException(request.getJavaToolchainSpec(), "Toolchain download repositories have not been configured.",
-                ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION,
-                ToolchainProvisioningException.DOWNLOAD_REPOSITORIES_RESOLUTION);
+            throw new ToolchainProvisioningException(
+                    request.getJavaToolchainSpec(),
+                    "Toolchain download repositories have not been configured.",
+                    ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION,
+                    ToolchainProvisioningException.DOWNLOAD_REPOSITORIES_RESOLUTION);
         }
         for (RealizedJavaToolchainRepository repository : repositories) {
             JavaToolchainResolver resolver = repository.getResolver();

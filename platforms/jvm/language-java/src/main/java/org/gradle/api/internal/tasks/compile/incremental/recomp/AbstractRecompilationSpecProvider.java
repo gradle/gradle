@@ -19,17 +19,6 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileType;
-import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
-import org.gradle.api.internal.tasks.compile.incremental.transaction.CompileTransaction;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.file.Deleter;
-import org.gradle.work.FileChange;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,6 +29,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileType;
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
+import org.gradle.api.internal.tasks.compile.incremental.transaction.CompileTransaction;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.file.Deleter;
+import org.gradle.work.FileChange;
 
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
 
@@ -53,12 +52,11 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     private final boolean incremental;
 
     public AbstractRecompilationSpecProvider(
-        Deleter deleter,
-        FileOperations fileOperations,
-        FileTree sourceTree,
-        Iterable<FileChange> sourceChanges,
-        boolean incremental
-    ) {
+            Deleter deleter,
+            FileOperations fileOperations,
+            FileTree sourceTree,
+            Iterable<FileChange> sourceChanges,
+            boolean incremental) {
         this.deleter = deleter;
         this.fileOperations = fileOperations;
         this.sourceTree = sourceTree;
@@ -67,16 +65,20 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     @Override
-    public RecompilationSpec provideRecompilationSpec(JavaCompileSpec spec, CurrentCompilation current, PreviousCompilation previous) {
+    public RecompilationSpec provideRecompilationSpec(
+            JavaCompileSpec spec, CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec recompilationSpec = new RecompilationSpec();
-        SourceFileClassNameConverter sourceFileClassNameConverter = new FileNameDerivingClassNameConverter(previous.getSourceToClassConverter(), getFileExtensions());
+        SourceFileClassNameConverter sourceFileClassNameConverter =
+                new FileNameDerivingClassNameConverter(previous.getSourceToClassConverter(), getFileExtensions());
 
         processClasspathChanges(current, previous, recompilationSpec);
 
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
         processSourceChanges(current, sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
-        processCompilerSpecificDependencies(spec, recompilationSpec, sourceFileChangeProcessor, sourceFileClassNameConverter);
-        collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
+        processCompilerSpecificDependencies(
+                spec, recompilationSpec, sourceFileChangeProcessor, sourceFileClassNameConverter);
+        collectAllSourcePathsAndIndependentClasses(
+                sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
 
         Set<String> typesToReprocess = previous.getTypesToReprocess(recompilationSpec.getClassesToCompile());
         processTypesToReprocess(typesToReprocess, recompilationSpec, sourceFileClassNameConverter);
@@ -87,7 +89,8 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
     protected abstract Set<String> getFileExtensions();
 
-    private static void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
+    private static void processClasspathChanges(
+            CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
         DependentsSet dependents = current.findDependentsOfClasspathChanges(previous);
         if (dependents.isDependencyToAll()) {
             spec.setFullRebuildCause(dependents.getDescription());
@@ -98,7 +101,11 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         spec.addResourcesToGenerate(dependents.getDependentResources());
     }
 
-    private void processSourceChanges(CurrentCompilation current, SourceFileChangeProcessor sourceFileChangeProcessor, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private void processSourceChanges(
+            CurrentCompilation current,
+            SourceFileChangeProcessor sourceFileChangeProcessor,
+            RecompilationSpec spec,
+            SourceFileClassNameConverter sourceFileClassNameConverter) {
         if (spec.isFullRebuildNeeded()) {
             return;
         }
@@ -120,15 +127,18 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     private static String rebuildClauseForChangedNonSourceFile(FileChange fileChange) {
-        return String.format("%s '%s' has been %s", "resource", fileChange.getFile().getName(), fileChange.getChangeType().name().toLowerCase(Locale.US));
+        return String.format(
+                "%s '%s' has been %s",
+                "resource",
+                fileChange.getFile().getName(),
+                fileChange.getChangeType().name().toLowerCase(Locale.US));
     }
 
     protected abstract void processCompilerSpecificDependencies(
-        JavaCompileSpec spec,
-        RecompilationSpec recompilationSpec,
-        SourceFileChangeProcessor sourceFileChangeProcessor,
-        SourceFileClassNameConverter sourceFileClassNameConverter
-    );
+            JavaCompileSpec spec,
+            RecompilationSpec recompilationSpec,
+            SourceFileChangeProcessor sourceFileChangeProcessor,
+            SourceFileClassNameConverter sourceFileClassNameConverter);
 
     protected abstract boolean isIncrementalOnResourceChanges(CurrentCompilation currentCompilation);
 
@@ -142,15 +152,22 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
      * <p>
      * Check also: <a href="https://github.com/gradle/gradle/issues/21644">#21644</a>
      */
-    private static void collectAllSourcePathsAndIndependentClasses(SourceFileChangeProcessor sourceFileChangeProcessor, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private static void collectAllSourcePathsAndIndependentClasses(
+            SourceFileChangeProcessor sourceFileChangeProcessor,
+            RecompilationSpec spec,
+            SourceFileClassNameConverter sourceFileClassNameConverter) {
         Set<String> classesToCompile = new LinkedHashSet<>(spec.getClassesToCompile());
         while (!classesToCompile.isEmpty() && !spec.isFullRebuildNeeded()) {
-            Set<String> independentClasses = collectSourcePathsAndIndependentClasses(classesToCompile, spec, sourceFileClassNameConverter);
-            // Since these independent classes didn't actually change, they will be just recreated without any change, so we don't need to collect all transitive dependencies.
-            // But we have to collect annotation processor dependencies, so these classes are correctly deleted, since annotation processor is able to output classes from these independent classes.
+            Set<String> independentClasses =
+                    collectSourcePathsAndIndependentClasses(classesToCompile, spec, sourceFileClassNameConverter);
+            // Since these independent classes didn't actually change, they will be just recreated without any change,
+            // so we don't need to collect all transitive dependencies.
+            // But we have to collect annotation processor dependencies, so these classes are correctly deleted, since
+            // annotation processor is able to output classes from these independent classes.
             classesToCompile = independentClasses.isEmpty()
-                ? Collections.emptySet()
-                : sourceFileChangeProcessor.processAnnotationDependenciesOfIndependentClasses(independentClasses, spec);
+                    ? Collections.emptySet()
+                    : sourceFileChangeProcessor.processAnnotationDependenciesOfIndependentClasses(
+                            independentClasses, spec);
         }
     }
 
@@ -165,11 +182,15 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
      *
      * @return independent classes for the detected source paths.
      */
-    private static Set<String> collectSourcePathsAndIndependentClasses(Set<String> classesToCompile, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private static Set<String> collectSourcePathsAndIndependentClasses(
+            Set<String> classesToCompile,
+            RecompilationSpec spec,
+            SourceFileClassNameConverter sourceFileClassNameConverter) {
         Set<String> independentClasses = new LinkedHashSet<>();
         for (String classToCompile : classesToCompile) {
             for (String sourcePath : sourceFileClassNameConverter.getRelativeSourcePaths(classToCompile)) {
-                independentClasses.addAll(collectIndependentClassesForSourcePath(sourcePath, spec, sourceFileClassNameConverter));
+                independentClasses.addAll(
+                        collectIndependentClassesForSourcePath(sourcePath, spec, sourceFileClassNameConverter));
                 spec.addSourcePath(sourcePath);
             }
         }
@@ -177,7 +198,8 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     @SuppressWarnings("MixedMutabilityReturnType")
-    private static Set<String> collectIndependentClassesForSourcePath(String sourcePath, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private static Set<String> collectIndependentClassesForSourcePath(
+            String sourcePath, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         Set<String> classNames = sourceFileClassNameConverter.getClassNames(sourcePath);
         if (classNames.size() <= 1) {
             // If source has just 1 class, it doesn't have any independent class
@@ -192,12 +214,16 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return newClasses;
     }
 
-    private static void processTypesToReprocess(Set<String> typesToReprocess, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private static void processTypesToReprocess(
+            Set<String> typesToReprocess,
+            RecompilationSpec spec,
+            SourceFileClassNameConverter sourceFileClassNameConverter) {
         for (String typeToReprocess : typesToReprocess) {
             if (typeToReprocess.endsWith(PACKAGE_INFO_CLASS_NAME) || typeToReprocess.equals(MODULE_INFO_CLASS_NAME)) {
                 // Fixes: https://github.com/gradle/gradle/issues/17572
                 // package-info classes cannot be passed as classes to reprocess to the Java compiler.
-                // Therefore, we need to recompile them every time anything changes if they are processed by an aggregating annotation processor.
+                // Therefore, we need to recompile them every time anything changes if they are processed by an
+                // aggregating annotation processor.
                 spec.addClassToCompile(typeToReprocess);
                 spec.addSourcePaths(sourceFileClassNameConverter.getRelativeSourcePaths(typeToReprocess));
             } else {
@@ -206,33 +232,43 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         }
     }
 
-    private static void addModuleInfoToCompile(RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
-        Set<String> moduleInfoSources = sourceFileClassNameConverter.getRelativeSourcePathsThatExist(MODULE_INFO_CLASS_NAME);
+    private static void addModuleInfoToCompile(
+            RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+        Set<String> moduleInfoSources =
+                sourceFileClassNameConverter.getRelativeSourcePathsThatExist(MODULE_INFO_CLASS_NAME);
         if (!moduleInfoSources.isEmpty()) {
             // Always recompile module-info.java if present.
-            // This solves case for incremental compilation where some package was deleted and exported in module-info, but compilation doesn't fail.
+            // This solves case for incremental compilation where some package was deleted and exported in module-info,
+            // but compilation doesn't fail.
             spec.addClassToCompile(MODULE_INFO_CLASS_NAME);
             spec.addSourcePaths(moduleInfoSources);
         }
     }
 
     @Override
-    public CompileTransaction initCompilationSpecAndTransaction(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
+    public CompileTransaction initCompilationSpecAndTransaction(
+            JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         if (!recompilationSpec.isBuildNeeded()) {
             spec.setSourceFiles(ImmutableSet.of());
             spec.setClassesToProcess(Collections.emptySet());
-            return new CompileTransaction(spec, fileOperations.patternSet(), ImmutableMap.of(), fileOperations, deleter);
+            return new CompileTransaction(
+                    spec, fileOperations.patternSet(), ImmutableMap.of(), fileOperations, deleter);
         }
 
         PatternSet classesToDelete = fileOperations.patternSet();
         PatternSet sourceToCompile = fileOperations.patternSet();
 
-        prepareFilePatterns(recompilationSpec.getClassesToCompile(), recompilationSpec.getSourcePaths(), classesToDelete, sourceToCompile);
+        prepareFilePatterns(
+                recompilationSpec.getClassesToCompile(),
+                recompilationSpec.getSourcePaths(),
+                classesToDelete,
+                sourceToCompile);
         spec.setSourceFiles(narrowDownSourcesToCompile(sourceTree, sourceToCompile));
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
         spec.setClassesToCompile(recompilationSpec.getClassesToCompile());
-        Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
+        Map<GeneratedResource.Location, PatternSet> resourcesToDelete =
+                prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
         return new CompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
     }
 
@@ -240,8 +276,10 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return sourceTree.matching(sourceToCompile);
     }
 
-    private static Map<GeneratedResource.Location, PatternSet> prepareResourcePatterns(Collection<GeneratedResource> staleResources, FileOperations fileOperations) {
-        Map<GeneratedResource.Location, PatternSet> resourcesByLocation = new EnumMap<>(GeneratedResource.Location.class);
+    private static Map<GeneratedResource.Location, PatternSet> prepareResourcePatterns(
+            Collection<GeneratedResource> staleResources, FileOperations fileOperations) {
+        Map<GeneratedResource.Location, PatternSet> resourcesByLocation =
+                new EnumMap<>(GeneratedResource.Location.class);
         for (GeneratedResource.Location location : GeneratedResource.Location.values()) {
             resourcesByLocation.put(location, fileOperations.patternSet());
         }
@@ -251,7 +289,11 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return resourcesByLocation;
     }
 
-    private static void prepareFilePatterns(Collection<String> staleClasses, Collection<String> sourcePaths, PatternSet filesToDelete, PatternSet sourceToCompile) {
+    private static void prepareFilePatterns(
+            Collection<String> staleClasses,
+            Collection<String> sourcePaths,
+            PatternSet filesToDelete,
+            PatternSet sourceToCompile) {
         for (String sourcePath : sourcePaths) {
             filesToDelete.include(sourcePath);
             sourceToCompile.include(sourcePath);
@@ -272,9 +314,9 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         List<File> originalClasspath = spec.getCompileClasspath();
         File destinationDir = spec.getDestinationDir();
         spec.setCompileClasspath(ImmutableList.<File>builderWithExpectedSize(originalClasspath.size() + 1)
-            .add(destinationDir)
-            .addAll(originalClasspath)
-            .build());
+                .add(destinationDir)
+                .addAll(originalClasspath)
+                .build());
     }
 
     @Override

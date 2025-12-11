@@ -16,10 +16,9 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import java.io.File;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
-
-import java.io.File;
 
 public class DefaultSourceIncludesParser implements SourceIncludesParser {
     private final CSourceParser sourceParser;
@@ -39,5 +38,4 @@ public class DefaultSourceIncludesParser implements SourceIncludesParser {
             return parsedIncludes.discardImports();
         }
     }
-
 }

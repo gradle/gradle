@@ -68,7 +68,5 @@ public interface ResolverResults {
          * @throws IllegalStateException If only build dependencies have been resolved.
          */
         ResolvedConfiguration getResolvedConfiguration();
-
     }
-
 }

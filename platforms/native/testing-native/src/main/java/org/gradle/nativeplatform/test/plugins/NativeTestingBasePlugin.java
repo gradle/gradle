@@ -16,6 +16,9 @@
 
 package org.gradle.nativeplatform.test.plugins;
 
+import java.util.Collections;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -30,10 +33,6 @@ import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.test.TestSuiteComponent;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
-
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.concurrent.Callable;
 
 /**
  * Common base plugin for all native testing plugins.
@@ -70,23 +69,33 @@ public abstract class NativeTestingBasePlugin implements Plugin<Project> {
         // Create test lifecycle task
         TaskContainer tasks = project.getTasks();
 
-        final TaskProvider<Task> test = tasks.register(TEST_TASK_NAME, task -> task.dependsOn((Callable<Object>) () -> {
-            TestSuiteComponent unitTestSuite = project.getComponents().withType(TestSuiteComponent.class).findByName(TEST_COMPONENT_NAME);
-            if (unitTestSuite != null && unitTestSuite.getTestBinary().isPresent()) {
-                return unitTestSuite.getTestBinary().get().getRunTask();
-            }
-            return null;
-        }));
+        final TaskProvider<Task> test = tasks.register(
+                TEST_TASK_NAME,
+                task -> task.dependsOn((Callable<Object>) () -> {
+                    TestSuiteComponent unitTestSuite = project.getComponents()
+                            .withType(TestSuiteComponent.class)
+                            .findByName(TEST_COMPONENT_NAME);
+                    if (unitTestSuite != null && unitTestSuite.getTestBinary().isPresent()) {
+                        return unitTestSuite.getTestBinary().get().getRunTask();
+                    }
+                    return null;
+                }));
 
         project.getComponents().withType(TestSuiteComponent.class, testSuiteComponent -> {
             if (testSuiteComponent instanceof ComponentWithTargetMachines) {
-                ComponentWithTargetMachines componentWithTargetMachines = (ComponentWithTargetMachines) testSuiteComponent;
+                ComponentWithTargetMachines componentWithTargetMachines =
+                        (ComponentWithTargetMachines) testSuiteComponent;
                 if (TEST_COMPONENT_NAME.equals(testSuiteComponent.getName())) {
                     test.configure(task -> task.dependsOn((Callable) () -> {
-                        TargetMachine currentHost = ((DefaultTargetMachineFactory)targetMachineFactory).host();
-                        boolean targetsCurrentMachine = componentWithTargetMachines.getTargetMachines().get().stream().anyMatch(targetMachine -> currentHost.getOperatingSystemFamily().equals(targetMachine.getOperatingSystemFamily()));
+                        TargetMachine currentHost = ((DefaultTargetMachineFactory) targetMachineFactory).host();
+                        boolean targetsCurrentMachine = componentWithTargetMachines.getTargetMachines().get().stream()
+                                .anyMatch(targetMachine -> currentHost
+                                        .getOperatingSystemFamily()
+                                        .equals(targetMachine.getOperatingSystemFamily()));
                         if (!targetsCurrentMachine) {
-                            task.getLogger().warn("'" + testSuiteComponent.getName() + "' component in project '" + project.getPath() + "' does not target this operating system.");
+                            task.getLogger()
+                                    .warn("'" + testSuiteComponent.getName() + "' component in project '"
+                                            + project.getPath() + "' does not target this operating system.");
                         }
                         return Collections.emptyList();
                     }));

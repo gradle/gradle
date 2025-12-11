@@ -18,7 +18,6 @@ package org.gradle.process.internal.health.memory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -27,7 +26,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MemInfoOsMemoryInfo implements OsMemoryInfo {
-    // /proc/meminfo is in kB since Linux 4.0, see https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/fs/proc/task_mmu.c?id=39a8804455fb23f09157341d3ba7db6d7ae6ee76#n22
+    // /proc/meminfo is in kB since Linux 4.0, see
+    // https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/fs/proc/task_mmu.c?id=39a8804455fb23f09157341d3ba7db6d7ae6ee76#n22
     private static final Pattern MEMINFO_LINE_PATTERN = Pattern.compile("^\\D+(\\d+) kB$");
     private static final String MEMINFO_FILE_PATH = "/proc/meminfo";
 
@@ -50,7 +50,6 @@ public class MemInfoOsMemoryInfo implements OsMemoryInfo {
 
         return getOsSnapshotFromMemInfo(meminfoOutputLines);
     }
-
 
     /**
      * Given output from /proc/meminfo, return a system memory snapshot.

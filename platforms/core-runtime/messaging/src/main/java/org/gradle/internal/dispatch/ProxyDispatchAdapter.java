@@ -28,24 +28,16 @@ public class ProxyDispatchAdapter<T> {
 
     public ProxyDispatchAdapter(Dispatch<? super MethodInvocation> dispatch, Class<T> type) {
         this.type = type;
-        source = type.cast(
-            Proxy.newProxyInstance(
-                type.getClassLoader(),
-                new Class<?>[]{type},
-                new DispatchingInvocationHandler(type, dispatch)
-            )
-        );
+        source = type.cast(Proxy.newProxyInstance(
+                type.getClassLoader(), new Class<?>[] {type}, new DispatchingInvocationHandler(type, dispatch)));
     }
 
     public ProxyDispatchAdapter(Dispatch<? super MethodInvocation> dispatch, Class<T> type, Class<?> extraType) {
         this.type = type;
-        source = type.cast(
-            Proxy.newProxyInstance(
+        source = type.cast(Proxy.newProxyInstance(
                 selectClassLoader(type, extraType),
-                new Class<?>[]{type, extraType},
-                new DispatchingInvocationHandler(type, dispatch)
-            )
-        );
+                new Class<?>[] {type, extraType},
+                new DispatchingInvocationHandler(type, dispatch)));
     }
 
     public Class<T> getType() {
@@ -95,8 +87,8 @@ public class ProxyDispatchAdapter<T> {
         ClassLoader typeClassLoader = type.getClassLoader();
         ClassLoader candidate = extraType.getClassLoader();
         return candidate != typeClassLoader && candidate != null && isCanLoadType(candidate, type)
-            ? candidate
-            : typeClassLoader;
+                ? candidate
+                : typeClassLoader;
     }
 
     private static <T> boolean isCanLoadType(ClassLoader candidate, Class<T> type) {

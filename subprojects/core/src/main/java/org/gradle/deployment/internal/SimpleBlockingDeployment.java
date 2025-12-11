@@ -16,12 +16,11 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.internal.UncheckedException;
-import org.jspecify.annotations.Nullable;
-
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 class SimpleBlockingDeployment implements DeploymentInternal {
     private final Lock lock = new ReentrantLock();

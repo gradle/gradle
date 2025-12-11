@@ -15,6 +15,10 @@
  */
 package org.gradle.internal.buildevents;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.FailureHeader;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.SuccessHeader;
+
+import java.util.Locale;
 import org.gradle.BuildResult;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.WorkValidationWarningReporter;
@@ -23,11 +27,6 @@ import org.gradle.internal.logging.format.DurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.time.Clock;
-
-import java.util.Locale;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.FailureHeader;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.SuccessHeader;
 
 /**
  * A {@link org.gradle.BuildListener} which logs the final result of the build.
@@ -41,12 +40,11 @@ public class BuildResultLogger {
     private final Clock clock;
 
     public BuildResultLogger(
-        StyledTextOutputFactory textOutputFactory,
-        BuildStartedTime buildStartedTime,
-        Clock clock,
-        DurationFormatter durationFormatter,
-        WorkValidationWarningReporter workValidationWarningReporter
-    ) {
+            StyledTextOutputFactory textOutputFactory,
+            BuildStartedTime buildStartedTime,
+            Clock clock,
+            DurationFormatter durationFormatter,
+            WorkValidationWarningReporter workValidationWarningReporter) {
         this.textOutputFactory = textOutputFactory;
         this.buildStartedTime = buildStartedTime;
         this.clock = clock;
@@ -63,7 +61,8 @@ public class BuildResultLogger {
 
         boolean buildSucceeded = result.getFailure() == null;
 
-        StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, buildSucceeded ? LogLevel.LIFECYCLE : LogLevel.ERROR);
+        StyledTextOutput textOutput =
+                textOutputFactory.create(BuildResultLogger.class, buildSucceeded ? LogLevel.LIFECYCLE : LogLevel.ERROR);
         textOutput.println();
         String action = result.getAction().toUpperCase(Locale.ROOT);
         if (buildSucceeded) {

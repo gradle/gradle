@@ -17,6 +17,11 @@
 package org.gradle.execution.plan;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.VerificationException;
@@ -24,12 +29,6 @@ import org.gradle.execution.plan.edges.DependencyNodesSet;
 import org.gradle.execution.plan.edges.DependentNodesSet;
 import org.gradle.internal.resources.ResourceLock;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.OverridingMethodsMustInvokeSuper;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * A node in the execution graph that represents some executable code with potential dependencies on other nodes.
@@ -40,7 +39,8 @@ public abstract class Node {
         // Node is not scheduled to run in any plan
         // Nodes may be moved back into this state when the execution plan is cancelled or aborted due to a failure
         NOT_SCHEDULED,
-        // Node has been scheduled in an execution plan and should run if possible (depending on failures in other nodes)
+        // Node has been scheduled in an execution plan and should run if possible (depending on failures in other
+        // nodes)
         SHOULD_RUN,
         // Node is currently executing
         EXECUTING,
@@ -86,9 +86,9 @@ public abstract class Node {
             dependencyNodes.healthDiagnostics(specificState);
             nodeSpecificHealthDiagnostics(specificState);
             return this + " (state=" + state
-                + ", dependencies=" + dependenciesState
-                + ", group=" + group
-                + ", " + specificState + " )";
+                    + ", dependencies=" + dependenciesState
+                    + ", group=" + group
+                    + ", " + specificState + " )";
         }
     }
 
@@ -108,8 +108,7 @@ public abstract class Node {
         return builder.toString();
     }
 
-    protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
-    }
+    protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {}
 
     public NodeGroup getGroup() {
         return group;
@@ -138,7 +137,8 @@ public abstract class Node {
         }
         OrdinalGroup currentOrdinal = group.asOrdinal();
         if (currentOrdinal == null || candidateOrdinal.getOrdinal() < currentOrdinal.getOrdinal()) {
-            // Currently has no ordinal value or candidate has a smaller ordinal value - merge the candidate into the current group
+            // Currently has no ordinal value or candidate has a smaller ordinal value - merge the candidate into the
+            // current group
             setGroup(group.reachableFrom(candidateOrdinal));
         }
     }
@@ -181,7 +181,8 @@ public abstract class Node {
         OrdinalGroup newOrdinal = ordinal;
         for (Node successor : getHardSuccessors()) {
             OrdinalGroup successorOrdinal = successor.getGroup().asOrdinal();
-            if (successorOrdinal != null && (newOrdinal == null || successorOrdinal.getOrdinal() > newOrdinal.getOrdinal())) {
+            if (successorOrdinal != null
+                    && (newOrdinal == null || successorOrdinal.getOrdinal() > newOrdinal.getOrdinal())) {
                 newOrdinal = successorOrdinal;
             }
         }
@@ -239,9 +240,9 @@ public abstract class Node {
      */
     public boolean isComplete() {
         return state == ExecutionState.EXECUTED
-            || state == ExecutionState.FAILED_DEPENDENCY
-            || state == ExecutionState.NOT_SCHEDULED
-            || filtered;
+                || state == ExecutionState.FAILED_DEPENDENCY
+                || state == ExecutionState.NOT_SCHEDULED
+                || filtered;
     }
 
     public boolean isSuccessful() {
@@ -319,7 +320,8 @@ public abstract class Node {
             return;
         }
         if (state != ExecutionState.SHOULD_RUN) {
-            // When the state changes to `SHOULD_RUN`, the dependencies need to be reprocessed since they also may be required now.
+            // When the state changes to `SHOULD_RUN`, the dependencies need to be reprocessed since they also may be
+            // required now.
             dependenciesProcessed = false;
             state = ExecutionState.SHOULD_RUN;
         }
@@ -508,8 +510,7 @@ public abstract class Node {
      * @param monitor An action that should be called when this node is ready to execute, when the dependencies for this node are executed outside
      * the work graph that contains this node (for example, when the node represents a task in an included build).
      */
-    public void prepareForExecution(Action<Node> monitor) {
-    }
+    public void prepareForExecution(Action<Node> monitor) {}
 
     public abstract void resolveDependencies(TaskDependencyResolver dependencyResolver);
 
@@ -566,8 +567,7 @@ public abstract class Node {
      * <p>Note: there is currently no cycle detection applied to these dynamically added nodes or their dependencies.
      * Support for this is not implemented yet and will be added later.
      */
-    public void visitPreExecutionNodes(Consumer<? super Node> visitor) {
-    }
+    public void visitPreExecutionNodes(Consumer<? super Node> visitor) {}
 
     public boolean hasPendingPreExecutionNodes() {
         return false;
@@ -585,8 +585,7 @@ public abstract class Node {
      * <p>Note: mustRunAfter or finalizedBy relationship on this node is not honored for these dynamically added nodes or their dependencies.
      * Support for this is not implemented yet and will be added later.
      */
-    public void visitPostExecutionNodes(Consumer<? super Node> visitor) {
-    }
+    public void visitPostExecutionNodes(Consumer<? super Node> visitor) {}
 
     public void mutationsResolved(MutationInfo mutationInfo) {
         this.mutationInfo = mutationInfo;
@@ -636,5 +635,4 @@ public abstract class Node {
 
     @Override
     public abstract String toString();
-
 }

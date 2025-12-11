@@ -15,6 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
@@ -40,14 +47,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
 @ServiceScope(Scope.Build.class)
 public class RepositoryTransportFactory {
     private final List<ResourceConnectorFactory> registeredProtocols = new ArrayList<>();
@@ -62,16 +61,17 @@ public class RepositoryTransportFactory {
     private final FileResourceRepository fileRepository;
     private final ChecksumService checksumService;
 
-    public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
-                                      TemporaryFileProvider temporaryFileProvider,
-                                      CachedExternalResourceIndex<String> cachedExternalResourceIndex,
-                                      BuildCommencedTimeProvider timeProvider,
-                                      ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
-                                      BuildOperationRunner buildOperationRunner,
-                                      StartParameterResolutionOverride startParameterResolutionOverride,
-                                      ProducerGuard<ExternalResourceName> producerGuard,
-                                      FileResourceRepository fileRepository,
-                                      ChecksumService checksumService) {
+    public RepositoryTransportFactory(
+            Collection<ResourceConnectorFactory> resourceConnectorFactory,
+            TemporaryFileProvider temporaryFileProvider,
+            CachedExternalResourceIndex<String> cachedExternalResourceIndex,
+            BuildCommencedTimeProvider timeProvider,
+            ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
+            BuildOperationRunner buildOperationRunner,
+            StartParameterResolutionOverride startParameterResolutionOverride,
+            ProducerGuard<ExternalResourceName> producerGuard,
+            FileResourceRepository fileRepository,
+            ChecksumService checksumService) {
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
@@ -94,14 +94,30 @@ public class RepositoryTransportFactory {
     }
 
     public RepositoryTransport createFileTransport(String name) {
-        return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, artifactCacheLockingManager, producerGuard, checksumService);
+        return new FileTransport(
+                name,
+                fileRepository,
+                cachedExternalResourceIndex,
+                temporaryFileProvider,
+                timeProvider,
+                artifactCacheLockingManager,
+                producerGuard,
+                checksumService);
     }
 
-    public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
+    public RepositoryTransport createTransport(
+            String scheme,
+            String name,
+            Collection<Authentication> authentications,
+            HttpRedirectVerifier redirectVerifier) {
         return createTransport(Collections.singleton(scheme), name, authentications, redirectVerifier);
     }
 
-    public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
+    public RepositoryTransport createTransport(
+            Set<String> schemes,
+            String name,
+            Collection<Authentication> authentications,
+            HttpRedirectVerifier redirectVerifier) {
         validateSchemes(schemes);
 
         ResourceConnectorFactory connectorFactory = findConnectorFactory(schemes);
@@ -116,7 +132,8 @@ public class RepositoryTransportFactory {
         if (schemes.equals(Collections.singleton("file"))) {
             return createFileTransport(name);
         }
-        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications, redirectVerifier);
+        ResourceConnectorSpecification connectionDetails =
+                new DefaultResourceConnectorSpecification(authentications, redirectVerifier);
 
         ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
         resourceConnector = startParameterResolutionOverride.overrideExternalResourceConnector(resourceConnector);
@@ -124,19 +141,32 @@ public class RepositoryTransportFactory {
         ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
         cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(cachePolicy);
 
-        return new ResourceConnectorRepositoryTransport(name, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, artifactCacheLockingManager, resourceConnector, buildOperationRunner, cachePolicy, producerGuard, fileRepository, checksumService);
+        return new ResourceConnectorRepositoryTransport(
+                name,
+                temporaryFileProvider,
+                cachedExternalResourceIndex,
+                timeProvider,
+                artifactCacheLockingManager,
+                resourceConnector,
+                buildOperationRunner,
+                cachePolicy,
+                producerGuard,
+                fileRepository,
+                checksumService);
     }
 
     private void validateSchemes(Set<String> schemes) {
         Set<String> validSchemes = getRegisteredProtocols();
         for (String scheme : schemes) {
             if (!validSchemes.contains(scheme)) {
-                throw new InvalidUserDataException(String.format("Not a supported repository protocol '%s': valid protocols are %s", scheme, validSchemes));
+                throw new InvalidUserDataException(String.format(
+                        "Not a supported repository protocol '%s': valid protocols are %s", scheme, validSchemes));
             }
         }
     }
 
-    private void validateConnectorFactoryCredentials(Set<String> schemes, ResourceConnectorFactory factory, Collection<Authentication> authentications) {
+    private void validateConnectorFactoryCredentials(
+            Set<String> schemes, ResourceConnectorFactory factory, Collection<Authentication> authentications) {
         Set<Class<? extends Authentication>> configuredAuthenticationTypes = new HashSet<>();
 
         for (Authentication authentication : authentications) {
@@ -153,23 +183,28 @@ public class RepositoryTransportFactory {
             }
 
             if (!isAuthenticationSupported) {
-                throw new InvalidUserDataException(String.format("Authentication scheme %s is not supported by protocol '%s'",
-                    authentication, schemes.iterator().next()));
+                throw new InvalidUserDataException(String.format(
+                        "Authentication scheme %s is not supported by protocol '%s'",
+                        authentication, schemes.iterator().next()));
             }
 
             if (credentials != null) {
                 if (!((AuthenticationInternal) authentication).supports(credentials)) {
-                    throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme %s",
-                        credentials.getClass().getSimpleName(), authentication));
+                    throw new InvalidUserDataException(String.format(
+                            "Credentials type of '%s' is not supported by authentication scheme %s",
+                            credentials.getClass().getSimpleName(), authentication));
                 }
             } else {
                 if (needCredentials) {
-                    throw new InvalidUserDataException("You cannot configure authentication schemes for this repository type if no credentials are provided.");
+                    throw new InvalidUserDataException(
+                            "You cannot configure authentication schemes for this repository type if no credentials are provided.");
                 }
             }
 
             if (!configuredAuthenticationTypes.add(authenticationInternal.getType())) {
-                throw new InvalidUserDataException(String.format("You cannot configure multiple authentication schemes of the same type.  The duplicate one is %s.", authentication));
+                throw new InvalidUserDataException(String.format(
+                        "You cannot configure multiple authentication schemes of the same type.  The duplicate one is %s.",
+                        authentication));
             }
         }
     }
@@ -180,14 +215,16 @@ public class RepositoryTransportFactory {
                 return protocolRegistration;
             }
         }
-        throw new InvalidUserDataException("You cannot mix different URL schemes for a single repository. Please declare separate repositories.");
+        throw new InvalidUserDataException(
+                "You cannot mix different URL schemes for a single repository. Please declare separate repositories.");
     }
 
     private static class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
         private final Collection<Authentication> authentications;
         private final HttpRedirectVerifier redirectVerifier;
 
-        private DefaultResourceConnectorSpecification(Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
+        private DefaultResourceConnectorSpecification(
+                Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
             this.authentications = authentications;
             this.redirectVerifier = redirectVerifier;
         }
@@ -198,7 +235,8 @@ public class RepositoryTransportFactory {
                 return null;
             }
 
-            Credentials credentials = ((AuthenticationInternal) authentications.iterator().next()).getCredentials();
+            Credentials credentials =
+                    ((AuthenticationInternal) authentications.iterator().next()).getCredentials();
 
             if (credentials == null) {
                 return null;
@@ -206,7 +244,8 @@ public class RepositoryTransportFactory {
             if (type.isAssignableFrom(credentials.getClass())) {
                 return type.cast(credentials);
             } else {
-                throw new IllegalArgumentException(String.format("Credentials must be an instance of '%s'.", type.getCanonicalName()));
+                throw new IllegalArgumentException(
+                        String.format("Credentials must be an instance of '%s'.", type.getCanonicalName()));
             }
         }
 

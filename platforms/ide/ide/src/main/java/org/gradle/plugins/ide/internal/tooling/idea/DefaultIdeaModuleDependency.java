@@ -54,9 +54,9 @@ public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
     @Override
     public String toString() {
         return "DefaultIdeaModuleDependency{"
-            + "scope='" + scope + '\''
-            + ", targetModuleName='" + targetModuleName + '\''
-            + ", exported=" + exported
-            + '}';
+                + "scope='" + scope + '\''
+                + ", targetModuleName='" + targetModuleName + '\''
+                + ", exported=" + exported
+                + '}';
     }
 }

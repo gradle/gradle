@@ -62,7 +62,6 @@ public class Path {
         return "Path{" + "url='" + url + "\'" + "}";
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {

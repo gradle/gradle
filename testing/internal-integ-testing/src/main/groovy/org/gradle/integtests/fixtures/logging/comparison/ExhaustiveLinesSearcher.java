@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.fixtures.logging.comparison;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 
 public class ExhaustiveLinesSearcher {
     private final boolean useUnifiedDiff;
@@ -55,7 +54,8 @@ public class ExhaustiveLinesSearcher {
         return new ExhaustiveLinesSearcher(false);
     }
 
-    public void assertLinesContainedIn(List<String> expectedLines, List<String> actualLines) throws LineSearchFailures.AbstractLineListComparisonFailure {
+    public void assertLinesContainedIn(List<String> expectedLines, List<String> actualLines)
+            throws LineSearchFailures.AbstractLineListComparisonFailure {
         assert !expectedLines.isEmpty() : "there must be expected text";
         assert !actualLines.isEmpty() : "there must be output text";
 
@@ -88,10 +88,12 @@ public class ExhaustiveLinesSearcher {
      * @return {@code true} if the actual index is a valid potential match position for the given number of expected lines,
      * and the actual lines matches the corresponding expected lines beginning at that index
      */
-    private static boolean isMatchingIndex(List<String> expectedLines, List<String> actualLines, int actualMatchStartIdx) {
+    private static boolean isMatchingIndex(
+            List<String> expectedLines, List<String> actualLines, int actualMatchStartIdx) {
         for (int expectedIdx = 0; expectedIdx < expectedLines.size(); expectedIdx++) {
             int actualIdx = actualMatchStartIdx + expectedIdx;
-            if (actualIdx >= actualLines.size() || !Objects.equals(expectedLines.get(expectedIdx), actualLines.get(actualIdx))) {
+            if (actualIdx >= actualLines.size()
+                    || !Objects.equals(expectedLines.get(expectedIdx), actualLines.get(actualIdx))) {
                 return false;
             }
         }
@@ -110,7 +112,8 @@ public class ExhaustiveLinesSearcher {
             for (int actualIdx = 0; actualIdx < actualLines.size(); actualIdx++) {
                 String actualLine = actualLines.get(actualIdx);
                 if (Objects.equals(expectedLine, actualLine) && !StringUtils.isEmpty(expectedLine)) {
-                    result.computeIfAbsent(expectedIdx, matches -> new ArrayList<>()).add(actualIdx);
+                    result.computeIfAbsent(expectedIdx, matches -> new ArrayList<>())
+                            .add(actualIdx);
                 }
             }
         }
@@ -129,11 +132,15 @@ public class ExhaustiveLinesSearcher {
     }
 
     private static void filterLessLikelyMatches(Set<PotentialMatch> potentialMatches) {
-        final long highestNumMatches = potentialMatches.stream().map(PotentialMatch::getNumMatches).max(Long::compareTo).orElse(0L);
+        final long highestNumMatches = potentialMatches.stream()
+                .map(PotentialMatch::getNumMatches)
+                .max(Long::compareTo)
+                .orElse(0L);
         potentialMatches.removeIf(pm -> pm.getNumMatches() < highestNumMatches);
     }
 
-    private static Set<PotentialMatch> convertMatchingLines(List<String> expectedLines, List<String> actualLines, Map<Integer, List<Integer>> matchingLines) {
+    private static Set<PotentialMatch> convertMatchingLines(
+            List<String> expectedLines, List<String> actualLines, Map<Integer, List<Integer>> matchingLines) {
         Set<PotentialMatch> potentialMatches = new HashSet<>(matchingLines.size());
         for (Map.Entry<Integer, List<Integer>> entry : matchingLines.entrySet()) {
             int expectedIdx = entry.getKey();

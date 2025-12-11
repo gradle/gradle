@@ -16,14 +16,13 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.plugins.ide.eclipse.model.FileReference;
-
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+import org.gradle.internal.UncheckedException;
+import org.gradle.plugins.ide.eclipse.model.FileReference;
 
 public class FileReferenceFactory {
     private final Map<String, File> variables = new HashMap<>();
@@ -77,10 +76,10 @@ public class FileReferenceFactory {
      * Creates a reference to the given path. Returns null for null path
      */
     public FileReference fromJarURI(String jarURI) {
-        if (jarURI== null) {
+        if (jarURI == null) {
             return null;
         }
-        //cut the pre and postfix of this url
+        // cut the pre and postfix of this url
         URI fileURI = null;
         try {
             fileURI = new URI(jarURI.replace("jar:", "").replace("!/", ""));
@@ -142,10 +141,9 @@ public class FileReferenceFactory {
         }
 
         @Override
-        public String getJarURL(){
-            //windows needs an additional backslash in jar urls
-            return  "jar:" + file.toURI() + "!/";
-
+        public String getJarURL() {
+            // windows needs an additional backslash in jar urls
+            return "jar:" + file.toURI() + "!/";
         }
 
         @Override
@@ -155,7 +153,7 @@ public class FileReferenceFactory {
 
         @Override
         public String toString() {
-            return "{file='" + file + "', path='" + path  + "', jarUrl='" + getJarURL() + "'}";
+            return "{file='" + file + "', path='" + path + "', jarUrl='" + getJarURL() + "'}";
         }
 
         @Override

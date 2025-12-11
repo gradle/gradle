@@ -16,6 +16,11 @@
 
 package org.gradle.ide.xcode.internal;
 
+import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_DEBUG;
+
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
@@ -27,12 +32,6 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.xcode.internal.xcodeproj.FileTypes;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 import org.gradle.language.swift.SwiftVersion;
-
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_DEBUG;
 
 /**
  * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Schemes.html">XCode Scheme Concept</a>
@@ -164,7 +163,8 @@ public class XcodeTarget implements Named {
         return swiftSourceCompatibility;
     }
 
-    public void addBinary(String configuration, Provider<? extends FileSystemLocation> outputFile, String architectureName) {
+    public void addBinary(
+            String configuration, Provider<? extends FileSystemLocation> outputFile, String architectureName) {
         binaries.add(new XcodeBinary(configuration, outputFile, architectureName));
         if (configuration.contains("Debug")) {
             this.debugOutputFile = outputFile;
@@ -176,6 +176,6 @@ public class XcodeTarget implements Named {
     }
 
     public boolean isBuildable() {
-         return !binaries.isEmpty();
+        return !binaries.isEmpty();
     }
 }

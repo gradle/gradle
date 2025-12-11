@@ -16,18 +16,19 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
+import java.io.Serializable;
+import java.util.List;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Serializable;
-import java.util.List;
-
 public class DefaultTestResult implements TestResult, Serializable {
     private final List<TestFailure> failures;
+
     @Nullable
     private final TestFailure assumptionFailure;
+
     private final ResultType resultType;
     private final long startTime;
     private final long endTime;
@@ -36,10 +37,26 @@ public class DefaultTestResult implements TestResult, Serializable {
     private final long failedCount;
 
     public DefaultTestResult(TestState state) {
-        this(state.resultType, state.getStartTime(), state.getEndTime(), state.testCount, state.successfulCount, state.failedCount, state.failures, state.assumptionFailure);
+        this(
+                state.resultType,
+                state.getStartTime(),
+                state.getEndTime(),
+                state.testCount,
+                state.successfulCount,
+                state.failedCount,
+                state.failures,
+                state.assumptionFailure);
     }
 
-    public DefaultTestResult(ResultType resultType, long startTime, long endTime, long testCount, long successfulCount, long failedCount, List<TestFailure> failures, @Nullable TestFailure assumptionFailure) {
+    public DefaultTestResult(
+            ResultType resultType,
+            long startTime,
+            long endTime,
+            long testCount,
+            long successfulCount,
+            long failedCount,
+            List<TestFailure> failures,
+            @Nullable TestFailure assumptionFailure) {
         this.resultType = resultType;
         this.startTime = startTime;
         this.endTime = endTime;

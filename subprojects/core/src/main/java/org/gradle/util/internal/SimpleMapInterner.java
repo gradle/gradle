@@ -16,12 +16,11 @@
 package org.gradle.util.internal;
 
 import com.google.common.collect.Interner;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.BuildTree.class)
 public class SimpleMapInterner implements Interner<String> {

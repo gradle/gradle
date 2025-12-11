@@ -16,11 +16,10 @@
 
 package org.gradle.execution.plan.edges;
 
-import org.gradle.execution.plan.Node;
+import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
 
 import java.util.Set;
-
-import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
+import org.gradle.execution.plan.Node;
 
 public class ComplexDependencyNodesSet implements DependencyNodesSet {
     private final DependencySuccessorsOnlyNodeSet delegate;

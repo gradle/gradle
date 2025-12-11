@@ -16,15 +16,14 @@
 
 package org.gradle.internal.remote.internal.hub;
 
-import org.gradle.internal.remote.internal.hub.protocol.ChannelMessage;
-import org.gradle.internal.remote.internal.hub.protocol.EndOfStream;
-import org.gradle.internal.remote.internal.hub.queue.MultiEndPointQueue;
-import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
-import org.gradle.internal.remote.internal.hub.protocol.RejectedMessage;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
+import org.gradle.internal.remote.internal.hub.protocol.ChannelMessage;
+import org.gradle.internal.remote.internal.hub.protocol.EndOfStream;
+import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
+import org.gradle.internal.remote.internal.hub.protocol.RejectedMessage;
+import org.gradle.internal.remote.internal.hub.queue.MultiEndPointQueue;
 
 class OutgoingQueue extends MultiEndPointQueue {
     private final IncomingQueue incomingQueue;

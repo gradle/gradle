@@ -16,12 +16,11 @@
 
 package org.gradle.performance.results;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 
 public class CrossVersionPerformanceTestHistory implements PerformanceTestHistory {
     private final PerformanceExperiment experiment;
@@ -31,7 +30,11 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
     private List<CrossVersionPerformanceResults> oldestFirst;
     private List<String> knownVersions;
 
-    public CrossVersionPerformanceTestHistory(PerformanceExperiment experiment, List<String> versions, List<String> branches, List<CrossVersionPerformanceResults> newestFirst) {
+    public CrossVersionPerformanceTestHistory(
+            PerformanceExperiment experiment,
+            List<String> versions,
+            List<String> branches,
+            List<CrossVersionPerformanceResults> newestFirst) {
         this.experiment = experiment;
         this.versions = versions;
         this.branches = branches;
@@ -81,7 +84,9 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
 
     @Override
     public List<PerformanceTestExecution> getExecutions() {
-        return getResults().stream().map(KnownVersionsPerformanceTestExecution::new).collect(Collectors.toList());
+        return getResults().stream()
+                .map(KnownVersionsPerformanceTestExecution::new)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -91,45 +96,45 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
         }
         CrossVersionPerformanceResults mostRecent = newestFirst.get(0);
         return getKnownVersions().stream()
-            .map(input -> new ScenarioDefinition() {
-                @Override
-                public String getDisplayName() {
-                    return input;
-                }
+                .map(input -> new ScenarioDefinition() {
+                    @Override
+                    public String getDisplayName() {
+                        return input;
+                    }
 
-                @Override
-                public String getTestProject() {
-                    return mostRecent.getTestProject();
-                }
+                    @Override
+                    public String getTestProject() {
+                        return mostRecent.getTestProject();
+                    }
 
-                @Override
-                public List<String> getTasks() {
-                    return mostRecent.getTasks();
-                }
+                    @Override
+                    public List<String> getTasks() {
+                        return mostRecent.getTasks();
+                    }
 
-                @Override
-                public List<String> getCleanTasks() {
-                    return mostRecent.getCleanTasks();
-                }
+                    @Override
+                    public List<String> getCleanTasks() {
+                        return mostRecent.getCleanTasks();
+                    }
 
-                @Override
-                public List<String> getArgs() {
-                    return mostRecent.getArgs();
-                }
+                    @Override
+                    public List<String> getArgs() {
+                        return mostRecent.getArgs();
+                    }
 
-                @Nullable
-                @Override
-                public List<String> getGradleOpts() {
-                    return mostRecent.getGradleOpts();
-                }
+                    @Nullable
+                    @Override
+                    public List<String> getGradleOpts() {
+                        return mostRecent.getGradleOpts();
+                    }
 
-                @Nullable
-                @Override
-                public Boolean getDaemon() {
-                    return mostRecent.getDaemon();
-                }
-            })
-            .collect(Collectors.toList());
+                    @Nullable
+                    @Override
+                    public Boolean getDaemon() {
+                        return mostRecent.getDaemon();
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -151,7 +156,8 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
 
         @Override
         public String getExecutionId() {
-            return String.valueOf(Math.abs(getVcsCommits() != null ? getVcsCommits().hashCode() : hashCode()));
+            return String.valueOf(
+                    Math.abs(getVcsCommits() != null ? getVcsCommits().hashCode() : hashCode()));
         }
 
         @Override
@@ -186,7 +192,9 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
 
         @Override
         public List<MeasuredOperationList> getScenarios() {
-            return getKnownVersions().stream().map(version -> result.version(version).getResults()).collect(Collectors.toList());
+            return getKnownVersions().stream()
+                    .map(version -> result.version(version).getResults())
+                    .collect(Collectors.toList());
         }
 
         @Override

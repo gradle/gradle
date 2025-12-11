@@ -80,6 +80,4 @@ public interface ListenerBuildOperationDecorator {
      * @see #decorate(String, Class, Object)
      */
     Object decorateUnknownListener(String registrationPoint, Object listener);
-
-
 }

@@ -15,7 +15,13 @@
  */
 package org.gradle.language.base.plugins;
 
+import static com.google.common.base.Strings.emptyToNull;
+
 import com.google.common.base.Joiner;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -77,13 +83,6 @@ import org.gradle.platform.base.internal.dependents.DefaultDependentBinariesReso
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import static com.google.common.base.Strings.emptyToNull;
-
 /**
  * Base plugin for component support.
  *
@@ -122,16 +121,24 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
             builder.internalView(PlatformAwareComponentSpecInternal.class);
         }
 
-        @Hidden @Model
-        LanguageTransformContainer languageTransforms(CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        @Hidden
+        @Model
+        LanguageTransformContainer languageTransforms(
+                CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
             return new DefaultLanguageTransformContainer(collectionCallbackActionDecorator);
         }
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
-        // TODO: Convert this to `@BinaryTasks` when we model a `NativeAssembly` instead of wiring compile tasks directly to LinkTask
+        // TODO: Convert this to `@BinaryTasks` when we model a `NativeAssembly` instead of wiring compile tasks
+        // directly to LinkTask
         @Finalize
-        void createSourceTransformTasks(final TaskContainer tasks, @Path("binaries") final ModelMap<BinarySpecInternal> binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
-            BinarySourceTransformations transformations = new BinarySourceTransformations(tasks, languageTransforms, serviceRegistry);
+        void createSourceTransformTasks(
+                final TaskContainer tasks,
+                @Path("binaries") final ModelMap<BinarySpecInternal> binaries,
+                LanguageTransformContainer languageTransforms,
+                ServiceRegistry serviceRegistry) {
+            BinarySourceTransformations transformations =
+                    new BinarySourceTransformations(tasks, languageTransforms, serviceRegistry);
             for (BinarySpecInternal binary : binaries) {
                 if (binary.isLegacyBinary()) {
                     continue;
@@ -147,11 +154,14 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Model
-        PlatformContainer platforms(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-            return instantiator.newInstance(DefaultPlatformContainer.class, instantiator, collectionCallbackActionDecorator);
+        PlatformContainer platforms(
+                Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+            return instantiator.newInstance(
+                    DefaultPlatformContainer.class, instantiator, collectionCallbackActionDecorator);
         }
 
-        @Hidden @Model
+        @Hidden
+        @Model
         PlatformResolvers platformResolver(PlatformContainer platforms) {
             return new DefaultPlatformResolvers(platforms);
         }
@@ -164,14 +174,18 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
         @Mutate
         void collectBinaries(BinaryContainer binaries, ComponentSpecContainer componentSpecs) {
             for (VariantComponentSpec componentSpec : componentSpecs.withType(VariantComponentSpec.class)) {
-                for (BinarySpecInternal binary : componentSpec.getBinaries().withType(BinarySpecInternal.class).values()) {
+                for (BinarySpecInternal binary : componentSpec
+                        .getBinaries()
+                        .withType(BinarySpecInternal.class)
+                        .values()) {
                     binaries.put(binary.getProjectScopedName(), binary);
                 }
             }
         }
 
         @Mutate
-        void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, ComponentSpecContainer components) {
+        void attachBinariesToAssembleLifecycle(
+                @Path("tasks.assemble") Task assemble, ComponentSpecContainer components) {
             List<BinarySpecInternal> notBuildable = new ArrayList<>();
             boolean hasBuildableBinaries = false;
             for (VariantComponentSpec component : components.withType(VariantComponentSpec.class)) {
@@ -198,7 +212,8 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
             @Override
             public void execute(Task task) {
-                Set<? extends Task> taskDependencies = TaskDependencyUtil.getDependenciesForInternalUse(task.getTaskDependencies(), task);
+                Set<? extends Task> taskDependencies =
+                        TaskDependencyUtil.getDependenciesForInternalUse(task.getTaskDependencies(), task);
 
                 if (taskDependencies.isEmpty()) {
                     TreeFormatter formatter = new TreeFormatter();
@@ -217,31 +232,43 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Defaults
-        void initializeComponentSourceSets(@Each HasIntermediateOutputsComponentSpec component, LanguageTransformContainer languageTransforms) {
+        void initializeComponentSourceSets(
+                @Each HasIntermediateOutputsComponentSpec component, LanguageTransformContainer languageTransforms) {
             // If there is a transform for the language into one of the component inputs, add a default source set
             for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
                 if (component.getIntermediateTypes().contains(languageTransform.getOutputType())) {
-                    component.getSources().create(languageTransform.getLanguageName(), languageTransform.getSourceSetType());
+                    component
+                            .getSources()
+                            .create(languageTransform.getLanguageName(), languageTransform.getSourceSetType());
                 }
             }
         }
 
         @Finalize
-        void applyFallbackSourceConventions(@Each LanguageSourceSet languageSourceSet, ProjectIdentifier projectIdentifier) {
+        void applyFallbackSourceConventions(
+                @Each LanguageSourceSet languageSourceSet, ProjectIdentifier projectIdentifier) {
             // Only apply default locations when none explicitly configured
             if (languageSourceSet.getSource().getSourceDirectories().isEmpty()) {
                 File baseDir = projectIdentifier.getProjectDir();
-                String defaultSourceDir = Joiner.on(File.separator).skipNulls().join(baseDir.getPath(), "src", emptyToNull(languageSourceSet.getParentName()), emptyToNull(languageSourceSet.getName()));
+                String defaultSourceDir = Joiner.on(File.separator)
+                        .skipNulls()
+                        .join(
+                                baseDir.getPath(),
+                                "src",
+                                emptyToNull(languageSourceSet.getParentName()),
+                                emptyToNull(languageSourceSet.getName()));
                 languageSourceSet.getSource().srcDir(defaultSourceDir);
             }
         }
 
         @Finalize
-        public void defineBinariesCheckTasks(@Each BinarySpecInternal binary, NamedEntityInstantiator<Task> taskInstantiator) {
+        public void defineBinariesCheckTasks(
+                @Each BinarySpecInternal binary, NamedEntityInstantiator<Task> taskInstantiator) {
             if (binary.isLegacyBinary()) {
                 return;
             }
-            TaskInternal binaryLifecycleTask = taskInstantiator.create(binary.getNamingScheme().getTaskName("check"), DefaultTask.class);
+            TaskInternal binaryLifecycleTask =
+                    taskInstantiator.create(binary.getNamingScheme().getTaskName("check"), DefaultTask.class);
             binaryLifecycleTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
             binaryLifecycleTask.setDescription("Check " + binary);
             binary.setCheckTask(binaryLifecycleTask);
@@ -252,14 +279,16 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
             for (BinarySpec binary : binaries) {
                 Task checkTask = binary.getCheckTask();
                 if (checkTask != null) {
-                    ((TaskContainerInternal)tasks).addInternal(checkTask);
+                    ((TaskContainerInternal) tasks).addInternal(checkTask);
                 }
             }
         }
 
         @Defaults
-        // TODO:LPTR We should collect all source sets in the project source set, however this messes up ComponentReportRenderer
-        void addComponentSourcesSetsToProjectSourceSet(@Each SourceComponentSpec component, final ProjectSourceSet projectSourceSet) {
+        // TODO:LPTR We should collect all source sets in the project source set, however this messes up
+        // ComponentReportRenderer
+        void addComponentSourcesSetsToProjectSourceSet(
+                @Each SourceComponentSpec component, final ProjectSourceSet projectSourceSet) {
             component.getSources().afterEach(new Action<LanguageSourceSet>() {
                 @Override
                 public void execute(LanguageSourceSet languageSourceSet) {
@@ -274,13 +303,15 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
             attachInputs.setSources(component.getSources());
         }
 
-        static abstract class AttachInputs extends RuleSource {
+        abstract static class AttachInputs extends RuleSource {
             @RuleTarget
             abstract ModelMap<BinarySpec> getBinaries();
+
             abstract void setBinaries(ModelMap<BinarySpec> binaries);
 
             @RuleInput
             abstract ModelMap<LanguageSourceSet> getSources();
+
             abstract void setSources(ModelMap<LanguageSourceSet> sources);
 
             @Mutate
@@ -295,13 +326,15 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
             }
         }
 
-        @Hidden @Model
+        @Hidden
+        @Model
         DependentBinariesResolver dependentBinariesResolver(Instantiator instantiator) {
             return instantiator.newInstance(DefaultDependentBinariesResolver.class);
         }
 
         @Defaults
-        void registerBaseDependentBinariesResolutionStrategy(DependentBinariesResolver resolver, ServiceRegistry serviceRegistry) {
+        void registerBaseDependentBinariesResolutionStrategy(
+                DependentBinariesResolver resolver, ServiceRegistry serviceRegistry) {
             resolver.register(new BaseDependentBinariesResolutionStrategy());
         }
     }

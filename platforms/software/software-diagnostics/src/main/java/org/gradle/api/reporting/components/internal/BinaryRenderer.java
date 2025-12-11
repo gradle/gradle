@@ -16,10 +16,9 @@
 
 package org.gradle.api.reporting.components.internal;
 
+import javax.inject.Inject;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
-
-import javax.inject.Inject;
 
 public class BinaryRenderer extends AbstractBinaryRenderer<BinarySpec> {
     @Inject

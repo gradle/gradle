@@ -18,6 +18,8 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.Collections;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
@@ -27,17 +29,12 @@ import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.Collections;
-
 public class DefaultIsolatableFactory extends AbstractValueProcessor implements IsolatableFactory {
 
     private final ValueVisitor<Isolatable<?>> isolatableValueVisitor;
 
     public DefaultIsolatableFactory(
-        ClassLoaderHierarchyHasher classLoaderHasher,
-        ManagedFactoryRegistry managedFactoryRegistry
-    ) {
+            ClassLoaderHierarchyHasher classLoaderHasher, ManagedFactoryRegistry managedFactoryRegistry) {
         super(Collections.emptyList());
         this.isolatableValueVisitor = new IsolatableVisitor(classLoaderHasher, managedFactoryRegistry);
     }
@@ -128,7 +125,8 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
 
         @Override
         public Isolatable<?> managedValue(Managed value, Isolatable<?> state) {
-            return new IsolatedManagedValue(value.publicType(), managedFactoryRegistry.lookup(value.getFactoryId()), state);
+            return new IsolatedManagedValue(
+                    value.publicType(), managedFactoryRegistry.lookup(value.getFactoryId()), state);
         }
 
         @Override
@@ -138,7 +136,8 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
 
         @Override
         public Isolatable<?> gradleSerialized(Object value, byte[] serializedValue) {
-            throw new UnsupportedOperationException("Isolating values of type '" + value.getClass().getSimpleName() + "' is not supported");
+            throw new UnsupportedOperationException(
+                    "Isolating values of type '" + value.getClass().getSimpleName() + "' is not supported");
         }
 
         @Override

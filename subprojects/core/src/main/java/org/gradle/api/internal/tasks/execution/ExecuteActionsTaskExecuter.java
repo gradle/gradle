@@ -15,6 +15,10 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_INCREMENTALLY;
+
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -40,11 +44,6 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.work.AsyncWorkTracker;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_INCREMENTALLY;
-
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
  */
@@ -67,21 +66,20 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final MissingTaskDependencyDetector missingTaskDependencyDetector;
 
     public ExecuteActionsTaskExecuter(
-        ExecutionHistoryStore executionHistoryStore,
-        BuildOperationRunner buildOperationRunner,
-        AsyncWorkTracker asyncWorkTracker,
-        org.gradle.api.execution.TaskActionListener actionListener,
-        TaskCacheabilityResolver taskCacheabilityResolver,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        ExecutionEngine executionEngine,
-        InputFingerprinter inputFingerprinter,
-        ListenerManager listenerManager,
-        ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        FileCollectionFactory fileCollectionFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        PathToFileResolver fileResolver,
-        MissingTaskDependencyDetector missingTaskDependencyDetector
-    ) {
+            ExecutionHistoryStore executionHistoryStore,
+            BuildOperationRunner buildOperationRunner,
+            AsyncWorkTracker asyncWorkTracker,
+            org.gradle.api.execution.TaskActionListener actionListener,
+            TaskCacheabilityResolver taskCacheabilityResolver,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            ExecutionEngine executionEngine,
+            InputFingerprinter inputFingerprinter,
+            ListenerManager listenerManager,
+            ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
+            FileCollectionFactory fileCollectionFactory,
+            TaskDependencyFactory taskDependencyFactory,
+            PathToFileResolver fileResolver,
+            MissingTaskDependencyDetector missingTaskDependencyDetector) {
         this.executionHistoryStore = executionHistoryStore;
         this.buildOperationRunner = buildOperationRunner;
         this.asyncWorkTracker = asyncWorkTracker;
@@ -101,22 +99,21 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         TaskExecution work = new TaskExecution(
-            task,
-            context,
-            actionListener,
-            asyncWorkTracker,
-            buildOperationRunner,
-            classLoaderHierarchyHasher,
-            executionHistoryStore,
-            fileCollectionFactory,
-            fileResolver,
-            inputFingerprinter,
-            listenerManager,
-            reservedFileSystemLocationRegistry,
-            taskCacheabilityResolver,
-            taskDependencyFactory,
-            missingTaskDependencyDetector
-        );
+                task,
+                context,
+                actionListener,
+                asyncWorkTracker,
+                buildOperationRunner,
+                classLoaderHierarchyHasher,
+                executionHistoryStore,
+                fileCollectionFactory,
+                fileResolver,
+                inputFingerprinter,
+                listenerManager,
+                reservedFileSystemLocationRegistry,
+                taskCacheabilityResolver,
+                taskDependencyFactory,
+                missingTaskDependencyDetector);
         try {
             return executeIfValid(task, state, context, work);
         } catch (WorkValidationException ex) {
@@ -125,15 +122,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
     }
 
-    private TaskExecuterResult executeIfValid(TaskInternal task, TaskStateInternal state, TaskExecutionContext context, TaskExecution work) {
+    private TaskExecuterResult executeIfValid(
+            TaskInternal task, TaskStateInternal state, TaskExecutionContext context, TaskExecution work) {
         ExecutionEngine.Request request = executionEngine.createRequest(work);
         context.getTaskExecutionMode().getRebuildReason().ifPresent(request::forceNonIncremental);
         request.withValidationContext(context.getValidationContext());
         Result result = request.execute();
-        result.getExecution().ifSuccessfulOrElse(
-            success -> state.setOutcome(convertOutcome(success.getOutcome())),
-            failure -> state.setOutcome(new TaskExecutionException(task, failure))
-        );
+        result.getExecution()
+                .ifSuccessfulOrElse(
+                        success -> state.setOutcome(convertOutcome(success.getOutcome())),
+                        failure -> state.setOutcome(new TaskExecutionException(task, failure)));
         return new TaskExecuterResult() {
             @Override
             public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
@@ -143,8 +141,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             @Override
             public boolean executedIncrementally() {
                 return result.getExecution()
-                    .map(executionResult -> executionResult.getOutcome() == EXECUTED_INCREMENTALLY)
-                    .getOrMapFailure(throwable -> false);
+                        .map(executionResult -> executionResult.getOutcome() == EXECUTED_INCREMENTALLY)
+                        .getOrMapFailure(throwable -> false);
             }
 
             @Override

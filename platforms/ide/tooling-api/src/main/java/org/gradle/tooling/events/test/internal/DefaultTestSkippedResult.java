@@ -40,5 +40,4 @@ public final class DefaultTestSkippedResult implements TestSkippedResult {
     public long getEndTime() {
         return endTime;
     }
-
 }

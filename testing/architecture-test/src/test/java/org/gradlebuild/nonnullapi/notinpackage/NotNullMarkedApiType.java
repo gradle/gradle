@@ -16,5 +16,4 @@
 
 package org.gradlebuild.nonnullapi.notinpackage;
 
-public interface NotNullMarkedApiType {
-}
+public interface NotNullMarkedApiType {}

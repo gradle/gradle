@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resource.transport.gcp.gcs;
 
+import static java.util.Collections.singletonList;
+
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -30,13 +32,6 @@ import com.google.api.services.storage.model.StorageObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import org.gradle.api.resources.ResourceException;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.resource.ResourceExceptions;
-import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -46,8 +41,12 @@ import java.net.URLDecoder;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.Collections.singletonList;
+import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.ResourceExceptions;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GcsClient {
 
@@ -55,7 +54,8 @@ public class GcsClient {
 
     private final Storage storage;
 
-    public static GcsClient create(GcsConnectionProperties gcsConnectionProperties) throws GeneralSecurityException, IOException {
+    public static GcsClient create(GcsConnectionProperties gcsConnectionProperties)
+            throws GeneralSecurityException, IOException {
         HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
         JsonFactory jsonFactory = new GsonFactory();
         Storage.Builder builder = new Storage.Builder(transport, jsonFactory, null);
@@ -91,7 +91,10 @@ public class GcsClient {
 
             Storage.Objects.Insert putRequest = storage.objects().insert(bucket, objectMetadata, contentStream);
 
-            LOGGER.debug("Attempting to put resource:[{}] into gcs bucket [{}]", putRequest.getName(), putRequest.getBucket());
+            LOGGER.debug(
+                    "Attempting to put resource:[{}] into gcs bucket [{}]",
+                    putRequest.getName(),
+                    putRequest.getBucket());
             putRequest.execute();
         } catch (IOException e) {
             throw ResourceExceptions.putFailed(destination, e);
@@ -109,7 +112,8 @@ public class GcsClient {
         } catch (GoogleJsonResponseException e) {
             // When an artifact is being published it is first checked whether it is available.
             // If a transport returns `null` then it is assumed that artifact does not exist.
-            // If we throw, an attempt to publish will fail altogether even if we use ResourceExceptions#getMissing(uri).
+            // If we throw, an attempt to publish will fail altogether even if we use
+            // ResourceExceptions#getMissing(uri).
             if (e.getStatusCode() == 404) {
                 return null;
             }
@@ -133,7 +137,8 @@ public class GcsClient {
 
         String path = cleanResourcePath(uri);
         try {
-            Storage.Objects.List listRequest = storage.objects().list(uri.getHost()).setPrefix(path);
+            Storage.Objects.List listRequest =
+                    storage.objects().list(uri.getHost()).setPrefix(path);
             Objects objects;
 
             // Iterate through each page of results, and add them to our results list.
@@ -141,7 +146,7 @@ public class GcsClient {
                 objects = listRequest.execute();
                 // Add the items in this page of results to the list we'll return.
                 // GCS API will return null on an empty list.
-                if(objects.getItems() != null) {
+                if (objects.getItems() != null) {
                     results.addAll(objects.getItems());
                 }
 
@@ -173,7 +178,8 @@ public class GcsClient {
         return path;
     }
 
-    private static Supplier<Credential> getCredentialSupplier(final HttpTransport transport, final JsonFactory jsonFactory) {
+    private static Supplier<Credential> getCredentialSupplier(
+            final HttpTransport transport, final JsonFactory jsonFactory) {
         return Suppliers.memoize(new Supplier<Credential>() {
             @Override
             @SuppressWarnings("deprecation")
@@ -181,7 +187,8 @@ public class GcsClient {
                 try {
                     GoogleCredential googleCredential = GoogleCredential.getApplicationDefault(transport, jsonFactory);
                     // Ensure we have a scope
-                    return googleCredential.createScoped(singletonList("https://www.googleapis.com/auth/devstorage.read_write"));
+                    return googleCredential.createScoped(
+                            singletonList("https://www.googleapis.com/auth/devstorage.read_write"));
                 } catch (IOException e) {
                     throw new UncheckedIOException("Failed to get Google credentials for GCS connection", e);
                 }

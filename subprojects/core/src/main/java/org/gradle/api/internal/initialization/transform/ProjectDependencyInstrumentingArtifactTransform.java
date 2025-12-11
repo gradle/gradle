@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.initialization.transform;
 
+import static org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform.Parameters;
+
+import java.io.File;
+import java.util.Optional;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.file.FileSystemLocation;
@@ -30,16 +34,12 @@ import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCol
 import org.gradle.internal.instrumentation.reporting.listener.BytecodeUpgradeReportMethodInterceptionListener;
 import org.gradle.work.DisableCachingByDefault;
 
-import java.io.File;
-import java.util.Optional;
-
-import static org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform.Parameters;
-
 /**
  * Artifact transform that instruments project based artifacts with Gradle instrumentation.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache.")
-public abstract class ProjectDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform<Parameters> {
+public abstract class ProjectDependencyInstrumentingArtifactTransform
+        extends BaseInstrumentingArtifactTransform<Parameters> {
 
     public interface Parameters extends BaseInstrumentingArtifactTransform.Parameters {
         @Input
@@ -62,17 +62,24 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
 
     @Override
     protected InstrumentingClassTransformProvider instrumentingClassTransformProvider(TransformOutputs outputs) {
-        Optional<BytecodeUpgradeReportMethodInterceptionListener> interceptionListener = getParameters().getIsUpgradeReport().getOrElse(false)
-            ? Optional.of(new BytecodeUpgradeReportMethodInterceptionListener(outputs.file(MethodInterceptionReportCollector.INTERCEPTED_METHODS_REPORT_FILE)))
-            : Optional.empty();
+        Optional<BytecodeUpgradeReportMethodInterceptionListener> interceptionListener =
+                getParameters().getIsUpgradeReport().getOrElse(false)
+                        ? Optional.of(new BytecodeUpgradeReportMethodInterceptionListener(
+                                outputs.file(MethodInterceptionReportCollector.INTERCEPTED_METHODS_REPORT_FILE)))
+                        : Optional.empty();
 
         return new InstrumentingClassTransformProvider() {
             @Override
             public InstrumentingClassTransform getClassTransform() {
                 return interceptionListener
-                    // TODO: Using gradleCoreTypeRegistry means we won't detect calls for user types that extend from Gradle types, fix that
-                    .map(listener -> new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT, getGradleCoreTypeRegistry(), listener))
-                    .orElseGet(() -> new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_ONLY, InstrumentationTypeRegistry.EMPTY));
+                        // TODO: Using gradleCoreTypeRegistry means we won't detect calls for user types that extend
+                        // from Gradle types, fix that
+                        .map(listener -> new InstrumentingClassTransform(
+                                BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT,
+                                getGradleCoreTypeRegistry(),
+                                listener))
+                        .orElseGet(() -> new InstrumentingClassTransform(
+                                BytecodeInterceptorFilter.INSTRUMENTATION_ONLY, InstrumentationTypeRegistry.EMPTY));
             }
 
             @Override

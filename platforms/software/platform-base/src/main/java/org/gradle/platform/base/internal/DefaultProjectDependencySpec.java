@@ -16,15 +16,14 @@
 package org.gradle.platform.base.internal;
 
 import com.google.common.base.Joiner;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.ProjectDependencySpec;
 import org.gradle.platform.base.ProjectDependencySpecBuilder;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 public class DefaultProjectDependencySpec implements ProjectDependencySpec {
 
@@ -33,7 +32,8 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
 
     public DefaultProjectDependencySpec(String libraryName, String projectPath) {
         if (libraryName == null && projectPath == null) {
-            throw new IllegalDependencyNotation("A project dependency must have at least a project or library name specified.");
+            throw new IllegalDependencyNotation(
+                    "A project dependency must have at least a project or library name specified.");
         }
         this.libraryName = libraryName;
         this.projectPath = projectPath;
@@ -82,7 +82,8 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
 
         private void checkNotSet(String name, String value) {
             if (value != null) {
-                throw new IllegalDependencyNotation(String.format("Cannot set '%s' multiple times for project dependency.", name));
+                throw new IllegalDependencyNotation(
+                        String.format("Cannot set '%s' multiple times for project dependency.", name));
             }
         }
 
@@ -94,8 +95,8 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
 
         private void validate() {
             if (projectPath == null && libraryName != null && libraryName.contains(":")) {
-                throw new IllegalDependencyNotation(
-                    String.format("'%s' is not a valid library name. Did you mean to refer to a module instead?", libraryName));
+                throw new IllegalDependencyNotation(String.format(
+                        "'%s' is not a valid library name. Did you mean to refer to a module instead?", libraryName));
             }
         }
     }
@@ -109,8 +110,7 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
             return false;
         }
         DefaultProjectDependencySpec that = (DefaultProjectDependencySpec) o;
-        return Objects.equals(projectPath, that.projectPath)
-            && Objects.equals(libraryName, that.libraryName);
+        return Objects.equals(projectPath, that.projectPath) && Objects.equals(libraryName, that.libraryName);
     }
 
     @Override

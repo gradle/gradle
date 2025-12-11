@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.tooling.models;
 import java.io.File;
 import java.util.List;
 
-
 /**
  * Kotlin build script template model.
  *

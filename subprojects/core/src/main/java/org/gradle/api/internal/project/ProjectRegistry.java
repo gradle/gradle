@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.project;
 
+import java.util.Set;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 /**
  * A registry of all projects in a build, accessible by path.
@@ -41,15 +40,16 @@ public interface ProjectRegistry extends HoldsProjectState {
     // removed once we no longer support Develocity plugins that use this API.
     @Deprecated
     @UsedByScanPlugin("ImportJUnitXmlReports")
-    @Nullable ProjectIdentifier getProject(String path);
+    @Nullable
+    ProjectIdentifier getProject(String path);
 
     /**
      * Prefer {@link ProjectStateRegistry#findProjectState(Path)}.
      */
-    @Nullable ProjectInternal getProjectInternal(String path);
+    @Nullable
+    ProjectInternal getProjectInternal(String path);
 
     Set<ProjectInternal> getAllProjects(String path);
 
     Set<ProjectInternal> getSubProjects(String path);
-
 }

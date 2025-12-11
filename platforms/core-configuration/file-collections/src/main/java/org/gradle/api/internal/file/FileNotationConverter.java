@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.file;
 
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.resources.TextResource;
@@ -27,21 +32,14 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-
 public class FileNotationConverter implements NotationConverter<Object, File> {
 
     public static NotationParser<Object, File> parser() {
-        return NotationParserBuilder
-            .toType(File.class)
-            .typeDisplayName("a File")
-            .noImplicitConverters()
-            .converter(new FileNotationConverter())
-            .toComposite();
+        return NotationParserBuilder.toType(File.class)
+                .typeDisplayName("a File")
+                .noImplicitConverters()
+                .converter(new FileNotationConverter())
+                .toComposite();
     }
 
     @Override
@@ -98,7 +96,8 @@ public class FileNotationConverter implements NotationConverter<Object, File> {
                     result.converted(new File(notationString));
                 }
             } catch (Exception ex) {
-                throw new InvalidUserDataException(String.format("Cannot convert URI '%s' to a file.", notationString), ex);
+                throw new InvalidUserDataException(
+                        String.format("Cannot convert URI '%s' to a file.", notationString), ex);
             }
             return;
         }

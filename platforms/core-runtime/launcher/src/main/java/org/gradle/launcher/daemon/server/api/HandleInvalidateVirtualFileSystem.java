@@ -35,7 +35,8 @@ public class HandleInvalidateVirtualFileSystem implements DaemonCommandAction {
     @Override
     public void execute(DaemonCommandExecution execution) {
         if (execution.getCommand() instanceof InvalidateVirtualFileSystemAfterChange) {
-            InvalidateVirtualFileSystemAfterChange command = (InvalidateVirtualFileSystemAfterChange) execution.getCommand();
+            InvalidateVirtualFileSystemAfterChange command =
+                    (InvalidateVirtualFileSystemAfterChange) execution.getCommand();
             gradleUserHomeScopeServiceRegistry.getCurrentServices().ifPresent(currentServices -> {
                 LOGGER.info("Invalidating {}", command.getChangedPaths());
                 FileSystemAccess fileSystemAccess = currentServices.get(FileSystemAccess.class);

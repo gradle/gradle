@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.api.Task;
+import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-
-import static java.util.Objects.requireNonNull;
+import org.gradle.api.Task;
 
 /**
  * Built-in options are additional task options available

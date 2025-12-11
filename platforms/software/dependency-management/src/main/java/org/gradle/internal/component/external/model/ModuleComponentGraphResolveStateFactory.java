@@ -30,7 +30,8 @@ public class ModuleComponentGraphResolveStateFactory {
     private final ComponentIdGenerator idGenerator;
     private final AttributeDesugaring attributeDesugaring;
 
-    public ModuleComponentGraphResolveStateFactory(ComponentIdGenerator idFactory, AttributeDesugaring attributeDesugaring) {
+    public ModuleComponentGraphResolveStateFactory(
+            ComponentIdGenerator idFactory, AttributeDesugaring attributeDesugaring) {
         this.idGenerator = idFactory;
         this.attributeDesugaring = attributeDesugaring;
     }
@@ -38,13 +39,13 @@ public class ModuleComponentGraphResolveStateFactory {
     public ExternalModuleComponentGraphResolveState stateFor(ModuleComponentResolveMetadata metadata) {
         if (metadata instanceof IvyModuleResolveMetadata) {
             IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metadata;
-            return new DefaultIvyComponentGraphResolveState(idGenerator.nextComponentId(), ivyMetadata, attributeDesugaring, idGenerator);
+            return new DefaultIvyComponentGraphResolveState(
+                    idGenerator.nextComponentId(), ivyMetadata, attributeDesugaring, idGenerator);
         } else if (metadata instanceof MavenModuleResolveMetadata) {
-            return new DefaultExternalModuleComponentGraphResolveState<>(idGenerator.nextComponentId(), metadata, metadata, attributeDesugaring, idGenerator);
+            return new DefaultExternalModuleComponentGraphResolveState<>(
+                    idGenerator.nextComponentId(), metadata, metadata, attributeDesugaring, idGenerator);
         }
 
         throw new IllegalArgumentException("Unsupported module component metadata type: " + metadata);
     }
-
 }
-

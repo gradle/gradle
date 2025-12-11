@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.util.function.Supplier;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
-
-import java.util.function.Supplier;
 
 public class DefaultZipEntryContext implements ZipEntryContext {
     private final ZipEntry entry;

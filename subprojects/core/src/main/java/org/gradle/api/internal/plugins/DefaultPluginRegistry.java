@@ -21,6 +21,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.internal.Cast;
@@ -29,11 +33,6 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 public class DefaultPluginRegistry implements PluginRegistry {
     private final PluginRegistry parent;
@@ -47,43 +46,50 @@ public class DefaultPluginRegistry implements PluginRegistry {
         this(null, pluginInspector, classLoaderScope);
     }
 
-    private DefaultPluginRegistry(PluginRegistry parent, final PluginInspector pluginInspector, ClassLoaderScope classLoaderScope) {
+    private DefaultPluginRegistry(
+            PluginRegistry parent, final PluginInspector pluginInspector, ClassLoaderScope classLoaderScope) {
         this.parent = parent;
         this.pluginInspector = pluginInspector;
         this.classLoaderScope = classLoaderScope;
         this.classMappings = CacheBuilder.newBuilder().build(new PotentialPluginCacheLoader(pluginInspector));
-        this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>>() {
-            @Override
-            public Optional<PluginImplementation<?>> load(@NonNull PluginIdLookupCacheKey key) {
-                PluginId pluginId = key.getId();
-                ClassLoader classLoader = key.getClassLoader();
+        this.idMappings = CacheBuilder.newBuilder()
+                .build(new CacheLoader<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>>() {
+                    @Override
+                    public Optional<PluginImplementation<?>> load(@NonNull PluginIdLookupCacheKey key) {
+                        PluginId pluginId = key.getId();
+                        ClassLoader classLoader = key.getClassLoader();
 
-                PluginDescriptorLocator locator = new ClassloaderBackedPluginDescriptorLocator(classLoader);
+                        PluginDescriptorLocator locator = new ClassloaderBackedPluginDescriptorLocator(classLoader);
 
-                PluginDescriptor pluginDescriptor = locator.findPluginDescriptor(pluginId.toString());
-                if (pluginDescriptor == null) {
-                    return Optional.empty();
-                }
+                        PluginDescriptor pluginDescriptor = locator.findPluginDescriptor(pluginId.toString());
+                        if (pluginDescriptor == null) {
+                            return Optional.empty();
+                        }
 
-                String implClassName = pluginDescriptor.getImplementationClassName();
-                if (!GUtil.isTrue(implClassName)) {
-                    throw new InvalidPluginException(String.format("No implementation class specified for plugin '%s' in %s.", pluginId, pluginDescriptor));
-                }
+                        String implClassName = pluginDescriptor.getImplementationClassName();
+                        if (!GUtil.isTrue(implClassName)) {
+                            throw new InvalidPluginException(String.format(
+                                    "No implementation class specified for plugin '%s' in %s.",
+                                    pluginId, pluginDescriptor));
+                        }
 
-                final Class<?> implClass;
-                try {
-                    implClass = classLoader.loadClass(implClassName);
-                } catch (ClassNotFoundException e) {
-                    throw new InvalidPluginException(String.format(
-                        "Could not find implementation class '%s' for plugin '%s' specified in %s.", implClassName, pluginId,
-                        pluginDescriptor), e);
-                }
+                        final Class<?> implClass;
+                        try {
+                            implClass = classLoader.loadClass(implClassName);
+                        } catch (ClassNotFoundException e) {
+                            throw new InvalidPluginException(
+                                    String.format(
+                                            "Could not find implementation class '%s' for plugin '%s' specified in %s.",
+                                            implClassName, pluginId, pluginDescriptor),
+                                    e);
+                        }
 
-                PotentialPlugin<?> potentialPlugin = pluginInspector.inspect(implClass);
-                PluginImplementation<Object> withId = new RegistryAwarePluginImplementation(classLoader, pluginId, potentialPlugin);
-                return Optional.of(withId);
-            }
-        });
+                        PotentialPlugin<?> potentialPlugin = pluginInspector.inspect(implClass);
+                        PluginImplementation<Object> withId =
+                                new RegistryAwarePluginImplementation(classLoader, pluginId, potentialPlugin);
+                        return Optional.of(withId);
+                    }
+                });
     }
 
     @Override
@@ -117,13 +123,15 @@ public class DefaultPluginRegistry implements PluginRegistry {
             }
         }
 
-        Optional<PluginImplementation<?>> impl = Optional.ofNullable(Cast.uncheckedCast(uncheckedGet(classMappings, clazz)));
+        Optional<PluginImplementation<?>> impl =
+                Optional.ofNullable(Cast.uncheckedCast(uncheckedGet(classMappings, clazz)));
         if (impl.isPresent()) {
             // We don't have to make this lookup efficient for now, as this is only used for plugin validation
             // and the number of plugins is low in any case
             Map<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>> idToPlugin = idMappings.asMap();
             PluginImplementation<?> lookup = impl.get();
-            ImmutableSortedSet.Builder<PluginId> builder = ImmutableSortedSet.orderedBy(Comparator.comparing(PluginId::getId));
+            ImmutableSortedSet.Builder<PluginId> builder =
+                    ImmutableSortedSet.orderedBy(Comparator.comparing(PluginId::getId));
             for (Map.Entry<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>> entry : idToPlugin.entrySet()) {
                 Optional<PluginImplementation<?>> value = entry.getValue();
                 if (value.isPresent()) {
@@ -174,13 +182,15 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
         if (pluginId.getNamespace() == null) {
             PluginId qualified = pluginId.withNamespace(DefaultPluginManager.CORE_PLUGIN_NAMESPACE);
-            Optional<PluginImplementation<?>> lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(qualified, classLoader));
+            Optional<PluginImplementation<?>> lookup =
+                    uncheckedGet(idMappings, new PluginIdLookupCacheKey(qualified, classLoader));
             if (lookup.isPresent()) {
                 return lookup.get();
             }
         }
 
-        return uncheckedGet(idMappings, new PluginIdLookupCacheKey(pluginId, classLoader)).orElse(null);
+        return uncheckedGet(idMappings, new PluginIdLookupCacheKey(pluginId, classLoader))
+                .orElse(null);
     }
 
     private static <K, V> V uncheckedGet(LoadingCache<K, V> cache, K key) {
@@ -240,7 +250,8 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
         @Override
         public PluginImplementation<?> load(@NonNull Class<?> key) {
-            ClassLoader classLoader = classLoaderScope.defines(key) ? classLoaderScope.getLocalClassLoader() : key.getClassLoader();
+            ClassLoader classLoader =
+                    classLoaderScope.defines(key) ? classLoaderScope.getLocalClassLoader() : key.getClassLoader();
             return new RegistryAwarePluginImplementation(classLoader, null, pluginInspector.inspect(key));
         }
     }
@@ -249,7 +260,8 @@ public class DefaultPluginRegistry implements PluginRegistry {
         private final ClassLoader classLoader;
         private final PluginId pluginId;
 
-        public RegistryAwarePluginImplementation(ClassLoader classLoader, PluginId pluginId, PotentialPlugin<?> potentialPlugin) {
+        public RegistryAwarePluginImplementation(
+                ClassLoader classLoader, PluginId pluginId, PotentialPlugin<?> potentialPlugin) {
             super(pluginId, potentialPlugin);
             this.classLoader = classLoader;
             this.pluginId = pluginId;
@@ -264,6 +276,5 @@ public class DefaultPluginRegistry implements PluginRegistry {
             PluginImplementation<?> implementation = lookup(id, classLoader);
             return implementation != null && implementation.asClass().equals(asClass());
         }
-
     }
 }

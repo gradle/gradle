@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import java.util.List;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -25,8 +26,6 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 /**
  * A {@link ModuleDependencyMetadata} implementation that is backed by an {@link ExternalDependencyDescriptor}.
  */
@@ -35,7 +34,8 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
     private final boolean isEndorsing;
     private final List<IvyArtifactName> artifacts;
 
-    public ExternalModuleDependencyMetadata(@Nullable String reason, boolean endorsing, List<IvyArtifactName> artifacts) {
+    public ExternalModuleDependencyMetadata(
+            @Nullable String reason, boolean endorsing, List<IvyArtifactName> artifacts) {
         this.reason = reason;
         this.isEndorsing = endorsing;
         this.artifacts = artifacts;
@@ -55,7 +55,11 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(moduleTarget.getModuleIdentifier(), moduleTarget.getVersionConstraint(), moduleTarget.getAttributes(), moduleTarget.getCapabilitySelectors());
+            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(
+                    moduleTarget.getModuleIdentifier(),
+                    moduleTarget.getVersionConstraint(),
+                    moduleTarget.getAttributes(),
+                    moduleTarget.getCapabilitySelectors());
             if (newSelector.equals(getSelector())) {
                 return this;
             }
@@ -72,7 +76,11 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
     public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(moduleTarget.getModuleIdentifier(), moduleTarget.getVersionConstraint(), moduleTarget.getAttributes(), moduleTarget.getCapabilitySelectors());
+            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(
+                    moduleTarget.getModuleIdentifier(),
+                    moduleTarget.getVersionConstraint(),
+                    moduleTarget.getAttributes(),
+                    moduleTarget.getCapabilitySelectors());
             if (newSelector.equals(getSelector()) && getArtifacts().equals(artifacts)) {
                 return this;
             }
@@ -91,7 +99,11 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
         if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes(), selector.getCapabilitySelectors());
+        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(
+                selector.getModuleIdentifier(),
+                requestedVersion,
+                selector.getAttributes(),
+                selector.getCapabilitySelectors());
         return withRequested(newSelector);
     }
 
@@ -99,7 +111,8 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
 
     protected abstract ModuleDependencyMetadata withArtifacts(List<IvyArtifactName> newArtifacts);
 
-    protected abstract ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> newArtifacts);
+    protected abstract ModuleDependencyMetadata withRequestedAndArtifacts(
+            ModuleComponentSelector newSelector, List<IvyArtifactName> newArtifacts);
 
     @Override
     public ModuleComponentSelector getSelector() {

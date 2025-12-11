@@ -16,14 +16,13 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import java.net.URI;
+import java.util.Collection;
+import javax.inject.Inject;
 import org.gradle.api.provider.Provider;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.jvm.toolchain.JavaToolchainResolver;
-
-import javax.inject.Inject;
-import java.net.URI;
-import java.util.Collection;
 
 public class RealizedJavaToolchainRepository {
 
@@ -32,7 +31,8 @@ public class RealizedJavaToolchainRepository {
     private final JavaToolchainRepositoryInternal repository;
 
     @Inject
-    public RealizedJavaToolchainRepository(Provider<? extends JavaToolchainResolver> resolverProvider, JavaToolchainRepositoryInternal repository) {
+    public RealizedJavaToolchainRepository(
+            Provider<? extends JavaToolchainResolver> resolverProvider, JavaToolchainRepositoryInternal repository) {
         this.resolverProvider = resolverProvider;
         this.repository = repository;
     }

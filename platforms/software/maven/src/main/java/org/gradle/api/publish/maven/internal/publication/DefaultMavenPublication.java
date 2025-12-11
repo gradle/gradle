@@ -16,6 +16,15 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import static java.util.stream.Collectors.toMap;
+
+import java.io.File;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
@@ -68,16 +77,6 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-
-import static java.util.stream.Collectors.toMap;
-
 public abstract class DefaultMavenPublication implements MavenPublicationInternal {
 
     private final String name;
@@ -106,18 +105,17 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
 
     @Inject
     public DefaultMavenPublication(
-        String name,
-        DependencyMetaDataProvider dependencyMetaDataProvider,
-        NotationParser<Object, MavenArtifact> mavenArtifactParser,
-        ObjectFactory objectFactory,
-        FileCollectionFactory fileCollectionFactory,
-        AttributesFactory attributesFactory,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-        VersionMappingStrategyInternal versionMappingStrategy,
-        TaskDependencyFactory taskDependencyFactory,
-        ProviderFactory providerFactory,
-        Project project
-    ) {
+            String name,
+            DependencyMetaDataProvider dependencyMetaDataProvider,
+            NotationParser<Object, MavenArtifact> mavenArtifactParser,
+            ObjectFactory objectFactory,
+            FileCollectionFactory fileCollectionFactory,
+            AttributesFactory attributesFactory,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+            VersionMappingStrategyInternal versionMappingStrategy,
+            TaskDependencyFactory taskDependencyFactory,
+            ProviderFactory providerFactory,
+            Project project) {
         this.name = name;
         this.attributesFactory = attributesFactory;
         this.versionMappingStrategy = versionMappingStrategy;
@@ -125,29 +123,47 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.projectDisplayName = project.getDisplayName();
         this.buildDir = project.getLayout().getProjectDirectory();
 
-        MavenComponentParser mavenComponentParser = objectFactory.newInstance(MavenComponentParser.class, mavenArtifactParser);
+        MavenComponentParser mavenComponentParser =
+                objectFactory.newInstance(MavenComponentParser.class, mavenArtifactParser);
 
         getComponentArtifacts().convention(getComponent().map(mavenComponentParser::parseArtifacts));
         getComponentArtifacts().finalizeValueOnRead();
 
-        this.mainArtifacts = objectFactory.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory, collectionCallbackActionDecorator);
-        this.metadataArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
-        this.derivedArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
-        this.publishableArtifacts = new CompositePublicationArtifactSet<>(taskDependencyFactory, MavenArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));
+        this.mainArtifacts = objectFactory.newInstance(
+                DefaultMavenArtifactSet.class,
+                name,
+                mavenArtifactParser,
+                fileCollectionFactory,
+                collectionCallbackActionDecorator);
+        this.metadataArtifacts = new DefaultPublicationArtifactSet<>(
+                MavenArtifact.class,
+                "metadata artifacts for " + name,
+                fileCollectionFactory,
+                collectionCallbackActionDecorator);
+        this.derivedArtifacts = new DefaultPublicationArtifactSet<>(
+                MavenArtifact.class,
+                "derived artifacts for " + name,
+                fileCollectionFactory,
+                collectionCallbackActionDecorator);
+        this.publishableArtifacts = new CompositePublicationArtifactSet<>(
+                taskDependencyFactory, MavenArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[] {
+                    mainArtifacts, metadataArtifacts, derivedArtifacts
+                }));
 
         this.pom = objectFactory.newInstance(DefaultMavenPom.class);
         this.pom.getWriteGradleMetadataMarker().set(providerFactory.provider(this::writeGradleMetadataMarker));
         this.pom.getPackagingProperty().convention(providerFactory.provider(this::determinePackagingFromArtifacts));
-        this.pom.getDependencies().set(
-            getComponent()
-                .flatMap(component -> mavenComponentParser.parseDependencies(component, versionMappingStrategy, getCoordinates()))
-                .map(result -> {
-                    if (!silenceAllPublicationWarnings) {
-                        result.getWarnings().complete(getDisplayName() + " pom metadata", silencedVariants);
-                    }
-                    return result.getDependencies();
-                })
-        );
+        this.pom
+                .getDependencies()
+                .set(getComponent()
+                        .flatMap(component -> mavenComponentParser.parseDependencies(
+                                component, versionMappingStrategy, getCoordinates()))
+                        .map(result -> {
+                            if (!silenceAllPublicationWarnings) {
+                                result.getWarnings().complete(getDisplayName() + " pom metadata", silencedVariants);
+                            }
+                            return result.getDependencies();
+                        }));
 
         Module module = dependencyMetaDataProvider.getModule();
         MavenPublicationCoordinates coordinates = pom.getCoordinates();
@@ -220,11 +236,11 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         if (moduleDescriptorGenerator == null) {
             return;
         }
-        moduleMetadataArtifact = new SingleOutputTaskMavenArtifact(moduleDescriptorGenerator, "module", null, taskDependencyFactory);
+        moduleMetadataArtifact =
+                new SingleOutputTaskMavenArtifact(moduleDescriptorGenerator, "module", null, taskDependencyFactory);
         metadataArtifacts.add(moduleMetadataArtifact);
         moduleDescriptorGenerator = null;
     }
-
 
     @Override
     public void pom(Action<? super MavenPom> configure) {
@@ -244,7 +260,8 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     @Override
     public void from(SoftwareComponent component) {
         if (getComponent().isPresent()) {
-            throw new InvalidUserDataException(String.format("Maven publication '%s' cannot include multiple components", name));
+            throw new InvalidUserDataException(
+                    String.format("Maven publication '%s' cannot include multiple components", name));
         }
         getComponent().set((SoftwareComponentInternal) component);
         getComponent().finalizeValue();
@@ -364,7 +381,8 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
 
     @Override
     public MavenArtifact addDerivedArtifact(MavenArtifact originalArtifact, DerivedArtifact file) {
-        MavenArtifact artifact = new DerivedMavenArtifact((AbstractMavenArtifact) originalArtifact, file, taskDependencyFactory);
+        MavenArtifact artifact =
+                new DerivedMavenArtifact((AbstractMavenArtifact) originalArtifact, file, taskDependencyFactory);
         derivedArtifacts.add(artifact);
         return artifact;
     }
@@ -382,17 +400,17 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         Map<MavenArtifact, MavenArtifact> normalizedArtifacts = normalizedMavenArtifacts();
 
         return new MavenNormalizedPublication(
-            name,
-            pom.getCoordinates(),
-            pom.getPackaging(),
-            normalizedArtifactFor(getPomArtifact(), normalizedArtifacts),
-            normalizedArtifactFor(determineMainArtifact(), normalizedArtifacts),
-            new LinkedHashSet<>(normalizedArtifacts.values())
-        );
+                name,
+                pom.getCoordinates(),
+                pom.getPackaging(),
+                normalizedArtifactFor(getPomArtifact(), normalizedArtifacts),
+                normalizedArtifactFor(determineMainArtifact(), normalizedArtifacts),
+                new LinkedHashSet<>(normalizedArtifacts.values()));
     }
 
     @Nullable
-    private static MavenArtifact normalizedArtifactFor(@Nullable MavenArtifact artifact, Map<MavenArtifact, MavenArtifact> normalizedArtifacts) {
+    private static MavenArtifact normalizedArtifactFor(
+            @Nullable MavenArtifact artifact, Map<MavenArtifact, MavenArtifact> normalizedArtifacts) {
         if (artifact == null) {
             return null;
         }
@@ -404,12 +422,8 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     }
 
     private Map<MavenArtifact, MavenArtifact> normalizedMavenArtifacts() {
-        return artifactsToBePublished()
-            .stream()
-            .collect(toMap(
-                Function.identity(),
-                DefaultMavenPublication::normalizedArtifactFor
-            ));
+        return artifactsToBePublished().stream()
+                .collect(toMap(Function.identity(), DefaultMavenPublication::normalizedArtifactFor));
     }
 
     private static MavenArtifact normalizedArtifactFor(MavenArtifact artifact) {
@@ -420,21 +434,19 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     }
 
     private DomainObjectSet<MavenArtifact> artifactsToBePublished() {
-        return CompositeDomainObjectSet.create(
-            MavenArtifact.class,
-            Cast.uncheckedCast(
-                new DomainObjectCollection<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}
-            )
-        ).matching(element -> {
-            if (!((PublicationArtifactInternal) element).shouldBePublished()) {
-                return false;
-            }
-            if (moduleMetadataArtifact == element) {
-                // We temporarily want to allow skipping the publication of Gradle module metadata
-                return moduleMetadataArtifact.isEnabled();
-            }
-            return true;
-        });
+        return CompositeDomainObjectSet.create(MavenArtifact.class, Cast.uncheckedCast(new DomainObjectCollection<?>[] {
+                    mainArtifacts, metadataArtifacts, derivedArtifacts
+                }))
+                .matching(element -> {
+                    if (!((PublicationArtifactInternal) element).shouldBePublished()) {
+                        return false;
+                    }
+                    if (moduleMetadataArtifact == element) {
+                        // We temporarily want to allow skipping the publication of Gradle module metadata
+                        return moduleMetadataArtifact.isEnabled();
+                    }
+                    return true;
+                });
     }
 
     private MavenArtifact getPomArtifact() {
@@ -444,7 +456,8 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         return pomArtifact;
     }
 
-    // TODO Remove this attempt to guess packaging from artifacts. Packaging should come from component, or be explicitly set.
+    // TODO Remove this attempt to guess packaging from artifacts. Packaging should come from component, or be
+    // explicitly set.
     private String determinePackagingFromArtifacts() {
         Set<MavenArtifact> unclassifiedArtifacts = getUnclassifiedArtifactsWithExtension();
         if (unclassifiedArtifacts.size() == 1) {
@@ -475,7 +488,8 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
 
     private Set<MavenArtifact> getUnclassifiedArtifactsWithExtension() {
         populateFromComponent();
-        return CollectionUtils.filter(mainArtifacts, mavenArtifact -> hasNoClassifier(mavenArtifact) && hasExtension(mavenArtifact));
+        return CollectionUtils.filter(
+                mainArtifacts, mavenArtifact -> hasNoClassifier(mavenArtifact) && hasExtension(mavenArtifact));
     }
 
     private static boolean hasNoClassifier(MavenArtifact element) {
@@ -515,12 +529,15 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         populateFromComponent();
         if (getComponent().isPresent()) {
             MavenPublicationErrorChecker.checkThatArtifactIsPublishedUnmodified(
-                projectDisplayName, buildDir.getAsFile().toPath().toAbsolutePath(), getComponent().get().getName(),
-                source, mainArtifacts
-            );
+                    projectDisplayName,
+                    buildDir.getAsFile().toPath().toAbsolutePath(),
+                    getComponent().get().getName(),
+                    source,
+                    mainArtifacts);
         }
         final String publishedUrl = getPublishedUrl(source);
-        final String publishedName = isPublishWithOriginalFileName ? source.getFile().getName() : publishedUrl;
+        final String publishedName =
+                isPublishWithOriginalFileName ? source.getFile().getName() : publishedUrl;
         return new PublishedFile() {
             @Override
             public String getName() {
@@ -619,5 +636,4 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
             return shouldBePublished;
         }
     }
-
 }

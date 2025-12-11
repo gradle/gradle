@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import java.io.File;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -30,8 +31,6 @@ import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueFactory;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-
 public class PreResolvedResolvableArtifact implements ResolvableArtifact {
     private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
@@ -42,7 +41,13 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact {
     private final CalculatedValueFactory calculatedValueFactory;
     private final DefaultResolvedArtifact publicView;
 
-    public PreResolvedResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, File file, TaskDependencyContainer builtBy, CalculatedValueFactory calculatedValueFactory) {
+    public PreResolvedResolvableArtifact(
+            @Nullable ModuleVersionIdentifier owner,
+            IvyArtifactName artifact,
+            ComponentArtifactIdentifier artifactId,
+            File file,
+            TaskDependencyContainer builtBy,
+            CalculatedValueFactory calculatedValueFactory) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
@@ -111,7 +116,8 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact {
             originalFileName = this.file.getName();
         }
 
-        ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), file.getName(), originalFileName);
+        ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(
+                artifactId.getComponentIdentifier(), file.getName(), originalFileName);
         return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, builtBy, calculatedValueFactory);
     }
 

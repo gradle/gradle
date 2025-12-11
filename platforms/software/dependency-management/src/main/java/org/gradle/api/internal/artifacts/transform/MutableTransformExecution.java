@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.io.File;
+import java.util.Map;
+import java.util.Optional;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -28,10 +31,6 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
-import java.io.File;
-import java.util.Map;
-import java.util.Optional;
-
 class MutableTransformExecution extends AbstractTransformExecution implements MutableUnitOfWork {
     private final String rootProjectLocation;
     private final String producerBuildTreePath;
@@ -39,27 +38,30 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
     private final ExecutionHistoryStore history;
 
     public MutableTransformExecution(
-        Transform transform,
-        File inputArtifact,
-        TransformDependencies dependencies,
-        TransformStepSubject subject,
-        ProjectInternal producerProject,
-
-        TransformExecutionListener transformExecutionListener,
-        BuildOperationRunner buildOperationRunner,
-        BuildOperationProgressEventEmitter progressEventEmitter,
-        FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter,
-        MutableWorkspaceProvider workspaceProvider,
-        ExecutionHistoryStore history,
-
-        boolean disableCachingByProperty
-    ) {
+            Transform transform,
+            File inputArtifact,
+            TransformDependencies dependencies,
+            TransformStepSubject subject,
+            ProjectInternal producerProject,
+            TransformExecutionListener transformExecutionListener,
+            BuildOperationRunner buildOperationRunner,
+            BuildOperationProgressEventEmitter progressEventEmitter,
+            FileCollectionFactory fileCollectionFactory,
+            InputFingerprinter inputFingerprinter,
+            MutableWorkspaceProvider workspaceProvider,
+            ExecutionHistoryStore history,
+            boolean disableCachingByProperty) {
         super(
-            transform, inputArtifact, dependencies, subject,
-            transformExecutionListener, buildOperationRunner, progressEventEmitter, fileCollectionFactory, inputFingerprinter,
-            disableCachingByProperty
-        );
+                transform,
+                inputArtifact,
+                dependencies,
+                subject,
+                transformExecutionListener,
+                buildOperationRunner,
+                progressEventEmitter,
+                fileCollectionFactory,
+                inputFingerprinter,
+                disableCachingByProperty);
         this.rootProjectLocation = producerProject.getRootDir().getAbsolutePath() + File.separator;
         this.producerBuildTreePath = producerProject.getBuildTreePath();
         this.workspaceProvider = workspaceProvider;
@@ -77,13 +79,15 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
     }
 
     @Override
-    protected TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
+    protected TransformWorkspaceIdentity createIdentity(
+            Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
         return TransformWorkspaceIdentity.createMutable(
-            normalizeAbsolutePath(inputArtifact.getAbsolutePath()),
-            producerBuildTreePath,
-            scalarInputs.get(AbstractTransformExecution.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
-            fileInputs.get(AbstractTransformExecution.DEPENDENCIES_PROPERTY_NAME).getHash()
-        );
+                normalizeAbsolutePath(inputArtifact.getAbsolutePath()),
+                producerBuildTreePath,
+                scalarInputs.get(AbstractTransformExecution.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
+                fileInputs
+                        .get(AbstractTransformExecution.DEPENDENCIES_PROPERTY_NAME)
+                        .getHash());
     }
 
     @Override
@@ -92,7 +96,8 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
     }
 
     private String normalizeAbsolutePath(String path) {
-        // We try to normalize the absolute path, so the workspace id is stable between machines for cacheable transforms.
+        // We try to normalize the absolute path, so the workspace id is stable between machines for cacheable
+        // transforms.
         if (path.startsWith(rootProjectLocation)) {
             return path.substring(rootProjectLocation.length());
         }
@@ -101,8 +106,6 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
 
     @Override
     public ExecutionBehavior getExecutionBehavior() {
-        return transform.requiresInputChanges()
-            ? ExecutionBehavior.INCREMENTAL
-            : ExecutionBehavior.NON_INCREMENTAL;
+        return transform.requiresInputChanges() ? ExecutionBehavior.INCREMENTAL : ExecutionBehavior.NON_INCREMENTAL;
     }
 }

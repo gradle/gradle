@@ -42,7 +42,12 @@ public class WorkerLoggingSerializer {
 
         // Log events
         registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
-        registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
+        registry.register(
+                StyledTextOutputEvent.class,
+                new StyledTextOutputEventSerializer(
+                        logLevelSerializer,
+                        new ListSerializer<StyledTextOutputEvent.Span>(
+                                new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
         registry.register(LogLevelChangeEvent.class, new LogLevelChangeEventSerializer(logLevelSerializer));
 
         return registry;

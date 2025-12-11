@@ -45,5 +45,4 @@ public interface ProgressEvent {
      * @return The description of the operation.
      */
     OperationDescriptor getDescriptor();
-
 }

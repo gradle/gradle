@@ -16,20 +16,24 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
+import java.util.Optional;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.IncubatingAttributesChecker;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Optional;
 
 /**
  * Lightweight, immutable model of an attribute for configuration reporting.
  */
 public final class ReportAttribute {
     private final String name;
-    @Nullable private final Object value;
+
+    @Nullable
+    private final Object value;
+
     private final boolean isIncubating;
-    @Nullable private final Integer disambiguationPrecedence;
+
+    @Nullable
+    private final Integer disambiguationPrecedence;
 
     ReportAttribute(Attribute<Object> key, @Nullable Object value, @Nullable Integer disambiguationPrecedence) {
         this.name = key.getName();

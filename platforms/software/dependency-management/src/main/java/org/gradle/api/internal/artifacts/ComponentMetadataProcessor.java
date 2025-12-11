@@ -33,7 +33,8 @@ public interface ComponentMetadataProcessor {
         @Override
         public int getRulesHash() {
             return 0;
-        };
+        }
+        ;
     };
 
     ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata);

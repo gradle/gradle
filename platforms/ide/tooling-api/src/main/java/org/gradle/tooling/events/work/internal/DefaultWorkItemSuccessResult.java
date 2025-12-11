@@ -24,5 +24,4 @@ public class DefaultWorkItemSuccessResult extends DefaultOperationSuccessResult 
     public DefaultWorkItemSuccessResult(long startTime, long endTime) {
         super(startTime, endTime);
     }
-
 }

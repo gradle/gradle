@@ -24,15 +24,17 @@ import org.gradle.api.artifacts.Dependency;
  *
  * @since 8.5
  */
-abstract public class SpockTestToolchain extends JUnitPlatformTestToolchain<SpockToolchainParameters> {
+public abstract class SpockTestToolchain extends JUnitPlatformTestToolchain<SpockToolchainParameters> {
     /**
      * The default version of Spock to use for compiling and executing tests.
      */
     public static final String DEFAULT_VERSION = "2.3-groovy-4.0";
+
     private static final String GROUP_NAME = "org.spockframework:spock-core";
 
     @Override
     public Iterable<Dependency> getImplementationDependencies() {
-        return ImmutableSet.of(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getSpockVersion().get()));
+        return ImmutableSet.of(getDependencyFactory()
+                .create(GROUP_NAME + ":" + getParameters().getSpockVersion().get()));
     }
 }

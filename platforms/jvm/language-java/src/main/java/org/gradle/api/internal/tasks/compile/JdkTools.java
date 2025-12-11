@@ -19,22 +19,6 @@ package org.gradle.api.internal.tasks.compile;
 import com.sun.source.util.JavacTask;
 import com.sun.tools.javac.api.JavacTool;
 import com.sun.tools.javac.util.Context;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
-import org.gradle.internal.Cast;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.DefaultClassLoaderFactory;
-import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.VisitableURLClassLoader;
-import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.reflect.DirectInstantiator;
-
-import javax.lang.model.SourceVersion;
-import javax.tools.DiagnosticListener;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileManager;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -48,6 +32,21 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.lang.model.SourceVersion;
+import javax.tools.DiagnosticListener;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileManager;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
+import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.DefaultClassLoaderFactory;
+import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.reflect.DirectInstantiator;
 
 /**
  * Subset replacement for {@link javax.tools.ToolProvider} that avoids the application class loader.
@@ -61,17 +60,15 @@ public class JdkTools {
     JdkTools(List<File> compilerPlugins) {
         DefaultClassLoaderFactory defaultClassLoaderFactory = new DefaultClassLoaderFactory();
         ClassLoader filteringClassLoader = getSystemFilteringClassLoader(defaultClassLoaderFactory);
-        isolatedToolsLoader = VisitableURLClassLoader.fromClassPath("jdk-tools", filteringClassLoader, DefaultClassPath.of(compilerPlugins));
+        isolatedToolsLoader = VisitableURLClassLoader.fromClassPath(
+                "jdk-tools", filteringClassLoader, DefaultClassPath.of(compilerPlugins));
     }
 
     private ClassLoader getSystemFilteringClassLoader(ClassLoaderFactory classLoaderFactory) {
         FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
         filterSpec.allowPackage("com.sun.tools");
         filterSpec.allowPackage("com.sun.source");
-        return classLoaderFactory.createFilteringClassLoader(
-            this.getClass().getClassLoader(),
-            filterSpec
-        );
+        return classLoaderFactory.createFilteringClassLoader(this.getClass().getClassLoader(), filterSpec);
     }
 
     public ContextAwareJavaCompiler getSystemJavaCompiler() {
@@ -90,17 +87,31 @@ public class JdkTools {
         }
 
         @Override
-        public CompilationTask getTask(Writer out, JavaFileManager fileManager, DiagnosticListener<? super JavaFileObject> diagnosticListener, Iterable<String> options, Iterable<String> classes, Iterable<? extends JavaFileObject> compilationUnits) {
+        public CompilationTask getTask(
+                Writer out,
+                JavaFileManager fileManager,
+                DiagnosticListener<? super JavaFileObject> diagnosticListener,
+                Iterable<String> options,
+                Iterable<String> classes,
+                Iterable<? extends JavaFileObject> compilationUnits) {
             return delegate.getTask(out, fileManager, diagnosticListener, options, classes, compilationUnits);
         }
 
         @Override
-        public JavacTask getTask(Writer out, JavaFileManager fileManager, DiagnosticListener<? super JavaFileObject> diagnosticListener, Iterable<String> options, Iterable<String> classes, Iterable<? extends JavaFileObject> compilationUnits, Context context) {
+        public JavacTask getTask(
+                Writer out,
+                JavaFileManager fileManager,
+                DiagnosticListener<? super JavaFileObject> diagnosticListener,
+                Iterable<String> options,
+                Iterable<String> classes,
+                Iterable<? extends JavaFileObject> compilationUnits,
+                Context context) {
             return delegate.getTask(out, fileManager, diagnosticListener, options, classes, compilationUnits, context);
         }
 
         @Override
-        public StandardJavaFileManager getStandardFileManager(DiagnosticListener<? super JavaFileObject> diagnosticListener, Locale locale, Charset charset) {
+        public StandardJavaFileManager getStandardFileManager(
+                DiagnosticListener<? super JavaFileObject> diagnosticListener, Locale locale, Charset charset) {
             return delegate.getStandardFileManager(diagnosticListener, locale, charset);
         }
 
@@ -125,20 +136,23 @@ public class JdkTools {
         }
 
         @Override
-        public JavaCompiler.CompilationTask makeIncremental(JavaCompiler.CompilationTask task, Map<String, Set<String>> sourceToClassMapping,
-                                                            ConstantsAnalysisResult constantsAnalysisResult, CompilationSourceDirs compilationSourceDirs,
-                                                            CompilationClassBackupService classBackupService
-        ) {
+        public JavaCompiler.CompilationTask makeIncremental(
+                JavaCompiler.CompilationTask task,
+                Map<String, Set<String>> sourceToClassMapping,
+                ConstantsAnalysisResult constantsAnalysisResult,
+                CompilationSourceDirs compilationSourceDirs,
+                CompilationClassBackupService classBackupService) {
             ensureCompilerTask();
             // task (JavacTaskImpl) classloader: app classloader
             // incrementalCompileTaskClass classloader: jdk-tools
-            return DirectInstantiator.instantiate(incrementalCompileTaskClass, task,
-                (Function<File, Optional<String>>) compilationSourceDirs::relativize,
-                (Consumer<String>) classBackupService::maybeBackupClassFile,
-                (Consumer<Map<String, Set<String>>>) sourceToClassMapping::putAll,
-                (BiConsumer<String, String>) constantsAnalysisResult::addPublicDependent,
-                (BiConsumer<String, String>) constantsAnalysisResult::addPrivateDependent
-            );
+            return DirectInstantiator.instantiate(
+                    incrementalCompileTaskClass,
+                    task,
+                    (Function<File, Optional<String>>) compilationSourceDirs::relativize,
+                    (Consumer<String>) classBackupService::maybeBackupClassFile,
+                    (Consumer<Map<String, Set<String>>>) sourceToClassMapping::putAll,
+                    (BiConsumer<String, String>) constantsAnalysisResult::addPublicDependent,
+                    (BiConsumer<String, String>) constantsAnalysisResult::addPrivateDependent);
         }
     }
 
@@ -146,7 +160,8 @@ public class JdkTools {
         if (incrementalCompileTaskClass == null) {
             synchronized (this) {
                 try {
-                    incrementalCompileTaskClass = Cast.uncheckedCast(isolatedToolsLoader.loadClass("org.gradle.internal.compiler.java.IncrementalCompileTask"));
+                    incrementalCompileTaskClass = Cast.uncheckedCast(
+                            isolatedToolsLoader.loadClass("org.gradle.internal.compiler.java.IncrementalCompileTask"));
                 } catch (ClassNotFoundException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }

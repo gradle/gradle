@@ -25,11 +25,10 @@ import org.gradle.model.internal.type.ModelType;
  */
 public class RuleSourceSchema<T> extends AbstractStructSchema<T> {
     public RuleSourceSchema(
-        ModelType<T> type,
-        Iterable<ModelProperty<?>> properties,
-        Iterable<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods,
-        Iterable<ModelSchemaAspect> aspects
-    ) {
+            ModelType<T> type,
+            Iterable<ModelProperty<?>> properties,
+            Iterable<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods,
+            Iterable<ModelSchemaAspect> aspects) {
         super(type, properties, nonPropertyMethods, aspects);
     }
 }

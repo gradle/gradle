@@ -17,6 +17,14 @@
 package org.gradle.api.internal.tasks.scala;
 
 import com.google.common.collect.Iterables;
+import java.io.File;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.inject.Inject;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.logging.Logger;
@@ -56,27 +64,20 @@ import xsbti.compile.ScalaCompiler;
 import xsbti.compile.Setup;
 import xsbti.compile.TransactionalManagerType;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
     private static final Logger LOGGER = Logging.getLogger(ZincScalaCompiler.class);
 
     private final ScalaInstance scalaInstance;
     private final ScalaCompiler scalaCompiler;
     private final AnalysisStoreProvider analysisStoreProvider;
-    private final static PlainVirtualFileConverter CONVERTER = PlainVirtualFileConverter.converter();
+    private static final PlainVirtualFileConverter CONVERTER = PlainVirtualFileConverter.converter();
 
-    private final MapBackedCache<VirtualFile, DefinesClass> definesClassCache = new MapBackedCache<>(new ConcurrentHashMap<>());
+    private final MapBackedCache<VirtualFile, DefinesClass> definesClassCache =
+            new MapBackedCache<>(new ConcurrentHashMap<>());
 
     @Inject
-    public ZincScalaCompiler(ScalaInstance scalaInstance, ScalaCompiler scalaCompiler, AnalysisStoreProvider analysisStoreProvider) {
+    public ZincScalaCompiler(
+            ScalaInstance scalaInstance, ScalaCompiler scalaCompiler, AnalysisStoreProvider analysisStoreProvider) {
         this.scalaInstance = scalaInstance;
         this.scalaCompiler = scalaCompiler;
         this.analysisStoreProvider = analysisStoreProvider;
@@ -91,17 +92,24 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
 
         IncrementalCompilerImpl incremental = new IncrementalCompilerImpl();
 
-        Compilers compilers = incremental.compilers(scalaInstance, ClasspathOptionsUtil.boot(), Option.apply(Jvm.current().getJavaHome().toPath()), scalaCompiler);
+        Compilers compilers = incremental.compilers(
+                scalaInstance,
+                ClasspathOptionsUtil.boot(),
+                Option.apply(Jvm.current().getJavaHome().toPath()),
+                scalaCompiler);
 
         List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
-        List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).noEmptySourcePath().build();
+        List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec)
+                .includeClasspath(false)
+                .noEmptySourcePath()
+                .build();
 
         List<VirtualFile> classpath = new LinkedList<>();
-        for (File classpathEntry : spec.getCompileClasspath()){
+        for (File classpathEntry : spec.getCompileClasspath()) {
             classpath.add(CONVERTER.toVirtualFile(classpathEntry.toPath()));
         }
         List<VirtualFile> sourceFiles = new LinkedList<>();
-        for(File f: spec.getSourceFiles()){
+        for (File f : spec.getSourceFiles()) {
             sourceFiles.add(CONVERTER.toVirtualFile(f.toPath()));
         }
         CompileOptions compileOptions = CompileOptions.create()
@@ -119,19 +127,22 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
             classFileManagerType = IncOptions.defaultClassFileManagerType();
         } else {
             analysisStore = Optional.of(analysisStoreProvider.get(analysisFile));
-            classFileManagerType = Optional.of(TransactionalManagerType.of(spec.getClassfileBackupDir(), new SbtLoggerAdapter()));
+            classFileManagerType =
+                    Optional.of(TransactionalManagerType.of(spec.getClassfileBackupDir(), new SbtLoggerAdapter()));
         }
 
-        PreviousResult previousResult = analysisStore.flatMap(store -> store.get()
-            .map(a -> PreviousResult.of(Optional.of(a.getAnalysis()), Optional.of(a.getMiniSetup()))))
-            .orElse(PreviousResult.of(Optional.empty(), Optional.empty()));
+        PreviousResult previousResult = analysisStore
+                .flatMap(store -> store.get()
+                        .map(a -> PreviousResult.of(Optional.of(a.getAnalysis()), Optional.of(a.getMiniSetup()))))
+                .orElse(PreviousResult.of(Optional.empty(), Optional.empty()));
 
         IncOptions incOptions = IncOptions.of()
                 .withRecompileOnMacroDef(Optional.of(false))
                 .withClassfileManagerType(classFileManagerType)
                 .withTransitiveStep(5);
 
-        Setup setup = incremental.setup(new EntryLookup(spec),
+        Setup setup = incremental.setup(
+                new EntryLookup(spec),
                 false,
                 analysisFile.toPath(),
                 CompilerCache.fresh(),
@@ -140,8 +151,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
                 new LoggedReporter(100, new SbtLoggerAdapter(), MappedPosition::new),
                 Option.empty(),
                 Option.empty(),
-                getExtra()
-        );
+                getExtra());
 
         Inputs inputs = incremental.inputs(compileOptions, compilers, setup, previousResult);
         if (LOGGER.isDebugEnabled()) {
@@ -178,13 +188,15 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         public EntryLookup(ScalaJavaJointCompileSpec spec) {
             this.analysisMap = new HashMap<>();
             analysisMap.put(CONVERTER.toVirtualFile(spec.getDestinationDir().toPath()), spec.getAnalysisFile());
-            for (Map.Entry<File, File> e: spec.getAnalysisMap().entrySet()){
+            for (Map.Entry<File, File> e : spec.getAnalysisMap().entrySet()) {
                 analysisMap.put(CONVERTER.toVirtualFile(e.getKey().toPath()), e.getValue());
             }
         }
+
         @Override
         public Optional<CompileAnalysis> analysis(VirtualFile classpathEntry) {
-            return Optional.ofNullable(analysisMap.get(classpathEntry)).flatMap(f -> analysisStoreProvider.get(f).get().map(AnalysisContents::getAnalysis));
+            return Optional.ofNullable(analysisMap.get(classpathEntry))
+                    .flatMap(f -> analysisStoreProvider.get(f).get().map(AnalysisContents::getAnalysis));
         }
 
         @Override
@@ -193,9 +205,9 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
                 return className -> false;
             }
             return analysis(classpathEntry)
-                .map(a -> a instanceof Analysis ? (Analysis) a : null)
-                .<DefinesClass>map(AnalysisBakedDefineClass::new)
-                .orElseGet(() -> definesClassCache.get(classpathEntry, Locate::definesClass));
+                    .map(a -> a instanceof Analysis ? (Analysis) a : null)
+                    .<DefinesClass>map(AnalysisBakedDefineClass::new)
+                    .orElseGet(() -> definesClassCache.get(classpathEntry, Locate::definesClass));
         }
     }
 

@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.Path;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.Set;
 
 @UsedByScanPlugin("test-distribution, test-retry")
 public class JvmTestExecutionSpec implements TestExecutionSpec {
@@ -44,16 +43,52 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final boolean testIsModule;
 
     @UsedByScanPlugin("test-distribution, pts")
-    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath,
-                                FileTree candidateClassFiles, boolean scanForTestClasses,
-                                FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
-        this(testFramework, classpath, modulePath, candidateClassFiles, scanForTestClasses, Collections.emptySet(), testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, testIsModule);
+    public JvmTestExecutionSpec(
+            TestFramework testFramework,
+            Iterable<? extends File> classpath,
+            Iterable<? extends File> modulePath,
+            FileTree candidateClassFiles,
+            boolean scanForTestClasses,
+            FileCollection testClassesDirs,
+            String path,
+            Path identityPath,
+            long forkEvery,
+            JavaForkOptions javaForkOptions,
+            int maxParallelForks,
+            Set<String> previousFailedTestClasses,
+            boolean testIsModule) {
+        this(
+                testFramework,
+                classpath,
+                modulePath,
+                candidateClassFiles,
+                scanForTestClasses,
+                Collections.emptySet(),
+                testClassesDirs,
+                path,
+                identityPath,
+                forkEvery,
+                javaForkOptions,
+                maxParallelForks,
+                previousFailedTestClasses,
+                testIsModule);
     }
 
-    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath,
-                                FileTree candidateClassFiles, boolean scanForTestClasses,
-                                Set<File> candidateTestDefinitionDirs,
-                                FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
+    public JvmTestExecutionSpec(
+            TestFramework testFramework,
+            Iterable<? extends File> classpath,
+            Iterable<? extends File> modulePath,
+            FileTree candidateClassFiles,
+            boolean scanForTestClasses,
+            Set<File> candidateTestDefinitionDirs,
+            FileCollection testClassesDirs,
+            String path,
+            Path identityPath,
+            long forkEvery,
+            JavaForkOptions javaForkOptions,
+            int maxParallelForks,
+            Set<String> previousFailedTestClasses,
+            boolean testIsModule) {
         this.testFramework = testFramework;
         this.classpath = classpath;
         this.modulePath = modulePath;
@@ -73,11 +108,21 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     @SuppressWarnings("unused")
     @UsedByScanPlugin("test-retry")
     public JvmTestExecutionSpec copyWithTestFramework(TestFramework testFramework) {
-        return new JvmTestExecutionSpec(testFramework, this.classpath, this.modulePath,
-            this.candidateClassFiles, this.scanForTestClasses, this.candidateTestDefinitionDirs,
-            this.testClassesDirs, this.path, this.identityPath, this.forkEvery,
-            this.javaForkOptions, this.maxParallelForks, this.previousFailedTestClasses, this.testIsModule
-        );
+        return new JvmTestExecutionSpec(
+                testFramework,
+                this.classpath,
+                this.modulePath,
+                this.candidateClassFiles,
+                this.scanForTestClasses,
+                this.candidateTestDefinitionDirs,
+                this.testClassesDirs,
+                this.path,
+                this.identityPath,
+                this.forkEvery,
+                this.javaForkOptions,
+                this.maxParallelForks,
+                this.previousFailedTestClasses,
+                this.testIsModule);
     }
 
     public TestFramework getTestFramework() {

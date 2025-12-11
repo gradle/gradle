@@ -41,7 +41,9 @@ public interface ExternalResourceAccessor {
      * @throws ResourceException If the resource may exist, but not could be obtained for some reason.
      */
     @Nullable
-    <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException;
+    <T> T withContent(
+            ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action)
+            throws ResourceException;
 
     /**
      * Reads the resource at the given location.
@@ -58,7 +60,9 @@ public interface ExternalResourceAccessor {
      * @throws ResourceException If the resource may exist, but not could be obtained for some reason.
      */
     @Nullable
-    default <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAction<T> action) throws ResourceException {
+    default <T> T withContent(
+            ExternalResourceName location, boolean revalidate, ExternalResource.ContentAction<T> action)
+            throws ResourceException {
         return withContent(location, revalidate, (inputStream, metaData) -> action.execute(inputStream));
     }
 

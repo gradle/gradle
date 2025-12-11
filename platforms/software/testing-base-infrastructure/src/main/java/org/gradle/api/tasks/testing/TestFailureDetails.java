@@ -114,5 +114,4 @@ public interface TestFailureDetails {
      * @return true if this is an assumption failure
      */
     boolean isAssumptionFailure();
-
 }

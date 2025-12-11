@@ -17,9 +17,8 @@
 package org.gradle.internal.jvm.inspection;
 
 import com.google.common.collect.Sets;
-import org.jspecify.annotations.NullMarked;
-
 import java.util.Set;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Represents something needed in a Java installation.
@@ -50,7 +49,8 @@ public enum JavaInstallationCapability {
     /**
      * All capabilities needed by our uses of a JDK. When something "is JDK", it has all of these.
      */
-    public static final Set<JavaInstallationCapability> JDK_CAPABILITIES = Sets.immutableEnumSet(JAVA_COMPILER, JAVADOC_TOOL, JAR_TOOL);
+    public static final Set<JavaInstallationCapability> JDK_CAPABILITIES =
+            Sets.immutableEnumSet(JAVA_COMPILER, JAVADOC_TOOL, JAR_TOOL);
 
     public final String toDisplayName() {
         switch (this) {

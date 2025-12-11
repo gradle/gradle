@@ -29,20 +29,19 @@ public class ScopeIdsServices implements ServiceRegistrationProvider {
 
     @Provides
     PersistentScopeIdLoader createPersistentScopeIdLoader(
-        GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory,
-        BuildTreeScopedCacheBuilderFactory buildTreeScopedCacheBuilderFactory,
-        PersistentScopeIdStoreFactory persistentScopeIdStoreFactory
-    ) {
-        return new DefaultPersistentScopeIdLoader(globalScopedCacheBuilderFactory, buildTreeScopedCacheBuilderFactory, persistentScopeIdStoreFactory, UniqueId.factory());
+            GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory,
+            BuildTreeScopedCacheBuilderFactory buildTreeScopedCacheBuilderFactory,
+            PersistentScopeIdStoreFactory persistentScopeIdStoreFactory) {
+        return new DefaultPersistentScopeIdLoader(
+                globalScopedCacheBuilderFactory,
+                buildTreeScopedCacheBuilderFactory,
+                persistentScopeIdStoreFactory,
+                UniqueId.factory());
     }
 
     @Provides
     @PrivateService
-    PersistentScopeIdStoreFactory createPersistentScopeIdStoreFactory(
-        FileLockManager fileLockManager,
-        Chmod chmod
-    ) {
+    PersistentScopeIdStoreFactory createPersistentScopeIdStoreFactory(FileLockManager fileLockManager, Chmod chmod) {
         return new PersistentScopeIdStoreFactory(chmod, fileLockManager);
     }
-
 }

@@ -18,10 +18,9 @@ package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.internal.HasInternalProtocol;
-
-import java.util.Map;
 
 /**
  * Something that can have plugins applied to it.
@@ -97,5 +96,4 @@ public interface PluginAware {
      * @since 2.3
      */
     PluginManager getPluginManager();
-
 }

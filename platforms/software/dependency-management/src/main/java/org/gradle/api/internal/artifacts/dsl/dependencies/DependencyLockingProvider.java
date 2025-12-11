@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import java.util.Set;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.dsl.LockMode;
 import org.gradle.api.file.RegularFileProperty;
@@ -24,8 +25,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Set;
 
 /**
  * Provides dependency locking support for dependency resolution.
@@ -53,7 +52,11 @@ public interface DependencyLockingProvider {
      * @param resolutionResult the resolution result information necessary for locking
      * @param changingResolvedModules any modules that are resolved and marked as changing which defeats locking purpose
      */
-    void persistResolvedDependencies(String lockId, DisplayName lockOwner, Set<ModuleComponentIdentifier> resolutionResult, Set<ModuleComponentIdentifier> changingResolvedModules);
+    void persistResolvedDependencies(
+            String lockId,
+            DisplayName lockOwner,
+            Set<ModuleComponentIdentifier> resolutionResult,
+            Set<ModuleComponentIdentifier> changingResolvedModules);
 
     /**
      * The current locking mode, exposed in the {@link org.gradle.api.artifacts.dsl.DependencyLockingHandler}.

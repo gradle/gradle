@@ -16,9 +16,8 @@
 
 package org.gradle.swiftpm;
 
-import org.gradle.internal.HasInternalProtocol;
-
 import java.util.Set;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Represents a Swift Package Manager package.

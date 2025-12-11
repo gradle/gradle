@@ -16,11 +16,10 @@
 
 package org.gradle.process.internal.streams;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.process.internal.StreamsHandler;
-
 import java.io.IOException;
 import java.util.concurrent.Executor;
+import org.gradle.internal.UncheckedException;
+import org.gradle.process.internal.StreamsHandler;
 
 /**
  * A handler that writes nothing to the process' stdin
@@ -36,18 +35,14 @@ public class EmptyStdInStreamsHandler implements StreamsHandler {
     }
 
     @Override
-    public void start() {
-    }
+    public void start() {}
 
     @Override
-    public void removeStartupContext() {
-    }
+    public void removeStartupContext() {}
 
     @Override
-    public void stop() {
-    }
+    public void stop() {}
 
     @Override
-    public void disconnect() {
-    }
+    public void disconnect() {}
 }

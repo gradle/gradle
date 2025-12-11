@@ -17,7 +17,6 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
 import groovy.util.Node;
-
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -152,11 +151,11 @@ public class ProjectLibrary {
         }
         ProjectLibrary that = (ProjectLibrary) obj;
         return Objects.equal(name, that.name)
-            && Objects.equal(type, that.type)
-            && Objects.equal(compilerClasspath, that.compilerClasspath)
-            && Objects.equal(classes, that.classes)
-            && Objects.equal(javadoc, that.javadoc)
-            && Objects.equal(sources, that.sources);
+                && Objects.equal(type, that.type)
+                && Objects.equal(compilerClasspath, that.compilerClasspath)
+                && Objects.equal(classes, that.classes)
+                && Objects.equal(javadoc, that.javadoc)
+                && Objects.equal(sources, that.sources);
     }
 
     @Override

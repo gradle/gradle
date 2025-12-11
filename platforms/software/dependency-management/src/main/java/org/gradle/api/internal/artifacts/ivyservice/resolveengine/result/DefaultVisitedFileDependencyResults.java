@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import java.util.Map;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
-
-import java.util.Map;
 
 public class DefaultVisitedFileDependencyResults implements VisitedFileDependencyResults {
     private final Map<FileCollectionDependency, Integer> rootFiles;

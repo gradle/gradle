@@ -19,5 +19,4 @@ package org.gradle.tooling.internal.protocol.cpp;
 /**
  * Marker interface for {@link org.gradle.tooling.model.cpp.CppTestSuite}.
  */
-public interface InternalCppTestSuite {
-}
+public interface InternalCppTestSuite {}

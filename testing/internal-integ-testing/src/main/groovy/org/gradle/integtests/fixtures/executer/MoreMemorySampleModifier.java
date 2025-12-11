@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import java.io.File;
+import java.util.Properties;
 import org.gradle.exemplar.model.Command;
 import org.gradle.exemplar.model.Sample;
 import org.gradle.exemplar.test.runner.SampleModifier;
 import org.gradle.util.internal.GUtil;
-
-import java.io.File;
-import java.util.Properties;
 
 /**
  * Gives the sample tests more metaspace, as we currently never collect old buildSrc/buildscript classloaders.

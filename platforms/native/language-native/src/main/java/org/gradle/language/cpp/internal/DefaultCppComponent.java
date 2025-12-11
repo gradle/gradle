@@ -16,6 +16,9 @@
 
 package org.gradle.language.cpp.internal;
 
+import java.util.Arrays;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -28,10 +31,6 @@ import org.gradle.language.internal.DefaultBinaryCollection;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
-
-import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.concurrent.Callable;
 
 public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent, ComponentWithNames {
     private final FileCollection cppSource;
@@ -89,7 +88,8 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     @Override
     public FileTree getHeaderFiles() {
         PatternSet patterns = new PatternSet();
-        // if you would like to add more endings to this pattern, make sure to also edit DefaultCppLibrary.java and default.vcxproj.filters
+        // if you would like to add more endings to this pattern, make sure to also edit DefaultCppLibrary.java and
+        // default.vcxproj.filters
         patterns.include("**/*.h");
         patterns.include("**/*.hpp");
         patterns.include("**/*.h++");

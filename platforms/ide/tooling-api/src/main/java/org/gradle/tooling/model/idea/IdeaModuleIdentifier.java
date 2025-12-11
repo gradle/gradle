@@ -20,5 +20,4 @@ package org.gradle.tooling.model.idea;
  *
  * @since 2.14
  */
-public interface IdeaModuleIdentifier {
-}
+public interface IdeaModuleIdentifier {}

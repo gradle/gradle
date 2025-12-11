@@ -15,14 +15,14 @@
  */
 package org.gradle.architecture.test;
 
+import static org.gradle.architecture.test.ArchUnitFixture.freeze;
+
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-
-import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 
 /**
  * Tests that {@link org.gradle.api.artifacts.Configuration}s are created using the correct factory methods.
@@ -43,25 +43,57 @@ public final class ConfigurationCreationTest {
      * implemented in {@code AbstractNamedDomainObjectContainer}.)
      */
     @ArchTest
-    public static final ArchRule configurations_are_created_with_role_based_api =
-            ArchRuleDefinition.noClasses()
-                    .should().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "create", String.class.getName())
-                    .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "maybeCreate", String.class.getName())
-                    .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "create", String.class.getName(), Closure.class.getName())
-                    .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "create", String.class.getName(), Action.class.getName())
-                    .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "register", String.class.getName())
-                    .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "register", String.class.getName(), Action.class.getName())
-                    .because("Configurations should be created with the role-based API in org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal");
+    public static final ArchRule configurations_are_created_with_role_based_api = ArchRuleDefinition.noClasses()
+            .should()
+            .callMethod("org.gradle.api.artifacts.ConfigurationContainer", "create", String.class.getName())
+            .orShould()
+            .callMethod("org.gradle.api.artifacts.ConfigurationContainer", "maybeCreate", String.class.getName())
+            .orShould()
+            .callMethod(
+                    "org.gradle.api.artifacts.ConfigurationContainer",
+                    "create",
+                    String.class.getName(),
+                    Closure.class.getName())
+            .orShould()
+            .callMethod(
+                    "org.gradle.api.artifacts.ConfigurationContainer",
+                    "create",
+                    String.class.getName(),
+                    Action.class.getName())
+            .orShould()
+            .callMethod("org.gradle.api.artifacts.ConfigurationContainer", "register", String.class.getName())
+            .orShould()
+            .callMethod(
+                    "org.gradle.api.artifacts.ConfigurationContainer",
+                    "register",
+                    String.class.getName(),
+                    Action.class.getName())
+            .because(
+                    "Configurations should be created with the role-based API in org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal");
 
     /**
      * Ensures no new usages of resolvable + dependency scope Configurations are added and ensures usages of "maybe" methods are avoided.
      */
     @ArchTest
     public static final ArchRule maybe_create_and_resolvable_dependency_scope_factory_methods_are_avoided = freeze(
-        ArchRuleDefinition.noClasses()
-            .should().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "resolvableDependencyScopeLocked", String.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "resolvableDependencyScopeLocked", String.class.getName(), Action.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateDependencyScopeLocked", String.class.getName(), boolean.class.getName())
-            .because("Resolvable + dependency scope configurations should be avoided and we are migrating away from maybeCreate methods")
-    );
+            ArchRuleDefinition.noClasses()
+                    .should()
+                    .callMethod(
+                            "org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal",
+                            "resolvableDependencyScopeLocked",
+                            String.class.getName())
+                    .orShould()
+                    .callMethod(
+                            "org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal",
+                            "resolvableDependencyScopeLocked",
+                            String.class.getName(),
+                            Action.class.getName())
+                    .orShould()
+                    .callMethod(
+                            "org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal",
+                            "maybeCreateDependencyScopeLocked",
+                            String.class.getName(),
+                            boolean.class.getName())
+                    .because(
+                            "Resolvable + dependency scope configurations should be avoided and we are migrating away from maybeCreate methods"));
 }

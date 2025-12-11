@@ -21,8 +21,7 @@ import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 public class NoOpDerivationStrategy extends AbstractStatelessDerivationStrategy {
     private static final NoOpDerivationStrategy INSTANCE = new NoOpDerivationStrategy();
 
-    private NoOpDerivationStrategy() {
-    }
+    private NoOpDerivationStrategy() {}
 
     public static NoOpDerivationStrategy getInstance() {
         return INSTANCE;

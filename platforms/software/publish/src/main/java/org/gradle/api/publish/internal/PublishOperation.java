@@ -16,10 +16,10 @@
 
 package org.gradle.api.publish.internal;
 
+import static java.lang.String.format;
+
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.publish.Publication;
-
-import static java.lang.String.format;
 
 public abstract class PublishOperation implements Runnable {
 
@@ -43,9 +43,7 @@ public abstract class PublishOperation implements Runnable {
             publish();
         } catch (Exception e) {
             throw new PublishException(
-                format("Failed to publish publication '%s' to repository '%s'", publicationName, repository),
-                e
-            );
+                    format("Failed to publish publication '%s' to repository '%s'", publicationName, repository), e);
         }
     }
 }

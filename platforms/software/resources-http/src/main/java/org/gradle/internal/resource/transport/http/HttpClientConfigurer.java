@@ -15,6 +15,12 @@
  */
 package org.gradle.internal.resource.transport.http;
 
+import java.net.ProxySelector;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
+import javax.net.ssl.HostnameVerifier;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -73,13 +79,6 @@ import org.gradle.util.internal.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.HostnameVerifier;
-import java.net.ProxySelector;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
-
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
     private static final String HTTPS_PROTOCOLS = "https.protocols";
@@ -97,17 +96,21 @@ public class HttpClientConfigurer {
         if (httpsProtocols != null) {
             return httpsProtocols.split(",");
         } else if (JavaVersion.current().isJava8() && Jvm.current().isIbmJvm()) {
-            return new String[]{"TLSv1.2"};
+            return new String[] {"TLSv1.2"};
         } else if (jdkSupportsTLSProtocol("TLSv1.3")) {
-            return new String[]{"TLSv1.2", "TLSv1.3"};
+            return new String[] {"TLSv1.2", "TLSv1.3"};
         } else {
-            return new String[]{"TLSv1.2"};
+            return new String[] {"TLSv1.2"};
         }
     }
 
     private boolean jdkSupportsTLSProtocol(@SuppressWarnings("SameParameterValue") final String protocol) {
         try {
-            for (String supportedProtocol : httpSettings.getSslContextFactory().createSslContext().getSupportedSSLParameters().getProtocols()) {
+            for (String supportedProtocol : httpSettings
+                    .getSslContextFactory()
+                    .createSslContext()
+                    .getSupportedSSLParameters()
+                    .getProtocols()) {
                 if (protocol.equals(supportedProtocol)) {
                     return true;
                 }
@@ -132,7 +135,8 @@ public class HttpClientConfigurer {
 
     public void configure(HttpClientBuilder builder) {
         SystemDefaultCredentialsProvider credentialsProvider = new SystemDefaultCredentialsProvider();
-        configureSslSocketConnectionFactory(builder, httpSettings.getSslContextFactory(), httpSettings.getHostnameVerifier());
+        configureSslSocketConnectionFactory(
+                builder, httpSettings.getSslContextFactory(), httpSettings.getHostnameVerifier());
         configureAuthSchemeRegistry(builder);
         configureCredentials(builder, credentialsProvider, httpSettings.getAuthenticationSettings());
         configureProxy(builder, credentialsProvider, httpSettings);
@@ -144,31 +148,37 @@ public class HttpClientConfigurer {
         builder.setDefaultCredentialsProvider(credentialsProvider);
         builder.setMaxConnTotal(httpSettings.getMaxConnTotal());
         builder.setMaxConnPerRoute(httpSettings.getMaxConnPerRoute());
-        builder.setConnectionTimeToLive(httpSettings.getTimeoutSettings().getIdleConnectionTimeoutMs(), TimeUnit.MILLISECONDS);
+        builder.setConnectionTimeToLive(
+                httpSettings.getTimeoutSettings().getIdleConnectionTimeoutMs(), TimeUnit.MILLISECONDS);
     }
 
-    private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
-        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), sslProtocols, null, hostnameVerifier));
+    private void configureSslSocketConnectionFactory(
+            HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
+        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(
+                sslContextFactory.createSslContext(), sslProtocols, null, hostnameVerifier));
     }
 
     private void configureAuthSchemeRegistry(HttpClientBuilder builder) {
         builder.setDefaultAuthSchemeRegistry(RegistryBuilder.<AuthSchemeProvider>create()
-            .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-            .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
-            .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
-            .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory())
-            .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory())
-            .register(HttpHeaderAuthScheme.AUTH_SCHEME_NAME, new HttpHeaderSchemeFactory())
-            .build()
-        );
+                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
+                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
+                .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
+                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory())
+                .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory())
+                .register(HttpHeaderAuthScheme.AUTH_SCHEME_NAME, new HttpHeaderSchemeFactory())
+                .build());
     }
 
-    private void configureCredentials(HttpClientBuilder builder, CredentialsProvider credentialsProvider, Collection<Authentication> authentications) {
+    private void configureCredentials(
+            HttpClientBuilder builder,
+            CredentialsProvider credentialsProvider,
+            Collection<Authentication> authentications) {
         if (authentications.size() > 0) {
             useCredentials(credentialsProvider, authentications);
 
             // Use preemptive authorisation if no other authorisation has been established
-            builder.addInterceptorFirst(new PreemptiveAuth(getAuthScheme(authentications), isPreemptiveEnabled(authentications)));
+            builder.addInterceptorFirst(
+                    new PreemptiveAuth(getAuthScheme(authentications), isPreemptiveEnabled(authentications)));
         }
     }
 
@@ -181,14 +191,18 @@ public class HttpClientConfigurer {
         return new BasicScheme();
     }
 
-    private void configureProxy(HttpClientBuilder builder, CredentialsProvider credentialsProvider, HttpSettings httpSettings) {
-        useCredentialsForProxy(credentialsProvider, httpSettings.getProxySettings().getProxy());
-        useCredentialsForProxy(credentialsProvider, httpSettings.getSecureProxySettings().getProxy());
+    private void configureProxy(
+            HttpClientBuilder builder, CredentialsProvider credentialsProvider, HttpSettings httpSettings) {
+        useCredentialsForProxy(
+                credentialsProvider, httpSettings.getProxySettings().getProxy());
+        useCredentialsForProxy(
+                credentialsProvider, httpSettings.getSecureProxySettings().getProxy());
 
         builder.setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()));
     }
 
-    private void useCredentialsForProxy(CredentialsProvider credentialsProvider, HttpProxySettings.HttpProxy httpsProxy) {
+    private void useCredentialsForProxy(
+            CredentialsProvider credentialsProvider, HttpProxySettings.HttpProxy httpsProxy) {
         if (httpsProxy != null && httpsProxy.credentials != null) {
             AllSchemesAuthentication authentication1 = new AllSchemesAuthentication(httpsProxy.credentials);
             authentication1.addHost(httpsProxy.host, httpsProxy.port);
@@ -196,15 +210,18 @@ public class HttpClientConfigurer {
         }
     }
 
-    private void useCredentials(CredentialsProvider credentialsProvider, Collection<? extends Authentication> authentications) {
+    private void useCredentials(
+            CredentialsProvider credentialsProvider, Collection<? extends Authentication> authentications) {
         for (Authentication authentication : authentications) {
             AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;
 
             String scheme = getAuthScheme(authentication);
             org.gradle.api.credentials.Credentials credentials = authenticationInternal.getCredentials();
 
-            Collection<AuthenticationInternal.HostAndPort> hostsForAuthentication = authenticationInternal.getHostsForAuthentication();
-            assert !hostsForAuthentication.isEmpty() : "Credentials and authentication required for a HTTP repository, but no hosts were defined for the authentication?";
+            Collection<AuthenticationInternal.HostAndPort> hostsForAuthentication =
+                    authenticationInternal.getHostsForAuthentication();
+            assert !hostsForAuthentication.isEmpty()
+                    : "Credentials and authentication required for a HTTP repository, but no hosts were defined for the authentication?";
 
             for (AuthenticationInternal.HostAndPort hostAndPort : hostsForAuthentication) {
                 String host = hostAndPort.getHost();
@@ -214,11 +231,19 @@ public class HttpClientConfigurer {
 
                 if (credentials instanceof HttpHeaderCredentials) {
                     HttpHeaderCredentials httpHeaderCredentials = (HttpHeaderCredentials) credentials;
-                    Credentials httpCredentials = new HttpClientHttpHeaderCredentials(httpHeaderCredentials.getName(), httpHeaderCredentials.getValue());
-                    credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
+                    Credentials httpCredentials = new HttpClientHttpHeaderCredentials(
+                            httpHeaderCredentials.getName(), httpHeaderCredentials.getValue());
+                    credentialsProvider.setCredentials(
+                            new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
 
-                    LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", httpHeaderCredentials, host, port, scheme);
-                } else if (credentials instanceof PasswordCredentials || credentials instanceof HttpProxySettings.HttpProxyCredentials) {
+                    LOGGER.debug(
+                            "Using {} for authenticating against '{}:{}' using {}",
+                            httpHeaderCredentials,
+                            host,
+                            port,
+                            scheme);
+                } else if (credentials instanceof PasswordCredentials
+                        || credentials instanceof HttpProxySettings.HttpProxyCredentials) {
                     String username;
                     String password;
                     if (credentials instanceof PasswordCredentials) {
@@ -226,31 +251,50 @@ public class HttpClientConfigurer {
                         username = passwordCredentials.getUsername();
                         password = passwordCredentials.getPassword();
                     } else {
-                        HttpProxySettings.HttpProxyCredentials proxyCredentials = (HttpProxySettings.HttpProxyCredentials) credentials;
+                        HttpProxySettings.HttpProxyCredentials proxyCredentials =
+                                (HttpProxySettings.HttpProxyCredentials) credentials;
                         username = proxyCredentials.getUsername();
                         password = proxyCredentials.getPassword();
                     }
 
                     if (authentication instanceof AllSchemesAuthentication) {
                         NTLMCredentials ntlmCredentials = new NTLMCredentials(username, password);
-                        Credentials httpCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
-                        credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthSchemes.NTLM), httpCredentials);
+                        Credentials httpCredentials = new NTCredentials(
+                                ntlmCredentials.getUsername(),
+                                ntlmCredentials.getPassword(),
+                                ntlmCredentials.getWorkstation(),
+                                ntlmCredentials.getDomain());
+                        credentialsProvider.setCredentials(
+                                new AuthScope(host, port, AuthScope.ANY_REALM, AuthSchemes.NTLM), httpCredentials);
 
-                        LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", credentials, ntlmCredentials, host, port, AuthSchemes.NTLM);
+                        LOGGER.debug(
+                                "Using {} and {} for authenticating against '{}:{}' using {}",
+                                credentials,
+                                ntlmCredentials,
+                                host,
+                                port,
+                                AuthSchemes.NTLM);
                     }
 
                     Credentials httpCredentials = new UsernamePasswordCredentials(username, password);
-                    credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
-                    LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", credentials, host, port, scheme);
+                    credentialsProvider.setCredentials(
+                            new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
+                    LOGGER.debug(
+                            "Using {} for authenticating against '{}:{}' using {}", credentials, host, port, scheme);
                 } else {
-                    throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s or %s", PasswordCredentials.class.getCanonicalName(), HttpHeaderCredentials.class.getCanonicalName()));
+                    throw new IllegalArgumentException(String.format(
+                            "Credentials must be an instance of: %s or %s",
+                            PasswordCredentials.class.getCanonicalName(),
+                            HttpHeaderCredentials.class.getCanonicalName()));
                 }
             }
         }
     }
 
     private boolean isPreemptiveEnabled(Collection<Authentication> authentications) {
-        return CollectionUtils.any(authentications, element -> element instanceof BasicAuthentication || element instanceof HttpHeaderAuthentication);
+        return CollectionUtils.any(
+                authentications,
+                element -> element instanceof BasicAuthentication || element instanceof HttpHeaderAuthentication);
     }
 
     public void configureUserAgent(HttpClientBuilder builder) {
@@ -260,47 +304,55 @@ public class HttpClientConfigurer {
     private void configureCookieSpecRegistry(HttpClientBuilder builder) {
         PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.getDefault();
         builder.setPublicSuffixMatcher(publicSuffixMatcher);
-        // Add more data patterns to the default configuration to work around https://github.com/gradle/gradle/issues/1596
-        final CookieSpecProvider defaultProvider = new DefaultCookieSpecProvider(DefaultCookieSpecProvider.CompatibilityLevel.DEFAULT, publicSuffixMatcher, new String[]{
-            "EEE, dd-MMM-yy HH:mm:ss z", // Netscape expires pattern
-            DateUtils.PATTERN_RFC1036,
-            DateUtils.PATTERN_ASCTIME,
-            DateUtils.PATTERN_RFC1123
-        }, false);
+        // Add more data patterns to the default configuration to work around
+        // https://github.com/gradle/gradle/issues/1596
+        final CookieSpecProvider defaultProvider = new DefaultCookieSpecProvider(
+                DefaultCookieSpecProvider.CompatibilityLevel.DEFAULT,
+                publicSuffixMatcher,
+                new String[] {
+                    "EEE, dd-MMM-yy HH:mm:ss z", // Netscape expires pattern
+                    DateUtils.PATTERN_RFC1036,
+                    DateUtils.PATTERN_ASCTIME,
+                    DateUtils.PATTERN_RFC1123
+                },
+                false);
         final CookieSpecProvider laxStandardProvider = new RFC6265CookieSpecProvider(
-            RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, publicSuffixMatcher);
-        final CookieSpecProvider strictStandardProvider = new RFC6265CookieSpecProvider(
-            RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, publicSuffixMatcher);
+                RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, publicSuffixMatcher);
+        final CookieSpecProvider strictStandardProvider =
+                new RFC6265CookieSpecProvider(RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, publicSuffixMatcher);
         builder.setDefaultCookieSpecRegistry(RegistryBuilder.<CookieSpecProvider>create()
-            .register(CookieSpecs.DEFAULT, defaultProvider)
-            .register("best-match", defaultProvider)
-            .register("compatibility", defaultProvider)
-            .register(CookieSpecs.STANDARD, laxStandardProvider)
-            .register(CookieSpecs.STANDARD_STRICT, strictStandardProvider)
-            .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecProvider())
-            .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
-            .build()
-        );
+                .register(CookieSpecs.DEFAULT, defaultProvider)
+                .register("best-match", defaultProvider)
+                .register("compatibility", defaultProvider)
+                .register(CookieSpecs.STANDARD, laxStandardProvider)
+                .register(CookieSpecs.STANDARD_STRICT, strictStandardProvider)
+                .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecProvider())
+                .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
+                .build());
     }
 
     private void configureRequestConfig(HttpClientBuilder builder) {
         HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
         RequestConfig config = RequestConfig.custom()
-            .setConnectTimeout(timeoutSettings.getConnectionTimeoutMs())
-            .setSocketTimeout(timeoutSettings.getSocketTimeoutMs())
-            .setMaxRedirects(httpSettings.getMaxRedirects())
-            .build();
+                .setConnectTimeout(timeoutSettings.getConnectionTimeoutMs())
+                .setSocketTimeout(timeoutSettings.getSocketTimeoutMs())
+                .setMaxRedirects(httpSettings.getMaxRedirects())
+                .build();
         builder.setDefaultRequestConfig(config);
     }
 
     private void configureSocketConfig(HttpClientBuilder builder) {
         HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
-        builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeoutSettings.getSocketTimeoutMs()).setSoKeepAlive(true).build());
+        builder.setDefaultSocketConfig(SocketConfig.custom()
+                .setSoTimeout(timeoutSettings.getSocketTimeoutMs())
+                .setSoKeepAlive(true)
+                .build());
     }
 
     private void configureRedirectStrategy(HttpClientBuilder builder) {
         if (httpSettings.getMaxRedirects() > 0) {
-            builder.setRedirectStrategy(new RedirectVerifyingStrategyDecorator(getBaseRedirectStrategy(), httpSettings.getRedirectVerifier()));
+            builder.setRedirectStrategy(new RedirectVerifyingStrategyDecorator(
+                    getBaseRedirectStrategy(), httpSettings.getRedirectVerifier()));
         } else {
             builder.disableRedirectHandling();
         }
@@ -313,7 +365,8 @@ public class HttpClientConfigurer {
             case ALWAYS_FOLLOW_AND_PRESERVE:
                 return new AlwaysFollowAndPreserveMethodRedirectStrategy();
             default:
-                throw new IllegalArgumentException(httpSettings.getRedirectMethodHandlingStrategy().name());
+                throw new IllegalArgumentException(
+                        httpSettings.getRedirectMethodHandlingStrategy().name());
         }
     }
 
@@ -327,7 +380,9 @@ public class HttpClientConfigurer {
         } else if (authentication instanceof AllSchemesAuthentication) {
             return AuthScope.ANY_SCHEME;
         } else {
-            throw new IllegalArgumentException(String.format("Authentication scheme of '%s' is not supported.", authentication.getClass().getSimpleName()));
+            throw new IllegalArgumentException(String.format(
+                    "Authentication scheme of '%s' is not supported.",
+                    authentication.getClass().getSimpleName()));
         }
     }
 
@@ -351,15 +406,18 @@ public class HttpClientConfigurer {
 
             // If no authState has been established and this is a PUT or POST request, add preemptive authorisation
             String requestMethod = request.getRequestLine().getMethod();
-            if (alwaysSendAuth || requestMethod.equals(HttpPut.METHOD_NAME) || requestMethod.equals(HttpPost.METHOD_NAME)) {
-                CredentialsProvider credentialsProvider = (CredentialsProvider) context.getAttribute(HttpClientContext.CREDS_PROVIDER);
+            if (alwaysSendAuth
+                    || requestMethod.equals(HttpPut.METHOD_NAME)
+                    || requestMethod.equals(HttpPost.METHOD_NAME)) {
+                CredentialsProvider credentialsProvider =
+                        (CredentialsProvider) context.getAttribute(HttpClientContext.CREDS_PROVIDER);
                 HttpHost targetHost = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
-                Credentials credentials = credentialsProvider.getCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()));
+                Credentials credentials = credentialsProvider.getCredentials(
+                        new AuthScope(targetHost.getHostName(), targetHost.getPort()));
                 if (credentials != null) {
                     authState.update(authScheme, credentials);
                 }
             }
         }
     }
-
 }

@@ -15,6 +15,14 @@
  */
 package org.gradle.testfixtures.internal;
 
+import java.io.File;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.IndexedCache;
@@ -29,15 +37,6 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.time.Instant;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 public class TestInMemoryCacheFactory implements CacheFactory {
     /*
      * In case multiple threads is accessing the cache, for example when running JUnit 5 tests in parallel,
@@ -46,9 +45,19 @@ public class TestInMemoryCacheFactory implements CacheFactory {
     final Map<Pair<File, String>, IndexedCache<?, ?>> caches = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+    public PersistentCache open(
+            File cacheDir,
+            String displayName,
+            Map<String, ?> properties,
+            LockOptions lockOptions,
+            @Nullable Consumer<? super PersistentCache> initializer,
+            @Nullable CacheCleanupStrategy cacheCleanupStrategy)
+            throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
-        InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cacheCleanupStrategy != null ? cacheCleanupStrategy : CacheCleanupStrategy.NO_CLEANUP);
+        InMemoryCache cache = new InMemoryCache(
+                cacheDir,
+                displayName,
+                cacheCleanupStrategy != null ? cacheCleanupStrategy : CacheCleanupStrategy.NO_CLEANUP);
         if (initializer != null) {
             initializer.accept(cache);
         }
@@ -84,7 +93,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
 
         @Override
         public void cleanup() {
-            if (cleanup!=null) {
+            if (cleanup != null) {
                 synchronized (this) {
                     cleanup.clean(this, Instant.now());
                 }
@@ -108,7 +117,8 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public <K, V> IndexedCache<K, V> createIndexedCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+        public <K, V> IndexedCache<K, V> createIndexedCache(
+                String name, Class<K> keyType, Serializer<V> valueSerializer) {
             assertNotClosed();
             return createIndexedCache(name, valueSerializer);
         }

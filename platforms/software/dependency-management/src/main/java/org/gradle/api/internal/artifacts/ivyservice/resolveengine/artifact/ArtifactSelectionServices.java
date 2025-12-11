@@ -38,16 +38,16 @@ public class ArtifactSelectionServices {
     private final VariantTransformRegistry transformRegistry;
 
     public ArtifactSelectionServices(
-        ArtifactVariantSelector variantSelector,
-        TransformedVariantFactory transformedVariantFactory,
-        TransformUpstreamDependenciesResolver dependenciesResolver,
-        VariantArtifactResolver variantResolver,
-        GraphVariantSelector graphVariantSelector,
-        ImmutableAttributesSchema consumerSchema,
-        VariantTransformRegistry transformRegistry
-    ) {
+            ArtifactVariantSelector variantSelector,
+            TransformedVariantFactory transformedVariantFactory,
+            TransformUpstreamDependenciesResolver dependenciesResolver,
+            VariantArtifactResolver variantResolver,
+            GraphVariantSelector graphVariantSelector,
+            ImmutableAttributesSchema consumerSchema,
+            VariantTransformRegistry transformRegistry) {
         this.variantSelector = variantSelector;
-        this.resolvedVariantTransformer = new ResolvedVariantTransformer(transformedVariantFactory, dependenciesResolver);
+        this.resolvedVariantTransformer =
+                new ResolvedVariantTransformer(transformedVariantFactory, dependenciesResolver);
         this.variantResolver = variantResolver;
         this.graphVariantSelector = graphVariantSelector;
         this.consumerSchema = consumerSchema;

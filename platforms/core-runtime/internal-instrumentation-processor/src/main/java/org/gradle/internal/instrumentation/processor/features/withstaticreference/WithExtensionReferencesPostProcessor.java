@@ -16,6 +16,15 @@
 
 package org.gradle.internal.instrumentation.processor.features.withstaticreference;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
 import org.gradle.internal.instrumentation.model.CallableInfo;
@@ -29,54 +38,55 @@ import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.model.RequestExtrasContainer;
 import org.gradle.internal.instrumentation.processor.extensibility.RequestPostProcessorExtension;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 public class WithExtensionReferencesPostProcessor implements RequestPostProcessorExtension {
 
     @Override
     public Collection<CallInterceptionRequest> postProcessRequest(CallInterceptionRequest originalRequest) {
-        Optional<WithExtensionReferencesExtra> extra = originalRequest.getRequestExtras().getByType(WithExtensionReferencesExtra.class);
-        return extra
-            .map(withExtensionReferencesExtra -> Arrays.asList(originalRequest, modifiedRequest(originalRequest, withExtensionReferencesExtra)))
-            .orElseGet(() -> Collections.singletonList(originalRequest));
+        Optional<WithExtensionReferencesExtra> extra =
+                originalRequest.getRequestExtras().getByType(WithExtensionReferencesExtra.class);
+        return extra.map(withExtensionReferencesExtra ->
+                        Arrays.asList(originalRequest, modifiedRequest(originalRequest, withExtensionReferencesExtra)))
+                .orElseGet(() -> Collections.singletonList(originalRequest));
     }
 
-    private static CallInterceptionRequest modifiedRequest(CallInterceptionRequest originalRequest, WithExtensionReferencesExtra extra) {
+    private static CallInterceptionRequest modifiedRequest(
+            CallInterceptionRequest originalRequest, WithExtensionReferencesExtra extra) {
         return new CallInterceptionRequestImpl(
-            modifiedCallableInfo(originalRequest.getInterceptedCallable(), extra),
-            originalRequest.getImplementationInfo(),
-            modifiedExtras(originalRequest.getRequestExtras())
-        );
+                modifiedCallableInfo(originalRequest.getInterceptedCallable(), extra),
+                originalRequest.getImplementationInfo(),
+                modifiedExtras(originalRequest.getRequestExtras()));
     }
 
     private static CallableInfo modifiedCallableInfo(CallableInfo originalInfo, WithExtensionReferencesExtra extra) {
         CallableOwnerInfo owner = new CallableOwnerInfo(extra.ownerType, false);
         String methodName = extra.methodName;
-        return new CallableInfoImpl(CallableKindInfo.STATIC_METHOD, owner, methodName, originalInfo.getReturnType(), modifiedParameters(originalInfo.getParameters()));
+        return new CallableInfoImpl(
+                CallableKindInfo.STATIC_METHOD,
+                owner,
+                methodName,
+                originalInfo.getReturnType(),
+                modifiedParameters(originalInfo.getParameters()));
     }
 
     private static List<ParameterInfo> modifiedParameters(List<ParameterInfo> originalParameters) {
         ArrayList<ParameterInfo> result = new ArrayList<>(originalParameters);
         if (result.size() == 0 || result.get(0).getKind() != ParameterKindInfo.RECEIVER) {
-            throw new UnsupportedOperationException("extensions with static references that do not have a receiver parameter are not supported");
+            throw new UnsupportedOperationException(
+                    "extensions with static references that do not have a receiver parameter are not supported");
         }
         ParameterInfo originalReceiver = result.remove(0);
-        result.add(0, new ParameterInfoImpl("receiverArg", originalReceiver.getParameterType(), ParameterKindInfo.METHOD_PARAMETER));
+        result.add(
+                0,
+                new ParameterInfoImpl(
+                        "receiverArg", originalReceiver.getParameterType(), ParameterKindInfo.METHOD_PARAMETER));
         return result;
     }
 
     private static List<RequestExtra> modifiedExtras(RequestExtrasContainer originalExtras) {
         return Stream.of(
-            originalExtras.getAll().stream().filter(it -> !(it instanceof WithExtensionReferencesExtra)),
-            Stream.<RequestExtra>of(new WithExtensionReferencesExtra.ProducedSynthetically())
-        ).flatMap(Function.identity()).collect(Collectors.toList());
+                        originalExtras.getAll().stream().filter(it -> !(it instanceof WithExtensionReferencesExtra)),
+                        Stream.<RequestExtra>of(new WithExtensionReferencesExtra.ProducedSynthetically()))
+                .flatMap(Function.identity())
+                .collect(Collectors.toList());
     }
 }

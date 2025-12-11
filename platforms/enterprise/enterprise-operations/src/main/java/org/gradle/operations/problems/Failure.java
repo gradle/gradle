@@ -16,10 +16,9 @@
 
 package org.gradle.operations.problems;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A failure reported on build operations.

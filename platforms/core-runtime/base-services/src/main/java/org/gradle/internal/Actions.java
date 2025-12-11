@@ -17,14 +17,13 @@
 package org.gradle.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
-import org.gradle.api.specs.Spec;
-import org.jspecify.annotations.Nullable;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.gradle.api.Action;
+import org.gradle.api.specs.Spec;
+import org.jspecify.annotations.Nullable;
 
 public abstract class Actions {
 
@@ -44,8 +43,7 @@ public abstract class Actions {
 
     private static class NullAction<T> implements Action<T>, Serializable {
         @Override
-        public void execute(T t) {
-        }
+        public void execute(T t) {}
     }
 
     /**
@@ -147,7 +145,7 @@ public abstract class Actions {
      * @return An action that runs the given runnable, ignoring the argument.
      */
     public static <T> Action<T> toAction(@Nullable Runnable runnable) {
-        //TODO SF this method accepts Closure instance as parameter but does not work correctly for it
+        // TODO SF this method accepts Closure instance as parameter but does not work correctly for it
         if (runnable == null) {
             return Actions.doNothing();
         } else {

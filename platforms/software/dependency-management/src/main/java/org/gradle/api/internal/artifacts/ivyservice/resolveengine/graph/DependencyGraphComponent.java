@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
+import java.util.Collection;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
 
 /**
  * A {@link ResolvedGraphComponent} that is used during the resolution of the dependency graph.

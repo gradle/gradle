@@ -18,23 +18,23 @@ package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Cast;
-import org.gradle.internal.instrumentation.api.groovybytecode.FilterableCallInterceptor;
-import org.gradle.internal.lazy.Lazy;
-import org.jspecify.annotations.NullMarked;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.gradle.internal.Cast;
+import org.gradle.internal.instrumentation.api.groovybytecode.FilterableCallInterceptor;
+import org.gradle.internal.lazy.Lazy;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public interface GroovyCallInterceptorsProvider {
 
     @SuppressWarnings("ClassInitializationDeadlock")
-    GroovyCallInterceptorsProvider DEFAULT = new ClassSourceGroovyCallInterceptorsProvider(Instrumented.class.getName());
+    GroovyCallInterceptorsProvider DEFAULT =
+            new ClassSourceGroovyCallInterceptorsProvider(Instrumented.class.getName());
 
     List<FilterableCallInterceptor> getCallInterceptors();
 
@@ -56,9 +56,11 @@ public interface GroovyCallInterceptorsProvider {
             this.interceptors = Lazy.locking().of(() -> getInterceptorsFromClassLoader(classLoader, forPackage));
         }
 
-        private static List<FilterableCallInterceptor> getInterceptorsFromClassLoader(ClassLoader classLoader, String forPackage) {
+        private static List<FilterableCallInterceptor> getInterceptorsFromClassLoader(
+                ClassLoader classLoader, String forPackage) {
             ImmutableList.Builder<FilterableCallInterceptor> interceptors = ImmutableList.builder();
-            for(FilterableCallInterceptor interceptor : ServiceLoader.load(FilterableCallInterceptor.class, classLoader)) {
+            for (FilterableCallInterceptor interceptor :
+                    ServiceLoader.load(FilterableCallInterceptor.class, classLoader)) {
                 if (interceptor.getClass().getPackage().getName().startsWith(forPackage)) {
                     interceptors.add(interceptor);
                 }
@@ -110,13 +112,16 @@ public interface GroovyCallInterceptorsProvider {
             try {
                 getCallInterceptors = interceptorsProviderClass.getDeclaredMethod("getCallInterceptors");
             } catch (NoSuchMethodException e) {
-                throw new IllegalArgumentException("The provider class does not have the expected getCallInterceptors method", e);
+                throw new IllegalArgumentException(
+                        "The provider class does not have the expected getCallInterceptors method", e);
             }
 
             try {
-                return ImmutableList.copyOf((List<FilterableCallInterceptor>) Cast.uncheckedNonnullCast(getCallInterceptors.invoke(null)));
+                return ImmutableList.copyOf(
+                        (List<FilterableCallInterceptor>) Cast.uncheckedNonnullCast(getCallInterceptors.invoke(null)));
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException("Cannot access the getCallInterceptors method in the provider class", e);
+                throw new IllegalArgumentException(
+                        "Cannot access the getCallInterceptors method in the provider class", e);
             } catch (InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
@@ -129,14 +134,16 @@ public interface GroovyCallInterceptorsProvider {
         private final GroovyCallInterceptorsProvider first;
         private final GroovyCallInterceptorsProvider second;
 
-        private CompositeGroovyCallInterceptorsProvider(GroovyCallInterceptorsProvider first, GroovyCallInterceptorsProvider second) {
+        private CompositeGroovyCallInterceptorsProvider(
+                GroovyCallInterceptorsProvider first, GroovyCallInterceptorsProvider second) {
             this.first = first;
             this.second = second;
         }
 
         @Override
         public List<FilterableCallInterceptor> getCallInterceptors() {
-            return Stream.concat(first.getCallInterceptors().stream(), second.getCallInterceptors().stream()).collect(Collectors.toList());
+            return Stream.concat(first.getCallInterceptors().stream(), second.getCallInterceptors().stream())
+                    .collect(Collectors.toList());
         }
     }
 }

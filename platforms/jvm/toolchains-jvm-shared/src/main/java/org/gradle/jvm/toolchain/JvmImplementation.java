@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain;
 
-
 /**
  * Represents a filter for a implementation of a Java Virtual Machine.
  *

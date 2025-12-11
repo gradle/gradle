@@ -17,12 +17,11 @@
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import com.google.common.collect.Iterables;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
-
 import java.io.File;
 import java.util.Collection;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 
 public class CurrentCompilation {
     private final JavaCompileSpec spec;
@@ -48,7 +47,7 @@ public class CurrentCompilation {
     }
 
     private ClassSetAnalysis getClasspath() {
-        return new ClassSetAnalysis(classpathSnapshotter.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath())));
+        return new ClassSetAnalysis(classpathSnapshotter.getClasspathSnapshot(
+                Iterables.concat(spec.getCompileClasspath(), spec.getModulePath())));
     }
-
 }

@@ -17,9 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.ResolveException;
-
 import java.util.List;
+import org.gradle.api.artifacts.ResolveException;
 
 /**
  * An internal specialization of the public {@link ResolveException}. All resolve exceptions thrown
@@ -40,7 +39,8 @@ public class TypedResolveException extends ResolveException {
     /**
      * Creates a new instance with resolutions.
      */
-    public TypedResolveException(String type, String displayName, Iterable<? extends Throwable> failures, List<String> resolutions) {
+    public TypedResolveException(
+            String type, String displayName, Iterable<? extends Throwable> failures, List<String> resolutions) {
         super(buildMessage(type, displayName), failures);
         this.type = type;
         this.resolutions = ImmutableList.copyOf(resolutions);
@@ -58,13 +58,12 @@ public class TypedResolveException extends ResolveException {
     @Override
     public List<String> getResolutions() {
         return ImmutableList.<String>builder()
-            .addAll(resolutions)
-            .addAll(super.getResolutions()) // Calculated from causes
-            .build();
+                .addAll(resolutions)
+                .addAll(super.getResolutions()) // Calculated from causes
+                .build();
     }
 
     private static String buildMessage(String type, String displayName) {
         return String.format("Could not resolve all %s for %s.", type, displayName);
     }
-
 }

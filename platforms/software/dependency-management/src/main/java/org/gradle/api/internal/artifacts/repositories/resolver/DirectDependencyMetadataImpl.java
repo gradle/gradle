@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
 
-import java.util.Collections;
-import java.util.List;
-
-public class DirectDependencyMetadataImpl extends AbstractDependencyImpl<DirectDependencyMetadata> implements DirectDependencyMetadata {
+public class DirectDependencyMetadataImpl extends AbstractDependencyImpl<DirectDependencyMetadata>
+        implements DirectDependencyMetadata {
 
     private boolean endorsing = false;
 
@@ -49,5 +49,4 @@ public class DirectDependencyMetadataImpl extends AbstractDependencyImpl<DirectD
     public List<DependencyArtifact> getArtifactSelectors() {
         return Collections.emptyList();
     }
-
 }

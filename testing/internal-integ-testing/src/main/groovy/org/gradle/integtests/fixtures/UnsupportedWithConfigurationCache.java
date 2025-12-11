@@ -16,14 +16,12 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.integtests.fixtures.executer.ConfigurationCacheGradleExecuter;
-import org.spockframework.runtime.extension.ExtensionAnnotation;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
+import org.gradle.integtests.fixtures.executer.ConfigurationCacheGradleExecuter;
+import org.spockframework.runtime.extension.ExtensionAnnotation;
 
 /**
  * Denotes a test for a feature that is unsupported with configuration cache.

@@ -16,6 +16,12 @@
 
 package org.gradle.api.internal.options;
 
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.gradle.api.Project;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
@@ -23,13 +29,6 @@ import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 /**
  * Factory for resolving {@link InternalOptions} from {@code gradle.properties} files and system arguments.
@@ -56,10 +55,7 @@ public class InternalOptionsFactory {
      *
      * @see InternalOption#isInternalOption(String)
      */
-    public static InternalOptions createInternalOptions(
-        StartParameterInternal startParameter,
-        File rootBuildDir
-    ) {
+    public static InternalOptions createInternalOptions(StartParameterInternal startParameter, File rootBuildDir) {
         Map<String, String> properties = new HashMap<>();
         putAllProperties(properties, startParameter.getGradleHomeDir());
         putAllProperties(properties, rootBuildDir);
@@ -72,8 +68,8 @@ public class InternalOptionsFactory {
 
     private static Map<String, String> filterInternalOptions(Map<String, String> map) {
         return map.entrySet().stream()
-            .filter(entry -> InternalOption.isInternalOption(entry.getKey()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .filter(entry -> InternalOption.isInternalOption(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private static void putAllProperties(Map<String, String> properties, @Nullable File dir) {

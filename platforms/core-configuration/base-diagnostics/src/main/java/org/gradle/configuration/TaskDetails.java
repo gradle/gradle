@@ -16,6 +16,10 @@
 
 package org.gradle.configuration;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
@@ -27,18 +31,13 @@ import org.gradle.api.internal.tasks.options.OptionReader;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /**
  * A configuration-cache friendly view of a {@link Task} that only projects information
  * that is relevant for the {@link Help} task.
  */
 @NullMarked
 class TaskDetails {
-    final static Comparator<TaskDetails> DEFAULT_COMPARATOR = (o1, o2) -> {
+    static final Comparator<TaskDetails> DEFAULT_COMPARATOR = (o1, o2) -> {
         // tasks in higher-up projects first
         int depthCompare = o1.getProjectDepth() - o2.getProjectDepth();
         if (depthCompare != 0) {
@@ -56,6 +55,7 @@ class TaskDetails {
         private final String description;
 
         private final Set<String> availableValues;
+
         public OptionDetails(String name, String description, Set<String> availableValues) {
             this.name = name;
             this.description = description;
@@ -93,7 +93,14 @@ class TaskDetails {
 
     private final List<OptionDetails> options;
 
-    private TaskDetails(String path, String taskType, String shortTypeName, @Nullable String description, @Nullable String group, int projectDepth, List<OptionDetails> options) {
+    private TaskDetails(
+            String path,
+            String taskType,
+            String shortTypeName,
+            @Nullable String description,
+            @Nullable String group,
+            int projectDepth,
+            List<OptionDetails> options) {
         this.path = path;
         this.taskType = taskType;
         this.shortTypeName = shortTypeName;
@@ -139,11 +146,14 @@ class TaskDetails {
     public static TaskDetails from(Task task, OptionReader optionReader) {
         String path = task.getPath();
         int projectDepth = StringUtils.countMatches(path, Project.PATH_SEPARATOR);
-        List<OptionDetails> options = TaskOptionsGenerator.generate(task, optionReader).getAll().stream().map(OptionDetails::from).collect(Collectors.toList());
+        List<OptionDetails> options = TaskOptionsGenerator.generate(task, optionReader).getAll().stream()
+                .map(OptionDetails::from)
+                .collect(Collectors.toList());
         Class<?> declaredTaskType = getDeclaredTaskType(task);
         String taskType = declaredTaskType.getName();
         String shortTypeName = declaredTaskType.getSimpleName();
-        return new TaskDetails(path, taskType, shortTypeName, task.getDescription(), task.getGroup(), projectDepth, options);
+        return new TaskDetails(
+                path, taskType, shortTypeName, task.getDescription(), task.getGroup(), projectDepth, options);
     }
 
     private static Class<?> getDeclaredTaskType(Task original) {

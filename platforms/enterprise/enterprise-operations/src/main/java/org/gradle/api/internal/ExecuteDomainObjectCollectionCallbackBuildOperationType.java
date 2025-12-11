@@ -23,7 +23,10 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 5.1
  */
-public final class ExecuteDomainObjectCollectionCallbackBuildOperationType implements BuildOperationType<ExecuteDomainObjectCollectionCallbackBuildOperationType.Details, ExecuteDomainObjectCollectionCallbackBuildOperationType.Result> {
+public final class ExecuteDomainObjectCollectionCallbackBuildOperationType
+        implements BuildOperationType<
+                ExecuteDomainObjectCollectionCallbackBuildOperationType.Details,
+                ExecuteDomainObjectCollectionCallbackBuildOperationType.Result> {
 
     public interface Details {
 
@@ -34,16 +37,12 @@ public final class ExecuteDomainObjectCollectionCallbackBuildOperationType imple
          * @see org.gradle.configuration.ApplyScriptPluginBuildOperationType.Details#getApplicationId()
          */
         long getApplicationId();
-
     }
 
-    public interface Result {
-    }
+    public interface Result {}
 
-    static final ExecuteDomainObjectCollectionCallbackBuildOperationType.Result RESULT = new ExecuteDomainObjectCollectionCallbackBuildOperationType.Result() {
-    };
+    static final ExecuteDomainObjectCollectionCallbackBuildOperationType.Result RESULT =
+            new ExecuteDomainObjectCollectionCallbackBuildOperationType.Result() {};
 
-    private ExecuteDomainObjectCollectionCallbackBuildOperationType() {
-    }
+    private ExecuteDomainObjectCollectionCallbackBuildOperationType() {}
 }
-

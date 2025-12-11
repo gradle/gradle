@@ -23,7 +23,8 @@ import org.gradle.internal.operations.logging.LogEventLevel;
 import org.jspecify.annotations.Nullable;
 
 @SuppressWarnings("deprecation")
-public class ProgressStartEvent extends CategorisedOutputEvent implements org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails {
+public class ProgressStartEvent extends CategorisedOutputEvent
+        implements org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails {
     public static final String TASK_CATEGORY = "class org.gradle.internal.buildevents.TaskExecutionLogger";
     public static final String BUILD_OP_CATEGORY = "org.gradle.internal.logging.progress.ProgressLoggerFactory";
 
@@ -38,18 +39,17 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
     private final BuildOperationCategory buildOperationCategory;
 
     public ProgressStartEvent(
-        @Nullable OperationIdentifier progressOperationId,
-        @Nullable OperationIdentifier parentProgressOperationId,
-        long timestamp,
-        String category,
-        String description,
-        @Nullable String loggingHeader,
-        String status,
-        int totalProgress,
-        boolean buildOperationStart,
-        @Nullable OperationIdentifier buildOperationId,
-        @Nullable BuildOperationCategory buildOperationCategory
-    ) {
+            @Nullable OperationIdentifier progressOperationId,
+            @Nullable OperationIdentifier parentProgressOperationId,
+            long timestamp,
+            String category,
+            String description,
+            @Nullable String loggingHeader,
+            String status,
+            int totalProgress,
+            boolean buildOperationStart,
+            @Nullable OperationIdentifier buildOperationId,
+            @Nullable BuildOperationCategory buildOperationCategory) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.progressOperationId = progressOperationId;
         this.parentProgressOperationId = parentProgressOperationId;
@@ -59,7 +59,8 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
         this.totalProgress = totalProgress;
         this.buildOperationStart = buildOperationStart;
         this.buildOperationId = buildOperationId;
-        this.buildOperationCategory = buildOperationCategory == null ? BuildOperationCategory.UNCATEGORIZED : buildOperationCategory;
+        this.buildOperationCategory =
+                buildOperationCategory == null ? BuildOperationCategory.UNCATEGORIZED : buildOperationCategory;
     }
 
     @Nullable
@@ -88,7 +89,8 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
 
     @Override
     public String toString() {
-        return "ProgressStart (p:" + progressOperationId + " parent p:" + parentProgressOperationId + " b:" + buildOperationId + ") " + description;
+        return "ProgressStart (p:" + progressOperationId + " parent p:" + parentProgressOperationId + " b:"
+                + buildOperationId + ") " + description;
     }
 
     public OperationIdentifier getProgressOperationId() {
@@ -116,7 +118,18 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
     }
 
     public ProgressStartEvent withParentProgressOperation(OperationIdentifier parentProgressOperationId) {
-        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
+        return new ProgressStartEvent(
+                progressOperationId,
+                parentProgressOperationId,
+                getTimestamp(),
+                getCategory(),
+                description,
+                loggingHeader,
+                status,
+                totalProgress,
+                buildOperationStart,
+                buildOperationId,
+                buildOperationCategory);
     }
 
     @Override

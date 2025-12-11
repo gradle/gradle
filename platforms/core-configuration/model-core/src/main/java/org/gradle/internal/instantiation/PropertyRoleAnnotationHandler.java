@@ -16,10 +16,9 @@
 
 package org.gradle.internal.instantiation;
 
-import org.gradle.internal.state.ModelObject;
-
 import java.lang.annotation.Annotation;
 import java.util.Set;
+import org.gradle.internal.state.ModelObject;
 
 /**
  * Responsible for defining the behaviour of a particular annotation used for defining the role of a property.

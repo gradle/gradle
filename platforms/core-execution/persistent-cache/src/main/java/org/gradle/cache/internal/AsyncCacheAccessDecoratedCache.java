@@ -16,18 +16,18 @@
 
 package org.gradle.cache.internal;
 
+import java.util.function.Function;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.jspecify.annotations.Nullable;
 
-import java.util.function.Function;
-
 public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
     private final AsyncCacheAccess asyncCacheAccess;
     private final MultiProcessSafeIndexedCache<K, V> indexedCache;
 
-    public AsyncCacheAccessDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafeIndexedCache<K, V> indexedCache) {
+    public AsyncCacheAccessDecoratedCache(
+            AsyncCacheAccess asyncCacheAccess, MultiProcessSafeIndexedCache<K, V> indexedCache) {
         this.asyncCacheAccess = asyncCacheAccess;
         this.indexedCache = indexedCache;
     }

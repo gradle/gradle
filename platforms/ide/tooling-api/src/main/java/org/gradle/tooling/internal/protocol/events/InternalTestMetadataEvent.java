@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.util.Map;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.

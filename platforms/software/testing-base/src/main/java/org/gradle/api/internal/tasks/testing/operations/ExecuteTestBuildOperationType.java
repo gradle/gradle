@@ -27,7 +27,8 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * @since 4.4
  **/
 @UsedByScanPlugin
-public final class ExecuteTestBuildOperationType implements BuildOperationType<ExecuteTestBuildOperationType.Details, ExecuteTestBuildOperationType.Result> {
+public final class ExecuteTestBuildOperationType
+        implements BuildOperationType<ExecuteTestBuildOperationType.Details, ExecuteTestBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -40,30 +41,25 @@ public final class ExecuteTestBuildOperationType implements BuildOperationType<E
         long getStartTime();
 
         TestDescriptor getTestDescriptor();
-
     }
 
     @UsedByScanPlugin
     public interface Result {
 
         TestResult getResult();
-
     }
 
     @UsedByScanPlugin
     public interface Output {
 
         TestOutputEvent getOutput();
-
     }
 
     // Will probably be @UsedByScanPlugin in the future, but not yet
     public interface Metadata {
 
         TestMetadataEvent getMetadata();
-
     }
 
-    private ExecuteTestBuildOperationType() {
-    }
+    private ExecuteTestBuildOperationType() {}
 }

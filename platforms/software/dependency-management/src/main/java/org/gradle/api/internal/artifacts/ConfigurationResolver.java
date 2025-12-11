@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import java.util.List;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -25,8 +26,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.List;
 
 /**
  * Resolves {@link ConfigurationInternal}s and produces {@link ResolverResults}.
@@ -43,7 +42,8 @@ public interface ConfigurationResolver {
      * @param futureCompleteResults The future value of the output of {@link #resolveGraph(ConfigurationInternal)}. See
      * {@link DefaultTransformUpstreamDependenciesResolver} for why this is needed.
      */
-    ResolverResults resolveBuildDependencies(ConfigurationInternal configuration, CalculatedValue<ResolverResults> futureCompleteResults);
+    ResolverResults resolveBuildDependencies(
+            ConfigurationInternal configuration, CalculatedValue<ResolverResults> futureCompleteResults);
 
     /**
      * Traverses the full dependency graph of the given configuration. All failures are packaged in the result.
@@ -76,10 +76,6 @@ public interface ConfigurationResolver {
          * variant of the dependency graph.
          */
         ConfigurationResolver create(
-            ConfigurationsProvider configurations,
-            DomainObjectContext owner,
-            AttributesSchemaInternal schema
-        );
-
+                ConfigurationsProvider configurations, DomainObjectContext owner, AttributesSchemaInternal schema);
     }
 }

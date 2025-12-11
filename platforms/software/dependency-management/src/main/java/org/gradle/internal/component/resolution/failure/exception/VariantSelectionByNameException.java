@@ -16,15 +16,15 @@
 
 package org.gradle.internal.component.resolution.failure.exception;
 
-import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByNameFailure;
-
 import java.util.List;
+import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByNameFailure;
 
 /**
  * Represents a failure during variant selection when a variant cannot be selected via an explicit request for a variant by name.
  */
 public final class VariantSelectionByNameException extends AbstractResolutionFailureException {
-    public VariantSelectionByNameException(String message, VariantSelectionByNameFailure failure, List<String> resolutions) {
+    public VariantSelectionByNameException(
+            String message, VariantSelectionByNameFailure failure, List<String> resolutions) {
         super(message, failure, resolutions);
     }
 

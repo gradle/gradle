@@ -37,5 +37,4 @@ public class VersionAwareCompiler<T extends CompileSpec> implements Compiler<T> 
     public CompilerVersion getVersion() {
         return compilerVersion;
     }
-
 }

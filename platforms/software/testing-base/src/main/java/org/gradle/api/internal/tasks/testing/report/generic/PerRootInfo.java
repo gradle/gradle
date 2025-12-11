@@ -19,17 +19,16 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
-import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
-import org.gradle.api.internal.tasks.testing.results.serializable.OutputRanges;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
-import org.gradle.api.tasks.testing.TestResult;
-
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputRanges;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
+import org.gradle.api.tasks.testing.TestResult;
 
 public abstract class PerRootInfo {
     public static final class Builder {
@@ -43,15 +42,14 @@ public abstract class PerRootInfo {
         private int skippedLeafCount;
 
         public Builder(
-            long id,
-            SerializableTestResult result,
-            OutputRanges ranges,
-            List<String> childNames,
-            BitSet childIsLeaf,
-            int totalLeafCount,
-            int failedLeafCount,
-            int skippedLeafCount
-        ) {
+                long id,
+                SerializableTestResult result,
+                OutputRanges ranges,
+                List<String> childNames,
+                BitSet childIsLeaf,
+                int totalLeafCount,
+                int failedLeafCount,
+                int skippedLeafCount) {
             this.id = id;
             this.results = new ArrayList<>(Collections.singletonList(result));
             this.outputEntries = new ArrayList<>(Collections.singletonList(new OutputEntry(id, ranges)));
@@ -104,7 +102,8 @@ public abstract class PerRootInfo {
             skippedLeafCount += otherBuilder.skippedLeafCount;
 
             if (!otherBuilder.getName().equals(getName())) {
-                throw new IllegalArgumentException("Cannot merge PerRootInfo.Builder with different names: " + getName() + " and " + otherBuilder.getName());
+                throw new IllegalArgumentException("Cannot merge PerRootInfo.Builder with different names: " + getName()
+                        + " and " + otherBuilder.getName());
             }
             results.addAll(otherBuilder.results);
             outputEntries.addAll(otherBuilder.outputEntries);
@@ -131,35 +130,31 @@ public abstract class PerRootInfo {
 
                 // Sanity check:
                 if (totalLeafCount != 1 || failedLeafCount > 1 || skippedLeafCount > 1) {
-                    throw new IllegalStateException("Inconsistent leaf counts for leaf PerRootInfo: total=" + totalLeafCount + ", failed=" + failedLeafCount + ", skipped=" + skippedLeafCount);
+                    throw new IllegalStateException("Inconsistent leaf counts for leaf PerRootInfo: total="
+                            + totalLeafCount + ", failed=" + failedLeafCount + ", skipped=" + skippedLeafCount);
                 }
 
                 return new SingleResultLeaf(
-                    id,
-                    results.get(0),
-                    outputEntries.get(0).getOutputRanges()
-                );
+                        id, results.get(0), outputEntries.get(0).getOutputRanges());
             }
             if (results.size() == 1) {
                 return new SingleResultContainer(
-                    id,
-                    results.get(0),
-                    outputEntries.get(0).getOutputRanges(),
-                    ImmutableList.copyOf(children),
-                    totalLeafCount,
-                    failedLeafCount,
-                    skippedLeafCount
-                );
+                        id,
+                        results.get(0),
+                        outputEntries.get(0).getOutputRanges(),
+                        ImmutableList.copyOf(children),
+                        totalLeafCount,
+                        failedLeafCount,
+                        skippedLeafCount);
             } else {
                 return new MultiResultContainer(
-                    id,
-                    ImmutableList.copyOf(results),
-                    ImmutableList.copyOf(outputEntries),
-                    ImmutableList.copyOf(children),
-                    totalLeafCount,
-                    failedLeafCount,
-                    skippedLeafCount
-                );
+                        id,
+                        ImmutableList.copyOf(results),
+                        ImmutableList.copyOf(outputEntries),
+                        ImmutableList.copyOf(children),
+                        totalLeafCount,
+                        failedLeafCount,
+                        skippedLeafCount);
             }
         }
     }
@@ -222,14 +217,13 @@ public abstract class PerRootInfo {
         private final int skippedLeafCount;
 
         private SingleResultContainer(
-            long id,
-            SerializableTestResult result,
-            OutputRanges outputRanges,
-            ImmutableList<String> children,
-            int totalLeafCount,
-            int failedLeafCount,
-            int skippedLeafCount
-        ) {
+                long id,
+                SerializableTestResult result,
+                OutputRanges outputRanges,
+                ImmutableList<String> children,
+                int totalLeafCount,
+                int failedLeafCount,
+                int skippedLeafCount) {
             super(id);
             this.result = result;
             this.outputRanges = outputRanges;
@@ -238,7 +232,6 @@ public abstract class PerRootInfo {
             this.failedLeafCount = failedLeafCount;
             this.skippedLeafCount = skippedLeafCount;
         }
-
 
         @Override
         public List<SerializableTestResult> getResults() {
@@ -285,14 +278,13 @@ public abstract class PerRootInfo {
         private final int skippedLeafCount;
 
         private MultiResultContainer(
-            long id,
-            List<SerializableTestResult> result,
-            List<OutputEntry> outputEntries,
-            ImmutableList<String> children,
-            int totalLeafCount,
-            int failedLeafCount,
-            int skippedLeafCount
-        ) {
+                long id,
+                List<SerializableTestResult> result,
+                List<OutputEntry> outputEntries,
+                ImmutableList<String> children,
+                int totalLeafCount,
+                int failedLeafCount,
+                int skippedLeafCount) {
             super(id);
             this.result = result;
             this.outputEntries = outputEntries;
@@ -301,7 +293,6 @@ public abstract class PerRootInfo {
             this.failedLeafCount = failedLeafCount;
             this.skippedLeafCount = skippedLeafCount;
         }
-
 
         @Override
         public List<SerializableTestResult> getResults() {
@@ -335,9 +326,7 @@ public abstract class PerRootInfo {
 
         @Override
         public Iterable<TestMetadataEvent> getMetadatas() {
-            return Iterables.concat(
-                Iterables.transform(getResults(), SerializableTestResult::getMetadatas)
-            );
+            return Iterables.concat(Iterables.transform(getResults(), SerializableTestResult::getMetadatas));
         }
     }
 

@@ -16,16 +16,16 @@
 
 package org.gradle.nativeplatform.test.internal;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.NativeDependentBinariesResolutionStrategy;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.testing.base.TestSuiteBinarySpec;
 
-import java.util.Collections;
-import java.util.List;
-
-public class NativeDependentBinariesResolutionStrategyTestSupport implements NativeDependentBinariesResolutionStrategy.TestSupport {
+public class NativeDependentBinariesResolutionStrategyTestSupport
+        implements NativeDependentBinariesResolutionStrategy.TestSupport {
     @Override
     public boolean isTestSuite(BinarySpecInternal target) {
         return target instanceof TestSuiteBinarySpec;
@@ -34,7 +34,8 @@ public class NativeDependentBinariesResolutionStrategyTestSupport implements Nat
     @Override
     public List<NativeBinarySpecInternal> getTestDependencies(NativeBinarySpecInternal nativeBinary) {
         if (nativeBinary instanceof NativeTestSuiteBinarySpec) {
-            NativeBinarySpecInternal testedBinary = (NativeBinarySpecInternal) ((NativeTestSuiteBinarySpec) nativeBinary).getTestedBinary();
+            NativeBinarySpecInternal testedBinary =
+                    (NativeBinarySpecInternal) ((NativeTestSuiteBinarySpec) nativeBinary).getTestedBinary();
             return Collections.singletonList(testedBinary);
         }
         return Collections.emptyList();

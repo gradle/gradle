@@ -65,9 +65,7 @@ public interface FileMetadata {
          * Factory method for returning the access type based on a boolean.
          */
         public static AccessType viaSymlink(boolean viaSymlink) {
-            return viaSymlink
-                ? VIA_SYMLINK
-                : DIRECT;
+            return viaSymlink ? VIA_SYMLINK : DIRECT;
         }
     }
 }

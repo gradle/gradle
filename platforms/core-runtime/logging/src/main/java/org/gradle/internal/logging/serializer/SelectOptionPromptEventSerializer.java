@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.serializer;
 
+import java.util.List;
 import org.gradle.internal.logging.events.SelectOptionPromptEvent;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
@@ -23,10 +24,9 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
 
-import java.util.List;
-
 public class SelectOptionPromptEventSerializer implements Serializer<SelectOptionPromptEvent> {
-    private final Serializer<List<String>> optionsSerializer = new ListSerializer<String>(BaseSerializerFactory.STRING_SERIALIZER);
+    private final Serializer<List<String>> optionsSerializer =
+            new ListSerializer<String>(BaseSerializerFactory.STRING_SERIALIZER);
 
     @Override
     public void write(Encoder encoder, SelectOptionPromptEvent value) throws Exception {
@@ -38,6 +38,7 @@ public class SelectOptionPromptEventSerializer implements Serializer<SelectOptio
 
     @Override
     public SelectOptionPromptEvent read(Decoder decoder) throws Exception {
-        return new SelectOptionPromptEvent(decoder.readLong(), decoder.readString(), optionsSerializer.read(decoder), decoder.readSmallInt());
+        return new SelectOptionPromptEvent(
+                decoder.readLong(), decoder.readString(), optionsSerializer.read(decoder), decoder.readSmallInt());
     }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import static javax.tools.Diagnostic.NOPOS;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.sun.tools.javac.api.ClientCodeWrapper;
 import com.sun.tools.javac.api.DiagnosticFormatter;
@@ -23,6 +25,16 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.Log;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticListener;
+import javax.tools.JavaFileObject;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.Problem;
@@ -33,19 +45,6 @@ import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 
-import javax.tools.Diagnostic;
-import javax.tools.DiagnosticListener;
-import javax.tools.JavaFileObject;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static javax.tools.Diagnostic.NOPOS;
-
 /**
  * A {@link DiagnosticListener} that consumes {@link Diagnostic} messages, and reports them as Gradle {@link Problems}.
  */
@@ -53,7 +52,8 @@ import static javax.tools.Diagnostic.NOPOS;
 // We don't need this wrapping feature, hence the trusted annotation.
 @ClientCodeWrapper.Trusted
 public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileObject> {
-    public static final String FORMATTER_FALLBACK_MESSAGE = "Failed to format diagnostic message, falling back to default message formatting";
+    public static final String FORMATTER_FALLBACK_MESSAGE =
+            "Failed to format diagnostic message, falling back to default message formatting";
     private static final Logger LOGGER = Logging.getLogger(DiagnosticToProblemListener.class);
 
     private final Context context;
@@ -90,10 +90,9 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         String code = diagnostic.getCode();
         String message = diagnostic.getMessage(Locale.getDefault());
         return ProblemId.create(
-            code == null ? "unknown" : code,
-            message == null ? "unknown" : message,
-            GradleCoreProblemGroup.compilation().java()
-        );
+                code == null ? "unknown" : code,
+                message == null ? "unknown" : message,
+                GradleCoreProblemGroup.compilation().java());
     }
 
     /**
@@ -120,9 +119,9 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         Optional<String> warning = diagnosticCount(logger, "warn", warningCount);
 
         return Stream.of(error, warning)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .collect(Collectors.joining(System.lineSeparator()));
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.joining(System.lineSeparator()));
     }
 
     /**
@@ -220,7 +219,8 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                 // ... and the column ...
                 if (NOPOS != column) {
                     // ... and we know how long the error is (i.e. end - start)
-                    // (documentation says that getEndPosition() will be NOPOS if and only if the getPosition() is NOPOS)
+                    // (documentation says that getEndPosition() will be NOPOS if and only if the getPosition() is
+                    // NOPOS)
                     if (NOPOS != position) {
                         // ... we can report the line, column, and extent ...
                         spec.lineInFileLocation(resourceName, line, column, end - position);
@@ -233,16 +233,15 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                     spec.lineInFileLocation(resourceName, line);
                 }
             } else
-                // If we know the offsets ...
-                // (offset doesn't require line and column to be set, hence the separate check)
-                // (documentation says that getEndPosition() will be NOPOS iff getPosition() is NOPOS)
-                if (NOPOS != position && end > position) {
-                    // ... we can report the start and extent
-                    spec.offsetInFileLocation(resourceName, position, end - position);
-                } else {
-                    spec.fileLocation(resourceName);
-                }
-
+            // If we know the offsets ...
+            // (offset doesn't require line and column to be set, hence the separate check)
+            // (documentation says that getEndPosition() will be NOPOS iff getPosition() is NOPOS)
+            if (NOPOS != position && end > position) {
+                // ... we can report the start and extent
+                spec.offsetInFileLocation(resourceName, position, end - position);
+            } else {
+                spec.fileLocation(resourceName);
+            }
         }
     }
 
@@ -263,7 +262,8 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         try {
             DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
             // Note: this method uses a different formatter than #toFormattedLabel
-            return formatter.format((JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
+            return formatter.format(
+                    (JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
         } catch (Exception ex) {
             LOGGER.info(FORMATTER_FALLBACK_MESSAGE);
             return diagnostic.getMessage(Locale.getDefault());
@@ -287,7 +287,8 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         try {
             DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
             // Note: this method uses a different formatter than #toFormattedDetails
-            return formatter.formatMessage((JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
+            return formatter.formatMessage(
+                    (JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
         } catch (Exception ex) {
             LOGGER.info(FORMATTER_FALLBACK_MESSAGE);
             return diagnostic.getMessage(Locale.getDefault());

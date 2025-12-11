@@ -27,5 +27,4 @@ public interface IsolatedProjectsSettingsFinalizedProgressDetails {
      * Whether Isolated Projects is enabled for the build.
      */
     boolean isEnabled();
-
 }

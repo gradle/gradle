@@ -22,9 +22,11 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.FlavorContainer;
 
-public class DefaultFlavorContainer extends AbstractValidatingNamedDomainObjectContainer<Flavor> implements FlavorContainer {
+public class DefaultFlavorContainer extends AbstractValidatingNamedDomainObjectContainer<Flavor>
+        implements FlavorContainer {
 
-    public DefaultFlavorContainer(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultFlavorContainer(
+            Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(Flavor.class, instantiator, collectionCallbackActionDecorator);
     }
 

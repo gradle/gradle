@@ -18,35 +18,40 @@ package org.gradle.internal.component.resolution.failure.describer;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import java.util.Comparator;
+import java.util.List;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.exception.GraphValidationException;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure;
 
-import java.util.Comparator;
-import java.util.List;
-
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleMultipleNodesValidationFailure}.
  */
-public abstract class IncompatibleMultipleNodesValidationFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleMultipleNodesValidationFailure> {
-    private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
+public abstract class IncompatibleMultipleNodesValidationFailureDescriber
+        extends AbstractResolutionFailureDescriber<IncompatibleMultipleNodesValidationFailure> {
+    private static final String INCOMPATIBLE_VARIANTS_PREFIX =
+            "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     @Override
     public GraphValidationException describeFailure(IncompatibleMultipleNodesValidationFailure failure) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
-        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION), suggestReviewAlgorithm());
+        List<String> resolutions = buildResolutions(
+                suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION),
+                suggestReviewAlgorithm());
         return new GraphValidationException(msg, failure, resolutions);
     }
 
     private String buildIncompatibleArtifactVariantsFailureMsg(IncompatibleMultipleNodesValidationFailure failure) {
         StringBuilder sb = new StringBuilder("Multiple incompatible variants of ")
-            .append(failure.describeRequestTarget())
-            .append(" were selected:\n");
+                .append(failure.describeRequestTarget())
+                .append(" were selected:\n");
         for (AssessedCandidate assessedCandidate : failure.getAssessedCandidates()) {
-            sb.append("   - Variant ").append(assessedCandidate.getDisplayName()).append(" has attributes ");
+            sb.append("   - Variant ")
+                    .append(assessedCandidate.getDisplayName())
+                    .append(" has attributes ");
             formatAttributes(sb, assessedCandidate.getAllCandidateAttributes());
             sb.append("\n");
         }

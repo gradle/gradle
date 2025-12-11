@@ -16,6 +16,11 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import static org.gradle.tooling.internal.provider.runner.ProblemsProgressEventUtils.createProblemEvent;
+import static org.gradle.tooling.internal.provider.runner.ProblemsProgressEventUtils.createProblemSummaryEvent;
+
+import java.util.Collections;
+import java.util.function.Supplier;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
@@ -40,12 +45,6 @@ import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.function.Supplier;
-
-import static org.gradle.tooling.internal.provider.runner.ProblemsProgressEventUtils.createProblemEvent;
-import static org.gradle.tooling.internal.provider.runner.ProblemsProgressEventUtils.createProblemSummaryEvent;
-
 /**
  * Build listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
  *
@@ -60,7 +59,10 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
     private final boolean rootRequested;
     private final Supplier<OperationIdentifier> operationIdentifierSupplier;
 
-    ClientForwardingBuildOperationListener(ProgressEventConsumer eventConsumer, BuildEventSubscriptions buildEventSubscriptions, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+    ClientForwardingBuildOperationListener(
+            ProgressEventConsumer eventConsumer,
+            BuildEventSubscriptions buildEventSubscriptions,
+            Supplier<OperationIdentifier> operationIdentifierSupplier) {
         this.eventConsumer = eventConsumer;
         this.problemsRequested = buildEventSubscriptions.isRequested(OperationType.PROBLEMS);
         this.genericRequested = buildEventSubscriptions.isRequested(OperationType.GENERIC);
@@ -71,8 +73,10 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         // RunBuildBuildOperationType.Details is the type of the details object associated with the root build operation
-        if ((rootRequested && buildOperation.getDetails() instanceof RunBuildBuildOperationType.Details) || genericRequested) {
-            eventConsumer.started(new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), toBuildOperationDescriptor(buildOperation)));
+        if ((rootRequested && buildOperation.getDetails() instanceof RunBuildBuildOperationType.Details)
+                || genericRequested) {
+            eventConsumer.started(new DefaultOperationStartedProgressEvent(
+                    startEvent.getStartTime(), toBuildOperationDescriptor(buildOperation)));
         }
     }
 
@@ -81,21 +85,15 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         if (problemsRequested) {
             Object details = progressEvent.getDetails();
             if (details instanceof DefaultProblemProgressDetails) {
-                eventConsumer.progress(
-                    createProblemEvent(
+                eventConsumer.progress(createProblemEvent(
                         eventConsumer.findStartedParentId(buildOperationId),
                         (DefaultProblemProgressDetails) details,
-                        operationIdentifierSupplier
-                    )
-                );
+                        operationIdentifierSupplier));
             } else if (details instanceof DefaultProblemsSummaryProgressDetails) {
-                eventConsumer.progress(
-                    createProblemSummaryEvent(
+                eventConsumer.progress(createProblemSummaryEvent(
                         eventConsumer.findStartedParentId(buildOperationId),
                         (DefaultProblemsSummaryProgressDetails) details,
-                        operationIdentifierSupplier
-                    )
-                );
+                        operationIdentifierSupplier));
             }
         }
     }
@@ -106,9 +104,13 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         if (rootRequested && buildOperation.getDetails() instanceof RunBuildBuildOperationType.Details) {
             RunBuildBuildOperationType.Result operationResult = (RunBuildBuildOperationType.Result) result.getResult();
             Failure failure = operationResult == null ? null : operationResult.getFailure();
-            eventConsumer.finished(new DefaultOperationFinishedProgressEvent(result.getEndTime(), createRootOperationDescriptor(buildOperation), toOperationResult(result, failure)));
+            eventConsumer.finished(new DefaultOperationFinishedProgressEvent(
+                    result.getEndTime(),
+                    createRootOperationDescriptor(buildOperation),
+                    toOperationResult(result, failure)));
         } else if (genericRequested) {
-            eventConsumer.finished(new DefaultOperationFinishedProgressEvent(result.getEndTime(), toBuildOperationDescriptor(buildOperation), toOperationResult(result)));
+            eventConsumer.finished(new DefaultOperationFinishedProgressEvent(
+                    result.getEndTime(), toBuildOperationDescriptor(buildOperation), toOperationResult(result)));
         }
     }
 
@@ -137,10 +139,12 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         long endTime = result.getEndTime();
         if (failure != null) {
             if (buildFailure != null) {
-                InternalFailure rootFailure = DefaultFailure.fromFailure(buildFailure, ProblemsProgressEventUtils::createDefaultProblemDetails);
+                InternalFailure rootFailure = DefaultFailure.fromFailure(
+                        buildFailure, ProblemsProgressEventUtils::createDefaultProblemDetails);
                 return new DefaultFailureResult(startTime, endTime, Collections.singletonList(rootFailure));
             } else {
-                return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
+                return new DefaultFailureResult(
+                        startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
             }
         }
         return new DefaultSuccessResult(startTime, endTime);

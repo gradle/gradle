@@ -15,11 +15,10 @@
  */
 package org.gradle.util.internal;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.util.GradleVersion;
-
 import java.net.URI;
 import java.net.URISyntaxException;
+import org.gradle.internal.UncheckedException;
+import org.gradle.util.GradleVersion;
 
 public class DistributionLocator {
 
@@ -49,11 +48,10 @@ public class DistributionLocator {
     }
 
     private URI getDistribution(
-        String repositoryUrl, GradleVersion version, String archiveName,
-        String archiveClassifier
-    ) {
+            String repositoryUrl, GradleVersion version, String archiveName, String archiveClassifier) {
         try {
-            return new URI(repositoryUrl + "/" + archiveName + "-" + version.getVersion() + "-" + archiveClassifier + ".zip");
+            return new URI(
+                    repositoryUrl + "/" + archiveName + "-" + version.getVersion() + "-" + archiveClassifier + ".zip");
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

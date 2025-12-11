@@ -16,15 +16,14 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class RunEclipseTasksBuilder implements ToolingModelBuilder {
 
@@ -46,7 +45,8 @@ public class RunEclipseTasksBuilder implements ToolingModelBuilder {
             EclipseModel model = p.getExtensions().findByType(EclipseModel.class);
             if (model != null) {
                 if (isSyncModel) {
-                    for (Task t : TaskDependencyUtil.getDependenciesForInternalUse(model.getSynchronizationTasks(), null)) {
+                    for (Task t :
+                            TaskDependencyUtil.getDependenciesForInternalUse(model.getSynchronizationTasks(), null)) {
                         taskPaths.add(t.getPath());
                     }
                 }
@@ -73,7 +73,6 @@ public class RunEclipseTasksBuilder implements ToolingModelBuilder {
     private static boolean isSyncModel(String modelName) {
         return modelName.equals("org.gradle.tooling.model.eclipse.RunEclipseSynchronizationTasks");
     }
-
 
     private static boolean isAutoBuildModel(String modelName) {
         return modelName.equals("org.gradle.tooling.model.eclipse.RunEclipseAutoBuildTasks");

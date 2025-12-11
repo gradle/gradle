@@ -16,14 +16,13 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import java.io.IOException;
+import java.net.URI;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
-
-import java.io.IOException;
-import java.net.URI;
 
 public class HttpResourceUploader implements ExternalResourceUploader {
 
@@ -36,12 +35,17 @@ public class HttpResourceUploader implements ExternalResourceUploader {
     @Override
     public void upload(ReadableContent resource, ExternalResourceName destination) throws IOException {
         HttpPut method = new HttpPut(destination.getUri());
-        final RepeatableInputStreamEntity entity = new RepeatableInputStreamEntity(resource, ContentType.APPLICATION_OCTET_STREAM);
+        final RepeatableInputStreamEntity entity =
+                new RepeatableInputStreamEntity(resource, ContentType.APPLICATION_OCTET_STREAM);
         method.setEntity(entity);
         try (HttpClientResponse response = http.performHttpRequest(method)) {
             if (!response.wasSuccessful()) {
                 URI effectiveUri = response.getEffectiveUri();
-                throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+                throw new HttpErrorStatusCodeException(
+                        response.getMethod(),
+                        effectiveUri.toString(),
+                        response.getStatusLine().getStatusCode(),
+                        response.getStatusLine().getReasonPhrase());
             }
         }
     }

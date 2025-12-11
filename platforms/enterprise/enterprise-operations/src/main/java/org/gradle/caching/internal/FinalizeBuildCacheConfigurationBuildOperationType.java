@@ -16,10 +16,9 @@
 
 package org.gradle.caching.internal;
 
+import java.util.Map;
 import org.gradle.internal.operations.BuildOperationType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * The transformation of the user's build cache config, to the effective configuration.
@@ -36,7 +35,10 @@ import java.util.Map;
  *
  * @since 4.0
  */
-public final class FinalizeBuildCacheConfigurationBuildOperationType implements BuildOperationType<FinalizeBuildCacheConfigurationBuildOperationType.Details, FinalizeBuildCacheConfigurationBuildOperationType.Result> {
+public final class FinalizeBuildCacheConfigurationBuildOperationType
+        implements BuildOperationType<
+                FinalizeBuildCacheConfigurationBuildOperationType.Details,
+                FinalizeBuildCacheConfigurationBuildOperationType.Result> {
 
     public interface Details {
 
@@ -46,7 +48,6 @@ public final class FinalizeBuildCacheConfigurationBuildOperationType implements 
          * @since 4.5
          */
         String getBuildPath();
-
     }
 
     public interface Result {
@@ -92,12 +93,8 @@ public final class FinalizeBuildCacheConfigurationBuildOperationType implements 
              * See {@code org.gradle.caching.BuildCacheServiceFactory.Describer#config(String, String)}.
              */
             Map<String, String> getConfig();
-
         }
-
     }
 
-    private FinalizeBuildCacheConfigurationBuildOperationType() {
-    }
-
+    private FinalizeBuildCacheConfigurationBuildOperationType() {}
 }

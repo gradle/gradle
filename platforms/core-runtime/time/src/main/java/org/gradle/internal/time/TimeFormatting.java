@@ -26,8 +26,7 @@ public class TimeFormatting {
     private static final int MILLIS_PER_HOUR = 60 * MILLIS_PER_MINUTE;
     private static final int MILLIS_PER_DAY = 24 * MILLIS_PER_HOUR;
 
-    private TimeFormatting() {
-    }
+    private TimeFormatting() {}
 
     public static String formatDurationVerbose(long durationMillis) {
         StringBuilder result = new StringBuilder();
@@ -35,7 +34,8 @@ public class TimeFormatting {
             result.append(durationMillis / MILLIS_PER_HOUR).append(" hrs ");
         }
         if (durationMillis > (long) MILLIS_PER_MINUTE) {
-            result.append((durationMillis % MILLIS_PER_HOUR) / MILLIS_PER_MINUTE).append(" mins ");
+            result.append((durationMillis % MILLIS_PER_HOUR) / MILLIS_PER_MINUTE)
+                    .append(" mins ");
         }
         result.append((durationMillis % MILLIS_PER_MINUTE) / 1000.0).append(" secs");
         return result.toString();
@@ -71,7 +71,8 @@ public class TimeFormatting {
         StringBuilder result = new StringBuilder();
 
         // Whereas it doesn't make sense to pass negative values to this method,
-        // the duration passed on call sited is often a result of some math, what is not guarantees positive-values-only.
+        // the duration passed on call sited is often a result of some math, what is not guarantees
+        // positive-values-only.
         // So let's make an output more predictable in accidental negative-values scenarios.
         if (duration < 0) {
             result.append("-");
@@ -98,7 +99,9 @@ public class TimeFormatting {
             result.append("m");
         }
         int secondsScale = result.length() > 0 ? 2 : 3;
-        result.append(BigDecimal.valueOf(duration).divide(BigDecimal.valueOf(MILLIS_PER_SECOND)).setScale(secondsScale, RoundingMode.HALF_UP));
+        result.append(BigDecimal.valueOf(duration)
+                .divide(BigDecimal.valueOf(MILLIS_PER_SECOND))
+                .setScale(secondsScale, RoundingMode.HALF_UP));
         result.append("s");
         return result.toString();
     }

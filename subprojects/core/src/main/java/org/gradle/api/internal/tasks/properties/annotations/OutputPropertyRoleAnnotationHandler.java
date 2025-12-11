@@ -17,19 +17,19 @@
 package org.gradle.api.internal.tasks.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.provider.PropertyInternal;
-import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
-import org.gradle.internal.state.ModelObject;
-
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.internal.provider.PropertyInternal;
+import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
+import org.gradle.internal.state.ModelObject;
 
 public class OutputPropertyRoleAnnotationHandler implements PropertyRoleAnnotationHandler {
     private final ImmutableSet<Class<? extends Annotation>> annotations;
 
     public OutputPropertyRoleAnnotationHandler(List<AbstractOutputPropertyAnnotationHandler> handlers) {
-        ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builderWithExpectedSize(handlers.size());
+        ImmutableSet.Builder<Class<? extends Annotation>> builder =
+                ImmutableSet.builderWithExpectedSize(handlers.size());
         for (AbstractOutputPropertyAnnotationHandler handler : handlers) {
             builder.add(handler.getAnnotationType());
         }

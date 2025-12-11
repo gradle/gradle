@@ -23,10 +23,12 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
 public class LayoutCommandLineConverter extends AbstractCommandLineConverter<BuildLayoutParameters> {
-    private final CommandLineConverter<BuildLayoutParameters> converter = new BuildLayoutParametersBuildOptions().commandLineConverter();
+    private final CommandLineConverter<BuildLayoutParameters> converter =
+            new BuildLayoutParametersBuildOptions().commandLineConverter();
 
     @Override
-    public BuildLayoutParameters convert(ParsedCommandLine options, BuildLayoutParameters target) throws CommandLineArgumentException {
+    public BuildLayoutParameters convert(ParsedCommandLine options, BuildLayoutParameters target)
+            throws CommandLineArgumentException {
         converter.convert(options, target);
         return target;
     }

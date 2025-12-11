@@ -16,13 +16,12 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
-import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorOutputStream;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorOutputStream;
 
 public class SnappyCommonsPacker implements Packer {
     private final Packer delegate;
@@ -43,11 +42,13 @@ public class SnappyCommonsPacker implements Packer {
 
     @Override
     public void unpack(DataSource input, DataTargetFactory targetFactory) throws IOException {
-        delegate.unpack(new DelegatingDataSource(input) {
-            @Override
-            public InputStream openInput() throws IOException {
-                return new FramedSnappyCompressorInputStream(super.openInput());
-            }
-        }, targetFactory);
+        delegate.unpack(
+                new DelegatingDataSource(input) {
+                    @Override
+                    public InputStream openInput() throws IOException {
+                        return new FramedSnappyCompressorInputStream(super.openInput());
+                    }
+                },
+                targetFactory);
     }
 }

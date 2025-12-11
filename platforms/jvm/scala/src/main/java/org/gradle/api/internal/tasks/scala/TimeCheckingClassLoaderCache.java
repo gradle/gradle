@@ -16,11 +16,6 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import sbt.internal.inc.classpath.AbstractClassLoaderCache;
-import sbt.io.IO;
-import scala.Function0;
-import scala.jdk.javaapi.CollectionConverters;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -30,6 +25,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import sbt.internal.inc.classpath.AbstractClassLoaderCache;
+import sbt.io.IO;
+import scala.Function0;
+import scala.jdk.javaapi.CollectionConverters;
 
 /**
  * This class implements AbstractClassLoaderCache in a way that allows safe
@@ -59,8 +58,7 @@ class TimeCheckingClassLoaderCache implements AbstractClassLoaderCache {
                 return false;
             }
             TimestampedFile that = (TimestampedFile) o;
-            return timestamp == that.timestamp &&
-                Objects.equals(file, that.file);
+            return timestamp == that.timestamp && Objects.equals(file, that.file);
         }
 
         @Override
@@ -96,7 +94,8 @@ class TimeCheckingClassLoaderCache implements AbstractClassLoaderCache {
     }
 
     @Override
-    public ClassLoader cachedCustomClassloader(scala.collection.immutable.List<File> files, Function0<ClassLoader> mkLoader) {
+    public ClassLoader cachedCustomClassloader(
+            scala.collection.immutable.List<File> files, Function0<ClassLoader> mkLoader) {
         try {
             return cache.get(getTimestampedFiles(CollectionConverters.asJava(files)), () -> mkLoader.apply());
         } catch (Exception e) {

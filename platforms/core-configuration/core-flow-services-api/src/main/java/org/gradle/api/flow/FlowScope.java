@@ -40,9 +40,7 @@ public interface FlowScope {
      * @return a {@link Registration} object representing the registered action.
      */
     <P extends FlowParameters> Registration<P> always(
-        Class<? extends FlowAction<P>> action,
-        Action<? super FlowActionSpec<P>> configure
-    );
+            Class<? extends FlowAction<P>> action, Action<? super FlowActionSpec<P>> configure);
 
     /**
      * Represents a registered {@link FlowAction dataflow action}.
@@ -51,6 +49,5 @@ public interface FlowScope {
      * @since 8.1
      */
     @Incubating
-    interface Registration<P extends FlowParameters> {
-    }
+    interface Registration<P extends FlowParameters> {}
 }

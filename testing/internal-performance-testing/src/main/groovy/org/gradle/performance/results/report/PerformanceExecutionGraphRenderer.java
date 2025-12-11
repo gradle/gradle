@@ -16,24 +16,24 @@
 
 package org.gradle.performance.results.report;
 
+import static java.util.stream.Collectors.toList;
+
+import java.util.List;
+import java.util.stream.IntStream;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.util.Git;
 
-import java.util.List;
-import java.util.stream.IntStream;
-
-import static java.util.stream.Collectors.toList;
-
 public interface PerformanceExecutionGraphRenderer {
     default List<ExecutionGraph> getGraphs(PerformanceTestHistory history) {
-        List<PerformanceTestExecution> executions = history.getExecutions()
-            .stream()
-            .filter(this::sameCommit)
-            .filter(this::hasTwoDataLines)
-            .collect(toList());
-        return IntStream.range(0, executions.size()).mapToObj(i -> toExecutionGraph(executions.get(i), i + 1)).collect(toList());
+        List<PerformanceTestExecution> executions = history.getExecutions().stream()
+                .filter(this::sameCommit)
+                .filter(this::hasTwoDataLines)
+                .collect(toList());
+        return IntStream.range(0, executions.size())
+                .mapToObj(i -> toExecutionGraph(executions.get(i), i + 1))
+                .collect(toList());
     }
 
     default boolean hasTwoDataLines(PerformanceTestExecution execution) {
@@ -45,8 +45,12 @@ public interface PerformanceExecutionGraphRenderer {
     }
 
     default ExecutionGraph toExecutionGraph(PerformanceTestExecution execution, int index) {
-        Line baseline = new Line(execution.getScenarios().stream().filter(this::hasData).findFirst().orElse(new MeasuredOperationList()));
-        Line current = new Line(execution.getScenarios().get(execution.getScenarios().size() - 1));
+        Line baseline = new Line(execution.getScenarios().stream()
+                .filter(this::hasData)
+                .findFirst()
+                .orElse(new MeasuredOperationList()));
+        Line current =
+                new Line(execution.getScenarios().get(execution.getScenarios().size() - 1));
 
         return new ExecutionGraph(index, baseline, current);
     }

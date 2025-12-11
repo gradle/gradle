@@ -23,7 +23,8 @@ public class VisualStudioProjectConfiguration {
     private final String platformName = "Win32";
     private final VisualStudioTargetBinary binary;
 
-    public VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, VisualStudioTargetBinary binary) {
+    public VisualStudioProjectConfiguration(
+            DefaultVisualStudioProject vsProject, String configurationName, VisualStudioTargetBinary binary) {
         this.vsProject = vsProject;
         this.configurationName = configurationName;
         this.name = configurationName + "|" + platformName;

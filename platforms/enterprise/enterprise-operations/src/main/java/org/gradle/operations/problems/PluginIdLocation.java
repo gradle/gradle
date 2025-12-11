@@ -29,5 +29,4 @@ public interface PluginIdLocation extends ProblemLocation {
      * @since 8.14
      */
     String getPluginId();
-
 }

@@ -16,6 +16,10 @@
 
 package org.gradle.internal.component.local.model;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultRootComponentIdentifier;
@@ -33,11 +37,6 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
 @ServiceScope(Scope.BuildTree.class)
 public class LocalComponentGraphResolveStateFactory {
 
@@ -47,11 +46,10 @@ public class LocalComponentGraphResolveStateFactory {
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     public LocalComponentGraphResolveStateFactory(
-        AttributeDesugaring attributeDesugaring,
-        ComponentIdGenerator idGenerator,
-        LocalVariantGraphResolveStateBuilder metadataBuilder,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
+            AttributeDesugaring attributeDesugaring,
+            ComponentIdGenerator idGenerator,
+            LocalVariantGraphResolveStateBuilder metadataBuilder,
+            CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.attributeDesugaring = attributeDesugaring;
         this.idGenerator = idGenerator;
         this.metadataBuilder = metadataBuilder;
@@ -62,9 +60,7 @@ public class LocalComponentGraphResolveStateFactory {
      * Creates state for a component loaded from the configuration cache.
      */
     public LocalComponentGraphResolveState realizedStateFor(
-        LocalComponentGraphResolveMetadata metadata,
-        List<? extends LocalVariantGraphResolveState> variants
-    ) {
+            LocalComponentGraphResolveMetadata metadata, List<? extends LocalVariantGraphResolveState> variants) {
         LocalVariantGraphResolveStateFactory configurationFactory = new RealizedListVariantFactory(variants);
         return createLocalComponentState(false, idGenerator.nextComponentId(), metadata, configurationFactory);
     }
@@ -73,36 +69,26 @@ public class LocalComponentGraphResolveStateFactory {
      * Creates state for a variant loaded from the configuration cache.
      */
     public LocalVariantGraphResolveState realizedVariantStateFor(
-        LocalVariantGraphResolveMetadata metadata,
-        DefaultLocalVariantGraphResolveState.VariantDependencyMetadata dependencyMetadata,
-        Set<LocalVariantMetadata> variants
-    ) {
+            LocalVariantGraphResolveMetadata metadata,
+            DefaultLocalVariantGraphResolveState.VariantDependencyMetadata dependencyMetadata,
+            Set<LocalVariantMetadata> variants) {
         CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> calculatedDependencies =
-            calculatedValueContainerFactory.create(Describables.of(metadata, "dependencies"), context -> dependencyMetadata);
+                calculatedValueContainerFactory.create(
+                        Describables.of(metadata, "dependencies"), context -> dependencyMetadata);
 
         return new DefaultLocalVariantGraphResolveState(
-            idGenerator.nextVariantId(),
-            metadata,
-            calculatedDependencies,
-            variants
-        );
+                idGenerator.nextVariantId(), metadata, calculatedDependencies, variants);
     }
 
     /**
      * Creates state for a standard local component, with variants derived from the given {@link ConfigurationsProvider}.
      */
     public LocalComponentGraphResolveState stateFor(
-        ModelContainer<?> model,
-        LocalComponentGraphResolveMetadata metadata,
-        ConfigurationsProvider configurations
-    ) {
+            ModelContainer<?> model,
+            LocalComponentGraphResolveMetadata metadata,
+            ConfigurationsProvider configurations) {
         LocalVariantGraphResolveStateFactory variantsFactory = new ConfigurationsProviderVariantFactory(
-            metadata.getId(),
-            configurations,
-            metadataBuilder,
-            model,
-            calculatedValueContainerFactory
-        );
+                metadata.getId(), configurations, metadataBuilder, model, calculatedValueContainerFactory);
 
         return createLocalComponentState(false, idGenerator.nextComponentId(), metadata, variantsFactory);
     }
@@ -111,38 +97,25 @@ public class LocalComponentGraphResolveStateFactory {
      * Creates state for an adhoc root component with no variants.
      */
     public LocalComponentGraphResolveState adhocRootComponentState(
-        String status,
-        ModuleVersionIdentifier moduleVersionId,
-        ImmutableAttributesSchema attributesSchema
-    ) {
+            String status, ModuleVersionIdentifier moduleVersionId, ImmutableAttributesSchema attributesSchema) {
         long instanceId = idGenerator.nextComponentId();
         ComponentIdentifier componentIdentifier = new DefaultRootComponentIdentifier(instanceId);
 
-        LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
-            moduleVersionId,
-            componentIdentifier,
-            status,
-            attributesSchema
-        );
+        LocalComponentGraphResolveMetadata metadata =
+                new LocalComponentGraphResolveMetadata(moduleVersionId, componentIdentifier, status, attributesSchema);
 
-        LocalVariantGraphResolveStateFactory configurationFactory = new RealizedListVariantFactory(Collections.emptyList());
+        LocalVariantGraphResolveStateFactory configurationFactory =
+                new RealizedListVariantFactory(Collections.emptyList());
         return createLocalComponentState(true, instanceId, metadata, configurationFactory);
     }
 
     private DefaultLocalComponentGraphResolveState createLocalComponentState(
-        boolean adHoc,
-        long instanceId,
-        LocalComponentGraphResolveMetadata metadata,
-        LocalVariantGraphResolveStateFactory variantsFactory
-    ) {
+            boolean adHoc,
+            long instanceId,
+            LocalComponentGraphResolveMetadata metadata,
+            LocalVariantGraphResolveStateFactory variantsFactory) {
         return new DefaultLocalComponentGraphResolveState(
-            instanceId,
-            metadata,
-            attributeDesugaring,
-            adHoc,
-            variantsFactory,
-            calculatedValueContainerFactory
-        );
+                instanceId, metadata, attributeDesugaring, adHoc, variantsFactory, calculatedValueContainerFactory);
     }
 
     /**
@@ -163,7 +136,6 @@ public class LocalComponentGraphResolveStateFactory {
                 visitor.accept(variant);
             }
         }
-
     }
 
     /**
@@ -178,12 +150,11 @@ public class LocalComponentGraphResolveStateFactory {
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
         public ConfigurationsProviderVariantFactory(
-            ComponentIdentifier componentId,
-            ConfigurationsProvider configurationsProvider,
-            LocalVariantGraphResolveStateBuilder stateBuilder,
-            ModelContainer<?> model,
-            CalculatedValueContainerFactory calculatedValueContainerFactory
-        ) {
+                ComponentIdentifier componentId,
+                ConfigurationsProvider configurationsProvider,
+                LocalVariantGraphResolveStateBuilder stateBuilder,
+                ModelContainer<?> model,
+                CalculatedValueContainerFactory calculatedValueContainerFactory) {
             this.componentId = componentId;
             this.configurationsProvider = configurationsProvider;
             this.stateBuilder = stateBuilder;
@@ -192,28 +163,23 @@ public class LocalComponentGraphResolveStateFactory {
         }
 
         @Override
-        @SuppressWarnings("NonCanonicalType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+        @SuppressWarnings("NonCanonicalType") // TODO: evaluate errorprone suppression
+        // (https://github.com/gradle/gradle/issues/35864)
         public void visitConsumableVariants(Consumer<LocalVariantGraphResolveState> visitor) {
             model.applyToMutableState(p -> {
                 DefaultLocalVariantGraphResolveStateBuilder.DependencyCache cache =
-                    new DefaultLocalVariantGraphResolveStateBuilder.DependencyCache();
+                        new DefaultLocalVariantGraphResolveStateBuilder.DependencyCache();
 
-                VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).assertNoConflicts();
+                VariantIdentityUniquenessVerifier.buildReport(configurationsProvider)
+                        .assertNoConflicts();
 
                 configurationsProvider.visitConsumable(configuration -> {
                     LocalVariantGraphResolveState variantState = stateBuilder.createConsumableVariantState(
-                        configuration,
-                        componentId,
-                        cache,
-                        model,
-                        calculatedValueContainerFactory
-                    );
+                            configuration, componentId, cache, model, calculatedValueContainerFactory);
 
                     visitor.accept(variantState);
                 });
             });
         }
-
     }
-
 }

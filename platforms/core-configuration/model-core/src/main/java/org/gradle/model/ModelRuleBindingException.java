@@ -30,5 +30,4 @@ public class ModelRuleBindingException extends GradleException {
     public ModelRuleBindingException(String message) {
         super(message);
     }
-
 }

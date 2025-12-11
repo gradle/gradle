@@ -15,6 +15,10 @@
  */
 package org.gradle.api.plugins;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -41,11 +45,6 @@ import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.external.model.ShadowedImmutableCapability;
-
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * The Java platform plugin allows building platform components
@@ -81,9 +80,8 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         if (project.getPluginManager().hasPlugin("java")) {
             // This already throws when creating `apiElements` so be eager to have a clear error message
             throw new IllegalStateException(
-                "The \"java-platform\" plugin cannot be applied together with the \"java\" (or \"java-library\") plugin. " +
-                    "A project is either a platform or a library but cannot be both at the same time."
-            );
+                    "The \"java-platform\" plugin cannot be applied together with the \"java\" (or \"java-library\") plugin. "
+                            + "A project is either a platform or a library but cannot be both at the same time.");
         }
         project.getPluginManager().apply(BasePlugin.class);
         project.getPluginManager().apply(JvmEcosystemPlugin.class);
@@ -92,7 +90,10 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         configurePublishing(project);
     }
 
-    private void createSoftwareComponent(Project project, Provider<ConsumableConfiguration> apiElements, Provider<ConsumableConfiguration> runtimeElements) {
+    private void createSoftwareComponent(
+            Project project,
+            Provider<ConsumableConfiguration> apiElements,
+            Provider<ConsumableConfiguration> runtimeElements) {
         AdhocComponentWithVariants component = softwareComponentFactory.adhoc("javaPlatform");
         project.getComponents().add(component);
         component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", false));
@@ -101,21 +102,38 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
 
     private void createConfigurations(ProjectInternal project) {
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
-        Capability enforcedCapability = new ShadowedImmutableCapability(new ProjectDerivedCapability(project), "-derived-enforced-platform");
+        Capability enforcedCapability =
+                new ShadowedImmutableCapability(new ProjectDerivedCapability(project), "-derived-enforced-platform");
 
         // API
         Configuration api = configurations.dependencyScopeLocked(API_CONFIGURATION_NAME);
 
-        Provider<ConsumableConfiguration> apiElements = createConsumableApi(project, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM, Collections.emptySet());
-        createConsumableApi(project, api, ENFORCED_API_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM, Collections.singleton(enforcedCapability));
+        Provider<ConsumableConfiguration> apiElements = createConsumableApi(
+                project, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM, Collections.emptySet());
+        createConsumableApi(
+                project,
+                api,
+                ENFORCED_API_ELEMENTS_CONFIGURATION_NAME,
+                Category.ENFORCED_PLATFORM,
+                Collections.singleton(enforcedCapability));
 
         // Runtime
         Configuration runtime = project.getConfigurations().dependencyScopeLocked(RUNTIME_CONFIGURATION_NAME, conf -> {
             conf.extendsFrom(api);
         });
 
-        Provider<ConsumableConfiguration> runtimeElements = createConsumableRuntime(project, runtime, RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM, Collections.emptySet());
-        createConsumableRuntime(project, runtime, ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM, Collections.singleton(enforcedCapability));
+        Provider<ConsumableConfiguration> runtimeElements = createConsumableRuntime(
+                project,
+                runtime,
+                RUNTIME_ELEMENTS_CONFIGURATION_NAME,
+                Category.REGULAR_PLATFORM,
+                Collections.emptySet());
+        createConsumableRuntime(
+                project,
+                runtime,
+                ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME,
+                Category.ENFORCED_PLATFORM,
+                Collections.singleton(enforcedCapability));
 
         // Resolvable configuration used for publishing resolved versions.
         configurations.resolvableLocked(CLASSPATH_CONFIGURATION_NAME, conf -> {
@@ -129,7 +147,12 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         createSoftwareComponent(project, apiElements, runtimeElements);
     }
 
-    private Provider<ConsumableConfiguration> createConsumableRuntime(ProjectInternal project, Configuration runtime, String name, String platformKind, Set<Capability> capabilities) {
+    private Provider<ConsumableConfiguration> createConsumableRuntime(
+            ProjectInternal project,
+            Configuration runtime,
+            String name,
+            String platformKind,
+            Set<Capability> capabilities) {
         return project.getConfigurations().consumable(name, runtimeElements -> {
             runtimeElements.extendsFrom(runtime);
 
@@ -141,7 +164,12 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         });
     }
 
-    private Provider<ConsumableConfiguration> createConsumableApi(ProjectInternal project, Configuration api, String name, String platformKind, Set<Capability> capabilities) {
+    private Provider<ConsumableConfiguration> createConsumableApi(
+            ProjectInternal project,
+            Configuration api,
+            String name,
+            String platformKind,
+            Set<Capability> capabilities) {
         return project.getConfigurations().consumable(name, apiElements -> {
             apiElements.extendsFrom(api);
 
@@ -154,11 +182,18 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private void declareConfigurationCategory(ObjectFactory objectFactory, Configuration configuration, String value) {
-        configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, value));
+        configuration
+                .getAttributes()
+                .attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, value));
     }
 
-    private void declareConfigurationLibraryElements(Configuration configuration, ObjectFactory objectFactory, String libraryContents) {
-        configuration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, libraryContents));
+    private void declareConfigurationLibraryElements(
+            Configuration configuration, ObjectFactory objectFactory, String libraryContents) {
+        configuration
+                .getAttributes()
+                .attribute(
+                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        objectFactory.named(LibraryElements.class, libraryContents));
     }
 
     private void declareConfigurationUsage(ObjectFactory objectFactory, Configuration configuration, String usage) {
@@ -166,7 +201,8 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private void configureExtension(Project project) {
-        final DefaultJavaPlatformExtension platformExtension = (DefaultJavaPlatformExtension) project.getExtensions().create(JavaPlatformExtension.class, "javaPlatform", DefaultJavaPlatformExtension.class);
+        final DefaultJavaPlatformExtension platformExtension = (DefaultJavaPlatformExtension) project.getExtensions()
+                .create(JavaPlatformExtension.class, "javaPlatform", DefaultJavaPlatformExtension.class);
         project.afterEvaluate(project1 -> {
             if (!platformExtension.isAllowDependencies()) {
                 checkNoDependencies(project1);
@@ -181,11 +217,13 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     private void checkNoDependencies(Configuration configuration, Set<Configuration> visited) {
         if (visited.add(configuration)) {
             if (!configuration.getDependencies().isEmpty()) {
-                throw new InvalidUserCodeException(String.format("Adding dependencies to platforms is not allowed by default.\n" +
-                    "Most likely you want to add constraints instead.\n" +
-                    "If you did this intentionally, you need to configure the platform extension to allow dependencies:\n" +
-                    "    javaPlatform.allowDependencies()\n" +
-                    "Found dependencies in the '%s' configuration.", configuration.getName()));
+                throw new InvalidUserCodeException(String.format(
+                        "Adding dependencies to platforms is not allowed by default.\n"
+                                + "Most likely you want to add constraints instead.\n"
+                                + "If you did this intentionally, you need to configure the platform extension to allow dependencies:\n"
+                                + "    javaPlatform.allowDependencies()\n"
+                                + "Found dependencies in the '%s' configuration.",
+                        configuration.getName()));
             }
             Set<Configuration> extendsFrom = configuration.getExtendsFrom();
             for (Configuration parent : extendsFrom) {
@@ -200,16 +238,17 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
 
             // Set up the default configurations used when mapping to resolved versions
             publishing.getPublications().withType(IvyPublication.class, publication -> {
-                VersionMappingStrategyInternal strategy = ((PublicationInternal<?>) publication).getVersionMappingStrategy();
+                VersionMappingStrategyInternal strategy =
+                        ((PublicationInternal<?>) publication).getVersionMappingStrategy();
                 strategy.defaultResolutionConfiguration(Usage.JAVA_API, CLASSPATH_CONFIGURATION_NAME);
                 strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, CLASSPATH_CONFIGURATION_NAME);
             });
             publishing.getPublications().withType(MavenPublication.class, publication -> {
-                VersionMappingStrategyInternal strategy = ((PublicationInternal<?>) publication).getVersionMappingStrategy();
+                VersionMappingStrategyInternal strategy =
+                        ((PublicationInternal<?>) publication).getVersionMappingStrategy();
                 strategy.defaultResolutionConfiguration(Usage.JAVA_API, CLASSPATH_CONFIGURATION_NAME);
                 strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, CLASSPATH_CONFIGURATION_NAME);
             });
-
         });
     }
 }

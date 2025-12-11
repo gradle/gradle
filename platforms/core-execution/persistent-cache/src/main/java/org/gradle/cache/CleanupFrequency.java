@@ -16,10 +16,9 @@
 
 package org.gradle.cache;
 
-import org.jspecify.annotations.Nullable;
-
 import java.time.Duration;
 import java.time.Instant;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents when cache cleanup should be triggered.
@@ -36,8 +35,7 @@ public interface CleanupFrequency {
             if (lastCleanupTime == null) {
                 return true;
             } else {
-                return Duration.between(lastCleanupTime, Instant.now())
-                    .toHours() >= 24;
+                return Duration.between(lastCleanupTime, Instant.now()).toHours() >= 24;
             }
         }
     };
@@ -68,6 +66,7 @@ public interface CleanupFrequency {
     };
 
     boolean requiresCleanup(@Nullable Instant lastCleanupTime);
+
     default boolean shouldCleanupOnEndOfSession() {
         return false;
     }

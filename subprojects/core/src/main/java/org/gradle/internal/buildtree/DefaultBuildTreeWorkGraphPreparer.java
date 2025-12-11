@@ -16,11 +16,10 @@
 
 package org.gradle.internal.buildtree;
 
+import java.util.Set;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
-
-import java.util.Set;
 
 public class DefaultBuildTreeWorkGraphPreparer implements BuildTreeWorkGraphPreparer {
     private final BuildTaskSelector taskSelector;
@@ -34,7 +33,8 @@ public class DefaultBuildTreeWorkGraphPreparer implements BuildTreeWorkGraphPrep
     @Override
     public void prepareToScheduleTasks(BuildTreeWorkGraph.Builder workGraph) {
         RootBuildState targetBuild = buildRegistry.getRootBuild();
-        Set<String> excludedTaskNames = targetBuild.getMutableModel().getStartParameter().getExcludedTaskNames();
+        Set<String> excludedTaskNames =
+                targetBuild.getMutableModel().getStartParameter().getExcludedTaskNames();
         for (String taskName : excludedTaskNames) {
             BuildTaskSelector.Filter filter = taskSelector.resolveExcludedTaskName(targetBuild, taskName);
             workGraph.addFilter(filter.getBuild(), filter.getFilter());

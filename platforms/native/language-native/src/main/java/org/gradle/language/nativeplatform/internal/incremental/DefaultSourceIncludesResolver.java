@@ -16,6 +16,16 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.base.Objects;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
@@ -29,17 +39,6 @@ import org.gradle.language.nativeplatform.internal.MacroFunction;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.ComplexExpression;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.SimpleExpression;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private static final MissingIncludeFile MISSING_INCLUDE_FILE = new MissingIncludeFile();
@@ -63,7 +62,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         return results;
     }
 
-    private void resolveExpression(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
+    private void resolveExpression(
+            MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         if (expression.getType() == IncludeType.SYSTEM) {
             visitor.visitSystem(expression);
         } else if (expression.getType() == IncludeType.QUOTED) {
@@ -93,7 +93,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
     }
 
-    private void resolveExpressionSequence(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
+    private void resolveExpressionSequence(
+            MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         List<Expression> expressions = expression.getArguments();
         // Only <function-call>+ <args-list> supported
         if (expressions.size() < 2) {
@@ -108,7 +109,12 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
     }
 
-    private void resolveExpressionSequenceForArgs(MacroLookup visibleMacros, List<Expression> expressions, Expression args, ExpressionVisitor visitor, TokenLookup tokenLookup) {
+    private void resolveExpressionSequenceForArgs(
+            MacroLookup visibleMacros,
+            List<Expression> expressions,
+            Expression args,
+            ExpressionVisitor visitor,
+            TokenLookup tokenLookup) {
         if (args.getType() != IncludeType.ARGS_LIST) {
             visitor.visitUnresolved();
             return;
@@ -116,33 +122,40 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
         Expression macroFunctionExpression = expressions.get(expressions.size() - 1);
         List<Expression> headExpressions = expressions.subList(0, expressions.size() - 1);
-        Collection<Expression> identifiers = resolveExpressionToTokens(visibleMacros, macroFunctionExpression, visitor, tokenLookup);
+        Collection<Expression> identifiers =
+                resolveExpressionToTokens(visibleMacros, macroFunctionExpression, visitor, tokenLookup);
         for (Expression value : identifiers) {
             if (value.getType() != IncludeType.IDENTIFIER) {
                 visitor.visitUnresolved();
                 continue;
             }
-            ComplexExpression macroExpression = new ComplexExpression(IncludeType.MACRO_FUNCTION, value.getValue(), args.getArguments());
+            ComplexExpression macroExpression =
+                    new ComplexExpression(IncludeType.MACRO_FUNCTION, value.getValue(), args.getArguments());
             if (headExpressions.isEmpty()) {
                 resolveExpression(visibleMacros, macroExpression, visitor, tokenLookup);
                 return;
             }
-            Collection<Expression> resolved = resolveExpressionToTokens(visibleMacros, macroExpression, visitor, tokenLookup);
+            Collection<Expression> resolved =
+                    resolveExpressionToTokens(visibleMacros, macroExpression, visitor, tokenLookup);
             for (Expression newArgs : resolved) {
                 resolveExpressionSequenceForArgs(visibleMacros, headExpressions, newArgs, visitor, tokenLookup);
             }
         }
     }
 
-    private void resolveTokenConcatenation(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
-        Collection<Expression> expressions = resolveTokenConcatenationToTokens(visibleMacros, expression, visitor, tokenLookup);
+    private void resolveTokenConcatenation(
+            MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
+        Collection<Expression> expressions =
+                resolveTokenConcatenationToTokens(visibleMacros, expression, visitor, tokenLookup);
         for (Expression concatExpression : expressions) {
             resolveExpression(visibleMacros, concatExpression, visitor, tokenLookup);
         }
     }
 
-    private void resolveAndExpandTokenConcatenation(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
-        Collection<Expression> expressions = resolveTokenConcatenationToTokens(visibleMacros, expression, visitor, tokenLookup);
+    private void resolveAndExpandTokenConcatenation(
+            MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
+        Collection<Expression> expressions =
+                resolveTokenConcatenationToTokens(visibleMacros, expression, visitor, tokenLookup);
         for (Expression concatExpression : expressions) {
             resolveExpression(visibleMacros, concatExpression.asMacroExpansion(), visitor, tokenLookup);
         }
@@ -151,11 +164,14 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     /**
      * Resolves the given expression to zero or more expressions that have been macro expanded and token concatenated.
      */
-    private Collection<Expression> resolveExpressionToTokens(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
+    private Collection<Expression> resolveExpressionToTokens(
+            MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         if (expression.getType() == IncludeType.TOKEN_CONCATENATION) {
             return resolveTokenConcatenationToTokens(visibleMacros, expression, visitor, tokenLookup);
         }
-        if (expression.getType() != IncludeType.MACRO && expression.getType() != IncludeType.MACRO_FUNCTION && expression.getType() != IncludeType.EXPAND_TOKEN_CONCATENATION) {
+        if (expression.getType() != IncludeType.MACRO
+                && expression.getType() != IncludeType.MACRO_FUNCTION
+                && expression.getType() != IncludeType.EXPAND_TOKEN_CONCATENATION) {
             return Collections.singletonList(expression);
         }
 
@@ -169,8 +185,10 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         return tokenLookup.tokensFor(expression);
     }
 
-    @SuppressWarnings("MixedMutabilityReturnType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private Collection<Expression> resolveTokenConcatenationToTokens(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
+    @SuppressWarnings("MixedMutabilityReturnType") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
+    private Collection<Expression> resolveTokenConcatenationToTokens(
+            MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         Expression left = expression.getArguments().get(0);
         Expression right = expression.getArguments().get(1);
 
@@ -185,7 +203,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             if (leftValue.getType() != IncludeType.IDENTIFIER) {
                 if (rightValues.size() == 1) {
                     Expression rightValue = rightValues.iterator().next();
-                    if (rightValue.getType() == IncludeType.EXPRESSIONS && rightValue.getArguments().isEmpty()) {
+                    if (rightValue.getType() == IncludeType.EXPRESSIONS
+                            && rightValue.getArguments().isEmpty()) {
                         // Empty RHS
                         expressions.add(leftValue);
                         continue;
@@ -197,16 +216,19 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             }
             String leftString = leftValue.getValue();
             for (Expression rightValue : rightValues) {
-                // Handle just empty string, single identifier or '(' params? ')', should handle more by parsing the tokens into an expression
+                // Handle just empty string, single identifier or '(' params? ')', should handle more by parsing the
+                // tokens into an expression
                 if (rightValue.getType() == IncludeType.IDENTIFIER) {
                     expressions.add(new SimpleExpression(leftString + rightValue.getValue(), IncludeType.IDENTIFIER));
                     continue;
                 }
                 if (rightValue.getType() == IncludeType.ARGS_LIST) {
-                    expressions.add(new ComplexExpression(IncludeType.MACRO_FUNCTION, leftString, rightValue.getArguments()));
+                    expressions.add(
+                            new ComplexExpression(IncludeType.MACRO_FUNCTION, leftString, rightValue.getArguments()));
                     continue;
                 }
-                if (rightValue.getType() == IncludeType.EXPRESSIONS && rightValue.getArguments().isEmpty()) {
+                if (rightValue.getType() == IncludeType.EXPRESSIONS
+                        && rightValue.getArguments().isEmpty()) {
                     expressions.add(new SimpleExpression(leftString, IncludeType.IDENTIFIER));
                     continue;
                 }
@@ -216,7 +238,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         return expressions;
     }
 
-    private void resolveMacro(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
+    private void resolveMacro(
+            MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleMacros) {
             Iterable<Macro> macros = includeDirectives.getMacros(expression.getValue());
@@ -230,7 +253,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
     }
 
-    private void resolveMacroFunction(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
+    private void resolveMacroFunction(
+            MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleMacros) {
             Iterable<MacroFunction> macroFunctions = includeDirectives.getMacroFunctions(expression.getValue());
@@ -277,7 +301,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         return new PrefixedIncludePath(toDir(sourceDir), includePaths);
     }
 
-    private static abstract class IncludePath {
+    private abstract static class IncludePath {
         @Nullable
         abstract IncludeFile searchForDependency(String includePath, boolean quotedPath);
     }
@@ -346,13 +370,13 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         CachedIncludeFile get(String includePath) {
-            return contents.computeIfAbsent(includePath,
-                key -> {
-                    File candidate = normalizeIncludePath(searchDir, includePath);
-                    return fileSystemAccess.readRegularFileContentHash(candidate.getAbsolutePath())
+            return contents.computeIfAbsent(includePath, key -> {
+                File candidate = normalizeIncludePath(searchDir, includePath);
+                return fileSystemAccess
+                        .readRegularFileContentHash(candidate.getAbsolutePath())
                         .map(contentHash -> (CachedIncludeFile) new SystemIncludeFile(candidate, key, contentHash))
                         .orElse(MISSING_INCLUDE_FILE);
-                });
+            });
         }
     }
 
@@ -374,15 +398,14 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         return new File(searchDir, prefixPath);
     }
 
-    private static abstract class CachedIncludeFile {
+    private abstract static class CachedIncludeFile {
         abstract FileType getType();
 
         abstract IncludeFile toIncludeFile(boolean quotedPath);
     }
 
     private static class MissingIncludeFile extends CachedIncludeFile {
-        MissingIncludeFile() {
-        }
+        MissingIncludeFile() {}
 
         @Override
         FileType getType() {

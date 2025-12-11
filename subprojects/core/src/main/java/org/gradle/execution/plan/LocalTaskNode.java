@@ -16,6 +16,10 @@
 
 package org.gradle.execution.plan;
 
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -26,11 +30,6 @@ import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * A {@link TaskNode} implementation for a task in the current build.
@@ -47,7 +46,10 @@ public class LocalTaskNode extends TaskNode {
     private TaskProperties taskProperties;
     private ProjectInternal taskProject;
 
-    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, Function<LocalTaskNode, ResolveMutationsNode> resolveNodeFactory) {
+    public LocalTaskNode(
+            TaskInternal task,
+            WorkValidationContext workValidationContext,
+            Function<LocalTaskNode, ResolveMutationsNode> resolveNodeFactory) {
         this.task = task;
         this.validationContext = workValidationContext;
         this.resolveMutationsNode = resolveNodeFactory.apply(this);

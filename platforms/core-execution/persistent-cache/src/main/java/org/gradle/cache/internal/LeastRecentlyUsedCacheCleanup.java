@@ -16,15 +16,14 @@
 
 package org.gradle.cache.internal;
 
+import java.io.File;
+import java.util.Date;
+import java.util.function.Supplier;
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.Date;
-import java.util.function.Supplier;
 
 /**
  * Deletes any cache entries not accessed within the specified number of days.
@@ -34,14 +33,20 @@ public class LeastRecentlyUsedCacheCleanup extends AbstractTimeJournalAwareCache
 
     private final Supplier<Long> removeUnusedEntriesOlderThan;
 
-    public LeastRecentlyUsedCacheCleanup(FilesFinder eligibleFilesFinder, FileAccessTimeJournal journal, Supplier<Long> removeUnusedEntriesOlderThan) {
+    public LeastRecentlyUsedCacheCleanup(
+            FilesFinder eligibleFilesFinder,
+            FileAccessTimeJournal journal,
+            Supplier<Long> removeUnusedEntriesOlderThan) {
         super(eligibleFilesFinder, journal);
         this.removeUnusedEntriesOlderThan = removeUnusedEntriesOlderThan;
     }
 
     @Override
     public void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor) {
-        LOGGER.info("{} removing files not accessed on or after {}.", cleanableStore.getDisplayName(), new Date(removeUnusedEntriesOlderThan.get()));
+        LOGGER.info(
+                "{} removing files not accessed on or after {}.",
+                cleanableStore.getDisplayName(),
+                new Date(removeUnusedEntriesOlderThan.get()));
         super.clean(cleanableStore, progressMonitor);
     }
 

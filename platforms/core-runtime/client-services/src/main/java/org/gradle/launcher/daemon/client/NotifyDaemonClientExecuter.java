@@ -16,14 +16,13 @@
 
 package org.gradle.launcher.daemon.client;
 
+import java.io.File;
+import java.util.function.Consumer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.File;
-import java.util.function.Consumer;
 
 /**
  * Manages the lifecycle for creating {@link NotifyDaemonAboutChangedPathsClient}s and using them.
@@ -38,10 +37,13 @@ public class NotifyDaemonClientExecuter {
         this.daemonClientFactory = daemonClientFactory;
     }
 
-    public void execute(ServiceRegistry loggingServices, File daemonBaseDir, Consumer<NotifyDaemonAboutChangedPathsClient> action) {
-        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices, daemonBaseDir);
+    public void execute(
+            ServiceRegistry loggingServices, File daemonBaseDir, Consumer<NotifyDaemonAboutChangedPathsClient> action) {
+        ServiceRegistry clientServices =
+                daemonClientFactory.createMessageDaemonServices(loggingServices, daemonBaseDir);
         try {
-            NotifyDaemonAboutChangedPathsClient daemonStopClient = clientServices.get(NotifyDaemonAboutChangedPathsClient.class);
+            NotifyDaemonAboutChangedPathsClient daemonStopClient =
+                    clientServices.get(NotifyDaemonAboutChangedPathsClient.class);
             action.accept(daemonStopClient);
         } finally {
             CompositeStoppable.stoppable(clientServices).stop();

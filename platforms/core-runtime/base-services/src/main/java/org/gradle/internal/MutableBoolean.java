@@ -16,8 +16,8 @@
 
 package org.gradle.internal;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A non-thread-safe type to hold a mutable boolean value.

@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.attributes;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -31,12 +36,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.isolation.Isolatable;
 import org.jspecify.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
 
 public final class DefaultMutableAttributeContainer extends AbstractAttributeContainer {
 
@@ -55,11 +54,10 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     private boolean realizingLazyState;
 
     public DefaultMutableAttributeContainer(
-        AttributesFactory attributesFactory,
-        AttributeValueIsolator attributeValueIsolator,
-        NamedObjectInstantiator namedObjectInstantiator,
-        PropertyFactory propertyFactory
-    ) {
+            AttributesFactory attributesFactory,
+            AttributeValueIsolator attributeValueIsolator,
+            NamedObjectInstantiator namedObjectInstantiator,
+            PropertyFactory propertyFactory) {
         this.attributesFactory = attributesFactory;
         this.attributeValueIsolator = attributeValueIsolator;
         this.namedObjectInstantiator = namedObjectInstantiator;
@@ -95,9 +93,8 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
 
         @SuppressWarnings("unchecked")
         ProviderInternal<T> presentProvider = new DelegatingProviderWithValue<>(
-            (ProviderInternal<T>) provider,
-            "Providers passed to attributeProvider(Attribute, Provider) must always be present when queried."
-        );
+                (ProviderInternal<T>) provider,
+                "Providers passed to attributeProvider(Attribute, Provider) must always be present when queried.");
 
         Provider<AttributeEntry<T>> isolated;
         Class<T> valueType = presentProvider.getType();
@@ -133,7 +130,8 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
 
     private <T> void checkInsertionAllowed(Attribute<T> key) {
         if (realizingLazyState) {
-            throw new IllegalStateException("Cannot add new attribute '" + key.getName() + "' while realizing all attributes of the container.");
+            throw new IllegalStateException("Cannot add new attribute '" + key.getName()
+                    + "' while realizing all attributes of the container.");
         }
     }
 
@@ -144,8 +142,10 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
             Attribute<?> existing = attributesByName.put(name, attribute);
             if (existing != null) {
                 throw new IllegalStateException("Cannot have two attributes with the same name but different types. "
-                    + "This container has an attribute named '" + name + "' of type '" + existing.getType().getName()
-                    + "' and another attribute of type '" + attribute.getType().getName() + "'");
+                        + "This container has an attribute named '" + name + "' of type '"
+                        + existing.getType().getName()
+                        + "' and another attribute of type '"
+                        + attribute.getType().getName() + "'");
             }
         }
     }
@@ -174,7 +174,9 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
      */
     private <T> void assertAttributeTypeIsValid(Class<?> valueType, Attribute<T> attribute) {
         if (!attribute.getType().isAssignableFrom(valueType)) {
-            throw new IllegalArgumentException(String.format("Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.", attribute.getName(), attribute.getType().getName(), valueType.getName()));
+            throw new IllegalArgumentException(String.format(
+                    "Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.",
+                    attribute.getName(), attribute.getType().getName(), valueType.getName()));
         }
     }
 
@@ -203,11 +205,13 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     private static void warnOnLegacyUsageValue(String legacyUsageValue, String replacementUsage) {
         // In Gradle 10, we can remove deprecation entirely instead of making it an error.
         DeprecationLogger.deprecateAction("Declaring a Usage attribute with a legacy value")
-            .withContext("A Usage attribute was declared with value '" + legacyUsageValue + "'.")
-            .withAdvice("Declare a Usage attribute with value '" + replacementUsage + "' and a LibraryElements attribute with value '" + UsageCompatibilityHandler.getLibraryElements(legacyUsageValue) + "' instead.")
-            .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "deprecate_legacy_usage_values")
-            .nagUser();
+                .withContext("A Usage attribute was declared with value '" + legacyUsageValue + "'.")
+                .withAdvice("Declare a Usage attribute with value '" + replacementUsage
+                        + "' and a LibraryElements attribute with value '"
+                        + UsageCompatibilityHandler.getLibraryElements(legacyUsageValue) + "' instead.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "deprecate_legacy_usage_values")
+                .nagUser();
     }
 
     @Override
@@ -216,7 +220,8 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         if (!isValidAttributeRequest(key)) {
             return null;
         }
-        return Cast.uncheckedCast(state.getting(key).map(entry -> entry.getValue().isolate()).getOrNull());
+        return Cast.uncheckedCast(
+                state.getting(key).map(entry -> entry.getValue().isolate()).getOrNull());
     }
 
     @Override

@@ -16,23 +16,24 @@
 
 package org.gradle.api.tasks.diagnostics.internal.artifact.transforms;
 
+import java.util.Collections;
+import javax.inject.Inject;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.internal.DefaultReportContainer;
 import org.gradle.api.reporting.internal.DelegatingReportContainer;
 import org.gradle.api.tasks.diagnostics.artifact.transforms.ArtifactTransformReports;
 
-import javax.inject.Inject;
-import java.util.Collections;
-
 /**
  * Default implementation of {@link ArtifactTransformReports} which allows for adding and configuring reports.
  *
  * Class must be non-{@code final}.
  */
-public class DefaultArtifactTransformReports extends DelegatingReportContainer<ConfigurableReport> implements ArtifactTransformReports {
+public class DefaultArtifactTransformReports extends DelegatingReportContainer<ConfigurableReport>
+        implements ArtifactTransformReports {
     @Inject
     public DefaultArtifactTransformReports(ObjectFactory objectFactory) {
-        super(DefaultReportContainer.create(objectFactory, ConfigurableReport.class, factory -> Collections.emptyList()));
+        super(DefaultReportContainer.create(
+                objectFactory, ConfigurableReport.class, factory -> Collections.emptyList()));
     }
 }

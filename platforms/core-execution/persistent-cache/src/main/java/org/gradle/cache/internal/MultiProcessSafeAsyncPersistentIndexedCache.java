@@ -15,10 +15,9 @@
  */
 package org.gradle.cache.internal;
 
+import java.util.function.Function;
 import org.gradle.cache.UnitOfWorkParticipant;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.Function;
 
 /**
  * An indexed cache that may perform updates asynchronously.

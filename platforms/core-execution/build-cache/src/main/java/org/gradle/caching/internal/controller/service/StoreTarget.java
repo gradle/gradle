@@ -18,11 +18,10 @@ package org.gradle.caching.internal.controller.service;
 
 import com.google.common.io.Closer;
 import com.google.common.io.Files;
-import org.gradle.caching.BuildCacheEntryWriter;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import org.gradle.caching.BuildCacheEntryWriter;
 
 public class StoreTarget implements BuildCacheEntryWriter {
 

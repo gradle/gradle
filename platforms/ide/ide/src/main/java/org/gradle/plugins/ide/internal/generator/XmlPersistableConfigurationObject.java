@@ -15,26 +15,25 @@
  */
 package org.gradle.plugins.ide.internal.generator;
 
+import static org.gradle.util.internal.ConfigureUtil.configureUsing;
+
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.util.Node;
 import groovy.xml.XmlParser;
-import org.gradle.api.Action;
-import org.gradle.api.XmlProvider;
-import org.gradle.internal.Cast;
-import org.gradle.internal.xml.XmlTransformer;
-import org.jspecify.annotations.Nullable;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.gradle.util.internal.ConfigureUtil.configureUsing;
+import org.gradle.api.Action;
+import org.gradle.api.XmlProvider;
+import org.gradle.internal.Cast;
+import org.gradle.internal.xml.XmlTransformer;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject}
@@ -101,18 +100,24 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
     }
 
     @Nullable
-    public static Node findFirstChildWithAttributeValue(@Nullable Node root, String childName, String attribute, String value) {
+    public static Node findFirstChildWithAttributeValue(
+            @Nullable Node root, String childName, String attribute, String value) {
         return root == null ? null : findFirstWithAttributeValue(getChildren(root, childName), attribute, value);
     }
 
     @Nullable
-    protected static Node findFirstWithAttributeValue(@Nullable List<Node> nodes, final String attribute, final String value) {
-        return nodes == null ? null : Iterables.getFirst(Iterables.filter(nodes, new Predicate<Node>() {
-            @Override
-            public boolean apply(Node node) {
-                return value.equals(node.attribute(attribute));
-            }
-        }), null);
+    protected static Node findFirstWithAttributeValue(
+            @Nullable List<Node> nodes, final String attribute, final String value) {
+        return nodes == null
+                ? null
+                : Iterables.getFirst(
+                        Iterables.filter(nodes, new Predicate<Node>() {
+                            @Override
+                            public boolean apply(Node node) {
+                                return value.equals(node.attribute(attribute));
+                            }
+                        }),
+                        null);
     }
 
     public static Node findOrCreateFirstChildNamed(Node root, String name) {
@@ -123,7 +128,8 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
         return child;
     }
 
-    public static Node findOrCreateFirstChildWithAttributeValue(@Nullable Node root, String childName, String attribute, String value) {
+    public static Node findOrCreateFirstChildWithAttributeValue(
+            @Nullable Node root, String childName, String attribute, String value) {
         Node child = findFirstChildWithAttributeValue(root, childName, attribute, value);
         if (child == null) {
             Map<String, Object> attributes = new LinkedHashMap<>();

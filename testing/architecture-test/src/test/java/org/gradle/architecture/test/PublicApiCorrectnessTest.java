@@ -16,28 +16,6 @@
 
 package org.gradle.architecture.test;
 
-import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.junit.AnalyzeClasses;
-import com.tngtech.archunit.junit.ArchTest;
-import com.tngtech.archunit.lang.ArchRule;
-import kotlin.Pair;
-import kotlin.jvm.functions.Function1;
-import kotlin.reflect.KClass;
-import kotlin.reflect.KProperty;
-import org.gradle.api.NamedDomainObjectCollection;
-import org.gradle.api.Plugin;
-import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
-import java.math.BigDecimal;
-import java.net.URI;
-import java.net.URL;
-import java.time.Duration;
-import java.util.function.BiFunction;
-
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
@@ -59,57 +37,79 @@ import static org.gradle.architecture.test.ArchUnitFixture.primitive;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 import static org.gradle.architecture.test.ArchUnitFixture.useJSpecifyNullable;
 
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchRule;
+import java.math.BigDecimal;
+import java.net.URI;
+import java.net.URL;
+import java.time.Duration;
+import java.util.function.BiFunction;
+import javax.xml.namespace.QName;
+import kotlin.Pair;
+import kotlin.jvm.functions.Function1;
+import kotlin.reflect.KClass;
+import kotlin.reflect.KProperty;
+import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.Plugin;
+import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
+import org.w3c.dom.Element;
+
 @AnalyzeClasses(packages = "org.gradle")
 public class PublicApiCorrectnessTest {
 
-    private static final DescribedPredicate<JavaClass> allowed_types_for_public_api =
-        gradlePublicApi()
+    private static final DescribedPredicate<JavaClass> allowed_types_for_public_api = gradlePublicApi()
             .or(primitive)
-            // NOTE: we don't want to include java.util.function here because Gradle public API uses custom types like org.gradle.api.Action and org.gradle.api.Spec
-            // Mixing these custom types with java.util.function types would make the public API harder to use, especially for plugin authors.
-            .or(resideInAnyPackage("java.lang", "java.util", "java.util.concurrent", "java.util.regex", "java.lang.reflect", "java.io", "java.time")
-                .or(type(byte[].class))
-                .or(type(URI.class))
-                .or(type(URL.class))
-                .or(type(Duration.class))
-                .or(type(BigDecimal.class))
-                .or(type(Element.class))
-                .or(type(QName.class))
-                .or(type(BiFunction.class))
-                .as("built-in JDK classes"))
+            // NOTE: we don't want to include java.util.function here because Gradle public API uses custom types like
+            // org.gradle.api.Action and org.gradle.api.Spec
+            // Mixing these custom types with java.util.function types would make the public API harder to use,
+            // especially for plugin authors.
+            .or(resideInAnyPackage(
+                            "java.lang",
+                            "java.util",
+                            "java.util.concurrent",
+                            "java.util.regex",
+                            "java.lang.reflect",
+                            "java.io",
+                            "java.time")
+                    .or(type(byte[].class))
+                    .or(type(URI.class))
+                    .or(type(URL.class))
+                    .or(type(Duration.class))
+                    .or(type(BigDecimal.class))
+                    .or(type(Element.class))
+                    .or(type(QName.class))
+                    .or(type(BiFunction.class))
+                    .as("built-in JDK classes"))
             .or(type(Function1.class)
-                .or(type(KClass.class))
-                .or(type(KClass[].class))
-                .or(type(KProperty.class))
-                .or(type(Pair[].class))
-                .as("Kotlin classes")
-            );
+                    .or(type(KClass.class))
+                    .or(type(KClass[].class))
+                    .or(type(KProperty.class))
+                    .or(type(Pair[].class))
+                    .as("Kotlin classes"));
     private static final DescribedPredicate<JavaClass> public_api_tasks_or_plugins =
             gradlePublicApi().and(assignableTo(Task.class).or(assignableTo(Plugin.class)));
 
     @ArchTest
     public static final ArchRule public_api_methods_do_not_reference_internal_types_as_parameters = freeze(methods()
-        .that(are(public_api_methods))
-        .should(haveOnlyArgumentsOrReturnTypesThatAre(allowed_types_for_public_api))
-    );
+            .that(are(public_api_methods))
+            .should(haveOnlyArgumentsOrReturnTypesThatAre(allowed_types_for_public_api)));
 
     @ArchTest
-    public static final ArchRule public_api_methods_with_closures = freeze(methods()
-        .that(are(public_api_methods))
-        .should(new ArchUnitFixture.HaveGradleTypeEquivalent())
-    );
+    public static final ArchRule public_api_methods_with_closures =
+            freeze(methods().that(are(public_api_methods)).should(new ArchUnitFixture.HaveGradleTypeEquivalent()));
 
     @ArchTest
-    public static final ArchRule public_api_tasks_and_plugins_are_abstract = classes()
-            .that(are(public_api_tasks_or_plugins))
-            .should(beAbstractClass());
-
+    public static final ArchRule public_api_tasks_and_plugins_are_abstract =
+            classes().that(are(public_api_tasks_or_plugins)).should(beAbstractClass());
 
     @ArchTest
     public static final ArchRule public_api_classes_do_not_extend_internal_types = freeze(classes()
-        .that(are(gradlePublicApi()))
-        .should(not(haveDirectSuperclassOrInterfaceThatAre(gradleInternalApi())))
-    );
+            .that(are(gradlePublicApi()))
+            .should(not(haveDirectSuperclassOrInterfaceThatAre(gradleInternalApi()))));
 
     /**
      * Code written in Kotlin implicitly uses {@link org.jetbrains.annotations.Nullable}, so
@@ -118,11 +118,10 @@ public class PublicApiCorrectnessTest {
     @ArchTest
     public static final ArchRule all_methods_use_proper_Nullable = methods()
             .that(are(not_written_in_kotlin).and(are(not_from_fileevents)))
-            .should(useJSpecifyNullable()
-    );
+            .should(useJSpecifyNullable());
 
     @ArchTest
     public static final ArchRule named_domain_object_collection_implementations_override_named_method = classes()
-        .that(implement(NamedDomainObjectCollection.class))
-        .should(overrideMethod("named", new Class<?>[] {Spec.class}, NamedDomainObjectCollection.class));
+            .that(implement(NamedDomainObjectCollection.class))
+            .should(overrideMethod("named", new Class<?>[] {Spec.class}, NamedDomainObjectCollection.class));
 }

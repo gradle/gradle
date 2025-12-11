@@ -28,8 +28,8 @@ public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements T
     private final TestDescriptorInternal suiteDescriptor;
     private TestResultProcessor resultProcessor;
 
-    public SuiteTestDefinitionProcessor(TestDescriptorInternal suiteDescriptor, TestDefinitionProcessor<D> processor,
-                                        Clock clock) {
+    public SuiteTestDefinitionProcessor(
+            TestDescriptorInternal suiteDescriptor, TestDefinitionProcessor<D> processor, Clock clock) {
         this.suiteDescriptor = suiteDescriptor;
         this.processor = processor;
         this.clock = clock;
@@ -38,13 +38,17 @@ public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements T
     @Override
     public void startProcessing(TestResultProcessor testResultProcessor) {
         try {
-            resultProcessor = new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(clock, testResultProcessor, new JULRedirector()));
+            resultProcessor = new AttachParentTestResultProcessor(
+                    new CaptureTestOutputTestResultProcessor(clock, testResultProcessor, new JULRedirector()));
             resultProcessor.started(suiteDescriptor, new TestStartEvent(clock.getCurrentTime()));
             processor.startProcessing(resultProcessor);
         } catch (Throwable t) {
-            String msg = t.getMessage() != null ? String.format("Could not start %s: %s", suiteDescriptor, t.getMessage()) : String.format("Could not start %s.", suiteDescriptor);
+            String msg = t.getMessage() != null
+                    ? String.format("Could not start %s: %s", suiteDescriptor, t.getMessage())
+                    : String.format("Could not start %s.", suiteDescriptor);
             Throwable rawFailure = new TestSuiteExecutionException(msg, t);
-            resultProcessor.failure(suiteDescriptor.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(rawFailure));
+            resultProcessor.failure(
+                    suiteDescriptor.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(rawFailure));
         }
     }
 
@@ -53,7 +57,8 @@ public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements T
         try {
             processor.processTestDefinition(testDefinition);
         } catch (Throwable t) {
-            Throwable rawFailure = new TestSuiteExecutionException(String.format("Could not execute %s.", testDefinition.getDisplayName()), t);
+            Throwable rawFailure = new TestSuiteExecutionException(
+                    String.format("Could not execute %s.", testDefinition.getDisplayName()), t);
             resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
         }
     }
@@ -63,7 +68,8 @@ public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements T
         try {
             processor.stop();
         } catch (Throwable t) {
-            Throwable rawFailure = new TestSuiteExecutionException(String.format("Could not complete execution for %s.", suiteDescriptor), t);
+            Throwable rawFailure = new TestSuiteExecutionException(
+                    String.format("Could not complete execution for %s.", suiteDescriptor), t);
             resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
         } finally {
             resultProcessor.completed(suiteDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime()));
@@ -72,6 +78,7 @@ public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements T
 
     @Override
     public void stopNow() {
-        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestDefinitionProcessor");
+        throw new UnsupportedOperationException(
+                "stopNow() should not be invoked on remote worker TestDefinitionProcessor");
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import java.util.Set;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -27,8 +28,6 @@ import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.internal.tooling.idea.IsolatedIdeaModuleInternal;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Set;
 
 /**
  * Builds the {@link IsolatedIdeaModuleInternal} model that contains information about a project and its tasks.
@@ -89,5 +88,4 @@ public class IsolatedIdeaModuleInternalBuilder implements ParameterizedToolingMo
 
         return model;
     }
-
 }

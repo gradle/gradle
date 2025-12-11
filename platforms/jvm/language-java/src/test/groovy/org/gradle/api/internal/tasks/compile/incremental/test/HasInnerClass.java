@@ -17,6 +17,5 @@
 package org.gradle.api.internal.tasks.compile.incremental.test;
 
 public class HasInnerClass {
-    public static class InnerThing {
-    }
+    public static class InnerThing {}
 }

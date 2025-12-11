@@ -17,10 +17,6 @@ package org.gradle.internal.compiler.java.listeners.classnames;
 
 import com.sun.source.util.TaskEvent;
 import com.sun.source.util.TaskListener;
-
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
-import javax.tools.JavaFileObject;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
@@ -30,6 +26,9 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
+import javax.tools.JavaFileObject;
 
 public class ClassNameCollector implements TaskListener {
     private final Map<File, Optional<String>> relativePaths = new HashMap<>();
@@ -38,7 +37,8 @@ public class ClassNameCollector implements TaskListener {
     private final Function<File, Optional<String>> relativize;
     private final Elements elements;
 
-    public ClassNameCollector(Function<File, Optional<String>> relativize, Consumer<String> classBackupService, Elements elements) {
+    public ClassNameCollector(
+            Function<File, Optional<String>> relativize, Consumer<String> classBackupService, Elements elements) {
         this.relativize = relativize;
         this.classBackupService = classBackupService;
         this.elements = elements;
@@ -62,8 +62,7 @@ public class ClassNameCollector implements TaskListener {
     }
 
     @Override
-    public void finished(TaskEvent e) {
-    }
+    public void finished(TaskEvent e) {}
 
     private static boolean isSourceFile(JavaFileObject sourceFile) {
         return sourceFile != null && sourceFile.getKind() == JavaFileObject.Kind.SOURCE;
@@ -114,5 +113,4 @@ public class ClassNameCollector implements TaskListener {
         Collection<String> symbols = mapping.computeIfAbsent(key, k -> new TreeSet<>());
         symbols.add(symbol);
     }
-
 }

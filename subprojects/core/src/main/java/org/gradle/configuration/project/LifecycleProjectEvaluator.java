@@ -15,6 +15,7 @@
  */
 package org.gradle.configuration.project;
 
+import java.io.File;
 import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.ProjectConfigurationException;
@@ -28,8 +29,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.util.Path;
-
-import java.io.File;
 
 /**
  * Notifies listeners before and after delegating to the provided delegate to the actual evaluation,
@@ -57,7 +56,10 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
     private final ProjectEvaluator delegate;
     private final BuildCancellationToken cancellationToken;
 
-    public LifecycleProjectEvaluator(BuildOperationRunner buildOperationRunner, ProjectEvaluator delegate, BuildCancellationToken cancellationToken) {
+    public LifecycleProjectEvaluator(
+            BuildOperationRunner buildOperationRunner,
+            ProjectEvaluator delegate,
+            BuildCancellationToken cancellationToken) {
         this.buildOperationRunner = buildOperationRunner;
         this.delegate = delegate;
         this.cancellationToken = cancellationToken;
@@ -73,7 +75,8 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         }
     }
 
-    private static void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e, BuildOperationContext ctx) {
+    private static void addConfigurationFailure(
+            ProjectInternal project, ProjectStateInternal state, Exception e, BuildOperationContext ctx) {
         ProjectConfigurationException exception = wrapException(project, e);
         ctx.failed(exception);
         state.failed(exception);
@@ -81,8 +84,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
     private static ProjectConfigurationException wrapException(ProjectInternal project, Exception e) {
         return new ProjectConfigurationException(
-            String.format("A problem occurred configuring %s.", project.getDisplayName()), e
-        );
+                String.format("A problem occurred configuring %s.", project.getDisplayName()), e);
     }
 
     private class EvaluateProject implements RunnableBuildOperation {
@@ -132,7 +134,8 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         }
     }
 
-    private static BuildOperationDescriptor.Builder configureProjectBuildOperationBuilderFor(ProjectInternal projectInternal) {
+    private static BuildOperationDescriptor.Builder configureProjectBuildOperationBuilderFor(
+            ProjectInternal projectInternal) {
         Path identityPath = projectInternal.getIdentityPath();
         String displayName = "Configure project " + identityPath;
 
@@ -142,9 +145,12 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         }
 
         return BuildOperationDescriptor.displayName(displayName)
-            .metadata(BuildOperationCategory.CONFIGURE_PROJECT)
-            .progressDisplayName(progressDisplayName)
-            .details(new ConfigureProjectDetails(projectInternal.getProjectPath(), projectInternal.getGradle().getIdentityPath(), projectInternal.getRootDir()));
+                .metadata(BuildOperationCategory.CONFIGURE_PROJECT)
+                .progressDisplayName(progressDisplayName)
+                .details(new ConfigureProjectDetails(
+                        projectInternal.getProjectPath(),
+                        projectInternal.getGradle().getIdentityPath(),
+                        projectInternal.getRootDir()));
     }
 
     private static class ConfigureProjectDetails implements ConfigureProjectBuildOperationType.Details {
@@ -173,7 +179,6 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         public File getRootDir() {
             return rootDir;
         }
-
     }
 
     private static class NotifyBeforeEvaluate implements RunnableBuildOperation {
@@ -198,15 +203,15 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Notify beforeEvaluate listeners of " + project.getIdentityPath())
-                .details(new NotifyProjectBeforeEvaluatedDetails(
-                    project.getProjectPath(),
-                    project.getGradle().getIdentityPath()
-                ));
+            return BuildOperationDescriptor.displayName(
+                            "Notify beforeEvaluate listeners of " + project.getIdentityPath())
+                    .details(new NotifyProjectBeforeEvaluatedDetails(
+                            project.getProjectPath(), project.getGradle().getIdentityPath()));
         }
     }
 
-    private static class NotifyProjectBeforeEvaluatedDetails implements NotifyProjectBeforeEvaluatedBuildOperationType.Details {
+    private static class NotifyProjectBeforeEvaluatedDetails
+            implements NotifyProjectBeforeEvaluatedBuildOperationType.Details {
 
         private final Path buildPath;
         private final Path projectPath;
@@ -225,7 +230,6 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         public String getBuildPath() {
             return buildPath.asString();
         }
-
     }
 
     private static class NotifyAfterEvaluate implements RunnableBuildOperation {
@@ -262,15 +266,15 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Notify afterEvaluate listeners of " + project.getIdentityPath())
-                .details(new NotifyProjectAfterEvaluatedDetails(
-                    project.getProjectPath(),
-                    project.getGradle().getIdentityPath()
-                ));
+            return BuildOperationDescriptor.displayName(
+                            "Notify afterEvaluate listeners of " + project.getIdentityPath())
+                    .details(new NotifyProjectAfterEvaluatedDetails(
+                            project.getProjectPath(), project.getGradle().getIdentityPath()));
         }
     }
 
-    private static class NotifyProjectAfterEvaluatedDetails implements NotifyProjectAfterEvaluatedBuildOperationType.Details {
+    private static class NotifyProjectAfterEvaluatedDetails
+            implements NotifyProjectAfterEvaluatedBuildOperationType.Details {
 
         private final Path buildPath;
         private final Path projectPath;
@@ -289,6 +293,5 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         public String getBuildPath() {
             return buildPath.asString();
         }
-
     }
 }

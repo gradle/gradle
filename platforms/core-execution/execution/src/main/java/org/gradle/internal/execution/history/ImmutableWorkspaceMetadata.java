@@ -24,7 +24,8 @@ public class ImmutableWorkspaceMetadata {
     private final OriginMetadata originMetadata;
     private final ImmutableListMultimap<String, HashCode> outputPropertyHashes;
 
-    public ImmutableWorkspaceMetadata(OriginMetadata originMetadata, ImmutableListMultimap<String, HashCode> outputPropertyHashes) {
+    public ImmutableWorkspaceMetadata(
+            OriginMetadata originMetadata, ImmutableListMultimap<String, HashCode> outputPropertyHashes) {
         this.originMetadata = originMetadata;
         this.outputPropertyHashes = outputPropertyHashes;
     }

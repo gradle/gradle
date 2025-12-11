@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import java.io.IOException;
+import java.util.Map;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.model.ModuleSources;
@@ -26,14 +28,12 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.IOException;
-import java.util.Map;
-
 @ServiceScope(Scope.BuildTree.class)
 public class ModuleSourcesSerializer implements Serializer<ModuleSources> {
     private final Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> moduleSourceCodecs;
 
-    public ModuleSourcesSerializer(Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> moduleSourceCodecs) {
+    public ModuleSourcesSerializer(
+            Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> moduleSourceCodecs) {
         this.moduleSourceCodecs = moduleSourceCodecs;
     }
 
@@ -45,7 +45,8 @@ public class ModuleSourcesSerializer implements Serializer<ModuleSources> {
                     PersistentModuleSource persistentModuleSource = (PersistentModuleSource) source;
                     int codecId = assertValidId(persistentModuleSource.getCodecId());
                     encoder.writeSmallInt(codecId);
-                    PersistentModuleSource.Codec<PersistentModuleSource> codec = Cast.uncheckedCast(moduleSourceCodecs.get(codecId));
+                    PersistentModuleSource.Codec<PersistentModuleSource> codec =
+                            Cast.uncheckedCast(moduleSourceCodecs.get(codecId));
                     codec.encode(persistentModuleSource, encoder);
                 }
             } catch (IOException e) {

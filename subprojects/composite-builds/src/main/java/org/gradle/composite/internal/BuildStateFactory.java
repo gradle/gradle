@@ -16,6 +16,9 @@
 
 package org.gradle.composite.internal;
 
+import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
+
+import java.io.File;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildCancellationToken;
@@ -35,10 +38,6 @@ import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.util.Path;
 
-import java.io.File;
-
-import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
-
 @ServiceScope(Scope.BuildTree.class)
 public class BuildStateFactory {
     private final BuildTreeState buildTreeState;
@@ -48,12 +47,11 @@ public class BuildStateFactory {
     private final BuildCancellationToken buildCancellationToken;
 
     public BuildStateFactory(
-        BuildTreeState buildTreeState,
-        ListenerManager listenerManager,
-        GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
-        CrossBuildSessionState crossBuildSessionState,
-        BuildCancellationToken buildCancellationToken
-    ) {
+            BuildTreeState buildTreeState,
+            ListenerManager listenerManager,
+            GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
+            CrossBuildSessionState crossBuildSessionState,
+            BuildCancellationToken buildCancellationToken) {
         this.buildTreeState = buildTreeState;
         this.listenerManager = listenerManager;
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
@@ -65,38 +63,47 @@ public class BuildStateFactory {
         return new DefaultRootBuildState(buildDefinition, buildTreeState, listenerManager);
     }
 
-    public StandAloneNestedBuild createNestedBuild(Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
+    public StandAloneNestedBuild createNestedBuild(
+            Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
         DefaultNestedBuild build = new DefaultNestedBuild(identityPath, buildDefinition, owner, buildTreeState);
         // Expose any contributions from the parent's settings
-        build.getMutableModel().setClassLoaderScope(() -> owner.getMutableModel().getSettings().getClassLoaderScope());
+        build.getMutableModel()
+                .setClassLoaderScope(() -> owner.getMutableModel().getSettings().getClassLoaderScope());
         return build;
     }
 
     public NestedBuildTree createNestedTree(
-        BuildInvocationScopeId buildInvocationScopeId,
-        BuildDefinition buildDefinition,
-        Path identityPath,
-        BuildState owner
-    ) {
-        return new DefaultNestedBuildTree(buildInvocationScopeId, buildDefinition, identityPath, owner, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
+            BuildInvocationScopeId buildInvocationScopeId,
+            BuildDefinition buildDefinition,
+            Path identityPath,
+            BuildState owner) {
+        return new DefaultNestedBuildTree(
+                buildInvocationScopeId,
+                buildDefinition,
+                identityPath,
+                owner,
+                userHomeDirServiceRegistry,
+                crossBuildSessionState,
+                buildCancellationToken);
     }
 
     public BuildDefinition buildDefinitionFor(File buildSrcDir, BuildState owner) {
         PublicBuildPath publicBuildPath = owner.getMutableModel().getServices().get(PublicBuildPath.class);
-        StartParameterInternal buildSrcStartParameter = buildSrcStartParameterFor(buildSrcDir, owner.getMutableModel().getStartParameter());
+        StartParameterInternal buildSrcStartParameter =
+                buildSrcStartParameterFor(buildSrcDir, owner.getMutableModel().getStartParameter());
         BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
-            buildSrcStartParameter,
-            BUILD_SRC,
-            buildSrcDir,
-            PluginRequests.EMPTY,
-            Actions.doNothing(),
-            publicBuildPath,
-            true
-        );
+                buildSrcStartParameter,
+                BUILD_SRC,
+                buildSrcDir,
+                PluginRequests.EMPTY,
+                Actions.doNothing(),
+                publicBuildPath,
+                true);
         return buildDefinition;
     }
 
-    private static StartParameterInternal buildSrcStartParameterFor(File buildSrcDir, StartParameterInternal containingBuildParameters) {
+    private static StartParameterInternal buildSrcStartParameterFor(
+            File buildSrcDir, StartParameterInternal containingBuildParameters) {
         final StartParameterInternal buildSrcStartParameter = containingBuildParameters.newBuild();
         buildSrcStartParameter.setCurrentDir(buildSrcDir);
         buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectPropertiesUntracked());

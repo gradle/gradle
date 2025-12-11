@@ -19,13 +19,12 @@ package org.gradle.internal.execution.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.gradle.internal.execution.FileCollectionFingerprinter;
-import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.execution.FileNormalizationSpec;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import org.gradle.internal.execution.FileCollectionFingerprinter;
+import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.FileNormalizationSpec;
 
 public class DefaultFileCollectionFingerprinterRegistry implements FileCollectionFingerprinterRegistry {
     private final Map<FileNormalizationSpec, FileCollectionFingerprinter> fingerprinters;
@@ -34,15 +33,20 @@ public class DefaultFileCollectionFingerprinterRegistry implements FileCollectio
         this.fingerprinters = ImmutableMap.copyOf(entriesFrom(registrations));
     }
 
-    private static List<Map.Entry<FileNormalizationSpec, FileCollectionFingerprinter>> entriesFrom(Collection<FingerprinterRegistration> registrations) {
-        return registrations.stream().map(registration -> Maps.immutableEntry(registration.getSpec(), registration.getFingerprinter())).collect(ImmutableList.toImmutableList());
+    private static List<Map.Entry<FileNormalizationSpec, FileCollectionFingerprinter>> entriesFrom(
+            Collection<FingerprinterRegistration> registrations) {
+        return registrations.stream()
+                .map(registration -> Maps.immutableEntry(registration.getSpec(), registration.getFingerprinter()))
+                .collect(ImmutableList.toImmutableList());
     }
 
     @Override
     public FileCollectionFingerprinter getFingerprinter(FileNormalizationSpec spec) {
         FileCollectionFingerprinter fingerprinter = fingerprinters.get(spec);
         if (fingerprinter == null) {
-            throw new IllegalStateException(String.format("No fingerprinter registered with '%s' normalization, directory sensitivity '%s' and line ending normalization '%s'", spec.getNormalizer(), spec.getDirectorySensitivity().name(), spec.getLineEndingNormalization()));
+            throw new IllegalStateException(String.format(
+                    "No fingerprinter registered with '%s' normalization, directory sensitivity '%s' and line ending normalization '%s'",
+                    spec.getNormalizer(), spec.getDirectorySensitivity().name(), spec.getLineEndingNormalization()));
         }
         return fingerprinter;
     }

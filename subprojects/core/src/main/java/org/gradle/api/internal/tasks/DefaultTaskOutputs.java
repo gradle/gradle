@@ -18,6 +18,12 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedSet;
 import groovy.lang.Closure;
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
@@ -42,13 +48,6 @@ import org.gradle.internal.properties.bean.PropertyWalker;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.function.Consumer;
-
 @NullMarked
 public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     private final FileCollection allOutputFiles;
@@ -59,11 +58,17 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     private final List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<>();
     private final List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<>();
     private FileCollection previousOutputFiles;
-    private final FilePropertyContainer<TaskOutputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
+    private final FilePropertyContainer<TaskOutputFilePropertyRegistration> registeredFileProperties =
+            FilePropertyContainer.create();
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
+    public DefaultTaskOutputs(
+            final TaskInternal task,
+            TaskMutator taskMutator,
+            PropertyWalker propertyWalker,
+            TaskDependencyFactory taskDependencyFactory,
+            FileCollectionFactory fileCollectionFactory) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.allOutputFiles = new TaskOutputUnionFileCollection(taskDependencyFactory, task);
@@ -74,7 +79,11 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     @Override
     public void visitRegisteredProperties(PropertyVisitor visitor) {
         for (TaskOutputFilePropertyRegistration registration : registeredFileProperties) {
-            visitor.visitOutputFileProperty(registration.getPropertyName(), registration.isOptional(), registration.getValue(), registration.getPropertyType());
+            visitor.visitOutputFileProperty(
+                    registration.getPropertyName(),
+                    registration.isOptional(),
+                    registration.getValue(),
+                    registration.getPropertyType());
         }
     }
 
@@ -154,7 +163,10 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
 
     public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {
         OutputFilesCollector collector = new OutputFilesCollector();
-        TaskPropertyUtils.visitProperties(propertyWalker, task, new OutputUnpacker(task.toString(), fileCollectionFactory, false, false, collector));
+        TaskPropertyUtils.visitProperties(
+                propertyWalker,
+                task,
+                new OutputUnpacker(task.toString(), fileCollectionFactory, false, false, collector));
         return collector.getFileProperties();
     }
 
@@ -163,7 +175,8 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
         return taskMutator.mutate("TaskOutputs.file(Object)", (Callable<TaskOutputFilePropertyBuilder>) () -> {
             StaticValue value = new StaticValue(path);
             value.attachProducer(task);
-            TaskOutputFilePropertyRegistration registration = new DefaultTaskOutputFilePropertyRegistration(value, OutputFilePropertyType.FILE);
+            TaskOutputFilePropertyRegistration registration =
+                    new DefaultTaskOutputFilePropertyRegistration(value, OutputFilePropertyType.FILE);
             registeredFileProperties.add(registration);
             return registration;
         });
@@ -174,7 +187,8 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
         return taskMutator.mutate("TaskOutputs.dir(Object)", (Callable<TaskOutputFilePropertyBuilder>) () -> {
             StaticValue value = new StaticValue(path);
             value.attachProducer(task);
-            TaskOutputFilePropertyRegistration registration = new DefaultTaskOutputFilePropertyRegistration(value, OutputFilePropertyType.DIRECTORY);
+            TaskOutputFilePropertyRegistration registration =
+                    new DefaultTaskOutputFilePropertyRegistration(value, OutputFilePropertyType.DIRECTORY);
             registeredFileProperties.add(registration);
             return registration;
         });
@@ -184,7 +198,8 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     public TaskOutputFilePropertyBuilder files(final @Nullable Object... paths) {
         return taskMutator.mutate("TaskOutputs.files(Object...)", (Callable<TaskOutputFilePropertyBuilder>) () -> {
             StaticValue value = new StaticValue(resolveSingleArray(paths));
-            TaskOutputFilePropertyRegistration registration = new DefaultTaskOutputFilePropertyRegistration(value, OutputFilePropertyType.FILES);
+            TaskOutputFilePropertyRegistration registration =
+                    new DefaultTaskOutputFilePropertyRegistration(value, OutputFilePropertyType.FILES);
             registeredFileProperties.add(registration);
             return registration;
         });
@@ -194,7 +209,8 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     public TaskOutputFilePropertyBuilder dirs(final Object... paths) {
         return taskMutator.mutate("TaskOutputs.dirs(Object...)", (Callable<TaskOutputFilePropertyBuilder>) () -> {
             StaticValue value = new StaticValue(resolveSingleArray(paths));
-            TaskOutputFilePropertyRegistration registration = new DefaultTaskOutputFilePropertyRegistration(value, OutputFilePropertyType.DIRECTORIES);
+            TaskOutputFilePropertyRegistration registration =
+                    new DefaultTaskOutputFilePropertyRegistration(value, OutputFilePropertyType.DIRECTORIES);
             registeredFileProperties.add(registration);
             return registration;
         });
@@ -222,7 +238,8 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
         boolean hasDeclaredOutputs;
 
         @Override
-        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+        public void visitOutputFileProperty(
+                String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
             hasDeclaredOutputs = true;
         }
 
@@ -234,7 +251,8 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     private class TaskOutputUnionFileCollection extends CompositeFileCollection implements Describable {
         private final TaskInternal buildDependencies;
 
-        public TaskOutputUnionFileCollection(TaskDependencyFactory taskDependencyFactory, TaskInternal buildDependencies) {
+        public TaskOutputUnionFileCollection(
+                TaskDependencyFactory taskDependencyFactory, TaskInternal buildDependencies) {
             super(taskDependencyFactory);
             this.buildDependencies = buildDependencies;
         }

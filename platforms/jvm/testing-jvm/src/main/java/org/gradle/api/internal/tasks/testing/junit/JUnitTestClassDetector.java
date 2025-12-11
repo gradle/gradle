@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
@@ -30,7 +30,7 @@ public class JUnitTestClassDetector extends TestClassVisitor {
     }
 
     @Override
-    protected boolean ignoreNonStaticInnerClass(){
+    protected boolean ignoreNonStaticInnerClass() {
         return true;
     }
 

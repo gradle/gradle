@@ -16,10 +16,9 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.gradle.problems.buildtree.ProblemStream;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.problems.buildtree.ProblemStream;
 
 class StackTraceSanitizer implements ProblemStream.StackTraceTransformer {
     private final Class<?> calledFrom;
@@ -56,11 +55,11 @@ class StackTraceSanitizer implements ProblemStream.StackTraceTransformer {
     }
 
     private static boolean isSystemStackFrame(String className) {
-        return className.startsWith("jdk.internal.") ||
-            className.startsWith("sun.") ||
-            className.startsWith("com.sun.") ||
-            className.startsWith("org.codehaus.groovy.") ||
-            className.startsWith("org.gradle.internal.metaobject.") ||
-            className.startsWith("org.gradle.kotlin.dsl.execution.");
+        return className.startsWith("jdk.internal.")
+                || className.startsWith("sun.")
+                || className.startsWith("com.sun.")
+                || className.startsWith("org.codehaus.groovy.")
+                || className.startsWith("org.gradle.internal.metaobject.")
+                || className.startsWith("org.gradle.kotlin.dsl.execution.");
     }
 }

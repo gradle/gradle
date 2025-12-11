@@ -16,13 +16,6 @@
 package org.gradle.api.internal.artifacts.verification.verifier;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.verification.exceptions.InvalidGpgKeyIdsException;
-import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -30,6 +23,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.verification.exceptions.InvalidGpgKeyIdsException;
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class DependencyVerificationConfiguration {
@@ -43,15 +42,14 @@ public class DependencyVerificationConfiguration {
     private final KeyringFormat keyringFormat;
 
     public DependencyVerificationConfiguration(
-        boolean verifyMetadata,
-        boolean verifySignatures,
-        List<TrustedArtifact> trustedArtifacts,
-        boolean useKeyServers,
-        List<URI> keyServers,
-        Set<IgnoredKey> ignoredKeys,
-        List<TrustedKey> trustedKeys,
-        @Nullable KeyringFormat keyringFormat
-    ) {
+            boolean verifyMetadata,
+            boolean verifySignatures,
+            List<TrustedArtifact> trustedArtifacts,
+            boolean useKeyServers,
+            List<URI> keyServers,
+            Set<IgnoredKey> ignoredKeys,
+            List<TrustedKey> trustedKeys,
+            @Nullable KeyringFormat keyringFormat) {
         this.verifyMetadata = verifyMetadata;
         this.verifySignatures = verifySignatures;
         this.trustedArtifacts = ImmutableList.copyOf(trustedArtifacts);
@@ -103,7 +101,13 @@ public class DependencyVerificationConfiguration {
         private final boolean regex;
         private final String reason;
 
-        TrustCoordinates(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String reason) {
+        TrustCoordinates(
+                @Nullable String group,
+                @Nullable String name,
+                @Nullable String version,
+                @Nullable String fileName,
+                boolean regex,
+                @Nullable String reason) {
             this.group = group;
             this.name = name;
             this.version = version;
@@ -144,9 +148,9 @@ public class DependencyVerificationConfiguration {
         public boolean matches(ModuleComponentArtifactIdentifier id) {
             ModuleComponentIdentifier moduleComponentIdentifier = id.getComponentIdentifier();
             return matches(group, moduleComponentIdentifier.getGroup())
-                && matches(name, moduleComponentIdentifier.getModule())
-                && matches(version, moduleComponentIdentifier.getVersion())
-                && matches(fileName, id.getFileName());
+                    && matches(name, moduleComponentIdentifier.getModule())
+                    && matches(version, moduleComponentIdentifier.getVersion())
+                    && matches(fileName, id.getFileName());
         }
 
         private boolean matches(@Nullable String value, String expr) {
@@ -225,7 +229,13 @@ public class DependencyVerificationConfiguration {
     }
 
     public static class TrustedArtifact extends TrustCoordinates implements Comparable<TrustedArtifact> {
-        TrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String reason) {
+        TrustedArtifact(
+                @Nullable String group,
+                @Nullable String name,
+                @Nullable String version,
+                @Nullable String fileName,
+                boolean regex,
+                @Nullable String reason) {
             super(group, name, version, fileName, regex, reason);
         }
 
@@ -238,7 +248,13 @@ public class DependencyVerificationConfiguration {
     public static class TrustedKey extends TrustCoordinates implements Comparable<TrustedKey> {
         private final String keyId;
 
-        TrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+        TrustedKey(
+                String keyId,
+                @Nullable String group,
+                @Nullable String name,
+                @Nullable String version,
+                @Nullable String fileName,
+                boolean regex) {
             super(group, name, version, fileName, regex, null);
 
             // The key is 160 bits long, encoded in base32 (case-insensitive characters).
@@ -291,7 +307,6 @@ public class DependencyVerificationConfiguration {
             }
             return internalCompareTo(other);
         }
-
     }
 
     @NullMarked

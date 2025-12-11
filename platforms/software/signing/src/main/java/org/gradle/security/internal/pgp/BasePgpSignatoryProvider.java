@@ -15,14 +15,13 @@
  */
 package org.gradle.security.internal.pgp;
 
-import org.gradle.api.Project;
-import org.gradle.security.internal.BaseSignatoryProvider;
-import org.gradle.plugins.signing.signatory.pgp.PgpSignatory;
-import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryFactory;
-
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.gradle.api.Project;
+import org.gradle.plugins.signing.signatory.pgp.PgpSignatory;
+import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryFactory;
+import org.gradle.security.internal.BaseSignatoryProvider;
 
 /**
  * A {@link BaseSignatoryProvider} of {@link PgpSignatory} instances.

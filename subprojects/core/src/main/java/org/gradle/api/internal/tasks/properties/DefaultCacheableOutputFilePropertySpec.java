@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import java.io.File;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.execution.model.OutputNormalizer;
 import org.gradle.internal.file.TreeType;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * An output property consisting of a single output file/directory.
@@ -29,16 +28,16 @@ import java.io.File;
  * When using directory trees as outputs (e.g. via {@link org.gradle.api.Project#fileTree(Object)}), {@link DirectoryTreeOutputFilePropertySpec} is used.
  * Everything else will use this class.
  */
-public class DefaultCacheableOutputFilePropertySpec extends AbstractFilePropertySpec implements CacheableOutputFilePropertySpec {
+public class DefaultCacheableOutputFilePropertySpec extends AbstractFilePropertySpec
+        implements CacheableOutputFilePropertySpec {
     private final String propertySuffix;
     private final TreeType outputType;
 
     public DefaultCacheableOutputFilePropertySpec(
-        String propertyName,
-        @Nullable String propertySuffix,
-        FileCollectionInternal outputFiles,
-        TreeType outputType
-    ) {
+            String propertyName,
+            @Nullable String propertySuffix,
+            FileCollectionInternal outputFiles,
+            TreeType outputType) {
         super(propertyName, OutputNormalizer.INSTANCE, outputFiles);
         this.propertySuffix = propertySuffix;
         this.outputType = outputType;

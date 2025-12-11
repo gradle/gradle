@@ -58,9 +58,10 @@ public class PropertyResourceBundleFallbackCharset extends Charset {
 
     private static final class FallbackDecoder extends CharsetDecoder {
 
-        private CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
-            .onMalformedInput(CodingErrorAction.REPORT)
-            .onUnmappableCharacter(CodingErrorAction.REPORT);
+        private CharsetDecoder decoder = StandardCharsets.UTF_8
+                .newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT);
         private boolean utf8 = true;
 
         private FallbackDecoder(Charset charset) {

@@ -17,14 +17,6 @@
 package org.gradle.internal.execution.history.impl;
 
 import com.google.common.collect.ImmutableListMultimap;
-import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata;
-import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
-import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -33,6 +25,13 @@ import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata;
+import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
 public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspaceMetadataStore {
     private static final String METADATA_FILE = "metadata.bin";
@@ -76,7 +75,8 @@ public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspac
 
             ImmutableListMultimap<String, HashCode> outputPropertyHashes = metadata.getOutputPropertyHashes();
             encoder.writeSmallInt(outputPropertyHashes.keySet().size());
-            for (Map.Entry<String, Collection<HashCode>> entry : outputPropertyHashes.asMap().entrySet()) {
+            for (Map.Entry<String, Collection<HashCode>> entry :
+                    outputPropertyHashes.asMap().entrySet()) {
                 encoder.writeString(entry.getKey());
                 Collection<HashCode> hashes = entry.getValue();
                 encoder.writeSmallInt(hashes.size());

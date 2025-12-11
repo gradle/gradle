@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import com.google.common.collect.ImmutableMap;
-
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
@@ -30,11 +29,14 @@ import java.util.Map;
  */
 class StaticVersionComparator implements Comparator<Version> {
     static final Map<String, Integer> SPECIAL_MEANINGS = ImmutableMap.<String, Integer>builderWithExpectedSize(7)
-                                                                            .put("dev", -1)
-                                                                            .put("rc", 1)
-                                                                            .put("snapshot", 2)
-                                                                            .put("final", 3).put("ga", 4).put("release", 5)
-                                                                            .put("sp", 6).build();
+            .put("dev", -1)
+            .put("rc", 1)
+            .put("snapshot", 2)
+            .put("final", 3)
+            .put("ga", 4)
+            .put("release", 5)
+            .put("sp", 6)
+            .build();
     /**
      * Compares 2 versions. Algorithm is inspired by PHP version_compare one.
      */

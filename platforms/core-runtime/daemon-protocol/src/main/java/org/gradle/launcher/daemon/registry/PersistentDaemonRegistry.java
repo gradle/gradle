@@ -16,6 +16,15 @@
 
 package org.gradle.launcher.daemon.registry;
 
+import static org.gradle.launcher.daemon.server.api.DaemonState.Canceled;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
@@ -30,16 +39,6 @@ import org.gradle.internal.remote.internal.inet.InetEndpoint;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.server.api.DaemonState;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import static org.gradle.launcher.daemon.server.api.DaemonState.Canceled;
-import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
-
 /**
  * Access to daemon registry files. Useful also for testing.
  */
@@ -53,15 +52,11 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager, Chmod chmod) {
         this.registryFile = registryFile;
         cache = new FileIntegrityViolationSuppressingObjectHolderDecorator<DaemonRegistryContent>(
-            new FileBackedObjectHolder<DaemonRegistryContent>(
-                registryFile,
-                new OnDemandFileAccess(
-                    registryFile,
-                    "daemon addresses registry",
-                    fileLockManager),
-                DaemonRegistryContent.SERIALIZER,
-                chmod
-            ));
+                new FileBackedObjectHolder<DaemonRegistryContent>(
+                        registryFile,
+                        new OnDemandFileAccess(registryFile, "daemon addresses registry", fileLockManager),
+                        DaemonRegistryContent.SERIALIZER,
+                        chmod));
     }
 
     @Override
@@ -70,7 +65,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         try {
             DaemonRegistryContent content = cache.get();
             if (content == null) {
-                //when no daemon process has started yet
+                // when no daemon process has started yet
                 return new LinkedList<DaemonInfo>();
             }
             return content.getInfos();
@@ -136,7 +131,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                     if (oldValue == null) {
                         return oldValue;
                     }
-                    oldValue.removeInfo(((InetEndpoint)address).getPort());
+                    oldValue.removeInfo(((InetEndpoint) address).getPort());
                     return oldValue;
                 }
             });
@@ -159,7 +154,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                     }
                     // Else, has been removed by something else - ignore
                     return oldValue;
-                }});
+                }
+            });
         } finally {
             lock.unlock();
         }
@@ -169,7 +165,9 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     public void storeStopEvent(final DaemonStopEvent stopEvent) {
         lock.lock();
         try {
-            LOGGER.debug("Storing daemon stop event with timestamp {}", stopEvent.getTimestamp().getTime());
+            LOGGER.debug(
+                    "Storing daemon stop event with timestamp {}",
+                    stopEvent.getTimestamp().getTime());
             cache.update(new ObjectHolder.UpdateAction<DaemonRegistryContent>() {
                 @Override
                 public DaemonRegistryContent update(DaemonRegistryContent content) {
@@ -233,7 +231,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                 @Override
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
                     if (oldValue == null) {
-                        //it means the registry didn't exist yet
+                        // it means the registry didn't exist yet
                         oldValue = new DaemonRegistryContent();
                     }
                     DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, token, state);

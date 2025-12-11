@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.io.IOException;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -23,14 +24,14 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.jspecify.annotations.Nullable;
 
-import java.io.IOException;
-
 public class CachingFileSystemLocationSnapshotHasher implements FileSystemLocationSnapshotHasher {
     private final FileSystemLocationSnapshotHasher delegate;
     private final ResourceSnapshotterCacheService resourceSnapshotterCacheService;
     private final HashCode delegateConfigurationHash;
 
-    public CachingFileSystemLocationSnapshotHasher(FileSystemLocationSnapshotHasher delegate, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
+    public CachingFileSystemLocationSnapshotHasher(
+            FileSystemLocationSnapshotHasher delegate,
+            ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
         this.delegate = delegate;
         this.resourceSnapshotterCacheService = resourceSnapshotterCacheService;
         Hasher hasher = Hashing.newHasher();

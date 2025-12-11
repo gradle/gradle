@@ -16,11 +16,10 @@
 
 package org.gradle.internal.properties.annotations;
 
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.annotation.Annotation;
 import java.util.Map;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Resolves the type of the property, denoted by an annotation.

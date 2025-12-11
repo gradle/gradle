@@ -40,22 +40,34 @@ public class BaseModuleComponentRepositoryAccess<T> implements ModuleComponentRe
     }
 
     @Override
-    public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
+    public void listModuleVersions(
+            ModuleComponentSelector selector,
+            ComponentOverrideMetadata overrideMetadata,
+            BuildableModuleVersionListingResolveResult result) {
         delegate.listModuleVersions(selector, overrideMetadata, result);
     }
 
     @Override
-    public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<T> result) {
+    public void resolveComponentMetaData(
+            ModuleComponentIdentifier moduleComponentIdentifier,
+            ComponentOverrideMetadata requestMetaData,
+            BuildableModuleComponentMetaDataResolveResult<T> result) {
         delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
     }
 
     @Override
-    public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifactsWithType(
+            ComponentArtifactResolveMetadata component,
+            ArtifactType artifactType,
+            BuildableArtifactSetResolveResult result) {
         delegate.resolveArtifactsWithType(component, artifactType, result);
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
+    public void resolveArtifact(
+            ComponentArtifactMetadata artifact,
+            ModuleSources moduleSources,
+            BuildableArtifactFileResolveResult result) {
         delegate.resolveArtifact(artifact, moduleSources, result);
     }
 

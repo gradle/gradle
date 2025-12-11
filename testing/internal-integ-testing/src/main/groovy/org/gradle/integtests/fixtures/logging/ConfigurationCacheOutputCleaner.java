@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.fixtures.logging;
 
+import java.util.regex.Pattern;
 import org.gradle.exemplar.executor.ExecutionMetadata;
 import org.gradle.exemplar.test.normalizer.OutputNormalizer;
-
-import java.util.regex.Pattern;
 
 /**
  * Conditionally removes the configuration cache logging from the Gradle output.
@@ -34,12 +33,11 @@ public class ConfigurationCacheOutputCleaner implements OutputNormalizer {
     // The configuration of the normalizers is static (defined in the annotations), so this
     // normalizer is going to be applied everywhere. We don't want, however, to remove configuration
     // cache output from the tests that check this very output, thus this switch exists.
-    private static final String CLEAN_CONFIGURATION_CACHE_OUTPUT = "org.gradle.integtest.samples.cleanConfigurationCacheOutput";
-    private static final Pattern CONFIGURATION_CACHE_OUTPUT = Pattern.compile(
-        "((Configuration cache entry[^\\n]+\\.)|" +
-            "(See the complete report at [^\\n]+\\n)|" +
-            "(0 problems were found storing the configuration cache.\\n))(\\n)?"
-    );
+    private static final String CLEAN_CONFIGURATION_CACHE_OUTPUT =
+            "org.gradle.integtest.samples.cleanConfigurationCacheOutput";
+    private static final Pattern CONFIGURATION_CACHE_OUTPUT =
+            Pattern.compile("((Configuration cache entry[^\\n]+\\.)|" + "(See the complete report at [^\\n]+\\n)|"
+                    + "(0 problems were found storing the configuration cache.\\n))(\\n)?");
 
     @Override
     public String normalize(String commandOutput, ExecutionMetadata executionMetadata) {

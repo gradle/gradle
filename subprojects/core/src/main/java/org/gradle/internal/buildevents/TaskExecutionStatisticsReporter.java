@@ -31,7 +31,8 @@ public class TaskExecutionStatisticsReporter {
         int total = statistics.getTotalTaskCount();
         if (total > 0) {
             String pluralizedTasks = total > 1 ? "tasks" : "task";
-            StyledTextOutput textOutput = textOutputFactory.create(TaskExecutionStatisticsReporter.class, LogLevel.LIFECYCLE);
+            StyledTextOutput textOutput =
+                    textOutputFactory.create(TaskExecutionStatisticsReporter.class, LogLevel.LIFECYCLE);
             textOutput.format("%d actionable %s:", total, pluralizedTasks);
             boolean printedDetail = formatDetail(textOutput, statistics.getExecutedTasksCount(), "executed", false);
             printedDetail = formatDetail(textOutput, statistics.getFromCacheTaskCount(), "from cache", printedDetail);
@@ -40,7 +41,8 @@ public class TaskExecutionStatisticsReporter {
         }
     }
 
-    private static boolean formatDetail(StyledTextOutput textOutput, int count, String title, boolean alreadyPrintedDetail) {
+    private static boolean formatDetail(
+            StyledTextOutput textOutput, int count, String title, boolean alreadyPrintedDetail) {
         if (count == 0) {
             return alreadyPrintedDetail;
         }

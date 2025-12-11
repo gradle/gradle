@@ -15,6 +15,14 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileNotFoundException;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.concurrent.CancellationException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.layout.BuildLayout;
@@ -30,15 +38,6 @@ import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
-
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileNotFoundException;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.concurrent.CancellationException;
-
-import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DistributionFactory {
     private final Clock clock;
@@ -63,8 +62,10 @@ public class DistributionFactory {
      * Returns the distribution installed in the specified directory.
      */
     public Distribution getDistribution(File gradleHomeDir) {
-        return new InstalledDistribution(gradleHomeDir, "Gradle installation '" + gradleHomeDir + "'",
-            "Gradle installation directory '" + gradleHomeDir + "'");
+        return new InstalledDistribution(
+                gradleHomeDir,
+                "Gradle installation '" + gradleHomeDir + "'",
+                "Gradle installation directory '" + gradleHomeDir + "'");
     }
 
     /**
@@ -111,9 +112,14 @@ public class DistributionFactory {
         }
 
         @Override
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, final InternalBuildProgressListener progressListener, final ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
+        public ClassPath getToolingImplementationClasspath(
+                ProgressLoggerFactory progressLoggerFactory,
+                final InternalBuildProgressListener progressListener,
+                final ConnectionParameters connectionParameters,
+                BuildCancellationToken cancellationToken) {
             if (installedDistribution == null) {
-                final DistributionInstaller installer = new DistributionInstaller(progressLoggerFactory, progressListener, clock, wrapperConfiguration.getNetworkTimeout());
+                final DistributionInstaller installer = new DistributionInstaller(
+                        progressLoggerFactory, progressListener, clock, wrapperConfiguration.getNetworkTimeout());
                 File installDir;
                 try {
                     cancellationToken.addCallback(new Runnable() {
@@ -122,17 +128,31 @@ public class DistributionFactory {
                             installer.cancel();
                         }
                     });
-                    installDir = installer.install(ConnectionConfigurationUtil.determineRealUserHomeDir(connectionParameters), ConnectionConfigurationUtil.determineRootDir(connectionParameters), wrapperConfiguration, ConnectionConfigurationUtil.determineSystemProperties(connectionParameters));
+                    installDir = installer.install(
+                            ConnectionConfigurationUtil.determineRealUserHomeDir(connectionParameters),
+                            ConnectionConfigurationUtil.determineRootDir(connectionParameters),
+                            wrapperConfiguration,
+                            ConnectionConfigurationUtil.determineSystemProperties(connectionParameters));
                 } catch (CancellationException e) {
-                    throw new BuildCancelledException(String.format("Distribution download cancelled. Using distribution from '%s'.", wrapperConfiguration.getDistribution()), e);
+                    throw new BuildCancelledException(
+                            String.format(
+                                    "Distribution download cancelled. Using distribution from '%s'.",
+                                    wrapperConfiguration.getDistribution()),
+                            e);
                 } catch (FileNotFoundException e) {
-                    throw new IllegalArgumentException(String.format("The specified %s does not exist.", getDisplayName()), e);
+                    throw new IllegalArgumentException(
+                            String.format("The specified %s does not exist.", getDisplayName()), e);
                 } catch (Exception e) {
-                    throw new GradleConnectionException(String.format("Could not install Gradle distribution from '%s'.", wrapperConfiguration.getDistribution()), e);
+                    throw new GradleConnectionException(
+                            String.format(
+                                    "Could not install Gradle distribution from '%s'.",
+                                    wrapperConfiguration.getDistribution()),
+                            e);
                 }
                 installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName());
             }
-            return installedDistribution.getToolingImplementationClasspath(progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
+            return installedDistribution.getToolingImplementationClasspath(
+                    progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
         }
     }
 
@@ -153,16 +173,23 @@ public class DistributionFactory {
         }
 
         @Override
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
+        public ClassPath getToolingImplementationClasspath(
+                ProgressLoggerFactory progressLoggerFactory,
+                InternalBuildProgressListener progressListener,
+                ConnectionParameters connectionParameters,
+                BuildCancellationToken cancellationToken) {
             if (!gradleHomeDir.exists()) {
-                throw new IllegalArgumentException(String.format("The specified %s does not exist.", locationDisplayName));
+                throw new IllegalArgumentException(
+                        String.format("The specified %s does not exist.", locationDisplayName));
             }
             if (!gradleHomeDir.isDirectory()) {
-                throw new IllegalArgumentException(String.format("The specified %s is not a directory.", locationDisplayName));
+                throw new IllegalArgumentException(
+                        String.format("The specified %s is not a directory.", locationDisplayName));
             }
             File libDir = new File(gradleHomeDir, "lib");
             if (!libDir.isDirectory()) {
-                throw new IllegalArgumentException(String.format("The specified %s does not appear to contain a Gradle distribution.", locationDisplayName));
+                throw new IllegalArgumentException(String.format(
+                        "The specified %s does not appear to contain a Gradle distribution.", locationDisplayName));
             }
             File[] files = libDir.listFiles(new FileFilter() {
                 @Override
@@ -183,7 +210,11 @@ public class DistributionFactory {
         }
 
         @Override
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
+        public ClassPath getToolingImplementationClasspath(
+                ProgressLoggerFactory progressLoggerFactory,
+                InternalBuildProgressListener progressListener,
+                ConnectionParameters connectionParameters,
+                BuildCancellationToken cancellationToken) {
             DefaultModuleRegistry registry = new DefaultModuleRegistry(null);
             return registry.getModule("gradle-tooling-api-provider").getAllRequiredModulesClasspath();
         }

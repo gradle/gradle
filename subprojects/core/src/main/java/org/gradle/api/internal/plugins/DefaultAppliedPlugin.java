@@ -41,5 +41,4 @@ class DefaultAppliedPlugin implements AppliedPlugin {
     public String getName() {
         return pluginId.getName();
     }
-
 }

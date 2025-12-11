@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import java.lang.reflect.Constructor;
 import org.gradle.internal.Cast;
 import org.junit.internal.builders.AllDefaultPossibilitiesBuilder;
 import org.junit.internal.builders.IgnoredBuilder;
@@ -24,8 +25,6 @@ import org.junit.runner.Runner;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.RunnerBuilder;
 import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Constructor;
 
 public class AllExceptIgnoredTestRunnerBuilder extends AllDefaultPossibilitiesBuilder {
 
@@ -57,13 +56,16 @@ public class AllExceptIgnoredTestRunnerBuilder extends AllDefaultPossibilitiesBu
             try {
                 return new BlockJUnit4ClassRunner(testClass);
             } catch (Throwable t) {
-                //failed to instantiate BlockJUnitRunner. try deprecated JUnitRunner (for JUnit < 4.5)
+                // failed to instantiate BlockJUnitRunner. try deprecated JUnitRunner (for JUnit < 4.5)
                 try {
-                    Class<Runner> runnerClass = Cast.uncheckedNonnullCast(Thread.currentThread().getContextClassLoader().loadClass("org.junit.internal.runners.JUnit4ClassRunner"));
+                    Class<Runner> runnerClass = Cast.uncheckedNonnullCast(Thread.currentThread()
+                            .getContextClassLoader()
+                            .loadClass("org.junit.internal.runners.JUnit4ClassRunner"));
                     final Constructor<Runner> constructor = runnerClass.getConstructor(Class.class);
                     return constructor.newInstance(testClass);
                 } catch (Throwable e) {
-                    LoggerFactory.getLogger(getClass()).warn("Unable to load JUnit4 runner to calculate Ignored test cases", e);
+                    LoggerFactory.getLogger(getClass())
+                            .warn("Unable to load JUnit4 runner to calculate Ignored test cases", e);
                 }
             }
             return null;

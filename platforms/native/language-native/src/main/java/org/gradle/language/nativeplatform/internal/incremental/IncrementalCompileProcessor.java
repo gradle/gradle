@@ -15,21 +15,23 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.cache.ObjectHolder;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-
 import java.io.File;
 import java.util.Collection;
+import org.gradle.cache.ObjectHolder;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CallableBuildOperation;
 
 public class IncrementalCompileProcessor {
     private final ObjectHolder<CompilationState> previousCompileStateCache;
     private final IncrementalCompileFilesFactory incrementalCompileFilesFactory;
     private final BuildOperationRunner buildOperationExecutor;
 
-    public IncrementalCompileProcessor(ObjectHolder<CompilationState> previousCompileStateCache, IncrementalCompileFilesFactory incrementalCompileFilesFactory, BuildOperationRunner buildOperationExecutor) {
+    public IncrementalCompileProcessor(
+            ObjectHolder<CompilationState> previousCompileStateCache,
+            IncrementalCompileFilesFactory incrementalCompileFilesFactory,
+            BuildOperationRunner buildOperationExecutor) {
         this.previousCompileStateCache = previousCompileStateCache;
         this.incrementalCompileFilesFactory = incrementalCompileFilesFactory;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -39,7 +41,8 @@ public class IncrementalCompileProcessor {
         return buildOperationExecutor.call(new CallableBuildOperation<IncrementalCompilation>() {
             @Override
             public IncrementalCompilation call(BuildOperationContext context) {
-                IncrementalCompileSourceProcessor processor = incrementalCompileFilesFactory.files(previousCompileStateCache.get());
+                IncrementalCompileSourceProcessor processor =
+                        incrementalCompileFilesFactory.files(previousCompileStateCache.get());
                 for (File sourceFile : sourceFiles) {
                     processor.processSource(sourceFile);
                 }
@@ -48,9 +51,8 @@ public class IncrementalCompileProcessor {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor
-                    .displayName("Processing source files")
-                    .details(new ProcessSourceFilesDetails(sourceFiles.size()));
+                return BuildOperationDescriptor.displayName("Processing source files")
+                        .details(new ProcessSourceFilesDetails(sourceFiles.size()));
             }
 
             class ProcessSourceFilesDetails {
@@ -67,5 +69,4 @@ public class IncrementalCompileProcessor {
             }
         });
     }
-
 }

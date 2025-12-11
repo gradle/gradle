@@ -16,6 +16,14 @@
 
 package org.gradle.plugin.devel.internal.precompiled;
 
+import static org.gradle.api.internal.plugins.DefaultPluginManager.CORE_PLUGIN_NAMESPACE;
+import static org.gradle.api.internal.plugins.DefaultPluginManager.CORE_PLUGIN_PREFIX;
+
+import java.io.File;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
@@ -30,18 +38,10 @@ import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.gradle.api.internal.plugins.DefaultPluginManager.CORE_PLUGIN_NAMESPACE;
-import static org.gradle.api.internal.plugins.DefaultPluginManager.CORE_PLUGIN_PREFIX;
-
 public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
 
-    private static final Documentation PRECOMPILED_SCRIPT_MANUAL = Documentation.userManual("custom_plugins", "sec:precompiled_plugins");
+    private static final Documentation PRECOMPILED_SCRIPT_MANUAL =
+            Documentation.userManual("custom_plugins", "sec:precompiled_plugins");
 
     @Override
     public void apply(Project project) {
@@ -55,65 +55,99 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
     protected abstract TextFileResourceLoader getTextFileResourceLoader();
 
     private void exposeScriptsAsPlugins(Project project) {
-        GradlePluginDevelopmentExtension pluginExtension = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
+        GradlePluginDevelopmentExtension pluginExtension =
+                project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
 
         SourceSet pluginSourceSet = pluginExtension.getPluginSourceSet();
-        Set<File> scriptPluginFiles = pluginSourceSet.getAllSource().matching(PrecompiledGroovyScript::filterPluginFiles).getFiles();
+        Set<File> scriptPluginFiles = pluginSourceSet
+                .getAllSource()
+                .matching(PrecompiledGroovyScript::filterPluginFiles)
+                .getFiles();
 
         List<PrecompiledGroovyScript> scriptPlugins = scriptPluginFiles.stream()
-            .map(file -> new PrecompiledGroovyScript(file, getTextFileResourceLoader()))
-            .peek(scriptPlugin -> validateScriptPlugin(project, scriptPlugin))
-            .collect(Collectors.toList());
+                .map(file -> new PrecompiledGroovyScript(file, getTextFileResourceLoader()))
+                .peek(scriptPlugin -> validateScriptPlugin(project, scriptPlugin))
+                .collect(Collectors.toList());
 
         declarePluginMetadata(pluginExtension, scriptPlugins);
 
         DirectoryProperty buildDir = project.getLayout().getBuildDirectory();
         TaskContainer tasks = project.getTasks();
 
-        TaskProvider<ExtractPluginRequestsTask> extractPluginRequests = tasks.register("extractPluginRequests", ExtractPluginRequestsTask.class, task -> {
-            task.getScriptPlugins().convention(scriptPlugins);
-            task.getScriptFiles().from(scriptPluginFiles);
-            task.getExtractedPluginRequestsClassesDirectory().convention(buildDir.dir("groovy-dsl-plugins/output/plugin-requests"));
-            task.getExtractedPluginRequestsClassesStagingDirectory().convention(buildDir.dir("groovy-dsl-plugins/output/plugin-requests-staging"));
-        });
+        TaskProvider<ExtractPluginRequestsTask> extractPluginRequests =
+                tasks.register("extractPluginRequests", ExtractPluginRequestsTask.class, task -> {
+                    task.getScriptPlugins().convention(scriptPlugins);
+                    task.getScriptFiles().from(scriptPluginFiles);
+                    task.getExtractedPluginRequestsClassesDirectory()
+                            .convention(buildDir.dir("groovy-dsl-plugins/output/plugin-requests"));
+                    task.getExtractedPluginRequestsClassesStagingDirectory()
+                            .convention(buildDir.dir("groovy-dsl-plugins/output/plugin-requests-staging"));
+                });
 
-        TaskProvider<GeneratePluginAdaptersTask> generatePluginAdapters = tasks.register("generatePluginAdapters", GeneratePluginAdaptersTask.class, task -> {
-            task.getScriptPlugins().convention(scriptPlugins);
-            task.getExtractedPluginRequestsClassesDirectory().convention(extractPluginRequests.flatMap(ExtractPluginRequestsTask::getExtractedPluginRequestsClassesDirectory));
-            task.getPluginAdapterSourcesOutputDirectory().convention(buildDir.dir("groovy-dsl-plugins/output/adapter-src"));
-        });
+        TaskProvider<GeneratePluginAdaptersTask> generatePluginAdapters =
+                tasks.register("generatePluginAdapters", GeneratePluginAdaptersTask.class, task -> {
+                    task.getScriptPlugins().convention(scriptPlugins);
+                    task.getExtractedPluginRequestsClassesDirectory()
+                            .convention(extractPluginRequests.flatMap(
+                                    ExtractPluginRequestsTask::getExtractedPluginRequestsClassesDirectory));
+                    task.getPluginAdapterSourcesOutputDirectory()
+                            .convention(buildDir.dir("groovy-dsl-plugins/output/adapter-src"));
+                });
 
-        TaskProvider<CompileGroovyScriptPluginsTask> precompilePlugins = tasks.register("compileGroovyPlugins", CompileGroovyScriptPluginsTask.class, task -> {
-            task.getScriptPlugins().convention(scriptPlugins);
-            task.getScriptFiles().from(scriptPluginFiles);
-            task.getPrecompiledGroovyScriptsOutputDirectory().convention(buildDir.dir("groovy-dsl-plugins/output/plugin-classes"));
+        TaskProvider<CompileGroovyScriptPluginsTask> precompilePlugins =
+                tasks.register("compileGroovyPlugins", CompileGroovyScriptPluginsTask.class, task -> {
+                    task.getScriptPlugins().convention(scriptPlugins);
+                    task.getScriptFiles().from(scriptPluginFiles);
+                    task.getPrecompiledGroovyScriptsOutputDirectory()
+                            .convention(buildDir.dir("groovy-dsl-plugins/output/plugin-classes"));
 
-            SourceDirectorySet javaSource = pluginSourceSet.getJava();
-            SourceDirectorySet groovySource = pluginSourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
-            task.getClasspath().from(pluginSourceSet.getCompileClasspath(), javaSource.getClassesDirectory(), groovySource.getClassesDirectory());
-        });
+                    SourceDirectorySet javaSource = pluginSourceSet.getJava();
+                    SourceDirectorySet groovySource =
+                            pluginSourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
+                    task.getClasspath()
+                            .from(
+                                    pluginSourceSet.getCompileClasspath(),
+                                    javaSource.getClassesDirectory(),
+                                    groovySource.getClassesDirectory());
+                });
 
-        pluginSourceSet.getJava().srcDir(generatePluginAdapters.flatMap(GeneratePluginAdaptersTask::getPluginAdapterSourcesOutputDirectory));
-        pluginSourceSet.getOutput().dir(precompilePlugins.flatMap(CompileGroovyScriptPluginsTask::getPrecompiledGroovyScriptsOutputDirectory));
-        pluginSourceSet.getOutput().dir(extractPluginRequests.flatMap(ExtractPluginRequestsTask::getExtractedPluginRequestsClassesStagingDirectory));
+        pluginSourceSet
+                .getJava()
+                .srcDir(generatePluginAdapters.flatMap(
+                        GeneratePluginAdaptersTask::getPluginAdapterSourcesOutputDirectory));
+        pluginSourceSet
+                .getOutput()
+                .dir(precompilePlugins.flatMap(
+                        CompileGroovyScriptPluginsTask::getPrecompiledGroovyScriptsOutputDirectory));
+        pluginSourceSet
+                .getOutput()
+                .dir(extractPluginRequests.flatMap(
+                        ExtractPluginRequestsTask::getExtractedPluginRequestsClassesStagingDirectory));
     }
 
     private void validateScriptPlugin(Project project, PrecompiledGroovyScript scriptPlugin) {
-        if (scriptPlugin.getId().equals(CORE_PLUGIN_NAMESPACE) || scriptPlugin.getId().startsWith(CORE_PLUGIN_PREFIX)) {
+        if (scriptPlugin.getId().equals(CORE_PLUGIN_NAMESPACE)
+                || scriptPlugin.getId().startsWith(CORE_PLUGIN_PREFIX)) {
             throw new PrecompiledScriptException(
-                String.format("The precompiled plugin (%s) cannot start with '%s'.", project.relativePath(scriptPlugin.getFileName()), CORE_PLUGIN_NAMESPACE),
-                PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage());
+                    String.format(
+                            "The precompiled plugin (%s) cannot start with '%s'.",
+                            project.relativePath(scriptPlugin.getFileName()), CORE_PLUGIN_NAMESPACE),
+                    PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage());
         }
         Plugin<?> existingPlugin = project.getPlugins().findPlugin(scriptPlugin.getId());
-        if (existingPlugin != null && existingPlugin.getClass().getPackage().getName().startsWith(CORE_PLUGIN_PREFIX)) {
+        if (existingPlugin != null
+                && existingPlugin.getClass().getPackage().getName().startsWith(CORE_PLUGIN_PREFIX)) {
             throw new PrecompiledScriptException(
-                String.format("The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.", project.relativePath(scriptPlugin.getFileName()), scriptPlugin.getId()),
-                PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage());
+                    String.format(
+                            "The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.",
+                            project.relativePath(scriptPlugin.getFileName()), scriptPlugin.getId()),
+                    PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage());
         }
     }
 
-    private void declarePluginMetadata(GradlePluginDevelopmentExtension pluginExtension, List<PrecompiledGroovyScript> scriptPlugins) {
-        pluginExtension.plugins(pluginDeclarations ->
-            scriptPlugins.forEach(scriptPlugin -> pluginDeclarations.create(scriptPlugin.getId(), scriptPlugin::declarePlugin)));
+    private void declarePluginMetadata(
+            GradlePluginDevelopmentExtension pluginExtension, List<PrecompiledGroovyScript> scriptPlugins) {
+        pluginExtension.plugins(pluginDeclarations -> scriptPlugins.forEach(
+                scriptPlugin -> pluginDeclarations.create(scriptPlugin.getId(), scriptPlugin::declarePlugin)));
     }
 }

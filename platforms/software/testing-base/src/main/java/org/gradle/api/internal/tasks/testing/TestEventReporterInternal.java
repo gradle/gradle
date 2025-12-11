@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import java.time.Instant;
+import java.util.List;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.time.Instant;
-import java.util.List;
 
 @NullMarked
 public interface TestEventReporterInternal extends TestEventReporter {

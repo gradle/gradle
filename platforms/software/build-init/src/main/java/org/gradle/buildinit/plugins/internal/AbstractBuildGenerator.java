@@ -16,18 +16,18 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 
 public abstract class AbstractBuildGenerator implements BuildGenerator {
     private final BuildContentGenerator generator;
     private final List<? extends BuildContentGenerator> generators;
 
-    public AbstractBuildGenerator(BuildContentGenerator projectGenerator, List<? extends BuildContentGenerator> generators) {
+    public AbstractBuildGenerator(
+            BuildContentGenerator projectGenerator, List<? extends BuildContentGenerator> generators) {
         this.generators = generators;
         this.generator = projectGenerator;
     }
@@ -44,11 +44,13 @@ public abstract class AbstractBuildGenerator implements BuildGenerator {
 
     @Override
     public void generate(InitSettings settings) {
-        BuildContentGenerationContext buildContentGenerationContext = new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(false));
+        BuildContentGenerationContext buildContentGenerationContext =
+                new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(false));
         for (BuildContentGenerator generator : generators) {
             generator.generate(settings, buildContentGenerationContext);
         }
         generator.generate(settings, buildContentGenerationContext);
-        VersionCatalogGenerator.create(settings.getTarget()).generate(buildContentGenerationContext, settings.isWithComments());
+        VersionCatalogGenerator.create(settings.getTarget())
+                .generate(buildContentGenerationContext, settings.isWithComments());
     }
 }

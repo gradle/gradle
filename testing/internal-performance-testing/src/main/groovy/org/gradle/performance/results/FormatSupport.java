@@ -16,9 +16,7 @@
 
 package org.gradle.performance.results;
 
-import org.gradle.performance.measure.Amount;
-import org.gradle.performance.measure.DataSeries;
-import org.gradle.performance.measure.Duration;
+import static org.gradle.performance.measure.DataSeries.confidenceInDifference;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -28,8 +26,9 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.TimeZone;
-
-import static org.gradle.performance.measure.DataSeries.confidenceInDifference;
+import org.gradle.performance.measure.Amount;
+import org.gradle.performance.measure.DataSeries;
+import org.gradle.performance.measure.Duration;
 
 public class FormatSupport {
     public static String executionTimestamp() {
@@ -61,7 +60,8 @@ public class FormatSupport {
         }
 
         double sign = Math.signum(getDifferencePercentage(baseline, current).doubleValue());
-        return new BigDecimal(sign * 100.0 * confidenceInDifference(baseline.getTotalTime(), current.getTotalTime())).setScale(2, RoundingMode.HALF_UP);
+        return new BigDecimal(sign * 100.0 * confidenceInDifference(baseline.getTotalTime(), current.getTotalTime()))
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     public static Number getDifferencePercentage(MeasuredOperationList baseline, MeasuredOperationList current) {
@@ -69,7 +69,10 @@ public class FormatSupport {
             // This is a workaround for https://github.com/gradle/gradle-private/issues/1690
             return new BigDecimal(0);
         }
-        return new BigDecimal(100.0 * getDifferenceRatio(baseline.getTotalTime(), current.getTotalTime()).doubleValue()).setScale(2, RoundingMode.HALF_UP);
+        return new BigDecimal(100.0
+                        * getDifferenceRatio(baseline.getTotalTime(), current.getTotalTime())
+                                .doubleValue())
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     public static Number getDifferenceRatio(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
@@ -78,17 +81,25 @@ public class FormatSupport {
         return (current - base) / base;
     }
 
-    public static String getFormattedDifference(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
+    public static String getFormattedDifference(
+            DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
         Amount<Duration> base = baselineVersion.getMedian();
         Amount<Duration> current = currentVersion.getMedian();
         Amount<Duration> diff = current.minus(base);
 
         String sign = diff.getValue().doubleValue() > 0 ? "+" : "";
 
-        return String.format("%s%s (%.2f%%)", sign, diff.format(), 100.0 * FormatSupport.getDifferenceRatio(baselineVersion, currentVersion).doubleValue());
+        return String.format(
+                "%s%s (%.2f%%)",
+                sign,
+                diff.format(),
+                100.0
+                        * FormatSupport.getDifferenceRatio(baselineVersion, currentVersion)
+                                .doubleValue());
     }
 
-    public static String getFormattedConfidence(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
+    public static String getFormattedConfidence(
+            DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
         return String.format("%.1f%%", 100.0 * confidenceInDifference(baselineVersion, currentVersion));
     }
 }

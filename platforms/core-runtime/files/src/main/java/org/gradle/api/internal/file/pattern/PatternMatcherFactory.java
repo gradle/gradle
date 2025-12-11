@@ -18,21 +18,20 @@ package org.gradle.api.internal.file.pattern;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
-
 import java.util.List;
 
 public class PatternMatcherFactory {
 
     private static final EndOfPathMatcher END_OF_PATH_MATCHER = new EndOfPathMatcher();
-    private static final Splitter PATH_SPLITTER = Splitter.on(CharMatcher.anyOf("\\/")).omitEmptyStrings();
+    private static final Splitter PATH_SPLITTER =
+            Splitter.on(CharMatcher.anyOf("\\/")).omitEmptyStrings();
 
-    public static PatternMatcher getPatternsMatcher(boolean partialMatchDirs, boolean caseSensitive, Iterable<String> patterns) {
+    public static PatternMatcher getPatternsMatcher(
+            boolean partialMatchDirs, boolean caseSensitive, Iterable<String> patterns) {
         PatternMatcher matcher = PatternMatcher.MATCH_ALL;
         for (String pattern : patterns) {
             PatternMatcher patternMatcher = getPatternMatcher(partialMatchDirs, caseSensitive, pattern);
-            matcher = matcher == PatternMatcher.MATCH_ALL
-                ? patternMatcher
-                : matcher.or(patternMatcher);
+            matcher = matcher == PatternMatcher.MATCH_ALL ? patternMatcher : matcher.or(patternMatcher);
         }
         return matcher;
     }
@@ -69,7 +68,8 @@ public class PatternMatcherFactory {
             }
             return new GreedyPathMatcher(compile(parts, pos, caseSensitive));
         }
-        return new FixedStepPathMatcher(PatternStepFactory.getStep(parts.get(pos), caseSensitive), compile(parts, pos + 1, caseSensitive));
+        return new FixedStepPathMatcher(
+                PatternStepFactory.getStep(parts.get(pos), caseSensitive), compile(parts, pos + 1, caseSensitive));
     }
 
     @VisibleForTesting

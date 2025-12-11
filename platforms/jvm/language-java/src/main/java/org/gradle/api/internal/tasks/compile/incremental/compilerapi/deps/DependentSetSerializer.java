@@ -17,12 +17,11 @@
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.serialize.HierarchicalNameSerializer;
+import java.util.function.Supplier;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-
-import java.util.function.Supplier;
+import org.gradle.internal.serialize.HierarchicalNameSerializer;
 
 public class DependentSetSerializer extends AbstractSerializer<DependentsSet> {
     private final Supplier<HierarchicalNameSerializer> hierarchicalNameSerializerSupplier;

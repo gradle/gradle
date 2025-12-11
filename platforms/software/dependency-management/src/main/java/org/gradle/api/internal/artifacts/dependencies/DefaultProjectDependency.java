@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
@@ -26,8 +27,6 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
-
-import java.util.List;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
 
@@ -73,16 +72,18 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     @SuppressWarnings("deprecation")
     public List<Capability> getRequestedCapabilities() {
         return getCapabilitySelectors().stream()
-            .map(c -> {
-                if (c instanceof SpecificCapabilitySelector) {
-                    return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
-                } else if (c instanceof FeatureCapabilitySelector) {
-                    return new ProjectDerivedCapability(unsafeGetProject(), ((FeatureCapabilitySelector) c).getFeatureName());
-                } else {
-                    throw new UnsupportedOperationException("Unsupported capability selector type: " + c.getClass().getName());
-                }
-            })
-            .collect(ImmutableList.toImmutableList());
+                .map(c -> {
+                    if (c instanceof SpecificCapabilitySelector) {
+                        return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
+                    } else if (c instanceof FeatureCapabilitySelector) {
+                        return new ProjectDerivedCapability(
+                                unsafeGetProject(), ((FeatureCapabilitySelector) c).getFeatureName());
+                    } else {
+                        throw new UnsupportedOperationException("Unsupported capability selector type: "
+                                + c.getClass().getName());
+                    }
+                })
+                .collect(ImmutableList.toImmutableList());
     }
 
     @Override
@@ -95,8 +96,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         }
 
         DefaultProjectDependency that = (DefaultProjectDependency) o;
-        return getTargetProjectIdentity().equals(that.getTargetProjectIdentity()) &&
-            isCommonContentEquals(that);
+        return getTargetProjectIdentity().equals(that.getTargetProjectIdentity()) && isCommonContentEquals(that);
     }
 
     @Override
@@ -123,5 +123,4 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private ProjectInternal unsafeGetProject() {
         return projectState.getMutableModel();
     }
-
 }

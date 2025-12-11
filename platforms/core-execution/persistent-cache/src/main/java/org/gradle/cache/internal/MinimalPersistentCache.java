@@ -16,10 +16,9 @@
 
 package org.gradle.cache.internal;
 
+import java.util.function.Function;
 import org.gradle.cache.Cache;
 import org.gradle.cache.IndexedCache;
-
-import java.util.function.Function;
 
 public class MinimalPersistentCache<K, V> implements Cache<K, V> {
     private final IndexedCache<K, V> cache;
@@ -35,8 +34,8 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V> {
             return cached;
         }
 
-        V value = factory.apply(key); //don't synchronize value creation
-        //we could potentially avoid creating value that is already being created by a different thread.
+        V value = factory.apply(key); // don't synchronize value creation
+        // we could potentially avoid creating value that is already being created by a different thread.
 
         cache.put(key, value);
         return value;

@@ -18,6 +18,11 @@ package org.gradle.nativeplatform.toolchain.internal.metadata;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.internal.Pair;
 import org.gradle.internal.io.StreamByteBuffer;
@@ -27,12 +32,6 @@ import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public abstract class AbstractMetadataProvider<T extends CompilerMetadata> implements CompilerMetaDataProvider<T> {
     private final ExecActionFactory execActionFactory;
@@ -47,10 +46,17 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
         execSpec.environment("LC_MESSAGES", "C");
         configureAction.execute(execSpec);
 
-        List<String> allArgs = ImmutableList.<String>builder().addAll(execSpec.args).addAll(compilerArgs()).build();
+        List<String> allArgs = ImmutableList.<String>builder()
+                .addAll(execSpec.args)
+                .addAll(compilerArgs())
+                .build();
         Pair<String, String> transform = runCompiler(execSpec.executable, allArgs, execSpec.environments);
         if (transform == null) {
-            return new ComponentNotFound<T>(String.format("Could not determine %s metadata: failed to execute %s %s.", getCompilerType().getDescription(), execSpec.executable.getName(), Joiner.on(' ').join(allArgs)));
+            return new ComponentNotFound<T>(String.format(
+                    "Could not determine %s metadata: failed to execute %s %s.",
+                    getCompilerType().getDescription(),
+                    execSpec.executable.getName(),
+                    Joiner.on(' ').join(allArgs)));
         }
         String output = transform.getLeft();
         String error = transform.getRight();
@@ -65,7 +71,8 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
         return execActionFactory;
     }
 
-    protected abstract T parseCompilerOutput(String output, String error, File binary, List<File> path) throws BrokenResultException;
+    protected abstract T parseCompilerOutput(String output, String error, File binary, List<File> path)
+            throws BrokenResultException;
 
     private Pair<String, String> runCompiler(File gccBinary, List<String> args, Map<String, ?> environmentVariables) {
         ExecAction exec = execActionFactory.newExecAction();
@@ -88,7 +95,9 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
             // Make the failure very obvious by throwing this back up to the user.
             String errorBufferAsString = errorBuffer.readAsString();
             if (errorBufferAsString.contains("Agreeing to the Xcode")) {
-                throw new IllegalStateException("You will be unable to use Xcode's tool chain until you accept the Xcode license.\n" + errorBufferAsString);
+                throw new IllegalStateException(
+                        "You will be unable to use Xcode's tool chain until you accept the Xcode license.\n"
+                                + errorBufferAsString);
             }
         }
         return null;
@@ -125,5 +134,4 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
             return this;
         }
     }
-
 }

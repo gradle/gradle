@@ -28,7 +28,8 @@ public class FactoryBackedCompileOperation<T> implements CompileOperation<T> {
     private final Factory<T> dataFactory;
     private final Serializer<T> serializer;
 
-    public FactoryBackedCompileOperation(String id, String stage, Transformer transformer, Factory<T> dataFactory, Serializer<T> serializer) {
+    public FactoryBackedCompileOperation(
+            String id, String stage, Transformer transformer, Factory<T> dataFactory, Serializer<T> serializer) {
         this.id = id;
         this.stage = stage;
         this.transformer = transformer;

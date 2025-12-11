@@ -16,22 +16,22 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import java.io.File;
+import java.time.Duration;
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
-import java.io.File;
-import java.time.Duration;
-import java.util.Set;
-
 /**
  * Determines whether cached external artifacts and metadata should be considered expired.
  */
 public interface CacheExpirationControl {
 
-    Expiry versionListExpiry(ModuleIdentifier moduleIdentifier, Set<ModuleVersionIdentifier> moduleVersions, Duration age);
+    Expiry versionListExpiry(
+            ModuleIdentifier moduleIdentifier, Set<ModuleVersionIdentifier> moduleVersions, Duration age);
 
     Expiry missingModuleExpiry(ModuleComponentIdentifier component, Duration age);
 
@@ -40,19 +40,26 @@ public interface CacheExpirationControl {
     Expiry moduleExpiry(ResolvedModuleVersion resolvedModuleVersion, Duration age, boolean changing);
 
     Expiry moduleArtifactsExpiry(
-        ModuleVersionIdentifier moduleVersionId, Set<ModuleComponentArtifactMetadata> artifacts,
-        Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync
-    );
+            ModuleVersionIdentifier moduleVersionId,
+            Set<ModuleComponentArtifactMetadata> artifacts,
+            Duration age,
+            boolean belongsToChangingModule,
+            boolean moduleDescriptorInSync);
 
-    Expiry artifactExpiry(ModuleComponentArtifactMetadata artifactMetadata, File cachedArtifactFile, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
+    Expiry artifactExpiry(
+            ModuleComponentArtifactMetadata artifactMetadata,
+            File cachedArtifactFile,
+            Duration age,
+            boolean belongsToChangingModule,
+            boolean moduleDescriptorInSync);
 
-    Expiry changingModuleExpiry(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age);
+    Expiry changingModuleExpiry(
+            ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age);
 
     interface Expiry {
 
         boolean isMustCheck();
 
         Duration getKeepFor();
-
     }
 }

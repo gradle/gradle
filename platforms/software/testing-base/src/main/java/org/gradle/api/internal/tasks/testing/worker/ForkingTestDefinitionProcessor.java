@@ -16,9 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.internal.Cast;
@@ -32,11 +36,6 @@ import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class ForkingTestDefinitionProcessor<D extends TestDefinition> implements TestDefinitionProcessor<D> {
     public static final String GRADLE_TEST_WORKER_NAME = "Gradle Test Executor";
@@ -55,15 +54,13 @@ public class ForkingTestDefinitionProcessor<D extends TestDefinition> implements
     private boolean stoppedNow;
     private final Set<Throwable> unrecoverableExceptions = new HashSet<>();
 
-
     public ForkingTestDefinitionProcessor(
-        WorkerThreadRegistry workerThreadRegistry,
-        WorkerProcessFactory workerFactory,
-        WorkerTestDefinitionProcessorFactory<D> processorFactory,
-        JavaForkOptions options,
-        ForkedTestClasspath classpath,
-        Action<WorkerProcessBuilder> buildConfigAction
-    ) {
+            WorkerThreadRegistry workerThreadRegistry,
+            WorkerProcessFactory workerFactory,
+            WorkerTestDefinitionProcessorFactory<D> processorFactory,
+            JavaForkOptions options,
+            ForkedTestClasspath classpath,
+            Action<WorkerProcessBuilder> buildConfigAction) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
@@ -134,9 +131,8 @@ public class ForkingTestDefinitionProcessor<D extends TestDefinition> implements
             }
         });
         connection.addIncoming(TestResultProcessor.class, resultProcessor);
-        RemoteTestDefinitionProcessor<D> remoteProcessor = Cast.uncheckedNonnullCast(
-            connection.addOutgoing(RemoteTestDefinitionProcessor.class)
-        );
+        RemoteTestDefinitionProcessor<D> remoteProcessor =
+                Cast.uncheckedNonnullCast(connection.addOutgoing(RemoteTestDefinitionProcessor.class));
         connection.connect();
         remoteProcessor.startProcessing();
         return remoteProcessor;
@@ -190,7 +186,9 @@ public class ForkingTestDefinitionProcessor<D extends TestDefinition> implements
      */
     private void maybeRethrowUnrecoverableExceptions() {
         if (!unrecoverableExceptions.isEmpty()) {
-            throw new DefaultMultiCauseException("Unexpected errors were encountered while processing test results that may result in some results being incorrect or incomplete.", unrecoverableExceptions);
+            throw new DefaultMultiCauseException(
+                    "Unexpected errors were encountered while processing test results that may result in some results being incorrect or incomplete.",
+                    unrecoverableExceptions);
         }
     }
 }

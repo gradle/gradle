@@ -16,9 +16,10 @@
 
 package org.gradle.execution.plan;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 import it.unimi.dsi.fastutil.objects.ObjectIterators;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,8 +28,6 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
-import static org.gradle.internal.Cast.uncheckedCast;
 
 public final class NodeSets {
 
@@ -42,8 +41,7 @@ public final class NodeSets {
         return sorted;
     }
 
-    private NodeSets() {
-    }
+    private NodeSets() {}
 
     /**
      * A {@link ReferenceOpenHashSet reference-based hash-set} with iteration order based on a given comparator.
@@ -74,7 +72,6 @@ public final class NodeSets {
             version = Math.abs(version) + 1;
             return true;
         }
-
 
         @Override
         public boolean contains(Object o) {

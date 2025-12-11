@@ -16,6 +16,7 @@
 
 package org.gradle.execution.selection;
 
+import java.io.File;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskSelection;
@@ -23,8 +24,6 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildTaskSelector {
@@ -34,7 +33,8 @@ public interface BuildTaskSelector {
      * @param rootDir When not null, specifies the build to resolve tasks relative to. When null, resolve relative to the default build.
      * @param projectPath When not null, specifies the project within the target build to resolve tasks relative to. When null, resolve relative to the default project of the target build.
      */
-    TaskSelection resolveTaskName(@Nullable File rootDir, @Nullable String projectPath, BuildState targetBuild, String taskName);
+    TaskSelection resolveTaskName(
+            @Nullable File rootDir, @Nullable String projectPath, BuildState targetBuild, String taskName);
 
     BuildSpecificSelector relativeToBuild(BuildState target);
 

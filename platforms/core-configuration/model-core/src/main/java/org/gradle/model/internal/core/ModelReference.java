@@ -18,11 +18,10 @@ package org.gradle.model.internal.core;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A model reference is a speculative reference to a potential model element.
@@ -38,18 +37,28 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class ModelReference<T> {
     public static final ModelReference<Object> ANY = of(ModelType.untyped());
+
     @Nullable
     private final ModelPath path;
+
     private final ModelType<T> type;
+
     @Nullable
     private final ModelPath scope;
+
     private final ModelNode.State state;
+
     @Nullable
     private final String description;
 
     private int hashCode;
 
-    private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, ModelNode.@Nullable State state, @Nullable String description) {
+    private ModelReference(
+            @Nullable ModelPath path,
+            ModelType<T> type,
+            @Nullable ModelPath scope,
+            ModelNode.@Nullable State state,
+            @Nullable String description) {
         this.path = path;
         this.type = Preconditions.checkNotNull(type, "type");
         this.scope = scope;
@@ -173,7 +182,11 @@ public class ModelReference<T> {
         }
 
         ModelReference<?> that = (ModelReference<?>) o;
-        return Objects.equal(path, that.path) && Objects.equal(scope, that.scope) && type.equals(that.type) && state.equals(that.state) && Objects.equal(description, that.description);
+        return Objects.equal(path, that.path)
+                && Objects.equal(scope, that.scope)
+                && type.equals(that.type)
+                && state.equals(that.state)
+                && Objects.equal(description, that.description);
     }
 
     @Override

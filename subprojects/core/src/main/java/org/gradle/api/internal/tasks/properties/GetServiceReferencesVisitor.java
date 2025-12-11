@@ -24,14 +24,21 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.jspecify.annotations.Nullable;
 
 public class GetServiceReferencesVisitor implements PropertyVisitor {
-    private final ImmutableSortedSet.Builder<ServiceReferenceSpec> serviceReferences = ImmutableSortedSet.naturalOrder();
+    private final ImmutableSortedSet.Builder<ServiceReferenceSpec> serviceReferences =
+            ImmutableSortedSet.naturalOrder();
 
     public ImmutableSortedSet<ServiceReferenceSpec> getServiceReferences() {
         return serviceReferences.build();
     }
 
     @Override
-    public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName, Class<? extends BuildService<?>> buildServiceType) {
-        serviceReferences.add(new DefaultServiceReferenceSpec(propertyName, buildServiceType, StringUtils.trimToEmpty(serviceName)));
+    public void visitServiceReference(
+            String propertyName,
+            boolean optional,
+            PropertyValue value,
+            @Nullable String serviceName,
+            Class<? extends BuildService<?>> buildServiceType) {
+        serviceReferences.add(
+                new DefaultServiceReferenceSpec(propertyName, buildServiceType, StringUtils.trimToEmpty(serviceName)));
     }
 }

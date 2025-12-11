@@ -30,5 +30,4 @@ public interface DependentBinariesResolver {
 
     @Nullable
     <T extends DependentBinariesResolutionStrategy> T getStrategy(String name, Class<T> type);
-
 }

@@ -15,21 +15,20 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
+import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
+
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.cache.ArtifactResolutionControl;
 import org.gradle.api.internal.artifacts.cache.DependencyResolutionControl;
 import org.gradle.api.internal.artifacts.cache.ModuleResolutionControl;
 import org.gradle.api.internal.artifacts.configurations.CachePolicy;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheExpirationControl;
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheExpirationControl;
 
 public class DefaultCachePolicy implements CachePolicy {
     private static final int SECONDS_IN_DAY = 24 * 60 * 60;
@@ -130,14 +129,12 @@ public class DefaultCachePolicy implements CachePolicy {
     @Override
     public CacheExpirationControl asImmutable() {
         return new DefaultCacheExpirationControl(
-            ImmutableList.copyOf(dependencyCacheRules),
-            ImmutableList.copyOf(moduleCacheRules),
-            ImmutableList.copyOf(artifactCacheRules),
-            keepDynamicVersionsFor,
-            keepChangingModulesFor,
-            offline,
-            refresh
-        );
+                ImmutableList.copyOf(dependencyCacheRules),
+                ImmutableList.copyOf(moduleCacheRules),
+                ImmutableList.copyOf(artifactCacheRules),
+                keepDynamicVersionsFor,
+                keepChangingModulesFor,
+                offline,
+                refresh);
     }
-
 }

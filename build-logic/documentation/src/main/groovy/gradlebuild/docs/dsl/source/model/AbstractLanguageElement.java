@@ -16,20 +16,18 @@
 
 package gradlebuild.docs.dsl.source.model;
 
-import org.gradle.api.Transformer;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.gradle.api.Transformer;
 
 public abstract class AbstractLanguageElement implements LanguageElement, Serializable {
     private String rawCommentText;
     private final List<String> annotationNames = new ArrayList<String>();
     private String replacement;
 
-    protected AbstractLanguageElement() {
-    }
+    protected AbstractLanguageElement() {}
 
     protected AbstractLanguageElement(String rawCommentText) {
         this.rawCommentText = rawCommentText;
@@ -90,8 +88,8 @@ public abstract class AbstractLanguageElement implements LanguageElement, Serial
             return false;
         }
         AbstractLanguageElement that = (AbstractLanguageElement) o;
-        return Objects.equals(rawCommentText, that.rawCommentText) &&
-            Objects.equals(annotationNames, that.annotationNames);
+        return Objects.equals(rawCommentText, that.rawCommentText)
+                && Objects.equals(annotationNames, that.annotationNames);
     }
 
     @Override

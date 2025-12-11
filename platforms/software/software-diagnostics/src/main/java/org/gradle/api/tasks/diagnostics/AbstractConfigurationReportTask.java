@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
@@ -39,8 +40,6 @@ import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-
 /**
  * Base class for reporting tasks which display information about attributes and related data associated to a variant/configuration.
  *
@@ -54,9 +53,14 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
     private final ConfigurationReports reports;
     private final Cached<ConfigurationReportModel> reportModel = Cached.of(this::createReportModel);
 
-    @Inject protected abstract ObjectFactory getObjectFactory();
-    @Inject protected abstract StyledTextOutputFactory getTextOutputFactory();
-    @Inject protected abstract FileResolver getFileResolver();
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
+
+    @Inject
+    protected abstract FileResolver getFileResolver();
 
     protected abstract AbstractConfigurationReportSpec buildReportSpec();
 
@@ -83,7 +87,8 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
      */
     @Override
     @SuppressWarnings("rawtypes")
-    public ConfigurationReports reports(@DelegatesTo(value = ConfigurationReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
+    public ConfigurationReports reports(
+            @DelegatesTo(value = ConfigurationReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
         return reports(new ClosureBackedAction<>(closure));
     }
 

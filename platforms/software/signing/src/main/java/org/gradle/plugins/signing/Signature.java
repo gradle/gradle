@@ -15,7 +15,13 @@
  */
 package org.gradle.plugins.signing;
 
+import static com.google.common.util.concurrent.Callables.returning;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
+
 import groovy.lang.Closure;
+import java.io.File;
+import java.util.Date;
+import java.util.concurrent.Callable;
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
@@ -32,13 +38,6 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.Date;
-import java.util.concurrent.Callable;
-
-import static com.google.common.util.concurrent.Callables.returning;
-import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 /**
  * A digital signature file artifact.
@@ -113,7 +112,13 @@ public class Signature extends AbstractPublishArtifact {
         this(toSign, toSign::getFile, toSign::getClassifier, toSign::getName, signatureSpec, tasks);
     }
 
-    Signature(Buildable source, Callable<File> toSign, Callable<String> classifier, Callable<String> name, SignatureSpec signatureSpec, Object... tasks) {
+    Signature(
+            Buildable source,
+            Callable<File> toSign,
+            Callable<String> classifier,
+            Callable<String> name,
+            SignatureSpec signatureSpec,
+            Object... tasks) {
         // TODO: find a way to inject a proper task dependency factory without breaking the public API
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
         init(toSign, classifier, name, signatureSpec);
@@ -181,7 +186,11 @@ public class Signature extends AbstractPublishArtifact {
         init(toSign, classifier, null, signatureSpec);
     }
 
-    private void init(Callable<File> toSign, Callable<String> classifier, @Nullable Callable<String> name, SignatureSpec signatureSpec) {
+    private void init(
+            Callable<File> toSign,
+            Callable<String> classifier,
+            @Nullable Callable<String> name,
+            SignatureSpec signatureSpec) {
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;
         this.nameGenerator = name;
@@ -282,9 +291,7 @@ public class Signature extends AbstractPublishArtifact {
     private String defaultType() {
         File toSign = getToSign();
         SignatureType signatureType = getSignatureType();
-        return toSign != null && signatureType != null
-            ? signatureType.combinedExtension(toSign)
-            : null;
+        return toSign != null && signatureType != null ? signatureType.combinedExtension(toSign) : null;
     }
 
     public void setClassifier(String classifier) {
@@ -358,9 +365,7 @@ public class Signature extends AbstractPublishArtifact {
     public File getFile() {
         final File toSign = getToSign();
         final SignatureType signatureType = getSignatureType();
-        return toSign != null && signatureType != null
-            ? signatureType.fileFor(toSign)
-            : null;
+        return toSign != null && signatureType != null ? signatureType.fileFor(toSign) : null;
     }
 
     /**
@@ -434,7 +439,8 @@ public class Signature extends AbstractPublishArtifact {
         File toSign = getToSign();
         if (toSign == null) {
             if (signatureSpec.isRequired()) {
-                throw new InvalidUserDataException("Unable to generate signature as the file to sign has not been specified");
+                throw new InvalidUserDataException(
+                        "Unable to generate signature as the file to sign has not been specified");
             } else {
                 return null;
             }
@@ -443,7 +449,8 @@ public class Signature extends AbstractPublishArtifact {
         Signatory signatory = getSignatory();
         if (signatory == null) {
             if (signatureSpec.isRequired()) {
-                throw new InvalidUserDataException("Unable to generate signature for '" + toSign + "' as no signatory is available to sign");
+                throw new InvalidUserDataException(
+                        "Unable to generate signature for '" + toSign + "' as no signatory is available to sign");
             } else {
                 return null;
             }
@@ -452,7 +459,8 @@ public class Signature extends AbstractPublishArtifact {
         SignatureType signatureType = getSignatureType();
         if (signatureType == null) {
             if (signatureSpec.isRequired()) {
-                throw new InvalidUserDataException("Unable to generate signature for '" + toSign + "' as no signature type has been configured");
+                throw new InvalidUserDataException(
+                        "Unable to generate signature for '" + toSign + "' as no signature type has been configured");
             } else {
                 return null;
             }

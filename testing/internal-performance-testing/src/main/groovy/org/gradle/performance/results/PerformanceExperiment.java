@@ -20,9 +20,9 @@ import java.util.Comparator;
 import java.util.Objects;
 
 public class PerformanceExperiment implements Comparable<PerformanceExperiment> {
-    private static final Comparator<PerformanceExperiment> PERFORMANCE_EXPERIMENT_COMPARATOR = Comparator
-        .comparing(PerformanceExperiment::getScenario)
-        .thenComparing(PerformanceExperiment::getTestProject);
+    private static final Comparator<PerformanceExperiment> PERFORMANCE_EXPERIMENT_COMPARATOR = Comparator.comparing(
+                    PerformanceExperiment::getScenario)
+            .thenComparing(PerformanceExperiment::getTestProject);
 
     private final String testProject;
     private final PerformanceScenario scenario;
@@ -53,8 +53,7 @@ public class PerformanceExperiment implements Comparable<PerformanceExperiment> 
             return false;
         }
         PerformanceExperiment that = (PerformanceExperiment) o;
-        return testProject.equals(that.testProject) &&
-            scenario.equals(that.scenario);
+        return testProject.equals(that.testProject) && scenario.equals(that.scenario);
     }
 
     @Override
@@ -64,10 +63,7 @@ public class PerformanceExperiment implements Comparable<PerformanceExperiment> 
 
     @Override
     public String toString() {
-        return "PerformanceExperiment{" +
-            "testProject='" + testProject + '\'' +
-            ", scenario='" + scenario + '\'' +
-            '}';
+        return "PerformanceExperiment{" + "testProject='" + testProject + '\'' + ", scenario='" + scenario + '\'' + '}';
     }
 
     @Override

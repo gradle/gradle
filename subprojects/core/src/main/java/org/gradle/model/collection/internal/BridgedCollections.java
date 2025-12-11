@@ -36,70 +36,69 @@ import org.gradle.model.internal.type.ModelType;
 
 public abstract class BridgedCollections {
 
-    private BridgedCollections() {
-    }
+    private BridgedCollections() {}
 
     public static <I extends Task, C extends DefaultTaskCollection<I>> ModelRegistrations.Builder bridgeTaskCollection(
-        final ModelReference<C> containerReference,
-        final Transformer<? extends C, ? super MutableModelNode> containerFactory,
-        final Namer<? super I> namer,
-        String descriptor,
-        final Transformer<String, String> itemDescriptorGenerator
-    ) {
+            final ModelReference<C> containerReference,
+            final Transformer<? extends C, ? super MutableModelNode> containerFactory,
+            final Namer<? super I> namer,
+            String descriptor,
+            final Transformer<String, String> itemDescriptorGenerator) {
         final ModelPath containerPath = containerReference.getPath();
         final ModelType<C> containerType = containerReference.getType();
         assert containerPath != null : "container reference path cannot be null";
 
         return ModelRegistrations.of(containerPath)
-            .action(ModelActionRole.Create, new Action<MutableModelNode>() {
-                @Override
-                public void execute(final MutableModelNode containerNode) {
-                    final C container = containerFactory.transform(containerNode);
-                    containerNode.setPrivateData(containerType, container);
-                }
-            })
-            .action(ModelActionRole.Create, new Action<MutableModelNode>() {
-                @Override
-                public void execute(final MutableModelNode containerNode) {
-                    final C container = containerNode.getPrivateData(containerType);
-                    container.whenElementKnown(new Action<DefaultNamedDomainObjectCollection.ElementInfo<I>>() {
-                        @Override
-                        public void execute(DefaultNamedDomainObjectCollection.ElementInfo<I> info) {
-                            final String name = info.getName();
-                            if (!containerNode.isMutable()) {
-                                // Ignore tasks created after not closed
-                                return;
+                .action(ModelActionRole.Create, new Action<MutableModelNode>() {
+                    @Override
+                    public void execute(final MutableModelNode containerNode) {
+                        final C container = containerFactory.transform(containerNode);
+                        containerNode.setPrivateData(containerType, container);
+                    }
+                })
+                .action(ModelActionRole.Create, new Action<MutableModelNode>() {
+                    @Override
+                    public void execute(final MutableModelNode containerNode) {
+                        final C container = containerNode.getPrivateData(containerType);
+                        container.whenElementKnown(new Action<DefaultNamedDomainObjectCollection.ElementInfo<I>>() {
+                            @Override
+                            public void execute(DefaultNamedDomainObjectCollection.ElementInfo<I> info) {
+                                final String name = info.getName();
+                                if (!containerNode.isMutable()) {
+                                    // Ignore tasks created after not closed
+                                    return;
+                                }
+                                if (!containerNode.hasLink(name)) {
+                                    ModelRegistration itemRegistration = ModelRegistrations.unmanagedInstanceOf(
+                                                    ModelReference.of(
+                                                            containerPath.child(name),
+                                                            Cast.<Class<I>>uncheckedNonnullCast(info.getType())),
+                                                    new ExtractFromParentContainer<>(name, containerType))
+                                            .descriptor(new SimpleModelRuleDescriptor(new Factory<String>() {
+                                                @Override
+                                                public String create() {
+                                                    return itemDescriptorGenerator.transform(name);
+                                                }
+                                            }))
+                                            .build();
+                                    containerNode.addLink(itemRegistration);
+                                }
                             }
-                            if (!containerNode.hasLink(name)) {
-                                ModelRegistration itemRegistration = ModelRegistrations
-                                    .unmanagedInstanceOf(
-                                        ModelReference.of(containerPath.child(name), Cast.<Class<I>>uncheckedNonnullCast(info.getType())),
-                                        new ExtractFromParentContainer<>(name, containerType)
-                                    )
-                                    .descriptor(new SimpleModelRuleDescriptor(new Factory<String>() {
-                                        @Override
-                                        public String create() {
-                                            return itemDescriptorGenerator.transform(name);
-                                        }
-                                    }))
-                                    .build();
-                                containerNode.addLink(itemRegistration);
+                        });
+                        container.whenObjectRemovedInternal(new Action<I>() {
+                            @Override
+                            public void execute(I item) {
+                                String name = namer.determineName(item);
+                                containerNode.removeLink(name);
                             }
-                        }
-                    });
-                    container.whenObjectRemovedInternal(new Action<I>() {
-                        @Override
-                        public void execute(I item) {
-                            String name = namer.determineName(item);
-                            containerNode.removeLink(name);
-                        }
-                    });
-                }
-            })
-            .descriptor(descriptor);
+                        });
+                    }
+                })
+                .descriptor(descriptor);
     }
 
-    private static class ExtractFromParentContainer<I, C extends NamedDomainObjectCollection<I>> implements Transformer<I, MutableModelNode> {
+    private static class ExtractFromParentContainer<I, C extends NamedDomainObjectCollection<I>>
+            implements Transformer<I, MutableModelNode> {
 
         private final String name;
         private final ModelType<C> containerType;
@@ -114,6 +113,4 @@ public abstract class BridgedCollections {
             return modelNode.getParent().getPrivateData(containerType).getByName(name);
         }
     }
-
 }
-

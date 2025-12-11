@@ -25,8 +25,24 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWor
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
 
 public class CPCHCompiler extends GccCompatibleNativeCompiler<CPCHCompileSpec> {
-    public CPCHCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, new CPCHCompileArgsTransformer(), Transformers.<CPCHCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile, workerLeaseService);
+    public CPCHCompiler(
+            BuildOperationExecutor buildOperationExecutor,
+            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+            CommandLineToolInvocationWorker commandLineTool,
+            CommandLineToolContext invocationContext,
+            String objectFileExtension,
+            boolean useCommandFile,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                buildOperationExecutor,
+                compilerOutputFileNamingSchemeFactory,
+                commandLineTool,
+                invocationContext,
+                new CPCHCompileArgsTransformer(),
+                Transformers.<CPCHCompileSpec>noOpTransformer(),
+                objectFileExtension,
+                useCommandFile,
+                workerLeaseService);
     }
 
     private static class CPCHCompileArgsTransformer extends GccCompilerArgsTransformer<CPCHCompileSpec> {

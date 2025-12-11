@@ -16,6 +16,10 @@
 
 package org.gradle.internal.logging.services;
 
+import java.io.Closeable;
+import java.io.OutputStream;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
@@ -30,11 +34,6 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
-import java.io.Closeable;
-import java.io.OutputStream;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public class DefaultLoggingManager implements LoggingManagerInternal, Closeable {
     private boolean started;
     private final StartableLoggingSystem slf4jLoggingSystem;
@@ -48,8 +47,12 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<OutputEventListener> outputEventListeners = new LinkedHashSet<OutputEventListener>();
 
-    public DefaultLoggingManager(LoggingSourceSystem slf4jLoggingSystem, LoggingSourceSystem javaUtilLoggingSystem, LoggingSourceSystem stdOutLoggingSystem,
-                                 LoggingSourceSystem stdErrLoggingSystem, LoggingRouter loggingRouter) {
+    public DefaultLoggingManager(
+            LoggingSourceSystem slf4jLoggingSystem,
+            LoggingSourceSystem javaUtilLoggingSystem,
+            LoggingSourceSystem stdOutLoggingSystem,
+            LoggingSourceSystem stdErrLoggingSystem,
+            LoggingRouter loggingRouter) {
         this.loggingOutput = loggingRouter;
         this.loggingRouter = new StartableLoggingRouter(loggingRouter);
         this.slf4jLoggingSystem = new StartableLoggingSystem(slf4jLoggingSystem, null);
@@ -88,7 +91,9 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     @Override
     public DefaultLoggingManager stop() {
         try {
-            CompositeStoppable.stoppable(slf4jLoggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem).stop();
+            CompositeStoppable.stoppable(
+                            slf4jLoggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem)
+                    .stop();
             for (StandardOutputListener stdoutListener : stdoutListeners) {
                 loggingOutput.removeStandardOutputListener(stdoutListener);
             }
@@ -222,7 +227,11 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     }
 
     @Override
-    public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata) {
+    public void attachConsole(
+            OutputStream outputStream,
+            OutputStream errorStream,
+            ConsoleOutput consoleOutput,
+            ConsoleMetaData consoleMetadata) {
         loggingRouter.attachConsole(outputStream, errorStream, consoleOutput, consoleMetadata);
     }
 
@@ -275,8 +284,13 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             addConsoleAttachement(new ProcessConsoleAttachment(loggingRouter, consoleOutput));
         }
 
-        void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata) {
-            addConsoleAttachement(new ConsoleAttachment(loggingRouter, outputStream, errorStream, consoleOutput, consoleMetadata));
+        void attachConsole(
+                OutputStream outputStream,
+                OutputStream errorStream,
+                ConsoleOutput consoleOutput,
+                ConsoleMetaData consoleMetadata) {
+            addConsoleAttachement(
+                    new ConsoleAttachment(loggingRouter, outputStream, errorStream, consoleOutput, consoleMetadata));
         }
 
         public void setLevel(LogLevel logLevel) {
@@ -341,7 +355,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
             enabled = true;
             if (originalState != null) {
-                //started, enable
+                // started, enable
                 loggingSystem.startCapture();
             }
         }
@@ -418,7 +432,12 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         private final ConsoleOutput consoleOutput;
         private final ConsoleMetaData consoleMetadata;
 
-        ConsoleAttachment(LoggingRouter loggingRouter, OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata) {
+        ConsoleAttachment(
+                LoggingRouter loggingRouter,
+                OutputStream outputStream,
+                OutputStream errorStream,
+                ConsoleOutput consoleOutput,
+                ConsoleMetaData consoleMetadata) {
             this.loggingRouter = loggingRouter;
             this.outputStream = outputStream;
             this.errorStream = errorStream;
@@ -442,7 +461,10 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
             ConsoleAttachment that = (ConsoleAttachment) o;
 
-            return outputStream == that.outputStream && errorStream == that.errorStream && consoleOutput == that.consoleOutput && consoleMetadata == that.consoleMetadata;
+            return outputStream == that.outputStream
+                    && errorStream == that.errorStream
+                    && consoleOutput == that.consoleOutput
+                    && consoleMetadata == that.consoleMetadata;
         }
 
         @Override

@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.tooling.r33;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.BuildInvocations;
 import org.gradle.tooling.model.gradle.GradleBuild;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class FetchIncludedBuildInvocations implements BuildAction<List<BuildInvocations>> {
 

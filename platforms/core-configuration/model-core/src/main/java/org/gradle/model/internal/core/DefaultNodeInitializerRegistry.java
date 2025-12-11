@@ -21,6 +21,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -35,22 +39,18 @@ import org.gradle.model.internal.manage.schema.extract.SpecializedMapNodeInitial
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-
 public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
-    public static final ModelReference<NodeInitializerRegistry> DEFAULT_REFERENCE = ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class);
+    public static final ModelReference<NodeInitializerRegistry> DEFAULT_REFERENCE =
+            ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class);
 
     private final LoadingCache<NodeInitializerContext<?>, NodeInitializer> cache = CacheBuilder.newBuilder()
-        .weakValues()
-        .build(new CacheLoader<NodeInitializerContext<?>, NodeInitializer>() {
-            @Override
-            public NodeInitializer load(NodeInitializerContext<?> context) throws Exception {
-                return extractNodeInitializer(context);
-            }
-        });
+            .weakValues()
+            .build(new CacheLoader<NodeInitializerContext<?>, NodeInitializer>() {
+                @Override
+                public NodeInitializer load(NodeInitializerContext<?> context) throws Exception {
+                    return extractNodeInitializer(context);
+                }
+            });
 
     private final List<NodeInitializerExtractionStrategy> allStrategies;
     private final List<NodeInitializerExtractionStrategy> additionalStrategies;
@@ -59,17 +59,17 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
         this.schemaStore = schemaStore;
         this.allStrategies = new ArrayList<>(Arrays.asList(
-            new ModelSetNodeInitializerExtractionStrategy(),
-            new SpecializedMapNodeInitializerExtractionStrategy(),
-            new ModelMapNodeInitializerExtractionStrategy(),
-            new ScalarCollectionNodeInitializerExtractionStrategy(),
-            new ManagedImplStructNodeInitializerExtractionStrategy(structBindingsStore)
-        ));
+                new ModelSetNodeInitializerExtractionStrategy(),
+                new SpecializedMapNodeInitializerExtractionStrategy(),
+                new ModelMapNodeInitializerExtractionStrategy(),
+                new ScalarCollectionNodeInitializerExtractionStrategy(),
+                new ManagedImplStructNodeInitializerExtractionStrategy(structBindingsStore)));
         additionalStrategies = new ArrayList<>();
     }
 
     private ModelTypeInitializationException canNotConstructTypeException(NodeInitializerContext<?> context) {
-        ImmutableSortedSet.Builder<ModelType<?>> constructibleTypes = ImmutableSortedSet.orderedBy(ModelTypes.displayOrder());
+        ImmutableSortedSet.Builder<ModelType<?>> constructibleTypes =
+                ImmutableSortedSet.orderedBy(ModelTypes.displayOrder());
         for (NodeInitializerExtractionStrategy extractor : additionalStrategies) {
             for (ModelType<?> constructibleType : extractor.supportedTypes()) {
                 if (context.getConstraints().isSatisfiedBy(constructibleType)) {
@@ -77,7 +77,8 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
                 }
             }
         }
-        return new ModelTypeInitializationException(context, schemaStore, ScalarTypes.TYPES, constructibleTypes.build());
+        return new ModelTypeInitializationException(
+                context, schemaStore, ScalarTypes.TYPES, constructibleTypes.build());
     }
 
     @Override

@@ -18,14 +18,14 @@ package org.gradle.internal.tools.api.impl;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableSortedSet;
-import org.jspecify.annotations.Nullable;
-
 import java.util.SortedSet;
 import java.util.TreeSet;
+import org.jspecify.annotations.Nullable;
 
 public abstract class AnnotatableMember extends AccessibleMember {
 
     private final SortedSet<AnnotationMember> annotations = new TreeSet<>();
+
     @Nullable
     private final String signature;
 
@@ -48,7 +48,6 @@ public abstract class AnnotatableMember extends AccessibleMember {
     }
 
     protected ComparisonChain compare(AnnotatableMember o) {
-        return super.compare(o)
-            .compare(signature == null ? "" : signature, o.signature == null ? "" : o.signature);
+        return super.compare(o).compare(signature == null ? "" : signature, o.signature == null ? "" : o.signature);
     }
 }

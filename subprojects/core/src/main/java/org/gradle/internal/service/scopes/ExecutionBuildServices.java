@@ -15,6 +15,10 @@
  */
 package org.gradle.internal.service.scopes;
 
+import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
+
+import java.util.Collections;
+import java.util.function.Supplier;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
@@ -90,11 +94,6 @@ import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.GradleVersion;
 
-import java.util.Collections;
-import java.util.function.Supplier;
-
-import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
-
 public class ExecutionBuildServices implements ServiceRegistrationProvider {
     @Provides
     ExecutionHistoryCacheAccess createCacheAccess(BuildScopedCacheBuilderFactory cacheBuilderFactory) {
@@ -103,27 +102,25 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
 
     @Provides
     ExecutionHistoryStore createExecutionHistoryStore(
-        ExecutionHistoryCacheAccess executionHistoryCacheAccess,
-        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner,
-        ClassLoaderHierarchyHasher classLoaderHasher
-    ) {
+            ExecutionHistoryCacheAccess executionHistoryCacheAccess,
+            InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+            StringInterner stringInterner,
+            ClassLoaderHierarchyHasher classLoaderHasher) {
         return new DefaultExecutionHistoryStore(
-            executionHistoryCacheAccess,
-            inMemoryCacheDecoratorFactory,
-            stringInterner,
-            classLoaderHasher
-        );
+                executionHistoryCacheAccess, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher);
     }
 
     @Provides
-    OutputFilesRepository createOutputFilesRepository(BuildScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    OutputFilesRepository createOutputFilesRepository(
+            BuildScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         PersistentCache cacheAccess = cacheBuilderFactory
-            .createCrossVersionCacheBuilder("buildOutputCleanup")
-            .withDisplayName("Build Output Cleanup Cache")
-            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-            .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
-            .open();
+                .createCrossVersionCacheBuilder("buildOutputCleanup")
+                .withDisplayName("Build Output Cleanup Cache")
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+                .withProperties(Collections.singletonMap(
+                        "gradle.version", GradleVersion.current().getVersion()))
+                .open();
         return new DefaultOutputFilesRepository(cacheAccess, inMemoryCacheDecoratorFactory);
     }
 
@@ -133,88 +130,143 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    ExecutionProblemHandler createExecutionProblemHandler(ValidateStep.ValidationWarningRecorder warningRecorder, VirtualFileSystem virtualFileSystem) {
+    ExecutionProblemHandler createExecutionProblemHandler(
+            ValidateStep.ValidationWarningRecorder warningRecorder, VirtualFileSystem virtualFileSystem) {
         return new DefaultExecutionProblemHandler(warningRecorder, virtualFileSystem);
     }
 
     @Provides
     public ExecutionEngine createExecutionEngine(
-        BuildCacheController buildCacheController,
-        BuildCancellationToken cancellationToken,
-        BuildInvocationScopeId buildInvocationScopeId,
-        BuildOperationRunner buildOperationRunner,
-        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        CurrentBuildOperationRef currentBuildOperationRef,
-        Deleter deleter,
-        ExecutionProblemHandler problemHandler,
-        ExecutionStateChangeDetector changeDetector,
-        FileSystemAccess fileSystemAccess,
-        ImmutableWorkspaceMetadataStore immutableWorkspaceMetadataStore,
-        OutputChangeListener outputChangeListener,
-        WorkInputListeners workInputListeners, OutputFilesRepository outputFilesRepository,
-        OutputSnapshotter outputSnapshotter,
-        OverlappingOutputDetector overlappingOutputDetector,
-        StartParameter startParameter,
-        TimeoutHandler timeoutHandler,
-        InternalProblems problems
-    ) {
+            BuildCacheController buildCacheController,
+            BuildCancellationToken cancellationToken,
+            BuildInvocationScopeId buildInvocationScopeId,
+            BuildOperationRunner buildOperationRunner,
+            BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+            BuildOutputCleanupRegistry buildOutputCleanupRegistry,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            CurrentBuildOperationRef currentBuildOperationRef,
+            Deleter deleter,
+            ExecutionProblemHandler problemHandler,
+            ExecutionStateChangeDetector changeDetector,
+            FileSystemAccess fileSystemAccess,
+            ImmutableWorkspaceMetadataStore immutableWorkspaceMetadataStore,
+            OutputChangeListener outputChangeListener,
+            WorkInputListeners workInputListeners,
+            OutputFilesRepository outputFilesRepository,
+            OutputSnapshotter outputSnapshotter,
+            OverlappingOutputDetector overlappingOutputDetector,
+            StartParameter startParameter,
+            TimeoutHandler timeoutHandler,
+            InternalProblems problems) {
         UniqueId buildId = buildInvocationScopeId.getId();
-        Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
+        Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(
+                deleter,
+                buildOutputCleanupRegistry::isOutputOwnedByBuild,
+                buildOutputCleanupRegistry::isOutputOwnedByBuild);
         boolean emitBuildCacheDebugLogging = startParameter.isBuildCacheDebugLogging();
 
         // @formatter:off
         // CHECKSTYLE:OFF
-        Step<IdentityContext, WorkspaceResult> immutablePipeline =
-            new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
-            new MarkSnapshottingInputsStartedStep<>(
-            new CaptureImmutableStateBeforeExecutionStep<>(
-            new ValidateStep.Immutable<>(problemHandler,
-            new ResolveImmutableCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
-            new MarkSnapshottingInputsFinishedStep<>(
-            new NeverUpToDateStep<>(
-            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
-            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER,
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new PreCreateOutputParentsStep<>(
-            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
-            new CancelExecutionStep<>(cancellationToken,
-            new ExecuteStep.Immutable(buildOperationRunner
-        ))))))))))))));
+        Step<IdentityContext, WorkspaceResult> immutablePipeline = new AssignImmutableWorkspaceStep<>(
+                deleter,
+                fileSystemAccess,
+                immutableWorkspaceMetadataStore,
+                outputSnapshotter,
+                new MarkSnapshottingInputsStartedStep<>(
+                        new CaptureImmutableStateBeforeExecutionStep<>(
+                                new ValidateStep.Immutable<>(
+                                        problemHandler,
+                                        new ResolveImmutableCachingStateStep<>(
+                                                buildCacheController,
+                                                emitBuildCacheDebugLogging,
+                                                new MarkSnapshottingInputsFinishedStep<>(
+                                                        new NeverUpToDateStep<>(
+                                                                new BuildCacheStep<>(
+                                                                        buildCacheController,
+                                                                        deleter,
+                                                                        fileSystemAccess,
+                                                                        outputChangeListener,
+                                                                        new CaptureOutputsAfterExecutionStep<>(
+                                                                                buildOperationRunner,
+                                                                                buildId,
+                                                                                outputSnapshotter,
+                                                                                NO_FILTER,
+                                                                                new BroadcastChangingOutputsStep<>(
+                                                                                        outputChangeListener,
+                                                                                        new PreCreateOutputParentsStep<>(
+                                                                                                new TimeoutStep<>(
+                                                                                                        timeoutHandler,
+                                                                                                        currentBuildOperationRef,
+                                                                                                        new CancelExecutionStep<>(
+                                                                                                                cancellationToken,
+                                                                                                                new ExecuteStep
+                                                                                                                        .Immutable(
+                                                                                                                        buildOperationRunner))))))))))))));
 
-        Step<IdentityContext, WorkspaceResult> mutablePipeline =
-            new AssignMutableWorkspaceStep<>(
-            new HandleStaleOutputsStep<>(buildOperationRunner, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
-            new LoadPreviousExecutionStateStep<>(
-            new MarkSnapshottingInputsStartedStep<>(
-            new SkipEmptyMutableWorkStep(problemHandler, outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
-            new CaptureMutableStateBeforeExecutionStep<>(buildOperationRunner, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep.Mutable<>(problemHandler,
-            new ResolveChangesStep<>(changeDetector,
-            new ResolveMutableCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
-            new MarkSnapshottingInputsFinishedStep<>(
-            new SkipUpToDateStep<>(
-            new StoreExecutionStateStep<>(
-            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
-            new ResolveInputChangesStep<>(
-            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, new OverlappingOutputsFilter(),
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
-            new PreCreateOutputParentsStep<>(
-            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
-            new CancelExecutionStep<>(cancellationToken,
-            new ExecuteStep.Mutable(buildOperationRunner
-        )))))))))))))))))))));
+        Step<IdentityContext, WorkspaceResult> mutablePipeline = new AssignMutableWorkspaceStep<>(
+                new HandleStaleOutputsStep<>(
+                        buildOperationRunner,
+                        buildOutputCleanupRegistry,
+                        deleter,
+                        outputChangeListener,
+                        outputFilesRepository,
+                        new LoadPreviousExecutionStateStep<>(
+                                new MarkSnapshottingInputsStartedStep<>(
+                                        new SkipEmptyMutableWorkStep(
+                                                problemHandler,
+                                                outputChangeListener,
+                                                workInputListeners,
+                                                skipEmptyWorkOutputsCleanerSupplier,
+                                                new CaptureMutableStateBeforeExecutionStep<>(
+                                                        buildOperationRunner,
+                                                        outputSnapshotter,
+                                                        overlappingOutputDetector,
+                                                        new ValidateStep.Mutable<>(
+                                                                problemHandler,
+                                                                new ResolveChangesStep<>(
+                                                                        changeDetector,
+                                                                        new ResolveMutableCachingStateStep<>(
+                                                                                buildCacheController,
+                                                                                emitBuildCacheDebugLogging,
+                                                                                new MarkSnapshottingInputsFinishedStep<>(
+                                                                                        new SkipUpToDateStep<>(
+                                                                                                new StoreExecutionStateStep<>(
+                                                                                                        new BuildCacheStep<>(
+                                                                                                                buildCacheController,
+                                                                                                                deleter,
+                                                                                                                fileSystemAccess,
+                                                                                                                outputChangeListener,
+                                                                                                                new ResolveInputChangesStep<>(
+                                                                                                                        new CaptureOutputsAfterExecutionStep<>(
+                                                                                                                                buildOperationRunner,
+                                                                                                                                buildId,
+                                                                                                                                outputSnapshotter,
+                                                                                                                                new OverlappingOutputsFilter(),
+                                                                                                                                new BroadcastChangingOutputsStep<>(
+                                                                                                                                        outputChangeListener,
+                                                                                                                                        new RemovePreviousOutputsStep<>(
+                                                                                                                                                deleter,
+                                                                                                                                                outputChangeListener,
+                                                                                                                                                new PreCreateOutputParentsStep<>(
+                                                                                                                                                        new TimeoutStep<>(
+                                                                                                                                                                timeoutHandler,
+                                                                                                                                                                currentBuildOperationRef,
+                                                                                                                                                                new CancelExecutionStep<>(
+                                                                                                                                                                        cancellationToken,
+                                                                                                                                                                        new ExecuteStep
+                                                                                                                                                                                .Mutable(
+                                                                                                                                                                                buildOperationRunner)))))))))))))))))))));
 
         return new DefaultExecutionEngine(
-            new IdentifyStep<>(buildOperationRunner, classLoaderHierarchyHasher,
-            new IdentityCacheStep<>(buildOperationProgressEventEmitter,
-            new ExecuteWorkBuildOperationFiringStep<>(buildOperationRunner,
-            new ChoosePipelineStep<>(
-                immutablePipeline,
-                mutablePipeline
-        )))), problems);
+                new IdentifyStep<>(
+                        buildOperationRunner,
+                        classLoaderHierarchyHasher,
+                        new IdentityCacheStep<>(
+                                buildOperationProgressEventEmitter,
+                                new ExecuteWorkBuildOperationFiringStep<>(
+                                        buildOperationRunner,
+                                        new ChoosePipelineStep<>(immutablePipeline, mutablePipeline)))),
+                problems);
         // CHECKSTYLE:ON
         // @formatter:on
     }

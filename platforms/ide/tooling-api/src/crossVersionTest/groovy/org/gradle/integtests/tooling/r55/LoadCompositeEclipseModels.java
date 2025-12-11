@@ -15,14 +15,13 @@
  */
 package org.gradle.integtests.tooling.r55;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
 
 public class LoadCompositeEclipseModels implements BuildAction<Collection<EclipseProject>>, Serializable {
 

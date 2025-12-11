@@ -16,9 +16,8 @@
 
 package org.gradle.caching.internal;
 
-import org.gradle.internal.file.TreeType;
-
 import java.io.File;
+import org.gradle.internal.file.TreeType;
 
 /**
  * An entity that can potentially be stored in the build cache.

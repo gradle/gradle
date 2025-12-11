@@ -19,6 +19,16 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.gradle.api.internal.file.pattern.PathMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
@@ -31,23 +41,13 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
 public class PropertiesFileAwareClasspathResourceHasher extends FallbackHandlingResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesFileAwareClasspathResourceHasher.class);
     private final Map<PathMatcher, ResourceEntryFilter> propertiesFileFilters;
     private final List<String> propertiesFilePatterns;
 
-    public PropertiesFileAwareClasspathResourceHasher(ResourceHasher delegate, Map<String, ResourceEntryFilter> propertiesFileFilters) {
+    public PropertiesFileAwareClasspathResourceHasher(
+            ResourceHasher delegate, Map<String, ResourceEntryFilter> propertiesFileFilters) {
         super(delegate);
         ImmutableList.Builder<String> patterns = ImmutableList.builder();
         ImmutableMap.Builder<PathMatcher, ResourceEntryFilter> filters = ImmutableMap.builder();
@@ -64,7 +64,9 @@ public class PropertiesFileAwareClasspathResourceHasher extends FallbackHandling
         super.appendConfigurationToHasher(hasher);
         hasher.putString(getClass().getName());
         propertiesFilePatterns.forEach(hasher::putString);
-        propertiesFileFilters.values().forEach(resourceEntryFilter -> resourceEntryFilter.appendConfigurationToHasher(hasher));
+        propertiesFileFilters
+                .values()
+                .forEach(resourceEntryFilter -> resourceEntryFilter.appendConfigurationToHasher(hasher));
     }
 
     @Override
@@ -80,40 +82,50 @@ public class PropertiesFileAwareClasspathResourceHasher extends FallbackHandling
     @Override
     public Optional<HashCode> tryHash(RegularFileSnapshotContext snapshotContext) {
         return Optional.ofNullable(matchingFiltersFor(snapshotContext.getRelativePathSegments()))
-            .map(resourceEntryFilter -> {
-                try (FileInputStream propertiesFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())){
-                    return hashProperties(propertiesFileInputStream, resourceEntryFilter);
-                } catch (Exception e) {
-                    LOGGER.debug("Could not load fingerprint for " + snapshotContext.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);
-                    return null;
-                }
-            });
+                .map(resourceEntryFilter -> {
+                    try (FileInputStream propertiesFileInputStream =
+                            new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())) {
+                        return hashProperties(propertiesFileInputStream, resourceEntryFilter);
+                    } catch (Exception e) {
+                        LOGGER.debug(
+                                "Could not load fingerprint for "
+                                        + snapshotContext.getSnapshot().getAbsolutePath()
+                                        + ". Falling back to full entry fingerprinting",
+                                e);
+                        return null;
+                    }
+                });
     }
 
     @Override
     public Optional<HashCode> tryHash(ZipEntryContext zipEntryContext) {
         return Optional.ofNullable(matchingFiltersFor(zipEntryContext.getRelativePathSegments()))
-            .map(resourceEntryFilter -> {
-                try {
-                    return zipEntryContext.getEntry().withInputStream(inputStream -> hashProperties(inputStream, resourceEntryFilter));
-                } catch (Exception e) {
-                    LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
-                    return null;
-                }
-            });
+                .map(resourceEntryFilter -> {
+                    try {
+                        return zipEntryContext
+                                .getEntry()
+                                .withInputStream(inputStream -> hashProperties(inputStream, resourceEntryFilter));
+                    } catch (Exception e) {
+                        LOGGER.debug(
+                                "Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!"
+                                        + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting",
+                                e);
+                        return null;
+                    }
+                });
     }
 
     private boolean matchesAnyFilters(Supplier<String[]> relativePathSegments) {
         return propertiesFileFilters.entrySet().stream()
-            .anyMatch(entry -> entry.getKey().matches(relativePathSegments.get(), 0));
+                .anyMatch(entry -> entry.getKey().matches(relativePathSegments.get(), 0));
     }
 
     @Nullable
     private ResourceEntryFilter matchingFiltersFor(Supplier<String[]> relativePathSegments) {
         List<ResourceEntryFilter> matchingFilters = propertiesFileFilters.entrySet().stream()
-            .filter(entry -> entry.getKey().matches(relativePathSegments.get(), 0))
-            .map(Map.Entry::getValue)
-            .collect(Collectors.toList());
+                .filter(entry -> entry.getKey().matches(relativePathSegments.get(), 0))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
 
         if (matchingFilters.size() == 0) {
             return null;
@@ -124,21 +136,19 @@ public class PropertiesFileAwareClasspathResourceHasher extends FallbackHandling
         }
     }
 
-    private HashCode hashProperties(InputStream inputStream, ResourceEntryFilter propertyResourceFilter) throws IOException {
+    private HashCode hashProperties(InputStream inputStream, ResourceEntryFilter propertyResourceFilter)
+            throws IOException {
         Hasher hasher = Hashing.newHasher();
         Properties properties = new Properties();
         properties.load(new InputStreamReader(inputStream, new PropertyResourceBundleFallbackCharset()));
         Map<String, String> entries = Maps.fromProperties(properties);
-        entries
-            .entrySet()
-            .stream()
-            .filter(entry ->
-                !propertyResourceFilter.shouldBeIgnored(entry.getKey()))
-            .sorted(Map.Entry.comparingByKey())
-            .forEach(entry -> {
-                hasher.putString(entry.getKey());
-                hasher.putString(entry.getValue());
-            });
+        entries.entrySet().stream()
+                .filter(entry -> !propertyResourceFilter.shouldBeIgnored(entry.getKey()))
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> {
+                    hasher.putString(entry.getKey());
+                    hasher.putString(entry.getValue());
+                });
         return hasher.hash();
     }
 }

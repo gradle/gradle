@@ -17,6 +17,20 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -42,21 +56,6 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * Resolution state for a given module.
@@ -91,17 +90,16 @@ public class ModuleResolveState implements CandidateModule {
     private int selectionChangedCounter;
 
     ModuleResolveState(
-        ComponentIdGenerator idGenerator,
-        ModuleIdentifier id,
-        ComponentMetaDataResolver metaDataResolver,
-        AttributesFactory attributesFactory,
-        Comparator<Version> versionComparator,
-        VersionParser versionParser,
-        SelectorStateResolver<ComponentState> selectorStateResolver,
-        ResolveOptimizations resolveOptimizations,
-        boolean rootModule,
-        ConflictResolution conflictResolution
-    ) {
+            ComponentIdGenerator idGenerator,
+            ModuleIdentifier id,
+            ComponentMetaDataResolver metaDataResolver,
+            AttributesFactory attributesFactory,
+            Comparator<Version> versionComparator,
+            VersionParser versionParser,
+            SelectorStateResolver<ComponentState> selectorStateResolver,
+            ResolveOptimizations resolveOptimizations,
+            boolean rootModule,
+            ConflictResolution conflictResolution) {
         this.idGenerator = idGenerator;
         this.id = id;
         this.metaDataResolver = metaDataResolver;
@@ -210,7 +208,8 @@ public class ModuleResolveState implements CandidateModule {
     /**
      * Changes the selected target component for this module due to version conflict resolution.
      */
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     private void changeSelection(ComponentState newSelection) {
         assert this.selected != null;
         assert newSelection != null;
@@ -318,9 +317,10 @@ public class ModuleResolveState implements CandidateModule {
 
     public ComponentState getVersion(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         assert id.getModule().equals(this.id);
-        ComponentState componentState = versions.computeIfAbsent(id, k ->
-            new ComponentState(idGenerator.nextGraphNodeId(), this, id, componentIdentifier, metaDataResolver)
-        );
+        ComponentState componentState = versions.computeIfAbsent(
+                id,
+                k -> new ComponentState(
+                        idGenerator.nextGraphNodeId(), this, id, componentIdentifier, metaDataResolver));
 
         // Starting in Gradle 10, the root component's module identity will no longer
         // be the module identity of the project performing dependency resolution.
@@ -329,10 +329,10 @@ public class ModuleResolveState implements CandidateModule {
         // instead attempt to resolve the component from external repositories.
         if (componentIdentifier instanceof ModuleComponentIdentifier && componentState.isRoot()) {
             DeprecationLogger.deprecateAction("Depending on the resolving project's module coordinates")
-                .withAdvice("Use a project dependency instead.")
-                .willBecomeAnErrorInGradle10()
-                .withUpgradeGuideSection(9, "module_identity_for_root_component")
-                .nagUser();
+                    .withAdvice("Use a project dependency instead.")
+                    .willBecomeAnErrorInGradle10()
+                    .withUpgradeGuideSection(9, "module_identity_for_root_component")
+                    .nagUser();
         }
 
         return componentState;
@@ -369,12 +369,14 @@ public class ModuleResolveState implements CandidateModule {
 
     ImmutableAttributes getMergedConstraintAttributes() {
         if (attributeMergingError != null) {
-            throw new IllegalStateException(IncompatibleDependencyAttributesMessageBuilder.buildMergeErrorMessage(this, attributeMergingError));
+            throw new IllegalStateException(
+                    IncompatibleDependencyAttributesMessageBuilder.buildMergeErrorMessage(this, attributeMergingError));
         }
         return mergedConstraintAttributes;
     }
 
-    private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selectorState) {
+    private ImmutableAttributes appendAttributes(
+            ImmutableAttributes dependencyAttributes, SelectorState selectorState) {
         try {
             DependencyMetadata dependencyMetadata = selectorState.getDependencyMetadata();
             boolean constraint = dependencyMetadata.isConstraint();
@@ -391,10 +393,9 @@ public class ModuleResolveState implements CandidateModule {
 
     public List<ComponentSelectionReasonInternal> getSelectionReasons() {
         return StreamSupport.stream(
-                Spliterators.spliteratorUnknownSize(selectors.iterator(), Spliterator.ORDERED),
-                false
-            ).map(SelectorState::getSelectionReason)
-            .collect(Collectors.toList());
+                        Spliterators.spliteratorUnknownSize(selectors.iterator(), Spliterator.ORDERED), false)
+                .map(SelectorState::getSelectionReason)
+                .collect(Collectors.toList());
     }
 
     Set<EdgeState> getIncomingEdges() {
@@ -472,7 +473,8 @@ public class ModuleResolveState implements CandidateModule {
         pendingDependencies.unregisterConstraintProvider(nodeState);
     }
 
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     public void maybeUpdateSelection() {
         if (replaced) {
             // Never update selection for a replaced module
@@ -502,9 +504,11 @@ public class ModuleResolveState implements CandidateModule {
 
     private boolean maybeSkipSelectionChange(ComponentState newSelected) {
         if (selectionChangedCounter == MAX_SELECTION_CHANGE + 1) {
-            LOGGER.warn("The dependency resolution engine wasn't able to find a version of module {} which satisfied all requirements because the graph wasn't stable enough. " +
-                "The highest version was selected in order to stabilize selection.\n" +
-                "Features available in a stable graph like version alignment are not guaranteed in this case.", id);
+            LOGGER.warn(
+                    "The dependency resolution engine wasn't able to find a version of module {} which satisfied all requirements because the graph wasn't stable enough. "
+                            + "The highest version was selected in order to stabilize selection.\n"
+                            + "Features available in a stable graph like version alignment are not guaranteed in this case.",
+                    id);
         }
         boolean newSelectedIsProject = false;
         if (conflictResolution == ConflictResolution.preferProjectModules) {
@@ -521,8 +525,17 @@ public class ModuleResolveState implements CandidateModule {
     void maybeCreateVirtualMetadata(ResolveState resolveState) {
         for (ComponentState componentState : versions.values()) {
             if (componentState.getMetadataOrNull() == null) {
-                // TODO LJA Using the root as the NodeState here is a bit of a cheat, investigate if we can track the proper NodeState
-                componentState.setState(LenientPlatformGraphResolveState.of(idGenerator, (ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState), ComponentGraphSpecificResolveState.EMPTY_STATE);
+                // TODO LJA Using the root as the NodeState here is a bit of a cheat, investigate if we can track the
+                // proper NodeState
+                componentState.setState(
+                        LenientPlatformGraphResolveState.of(
+                                idGenerator,
+                                (ModuleComponentIdentifier) componentState.getComponentId(),
+                                componentState.getId(),
+                                platformState,
+                                resolveState.getRoot(),
+                                resolveState),
+                        ComponentGraphSpecificResolveState.EMPTY_STATE);
             }
         }
     }
@@ -534,7 +547,8 @@ public class ModuleResolveState implements CandidateModule {
             if (node.isSelected()) {
                 for (EdgeState incomingEdge : node.getIncomingEdges()) {
                     DependencyMetadata dependencyMetadata = incomingEdge.getDependencyMetadata();
-                    if (!(dependencyMetadata instanceof LenientPlatformDependencyMetadata) && dependencyMetadata instanceof ForcingDependencyMetadata) {
+                    if (!(dependencyMetadata instanceof LenientPlatformDependencyMetadata)
+                            && dependencyMetadata instanceof ForcingDependencyMetadata) {
                         if (((ForcingDependencyMetadata) dependencyMetadata).isForce()) {
                             return selected.getVersion();
                         }
@@ -555,14 +569,10 @@ public class ModuleResolveState implements CandidateModule {
 
     public Map<SelectorState, List<List<String>>> getSegmentedPathsBySelectors() {
         return getAllEdges().stream()
-            .collect(Collectors.toMap(
-                EdgeState::getSelector,
-                MessageBuilderHelper::segmentedPathsTo,
-                (a, b) -> {
+                .collect(Collectors.toMap(EdgeState::getSelector, MessageBuilderHelper::segmentedPathsTo, (a, b) -> {
                     List<List<String>> combined = new ArrayList<>(a);
                     combined.addAll(b);
                     return combined;
-                }
-            ));
+                }));
     }
 }

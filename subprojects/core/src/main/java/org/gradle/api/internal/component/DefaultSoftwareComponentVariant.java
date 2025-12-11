@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.component;
 
+import java.util.Collections;
+import java.util.Set;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -23,9 +25,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-
-import java.util.Collections;
-import java.util.Set;
 
 /**
  * Default implementation of {@link org.gradle.api.component.SoftwareComponentVariant}.
@@ -41,20 +40,27 @@ public class DefaultSoftwareComponentVariant extends AbstractSoftwareComponentVa
         this(name, attributes, Collections.emptySet());
     }
 
-    public DefaultSoftwareComponentVariant(String name, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts) {
-        this(name, attributes, artifacts, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
+    public DefaultSoftwareComponentVariant(
+            String name, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts) {
+        this(
+                name,
+                attributes,
+                artifacts,
+                Collections.emptySet(),
+                Collections.emptySet(),
+                Collections.emptySet(),
+                Collections.emptySet());
     }
 
     public DefaultSoftwareComponentVariant(
-        String name,
-        AttributeContainer attributes,
-        Set<? extends PublishArtifact> artifacts,
-        Set<? extends ModuleDependency> dependencies,
-        Set<? extends DependencyConstraint> dependencyConstraints,
-        Set<? extends Capability> capabilities,
-        Set<ExcludeRule> globalExcludes
-    ) {
-        super(((AttributeContainerInternal)attributes).asImmutable(), artifacts);
+            String name,
+            AttributeContainer attributes,
+            Set<? extends PublishArtifact> artifacts,
+            Set<? extends ModuleDependency> dependencies,
+            Set<? extends DependencyConstraint> dependencyConstraints,
+            Set<? extends Capability> capabilities,
+            Set<ExcludeRule> globalExcludes) {
+        super(((AttributeContainerInternal) attributes).asImmutable(), artifacts);
 
         assert dependencies != null;
         assert dependencyConstraints != null;

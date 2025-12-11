@@ -15,9 +15,8 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.internal.UncheckedException;
-
 import java.io.IOException;
+import org.gradle.internal.UncheckedException;
 
 public class GradleLauncherMetaData {
     private final String appName;

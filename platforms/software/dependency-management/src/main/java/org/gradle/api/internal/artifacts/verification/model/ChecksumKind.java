@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.verification.model;
 
 import com.google.common.collect.ImmutableList;
-
 import java.util.List;
 
 public enum ChecksumKind {

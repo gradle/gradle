@@ -17,10 +17,9 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.internal.hash.Hashable;
 import org.gradle.internal.hash.Hasher;
-
-import java.util.List;
 
 class AbstractListSnapshot<T extends Hashable> implements Hashable {
     protected final ImmutableList<T> elements;

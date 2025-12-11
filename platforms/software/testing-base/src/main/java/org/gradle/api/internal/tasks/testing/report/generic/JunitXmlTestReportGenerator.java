@@ -16,18 +16,17 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
 import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
 import org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultOptions;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.UncheckedException;
-
-import javax.inject.Inject;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 
 /**
  * Generates a JUnit XML report based on test results based on binary results from {@link SerializableTestResultStore}.
@@ -46,7 +45,8 @@ public abstract class JunitXmlTestReportGenerator implements TestReportGenerator
     private final JUnitXmlResultOptions xmlResultOptions;
 
     @Inject
-    public JunitXmlTestReportGenerator(ObjectFactory objectFactory, Path reportsDirectory, JUnitXmlResultOptions xmlResultOptions) {
+    public JunitXmlTestReportGenerator(
+            ObjectFactory objectFactory, Path reportsDirectory, JUnitXmlResultOptions xmlResultOptions) {
         this.objectFactory = objectFactory;
         this.reportsDirectory = reportsDirectory;
         this.xmlResultOptions = xmlResultOptions;
@@ -64,17 +64,18 @@ public abstract class JunitXmlTestReportGenerator implements TestReportGenerator
             return reportsDirectory;
         }
         if (resultsDirectories.size() > 1) {
-            throw new IllegalArgumentException("JunitXmlTestReportGenerator can only generate a report from a single results directory. Found: " + resultsDirectories);
+            throw new IllegalArgumentException(
+                    "JunitXmlTestReportGenerator can only generate a report from a single results directory. Found: "
+                            + resultsDirectories);
         }
 
-        TestTreeModelResultsProvider.useResultsFrom(
-            resultsDirectories.get(0),
-            resultsProvider ->
-                objectFactory.newInstance(
-                    Binary2JUnitXmlReportGenerator.class,
-                    reportsDirectory.toFile(), resultsProvider, xmlResultOptions
-                ).generate()
-        );
+        TestTreeModelResultsProvider.useResultsFrom(resultsDirectories.get(0), resultsProvider -> objectFactory
+                .newInstance(
+                        Binary2JUnitXmlReportGenerator.class,
+                        reportsDirectory.toFile(),
+                        resultsProvider,
+                        xmlResultOptions)
+                .generate());
         return reportsDirectory;
     }
 }

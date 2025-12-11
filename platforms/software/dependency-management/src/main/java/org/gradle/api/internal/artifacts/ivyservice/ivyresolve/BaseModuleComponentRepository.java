@@ -15,19 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import java.util.Map;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.action.InstantiatingAction;
-
-import java.util.Map;
 
 public class BaseModuleComponentRepository<T> implements ModuleComponentRepository<T> {
     protected final ModuleComponentRepository<T> delegate;
     private final ModuleComponentRepositoryAccess<T> localAccess;
     private final ModuleComponentRepositoryAccess<T> remoteAccess;
 
-    public BaseModuleComponentRepository(ModuleComponentRepository<T> delegate, ModuleComponentRepositoryAccess<T> localAccess, ModuleComponentRepositoryAccess<T> remoteAccess) {
+    public BaseModuleComponentRepository(
+            ModuleComponentRepository<T> delegate,
+            ModuleComponentRepositoryAccess<T> localAccess,
+            ModuleComponentRepositoryAccess<T> remoteAccess) {
         this.delegate = delegate;
         this.localAccess = localAccess;
         this.remoteAccess = remoteAccess;
@@ -73,5 +75,4 @@ public class BaseModuleComponentRepository<T> implements ModuleComponentReposito
     public InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier() {
         return delegate.getComponentMetadataSupplier();
     }
-
 }

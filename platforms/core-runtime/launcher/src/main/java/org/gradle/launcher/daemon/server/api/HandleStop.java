@@ -36,11 +36,13 @@ public class HandleStop implements DaemonCommandAction {
     @Override
     public void execute(DaemonCommandExecution execution) {
         if (execution.getCommand() instanceof Stop) {
-            listenerBroadcast.onExpirationEvent(new DaemonExpirationResult(DaemonExpirationStatus.IMMEDIATE_EXPIRE, EXPIRATION_REASON));
+            listenerBroadcast.onExpirationEvent(
+                    new DaemonExpirationResult(DaemonExpirationStatus.IMMEDIATE_EXPIRE, EXPIRATION_REASON));
             execution.getConnection().completed(new Success(null));
         } else if (execution.getCommand() instanceof StopWhenIdle) {
             hangShutdownForTesting();
-            listenerBroadcast.onExpirationEvent(new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, EXPIRATION_REASON));
+            listenerBroadcast.onExpirationEvent(
+                    new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, EXPIRATION_REASON));
             execution.getConnection().completed(new Success(null));
         } else {
             execution.proceed();

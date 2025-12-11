@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector;
+
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -37,14 +40,10 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
-import java.util.Set;
-
-import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector;
-
 public class ComponentSelectorParsers {
 
-    private static final NotationParserBuilder<Object, ComponentSelector> BUILDER = NotationParserBuilder
-            .toType(ComponentSelector.class)
+    private static final NotationParserBuilder<Object, ComponentSelector> BUILDER = NotationParserBuilder.toType(
+                    ComponentSelector.class)
             .fromCharSequence(new StringConverter())
             .converter(new MapConverter())
             .fromType(Project.class, new ProjectConverter());
@@ -67,8 +66,10 @@ public class ComponentSelectorParsers {
             visitor.example("Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0'].");
         }
 
-        protected ModuleComponentSelector parseMap(@MapKey("group") String group, @MapKey("name") String name, @MapKey("version") String version) {
-            return newSelector(DefaultModuleIdentifier.newId(group, name), DefaultImmutableVersionConstraint.of(version));
+        protected ModuleComponentSelector parseMap(
+                @MapKey("group") String group, @MapKey("name") String name, @MapKey("version") String version) {
+            return newSelector(
+                    DefaultModuleIdentifier.newId(group, name), DefaultImmutableVersionConstraint.of(version));
         }
     }
 
@@ -79,14 +80,15 @@ public class ComponentSelectorParsers {
         }
 
         @Override
-        public void convert(String notation, NotationConvertResult<? super ComponentSelector> result) throws TypeConversionException {
+        public void convert(String notation, NotationConvertResult<? super ComponentSelector> result)
+                throws TypeConversionException {
             ParsedModuleStringNotation parsed;
             try {
                 parsed = new ParsedModuleStringNotation(notation, null);
             } catch (IllegalDependencyNotation e) {
-                throw new InvalidUserDataException(
-                        "Invalid format: '" + notation + "'. The correct notation is a 3-part group:name:version notation, "
-                                + "e.g: 'org.gradle:gradle-core:1.0'");
+                throw new InvalidUserDataException("Invalid format: '" + notation
+                        + "'. The correct notation is a 3-part group:name:version notation, "
+                        + "e.g: 'org.gradle:gradle-core:1.0'");
             }
 
             if (parsed.getGroup() == null || parsed.getName() == null || parsed.getVersion() == null) {
@@ -94,7 +96,9 @@ public class ComponentSelectorParsers {
                         "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
                                 + "'org.gradle:gradle-core:1.0'");
             }
-            result.converted(newSelector(DefaultModuleIdentifier.newId(parsed.getGroup(), parsed.getName()), DefaultImmutableVersionConstraint.of(parsed.getVersion())));
+            result.converted(newSelector(
+                    DefaultModuleIdentifier.newId(parsed.getGroup(), parsed.getName()),
+                    DefaultImmutableVersionConstraint.of(parsed.getVersion())));
         }
     }
 
@@ -106,9 +110,11 @@ public class ComponentSelectorParsers {
         }
 
         @Override
-        public void convert(Project notation, NotationConvertResult<? super ComponentSelector> result) throws TypeConversionException {
+        public void convert(Project notation, NotationConvertResult<? super ComponentSelector> result)
+                throws TypeConversionException {
             ProjectIdentity identity = ((ProjectInternal) notation).getOwner().getIdentity();
-            result.converted(new DefaultProjectComponentSelector(identity, ImmutableAttributes.EMPTY, ImmutableSet.of()));
+            result.converted(
+                    new DefaultProjectComponentSelector(identity, ImmutableAttributes.EMPTY, ImmutableSet.of()));
         }
     }
 }

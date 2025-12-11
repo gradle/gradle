@@ -68,5 +68,4 @@ public interface MavenPomContributor {
      * The properties of this contributor.
      */
     MapProperty<String, String> getProperties();
-
 }

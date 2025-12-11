@@ -16,9 +16,8 @@
 
 package org.gradle.api.launcher.cli;
 
-import org.gradle.api.Incubating;
-
 import java.io.Serializable;
+import org.gradle.api.Incubating;
 
 /**
  * Configures when to display the welcome message on the command line.

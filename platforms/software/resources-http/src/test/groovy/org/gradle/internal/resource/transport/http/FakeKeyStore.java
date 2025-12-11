@@ -16,8 +16,6 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -36,6 +34,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.NotImplementedException;
 
 public class FakeKeyStore extends KeyStoreSpi {
     private Map<String, Key> keys = new HashMap<>();
@@ -68,7 +67,8 @@ public class FakeKeyStore extends KeyStoreSpi {
     }
 
     @Override
-    public void engineSetKeyEntry(String alias, Key key, char[] password, Certificate[] chain) throws KeyStoreException {
+    public void engineSetKeyEntry(String alias, Key key, char[] password, Certificate[] chain)
+            throws KeyStoreException {
         keys.put(alias, key);
         certChains.put(alias, chain);
     }
@@ -129,7 +129,8 @@ public class FakeKeyStore extends KeyStoreSpi {
     }
 
     @Override
-    public void engineStore(OutputStream stream, char[] password) throws IOException, NoSuchAlgorithmException, CertificateException {
+    public void engineStore(OutputStream stream, char[] password)
+            throws IOException, NoSuchAlgorithmException, CertificateException {
         ObjectOutputStream oos = new ObjectOutputStream(stream);
         oos.writeObject(keys);
         oos.writeObject(certChains);
@@ -137,7 +138,8 @@ public class FakeKeyStore extends KeyStoreSpi {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void engineLoad(InputStream stream, char[] password) throws IOException, NoSuchAlgorithmException, CertificateException {
+    public void engineLoad(InputStream stream, char[] password)
+            throws IOException, NoSuchAlgorithmException, CertificateException {
         if (stream == null) {
             return;
         }

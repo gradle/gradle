@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
+import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.UNKNOWN;
 
+import java.util.Set;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileManager;
-import java.util.Set;
-
-import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.UNKNOWN;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 
 /**
  * The strategy used for non-incremental annotation processors.
@@ -40,17 +39,18 @@ public class NonIncrementalProcessingStrategy extends IncrementalProcessingStrat
     }
 
     @Override
-    public void recordProcessingInputs(Set<String> supportedAnnotationTypes, Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+    public void recordProcessingInputs(
+            Set<String> supportedAnnotationTypes, Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         result.setFullRebuildCause(name + " is not incremental");
     }
 
     @Override
-    public void recordGeneratedType(CharSequence name, Element[] originatingElements) {
-
-    }
+    public void recordGeneratedType(CharSequence name, Element[] originatingElements) {}
 
     @Override
-    public void recordGeneratedResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName, Element[] originatingElements) {
-
-    }
+    public void recordGeneratedResource(
+            JavaFileManager.Location location,
+            CharSequence pkg,
+            CharSequence relativeName,
+            Element[] originatingElements) {}
 }

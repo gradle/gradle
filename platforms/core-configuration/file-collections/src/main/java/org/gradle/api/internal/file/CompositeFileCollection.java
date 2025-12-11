@@ -17,6 +17,9 @@
 package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.List;
+import java.util.function.Consumer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -24,10 +27,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
-
-import java.io.File;
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} that contains the union of zero or more file collections. Maintains file ordering.
@@ -46,8 +45,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
         super(taskDependencyFactory);
     }
 
-    public CompositeFileCollection() {
-    }
+    public CompositeFileCollection() {}
 
     @Override
     public boolean contains(File file) {
@@ -94,7 +92,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
         };
     }
 
-    abstract protected void visitChildren(Consumer<FileCollectionInternal> visitor);
+    protected abstract void visitChildren(Consumer<FileCollectionInternal> visitor);
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {

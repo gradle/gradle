@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse;
 
+import javax.inject.Inject;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -22,8 +23,6 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet;
 import org.gradle.plugins.ide.eclipse.model.WtpFacet;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
 
 /**
  * Generates the org.eclipse.wst.common.project.facet.core settings file for Eclipse WTP.
@@ -75,5 +74,4 @@ public abstract class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet>
     public void setFacet(EclipseWtpFacet facet) {
         this.facet = facet;
     }
-
 }

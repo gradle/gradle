@@ -31,5 +31,4 @@ public interface FileLocation extends ProblemLocation {
      * @since 8.14
      */
     String getPath();
-
 }

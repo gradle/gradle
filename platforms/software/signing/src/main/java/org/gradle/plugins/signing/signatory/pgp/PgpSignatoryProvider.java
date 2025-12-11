@@ -15,18 +15,18 @@
  */
 package org.gradle.plugins.signing.signatory.pgp;
 
+import java.io.File;
+import java.util.Arrays;
 import org.gradle.api.Project;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
 import org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvider;
 import org.gradle.security.internal.pgp.BasePgpSignatoryProvider;
 
-import java.io.File;
-import java.util.Arrays;
-
 /**
  * A {@link SignatoryProvider} of {@link PgpSignatory} instances.
  */
-public class PgpSignatoryProvider extends BasePgpSignatoryProvider implements ConfigurableSignatoryProvider<PgpSignatory> {
+public class PgpSignatoryProvider extends BasePgpSignatoryProvider
+        implements ConfigurableSignatoryProvider<PgpSignatory> {
 
     @Override
     public void createSignatoryFor(Project project, String name, Object[] args) {

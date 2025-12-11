@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins.internal.modifiers;
 
 import com.google.common.base.Joiner;
-
 import java.util.Locale;
 
 class Names {

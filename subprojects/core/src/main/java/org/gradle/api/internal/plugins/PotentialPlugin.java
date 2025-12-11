@@ -39,5 +39,4 @@ public interface PotentialPlugin<T> {
     boolean isHasRules();
 
     Type getType();
-
 }

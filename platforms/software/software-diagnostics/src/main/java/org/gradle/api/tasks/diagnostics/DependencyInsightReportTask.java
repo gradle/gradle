@@ -16,8 +16,29 @@
 
 package org.gradle.api.tasks.diagnostics;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
@@ -65,28 +86,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
-
 /**
  * Generates a report that attempts to answer questions like:
  * <ul>
@@ -119,9 +118,11 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
 
     private Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
-    private final Property<Boolean> showingAllVariants = getProject().getObjects().property(Boolean.class);
+    private final Property<Boolean> showingAllVariants =
+            getProject().getObjects().property(Boolean.class);
     private transient Configuration configuration;
-    private final Property<ResolvedComponentResult> rootComponentProperty = getProject().getObjects().property(ResolvedComponentResult.class);
+    private final Property<ResolvedComponentResult> rootComponentProperty =
+            getProject().getObjects().property(ResolvedComponentResult.class);
 
     // this field is named with a starting `z` to be serialized after `rootComponentProperty`
     // because the serialization of `rootComponentProperty` can still trigger callback that can affect
@@ -147,9 +148,8 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
                 ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
                 if (!configurationInternal.isCanBeMutated()) {
                     throw new IllegalStateException(
-                        "The configuration '" + configuration.getName() + "' is not mutable. " +
-                            "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed."
-                    );
+                            "The configuration '" + configuration.getName() + "' is not mutable. "
+                                    + "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed.");
                 }
                 configurationInternal.getResolutionStrategy().setIncludeAllSelectableVariantResults(true);
             }
@@ -157,7 +157,8 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             configurationDescription = configuration.toString();
             zConfigurationAttributes = getProject().provider(configuration::getAttributes);
 
-            rootComponentProperty.set(configuration.getIncoming().getResolutionResult().getRootComponent());
+            rootComponentProperty.set(
+                    configuration.getIncoming().getResolutionResult().getRootComponent());
         }
         return rootComponentProperty;
     }
@@ -212,10 +213,9 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     @Option(option = "configuration", description = "Looks for the dependency in given configuration.")
     public void setConfiguration(@Nullable String configurationName) {
         setConfiguration(
-            configurationName == null
-                ? null
-                : ConfigurationFinder.find(getProject().getConfigurations(), configurationName)
-        );
+                configurationName == null
+                        ? null
+                        : ConfigurationFinder.find(getProject().getConfigurations(), configurationName));
     }
 
     /**
@@ -319,11 +319,16 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
 
     private void renderSelectedDependencies(StyledTextOutput output, Set<DependencyResult> selectedDependencies) {
         GraphRenderer renderer = new GraphRenderer(output);
-        DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
-        Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies, isShowSinglePathToDependency());
-        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(this, zConfigurationAttributes.get(), getAttributesFactory());
-        ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configurationName);
-        DependencyGraphsRenderer dependencyGraphRenderer = new DependencyGraphsRenderer(output, renderer, rootRenderer, dependenciesRenderer);
+        DependencyInsightReporter reporter =
+                new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
+        Collection<RenderableDependency> itemsToRender =
+                reporter.convertToRenderableItems(selectedDependencies, isShowSinglePathToDependency());
+        RootDependencyRenderer rootRenderer =
+                new RootDependencyRenderer(this, zConfigurationAttributes.get(), getAttributesFactory());
+        ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer =
+                new ReplaceProjectWithConfigurationNameRenderer(configurationName);
+        DependencyGraphsRenderer dependencyGraphRenderer =
+                new DependencyGraphsRenderer(output, renderer, rootRenderer, dependenciesRenderer);
         dependencyGraphRenderer.setShowSinglePath(showSinglePathToDependency);
         dependencyGraphRenderer.render(itemsToRender);
         dependencyGraphRenderer.complete();
@@ -338,31 +343,37 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
 
     private void assertValidTaskConfiguration() {
         if (configurationName == null) {
-            throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. "
-                + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
+            throw new InvalidUserDataException(
+                    "Dependency insight report cannot be generated because the input configuration was not specified. "
+                            + "\nIt can be specified from the command line, e.g: '" + getPath()
+                            + " --configuration someConf --dependency someDep'");
         }
 
         if (dependencySpec == null) {
-            throw new InvalidUserDataException("Dependency insight report cannot be generated because the dependency to show was not specified."
-                + "\nIt can be specified from the command line, e.g: '" + getPath() + " --dependency someDep'");
+            throw new InvalidUserDataException(
+                    "Dependency insight report cannot be generated because the dependency to show was not specified."
+                            + "\nIt can be specified from the command line, e.g: '" + getPath()
+                            + " --dependency someDep'");
         }
     }
 
     private Set<DependencyResult> selectDependencies(ResolvedComponentResult rootComponent) {
         final Set<DependencyResult> selectedDependencies = new LinkedHashSet<>();
-        eachDependency(rootComponent, dependencyResult -> {
-            if (Objects.requireNonNull(dependencySpec).isSatisfiedBy(dependencyResult)) {
-                selectedDependencies.add(dependencyResult);
-            }
-        }, new HashSet<>());
+        eachDependency(
+                rootComponent,
+                dependencyResult -> {
+                    if (Objects.requireNonNull(dependencySpec).isSatisfiedBy(dependencyResult)) {
+                        selectedDependencies.add(dependencyResult);
+                    }
+                },
+                new HashSet<>());
         return selectedDependencies;
     }
 
     private void eachDependency(
-        ResolvedComponentResult node,
-        Action<? super DependencyResult> dependencyAction,
-        Set<ResolvedComponentResult> visited
-    ) {
+            ResolvedComponentResult node,
+            Action<? super DependencyResult> dependencyAction,
+            Set<ResolvedComponentResult> visited) {
         if (!visited.add(node)) {
             return;
         }
@@ -374,7 +385,8 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         }
     }
 
-    private AttributeMatchDetails match(Attribute<?> actualAttribute, @Nullable Object actualValue, AttributeContainer requestedAttributes) {
+    private AttributeMatchDetails match(
+            Attribute<?> actualAttribute, @Nullable Object actualValue, AttributeContainer requestedAttributes) {
         for (Attribute<?> requested : requestedAttributes.keySet()) {
             Object requestedValue = requestedAttributes.getAttribute(requested);
             if (requested.getName().equals(actualAttribute.getName())) {
@@ -392,7 +404,8 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
                     }
                 }
                 // TODO check for COMPATIBLE here, in a way compatible with configuration cache.
-                // The branch ot/captchalogue/dependency-insights-compatibility-logging has the original code that isn't CC compatible.
+                // The branch ot/captchalogue/dependency-insights-compatibility-logging has the original code that isn't
+                // CC compatible.
                 return new AttributeMatchDetails(MatchType.INCOMPATIBLE, requested, requestedValue);
             }
         }
@@ -404,7 +417,10 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         private final AttributeContainer configurationAttributes;
         private final AttributesFactory attributesFactory;
 
-        public RootDependencyRenderer(DependencyInsightReportTask task, AttributeContainer configurationAttributes, AttributesFactory attributesFactory) {
+        public RootDependencyRenderer(
+                DependencyInsightReportTask task,
+                AttributeContainer configurationAttributes,
+                AttributesFactory attributesFactory) {
             this.task = task;
             this.configurationAttributes = configurationAttributes;
             this.attributesFactory = attributesFactory;
@@ -456,13 +472,13 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         }
 
         private void printVariantDetails(StyledTextOutput out, RenderableDependency dependency) {
-            if (dependency.getResolvedVariants().isEmpty() && dependency.getAllVariants().isEmpty()) {
+            if (dependency.getResolvedVariants().isEmpty()
+                    && dependency.getAllVariants().isEmpty()) {
                 return;
             }
-            Set<String> selectedVariantNames = dependency.getResolvedVariants()
-                .stream()
-                .map(ResolvedVariantResult::getDisplayName)
-                .collect(Collectors.toSet());
+            Set<String> selectedVariantNames = dependency.getResolvedVariants().stream()
+                    .map(ResolvedVariantResult::getDisplayName)
+                    .collect(Collectors.toSet());
             if (task.getShowingAllVariants().get()) {
                 out.style(Header);
                 out.println();
@@ -486,14 +502,15 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
                 out.style(Normal);
 
                 List<ResolvedVariantResult> sortedVariants = dependency.getAllVariants().stream()
-                    .sorted(Comparator.comparing(ResolvedVariantResult::getDisplayName))
-                    .collect(Collectors.toList());
+                        .sorted(Comparator.comparing(ResolvedVariantResult::getDisplayName))
+                        .collect(Collectors.toList());
 
                 for (ResolvedVariantResult variant : sortedVariants) {
                     if (selectedVariantNames.contains(variant.getDisplayName())) {
                         continue;
                     }
-                    // Currently, since the compatibility column is unusable, pass true for selected to prevent its output.
+                    // Currently, since the compatibility column is unusable, pass true for selected to prevent its
+                    // output.
                     printVariant(out, dependency, variant, true);
                     out.println();
                 }
@@ -501,15 +518,18 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         }
 
         private void printVariant(
-            StyledTextOutput out, RenderableDependency dependency, ResolvedVariantResult variant, boolean selected
-        ) {
+                StyledTextOutput out,
+                RenderableDependency dependency,
+                ResolvedVariantResult variant,
+                boolean selected) {
             AttributeContainer attributes = variant.getAttributes();
             AttributeContainer requested = getRequestedAttributes(dependency);
             AttributeBuckets buckets = bucketAttributes(attributes, requested);
 
             out.println().style(Normal).text("  Variant ");
 
-            // For now, do not style -- see ot/captchalogue/dependency-insights-compatibility-logging for the original styling choices
+            // For now, do not style -- see ot/captchalogue/dependency-insights-compatibility-logging for the original
+            // styling choices
             out.text(variant.getDisplayName()).style(Normal).text(":").println();
             if (!attributes.isEmpty() || !requested.isEmpty()) {
                 writeAttributeBlock(out, attributes, requested, buckets, selected);
@@ -526,38 +546,40 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             return configurationAttributes;
         }
 
-        private AttributeContainer concat(AttributeContainer configAttributes, AttributeContainer dependencyAttributes) {
+        private AttributeContainer concat(
+                AttributeContainer configAttributes, AttributeContainer dependencyAttributes) {
             return attributesFactory.concat(
-                ((AttributeContainerInternal) configAttributes).asImmutable(),
-                ((AttributeContainerInternal) dependencyAttributes).asImmutable()
-            );
+                    ((AttributeContainerInternal) configAttributes).asImmutable(),
+                    ((AttributeContainerInternal) dependencyAttributes).asImmutable());
         }
 
         private void writeAttributeBlock(
-            StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested,
-            AttributeBuckets buckets, boolean selected
-        ) {
-            new StyledTable.Renderer().render(
-                createAttributeTable(attributes, requested, buckets, selected),
-                out
-            );
+                StyledTextOutput out,
+                AttributeContainer attributes,
+                AttributeContainer requested,
+                AttributeBuckets buckets,
+                boolean selected) {
+            new StyledTable.Renderer().render(createAttributeTable(attributes, requested, buckets, selected), out);
         }
 
         private static final class AttributeBuckets {
             @SuppressWarnings("checkstyle:constantname")
-            private static final Comparator<Attribute<?>> sortedByAttributeName = Comparator.comparing(Attribute::getName);
+            private static final Comparator<Attribute<?>> sortedByAttributeName =
+                    Comparator.comparing(Attribute::getName);
 
             Set<Attribute<?>> providedAttributes = new TreeSet<>(sortedByAttributeName);
             Map<Attribute<?>, AttributeMatchDetails> bothAttributes = new TreeMap<>(sortedByAttributeName);
             Set<Attribute<?>> requestedAttributes = new TreeSet<>(sortedByAttributeName);
         }
 
-        @SuppressWarnings("InlineMeInliner") //Strings.repeat is from guava not Java 11+
+        @SuppressWarnings("InlineMeInliner") // Strings.repeat is from guava not Java 11+
         private StyledTable createAttributeTable(
-            AttributeContainer attributes, AttributeContainer requested, AttributeBuckets buckets, boolean selected
-        ) {
-            ImmutableList.Builder<String> header = ImmutableList.<String>builder()
-                .add("Attribute Name", "Provided", "Requested");
+                AttributeContainer attributes,
+                AttributeContainer requested,
+                AttributeBuckets buckets,
+                boolean selected) {
+            ImmutableList.Builder<String> header =
+                    ImmutableList.<String>builder().add("Attribute Name", "Provided", "Requested");
             if (!selected) {
                 header.add("Compatibility");
             }
@@ -568,8 +590,10 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         }
 
         private ImmutableList<StyledTable.Row> buildRows(
-            AttributeContainer attributes, AttributeContainer requested, AttributeBuckets buckets, boolean selected
-        ) {
+                AttributeContainer attributes,
+                AttributeContainer requested,
+                AttributeBuckets buckets,
+                boolean selected) {
             ImmutableList.Builder<StyledTable.Row> rows = ImmutableList.builder();
             for (Attribute<?> attribute : buckets.providedAttributes) {
                 rows.add(createProvidedRow(attributes, selected, attribute));
@@ -599,51 +623,48 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             }
             for (Attribute<?> attribute : requested.keySet()) {
                 // If it's not in the matches, it's only in the requested attributes
-                if (buckets.bothAttributes.values().stream().map(AttributeMatchDetails::requested).noneMatch(Predicate.isEqual(attribute))) {
+                if (buckets.bothAttributes.values().stream()
+                        .map(AttributeMatchDetails::requested)
+                        .noneMatch(Predicate.isEqual(attribute))) {
                     buckets.requestedAttributes.add(attribute);
                 }
             }
             return buckets;
         }
 
-        private StyledTable.Row createProvidedRow(AttributeContainer attributes, boolean selected, Attribute<?> attribute) {
+        private StyledTable.Row createProvidedRow(
+                AttributeContainer attributes, boolean selected, Attribute<?> attribute) {
             Object providedValue = attributes.getAttribute(attribute);
             ImmutableList.Builder<String> text = ImmutableList.<String>builder()
-                .add(
-                    attribute.getName(),
-                    providedValue == null ? "" : providedValue.toString(),
-                    ""
-                );
+                    .add(attribute.getName(), providedValue == null ? "" : providedValue.toString(), "");
             if (!selected) {
                 text.add("Compatible");
             }
             return new StyledTable.Row(text.build(), Info);
         }
 
-        private StyledTable.Row createMatchBasedRow(AttributeContainer attributes, boolean selected, Map.Entry<Attribute<?>, AttributeMatchDetails> entry) {
+        private StyledTable.Row createMatchBasedRow(
+                AttributeContainer attributes, boolean selected, Map.Entry<Attribute<?>, AttributeMatchDetails> entry) {
             Object providedValue = attributes.getAttribute(entry.getKey());
             AttributeMatchDetails match = entry.getValue();
             ImmutableList.Builder<String> text = ImmutableList.<String>builder()
-                .add(
-                    entry.getKey().getName(),
-                    providedValue == null ? "" : providedValue.toString(),
-                    String.valueOf(entry.getValue().requestedValue())
-                );
+                    .add(
+                            entry.getKey().getName(),
+                            providedValue == null ? "" : providedValue.toString(),
+                            String.valueOf(entry.getValue().requestedValue()));
             if (!selected) {
                 text.add(match.matchType() == MatchType.INCOMPATIBLE ? "Incompatible" : "Compatible");
             }
-            // For now, do not style -- see ot/captchalogue/dependency-insights-compatibility-logging for the original styling choices
+            // For now, do not style -- see ot/captchalogue/dependency-insights-compatibility-logging for the original
+            // styling choices
             return new StyledTable.Row(text.build(), Normal);
         }
 
-        private StyledTable.Row createRequestedRow(AttributeContainer requested, boolean selected, Attribute<?> attribute) {
+        private StyledTable.Row createRequestedRow(
+                AttributeContainer requested, boolean selected, Attribute<?> attribute) {
             Object requestedValue = requested.getAttribute(attribute);
-            ImmutableList.Builder<String> text = ImmutableList.<String>builder()
-                .add(
-                    attribute.getName(),
-                    "",
-                    String.valueOf(requestedValue)
-                );
+            ImmutableList.Builder<String> text =
+                    ImmutableList.<String>builder().add(attribute.getName(), "", String.valueOf(requestedValue));
             if (!selected) {
                 text.add("Compatible");
             }
@@ -670,5 +691,4 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             }
         }
     }
-
 }

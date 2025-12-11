@@ -16,12 +16,11 @@
 
 package org.gradle.internal.component.model;
 
+import java.util.List;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * State for a component instance (e.g. version of a component) that is used to perform dependency graph resolution and that is independent of the particular
@@ -66,7 +65,8 @@ public interface ComponentGraphResolveState {
      * Only valid for variants that are owned by this component.
      * Results are undefined if {@code variant} is not owned by this component.
      */
-    ResolvedVariantResult getPublicViewFor(VariantGraphResolveState variant, @Nullable ResolvedVariantResult externalVariant);
+    ResolvedVariantResult getPublicViewFor(
+            VariantGraphResolveState variant, @Nullable ResolvedVariantResult externalVariant);
 
     /**
      * Returns the candidates for variant selection during graph resolution.

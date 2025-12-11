@@ -15,26 +15,25 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.SystemProperties;
-import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
-import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.internal.FileUtils;
+import org.gradle.internal.SystemProperties;
+import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.launcher.daemon.protocol.Build;
+import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
 /**
  * Aims to make the local environment the same as the client's environment.
  */
 public class EstablishBuildEnvironment extends BuildCommandOnly {
-    private final static Logger LOGGER = Logging.getLogger(EstablishBuildEnvironment.class);
+    private static final Logger LOGGER = Logging.getLogger(EstablishBuildEnvironment.class);
 
     private final ProcessEnvironment processEnvironment;
 
@@ -49,31 +48,38 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
         Map<String, String> originalEnv = new HashMap<String, String>(System.getenv());
         File originalProcessDir = FileUtils.canonicalize(new File("."));
 
-        for (Map.Entry<String, String> entry : build.getParameters().getSystemProperties().entrySet()) {
+        for (Map.Entry<String, String> entry :
+                build.getParameters().getSystemProperties().entrySet()) {
             if (SystemProperties.getInstance().isStandardProperty(entry.getKey())) {
                 continue;
             }
             if (SystemProperties.getInstance().isNonStandardImportantProperty(entry.getKey())) {
                 continue;
             }
-            if (entry.getKey().startsWith("sun.") || entry.getKey().startsWith("awt.") || entry.getKey().contains(".awt.")) {
+            if (entry.getKey().startsWith("sun.")
+                    || entry.getKey().startsWith("awt.")
+                    || entry.getKey().contains(".awt.")) {
                 continue;
             }
             System.setProperty(entry.getKey(), entry.getValue());
         }
 
-        // Log only the variable names and not their values. Environment variables often contain sensitive data that should not be leaked to log files.
-        LOGGER.debug("Configuring env variables: {}", build.getParameters().getEnvVariables().keySet());
+        // Log only the variable names and not their values. Environment variables often contain sensitive data that
+        // should not be leaked to log files.
+        LOGGER.debug(
+                "Configuring env variables: {}",
+                build.getParameters().getEnvVariables().keySet());
 
-        EnvironmentModificationResult setEnvironmentResult = processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
-        if(!setEnvironmentResult.isSuccess()) {
+        EnvironmentModificationResult setEnvironmentResult =
+                processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
+        if (!setEnvironmentResult.isSuccess()) {
             LOGGER.warn("Warning: Unable able to set daemon's environment variables to match the client because: "
-                + System.getProperty("line.separator") + "  "
-                + setEnvironmentResult
-                + System.getProperty("line.separator") + "  "
-                + "If the daemon was started with a significantly different environment from the client, and your build "
-                + System.getProperty("line.separator") + "  "
-                + "relies on environment variables, you may experience unexpected behavior.");
+                    + System.getProperty("line.separator") + "  "
+                    + setEnvironmentResult
+                    + System.getProperty("line.separator") + "  "
+                    + "If the daemon was started with a significantly different environment from the client, and your build "
+                    + System.getProperty("line.separator") + "  "
+                    + "relies on environment variables, you may experience unexpected behavior.");
         }
         processEnvironment.maybeSetProcessDir(build.getParameters().getCurrentDir());
 

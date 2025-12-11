@@ -36,8 +36,8 @@ public final class DefaultFeatureCapabilitySelector implements CapabilitySelecto
 
     @Override
     public boolean matches(String capabilityGroup, String capabilityName, ImmutableCapability implicitCapability) {
-        return capabilityGroup.equals(implicitCapability.getGroup()) &&
-            capabilityName.equals(implicitCapability.getName() + "-" + featureName);
+        return capabilityGroup.equals(implicitCapability.getGroup())
+                && capabilityName.equals(implicitCapability.getName() + "-" + featureName);
     }
 
     @Override

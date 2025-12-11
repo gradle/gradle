@@ -17,9 +17,8 @@
 package org.gradle.process.internal.health.memory;
 
 import com.google.common.base.Objects;
-import org.gradle.util.GroovyNullMarked;
-
 import java.util.Map;
+import org.gradle.util.GroovyNullMarked;
 
 @GroovyNullMarked
 public class TestMBeanAttributeProvider implements MBeanAttributeProvider {
@@ -56,7 +55,9 @@ public class TestMBeanAttributeProvider implements MBeanAttributeProvider {
                 return false;
             }
             AttributeKey that = (AttributeKey) o;
-            return Objects.equal(mbean, that.mbean) && Objects.equal(attribute, that.attribute) && Objects.equal(type, that.type);
+            return Objects.equal(mbean, that.mbean)
+                    && Objects.equal(attribute, that.attribute)
+                    && Objects.equal(type, that.type);
         }
 
         @Override

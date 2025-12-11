@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.tasks;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
+import javax.inject.Inject;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -26,11 +29,8 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.reflect.Instantiator;
 
-import javax.inject.Inject;
-
-import static org.gradle.api.reflect.TypeOf.typeOf;
-
-public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObjectContainer<SourceSet> implements SourceSetContainer {
+public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObjectContainer<SourceSet>
+        implements SourceSetContainer {
     private final ObjectFactory objectFactory;
     private final FileResolver fileResolver;
     private final FileCollectionFactory fileCollectionFactory;
@@ -38,13 +38,23 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
     private final Instantiator instantiator;
 
     @Inject
-    public DefaultSourceSetContainer(FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        super(SourceSet.class, instantiator, new Namer<SourceSet>() {
-            @Override
-            public String determineName(SourceSet ss) {
-                return ss.getName();
-            }
-        }, collectionCallbackActionDecorator);
+    public DefaultSourceSetContainer(
+            FileResolver fileResolver,
+            TaskDependencyFactory taskDependencyFactory,
+            FileCollectionFactory fileCollectionFactory,
+            Instantiator instantiator,
+            ObjectFactory objectFactory,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(
+                SourceSet.class,
+                instantiator,
+                new Namer<SourceSet>() {
+                    @Override
+                    public String determineName(SourceSet ss) {
+                        return ss.getName();
+                    }
+                },
+                collectionCallbackActionDecorator);
         this.fileResolver = fileResolver;
         this.fileCollectionFactory = fileCollectionFactory;
         this.taskDependencyFactory = taskDependencyFactory;
@@ -55,7 +65,12 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
     @Override
     protected SourceSet doCreate(String name) {
         DefaultSourceSet sourceSet = instantiator.newInstance(DefaultSourceSet.class, name, objectFactory);
-        sourceSet.setClasses(instantiator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), taskDependencyFactory, fileResolver, fileCollectionFactory));
+        sourceSet.setClasses(instantiator.newInstance(
+                DefaultSourceSetOutput.class,
+                sourceSet.getDisplayName(),
+                taskDependencyFactory,
+                fileResolver,
+                fileCollectionFactory));
         return sourceSet;
     }
 

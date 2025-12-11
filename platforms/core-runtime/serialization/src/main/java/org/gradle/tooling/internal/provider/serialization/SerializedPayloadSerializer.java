@@ -16,13 +16,12 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SerializedPayloadSerializer implements Serializer<SerializedPayload> {
     private final Serializer<Object> javaSerializer = new DefaultSerializer<Object>();

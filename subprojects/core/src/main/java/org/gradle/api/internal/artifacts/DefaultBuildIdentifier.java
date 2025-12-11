@@ -62,5 +62,4 @@ public class DefaultBuildIdentifier implements BuildIdentifier {
     public String toString() {
         return "build '" + buildPath + "'";
     }
-
 }

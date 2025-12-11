@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.cache;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.concurrent.TimeUnit;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Command methods for controlling dependency resolution via the DSL.

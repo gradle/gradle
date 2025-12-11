@@ -16,7 +16,12 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_FEATURE_NAME;
+
 import groovy.lang.Closure;
+import java.util.Map;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
@@ -60,12 +65,6 @@ import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.Map;
-
-import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
-import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_FEATURE_NAME;
-
 public abstract class DefaultDependencyHandler implements DependencyHandlerInternal, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactoryInternal dependencyFactory;
@@ -81,18 +80,19 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     private final PlatformSupport platformSupport;
     private final DynamicAddDependencyMethods dynamicMethods;
 
-    public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
-                                    DependencyFactoryInternal dependencyFactory,
-                                    ProjectFinder projectFinder,
-                                    DependencyConstraintHandler dependencyConstraintHandler,
-                                    ComponentMetadataHandler componentMetadataHandler,
-                                    ComponentModuleMetadataHandler componentModuleMetadataHandler,
-                                    ArtifactResolutionQueryFactory resolutionQueryFactory,
-                                    AttributesSchema attributesSchema,
-                                    VariantTransformRegistry transforms,
-                                    ArtifactTypeRegistry artifactTypeContainer,
-                                    ObjectFactory objects,
-                                    PlatformSupport platformSupport) {
+    public DefaultDependencyHandler(
+            ConfigurationContainer configurationContainer,
+            DependencyFactoryInternal dependencyFactory,
+            ProjectFinder projectFinder,
+            DependencyConstraintHandler dependencyConstraintHandler,
+            ComponentMetadataHandler componentMetadataHandler,
+            ComponentModuleMetadataHandler componentModuleMetadataHandler,
+            ArtifactResolutionQueryFactory resolutionQueryFactory,
+            AttributesSchema attributesSchema,
+            VariantTransformRegistry transforms,
+            ArtifactTypeRegistry artifactTypeContainer,
+            ObjectFactory objects,
+            PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;
@@ -121,8 +121,10 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     }
 
     @Override
-    public <T, U extends ExternalModuleDependency> void addProvider(String configurationName, Provider<T> dependencyNotation, Action<? super U> configuration) {
-        doAddProvider(configurationContainer.getByName(configurationName), dependencyNotation, closureOf(configuration));
+    public <T, U extends ExternalModuleDependency> void addProvider(
+            String configurationName, Provider<T> dependencyNotation, Action<? super U> configuration) {
+        doAddProvider(
+                configurationContainer.getByName(configurationName), dependencyNotation, closureOf(configuration));
     }
 
     @Override
@@ -131,7 +133,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     }
 
     @Override
-    public <T, U extends ExternalModuleDependency> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation, Action<? super U> configuration) {
+    public <T, U extends ExternalModuleDependency> void addProviderConvertible(
+            String configurationName, ProviderConvertible<T> dependencyNotation, Action<? super U> configuration) {
         addProvider(configurationName, dependencyNotation.asProvider(), configuration);
     }
 
@@ -171,14 +174,16 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
     @SuppressWarnings("rawtypes")
     @Nullable
-    private Dependency doAdd(Configuration configuration, Object dependencyNotation, @Nullable Closure configureClosure) {
+    private Dependency doAdd(
+            Configuration configuration, Object dependencyNotation, @Nullable Closure configureClosure) {
         if (dependencyNotation instanceof Configuration) {
             throw new GradleException("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.");
         } else if (dependencyNotation instanceof ProviderConvertible<?>) {
             return doAdd(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
         } else if (dependencyNotation instanceof ProviderInternal<?>) {
             ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
-            if (provider.getType()!=null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+            if (provider.getType() != null
+                    && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
                 ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
                 for (MinimalExternalModuleDependency dependency : bundle) {
                     doAddRegularDependency(configuration, dependency, configureClosure);
@@ -193,17 +198,20 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
         }
     }
 
-    private Dependency doAddRegularDependency(Configuration configuration, Object dependencyNotation, Closure<?> configureClosure) {
+    private Dependency doAddRegularDependency(
+            Configuration configuration, Object dependencyNotation, Closure<?> configureClosure) {
         Dependency dependency = create(dependencyNotation, configureClosure);
         configuration.getDependencies().add(dependency);
         return dependency;
     }
 
     @Nullable
-    private Dependency doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
+    private Dependency doAddProvider(
+            Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
         if (dependencyNotation instanceof ProviderInternal<?>) {
             ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
-            if (provider.getType() != null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+            if (provider.getType() != null
+                    && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
                 ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
                 for (MinimalExternalModuleDependency dependency : bundle) {
                     doAddRegularDependency(configuration, dependency, configureClosure);
@@ -211,16 +219,21 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
                 return null;
             }
         }
-        Provider<Dependency> lazyDependency = dependencyNotation.map(mapDependencyProvider(configuration, configureClosure));
+        Provider<Dependency> lazyDependency =
+                dependencyNotation.map(mapDependencyProvider(configuration, configureClosure));
         configuration.getDependencies().addLater(lazyDependency);
         // Return null here because we don't want to prematurely realize the dependency
         return null;
     }
 
-    private <T> Transformer<Dependency, T> mapDependencyProvider(Configuration configuration, Closure<?> configureClosure) {
+    private <T> Transformer<Dependency, T> mapDependencyProvider(
+            Configuration configuration, Closure<?> configureClosure) {
         return lazyNotation -> {
             if (lazyNotation instanceof Configuration) {
-                throw new InvalidUserDataException("Adding a configuration as a dependency using a provider isn't supported. You should call " + configuration.getName() + ".extendsFrom(" + ((Configuration) lazyNotation).getName() + ") instead");
+                throw new InvalidUserDataException(
+                        "Adding a configuration as a dependency using a provider isn't supported. You should call "
+                                + configuration.getName() + ".extendsFrom(" + ((Configuration) lazyNotation).getName()
+                                + ") instead");
             }
             return create(lazyNotation, configureClosure);
         };
@@ -317,7 +330,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     }
 
     @Override
-    public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+    public <T extends TransformParameters> void registerTransform(
+            Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
         transforms.registerTransform(actionType, registrationAction);
     }
 
@@ -330,7 +344,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
             moduleDependency.endorseStrictVersions();
             platformSupport.addPlatformAttribute(moduleDependency, toCategory(Category.REGULAR_PLATFORM));
         } else if (dependency instanceof HasConfigurableAttributes) {
-            platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) dependency, toCategory(Category.REGULAR_PLATFORM));
+            platformSupport.addPlatformAttribute(
+                    (HasConfigurableAttributes<?>) dependency, toCategory(Category.REGULAR_PLATFORM));
         }
         return dependency;
     }
@@ -348,12 +363,15 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
         Dependency platformDependency = create(notation);
         if (platformDependency instanceof ExternalModuleDependency) {
             // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
-            AbstractExternalModuleDependency externalModuleDependency = (AbstractExternalModuleDependency) platformDependency;
-            MutableVersionConstraint constraint = (MutableVersionConstraint) externalModuleDependency.getVersionConstraint();
+            AbstractExternalModuleDependency externalModuleDependency =
+                    (AbstractExternalModuleDependency) platformDependency;
+            MutableVersionConstraint constraint =
+                    (MutableVersionConstraint) externalModuleDependency.getVersionConstraint();
             constraint.strictly(externalModuleDependency.getVersion());
             platformSupport.addPlatformAttribute(externalModuleDependency, toCategory(Category.ENFORCED_PLATFORM));
         } else if (platformDependency instanceof HasConfigurableAttributes) {
-            platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, toCategory(Category.ENFORCED_PLATFORM));
+            platformSupport.addPlatformAttribute(
+                    (HasConfigurableAttributes<?>) platformDependency, toCategory(Category.ENFORCED_PLATFORM));
         }
         return platformDependency;
     }
@@ -384,12 +402,16 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     }
 
     @Override
-    public Provider<MinimalExternalModuleDependency> variantOf(Provider<MinimalExternalModuleDependency> dependencyProvider, Action<? super ExternalModuleDependencyVariantSpec> variantSpec) {
+    public Provider<MinimalExternalModuleDependency> variantOf(
+            Provider<MinimalExternalModuleDependency> dependencyProvider,
+            Action<? super ExternalModuleDependencyVariantSpec> variantSpec) {
         return dependencyProvider.map(dep -> {
-            DefaultExternalModuleDependencyVariantSpec spec = objects.newInstance(DefaultExternalModuleDependencyVariantSpec.class, objects, dep);
+            DefaultExternalModuleDependencyVariantSpec spec =
+                    objects.newInstance(DefaultExternalModuleDependencyVariantSpec.class, objects, dep);
             variantSpec.execute(spec);
             // TODO: We "lose" endorsingStrictVersions here. We should copy that over to the returned variant.
-            return new DefaultMinimalDependencyVariant(dep, spec.attributesAction, spec.capabilitiesMutator, spec.classifier, spec.artifactType);
+            return new DefaultMinimalDependencyVariant(
+                    dep, spec.attributesAction, spec.capabilitiesMutator, spec.classifier, spec.artifactType);
         });
     }
 
@@ -400,12 +422,15 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
      * @param dependencyProvider the dependency provider
      */
     @Override
-    public Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider) {
+    public Provider<MinimalExternalModuleDependency> enforcedPlatform(
+            Provider<MinimalExternalModuleDependency> dependencyProvider) {
         return variantOf(dependencyProvider, spec -> {
             DefaultExternalModuleDependencyVariantSpec defaultSpec = (DefaultExternalModuleDependencyVariantSpec) spec;
-            MutableVersionConstraint versionConstraint = (MutableVersionConstraint) defaultSpec.dep.getVersionConstraint();
+            MutableVersionConstraint versionConstraint =
+                    (MutableVersionConstraint) defaultSpec.dep.getVersionConstraint();
             versionConstraint.strictly(defaultSpec.dep.getVersion());
-            defaultSpec.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.ENFORCED_PLATFORM));
+            defaultSpec.attributesAction = attrs -> attrs.attribute(
+                    Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.ENFORCED_PLATFORM));
         });
     }
 
@@ -417,7 +442,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
         @Override
         @SuppressWarnings("rawtypes")
-        public Dependency add(Configuration configuration, Object dependencyNotation, @Nullable Closure configureAction) {
+        public Dependency add(
+                Configuration configuration, Object dependencyNotation, @Nullable Closure configureAction) {
             return doAdd(configuration, dependencyNotation, configureAction);
         }
     }
@@ -440,12 +466,14 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
         @Override
         public void platform() {
             this.dep.endorseStrictVersions();
-            this.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
+            this.attributesAction = attrs -> attrs.attribute(
+                    Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
         }
 
         @Override
         public void testFixtures() {
-            this.capabilitiesMutator = capabilities -> capabilities.requireFeature(TEST_FIXTURES_CAPABILITY_FEATURE_NAME);
+            this.capabilitiesMutator =
+                    capabilities -> capabilities.requireFeature(TEST_FIXTURES_CAPABILITY_FEATURE_NAME);
         }
 
         @Override

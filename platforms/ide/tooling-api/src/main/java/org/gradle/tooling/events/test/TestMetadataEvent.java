@@ -47,6 +47,4 @@ import org.jspecify.annotations.NullMarked;
  */
 @Incubating
 @NullMarked
-public interface TestMetadataEvent extends ProgressEvent {
-
-}
+public interface TestMetadataEvent extends ProgressEvent {}

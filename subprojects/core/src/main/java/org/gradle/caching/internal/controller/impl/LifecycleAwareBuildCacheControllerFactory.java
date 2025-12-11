@@ -16,6 +16,11 @@
 
 package org.gradle.caching.internal.controller.impl;
 
+import java.io.IOException;
+import java.time.Duration;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.CacheableEntity;
@@ -29,12 +34,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.util.Path;
-
-import java.io.IOException;
-import java.time.Duration;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * This service manages the state of the {@link BuildCacheController} instances in the build tree.
@@ -58,15 +57,21 @@ import java.util.concurrent.atomic.AtomicReference;
 public class LifecycleAwareBuildCacheControllerFactory {
     private final RootBuildCacheController rootController = new RootBuildCacheController();
 
-    public LifecycleAwareBuildCacheController createForRootBuild(Path identityPath, BuildCacheControllerFactory buildCacheControllerFactory, InstanceGenerator instanceGenerator) {
+    public LifecycleAwareBuildCacheController createForRootBuild(
+            Path identityPath,
+            BuildCacheControllerFactory buildCacheControllerFactory,
+            InstanceGenerator instanceGenerator) {
         return rootController.init(identityPath, buildCacheControllerFactory, instanceGenerator);
     }
 
-    public LifecycleAwareBuildCacheController createForNonRootBuild(Path identityPath, BuildCacheControllerFactory buildCacheControllerFactory, InstanceGenerator instanceGenerator) {
+    public LifecycleAwareBuildCacheController createForNonRootBuild(
+            Path identityPath,
+            BuildCacheControllerFactory buildCacheControllerFactory,
+            InstanceGenerator instanceGenerator) {
         return rootController.createChild(identityPath, buildCacheControllerFactory, instanceGenerator);
     }
 
-    private static abstract class DelegatingBuildCacheController implements LifecycleAwareBuildCacheController {
+    private abstract static class DelegatingBuildCacheController implements LifecycleAwareBuildCacheController {
         @Override
         public boolean isEnabled() {
             return getDelegate().isEnabled();
@@ -78,7 +83,11 @@ public class LifecycleAwareBuildCacheControllerFactory {
         }
 
         @Override
-        public void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+        public void store(
+                BuildCacheKey cacheKey,
+                CacheableEntity entity,
+                Map<String, FileSystemSnapshot> snapshots,
+                Duration executionTime) {
             getDelegate().store(cacheKey, entity, snapshots, executionTime);
         }
 
@@ -87,8 +96,14 @@ public class LifecycleAwareBuildCacheControllerFactory {
             resetState();
         }
 
-        protected static void createDelegate(BuildCacheConfigurationInternal configuration, AtomicReference<BuildCacheController> delegate, BuildCacheControllerFactory buildCacheControllerFactory, Path identityPath, InstanceGenerator instanceGenerator) {
-            BuildCacheController controller = buildCacheControllerFactory.createController(identityPath, configuration, instanceGenerator);
+        protected static void createDelegate(
+                BuildCacheConfigurationInternal configuration,
+                AtomicReference<BuildCacheController> delegate,
+                BuildCacheControllerFactory buildCacheControllerFactory,
+                Path identityPath,
+                InstanceGenerator instanceGenerator) {
+            BuildCacheController controller =
+                    buildCacheControllerFactory.createController(identityPath, configuration, instanceGenerator);
             if (!delegate.compareAndSet(NoOpBuildCacheController.INSTANCE, controller)) {
                 try {
                     controller.close();
@@ -125,7 +140,10 @@ public class LifecycleAwareBuildCacheControllerFactory {
             this.delegate.set(NoOpBuildCacheController.INSTANCE);
         }
 
-        public RootBuildCacheController init(Path identityPath, BuildCacheControllerFactory buildCacheControllerFactory, InstanceGenerator instanceGenerator) {
+        public RootBuildCacheController init(
+                Path identityPath,
+                BuildCacheControllerFactory buildCacheControllerFactory,
+                InstanceGenerator instanceGenerator) {
             this.identityPath = identityPath;
             this.buildCacheControllerFactory = buildCacheControllerFactory;
             this.instanceGenerator = instanceGenerator;
@@ -147,7 +165,10 @@ public class LifecycleAwareBuildCacheControllerFactory {
             discardDelegate(delegate);
         }
 
-        public LifecycleAwareBuildCacheController createChild(Path identityPath, BuildCacheControllerFactory buildCacheControllerFactory, InstanceGenerator instanceGenerator) {
+        public LifecycleAwareBuildCacheController createChild(
+                Path identityPath,
+                BuildCacheControllerFactory buildCacheControllerFactory,
+                InstanceGenerator instanceGenerator) {
             return new NonRootBuildCacheController(this, identityPath, buildCacheControllerFactory, instanceGenerator);
         }
     }
@@ -157,18 +178,18 @@ public class LifecycleAwareBuildCacheControllerFactory {
      */
     private static class NonRootBuildCacheController extends DelegatingBuildCacheController {
         private final RootBuildCacheController rootController;
-        // Holds a BCC that represents the current state of this build's cache configuration, but only if used as an 'early' build.
+        // Holds a BCC that represents the current state of this build's cache configuration, but only if used as an
+        // 'early' build.
         private final AtomicReference<BuildCacheController> delegate = new AtomicReference<>();
         private final Path identityPath;
         private final BuildCacheControllerFactory buildCacheControllerFactory;
         private final InstanceGenerator instanceGenerator;
 
         private NonRootBuildCacheController(
-            RootBuildCacheController rootController,
-            Path identityPath,
-            BuildCacheControllerFactory buildCacheControllerFactory,
-            InstanceGenerator instanceGenerator
-        ) {
+                RootBuildCacheController rootController,
+                Path identityPath,
+                BuildCacheControllerFactory buildCacheControllerFactory,
+                InstanceGenerator instanceGenerator) {
             this.rootController = rootController;
             this.identityPath = identityPath;
             this.buildCacheControllerFactory = buildCacheControllerFactory;

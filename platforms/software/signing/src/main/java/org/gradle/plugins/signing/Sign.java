@@ -15,9 +15,25 @@
  */
 package org.gradle.plugins.signing;
 
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.inject.Inject;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.DomainObjectSet;
@@ -47,23 +63,6 @@ import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
-import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
-
 /**
  * A task for creating digital signature files for one or more; tasks, files, publishable artifacts or configurations.
  *
@@ -76,7 +75,8 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     private SignatureType signatureType;
     private Signatory signatory;
     private boolean required = true;
-    private final Transient<DomainObjectSet<Signature>> signatures = Transient.of(getObjectFactory().domainObjectSet(Signature.class));
+    private final Transient<DomainObjectSet<Signature>> signatures =
+            Transient.of(getObjectFactory().domainObjectSet(Signature.class));
 
     private final Cached<Collection<Signature.Generator>> generators = Cached.of(this::computeCachedSignatures);
 
@@ -86,9 +86,9 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
             return Collections.emptyList();
         }
         return signatureStream()
-            .map(Signature::getGenerator)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+                .map(Signature::getGenerator)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     private Stream<Signature> signatureStream() {
@@ -107,7 +107,9 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     public void sign(Task... tasks) {
         for (Task task : tasks) {
             if (!(task instanceof AbstractArchiveTask)) {
-                throw new InvalidUserDataException("You cannot sign tasks that are not \'archive\' tasks, such as \'jar\', \'zip\' etc. (you tried to sign " + task + ")");
+                throw new InvalidUserDataException(
+                        "You cannot sign tasks that are not \'archive\' tasks, such as \'jar\', \'zip\' etc. (you tried to sign "
+                                + task + ")");
             }
 
             signTask((AbstractArchiveTask) task);
@@ -116,7 +118,11 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     private void signTask(final AbstractArchiveTask archiveTask) {
         dependsOn(archiveTask);
-        addSignature(new Signature(() -> archiveTask.getArchiveFile().get().getAsFile(), () -> archiveTask.getArchiveClassifier().getOrNull(), this, this));
+        addSignature(new Signature(
+                () -> archiveTask.getArchiveFile().get().getAsFile(),
+                () -> archiveTask.getArchiveClassifier().getOrNull(),
+                this,
+                this));
     }
 
     /**
@@ -228,7 +234,8 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     @TaskAction
     public void generate() {
         if (getSignatory() == null) {
-            throw new InvalidUserDataException("Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory");
+            throw new InvalidUserDataException(
+                    "Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory");
         }
 
         for (Signature.Generator signature : sanitizedGenerators().values()) {
@@ -267,11 +274,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     }
 
     private Map<String, Signature.Generator> sanitizedGenerators() {
-        return sanitize(
-            signatures.isPresent()
-                ? computeCachedSignatures()
-                : generators.get()
-        );
+        return sanitize(signatures.isPresent() ? computeCachedSignatures() : generators.get());
     }
 
     /**
@@ -279,14 +282,12 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
      */
     private static Map<String, Signature.Generator> sanitize(Collection<Signature.Generator> generators) {
         return generators.stream()
-            .filter(signature -> signature.getToSign().exists())
-            .collect(
-                toMap(
-                    signature -> signature.getToSign().toPath().toAbsolutePath().toString(),
-                    identity(),
-                    (signature, duplicate) -> signature
-                )
-            );
+                .filter(signature -> signature.getToSign().exists())
+                .collect(toMap(
+                        signature ->
+                                signature.getToSign().toPath().toAbsolutePath().toString(),
+                        identity(),
+                        (signature, duplicate) -> signature));
     }
 
     /**
@@ -302,19 +303,17 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
         if (sanitizedSignatures.size() == 1) {
             return sanitizedSignatures.values().iterator().next();
         }
-        throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains " + sanitizedSignatures.size() + " signatures.");
+        throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains "
+                + sanitizedSignatures.size() + " signatures.");
     }
 
     private Map<String, Signature> sanitizedSignatures() {
-        return getSignatures().matching(signature -> signature.getToSign().exists())
-            .stream()
-            .collect(
-                toMap(
-                    signature -> signature.getToSign().toPath().toAbsolutePath().toString(),
-                    identity(),
-                    (signature, duplicate) -> signature
-                )
-            );
+        return getSignatures().matching(signature -> signature.getToSign().exists()).stream()
+                .collect(toMap(
+                        signature ->
+                                signature.getToSign().toPath().toAbsolutePath().toString(),
+                        identity(),
+                        (signature, duplicate) -> signature));
     }
 
     @Inject
@@ -326,8 +325,11 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     @Internal
     @NotToBeReplacedByLazyProperty(because = "Read-only file collection", willBeDeprecated = true)
     public FileCollection getFilesToSign() {
-        return getFileCollectionFactory().fixed("Task \'" + getPath() + "\' files to sign",
-            Lists.newLinkedList(Iterables.filter(Iterables.transform(getSignatures(), Signature::getToSign), Predicates.notNull())));
+        return getFileCollectionFactory()
+                .fixed(
+                        "Task \'" + getPath() + "\' files to sign",
+                        Lists.newLinkedList(Iterables.filter(
+                                Iterables.transform(getSignatures(), Signature::getToSign), Predicates.notNull())));
     }
 
     /**
@@ -336,8 +338,11 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     @Internal
     @NotToBeReplacedByLazyProperty(because = "Read-only file collection", willBeDeprecated = true)
     public FileCollection getSignatureFiles() {
-        return getFileCollectionFactory().fixed("Task \'" + getPath() + "\' signature files",
-            Lists.newLinkedList(Iterables.filter(Iterables.transform(getSignatures(), Signature::getFile), Predicates.notNull())));
+        return getFileCollectionFactory()
+                .fixed(
+                        "Task \'" + getPath() + "\' signature files",
+                        Lists.newLinkedList(Iterables.filter(
+                                Iterables.transform(getSignatures(), Signature::getFile), Predicates.notNull())));
     }
 
     @Override
@@ -396,5 +401,4 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
-
 }

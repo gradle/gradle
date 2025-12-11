@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildprocess;
 
+import java.io.Closeable;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -26,8 +27,6 @@ import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 
-import java.io.Closeable;
-
 /**
  * Encapsulates the state of a build process, such as the Gradle daemon. An instance is created for each process that runs a build.
  */
@@ -35,17 +34,17 @@ public class BuildProcessState implements Closeable {
     private final ServiceRegistry services;
 
     public BuildProcessState(
-        final boolean longLiving,
-        AgentStatus agentStatus,
-        ClassPath additionalModuleClassPath,
-        CurrentGradleInstallation currentGradleInstallation,
-        ServiceRegistry... parents
-    ) {
+            final boolean longLiving,
+            AgentStatus agentStatus,
+            ClassPath additionalModuleClassPath,
+            CurrentGradleInstallation currentGradleInstallation,
+            ServiceRegistry... parents) {
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
-            .scopeStrictly(Scope.Global.class)
-            .displayName("Global services")
-            .provider(new GlobalScopeServices(longLiving, agentStatus, additionalModuleClassPath, currentGradleInstallation))
-            .provider(new BuildProcessScopeServices());
+                .scopeStrictly(Scope.Global.class)
+                .displayName("Global services")
+                .provider(new GlobalScopeServices(
+                        longLiving, agentStatus, additionalModuleClassPath, currentGradleInstallation))
+                .provider(new BuildProcessScopeServices());
         for (ServiceRegistry parent : parents) {
             builder.parent(parent);
         }
@@ -53,8 +52,7 @@ public class BuildProcessState implements Closeable {
         services = builder.build();
     }
 
-    protected void addProviders(ServiceRegistryBuilder builder) {
-    }
+    protected void addProviders(ServiceRegistryBuilder builder) {}
 
     public ServiceRegistry getServices() {
         return services;
@@ -62,7 +60,9 @@ public class BuildProcessState implements Closeable {
 
     @Override
     public void close() {
-        // Force the user home services to be stopped first, because the dependencies between the user home services and the global services are not preserved currently
-        CompositeStoppable.stoppable(services.get(GradleUserHomeScopeServiceRegistry.class), services).stop();
+        // Force the user home services to be stopped first, because the dependencies between the user home services and
+        // the global services are not preserved currently
+        CompositeStoppable.stoppable(services.get(GradleUserHomeScopeServiceRegistry.class), services)
+                .stop();
     }
 }

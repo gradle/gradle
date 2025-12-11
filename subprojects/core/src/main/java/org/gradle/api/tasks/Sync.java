@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.copy.CopyAction;
@@ -29,9 +31,6 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
-import java.io.File;
 
 /**
  * Synchronizes the contents of a destination directory with some source directories and files.
@@ -75,15 +74,15 @@ public abstract class Sync extends AbstractCopyTask {
     protected CopyAction createCopyAction() {
         File destinationDir = getDestinationDir();
         if (destinationDir == null) {
-            throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
+            throw new InvalidUserDataException(
+                    "No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
         return new SyncCopyActionDecorator(
-            destinationDir,
-            new FileCopyAction(getFileLookup().getFileResolver(destinationDir)),
-            preserveInDestination,
-            getDeleter(),
-            getDirectoryFileTreeFactory()
-        );
+                destinationDir,
+                new FileCopyAction(getFileLookup().getFileResolver(destinationDir)),
+                preserveInDestination,
+                getDeleter(),
+                getDirectoryFileTreeFactory());
     }
 
     @Override

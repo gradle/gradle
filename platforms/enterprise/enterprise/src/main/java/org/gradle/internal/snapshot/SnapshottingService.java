@@ -16,10 +16,9 @@
 
 package org.gradle.internal.snapshot;
 
+import java.nio.file.Path;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.nio.file.Path;
 
 /**
  * Snapshotting service which is used by test distribution.
@@ -34,5 +33,4 @@ public interface SnapshottingService {
      * @return snapshot for specified file
      */
     Snapshot snapshotFor(Path filePath);
-
 }

@@ -16,10 +16,9 @@
 
 package org.gradle.internal.service;
 
-import org.jspecify.annotations.Nullable;
-
 import java.lang.annotation.Annotation;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Service instances can implement this interface to apply some lifecycle to all services annotation with a given annotation.

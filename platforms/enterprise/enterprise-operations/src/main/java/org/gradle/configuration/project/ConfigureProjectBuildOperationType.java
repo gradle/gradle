@@ -16,16 +16,17 @@
 
 package org.gradle.configuration.project;
 
-import org.gradle.internal.operations.BuildOperationType;
-
 import java.io.File;
+import org.gradle.internal.operations.BuildOperationType;
 
 /**
  * Configuration of a project.
  *
  * @since 4.0
  */
-public final class ConfigureProjectBuildOperationType implements BuildOperationType<ConfigureProjectBuildOperationType.Details, ConfigureProjectBuildOperationType.Result> {
+public final class ConfigureProjectBuildOperationType
+        implements BuildOperationType<
+                ConfigureProjectBuildOperationType.Details, ConfigureProjectBuildOperationType.Result> {
 
     public interface Details {
 
@@ -34,17 +35,11 @@ public final class ConfigureProjectBuildOperationType implements BuildOperationT
         String getBuildPath();
 
         File getRootDir();
-
     }
 
-    public interface Result {
+    public interface Result {}
 
-    }
+    static final Result RESULT = new Result() {};
 
-    final static Result RESULT = new Result() {
-    };
-
-    private ConfigureProjectBuildOperationType() {
-    }
-
+    private ConfigureProjectBuildOperationType() {}
 }

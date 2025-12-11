@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
+import java.util.Set;
 import javax.annotation.processing.Completion;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
@@ -25,7 +26,6 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import java.util.Set;
 
 /**
  * A simple base class for annotation processors that decorate another one.
@@ -64,7 +64,8 @@ abstract class DelegatingProcessor implements Processor {
     }
 
     @Override
-    public Iterable<? extends Completion> getCompletions(Element element, AnnotationMirror annotation, ExecutableElement member, String userText) {
+    public Iterable<? extends Completion> getCompletions(
+            Element element, AnnotationMirror annotation, ExecutableElement member, String userText) {
         return delegate.getCompletions(element, annotation, member, userText);
     }
 }

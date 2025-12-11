@@ -43,7 +43,8 @@ public class ExpectedFailureRule implements MethodRule {
                         throw new AssertionError("test was expected to fail but didn't");
                     }
                     if (!failed.getClass().equals(expectedFailureAnnotation.expected())) {
-                        throw new AssertionError("test was expected but with " + expectedFailureAnnotation.expected() + " but failed with " + failed.getClass());
+                        throw new AssertionError("test was expected but with " + expectedFailureAnnotation.expected()
+                                + " but failed with " + failed.getClass());
                     }
                 }
             }

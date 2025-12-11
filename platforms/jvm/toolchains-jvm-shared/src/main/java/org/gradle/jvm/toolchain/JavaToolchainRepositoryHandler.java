@@ -16,10 +16,9 @@
 
 package org.gradle.jvm.toolchain;
 
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-
-import java.util.List;
 
 /**
  * {@link org.gradle.api.NamedDomainObjectList} based handler for configuring an
@@ -59,5 +58,4 @@ public interface JavaToolchainRepositoryHandler {
      * @since 7.6.1
      */
     boolean remove(String name);
-
 }

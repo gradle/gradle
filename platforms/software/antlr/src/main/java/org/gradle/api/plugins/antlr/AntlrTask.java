@@ -16,6 +16,14 @@
 
 package org.gradle.api.plugins.antlr;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -52,15 +60,6 @@ import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
 import org.jspecify.annotations.NullMarked;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Callable;
 
 /**
  * Generates parsers from Antlr grammars.
@@ -151,7 +150,6 @@ public abstract class AntlrTask extends SourceTask {
             this.arguments = arguments;
         }
     }
-
 
     /**
      * List of command-line arguments passed to the antlr process
@@ -258,7 +256,7 @@ public abstract class AntlrTask extends SourceTask {
 
     private MultiRequestClient<AntlrSpec, AntlrResult> getAntlrWorkerClient(AntlrSpec spec) {
         MultiRequestWorkerProcessBuilder<AntlrSpec, AntlrResult> builder =
-            getWorkerProcessBuilderFactory().multiRequestWorker(AntlrExecuter.class);
+                getWorkerProcessBuilderFactory().multiRequestWorker(AntlrExecuter.class);
 
         builder.setBaseName("Gradle ANTLR Worker");
         builder.applicationClasspath(getAntlrClasspath());
@@ -276,13 +274,14 @@ public abstract class AntlrTask extends SourceTask {
     private void evaluate(AntlrResult result) {
         int errorCount = result.getErrorCount();
         if (errorCount < 0) {
-            throw new AntlrSourceGenerationException("There were errors during grammar generation", result.getException());
+            throw new AntlrSourceGenerationException(
+                    "There were errors during grammar generation", result.getException());
         } else if (errorCount == 1) {
-            throw new AntlrSourceGenerationException("There was 1 error during grammar generation", result.getException());
+            throw new AntlrSourceGenerationException(
+                    "There was 1 error during grammar generation", result.getException());
         } else if (errorCount > 1) {
-            throw new AntlrSourceGenerationException("There were "
-                + errorCount
-                + " errors during grammar generation", result.getException());
+            throw new AntlrSourceGenerationException(
+                    "There were " + errorCount + " errors during grammar generation", result.getException());
         }
     }
 
@@ -362,5 +361,5 @@ public abstract class AntlrTask extends SourceTask {
     @Input
     @Optional
     @Incubating
-    abstract public Property<String> getPackageName();
+    public abstract Property<String> getPackageName();
 }

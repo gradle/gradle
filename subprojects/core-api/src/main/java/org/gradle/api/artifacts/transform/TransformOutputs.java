@@ -16,9 +16,8 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.internal.HasInternalProtocol;
-
 import java.io.File;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * The outputs of the artifact transform.

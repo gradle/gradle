@@ -17,7 +17,6 @@
 package org.gradle.performance.results;
 
 import com.google.common.collect.ImmutableList;
-
 import java.util.List;
 
 public class EmptyPerformanceTestHistory implements PerformanceTestHistory {

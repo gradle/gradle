@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import java.net.URI;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.jspecify.annotations.Nullable;
-
-import java.net.URI;
 
 public interface ExternalResourceAccessor {
     @Nullable

@@ -19,6 +19,13 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -38,14 +45,6 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDecla
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
 /**
  * Stores the incremental class dependency analysis after compilation has finished.
  */
@@ -55,7 +54,10 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
     private final CurrentCompilationAccess classpathSnapshotter;
     private final PreviousCompilationAccess previousCompilationAccess;
 
-    IncrementalResultStoringCompiler(Compiler<T> delegate, CurrentCompilationAccess classpathSnapshotter, PreviousCompilationAccess previousCompilationAccess) {
+    IncrementalResultStoringCompiler(
+            Compiler<T> delegate,
+            CurrentCompilationAccess classpathSnapshotter,
+            PreviousCompilationAccess previousCompilationAccess) {
         this.delegate = delegate;
         this.classpathSnapshotter = classpathSnapshotter;
         this.previousCompilationAccess = previousCompilationAccess;
@@ -73,12 +75,16 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
 
     private void storeResult(JavaCompileSpec spec, WorkResult result) {
         ClassSetAnalysisData outputSnapshot = classpathSnapshotter.analyzeOutputFolder(spec.getDestinationDir());
-        ClassSetAnalysisData classpathSnapshot = classpathSnapshotter.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath()));
+        ClassSetAnalysisData classpathSnapshot = classpathSnapshotter.getClasspathSnapshot(
+                Iterables.concat(spec.getCompileClasspath(), spec.getModulePath()));
         AnnotationProcessingData annotationProcessingData = getAnnotationProcessingData(spec, result);
         CompilerApiData compilerApiData = getCompilerApiData(spec, result);
-        ClassSetAnalysisData minimizedClasspathSnapshot = classpathSnapshot.reduceToTypesAffecting(outputSnapshot, compilerApiData);
-        PreviousCompilationData data = new PreviousCompilationData(outputSnapshot, annotationProcessingData, minimizedClasspathSnapshot, compilerApiData);
-        File previousCompilationDataFile = Objects.requireNonNull(spec.getCompileOptions().getPreviousCompilationDataFile());
+        ClassSetAnalysisData minimizedClasspathSnapshot =
+                classpathSnapshot.reduceToTypesAffecting(outputSnapshot, compilerApiData);
+        PreviousCompilationData data = new PreviousCompilationData(
+                outputSnapshot, annotationProcessingData, minimizedClasspathSnapshot, compilerApiData);
+        File previousCompilationDataFile =
+                Objects.requireNonNull(spec.getCompileOptions().getPreviousCompilationDataFile());
         previousCompilationAccess.writePreviousCompilationData(data, previousCompilationDataFile);
     }
 
@@ -87,27 +93,36 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
             CompilerApiData previousCompilerApiData = null;
             RecompilationSpec recompilationSpec = null;
             if (result instanceof IncrementalCompilationResult) {
-                previousCompilerApiData = ((IncrementalCompilationResult) result).getPreviousCompilationData().getCompilerApiData();
+                previousCompilerApiData = ((IncrementalCompilationResult) result)
+                        .getPreviousCompilationData()
+                        .getCompilerApiData();
                 recompilationSpec = ((IncrementalCompilationResult) result).getRecompilationSpec();
                 result = ((IncrementalCompilationResult) result).getCompilerResult();
             }
 
-            Set<String> changedClasses = recompilationSpec == null ? Collections.emptySet() : recompilationSpec.getClassesToCompile();
-            ConstantToDependentsMapping previousConstantToDependentsMapping = previousCompilerApiData == null ? null : previousCompilerApiData.getConstantToClassMapping();
-            Map<String, Set<String>> previousSourceClassesMapping = previousCompilerApiData == null ? null : previousCompilerApiData.getSourceToClassMapping();
+            Set<String> changedClasses =
+                    recompilationSpec == null ? Collections.emptySet() : recompilationSpec.getClassesToCompile();
+            ConstantToDependentsMapping previousConstantToDependentsMapping =
+                    previousCompilerApiData == null ? null : previousCompilerApiData.getConstantToClassMapping();
+            Map<String, Set<String>> previousSourceClassesMapping =
+                    previousCompilerApiData == null ? null : previousCompilerApiData.getSourceToClassMapping();
             if (result instanceof ApiCompilerResult) {
                 ApiCompilerResult jdkJavaResult = (ApiCompilerResult) result;
-                ConstantToDependentsMapping newConstantsToDependentsMapping = jdkJavaResult.getConstantsAnalysisResult()
-                    .getConstantToDependentsMapping()
-                    .orElseThrow(() -> new GradleException("Constants to dependents mapping not present, but it should be"));
+                ConstantToDependentsMapping newConstantsToDependentsMapping = jdkJavaResult
+                        .getConstantsAnalysisResult()
+                        .getConstantToDependentsMapping()
+                        .orElseThrow(() ->
+                                new GradleException("Constants to dependents mapping not present, but it should be"));
                 Map<String, Set<String>> newSourceClassesMapping = jdkJavaResult.getSourceClassesMapping();
                 Map<String, Set<String>> mergedSourceClassesMapping;
                 if (previousSourceClassesMapping == null) {
                     mergedSourceClassesMapping = newSourceClassesMapping;
                 } else {
-                    mergedSourceClassesMapping = mergeSourceClassesMappings(previousSourceClassesMapping, newSourceClassesMapping, changedClasses);
+                    mergedSourceClassesMapping = mergeSourceClassesMappings(
+                            previousSourceClassesMapping, newSourceClassesMapping, changedClasses);
                 }
-                ConstantToDependentsMapping mergedConstants = new ConstantToDependentsMappingMerger().merge(newConstantsToDependentsMapping, previousConstantToDependentsMapping, changedClasses);
+                ConstantToDependentsMapping mergedConstants = new ConstantToDependentsMappingMerger()
+                        .merge(newConstantsToDependentsMapping, previousConstantToDependentsMapping, changedClasses);
                 if (spec.getCompileOptions().supportsConstantAnalysis()) {
                     return CompilerApiData.withConstantsMapping(mergedSourceClassesMapping, mergedConstants);
                 } else {
@@ -118,7 +133,10 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
         return CompilerApiData.unavailable();
     }
 
-    private Map<String, Set<String>> mergeSourceClassesMappings(Map<String, Set<String>> previousSourceClassesMapping, Map<String, Set<String>> newSourceClassesMapping, Set<String> changedClasses) {
+    private Map<String, Set<String>> mergeSourceClassesMappings(
+            Map<String, Set<String>> previousSourceClassesMapping,
+            Map<String, Set<String>> newSourceClassesMapping,
+            Set<String> changedClasses) {
         Map<String, Set<String>> merged = new HashMap<>(previousSourceClassesMapping);
         merged.keySet().removeAll(changedClasses);
         for (Map.Entry<String, Set<String>> entry : newSourceClassesMapping.entrySet()) {
@@ -135,54 +153,55 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
         AnnotationProcessingData previousAnnotationProcessingData = null;
         RecompilationSpec recompilationSpec = null;
         if (result instanceof IncrementalCompilationResult) {
-            previousAnnotationProcessingData = ((IncrementalCompilationResult) result).getPreviousCompilationData().getAnnotationProcessingData();
+            previousAnnotationProcessingData = ((IncrementalCompilationResult) result)
+                    .getPreviousCompilationData()
+                    .getAnnotationProcessingData();
             recompilationSpec = ((IncrementalCompilationResult) result).getRecompilationSpec();
             result = ((IncrementalCompilationResult) result).getCompilerResult();
         }
-        Set<String> changedClasses = recompilationSpec == null ? Collections.emptySet() : recompilationSpec.getClassesToCompile();
+        Set<String> changedClasses =
+                recompilationSpec == null ? Collections.emptySet() : recompilationSpec.getClassesToCompile();
 
         if (result instanceof ApiCompilerResult) {
             AnnotationProcessingResult processingResult = ((ApiCompilerResult) result).getAnnotationProcessingResult();
             AnnotationProcessingData newAnnotationProcessingData = new AnnotationProcessingData(
-                processingResult.getGeneratedTypesWithIsolatedOrigin(),
-                processingResult.getAggregatedTypes(),
-                processingResult.getGeneratedAggregatingTypes(),
-                processingResult.getGeneratedResourcesWithIsolatedOrigin(),
-                processingResult.getGeneratedAggregatingResources(),
-                processingResult.getFullRebuildCause()
-            );
+                    processingResult.getGeneratedTypesWithIsolatedOrigin(),
+                    processingResult.getAggregatedTypes(),
+                    processingResult.getGeneratedAggregatingTypes(),
+                    processingResult.getGeneratedResourcesWithIsolatedOrigin(),
+                    processingResult.getGeneratedAggregatingResources(),
+                    processingResult.getFullRebuildCause());
             if (previousAnnotationProcessingData == null) {
                 return newAnnotationProcessingData;
             }
-            return mergeAnnotationProcessingData(previousAnnotationProcessingData, newAnnotationProcessingData, changedClasses);
+            return mergeAnnotationProcessingData(
+                    previousAnnotationProcessingData, newAnnotationProcessingData, changedClasses);
         }
         return new AnnotationProcessingData(
-            ImmutableMap.of(),
-            ImmutableSet.of(),
-            ImmutableSet.of(),
-            ImmutableMap.of(),
-            ImmutableSet.of(),
-            "the chosen compiler did not support incremental annotation processing"
-        );
-
+                ImmutableMap.of(),
+                ImmutableSet.of(),
+                ImmutableSet.of(),
+                ImmutableMap.of(),
+                ImmutableSet.of(),
+                "the chosen compiler did not support incremental annotation processing");
     }
 
-    private AnnotationProcessingData mergeAnnotationProcessingData(AnnotationProcessingData oldData, AnnotationProcessingData newData, Set<String> changedClasses) {
+    private AnnotationProcessingData mergeAnnotationProcessingData(
+            AnnotationProcessingData oldData, AnnotationProcessingData newData, Set<String> changedClasses) {
         Map<String, Set<String>> generatedTypesByOrigin = new HashMap<>(oldData.getGeneratedTypesByOrigin());
         changedClasses.forEach(generatedTypesByOrigin::remove);
         generatedTypesByOrigin.putAll(newData.getGeneratedTypesByOrigin());
-        Map<String, Set<GeneratedResource>> generatedResourcesByOrigin = new HashMap<>(oldData.getGeneratedResourcesByOrigin());
+        Map<String, Set<GeneratedResource>> generatedResourcesByOrigin =
+                new HashMap<>(oldData.getGeneratedResourcesByOrigin());
         changedClasses.forEach(generatedResourcesByOrigin::remove);
         generatedResourcesByOrigin.putAll(newData.getGeneratedResourcesByOrigin());
 
         return new AnnotationProcessingData(
-            generatedTypesByOrigin,
-            newData.getAggregatedTypes(),
-            newData.getGeneratedTypesDependingOnAllOthers(),
-            generatedResourcesByOrigin,
-            newData.getGeneratedResourcesDependingOnAllOthers(),
-            newData.getFullRebuildCause()
-        );
+                generatedTypesByOrigin,
+                newData.getAggregatedTypes(),
+                newData.getGeneratedTypesDependingOnAllOthers(),
+                generatedResourcesByOrigin,
+                newData.getGeneratedResourcesDependingOnAllOthers(),
+                newData.getFullRebuildCause());
     }
-
 }

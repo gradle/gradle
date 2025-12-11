@@ -16,6 +16,10 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import java.io.File;
+import java.net.URI;
+import java.util.Map;
+import java.util.concurrent.Callable;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
@@ -27,11 +31,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.net.URI;
-import java.util.Map;
-import java.util.concurrent.Callable;
 
 /**
  * <p>This interface is implemented by all Gradle Groovy DSL scripts to add in some Gradle-specific methods. As your compiled

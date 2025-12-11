@@ -27,5 +27,5 @@ public interface JUnitJupiterToolchainParameters extends JUnitPlatformToolchainP
     /**
      * The version of JUnit Jupiter to use for compiling and executing tests.
      */
-     Property<String> getJupiterVersion();
+    Property<String> getJupiterVersion();
 }

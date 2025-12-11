@@ -16,6 +16,8 @@
 
 package org.gradle.process;
 
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
@@ -26,9 +28,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * <p>Specifies the options to use to fork a Java process.</p>
@@ -74,7 +73,9 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The default character encoding. Returns null if the {@link java.nio.charset.Charset#defaultCharset() default character encoding of this JVM} should be used.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     String getDefaultCharacterEncoding();
 
     /**
@@ -86,7 +87,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param defaultCharacterEncoding The default character encoding. Use null to use {@link java.nio.charset.Charset#defaultCharset() this JVM's default charset}
      */
-     void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding);
+    void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding);
 
     /**
      * Returns the minimum heap size for the process, if any.
@@ -94,7 +95,9 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The minimum heap size. Returns null if the default minimum heap size should be used.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     String getMinHeapSize();
 
     /**
@@ -111,7 +114,9 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The maximum heap size. Returns null if the default maximum heap size should be used.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     String getMaxHeapSize();
 
     /**
@@ -129,7 +134,8 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The immutable list of arguments. Returns an empty list if there are no arguments.
      */
     @ToBeReplacedByLazyProperty
-    @Optional @Input
+    @Optional
+    @Input
     List<String> getJvmArgs();
 
     /**

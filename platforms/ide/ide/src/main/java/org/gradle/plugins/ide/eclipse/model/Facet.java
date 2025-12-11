@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import groovy.util.Node;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -34,7 +33,10 @@ public class Facet {
      * <a href="https://eclipse.org/articles/Article-BuildingProjectFacets/tutorial.html#defining.presets">here</a>.
      */
     @SuppressWarnings("FieldName")
-    public enum FacetType { installed, fixed }
+    public enum FacetType {
+        installed,
+        fixed
+    }
 
     private FacetType type;
     private String name;
@@ -45,7 +47,8 @@ public class Facet {
     }
 
     public Facet(Node node) {
-        this(FacetType.valueOf((String) node.name()), (String) node.attribute("facet"), (String) node.attribute("version"));
+        this(FacetType.valueOf((String) node.name()), (String) node.attribute("facet"), (String)
+                node.attribute("version"));
     }
 
     public Facet(String name, String version) {

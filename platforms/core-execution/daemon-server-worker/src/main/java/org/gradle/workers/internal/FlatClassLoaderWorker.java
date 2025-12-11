@@ -22,7 +22,11 @@ import org.gradle.internal.service.ServiceRegistry;
 public class FlatClassLoaderWorker extends AbstractClassLoaderWorker {
     private final ClassLoader workerClassLoader;
 
-    public FlatClassLoaderWorker(ClassLoader workerClassLoader, ServiceRegistry serviceRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
+    public FlatClassLoaderWorker(
+            ClassLoader workerClassLoader,
+            ServiceRegistry serviceRegistry,
+            ActionExecutionSpecFactory actionExecutionSpecFactory,
+            InstantiatorFactory instantiatorFactory) {
         super(serviceRegistry, actionExecutionSpecFactory, instantiatorFactory);
         this.workerClassLoader = workerClassLoader;
     }

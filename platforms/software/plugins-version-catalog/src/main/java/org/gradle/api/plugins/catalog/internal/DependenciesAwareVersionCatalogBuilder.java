@@ -15,7 +15,15 @@
  */
 package org.gradle.api.plugins.catalog.internal;
 
+import static org.gradle.api.internal.catalog.parser.DependenciesModelHelper.ALIAS_PATTERN;
+
 import com.google.common.collect.Interner;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
@@ -36,29 +44,21 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 
-import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
-
-import static org.gradle.api.internal.catalog.parser.DependenciesModelHelper.ALIAS_PATTERN;
-
-abstract public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalogBuilder {
-    private final static Logger LOGGER = Logging.getLogger(DependenciesAwareVersionCatalogBuilder.class);
+public abstract class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalogBuilder {
+    private static final Logger LOGGER = Logging.getLogger(DependenciesAwareVersionCatalogBuilder.class);
 
     private final Configuration dependenciesConfiguration;
     private final Map<ModuleIdentifier, String> explicitAliases = new HashMap<>();
     private boolean shouldAmendModel = true;
 
     @Inject
-    public DependenciesAwareVersionCatalogBuilder(String name,
-                                                  Interner<String> strings,
-                                                  Interner<ImmutableVersionConstraint> versionConstraintInterner,
-                                                  ObjectFactory objects,
-                                                  Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier,
-                                                  Configuration dependenciesConfiguration) {
+    public DependenciesAwareVersionCatalogBuilder(
+            String name,
+            Interner<String> strings,
+            Interner<ImmutableVersionConstraint> versionConstraintInterner,
+            ObjectFactory objects,
+            Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier,
+            Configuration dependenciesConfiguration) {
         super(name, strings, versionConstraintInterner, objects, dependencyResolutionServicesSupplier);
         this.dependenciesConfiguration = dependenciesConfiguration;
     }
@@ -79,10 +79,12 @@ abstract public class DependenciesAwareVersionCatalogBuilder extends DefaultVers
     void tryGenericAlias(String group, String name, Action<? super MutableVersionConstraint> versionSpec) {
         String alias = normalizeName(name);
         if (containsLibraryAlias(alias)) {
-            throw new InvalidUserDataException("A dependency with alias '" + alias + "' already exists for module '" + group + ":" + name + "'. Please configure an explicit alias for this dependency.");
+            throw new InvalidUserDataException("A dependency with alias '" + alias + "' already exists for module '"
+                    + group + ":" + name + "'. Please configure an explicit alias for this dependency.");
         }
         if (!ALIAS_PATTERN.matcher(alias).matches()) {
-            throw new InvalidUserDataException("Unable to generate an automatic alias for '" + group + ":" + name + "'. Please configure an explicit alias for this dependency.");
+            throw new InvalidUserDataException("Unable to generate an automatic alias for '" + group + ":" + name
+                    + "'. Please configure an explicit alias for this dependency.");
         }
         library(alias, group, name).version(versionSpec);
     }
@@ -111,14 +113,16 @@ abstract public class DependenciesAwareVersionCatalogBuilder extends DefaultVers
         }
     }
 
-    private static void copyDependencyVersion(Dependency dependency, String group, String name, MutableVersionConstraint v) {
+    private static void copyDependencyVersion(
+            Dependency dependency, String group, String name, MutableVersionConstraint v) {
         if (dependency instanceof ExternalModuleDependency) {
             VersionConstraint vc = ((ExternalModuleDependency) dependency).getVersionConstraint();
             copyConstraint(vc, v);
         } else {
             String version = dependency.getVersion();
             if (version == null || version.isEmpty()) {
-                throw new InvalidUserDataException("Version for dependency " + group + ":" + name + " must not be empty");
+                throw new InvalidUserDataException(
+                        "Version for dependency " + group + ":" + name + " must not be empty");
             }
             v.require(version);
         }
@@ -132,7 +136,8 @@ abstract public class DependenciesAwareVersionCatalogBuilder extends DefaultVers
             if (seen.add(id)) {
                 String alias = explicitAliases.get(id);
                 if (alias != null) {
-                    library(alias, group, name).version(into -> copyConstraint(constraint.getVersionConstraint(), into));
+                    library(alias, group, name)
+                            .version(into -> copyConstraint(constraint.getVersionConstraint(), into));
                 } else {
                     tryGenericAlias(group, name, into -> copyConstraint(constraint.getVersionConstraint(), into));
                 }

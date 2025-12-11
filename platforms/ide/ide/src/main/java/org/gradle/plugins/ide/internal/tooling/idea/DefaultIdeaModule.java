@@ -16,17 +16,16 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
-import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
-import org.gradle.tooling.model.idea.IdeaCompilerOutput;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
+import org.gradle.tooling.model.idea.IdeaCompilerOutput;
 
 public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
     private String name;

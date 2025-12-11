@@ -35,5 +35,4 @@ public interface ProjectComponentSelectorInternal extends ProjectComponentSelect
      * Returns the identity of the target project.
      */
     ProjectIdentity getProjectIdentity();
-
 }

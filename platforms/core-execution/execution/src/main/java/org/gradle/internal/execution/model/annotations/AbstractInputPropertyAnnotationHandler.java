@@ -16,7 +16,13 @@
 
 package org.gradle.internal.execution.model.annotations;
 
+import static org.gradle.internal.deprecation.Documentation.userManual;
+
 import com.google.common.collect.ImmutableSet;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
@@ -28,62 +34,57 @@ import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.TextUtil;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import static org.gradle.internal.deprecation.Documentation.userManual;
-
 abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
-    protected AbstractInputPropertyAnnotationHandler(Class<? extends Annotation> annotationType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
+    protected AbstractInputPropertyAnnotationHandler(
+            Class<? extends Annotation> annotationType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
         super(annotationType, Kind.INPUT, allowedModifiers);
     }
 
     protected static void validateUnsupportedInputPropertyValueTypes(
-        PropertyMetadata propertyMetadata,
-        TypeValidationContext validationContext,
-        Class<? extends Annotation> annotationType
-    ) {
+            PropertyMetadata propertyMetadata,
+            TypeValidationContext validationContext,
+            Class<? extends Annotation> annotationType) {
         validateUnsupportedPropertyValueType(
-            annotationType, unpackValueTypesOf(propertyMetadata),
-            propertyMetadata, validationContext,
-            ResolvedArtifactResult.class,
-            "Extract artifact metadata and annotate with @Input",
-            "Extract artifact files and annotate with @InputFiles"
-        );
+                annotationType,
+                unpackValueTypesOf(propertyMetadata),
+                propertyMetadata,
+                validationContext,
+                ResolvedArtifactResult.class,
+                "Extract artifact metadata and annotate with @Input",
+                "Extract artifact files and annotate with @InputFiles");
     }
 
     private static final String UNSUPPORTED_VALUE_TYPE = "UNSUPPORTED_VALUE_TYPE";
 
     private static void validateUnsupportedPropertyValueType(
-        Class<? extends Annotation> annotationType,
-        List<Class<?>> valueTypes,
-        PropertyMetadata propertyMetadata,
-        TypeValidationContext validationContext,
-        Class<?> unsupportedType,
-        String... possibleSolutions
-    ) {
+            Class<? extends Annotation> annotationType,
+            List<Class<?>> valueTypes,
+            PropertyMetadata propertyMetadata,
+            TypeValidationContext validationContext,
+            Class<?> unsupportedType,
+            String... possibleSolutions) {
         if (valueTypes.stream().anyMatch(unsupportedType::isAssignableFrom)) {
             validationContext.visitPropertyProblem(problem -> {
-                    ProblemSpec describedProblem = problem
-                        .forProperty(propertyMetadata.getPropertyName())
-                        .id(TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_VALUE_TYPE), "Unsupported value type", GradleCoreProblemGroup.validation().property())
-                        .contextualLabel(
-                            String.format(
+                ProblemSpec describedProblem = problem.forProperty(propertyMetadata.getPropertyName())
+                        .id(
+                                TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_VALUE_TYPE),
+                                "Unsupported value type",
+                                GradleCoreProblemGroup.validation().property())
+                        .contextualLabel(String.format(
                                 "has @%s annotation used on property of type '%s'",
                                 annotationType.getSimpleName(),
-                                TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName()
-                            )
-                        )
-                        .documentedAt(userManual("validation_problems", UNSUPPORTED_VALUE_TYPE.toLowerCase(Locale.ROOT)))
+                                TypeOf.typeOf(propertyMetadata.getDeclaredType().getType())
+                                        .getSimpleName()))
+                        .documentedAt(
+                                userManual("validation_problems", UNSUPPORTED_VALUE_TYPE.toLowerCase(Locale.ROOT)))
                         .severity(Severity.ERROR)
-                        .details(String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
-                    for (String possibleSolution : possibleSolutions) {
-                        describedProblem.solution(possibleSolution);
-                    }
+                        .details(String.format(
+                                "%s is not supported on task properties annotated with @%s",
+                                unsupportedType.getSimpleName(), annotationType.getSimpleName()));
+                for (String possibleSolution : possibleSolutions) {
+                    describedProblem.solution(possibleSolution);
                 }
-            );
+            });
         }
     }
 
@@ -91,7 +92,8 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
         List<Class<?>> unpackedValueTypes = new ArrayList<>();
         Class<?> returnType = propertyMetadata.getDeclaredType().getRawType();
         if (Provider.class.isAssignableFrom(returnType)) {
-            List<TypeOf<?>> typeArguments = TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getActualTypeArguments();
+            List<TypeOf<?>> typeArguments =
+                    TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getActualTypeArguments();
             for (TypeOf<?> typeArgument : typeArguments) {
                 unpackedValueTypes.add(typeArgument.getConcreteClass());
             }

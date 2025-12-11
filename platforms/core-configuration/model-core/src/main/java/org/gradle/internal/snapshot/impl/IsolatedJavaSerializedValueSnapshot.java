@@ -27,7 +27,8 @@ import org.jspecify.annotations.Nullable;
 public class IsolatedJavaSerializedValueSnapshot extends JavaSerializedValueSnapshot implements Isolatable<Object> {
     private final Class<?> originalClass;
 
-    public IsolatedJavaSerializedValueSnapshot(@Nullable HashCode implementationHash, byte[] serializedValue, Class<?> originalClass) {
+    public IsolatedJavaSerializedValueSnapshot(
+            @Nullable HashCode implementationHash, byte[] serializedValue, Class<?> originalClass) {
         super(implementationHash, serializedValue);
         this.originalClass = originalClass;
     }

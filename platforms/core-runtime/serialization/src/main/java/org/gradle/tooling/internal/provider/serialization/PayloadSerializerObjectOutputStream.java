@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
-import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
-import org.gradle.internal.serialize.TopLevelExceptionPlaceholder;
-
 import java.io.IOException;
 import java.io.ObjectStreamClass;
 import java.io.OutputStream;
+import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
+import org.gradle.internal.serialize.TopLevelExceptionPlaceholder;
 
 class PayloadSerializerObjectOutputStream extends ExceptionReplacingObjectOutputStream {
     static final int SAME_CLASSLOADER_TOKEN = 0;

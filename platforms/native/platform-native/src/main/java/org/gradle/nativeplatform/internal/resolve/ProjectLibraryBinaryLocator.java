@@ -30,7 +30,8 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
     private final ProjectModelResolver projectModelResolver;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-    public ProjectLibraryBinaryLocator(ProjectModelResolver projectModelResolver, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    public ProjectLibraryBinaryLocator(
+            ProjectModelResolver projectModelResolver, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.projectModelResolver = projectModelResolver;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
     }
@@ -50,7 +51,8 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
             return null;
         }
         ModelMap<NativeBinarySpec> projectBinaries = library.getBinaries().withType(NativeBinarySpec.class);
-        DomainObjectSet<NativeLibraryBinary> binaries = domainObjectCollectionFactory.newDomainObjectSet(NativeLibraryBinary.class);
+        DomainObjectSet<NativeLibraryBinary> binaries =
+                domainObjectCollectionFactory.newDomainObjectSet(NativeLibraryBinary.class);
         for (NativeBinarySpec nativeBinarySpec : projectBinaries.values()) {
             binaries.add((NativeLibraryBinary) nativeBinarySpec);
         }

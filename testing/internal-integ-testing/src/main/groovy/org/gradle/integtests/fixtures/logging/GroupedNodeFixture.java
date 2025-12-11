@@ -16,14 +16,13 @@
 
 package org.gradle.integtests.fixtures.logging;
 
-import org.gradle.integtests.fixtures.logging.comparison.ExhaustiveLinesSearcher;
+import static org.gradle.util.internal.CollectionUtils.filter;
+import static org.gradle.util.internal.CollectionUtils.join;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.gradle.util.internal.CollectionUtils.filter;
-import static org.gradle.util.internal.CollectionUtils.join;
+import org.gradle.integtests.fixtures.logging.comparison.ExhaustiveLinesSearcher;
 
 public abstract class GroupedNodeFixture {
 
@@ -61,7 +60,8 @@ public abstract class GroupedNodeFixture {
      * @param expectedText the expected lines of expectedText
      * @return this fixture
      */
-    public GroupedNodeFixture assertOutputContains(ComparisonFailureFormat assertionFailureFormat, String expectedText) {
+    public GroupedNodeFixture assertOutputContains(
+            ComparisonFailureFormat assertionFailureFormat, String expectedText) {
         switch (assertionFailureFormat) {
             case LINEWISE:
                 return assertOutputContainsUsingSearcher(expectedText, ExhaustiveLinesSearcher.useLcsDiff());
@@ -82,7 +82,8 @@ public abstract class GroupedNodeFixture {
      * @param searcher      the searcher to use to find the expected sequence of lines in the actual output
      * @return this fixture
      */
-    private GroupedNodeFixture assertOutputContainsUsingSearcher(String expectedText, ExhaustiveLinesSearcher searcher) {
+    private GroupedNodeFixture assertOutputContainsUsingSearcher(
+            String expectedText, ExhaustiveLinesSearcher searcher) {
         List<String> actualLines = Arrays.asList(getOutput().split("\\R"));
         List<String> expectedLines = Arrays.asList(expectedText.split("\\R"));
         searcher.assertLinesContainedIn(expectedLines, actualLines);
@@ -103,5 +104,4 @@ public abstract class GroupedNodeFixture {
          */
         UNIFIED
     }
-
 }

@@ -16,12 +16,11 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.internal.service.scopes.Scope.Global;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.internal.service.scopes.Scope.Global;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A factory for {@link CrossBuildInMemoryCache} instances.

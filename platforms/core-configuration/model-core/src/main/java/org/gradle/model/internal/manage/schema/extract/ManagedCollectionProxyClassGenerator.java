@@ -16,13 +16,12 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import java.lang.reflect.Constructor;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-
-import java.lang.reflect.Constructor;
 
 public class ManagedCollectionProxyClassGenerator extends AbstractProxyClassGenerator {
     /**
@@ -59,18 +58,26 @@ public class ManagedCollectionProxyClassGenerator extends AbstractProxyClassGene
                 paramTypes[i] = Type.getType(constructor.getParameterTypes()[i]);
             }
             String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, paramTypes);
-            MethodVisitor constructorVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, CONSTRUCTOR_NAME, methodDescriptor, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+            MethodVisitor constructorVisitor = visitor.visitMethod(
+                    Opcodes.ACC_PUBLIC, CONSTRUCTOR_NAME, methodDescriptor, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
             constructorVisitor.visitCode();
             putThisOnStack(constructorVisitor);
             for (int i = 0; i < paramTypes.length; i++) {
                 constructorVisitor.visitVarInsn(paramTypes[i].getOpcode(Opcodes.ILOAD), i + 1);
             }
-            constructorVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), CONSTRUCTOR_NAME, methodDescriptor, false);
+            constructorVisitor.visitMethodInsn(
+                    Opcodes.INVOKESPECIAL, superclassType.getInternalName(), CONSTRUCTOR_NAME, methodDescriptor, false);
             finishVisitingMethod(constructorVisitor);
         }
     }
 
     private void generateClass(ClassWriter visitor, Type generatedType, Type superclassType, Type publicType) {
-        visitor.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, generatedType.getInternalName(), null, superclassType.getInternalName(), new String[]{publicType.getInternalName()});
+        visitor.visit(
+                Opcodes.V1_6,
+                Opcodes.ACC_PUBLIC,
+                generatedType.getInternalName(),
+                null,
+                superclassType.getInternalName(),
+                new String[] {publicType.getInternalName()});
     }
 }

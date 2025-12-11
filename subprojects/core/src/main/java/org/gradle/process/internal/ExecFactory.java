@@ -31,8 +31,15 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * Manages forking/spawning processes.
  */
 @SuppressWarnings("deprecation")
-@ServiceScope({Scope.Global.class, Scope.UserHome.class, Scope.BuildSession.class, Scope.Build.class, Scope.Project.class})
-public interface ExecFactory extends ExecActionFactory, ExecHandleFactory, JavaExecHandleFactory, JavaForkOptionsFactory, ProcessOperations {
+@ServiceScope({
+    Scope.Global.class,
+    Scope.UserHome.class,
+    Scope.BuildSession.class,
+    Scope.Build.class,
+    Scope.Project.class
+})
+public interface ExecFactory
+        extends ExecActionFactory, ExecHandleFactory, JavaExecHandleFactory, JavaForkOptionsFactory, ProcessOperations {
 
     /**
      * Creates a new factory for the given context. Returns a {@link Builder} for further configuration of the created instance. You must provide an Instantiator when creating the child factory from

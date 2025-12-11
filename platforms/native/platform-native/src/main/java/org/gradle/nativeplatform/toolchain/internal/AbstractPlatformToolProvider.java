@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import static org.gradle.internal.FileUtils.withExtension;
+
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -38,13 +40,12 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHC
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 
-import static org.gradle.internal.FileUtils.withExtension;
-
 public abstract class AbstractPlatformToolProvider implements PlatformToolProvider {
     protected final OperatingSystemInternal targetOperatingSystem;
     protected final BuildOperationExecutor buildOperationExecutor;
 
-    public AbstractPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem) {
+    public AbstractPlatformToolProvider(
+            BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem) {
         this.targetOperatingSystem = targetOperatingSystem;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -60,8 +61,7 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     }
 
     @Override
-    public void explain(DiagnosticsVisitor visitor) {
-    }
+    public void explain(DiagnosticsVisitor visitor) {}
 
     @Override
     public String getExecutableName(String executablePath) {
@@ -100,17 +100,22 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
 
     @Override
     public String getExecutableSymbolFileName(String libraryPath) {
-        return withExtension(getExecutableName(libraryPath), SymbolExtractorOsConfig.current().getExtension());
+        return withExtension(
+                getExecutableName(libraryPath),
+                SymbolExtractorOsConfig.current().getExtension());
     }
 
     @Override
     public String getLibrarySymbolFileName(String libraryPath) {
-        return withExtension(getSharedLibraryName(libraryPath), SymbolExtractorOsConfig.current().getExtension());
+        return withExtension(
+                getSharedLibraryName(libraryPath),
+                SymbolExtractorOsConfig.current().getExtension());
     }
 
     @Override
     public <T> T get(Class<T> toolType) {
-        throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
+        throw new IllegalArgumentException(
+                String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
     }
 
     @Override
@@ -157,7 +162,8 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
         if (StripperSpec.class.isAssignableFrom(spec)) {
             return CompilerUtil.castCompiler(createStripper());
         }
-        throw new IllegalArgumentException(String.format("Don't know how to compile from a spec of type %s.", spec.getSimpleName()));
+        throw new IllegalArgumentException(
+                String.format("Don't know how to compile from a spec of type %s.", spec.getSimpleName()));
     }
 
     protected final RuntimeException unavailableTool(String message) {

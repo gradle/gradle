@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.internal;
 
+import java.io.File;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
@@ -23,9 +24,8 @@ import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
-import java.io.File;
-
-public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec implements NativeExecutableBinary, NativeExecutableBinarySpecInternal {
+public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec
+        implements NativeExecutableBinary, NativeExecutableBinarySpecInternal {
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
     private final NativeInstallationSpec installation = new NativeInstallationSpec();
     private final NativeExecutableFileSpec executable = new NativeExecutableFileSpec();
@@ -70,7 +70,8 @@ public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec 
         return tasks;
     }
 
-    private static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements NativeExecutableBinarySpec.TasksCollection {
+    private static class DefaultTasksCollection extends BinaryTasksCollectionWrapper
+            implements NativeExecutableBinarySpec.TasksCollection {
 
         public DefaultTasksCollection(BinaryTasksCollection delegate) {
             super(delegate);

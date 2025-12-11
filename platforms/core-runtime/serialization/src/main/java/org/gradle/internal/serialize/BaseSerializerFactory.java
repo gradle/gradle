@@ -18,15 +18,14 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.Cast;
-import org.gradle.internal.hash.HashCode;
-
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import org.gradle.internal.Cast;
+import org.gradle.internal.hash.HashCode;
 
 public class BaseSerializerFactory {
     public static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
@@ -61,7 +60,8 @@ public class BaseSerializerFactory {
             return Cast.uncheckedNonnullCast(BYTE_ARRAY_SERIALIZER);
         }
         if (type.isEnum()) {
-            return Cast.uncheckedNonnullCast(new EnumSerializer<Enum<?>>(Cast.<Class<Enum<?>>>uncheckedNonnullCast(type)));
+            return Cast.uncheckedNonnullCast(
+                    new EnumSerializer<Enum<?>>(Cast.<Class<Enum<?>>>uncheckedNonnullCast(type)));
         }
         if (type.equals(Boolean.class)) {
             return Cast.uncheckedNonnullCast(BOOLEAN_SERIALIZER);
@@ -306,7 +306,8 @@ public class BaseSerializerFactory {
     private static class ThrowableSerializer extends AbstractSerializer<Throwable> {
         @Override
         public Throwable read(Decoder decoder) throws Exception {
-            return (Throwable) Message.receive(decoder.getInputStream(), getClass().getClassLoader());
+            return (Throwable)
+                    Message.receive(decoder.getInputStream(), getClass().getClassLoader());
         }
 
         @Override

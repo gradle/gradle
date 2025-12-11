@@ -15,10 +15,9 @@
  */
 package org.gradle.api.artifacts.repositories;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A repository that looks into a number of directories for artifacts. The artifacts are expected to be located in the root of the specified directories.

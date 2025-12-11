@@ -17,13 +17,12 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.Closure;
+import java.util.List;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.util.List;
 
 class DynamicAddDependencyMethods implements MethodAccess {
     private final ConfigurationContainer configurationContainer;
@@ -51,7 +50,8 @@ class DynamicAddDependencyMethods implements MethodAccess {
 
         List<?> normalizedArgs = CollectionUtils.flattenCollections(arguments);
         if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
-            return DynamicInvokeResult.found(dependencyAdder.add(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1)));
+            return DynamicInvokeResult.found(
+                    dependencyAdder.add(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1)));
         } else if (normalizedArgs.size() == 1) {
             return DynamicInvokeResult.found(dependencyAdder.add(configuration, normalizedArgs.get(0), null));
         } else {

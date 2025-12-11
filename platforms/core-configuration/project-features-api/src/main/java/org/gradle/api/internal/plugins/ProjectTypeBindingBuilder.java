@@ -33,12 +33,12 @@ public interface ProjectTypeBindingBuilder {
      * @param <OwnDefinition> the type of the project type definition object
      * @param <OwnBuildModel> the type of the build model object for this project type
      */
-    <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
-        String name,
-        Class<OwnDefinition> definitionClass,
-        Class<OwnBuildModel> buildModelClass,
-        ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform
-    );
+    <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel>
+            DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
+                    String name,
+                    Class<OwnDefinition> definitionClass,
+                    Class<OwnBuildModel> buildModelClass,
+                    ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform);
 
     /**
      * Create a binding for a project type definition object in the DSL with the provided name.
@@ -51,9 +51,9 @@ public interface ProjectTypeBindingBuilder {
      * @param <OwnDefinition> the type of the project type definition object
      * @param <OwnBuildModel> the type of the build model object for this project type
      */
-    <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
-        String name,
-        Class<OwnDefinition> definitionClass,
-        ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform
-    );
+    <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel>
+            DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
+                    String name,
+                    Class<OwnDefinition> definitionClass,
+                    ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform);
 }

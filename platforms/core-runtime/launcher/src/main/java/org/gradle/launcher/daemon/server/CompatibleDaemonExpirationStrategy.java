@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.server;
 
+import java.util.Collection;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -24,8 +25,6 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.util.Collection;
 
 public class CompatibleDaemonExpirationStrategy implements DaemonExpirationStrategy {
     private final Daemon daemon;
@@ -44,8 +43,9 @@ public class CompatibleDaemonExpirationStrategy implements DaemonExpirationStrat
 
     @Override
     public DaemonExpirationResult checkExpiration() {
-        Collection<DaemonInfo> compatibleIdleDaemons = CollectionUtils.filter(daemon.getDaemonRegistry().getIdle(),
-            daemonInfo -> compatibilitySpec.isSatisfiedBy(daemonInfo.getContext()));
+        Collection<DaemonInfo> compatibleIdleDaemons = CollectionUtils.filter(
+                daemon.getDaemonRegistry().getIdle(),
+                daemonInfo -> compatibilitySpec.isSatisfiedBy(daemonInfo.getContext()));
 
         if (compatibleIdleDaemons.size() > 1) {
             return new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, EXPIRATION_REASON);

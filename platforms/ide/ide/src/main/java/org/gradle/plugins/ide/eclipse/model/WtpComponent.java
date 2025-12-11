@@ -15,24 +15,23 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
+import static com.google.common.base.Predicates.instanceOf;
+import static com.google.common.base.Predicates.not;
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
-import org.gradle.internal.Cast;
-import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.base.Predicates.instanceOf;
-import static com.google.common.base.Predicates.not;
-import static com.google.common.base.Strings.isNullOrEmpty;
+import org.gradle.internal.Cast;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
 /**
  * Creates the .settings/org.eclipse.wst.common.component file for WTP projects.
@@ -120,7 +119,6 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
         for (WbModuleEntry wbModuleEntry : wbModuleEntries) {
             wbModuleEntry.appendNode(wbModuleNode);
         }
-
     }
 
     private void removeConfigurableDataFromXml() {
@@ -153,8 +151,8 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
         }
         WtpComponent wtp = (WtpComponent) o;
         return Objects.equal(deployName, wtp.deployName)
-            && Objects.equal(contextPath, wtp.contextPath)
-            && Objects.equal(wbModuleEntries, wtp.wbModuleEntries);
+                && Objects.equal(contextPath, wtp.contextPath)
+                && Objects.equal(wbModuleEntries, wtp.wbModuleEntries);
     }
 
     @Override
@@ -165,9 +163,9 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
     @Override
     public String toString() {
         return "WtpComponent{"
-            + "wbModuleEntries=" + wbModuleEntries
-            + ", deployName='" + deployName + "\'"
-            + ", contextPath='" + contextPath + "\'"
-            + "}";
+                + "wbModuleEntries=" + wbModuleEntries
+                + ", deployName='" + deployName + "\'"
+                + ", contextPath='" + contextPath + "\'"
+                + "}";
     }
 }

@@ -46,9 +46,18 @@ public abstract class SoftwareReportingTasksPlugin implements Plugin<Project> {
         // static classes are used for the actions to avoid implicitly dragging project/tasks into the model registry
         String projectName = project.toString();
 
-        tasks.register(HelpTasksPlugin.DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new DependencyInsightReportTaskAction(projectName));
-        tasks.register(HelpTasksPlugin.DEPENDENCIES_TASK, DependencyReportTask.class, new DependencyReportTaskAction(projectName));
-        tasks.register(BuildEnvironmentReportTask.TASK_NAME, BuildEnvironmentReportTask.class, new BuildEnvironmentReportTaskAction(projectName));
+        tasks.register(
+                HelpTasksPlugin.DEPENDENCY_INSIGHT_TASK,
+                DependencyInsightReportTask.class,
+                new DependencyInsightReportTaskAction(projectName));
+        tasks.register(
+                HelpTasksPlugin.DEPENDENCIES_TASK,
+                DependencyReportTask.class,
+                new DependencyReportTaskAction(projectName));
+        tasks.register(
+                BuildEnvironmentReportTask.TASK_NAME,
+                BuildEnvironmentReportTask.class,
+                new BuildEnvironmentReportTaskAction(projectName));
 
         tasks.register(HelpTasksPlugin.OUTGOING_VARIANTS_TASK, OutgoingVariantsReportTask.class, task -> {
             task.setDescription("Displays the outgoing variants of " + projectName + ".");
@@ -56,13 +65,14 @@ public abstract class SoftwareReportingTasksPlugin implements Plugin<Project> {
             task.setImpliesSubProjects(true);
             task.getShowAll().convention(false);
         });
-        tasks.register(HelpTasksPlugin.RESOLVABLE_CONFIGURATIONS_TASK, ResolvableConfigurationsReportTask.class, task -> {
-            task.setDescription("Displays the configurations that can be resolved in " + projectName + ".");
-            task.setGroup(HelpTasksPlugin.HELP_GROUP);
-            task.setImpliesSubProjects(true);
-            task.getShowAll().convention(false);
-            task.getRecursive().convention(false);
-        });
+        tasks.register(
+                HelpTasksPlugin.RESOLVABLE_CONFIGURATIONS_TASK, ResolvableConfigurationsReportTask.class, task -> {
+                    task.setDescription("Displays the configurations that can be resolved in " + projectName + ".");
+                    task.setGroup(HelpTasksPlugin.HELP_GROUP);
+                    task.setImpliesSubProjects(true);
+                    task.getShowAll().convention(false);
+                    task.getRecursive().convention(false);
+                });
         tasks.register(HelpTasksPlugin.ARTIFACT_TRANSFORMS_TASK, ArtifactTransformsReportTask.class, task -> {
             task.setDescription("Displays the Artifact Transforms that can be executed in " + projectName + ".");
             task.setGroup(HelpTasksPlugin.HELP_GROUP);

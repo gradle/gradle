@@ -17,16 +17,16 @@
 package org.gradle.api.internal.collections;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.provider.CollectionProviderInternal;
-import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.specs.Spec;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.specs.Spec;
 
-public class ListElementSource<T> extends AbstractIterationOrderRetainingElementSource<T> implements IndexedElementSource<T> {
+public class ListElementSource<T> extends AbstractIterationOrderRetainingElementSource<T>
+        implements IndexedElementSource<T> {
     private static final Spec<ValuePointer<?>> ALWAYS_ACCEPT = pointer -> true;
 
     @Override

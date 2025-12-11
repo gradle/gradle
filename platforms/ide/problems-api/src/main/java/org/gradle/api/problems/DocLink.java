@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems;
 
-
 import org.gradle.api.Incubating;
 
 /**

@@ -68,7 +68,9 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
     @VisibleForTesting
     OperationIdentifier rootBuildOperation;
 
-    public LoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationProgressEventEmitter progressEventEmitter) {
+    public LoggingBuildOperationProgressBroadcaster(
+            OutputEventListenerManager outputEventListenerManager,
+            BuildOperationProgressEventEmitter progressEventEmitter) {
         this.outputEventListenerManager = outputEventListenerManager;
         this.progressEventEmitter = progressEventEmitter;
         outputEventListenerManager.setListener(this);
@@ -103,11 +105,7 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
     }
 
     private void emit(CategorisedOutputEvent event, OperationIdentifier buildOperationId) {
-        progressEventEmitter.emit(
-            buildOperationId,
-            event.getTimestamp(),
-            event
-        );
+        progressEventEmitter.emit(buildOperationId, event.getTimestamp(), event);
     }
 
     @Override

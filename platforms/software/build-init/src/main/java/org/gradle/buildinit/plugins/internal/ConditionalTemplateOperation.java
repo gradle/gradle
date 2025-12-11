@@ -15,9 +15,8 @@
  */
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.internal.Factory;
-
 import java.util.List;
+import org.gradle.internal.Factory;
 
 public class ConditionalTemplateOperation implements TemplateOperation {
     private final List<TemplateOperation> optionalOperations;

@@ -17,12 +17,11 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
+import java.util.function.Supplier;
 import org.gradle.api.internal.file.pattern.PathMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.internal.hash.Hasher;
-
-import java.util.Set;
-import java.util.function.Supplier;
 
 public class IgnoringResourceFilter implements ResourceFilter {
     private final Set<String> ignores;

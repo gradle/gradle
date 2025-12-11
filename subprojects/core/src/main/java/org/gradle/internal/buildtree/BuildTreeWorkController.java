@@ -17,13 +17,12 @@
 package org.gradle.internal.buildtree;
 
 import com.google.common.base.Preconditions;
+import java.util.Optional;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Optional;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildTreeWorkController {
@@ -35,6 +34,7 @@ public interface BuildTreeWorkController {
 
     class TaskRunResult {
         private final ExecutionResult<Void> scheduleResult;
+
         @Nullable
         private final ExecutionResult<Void> executionResult;
 

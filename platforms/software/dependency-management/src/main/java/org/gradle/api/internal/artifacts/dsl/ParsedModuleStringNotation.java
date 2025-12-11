@@ -44,7 +44,9 @@ public class ParsedModuleStringNotation {
         assignValue(count, moduleNotation.substring(idx, cur));
         count++;
         if (count < 2 || count > 4) {
-            throw new IllegalDependencyNotation("Supplied String module notation '" + moduleNotation + "' is invalid. Example notations: 'org.gradle:gradle-core:2.2', 'org.mockito:mockito-core:1.9.5:javadoc'.");
+            throw new IllegalDependencyNotation(
+                    "Supplied String module notation '" + moduleNotation
+                            + "' is invalid. Example notations: 'org.gradle:gradle-core:2.2', 'org.mockito:mockito-core:1.9.5:javadoc'.");
         }
     }
 

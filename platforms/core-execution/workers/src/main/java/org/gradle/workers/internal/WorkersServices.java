@@ -75,31 +75,41 @@ public class WorkersServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        ConditionalExecutionQueueFactory createConditionalExecutionQueueFactory(ExecutorFactory executorFactory, WorkerLimits workerLimits, WorkerLeaseService workerLeaseService) {
+        ConditionalExecutionQueueFactory createConditionalExecutionQueueFactory(
+                ExecutorFactory executorFactory, WorkerLimits workerLimits, WorkerLeaseService workerLeaseService) {
             return new DefaultConditionalExecutionQueueFactory(workerLimits, executorFactory, workerLeaseService);
         }
 
         @Provides
-        WorkerExecutionQueueFactory createWorkerExecutionQueueFactory(ConditionalExecutionQueueFactory conditionalExecutionQueueFactory) {
+        WorkerExecutionQueueFactory createWorkerExecutionQueueFactory(
+                ConditionalExecutionQueueFactory conditionalExecutionQueueFactory) {
             return new WorkerExecutionQueueFactory(conditionalExecutionQueueFactory);
         }
 
         @Provides
-        WorkerDaemonClientCancellationHandler createWorkerDaemonClientSessionHandler(WorkerDaemonClientsManager workerDaemonClientsManager, BuildCancellationToken buildCancellationToken) {
+        WorkerDaemonClientCancellationHandler createWorkerDaemonClientSessionHandler(
+                WorkerDaemonClientsManager workerDaemonClientsManager, BuildCancellationToken buildCancellationToken) {
             return new WorkerDaemonClientCancellationHandler(workerDaemonClientsManager, buildCancellationToken);
         }
     }
 
     private static class GradleUserHomeServices implements ServiceRegistrationProvider {
         @Provides
-        WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
-                                                                    LoggingManagerInternal loggingManager,
-                                                                    ListenerManager listenerManager,
-                                                                    MemoryManager memoryManager,
-                                                                    OsMemoryInfo memoryInfo,
-                                                                    ClassPathRegistry classPathRegistry,
-                                                                    ActionExecutionSpecFactory actionExecutionSpecFactory) {
-            return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, loggingManager, classPathRegistry, actionExecutionSpecFactory), listenerManager, loggingManager, memoryManager, memoryInfo);
+        WorkerDaemonClientsManager createWorkerDaemonClientsManager(
+                WorkerProcessFactory workerFactory,
+                LoggingManagerInternal loggingManager,
+                ListenerManager listenerManager,
+                MemoryManager memoryManager,
+                OsMemoryInfo memoryInfo,
+                ClassPathRegistry classPathRegistry,
+                ActionExecutionSpecFactory actionExecutionSpecFactory) {
+            return new WorkerDaemonClientsManager(
+                    new WorkerDaemonStarter(
+                            workerFactory, loggingManager, classPathRegistry, actionExecutionSpecFactory),
+                    listenerManager,
+                    loggingManager,
+                    memoryManager,
+                    memoryInfo);
         }
 
         @Provides
@@ -108,60 +118,69 @@ public class WorkersServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+        IsolatableSerializerRegistry createIsolatableSerializerRegistry(
+                ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
             return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
         }
 
         @Provides
-        ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
+        ActionExecutionSpecFactory createActionExecutionSpecFactory(
+                IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
             return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
         }
     }
 
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
-        WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory,
-                                            WorkerDaemonFactory daemonWorkerFactory,
-                                            IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory,
-                                            JavaForkOptionsFactory forkOptionsFactory,
-                                            WorkerLeaseRegistry workerLeaseRegistry,
-                                            BuildOperationRunner buildOperationRunner,
-                                            AsyncWorkTracker asyncWorkTracker,
-                                            WorkerDirectoryProvider workerDirectoryProvider,
-                                            ClassLoaderStructureProvider classLoaderStructureProvider,
-                                            WorkerExecutionQueueFactory workerExecutionQueueFactory,
-                                            ServiceRegistry projectServices,
-                                            ActionExecutionSpecFactory actionExecutionSpecFactory,
-                                            CachedClasspathTransformer classpathTransformer,
-                                            ProjectLayout projectLayout,
-                                            ProjectCacheDir projectCacheDir
-                                            ) {
-            NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationRunner, instantiatorFactory, actionExecutionSpecFactory, projectServices);
+        WorkerExecutor createWorkerExecutor(
+                InstantiatorFactory instantiatorFactory,
+                WorkerDaemonFactory daemonWorkerFactory,
+                IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory,
+                JavaForkOptionsFactory forkOptionsFactory,
+                WorkerLeaseRegistry workerLeaseRegistry,
+                BuildOperationRunner buildOperationRunner,
+                AsyncWorkTracker asyncWorkTracker,
+                WorkerDirectoryProvider workerDirectoryProvider,
+                ClassLoaderStructureProvider classLoaderStructureProvider,
+                WorkerExecutionQueueFactory workerExecutionQueueFactory,
+                ServiceRegistry projectServices,
+                ActionExecutionSpecFactory actionExecutionSpecFactory,
+                CachedClasspathTransformer classpathTransformer,
+                ProjectLayout projectLayout,
+                ProjectCacheDir projectCacheDir) {
+            NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(
+                    buildOperationRunner, instantiatorFactory, actionExecutionSpecFactory, projectServices);
 
-            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(
-                DefaultWorkerExecutor.class,
-                daemonWorkerFactory,
-                isolatedClassloaderWorkerFactory,
-                noIsolationWorkerFactory,
-                forkOptionsFactory,
-                workerLeaseRegistry,
-                buildOperationRunner,
-                asyncWorkTracker,
-                workerDirectoryProvider,
-                workerExecutionQueueFactory,
-                classLoaderStructureProvider,
-                actionExecutionSpecFactory,
-                instantiatorFactory.decorateLenient(projectServices),
-                classpathTransformer,
-                projectLayout.getProjectDirectory().getAsFile(),
-                projectCacheDir);
+            DefaultWorkerExecutor workerExecutor = instantiatorFactory
+                    .decorateLenient()
+                    .newInstance(
+                            DefaultWorkerExecutor.class,
+                            daemonWorkerFactory,
+                            isolatedClassloaderWorkerFactory,
+                            noIsolationWorkerFactory,
+                            forkOptionsFactory,
+                            workerLeaseRegistry,
+                            buildOperationRunner,
+                            asyncWorkTracker,
+                            workerDirectoryProvider,
+                            workerExecutionQueueFactory,
+                            classLoaderStructureProvider,
+                            actionExecutionSpecFactory,
+                            instantiatorFactory.decorateLenient(projectServices),
+                            classpathTransformer,
+                            projectLayout.getProjectDirectory().getAsFile(),
+                            projectCacheDir);
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);
             return workerExecutor;
         }
 
         @Provides
-        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler) {
-            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationRunner, workerDaemonClientCancellationHandler);
+        WorkerDaemonFactory createWorkerDaemonFactory(
+                WorkerDaemonClientsManager workerDaemonClientsManager,
+                BuildOperationRunner buildOperationRunner,
+                WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler) {
+            return new WorkerDaemonFactory(
+                    workerDaemonClientsManager, buildOperationRunner, workerDaemonClientCancellationHandler);
         }
     }
 }

@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
-import org.gradle.api.GradleException;
+import static org.gradle.internal.FileUtils.hasExtension;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import static org.gradle.internal.FileUtils.hasExtension;
+import org.gradle.api.GradleException;
 
 public class JarFilePackageLister {
     public void listJarPackages(File jarFile, JarFilePackageListener listener) {
@@ -52,8 +51,8 @@ public class JarFilePackageLister {
                 while (zipFileEntries.hasMoreElements()) {
                     final ZipEntry zipEntry = zipFileEntries.nextElement();
                     final String entryName = zipEntry.getName();
-                    final String packageName = zipEntry.isDirectory() ? entryName :
-                        entryName.substring(0, entryName.lastIndexOf("/") + 1);
+                    final String packageName =
+                            zipEntry.isDirectory() ? entryName : entryName.substring(0, entryName.lastIndexOf("/") + 1);
 
                     if (!packageName.startsWith("META-INF")) {
                         listener.receivePackage(packageName);

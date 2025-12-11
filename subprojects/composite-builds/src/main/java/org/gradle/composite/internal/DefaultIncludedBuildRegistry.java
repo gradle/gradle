@@ -17,6 +17,18 @@
 package org.gradle.composite.internal;
 
 import com.google.common.base.MoreObjects;
+import java.io.File;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
@@ -39,19 +51,6 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Consumer;
-
 public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppable {
     private final IncludedBuildFactory includedBuildFactory;
     private final BuildAddedListener buildAddedBroadcaster;
@@ -66,7 +65,10 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<Path, File> nestedBuildDirectoriesByPath = new LinkedHashMap<>();
     private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
 
-    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ListenerManager listenerManager, BuildStateFactory buildStateFactory) {
+    public DefaultIncludedBuildRegistry(
+            IncludedBuildFactory includedBuildFactory,
+            ListenerManager listenerManager,
+            BuildStateFactory buildStateFactory) {
         this.includedBuildFactory = includedBuildFactory;
         this.buildAddedBroadcaster = listenerManager.getBroadcaster(BuildAddedListener.class);
         this.buildStateFactory = buildStateFactory;
@@ -187,7 +189,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public NestedBuildTree addNestedBuildTree(BuildInvocationScopeId buildInvocationScopeId, BuildDefinition buildDefinition, BuildState owner, @Nullable String buildName) {
+    public NestedBuildTree addNestedBuildTree(
+            BuildInvocationScopeId buildInvocationScopeId,
+            BuildDefinition buildDefinition,
+            BuildState owner,
+            @Nullable String buildName) {
         if (buildDefinition.getName() != null || buildDefinition.getBuildRootDir() != null) {
             throw new UnsupportedOperationException("Not yet implemented."); // but should be
         }
@@ -209,11 +215,13 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     private static void validateNameIsNotBuildSrc(String name, File dir) {
         if (SettingsInternal.BUILD_SRC.equals(name)) {
-            throw new GradleException("Included build " + dir + " has build name 'buildSrc' which cannot be used as it is a reserved name.");
+            throw new GradleException("Included build " + dir
+                    + " has build name 'buildSrc' which cannot be used as it is a reserved name.");
         }
     }
 
-    private IncludedBuildState registerBuild(BuildDefinition buildDefinition, boolean isImplicit, @Nullable Path buildPath) {
+    private IncludedBuildState registerBuild(
+            BuildDefinition buildDefinition, boolean isImplicit, @Nullable Path buildPath) {
         // TODO: synchronization
         File buildDir = buildDefinition.getBuildRootDir();
         if (buildDir == null) {
@@ -248,18 +256,16 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private Path assignPath(BuildState owner, String name, File dir) {
         // Get the closest ancestor build of the build directory which we are currently adding
         Optional<Map.Entry<File, NestedBuildState>> parentBuild = nestedBuildsByRootDir.entrySet().stream()
-            .filter(entry -> isPrefix(entry.getKey(), dir))
-            .reduce((a, b) -> isPrefix(a.getKey(), b.getKey())
-                ? b
-                : a
-            );
+                .filter(entry -> isPrefix(entry.getKey(), dir))
+                .reduce((a, b) -> isPrefix(a.getKey(), b.getKey()) ? b : a);
         // If there is an ancestor, then we use it to qualify the path of the build we are adding
-        Path requestedPath = parentBuild.map(
-            entry -> entry.getValue().getIdentityPath().append(Path.path(name))
-        ).orElseGet(() -> owner.getIdentityPath().append(Path.path(name)));
+        Path requestedPath = parentBuild
+                .map(entry -> entry.getValue().getIdentityPath().append(Path.path(name)))
+                .orElseGet(() -> owner.getIdentityPath().append(Path.path(name)));
         File existingForPath = nestedBuildDirectoriesByPath.putIfAbsent(requestedPath, dir);
         if (existingForPath != null) {
-            throw new GradleException("Included build " + dir + " has build path " + requestedPath + " which is the same as included build " + existingForPath);
+            throw new GradleException("Included build " + dir + " has build path " + requestedPath
+                    + " which is the same as included build " + existingForPath);
         }
 
         return requestedPath;
@@ -276,7 +282,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     private void assertNameDoesNotClashWithRootSubproject(IncludedBuildState includedBuild) {
         if (rootBuild.getProjects().findProject(includedBuild.getIdentityPath()) != null) {
-            throw new GradleException("Included build in " + includedBuild.getBuildRootDir() + " has name '" + includedBuild.getName() + "' which is the same as a project of the main build.");
+            throw new GradleException("Included build in " + includedBuild.getBuildRootDir() + " has name '"
+                    + includedBuild.getName() + "' which is the same as a project of the main build.");
         }
     }
 }

@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.file;
 
+import java.io.File;
+import java.net.URI;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -29,10 +32,6 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
-import java.net.URI;
-import java.util.Map;
 
 @ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface FileOperations {

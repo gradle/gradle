@@ -17,7 +17,6 @@
 /**
  * Internal problems specisficx.
  **/
-
 @NullMarked
 package org.gradle.tooling.events.problems.internal;
 

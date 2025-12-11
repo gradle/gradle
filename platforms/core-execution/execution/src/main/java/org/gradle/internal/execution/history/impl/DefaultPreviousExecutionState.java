@@ -26,22 +26,22 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class DefaultPreviousExecutionState extends AbstractInputExecutionState<FileCollectionFingerprint> implements PreviousExecutionState {
+public class DefaultPreviousExecutionState extends AbstractInputExecutionState<FileCollectionFingerprint>
+        implements PreviousExecutionState {
     private final ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork;
     private final OriginMetadata originMetadata;
     private final boolean successful;
     private final HashCode cacheKey;
 
     public DefaultPreviousExecutionState(
-        OriginMetadata originMetadata,
-        HashCode cacheKey,
-        ImplementationSnapshot implementation,
-        ImmutableList<ImplementationSnapshot> additionalImplementations,
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedMap<String, FileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork,
-        boolean successful
-    ) {
+            OriginMetadata originMetadata,
+            HashCode cacheKey,
+            ImplementationSnapshot implementation,
+            ImmutableList<ImplementationSnapshot> additionalImplementations,
+            ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+            ImmutableSortedMap<String, FileCollectionFingerprint> inputFileProperties,
+            ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork,
+            boolean successful) {
         super(implementation, additionalImplementations, inputProperties, inputFileProperties);
         this.outputFilesProducedByWork = outputFilesProducedByWork;
         this.originMetadata = originMetadata;

@@ -43,5 +43,4 @@ public interface FilePropertyFactory {
      * Returns a new FilePropertyFactory configured with the given file resolver.
      */
     FilePropertyFactory withResolver(FileResolver fileResolver);
-
 }

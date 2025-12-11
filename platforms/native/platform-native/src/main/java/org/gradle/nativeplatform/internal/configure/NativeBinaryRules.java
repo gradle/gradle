@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.internal.configure;
 
+import java.io.File;
 import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
@@ -26,23 +27,29 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-import java.io.File;
-
 public class NativeBinaryRules extends RuleSource {
     @Defaults
-    public static void assignTools(NativeBinarySpec nativeBinarySpec, NativeToolChainRegistryInternal toolChains, ProjectLayout projectLayout) {
+    public static void assignTools(
+            NativeBinarySpec nativeBinarySpec,
+            NativeToolChainRegistryInternal toolChains,
+            ProjectLayout projectLayout) {
         assignTools(nativeBinarySpec, toolChains, projectLayout.getBuildDir());
     }
 
-    static void assignTools(NativeBinarySpec nativeBinarySpec, NativeToolChainRegistryInternal toolChains, File buildDir) {
+    static void assignTools(
+            NativeBinarySpec nativeBinarySpec, NativeToolChainRegistryInternal toolChains, File buildDir) {
         NativeBinarySpecInternal nativeBinary = (NativeBinarySpecInternal) nativeBinarySpec;
         assignToolsToNativeBinary(nativeBinary, nativeBinarySpec, toolChains);
         assignToolsToNativeBinaryExtension(nativeBinary, buildDir);
     }
 
-    private static void assignToolsToNativeBinary(NativeBinarySpecInternal nativeBinary, NativeBinarySpec nativeBinarySpec, NativeToolChainRegistryInternal toolChains) {
+    private static void assignToolsToNativeBinary(
+            NativeBinarySpecInternal nativeBinary,
+            NativeBinarySpec nativeBinarySpec,
+            NativeToolChainRegistryInternal toolChains) {
         NativeToolChainInternal toolChain = toolChainFor(nativeBinarySpec, toolChains);
-        PlatformToolProvider toolProvider = toolChain.select((NativePlatformInternal) nativeBinarySpec.getTargetPlatform());
+        PlatformToolProvider toolProvider =
+                toolChain.select((NativePlatformInternal) nativeBinarySpec.getTargetPlatform());
         nativeBinary.setToolChain(toolChain);
         nativeBinary.setPlatformToolProvider(toolProvider);
     }
@@ -77,19 +84,26 @@ public class NativeBinaryRules extends RuleSource {
     }
 
     public static File executableFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return new File(nativeBinary.getNamingScheme().getOutputDirectory(buildDir, "exe"), executableNameFor(nativeBinary));
+        return new File(
+                nativeBinary.getNamingScheme().getOutputDirectory(buildDir, "exe"), executableNameFor(nativeBinary));
     }
 
     private static File sharedLibraryLinkFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return new File(nativeBinary.getNamingScheme().getOutputDirectory(buildDir, "libs"), sharedLibraryLinkFileNameFor(nativeBinary));
+        return new File(
+                nativeBinary.getNamingScheme().getOutputDirectory(buildDir, "libs"),
+                sharedLibraryLinkFileNameFor(nativeBinary));
     }
 
     private static File sharedLibraryFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return new File(nativeBinary.getNamingScheme().getOutputDirectory(buildDir, "libs"), sharedLibraryNameFor(nativeBinary));
+        return new File(
+                nativeBinary.getNamingScheme().getOutputDirectory(buildDir, "libs"),
+                sharedLibraryNameFor(nativeBinary));
     }
 
     private static File staticLibraryFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return new File(nativeBinary.getNamingScheme().getOutputDirectory(buildDir, "libs"), staticLibraryNameFor(nativeBinary));
+        return new File(
+                nativeBinary.getNamingScheme().getOutputDirectory(buildDir, "libs"),
+                staticLibraryNameFor(nativeBinary));
     }
 
     public static File installationDirFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
@@ -116,8 +130,8 @@ public class NativeBinaryRules extends RuleSource {
         return nativeBinary.getComponent().getBaseName();
     }
 
-    private static NativeToolChainInternal toolChainFor(NativeBinarySpec nativeBinary, NativeToolChainRegistryInternal toolChains) {
+    private static NativeToolChainInternal toolChainFor(
+            NativeBinarySpec nativeBinary, NativeToolChainRegistryInternal toolChains) {
         return (NativeToolChainInternal) toolChains.getForPlatform(nativeBinary.getTargetPlatform());
     }
-
 }

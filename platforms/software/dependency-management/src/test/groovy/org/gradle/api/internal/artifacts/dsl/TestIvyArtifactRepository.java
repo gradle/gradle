@@ -19,5 +19,4 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 
-public interface TestIvyArtifactRepository extends ArtifactRepositoryInternal, IvyArtifactRepository {
-}
+public interface TestIvyArtifactRepository extends ArtifactRepositoryInternal, IvyArtifactRepository {}

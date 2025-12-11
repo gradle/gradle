@@ -16,6 +16,7 @@
 
 package org.gradle.internal.remote.services;
 
+import java.util.UUID;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
@@ -30,8 +31,6 @@ import org.gradle.internal.remote.internal.inet.TcpIncomingConnector;
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
-
-import java.util.UUID;
 
 /**
  * A factory for a set of messaging services. Provides the following services:
@@ -58,26 +57,20 @@ public class MessagingServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected IncomingConnector createIncomingConnector(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
-        return new TcpIncomingConnector(
-                executorFactory,
-                inetAddressFactory,
-                idGenerator,
-                10
-        );
+    protected IncomingConnector createIncomingConnector(
+            ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
+        return new TcpIncomingConnector(executorFactory, inetAddressFactory, idGenerator, 10);
     }
 
     @Provides
-    protected MessagingClient createMessagingClient(OutgoingConnector outgoingConnector, ExecutorFactory executorFactory) {
-        return new MessageHubBackedClient(
-                outgoingConnector,
-                executorFactory);
+    protected MessagingClient createMessagingClient(
+            OutgoingConnector outgoingConnector, ExecutorFactory executorFactory) {
+        return new MessageHubBackedClient(outgoingConnector, executorFactory);
     }
 
     @Provides
-    protected MessagingServer createMessagingServer(IncomingConnector incomingConnector, ExecutorFactory executorFactory) {
-        return new MessageHubBackedServer(
-                incomingConnector,
-                executorFactory);
+    protected MessagingServer createMessagingServer(
+            IncomingConnector incomingConnector, ExecutorFactory executorFactory) {
+        return new MessageHubBackedServer(incomingConnector, executorFactory);
     }
 }

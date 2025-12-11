@@ -17,11 +17,10 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Optional;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 
 /**
  * Represents the metadata of a function (i.e. an annotated method not associated with a property).

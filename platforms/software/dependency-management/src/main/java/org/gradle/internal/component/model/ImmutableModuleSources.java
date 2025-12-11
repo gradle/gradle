@@ -15,14 +15,13 @@
  */
 package org.gradle.internal.component.model;
 
-import org.gradle.internal.Cast;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
 public class ImmutableModuleSources implements ModuleSources {
     private static final ImmutableModuleSources EMPTY = new ImmutableModuleSources(null, null);

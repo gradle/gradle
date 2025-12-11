@@ -15,9 +15,6 @@
  */
 package org.gradle.internal.io;
 
-import org.gradle.internal.UncheckedException;
-import org.jspecify.annotations.Nullable;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +29,8 @@ import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An in-memory buffer that provides OutputStream and InputStream interfaces.
@@ -42,7 +40,9 @@ import java.util.List;
  * Reading the buffer will clear the buffer.
  * This is not thread-safe, it is intended to be used by a single Thread.
  */
-@SuppressWarnings("NullAway") // TODO(mlopatkin): there are many violations, but they're confined in this class. We suppress to unblock downstream project's work.
+@SuppressWarnings(
+        "NullAway") // TODO(mlopatkin): there are many violations, but they're confined in this class. We suppress to
+// unblock downstream project's work.
 public class StreamByteBuffer {
     private static final int DEFAULT_CHUNK_SIZE = 4096;
     private static final int MAX_CHUNK_SIZE = 1024 * 1024;
@@ -171,9 +171,9 @@ public class StreamByteBuffer {
     }
 
     private CharBuffer readAsCharBuffer(Charset charset) throws CharacterCodingException {
-        CharsetDecoder decoder = charset.newDecoder().onMalformedInput(
-                CodingErrorAction.REPLACE).onUnmappableCharacter(
-                CodingErrorAction.REPLACE);
+        CharsetDecoder decoder = charset.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPLACE)
+                .onUnmappableCharacter(CodingErrorAction.REPLACE);
         CharBuffer charbuffer = CharBuffer.allocate(totalBytesUnread());
         ByteBuffer buf = null;
         boolean wasUnderflow = false;
@@ -183,7 +183,8 @@ public class StreamByteBuffer {
             if (hasRemaining(buf)) {
                 // handle decoding underflow, multi-byte unicode character at buffer chunk boundary
                 if (!wasUnderflow) {
-                    throw new IllegalStateException("Unexpected state. Buffer has remaining bytes without underflow in decoding.");
+                    throw new IllegalStateException(
+                            "Unexpected state. Buffer has remaining bytes without underflow in decoding.");
                 }
                 if (!hasRemaining(nextBuf) && prepareRead() != -1) {
                     nextBuf = currentReadChunk.readToNioBuffer();
@@ -384,7 +385,7 @@ public class StreamByteBuffer {
 
         public int readFrom(InputStream inputStream, int len) throws IOException {
             int readBytes = inputStream.read(buffer, used, len);
-            if(readBytes > 0) {
+            if (readBytes > 0) {
                 used += readBytes;
             }
             return readBytes;
@@ -417,8 +418,7 @@ public class StreamByteBuffer {
                 throw new NullPointerException();
             }
 
-            if ((off < 0) || (off > b.length) || (len < 0)
-                    || ((off + len) > b.length) || ((off + len) < 0)) {
+            if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length) || ((off + len) < 0)) {
                 throw new IndexOutOfBoundsException();
             }
 
@@ -474,8 +474,7 @@ public class StreamByteBuffer {
                 throw new NullPointerException();
             }
 
-            if ((off < 0) || (off > b.length) || (len < 0)
-                    || ((off + len) > b.length) || ((off + len) < 0)) {
+            if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length) || ((off + len) < 0)) {
                 throw new IndexOutOfBoundsException();
             }
 

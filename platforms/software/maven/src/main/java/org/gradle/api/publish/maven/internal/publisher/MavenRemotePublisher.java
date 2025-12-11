@@ -16,6 +16,13 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import java.io.File;
+import java.net.URI;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.Snapshot;
 import org.apache.maven.artifact.repository.metadata.SnapshotVersion;
@@ -33,14 +40,6 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.net.URI;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 
 @NullMarked
 public class MavenRemotePublisher extends AbstractMavenPublisher {
@@ -67,7 +66,13 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
     }
 
     @Override
-    protected Metadata createSnapshotMetadata(MavenNormalizedPublication publication, String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource) {
+    protected Metadata createSnapshotMetadata(
+            MavenNormalizedPublication publication,
+            String groupId,
+            String artifactId,
+            String version,
+            ExternalResourceRepository repository,
+            ExternalResourceName metadataResource) {
         Metadata metadata = new Metadata();
         metadata.setModelVersion("1.1.0");
         metadata.setGroupId(groupId);
@@ -84,7 +89,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         versioning.setSnapshot(snapshot);
         versioning.setLastUpdated(snapshot.getTimestamp().replace(".", ""));
 
-        String timestampVersion = version.replace("SNAPSHOT", snapshot.getTimestamp() + "-" + snapshot.getBuildNumber());
+        String timestampVersion =
+                version.replace("SNAPSHOT", snapshot.getTimestamp() + "-" + snapshot.getBuildNumber());
         for (MavenArtifact artifact : publication.getAllArtifacts()) {
             SnapshotVersion sv = new SnapshotVersion();
             sv.setClassifier(artifact.getClassifier());

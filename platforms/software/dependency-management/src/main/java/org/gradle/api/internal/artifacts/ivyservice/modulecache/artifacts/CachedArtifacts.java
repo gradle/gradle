@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
+import java.util.Set;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.hash.HashCode;
-
-import java.util.Set;
 
 public interface CachedArtifacts {
     Set<ComponentArtifactMetadata> getArtifacts();

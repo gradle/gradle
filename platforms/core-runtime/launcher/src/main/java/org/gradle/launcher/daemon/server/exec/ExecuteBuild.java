@@ -40,10 +40,12 @@ public class ExecuteBuild extends BuildCommandOnly {
 
     private static final Logger LOGGER = Logging.getLogger(ExecuteBuild.class);
 
-    final private BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter;
+    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter;
     private final DaemonRunningStats runningStats;
 
-    public ExecuteBuild(BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter, DaemonRunningStats runningStats) {
+    public ExecuteBuild(
+            BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter,
+            DaemonRunningStats runningStats) {
         this.actionExecuter = actionExecuter;
         this.runningStats = runningStats;
     }
@@ -55,10 +57,13 @@ public class ExecuteBuild extends BuildCommandOnly {
         runningStats.buildStarted();
         DaemonConnectionBackedEventConsumer buildEventConsumer = new DaemonConnectionBackedEventConsumer(execution);
         try {
-            BuildCancellationToken cancellationToken = execution.getDaemonStateControl().getCancellationToken();
+            BuildCancellationToken cancellationToken =
+                    execution.getDaemonStateControl().getCancellationToken();
             DefaultBuildClientMetaData clientMetaData = new DefaultBuildClientMetaData(build.getBuildClientMetaData());
-            BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(clientMetaData, build.getStartTime(), build.isInteractive());
-            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(buildRequestMetaData, cancellationToken, buildEventConsumer);
+            BuildRequestMetaData buildRequestMetaData =
+                    new DefaultBuildRequestMetaData(clientMetaData, build.getStartTime(), build.isInteractive());
+            BuildRequestContext buildRequestContext =
+                    new DefaultBuildRequestContext(buildRequestMetaData, cancellationToken, buildEventConsumer);
             if (!build.getAction().getStartParameter().isContinuous()) {
                 buildRequestContext.getCancellationToken().addCallback(new Runnable() {
                     @Override
@@ -67,7 +72,8 @@ public class ExecuteBuild extends BuildCommandOnly {
                     }
                 });
             }
-            BuildActionResult result = actionExecuter.execute(build.getAction(), build.getParameters(), buildRequestContext);
+            BuildActionResult result =
+                    actionExecuter.execute(build.getAction(), build.getParameters(), buildRequestContext);
             execution.setResult(result);
         } finally {
             buildEventConsumer.waitForFinish();
@@ -75,7 +81,8 @@ public class ExecuteBuild extends BuildCommandOnly {
             LOGGER.debug(DaemonMessages.FINISHED_BUILD);
         }
 
-        execution.proceed(); // ExecuteBuild should be the last action, but in case we want to decorate the result in the future
+        execution
+                .proceed(); // ExecuteBuild should be the last action, but in case we want to decorate the result in the
+        // future
     }
-
 }

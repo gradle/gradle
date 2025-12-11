@@ -16,12 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
+import javax.inject.Inject;
+import org.jspecify.annotations.Nullable;
 
 public class JabbaInstallationSupplier implements InstallationSupplier {
     private final ToolchainConfiguration toolchainConfiguration;
@@ -44,7 +43,8 @@ public class JabbaInstallationSupplier implements InstallationSupplier {
     private Set<InstallationLocation> findJavaCandidates(@Nullable File candidatesDir) {
         if (candidatesDir != null) {
             final File root = new File(candidatesDir, "jdk");
-            return FileBasedInstallationFactory.fromDirectory(root, getSourceName(), InstallationLocation::autoDetected);
+            return FileBasedInstallationFactory.fromDirectory(
+                    root, getSourceName(), InstallationLocation::autoDetected);
         } else {
             return Collections.emptySet();
         }

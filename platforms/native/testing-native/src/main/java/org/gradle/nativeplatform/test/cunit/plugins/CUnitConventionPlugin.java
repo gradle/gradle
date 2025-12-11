@@ -42,9 +42,9 @@ public abstract class CUnitConventionPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
 
         @Defaults
-        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components) {
+        public void createCUnitTestSuitePerComponent(
+                TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components) {
             NativeTestSuites.createConventionalTestSuites(testSuites, components, CUnitTestSuiteSpec.class);
         }
     }
-
 }

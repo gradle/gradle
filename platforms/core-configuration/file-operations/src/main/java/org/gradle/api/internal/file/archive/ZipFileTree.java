@@ -15,6 +15,16 @@
  */
 package org.gradle.api.internal.file.archive;
 
+import static java.lang.String.format;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.gradle.api.GradleException;
@@ -30,17 +40,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static java.lang.String.format;
-
 public class ZipFileTree extends AbstractArchiveFileTree {
     private static final String ZIP_ENTRY_PREFIX = "zip entry";
 
@@ -51,13 +50,12 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     private final TemporaryFileProvider temporaryExtractionDir;
 
     public ZipFileTree(
-        Provider<File> zipFile,
-        Chmod chmod,
-        DirectoryFileTreeFactory directoryFileTreeFactory,
-        FileHasher fileHasher,
-        DecompressionCoordinator decompressionCoordinator,
-        TemporaryFileProvider temporaryExtractionDir
-    ) {
+            Provider<File> zipFile,
+            Chmod chmod,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            FileHasher fileHasher,
+            DecompressionCoordinator decompressionCoordinator,
+            TemporaryFileProvider temporaryExtractionDir) {
         super(decompressionCoordinator);
         this.fileProvider = zipFile;
         this.chmod = chmod;
@@ -141,7 +139,13 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         private final ZipArchiveEntry entry;
         private final ZipFile zip;
 
-        public DetailsImpl(File originalFile, File expandedDir, ZipArchiveEntry entry, ZipFile zip, AtomicBoolean stopFlag, Chmod chmod) {
+        public DetailsImpl(
+                File originalFile,
+                File expandedDir,
+                ZipArchiveEntry entry,
+                ZipFile zip,
+                AtomicBoolean stopFlag,
+                Chmod chmod) {
             super(chmod, expandedDir, stopFlag);
             this.originalFile = originalFile;
             this.entry = entry;

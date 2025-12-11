@@ -24,5 +24,4 @@ import org.gradle.api.Incubating;
  * @since 8.13
  */
 @Incubating
-public interface Problem {
-}
+public interface Problem {}

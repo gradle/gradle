@@ -16,10 +16,9 @@
 
 package org.gradle.cache.scopes;
 
+import java.io.File;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 /**
  * Factory for creating global {@link org.gradle.cache.CacheBuilder}s. These typically live under the ~/.gradle/caches directory.

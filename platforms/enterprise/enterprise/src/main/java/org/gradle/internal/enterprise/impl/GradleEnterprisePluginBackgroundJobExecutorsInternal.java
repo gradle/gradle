@@ -21,7 +21,8 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.BuildTree.class)
-public interface GradleEnterprisePluginBackgroundJobExecutorsInternal extends GradleEnterprisePluginBackgroundJobExecutors {
+public interface GradleEnterprisePluginBackgroundJobExecutorsInternal
+        extends GradleEnterprisePluginBackgroundJobExecutors {
 
     /**
      * Shuts the executors down.
@@ -30,5 +31,4 @@ public interface GradleEnterprisePluginBackgroundJobExecutorsInternal extends Gr
      * @throws RuntimeException any exception or error thrown by a job is rethrown from this method, potentially wrapped as a RuntimeException
      */
     void shutdown();
-
 }

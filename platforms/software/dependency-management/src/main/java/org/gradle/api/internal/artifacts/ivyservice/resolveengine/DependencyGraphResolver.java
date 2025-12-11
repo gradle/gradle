@@ -16,7 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import static org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator.NO_OP;
+
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
@@ -44,11 +48,6 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.inject.Inject;
-import java.util.List;
-
-import static org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator.NO_OP;
-
 /**
  * Resolves a dependency graph and visits it. Essentially, this class is a {@link DependencyGraphBuilder} executor.
  */
@@ -64,13 +63,12 @@ public class DependencyGraphResolver {
 
     @Inject
     public DependencyGraphResolver(
-        VersionComparator versionComparator,
-        VersionParser versionParser,
-        InstantiatorFactory instantiatorFactory,
-        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        DependencyGraphBuilder dependencyGraphBuilder,
-        InMemoryCacheFactory cacheFactory
-    ) {
+            VersionComparator versionComparator,
+            VersionParser versionParser,
+            InstantiatorFactory instantiatorFactory,
+            ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+            DependencyGraphBuilder dependencyGraphBuilder,
+            InMemoryCacheFactory cacheFactory) {
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
         this.instantiatorFactory = instantiatorFactory;
@@ -88,64 +86,61 @@ public class DependencyGraphResolver {
      * coupled to a Configuration, and this resolver should be able to resolve non-Configuration types.
      */
     public void resolve(
-        LocalComponentGraphResolveState rootComponent,
-        LocalVariantGraphResolveState rootVariant,
-        List<? extends DependencyMetadata> syntheticDependencies,
-        Spec<? super DependencyMetadata> edgeFilter,
-        ComponentSelectorConverter componentSelectorConverter,
-        DependencyToComponentIdResolver componentIdResolver,
-        ComponentMetaDataResolver componentMetaDataResolver,
-        ImmutableModuleReplacements moduleReplacements,
-        ImmutableActionSet<DependencySubstitutionInternal> dependencySubstitutionRule,
-        ConflictResolution conflictResolution,
-        ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> capabilityResolutionRules,
-        boolean failingOnDynamicVersions,
-        boolean failingOnChangingVersions,
-        ResolutionParameters.FailureResolutions failureResolutions,
-        DependencyGraphVisitor modelVisitor
-    ) {
-        DependencySubstitutionApplicator substitutionApplicator = createDependencySubstitutionApplicator(dependencySubstitutionRule);
-        ModuleConflictResolver<ComponentState> moduleConflictResolver = createModuleConflictResolver(conflictResolution);
+            LocalComponentGraphResolveState rootComponent,
+            LocalVariantGraphResolveState rootVariant,
+            List<? extends DependencyMetadata> syntheticDependencies,
+            Spec<? super DependencyMetadata> edgeFilter,
+            ComponentSelectorConverter componentSelectorConverter,
+            DependencyToComponentIdResolver componentIdResolver,
+            ComponentMetaDataResolver componentMetaDataResolver,
+            ImmutableModuleReplacements moduleReplacements,
+            ImmutableActionSet<DependencySubstitutionInternal> dependencySubstitutionRule,
+            ConflictResolution conflictResolution,
+            ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> capabilityResolutionRules,
+            boolean failingOnDynamicVersions,
+            boolean failingOnChangingVersions,
+            ResolutionParameters.FailureResolutions failureResolutions,
+            DependencyGraphVisitor modelVisitor) {
+        DependencySubstitutionApplicator substitutionApplicator =
+                createDependencySubstitutionApplicator(dependencySubstitutionRule);
+        ModuleConflictResolver<ComponentState> moduleConflictResolver =
+                createModuleConflictResolver(conflictResolution);
 
         dependencyGraphBuilder.resolve(
-            rootComponent,
-            rootVariant,
-            syntheticDependencies,
-            edgeFilter,
-            componentSelectorConverter,
-            componentIdResolver,
-            componentMetaDataResolver,
-            moduleReplacements,
-            substitutionApplicator,
-            moduleConflictResolver,
-            capabilityResolutionRules,
-            conflictResolution,
-            failingOnDynamicVersions,
-            failingOnChangingVersions,
-            failureResolutions,
-            modelVisitor
-        );
+                rootComponent,
+                rootVariant,
+                syntheticDependencies,
+                edgeFilter,
+                componentSelectorConverter,
+                componentIdResolver,
+                componentMetaDataResolver,
+                moduleReplacements,
+                substitutionApplicator,
+                moduleConflictResolver,
+                capabilityResolutionRules,
+                conflictResolution,
+                failingOnDynamicVersions,
+                failingOnChangingVersions,
+                failureResolutions,
+                modelVisitor);
     }
 
-    private DependencySubstitutionApplicator createDependencySubstitutionApplicator(ImmutableActionSet<DependencySubstitutionInternal> dependencySubstitutionRule) {
+    private DependencySubstitutionApplicator createDependencySubstitutionApplicator(
+            ImmutableActionSet<DependencySubstitutionInternal> dependencySubstitutionRule) {
         if (dependencySubstitutionRule.isEmpty()) {
             return NO_OP;
         }
 
         return new DefaultDependencySubstitutionApplicator(
-            componentSelectionDescriptorFactory,
-            dependencySubstitutionRule,
-            instantiatorFactory,
-            cacheFactory
-        );
+                componentSelectionDescriptorFactory, dependencySubstitutionRule, instantiatorFactory, cacheFactory);
     }
 
     private ModuleConflictResolver<ComponentState> createModuleConflictResolver(ConflictResolution conflictResolution) {
-        ModuleConflictResolver<ComponentState> moduleConflictResolver = new LatestModuleConflictResolver<>(versionComparator, versionParser);
+        ModuleConflictResolver<ComponentState> moduleConflictResolver =
+                new LatestModuleConflictResolver<>(versionComparator, versionParser);
         if (conflictResolution != ConflictResolution.preferProjectModules) {
             return moduleConflictResolver;
         }
         return new ProjectDependencyForcingResolver<>(moduleConflictResolver);
     }
-
 }

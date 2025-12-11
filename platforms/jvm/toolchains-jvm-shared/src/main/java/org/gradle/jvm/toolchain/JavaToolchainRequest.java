@@ -32,5 +32,4 @@ public interface JavaToolchainRequest {
     JavaToolchainSpec getJavaToolchainSpec();
 
     BuildPlatform getBuildPlatform();
-
 }

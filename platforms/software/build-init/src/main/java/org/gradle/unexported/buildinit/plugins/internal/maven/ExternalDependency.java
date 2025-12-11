@@ -25,7 +25,13 @@ public class ExternalDependency extends Dependency {
     private final String classifier;
     private final Collection<String> excludedModules;
 
-    public ExternalDependency(String configuration, String group, String module, String version, String classifier, Collection<String> excludedModules) {
+    public ExternalDependency(
+            String configuration,
+            String group,
+            String module,
+            String version,
+            String classifier,
+            Collection<String> excludedModules) {
         super(configuration);
         this.group = group;
         this.module = module;

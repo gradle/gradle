@@ -22,9 +22,7 @@ import java.io.OutputStream;
 public class NullOutputStream extends OutputStream {
     public static final NullOutputStream INSTANCE = new NullOutputStream();
 
-    private NullOutputStream() {
-
-    }
+    private NullOutputStream() {}
 
     @Override
     public void write(int b) throws IOException {

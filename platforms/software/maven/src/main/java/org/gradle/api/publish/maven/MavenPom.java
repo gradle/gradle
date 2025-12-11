@@ -180,5 +180,4 @@ public interface MavenPom {
      * @see XmlProvider
      */
     void withXml(Action<? super XmlProvider> action);
-
 }

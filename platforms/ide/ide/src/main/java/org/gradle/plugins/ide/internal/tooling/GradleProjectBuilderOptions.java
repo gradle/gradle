@@ -29,11 +29,12 @@ public class GradleProjectBuilderOptions {
      */
     public static boolean shouldRealizeTasks() {
         // This property was initially added in Gradle 6.1 to allow Android Studio troubleshoot sync performance issues.
-        // As Android Studio wanted to avoid task realization during sync, it started using "omit_all_tasks" option in production.
-        // Gradle should support this option at least until an alternative solution exists and Android Studio has migrated to it.
+        // As Android Studio wanted to avoid task realization during sync, it started using "omit_all_tasks" option in
+        // production.
+        // Gradle should support this option at least until an alternative solution exists and Android Studio has
+        // migrated to it.
         String builderOptions = System.getProperty("org.gradle.internal.GradleProjectBuilderOptions", "");
         boolean avoidTaskRealization = "omit_all_tasks".equals(builderOptions);
         return !avoidTaskRealization;
     }
-
 }

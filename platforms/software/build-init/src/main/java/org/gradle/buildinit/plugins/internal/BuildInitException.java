@@ -17,11 +17,10 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.ResolutionProvider;
-
 import java.util.Collections;
 import java.util.List;
+import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.ResolutionProvider;
 
 /**
  * Exception thrown when the build init plugin fails to initialize a new project.

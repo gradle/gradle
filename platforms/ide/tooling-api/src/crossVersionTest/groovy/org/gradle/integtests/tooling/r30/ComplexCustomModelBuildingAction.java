@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.tooling.r30;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.integtests.tooling.r16.CustomModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class ComplexCustomModelBuildingAction implements BuildAction<Map<String, CustomModel>> {
     @Override
@@ -32,7 +31,8 @@ public class ComplexCustomModelBuildingAction implements BuildAction<Map<String,
             result.put(project.getPath(), controller.getModel(project, CustomModel.class));
         }
 
-        CustomModel rootProjectModel = controller.getModel(controller.getBuildModel().getRootProject(), CustomModel.class);
+        CustomModel rootProjectModel =
+                controller.getModel(controller.getBuildModel().getRootProject(), CustomModel.class);
         for (CustomModel customModel : result.values()) {
             assert customModel.getThing() == rootProjectModel.getThing();
         }

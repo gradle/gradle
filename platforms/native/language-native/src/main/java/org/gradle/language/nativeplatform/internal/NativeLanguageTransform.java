@@ -36,5 +36,4 @@ public abstract class NativeLanguageTransform<U extends LanguageSourceSet> imple
     public Class<ObjectFile> getOutputType() {
         return ObjectFile.class;
     }
-
 }

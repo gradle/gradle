@@ -27,7 +27,8 @@ import org.gradle.api.tasks.Input;
  * @since 5.1
  */
 public abstract class MachineArchitecture implements Named {
-    public static final Attribute<MachineArchitecture> ARCHITECTURE_ATTRIBUTE = Attribute.of("org.gradle.native.architecture", MachineArchitecture.class);
+    public static final Attribute<MachineArchitecture> ARCHITECTURE_ATTRIBUTE =
+            Attribute.of("org.gradle.native.architecture", MachineArchitecture.class);
 
     /**
      * {@inheritDoc}

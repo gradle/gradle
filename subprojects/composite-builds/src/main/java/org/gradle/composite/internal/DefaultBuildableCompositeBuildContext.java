@@ -16,6 +16,10 @@
 
 package org.gradle.composite.internal;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -24,18 +28,12 @@ import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Pair;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 public class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
     // TODO: Synchronization
     private final Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules = new HashSet<>();
     private final List<Action<DependencySubstitution>> substitutionRules = new ArrayList<>();
 
-    public DefaultBuildableCompositeBuildContext() {
-    }
+    public DefaultBuildableCompositeBuildContext() {}
 
     @Override
     public void addAvailableModules(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules) {

@@ -16,6 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -29,19 +32,27 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 class GccLinker extends AbstractCompiler<LinkerSpec> {
-    GccLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new GccLinkerArgsTransformer(), useCommandFile, workerLeaseService);
+    GccLinker(
+            BuildOperationExecutor buildOperationExecutor,
+            CommandLineToolInvocationWorker commandLineToolInvocationWorker,
+            CommandLineToolContext invocationContext,
+            boolean useCommandFile,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                buildOperationExecutor,
+                commandLineToolInvocationWorker,
+                invocationContext,
+                new GccLinkerArgsTransformer(),
+                useCommandFile,
+                workerLeaseService);
     }
 
     @Override
-    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final LinkerSpec spec, List<String> args) {
-        final CommandLineToolInvocation invocation = newInvocation(
-            "linking " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(
+            final LinkerSpec spec, List<String> args) {
+        final CommandLineToolInvocation invocation =
+                newInvocation("linking " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
 
         return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override

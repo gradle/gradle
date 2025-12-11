@@ -55,15 +55,14 @@ public class ProjectRootComponentProvider implements RootComponentProvider {
     private @Nullable LocalComponentGraphResolveState cachedValue;
 
     public ProjectRootComponentProvider(
-        ProjectState owner,
-        DependencyMetaDataProvider componentIdentity,
-        AttributesSchemaInternal schema,
-        ConfigurationsProvider configurationsProvider,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        LocalComponentGraphResolveStateFactory localResolveStateFactory,
-        ImmutableAttributesSchemaFactory attributesSchemaFactory,
-        AdhocRootComponentProvider adhocRootComponentProvider
-    ) {
+            ProjectState owner,
+            DependencyMetaDataProvider componentIdentity,
+            AttributesSchemaInternal schema,
+            ConfigurationsProvider configurationsProvider,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            LocalComponentGraphResolveStateFactory localResolveStateFactory,
+            ImmutableAttributesSchemaFactory attributesSchemaFactory,
+            AdhocRootComponentProvider adhocRootComponentProvider) {
         this.owner = owner;
         this.componentIdentity = componentIdentity;
         this.schema = schema;
@@ -90,19 +89,15 @@ public class ProjectRootComponentProvider implements RootComponentProvider {
     private LocalComponentGraphResolveState createProjectRootComponent() {
         Module module = componentIdentity.getModule();
 
-        ModuleVersionIdentifier moduleVersionId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
+        ModuleVersionIdentifier moduleVersionId =
+                moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ComponentIdentifier componentIdentifier = owner.getComponentIdentifier();
         String status = module.getStatus();
         ImmutableAttributesSchema immutableSchema = attributesSchemaFactory.create(schema);
 
-        LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
-            moduleVersionId,
-            componentIdentifier,
-            status,
-            immutableSchema
-        );
+        LocalComponentGraphResolveMetadata metadata =
+                new LocalComponentGraphResolveMetadata(moduleVersionId, componentIdentifier, status, immutableSchema);
 
         return localResolveStateFactory.stateFor(owner, metadata, configurationsProvider);
     }
-
 }

@@ -24,7 +24,13 @@ import java.util.concurrent.locks.Lock;
  * A cyclic barrier for {@link BlockingHttpServer} where expectations are optional.
  */
 class MaybeNConcurrentRequests extends ExpectMaxNConcurrentRequests {
-    MaybeNConcurrentRequests(Lock lock, int testId, Duration timeout, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
+    MaybeNConcurrentRequests(
+            Lock lock,
+            int testId,
+            Duration timeout,
+            int maxConcurrent,
+            WaitPrecondition previous,
+            Collection<? extends ResourceExpectation> expectedRequests) {
         super(lock, testId, timeout, maxConcurrent, previous, expectedRequests);
     }
 

@@ -16,6 +16,11 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.renderer;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
@@ -28,18 +33,14 @@ import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractCon
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 /**
  * The {@link AbstractConfigurationReportRenderer} extension that can be used to render a {@link ConfigurationReportModel}
  * to the console with richly formatted output.
  */
 public final class ConsoleConfigurationReportRenderer extends AbstractConfigurationReportRenderer<StyledTextOutput> {
-    @Nullable private StyledTextOutput output;
+    @Nullable
+    private StyledTextOutput output;
+
     private int depth;
     private boolean recursiveExtensionsPrinted;
 
@@ -53,7 +54,8 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         this.output = output;
         this.recursiveExtensionsPrinted = false;
 
-        final boolean hasAnyRelevantConfigs = data.getAllConfigs().stream().anyMatch(c -> spec.isPurelyCorrectType(c) || c.isLegacy());
+        final boolean hasAnyRelevantConfigs =
+                data.getAllConfigs().stream().anyMatch(c -> spec.isPurelyCorrectType(c) || c.isLegacy());
         if (hasAnyRelevantConfigs) {
             if (spec.isSearchForSpecificVariant()) {
                 writeSearchResults(data);
@@ -70,35 +72,39 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     }
 
     private void writeCompleteAbsenceOfResults(ConfigurationReportModel data) {
-        message("There are no " + spec.getFullReportedTypeDesc() + "s (including legacy " + spec.getReportedTypeAlias() + "s) present in project '" + data.getProjectName() + "'.");
+        message("There are no " + spec.getFullReportedTypeDesc() + "s (including legacy " + spec.getReportedTypeAlias()
+                + "s) present in project '" + data.getProjectName() + "'.");
     }
 
     private void writeSearchResults(ConfigurationReportModel data) {
-        Optional<ReportConfiguration> searchResult = data.getConfigNamed(spec.getSearchTarget().get());
+        Optional<ReportConfiguration> searchResult =
+                data.getConfigNamed(spec.getSearchTarget().get());
         if (searchResult.isPresent()) {
             writeResults(data, Collections.singletonList(searchResult.get()));
         } else {
-            message("There are no " + spec.getFullReportedTypeDesc() + "s on project '" + data.getProjectName() + "' named '" + spec.getSearchTarget().get() + "'.");
+            message("There are no " + spec.getFullReportedTypeDesc() + "s on project '" + data.getProjectName()
+                    + "' named '" + spec.getSearchTarget().get() + "'.");
         }
     }
 
     private void writeLegacyResults(ConfigurationReportModel data) {
         final List<ReportConfiguration> legacyConfigs = data.getAllConfigs().stream()
-            .filter(c -> c.isLegacy() || spec.isPurelyCorrectType(c))
-            .collect(Collectors.toList());
+                .filter(c -> c.isLegacy() || spec.isPurelyCorrectType(c))
+                .collect(Collectors.toList());
         writeResults(data, legacyConfigs);
     }
 
     private void writeNonLegacyResults(ConfigurationReportModel data) {
-        final List<ReportConfiguration> nonLegacyConfigs = data.getAllConfigs().stream()
-            .filter(spec::isPurelyCorrectType)
-            .collect(Collectors.toList());
+        final List<ReportConfiguration> nonLegacyConfigs =
+                data.getAllConfigs().stream().filter(spec::isPurelyCorrectType).collect(Collectors.toList());
         if (nonLegacyConfigs.isEmpty()) {
-            message("There are no purely " + spec.getReportedConfigurationDirection() + " " + spec.getReportedTypeAlias() + "s present in project '" + data.getProjectName() + "'.");
+            message("There are no purely " + spec.getReportedConfigurationDirection() + " "
+                    + spec.getReportedTypeAlias() + "s present in project '" + data.getProjectName() + "'.");
 
             final boolean hasLegacyConfigs = data.getAllConfigs().stream().anyMatch(ReportConfiguration::isLegacy);
             if (hasLegacyConfigs) {
-                message("Re-run this report with the '--all' flag to include legacy " + spec.getReportedTypeAlias() + "s (legacy = consumable and resolvable).");
+                message("Re-run this report with the '--all' flag to include legacy " + spec.getReportedTypeAlias()
+                        + "s (legacy = consumable and resolvable).");
             }
         } else {
             writeResults(data, nonLegacyConfigs);
@@ -111,16 +117,19 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
             writeRuleSchema(data.getAttributesWithCompatibilityRules(), data.getAttributesWithDisambiguationRules());
         }
         writeLegend(configs);
-
     }
 
     private void writeConfigurations(List<ReportConfiguration> configurations) {
         configurations.forEach(this::writeConfiguration);
     }
 
-    private void writeRuleSchema(List<ReportAttribute> attributesWithCompatibilityRules, List<ReportAttribute> attributesWithDisambiguationRules) {
-        final Integer maxC
-            = attributesWithCompatibilityRules.stream().map(attr -> attr.getName().length()).max(Integer::compare).orElse(0);
+    private void writeRuleSchema(
+            List<ReportAttribute> attributesWithCompatibilityRules,
+            List<ReportAttribute> attributesWithDisambiguationRules) {
+        final Integer maxC = attributesWithCompatibilityRules.stream()
+                .map(attr -> attr.getName().length())
+                .max(Integer::compare)
+                .orElse(0);
         if (!attributesWithCompatibilityRules.isEmpty()) {
             printHeader(() -> message("Compatibility Rules"));
             writeDescription("The following Attributes have compatibility rules defined.");
@@ -134,14 +143,18 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
             }
         }
 
-        final Integer maxD = attributesWithDisambiguationRules.stream().map(attr -> attr.getName().length()).max(Integer::compare).orElse(0);
+        final Integer maxD = attributesWithDisambiguationRules.stream()
+                .map(attr -> attr.getName().length())
+                .max(Integer::compare)
+                .orElse(0);
         if (!attributesWithDisambiguationRules.isEmpty()) {
             printHeader(() -> message("Disambiguation Rules"));
             writeDescription("The following Attributes have disambiguation rules defined.");
             newLine();
             try {
                 depth++;
-                attributesWithDisambiguationRules.forEach(a -> writeAttribute(maxD, a, spec.isShowAttributePrecedence()));
+                attributesWithDisambiguationRules.forEach(
+                        a -> writeAttribute(maxD, a, spec.isShowAttributePrecedence()));
                 newLine();
             } finally {
                 depth--;
@@ -155,14 +168,17 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     }
 
     private void writeLegend(List<ReportConfiguration> configs) {
-        boolean hasLegacy =  configs.stream().anyMatch(ReportConfiguration::isLegacy);
-        boolean hasIncubating = configs.stream().anyMatch(ReportConfiguration::hasIncubatingAttributes) ||
-            configs.stream().flatMap(c -> c.getSecondaryVariants().stream()).anyMatch(ReportSecondaryVariant::hasIncubatingAttributes);
+        boolean hasLegacy = configs.stream().anyMatch(ReportConfiguration::isLegacy);
+        boolean hasIncubating = configs.stream().anyMatch(ReportConfiguration::hasIncubatingAttributes)
+                || configs.stream()
+                        .flatMap(c -> c.getSecondaryVariants().stream())
+                        .anyMatch(ReportSecondaryVariant::hasIncubatingAttributes);
         boolean hasVariants = configs.stream().anyMatch(ReportConfiguration::hasVariants);
 
         output.style(StyledTextOutput.Style.Info);
         if (hasLegacy) {
-            output.println("(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.");
+            output.println(
+                    "(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.");
         }
         if (hasIncubating) {
             output.text("(i) Configuration uses incubating attributes such as ");
@@ -174,7 +190,8 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         }
         if (hasVariants) {
             output.text("(*) Secondary variants are variants created via the ");
-            output.withStyle(StyledTextOutput.Style.Identifier).text("Configuration#getOutgoing(): ConfigurationPublications");
+            output.withStyle(StyledTextOutput.Style.Identifier)
+                    .text("Configuration#getOutgoing(): ConfigurationPublications");
             output.println(" API which also participate in selection, in addition to the configuration itself.");
         }
     }
@@ -185,11 +202,12 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
 
         writeErrors(config.getLenientErrors());
 
-        if (!config.getAttributes().isEmpty() ||
-            (spec.isIncludeCapabilities() && !config.getCapabilities().isEmpty()) ||
-            (spec.isIncludeArtifacts() && !config.getArtifacts().isEmpty()) ||
-            (spec.isIncludeExtensions() && !config.getExtendedConfigurations().isEmpty()) ||
-            (spec.isIncludeVariants() && !config.getSecondaryVariants().isEmpty())) {
+        if (!config.getAttributes().isEmpty()
+                || (spec.isIncludeCapabilities() && !config.getCapabilities().isEmpty())
+                || (spec.isIncludeArtifacts() && !config.getArtifacts().isEmpty())
+                || (spec.isIncludeExtensions()
+                        && !config.getExtendedConfigurations().isEmpty())
+                || (spec.isIncludeVariants() && !config.getSecondaryVariants().isEmpty())) {
             newLine();
         }
 
@@ -231,7 +249,8 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     private void writeErrors(List<? extends GradleException> lenientErrors) {
         if (!lenientErrors.isEmpty()) {
             indent(false);
-            lenientErrors.forEach(ex -> output.style(StyledTextOutput.Style.Failure).println(ex.getMessage()));
+            lenientErrors.forEach(
+                    ex -> output.style(StyledTextOutput.Style.Failure).println(ex.getMessage()));
         }
     }
 
@@ -258,15 +277,15 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         }
 
         final List<FormattedExtension> extensionsToPrint = extensions.stream()
-            .map(e -> new FormattedExtension(e.getName(), false))
-            .collect(Collectors.toList());
+                .map(e -> new FormattedExtension(e.getName(), false))
+                .collect(Collectors.toList());
         if (recursive) {
             int nonRecursiveCount = extensionsToPrint.size();
             extensionsToPrint.addAll(extensions.stream()
-                .flatMap(e -> e.getExtendedConfigurations().stream())
-                .filter(e -> extensionsToPrint.stream().noneMatch(eToP -> eToP.name.equals(e.getName())))
-                .map(e -> new FormattedExtension(e.getName(), true))
-                .collect(Collectors.toList()));
+                    .flatMap(e -> e.getExtendedConfigurations().stream())
+                    .filter(e -> extensionsToPrint.stream().noneMatch(eToP -> eToP.name.equals(e.getName())))
+                    .map(e -> new FormattedExtension(e.getName(), true))
+                    .collect(Collectors.toList()));
             if (nonRecursiveCount != extensionsToPrint.size()) {
                 recursiveExtensionsPrinted = true;
             }
@@ -275,16 +294,16 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         if (!extensions.isEmpty()) {
             printSection("Extended Configurations", () -> {
                 extensionsToPrint.stream()
-                    .sorted(Comparator.comparing(e -> e.name))
-                    .forEach(e -> {
-                        indent(true);
-                        output.withStyle(StyledTextOutput.Style.Identifier).text(e.name);
-                        if (e.isTransitive) {
-                            output.withStyle(StyledTextOutput.Style.Info).println(" (t)");
-                        } else {
-                            newLine();
-                        }
-                    });
+                        .sorted(Comparator.comparing(e -> e.name))
+                        .forEach(e -> {
+                            indent(true);
+                            output.withStyle(StyledTextOutput.Style.Identifier).text(e.name);
+                            if (e.isTransitive) {
+                                output.withStyle(StyledTextOutput.Style.Info).println(" (t)");
+                            } else {
+                                newLine();
+                            }
+                        });
             });
         }
     }
@@ -303,7 +322,10 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
 
     private void writeAttributes(List<ReportAttribute> attributes) {
         if (!attributes.isEmpty()) {
-            Integer max = attributes.stream().map(attr -> attr.getName().length()).max(Integer::compare).orElse(0);
+            Integer max = attributes.stream()
+                    .map(attr -> attr.getName().length())
+                    .max(Integer::compare)
+                    .orElse(0);
             printSection("Attributes", () -> attributes.forEach(attr -> writeAttribute(max, attr, false)));
         }
     }
@@ -311,7 +333,9 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     private void writeAttribute(Integer max, ReportAttribute attr, boolean includePrecedence) {
         indent(true);
         if (attr.getValue().isPresent()) {
-            valuePair(StringUtils.rightPad(attr.getName(), max), String.valueOf(attr.getValue().orElse("")));
+            valuePair(
+                    StringUtils.rightPad(attr.getName(), max),
+                    String.valueOf(attr.getValue().orElse("")));
         } else {
             output.style(StyledTextOutput.Style.Identifier).text(attr.getName());
             if (includePrecedence && attr.getDisambiguationPrecedence() != null) {
@@ -360,21 +384,22 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
                 final boolean isDefault;
 
                 public FormattedCapability(String name, boolean isDefault) {
-                    this.gav = name; this.isDefault = isDefault;
+                    this.gav = name;
+                    this.isDefault = isDefault;
                 }
             }
 
             printSection("Capabilities", () -> {
                 capabilities.stream()
-                    .map(cap -> new FormattedCapability(cap.toGAV(), cap.isDefault()))
-                    .forEach(cap -> {
-                        indent(true);
-                        output.style(StyledTextOutput.Style.Identifier).text(cap.gav);
-                        if (cap.isDefault) {
-                            output.style(StyledTextOutput.Style.Normal).text(" (default capability)");
-                        }
-                        newLine();
-                    });
+                        .map(cap -> new FormattedCapability(cap.toGAV(), cap.isDefault()))
+                        .forEach(cap -> {
+                            indent(true);
+                            output.style(StyledTextOutput.Style.Identifier).text(cap.gav);
+                            if (cap.isDefault) {
+                                output.style(StyledTextOutput.Style.Normal).text(" (default capability)");
+                            }
+                            newLine();
+                        });
             });
         }
     }

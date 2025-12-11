@@ -19,5 +19,4 @@ package org.gradle.api.problems.internal;
 /*
  * Marker interface required by the build operations infrastructure.
  */
-interface ProblemsSummaryProgressDetails {
-}
+interface ProblemsSummaryProgressDetails {}

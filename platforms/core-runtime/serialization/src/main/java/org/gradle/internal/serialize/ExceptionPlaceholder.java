@@ -16,14 +16,6 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.api.JavaVersion;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.io.StreamByteBuffer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +28,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import org.gradle.api.JavaVersion;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.io.StreamByteBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class ExceptionPlaceholder implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -52,17 +51,23 @@ class ExceptionPlaceholder implements Serializable {
     private Throwable toStringRuntimeExec;
     private Throwable getMessageExec;
 
-    public ExceptionPlaceholder(Throwable original, Function<OutputStream, ExceptionReplacingObjectOutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
+    public ExceptionPlaceholder(
+            Throwable original,
+            Function<OutputStream, ExceptionReplacingObjectOutputStream> objectOutputStreamCreator,
+            Set<Throwable> dejaVu) {
         boolean hasCycle = !dejaVu.add(original);
         Throwable throwable = original;
         type = throwable.getClass().getName();
         contextual = throwable.getClass().getAnnotation(Contextual.class) != null;
         assertionError = throwable instanceof AssertionError;
         try {
-            stackTrace = throwable.getStackTrace() == null ? Collections.<StackTraceElementPlaceholder>emptyList() : convertStackTrace(throwable.getStackTrace());
+            stackTrace = throwable.getStackTrace() == null
+                    ? Collections.<StackTraceElementPlaceholder>emptyList()
+                    : convertStackTrace(throwable.getStackTrace());
         } catch (Throwable ignored) {
-// TODO:ADAM - switch the logging back on. Need to make sending messages from daemon to client async wrt log event generation
-//                LOGGER.debug("Ignoring failure to extract throwable stack trace.", ignored);
+            // TODO:ADAM - switch the logging back on. Need to make sending messages from daemon to client async wrt log
+            // event generation
+            //                LOGGER.debug("Ignoring failure to extract throwable stack trace.", ignored);
             stackTrace = Collections.emptyList();
         }
 
@@ -122,17 +127,17 @@ class ExceptionPlaceholder implements Serializable {
             oos.close();
             serializedException = buffer.readAsByteArray();
         } catch (Throwable ignored) {
-// TODO:ADAM - switch the logging back on.
-//                LOGGER.debug("Ignoring failure to serialize throwable.", ignored);
+            // TODO:ADAM - switch the logging back on.
+            //                LOGGER.debug("Ignoring failure to serialize throwable.", ignored);
         }
 
         this.causes = convertToExceptionPlaceholderList(causes, objectOutputStreamCreator, dejaVu);
         this.suppressed = convertToExceptionPlaceholderList(suppressed, objectOutputStreamCreator, dejaVu);
-
     }
 
     private List<StackTraceElementPlaceholder> convertStackTrace(StackTraceElement[] stackTrace) {
-        List<StackTraceElementPlaceholder> placeholders = new ArrayList<StackTraceElementPlaceholder>(stackTrace.length);
+        List<StackTraceElementPlaceholder> placeholders =
+                new ArrayList<StackTraceElementPlaceholder>(stackTrace.length);
         for (StackTraceElement stackTraceElement : stackTrace) {
             placeholders.add(new StackTraceElementPlaceholder(stackTraceElement));
         }
@@ -157,11 +162,15 @@ class ExceptionPlaceholder implements Serializable {
 
     @SuppressWarnings("MixedMutabilityReturnType")
     // TODO Use only immutable collections
-    private static List<ExceptionPlaceholder> convertToExceptionPlaceholderList(List<? extends Throwable> throwables, Function<OutputStream, ExceptionReplacingObjectOutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
+    private static List<ExceptionPlaceholder> convertToExceptionPlaceholderList(
+            List<? extends Throwable> throwables,
+            Function<OutputStream, ExceptionReplacingObjectOutputStream> objectOutputStreamCreator,
+            Set<Throwable> dejaVu) {
         if (throwables.isEmpty()) {
             return Collections.emptyList();
         } else if (throwables.size() == 1) {
-            return Collections.singletonList(new ExceptionPlaceholder(throwables.get(0), objectOutputStreamCreator, dejaVu));
+            return Collections.singletonList(
+                    new ExceptionPlaceholder(throwables.get(0), objectOutputStreamCreator, dejaVu));
         } else {
             List<ExceptionPlaceholder> placeholders = new ArrayList<ExceptionPlaceholder>(throwables.size());
             for (Throwable cause : throwables) {
@@ -179,13 +188,18 @@ class ExceptionPlaceholder implements Serializable {
         return JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14);
     }
 
-    public Throwable read(Function<String, Class<?>> classNameTransformer, Function<InputStream, ExceptionReplacingObjectInputStream> objectInputStreamCreator) throws IOException {
+    public Throwable read(
+            Function<String, Class<?>> classNameTransformer,
+            Function<InputStream, ExceptionReplacingObjectInputStream> objectInputStreamCreator)
+            throws IOException {
         final List<Throwable> causes = recreateExceptions(this.causes, classNameTransformer, objectInputStreamCreator);
-        final List<Throwable> suppressed = recreateExceptions(this.suppressed, classNameTransformer, objectInputStreamCreator);
+        final List<Throwable> suppressed =
+                recreateExceptions(this.suppressed, classNameTransformer, objectInputStreamCreator);
 
         if (serializedException != null) {
             // try to deserialize the original exception
-            final ExceptionReplacingObjectInputStream ois = objectInputStreamCreator.apply(new ByteArrayInputStream(serializedException));
+            final ExceptionReplacingObjectInputStream ois =
+                    objectInputStreamCreator.apply(new ByteArrayInputStream(serializedException));
             ois.setObjectTransformer(obj -> {
                 if (obj instanceof NestedExceptionPlaceholder) {
                     NestedExceptionPlaceholder placeholder = (NestedExceptionPlaceholder) obj;
@@ -234,12 +248,30 @@ class ExceptionPlaceholder implements Serializable {
         if (causes.size() <= 1) {
             if (contextual) {
                 // there are no @Contextual assertion errors in Gradle so we're safe to use this type only
-                placeholder = new ContextualPlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
+                placeholder = new ContextualPlaceholderException(
+                        type,
+                        message,
+                        getMessageExec,
+                        toString,
+                        toStringRuntimeExec,
+                        causes.isEmpty() ? null : causes.get(0));
             } else {
                 if (assertionError) {
-                    placeholder = new PlaceholderAssertionError(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
+                    placeholder = new PlaceholderAssertionError(
+                            type,
+                            message,
+                            getMessageExec,
+                            toString,
+                            toStringRuntimeExec,
+                            causes.isEmpty() ? null : causes.get(0));
                 } else {
-                    placeholder = new PlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
+                    placeholder = new PlaceholderException(
+                            type,
+                            message,
+                            getMessageExec,
+                            toString,
+                            toStringRuntimeExec,
+                            causes.isEmpty() ? null : causes.get(0));
                 }
             }
         } else {
@@ -261,7 +293,11 @@ class ExceptionPlaceholder implements Serializable {
 
     @SuppressWarnings("MixedMutabilityReturnType")
     // TODO Use only immutable collections
-    private static List<Throwable> recreateExceptions(List<ExceptionPlaceholder> exceptions, Function<String, Class<?>> classNameTransformer, Function<InputStream, ExceptionReplacingObjectInputStream> objectInputStreamCreator) throws IOException {
+    private static List<Throwable> recreateExceptions(
+            List<ExceptionPlaceholder> exceptions,
+            Function<String, Class<?>> classNameTransformer,
+            Function<InputStream, ExceptionReplacingObjectInputStream> objectInputStreamCreator)
+            throws IOException {
         if (exceptions.isEmpty()) {
             return Collections.emptyList();
         } else if (exceptions.size() == 1) {

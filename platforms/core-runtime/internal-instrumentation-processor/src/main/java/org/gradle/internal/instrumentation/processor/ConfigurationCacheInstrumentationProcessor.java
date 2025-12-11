@@ -16,6 +16,11 @@
 
 package org.gradle.internal.instrumentation.processor;
 
+import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasAnnotation;
+import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasExtraOfType;
+
+import java.util.Arrays;
+import java.util.Collection;
 import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
@@ -41,56 +46,49 @@ import org.gradle.internal.instrumentation.processor.features.withstaticreferenc
 import org.gradle.internal.instrumentation.processor.features.withstaticreference.WithExtensionReferencesReader;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationCallInterceptionRequestReaderImpl;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasAnnotation;
-import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasExtraOfType;
-
 public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrumentationProcessor {
 
     @Override
     protected Collection<InstrumentationProcessorExtension> getExtensions() {
         return Arrays.asList(
-            (ClassLevelAnnotationsContributor) () -> Arrays.asList(
-                SpecificJvmCallInterceptors.class,
-                SpecificGroovyCallInterceptors.class,
-                VisitForInstrumentation.class,
-                ReplacesEagerProperty.class,
-                ToBeReplacedByLazyProperty.class
-            ),
+                (ClassLevelAnnotationsContributor) () -> Arrays.asList(
+                        SpecificJvmCallInterceptors.class,
+                        SpecificGroovyCallInterceptors.class,
+                        VisitForInstrumentation.class,
+                        ReplacesEagerProperty.class,
+                        ToBeReplacedByLazyProperty.class),
+                new AnnotationCallInterceptionRequestReaderImpl(),
+                new WithExtensionReferencesReader(),
+                new WithExtensionReferencesPostProcessor(),
+                new AddGeneratedClassNameFlagFromClassLevelAnnotation(
+                        processingEnv.getElementUtils(),
+                        ifHasExtraOfType(WithExtensionReferencesExtra.ProducedSynthetically.class),
+                        SpecificJvmCallInterceptors.class,
+                        RequestExtra.InterceptJvmCalls::new),
+                new AddGeneratedClassNameFlagFromClassLevelAnnotation(
+                        processingEnv.getElementUtils(),
+                        ifHasAnnotation(InterceptJvmCalls.class),
+                        SpecificJvmCallInterceptors.class,
+                        RequestExtra.InterceptJvmCalls::new),
+                new AddGeneratedClassNameFlagFromClassLevelAnnotation(
+                        processingEnv.getElementUtils(),
+                        ifHasAnnotation(InterceptGroovyCalls.class),
+                        SpecificGroovyCallInterceptors.class,
+                        RequestExtra.InterceptGroovyCalls::new),
+                (CodeGeneratorContributor) InterceptJvmCallsGenerator::new,
+                // Generate META-INF/services resource with factories for all generated InterceptJvmCallsGenerator
+                (ResourceGeneratorContributor) InterceptJvmCallsResourceGenerator::new,
+                (CodeGeneratorContributor) InterceptGroovyCallsGenerator::new,
+                // Generate META-INF/services resource with all generated CallInterceptors
+                (ResourceGeneratorContributor) InterceptGroovyCallsResourceGenerator::new,
 
-            new AnnotationCallInterceptionRequestReaderImpl(),
+                // Properties upgrade extensions
+                new PropertyUpgradeAnnotatedMethodReader(processingEnv),
+                (CodeGeneratorContributor) PropertyUpgradeClassSourceGenerator::new,
+                // Generate resource with instrumented properties
+                (ResourceGeneratorContributor) InstrumentedPropertiesResourceGenerator::new,
 
-            new WithExtensionReferencesReader(),
-            new WithExtensionReferencesPostProcessor(),
-            new AddGeneratedClassNameFlagFromClassLevelAnnotation(processingEnv.getElementUtils(),
-                ifHasExtraOfType(WithExtensionReferencesExtra.ProducedSynthetically.class), SpecificJvmCallInterceptors.class, RequestExtra.InterceptJvmCalls::new
-            ),
-
-            new AddGeneratedClassNameFlagFromClassLevelAnnotation(processingEnv.getElementUtils(),
-                ifHasAnnotation(InterceptJvmCalls.class), SpecificJvmCallInterceptors.class, RequestExtra.InterceptJvmCalls::new
-            ),
-            new AddGeneratedClassNameFlagFromClassLevelAnnotation(processingEnv.getElementUtils(),
-                ifHasAnnotation(InterceptGroovyCalls.class), SpecificGroovyCallInterceptors.class, RequestExtra.InterceptGroovyCalls::new
-            ),
-
-            (CodeGeneratorContributor) InterceptJvmCallsGenerator::new,
-            // Generate META-INF/services resource with factories for all generated InterceptJvmCallsGenerator
-            (ResourceGeneratorContributor) InterceptJvmCallsResourceGenerator::new,
-
-            (CodeGeneratorContributor) InterceptGroovyCallsGenerator::new,
-            // Generate META-INF/services resource with all generated CallInterceptors
-            (ResourceGeneratorContributor) InterceptGroovyCallsResourceGenerator::new,
-
-            // Properties upgrade extensions
-            new PropertyUpgradeAnnotatedMethodReader(processingEnv),
-            (CodeGeneratorContributor) PropertyUpgradeClassSourceGenerator::new,
-            // Generate resource with instrumented properties
-            (ResourceGeneratorContributor) InstrumentedPropertiesResourceGenerator::new,
-
-            // Generate resource with instrumented types
-            (ResourceGeneratorContributor) InstrumentedTypesResourceGenerator::new
-        );
+                // Generate resource with instrumented types
+                (ResourceGeneratorContributor) InstrumentedTypesResourceGenerator::new);
     }
 }

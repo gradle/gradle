@@ -17,13 +17,12 @@
 package org.gradle.cache.internal.btree;
 
 import com.google.common.io.CountingOutputStream;
-import org.gradle.internal.file.RandomAccessFileOutputStream;
-
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import org.gradle.internal.file.RandomAccessFileOutputStream;
 
 /**
  * Allows a stream of bytes to be written to a particular location of some backing byte stream.

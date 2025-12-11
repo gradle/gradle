@@ -16,13 +16,12 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
-import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 
 public class PartialBasicGradleProject implements Serializable, GradleProjectIdentity {
     private String name;

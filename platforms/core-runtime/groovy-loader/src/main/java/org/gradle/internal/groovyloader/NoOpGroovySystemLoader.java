@@ -21,10 +21,8 @@ package org.gradle.internal.groovyloader;
  */
 public class NoOpGroovySystemLoader implements GroovySystemLoader {
     @Override
-    public void shutdown() {
-    }
+    public void shutdown() {}
 
     @Override
-    public void discardTypesFrom(ClassLoader classLoader) {
-    }
+    public void discardTypesFrom(ClassLoader classLoader) {}
 }

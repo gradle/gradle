@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
@@ -23,8 +24,6 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Transform step node factory that ensures that unique ids are used correctly
@@ -44,16 +43,23 @@ public class TransformStepNodeFactory {
      * Create an initial transform step node.
      */
     public TransformStepNode.InitialTransformStepNode createInitial(
-        ComponentVariantIdentifier targetComponentVariant,
-        AttributeContainer sourceAttributes,
-        TransformStep initial,
-        ResolvableArtifact artifact,
-        TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationRunner buildOperationRunner,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
+            ComponentVariantIdentifier targetComponentVariant,
+            AttributeContainer sourceAttributes,
+            TransformStep initial,
+            ResolvableArtifact artifact,
+            TransformUpstreamDependencies upstreamDependencies,
+            BuildOperationRunner buildOperationRunner,
+            CalculatedValueContainerFactory calculatedValueContainerFactory) {
         long transformStepNodeId = idFactory.createId();
-        return new TransformStepNode.InitialTransformStepNode(transformStepNodeId, targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationRunner, calculatedValueContainerFactory);
+        return new TransformStepNode.InitialTransformStepNode(
+                transformStepNodeId,
+                targetComponentVariant,
+                sourceAttributes,
+                initial,
+                artifact,
+                upstreamDependencies,
+                buildOperationRunner,
+                calculatedValueContainerFactory);
     }
 
     /**
@@ -62,33 +68,47 @@ public class TransformStepNodeFactory {
      * Should only be used when loading from the configuration cache to set the node id.
      */
     public TransformStepNode.InitialTransformStepNode recreateInitial(
-        long transformStepNodeId,
-        ComponentVariantIdentifier targetComponentVariant,
-        AttributeContainer sourceAttributes,
-        TransformStep initial,
-        ResolvableArtifact artifact,
-        TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationRunner buildOperationRunner,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
+            long transformStepNodeId,
+            ComponentVariantIdentifier targetComponentVariant,
+            AttributeContainer sourceAttributes,
+            TransformStep initial,
+            ResolvableArtifact artifact,
+            TransformUpstreamDependencies upstreamDependencies,
+            BuildOperationRunner buildOperationRunner,
+            CalculatedValueContainerFactory calculatedValueContainerFactory) {
         idFactory.idRecreated();
-        return new TransformStepNode.InitialTransformStepNode(transformStepNodeId, targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationRunner, calculatedValueContainerFactory);
+        return new TransformStepNode.InitialTransformStepNode(
+                transformStepNodeId,
+                targetComponentVariant,
+                sourceAttributes,
+                initial,
+                artifact,
+                upstreamDependencies,
+                buildOperationRunner,
+                calculatedValueContainerFactory);
     }
 
     /**
      * Create a chained transform step node.
      */
     public TransformStepNode.ChainedTransformStepNode createChained(
-        ComponentVariantIdentifier targetComponentVariant,
-        AttributeContainer sourceAttributes,
-        TransformStep current,
-        TransformStepNode previous,
-        TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationRunner buildOperationExecutor,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
+            ComponentVariantIdentifier targetComponentVariant,
+            AttributeContainer sourceAttributes,
+            TransformStep current,
+            TransformStepNode previous,
+            TransformUpstreamDependencies upstreamDependencies,
+            BuildOperationRunner buildOperationExecutor,
+            CalculatedValueContainerFactory calculatedValueContainerFactory) {
         long transformStepNodeId = idFactory.createId();
-        return new TransformStepNode.ChainedTransformStepNode(transformStepNodeId, targetComponentVariant, sourceAttributes, current, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+        return new TransformStepNode.ChainedTransformStepNode(
+                transformStepNodeId,
+                targetComponentVariant,
+                sourceAttributes,
+                current,
+                previous,
+                upstreamDependencies,
+                buildOperationExecutor,
+                calculatedValueContainerFactory);
     }
 
     /**
@@ -97,17 +117,23 @@ public class TransformStepNodeFactory {
      * Should only be used when loading from the configuration cache to set the node id.
      */
     public TransformStepNode.ChainedTransformStepNode recreateChained(
-        long transformStepNodeId,
-        ComponentVariantIdentifier targetComponentVariant,
-        AttributeContainer sourceAttributes,
-        TransformStep current,
-        TransformStepNode previous,
-        TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationRunner buildOperationExecutor,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
+            long transformStepNodeId,
+            ComponentVariantIdentifier targetComponentVariant,
+            AttributeContainer sourceAttributes,
+            TransformStep current,
+            TransformStepNode previous,
+            TransformUpstreamDependencies upstreamDependencies,
+            BuildOperationRunner buildOperationExecutor,
+            CalculatedValueContainerFactory calculatedValueContainerFactory) {
         idFactory.idRecreated();
-        return new TransformStepNode.ChainedTransformStepNode(transformStepNodeId, targetComponentVariant, sourceAttributes, current, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+        return new TransformStepNode.ChainedTransformStepNode(
+                transformStepNodeId,
+                targetComponentVariant,
+                sourceAttributes,
+                current,
+                previous,
+                upstreamDependencies,
+                buildOperationExecutor,
+                calculatedValueContainerFactory);
     }
-
 }

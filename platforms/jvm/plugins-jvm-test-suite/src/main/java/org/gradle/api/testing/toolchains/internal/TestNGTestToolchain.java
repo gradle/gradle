@@ -17,6 +17,7 @@
 package org.gradle.api.testing.toolchains.internal;
 
 import com.google.common.collect.ImmutableSet;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -24,34 +25,39 @@ import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.Test;
 
-import javax.inject.Inject;
-
 /**
  * A {@link JvmTestToolchain} for TestNG.
  *
  * @since 8.5
  */
-abstract public class TestNGTestToolchain implements JvmTestToolchain<TestNGToolchainParameters> {
+public abstract class TestNGTestToolchain implements JvmTestToolchain<TestNGToolchainParameters> {
     /**
      * The default version of TestNG to use for compiling and executing tests.
      */
     public static final String DEFAULT_VERSION = "7.11.0";
+
     private static final String GROUP_NAME = "org.testng:testng";
 
     @Inject
-    abstract protected DependencyFactory getDependencyFactory();
+    protected abstract DependencyFactory getDependencyFactory();
 
     @Inject
-    abstract protected ObjectFactory getObjectFactory();
+    protected abstract ObjectFactory getObjectFactory();
 
     @Override
     public TestFramework createTestFramework(Test task) {
-        return getObjectFactory().newInstance(TestNGTestFramework.class, task.getFilter(), task.getTemporaryDirFactory(), task.getDryRun(), task.getReports().getHtml());
+        return getObjectFactory()
+                .newInstance(
+                        TestNGTestFramework.class,
+                        task.getFilter(),
+                        task.getTemporaryDirFactory(),
+                        task.getDryRun(),
+                        task.getReports().getHtml());
     }
 
     @Override
     public Iterable<Dependency> getImplementationDependencies() {
-        return ImmutableSet.of(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getVersion().get()));
+        return ImmutableSet.of(getDependencyFactory()
+                .create(GROUP_NAME + ":" + getParameters().getVersion().get()));
     }
-
 }

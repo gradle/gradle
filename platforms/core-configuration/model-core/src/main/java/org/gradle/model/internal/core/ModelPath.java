@@ -16,29 +16,34 @@
 
 package org.gradle.model.internal.core;
 
+import static java.lang.System.arraycopy;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
-import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.Contextual;
-import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.WeakHashMap;
-
-import static java.lang.System.arraycopy;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
+import org.jspecify.annotations.Nullable;
 
 @ThreadSafe
 public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     private static final String SEPARATOR = ".";
-    private static final CharMatcher VALID_FIRST_CHAR_MATCHER = CharMatcher.inRange('a', 'z').or(CharMatcher.inRange('A', 'Z')).or(CharMatcher.is('_'));
-    private final static CharMatcher INVALID_FIRST_CHAR_MATCHER = VALID_FIRST_CHAR_MATCHER.negate().precomputed();
-    private final static CharMatcher INVALID_CHAR_MATCHER = CharMatcher.inRange('0', '9').or(VALID_FIRST_CHAR_MATCHER).or(CharMatcher.is('-')).negate().precomputed();
+    private static final CharMatcher VALID_FIRST_CHAR_MATCHER =
+            CharMatcher.inRange('a', 'z').or(CharMatcher.inRange('A', 'Z')).or(CharMatcher.is('_'));
+    private static final CharMatcher INVALID_FIRST_CHAR_MATCHER =
+            VALID_FIRST_CHAR_MATCHER.negate().precomputed();
+    private static final CharMatcher INVALID_CHAR_MATCHER = CharMatcher.inRange('0', '9')
+            .or(VALID_FIRST_CHAR_MATCHER)
+            .or(CharMatcher.is('-'))
+            .negate()
+            .precomputed();
 
     public static final ModelPath ROOT;
     private static final Cache BY_PATH;
@@ -253,13 +258,17 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         char firstChar = name.charAt(0);
 
         if (INVALID_FIRST_CHAR_MATCHER.matches(firstChar)) {
-            throw new InvalidNameException(String.format("Model element name '%s' has illegal first character '%s' (names must start with an ASCII letter or underscore).", name, firstChar));
+            throw new InvalidNameException(String.format(
+                    "Model element name '%s' has illegal first character '%s' (names must start with an ASCII letter or underscore).",
+                    name, firstChar));
         }
 
         for (int i = 1; i < name.length(); ++i) {
             char character = name.charAt(i);
             if (INVALID_CHAR_MATCHER.matches(character)) {
-                throw new InvalidNameException(String.format("Model element name '%s' contains illegal character '%s' (only ASCII letters, numbers and the underscore are allowed).", name, character));
+                throw new InvalidNameException(String.format(
+                        "Model element name '%s' contains illegal character '%s' (only ASCII letters, numbers and the underscore are allowed).",
+                        name, character));
             }
         }
     }
@@ -288,11 +297,13 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         }
 
         if (path.startsWith(SEPARATOR)) {
-            throw new InvalidPathException(String.format("Model path '%s' cannot start with name separator '%s'.", path, SEPARATOR), null);
+            throw new InvalidPathException(
+                    String.format("Model path '%s' cannot start with name separator '%s'.", path, SEPARATOR), null);
         }
 
         if (path.endsWith(SEPARATOR)) {
-            throw new InvalidPathException(String.format("Model path '%s' cannot end with name separator '%s'.", path, SEPARATOR), null);
+            throw new InvalidPathException(
+                    String.format("Model path '%s' cannot end with name separator '%s'.", path, SEPARATOR), null);
         }
 
         String[] names = splitPath(path);
@@ -303,7 +314,8 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
                 try {
                     validateName(name);
                 } catch (InvalidNameException e) {
-                    throw new InvalidPathException(String.format("Model path '%s' is invalid due to invalid name component.", path), e);
+                    throw new InvalidPathException(
+                            String.format("Model path '%s' is invalid due to invalid name component.", path), e);
                 }
             }
         }

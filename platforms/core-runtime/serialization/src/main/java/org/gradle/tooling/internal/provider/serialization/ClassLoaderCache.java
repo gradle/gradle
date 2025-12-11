@@ -18,16 +18,15 @@ package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @ThreadSafe
 @ServiceScope(Scope.Global.class)
@@ -43,7 +42,6 @@ public class ClassLoaderCache {
         OUT transform(IN in);
     }
 
-
     private final Lock lock = new ReentrantLock();
     private final Cache<ClassLoader, ClassLoaderDetails> classLoaderDetails;
     private final Cache<UUID, ClassLoader> classLoaderIds;
@@ -53,7 +51,8 @@ public class ClassLoaderCache {
         classLoaderIds = CacheBuilder.newBuilder().softValues().build();
     }
 
-    public ClassLoader getClassLoader(ClassLoaderDetails details, Transformer<ClassLoader, ClassLoaderDetails> factory) {
+    public ClassLoader getClassLoader(
+            ClassLoaderDetails details, Transformer<ClassLoader, ClassLoaderDetails> factory) {
         lock.lock();
         try {
             ClassLoader classLoader = classLoaderIds.getIfPresent(details.uuid);
@@ -80,7 +79,8 @@ public class ClassLoaderCache {
         }
     }
 
-    public ClassLoaderDetails getDetails(ClassLoader classLoader, ClassLoaderCache.Transformer<ClassLoaderDetails, ClassLoader> factory) {
+    public ClassLoaderDetails getDetails(
+            ClassLoader classLoader, ClassLoaderCache.Transformer<ClassLoaderDetails, ClassLoader> factory) {
         lock.lock();
         try {
             ClassLoaderDetails details = classLoaderDetails.getIfPresent(classLoader);

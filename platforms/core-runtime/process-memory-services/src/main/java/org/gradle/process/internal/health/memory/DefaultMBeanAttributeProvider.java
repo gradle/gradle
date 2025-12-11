@@ -16,16 +16,15 @@
 
 package org.gradle.process.internal.health.memory;
 
-import org.gradle.internal.Cast;
-import org.jspecify.annotations.NullMarked;
-
+import java.lang.management.ManagementFactory;
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
-import java.lang.management.ManagementFactory;
+import org.gradle.internal.Cast;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class DefaultMBeanAttributeProvider implements MBeanAttributeProvider {
@@ -46,6 +45,7 @@ public class DefaultMBeanAttributeProvider implements MBeanAttributeProvider {
         } catch (AttributeNotFoundException e) {
             rootCause = e;
         }
-        throw new UnsupportedOperationException("(" + mbean + ")." + attribute + " is unsupported on this JVM.", rootCause);
+        throw new UnsupportedOperationException(
+                "(" + mbean + ")." + attribute + " is unsupported on this JVM.", rootCause);
     }
 }

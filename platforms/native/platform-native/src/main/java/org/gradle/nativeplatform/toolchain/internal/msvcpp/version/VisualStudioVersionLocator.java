@@ -16,9 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
-import org.jspecify.annotations.NonNull;
-
 import java.util.List;
+import org.jspecify.annotations.NonNull;
 
 public interface VisualStudioVersionLocator {
     @NonNull

@@ -29,5 +29,4 @@ interface ServiceAccessToken {
 
     @Override
     int hashCode();
-
 }

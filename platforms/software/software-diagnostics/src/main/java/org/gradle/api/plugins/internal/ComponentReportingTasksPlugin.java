@@ -28,12 +28,20 @@ import org.jspecify.annotations.NullMarked;
  * @since 9.0.0
  */
 @NullMarked
-abstract public class ComponentReportingTasksPlugin implements Plugin<Project> {
+public abstract class ComponentReportingTasksPlugin implements Plugin<Project> {
     @Override
     @SuppressWarnings("deprecation")
     public void apply(Project project) {
-        project.getTasks().register(DiagnosticsTaskNames.COMPONENTS_TASK, org.gradle.api.reporting.components.ComponentReport.class, new ComponentReportAction(project.toString()));
-        project.getTasks().register(DiagnosticsTaskNames.DEPENDENT_COMPONENTS_TASK, org.gradle.api.reporting.dependents.DependentComponentsReport.class, new DependentComponentsReportAction(project.toString()));
+        project.getTasks()
+                .register(
+                        DiagnosticsTaskNames.COMPONENTS_TASK,
+                        org.gradle.api.reporting.components.ComponentReport.class,
+                        new ComponentReportAction(project.toString()));
+        project.getTasks()
+                .register(
+                        DiagnosticsTaskNames.DEPENDENT_COMPONENTS_TASK,
+                        org.gradle.api.reporting.dependents.DependentComponentsReport.class,
+                        new DependentComponentsReportAction(project.toString()));
     }
 
     @SuppressWarnings("deprecation")
@@ -54,7 +62,8 @@ abstract public class ComponentReportingTasksPlugin implements Plugin<Project> {
 
     @SuppressWarnings("deprecation")
     @NullMarked
-    private static class DependentComponentsReportAction implements Action<org.gradle.api.reporting.dependents.DependentComponentsReport> {
+    private static class DependentComponentsReportAction
+            implements Action<org.gradle.api.reporting.dependents.DependentComponentsReport> {
         private final String projectName;
 
         public DependentComponentsReportAction(String projectName) {

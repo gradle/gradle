@@ -19,7 +19,9 @@ package org.gradle.initialization;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-public class ConfigureBuildBuildOperationType implements BuildOperationType<ConfigureBuildBuildOperationType.Details, ConfigureBuildBuildOperationType.Result> {
+public class ConfigureBuildBuildOperationType
+        implements BuildOperationType<
+                ConfigureBuildBuildOperationType.Details, ConfigureBuildBuildOperationType.Result> {
     @UsedByScanPlugin
     public interface Details {
         /**
@@ -28,9 +30,7 @@ public class ConfigureBuildBuildOperationType implements BuildOperationType<Conf
         String getBuildPath();
     }
 
-    public interface Result {
-    }
+    public interface Result {}
 
-    private ConfigureBuildBuildOperationType(){
-    }
+    private ConfigureBuildBuildOperationType() {}
 }

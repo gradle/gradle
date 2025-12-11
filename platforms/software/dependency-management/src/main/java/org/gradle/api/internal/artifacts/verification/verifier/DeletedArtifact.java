@@ -15,14 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.verification.verifier;
 
-import org.gradle.internal.logging.text.TreeFormatter;
-
 import java.io.File;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 public class DeletedArtifact extends AbstractVerificationFailure {
     public DeletedArtifact(File file) {
         super(file);
-
     }
 
     @Override

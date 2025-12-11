@@ -16,5 +16,4 @@
 
 package org.gradle.nativeplatform.internal;
 
-public interface BundleLinkerSpec extends LinkerSpec {
-}
+public interface BundleLinkerSpec extends LinkerSpec {}

@@ -16,13 +16,12 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.Serializable;
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 class SerializedLambdaQueries {
     private static final String GENERATED_LAMBDA_CLASS_SUFFIX = "$$Lambda";

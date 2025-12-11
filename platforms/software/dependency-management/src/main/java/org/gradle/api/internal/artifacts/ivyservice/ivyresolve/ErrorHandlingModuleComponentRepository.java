@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import java.util.Map;
+import java.util.concurrent.Callable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -43,9 +45,6 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.ErroringResolveResult;
 
-import java.util.Map;
-import java.util.concurrent.Callable;
-
 /**
  * A ModuleComponentRepository that catches any exception and applies it to the result object.
  * This allows other repository implementations to throw exceptions on failure.
@@ -53,16 +52,21 @@ import java.util.concurrent.Callable;
  * This implementation will also disable any repository that throws a critical failure, failing-fast with that
  * repository for any subsequent requests.
  */
-public class ErrorHandlingModuleComponentRepository implements ModuleComponentRepository<ExternalModuleComponentGraphResolveState> {
+public class ErrorHandlingModuleComponentRepository
+        implements ModuleComponentRepository<ExternalModuleComponentGraphResolveState> {
 
     private final ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate;
     private final ErrorHandlingModuleComponentRepositoryAccess local;
     private final ErrorHandlingModuleComponentRepositoryAccess remote;
 
-    public ErrorHandlingModuleComponentRepository(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate, RepositoryDisabler remoteRepositoryDisabler) {
+    public ErrorHandlingModuleComponentRepository(
+            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate,
+            RepositoryDisabler remoteRepositoryDisabler) {
         this.delegate = delegate;
-        local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryDisabler.NoOpDisabler.INSTANCE, getName());
-        remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryDisabler, getName());
+        local = new ErrorHandlingModuleComponentRepositoryAccess(
+                delegate.getLocalAccess(), getId(), RepositoryDisabler.NoOpDisabler.INSTANCE, getName());
+        remote = new ErrorHandlingModuleComponentRepositoryAccess(
+                delegate.getRemoteAccess(), getId(), remoteRepositoryDisabler, getName());
     }
 
     @Override
@@ -100,10 +104,11 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         return delegate.getComponentMetadataSupplier();
     }
 
-    private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
+    private static final class ErrorHandlingModuleComponentRepositoryAccess
+            implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         private static final Logger LOGGER = Logging.getLogger(ErrorHandlingModuleComponentRepositoryAccess.class);
-        private final static String MAX_TENTATIVES_BEFORE_DISABLING = "org.gradle.internal.repository.max.tentatives";
-        private final static String INITIAL_BACKOFF_MS = "org.gradle.internal.repository.initial.backoff";
+        private static final String MAX_TENTATIVES_BEFORE_DISABLING = "org.gradle.internal.repository.max.tentatives";
+        private static final String INITIAL_BACKOFF_MS = "org.gradle.internal.repository.initial.backoff";
 
         private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate;
         private final String repositoryId;
@@ -112,11 +117,27 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         private final int initialBackOff;
         private final String repositoryName;
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryDisabler, String repositoryName) {
-            this(delegate, repositoryId, repositoryDisabler, Integer.getInteger(MAX_TENTATIVES_BEFORE_DISABLING, 3), Integer.getInteger(INITIAL_BACKOFF_MS, 1000), repositoryName);
+        private ErrorHandlingModuleComponentRepositoryAccess(
+                ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate,
+                String repositoryId,
+                RepositoryDisabler repositoryDisabler,
+                String repositoryName) {
+            this(
+                    delegate,
+                    repositoryId,
+                    repositoryDisabler,
+                    Integer.getInteger(MAX_TENTATIVES_BEFORE_DISABLING, 3),
+                    Integer.getInteger(INITIAL_BACKOFF_MS, 1000),
+                    repositoryName);
         }
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryDisabler, int maxTentativesCount, int initialBackOff, String repositoryName) {
+        private ErrorHandlingModuleComponentRepositoryAccess(
+                ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate,
+                String repositoryId,
+                RepositoryDisabler repositoryDisabler,
+                int maxTentativesCount,
+                int initialBackOff,
+                String repositoryName) {
             this.repositoryName = repositoryName;
             assert maxTentativesCount > 0 : "Max tentatives must be > 0";
             assert initialBackOff >= 0 : "Initial backoff must be >= 0";
@@ -133,76 +154,100 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         }
 
         @Override
-        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
-            performOperationWithRetries(result,
-                () -> delegate.listModuleVersions(selector, overrideMetadata, result),
-                cause -> new ModuleVersionResolveException(selector, () -> buildDisabledRepositoryErrorMessage(repositoryName)),
-                cause -> new ModuleVersionResolveException(selector, () -> "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".", cause)
-            );
+        public void listModuleVersions(
+                ModuleComponentSelector selector,
+                ComponentOverrideMetadata overrideMetadata,
+                BuildableModuleVersionListingResolveResult result) {
+            performOperationWithRetries(
+                    result,
+                    () -> delegate.listModuleVersions(selector, overrideMetadata, result),
+                    cause -> new ModuleVersionResolveException(
+                            selector, () -> buildDisabledRepositoryErrorMessage(repositoryName)),
+                    cause -> new ModuleVersionResolveException(
+                            selector,
+                            () -> "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule()
+                                    + ".",
+                            cause));
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
-            performOperationWithRetries(result,
-                () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
-                cause -> new ModuleVersionResolveException(moduleComponentIdentifier, () -> buildDisabledRepositoryErrorMessage(repositoryName), cause),
-                cause -> new ModuleVersionResolveException(moduleComponentIdentifier, cause)
-            );
+        public void resolveComponentMetaData(
+                ModuleComponentIdentifier moduleComponentIdentifier,
+                ComponentOverrideMetadata requestMetaData,
+                BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
+            performOperationWithRetries(
+                    result,
+                    () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
+                    cause -> new ModuleVersionResolveException(
+                            moduleComponentIdentifier,
+                            () -> buildDisabledRepositoryErrorMessage(repositoryName),
+                            cause),
+                    cause -> new ModuleVersionResolveException(moduleComponentIdentifier, cause));
         }
 
         @Override
-        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-            performOperationWithRetries(result,
-                () -> delegate.resolveArtifactsWithType(component, artifactType, result),
-                cause -> new ArtifactResolveException(component.getId(), buildDisabledRepositoryErrorMessage(repositoryName), cause),
-                cause -> new ArtifactResolveException(component.getId(), cause)
-            );
+        public void resolveArtifactsWithType(
+                ComponentArtifactResolveMetadata component,
+                ArtifactType artifactType,
+                BuildableArtifactSetResolveResult result) {
+            performOperationWithRetries(
+                    result,
+                    () -> delegate.resolveArtifactsWithType(component, artifactType, result),
+                    cause -> new ArtifactResolveException(
+                            component.getId(), buildDisabledRepositoryErrorMessage(repositoryName), cause),
+                    cause -> new ArtifactResolveException(component.getId(), cause));
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
-            performOperationWithRetries(result,
-                () -> {
-                    delegate.resolveArtifact(artifact, moduleSources, result);
-                    if (result.hasResult()) {
-                        ArtifactResolveException failure = result.getFailure();
-                        if (!(failure instanceof ArtifactNotFoundException)) {
-                            return failure;
+        public void resolveArtifact(
+                ComponentArtifactMetadata artifact,
+                ModuleSources moduleSources,
+                BuildableArtifactFileResolveResult result) {
+            performOperationWithRetries(
+                    result,
+                    () -> {
+                        delegate.resolveArtifact(artifact, moduleSources, result);
+                        if (result.hasResult()) {
+                            ArtifactResolveException failure = result.getFailure();
+                            if (!(failure instanceof ArtifactNotFoundException)) {
+                                return failure;
+                            }
                         }
-                    }
-                    return null;
-                },
-                cause -> new ArtifactResolveException(artifact.getId(), buildDisabledRepositoryErrorMessage(repositoryName), cause),
-                cause -> new ArtifactResolveException(artifact.getId(), cause));
+                        return null;
+                    },
+                    cause -> new ArtifactResolveException(
+                            artifact.getId(), buildDisabledRepositoryErrorMessage(repositoryName), cause),
+                    cause -> new ArtifactResolveException(artifact.getId(), cause));
         }
 
         private static String buildDisabledRepositoryErrorMessage(String repositoryName) {
             return String.format("Repository %s is disabled due to earlier error below:", repositoryName);
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result,
-                                                                                                           Callable<E> operation,
-                                                                                                           Transformer<E, Throwable> onDisabled,
-                                                                                                           Transformer<E, Throwable> onError) {
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(
+                R result,
+                Callable<E> operation,
+                Transformer<E, Throwable> onDisabled,
+                Transformer<E, Throwable> onError) {
             if (checkToHandleDisabledRepository(result, onDisabled)) {
                 return;
             }
             tryResolveAndMaybeDisable(result, operation, onError);
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result,
-                                                                                                           Runnable operation,
-                                                                                                           Transformer<E, Throwable> onDisabled,
-                                                                                                           Transformer<E, Throwable> onError) {
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(
+                R result, Runnable operation, Transformer<E, Throwable> onDisabled, Transformer<E, Throwable> onError) {
             if (checkToHandleDisabledRepository(result, onDisabled)) {
                 return;
             }
             tryResolveAndMaybeDisable(result, operation, onError);
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> boolean checkToHandleDisabledRepository(R result, Transformer<E, Throwable> onDisabled) {
+        private <E extends Throwable, R extends ErroringResolveResult<E>> boolean checkToHandleDisabledRepository(
+                R result, Transformer<E, Throwable> onDisabled) {
             if (repositoryDisabler.isDisabled(repositoryId)) {
-                Throwable reason = repositoryDisabler.getDisabledReason(repositoryId).get();
+                Throwable reason =
+                        repositoryDisabler.getDisabledReason(repositoryId).get();
                 E failure = onDisabled.transform(reason);
                 result.failed(failure);
                 return true;
@@ -210,18 +255,19 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
             return false;
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeDisable(R result,
-                                                                                                         Runnable operation,
-                                                                                                         Transformer<E, Throwable> onError) {
-            tryResolveAndMaybeDisable(result, () -> {
-                operation.run();
-                return null;
-            }, onError);
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeDisable(
+                R result, Runnable operation, Transformer<E, Throwable> onError) {
+            tryResolveAndMaybeDisable(
+                    result,
+                    () -> {
+                        operation.run();
+                        return null;
+                    },
+                    onError);
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeDisable(R result,
-                                                                                                         Callable<E> operation,
-                                                                                                         Transformer<E, Throwable> onError) {
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeDisable(
+                R result, Callable<E> operation, Transformer<E, Throwable> onError) {
             int retries = 0;
             int backoff = initialBackOff;
 
@@ -241,7 +287,8 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                     unexpectedFailure = throwable;
                     failure = onError.transform(throwable);
                 }
-                boolean doNotRetry = NetworkingIssueVerifier.isLikelyPermanentNetworkIssue(failure) || !NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure);
+                boolean doNotRetry = NetworkingIssueVerifier.isLikelyPermanentNetworkIssue(failure)
+                        || !NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure);
                 if (doNotRetry || retries == maxTentativesCount) {
                     if (unexpectedFailure != null) {
                         repositoryDisabler.tryDisableRepository(repositoryId, failure);
@@ -249,7 +296,12 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                     result.failed(failure);
                     break;
                 } else {
-                    LOGGER.debug("Error while accessing remote repository {}. Waiting {}ms before next retry. {} retries left", repositoryName, backoff, maxTentativesCount - retries, failure);
+                    LOGGER.debug(
+                            "Error while accessing remote repository {}. Waiting {}ms before next retry. {} retries left",
+                            repositoryName,
+                            backoff,
+                            maxTentativesCount - retries,
+                            failure);
                     try {
                         Thread.sleep(backoff);
                         backoff *= 2;

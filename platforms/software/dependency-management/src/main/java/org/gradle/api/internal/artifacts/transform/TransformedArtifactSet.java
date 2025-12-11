@@ -18,5 +18,4 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
-public interface TransformedArtifactSet extends ResolvedArtifactSet {
-}
+public interface TransformedArtifactSet extends ResolvedArtifactSet {}

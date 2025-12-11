@@ -16,6 +16,16 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.file.RelativeFile;
@@ -28,17 +38,6 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.gradle.internal.FileUtils.hasExtension;
 
 public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> implements TestFrameworkDetector {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTestFrameworkDetector.class);
@@ -126,7 +125,10 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             classReader.accept(classVisitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
             return TestClass.forParseableFile(classVisitor);
         } catch (Throwable e) {
-            LOGGER.debug("Failed to read class file " + testClassFile.getAbsolutePath() + "; assuming it's a test class and continuing", e);
+            LOGGER.debug(
+                    "Failed to read class file " + testClassFile.getAbsolutePath()
+                            + "; assuming it's a test class and continuing",
+                    e);
             return TestClass.forUnparseableFile(fallbackClassNameProvider.create());
         } finally {
             IoActions.closeQuietly(classStream);
@@ -135,7 +137,10 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
     @Override
     public boolean processTestClass(final RelativeFile testClassFile) {
-        return processTestClass(testClassFile.getFile(), false, () -> testClassFile.getRelativePath().getPathString().replace(".class", ""));
+        return processTestClass(
+                testClassFile.getFile(),
+                false,
+                () -> testClassFile.getRelativePath().getPathString().replace(".class", ""));
     }
 
     /**
@@ -146,7 +151,8 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
      * <p>
      * When a parent class is a test class all the extending classes are marked as test classes.
      */
-    private boolean processTestClass(File testClassFile, boolean superClass, Factory<String> fallbackClassNameProvider) {
+    private boolean processTestClass(
+            File testClassFile, boolean superClass, Factory<String> fallbackClassNameProvider) {
         TestClass testClass = readClassFile(testClassFile, fallbackClassNameProvider);
 
         boolean isTest = testClass.isTest();
@@ -162,8 +168,9 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
                 if (superClassFile != null) {
                     isTest = processSuperClass(superClassFile, superClassName);
                 } else {
-                    LOGGER.debug("test-class-scan : failed to scan parent class {}, could not find the class file",
-                        superClassName);
+                    LOGGER.debug(
+                            "test-class-scan : failed to scan parent class {}, could not find the class file",
+                            superClassName);
                 }
             }
         }
@@ -214,7 +221,11 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         private final String superClassName;
 
         public static TestClass forParseableFile(TestClassVisitor testClassVisitor) {
-            return new TestClass(testClassVisitor.isTest(), testClassVisitor.isAbstract(), testClassVisitor.getClassName(), testClassVisitor.getSuperClassName());
+            return new TestClass(
+                    testClassVisitor.isTest(),
+                    testClassVisitor.isAbstract(),
+                    testClassVisitor.getClassName(),
+                    testClassVisitor.getSuperClassName());
         }
 
         static TestClass forUnparseableFile(String className) {

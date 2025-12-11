@@ -16,6 +16,8 @@
 
 package org.gradle.internal.operations.trace;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -33,28 +35,6 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.internal.Cast;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.buildoption.InternalFlag;
-import org.gradle.internal.buildoption.InternalOption;
-import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.buildoption.StringInternalOption;
-import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationListener;
-import org.gradle.internal.operations.BuildOperationListenerManager;
-import org.gradle.internal.operations.OperationFinishEvent;
-import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
-import org.gradle.internal.operations.OperationStartEvent;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.internal.GFileUtils;
-import org.jspecify.annotations.Nullable;
-
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.Closeable;
@@ -85,8 +65,27 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
-
-import static org.gradle.internal.Cast.uncheckedCast;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.Cast;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOption;
+import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.buildoption.StringInternalOption;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Writes files describing the build operation stream for a build.
@@ -160,7 +159,10 @@ public class BuildOperationTrace implements Stoppable {
 
     private final BuildOperationListenerManager buildOperationListenerManager;
 
-    public BuildOperationTrace(File userActionRootDir, InternalOptions internalOptions, BuildOperationListenerManager buildOperationListenerManager) {
+    public BuildOperationTrace(
+            File userActionRootDir,
+            InternalOptions internalOptions,
+            BuildOperationListenerManager buildOperationListenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
 
         Path basePath = resolveBasePath(internalOptions, userActionRootDir);
@@ -229,16 +231,15 @@ public class BuildOperationTrace implements Stoppable {
 
         private static ObjectMapper createObjectMapper() {
             return new ObjectMapper()
-                .registerModule(new SimpleModule()
-                    .addSerializer(Class.class, new JsonClassSerializer())
-                    .addSerializer(Throwable.class, new JsonThrowableSerializer())
-                    .addSerializer(AttributeContainer.class, new JsonAttributeContainerSerializer())
-                    .setSerializerModifier(new SkipDeprecatedBeanSerializerModifier())
-                )
-                .registerModule(new JavaTimeModule())
-                .registerModule(new Jdk8Module())
-                .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-                .configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
+                    .registerModule(new SimpleModule()
+                            .addSerializer(Class.class, new JsonClassSerializer())
+                            .addSerializer(Throwable.class, new JsonThrowableSerializer())
+                            .addSerializer(AttributeContainer.class, new JsonAttributeContainerSerializer())
+                            .setSerializerModifier(new SkipDeprecatedBeanSerializerModifier()))
+                    .registerModule(new JavaTimeModule())
+                    .registerModule(new Jdk8Module())
+                    .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                    .configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
         }
 
         private static OutputStream openStream(File logFile) {
@@ -295,9 +296,9 @@ public class BuildOperationTrace implements Stoppable {
         private void writeDetailTree(List<BuildOperationRecord> roots) throws IOException {
             File outputFile = withSuffix(basePath, "-tree.json").toFile();
 
-            System.out.println("Build operation trace: writing tree to " + outputFile.getAbsoluteFile().toPath());
-            objectMapper.writerWithDefaultPrettyPrinter()
-                .writeValue(outputFile, BuildOperationTree.serialize(roots));
+            System.out.println("Build operation trace: writing tree to "
+                    + outputFile.getAbsoluteFile().toPath());
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(outputFile, BuildOperationTree.serialize(roots));
             System.out.println("Build operation trace: finished writing tree");
         }
 
@@ -366,10 +367,12 @@ public class BuildOperationTrace implements Stoppable {
                         for (int i = 0; i < indents; ++i) {
                             stringBuilder.append("  ");
                         }
-                        stringBuilder.append("- ")
-                            .append(progress.details).append(" [")
-                            .append(progress.time - record.startTime)
-                            .append("]");
+                        stringBuilder
+                                .append("- ")
+                                .append(progress.details)
+                                .append(" [")
+                                .append(progress.time - record.startTime)
+                                .append("]");
                     }
                 }
 
@@ -377,7 +380,6 @@ public class BuildOperationTrace implements Stoppable {
                 writer.newLine();
             }
         }
-
     }
 
     public static BuildOperationTree readTree(String basePath) {
@@ -430,7 +432,8 @@ public class BuildOperationTrace implements Stoppable {
                             pending.progress.add(serialized);
                         } else {
                             if (completeTree) {
-                                throw new IllegalStateException("did not find owner of progress event with ID " + serialized.id);
+                                throw new IllegalStateException(
+                                        "did not find owner of progress event with ID " + serialized.id);
                             }
 
                             danglingProgress.add(serialized);
@@ -450,19 +453,18 @@ public class BuildOperationTrace implements Stoppable {
                         Map<String, ?> resultMap = uncheckedCast(finish.result);
 
                         BuildOperationRecord record = new BuildOperationRecord(
-                            start.id,
-                            start.parentId,
-                            start.displayName,
-                            start.startTime,
-                            finish.endTime,
-                            detailsMap == null ? null : Collections.unmodifiableMap(detailsMap),
-                            start.detailsClassName,
-                            resultMap == null ? null : Collections.unmodifiableMap(resultMap),
-                            finish.resultClassName,
-                            finish.failureMsg,
-                            pending.progress,
-                            BuildOperationRecord.ORDERING.immutableSortedCopy(children)
-                        );
+                                start.id,
+                                start.parentId,
+                                start.displayName,
+                                start.startTime,
+                                finish.endTime,
+                                detailsMap == null ? null : Collections.unmodifiableMap(detailsMap),
+                                start.detailsClassName,
+                                resultMap == null ? null : Collections.unmodifiableMap(resultMap),
+                                finish.resultClassName,
+                                finish.failureMsg,
+                                pending.progress,
+                                BuildOperationRecord.ORDERING.immutableSortedCopy(children));
 
                         if (start.parentId == null) {
                             roots.add(record);
@@ -472,7 +474,8 @@ public class BuildOperationTrace implements Stoppable {
                                 parentChildren.add(record);
                             } else {
                                 if (completeTree) {
-                                    throw new IllegalStateException("parentChildren != null '" + line + "' from " + logFile);
+                                    throw new IllegalStateException(
+                                            "parentChildren != null '" + line + "' from " + logFile);
                                 }
 
                                 // We are not expecting a complete tree, so it is possible that the parent
@@ -490,19 +493,24 @@ public class BuildOperationTrace implements Stoppable {
                 // There were dangling progress events that have parent operations which were not serialized.
                 // Add a dummy root operation to hold these events.
                 roots.add(new BuildOperationRecord(
-                    -1L, null,
-                    "Dangling pending operations",
-                    0L, 0L, null, null, null, null, null,
-                    danglingProgress,
-                    Collections.emptyList()
-                ));
+                        -1L,
+                        null,
+                        "Dangling pending operations",
+                        0L,
+                        0L,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        danglingProgress,
+                        Collections.emptyList()));
             }
 
             return roots;
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-
     }
 
     private static Path logFile(Path basePath) {
@@ -522,7 +530,6 @@ public class BuildOperationTrace implements Stoppable {
         PendingOperation(SerializedOperationStart start) {
             this.start = start;
         }
-
     }
 
     public static @Nullable Object toSerializableModel(@Nullable Object object) {
@@ -536,14 +543,16 @@ public class BuildOperationTrace implements Stoppable {
     @SuppressWarnings("rawtypes")
     private static class JsonClassSerializer extends JsonSerializer<Class> {
         @Override
-        public void serialize(Class aClass, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+        public void serialize(Class aClass, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
+                throws IOException {
             jsonGenerator.writeString(aClass.getName());
         }
     }
 
     private static class JsonThrowableSerializer extends JsonSerializer<Throwable> {
         @Override
-        public void serialize(Throwable throwable, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        public void serialize(Throwable throwable, JsonGenerator gen, SerializerProvider serializers)
+                throws IOException {
             gen.writeStartObject();
             String message = throwable.getMessage();
             if (message != null) {
@@ -563,14 +572,17 @@ public class BuildOperationTrace implements Stoppable {
      */
     private static class JsonAttributeContainerSerializer extends JsonSerializer<AttributeContainer> {
         @Override
-        public void serialize(AttributeContainer attributeContainer, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        public void serialize(AttributeContainer attributeContainer, JsonGenerator gen, SerializerProvider serializers)
+                throws IOException {
             /*
              * We need to convert to a map manually since asMap is only available on the internal container type,
              * which even though we know should always be a safe cast, it isn't a type that is available in this project.
              */
             ImmutableMap.Builder<Attribute<?>, ?> builder = ImmutableMap.builder();
             for (Attribute<?> attribute : attributeContainer.keySet()) {
-                builder.put(attribute, Cast.uncheckedCast(Objects.requireNonNull(attributeContainer.getAttribute(attribute))));
+                builder.put(
+                        attribute,
+                        Cast.uncheckedCast(Objects.requireNonNull(attributeContainer.getAttribute(attribute))));
             }
             serializers.defaultSerializeValue(builder.build(), gen);
         }
@@ -583,10 +595,7 @@ public class BuildOperationTrace implements Stoppable {
     private static class SkipDeprecatedBeanSerializerModifier extends BeanSerializerModifier {
         @Override
         public List<BeanPropertyWriter> changeProperties(
-            SerializationConfig config,
-            BeanDescription beanDesc,
-            List<BeanPropertyWriter> beanProperties
-        ) {
+                SerializationConfig config, BeanDescription beanDesc, List<BeanPropertyWriter> beanProperties) {
             // Remove any property where the member (field or getter) is annotated with @Deprecated
             beanProperties.removeIf(writer -> {
                 AnnotatedMember member = writer.getMember();
@@ -633,23 +642,28 @@ public class BuildOperationTrace implements Stoppable {
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            if (buildOperation.getDetails() != null && filter.contains(buildOperation.getDetails().getClass().getName())) {
+            if (buildOperation.getDetails() != null
+                    && filter.contains(buildOperation.getDetails().getClass().getName())) {
                 delegate.started(buildOperation, startEvent);
             }
         }
 
         @Override
         public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-            if (progressEvent.getDetails() != null && filter.contains(progressEvent.getDetails().getClass().getName())) {
+            if (progressEvent.getDetails() != null
+                    && filter.contains(progressEvent.getDetails().getClass().getName())) {
                 delegate.progress(operationIdentifier, progressEvent);
             }
         }
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            if ((buildOperation.getDetails() != null && filter.contains(buildOperation.getDetails().getClass().getName())) ||
-                (finishEvent.getResult() != null && filter.contains(finishEvent.getResult().getClass().getName()))
-            ) {
+            if ((buildOperation.getDetails() != null
+                            && filter.contains(
+                                    buildOperation.getDetails().getClass().getName()))
+                    || (finishEvent.getResult() != null
+                            && filter.contains(
+                                    finishEvent.getResult().getClass().getName()))) {
                 delegate.finished(buildOperation, finishEvent);
             }
         }
@@ -666,7 +680,6 @@ public class BuildOperationTrace implements Stoppable {
          * This method must be called after all write operations have been completed.
          */
         void complete(boolean writeTree);
-
     }
 
     /**
@@ -695,7 +708,6 @@ public class BuildOperationTrace implements Stoppable {
                 IoActions.closeQuietly(executor);
             }
         }
-
     }
 
     /**
@@ -765,5 +777,4 @@ public class BuildOperationTrace implements Stoppable {
             }
         }
     }
-
 }

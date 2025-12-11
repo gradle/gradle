@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks;
 
-import groovy.util.ObservableList;
-import org.gradle.api.internal.TaskInternal;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
+import groovy.util.ObservableList;
 import java.beans.PropertyChangeEvent;
 import java.util.concurrent.Callable;
-
-import static org.gradle.internal.UncheckedException.uncheckedCall;
+import org.gradle.api.internal.TaskInternal;
 
 public class TaskMutator {
     private final TaskInternal task;

@@ -16,11 +16,10 @@
 
 package org.gradle.internal.buildoption;
 
+import java.util.Map;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * Represents an option for a build provided by the user via Gradle property and/or a command line option.

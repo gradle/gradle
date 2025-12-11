@@ -25,13 +25,13 @@ import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-public class DefaultBuildableComponentResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentResolveResult {
+public class DefaultBuildableComponentResolveResult extends DefaultResourceAwareResolveResult
+        implements BuildableComponentResolveResult {
     private ComponentGraphResolveState state;
     private ComponentGraphSpecificResolveState graphState;
     private ModuleVersionResolveException failure;
 
-    public DefaultBuildableComponentResolveResult() {
-    }
+    public DefaultBuildableComponentResolveResult() {}
 
     @Override
     public DefaultBuildableComponentResolveResult failed(ModuleVersionResolveException failure) {
@@ -42,7 +42,8 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
 
     @Override
     public void notFound(ModuleComponentIdentifier versionIdentifier) {
-        failed(new ModuleVersionNotFoundException(DefaultModuleVersionIdentifier.newId(versionIdentifier), getAttempted()));
+        failed(new ModuleVersionNotFoundException(
+                DefaultModuleVersionIdentifier.newId(versionIdentifier), getAttempted()));
     }
 
     @Override

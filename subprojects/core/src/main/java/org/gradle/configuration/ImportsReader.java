@@ -16,11 +16,10 @@
 
 package org.gradle.configuration;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.util.List;
 import java.util.Map;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Global.class)
 public interface ImportsReader {

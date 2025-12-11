@@ -16,10 +16,9 @@
 package org.gradle.api.internal.artifacts.verification.model;
 
 import com.google.common.collect.ImmutableSet;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Objects;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Internal representation of a checksum, aimed at <i>verification</i>.
@@ -48,7 +47,12 @@ public class Checksum {
     private final String reason;
     private final int hashCode;
 
-    public Checksum(ChecksumKind kind, String value, @Nullable Set<String> alternatives, @Nullable String origin, @Nullable String reason) {
+    public Checksum(
+            ChecksumKind kind,
+            String value,
+            @Nullable Set<String> alternatives,
+            @Nullable String origin,
+            @Nullable String reason) {
         this.kind = kind;
         this.value = value;
         this.alternatives = alternatives == null ? null : ImmutableSet.copyOf(alternatives);
@@ -119,5 +123,4 @@ public class Checksum {
     public int hashCode() {
         return hashCode;
     }
-
 }

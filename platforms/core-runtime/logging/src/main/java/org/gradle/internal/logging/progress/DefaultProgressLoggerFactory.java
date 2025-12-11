@@ -34,11 +34,14 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     private final ProgressListener progressListener;
     private final Clock clock;
     private final BuildOperationIdFactory buildOperationIdFactory;
+
     @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<ProgressLoggerImpl> current = new ThreadLocal<ProgressLoggerImpl>();
+
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
 
-    public DefaultProgressLoggerFactory(ProgressListener progressListener, Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
+    public DefaultProgressLoggerFactory(
+            ProgressListener progressListener, Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
         this.progressListener = progressListener;
         this.clock = clock;
         this.buildOperationIdFactory = buildOperationIdFactory;
@@ -62,16 +65,15 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         }
 
         ProgressLoggerImpl logger = new ProgressLoggerImpl(
-            null,
-            buildOperationDescriptor.getId(),
-            category,
-            progressListener,
-            clock,
-            true,
-            buildOperationDescriptor.getId(),
-            buildOperationDescriptor.getParentId(),
-            buildOperationCategory
-        );
+                null,
+                buildOperationDescriptor.getId(),
+                category,
+                progressListener,
+                clock,
+                true,
+                buildOperationDescriptor.getId(),
+                buildOperationDescriptor.getParentId(),
+                buildOperationCategory);
         logger.totalProgress = buildOperationDescriptor.getTotalProgress();
 
         // Make some assumptions about the console output
@@ -92,28 +94,28 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         return init(loggerClass.toString(), parent);
     }
 
-    private ProgressLogger init(
-        String loggerCategory,
-        @Nullable ProgressLogger parentOperation
-    ) {
+    private ProgressLogger init(String loggerCategory, @Nullable ProgressLogger parentOperation) {
         if (parentOperation != null && !(parentOperation instanceof ProgressLoggerImpl)) {
             throw new IllegalArgumentException("Unexpected parent logger.");
         }
         BuildOperationRef currentBuildOperation = currentBuildOperationRef.get();
         return new ProgressLoggerImpl(
-            (ProgressLoggerImpl) parentOperation,
-            new OperationIdentifier(buildOperationIdFactory.nextId()),
-            loggerCategory,
-            progressListener,
-            clock,
-            false,
-            currentBuildOperation != null ? currentBuildOperation.getId() : null,
-            currentBuildOperation != null ? currentBuildOperation.getParentId() : null,
-            null
-        );
+                (ProgressLoggerImpl) parentOperation,
+                new OperationIdentifier(buildOperationIdFactory.nextId()),
+                loggerCategory,
+                progressListener,
+                clock,
+                false,
+                currentBuildOperation != null ? currentBuildOperation.getId() : null,
+                currentBuildOperation != null ? currentBuildOperation.getParentId() : null,
+                null);
     }
 
-    private enum State {idle, started, completed}
+    private enum State {
+        idle,
+        started,
+        completed
+    }
 
     private class ProgressLoggerImpl implements ProgressLogger {
         private final OperationIdentifier progressOperationId;
@@ -121,10 +123,13 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private final ProgressListener listener;
         private final Clock clock;
         private final boolean buildOperationStart;
+
         @Nullable
         private final OperationIdentifier buildOperationId;
+
         @Nullable
         private final OperationIdentifier parentBuildOperationId;
+
         private final BuildOperationCategory buildOperationCategory;
         private ProgressLoggerImpl previous;
         private ProgressLoggerImpl parent;
@@ -134,16 +139,15 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private int totalProgress;
 
         ProgressLoggerImpl(
-            @Nullable ProgressLoggerImpl parent,
-            @Nullable OperationIdentifier progressOperationId,
-            String category,
-            ProgressListener listener,
-            Clock clock,
-            boolean buildOperationStart,
-            @Nullable OperationIdentifier buildOperationId,
-            @Nullable OperationIdentifier parentBuildOperationId,
-            @Nullable BuildOperationCategory buildOperationCategory
-        ) {
+                @Nullable ProgressLoggerImpl parent,
+                @Nullable OperationIdentifier progressOperationId,
+                String category,
+                ProgressListener listener,
+                Clock clock,
+                boolean buildOperationStart,
+                @Nullable OperationIdentifier buildOperationId,
+                @Nullable OperationIdentifier parentBuildOperationId,
+                @Nullable BuildOperationCategory buildOperationCategory) {
             this.parent = parent;
             this.progressOperationId = progressOperationId;
             this.category = category;
@@ -212,18 +216,17 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             }
             current.set(this);
             listener.started(new ProgressStartEvent(
-                progressOperationId,
-                parentProgressId,
-                clock.getCurrentTime(),
-                category,
-                description,
-                loggingHeader,
-                ensureNotNull(status),
-                totalProgress,
-                buildOperationStart,
-                buildOperationId,
-                buildOperationCategory
-            ));
+                    progressOperationId,
+                    parentProgressId,
+                    clock.getCurrentTime(),
+                    category,
+                    description,
+                    loggingHeader,
+                    ensureNotNull(status),
+                    totalProgress,
+                    buildOperationStart,
+                    buildOperationId,
+                    buildOperationCategory));
         }
 
         @Override
@@ -247,7 +250,8 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             assertRunning();
             state = State.completed;
             current.set(previous);
-            listener.completed(new ProgressCompleteEvent(progressOperationId, clock.getCurrentTime(), ensureNotNull(status), failed));
+            listener.completed(new ProgressCompleteEvent(
+                    progressOperationId, clock.getCurrentTime(), ensureNotNull(status), failed));
         }
 
         private String ensureNotNull(@Nullable String status) {
@@ -274,9 +278,9 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
 
         private void assertCanConfigure() {
             if (state != State.idle) {
-                throw new IllegalStateException(String.format("Cannot configure this operation (%s) once it has started.", this));
+                throw new IllegalStateException(
+                        String.format("Cannot configure this operation (%s) once it has started.", this));
             }
         }
-
     }
 }

@@ -16,14 +16,13 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.work.DisableCachingByDefault;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.specs.Spec;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * <p>Attached to a task type to indicate that task output caching should be enabled by default for tasks of this type.</p>
@@ -40,5 +39,4 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface CacheableTask {
-}
+public @interface CacheableTask {}

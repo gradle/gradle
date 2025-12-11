@@ -24,7 +24,8 @@ import org.gradle.api.reflect.TypeOf;
  * @see ExtensionContainer
  * @since 4.5
  */
-public interface ExtensionsSchema extends NamedDomainObjectCollectionSchema, Iterable<ExtensionsSchema.ExtensionSchema> {
+public interface ExtensionsSchema
+        extends NamedDomainObjectCollectionSchema, Iterable<ExtensionsSchema.ExtensionSchema> {
 
     /**
      * {@inheritDoc}

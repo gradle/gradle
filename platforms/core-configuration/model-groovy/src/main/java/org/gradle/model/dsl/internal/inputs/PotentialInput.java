@@ -16,9 +16,8 @@
 
 package org.gradle.model.dsl.internal.inputs;
 
-import org.gradle.model.internal.core.ModelView;
-
 import java.util.List;
+import org.gradle.model.internal.core.ModelView;
 
 public class PotentialInput {
     private final int inputIndex;

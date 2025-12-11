@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal;
 
+import java.io.File;
+import java.time.Duration;
+import java.util.Map;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
@@ -27,17 +30,14 @@ import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.time.Duration;
-import java.util.Map;
-
 public class StartParameterInternal extends StartParameter {
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
     private boolean vfsVerboseLogging;
 
     private Option.Value<Boolean> configurationCache = Option.Value.defaultValue(false);
     private Option.Value<Boolean> isolatedProjects = Option.Value.defaultValue(false);
-    private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
+    private ConfigurationCacheProblemsOption.Value configurationCacheProblems =
+            ConfigurationCacheProblemsOption.Value.FAIL;
     private boolean configurationCacheDebug;
     private boolean configurationCacheIgnoreInputsDuringStore = false;
     private boolean configurationCacheIgnoreUnsupportedBuildEventsListeners = false;
@@ -59,8 +59,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean daemonJvmCriteriaConfigured = false;
     private Option.Value<Boolean> parallelToolingModelBuilding = Option.Value.defaultValue(false);
 
-    public StartParameterInternal() {
-    }
+    public StartParameterInternal() {}
 
     protected StartParameterInternal(BuildLayoutParameters layoutParameters) {
         super(layoutParameters);
@@ -86,7 +85,8 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
-        p.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
+        p.configurationCacheIgnoreUnsupportedBuildEventsListeners =
+                configurationCacheIgnoreUnsupportedBuildEventsListeners;
         p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheParallel = configurationCacheParallel;
         p.configurationCacheReadOnly = configurationCacheReadOnly;
@@ -107,7 +107,8 @@ public class StartParameterInternal extends StartParameter {
     @Override
     @SuppressWarnings("deprecation")
     public Map<String, String> getProjectProperties() {
-        // We avoid using the more usual `Instrumented` directly because a class dependency on it bloats up the Shaded TAPI Jar
+        // We avoid using the more usual `Instrumented` directly because a class dependency on it bloats up the Shaded
+        // TAPI Jar
         InstrumentedInputs.listener().startParameterProjectPropertiesObserved();
         return super.getProjectProperties();
     }
@@ -213,8 +214,10 @@ public class StartParameterInternal extends StartParameter {
         configurationCacheIgnoreInputsDuringStore = ignoreInputsDuringStore;
     }
 
-    public void setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(boolean configurationCacheIgnoreUnsupportedBuildEventsListeners) {
-        this.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
+    public void setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(
+            boolean configurationCacheIgnoreUnsupportedBuildEventsListeners) {
+        this.configurationCacheIgnoreUnsupportedBuildEventsListeners =
+                configurationCacheIgnoreUnsupportedBuildEventsListeners;
     }
 
     public boolean isConfigurationCacheIgnoreUnsupportedBuildEventsListeners() {
@@ -258,7 +261,8 @@ public class StartParameterInternal extends StartParameter {
         return configurationCacheIgnoredFileSystemCheckInputs;
     }
 
-    public void setConfigurationCacheIgnoredFileSystemCheckInputs(@Nullable String configurationCacheIgnoredFileSystemCheckInputs) {
+    public void setConfigurationCacheIgnoredFileSystemCheckInputs(
+            @Nullable String configurationCacheIgnoredFileSystemCheckInputs) {
         this.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
     }
 
@@ -294,7 +298,8 @@ public class StartParameterInternal extends StartParameter {
         return configurationCacheHeapDumpDir;
     }
 
-    public void setConfigurationCacheFineGrainedPropertyTracking(boolean configurationCacheFineGrainedPropertyTracking) {
+    public void setConfigurationCacheFineGrainedPropertyTracking(
+            boolean configurationCacheFineGrainedPropertyTracking) {
         this.configurationCacheFineGrainedPropertyTracking = configurationCacheFineGrainedPropertyTracking;
     }
 

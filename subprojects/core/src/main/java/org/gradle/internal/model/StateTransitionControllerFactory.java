@@ -33,16 +33,16 @@ public class StateTransitionControllerFactory {
     private final BuildOperationRunner buildOperationRunner;
 
     public StateTransitionControllerFactory(
-        WorkerLeaseService workerLeaseService,
-        BuildOperationsParameters buildOperationsParameters,
-        BuildOperationRunner buildOperationRunner
-    ) {
+            WorkerLeaseService workerLeaseService,
+            BuildOperationsParameters buildOperationsParameters,
+            BuildOperationRunner buildOperationRunner) {
         this.workerLeaseService = workerLeaseService;
         this.buildOperationsParameters = buildOperationsParameters;
         this.buildOperationRunner = buildOperationRunner;
     }
 
-    public <T extends StateTransitionController.State> StateTransitionController<T> newController(DisplayName displayName, T initialState) {
+    public <T extends StateTransitionController.State> StateTransitionController<T> newController(
+            DisplayName displayName, T initialState) {
         Synchronizer synchronizer = workerLeaseService.newResource();
         if (buildOperationsParameters.emitLockingOperations()) {
             synchronizer = new WaitBuildOperationFiringSynchronizer(displayName, synchronizer, buildOperationRunner);

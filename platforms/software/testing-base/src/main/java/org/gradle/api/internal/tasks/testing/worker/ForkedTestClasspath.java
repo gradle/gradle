@@ -17,10 +17,9 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.process.internal.worker.WorkerProcessBuilder;
-
 import java.io.File;
 import java.net.URL;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 /**
  * The classpath of a forked test process, which includes both the application and implementation classpaths.
@@ -39,10 +38,9 @@ public class ForkedTestClasspath {
     private final ImmutableList<URL> implementationClasspath;
 
     public ForkedTestClasspath(
-        ImmutableList<File> applicationClasspath,
-        ImmutableList<File> applicationModulepath,
-        ImmutableList<URL> implementationClasspath
-    ) {
+            ImmutableList<File> applicationClasspath,
+            ImmutableList<File> applicationModulepath,
+            ImmutableList<URL> implementationClasspath) {
         this.applicationClasspath = applicationClasspath;
         this.applicationModulepath = applicationModulepath;
         this.implementationClasspath = implementationClasspath;

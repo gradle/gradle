@@ -16,11 +16,10 @@
 
 package org.gradle.process.internal.streams;
 
-import org.apache.commons.io.output.CloseShieldOutputStream;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.apache.commons.io.output.CloseShieldOutputStream;
 
 public class SafeStreams {
 

@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.events.configuration.internal;
 
+import java.time.Duration;
 import org.gradle.tooling.events.PluginIdentifier;
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult.PluginApplicationResult;
-
-import java.time.Duration;
 
 public class DefaultPluginApplicationResult implements PluginApplicationResult {
 
@@ -40,5 +39,4 @@ public class DefaultPluginApplicationResult implements PluginApplicationResult {
     public Duration getTotalConfigurationTime() {
         return totalConfigurationTime;
     }
-
 }

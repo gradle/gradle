@@ -29,7 +29,8 @@ import org.gradle.api.model.ManagedType;
  * @see org.gradle.api.model.ObjectFactory#polymorphicDomainObjectContainer(Class) Create an instance of this manually.
  */
 @ManagedType
-public interface ExtensiblePolymorphicDomainObjectContainer<T> extends PolymorphicDomainObjectContainer<T>, NamedDomainObjectFactoryRegistry<T> {
+public interface ExtensiblePolymorphicDomainObjectContainer<T>
+        extends PolymorphicDomainObjectContainer<T>, NamedDomainObjectFactoryRegistry<T> {
     /**
      * Registers a factory for creating elements of the specified type. Typically, the specified type
      * is an interface type.

@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Optional;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
@@ -23,10 +26,6 @@ import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.io.IoFunction;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Optional;
 
 /**
  * A {@link ResourceHasher} that normalizes line endings while hashing the file.  It detects whether a file is text or binary and only
@@ -71,14 +70,12 @@ public class LineEndingNormalizingResourceHasher extends FallbackHandlingResourc
 
     @Override
     Optional<HashCode> tryHash(RegularFileSnapshotContext snapshotContext) {
-        return Optional.of(snapshotContext)
-            .flatMap(IoFunction.wrap(this::hashContent));
+        return Optional.of(snapshotContext).flatMap(IoFunction.wrap(this::hashContent));
     }
 
     @Override
     Optional<HashCode> tryHash(ZipEntryContext zipEntryContext) {
-        return Optional.of(zipEntryContext)
-            .flatMap(IoFunction.wrap(this::hashContent));
+        return Optional.of(zipEntryContext).flatMap(IoFunction.wrap(this::hashContent));
     }
 
     private Optional<HashCode> hashContent(RegularFileSnapshotContext snapshotContext) throws IOException {

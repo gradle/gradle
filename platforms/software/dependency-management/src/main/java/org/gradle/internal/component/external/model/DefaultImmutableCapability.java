@@ -53,7 +53,8 @@ public class DefaultImmutableCapability implements ImmutableCapability {
         //    using ModuleIdentifier (initial implementation)
         //    using ModuleIdentifier through ImmutableModuleIdentifierFactory (for interning)
         //    using a 2-level map (by group, then by name)
-        //    using an interned string for the cachedId (interning turned out to cost as much as what we gain from faster checks in maps)
+        //    using an interned string for the cachedId (interning turned out to cost as much as what we gain from
+        // faster checks in maps)
         //
         // And none of them reached the performance of just using a good old string
         this.cachedId = group + ":" + name;
@@ -65,7 +66,7 @@ public class DefaultImmutableCapability implements ImmutableCapability {
         int hash = safeHash(version);
         hash = 31 * hash + name.hashCode();
         hash = 31 * hash + group.hashCode();
-        return  hash;
+        return hash;
     }
 
     private static int safeHash(@Nullable String o) {
@@ -98,8 +99,8 @@ public class DefaultImmutableCapability implements ImmutableCapability {
         }
         Capability that = (Capability) o;
         return Objects.equal(group, that.getGroup())
-            && Objects.equal(name, that.getName())
-            && Objects.equal(version, that.getVersion());
+                && Objects.equal(name, that.getName())
+                && Objects.equal(version, that.getVersion());
     }
 
     @Override
@@ -109,10 +110,7 @@ public class DefaultImmutableCapability implements ImmutableCapability {
 
     @Override
     public String toString() {
-        return "capability "
-            + "group='" + group + '\''
-            + ", name='" + name + '\''
-            + ", version='" + version + '\'';
+        return "capability " + "group='" + group + '\'' + ", name='" + name + '\'' + ", version='" + version + '\'';
     }
 
     @Override

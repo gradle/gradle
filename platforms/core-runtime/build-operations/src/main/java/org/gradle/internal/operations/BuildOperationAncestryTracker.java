@@ -16,18 +16,19 @@
 
 package org.gradle.internal.operations;
 
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
 @SuppressWarnings("Since15")
 @ServiceScope(Scope.Global.class)
 public interface BuildOperationAncestryTracker {
-    Optional<OperationIdentifier> findClosestMatchingAncestor(@Nullable OperationIdentifier id, Predicate<? super OperationIdentifier> predicate);
+    Optional<OperationIdentifier> findClosestMatchingAncestor(
+            @Nullable OperationIdentifier id, Predicate<? super OperationIdentifier> predicate);
 
-    <T> Optional<T> findClosestExistingAncestor(@Nullable OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction);
+    <T> Optional<T> findClosestExistingAncestor(
+            @Nullable OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction);
 }

@@ -48,7 +48,9 @@ public class ModuleComponentAtRepositoryKey {
             return false;
         }
         ModuleComponentAtRepositoryKey other = (ModuleComponentAtRepositoryKey) o;
-        return hashCode == other.hashCode && repositoryId.equals(other.repositoryId) && componentId.equals(other.componentId);
+        return hashCode == other.hashCode
+                && repositoryId.equals(other.repositoryId)
+                && componentId.equals(other.componentId);
     }
 
     @Override

@@ -23,9 +23,11 @@ import org.gradle.internal.inspection.TypeParameterInspection;
 import org.jspecify.annotations.NonNull;
 
 public class ModelTypeUtils {
-    public static <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> @NonNull Class<OwnBuildModel> getBuildModelClass(Class<OwnDefinition> definition) {
+    public static <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> @NonNull
+            Class<OwnBuildModel> getBuildModelClass(Class<OwnDefinition> definition) {
         @SuppressWarnings("rawtypes")
-        TypeParameterInspection<Definition, BuildModel> inspection = new DefaultTypeParameterInspection<>(Definition.class, BuildModel.class, BuildModel.NONE.class);
+        TypeParameterInspection<Definition, BuildModel> inspection =
+                new DefaultTypeParameterInspection<>(Definition.class, BuildModel.class, BuildModel.NONE.class);
         Class<OwnBuildModel> ownBuildModel = inspection.parameterTypeFor(definition);
         if (ownBuildModel == null) {
             throw new IllegalArgumentException("Cannot determine build model type for " + definition);

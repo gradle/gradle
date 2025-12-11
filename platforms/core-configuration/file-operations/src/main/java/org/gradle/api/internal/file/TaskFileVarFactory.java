@@ -41,5 +41,6 @@ public interface TaskFileVarFactory {
      *
      * <p>Use this collection only for those files that are not expected to change during task execution, such as task inputs.
      */
-    FileCollection newCalculatedInputFileCollection(Task consumer, MinimalFileSet calculatedFiles, FileCollection... inputs);
+    FileCollection newCalculatedInputFileCollection(
+            Task consumer, MinimalFileSet calculatedFiles, FileCollection... inputs);
 }

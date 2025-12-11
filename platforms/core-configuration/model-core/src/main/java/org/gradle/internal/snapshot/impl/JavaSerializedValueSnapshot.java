@@ -17,6 +17,8 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.base.Objects;
+import java.io.ByteArrayInputStream;
+import java.util.Arrays;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.serialize.ClassLoaderObjectInputStream;
@@ -24,9 +26,6 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
 import org.jspecify.annotations.Nullable;
-
-import java.io.ByteArrayInputStream;
-import java.util.Arrays;
 
 /**
  * An immutable snapshot of the state of some value.
@@ -77,7 +76,8 @@ public class JavaSerializedValueSnapshot implements ValueSnapshot {
             return false;
         }
         JavaSerializedValueSnapshot other = (JavaSerializedValueSnapshot) obj;
-        return Objects.equal(implementationHash, other.implementationHash) && Arrays.equals(serializedValue, other.serializedValue);
+        return Objects.equal(implementationHash, other.implementationHash)
+                && Arrays.equals(serializedValue, other.serializedValue);
     }
 
     protected Object populateClass(Class<?> originalClass) {
@@ -86,7 +86,9 @@ public class JavaSerializedValueSnapshot implements ValueSnapshot {
 
     private static Object javaDeserialized(Class<?> originalClass, byte[] serializedValue) {
         try {
-            return new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedValue), originalClass.getClassLoader()).readObject();
+            return new ClassLoaderObjectInputStream(
+                            new ByteArrayInputStream(serializedValue), originalClass.getClassLoader())
+                    .readObject();
         } catch (Exception e) {
             throw new ValueSnapshottingException("Couldn't populate class " + originalClass.getName(), e);
         }

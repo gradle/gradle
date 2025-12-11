@@ -16,15 +16,14 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.cli.CommandLineOption;
-import org.gradle.cli.CommandLineParser;
-import org.jspecify.annotations.Nullable;
+import static java.util.Collections.emptyList;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.Collections.emptyList;
+import org.gradle.cli.CommandLineOption;
+import org.gradle.cli.CommandLineParser;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides a basic infrastructure for build option implementations.
@@ -35,7 +34,9 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
 
     @Nullable
     protected final String property;
+
     protected final List<V> commandLineOptionConfigurations;
+
     @Nullable
     protected final String deprecatedProperty;
 
@@ -53,11 +54,13 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
     }
 
     @SuppressWarnings("unchecked") // otherwise, vararg heap pollution warning-as-error
-    public AbstractBuildOption(@Nullable String property, @Nullable String deprecatedProperty, V... commandLineOptionConfiguration) {
+    public AbstractBuildOption(
+            @Nullable String property, @Nullable String deprecatedProperty, V... commandLineOptionConfiguration) {
         this(property, deprecatedProperty, Arrays.asList(commandLineOptionConfiguration));
     }
 
-    private AbstractBuildOption(@Nullable String property, @Nullable String deprecatedProperty, List<V> commandLineOptionConfigurations) {
+    private AbstractBuildOption(
+            @Nullable String property, @Nullable String deprecatedProperty, List<V> commandLineOptionConfigurations) {
         this.property = property;
         this.deprecatedProperty = deprecatedProperty;
         this.commandLineOptionConfigurations = commandLineOptionConfigurations;
@@ -75,9 +78,9 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
         return deprecatedProperty;
     }
 
-    protected CommandLineOption configureCommandLineOption(CommandLineParser parser, String[] options, String description, boolean deprecated, boolean incubating) {
-        CommandLineOption option = parser.option(options)
-            .hasDescription(description);
+    protected CommandLineOption configureCommandLineOption(
+            CommandLineParser parser, String[] options, String description, boolean deprecated, boolean incubating) {
+        CommandLineOption option = parser.option(options).hasDescription(description);
 
         if (deprecated) {
             option.deprecated();
@@ -107,6 +110,7 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
     protected static class OptionValue<T> {
         @Nullable
         private final T value;
+
         @Nullable
         private final Origin origin;
 

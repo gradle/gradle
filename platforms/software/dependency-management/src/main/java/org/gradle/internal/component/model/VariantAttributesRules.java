@@ -15,15 +15,14 @@
  */
 package org.gradle.internal.component.model;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
-
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * A set of rules provided by the build script author

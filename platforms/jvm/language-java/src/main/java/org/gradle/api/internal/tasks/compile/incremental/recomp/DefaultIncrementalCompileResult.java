@@ -27,7 +27,10 @@ public class DefaultIncrementalCompileResult extends DefaultWorkResult implement
     private final RecompilationSpec recompilationSpec;
     private final WorkResult compilerResult;
 
-    public DefaultIncrementalCompileResult(PreviousCompilationData previousCompilationData, RecompilationSpec recompilationSpec, WorkResult compilerResult) {
+    public DefaultIncrementalCompileResult(
+            PreviousCompilationData previousCompilationData,
+            RecompilationSpec recompilationSpec,
+            WorkResult compilerResult) {
         super(compilerResult.getDidWork(), maybeException(compilerResult));
         this.previousCompilationData = previousCompilationData;
         this.recompilationSpec = recompilationSpec;

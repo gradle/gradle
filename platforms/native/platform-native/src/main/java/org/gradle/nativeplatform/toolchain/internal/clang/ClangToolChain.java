@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.clang;
 
+import javax.inject.Inject;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
@@ -29,15 +30,34 @@ import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.SystemLibraryDi
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProviderFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.jspecify.annotations.NullMarked;
-import javax.inject.Inject;
 
 @NullMarked
 public class ClangToolChain extends AbstractGccCompatibleToolChain implements Clang {
     public static final String DEFAULT_NAME = "clang";
 
     @Inject
-    public ClangToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProviderFactory metaDataProviderFactory, SystemLibraryDiscovery standardLibraryDiscovery, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
-        super(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory.clang(), standardLibraryDiscovery, instantiator, workerLeaseService);
+    public ClangToolChain(
+            String name,
+            BuildOperationExecutor buildOperationExecutor,
+            OperatingSystem operatingSystem,
+            FileResolver fileResolver,
+            ExecActionFactory execActionFactory,
+            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+            CompilerMetaDataProviderFactory metaDataProviderFactory,
+            SystemLibraryDiscovery standardLibraryDiscovery,
+            Instantiator instantiator,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                name,
+                buildOperationExecutor,
+                operatingSystem,
+                fileResolver,
+                execActionFactory,
+                compilerOutputFileNamingSchemeFactory,
+                metaDataProviderFactory.clang(),
+                standardLibraryDiscovery,
+                instantiator,
+                workerLeaseService);
     }
 
     @Override
@@ -54,5 +74,4 @@ public class ClangToolChain extends AbstractGccCompatibleToolChain implements Cl
     protected String getTypeName() {
         return "Clang";
     }
-
 }

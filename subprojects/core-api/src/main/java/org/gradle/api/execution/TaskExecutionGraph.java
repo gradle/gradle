@@ -16,11 +16,10 @@
 package org.gradle.api.execution;
 
 import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 
 /**
  * <p>A <code>TaskExecutionGraph</code> is responsible for managing the execution of the {@link Task} instances which

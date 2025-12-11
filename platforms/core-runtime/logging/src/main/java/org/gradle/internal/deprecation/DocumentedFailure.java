@@ -16,14 +16,13 @@
 
 package org.gradle.internal.deprecation;
 
+import javax.annotation.CheckReturnValue;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.internal.InternalDocLink;
 import org.gradle.internal.exceptions.Contextual;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.CheckReturnValue;
 
 public class DocumentedFailure {
     public static Builder builder() {
@@ -75,8 +74,8 @@ public class DocumentedFailure {
             append(outputBuilder, advice);
             append(outputBuilder, ((InternalDocLink) documentation).getConsultDocumentationMessage());
             return cause == null
-                ? new GradleException(outputBuilder.toString())
-                : new DocumentedExceptionWithCause(outputBuilder.toString(), cause);
+                    ? new GradleException(outputBuilder.toString())
+                    : new DocumentedExceptionWithCause(outputBuilder.toString(), cause);
         }
 
         private static void append(StringBuilder outputBuilder, @Nullable String message) {

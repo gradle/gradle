@@ -16,11 +16,10 @@
 
 package org.gradle.internal.instrumentation.model;
 
+import java.util.List;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.InjectVisitorContext;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.KotlinDefaultMask;
-
-import java.util.List;
 
 public interface CallableInfo {
     CallableKindInfo getKind();

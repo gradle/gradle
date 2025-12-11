@@ -31,5 +31,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
-public @interface DeprecatedInGradleScope {
-}
+public @interface DeprecatedInGradleScope {}

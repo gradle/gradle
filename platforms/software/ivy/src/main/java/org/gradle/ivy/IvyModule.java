@@ -21,5 +21,4 @@ import org.gradle.api.component.Component;
 /**
  * An Ivy Module component.
  */
-public interface IvyModule extends Component {
-}
+public interface IvyModule extends Component {}

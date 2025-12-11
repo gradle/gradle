@@ -16,6 +16,14 @@
 
 package org.gradle.workers.internal;
 
+import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RETAIN_PROJECT_LOCKS;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.Callable;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.Actions;
@@ -49,15 +57,6 @@ import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
 import org.gradle.workers.WorkerSpec;
 
-import javax.annotation.concurrent.NotThreadSafe;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Callable;
-
-import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RETAIN_PROJECT_LOCKS;
-
 public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ConditionalExecutionQueue<DefaultWorkResult> executionQueue;
     private final WorkerFactory daemonWorkerFactory;
@@ -71,20 +70,28 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ClassLoaderStructureProvider classLoaderStructureProvider;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final Instantiator instantiator;
-    private final IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme = new IsolationScheme<>(Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class);
+    private final IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme = new IsolationScheme<>(
+            Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class);
     private final CachedClasspathTransformer classpathTransformer;
     private final File baseDir;
     private final ProjectCacheDir projectCacheDir;
 
     public DefaultWorkerExecutor(
-        WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
-        JavaForkOptionsFactory forkOptionsFactory, WorkerThreadRegistry workerThreadRegistry, BuildOperationRunner buildOperationRunner,
-        AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory,
-        ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory, Instantiator instantiator,
-        CachedClasspathTransformer classpathTransformer,
-        File baseDir,
-        ProjectCacheDir projectCacheDir
-    ) {
+            WorkerFactory daemonWorkerFactory,
+            WorkerFactory isolatedClassloaderWorkerFactory,
+            WorkerFactory noIsolationWorkerFactory,
+            JavaForkOptionsFactory forkOptionsFactory,
+            WorkerThreadRegistry workerThreadRegistry,
+            BuildOperationRunner buildOperationRunner,
+            AsyncWorkTracker asyncWorkTracker,
+            WorkerDirectoryProvider workerDirectoryProvider,
+            WorkerExecutionQueueFactory workerExecutionQueueFactory,
+            ClassLoaderStructureProvider classLoaderStructureProvider,
+            ActionExecutionSpecFactory actionExecutionSpecFactory,
+            Instantiator instantiator,
+            CachedClasspathTransformer classpathTransformer,
+            File baseDir,
+            ProjectCacheDir projectCacheDir) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
@@ -133,7 +140,8 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     @Override
     public WorkQueue processIsolation(Action<? super ProcessWorkerSpec> action) {
-        DefaultProcessWorkerSpec spec = instantiator.newInstance(DefaultProcessWorkerSpec.class, forkOptionsFactory.newDecoratedJavaForkOptions());
+        DefaultProcessWorkerSpec spec = instantiator.newInstance(
+                DefaultProcessWorkerSpec.class, forkOptionsFactory.newDecoratedJavaForkOptions());
         File defaultWorkingDir = spec.getForkOptions().getWorkingDir();
         File workingDirectory = workerDirectoryProvider.getWorkingDirectory();
         action.execute(spec);
@@ -147,7 +155,11 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return instantiator.newInstance(DefaultWorkQueue.class, this, spec, daemonWorkerFactory);
     }
 
-    private <T extends WorkParameters> AsyncWorkCompletion submitWork(Class<? extends WorkAction<T>> workActionClass, Action<? super T> parameterAction, WorkerSpec workerSpec, WorkerFactory workerFactory) {
+    private <T extends WorkParameters> AsyncWorkCompletion submitWork(
+            Class<? extends WorkAction<T>> workActionClass,
+            Action<? super T> parameterAction,
+            WorkerSpec workerSpec,
+            WorkerFactory workerFactory) {
         Class<T> parameterType = isolationScheme.parameterTypeFor(workActionClass);
         T parameters = (parameterType == null) ? null : instantiator.newInstance(parameterType);
         if (parameters != null) {
@@ -159,7 +171,8 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         IsolatedParametersActionExecutionSpec<?> spec;
         try {
             // Isolate parameters in this thread prior to starting work in a separate thread
-            spec = actionExecutionSpecFactory.newIsolatedSpec(description, workActionClass, parameters, workerRequirement, Collections.emptySet());
+            spec = actionExecutionSpecFactory.newIsolatedSpec(
+                    description, workActionClass, parameters, workerRequirement, Collections.emptySet());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
@@ -167,7 +180,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return submitWork(spec, workerFactory, workerRequirement);
     }
 
-    private AsyncWorkCompletion submitWork(IsolatedParametersActionExecutionSpec<?> spec, WorkerFactory workerFactory, WorkerRequirement workerRequirement) {
+    private AsyncWorkCompletion submitWork(
+            IsolatedParametersActionExecutionSpec<?> spec,
+            WorkerFactory workerFactory,
+            WorkerRequirement workerRequirement) {
         checkIsManagedThread();
         final BuildOperationRef currentBuildOperation = buildOperationRunner.getCurrentOperation();
         WorkItemExecution execution = new WorkItemExecution(spec.getDisplayName(), () -> {
@@ -185,7 +201,8 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     private void checkIsManagedThread() {
         if (!workerThreadRegistry.isWorkerThread()) {
-            throw new IllegalStateException("An attempt was made to submit work from a thread not managed by Gradle.  Work may only be submitted from a Gradle-managed thread.");
+            throw new IllegalStateException(
+                    "An attempt was made to submit work from a thread not managed by Gradle.  Work may only be submitted from a Gradle-managed thread.");
         }
     }
 
@@ -228,34 +245,43 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
     }
 
-    WorkerRequirement getWorkerRequirement(Class<?> executionClass, WorkerSpec configuration, WorkParameters parameters) {
+    WorkerRequirement getWorkerRequirement(
+            Class<?> executionClass, WorkerSpec configuration, WorkParameters parameters) {
         if (configuration instanceof ProcessWorkerSpec) {
-            DaemonForkOptionsBuilder builder = new DaemonForkOptionsBuilder(forkOptionsFactory)
-                .keepAliveMode(KeepAliveMode.SESSION);
+            DaemonForkOptionsBuilder builder =
+                    new DaemonForkOptionsBuilder(forkOptionsFactory).keepAliveMode(KeepAliveMode.SESSION);
             ProcessWorkerSpec processConfiguration = (ProcessWorkerSpec) configuration;
             JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
             processConfiguration.getForkOptions().copyTo(forkOptions);
             forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
 
-            ClassPath isolatedFromChanges = classpathTransformer.copyingTransform(DefaultClassPath.of(processConfiguration.getClasspath()));
+            ClassPath isolatedFromChanges =
+                    classpathTransformer.copyingTransform(DefaultClassPath.of(processConfiguration.getClasspath()));
             builder.javaForkOptions(forkOptions)
-                .withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
+                    .withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(
+                            isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
 
             return new ForkedWorkerRequirement(baseDir, projectCacheDir.getDir(), builder.build());
         } else if (configuration instanceof ClassLoaderWorkerSpec) {
             ClassLoaderWorkerSpec classLoaderConfiguration = (ClassLoaderWorkerSpec) configuration;
-            ClassPath isolatedFromChanges = classpathTransformer.copyingTransform(DefaultClassPath.of(classLoaderConfiguration.getClasspath()));
-            return new IsolatedClassLoaderWorkerRequirement(baseDir, projectCacheDir.getDir(), classLoaderStructureProvider.getInProcessClassLoaderStructure(isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
+            ClassPath isolatedFromChanges =
+                    classpathTransformer.copyingTransform(DefaultClassPath.of(classLoaderConfiguration.getClasspath()));
+            return new IsolatedClassLoaderWorkerRequirement(
+                    baseDir,
+                    projectCacheDir.getDir(),
+                    classLoaderStructureProvider.getInProcessClassLoaderStructure(
+                            isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
         } else {
-            return new FixedClassLoaderWorkerRequirement(baseDir, projectCacheDir.getDir(), Thread.currentThread().getContextClassLoader());
+            return new FixedClassLoaderWorkerRequirement(
+                    baseDir, projectCacheDir.getDir(), Thread.currentThread().getContextClassLoader());
         }
     }
 
     private Class<?>[] getParamClasses(Class<?> actionClass, WorkParameters parameters) {
         if (parameters != null) {
-            return new Class<?>[]{actionClass, parameters.getClass()};
+            return new Class<?>[] {actionClass, parameters.getClass()};
         }
-        return new Class<?>[]{actionClass};
+        return new Class<?>[] {actionClass};
     }
 
     @Contextual
@@ -274,7 +300,8 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
     }
 
-    private static class WorkItemExecution extends AbstractConditionalExecution<DefaultWorkResult> implements AsyncWorkCompletion {
+    private static class WorkItemExecution extends AbstractConditionalExecution<DefaultWorkResult>
+            implements AsyncWorkCompletion {
         private final String description;
 
         public WorkItemExecution(String description, Callable<DefaultWorkResult> callable) {
@@ -305,7 +332,8 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
 
         @Override
-        public <T extends WorkParameters> void submit(Class<? extends WorkAction<T>> workActionClass, Action<? super T> parameterAction) {
+        public <T extends WorkParameters> void submit(
+                Class<? extends WorkAction<T>> workActionClass, Action<? super T> parameterAction) {
             workItems.add(workerExecutor.submitWork(workActionClass, parameterAction, spec, workerFactory));
         }
 

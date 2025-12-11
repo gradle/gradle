@@ -18,12 +18,11 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import org.gradle.language.nativeplatform.internal.Expression;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import org.gradle.language.nativeplatform.internal.Expression;
 
 /**
  * Captures the intermediate states during the resolution of macro #include directives, to short-circuit work that has already been done.

@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
+import java.util.Optional;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
@@ -34,10 +37,6 @@ import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.api.model.ObjectFactory;
-
-import javax.inject.Inject;
-import java.util.Optional;
-import java.util.Set;
 
 public abstract class JavaEcosystemSupport {
     /**
@@ -90,10 +89,9 @@ public abstract class JavaEcosystemSupport {
      * in dependency resolution for the Jvm ecosystem.
      */
     public static void configureServices(
-        AttributesSchema attributesSchema,
-        AttributeDescriberRegistry attributeDescribers,
-        ObjectFactory objectFactory
-    ) {
+            AttributesSchema attributesSchema,
+            AttributeDescriberRegistry attributeDescribers,
+            ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);
         configureLibraryElements(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
@@ -106,8 +104,7 @@ public abstract class JavaEcosystemSupport {
                 TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
                 LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
                 Bundling.BUNDLING_ATTRIBUTE,
-                TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE
-        );
+                TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
     }
 
     private static void configureConsumerDescriptors(AttributeDescriberRegistry describers) {
@@ -115,13 +112,15 @@ public abstract class JavaEcosystemSupport {
     }
 
     private static void configureTargetPlatform(AttributesSchema attributesSchema) {
-        AttributeMatchingStrategy<Integer> targetPlatformSchema = attributesSchema.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
+        AttributeMatchingStrategy<Integer> targetPlatformSchema =
+                attributesSchema.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
         targetPlatformSchema.getCompatibilityRules().ordered(Ordering.natural());
         targetPlatformSchema.getDisambiguationRules().pickLast(Ordering.natural());
     }
 
     private static void configureTargetEnvironment(AttributesSchema attributesSchema) {
-        AttributeMatchingStrategy<TargetJvmEnvironment> targetEnvironmentSchema = attributesSchema.attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
+        AttributeMatchingStrategy<TargetJvmEnvironment> targetEnvironmentSchema =
+                attributesSchema.attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
         targetEnvironmentSchema.getCompatibilityRules().add(TargetJvmEnvironmentCompatibilityRules.class);
         targetEnvironmentSchema.getDisambiguationRules().add(TargetJvmEnvironmentDisambiguationRules.class);
     }
@@ -147,11 +146,14 @@ public abstract class JavaEcosystemSupport {
     }
 
     private static void configureLibraryElements(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
-        AttributeMatchingStrategy<LibraryElements> libraryElementsSchema = attributesSchema.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+        AttributeMatchingStrategy<LibraryElements> libraryElementsSchema =
+                attributesSchema.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
         libraryElementsSchema.getCompatibilityRules().add(LibraryElementsCompatibilityRules.class);
-        libraryElementsSchema.getDisambiguationRules().add(LibraryElementsDisambiguationRules.class, actionConfiguration -> {
-            actionConfiguration.params(objectFactory.named(LibraryElements.class, LibraryElements.JAR));
-        });
+        libraryElementsSchema
+                .getDisambiguationRules()
+                .add(LibraryElementsDisambiguationRules.class, actionConfiguration -> {
+                    actionConfiguration.params(objectFactory.named(LibraryElements.class, LibraryElements.JAR));
+                });
     }
 
     @VisibleForTesting
@@ -165,10 +167,7 @@ public abstract class JavaEcosystemSupport {
         final ImmutableSet<Usage> runtimeVariants;
 
         @Inject
-        public UsageDisambiguationRules(Usage javaApi,
-                                 Usage javaApiJars,
-                                 Usage javaRuntime,
-                                 Usage javaRuntimeJars) {
+        public UsageDisambiguationRules(Usage javaApi, Usage javaApiJars, Usage javaRuntime, Usage javaRuntimeJars) {
             this.javaApi = javaApi;
             this.javaApiJars = javaApiJars;
             this.apiVariants = ImmutableSet.of(javaApi, javaApiJars);
@@ -217,11 +216,9 @@ public abstract class JavaEcosystemSupport {
 
     @VisibleForTesting
     public static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage> {
-        private static final Set<String> COMPATIBLE_WITH_JAVA_API = ImmutableSet.of(
-                DEPRECATED_JAVA_API_JARS,
-                DEPRECATED_JAVA_RUNTIME_JARS,
-                Usage.JAVA_RUNTIME
-        );
+        private static final Set<String> COMPATIBLE_WITH_JAVA_API =
+                ImmutableSet.of(DEPRECATED_JAVA_API_JARS, DEPRECATED_JAVA_RUNTIME_JARS, Usage.JAVA_RUNTIME);
+
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
             Usage consumerValue = details.getConsumerValue();
@@ -237,7 +234,8 @@ public abstract class JavaEcosystemSupport {
                 }
                 return;
             }
-            if (consumerValue.getName().equals(Usage.JAVA_RUNTIME) && producerValue.getName().equals(DEPRECATED_JAVA_RUNTIME_JARS)) {
+            if (consumerValue.getName().equals(Usage.JAVA_RUNTIME)
+                    && producerValue.getName().equals(DEPRECATED_JAVA_RUNTIME_JARS)) {
                 details.compatible();
                 return;
             }
@@ -283,7 +281,9 @@ public abstract class JavaEcosystemSupport {
             }
             String consumerValueName = consumerValue.getName();
             String producerValueName = producerValue.getName();
-            if (LibraryElements.CLASSES.equals(consumerValueName) || LibraryElements.RESOURCES.equals(consumerValueName) || LibraryElements.CLASSES_AND_RESOURCES.equals(consumerValueName)) {
+            if (LibraryElements.CLASSES.equals(consumerValueName)
+                    || LibraryElements.RESOURCES.equals(consumerValueName)
+                    || LibraryElements.CLASSES_AND_RESOURCES.equals(consumerValueName)) {
                 // JAR is compatible with classes or resources
                 if (LibraryElements.JAR.equals(producerValueName)) {
                     details.compatible();
@@ -293,7 +293,8 @@ public abstract class JavaEcosystemSupport {
         }
     }
 
-    private static class TargetJvmEnvironmentCompatibilityRules implements AttributeCompatibilityRule<TargetJvmEnvironment> {
+    private static class TargetJvmEnvironmentCompatibilityRules
+            implements AttributeCompatibilityRule<TargetJvmEnvironment> {
 
         // public constructor to make reflective initialization happy.
         public TargetJvmEnvironmentCompatibilityRules() {}
@@ -304,7 +305,8 @@ public abstract class JavaEcosystemSupport {
         }
     }
 
-    private static class TargetJvmEnvironmentDisambiguationRules implements AttributeDisambiguationRule<TargetJvmEnvironment> {
+    private static class TargetJvmEnvironmentDisambiguationRules
+            implements AttributeDisambiguationRule<TargetJvmEnvironment> {
 
         // public constructor to make reflective initialization happy.
         public TargetJvmEnvironmentDisambiguationRules() {}
@@ -315,7 +317,9 @@ public abstract class JavaEcosystemSupport {
             if (consumerValue != null && details.getCandidateValues().contains(consumerValue)) {
                 details.closestMatch(consumerValue); // exact match
             } else {
-                Optional<TargetJvmEnvironment> standardJvm = details.getCandidateValues().stream().filter(c -> TargetJvmEnvironment.STANDARD_JVM.equals(c.getName())).findFirst();
+                Optional<TargetJvmEnvironment> standardJvm = details.getCandidateValues().stream()
+                        .filter(c -> TargetJvmEnvironment.STANDARD_JVM.equals(c.getName()))
+                        .findFirst();
                 standardJvm.ifPresent(details::closestMatch);
             }
         }
@@ -324,10 +328,9 @@ public abstract class JavaEcosystemSupport {
     @VisibleForTesting
     static class BundlingCompatibilityRules implements AttributeCompatibilityRule<Bundling> {
         private static final Set<String> COMPATIBLE_WITH_EXTERNAL = ImmutableSet.of(
-                // if we ask for "external" dependencies, it's still fine to bring a fat jar if nothing else is available
-                Bundling.EMBEDDED,
-                Bundling.SHADOWED
-        );
+                // if we ask for "external" dependencies, it's still fine to bring a fat jar if nothing else is
+                // available
+                Bundling.EMBEDDED, Bundling.SHADOWED);
 
         @Override
         public void execute(CompatibilityCheckDetails<Bundling> details) {
@@ -390,5 +393,4 @@ public abstract class JavaEcosystemSupport {
             }
         }
     }
-
 }

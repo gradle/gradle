@@ -16,14 +16,13 @@
 
 package org.gradle.integtests.fixtures.logging;
 
-import org.gradle.integtests.fixtures.logging.comparison.ExhaustiveLinesSearcher;
+import static org.gradle.util.internal.CollectionUtils.filter;
+import static org.gradle.util.internal.CollectionUtils.join;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.gradle.util.internal.CollectionUtils.filter;
-import static org.gradle.util.internal.CollectionUtils.join;
+import org.gradle.integtests.fixtures.logging.comparison.ExhaustiveLinesSearcher;
 
 /**
  * Collects the output entries produced by a work item such as a task or an artifact transform,
@@ -76,7 +75,8 @@ public abstract class GroupedWorkOutputFixture {
      * @param expectedText the expected lines of expectedText
      * @return this fixture
      */
-    public GroupedWorkOutputFixture assertOutputContains(ComparisonFailureFormat assertionFailureFormat, String expectedText) {
+    public GroupedWorkOutputFixture assertOutputContains(
+            ComparisonFailureFormat assertionFailureFormat, String expectedText) {
         switch (assertionFailureFormat) {
             case LINEWISE:
                 return assertOutputContainsUsingSearcher(expectedText, ExhaustiveLinesSearcher.useLcsDiff());
@@ -97,7 +97,8 @@ public abstract class GroupedWorkOutputFixture {
      * @param searcher      the searcher to use to find the expected sequence of lines in the actual output
      * @return this fixture
      */
-    private GroupedWorkOutputFixture assertOutputContainsUsingSearcher(String expectedText, ExhaustiveLinesSearcher searcher) {
+    private GroupedWorkOutputFixture assertOutputContainsUsingSearcher(
+            String expectedText, ExhaustiveLinesSearcher searcher) {
         List<String> actualLines = Arrays.asList(getOutput().split("\\R"));
         List<String> expectedLines = Arrays.asList(expectedText.split("\\R"));
         searcher.assertLinesContainedIn(expectedLines, actualLines);
@@ -118,5 +119,4 @@ public abstract class GroupedWorkOutputFixture {
          */
         UNIFIED
     }
-
 }

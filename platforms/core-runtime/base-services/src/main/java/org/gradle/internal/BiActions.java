@@ -22,13 +22,10 @@ public abstract class BiActions {
 
     private static final BiAction<Object, Object> NOOP = new BiAction<Object, Object>() {
         @Override
-        public void execute(Object o, Object o2) {
-
-        }
+        public void execute(Object o, Object o2) {}
     };
 
-    private BiActions() {
-    }
+    private BiActions() {}
 
     public static BiAction<Object, Object> doNothing() {
         return NOOP;

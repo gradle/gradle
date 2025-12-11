@@ -15,9 +15,8 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 import java.util.List;
+import org.gradle.api.Incubating;
 
 /**
  * Thrown when a Gradle build fails or when a model cannot be built.

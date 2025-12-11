@@ -25,11 +25,28 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWor
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCompileSpec;
 
 public class ObjectiveCPCHCompiler extends GccCompatibleNativeCompiler<ObjectiveCPCHCompileSpec> {
-    public ObjectiveCPCHCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, new ObjectiveCPCHCompileArgsTransformer(), Transformers.<ObjectiveCPCHCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile, workerLeaseService);
+    public ObjectiveCPCHCompiler(
+            BuildOperationExecutor buildOperationExecutor,
+            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+            CommandLineToolInvocationWorker commandLineTool,
+            CommandLineToolContext invocationContext,
+            String objectFileExtension,
+            boolean useCommandFile,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                buildOperationExecutor,
+                compilerOutputFileNamingSchemeFactory,
+                commandLineTool,
+                invocationContext,
+                new ObjectiveCPCHCompileArgsTransformer(),
+                Transformers.<ObjectiveCPCHCompileSpec>noOpTransformer(),
+                objectFileExtension,
+                useCommandFile,
+                workerLeaseService);
     }
 
-    private static class ObjectiveCPCHCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCPCHCompileSpec> {
+    private static class ObjectiveCPCHCompileArgsTransformer
+            extends GccCompilerArgsTransformer<ObjectiveCPCHCompileSpec> {
         @Override
         protected String getLanguage() {
             return "objective-c-header";

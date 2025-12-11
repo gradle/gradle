@@ -21,7 +21,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.jspecify.annotations.Nullable;
 
-public interface BuildableArtifactResolveResult extends ResolveResult, BuildableTypedResolveResult<ResolvableArtifact, ArtifactResolveException>, ResourceAwareResolveResult {
+public interface BuildableArtifactResolveResult
+        extends ResolveResult,
+                BuildableTypedResolveResult<ResolvableArtifact, ArtifactResolveException>,
+                ResourceAwareResolveResult {
     boolean isSuccessful();
 
     /**

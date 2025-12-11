@@ -58,16 +58,15 @@ public class RootBuildLifecycleBuildActionExecutor {
     private boolean executed;
 
     public RootBuildLifecycleBuildActionExecutor(
-        BuildModelParameters buildModelParameters,
-        ProjectParallelExecutionController projectParallelExecutionController,
-        BuildTreeLifecycleListener lifecycleListener,
-        InternalProblems problemsService,
-        BuildOperationProgressEventEmitter eventEmitter,
-        StartParameter startParameter,
-        ProblemStream problemsStream,
-        BuildStateRegistry buildStateRegistry,
-        BuildActionRunner buildActionRunner
-    ) {
+            BuildModelParameters buildModelParameters,
+            ProjectParallelExecutionController projectParallelExecutionController,
+            BuildTreeLifecycleListener lifecycleListener,
+            InternalProblems problemsService,
+            BuildOperationProgressEventEmitter eventEmitter,
+            StartParameter startParameter,
+            ProblemStream problemsStream,
+            BuildStateRegistry buildStateRegistry,
+            BuildActionRunner buildActionRunner) {
         this.buildModelParameters = buildModelParameters;
         this.projectParallelExecutionController = projectParallelExecutionController;
         this.lifecycleListener = lifecycleListener;
@@ -97,7 +96,8 @@ public class RootBuildLifecycleBuildActionExecutor {
                 ProblemsProgressEventEmitterHolder.init(problemsService);
                 initDeprecationLogging();
                 maybeNagOnDeprecatedJavaRuntimeVersion();
-                RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
+                RootBuildState rootBuild = buildStateRegistry.createRootBuild(
+                        BuildDefinition.fromStartParameter(action.getStartParameter(), null));
                 return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
             } finally {
                 lifecycleListener.beforeStop();
@@ -109,20 +109,27 @@ public class RootBuildLifecycleBuildActionExecutor {
 
     private void initDeprecationLogging() {
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
-        LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(showStacktrace.equals(ShowStacktrace.ALWAYS) || showStacktrace.equals(ShowStacktrace.ALWAYS_FULL));
+        LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(
+                showStacktrace.equals(ShowStacktrace.ALWAYS) || showStacktrace.equals(ShowStacktrace.ALWAYS_FULL));
         DeprecationLogger.init(startParameter.getWarningMode(), eventEmitter, problemsService, problemsStream);
     }
 
     private static void maybeNagOnDeprecatedJavaRuntimeVersion() {
         int currentMajor = Integer.parseInt(JavaVersion.current().getMajorVersion());
         if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION) {
-            // Note: this deprecation is unreachable while the future version is the same as MINIMUM_DAEMON_JAVA_VERSION, we keep it for ease of future upgrades
-            int currentMajorGradleVersion = VersionNumber.parse(GradleVersion.current().getVersion()).getMajor();
-            DeprecationLogger.deprecateAction(String.format("Executing Gradle on JVM versions %d and lower", SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1))
-                .withContext(String.format("Use JVM %d or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains.", SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION))
-                .willBecomeAnErrorInNextMajorGradleVersion()
-                .withUpgradeGuideSection(currentMajorGradleVersion, "minimum_daemon_jvm_version")
-                .nagUser();
+            // Note: this deprecation is unreachable while the future version is the same as
+            // MINIMUM_DAEMON_JAVA_VERSION, we keep it for ease of future upgrades
+            int currentMajorGradleVersion =
+                    VersionNumber.parse(GradleVersion.current().getVersion()).getMajor();
+            DeprecationLogger.deprecateAction(String.format(
+                            "Executing Gradle on JVM versions %d and lower",
+                            SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1))
+                    .withContext(String.format(
+                            "Use JVM %d or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains.",
+                            SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION))
+                    .willBecomeAnErrorInNextMajorGradleVersion()
+                    .withUpgradeGuideSection(currentMajorGradleVersion, "minimum_daemon_jvm_version")
+                    .nagUser();
         }
     }
 }

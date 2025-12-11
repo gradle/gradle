@@ -19,6 +19,4 @@ package org.gradle.language.assembler.internal;
 import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 
-public class DefaultAssembleSpec extends AbstractNativeCompileSpec implements AssembleSpec {
-
-}
+public class DefaultAssembleSpec extends AbstractNativeCompileSpec implements AssembleSpec {}

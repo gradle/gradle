@@ -20,6 +20,8 @@ import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.service.scopes.Scope;
@@ -30,28 +32,27 @@ import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.manage.schema.extract.ManagedProxyClassGenerator;
 import org.gradle.model.internal.type.ModelType;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-
 @ServiceScope(Scope.Global.class)
 public class ManagedProxyFactory {
     private final ManagedProxyClassGenerator proxyClassGenerator = new ManagedProxyClassGenerator();
     private final LoadingCache<CacheKey, Class<?>> generatedImplementationTypes = CacheBuilder.newBuilder()
-        .weakValues()
-        .build(new CacheLoader<CacheKey, Class<?>>() {
-            @Override
-            public Class<?> load(CacheKey key) throws Exception {
-                return proxyClassGenerator.generate(key.backingStateType, key.schema, key.structBindings);
-            }
-        });
+            .weakValues()
+            .build(new CacheLoader<CacheKey, Class<?>>() {
+                @Override
+                public Class<?> load(CacheKey key) throws Exception {
+                    return proxyClassGenerator.generate(key.backingStateType, key.schema, key.structBindings);
+                }
+            });
 
     /**
      * Generates a view of the given type.
      */
     public <T> T createProxy(GeneratedViewState state, StructSchema<T> viewSchema, StructBindings<?> bindings) {
         try {
-            Class<? extends T> generatedClass = Cast.uncheckedCast(generatedImplementationTypes.get(new CacheKey(GeneratedViewState.class, viewSchema, bindings)));
-            Constructor<? extends T> constructor = generatedClass.getConstructor(GeneratedViewState.class, TypeConverter.class);
+            Class<? extends T> generatedClass = Cast.uncheckedCast(
+                    generatedImplementationTypes.get(new CacheKey(GeneratedViewState.class, viewSchema, bindings)));
+            Constructor<? extends T> constructor =
+                    generatedClass.getConstructor(GeneratedViewState.class, TypeConverter.class);
             return constructor.newInstance(state, null);
         } catch (InvocationTargetException e) {
             throw UncheckedException.throwAsUncheckedException(e.getTargetException());
@@ -63,17 +64,24 @@ public class ManagedProxyFactory {
     /**
      * Generates a view of the given type.
      */
-    public <T> T createProxy(ModelElementState state, StructSchema<T> viewSchema, StructBindings<?> bindings, TypeConverter typeConverter) {
+    public <T> T createProxy(
+            ModelElementState state,
+            StructSchema<T> viewSchema,
+            StructBindings<?> bindings,
+            TypeConverter typeConverter) {
         try {
-            Class<? extends T> generatedClass = Cast.uncheckedCast(generatedImplementationTypes.get(new CacheKey(ModelElementState.class, viewSchema, bindings)));
+            Class<? extends T> generatedClass = Cast.uncheckedCast(
+                    generatedImplementationTypes.get(new CacheKey(ModelElementState.class, viewSchema, bindings)));
             StructSchema<?> delegateSchema = bindings.getDelegateSchema();
             if (delegateSchema == null) {
-                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class, TypeConverter.class);
+                Constructor<? extends T> constructor =
+                        generatedClass.getConstructor(ModelElementState.class, TypeConverter.class);
                 return constructor.newInstance(state, typeConverter);
             } else {
                 ModelType<?> delegateType = delegateSchema.getType();
                 Object delegate = state.getBackingNode().getPrivateData(delegateType);
-                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class, TypeConverter.class, delegateType.getConcreteClass());
+                Constructor<? extends T> constructor = generatedClass.getConstructor(
+                        ModelElementState.class, TypeConverter.class, delegateType.getConcreteClass());
                 return constructor.newInstance(state, typeConverter, delegate);
             }
         } catch (InvocationTargetException e) {
@@ -88,7 +96,10 @@ public class ManagedProxyFactory {
         private final StructSchema<?> schema;
         private final StructBindings<?> structBindings;
 
-        private CacheKey(Class<? extends GeneratedViewState> backingStateType, StructSchema<?> schema, StructBindings<?> structBindings) {
+        private CacheKey(
+                Class<? extends GeneratedViewState> backingStateType,
+                StructSchema<?> schema,
+                StructBindings<?> structBindings) {
             this.backingStateType = backingStateType;
             this.schema = schema;
             this.structBindings = structBindings;
@@ -104,17 +115,13 @@ public class ManagedProxyFactory {
             }
             CacheKey cacheKey = (CacheKey) o;
             return Objects.equal(backingStateType, cacheKey.backingStateType)
-                && Objects.equal(schema, cacheKey.schema)
-                && Objects.equal(structBindings.getDelegateSchema(), cacheKey.structBindings.getDelegateSchema());
+                    && Objects.equal(schema, cacheKey.schema)
+                    && Objects.equal(structBindings.getDelegateSchema(), cacheKey.structBindings.getDelegateSchema());
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(
-                backingStateType,
-                schema,
-                structBindings.getDelegateSchema()
-            );
+            return Objects.hashCode(backingStateType, schema, structBindings.getDelegateSchema());
         }
     }
 }

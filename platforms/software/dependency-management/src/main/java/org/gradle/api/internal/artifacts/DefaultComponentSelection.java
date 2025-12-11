@@ -45,7 +45,6 @@ public class DefaultComponentSelection implements ComponentSelectionInternal {
         } else {
             return null;
         }
-
     }
 
     @Nullable

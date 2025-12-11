@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
+import java.io.File;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.File;
 
 /**
  * Configure custom logic to generate a test report.

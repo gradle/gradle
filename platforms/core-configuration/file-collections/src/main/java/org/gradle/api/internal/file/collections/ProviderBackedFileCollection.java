@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.collections;
 
+import java.util.function.Consumer;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -26,14 +27,17 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.file.PathToFileResolver;
 
-import java.util.function.Consumer;
-
 public class ProviderBackedFileCollection extends CompositeFileCollection {
     private final ProviderInternal<?> provider;
     private final PathToFileResolver resolver;
     private final ProviderResolutionStrategy providerResolutionStrategy;
 
-    public ProviderBackedFileCollection(ProviderInternal<?> provider, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory, ProviderResolutionStrategy providerResolutionStrategy) {
+    public ProviderBackedFileCollection(
+            ProviderInternal<?> provider,
+            PathToFileResolver resolver,
+            TaskDependencyFactory taskDependencyFactory,
+            PatternSetFactory patternSetFactory,
+            ProviderResolutionStrategy providerResolutionStrategy) {
         super(taskDependencyFactory, patternSetFactory);
         this.provider = provider;
         this.resolver = resolver;
@@ -52,14 +56,16 @@ public class ProviderBackedFileCollection extends CompositeFileCollection {
             producer.visitDependencies(context);
         } else {
             // Producer is unknown, so unpack the value
-            UnpackingVisitor unpackingVisitor = new UnpackingVisitor(context::add, resolver, taskDependencyFactory, patternSetFactory);
+            UnpackingVisitor unpackingVisitor =
+                    new UnpackingVisitor(context::add, resolver, taskDependencyFactory, patternSetFactory);
             unpackingVisitor.add(providerResolutionStrategy.resolve(provider));
         }
     }
 
     @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-        UnpackingVisitor unpackingVisitor = new UnpackingVisitor(visitor, resolver, taskDependencyFactory, patternSetFactory);
+        UnpackingVisitor unpackingVisitor =
+                new UnpackingVisitor(visitor, resolver, taskDependencyFactory, patternSetFactory);
         unpackingVisitor.add(providerResolutionStrategy.resolve(provider));
     }
 

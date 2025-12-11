@@ -16,10 +16,9 @@
 
 package org.gradle.internal.enterprise.impl.legacy;
 
+import javax.inject.Inject;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.scan.time.BuildScanBuildStartedTime;
-
-import javax.inject.Inject;
 
 public class DefaultBuildScanBuildStartedTime implements BuildScanBuildStartedTime {
 
@@ -34,5 +33,4 @@ public class DefaultBuildScanBuildStartedTime implements BuildScanBuildStartedTi
     public long getBuildStartedTime() {
         return buildStartedTime.getStartTime();
     }
-
 }

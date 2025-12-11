@@ -43,7 +43,8 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
     }
 
     private VersionSelector maybeCreateRangeSelector(String selectorString) {
-        VersionRangeSelector rangeSelector = new VersionRangeSelector(selectorString, versionComparator.asVersionComparator(), versionParser);
+        VersionRangeSelector rangeSelector =
+                new VersionRangeSelector(selectorString, versionComparator.asVersionComparator(), versionParser);
         if (isSingleVersionRange(rangeSelector)) {
             // it's a single version range, like [1.0] or [1.0, 1.0]
             return new ExactVersionSelector(rangeSelector.getUpperBound());
@@ -53,9 +54,10 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
 
     private static boolean isSingleVersionRange(VersionRangeSelector rangeSelector) {
         String lowerBound = rangeSelector.getLowerBound();
-        return lowerBound != null &&
-            lowerBound.equals(rangeSelector.getUpperBound()) &&
-            rangeSelector.isLowerInclusive() && rangeSelector.isUpperInclusive();
+        return lowerBound != null
+                && lowerBound.equals(rangeSelector.getUpperBound())
+                && rangeSelector.isLowerInclusive()
+                && rangeSelector.isUpperInclusive();
     }
 
     @Override

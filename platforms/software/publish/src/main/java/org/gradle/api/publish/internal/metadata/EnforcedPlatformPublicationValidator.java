@@ -15,16 +15,16 @@
  */
 package org.gradle.api.publish.internal.metadata;
 
+import java.util.Optional;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 
-import java.util.Optional;
-
 public class EnforcedPlatformPublicationValidator implements DependencyAttributesValidator {
-    private final static String SUPPRESSION = "enforced-platform";
-    private final static String LONG_EXPLANATION = "In general publishing dependencies to enforced platforms is a mistake: " +
-        "enforced platforms shouldn't be used for published components because they behave like forced dependencies and leak to consumers. " +
-        "This can result in hard to diagnose dependency resolution errors.";
+    private static final String SUPPRESSION = "enforced-platform";
+    private static final String LONG_EXPLANATION =
+            "In general publishing dependencies to enforced platforms is a mistake: "
+                    + "enforced platforms shouldn't be used for published components because they behave like forced dependencies and leak to consumers. "
+                    + "This can result in hard to diagnose dependency resolution errors.";
 
     @Override
     public String getSuppressor() {

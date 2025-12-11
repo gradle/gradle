@@ -16,10 +16,10 @@
 
 package org.gradle.internal.hash;
 
+import static org.gradle.internal.hash.HashCode.Usage.SAFE_TO_REUSE_BYTES;
+
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,16 +29,14 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
-import static org.gradle.internal.hash.HashCode.Usage.SAFE_TO_REUSE_BYTES;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Some popular hash functions. Replacement for Guava's hashing utilities.
  * Inspired by the Google Guava project – https://github.com/google/guava.
  */
 public class Hashing {
-    private Hashing() {
-    }
+    private Hashing() {}
 
     private static final HashFunction MD5 = MessageDigestHashFunction.of("MD5");
 
@@ -153,7 +151,7 @@ public class Hashing {
         return SHA512;
     }
 
-    private static abstract class MessageDigestHashFunction implements HashFunction {
+    private abstract static class MessageDigestHashFunction implements HashFunction {
         private final int hexDigits;
 
         public MessageDigestHashFunction(int hashBits) {

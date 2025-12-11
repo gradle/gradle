@@ -35,5 +35,4 @@ public class DistributionInitScriptFinder extends DirectoryInitScriptFinder {
         }
         findScriptsInDir(new File(gradleHome, "init.d"), scripts);
     }
-
 }

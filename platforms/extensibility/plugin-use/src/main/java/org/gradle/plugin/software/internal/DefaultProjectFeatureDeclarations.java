@@ -18,6 +18,13 @@ package org.gradle.plugin.software.internal;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -26,11 +33,11 @@ import org.gradle.api.internal.plugins.BindsProjectFeature;
 import org.gradle.api.internal.plugins.BindsProjectType;
 import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.Definition;
-import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration;
-import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilderInternal;
 import org.gradle.api.internal.plugins.ProjectFeatureBinding;
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilderInternal;
+import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilderInternal;
+import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration;
 import org.gradle.api.internal.plugins.ProjectTypeBinding;
+import org.gradle.api.internal.plugins.ProjectTypeBindingBuilderInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
@@ -39,19 +46,12 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-
 /**
  * Default implementation of {@link ProjectFeatureDeclarations} that registers project types.
  */
 public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarations {
-    private final Map<RegisteringPluginKey, Set<Class<? extends Plugin<Project>>>> pluginClasses = new LinkedHashMap<>();
+    private final Map<RegisteringPluginKey, Set<Class<? extends Plugin<Project>>>> pluginClasses =
+            new LinkedHashMap<>();
     private final Map<String, Class<? extends Plugin<Project>>> registeredTypes = new HashMap<>();
 
     @Nullable
@@ -59,6 +59,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
 
     @SuppressWarnings("unused")
     private final InspectionScheme inspectionScheme;
+
     private final Instantiator instantiator;
 
     public DefaultProjectFeatureDeclarations(InspectionScheme inspectionScheme, Instantiator instantiator) {
@@ -67,7 +68,10 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
     }
 
     @Override
-    public void addDeclaration(@Nullable String pluginId, Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass) {
+    public void addDeclaration(
+            @Nullable String pluginId,
+            Class<? extends Plugin<Project>> pluginClass,
+            Class<? extends Plugin<Settings>> registeringPluginClass) {
         if (projectFeatureImplementations != null) {
             throw new IllegalStateException("Cannot register a plugin after project types have been discovered");
         }
@@ -76,78 +80,91 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
     }
 
     private Map<String, ProjectFeatureImplementation<?, ?>> discoverProjectFeatureImplementations() {
-        final ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder = ImmutableMap.builder();
-        pluginClasses.forEach((registeringPluginClass, registeredPluginClasses) ->
-            registeredPluginClasses.forEach(pluginClass -> {
-                TypeMetadata pluginClassTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginClass);
-                TypeAnnotationMetadata pluginClassAnnotationMetadata = pluginClassTypeMetadata.getTypeAnnotationMetadata();
-                registerTypeIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, projectFeatureImplementationsBuilder);
-                registerFeaturesIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, projectFeatureImplementationsBuilder);
-            })
-        );
+        final ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder =
+                ImmutableMap.builder();
+        pluginClasses.forEach(
+                (registeringPluginClass, registeredPluginClasses) -> registeredPluginClasses.forEach(pluginClass -> {
+                    TypeMetadata pluginClassTypeMetadata =
+                            inspectionScheme.getMetadataStore().getTypeMetadata(pluginClass);
+                    TypeAnnotationMetadata pluginClassAnnotationMetadata =
+                            pluginClassTypeMetadata.getTypeAnnotationMetadata();
+                    registerTypeIfPresent(
+                            registeringPluginClass,
+                            pluginClass,
+                            pluginClassAnnotationMetadata,
+                            projectFeatureImplementationsBuilder);
+                    registerFeaturesIfPresent(
+                            registeringPluginClass,
+                            pluginClass,
+                            pluginClassAnnotationMetadata,
+                            projectFeatureImplementationsBuilder);
+                }));
         return projectFeatureImplementationsBuilder.build();
     }
 
     private <T extends Definition<V>, V extends BuildModel> void registerFeature(
-        RegisteringPluginKey registeringPlugin,
-        Class<? extends Plugin<Project>> pluginClass,
-        ProjectFeatureBindingDeclaration<T, V> binding,
-        ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder
-    ) {
+            RegisteringPluginKey registeringPlugin,
+            Class<? extends Plugin<Project>> pluginClass,
+            ProjectFeatureBindingDeclaration<T, V> binding,
+            ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder) {
         String projectFeatureName = binding.getName();
 
         Class<? extends Plugin<Project>> existingPluginClass = registeredTypes.put(projectFeatureName, pluginClass);
         if (existingPluginClass != null && existingPluginClass != pluginClass) {
-            throw new IllegalArgumentException("Project feature '" + projectFeatureName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'");
+            throw new IllegalArgumentException("Project feature '" + projectFeatureName + "' is registered by both '"
+                    + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'");
         }
 
         projectFeatureImplementationsBuilder.put(
-            projectFeatureName,
-            new DefaultProjectFeatureImplementation<>(
                 projectFeatureName,
-                binding.getDefinitionType(),
-                binding.getDefinitionImplementationType().orElse(binding.getDefinitionType()),
-                binding.targetDefinitionType(),
-                binding.getBuildModelType(),
-                binding.getBuildModelImplementationType().orElse(binding.getBuildModelType()),
-                pluginClass,
-                registeringPlugin.pluginClass,
-                registeringPlugin.pluginId,
-                Cast.uncheckedCast(binding.getTransform())
-            )
-        );
+                new DefaultProjectFeatureImplementation<>(
+                        projectFeatureName,
+                        binding.getDefinitionType(),
+                        binding.getDefinitionImplementationType().orElse(binding.getDefinitionType()),
+                        binding.targetDefinitionType(),
+                        binding.getBuildModelType(),
+                        binding.getBuildModelImplementationType().orElse(binding.getBuildModelType()),
+                        pluginClass,
+                        registeringPlugin.pluginClass,
+                        registeringPlugin.pluginId,
+                        Cast.uncheckedCast(binding.getTransform())));
     }
 
     private void registerFeaturesIfPresent(
-        RegisteringPluginKey registeringPluginClass,
-        Class<? extends Plugin<Project>> pluginClass,
-        TypeAnnotationMetadata pluginClassAnnotationMetadata,
-        ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder
-    ) {
-        Optional<BindsProjectFeature> bindsProjectFeatureAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsProjectFeature.class);
+            RegisteringPluginKey registeringPluginClass,
+            Class<? extends Plugin<Project>> pluginClass,
+            TypeAnnotationMetadata pluginClassAnnotationMetadata,
+            ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder) {
+        Optional<BindsProjectFeature> bindsProjectFeatureAnnotation =
+                pluginClassAnnotationMetadata.getAnnotation(BindsProjectFeature.class);
         if (bindsProjectFeatureAnnotation.isPresent()) {
             BindsProjectFeature bindsSoftwareType = bindsProjectFeatureAnnotation.get();
             Class<? extends ProjectFeatureBinding> bindingRegistrationClass = bindsSoftwareType.value();
             ProjectFeatureBinding bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
             ProjectFeatureBindingBuilderInternal builder = new DefaultProjectFeatureBindingBuilder();
             bindingRegistration.bind(builder);
-            builder.build().forEach(binding ->
-                registerFeature(registeringPluginClass, pluginClass, binding, projectFeatureImplementationsBuilder)
-            );
+            builder.build()
+                    .forEach(binding -> registerFeature(
+                            registeringPluginClass, pluginClass, binding, projectFeatureImplementationsBuilder));
         }
     }
 
-    private void registerTypeIfPresent(RegisteringPluginKey registeringPluginKey, Class<? extends Plugin<Project>> pluginClass, TypeAnnotationMetadata pluginClassAnnotationMetadata, ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder) {
-        Optional<BindsProjectType> bindsProjectTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsProjectType.class);
+    private void registerTypeIfPresent(
+            RegisteringPluginKey registeringPluginKey,
+            Class<? extends Plugin<Project>> pluginClass,
+            TypeAnnotationMetadata pluginClassAnnotationMetadata,
+            ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder) {
+        Optional<BindsProjectType> bindsProjectTypeAnnotation =
+                pluginClassAnnotationMetadata.getAnnotation(BindsProjectType.class);
         if (bindsProjectTypeAnnotation.isPresent()) {
             BindsProjectType bindsProjectType = bindsProjectTypeAnnotation.get();
             Class<? extends ProjectTypeBinding> bindingRegistrationClass = bindsProjectType.value();
             ProjectTypeBinding bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
             ProjectTypeBindingBuilderInternal builder = new DefaultProjectTypeBindingBuilder();
             bindingRegistration.bind(builder);
-            builder.build().forEach(binding ->
-                registerFeature(registeringPluginKey, pluginClass, binding, projectFeatureImplementationsBuilder)
-            );
+            builder.build()
+                    .forEach(binding -> registerFeature(
+                            registeringPluginKey, pluginClass, binding, projectFeatureImplementationsBuilder));
         }
     }
 
@@ -162,9 +179,9 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
     @Override
     public NamedDomainObjectCollectionSchema getSchema() {
         return () -> Iterables.transform(
-            () -> getProjectFeatureImplementations().entrySet().iterator(),
-            entry -> new ProjectFeatureSchema(entry.getKey(), entry.getValue().getDefinitionPublicType())
-        );
+                () -> getProjectFeatureImplementations().entrySet().iterator(),
+                entry -> new ProjectFeatureSchema(
+                        entry.getKey(), entry.getValue().getDefinitionPublicType()));
     }
 
     private static class ProjectFeatureSchema implements NamedDomainObjectCollectionSchema.NamedDomainObjectSchema {

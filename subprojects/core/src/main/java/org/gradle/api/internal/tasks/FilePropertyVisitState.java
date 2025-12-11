@@ -19,26 +19,30 @@ package org.gradle.api.internal.tasks;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.PropertySpec;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.operations.execution.FilePropertyVisitor;
 
-import java.util.Map;
-import java.util.Set;
-
 public class FilePropertyVisitState extends BaseFilePropertyVisitState implements FilePropertyVisitor.VisitState {
 
     private final FilePropertyVisitor visitor;
 
-    private FilePropertyVisitState(FilePropertyVisitor visitor, Map<String, InputFilePropertySpec> propertySpecsByName) {
+    private FilePropertyVisitState(
+            FilePropertyVisitor visitor, Map<String, InputFilePropertySpec> propertySpecsByName) {
         super(propertySpecsByName);
         this.visitor = visitor;
     }
 
-    public static void visitInputFileProperties(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties, FilePropertyVisitor visitor, Set<InputFilePropertySpec> inputFilePropertySpecs) {
-        ImmutableMap<String, InputFilePropertySpec> propertySpecsByName = Maps.uniqueIndex(inputFilePropertySpecs, PropertySpec::getPropertyName);
+    public static void visitInputFileProperties(
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+            FilePropertyVisitor visitor,
+            Set<InputFilePropertySpec> inputFilePropertySpecs) {
+        ImmutableMap<String, InputFilePropertySpec> propertySpecsByName =
+                Maps.uniqueIndex(inputFilePropertySpecs, PropertySpec::getPropertyName);
         FilePropertyVisitState state = new FilePropertyVisitState(visitor, propertySpecsByName);
         for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFileProperties.entrySet()) {
             CurrentFileCollectionFingerprint fingerprint = entry.getValue();

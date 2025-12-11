@@ -16,19 +16,17 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.UncheckedException;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import org.gradle.internal.UncheckedException;
 
 public abstract class DefaultKeyServers {
-    private final static List<URI> DEFAULT_KEYSERVERS = ImmutableList.of(
-        uri("hkp://ha.pool.sks-keyservers.net"),
-        uri("https://keyserver.ubuntu.com"),
-        uri("https://keys.openpgp.org"),
-        uri("https://pgp.mit.edu")
-    );
+    private static final List<URI> DEFAULT_KEYSERVERS = ImmutableList.of(
+            uri("hkp://ha.pool.sks-keyservers.net"),
+            uri("https://keyserver.ubuntu.com"),
+            uri("https://keys.openpgp.org"),
+            uri("https://pgp.mit.edu"));
 
     private static URI uri(String uri) {
         try {

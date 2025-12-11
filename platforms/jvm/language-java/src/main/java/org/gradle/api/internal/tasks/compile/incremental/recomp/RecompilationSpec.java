@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
 
 public class RecompilationSpec {
     private final Set<String> classesToCompile = new LinkedHashSet<>();
@@ -32,15 +31,14 @@ public class RecompilationSpec {
 
     @Override
     public String toString() {
-        return "RecompilationSpec{" +
-            "classesToCompile=" + classesToCompile +
-            ", classesToProcess=" + classesToProcess +
-            ", resourcesToGenerate=" + resourcesToGenerate +
-            ", sourcePaths=" + sourcePaths +
-            ", fullRebuildCause='" + fullRebuildCause + '\'' +
-            ", buildNeeded=" + isBuildNeeded() +
-            ", fullRebuildNeeded=" + isFullRebuildNeeded() +
-            '}';
+        return "RecompilationSpec{" + "classesToCompile="
+                + classesToCompile + ", classesToProcess="
+                + classesToProcess + ", resourcesToGenerate="
+                + resourcesToGenerate + ", sourcePaths="
+                + sourcePaths + ", fullRebuildCause='"
+                + fullRebuildCause + '\'' + ", buildNeeded="
+                + isBuildNeeded() + ", fullRebuildNeeded="
+                + isFullRebuildNeeded() + '}';
     }
 
     public boolean addClassToCompile(String classToCompile) {

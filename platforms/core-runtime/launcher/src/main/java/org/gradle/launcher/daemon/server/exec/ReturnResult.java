@@ -40,5 +40,4 @@ public class ReturnResult implements DaemonCommandAction {
         LOGGER.debug("Daemon is dispatching the build result: {}", result);
         execution.getConnection().completed(result);
     }
-
 }

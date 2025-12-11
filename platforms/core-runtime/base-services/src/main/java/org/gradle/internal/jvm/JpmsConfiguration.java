@@ -62,32 +62,37 @@ public class JpmsConfiguration {
 
     static {
         GROOVY_JPMS_ARGS_9 = Collections.unmodifiableList(Arrays.asList(
-            "--add-opens=java.base/java.lang=ALL-UNNAMED",
-            "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
-            "--add-opens=java.base/java.util=ALL-UNNAMED",
-            "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED", // required by PreferenceCleaningGroovySystemLoader
-            "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED", // Required by JdkTools and JdkJavaCompiler
-            "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" // Required by JdkTools and JdkJavaCompiler
-        ));
+                "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+                "--add-opens=java.base/java.util=ALL-UNNAMED",
+                "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED", // required by
+                // PreferenceCleaningGroovySystemLoader
+                "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED", // Required by JdkTools and
+                // JdkJavaCompiler
+                "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" // Required by JdkTools and
+                // JdkJavaCompiler
+                ));
 
         GRADLE_SHARED_JPMS_ARGS_24 = Collections.singletonList(
-            "--enable-native-access=ALL-UNNAMED" // required by NativeServices to access native libraries
-        );
+                "--enable-native-access=ALL-UNNAMED" // required by NativeServices to access native libraries
+                );
 
         GRADLE_WORKER_JPMS_ARGS_24 = GRADLE_SHARED_JPMS_ARGS_24;
 
         List<String> gradleDaemonJvmArgs = new ArrayList<String>(GROOVY_JPMS_ARGS_9);
 
         List<String> configurationCacheJpmsArgs = Collections.unmodifiableList(Arrays.asList(
-            "--add-opens=java.base/java.util=ALL-UNNAMED", // for overriding environment variables
-            "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED", // required by JavaObjectSerializationCodec.kt
-            "--add-opens=java.base/java.nio.charset=ALL-UNNAMED", // required by BeanSchemaKt
-            "--add-opens=java.base/java.net=ALL-UNNAMED", // required by JavaObjectSerializationCodec
-            "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED", // required by AccessTrackingProperties
-            "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED", // serialized from org.gradle.internal.file.StatStatistics$Collector
-            "--add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED", // serialized from IvyDescriptorFileGenerator.Model
-            "--add-opens=java.base/java.time=ALL-UNNAMED" // required by JavaObjectSerializationCodec
-        ));
+                "--add-opens=java.base/java.util=ALL-UNNAMED", // for overriding environment variables
+                "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED", // required by JavaObjectSerializationCodec.kt
+                "--add-opens=java.base/java.nio.charset=ALL-UNNAMED", // required by BeanSchemaKt
+                "--add-opens=java.base/java.net=ALL-UNNAMED", // required by JavaObjectSerializationCodec
+                "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED", // required by AccessTrackingProperties
+                "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED", // serialized from
+                // org.gradle.internal.file.StatStatistics$Collector
+                "--add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED", // serialized from
+                // IvyDescriptorFileGenerator.Model
+                "--add-opens=java.base/java.time=ALL-UNNAMED" // required by JavaObjectSerializationCodec
+                ));
         gradleDaemonJvmArgs.addAll(configurationCacheJpmsArgs);
 
         GRADLE_DAEMON_JPMS_ARGS_9 = Collections.unmodifiableList(gradleDaemonJvmArgs);

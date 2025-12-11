@@ -26,7 +26,7 @@ public class TestComponentMetadataRuleWithArgs implements ComponentMetadataRule 
 
     public TestComponentMetadataRuleWithArgs(String arg1, long arg2) {
         instanceCount++;
-        constructorParams = new Object[]{arg1, arg2};
+        constructorParams = new Object[] {arg1, arg2};
     }
 
     @Override

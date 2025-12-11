@@ -16,11 +16,10 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.internal.service.ServiceRegistry;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.Optional;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.internal.service.ServiceRegistry;
 
 /**
  * Manages the shared services that are scoped to a particular Gradle user home dir and which can be shared by multiple build invocations. These shared services also include the global services.

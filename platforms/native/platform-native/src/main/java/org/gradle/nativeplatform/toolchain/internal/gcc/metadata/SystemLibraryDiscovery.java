@@ -16,12 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc.metadata;
 
+import java.io.File;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPathLocator;
-
-import java.io.File;
 
 @ServiceScope(Scope.BuildSession.class)
 public class SystemLibraryDiscovery {
@@ -36,6 +35,6 @@ public class SystemLibraryDiscovery {
             return new String[0];
         }
         File sdkDir = macOSSdkPathLocator.find();
-        return new String[]{"-isysroot", sdkDir.getAbsolutePath()};
+        return new String[] {"-isysroot", sdkDir.getAbsolutePath()};
     }
 }

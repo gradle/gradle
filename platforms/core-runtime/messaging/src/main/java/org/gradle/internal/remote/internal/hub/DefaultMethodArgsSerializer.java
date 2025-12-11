@@ -16,20 +16,20 @@
 
 package org.gradle.internal.remote.internal.hub;
 
+import java.util.List;
 import org.gradle.internal.Cast;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 
-import java.util.List;
-
 class DefaultMethodArgsSerializer implements MethodArgsSerializer {
     private static final Object[] ZERO_ARGS = new Object[0];
     private final List<SerializerRegistry> serializerRegistries;
     private final MethodArgsSerializer defaultArgsSerializer;
 
-    public DefaultMethodArgsSerializer(List<SerializerRegistry> serializerRegistries, MethodArgsSerializer defaultArgsSerializer) {
+    public DefaultMethodArgsSerializer(
+            List<SerializerRegistry> serializerRegistries, MethodArgsSerializer defaultArgsSerializer) {
         this.serializerRegistries = serializerRegistries;
         this.defaultArgsSerializer = defaultArgsSerializer;
     }
@@ -89,7 +89,6 @@ class DefaultMethodArgsSerializer implements MethodArgsSerializer {
         }
 
         @Override
-        public void write(Encoder encoder, Object[] value) {
-        }
+        public void write(Encoder encoder, Object[] value) {}
     }
 }

@@ -15,9 +15,6 @@
  */
 package org.gradle.internal.execution.model.annotations;
 
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.internal.properties.InputFilePropertyType;
-
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.INCREMENTAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
@@ -25,12 +22,20 @@ import static org.gradle.internal.execution.model.annotations.ModifierAnnotation
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
 
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.internal.properties.InputFilePropertyType;
+
 public class InputFilesPropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
     public InputFilesPropertyAnnotationHandler() {
         super(
-            InputFiles.class,
-            InputFilePropertyType.FILES,
-            ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS, REPLACES_EAGER_PROPERTY)
-        );
+                InputFiles.class,
+                InputFilePropertyType.FILES,
+                ModifierAnnotationCategory.annotationsOf(
+                        INCREMENTAL,
+                        NORMALIZATION,
+                        OPTIONAL,
+                        IGNORE_EMPTY_DIRECTORIES,
+                        NORMALIZE_LINE_ENDINGS,
+                        REPLACES_EAGER_PROPERTY));
     }
 }

@@ -26,7 +26,9 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 4.10
  */
-public final class ExecuteListenerBuildOperationType implements BuildOperationType<ExecuteListenerBuildOperationType.Details, ExecuteListenerBuildOperationType.Result> {
+public final class ExecuteListenerBuildOperationType
+        implements BuildOperationType<
+                ExecuteListenerBuildOperationType.Details, ExecuteListenerBuildOperationType.Result> {
 
     public interface Details {
 
@@ -47,12 +49,9 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
         String getRegistrationPoint();
     }
 
-    public interface Result {
-    }
+    public interface Result {}
 
-    static final Result RESULT = new Result() {
-    };
+    static final Result RESULT = new Result() {};
 
-    private ExecuteListenerBuildOperationType() {
-    }
+    private ExecuteListenerBuildOperationType() {}
 }

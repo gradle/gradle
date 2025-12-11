@@ -16,13 +16,13 @@
 
 package org.gradle.internal.resource.transfer;
 
+import java.net.URI;
 import org.gradle.internal.logging.progress.ResourceOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 
-import java.net.URI;
-
 public class AbstractProgressLoggingHandler {
-    protected ResourceOperation createResourceOperation(BuildOperationContext context, ResourceOperation.Type operationType) {
+    protected ResourceOperation createResourceOperation(
+            BuildOperationContext context, ResourceOperation.Type operationType) {
         return new ResourceOperation(context, operationType);
     }
 

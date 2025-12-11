@@ -29,5 +29,4 @@ public interface FileCollectionDependency extends Dependency {
      * @since 3.3
      */
     FileCollection getFiles();
-
 }

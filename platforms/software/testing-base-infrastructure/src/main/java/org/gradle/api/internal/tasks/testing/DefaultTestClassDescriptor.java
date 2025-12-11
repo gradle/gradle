@@ -41,7 +41,8 @@ public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
         this(id, className, classDisplayName, new DefaultClassSource(className));
     }
 
-    public DefaultTestClassDescriptor(Object id, String className, @Nullable String classDisplayName, TestSource source) {
+    public DefaultTestClassDescriptor(
+            Object id, String className, @Nullable String classDisplayName, TestSource source) {
         super(id, className, source);
         this.classDisplayName = classDisplayName == null ? className : classDisplayName;
     }

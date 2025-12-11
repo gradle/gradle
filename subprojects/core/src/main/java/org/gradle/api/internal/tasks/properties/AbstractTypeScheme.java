@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
 
-abstract public class AbstractTypeScheme implements TypeScheme {
+public abstract class AbstractTypeScheme implements TypeScheme {
 
     protected final InstantiationScheme instantiationScheme;
     protected final InspectionScheme inspectionScheme;

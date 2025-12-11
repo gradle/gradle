@@ -15,12 +15,11 @@
  */
 package org.gradle.api.file;
 
+import java.io.File;
+import java.util.Set;
 import org.gradle.api.Buildable;
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.tasks.util.PatternFilterable;
-
-import java.io.File;
-import java.util.Set;
 
 /**
  * <p>A {@link FileTree} with a single base directory, which can be configured and modified.</p>

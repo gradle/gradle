@@ -15,15 +15,13 @@
  */
 package org.gradle.internal.execution.history;
 
+import java.util.function.Supplier;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.function.Supplier;
 
 /**
  * Provides access to the persistent execution history store.
  */
 @ServiceScope(Scope.Build.class)
-public interface ExecutionHistoryCacheAccess extends Supplier<PersistentCache> {
-}
+public interface ExecutionHistoryCacheAccess extends Supplier<PersistentCache> {}

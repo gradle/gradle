@@ -16,13 +16,13 @@
 
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
-public class CompositeCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, PropertyAwareCallInterceptor {
+public class CompositeCallInterceptor extends AbstractCallInterceptor
+        implements SignatureAwareCallInterceptor, PropertyAwareCallInterceptor {
 
     private final CallInterceptor first;
     private final CallInterceptor second;
@@ -35,30 +35,32 @@ public class CompositeCallInterceptor extends AbstractCallInterceptor implements
     @Override
     @Nullable
     public Object intercept(Invocation invocation, String consumer) throws Throwable {
-        return first.intercept(new Invocation() {
-            @Override
-            @Nullable
-            public Object getReceiver() {
-                return invocation.getReceiver();
-            }
+        return first.intercept(
+                new Invocation() {
+                    @Override
+                    @Nullable
+                    public Object getReceiver() {
+                        return invocation.getReceiver();
+                    }
 
-            @Override
-            public int getArgsCount() {
-                return invocation.getArgsCount();
-            }
+                    @Override
+                    public int getArgsCount() {
+                        return invocation.getArgsCount();
+                    }
 
-            @Override
-            @Nullable
-            public Object getArgument(int pos) {
-                return invocation.getArgument(pos);
-            }
+                    @Override
+                    @Nullable
+                    public Object getArgument(int pos) {
+                        return invocation.getArgument(pos);
+                    }
 
-            @Override
-            @Nullable
-            public Object callNext() throws Throwable {
-                return second.intercept(invocation, consumer);
-            }
-        }, consumer);
+                    @Override
+                    @Nullable
+                    public Object callNext() throws Throwable {
+                        return second.intercept(invocation, consumer);
+                    }
+                },
+                consumer);
     }
 
     @Override
@@ -87,10 +89,12 @@ public class CompositeCallInterceptor extends AbstractCallInterceptor implements
     public SignatureMatch matchesMethodSignature(Class<?> receiverClass, Class<?>[] argumentClasses, boolean isStatic) {
         SignatureMatch signatureMatch = null;
         if (first instanceof SignatureAwareCallInterceptor) {
-            signatureMatch = ((SignatureAwareCallInterceptor) first).matchesMethodSignature(receiverClass, argumentClasses, isStatic);
+            signatureMatch = ((SignatureAwareCallInterceptor) first)
+                    .matchesMethodSignature(receiverClass, argumentClasses, isStatic);
         }
         if (signatureMatch == null && second instanceof SignatureAwareCallInterceptor) {
-            signatureMatch = ((SignatureAwareCallInterceptor) second).matchesMethodSignature(receiverClass, argumentClasses, isStatic);
+            signatureMatch = ((SignatureAwareCallInterceptor) second)
+                    .matchesMethodSignature(receiverClass, argumentClasses, isStatic);
         }
         return signatureMatch;
     }

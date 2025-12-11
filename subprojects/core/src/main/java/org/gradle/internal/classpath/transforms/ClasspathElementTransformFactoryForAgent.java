@@ -16,13 +16,12 @@
 
 package org.gradle.internal.classpath.transforms;
 
+import java.io.File;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 @ServiceScope(Scope.UserHome.class)
 public class ClasspathElementTransformFactoryForAgent implements ClasspathElementTransformFactory {
@@ -32,7 +31,8 @@ public class ClasspathElementTransformFactoryForAgent implements ClasspathElemen
     private final ClasspathBuilder classpathBuilder;
     private final ClasspathWalker classpathWalker;
 
-    public ClasspathElementTransformFactoryForAgent(ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker) {
+    public ClasspathElementTransformFactoryForAgent(
+            ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker) {
         this.classpathBuilder = classpathBuilder;
         this.classpathWalker = classpathWalker;
     }

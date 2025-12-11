@@ -18,25 +18,28 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
-import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
-import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.interfaces.GraphNodesValidationFailure;
-
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.internal.component.resolution.failure.interfaces.GraphNodesValidationFailure;
 
 /**
  * A {@link GraphNodesValidationFailure} that represents the situation when multiple incompatible variants of a single component
  * are selected during a request.
  */
-public final class IncompatibleMultipleNodesValidationFailure extends AbstractResolutionFailure implements GraphNodesValidationFailure {
+public final class IncompatibleMultipleNodesValidationFailure extends AbstractResolutionFailure
+        implements GraphNodesValidationFailure {
     private final ComponentGraphResolveMetadata selectedComponent;
     private final Set<VariantGraphResolveMetadata> incompatibleNodes;
     private final ImmutableList<AssessedCandidate> assessedCandidates;
 
-    public IncompatibleMultipleNodesValidationFailure(ComponentGraphResolveMetadata selectedComponent, Set<VariantGraphResolveMetadata> incompatibleNodes, List<AssessedCandidate> assessedCandidates) {
+    public IncompatibleMultipleNodesValidationFailure(
+            ComponentGraphResolveMetadata selectedComponent,
+            Set<VariantGraphResolveMetadata> incompatibleNodes,
+            List<AssessedCandidate> assessedCandidates) {
         super(ResolutionFailureProblemId.INCOMPATIBLE_MULTIPLE_NODES);
         this.selectedComponent = selectedComponent;
         this.incompatibleNodes = ImmutableSet.copyOf(incompatibleNodes);

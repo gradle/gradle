@@ -26,7 +26,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * Implementation of the {@code JvmTestOperationDescriptor} interface.
  */
-public final class DefaultJvmTestOperationDescriptor extends DefaultTestOperationDescriptor implements JvmTestOperationDescriptor {
+public final class DefaultJvmTestOperationDescriptor extends DefaultTestOperationDescriptor
+        implements JvmTestOperationDescriptor {
     private final JvmTestKind jvmTestKind;
     private final String suiteName;
     private final String className;
@@ -34,14 +35,13 @@ public final class DefaultJvmTestOperationDescriptor extends DefaultTestOperatio
     private final TestSource testSource;
 
     public DefaultJvmTestOperationDescriptor(
-        InternalJvmTestDescriptor internalJvmTestDescriptor,
-        OperationDescriptor parent,
-        JvmTestKind jvmTestKind,
-        String suiteName,
-        String className,
-        String methodName,
-        TestSource testSource
-    ) {
+            InternalJvmTestDescriptor internalJvmTestDescriptor,
+            OperationDescriptor parent,
+            JvmTestKind jvmTestKind,
+            String suiteName,
+            String className,
+            String methodName,
+            TestSource testSource) {
         super(internalJvmTestDescriptor, parent);
         this.jvmTestKind = jvmTestKind;
         this.suiteName = suiteName;

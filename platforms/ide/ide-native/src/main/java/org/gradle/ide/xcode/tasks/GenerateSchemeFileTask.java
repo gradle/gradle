@@ -16,6 +16,12 @@
 
 package org.gradle.ide.xcode.tasks;
 
+import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_DEBUG;
+import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Internal;
@@ -26,13 +32,6 @@ import org.gradle.ide.xcode.tasks.internal.XcodeSchemeFile;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_DEBUG;
-import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
 
 /**
  * Task for generating a Xcode scheme file (e.g. {@code Foo.xcodeproj/xcshareddata/xcschemes/Foo.xcscheme}). An Xcode scheme defines a collection of targets to build, a configuration to use when building, and a collection of tests to execute.
@@ -63,18 +62,14 @@ public abstract class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchem
         List<TargetSpec> targets = new ArrayList<>();
         for (XcodeTarget target : xcodeProject.getTargets()) {
             targets.add(new TargetSpec(
-                target.getName(),
-                target.getId(),
-                target.getProductName(),
-                target.isRunnable(),
-                target.isUnitTest(),
-                target.getDefaultConfigurationName()
-            ));
+                    target.getName(),
+                    target.getId(),
+                    target.getProductName(),
+                    target.isRunnable(),
+                    target.isUnitTest(),
+                    target.getDefaultConfigurationName()));
         }
-        return new SchemeFileSpec(
-            getProject().getName(),
-            targets
-        );
+        return new SchemeFileSpec(getProject().getName(), targets);
     }
 
     @Override
@@ -117,7 +112,8 @@ public abstract class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchem
     }
 
     private void configureLaunchAction(SchemeFileSpec spec, XcodeSchemeFile.LaunchAction action) {
-        action.setBuildConfiguration(spec.targets.iterator().next().defaultConfigurationName.get());
+        action.setBuildConfiguration(
+                spec.targets.iterator().next().defaultConfigurationName.get());
         for (TargetSpec xcodeTarget : spec.targets) {
             XcodeSchemeFile.BuildableReference buildableReference = toBuildableReference(spec, xcodeTarget);
             if (xcodeTarget.runnable) {
@@ -169,7 +165,13 @@ public abstract class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchem
         final String productName;
         final Provider<String> defaultConfigurationName;
 
-        public TargetSpec(String name, String id, String productName, boolean runnable, boolean unitTest, Provider<String> defaultConfigurationName) {
+        public TargetSpec(
+                String name,
+                String id,
+                String productName,
+                boolean runnable,
+                boolean unitTest,
+                Provider<String> defaultConfigurationName) {
             this.name = name;
             this.runnable = runnable;
             this.unitTest = unitTest;

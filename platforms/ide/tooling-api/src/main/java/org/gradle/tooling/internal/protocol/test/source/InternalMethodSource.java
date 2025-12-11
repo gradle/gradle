@@ -26,7 +26,7 @@ public interface InternalMethodSource extends InternalTestSource {
     /**
      * @since 9.4.0
      */
-     String getClassName();
+    String getClassName();
 
     /**
      * @since 9.4.0

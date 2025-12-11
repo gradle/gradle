@@ -27,5 +27,4 @@ public interface ModelView<T> {
     T getInstance();
 
     void close();
-
 }

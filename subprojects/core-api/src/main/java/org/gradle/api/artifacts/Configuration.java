@@ -15,8 +15,13 @@
  */
 package org.gradle.api.artifacts;
 
+import static groovy.lang.Closure.DELEGATE_FIRST;
+
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
@@ -29,12 +34,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.HasInternalProtocol;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.Map;
-import java.util.Set;
-
-import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
  * A {@code Configuration} represents a group of artifacts and their dependencies.
@@ -74,7 +73,8 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return this configuration instance
      * @since 1.0-milestone-6
      */
-    Configuration resolutionStrategy(@DelegatesTo(value = ResolutionStrategy.class, strategy = DELEGATE_FIRST) Closure closure);
+    Configuration resolutionStrategy(
+            @DelegatesTo(value = ResolutionStrategy.class, strategy = DELEGATE_FIRST) Closure closure);
 
     /**
      * The resolution strategy provides extra details on how to resolve this configuration.
@@ -92,7 +92,11 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * The states a configuration can be into. A configuration is only mutable as long as it is
      * in the unresolved state.
      */
-    enum State { UNRESOLVED, RESOLVED, RESOLVED_WITH_FAILURES }
+    enum State {
+        UNRESOLVED,
+        RESOLVED,
+        RESOLVED_WITH_FAILURES
+    }
 
     /**
      * Returns the state of the configuration.

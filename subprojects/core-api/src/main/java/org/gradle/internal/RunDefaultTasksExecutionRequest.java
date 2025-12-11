@@ -16,17 +16,17 @@
 
 package org.gradle.internal;
 
-import org.gradle.TaskExecutionRequest;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.TaskExecutionRequest;
+import org.jspecify.annotations.Nullable;
 
 public class RunDefaultTasksExecutionRequest implements TaskExecutionRequest, Serializable {
     @Nullable
     private final String projectPath;
+
     @Nullable
     private final File rootDir;
 

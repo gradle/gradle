@@ -33,7 +33,8 @@ public class IsolatedImmutableManagedValue extends AbstractIsolatableScalarValue
 
     @Override
     public ValueSnapshot asSnapshot() {
-        return new ImmutableManagedValueSnapshot(getValue().publicType().getName(), (String) getValue().unpackState());
+        return new ImmutableManagedValueSnapshot(
+                getValue().publicType().getName(), (String) getValue().unpackState());
     }
 
     @Override

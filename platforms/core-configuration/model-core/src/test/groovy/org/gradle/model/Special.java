@@ -19,5 +19,4 @@ package org.gradle.model;
 /**
  * Out on its own due to http://jira.codehaus.org/browse/GROOVY-7010
  */
-public interface Special {
-}
+public interface Special {}

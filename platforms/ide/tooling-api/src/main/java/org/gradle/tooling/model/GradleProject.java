@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.model;
 
+import java.io.File;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Represents a Gradle project.

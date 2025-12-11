@@ -30,5 +30,4 @@ public class UnknownProjectFinder implements ProjectFinder {
     public Path resolveIdentityPath(String path) {
         throw new UnknownProjectException(exceptionMessage);
     }
-
 }

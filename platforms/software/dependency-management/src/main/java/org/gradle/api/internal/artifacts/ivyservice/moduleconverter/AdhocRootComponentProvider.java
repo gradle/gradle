@@ -42,11 +42,10 @@ public class AdhocRootComponentProvider implements RootComponentProvider {
     private final LocalComponentGraphResolveStateFactory localResolveStateFactory;
 
     public AdhocRootComponentProvider(
-        AttributesSchemaInternal schema,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        ImmutableAttributesSchemaFactory attributesSchemaFactory,
-        LocalComponentGraphResolveStateFactory localResolveStateFactory
-    ) {
+            AttributesSchemaInternal schema,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            ImmutableAttributesSchemaFactory attributesSchemaFactory,
+            LocalComponentGraphResolveStateFactory localResolveStateFactory) {
         this.schema = schema;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributesSchemaFactory = attributesSchemaFactory;
@@ -58,15 +57,11 @@ public class AdhocRootComponentProvider implements RootComponentProvider {
         Module module = new AnonymousModule();
 
         String status = module.getStatus();
-        ModuleVersionIdentifier moduleVersionId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
+        ModuleVersionIdentifier moduleVersionId =
+                moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
 
         ImmutableAttributesSchema immutableSchema = attributesSchemaFactory.create(schema);
 
-        return localResolveStateFactory.adhocRootComponentState(
-            status,
-            moduleVersionId,
-            immutableSchema
-        );
+        return localResolveStateFactory.adhocRootComponentState(status, moduleVersionId, immutableSchema);
     }
-
 }

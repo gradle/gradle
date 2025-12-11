@@ -16,10 +16,9 @@
 
 package org.gradle.api.problems;
 
+import java.io.Serializable;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-
-import java.io.Serializable;
 
 /**
  * Marker interface for additional data that can be attached to a {@link Problem}.
@@ -30,6 +29,4 @@ import java.io.Serializable;
  * @since 8.13
  */
 @Incubating
-public interface AdditionalData extends Serializable {
-
-}
+public interface AdditionalData extends Serializable {}

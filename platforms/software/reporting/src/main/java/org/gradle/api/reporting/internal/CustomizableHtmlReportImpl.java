@@ -39,5 +39,4 @@ public abstract class CustomizableHtmlReportImpl extends DefaultSingleFileReport
     public void setStylesheet(@Nullable TextResource stylesheet) {
         this.stylesheet = stylesheet;
     }
-
 }

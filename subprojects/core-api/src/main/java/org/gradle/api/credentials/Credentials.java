@@ -23,5 +23,4 @@ import org.gradle.api.NonExtensible;
  * (e.g authenticated {@link org.gradle.api.artifacts.dsl.RepositoryHandler})
  * */
 @NonExtensible
-public interface Credentials {
-}
+public interface Credentials {}

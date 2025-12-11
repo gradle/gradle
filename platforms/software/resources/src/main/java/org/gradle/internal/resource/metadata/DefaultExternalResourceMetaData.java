@@ -16,11 +16,10 @@
 
 package org.gradle.internal.resource.metadata;
 
-import org.gradle.internal.hash.HashCode;
-import org.jspecify.annotations.Nullable;
-
 import java.net.URI;
 import java.util.Date;
+import org.gradle.internal.hash.HashCode;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultExternalResourceMetaData implements ExternalResourceMetaData {
     private final URI location;
@@ -37,11 +36,33 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
         this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, null, null, null, null, false);
     }
 
-    public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashCode sha1) {
-        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, contentType, etag, sha1, null, false);
+    public DefaultExternalResourceMetaData(
+            URI location,
+            long lastModified,
+            long contentLength,
+            @Nullable String contentType,
+            @Nullable String etag,
+            @Nullable HashCode sha1) {
+        this(
+                location,
+                lastModified > 0 ? new Date(lastModified) : null,
+                contentLength,
+                contentType,
+                etag,
+                sha1,
+                null,
+                false);
     }
 
-    public DefaultExternalResourceMetaData(URI location, @Nullable Date lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashCode sha1, @Nullable String fileName, boolean wasMissing) {
+    public DefaultExternalResourceMetaData(
+            URI location,
+            @Nullable Date lastModified,
+            long contentLength,
+            @Nullable String contentType,
+            @Nullable String etag,
+            @Nullable HashCode sha1,
+            @Nullable String fileName,
+            boolean wasMissing) {
         this.location = location;
         this.lastModified = lastModified;
         this.contentLength = contentLength;

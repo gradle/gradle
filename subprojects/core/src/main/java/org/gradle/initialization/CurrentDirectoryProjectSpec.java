@@ -15,10 +15,9 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.internal.SettingsInternal;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.api.internal.SettingsInternal;
 
 public class CurrentDirectoryProjectSpec extends AbstractProjectSpec {
     private final boolean useRootWhenNoMatch;
@@ -43,7 +42,7 @@ public class CurrentDirectoryProjectSpec extends AbstractProjectSpec {
 
     @Override
     protected String formatNoMatchesMessage(String settings) {
-        return String.format("Project directory '%s' is not part of the build defined by %s.",  currentDir, settings);
+        return String.format("Project directory '%s' is not part of the build defined by %s.", currentDir, settings);
     }
 
     @Override

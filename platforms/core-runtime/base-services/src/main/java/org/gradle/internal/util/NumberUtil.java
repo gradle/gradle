@@ -16,15 +16,14 @@
 
 package org.gradle.internal.util;
 
-import org.jspecify.annotations.Nullable;
+import static java.math.RoundingMode.FLOOR;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.List;
-
-import static java.math.RoundingMode.FLOOR;
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableList;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Utility methods for working with numbers
@@ -33,10 +32,12 @@ public class NumberUtil {
     public static final int BASE_LOG2 = 10;
     public static final int KIB_BASE = 1 << BASE_LOG2;
     private static final int FRACTIONAL_DIGIT_COUNT = 1;
-    private static final MathContext MC = new MathContext(String.valueOf(KIB_BASE).length() + FRACTIONAL_DIGIT_COUNT, FLOOR);
-    private static final List<String> UNITS = unmodifiableList(asList(" B", " KiB", " MiB", " GiB", " TiB", " PiB", " EiB"));
-    private static final List<String> ORDINAL_SUFFIXES = unmodifiableList(asList("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"));
-
+    private static final MathContext MC =
+            new MathContext(String.valueOf(KIB_BASE).length() + FRACTIONAL_DIGIT_COUNT, FLOOR);
+    private static final List<String> UNITS =
+            unmodifiableList(asList(" B", " KiB", " MiB", " GiB", " TiB", " PiB", " EiB"));
+    private static final List<String> ORDINAL_SUFFIXES =
+            unmodifiableList(asList("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"));
 
     /**
      * Percentage (0-...) of given input.
@@ -46,7 +47,8 @@ public class NumberUtil {
      */
     public static int percentOf(long fraction, long total) {
         if (total < 0 || fraction < 0) {
-            throw new IllegalArgumentException("Unable to calculate percentage: " + fraction + " of " + total + ". All inputs must be >= 0");
+            throw new IllegalArgumentException(
+                    "Unable to calculate percentage: " + fraction + " of " + total + ". All inputs must be >= 0");
         }
         if (total == 0) {
             return 0;
@@ -66,7 +68,10 @@ public class NumberUtil {
         } else {
             int baseExponent = (Long.SIZE - 1 - Long.numberOfLeadingZeros(bytes)) / BASE_LOG2;
             BigDecimal roundedBase = BigDecimal.valueOf(1L << (baseExponent * BASE_LOG2));
-            BigDecimal result = BigDecimal.valueOf(bytes).divide(roundedBase, MC).setScale(FRACTIONAL_DIGIT_COUNT, FLOOR).stripTrailingZeros();
+            BigDecimal result = BigDecimal.valueOf(bytes)
+                    .divide(roundedBase, MC)
+                    .setScale(FRACTIONAL_DIGIT_COUNT, FLOOR)
+                    .stripTrailingZeros();
             return result.toPlainString() + UNITS.get(baseExponent);
         }
     }

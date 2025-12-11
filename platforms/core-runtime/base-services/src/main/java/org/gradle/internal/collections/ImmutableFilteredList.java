@@ -16,11 +16,10 @@
 
 package org.gradle.internal.collections;
 
-import org.gradle.api.specs.Spec;
-
 import java.util.AbstractList;
 import java.util.BitSet;
 import java.util.List;
+import org.gradle.api.specs.Spec;
 
 /**
  * An immutable list which wraps another source list by applying some static filter to it.

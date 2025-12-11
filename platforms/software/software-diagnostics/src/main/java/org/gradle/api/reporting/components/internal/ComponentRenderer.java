@@ -30,7 +30,9 @@ public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportB
     private final ReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer;
     private final ReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer;
 
-    public ComponentRenderer(ReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer, ReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer) {
+    public ComponentRenderer(
+            ReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer,
+            ReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer) {
         this.sourceSetRenderer = sourceSetRenderer;
         this.binaryRenderer = binaryRenderer;
     }
@@ -41,12 +43,21 @@ public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportB
         if (component instanceof SourceComponentSpec) {
             SourceComponentSpec sourceComponentSpec = (SourceComponentSpec) component;
             builder.getOutput().println();
-            builder.collection("Source sets", CollectionUtils.sort(sourceComponentSpec.getSources().values(), SourceSetRenderer.SORT_ORDER), sourceSetRenderer, "source sets");
+            builder.collection(
+                    "Source sets",
+                    CollectionUtils.sort(sourceComponentSpec.getSources().values(), SourceSetRenderer.SORT_ORDER),
+                    sourceSetRenderer,
+                    "source sets");
         }
         if (component instanceof VariantComponentSpec) {
             VariantComponentSpec variantComponentSpec = (VariantComponentSpec) component;
             builder.getOutput().println();
-            builder.collection("Binaries", CollectionUtils.sort(variantComponentSpec.getBinaries().values(), TypeAwareBinaryRenderer.SORT_ORDER), binaryRenderer, "binaries");
+            builder.collection(
+                    "Binaries",
+                    CollectionUtils.sort(
+                            variantComponentSpec.getBinaries().values(), TypeAwareBinaryRenderer.SORT_ORDER),
+                    binaryRenderer,
+                    "binaries");
         }
     }
 }

@@ -16,11 +16,10 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.internal.jvm.Jvm;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
+import org.gradle.internal.jvm.Jvm;
 
 public class CurrentInstallationSupplier implements InstallationSupplier {
 

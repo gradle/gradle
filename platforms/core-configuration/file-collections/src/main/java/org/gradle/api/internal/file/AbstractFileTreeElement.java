@@ -15,6 +15,11 @@
  */
 package org.gradle.api.internal.file;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FilePermissions;
@@ -23,12 +28,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.file.Chmod;
 import org.gradle.util.internal.GFileUtils;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public abstract class AbstractFileTreeElement implements FileTreeElement {
     private final Chmod chmod;
@@ -85,13 +84,14 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
             chmod.chmod(target, getPermissions().toUnixNumeric());
             return true;
         } catch (Exception e) {
-            throw new CopyFileElementException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
+            throw new CopyFileElementException(
+                    String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
         }
     }
 
     private void validateTimeStamps() {
         final long lastModified = getLastModified();
-        if(lastModified < 0) {
+        if (lastModified < 0) {
             throw new GradleException(String.format("Invalid Timestamp %s for '%s'.", lastModified, getDisplayName()));
         }
     }
@@ -107,8 +107,9 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
 
     @Override
     public FilePermissions getPermissions() {
-        return isDirectory() ? DefaultFilePermissions.DEFAULT_DIR_PERMISSIONS :
-            DefaultFilePermissions.DEFAULT_FILE_PERMISSIONS;
+        return isDirectory()
+                ? DefaultFilePermissions.DEFAULT_DIR_PERMISSIONS
+                : DefaultFilePermissions.DEFAULT_FILE_PERMISSIONS;
     }
 
     @Contextual

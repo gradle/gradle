@@ -18,6 +18,16 @@ package org.gradle.api.tasks.wrapper.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Properties;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.ExecutableJar;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
@@ -32,22 +42,12 @@ import org.gradle.wrapper.WrapperExecutor;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UncheckedIOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Properties;
-
 @NullMarked
 public class WrapperGenerator {
 
     public static File getPropertiesFile(File jarFileDestination) {
-        return new File(jarFileDestination.getParentFile(), jarFileDestination.getName().replaceAll("\\.jar$", ".properties"));
+        return new File(
+                jarFileDestination.getParentFile(), jarFileDestination.getName().replaceAll("\\.jar$", ".properties"));
     }
 
     public static File getBatchScript(File scriptFile) {
@@ -56,36 +56,49 @@ public class WrapperGenerator {
 
     public static String getDistributionUrl(GradleVersion gradleVersion, Wrapper.DistributionType distributionType) {
         String distType = distributionType.name().toLowerCase(Locale.ENGLISH);
-        return new DistributionLocator().getDistributionFor(gradleVersion, distType).toASCIIString();
+        return new DistributionLocator()
+                .getDistributionFor(gradleVersion, distType)
+                .toASCIIString();
     }
 
     public static void generate(
-        PathBase archiveBase, String archivePath,
-        PathBase distributionBase, String distributionPath,
-        @Nullable String distributionSha256Sum,
-        File wrapperPropertiesOutputFile,
-        File wrapperJarOutputFile, String jarFileRelativePath,
-        File unixScript, File batchScript,
-        @Nullable String distributionUrl,
-        boolean validateDistributionUrl,
-        @Nullable Integer networkTimeout
-    ) {
-        writeProperties(wrapperPropertiesOutputFile, distributionUrl, distributionSha256Sum, distributionBase, distributionPath, archiveBase, archivePath, networkTimeout, validateDistributionUrl);
+            PathBase archiveBase,
+            String archivePath,
+            PathBase distributionBase,
+            String distributionPath,
+            @Nullable String distributionSha256Sum,
+            File wrapperPropertiesOutputFile,
+            File wrapperJarOutputFile,
+            String jarFileRelativePath,
+            File unixScript,
+            File batchScript,
+            @Nullable String distributionUrl,
+            boolean validateDistributionUrl,
+            @Nullable Integer networkTimeout) {
+        writeProperties(
+                wrapperPropertiesOutputFile,
+                distributionUrl,
+                distributionSha256Sum,
+                distributionBase,
+                distributionPath,
+                archiveBase,
+                archivePath,
+                networkTimeout,
+                validateDistributionUrl);
         writeWrapperJar(wrapperJarOutputFile);
         writeScripts(jarFileRelativePath, unixScript, batchScript);
     }
 
     private static void writeProperties(
-        File propertiesFileDestination,
-        @Nullable String distributionUrl,
-        @Nullable String distributionSha256Sum,
-        PathBase distributionBase,
-        String distributionPath,
-        PathBase archiveBase,
-        String archivePath,
-        @Nullable Integer networkTimeout,
-        boolean validateDistributionUrl
-    ) {
+            File propertiesFileDestination,
+            @Nullable String distributionUrl,
+            @Nullable String distributionSha256Sum,
+            PathBase distributionBase,
+            String distributionPath,
+            PathBase archiveBase,
+            String archivePath,
+            @Nullable Integer networkTimeout,
+            boolean validateDistributionUrl) {
         Properties wrapperProperties = new Properties();
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, distributionUrl);
         if (distributionSha256Sum != null) {
@@ -113,7 +126,8 @@ public class WrapperGenerator {
         if (jarFileSource == null) {
             throw new GradleException("Cannot locate wrapper JAR resource.");
         }
-        try (InputStream in = jarFileSource.openStream(); OutputStream out = Files.newOutputStream(destination.toPath())) {
+        try (InputStream in = jarFileSource.openStream();
+                OutputStream out = Files.newOutputStream(destination.toPath())) {
             ByteStreams.copy(in, out);
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to write wrapper JAR to " + destination, e);
@@ -134,5 +148,4 @@ public class WrapperGenerator {
         generator.generateUnixScript(unixScript);
         generator.generateWindowsScript(batchScript);
     }
-
 }

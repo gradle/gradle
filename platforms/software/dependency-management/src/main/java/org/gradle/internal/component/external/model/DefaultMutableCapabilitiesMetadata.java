@@ -17,14 +17,13 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  * Default implementation of {@link MutableCapabilitiesMetadata}.
@@ -41,8 +40,11 @@ public class DefaultMutableCapabilitiesMetadata implements MutableCapabilitiesMe
     @Override
     public void addCapability(String group, String name, String version) {
         for (Capability descriptor : descriptors) {
-            if (descriptor.getGroup().equals(group) && descriptor.getName().equals(name) && !descriptor.getVersion().equals(version)) {
-                throw new InvalidUserDataException("Cannot add capability " + group + ":" + name + " with version " + version + " because it's already defined with version " + descriptor.getVersion());
+            if (descriptor.getGroup().equals(group)
+                    && descriptor.getName().equals(name)
+                    && !descriptor.getVersion().equals(version)) {
+                throw new InvalidUserDataException("Cannot add capability " + group + ":" + name + " with version "
+                        + version + " because it's already defined with version " + descriptor.getVersion());
             }
         }
         descriptors.add(new DefaultImmutableCapability(group, name, version));
@@ -50,7 +52,8 @@ public class DefaultMutableCapabilitiesMetadata implements MutableCapabilitiesMe
 
     @Override
     public void removeCapability(String group, String name) {
-        descriptors.removeIf(next -> next.getGroup().equals(group) && next.getName().equals(name));
+        descriptors.removeIf(
+                next -> next.getGroup().equals(group) && next.getName().equals(name));
     }
 
     @Override

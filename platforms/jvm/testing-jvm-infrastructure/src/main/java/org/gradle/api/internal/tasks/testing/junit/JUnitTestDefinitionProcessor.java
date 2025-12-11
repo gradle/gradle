@@ -31,7 +31,8 @@ public class JUnitTestDefinitionProcessor extends AbstractJUnitTestDefinitionPro
     private final JUnitSpec spec;
     private final Clock clock;
 
-    public JUnitTestDefinitionProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
+    public JUnitTestDefinitionProcessor(
+            JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         super(actorFactory);
         this.spec = spec;
         this.idGenerator = idGenerator;
@@ -43,7 +44,8 @@ public class JUnitTestDefinitionProcessor extends AbstractJUnitTestDefinitionPro
         try {
             Class.forName("org.junit.runner.notification.RunListener");
         } catch (ClassNotFoundException e) {
-            throw new TestFrameworkNotAvailableException("Failed to load JUnit 4.  Please ensure that the JUnit 4 library is available on the test's runtime classpath.");
+            throw new TestFrameworkNotAvailableException(
+                    "Failed to load JUnit 4.  Please ensure that the JUnit 4 library is available on the test's runtime classpath.");
         }
     }
 
@@ -52,11 +54,6 @@ public class JUnitTestDefinitionProcessor extends AbstractJUnitTestDefinitionPro
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
 
         return new JUnitTestExecutor(
-            Thread.currentThread().getContextClassLoader(),
-            spec,
-            clock,
-            idGenerator,
-            threadSafeResultProcessor
-        );
+                Thread.currentThread().getContextClassLoader(), spec, clock, idGenerator, threadSafeResultProcessor);
     }
 }

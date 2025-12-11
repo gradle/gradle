@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.model.kotlin.dsl;
 
-
 /**
  * Parameters for Kotlin DSL models.
  *
@@ -34,7 +33,9 @@ public final class KotlinDslModelsParameters {
 
     public static final String STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE = "strict-classpath";
 
-    public static final String CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION = "-D" + PROVIDER_MODE_SYSTEM_PROPERTY_NAME + "=" + CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE;
+    public static final String CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION =
+            "-D" + PROVIDER_MODE_SYSTEM_PROPERTY_NAME + "=" + CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE;
 
-    public static final String STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION = "-D" + PROVIDER_MODE_SYSTEM_PROPERTY_NAME + "=" + STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE;
+    public static final String STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION =
+            "-D" + PROVIDER_MODE_SYSTEM_PROPERTY_NAME + "=" + STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE;
 }

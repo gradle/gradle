@@ -16,30 +16,31 @@
 
 package org.gradle.integtests.tooling.r44;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-
-import java.util.LinkedList;
-import java.util.List;
 
 public class MultipleParametersAction implements BuildAction<List<CustomModel>> {
     @Override
     public List<CustomModel> execute(BuildController controller) {
         List<CustomModel> result = new LinkedList<CustomModel>();
         final CustomModel model0 = controller.getModel(CustomModel.class);
-        final CustomModel model1 = controller.getModel(CustomModel.class, CustomParameter.class, new Action<CustomParameter>() {
-            @Override
-            public void execute(CustomParameter customParameter) {
-                customParameter.setValue(model0.getParameterValue() + ":parameter1");
-            }
-        });
-        CustomModel model2 = controller.getModel(CustomModel.class, CustomParameter.class, new Action<CustomParameter>() {
-            @Override
-            public void execute(CustomParameter customParameter) {
-                customParameter.setValue(model1.getParameterValue() + ":parameter2");
-            }
-        });
+        final CustomModel model1 =
+                controller.getModel(CustomModel.class, CustomParameter.class, new Action<CustomParameter>() {
+                    @Override
+                    public void execute(CustomParameter customParameter) {
+                        customParameter.setValue(model0.getParameterValue() + ":parameter1");
+                    }
+                });
+        CustomModel model2 =
+                controller.getModel(CustomModel.class, CustomParameter.class, new Action<CustomParameter>() {
+                    @Override
+                    public void execute(CustomParameter customParameter) {
+                        customParameter.setValue(model1.getParameterValue() + ":parameter2");
+                    }
+                });
         result.add(model0);
         result.add(model1);
         result.add(model2);

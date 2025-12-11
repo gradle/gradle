@@ -64,16 +64,20 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
 
     public static final String MODEL_TASK = DiagnosticsTaskNames.MODEL_TASK;
 
-
     @Override
     public void apply(final Project project) {
         TaskContainer tasks = project.getTasks();
         String projectName = project.toString();
 
-        // Static classes are used for the configure actions here to avoid implicitly dragging project/tasks into the model registry
+        // Static classes are used for the configure actions here to avoid implicitly dragging project/tasks into the
+        // model registry
         tasks.register(ProjectInternal.HELP_TASK, Help.class, new HelpAction());
-        tasks.register(ProjectInternal.PROJECTS_TASK, ProjectReportTask.class, new ProjectReportTaskAction(projectName));
-        tasks.register(ProjectInternal.TASKS_TASK, TaskReportTask.class, new TaskReportTaskAction(projectName, project.getChildProjects().isEmpty()));
+        tasks.register(
+                ProjectInternal.PROJECTS_TASK, ProjectReportTask.class, new ProjectReportTaskAction(projectName));
+        tasks.register(
+                ProjectInternal.TASKS_TASK,
+                TaskReportTask.class,
+                new TaskReportTaskAction(projectName, project.getChildProjects().isEmpty()));
         tasks.register(PROPERTIES_TASK, PropertyReportTask.class, new PropertyReportTaskAction(projectName));
     }
 
@@ -116,7 +120,8 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
             if (noChildren) {
                 description = "Displays the tasks runnable from " + projectName + ".";
             } else {
-                description = "Displays the tasks runnable from " + projectName + " (some of the displayed tasks may belong to subprojects).";
+                description = "Displays the tasks runnable from " + projectName
+                        + " (some of the displayed tasks may belong to subprojects).";
             }
             task.setDescription(description);
             task.setGroup(HELP_GROUP);

@@ -15,12 +15,12 @@
  */
 package org.gradle.api.publish.internal.metadata;
 
-import org.gradle.api.attributes.AttributeContainer;
-
 import java.util.Optional;
+import org.gradle.api.attributes.AttributeContainer;
 
 public interface DependencyAttributesValidator {
     String getSuppressor();
+
     String getExplanation();
 
     Optional<String> validationErrorFor(String group, String name, AttributeContainer attributes);

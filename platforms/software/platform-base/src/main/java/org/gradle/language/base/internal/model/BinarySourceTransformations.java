@@ -16,8 +16,16 @@
 
 package org.gradle.language.base.internal.model;
 
+import static org.apache.commons.lang3.StringUtils.capitalize;
+
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Booleans;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.service.ServiceRegistry;
@@ -28,15 +36,6 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.platform.base.internal.BinarySpecInternal;
-
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.apache.commons.lang3.StringUtils.capitalize;
 
 /**
  * Creates source 'transformation' tasks based on the available {@link LanguageTransform}s.
@@ -54,7 +53,8 @@ public class BinarySourceTransformations {
     private final Iterable<LanguageTransform<?, ?>> prioritizedTransforms;
     private final ServiceRegistry serviceRegistry;
 
-    public BinarySourceTransformations(TaskContainer tasks, LanguageTransformContainer transforms, ServiceRegistry serviceRegistry) {
+    public BinarySourceTransformations(
+            TaskContainer tasks, LanguageTransformContainer transforms, ServiceRegistry serviceRegistry) {
         this.tasks = tasks;
         this.prioritizedTransforms = prioritize(transforms);
         this.serviceRegistry = serviceRegistry;
@@ -122,14 +122,23 @@ public class BinarySourceTransformations {
         return sourceSets;
     }
 
-    private String getTransformTaskName(LanguageTransform<?, ?> transform, SourceTransformTaskConfig taskConfig, BinarySpecInternal binary, LanguageSourceSetInternal sourceSetToCompile) {
+    private String getTransformTaskName(
+            LanguageTransform<?, ?> transform,
+            SourceTransformTaskConfig taskConfig,
+            BinarySpecInternal binary,
+            LanguageSourceSetInternal sourceSetToCompile) {
         if (binary.hasCodependentSources() && taskConfig instanceof JointCompileTaskConfig) {
-            return taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(transform.getClass().getSimpleName());
+            return taskConfig.getTaskPrefix()
+                    + capitalize(binary.getProjectScopedName())
+                    + capitalize(transform.getClass().getSimpleName());
         }
-        return taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(sourceSetToCompile.getProjectScopedName());
+        return taskConfig.getTaskPrefix()
+                + capitalize(binary.getProjectScopedName())
+                + capitalize(sourceSetToCompile.getProjectScopedName());
     }
 
-    private LanguageSourceSetInternal findSourceFor(LanguageTransform<?, ?> languageTransform, Set<LanguageSourceSetInternal> sourceSetsToCompile) {
+    private LanguageSourceSetInternal findSourceFor(
+            LanguageTransform<?, ?> languageTransform, Set<LanguageSourceSetInternal> sourceSetsToCompile) {
         for (LanguageSourceSetInternal candidate : sourceSetsToCompile) {
             if (languageTransform.getSourceSetType().isInstance(candidate)) {
                 return candidate;

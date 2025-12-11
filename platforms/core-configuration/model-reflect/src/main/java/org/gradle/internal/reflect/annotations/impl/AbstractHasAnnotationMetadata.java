@@ -18,13 +18,12 @@ package org.gradle.internal.reflect.annotations.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
-import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
-import org.gradle.internal.reflect.annotations.HasAnnotationMetadata;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Optional;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
+import org.gradle.internal.reflect.annotations.HasAnnotationMetadata;
 
 /**
  * Base class for elements that have annotation metadata, such as properties and functions.
@@ -35,7 +34,8 @@ public abstract class AbstractHasAnnotationMetadata implements HasAnnotationMeta
     protected final ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory;
     protected final ImmutableMap<Class<? extends Annotation>, Annotation> annotationsByType;
 
-    public AbstractHasAnnotationMetadata(Method method, ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory) {
+    public AbstractHasAnnotationMetadata(
+            Method method, ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory) {
         this.method = method;
         method.setAccessible(true);
         this.declaredType = TypeToken.of(method.getGenericReturnType());
@@ -43,8 +43,10 @@ public abstract class AbstractHasAnnotationMetadata implements HasAnnotationMeta
         this.annotationsByType = collectAnnotationsByType(annotationsByCategory);
     }
 
-    private static ImmutableMap<Class<? extends Annotation>, Annotation> collectAnnotationsByType(ImmutableMap<AnnotationCategory, Annotation> annotations) {
-        ImmutableMap.Builder<Class<? extends Annotation>, Annotation> builder = ImmutableMap.builderWithExpectedSize(annotations.size());
+    private static ImmutableMap<Class<? extends Annotation>, Annotation> collectAnnotationsByType(
+            ImmutableMap<AnnotationCategory, Annotation> annotations) {
+        ImmutableMap.Builder<Class<? extends Annotation>, Annotation> builder =
+                ImmutableMap.builderWithExpectedSize(annotations.size());
         for (Annotation value : annotations.values()) {
             builder.put(value.annotationType(), value);
         }

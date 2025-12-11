@@ -16,16 +16,6 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.CompositeBuildParticipantBuildState;
-import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.composite.IncludedBuildInternal;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.work.Synchronizer;
-import org.gradle.internal.work.WorkerLeaseService;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
@@ -35,6 +25,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
+import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.composite.IncludedBuildInternal;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.work.Synchronizer;
+import org.gradle.internal.work.WorkerLeaseService;
 
 /**
  * Coordinates inclusion of builds across the build tree.
@@ -69,17 +68,18 @@ public class BuildInclusionCoordinator {
                 }
             });
         }
-
     }
 
-    public BuildInclusionCoordinator(GlobalDependencySubstitutionRegistry substitutionRegistry, WorkerLeaseService workerLeaseService) {
+    public BuildInclusionCoordinator(
+            GlobalDependencySubstitutionRegistry substitutionRegistry, WorkerLeaseService workerLeaseService) {
         this.substitutionRegistry = substitutionRegistry;
         this.workerLeaseService = workerLeaseService;
     }
 
     public void prepareForInclusion(IncludedBuildState build, boolean asPlugin) {
         if (loadedBuilds.add(build)) {
-            // Load projects (e.g. by running the settings script, etc.) only the first time the build is included by another build.
+            // Load projects (e.g. by running the settings script, etc.) only the first time the build is included by
+            // another build.
             // This is to deal with cycles and the build being included multiple times in the tree
             build.ensureProjectsLoaded();
         }
@@ -144,6 +144,8 @@ public class BuildInclusionCoordinator {
     }
 
     private void withLockForBuild(BuildState build, Runnable action) {
-        synchronizers.computeIfAbsent(build, b -> new BuildSynchronizer(workerLeaseService)).withLock(action);
+        synchronizers
+                .computeIfAbsent(build, b -> new BuildSynchronizer(workerLeaseService))
+                .withLock(action);
     }
 }

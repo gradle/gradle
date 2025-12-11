@@ -22,7 +22,8 @@ import org.gradle.tooling.events.internal.DefaultStartEvent;
 
 public class DefaultProjectConfigurationStartEvent extends DefaultStartEvent implements ProjectConfigurationStartEvent {
 
-    public DefaultProjectConfigurationStartEvent(long eventTime, String displayName, ProjectConfigurationOperationDescriptor descriptor) {
+    public DefaultProjectConfigurationStartEvent(
+            long eventTime, String displayName, ProjectConfigurationOperationDescriptor descriptor) {
         super(eventTime, displayName, descriptor);
     }
 
@@ -30,5 +31,4 @@ public class DefaultProjectConfigurationStartEvent extends DefaultStartEvent imp
     public ProjectConfigurationOperationDescriptor getDescriptor() {
         return (ProjectConfigurationOperationDescriptor) super.getDescriptor();
     }
-
 }

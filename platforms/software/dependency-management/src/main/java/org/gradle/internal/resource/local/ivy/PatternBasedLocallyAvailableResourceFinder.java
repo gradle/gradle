@@ -15,6 +15,10 @@
  */
 package org.gradle.internal.resource.local.ivy;
 
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Function;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
@@ -25,18 +29,16 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resource.local.AbstractLocallyAvailableResourceFinder;
 
-import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.function.Function;
+public class PatternBasedLocallyAvailableResourceFinder
+        extends AbstractLocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> {
 
-public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> {
-
-    public PatternBasedLocallyAvailableResourceFinder(File baseDir, ResourcePattern pattern, ChecksumService checksumService) {
+    public PatternBasedLocallyAvailableResourceFinder(
+            File baseDir, ResourcePattern pattern, ChecksumService checksumService) {
         super(createProducer(baseDir, pattern), checksumService);
     }
 
-    private static Function<ModuleComponentArtifactMetadata, Factory<List<File>>> createProducer(final File baseDir, final ResourcePattern pattern) {
+    private static Function<ModuleComponentArtifactMetadata, Factory<List<File>>> createProducer(
+            final File baseDir, final ResourcePattern pattern) {
         return new Function<ModuleComponentArtifactMetadata, Factory<List<File>>>() {
             @Override
             public Factory<List<File>> apply(final ModuleComponentArtifactMetadata artifact) {
@@ -58,7 +60,6 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
                 String patternString = pattern.getLocation(artifact).getPath();
                 return new SingleIncludePatternFileTree(baseDir, patternString);
             }
-
         };
     }
 }

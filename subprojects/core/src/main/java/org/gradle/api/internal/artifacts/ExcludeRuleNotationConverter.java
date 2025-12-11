@@ -27,8 +27,9 @@ import org.jspecify.annotations.Nullable;
 
 public class ExcludeRuleNotationConverter extends MapNotationConverter<ExcludeRule> {
 
-    private static final NotationParser<Object, ExcludeRule> PARSER =
-            NotationParserBuilder.toType(ExcludeRule.class).converter(new ExcludeRuleNotationConverter()).toComposite();
+    private static final NotationParser<Object, ExcludeRule> PARSER = NotationParserBuilder.toType(ExcludeRule.class)
+            .converter(new ExcludeRuleNotationConverter())
+            .toComposite();
 
     public static NotationParser<Object, ExcludeRule> parser() {
         return PARSER;
@@ -36,15 +37,16 @@ public class ExcludeRuleNotationConverter extends MapNotationConverter<ExcludeRu
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("Maps with 'group' and/or 'module'").example("[group: 'com.google.collections', module: 'google-collections']");
+        visitor.candidate("Maps with 'group' and/or 'module'")
+                .example("[group: 'com.google.collections', module: 'google-collections']");
     }
 
     protected ExcludeRule parseMap(
-        @MapKey(ExcludeRule.GROUP_KEY) @Nullable String group,
-        @MapKey(ExcludeRule.MODULE_KEY) @Nullable String module
-    ) {
+            @MapKey(ExcludeRule.GROUP_KEY) @Nullable String group,
+            @MapKey(ExcludeRule.MODULE_KEY) @Nullable String module) {
         if (group == null && module == null) {
-            throw new InvalidUserDataException("Dependency exclude rule requires 'group' and/or 'module' specified. For example: [group: 'com.google.collections']");
+            throw new InvalidUserDataException(
+                    "Dependency exclude rule requires 'group' and/or 'module' specified. For example: [group: 'com.google.collections']");
         }
         return new DefaultExcludeRule(group, module);
     }

@@ -29,5 +29,4 @@ public interface BuildPlatform {
     OperatingSystem getOperatingSystem();
 
     Architecture getArchitecture();
-
 }

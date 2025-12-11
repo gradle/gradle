@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.function.LongFunction;
+import javax.inject.Inject;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
@@ -34,11 +38,6 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.function.LongFunction;
-
 @NullMarked
 public final class DefaultTestEventReporterFactory implements TestEventReporterFactoryInternal {
 
@@ -49,11 +48,10 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
 
     @Inject
     public DefaultTestEventReporterFactory(
-        ListenerManager listenerManager,
-        StyledTextOutputFactory textOutputFactory,
-        ProgressLoggerFactory progressLoggerFactory,
-        ObjectFactory objectFactory
-    ) {
+            ListenerManager listenerManager,
+            StyledTextOutputFactory textOutputFactory,
+            ProgressLoggerFactory progressLoggerFactory,
+            ObjectFactory objectFactory) {
         this.listenerManager = listenerManager;
         this.textOutputFactory = textOutputFactory;
         this.progressLoggerFactory = progressLoggerFactory;
@@ -61,8 +59,13 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
     }
 
     @Override
-    public GroupTestEventReporter createTestEventReporter(String rootName, Directory binaryResultsDirectory, Directory htmlReportDirectory, boolean closeThrowsOnTestFailures) {
-        ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
+    public GroupTestEventReporter createTestEventReporter(
+            String rootName,
+            Directory binaryResultsDirectory,
+            Directory htmlReportDirectory,
+            boolean closeThrowsOnTestFailures) {
+        ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster =
+                listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
 
         // Renders console output for the task
         testListenerInternalBroadcaster.add(new SimpleTestEventLogger(textOutputFactory));
@@ -70,28 +73,28 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         // Emits progress logger events
         testListenerInternalBroadcaster.add(new TestEventProgressListener(progressLoggerFactory));
 
-        GenericHtmlTestReportGenerator reportGenerator = objectFactory.newInstance(GenericHtmlTestReportGenerator.class, htmlReportDirectory.getAsFile().toPath());
+        GenericHtmlTestReportGenerator reportGenerator = objectFactory.newInstance(
+                GenericHtmlTestReportGenerator.class,
+                htmlReportDirectory.getAsFile().toPath());
         return createInternalTestEventReporter(
-            id -> new DefaultTestSuiteDescriptor(id, rootName),
-            binaryResultsDirectory,
-            reportGenerator,
-            testListenerInternalBroadcaster,
-            0,
-            closeThrowsOnTestFailures,
-            true
-        );
+                id -> new DefaultTestSuiteDescriptor(id, rootName),
+                binaryResultsDirectory,
+                reportGenerator,
+                testListenerInternalBroadcaster,
+                0,
+                closeThrowsOnTestFailures,
+                true);
     }
 
     @Override
     public GroupTestEventReporterInternal createInternalTestEventReporter(
-        LongFunction<TestDescriptorInternal> rootDescriptorFactory,
-        Directory binaryResultsDirectory,
-        @Nullable TestReportGenerator reportGenerator,
-        ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
-        int diskSkipLevels,
-        boolean closeThrowsOnTestFailures,
-        boolean addToAggregateReports
-    ) {
+            LongFunction<TestDescriptorInternal> rootDescriptorFactory,
+            Directory binaryResultsDirectory,
+            @Nullable TestReportGenerator reportGenerator,
+            ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
+            int diskSkipLevels,
+            boolean closeThrowsOnTestFailures,
+            boolean addToAggregateReports) {
         // Record all emitted results to disk
         Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
         SerializableTestResultStore.Writer resultsSerializingListener;
@@ -103,18 +106,18 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         testListenerInternalBroadcaster.add(resultsSerializingListener);
 
         TestListenerInternal testListenerBroadcaster = testListenerInternalBroadcaster.getSource();
-        TestExecutionResultsListener executionResultsListenerBroadcaster = listenerManager.getBroadcaster(TestExecutionResultsListener.class);
+        TestExecutionResultsListener executionResultsListenerBroadcaster =
+                listenerManager.getBroadcaster(TestExecutionResultsListener.class);
 
         return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
-            rootDescriptorFactory,
-            testListenerBroadcaster,
-            new LongIdGenerator(),
-            binaryResultsDir,
-            resultsSerializingListener,
-            reportGenerator,
-            executionResultsListenerBroadcaster,
-            closeThrowsOnTestFailures,
-            addToAggregateReports
-        ));
+                rootDescriptorFactory,
+                testListenerBroadcaster,
+                new LongIdGenerator(),
+                binaryResultsDir,
+                resultsSerializingListener,
+                reportGenerator,
+                executionResultsListenerBroadcaster,
+                closeThrowsOnTestFailures,
+                addToAggregateReports));
     }
 }

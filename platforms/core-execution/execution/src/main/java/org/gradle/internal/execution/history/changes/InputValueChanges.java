@@ -18,17 +18,19 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
+import java.util.Map;
 import org.gradle.api.Describable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-
-import java.util.Map;
 
 class InputValueChanges implements ChangeContainer {
     private final Describable executable;
     private final ImmutableMap<String, String> changed;
 
-    public InputValueChanges(ImmutableSortedMap<String, ValueSnapshot> previous, ImmutableSortedMap<String, ValueSnapshot> current, Describable executable) {
+    public InputValueChanges(
+            ImmutableSortedMap<String, ValueSnapshot> previous,
+            ImmutableSortedMap<String, ValueSnapshot> current,
+            Describable executable) {
         ImmutableMap.Builder<String, String> changedBuilder = ImmutableMap.builder();
         for (Map.Entry<String, ValueSnapshot> entry : current.entrySet()) {
             String propertyName = entry.getKey();
@@ -37,8 +39,8 @@ class InputValueChanges implements ChangeContainer {
             if (previousSnapshot != null) {
                 if (!currentSnapshot.equals(previousSnapshot)) {
                     changedBuilder.put(
-                        propertyName,
-                        currentSnapshot instanceof ImplementationSnapshot ? "Implementation" : "Value");
+                            propertyName,
+                            currentSnapshot instanceof ImplementationSnapshot ? "Implementation" : "Value");
                 }
             }
         }
@@ -51,7 +53,8 @@ class InputValueChanges implements ChangeContainer {
         for (Map.Entry<String, String> entry : changed.entrySet()) {
             String propertyName = entry.getKey();
             String changeType = entry.getValue();
-            if (!visitor.visitChange(new DescriptiveChange("%s of input property '%s' has changed for %s",
+            if (!visitor.visitChange(new DescriptiveChange(
+                    "%s of input property '%s' has changed for %s",
                     changeType, propertyName, executable.getDisplayName()))) {
                 return false;
             }

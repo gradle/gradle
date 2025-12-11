@@ -17,15 +17,14 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-
-import java.util.List;
 
 /**
  * An immutable {@link ConfigurationMetadata} wrapper around a {@link ComponentVariant}.
@@ -35,15 +34,24 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
 
     private List<? extends ModuleDependencyMetadata> calculatedDependencies;
 
-    LazyVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableAttributes componentLevelAttributes, AttributesFactory attributesFactory, VariantMetadataRules variantMetadataRules) {
-        super(componentId, new RuleAwareVariant(componentId, variant, attributesFactory, componentLevelAttributes, variantMetadataRules));
+    LazyVariantBackedConfigurationMetadata(
+            ModuleComponentIdentifier componentId,
+            ComponentVariant variant,
+            ImmutableAttributes componentLevelAttributes,
+            AttributesFactory attributesFactory,
+            VariantMetadataRules variantMetadataRules) {
+        super(
+                componentId,
+                new RuleAwareVariant(
+                        componentId, variant, attributesFactory, componentLevelAttributes, variantMetadataRules));
         this.variantMetadataRules = variantMetadataRules;
     }
 
     @Override
     public List<? extends ModuleDependencyMetadata> getDependencies() {
         if (calculatedDependencies == null) {
-            calculatedDependencies = variantMetadataRules.applyDependencyMetadataRules(getVariant(), super.getDependencies());
+            calculatedDependencies =
+                    variantMetadataRules.applyDependencyMetadataRules(getVariant(), super.getDependencies());
         }
         return calculatedDependencies;
     }
@@ -64,7 +72,12 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
         private ImmutableCapabilities computedCapabilities;
         private ImmutableList<? extends ComponentArtifactMetadata> computedArtifacts;
 
-        RuleAwareVariant(ModuleComponentIdentifier componentId, ComponentVariant delegate, AttributesFactory attributesFactory, ImmutableAttributes componentLevelAttributes, VariantMetadataRules variantMetadataRules) {
+        RuleAwareVariant(
+                ModuleComponentIdentifier componentId,
+                ComponentVariant delegate,
+                AttributesFactory attributesFactory,
+                ImmutableAttributes componentLevelAttributes,
+                VariantMetadataRules variantMetadataRules) {
             this.componentId = componentId;
             this.attributesFactory = attributesFactory;
             this.delegate = delegate;
@@ -97,7 +110,8 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
         @Override
         public ImmutableAttributes getAttributes() {
             if (computedAttributes == null) {
-                computedAttributes = variantMetadataRules.applyVariantAttributeRules(delegate, mergeComponentAndVariantAttributes(delegate.getAttributes()));
+                computedAttributes = variantMetadataRules.applyVariantAttributeRules(
+                        delegate, mergeComponentAndVariantAttributes(delegate.getAttributes()));
             }
             return computedAttributes;
         }
@@ -105,7 +119,8 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
         @Override
         public ImmutableList<? extends ComponentArtifactMetadata> getArtifacts() {
             if (computedArtifacts == null) {
-                computedArtifacts = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(delegate, delegate.getArtifacts(), componentId);
+                computedArtifacts = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(
+                        delegate, delegate.getArtifacts(), componentId);
             }
             return computedArtifacts;
         }
@@ -128,7 +143,8 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
         @Override
         public ImmutableCapabilities getCapabilities() {
             if (computedCapabilities == null) {
-                computedCapabilities = variantMetadataRules.applyCapabilitiesRules(delegate, delegate.getCapabilities());
+                computedCapabilities =
+                        variantMetadataRules.applyCapabilitiesRules(delegate, delegate.getCapabilities());
             }
             return computedCapabilities;
         }
@@ -143,9 +159,9 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
             return delegate.isEligibleForCaching();
         }
 
-        private AttributeContainerInternal mergeComponentAndVariantAttributes(AttributeContainerInternal variantAttributes) {
+        private AttributeContainerInternal mergeComponentAndVariantAttributes(
+                AttributeContainerInternal variantAttributes) {
             return attributesFactory.concat(componentLevelAttributes, variantAttributes.asImmutable());
         }
-
     }
 }

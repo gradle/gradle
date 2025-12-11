@@ -30,7 +30,8 @@ public class LenientPlatformResolveMetadata implements ComponentGraphResolveMeta
     private final ModuleComponentIdentifier moduleComponentIdentifier;
     private final ModuleVersionIdentifier moduleVersionIdentifier;
 
-    LenientPlatformResolveMetadata(ModuleComponentIdentifier moduleComponentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
+    LenientPlatformResolveMetadata(
+            ModuleComponentIdentifier moduleComponentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
         this.moduleComponentIdentifier = moduleComponentIdentifier;
         this.moduleVersionIdentifier = moduleVersionIdentifier;
     }
@@ -50,7 +51,8 @@ public class LenientPlatformResolveMetadata implements ComponentGraphResolveMeta
         return ImmutableAttributesSchema.EMPTY;
     }
 
-    LenientPlatformResolveMetadata copyWithIds(ModuleComponentIdentifier moduleComponentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
+    LenientPlatformResolveMetadata copyWithIds(
+            ModuleComponentIdentifier moduleComponentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
         return new LenientPlatformResolveMetadata(moduleComponentIdentifier, moduleVersionIdentifier);
     }
 
@@ -68,5 +70,4 @@ public class LenientPlatformResolveMetadata implements ComponentGraphResolveMeta
     public ImmutableList<? extends VirtualComponentIdentifier> getPlatformOwners() {
         return ImmutableList.of();
     }
-
 }

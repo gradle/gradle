@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.quality;
 
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -23,9 +25,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Configuration options for the PMD plugin.

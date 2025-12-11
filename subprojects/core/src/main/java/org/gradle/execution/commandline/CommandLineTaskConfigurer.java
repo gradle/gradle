@@ -16,6 +16,8 @@
 
 package org.gradle.execution.commandline;
 
+import java.util.Collection;
+import java.util.List;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskOptionsGenerator;
 import org.gradle.api.internal.tasks.TaskOptionsGenerator.TaskOptions;
@@ -26,9 +28,6 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ParsedCommandLineOption;
 import org.gradle.internal.typeconversion.TypeConversionException;
-
-import java.util.Collection;
-import java.util.List;
 
 public class CommandLineTaskConfigurer {
     private OptionReader optionReader;
@@ -63,8 +62,9 @@ public class CommandLineTaskConfigurer {
             try {
                 parsed = parser.parse(arguments);
             } catch (CommandLineArgumentException e) {
-                //we expect that all options must be applicable for each task
-                throw new TaskConfigurationException(task.getPath(), "Problem configuring task " + task.getPath() + " from command line.", e);
+                // we expect that all options must be applicable for each task
+                throw new TaskConfigurationException(
+                        task.getPath(), "Problem configuring task " + task.getPath() + " from command line.", e);
             }
 
             for (OptionDescriptor commandLineOptionDescriptor : commandLineOptions) {
@@ -74,8 +74,12 @@ public class CommandLineTaskConfigurer {
                     try {
                         commandLineOptionDescriptor.apply(task, o.getValues());
                     } catch (TypeConversionException ex) {
-                        throw new TaskConfigurationException(task.getPath(),
-                                String.format("Problem configuring option '%s' on task '%s' from command line.", name, task.getPath()), ex);
+                        throw new TaskConfigurationException(
+                                task.getPath(),
+                                String.format(
+                                        "Problem configuring option '%s' on task '%s' from command line.",
+                                        name, task.getPath()),
+                                ex);
                     }
                 }
             }

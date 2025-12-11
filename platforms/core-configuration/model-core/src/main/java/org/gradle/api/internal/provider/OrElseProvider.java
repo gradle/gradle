@@ -70,11 +70,7 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
                 return leftValue;
             }
             return ExecutionTimeValue.changingValue(
-                new OrElseProvider(
-                    leftValue.getChangingValue(),
-                    rightValue.toProvider()
-                )
-            );
+                    new OrElseProvider(leftValue.getChangingValue(), rightValue.toProvider()));
         }
     }
 

@@ -16,9 +16,8 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.internal.file.FileAccessTimeJournal;
-
 import java.io.File;
+import org.gradle.internal.file.FileAccessTimeJournal;
 
 /**
  * Deletes all cache entries regardless of their age and removes them from the journal.

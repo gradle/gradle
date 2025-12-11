@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.test.xctest.tasks;
 
+import java.io.File;
+import java.util.List;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
@@ -35,9 +37,6 @@ import org.gradle.nativeplatform.test.xctest.internal.execution.XCTestSelection;
 import org.gradle.nativeplatform.test.xctest.internal.execution.XCTestTestExecutionSpec;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * Executes XCTest tests. Test are always run in a single execution.
@@ -61,8 +60,11 @@ public abstract class XCTest extends AbstractTestTask {
     protected XCTestTestExecutionSpec createTestExecutionSpec() {
         DefaultTestFilter testFilter = (DefaultTestFilter) getFilter();
 
-        return new XCTestTestExecutionSpec(workingDirectory.getAsFile().get(), runScriptFile.getAsFile().get(), getPath(),
-            new XCTestSelection(testFilter.getIncludePatterns(), testFilter.getCommandLineIncludePatterns()));
+        return new XCTestTestExecutionSpec(
+                workingDirectory.getAsFile().get(),
+                runScriptFile.getAsFile().get(),
+                getPath(),
+                new XCTestSelection(testFilter.getIncludePatterns(), testFilter.getCommandLineIncludePatterns()));
     }
 
     /**

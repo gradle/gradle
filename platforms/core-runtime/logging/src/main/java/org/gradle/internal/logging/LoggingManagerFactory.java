@@ -24,5 +24,4 @@ public interface LoggingManagerFactory {
     LoggingManagerInternal getRoot();
 
     LoggingManagerInternal createLoggingManager();
-
 }

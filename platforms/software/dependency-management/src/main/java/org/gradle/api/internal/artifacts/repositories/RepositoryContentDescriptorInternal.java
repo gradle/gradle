@@ -15,16 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.attributes.Attribute;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-import java.util.Set;
-
 public interface RepositoryContentDescriptorInternal extends RepositoryContentDescriptor {
     Action<? super ArtifactResolutionDetails> toContentFilter();
+
     RepositoryContentDescriptorInternal asMutableCopy();
 
     /**

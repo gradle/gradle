@@ -29,5 +29,4 @@ public interface DocumentationLink {
      * @since 8.14
      */
     String getUrl();
-
 }

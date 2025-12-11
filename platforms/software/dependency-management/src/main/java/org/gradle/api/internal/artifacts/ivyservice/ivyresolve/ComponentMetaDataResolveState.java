@@ -25,7 +25,8 @@ import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDat
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 
 class ComponentMetaDataResolveState {
-    private final DefaultBuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> resolveResult;
+    private final DefaultBuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState>
+            resolveResult;
     private final VersionedComponentChooser versionedComponentChooser;
     private final ComponentOverrideMetadata componentOverrideMetadata;
     private final ModuleComponentIdentifier componentIdentifier;
@@ -35,7 +36,11 @@ class ComponentMetaDataResolveState {
     private boolean searchedLocally;
     private boolean searchedRemotely;
 
-    public ComponentMetaDataResolveState(ModuleComponentIdentifier componentIdentifier, ComponentOverrideMetadata componentOverrideMetadata, ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository, VersionedComponentChooser versionedComponentChooser) {
+    public ComponentMetaDataResolveState(
+            ModuleComponentIdentifier componentIdentifier,
+            ComponentOverrideMetadata componentOverrideMetadata,
+            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository,
+            VersionedComponentChooser versionedComponentChooser) {
         this.componentOverrideMetadata = componentOverrideMetadata;
         this.componentIdentifier = componentIdentifier;
         this.repository = repository;
@@ -69,7 +74,8 @@ class ComponentMetaDataResolveState {
     protected void process(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> moduleAccess) {
         moduleAccess.resolveComponentMetaData(componentIdentifier, componentOverrideMetadata, resolveResult);
         if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-            RejectedByRuleVersion rejectedComponent = versionedComponentChooser.isRejectedComponent(componentIdentifier, new CachedMetadataProvider(resolveResult));
+            RejectedByRuleVersion rejectedComponent = versionedComponentChooser.isRejectedComponent(
+                    componentIdentifier, new CachedMetadataProvider(resolveResult));
             if (rejectedComponent != null) {
                 resolveResult.missing();
             }

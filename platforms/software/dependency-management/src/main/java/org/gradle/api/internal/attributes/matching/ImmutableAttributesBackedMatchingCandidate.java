@@ -52,5 +52,4 @@ public class ImmutableAttributesBackedMatchingCandidate implements AttributeMatc
     public int hashCode() {
         return attributes.hashCode();
     }
-
 }

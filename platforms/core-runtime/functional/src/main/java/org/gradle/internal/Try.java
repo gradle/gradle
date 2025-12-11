@@ -16,14 +16,13 @@
 
 package org.gradle.internal;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An object to represent the result of an operation that can potentially fail.
@@ -33,8 +32,7 @@ import java.util.function.Function;
  */
 public abstract class Try<T extends @Nullable Object> {
 
-    private Try() {
-    }
+    private Try() {}
 
     /**
      * Construct a {@code Try} by executing the given operation.
@@ -131,7 +129,8 @@ public abstract class Try<T extends @Nullable Object> {
      * Calls {successConsumer} with the result if the represented operation was successful,
      * otherwise calls {failureConsumer} with the failure.
      */
-    public abstract void ifSuccessfulOrElse(Consumer<? super T> successConsumer, Consumer<? super Throwable> failureConsumer);
+    public abstract void ifSuccessfulOrElse(
+            Consumer<? super T> successConsumer, Consumer<? super Throwable> failureConsumer);
 
     private static final class Success<T extends @Nullable Object> extends Try<T> {
         private final T value;
@@ -186,7 +185,8 @@ public abstract class Try<T extends @Nullable Object> {
         }
 
         @Override
-        public void ifSuccessfulOrElse(Consumer<? super T> successConsumer, Consumer<? super Throwable> failureConsumer) {
+        public void ifSuccessfulOrElse(
+                Consumer<? super T> successConsumer, Consumer<? super Throwable> failureConsumer) {
             successConsumer.accept(value);
         }
 
@@ -280,11 +280,11 @@ public abstract class Try<T extends @Nullable Object> {
         }
 
         @Override
-        public void ifSuccessful(Consumer<T> consumer) {
-        }
+        public void ifSuccessful(Consumer<T> consumer) {}
 
         @Override
-        public void ifSuccessfulOrElse(Consumer<? super T> successConsumer, Consumer<? super Throwable> failureConsumer) {
+        public void ifSuccessfulOrElse(
+                Consumer<? super T> successConsumer, Consumer<? super Throwable> failureConsumer) {
             failureConsumer.accept(failure);
         }
 

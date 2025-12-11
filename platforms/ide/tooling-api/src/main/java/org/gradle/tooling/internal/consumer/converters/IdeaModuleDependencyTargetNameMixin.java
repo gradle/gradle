@@ -30,7 +30,8 @@ public class IdeaModuleDependencyTargetNameMixin {
 
     public String getTargetModuleName() {
         if (ideaModuleDependency instanceof BackwardsCompatibleIdeaModuleDependency) {
-            BackwardsCompatibleIdeaModuleDependency dependency = (BackwardsCompatibleIdeaModuleDependency) ideaModuleDependency;
+            BackwardsCompatibleIdeaModuleDependency dependency =
+                    (BackwardsCompatibleIdeaModuleDependency) ideaModuleDependency;
             return dependency.getDependencyModule().getName();
         }
         return null;

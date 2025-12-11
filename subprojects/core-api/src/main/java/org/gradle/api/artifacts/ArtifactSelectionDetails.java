@@ -15,9 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Details about artifact dependency substitution: this class gives access to the

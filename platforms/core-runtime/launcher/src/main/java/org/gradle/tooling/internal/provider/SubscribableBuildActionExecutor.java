@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.provider;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
@@ -28,9 +30,6 @@ import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.session.BuildSessionContext;
 import org.gradle.tooling.internal.provider.action.SubscribableBuildAction;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Attaches build operation listeners to forward relevant operations back to the client.
  */
@@ -42,11 +41,12 @@ public class SubscribableBuildActionExecutor implements BuildSessionActionExecut
     private final List<Object> listeners = new ArrayList<>();
     private final BuildEventListenerFactory factory;
 
-    public SubscribableBuildActionExecutor(ListenerManager listenerManager,
-                                           BuildOperationListenerManager buildOperationListenerManager,
-                                           BuildEventListenerFactory factory,
-                                           BuildEventConsumer eventConsumer,
-                                           BuildSessionActionExecutor delegate) {
+    public SubscribableBuildActionExecutor(
+            ListenerManager listenerManager,
+            BuildOperationListenerManager buildOperationListenerManager,
+            BuildEventListenerFactory factory,
+            BuildEventConsumer eventConsumer,
+            BuildSessionActionExecutor delegate) {
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.factory = factory;
@@ -73,7 +73,8 @@ public class SubscribableBuildActionExecutor implements BuildSessionActionExecut
         }
     }
 
-    private void registerListenersForClientSubscriptions(BuildEventSubscriptions clientSubscriptions, BuildEventConsumer eventConsumer) {
+    private void registerListenersForClientSubscriptions(
+            BuildEventSubscriptions clientSubscriptions, BuildEventConsumer eventConsumer) {
         for (Object listener : factory.createListeners(clientSubscriptions, eventConsumer)) {
             registerListener(listener);
         }

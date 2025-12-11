@@ -67,5 +67,4 @@ public interface GradleHandle {
      * Returns true if the build is currently running.
      */
     boolean isRunning();
-
 }

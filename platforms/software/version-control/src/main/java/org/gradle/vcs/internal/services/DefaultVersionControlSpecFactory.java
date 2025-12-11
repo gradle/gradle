@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal.services;
 
+import java.net.URI;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -25,13 +26,12 @@ import org.gradle.vcs.git.internal.DefaultGitVersionControlSpec;
 import org.gradle.vcs.internal.DefaultVersionControlRepository;
 import org.gradle.vcs.internal.VersionControlSpecFactory;
 
-import java.net.URI;
-
 public class DefaultVersionControlSpecFactory implements VersionControlSpecFactory {
     private final ObjectFactory objectFactory;
     private final NotationParser<String, ModuleIdentifier> notationParser;
 
-    public DefaultVersionControlSpecFactory(ObjectFactory objectFactory, NotationParser<String, ModuleIdentifier> notationParser) {
+    public DefaultVersionControlSpecFactory(
+            ObjectFactory objectFactory, NotationParser<String, ModuleIdentifier> notationParser) {
         this.objectFactory = objectFactory;
         this.notationParser = notationParser;
     }
@@ -41,7 +41,8 @@ public class DefaultVersionControlSpecFactory implements VersionControlSpecFacto
         if (specType.isAssignableFrom(GitVersionControlSpec.class)) {
             return specType.cast(objectFactory.newInstance(DefaultGitVersionControlSpec.class));
         }
-        throw new IllegalArgumentException(String.format("Do not know how to create an instance of %s.", specType.getName()));
+        throw new IllegalArgumentException(
+                String.format("Do not know how to create an instance of %s.", specType.getName()));
     }
 
     @Override

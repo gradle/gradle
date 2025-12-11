@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks;
 
+import java.io.File;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -24,8 +25,6 @@ import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.io.File;
 
 /**
  * Copies files into a destination directory. This task can also rename and filter files as it copies. The task
@@ -75,7 +74,8 @@ public abstract class Copy extends AbstractCopyTask {
     protected CopyAction createCopyAction() {
         File destinationDir = getDestinationDir();
         if (destinationDir == null) {
-            throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
+            throw new InvalidUserDataException(
+                    "No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
         return new FileCopyAction(getFileLookup().getFileResolver(destinationDir));
     }

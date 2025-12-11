@@ -16,11 +16,10 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import java.util.function.Supplier;
+import javax.inject.Inject;
 import org.gradle.internal.cc.impl.InputTrackingState;
 import org.gradle.internal.enterprise.DevelocityPluginUnsafeConfigurationService;
-
-import javax.inject.Inject;
-import java.util.function.Supplier;
 
 public class DefaultDevelocityPluginUnsafeConfigurationService implements DevelocityPluginUnsafeConfigurationService {
 

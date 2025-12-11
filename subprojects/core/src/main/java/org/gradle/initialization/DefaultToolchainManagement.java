@@ -30,5 +30,4 @@ public abstract class DefaultToolchainManagement implements ToolchainManagementI
                 .map(ext -> (FinalizableValue) ext)
                 .forEach(FinalizableValue::preventFromFurtherMutation);
     }
-
 }

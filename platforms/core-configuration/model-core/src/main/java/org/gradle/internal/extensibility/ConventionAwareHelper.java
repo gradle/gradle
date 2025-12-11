@@ -16,8 +16,18 @@
 
 package org.gradle.internal.extensibility;
 
+import static org.gradle.internal.UncheckedException.uncheckedCall;
+
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocationProperty;
@@ -34,20 +44,9 @@ import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-
-import static org.gradle.internal.UncheckedException.uncheckedCall;
-
 @SuppressWarnings("FieldNamingConvention")
 public class ConventionAwareHelper implements ConventionMapping {
-    //prefix internal fields with _ so that they don't get into the way of propertyMissing()
+    // prefix internal fields with _ so that they don't get into the way of propertyMissing()
     private final IConventionAware _source;
     // These are properties that could have convention mapping applied to them
     private final Set<String> _propertyNames;
@@ -65,7 +64,7 @@ public class ConventionAwareHelper implements ConventionMapping {
     private MappedProperty map(String propertyName, MappedPropertyImpl mapping) {
         if (!_propertyNames.contains(propertyName)) {
             throw new InvalidUserDataException(
-                "You can't map a property that does not exist: propertyName=" + propertyName);
+                    "You can't map a property that does not exist: propertyName=" + propertyName);
         }
 
         if (_ineligiblePropertyNames.contains(propertyName)) {
@@ -79,17 +78,20 @@ public class ConventionAwareHelper implements ConventionMapping {
                 try {
                     target = Cast.uncheckedNonnullCast(getter.invoke(_source));
                 } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new IllegalStateException(String.format("Could not access property %s.%s", sourceType.getSimpleName(), propertyName), e);
+                    throw new IllegalStateException(
+                            String.format("Could not access property %s.%s", sourceType.getSimpleName(), propertyName),
+                            e);
                 }
                 if (!mapConventionOn(target, mapping)) {
                     throw new IllegalStateException(String.format(
-                        "Unexpected convention-supporting type %s used in property %s.%s", getter.getReturnType().getName(), sourceType.getSimpleName(), propertyName));
+                            "Unexpected convention-supporting type %s used in property %s.%s",
+                            getter.getReturnType().getName(), sourceType.getSimpleName(), propertyName));
                 }
             } else {
                 throw DocumentedFailure.builder()
-                    .withSummary("Using internal convention mapping with a Provider backed property.")
-                    .withUpgradeGuideSection(7, "convention_mapping")
-                    .build();
+                        .withSummary("Using internal convention mapping with a Provider backed property.")
+                        .withUpgradeGuideSection(7, "convention_mapping")
+                        .build();
             }
         } else {
             _mappings.put(propertyName, mapping);
@@ -106,7 +108,8 @@ public class ConventionAwareHelper implements ConventionMapping {
             asProperty.convention(new DefaultProvider<>(() -> mapping.getValue()));
         } else if (target instanceof MapProperty) {
             MapProperty<Object, Object> asMapProperty = Cast.uncheckedNonnullCast(target);
-            DefaultProvider<Map<Object, Object>> convention = new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue()));
+            DefaultProvider<Map<Object, Object>> convention =
+                    new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue()));
             asMapProperty.convention(convention);
         } else if (target instanceof HasMultipleValues) {
             HasMultipleValues<Object> asCollectionProperty = Cast.uncheckedNonnullCast(target);
@@ -168,13 +171,14 @@ public class ConventionAwareHelper implements ConventionMapping {
                 useMapping = false;
             }
             if (useMapping) {
-                returnValue = Cast.uncheckedNonnullCast(_mappings.get(propertyName).getValue());
+                returnValue =
+                        Cast.uncheckedNonnullCast(_mappings.get(propertyName).getValue());
             }
         }
         return returnValue;
     }
 
-    private static abstract class MappedPropertyImpl implements MappedProperty {
+    private abstract static class MappedPropertyImpl implements MappedProperty {
         private boolean haveValue;
         private boolean cache;
         private Object cachedValue;

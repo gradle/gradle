@@ -51,20 +51,16 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
 
     ResolvedArtifactSet EMPTY = new ResolvedArtifactSet() {
         @Override
-        public void visit(Visitor visitor) {
-        }
+        public void visit(Visitor visitor) {}
 
         @Override
-        public void visitTransformSources(TransformSourceVisitor visitor) {
-        }
+        public void visitTransformSources(TransformSourceVisitor visitor) {}
 
         @Override
-        public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
-        }
+        public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {}
 
         @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-        }
+        public void visitDependencies(TaskDependencyResolveContext context) {}
     };
 
     interface Artifacts {

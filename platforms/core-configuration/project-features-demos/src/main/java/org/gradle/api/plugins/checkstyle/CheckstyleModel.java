@@ -22,5 +22,6 @@ import org.gradle.api.provider.Provider;
 
 public interface CheckstyleModel extends BuildModel {
     Provider<CheckstyleReports> getReports();
+
     void setReports(Provider<CheckstyleReports> reports);
 }

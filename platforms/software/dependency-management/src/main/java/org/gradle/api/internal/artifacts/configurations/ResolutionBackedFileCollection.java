@@ -33,11 +33,10 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
     private final ResolutionHost resolutionHost;
 
     public ResolutionBackedFileCollection(
-        SelectedArtifactSet artifacts,
-        boolean lenient,
-        ResolutionHost resolutionHost,
-        TaskDependencyFactory taskDependencyFactory
-    ) {
+            SelectedArtifactSet artifacts,
+            boolean lenient,
+            ResolutionHost resolutionHost,
+            TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         this.artifacts = artifacts;
         this.lenient = lenient;
@@ -54,13 +53,16 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
+        FailureCollectingTaskDependencyResolveContext collectingContext =
+                new FailureCollectingTaskDependencyResolveContext(context);
         artifacts.visitDependencies(collectingContext);
         if (!lenient) {
-            resolutionHost.consolidateFailures("dependencies", collectingContext.getFailures()).ifPresent(consolidatedFailure -> {
-                resolutionHost.reportProblems(consolidatedFailure);
-                context.visitFailure(consolidatedFailure);
-            });
+            resolutionHost
+                    .consolidateFailures("dependencies", collectingContext.getFailures())
+                    .ifPresent(consolidatedFailure -> {
+                        resolutionHost.reportProblems(consolidatedFailure);
+                        context.visitFailure(consolidatedFailure);
+                    });
         }
     }
 
@@ -91,5 +93,4 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
     protected void appendContents(TreeFormatter formatter) {
         formatter.node("contains: " + getDisplayName());
     }
-
 }

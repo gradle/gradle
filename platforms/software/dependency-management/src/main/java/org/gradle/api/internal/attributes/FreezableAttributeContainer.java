@@ -15,15 +15,14 @@
  */
 package org.gradle.api.internal.attributes;
 
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Describable;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * An attribute container which can be frozen in order to avoid subsequent mutations.
@@ -113,7 +112,8 @@ public final class FreezableAttributeContainer extends AbstractAttributeContaine
 
     private void assertMutable() {
         if (delegate instanceof ImmutableAttributes) {
-            throw new IllegalStateException(String.format("Cannot change attributes of %s after it has been locked for mutation", owner.getDisplayName()));
+            throw new IllegalStateException(String.format(
+                    "Cannot change attributes of %s after it has been locked for mutation", owner.getDisplayName()));
         }
     }
 

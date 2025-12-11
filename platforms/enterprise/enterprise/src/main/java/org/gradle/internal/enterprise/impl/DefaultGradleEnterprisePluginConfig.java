@@ -26,7 +26,10 @@ public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePlug
     private final boolean taskExecutingBuild;
     private final boolean autoApplied;
 
-    public DefaultGradleEnterprisePluginConfig(StartParameter startParameter, BuildType buildType, GradleEnterprisePluginAutoAppliedStatus autoAppliedStatus) {
+    public DefaultGradleEnterprisePluginConfig(
+            StartParameter startParameter,
+            BuildType buildType,
+            GradleEnterprisePluginAutoAppliedStatus autoAppliedStatus) {
         this.buildScanRequest = buildScanRequest(startParameter);
         this.taskExecutingBuild = buildType == BuildType.TASKS;
         this.autoApplied = autoAppliedStatus.isAutoApplied();

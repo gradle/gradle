@@ -23,5 +23,4 @@ package org.gradle.operations.dependencies.variants;
  *
  * @since 8.1
  */
-public interface ComponentIdentifier {
-}
+public interface ComponentIdentifier {}

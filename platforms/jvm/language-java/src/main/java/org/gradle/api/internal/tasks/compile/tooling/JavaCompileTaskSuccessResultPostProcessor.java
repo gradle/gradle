@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile.tooling;
 
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails;
@@ -32,28 +37,24 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class JavaCompileTaskSuccessResultPostProcessor implements OperationResultPostProcessor {
     private static final Logger LOGGER = Logging.getLogger(JavaCompileTaskSuccessResultPostProcessor.class);
 
     private final Map<String, CompileJavaBuildOperationType.Result> results = new ConcurrentHashMap<>();
 
     @Override
-    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-    }
+    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {}
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
         if (finishEvent.getResult() instanceof CompileJavaBuildOperationType.Result) {
-            CompileJavaBuildOperationType.Result result = (CompileJavaBuildOperationType.Result) finishEvent.getResult();
-            CompileJavaBuildOperationType.Details details = (CompileJavaBuildOperationType.Details) buildOperation.getDetails();
+            CompileJavaBuildOperationType.Result result =
+                    (CompileJavaBuildOperationType.Result) finishEvent.getResult();
+            CompileJavaBuildOperationType.Details details =
+                    (CompileJavaBuildOperationType.Details) buildOperation.getDetails();
             if (details == null) {
-                throw new IllegalStateException("No details for " + buildOperation.getDisplayName() + ", which is required for proper result tracking");
+                throw new IllegalStateException("No details for " + buildOperation.getDisplayName()
+                        + ", which is required for proper result tracking");
             }
             results.put(details.getTaskIdentityPath(), result);
         }
@@ -61,10 +62,13 @@ public class JavaCompileTaskSuccessResultPostProcessor implements OperationResul
 
     @Override
     public AbstractTaskResult process(AbstractTaskResult taskResult, TaskInternal taskInternal) {
-        CompileJavaBuildOperationType.Result compileResult = results.remove(taskInternal.getIdentityPath().asString());
+        CompileJavaBuildOperationType.Result compileResult =
+                results.remove(taskInternal.getIdentityPath().asString());
         if (taskResult instanceof DefaultTaskSuccessResult) {
             if (compileResult != null) {
-                return new DefaultJavaCompileTaskSuccessResult((DefaultTaskSuccessResult) taskResult, toAnnotationProcessorResults(compileResult.getAnnotationProcessorDetails()));
+                return new DefaultJavaCompileTaskSuccessResult(
+                        (DefaultTaskSuccessResult) taskResult,
+                        toAnnotationProcessorResults(compileResult.getAnnotationProcessorDetails()));
             } else if (taskInternal instanceof JavaCompile) {
                 LOGGER.info("No compile result for " + taskInternal.getIdentityPath());
             }
@@ -72,11 +76,13 @@ public class JavaCompileTaskSuccessResultPostProcessor implements OperationResul
         return taskResult;
     }
 
-    private List<InternalAnnotationProcessorResult> toAnnotationProcessorResults(List<AnnotationProcessorDetails> allDetails) {
+    private List<InternalAnnotationProcessorResult> toAnnotationProcessorResults(
+            List<AnnotationProcessorDetails> allDetails) {
         if (allDetails == null) {
             return null;
         }
-        List<InternalAnnotationProcessorResult> results = new ArrayList<InternalAnnotationProcessorResult>(allDetails.size());
+        List<InternalAnnotationProcessorResult> results =
+                new ArrayList<InternalAnnotationProcessorResult>(allDetails.size());
         for (AnnotationProcessorDetails details : allDetails) {
             results.add(toAnnotationProcessorResult(details));
         }
@@ -84,7 +90,10 @@ public class JavaCompileTaskSuccessResultPostProcessor implements OperationResul
     }
 
     private InternalAnnotationProcessorResult toAnnotationProcessorResult(AnnotationProcessorDetails details) {
-        return new DefaultAnnotationProcessorResult(details.getClassName(), toAnnotationProcessorType(details.getType()), Duration.ofMillis(details.getExecutionTimeInMillis()));
+        return new DefaultAnnotationProcessorResult(
+                details.getClassName(),
+                toAnnotationProcessorType(details.getType()),
+                Duration.ofMillis(details.getExecutionTimeInMillis()));
     }
 
     private String toAnnotationProcessorType(AnnotationProcessorDetails.Type type) {

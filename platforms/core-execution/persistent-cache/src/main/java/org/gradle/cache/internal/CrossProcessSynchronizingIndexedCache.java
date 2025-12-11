@@ -16,12 +16,11 @@
 
 package org.gradle.cache.internal;
 
+import java.util.function.Function;
 import org.gradle.cache.CrossProcessCacheAccess;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.Function;
 
 /**
  * Applies cross-process file locking to a backing cache, to ensure that any in-memory and on file state is kept in sync while this process is read from or writing to the cache.
@@ -30,7 +29,8 @@ public class CrossProcessSynchronizingIndexedCache<K, V> implements MultiProcess
     private final CrossProcessCacheAccess cacheAccess;
     private final MultiProcessSafeAsyncPersistentIndexedCache<K, V> target;
 
-    public CrossProcessSynchronizingIndexedCache(MultiProcessSafeAsyncPersistentIndexedCache<K, V> target, CrossProcessCacheAccess cacheAccess) {
+    public CrossProcessSynchronizingIndexedCache(
+            MultiProcessSafeAsyncPersistentIndexedCache<K, V> target, CrossProcessCacheAccess cacheAccess) {
         this.target = target;
         this.cacheAccess = cacheAccess;
     }

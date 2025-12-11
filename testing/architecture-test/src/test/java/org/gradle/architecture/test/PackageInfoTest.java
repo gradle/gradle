@@ -16,11 +16,11 @@
 
 package org.gradle.architecture.test;
 
+import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertAll;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.junit.Test;
-import org.junit.jupiter.api.function.Executable;
-
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -31,9 +31,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static org.junit.Assert.fail;
-import static org.junit.jupiter.api.Assertions.assertAll;
+import org.junit.Test;
+import org.junit.jupiter.api.function.Executable;
 
 /**
  * Keep package-info files for packages split up into multiple directories/projects
@@ -46,7 +45,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
  */
 public class PackageInfoTest {
 
-    private static final Path BASE_PATH = Paths.get(System.getProperty("org.gradle.architecture.package-info-base-path"));
+    private static final Path BASE_PATH =
+            Paths.get(System.getProperty("org.gradle.architecture.package-info-base-path"));
 
     private static Map<String, List<Path>> getPackageInfo() {
         Path jsonPath = Paths.get(System.getProperty("org.gradle.architecture.package-info-json"));
@@ -58,39 +58,38 @@ public class PackageInfoTest {
             throw new RuntimeException(e);
         }
 
-        return rawPackageInfo.entrySet()
-            .stream()
-            .collect(Collectors.toMap(
-               Map.Entry::getKey,
-               entry -> entry.getValue().stream()
-                   .map(BASE_PATH::resolve)
-                   .collect(Collectors.toList())
-            ));
+        return rawPackageInfo.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().stream()
+                        .map(BASE_PATH::resolve)
+                        .collect(Collectors.toList())));
     }
 
     @Test
     public void checkPackageInfoForInconsistencies() {
         Map<String, List<Path>> allPackageInfo = getPackageInfo();
 
-        assertAll("Checking public API package info",
-            allPackageInfo.entrySet().stream()
-                .filter(entry -> entry.getValue().size() > 1) // there can't be conflicts if a package has a single package-info.java file assigned to it
-                .filter(entry -> ArchUnitFixture.InGradlePublicApiPackages.test(entry.getKey())) // we don't care about packages that don't contain public API code
-                .map(entry -> (Executable) () -> assertPackageInfoFilesAreIdentical(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList())
-        );
+        assertAll(
+                "Checking public API package info",
+                allPackageInfo.entrySet().stream()
+                        .filter(entry -> entry.getValue().size()
+                                > 1) // there can't be conflicts if a package has a single package-info.java file
+                        // assigned to it
+                        .filter(entry -> ArchUnitFixture.InGradlePublicApiPackages.test(
+                                entry.getKey())) // we don't care about packages that don't contain public API code
+                        .map(entry ->
+                                (Executable) () -> assertPackageInfoFilesAreIdentical(entry.getKey(), entry.getValue()))
+                        .collect(Collectors.toList()));
     }
 
     private static void assertPackageInfoFilesAreIdentical(String packageName, List<Path> infoFiles) {
         String referenceContent = readAsString(infoFiles.get(0));
         boolean hasInconsistencies = infoFiles.subList(1, infoFiles.size()).stream()
-            .anyMatch(file -> !referenceContent.equals(readAsString(file)));
+                .anyMatch(file -> !referenceContent.equals(readAsString(file)));
         if (hasInconsistencies) {
-            fail("Inconsistent package-info files for package " + packageName + ": " +
-                infoFiles.stream()
-                    .map(file -> BASE_PATH.relativize(file).toString())
-                    .collect(Collectors.joining("\n\t\t", "\n\t\t", ""))
-            );
+            fail("Inconsistent package-info files for package " + packageName + ": "
+                    + infoFiles.stream()
+                            .map(file -> BASE_PATH.relativize(file).toString())
+                            .collect(Collectors.joining("\n\t\t", "\n\t\t", "")));
         }
     }
 

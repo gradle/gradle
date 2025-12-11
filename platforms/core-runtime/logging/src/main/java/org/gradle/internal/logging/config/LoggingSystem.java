@@ -30,6 +30,5 @@ public interface LoggingSystem {
      */
     void restore(Snapshot state);
 
-    interface Snapshot {
-    }
+    interface Snapshot {}
 }

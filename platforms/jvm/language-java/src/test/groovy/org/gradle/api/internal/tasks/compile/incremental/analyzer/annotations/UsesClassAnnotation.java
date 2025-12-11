@@ -16,5 +16,5 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations;
 
-@SomeClassAnnotation public class UsesClassAnnotation {
-}
+@SomeClassAnnotation
+public class UsesClassAnnotation {}

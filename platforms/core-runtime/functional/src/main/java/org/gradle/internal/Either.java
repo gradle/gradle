@@ -16,11 +16,10 @@
 
 package org.gradle.internal;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents values with two possibilities.

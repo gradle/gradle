@@ -16,14 +16,13 @@
 
 package org.gradle.internal.component.external.model.maven;
 
+import java.util.List;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.model.ExternalModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Represents a dependency declared in a Maven POM file.
@@ -36,11 +35,16 @@ public class MavenDependencyMetadata extends ExternalModuleDependencyMetadata {
         this(dependencyDescriptor, null, false);
     }
 
-    public MavenDependencyMetadata(MavenDependencyDescriptor dependencyDescriptor, @Nullable String reason, boolean endorsing) {
+    public MavenDependencyMetadata(
+            MavenDependencyDescriptor dependencyDescriptor, @Nullable String reason, boolean endorsing) {
         this(dependencyDescriptor, reason, endorsing, dependencyDescriptor.getConfigurationArtifacts());
     }
 
-    private MavenDependencyMetadata(MavenDependencyDescriptor dependencyDescriptor, @Nullable String reason, boolean endorsing, List<IvyArtifactName> artifacts) {
+    private MavenDependencyMetadata(
+            MavenDependencyDescriptor dependencyDescriptor,
+            @Nullable String reason,
+            boolean endorsing,
+            List<IvyArtifactName> artifacts) {
         super(reason, endorsing, artifacts);
         this.dependencyDescriptor = dependencyDescriptor;
     }
@@ -73,11 +77,13 @@ public class MavenDependencyMetadata extends ExternalModuleDependencyMetadata {
 
     @Override
     protected ModuleDependencyMetadata withArtifacts(List<IvyArtifactName> newArtifacts) {
-        return new MavenDependencyMetadata(dependencyDescriptor, getReason(), isEndorsingStrictVersions(), newArtifacts);
+        return new MavenDependencyMetadata(
+                dependencyDescriptor, getReason(), isEndorsingStrictVersions(), newArtifacts);
     }
 
     @Override
-    protected ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> newArtifacts) {
+    protected ModuleDependencyMetadata withRequestedAndArtifacts(
+            ModuleComponentSelector newSelector, List<IvyArtifactName> newArtifacts) {
         MavenDependencyDescriptor newDelegate = dependencyDescriptor.withRequested(newSelector);
         return new MavenDependencyMetadata(newDelegate, getReason(), isEndorsingStrictVersions(), newArtifacts);
     }

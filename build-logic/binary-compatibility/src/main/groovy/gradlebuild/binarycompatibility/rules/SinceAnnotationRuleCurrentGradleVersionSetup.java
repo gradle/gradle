@@ -16,10 +16,9 @@
 
 package gradlebuild.binarycompatibility.rules;
 
+import java.util.Map;
 import me.champeau.gradle.japicmp.report.SetupRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
-
-import java.util.Map;
 
 public class SinceAnnotationRuleCurrentGradleVersionSetup implements SetupRule {
 
@@ -35,5 +34,4 @@ public class SinceAnnotationRuleCurrentGradleVersionSetup implements SetupRule {
         Map<String, Object> userData = (Map<String, Object>) context.getUserData();
         userData.put("currentVersion", currentVersion);
     }
-
 }

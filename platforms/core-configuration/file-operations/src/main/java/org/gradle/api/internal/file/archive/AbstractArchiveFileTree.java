@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.file.archive;
 
+import java.io.File;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
-
-import java.io.File;
 
 /**
  * Abstract base class for a {@link org.gradle.api.file.FileTree FileTree} that is backed by an archive file.
@@ -36,7 +35,7 @@ import java.io.File;
         this.decompressionCoordinator = decompressionCoordinator;
     }
 
-    abstract protected Provider<File> getBackingFileProvider();
+    protected abstract Provider<File> getBackingFileProvider();
 
     private File getBackingFile() {
         return getBackingFileProvider().get();

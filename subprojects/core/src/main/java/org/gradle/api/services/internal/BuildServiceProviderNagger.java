@@ -16,12 +16,11 @@
 
 package org.gradle.api.services.internal;
 
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.internal.execution.WorkExecutionTracker;
+import static org.gradle.internal.deprecation.DeprecationLogger.deprecateBehaviour;
 
 import java.util.Optional;
-
-import static org.gradle.internal.deprecation.DeprecationLogger.deprecateBehaviour;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.execution.WorkExecutionTracker;
 
 public class BuildServiceProviderNagger implements BuildServiceProvider.Listener {
 
@@ -50,16 +49,16 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
 
     private static void nagAboutUndeclaredUsageOf(BuildServiceProvider<?, ?> provider, TaskInternal task) {
         deprecateBehaviour(undeclaredBuildServiceUsage(provider, task))
-            .withProblemIdDisplayName("Build Service " + provider.getName()+ " undeclared usage")
-            .withAdvice("Declare the association between the task by declaring the consuming property as a '@ServiceReference'.")
-            .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(7, "undeclared_build_service_usage")
-            .nagUser();
+                .withProblemIdDisplayName("Build Service " + provider.getName() + " undeclared usage")
+                .withAdvice(
+                        "Declare the association between the task by declaring the consuming property as a '@ServiceReference'.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(7, "undeclared_build_service_usage")
+                .nagUser();
     }
 
     private static String undeclaredBuildServiceUsage(BuildServiceProvider<?, ?> provider, TaskInternal task) {
-        return "Build service '" + provider.getName() + "'" +
-            " is being used by task '" + task.getIdentityPath() + "'" +
-            " without the corresponding declaration via 'Task#usesService'.";
+        return "Build service '" + provider.getName() + "'" + " is being used by task '" + task.getIdentityPath() + "'"
+                + " without the corresponding declaration via 'Task#usesService'.";
     }
 }

@@ -39,7 +39,8 @@ public class DependencyProjectNotationConverter implements NotationConverter<Pro
     }
 
     @Override
-    public void convert(Project notation, NotationConvertResult<? super ProjectDependency> result) throws TypeConversionException {
+    public void convert(Project notation, NotationConvertResult<? super ProjectDependency> result)
+            throws TypeConversionException {
         result.converted(factory.create(((ProjectInternal) notation).getOwner()));
     }
 }

@@ -16,11 +16,10 @@
 
 package org.gradle.internal.component.external.model.ivy;
 
+import java.util.List;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Metadata used to resolve artifacts of an Ivy component.

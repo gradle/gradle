@@ -16,14 +16,13 @@
 
 package org.gradle.execution.plan;
 
+import java.util.Collection;
+import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Represents some source of work items of type {@link T}. Implementations must be thread safe.
@@ -61,7 +60,6 @@ public interface WorkSource<T> {
                 return true;
             }
         };
-
 
         public static <S> Selection<S> of(S item) {
             return new Selection<S>() {
@@ -105,13 +103,12 @@ public interface WorkSource<T> {
         private final List<String> eventItems;
 
         public Diagnostics(
-            String displayName,
-            List<String> ordinalGroups,
-            List<String> waitingToStartNodes,
-            List<String> readyToStartNodes,
-            List<String> otherWaitingNodes,
-            List<String> events
-        ) {
+                String displayName,
+                List<String> ordinalGroups,
+                List<String> waitingToStartNodes,
+                List<String> readyToStartNodes,
+                List<String> otherWaitingNodes,
+                List<String> events) {
             this.displayName = displayName;
             this.ordinalGroups = ordinalGroups;
             this.queuedNodes = waitingToStartNodes;

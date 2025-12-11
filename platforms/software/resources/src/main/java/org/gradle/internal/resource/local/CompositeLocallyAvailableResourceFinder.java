@@ -16,10 +16,9 @@
 
 package org.gradle.internal.resource.local;
 
-import org.gradle.internal.hash.HashCode;
-
 import java.util.LinkedList;
 import java.util.List;
+import org.gradle.internal.hash.HashCode;
 
 public class CompositeLocallyAvailableResourceFinder<C> implements LocallyAvailableResourceFinder<C> {
 

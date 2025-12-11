@@ -34,11 +34,10 @@ public final class LocalComponentGraphResolveMetadata implements ComponentGraphR
     private final ImmutableAttributesSchema attributesSchema;
 
     public LocalComponentGraphResolveMetadata(
-        ModuleVersionIdentifier moduleVersionId,
-        ComponentIdentifier componentId,
-        String status,
-        ImmutableAttributesSchema attributesSchema
-    ) {
+            ModuleVersionIdentifier moduleVersionId,
+            ComponentIdentifier componentId,
+            String status,
+            ImmutableAttributesSchema attributesSchema) {
         this.moduleVersionId = moduleVersionId;
         this.componentId = componentId;
         this.status = status;
@@ -79,5 +78,4 @@ public final class LocalComponentGraphResolveMetadata implements ComponentGraphR
     public ImmutableAttributesSchema getAttributesSchema() {
         return attributesSchema;
     }
-
 }

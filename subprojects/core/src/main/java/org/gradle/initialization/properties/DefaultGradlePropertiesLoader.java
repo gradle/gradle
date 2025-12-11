@@ -16,17 +16,16 @@
 
 package org.gradle.initialization.properties;
 
-import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.initialization.Environment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.gradle.api.Project.GRADLE_PROPERTIES;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.gradle.api.Project.GRADLE_PROPERTIES;
+import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.initialization.Environment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultGradlePropertiesLoader implements GradlePropertiesLoader {
 
@@ -58,7 +57,8 @@ public class DefaultGradlePropertiesLoader implements GradlePropertiesLoader {
 
     @Override
     public Map<String, String> loadFromSystemProperties() {
-        Map<String, String> systemProjectProperties = byPrefix(SYSTEM_PROJECT_PROPERTIES_PREFIX, environment.getSystemProperties());
+        Map<String, String> systemProjectProperties =
+                byPrefix(SYSTEM_PROJECT_PROPERTIES_PREFIX, environment.getSystemProperties());
         LOGGER.debug("Found system project properties: {}", systemProjectProperties.keySet());
         return systemProjectProperties;
     }
@@ -82,10 +82,7 @@ public class DefaultGradlePropertiesLoader implements GradlePropertiesLoader {
     private static Map<String, String> mapKeysRemovingPrefix(String prefix, Map<String, String> mapWithPrefix) {
         Map<String, String> mapWithoutPrefix = new HashMap<>(mapWithPrefix.size());
         for (Map.Entry<String, String> entry : mapWithPrefix.entrySet()) {
-            mapWithoutPrefix.put(
-                entry.getKey().substring(prefix.length()),
-                entry.getValue()
-            );
+            mapWithoutPrefix.put(entry.getKey().substring(prefix.length()), entry.getValue());
         }
         return mapWithoutPrefix;
     }

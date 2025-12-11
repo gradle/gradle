@@ -16,48 +16,25 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.util.internal.VersionNumber;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.util.internal.VersionNumber;
 
 public class LegacyWindowsSdkInstall implements WindowsSdkInstall {
-    private static final String[] BINPATHS_X86 = {
-        "bin/x86",
-        "Bin"
-    };
-    private static final String[] BINPATHS_AMD64 = {
-        "bin/x64"
-    };
-    private static final String[] BINPATHS_IA64 = {
-        "bin/IA64"
-    };
-    private static final String[] BINPATHS_ARM = {
-        "bin/arm"
-    };
+    private static final String[] BINPATHS_X86 = {"bin/x86", "Bin"};
+    private static final String[] BINPATHS_AMD64 = {"bin/x64"};
+    private static final String[] BINPATHS_IA64 = {"bin/IA64"};
+    private static final String[] BINPATHS_ARM = {"bin/arm"};
     private static final String LIBPATH_SDK8 = "Lib/win8/um/";
     private static final String LIBPATH_SDK81 = "Lib/winv6.3/um/";
-    private static final String[] LIBPATHS_X86 = {
-        LIBPATH_SDK81 + "x86",
-        LIBPATH_SDK8 + "x86",
-        "lib"
-    };
-    private static final String[] LIBPATHS_AMD64 = {
-        LIBPATH_SDK81 + "x64",
-        LIBPATH_SDK8 + "x64",
-        "lib/x64"
-    };
-    private static final String[] LIBPATHS_IA64 = {
-        "lib/IA64"
-    };
-    private static final String[] LIBPATHS_ARM = {
-        LIBPATH_SDK81 + "arm",
-        LIBPATH_SDK8 + "arm"
-    };
+    private static final String[] LIBPATHS_X86 = {LIBPATH_SDK81 + "x86", LIBPATH_SDK8 + "x86", "lib"};
+    private static final String[] LIBPATHS_AMD64 = {LIBPATH_SDK81 + "x64", LIBPATH_SDK8 + "x64", "lib/x64"};
+    private static final String[] LIBPATHS_IA64 = {"lib/IA64"};
+    private static final String[] LIBPATHS_ARM = {LIBPATH_SDK81 + "arm", LIBPATH_SDK8 + "arm"};
 
     private final File baseDir;
     private final VersionNumber version;
@@ -97,7 +74,8 @@ public class LegacyWindowsSdkInstall implements WindowsSdkInstall {
         if (platform.getArchitecture().isI386()) {
             return new LegacyPlatformWindowsSdk(BINPATHS_X86, LIBPATHS_X86);
         }
-        throw new UnsupportedOperationException(String.format("Unsupported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
+        throw new UnsupportedOperationException(String.format(
+                "Unsupported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
     }
 
     private class LegacyPlatformWindowsSdk implements WindowsSdk {
@@ -121,10 +99,8 @@ public class LegacyWindowsSdkInstall implements WindowsSdkInstall {
 
         @Override
         public List<File> getIncludeDirs() {
-            List<File> includesSdk8 = Arrays.asList(
-                new File(baseDir, "Include/shared"),
-                new File(baseDir, "Include/um")
-            );
+            List<File> includesSdk8 =
+                    Arrays.asList(new File(baseDir, "Include/shared"), new File(baseDir, "Include/um"));
             for (File file : includesSdk8) {
                 if (!file.isDirectory()) {
                     return Collections.singletonList(new File(baseDir, "Include"));

@@ -16,9 +16,8 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.Action;
-
 import javax.inject.Inject;
+import org.gradle.api.Action;
 
 /**
  * Interface for artifact transform actions.

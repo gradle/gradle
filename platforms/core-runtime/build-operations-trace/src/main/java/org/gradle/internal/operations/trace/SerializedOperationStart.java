@@ -16,14 +16,13 @@
 
 package org.gradle.internal.operations.trace;
 
+import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
+
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-
-import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
 
 class SerializedOperationStart implements SerializedOperation {
 
@@ -38,11 +37,14 @@ class SerializedOperationStart implements SerializedOperation {
 
     SerializedOperationStart(BuildOperationDescriptor descriptor, OperationStartEvent startEvent) {
         this.id = descriptor.getId().getId();
-        this.parentId = descriptor.getParentId() == null ? null : descriptor.getParentId().getId();
+        this.parentId = descriptor.getParentId() == null
+                ? null
+                : descriptor.getParentId().getId();
         this.displayName = descriptor.getDisplayName();
         this.startTime = startEvent.getStartTime();
         this.details = toSerializableModel(descriptor.getDetails());
-        this.detailsClassName = details == null ? null : descriptor.getDetails().getClass().getName();
+        this.detailsClassName =
+                details == null ? null : descriptor.getDetails().getClass().getName();
     }
 
     SerializedOperationStart(Map<String, ?> map) {
@@ -76,5 +78,4 @@ class SerializedOperationStart implements SerializedOperation {
 
         return map.build();
     }
-
 }

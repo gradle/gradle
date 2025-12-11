@@ -17,23 +17,21 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-
-import java.util.List;
 
 @ThreadSafe
 public abstract class MethodModelRuleExtractors {
 
     public static List<MethodModelRuleExtractor> coreExtractors(ModelSchemaStore modelSchemaStore) {
         return ImmutableList.<MethodModelRuleExtractor>of(
-            new UnmanagedModelCreationRuleExtractor(),
-            new ManagedModelCreationRuleExtractor(modelSchemaStore),
-            new DefaultsModelRuleExtractor(),
-            new MutateModelRuleExtractor(),
-            new FinalizeModelRuleExtractor(),
-            new ValidateModelRuleExtractor(),
-            new RuleDefinitionRuleExtractor()
-        );
+                new UnmanagedModelCreationRuleExtractor(),
+                new ManagedModelCreationRuleExtractor(modelSchemaStore),
+                new DefaultsModelRuleExtractor(),
+                new MutateModelRuleExtractor(),
+                new FinalizeModelRuleExtractor(),
+                new ValidateModelRuleExtractor(),
+                new RuleDefinitionRuleExtractor());
     }
 }

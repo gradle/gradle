@@ -17,15 +17,14 @@ package org.gradle.api.initialization.dsl;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.net.URI;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.net.URI;
 
 /**
  * <p>A {@code ScriptHandler} allows you to manage the compilation and execution of a build script. You can declare the
@@ -79,7 +78,8 @@ public interface ScriptHandler {
      *
      * @param configureClosure the closure to use to configure the repositories.
      */
-    void repositories(@DelegatesTo(value=RepositoryHandler.class, strategy=Closure.DELEGATE_FIRST) Closure configureClosure);
+    void repositories(
+            @DelegatesTo(value = RepositoryHandler.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure);
 
     /**
      * Configures the repositories for the script dependencies. Executes the given action against the {@link
@@ -105,7 +105,8 @@ public interface ScriptHandler {
      *
      * @param configureClosure the closure to use to configure the dependencies.
      */
-    void dependencies(@DelegatesTo(value=DependencyHandler.class, strategy=Closure.DELEGATE_FIRST) Closure configureClosure);
+    void dependencies(
+            @DelegatesTo(value = DependencyHandler.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure);
 
     /**
      * Returns the configurations of this handler. This usually contains a single configuration, called {@value
@@ -141,7 +142,9 @@ public interface ScriptHandler {
      * @param configureClosure the closure to use to configure dependency locking.
      * @since 6.1
      */
-    void dependencyLocking(@DelegatesTo(value=DependencyLockingHandler.class, strategy=Closure.DELEGATE_FIRST) Closure configureClosure);
+    void dependencyLocking(
+            @DelegatesTo(value = DependencyLockingHandler.class, strategy = Closure.DELEGATE_FIRST)
+                    Closure configureClosure);
 
     /**
      * Configures dependency locking for the script. Executes the given action against the {@link DependencyLockingHandler} for

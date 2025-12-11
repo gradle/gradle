@@ -93,5 +93,4 @@ public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
      * @return {@code true} if this version can compile or run code from the other version, {@code false} otherwise
      */
     boolean canCompileOrRun(int otherVersion);
-
 }

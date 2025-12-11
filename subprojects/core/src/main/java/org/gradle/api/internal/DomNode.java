@@ -28,7 +28,7 @@ public class DomNode extends Node {
     static {
         setMetaClass(GroovySystem.getMetaClassRegistry().getMetaClass(DomNode.class), DomNode.class);
     }
-    
+
     public String getPublicId() {
         return publicId;
     }

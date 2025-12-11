@@ -23,6 +23,8 @@ import org.gradle.api.tasks.WorkResult;
  */
 public interface IncrementalCompilationResult extends WorkResult {
     WorkResult getCompilerResult();
+
     PreviousCompilationData getPreviousCompilationData();
+
     RecompilationSpec getRecompilationSpec();
 }

@@ -15,6 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.ChecksumVerificationFailure;
@@ -31,19 +37,20 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-
 public class DependencyVerificationReportWriter {
     private static final Logger LOGGER = Logging.getLogger(DependencyVerificationReportWriter.class);
 
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> DELETED_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof DeletedArtifact) ? 1 : 0);
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> MISSING_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof MissingChecksums) ? 1 : 0);
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
+    private static final Comparator<
+                    Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>>
+            DELETED_LAST = Comparator.comparing(
+                    e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof DeletedArtifact) ? 1 : 0);
+    private static final Comparator<
+                    Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>>
+            MISSING_LAST = Comparator.comparing(
+                    e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof MissingChecksums) ? 1 : 0);
+    private static final Comparator<
+                    Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>>
+            BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
     public static final String VERBOSE_CONSOLE = "org.gradle.dependency.verification.console";
     public static final String VERBOSE_VALUE = "verbose";
 
@@ -53,18 +60,19 @@ public class DependencyVerificationReportWriter {
     private HtmlDependencyVerificationReportRenderer htmlRenderer;
 
     public DependencyVerificationReportWriter(
-        Path gradleUserHome,
-        DocumentationRegistry documentationRegistry,
-        File verificationFile,
-        List<String> writeFlags,
-        File htmlReportOutputDirectory,
-        Factory<GradleProperties> gradlePropertiesProvider,
-        boolean useKeyServers
-    ) {
+            Path gradleUserHome,
+            DocumentationRegistry documentationRegistry,
+            File verificationFile,
+            List<String> writeFlags,
+            File htmlReportOutputDirectory,
+            Factory<GradleProperties> gradlePropertiesProvider,
+            boolean useKeyServers) {
         this.gradleUserHome = gradleUserHome;
         this.rendererInitializer = () -> {
-            this.summaryRenderer = createConsoleRenderer(gradleUserHome, documentationRegistry, gradlePropertiesProvider.create());
-            this.htmlRenderer = new HtmlDependencyVerificationReportRenderer(documentationRegistry, verificationFile, writeFlags, htmlReportOutputDirectory, useKeyServers);
+            this.summaryRenderer =
+                    createConsoleRenderer(gradleUserHome, documentationRegistry, gradlePropertiesProvider.create());
+            this.htmlRenderer = new HtmlDependencyVerificationReportRenderer(
+                    documentationRegistry, verificationFile, writeFlags, htmlReportOutputDirectory, useKeyServers);
         };
     }
 
@@ -75,12 +83,14 @@ public class DependencyVerificationReportWriter {
         } catch (IllegalStateException e) {
             // Gradle properties are not loaded yet, which can happen in init scripts
             // let's return a default value
-            LOGGER.warn("Gradle properties are not loaded yet, any customization to dependency verification will be ignored until the main build script is loaded.");
+            LOGGER.warn(
+                    "Gradle properties are not loaded yet, any customization to dependency verification will be ignored until the main build script is loaded.");
             return false;
         }
     }
 
-    private AbstractTextDependencyVerificationReportRenderer createConsoleRenderer(Path gradleUserHome, DocumentationRegistry documentationRegistry, GradleProperties gradleProperties) {
+    private AbstractTextDependencyVerificationReportRenderer createConsoleRenderer(
+            Path gradleUserHome, DocumentationRegistry documentationRegistry, GradleProperties gradleProperties) {
         boolean verboseConsoleReport = isVerboseConsoleReport(gradleProperties);
         if (verboseConsoleReport) {
             return new TextDependencyVerificationReportRenderer(gradleUserHome, documentationRegistry);
@@ -89,10 +99,9 @@ public class DependencyVerificationReportWriter {
     }
 
     public VerificationReport generateReport(
-        String displayName,
-        Map<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>> failuresByArtifact,
-        boolean useKeyServers
-    ) {
+            String displayName,
+            Map<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>> failuresByArtifact,
+            boolean useKeyServers) {
         assertInitialized();
         // We need at least one fatal failure: if it's only "warnings" we don't care
         // but of there's a fatal failure AND a warning we want to show both
@@ -110,11 +119,10 @@ public class DependencyVerificationReportWriter {
     }
 
     public void doRender(
-        String displayName,
-        Map<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>> failuresByArtifact,
-        DependencyVerificationReportRenderer renderer,
-        boolean useKeyServers
-    ) {
+            String displayName,
+            Map<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>> failuresByArtifact,
+            DependencyVerificationReportRenderer renderer,
+            boolean useKeyServers) {
         ReportState reportState = new ReportState();
         if (!useKeyServers) {
             reportState.keyServersAreDisabled();
@@ -122,27 +130,30 @@ public class DependencyVerificationReportWriter {
         renderer.startNewSection(displayName);
         renderer.startArtifactErrors(() -> {
             // Sorting entries so that error messages are always displayed in a reproducible order
-            failuresByArtifact
-                .entrySet()
-                .stream()
-                .sorted(DELETED_LAST.thenComparing(MISSING_LAST).thenComparing(BY_MODULE_ID))
-                .forEachOrdered(entry -> {
-                    ModuleComponentArtifactIdentifier key = entry.getKey();
-                    Collection<RepositoryAwareVerificationFailure> failures = entry.getValue();
-                    onArtifactFailure(renderer, reportState, key, failures);
-                });
+            failuresByArtifact.entrySet().stream()
+                    .sorted(DELETED_LAST.thenComparing(MISSING_LAST).thenComparing(BY_MODULE_ID))
+                    .forEachOrdered(entry -> {
+                        ModuleComponentArtifactIdentifier key = entry.getKey();
+                        Collection<RepositoryAwareVerificationFailure> failures = entry.getValue();
+                        onArtifactFailure(renderer, reportState, key, failures);
+                    });
         });
         renderer.finish(reportState);
     }
 
-    private void onArtifactFailure(DependencyVerificationReportRenderer renderer, ReportState state, ModuleComponentArtifactIdentifier key, Collection<RepositoryAwareVerificationFailure> failures) {
+    private void onArtifactFailure(
+            DependencyVerificationReportRenderer renderer,
+            ReportState state,
+            ModuleComponentArtifactIdentifier key,
+            Collection<RepositoryAwareVerificationFailure> failures) {
         failures.stream()
-            .map(RepositoryAwareVerificationFailure::getFailure)
-            .map(this::extractFailedFilePaths)
-            .forEach(state::addAffectedFile);
+                .map(RepositoryAwareVerificationFailure::getFailure)
+                .map(this::extractFailedFilePaths)
+                .forEach(state::addAffectedFile);
         renderer.startNewArtifact(key, () -> {
             if (failures.size() == 1) {
-                RepositoryAwareVerificationFailure firstFailure = failures.iterator().next();
+                RepositoryAwareVerificationFailure firstFailure =
+                        failures.iterator().next();
                 explainSingleFailure(renderer, state, firstFailure);
             } else {
                 explainMultiFailure(renderer, state, failures);
@@ -170,7 +181,10 @@ public class DependencyVerificationReportWriter {
         }
     }
 
-    private void explainMultiFailure(DependencyVerificationReportRenderer renderer, ReportState state, Collection<RepositoryAwareVerificationFailure> failures) {
+    private void explainMultiFailure(
+            DependencyVerificationReportRenderer renderer,
+            ReportState state,
+            Collection<RepositoryAwareVerificationFailure> failures) {
         renderer.reportAsMultipleErrors(() -> {
             for (RepositoryAwareVerificationFailure failure : failures) {
                 explainSingleFailure(renderer, state, failure);
@@ -178,13 +192,19 @@ public class DependencyVerificationReportWriter {
         });
     }
 
-    private void explainSingleFailure(DependencyVerificationReportRenderer renderer, ReportState state, RepositoryAwareVerificationFailure wrapper) {
+    private void explainSingleFailure(
+            DependencyVerificationReportRenderer renderer,
+            ReportState state,
+            RepositoryAwareVerificationFailure wrapper) {
         VerificationFailure failure = wrapper.getFailure();
         if (failure instanceof MissingChecksums) {
             state.hasMissing();
         } else if (failure instanceof SignatureVerificationFailure) {
             state.failedSignatures();
-            if (((SignatureVerificationFailure) failure).getErrors().values().stream().map(SignatureVerificationFailure.SignatureError::getKind).noneMatch(kind -> kind == SignatureVerificationFailure.FailureKind.PASSED_NOT_TRUSTED)) {
+            if (((SignatureVerificationFailure) failure)
+                    .getErrors().values().stream()
+                            .map(SignatureVerificationFailure.SignatureError::getKind)
+                            .noneMatch(kind -> kind == SignatureVerificationFailure.FailureKind.PASSED_NOT_TRUSTED)) {
                 state.maybeCompromised();
             } else {
                 state.hasUntrustedKeys();
@@ -192,7 +212,10 @@ public class DependencyVerificationReportWriter {
         } else if (failure instanceof InvalidSignature) {
             state.failedSignatures();
             state.maybeCompromised();
-        } else if (failure instanceof DeletedArtifact || failure instanceof ChecksumVerificationFailure || failure instanceof OnlyIgnoredKeys || failure instanceof MissingSignature) {
+        } else if (failure instanceof DeletedArtifact
+                || failure instanceof ChecksumVerificationFailure
+                || failure instanceof OnlyIgnoredKeys
+                || failure instanceof MissingSignature) {
             state.maybeCompromised();
         } else {
             // should never happen, just to make sure we don't miss any new failure type
@@ -200,5 +223,4 @@ public class DependencyVerificationReportWriter {
         }
         renderer.reportFailure(wrapper);
     }
-
 }

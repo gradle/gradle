@@ -28,5 +28,4 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @see org.gradle.api.tasks.Classpath
  */
 @ServiceScope(Scope.UserHome.class)
-public interface ClasspathFingerprinter extends FileCollectionFingerprinter {
-}
+public interface ClasspathFingerprinter extends FileCollectionFingerprinter {}

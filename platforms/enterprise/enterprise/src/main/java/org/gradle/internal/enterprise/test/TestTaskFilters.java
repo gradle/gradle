@@ -33,5 +33,4 @@ public interface TestTaskFilters {
     Set<String> getIncludeEngines();
 
     Set<String> getExcludeEngines();
-
 }

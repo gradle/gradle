@@ -16,16 +16,15 @@
 
 package org.gradle.internal.resource.transport.gcp.gcs;
 
+import static java.util.Collections.emptySet;
+
+import java.util.Collections;
+import java.util.Set;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
-
-import java.util.Collections;
-import java.util.Set;
-
-import static java.util.Collections.emptySet;
 
 public class GcsConnectorFactory implements ResourceConnectorFactory {
 

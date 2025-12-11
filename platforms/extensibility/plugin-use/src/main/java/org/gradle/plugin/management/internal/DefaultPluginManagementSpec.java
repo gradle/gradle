@@ -16,6 +16,9 @@
 
 package org.gradle.plugin.management.internal;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
@@ -30,10 +33,6 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.internal.PluginRepositoryHandlerProvider;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 public class DefaultPluginManagementSpec implements PluginManagementSpecInternal {
 
     private final PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider;
@@ -44,7 +43,11 @@ public class DefaultPluginManagementSpec implements PluginManagementSpecInternal
 
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
 
-    public DefaultPluginManagementSpec(PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider, PluginResolutionStrategyInternal pluginResolutionStrategy, FileResolver fileResolver, BuildIncluder buildIncluder) {
+    public DefaultPluginManagementSpec(
+            PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider,
+            PluginResolutionStrategyInternal pluginResolutionStrategy,
+            FileResolver fileResolver,
+            BuildIncluder buildIncluder) {
         this.pluginRepositoryHandlerProvider = pluginRepositoryHandlerProvider;
         this.pluginResolutionStrategy = pluginResolutionStrategy;
         this.fileResolver = fileResolver;
@@ -128,5 +131,4 @@ public class DefaultPluginManagementSpec implements PluginManagementSpecInternal
             return this;
         }
     }
-
 }

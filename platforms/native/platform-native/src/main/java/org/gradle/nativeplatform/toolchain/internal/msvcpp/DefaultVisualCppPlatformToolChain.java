@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
@@ -24,9 +26,6 @@ import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultCommandLineToolConfiguration;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class DefaultVisualCppPlatformToolChain implements VisualCppPlatformToolChain {
     private final NativePlatform platform;
     protected final Map<ToolType, CommandLineToolConfigurationInternal> tools;
@@ -34,12 +33,24 @@ public class DefaultVisualCppPlatformToolChain implements VisualCppPlatformToolC
     public DefaultVisualCppPlatformToolChain(NativePlatform platform, Instantiator instantiator) {
         this.platform = platform;
         tools = new HashMap<ToolType, CommandLineToolConfigurationInternal>();
-        tools.put(ToolType.C_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.C_COMPILER));
-        tools.put(ToolType.CPP_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.CPP_COMPILER));
-        tools.put(ToolType.LINKER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.LINKER));
-        tools.put(ToolType.STATIC_LIB_ARCHIVER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.STATIC_LIB_ARCHIVER));
-        tools.put(ToolType.ASSEMBLER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.ASSEMBLER));
-        tools.put(ToolType.WINDOW_RESOURCES_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.WINDOW_RESOURCES_COMPILER));
+        tools.put(
+                ToolType.C_COMPILER,
+                instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.C_COMPILER));
+        tools.put(
+                ToolType.CPP_COMPILER,
+                instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.CPP_COMPILER));
+        tools.put(
+                ToolType.LINKER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.LINKER));
+        tools.put(
+                ToolType.STATIC_LIB_ARCHIVER,
+                instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.STATIC_LIB_ARCHIVER));
+        tools.put(
+                ToolType.ASSEMBLER,
+                instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.ASSEMBLER));
+        tools.put(
+                ToolType.WINDOW_RESOURCES_COMPILER,
+                instantiator.newInstance(
+                        DefaultCommandLineToolConfiguration.class, ToolType.WINDOW_RESOURCES_COMPILER));
     }
 
     @Override

@@ -44,8 +44,7 @@ public class PerformanceExperimentOnOs {
             return false;
         }
         PerformanceExperimentOnOs that = (PerformanceExperimentOnOs) o;
-        return performanceExperiment.equals(that.performanceExperiment) &&
-            operatingSystem == that.operatingSystem;
+        return performanceExperiment.equals(that.performanceExperiment) && operatingSystem == that.operatingSystem;
     }
 
     @Override
@@ -55,9 +54,8 @@ public class PerformanceExperimentOnOs {
 
     @Override
     public String toString() {
-        return "PerformanceExperimentOnOs{" +
-            "performanceExperiment=" + performanceExperiment +
-            ", operatingSystem=" + operatingSystem +
-            '}';
+        return "PerformanceExperimentOnOs{" + "performanceExperiment="
+                + performanceExperiment + ", operatingSystem="
+                + operatingSystem + '}';
     }
 }

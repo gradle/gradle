@@ -24,5 +24,4 @@ public interface FileProperty {
     String getPropertyName();
 
     Stream<File> getFiles();
-
 }

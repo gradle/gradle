@@ -16,11 +16,10 @@
 
 package org.gradle.testing.jacoco.tasks.rules;
 
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.Input;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import java.util.List;
 
 /**
  * The violation rules configuration for the {@link org.gradle.testing.jacoco.tasks.JacocoReport} task.

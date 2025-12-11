@@ -16,6 +16,9 @@
 
 package org.gradle.api.plugins;
 
+import static org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED;
+
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -31,9 +34,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
-import static org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION;
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED;
-
 /**
  * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
  *
@@ -47,7 +47,8 @@ public abstract class BasePlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
-        BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
+        BasePluginExtension baseExtension = project.getExtensions()
+                .create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
         configureExtension(project, baseExtension);
         configureBuildConfigurationRule(project);
         configureArchiveDefaults(project, baseExtension);
@@ -56,16 +57,21 @@ public abstract class BasePlugin implements Plugin<Project> {
 
     private void configureExtension(Project project, BasePluginExtension extension) {
         extension.getArchivesName().convention(project.getName());
-        extension.getLibsDirectory().convention(project.getLayout().getBuildDirectory().dir("libs"));
-        extension.getDistsDirectory().convention(project.getLayout().getBuildDirectory().dir("distributions"));
+        extension
+                .getLibsDirectory()
+                .convention(project.getLayout().getBuildDirectory().dir("libs"));
+        extension
+                .getDistsDirectory()
+                .convention(project.getLayout().getBuildDirectory().dir("distributions"));
     }
 
     private void configureArchiveDefaults(final Project project, final BasePluginExtension extension) {
         project.getTasks().withType(AbstractArchiveTask.class).configureEach(task -> {
             task.getDestinationDirectory().convention(extension.getDistsDirectory());
-            task.getArchiveVersion().convention(
-                project.provider(() -> project.getVersion() == Project.DEFAULT_VERSION ? null : project.getVersion().toString())
-            );
+            task.getArchiveVersion()
+                    .convention(project.provider(() -> project.getVersion() == Project.DEFAULT_VERSION
+                            ? null
+                            : project.getVersion().toString()));
 
             task.getArchiveBaseName().convention(extension.getArchivesName());
         });
@@ -76,29 +82,34 @@ public abstract class BasePlugin implements Plugin<Project> {
     }
 
     private void configureConfigurations(final Project project) {
-        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
+        RoleBasedConfigurationContainerInternal configurations =
+                (RoleBasedConfigurationContainerInternal) project.getConfigurations();
         ((ProjectInternal) project).getInternalStatus().convention("integration");
 
-        final Configuration archivesConfiguration = configurations.migratingLocked(ARCHIVES_CONFIGURATION, CONSUMABLE_TO_RETIRED, conf -> {
-            conf.setDescription("Configuration for archive artifacts.");
-            DomainObjectCollectionInternal<PublishArtifact> artifacts = Cast.uncheckedCast(conf.getArtifacts());
-            artifacts.beforeCollectionChanges(artifact -> {
-                DeprecationLogger.deprecateConfiguration(ARCHIVES_CONFIGURATION)
-                    .forArtifactDeclaration()
-                    .withAdvice("Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the " + ARCHIVES_CONFIGURATION + " configuration.")
-                    .willBecomeAnErrorInNextMajorGradleVersion()
-                    .withUpgradeGuideSection(9, "sec:archives-configuration")
-                    .nagUser();
-            });
-        });
+        final Configuration archivesConfiguration =
+                configurations.migratingLocked(ARCHIVES_CONFIGURATION, CONSUMABLE_TO_RETIRED, conf -> {
+                    conf.setDescription("Configuration for archive artifacts.");
+                    DomainObjectCollectionInternal<PublishArtifact> artifacts = Cast.uncheckedCast(conf.getArtifacts());
+                    artifacts.beforeCollectionChanges(artifact -> {
+                        DeprecationLogger.deprecateConfiguration(ARCHIVES_CONFIGURATION)
+                                .forArtifactDeclaration()
+                                .withAdvice(
+                                        "Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the "
+                                                + ARCHIVES_CONFIGURATION + " configuration.")
+                                .willBecomeAnErrorInNextMajorGradleVersion()
+                                .withUpgradeGuideSection(9, "sec:archives-configuration")
+                                .nagUser();
+                    });
+                });
 
         configurations.consumable(Dependency.DEFAULT_CONFIGURATION, conf -> {
             conf.setDescription("Configuration for default artifacts.");
         });
 
-        project.getTasks().named(ASSEMBLE_TASK_NAME, task ->
-            task.dependsOn(archivesConfiguration.getAllArtifacts().getBuildDependencies())
-        );
+        project.getTasks()
+                .named(
+                        ASSEMBLE_TASK_NAME,
+                        task -> task.dependsOn(
+                                archivesConfiguration.getAllArtifacts().getBuildDependencies()));
     }
-
 }

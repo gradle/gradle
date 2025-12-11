@@ -16,13 +16,13 @@
 
 package org.gradle.launcher.daemon.protocol;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.Serializable;
+import org.jspecify.annotations.Nullable;
 
 public class Status implements Serializable {
     @Nullable
     private final Long pid;
+
     private final String version;
     private final String status;
 

@@ -25,5 +25,4 @@ import org.gradle.tooling.events.SuccessResult;
  * @since 8.1
  */
 @Incubating
-public interface FileDownloadNotFoundResult extends FileDownloadResult, SuccessResult {
-}
+public interface FileDownloadNotFoundResult extends FileDownloadResult, SuccessResult {}

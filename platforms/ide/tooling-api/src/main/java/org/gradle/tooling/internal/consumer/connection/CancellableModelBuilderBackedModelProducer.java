@@ -34,7 +34,12 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
     private final InternalCancellableConnection builder;
     protected final CancellationExceptionTransformer exceptionTransformer;
 
-    public CancellableModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCancellableConnection builder, CancellationExceptionTransformer exceptionTransformer) {
+    public CancellableModelBuilderBackedModelProducer(
+            ProtocolToModelAdapter adapter,
+            VersionDetails versionDetails,
+            ModelMapping modelMapping,
+            InternalCancellableConnection builder,
+            CancellationExceptionTransformer exceptionTransformer) {
         this.adapter = adapter;
         this.versionDetails = versionDetails;
         this.modelMapping = modelMapping;
@@ -50,12 +55,16 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
         final ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
         BuildResult<?> result;
         try {
-            result = builder.getModel(modelIdentifier, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
+            result = builder.getModel(
+                    modelIdentifier,
+                    new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()),
+                    operationParameters);
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(type, e);
         } catch (RuntimeException e) {
             throw exceptionTransformer.transform(e);
         }
-        return applyCompatibilityMapping(adapter.builder(type), operationParameters).build(result.getModel());
+        return applyCompatibilityMapping(adapter.builder(type), operationParameters)
+                .build(result.getModel());
     }
 }

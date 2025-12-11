@@ -22,8 +22,10 @@ import org.jspecify.annotations.Nullable;
 
 public class IncludeFileEdge {
     private final String includePath;
+
     @Nullable
     private final HashCode includedBy;
+
     private final HashCode resolvedTo;
 
     public IncludeFileEdge(String includePath, @Nullable HashCode includedBy, HashCode resolvedTo) {
@@ -54,7 +56,9 @@ public class IncludeFileEdge {
             return false;
         }
         IncludeFileEdge other = (IncludeFileEdge) obj;
-        return includePath.equals(other.includePath) && Objects.equal(includedBy, other.includedBy) && resolvedTo.equals(other.resolvedTo);
+        return includePath.equals(other.includePath)
+                && Objects.equal(includedBy, other.includedBy)
+                && resolvedTo.equals(other.resolvedTo);
     }
 
     @Override

@@ -19,7 +19,9 @@ package org.gradle.initialization;
 import org.gradle.internal.operations.BuildOperationType;
 import org.jspecify.annotations.Nullable;
 
-public class EvaluateSettingsBuildOperationType implements BuildOperationType<EvaluateSettingsBuildOperationType.Details, EvaluateSettingsBuildOperationType.Result> {
+public class EvaluateSettingsBuildOperationType
+        implements BuildOperationType<
+                EvaluateSettingsBuildOperationType.Details, EvaluateSettingsBuildOperationType.Result> {
     public interface Details {
         /**
          * @since 4.6
@@ -38,8 +40,7 @@ public class EvaluateSettingsBuildOperationType implements BuildOperationType<Ev
         String getSettingsFile();
     }
 
-    public interface Result {
-    }
+    public interface Result {}
 
-    private EvaluateSettingsBuildOperationType(){}
+    private EvaluateSettingsBuildOperationType() {}
 }

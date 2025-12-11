@@ -16,6 +16,7 @@
 package org.gradle.testing.jacoco.tasks;
 
 import groovy.lang.Closure;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
@@ -30,8 +31,6 @@ import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
 
-import javax.inject.Inject;
-
 /**
  * Task to generate HTML, Xml and CSV reports of Jacoco coverage data.
  */
@@ -44,7 +43,9 @@ public abstract class JacocoReport extends JacocoReportBase implements Reporting
     public JacocoReport() {
         super();
         projectName.value(getProject().getName()).disallowChanges();
-        reports = getProject().getObjects().newInstance(JacocoReportsContainerImpl.class, Describables.quoted("Task", getIdentityPath()));
+        reports = getProject()
+                .getObjects()
+                .newInstance(JacocoReportsContainerImpl.class, Describables.quoted("Task", getIdentityPath()));
     }
 
     /**

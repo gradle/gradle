@@ -16,6 +16,4 @@
 
 package org.gradlebuild;
 
-public interface Interface {
-
-}
+public interface Interface {}

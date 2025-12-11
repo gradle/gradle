@@ -27,15 +27,22 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
     private final IvyArtifactName name;
     private final int hashCode;
 
-    public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension) {
+    public DefaultModuleComponentArtifactIdentifier(
+            ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension) {
         this(componentIdentifier, new DefaultIvyArtifactName(name, type, extension));
     }
 
-    public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension, @Nullable String classifier) {
+    public DefaultModuleComponentArtifactIdentifier(
+            ModuleComponentIdentifier componentIdentifier,
+            String name,
+            String type,
+            @Nullable String extension,
+            @Nullable String classifier) {
         this(componentIdentifier, new DefaultIvyArtifactName(name, type, extension, classifier));
     }
 
-    public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
+    public DefaultModuleComponentArtifactIdentifier(
+            ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
         this.componentIdentifier = componentIdentifier;
         this.name = artifact;
         this.hashCode = 31 * name.hashCode() + componentIdentifier.hashCode();
@@ -86,7 +93,6 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
             return false;
         }
         DefaultModuleComponentArtifactIdentifier other = (DefaultModuleComponentArtifactIdentifier) obj;
-        return other.componentIdentifier.equals(componentIdentifier)
-                && other.name.equals(name);
+        return other.componentIdentifier.equals(componentIdentifier) && other.name.equals(name);
     }
 }

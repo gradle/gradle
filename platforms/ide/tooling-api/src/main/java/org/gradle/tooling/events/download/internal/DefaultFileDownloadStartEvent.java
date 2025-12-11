@@ -21,7 +21,8 @@ import org.gradle.tooling.events.download.FileDownloadStartEvent;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
 
 public class DefaultFileDownloadStartEvent extends DefaultStartEvent implements FileDownloadStartEvent {
-    public DefaultFileDownloadStartEvent(long eventTime, String displayName, FileDownloadOperationDescriptor descriptor) {
+    public DefaultFileDownloadStartEvent(
+            long eventTime, String displayName, FileDownloadOperationDescriptor descriptor) {
         super(eventTime, displayName, descriptor);
     }
 

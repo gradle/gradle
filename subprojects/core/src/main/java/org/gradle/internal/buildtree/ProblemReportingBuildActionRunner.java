@@ -17,6 +17,10 @@
 package org.gradle.internal.buildtree;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.exception.ExceptionAnalyser;
@@ -25,11 +29,6 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
 public class ProblemReportingBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
     private final ExceptionAnalyser exceptionAnalyser;
@@ -37,11 +36,10 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
     private final List<? extends ProblemReporter> reporters;
 
     public ProblemReportingBuildActionRunner(
-        ExceptionAnalyser exceptionAnalyser,
-        BuildTreeLocations buildTreeLocations,
-        List<? extends ProblemReporter> reporters,
-        BuildActionRunner delegate
-    ) {
+            ExceptionAnalyser exceptionAnalyser,
+            BuildTreeLocations buildTreeLocations,
+            List<? extends ProblemReporter> reporters,
+            BuildActionRunner delegate) {
         this.delegate = delegate;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildTreeLocations = buildTreeLocations;
@@ -50,7 +48,8 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
 
     @Override
     public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
-        RootProjectBuildDirCollectingListener rootProjectBuildDirListener = getRootProjectBuildDirCollectingListener(buildController);
+        RootProjectBuildDirCollectingListener rootProjectBuildDirListener =
+                getRootProjectBuildDirCollectingListener(buildController);
         Result result = delegate.run(action, buildController);
 
         File rootProjectBuildDir = rootProjectBuildDirListener.rootProjectBuildDir;
@@ -71,10 +70,10 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
         return failures;
     }
 
-    private RootProjectBuildDirCollectingListener getRootProjectBuildDirCollectingListener(BuildTreeLifecycleController buildController) {
-        RootProjectBuildDirCollectingListener listener = new RootProjectBuildDirCollectingListener(
-            defaultRootBuildDirOf()
-        );
+    private RootProjectBuildDirCollectingListener getRootProjectBuildDirCollectingListener(
+            BuildTreeLifecycleController buildController) {
+        RootProjectBuildDirCollectingListener listener =
+                new RootProjectBuildDirCollectingListener(defaultRootBuildDirOf());
         buildController.beforeBuild(gradle -> gradle.addBuildListener(listener));
         return listener;
     }
@@ -92,7 +91,11 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
 
         @Override
         public void projectsEvaluated(Gradle gradle) {
-            rootProjectBuildDir = gradle.getRootProject().getLayout().getBuildDirectory().getAsFile().get();
+            rootProjectBuildDir = gradle.getRootProject()
+                    .getLayout()
+                    .getBuildDirectory()
+                    .getAsFile()
+                    .get();
         }
     }
 }

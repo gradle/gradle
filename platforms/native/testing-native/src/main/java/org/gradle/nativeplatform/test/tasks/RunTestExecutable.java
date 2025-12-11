@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.test.tasks;
 
+import java.io.File;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.AbstractExecTask;
 import org.gradle.api.tasks.Input;
@@ -24,8 +25,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.io.File;
 
 /**
  * Runs a compiled and installed test executable.
@@ -58,7 +57,6 @@ public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutab
         } catch (Exception e) {
             handleTestFailures(e);
         }
-
     }
 
     private void handleTestFailures(Exception e) {
@@ -103,5 +101,4 @@ public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutab
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
-
 }

@@ -16,10 +16,9 @@
 
 package org.gradle.api.cache;
 
+import java.io.File;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.cache.MarkingStrategyImpl;
-
-import java.io.File;
 
 /**
  * Represents a method of marking a cache directory. This is used to mark Gradle's cache directories.

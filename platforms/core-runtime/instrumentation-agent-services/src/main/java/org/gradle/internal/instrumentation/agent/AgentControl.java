@@ -16,13 +16,12 @@
 
 package org.gradle.internal.instrumentation.agent;
 
-import org.gradle.internal.UncheckedException;
-import org.jspecify.annotations.Nullable;
-import org.slf4j.LoggerFactory;
-
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides methods to interact with the Java agent shipped with Gradle. Because of the different class loaders, it is hard to query the Agent class directly.
@@ -54,7 +53,8 @@ class AgentControl {
     }
 
     public static boolean installTransformer(ClassFileTransformer transformer) {
-        Method installTransformer = findAgentMethod(INSTRUMENTATION_AGENT_CLASS_NAME, "installTransformer", ClassFileTransformer.class);
+        Method installTransformer =
+                findAgentMethod(INSTRUMENTATION_AGENT_CLASS_NAME, "installTransformer", ClassFileTransformer.class);
         if (installTransformer == null) {
             return false;
         }

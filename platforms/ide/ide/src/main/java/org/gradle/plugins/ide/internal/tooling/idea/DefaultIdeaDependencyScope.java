@@ -17,9 +17,8 @@
 package org.gradle.plugins.ide.internal.tooling.idea;
 
 import com.google.common.base.Objects;
-import org.gradle.tooling.model.idea.IdeaDependencyScope;
-
 import java.io.Serializable;
+import org.gradle.tooling.model.idea.IdeaDependencyScope;
 
 public class DefaultIdeaDependencyScope implements IdeaDependencyScope, Serializable {
 
@@ -36,9 +35,7 @@ public class DefaultIdeaDependencyScope implements IdeaDependencyScope, Serializ
 
     @Override
     public String toString() {
-        return "IdeaDependencyScope{"
-                + "scope='" + scope + '\''
-                + '}';
+        return "IdeaDependencyScope{" + "scope='" + scope + '\'' + '}';
     }
 
     @Override

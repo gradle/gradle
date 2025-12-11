@@ -24,12 +24,14 @@ import org.gradle.model.internal.type.ModelType;
  */
 public class ReadonlyImmutableManagedPropertyException extends GradleException {
 
-    public ReadonlyImmutableManagedPropertyException(ModelType<?> managedModelType, String name, ModelType<?> propertyType) {
+    public ReadonlyImmutableManagedPropertyException(
+            ModelType<?> managedModelType, String name, ModelType<?> propertyType) {
         super(toMessage(managedModelType, name, propertyType));
     }
 
     private static String toMessage(ModelType<?> managedModelType, String name, ModelType<?> propertyType) {
-        return String.format("Invalid managed model type '%s': read only property '%s' has non managed type %s, only managed types can be used", managedModelType, name, propertyType);
+        return String.format(
+                "Invalid managed model type '%s': read only property '%s' has non managed type %s, only managed types can be used",
+                managedModelType, name, propertyType);
     }
 }
-

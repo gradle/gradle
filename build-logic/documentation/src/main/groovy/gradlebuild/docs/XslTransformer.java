@@ -15,14 +15,14 @@
  */
 package gradlebuild.docs;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 public class XslTransformer {
     public static void main(String[] args) throws TransformerException, IOException {
@@ -45,7 +45,8 @@ public class XslTransformer {
         TransformerFactory factory = TransformerFactory.newInstance();
         Transformer transformer = factory.newTransformer(new StreamSource(stylesheet));
 
-        System.out.format("=> transformer %s (%s)%n", transformer, transformer.getClass().getName());
+        System.out.format(
+                "=> transformer %s (%s)%n", transformer, transformer.getClass().getName());
 
         if (destDir.length() > 0) {
             transformer.setParameter("base.dir", destDir + "/");

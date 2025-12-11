@@ -16,10 +16,9 @@
 
 package org.gradle.internal.resource;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.net.URI;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents the location or identity of a resource.

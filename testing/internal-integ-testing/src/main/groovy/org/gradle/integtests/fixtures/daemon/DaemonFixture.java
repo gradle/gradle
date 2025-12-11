@@ -16,9 +16,8 @@
 
 package org.gradle.integtests.fixtures.daemon;
 
-import org.gradle.launcher.daemon.context.DaemonContext;
-
 import java.io.File;
+import org.gradle.launcher.daemon.context.DaemonContext;
 
 public interface DaemonFixture {
     /**

@@ -16,6 +16,9 @@
 
 package org.gradle.model.internal.registry;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.model.internal.core.ModelNode;
@@ -25,17 +28,15 @@ import org.gradle.model.internal.report.unbound.UnboundRule;
 import org.gradle.model.internal.report.unbound.UnboundRuleInput;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 @ThreadSafe
 class UnboundRulesProcessor {
 
     private final Iterable<? extends RuleBinder> binders;
     private final Transformer<? extends Collection<? extends ModelPath>, ? super ModelPath> suggestionsProvider;
 
-    public UnboundRulesProcessor(Iterable<? extends RuleBinder> binders, Transformer<? extends Collection<? extends ModelPath>, ? super ModelPath> suggestionsProvider) {
+    public UnboundRulesProcessor(
+            Iterable<? extends RuleBinder> binders,
+            Transformer<? extends Collection<? extends ModelPath>, ? super ModelPath> suggestionsProvider) {
         this.binders = binders;
         this.suggestionsProvider = suggestionsProvider;
     }

@@ -44,5 +44,4 @@ public abstract class DistributionPlugin implements Plugin<Project> {
         DistributionContainer distributions = project.getExtensions().getByType(DistributionContainer.class);
         distributions.create(MAIN_DISTRIBUTION_NAME);
     }
-
 }

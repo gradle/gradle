@@ -17,11 +17,10 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.base.Objects;
+import java.util.List;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * An "object-like" macro #define whose body is an expression with arguments.
@@ -31,7 +30,8 @@ public class MacroWithComplexExpression extends AbstractMacro {
     private final String value;
     private final List<Expression> arguments;
 
-    public MacroWithComplexExpression(String name, IncludeType type, @Nullable String value, List<Expression> arguments) {
+    public MacroWithComplexExpression(
+            String name, IncludeType type, @Nullable String value, List<Expression> arguments) {
         super(name);
         this.type = type;
         this.value = value;

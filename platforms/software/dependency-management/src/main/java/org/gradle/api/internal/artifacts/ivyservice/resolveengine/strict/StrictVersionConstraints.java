@@ -17,13 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.Set;
-
 @NullMarked
-@SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+@SuppressWarnings(
+        "ReferenceEquality") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
 public class StrictVersionConstraints {
 
     public static final StrictVersionConstraints EMPTY = new StrictVersionConstraints(ImmutableSet.of()) {
@@ -94,7 +94,8 @@ public class StrictVersionConstraints {
         if (this.modules.equals(other.modules)) {
             return this;
         }
-        ImmutableSet.Builder<ModuleIdentifier> builder = ImmutableSet.builderWithExpectedSize(modules.size() + other.modules.size());
+        ImmutableSet.Builder<ModuleIdentifier> builder =
+                ImmutableSet.builderWithExpectedSize(modules.size() + other.modules.size());
         builder.addAll(modules);
         builder.addAll(other.modules);
         return of(builder.build());
@@ -159,5 +160,4 @@ public class StrictVersionConstraints {
     public int hashCode() {
         return modules.hashCode();
     }
-
 }

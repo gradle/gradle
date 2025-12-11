@@ -21,7 +21,8 @@ package org.gradle.tooling.internal.protocol.events;
  *
  * @since 2.4
  */
-public interface InternalTestFinishedProgressEvent extends InternalTestProgressEvent, InternalOperationFinishedProgressEvent {
+public interface InternalTestFinishedProgressEvent
+        extends InternalTestProgressEvent, InternalOperationFinishedProgressEvent {
     /**
      * Returns the result of running the test.
      *

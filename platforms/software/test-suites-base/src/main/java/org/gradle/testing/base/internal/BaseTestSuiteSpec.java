@@ -37,5 +37,4 @@ public class BaseTestSuiteSpec extends BaseComponentSpec implements TestSuiteSpe
     public void testing(ComponentSpec testedComponent) {
         this.testedComponent = testedComponent;
     }
-
 }

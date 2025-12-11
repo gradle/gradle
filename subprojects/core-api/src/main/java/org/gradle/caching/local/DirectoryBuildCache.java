@@ -20,7 +20,6 @@ import org.gradle.caching.configuration.AbstractBuildCache;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
-
 /**
  * Configuration object for the local directory build cache.
  *

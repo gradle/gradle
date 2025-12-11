@@ -17,10 +17,9 @@
 package org.gradle.internal.tools.api.impl;
 
 import com.google.common.collect.Ordering;
+import java.lang.reflect.Modifier;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Type;
-
-import java.lang.reflect.Modifier;
 
 public class FieldMember extends TypedMember implements Comparable<FieldMember> {
 
@@ -40,7 +39,8 @@ public class FieldMember extends TypedMember implements Comparable<FieldMember> 
     @Override
     public String toString() {
         return String.format(
-            "%s %s %s", Modifier.toString(getAccess()), Type.getType(getTypeDesc()).getClassName(), getName());
+                "%s %s %s",
+                Modifier.toString(getAccess()), Type.getType(getTypeDesc()).getClassName(), getName());
     }
 
     @Nullable

@@ -16,6 +16,9 @@
 
 package org.gradle.internal.isolated;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.util.Collection;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.model.ObjectFactory;
@@ -33,16 +36,13 @@ import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.process.ExecOperations;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.util.Collection;
-
 public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspection<INTERFACE, PARAMS> {
     private final Class<INTERFACE> interfaceType;
     private final Class<? extends PARAMS> noParamsType;
     private final TypeParameterInspection<INTERFACE, PARAMS> typeParameterInspection;
 
-    public IsolationScheme(Class<INTERFACE> interfaceType, Class<PARAMS> paramsType, Class<? extends PARAMS> noParamsType) {
+    public IsolationScheme(
+            Class<INTERFACE> interfaceType, Class<PARAMS> paramsType, Class<? extends PARAMS> noParamsType) {
         this.interfaceType = interfaceType;
         this.noParamsType = noParamsType;
         this.typeParameterInspection = new DefaultTypeParameterInspection<>(interfaceType, paramsType, noParamsType);
@@ -66,7 +66,8 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
      */
     @Override
     @Nullable
-    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType, int typeArgumentIndex) {
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(
+            Class<T> implementationType, int typeArgumentIndex) {
         return typeParameterInspection.parameterTypeFor(implementationType, typeArgumentIndex);
     }
 
@@ -74,11 +75,11 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
      * Returns the services available for injection into the implementation instance.
      */
     public ServiceLookup servicesForImplementation(
-        @Nullable PARAMS params,
-        ServiceLookup allServices,
-        Collection<? extends Class<?>> additionalWhiteListedServices
-    ) {
-        return new ServicesForIsolatedObject(interfaceType, noParamsType, params, allServices, additionalWhiteListedServices);
+            @Nullable PARAMS params,
+            ServiceLookup allServices,
+            Collection<? extends Class<?>> additionalWhiteListedServices) {
+        return new ServicesForIsolatedObject(
+                interfaceType, noParamsType, params, allServices, additionalWhiteListedServices);
     }
 
     private static class ServicesForIsolatedObject implements ServiceLookup {
@@ -89,12 +90,11 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
         private final @Nullable Object params;
 
         public ServicesForIsolatedObject(
-            Class<?> interfaceType,
-            Class<?> noParamsType,
-            @Nullable Object params,
-            ServiceLookup allServices,
-            Collection<? extends Class<?>> additionalWhiteListedServices
-        ) {
+                Class<?> interfaceType,
+                Class<?> noParamsType,
+                @Nullable Object params,
+                ServiceLookup allServices,
+                Collection<? extends Class<?>> additionalWhiteListedServices) {
             this.interfaceType = interfaceType;
             this.noParamsType = noParamsType;
             this.additionalWhiteListedServices = additionalWhiteListedServices;
@@ -111,7 +111,9 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
                     return params;
                 }
                 if (serviceClass.isAssignableFrom(noParamsType)) {
-                    throw new ServiceLookupException(String.format("Cannot query the parameters of an instance of %s that takes no parameters.", interfaceType.getSimpleName()));
+                    throw new ServiceLookupException(String.format(
+                            "Cannot query the parameters of an instance of %s that takes no parameters.",
+                            interfaceType.getSimpleName()));
                 }
                 if (serviceClass.isAssignableFrom(ExecOperations.class)) {
                     return allServices.find(ExecOperations.class);
@@ -156,7 +158,8 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
         }
 
         @Override
-        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith)
+                throws UnknownServiceException, ServiceLookupException {
             return notFound(serviceType);
         }
 

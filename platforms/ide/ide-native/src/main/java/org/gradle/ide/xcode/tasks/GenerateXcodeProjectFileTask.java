@@ -16,10 +16,23 @@
 
 package org.gradle.ide.xcode.tasks;
 
+import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
+import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList;
+
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSString;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
@@ -50,20 +63,6 @@ import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.plugins.ide.api.PropertyListGeneratorTask;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
-import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList;
-
 /**
  * Task for generating a Xcode project file (e.g. {@code Foo.xcodeproj/project.pbxproj}). A project contains all the elements used to build your products and maintains the relationships between those elements. It contains one or more targets, which specify how to build products. A project defines default build settings for all the targets in the project (each target can also specify its own build settings, which override the project build settings).
  *
@@ -91,38 +90,33 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
             List<BinarySpec> binaries = new ArrayList<>();
             for (XcodeBinary binary : target.getBinaries()) {
                 binaries.add(new BinarySpec(
-                    binary.getBuildConfigurationName(),
-                    binary.getArchitectureName(),
-                    binary.getOutputFile()
-                ));
+                        binary.getBuildConfigurationName(), binary.getArchitectureName(), binary.getOutputFile()));
             }
             targets.add(new TargetSpec(
-                target.getName(),
-                target.getId(),
-                target.isBuildable(),
-                target.isUnitTest(),
-                target.getSources(),
-                target.getCompileModules(),
-                target.getHeaderSearchPaths(),
-                target.getTaskName(),
-                target.getOutputFileType(),
-                target.getProductName(),
-                target.getProductType(),
-                target.getDebugOutputFile(),
-                target.getGradleCommand(),
-                target.getSwiftSourceCompatibility(),
-                binaries
-            ));
+                    target.getName(),
+                    target.getId(),
+                    target.isBuildable(),
+                    target.isUnitTest(),
+                    target.getSources(),
+                    target.getCompileModules(),
+                    target.getHeaderSearchPaths(),
+                    target.getTaskName(),
+                    target.getOutputFileType(),
+                    target.getProductName(),
+                    target.getProductType(),
+                    target.getDebugOutputFile(),
+                    target.getGradleCommand(),
+                    target.getSwiftSourceCompatibility(),
+                    binaries));
         }
 
         return new ProjectSpec(
-            getProject().getPath(),
-            xcodeProject.getGroups().getSources(),
-            xcodeProject.getGroups().getHeaders(),
-            xcodeProject.getGroups().getTests(),
-            xcodeProject.getGroups().getRoot(),
-            targets
-        );
+                getProject().getPath(),
+                xcodeProject.getGroups().getSources(),
+                xcodeProject.getGroups().getHeaders(),
+                xcodeProject.getGroups().getTests(),
+                xcodeProject.getGroups().getRoot(),
+                targets);
     }
 
     @Override
@@ -139,20 +133,28 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
             if (xcodeTarget.buildable) {
                 project.getTargets().add(toGradlePbxTarget(spec, xcodeTarget));
             } else {
-                getLogger().warn("'" + xcodeTarget.name + "' component in project '" + spec.projectPath + "' is not buildable.");
+                getLogger()
+                        .warn("'" + xcodeTarget.name + "' component in project '" + spec.projectPath
+                                + "' is not buildable.");
             }
             project.getTargets().add(toIndexPbxTarget(xcodeTarget));
 
             if (!xcodeTarget.unitTest && xcodeTarget.debugOutputFile.isPresent()) {
                 File debugOutputFile = xcodeTarget.debugOutputFile.get().getAsFile();
-                PBXFileReference fileReference = new PBXFileReference(debugOutputFile.getName(), debugOutputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
+                PBXFileReference fileReference = new PBXFileReference(
+                        debugOutputFile.getName(), debugOutputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
                 fileReference.setExplicitFileType(Optional.of(xcodeTarget.outputFileType));
-                project.getMainGroup().getOrCreateChildGroupByName(PRODUCTS_GROUP_NAME).getChildren().add(fileReference);
+                project.getMainGroup()
+                        .getOrCreateChildGroupByName(PRODUCTS_GROUP_NAME)
+                        .getChildren()
+                        .add(fileReference);
             }
         }
 
         // Create build configuration at the project level from all target's build configuration
-        project.getTargets().stream().flatMap(it -> it.getBuildConfigurationList().getBuildConfigurationsByName().asMap().keySet().stream()).forEach(project.getBuildConfigurationList().getBuildConfigurationsByName()::getUnchecked);
+        project.getTargets().stream()
+                .flatMap(it -> it.getBuildConfigurationList().getBuildConfigurationsByName().asMap().keySet().stream())
+                .forEach(project.getBuildConfigurationList().getBuildConfigurationsByName()::getUnchecked);
 
         XcodeprojSerializer serializer = new XcodeprojSerializer(gidGenerator, project);
         final NSDictionary rootObject = serializer.toPlist();
@@ -178,7 +180,10 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
     }
 
     private List<BinarySpec> getAllBinaries(ProjectSpec xcodeProject) {
-        return xcodeProject.targets.stream().map(it -> it.binaries).flatMap(Collection::stream).collect(Collectors.toList());
+        return xcodeProject.targets.stream()
+                .map(it -> it.binaries)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -205,17 +210,29 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
         target.setBuildArgumentsString(buildGradleArgs(xcodeTarget));
         target.setGlobalID(xcodeTarget.id);
         File outputFile = xcodeTarget.debugOutputFile.get().getAsFile();
-        target.setProductReference(new PBXFileReference(outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
+        target.setProductReference(new PBXFileReference(
+                outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
 
         xcodeTarget.binaries.forEach(xcodeBinary -> {
-            NSDictionary settings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(xcodeBinary.buildConfigurationName).getBuildSettings();
+            NSDictionary settings = target.getBuildConfigurationList()
+                    .getBuildConfigurationsByName()
+                    .getUnchecked(xcodeBinary.buildConfigurationName)
+                    .getBuildSettings();
 
             File binaryOutputFile = xcodeBinary.outputFile.get().getAsFile();
-            settings.put("CONFIGURATION_BUILD_DIR", new NSString(binaryOutputFile.getParentFile().getAbsolutePath()));
+            settings.put(
+                    "CONFIGURATION_BUILD_DIR",
+                    new NSString(binaryOutputFile.getParentFile().getAbsolutePath()));
             settings.put("PRODUCT_NAME", target.getProductName());
             settings.put("SWIFT_VERSION", toXcodeSwiftVersion(xcodeTarget.swiftSourceCompatibility));
             settings.put("ARCHS", toXcodeArchitecture(xcodeBinary.architectureName));
-            settings.put("VALID_ARCHS", xcodeTarget.binaries.stream().map(it -> it.architectureName).map(GenerateXcodeProjectFileTask::toXcodeArchitecture).distinct().collect(Collectors.joining(" ")));
+            settings.put(
+                    "VALID_ARCHS",
+                    xcodeTarget.binaries.stream()
+                            .map(it -> it.architectureName)
+                            .map(GenerateXcodeProjectFileTask::toXcodeArchitecture)
+                            .distinct()
+                            .collect(Collectors.joining(" ")));
         });
 
         return target;
@@ -229,20 +246,21 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
         PBXShellScriptBuildPhase hackBuildPhase = new PBXShellScriptBuildPhase();
         hackBuildPhase.setShellPath("/bin/sh");
         hackBuildPhase.setShellScript("# Script to generate specific Swift files Xcode expects when running tests.\n"
-            + "set -eu\n"
-            + "ARCH_ARRAY=($ARCHS)\n"
-            + "SUFFIXES=(swiftdoc swiftmodule h)\n"
-            + "for ARCH in \"${ARCH_ARRAY[@]}\"\n"
-            + "do\n"
-            + "  for SUFFIX in \"${SUFFIXES[@]}\"\n"
-            + "  do\n"
-            + "    touch \"$OBJECT_FILE_DIR_normal/$ARCH/$PRODUCT_NAME.$SUFFIX\"\n"
-            + "  done\n"
-            + "done");
+                + "set -eu\n"
+                + "ARCH_ARRAY=($ARCHS)\n"
+                + "SUFFIXES=(swiftdoc swiftmodule h)\n"
+                + "for ARCH in \"${ARCH_ARRAY[@]}\"\n"
+                + "do\n"
+                + "  for SUFFIX in \"${SUFFIXES[@]}\"\n"
+                + "  do\n"
+                + "    touch \"$OBJECT_FILE_DIR_normal/$ARCH/$PRODUCT_NAME.$SUFFIX\"\n"
+                + "  done\n"
+                + "done");
 
         PBXShellScriptBuildPhase gradleBuildPhase = new PBXShellScriptBuildPhase();
         gradleBuildPhase.setShellPath("/bin/sh");
-        gradleBuildPhase.setShellScript("exec \"" + xcodeTarget.gradleCommand + "\" " + buildGradleArgs(xcodeTarget) + " < /dev/null");
+        gradleBuildPhase.setShellScript(
+                "exec \"" + xcodeTarget.gradleCommand + "\" " + buildGradleArgs(xcodeTarget) + " < /dev/null");
 
         PBXNativeTarget target = new PBXNativeTarget(xcodeTarget.name, xcodeTarget.productType);
         target.setProductName(xcodeTarget.productName);
@@ -252,11 +270,17 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
         target.getBuildPhases().add(newSourceBuildPhase(xcodeTarget.sources));
         target.getBuildPhases().add(gradleBuildPhase);
         File outputFile = xcodeTarget.debugOutputFile.get().getAsFile();
-        target.setProductReference(new PBXFileReference(outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
+        target.setProductReference(new PBXFileReference(
+                outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
 
-        getAllBinaries(xcodeProject).stream().filter(it -> !Objects.equals(it.buildConfigurationName, TEST_DEBUG)).forEach(configureBuildSettings(xcodeTarget, target));
+        getAllBinaries(xcodeProject).stream()
+                .filter(it -> !Objects.equals(it.buildConfigurationName, TEST_DEBUG))
+                .forEach(configureBuildSettings(xcodeTarget, target));
 
-        NSDictionary testRunnerSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(TEST_DEBUG).getBuildSettings();
+        NSDictionary testRunnerSettings = target.getBuildConfigurationList()
+                .getBuildConfigurationsByName()
+                .getUnchecked(TEST_DEBUG)
+                .getBuildSettings();
 
         if (!xcodeTarget.compileModules.isEmpty()) {
             testRunnerSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(parentDirs(xcodeTarget.compileModules)));
@@ -274,7 +298,8 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
     }
 
     private PBXTarget toIndexPbxTarget(TargetSpec xcodeTarget) {
-        PBXNativeTarget target = new PBXNativeTarget("[INDEXING ONLY] " + xcodeTarget.name, PBXTarget.ProductType.INDEXER);
+        PBXNativeTarget target =
+                new PBXNativeTarget("[INDEXING ONLY] " + xcodeTarget.name, PBXTarget.ProductType.INDEXER);
         target.setProductName(xcodeTarget.productName);
         target.getBuildPhases().add(newSourceBuildPhase(xcodeTarget.sources));
 
@@ -283,7 +308,10 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
         // Create unbuildable build configuration so the indexer can keep functioning
         if (xcodeTarget.binaries.isEmpty()) {
             NSDictionary settings = newBuildSettings(xcodeTarget);
-            target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(UNBUILDABLE_BUILD_CONFIGURATION_NAME).setBuildSettings(settings);
+            target.getBuildConfigurationList()
+                    .getBuildConfigurationsByName()
+                    .getUnchecked(UNBUILDABLE_BUILD_CONFIGURATION_NAME)
+                    .setBuildSettings(settings);
         }
 
         return target;
@@ -293,8 +321,16 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
         return xcodeBinary -> {
             NSDictionary settings = newBuildSettings(xcodeTarget);
             settings.put("ARCHS", toXcodeArchitecture(xcodeBinary.architectureName));
-            settings.put("VALID_ARCHS", xcodeTarget.binaries.stream().map(it -> GenerateXcodeProjectFileTask.toXcodeArchitecture(it.architectureName)).distinct().collect(Collectors.joining(" ")));
-            target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(xcodeBinary.buildConfigurationName).setBuildSettings(settings);
+            settings.put(
+                    "VALID_ARCHS",
+                    xcodeTarget.binaries.stream()
+                            .map(it -> GenerateXcodeProjectFileTask.toXcodeArchitecture(it.architectureName))
+                            .distinct()
+                            .collect(Collectors.joining(" ")));
+            target.getBuildConfigurationList()
+                    .getBuildConfigurationsByName()
+                    .getUnchecked(xcodeBinary.buildConfigurationName)
+                    .setBuildSettings(settings);
         };
     }
 
@@ -310,7 +346,7 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
     private NSDictionary newBuildSettings(TargetSpec xcodeTarget) {
         NSDictionary result = new NSDictionary();
         result.put("SWIFT_VERSION", toXcodeSwiftVersion(xcodeTarget.swiftSourceCompatibility));
-        result.put("PRODUCT_NAME", xcodeTarget.productName);  // Mandatory
+        result.put("PRODUCT_NAME", xcodeTarget.productName); // Mandatory
 
         if (!xcodeTarget.headerSearchPaths.isEmpty()) {
             result.put("HEADER_SEARCH_PATHS", toSpaceSeparatedList(xcodeTarget.headerSearchPaths));
@@ -368,10 +404,9 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
         final Provider<? extends FileSystemLocation> outputFile;
 
         public BinarySpec(
-            String buildConfigurationName,
-            String architectureName,
-            Provider<? extends FileSystemLocation> outputFile
-        ) {
+                String buildConfigurationName,
+                String architectureName,
+                Provider<? extends FileSystemLocation> outputFile) {
             this.buildConfigurationName = buildConfigurationName;
             this.architectureName = architectureName;
             this.outputFile = outputFile;
@@ -396,22 +431,21 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
         final List<BinarySpec> binaries;
 
         public TargetSpec(
-            String name,
-            String id,
-            boolean buildable,
-            boolean unitTest,
-            FileCollection sources,
-            FileCollection compileModules,
-            FileCollection headerSearchPaths,
-            String taskName,
-            String outputFileType,
-            String productName,
-            PBXTarget.ProductType productType,
-            Provider<? extends FileSystemLocation> debugOutputFile,
-            String gradleCommand,
-            Provider<SwiftVersion> swiftSourceCompatibility,
-            List<BinarySpec> binaries
-        ) {
+                String name,
+                String id,
+                boolean buildable,
+                boolean unitTest,
+                FileCollection sources,
+                FileCollection compileModules,
+                FileCollection headerSearchPaths,
+                String taskName,
+                String outputFileType,
+                String productName,
+                PBXTarget.ProductType productType,
+                Provider<? extends FileSystemLocation> debugOutputFile,
+                String gradleCommand,
+                Provider<SwiftVersion> swiftSourceCompatibility,
+                List<BinarySpec> binaries) {
             this.name = name;
             this.id = id;
             this.buildable = buildable;
@@ -438,7 +472,13 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
         final FileCollection root;
         final List<TargetSpec> targets;
 
-        public ProjectSpec(String projectPath, FileCollection sources, FileCollection headers, FileCollection tests, FileCollection root, List<TargetSpec> targets) {
+        public ProjectSpec(
+                String projectPath,
+                FileCollection sources,
+                FileCollection headers,
+                FileCollection tests,
+                FileCollection root,
+                List<TargetSpec> targets) {
             this.projectPath = projectPath;
             this.sources = sources;
             this.headers = headers;

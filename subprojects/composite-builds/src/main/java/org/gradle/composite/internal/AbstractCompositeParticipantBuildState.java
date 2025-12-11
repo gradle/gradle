@@ -16,6 +16,8 @@
 
 package org.gradle.composite.internal;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildDefinition;
@@ -32,16 +34,15 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-public abstract class AbstractCompositeParticipantBuildState extends AbstractBuildState implements CompositeBuildParticipantBuildState {
+public abstract class AbstractCompositeParticipantBuildState extends AbstractBuildState
+        implements CompositeBuildParticipantBuildState {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCompositeParticipantBuildState.class);
 
     private @Nullable Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
-    public AbstractCompositeParticipantBuildState(BuildTreeState buildTree, BuildDefinition buildDefinition, @Nullable BuildState parent) {
+    public AbstractCompositeParticipantBuildState(
+            BuildTreeState buildTree, BuildDefinition buildDefinition, @Nullable BuildState parent) {
         super(buildTree, buildDefinition, parent);
     }
 
@@ -62,13 +63,12 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
     }
 
     private static void registerProject(
-        Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules,
-        ProjectInternal project
-    ) {
+            Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules, ProjectInternal project) {
         ProjectComponentIdentifier projectIdentifier = project.getOwner().getComponentIdentifier();
-        ModuleVersionIdentifier moduleId = DefaultModuleVersionIdentifier.newId(project.getServices().get(DependencyMetaDataProvider.class).getModule());
-        LOGGER.info("Registering {} in composite build. Will substitute for module '{}'.", project, moduleId.getModule());
+        ModuleVersionIdentifier moduleId = DefaultModuleVersionIdentifier.newId(
+                project.getServices().get(DependencyMetaDataProvider.class).getModule());
+        LOGGER.info(
+                "Registering {} in composite build. Will substitute for module '{}'.", project, moduleId.getModule());
         availableModules.add(Pair.of(moduleId, projectIdentifier));
     }
-
 }

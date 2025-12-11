@@ -23,5 +23,10 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Build.class)
 public interface ScriptPluginFactory {
-    ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript);
+    ScriptPlugin create(
+            ScriptSource scriptSource,
+            ScriptHandler scriptHandler,
+            ClassLoaderScope targetScope,
+            ClassLoaderScope baseScope,
+            boolean topLevelScript);
 }

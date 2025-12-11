@@ -16,9 +16,8 @@
 
 package org.gradle.api.tasks.testing.source;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
+import org.gradle.api.Incubating;
 
 /**
  * Filesystem-based test source.

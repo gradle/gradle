@@ -27,7 +27,9 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
 
     @Override
     public void prepareSettings(GradleInternal gradle) {
-        SettingsLoader settingsLoader = gradle.isRootBuild() ? settingsLoaderFactory.forTopLevelBuild() : settingsLoaderFactory.forNestedBuild();
+        SettingsLoader settingsLoader = gradle.isRootBuild()
+                ? settingsLoaderFactory.forTopLevelBuild()
+                : settingsLoaderFactory.forNestedBuild();
         settingsLoader.findAndLoadSettings(gradle);
     }
 }

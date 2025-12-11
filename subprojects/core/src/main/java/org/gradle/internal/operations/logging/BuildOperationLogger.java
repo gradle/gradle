@@ -18,8 +18,12 @@ package org.gradle.internal.operations.logging;
 
 public interface BuildOperationLogger {
     void start();
+
     void operationSuccess(String description, String output);
+
     void operationFailed(String description, String output);
+
     void done();
+
     String getLogLocation();
 }

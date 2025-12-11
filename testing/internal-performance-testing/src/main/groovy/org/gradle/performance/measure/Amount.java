@@ -15,14 +15,13 @@
  */
 package org.gradle.performance.measure;
 
-import org.jspecify.annotations.Nullable;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Locale;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An amount is an immutable value of some quantity, such as duration or length. Each amount has a decimal value and associated units.
@@ -91,7 +90,7 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
     private String doFormat() {
         List<Units<Q>> allUnits = units.getUnitsForQuantity();
         BigDecimal base = normalised.abs();
-        for (int i = allUnits.size()-1; i >= 0; i--) {
+        for (int i = allUnits.size() - 1; i >= 0; i--) {
             Units<Q> candidate = allUnits.get(i);
             if (base.compareTo(candidate.getFactor()) >= 0) {
                 BigDecimal scaled = units.scaleTo(value, candidate);
@@ -183,6 +182,7 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
     public Amount<Q> div(long other) {
         return div(BigDecimal.valueOf(other));
     }
+
     public Amount<Q> div(BigDecimal other) {
         return new Amount<>(value.divide(other, 6, RoundingMode.HALF_UP), units);
     }

@@ -15,13 +15,12 @@
  */
 package org.gradle.api.artifacts;
 
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
 import org.gradle.plugin.use.PluginDependency;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Provides access to a version catalog. Unlike generated extension

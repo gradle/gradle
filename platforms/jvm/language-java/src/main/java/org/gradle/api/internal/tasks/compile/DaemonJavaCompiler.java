@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
@@ -30,17 +33,18 @@ import org.gradle.workers.internal.DaemonForkOptionsBuilder;
 import org.gradle.workers.internal.FlatClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.Set;
-
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
     private final JavaHomeBasedJavaCompilerFactory javaCompilerFactory;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
     private final ClassPathRegistry classPathRegistry;
 
-    public DaemonJavaCompiler(File daemonWorkingDir, JavaHomeBasedJavaCompilerFactory javaCompilerFactory, CompilerWorkerExecutor compilerWorkerExecutor, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry) {
+    public DaemonJavaCompiler(
+            File daemonWorkingDir,
+            JavaHomeBasedJavaCompilerFactory javaCompilerFactory,
+            CompilerWorkerExecutor compilerWorkerExecutor,
+            JavaForkOptionsFactory forkOptionsFactory,
+            ClassPathRegistry classPathRegistry) {
         super(compilerWorkerExecutor);
         this.javaCompilerFactory = javaCompilerFactory;
         this.forkOptionsFactory = forkOptionsFactory;
@@ -50,7 +54,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
 
     @Override
     protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(JavaCompileSpec spec) {
-        return new JavaCompilerParameters(JdkJavaCompiler.class.getName(), new Object[]{javaCompilerFactory}, spec);
+        return new JavaCompilerParameters(JdkJavaCompiler.class.getName(), new Object[] {javaCompilerFactory}, spec);
     }
 
     @Override
@@ -61,13 +65,17 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
     @Override
     protected DaemonForkOptions toDaemonForkOptions(JavaCompileSpec spec) {
         if (!(spec instanceof ForkingJavaCompileSpec)) {
-            throw new IllegalArgumentException(String.format("Expected a %s, but got %s", ForkingJavaCompileSpec.class.getSimpleName(), spec.getClass().getSimpleName()));
+            throw new IllegalArgumentException(String.format(
+                    "Expected a %s, but got %s",
+                    ForkingJavaCompileSpec.class.getSimpleName(),
+                    spec.getClass().getSimpleName()));
         }
         ForkingJavaCompileSpec forkingSpec = (ForkingJavaCompileSpec) spec;
 
         JavaInfo jvm = Jvm.forHome(((ForkingJavaCompileSpec) spec).getJavaHome());
 
-        MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        MinimalJavaCompilerDaemonForkOptions forkOptions =
+                spec.getCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(forkOptions);
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(jvm.getJavaExecutable());
@@ -76,11 +84,11 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
 
         JavaLanguageVersion javaLanguageVersion = JavaLanguageVersion.of(forkingSpec.getJavaLanguageVersion());
         if (javaLanguageVersion.canCompileOrRun(9)) {
-            // In JDK 9 and above the compiler internal classes are bundled with the rest of the JDK, but we need to export it to gain access.
+            // In JDK 9 and above the compiler internal classes are bundled with the rest of the JDK, but we need to
+            // export it to gain access.
             javaForkOptions.jvmArgs(
-                "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-                "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
-            );
+                    "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+                    "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED");
         } else {
             // In JDK 8 and below, the compiler internal classes are in tools.jar.
             File toolsJar = jvm.getToolsJar();
@@ -88,23 +96,23 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
                 throw new IllegalStateException("Could not find tools.jar in " + jvm.getJavaHome());
             }
 
-            compilerClasspath = compilerClasspath.plus(
-                Collections.singletonList(toolsJar)
-            );
+            compilerClasspath = compilerClasspath.plus(Collections.singletonList(toolsJar));
         }
 
-        FlatClassLoaderStructure classLoaderStructure = new FlatClassLoaderStructure(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
+        FlatClassLoaderStructure classLoaderStructure = new FlatClassLoaderStructure(
+                new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
-            .javaForkOptions(javaForkOptions)
-            .withClassLoaderStructure(classLoaderStructure)
-            .keepAliveMode(KeepAliveMode.DAEMON)
-            .build();
+                .javaForkOptions(javaForkOptions)
+                .withClassLoaderStructure(classLoaderStructure)
+                .keepAliveMode(KeepAliveMode.DAEMON)
+                .build();
     }
 
     public static class JavaCompilerParameters extends CompilerWorkerExecutor.CompilerParameters {
         private final JavaCompileSpec compileSpec;
 
-        public JavaCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, JavaCompileSpec compileSpec) {
+        public JavaCompilerParameters(
+                String compilerClassName, Object[] compilerInstanceParameters, JavaCompileSpec compileSpec) {
             super(compilerClassName, compilerInstanceParameters);
             this.compileSpec = compileSpec;
         }

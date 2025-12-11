@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import java.util.List;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphValidationException;
 import org.gradle.internal.exceptions.ResolutionProvider;
-
-import java.util.List;
 
 public class VersionConflictException extends GraphValidationException implements ResolutionProvider {
 
@@ -36,12 +35,14 @@ public class VersionConflictException extends GraphValidationException implement
         String conflictDescription = getConflictDescription(conflict);
         ModuleIdentifier moduleId = conflict.getModuleId();
 
-        return "Conflict found for module '" + moduleId.getGroup() + ":" + moduleId.getName() + "': " + conflictDescription;
+        return "Conflict found for module '" + moduleId.getGroup() + ":" + moduleId.getName() + "': "
+                + conflictDescription;
     }
 
     private static String getConflictDescription(Conflict conflict) {
         String conflictDescription = null;
-        for (ComponentSelectionDescriptor description : conflict.getSelectionReason().getDescriptions()) {
+        for (ComponentSelectionDescriptor description :
+                conflict.getSelectionReason().getDescriptions()) {
             if (description.getCause().equals(ComponentSelectionCause.CONFLICT_RESOLUTION)) {
                 conflictDescription = description.getDescription();
             }
@@ -54,5 +55,4 @@ public class VersionConflictException extends GraphValidationException implement
     public List<String> getResolutions() {
         return resolutions;
     }
-
 }

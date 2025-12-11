@@ -15,6 +15,10 @@
  */
 package org.gradle.api.plugins.quality;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
+
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ProjectLayout;
@@ -32,11 +36,6 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
-
-import javax.inject.Inject;
-import java.io.File;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * CodeNarc Plugin.
@@ -61,7 +60,7 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     }
 
     @Inject
-    abstract protected JavaToolchainService getToolchainService();
+    protected abstract JavaToolchainService getToolchainService();
 
     @Override
     protected Class<? extends Plugin<?>> getBasePlugin() {
@@ -72,7 +71,9 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("codenarc", CodeNarcExtension.class, project);
         extension.setToolVersion(DEFAULT_CODENARC_VERSION);
-        extension.setConfig(project.getResources().getText().fromFile(getRootProjectDirectory().file(DEFAULT_CONFIG_FILE_PATH)));
+        extension.setConfig(project.getResources()
+                .getText()
+                .fromFile(getRootProjectDirectory().file(DEFAULT_CONFIG_FILE_PATH)));
         extension.setMaxPriority1Violations(0);
         extension.setMaxPriority2Violations(0);
         extension.setMaxPriority3Violations(0);
@@ -100,9 +101,8 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
-        configuration.defaultDependencies(dependencies ->
-            dependencies.add(project.getDependencies().create("org.codenarc:CodeNarc:" + extension.getToolVersion()))
-        );
+        configuration.defaultDependencies(dependencies -> dependencies.add(
+                project.getDependencies().create("org.codenarc:CodeNarc:" + extension.getToolVersion())));
     }
 
     private void configureTaskConventionMapping(Configuration configuration, CodeNarc task) {
@@ -121,7 +121,8 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         Provider<String> reportFormat = providers.provider(() -> extension.getReportFormat());
         Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
         task.getReports().all(action(report -> {
-            report.getRequired().convention(providers.provider(() -> report.getName().equals(reportFormat.get())));
+            report.getRequired()
+                    .convention(providers.provider(() -> report.getName().equals(reportFormat.get())));
             report.getOutputLocation().convention(layout.getProjectDirectory().file(providers.provider(() -> {
                 String fileSuffix = report.getName().equals("text") ? "txt" : report.getName();
                 return new File(reportsDir.get().getAsFile(), baseName + "." + fileSuffix).getAbsolutePath();
@@ -130,18 +131,20 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     }
 
     private void configureToolchains(CodeNarc task) {
-        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(project.getObjects().newInstance(CurrentJvmToolchainSpec.class));
+        Provider<JavaLauncher> javaLauncherProvider =
+                getToolchainService().launcherFor(project.getObjects().newInstance(CurrentJvmToolchainSpec.class));
         task.getJavaLauncher().convention(javaLauncherProvider);
         project.getPluginManager().withPlugin("java-base", p -> {
             JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
-            task.getJavaLauncher().convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
+            task.getJavaLauncher()
+                    .convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
         });
     }
 
     @Override
     protected void configureForSourceSet(final SourceSet sourceSet, CodeNarc task) {
         task.setDescription("Run CodeNarc analysis for " + sourceSet.getName() + " classes");
-        SourceDirectorySet groovySourceSet =  sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
+        SourceDirectorySet groovySourceSet = sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
         task.setSource(groovySourceSet.matching(filter -> filter.include("**/*.groovy")));
         task.getConventionMapping().map("compilationClasspath", sourceSet::getCompileClasspath);
     }

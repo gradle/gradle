@@ -16,6 +16,11 @@
 
 package org.gradle.buildconfiguration.tasks;
 
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.problems.ProblemId;
@@ -39,12 +44,6 @@ import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  * Generates or updates the Gradle Daemon JVM criteria.
  *
@@ -60,7 +59,10 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      *
      * @since 8.13
      */
-    public static final ProblemId TASK_CONFIGURATION_PROBLEM_ID = ProblemId.create("task-configuration", "Invalid task configuration", GradleCoreProblemGroup.daemonToolchain().configurationGeneration());
+    public static final ProblemId TASK_CONFIGURATION_PROBLEM_ID = ProblemId.create(
+            "task-configuration",
+            "Invalid task configuration",
+            GradleCoreProblemGroup.daemonToolchain().configurationGeneration());
 
     private final DaemonJvmPropertiesModifier daemonJvmPropertiesModifier;
 
@@ -78,17 +80,18 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     void generate() {
         final String jvmVendorCriteria;
         if (getVendor().isPresent()) {
-            jvmVendorCriteria = getVendor().map(v -> ((DefaultJvmVendorSpec)v).toCriteria()).get();
+            jvmVendorCriteria = getVendor()
+                    .map(v -> ((DefaultJvmVendorSpec) v).toCriteria())
+                    .get();
         } else {
             jvmVendorCriteria = null; // any vendor is acceptable
         }
         daemonJvmPropertiesModifier.updateJvmCriteria(
-            getPropertiesFile().get().getAsFile(),
-            getLanguageVersion().get(),
-            jvmVendorCriteria,
-            getNativeImageCapable().getOrElse(false),
-            getToolchainDownloadUrls().get()
-        );
+                getPropertiesFile().get().getAsFile(),
+                getLanguageVersion().get(),
+                jvmVendorCriteria,
+                getNativeImageCapable().getOrElse(false),
+                getToolchainDownloadUrls().get());
     }
 
     /**
@@ -131,7 +134,10 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      */
     @OptionValues("jvm-vendor")
     public List<String> getAvailableVendors() {
-        return Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e!=JvmVendor.KnownJvmVendor.UNKNOWN).map(Enum::name).collect(Collectors.toList());
+        return Arrays.stream(JvmVendor.KnownJvmVendor.values())
+                .filter(e -> e != JvmVendor.KnownJvmVendor.UNKNOWN)
+                .map(Enum::name)
+                .collect(Collectors.toList());
     }
 
     /**

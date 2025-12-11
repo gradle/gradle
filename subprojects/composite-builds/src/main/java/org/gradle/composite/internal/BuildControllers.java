@@ -15,10 +15,9 @@
  */
 package org.gradle.composite.internal;
 
+import java.io.Closeable;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
-
-import java.io.Closeable;
 
 interface BuildControllers extends Closeable {
     /**

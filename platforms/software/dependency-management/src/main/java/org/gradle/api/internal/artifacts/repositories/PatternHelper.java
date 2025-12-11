@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.core.IvyPatternHelper;
+import static org.apache.ivy.util.StringUtils.isNullOrEmpty;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.apache.ivy.util.StringUtils.isNullOrEmpty;
+import org.apache.ivy.core.IvyPatternHelper;
 
 /**
  * Utility methods originally used directly from {@link IvyPatternHelper}, but
@@ -56,8 +55,7 @@ public class PatternHelper {
         if (tokens.containsKey(ORGANISATION_KEY) && !tokens.containsKey(ORGANISATION_KEY2)) {
             tokens.put(ORGANISATION_KEY2, tokens.get(ORGANISATION_KEY));
         }
-        if (tokens.containsKey(ORGANISATION_KEY)
-            && !tokens.containsKey(ORGANISATION_PATH_KEY)) {
+        if (tokens.containsKey(ORGANISATION_KEY) && !tokens.containsKey(ORGANISATION_PATH_KEY)) {
             String org = (String) tokens.get(ORGANISATION_KEY);
             tokens.put(ORGANISATION_PATH_KEY, org == null ? "" : org.replace('.', '/'));
         }
@@ -77,8 +75,7 @@ public class PatternHelper {
                 case '(':
                     if (insideOptionalPart) {
                         throw new IllegalArgumentException(
-                            "invalid start of optional part at position " + i + " in pattern "
-                                + pattern);
+                                "invalid start of optional part at position " + i + " in pattern " + pattern);
                     }
 
                     optionalPart = new StringBuilder();
@@ -89,8 +86,7 @@ public class PatternHelper {
                 case ')':
                     if (!insideOptionalPart || insideToken) {
                         throw new IllegalArgumentException(
-                            "invalid end of optional part at position " + i + " in pattern "
-                                + pattern);
+                                "invalid end of optional part at position " + i + " in pattern " + pattern);
                     }
 
                     if (tokenHadValue) {
@@ -102,8 +98,8 @@ public class PatternHelper {
                     break;
                 case '[':
                     if (insideToken) {
-                        throw new IllegalArgumentException("invalid start of token at position "
-                            + i + " in pattern " + pattern);
+                        throw new IllegalArgumentException(
+                                "invalid start of token at position " + i + " in pattern " + pattern);
                     }
 
                     tokenBuffer = new StringBuilder();
@@ -111,8 +107,8 @@ public class PatternHelper {
                     break;
                 case ']':
                     if (!insideToken) {
-                        throw new IllegalArgumentException("invalid end of token at position " + i
-                            + " in pattern " + pattern);
+                        throw new IllegalArgumentException(
+                                "invalid end of token at position " + i + " in pattern " + pattern);
                     }
 
                     String token = tokenBuffer.toString();
@@ -143,13 +139,11 @@ public class PatternHelper {
         }
 
         if (insideToken) {
-            throw new IllegalArgumentException("last token hasn't been closed in pattern "
-                + pattern);
+            throw new IllegalArgumentException("last token hasn't been closed in pattern " + pattern);
         }
 
         if (insideOptionalPart) {
-            throw new IllegalArgumentException("optional part hasn't been closed in pattern "
-                + pattern);
+            throw new IllegalArgumentException("optional part hasn't been closed in pattern " + pattern);
         }
 
         return buffer.toString();
@@ -162,5 +156,4 @@ public class PatternHelper {
     public static String getTokenString(String token) {
         return "[" + token + "]";
     }
-
 }

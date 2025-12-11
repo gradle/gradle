@@ -16,6 +16,8 @@
 package org.gradle.api.plugins.quality;
 
 import groovy.lang.Closure;
+import java.io.File;
+import java.util.stream.Collectors;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -36,9 +38,6 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
-
-import java.io.File;
-import java.util.stream.Collectors;
 
 /**
  * Runs CodeNarc against some source files.
@@ -62,7 +61,8 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
 
     public CodeNarc() {
         super();
-        reports = getObjectFactory().newInstance(CodeNarcReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
+        reports = getObjectFactory()
+                .newInstance(CodeNarcReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
         compilationClasspath = getProject().files();
         // Set default JavaLauncher to current JVM in case
         // CodeNarcPlugin that sets Java launcher convention is not applied
@@ -107,12 +107,17 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
         parameters.getMaxPriority1Violations().set(getMaxPriority1Violations());
         parameters.getMaxPriority2Violations().set(getMaxPriority2Violations());
         parameters.getMaxPriority3Violations().set(getMaxPriority3Violations());
-        parameters.getEnabledReports().set(getReports().getEnabled().stream().map(report -> {
-            CodeNarcActionParameters.EnabledReport newReport = getObjectFactory().newInstance(CodeNarcActionParameters.EnabledReport.class);
-            newReport.getName().set(report.getName());
-            newReport.getOutputLocation().set(report.getOutputLocation());
-            return newReport;
-        }).collect(Collectors.toList()));
+        parameters
+                .getEnabledReports()
+                .set(getReports().getEnabled().stream()
+                        .map(report -> {
+                            CodeNarcActionParameters.EnabledReport newReport =
+                                    getObjectFactory().newInstance(CodeNarcActionParameters.EnabledReport.class);
+                            newReport.getName().set(report.getName());
+                            newReport.getOutputLocation().set(report.getOutputLocation());
+                            return newReport;
+                        })
+                        .collect(Collectors.toList()));
         parameters.getIgnoreFailures().set(getIgnoreFailures());
         parameters.getSource().setFrom(getSource());
     }
@@ -245,5 +250,4 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
     public CodeNarcReports getReports() {
         return reports;
     }
-
 }

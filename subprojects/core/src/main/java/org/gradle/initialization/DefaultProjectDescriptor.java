@@ -16,6 +16,9 @@
 package org.gradle.initialization;
 
 import com.google.common.base.Objects;
+import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
@@ -30,18 +33,18 @@ import org.gradle.util.Path;
 import org.gradle.util.internal.NameValidator;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
-    public static final String INVALID_NAME_IN_INCLUDE_HINT = "Set the 'rootProject.name' or adjust the 'include' statement (see "
-        + new DocumentationRegistry().getDslRefForProperty(Settings.class, "include(java.lang.String[])") + " for more details).";
+    public static final String INVALID_NAME_IN_INCLUDE_HINT =
+            "Set the 'rootProject.name' or adjust the 'include' statement (see "
+                    + new DocumentationRegistry().getDslRefForProperty(Settings.class, "include(java.lang.String[])")
+                    + " for more details).";
 
     public static final String BUILD_SCRIPT_BASENAME = BuildLogicFiles.BUILD_FILE_BASENAME;
 
     private String name;
-    private boolean nameExplicitlySet; // project name explicitly specified in the build script (as opposed to derived from the containing folder)
+    private boolean
+            nameExplicitlySet; // project name explicitly specified in the build script (as opposed to derived from the
+    // containing folder)
     private final PathToFileResolver fileResolver;
     private final ScriptFileResolver scriptFileResolver;
     private File dir;
@@ -53,26 +56,28 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
     private String buildFileName;
 
     public DefaultProjectDescriptor(
-        @Nullable ProjectDescriptorInternal parent, String name, File dir,
-        ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver
-    ) {
+            @Nullable ProjectDescriptorInternal parent,
+            String name,
+            File dir,
+            ProjectDescriptorRegistry projectDescriptorRegistry,
+            PathToFileResolver fileResolver) {
         this(parent, name, dir, projectDescriptorRegistry, fileResolver, null);
     }
 
     public DefaultProjectDescriptor(
-        @Nullable ProjectDescriptorInternal parent, String name, File dir,
-        ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,
-        @Nullable ScriptFileResolver scriptFileResolver
-    ) {
+            @Nullable ProjectDescriptorInternal parent,
+            String name,
+            File dir,
+            ProjectDescriptorRegistry projectDescriptorRegistry,
+            PathToFileResolver fileResolver,
+            @Nullable ScriptFileResolver scriptFileResolver) {
         this.parent = parent;
         this.name = name;
         this.fileResolver = fileResolver;
         this.dir = dir;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.path = path(name);
-        this.scriptFileResolver = scriptFileResolver != null
-            ? scriptFileResolver
-            : new DefaultScriptFileResolver();
+        this.scriptFileResolver = scriptFileResolver != null ? scriptFileResolver : new DefaultScriptFileResolver();
 
         projectDescriptorRegistry.addProject(this);
         if (parent != null) {
@@ -104,8 +109,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
 
     @Override
     public void setName(String name) {
-        NameValidator.validate(name, "project name",
-            INVALID_NAME_IN_INCLUDE_HINT);
+        NameValidator.validate(name, "project name", INVALID_NAME_IN_INCLUDE_HINT);
         projectDescriptorRegistry.changeDescriptorPath(path, path(name));
         this.name = name;
         this.nameExplicitlySet = true;
@@ -200,8 +204,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
 
         DefaultProjectDescriptor that = (DefaultProjectDescriptor) o;
 
-        return Objects.equal(this.getParent(), that.getParent())
-            && Objects.equal(this.getName(), that.getName());
+        return Objects.equal(this.getParent(), that.getParent()) && Objects.equal(this.getName(), that.getName());
     }
 
     @Override

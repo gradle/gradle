@@ -16,9 +16,8 @@
 
 package org.gradle.platform.base.internal.builder;
 
-import org.gradle.platform.base.TypeBuilder;
-
 import java.util.Set;
+import org.gradle.platform.base.TypeBuilder;
 
 public interface TypeBuilderInternal<T> extends TypeBuilder<T> {
     Class<?> getDefaultImplementation();

@@ -16,7 +16,10 @@
 
 package org.gradle.wrapper;
 
-import org.gradle.internal.file.locking.ExclusiveFileAccessManager;
+import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static org.gradle.internal.file.PathTraversalChecker.safePathName;
+import static org.gradle.wrapper.Download.safeUri;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -38,11 +41,7 @@ import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
-
-import static java.lang.String.format;
-import static java.util.Collections.emptyList;
-import static org.gradle.internal.file.PathTraversalChecker.safePathName;
-import static org.gradle.wrapper.Download.safeUri;
+import org.gradle.internal.file.locking.ExclusiveFileAccessManager;
 
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
@@ -82,7 +81,8 @@ public class Install {
 
                 fetchDistribution(localZipFile, distributionUrl, distDir, configuration);
 
-                InstallCheck installCheck = verifyDistributionRoot(distDir, safeUri(distributionUrl).toASCIIString());
+                InstallCheck installCheck =
+                        verifyDistributionRoot(distDir, safeUri(distributionUrl).toASCIIString());
                 if (installCheck.isVerified()) {
                     setExecutablePermissions(installCheck.gradleHome);
                     markerFile.createNewFile();
@@ -95,7 +95,8 @@ public class Install {
         });
     }
 
-    private void fetchDistribution(File localZipFile, URI distributionUrl, File distDir, WrapperConfiguration configuration) throws Exception {
+    private void fetchDistribution(
+            File localZipFile, URI distributionUrl, File distDir, WrapperConfiguration configuration) throws Exception {
         String distributionSha256Sum = configuration.getDistributionSha256Sum();
         boolean failed = false;
         int retries = RETRIES;
@@ -108,7 +109,8 @@ public class Install {
 
                 deleteLocalTopLevelDirs(distDir);
 
-                verifyDownloadChecksum(configuration.getDistribution().toASCIIString(), localZipFile, distributionSha256Sum);
+                verifyDownloadChecksum(
+                        configuration.getDistribution().toASCIIString(), localZipFile, distributionSha256Sum);
 
                 unzipLocal(localZipFile, distDir);
                 failed = false;
@@ -118,13 +120,13 @@ public class Install {
                 }
                 failed = true;
                 retries--;
-                if(retries <= 0){
-                    throw new RuntimeException("Downloaded distribution file " + localZipFile + " is no valid zip file.");
+                if (retries <= 0) {
+                    throw new RuntimeException(
+                            "Downloaded distribution file " + localZipFile + " is no valid zip file.");
                 }
             }
         } while (failed);
     }
-
 
     private String fetchDistributionSha256Sum(WrapperConfiguration configuration, File localZipFile) {
         URI distribution = configuration.getDistribution();
@@ -171,7 +173,7 @@ public class Install {
 
         logger.log("Downloading " + safeUri(distributionUrl));
         download.download(distributionUrl, tempDownloadFile);
-        if(localTargetFile.exists()) {
+        if (localTargetFile.exists()) {
             localTargetFile.delete();
         }
         tempDownloadFile.renameTo(localTargetFile);
@@ -209,15 +211,21 @@ public class Install {
     private InstallCheck verifyDistributionRoot(File distDir, String distributionDescription) {
         List<File> dirs = listDirs(distDir);
         if (dirs.isEmpty()) {
-            return InstallCheck.failure(format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.", distributionDescription));
+            return InstallCheck.failure(format(
+                    "Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.",
+                    distributionDescription));
         }
         if (dirs.size() != 1) {
-            return InstallCheck.failure(format("Gradle distribution '%s' contains too many directories. Expected to find exactly 1 directory.", distributionDescription));
+            return InstallCheck.failure(format(
+                    "Gradle distribution '%s' contains too many directories. Expected to find exactly 1 directory.",
+                    distributionDescription));
         }
 
         File gradleHome = dirs.get(0);
         if (BootstrapMainStarter.findLauncherJar(gradleHome) == null) {
-            return InstallCheck.failure(format("Gradle distribution '%s' does not appear to contain a Gradle distribution.", distributionDescription));
+            return InstallCheck.failure(format(
+                    "Gradle distribution '%s' does not appear to contain a Gradle distribution.",
+                    distributionDescription));
         }
         return InstallCheck.success(gradleHome);
     }
@@ -233,17 +241,17 @@ public class Install {
         }
 
         localZipFile.delete();
-        String message = format("Verification of Gradle distribution failed!%n" +
-                "%n" +
-                "Your Gradle distribution may have been tampered with.%n" +
-                "Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.%n" +
-                "%n" +
-                "Distribution Url: %s%n" +
-                "Download Location: %s%n" +
-                "Expected checksum: '%s'%n" +
-                "Actual checksum:   '%s'%n" +
-                "Visit https://gradle.org/release-checksums/ to verify the checksums of official distributions. If your build uses a custom distribution, see with its provider.",
-            sourceUrl, localZipFile.getAbsolutePath(), expectedSum, actualSum);
+        String message = format(
+                "Verification of Gradle distribution failed!%n" + "%n"
+                        + "Your Gradle distribution may have been tampered with.%n"
+                        + "Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.%n"
+                        + "%n"
+                        + "Distribution Url: %s%n"
+                        + "Download Location: %s%n"
+                        + "Expected checksum: '%s'%n"
+                        + "Actual checksum:   '%s'%n"
+                        + "Visit https://gradle.org/release-checksums/ to verify the checksums of official distributions. If your build uses a custom distribution, see with its provider.",
+                sourceUrl, localZipFile.getAbsolutePath(), expectedSum, actualSum);
         throw new RuntimeException(message);
     }
 
@@ -376,5 +384,4 @@ public class Install {
             return gradleHome != null;
         }
     }
-
 }

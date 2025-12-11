@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import java.util.Map;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
 import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
@@ -23,22 +24,22 @@ import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 
-import java.util.Map;
-
 @SuppressWarnings("NewMethodNamingConvention")
-@SpecificJvmCallInterceptors(generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS)
-@SpecificGroovyCallInterceptors(generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS)
+@SpecificJvmCallInterceptors(
+        generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS)
+@SpecificGroovyCallInterceptors(
+        generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS)
 public class BasicCallInterceptionTestInterceptorsDeclaration {
     public static final String TEST_GENERATED_CLASSES_PACKAGE = "test.gradle.internal.classpath";
-    public static final String JVM_BYTECODE_GENERATED_CLASS = TEST_GENERATED_CLASSES_PACKAGE + ".Test_interceptors_jvmbytecode_generated";
-    public static final String GROOVY_GENERATED_CLASS = TEST_GENERATED_CLASSES_PACKAGE + ".Test_interceptors_groovy_generated";
+    public static final String JVM_BYTECODE_GENERATED_CLASS =
+            TEST_GENERATED_CLASSES_PACKAGE + ".Test_interceptors_jvmbytecode_generated";
+    public static final String GROOVY_GENERATED_CLASS =
+            TEST_GENERATED_CLASSES_PACKAGE + ".Test_interceptors_groovy_generated";
 
     @InterceptCalls
     @CallableKind.InstanceMethod
     public static void intercept_test(
-        @ParameterKind.Receiver InterceptorTestReceiver self,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver InterceptorTestReceiver self, @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "test()";
         self.test();
     }
@@ -46,10 +47,9 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
     @InterceptCalls
     @CallableKind.InstanceMethod
     public static void intercept_test(
-        @ParameterKind.Receiver InterceptorTestReceiver self,
-        InterceptorTestReceiver arg0,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver InterceptorTestReceiver self,
+            InterceptorTestReceiver arg0,
+            @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "test(InterceptorTestReceiver)";
         self.test(arg0);
     }
@@ -57,10 +57,9 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
     @InterceptCalls
     @CallableKind.InstanceMethod
     public static void intercept_testVararg(
-        @ParameterKind.Receiver InterceptorTestReceiver self,
-        @ParameterKind.VarargParameter Object[] arg,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver InterceptorTestReceiver self,
+            @ParameterKind.VarargParameter Object[] arg,
+            @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "testVararg(Object...)";
         self.testVararg(arg);
     }
@@ -68,19 +67,16 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
     @InterceptCalls
     @CallableKind.InstanceMethod
     public static void intercept_nonExistent(
-        @ParameterKind.Receiver InterceptorTestReceiver self,
-        String parameter,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver InterceptorTestReceiver self,
+            String parameter,
+            @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "nonExistent(String)-non-existent";
     }
 
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertyGetter
     public static String intercept_testString(
-        @ParameterKind.Receiver InterceptorTestReceiver self,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver InterceptorTestReceiver self, @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "getTestString()";
         return self.getTestString() + "-intercepted";
     }
@@ -88,10 +84,9 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertySetter
     public static void intercept_testString(
-        @ParameterKind.Receiver InterceptorTestReceiver self,
-        String newValue,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver InterceptorTestReceiver self,
+            String newValue,
+            @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "setTestString(String)";
         self.setTestString(newValue);
     }
@@ -99,9 +94,7 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertyGetter
     public static boolean intercept_testFlag(
-        @ParameterKind.Receiver InterceptorTestReceiver self,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver InterceptorTestReceiver self, @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "isTestFlag()";
         return self.isTestFlag();
     }
@@ -109,19 +102,16 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertySetter
     public static void intercept_testFlag(
-        @ParameterKind.Receiver InterceptorTestReceiver self,
-        boolean newValue,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver InterceptorTestReceiver self,
+            boolean newValue,
+            @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "setTestFlag(boolean)";
         self.setTestFlag(newValue);
     }
 
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertyGetter
-    public static String intercept_nonExistentProperty(
-        @ParameterKind.Receiver InterceptorTestReceiver self
-    ) {
+    public static String intercept_nonExistentProperty(@ParameterKind.Receiver InterceptorTestReceiver self) {
         self.intercepted = "getNonExistentProperty()-non-existent";
         return "nonExistent";
     }
@@ -129,9 +119,7 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertySetter
     public static void intercept_nonExistentProperty(
-        @ParameterKind.Receiver InterceptorTestReceiver self,
-        String value
-    ) {
+            @ParameterKind.Receiver InterceptorTestReceiver self, String value) {
         self.intercepted = "setNonExistentProperty(String)-non-existent";
     }
 
@@ -139,8 +127,7 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertyGetter
     public static String intercept_richProperty(
-        @ParameterKind.Receiver InterceptorTestReceiver.ControllingObject self
-    ) {
+            @ParameterKind.Receiver InterceptorTestReceiver.ControllingObject self) {
         self.intercepted = "getRichProperty()";
         return "richProperty";
     }
@@ -149,9 +136,7 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertySetter
     public static void intercept_richProperty(
-        @ParameterKind.Receiver InterceptorTestReceiver.ControllingObject self,
-        Map<String, String> newValue
-    ) {
+            @ParameterKind.Receiver InterceptorTestReceiver.ControllingObject self, Map<String, String> newValue) {
         self.intercepted = "setRichProperty(Map<String, String>)";
         self.getRichProperty().set(newValue);
     }

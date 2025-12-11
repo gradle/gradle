@@ -73,5 +73,4 @@ public interface MavenPomDeveloper {
      * The properties of this developer.
      */
     MapProperty<String, String> getProperties();
-
 }

@@ -17,35 +17,33 @@
 package org.gradle.internal.typeconversion;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.Cast;
-import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.file.PathToFileResolver;
-
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import org.gradle.internal.Cast;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.file.PathToFileResolver;
 
 public class DefaultTypeConverter implements TypeConverter {
     private static final Map<Class<?>, Class<?>> UNBOXED_TYPES = ImmutableMap.<Class<?>, Class<?>>builder()
-        .put(Byte.class, byte.class)
-        .put(Short.class, short.class)
-        .put(Integer.class, int.class)
-        .put(Boolean.class, boolean.class)
-        .put(Float.class, float.class)
-        .put(Character.class, char.class)
-        .put(Double.class, double.class)
-        .put(Long.class, long.class)
-        .build();
+            .put(Byte.class, byte.class)
+            .put(Short.class, short.class)
+            .put(Integer.class, int.class)
+            .put(Boolean.class, boolean.class)
+            .put(Float.class, float.class)
+            .put(Character.class, char.class)
+            .put(Double.class, double.class)
+            .put(Long.class, long.class)
+            .build();
     private final Map<Class<?>, NotationParser<Object, ?>> parsers = new HashMap<>();
 
     private static <T> NotationParser<Object, T> build(NotationConverter<Object, T> converter, Class<T> type) {
-        return NotationParserBuilder
-            .toType(type)
-            .noImplicitConverters()
-            .converter(converter)
-            .toComposite();
+        return NotationParserBuilder.toType(type)
+                .noImplicitConverters()
+                .converter(converter)
+                .toComposite();
     }
 
     private <T> void registerConverter(NotationConverter<Object, T> converter, Class<T> type) {
@@ -98,8 +96,13 @@ public class DefaultTypeConverter implements TypeConverter {
 
     private static class StringConverter implements NotationConverter<Object, String> {
         @Override
-        public void convert(Object notation, NotationConvertResult<? super String> result) throws TypeConversionException {
-            if (notation instanceof CharSequence || notation instanceof Number || notation instanceof Boolean || notation instanceof Character || notation instanceof File) {
+        public void convert(Object notation, NotationConvertResult<? super String> result)
+                throws TypeConversionException {
+            if (notation instanceof CharSequence
+                    || notation instanceof Number
+                    || notation instanceof Boolean
+                    || notation instanceof Character
+                    || notation instanceof File) {
                 result.converted(notation.toString());
             }
         }
@@ -132,15 +135,15 @@ public class DefaultTypeConverter implements TypeConverter {
                 try {
                     convertNumberToNumber(new BigDecimal(notation.toString().trim()), result);
                 } catch (ArithmeticException | NumberFormatException e) {
-                    throw new TypeConversionException(String.format("Cannot convert value '%s' to type %s",
-                        notation, type.getSimpleName()), e);
+                    throw new TypeConversionException(
+                            String.format("Cannot convert value '%s' to type %s", notation, type.getSimpleName()), e);
                 }
             } else if (notation instanceof Number) {
                 try {
                     convertNumberToNumber(toBigDecimal((Number) notation), result);
                 } catch (ArithmeticException e) {
-                    throw new TypeConversionException(String.format("Cannot convert value '%s' to type %s",
-                        notation, type.getSimpleName()), e);
+                    throw new TypeConversionException(
+                            String.format("Cannot convert value '%s' to type %s", notation, type.getSimpleName()), e);
                 }
             }
         }
@@ -165,12 +168,15 @@ public class DefaultTypeConverter implements TypeConverter {
     }
 
     public DefaultTypeConverter(final PathToFileResolver fileResolver) {
-        registerConverter(new CharSequenceNotationConverter<Object, File>(new CharSequenceConverter<File>(File.class) {
-            @Override
-            public void convert(String notation, NotationConvertResult<? super File> result) throws TypeConversionException {
-                result.converted(fileResolver.resolve(notation));
-            }
-        }), File.class);
+        registerConverter(
+                new CharSequenceNotationConverter<Object, File>(new CharSequenceConverter<File>(File.class) {
+                    @Override
+                    public void convert(String notation, NotationConvertResult<? super File> result)
+                            throws TypeConversionException {
+                        result.converted(fileResolver.resolve(notation));
+                    }
+                }),
+                File.class);
         registerConverters();
     }
 
@@ -197,8 +203,7 @@ public class DefaultTypeConverter implements TypeConverter {
     }
 
     private <T extends Enum<T>> T convertEnum(Class<T> type, Object notation) {
-        return NotationParserBuilder
-                .toType(type)
+        return NotationParserBuilder.toType(type)
                 .noImplicitConverters()
                 .fromCharSequence(new EnumFromCharSequenceNotationParser<T>(type))
                 .toComposite()
@@ -299,7 +304,8 @@ public class DefaultTypeConverter implements TypeConverter {
         }
 
         @Override
-        public void convert(String notation, NotationConvertResult<? super Boolean> result) throws TypeConversionException {
+        public void convert(String notation, NotationConvertResult<? super Boolean> result)
+                throws TypeConversionException {
             result.converted("true".equals(notation));
         }
     }
@@ -313,9 +319,11 @@ public class DefaultTypeConverter implements TypeConverter {
         }
 
         @Override
-        public void convert(String notation, NotationConvertResult<? super Character> result) throws TypeConversionException {
+        public void convert(String notation, NotationConvertResult<? super Character> result)
+                throws TypeConversionException {
             if (notation.length() != 1) {
-                throw new TypeConversionException(String.format("Cannot convert string value '%s' with length %d to type %s",
+                throw new TypeConversionException(String.format(
+                        "Cannot convert string value '%s' with length %d to type %s",
                         notation, notation.length(), target.getSimpleName()));
             }
 

@@ -16,7 +16,16 @@
 
 package org.gradle.launcher.daemon.server.health;
 
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.IMMEDIATE_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.highestPriorityOf;
+
 import com.google.common.base.Joiner;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -28,16 +37,6 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE;
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE;
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.IMMEDIATE_EXPIRE;
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.highestPriorityOf;
 
 /**
  * A {@link DaemonExpirationStrategy} which monitors daemon health and expires the daemon
@@ -73,6 +72,7 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
      * memory condition persists.
      */
     private DaemonExpirationStatus mostSevereStatus = DO_NOT_EXPIRE;
+
     private final Lock statusLock = new ReentrantLock();
 
     private final DaemonHealthStats stats;
@@ -91,7 +91,8 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
 
     @Override
     public DaemonExpirationResult checkExpiration() {
-        // We cannot check this in the constructor since system properties are copied to the daemon after initialization.
+        // We cannot check this in the constructor since system properties are copied to the daemon after
+        // initialization.
         if (!Boolean.parseBoolean(System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true"))) {
             return DaemonExpirationResult.NOT_TRIGGERED;
         }
@@ -100,9 +101,9 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
         List<String> reasons = new ArrayList<>();
 
         GarbageCollectionStats heapStats = stats.getHeapStats();
-        if (heapStats.isValid() && heapStats.getEventCount() >= 5
-            && strategy.isAboveHeapUsageThreshold(heapStats.getUsedPercent())
-        ) {
+        if (heapStats.isValid()
+                && heapStats.getEventCount() >= 5
+                && strategy.isAboveHeapUsageThreshold(heapStats.getUsedPercent())) {
             if (strategy.isAboveGcThrashingThreshold(heapStats.getGcRate())) {
                 reasons.add("since the JVM garbage collector is thrashing");
                 expirationStatus = highestPriorityOf(IMMEDIATE_EXPIRE, expirationStatus);
@@ -113,9 +114,9 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
         }
 
         GarbageCollectionStats nonHeapStats = stats.getNonHeapStats();
-        if (nonHeapStats.isValid() && nonHeapStats.getEventCount() >= 5
-            && strategy.isAboveNonHeapUsageThreshold(nonHeapStats.getUsedPercent())
-        ) {
+        if (nonHeapStats.isValid()
+                && nonHeapStats.getEventCount() >= 5
+                && strategy.isAboveNonHeapUsageThreshold(nonHeapStats.getUsedPercent())) {
             reasons.add("after running out of JVM Metaspace");
             expirationStatus = highestPriorityOf(GRACEFUL_EXPIRE, expirationStatus);
         }
@@ -131,20 +132,26 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
 
             String when = expirationStatus == GRACEFUL_EXPIRE ? "after the build" : "immediately";
             String extraInfo = expirationStatus == GRACEFUL_EXPIRE
-                ? "The daemon will restart for the next build, which may increase subsequent build times"
-                : "The memory settings for this project must be adjusted to avoid this failure";
+                    ? "The daemon will restart for the next build, which may increase subsequent build times"
+                    : "The memory settings for this project must be adjusted to avoid this failure";
 
             String maxHeap = heapStats.isValid() ? NumberUtil.formatBytes(heapStats.getMaxSizeInBytes()) : "unknown";
-            String maxMetaspace = nonHeapStats.isValid() ? NumberUtil.formatBytes(nonHeapStats.getMaxSizeInBytes()) : "unknown";
-            String url = new DocumentationRegistry().getDocumentationRecommendationFor("information on how to set these values", "build_environment", "sec:configuring_jvm_memory");
+            String maxMetaspace =
+                    nonHeapStats.isValid() ? NumberUtil.formatBytes(nonHeapStats.getMaxSizeInBytes()) : "unknown";
+            String url = new DocumentationRegistry()
+                    .getDocumentationRecommendationFor(
+                            "information on how to set these values",
+                            "build_environment",
+                            "sec:configuring_jvm_memory");
 
             logger.warn(EXPIRE_DAEMON_MESSAGE + when + " " + reason + ".\n"
-                + "The project memory settings are likely not configured or are configured to an insufficient value.\n"
-                + extraInfo + ".\n"
-                + "These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.\n"
-                + "The currently configured max heap space is '" + maxHeap + "' and the configured max metaspace is '" + maxMetaspace + "'.\n"
-                + url + "\n"
-                + "To disable this warning, set '" + DISABLE_PERFORMANCE_LOGGING + "=true'.");
+                    + "The project memory settings are likely not configured or are configured to an insufficient value.\n"
+                    + extraInfo + ".\n"
+                    + "These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.\n"
+                    + "The currently configured max heap space is '" + maxHeap
+                    + "' and the configured max metaspace is '" + maxMetaspace + "'.\n"
+                    + url + "\n"
+                    + "To disable this warning, set '" + DISABLE_PERFORMANCE_LOGGING + "=true'.");
         }
 
         logger.debug("Daemon health: {}", stats.getHealthInfo());
@@ -166,5 +173,4 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
             statusLock.unlock();
         }
     }
-
 }

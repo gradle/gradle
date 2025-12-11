@@ -16,8 +16,13 @@
 
 package org.gradle.model.internal.inspect;
 
+import static org.gradle.model.internal.core.ModelViews.getInstance;
+import static org.gradle.model.internal.core.NodeInitializerContext.forProperty;
+
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.api.Named;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.typeconversion.TypeConverter;
@@ -30,12 +35,6 @@ import org.gradle.model.internal.manage.projection.ManagedModelProjection;
 import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.gradle.model.internal.core.ModelViews.getInstance;
-import static org.gradle.model.internal.core.NodeInitializerContext.forProperty;
-
 public class StructNodeInitializer<T> implements NodeInitializer {
 
     protected final StructBindings<T> bindings;
@@ -45,55 +44,65 @@ public class StructNodeInitializer<T> implements NodeInitializer {
     }
 
     @Override
-    public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+    public Multimap<ModelActionRole, ModelAction> getActions(
+            ModelReference<?> subject, ModelRuleDescriptor descriptor) {
         return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
-            .put(ModelActionRole.Discover, DirectNodeInputUsingModelAction.of(subject, descriptor,
-                Arrays.<ModelReference<?>>asList(
-                    ModelReference.of(ManagedProxyFactory.class),
-                    ModelReference.of(TypeConverter.class)
-                ),
-                new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                    @Override
-                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                        ManagedProxyFactory proxyFactory = getInstance(modelViews.get(0), ManagedProxyFactory.class);
-                        TypeConverter typeConverter = getInstance(modelViews, 1, TypeConverter.class);
-                        for (StructSchema<?> viewSchema : bindings.getDeclaredViewSchemas()) {
-                            addProjection(modelNode, viewSchema, proxyFactory, typeConverter);
-                        }
-                        modelNode.addProjection(new ModelElementProjection(bindings.getPublicSchema().getType()));
-                    }
-                }
-            ))
-            .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
-                Arrays.<ModelReference<?>>asList(
-                    ModelReference.of(ModelSchemaStore.class),
-                    ModelReference.of(NodeInitializerRegistry.class)
-                ),
-                new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                    @Override
-                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                        ModelSchemaStore schemaStore = getInstance(modelViews, 0, ModelSchemaStore.class);
-                        NodeInitializerRegistry nodeInitializerRegistry = getInstance(modelViews, 1, NodeInitializerRegistry.class);
+                .put(
+                        ModelActionRole.Discover,
+                        DirectNodeInputUsingModelAction.of(
+                                subject,
+                                descriptor,
+                                Arrays.<ModelReference<?>>asList(
+                                        ModelReference.of(ManagedProxyFactory.class),
+                                        ModelReference.of(TypeConverter.class)),
+                                new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                                    @Override
+                                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
+                                        ManagedProxyFactory proxyFactory =
+                                                getInstance(modelViews.get(0), ManagedProxyFactory.class);
+                                        TypeConverter typeConverter = getInstance(modelViews, 1, TypeConverter.class);
+                                        for (StructSchema<?> viewSchema : bindings.getDeclaredViewSchemas()) {
+                                            addProjection(modelNode, viewSchema, proxyFactory, typeConverter);
+                                        }
+                                        modelNode.addProjection(new ModelElementProjection(
+                                                bindings.getPublicSchema().getType()));
+                                    }
+                                }))
+                .put(
+                        ModelActionRole.Create,
+                        DirectNodeInputUsingModelAction.of(
+                                subject,
+                                descriptor,
+                                Arrays.<ModelReference<?>>asList(
+                                        ModelReference.of(ModelSchemaStore.class),
+                                        ModelReference.of(NodeInitializerRegistry.class)),
+                                new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                                    @Override
+                                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
+                                        ModelSchemaStore schemaStore =
+                                                getInstance(modelViews, 0, ModelSchemaStore.class);
+                                        NodeInitializerRegistry nodeInitializerRegistry =
+                                                getInstance(modelViews, 1, NodeInitializerRegistry.class);
 
-                        addPropertyLinks(modelNode, schemaStore, nodeInitializerRegistry);
-                        initializePrivateData(modelNode);
-                    }
-                }
-            ))
-            .build();
+                                        addPropertyLinks(modelNode, schemaStore, nodeInitializerRegistry);
+                                        initializePrivateData(modelNode);
+                                    }
+                                }))
+                .build();
     }
 
-    protected void initializePrivateData(MutableModelNode modelNode) {
-    }
+    protected void initializePrivateData(MutableModelNode modelNode) {}
 
-    private <V> void addProjection(MutableModelNode modelNode, StructSchema<V> viewSchema, ManagedProxyFactory proxyFactory, TypeConverter typeConverter) {
+    private <V> void addProjection(
+            MutableModelNode modelNode,
+            StructSchema<V> viewSchema,
+            ManagedProxyFactory proxyFactory,
+            TypeConverter typeConverter) {
         modelNode.addProjection(new ManagedModelProjection<V>(viewSchema, bindings, proxyFactory, typeConverter));
     }
 
-    private void addPropertyLinks(MutableModelNode modelNode,
-                                  ModelSchemaStore schemaStore,
-                                  NodeInitializerRegistry nodeInitializerRegistry
-    ) {
+    private void addPropertyLinks(
+            MutableModelNode modelNode, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
         for (ManagedProperty<?> property : bindings.getManagedProperties().values()) {
             addPropertyLink(modelNode, property, schemaStore, nodeInitializerRegistry);
         }
@@ -105,16 +114,17 @@ public class StructNodeInitializer<T> implements NodeInitializer {
                 if (nameLink == null) {
                     throw new IllegalStateException("expected name node for " + modelNode.getPath());
                 }
-                nameLink.setPrivateData(ModelType.of(String.class), modelNode.getPath().getName());
+                nameLink.setPrivateData(
+                        ModelType.of(String.class), modelNode.getPath().getName());
             }
         }
     }
 
-    private <P> void addPropertyLink(MutableModelNode modelNode,
-                                     ManagedProperty<P> property,
-                                     ModelSchemaStore schemaStore,
-                                     NodeInitializerRegistry nodeInitializerRegistry
-    ) {
+    private <P> void addPropertyLink(
+            MutableModelNode modelNode,
+            ManagedProperty<P> property,
+            ModelSchemaStore schemaStore,
+            NodeInitializerRegistry nodeInitializerRegistry) {
         ModelType<P> propertyType = property.getType();
         ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
         ModelType<T> publicType = bindings.getPublicSchema().getType();
@@ -124,7 +134,8 @@ public class StructNodeInitializer<T> implements NodeInitializer {
         ModelPath childPath = modelNode.getPath().child(property.getName());
         if (propertySchema instanceof ManagedImplSchema) {
             if (!property.isWritable() || propertySchema instanceof ScalarCollectionSchema) {
-                ModelRegistrations.Builder builder = managedRegistrationBuilder(childPath, property, nodeInitializerRegistry, publicType);
+                ModelRegistrations.Builder builder =
+                        managedRegistrationBuilder(childPath, property, nodeInitializerRegistry, publicType);
                 addLink(modelNode, builder, property.isInternal());
             } else {
                 // A nullable reference
@@ -133,7 +144,8 @@ public class StructNodeInitializer<T> implements NodeInitializer {
         } else {
             ModelRegistrations.Builder registrationBuilder;
             if (shouldHaveANodeInitializer(property, propertySchema)) {
-                registrationBuilder = managedRegistrationBuilder(childPath, property, nodeInitializerRegistry, publicType);
+                registrationBuilder =
+                        managedRegistrationBuilder(childPath, property, nodeInitializerRegistry, publicType);
             } else {
                 registrationBuilder = ModelRegistrations.of(childPath);
             }
@@ -143,38 +155,48 @@ public class StructNodeInitializer<T> implements NodeInitializer {
         }
     }
 
-    private static <P> ModelRegistrations.Builder managedRegistrationBuilder(ModelPath childPath, ManagedProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry, ModelType<?> publicType) {
-        return ModelRegistrations.of(childPath, nodeInitializerRegistry.getNodeInitializer(forProperty(property.getType(), property, publicType)));
+    private static <P> ModelRegistrations.Builder managedRegistrationBuilder(
+            ModelPath childPath,
+            ManagedProperty<P> property,
+            NodeInitializerRegistry nodeInitializerRegistry,
+            ModelType<?> publicType) {
+        return ModelRegistrations.of(
+                childPath,
+                nodeInitializerRegistry.getNodeInitializer(forProperty(property.getType(), property, publicType)));
     }
 
     private void addLink(MutableModelNode modelNode, ModelRegistrations.Builder builder, boolean internal) {
-        ModelRegistration registration = builder
-            .descriptor(modelNode.getDescriptor())
-            .hidden(internal)
-            .build();
+        ModelRegistration registration =
+                builder.descriptor(modelNode.getDescriptor()).hidden(internal).build();
         modelNode.addLink(registration);
     }
 
-    private <P> void validateProperty(ModelSchema<P> propertySchema, ManagedProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry) {
+    private <P> void validateProperty(
+            ModelSchema<P> propertySchema,
+            ManagedProperty<P> property,
+            NodeInitializerRegistry nodeInitializerRegistry) {
         if (propertySchema instanceof ManagedImplSchema) {
             if (!property.isWritable()) {
                 if (isCollectionOfManagedTypes(propertySchema)) {
                     CollectionSchema<P, ?> propertyCollectionsSchema = (CollectionSchema<P, ?>) propertySchema;
                     ModelType<?> elementType = propertyCollectionsSchema.getElementType();
-                    nodeInitializerRegistry.ensureHasInitializer(forProperty(elementType, property, bindings.getPublicSchema().getType()));
+                    nodeInitializerRegistry.ensureHasInitializer(forProperty(
+                            elementType, property, bindings.getPublicSchema().getType()));
                 }
                 if (property.isDeclaredAsHavingUnmanagedType()) {
                     throw new UnmanagedPropertyMissingSetterException(property.getName());
                 }
             }
-        } else if (!shouldHaveANodeInitializer(property, propertySchema) && !property.isWritable() && !isNamePropertyOfANamedType(property)) {
-            throw new ReadonlyImmutableManagedPropertyException(bindings.getPublicSchema().getType(), property.getName(), property.getType());
+        } else if (!shouldHaveANodeInitializer(property, propertySchema)
+                && !property.isWritable()
+                && !isNamePropertyOfANamedType(property)) {
+            throw new ReadonlyImmutableManagedPropertyException(
+                    bindings.getPublicSchema().getType(), property.getName(), property.getType());
         }
     }
 
     private <P> boolean isCollectionOfManagedTypes(ModelSchema<P> propertySchema) {
-        return propertySchema instanceof CollectionSchema
-                && !(propertySchema instanceof ScalarCollectionSchema);
+        return propertySchema instanceof CollectionSchema && !(propertySchema instanceof ScalarCollectionSchema);
     }
 
     private <P> boolean isNamePropertyOfANamedType(ManagedProperty<P> property) {

@@ -16,9 +16,8 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
-import org.gradle.platform.BuildPlatform;
-
 import java.util.Map;
+import org.gradle.platform.BuildPlatform;
 
 public class ToolchainDownloadUrlProvider {
 

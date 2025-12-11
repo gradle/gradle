@@ -23,13 +23,16 @@ import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultPublicationContainer extends DefaultPolymorphicDomainObjectContainer<Publication> implements PublicationContainer {
-    public DefaultPublicationContainer(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+public class DefaultPublicationContainer extends DefaultPolymorphicDomainObjectContainer<Publication>
+        implements PublicationContainer {
+    public DefaultPublicationContainer(
+            Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(Publication.class, instantiator, instantiator, collectionCallbackActionDecorator);
     }
 
     @Override
     protected void handleAttemptToAddItemWithNonUniqueName(Publication o) {
-        throw new InvalidUserDataException(String.format("Publication with name '%s' added multiple times", o.getName()));
+        throw new InvalidUserDataException(
+                String.format("Publication with name '%s' added multiple times", o.getName()));
     }
 }

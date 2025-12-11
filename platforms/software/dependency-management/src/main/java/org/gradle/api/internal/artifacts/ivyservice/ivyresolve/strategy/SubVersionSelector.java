@@ -54,5 +54,4 @@ public class SubVersionSelector extends AbstractStringVersionSelector {
     public boolean canShortCircuitWhenVersionAlreadyPreselected() {
         return false;
     }
-
 }

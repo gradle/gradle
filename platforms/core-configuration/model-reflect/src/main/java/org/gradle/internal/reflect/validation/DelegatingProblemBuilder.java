@@ -116,7 +116,8 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public <U extends AdditionalDataSpec> InternalProblemBuilder additionalDataInternal(Class<? extends U> specType, Action<? super U> config) {
+    public <U extends AdditionalDataSpec> InternalProblemBuilder additionalDataInternal(
+            Class<? extends U> specType, Action<? super U> config) {
         return validateDelegate(delegate.additionalDataInternal(specType, config));
     }
 

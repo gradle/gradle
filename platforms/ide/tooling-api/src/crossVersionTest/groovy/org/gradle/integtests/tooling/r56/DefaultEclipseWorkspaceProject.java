@@ -15,10 +15,9 @@
  */
 package org.gradle.integtests.tooling.r56;
 
-import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject;
-
 import java.io.File;
 import java.io.Serializable;
+import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject;
 
 public class DefaultEclipseWorkspaceProject implements EclipseWorkspaceProject, Serializable {
 

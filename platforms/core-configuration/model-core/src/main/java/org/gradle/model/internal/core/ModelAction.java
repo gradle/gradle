@@ -16,9 +16,8 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
 import java.util.List;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 public interface ModelAction {
 
@@ -29,5 +28,4 @@ public interface ModelAction {
     List<? extends ModelReference<?>> getInputs();
 
     ModelRuleDescriptor getDescriptor();
-
 }

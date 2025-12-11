@@ -16,6 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import static org.gradle.internal.FileUtils.withExtension;
+
+import java.io.File;
 import org.gradle.api.GradleException;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -25,10 +28,6 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
-
-import java.io.File;
-
-import static org.gradle.internal.FileUtils.withExtension;
 
 public class UnavailablePlatformToolProvider implements PlatformToolProvider, CommandLineToolSearchResult {
     private final ToolSearchResult failure;
@@ -104,17 +103,22 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider, Co
 
     @Override
     public String getLibrarySymbolFileName(String libraryPath) {
-        return withExtension(getSharedLibraryName(libraryPath), SymbolExtractorOsConfig.current().getExtension());
+        return withExtension(
+                getSharedLibraryName(libraryPath),
+                SymbolExtractorOsConfig.current().getExtension());
     }
 
     @Override
     public String getExecutableSymbolFileName(String executablePath) {
-        return withExtension(getExecutableName(executablePath), SymbolExtractorOsConfig.current().getExtension());
+        return withExtension(
+                getExecutableName(executablePath),
+                SymbolExtractorOsConfig.current().getExtension());
     }
 
     @Override
     public <T> T get(Class<T> toolType) {
-        throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
+        throw new IllegalArgumentException(
+                String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
     }
 
     @Override

@@ -16,6 +16,12 @@
 
 package org.gradle.cache.internal;
 
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
@@ -29,13 +35,6 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.vfs.FileSystemAccess;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 public class DefaultFileContentCacheFactory implements FileContentCacheFactory, Closeable {
     private final ListenerManager listenerManager;
     private final FileSystemAccess fileSystemAccess;
@@ -44,15 +43,19 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
     private final ConcurrentMap<String, DefaultFileContentCache<?>> caches = new ConcurrentHashMap<>();
 
-    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemAccess fileSystemAccess, ScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultFileContentCacheFactory(
+            ListenerManager listenerManager,
+            FileSystemAccess fileSystemAccess,
+            ScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.listenerManager = listenerManager;
         this.fileSystemAccess = fileSystemAccess;
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
         this.cache = cacheBuilderFactory
-            .createCacheBuilder("fileContent")
-            .withDisplayName("file content cache")
-            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-            .open();
+                .createCacheBuilder("fileContent")
+                .withDisplayName("file content cache")
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+                .open();
     }
 
     @Override
@@ -61,9 +64,10 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     }
 
     @Override
-    public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator, Serializer<V> serializer) {
+    public <V> FileContentCache<V> newCache(
+            String name, int normalizedCacheSize, final Calculator<? extends V> calculator, Serializer<V> serializer) {
         IndexedCacheParameters<HashCode, V> parameters = IndexedCacheParameters.of(name, hashCodeSerializer, serializer)
-            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(normalizedCacheSize, true));
+                .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(normalizedCacheSize, true));
         IndexedCache<HashCode, V> store = cache.createIndexedCache(parameters);
 
         DefaultFileContentCache<V> cache = Cast.uncheckedCast(caches.get(name));
@@ -93,7 +97,11 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
         private final IndexedCache<HashCode, V> contentCache;
         private final Calculator<? extends V> calculator;
 
-        DefaultFileContentCache(String name, FileSystemAccess fileSystemAccess, IndexedCache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
+        DefaultFileContentCache(
+                String name,
+                FileSystemAccess fileSystemAccess,
+                IndexedCache<HashCode, V> contentCache,
+                Calculator<? extends V> calculator) {
             this.name = name;
             this.fileSystemAccess = fileSystemAccess;
             this.contentCache = contentCache;
@@ -108,12 +116,10 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
 
         @Override
         public V get(File file) {
-            return locationCache.computeIfAbsent(file,
-                location -> fileSystemAccess.readRegularFileContentHash(location.getAbsolutePath())
-                    .map(contentHash -> contentCache.get(contentHash, key -> calculator.calculate(location, true))
-                ).orElseGet(
-                    () -> calculator.calculate(location, false)
-                ));
+            return locationCache.computeIfAbsent(file, location -> fileSystemAccess
+                    .readRegularFileContentHash(location.getAbsolutePath())
+                    .map(contentHash -> contentCache.get(contentHash, key -> calculator.calculate(location, true)))
+                    .orElseGet(() -> calculator.calculate(location, false)));
         }
 
         private void assertStoredIn(IndexedCache<HashCode, V> store) {

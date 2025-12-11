@@ -110,7 +110,7 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
     }
 
     public static ModuleComponentIdentifier newId(ModuleVersionIdentifier moduleVersionIdentifier) {
-        return new DefaultModuleComponentIdentifier(moduleVersionIdentifier.getModule(), moduleVersionIdentifier.getVersion());
+        return new DefaultModuleComponentIdentifier(
+                moduleVersionIdentifier.getModule(), moduleVersionIdentifier.getVersion());
     }
 }
-

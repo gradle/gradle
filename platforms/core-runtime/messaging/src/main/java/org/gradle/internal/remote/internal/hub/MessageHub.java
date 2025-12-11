@@ -16,6 +16,10 @@
 
 package org.gradle.internal.remote.internal.hub;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.AsyncStoppable;
@@ -29,11 +33,6 @@ import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.internal.remote.internal.hub.protocol.*;
 import org.gradle.internal.remote.internal.hub.queue.EndPointQueue;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * A multi-channel message router.
  *
@@ -44,7 +43,11 @@ import java.util.concurrent.locks.ReentrantLock;
  * TODO - this type could be simplified, as there is no longer any need to send/receive messages to/from multiple connections
  */
 public class MessageHub implements AsyncStoppable {
-    private enum State {Running, Stopping, Stopped}
+    private enum State {
+        Running,
+        Stopping,
+        Stopped
+    }
 
     private static final Discard DISCARD = new Discard();
     private final ManagedExecutor workers;
@@ -130,7 +133,8 @@ public class MessageHub implements AsyncStoppable {
             }
             ChannelIdentifier identifier = new ChannelIdentifier(channelName);
             EndPointQueue queue = incomingQueue.getChannel(identifier).newEndpoint();
-            workers.execute(new Handler(queue, dispatch, boundedDispatch, rejectedMessageListener, streamFailureHandler));
+            workers.execute(
+                    new Handler(queue, dispatch, boundedDispatch, rejectedMessageListener, streamFailureHandler));
         } finally {
             lock.unlock();
         }
@@ -235,20 +239,16 @@ public class MessageHub implements AsyncStoppable {
 
     private static class Discard implements BoundedDispatch<Object>, RejectedMessageListener, StreamFailureHandler {
         @Override
-        public void dispatch(Object message) {
-        }
+        public void dispatch(Object message) {}
 
         @Override
-        public void endStream() {
-        }
+        public void endStream() {}
 
         @Override
-        public void messageDiscarded(Object message) {
-        }
+        public void messageDiscarded(Object message) {}
 
         @Override
-        public void handleStreamFailure(Throwable t) {
-        }
+        public void handleStreamFailure(Throwable t) {}
     }
 
     private class ConnectionReceive implements Runnable {
@@ -384,7 +384,12 @@ public class MessageHub implements AsyncStoppable {
         private final RejectedMessageListener listener;
         private final StreamFailureHandler streamFailureHandler;
 
-        public Handler(EndPointQueue queue, Dispatch<Object> dispatch, BoundedDispatch<Object> boundedDispatch, RejectedMessageListener listener, StreamFailureHandler streamFailureHandler) {
+        public Handler(
+                EndPointQueue queue,
+                Dispatch<Object> dispatch,
+                BoundedDispatch<Object> boundedDispatch,
+                RejectedMessageListener listener,
+                StreamFailureHandler streamFailureHandler) {
             this.queue = queue;
             this.dispatch = dispatch;
             this.boundedDispatch = boundedDispatch;
@@ -415,11 +420,12 @@ public class MessageHub implements AsyncStoppable {
                             } else if (message instanceof RejectedMessage) {
                                 RejectedMessage rejectedMessage = (RejectedMessage) message;
                                 listener.messageDiscarded(rejectedMessage.getPayload());
-                            } else if (message instanceof StreamFailureMessage){
+                            } else if (message instanceof StreamFailureMessage) {
                                 StreamFailureMessage streamFailureMessage = (StreamFailureMessage) message;
                                 streamFailureHandler.handleStreamFailure(streamFailureMessage.getFailure());
                             } else {
-                                throw new IllegalArgumentException(String.format("Don't know how to handle message %s", message));
+                                throw new IllegalArgumentException(
+                                        String.format("Don't know how to handle message %s", message));
                             }
                         }
                         messages.clear();

@@ -16,9 +16,8 @@
 
 package org.gradle.internal.operations;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.Serializable;
+import org.jspecify.annotations.Nullable;
 
 public interface BuildOperationRef extends Serializable {
 
@@ -27,5 +26,4 @@ public interface BuildOperationRef extends Serializable {
 
     @Nullable
     OperationIdentifier getParentId();
-
 }

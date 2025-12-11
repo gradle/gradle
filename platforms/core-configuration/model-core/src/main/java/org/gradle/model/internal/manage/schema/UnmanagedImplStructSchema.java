@@ -24,12 +24,11 @@ public class UnmanagedImplStructSchema<T> extends AbstractStructSchema<T> {
     private final boolean annotated;
 
     public UnmanagedImplStructSchema(
-        ModelType<T> type,
-        Iterable<ModelProperty<?>> properties,
-        Iterable<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods,
-        Iterable<ModelSchemaAspect> aspects,
-        boolean annotated
-    ) {
+            ModelType<T> type,
+            Iterable<ModelProperty<?>> properties,
+            Iterable<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods,
+            Iterable<ModelSchemaAspect> aspects,
+            boolean annotated) {
         super(type, properties, nonPropertyMethods, aspects);
         this.annotated = annotated;
     }

@@ -15,6 +15,9 @@
  */
 package org.gradle.plugins.signing.signatory.pgp;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.bouncycastle.bcpg.BCPGOutputStream;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPrivateKey;
@@ -28,10 +31,6 @@ import org.bouncycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
 import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.plugins.signing.signatory.SignatorySupport;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * PGP signatory from PGP key and password.
@@ -97,7 +96,8 @@ public class PgpSignatory extends SignatorySupport {
 
     public PGPSignatureGenerator createSignatureGenerator() {
         try {
-            BcPGPContentSignerBuilder builder = new BcPGPContentSignerBuilder(secretKey.getPublicKey().getAlgorithm(), PGPUtil.SHA512);
+            BcPGPContentSignerBuilder builder =
+                    new BcPGPContentSignerBuilder(secretKey.getPublicKey().getAlgorithm(), PGPUtil.SHA512);
             PGPSignatureGenerator generator = new PGPSignatureGenerator(builder, secretKey.getPublicKey());
             generator.init(PGPSignature.BINARY_DOCUMENT, privateKey);
             return generator;
@@ -108,7 +108,8 @@ public class PgpSignatory extends SignatorySupport {
 
     private PGPPrivateKey createPrivateKey(PGPSecretKey secretKey, String password) {
         try {
-            PBESecretKeyDecryptor decryptor = new BcPBESecretKeyDecryptorBuilder(new BcPGPDigestCalculatorProvider()).build(password.toCharArray());
+            PBESecretKeyDecryptor decryptor = new BcPBESecretKeyDecryptorBuilder(new BcPGPDigestCalculatorProvider())
+                    .build(password.toCharArray());
             return secretKey.extractPrivateKey(decryptor);
         } catch (PGPException e) {
             throw UncheckedException.throwAsUncheckedException(e);

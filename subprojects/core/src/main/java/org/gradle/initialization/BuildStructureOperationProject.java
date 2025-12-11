@@ -17,15 +17,15 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSortedSet;
+import java.util.Comparator;
+import java.util.Set;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.build.BuildState;
 
-import java.util.Comparator;
-import java.util.Set;
-
-public class BuildStructureOperationProject implements LoadProjectsBuildOperationType.Result.Project, ProjectsIdentifiedProgressDetails.Project {
+public class BuildStructureOperationProject
+        implements LoadProjectsBuildOperationType.Result.Project, ProjectsIdentifiedProgressDetails.Project {
     private static final Comparator<LoadProjectsBuildOperationType.Result.Project> PROJECT_COMPARATOR =
-        Comparator.comparing(LoadProjectsBuildOperationType.Result.Project::getName);
+            Comparator.comparing(LoadProjectsBuildOperationType.Result.Project::getName);
     private final String name;
     private final String path;
     private final String identityPath;
@@ -33,7 +33,13 @@ public class BuildStructureOperationProject implements LoadProjectsBuildOperatio
     private final String buildFile;
     private final Set<BuildStructureOperationProject> children;
 
-    public BuildStructureOperationProject(String name, String path, String identityPath, String projectDir, String buildFile, Set<BuildStructureOperationProject> children) {
+    public BuildStructureOperationProject(
+            String name,
+            String path,
+            String identityPath,
+            String projectDir,
+            String buildFile,
+            Set<BuildStructureOperationProject> children) {
         this.name = name;
         this.path = path;
         this.identityPath = identityPath;
@@ -44,17 +50,17 @@ public class BuildStructureOperationProject implements LoadProjectsBuildOperatio
 
     private static BuildStructureOperationProject convert(ProjectState project) {
         return new BuildStructureOperationProject(
-            project.getName(),
-            project.getIdentity().getProjectPath().asString(),
-            project.getIdentity().getBuildTreePath().asString(),
-            project.getProjectDir().getAbsolutePath(),
-            project.getMutableModel().getBuildFile().getAbsolutePath(),
-            convertAll(project.getChildProjects())
-        );
+                project.getName(),
+                project.getIdentity().getProjectPath().asString(),
+                project.getIdentity().getBuildTreePath().asString(),
+                project.getProjectDir().getAbsolutePath(),
+                project.getMutableModel().getBuildFile().getAbsolutePath(),
+                convertAll(project.getChildProjects()));
     }
 
     private static Set<BuildStructureOperationProject> convertAll(Iterable<ProjectState> children) {
-        ImmutableSortedSet.Builder<BuildStructureOperationProject> builder = new ImmutableSortedSet.Builder<>(PROJECT_COMPARATOR);
+        ImmutableSortedSet.Builder<BuildStructureOperationProject> builder =
+                new ImmutableSortedSet.Builder<>(PROJECT_COMPARATOR);
         for (ProjectState child : children) {
             builder.add(convert(child));
         }

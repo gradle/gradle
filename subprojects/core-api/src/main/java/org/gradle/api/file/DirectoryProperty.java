@@ -16,11 +16,10 @@
 
 package org.gradle.api.file;
 
+import java.io.File;
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Represents some configurable directory location, whose value is mutable.

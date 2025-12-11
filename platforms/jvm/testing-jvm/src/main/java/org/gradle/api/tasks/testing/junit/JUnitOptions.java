@@ -16,13 +16,12 @@
 
 package org.gradle.api.tasks.testing.junit;
 
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.testing.TestFrameworkOptions;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.testing.TestFrameworkOptions;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * The JUnit specific test options.
@@ -87,6 +86,4 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
     public void setExcludeCategories(Set<String> excludeCategories) {
         this.excludeCategories = excludeCategories;
     }
-
-
 }

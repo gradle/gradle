@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.software.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.Definition;
@@ -23,8 +24,6 @@ import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.inspection.DefaultTypeParameterInspection;
 import org.gradle.internal.inspection.TypeParameterInspection;
-
-import javax.inject.Inject;
 
 public interface ProjectFeatureApplicationContextInternal extends ProjectFeatureApplicationContext {
 
@@ -36,20 +35,24 @@ public interface ProjectFeatureApplicationContextInternal extends ProjectFeature
 
     @Override
     default <T extends Definition<V>, V extends BuildModel> V getBuildModel(T definition) {
-        return Cast.uncheckedNonnullCast(ProjectFeatureSupportInternal.getContext((DynamicObjectAware) definition).getBuildModel());
+        return Cast.uncheckedNonnullCast(ProjectFeatureSupportInternal.getContext((DynamicObjectAware) definition)
+                .getBuildModel());
     }
 
     @Override
-    default <T extends Definition<V>, V extends BuildModel> V registerBuildModel(T definition, Class<? extends V> implementationType) {
-        ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext maybeContext = ProjectFeatureSupportInternal.tryGetContext(definition);
+    default <T extends Definition<V>, V extends BuildModel> V registerBuildModel(
+            T definition, Class<? extends V> implementationType) {
+        ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext maybeContext =
+                ProjectFeatureSupportInternal.tryGetContext(definition);
         if (maybeContext != null) {
-            throw new IllegalStateException("Definition object '" + definition + "' already has a registered build model '" + maybeContext.getBuildModel()
-                + "'. Registering another build model for it is an error."
-            );
+            throw new IllegalStateException(
+                    "Definition object '" + definition + "' already has a registered build model '"
+                            + maybeContext.getBuildModel() + "'. Registering another build model for it is an error.");
         }
 
         V buildModel = getObjectFactory().newInstance(implementationType);
-        ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModel, getProjectFeatureApplicator(), getProjectFeatureRegistry(), getObjectFactory());
+        ProjectFeatureSupportInternal.attachDefinitionContext(
+                definition, buildModel, getProjectFeatureApplicator(), getProjectFeatureRegistry(), getObjectFactory());
 
         return buildModel;
     }
@@ -57,7 +60,8 @@ public interface ProjectFeatureApplicationContextInternal extends ProjectFeature
     @Override
     default <T extends Definition<V>, V extends BuildModel> V registerBuildModel(T definition) {
         @SuppressWarnings("rawtypes")
-        TypeParameterInspection<Definition, BuildModel> inspection = new DefaultTypeParameterInspection<>(Definition.class, BuildModel.class, BuildModel.NONE.class);
+        TypeParameterInspection<Definition, BuildModel> inspection =
+                new DefaultTypeParameterInspection<>(Definition.class, BuildModel.class, BuildModel.NONE.class);
         Class<V> modelType = inspection.parameterTypeFor(definition.getClass());
         if (modelType == null) {
             throw new IllegalArgumentException("Cannot determine build model type for " + definition.getClass());

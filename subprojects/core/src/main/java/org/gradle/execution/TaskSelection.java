@@ -16,10 +16,9 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.Task;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.api.Task;
 
 public class TaskSelection {
     private final String projectPath;

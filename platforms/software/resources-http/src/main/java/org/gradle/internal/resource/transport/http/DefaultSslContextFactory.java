@@ -20,36 +20,33 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import javax.net.ssl.SSLContext;
 import org.apache.http.ssl.SSLInitializationException;
 import org.gradle.internal.SystemProperties;
 import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLContext;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
 @NullMarked
 public class DefaultSslContextFactory implements SslContextFactory {
     private static final Set<String> SSL_SYSTEM_PROPERTIES = ImmutableSet.of(
-        "ssl.TrustManagerFactory.algorithm",
-        "javax.net.ssl.trustStoreType",
-        "javax.net.ssl.trustStore",
-        "javax.net.ssl.trustStoreProvider",
-        "javax.net.ssl.trustStorePassword",
-        "ssl.KeyManagerFactory.algorithm",
-        "javax.net.ssl.keyStoreType",
-        "javax.net.ssl.keyStore",
-        "javax.net.ssl.keyStoreProvider",
-        "javax.net.ssl.keyStorePassword",
-        "java.home"
-    );
+            "ssl.TrustManagerFactory.algorithm",
+            "javax.net.ssl.trustStoreType",
+            "javax.net.ssl.trustStore",
+            "javax.net.ssl.trustStoreProvider",
+            "javax.net.ssl.trustStorePassword",
+            "ssl.KeyManagerFactory.algorithm",
+            "javax.net.ssl.keyStoreType",
+            "javax.net.ssl.keyStore",
+            "javax.net.ssl.keyStoreProvider",
+            "javax.net.ssl.keyStorePassword",
+            "java.home");
 
-    private final LoadingCache<Map<String, String>, SSLContext> cache = CacheBuilder.newBuilder().softValues().build(
-        new SynchronizedSystemPropertiesCacheLoader()
-    );
+    private final LoadingCache<Map<String, String>, SSLContext> cache =
+            CacheBuilder.newBuilder().softValues().build(new SynchronizedSystemPropertiesCacheLoader());
 
     @Override
     public SSLContext createSslContext() {

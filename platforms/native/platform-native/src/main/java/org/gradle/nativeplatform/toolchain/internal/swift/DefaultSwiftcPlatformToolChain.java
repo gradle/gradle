@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.swift;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.SwiftcPlatformToolChain;
@@ -23,12 +25,10 @@ import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultCommandLineToolConfiguration;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class DefaultSwiftcPlatformToolChain implements SwiftcPlatformToolChain {
     private final NativePlatform platform;
-    private final Map<ToolType, CommandLineToolConfigurationInternal> tools = new HashMap<ToolType, CommandLineToolConfigurationInternal>();
+    private final Map<ToolType, CommandLineToolConfigurationInternal> tools =
+            new HashMap<ToolType, CommandLineToolConfigurationInternal>();
 
     public DefaultSwiftcPlatformToolChain(NativePlatform platform) {
         this.platform = platform;

@@ -16,9 +16,8 @@
 
 package org.gradle.language.base.internal;
 
-import org.gradle.api.internal.project.ProjectIdentifier;
-
 import java.io.File;
+import org.gradle.api.internal.project.ProjectIdentifier;
 
 public class ProjectLayout {
     private final ProjectIdentifier projectIdentifier;

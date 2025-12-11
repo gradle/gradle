@@ -16,9 +16,8 @@
 
 package org.gradle.internal.buildoption;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultInternalOptions implements InternalOptions {
     private final Map<String, String> properties;

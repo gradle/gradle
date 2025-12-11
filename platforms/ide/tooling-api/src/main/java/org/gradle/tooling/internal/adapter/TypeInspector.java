@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.adapter;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -29,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 class TypeInspector {

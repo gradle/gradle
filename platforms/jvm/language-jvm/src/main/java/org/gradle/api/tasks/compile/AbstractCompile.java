@@ -15,6 +15,9 @@
  */
 package org.gradle.api.tasks.compile;
 
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
+
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
@@ -27,9 +30,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.R
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
-
-import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
-import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
 
 /**
  * The base class for all JVM-based language compilation tasks.
@@ -73,12 +73,15 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @OutputDirectory
     @ReplacesEagerProperty(
-        replacedAccessors = {
-            @ReplacedAccessor(value = GETTER, name = "getDestinationDir"),
-            @ReplacedAccessor(value = SETTER, name = "setDestinationDir")
-        },
-        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withUpgradeGuideMajorVersion = 7, withUpgradeGuideSection = "compile_task_wiring")
-    )
+            replacedAccessors = {
+                @ReplacedAccessor(value = GETTER, name = "getDestinationDir"),
+                @ReplacedAccessor(value = SETTER, name = "setDestinationDir")
+            },
+            deprecation =
+                    @ReplacedDeprecation(
+                            removedIn = RemovedIn.GRADLE9,
+                            withUpgradeGuideMajorVersion = 7,
+                            withUpgradeGuideSection = "compile_task_wiring"))
     public DirectoryProperty getDestinationDirectory() {
         return destinationDirectory;
     }

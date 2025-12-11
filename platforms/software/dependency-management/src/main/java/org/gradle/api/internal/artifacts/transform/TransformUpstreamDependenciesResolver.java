@@ -28,7 +28,8 @@ public interface TransformUpstreamDependenciesResolver {
     /**
      * A resolver that always returns empty transform dependencies.
      */
-    TransformUpstreamDependenciesResolver NO_DEPENDENCIES = (componentId, transformStep) -> DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES;
+    TransformUpstreamDependenciesResolver NO_DEPENDENCIES =
+            (componentId, transformStep) -> DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES;
 
     /**
      * Returns the dependencies that should be applied to the given transform step for an artifact
@@ -44,6 +45,5 @@ public interface TransformUpstreamDependenciesResolver {
          * @param visitedArtifacts The artifact set is used to resolve the dependencies of the transform steps.
          */
         TransformUpstreamDependenciesResolver create(VisitedArtifactSet visitedArtifacts);
-
     }
 }

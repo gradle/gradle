@@ -15,14 +15,13 @@
  */
 package org.gradle.integtests.tooling.r56;
 
+import java.io.Serializable;
 import org.gradle.api.Action;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.EclipseRuntime;
 import org.gradle.tooling.model.eclipse.EclipseWorkspace;
-
-import java.io.Serializable;
 
 public class LoadEclipseModel implements BuildAction<EclipseProject>, Serializable {
 
@@ -54,5 +53,4 @@ public class LoadEclipseModel implements BuildAction<EclipseProject>, Serializab
             eclipseRuntime.setWorkspace(workspace);
         }
     }
-
 }

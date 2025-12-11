@@ -24,7 +24,8 @@ public class XcodeBinary {
     private final Provider<? extends FileSystemLocation> outputFile;
     private final String architectureName;
 
-    public XcodeBinary(String buildConfigurationName, Provider<? extends FileSystemLocation> outputFile, String architectureName) {
+    public XcodeBinary(
+            String buildConfigurationName, Provider<? extends FileSystemLocation> outputFile, String architectureName) {
         this.buildConfigurationName = buildConfigurationName;
         this.outputFile = outputFile;
         this.architectureName = architectureName;

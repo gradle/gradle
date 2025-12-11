@@ -16,12 +16,11 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
 
 /**
  * A build option that takes a list value e.g. {@code "-Iinit1.gradle -Iinit2.gradle"}.
@@ -51,7 +50,13 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T, CommandL
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.isDeprecated(), config.isIncubating()).hasArguments();
+            configureCommandLineOption(
+                            parser,
+                            config.getAllOptions(),
+                            config.getDescription(),
+                            config.isDeprecated(),
+                            config.isIncubating())
+                    .hasArguments();
         }
     }
 

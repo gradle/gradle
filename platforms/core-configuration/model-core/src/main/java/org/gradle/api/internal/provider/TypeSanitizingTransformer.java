@@ -25,7 +25,8 @@ class TypeSanitizingTransformer<T> implements Transformer<T, T> {
     private final ValueSanitizer<? super T> sanitizer;
     private final Class<? super T> targetType;
 
-    public TypeSanitizingTransformer(DisplayName owner, ValueSanitizer<? super T> sanitizer, Class<? super T> targetType) {
+    public TypeSanitizingTransformer(
+            DisplayName owner, ValueSanitizer<? super T> sanitizer, Class<? super T> targetType) {
         this.owner = owner;
         this.sanitizer = sanitizer;
         this.targetType = targetType;
@@ -42,6 +43,8 @@ class TypeSanitizingTransformer<T> implements Transformer<T, T> {
         if (targetType.isInstance(v)) {
             return v;
         }
-        throw new IllegalArgumentException(String.format("Cannot get the value of %s of type %s as the provider associated with this property returned a value of type %s.", owner.getDisplayName(), targetType.getName(), v.getClass().getName()));
+        throw new IllegalArgumentException(String.format(
+                "Cannot get the value of %s of type %s as the provider associated with this property returned a value of type %s.",
+                owner.getDisplayName(), targetType.getName(), v.getClass().getName()));
     }
 }

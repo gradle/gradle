@@ -16,18 +16,17 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtractionContext<T> {
 
@@ -39,7 +38,11 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
     private final List<DefaultModelSchemaExtractionContext<?>> children = new ArrayList<>();
     private final FormattingValidationProblemCollector problems;
 
-    private DefaultModelSchemaExtractionContext(DefaultModelSchemaExtractionContext<?> parent, ModelType<T> type, String description, Action<? super ModelSchema<T>> validator) {
+    private DefaultModelSchemaExtractionContext(
+            DefaultModelSchemaExtractionContext<?> parent,
+            ModelType<T> type,
+            String description,
+            Action<? super ModelSchema<T>> validator) {
         this.parent = parent;
         this.type = type;
         this.description = description;
@@ -112,8 +115,10 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
     }
 
     @Override
-    public <C> DefaultModelSchemaExtractionContext<C> child(ModelType<C> type, String description, Action<? super ModelSchema<C>> validator) {
-        DefaultModelSchemaExtractionContext<C> childContext = new DefaultModelSchemaExtractionContext<C>(this, type, description, validator);
+    public <C> DefaultModelSchemaExtractionContext<C> child(
+            ModelType<C> type, String description, Action<? super ModelSchema<C>> validator) {
+        DefaultModelSchemaExtractionContext<C> childContext =
+                new DefaultModelSchemaExtractionContext<C>(this, type, description, validator);
         children.add(childContext);
         return childContext;
     }

@@ -15,15 +15,14 @@
  */
 package org.gradle.api.internal.plugins;
 
-import org.gradle.util.internal.VersionNumber;
-import org.jspecify.annotations.Nullable;
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency;
+import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 
 public class GroovyJarFile {
     private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(?:-all)?)-(\\d.*?)(-indy)?.jar");

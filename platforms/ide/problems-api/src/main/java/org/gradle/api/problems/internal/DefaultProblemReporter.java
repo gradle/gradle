@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import java.util.Collection;
 import org.gradle.api.Action;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
@@ -24,8 +25,6 @@ import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.jspecify.annotations.NonNull;
-
-import java.util.Collection;
 
 public class DefaultProblemReporter implements InternalProblemReporter {
 
@@ -36,12 +35,11 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     private final ExceptionAnalyser exceptionAnalyser;
 
     public DefaultProblemReporter(
-        ProblemSummarizer problemSummarizer,
-        CurrentBuildOperationRef currentBuildOperationRef,
-        ExceptionProblemRegistry exceptionProblemRegistry,
-        ExceptionAnalyser exceptionAnalyser,
-        ProblemsInfrastructure infrastructure
-    ) {
+            ProblemSummarizer problemSummarizer,
+            CurrentBuildOperationRef currentBuildOperationRef,
+            ExceptionProblemRegistry exceptionProblemRegistry,
+            ExceptionAnalyser exceptionAnalyser,
+            ProblemsInfrastructure infrastructure) {
         this.problemSummarizer = problemSummarizer;
         this.infrastructure = infrastructure;
         this.currentBuildOperationRef = currentBuildOperationRef;

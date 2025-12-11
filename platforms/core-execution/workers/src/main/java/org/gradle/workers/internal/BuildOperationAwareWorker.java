@@ -21,5 +21,6 @@ import org.gradle.internal.operations.BuildOperationRef;
 public interface BuildOperationAwareWorker {
     DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec);
 
-    DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, final BuildOperationRef parentBuildOperation);
+    DefaultWorkResult execute(
+            IsolatedParametersActionExecutionSpec<?> spec, final BuildOperationRef parentBuildOperation);
 }

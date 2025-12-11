@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.events.problems;
 
-import org.gradle.api.Incubating;
-
 import java.util.List;
+import org.gradle.api.Incubating;
 
 /**
  * The event capturing all problems summaries.

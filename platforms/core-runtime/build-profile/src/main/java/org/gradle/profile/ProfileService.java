@@ -25,5 +25,4 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ListenerService
 @ServiceScope(Scope.Build.class)
-public interface ProfileService {
-}
+public interface ProfileService {}

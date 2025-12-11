@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import java.util.List;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
-
-import java.util.List;
 
 /**
  * Represents some provider of {@link ResolvedVariant} instances to select from.
@@ -58,9 +57,5 @@ public interface ResolvedVariantSet {
     /**
      * Transform a candidate artifact set sourced by this variant set.
      */
-    ResolvedArtifactSet transformCandidate(
-        ResolvedVariant sourceVariant,
-        VariantDefinition variantDefinition
-    );
-
+    ResolvedArtifactSet transformCandidate(ResolvedVariant sourceVariant, VariantDefinition variantDefinition);
 }

@@ -16,18 +16,18 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import java.util.List;
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.NotUsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 /**
  * @since 5.1
  */
 @NotUsedByScanPlugin("used to report annotation processor execution times to TAPI progress listeners")
-public class CompileJavaBuildOperationType implements BuildOperationType<CompileJavaBuildOperationType.Details, CompileJavaBuildOperationType.Result> {
+public class CompileJavaBuildOperationType
+        implements BuildOperationType<CompileJavaBuildOperationType.Details, CompileJavaBuildOperationType.Result> {
 
     public interface Details {
         /**
@@ -74,11 +74,10 @@ public class CompileJavaBuildOperationType implements BuildOperationType<Compile
              * @see IncrementalAnnotationProcessorType
              */
             enum Type {
-                ISOLATING, AGGREGATING, UNKNOWN
+                ISOLATING,
+                AGGREGATING,
+                UNKNOWN
             }
-
         }
-
     }
-
 }

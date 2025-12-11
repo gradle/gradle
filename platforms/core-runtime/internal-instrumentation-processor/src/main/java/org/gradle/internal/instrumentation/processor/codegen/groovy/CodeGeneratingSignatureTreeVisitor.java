@@ -16,25 +16,24 @@
 
 package org.gradle.internal.instrumentation.processor.codegen.groovy;
 
+import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.PARAMETER;
+import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER;
+import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER_AS_CLASS;
+import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.VARARG;
+
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
-import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
-import org.gradle.internal.instrumentation.model.CallableInfo;
-import org.gradle.internal.instrumentation.model.CallableKindInfo;
-import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
-import org.objectweb.asm.Type;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.PARAMETER;
-import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER;
-import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER_AS_CLASS;
-import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.VARARG;
+import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.model.CallableInfo;
+import org.gradle.internal.instrumentation.model.CallableKindInfo;
+import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
+import org.objectweb.asm.Type;
 
 class CodeGeneratingSignatureTreeVisitor {
     private final Stack<CodeBlock> paramVariablesStack = new Stack<>();
@@ -87,20 +86,25 @@ class CodeGeneratingSignatureTreeVisitor {
         boolean hasKotlinDefaultMask = request.getInterceptedCallable().hasKotlinDefaultMaskParam();
         CallableInfo callableInfo = request.getInterceptedCallable();
         boolean hasCallerClassName = callableInfo.hasCallerClassNameParam();
-        Stream<CodeBlock> maybeZeroForKotlinDefault = hasKotlinDefaultMask ? Stream.of(CodeBlock.of("0")) : Stream.empty();
-        Stream<CodeBlock> maybeCallerClassName = hasCallerClassName ? Stream.of(CodeBlock.of("consumer")) : Stream.empty();
-        return Stream.of(
-            paramVariablesStack.stream(),
-            maybeZeroForKotlinDefault,
-            maybeCallerClassName
-        ).flatMap(Function.identity()).collect(CodeBlock.joining(", "));
+        Stream<CodeBlock> maybeZeroForKotlinDefault =
+                hasKotlinDefaultMask ? Stream.of(CodeBlock.of("0")) : Stream.empty();
+        Stream<CodeBlock> maybeCallerClassName =
+                hasCallerClassName ? Stream.of(CodeBlock.of("consumer")) : Stream.empty();
+        return Stream.of(paramVariablesStack.stream(), maybeZeroForKotlinDefault, maybeCallerClassName)
+                .flatMap(Function.identity())
+                .collect(CodeBlock.joining(", "));
     }
 
     private void emitInvocationCodeWithReturn(CallInterceptionRequest request, CodeBlock argsCode) {
-        TypeName implementationOwner = TypeUtils.typeName(request.getImplementationInfo().getOwner());
+        TypeName implementationOwner =
+                TypeUtils.typeName(request.getImplementationInfo().getOwner());
         String implementationName = request.getImplementationInfo().getName();
         if (request.getInterceptedCallable().getKind() == CallableKindInfo.AFTER_CONSTRUCTOR) {
-            result.addStatement("$1T result = new $1T($2L)", TypeUtils.typeName(request.getInterceptedCallable().getOwner().getType()), paramVariablesStack.stream().collect(CodeBlock.joining(", ")));
+            result.addStatement(
+                    "$1T result = new $1T($2L)",
+                    TypeUtils.typeName(
+                            request.getInterceptedCallable().getOwner().getType()),
+                    paramVariablesStack.stream().collect(CodeBlock.joining(", ")));
             CodeBlock interceptorArgs = CodeBlock.join(Arrays.asList(CodeBlock.of("result"), argsCode), ", ");
             result.addStatement("$T.$L($L)", implementationOwner, implementationName, interceptorArgs);
             result.addStatement("return result");
@@ -117,10 +121,12 @@ class CodeGeneratingSignatureTreeVisitor {
 
         result.add("// Trying to match the vararg invocation\n");
         CodeBlock varargVariable = CodeBlock.of("varargValues");
-        result.addStatement("$1T[] $2L = new $1T[invocation.getArgsCount() - $3L]", entryParamType, varargVariable, paramIndex);
+        result.addStatement(
+                "$1T[] $2L = new $1T[invocation.getArgsCount() - $3L]", entryParamType, varargVariable, paramIndex);
         CodeBlock varargMatched = CodeBlock.of("varargMatched");
         result.addStatement("boolean $L = true", varargMatched);
-        result.beginControlFlow("for (int argIndex = $1L; argIndex < invocation.getArgsCount(); argIndex++)", paramIndex);
+        result.beginControlFlow(
+                "for (int argIndex = $1L; argIndex < invocation.getArgsCount(); argIndex++)", paramIndex);
 
         CodeBlock nextArg = CodeBlock.of("nextArg");
         result.addStatement("Object $L = invocation.getArgument(argIndex)", nextArg);
@@ -144,17 +150,19 @@ class CodeGeneratingSignatureTreeVisitor {
         result.endControlFlow();
     }
 
-    private void generateNormalCallChecksAndVisitSubtree(ParameterMatchEntry entry, SignatureTree child, int paramIndex) {
+    private void generateNormalCallChecksAndVisitSubtree(
+            ParameterMatchEntry entry, SignatureTree child, int paramIndex) {
         CodeBlock argExpr = entry.kind == RECEIVER || entry.kind == RECEIVER_AS_CLASS
-            ? CodeBlock.of("receiver")
-            : CodeBlock.of("arg$L", paramIndex);
+                ? CodeBlock.of("receiver")
+                : CodeBlock.of("arg$L", paramIndex);
 
         int childArgCount = paramIndex + 1;
         TypeName entryChildType = TypeUtils.typeName(entry.type);
-        CodeBlock matchExpr = entry.kind == RECEIVER_AS_CLASS ?
-            CodeBlock.of("$L.equals($T.class)", argExpr, entryChildType) :
-            // Vararg fits here, too:
-            CodeBlock.of("$1L == null || $1L instanceof $2T", argExpr, entryChildType.box());
+        CodeBlock matchExpr = entry.kind == RECEIVER_AS_CLASS
+                ? CodeBlock.of("$L.equals($T.class)", argExpr, entryChildType)
+                :
+                // Vararg fits here, too:
+                CodeBlock.of("$1L == null || $1L instanceof $2T", argExpr, entryChildType.box());
         result.beginControlFlow("if ($L)", matchExpr);
         boolean shouldPopParameter = false;
         if (entry.kind != RECEIVER_AS_CLASS) {

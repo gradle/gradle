@@ -22,9 +22,9 @@ public class StartParameterDeprecations {
 
     public static void nagOnIsConfigurationCacheRequested() {
         DeprecationLogger.deprecateProperty(StartParameter.class, "isConfigurationCacheRequested")
-            .withAdvice("Please use 'configurationCache.requested' property on 'BuildFeatures' service instead.")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(8, "deprecated_startparameter_is_configuration_cache_requested")
-            .nagUser();
+                .withAdvice("Please use 'configurationCache.requested' property on 'BuildFeatures' service instead.")
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(8, "deprecated_startparameter_is_configuration_cache_requested")
+                .nagUser();
     }
 }

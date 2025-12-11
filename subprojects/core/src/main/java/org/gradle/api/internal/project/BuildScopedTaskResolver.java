@@ -33,7 +33,8 @@ public class BuildScopedTaskResolver implements TaskResolver {
     }
 
     @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     public Task resolveTask(Path path) {
         String targetTaskName = path.getName();
         if (targetTaskName == null) {
@@ -42,7 +43,8 @@ public class BuildScopedTaskResolver implements TaskResolver {
         }
 
         if (!path.isAbsolute()) {
-            throw new IllegalArgumentException(String.format("Cannot resolve task at path '%s' since the path is not absolute.", path));
+            throw new IllegalArgumentException(
+                    String.format("Cannot resolve task at path '%s' since the path is not absolute.", path));
         }
 
         build.ensureProjectsConfigured();
@@ -52,5 +54,4 @@ public class BuildScopedTaskResolver implements TaskResolver {
         projectState.ensureTasksDiscovered();
         return projectState.getMutableModel().getTasks().getByName(targetTaskName);
     }
-
 }

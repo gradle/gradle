@@ -41,5 +41,4 @@ public interface BuildOperationNotificationListenerRegistrar {
      * @since 4.4
      */
     void register(BuildOperationNotificationListener listener);
-
 }

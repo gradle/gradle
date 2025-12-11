@@ -32,5 +32,4 @@ public class TaskScheme extends AbstractTypeScheme {
     public boolean appliesTo(Class<?> type) {
         return Task.class.isAssignableFrom(type);
     }
-
 }

@@ -34,5 +34,4 @@ public interface PluginResolutionStrategy {
      * will actually be resolved.
      */
     void eachPlugin(Action<? super PluginResolveDetails> rule);
-
 }

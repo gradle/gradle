@@ -16,16 +16,14 @@
 
 package org.gradle.performance.results.report;
 
+import static org.gradle.performance.results.FormatSupport.executionTimestamp;
+import static org.gradle.performance.results.FormatSupport.getDifferenceRatio;
+import static org.gradle.performance.results.FormatSupport.getFormattedConfidence;
+import static org.gradle.performance.results.FormatSupport.getFormattedDifference;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.googlecode.jatl.Html;
-import org.gradle.performance.measure.Amount;
-import org.gradle.performance.measure.DataSeries;
-import org.gradle.performance.measure.Duration;
-import org.gradle.performance.results.MeasuredOperationList;
-import org.gradle.reporting.ReportRenderer;
-import org.gradle.util.GradleVersion;
-
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URLEncoder;
@@ -38,11 +36,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import static org.gradle.performance.results.FormatSupport.executionTimestamp;
-import static org.gradle.performance.results.FormatSupport.getDifferenceRatio;
-import static org.gradle.performance.results.FormatSupport.getFormattedConfidence;
-import static org.gradle.performance.results.FormatSupport.getFormattedDifference;
+import org.gradle.performance.measure.Amount;
+import org.gradle.performance.measure.DataSeries;
+import org.gradle.performance.measure.Duration;
+import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.reporting.ReportRenderer;
+import org.gradle.util.GradleVersion;
 
 public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
     protected int getDepth() {
@@ -50,41 +49,29 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
     }
 
     protected void metaTag(Html html) {
-        html.meta()
-            .httpEquiv("Content-Type")
-            .content("text/html; charset=utf-8");
+        html.meta().httpEquiv("Content-Type").content("text/html; charset=utf-8");
     }
 
     protected void headSection(Html html) {
         String rootDir = getDepth() == 0 ? "" : "../";
         metaTag(html);
         html.link()
-            .rel("stylesheet")
-            .type("text/css")
-            .href(rootDir + "css/style.css")
-            .end();
-        html.script()
-            .src(rootDir + "js/jquery.min-3.5.1.js")
-            .end();
-        html.script()
-            .src(rootDir + "js/flot-0.8.1-min.js")
-            .end();
-        html.script()
-            .src(rootDir + "js/flot.selection.min.js")
-            .end();
-        html.script()
-            .src(rootDir + "js/report.js")
-            .end();
-        html.script()
-            .src(rootDir + "js/performanceGraph.js")
-            .end();
+                .rel("stylesheet")
+                .type("text/css")
+                .href(rootDir + "css/style.css")
+                .end();
+        html.script().src(rootDir + "js/jquery.min-3.5.1.js").end();
+        html.script().src(rootDir + "js/flot-0.8.1-min.js").end();
+        html.script().src(rootDir + "js/flot.selection.min.js").end();
+        html.script().src(rootDir + "js/report.js").end();
+        html.script().src(rootDir + "js/performanceGraph.js").end();
     }
 
     protected static void footer(Html html) {
         html.div()
-            .id("footer")
-            .text(String.format("Generated at %s by %s", executionTimestamp(), GradleVersion.current()))
-            .end();
+                .id("footer")
+                .text(String.format("Generated at %s by %s", executionTimestamp(), GradleVersion.current()))
+                .end();
     }
 
     public static class NavigationItem {
@@ -142,12 +129,15 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
             return start("nav");
         }
 
-
         protected void navigation(List<NavigationItem> navigationItems) {
             nav().id("navigation");
             ul();
             for (NavigationItem navigationItem : navigationItems) {
-                li().a().href(navigationItem.getLink()).text(navigationItem.getText()).end().end();
+                li().a()
+                        .href(navigationItem.getLink())
+                        .text(navigationItem.getText())
+                        .end()
+                        .end();
             }
             end();
             end();
@@ -166,16 +156,22 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
         }
 
         private Stream<Amount<Duration>> totalTimeMedianStream(Iterable<MeasuredOperationList> experiments) {
-            return totalTimeStream(experiments).filter((DataSeries<Duration> data) -> !data.isEmpty()).map(DataSeries::getMedian);
+            return totalTimeStream(experiments)
+                    .filter((DataSeries<Duration> data) -> !data.isEmpty())
+                    .map(DataSeries::getMedian);
         }
 
         protected void renderSamplesForExperiment(Iterable<MeasuredOperationList> experiments) {
             List<DataSeries<Duration>> executionVersions = totalTimeStream(experiments)
-                .map((DataSeries<Duration> data) -> data.isEmpty() ? null : data)
-                .collect(Collectors.toList());
+                    .map((DataSeries<Duration> data) -> data.isEmpty() ? null : data)
+                    .collect(Collectors.toList());
 
-            Amount<Duration> min = totalTimeMedianStream(experiments).min(Comparator.naturalOrder()).orElse(null);
-            Amount<Duration> max = totalTimeMedianStream(experiments).max(Comparator.naturalOrder()).orElse(null);
+            Amount<Duration> min = totalTimeMedianStream(experiments)
+                    .min(Comparator.naturalOrder())
+                    .orElse(null);
+            Amount<Duration> max = totalTimeMedianStream(experiments)
+                    .max(Comparator.naturalOrder())
+                    .orElse(null);
 
             if (min != null && min.equals(max)) {
                 min = null;
@@ -196,25 +192,32 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                     if (value.equals(max)) {
                         classAttr += " max-value";
                     }
-                    td()
-                        .classAttr(classAttr)
-                        .title("median: " + value + ", min: " + data.getMin() + ", max: " + data.getMax() + ", se: " + se + ", values: " + data)
-                        .text(value.format())
-                        .end();
-                    td()
-                        .classAttr("numeric more-detail")
-                        .text("se: " + se.format())
-                        .end();
+                    td().classAttr(classAttr)
+                            .title("median: " + value + ", min: " + data.getMin() + ", max: " + data.getMax() + ", se: "
+                                    + se + ", values: " + data)
+                            .text(value.format())
+                            .end();
+                    td().classAttr("numeric more-detail")
+                            .text("se: " + se.format())
+                            .end();
                 }
             }
 
-            Optional<DataSeries<Duration>> first = executionVersions.stream().filter(Objects::nonNull).findFirst();
-            Optional<DataSeries<Duration>> last = Lists.reverse(executionVersions).stream().filter(Objects::nonNull).findFirst();
+            Optional<DataSeries<Duration>> first =
+                    executionVersions.stream().filter(Objects::nonNull).findFirst();
+            Optional<DataSeries<Duration>> last = Lists.reverse(executionVersions).stream()
+                    .filter(Objects::nonNull)
+                    .findFirst();
             if (first.isPresent() && last.isPresent() && first.get() != last.get()) {
-                td().classAttr("numeric").text(getFormattedConfidence(first.get(), last.get())).end();
+                td().classAttr("numeric")
+                        .text(getFormattedConfidence(first.get(), last.get()))
+                        .end();
 
-                String differenceCss = getDifferenceRatio(first.get(), last.get()).doubleValue() > 0 ? "max-value" : "min-value";
-                td().classAttr("numeric " + differenceCss).text(getFormattedDifference(first.get(), last.get())).end();
+                String differenceCss =
+                        getDifferenceRatio(first.get(), last.get()).doubleValue() > 0 ? "max-value" : "min-value";
+                td().classAttr("numeric " + differenceCss)
+                        .text(getFormattedDifference(first.get(), last.get()))
+                        .end();
             } else {
                 td().text("").end();
                 td().text("").end();

@@ -27,5 +27,6 @@ package org.gradle.api.internal.capabilities;
  */
 public interface ShadowedCapability extends ImmutableCapability {
     String getAppendix();
+
     ImmutableCapability getShadowedCapability();
 }

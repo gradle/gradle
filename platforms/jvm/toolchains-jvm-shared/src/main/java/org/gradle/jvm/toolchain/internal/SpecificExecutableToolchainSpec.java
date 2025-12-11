@@ -17,11 +17,10 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.base.MoreObjects;
-import org.gradle.api.internal.provider.PropertyFactory;
-
-import javax.inject.Inject;
 import java.io.File;
 import java.util.Objects;
+import javax.inject.Inject;
+import org.gradle.api.internal.provider.PropertyFactory;
 
 /**
  * Represents a request for a Java toolchain using a specific 'java' executable.  The resulting toolchain
@@ -86,7 +85,9 @@ public class SpecificExecutableToolchainSpec extends DefaultToolchainSpec {
 
     @Override
     public String getDisplayName() {
-        return MoreObjects.toStringHelper("SpecificToolchain ").add("javaExecutable", javaExecutable).toString();
+        return MoreObjects.toStringHelper("SpecificToolchain ")
+                .add("javaExecutable", javaExecutable)
+                .toString();
     }
 
     @Override

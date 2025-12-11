@@ -41,5 +41,4 @@ public interface TaskOutputsEnterpriseInternal extends TaskOutputsInternal {
      * This does not prevent the task from being up-to-date.
      */
     void doNotStoreInCache();
-
 }

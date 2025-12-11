@@ -29,7 +29,8 @@ public class DefaultPrebuiltLibrary implements PrebuiltLibrary {
     private final SourceDirectorySet headers;
     private final DomainObjectSet<NativeLibraryBinary> binaries;
 
-    public DefaultPrebuiltLibrary(String name, ObjectFactory objectFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    public DefaultPrebuiltLibrary(
+            String name, ObjectFactory objectFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.name = name;
         headers = objectFactory.sourceDirectorySet("headers", "headers for prebuilt library '" + name + "'");
         binaries = domainObjectCollectionFactory.newDomainObjectSet(NativeLibraryBinary.class);

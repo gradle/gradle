@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EndCollection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -30,6 +29,7 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
@@ -41,22 +41,26 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
     private final CalculatedValueContainer<ImmutableList<ResolvedArtifactSet.Artifacts>, CalculateArtifacts> result;
 
     public AbstractTransformedArtifactSet(
-        ComponentIdentifier componentIdentifier,
-        VariantIdentifier sourceVariantId,
-        ResolvedArtifactSet delegate,
-        ImmutableAttributes targetVariantAttributes,
-        ImmutableCapabilities capabilities,
-        TransformChain transformChain,
-        TransformUpstreamDependenciesResolver dependenciesResolver,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
+            ComponentIdentifier componentIdentifier,
+            VariantIdentifier sourceVariantId,
+            ResolvedArtifactSet delegate,
+            ImmutableAttributes targetVariantAttributes,
+            ImmutableCapabilities capabilities,
+            TransformChain transformChain,
+            TransformUpstreamDependenciesResolver dependenciesResolver,
+            CalculatedValueContainerFactory calculatedValueContainerFactory) {
         ImmutableList.Builder<BoundTransformStep> builder = ImmutableList.builder();
-        transformChain.visitTransformSteps(step -> builder.add(new BoundTransformStep(step, dependenciesResolver.dependenciesFor(componentIdentifier, step))));
+        transformChain.visitTransformSteps(step -> builder.add(
+                new BoundTransformStep(step, dependenciesResolver.dependenciesFor(componentIdentifier, step))));
         ImmutableList<BoundTransformStep> steps = builder.build();
-        this.result = calculatedValueContainerFactory.create(Describables.of(componentIdentifier), new CalculateArtifacts(componentIdentifier, sourceVariantId, delegate, targetVariantAttributes, capabilities, steps));
+        this.result = calculatedValueContainerFactory.create(
+                Describables.of(componentIdentifier),
+                new CalculateArtifacts(
+                        componentIdentifier, sourceVariantId, delegate, targetVariantAttributes, capabilities, steps));
     }
 
-    public AbstractTransformedArtifactSet(CalculatedValueContainer<ImmutableList<ResolvedArtifactSet.Artifacts>, CalculateArtifacts> result) {
+    public AbstractTransformedArtifactSet(
+            CalculatedValueContainer<ImmutableList<ResolvedArtifactSet.Artifacts>, CalculateArtifacts> result) {
         this.result = result;
     }
 
@@ -108,13 +112,12 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
         private final ImmutableCapabilities capabilities;
 
         public CalculateArtifacts(
-            ComponentIdentifier ownerId,
-            VariantIdentifier sourceVariantId,
-            ResolvedArtifactSet delegate,
-            ImmutableAttributes targetVariantAttributes,
-            ImmutableCapabilities capabilities,
-            ImmutableList<BoundTransformStep> steps
-        ) {
+                ComponentIdentifier ownerId,
+                VariantIdentifier sourceVariantId,
+                ResolvedArtifactSet delegate,
+                ImmutableAttributes targetVariantAttributes,
+                ImmutableCapabilities capabilities,
+                ImmutableList<BoundTransformStep> steps) {
             this.ownerId = ownerId;
             this.sourceVariantId = sourceVariantId;
             this.delegate = delegate;
@@ -163,7 +166,8 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
             }
 
             ImmutableList.Builder<Artifacts> builder = ImmutableList.builderWithExpectedSize(1);
-            delegate.visit(new TransformingAsyncArtifactListener(steps, targetVariantAttributes, capabilities, builder));
+            delegate.visit(
+                    new TransformingAsyncArtifactListener(steps, targetVariantAttributes, capabilities, builder));
             return builder.build();
         }
     }

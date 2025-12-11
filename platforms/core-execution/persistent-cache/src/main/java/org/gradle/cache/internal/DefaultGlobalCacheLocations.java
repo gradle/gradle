@@ -16,12 +16,11 @@
 
 package org.gradle.cache.internal;
 
+import java.io.File;
+import java.util.List;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.file.FileHierarchySet;
-
-import java.io.File;
-import java.util.List;
 
 public class DefaultGlobalCacheLocations implements GlobalCacheLocations {
     private final FileHierarchySet globalCacheRoots;

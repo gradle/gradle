@@ -16,6 +16,16 @@
 
 package org.gradle.api.tasks.wrapper;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
@@ -43,17 +53,6 @@ import org.gradle.wrapper.Download;
 import org.gradle.wrapper.Logger;
 import org.gradle.wrapper.WrapperExecutor;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
 
 /**
  * <p>Generates scripts (for *nix and windows) which allow you to build your project with Gradle, without having to
@@ -89,9 +88,9 @@ public abstract class Wrapper extends DefaultTask {
      * Specifies how the wrapper path should be interpreted.
      */
     public enum PathBase {
-        PROJECT, GRADLE_USER_HOME
+        PROJECT,
+        GRADLE_USER_HOME
     }
-
 
     private final GradleVersionResolver gradleVersionResolver;
 
@@ -106,12 +105,14 @@ public abstract class Wrapper extends DefaultTask {
     private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private boolean distributionUrlConfigured = false;
-    private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
+    private final boolean isOffline =
+            getProject().getGradle().getStartParameter().isOffline();
 
     public Wrapper() {
         getValidateDistributionUrl().convention(WrapperDefaults.VALIDATE_DISTRIBUTION_URL);
 
-        gradleVersionResolver = new GradleVersionResolver(getProject().getResources().getText());
+        gradleVersionResolver =
+                new GradleVersionResolver(getProject().getResources().getText());
     }
 
     @TaskAction
@@ -127,31 +128,34 @@ public abstract class Wrapper extends DefaultTask {
         validateDistributionUrl(propertiesFile.getParentFile());
 
         WrapperGenerator.generate(
-            archiveBase, archivePath,
-            distributionBase, distributionPath,
-            getDistributionSha256Sum(existingProperties),
-            propertiesFile,
-            jarFileDestination, jarFileRelativePath,
-            unixScript, getBatchScript(),
-            getDistributionUrl(),
-            getValidateDistributionUrl().get(),
-            networkTimeout.getOrNull()
-        );
+                archiveBase,
+                archivePath,
+                distributionBase,
+                distributionPath,
+                getDistributionSha256Sum(existingProperties),
+                propertiesFile,
+                jarFileDestination,
+                jarFileRelativePath,
+                unixScript,
+                getBatchScript(),
+                getDistributionUrl(),
+                getValidateDistributionUrl().get(),
+                networkTimeout.getOrNull());
     }
 
     private void checkProperties(Properties existingProperties) {
         String checksumProperty = existingProperties != null
-            ? existingProperties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, null)
-            : null;
+                ? existingProperties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, null)
+                : null;
 
-        if (!isCurrentVersion() &&
-            distributionSha256Sum == null &&
-            checksumProperty != null) {
-            throw new GradleException("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. Specify one in the wrapper task configuration or with the --gradle-distribution-sha256-sum task option. You can find checksums for all Gradle releases at https://gradle.org/release-checksums");
+        if (!isCurrentVersion() && distributionSha256Sum == null && checksumProperty != null) {
+            throw new GradleException(
+                    "gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. Specify one in the wrapper task configuration or with the --gradle-distribution-sha256-sum task option. You can find checksums for all Gradle releases at https://gradle.org/release-checksums");
         }
     }
 
-    private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
+    private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE =
+            "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
 
     private void validateDistributionUrl(File uriRoot) {
         if (distributionUrlConfigured && getValidateDistributionUrl().get()) {
@@ -159,13 +163,15 @@ public abstract class Wrapper extends DefaultTask {
             URI uri = getDistributionUri(uriRoot, url);
             if (uri.getScheme().equals("file")) {
                 if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
-                    throw UncheckedException.throwAsUncheckedException(new IOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url)), true);
+                    throw UncheckedException.throwAsUncheckedException(
+                            new IOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url)), true);
                 }
             } else if (uri.getScheme().startsWith("http") && !isOffline) {
                 try {
                     new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(uri);
                 } catch (Exception e) {
-                    throw UncheckedException.throwAsUncheckedException(new IOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url), e), true);
+                    throw UncheckedException.throwAsUncheckedException(
+                            new IOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url), e), true);
                 }
             }
         }
@@ -298,8 +304,11 @@ public abstract class Wrapper extends DefaultTask {
      *
      * <p>The resulting distribution url is validated before it is written to the gradle-wrapper.properties file.
      */
-    @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
-        "The following labels are allowed: latest, release-candidate, release-milestone, release-nightly, and nightly.")
+    @Option(
+            option = "gradle-version",
+            description =
+                    "The version of the Gradle distribution required by the wrapper. "
+                            + "The following labels are allowed: latest, release-candidate, release-milestone, release-nightly, and nightly.")
     public void setGradleVersion(String gradleVersion) {
         distributionUrlConfigured = true;
         setUnresolvedGradleVersion(gradleVersion);
@@ -322,23 +331,25 @@ public abstract class Wrapper extends DefaultTask {
      *
      * @see DistributionType
      */
-    @Option(option = "distribution-type", description = "The type of the Gradle distribution to be used by the wrapper.")
+    @Option(
+            option = "distribution-type",
+            description = "The type of the Gradle distribution to be used by the wrapper.")
     public void setDistributionType(DistributionType distributionType) {
         this.distributionType = distributionType;
     }
 
     /**
-     * The list of available gradle distribution types. Always returns the contents of {@link DistributionType#values()}. 
+     * The list of available gradle distribution types. Always returns the contents of {@link DistributionType#values()}.
      * @deprecated Since 9.3.0. Use {@link DistributionType#values()} directly instead.
      */
     @Internal
     @Deprecated
     public List<DistributionType> getAvailableDistributionTypes() {
         DeprecationLogger.deprecateMethod(Wrapper.class, "getAvailableDistributionTypes")
-            .replaceWith("Wrapper.DistributionType.values()")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_wrapper_get_available_distribution_types")
-            .nagUser();
+                .replaceWith("Wrapper.DistributionType.values()")
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(9, "deprecated_wrapper_get_available_distribution_types")
+                .nagUser();
         return Arrays.asList(DistributionType.values());
     }
 
@@ -494,7 +505,9 @@ public abstract class Wrapper extends DefaultTask {
     @Input
     @Incubating
     @Optional
-    @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations.")
+    @Option(
+            option = "network-timeout",
+            description = "Timeout in ms to use when the wrapper is performing network operations.")
     public Property<Integer> getNetworkTimeout() {
         return networkTimeout;
     }

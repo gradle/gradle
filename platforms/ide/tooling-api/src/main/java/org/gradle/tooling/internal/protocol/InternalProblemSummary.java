@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.io.Serializable;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public interface InternalProblemSummary extends Serializable {

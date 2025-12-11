@@ -16,14 +16,13 @@
 
 package org.gradle.internal.operations.trace;
 
+import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
+
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-
-import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
 
 class SerializedOperationProgress implements SerializedOperation {
 
@@ -36,7 +35,8 @@ class SerializedOperationProgress implements SerializedOperation {
         this.id = id.getId();
         this.time = progressEvent.getTime();
         this.details = toSerializableModel(progressEvent.getDetails());
-        this.detailsClassName = details == null ? null : progressEvent.getDetails().getClass().getName();
+        this.detailsClassName =
+                details == null ? null : progressEvent.getDetails().getClass().getName();
     }
 
     SerializedOperationProgress(Map<String, ?> map) {
@@ -62,5 +62,4 @@ class SerializedOperationProgress implements SerializedOperation {
 
         return map.build();
     }
-
 }

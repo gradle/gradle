@@ -17,9 +17,8 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
-import org.gradle.api.artifacts.VersionConstraint;
-
 import java.util.List;
+import org.gradle.api.artifacts.VersionConstraint;
 
 public abstract class AbstractVersionConstraint implements VersionConstraint {
     @Override
@@ -34,10 +33,10 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
         AbstractVersionConstraint that = (AbstractVersionConstraint) o;
 
         return Objects.equal(getRequiredVersion(), that.getRequiredVersion())
-            && Objects.equal(getPreferredVersion(), that.getPreferredVersion())
-            && Objects.equal(getStrictVersion(), that.getStrictVersion())
-            && Objects.equal(getBranch(), that.getBranch())
-            && Objects.equal(getRejectedVersions(), that.getRejectedVersions());
+                && Objects.equal(getPreferredVersion(), that.getPreferredVersion())
+                && Objects.equal(getStrictVersion(), that.getStrictVersion())
+                && Objects.equal(getBranch(), that.getBranch())
+                && Objects.equal(getRejectedVersions(), that.getRejectedVersions());
     }
 
     @Override

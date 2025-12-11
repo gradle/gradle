@@ -20,6 +20,14 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
@@ -88,15 +96,6 @@ import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Abstract class for all test tasks.
@@ -186,7 +185,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testListenerSubscriptions = new BroadcastSubscriptions<TestListener>(TestListener.class);
         testOutputListenerSubscriptions = new BroadcastSubscriptions<TestOutputListener>(TestOutputListener.class);
 
-        reports = getObjectFactory().newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
+        reports = getObjectFactory()
+                .newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getJunitXml().getRequired().set(true);
         reports.getHtml().getRequired().set(true);
 
@@ -488,7 +488,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         LogLevel currentLevel = determineCurrentLogLevel();
         TestLogging levelLogging = getTestLogging().get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
-        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
+        TestEventLogger eventLogger =
+                new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
 
@@ -509,26 +510,31 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         addTestListener(testCountLogger);
 
         // Adapt all listeners registered with addTestListener() and addTestOutputListener() to TestListenerInternal
-        ListenerBroadcast<@NonNull TestListenerInternal> testListenerInternalBroadcaster = getListenerManager().createAnonymousBroadcaster(TestListenerInternal.class);
-        testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerSubscriptions.get().getSource(), testOutputListenerSubscriptions.get().getSource()));
+        ListenerBroadcast<@NonNull TestListenerInternal> testListenerInternalBroadcaster =
+                getListenerManager().createAnonymousBroadcaster(TestListenerInternal.class);
+        testListenerInternalBroadcaster.add(new TestListenerAdapter(
+                testListenerSubscriptions.get().getSource(),
+                testOutputListenerSubscriptions.get().getSource()));
 
         // Log to the console which tests are currently executing, and update live as current tests change
         ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(AbstractTestTask.class);
         parentProgressLogger.setDescription("Test Execution");
         parentProgressLogger.started();
-        TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
+        TestWorkerProgressListener testWorkerProgressListener =
+                new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
         testListenerInternalBroadcaster.add(testWorkerProgressListener);
 
         TestReportGenerator reportGenerator = createReportGenerator();
-        try (TestEventReporterAsListener reporterAsListener = new TestEventReporterAsListener(descriptor -> ((TestEventReporterFactoryInternal) getTestEventReporterFactory()).createInternalTestEventReporter(
-            ignored -> descriptor,
-            getBinaryResultsDirectory().get(),
-            reportGenerator,
-            testListenerInternalBroadcaster,
-            getReportEntrySkipLevels(),
-            false,
-            false
-        ))) {
+        try (TestEventReporterAsListener reporterAsListener = new TestEventReporterAsListener(
+                descriptor -> ((TestEventReporterFactoryInternal) getTestEventReporterFactory())
+                        .createInternalTestEventReporter(
+                                ignored -> descriptor,
+                                getBinaryResultsDirectory().get(),
+                                reportGenerator,
+                                testListenerInternalBroadcaster,
+                                getReportEntrySkipLevels(),
+                                false,
+                                false))) {
             TestExecuter<TestExecutionSpec> testExecuter = Cast.uncheckedNonnullCast(createTestExecuter());
             TestListenerInternal resultProcessorDelegate = reporterAsListener;
             if (failFast) {
@@ -565,7 +571,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
                 // Map results for legacy reporting interface
                 reportGenerators.add(new CustomTestReportingGenerator(outputLocation, testReporter));
             } else {
-                reportGenerators.add(getObjectFactory().newInstance(GenericHtmlTestReportGenerator.class, outputLocation.toPath()));
+                reportGenerators.add(
+                        getObjectFactory().newInstance(GenericHtmlTestReportGenerator.class, outputLocation.toPath()));
             }
         } else {
             getLogger().info("Test report disabled, omitting generation of the HTML test report.");
@@ -574,12 +581,15 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         JUnitXmlReport junitXml = reports.getJunitXml();
         if (junitXml.getRequired().get()) {
             JUnitXmlResultOptions xmlResultOptions = new JUnitXmlResultOptions(
-                junitXml.isOutputPerTestCase(),
-                junitXml.getMergeReruns().get(),
-                junitXml.getIncludeSystemOutLog().get(),
-                junitXml.getIncludeSystemErrLog().get()
-            );
-            reportGenerators.add(getObjectFactory().newInstance(JunitXmlTestReportGenerator.class, junitXml.getOutputLocation().get().getAsFile().toPath(), xmlResultOptions));
+                    junitXml.isOutputPerTestCase(),
+                    junitXml.getMergeReruns().get(),
+                    junitXml.getIncludeSystemOutLog().get(),
+                    junitXml.getIncludeSystemErrLog().get());
+            reportGenerators.add(getObjectFactory()
+                    .newInstance(
+                            JunitXmlTestReportGenerator.class,
+                            junitXml.getOutputLocation().get().getAsFile().toPath(),
+                            xmlResultOptions));
         }
 
         if (reportGenerators.isEmpty()) {
@@ -588,7 +598,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             return reportGenerators.get(0);
         } else {
             // Using get(0) prefers the HTML report if present
-            return new MultiTestReportGenerator(reportGenerators.get(0), ImmutableSet.copyOf(reportGenerators.subList(1, reportGenerators.size())));
+            return new MultiTestReportGenerator(
+                    reportGenerators.get(0), ImmutableSet.copyOf(reportGenerators.subList(1, reportGenerators.size())));
         }
     }
 
@@ -614,10 +625,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         } else if (testCountLogger.getTotalTests() == 0) {
             // No tests were executed, the following rules apply:
             // - If there are no filters, and no tests or test suites were discovered, fail
-            // - If there are filters and the task is configured to fail when no tests match the filters, throw an exception
+            // - If there are filters and the task is configured to fail when no tests match the filters, throw an
+            // exception
             // - Otherwise, this is fine - the task should succeed with no warnings or errors
             if (testsAreNotFiltered()) {
-                if (testCountLogger.getTotalDiscoveredItems() == 0 && getFailOnNoDiscoveredTests().get()) {
+                if (testCountLogger.getTotalDiscoveredItems() == 0
+                        && getFailOnNoDiscoveredTests().get()) {
                     return "There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.";
                 }
             } else if (shouldFailOnNoMatchingTests()) {
@@ -637,13 +650,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     private boolean patternFiltersSpecified() {
         return !filter.getIncludePatterns().isEmpty()
-            || !filter.getCommandLineIncludePatterns().isEmpty()
-            || !filter.getExcludePatterns().isEmpty();
+                || !filter.getCommandLineIncludePatterns().isEmpty()
+                || !filter.getExcludePatterns().isEmpty();
     }
 
     private String createNoMatchingTestErrorMessage() {
-        return "No tests found for given includes: "
-            + Joiner.on(' ').join(getNoMatchingTestErrorReasons());
+        return "No tests found for given includes: " + Joiner.on(' ').join(getNoMatchingTestErrorReasons());
     }
 
     /**
@@ -670,7 +682,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * For more information on supported patterns see {@link TestFilter}
      */
-    @Option(option = "tests", description = "Sets test class or method name to be included (in addition to the test task filters), '*' is supported.")
+    @Option(
+            option = "tests",
+            description =
+                    "Sets test class or method name to be included (in addition to the test task filters), '*' is supported.")
     public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
         filter.setCommandLineIncludePatterns(testNamePattern);
         return this;
@@ -736,7 +751,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @since 9.0.0
      */
     @Input
-    abstract public Property<Boolean> getFailOnNoDiscoveredTests();
+    public abstract Property<Boolean> getFailOnNoDiscoveredTests();
 
     /**
      * Handles test failures based on the {@link #getIgnoreFailures()} property.
@@ -787,12 +802,13 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         @Override
         public Path generate(List<Path> resultsDirectories) {
             if (resultsDirectories.size() > 1) {
-                throw new IllegalArgumentException("CustomTestReportingGenerator can only generate a report from a single results directory. Found: " + resultsDirectories);
+                throw new IllegalArgumentException(
+                        "CustomTestReportingGenerator can only generate a report from a single results directory. Found: "
+                                + resultsDirectories);
             }
             TestTreeModelResultsProvider.useResultsFrom(
-                resultsDirectories.get(0),
-                resultsProvider -> testReporter.generateReport(resultsProvider, outputDir)
-            );
+                    resultsDirectories.get(0),
+                    resultsProvider -> testReporter.generateReport(resultsProvider, outputDir));
             return outputDir.toPath();
         }
     }

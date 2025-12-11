@@ -30,5 +30,4 @@ public interface RootComponentProvider {
      *      within an adhoc root component.
      */
     LocalComponentGraphResolveState getRootComponent(boolean detached);
-
 }

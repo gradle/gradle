@@ -16,9 +16,8 @@
 
 package org.gradle.jvm.application.scripts;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Details for generating Java-based application start scripts.

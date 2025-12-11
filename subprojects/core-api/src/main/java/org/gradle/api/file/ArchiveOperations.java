@@ -20,7 +20,6 @@ import org.gradle.api.resources.ReadableResource;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-
 /**
  * Operations on archives such as ZIP or TAR files.
  *

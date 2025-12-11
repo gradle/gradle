@@ -23,5 +23,4 @@ import org.gradle.tooling.events.StartEvent;
  *
  * @since 7.3
  */
-public interface FileDownloadStartEvent extends FileDownloadProgressEvent, StartEvent {
-}
+public interface FileDownloadStartEvent extends FileDownloadProgressEvent, StartEvent {}

@@ -18,7 +18,6 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Action;
 
-
 /**
  * Base configuration for value source definitions.
  *

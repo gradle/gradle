@@ -16,32 +16,35 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import java.io.File;
+import java.util.Collection;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.Collection;
 
 /**
  * Service representing the build level configuration of the JVM toolchain subsystem.
  * <p>
  * Used also in the launcher for the daemon toolchain
  */
-@ServiceScope({ Scope.Build.class, Scope.Global.class })
+@ServiceScope({Scope.Build.class, Scope.Global.class})
 public interface ToolchainConfiguration {
     String AUTO_DETECT = "org.gradle.java.installations.auto-detect";
 
     Collection<String> getJavaInstallationsFromEnvironment();
+
     void setJavaInstallationsFromEnvironment(Collection<String> installations);
 
     Collection<String> getInstallationsFromPaths();
+
     void setInstallationsFromPaths(Collection<String> installations);
 
     boolean isAutoDetectEnabled();
+
     void setAutoDetectEnabled(boolean enabled);
 
     boolean isDownloadEnabled();
+
     void setDownloadEnabled(boolean enabled);
 
     File getAsdfDataDirectory();
@@ -50,9 +53,11 @@ public interface ToolchainConfiguration {
 
     void setIntelliJdkDirectory(File intellijInstallationDirectory);
 
-    @Nullable File getJabbaHomeDirectory();
+    @Nullable
+    File getJabbaHomeDirectory();
 
     File getSdkmanCandidatesDirectory();
 
-    @Nullable String getEnvironmentVariableValue(String variableName);
+    @Nullable
+    String getEnvironmentVariableValue(String variableName);
 }

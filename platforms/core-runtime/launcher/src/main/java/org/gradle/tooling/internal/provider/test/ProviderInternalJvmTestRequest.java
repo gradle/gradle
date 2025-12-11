@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.provider.test;
 
+import java.io.Serializable;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.jspecify.annotations.Nullable;
-
-import java.io.Serializable;
 
 public class ProviderInternalJvmTestRequest implements InternalJvmTestRequest, Serializable {
     private final String className;

@@ -16,17 +16,19 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.tasks.util.internal.PatternSetFactory;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 
 public class DefaultCompositeFileTree extends CompositeFileTree {
     private final Collection<? extends FileTreeInternal> fileTrees;
 
-    public DefaultCompositeFileTree(TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory, List<? extends FileTreeInternal> fileTrees) {
+    public DefaultCompositeFileTree(
+            TaskDependencyFactory taskDependencyFactory,
+            PatternSetFactory patternSetFactory,
+            List<? extends FileTreeInternal> fileTrees) {
         super(taskDependencyFactory, patternSetFactory);
         this.fileTrees = fileTrees;
     }

@@ -15,10 +15,9 @@
  */
 package org.gradle.plugins.signing.signatory.pgp;
 
+import java.util.Locale;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPSignature;
-
-import java.util.Locale;
 
 /**
  * A normalised form for keys, which are friendliest for users as hex strings but used internally as longs.
@@ -48,8 +47,7 @@ public class PgpKeyId implements Comparable<PgpKeyId> {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof PgpKeyId
-            && ((PgpKeyId) other).asHex.equals(this.asHex);
+        return other instanceof PgpKeyId && ((PgpKeyId) other).asHex.equals(this.asHex);
     }
 
     @Override
@@ -64,9 +62,7 @@ public class PgpKeyId implements Comparable<PgpKeyId> {
 
     @Override
     public int compareTo(PgpKeyId other) {
-        return other == null
-            ? -1
-            : this.asHex.compareTo(other.asHex);
+        return other == null ? -1 : this.asHex.compareTo(other.asHex);
     }
 
     public final String getAsHex() {
@@ -99,16 +95,19 @@ public class PgpKeyId implements Comparable<PgpKeyId> {
         switch (keyIdUpped.length()) {
             case 10:
                 if (!keyIdUpped.startsWith("0X")) {
-                    throw new IllegalArgumentException("10 character key IDs must start with 0x (given value: " + keyId + ")");
+                    throw new IllegalArgumentException(
+                            "10 character key IDs must start with 0x (given value: " + keyId + ")");
                 }
                 return keyIdUpped.substring(2);
             case 8:
                 if (keyId.startsWith("0X")) {
-                    throw new IllegalArgumentException("8 character key IDs must not start with 0x (given value: " + keyId + ")");
+                    throw new IllegalArgumentException(
+                            "8 character key IDs must not start with 0x (given value: " + keyId + ")");
                 }
                 return keyIdUpped;
             default:
-                throw new IllegalStateException("The key ID must be in a valid form (eg 00B5050F or 0x00B5050F), given value: " + keyId);
+                throw new IllegalStateException(
+                        "The key ID must be in a valid form (eg 00B5050F or 0x00B5050F), given value: " + keyId);
         }
     }
 }

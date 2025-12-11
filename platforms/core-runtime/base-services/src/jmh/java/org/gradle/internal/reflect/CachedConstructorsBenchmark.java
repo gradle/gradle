@@ -16,13 +16,12 @@
 
 package org.gradle.internal.reflect;
 
-import org.openjdk.jmh.annotations.*;
-import org.openjdk.jmh.infra.Blackhole;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
+import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
 
 @Fork(4)
 @Threads(2)
@@ -30,9 +29,10 @@ import java.util.Random;
 @State(Scope.Benchmark)
 public class CachedConstructorsBenchmark {
 
-    private final static Class<?>[] CLAZZ_ARRAY = new Class<?>[]{ArrayList.class, LinkedList.class, String.class, HashMap.class};
-    private final static int ARR_LEN = 1024;
-    private final static Random RANDOM = new Random();
+    private static final Class<?>[] CLAZZ_ARRAY =
+            new Class<?>[] {ArrayList.class, LinkedList.class, String.class, HashMap.class};
+    private static final int ARR_LEN = 1024;
+    private static final Random RANDOM = new Random();
     public static final Class<?>[] EMPTY = new Class<?>[0];
 
     private final DirectInstantiator.ConstructorCache cache = new DirectInstantiator.ConstructorCache();

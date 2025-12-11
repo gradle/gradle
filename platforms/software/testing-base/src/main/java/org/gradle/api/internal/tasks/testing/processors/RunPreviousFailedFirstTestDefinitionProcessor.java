@@ -16,28 +16,31 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
-import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
-import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
-import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
-import org.gradle.api.internal.tasks.testing.TestDefinition;
-import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 
 /**
  * In order to speed up the development feedback cycle, this class guarantee previous failed test classes
  * to be passed to its delegate first.
  */
-public class RunPreviousFailedFirstTestDefinitionProcessor<D extends TestDefinition> implements TestDefinitionProcessor<D> {
+public class RunPreviousFailedFirstTestDefinitionProcessor<D extends TestDefinition>
+        implements TestDefinitionProcessor<D> {
     private final Set<String> previousFailedTestClasses;
     private final Set<File> previousFailedTestDefinitionDirectories;
     private final TestDefinitionProcessor<D> delegate;
     private final LinkedHashSet<D> prioritizedTestDefinitions = new LinkedHashSet<>();
     private final LinkedHashSet<D> otherTestDefinitions = new LinkedHashSet<>();
 
-    public RunPreviousFailedFirstTestDefinitionProcessor(Set<String> previousFailedTestClasses, Set<File> previousFailedTestDefinitionDirectories, TestDefinitionProcessor<D> delegate) {
+    public RunPreviousFailedFirstTestDefinitionProcessor(
+            Set<String> previousFailedTestClasses,
+            Set<File> previousFailedTestDefinitionDirectories,
+            TestDefinitionProcessor<D> delegate) {
         this.previousFailedTestClasses = previousFailedTestClasses;
         this.previousFailedTestDefinitionDirectories = previousFailedTestDefinitionDirectories;
         this.delegate = delegate;
@@ -76,10 +79,12 @@ public class RunPreviousFailedFirstTestDefinitionProcessor<D extends TestDefinit
     private boolean wasPreviouslyRun(TestDefinition testDefinition) {
         if (testDefinition instanceof ClassTestDefinition) {
             return previousFailedTestClasses.contains(((ClassTestDefinition) testDefinition).getTestClassName());
-        } else if (testDefinition instanceof DirectoryBasedTestDefinition){
-            return previousFailedTestDefinitionDirectories.contains(((DirectoryBasedTestDefinition) testDefinition).getTestDefinitionsDir());
+        } else if (testDefinition instanceof DirectoryBasedTestDefinition) {
+            return previousFailedTestDefinitionDirectories.contains(
+                    ((DirectoryBasedTestDefinition) testDefinition).getTestDefinitionsDir());
         } else {
-            throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
+            throw new IllegalStateException("Unexpected test definition type "
+                    + testDefinition.getClass().getName());
         }
     }
 }

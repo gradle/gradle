@@ -16,11 +16,10 @@
 
 package org.gradle.internal.jvm;
 
+import javax.inject.Inject;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-
-import javax.inject.Inject;
 
 public class DefaultModularitySpec implements ModularitySpec {
 

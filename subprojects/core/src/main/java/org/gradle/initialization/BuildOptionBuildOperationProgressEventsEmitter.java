@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import javax.inject.Inject;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener;
 import org.gradle.internal.configurationcache.options.ConfigurationCacheSettingsFinalizedProgressDetails;
@@ -24,8 +25,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.operations.configuration.IsolatedProjectsSettingsFinalizedProgressDetails;
 
-import javax.inject.Inject;
-
 @ServiceScope(Scope.BuildTree.class)
 public class BuildOptionBuildOperationProgressEventsEmitter implements BuildTreeLifecycleListener {
 
@@ -33,7 +32,8 @@ public class BuildOptionBuildOperationProgressEventsEmitter implements BuildTree
     private final BuildModelParameters buildModelParameters;
 
     @Inject
-    public BuildOptionBuildOperationProgressEventsEmitter(BuildOperationProgressEventEmitter eventEmitter, BuildModelParameters buildModelParameters) {
+    public BuildOptionBuildOperationProgressEventsEmitter(
+            BuildOperationProgressEventEmitter eventEmitter, BuildModelParameters buildModelParameters) {
         this.eventEmitter = eventEmitter;
         this.buildModelParameters = buildModelParameters;
     }

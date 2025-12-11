@@ -152,7 +152,7 @@ tasks.withType<JavaCompile>().configureEach {
 
 val codeQuality = tasks.register("codeQuality") {
     dependsOn(tasks.withType<CodeNarc>())
-    dependsOn(tasks.withType<Checkstyle>())
+    // dependsOn(tasks.withType<Checkstyle>()) // consider spotless as quick fix, Checkstyle as dedicated redundancy layer, running exclusively on CI.
     dependsOn(tasks.withType<ValidatePlugins>())
 }
 
@@ -173,7 +173,7 @@ val rules by configurations.creating {
 
 val groovyVersion = GroovySystem.getVersion()
 val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
-val codenarcVersion = if (isAtLeastGroovy4) "3.6.0-groovy-4.0" else "3.6.0"
+val codeNarcVersion = if (isAtLeastGroovy4) "3.6.0-groovy-4.0" else "3.6.0"
 
 dependencies {
     rules("gradlebuild:code-quality-rules") {
@@ -182,7 +182,7 @@ dependencies {
     codenarc("gradlebuild:code-quality-rules") {
         because("Provides the IntegrationTestFixturesRule implementation")
     }
-    codenarc("org.codenarc:CodeNarc:$codenarcVersion")
+    codenarc("org.codenarc:CodeNarc:$codeNarcVersion")
     codenarc(embeddedKotlin("stdlib"))
 
     components {

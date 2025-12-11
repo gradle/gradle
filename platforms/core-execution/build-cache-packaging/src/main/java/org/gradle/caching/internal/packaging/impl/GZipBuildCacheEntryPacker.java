@@ -16,18 +16,17 @@
 
 package org.gradle.caching.internal.packaging.impl;
 
-import org.gradle.caching.internal.CacheableEntity;
-import org.gradle.caching.internal.origin.OriginReader;
-import org.gradle.caching.internal.origin.OriginWriter;
-import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import org.gradle.caching.internal.CacheableEntity;
+import org.gradle.caching.internal.origin.OriginReader;
+import org.gradle.caching.internal.origin.OriginWriter;
+import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 public class GZipBuildCacheEntryPacker implements BuildCacheEntryPacker {
     private final BuildCacheEntryPacker delegate;
@@ -37,7 +36,12 @@ public class GZipBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     @Override
-    public PackResult pack(CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, OutputStream output, OriginWriter writeOrigin) throws IOException {
+    public PackResult pack(
+            CacheableEntity entity,
+            Map<String, ? extends FileSystemSnapshot> snapshots,
+            OutputStream output,
+            OriginWriter writeOrigin)
+            throws IOException {
         try (GZIPOutputStream gzipOutput = new GZIPOutputStream(output)) {
             return delegate.pack(entity, snapshots, gzipOutput, writeOrigin);
         }

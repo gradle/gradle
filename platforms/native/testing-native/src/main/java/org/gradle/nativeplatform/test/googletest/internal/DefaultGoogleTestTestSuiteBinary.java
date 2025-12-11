@@ -20,7 +20,8 @@ import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
 
-public class DefaultGoogleTestTestSuiteBinary extends DefaultNativeTestSuiteBinarySpec implements GoogleTestTestSuiteBinarySpec {
+public class DefaultGoogleTestTestSuiteBinary extends DefaultNativeTestSuiteBinarySpec
+        implements GoogleTestTestSuiteBinarySpec {
     @Override
     public GoogleTestTestSuiteSpec getComponent() {
         return getComponentAs(GoogleTestTestSuiteSpec.class);

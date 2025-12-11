@@ -21,5 +21,4 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 
 @EventScope(Scope.UserHome.class)
-public interface FileChangeListener extends FileWatcherRegistry.ChangeHandler {
-}
+public interface FileChangeListener extends FileWatcherRegistry.ChangeHandler {}

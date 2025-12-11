@@ -19,5 +19,4 @@ package org.gradle.launcher.daemon.protocol;
 /**
  * A message sent between daemon client and daemon server.
  */
-public class Message {
-}
+public class Message {}

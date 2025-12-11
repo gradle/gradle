@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.artifact.transforms.renderer;
 
 import com.google.common.collect.Streams;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model.ArtifactTransformReportModel;
@@ -24,18 +25,18 @@ import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model.Repor
 import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.spec.ArtifactTransformReportSpec;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
-import java.util.List;
-
 /**
  * A type of {@link AbstractArtifactTransformReportRenderer} that can be used to render a {@link ArtifactTransformReportModel}
  * to the console with richly formatted output.
  */
-public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifactTransformReportRenderer<StyledTextOutput> {
+public final class ConsoleArtifactTransformReportRenderer
+        extends AbstractArtifactTransformReportRenderer<StyledTextOutput> {
     private final DocumentationRegistry documentationRegistry;
     private StyledTextOutput output;
     private int depth;
 
-    public ConsoleArtifactTransformReportRenderer(ArtifactTransformReportSpec spec, DocumentationRegistry documentationRegistry) {
+    public ConsoleArtifactTransformReportRenderer(
+            ArtifactTransformReportSpec spec, DocumentationRegistry documentationRegistry) {
         super(spec);
         this.documentationRegistry = documentationRegistry;
     }
@@ -46,7 +47,9 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
         this.output = output;
 
         boolean searchingByType = spec.getSearchTarget().isPresent();
-        ArtifactTransformReportModel modelToReport = searchingByType ? spec.getSearchTarget().map(model::filterTransformsByType).orElse(model) : model;
+        ArtifactTransformReportModel modelToReport = searchingByType
+                ? spec.getSearchTarget().map(model::filterTransformsByType).orElse(model)
+                : model;
 
         final boolean hasAnyTransforms = !modelToReport.getTransforms().isEmpty();
         if (hasAnyTransforms) {
@@ -80,7 +83,8 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
 
     private void writeType(ReportArtifactTransform artifactTransform) {
         output.style(StyledTextOutput.Style.Description).text("Type: ");
-        output.style(StyledTextOutput.Style.Normal).println(artifactTransform.getTransformClass().getName());
+        output.style(StyledTextOutput.Style.Normal)
+                .println(artifactTransform.getTransformClass().getName());
 
         output.style(StyledTextOutput.Style.Description).text("Cacheable: ");
         output.style(StyledTextOutput.Style.Normal).println(artifactTransform.isCacheable() ? "Yes" : "No");
@@ -88,17 +92,23 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
 
     @SuppressWarnings("CodeBlock2Expr")
     private void writeAttributes(ReportArtifactTransform artifactTransform) {
-        Integer maxNameLength = Streams.concat(artifactTransform.getFromAttributes().keySet().stream(), artifactTransform.getToAttributes().keySet().stream())
-            .map(a -> a.getName().length())
-            .max(Integer::compare)
-            .orElse(0);
+        Integer maxNameLength = Streams.concat(
+                        artifactTransform.getFromAttributes().keySet().stream(),
+                        artifactTransform.getToAttributes().keySet().stream())
+                .map(a -> a.getName().length())
+                .max(Integer::compare)
+                .orElse(0);
 
-        printSection("From Attributes:", () -> artifactTransform.getFromAttributes().asMap().forEach((key, value) -> {
-            writeAttribute(maxNameLength, key.getName(), value);
-        }));
-        printSection("To Attributes:", () -> artifactTransform.getToAttributes().asMap().forEach((key, value) -> {
-            writeAttribute(maxNameLength, key.getName(), value);
-        }));
+        printSection(
+                "From Attributes:",
+                () -> artifactTransform.getFromAttributes().asMap().forEach((key, value) -> {
+                    writeAttribute(maxNameLength, key.getName(), value);
+                }));
+        printSection(
+                "To Attributes:",
+                () -> artifactTransform.getToAttributes().asMap().forEach((key, value) -> {
+                    writeAttribute(maxNameLength, key.getName(), value);
+                }));
     }
 
     private void writeAttribute(Integer max, String name, Object value) {
@@ -110,12 +120,16 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
     private void writeSuggestions(List<ReportArtifactTransform> transforms) {
         output.style(StyledTextOutput.Style.Info);
         if (transforms.stream().anyMatch(t -> !t.isCacheable())) {
-            output.println("Some artifact transforms are not cacheable.  This can have negative performance impacts.  See more documentation here: " + documentationRegistry.getDocumentationFor("artifact_transforms", "sec:caching-transforms") + ".");
+            output.println(
+                    "Some artifact transforms are not cacheable.  This can have negative performance impacts.  See more documentation here: "
+                            + documentationRegistry.getDocumentationFor("artifact_transforms", "sec:caching-transforms")
+                            + ".");
         }
     }
 
     private void writeCompleteAbsenceOfResults(ArtifactTransformReportModel model, boolean searchingByType) {
-        message("There are no transforms registered in " + model.getProjectDisplayName() + (searchingByType ? " with this type." : "."));
+        message("There are no transforms registered in " + model.getProjectDisplayName()
+                + (searchingByType ? " with this type." : "."));
     }
 
     private void printHeader(Runnable action) {

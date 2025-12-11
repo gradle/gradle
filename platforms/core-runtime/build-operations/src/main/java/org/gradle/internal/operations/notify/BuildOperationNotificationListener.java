@@ -43,5 +43,4 @@ public interface BuildOperationNotificationListener {
     void progress(BuildOperationProgressNotification notification);
 
     void finished(BuildOperationFinishedNotification notification);
-
 }

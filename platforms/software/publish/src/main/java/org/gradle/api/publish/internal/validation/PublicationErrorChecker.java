@@ -33,19 +33,24 @@ public abstract class PublicationErrorChecker {
      * @param documentationRegistry for creating helpful links in error messages upon failing the check
      * @throws PublishException if the component uses attributes invalid for publication
      */
-    public static void checkForUnpublishableAttributes(SoftwareComponentInternal component, DocumentationRegistry documentationRegistry) {
+    public static void checkForUnpublishableAttributes(
+            SoftwareComponentInternal component, DocumentationRegistry documentationRegistry) {
         for (SoftwareComponentVariant variant : component.getUsages()) {
             variant.getAttributes().keySet().stream()
-                .filter(attribute -> Category.CATEGORY_ATTRIBUTE.getName().equals(attribute.getName()))
-                .findFirst()
-                .ifPresent(attribute -> {
-                    Object value = variant.getAttributes().getAttribute(attribute);
-                    if (value != null && Category.VERIFICATION.equals(value.toString())) {
-                        throw new PublishException("Cannot publish module metadata for component '" + component.getName() + "' which would include a variant '" + variant.getName() + "' that contains a '" +
-                            Category.CATEGORY_ATTRIBUTE.getName() + "' attribute with a value of '" + Category.VERIFICATION + "'.  This attribute is reserved for test verification output and is not publishable.  " +
-                            documentationRegistry.getDocumentationRecommendationFor("on this", "variant_attributes", "sec:verification_category"));
-                    }
-                });
+                    .filter(attribute -> Category.CATEGORY_ATTRIBUTE.getName().equals(attribute.getName()))
+                    .findFirst()
+                    .ifPresent(attribute -> {
+                        Object value = variant.getAttributes().getAttribute(attribute);
+                        if (value != null && Category.VERIFICATION.equals(value.toString())) {
+                            throw new PublishException("Cannot publish module metadata for component '"
+                                    + component.getName() + "' which would include a variant '" + variant.getName()
+                                    + "' that contains a '" + Category.CATEGORY_ATTRIBUTE.getName()
+                                    + "' attribute with a value of '" + Category.VERIFICATION
+                                    + "'.  This attribute is reserved for test verification output and is not publishable.  "
+                                    + documentationRegistry.getDocumentationRecommendationFor(
+                                            "on this", "variant_attributes", "sec:verification_category"));
+                        }
+                    });
         }
     }
 }

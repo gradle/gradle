@@ -38,15 +38,13 @@ public interface ProjectFeatureBindingBuilder {
      * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
      */
     <
-        OwnDefinition extends Definition<OwnBuildModel>,
-        OwnBuildModel extends BuildModel,
-        TargetDefinition extends Definition<?>
-        >
-    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeature(
-        String name,
-        ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
-        ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition> transform
-    );
+                    OwnDefinition extends Definition<OwnBuildModel>,
+                    OwnBuildModel extends BuildModel,
+                    TargetDefinition extends Definition<?>>
+            DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeature(
+                    String name,
+                    ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
+                    ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition> transform);
 
     /**
      * A convenience method for creating a binding between a project feature definition object
@@ -62,16 +60,14 @@ public interface ProjectFeatureBindingBuilder {
      * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
      */
     default <
-        OwnDefinition extends Definition<OwnBuildModel>,
-        OwnBuildModel extends BuildModel,
-        TargetDefinition extends Definition<?>
-        >
-    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeatureToDefinition(
-        String name,
-        Class<OwnDefinition> definitionClass,
-        Class<TargetDefinition> targetDefinitionClass,
-        ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition> transform
-    ) {
+                    OwnDefinition extends Definition<OwnBuildModel>,
+                    OwnBuildModel extends BuildModel,
+                    TargetDefinition extends Definition<?>>
+            DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeatureToDefinition(
+                    String name,
+                    Class<OwnDefinition> definitionClass,
+                    Class<TargetDefinition> targetDefinitionClass,
+                    ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition> transform) {
         return bindProjectFeature(name, bindingToTargetDefinition(definitionClass, targetDefinitionClass), transform);
     }
 
@@ -89,16 +85,14 @@ public interface ProjectFeatureBindingBuilder {
      * @param <TargetBuildModel> the type of the build model type of the parent definition object this feature can be bound to
      */
     default <
-        OwnDefinition extends Definition<OwnBuildModel>,
-        OwnBuildModel extends BuildModel,
-        TargetBuildModel extends BuildModel
-        >
-    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeatureToBuildModel(
-        String name,
-        Class<OwnDefinition> definitionClass,
-        Class<TargetBuildModel> targetBuildModelClass,
-        ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, Definition<TargetBuildModel>> transform
-    ) {
+                    OwnDefinition extends Definition<OwnBuildModel>,
+                    OwnBuildModel extends BuildModel,
+                    TargetBuildModel extends BuildModel>
+            DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeatureToBuildModel(
+                    String name,
+                    Class<OwnDefinition> definitionClass,
+                    Class<TargetBuildModel> targetBuildModelClass,
+                    ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, Definition<TargetBuildModel>> transform) {
         return bindProjectFeature(name, bindingToTargetBuildModel(definitionClass, targetBuildModelClass), transform);
     }
 
@@ -114,14 +108,11 @@ public interface ProjectFeatureBindingBuilder {
      * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
      */
     static <
-        OwnDefinition extends Definition<OwnBuildModel>,
-        OwnBuildModel extends BuildModel,
-        TargetDefinition extends Definition<?>
-        >
-    ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingToTargetDefinition(
-        Class<OwnDefinition> definition,
-        Class<TargetDefinition> targetDefinition
-    ) {
+                    OwnDefinition extends Definition<OwnBuildModel>,
+                    OwnBuildModel extends BuildModel,
+                    TargetDefinition extends Definition<?>>
+            ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingToTargetDefinition(
+                    Class<OwnDefinition> definition, Class<TargetDefinition> targetDefinition) {
         return new ModelBindingTypeInformation<>(definition, new DefinitionTargetTypeInformation<>(targetDefinition));
     }
 
@@ -138,14 +129,12 @@ public interface ProjectFeatureBindingBuilder {
      * @param <TargetBuildModel> the type of the build model type of the parent definition object this feature can be bound to
      */
     static <
-        OwnDefinition extends Definition<OwnBuildModel>,
-        OwnBuildModel extends BuildModel,
-        TargetBuildModel extends BuildModel
-        >
-    ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, Definition<TargetBuildModel>> bindingToTargetBuildModel(
-        Class<OwnDefinition> definition,
-        Class<TargetBuildModel> targetBuildModel
-    ) {
+                    OwnDefinition extends Definition<OwnBuildModel>,
+                    OwnBuildModel extends BuildModel,
+                    TargetBuildModel extends BuildModel>
+            ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, Definition<TargetBuildModel>>
+                    bindingToTargetBuildModel(
+                            Class<OwnDefinition> definition, Class<TargetBuildModel> targetBuildModel) {
         return new ModelBindingTypeInformation<>(definition, new BuildModelTargetTypeInformation<>(targetBuildModel));
     }
 
@@ -158,18 +147,15 @@ public interface ProjectFeatureBindingBuilder {
      * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
      */
     class ModelBindingTypeInformation<
-        OwnDefinition extends Definition<OwnBuildModel>,
-        OwnBuildModel extends BuildModel,
-        TargetDefinition extends Definition<?>
-        > {
+            OwnDefinition extends Definition<OwnBuildModel>,
+            OwnBuildModel extends BuildModel,
+            TargetDefinition extends Definition<?>> {
 
         private final Class<OwnDefinition> definitionType;
         private final TargetTypeInformation<TargetDefinition> targetType;
 
         public ModelBindingTypeInformation(
-            Class<OwnDefinition> definitionType,
-            TargetTypeInformation<TargetDefinition> targetType
-        ) {
+                Class<OwnDefinition> definitionType, TargetTypeInformation<TargetDefinition> targetType) {
             this.definitionType = definitionType;
             this.targetType = targetType;
         }
@@ -183,4 +169,3 @@ public interface ProjectFeatureBindingBuilder {
         }
     }
 }
-

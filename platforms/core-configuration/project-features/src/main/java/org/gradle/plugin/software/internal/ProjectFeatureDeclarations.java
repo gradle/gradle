@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.software.internal;
 
+import java.util.Map;
 import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -23,8 +24,6 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * Declarations of project features implemented by plugins.
@@ -35,7 +34,10 @@ public interface ProjectFeatureDeclarations {
      * Declares a plugin as providing a project feature.  Cannot be called again once the list of project features has been
      * queried via {@link #getProjectFeatureImplementations()}.
      */
-    void addDeclaration(@Nullable String pluginId, Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass);
+    void addDeclaration(
+            @Nullable String pluginId,
+            Class<? extends Plugin<Project>> pluginClass,
+            Class<? extends Plugin<Settings>> registeringPluginClass);
 
     /**
      * Returns a map of available project features, along with their types and associated plugins, keyed by project feature name.  Note that once

@@ -16,11 +16,10 @@
 
 package org.gradle.launcher.configuration;
 
+import java.io.File;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
-
-import java.io.File;
 
 /**
  * Immutable build layout parameters, calculated from the command-line options and environment.

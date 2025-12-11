@@ -15,17 +15,16 @@
  */
 package org.gradle.api.internal.project.ant;
 
+import java.io.Closeable;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Map;
 import org.apache.tools.ant.ComponentHelper;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.ant.AntFileResource;
 import org.gradle.api.internal.file.ant.BaseDirSelector;
-
-import java.io.Closeable;
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Map;
 
 @SuppressWarnings("deprecation")
 public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closeable {
@@ -78,7 +77,8 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
     }
 
     @Override
-    public void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends String, ? super String> taskNamer) {
+    public void importBuild(
+            Object antBuildFile, String baseDirectory, Transformer<? extends String, ? super String> taskNamer) {
         throw new UnsupportedOperationException();
     }
 
@@ -135,5 +135,4 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
         helper.getDataTypeDefinitions().clear();
         project.getReferences().clear();
     }
-
 }

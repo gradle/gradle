@@ -16,13 +16,12 @@
 
 package org.gradle.internal.service.scopes;
 
+import java.nio.file.Path;
 import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.vfs.FileChangeListener;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
-
-import java.nio.file.Path;
 
 public class DefaultFileChangeListeners implements FileChangeListeners {
     private final AnonymousListenerBroadcast<FileChangeListener> broadcaster;

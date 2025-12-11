@@ -15,7 +15,10 @@
  */
 package org.gradle.api.tasks.bundling;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
 import groovy.lang.Closure;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopySpec;
@@ -38,17 +41,14 @@ import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
-
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
-    private static final String USE_FILE_SYSTEM_PERMISSIONS_PROPERTY = "org.gradle.archives.use-file-system-permissions";
+    private static final String USE_FILE_SYSTEM_PERMISSIONS_PROPERTY =
+            "org.gradle.archives.use-file-system-permissions";
 
     // All of these field names are really long to prevent collisions with the groovy setters.
     // Groovy will try to set the private fields if given the opportunity.
@@ -96,18 +96,25 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     private void configureDefaultPermissions() {
-        ConfigurableFilePermissions defaultDirPermissions = getFileSystemOperations().permissions(FileSystem.DEFAULT_DIR_MODE);
-        ConfigurableFilePermissions defaultFilePermissions = getFileSystemOperations().permissions(FileSystem.DEFAULT_FILE_MODE);
+        ConfigurableFilePermissions defaultDirPermissions =
+                getFileSystemOperations().permissions(FileSystem.DEFAULT_DIR_MODE);
+        ConfigurableFilePermissions defaultFilePermissions =
+                getFileSystemOperations().permissions(FileSystem.DEFAULT_FILE_MODE);
 
         getDirPermissions().convention(defaultDirPermissions);
         getFilePermissions().convention(defaultFilePermissions);
 
-        Provider<Boolean> useFileSystemPermissions = getProject().getProviders()
-            .gradleProperty(USE_FILE_SYSTEM_PERMISSIONS_PROPERTY)
-            .map(transformer(value -> Boolean.parseBoolean(value.trim())))
-            .orElse(false);
-        getDirPermissions().set(useFileSystemPermissions.map(transformer(fileSystemPermissions -> fileSystemPermissions ? null : defaultDirPermissions)));
-        getFilePermissions().set(useFileSystemPermissions.map(transformer(fileSystemPermissions -> fileSystemPermissions ? null : defaultFilePermissions)));
+        Provider<Boolean> useFileSystemPermissions = getProject()
+                .getProviders()
+                .gradleProperty(USE_FILE_SYSTEM_PERMISSIONS_PROPERTY)
+                .map(transformer(value -> Boolean.parseBoolean(value.trim())))
+                .orElse(false);
+        getDirPermissions()
+                .set(useFileSystemPermissions.map(
+                        transformer(fileSystemPermissions -> fileSystemPermissions ? null : defaultDirPermissions)));
+        getFilePermissions()
+                .set(useFileSystemPermissions.map(
+                        transformer(fileSystemPermissions -> fileSystemPermissions ? null : defaultFilePermissions)));
     }
 
     @Inject
@@ -250,7 +257,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         return this;
     }
 
-
     /**
      * Creates and configures a child {@code CopySpec} with a destination directory *inside* the archive for the files.
      * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
@@ -347,6 +353,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         Instantiator instantiator = getInstantiator();
         FileSystem fileSystem = getFileSystem();
 
-        return new CopyActionExecuter(instantiator, getPropertyFactory(), fileSystem, isReproducibleFileOrder(), getDocumentationRegistry());
+        return new CopyActionExecuter(
+                instantiator, getPropertyFactory(), fileSystem, isReproducibleFileOrder(), getDocumentationRegistry());
     }
 }

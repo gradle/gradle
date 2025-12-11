@@ -53,8 +53,6 @@ public class DefaultDocLink implements InternalDocLink {
 
     @Override
     public String toString() {
-        return "DefaultDocLink{" +
-            "url='" + url + '\'' +
-            '}';
+        return "DefaultDocLink{" + "url='" + url + '\'' + '}';
     }
 }

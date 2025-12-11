@@ -37,5 +37,4 @@ public class DefaultProjectFinder implements ProjectFinder {
         Path resolvedProjectPath = baseProjectId.getProjectPath().absolutePath(Path.path(path));
         return ProjectIdentity.computeProjectIdentityPath(buildPath, resolvedProjectPath);
     }
-
 }

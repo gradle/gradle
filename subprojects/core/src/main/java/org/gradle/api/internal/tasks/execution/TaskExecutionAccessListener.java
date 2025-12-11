@@ -21,7 +21,6 @@ import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.jspecify.annotations.Nullable;
 
-
 @EventScope(Scope.Build.class)
 public interface TaskExecutionAccessListener {
 
@@ -39,5 +38,4 @@ public interface TaskExecutionAccessListener {
      * Called when accessing the convention object during task execution.
      */
     void onConventionAccess(String invocationDescription, TaskInternal task, @Nullable TaskInternal runningTask);
-
 }

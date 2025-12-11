@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinitionConsumer;
@@ -40,10 +43,6 @@ import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 @NullMarked
 public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefinition> {
     private final ClassLoader applicationClassLoader;
@@ -52,19 +51,19 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
     private @Nullable CategoryFilter categoryFilter;
 
     public JUnitTestExecutor(
-        ClassLoader applicationClassLoader,
-        JUnitSpec spec,
-        Clock clock,
-        IdGenerator<?> idGenerator,
-        TestResultProcessor threadSafeResultProcessor
-    ) {
+            ClassLoader applicationClassLoader,
+            JUnitSpec spec,
+            Clock clock,
+            IdGenerator<?> idGenerator,
+            TestResultProcessor threadSafeResultProcessor) {
         this.applicationClassLoader = applicationClassLoader;
         this.spec = spec;
         this.listener = new JUnitTestEventAdapter(threadSafeResultProcessor, clock, idGenerator);
 
         if (spec.hasCategoryConfiguration()) {
             verifyJUnitCategorySupport(applicationClassLoader);
-            categoryFilter = new CategoryFilter(spec.getIncludeCategories(), spec.getExcludeCategories(), applicationClassLoader);
+            categoryFilter = new CategoryFilter(
+                    spec.getIncludeCategories(), spec.getExcludeCategories(), applicationClassLoader);
             categoryFilter.verifyCategories(applicationClassLoader);
         }
     }
@@ -154,8 +153,8 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
 
         TestFilterSpec filterSpec = spec.getFilter();
         if (!filterSpec.getIncludedTests().isEmpty()
-            || !filterSpec.getIncludedTestsCommandLine().isEmpty()
-            || !filterSpec.getExcludedTests().isEmpty()) {
+                || !filterSpec.getIncludedTestsCommandLine().isEmpty()
+                || !filterSpec.getExcludedTests().isEmpty()) {
             TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec);
             // For test suites (including suite-like custom Runners), if the test suite class
             // matches the filter, run the entire suite instead of filtering away its contents.
@@ -193,7 +192,8 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
                 if (errors.size() == 1) {
                     throw new GradleException("There was a problem while executing the tests.", first);
                 } else {
-                    throw new DefaultMultiCauseException("There were multiple problems while executing the tests.", errors);
+                    throw new DefaultMultiCauseException(
+                            "There were multiple problems while executing the tests.", errors);
                 }
             }
         }
@@ -229,7 +229,8 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
         }
 
         if (failed) {
-            throw new GradleException("JUnit Categories defined but declared JUnit version does not support Categories.");
+            throw new GradleException(
+                    "JUnit Categories defined but declared JUnit version does not support Categories.");
         }
     }
 
@@ -263,7 +264,8 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
 
         @Override
         public boolean shouldRun(Description description) {
-            if (matcher.matchesTest(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description))) {
+            if (matcher.matchesTest(
+                    JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description))) {
                 return true;
             }
 

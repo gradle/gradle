@@ -17,14 +17,13 @@
 package org.gradle.performance.fixture;
 
 import groovy.transform.CompileStatic;
-import org.gradle.performance.results.CrossVersionPerformanceResults;
-import org.gradle.performance.results.DataReporter;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.gradle.performance.results.CrossVersionPerformanceResults;
+import org.gradle.performance.results.DataReporter;
 
 @CompileStatic
 public class CompositeDataReporter implements DataReporter<CrossVersionPerformanceResults>, Closeable {
@@ -38,7 +37,8 @@ public class CompositeDataReporter implements DataReporter<CrossVersionPerforman
     @Override
     public void report(CrossVersionPerformanceResults results) {
         if (!testIds.add(results.getTestId())) {
-            throw new IllegalArgumentException(String.format("Multiple performance test executions with id '%s' found.", results.getTestId()));
+            throw new IllegalArgumentException(
+                    String.format("Multiple performance test executions with id '%s' found.", results.getTestId()));
         }
         for (DataReporter<CrossVersionPerformanceResults> reporter : reporters) {
             reporter.report(results);

@@ -15,27 +15,26 @@
  */
 package org.gradle.initialization;
 
+import java.util.Set;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
-
 
 @ServiceScope(Scope.Settings.class)
 public interface ProjectDescriptorRegistry {
 
     void addProject(ProjectDescriptorInternal project);
 
-    @Nullable ProjectDescriptorInternal getRootProject();
+    @Nullable
+    ProjectDescriptorInternal getRootProject();
 
-    @Nullable ProjectDescriptorInternal getProject(String path);
+    @Nullable
+    ProjectDescriptorInternal getProject(String path);
 
     int size();
 
     Set<ProjectDescriptorInternal> getAllProjects();
 
     void changeDescriptorPath(Path oldPath, Path newPath);
-
 }

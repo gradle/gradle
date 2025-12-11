@@ -16,12 +16,11 @@
 
 package org.gradle.internal.remote.internal.inet;
 
+import java.nio.channels.SocketChannel;
 import org.gradle.internal.remote.internal.ConnectCompletion;
 import org.gradle.internal.remote.internal.KryoBackedMessageSerializer;
 import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.internal.serialize.StatefulSerializer;
-
-import java.nio.channels.SocketChannel;
 
 class SocketConnectCompletion implements ConnectCompletion {
     private final SocketChannel socket;
@@ -32,7 +31,8 @@ class SocketConnectCompletion implements ConnectCompletion {
 
     @Override
     public String toString() {
-        return socket.socket().getLocalSocketAddress() + " to " + socket.socket().getRemoteSocketAddress();
+        return socket.socket().getLocalSocketAddress() + " to "
+                + socket.socket().getRemoteSocketAddress();
     }
 
     @Override

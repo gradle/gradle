@@ -15,9 +15,8 @@
  */
 package org.gradle.api.artifacts.repositories;
 
-import org.gradle.api.Action;
-
 import java.io.InputStream;
+import org.gradle.api.Action;
 
 /**
  * Provides access to resources on an artifact repository. Gradle takes care of caching

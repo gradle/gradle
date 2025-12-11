@@ -16,11 +16,10 @@
 
 package org.gradle.api.model;
 
-import org.gradle.api.Incubating;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import org.gradle.api.Incubating;
 
 /**
  * Marks Gradle-provided types that can be instantiated via the managed object infrastructure.
@@ -65,5 +64,4 @@ import java.lang.annotation.RetentionPolicy;
 @Incubating
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ManagedType {
-}
+public @interface ManagedType {}

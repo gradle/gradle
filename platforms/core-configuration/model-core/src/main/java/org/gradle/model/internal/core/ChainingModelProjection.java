@@ -52,7 +52,8 @@ public class ChainingModelProjection implements ModelProjection {
 
     @Override
     @Nullable
-    public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
+    public <T> ModelView<? extends T> asImmutable(
+            ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
         for (ModelProjection projection : projections) {
             ModelView<? extends T> view = projection.asImmutable(type, node, ruleDescriptor);
             if (view != null) {
@@ -64,7 +65,8 @@ public class ChainingModelProjection implements ModelProjection {
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
+    public <T> ModelView<? extends T> asMutable(
+            ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
         for (ModelProjection projection : projections) {
             ModelView<? extends T> view = projection.asMutable(type, node, ruleDescriptor);
             if (view != null) {

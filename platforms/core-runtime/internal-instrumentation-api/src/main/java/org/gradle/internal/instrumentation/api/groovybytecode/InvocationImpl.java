@@ -16,9 +16,9 @@
 
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import org.jspecify.annotations.Nullable;
-
 import static org.gradle.internal.instrumentation.api.groovybytecode.InvocationUtils.unwrap;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * A simple implementation of the Invocation that accepts a lambda for {@link #callNext()} implementation.
@@ -28,7 +28,8 @@ import static org.gradle.internal.instrumentation.api.groovybytecode.InvocationU
 public final class InvocationImpl<R> implements Invocation {
     @FunctionalInterface
     public interface ThrowingSupplier {
-        @Nullable Object get() throws Throwable;
+        @Nullable
+        Object get() throws Throwable;
     }
 
     private final R receiver;

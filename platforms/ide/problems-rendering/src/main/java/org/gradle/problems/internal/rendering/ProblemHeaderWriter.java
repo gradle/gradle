@@ -16,17 +16,15 @@
 
 package org.gradle.problems.internal.rendering;
 
-import org.gradle.api.problems.internal.InternalProblem;
-
 import java.io.PrintWriter;
+import org.gradle.api.problems.internal.InternalProblem;
 
 /**
  * Writes the header line for a problem.
  */
 class ProblemHeaderWriter implements PartialProblemWriter {
 
-    public ProblemHeaderWriter() {
-    }
+    public ProblemHeaderWriter() {}
 
     @Override
     public void write(InternalProblem problem, RenderOptions options, PrintWriter output) {

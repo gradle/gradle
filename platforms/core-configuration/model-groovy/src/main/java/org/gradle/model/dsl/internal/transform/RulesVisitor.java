@@ -17,6 +17,8 @@
 package org.gradle.model.dsl.internal.transform;
 
 import com.google.common.collect.Iterables;
+import java.util.LinkedList;
+import java.util.List;
 import org.codehaus.groovy.ast.AnnotationNode;
 import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
@@ -42,9 +44,6 @@ import org.gradle.internal.Pair;
 import org.gradle.model.internal.core.ModelPath;
 import org.jspecify.annotations.Nullable;
 
-import java.util.LinkedList;
-import java.util.List;
-
 public class RulesVisitor extends RestrictiveCodeVisitor {
 
     private static final String AST_NODE_METADATA_KEY = RulesVisitor.class.getName();
@@ -52,7 +51,8 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
 
     // TODO - have to do much better here
     public static final String INVALID_STATEMENT = "illegal rule";
-    public static final String INVALID_RULE_SIGNATURE = "Rule must follow the pattern '«name»(«type») {}' for a registration, and '«name» {}' for an action";
+    public static final String INVALID_RULE_SIGNATURE =
+            "Rule must follow the pattern '«name»(«type») {}' for a registration, and '«name» {}' for an action";
 
     private final RuleVisitor ruleVisitor;
 
@@ -89,14 +89,20 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         ClosureExpression closureExpression = AstUtils.getSingleClosureArg(call);
         if (closureExpression != null) {
             // path { ... }
-            rewriteAction(call, extractModelPathFromMethodTarget(call), closureExpression, RuleVisitor.displayName(call));
+            rewriteAction(
+                    call, extractModelPathFromMethodTarget(call), closureExpression, RuleVisitor.displayName(call));
             return;
         }
 
         Pair<ClassExpression, ClosureExpression> args = AstUtils.getClassAndClosureArgs(call);
         if (args != null) {
             // path(Type) { ... }
-            rewriteCreator(call, extractModelPathFromMethodTarget(call), args.getRight(), args.getLeft(), RuleVisitor.displayName(call));
+            rewriteCreator(
+                    call,
+                    extractModelPathFromMethodTarget(call),
+                    args.getRight(),
+                    args.getLeft(),
+                    RuleVisitor.displayName(call));
             return;
         }
 
@@ -117,22 +123,32 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         restrict(call, INVALID_RULE_SIGNATURE);
     }
 
-    public void rewriteCreator(MethodCallExpression call, String modelPath, ClosureExpression closureExpression, ClassExpression typeExpression, String displayName) {
-        // Rewrite the method call to match TransformedModelDslBacking#create(String, Closure), which is what the delegate will be
+    public void rewriteCreator(
+            MethodCallExpression call,
+            String modelPath,
+            ClosureExpression closureExpression,
+            ClassExpression typeExpression,
+            String displayName) {
+        // Rewrite the method call to match TransformedModelDslBacking#create(String, Closure), which is what the
+        // delegate will be
         ConstantExpression modelPathArgument = new ConstantExpression(modelPath);
-        ArgumentListExpression replacedArgumentList = new ArgumentListExpression(modelPathArgument, typeExpression, closureExpression);
+        ArgumentListExpression replacedArgumentList =
+                new ArgumentListExpression(modelPathArgument, typeExpression, closureExpression);
         call.setMethod(new ConstantExpression("create"));
         call.setArguments(replacedArgumentList);
 
         // Call directly on the delegate to avoid some dynamic dispatch
         call.setImplicitThis(true);
-        call.setObjectExpression(new MethodCallExpression(VariableExpression.THIS_EXPRESSION, "getDelegate", ArgumentListExpression.EMPTY_ARGUMENTS));
+        call.setObjectExpression(new MethodCallExpression(
+                VariableExpression.THIS_EXPRESSION, "getDelegate", ArgumentListExpression.EMPTY_ARGUMENTS));
 
         ruleVisitor.visitRuleClosure(closureExpression, call, displayName);
     }
 
-    public void rewriteAction(MethodCallExpression call, String modelPath, ClosureExpression closureExpression, String displayName) {
-        // Rewrite the method call to match TransformedModelDslBacking#configure(String, Closure), which is what the delegate will be
+    public void rewriteAction(
+            MethodCallExpression call, String modelPath, ClosureExpression closureExpression, String displayName) {
+        // Rewrite the method call to match TransformedModelDslBacking#configure(String, Closure), which is what the
+        // delegate will be
         ConstantExpression modelPathArgument = new ConstantExpression(modelPath);
         ArgumentListExpression replacedArgumentList = new ArgumentListExpression(modelPathArgument, closureExpression);
         call.setMethod(new ConstantExpression("configure"));
@@ -140,7 +156,8 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
 
         // Call directly on the delegate to avoid some dynamic dispatch
         call.setImplicitThis(true);
-        call.setObjectExpression(new MethodCallExpression(VariableExpression.THIS_EXPRESSION, "getDelegate", ArgumentListExpression.EMPTY_ARGUMENTS));
+        call.setObjectExpression(new MethodCallExpression(
+                VariableExpression.THIS_EXPRESSION, "getDelegate", ArgumentListExpression.EMPTY_ARGUMENTS));
 
         ruleVisitor.visitRuleClosure(closureExpression, call, displayName);
     }

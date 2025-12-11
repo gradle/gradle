@@ -16,11 +16,10 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Action;
-import org.gradle.api.provider.Property;
-
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import org.gradle.api.Action;
+import org.gradle.api.provider.Property;
 
 /**
  * Defines the strategies around dependency resolution.
@@ -160,7 +159,6 @@ public interface ResolutionStrategy {
      * @since 6.0
      */
     ResolutionStrategy deactivateDependencyLocking();
-
 
     /**
      * Deactivates dependency verification for this configuration.
@@ -420,6 +418,8 @@ public interface ResolutionStrategy {
      * @since 3.5
      */
     enum SortOrder {
-        DEFAULT, CONSUMER_FIRST, DEPENDENCY_FIRST
+        DEFAULT,
+        CONSUMER_FIRST,
+        DEPENDENCY_FIRST
     }
 }

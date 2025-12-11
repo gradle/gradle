@@ -16,11 +16,10 @@
 
 package org.gradle.api.tasks;
 
+import java.util.Map;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.HasInternalProtocol;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * <p>A {@code TaskInputs} represents the inputs for a task.</p>

@@ -27,17 +27,24 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
  * A ModuleComponentRepository that provides the 'dynamic resolve mode' for an Ivy repository, where the 'revConstraint'
  * attribute is used for versions instead of the 'rev' attribute.
  */
-class IvyDynamicResolveModuleComponentRepository extends BaseModuleComponentRepository<ExternalModuleComponentGraphResolveState> {
-    IvyDynamicResolveModuleComponentRepository(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate, ModuleComponentGraphResolveStateFactory resolveStateFactory) {
-        super(delegate,
-            new IvyDynamicResolveModuleComponentRepositoryAccess(delegate.getLocalAccess(), resolveStateFactory),
-            new IvyDynamicResolveModuleComponentRepositoryAccess(delegate.getRemoteAccess(), resolveStateFactory));
+class IvyDynamicResolveModuleComponentRepository
+        extends BaseModuleComponentRepository<ExternalModuleComponentGraphResolveState> {
+    IvyDynamicResolveModuleComponentRepository(
+            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate,
+            ModuleComponentGraphResolveStateFactory resolveStateFactory) {
+        super(
+                delegate,
+                new IvyDynamicResolveModuleComponentRepositoryAccess(delegate.getLocalAccess(), resolveStateFactory),
+                new IvyDynamicResolveModuleComponentRepositoryAccess(delegate.getRemoteAccess(), resolveStateFactory));
     }
 
-    private static class IvyDynamicResolveModuleComponentRepositoryAccess extends BaseModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
+    private static class IvyDynamicResolveModuleComponentRepositoryAccess
+            extends BaseModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         private final ModuleComponentGraphResolveStateFactory resolveStateFactory;
 
-        IvyDynamicResolveModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate, ModuleComponentGraphResolveStateFactory resolveStateFactory) {
+        IvyDynamicResolveModuleComponentRepositoryAccess(
+                ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate,
+                ModuleComponentGraphResolveStateFactory resolveStateFactory) {
             super(delegate);
             this.resolveStateFactory = resolveStateFactory;
         }
@@ -48,18 +55,24 @@ class IvyDynamicResolveModuleComponentRepository extends BaseModuleComponentRepo
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
+        public void resolveComponentMetaData(
+                ModuleComponentIdentifier moduleComponentIdentifier,
+                ComponentOverrideMetadata requestMetaData,
+                BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
             super.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
             if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
                 transformDependencies(result);
             }
         }
 
-        private void transformDependencies(BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
+        private void transformDependencies(
+                BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
             @SuppressWarnings("deprecation")
-            ExternalComponentResolveMetadata legacyMetadata = result.getMetaData().getLegacyMetadata();
+            ExternalComponentResolveMetadata legacyMetadata =
+                    result.getMetaData().getLegacyMetadata();
             if (legacyMetadata instanceof IvyModuleResolveMetadata) {
-                IvyModuleResolveMetadata transformedMetadata = ((IvyModuleResolveMetadata) legacyMetadata).withDynamicConstraintVersions();
+                IvyModuleResolveMetadata transformedMetadata =
+                        ((IvyModuleResolveMetadata) legacyMetadata).withDynamicConstraintVersions();
                 result.setMetadata(resolveStateFactory.stateFor(transformedMetadata));
             }
         }

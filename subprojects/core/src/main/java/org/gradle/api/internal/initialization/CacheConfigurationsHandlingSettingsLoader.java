@@ -25,7 +25,8 @@ public class CacheConfigurationsHandlingSettingsLoader implements SettingsLoader
     private final SettingsLoader delegate;
     private final CacheConfigurationsInternal cacheConfigurations;
 
-    public CacheConfigurationsHandlingSettingsLoader(SettingsLoader delegate, CacheConfigurationsInternal cacheConfigurations) {
+    public CacheConfigurationsHandlingSettingsLoader(
+            SettingsLoader delegate, CacheConfigurationsInternal cacheConfigurations) {
         this.delegate = delegate;
         this.cacheConfigurations = cacheConfigurations;
     }

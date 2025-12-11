@@ -16,15 +16,14 @@
 
 package org.gradle.platform.base.internal;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
+import java.util.Objects;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;
 import org.gradle.platform.base.ModuleDependencySpecBuilder;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Objects;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
 
@@ -41,7 +40,8 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
 
     public DefaultModuleDependencySpec(String group, String name, String version) {
         if (group == null || name == null) {
-            throw new IllegalDependencyNotation("A module dependency must have at least a group and a module name specified.");
+            throw new IllegalDependencyNotation(
+                    "A module dependency must have at least a group and a module name specified.");
         }
         this.group = group;
         this.name = name;
@@ -69,7 +69,7 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
         return getGroup() + ":" + getName() + ":" + effectiveVersionFor(getVersion());
     }
 
-   public static class Builder implements ModuleDependencySpecBuilder {
+    public static class Builder implements ModuleDependencySpecBuilder {
         private String group;
         private String module;
         private String version;
@@ -85,29 +85,32 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
             return this;
         }
 
-       private void checkNotSet(String name, String value) {
-           if (value != null) {
-               throw new IllegalDependencyNotation(String.format("Cannot set '%s' multiple times for module dependency.", name));
-           }
-       }
+        private void checkNotSet(String name, String value) {
+            if (value != null) {
+                throw new IllegalDependencyNotation(
+                        String.format("Cannot set '%s' multiple times for module dependency.", name));
+            }
+        }
 
-       private void setValuesFromModuleId(String moduleId) {
-           String[] components = moduleId.split(":");
-           if (components.length < 2 || components.length > 3 || isNullOrEmpty(components[0]) || isNullOrEmpty(components[1])) {
-               throw illegalNotation(moduleId);
-           }
-           group(components[0]).module(components[1]);
-           if (components.length > 2) {
-               version(components[2]);
-           }
-       }
+        private void setValuesFromModuleId(String moduleId) {
+            String[] components = moduleId.split(":");
+            if (components.length < 2
+                    || components.length > 3
+                    || isNullOrEmpty(components[0])
+                    || isNullOrEmpty(components[1])) {
+                throw illegalNotation(moduleId);
+            }
+            group(components[0]).module(components[1]);
+            if (components.length > 2) {
+                version(components[2]);
+            }
+        }
 
-       private IllegalDependencyNotation illegalNotation(String moduleId) {
-           return new IllegalDependencyNotation(
-               String.format(
-                   "'%s' is not a valid module dependency notation. Example notations: 'org.gradle:gradle-core:2.2', 'org.mockito:mockito-core'.",
-                   moduleId));
-       }
+        private IllegalDependencyNotation illegalNotation(String moduleId) {
+            return new IllegalDependencyNotation(String.format(
+                    "'%s' is not a valid module dependency notation. Example notations: 'org.gradle:gradle-core:2.2', 'org.mockito:mockito-core'.",
+                    moduleId));
+        }
 
         @Override
         public ModuleDependencySpecBuilder group(String name) {
@@ -139,8 +142,8 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
         }
         DefaultModuleDependencySpec that = (DefaultModuleDependencySpec) o;
         return Objects.equals(group, that.group)
-            && Objects.equals(name, that.name)
-            && Objects.equals(version, that.version);
+                && Objects.equals(name, that.name)
+                && Objects.equals(version, that.version);
     }
 
     @Override

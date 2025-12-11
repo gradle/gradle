@@ -18,6 +18,10 @@ package org.gradle.api;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
+import java.io.File;
+import java.time.Duration;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
@@ -34,11 +38,6 @@ import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.time.Duration;
-import java.util.List;
-import java.util.Set;
 
 /**
  * {@code DefaultTask} is the standard {@link Task} implementation. You can extend this to implement your own task types.

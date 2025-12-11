@@ -16,22 +16,20 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.gradle.testkit.runner.InvalidPluginMetadataException;
-import org.gradle.util.internal.GUtil;
-
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import org.gradle.testkit.runner.InvalidPluginMetadataException;
+import org.gradle.util.internal.GUtil;
 
 public abstract class PluginUnderTestMetadataReading {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
     public static final String PLUGIN_METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
 
-    private PluginUnderTestMetadataReading() {
-    }
+    private PluginUnderTestMetadataReading() {}
 
     public static List<File> readImplementationClasspath() {
         return readImplementationClasspath(Thread.currentThread().getContextClassLoader());
@@ -41,7 +39,8 @@ public abstract class PluginUnderTestMetadataReading {
         URL pluginClasspathUrl = classLoader.getResource(PLUGIN_METADATA_FILE_NAME);
 
         if (pluginClasspathUrl == null) {
-            throw new InvalidPluginMetadataException(String.format("Test runtime classpath does not contain plugin metadata file '%s'", PLUGIN_METADATA_FILE_NAME));
+            throw new InvalidPluginMetadataException(String.format(
+                    "Test runtime classpath does not contain plugin metadata file '%s'", PLUGIN_METADATA_FILE_NAME));
         }
 
         return readImplementationClasspath(pluginClasspathUrl);
@@ -53,7 +52,9 @@ public abstract class PluginUnderTestMetadataReading {
 
     public static List<File> readImplementationClasspath(String description, Properties properties) {
         if (!properties.containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)) {
-            throw new InvalidPluginMetadataException(String.format("Plugin metadata file '%s' does not contain expected property named '%s'", description, IMPLEMENTATION_CLASSPATH_PROP_KEY));
+            throw new InvalidPluginMetadataException(String.format(
+                    "Plugin metadata file '%s' does not contain expected property named '%s'",
+                    description, IMPLEMENTATION_CLASSPATH_PROP_KEY));
         }
 
         String value = properties.getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY);
@@ -62,7 +63,9 @@ public abstract class PluginUnderTestMetadataReading {
         }
 
         if (value == null || value.isEmpty()) {
-            throw new InvalidPluginMetadataException(String.format("Plugin metadata file '%s' has empty value for property named '%s'", description, IMPLEMENTATION_CLASSPATH_PROP_KEY));
+            throw new InvalidPluginMetadataException(String.format(
+                    "Plugin metadata file '%s' has empty value for property named '%s'",
+                    description, IMPLEMENTATION_CLASSPATH_PROP_KEY));
         }
 
         String[] parsedImplementationClasspath = value.trim().split(File.pathSeparator);
@@ -72,5 +75,4 @@ public abstract class PluginUnderTestMetadataReading {
         }
         return files;
     }
-
 }

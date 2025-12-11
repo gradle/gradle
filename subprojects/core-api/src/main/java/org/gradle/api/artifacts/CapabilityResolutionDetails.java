@@ -15,10 +15,9 @@
  */
 package org.gradle.api.artifacts;
 
+import java.util.List;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.HasInternalProtocol;
-
-import java.util.List;
 
 /**
  * Gives access to the resolution details of a single capability conflict.

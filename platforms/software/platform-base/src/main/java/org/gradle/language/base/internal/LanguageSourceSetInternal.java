@@ -30,5 +30,4 @@ public interface LanguageSourceSetInternal extends LanguageSourceSet {
     boolean getMayHaveSources();
 
     Task getGeneratorTask();
-
 }

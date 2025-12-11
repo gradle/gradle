@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import java.io.File;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.component.Artifact;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
@@ -27,11 +30,7 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-
-import java.io.File;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import org.gradle.internal.component.model.VariantIdentifier;
 
 public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     private final Set<ResolvedArtifactResult> artifacts = new LinkedHashSet<>();
@@ -49,11 +48,22 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+    public void visitArtifact(
+            DisplayName artifactSetName,
+            VariantIdentifier sourceVariantId,
+            ImmutableAttributes attributes,
+            ImmutableCapabilities capabilities,
+            ResolvableArtifact artifact) {
         try {
             if (seenArtifacts.add(artifact.getId())) {
                 File file = artifact.getFile();
-                this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), attributeDesugaring.desugar(attributes), capabilities, artifactSetName, Artifact.class, file));
+                this.artifacts.add(new DefaultResolvedArtifactResult(
+                        artifact.getId(),
+                        attributeDesugaring.desugar(attributes),
+                        capabilities,
+                        artifactSetName,
+                        Artifact.class,
+                        file));
             }
         } catch (Exception t) {
             failures.add(t);

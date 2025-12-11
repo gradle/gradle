@@ -15,14 +15,8 @@
  */
 package org.gradle.util.internal;
 
-import org.apache.commons.io.FileUtils;
-import org.gradle.test.fixtures.file.TestDirectoryProvider;
-import org.gradle.test.fixtures.file.TestFile;
-import org.junit.rules.MethodRule;
-import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.Statement;
+import static org.junit.Assert.assertNotNull;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -33,8 +27,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
-import static org.junit.Assert.assertNotNull;
+import javax.annotation.Nonnull;
+import org.apache.commons.io.FileUtils;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.test.fixtures.file.TestFile;
+import org.junit.rules.MethodRule;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.Statement;
 
 /**
  * A JUnit rule which helps locate test resources.
@@ -53,14 +52,16 @@ public class Resources implements MethodRule {
      * jar multiple times per running test class.  We use this set to avoid doing an IO operation to check if the jar has already been extracted,
      * slightly increasing the speed a test class runs, especially one with many test methods defined on itself or in its type hierarchy.
      */
-    private final static Set<String> EXTRACTED_JARS = new HashSet<>();
+    private static final Set<String> EXTRACTED_JARS = new HashSet<>();
+
     private final TestDirectoryProvider testDirectoryProvider;
 
     private Class<?> declaringTestClass;
     private Class<?> runningTestClass;
 
     // If there is not an explicit no-arg constructor present and it is called, Groovy will attempt to supply nulls to
-    // an existing constructor, but choose the wrong one if there are multiple constructors.  See DefaultImportsReaderTest.groovy.
+    // an existing constructor, but choose the wrong one if there are multiple constructors.  See
+    // DefaultImportsReaderTest.groovy.
     public Resources() {
         this(null);
     }
@@ -69,7 +70,8 @@ public class Resources implements MethodRule {
         this.testDirectoryProvider = testDirectoryProvider;
     }
 
-    public Resources(TestDirectoryProvider testDirectoryProvider, Class<?> declaringTestClass, Class<?> runningTestClass) {
+    public Resources(
+            TestDirectoryProvider testDirectoryProvider, Class<?> declaringTestClass, Class<?> runningTestClass) {
         this.testDirectoryProvider = testDirectoryProvider;
         this.declaringTestClass = declaringTestClass;
         this.runningTestClass = runningTestClass;
@@ -83,7 +85,9 @@ public class Resources implements MethodRule {
     public TestFile getResource(String name) {
         assertNotNull(declaringTestClass);
         TestFile file = findResource(name);
-        assertNotNull(String.format("Could not locate resource '%s' for test class %s.", name, declaringTestClass.getName()), file);
+        assertNotNull(
+                String.format("Could not locate resource '%s' for test class %s.", name, declaringTestClass.getName()),
+                file);
         return file;
     }
 
@@ -104,7 +108,7 @@ public class Resources implements MethodRule {
         try {
             switch (resource.getProtocol()) {
                 case "jar":
-                        return fromWithinJar(resource);
+                    return fromWithinJar(resource);
                 case "file":
                     return fromFile(resource);
                 default:
@@ -136,7 +140,10 @@ public class Resources implements MethodRule {
         int indexOfJarSeparator = resourceUrl.getPath().indexOf("!/");
         String jarFilePath = resourceUrl.getPath().substring(5, indexOfJarSeparator);
         String jarFileName = new File(jarFilePath).getName();
-        final File outputDir = testDirectoryProvider.getTestDirectory().getParentFile().createDir(EXTRACTED_RESOURCES_DIR, jarFileName);
+        final File outputDir = testDirectoryProvider
+                .getTestDirectory()
+                .getParentFile()
+                .createDir(EXTRACTED_RESOURCES_DIR, jarFileName);
 
         final String extractionKey = runningTestClass.getName() + ":" + jarFilePath;
         if (!EXTRACTED_JARS.contains(extractionKey)) {

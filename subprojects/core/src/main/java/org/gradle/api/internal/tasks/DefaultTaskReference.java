@@ -53,14 +53,13 @@ public class DefaultTaskReference implements TaskReference, TaskDependencyContai
      * @throws IllegalArgumentException If the provided task path string is not absolute or does not represent
      * a valid task path.
      */
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public static TaskReference create(
-        String pathStr,
-        TaskDependencyFactory taskDependencyFactory
-    ) {
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
+    public static TaskReference create(String pathStr, TaskDependencyFactory taskDependencyFactory) {
         Path path = Path.path(pathStr);
         if (!path.isAbsolute()) {
-            throw new IllegalArgumentException(String.format("Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", pathStr));
+            throw new IllegalArgumentException(String.format(
+                    "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", pathStr));
         }
         String taskName = path.getName();
         if (taskName == null) {
@@ -70,5 +69,4 @@ public class DefaultTaskReference implements TaskReference, TaskDependencyContai
         TaskDependencyContainer taskDependency = taskDependencyFactory.configurableDependency(ImmutableSet.of(pathStr));
         return new DefaultTaskReference(taskName, taskDependency);
     }
-
 }

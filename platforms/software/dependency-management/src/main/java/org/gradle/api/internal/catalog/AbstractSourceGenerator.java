@@ -16,12 +16,11 @@
 package org.gradle.api.internal.catalog;
 
 import com.google.common.base.Splitter;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 public abstract class AbstractSourceGenerator {
     private static final Pattern SEPARATOR_PATTERN = Pattern.compile("[.\\-_]");
@@ -34,11 +33,9 @@ public abstract class AbstractSourceGenerator {
     }
 
     static String toJavaName(String alias) {
-        return nameSplitter()
-            .splitToList(alias)
-            .stream()
-            .map(StringUtils::capitalize)
-            .collect(Collectors.joining());
+        return nameSplitter().splitToList(alias).stream()
+                .map(StringUtils::capitalize)
+                .collect(Collectors.joining());
     }
 
     protected static Splitter nameSplitter() {

@@ -46,5 +46,4 @@ public interface MavenPomLicense {
      * The comments of this license.
      */
     Property<String> getComments();
-
 }

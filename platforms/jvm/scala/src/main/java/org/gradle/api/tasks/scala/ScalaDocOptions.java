@@ -15,13 +15,12 @@
  */
 package org.gradle.api.tasks.scala;
 
+import java.io.Serializable;
+import java.util.List;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.List;
 
 /**
  * Options for the ScalaDoc tool.
@@ -73,7 +72,9 @@ public abstract class ScalaDocOptions implements Serializable {
      * Returns the text to appear in the window title.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getWindowTitle() {
         return windowTitle;
     }
@@ -89,7 +90,9 @@ public abstract class ScalaDocOptions implements Serializable {
      * Returns the HTML text to appear in the main frame title.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getDocTitle() {
         return docTitle;
     }
@@ -105,7 +108,9 @@ public abstract class ScalaDocOptions implements Serializable {
      * Returns the HTML text to appear in the header for each page.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getHeader() {
         return header;
     }
@@ -121,7 +126,9 @@ public abstract class ScalaDocOptions implements Serializable {
      * Returns the HTML text to appear in the footer for each page.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getFooter() {
         return footer;
     }
@@ -137,7 +144,9 @@ public abstract class ScalaDocOptions implements Serializable {
      * Returns the HTML text to appear in the top text for each page.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getTop() {
         return top;
     }
@@ -153,7 +162,9 @@ public abstract class ScalaDocOptions implements Serializable {
      * Returns the HTML text to appear in the bottom text for each page.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getBottom() {
         return bottom;
     }
@@ -170,7 +181,9 @@ public abstract class ScalaDocOptions implements Serializable {
      * Each parameter starts with '-'.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public List<String> getAdditionalParameters() {
         return additionalParameters;
     }

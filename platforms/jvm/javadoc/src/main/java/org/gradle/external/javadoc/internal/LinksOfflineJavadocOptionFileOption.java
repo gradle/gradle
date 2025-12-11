@@ -17,10 +17,9 @@
 package org.gradle.external.javadoc.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.external.javadoc.JavadocOfflineLink;
-
 import java.io.IOException;
 import java.util.List;
+import org.gradle.external.javadoc.JavadocOfflineLink;
 
 public class LinksOfflineJavadocOptionFileOption extends AbstractJavadocOptionFileOption<List<JavadocOfflineLink>> {
     public LinksOfflineJavadocOptionFileOption(String option, List<JavadocOfflineLink> value) {
@@ -36,7 +35,8 @@ public class LinksOfflineJavadocOptionFileOption extends AbstractJavadocOptionFi
         }
     }
 
-    private void writeOfflineLink(JavadocOptionFileWriterContext writerContext, JavadocOfflineLink offlineLink) throws IOException {
+    private void writeOfflineLink(JavadocOptionFileWriterContext writerContext, JavadocOfflineLink offlineLink)
+            throws IOException {
         writerContext.writeOptionHeader(option);
         writerContext.writeValue(offlineLink.getExtDocUrl());
         writerContext.write(" ");

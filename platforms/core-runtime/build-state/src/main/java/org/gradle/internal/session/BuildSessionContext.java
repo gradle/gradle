@@ -16,8 +16,8 @@
 
 package org.gradle.internal.session;
 
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.buildtree.BuildActionRunner;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 
 public interface BuildSessionContext {

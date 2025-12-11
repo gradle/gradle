@@ -19,7 +19,6 @@ package gradlebuild.binarycompatibility.upgrades;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
 import japicmp.model.JApiMethod;
-
 import java.util.List;
 import java.util.Objects;
 
@@ -33,10 +32,17 @@ public class UpgradedProperty {
      * Was upgradedMethods originally, but got renamed to upgradedAccessors and then to replacedAccessors
      * can be removed once base version will be the one that also uses 'replacedAccessors'.
      */
-    @SerializedName(value = "replacedAccessors", alternate = {"upgradedAccessors", "upgradedMethods"})
+    @SerializedName(
+            value = "replacedAccessors",
+            alternate = {"upgradedAccessors", "upgradedMethods"})
     private final List<ReplacedAccessor> replacedAccessors;
 
-    public UpgradedProperty(String containingType, String propertyName, String methodName, String methodDescriptor, List<ReplacedAccessor> replacedAccessors) {
+    public UpgradedProperty(
+            String containingType,
+            String propertyName,
+            String methodName,
+            String methodDescriptor,
+            List<ReplacedAccessor> replacedAccessors) {
         this.containingType = containingType;
         this.propertyName = propertyName;
         this.methodName = methodName;
@@ -74,7 +80,11 @@ public class UpgradedProperty {
         }
 
         UpgradedProperty that = (UpgradedProperty) o;
-        return containingType.equals(that.containingType) && propertyName.equals(that.propertyName) && methodName.equals(that.methodName) && methodDescriptor.equals(that.methodDescriptor) && replacedAccessors.equals(that.replacedAccessors);
+        return containingType.equals(that.containingType)
+                && propertyName.equals(that.propertyName)
+                && methodName.equals(that.methodName)
+                && methodDescriptor.equals(that.methodDescriptor)
+                && replacedAccessors.equals(that.replacedAccessors);
     }
 
     @Override
@@ -89,13 +99,12 @@ public class UpgradedProperty {
 
     @Override
     public String toString() {
-        return "UpgradedProperty{" +
-            "propertyName='" + propertyName + '\'' +
-            ", methodName='" + methodName + '\'' +
-            ", methodDescriptor='" + methodDescriptor + '\'' +
-            ", containingType='" + containingType + '\'' +
-            ", replacedAccessors=" + replacedAccessors +
-            '}';
+        return "UpgradedProperty{" + "propertyName='"
+                + propertyName + '\'' + ", methodName='"
+                + methodName + '\'' + ", methodDescriptor='"
+                + methodDescriptor + '\'' + ", containingType='"
+                + containingType + '\'' + ", replacedAccessors="
+                + replacedAccessors + '}';
     }
 
     public static class ReplacedAccessor {
@@ -131,7 +140,9 @@ public class UpgradedProperty {
             }
 
             ReplacedAccessor that = (ReplacedAccessor) o;
-            return name.equals(that.name) && descriptor.equals(that.descriptor) && binaryCompatibility == that.binaryCompatibility;
+            return name.equals(that.name)
+                    && descriptor.equals(that.descriptor)
+                    && binaryCompatibility == that.binaryCompatibility;
         }
 
         @Override
@@ -144,11 +155,10 @@ public class UpgradedProperty {
 
         @Override
         public String toString() {
-            return "ReplacedAccessor{" +
-                "name='" + name + '\'' +
-                ", descriptor='" + descriptor + '\'' +
-                ", binaryCompatibility='" + binaryCompatibility + '\'' +
-                '}';
+            return "ReplacedAccessor{" + "name='"
+                    + name + '\'' + ", descriptor='"
+                    + descriptor + '\'' + ", binaryCompatibility='"
+                    + binaryCompatibility + '\'' + '}';
         }
     }
 
@@ -173,7 +183,10 @@ public class UpgradedProperty {
         }
 
         public static AccessorKey ofUpgradedProperty(UpgradedProperty upgradedProperty) {
-            return new AccessorKey(upgradedProperty.getContainingType(), upgradedProperty.getMethodName(), upgradedProperty.getMethodDescriptor());
+            return new AccessorKey(
+                    upgradedProperty.getContainingType(),
+                    upgradedProperty.getMethodName(),
+                    upgradedProperty.getMethodDescriptor());
         }
 
         public static AccessorKey ofReplacedAccessor(String containingType, ReplacedAccessor replacedAccessor) {
@@ -185,7 +198,6 @@ public class UpgradedProperty {
             String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
             return new AccessorKey(containingType, newName, descriptor);
         }
-
 
         public static AccessorKey ofNewMethod(JApiMethod jApiMethod) {
             String name = jApiMethod.getName();
@@ -216,8 +228,8 @@ public class UpgradedProperty {
             }
             AccessorKey that = (AccessorKey) o;
             return Objects.equals(containingType, that.containingType)
-                && Objects.equals(methodName, that.methodName)
-                && Objects.equals(descriptor, that.descriptor);
+                    && Objects.equals(methodName, that.methodName)
+                    && Objects.equals(descriptor, that.descriptor);
         }
 
         @Override

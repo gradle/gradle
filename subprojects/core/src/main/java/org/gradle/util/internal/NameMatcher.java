@@ -15,11 +15,6 @@
  */
 package org.gradle.util.internal;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.function.TriConsumer;
-import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
@@ -28,6 +23,10 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.function.TriConsumer;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 
 /**
  * Selects a single item from a collection based on a camel case pattern.
@@ -82,7 +81,8 @@ public class NameMatcher {
 
         String camelCaseRegex = getCamelCasePatternForName(pattern);
         Pattern camelCasePattern = Pattern.compile(camelCaseRegex);
-        Pattern caseInsensitiveCamelCasePattern = Pattern.compile(camelCaseRegex, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+        Pattern caseInsensitiveCamelCasePattern =
+                Pattern.compile(camelCaseRegex, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
         Set<String> caseInsensitivePrefixMatches = new TreeSet<>();
         Set<String> caseSensitiveCamelCaseMatches = new TreeSet<>();
         Set<String> caseInsensitiveCamelCaseMatches = new TreeSet<>();
@@ -122,7 +122,8 @@ public class NameMatcher {
             }
             if (!found) {
                 @SuppressWarnings("deprecation")
-                int levenshteinDistance = StringUtils.getLevenshteinDistance(normalisedPattern, candidate.toUpperCase(Locale.ROOT));
+                int levenshteinDistance =
+                        StringUtils.getLevenshteinDistance(normalisedPattern, candidate.toUpperCase(Locale.ROOT));
                 if (levenshteinDistance <= Math.min(3, pattern.length() / 2)) {
                     candidates.add(candidate);
                 }
@@ -156,8 +157,10 @@ public class NameMatcher {
     private static final String KEBAB_CASE_TRAILING_PATTERN = "[\\p{javaLowerCase}\\p{Digit}]*";
     private static final String KEBAB_CASE_PREFIX_TRAILING_PATTERN = "[\\p{javaLowerCase}\\p{Digit}-]*";
 
-    private static final Pattern CAMEL_CASE_BOUNDARY_PATTERN = Pattern.compile("((^|\\p{Punct})\\p{javaLowerCase}+)|((\\p{javaUpperCase}|\\p{Digit})\\p{javaLowerCase}*)");
-    private static final Pattern KEBAB_BOUNDARY_PATTERN = Pattern.compile("((^|\\p{Punct})\\p{javaLowerCase}+)|(\\p{javaUpperCase}\\p{javaLowerCase}*)");
+    private static final Pattern CAMEL_CASE_BOUNDARY_PATTERN =
+            Pattern.compile("((^|\\p{Punct})\\p{javaLowerCase}+)|((\\p{javaUpperCase}|\\p{Digit})\\p{javaLowerCase}*)");
+    private static final Pattern KEBAB_BOUNDARY_PATTERN =
+            Pattern.compile("((^|\\p{Punct})\\p{javaLowerCase}+)|(\\p{javaUpperCase}\\p{javaLowerCase}*)");
 
     private static String getCamelCasePatternForName(String name) {
         return getPatternForName(name, CAMEL_CASE_BOUNDARY_PATTERN, (builder, pos, part) -> {
@@ -176,7 +179,8 @@ public class NameMatcher {
         });
     }
 
-    private static String getPatternForName(String name, Pattern boundaryPattern, TriConsumer<StringBuilder, Integer, String> addPattern) {
+    private static String getPatternForName(
+            String name, Pattern boundaryPattern, TriConsumer<StringBuilder, Integer, String> addPattern) {
         Matcher matcher = boundaryPattern.matcher(name);
         int pos = 0;
         StringBuilder builder = new StringBuilder();
@@ -219,10 +223,14 @@ public class NameMatcher {
      */
     public String formatErrorMessage(String singularItemDescription, Object container) {
         if (!matches.isEmpty()) {
-            return String.format("%s '%s' is ambiguous in %s. Candidates are: %s.", singularItemDescription, pattern, container, GUtil.toString(matches));
+            return String.format(
+                    "%s '%s' is ambiguous in %s. Candidates are: %s.",
+                    singularItemDescription, pattern, container, GUtil.toString(matches));
         }
         if (!candidates.isEmpty()) {
-            return String.format("%s '%s' not found in %s. Some candidates are: %s.", singularItemDescription, pattern, container, GUtil.toString(candidates));
+            return String.format(
+                    "%s '%s' not found in %s. Some candidates are: %s.",
+                    singularItemDescription, pattern, container, GUtil.toString(candidates));
         }
         return String.format("%s '%s' not found in %s.", singularItemDescription, pattern, container);
     }

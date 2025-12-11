@@ -16,6 +16,8 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.findOutputsStillPresentSincePreviousExecution;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
@@ -26,106 +28,97 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.impl.ClassImplementationSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.findOutputsStillPresentSincePreviousExecution;
-
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
     @Override
     public ExecutionStateChanges detectChanges(
-        Describable executable,
-        PreviousExecutionState lastExecution,
-        BeforeExecutionState thisExecution,
-        IncrementalInputProperties incrementalInputProperties,
-        boolean hasOverlappingOutputs
-    ) {
+            Describable executable,
+            PreviousExecutionState lastExecution,
+            BeforeExecutionState thisExecution,
+            IncrementalInputProperties incrementalInputProperties,
+            boolean hasOverlappingOutputs) {
         // Capture changes in execution outcome
-        ChangeContainer previousSuccessState = new PreviousSuccessChanges(
-            lastExecution.isSuccessful());
+        ChangeContainer previousSuccessState = new PreviousSuccessChanges(lastExecution.isSuccessful());
 
         // Capture changes to implementation
 
         // After validation, the current implementations and previous implementations can't be unknown.
-        // Moreover, they need to come from an actual Class, not a lambda, since there isn't a way for a unit of work implementation to be a lambda.
-        ClassImplementationSnapshot currentImplementation = Cast.uncheckedNonnullCast(thisExecution.getImplementation());
-        ClassImplementationSnapshot previousImplementation = Cast.uncheckedNonnullCast(lastExecution.getImplementation());
-        ImmutableList<ImplementationSnapshot> currentAdditionalImplementations = Cast.uncheckedNonnullCast(thisExecution.getAdditionalImplementations());
+        // Moreover, they need to come from an actual Class, not a lambda, since there isn't a way for a unit of work
+        // implementation to be a lambda.
+        ClassImplementationSnapshot currentImplementation =
+                Cast.uncheckedNonnullCast(thisExecution.getImplementation());
+        ClassImplementationSnapshot previousImplementation =
+                Cast.uncheckedNonnullCast(lastExecution.getImplementation());
+        ImmutableList<ImplementationSnapshot> currentAdditionalImplementations =
+                Cast.uncheckedNonnullCast(thisExecution.getAdditionalImplementations());
         ChangeContainer implementationChanges = new ImplementationChanges(
-            previousImplementation, lastExecution.getAdditionalImplementations(),
-            currentImplementation, currentAdditionalImplementations,
-            executable);
+                previousImplementation,
+                lastExecution.getAdditionalImplementations(),
+                currentImplementation,
+                currentAdditionalImplementations,
+                executable);
 
         // Capture non-file input changes
         ChangeContainer inputPropertyChanges = new PropertyChanges(
-            lastExecution.getInputProperties().keySet(),
-            thisExecution.getInputProperties().keySet(),
-            "Input",
-            executable);
+                lastExecution.getInputProperties().keySet(),
+                thisExecution.getInputProperties().keySet(),
+                "Input",
+                executable);
         ChangeContainer inputPropertyValueChanges = new InputValueChanges(
-            lastExecution.getInputProperties(),
-            thisExecution.getInputProperties(),
-            executable);
+                lastExecution.getInputProperties(), thisExecution.getInputProperties(), executable);
 
         // Capture input files state
         ChangeContainer inputFilePropertyChanges = new PropertyChanges(
-            lastExecution.getInputFileProperties().keySet(),
-            thisExecution.getInputFileProperties().keySet(),
-            "Input file",
-            executable);
+                lastExecution.getInputFileProperties().keySet(),
+                thisExecution.getInputFileProperties().keySet(),
+                "Input file",
+                executable);
         InputFileChanges nonIncrementalInputFileChanges = incrementalInputProperties.nonIncrementalChanges(
-            lastExecution.getInputFileProperties(),
-            thisExecution.getInputFileProperties()
-        );
+                lastExecution.getInputFileProperties(), thisExecution.getInputFileProperties());
 
         // Capture output files state
         ChangeContainer outputFilePropertyChanges = new PropertyChanges(
-            lastExecution.getOutputFilesProducedByWork().keySet(),
-            thisExecution.getOutputFileLocationSnapshots().keySet(),
-            "Output",
-            executable);
+                lastExecution.getOutputFilesProducedByWork().keySet(),
+                thisExecution.getOutputFileLocationSnapshots().keySet(),
+                "Output",
+                executable);
         ImmutableSortedMap<String, FileSystemSnapshot> remainingPreviouslyProducedOutputs = hasOverlappingOutputs
-            ? findOutputsStillPresentSincePreviousExecution(lastExecution.getOutputFilesProducedByWork(), thisExecution.getOutputFileLocationSnapshots())
-            : thisExecution.getOutputFileLocationSnapshots();
-        OutputFileChanges outputFileChanges = new OutputFileChanges(
-            lastExecution.getOutputFilesProducedByWork(),
-            remainingPreviouslyProducedOutputs
-        );
+                ? findOutputsStillPresentSincePreviousExecution(
+                        lastExecution.getOutputFilesProducedByWork(), thisExecution.getOutputFileLocationSnapshots())
+                : thisExecution.getOutputFileLocationSnapshots();
+        OutputFileChanges outputFileChanges =
+                new OutputFileChanges(lastExecution.getOutputFilesProducedByWork(), remainingPreviouslyProducedOutputs);
 
         // Collect changes that would trigger a rebuild
-        ChangeContainer rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(
-            previousSuccessState,
-            implementationChanges,
-            inputPropertyChanges,
-            inputPropertyValueChanges,
-            outputFilePropertyChanges,
-            outputFileChanges,
-            inputFilePropertyChanges,
-            nonIncrementalInputFileChanges
-        ));
+        ChangeContainer rebuildTriggeringChanges = errorHandling(
+                executable,
+                new SummarizingChangeContainer(
+                        previousSuccessState,
+                        implementationChanges,
+                        inputPropertyChanges,
+                        inputPropertyValueChanges,
+                        outputFilePropertyChanges,
+                        outputFileChanges,
+                        inputFilePropertyChanges,
+                        nonIncrementalInputFileChanges));
         ImmutableList<String> rebuildReasons = collectChanges(rebuildTriggeringChanges);
 
         if (!rebuildReasons.isEmpty()) {
-            return ExecutionStateChanges.nonIncremental(
-                rebuildReasons,
-                thisExecution,
-                incrementalInputProperties
-            );
+            return ExecutionStateChanges.nonIncremental(rebuildReasons, thisExecution, incrementalInputProperties);
         } else {
             // Collect incremental input changes
             InputFileChanges directIncrementalInputFileChanges = incrementalInputProperties.incrementalChanges(
-                lastExecution.getInputFileProperties(),
-                thisExecution.getInputFileProperties()
-            );
-            InputFileChanges incrementalInputFileChanges = errorHandling(executable, caching(directIncrementalInputFileChanges));
+                    lastExecution.getInputFileProperties(), thisExecution.getInputFileProperties());
+            InputFileChanges incrementalInputFileChanges =
+                    errorHandling(executable, caching(directIncrementalInputFileChanges));
             ImmutableList<String> incrementalInputFileChangeMessages = collectChanges(incrementalInputFileChanges);
             return ExecutionStateChanges.incremental(
-                incrementalInputFileChangeMessages,
-                incrementalInputFileChanges,
-                incrementalInputProperties
-            );
+                    incrementalInputFileChangeMessages, incrementalInputFileChanges, incrementalInputProperties);
         }
     }
 
     private static ImmutableList<String> collectChanges(ChangeContainer changes) {
-        MessageCollectingChangeVisitor visitor = new MessageCollectingChangeVisitor(ExecutionStateChangeDetector.MAX_OUT_OF_DATE_MESSAGES);
+        MessageCollectingChangeVisitor visitor =
+                new MessageCollectingChangeVisitor(ExecutionStateChangeDetector.MAX_OUT_OF_DATE_MESSAGES);
         changes.accept(visitor);
         return visitor.getMessages();
     }
@@ -140,7 +133,8 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
     }
 
     private static InputFileChanges errorHandling(Describable executable, InputFileChanges wrapped) {
-        ErrorHandlingChangeContainer errorHandlingChangeContainer = new ErrorHandlingChangeContainer(executable, wrapped);
+        ErrorHandlingChangeContainer errorHandlingChangeContainer =
+                new ErrorHandlingChangeContainer(executable, wrapped);
         return new InputFileChangesWrapper(wrapped, errorHandlingChangeContainer);
     }
 
@@ -148,7 +142,8 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         private final InputFileChanges inputFileChangesDelegate;
         private final ChangeContainer changeContainerDelegate;
 
-        public InputFileChangesWrapper(InputFileChanges inputFileChangesDelegate, ChangeContainer changeContainerDelegate) {
+        public InputFileChangesWrapper(
+                InputFileChanges inputFileChangesDelegate, ChangeContainer changeContainerDelegate) {
             this.inputFileChangesDelegate = inputFileChangesDelegate;
             this.changeContainerDelegate = changeContainerDelegate;
         }

@@ -15,6 +15,9 @@
  */
 package org.gradle.api.plugins.quality;
 
+import java.io.File;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
@@ -23,10 +26,6 @@ import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Configuration options for the Checkstyle plugin.
@@ -48,7 +47,8 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     public CheckstyleExtension(Project project) {
         this.project = project;
         this.configDirectory = project.getObjects().directoryProperty();
-        this.enableExternalDtdLoad = project.getObjects().property(Boolean.class).convention(false);
+        this.enableExternalDtdLoad =
+                project.getObjects().property(Boolean.class).convention(false);
     }
 
     /**

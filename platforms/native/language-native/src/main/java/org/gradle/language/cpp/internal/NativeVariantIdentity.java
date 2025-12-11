@@ -16,6 +16,8 @@
 
 package org.gradle.language.cpp.internal;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.component.SoftwareComponentVariant;
@@ -26,9 +28,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.util.internal.GUtil;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class NativeVariantIdentity implements SoftwareComponentInternal, ComponentWithCoordinates {
     private final String name;
@@ -43,11 +42,30 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     private final Linkage linkage;
     private final Set<UsageContext> variants;
 
-    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, UsageContext linkVariant, UsageContext runtimeVariant) {
+    public NativeVariantIdentity(
+            String name,
+            Provider<String> baseName,
+            Provider<String> group,
+            Provider<String> version,
+            boolean debuggable,
+            boolean optimized,
+            TargetMachine targetMachine,
+            UsageContext linkVariant,
+            UsageContext runtimeVariant) {
         this(name, baseName, group, version, debuggable, optimized, targetMachine, linkVariant, runtimeVariant, null);
     }
 
-    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, UsageContext linkVariant, UsageContext runtimeVariant, Linkage linkage) {
+    public NativeVariantIdentity(
+            String name,
+            Provider<String> baseName,
+            Provider<String> group,
+            Provider<String> version,
+            boolean debuggable,
+            boolean optimized,
+            TargetMachine targetMachine,
+            UsageContext linkVariant,
+            UsageContext runtimeVariant,
+            Linkage linkage) {
         this.name = name;
         this.baseName = baseName;
         this.group = group;
@@ -62,7 +80,7 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         if (linkVariant != null) {
             variants.add(linkVariant);
         }
-        if (runtimeVariant !=null) {
+        if (runtimeVariant != null) {
             variants.add(runtimeVariant);
         }
     }
@@ -85,7 +103,8 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
 
     @Override
     public ModuleVersionIdentifier getCoordinates() {
-        return DefaultModuleVersionIdentifier.newId(group.get(), baseName.get() + "_" + GUtil.toWords(name, '_'), version.get());
+        return DefaultModuleVersionIdentifier.newId(
+                group.get(), baseName.get() + "_" + GUtil.toWords(name, '_'), version.get());
     }
 
     @Override

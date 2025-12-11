@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.authentication.Authentication;
 import org.gradle.authentication.aws.AwsImAuthentication;
@@ -64,6 +63,7 @@ public class S3ConnectorFactory implements ResourceConnectorFactory {
             }
         }
 
-        throw new IllegalArgumentException("S3 resource should either specify AwsImAuthentication or provide some AwsCredentials.");
+        throw new IllegalArgumentException(
+                "S3 resource should either specify AwsImAuthentication or provide some AwsCredentials.");
     }
 }

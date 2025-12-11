@@ -16,12 +16,11 @@
 
 package org.gradle.internal.typeconversion;
 
-import org.gradle.api.Describable;
-import org.gradle.internal.Cast;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.Describable;
+import org.gradle.internal.Cast;
 
 public class NotationParserBuilder<N, T> {
     private final Class<N> notationType;
@@ -88,7 +87,8 @@ public class NotationParserBuilder<N, T> {
     /**
      * Adds a converter that accepts only notations of the given type.
      */
-    public <S extends N> NotationParserBuilder<N, T> fromType(Class<S> notationType, NotationConverter<? super S, ? extends T> converter) {
+    public <S extends N> NotationParserBuilder<N, T> fromType(
+            Class<S> notationType, NotationConverter<? super S, ? extends T> converter) {
         this.notationParsers.add(new TypeFilteringNotationConverter<Object, S, T>(notationType, converter));
         return this;
     }
@@ -98,7 +98,8 @@ public class NotationParserBuilder<N, T> {
      */
     public NotationParserBuilder<N, T> fromCharSequence(NotationConverter<? super String, ? extends T> converter) {
         if (!notationType.isAssignableFrom(String.class)) {
-            throw new IllegalArgumentException(String.format("Cannot convert from String when notation is %s.", notationType.getSimpleName()));
+            throw new IllegalArgumentException(
+                    String.format("Cannot convert from String when notation is %s.", notationType.getSimpleName()));
         }
         this.notationParsers.add(new CharSequenceNotationConverter<Object, T>(converter));
         return this;
@@ -109,10 +110,12 @@ public class NotationParserBuilder<N, T> {
      */
     public NotationParserBuilder<N, T> fromCharSequence() {
         if (!resultingType.getTargetType().equals(String.class)) {
-            throw new UnsupportedOperationException("Can only convert from CharSequence when the target type is String.");
+            throw new UnsupportedOperationException(
+                    "Can only convert from CharSequence when the target type is String.");
         }
         if (!notationType.isAssignableFrom(String.class)) {
-            throw new IllegalArgumentException(String.format("Cannot convert from String when notation is %s.", notationType.getSimpleName()));
+            throw new IllegalArgumentException(
+                    String.format("Cannot convert from String when notation is %s.", notationType.getSimpleName()));
         }
         NotationConverter<String, T> notationParser = Cast.uncheckedNonnullCast(new CharSequenceNotationParser());
         fromCharSequence(notationParser);
@@ -170,7 +173,9 @@ public class NotationParserBuilder<N, T> {
         @Override
         public String getDisplayName() {
             if (displayName == null) {
-                displayName = resultingType.getTargetType().equals(String.class) ? "a String" : ("an object of type " + resultingType.getTargetType().getSimpleName());
+                displayName = resultingType.getTargetType().equals(String.class)
+                        ? "a String"
+                        : ("an object of type " + resultingType.getTargetType().getSimpleName());
             }
             return displayName;
         }

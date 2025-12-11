@@ -15,16 +15,15 @@
  */
 package org.gradle.api.internal.collections;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import org.gradle.api.Action;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     protected final ElementSource<T> collection;
@@ -37,12 +36,14 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
 
     @Override
     public boolean add(S o) {
-        throw new UnsupportedOperationException(String.format("Cannot add '%s' to '%s' as it is a filtered collection", o, this));
+        throw new UnsupportedOperationException(
+                String.format("Cannot add '%s' to '%s' as it is a filtered collection", o, this));
     }
 
     @Override
     public void clear() {
-        throw new UnsupportedOperationException(String.format("Cannot clear '%s' as it is a filtered collection", this));
+        throw new UnsupportedOperationException(
+                String.format("Cannot clear '%s' as it is a filtered collection", this));
     }
 
     protected boolean accept(Object o) {
@@ -152,13 +153,15 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
 
     @Override
     public boolean remove(Object o) {
-        throw new UnsupportedOperationException(String.format("Cannot remove '%s' from '%s' as it is a filtered collection", o, this));
+        throw new UnsupportedOperationException(
+                String.format("Cannot remove '%s' from '%s' as it is a filtered collection", o, this));
     }
 
     @Override
     public int size() {
         int i = 0;
-        // NOTE: There isn't much we can do about collection.matching { } filters as the spec requires a realized element, unless make major changes
+        // NOTE: There isn't much we can do about collection.matching { } filters as the spec requires a realized
+        // element, unless make major changes
         for (T o : this) {
             if (accept(o)) {
                 ++i;
@@ -205,7 +208,7 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
-    public void onPendingAdded(Action<S> action) { }
+    public void onPendingAdded(Action<S> action) {}
 
     @Override
     public void setSubscriptionVerifier(EventSubscriptionVerifier<S> immediateRealizationSpec) {

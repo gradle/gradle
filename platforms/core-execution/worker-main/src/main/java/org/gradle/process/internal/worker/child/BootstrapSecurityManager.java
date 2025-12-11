@@ -16,15 +16,14 @@
 
 package org.gradle.process.internal.worker.child;
 
-import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.internal.stream.EncodedStream;
-
 import java.io.DataInputStream;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.Permission;
+import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.stream.EncodedStream;
 
 /**
  * Used to bootstrap the system classpath.
@@ -63,7 +62,8 @@ public class BootstrapSecurityManager extends SecurityManager {
         System.clearProperty("java.security.manager");
         System.setSecurityManager(null);
 
-        URLClassLoader systemClassLoader = target != null ? target : (URLClassLoader) getClass().getClassLoader();
+        URLClassLoader systemClassLoader =
+                target != null ? target : (URLClassLoader) getClass().getClassLoader();
         String securityManagerType;
         try {
             Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
@@ -94,7 +94,10 @@ public class BootstrapSecurityManager extends SecurityManager {
                 Class<?> aClass = systemClassLoader.loadClass(securityManagerType);
                 securityManager = (SecurityManager) JavaReflectionUtil.newInstance(aClass);
             } catch (Exception e) {
-                throw new RuntimeException("Could not create an instance of '" + securityManagerType + "' specified for system SecurityManager.", e);
+                throw new RuntimeException(
+                        "Could not create an instance of '" + securityManagerType
+                                + "' specified for system SecurityManager.",
+                        e);
             }
             System.setSecurityManager(securityManager);
         }

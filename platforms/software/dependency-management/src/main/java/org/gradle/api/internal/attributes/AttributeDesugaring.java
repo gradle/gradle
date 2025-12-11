@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.attributes;
 
+import java.util.IdentityHashMap;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
@@ -24,9 +26,6 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.IdentityHashMap;
-import java.util.Set;
 
 @ServiceScope(Scope.BuildTree.class)
 public class AttributeDesugaring {
@@ -46,7 +45,7 @@ public class AttributeDesugaring {
         if (attributes.isEmpty()) {
             return attributes;
         }
-        return desugared.computeIfAbsent(attributes,  key -> {
+        return desugared.computeIfAbsent(attributes, key -> {
             AttributeContainerInternal mutable = attributesFactory.mutable();
             Set<Attribute<?>> keySet = key.keySet();
             for (Attribute<?> attribute : keySet) {
@@ -69,7 +68,11 @@ public class AttributeDesugaring {
             AttributeContainer moduleAttributes = module.getAttributes();
             if (!moduleAttributes.isEmpty()) {
                 ImmutableAttributes attributes = ((AttributeContainerInternal) moduleAttributes).asImmutable();
-                return DefaultModuleComponentSelector.newSelector(module.getModuleIdentifier(), module.getVersionConstraint(), desugar(attributes), module.getCapabilitySelectors());
+                return DefaultModuleComponentSelector.newSelector(
+                        module.getModuleIdentifier(),
+                        module.getVersionConstraint(),
+                        desugar(attributes),
+                        module.getCapabilitySelectors());
             }
         }
         if (selector instanceof DefaultProjectComponentSelector) {

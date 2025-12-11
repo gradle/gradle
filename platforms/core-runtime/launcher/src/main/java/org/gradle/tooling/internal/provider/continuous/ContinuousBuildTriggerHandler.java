@@ -16,14 +16,13 @@
 
 package org.gradle.tooling.internal.provider.continuous;
 
-import org.gradle.deployment.internal.ContinuousExecutionGate;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.UncheckedException;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import org.gradle.deployment.internal.ContinuousExecutionGate;
+import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.UncheckedException;
 
 public class ContinuousBuildTriggerHandler {
     private final BuildCancellationToken cancellationToken;
@@ -35,10 +34,9 @@ public class ContinuousBuildTriggerHandler {
     private volatile boolean changeArrived;
 
     public ContinuousBuildTriggerHandler(
-        BuildCancellationToken cancellationToken,
-        ContinuousExecutionGate continuousExecutionGate,
-        Duration continuousBuildQuietPeriod
-    ) {
+            BuildCancellationToken cancellationToken,
+            ContinuousExecutionGate continuousExecutionGate,
+            Duration continuousBuildQuietPeriod) {
         this.cancellationToken = cancellationToken;
         this.continuousExecutionGate = continuousExecutionGate;
         this.quietPeriod = continuousBuildQuietPeriod;

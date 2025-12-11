@@ -16,7 +16,10 @@
 
 package org.gradle.launcher.daemon.server.health;
 
+import static java.lang.String.format;
+
 import com.google.common.annotations.VisibleForTesting;
+import java.util.Locale;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedScheduledExecutor;
 import org.gradle.internal.concurrent.Stoppable;
@@ -30,10 +33,6 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 
-import java.util.Locale;
-
-import static java.lang.String.format;
-
 @ServiceScope(Scope.Global.class)
 public class DaemonHealthStats implements Stoppable {
 
@@ -42,7 +41,10 @@ public class DaemonHealthStats implements Stoppable {
     private final GarbageCollectionInfo gcInfo;
     private GarbageCollectionMonitor gcMonitor;
 
-    public DaemonHealthStats(DaemonRunningStats runningStats, GarbageCollectorMonitoringStrategy strategy, ExecutorFactory executorFactory) {
+    public DaemonHealthStats(
+            DaemonRunningStats runningStats,
+            GarbageCollectorMonitoringStrategy strategy,
+            ExecutorFactory executorFactory) {
         this.runningStats = runningStats;
         this.scheduler = executorFactory.createScheduled("Daemon health stats", 1);
         this.gcInfo = new GarbageCollectionInfo();
@@ -50,7 +52,8 @@ public class DaemonHealthStats implements Stoppable {
     }
 
     @VisibleForTesting
-    DaemonHealthStats(DaemonRunningStats runningStats, GarbageCollectionInfo gcInfo, GarbageCollectionMonitor gcMonitor) {
+    DaemonHealthStats(
+            DaemonRunningStats runningStats, GarbageCollectionInfo gcInfo, GarbageCollectionMonitor gcMonitor) {
         this.runningStats = runningStats;
         this.scheduler = null;
         this.gcInfo = gcInfo;
@@ -82,17 +85,22 @@ public class DaemonHealthStats implements Stoppable {
      */
     public String getHealthInfo() {
         StringBuilder message = new StringBuilder();
-        message.append(format("[uptime: %s, performance: %s%%", runningStats.getPrettyUpTime(), getCurrentPerformance()));
+        message.append(
+                format("[uptime: %s, performance: %s%%", runningStats.getPrettyUpTime(), getCurrentPerformance()));
 
         GarbageCollectionStats heapStats = gcMonitor.getHeapStats();
         if (heapStats.isValid()) {
             message.append(format(Locale.ENGLISH, ", GC rate: %.2f/s", heapStats.getGcRate()));
-            message.append(format(", heap usage: %s%% of %s", heapStats.getUsedPercent(), NumberUtil.formatBytes(heapStats.getMaxSizeInBytes())));
+            message.append(format(
+                    ", heap usage: %s%% of %s",
+                    heapStats.getUsedPercent(), NumberUtil.formatBytes(heapStats.getMaxSizeInBytes())));
         }
 
         GarbageCollectionStats nonHeapStats = gcMonitor.getNonHeapStats();
         if (nonHeapStats.isValid()) {
-            message.append(format(", non-heap usage: %s%% of %s", nonHeapStats.getUsedPercent(), NumberUtil.formatBytes(nonHeapStats.getMaxSizeInBytes())));
+            message.append(format(
+                    ", non-heap usage: %s%% of %s",
+                    nonHeapStats.getUsedPercent(), NumberUtil.formatBytes(nonHeapStats.getMaxSizeInBytes())));
         }
         message.append("]");
 

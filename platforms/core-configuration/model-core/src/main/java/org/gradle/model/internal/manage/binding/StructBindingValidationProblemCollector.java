@@ -16,10 +16,9 @@
 
 package org.gradle.model.internal.manage.binding;
 
+import java.lang.reflect.Method;
 import org.gradle.model.internal.inspect.ValidationProblemCollector;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
-
-import java.lang.reflect.Method;
 
 public interface StructBindingValidationProblemCollector extends ValidationProblemCollector {
     void add(WeaklyTypeReferencingMethod<?, ?> method, String problem);

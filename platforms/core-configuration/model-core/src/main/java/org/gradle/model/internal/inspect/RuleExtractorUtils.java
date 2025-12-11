@@ -26,7 +26,11 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.jspecify.annotations.Nullable;
 
 public class RuleExtractorUtils {
-    public static void configureRuleAction(MethodModelRuleApplicationContext context, RuleApplicationScope ruleApplicationScope, ModelActionRole role, MethodRuleAction ruleAction) {
+    public static void configureRuleAction(
+            MethodModelRuleApplicationContext context,
+            RuleApplicationScope ruleApplicationScope,
+            ModelActionRole role,
+            MethodRuleAction ruleAction) {
         ModelAction action = context.contextualize(ruleAction);
         ModelRegistry registry = context.getRegistry();
         switch (ruleApplicationScope) {
@@ -58,5 +62,6 @@ public class RuleExtractorUtils {
         public boolean matches(MutableModelNode node) {
             return !(node instanceof ModelReferenceNode);
         }
-    };
+    }
+    ;
 }

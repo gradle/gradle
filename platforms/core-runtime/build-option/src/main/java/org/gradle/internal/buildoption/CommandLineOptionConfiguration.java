@@ -16,10 +16,9 @@
 
 package org.gradle.internal.buildoption;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Configuration for a command line option.
@@ -28,8 +27,10 @@ import java.util.List;
  */
 public class CommandLineOptionConfiguration {
     private final String longOption;
+
     @Nullable
     private final String shortOption;
+
     private final String description;
     private boolean incubating;
     private boolean deprecated;

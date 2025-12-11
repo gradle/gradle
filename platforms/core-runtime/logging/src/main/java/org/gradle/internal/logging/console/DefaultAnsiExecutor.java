@@ -16,14 +16,13 @@
 
 package org.gradle.internal.logging.console;
 
+import java.io.IOException;
 import org.fusesource.jansi.Ansi;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
-
-import java.io.IOException;
 
 public class DefaultAnsiExecutor implements AnsiExecutor {
     private final Appendable target;
@@ -33,7 +32,13 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
     private final NewLineListener listener;
     private final Cursor writeCursor;
 
-    public DefaultAnsiExecutor(Appendable target, ColorMap colorMap, AnsiFactory factory, ConsoleMetaData consoleMetaData, Cursor writeCursor, NewLineListener listener) {
+    public DefaultAnsiExecutor(
+            Appendable target,
+            ColorMap colorMap,
+            AnsiFactory factory,
+            ConsoleMetaData consoleMetaData,
+            Cursor writeCursor,
+            NewLineListener listener) {
         this.target = target;
         this.colorMap = colorMap;
         this.factory = factory;
@@ -113,6 +118,7 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
         void beforeNewLineWritten(AnsiContext ansi, Cursor writeCursor);
 
         void beforeLineWrap(AnsiContext ansi, Cursor writeCursor);
+
         void afterLineWrap(AnsiContext ansi, Cursor writeCursor);
     }
 
@@ -167,7 +173,9 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
                             --writePos.row;
                         }
                         if (writeCursor.row != 0) {
-                            --writeCursor.row;  // We don't adjust the column value as in the event we unwrap, we want to keep correctness
+                            --writeCursor
+                                    .row; // We don't adjust the column value as in the event we unwrap, we want to keep
+                            // correctness
                         }
                     }
 
@@ -180,7 +188,7 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
 
         @Override
         public AnsiContext newLines(int numberOfNewLines) {
-            while(0 < numberOfNewLines--) {
+            while (0 < numberOfNewLines--) {
                 newLine();
             }
             return this;

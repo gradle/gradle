@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -25,8 +26,6 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
-
-import java.util.List;
 
 public class ProjectDependencyMetadataConverter extends AbstractDependencyMetadataConverter {
 
@@ -39,29 +38,26 @@ public class ProjectDependencyMetadataConverter extends AbstractDependencyMetada
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
 
         ComponentSelector selector = new DefaultProjectComponentSelector(
-            projectDependency.getTargetProjectIdentity(),
-            ((AttributeContainerInternal) projectDependency.getAttributes()).asImmutable(),
-            ImmutableSet.copyOf(projectDependency.getCapabilitySelectors())
-        );
+                projectDependency.getTargetProjectIdentity(),
+                ((AttributeContainerInternal) projectDependency.getAttributes()).asImmutable(),
+                ImmutableSet.copyOf(projectDependency.getCapabilitySelectors()));
 
         List<ExcludeMetadata> excludes = convertExcludeRules(dependency.getExcludeRules());
         return new LocalComponentDependencyMetadata(
-            selector,
-            projectDependency.getTargetConfiguration(),
-            convertArtifacts(dependency.getArtifacts()),
-            excludes,
-            false,
-            false,
-            dependency.isTransitive(),
-            false,
-            dependency.isEndorsingStrictVersions(),
-            dependency.getReason()
-        );
+                selector,
+                projectDependency.getTargetConfiguration(),
+                convertArtifacts(dependency.getArtifacts()),
+                excludes,
+                false,
+                false,
+                dependency.isTransitive(),
+                false,
+                dependency.isEndorsingStrictVersions(),
+                dependency.getReason());
     }
 
     @Override
     public boolean canConvert(ModuleDependency dependency) {
         return dependency instanceof ProjectDependency;
     }
-
 }

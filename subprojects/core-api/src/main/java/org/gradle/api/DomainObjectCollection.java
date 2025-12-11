@@ -17,10 +17,9 @@ package org.gradle.api;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.util.Collection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
-
-import java.util.Collection;
 
 /**
  * <p>A {@code DomainObjectCollection} is a specialised {@link Collection} that adds the ability to receive modification notifications and use live filtered sub collections.</p>
@@ -88,7 +87,8 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param configureClosure The closure to execute for each object in the resulting collection.
      * @return The matching objects. Returns an empty collection if there are no such objects in this collection.
      */
-    <S extends T> DomainObjectCollection<S> withType(@DelegatesTo.Target Class<S> type, @DelegatesTo(genericTypeIndex = 0) Closure configureClosure);
+    <S extends T> DomainObjectCollection<S> withType(
+            @DelegatesTo.Target Class<S> type, @DelegatesTo(genericTypeIndex = 0) Closure configureClosure);
 
     /**
      * Returns a collection which contains the objects in this collection which meet the given specification. The

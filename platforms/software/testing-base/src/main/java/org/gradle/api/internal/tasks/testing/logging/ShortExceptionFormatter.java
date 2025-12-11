@@ -17,11 +17,10 @@
 package org.gradle.api.internal.tasks.testing.logging;
 
 import com.google.common.base.Strings;
+import java.util.List;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
-
-import java.util.List;
 
 public class ShortExceptionFormatter implements TestExceptionFormatter {
     private static final String INDENT = "    ";
@@ -41,18 +40,21 @@ public class ShortExceptionFormatter implements TestExceptionFormatter {
         return builder.toString();
     }
 
-    private void printException(TestDescriptor descriptor, Throwable exception, boolean cause, int indentLevel, StringBuilder builder) {
-        @SuppressWarnings("InlineMeInliner") //Strings.repeat is from guava not Java 11+
+    private void printException(
+            TestDescriptor descriptor, Throwable exception, boolean cause, int indentLevel, StringBuilder builder) {
+        @SuppressWarnings("InlineMeInliner") // Strings.repeat is from guava not Java 11+
         String indent = Strings.repeat(INDENT, indentLevel);
         builder.append(indent);
         if (cause) {
             builder.append("Caused by: ");
         }
         String className = exception instanceof PlaceholderExceptionSupport
-                ? ((PlaceholderExceptionSupport) exception).getExceptionClassName() : exception.getClass().getName();
+                ? ((PlaceholderExceptionSupport) exception).getExceptionClassName()
+                : exception.getClass().getName();
         builder.append(className);
 
-        StackTraceFilter filter = new StackTraceFilter(new ClassMethodNameStackTraceSpec(descriptor.getClassName(), null));
+        StackTraceFilter filter =
+                new StackTraceFilter(new ClassMethodNameStackTraceSpec(descriptor.getClassName(), null));
         List<StackTraceElement> stackTrace = filter.filter(exception);
         if (stackTrace.size() > 0) {
             StackTraceElement element = stackTrace.get(0);

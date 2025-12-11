@@ -20,5 +20,4 @@ package org.gradle.model.internal.manage.schema;
  * The schema for a fully managed element. This means that we have control over all aspects of the lifecycle of the element: the actual
  * implementation of the element, plus the implementation and instantiation of views for the instance.
  */
-public interface ManagedImplSchema<T> extends ModelSchema<T> {
-}
+public interface ManagedImplSchema<T> extends ModelSchema<T> {}

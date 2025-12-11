@@ -16,9 +16,16 @@
 
 package org.gradle.model.internal.registry;
 
+import static org.gradle.model.internal.core.ModelNode.State.Created;
+import static org.gradle.model.internal.core.ModelNode.State.Initialized;
+
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.DuplicateModelException;
@@ -37,21 +44,14 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
-import static org.gradle.model.internal.core.ModelNode.State.Created;
-import static org.gradle.model.internal.core.ModelNode.State.Initialized;
-
 class ModelElementNode extends ModelNodeInternal {
     private Map<String, ModelNodeInternal> links;
     private final MutableModelNode parent;
     private Object privateData;
     private ModelType<?> privateDataType;
 
-    public ModelElementNode(ModelRegistryInternal modelRegistry, ModelRegistration registration, MutableModelNode parent) {
+    public ModelElementNode(
+            ModelRegistryInternal modelRegistry, ModelRegistration registration, MutableModelNode parent) {
         super(modelRegistry, registration);
         this.parent = parent;
     }
@@ -65,7 +65,8 @@ class ModelElementNode extends ModelNodeInternal {
     public <T> ModelView<? extends T> asImmutable(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
         ModelView<? extends T> modelView = getAdapter().asImmutable(type, this, ruleDescriptor);
         if (modelView == null) {
-            throw new IllegalStateException("Model element " + getPath() + " cannot be expressed as a read-only view of type " + type);
+            throw new IllegalStateException(
+                    "Model element " + getPath() + " cannot be expressed as a read-only view of type " + type);
         }
         return modelView;
     }
@@ -79,7 +80,8 @@ class ModelElementNode extends ModelNodeInternal {
             modelView = getAdapter().asImmutable(type, this, ruleDescriptor);
         }
         if (modelView == null) {
-            throw new IllegalStateException("Model element " + getPath() + " cannot be expressed as a mutable view of type " + type);
+            throw new IllegalStateException(
+                    "Model element " + getPath() + " cannot be expressed as a mutable view of type " + type);
         }
         return modelView;
     }
@@ -96,7 +98,8 @@ class ModelElementNode extends ModelNodeInternal {
         }
 
         if (!type.isAssignableFrom(privateDataType)) {
-            throw new ClassCastException("Cannot get private data '" + privateData + "' of type '" + privateDataType + "' as type '" + type);
+            throw new ClassCastException(
+                    "Cannot get private data '" + privateData + "' of type '" + privateDataType + "' as type '" + type);
         }
         return Cast.uncheckedCast(privateData);
     }
@@ -114,7 +117,8 @@ class ModelElementNode extends ModelNodeInternal {
     @Override
     public <T> void setPrivateData(ModelType<? super T> type, T object) {
         if (!isMutable()) {
-            throw new IllegalStateException(String.format("Cannot set value for model element '%s' as this element is not mutable.", getPath()));
+            throw new IllegalStateException(String.format(
+                    "Cannot set value for model element '%s' as this element is not mutable.", getPath()));
         }
         this.privateDataType = type;
         this.privateData = object;
@@ -180,7 +184,9 @@ class ModelElementNode extends ModelNodeInternal {
     @Override
     public void applyToLink(ModelActionRole type, ModelAction action) {
         if (!getPath().isDirectChild(action.getSubject().getPath())) {
-            throw new IllegalArgumentException(String.format("Linked element action reference has a path (%s) which is not a child of this node (%s).", action.getSubject().getPath(), getPath()));
+            throw new IllegalArgumentException(String.format(
+                    "Linked element action reference has a path (%s) which is not a child of this node (%s).",
+                    action.getSubject().getPath(), getPath()));
         }
         modelRegistry.bind(action.getSubject(), type, action);
     }
@@ -203,8 +209,9 @@ class ModelElementNode extends ModelNodeInternal {
         // the type of the property node instead.
         ModelProjection projection = new EmptyReferenceProjection<T>(type);
         ModelRegistration registration = ModelRegistrations.of(getPath().child(name))
-            .withProjection(projection)
-            .descriptor(descriptor).build();
+                .withProjection(projection)
+                .descriptor(descriptor)
+                .build();
         ModelReferenceNode referenceNode = new ModelReferenceNode(modelRegistry, registration, this);
         if (target != null) {
             referenceNode.setTarget(target);
@@ -220,39 +227,26 @@ class ModelElementNode extends ModelNodeInternal {
     private void addNode(ModelNodeInternal child, ModelRegistration registration) {
         ModelPath childPath = child.getPath();
         if (!getPath().isDirectChild(childPath)) {
-            throw new IllegalArgumentException(String.format("Element registration has a path (%s) which is not a child of this node (%s).", childPath, getPath()));
+            throw new IllegalArgumentException(String.format(
+                    "Element registration has a path (%s) which is not a child of this node (%s).",
+                    childPath, getPath()));
         }
 
         ModelNodeInternal currentChild = links == null ? null : links.get(childPath.getName());
         if (currentChild != null) {
             if (!currentChild.isAtLeast(Created)) {
-                throw new DuplicateModelException(
-                    String.format(
+                throw new DuplicateModelException(String.format(
                         "Cannot create '%s' using creation rule '%s' as the rule '%s' is already registered to create this model element.",
-                        childPath,
-                        describe(registration.getDescriptor()),
-                        describe(currentChild.getDescriptor())
-                    )
-                );
+                        childPath, describe(registration.getDescriptor()), describe(currentChild.getDescriptor())));
             }
-            throw new DuplicateModelException(
-                String.format(
+            throw new DuplicateModelException(String.format(
                     "Cannot create '%s' using creation rule '%s' as the rule '%s' has already been used to create this model element.",
-                    childPath,
-                    describe(registration.getDescriptor()),
-                    describe(currentChild.getDescriptor())
-                )
-            );
+                    childPath, describe(registration.getDescriptor()), describe(currentChild.getDescriptor())));
         }
         if (!isMutable()) {
-            throw new IllegalStateException(
-                String.format(
+            throw new IllegalStateException(String.format(
                     "Cannot create '%s' using creation rule '%s' as model element '%s' is no longer mutable.",
-                    childPath,
-                    describe(registration.getDescriptor()),
-                    getPath()
-                )
-            );
+                    childPath, describe(registration.getDescriptor()), getPath()));
         }
         if (links == null) {
             links = new TreeMap<>();
@@ -263,14 +257,15 @@ class ModelElementNode extends ModelNodeInternal {
 
     @Override
     public void removeLink(String name) {
-        if (links!=null && links.remove(name) != null) {
+        if (links != null && links.remove(name) != null) {
             modelRegistry.remove(getPath().child(name));
         }
     }
 
     @Override
     public void setTarget(ModelNode target) {
-        throw new UnsupportedOperationException(String.format("This node (%s) is not a reference to another node.", getPath()));
+        throw new UnsupportedOperationException(
+                String.format("This node (%s) is not a reference to another node.", getPath()));
     }
 
     @Override

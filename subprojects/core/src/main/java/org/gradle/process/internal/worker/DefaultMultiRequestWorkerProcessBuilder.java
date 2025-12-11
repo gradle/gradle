@@ -16,6 +16,9 @@
 
 package org.gradle.process.internal.worker;
 
+import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClasspathUtil;
@@ -33,10 +36,6 @@ import org.gradle.process.internal.worker.request.RequestSerializerRegistry;
 import org.gradle.process.internal.worker.request.ResponseProtocol;
 import org.gradle.process.internal.worker.request.WorkerAction;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.Set;
-
 class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWorkerProcessBuilder<IN, OUT> {
 
     private final Class<?> workerImplementation;
@@ -47,7 +46,10 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
     private final RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
     private boolean useApplicationClassloaderOnly;
 
-    public DefaultMultiRequestWorkerProcessBuilder(Class<?> workerImplementation, DefaultWorkerProcessBuilder workerProcessBuilder, OutputEventListener outputEventListener) {
+    public DefaultMultiRequestWorkerProcessBuilder(
+            Class<?> workerImplementation,
+            DefaultWorkerProcessBuilder workerProcessBuilder,
+            OutputEventListener outputEventListener) {
         this.workerImplementation = workerImplementation;
         this.workerProcessBuilder = workerProcessBuilder;
         this.outputEventListener = outputEventListener;
@@ -150,7 +152,8 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
 
             @Override
             public WorkerProcess start() {
-                // Note -- leaks current build operation to worker thread, it will be cleared after the worker is started
+                // Note -- leaks current build operation to worker thread, it will be cleared after the worker is
+                // started
                 try {
                     workerProcess.start();
                 } catch (Exception e) {
@@ -158,7 +161,10 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
                 }
                 workerProcess.getConnection().addIncoming(ResponseProtocol.class, receiver);
                 workerProcess.getConnection().useJavaSerializationForParameters(workerImplementation.getClassLoader());
-                workerProcess.getConnection().useParameterSerializers(RequestSerializerRegistry.create(workerImplementation.getClassLoader(), argumentSerializers));
+                workerProcess
+                        .getConnection()
+                        .useParameterSerializers(RequestSerializerRegistry.create(
+                                workerImplementation.getClassLoader(), argumentSerializers));
 
                 requestProtocol = workerProcess.getConnection().addOutgoing(RequestProtocol.class);
                 workerProcess.getConnection().connect();
@@ -188,7 +194,8 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
 
             @Override
             public OUT run(IN request) {
-                requestProtocol.run(new Request(request, CurrentBuildOperationRef.instance().get()));
+                requestProtocol.run(
+                        new Request(request, CurrentBuildOperationRef.instance().get()));
                 boolean hasResult = receiver.awaitNextResult();
                 if (!hasResult) {
                     try {
@@ -196,7 +203,9 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
                         requestProtocol = null;
                         workerProcess.waitForStop();
                         // Worker didn't crash
-                        throw new IllegalStateException(String.format("No response was received from %s but the worker process has finished.", getBaseName()));
+                        throw new IllegalStateException(String.format(
+                                "No response was received from %s but the worker process has finished.",
+                                getBaseName()));
                     } catch (Exception e) {
                         throw WorkerProcessException.runFailed(getBaseName(), e);
                     }

@@ -31,7 +31,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 class WrappingComponentMetadataContext implements ComponentMetadataContext {
 
-
     private final ModuleComponentResolveMetadata metadata;
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;
@@ -43,11 +42,13 @@ class WrappingComponentMetadataContext implements ComponentMetadataContext {
     private MutableModuleComponentResolveMetadata mutableMetadata;
     private ComponentMetadataDetails details;
 
-    public WrappingComponentMetadataContext(ModuleComponentResolveMetadata metadata, Instantiator instantiator,
-                                            NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
-                                            NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
-                                            NotationParser<Object, ComponentIdentifier> componentIdentifierParser,
-                                            PlatformSupport platformSupport) {
+    public WrappingComponentMetadataContext(
+            ModuleComponentResolveMetadata metadata,
+            Instantiator instantiator,
+            NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
+            NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
+            NotationParser<Object, ComponentIdentifier> componentIdentifierParser,
+            PlatformSupport platformSupport) {
         this.metadata = metadata;
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
@@ -66,7 +67,14 @@ class WrappingComponentMetadataContext implements ComponentMetadataContext {
     public ComponentMetadataDetails getDetails() {
         createMutableMetadataIfNeeded();
         if (details == null) {
-            details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierParser, platformSupport);
+            details = instantiator.newInstance(
+                    ComponentMetadataDetailsAdapter.class,
+                    mutableMetadata,
+                    instantiator,
+                    dependencyMetadataNotationParser,
+                    dependencyConstraintMetadataNotationParser,
+                    componentIdentifierParser,
+                    platformSupport);
         }
         return details;
     }
@@ -75,10 +83,10 @@ class WrappingComponentMetadataContext implements ComponentMetadataContext {
         return metadata.getVariantDerivationStrategy();
     }
 
-    ModuleComponentResolveMetadata getImmutableMetadataWithDerivationStrategy(VariantDerivationStrategy variantDerivationStrategy) {
+    ModuleComponentResolveMetadata getImmutableMetadataWithDerivationStrategy(
+            VariantDerivationStrategy variantDerivationStrategy) {
         // We need to create a copy or the rules will be added to the wrong container
-        return createMutableMetadataIfNeeded().asImmutable()
-            .withDerivationStrategy(variantDerivationStrategy);
+        return createMutableMetadataIfNeeded().asImmutable().withDerivationStrategy(variantDerivationStrategy);
     }
 
     private MutableModuleComponentResolveMetadata createMutableMetadataIfNeeded() {

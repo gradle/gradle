@@ -16,13 +16,11 @@
 
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies;
-
 import java.io.Serializable;
+import org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies;
 
 public class DefaultRunClosedProjectBuildDependencies implements RunClosedProjectBuildDependencies, Serializable {
     public static final RunClosedProjectBuildDependencies INSTANCE = new DefaultRunClosedProjectBuildDependencies();
 
-    private DefaultRunClosedProjectBuildDependencies() {
-    }
+    private DefaultRunClosedProjectBuildDependencies() {}
 }

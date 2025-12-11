@@ -16,23 +16,23 @@
 
 package org.gradle.model.internal.inspect;
 
+import java.util.List;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleInput;
 import org.gradle.model.RuleSource;
 
-import java.util.List;
-
 abstract class AbstractJavaPropertyRules extends RuleSource {
-    AbstractJavaPropertyRules() {
-    }
+    AbstractJavaPropertyRules() {}
 
     @RuleInput
     abstract String getValue();
+
     abstract void setValue(String value);
 
     @RuleInput
     protected abstract int getNumber();
+
     protected abstract void setNumber(int value);
 
     @Model
@@ -41,6 +41,5 @@ abstract class AbstractJavaPropertyRules extends RuleSource {
     }
 
     @Mutate
-    protected void change(List<Number> numbers, String string) {
-    }
+    protected void change(List<Number> numbers, String string) {}
 }

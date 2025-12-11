@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -32,37 +34,50 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
-import javax.inject.Inject;
-import java.util.List;
-
-public class DefaultIvyDescriptorMetadataSource extends AbstractRepositoryMetadataSource<MutableIvyModuleResolveMetadata> {
+public class DefaultIvyDescriptorMetadataSource
+        extends AbstractRepositoryMetadataSource<MutableIvyModuleResolveMetadata> {
 
     private final MetaDataParser<MutableIvyModuleResolveMetadata> metaDataParser;
     private final ChecksumService checksumService;
 
     @Inject
-    public DefaultIvyDescriptorMetadataSource(MetadataArtifactProvider metadataArtifactProvider, MetaDataParser<MutableIvyModuleResolveMetadata> metaDataParser, FileResourceRepository fileResourceRepository, ChecksumService checksumService) {
+    public DefaultIvyDescriptorMetadataSource(
+            MetadataArtifactProvider metadataArtifactProvider,
+            MetaDataParser<MutableIvyModuleResolveMetadata> metaDataParser,
+            FileResourceRepository fileResourceRepository,
+            ChecksumService checksumService) {
         super(metadataArtifactProvider, fileResourceRepository, checksumService);
         this.metaDataParser = metaDataParser;
         this.checksumService = checksumService;
     }
 
     @Override
-    protected MetaDataParser.ParseResult<MutableIvyModuleResolveMetadata> parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, ExternalResourceArtifactResolver artifactResolver, DescriptorParseContext context, String repoName) {
-        MetaDataParser.ParseResult<MutableIvyModuleResolveMetadata> parseResult = metaDataParser.parseMetaData(context, cachedResource);
+    protected MetaDataParser.ParseResult<MutableIvyModuleResolveMetadata> parseMetaDataFromResource(
+            ModuleComponentIdentifier moduleComponentIdentifier,
+            LocallyAvailableExternalResource cachedResource,
+            ExternalResourceArtifactResolver artifactResolver,
+            DescriptorParseContext context,
+            String repoName) {
+        MetaDataParser.ParseResult<MutableIvyModuleResolveMetadata> parseResult =
+                metaDataParser.parseMetaData(context, cachedResource);
         MutableIvyModuleResolveMetadata metaData = parseResult.getResult();
         if (metaData != null) {
-            metaData.getSources().add(new ModuleDescriptorHashModuleSource(
-                checksumService.md5(cachedResource.getFile()),
-                metaData.isChanging()
-            ));
+            metaData.getSources()
+                    .add(new ModuleDescriptorHashModuleSource(
+                            checksumService.md5(cachedResource.getFile()), metaData.isChanging()));
             checkMetadataConsistency(moduleComponentIdentifier, metaData);
         }
         return parseResult;
     }
 
     @Override
-    public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
+    public void listModuleVersions(
+            ModuleComponentSelector selector,
+            ComponentOverrideMetadata overrideMetadata,
+            List<ResourcePattern> ivyPatterns,
+            List<ResourcePattern> artifactPatterns,
+            VersionLister versionLister,
+            BuildableModuleVersionListingResolveResult result) {
         // List modules based on metadata files (artifact version is not considered in listVersionsForAllPatterns())
         ModuleIdentifier module = selector.getModuleIdentifier();
         IvyArtifactName metaDataArtifact = metadataArtifactProvider.getMetaDataArtifactName(module.getName());

@@ -15,7 +15,13 @@
  */
 package org.gradle.groovy.scripts.internal;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import groovy.lang.Script;
+import java.io.Closeable;
+import java.io.File;
+import java.net.URI;
+import java.util.Optional;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
@@ -63,13 +69,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import java.io.Closeable;
-import java.io.File;
-import java.net.URI;
-import java.util.Optional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
  */
@@ -91,17 +90,16 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
 
     public GroovyScriptClassCompiler(
-        ScriptCompilationHandler scriptCompilationHandler,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        CachedClasspathTransformer classpathTransformer,
-        ExecutionEngine earlyExecutionEngine,
-        FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter,
-        ImmutableWorkspaceProvider workspaceProvider,
-        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
-        GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
-        PropertyUpgradeReportConfig propertyUpgradeReportConfig
-    ) {
+            ScriptCompilationHandler scriptCompilationHandler,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            CachedClasspathTransformer classpathTransformer,
+            ExecutionEngine earlyExecutionEngine,
+            FileCollectionFactory fileCollectionFactory,
+            InputFingerprinter inputFingerprinter,
+            ImmutableWorkspaceProvider workspaceProvider,
+            ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
+            GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
+            PropertyUpgradeReportConfig propertyUpgradeReportConfig) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.classpathTransformer = classpathTransformer;
@@ -116,11 +114,12 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
     @Override
     public <T extends Script, M> CompiledScript<T, M> compile(
-        final ScriptSource source, final Class<T> scriptBaseClass, final Object target,
-        final ClassLoaderScope targetScope,
-        final CompileOperation<M> operation,
-        final Action<? super ClassNode> verifier
-    ) {
+            final ScriptSource source,
+            final Class<T> scriptBaseClass,
+            final Object target,
+            final ClassLoaderScope targetScope,
+            final CompileOperation<M> operation,
+            final Action<? super ClassNode> verifier) {
         assert source.getResource().isContentCached();
         if (source.getResource().getHasEmptyContent()) {
             return new EmptyCompiledScript<>(operation);
@@ -131,47 +130,47 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         HashCode sourceHashCode = source.getResource().getContentHash();
         RemappingScriptSource remapped = new RemappingScriptSource(source);
         ClassLoader classLoader = targetScope.getExportClassLoader();
-        GroovyScriptCompilationOutput output = doCompile(target, templateId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
+        GroovyScriptCompilationOutput output = doCompile(
+                target, templateId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
 
         File instrumentedOutput = output.getInstrumentedOutput();
         File metadataDir = output.getMetadataDir();
         // TODO: Remove the remapping or move remapping to an uncached unit of work?
         ClassPath remappedClasses = remapClasses(instrumentedOutput, remapped);
-        return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
+        return scriptCompilationHandler.loadFromDir(
+                source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
     }
 
     private <T extends Script> GroovyScriptCompilationOutput doCompile(
-        Object target,
-        String templateId,
-        HashCode sourceHashCode,
-        RemappingScriptSource remappedSource,
-        ClassLoader classLoader,
-        CompileOperation<?> operation,
-        Action<? super ClassNode> verifier,
-        Class<T> scriptBaseClass
-    ) {
+            Object target,
+            String templateId,
+            HashCode sourceHashCode,
+            RemappingScriptSource remappedSource,
+            ClassLoader classLoader,
+            CompileOperation<?> operation,
+            Action<? super ClassNode> verifier,
+            Class<T> scriptBaseClass) {
         UnitOfWork unitOfWork = new GroovyScriptCompilationAndInstrumentation(
-            templateId,
-            sourceHashCode,
-            classLoader,
-            remappedSource,
-            operation,
-            verifier,
-            scriptBaseClass,
-            classLoaderHierarchyHasher,
-            workspaceProvider,
-            fileCollectionFactory,
-            inputFingerprinter,
-            transformFactoryForLegacy,
-            scriptCompilationHandler,
-            gradleCoreTypeRegistry,
-            propertyUpgradeReportConfig
-        );
+                templateId,
+                sourceHashCode,
+                classLoader,
+                remappedSource,
+                operation,
+                verifier,
+                scriptBaseClass,
+                classLoaderHierarchyHasher,
+                workspaceProvider,
+                fileCollectionFactory,
+                inputFingerprinter,
+                transformFactoryForLegacy,
+                scriptCompilationHandler,
+                gradleCoreTypeRegistry,
+                propertyUpgradeReportConfig);
         return getExecutionEngine(target)
-            .createRequest(unitOfWork)
-            .execute()
-            .getOutputAs(GroovyScriptCompilationOutput.class)
-            .get();
+                .createRequest(unitOfWork)
+                .execute()
+                .getOutputAs(GroovyScriptCompilationOutput.class)
+                .get();
     }
 
     /**
@@ -202,7 +201,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             }
 
             @Override
-            public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
+            public Pair<RelativePath, ClassVisitor> apply(
+                    ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
                 String renamed = entry.getPath().getLastName();
                 if (renamed.startsWith(RemappingScriptSource.MAPPED_SCRIPT)) {
                     renamed = className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
@@ -218,8 +218,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     }
 
     @Override
-    public void close() {
-    }
+    public void close() {}
 
     static class GroovyScriptCompilationAndInstrumentation extends BuildScriptCompilationAndInstrumentation {
 
@@ -234,23 +233,29 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         private final Action<? super ClassNode> verifier;
 
         public GroovyScriptCompilationAndInstrumentation(
-            String templateId,
-            HashCode sourceHashCode,
-            ClassLoader classLoader,
-            RemappingScriptSource remappedSource,
-            CompileOperation<?> operation,
-            Action<? super ClassNode> verifier,
-            Class<? extends Script> scriptBaseClass,
-            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-            ImmutableWorkspaceProvider workspaceProvider,
-            FileCollectionFactory fileCollectionFactory,
-            InputFingerprinter inputFingerprinter,
-            ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
-            ScriptCompilationHandler scriptCompilationHandler,
-            GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
-            PropertyUpgradeReportConfig propertyUpgradeReportConfig
-        ) {
-            super(remappedSource.getSource(), workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy, gradleCoreTypeRegistry, propertyUpgradeReportConfig);
+                String templateId,
+                HashCode sourceHashCode,
+                ClassLoader classLoader,
+                RemappingScriptSource remappedSource,
+                CompileOperation<?> operation,
+                Action<? super ClassNode> verifier,
+                Class<? extends Script> scriptBaseClass,
+                ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+                ImmutableWorkspaceProvider workspaceProvider,
+                FileCollectionFactory fileCollectionFactory,
+                InputFingerprinter inputFingerprinter,
+                ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
+                ScriptCompilationHandler scriptCompilationHandler,
+                GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
+                PropertyUpgradeReportConfig propertyUpgradeReportConfig) {
+            super(
+                    remappedSource.getSource(),
+                    workspaceProvider,
+                    fileCollectionFactory,
+                    inputFingerprinter,
+                    transformFactoryForLegacy,
+                    gradleCoreTypeRegistry,
+                    propertyUpgradeReportConfig);
             this.templateId = templateId;
             this.sourceHashCode = sourceHashCode;
             this.classLoader = classLoader;
@@ -263,7 +268,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         }
 
         @Override
-        public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+        public Optional<CachingDisabledReason> shouldDisableCaching(
+                @Nullable OverlappingOutputs detectedOverlappingOutputs) {
             // Disabled since enabling it introduced negative savings to Groovy script compilation.
             // It's not disabled for Kotlin since Kotlin has better compile avoidance, additionally
             // Kotlin has build cache from the beginning and there was no report of a problem with it.
@@ -275,14 +281,16 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             super.visitImmutableInputs(visitor);
             visitor.visitInputProperty(TEMPLATE_ID_PROPERTY_NAME, () -> templateId);
             visitor.visitInputProperty(SOURCE_HASH_PROPERTY_NAME, () -> sourceHashCode);
-            visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
+            visitor.visitInputProperty(
+                    CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
         }
 
         @Override
         public void visitOutputs(File workspace, OutputVisitor visitor) {
             super.visitOutputs(workspace, visitor);
             File metadataDir = metadataDir(workspace);
-            OutputVisitor.OutputFileValueSupplier metadataDirValue = OutputVisitor.OutputFileValueSupplier.fromStatic(metadataDir, fileCollectionFactory.fixed(metadataDir));
+            OutputVisitor.OutputFileValueSupplier metadataDirValue = OutputVisitor.OutputFileValueSupplier.fromStatic(
+                    metadataDir, fileCollectionFactory.fixed(metadataDir));
             visitor.visitOutputProperty("metadataDir", TreeType.DIRECTORY, metadataDirValue);
         }
 
@@ -297,7 +305,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         @Override
         public File compile(File workspace) {
             File classesDir = classesDir(workspace);
-            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir(workspace), operation, scriptBaseClass, verifier);
+            scriptCompilationHandler.compileToDir(
+                    source, classLoader, classesDir, metadataDir(workspace), operation, scriptBaseClass, verifier);
             return classesDir;
         }
 
@@ -386,10 +395,17 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         }
 
         @Override
-        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        public void visit(
+                int version, int access, String name, String signature, String superName, String[] interfaces) {
             String owner = remap(name);
             boolean shouldAddScriptOrigin = shouldAddScriptOrigin(access);
-            cv.visit(version, access, owner, remap(signature), remap(superName), remapAndAddInterfaces(interfaces, shouldAddScriptOrigin));
+            cv.visit(
+                    version,
+                    access,
+                    owner,
+                    remap(signature),
+                    remap(superName),
+                    remapAndAddInterfaces(interfaces, shouldAddScriptOrigin));
             if (shouldAddScriptOrigin) {
                 addOriginalClassName(cv, owner, originalClassName);
                 addContentHash(cv, owner, contentHash);
@@ -401,8 +417,18 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         }
 
         private static void addOriginalClassName(ClassVisitor cv, String owner, String originalClassName) {
-            cv.visitField(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC | ACC_FINAL, "__originalClassName", Type.getDescriptor(String.class), "", originalClassName);
-            MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "getOriginalClassName", Type.getMethodDescriptor(Type.getType(String.class)), null, null);
+            cv.visitField(
+                    ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC | ACC_FINAL,
+                    "__originalClassName",
+                    Type.getDescriptor(String.class),
+                    "",
+                    originalClassName);
+            MethodVisitor mv = cv.visitMethod(
+                    ACC_PUBLIC,
+                    "getOriginalClassName",
+                    Type.getMethodDescriptor(Type.getType(String.class)),
+                    null,
+                    null);
             mv.visitCode();
             mv.visitFieldInsn(GETSTATIC, owner, "__originalClassName", Type.getDescriptor(String.class));
             mv.visitInsn(ARETURN);
@@ -411,8 +437,14 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         }
 
         private static void addContentHash(ClassVisitor cv, String owner, String contentHash) {
-            cv.visitField(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC | ACC_FINAL, "__signature", Type.getDescriptor(String.class), "", contentHash);
-            MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "getContentHash", Type.getMethodDescriptor(Type.getType(String.class)), null, null);
+            cv.visitField(
+                    ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC | ACC_FINAL,
+                    "__signature",
+                    Type.getDescriptor(String.class),
+                    "",
+                    contentHash);
+            MethodVisitor mv = cv.visitMethod(
+                    ACC_PUBLIC, "getContentHash", Type.getMethodDescriptor(Type.getType(String.class)), null, null);
             mv.visitCode();
             mv.visitFieldInsn(GETSTATIC, owner, "__signature", Type.getDescriptor(String.class));
             mv.visitInsn(ARETURN);
@@ -430,7 +462,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
                 return remap(interfaces);
             }
             if (interfaces == null) {
-                return new String[]{SCRIPT_ORIGIN};
+                return new String[] {SCRIPT_ORIGIN};
             }
             String[] remapped = new String[interfaces.length + 1];
             for (int i = 0; i < interfaces.length; i++) {
@@ -537,11 +569,13 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             }
 
             @Override
-            public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+            public void visitInvokeDynamicInsn(
+                    String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
                 for (int i = 0; i < bootstrapMethodArguments.length; i++) {
                     bootstrapMethodArguments[i] = remapIfHandle(bootstrapMethodArguments[i]);
                 }
-                mv.visitInvokeDynamicInsn(remap(name), remap(descriptor), remapHandle(bootstrapMethodHandle), bootstrapMethodArguments);
+                mv.visitInvokeDynamicInsn(
+                        remap(name), remap(descriptor), remapHandle(bootstrapMethodHandle), bootstrapMethodArguments);
             }
 
             private Object remapIfHandle(Object bootstrapArgument) {
@@ -553,12 +587,12 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             }
 
             private Handle remapHandle(Handle handle) {
-                return new Handle(handle.getTag(),
-                    remap(handle.getOwner()),
-                    handle.getName(),
-                    remap(handle.getDesc()),
-                    handle.isInterface()
-                );
+                return new Handle(
+                        handle.getTag(),
+                        remap(handle.getOwner()),
+                        handle.getName(),
+                        remap(handle.getDesc()),
+                        handle.isInterface());
             }
 
             @Override
@@ -567,7 +601,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             }
 
             @Override
-            public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
+            public void visitLocalVariable(
+                    String name, String desc, String signature, Label start, Label end, int index) {
                 super.visitLocalVariable(name, remap(desc), remap(signature), start, end, index);
             }
 

@@ -16,5 +16,4 @@
 
 package org.gradle.api.internal.initialization;
 
-public class TestClass1 {
-}
+public class TestClass1 {}

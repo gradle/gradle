@@ -16,11 +16,10 @@
 
 package org.gradle.initialization.properties;
 
-import org.gradle.StartParameter;
-import org.gradle.api.internal.StartParameterInternal;
-
 import java.io.File;
 import java.util.Map;
+import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 
 /**
  * Loads Gradle properties from various sources including files, system properties, and environment variables.
@@ -129,5 +128,4 @@ public interface GradlePropertiesLoader {
      * @see StartParameter#getProjectProperties()
      */
     Map<String, String> loadFromStartParameterProjectProperties();
-
 }

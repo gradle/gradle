@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file.archive;
 
+import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
@@ -23,9 +25,6 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.file.PathTraversalChecker;
 import org.gradle.util.internal.GFileUtils;
-
-import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * An implementation of {@link org.gradle.api.file.FileTreeElement FileTreeElement} meant
@@ -89,7 +88,8 @@ public abstract class AbstractArchiveFileTreeElement extends AbstractFileTreeEle
 
     @Override
     public RelativePath getRelativePath() {
-        return new RelativePath(!getArchiveEntry().isDirectory(), safeEntryName().split("/"));
+        return new RelativePath(
+                !getArchiveEntry().isDirectory(), safeEntryName().split("/"));
     }
 
     @Override

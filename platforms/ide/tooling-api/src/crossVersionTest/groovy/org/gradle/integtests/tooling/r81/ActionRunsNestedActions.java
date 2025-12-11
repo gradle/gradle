@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.tooling.r81;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ActionRunsNestedActions implements BuildAction<Models> {
     @Override

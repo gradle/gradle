@@ -16,6 +16,10 @@
 
 package org.gradle.api.reporting;
 
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.SortedSet;
 import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Namer;
@@ -23,11 +27,6 @@ import org.gradle.api.Rule;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.util.Configurable;
-
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.SortedSet;
 
 /**
  * A container of {@link Report} objects, that represent potential reports.

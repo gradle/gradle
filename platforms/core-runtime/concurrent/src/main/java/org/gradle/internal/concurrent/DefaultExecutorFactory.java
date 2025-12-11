@@ -16,8 +16,6 @@
 
 package org.gradle.internal.concurrent;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
@@ -28,9 +26,11 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
     private final Set<ManagedExecutor> executors = new CopyOnWriteArraySet<ManagedExecutor>();
+
     @Nullable
     private final ClassLoader threadFactoryContextClassloader;
 
@@ -53,7 +53,8 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
 
     @Override
     public ManagedExecutor create(String displayName) {
-        ManagedExecutor executor = new TrackedManagedExecutor(createExecutor(displayName), new ExecutorPolicy.CatchAndRecordFailures());
+        ManagedExecutor executor =
+                new TrackedManagedExecutor(createExecutor(displayName), new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
     }
@@ -64,27 +65,32 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
 
     @Override
     public ManagedExecutor create(String displayName, int fixedSize) {
-        TrackedManagedExecutor executor = new TrackedManagedExecutor(createExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
+        TrackedManagedExecutor executor = new TrackedManagedExecutor(
+                createExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
     }
 
     @Override
-    public ManagedThreadPoolExecutor createThreadPool(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit) {
-        ThreadPoolExecutor executorService = createThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, timeUnit, newThreadFactory(displayName));
-        TrackedThreadPoolManagedExecutor executor = new TrackedThreadPoolManagedExecutor(executorService, new ExecutorPolicy.CatchAndRecordFailures());
+    public ManagedThreadPoolExecutor createThreadPool(
+            String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit) {
+        ThreadPoolExecutor executorService = createThreadPoolExecutor(
+                corePoolSize, maximumPoolSize, keepAliveTime, timeUnit, newThreadFactory(displayName));
+        TrackedThreadPoolManagedExecutor executor =
+                new TrackedThreadPoolManagedExecutor(executorService, new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
     }
 
-    private static ThreadPoolExecutor createThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit, ThreadFactory threadFactory) {
+    private static ThreadPoolExecutor createThreadPoolExecutor(
+            int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit, ThreadFactory threadFactory) {
         return new ThreadPoolExecutor(
-            corePoolSize,
-            maximumPoolSize,
-            keepAliveTime,
-            timeUnit,
-            new LinkedBlockingQueue<Runnable>(),
-            threadFactory);
+                corePoolSize,
+                maximumPoolSize,
+                keepAliveTime,
+                timeUnit,
+                new LinkedBlockingQueue<Runnable>(),
+                threadFactory);
     }
 
     protected ExecutorService createExecutor(String displayName, int fixedSize) {
@@ -93,7 +99,8 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
 
     @Override
     public ManagedScheduledExecutor createScheduled(String displayName, int fixedSize) {
-        ManagedScheduledExecutor executor = new TrackedScheduledManagedExecutor(createScheduledExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
+        ManagedScheduledExecutor executor = new TrackedScheduledManagedExecutor(
+                createScheduledExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
     }

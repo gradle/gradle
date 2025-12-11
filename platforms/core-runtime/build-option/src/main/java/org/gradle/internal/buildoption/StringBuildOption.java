@@ -16,10 +16,9 @@
 
 package org.gradle.internal.buildoption;
 
+import java.util.Map;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-
-import java.util.Map;
 
 /**
  * A build option that takes a string value e.g. {@code "--max-workers=4"}.
@@ -48,7 +47,13 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T, Comman
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.isDeprecated(), config.isIncubating()).hasArgument();
+            configureCommandLineOption(
+                            parser,
+                            config.getAllOptions(),
+                            config.getDescription(),
+                            config.isDeprecated(),
+                            config.isIncubating())
+                    .hasArgument();
         }
     }
 

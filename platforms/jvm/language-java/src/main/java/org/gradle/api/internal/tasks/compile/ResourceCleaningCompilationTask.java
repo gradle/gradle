@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.internal.concurrent.CompositeStoppable;
-
-import javax.annotation.processing.Processor;
-import javax.tools.DiagnosticListener;
-import javax.tools.JavaCompiler;
 import java.io.Closeable;
 import java.nio.charset.Charset;
 import java.util.Locale;
+import javax.annotation.processing.Processor;
+import javax.tools.DiagnosticListener;
+import javax.tools.JavaCompiler;
+import org.gradle.internal.concurrent.CompositeStoppable;
 
 /**
  * Cleans up resources (e.g. file handles) after compilation has finished.
@@ -38,8 +37,7 @@ class ResourceCleaningCompilationTask implements JavaCompiler.CompilationTask {
     }
 
     @Override
-    public void addModules(Iterable<String> moduleNames) {
-    }
+    public void addModules(Iterable<String> moduleNames) {}
 
     @Override
     public void setProcessors(Iterable<? extends Processor> processors) {

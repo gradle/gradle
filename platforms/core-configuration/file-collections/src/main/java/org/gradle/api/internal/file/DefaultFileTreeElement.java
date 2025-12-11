@@ -15,15 +15,14 @@
  */
 package org.gradle.api.internal.file;
 
+import java.io.File;
+import java.io.InputStream;
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.util.internal.GFileUtils;
-
-import java.io.File;
-import java.io.InputStream;
 
 public class DefaultFileTreeElement extends AbstractFileTreeElement {
     private final File file;

@@ -16,12 +16,11 @@
 
 package org.gradle.internal.watch.registry.impl;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SnapshotCollectingDiffListener implements SnapshotHierarchy.NodeDiffListener {
     private final List<FileSystemLocationSnapshot> removedSnapshots = new ArrayList<>();
@@ -35,13 +34,11 @@ public class SnapshotCollectingDiffListener implements SnapshotHierarchy.NodeDif
 
     @Override
     public void nodeRemoved(FileSystemNode node) {
-        node.rootSnapshots()
-            .forEach(removedSnapshots::add);
+        node.rootSnapshots().forEach(removedSnapshots::add);
     }
 
     @Override
     public void nodeAdded(FileSystemNode node) {
-        node.rootSnapshots()
-            .forEach(addedSnapshots::add);
+        node.rootSnapshots().forEach(addedSnapshots::add);
     }
 }

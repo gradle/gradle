@@ -20,12 +20,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A collection of files in Xcode's virtual filesystem hierarchy.
@@ -37,21 +36,21 @@ public class PBXGroup extends PBXReference {
     // Unfortunately, we can't determine this at constructor time, because CacheBuilder
     // calls our constructor and it's not easy to pass arguments to it.
     private SortPolicy sortPolicy;
+
     public PBXGroup(String name, @Nullable String path, SourceTree sourceTree) {
         super(name, path, sourceTree);
 
         sortPolicy = SortPolicy.BY_NAME;
         children = new ArrayList<>();
 
-        childGroupsByName = CacheBuilder.newBuilder().build(
-            new CacheLoader<String, PBXGroup>() {
-                @Override
-                public PBXGroup load(String key) throws Exception {
-                    PBXGroup group = new PBXGroup(key, null, SourceTree.GROUP);
-                    children.add(group);
-                    return group;
-                }
-            });
+        childGroupsByName = CacheBuilder.newBuilder().build(new CacheLoader<String, PBXGroup>() {
+            @Override
+            public PBXGroup load(String key) throws Exception {
+                PBXGroup group = new PBXGroup(key, null, SourceTree.GROUP);
+                children.add(group);
+                return group;
+            }
+        });
     }
 
     public PBXGroup getOrCreateChildGroupByName(String name) {

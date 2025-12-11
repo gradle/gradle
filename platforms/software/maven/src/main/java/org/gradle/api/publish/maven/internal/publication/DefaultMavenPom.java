@@ -16,6 +16,9 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.UserCodeAction;
@@ -37,11 +40,12 @@ import org.gradle.api.publish.maven.MavenPomScm;
 import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
 import org.gradle.internal.MutableActionSet;
 
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-
-public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, MavenPomDeveloperSpec, MavenPomContributorSpec, MavenPomMailingListSpec {
+public abstract class DefaultMavenPom
+        implements MavenPomInternal,
+                MavenPomLicenseSpec,
+                MavenPomDeveloperSpec,
+                MavenPomContributorSpec,
+                MavenPomMailingListSpec {
 
     private final MutableActionSet<XmlProvider> xmlAction = new MutableActionSet<>();
     private final List<MavenPomLicense> licenses = new ArrayList<>();
@@ -177,7 +181,8 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     @Override
     public void distributionManagement(Action<? super MavenPomDistributionManagement> action) {
         if (distributionManagement == null) {
-            distributionManagement = getObjectFactory().newInstance(DefaultMavenPomDistributionManagement.class, getObjectFactory());
+            distributionManagement =
+                    getObjectFactory().newInstance(DefaultMavenPomDistributionManagement.class, getObjectFactory());
         }
         action.execute(distributionManagement);
     }

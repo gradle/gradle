@@ -16,11 +16,10 @@
 
 package org.gradle.internal.typeconversion;
 
-import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.util.internal.GUtil;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.util.internal.GUtil;
 
 public class EnumFromCharSequenceNotationParser<T extends Enum<T>> implements NotationConverter<CharSequence, T> {
     private final Class<? extends T> type;

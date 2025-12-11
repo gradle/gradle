@@ -16,13 +16,6 @@
 
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.Category;
-import org.gradle.internal.Pair;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -30,6 +23,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.gradle.api.Incubating;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Category;
+import org.gradle.internal.Pair;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Static util class which provides utilities to check if an {@link Attribute} is {@link org.gradle.api.Incubating}.
@@ -57,7 +56,9 @@ public abstract class IncubatingAttributesChecker {
 
     @SuppressWarnings("unchecked")
     public static boolean isAnyIncubating(AttributeContainer attributes) {
-        return attributes.keySet().stream().map(k -> Pair.of((Attribute<Object>) k, (Object) attributes.getAttribute(k))).anyMatch(IncubatingAttributesChecker::isIncubating);
+        return attributes.keySet().stream()
+                .map(k -> Pair.of((Attribute<Object>) k, (Object) attributes.getAttribute(k)))
+                .anyMatch(IncubatingAttributesChecker::isIncubating);
     }
 
     private static <T> boolean isIncubating(Pair<Attribute<T>, T> attributePair) {
@@ -70,19 +71,26 @@ public abstract class IncubatingAttributesChecker {
 
     private static <T> boolean isIncubatingAttributeValue(Class<T> type, @Nullable T value) {
         String valueStr = value != null ? value.toString() : null;
-        return getIncubatingFields(type).stream().map(IncubatingAttributesChecker::getFieldValue).anyMatch(Predicate.isEqual(valueStr));
+        return getIncubatingFields(type).stream()
+                .map(IncubatingAttributesChecker::getFieldValue)
+                .anyMatch(Predicate.isEqual(valueStr));
     }
 
     private static Object getFieldValue(Field f) {
         try {
             return f.get(null);
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Error reading field: " + f.getName() + " on type: " + f.getType().getName(), e);
+            throw new RuntimeException(
+                    "Error reading field: " + f.getName() + " on type: "
+                            + f.getType().getName(),
+                    e);
         }
     }
 
     private static List<Field> getIncubatingFields(Class<?> type) {
-        return Arrays.stream(type.getDeclaredFields()).filter(IncubatingAttributesChecker::isAnnotatedWithIncubating).collect(Collectors.toList());
+        return Arrays.stream(type.getDeclaredFields())
+                .filter(IncubatingAttributesChecker::isAnnotatedWithIncubating)
+                .collect(Collectors.toList());
     }
 
     private static boolean isAnnotatedWithIncubating(AnnotatedElement element) {

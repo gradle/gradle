@@ -15,19 +15,19 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import java.io.StringWriter;
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
 import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.jspecify.annotations.Nullable;
 
-import java.io.StringWriter;
-import java.util.List;
-import java.util.Optional;
-
 public class CompilationFailedException extends RuntimeException implements CompilationFailedIndicator {
 
     public static final String RESOLUTION_MESSAGE = "Check your code and dependencies to fix the compilation error(s)";
-    public static final String COMPILATION_FAILED_DETAILS_ABOVE = "Compilation failed; see the compiler error output for details.";
+    public static final String COMPILATION_FAILED_DETAILS_ABOVE =
+            "Compilation failed; see the compiler error output for details.";
     public static final String COMPILATION_FAILED_DETAILS_BELOW = "Compilation failed; see the compiler output below.";
 
     private final ApiCompilerResult compilerPartialResult;
@@ -39,7 +39,8 @@ public class CompilationFailedException extends RuntimeException implements Comp
     }
 
     public CompilationFailedException(int exitCode) {
-        super(String.format("Compilation failed with exit code %d; see the compiler error output for details.", exitCode));
+        super(String.format(
+                "Compilation failed with exit code %d; see the compiler error output for details.", exitCode));
         this.compilerPartialResult = null;
         this.diagnosticCounts = null;
         shortMessage = getMessage();
@@ -59,8 +60,10 @@ public class CompilationFailedException extends RuntimeException implements Comp
         this.shortMessage = getMessage();
     }
 
-    CompilationFailedException(ApiCompilerResult result, List<InternalProblem> reportedProblems, String diagnosticCounts) {
-        super(exceptionMessage(COMPILATION_FAILED_DETAILS_BELOW + System.lineSeparator(), reportedProblems, diagnosticCounts));
+    CompilationFailedException(
+            ApiCompilerResult result, List<InternalProblem> reportedProblems, String diagnosticCounts) {
+        super(exceptionMessage(
+                COMPILATION_FAILED_DETAILS_BELOW + System.lineSeparator(), reportedProblems, diagnosticCounts));
         this.compilerPartialResult = result;
         this.diagnosticCounts = diagnosticCounts;
         this.shortMessage = COMPILATION_FAILED_DETAILS_BELOW;

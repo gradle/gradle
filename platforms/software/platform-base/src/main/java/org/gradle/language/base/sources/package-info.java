@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 /**
  * General purpose types for language sources support.
  */

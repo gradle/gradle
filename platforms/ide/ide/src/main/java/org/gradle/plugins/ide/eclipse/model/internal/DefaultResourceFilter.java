@@ -32,10 +32,13 @@ public final class DefaultResourceFilter implements ResourceFilter {
     private boolean recursive = true;
     private ResourceFilterMatcher matcher;
 
-    public DefaultResourceFilter() {
-    }
+    public DefaultResourceFilter() {}
 
-    public DefaultResourceFilter(ResourceFilterAppliesTo appliesTo, ResourceFilterType type, boolean recursive, ResourceFilterMatcher matcher) {
+    public DefaultResourceFilter(
+            ResourceFilterAppliesTo appliesTo,
+            ResourceFilterType type,
+            boolean recursive,
+            ResourceFilterMatcher matcher) {
         this();
         setAppliesTo(appliesTo);
         setType(type);
@@ -88,7 +91,9 @@ public final class DefaultResourceFilter implements ResourceFilter {
         this.matcher = matcher;
     }
 
-    public ResourceFilterMatcher matcher(@DelegatesTo(value = ResourceFilterMatcher.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
+    public ResourceFilterMatcher matcher(
+            @DelegatesTo(value = ResourceFilterMatcher.class, strategy = Closure.DELEGATE_FIRST)
+                    Closure configureClosure) {
         return matcher(new ClosureBackedAction<ResourceFilterMatcher>(configureClosure));
     }
 
@@ -114,9 +119,9 @@ public final class DefaultResourceFilter implements ResourceFilter {
         }
         DefaultResourceFilter resourceFilter = (DefaultResourceFilter) o;
         return Objects.equal(appliesTo, resourceFilter.appliesTo)
-            && Objects.equal(type, resourceFilter.type)
-            && recursive == resourceFilter.recursive
-            && Objects.equal(matcher, resourceFilter.matcher);
+                && Objects.equal(type, resourceFilter.type)
+                && recursive == resourceFilter.recursive
+                && Objects.equal(matcher, resourceFilter.matcher);
     }
 
     @Override
@@ -132,10 +137,10 @@ public final class DefaultResourceFilter implements ResourceFilter {
     @Override
     public String toString() {
         return "ResourceFilter{"
-            + "appliesTo='" + appliesTo + '\''
-            + ", type='" + type + '\''
-            + ", recursive='" + recursive + '\''
-            + ", matcher='" + matcher + '\''
-            + '}';
+                + "appliesTo='" + appliesTo + '\''
+                + ", type='" + type + '\''
+                + ", recursive='" + recursive + '\''
+                + ", matcher='" + matcher + '\''
+                + '}';
     }
 }

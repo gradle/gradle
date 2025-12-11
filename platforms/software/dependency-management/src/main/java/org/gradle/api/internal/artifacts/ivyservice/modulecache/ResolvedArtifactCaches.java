@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.collect.MapMaker;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
@@ -26,29 +28,32 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.concurrent.Stoppable;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Caches the dependency metadata (descriptors, artifact files) in memory.
  */
 public class ResolvedArtifactCaches implements Stoppable {
 
-    private final static Logger LOG = Logging.getLogger(ResolvedArtifactCaches.class);
+    private static final Logger LOG = Logging.getLogger(ResolvedArtifactCaches.class);
 
-    private final Map<String, Map<ComponentArtifactIdentifier, ResolvableArtifact>> cachePerRepo = new MapMaker().makeMap();
-    private final Map<String, Map<ComponentArtifactIdentifier, ResolvableArtifact>> cachePerRepoWithVerification = new MapMaker().makeMap();
+    private final Map<String, Map<ComponentArtifactIdentifier, ResolvableArtifact>> cachePerRepo =
+            new MapMaker().makeMap();
+    private final Map<String, Map<ComponentArtifactIdentifier, ResolvableArtifact>> cachePerRepoWithVerification =
+            new MapMaker().makeMap();
 
     /**
      * For a remote repository, the only thing required is a resolved artifact cache.
      * The rest of the in-memory caching is handled by the CachingModuleComponentRepository.
      */
-    public ModuleComponentRepository<ExternalModuleComponentGraphResolveState> provideResolvedArtifactCache(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> input, boolean withVerification) {
-        Map<ComponentArtifactIdentifier, ResolvableArtifact> caches = getResolvedArtifactCache(withVerification ? cachePerRepoWithVerification : cachePerRepo, input);
+    public ModuleComponentRepository<ExternalModuleComponentGraphResolveState> provideResolvedArtifactCache(
+            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> input, boolean withVerification) {
+        Map<ComponentArtifactIdentifier, ResolvableArtifact> caches =
+                getResolvedArtifactCache(withVerification ? cachePerRepoWithVerification : cachePerRepo, input);
         return new ResolvedArtifactCacheProvidingModuleComponentRepository(caches, input);
     }
 
-    private Map<ComponentArtifactIdentifier, ResolvableArtifact> getResolvedArtifactCache(Map<String, Map<ComponentArtifactIdentifier, ResolvableArtifact>> cache, ModuleComponentRepository<ExternalModuleComponentGraphResolveState> input) {
+    private Map<ComponentArtifactIdentifier, ResolvableArtifact> getResolvedArtifactCache(
+            Map<String, Map<ComponentArtifactIdentifier, ResolvableArtifact>> cache,
+            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> input) {
         Map<ComponentArtifactIdentifier, ResolvableArtifact> resolvedArtifactCache = cache.get(input.getId());
         if (resolvedArtifactCache == null) {
             LOG.debug("Creating new in-memory cache for repo '{}' [{}].", input.getName(), input.getId());
@@ -66,11 +71,14 @@ public class ResolvedArtifactCaches implements Stoppable {
         cachePerRepoWithVerification.clear();
     }
 
-    private static class ResolvedArtifactCacheProvidingModuleComponentRepository extends BaseModuleComponentRepository<ExternalModuleComponentGraphResolveState> {
+    private static class ResolvedArtifactCacheProvidingModuleComponentRepository
+            extends BaseModuleComponentRepository<ExternalModuleComponentGraphResolveState> {
 
         private final Map<ComponentArtifactIdentifier, ResolvableArtifact> resolvedArtifactCache;
 
-        public ResolvedArtifactCacheProvidingModuleComponentRepository(Map<ComponentArtifactIdentifier, ResolvableArtifact> resolvedArtifactsCache, ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate) {
+        public ResolvedArtifactCacheProvidingModuleComponentRepository(
+                Map<ComponentArtifactIdentifier, ResolvableArtifact> resolvedArtifactsCache,
+                ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate) {
             super(delegate);
             this.resolvedArtifactCache = resolvedArtifactsCache;
         }

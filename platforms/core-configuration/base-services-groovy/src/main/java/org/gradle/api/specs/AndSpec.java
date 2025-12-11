@@ -93,7 +93,7 @@ public class AndSpec<T> extends CompositeSpec<T> {
      * @since 4.3
      */
     public AndSpec<T> and(Spec<? super T> spec) {
-        return and(Cast.<Spec<? super T>[]>uncheckedNonnullCast(new Spec<?>[]{spec}));
+        return and(Cast.<Spec<? super T>[]>uncheckedNonnullCast(new Spec<?>[] {spec}));
     }
 
     @SuppressWarnings("rawtypes")
@@ -104,5 +104,4 @@ public class AndSpec<T> extends CompositeSpec<T> {
     public static <T> AndSpec<T> empty() {
         return uncheckedCast(EMPTY);
     }
-
 }

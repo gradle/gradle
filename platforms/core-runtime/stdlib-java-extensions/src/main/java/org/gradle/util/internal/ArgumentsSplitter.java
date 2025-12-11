@@ -16,10 +16,9 @@
 
 package org.gradle.util.internal;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class ArgumentsSplitter {

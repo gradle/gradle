@@ -16,16 +16,21 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -33,12 +38,6 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resolve.resolver.ComponentArtifactResolver;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
 public class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
@@ -51,14 +50,13 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final ComponentArtifactResolver componentArtifactResolver;
 
     public ArtifactBackedResolvedVariant(
-        VariantResolveMetadata.@Nullable Identifier identifier,
-        VariantIdentifier sourceVariantId,
-        DisplayName displayName,
-        ImmutableAttributes attributes,
-        ImmutableCapabilities capabilities,
-        List<? extends ComponentArtifactMetadata> artifacts,
-        ComponentArtifactResolver componentArtifactResolver
-    ) {
+            VariantResolveMetadata.@Nullable Identifier identifier,
+            VariantIdentifier sourceVariantId,
+            DisplayName displayName,
+            ImmutableAttributes attributes,
+            ImmutableCapabilities capabilities,
+            List<? extends ComponentArtifactMetadata> artifacts,
+            ComponentArtifactResolver componentArtifactResolver) {
         this.identifier = identifier;
         this.sourceVariantId = sourceVariantId;
         this.displayName = displayName;
@@ -85,7 +83,12 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
             return EMPTY;
         }
         if (resolvedArtifacts.size() == 1) {
-            return new SingleArtifactSet(displayName, sourceVariantId, attributes, capabilities, resolvedArtifacts.iterator().next());
+            return new SingleArtifactSet(
+                    displayName,
+                    sourceVariantId,
+                    attributes,
+                    capabilities,
+                    resolvedArtifacts.iterator().next());
         }
 
         List<SingleArtifactSet> artifactSets = new ArrayList<>(resolvedArtifacts.size());
@@ -129,12 +132,11 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         private final ResolvableArtifact artifact;
 
         SingleArtifactSet(
-            DisplayName artifactSetName,
-            VariantIdentifier sourceVariantId,
-            ImmutableAttributes variantAttributes,
-            ImmutableCapabilities capabilities,
-            ResolvableArtifact artifact
-        ) {
+                DisplayName artifactSetName,
+                VariantIdentifier sourceVariantId,
+                ImmutableAttributes variantAttributes,
+                ImmutableCapabilities capabilities,
+                ResolvableArtifact artifact) {
             this.artifactSetName = artifactSetName;
             this.sourceVariantId = sourceVariantId;
             this.variantAttributes = variantAttributes;
@@ -162,8 +164,10 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            if (visitor.requireArtifactFiles() && !artifact.getFileSource().getValue().isSuccessful()) {
-                visitor.visitFailure(artifact.getFileSource().getValue().getFailure().get());
+            if (visitor.requireArtifactFiles()
+                    && !artifact.getFileSource().getValue().isSuccessful()) {
+                visitor.visitFailure(
+                        artifact.getFileSource().getValue().getFailure().get());
             } else {
                 visitor.visitArtifact(artifactSetName, sourceVariantId, variantAttributes, capabilities, artifact);
                 visitor.endVisitCollection(FileCollectionInternal.OTHER);
@@ -193,7 +197,6 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         public String toString() {
             return artifact.getId().getDisplayName();
         }
-
     }
 
     private static class DownloadArtifactFile implements RunnableBuildOperation {
@@ -213,8 +216,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         public BuildOperationDescriptor.Builder description() {
             String displayName = artifact.getId().getDisplayName();
             return BuildOperationDescriptor.displayName("Resolve " + displayName)
-                .details(new DownloadArtifactBuildOperationType.DetailsImpl(displayName));
+                    .details(new DownloadArtifactBuildOperationType.DetailsImpl(displayName));
         }
     }
-
 }

@@ -16,6 +16,9 @@
 
 package org.gradle.launcher.daemon.server;
 
+import static org.gradle.launcher.daemon.server.api.DaemonState.*;
+
+import java.util.Date;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.Stoppable;
@@ -26,10 +29,6 @@ import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
-
-import java.util.Date;
-
-import static org.gradle.launcher.daemon.server.api.DaemonState.*;
 
 class DaemonRegistryUpdater implements Stoppable {
 
@@ -88,7 +87,8 @@ class DaemonRegistryUpdater implements Stoppable {
 
     @Override
     public void stop() {
-        LOGGER.debug("Removing our presence to clients, eg. removing this address from the registry: {}", connectorAddress);
+        LOGGER.debug(
+                "Removing our presence to clients, eg. removing this address from the registry: {}", connectorAddress);
         try {
             daemonRegistry.remove(connectorAddress);
         } catch (DaemonRegistry.EmptyRegistryException e) {

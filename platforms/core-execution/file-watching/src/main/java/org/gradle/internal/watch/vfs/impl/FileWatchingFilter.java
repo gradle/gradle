@@ -16,12 +16,11 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
+import java.util.concurrent.atomic.AtomicReference;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.vfs.FileSystemAccess;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Keeps track of how locations should be watched:
@@ -36,7 +35,8 @@ import java.util.concurrent.atomic.AtomicReference;
 @ServiceScope(Scope.UserHome.class)
 public class FileWatchingFilter implements FileSystemAccess.WriteListener {
     private final FileHierarchySet immutableLocations;
-    private final AtomicReference<FileHierarchySet> locationsWrittenByCurrentBuild = new AtomicReference<>(FileHierarchySet.empty());
+    private final AtomicReference<FileHierarchySet> locationsWrittenByCurrentBuild =
+            new AtomicReference<>(FileHierarchySet.empty());
     private volatile boolean buildRunning;
 
     public FileWatchingFilter(FileHierarchySet immutableLocations) {
@@ -46,7 +46,8 @@ public class FileWatchingFilter implements FileSystemAccess.WriteListener {
     @Override
     public void locationsWritten(Iterable<String> locations) {
         if (buildRunning) {
-            // TODO Should the loop go on the outside to make updates smaller and less likely to collide, and also cheaper to re-run?
+            // TODO Should the loop go on the outside to make updates smaller and less likely to collide, and also
+            // cheaper to re-run?
             locationsWrittenByCurrentBuild.updateAndGet(currentValue -> {
                 FileHierarchySet newValue = currentValue;
                 for (String location : locations) {

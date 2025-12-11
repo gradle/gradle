@@ -80,11 +80,9 @@ public abstract class NodeGroup {
         return true;
     }
 
-    public void addMember(Node node) {
-    }
+    public void addMember(Node node) {}
 
-    public void removeMember(Node node) {
-    }
+    public void removeMember(Node node) {}
 
     /**
      * Sets the ordinal of this group, without affecting reachability and other state of this group.
@@ -96,6 +94,5 @@ public abstract class NodeGroup {
      */
     public abstract NodeGroup reachableFrom(OrdinalGroup newOrdinal);
 
-    public void onNodeStart(Node finalizer, Node node) {
-    }
+    public void onNodeStart(Node finalizer, Node node) {}
 }

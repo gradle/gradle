@@ -16,10 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal.tools;
 
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
-
-import java.util.List;
 
 public interface CommandLineToolConfigurationInternal extends CommandLineToolConfiguration {
 

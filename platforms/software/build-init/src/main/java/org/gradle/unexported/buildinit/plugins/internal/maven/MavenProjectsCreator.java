@@ -17,6 +17,11 @@
 package org.gradle.unexported.buildinit.plugins.internal.maven;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import org.apache.maven.execution.DefaultMavenExecutionRequest;
 import org.apache.maven.execution.DefaultMavenExecutionResult;
 import org.apache.maven.execution.MavenExecutionRequest;
@@ -44,30 +49,31 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-
 @SuppressWarnings("deprecation") // This Class uses a number of types deprecated in Maven
 public class MavenProjectsCreator {
 
     public Set<MavenProject> create(Settings mavenSettings, File pomFile) {
         if (!pomFile.exists()) {
-            throw new MavenConversionException(String.format("Unable to create Maven project model. The POM file %s does not exist.", pomFile));
+            throw new MavenConversionException(
+                    String.format("Unable to create Maven project model. The POM file %s does not exist.", pomFile));
         }
         try {
             return createNow(mavenSettings, pomFile);
         } catch (Exception e) {
-            throw new MavenConversionException(String.format("Unable to create Maven project model using POM %s.", pomFile), e);
+            throw new MavenConversionException(
+                    String.format("Unable to create Maven project model using POM %s.", pomFile), e);
         }
     }
 
-    private Set<MavenProject> createNow(Settings settings, File pomFile) throws PlexusContainerException, ComponentLookupException, MavenExecutionRequestPopulationException, ProjectBuildingException {
+    private Set<MavenProject> createNow(Settings settings, File pomFile)
+            throws PlexusContainerException, ComponentLookupException, MavenExecutionRequestPopulationException,
+                    ProjectBuildingException {
         ContainerConfiguration containerConfiguration = new DefaultContainerConfiguration()
-                .setClassWorld(new ClassWorld("plexus.core", Thread.currentThread().getContextClassLoader()))
-                .setName("mavenCore").setClassPathScanning(PlexusConstants.SCANNING_INDEX).setAutoWiring(true);
+                .setClassWorld(
+                        new ClassWorld("plexus.core", Thread.currentThread().getContextClassLoader()))
+                .setName("mavenCore")
+                .setClassPathScanning(PlexusConstants.SCANNING_INDEX)
+                .setAutoWiring(true);
 
         DefaultPlexusContainer container = new DefaultPlexusContainer(containerConfiguration);
         ProjectBuilder builder = container.lookup(ProjectBuilder.class);
@@ -92,9 +98,9 @@ public class MavenProjectsCreator {
         MavenProject mavenProject = builder.build(pomFile, buildingRequest).getProject();
         Set<MavenProject> reactorProjects = new LinkedHashSet<>();
 
-        //TODO adding the parent project first because the converter needs it this way ATM. This is oversimplified.
-        //the converter should not depend on the order of reactor projects.
-        //we should add coverage for nested multi-project builds with multiple parents.
+        // TODO adding the parent project first because the converter needs it this way ATM. This is oversimplified.
+        // the converter should not depend on the order of reactor projects.
+        // we should add coverage for nested multi-project builds with multiple parents.
         reactorProjects.add(mavenProject);
         List<ProjectBuildingResult> allProjects = builder.build(ImmutableList.of(pomFile), true, buildingRequest);
         CollectionUtils.collect(allProjects, reactorProjects, ProjectBuildingResult::getProject);
@@ -108,7 +114,9 @@ public class MavenProjectsCreator {
         return reactorProjects;
     }
 
-    private void populateFromSettings(Settings settings, MavenExecutionRequest executionRequest, MavenExecutionRequestPopulator populator) throws MavenExecutionRequestPopulationException {
+    private void populateFromSettings(
+            Settings settings, MavenExecutionRequest executionRequest, MavenExecutionRequestPopulator populator)
+            throws MavenExecutionRequestPopulationException {
         populator.populateFromSettings(executionRequest, settings);
     }
 }

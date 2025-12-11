@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings;
 
-import org.apache.maven.settings.building.SettingsBuildingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.maven.settings.building.SettingsBuildingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryLocator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultLocalMavenRepositoryLocator.class);
@@ -36,7 +35,10 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         this(settingsProvider, new DefaultMavenFileLocations(), new CurrentSystemPropertyAccess());
     }
 
-    protected DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider, MavenFileLocations mavenFileLocations, SystemPropertyAccess system) {
+    protected DefaultLocalMavenRepositoryLocator(
+            MavenSettingsProvider settingsProvider,
+            MavenFileLocations mavenFileLocations,
+            SystemPropertyAccess system) {
         this.settingsProvider = settingsProvider;
         this.mavenFileLocations = mavenFileLocations;
         this.system = system;
@@ -86,9 +88,12 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         Matcher matcher = PLACEHOLDER_PATTERN.matcher(value);
         while (matcher.find()) {
             String placeholder = matcher.group(1);
-            String replacement = placeholder.startsWith("env.") ? system.getEnv(placeholder.substring(4)) : system.getProperty(placeholder);
+            String replacement = placeholder.startsWith("env.")
+                    ? system.getEnv(placeholder.substring(4))
+                    : system.getProperty(placeholder);
             if (replacement == null) {
-                throw new CannotLocateLocalMavenRepositoryException(String.format("Cannot resolve placeholder '%s' in value '%s'", placeholder, value));
+                throw new CannotLocateLocalMavenRepositoryException(
+                        String.format("Cannot resolve placeholder '%s' in value '%s'", placeholder, value));
             }
             matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
         }
@@ -98,6 +103,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
 
     public interface SystemPropertyAccess {
         String getProperty(String name);
+
         String getEnv(String name);
     }
 

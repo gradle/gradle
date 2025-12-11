@@ -16,6 +16,9 @@
 
 package org.gradle.launcher.daemon.client;
 
+import java.io.File;
+import java.io.InputStream;
+import java.util.Optional;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.service.Provides;
@@ -32,10 +35,6 @@ import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.toolchain.DaemonClientToolchainServices;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.Optional;
-
 @ServiceScope(Scope.Global.class)
 public class DaemonClientFactory {
     private final ServiceRegistry sharedServices;
@@ -47,58 +46,76 @@ public class DaemonClientFactory {
     /**
      * Creates the services for a {@link DaemonClient} that can be used to run builds.
      */
-    public ServiceRegistry createBuildClientServices(ServiceLookup clientLoggingServices, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream stdin, Optional<InternalBuildProgressListener> buildProgressListener) {
+    public ServiceRegistry createBuildClientServices(
+            ServiceLookup clientLoggingServices,
+            DaemonParameters daemonParameters,
+            DaemonRequestContext requestContext,
+            InputStream stdin,
+            Optional<InternalBuildProgressListener> buildProgressListener) {
         return clientServicesBuilder(clientLoggingServices, daemonParameters, requestContext, buildProgressListener)
-            .provider(new DaemonClientServices(stdin))
-            .build();
+                .provider(new DaemonClientServices(stdin))
+                .build();
     }
 
     /**
      * Creates the services for a {@link DaemonClient} that can be used to run a build in a single-use daemon.
      */
-    public ServiceRegistry createSingleUseDaemonClientServices(ServiceLookup clientLoggingServices, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream stdin) {
+    public ServiceRegistry createSingleUseDaemonClientServices(
+            ServiceLookup clientLoggingServices,
+            DaemonParameters daemonParameters,
+            DaemonRequestContext requestContext,
+            InputStream stdin) {
         return clientServicesBuilder(clientLoggingServices, daemonParameters, requestContext, Optional.empty())
-            .provider(new SingleUseDaemonClientServices(stdin))
-            .build();
+                .provider(new SingleUseDaemonClientServices(stdin))
+                .build();
     }
 
-    private ServiceRegistryBuilder clientServicesBuilder(ServiceLookup clientLoggingServices, DaemonParameters daemonParameters, DaemonRequestContext requestContext, Optional<InternalBuildProgressListener> buildProgressListener) {
+    private ServiceRegistryBuilder clientServicesBuilder(
+            ServiceLookup clientLoggingServices,
+            DaemonParameters daemonParameters,
+            DaemonRequestContext requestContext,
+            Optional<InternalBuildProgressListener> buildProgressListener) {
         ServiceRegistry loggingServices = createLoggingServices(clientLoggingServices);
 
         return ServiceRegistryBuilder.builder()
-            .displayName("daemon client services")
-            .parent(loggingServices)
-            .provider(new ServiceRegistrationProvider() {
-                @Provides
-                DaemonParameters createDaemonParameters() {
-                    return daemonParameters;
-                }
+                .displayName("daemon client services")
+                .parent(loggingServices)
+                .provider(new ServiceRegistrationProvider() {
+                    @Provides
+                    DaemonParameters createDaemonParameters() {
+                        return daemonParameters;
+                    }
 
-                @Provides
-                DaemonRequestContext createDaemonRequestContext() {
-                    return requestContext;
-                }
-            })
-            .provider(new DaemonRegistryServices(daemonParameters.getBaseDir()))
-            .provider(new DaemonClientToolchainServices(daemonParameters.getToolchainConfiguration(),  daemonParameters.getToolchainDownloadUrlProvider(), buildProgressListener));
+                    @Provides
+                    DaemonRequestContext createDaemonRequestContext() {
+                        return requestContext;
+                    }
+                })
+                .provider(new DaemonRegistryServices(daemonParameters.getBaseDir()))
+                .provider(new DaemonClientToolchainServices(
+                        daemonParameters.getToolchainConfiguration(),
+                        daemonParameters.getToolchainDownloadUrlProvider(),
+                        buildProgressListener));
     }
 
     private ServiceRegistry createLoggingServices(ServiceLookup clientLoggingServices) {
         // Need to use some specific logging services from the client-specific registry, rather than the global registry
-        OutputEventListener clientOutputEventListener = (OutputEventListener) clientLoggingServices.get(OutputEventListener.class);
-        GlobalUserInputReceiver clientGlobalUserInputReceiver = (GlobalUserInputReceiver) clientLoggingServices.get(GlobalUserInputReceiver.class);
+        OutputEventListener clientOutputEventListener =
+                (OutputEventListener) clientLoggingServices.get(OutputEventListener.class);
+        GlobalUserInputReceiver clientGlobalUserInputReceiver =
+                (GlobalUserInputReceiver) clientLoggingServices.get(GlobalUserInputReceiver.class);
 
         return ServiceRegistryBuilder.builder()
-            .displayName("logging services")
-            .parent(sharedServices)
-            .provider(new ServiceRegistrationProvider() {
-                @SuppressWarnings("unused")
-                void configure(ServiceRegistration registration) {
-                    registration.add(OutputEventListener.class, clientOutputEventListener);
-                    registration.add(GlobalUserInputReceiver.class, clientGlobalUserInputReceiver);
-                }
-            })
-            .build();
+                .displayName("logging services")
+                .parent(sharedServices)
+                .provider(new ServiceRegistrationProvider() {
+                    @SuppressWarnings("unused")
+                    void configure(ServiceRegistration registration) {
+                        registration.add(OutputEventListener.class, clientOutputEventListener);
+                        registration.add(GlobalUserInputReceiver.class, clientGlobalUserInputReceiver);
+                    }
+                })
+                .build();
     }
 
     /**
@@ -113,10 +130,10 @@ public class DaemonClientFactory {
         ServiceRegistry loggingServices = createLoggingServices(clientLoggingServices);
 
         return ServiceRegistryBuilder.builder()
-            .displayName("daemon client services")
-            .parent(loggingServices)
-            .provider(new DaemonRegistryServices(daemonBaseDir))
-            .provider(new DaemonClientMessageServices())
-            .build();
+                .displayName("daemon client services")
+                .parent(loggingServices)
+                .provider(new DaemonRegistryServices(daemonBaseDir))
+                .provider(new DaemonClientMessageServices())
+                .build();
     }
 }

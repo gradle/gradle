@@ -16,7 +16,6 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableMap;
-
 import java.io.File;
 import java.util.Set;
 

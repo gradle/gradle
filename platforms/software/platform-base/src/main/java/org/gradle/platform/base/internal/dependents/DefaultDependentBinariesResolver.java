@@ -16,23 +16,21 @@
 
 package org.gradle.platform.base.internal.dependents;
 
-import com.google.common.collect.LinkedListMultimap;
-import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.internal.Cast;
-import org.gradle.platform.base.internal.BinarySpecInternal;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.LinkedListMultimap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import org.gradle.internal.Cast;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 
 public class DefaultDependentBinariesResolver implements DependentBinariesResolver {
 
     private final Map<String, DependentBinariesResolutionStrategy> strategies = new LinkedHashMap<>();
-
 
     @Override
     public void register(DependentBinariesResolutionStrategy strategy) {
@@ -62,7 +60,8 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
         }
         boolean hasNotBuildables = false;
         boolean hasTestSuites = false;
-        LinkedListMultimap<LibraryBinaryIdentifier, DependentBinariesResolvedResult> index = LinkedListMultimap.create();
+        LinkedListMultimap<LibraryBinaryIdentifier, DependentBinariesResolvedResult> index =
+                LinkedListMultimap.create();
         for (DependentBinariesResolvedResult result : results) {
             if (!result.isBuildable()) {
                 hasNotBuildables = true;
@@ -75,9 +74,11 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
             }
         }
         List<DependentBinariesResolvedResult> children = new ArrayList<>();
-        for (Collection<DependentBinariesResolvedResult> childResults : index.asMap().values()) {
+        for (Collection<DependentBinariesResolvedResult> childResults :
+                index.asMap().values()) {
             children.add(mergeResults(childResults));
         }
-        return new DefaultDependentBinariesResolvedResult(first.getId(), first.getProjectScopedName(), !hasNotBuildables, hasTestSuites, children);
+        return new DefaultDependentBinariesResolvedResult(
+                first.getId(), first.getProjectScopedName(), !hasNotBuildables, hasTestSuites, children);
     }
 }

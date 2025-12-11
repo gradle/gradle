@@ -16,9 +16,8 @@
 
 package org.gradle.internal.component.resolution.failure.transform;
 
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-
 import java.util.Objects;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 /**
  * A lightweight replacement for {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant ResolvedVariant}

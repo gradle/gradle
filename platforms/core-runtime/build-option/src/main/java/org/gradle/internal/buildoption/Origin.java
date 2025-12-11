@@ -55,7 +55,8 @@ public abstract class Origin {
 
         @Override
         public void handleInvalidValue(String value, @Nullable String hint) {
-            String message = String.format("Value '%s' given for %s Gradle property is invalid%s", value, source, hintMessage(hint));
+            String message = String.format(
+                    "Value '%s' given for %s Gradle property is invalid%s", value, source, hintMessage(hint));
             throw new IllegalArgumentException(message);
         }
     }
@@ -67,7 +68,8 @@ public abstract class Origin {
 
         @Override
         public void handleInvalidValue(String value, @Nullable String hint) {
-            String message = String.format("Argument value '%s' given for --%s option is invalid%s", value, source, hintMessage(hint));
+            String message = String.format(
+                    "Argument value '%s' given for --%s option is invalid%s", value, source, hintMessage(hint));
             throw new CommandLineArgumentException(message);
         }
     }

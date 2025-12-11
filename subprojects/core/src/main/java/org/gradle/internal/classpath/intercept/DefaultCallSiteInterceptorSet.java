@@ -16,12 +16,11 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import org.gradle.internal.classpath.GroovyCallInterceptorsProvider;
 import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class DefaultCallSiteInterceptorSet implements CallSiteInterceptorSet {
 
@@ -33,8 +32,6 @@ public class DefaultCallSiteInterceptorSet implements CallSiteInterceptorSet {
 
     @Override
     public List<CallInterceptor> getCallInterceptors(BytecodeInterceptorFilter filter) {
-        return provider.getCallInterceptors().stream()
-            .filter(filter::matches)
-            .collect(Collectors.toList());
+        return provider.getCallInterceptors().stream().filter(filter::matches).collect(Collectors.toList());
     }
 }

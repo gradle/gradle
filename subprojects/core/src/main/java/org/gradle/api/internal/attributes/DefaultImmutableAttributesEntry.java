@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.attributes;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Default implementation of {@link ImmutableAttributesEntry} which caches the result of coercing
@@ -77,13 +76,15 @@ public final class DefaultImmutableAttributesEntry<T> implements ImmutableAttrib
         }
 
         // Attempt to coerce myself into the other attribute's type
-        // - I am desugared and the other attribute is strongly typed, usually the case if I am sourced from published metadata and the other from the local build
+        // - I am desugared and the other attribute is strongly typed, usually the case if I am sourced from published
+        // metadata and the other from the local build
         S converted = value.coerce(otherAttributeType);
         if (converted != null) {
             return converted;
         } else if (otherAttributeType.isAssignableFrom(String.class)) {
             // Attempt to desugar myself
-            // - I am strongly typed and the other is desugared, usually the case if I am sourced from the local build and the other is sourced from published metadata
+            // - I am strongly typed and the other is desugared, usually the case if I am sourced from the local build
+            // and the other is sourced from published metadata
             converted = Cast.uncheckedCast(desugar());
             if (converted != null) {
                 return converted;
@@ -93,11 +94,14 @@ public final class DefaultImmutableAttributesEntry<T> implements ImmutableAttrib
         if (foundType.equals(otherAttributeType.getName())) {
             foundType += " with a different ClassLoader";
         }
-        throw new IllegalArgumentException(String.format("Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.", attribute.getName(), otherAttributeType.getName(), foundType));
+        throw new IllegalArgumentException(String.format(
+                "Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.",
+                attribute.getName(), otherAttributeType.getName(), foundType));
     }
 
     private @Nullable String desugar() {
-        // We support desugaring for all non-primitive types supported in GradleModuleMetadataWriter.writeAttributes(), which are:
+        // We support desugaring for all non-primitive types supported in GradleModuleMetadataWriter.writeAttributes(),
+        // which are:
         // - Named
         // - Enum
         if (Named.class.isAssignableFrom(attribute.getType())) {
@@ -120,8 +124,7 @@ public final class DefaultImmutableAttributesEntry<T> implements ImmutableAttrib
         // The coercion cache is not part of the equals/hashCode contract, as it is transient
         // and not part of the entry's identity.
 
-        return attribute.equals(that.attribute) &&
-            value.equals(that.value);
+        return attribute.equals(that.attribute) && value.equals(that.value);
     }
 
     private static <T> int computeHashCode(Attribute<T> attribute, Isolatable<T> value) {
@@ -139,5 +142,4 @@ public final class DefaultImmutableAttributesEntry<T> implements ImmutableAttrib
     public String toString() {
         return attribute + "=" + getIsolatedValue();
     }
-
 }

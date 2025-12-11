@@ -35,7 +35,8 @@ public class ManagedObjectFactory {
     private final InstanceGenerator instantiator;
     private final PropertyRoleAnnotationHandler roleHandler;
 
-    public ManagedObjectFactory(ServiceLookup serviceLookup, InstanceGenerator instantiator, PropertyRoleAnnotationHandler roleHandler) {
+    public ManagedObjectFactory(
+            ServiceLookup serviceLookup, InstanceGenerator instantiator, PropertyRoleAnnotationHandler roleHandler) {
         this.serviceLookup = serviceLookup;
         this.instantiator = instantiator;
         this.roleHandler = roleHandler;
@@ -60,7 +61,10 @@ public class ManagedObjectFactory {
         if (providedType != null) {
             return attachOwner(providedType, owner, propertyName);
         }
-        return attachOwner(instantiator.newInstanceWithDisplayName(type, displayNameFor(owner, propertyName)), owner, propertyName);
+        return attachOwner(
+                instantiator.newInstanceWithDisplayName(type, displayNameFor(owner, propertyName)),
+                owner,
+                propertyName);
     }
 
     // Called from generated code
@@ -73,7 +77,8 @@ public class ManagedObjectFactory {
     }
 
     // Called from generated code
-    public Object newInstance(ModelObject owner, String propertyName, Class<?> type, Class<?> keyType, Class<?> valueType) {
+    public Object newInstance(
+            ModelObject owner, String propertyName, Class<?> type, Class<?> keyType, Class<?> valueType) {
         Object providedType = getManagedObjectRegistry().newInstance(type, keyType, valueType);
         if (providedType != null) {
             return attachOwner(providedType, owner, propertyName);
@@ -101,7 +106,8 @@ public class ManagedObjectFactory {
     }
 
     private ManagedObjectRegistry getManagedObjectRegistry() {
-        ManagedObjectRegistry managedObjectRegistry = (ManagedObjectRegistry) serviceLookup.find(ManagedObjectRegistry.class);
+        ManagedObjectRegistry managedObjectRegistry =
+                (ManagedObjectRegistry) serviceLookup.find(ManagedObjectRegistry.class);
         if (managedObjectRegistry == null) {
             throw new IllegalStateException("No managed object registry found. ServiceLookup: " + serviceLookup);
         }

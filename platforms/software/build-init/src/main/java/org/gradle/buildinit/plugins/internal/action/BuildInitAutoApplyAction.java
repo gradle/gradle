@@ -25,5 +25,4 @@ public class BuildInitAutoApplyAction implements ProjectConfigureAction {
     public void execute(final ProjectInternal project) {
         project.getPluginManager().apply("org.gradle.build-init");
     }
-
 }

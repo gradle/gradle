@@ -17,6 +17,7 @@
 package org.gradle.api.testing.toolchains.internal;
 
 import com.google.common.collect.ImmutableSet;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -24,18 +25,17 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.Test;
 
-import javax.inject.Inject;
-
 /**
  * A {@link JvmTestToolchain} for JUnit 4.
  *
  * @since 8.5
  */
-abstract public class JUnit4TestToolchain implements JvmTestToolchain<JUnit4ToolchainParameters> {
+public abstract class JUnit4TestToolchain implements JvmTestToolchain<JUnit4ToolchainParameters> {
     /**
      * The default version of JUnit 4 to use for compiling and executing tests.
      */
     public static final String DEFAULT_VERSION = "4.13.2";
+
     private static final String GROUP_NAME = "junit:junit";
 
     @Inject
@@ -46,12 +46,14 @@ abstract public class JUnit4TestToolchain implements JvmTestToolchain<JUnit4Tool
 
     @Override
     public TestFramework createTestFramework(Test task) {
-        return getObjectFactory().newInstance(JUnitTestFramework.class, task.getFilter(), task.getTemporaryDirFactory(), task.getDryRun());
+        return getObjectFactory()
+                .newInstance(
+                        JUnitTestFramework.class, task.getFilter(), task.getTemporaryDirFactory(), task.getDryRun());
     }
 
     @Override
     public Iterable<Dependency> getImplementationDependencies() {
-        return ImmutableSet.of(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getVersion().get()));
+        return ImmutableSet.of(getDependencyFactory()
+                .create(GROUP_NAME + ":" + getParameters().getVersion().get()));
     }
-
 }

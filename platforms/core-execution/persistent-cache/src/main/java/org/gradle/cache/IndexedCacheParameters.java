@@ -27,19 +27,30 @@ public class IndexedCacheParameters<K, V> {
     private final Serializer<V> valueSerializer;
     private final CacheDecorator cacheDecorator;
 
-    public static <K, V> IndexedCacheParameters<K, V> of(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+    public static <K, V> IndexedCacheParameters<K, V> of(
+            String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         return new IndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer, null);
     }
 
-    public static <K, V> IndexedCacheParameters<K, V> of(String cacheName, Class<K> keyType, Serializer<V> valueSerializer) {
-        return new IndexedCacheParameters<K, V>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), valueSerializer, null);
+    public static <K, V> IndexedCacheParameters<K, V> of(
+            String cacheName, Class<K> keyType, Serializer<V> valueSerializer) {
+        return new IndexedCacheParameters<K, V>(
+                cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), valueSerializer, null);
     }
 
     public static <K, V> IndexedCacheParameters<K, V> of(String cacheName, Class<K> keyType, Class<V> valueType) {
-        return new IndexedCacheParameters<K, V>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), SERIALIZER_FACTORY.getSerializerFor(valueType), null);
+        return new IndexedCacheParameters<K, V>(
+                cacheName,
+                SERIALIZER_FACTORY.getSerializerFor(keyType),
+                SERIALIZER_FACTORY.getSerializerFor(valueType),
+                null);
     }
 
-    private IndexedCacheParameters(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, @Nullable CacheDecorator cacheDecorator) {
+    private IndexedCacheParameters(
+            String cacheName,
+            Serializer<K> keySerializer,
+            Serializer<V> valueSerializer,
+            @Nullable CacheDecorator cacheDecorator) {
         this.cacheName = cacheName;
         this.keySerializer = keySerializer;
         this.valueSerializer = valueSerializer;

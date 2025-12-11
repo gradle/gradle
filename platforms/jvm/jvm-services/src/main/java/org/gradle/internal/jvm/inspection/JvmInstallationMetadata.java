@@ -16,32 +16,39 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.jvm.JavaVersionParser;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.serialization.Cached;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
+import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.jvm.JavaVersionParser;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.serialization.Cached;
+import org.jspecify.annotations.Nullable;
 
 public interface JvmInstallationMetadata {
     static DefaultJvmInstallationMetadata from(
-        File javaHome,
-        String javaVersion,
-        String javaVendor,
-        String runtimeName,
-        String runtimeVersion,
-        String jvmName,
-        String jvmVersion,
-        String jvmVendor,
-        String architecture
-    ) {
-        return new DefaultJvmInstallationMetadata(javaHome, javaVersion, javaVendor, runtimeName, runtimeVersion, jvmName, jvmVersion, jvmVendor, architecture);
+            File javaHome,
+            String javaVersion,
+            String javaVendor,
+            String runtimeName,
+            String runtimeVersion,
+            String jvmName,
+            String jvmVersion,
+            String jvmVendor,
+            String architecture) {
+        return new DefaultJvmInstallationMetadata(
+                javaHome,
+                javaVersion,
+                javaVendor,
+                runtimeName,
+                runtimeVersion,
+                jvmName,
+                jvmVersion,
+                jvmVendor,
+                architecture);
     }
 
     static JvmInstallationMetadata failure(File javaHome, String errorMessage) {
@@ -133,16 +140,15 @@ public interface JvmInstallationMetadata {
         private final Cached<Set<JavaInstallationCapability>> capabilities = Cached.of(this::gatherCapabilities);
 
         private DefaultJvmInstallationMetadata(
-            File javaHome,
-            String javaVersion,
-            String javaVendor,
-            String runtimeName,
-            String runtimeVersion,
-            String jvmName,
-            String jvmVersion,
-            String jvmVendor,
-            String architecture
-        ) {
+                File javaHome,
+                String javaVersion,
+                String javaVendor,
+                String runtimeName,
+                String runtimeVersion,
+                String jvmName,
+                String jvmVersion,
+                String jvmVendor,
+                String architecture) {
             this.javaHome = javaHome.toPath();
             this.languageVersion = JavaVersion.toVersion(javaVersion);
             this.javaMajorVersion = JavaVersionParser.parseMajorVersion(javaVersion);
@@ -214,7 +220,8 @@ public interface JvmInstallationMetadata {
         @Override
         public String getDisplayName() {
             final String vendor = determineVendorName();
-            return vendor + " " + determineInstallationType() + " " + getJavaMajorVersion() + " (" + getRuntimeVersion() + ")";
+            return vendor + " " + determineInstallationType() + " " + getJavaMajorVersion() + " (" + getRuntimeVersion()
+                    + ")";
         }
 
         private String determineVendorName() {
@@ -262,7 +269,9 @@ public interface JvmInstallationMetadata {
         }
 
         private File getToolByExecutable(String name) {
-            return new File(new File(javaHome.toFile(), "bin"), OperatingSystem.current().getExecutableName(name));
+            return new File(
+                    new File(javaHome.toFile(), "bin"),
+                    OperatingSystem.current().getExecutableName(name));
         }
 
         @Override
@@ -282,17 +291,16 @@ public interface JvmInstallationMetadata {
 
         @Override
         public String toString() {
-            return "DefaultJvmInstallationMetadata{" +
-                    "languageVersion=" + languageVersion +
-                    ", javaVersion='" + javaVersion + '\'' +
-                    ", javaVendor='" + javaVendor + '\'' +
-                    ", runtimeName='" + runtimeName + '\'' +
-                    ", runtimeVersion='" + runtimeVersion + '\'' +
-                    ", jvmName='" + jvmName + '\'' +
-                    ", jvmVersion='" + jvmVersion + '\'' +
-                    ", jvmVendor='" + jvmVendor + '\'' +
-                    ", architecture='" + architecture + '\'' +
-                    '}';
+            return "DefaultJvmInstallationMetadata{" + "languageVersion="
+                    + languageVersion + ", javaVersion='"
+                    + javaVersion + '\'' + ", javaVendor='"
+                    + javaVendor + '\'' + ", runtimeName='"
+                    + runtimeName + '\'' + ", runtimeVersion='"
+                    + runtimeVersion + '\'' + ", jvmName='"
+                    + jvmName + '\'' + ", jvmVersion='"
+                    + jvmVersion + '\'' + ", jvmVendor='"
+                    + jvmVendor + '\'' + ", architecture='"
+                    + architecture + '\'' + '}';
         }
 
         @Override
@@ -304,12 +312,29 @@ public interface JvmInstallationMetadata {
                 return false;
             }
             DefaultJvmInstallationMetadata that = (DefaultJvmInstallationMetadata) o;
-            return Objects.equals(javaHome, that.javaHome) && Objects.equals(javaVersion, that.javaVersion) && Objects.equals(javaVendor, that.javaVendor) && Objects.equals(runtimeName, that.runtimeName) && Objects.equals(runtimeVersion, that.runtimeVersion) && Objects.equals(jvmName, that.jvmName) && Objects.equals(jvmVersion, that.jvmVersion) && Objects.equals(jvmVendor, that.jvmVendor) && Objects.equals(architecture, that.architecture);
+            return Objects.equals(javaHome, that.javaHome)
+                    && Objects.equals(javaVersion, that.javaVersion)
+                    && Objects.equals(javaVendor, that.javaVendor)
+                    && Objects.equals(runtimeName, that.runtimeName)
+                    && Objects.equals(runtimeVersion, that.runtimeVersion)
+                    && Objects.equals(jvmName, that.jvmName)
+                    && Objects.equals(jvmVersion, that.jvmVersion)
+                    && Objects.equals(jvmVendor, that.jvmVendor)
+                    && Objects.equals(architecture, that.architecture);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(javaHome, javaVersion, javaVendor, runtimeName, runtimeVersion, jvmName, jvmVersion, jvmVendor, architecture);
+            return Objects.hash(
+                    javaHome,
+                    javaVersion,
+                    javaVendor,
+                    runtimeName,
+                    runtimeVersion,
+                    jvmName,
+                    jvmVersion,
+                    jvmVendor,
+                    architecture);
         }
     }
 
@@ -317,6 +342,7 @@ public interface JvmInstallationMetadata {
 
         private final File javaHome;
         private final String errorMessage;
+
         @Nullable
         private final Exception cause;
 
@@ -392,7 +418,8 @@ public interface JvmInstallationMetadata {
         }
 
         private UnsupportedOperationException unsupportedOperation() {
-            return new UnsupportedOperationException("Installation is not valid. Original error message: " + getErrorMessage());
+            return new UnsupportedOperationException(
+                    "Installation is not valid. Original error message: " + getErrorMessage());
         }
 
         @Override
@@ -410,5 +437,4 @@ public interface JvmInstallationMetadata {
             return false;
         }
     }
-
 }

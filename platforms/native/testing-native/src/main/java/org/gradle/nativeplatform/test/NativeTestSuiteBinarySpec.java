@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.test;
 
+import java.io.File;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.internal.HasInternalProtocol;
@@ -24,14 +25,13 @@ import org.gradle.nativeplatform.NativeInstallationSpec;
 import org.gradle.testing.base.TestSuiteBinarySpec;
 import org.gradle.testing.base.TestSuiteTaskCollection;
 
-import java.io.File;
-
 /**
  * An executable which runs a suite of tests.
  *
  * @since 4.2
  */
-@Incubating @HasInternalProtocol
+@Incubating
+@HasInternalProtocol
 public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBinarySpec {
 
     /**
@@ -47,7 +47,6 @@ public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBi
          * The install task.
          */
         Task getInstall();
-
     }
 
     /**

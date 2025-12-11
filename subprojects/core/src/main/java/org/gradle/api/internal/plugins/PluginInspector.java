@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.plugins;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Plugin;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 @ServiceScope(Scope.Global.class)
 @ThreadSafe
@@ -39,7 +38,8 @@ public class PluginInspector {
         boolean hasRules = this.modelRuleSourceDetector.hasRules(type);
 
         if (implementsInterface) {
-            @SuppressWarnings("unchecked") Class<? extends Plugin<?>> cast = (Class<? extends Plugin<?>>) type;
+            @SuppressWarnings("unchecked")
+            Class<? extends Plugin<?>> cast = (Class<? extends Plugin<?>>) type;
             return Cast.uncheckedCast(toImperative(cast, hasRules));
         } else if (hasRules) {
             return new PotentialPureRuleSourceClassPlugin<T>(type);
@@ -112,7 +112,6 @@ public class PluginInspector {
         public Type getType() {
             return Type.HYBRID_IMPERATIVE_AND_RULES_CLASS;
         }
-
     }
 
     private static class PotentialPureRuleSourceClassPlugin<T> implements PotentialPlugin<T> {
@@ -171,6 +170,5 @@ public class PluginInspector {
         public Type getType() {
             return Type.UNKNOWN;
         }
-
     }
 }

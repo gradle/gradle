@@ -16,17 +16,16 @@
 
 package org.gradle.vcs.internal;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.vcs.SourceControl;
 import org.gradle.vcs.VcsMappings;
 import org.gradle.vcs.VersionControlRepository;
 import org.gradle.vcs.git.GitVersionControlSpec;
-
-import javax.inject.Inject;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DefaultSourceControl implements SourceControl {
     private final FileResolver fileResolver;
@@ -35,7 +34,8 @@ public class DefaultSourceControl implements SourceControl {
     private final Map<URI, DefaultVersionControlRepository> repos = new HashMap<URI, DefaultVersionControlRepository>();
 
     @Inject
-    public DefaultSourceControl(FileResolver fileResolver, VcsMappings vcsMappings, VersionControlSpecFactory specFactory) {
+    public DefaultSourceControl(
+            FileResolver fileResolver, VcsMappings vcsMappings, VersionControlSpecFactory specFactory) {
         this.fileResolver = fileResolver;
         this.vcsMappings = vcsMappings;
         this.specFactory = specFactory;

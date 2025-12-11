@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import java.util.Arrays;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ResultHandler;
@@ -26,13 +27,15 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.util.Arrays;
-
-public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperation<DefaultPhasedBuildActionExecuter> implements BuildActionExecuter<Void> {
+public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperation<DefaultPhasedBuildActionExecuter>
+        implements BuildActionExecuter<Void> {
     private final PhasedBuildAction phasedBuildAction;
     private final AsyncConsumerActionExecutor connection;
 
-    DefaultPhasedBuildActionExecuter(PhasedBuildAction phasedBuildAction, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
+    DefaultPhasedBuildActionExecuter(
+            PhasedBuildAction phasedBuildAction,
+            AsyncConsumerActionExecutor connection,
+            ConnectionParameters parameters) {
         super(parameters);
         operationParamsBuilder.setEntryPoint("PhasedBuildActionExecuter API");
         this.phasedBuildAction = phasedBuildAction;
@@ -72,24 +75,29 @@ public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperati
     @Override
     public void run(ResultHandler<? super Void> handler) throws IllegalStateException {
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
-        connection.run(new ConsumerAction<Void>() {
-            @Override
-            public ConsumerOperationParameters getParameters() {
-                return operationParameters;
-            }
+        connection.run(
+                new ConsumerAction<Void>() {
+                    @Override
+                    public ConsumerOperationParameters getParameters() {
+                        return operationParameters;
+                    }
 
-            @Override
-            public Void run(ConsumerConnection connection) {
-                connection.run(phasedBuildAction, operationParameters);
-                return null;
-            }
-        }, new ResultHandlerAdapter<Void>(handler, createExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
-            @Override
-            public String getConnectionFailureMessage(Throwable throwable) {
-                return String.format("Could not run phased build action using %s.", connection.getDisplayName());
-            }
-        })));
+                    @Override
+                    public Void run(ConsumerConnection connection) {
+                        connection.run(phasedBuildAction, operationParameters);
+                        return null;
+                    }
+                },
+                new ResultHandlerAdapter<Void>(
+                        handler,
+                        createExceptionTransformer(
+                                new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
+                                    @Override
+                                    public String getConnectionFailureMessage(Throwable throwable) {
+                                        return String.format(
+                                                "Could not run phased build action using %s.",
+                                                connection.getDisplayName());
+                                    }
+                                })));
     }
-
-
 }

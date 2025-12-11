@@ -33,12 +33,11 @@ public class ArtifactSelectionSpec {
     private final ResolutionStrategy.SortOrder sortOrder;
 
     public ArtifactSelectionSpec(
-        ImmutableAttributes requestAttributes,
-        Spec<? super ComponentIdentifier> componentFilter,
-        boolean selectFromAllVariants,
-        boolean allowNoMatchingVariants,
-        ResolutionStrategy.SortOrder sortOrder
-    ) {
+            ImmutableAttributes requestAttributes,
+            Spec<? super ComponentIdentifier> componentFilter,
+            boolean selectFromAllVariants,
+            boolean allowNoMatchingVariants,
+            ResolutionStrategy.SortOrder sortOrder) {
         this.requestAttributes = requestAttributes;
         this.componentFilter = componentFilter;
         this.selectFromAllVariants = selectFromAllVariants;

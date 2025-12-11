@@ -16,6 +16,11 @@
 
 package org.gradle.internal.resource;
 
+import java.io.File;
+import java.io.Reader;
+import java.io.StringReader;
+import java.net.URI;
+import java.nio.charset.Charset;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -23,12 +28,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.PrimitiveHasher;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.io.Reader;
-import java.io.StringReader;
-import java.net.URI;
-import java.nio.charset.Charset;
 
 public class StringTextResource implements TextResource {
     private static final HashCode SIGNATURE = Hashing.signature(StringTextResource.class);

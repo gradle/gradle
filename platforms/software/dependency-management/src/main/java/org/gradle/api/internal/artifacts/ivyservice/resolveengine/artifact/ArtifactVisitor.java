@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 
 /**
  * A visitor over the contents of a {@link ResolvedArtifactSet}. A {@link ResolvedArtifactSet} may contain zero or more sets of files, each set containing zero or more artifacts.
@@ -46,7 +46,12 @@ public interface ArtifactVisitor {
      * @param capabilities The capabilities of the artifact.
      * @param artifact The artifact.
      */
-    void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact);
+    void visitArtifact(
+            DisplayName artifactSetName,
+            VariantIdentifier sourceVariantId,
+            ImmutableAttributes attributes,
+            ImmutableCapabilities capabilities,
+            ResolvableArtifact artifact);
 
     /**
      * Should the file for each artifact be made available prior to calling {@link #visitArtifact(DisplayName, VariantIdentifier, ImmutableAttributes, ImmutableCapabilities, ResolvableArtifact)}?
@@ -63,6 +68,5 @@ public interface ArtifactVisitor {
     /**
      * Called after a set of artifacts has been visited.
      */
-    default void endVisitCollection(FileCollectionInternal.Source source) {
-    }
+    default void endVisitCollection(FileCollectionInternal.Source source) {}
 }

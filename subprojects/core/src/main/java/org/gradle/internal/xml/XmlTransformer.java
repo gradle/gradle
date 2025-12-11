@@ -21,26 +21,6 @@ import groovy.util.IndentPrinter;
 import groovy.util.Node;
 import groovy.xml.XmlNodePrinter;
 import groovy.xml.XmlParser;
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.Action;
-import org.gradle.api.Transformer;
-import org.gradle.api.XmlProvider;
-import org.gradle.api.internal.DomNode;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.SystemProperties;
-import org.gradle.internal.UncheckedException;
-import org.gradle.util.internal.ConfigureUtil;
-import org.gradle.util.internal.GUtil;
-import org.gradle.util.internal.TextUtil;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -55,6 +35,25 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
+import org.gradle.api.XmlProvider;
+import org.gradle.api.internal.DomNode;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.SystemProperties;
+import org.gradle.internal.UncheckedException;
+import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.TextUtil;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
 
 public class XmlTransformer implements Transformer<String, String> {
     private final List<Action<? super XmlProvider>> actions = new ArrayList<>();
@@ -210,7 +209,7 @@ public class XmlTransformer implements Transformer<String, String> {
         }
 
         public void writeTo(OutputStream stream) {
-            try(Writer writer = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
+            try (Writer writer = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
                 doWriteTo(writer, "UTF-8");
                 writer.flush();
             } catch (IOException e) {
@@ -247,7 +246,9 @@ public class XmlTransformer implements Transformer<String, String> {
             if (element == null) {
                 Document document;
                 try {
-                    document = XmlFactories.newDocumentBuilderFactory().newDocumentBuilder().parse(new InputSource(new StringReader(toString())));
+                    document = XmlFactories.newDocumentBuilderFactory()
+                            .newDocumentBuilder()
+                            .parse(new InputSource(new StringReader(toString())));
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
@@ -320,7 +321,8 @@ public class XmlTransformer implements Transformer<String, String> {
                 }
                 try {
                     // some impls support this but not factory.setAttribute("indent-number")
-                    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(indentAmount));
+                    transformer.setOutputProperty(
+                            "{http://xml.apache.org/xslt}indent-amount", String.valueOf(indentAmount));
                 } catch (IllegalArgumentException ignored) {
                     /* unsupported by this transformer */
                 }
@@ -343,7 +345,8 @@ public class XmlTransformer implements Transformer<String, String> {
 
             for (int i = 0; i < children.getLength(); i++) {
                 org.w3c.dom.Node child = children.item(i);
-                if (child.getNodeType() == org.w3c.dom.Node.TEXT_NODE && child.getNodeValue().trim().length() == 0) {
+                if (child.getNodeType() == org.w3c.dom.Node.TEXT_NODE
+                        && child.getNodeValue().trim().length() == 0) {
                     node.removeChild(child);
                     i--;
                 } else {
@@ -366,6 +369,7 @@ public class XmlTransformer implements Transformer<String, String> {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
+
         private boolean hasXmlDeclaration(String xml) {
             return xml.startsWith("<?xml"); // XML declarations must be located at first position of first line
         }

@@ -46,5 +46,4 @@ public interface ClassCacheFactory {
      * of a map where possible, and use a map only when generating other classes based on the key.
      */
     <V> Cache<Class<?>, V> newClassMap();
-
 }

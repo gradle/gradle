@@ -40,10 +40,13 @@ class DefaultBuildSessionContext implements BuildSessionContext {
             throw new IllegalStateException("Cannot run more than one action for a session.");
         }
         try {
-            BuildSessionLifecycleListener sessionLifecycleListener = sessionScopeServices.get(ListenerManager.class).getBroadcaster(BuildSessionLifecycleListener.class);
+            BuildSessionLifecycleListener sessionLifecycleListener =
+                    sessionScopeServices.get(ListenerManager.class).getBroadcaster(BuildSessionLifecycleListener.class);
             sessionLifecycleListener.afterStart();
             try {
-                return sessionScopeServices.get(BuildSessionActionExecutor.class).execute(action, this);
+                return sessionScopeServices
+                        .get(BuildSessionActionExecutor.class)
+                        .execute(action, this);
             } finally {
                 sessionLifecycleListener.beforeComplete();
             }

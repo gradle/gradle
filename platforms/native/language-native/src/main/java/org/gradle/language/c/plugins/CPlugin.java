@@ -37,5 +37,4 @@ public abstract class CPlugin implements Plugin<Project> {
         project.getPluginManager().apply(NativeComponentModelPlugin.class);
         project.getPluginManager().apply(CLangPlugin.class);
     }
-
 }

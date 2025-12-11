@@ -16,23 +16,22 @@
 
 package org.gradle.internal.operations.trace;
 
+import static com.google.common.collect.Lists.transform;
+import static org.gradle.internal.Cast.uncheckedCast;
+
 import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.collect.Lists.transform;
-import static org.gradle.internal.Cast.uncheckedCast;
+import org.jspecify.annotations.Nullable;
 
 public final class BuildOperationRecord {
 
     public static final Ordering<BuildOperationRecord> ORDERING = Ordering.natural()
-        .onResultOf((Function<BuildOperationRecord, Comparable<Long>>) input -> input.startTime)
-        .compound(Ordering.natural().onResultOf(input -> input.id));
+            .onResultOf((Function<BuildOperationRecord, Comparable<Long>>) input -> input.startTime)
+            .compound(Ordering.natural().onResultOf(input -> input.id));
 
     public final Long id;
     public final Long parentId;
@@ -49,19 +48,18 @@ public final class BuildOperationRecord {
     public final List<BuildOperationRecord> children;
 
     BuildOperationRecord(
-        Long id,
-        @Nullable Long parentId,
-        String displayName,
-        long startTime,
-        long endTime,
-        @Nullable Map<String, ?> details,
-        @Nullable String detailsClassName,
-        @Nullable Map<String, ?> result,
-        @Nullable String resultClassName,
-        @Nullable String failure,
-        List<SerializedOperationProgress> progress,
-        List<BuildOperationRecord> children
-    ) {
+            Long id,
+            @Nullable Long parentId,
+            String displayName,
+            long startTime,
+            long endTime,
+            @Nullable Map<String, ?> details,
+            @Nullable String detailsClassName,
+            @Nullable Map<String, ?> result,
+            @Nullable String resultClassName,
+            @Nullable String failure,
+            List<SerializedOperationProgress> progress,
+            List<BuildOperationRecord> children) {
         this.id = id;
         this.parentId = parentId;
         this.displayName = displayName;
@@ -77,15 +75,13 @@ public final class BuildOperationRecord {
         this.progress = convertProgressEvents(progress);
     }
 
-    private static List<BuildOperationRecord.Progress> convertProgressEvents(List<SerializedOperationProgress> toConvert) {
+    private static List<BuildOperationRecord.Progress> convertProgressEvents(
+            List<SerializedOperationProgress> toConvert) {
         List<BuildOperationRecord.Progress> progresses = new ArrayList<>();
         for (SerializedOperationProgress progress : toConvert) {
             Map<String, ?> progressDetailsMap = uncheckedCast(progress.details);
-            progresses.add(new BuildOperationRecord.Progress(
-                progress.time,
-                progressDetailsMap,
-                progress.detailsClassName
-            ));
+            progresses.add(
+                    new BuildOperationRecord.Progress(progress.time, progressDetailsMap, progress.detailsClassName));
         }
         return progresses;
     }
@@ -165,11 +161,7 @@ public final class BuildOperationRecord {
         public final Map<String, ?> details;
         public final String detailsClassName;
 
-        public Progress(
-            long time,
-            @Nullable Map<String, ?> details,
-            @Nullable String detailsClassName
-        ) {
+        public Progress(long time, @Nullable Map<String, ?> details, @Nullable String detailsClassName) {
             this.time = time;
             this.details = details == null ? null : new StrictMap<String, Object>(details);
             this.detailsClassName = detailsClassName;

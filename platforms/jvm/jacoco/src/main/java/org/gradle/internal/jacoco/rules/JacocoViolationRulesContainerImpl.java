@@ -16,14 +16,13 @@
 
 package org.gradle.internal.jacoco.rules;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class JacocoViolationRulesContainerImpl implements JacocoViolationRulesContainer {
 

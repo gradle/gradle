@@ -25,5 +25,4 @@ package org.gradle.tooling.model.eclipse;
  *
  * @since 5.4
  */
-public interface RunEclipseAutoBuildTasks {
-}
+public interface RunEclipseAutoBuildTasks {}

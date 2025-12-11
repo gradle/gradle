@@ -16,12 +16,11 @@
 
 package org.gradle.execution.plan;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Responsible for running the work of a build tree, packaged as zero or more {@link ExecutionPlan} instances.

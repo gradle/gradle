@@ -16,9 +16,8 @@
 
 package org.gradle.util.internal;
 
-import org.gradle.internal.UncheckedException;
-
 import java.io.File;
+import org.gradle.internal.UncheckedException;
 
 public class RelativePathUtil {
     /**
@@ -30,7 +29,8 @@ public class RelativePathUtil {
      */
     public static String relativePath(File from, File to) {
         try {
-            return TextUtil.normaliseFileSeparators(from.toPath().relativize(to.toPath()).toString());
+            return TextUtil.normaliseFileSeparators(
+                    from.toPath().relativize(to.toPath()).toString());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

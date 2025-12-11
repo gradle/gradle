@@ -15,13 +15,12 @@
  */
 package org.gradle.api.initialization.dsl;
 
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
-
-import java.util.List;
 
 /**
  * A version catalog builder. Dependencies defined via this model
@@ -186,5 +185,4 @@ public interface VersionCatalogBuilder extends Named {
          */
         void versionRef(String versionRef);
     }
-
 }

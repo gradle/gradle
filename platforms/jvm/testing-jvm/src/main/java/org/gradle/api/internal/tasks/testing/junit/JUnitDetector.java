@@ -27,7 +27,9 @@ public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassD
      * subproject to prevent split packages in Groovy 4.  See <a href="https://issues.apache.org/jira/browse/GROOVY-8647">GROOVY-8647</a>
      */
     private static final String GROOVY_TEST_CASE = "groovy/test/GroovyTestCase";
-    private static final ImmutableSet<String> KNOWN_TEST_CASE_CLASS_NAMES = ImmutableSet.of(TEST_CASE, GROOVY_LEGACY_TEST_CASE, GROOVY_TEST_CASE);
+
+    private static final ImmutableSet<String> KNOWN_TEST_CASE_CLASS_NAMES =
+            ImmutableSet.of(TEST_CASE, GROOVY_LEGACY_TEST_CASE, GROOVY_TEST_CASE);
 
     public JUnitDetector(ClassFileExtractionManager classFileExtractionManager) {
         super(classFileExtractionManager);

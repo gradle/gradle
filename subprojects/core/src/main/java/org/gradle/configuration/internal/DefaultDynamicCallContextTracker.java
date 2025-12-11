@@ -16,12 +16,11 @@
 
 package org.gradle.configuration.internal;
 
-import org.jspecify.annotations.NonNull;
-
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
+import org.jspecify.annotations.NonNull;
 
 public class DefaultDynamicCallContextTracker implements DynamicCallContextTracker {
     private static class State {
@@ -44,8 +43,7 @@ public class DefaultDynamicCallContextTracker implements DynamicCallContextTrack
         Object top = entryPointsStack.peek();
         if (top != entryPoint) {
             throw new IllegalStateException(
-                "Mismatch in leaving dynamic call: leaving " + entryPoint + ", while " + top + " should be left."
-            );
+                    "Mismatch in leaving dynamic call: leaving " + entryPoint + ", while " + top + " should be left.");
         }
         entryPointsStack.pop();
         leaveListeners.forEach(listener -> listener.accept(entryPoint));

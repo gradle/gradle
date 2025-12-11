@@ -15,11 +15,10 @@
  */
 package org.gradle.internal.component.model;
 
-import org.gradle.internal.Cast;
-
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.gradle.internal.Cast;
 
 public interface ModuleSources {
     <T extends ModuleSource> Optional<T> getSource(Class<T> sourceType);

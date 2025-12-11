@@ -16,11 +16,10 @@
 
 package org.gradle.api.tasks.diagnostics.internal.text;
 
-import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.reporting.ReportRenderer;
-
 import java.io.File;
 import java.util.Collection;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.reporting.ReportRenderer;
 
 public interface TextReportBuilder {
     /**
@@ -30,7 +29,11 @@ public interface TextReportBuilder {
 
     void subheading(String heading);
 
-    <T> void collection(String title, Collection<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural);
+    <T> void collection(
+            String title,
+            Collection<? extends T> items,
+            ReportRenderer<T, TextReportBuilder> renderer,
+            String elementsPlural);
 
     <T> void collection(Iterable<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer);
 

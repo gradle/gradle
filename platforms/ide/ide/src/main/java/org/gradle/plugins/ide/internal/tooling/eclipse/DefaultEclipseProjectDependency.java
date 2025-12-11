@@ -21,7 +21,11 @@ import java.util.List;
 public class DefaultEclipseProjectDependency extends DefaultEclipseDependency implements Serializable {
     private final String path;
 
-    public DefaultEclipseProjectDependency(String path, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
+    public DefaultEclipseProjectDependency(
+            String path,
+            boolean exported,
+            List<DefaultClasspathAttribute> attributes,
+            List<DefaultAccessRule> accessRules) {
         super(exported, attributes, accessRules);
         this.path = path;
     }

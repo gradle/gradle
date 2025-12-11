@@ -18,6 +18,4 @@ package org.gradle.api.internal.file.archive;
 
 import java.io.Closeable;
 
-public interface ZipInput extends Iterable<ZipEntry>, Closeable {
-
-}
+public interface ZipInput extends Iterable<ZipEntry>, Closeable {}

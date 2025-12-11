@@ -16,16 +16,16 @@
 
 package org.gradle.internal.resolve.result;
 
-import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Set;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The result of attempting to resolve the list of versions for a particular module.
  */
-public interface BuildableModuleVersionListingResolveResult extends ResourceAwareResolveResult, ErroringResolveResult<ModuleVersionResolveException> {
+public interface BuildableModuleVersionListingResolveResult
+        extends ResourceAwareResolveResult, ErroringResolveResult<ModuleVersionResolveException> {
 
     enum State {
         /**

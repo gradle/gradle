@@ -16,6 +16,11 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Bundling;
@@ -27,12 +32,6 @@ import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Describes JVM ecosystem related attributes.
@@ -46,15 +45,14 @@ import java.util.stream.Collectors;
     private static final Attribute<String> STATUS_ATTRIBUTE = Attribute.of("org.gradle.status", String.class);
 
     private final ImmutableSet<Attribute<?>> describableAttributes = ImmutableSet.of(
-        Usage.USAGE_ATTRIBUTE,
-        Category.CATEGORY_ATTRIBUTE,
-        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-        Bundling.BUNDLING_ATTRIBUTE,
-        TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
-        TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE,
-        DocsType.DOCS_TYPE_ATTRIBUTE,
-        STATUS_ATTRIBUTE
-    );
+            Usage.USAGE_ATTRIBUTE,
+            Category.CATEGORY_ATTRIBUTE,
+            LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+            Bundling.BUNDLING_ATTRIBUTE,
+            TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+            TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE,
+            DocsType.DOCS_TYPE_ATTRIBUTE,
+            STATUS_ATTRIBUTE);
 
     /**
      * Checks if the given attribute is describable by this describer.
@@ -63,7 +61,8 @@ import java.util.stream.Collectors;
      * @return {@code true} if the given attribute is describable by this describer; {@code false} otherwise
      */
     public boolean isDescribable(Attribute<?> attribute) {
-        return describableAttributes.stream().anyMatch(describableAttribute -> haveSameName(attribute, describableAttribute));
+        return describableAttributes.stream()
+                .anyMatch(describableAttribute -> haveSameName(attribute, describableAttribute));
     }
 
     @Override
@@ -78,7 +77,8 @@ import java.util.stream.Collectors;
         Object usage = extractAttributeValue(attributes, Usage.USAGE_ATTRIBUTE);
         Object le = extractAttributeValue(attributes, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
         Object bundling = extractAttributeValue(attributes, Bundling.BUNDLING_ATTRIBUTE);
-        Object targetJvmEnvironment = extractAttributeValue(attributes, TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
+        Object targetJvmEnvironment =
+                extractAttributeValue(attributes, TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
         Object targetJvm = extractAttributeValue(attributes, TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
         Object docsType = extractAttributeValue(attributes, DocsType.DOCS_TYPE_ATTRIBUTE);
         Object status = extractAttributeValue(attributes, STATUS_ATTRIBUTE);
@@ -133,17 +133,17 @@ import java.util.stream.Collectors;
     @Nullable
     private static <T> Object extractAttributeValue(Map<Attribute<?>, ?> attributes, Attribute<T> attribute) {
         return attributes.entrySet().stream()
-            .filter(e -> haveSameName(e.getKey(), attribute))
-            .findFirst()
-            .map(Map.Entry::getValue)
-            .orElse(null);
+                .filter(e -> haveSameName(e.getKey(), attribute))
+                .findFirst()
+                .map(Map.Entry::getValue)
+                .orElse(null);
     }
 
     private void processExtraAttributes(Map<Attribute<?>, ?> attributes, StringBuilder sb) {
         List<Attribute<?>> describableAttributes = attributes.keySet().stream()
-            .filter(a -> !isDescribable(a))
-            .sorted(Comparator.comparing(Attribute::getName))
-            .collect(Collectors.toList());
+                .filter(a -> !isDescribable(a))
+                .sorted(Comparator.comparing(Attribute::getName))
+                .collect(Collectors.toList());
 
         if (!describableAttributes.isEmpty()) {
             sb.append(", as well as ");
@@ -201,7 +201,11 @@ import java.util.stream.Collectors;
     }
 
     private static void describeGenericAttribute(StringBuilder sb, Attribute<?> attribute, @Nullable Object value) {
-        sb.append("attribute '").append(attribute.getName()).append("' with value '").append(value).append("'");
+        sb.append("attribute '")
+                .append(attribute.getName())
+                .append("' with value '")
+                .append(value)
+                .append("'");
     }
 
     @Override

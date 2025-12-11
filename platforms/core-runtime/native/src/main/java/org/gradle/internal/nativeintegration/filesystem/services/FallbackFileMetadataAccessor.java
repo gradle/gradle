@@ -16,14 +16,13 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
+import java.io.File;
+import java.io.IOException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
-
-import java.io.File;
-import java.io.IOException;
 
 public class FallbackFileMetadataAccessor implements FileMetadataAccessor {
     @Override
@@ -37,6 +36,7 @@ public class FallbackFileMetadataAccessor implements FileMetadataAccessor {
         if (f.isFile()) {
             return DefaultFileMetadata.file(f.lastModified(), f.length(), AccessType.DIRECT);
         }
-        throw UncheckedException.throwAsUncheckedException(new IOException("Unsupported file type for " + f.getAbsolutePath()), true);
+        throw UncheckedException.throwAsUncheckedException(
+                new IOException("Unsupported file type for " + f.getAbsolutePath()), true);
     }
 }

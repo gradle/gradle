@@ -16,14 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.swift;
 
-import org.gradle.api.Action;
-import org.gradle.internal.IoActions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.LoaderOptions;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,7 +25,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
+import org.gradle.api.Action;
+import org.gradle.internal.IoActions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
 /**
  * The peculiars of the swiftc incremental compiler can be extracted from the Driver's source code:
@@ -110,7 +108,7 @@ class SwiftDepsHandler {
         return true;
     }
 
-    //CHECKSTYLE:OFF
+    // CHECKSTYLE:OFF
     // This is used to parse a YAML file
     public static class SwiftDeps {
         private String version;
@@ -152,13 +150,12 @@ class SwiftDepsHandler {
 
         @Override
         public String toString() {
-            return "SwiftDeps{" +
-                    "version='" + version + '\'' +
-                    ", options='" + options + '\'' +
-                    ", build_time=" + build_time +
-                    ", inputs=" + inputs +
-                    '}';
+            return "SwiftDeps{" + "version='"
+                    + version + '\'' + ", options='"
+                    + options + '\'' + ", build_time="
+                    + build_time + ", inputs="
+                    + inputs + '}';
         }
     }
-    //CHECKSTYLE:ON
+    // CHECKSTYLE:ON
 }

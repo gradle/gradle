@@ -37,5 +37,4 @@ public interface ProgressStartBuildOperationProgressDetails {
      * Therefore, when observing as build operation progress this is never null.
      */
     String getLoggingHeader();
-
 }

@@ -16,15 +16,14 @@
 
 package org.gradle.workers.internal;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.process.internal.health.memory.MaximumHeapHelper;
 import org.gradle.process.internal.health.memory.MemoryAmount;
 import org.gradle.process.internal.health.memory.MemoryHolder;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class WorkerDaemonExpiration implements MemoryHolder {
 
@@ -55,7 +54,8 @@ public class WorkerDaemonExpiration implements MemoryHolder {
      * Use the maximum heap size of each daemon, not their actual memory usage.
      * Expire as much daemons as needed to free the requested memory under the threshold.
      */
-    private class SimpleMemoryExpirationSelector implements Transformer<List<WorkerDaemonClient>, List<WorkerDaemonClient>> {
+    private class SimpleMemoryExpirationSelector
+            implements Transformer<List<WorkerDaemonClient>, List<WorkerDaemonClient>> {
 
         private final long memoryBytesToRelease;
         private long releasedBytes;
@@ -106,7 +106,8 @@ public class WorkerDaemonExpiration implements MemoryHolder {
 
             // if the worker has not reported memory usage yet for some reason, or does not support it,
             // use the max heap as an approximation
-            String forkOptionsMaxHeapSize = idleClient.getForkOptions().getJvmOptions().getMaxHeapSize();
+            String forkOptionsMaxHeapSize =
+                    idleClient.getForkOptions().getJvmOptions().getMaxHeapSize();
             long parsed = MemoryAmount.parseNotation(forkOptionsMaxHeapSize);
             if (parsed != -1) {
                 // From fork options

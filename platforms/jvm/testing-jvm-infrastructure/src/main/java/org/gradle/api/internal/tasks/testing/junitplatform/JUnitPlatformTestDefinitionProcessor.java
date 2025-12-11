@@ -16,11 +16,22 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
+import static org.gradle.api.internal.tasks.testing.junit.JUnitTestExecutor.isNestedClassInsideEnclosedRunner;
+import static org.junit.platform.launcher.EngineFilter.excludeEngines;
+import static org.junit.platform.launcher.EngineFilter.includeEngines;
+import static org.junit.platform.launcher.TagFilter.excludeTags;
+import static org.junit.platform.launcher.TagFilter.includeTags;
+
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import javax.annotation.WillCloseWhenClosed;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinitionConsumer;
 import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
-import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -51,18 +62,6 @@ import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
-import javax.annotation.WillCloseWhenClosed;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-import static org.gradle.api.internal.tasks.testing.junit.JUnitTestExecutor.isNestedClassInsideEnclosedRunner;
-import static org.junit.platform.launcher.EngineFilter.excludeEngines;
-import static org.junit.platform.launcher.EngineFilter.includeEngines;
-import static org.junit.platform.launcher.TagFilter.excludeTags;
-import static org.junit.platform.launcher.TagFilter.includeTags;
-
 /**
  * A {@link TestDefinitionProcessor} for JUnit Platform.
  * <p>
@@ -77,12 +76,15 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
 
     @Nullable
     private CollectThenExecuteTestDefinitionConsumer testClassExecutor;
+
     @Nullable
     private BackwardsCompatibleLauncherSession launcherSession;
+
     @Nullable
     private ClassLoader junitClassLoader;
 
-    public JUnitPlatformTestDefinitionProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
+    public JUnitPlatformTestDefinitionProcessor(
+            JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         super(actorFactory);
         this.spec = spec;
         this.idGenerator = idGenerator;
@@ -94,7 +96,8 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         try {
             Class.forName("org.junit.platform.launcher.core.LauncherFactory");
         } catch (ClassNotFoundException e) {
-            throw new TestFrameworkNotAvailableException("Failed to load JUnit Platform.  Please ensure that all JUnit Platform dependencies are available on the test's runtime classpath, including the JUnit Platform launcher.");
+            throw new TestFrameworkNotAvailableException(
+                    "Failed to load JUnit Platform.  Please ensure that all JUnit Platform dependencies are available on the test's runtime classpath, including the JUnit Platform launcher.");
         }
     }
 
@@ -103,7 +106,8 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         launcherSession = BackwardsCompatibleLauncherSession.open();
         ClassLoader junitClassLoader = Thread.currentThread().getContextClassLoader();
-        testClassExecutor = new CollectThenExecuteTestDefinitionConsumer(threadSafeResultProcessor, launcherSession, junitClassLoader, spec, idGenerator, clock);
+        testClassExecutor = new CollectThenExecuteTestDefinitionConsumer(
+                threadSafeResultProcessor, launcherSession, junitClassLoader, spec, idGenerator, clock);
         return testClassExecutor;
     }
 
@@ -117,7 +121,8 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
     }
 
     @NullMarked
-    private static final class CollectThenExecuteTestDefinitionConsumer implements TestDefinitionConsumer<TestDefinition> {
+    private static final class CollectThenExecuteTestDefinitionConsumer
+            implements TestDefinitionConsumer<TestDefinition> {
         private final List<DiscoverySelector> selectors = new ArrayList<>();
 
         private final TestResultProcessor resultProcessor;
@@ -127,7 +132,13 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         private final IdGenerator<?> idGenerator;
         private final Clock clock;
 
-        CollectThenExecuteTestDefinitionConsumer(TestResultProcessor resultProcessor, BackwardsCompatibleLauncherSession launcherSession, ClassLoader junitClassLoader, JUnitPlatformSpec spec, IdGenerator<?> idGenerator, Clock clock) {
+        CollectThenExecuteTestDefinitionConsumer(
+                TestResultProcessor resultProcessor,
+                BackwardsCompatibleLauncherSession launcherSession,
+                ClassLoader junitClassLoader,
+                JUnitPlatformSpec spec,
+                IdGenerator<?> idGenerator,
+                Clock clock) {
             this.resultProcessor = resultProcessor;
             this.launcherSession = launcherSession;
             this.junitClassLoader = junitClassLoader;
@@ -143,7 +154,8 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             } else if (testDefinition instanceof DirectoryBasedTestDefinition) {
                 executeDirectory((DirectoryBasedTestDefinition) testDefinition);
             } else {
-                throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
+                throw new IllegalStateException("Unexpected test definition type "
+                        + testDefinition.getClass().getName());
             }
         }
 
@@ -155,14 +167,14 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             selectors.add(DiscoverySelectors.selectClass(klass));
         }
 
-
         private void executeDirectory(DirectoryBasedTestDefinition testDefinition) {
             selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getTestDefinitionsDir()));
         }
 
         private void processAllTestDefinitions() {
             LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest();
-            TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, spec.getBaseDefinitionsDir());
+            TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(
+                    resultProcessor, clock, idGenerator, spec.getBaseDefinitionsDir());
             Launcher launcher = Objects.requireNonNull(launcherSession).getLauncher();
             if (spec.isDryRun()) {
                 TestPlan testPlan = launcher.discover(discoveryRequest);
@@ -200,8 +212,8 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         }
 
         private LauncherDiscoveryRequest createLauncherDiscoveryRequest() {
-            LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request()
-                .selectors(selectors);
+            LauncherDiscoveryRequestBuilder requestBuilder =
+                    LauncherDiscoveryRequestBuilder.request().selectors(selectors);
 
             addTestNameFilters(requestBuilder);
             addEnginesFilter(requestBuilder);
@@ -279,8 +291,8 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
 
         private boolean isNotEmpty(TestFilterSpec filter) {
             return !filter.getIncludedTests().isEmpty()
-                || !filter.getIncludedTestsCommandLine().isEmpty()
-                || !filter.getExcludedTests().isEmpty();
+                    || !filter.getIncludedTestsCommandLine().isEmpty()
+                    || !filter.getExcludedTests().isEmpty();
         }
     }
 

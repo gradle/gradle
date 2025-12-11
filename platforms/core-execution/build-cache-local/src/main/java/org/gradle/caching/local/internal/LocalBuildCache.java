@@ -16,14 +16,13 @@
 
 package org.gradle.caching.local.internal;
 
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.io.IoConsumer;
-
 import java.io.Closeable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.function.Consumer;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.io.IoConsumer;
 
 public interface LocalBuildCache extends Closeable {
     boolean load(HashCode key, IoConsumer<InputStream> reader);

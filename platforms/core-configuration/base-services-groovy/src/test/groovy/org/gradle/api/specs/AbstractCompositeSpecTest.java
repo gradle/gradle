@@ -15,15 +15,14 @@
  */
 package org.gradle.api.specs;
 
+import static org.junit.Assert.assertFalse;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.util.internal.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertFalse;
 
 public abstract class AbstractCompositeSpecTest {
     private Spec spec1;
@@ -81,16 +80,23 @@ public abstract class AbstractCompositeSpecTest {
 
     @Test
     public void testHashCode() {
-        assert createCompositeSpec(spec1).hashCode() == createCompositeSpec(spec1).hashCode();
-        assert createCompositeSpec(spec1).hashCode() != createCompositeSpec(spec2).hashCode();
+        assert createCompositeSpec(spec1).hashCode()
+                == createCompositeSpec(spec1).hashCode();
+        assert createCompositeSpec(spec1).hashCode()
+                != createCompositeSpec(spec2).hashCode();
 
-        assert createCompositeSpec(spec1, spec2).hashCode() == createCompositeSpec(spec1, spec2).hashCode();
-        assert createCompositeSpec(spec2, spec1).hashCode() == createCompositeSpec(spec2, spec1).hashCode();
-        assert createCompositeSpec(spec1, spec2).hashCode() != createCompositeSpec(spec2, spec1).hashCode();
+        assert createCompositeSpec(spec1, spec2).hashCode()
+                == createCompositeSpec(spec1, spec2).hashCode();
+        assert createCompositeSpec(spec2, spec1).hashCode()
+                == createCompositeSpec(spec2, spec1).hashCode();
+        assert createCompositeSpec(spec1, spec2).hashCode()
+                != createCompositeSpec(spec2, spec1).hashCode();
 
-        assert createCompositeSpec(spec1, spec2).hashCode() != createOtherCompositeSpec(spec1, spec2).hashCode();
-        assert createCompositeSpec(spec2, spec1).hashCode() != createOtherCompositeSpec(spec2, spec1).hashCode();
-        assert createCompositeSpec(spec1, spec2).hashCode() != createOtherCompositeSpec(spec2, spec1).hashCode();
+        assert createCompositeSpec(spec1, spec2).hashCode()
+                != createOtherCompositeSpec(spec1, spec2).hashCode();
+        assert createCompositeSpec(spec2, spec1).hashCode()
+                != createOtherCompositeSpec(spec2, spec1).hashCode();
+        assert createCompositeSpec(spec1, spec2).hashCode()
+                != createOtherCompositeSpec(spec2, spec1).hashCode();
     }
-
 }

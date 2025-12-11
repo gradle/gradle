@@ -16,7 +16,13 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import static org.junit.Assert.fail;
+
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.List;
+import javax.annotation.Nullable;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Named;
@@ -35,13 +41,6 @@ import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.work.InputChanges;
-
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
-
-import static org.junit.Assert.fail;
 
 /**
  * A set of classes for use in the AnnotationProcessingTaskFactoryTest.
@@ -100,12 +99,10 @@ public class AnnotationProcessingTasks {
 
     public static class TaskWithStaticMethod extends DefaultTask {
         @TaskAction
-        public static void staticAction() {
-        }
+        public static void staticAction() {}
 
         @TaskAction
-        public void goodAction() {
-        }
+        public void goodAction() {}
     }
 
     public static class TaskWithMultipleMethods extends TestTask {
@@ -170,12 +167,10 @@ public class AnnotationProcessingTasks {
     public static class TaskWithMultipleInputChangesActions extends DefaultTask {
 
         @TaskAction
-        public void doStuff(InputChanges changes) {
-        }
+        public void doStuff(InputChanges changes) {}
 
         @TaskAction
-        public void doStuff2(InputChanges changes) {
-        }
+        public void doStuff2(InputChanges changes) {}
     }
 
     public static class TaskWithOverloadedInputChangesActions extends DefaultTask {
@@ -188,14 +183,12 @@ public class AnnotationProcessingTasks {
 
     public static class TaskWithSingleParamAction extends DefaultTask {
         @TaskAction
-        public void doStuff(int value1) {
-        }
+        public void doStuff(int value1) {}
     }
 
     public static class TaskWithMultiParamAction extends DefaultTask {
         @TaskAction
-        public void doStuff(int value1, int value2) {
-        }
+        public void doStuff(int value1, int value2) {}
     }
 
     public static class TaskWithInputFile extends TaskWithAction {
@@ -271,7 +264,6 @@ public class AnnotationProcessingTasks {
         public void doStuff() {
             fail();
         }
-
     }
 
     public static class TaskWithOutputFile extends TaskWithAction {
@@ -305,6 +297,7 @@ public class AnnotationProcessingTasks {
     public static class TaskWithBridgeMethod extends TaskWithAction implements WithProperty<SpecificProperty> {
         @Nested
         private SpecificProperty nestedProperty = new SpecificProperty();
+
         public int traversedOutputsCount;
 
         public SpecificProperty getNestedProperty() {
@@ -316,11 +309,14 @@ public class AnnotationProcessingTasks {
     public interface WithProperty<T extends PropertyContainer<?>> {
         T getNestedProperty();
     }
+
     public interface PropertyContainer<T extends SomeProperty> {}
+
     public static class SpecificProperty extends SomePropertyContainer<SomeProperty> {}
+
     public static class SomeProperty {}
 
-    public static abstract class SomePropertyContainer<T extends SomeProperty> implements PropertyContainer<T> {
+    public abstract static class SomePropertyContainer<T extends SomeProperty> implements PropertyContainer<T> {
         @OutputFile
         public File getSomeOutputFile() {
             return new File("hello");
@@ -611,7 +607,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    //CHECKSTYLE:OFF
+    // CHECKSTYLE:OFF
     public static class TaskWithJavaBeanCornerCaseProperties extends TaskWithAction {
         private String cCompiler;
         private String CFlags;
@@ -621,7 +617,8 @@ public class AnnotationProcessingTasks {
         private String b;
 
         @Inject
-        public TaskWithJavaBeanCornerCaseProperties(String cCompiler, String CFlags, String dns, String URL, String a, String b) {
+        public TaskWithJavaBeanCornerCaseProperties(
+                String cCompiler, String CFlags, String dns, String URL, String a, String b) {
             this.cCompiler = cCompiler;
             this.CFlags = CFlags;
             this.dns = dns;
@@ -660,5 +657,5 @@ public class AnnotationProcessingTasks {
             return b;
         }
     }
-    //CHECKSTYLE:ON
+    // CHECKSTYLE:ON
 }

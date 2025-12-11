@@ -16,6 +16,10 @@
 
 package org.gradle.internal.buildtree;
 
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.build.BuildState;
@@ -31,11 +35,6 @@ import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
-
 public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     private final BuildState defaultTarget;
     private final IntermediateBuildActionRunner actionRunner;
@@ -44,12 +43,11 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     private final BuildOperationRunner buildOperationRunner;
 
     public DefaultBuildTreeModelCreator(
-        BuildState defaultTarget,
-        IntermediateBuildActionRunner actionRunner,
-        ToolingModelParameterCarrier.Factory parameterCarrierFactory,
-        BuildStateRegistry buildStateRegistry,
-        BuildOperationRunner buildOperationRunner
-    ) {
+            BuildState defaultTarget,
+            IntermediateBuildActionRunner actionRunner,
+            ToolingModelParameterCarrier.Factory parameterCarrierFactory,
+            BuildStateRegistry buildStateRegistry,
+            BuildOperationRunner buildOperationRunner) {
         this.defaultTarget = defaultTarget;
         this.actionRunner = actionRunner;
         this.parameterCarrierFactory = parameterCarrierFactory;
@@ -74,7 +72,9 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         }
 
         @Override
-        public ToolingModelBuilderResultInternal getModel(BuildTreeModelTarget target, ToolingModelRequestContext modelRequestContext) throws UnknownModelException {
+        public ToolingModelBuilderResultInternal getModel(
+                BuildTreeModelTarget target, ToolingModelRequestContext modelRequestContext)
+                throws UnknownModelException {
             // Include target resolution in the operation to identify all work (including build configuration)
             // that is executed to provide the requested model
             return buildOperationRunner.call(new CallableBuildOperation<ToolingModelBuilderResultInternal>() {
@@ -82,18 +82,21 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
                 @Nullable
                 public ToolingModelBuilderResultInternal call(BuildOperationContext context) {
                     ToolingModelScope scope = locateBuilderForTarget(target, modelRequestContext);
-                    return scope.getModel(modelRequestContext,
-                        modelRequestContext.getParameter()
-                            .map(parameterCarrierFactory::createCarrier)
-                            .orElse(null));
+                    return scope.getModel(
+                            modelRequestContext,
+                            modelRequestContext
+                                    .getParameter()
+                                    .map(parameterCarrierFactory::createCarrier)
+                                    .orElse(null));
                 }
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
                     String targetDescription = target.describeTargetScope();
                     String modelName = modelRequestContext.getModelName();
-                    return BuildOperationDescriptor.displayName("Fetch model '" + modelName + "' for " + targetDescription)
-                        .progressDisplayName("Fetching model '" + modelName + "' for " + targetDescription);
+                    return BuildOperationDescriptor.displayName(
+                                    "Fetch model '" + modelName + "' for " + targetDescription)
+                            .progressDisplayName("Fetching model '" + modelName + "' for " + targetDescription);
                 }
             });
         }
@@ -114,12 +117,14 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName(String.format("Run nested tooling build actions (%d)", actions.size()));
+                    return BuildOperationDescriptor.displayName(
+                            String.format("Run nested tooling build actions (%d)", actions.size()));
                 }
             });
         }
 
-        private ToolingModelScope locateBuilderForTarget(BuildTreeModelTarget target, ToolingModelRequestContext toolingModelContext) {
+        private ToolingModelScope locateBuilderForTarget(
+                BuildTreeModelTarget target, ToolingModelRequestContext toolingModelContext) {
             if (target instanceof BuildTreeModelTarget.Default) {
                 return locateBuilderForDefaultTarget(toolingModelContext);
             } else if (target instanceof BuildTreeModelTarget.Build) {
@@ -135,29 +140,39 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
             return locateBuilderForBuildTarget(defaultTarget, toolingModelContext);
         }
 
-        private ToolingModelScope locateBuilderForProjectTarget(BuildTreeModelTarget.Project projectTarget, ToolingModelRequestContext toolingModelContext) {
+        private ToolingModelScope locateBuilderForProjectTarget(
+                BuildTreeModelTarget.Project projectTarget, ToolingModelRequestContext toolingModelContext) {
             BuildState build = findBuild(projectTarget.getBuildRootDir());
             ProjectState project = findProject(build, projectTarget);
             return locateBuilderForProjectTarget(project, toolingModelContext);
         }
 
-        private ToolingModelScope locateBuilderForBuildTarget(BuildTreeModelTarget.Build buildTarget, ToolingModelRequestContext toolingModelContext) {
+        private ToolingModelScope locateBuilderForBuildTarget(
+                BuildTreeModelTarget.Build buildTarget, ToolingModelRequestContext toolingModelContext) {
             BuildState build = findBuild(buildTarget.getBuildRootDir());
             return locateBuilderForBuildTarget(build, toolingModelContext);
         }
 
-        private ToolingModelScope locateBuilderForBuildTarget(BuildState target, ToolingModelRequestContext toolingModelContext) {
-            return target.withToolingModels(toolingModelContext.inResilientContext(), controller -> controller.locateBuilderForTarget(toolingModelContext));
+        private ToolingModelScope locateBuilderForBuildTarget(
+                BuildState target, ToolingModelRequestContext toolingModelContext) {
+            return target.withToolingModels(
+                    toolingModelContext.inResilientContext(),
+                    controller -> controller.locateBuilderForTarget(toolingModelContext));
         }
 
-        private ToolingModelScope locateBuilderForProjectTarget(ProjectState target, ToolingModelRequestContext toolingModelContext) {
-            return target.getOwner().withToolingModels(toolingModelContext.inResilientContext(), controller -> controller.locateBuilderForTarget(target, toolingModelContext));
+        private ToolingModelScope locateBuilderForProjectTarget(
+                ProjectState target, ToolingModelRequestContext toolingModelContext) {
+            return target.getOwner()
+                    .withToolingModels(
+                            toolingModelContext.inResilientContext(),
+                            controller -> controller.locateBuilderForTarget(target, toolingModelContext));
         }
 
         private BuildState findBuild(File targetBuildRootDir) {
             AtomicReference<@Nullable BuildState> match = new AtomicReference<>();
             buildStateRegistry.visitBuilds(buildState -> {
-                if (buildState.isImportableBuild() && buildState.getBuildRootDir().equals(targetBuildRootDir)) {
+                if (buildState.isImportableBuild()
+                        && buildState.getBuildRootDir().equals(targetBuildRootDir)) {
                     match.set(buildState);
                 }
             });

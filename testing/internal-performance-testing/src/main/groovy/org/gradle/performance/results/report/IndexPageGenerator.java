@@ -16,19 +16,6 @@
 
 package org.gradle.performance.results.report;
 
-import org.gradle.performance.results.PerformanceExperiment;
-import org.gradle.performance.results.PerformanceFlakinessDataProvider;
-import org.gradle.performance.results.PerformanceReportScenario;
-import org.gradle.performance.results.PerformanceTestExecutionResult;
-import org.gradle.performance.results.ResultsStore;
-import org.gradle.performance.results.ResultsStoreHelper;
-
-import java.io.Writer;
-import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static java.util.stream.Collectors.toList;
 import static org.gradle.performance.results.report.Tag.FixedTag.FAILED;
 import static org.gradle.performance.results.report.Tag.FixedTag.FROM_CACHE;
@@ -38,18 +25,34 @@ import static org.gradle.performance.results.report.Tag.FixedTag.REGRESSED;
 import static org.gradle.performance.results.report.Tag.FixedTag.UNKNOWN;
 import static org.gradle.performance.results.report.Tag.FixedTag.UNTAGGED;
 
+import java.io.Writer;
+import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.gradle.performance.results.PerformanceExperiment;
+import org.gradle.performance.results.PerformanceFlakinessDataProvider;
+import org.gradle.performance.results.PerformanceReportScenario;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
+import org.gradle.performance.results.ResultsStore;
+import org.gradle.performance.results.ResultsStoreHelper;
+
 public class IndexPageGenerator extends AbstractTablePageGenerator {
-    public IndexPageGenerator(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider) {
+    public IndexPageGenerator(
+            PerformanceFlakinessDataProvider flakinessDataProvider,
+            PerformanceExecutionDataProvider executionDataProvider) {
         super(flakinessDataProvider, executionDataProvider);
     }
 
     @Override
     public void render(final ResultsStore store, Writer writer) {
-        long successCount = executionDataProvider.getReportScenarios().stream().filter(PerformanceReportScenario::isSuccessful).count();
+        long successCount = executionDataProvider.getReportScenarios().stream()
+                .filter(PerformanceReportScenario::isSuccessful)
+                .count();
         long smallRegressions = executionDataProvider.getReportScenarios().stream()
-            .filter(PerformanceReportScenario::isRegressed)
-            .filter(scenario -> !failsBuild(scenario))
-            .count();
+                .filter(PerformanceReportScenario::isRegressed)
+                .filter(scenario -> !failsBuild(scenario))
+                .count();
         long failureCount = executionDataProvider.getReportScenarios().size() - successCount - smallRegressions;
 
         new TableHtml(writer) {
@@ -60,7 +63,8 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
 
             @Override
             protected String getTableTitle() {
-                StringBuilder sb = new StringBuilder("Scenarios (").append(successCount).append(" successful");
+                StringBuilder sb =
+                        new StringBuilder("Scenarios (").append(successCount).append(" successful");
                 if (failureCount > 0) {
                     sb.append(", ").append(failureCount).append(" failed");
                 }
@@ -75,12 +79,16 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
 
             @Override
             protected List<PerformanceReportScenario> getCrossVersionScenarios() {
-                return executionDataProvider.getReportScenarios().stream().filter(PerformanceReportScenario::isCrossVersion).collect(toList());
+                return executionDataProvider.getReportScenarios().stream()
+                        .filter(PerformanceReportScenario::isCrossVersion)
+                        .collect(toList());
             }
 
             @Override
             protected List<PerformanceReportScenario> getCrossBuildScenarios() {
-                return executionDataProvider.getReportScenarios().stream().filter(PerformanceReportScenario::isCrossBuild).collect(toList());
+                return executionDataProvider.getReportScenarios().stream()
+                        .filter(PerformanceReportScenario::isCrossBuild)
+                        .collect(toList());
             }
 
             @Override
@@ -137,18 +145,31 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
 
             @Override
             protected void renderScenarioButtons(int index, PerformanceReportScenario scenario) {
-                List<String> webUrls = scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getWebUrl).collect(toList());
+                List<String> webUrls = scenario.getTeamCityExecutions().stream()
+                        .map(PerformanceTestExecutionResult::getWebUrl)
+                        .collect(toList());
                 if (webUrls.size() == 1) {
-                    a().target("_blank").classAttr("btn btn-primary btn-sm").href(webUrls.get(0)).text("Build").end();
+                    a().target("_blank")
+                            .classAttr("btn btn-primary btn-sm")
+                            .href(webUrls.get(0))
+                            .text("Build")
+                            .end();
                 } else {
                     // @formatter:off
                     div().classAttr("dropdown").style("display: inline-block");
-                        button().classAttr("btn btn-primary btn-sm dropdown-toggle").attr("data-toggle", "dropdown").text("Build").end();
-                        div().classAttr("dropdown-menu");
-                            for (int i = 0; i < webUrls.size(); ++i) {
-                                a().target("_blank").classAttr("dropdown-item").href(webUrls.get(i)).text("Build " + (i + 1)).end();
-                            }
-                        end();
+                    button().classAttr("btn btn-primary btn-sm dropdown-toggle")
+                            .attr("data-toggle", "dropdown")
+                            .text("Build")
+                            .end();
+                    div().classAttr("dropdown-menu");
+                    for (int i = 0; i < webUrls.size(); ++i) {
+                        a().target("_blank")
+                                .classAttr("dropdown-item")
+                                .href(webUrls.get(i))
+                                .text("Build " + (i + 1))
+                                .end();
+                    }
+                    end();
                     end();
                     // @formatter:on
                 }
@@ -158,7 +179,8 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
 
     private boolean failsBuild(PerformanceReportScenario scenario) {
         return scenario.getCurrentExecutions().stream()
-            .map(execution -> flakinessDataProvider.getScenarioRegressionResult(scenario.getPerformanceExperiment(), execution))
-            .allMatch(PerformanceFlakinessDataProvider.ScenarioRegressionResult::isFailsBuild);
+                .map(execution -> flakinessDataProvider.getScenarioRegressionResult(
+                        scenario.getPerformanceExperiment(), execution))
+                .allMatch(PerformanceFlakinessDataProvider.ScenarioRegressionResult::isFailsBuild);
     }
 }

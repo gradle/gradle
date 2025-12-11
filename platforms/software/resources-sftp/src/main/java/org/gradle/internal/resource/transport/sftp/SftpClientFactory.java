@@ -26,6 +26,10 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -34,11 +38,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 @ThreadSafe
 @ServiceScope(Scope.Global.class)
@@ -71,7 +70,8 @@ public class SftpClientFactory implements Stoppable {
         } else {
             client = clientsByHost.remove(0);
             if (!client.isConnected()) {
-                LOGGER.info("Tried to reuse an existing sftp client, but unexpectedly found it disconnected.  Discarding and trying again.");
+                LOGGER.info(
+                        "Tried to reuse an existing sftp client, but unexpectedly found it disconnected.  Discarding and trying again.");
                 discard(client);
                 client = reuseExistingOrCreateNewClient(sftpHost);
             } else {
@@ -101,7 +101,8 @@ public class SftpClientFactory implements Stoppable {
 
         public LockableSftpClient createNewClient(SftpHost sftpHost) {
             try {
-                Session session = createJsch().getSession(sftpHost.getUsername(), sftpHost.getHostname(), sftpHost.getPort());
+                Session session =
+                        createJsch().getSession(sftpHost.getUsername(), sftpHost.getHostname(), sftpHost.getPort());
                 session.setPassword(sftpHost.getPassword());
                 session.connect();
                 Channel channel = session.openChannel("sftp");
@@ -110,9 +111,15 @@ public class SftpClientFactory implements Stoppable {
             } catch (JSchException e) {
                 URI serverUri = URI.create(String.format("sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()));
                 if (e.getMessage().equals("Auth fail")) {
-                    throw new ResourceException(serverUri, String.format("Password authentication not supported or invalid credentials for SFTP server at %s", serverUri), e);
+                    throw new ResourceException(
+                            serverUri,
+                            String.format(
+                                    "Password authentication not supported or invalid credentials for SFTP server at %s",
+                                    serverUri),
+                            e);
                 }
-                throw new ResourceException(serverUri, String.format("Could not connect to SFTP server at %s", serverUri), e);
+                throw new ResourceException(
+                        serverUri, String.format("Could not connect to SFTP server at %s", serverUri), e);
             }
         }
 
@@ -121,12 +128,13 @@ public class SftpClientFactory implements Stoppable {
                 JSch.setConfig("PreferredAuthentications", "password");
                 JSch.setConfig("MaxAuthTries", "1");
                 jsch = new JSch();
-                if(LOGGER.isDebugEnabled()) {
+                if (LOGGER.isDebugEnabled()) {
                     JSch.setLogger(new com.jcraft.jsch.Logger() {
                         @Override
                         public boolean isEnabled(int level) {
                             return true;
                         }
+
                         @Override
                         public void log(int level, String message) {
                             LOGGER.debug(message);
@@ -140,16 +148,13 @@ public class SftpClientFactory implements Stoppable {
                     }
 
                     @Override
-                    public void add(HostKey hostkey, UserInfo ui) {
-                    }
+                    public void add(HostKey hostkey, UserInfo ui) {}
 
                     @Override
-                    public void remove(String host, String type) {
-                    }
+                    public void remove(String host, String type) {}
 
                     @Override
-                    public void remove(String host, String type, byte[] key) {
-                    }
+                    public void remove(String host, String type, byte[] key) {}
 
                     @Override
                     public String getKnownHostsRepositoryID() {

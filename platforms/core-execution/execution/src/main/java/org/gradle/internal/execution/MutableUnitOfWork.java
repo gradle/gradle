@@ -16,11 +16,10 @@
 
 package org.gradle.internal.execution;
 
+import java.util.Optional;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.properties.InputBehavior;
-
-import java.util.Optional;
 
 /**
  * A unit of work that can be executed multiple times in the same workspace.

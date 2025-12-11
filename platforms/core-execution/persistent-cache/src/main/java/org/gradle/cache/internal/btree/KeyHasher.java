@@ -16,15 +16,14 @@
 
 package org.gradle.cache.internal.btree;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
 class KeyHasher<K> {
     private final Serializer<K> serializer;

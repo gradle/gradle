@@ -16,14 +16,13 @@
 
 package org.gradle.tooling.internal.provider.continuous;
 
-import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.watch.registry.FileWatcherRegistry;
-import org.gradle.internal.watch.vfs.FileChangeListener;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.watch.registry.FileWatcherRegistry;
+import org.gradle.internal.watch.vfs.FileChangeListener;
 
 public class FileEventCollector implements FileChangeListener {
     public static final int SHOW_INDIVIDUAL_CHANGES_LIMIT = 3;
@@ -57,8 +56,8 @@ public class FileEventCollector implements FileChangeListener {
 
     public void onChangeToInputs(FileWatcherRegistry.Type type, Path path) {
         FileWatcherRegistry.Type existingEvent = aggregatedEvents.get(path);
-        if (existingEvent == type ||
-            (existingEvent == FileWatcherRegistry.Type.CREATED && type == FileWatcherRegistry.Type.MODIFIED)) {
+        if (existingEvent == type
+                || (existingEvent == FileWatcherRegistry.Type.CREATED && type == FileWatcherRegistry.Type.MODIFIED)) {
             return;
         }
 

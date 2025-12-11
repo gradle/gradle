@@ -18,6 +18,13 @@ package org.gradle.api.reporting;
 
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import java.io.File;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.NamedDomainObjectSet;
@@ -38,26 +45,20 @@ import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 /**
  * Generates build dashboard report.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateBuildDashboard extends DefaultTask implements Reporting<BuildDashboardReports> {
-    private final Set<Reporting<? extends ReportContainer<?>>> aggregated = new LinkedHashSet<Reporting<? extends ReportContainer<?>>>();
+    private final Set<Reporting<? extends ReportContainer<?>>> aggregated =
+            new LinkedHashSet<Reporting<? extends ReportContainer<?>>>();
 
     private final BuildDashboardReports reports;
 
     public GenerateBuildDashboard() {
         ConfigurationCacheDegradation.requireDegradation(this, "Task is not compatible with the Configuration Cache");
-        reports = getObjectFactory().newInstance(DefaultBuildDashboardReports.class, Describables.quoted("Task", getIdentityPath()));
+        reports = getObjectFactory()
+                .newInstance(DefaultBuildDashboardReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getHtml().getRequired().set(true);
     }
 
@@ -81,8 +82,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
         allAggregatedReports.addAll(getAggregatedTasks());
 
         Set<NamedDomainObjectSet<? extends Report>> enabledReportSets = CollectionUtils.collect(
-            allAggregatedReports, reporting -> reporting.getReports().getEnabled()
-        );
+                allAggregatedReports, reporting -> reporting.getReports().getEnabled());
         return new LinkedHashSet<Report>(CollectionUtils.flattenCollections(Report.class, enabledReportSets));
     }
 

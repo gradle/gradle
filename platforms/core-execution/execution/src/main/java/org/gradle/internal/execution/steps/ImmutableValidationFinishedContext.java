@@ -17,15 +17,16 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.api.problems.Problem;
 
-import java.util.List;
-
-public class ImmutableValidationFinishedContext extends ImmutableBeforeExecutionContext implements ValidationFinishedContext {
+public class ImmutableValidationFinishedContext extends ImmutableBeforeExecutionContext
+        implements ValidationFinishedContext {
 
     private final ImmutableList<? extends Problem> validationProblems;
 
-    public ImmutableValidationFinishedContext(ImmutableBeforeExecutionContext parent, List<? extends Problem> validationProblems) {
+    public ImmutableValidationFinishedContext(
+            ImmutableBeforeExecutionContext parent, List<? extends Problem> validationProblems) {
         super(parent);
         this.validationProblems = ImmutableList.copyOf(validationProblems);
     }

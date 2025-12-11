@@ -19,14 +19,6 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
-import org.apache.commons.io.input.ReaderInputStream;
-import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Transformer;
-import org.gradle.api.provider.Provider;
-import org.gradle.internal.UncheckedException;
-import org.gradle.util.internal.ConfigureUtil;
-
 import java.io.FilterReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +30,13 @@ import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.apache.commons.io.input.ReaderInputStream;
+import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.UncheckedException;
+import org.gradle.util.internal.ConfigureUtil;
 
 public class FilterChain implements Transformer<InputStream, InputStream> {
     private final ChainingTransformer<Reader> transformers = new ChainingTransformer<Reader>(Reader.class);
@@ -64,7 +63,10 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
     @Override
     public InputStream transform(InputStream original) {
         try {
-            return ReaderInputStream.builder().setCharset(charset).setReader(transform(new InputStreamReader(original, charset))).get();
+            return ReaderInputStream.builder()
+                    .setCharset(charset)
+                    .setReader(transform(new InputStreamReader(original, charset)))
+                    .get();
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -91,7 +93,8 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
                     }
                     return result;
                 } catch (Throwable th) {
-                    throw new InvalidUserDataException("Error - Invalid filter specification for " + filterType.getName(), th);
+                    throw new InvalidUserDataException(
+                            "Error - Invalid filter specification for " + filterType.getName(), th);
                 }
             }
         });
@@ -128,7 +131,11 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
                     template.make(new LinkedHashMap<>(properties)).writeTo(writer);
                     return new StringReader(writer.toString());
                 } catch (MissingPropertyException e) {
-                    throw new GradleException(String.format("Missing property (%s) for Groovy template expansion. Defined keys %s.", e.getProperty(), properties.keySet()), e);
+                    throw new GradleException(
+                            String.format(
+                                    "Missing property (%s) for Groovy template expansion. Defined keys %s.",
+                                    e.getProperty(), properties.keySet()),
+                            e);
                 } catch (IOException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }

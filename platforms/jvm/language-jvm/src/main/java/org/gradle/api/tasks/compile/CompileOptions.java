@@ -16,7 +16,14 @@
 
 package org.gradle.api.tasks.compile;
 
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
+
 import com.google.common.collect.ImmutableList;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
@@ -43,14 +50,6 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
-import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
 
 /**
  * Main options for Java compilation.
@@ -487,7 +486,6 @@ public abstract class CompileOptions implements Serializable {
         return release;
     }
 
-
     /**
      * Set the version of the Java module.
      *
@@ -518,12 +516,11 @@ public abstract class CompileOptions implements Serializable {
     @Optional
     @OutputDirectory
     @ReplacesEagerProperty(
-        replacedAccessors = {
-            @ReplacedAccessor(value = GETTER, name = "getAnnotationProcessorGeneratedSourcesDirectory"),
-            @ReplacedAccessor(value = SETTER, name = "setAnnotationProcessorGeneratedSourcesDirectory")
-        },
-        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9)
-    )
+            replacedAccessors = {
+                @ReplacedAccessor(value = GETTER, name = "getAnnotationProcessorGeneratedSourcesDirectory"),
+                @ReplacedAccessor(value = SETTER, name = "setAnnotationProcessorGeneratedSourcesDirectory")
+            },
+            deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9))
     public DirectoryProperty getGeneratedSourceOutputDirectory() {
         return generatedSourceOutputDirectory;
     }
@@ -538,5 +535,4 @@ public abstract class CompileOptions implements Serializable {
     public DirectoryProperty getHeaderOutputDirectory() {
         return headerOutputDirectory;
     }
-
 }

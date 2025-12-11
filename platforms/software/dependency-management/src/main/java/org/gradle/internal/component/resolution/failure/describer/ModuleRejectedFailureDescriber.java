@@ -16,12 +16,11 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import javax.inject.Inject;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.component.resolution.failure.exception.ComponentSelectionException;
 import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure;
-
-import javax.inject.Inject;
 
 /**
  * Abstract base class for implementing {@link ResolutionFailureDescriber}s that

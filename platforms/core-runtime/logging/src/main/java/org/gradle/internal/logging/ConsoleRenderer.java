@@ -16,11 +16,10 @@
 
 package org.gradle.internal.logging;
 
-import org.gradle.internal.UncheckedException;
-
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import org.gradle.internal.UncheckedException;
 
 /**
  * Renders information in a format suitable for logging to the console.

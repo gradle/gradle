@@ -16,12 +16,13 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.openjdk.jmh.annotations.Level;
-
 import java.io.IOException;
+import org.openjdk.jmh.annotations.Level;
 
 public interface DataAccessor {
     DataSource createSource(String name, byte[] bytes, Level level) throws IOException;
+
     DataTarget createTarget(String name, Level level);
+
     DataTargetFactory createTargetFactory(String root, Level level) throws IOException;
 }

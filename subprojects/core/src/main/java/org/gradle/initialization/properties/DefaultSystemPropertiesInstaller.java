@@ -16,13 +16,12 @@
 
 package org.gradle.initialization.properties;
 
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
+import java.util.Map;
 import org.gradle.api.Project;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.properties.GradleProperties;
-
-import java.util.Map;
-
-import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public class DefaultSystemPropertiesInstaller implements SystemPropertiesInstaller {
 

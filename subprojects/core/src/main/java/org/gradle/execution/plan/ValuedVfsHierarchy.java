@@ -17,16 +17,15 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+import javax.annotation.CheckReturnValue;
 import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.ChildMap;
 import org.gradle.internal.snapshot.ChildMapFactory;
 import org.gradle.internal.snapshot.EmptyChildMap;
 import org.gradle.internal.snapshot.VfsRelativePath;
-
-import javax.annotation.CheckReturnValue;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 
 /**
  * A hierarchy of relative paths with attached values.
@@ -43,7 +42,8 @@ public final class ValuedVfsHierarchy<T> {
         return new ValuedVfsHierarchy<>(PersistentList.of(), EmptyChildMap.getInstance(), caseSensitivity);
     }
 
-    private ValuedVfsHierarchy(PersistentList<T> values, ChildMap<ValuedVfsHierarchy<T>> children, CaseSensitivity caseSensitivity) {
+    private ValuedVfsHierarchy(
+            PersistentList<T> values, ChildMap<ValuedVfsHierarchy<T>> children, CaseSensitivity caseSensitivity) {
         this.values = values;
         this.children = children;
         this.caseSensitivity = caseSensitivity;
@@ -89,14 +89,10 @@ public final class ValuedVfsHierarchy<T> {
 
             @Override
             public String handleAsAncestorOfChild(String childPathFromAncestor, ValuedVfsHierarchy<T> child) {
-                visitor.visitChildren(
-                    child.getValues(),
-                    () -> location.pathToChild(childPathFromAncestor));
-                child.visitAllChildren((nodes, relativePath) ->
-                    visitor.visitChildren(nodes, () -> joinRelativePaths(
-                        location.pathToChild(childPathFromAncestor),
-                        relativePath.get())
-                    ));
+                visitor.visitChildren(child.getValues(), () -> location.pathToChild(childPathFromAncestor));
+                child.visitAllChildren((nodes, relativePath) -> visitor.visitChildren(
+                        nodes,
+                        () -> joinRelativePaths(location.pathToChild(childPathFromAncestor), relativePath.get())));
                 return "";
             }
 
@@ -148,35 +144,39 @@ public final class ValuedVfsHierarchy<T> {
         if (location.isEmpty()) {
             return new ValuedVfsHierarchy<>(values.plus(value), children, caseSensitivity);
         }
-        ChildMap<ValuedVfsHierarchy<T>> newChildren = children.store(location, caseSensitivity, new ChildMap.StoreHandler<ValuedVfsHierarchy<T>>() {
-            @Override
-            public ValuedVfsHierarchy<T> handleAsDescendantOfChild(VfsRelativePath pathInChild, ValuedVfsHierarchy<T> child) {
-                return child.recordValue(pathInChild, value);
-            }
+        ChildMap<ValuedVfsHierarchy<T>> newChildren =
+                children.store(location, caseSensitivity, new ChildMap.StoreHandler<ValuedVfsHierarchy<T>>() {
+                    @Override
+                    public ValuedVfsHierarchy<T> handleAsDescendantOfChild(
+                            VfsRelativePath pathInChild, ValuedVfsHierarchy<T> child) {
+                        return child.recordValue(pathInChild, value);
+                    }
 
-            @Override
-            public ValuedVfsHierarchy<T> handleAsAncestorOfChild(String childPath, ValuedVfsHierarchy<T> child) {
-                ChildMap<ValuedVfsHierarchy<T>> singletonChild = ChildMapFactory.childMapFromSorted(ImmutableList.of(
-                    new ChildMap.Entry<>(location.pathToChild(childPath), child)
-                ));
-                return new ValuedVfsHierarchy<>(PersistentList.of(value), singletonChild, caseSensitivity);
-            }
+                    @Override
+                    public ValuedVfsHierarchy<T> handleAsAncestorOfChild(
+                            String childPath, ValuedVfsHierarchy<T> child) {
+                        ChildMap<ValuedVfsHierarchy<T>> singletonChild = ChildMapFactory.childMapFromSorted(
+                                ImmutableList.of(new ChildMap.Entry<>(location.pathToChild(childPath), child)));
+                        return new ValuedVfsHierarchy<>(PersistentList.of(value), singletonChild, caseSensitivity);
+                    }
 
-            @Override
-            public ValuedVfsHierarchy<T> mergeWithExisting(ValuedVfsHierarchy<T> child) {
-                return new ValuedVfsHierarchy<>(child.getValues().plus(value), child.getChildren(), caseSensitivity);
-            }
+                    @Override
+                    public ValuedVfsHierarchy<T> mergeWithExisting(ValuedVfsHierarchy<T> child) {
+                        return new ValuedVfsHierarchy<>(
+                                child.getValues().plus(value), child.getChildren(), caseSensitivity);
+                    }
 
-            @Override
-            public ValuedVfsHierarchy<T> createChild() {
-                return new ValuedVfsHierarchy<>(PersistentList.of(value), EmptyChildMap.getInstance(), caseSensitivity);
-            }
+                    @Override
+                    public ValuedVfsHierarchy<T> createChild() {
+                        return new ValuedVfsHierarchy<>(
+                                PersistentList.of(value), EmptyChildMap.getInstance(), caseSensitivity);
+                    }
 
-            @Override
-            public ValuedVfsHierarchy<T> createNodeFromChildren(ChildMap<ValuedVfsHierarchy<T>> children) {
-                return new ValuedVfsHierarchy<>(PersistentList.of(), children, caseSensitivity);
-            }
-        });
+                    @Override
+                    public ValuedVfsHierarchy<T> createNodeFromChildren(ChildMap<ValuedVfsHierarchy<T>> children) {
+                        return new ValuedVfsHierarchy<>(PersistentList.of(), children, caseSensitivity);
+                    }
+                });
         return new ValuedVfsHierarchy<>(values, newChildren, caseSensitivity);
     }
 
@@ -185,18 +185,12 @@ public final class ValuedVfsHierarchy<T> {
     }
 
     private void visitAllChildren(BiConsumer<PersistentList<T>, Supplier<String>> childConsumer) {
-        children.stream()
-            .forEach(entry -> {
-                ValuedVfsHierarchy<T> child = entry.getValue();
-                childConsumer.accept(
-                    child.getValues(),
-                    entry::getPath
-                );
-                child.visitAllChildren((grandChildren, relativePath) -> childConsumer.accept(grandChildren, () -> joinRelativePaths(
-                    entry.getPath(),
-                    relativePath.get())
-                ));
-            });
+        children.stream().forEach(entry -> {
+            ValuedVfsHierarchy<T> child = entry.getValue();
+            childConsumer.accept(child.getValues(), entry::getPath);
+            child.visitAllChildren((grandChildren, relativePath) ->
+                    childConsumer.accept(grandChildren, () -> joinRelativePaths(entry.getPath(), relativePath.get())));
+        });
     }
 
     private ChildMap<ValuedVfsHierarchy<T>> getChildren() {

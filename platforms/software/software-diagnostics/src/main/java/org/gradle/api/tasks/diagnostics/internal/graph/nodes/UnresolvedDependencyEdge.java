@@ -16,6 +16,9 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -24,10 +27,6 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
 public class UnresolvedDependencyEdge implements DependencyEdge {
     private final UnresolvedDependencyResult dependency;

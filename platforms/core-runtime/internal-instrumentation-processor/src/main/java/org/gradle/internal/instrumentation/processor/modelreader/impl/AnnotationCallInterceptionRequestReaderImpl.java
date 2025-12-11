@@ -16,6 +16,31 @@
 
 package org.gradle.internal.instrumentation.processor.modelreader.impl;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils.findAnnotationMirror;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils.findAnnotationValue;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractMethodDescriptor;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractReturnType;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
+
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instrumentation.api.annotations.CallableDefinition;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
@@ -38,32 +63,6 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Type;
 
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils.findAnnotationMirror;
-import static org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils.findAnnotationValue;
-import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractMethodDescriptor;
-import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractReturnType;
-import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
-
 public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMethodReaderExtension {
 
     @Override
@@ -80,7 +79,8 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
             CallableInfo callableInfo = extractCallableInfo(input);
             ImplementationInfoImpl implementationInfo = extractImplementationInfo(input);
             List<RequestExtra> requestExtras = Collections.singletonList(new OriginatingElement(input));
-            return singletonList(new Result.Success(new CallInterceptionRequestImpl(callableInfo, implementationInfo, requestExtras)));
+            return singletonList(new Result.Success(
+                    new CallInterceptionRequestImpl(callableInfo, implementationInfo, requestExtras)));
         } catch (Failure e) {
             return singletonList(new Result.InvalidRequest(e.reason));
         }
@@ -107,10 +107,12 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
 
     private static String getCallableName(ExecutableElement methodElement, CallableKindInfo kindInfo) {
         CallableDefinition.Name nameAnnotation = methodElement.getAnnotation(CallableDefinition.Name.class);
-        String nameFromPattern = callableNameFromNamingConvention(methodElement.getSimpleName().toString());
+        String nameFromPattern =
+                callableNameFromNamingConvention(methodElement.getSimpleName().toString());
         if (kindInfo == CallableKindInfo.AFTER_CONSTRUCTOR) {
             if (nameAnnotation != null) {
-                throw new Failure("@" + CallableKind.AfterConstructor.class.getSimpleName() + " cannot be used with @" + CallableDefinition.Name.class.getSimpleName());
+                throw new Failure("@" + CallableKind.AfterConstructor.class.getSimpleName() + " cannot be used with @"
+                        + CallableDefinition.Name.class.getSimpleName());
             }
             if (nameFromPattern != null) {
                 throw new Failure("Constructor interceptors cannot follow the 'intercept_*' name pattern");
@@ -119,12 +121,15 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         } else {
             if (nameAnnotation == null) {
                 if (nameFromPattern == null) {
-                    throw new Failure("Expected the interceptor method to be annotated with @" + CallableDefinition.Name.class.getSimpleName() + " or to have the 'intercept_*' pattern in the name");
+                    throw new Failure("Expected the interceptor method to be annotated with @"
+                            + CallableDefinition.Name.class.getSimpleName()
+                            + " or to have the 'intercept_*' pattern in the name");
                 }
                 return nameFromPattern;
             } else {
                 if (nameFromPattern != null) {
-                    throw new Failure("@" + CallableDefinition.Name.class.getSimpleName() + " cannot be used with method names following the 'intercept_*' pattern");
+                    throw new Failure("@" + CallableDefinition.Name.class.getSimpleName()
+                            + " cannot be used with method names following the 'intercept_*' pattern");
                 }
             }
             return nameAnnotation.value();
@@ -147,14 +152,17 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
 
     private static CallableKindInfo extractCallableKind(ExecutableElement methodElement) {
         List<Annotation> kindAnnotations = Stream.of(CALLABLE_KIND_ANNOTATION_CLASSES)
-            .map(methodElement::getAnnotation)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+                .map(methodElement::getAnnotation)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
         if (kindAnnotations.size() > 1) {
             throw new Failure("More than one callable kind annotations present: " + kindAnnotations);
         } else if (kindAnnotations.size() == 0) {
-            throw new Failure("No callable kind annotation specified, expected one of " + Arrays.stream(CALLABLE_KIND_ANNOTATION_CLASSES).map(Class::getSimpleName).collect(Collectors.joining(", ")));
+            throw new Failure("No callable kind annotation specified, expected one of "
+                    + Arrays.stream(CALLABLE_KIND_ANNOTATION_CLASSES)
+                            .map(Class::getSimpleName)
+                            .collect(Collectors.joining(", ")));
         } else {
             return CallableKindInfo.fromAnnotation(kindAnnotations.get(0));
         }
@@ -182,7 +190,8 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
 
         if (parameterKindInfo == ParameterKindInfo.VARARG_METHOD_PARAMETER) {
             if (parameterType.getSort() != Type.ARRAY) {
-                throw new Failure("a @" + ParameterKind.VarargParameter.class.getSimpleName() + " parameter must have an array type");
+                throw new Failure("a @" + ParameterKind.VarargParameter.class.getSimpleName()
+                        + " parameter must have an array type");
             }
         }
 
@@ -191,9 +200,9 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
 
     private static ParameterKindInfo extractParameterKind(VariableElement parameterElement, boolean isVararg) {
         List<Annotation> kindAnnotations = Stream.of(PARAMETER_KIND_ANNOTATION_CLASSES)
-            .map(parameterElement::getAnnotation)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+                .map(parameterElement::getAnnotation)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
         if (kindAnnotations.size() > 1) {
             throw new Failure("More than one parameter kind annotations present: " + kindAnnotations);
@@ -202,31 +211,38 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         } else {
             ParameterKindInfo parameterKindInfo = ParameterKindInfo.fromAnnotation(kindAnnotations.get(0));
             if (isVararg && parameterKindInfo != ParameterKindInfo.VARARG_METHOD_PARAMETER) {
-                throw new Failure("a vararg parameter can only be @" + ParameterKind.VarargParameter.class.getSimpleName() + " (maybe implicitly)");
+                throw new Failure("a vararg parameter can only be @"
+                        + ParameterKind.VarargParameter.class.getSimpleName() + " (maybe implicitly)");
             }
             return parameterKindInfo;
         }
     }
 
     private static Type extractOwnerClass(ExecutableElement executableElement) {
-        Optional<? extends AnnotationMirror> maybeStaticMethod = findAnnotationMirror(executableElement, CallableKind.StaticMethod.class);
+        Optional<? extends AnnotationMirror> maybeStaticMethod =
+                findAnnotationMirror(executableElement, CallableKind.StaticMethod.class);
         List<VariableElement> receivers = executableElement.getParameters().stream()
-            .filter(it -> it.getAnnotation(ParameterKind.Receiver.class) != null)
-            .collect(Collectors.toList());
+                .filter(it -> it.getAnnotation(ParameterKind.Receiver.class) != null)
+                .collect(Collectors.toList());
 
         if (maybeStaticMethod.isPresent()) {
             if (receivers.size() > 0) {
-                throw new Failure("Static method interceptors should not declare @" + ParameterKind.Receiver.class.getSimpleName() + " parameters");
+                throw new Failure("Static method interceptors should not declare @"
+                        + ParameterKind.Receiver.class.getSimpleName() + " parameters");
             }
-            TypeMirror staticMethodOwner = (TypeMirror) findAnnotationValue(maybeStaticMethod.get(), "ofClass").orElseThrow(() -> new IllegalStateException("missing annotation value")).getValue();
+            TypeMirror staticMethodOwner = (TypeMirror) findAnnotationValue(maybeStaticMethod.get(), "ofClass")
+                    .orElseThrow(() -> new IllegalStateException("missing annotation value"))
+                    .getValue();
             return extractType(staticMethodOwner);
         }
 
         if (receivers.size() == 0) {
-            throw new Failure("Expected owner defined as a @" + ParameterKind.Receiver.class.getSimpleName() + " parameter or @" + CallableKind.StaticMethod.class.getSimpleName() + " annotation");
+            throw new Failure("Expected owner defined as a @" + ParameterKind.Receiver.class.getSimpleName()
+                    + " parameter or @" + CallableKind.StaticMethod.class.getSimpleName() + " annotation");
         }
         if (receivers.size() > 1) {
-            throw new Failure("Only one parameter can be annotated with @" + ParameterKind.Receiver.class.getSimpleName());
+            throw new Failure(
+                    "Only one parameter can be annotated with @" + ParameterKind.Receiver.class.getSimpleName());
         }
         VariableElement receiver = receivers.get(0);
         TypeMirror receiverType = receiver.asType();
@@ -244,19 +260,21 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         }
     }
 
-    private static final Class<? extends Annotation>[] CALLABLE_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(new Class<?>[]{
-        CallableKind.InstanceMethod.class,
-        CallableKind.StaticMethod.class,
-        CallableKind.AfterConstructor.class,
-        CallableKind.GroovyPropertyGetter.class,
-        CallableKind.GroovyPropertySetter.class
-    });
+    private static final Class<? extends Annotation>[] CALLABLE_KIND_ANNOTATION_CLASSES =
+            Cast.uncheckedNonnullCast(new Class<?>[] {
+                CallableKind.InstanceMethod.class,
+                CallableKind.StaticMethod.class,
+                CallableKind.AfterConstructor.class,
+                CallableKind.GroovyPropertyGetter.class,
+                CallableKind.GroovyPropertySetter.class
+            });
 
-    private static final Class<? extends Annotation>[] PARAMETER_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(new Class<?>[]{
-        ParameterKind.Receiver.class,
-        ParameterKind.CallerClassName.class,
-        ParameterKind.KotlinDefaultMask.class,
-        ParameterKind.VarargParameter.class,
-        ParameterKind.InjectVisitorContext.class
-    });
+    private static final Class<? extends Annotation>[] PARAMETER_KIND_ANNOTATION_CLASSES =
+            Cast.uncheckedNonnullCast(new Class<?>[] {
+                ParameterKind.Receiver.class,
+                ParameterKind.CallerClassName.class,
+                ParameterKind.KotlinDefaultMask.class,
+                ParameterKind.VarargParameter.class,
+                ParameterKind.InjectVisitorContext.class
+            });
 }

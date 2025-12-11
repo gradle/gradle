@@ -15,14 +15,13 @@
  */
 package org.gradle.integtests.tooling.r56;
 
+import java.io.Serializable;
 import org.gradle.api.Action;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.eclipse.EclipseRuntime;
 import org.gradle.tooling.model.eclipse.EclipseWorkspace;
 import org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies;
-
-import java.io.Serializable;
 
 public class TellGradleToRunBuildDependencyTask implements BuildAction<Void>, Serializable {
 
@@ -36,7 +35,8 @@ public class TellGradleToRunBuildDependencyTask implements BuildAction<Void>, Se
     @Override
     public Void execute(BuildController controller) {
         if (workspace != null) {
-            controller.getModel(RunClosedProjectBuildDependencies.class, EclipseRuntime.class, new EclipseRuntimeAction(workspace));
+            controller.getModel(
+                    RunClosedProjectBuildDependencies.class, EclipseRuntime.class, new EclipseRuntimeAction(workspace));
         } else {
             controller.getModel(RunClosedProjectBuildDependencies.class);
         }
@@ -56,5 +56,4 @@ public class TellGradleToRunBuildDependencyTask implements BuildAction<Void>, Se
             eclipseRuntime.setWorkspace(workspace);
         }
     }
-
 }

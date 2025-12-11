@@ -16,9 +16,8 @@
 
 package org.gradle.process.internal.util;
 
-import org.gradle.internal.os.OperatingSystem;
-
 import java.util.List;
+import org.gradle.internal.os.OperatingSystem;
 
 public class LongCommandLineDetectionUtil {
     // See http://msdn.microsoft.com/en-us/library/windows/desktop/ms682425(v=vs.85).aspx
@@ -32,10 +31,13 @@ public class LongCommandLineDetectionUtil {
     /**
      * Java 25 changed the error message format of exec failures.
      */
-    private static final String NEW_NIX_LONG_COMMAND_EXCEPTION_MESSAGE = "Exec failed, error: 7 (Argument list too long)";
+    private static final String NEW_NIX_LONG_COMMAND_EXCEPTION_MESSAGE =
+            "Exec failed, error: 7 (Argument list too long)";
 
     public static boolean hasCommandLineExceedMaxLength(String command, List<String> arguments) {
-        int commandLineLength = command.length() + arguments.stream().map(String::length).reduce(Integer::sum).orElse(0) + arguments.size();
+        int commandLineLength = command.length()
+                + arguments.stream().map(String::length).reduce(Integer::sum).orElse(0)
+                + arguments.size();
         return commandLineLength > getMaxCommandLineLength();
     }
 
@@ -55,8 +57,8 @@ public class LongCommandLineDetectionUtil {
         do {
             String message = cause.getMessage();
             if (message.contains(WINDOWS_LONG_COMMAND_EXCEPTION_MESSAGE)
-                || message.contains(NIX_LONG_COMMAND_EXCEPTION_MESSAGE)
-                || message.contains(NEW_NIX_LONG_COMMAND_EXCEPTION_MESSAGE)) {
+                    || message.contains(NIX_LONG_COMMAND_EXCEPTION_MESSAGE)
+                    || message.contains(NEW_NIX_LONG_COMMAND_EXCEPTION_MESSAGE)) {
                 return true;
             }
         } while ((cause = cause.getCause()) != null);

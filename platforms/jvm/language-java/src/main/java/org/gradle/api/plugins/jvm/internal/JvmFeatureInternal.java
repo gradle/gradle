@@ -192,5 +192,4 @@ public interface JvmFeatureInternal extends Named {
      * @return The {@code runtimeElements} configuration.
      */
     NamedDomainObjectProvider<ConsumableConfiguration> getRuntimeElementsConfiguration();
-
 }

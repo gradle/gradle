@@ -16,11 +16,6 @@
 
 package org.gradle.internal.watch.registry;
 
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.watch.WatchingNotSupportedException;
-
-import javax.annotation.CheckReturnValue;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +23,10 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.CheckReturnValue;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.watch.WatchingNotSupportedException;
 
 public interface FileWatcherRegistry extends Closeable {
 
@@ -61,7 +60,10 @@ public interface FileWatcherRegistry extends Closeable {
      *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
+    void virtualFileSystemContentsChanged(
+            Collection<FileSystemLocationSnapshot> removedSnapshots,
+            Collection<FileSystemLocationSnapshot> addedSnapshots,
+            SnapshotHierarchy root);
 
     /**
      * Updates the VFS and the watchers when the build started.
@@ -69,7 +71,8 @@ public interface FileWatcherRegistry extends Closeable {
      * For example, this method checks if watched hierarchies are where we left them after the previous build.
      */
     @CheckReturnValue
-    SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
+    SnapshotHierarchy updateVfsOnBuildStarted(
+            SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
 
     /**
      * Updates the VFS and the watchers before the build finishes.
@@ -80,7 +83,8 @@ public interface FileWatcherRegistry extends Closeable {
      * @return the snapshot hierarchy without snapshots which can't be kept till the next build.
      */
     @CheckReturnValue
-    SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
+    SnapshotHierarchy updateVfsBeforeBuildFinished(
+            SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
 
     /**
      * Updates the VFS and the watchers after the build finished.
@@ -105,8 +109,11 @@ public interface FileWatcherRegistry extends Closeable {
 
     interface FileWatchingStatistics {
         Optional<Throwable> getErrorWhileReceivingFileChanges();
+
         boolean isUnknownEventEncountered();
+
         int getNumberOfReceivedEvents();
+
         int getNumberOfWatchedHierarchies();
     }
 }

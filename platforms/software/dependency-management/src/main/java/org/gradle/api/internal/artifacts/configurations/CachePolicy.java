@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
-
 import java.util.concurrent.TimeUnit;
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 
 /**
  * Immutable counterpart to {@link CacheExpirationControl}.
@@ -39,5 +38,4 @@ public interface CachePolicy {
     CachePolicy copy();
 
     CacheExpirationControl asImmutable();
-
 }

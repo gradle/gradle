@@ -30,8 +30,5 @@ import org.jspecify.annotations.Nullable;
 @NullMarked
 public interface InternalFetchAwareBuildController {
     <M> InternalFetchModelResult<M> fetch(
-        @Nullable Object target,
-        ModelIdentifier modelIdentifier,
-        @Nullable Object parameter
-    );
+            @Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter);
 }

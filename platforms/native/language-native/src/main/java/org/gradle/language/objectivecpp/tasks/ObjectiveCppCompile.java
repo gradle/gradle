@@ -31,5 +31,4 @@ public abstract class ObjectiveCppCompile extends AbstractNativeSourceCompileTas
     protected NativeCompileSpec createCompileSpec() {
         return new DefaultObjectiveCppCompileSpec();
     }
-
 }

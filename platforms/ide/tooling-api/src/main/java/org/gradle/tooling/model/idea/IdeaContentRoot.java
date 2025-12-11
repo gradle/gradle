@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.model.idea;
 
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.UnsupportedMethodException;
-
 import java.io.File;
 import java.util.Set;
+import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
 /**
  * Contains content root information.
@@ -49,7 +48,6 @@ public interface IdeaContentRoot {
      * @since 4.7
      */
     DomainObjectSet<? extends IdeaSourceDirectory> getResourceDirectories() throws UnsupportedMethodException;
-
 
     /**
      * The set of test resource directories.

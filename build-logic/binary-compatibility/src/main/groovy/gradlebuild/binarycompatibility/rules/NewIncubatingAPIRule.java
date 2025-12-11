@@ -21,9 +21,8 @@ import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiField;
 import japicmp.model.JApiHasAnnotations;
 import japicmp.model.JApiMethod;
-import me.champeau.gradle.japicmp.report.Violation;
-
 import java.util.Map;
+import me.champeau.gradle.japicmp.report.Violation;
 
 public class NewIncubatingAPIRule extends AbstractGradleViolationRule {
 
@@ -44,5 +43,4 @@ public class NewIncubatingAPIRule extends AbstractGradleViolationRule {
         }
         return null;
     }
-
 }

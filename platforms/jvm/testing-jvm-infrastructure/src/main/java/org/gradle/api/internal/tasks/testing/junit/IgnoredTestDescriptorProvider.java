@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import java.util.List;
 import org.gradle.api.internal.tasks.testing.TestSuiteExecutionException;
 import org.junit.internal.runners.JUnit38ClassRunner;
 import org.junit.runner.Description;
@@ -23,8 +24,6 @@ import org.junit.runner.Request;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
 import org.junit.runners.AllTests;
-
-import java.util.List;
 
 public class IgnoredTestDescriptorProvider {
     public static List<Description> getAllDescriptions(Description description, String className) {
@@ -34,13 +33,15 @@ public class IgnoredTestDescriptorProvider {
             final Description runnerDescription = runner.getDescription();
             return runnerDescription.getChildren();
         } catch (Throwable throwable) {
-            throw new TestSuiteExecutionException(String.format("Unable to process Ignored class %s.", className), throwable);
+            throw new TestSuiteExecutionException(
+                    String.format("Unable to process Ignored class %s.", className), throwable);
         }
     }
 
     private static Runner getRunner(Class<?> testClass) throws Throwable {
         try {
-            final AllExceptIgnoredTestRunnerBuilder allExceptIgnoredTestRunnerBuilder = new AllExceptIgnoredTestRunnerBuilder();
+            final AllExceptIgnoredTestRunnerBuilder allExceptIgnoredTestRunnerBuilder =
+                    new AllExceptIgnoredTestRunnerBuilder();
             Runner runner = allExceptIgnoredTestRunnerBuilder.runnerForClass(testClass);
             if (runner == null) {
                 // Fall back to default runner
@@ -69,8 +70,8 @@ public class IgnoredTestDescriptorProvider {
                 return runnerClass.getConstructor(Class.class).newInstance(testClass);
             } catch (NoSuchMethodException e) {
                 String simpleName = runnerClass.getSimpleName();
-                throw new org.junit.internal.runners.InitializationError("Custom runner class " + simpleName +
-                    " should have a public constructor with signature " + simpleName + "(Class testClass)");
+                throw new org.junit.internal.runners.InitializationError("Custom runner class " + simpleName
+                        + " should have a public constructor with signature " + simpleName + "(Class testClass)");
             }
         } else if (hasSuiteMethod(testClass)) {
             return new AllTests(testClass);

@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.provider.Property;
@@ -32,8 +33,6 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
 import org.gradle.api.tasks.Nested;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 public interface MavenPomInternal extends MavenPom {
 
@@ -70,5 +69,4 @@ public interface MavenPomInternal extends MavenPom {
     Action<XmlProvider> getXmlAction();
 
     Property<Boolean> getWriteGradleMetadataMarker();
-
 }

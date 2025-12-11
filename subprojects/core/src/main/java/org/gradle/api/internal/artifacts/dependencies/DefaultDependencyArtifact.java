@@ -26,10 +26,10 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
     private String classifier;
     private String url;
 
-    public DefaultDependencyArtifact() {
-    }
+    public DefaultDependencyArtifact() {}
 
-    public DefaultDependencyArtifact(String name, String type, @Nullable String extension, @Nullable String classifier, @Nullable String url) {
+    public DefaultDependencyArtifact(
+            String name, String type, @Nullable String extension, @Nullable String classifier, @Nullable String url) {
         this.name = name;
         this.type = type;
         this.extension = extension;

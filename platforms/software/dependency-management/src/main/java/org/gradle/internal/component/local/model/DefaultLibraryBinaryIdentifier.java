@@ -65,8 +65,8 @@ public class DefaultLibraryBinaryIdentifier implements LibraryBinaryIdentifier {
         }
         DefaultLibraryBinaryIdentifier that = (DefaultLibraryBinaryIdentifier) o;
         return Objects.equal(projectPath, that.projectPath)
-            && Objects.equal(libraryName, that.libraryName)
-            && Objects.equal(variant, that.variant);
+                && Objects.equal(libraryName, that.libraryName)
+                && Objects.equal(variant, that.variant);
     }
 
     @Override

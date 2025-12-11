@@ -39,5 +39,4 @@ public class EnumConstantMetaData extends AbstractLanguageElement implements Ser
     public String toString() {
         return String.format("%s.%s()", ownerClass, name);
     }
-
 }

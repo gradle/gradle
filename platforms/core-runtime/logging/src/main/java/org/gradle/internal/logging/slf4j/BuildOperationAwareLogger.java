@@ -97,55 +97,45 @@ abstract class BuildOperationAwareLogger implements Logger {
     }
 
     @Override
-    public void trace(String msg) {
-    }
+    public void trace(String msg) {}
 
     @Override
-    public void trace(String format, Object arg) {
-    }
+    public void trace(String format, Object arg) {}
 
     @Override
-    public void trace(String format, Object arg1, Object arg2) {
-    }
+    public void trace(String format, Object arg1, Object arg2) {}
 
     @Override
-    public void trace(String format, Object... arguments) {
-    }
+    public void trace(String format, Object... arguments) {}
 
     @Override
-    public void trace(String msg, Throwable t) {
-    }
+    public void trace(String msg, Throwable t) {}
 
     @Override
-    public void trace(Marker marker, String msg) {
-    }
+    public void trace(Marker marker, String msg) {}
 
     @Override
-    public void trace(Marker marker, String format, Object arg) {
-    }
+    public void trace(Marker marker, String format, Object arg) {}
 
     @Override
-    public void trace(Marker marker, String format, Object arg1, Object arg2) {
-    }
+    public void trace(Marker marker, String format, Object arg1, Object arg2) {}
 
     @Override
-    public void trace(Marker marker, String format, Object... argArray) {
-    }
+    public void trace(Marker marker, String format, Object... argArray) {}
 
     @Override
-    public void trace(Marker marker, String msg, Throwable t) {
-    }
+    public void trace(Marker marker, String msg, Throwable t) {}
 
     private void log(LogLevel logLevel, Throwable throwable, String message) {
         log(logLevel, throwable, message, CurrentBuildOperationRef.instance().getId());
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object arg) {
-        log(logLevel, throwable, format, new Object[]{arg});
+        log(logLevel, throwable, format, new Object[] {arg});
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object arg1, Object arg2) {
-        log(logLevel, throwable, format, new Object[]{arg1, arg2});
+        log(logLevel, throwable, format, new Object[] {arg1, arg2});
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object[] args) {

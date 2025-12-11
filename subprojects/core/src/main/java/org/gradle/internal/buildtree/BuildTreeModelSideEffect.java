@@ -16,9 +16,8 @@
 
 package org.gradle.internal.buildtree;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.io.Serializable;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * An internal side effect executed during a build action
@@ -32,5 +31,4 @@ import java.io.Serializable;
 public interface BuildTreeModelSideEffect extends Serializable {
 
     void runSideEffect();
-
 }

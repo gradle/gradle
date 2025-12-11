@@ -19,5 +19,4 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 
-public interface TestMavenArtifactRepository extends MavenArtifactRepository, ArtifactRepositoryInternal {
-}
+public interface TestMavenArtifactRepository extends MavenArtifactRepository, ArtifactRepositoryInternal {}

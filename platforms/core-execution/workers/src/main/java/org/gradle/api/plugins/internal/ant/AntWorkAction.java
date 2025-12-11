@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.internal.ant;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
@@ -24,18 +25,19 @@ import org.gradle.workers.WorkAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-
 public abstract class AntWorkAction<T extends AntWorkParameters> implements WorkAction<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntWorkAction.class);
 
     @Override
     public void execute() {
-        LOGGER.info("Running {} with toolchain '{}'.", getActionName(), Jvm.current().getJavaHome().getAbsolutePath());
+        LOGGER.info(
+                "Running {} with toolchain '{}'.",
+                getActionName(),
+                Jvm.current().getJavaHome().getAbsolutePath());
 
         getIsolatedAntBuilder()
-            .withClasspath(getParameters().getAntLibraryClasspath())
-            .execute(getAntAction());
+                .withClasspath(getParameters().getAntLibraryClasspath())
+                .execute(getAntAction());
     }
 
     protected abstract String getActionName();

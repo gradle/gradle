@@ -35,12 +35,16 @@ public interface CacheConfigurationsInternal extends CacheConfigurations {
 
     @Override
     CacheResourceConfigurationInternal getReleasedWrappers();
+
     @Override
     CacheResourceConfigurationInternal getSnapshotWrappers();
+
     @Override
     CacheResourceConfigurationInternal getDownloadedResources();
+
     @Override
     CacheResourceConfigurationInternal getCreatedResources();
+
     @Override
     CacheResourceConfigurationInternal getBuildCache();
 

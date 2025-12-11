@@ -61,5 +61,4 @@ public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
     @Internal
     @Incubating
     SingleFileReport getSarif();
-
 }

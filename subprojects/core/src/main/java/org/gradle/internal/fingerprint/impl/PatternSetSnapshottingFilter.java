@@ -17,9 +17,15 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.Iterables;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.gradle.api.Describable;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFilePermissions;
 import org.gradle.api.specs.Spec;
@@ -30,13 +36,6 @@ import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.util.internal.GFileUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 public class PatternSetSnapshottingFilter implements SnapshottingFilter {
     private final PatternSet patternSet;
@@ -62,7 +61,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
     public DirectoryWalkerPredicate getAsDirectoryWalkerPredicate() {
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
         return (Path path, String name, boolean isDirectory, Iterable<String> relativePath) ->
-            spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, relativePath, stat));
+                spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, relativePath, stat));
     }
 
     /**
@@ -76,7 +75,8 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         private RelativePath relativePath;
         private File file;
 
-        public LogicalFileTreeElement(FileSystemLocationSnapshot snapshot, Iterable<String> relativePathIterable, Stat stat) {
+        public LogicalFileTreeElement(
+                FileSystemLocationSnapshot snapshot, Iterable<String> relativePathIterable, Stat stat) {
             this.snapshot = snapshot;
             this.relativePathIterable = relativePathIterable;
             this.stat = stat;
@@ -157,7 +157,8 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         private final Iterable<String> relativePath;
         private final Stat stat;
 
-        public PathBackedFileTreeElement(Path path, String name, boolean isDirectory, Iterable<String> relativePath, Stat stat) {
+        public PathBackedFileTreeElement(
+                Path path, String name, boolean isDirectory, Iterable<String> relativePath, Stat stat) {
             this.path = path;
             this.name = name;
             this.isDirectory = isDirectory;

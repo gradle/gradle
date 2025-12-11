@@ -16,10 +16,9 @@
 
 package org.gradle.internal.jvm.inspection;
 
+import java.util.function.BiConsumer;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.jspecify.annotations.NonNull;
-
-import java.util.function.BiConsumer;
 
 public class ReportingJvmMetadataDetector implements JvmMetadataDetector {
 
@@ -29,7 +28,9 @@ public class ReportingJvmMetadataDetector implements JvmMetadataDetector {
     @NonNull
     private final BiConsumer<InstallationLocation, JvmInstallationMetadata> reporter;
 
-    public ReportingJvmMetadataDetector(@NonNull JvmMetadataDetector delegate, @NonNull BiConsumer<InstallationLocation, JvmInstallationMetadata> reporter) {
+    public ReportingJvmMetadataDetector(
+            @NonNull JvmMetadataDetector delegate,
+            @NonNull BiConsumer<InstallationLocation, JvmInstallationMetadata> reporter) {
         this.delegate = delegate;
         this.reporter = reporter;
     }

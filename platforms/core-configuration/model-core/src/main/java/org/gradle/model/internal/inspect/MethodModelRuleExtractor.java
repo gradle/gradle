@@ -32,5 +32,6 @@ public interface MethodModelRuleExtractor {
      * @return The extracted rule, or null when there are problems with the rule definition. Problems should be collected using the given context.
      */
     @Nullable
-    <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context);
+    <R, S> ExtractedModelRule registration(
+            MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context);
 }

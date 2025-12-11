@@ -17,9 +17,8 @@
 package org.gradle.execution.plan.edges;
 
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.execution.plan.Node;
-
 import java.util.Set;
+import org.gradle.execution.plan.Node;
 
 public interface DependencyNodesSet {
     DependencyNodesSet EMPTY = new DependencyNodesSet() {
@@ -44,8 +43,7 @@ public interface DependencyNodesSet {
         }
 
         @Override
-        public void onNodeComplete(Node node, Node dependency) {
-        }
+        public void onNodeComplete(Node node, Node dependency) {}
 
         @Override
         public Node.DependenciesState getState(Node node) {

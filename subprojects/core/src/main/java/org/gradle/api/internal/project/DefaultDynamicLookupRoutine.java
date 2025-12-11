@@ -17,12 +17,11 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.MissingPropertyException;
+import java.util.Map;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 public class DefaultDynamicLookupRoutine implements DynamicLookupRoutine {
     @Override

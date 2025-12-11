@@ -21,5 +21,4 @@ package org.gradle.internal.installation.beacon;
  * See {@code CurrentGradleInstallationLocator}.
  */
 @SuppressWarnings("unused")
-public interface InstallationBeacon {
-}
+public interface InstallationBeacon {}

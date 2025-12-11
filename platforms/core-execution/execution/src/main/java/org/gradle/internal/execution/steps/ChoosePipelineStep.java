@@ -26,8 +26,8 @@ public class ChoosePipelineStep<C extends IdentityContext, R extends Result> imp
     private final Step<? super IdentityContext, ? extends R> mutablePipeline;
 
     public ChoosePipelineStep(
-        Step<? super IdentityContext, ? extends R> immutablePipeline, Step<? super IdentityContext, ? extends R> mutablePipeline
-    ) {
+            Step<? super IdentityContext, ? extends R> immutablePipeline,
+            Step<? super IdentityContext, ? extends R> mutablePipeline) {
         this.immutablePipeline = immutablePipeline;
         this.mutablePipeline = mutablePipeline;
     }

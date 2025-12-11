@@ -19,14 +19,13 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
+import java.util.Set;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.InterningStringSerializer;
 import org.gradle.internal.serialize.SetSerializer;
-
-import java.util.Set;
 
 /**
  * An immutable set of details extracted from a class file.
@@ -38,7 +37,12 @@ public class ClassAnalysis {
     private final String dependencyToAllReason;
     private final IntSet constants;
 
-    public ClassAnalysis(String className, Set<String> privateClassDependencies, Set<String> accessibleClassDependencies, String dependencyToAllReason, IntSet constants) {
+    public ClassAnalysis(
+            String className,
+            Set<String> privateClassDependencies,
+            Set<String> accessibleClassDependencies,
+            String dependencyToAllReason,
+            IntSet constants) {
         this.className = className;
         this.privateClassDependencies = ImmutableSet.copyOf(privateClassDependencies);
         this.accessibleClassDependencies = ImmutableSet.copyOf(accessibleClassDependencies);
@@ -94,6 +98,5 @@ public class ClassAnalysis {
             stringSetSerializer.write(encoder, value.getAccessibleClassDependencies());
             IntSetSerializer.INSTANCE.write(encoder, value.getConstants());
         }
-
     }
 }

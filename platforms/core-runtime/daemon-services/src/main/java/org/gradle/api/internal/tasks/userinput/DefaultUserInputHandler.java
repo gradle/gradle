@@ -15,6 +15,11 @@
  */
 package org.gradle.api.internal.tasks.userinput;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import org.apache.commons.lang3.BooleanUtils;
 import org.gradle.api.Transformer;
 import org.gradle.internal.logging.events.BooleanQuestionPromptEvent;
@@ -28,12 +33,6 @@ import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.events.YesNoQuestionPromptEvent;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 
 public class DefaultUserInputHandler extends AbstractUserInputHandler {
     private final OutputEventListener eventDispatch;
@@ -68,7 +67,8 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
 
         @Override
         public boolean askBooleanQuestion(String question, final boolean defaultValue) {
-            BooleanQuestionPromptEvent prompt = new BooleanQuestionPromptEvent(clock.getCurrentTime(), question, defaultValue);
+            BooleanQuestionPromptEvent prompt =
+                    new BooleanQuestionPromptEvent(clock.getCurrentTime(), question, defaultValue);
             return prompt(prompt, defaultValue, BooleanUtils::toBoolean);
         }
 
@@ -87,13 +87,15 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
 
         @Override
         public int askIntQuestion(String question, int minValue, int defaultValue) {
-            IntQuestionPromptEvent prompt = new IntQuestionPromptEvent(clock.getCurrentTime(), question, minValue, defaultValue);
+            IntQuestionPromptEvent prompt =
+                    new IntQuestionPromptEvent(clock.getCurrentTime(), question, minValue, defaultValue);
             return prompt(prompt, defaultValue, Integer::parseInt);
         }
 
         @Override
         public String askQuestion(String question, final String defaultValue) {
-            TextQuestionPromptEvent prompt = new TextQuestionPromptEvent(clock.getCurrentTime(), question, defaultValue);
+            TextQuestionPromptEvent prompt =
+                    new TextQuestionPromptEvent(clock.getCurrentTime(), question, defaultValue);
             return prompt(prompt, defaultValue, sanitizedValue -> sanitizedValue);
         }
 
@@ -136,7 +138,8 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             }
         }
 
-        private <T> T selectOption(String question, Collection<T> options, T defaultOption, Function<T, String> renderer) {
+        private <T> T selectOption(
+                String question, Collection<T> options, T defaultOption, Function<T, String> renderer) {
             if (!options.contains(defaultOption)) {
                 throw new IllegalArgumentException("Default value is not one of the provided options.");
             }
@@ -150,7 +153,8 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
                 T option = values.get(i);
                 displayValues.add(renderer.apply(option));
             }
-            SelectOptionPromptEvent prompt = new SelectOptionPromptEvent(clock.getCurrentTime(), question, displayValues, values.indexOf(defaultOption));
+            SelectOptionPromptEvent prompt = new SelectOptionPromptEvent(
+                    clock.getCurrentTime(), question, displayValues, values.indexOf(defaultOption));
             return prompt(prompt, defaultOption, sanitizedInput -> {
                 int value = Integer.parseInt(sanitizedInput);
                 return values.get(value);

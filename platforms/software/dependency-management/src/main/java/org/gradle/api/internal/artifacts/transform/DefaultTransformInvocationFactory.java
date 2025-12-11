@@ -17,6 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.TransformExecutionResult.TransformWorkspaceResult;
@@ -38,12 +41,9 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-
 public class DefaultTransformInvocationFactory implements TransformInvocationFactory {
-    private static final InternalOption<@Nullable String> CACHING_DISABLED_PROPERTY = StringInternalOption.of("org.gradle.internal.transform-caching-disabled");
+    private static final InternalOption<@Nullable String> CACHING_DISABLED_PROPERTY =
+            StringInternalOption.of("org.gradle.internal.transform-caching-disabled");
 
     private final ExecutionEngine executionEngine;
     private final InternalOptions internalOptions;
@@ -55,15 +55,14 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     private final BuildOperationProgressEventEmitter progressEventEmitter;
 
     public DefaultTransformInvocationFactory(
-        ExecutionEngine executionEngine,
-        InternalOptions internalOptions,
-        TransformExecutionListener transformExecutionListener,
-        ImmutableTransformWorkspaceServices immutableWorkspaceServices,
-        FileCollectionFactory fileCollectionFactory,
-        ProjectStateRegistry projectStateRegistry,
-        BuildOperationRunner buildOperationRunner,
-        BuildOperationProgressEventEmitter progressEventEmitter
-    ) {
+            ExecutionEngine executionEngine,
+            InternalOptions internalOptions,
+            TransformExecutionListener transformExecutionListener,
+            ImmutableTransformWorkspaceServices immutableWorkspaceServices,
+            FileCollectionFactory fileCollectionFactory,
+            ProjectStateRegistry projectStateRegistry,
+            BuildOperationRunner buildOperationRunner,
+            BuildOperationProgressEventEmitter progressEventEmitter) {
         this.executionEngine = executionEngine;
         this.internalOptions = internalOptions;
         this.transformExecutionListener = transformExecutionListener;
@@ -76,12 +75,11 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
     @Override
     public Deferrable<Try<ImmutableList<File>>> createInvocation(
-        Transform transform,
-        File inputArtifact,
-        TransformDependencies dependencies,
-        TransformStepSubject subject,
-        InputFingerprinter inputFingerprinter
-    ) {
+            Transform transform,
+            File inputArtifact,
+            TransformDependencies dependencies,
+            TransformStepSubject subject,
+            InputFingerprinter inputFingerprinter) {
         ProjectInternal producerProject = determineProducerProject(subject);
 
         Cache<Identity, DeferredResult<TransformWorkspaceResult>> identityCache;
@@ -91,69 +89,70 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
         if (producerProject != null && transform.requiresInputChanges()) {
             // Incremental project artifact transforms are executed in a project-bound mutable workspace
-            MutableTransformWorkspaceServices workspaceServices = producerProject.getServices().get(MutableTransformWorkspaceServices.class);
+            MutableTransformWorkspaceServices workspaceServices =
+                    producerProject.getServices().get(MutableTransformWorkspaceServices.class);
             identityCache = workspaceServices.getIdentityCache();
             execution = new MutableTransformExecution(
-                transform,
-                inputArtifact,
-                dependencies,
-                subject,
-                producerProject,
-
-                transformExecutionListener,
-                buildOperationRunner,
-                progressEventEmitter,
-                fileCollectionFactory,
-                inputFingerprinter,
-                workspaceServices.getWorkspaceProvider(),
-                workspaceServices.getExecutionHistoryStore(),
-
-                cachingDisabledByProperty
-            );
+                    transform,
+                    inputArtifact,
+                    dependencies,
+                    subject,
+                    producerProject,
+                    transformExecutionListener,
+                    buildOperationRunner,
+                    progressEventEmitter,
+                    fileCollectionFactory,
+                    inputFingerprinter,
+                    workspaceServices.getWorkspaceProvider(),
+                    workspaceServices.getExecutionHistoryStore(),
+                    cachingDisabledByProperty);
         } else {
-            // Immutable transforms and transforms without a producer project are executed in a global immutable workspace
+            // Immutable transforms and transforms without a producer project are executed in a global immutable
+            // workspace
             identityCache = immutableWorkspaceServices.getIdentityCache();
             execution = new ImmutableTransformExecution(
-                transform,
-                inputArtifact,
-                dependencies,
-                subject,
-
-                transformExecutionListener,
-                buildOperationRunner,
-                progressEventEmitter,
-                fileCollectionFactory,
-                inputFingerprinter,
-                immutableWorkspaceServices.getWorkspaceProvider(),
-
-                cachingDisabledByProperty
-            );
+                    transform,
+                    inputArtifact,
+                    dependencies,
+                    subject,
+                    transformExecutionListener,
+                    buildOperationRunner,
+                    progressEventEmitter,
+                    fileCollectionFactory,
+                    inputFingerprinter,
+                    immutableWorkspaceServices.getWorkspaceProvider(),
+                    cachingDisabledByProperty);
         }
-        return executionEngine.createRequest(execution)
-            .executeDeferred(identityCache)
-            .map(result -> result
-                .map(successfulResult -> successfulResult.resolveForInputArtifact(inputArtifact))
-                .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
+        return executionEngine
+                .createRequest(execution)
+                .executeDeferred(identityCache)
+                .map(result -> result.map(successfulResult -> successfulResult.resolveForInputArtifact(inputArtifact))
+                        .mapFailure(failure -> new TransformException(
+                                String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
     }
 
     @Nullable
     private ProjectInternal determineProducerProject(TransformStepSubject subject) {
         ComponentIdentifier componentIdentifier = subject.getInitialComponentIdentifier();
         if (componentIdentifier instanceof ProjectComponentIdentifier) {
-            return projectStateRegistry.stateFor((ProjectComponentIdentifier) componentIdentifier).getMutableModel();
+            return projectStateRegistry
+                    .stateFor((ProjectComponentIdentifier) componentIdentifier)
+                    .getMutableModel();
         } else {
             return null;
         }
     }
 
     private boolean isCachingDisabledByProperty(Transform transform) {
-        String experimentalProperty = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get();
+        String experimentalProperty =
+                internalOptions.getOption(CACHING_DISABLED_PROPERTY).get();
         if (experimentalProperty != null) {
             if (experimentalProperty.isEmpty() || experimentalProperty.equals("true")) {
                 return true;
             }
             List<String> disabledTransformClasses = Arrays.asList(experimentalProperty.split(","));
-            return disabledTransformClasses.contains(transform.getImplementationClass().getName());
+            return disabledTransformClasses.contains(
+                    transform.getImplementationClass().getName());
         }
 
         return false;

@@ -16,6 +16,16 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationVariant;
@@ -31,17 +41,6 @@ import org.gradle.api.internal.artifacts.configurations.VariantIdentityUniquenes
 import org.gradle.api.internal.attributes.DefaultCompatibilityRuleChain;
 import org.gradle.api.internal.attributes.DefaultDisambiguationRuleChain;
 import org.gradle.api.internal.file.FileResolver;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Factory for creating {@link ConfigurationReportModel} instances which represent the configurations present in a project.
@@ -61,40 +60,61 @@ public final class ConfigurationReportModelFactory {
         ConfigurationContainerInternal configurations = (ConfigurationContainerInternal) project.getConfigurations();
         final Map<String, ReportConfiguration> convertedConfigurations = new HashMap<>(configurations.size());
 
-        VariantIdentityUniquenessVerifier.VerificationReport uniquenessReport = VariantIdentityUniquenessVerifier.buildReport(configurations);
+        VariantIdentityUniquenessVerifier.VerificationReport uniquenessReport =
+                VariantIdentityUniquenessVerifier.buildReport(configurations);
         configurations.stream()
-            .map(ConfigurationInternal.class::cast)
-            .forEach(configuration -> getOrConvert(configuration, uniquenessReport, project, convertedConfigurations));
+                .map(ConfigurationInternal.class::cast)
+                .forEach(configuration ->
+                        getOrConvert(configuration, uniquenessReport, project, convertedConfigurations));
 
-        return new ConfigurationReportModel(project.getName(),
-            convertedConfigurations.values().stream().sorted(Comparator.comparing(ReportConfiguration::getName)).collect(Collectors.toList()),
-            attributesWithCompatibilityRules, attributesWithDisambiguationRules);
+        return new ConfigurationReportModel(
+                project.getName(),
+                convertedConfigurations.values().stream()
+                        .sorted(Comparator.comparing(ReportConfiguration::getName))
+                        .collect(Collectors.toList()),
+                attributesWithCompatibilityRules,
+                attributesWithDisambiguationRules);
     }
 
-    private ReportConfiguration getOrConvert(ConfigurationInternal configuration, VariantIdentityUniquenessVerifier.VerificationReport uniquenessReport, Project project, Map<String, ReportConfiguration> convertedConfigurations) {
+    private ReportConfiguration getOrConvert(
+            ConfigurationInternal configuration,
+            VariantIdentityUniquenessVerifier.VerificationReport uniquenessReport,
+            Project project,
+            Map<String, ReportConfiguration> convertedConfigurations) {
         return computeIfAbsentExternal(convertedConfigurations, configuration.getName(), name -> {
-            final List<ReportConfiguration> extendedConfigurations = new ArrayList<>(configuration.getExtendsFrom().size());
+            final List<ReportConfiguration> extendedConfigurations =
+                    new ArrayList<>(configuration.getExtendsFrom().size());
             configuration.getExtendsFrom().stream()
-                .map(ConfigurationInternal.class::cast)
-                .forEach(c -> extendedConfigurations.add(getOrConvert(c, uniquenessReport, project, convertedConfigurations)));
+                    .map(ConfigurationInternal.class::cast)
+                    .forEach(c -> extendedConfigurations.add(
+                            getOrConvert(c, uniquenessReport, project, convertedConfigurations)));
 
             return convertConfiguration(configuration, uniquenessReport, project, fileResolver, extendedConfigurations);
         });
     }
 
-    private ReportConfiguration convertConfiguration(ConfigurationInternal configuration, VariantIdentityUniquenessVerifier.VerificationReport uniquenessReport, Project project, FileResolver fileResolver, List<ReportConfiguration> extendedConfigurations) {
+    private ReportConfiguration convertConfiguration(
+            ConfigurationInternal configuration,
+            VariantIdentityUniquenessVerifier.VerificationReport uniquenessReport,
+            Project project,
+            FileResolver fileResolver,
+            List<ReportConfiguration> extendedConfigurations) {
         GradleException duplicateFailure = uniquenessReport.failureFor(configuration, false);
-        List<? extends GradleException> lenientErrors = duplicateFailure != null ? Collections.singletonList(duplicateFailure) : Collections.emptyList();
+        List<? extends GradleException> lenientErrors =
+                duplicateFailure != null ? Collections.singletonList(duplicateFailure) : Collections.emptyList();
 
         final List<ReportAttribute> attributes = configuration.getAttributes().keySet().stream()
-            .map(a -> convertAttributeInContainer(a, configuration.getAttributes(), project.getDependencies().getAttributesSchema()))
-            .sorted(Comparator.comparing(ReportAttribute::getName))
-            .collect(Collectors.toList());
+                .map(a -> convertAttributeInContainer(
+                        a,
+                        configuration.getAttributes(),
+                        project.getDependencies().getAttributesSchema()))
+                .sorted(Comparator.comparing(ReportAttribute::getName))
+                .collect(Collectors.toList());
 
         final List<ReportCapability> explicitCapabilities = configuration.getOutgoing().getCapabilities().stream()
-            .map(this::convertCapability)
-            .sorted(Comparator.comparing(ReportCapability::toGAV))
-            .collect(Collectors.toList());
+                .map(this::convertCapability)
+                .sorted(Comparator.comparing(ReportCapability::toGAV))
+                .collect(Collectors.toList());
         final List<ReportCapability> capabilities;
         if (explicitCapabilities.isEmpty()) {
             capabilities = Collections.singletonList(convertDefaultCapability(project));
@@ -103,14 +123,15 @@ public final class ConfigurationReportModelFactory {
         }
 
         final List<ReportArtifact> artifacts = configuration.getAllArtifacts().stream()
-            .map(a -> convertPublishArtifact(a, fileResolver))
-            .sorted(Comparator.comparing(ReportArtifact::getDisplayName))
-            .collect(Collectors.toList());
+                .map(a -> convertPublishArtifact(a, fileResolver))
+                .sorted(Comparator.comparing(ReportArtifact::getDisplayName))
+                .collect(Collectors.toList());
 
         final List<ReportSecondaryVariant> variants = configuration.getOutgoing().getVariants().stream()
-            .map(v -> convertConfigurationVariant(v, fileResolver, project.getDependencies().getAttributesSchema()))
-            .sorted(Comparator.comparing(ReportSecondaryVariant::getName))
-            .collect(Collectors.toList());
+                .map(v -> convertConfigurationVariant(
+                        v, fileResolver, project.getDependencies().getAttributesSchema()))
+                .sorted(Comparator.comparing(ReportSecondaryVariant::getName))
+                .collect(Collectors.toList());
 
         final ReportConfiguration.Type type;
         if (configuration.isCanBeConsumed() && configuration.isCanBeResolved()) {
@@ -123,36 +144,59 @@ public final class ConfigurationReportModelFactory {
             type = null;
         }
 
-        return new ReportConfiguration(configuration.getName(), configuration.getDescription(), type, new ArrayList<>(lenientErrors),
-            attributes, capabilities, artifacts, variants, extendedConfigurations);
+        return new ReportConfiguration(
+                configuration.getName(),
+                configuration.getDescription(),
+                type,
+                new ArrayList<>(lenientErrors),
+                attributes,
+                capabilities,
+                artifacts,
+                variants,
+                extendedConfigurations);
     }
 
     private ReportArtifact convertPublishArtifact(PublishArtifact publishArtifact, FileResolver fileResolver) {
-        return new ReportArtifact(publishArtifact.getName(), fileResolver.resolveForDisplay(publishArtifact.getFile()), publishArtifact.getClassifier(), publishArtifact.getType());
+        return new ReportArtifact(
+                publishArtifact.getName(),
+                fileResolver.resolveForDisplay(publishArtifact.getFile()),
+                publishArtifact.getClassifier(),
+                publishArtifact.getType());
     }
 
-    private ReportSecondaryVariant convertConfigurationVariant(ConfigurationVariant variant, FileResolver fileResolver, AttributesSchema attributesSchema) {
+    private ReportSecondaryVariant convertConfigurationVariant(
+            ConfigurationVariant variant, FileResolver fileResolver, AttributesSchema attributesSchema) {
         final List<ReportAttribute> attributes = Collections.unmodifiableList(variant.getAttributes().keySet().stream()
-            .map(a -> convertAttributeInContainer(a, variant.getAttributes(), attributesSchema))
-            .sorted(Comparator.comparing(ReportAttribute::getName))
-            .collect(Collectors.toList()));
+                .map(a -> convertAttributeInContainer(a, variant.getAttributes(), attributesSchema))
+                .sorted(Comparator.comparing(ReportAttribute::getName))
+                .collect(Collectors.toList()));
         final List<ReportArtifact> artifacts = Collections.unmodifiableList(variant.getArtifacts().stream()
-            .map(publishArtifact -> convertPublishArtifact(publishArtifact, fileResolver))
-            .sorted(Comparator.comparing(ReportArtifact::getName))
-            .collect(Collectors.toList()));
+                .map(publishArtifact -> convertPublishArtifact(publishArtifact, fileResolver))
+                .sorted(Comparator.comparing(ReportArtifact::getName))
+                .collect(Collectors.toList()));
 
-        return new ReportSecondaryVariant(variant.getName(), variant.getDescription().getOrNull(), attributes, artifacts);
+        return new ReportSecondaryVariant(
+                variant.getName(), variant.getDescription().getOrNull(), attributes, artifacts);
     }
 
-    private ReportAttribute convertAttributeInContainer(Attribute<?> attribute, AttributeContainer container, AttributesSchema attributesSchema) {
-        @SuppressWarnings("unchecked") Attribute<Object> key = (Attribute<Object>) attribute;
+    private ReportAttribute convertAttributeInContainer(
+            Attribute<?> attribute, AttributeContainer container, AttributesSchema attributesSchema) {
+        @SuppressWarnings("unchecked")
+        Attribute<Object> key = (Attribute<Object>) attribute;
         Object value = container.getAttribute(key);
-        return new ReportAttribute(key, value, getDisambiguationPrecedence(attribute, attributesSchema).orElse(null));
+        return new ReportAttribute(
+                key,
+                value,
+                getDisambiguationPrecedence(attribute, attributesSchema).orElse(null));
     }
 
     private ReportAttribute convertUncontainedAttribute(Attribute<?> attribute, AttributesSchema attributesSchema) {
-        @SuppressWarnings("unchecked") Attribute<Object> key = (Attribute<Object>) attribute;
-        return new ReportAttribute(key, null, getDisambiguationPrecedence(attribute, attributesSchema).orElse(null));
+        @SuppressWarnings("unchecked")
+        Attribute<Object> key = (Attribute<Object>) attribute;
+        return new ReportAttribute(
+                key,
+                null,
+                getDisambiguationPrecedence(attribute, attributesSchema).orElse(null));
     }
 
     private Optional<Integer> getDisambiguationPrecedence(Attribute<?> attribute, AttributesSchema attributesSchema) {
@@ -165,7 +209,8 @@ public final class ConfigurationReportModelFactory {
     }
 
     private ReportCapability convertDefaultCapability(Project project) {
-        return new ReportCapability(Objects.toString(project.getGroup()), project.getName(), Objects.toString(project.getVersion()), true);
+        return new ReportCapability(
+                Objects.toString(project.getGroup()), project.getName(), Objects.toString(project.getVersion()), true);
     }
 
     /**
@@ -181,29 +226,31 @@ public final class ConfigurationReportModelFactory {
 
         public List<ReportAttribute> getAttributesWithCompatibilityRules() {
             return attributesSchema.getAttributes().stream()
-                .filter(this::hasCompatibilityRules)
-                .map(a -> convertUncontainedAttribute(a, attributesSchema))
-                .sorted(Comparator.comparing(ReportAttribute::getName))
-                .collect(Collectors.toList());
+                    .filter(this::hasCompatibilityRules)
+                    .map(a -> convertUncontainedAttribute(a, attributesSchema))
+                    .sorted(Comparator.comparing(ReportAttribute::getName))
+                    .collect(Collectors.toList());
         }
 
         public List<ReportAttribute> getAttributesWithDisambiguationRules() {
             return attributesSchema.getAttributes().stream()
-                .filter(this::hasDisambiguationRules)
-                .map(a -> convertUncontainedAttribute(a, attributesSchema))
-                .sorted(Comparator.comparing(ReportAttribute::getName))
-                .collect(Collectors.toList());
+                    .filter(this::hasDisambiguationRules)
+                    .map(a -> convertUncontainedAttribute(a, attributesSchema))
+                    .sorted(Comparator.comparing(ReportAttribute::getName))
+                    .collect(Collectors.toList());
         }
 
         private boolean hasCompatibilityRules(Attribute<?> attribute) {
             final AttributeMatchingStrategy<?> matchingStrategy = attributesSchema.getMatchingStrategy(attribute);
-            final DefaultCompatibilityRuleChain<?> ruleChain = (DefaultCompatibilityRuleChain<?>) matchingStrategy.getCompatibilityRules();
+            final DefaultCompatibilityRuleChain<?> ruleChain =
+                    (DefaultCompatibilityRuleChain<?>) matchingStrategy.getCompatibilityRules();
             return !ruleChain.getRules().isEmpty();
         }
 
         private boolean hasDisambiguationRules(Attribute<?> attribute) {
             final AttributeMatchingStrategy<?> matchingStrategy = attributesSchema.getMatchingStrategy(attribute);
-            final DefaultDisambiguationRuleChain<?> ruleChain = (DefaultDisambiguationRuleChain<?>) matchingStrategy.getDisambiguationRules();
+            final DefaultDisambiguationRuleChain<?> ruleChain =
+                    (DefaultDisambiguationRuleChain<?>) matchingStrategy.getDisambiguationRules();
             return !ruleChain.getRules().isEmpty();
         }
     }
@@ -213,7 +260,8 @@ public final class ConfigurationReportModelFactory {
      *
      * This method exists to externalize that usage and avoid the potential for these sort of issues.
      */
-    private static <K, V> V computeIfAbsentExternal(Map<K, V> map, K key, Function<? super K, ? extends V> mappingFunction) {
+    private static <K, V> V computeIfAbsentExternal(
+            Map<K, V> map, K key, Function<? super K, ? extends V> mappingFunction) {
         if (map.containsKey(key)) {
             return map.get(key);
         } else {

@@ -16,17 +16,16 @@
 
 package org.gradle.internal.enterprise.exceptions;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.VerificationException;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.exceptions.MultiCauseException;
-
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 public final class ExceptionMetadataHelper {
 
@@ -43,7 +42,9 @@ public final class ExceptionMetadataHelper {
         Map<String, String> metadata = new LinkedHashMap<>();
 
         if (t instanceof TaskExecutionException taskExecutionException) {
-            String taskPath = ((TaskInternal) taskExecutionException.getTask()).getIdentityPath().asString();
+            String taskPath = ((TaskInternal) taskExecutionException.getTask())
+                    .getIdentityPath()
+                    .asString();
             metadata.put(METADATA_KEY_TASK_PATH, taskPath);
         }
 
@@ -93,7 +94,5 @@ public final class ExceptionMetadataHelper {
         }
     }
 
-    private ExceptionMetadataHelper() {
-    }
-
+    private ExceptionMetadataHelper() {}
 }

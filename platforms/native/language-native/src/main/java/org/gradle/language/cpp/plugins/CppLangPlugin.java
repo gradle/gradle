@@ -15,6 +15,8 @@
  */
 package org.gradle.language.cpp.plugins;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -39,9 +41,6 @@ import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Adds core C++ language support.
@@ -69,7 +68,8 @@ public abstract class CppLangPlugin implements Plugin<Project> {
         }
     }
 
-    private static class Cpp extends NativeLanguageTransform<CppSourceSet> implements PchEnabledLanguageTransform<CppSourceSet> {
+    private static class Cpp extends NativeLanguageTransform<CppSourceSet>
+            implements PchEnabledLanguageTransform<CppSourceSet> {
         @Override
         public Class<CppSourceSet> getSourceSetType() {
             return CppSourceSet.class;

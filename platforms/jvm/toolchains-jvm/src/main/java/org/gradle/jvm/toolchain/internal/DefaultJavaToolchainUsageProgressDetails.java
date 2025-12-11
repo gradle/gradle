@@ -40,7 +40,9 @@ public class DefaultJavaToolchainUsageProgressDetails implements JavaToolchainUs
 
     @Override
     public JavaToolchain getToolchain() {
-        return toolchainMetadata.isValidInstallation() ? new ToolchainFromMetadata(toolchainMetadata) : UNKNOWN_TOOLCHAIN;
+        return toolchainMetadata.isValidInstallation()
+                ? new ToolchainFromMetadata(toolchainMetadata)
+                : UNKNOWN_TOOLCHAIN;
     }
 
     private static final JavaToolchain UNKNOWN_TOOLCHAIN = new JavaToolchain() {
@@ -148,5 +150,4 @@ public class DefaultJavaToolchainUsageProgressDetails implements JavaToolchainUs
             return toolName;
         }
     }
-
 }

@@ -15,10 +15,9 @@
  */
 package org.gradle.internal.lazy;
 
-import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.function.Supplier;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.jspecify.annotations.Nullable;
 
 @NotThreadSafe
 class UnsafeLazy<T extends @Nullable Object> implements Lazy<T> {

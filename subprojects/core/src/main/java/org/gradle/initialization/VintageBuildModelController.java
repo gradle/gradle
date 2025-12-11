@@ -28,7 +28,9 @@ import org.jspecify.annotations.Nullable;
 
 public class VintageBuildModelController implements BuildModelController {
     private enum Stage implements StateTransitionController.State {
-        Created, SettingsLoaded, Configured
+        Created,
+        SettingsLoaded,
+        Configured
     }
 
     private final ProjectsPreparer projectsPreparer;
@@ -38,17 +40,17 @@ public class VintageBuildModelController implements BuildModelController {
     private final StateTransitionController<Stage> state;
 
     public VintageBuildModelController(
-        GradleInternal gradle,
-        ProjectsPreparer projectsPreparer,
-        SettingsPreparer settingsPreparer,
-        TaskExecutionPreparer taskExecutionPreparer,
-        StateTransitionControllerFactory controllerFactory
-    ) {
+            GradleInternal gradle,
+            ProjectsPreparer projectsPreparer,
+            SettingsPreparer settingsPreparer,
+            TaskExecutionPreparer taskExecutionPreparer,
+            StateTransitionControllerFactory controllerFactory) {
         this.gradle = gradle;
         this.projectsPreparer = projectsPreparer;
         this.settingsPreparer = settingsPreparer;
         this.taskExecutionPreparer = taskExecutionPreparer;
-        this.state = controllerFactory.newController(Describables.of("vintage state of", gradle.getOwner().getDisplayName()), Stage.Created);
+        this.state = controllerFactory.newController(
+                Describables.of("vintage state of", gradle.getOwner().getDisplayName()), Stage.Created);
     }
 
     @Override
@@ -76,11 +78,12 @@ public class VintageBuildModelController implements BuildModelController {
     }
 
     private void prepareSettings() {
-        state.transitionIfNotPreviously(Stage.Created, Stage.SettingsLoaded, () -> settingsPreparer.prepareSettings(gradle));
+        state.transitionIfNotPreviously(
+                Stage.Created, Stage.SettingsLoaded, () -> settingsPreparer.prepareSettings(gradle));
     }
 
     private void prepareProjects() {
-        state.transitionIfNotPreviously(Stage.SettingsLoaded, Stage.Configured, () -> projectsPreparer.prepareProjects(gradle));
+        state.transitionIfNotPreviously(
+                Stage.SettingsLoaded, Stage.Configured, () -> projectsPreparer.prepareProjects(gradle));
     }
-
 }

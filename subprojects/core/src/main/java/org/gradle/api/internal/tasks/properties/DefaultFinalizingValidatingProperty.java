@@ -22,7 +22,8 @@ public class DefaultFinalizingValidatingProperty extends AbstractValidatingPrope
     private final PropertyValue value;
     private LifecycleAwareValue lifecycleAware;
 
-    public DefaultFinalizingValidatingProperty(String propertyName, PropertyValue value, boolean optional, ValidationAction validationAction) {
+    public DefaultFinalizingValidatingProperty(
+            String propertyName, PropertyValue value, boolean optional, ValidationAction validationAction) {
         super(propertyName, value, optional, validationAction);
         this.value = value;
     }

@@ -15,11 +15,10 @@
  */
 package org.gradle.api.attributes;
 
+import java.util.Comparator;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.internal.HasInternalProtocol;
-
-import java.util.Comparator;
 
 /**
  * <p>A chain of compatibility checks, implemented as action rules. By default
@@ -74,6 +73,7 @@ public interface CompatibilityRuleChain<T> {
      * @param configureAction the action to use to configure the rule
      * @since 4.0
      */
-    void add(Class<? extends AttributeCompatibilityRule<T>> ruleClass, Action<? super ActionConfiguration> configureAction);
-
+    void add(
+            Class<? extends AttributeCompatibilityRule<T>> ruleClass,
+            Action<? super ActionConfiguration> configureAction);
 }

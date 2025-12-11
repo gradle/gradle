@@ -16,11 +16,10 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.internal.invocation.BuildAction;
+import java.util.List;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
-
-import java.util.List;
+import org.gradle.internal.invocation.BuildAction;
 
 public class ChainingBuildActionRunner implements BuildActionRunner {
     private final List<? extends BuildActionRunner> runners;
@@ -37,6 +36,8 @@ public class ChainingBuildActionRunner implements BuildActionRunner {
                 return result;
             }
         }
-        throw new UnsupportedOperationException(String.format("Don't know how to run a build action of type %s.", action.getClass().getSimpleName()));
+        throw new UnsupportedOperationException(String.format(
+                "Don't know how to run a build action of type %s.",
+                action.getClass().getSimpleName()));
     }
 }

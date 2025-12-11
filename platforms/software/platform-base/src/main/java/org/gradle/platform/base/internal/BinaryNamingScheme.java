@@ -16,12 +16,11 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.api.Named;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import org.gradle.api.Named;
+import org.jspecify.annotations.Nullable;
 
 public interface BinaryNamingScheme {
     String getBinaryName();

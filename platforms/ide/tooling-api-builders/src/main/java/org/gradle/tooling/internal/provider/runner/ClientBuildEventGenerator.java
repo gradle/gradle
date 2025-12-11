@@ -17,6 +17,12 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.internal.Cast;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -29,13 +35,6 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Generates progress events to send back to the client,
  */
@@ -45,7 +44,11 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
     private final List<BuildOperationTracker> trackers;
     private final Map<OperationIdentifier, Operation> running = new ConcurrentHashMap<>();
 
-    public ClientBuildEventGenerator(ProgressEventConsumer progressEventConsumer, BuildEventSubscriptions subscriptions, List<? extends BuildOperationMapper<?, ?>> mappers, BuildOperationListener nonMappedBuildEventGenerator) {
+    public ClientBuildEventGenerator(
+            ProgressEventConsumer progressEventConsumer,
+            BuildEventSubscriptions subscriptions,
+            List<? extends BuildOperationMapper<?, ?>> mappers,
+            BuildOperationListener nonMappedBuildEventGenerator) {
         this.nonMappedBuildEventGenerator = nonMappedBuildEventGenerator;
         List<Mapper> mapperBuilder = new ArrayList<>(mappers.size());
         Set<BuildOperationTracker> trackers = new LinkedHashSet<>();
@@ -96,7 +99,8 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
         if (operation != null) {
             operation.progress(progressEvent);
         }
-        // For start and finish events we either emit a mapped or a non-mapped event. For progress events we are not doing mapping, but we emit additional progress events. Therefore, we are not
+        // For start and finish events we either emit a mapped or a non-mapped event. For progress events we are not
+        // doing mapping, but we emit additional progress events. Therefore, we are not
         // returning in the if statement above.
         nonMappedBuildEventGenerator.progress(operationIdentifier, progressEvent);
     }
@@ -118,10 +122,12 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
         }
     }
 
-    private static abstract class Operation {
-        public abstract void generateStartEvent(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent);
+    private abstract static class Operation {
+        public abstract void generateStartEvent(
+                BuildOperationDescriptor buildOperation, OperationStartEvent startEvent);
 
-        public abstract void generateFinishEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent);
+        public abstract void generateFinishEvent(
+                BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent);
 
         public abstract void progress(OperationProgressEvent progressEvent);
     }
@@ -131,7 +137,10 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
         private final BuildOperationMapper<Object, InternalOperationDescriptor> mapper;
         private final ProgressEventConsumer progressEventConsumer;
 
-        public EnabledOperation(InternalOperationDescriptor descriptor, BuildOperationMapper<Object, InternalOperationDescriptor> mapper, ProgressEventConsumer progressEventConsumer) {
+        public EnabledOperation(
+                InternalOperationDescriptor descriptor,
+                BuildOperationMapper<Object, InternalOperationDescriptor> mapper,
+                ProgressEventConsumer progressEventConsumer) {
             this.descriptor = descriptor;
             this.mapper = mapper;
             this.progressEventConsumer = progressEventConsumer;
@@ -139,7 +148,8 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
 
         @Override
         public void generateStartEvent(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            progressEventConsumer.started(mapper.createStartedEvent(descriptor, buildOperation.getDetails(), startEvent));
+            progressEventConsumer.started(
+                    mapper.createStartedEvent(descriptor, buildOperation.getDetails(), startEvent));
         }
 
         @Override
@@ -152,25 +162,23 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
 
         @Override
         public void generateFinishEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            progressEventConsumer.finished(mapper.createFinishedEvent(descriptor, buildOperation.getDetails(), finishEvent));
+            progressEventConsumer.finished(
+                    mapper.createFinishedEvent(descriptor, buildOperation.getDetails(), finishEvent));
         }
     }
 
     private static final Operation DISABLED_OPERATION = new Operation() {
         @Override
-        public void generateStartEvent(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        }
+        public void generateStartEvent(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {}
 
         @Override
-        public void progress(OperationProgressEvent progressEvent) {
-        }
+        public void progress(OperationProgressEvent progressEvent) {}
 
         @Override
-        public void generateFinishEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        }
+        public void generateFinishEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {}
     };
 
-    private static abstract class Mapper {
+    private abstract static class Mapper {
         @Nullable
         public abstract Operation accept(BuildOperationDescriptor buildOperation);
     }
@@ -191,7 +199,8 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
         public Operation accept(BuildOperationDescriptor buildOperation) {
             if (detailsType.isInstance(buildOperation.getDetails())) {
                 OperationIdentifier parentId = progressEventConsumer.findStartedParentId(buildOperation);
-                InternalOperationDescriptor descriptor = mapper.createDescriptor(buildOperation.getDetails(), buildOperation, parentId);
+                InternalOperationDescriptor descriptor =
+                        mapper.createDescriptor(buildOperation.getDetails(), buildOperation, parentId);
                 return new EnabledOperation(descriptor, mapper, progressEventConsumer);
             } else {
                 return null;

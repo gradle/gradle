@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import com.google.common.collect.ImmutableSetMultimap;
-
 import java.util.Set;
 
 public class SingleProjectTaskReportModel implements TaskReportModel {
@@ -39,5 +38,4 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
         }
         return groups.get(group);
     }
-
 }

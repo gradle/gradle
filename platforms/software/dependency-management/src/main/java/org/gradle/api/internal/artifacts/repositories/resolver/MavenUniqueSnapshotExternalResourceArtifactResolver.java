@@ -25,7 +25,8 @@ class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalRes
     private final ExternalResourceArtifactResolver delegate;
     private final MavenUniqueSnapshotModuleSource snapshot;
 
-    public MavenUniqueSnapshotExternalResourceArtifactResolver(ExternalResourceArtifactResolver delegate, MavenUniqueSnapshotModuleSource snapshot) {
+    public MavenUniqueSnapshotExternalResourceArtifactResolver(
+            ExternalResourceArtifactResolver delegate, MavenUniqueSnapshotModuleSource snapshot) {
         this.delegate = delegate;
         this.snapshot = snapshot;
     }
@@ -40,7 +41,8 @@ class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalRes
     }
 
     @Override
-    public LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
+    public LocallyAvailableExternalResource resolveArtifact(
+            ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
         if (artifact instanceof UrlBackedArtifactMetadata) {
             return delegate.resolveArtifact(artifact, result);
         } else {
@@ -49,8 +51,8 @@ class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalRes
     }
 
     protected ModuleComponentArtifactMetadata timestamp(ModuleComponentArtifactMetadata artifact) {
-        MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier =
-                new MavenUniqueSnapshotComponentIdentifier(artifact.getId().getComponentIdentifier(), snapshot.getTimestamp());
+        MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier = new MavenUniqueSnapshotComponentIdentifier(
+                artifact.getId().getComponentIdentifier(), snapshot.getTimestamp());
         return new DefaultModuleComponentArtifactMetadata(snapshotComponentIdentifier, artifact.getName());
     }
 }

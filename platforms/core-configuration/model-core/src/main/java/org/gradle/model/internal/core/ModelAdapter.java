@@ -24,7 +24,8 @@ import org.jspecify.annotations.Nullable;
 public interface ModelAdapter {
 
     @Nullable
-    <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor);
+    <T> ModelView<? extends T> asImmutable(
+            ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor);
 
     @Nullable
     <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor);

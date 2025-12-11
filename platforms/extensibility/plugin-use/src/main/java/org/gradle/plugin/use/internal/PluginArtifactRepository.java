@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.use.internal;
 
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
@@ -31,10 +33,8 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-import java.util.Set;
-
-class PluginArtifactRepository implements ArtifactRepositoryInternal, ContentFilteringRepository, ResolutionAwareRepository {
+class PluginArtifactRepository
+        implements ArtifactRepositoryInternal, ContentFilteringRepository, ResolutionAwareRepository {
     private static final String REPOSITORY_NAME_PREFIX = "__plugin_repository__";
 
     private final ArtifactRepositoryInternal delegate;

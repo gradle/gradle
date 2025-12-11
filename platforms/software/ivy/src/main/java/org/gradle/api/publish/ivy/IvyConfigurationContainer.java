@@ -38,5 +38,4 @@ import org.gradle.api.NamedDomainObjectContainer;
  * }
  * </pre>
  */
-public interface IvyConfigurationContainer extends NamedDomainObjectContainer<IvyConfiguration> {
-}
+public interface IvyConfigurationContainer extends NamedDomainObjectContainer<IvyConfiguration> {}

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
@@ -46,11 +48,9 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 class DefaultMetadataProvider implements MetadataProvider {
-    private final static Transformer<ComponentMetadata, BuildableComponentMetadataSupplierDetails> TO_COMPONENT_METADATA = BuildableComponentMetadataSupplierDetails::getExecutionResult;
+    private static final Transformer<ComponentMetadata, BuildableComponentMetadataSupplierDetails>
+            TO_COMPONENT_METADATA = BuildableComponentMetadataSupplierDetails::getExecutionResult;
     private final ModuleComponentResolveState resolveState;
     private BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> cachedResult;
     private ComponentMetadata cachedComponentMetadata;
@@ -74,7 +74,8 @@ class DefaultMetadataProvider implements MetadataProvider {
     @Nullable
     private ComponentMetadata computeMetadata() {
         ComponentMetadata metadata = null;
-        InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier = resolveState.getComponentMetadataSupplier();
+        InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier =
+                resolveState.getComponentMetadataSupplier();
         if (componentMetadataSupplier != null) {
             metadata = getComponentMetadataFromSupplier(componentMetadataSupplier);
         }
@@ -82,25 +83,41 @@ class DefaultMetadataProvider implements MetadataProvider {
             metadata = transformThroughComponentMetadataRules(componentMetadataSupplier, metadata);
         } else if (resolve()) {
             @SuppressWarnings("deprecation")
-            ExternalComponentResolveMetadata legacyMetadata = cachedResult.getMetaData().getLegacyMetadata();
+            ExternalComponentResolveMetadata legacyMetadata =
+                    cachedResult.getMetaData().getLegacyMetadata();
             metadata = new ComponentMetadataAdapter(legacyMetadata);
         }
         return metadata;
     }
 
-    private ComponentMetadata transformThroughComponentMetadataRules(InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier, ComponentMetadata metadata) {
-        DefaultMetadataResolutionContext resolutionContext = new DefaultMetadataResolutionContext(resolveState.getCacheExpirationControl(), componentMetadataSupplier.getInstantiator());
-        metadata = resolveState.getComponentMetadataProcessorFactory().createComponentMetadataProcessor(resolutionContext).processMetadata(metadata);
+    private ComponentMetadata transformThroughComponentMetadataRules(
+            InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier,
+            ComponentMetadata metadata) {
+        DefaultMetadataResolutionContext resolutionContext = new DefaultMetadataResolutionContext(
+                resolveState.getCacheExpirationControl(), componentMetadataSupplier.getInstantiator());
+        metadata = resolveState
+                .getComponentMetadataProcessorFactory()
+                .createComponentMetadataProcessor(resolutionContext)
+                .processMetadata(metadata);
         return metadata;
     }
 
-    private ComponentMetadata getComponentMetadataFromSupplier(InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier) {
+    private ComponentMetadata getComponentMetadataFromSupplier(
+            InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier) {
         ComponentMetadata metadata;
         ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(resolveState.getId());
-        metadata = resolveState.getComponentMetadataSupplierExecutor().execute(id, componentMetadataSupplier, TO_COMPONENT_METADATA, id1 -> {
-            final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(id1, resolveState.getAttributesFactory());
-            return new BuildableComponentMetadataSupplierDetails(builder);
-        }, resolveState.getCacheExpirationControl());
+        metadata = resolveState
+                .getComponentMetadataSupplierExecutor()
+                .execute(
+                        id,
+                        componentMetadataSupplier,
+                        TO_COMPONENT_METADATA,
+                        id1 -> {
+                            final SimpleComponentMetadataBuilder builder =
+                                    new SimpleComponentMetadataBuilder(id1, resolveState.getAttributesFactory());
+                            return new BuildableComponentMetadataSupplierDetails(builder);
+                        },
+                        resolveState.getCacheExpirationControl());
         return metadata;
     }
 
@@ -108,10 +125,12 @@ class DefaultMetadataProvider implements MetadataProvider {
     public IvyModuleDescriptor getIvyModuleDescriptor() {
         if (resolve()) {
             @SuppressWarnings("deprecation")
-            ExternalComponentResolveMetadata legacyMetadata = cachedResult.getMetaData().getLegacyMetadata();
+            ExternalComponentResolveMetadata legacyMetadata =
+                    cachedResult.getMetaData().getLegacyMetadata();
             if (legacyMetadata instanceof IvyModuleResolveMetadata) {
                 IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) legacyMetadata;
-                return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
+                return new DefaultIvyModuleDescriptor(
+                        ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
             }
         }
         return null;
@@ -126,7 +145,8 @@ class DefaultMetadataProvider implements MetadataProvider {
 
     @Override
     public boolean isUsable() {
-        return cachedResult == null || cachedResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
+        return cachedResult == null
+                || cachedResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
     }
 
     public BuildableModuleComponentMetaDataResolveResult<?> getResult() {
@@ -148,7 +168,9 @@ class DefaultMetadataProvider implements MetadataProvider {
         private SimpleComponentMetadataBuilder(ModuleVersionIdentifier id, AttributesFactory attributesFactory) {
             this.id = id;
             this.attributes = attributesFactory.mutable();
-            this.attributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, MavenVersionUtils.inferStatusFromEffectiveVersion(id.getVersion()));
+            this.attributes.attribute(
+                    ProjectInternal.STATUS_ATTRIBUTE,
+                    MavenVersionUtils.inferStatusFromEffectiveVersion(id.getVersion()));
         }
 
         @Override
@@ -192,7 +214,8 @@ class DefaultMetadataProvider implements MetadataProvider {
         private void maybeThrowValidationError(@Nullable List<Attribute<?>> invalidAttributes) {
             if (invalidAttributes != null) {
                 TreeFormatter fm = new TreeFormatter();
-                fm.node("Invalid attributes types have been provider by component metadata supplier. Attributes must either be strings or booleans");
+                fm.node(
+                        "Invalid attributes types have been provider by component metadata supplier. Attributes must either be strings or booleans");
                 fm.startChildren();
                 for (Attribute<?> invalidAttribute : invalidAttributes) {
                     fm.node("Attribute '" + invalidAttribute.getName() + "' has type " + invalidAttribute.getType());
@@ -210,7 +233,6 @@ class DefaultMetadataProvider implements MetadataProvider {
         ComponentMetadata build() {
             return new UserProvidedMetadata(id, statusScheme, validateAttributeTypes(attributes));
         }
-
     }
 
     private class BuildableComponentMetadataSupplierDetails implements ComponentMetadataSupplierDetails {
@@ -237,7 +259,6 @@ class DefaultMetadataProvider implements MetadataProvider {
             }
             return null;
         }
-
     }
 
     private static class DefaultMetadataResolutionContext implements MetadataResolutionContext {
@@ -245,7 +266,8 @@ class DefaultMetadataProvider implements MetadataProvider {
         private final CacheExpirationControl cacheExpirationControl;
         private final Instantiator instantiator;
 
-        private DefaultMetadataResolutionContext(CacheExpirationControl cacheExpirationControl, Instantiator instantiator) {
+        private DefaultMetadataResolutionContext(
+                CacheExpirationControl cacheExpirationControl, Instantiator instantiator) {
             this.cacheExpirationControl = cacheExpirationControl;
             this.instantiator = instantiator;
         }

@@ -15,6 +15,8 @@
  */
 package org.gradle.language.c.plugins;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -38,9 +40,6 @@ import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Adds core C language support.
@@ -68,7 +67,8 @@ public abstract class CLangPlugin implements Plugin<Project> {
         }
     }
 
-    private static class C extends NativeLanguageTransform<CSourceSet> implements PchEnabledLanguageTransform<CSourceSet> {
+    private static class C extends NativeLanguageTransform<CSourceSet>
+            implements PchEnabledLanguageTransform<CSourceSet> {
         @Override
         public Class<CSourceSet> getSourceSetType() {
             return CSourceSet.class;

@@ -22,5 +22,4 @@ package org.gradle.tooling.internal.protocol;
  * <p>Subtypes generally define only a few methods statically. Instances are usually inspected dynamically to
  * determine which methods are actually supported.
  */
-public interface InternalProtocolInterface {
-}
+public interface InternalProtocolInterface {}

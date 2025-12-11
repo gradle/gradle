@@ -22,17 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
-import org.gradle.cache.internal.FileContentCache;
-import org.gradle.cache.internal.FileContentCacheFactory;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.serialize.ListSerializer;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.slf4j.Logger;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +34,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
+import org.gradle.cache.internal.FileContentCache;
+import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.internal.FileUtils;
+import org.gradle.internal.serialize.ListSerializer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.slf4j.Logger;
 
 /**
  * Inspects a classpath to find annotation processors contained in it. If several versions of the same annotation processor are found,
@@ -61,7 +60,11 @@ public class AnnotationProcessorDetector {
     private final boolean logStackTraces;
 
     public AnnotationProcessorDetector(FileContentCacheFactory cacheFactory, Logger logger, boolean logStackTraces) {
-        this.cache = cacheFactory.newCache("annotation-processors", 20000, new ProcessorServiceLocator(), new ListSerializer<>(AnnotationProcessorDeclarationSerializer.INSTANCE));
+        this.cache = cacheFactory.newCache(
+                "annotation-processors",
+                20000,
+                new ProcessorServiceLocator(),
+                new ListSerializer<>(AnnotationProcessorDeclarationSerializer.INSTANCE));
         this.logger = logger;
         this.logStackTraces = logStackTraces;
     }
@@ -83,7 +86,8 @@ public class AnnotationProcessorDetector {
      * TODO once source compatibility is raised to 1.7, this should be rewritten using the java.nio.FileSystem API,
      * which can deal with jars and folders the same way instead of duplicating code.
      */
-    private class ProcessorServiceLocator implements FileContentCacheFactory.Calculator<List<AnnotationProcessorDeclaration>> {
+    private class ProcessorServiceLocator
+            implements FileContentCacheFactory.Calculator<List<AnnotationProcessorDeclaration>> {
 
         @Override
         public List<AnnotationProcessorDeclaration> calculate(File file, boolean isRegularFile) {
@@ -102,11 +106,17 @@ public class AnnotationProcessorDetector {
                     Map<String, IncrementalAnnotationProcessorType> processorTypes = getProcessorTypes(classesDir);
                     return toProcessorDeclarations(processorClassNames, processorTypes);
                 } catch (Exception e) {
-                    logger.warn("Could not read annotation processor declarations from " + classesDir + ". Gradle will assume that all processors in this directory are non-incremental.", logStackTraces ? e : null);
+                    logger.warn(
+                            "Could not read annotation processor declarations from " + classesDir
+                                    + ". Gradle will assume that all processors in this directory are non-incremental.",
+                            logStackTraces ? e : null);
                     return toProcessorDeclarations(processorClassNames, Collections.emptyMap());
                 }
             } catch (Exception e) {
-                logger.warn("Could not read annotation processor declarations from " + classesDir + ". Gradle will assume that this directory contains no annotation processors.", logStackTraces ? e : null);
+                logger.warn(
+                        "Could not read annotation processor declarations from " + classesDir
+                                + ". Gradle will assume that this directory contains no annotation processors.",
+                        logStackTraces ? e : null);
                 return Collections.emptyList();
             }
         }
@@ -141,14 +151,20 @@ public class AnnotationProcessorDetector {
                         Map<String, IncrementalAnnotationProcessorType> processorTypes = getProcessorTypes(zipFile);
                         return toProcessorDeclarations(processorClassNames, processorTypes);
                     } catch (Exception e) {
-                        logger.warn("Could not read annotation processor declarations from " + jar + ". Gradle will assume that all processors in this jar are non-incremental.", logStackTraces ? e : null);
+                        logger.warn(
+                                "Could not read annotation processor declarations from " + jar
+                                        + ". Gradle will assume that all processors in this jar are non-incremental.",
+                                logStackTraces ? e : null);
                         return toProcessorDeclarations(processorClassNames, Collections.emptyMap());
                     }
                 } finally {
                     zipFile.close();
                 }
             } catch (Exception e) {
-                logger.warn("Could not read annotation processor declarations from " + jar + ". Gradle will assume that this jar contains no annotation processors.", logStackTraces ? e : null);
+                logger.warn(
+                        "Could not read annotation processor declarations from " + jar
+                                + ". Gradle will assume that this jar contains no annotation processors.",
+                        logStackTraces ? e : null);
                 return Collections.emptyList();
             }
         }
@@ -173,7 +189,8 @@ public class AnnotationProcessorDetector {
         private List<String> readLines(ZipFile zipFile, ZipArchiveEntry zipEntry) throws IOException {
             InputStream in = zipFile.getInputStream(zipEntry);
             try {
-                return CharStreams.readLines(new InputStreamReader(in, StandardCharsets.UTF_8), new MetadataLineProcessor());
+                return CharStreams.readLines(
+                        new InputStreamReader(in, StandardCharsets.UTF_8), new MetadataLineProcessor());
             } finally {
                 in.close();
             }
@@ -190,10 +207,14 @@ public class AnnotationProcessorDetector {
         }
 
         private IncrementalAnnotationProcessorType parseProcessorType(List<String> parts) {
-            return Enums.getIfPresent(IncrementalAnnotationProcessorType.class, parts.get(1).toUpperCase(Locale.ROOT)).or(IncrementalAnnotationProcessorType.UNKNOWN);
+            return Enums.getIfPresent(
+                            IncrementalAnnotationProcessorType.class,
+                            parts.get(1).toUpperCase(Locale.ROOT))
+                    .or(IncrementalAnnotationProcessorType.UNKNOWN);
         }
 
-        private List<AnnotationProcessorDeclaration> toProcessorDeclarations(List<String> processorNames, Map<String, IncrementalAnnotationProcessorType> processorTypes) {
+        private List<AnnotationProcessorDeclaration> toProcessorDeclarations(
+                List<String> processorNames, Map<String, IncrementalAnnotationProcessorType> processorTypes) {
             if (processorNames.isEmpty()) {
                 return Collections.emptyList();
             }

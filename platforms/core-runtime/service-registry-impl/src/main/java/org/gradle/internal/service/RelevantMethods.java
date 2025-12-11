@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.service;
 
+import static org.gradle.util.internal.ArrayUtils.contains;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -24,17 +26,17 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import static org.gradle.util.internal.ArrayUtils.contains;
-
 class RelevantMethods {
-    private static final ConcurrentMap<Class<?>, RelevantMethods> METHODS_CACHE = new ConcurrentHashMap<Class<?>, RelevantMethods>();
+    private static final ConcurrentMap<Class<?>, RelevantMethods> METHODS_CACHE =
+            new ConcurrentHashMap<Class<?>, RelevantMethods>();
     private static final ServiceMethodFactory SERVICE_METHOD_FACTORY = new DefaultServiceMethodFactory();
 
     final List<ServiceMethod> decorators;
     final List<ServiceMethod> factories;
     final List<ServiceMethod> configurers;
 
-    private RelevantMethods(List<ServiceMethod> decorators, List<ServiceMethod> factories, List<ServiceMethod> configurers) {
+    private RelevantMethods(
+            List<ServiceMethod> decorators, List<ServiceMethod> factories, List<ServiceMethod> configurers) {
         this.decorators = decorators;
         this.factories = factories;
         this.configurers = configurers;
@@ -62,7 +64,9 @@ class RelevantMethods {
         }
 
         public RelevantMethods build() {
-            for (Class<?> clazz = type; clazz != Object.class && clazz != DefaultServiceRegistry.class; clazz = clazz.getSuperclass()) {
+            for (Class<?> clazz = type;
+                    clazz != Object.class && clazz != DefaultServiceRegistry.class;
+                    clazz = clazz.getSuperclass()) {
                 for (Method method : clazz.getDeclaredMethods()) {
                     if (Modifier.isStatic(method.getModifiers())) {
                         continue;
@@ -76,15 +80,18 @@ class RelevantMethods {
         private void addMethod(Method method) {
             if (method.getName().equals("configure")) {
                 if (!method.getReturnType().equals(Void.TYPE)) {
-                    throw new ServiceValidationException(String.format("Method %s.%s() must return void.", type.getName(), method.getName()));
+                    throw new ServiceValidationException(
+                            String.format("Method %s.%s() must return void.", type.getName(), method.getName()));
                 }
                 add(configurers, method);
             } else if (method.getName().startsWith("create") || method.getName().startsWith("decorate")) {
                 if (method.getAnnotation(Provides.class) == null) {
-                    throw new ServiceValidationException(String.format("Method %s.%s() must be annotated with @Provides.", type.getName(), method.getName()));
+                    throw new ServiceValidationException(String.format(
+                            "Method %s.%s() must be annotated with @Provides.", type.getName(), method.getName()));
                 }
                 if (method.getReturnType().equals(Void.TYPE)) {
-                    throw new ServiceValidationException(String.format("Method %s.%s() must not return void.", type.getName(), method.getName()));
+                    throw new ServiceValidationException(
+                            String.format("Method %s.%s() must not return void.", type.getName(), method.getName()));
                 }
                 if (takesReturnTypeAsParameter(method)) {
                     add(decorators, method);
@@ -92,7 +99,9 @@ class RelevantMethods {
                     add(factories, method);
                 }
             } else if (method.getAnnotation(Provides.class) != null) {
-                throw new ServiceValidationException(String.format("Non-factory method %s.%s() must not be annotated with @Provides.", type.getName(), method.getName()));
+                throw new ServiceValidationException(String.format(
+                        "Non-factory method %s.%s() must not be annotated with @Provides.",
+                        type.getName(), method.getName()));
             }
         }
 

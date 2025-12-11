@@ -15,14 +15,13 @@
  */
 package org.gradle.internal.component.model;
 
-import org.gradle.internal.Cast;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
 public class MutableModuleSources implements ModuleSources {
     private List<ModuleSource> moduleSources;
@@ -53,8 +52,8 @@ public class MutableModuleSources implements ModuleSources {
             return Optional.empty();
         }
         return Cast.uncheckedCast(moduleSources.stream()
-            .filter(src -> sourceType.isAssignableFrom(src.getClass()))
-            .findFirst());
+                .filter(src -> sourceType.isAssignableFrom(src.getClass()))
+                .findFirst());
     }
 
     @Override

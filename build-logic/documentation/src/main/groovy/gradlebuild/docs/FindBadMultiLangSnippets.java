@@ -16,6 +16,10 @@
 
 package gradlebuild.docs;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.*;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.DirectoryProperty;
@@ -24,11 +28,6 @@ import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.*;
 
 /**
  * Checks adoc files for reversed multi-language snippet order.
@@ -47,27 +46,32 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
     public void checkMultiLanguageSnippets() {
         Map<File, List<Error>> errors = new TreeMap<>();
 
-        getDocumentationRoot().getAsFileTree().matching(spec -> spec.include("**/*.adoc")).forEach(file -> {
-            gatherBadSnippetsInFile(file, errors);
-        });
+        getDocumentationRoot()
+                .getAsFileTree()
+                .matching(spec -> spec.include("**/*.adoc"))
+                .forEach(file -> {
+                    gatherBadSnippetsInFile(file, errors);
+                });
 
         if (!errors.isEmpty()) {
             StringBuilder sb = new StringBuilder("Found reversed multi-language snippet order in AsciiDoc files:\n");
             for (Map.Entry<File, List<Error>> e : errors.entrySet()) {
                 sb.append(" - ").append(e.getKey().getPath()).append("\n");
                 for (Error err : e.getValue()) {
-                    sb.append("    line ").append(err.line).append(": ").append(err.message).append("\n");
+                    sb.append("    line ")
+                            .append(err.line)
+                            .append(": ")
+                            .append(err.message)
+                            .append("\n");
                 }
             }
             throw new GradleException(sb.toString());
         }
     }
 
-    private static final java.util.regex.Pattern SOURCE_LANG_PATTERN =
-        java.util.regex.Pattern.compile(
+    private static final java.util.regex.Pattern SOURCE_LANG_PATTERN = java.util.regex.Pattern.compile(
             "^\\[\\s*source(?:%[\\w-]+)*\\s*,\\s*([\\w.+-]+)\\s*(?:,.*)?\\]$",
-            java.util.regex.Pattern.CASE_INSENSITIVE
-        );
+            java.util.regex.Pattern.CASE_INSENSITIVE);
 
     private void gatherBadSnippetsInFile(File file, Map<File, List<Error>> errors) {
         List<String> lines = new ArrayList<>();
@@ -86,7 +90,7 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
             String raw = lines.get(i);
             String line = raw.trim();
 
-            if (line.equals("====")) {  // first ====
+            if (line.equals("====")) { // first ====
                 // Toggle example block
                 if (!inExample) {
                     inExample = true;
@@ -141,15 +145,17 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
      */
     private void flagIfReversed(File file, Map<File, List<Error>> errors, List<Snippet> snippets) {
         List<Snippet> pair = snippets.stream()
-            .filter(s -> s.lang != Language.UNKNOWN)
-            .limit(2)
-            .toList();
+                .filter(s -> s.lang != Language.UNKNOWN)
+                .limit(2)
+                .toList();
 
-        if (pair.size() == 2 &&
-            pair.get(0).lang == Language.GROOVY &&
-            pair.get(1).lang == Language.KOTLIN) {
-            addError(errors, file, new Error(pair.get(0).line,
-                "Reversed order: found Groovy first then Kotlin. Expected Kotlin first then Groovy."));
+        if (pair.size() == 2 && pair.get(0).lang == Language.GROOVY && pair.get(1).lang == Language.KOTLIN) {
+            addError(
+                    errors,
+                    file,
+                    new Error(
+                            pair.get(0).line,
+                            "Reversed order: found Groovy first then Kotlin. Expected Kotlin first then Groovy."));
         }
     }
 
@@ -177,11 +183,15 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
         errors.computeIfAbsent(file, f -> new ArrayList<>()).add(error);
     }
 
-    private enum Language { KOTLIN, GROOVY, UNKNOWN }
+    private enum Language {
+        KOTLIN,
+        GROOVY,
+        UNKNOWN
+    }
 
     private static final class Snippet {
-        final int line;       // line of the [.multi-language-sample] header
-        final Language lang;  // best-effort deduction (UNKNOWN allowed)
+        final int line; // line of the [.multi-language-sample] header
+        final Language lang; // best-effort deduction (UNKNOWN allowed)
 
         Snippet(int line, Language lang) {
             this.line = line;

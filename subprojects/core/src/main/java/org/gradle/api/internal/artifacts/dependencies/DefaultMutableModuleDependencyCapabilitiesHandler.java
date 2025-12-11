@@ -15,24 +15,25 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import javax.inject.Inject;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
 import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import javax.inject.Inject;
-
-public abstract class DefaultMutableModuleDependencyCapabilitiesHandler implements ModuleDependencyCapabilitiesInternal {
+public abstract class DefaultMutableModuleDependencyCapabilitiesHandler
+        implements ModuleDependencyCapabilitiesInternal {
 
     private final NotationParser<Object, Capability> capabilityNotationParser;
 
     @Inject
-    public DefaultMutableModuleDependencyCapabilitiesHandler(NotationParser<Object, Capability> capabilityNotationParser) {
+    public DefaultMutableModuleDependencyCapabilitiesHandler(
+            NotationParser<Object, Capability> capabilityNotationParser) {
         this.capabilityNotationParser = capabilityNotationParser;
     }
 
@@ -75,9 +76,8 @@ public abstract class DefaultMutableModuleDependencyCapabilitiesHandler implemen
 
     @Override
     public ModuleDependencyCapabilitiesInternal copy() {
-        DefaultMutableModuleDependencyCapabilitiesHandler out = getObjectFactory().newInstance(
-            DefaultMutableModuleDependencyCapabilitiesHandler.class, capabilityNotationParser
-        );
+        DefaultMutableModuleDependencyCapabilitiesHandler out = getObjectFactory()
+                .newInstance(DefaultMutableModuleDependencyCapabilitiesHandler.class, capabilityNotationParser);
         out.getCapabilitySelectors().addAll(getCapabilitySelectors());
         return out;
     }

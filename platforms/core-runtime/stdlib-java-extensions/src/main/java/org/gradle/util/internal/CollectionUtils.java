@@ -15,10 +15,9 @@
  */
 package org.gradle.util.internal;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.Factory;
-import org.gradle.internal.Pair;
-import org.jspecify.annotations.Nullable;
+import static org.gradle.internal.Cast.cast;
+import static org.gradle.internal.Cast.castNullable;
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 import java.lang.reflect.Array;
 import java.util.AbstractList;
@@ -39,10 +38,10 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Function;
-
-import static org.gradle.internal.Cast.cast;
-import static org.gradle.internal.Cast.castNullable;
-import static org.gradle.internal.Cast.uncheckedNonnullCast;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factory;
+import org.gradle.internal.Pair;
+import org.jspecify.annotations.Nullable;
 
 @SuppressWarnings("join_with_collect")
 public abstract class CollectionUtils {
@@ -133,7 +132,8 @@ public abstract class CollectionUtils {
         return copy;
     }
 
-    public static <T, C extends Collection<T>> C filter(Iterable<? extends T> source, C destination, Spec<? super T> filter) {
+    public static <T, C extends Collection<T>> C filter(
+            Iterable<? extends T> source, C destination, Spec<? super T> filter) {
         for (T item : source) {
             if (filter.isSatisfiedBy(item)) {
                 destination.add(item);
@@ -157,7 +157,8 @@ public abstract class CollectionUtils {
     }
 
     public static <R, I> R[] collectArray(I[] list, Class<R> newType, Function<? super I, ? extends R> transformer) {
-        @SuppressWarnings("unchecked") R[] destination = (R[]) Array.newInstance(newType, list.length);
+        @SuppressWarnings("unchecked")
+        R[] destination = (R[]) Array.newInstance(newType, list.length);
         return collectArray(list, destination, transformer);
     }
 
@@ -186,7 +187,8 @@ public abstract class CollectionUtils {
         }
     }
 
-    public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Function<? super I, ? extends R> transformer) {
+    public static <R, I, C extends Collection<R>> C collect(
+            Iterable<? extends I> source, C destination, Function<? super I, ? extends R> transformer) {
         for (I item : source) {
             destination.add(transformer.apply(item));
         }
@@ -275,7 +277,8 @@ public abstract class CollectionUtils {
      */
     public static <T> List<T> toList(@Nullable Iterable<? extends T> things) {
         if (things instanceof List) {
-            @SuppressWarnings("unchecked") List<T> castThings = (List<T>) things;
+            @SuppressWarnings("unchecked")
+            List<T> castThings = (List<T>) things;
             return castThings;
         }
         return toMutableList(things);
@@ -300,7 +303,6 @@ public abstract class CollectionUtils {
         return list;
     }
 
-
     public static <T> List<T> intersection(Collection<? extends Collection<T>> availableValuesByDescriptor) {
         List<T> result = new ArrayList<T>();
         Iterator<? extends Collection<T>> iterator = availableValuesByDescriptor.iterator();
@@ -313,7 +315,6 @@ public abstract class CollectionUtils {
             }
         }
         return result;
-
     }
 
     public static <T> List<T> toList(T[] things) {
@@ -331,7 +332,8 @@ public abstract class CollectionUtils {
             return new HashSet<T>(0);
         }
         if (things instanceof Set) {
-            @SuppressWarnings("unchecked") Set<T> castThings = (Set<T>) things;
+            @SuppressWarnings("unchecked")
+            Set<T> castThings = (Set<T>) things;
             return castThings;
         }
 
@@ -376,7 +378,8 @@ public abstract class CollectionUtils {
         return stringize(source, new ArrayList<String>(source.size()));
     }
 
-    public static <E> boolean replace(List<E> list, Spec<? super E> filter, Function<? super E, ? extends E> transformer) {
+    public static <E> boolean replace(
+            List<E> list, Spec<? super E> filter, Function<? super E, ? extends E> transformer) {
         boolean replaced = false;
         int i = 0;
         for (E it : list) {
@@ -389,7 +392,8 @@ public abstract class CollectionUtils {
         return replaced;
     }
 
-    public static <K, V> void collectMap(Map<K, V> destination, Iterable<? extends V> items, Function<? super V, ? extends K> keyGenerator) {
+    public static <K, V> void collectMap(
+            Map<K, V> destination, Iterable<? extends V> items, Function<? super V, ? extends K> keyGenerator) {
         for (V item : items) {
             destination.put(keyGenerator.apply(item), item);
         }
@@ -398,13 +402,15 @@ public abstract class CollectionUtils {
     /**
      * Given a set of values, derive a set of keys and return a map
      */
-    public static <K, V> Map<K, V> collectMap(Iterable<? extends V> items, Function<? super V, ? extends K> keyGenerator) {
+    public static <K, V> Map<K, V> collectMap(
+            Iterable<? extends V> items, Function<? super V, ? extends K> keyGenerator) {
         Map<K, V> map = new LinkedHashMap<K, V>();
         collectMap(map, items, keyGenerator);
         return map;
     }
 
-    public static <K, V> void collectMapValues(Map<K, V> destination, Iterable<? extends K> keys, Function<? super K, ? extends V> keyGenerator) {
+    public static <K, V> void collectMapValues(
+            Map<K, V> destination, Iterable<? extends K> keys, Function<? super K, ? extends V> keyGenerator) {
         for (K item : keys) {
             destination.put(item, keyGenerator.apply(item));
         }
@@ -413,7 +419,8 @@ public abstract class CollectionUtils {
     /**
      * Given a set of keys, derive a set of values and return a map
      */
-    public static <K, V> Map<K, V> collectMapValues(Iterable<? extends K> keys, Function<? super K, ? extends V> keyGenerator) {
+    public static <K, V> Map<K, V> collectMapValues(
+            Iterable<? extends K> keys, Function<? super K, ? extends V> keyGenerator) {
         Map<K, V> map = new LinkedHashMap<K, V>();
         collectMapValues(map, keys, keyGenerator);
         return map;
@@ -584,7 +591,8 @@ public abstract class CollectionUtils {
      *
      * @see #join(String, Iterable)
      */
-    public static <R, I> String join(String separator, Iterable<? extends I> objects, Function<? super I, ? extends R> transformer) {
+    public static <R, I> String join(
+            String separator, Iterable<? extends I> objects, Function<? super I, ? extends R> transformer) {
         //noinspection join_with_collect
         return join(separator, collect(objects, transformer));
     }

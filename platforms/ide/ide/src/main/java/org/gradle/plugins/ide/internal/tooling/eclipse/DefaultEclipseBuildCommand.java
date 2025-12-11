@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import com.google.common.collect.ImmutableMap;
-
 import java.io.Serializable;
 import java.util.Map;
 

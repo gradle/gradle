@@ -39,8 +39,10 @@ public class IncludeWithSimpleExpression extends AbstractInclude {
     }
 
     public static Include create(Expression expression, boolean isImport) {
-        if (expression.getType() == IncludeType.MACRO_FUNCTION && !expression.getArguments().isEmpty()) {
-            return new IncludeWithMacroFunctionCallExpression(expression.getValue(), isImport, ImmutableList.copyOf(expression.getArguments()));
+        if (expression.getType() == IncludeType.MACRO_FUNCTION
+                && !expression.getArguments().isEmpty()) {
+            return new IncludeWithMacroFunctionCallExpression(
+                    expression.getValue(), isImport, ImmutableList.copyOf(expression.getArguments()));
         }
         return create(expression.getValue(), isImport, expression.getType());
     }

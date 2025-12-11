@@ -59,5 +59,4 @@ public interface ManagedObjectRegistry extends AnnotatedServiceLifecycleHandler 
      * allowing it to instantiate managed types that are not available in the parent scope.
      */
     ManagedObjectRegistry createChild();
-
 }

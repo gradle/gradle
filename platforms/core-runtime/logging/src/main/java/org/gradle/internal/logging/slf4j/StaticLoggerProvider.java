@@ -28,7 +28,7 @@ import org.slf4j.spi.SLF4JServiceProvider;
 
 @NullMarked
 public final class StaticLoggerProvider implements SLF4JServiceProvider {
-    private final IMarkerFactory  markerFactory = new BasicMarkerFactory();
+    private final IMarkerFactory markerFactory = new BasicMarkerFactory();
     private final MDCAdapter mdcAdapter = new NOPMDCAdapter();
 
     @Nullable

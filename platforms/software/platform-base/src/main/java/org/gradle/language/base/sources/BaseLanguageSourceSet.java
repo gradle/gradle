@@ -44,13 +44,19 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
      *
      * @since 5.0
      */
-    public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> implementationType, ComponentSpecIdentifier componentId, ObjectFactory objectFactory) {
+    public static <T extends LanguageSourceSet> T create(
+            Class<? extends LanguageSourceSet> publicType,
+            Class<T> implementationType,
+            ComponentSpecIdentifier componentId,
+            ObjectFactory objectFactory) {
         NEXT_SOURCE_SET_INFO.set(new SourceSetInfo(componentId, publicType, objectFactory));
         try {
             try {
                 return objectFactory.newInstance(implementationType);
             } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create LanguageSourceSet of type %s", publicType.getSimpleName()), e.getCause());
+                throw new ModelInstantiationException(
+                        String.format("Could not create LanguageSourceSet of type %s", publicType.getSimpleName()),
+                        e.getCause());
             }
         } finally {
             NEXT_SOURCE_SET_INFO.set(null);
@@ -68,7 +74,8 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
 
     private static SourceSetInfo validate(SourceSetInfo info) {
         if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a @ComponentType rule instead.");
+            throw new ModelInstantiationException(
+                    "Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a @ComponentType rule instead.");
         }
         return info;
     }
@@ -78,7 +85,10 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
         private final Class<? extends LanguageSourceSet> publicType;
         private final ObjectFactory objectFactory;
 
-        private SourceSetInfo(ComponentSpecIdentifier identifier, Class<? extends LanguageSourceSet> publicType, ObjectFactory objectFactory) {
+        private SourceSetInfo(
+                ComponentSpecIdentifier identifier,
+                Class<? extends LanguageSourceSet> publicType,
+                ObjectFactory objectFactory) {
             this.identifier = identifier;
             this.publicType = publicType;
             this.objectFactory = objectFactory;

@@ -52,9 +52,5 @@ public interface DependencyManagementServices {
      * how files are resolved.
      */
     DependencyResolutionServices newDetachedResolver(
-        FileResolver resolver,
-        FileCollectionFactory fileCollectionFactory,
-        DomainObjectContext owner
-    );
-
+            FileResolver resolver, FileCollectionFactory fileCollectionFactory, DomainObjectContext owner);
 }

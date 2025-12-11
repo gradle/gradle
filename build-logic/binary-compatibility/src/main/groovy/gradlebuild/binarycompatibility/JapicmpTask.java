@@ -18,6 +18,16 @@ package gradlebuild.binarycompatibility;
 
 import gradlebuild.modules.extension.ExternalModulesExtension;
 import japicmp.filter.Filter;
+import java.io.File;
+import java.net.URISyntaxException;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.inject.Inject;
 import me.champeau.gradle.japicmp.JApiCmpWorkAction;
 import me.champeau.gradle.japicmp.JApiCmpWorkerAction;
 import me.champeau.gradle.japicmp.JapiCmpWorkerConfiguration;
@@ -50,17 +60,6 @@ import org.gradle.util.GradleVersion;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.net.URISyntaxException;
-import java.security.CodeSource;
-import java.security.ProtectionDomain;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 @CacheableTask
 public abstract class JapicmpTask extends DefaultTask {
 
@@ -89,17 +88,21 @@ public abstract class JapicmpTask extends DefaultTask {
     public void exec() {
         ConfigurableFileCollection oldArchives = getOldArchives();
         ConfigurableFileCollection newArchives = getNewArchives();
-        List<JApiCmpWorkerAction.Archive> baseline = !oldArchives.isEmpty() ? toArchives(oldArchives) : inferArchives(getOldClasspath());
-        List<JApiCmpWorkerAction.Archive> current = !newArchives.isEmpty() ? toArchives(newArchives) : inferArchives(getNewClasspath());
+        List<JApiCmpWorkerAction.Archive> baseline =
+                !oldArchives.isEmpty() ? toArchives(oldArchives) : inferArchives(getOldClasspath());
+        List<JApiCmpWorkerAction.Archive> current =
+                !newArchives.isEmpty() ? toArchives(newArchives) : inferArchives(getNewClasspath());
         execForNewGradle(baseline, current);
     }
 
-    private void execForNewGradle(final List<JApiCmpWorkerAction.Archive> baseline, final List<JApiCmpWorkerAction.Archive> current) {
+    private void execForNewGradle(
+            final List<JApiCmpWorkerAction.Archive> baseline, final List<JApiCmpWorkerAction.Archive> current) {
         WorkQueue queue = getWorkerExecutor().processIsolation(spec -> {
             spec.getClasspath().from(calculateWorkerClasspath());
             spec.getForkOptions().setMaxHeapSize("1g");
         });
-        queue.submit(JApiCmpWorkAction.class, params -> params.getConfiguration().set(calculateWorkerConfiguration(baseline, current)));
+        queue.submit(JApiCmpWorkAction.class, params -> params.getConfiguration()
+                .set(calculateWorkerConfiguration(baseline, current)));
     }
 
     @Inject
@@ -123,7 +126,8 @@ public abstract class JapicmpTask extends DefaultTask {
         return classpath;
     }
 
-    private JapiCmpWorkerConfiguration calculateWorkerConfiguration(List<JApiCmpWorkerAction.Archive> baseline, List<JApiCmpWorkerAction.Archive> current) {
+    private JapiCmpWorkerConfiguration calculateWorkerConfiguration(
+            List<JApiCmpWorkerAction.Archive> baseline, List<JApiCmpWorkerAction.Archive> current) {
         return new JapiCmpWorkerConfiguration(
                 getIncludeSynthetic().get(),
                 getIgnoreMissingClasses().get(),
@@ -152,8 +156,7 @@ public abstract class JapicmpTask extends DefaultTask {
                 maybeFile(getHtmlOutputFile()),
                 maybeFile(getTxtOutputFile()),
                 getFailOnModification().get(),
-                reportConfigurationOf(getRichReport())
-        );
+                reportConfigurationOf(getRichReport()));
     }
 
     private static RichReport.Configuration reportConfigurationOf(Provider<RichReport> report) {
@@ -173,29 +176,28 @@ public abstract class JapicmpTask extends DefaultTask {
     private Configuration resolveJaxb() {
         Project project = getProject();
         DependencyHandler dependencies = project.getDependencies();
-        return project.getConfigurations().detachedConfiguration(
-                dependencies.create("javax.xml.bind:jaxb-api:2.3.0"),
-                dependencies.create("com.sun.xml.bind:jaxb-core:2.3.0.1"),
-                dependencies.create("com.sun.xml.bind:jaxb-impl:2.3.0.1"),
-                dependencies.create("javax.activation:activation:1.1.1")
-        );
+        return project.getConfigurations()
+                .detachedConfiguration(
+                        dependencies.create("javax.xml.bind:jaxb-api:2.3.0"),
+                        dependencies.create("com.sun.xml.bind:jaxb-core:2.3.0.1"),
+                        dependencies.create("com.sun.xml.bind:jaxb-impl:2.3.0.1"),
+                        dependencies.create("javax.activation:activation:1.1.1"));
     }
 
     private Configuration resolveGuava() {
         Project project = getProject();
         DependencyHandler dependencies = project.getDependencies();
-        return project.getConfigurations().detachedConfiguration(
-                dependencies.create("com.google.guava:guava:30.1.1-jre")
-        );
+        return project.getConfigurations()
+                .detachedConfiguration(dependencies.create("com.google.guava:guava:30.1.1-jre"));
     }
 
     private Configuration resolveKotlinCompilerEmbeddable() {
         Project project = getProject();
         DependencyHandler dependencies = project.getDependencies();
         String kotlinVersion = new ExternalModulesExtension(4) {}.getKotlinVersion();
-        return project.getConfigurations().detachedConfiguration(
-            dependencies.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:" + kotlinVersion)
-        );
+        return project.getConfigurations()
+                .detachedConfiguration(
+                        dependencies.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:" + kotlinVersion));
     }
 
     private void addClasspathFor(Class<?> clazz, Set<File> classpath) {
@@ -213,7 +215,8 @@ public abstract class JapicmpTask extends DefaultTask {
     private List<JApiCmpWorkerAction.Archive> inferArchives(FileCollection fc) {
         if (fc instanceof Configuration) {
             final List<JApiCmpWorkerAction.Archive> archives = new ArrayList<>();
-            Set<ResolvedDependency> firstLevelModuleDependencies = ((Configuration) fc).getResolvedConfiguration().getFirstLevelModuleDependencies();
+            Set<ResolvedDependency> firstLevelModuleDependencies =
+                    ((Configuration) fc).getResolvedConfiguration().getFirstLevelModuleDependencies();
             for (ResolvedDependency moduleDependency : firstLevelModuleDependencies) {
                 collectArchives(archives, moduleDependency);
             }
@@ -232,7 +235,8 @@ public abstract class JapicmpTask extends DefaultTask {
         return archives;
     }
 
-    private void collectArchives(final List<JApiCmpWorkerAction.Archive> archives, ResolvedDependency resolvedDependency) {
+    private void collectArchives(
+            final List<JApiCmpWorkerAction.Archive> archives, ResolvedDependency resolvedDependency) {
         String version = resolvedDependency.getModule().getId().getVersion();
         Set<ResolvedArtifact> allModuleArtifacts = resolvedDependency.getAllModuleArtifacts();
         for (ResolvedArtifact resolvedArtifact : allModuleArtifacts) {
@@ -365,5 +369,4 @@ public abstract class JapicmpTask extends DefaultTask {
     @Optional
     @Nested
     public abstract Property<RichReport> getRichReport();
-
 }

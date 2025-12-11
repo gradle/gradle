@@ -38,5 +38,4 @@ public interface ProjectDependency extends ModuleDependency {
      */
     @Override
     ProjectDependency copy();
-
 }

@@ -21,21 +21,15 @@ import java.util.List;
 
 @SuppressWarnings({"unused", "checkstyle:LeftCurly"})
 public class AllowedMethodTypesClass {
-    public void validMethod(String arg1, String arg2) {
-
-    }
+    public void validMethod(String arg1, String arg2) {}
 
     public File invalidReturnType(String arg1, String arg2) {
         return null;
     }
 
-    public void invalidParameterType(String arg1, File arg2) {
+    public void invalidParameterType(String arg1, File arg2) {}
 
-    }
-
-    public <T extends File> void invalidTypeParameterBoundType(String arg1, String arg2) {
-
-    }
+    public <T extends File> void invalidTypeParameterBoundType(String arg1, String arg2) {}
 
     public List<? extends File> invalidTypeParameterInReturnType(String arg1, String arg2) {
         return null;
@@ -49,7 +43,5 @@ public class AllowedMethodTypesClass {
         return null;
     }
 
-    public void invalidTypeParameterInParameterType(String arg1, List<File> arg2) {
-
-    }
+    public void invalidTypeParameterInParameterType(String arg1, List<File> arg2) {}
 }

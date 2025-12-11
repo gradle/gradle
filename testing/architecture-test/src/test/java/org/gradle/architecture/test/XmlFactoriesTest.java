@@ -16,12 +16,17 @@
 
 package org.gradle.architecture.test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.describe;
+import static com.tngtech.archunit.base.DescribedPredicate.doNot;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongToAnyOf;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import org.gradle.internal.xml.XmlFactories;
-
+import java.util.Arrays;
+import java.util.List;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParserFactory;
@@ -31,40 +36,40 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.xpath.XPathFactory;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.tngtech.archunit.base.DescribedPredicate.describe;
-import static com.tngtech.archunit.base.DescribedPredicate.doNot;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongToAnyOf;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import org.gradle.internal.xml.XmlFactories;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class XmlFactoriesTest {
 
-    private static final String RATIONALE = "for security reasons, all XML factories creation should go through " + XmlFactories.class.getName();
+    private static final String RATIONALE =
+            "for security reasons, all XML factories creation should go through " + XmlFactories.class.getName();
 
     private static final List<Class<?>> xmlFactoryClasses = Arrays.asList(
-        DocumentBuilderFactory.class,
-        SAXParserFactory.class,
-        TransformerFactory.class,
-        XPathFactory.class,
-        SchemaFactory.class,
-        XMLEventFactory.class,
-        XMLInputFactory.class,
-        XMLOutputFactory.class,
-        DatatypeFactory.class
-    );
+            DocumentBuilderFactory.class,
+            SAXParserFactory.class,
+            TransformerFactory.class,
+            XPathFactory.class,
+            SchemaFactory.class,
+            XMLEventFactory.class,
+            XMLInputFactory.class,
+            XMLOutputFactory.class,
+            DatatypeFactory.class);
 
     @ArchTest
     @SuppressWarnings("unused")
-    public static final ArchRule no_xml_factories =
-        noClasses()
+    public static final ArchRule no_xml_factories = noClasses()
             .that(doNot(belongToAnyOf(XmlFactories.class)))
             .should()
-            .callMethodWhere(describe("static XML factories", methodCall ->
-                xmlFactoryClasses.stream().anyMatch(clazz -> methodCall.getTarget().getOwner().isAssignableFrom(clazz)) &&
-                    methodCall.getTarget().resolveMember().get().getModifiers().contains(JavaModifier.STATIC)
-            ))
+            .callMethodWhere(describe(
+                    "static XML factories",
+                    methodCall -> xmlFactoryClasses.stream()
+                                    .anyMatch(clazz ->
+                                            methodCall.getTarget().getOwner().isAssignableFrom(clazz))
+                            && methodCall
+                                    .getTarget()
+                                    .resolveMember()
+                                    .get()
+                                    .getModifiers()
+                                    .contains(JavaModifier.STATIC)))
             .because(RATIONALE);
 }

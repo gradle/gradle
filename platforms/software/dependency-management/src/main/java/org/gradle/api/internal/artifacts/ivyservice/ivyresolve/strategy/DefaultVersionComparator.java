@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
-
 import java.util.Comparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 
 /**
  * This comparator considers `1.1.1 == 1-1-1`.
@@ -41,5 +40,4 @@ public class DefaultVersionComparator implements VersionComparator {
     public Comparator<Version> asVersionComparator() {
         return baseComparator;
     }
-
 }

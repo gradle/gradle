@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
+import java.util.Comparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Comparator;
 
 @ServiceScope(Scope.Build.class)
 public interface VersionComparator extends Comparator<Versioned> {

@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.resolve;
 
+import java.util.Collection;
 import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.VariantComponent;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
 
 public interface VariantBinarySelector {
     Collection<? extends Binary> selectVariants(VariantComponent componentSpec, @Nullable String requestedVariant);

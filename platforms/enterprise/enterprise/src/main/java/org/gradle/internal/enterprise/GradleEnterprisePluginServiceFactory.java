@@ -36,9 +36,7 @@ public interface GradleEnterprisePluginServiceFactory extends Serializable {
      * @return the plugin service
      */
     GradleEnterprisePluginService create(
-        GradleEnterprisePluginConfig config,
-        GradleEnterprisePluginRequiredServices requiredServices,
-        GradleEnterprisePluginBuildState buildState
-    );
-
+            GradleEnterprisePluginConfig config,
+            GradleEnterprisePluginRequiredServices requiredServices,
+            GradleEnterprisePluginBuildState buildState);
 }

@@ -18,6 +18,7 @@ package gradlebuild.docs;
 
 import gradlebuild.basics.PublicApi;
 import gradlebuild.basics.PublicKotlinDslApi;
+import java.util.Collections;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -36,8 +37,6 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 
-import java.util.Collections;
-
 public class GradleBuildDocumentationPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
@@ -46,7 +45,8 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         ObjectFactory objects = project.getObjects();
         ProviderFactory providers = project.getProviders();
 
-        GradleDocumentationExtension extension = project.getExtensions().create("gradleDocumentation", GradleDocumentationExtension.class);
+        GradleDocumentationExtension extension =
+                project.getExtensions().create("gradleDocumentation", GradleDocumentationExtension.class);
         applyConventions(project, tasks, objects, layout, extension);
 
         extension.getQuickFeedback().convention(providers.provider(() -> project.hasProperty("quickDocs")));
@@ -62,14 +62,23 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         checkDocumentation(tasks, extension);
     }
 
-    private void applyConventions(Project project, TaskContainer tasks, ObjectFactory objects, ProjectLayout layout, GradleDocumentationExtension extension) {
+    private void applyConventions(
+            Project project,
+            TaskContainer tasks,
+            ObjectFactory objects,
+            ProjectLayout layout,
+            GradleDocumentationExtension extension) {
 
         TaskProvider<Sync> stageDocs = tasks.register("stageDocs", Sync.class, task -> {
             // release notes goes in the root of the docs
             task.from(extension.getReleaseNotes().getRenderedDocumentation());
 
             // release notes assets go into $root/$assetsName/
-            task.from(extension.getReleaseNotes().getReleaseNotesAssets(), sub -> sub.into(extension.getReleaseNotes().getReleaseNotesAssets().map(dir -> dir.getAsFile().getName())));
+            task.from(
+                    extension.getReleaseNotes().getReleaseNotesAssets(),
+                    sub -> sub.into(
+                            extension.getReleaseNotes().getReleaseNotesAssets().map(dir -> dir.getAsFile()
+                                    .getName())));
 
             // DSL reference goes into dsl/
             task.from(extension.getDslReference().getRenderedDocumentation(), sub -> sub.into("dsl"));
@@ -87,7 +96,9 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         });
 
         extension.getSourceRoot().convention(layout.getProjectDirectory().dir("src/docs"));
-        extension.getDocumentationRenderedRoot().convention(layout.getBuildDirectory().dir("docs"));
+        extension
+                .getDocumentationRenderedRoot()
+                .convention(layout.getBuildDirectory().dir("docs"));
         extension.getStagingRoot().convention(layout.getBuildDirectory().dir("working"));
 
         ConfigurableFileTree css = objects.fileTree();
@@ -109,17 +120,36 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         sourcesPath.extendsFrom(runtimeClasspath);
 
         extension.getClasspath().from(runtimeClasspath);
-        extension.getSourceRoots().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles());
-        extension.getDocumentedSource().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles().getAsFileTree().matching(f -> {
-            f.include(PublicApi.INSTANCE.getIncludes());
-            // Filter out any non-public APIs
-            f.exclude(PublicApi.INSTANCE.getExcludes());
-        }));
-        extension.getKotlinDslSource().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles().getAsFileTree().matching(f -> {
-            f.include(PublicKotlinDslApi.INSTANCE.getIncludes());
-            // Filter out any non-public APIs
-            f.exclude(PublicKotlinDslApi.INSTANCE.getExcludes());
-        }));
+        extension
+                .getSourceRoots()
+                .from(sourcesPath
+                        .getIncoming()
+                        .artifactView(v -> v.lenient(true))
+                        .getFiles());
+        extension
+                .getDocumentedSource()
+                .from(sourcesPath
+                        .getIncoming()
+                        .artifactView(v -> v.lenient(true))
+                        .getFiles()
+                        .getAsFileTree()
+                        .matching(f -> {
+                            f.include(PublicApi.INSTANCE.getIncludes());
+                            // Filter out any non-public APIs
+                            f.exclude(PublicApi.INSTANCE.getExcludes());
+                        }));
+        extension
+                .getKotlinDslSource()
+                .from(sourcesPath
+                        .getIncoming()
+                        .artifactView(v -> v.lenient(true))
+                        .getFiles()
+                        .getAsFileTree()
+                        .matching(f -> {
+                            f.include(PublicKotlinDslApi.INSTANCE.getIncludes());
+                            // Filter out any non-public APIs
+                            f.exclude(PublicKotlinDslApi.INSTANCE.getExcludes());
+                        }));
     }
 
     private void addUtilityTasks(TaskContainer tasks, GradleDocumentationExtension extension) {
@@ -128,10 +158,11 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
             task.setGroup("documentation");
 
             int webserverPort = 8000;
-            task.getJavaLauncher().set(
-                task.getProject().getExtensions().getByType(JavaToolchainService.class)
-                    .launcherFor(spec -> spec.getLanguageVersion().set(JavaLanguageVersion.of(21)))
-            );
+            task.getJavaLauncher()
+                    .set(task.getProject()
+                            .getExtensions()
+                            .getByType(JavaToolchainService.class)
+                            .launcherFor(spec -> spec.getLanguageVersion().set(JavaLanguageVersion.of(21))));
             task.getDocsDirectory().convention(extension.getDocumentationRenderedRoot());
             task.getPort().convention(webserverPort);
 
@@ -147,11 +178,16 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
     private void checkDocumentation(TaskContainer tasks, GradleDocumentationExtension extension) {
         tasks.named("test", Test.class).configure(task -> {
-            task.getInputs().file(extension.getReleaseNotes().getRenderedDocumentation()).withPropertyName("releaseNotes").withPathSensitivity(PathSensitivity.NONE);
+            task.getInputs()
+                    .file(extension.getReleaseNotes().getRenderedDocumentation())
+                    .withPropertyName("releaseNotes")
+                    .withPathSensitivity(PathSensitivity.NONE);
 
             task.getInputs().property("systemProperties", Collections.emptyMap());
             // TODO: This breaks the provider
-            task.systemProperty("org.gradle.docs.releasenotes.rendered", extension.getReleaseNotes().getRenderedDocumentation().get().getAsFile());
+            task.systemProperty(
+                    "org.gradle.docs.releasenotes.rendered",
+                    extension.getReleaseNotes().getRenderedDocumentation().get().getAsFile());
         });
     }
 }

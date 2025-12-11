@@ -16,15 +16,15 @@
 
 package org.gradle.nativeplatform;
 
+import java.io.File;
 import org.gradle.api.Incubating;
 import org.gradle.model.internal.core.UnmanagedStruct;
-
-import java.io.File;
 
 /**
  * Specifies the installation location for a native executable.
  */
-@Incubating @UnmanagedStruct
+@Incubating
+@UnmanagedStruct
 public class NativeInstallationSpec {
     private File directory;
 

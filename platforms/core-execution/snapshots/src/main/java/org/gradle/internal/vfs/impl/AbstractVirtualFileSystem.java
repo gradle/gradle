@@ -16,14 +16,6 @@
 
 package org.gradle.internal.vfs.impl;
 
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.MetadataSnapshot;
-import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.snapshot.VfsRelativePath;
-import org.gradle.internal.vfs.VirtualFileSystem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,6 +23,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.MetadataSnapshot;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.snapshot.VfsRelativePath;
+import org.gradle.internal.vfs.VirtualFileSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractVirtualFileSystem.class);
@@ -78,7 +77,8 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public FileSystemLocationSnapshot store(String absolutePath, Supplier<FileSystemLocationSnapshot> snapshotSupplier) {
+    public FileSystemLocationSnapshot store(
+            String absolutePath, Supplier<FileSystemLocationSnapshot> snapshotSupplier) {
         long versionBefore = versionHierarchyRoot.getVersion(absolutePath);
         FileSystemLocationSnapshot snapshot = snapshotSupplier.get();
         storeIfUnchanged(absolutePath, versionBefore, snapshot);
@@ -97,7 +97,8 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     private void storeIfUnchanged(String absolutePath, long versionBefore, FileSystemLocationSnapshot snapshot) {
         long versionAfter = versionHierarchyRoot.getVersion(absolutePath);
         // Only update VFS if no changes happened in between
-        // The version in sub-locations may be smaller than the version we queried at the root when using a `StoringAction`.
+        // The version in sub-locations may be smaller than the version we queried at the root when using a
+        // `StoringAction`.
         AtomicBoolean updated = new AtomicBoolean(false);
         if (versionBefore >= versionAfter) {
             updateRootUnderLock(root -> {
@@ -112,7 +113,9 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
             });
         }
         if (!updated.get()) {
-            LOGGER.debug("Changes to the virtual file system happened while snapshotting '{}', not storing resulting snapshot", absolutePath);
+            LOGGER.debug(
+                    "Changes to the virtual file system happened while snapshotting '{}', not storing resulting snapshot",
+                    absolutePath);
         }
     }
 

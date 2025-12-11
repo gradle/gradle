@@ -16,14 +16,13 @@
 package org.gradle.platform.base.internal;
 
 import com.google.common.base.Joiner;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.LibraryBinaryDependencySpec;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 
 public class DefaultLibraryBinaryDependencySpec implements LibraryBinaryDependencySpec {
 
@@ -33,7 +32,8 @@ public class DefaultLibraryBinaryDependencySpec implements LibraryBinaryDependen
 
     public DefaultLibraryBinaryDependencySpec(String projectPath, String libraryName, String variant) {
         if (libraryName == null || projectPath == null || variant == null) {
-            throw new IllegalDependencyNotation("A direct library binary dependency must have all of project, library name and variant specified.");
+            throw new IllegalDependencyNotation(
+                    "A direct library binary dependency must have all of project, library name and variant specified.");
         }
         this.libraryName = libraryName;
         this.projectPath = projectPath;
@@ -58,9 +58,9 @@ public class DefaultLibraryBinaryDependencySpec implements LibraryBinaryDependen
     @Override
     public String getDisplayName() {
         List<String> parts = Arrays.asList(
-            "project '" + getProjectPath() + "'",
-            "library '" + getLibraryName() + "'",
-            "variant '" + getVariant() + "'");
+                "project '" + getProjectPath() + "'",
+                "library '" + getLibraryName() + "'",
+                "variant '" + getVariant() + "'");
         return Joiner.on(' ').join(parts);
     }
 
@@ -74,8 +74,8 @@ public class DefaultLibraryBinaryDependencySpec implements LibraryBinaryDependen
         }
         DefaultLibraryBinaryDependencySpec that = (DefaultLibraryBinaryDependencySpec) o;
         return Objects.equals(projectPath, that.projectPath)
-            && Objects.equals(libraryName, that.libraryName)
-            && Objects.equals(variant, that.variant);
+                && Objects.equals(libraryName, that.libraryName)
+                && Objects.equals(variant, that.variant);
     }
 
     @Override

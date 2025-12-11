@@ -16,14 +16,13 @@
 
 package org.gradle.api.plugins;
 
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
-
-import javax.inject.Inject;
 
 /**
  * A plugin that provides JVM toolchains for projects that need to execute Java from local JVM installations or run the tools included in a JDK.
@@ -36,7 +35,12 @@ public abstract class JvmToolchainsPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project target) {
-        target.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, javaToolchainQueryService);
+        target.getExtensions()
+                .create(
+                        JavaToolchainService.class,
+                        "javaToolchains",
+                        DefaultJavaToolchainService.class,
+                        javaToolchainQueryService);
     }
 
     private final JavaToolchainQueryService javaToolchainQueryService;

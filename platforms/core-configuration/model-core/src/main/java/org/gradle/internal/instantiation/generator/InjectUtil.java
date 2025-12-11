@@ -16,12 +16,11 @@
 
 package org.gradle.internal.instantiation.generator;
 
-import org.gradle.internal.logging.text.TreeFormatter;
-
-import javax.inject.Inject;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 class InjectUtil {
 
@@ -33,12 +32,14 @@ class InjectUtil {
      * @param type the type to find the injectable constructor of.
      * @param reportAs errors are reported against this type, useful when the real type is generated, and we'd like to show the original type in messages instead.
      */
-    public static <T> ClassGenerator.GeneratedConstructor<T> selectConstructor(ClassGenerator.GeneratedClass<T> type, Class<?> reportAs) {
+    public static <T> ClassGenerator.GeneratedConstructor<T> selectConstructor(
+            ClassGenerator.GeneratedClass<T> type, Class<?> reportAs) {
         List<ClassGenerator.GeneratedConstructor<T>> constructors = type.getConstructors();
 
         if (constructors.size() == 1) {
             ClassGenerator.GeneratedConstructor<T> constructor = constructors.get(0);
-            if (constructor.getParameterTypes().length == 0 && isPublicOrPackageScoped(type.getGeneratedClass(), constructor)) {
+            if (constructor.getParameterTypes().length == 0
+                    && isPublicOrPackageScoped(type.getGeneratedClass(), constructor)) {
                 return constructor;
             }
             if (constructor.getAnnotation(Inject.class) != null) {
@@ -61,7 +62,8 @@ class InjectUtil {
             }
         }
 
-        List<ClassGenerator.GeneratedConstructor<T>> injectConstructors = new ArrayList<ClassGenerator.GeneratedConstructor<T>>();
+        List<ClassGenerator.GeneratedConstructor<T>> injectConstructors =
+                new ArrayList<ClassGenerator.GeneratedConstructor<T>>();
         for (ClassGenerator.GeneratedConstructor<T> constructor : constructors) {
             if (constructor.getAnnotation(Inject.class) != null) {
                 injectConstructors.add(constructor);
@@ -103,5 +105,4 @@ class InjectUtil {
     private static boolean isPackagePrivate(int modifiers) {
         return !Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers) && !Modifier.isPublic(modifiers);
     }
-
 }

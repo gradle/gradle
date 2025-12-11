@@ -15,10 +15,9 @@
  */
 package org.gradle.test.fixtures.file;
 
+import java.io.File;
 import org.gradle.internal.os.OperatingSystem;
 import org.junit.runners.model.FrameworkMethod;
-
-import java.io.File;
 
 /**
  * A JUnit rule which provides a unique temporary folder for the test.
@@ -35,15 +34,12 @@ public class TestNameTestDirectoryProvider extends AbstractTestDirectoryProvider
     private static String determineTestDirectoryName(Class<?> klass) {
         // NOTE: the space in the directory name is intentional to shake out problems with paths that contain spaces
         // NOTE: and so is the "s with circumflex" character (U+015D), to shake out problems with non-ASCII folder names
-        return shouldUseNonAsciiPath(klass)
-            ? "teŝt files"
-            : "test files";
+        return shouldUseNonAsciiPath(klass) ? "teŝt files" : "test files";
     }
 
     private static boolean shouldUseNonAsciiPath(Class<?> klass) {
         // TODO Remove this parameter and fix encoding problems on Windows, too
-        return !OperatingSystem.current().isWindows()
-            && !klass.isAnnotationPresent(DoesNotSupportNonAsciiPaths.class);
+        return !OperatingSystem.current().isWindows() && !klass.isAnnotationPresent(DoesNotSupportNonAsciiPaths.class);
     }
 
     public static TestNameTestDirectoryProvider forFatDrive(Class<?> klass) {
@@ -68,7 +64,8 @@ public class TestNameTestDirectoryProvider extends AbstractTestDirectoryProvider
             String pathFromParent = "per-test-class-files/" + klass.getName().replace(".", "-");
             this.testDirectory = super.getTestDirectory().getParentFile().file(pathFromParent);
 
-            assert !klass.getName().equals("tmp.extracted.resources"): "Test class cannot be named 'tmp.extracted.resources' when using UniquePerTestClassDirectoryProvider";
+            assert !klass.getName().equals("tmp.extracted.resources")
+                    : "Test class cannot be named 'tmp.extracted.resources' when using UniquePerTestClassDirectoryProvider";
         }
 
         @Override

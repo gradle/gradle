@@ -16,9 +16,8 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.internal.file.FileAccessTimeJournal;
-
 import java.io.File;
+import org.gradle.internal.file.FileAccessTimeJournal;
 
 public abstract class AbstractTimeJournalAwareCacheCleanup extends AbstractCacheCleanup {
     protected final FileAccessTimeJournal journal;

@@ -16,11 +16,10 @@
 
 package org.gradle.execution.plan.edges;
 
-import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.NodeSets;
-
 import java.util.Set;
 import java.util.function.Consumer;
+import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.NodeSets;
 
 class ComplexDependentNodesSet implements DependentNodesSet {
     private final DependencyPredecessorsOnlyNodeSet dependencyPredecessors;

@@ -16,11 +16,10 @@
 
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import org.jspecify.annotations.Nullable;
+import static org.gradle.internal.instrumentation.api.groovybytecode.InvocationUtils.unwrap;
 
 import java.lang.invoke.MethodHandle;
-
-import static org.gradle.internal.instrumentation.api.groovybytecode.InvocationUtils.unwrap;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The implementation of {@link Invocation} that forwards the call to a MethodHandle. Supports both normal and spread Groovy calls.

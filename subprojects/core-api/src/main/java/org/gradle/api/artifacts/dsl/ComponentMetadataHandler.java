@@ -135,7 +135,8 @@ public interface ComponentMetadataHandler {
      *
      * @since 4.9
      */
-    ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction);
+    ComponentMetadataHandler all(
+            Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction);
 
     /**
      * Adds a rule that may modify the metadata of any resolved software component belonging to the specified module.
@@ -190,5 +191,8 @@ public interface ComponentMetadataHandler {
      *
      * @since 4.9
      */
-    ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction);
+    ComponentMetadataHandler withModule(
+            Object id,
+            Class<? extends ComponentMetadataRule> rule,
+            Action<? super ActionConfiguration> configureAction);
 }

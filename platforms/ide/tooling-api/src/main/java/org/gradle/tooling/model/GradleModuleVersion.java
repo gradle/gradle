@@ -37,5 +37,4 @@ public interface GradleModuleVersion {
      * The version, for example '1.0'.
      */
     String getVersion();
-
 }

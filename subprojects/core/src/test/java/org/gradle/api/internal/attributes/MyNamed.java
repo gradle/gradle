@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.Named;
-
 import java.io.Serializable;
+import org.gradle.api.Named;
 
 /**
  * This class lives in the Java source set to avoid Groovy adding a bunch of extra stuff to it.
@@ -37,5 +36,4 @@ public final class MyNamed implements Named, Serializable {
     public String getName() {
         return name;
     }
-
 }

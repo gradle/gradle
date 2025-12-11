@@ -16,6 +16,13 @@
 
 package org.gradle.vcs.internal.resolver;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -58,15 +65,8 @@ import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.gradle.vcs.internal.VersionControlRepositoryConnectionFactory;
 import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-public class VcsDependencyResolver implements DependencyToComponentIdResolver, ComponentResolvers, ComponentMetaDataResolver, ArtifactResolver {
+public class VcsDependencyResolver
+        implements DependencyToComponentIdResolver, ComponentResolvers, ComponentMetaDataResolver, ArtifactResolver {
     private final LocalComponentRegistry localComponentRegistry;
     private final VcsResolver vcsResolver;
     private final VersionControlRepositoryConnectionFactory versionControlSystemFactory;
@@ -76,7 +76,13 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
     private final Set<String> names = new HashSet<>();
 
-    public VcsDependencyResolver(LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryConnectionFactory versionControlSystemFactory, BuildStateRegistry buildRegistry, VcsVersionWorkingDirResolver workingDirResolver, PublicBuildPath publicBuildPath) {
+    public VcsDependencyResolver(
+            LocalComponentRegistry localComponentRegistry,
+            VcsResolver vcsResolver,
+            VersionControlRepositoryConnectionFactory versionControlSystemFactory,
+            BuildStateRegistry buildRegistry,
+            VcsVersionWorkingDirResolver workingDirResolver,
+            PublicBuildPath publicBuildPath) {
         this.localComponentRegistry = localComponentRegistry;
         this.vcsResolver = vcsResolver;
         this.versionControlSystemFactory = versionControlSystemFactory;
@@ -86,7 +92,13 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     }
 
     @Override
-    public void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes) {
+    public void resolve(
+            ComponentSelector selector,
+            ComponentOverrideMetadata overrideMetadata,
+            VersionSelector acceptor,
+            VersionSelector rejector,
+            BuildableComponentIdResolveResult result,
+            ImmutableAttributes consumerAttributes) {
         if (selector instanceof ModuleComponentSelector) {
             final ModuleComponentSelector depSelector = (ModuleComponentSelector) selector;
             VersionControlSpec spec = vcsResolver.locateVcsFor(depSelector);
@@ -102,7 +114,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     return;
                 }
                 if (dependencyWorkingDir == null) {
-                    result.failed(new ModuleVersionNotFoundException(depSelector, Collections.singleton(spec.getDisplayName())));
+                    result.failed(new ModuleVersionNotFoundException(
+                            depSelector, Collections.singleton(spec.getDisplayName())));
                     return;
                 }
 
@@ -110,14 +123,19 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 BuildDefinition buildDefinition = toBuildDefinition((AbstractVersionControlSpec) spec, buildRootDir);
                 IncludedBuildState includedBuild = buildRegistry.addImplicitIncludedBuild(buildDefinition);
 
-                Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> moduleToProject = includedBuild.getAvailableModules();
-                Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry = CollectionUtils.findFirst(moduleToProject, e -> {
-                    ModuleVersionIdentifier possibleMatch = e.left;
-                    return depSelector.getGroup().equals(possibleMatch.getGroup())
-                        && depSelector.getModule().equals(possibleMatch.getName());
-                });
+                Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> moduleToProject =
+                        includedBuild.getAvailableModules();
+                Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry =
+                        CollectionUtils.findFirst(moduleToProject, e -> {
+                            ModuleVersionIdentifier possibleMatch = e.left;
+                            return depSelector.getGroup().equals(possibleMatch.getGroup())
+                                    && depSelector.getModule().equals(possibleMatch.getName());
+                        });
                 if (entry == null) {
-                    result.failed(new ModuleVersionResolveException(depSelector, () -> spec.getDisplayName() + " did not contain a project publishing the specified dependency."));
+                    result.failed(new ModuleVersionResolveException(
+                            depSelector,
+                            () -> spec.getDisplayName()
+                                    + " did not contain a project publishing the specified dependency."));
                 } else {
                     LocalComponentGraphResolveState component = localComponentRegistry.getComponent(entry.right);
                     result.resolved(component, ComponentGraphSpecificResolveState.EMPTY_STATE);
@@ -128,14 +146,13 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
     private BuildDefinition toBuildDefinition(AbstractVersionControlSpec spec, File buildDirectory) {
         return BuildDefinition.fromStartParameterForBuild(
-            buildRegistry.getRootBuild().getStartParameter(),
-            assignBuildName(buildDirectory.getName()),
-            buildDirectory,
-            getPluginRequests(spec),
-            Actions.doNothing(),
-            publicBuildPath,
-            false
-        );
+                buildRegistry.getRootBuild().getStartParameter(),
+                assignBuildName(buildDirectory.getName()),
+                buildDirectory,
+                getPluginRequests(spec),
+                Actions.doNothing(),
+                publicBuildPath,
+                false);
     }
 
     private static PluginRequests getPluginRequests(AbstractVersionControlSpec spec) {
@@ -144,11 +161,18 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
             return PluginRequests.EMPTY;
         }
 
-        return PluginRequests.of(
-            requests.stream()
-                .map(original -> new DefaultPluginRequest(DefaultPluginId.of(original.getId()), true, PluginRequestInternal.Origin.AUTO_APPLIED, null, null, null, null, null, null))
-                .collect(Collectors.toList())
-        );
+        return PluginRequests.of(requests.stream()
+                .map(original -> new DefaultPluginRequest(
+                        DefaultPluginId.of(original.getId()),
+                        true,
+                        PluginRequestInternal.Origin.AUTO_APPLIED,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null))
+                .collect(Collectors.toList()));
     }
 
     private String assignBuildName(String name) {
@@ -170,8 +194,10 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     }
 
     @Override
-    public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
-    }
+    public void resolve(
+            ComponentIdentifier identifier,
+            ComponentOverrideMetadata componentOverrideMetadata,
+            BuildableComponentResolveResult result) {}
 
     @Override
     public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
@@ -184,10 +210,14 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     }
 
     @Override
-    public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-    }
+    public void resolveArtifactsWithType(
+            ComponentArtifactResolveMetadata component,
+            ArtifactType artifactType,
+            BuildableArtifactSetResolveResult result) {}
 
     @Override
-    public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
-    }
+    public void resolveArtifact(
+            ComponentArtifactResolveMetadata component,
+            ComponentArtifactMetadata artifact,
+            BuildableArtifactResolveResult result) {}
 }

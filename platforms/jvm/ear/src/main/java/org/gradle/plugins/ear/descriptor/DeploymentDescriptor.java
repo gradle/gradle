@@ -17,14 +17,13 @@ package org.gradle.plugins.ear.descriptor;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import org.gradle.api.Action;
-import org.gradle.api.XmlProvider;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.Action;
+import org.gradle.api.XmlProvider;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * A deployment descriptor such as application.xml.

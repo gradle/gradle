@@ -17,6 +17,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.test;
 
 public class HasPrivateConstants {
-    private final static int X = 1;
-    private final static HasNonPrivateConstants C = new HasNonPrivateConstants();
+    private static final int X = 1;
+    private static final HasNonPrivateConstants C = new HasNonPrivateConstants();
 }

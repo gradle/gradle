@@ -45,5 +45,4 @@ public interface TypeValidationContext {
         @Override
         public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {}
     };
-
 }

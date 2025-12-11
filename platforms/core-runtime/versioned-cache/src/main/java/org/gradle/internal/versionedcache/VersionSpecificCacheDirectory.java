@@ -17,10 +17,9 @@
 package org.gradle.internal.versionedcache;
 
 import com.google.common.base.Preconditions;
+import java.io.File;
 import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.NonNull;
-
-import java.io.File;
 
 public class VersionSpecificCacheDirectory implements Comparable<VersionSpecificCacheDirectory> {
 
@@ -63,5 +62,4 @@ public class VersionSpecificCacheDirectory implements Comparable<VersionSpecific
     public int compareTo(@NonNull VersionSpecificCacheDirectory that) {
         return this.version.compareTo(that.version);
     }
-
 }

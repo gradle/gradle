@@ -17,6 +17,8 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
+import java.util.Map;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
@@ -24,9 +26,6 @@ import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.util.internal.ConfigureUtil;
-
-import javax.inject.Inject;
-import java.util.Map;
 
 public abstract class AbstractPluginAware implements PluginAwareInternal {
 
@@ -58,6 +57,5 @@ public abstract class AbstractPluginAware implements PluginAwareInternal {
     @Inject
     public abstract ConfigurationTargetIdentifier getConfigurationTargetIdentifier();
 
-    abstract protected DefaultObjectConfigurationAction createObjectConfigurationAction();
-
+    protected abstract DefaultObjectConfigurationAction createObjectConfigurationAction();
 }

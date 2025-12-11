@@ -17,16 +17,15 @@
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
 import com.google.common.collect.ImmutableList;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
- /**
+/**
  * Lightweight, immutable model of all the data in a project necessary for configuration reporting.
-  *
-  * The intended use is that this data model can be populated with the complete information of a project prior to any
-  * report logic running.  This enables the reporting logic to remain completely independent of the actual project classes.
+ *
+ * The intended use is that this data model can be populated with the complete information of a project prior to any
+ * report logic running.  This enables the reporting logic to remain completely independent of the actual project classes.
  */
 public final class ConfigurationReportModel {
     private final String projectName;
@@ -34,10 +33,11 @@ public final class ConfigurationReportModel {
     private final ImmutableList<ReportAttribute> attributesWithCompatibilityRules;
     private final ImmutableList<ReportAttribute> attributesWithDisambiguationRules;
 
-    ConfigurationReportModel(String projectName,
-                             List<ReportConfiguration> allConfigs,
-                             List<ReportAttribute> attributesWithCompatibilityRules,
-                             List<ReportAttribute> attributesWithDisambiguationRules) {
+    ConfigurationReportModel(
+            String projectName,
+            List<ReportConfiguration> allConfigs,
+            List<ReportAttribute> attributesWithCompatibilityRules,
+            List<ReportAttribute> attributesWithDisambiguationRules) {
         this.projectName = projectName;
         this.allConfigs = allConfigs;
         this.attributesWithCompatibilityRules = ImmutableList.copyOf(attributesWithCompatibilityRules);
@@ -61,14 +61,20 @@ public final class ConfigurationReportModel {
     }
 
     public List<ReportConfiguration> getPurelyResolvableConfigs() {
-        return allConfigs.stream().filter(ReportConfiguration::isPurelyResolvable).collect(Collectors.toList());
+        return allConfigs.stream()
+                .filter(ReportConfiguration::isPurelyResolvable)
+                .collect(Collectors.toList());
     }
 
     public List<ReportConfiguration> getPurelyConsumableConfigs() {
-        return allConfigs.stream().filter(ReportConfiguration::isPurelyConsumable).collect(Collectors.toList());
+        return allConfigs.stream()
+                .filter(ReportConfiguration::isPurelyConsumable)
+                .collect(Collectors.toList());
     }
 
     public Optional<ReportConfiguration> getConfigNamed(String configName) {
-        return allConfigs.stream().filter(config -> config.getName().equals(configName)).findFirst();
+        return allConfigs.stream()
+                .filter(config -> config.getName().equals(configName))
+                .findFirst();
     }
 }

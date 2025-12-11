@@ -16,6 +16,9 @@
 
 package org.gradle.internal.session;
 
+import java.io.Closeable;
+import java.io.File;
+import java.util.List;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.options.InternalOptionsFactory;
 import org.gradle.internal.buildoption.InternalOptions;
@@ -33,10 +36,6 @@ import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.Closeable;
-import java.io.File;
-import java.util.List;
-
 /**
  * Services to be shared across build sessions.
  * <p>
@@ -50,13 +49,14 @@ import java.util.List;
 public class CrossBuildSessionState implements Closeable {
     private final ServiceRegistry services;
 
-    public CrossBuildSessionState(ServiceRegistry parent, StartParameterInternal startParameter, File userActionRootDir) {
+    public CrossBuildSessionState(
+            ServiceRegistry parent, StartParameterInternal startParameter, File userActionRootDir) {
         this.services = ServiceRegistryBuilder.builder()
-            .scopeStrictly(Scope.CrossBuildSession.class)
-            .displayName("cross session services")
-            .parent(parent)
-            .provider(new Services(startParameter, userActionRootDir))
-            .build();
+                .scopeStrictly(Scope.CrossBuildSession.class)
+                .displayName("cross session services")
+                .parent(parent)
+                .provider(new Services(startParameter, userActionRootDir))
+                .build();
         // Trigger listener to wire itself in
         services.get(BuildOperationTrace.class);
     }
@@ -85,14 +85,17 @@ public class CrossBuildSessionState implements Closeable {
             for (GradleModuleServices services : servicesProviders) {
                 services.registerCrossBuildSessionServices(registration);
             }
-            registration.add(CrossBuildSessionParameters.class, new CrossBuildSessionParameters(startParameter, userActionRootDir));
+            registration.add(
+                    CrossBuildSessionParameters.class,
+                    new CrossBuildSessionParameters(startParameter, userActionRootDir));
             registration.add(CrossBuildSessionState.class, CrossBuildSessionState.this);
             registration.add(BuildOperationsParameters.class, DefaultBuildOperationsParameters.class);
         }
 
         @Provides
         InternalOptions createInternalOptions(CrossBuildSessionParameters parameters) {
-            return InternalOptionsFactory.createInternalOptions(startParameter, parameters.getUserActionRootDirectory());
+            return InternalOptionsFactory.createInternalOptions(
+                    startParameter, parameters.getUserActionRootDirectory());
         }
     }
 }

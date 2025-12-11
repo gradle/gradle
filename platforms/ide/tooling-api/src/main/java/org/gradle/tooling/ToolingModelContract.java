@@ -16,12 +16,11 @@
 
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.Incubating;
 
 /**
  * Annotation used to mark TAPI model interfaces. On the client side such interfaces

@@ -16,11 +16,10 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
+import javax.inject.Inject;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
-
-import javax.inject.Inject;
 
 public class DefaultIvyModuleDescriptorLicense implements IvyModuleDescriptorLicense {
 

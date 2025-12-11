@@ -73,5 +73,4 @@ public abstract class ReflectionCache<T extends CachedInvokable<?>> {
         private WeaklyClassReferencingCache table = new WeaklyClassReferencingCache();
         private T value;
     }
-
 }

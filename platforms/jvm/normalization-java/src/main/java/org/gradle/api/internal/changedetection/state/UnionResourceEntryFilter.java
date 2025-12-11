@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.internal.hash.Hasher;
-
 import java.util.Collection;
+import org.gradle.internal.hash.Hasher;
 
 /**
  * This represents a composite resource entry filter which ignores the entry if any of the filters would ignore the entry.

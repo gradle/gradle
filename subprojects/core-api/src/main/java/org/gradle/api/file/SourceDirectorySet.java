@@ -15,6 +15,9 @@
  */
 package org.gradle.api.file;
 
+import java.io.File;
+import java.util.Set;
+import java.util.function.Function;
 import org.gradle.api.Describable;
 import org.gradle.api.Named;
 import org.gradle.api.Task;
@@ -25,10 +28,6 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.model.internal.core.UnmanagedStruct;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.Set;
-import java.util.function.Function;
 
 /**
  * A {@code SourceDirectorySet} represents a set of source files composed from a set of source directories, along

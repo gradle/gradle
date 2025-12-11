@@ -16,6 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.WorkResult;
@@ -29,16 +32,22 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * A static library archiver based on the GNU 'ar' utility
  */
 public class ArStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiverSpec> {
-    public ArStaticLibraryArchiver(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new ArchiverSpecToArguments(), false, workerLeaseService);
+    public ArStaticLibraryArchiver(
+            BuildOperationExecutor buildOperationExecutor,
+            CommandLineToolInvocationWorker commandLineToolInvocationWorker,
+            CommandLineToolContext invocationContext,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                buildOperationExecutor,
+                commandLineToolInvocationWorker,
+                invocationContext,
+                new ArchiverSpecToArguments(),
+                false,
+                workerLeaseService);
     }
 
     @Override
@@ -59,9 +68,13 @@ public class ArStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchi
     }
 
     @Override
-    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final StaticLibraryArchiverSpec spec, List<String> args) {
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(
+            final StaticLibraryArchiverSpec spec, List<String> args) {
         final CommandLineToolInvocation invocation = newInvocation(
-            "archiving " + spec.getOutputFile().getName(), spec.getOutputFile().getParentFile(), args, spec.getOperationLogger());
+                "archiving " + spec.getOutputFile().getName(),
+                spec.getOutputFile().getParentFile(),
+                args,
+                spec.getOperationLogger());
 
         return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override

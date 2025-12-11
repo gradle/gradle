@@ -17,6 +17,9 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.base.Joiner;
+import java.io.File;
+import java.nio.charset.Charset;
+import java.util.Locale;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -26,10 +29,6 @@ import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.File;
-import java.nio.charset.Charset;
-import java.util.Locale;
 
 @NullMarked
 public class DefaultCommandLineToolInvocationWorker implements CommandLineToolInvocationWorker {
@@ -71,7 +70,8 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
             String toolPath = Joiner.on(File.pathSeparator).join(invocation.getPath());
             toolPath = toolPath + File.pathSeparator + System.getenv(pathVar);
             toolExec.environment(pathVar, toolPath);
-            if (OperatingSystem.current().isWindows() && toolExec.getEnvironment().containsKey(pathVar.toUpperCase(Locale.ROOT))) {
+            if (OperatingSystem.current().isWindows()
+                    && toolExec.getEnvironment().containsKey(pathVar.toUpperCase(Locale.ROOT))) {
                 toolExec.getEnvironment().remove(pathVar.toUpperCase(Locale.ROOT));
             }
         }
@@ -88,7 +88,8 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
             invocation.getLogger().operationSuccess(description.getDisplayName(), combineOutput(stdOutput, errOutput));
         } catch (ProcessExecutionException e) {
             invocation.getLogger().operationFailed(description.getDisplayName(), combineOutput(stdOutput, errOutput));
-            throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s.", name, description.getDisplayName()));
+            throw new CommandLineToolInvocationFailure(
+                    invocation, String.format("%s failed while %s.", name, description.getDisplayName()));
         }
     }
 

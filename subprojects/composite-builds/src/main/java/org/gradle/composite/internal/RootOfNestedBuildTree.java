@@ -16,6 +16,9 @@
 
 package org.gradle.composite.internal;
 
+import java.io.File;
+import java.util.Set;
+import java.util.function.Function;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildDefinition;
@@ -48,33 +51,28 @@ import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.Path;
 
-import java.io.File;
-import java.util.Set;
-import java.util.function.Function;
-
 public class RootOfNestedBuildTree extends AbstractBuildState implements NestedRootBuild {
 
     private final Path identityPath;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
 
     public RootOfNestedBuildTree(
-        BuildDefinition buildDefinition,
-        Path identityPath,
-        BuildState owner,
-        BuildTreeState buildTree
-    ) {
+            BuildDefinition buildDefinition, Path identityPath, BuildState owner, BuildTreeState buildTree) {
         super(buildTree, buildDefinition, owner);
         this.identityPath = identityPath;
 
         CloseableServiceRegistry buildServices = getBuildServices();
         try {
             BuildLifecycleController buildLifecycleController = getBuildController();
-            BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildServices.get(BuildTreeLifecycleControllerFactory.class);
+            BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory =
+                    buildServices.get(BuildTreeLifecycleControllerFactory.class);
             ExceptionAnalyser exceptionAnalyser = buildServices.get(ExceptionAnalyser.class);
             BuildStateRegistry buildStateRegistry = buildServices.get(BuildStateRegistry.class);
             BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor();
-            BuildTreeFinishExecutor buildTreeFinishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
-            buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, buildTreeWorkExecutor, buildTreeFinishExecutor);
+            BuildTreeFinishExecutor buildTreeFinishExecutor =
+                    new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
+            buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(
+                    buildLifecycleController, buildTreeWorkExecutor, buildTreeFinishExecutor);
         } catch (Throwable t) {
             CompositeStoppable.stoppable().addFailure(t).add(buildServices).stop();
             throw UncheckedException.throwAsUncheckedException(t);
@@ -124,20 +122,19 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
             @Override
             public T call(BuildOperationContext context) {
                 T result = action.apply(buildTreeLifecycleController);
-                context.setResult(new RunNestedBuildBuildOperationType.Result() {
-                });
+                context.setResult(new RunNestedBuildBuildOperationType.Result() {});
                 return result;
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Run nested build")
-                    .details(new RunNestedBuildBuildOperationType.Details() {
-                        @Override
-                        public String getBuildPath() {
-                            return gradle.getIdentityPath().asString();
-                        }
-                    });
+                        .details(new RunNestedBuildBuildOperationType.Details() {
+                            @Override
+                            public String getBuildPath() {
+                                return gradle.getIdentityPath().asString();
+                            }
+                        });
             }
         });
     }

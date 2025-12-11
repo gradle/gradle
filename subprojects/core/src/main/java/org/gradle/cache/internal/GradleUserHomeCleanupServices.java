@@ -32,24 +32,26 @@ import org.gradle.internal.versionedcache.UsedGradleVersionsFromGradleUserHomeCa
 public class GradleUserHomeCleanupServices implements ServiceRegistrationProvider {
 
     public void configure(
-        ServiceRegistration registration,
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        Deleter deleter,
-        GradleUserHomeDirProvider gradleUserHomeDirProvider,
-        BuildOperationRunner buildOperationRunner,
-        CacheConfigurationsInternal cacheConfigurations,
-        ListenerManager listenerManager,
-        CacheFactory cacheFactory
-    ) {
+            ServiceRegistration registration,
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            Deleter deleter,
+            GradleUserHomeDirProvider gradleUserHomeDirProvider,
+            BuildOperationRunner buildOperationRunner,
+            CacheConfigurationsInternal cacheConfigurations,
+            ListenerManager listenerManager,
+            CacheFactory cacheFactory) {
         UsedGradleVersions usedGradleVersions = new UsedGradleVersionsFromGradleUserHomeCaches(cacheBuilderFactory);
         registration.add(UsedGradleVersions.class, usedGradleVersions);
 
         // register eagerly so stop() is triggered when services are being stopped
-        GradleUserHomeCleanupService gradleUserHomeCleanupService = new GradleUserHomeCleanupService(deleter, gradleUserHomeDirProvider, cacheBuilderFactory, usedGradleVersions, buildOperationRunner, cacheConfigurations);
-        registration.add(
-            GradleUserHomeCleanupService.class,
-            gradleUserHomeCleanupService
-        );
+        GradleUserHomeCleanupService gradleUserHomeCleanupService = new GradleUserHomeCleanupService(
+                deleter,
+                gradleUserHomeDirProvider,
+                cacheBuilderFactory,
+                usedGradleVersions,
+                buildOperationRunner,
+                cacheConfigurations);
+        registration.add(GradleUserHomeCleanupService.class, gradleUserHomeCleanupService);
 
         listenerManager.addListener(new BuildSessionLifecycleListener() {
             @Override
@@ -61,5 +63,4 @@ public class GradleUserHomeCleanupServices implements ServiceRegistrationProvide
             }
         });
     }
-
 }

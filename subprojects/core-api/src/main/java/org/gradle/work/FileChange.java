@@ -16,9 +16,8 @@
 
 package org.gradle.work;
 
-import org.gradle.api.file.FileType;
-
 import java.io.File;
+import org.gradle.api.file.FileType;
 
 /**
  * A change to a file.

@@ -16,9 +16,8 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.hamcrest.Matcher;
-
 import java.util.function.Consumer;
+import org.hamcrest.Matcher;
 
 /**
  * Implements all methods of {@link ExecutionFailure} by delegating another failure instance.

@@ -29,5 +29,4 @@ public interface LenientConfigurationInternal extends LenientConfiguration {
      * the artifacts that a configuration's intrinsic file collection would select.
      */
     ArtifactSelectionSpec getImplicitSelectionSpec();
-
 }

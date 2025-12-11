@@ -33,5 +33,4 @@ public class DefaultTaskLocation implements TaskLocation, Serializable {
     public String getBuildTreePath() {
         return buildTreePath;
     }
-
 }

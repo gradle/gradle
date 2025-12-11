@@ -16,12 +16,11 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
+import java.io.FilterReader;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.jspecify.annotations.Nullable;
-
-import java.io.FilterReader;
-import java.util.Map;
 
 /**
  * Represents some binary resource whose content can be filtered.

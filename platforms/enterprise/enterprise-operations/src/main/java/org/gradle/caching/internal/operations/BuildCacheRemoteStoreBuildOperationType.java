@@ -24,7 +24,9 @@ import org.gradle.internal.operations.BuildOperationType;
  * A store operation may actually store or fail.
  * Store operation results and failures are mutually exclusive.
  */
-public final class BuildCacheRemoteStoreBuildOperationType implements BuildOperationType<BuildCacheRemoteStoreBuildOperationType.Details, BuildCacheRemoteStoreBuildOperationType.Result> {
+public final class BuildCacheRemoteStoreBuildOperationType
+        implements BuildOperationType<
+                BuildCacheRemoteStoreBuildOperationType.Details, BuildCacheRemoteStoreBuildOperationType.Result> {
 
     public interface Details {
 
@@ -37,7 +39,6 @@ public final class BuildCacheRemoteStoreBuildOperationType implements BuildOpera
          * The number of bytes of the stored cache artifact.
          */
         long getArchiveSize();
-
     }
 
     public interface Result {
@@ -48,9 +49,7 @@ public final class BuildCacheRemoteStoreBuildOperationType implements BuildOpera
          * The cache might not store some entries, e.g. when they are too large.
          */
         boolean isStored();
-
     }
 
-    private BuildCacheRemoteStoreBuildOperationType() {
-    }
+    private BuildCacheRemoteStoreBuildOperationType() {}
 }

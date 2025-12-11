@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.initialization.StartParameterBuildOptions;
-
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_DROP_PROPERTY;
+
+import org.gradle.initialization.StartParameterBuildOptions;
 
 public class FileSystemWatchingHelper {
 

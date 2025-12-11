@@ -16,9 +16,8 @@
 
 package org.gradle.internal.enterprise.test.impl;
 
-import org.gradle.internal.enterprise.test.CandidateClassFile;
-
 import java.io.File;
+import org.gradle.internal.enterprise.test.CandidateClassFile;
 
 class DefaultCandidateClassFile implements CandidateClassFile {
 

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.result;
 
+import java.io.File;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -23,22 +24,22 @@ import org.gradle.api.component.Artifact;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
-import java.io.File;
-
 public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
     private final ComponentArtifactIdentifier identifier;
     private final ResolvedVariantResult variant;
     private final Class<? extends Artifact> type;
     private final File file;
 
-    public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier,
-                                         AttributeContainer variantAttributes,
-                                         ImmutableCapabilities capabilities,
-                                         DisplayName variantDisplayName,
-                                         Class<? extends Artifact> type,
-                                         File file) {
+    public DefaultResolvedArtifactResult(
+            ComponentArtifactIdentifier identifier,
+            AttributeContainer variantAttributes,
+            ImmutableCapabilities capabilities,
+            DisplayName variantDisplayName,
+            Class<? extends Artifact> type,
+            File file) {
         this.identifier = identifier;
-        this.variant = new DefaultResolvedVariantResult(identifier.getComponentIdentifier(), variantDisplayName, variantAttributes, capabilities, null);
+        this.variant = new DefaultResolvedVariantResult(
+                identifier.getComponentIdentifier(), variantDisplayName, variantAttributes, capabilities, null);
         this.type = type;
         this.file = file;
     }

@@ -16,6 +16,7 @@
 package org.gradle.internal.action;
 
 import com.google.common.base.Objects;
+import java.util.Arrays;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.CacheableRule;
@@ -25,10 +26,8 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.snapshot.impl.IsolatedArray;
 
-import java.util.Arrays;
-
 public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAILS> {
-    private final static Object[] EMPTY_ARRAY = new Object[0];
+    private static final Object[] EMPTY_ARRAY = new Object[0];
 
     private final Class<? extends Action<DETAILS>> rule;
     private final Isolatable<Object[]> ruleParams;
@@ -48,7 +47,10 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
         return of(rule, IsolatedArray.EMPTY);
     }
 
-    public static <DETAILS> ConfigurableRule<DETAILS> of(Class<? extends Action<DETAILS>> rule, Action<? super ActionConfiguration> action, IsolatableFactory isolatableFactory) {
+    public static <DETAILS> ConfigurableRule<DETAILS> of(
+            Class<? extends Action<DETAILS>> rule,
+            Action<? super ActionConfiguration> action,
+            IsolatableFactory isolatableFactory) {
         Object[] params = EMPTY_ARRAY;
         if (action != null) {
             ActionConfiguration configuration = new DefaultActionConfiguration();
@@ -58,7 +60,8 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
         return of(rule, isolatableFactory.isolate(params));
     }
 
-    public static <DETAILS> ConfigurableRule<DETAILS> of(Class<? extends Action<DETAILS>> rule, Isolatable<Object[]> ruleParams) {
+    public static <DETAILS> ConfigurableRule<DETAILS> of(
+            Class<? extends Action<DETAILS>> rule, Isolatable<Object[]> ruleParams) {
         return new DefaultConfigurableRule<>(rule, ruleParams);
     }
 
@@ -86,8 +89,7 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
             return false;
         }
         DefaultConfigurableRule<?> that = (DefaultConfigurableRule<?>) o;
-        return rule.equals(that.rule) &&
-            ruleParams.equals(that.ruleParams);
+        return rule.equals(that.rule) && ruleParams.equals(that.ruleParams);
     }
 
     @Override
@@ -97,9 +99,8 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
 
     @Override
     public String toString() {
-        return "DefaultConfigurableRule{" +
-            "rule=" + rule +
-            ", ruleParams=" + Arrays.toString(ruleParams.isolate()) +
-            '}';
+        return "DefaultConfigurableRule{" + "rule="
+                + rule + ", ruleParams="
+                + Arrays.toString(ruleParams.isolate()) + '}';
     }
 }

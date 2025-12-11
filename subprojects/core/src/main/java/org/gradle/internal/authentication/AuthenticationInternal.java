@@ -16,11 +16,10 @@
 
 package org.gradle.internal.authentication;
 
+import java.util.Collection;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.authentication.Authentication;
-
-import java.util.Collection;
 
 @NonExtensible
 public interface AuthenticationInternal extends Authentication {

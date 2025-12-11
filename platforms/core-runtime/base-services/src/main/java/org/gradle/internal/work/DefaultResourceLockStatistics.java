@@ -17,6 +17,7 @@
 package org.gradle.internal.work;
 
 import com.google.common.collect.Iterables;
+import java.util.concurrent.atomic.AtomicLong;
 import org.gradle.api.Describable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -27,8 +28,6 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Default implementation of {@link ResourceLockStatistics} that measures the time spent waiting for resource locks
@@ -65,8 +64,8 @@ public class DefaultResourceLockStatistics implements ResourceLockStatistics {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor
-                    .displayName(operation + " [" + String.join(", ", Iterables.transform(locks, Describable::getDisplayName)) + "]");
+                return BuildOperationDescriptor.displayName(operation + " ["
+                        + String.join(", ", Iterables.transform(locks, Describable::getDisplayName)) + "]");
             }
         });
     }
@@ -75,5 +74,4 @@ public class DefaultResourceLockStatistics implements ResourceLockStatistics {
     public void complete() {
         LOGGER.warn("Time spent waiting on resource locks: {}ms", totalBlockedTime.get());
     }
-
 }

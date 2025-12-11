@@ -25,5 +25,4 @@ public interface MavenPublicationCoordinates {
     Property<String> getArtifactId();
 
     Property<String> getVersion();
-
 }

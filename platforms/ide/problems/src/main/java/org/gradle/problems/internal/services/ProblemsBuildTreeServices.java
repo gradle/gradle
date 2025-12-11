@@ -17,6 +17,7 @@
 package org.gradle.problems.internal.services;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Collection;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.DefaultProblems;
@@ -51,75 +52,79 @@ import org.gradle.problems.internal.emitters.ConsoleProblemEmitter;
 import org.gradle.problems.internal.impl.DefaultProblemsReportCreator;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
-import java.util.Collection;
-
 @ServiceScope(Scope.BuildTree.class)
 public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     @Provides
     InternalProblems createProblemsService(
-        ProblemSummarizer problemSummarizer,
-        ProblemStream problemStream,
-        ExceptionProblemRegistry exceptionProblemRegistry,
-        ExceptionAnalyser exceptionAnalyser,
-        InstantiatorFactory instantiatorFactory,
-        PayloadSerializer payloadSerializer,
-        IsolatableFactory isolatableFactory,
-        IsolatableToBytesSerializer isolatableToBytesSerializer,
-        ServiceRegistry serviceRegistry
-    ) {
+            ProblemSummarizer problemSummarizer,
+            ProblemStream problemStream,
+            ExceptionProblemRegistry exceptionProblemRegistry,
+            ExceptionAnalyser exceptionAnalyser,
+            InstantiatorFactory instantiatorFactory,
+            PayloadSerializer payloadSerializer,
+            IsolatableFactory isolatableFactory,
+            IsolatableToBytesSerializer isolatableToBytesSerializer,
+            ServiceRegistry serviceRegistry) {
         return new DefaultProblems(
-            problemSummarizer,
-            problemStream,
-            CurrentBuildOperationRef.instance(),
-            exceptionProblemRegistry,
-            exceptionAnalyser,
-            instantiatorFactory.decorateLenient(serviceRegistry),
-            payloadSerializer,
-            isolatableFactory,
-            isolatableToBytesSerializer);
+                problemSummarizer,
+                problemStream,
+                CurrentBuildOperationRef.instance(),
+                exceptionProblemRegistry,
+                exceptionAnalyser,
+                instantiatorFactory.decorateLenient(serviceRegistry),
+                payloadSerializer,
+                isolatableFactory,
+                isolatableToBytesSerializer);
     }
 
     @Provides
     ProblemSummarizer createProblemSummarizer(
-        BuildOperationProgressEventEmitter eventEmitter,
-        CurrentBuildOperationRef currentBuildOperationRef,
-        Collection<ProblemEmitter> problemEmitters,
-        InternalOptions internalOptions,
-        ProblemReportCreator problemReportCreator,
-        WorkExecutionTracker workExecutionTracker,
-        StartParameterInternal startParameter
-    ) {
-        return new DefaultProblemSummarizer(eventEmitter,
-            currentBuildOperationRef,
-            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter), new ConsoleProblemEmitter(startParameter.getWarningMode())),
-            internalOptions,
-            problemReportCreator,
-            id -> {
-                TaskIdentity taskIdentity = ProblemTaskIdentityTracker.getTaskIdentity();
-                if (taskIdentity != null) {
-                    return taskIdentity;
-                } else {
-                    return workExecutionTracker
-                        .getCurrentTask(id)
-                        .map(task -> new TaskIdentity(task.getTaskIdentity().getPath().asString()))
-                        .orElse(null);
-                }
-            }
-        );
+            BuildOperationProgressEventEmitter eventEmitter,
+            CurrentBuildOperationRef currentBuildOperationRef,
+            Collection<ProblemEmitter> problemEmitters,
+            InternalOptions internalOptions,
+            ProblemReportCreator problemReportCreator,
+            WorkExecutionTracker workExecutionTracker,
+            StartParameterInternal startParameter) {
+        return new DefaultProblemSummarizer(
+                eventEmitter,
+                currentBuildOperationRef,
+                ImmutableList.of(
+                        new BuildOperationBasedProblemEmitter(eventEmitter),
+                        new ConsoleProblemEmitter(startParameter.getWarningMode())),
+                internalOptions,
+                problemReportCreator,
+                id -> {
+                    TaskIdentity taskIdentity = ProblemTaskIdentityTracker.getTaskIdentity();
+                    if (taskIdentity != null) {
+                        return taskIdentity;
+                    } else {
+                        return workExecutionTracker
+                                .getCurrentTask(id)
+                                .map(task -> new TaskIdentity(
+                                        task.getTaskIdentity().getPath().asString()))
+                                .orElse(null);
+                    }
+                });
     }
 
     @Provides
     ProblemReportCreator createProblemsReportCreator(
-        ExecutorFactory executorFactory,
-        TemporaryFileProvider temporaryFileProvider,
-        InternalOptions internalOptions,
-        StartParameterInternal startParameter,
-        ListenerManager listenerManager,
-        FailureFactory failureFactory,
-        BuildNameProvider buildNameProvider
-    ) {
+            ExecutorFactory executorFactory,
+            TemporaryFileProvider temporaryFileProvider,
+            InternalOptions internalOptions,
+            StartParameterInternal startParameter,
+            ListenerManager listenerManager,
+            FailureFactory failureFactory,
+            BuildNameProvider buildNameProvider) {
         if (startParameter.isProblemReportGenerationEnabled()) {
-            return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, startParameter, failureFactory, buildNameProvider);
+            return new DefaultProblemsReportCreator(
+                    executorFactory,
+                    temporaryFileProvider,
+                    internalOptions,
+                    startParameter,
+                    failureFactory,
+                    buildNameProvider);
         }
         return new NoOpProblemReportCreator();
     }

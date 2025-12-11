@@ -15,14 +15,13 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.cache.Cache;
-
 import java.util.function.Function;
+import org.gradle.cache.Cache;
 
 public class CacheAccessSerializer<K, V> implements Cache<K, V> {
 
-    final private Synchronizer synchronizer = new Synchronizer();
-    final private Cache<K, V> cache;
+    private final Synchronizer synchronizer = new Synchronizer();
+    private final Cache<K, V> cache;
 
     public CacheAccessSerializer(Cache<K, V> cache) {
         this.cache = cache;

@@ -16,7 +16,6 @@
 package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -57,8 +56,7 @@ public class MapSerializer<U, V> extends AbstractSerializer<Map<U, V>> {
         }
 
         MapSerializer<?, ?> rhs = (MapSerializer<?, ?>) obj;
-        return Objects.equal(keySerializer, rhs.keySerializer)
-            && Objects.equal(valueSerializer, rhs.valueSerializer);
+        return Objects.equal(keySerializer, rhs.keySerializer) && Objects.equal(valueSerializer, rhs.valueSerializer);
     }
 
     @Override

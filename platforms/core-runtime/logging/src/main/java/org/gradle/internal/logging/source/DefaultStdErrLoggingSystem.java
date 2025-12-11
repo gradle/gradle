@@ -16,10 +16,9 @@
 
 package org.gradle.internal.logging.source;
 
+import java.io.PrintStream;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.time.Clock;
-
-import java.io.PrintStream;
 
 public class DefaultStdErrLoggingSystem extends PrintStreamLoggingSystem implements StdErrLoggingSystem {
 

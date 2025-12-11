@@ -16,6 +16,12 @@
 
 package org.gradle.internal.watch.registry.impl;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import org.gradle.fileevents.FileWatchEvent;
 import org.gradle.fileevents.internal.OsxFileEventFunctions;
@@ -24,34 +30,33 @@ import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
+public class DarwinFileWatcherRegistryFactory
+        extends AbstractFileWatcherRegistryFactory<OsxFileEventFunctions, OsxFileWatcher> {
 
-public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<OsxFileEventFunctions, OsxFileWatcher> {
-
-    public DarwinFileWatcherRegistryFactory(FileEventFunctionsLookup fileEvents, Predicate<String> immutableLocationsFilter) throws NativeIntegrationUnavailableException {
+    public DarwinFileWatcherRegistryFactory(
+            FileEventFunctionsLookup fileEvents, Predicate<String> immutableLocationsFilter)
+            throws NativeIntegrationUnavailableException {
         super(fileEvents.getFileEventFunctions(OsxFileEventFunctions.class), immutableLocationsFilter);
     }
 
     @Override
     protected OsxFileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
-        return fileEventFunctions.newWatcher(fileEvents)
-            // TODO Figure out a good value for this
-            .withLatency(20, TimeUnit.MICROSECONDS)
-            .start();
+        return fileEventFunctions
+                .newWatcher(fileEvents)
+                // TODO Figure out a good value for this
+                .withLatency(20, TimeUnit.MICROSECONDS)
+                .start();
     }
 
     @Override
     protected FileWatcherUpdater createFileWatcherUpdater(
-        OsxFileWatcher watcher,
-        FileWatcherProbeRegistry probeRegistry,
-        WatchableHierarchies watchableHierarchies
-    ) {
-        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, probeRegistry, watchableHierarchies, root -> Collections.emptyList());
+            OsxFileWatcher watcher, FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies) {
+        return new HierarchicalFileWatcherUpdater(
+                watcher,
+                DarwinFileWatcherRegistryFactory::validateLocationToWatch,
+                probeRegistry,
+                watchableHierarchies,
+                root -> Collections.emptyList());
     }
 
     /**
@@ -67,13 +72,12 @@ public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistr
             String absolutePath = location.getAbsolutePath();
             if (!canonicalPath.equals(absolutePath)) {
                 throw new WatchingNotSupportedException(String.format(
-                    "Unable to watch '%s' since itself or one of its parent is a symbolic link (canonical path: '%s')",
-                    absolutePath,
-                    canonicalPath
-                ));
+                        "Unable to watch '%s' since itself or one of its parent is a symbolic link (canonical path: '%s')",
+                        absolutePath, canonicalPath));
             }
         } catch (IOException e) {
-            throw new WatchingNotSupportedException("Unable to watch '%s' since its canonical path can't be resolved: " + e.getMessage(), e);
+            throw new WatchingNotSupportedException(
+                    "Unable to watch '%s' since its canonical path can't be resolved: " + e.getMessage(), e);
         }
     }
 }

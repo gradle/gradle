@@ -32,5 +32,6 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface RequiredFeature {
     String feature();
+
     String value();
 }

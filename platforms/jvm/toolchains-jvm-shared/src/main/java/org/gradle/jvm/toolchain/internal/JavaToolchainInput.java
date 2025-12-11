@@ -48,5 +48,4 @@ public class JavaToolchainInput {
     String getImplementation() {
         return implementation;
     }
-
 }

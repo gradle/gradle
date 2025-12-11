@@ -22,9 +22,8 @@ import japicmp.model.JApiConstructor;
 import japicmp.model.JApiField;
 import japicmp.model.JApiHasAnnotations;
 import japicmp.model.JApiMethod;
-import me.champeau.gradle.japicmp.report.Violation;
-
 import java.util.Map;
+import me.champeau.gradle.japicmp.report.Violation;
 
 public class IncubatingMissingRule extends AbstractGradleViolationRule {
 
@@ -34,7 +33,10 @@ public class IncubatingMissingRule extends AbstractGradleViolationRule {
 
     @Override
     public Violation maybeViolation(final JApiCompatibility member) {
-        if (member instanceof JApiMethod || member instanceof JApiField || member instanceof JApiClass || member instanceof JApiConstructor) {
+        if (member instanceof JApiMethod
+                || member instanceof JApiField
+                || member instanceof JApiClass
+                || member instanceof JApiConstructor) {
             if (!isIncubating((JApiHasAnnotations) member) && !isInject((JApiHasAnnotations) member)) {
                 return violationError(member);
             }

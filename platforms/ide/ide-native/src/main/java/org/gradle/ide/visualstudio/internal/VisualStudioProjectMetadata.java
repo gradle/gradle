@@ -16,16 +16,15 @@
 
 package org.gradle.ide.visualstudio.internal;
 
+import java.io.File;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.io.File;
-import java.util.List;
-import java.util.Set;
 
 public class VisualStudioProjectMetadata implements IdeProjectMetadata {
     private final DefaultVisualStudioProject project;
@@ -55,8 +54,8 @@ public class VisualStudioProjectMetadata implements IdeProjectMetadata {
 
     public List<VisualStudioProjectConfigurationMetadata> getConfigurations() {
         return CollectionUtils.collect(
-            project.getConfigurations(),
-            configuration -> new VisualStudioProjectConfigurationMetadata(configuration.getName(), configuration.isBuildable())
-        );
+                project.getConfigurations(),
+                configuration -> new VisualStudioProjectConfigurationMetadata(
+                        configuration.getName(), configuration.isBuildable()));
     }
 }

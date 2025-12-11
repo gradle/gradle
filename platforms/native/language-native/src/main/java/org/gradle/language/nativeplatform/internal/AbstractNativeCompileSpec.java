@@ -16,10 +16,6 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.internal.operations.logging.BuildOperationLogger;
-import org.gradle.nativeplatform.internal.AbstractBinaryToolSpec;
-import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,6 +23,9 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.internal.operations.logging.BuildOperationLogger;
+import org.gradle.nativeplatform.internal.AbstractBinaryToolSpec;
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec implements NativeCompileSpec {
 

@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.client;
 
+import java.io.InputStream;
+import java.util.UUID;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.internal.specs.ExplainingSpecs;
@@ -26,9 +28,6 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.Provides;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
-
-import java.io.InputStream;
-import java.util.UUID;
 
 /**
  * Takes care of instantiating and wiring together the services required by the single-use daemon client.
@@ -41,15 +40,22 @@ public class SingleUseDaemonClientServices extends DaemonClientServicesSupport {
 
     @Provides
     protected DaemonClient createDaemonClient(
-        DaemonRequestContext daemonRequestContext,
-        DaemonConnector daemonConnector,
-        OutputEventListener outputEventListener,
-        GlobalUserInputReceiver globalUserInputReceiver,
-        IdGenerator<UUID> idGenerator,
-        DocumentationRegistry documentationRegistry,
-        ProcessEnvironment processEnvironment
-    ) {
+            DaemonRequestContext daemonRequestContext,
+            DaemonConnector daemonConnector,
+            OutputEventListener outputEventListener,
+            GlobalUserInputReceiver globalUserInputReceiver,
+            IdGenerator<UUID> idGenerator,
+            DocumentationRegistry documentationRegistry,
+            ProcessEnvironment processEnvironment) {
         ExplainingSpec<DaemonContext> matchNone = ExplainingSpecs.satisfyNone();
-        return new SingleUseDaemonClient(daemonConnector, outputEventListener, matchNone, getBuildStandardInput(), globalUserInputReceiver, idGenerator, documentationRegistry, processEnvironment);
+        return new SingleUseDaemonClient(
+                daemonConnector,
+                outputEventListener,
+                matchNone,
+                getBuildStandardInput(),
+                globalUserInputReceiver,
+                idGenerator,
+                documentationRegistry,
+                processEnvironment);
     }
 }

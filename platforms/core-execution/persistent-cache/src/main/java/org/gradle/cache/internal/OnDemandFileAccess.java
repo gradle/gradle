@@ -15,15 +15,14 @@
  */
 package org.gradle.cache.internal;
 
+import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
+
+import java.io.File;
+import java.util.function.Supplier;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockTimeoutException;
-
-import java.io.File;
-import java.util.function.Supplier;
-
-import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
 
 public class OnDemandFileAccess extends AbstractFileAccess {
     private final String displayName;

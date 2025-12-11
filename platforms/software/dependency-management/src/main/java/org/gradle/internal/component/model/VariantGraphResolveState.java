@@ -16,10 +16,9 @@
 
 package org.gradle.internal.component.model;
 
+import java.util.List;
 import org.gradle.api.internal.attributes.matching.AttributeMatchingCandidate;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-
-import java.util.List;
 
 /**
  * State for a variant of a component, intended for use during graph resolution.
@@ -59,5 +58,4 @@ public interface VariantGraphResolveState extends AttributeMatchingCandidate {
      * when required.
      */
     VariantArtifactResolveState prepareForArtifactResolution();
-
 }

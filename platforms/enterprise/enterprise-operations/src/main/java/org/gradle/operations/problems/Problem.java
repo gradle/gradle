@@ -16,9 +16,8 @@
 
 package org.gradle.operations.problems;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A problem from the problems API.

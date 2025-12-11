@@ -16,16 +16,15 @@
 
 package org.gradle.internal.buildtree;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Responsible for executing a {@link BuildAction} and generating the result.
@@ -54,12 +53,11 @@ public interface BuildActionRunner {
         private static final Result NULL = new Result(true, null, null, null, null);
 
         private Result(
-            boolean hasResult,
-            @Nullable Object result,
-            @Nullable Throwable buildFailure,
-            @Nullable Failure richBuildFailure,
-            @Nullable Throwable clientFailure
-        ) {
+                boolean hasResult,
+                @Nullable Object result,
+                @Nullable Throwable buildFailure,
+                @Nullable Failure richBuildFailure,
+                @Nullable Throwable clientFailure) {
             this.hasResult = hasResult;
             this.result = result;
             this.buildFailure = buildFailure;

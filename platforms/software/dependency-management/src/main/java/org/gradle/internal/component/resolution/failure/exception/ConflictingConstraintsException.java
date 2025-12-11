@@ -16,9 +16,8 @@
 
 package org.gradle.internal.component.resolution.failure.exception;
 
-import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure;
-
 import java.util.List;
+import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure;
 
 /**
  * A {@link ComponentSelectionException} that indicates that component selection failed due to multiple

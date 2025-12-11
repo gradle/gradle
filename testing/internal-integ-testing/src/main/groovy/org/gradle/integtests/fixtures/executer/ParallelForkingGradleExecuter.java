@@ -16,17 +16,20 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.BaseExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.GradleVersion;
 
-import java.util.ArrayList;
-import java.util.List;
-
 class ParallelForkingGradleExecuter extends DaemonGradleExecuter {
-    public ParallelForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
+    public ParallelForkingGradleExecuter(
+            GradleDistribution distribution,
+            TestDirectoryProvider testDirectoryProvider,
+            GradleVersion gradleVersion,
+            IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
     }
 
@@ -53,7 +56,11 @@ class ParallelForkingGradleExecuter extends DaemonGradleExecuter {
     }
 
     @Override
-    protected ForkingGradleHandle createForkingGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<BaseExecHandleBuilder> execHandleFactory) {
-        return new ParallelForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement());
+    protected ForkingGradleHandle createForkingGradleHandle(
+            Action<ExecutionResult> resultAssertion,
+            String encoding,
+            Factory<BaseExecHandleBuilder> execHandleFactory) {
+        return new ParallelForkingGradleHandle(
+                getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement());
     }
 }

@@ -16,5 +16,4 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.test;
 
-public class AccessedFromPrivateField {
-}
+public class AccessedFromPrivateField {}

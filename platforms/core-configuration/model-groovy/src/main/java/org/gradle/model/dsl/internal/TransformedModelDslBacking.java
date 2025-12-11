@@ -16,6 +16,9 @@
 
 package org.gradle.model.dsl.internal;
 
+import static org.gradle.model.internal.core.DefaultNodeInitializerRegistry.DEFAULT_REFERENCE;
+import static org.gradle.model.internal.core.NodeInitializerContext.forType;
+
 import groovy.lang.Closure;
 import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
@@ -27,9 +30,6 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-
-import static org.gradle.model.internal.core.DefaultNodeInitializerRegistry.DEFAULT_REFERENCE;
-import static org.gradle.model.internal.core.NodeInitializerContext.forType;
 
 @ThreadSafe
 public class TransformedModelDslBacking {
@@ -59,23 +59,29 @@ public class TransformedModelDslBacking {
         ModelRuleDescriptor descriptor = modelAction.getDescriptor();
         ModelType<T> modelType = ModelType.of(type);
         try {
-            NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DEFAULT_REFERENCE.getPath(), DEFAULT_REFERENCE.getType());
+            NodeInitializerRegistry nodeInitializerRegistry =
+                    modelRegistry.realize(DEFAULT_REFERENCE.getPath(), DEFAULT_REFERENCE.getType());
             NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(forType(modelType));
-            modelRegistry.register(ModelRegistrations.of(modelPath, nodeInitializer).descriptor(descriptor).build());
+            modelRegistry.register(ModelRegistrations.of(modelPath, nodeInitializer)
+                    .descriptor(descriptor)
+                    .build());
         } catch (ModelTypeInitializationException e) {
             throw new InvalidModelRuleDeclarationException(descriptor, e);
         }
         registerAction(modelPath, modelType, ModelActionRole.Initialize, modelAction);
     }
 
-    private <T> void registerAction(ModelPath modelPath, ModelType<T> viewType, final ModelActionRole role, final DeferredModelAction action) {
+    private <T> void registerAction(
+            ModelPath modelPath, ModelType<T> viewType, final ModelActionRole role, final DeferredModelAction action) {
         ModelReference<T> reference = ModelReference.of(modelPath, viewType);
-        modelRegistry.configure(ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(reference, action.getDescriptor(), new Action<MutableModelNode>() {
-            @Override
-            public void execute(MutableModelNode node) {
-                action.execute(node, role);
-            }
-        }));
+        modelRegistry.configure(
+                ModelActionRole.Initialize,
+                DirectNodeNoInputsModelAction.of(reference, action.getDescriptor(), new Action<MutableModelNode>() {
+                    @Override
+                    public void execute(MutableModelNode node) {
+                        action.execute(node, role);
+                    }
+                }));
     }
 
     public static boolean isTransformedBlock(Closure<?> closure) {

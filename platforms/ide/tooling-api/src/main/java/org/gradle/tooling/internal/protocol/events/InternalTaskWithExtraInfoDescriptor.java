@@ -34,5 +34,4 @@ public interface InternalTaskWithExtraInfoDescriptor extends InternalTaskDescrip
      * Returns the plugin that registered this task.
      */
     InternalPluginIdentifier getOriginPlugin();
-
 }

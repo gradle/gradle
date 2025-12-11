@@ -37,7 +37,8 @@ public interface BuildModelParametersFactory {
      *
      * @throws org.gradle.api.GradleException if the requirements are contradictory
      */
-    BuildModelParameters parametersForRootBuildTree(BuildActionModelRequirements requirements, InternalOptions internalOptions);
+    BuildModelParameters parametersForRootBuildTree(
+            BuildActionModelRequirements requirements, InternalOptions internalOptions);
 
     /**
      * Determines Gradle features and behaviors that are required or requested by the build action of a nested build tree.

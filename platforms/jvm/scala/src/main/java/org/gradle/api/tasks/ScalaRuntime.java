@@ -17,6 +17,7 @@ package org.gradle.api.tasks;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import java.io.File;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -31,8 +32,6 @@ import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.scala.ScalaPluginExtension;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Provides information related to the Scala runtime(s) used in a project. Added by the
@@ -81,7 +80,8 @@ public abstract class ScalaRuntime {
      */
     public FileCollection inferScalaClasspath(final Iterable<File> classpath) {
         // alternatively, we could return project.getLayout().files(Runnable)
-        // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
+        // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want
+        // autowiring here)
         return new LazilyInitializedFileCollection(((ProjectInternal) project).getTaskDependencyFactory()) {
             @Override
             public String getDisplayName() {
@@ -102,8 +102,10 @@ public abstract class ScalaRuntime {
                 File scala3LibraryJar = findScalaJar(classpath, "library_3");
                 boolean isScala3 = scala3LibraryJar != null;
                 if (scalaLibraryJar == null && scala3LibraryJar == null) {
-                    throw new GradleException(String.format("Cannot infer Scala class path because no Scala library Jar was found. "
-                        + "Does %s declare dependency to scala-library? Searched classpath: %s.", project, classpath));
+                    throw new GradleException(String.format(
+                            "Cannot infer Scala class path because no Scala library Jar was found. "
+                                    + "Does %s declare dependency to scala-library? Searched classpath: %s.",
+                            project, classpath));
                 }
 
                 String scalaVersion;
@@ -114,10 +116,15 @@ public abstract class ScalaRuntime {
                 }
 
                 if (scalaVersion == null) {
-                    throw new AssertionError(String.format("Unexpectedly failed to parse version of Scala Jar file: %s in %s", scalaLibraryJar, project));
+                    throw new AssertionError(String.format(
+                            "Unexpectedly failed to parse version of Scala Jar file: %s in %s",
+                            scalaLibraryJar, project));
                 }
 
-                String zincVersion = project.getExtensions().getByType(ScalaPluginExtension.class).getZincVersion().get();
+                String zincVersion = project.getExtensions()
+                        .getByType(ScalaPluginExtension.class)
+                        .getZincVersion()
+                        .get();
 
                 DefaultExternalModuleDependency compilerBridgeJar = getScalaBridgeDependency(scalaVersion, zincVersion);
                 compilerBridgeJar.setTransitive(false);
@@ -129,11 +136,21 @@ public abstract class ScalaRuntime {
                     artifact.setExtension("jar");
                     artifact.setName(compilerBridgeJar.getName());
                 });
-                DefaultExternalModuleDependency compilerInterfaceJar = getScalaCompilerInterfaceDependency(scalaVersion, zincVersion);
+                DefaultExternalModuleDependency compilerInterfaceJar =
+                        getScalaCompilerInterfaceDependency(scalaVersion, zincVersion);
 
-                Configuration scalaRuntimeClasspath = isScala3 ?
-                  project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar, getScaladocDependency(scalaVersion)) :
-                  project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar);
+                Configuration scalaRuntimeClasspath = isScala3
+                        ? project.getConfigurations()
+                                .detachedConfiguration(
+                                        getScalaCompilerDependency(scalaVersion),
+                                        compilerBridgeJar,
+                                        compilerInterfaceJar,
+                                        getScaladocDependency(scalaVersion))
+                        : project.getConfigurations()
+                                .detachedConfiguration(
+                                        getScalaCompilerDependency(scalaVersion),
+                                        compilerBridgeJar,
+                                        compilerInterfaceJar);
                 jvmPluginServices.configureAsRuntimeClasspath(scalaRuntimeClasspath);
                 return scalaRuntimeClasspath;
             }
@@ -191,8 +208,10 @@ public abstract class ScalaRuntime {
         if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
             return new DefaultExternalModuleDependency("org.scala-lang", "scala3-sbt-bridge", scalaVersion);
         } else {
-            String scalaMajorMinorVersion = Joiner.on('.').join(Splitter.on('.').splitToList(scalaVersion).subList(0, 2));
-            return new DefaultExternalModuleDependency("org.scala-sbt", "compiler-bridge_" + scalaMajorMinorVersion, zincVersion);
+            String scalaMajorMinorVersion = Joiner.on('.')
+                    .join(Splitter.on('.').splitToList(scalaVersion).subList(0, 2));
+            return new DefaultExternalModuleDependency(
+                    "org.scala-sbt", "compiler-bridge_" + scalaMajorMinorVersion, zincVersion);
         }
     }
 
@@ -217,7 +236,8 @@ public abstract class ScalaRuntime {
      * @param zincVersion version of zinc to download the compiler interfaces for as fallback for Scala 2
      * @return compiler interfaces dependency to download
      */
-    private DefaultExternalModuleDependency getScalaCompilerInterfaceDependency(String scalaVersion, String zincVersion) {
+    private DefaultExternalModuleDependency getScalaCompilerInterfaceDependency(
+            String scalaVersion, String zincVersion) {
         if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
             return new DefaultExternalModuleDependency("org.scala-lang", "scala3-interfaces", scalaVersion);
         } else {

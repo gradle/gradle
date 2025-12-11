@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import java.io.Closeable;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.FileLockManager;
@@ -26,10 +29,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Closeable;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 /**
  * An implementation of an artifact cache manager which performs operations in a read-only
  * cache first. If the operation is not successful in the readonly cache OR if it's a write
@@ -39,18 +38,17 @@ import java.util.function.Supplier;
  * write operations use the regular locking mechanism (file or in-process).
  */
 public class ReadOnlyArtifactCacheLockingAccessCoordinator implements ArtifactCacheLockingAccessCoordinator, Closeable {
-    private final static Logger LOGGER = Logging.getLogger(ReadOnlyArtifactCacheLockingAccessCoordinator.class);
+    private static final Logger LOGGER = Logging.getLogger(ReadOnlyArtifactCacheLockingAccessCoordinator.class);
 
     private final PersistentCache cache;
 
     public ReadOnlyArtifactCacheLockingAccessCoordinator(
-            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
-            ArtifactCacheMetadata cacheMetaData) {
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory, ArtifactCacheMetadata cacheMetaData) {
         cache = unscopedCacheBuilderFactory
-            .cache(cacheMetaData.getCacheDir())
-            .withDisplayName("read only artifact cache")
-            .withInitialLockMode(FileLockManager.LockMode.None) // Don't need to lock anything, it's read-only
-            .open();
+                .cache(cacheMetaData.getCacheDir())
+                .withDisplayName("read only artifact cache")
+                .withInitialLockMode(FileLockManager.LockMode.None) // Don't need to lock anything, it's read-only
+                .open();
     }
 
     @Override
@@ -79,11 +77,14 @@ public class ReadOnlyArtifactCacheLockingAccessCoordinator implements ArtifactCa
     }
 
     @Override
-    public <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+    public <K, V> IndexedCache<K, V> createCache(
+            String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
-        IndexedCacheParameters<K, V> parameters = IndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer);
+        IndexedCacheParameters<K, V> parameters =
+                IndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer);
         if (cache.indexedCacheExists(parameters)) {
-            return new TransparentCacheLockingIndexedCache<>(new FailSafeIndexedCache<>(cache.createIndexedCache(parameters)));
+            return new TransparentCacheLockingIndexedCache<>(
+                    new FailSafeIndexedCache<>(cache.createIndexedCache(parameters)));
         }
         return new EmptyIndexedCache<>();
     }
@@ -131,12 +132,10 @@ public class ReadOnlyArtifactCacheLockingAccessCoordinator implements ArtifactCa
         }
 
         @Override
-        public void put(K key, V value) {
-        }
+        public void put(K key, V value) {}
 
         @Override
-        public void remove(K key) {
-        }
+        public void remove(K key) {}
 
         private <T> T failSafe(Factory<T> operation) {
             if (failed) {
@@ -150,7 +149,6 @@ public class ReadOnlyArtifactCacheLockingAccessCoordinator implements ArtifactCa
             }
             return null;
         }
-
     }
 
     private class TransparentCacheLockingIndexedCache<K, V> implements IndexedCache<K, V> {

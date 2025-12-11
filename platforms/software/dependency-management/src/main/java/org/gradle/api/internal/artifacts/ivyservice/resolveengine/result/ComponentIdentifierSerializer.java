@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import java.io.File;
+import java.io.IOException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -34,15 +36,13 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-
 /**
  * A thread-safe and reusable serializer for {@link ComponentIdentifier}.
  */
 public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentIdentifier> {
 
-    private final ProjectIdentitySerializer projectIdentitySerializer = new ProjectIdentitySerializer(new PathSerializer());
+    private final ProjectIdentitySerializer projectIdentitySerializer =
+            new ProjectIdentitySerializer(new PathSerializer());
 
     @Override
     public ComponentIdentifier read(Decoder decoder) throws IOException {
@@ -55,21 +55,28 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
             case PROJECT:
                 return new DefaultProjectComponentIdentifier(projectIdentitySerializer.read(decoder));
             case MODULE:
-                return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString());
+                return new DefaultModuleComponentIdentifier(
+                        DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()),
+                        decoder.readString());
             case SNAPSHOT:
-                return new MavenUniqueSnapshotComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString(), decoder.readString());
+                return new MavenUniqueSnapshotComponentIdentifier(
+                        DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()),
+                        decoder.readString(),
+                        decoder.readString());
             case ROOT_COMPONENT: {
                 long instanceId = decoder.readLong();
                 return new DefaultRootComponentIdentifier(instanceId);
             }
             case LIBRARY:
-                return new DefaultLibraryBinaryIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
+                return new DefaultLibraryBinaryIdentifier(
+                        decoder.readString(), decoder.readString(), decoder.readString());
             case OPAQUE:
                 return new OpaqueComponentArtifactIdentifier(new File(decoder.readString()));
             case OPAQUE_NOTATION:
                 return new OpaqueComponentIdentifier(readClassPathNotation(decoder));
             default:
-                throw new IllegalArgumentException("Unsupported component identifier implementation: " + implementation);
+                throw new IllegalArgumentException(
+                        "Unsupported component identifier implementation: " + implementation);
         }
     }
 
@@ -91,14 +98,16 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
                 encoder.writeString(moduleComponentIdentifier.getVersion());
                 break;
             case SNAPSHOT:
-                MavenUniqueSnapshotComponentIdentifier snapshotIdentifier = (MavenUniqueSnapshotComponentIdentifier) value;
+                MavenUniqueSnapshotComponentIdentifier snapshotIdentifier =
+                        (MavenUniqueSnapshotComponentIdentifier) value;
                 encoder.writeString(snapshotIdentifier.getGroup());
                 encoder.writeString(snapshotIdentifier.getModule());
                 encoder.writeString(snapshotIdentifier.getVersion());
                 encoder.writeString(snapshotIdentifier.getTimestamp());
                 break;
             case PROJECT: {
-                ProjectComponentIdentifierInternal projectComponentIdentifier = (ProjectComponentIdentifierInternal) value;
+                ProjectComponentIdentifierInternal projectComponentIdentifier =
+                        (ProjectComponentIdentifierInternal) value;
                 projectIdentitySerializer.write(encoder, projectComponentIdentifier.getProjectIdentity());
                 break;
             }
@@ -128,11 +137,13 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
         }
     }
 
-    private static void writeClassPathNotation(Encoder encoder, DependencyFactoryInternal.ClassPathNotation classPathNotation) throws IOException {
+    private static void writeClassPathNotation(
+            Encoder encoder, DependencyFactoryInternal.ClassPathNotation classPathNotation) throws IOException {
         encoder.writeSmallInt(classPathNotation.ordinal());
     }
 
-    private static DependencyFactoryInternal.ClassPathNotation readClassPathNotation(Decoder decoder) throws IOException {
+    private static DependencyFactoryInternal.ClassPathNotation readClassPathNotation(Decoder decoder)
+            throws IOException {
         int ordinal = decoder.readSmallInt();
         return DependencyFactoryInternal.ClassPathNotation.values()[ordinal];
     }
@@ -169,13 +180,20 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
         @Nullable
         public static Implementation valueOf(int id) {
             switch (id) {
-                case 1: return MODULE;
-                case 2: return PROJECT;
-                case 6: return LIBRARY;
-                case 7: return SNAPSHOT;
-                case 8: return OPAQUE;
-                case 9: return OPAQUE_NOTATION;
-                case 10: return ROOT_COMPONENT;
+                case 1:
+                    return MODULE;
+                case 2:
+                    return PROJECT;
+                case 6:
+                    return LIBRARY;
+                case 7:
+                    return SNAPSHOT;
+                case 8:
+                    return OPAQUE;
+                case 9:
+                    return OPAQUE_NOTATION;
+                case 10:
+                    return ROOT_COMPONENT;
             }
             return null;
         }

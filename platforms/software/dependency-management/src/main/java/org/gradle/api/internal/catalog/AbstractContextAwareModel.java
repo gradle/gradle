@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.catalog;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.Serializable;
+import org.jspecify.annotations.Nullable;
 
 public class AbstractContextAwareModel implements Serializable {
     protected final String context;

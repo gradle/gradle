@@ -37,7 +37,8 @@ public class ComponentFileArtifactIdentifierSerializer implements Serializer<Com
 
     @Override
     public ComponentFileArtifactIdentifier read(Decoder decoder) throws Exception {
-        ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
+        ModuleComponentIdentifier componentIdentifier =
+                (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
         String fileName = decoder.readString();
         return new ComponentFileArtifactIdentifier(componentIdentifier, fileName);
     }

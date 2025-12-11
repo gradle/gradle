@@ -33,7 +33,6 @@ import org.gradle.testing.base.TestSuiteContainer;
 @Incubating
 public abstract class GoogleTestConventionPlugin implements Plugin<Project> {
 
-
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(GoogleTestPlugin.class);
@@ -43,9 +42,9 @@ public abstract class GoogleTestConventionPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
 
         @Defaults
-        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components) {
+        public void createCUnitTestSuitePerComponent(
+                TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components) {
             NativeTestSuites.createConventionalTestSuites(testSuites, components, GoogleTestTestSuiteSpec.class);
         }
     }
-
 }

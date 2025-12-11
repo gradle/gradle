@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.io.File;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.file.FileSystemLocation;
@@ -28,8 +29,6 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.work.InputChanges;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * The actual code which needs to be executed to transform a file.
@@ -58,7 +57,11 @@ public interface Transform extends Describable, TaskDependencyContainer {
      */
     boolean isCacheable();
 
-    TransformExecutionResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, TransformDependencies dependencies, @Nullable InputChanges inputChanges);
+    TransformExecutionResult transform(
+            Provider<FileSystemLocation> inputArtifactProvider,
+            File outputDir,
+            TransformDependencies dependencies,
+            @Nullable InputChanges inputChanges);
 
     /**
      * The hash of the secondary inputs of the transformer.

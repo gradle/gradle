@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import java.util.Map;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.provider.Provider;
@@ -24,11 +25,14 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
-import java.util.Map;
-
 @ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface IncrementalCompilerBuilder {
-    IncrementalCompiler newCompiler(TaskInternal task, FileCollection sourceFiles, FileCollection includeDirs, Map<String, String> macros, Provider<Boolean> importAware);
+    IncrementalCompiler newCompiler(
+            TaskInternal task,
+            FileCollection sourceFiles,
+            FileCollection includeDirs,
+            Map<String, String> macros,
+            Provider<Boolean> importAware);
 
     interface IncrementalCompiler {
         <T extends NativeCompileSpec> Compiler<T> createCompiler(Compiler<T> compiler);

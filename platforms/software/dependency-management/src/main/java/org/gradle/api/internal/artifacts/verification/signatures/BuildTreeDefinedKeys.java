@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.verification.signatures;
 
+import java.io.File;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
 import org.gradle.security.internal.KeyringFilePublicKeyService;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.PublicKeyServiceChain;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class BuildTreeDefinedKeys {
     private static final String VERIFICATION_KEYRING_GPG = "verification-keyring.gpg";
@@ -34,9 +33,7 @@ public class BuildTreeDefinedKeys {
     private final File effectiveKeyringsFile;
 
     public BuildTreeDefinedKeys(
-        File keyringsRoot,
-        DependencyVerificationConfiguration.@Nullable KeyringFormat effectiveFormat
-    ) {
+            File keyringsRoot, DependencyVerificationConfiguration.@Nullable KeyringFormat effectiveFormat) {
         this.keyringsRoot = keyringsRoot;
 
         File effectiveFile;

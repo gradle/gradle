@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.Action;
-import org.gradle.util.internal.ConfigureUtil;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import org.gradle.api.Action;
+import org.gradle.util.internal.ConfigureUtil;
 
 public class ConfigureByMapAction<T> implements Action<T> {
 
@@ -52,8 +51,7 @@ public class ConfigureByMapAction<T> implements Action<T> {
             return false;
         }
         ConfigureByMapAction that = (ConfigureByMapAction) o;
-        return mandatoryProperties.equals(that.mandatoryProperties)
-            && properties.equals(that.properties);
+        return mandatoryProperties.equals(that.mandatoryProperties) && properties.equals(that.properties);
     }
 
     @Override

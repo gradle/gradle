@@ -26,5 +26,4 @@ public interface OpaqueComponentIdentifier extends ComponentIdentifier {
     String getDisplayName();
 
     String getClassName();
-
 }

@@ -87,11 +87,14 @@ public interface JavaToolchainSpec extends Describable {
     default String getDisplayName() {
         final MoreObjects.ToStringHelper builder = MoreObjects.toStringHelper("");
         builder.omitNullValues();
-        builder.add("languageVersion", getLanguageVersion().map(JavaLanguageVersion::toString).getOrElse("unspecified"));
+        builder.add(
+                "languageVersion",
+                getLanguageVersion().map(JavaLanguageVersion::toString).getOrElse("unspecified"));
         builder.add("vendor", getVendor().map(JvmVendorSpec::toString).getOrNull());
-        builder.add("implementation", getImplementation().map(JvmImplementation::toString).getOrNull());
+        builder.add(
+                "implementation",
+                getImplementation().map(JvmImplementation::toString).getOrNull());
         builder.add("nativeImageCapable", getNativeImageCapable().getOrElse(false));
         return builder.toString();
     }
-
 }

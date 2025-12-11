@@ -59,5 +59,4 @@ public interface HttpHeaderCredentials extends Credentials {
      * @param value The header value. May be null.
      */
     void setValue(@Nullable String value);
-
 }

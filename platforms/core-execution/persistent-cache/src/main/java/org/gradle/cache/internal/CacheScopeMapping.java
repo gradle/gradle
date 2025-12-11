@@ -16,9 +16,8 @@
 
 package org.gradle.cache.internal;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
+import org.jspecify.annotations.Nullable;
 
 public interface CacheScopeMapping {
     File getBaseDirectory(@Nullable File baseDir, String key, VersionStrategy versionStrategy);

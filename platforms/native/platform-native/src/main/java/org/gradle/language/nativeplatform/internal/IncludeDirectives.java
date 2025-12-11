@@ -24,18 +24,25 @@ import java.util.List;
  */
 public interface IncludeDirectives {
     List<Include> getQuotedIncludes();
+
     List<Include> getSystemIncludes();
+
     List<Include> getMacroIncludes();
+
     List<Include> getAll();
+
     List<Include> getIncludesOnly();
 
     Iterable<Macro> getMacros(String name);
+
     Iterable<MacroFunction> getMacroFunctions(String name);
 
     Collection<Macro> getAllMacros();
+
     Collection<MacroFunction> getAllMacroFunctions();
 
     boolean hasMacros();
+
     boolean hasMacroFunctions();
 
     /**

@@ -30,12 +30,14 @@ class CachedMetadataProvider implements MetadataProvider {
     private final ComponentMetadata cachedComponentMetadata;
     private final boolean usable;
 
-    CachedMetadataProvider(BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
+    CachedMetadataProvider(
+            BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
         cachedResult = result;
         usable = cachedResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
         if (usable) {
             @SuppressWarnings("deprecation")
-            ExternalComponentResolveMetadata legacyMetadata = cachedResult.getMetaData().getLegacyMetadata();
+            ExternalComponentResolveMetadata legacyMetadata =
+                    cachedResult.getMetaData().getLegacyMetadata();
             cachedComponentMetadata = new ComponentMetadataAdapter(legacyMetadata);
         } else {
             cachedComponentMetadata = null;
@@ -50,10 +52,12 @@ class CachedMetadataProvider implements MetadataProvider {
     @Override
     public IvyModuleDescriptor getIvyModuleDescriptor() {
         @SuppressWarnings("deprecation")
-        ExternalComponentResolveMetadata legacyMetadata = cachedResult.getMetaData().getLegacyMetadata();
+        ExternalComponentResolveMetadata legacyMetadata =
+                cachedResult.getMetaData().getLegacyMetadata();
         if (legacyMetadata instanceof IvyModuleResolveMetadata) {
             IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) legacyMetadata;
-            return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
+            return new DefaultIvyModuleDescriptor(
+                    ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
         }
         return null;
     }

@@ -16,11 +16,10 @@
 
 package org.gradle.model.internal.inspect;
 
+import java.util.List;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
-
-import java.util.List;
 
 public interface MethodRuleAction {
     ModelReference<?> getSubject();

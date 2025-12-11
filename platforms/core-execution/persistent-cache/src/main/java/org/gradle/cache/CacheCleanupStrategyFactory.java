@@ -16,10 +16,9 @@
 
 package org.gradle.cache;
 
+import java.util.function.Supplier;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.function.Supplier;
 
 /**
  * Creates CacheCleanupStrategy instances.

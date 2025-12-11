@@ -18,11 +18,6 @@ package org.gradle.internal.util;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.SystemProperties;
-import org.jspecify.annotations.Nullable;
-
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,6 +29,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.SystemProperties;
+import org.jspecify.annotations.Nullable;
 
 public class PropertiesUtils {
 
@@ -70,7 +69,9 @@ public class PropertiesUtils {
      *
      * See {@link #store(Properties, OutputStream, String, Charset, String)} for more details.
      */
-    public static void store(Properties properties, File propertyFile, @Nullable String comment, Charset charset, String lineSeparator) throws IOException {
+    public static void store(
+            Properties properties, File propertyFile, @Nullable String comment, Charset charset, String lineSeparator)
+            throws IOException {
         BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(propertyFile));
         try {
             store(properties, outputStream, comment, charset, lineSeparator);
@@ -92,7 +93,13 @@ public class PropertiesUtils {
      * <p>Like with {@link java.util.Properties#store(java.io.OutputStream, String)}, Unicode characters are
      * escaped when using the default Latin-1 (ISO-8559-1) encoding.</p>
      */
-    public static void store(Properties properties, OutputStream outputStream, @Nullable String comment, Charset charset, String lineSeparator) throws IOException {
+    public static void store(
+            Properties properties,
+            OutputStream outputStream,
+            @Nullable String comment,
+            Charset charset,
+            String lineSeparator)
+            throws IOException {
         String rawContents;
         if (charset.equals(StandardCharsets.ISO_8859_1)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -105,7 +112,8 @@ public class PropertiesUtils {
         }
 
         String systemLineSeparator = SystemProperties.getInstance().getLineSeparator();
-        List<String> lines = Lists.newArrayList(Splitter.on(systemLineSeparator).omitEmptyStrings().split(rawContents));
+        List<String> lines = Lists.newArrayList(
+                Splitter.on(systemLineSeparator).omitEmptyStrings().split(rawContents));
         int lastCommentLine = -1;
         for (int lineNo = 0, len = lines.size(); lineNo < len; lineNo++) {
             String line = lines.get(lineNo);

@@ -16,11 +16,10 @@
 
 package org.gradle.internal.versionedcache;
 
-import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
-import org.gradle.util.GradleVersion;
-
 import java.util.SortedSet;
 import java.util.TreeSet;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.util.GradleVersion;
 
 public class UsedGradleVersionsFromGradleUserHomeCaches implements UsedGradleVersions {
 

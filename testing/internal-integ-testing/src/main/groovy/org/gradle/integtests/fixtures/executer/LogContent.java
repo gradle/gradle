@@ -19,6 +19,13 @@ package org.gradle.integtests.fixtures.executer;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 import net.rubygrapefruit.ansi.AnsiParser;
 import net.rubygrapefruit.ansi.console.AnsiConsole;
 import net.rubygrapefruit.ansi.console.DiagnosticConsole;
@@ -28,17 +35,10 @@ import org.gradle.api.Action;
 import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-
 public class LogContent {
     // see org.gradle.internal.logging.console.StyledTextOutputBackedRenderer.ISO_8601_DATE_TIME_FORMAT
-    private final static Pattern DEBUG_PREFIX = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[-+]\\d{4} \\[\\w+] \\[.+?] ");
+    private static final Pattern DEBUG_PREFIX =
+            Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[-+]\\d{4} \\[\\w+] \\[.+?] ");
 
     private final ImmutableList<String> lines;
     private final boolean definitelyNoDebugPrefix;
@@ -80,7 +80,7 @@ public class LogContent {
 
     private static int getSubstringEnd(String chars, int pos, int next) {
         if (next > pos && chars.charAt(next - 1) == '\r') {
-             return next - 1;
+            return next - 1;
         }
         return next;
     }
@@ -143,13 +143,13 @@ public class LogContent {
      *
      * @return a pair containing (content-before-matching-line, content-from-matching-line) or null if no match.
      */
-    public @Nullable
-    Pair<LogContent, LogContent> splitOnFirstMatchingLine(Pattern pattern) {
+    public @Nullable Pair<LogContent, LogContent> splitOnFirstMatchingLine(Pattern pattern) {
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (pattern.matcher(line).matches()) {
                 LogContent before = new LogContent(lines.subList(0, i), definitelyNoDebugPrefix, definitelyNoAnsiChars);
-                LogContent after = new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix, definitelyNoAnsiChars);
+                LogContent after =
+                        new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix, definitelyNoAnsiChars);
                 return Pair.of(before, after);
             }
         }

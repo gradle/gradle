@@ -24,5 +24,8 @@ public interface Distribution {
     String getDisplayName();
 
     ClassPath getToolingImplementationClasspath(
-        ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken);
+            ProgressLoggerFactory progressLoggerFactory,
+            InternalBuildProgressListener progressListener,
+            ConnectionParameters connectionParameters,
+            BuildCancellationToken cancellationToken);
 }

@@ -17,16 +17,16 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.collect.MapMaker;
-import org.jspecify.annotations.Nullable;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.ConcurrentMap;
+import org.jspecify.annotations.Nullable;
 
 public class CachingClassLoader extends ClassLoader implements DelegatingClassLoader, ClassLoaderHierarchy, Closeable {
     private static final Object MISSING = new Object();
-    private final ConcurrentMap<String, Object> loadedClasses = new MapMaker().weakValues().makeMap();
+    private final ConcurrentMap<String, Object> loadedClasses =
+            new MapMaker().weakValues().makeMap();
     private final ConcurrentMap<String, Object> resources = new MapMaker().makeMap();
     private final ClassLoader parent;
 

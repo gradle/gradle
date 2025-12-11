@@ -24,8 +24,7 @@ import org.gradle.tooling.model.eclipse.EclipseExternalDependency;
  */
 public class EclipseExternalDependencyUnresolvedMixin {
 
-    public EclipseExternalDependencyUnresolvedMixin(EclipseExternalDependency dependency) {
-    }
+    public EclipseExternalDependencyUnresolvedMixin(EclipseExternalDependency dependency) {}
 
     public boolean isResolved() {
         return true;

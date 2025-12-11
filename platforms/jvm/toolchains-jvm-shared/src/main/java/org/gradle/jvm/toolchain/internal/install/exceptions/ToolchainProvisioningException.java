@@ -16,34 +16,32 @@
 
 package org.gradle.jvm.toolchain.internal.install.exceptions;
 
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.internal.exceptions.ResolutionProvider;
-
-import java.util.Arrays;
-import java.util.List;
 
 @Contextual
 public class ToolchainProvisioningException extends GradleException implements ResolutionProvider {
 
-    public static final String AUTO_DETECTION_RESOLUTION = "Learn more about toolchain auto-detection and auto-provisioning at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".";
-    public static final String DOWNLOAD_REPOSITORIES_RESOLUTION = "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".";
+    public static final String AUTO_DETECTION_RESOLUTION =
+            "Learn more about toolchain auto-detection and auto-provisioning at "
+                    + Documentation.userManual("toolchains", "sec:auto_detection")
+                            .getUrl() + ".";
+    public static final String DOWNLOAD_REPOSITORIES_RESOLUTION = "Learn more about toolchain repositories at "
+            + Documentation.userManual("toolchains", "sub:download_repositories")
+                    .getUrl() + ".";
 
     private final List<String> resolutions;
 
-    public ToolchainProvisioningException(
-        JavaToolchainSpec specification,
-        String cause,
-        String... resolutions
-    ) {
+    public ToolchainProvisioningException(JavaToolchainSpec specification, String cause, String... resolutions) {
         super(String.format(
-            "Cannot find a Java installation on your machine (%s) matching: %s. %s",
-            OperatingSystem.current(),
-            specification,
-            cause));
+                "Cannot find a Java installation on your machine (%s) matching: %s. %s",
+                OperatingSystem.current(), specification, cause));
 
         this.resolutions = Arrays.asList(resolutions);
     }

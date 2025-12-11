@@ -32,47 +32,52 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class StoreExecutionStateStep<C extends PreviousExecutionContext & CachingContext, R extends AfterExecutionResult> extends MutableStep<C, R> {
+public class StoreExecutionStateStep<
+                C extends PreviousExecutionContext & CachingContext, R extends AfterExecutionResult>
+        extends MutableStep<C, R> {
     private final Step<? super C, ? extends R> delegate;
 
-    public StoreExecutionStateStep(
-        Step<? super C, ? extends R> delegate
-    ) {
+    public StoreExecutionStateStep(Step<? super C, ? extends R> delegate) {
         this.delegate = delegate;
     }
 
     @Override
     protected R executeMutable(MutableUnitOfWork work, C context) {
         R result = delegate.execute(work, context);
-        work.getHistory()
-            .ifPresent(history -> context.getCachingState().getCacheKeyCalculatedState()
+        work.getHistory().ifPresent(history -> context.getCachingState()
+                .getCacheKeyCalculatedState()
                 .flatMap(cacheKeyCalculatedState -> result.getAfterExecutionOutputState()
-                    .filter(afterExecutionState -> result.getExecution().isSuccessful() || shouldPreserveFailedState(context, afterExecutionState))
-                    .map(executionOutputState -> new DefaultAfterExecutionState(
-                        ((BuildCacheKeyInternal) cacheKeyCalculatedState.getKey()).getHashCodeInternal(),
-                        cacheKeyCalculatedState.getBeforeExecutionState(),
-                        executionOutputState
-                    )))
+                        .filter(afterExecutionState -> result.getExecution().isSuccessful()
+                                || shouldPreserveFailedState(context, afterExecutionState))
+                        .map(executionOutputState -> new DefaultAfterExecutionState(
+                                ((BuildCacheKeyInternal) cacheKeyCalculatedState.getKey()).getHashCodeInternal(),
+                                cacheKeyCalculatedState.getBeforeExecutionState(),
+                                executionOutputState)))
                 .ifPresent(afterExecutionState -> history.store(
-                    context.getIdentity().getUniqueId(),
-                    // TODO: Encode the "no cache key available" case in the context type hierarchy
-                    afterExecutionState)));
+                        context.getIdentity().getUniqueId(),
+                        // TODO: Encode the "no cache key available" case in the context type hierarchy
+                        afterExecutionState)));
         return result;
     }
 
-    private static <C extends PreviousExecutionContext> boolean shouldPreserveFailedState(C context, ExecutionOutputState afterExecutionOutputState) {
-        // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
-        // For example the current execution fails because of a compilation failure and for the next execution the source file is fixed,
+    private static <C extends PreviousExecutionContext> boolean shouldPreserveFailedState(
+            C context, ExecutionOutputState afterExecutionOutputState) {
+        // We do not store the history if there was a failure and the outputs did not change, since then the next
+        // execution can be incremental.
+        // For example the current execution fails because of a compilation failure and for the next execution the
+        // source file is fixed,
         // so only the one changed source file needs to be compiled.
         // If there is no previous state, then we do have output changes
         return context.getPreviousExecutionState()
-            .map(previewExecutionState -> didOutputsChange(
-                previewExecutionState.getOutputFilesProducedByWork(),
-                afterExecutionOutputState.getOutputFilesProducedByWork()))
-            .orElse(true);
+                .map(previewExecutionState -> didOutputsChange(
+                        previewExecutionState.getOutputFilesProducedByWork(),
+                        afterExecutionOutputState.getOutputFilesProducedByWork()))
+                .orElse(true);
     }
 
-    private static boolean didOutputsChange(ImmutableSortedMap<String, FileSystemSnapshot> previous, ImmutableSortedMap<String, FileSystemSnapshot> current) {
+    private static boolean didOutputsChange(
+            ImmutableSortedMap<String, FileSystemSnapshot> previous,
+            ImmutableSortedMap<String, FileSystemSnapshot> current) {
         // If there are different output properties compared to the previous execution, then we do have output changes
         if (!previous.keySet().equals(current.keySet())) {
             return true;
@@ -90,7 +95,10 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext & Cachin
         private final ExecutionOutputState afterExecutionOutputState;
         private final HashCode cacheKey;
 
-        public DefaultAfterExecutionState(HashCode cacheKey, BeforeExecutionState beforeExecutionState, ExecutionOutputState afterExecutionOutputState) {
+        public DefaultAfterExecutionState(
+                HashCode cacheKey,
+                BeforeExecutionState beforeExecutionState,
+                ExecutionOutputState afterExecutionOutputState) {
             this.cacheKey = cacheKey;
             this.beforeExecutionState = beforeExecutionState;
             this.afterExecutionOutputState = afterExecutionOutputState;

@@ -15,16 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.VersionConstraintInternal;
-import org.jspecify.annotations.Nullable;
+import static com.google.common.base.Strings.nullToEmpty;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.google.common.base.Strings.nullToEmpty;
+import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.VersionConstraintInternal;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultMutableVersionConstraint extends AbstractVersionConstraint implements VersionConstraintInternal {
     private String requiredVersion;
@@ -34,18 +33,29 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     private final List<String> rejectedVersions = new ArrayList<>(1);
 
     public DefaultMutableVersionConstraint(VersionConstraint versionConstraint) {
-        this(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions(), versionConstraint.getBranch());
+        this(
+                versionConstraint.getPreferredVersion(),
+                versionConstraint.getRequiredVersion(),
+                versionConstraint.getStrictVersion(),
+                versionConstraint.getRejectedVersions(),
+                versionConstraint.getBranch());
     }
 
     public DefaultMutableVersionConstraint(String version) {
         this(null, version, null);
     }
 
-    private DefaultMutableVersionConstraint(@Nullable String preferredVersion, String requiredVersion, @Nullable String strictVersion) {
+    private DefaultMutableVersionConstraint(
+            @Nullable String preferredVersion, String requiredVersion, @Nullable String strictVersion) {
         this(preferredVersion, requiredVersion, strictVersion, Collections.emptyList(), null);
     }
 
-    private DefaultMutableVersionConstraint(@Nullable String preferredVersion, String requiredVersion, @Nullable String strictVersion, List<String> rejects, @Nullable String branch) {
+    private DefaultMutableVersionConstraint(
+            @Nullable String preferredVersion,
+            String requiredVersion,
+            @Nullable String strictVersion,
+            List<String> rejects,
+            @Nullable String branch) {
         updateVersions(preferredVersion, requiredVersion, strictVersion);
         for (String reject : rejects) {
             this.rejectedVersions.add(nullToEmpty(reject));
@@ -53,7 +63,8 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
         this.branch = branch;
     }
 
-    private void updateVersions(@Nullable String preferredVersion, @Nullable String requiredVersion, @Nullable String strictVersion) {
+    private void updateVersions(
+            @Nullable String preferredVersion, @Nullable String requiredVersion, @Nullable String strictVersion) {
         this.preferredVersion = nullToEmpty(preferredVersion);
         this.requiredVersion = nullToEmpty(requiredVersion);
         this.strictVersion = nullToEmpty(strictVersion);
@@ -70,7 +81,8 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public ImmutableVersionConstraint asImmutable() {
-        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejectedVersions, branch);
+        return new DefaultImmutableVersionConstraint(
+                preferredVersion, requiredVersion, strictVersion, rejectedVersions, branch);
     }
 
     @Nullable
@@ -128,7 +140,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public List<String> getRejectedVersions() {
-       return rejectedVersions;
+        return rejectedVersions;
     }
 
     @Override
@@ -148,7 +160,9 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
         if (requiredVersion != null ? !requiredVersion.equals(that.requiredVersion) : that.requiredVersion != null) {
             return false;
         }
-        if (preferredVersion != null ? !preferredVersion.equals(that.preferredVersion) : that.preferredVersion != null) {
+        if (preferredVersion != null
+                ? !preferredVersion.equals(that.preferredVersion)
+                : that.preferredVersion != null) {
             return false;
         }
         if (strictVersion != null ? !strictVersion.equals(that.strictVersion) : that.strictVersion != null) {

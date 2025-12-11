@@ -29,7 +29,12 @@ public final class ReportArtifactTransform {
 
     private final boolean cacheable;
 
-    public ReportArtifactTransform(String displayName, Class<?> transformClass, ImmutableAttributes fromAttributes, ImmutableAttributes toAttributes, boolean cacheable) {
+    public ReportArtifactTransform(
+            String displayName,
+            Class<?> transformClass,
+            ImmutableAttributes fromAttributes,
+            ImmutableAttributes toAttributes,
+            boolean cacheable) {
         this.displayName = displayName;
         this.transformClass = transformClass;
         this.fromAttributes = fromAttributes;

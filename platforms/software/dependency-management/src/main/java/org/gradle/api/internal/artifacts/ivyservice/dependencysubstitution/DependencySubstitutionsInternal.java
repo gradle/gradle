@@ -23,7 +23,8 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 
 public interface DependencySubstitutionsInternal extends DependencySubstitutions, DependencySubstitutionRules {
-    DependencySubstitutions allWithDependencyResolveDetails(Action<? super DependencyResolveDetails> rule, ComponentSelectorConverter componentSelectorConverter);
+    DependencySubstitutions allWithDependencyResolveDetails(
+            Action<? super DependencyResolveDetails> rule, ComponentSelectorConverter componentSelectorConverter);
 
     void setMutationValidator(MutationValidator validator);
 

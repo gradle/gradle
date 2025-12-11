@@ -24,14 +24,13 @@ public class EclipsePluginConstants {
     public static final String MODULE_ATTRIBUTE_KEY = "module";
     public static final String MODULE_ATTRIBUTE_VALUE = "true";
 
-    // TODO The scope information is superseded by test attributes. We can delete the corresponding code bits once we make sure that the majority of Buildship users use test sources.
+    // TODO The scope information is superseded by test attributes. We can delete the corresponding code bits once we
+    // make sure that the majority of Buildship users use test sources.
     public static final String GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME = "gradle_used_by_scope";
     public static final String GRADLE_SCOPE_ATTRIBUTE_NAME = "gradle_scope";
 
     public static final String WITHOUT_TEST_CODE_ATTRIBUTE_KEY = "without_test_code";
     public static final String WITHOUT_TEST_CODE_ATTRIBUTE_VALUE = "true";
 
-    private EclipsePluginConstants() {
-    }
-
+    private EclipsePluginConstants() {}
 }

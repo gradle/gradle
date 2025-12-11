@@ -16,10 +16,9 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
-import org.gradle.tooling.model.gradle.GradleScript;
-
 import java.io.File;
 import java.io.Serializable;
+import org.gradle.tooling.model.gradle.GradleScript;
 
 public class DefaultGradleScript implements GradleScript, Serializable {
     private File sourceFile;

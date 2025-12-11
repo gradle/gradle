@@ -15,14 +15,13 @@
  */
 package org.gradle.api.artifacts.component;
 
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.scan.UsedByScanPlugin;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * Represents some opaque criteria used to select a component instance during dependency resolution. Various sub-interfaces

@@ -59,7 +59,8 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
                 return value;
             } else {
                 // Value is changing, so keep the logic
-                return ExecutionTimeValue.changingValue(new OrElseFixedValueProvider<>(value.getChangingValue(), fallbackValue));
+                return ExecutionTimeValue.changingValue(
+                        new OrElseFixedValueProvider<>(value.getChangingValue(), fallbackValue));
             }
         }
     }

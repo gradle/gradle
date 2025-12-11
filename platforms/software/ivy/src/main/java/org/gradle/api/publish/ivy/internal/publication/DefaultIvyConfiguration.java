@@ -16,10 +16,9 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
-import org.gradle.api.publish.ivy.IvyConfiguration;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.api.publish.ivy.IvyConfiguration;
 
 public class DefaultIvyConfiguration implements IvyConfiguration {
     private final String name;

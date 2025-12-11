@@ -23,7 +23,8 @@ import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.scan.NotUsedByScanPlugin;
 
-public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperationType.Details, CustomOperationTraceSerialization {
+public class ExecuteTaskBuildOperationDetails
+        implements ExecuteTaskBuildOperationType.Details, CustomOperationTraceSerialization {
 
     private final LocalTaskNode taskNode;
 

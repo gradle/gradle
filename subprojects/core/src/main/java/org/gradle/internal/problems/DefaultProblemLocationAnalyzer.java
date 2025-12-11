@@ -16,6 +16,13 @@
 
 package org.gradle.internal.problems;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.initialization.ClassLoaderScopeOrigin;
@@ -31,18 +38,12 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.Location;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 @ServiceScope(Scope.BuildTree.class)
-public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, ClassLoaderScopeRegistryListener, Closeable {
+public class DefaultProblemLocationAnalyzer
+        implements ProblemLocationAnalyzer, ClassLoaderScopeRegistryListener, Closeable {
 
-    private static final StackFramePredicate GRADLE_CODE = (frame, relevance) -> InternalStackTraceClassifier.isGradleCall(frame.getClassName());
+    private static final StackFramePredicate GRADLE_CODE =
+            (frame, relevance) -> InternalStackTraceClassifier.isGradleCall(frame.getClassName());
 
     private final Lock lock = new ReentrantLock();
     private final Map<String, ClassLoaderScopeOrigin.Script> scripts = new HashMap<>();
@@ -65,7 +66,10 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
-    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @org.jspecify.annotations.Nullable ClassLoaderScopeOrigin origin) {
+    public void childScopeCreated(
+            ClassLoaderScopeId parentId,
+            ClassLoaderScopeId childId,
+            @org.jspecify.annotations.Nullable ClassLoaderScopeOrigin origin) {
         if (origin instanceof ClassLoaderScopeOrigin.Script) {
             ClassLoaderScopeOrigin.Script scriptOrigin = (ClassLoaderScopeOrigin.Script) origin;
             lock.lock();
@@ -78,8 +82,12 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
-    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @org.jspecify.annotations.Nullable HashCode implementationHash) {
-    }
+    public void classloaderCreated(
+            ClassLoaderScopeId scopeId,
+            ClassLoaderId classLoaderId,
+            ClassLoader classLoader,
+            ClassPath classPath,
+            @org.jspecify.annotations.Nullable HashCode implementationHash) {}
 
     @Override
     @Nullable
@@ -90,9 +98,12 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
         if (fromException) {
             // When analysing an exception stack trace, consider all the user code in the stack.
             // This is because we cannot tell the difference between:
-            // - a validation exception thrown in user code that is called from other user code, where the caller should be blamed
-            // - an unexpected exception thrown in user code that is called from other user code, where the called code should be blamed
-            // So, for now, just blame the first user code that can be identified. This gives the user some clues for where to start
+            // - a validation exception thrown in user code that is called from other user code, where the caller should
+            // be blamed
+            // - an unexpected exception thrown in user code that is called from other user code, where the called code
+            // should be blamed
+            // So, for now, just blame the first user code that can be identified. This gives the user some clues for
+            // where to start
             startPos = 0;
             endPos = stack.size();
         } else {
@@ -149,6 +160,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
             return null;
         }
 
-        return new Location(source.getLongDisplayName(), source.getShortDisplayName(), source.getFileName(), lineNumber);
+        return new Location(
+                source.getLongDisplayName(), source.getShortDisplayName(), source.getFileName(), lineNumber);
     }
 }

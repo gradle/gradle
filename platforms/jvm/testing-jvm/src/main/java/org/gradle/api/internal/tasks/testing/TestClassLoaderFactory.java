@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import javax.inject.Inject;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.initialization.ClassLoaderIds;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.DefaultClassPath;
-
-import javax.inject.Inject;
 
 public class TestClassLoaderFactory implements Factory<ClassLoader> {
 
@@ -32,10 +31,7 @@ public class TestClassLoaderFactory implements Factory<ClassLoader> {
 
     @Inject
     public TestClassLoaderFactory(
-        ClassLoaderCache classLoaderCache,
-        String testTaskPath,
-        FileCollection testTaskClasspath
-    ) {
+            ClassLoaderCache classLoaderCache, String testTaskPath, FileCollection testTaskClasspath) {
         this.classLoaderCache = classLoaderCache;
         this.testTaskPath = testTaskPath;
         this.testTaskClasspath = testTaskClasspath;
@@ -43,6 +39,7 @@ public class TestClassLoaderFactory implements Factory<ClassLoader> {
 
     @Override
     public ClassLoader create() {
-        return classLoaderCache.get(ClassLoaderIds.testTaskClasspath(testTaskPath), DefaultClassPath.of(testTaskClasspath), null, null);
+        return classLoaderCache.get(
+                ClassLoaderIds.testTaskClasspath(testTaskPath), DefaultClassPath.of(testTaskClasspath), null, null);
     }
 }

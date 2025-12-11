@@ -16,6 +16,8 @@
 
 package org.gradle.language.swift.internal;
 
+import java.util.Collections;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -34,9 +36,6 @@ import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-import javax.inject.Inject;
-import java.util.Collections;
-
 public abstract class DefaultSwiftLibrary extends DefaultSwiftComponent<SwiftBinary> implements SwiftLibrary {
     private final ConfigurationContainer configurations;
     private final DefaultLibraryDependencies dependencies;
@@ -46,7 +45,11 @@ public abstract class DefaultSwiftLibrary extends DefaultSwiftComponent<SwiftBin
         super(name);
         this.configurations = configurations;
         getLinkage().convention(Collections.singleton(Linkage.SHARED));
-        dependencies = getObjectFactory().newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));
+        dependencies = getObjectFactory()
+                .newInstance(
+                        DefaultLibraryDependencies.class,
+                        getNames().withSuffix("implementation"),
+                        getNames().withSuffix("api"));
     }
 
     @Override
@@ -68,14 +71,47 @@ public abstract class DefaultSwiftLibrary extends DefaultSwiftComponent<SwiftBin
         action.execute(dependencies);
     }
 
-    public SwiftStaticLibrary addStaticLibrary(NativeVariantIdentity identity, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        SwiftStaticLibrary result = getObjectFactory().newInstance(DefaultSwiftStaticLibrary.class, getNames().append(identity.getName()), getModule(), testable, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+    public SwiftStaticLibrary addStaticLibrary(
+            NativeVariantIdentity identity,
+            boolean testable,
+            SwiftPlatform targetPlatform,
+            NativeToolChainInternal toolChain,
+            PlatformToolProvider platformToolProvider) {
+        SwiftStaticLibrary result = getObjectFactory()
+                .newInstance(
+                        DefaultSwiftStaticLibrary.class,
+                        getNames().append(identity.getName()),
+                        getModule(),
+                        testable,
+                        getSwiftSource(),
+                        getImplementationDependencies(),
+                        targetPlatform,
+                        toolChain,
+                        platformToolProvider,
+                        identity);
         getBinaries().add(result);
         return result;
     }
 
-    public SwiftSharedLibrary addSharedLibrary(NativeVariantIdentity identity, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        SwiftSharedLibrary result = getObjectFactory().newInstance(DefaultSwiftSharedLibrary.class, getNames().append(identity.getName()), getModule(), testable, getSwiftSource(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+    public SwiftSharedLibrary addSharedLibrary(
+            NativeVariantIdentity identity,
+            boolean testable,
+            SwiftPlatform targetPlatform,
+            NativeToolChainInternal toolChain,
+            PlatformToolProvider platformToolProvider) {
+        SwiftSharedLibrary result = getObjectFactory()
+                .newInstance(
+                        DefaultSwiftSharedLibrary.class,
+                        getNames().append(identity.getName()),
+                        getModule(),
+                        testable,
+                        getSwiftSource(),
+                        configurations,
+                        getImplementationDependencies(),
+                        targetPlatform,
+                        toolChain,
+                        platformToolProvider,
+                        identity);
         getBinaries().add(result);
         return result;
     }

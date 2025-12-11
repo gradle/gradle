@@ -16,6 +16,8 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import java.io.Closeable;
+import java.io.IOException;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
@@ -26,30 +28,23 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.Closeable;
-import java.io.IOException;
-
 @ServiceScope(Scope.UserHome.class)
 public class GroovyDslWorkspaceProvider implements Closeable {
 
     private final CacheBasedImmutableWorkspaceProvider groovyDslWorkspace;
 
     public GroovyDslWorkspaceProvider(
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
-    ) {
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            FileAccessTimeJournal fileAccessTimeJournal,
+            CacheConfigurationsInternal cacheConfigurations,
+            CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         this.groovyDslWorkspace = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(
-            cacheBuilderFactory
-                .createCacheBuilder("groovy-dsl")
-                .withDisplayName("groovy-dsl"),
-            fileAccessTimeJournal,
-            cacheConfigurations,
-            cacheCleanupStrategyFactory,
-            unscopedCacheBuilderFactory
-        );
+                cacheBuilderFactory.createCacheBuilder("groovy-dsl").withDisplayName("groovy-dsl"),
+                fileAccessTimeJournal,
+                cacheConfigurations,
+                cacheCleanupStrategyFactory,
+                unscopedCacheBuilderFactory);
     }
 
     public ImmutableWorkspaceProvider getWorkspace() {

@@ -50,7 +50,8 @@ public interface ProjectFeatureImplementation<T extends Definition<V>, V extends
 
     Class<? extends Plugin<Settings>> getRegisteringPluginClass();
 
-    @Nullable String getRegisteringPluginId();
+    @Nullable
+    String getRegisteringPluginId();
 
     ProjectFeatureApplyAction<T, V, ?> getBindingTransform();
 

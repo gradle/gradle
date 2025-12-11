@@ -17,6 +17,8 @@
 package org.gradle.tooling.internal.consumer;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Collection;
+import java.util.function.Supplier;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.FetchModelResult;
@@ -25,13 +27,11 @@ import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.function.Supplier;
-
 @NullMarked
 public class DefaultFetchModelResult<M> implements FetchModelResult<M> {
     @Nullable
     private final M model;
+
     private final Lazy<Collection<? extends Failure>> failures;
 
     private DefaultFetchModelResult(@Nullable M model, Supplier<Collection<? extends Failure>> failures) {

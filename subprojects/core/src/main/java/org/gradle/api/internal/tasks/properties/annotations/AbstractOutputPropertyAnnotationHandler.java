@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
+
+import java.lang.annotation.Annotation;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.properties.OutputFilePropertyType;
@@ -26,16 +30,12 @@ import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.lang.annotation.Annotation;
-
-import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
-import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
-
 @ServiceScope(Scope.Global.class)
 public abstract class AbstractOutputPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     private final OutputFilePropertyType filePropertyType;
 
-    public AbstractOutputPropertyAnnotationHandler(Class<? extends Annotation> annotationType, OutputFilePropertyType filePropertyType) {
+    public AbstractOutputPropertyAnnotationHandler(
+            Class<? extends Annotation> annotationType, OutputFilePropertyType filePropertyType) {
         super(annotationType, Kind.OUTPUT, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
         this.filePropertyType = filePropertyType;
     }
@@ -46,7 +46,9 @@ public abstract class AbstractOutputPropertyAnnotationHandler extends AbstractPr
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
-        visitor.visitOutputFileProperty(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, filePropertyType);
+    public void visitPropertyValue(
+            String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+        visitor.visitOutputFileProperty(
+                propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, filePropertyType);
     }
 }

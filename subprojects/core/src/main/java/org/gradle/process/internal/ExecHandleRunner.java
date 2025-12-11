@@ -16,13 +16,6 @@
 
 package org.gradle.process.internal;
 
-import net.rubygrapefruit.platform.ProcessLauncher;
-import org.gradle.api.JavaVersion;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
@@ -30,6 +23,12 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
+import net.rubygrapefruit.platform.ProcessLauncher;
+import org.gradle.api.JavaVersion;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 
 public class ExecHandleRunner implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(ExecHandleRunner.class);
@@ -46,9 +45,11 @@ public class ExecHandleRunner implements Runnable {
     private volatile BuildOperationRef associatedBuildOperation;
 
     public ExecHandleRunner(
-        DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher, Executor executor,
-        BuildOperationRef associatedBuildOperation
-    ) {
+            DefaultExecHandle execHandle,
+            StreamsHandler streamsHandler,
+            ProcessLauncher processLauncher,
+            Executor executor,
+            BuildOperationRef associatedBuildOperation) {
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
         }
@@ -91,20 +92,25 @@ public class ExecHandleRunner implements Runnable {
     private void destroyDescendants() {
         try {
             @SuppressWarnings("unchecked")
-            Stream<Object> descendants = (Stream<Object>) Process.class.getMethod("descendants").invoke(process);
+            Stream<Object> descendants =
+                    (Stream<Object>) Process.class.getMethod("descendants").invoke(process);
             Method destroyMethod = Class.forName("java.lang.ProcessHandle").getMethod("destroy");
             Iterator<Object> it = descendants.iterator();
             while (it.hasNext()) {
                 destroyMethod.invoke(it.next());
             }
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
+        } catch (NoSuchMethodException
+                | IllegalAccessException
+                | InvocationTargetException
+                | ClassNotFoundException e) {
             throw new RuntimeException("Failed to destroy descendants of process: " + execHandle.getDisplayName(), e);
         }
     }
 
     @Override
     public void run() {
-        // Split the `with` operation so that the `associatedBuildOperation` can be discarded when we wait in `process.waitFor()`
+        // Split the `with` operation so that the `associatedBuildOperation` can be discarded when we wait in
+        // `process.waitFor()`
         try {
             CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
                 startProcess();

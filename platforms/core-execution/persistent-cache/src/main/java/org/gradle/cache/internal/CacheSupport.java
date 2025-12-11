@@ -15,9 +15,8 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.cache.Cache;
-
 import java.util.function.Function;
+import org.gradle.cache.Cache;
 
 public abstract class CacheSupport<K, V> implements Cache<K, V> {
 
@@ -42,7 +41,7 @@ public abstract class CacheSupport<K, V> implements Cache<K, V> {
         doCache(key, value);
     }
 
-    abstract protected <T extends K> V doGet(T key);
+    protected abstract <T extends K> V doGet(T key);
 
-    abstract protected <T extends K, N extends V> void doCache(T key, N value);
+    protected abstract <T extends K, N extends V> void doCache(T key, N value);
 }

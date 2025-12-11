@@ -16,14 +16,13 @@
 
 package org.gradle.process.internal.worker.problem;
 
+import java.io.File;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Worker-side implementation of {@link ProblemEmitter}.
@@ -50,6 +49,6 @@ public class WorkerProblemEmitter implements ProblemSummarizer {
 
     @Override
     public void report(File reportDir, ProblemConsumer validationFailures) {
-        //no op
+        // no op
     }
 }

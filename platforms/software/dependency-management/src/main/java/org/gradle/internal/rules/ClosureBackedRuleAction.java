@@ -17,7 +17,6 @@
 package org.gradle.internal.rules;
 
 import groovy.lang.Closure;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -65,7 +64,8 @@ public class ClosureBackedRuleAction<T> implements RuleAction<T> {
             if (parameterTypes[0].isAssignableFrom(subjectType)) {
                 inputTypes.addAll(Arrays.asList(parameterTypes).subList(1, parameterTypes.length));
             } else {
-                throw new RuleActionValidationException(String.format("First parameter of rule action closure must be of type '%s'.", subjectType.getSimpleName()));
+                throw new RuleActionValidationException(String.format(
+                        "First parameter of rule action closure must be of type '%s'.", subjectType.getSimpleName()));
             }
         }
 
@@ -82,8 +82,7 @@ public class ClosureBackedRuleAction<T> implements RuleAction<T> {
         }
 
         ClosureBackedRuleAction<?> that = (ClosureBackedRuleAction<?>) o;
-        return closure.equals(that.closure)
-                && subjectType.equals(that.subjectType);
+        return closure.equals(that.closure) && subjectType.equals(that.subjectType);
     }
 
     @Override

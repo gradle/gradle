@@ -15,6 +15,9 @@
  */
 package org.gradle.api.tasks.ant;
 
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
+
+import java.io.File;
 import org.apache.tools.ant.Target;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Internal;
@@ -22,10 +25,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-
-import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
 
 /**
  * A task which executes an Ant target.

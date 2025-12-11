@@ -17,20 +17,22 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import java.io.File;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-
-import java.io.File;
 
 public class ArchiveTaskBasedIvyArtifact extends AbstractIvyArtifact {
     private final AbstractArchiveTask archiveTask;
     private final IvyPublicationCoordinates coordinates;
     private final TaskDependencyInternal buildDependencies;
 
-    public ArchiveTaskBasedIvyArtifact(AbstractArchiveTask archiveTask, IvyPublicationCoordinates coordinates, TaskDependencyFactory taskDependencyFactory) {
+    public ArchiveTaskBasedIvyArtifact(
+            AbstractArchiveTask archiveTask,
+            IvyPublicationCoordinates coordinates,
+            TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         this.archiveTask = archiveTask;
         this.coordinates = coordinates;

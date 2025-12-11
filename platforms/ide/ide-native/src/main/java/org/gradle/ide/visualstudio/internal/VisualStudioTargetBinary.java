@@ -16,12 +16,11 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.util.internal.VersionNumber;
-
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.file.FileCollection;
+import org.gradle.util.internal.VersionNumber;
 
 /**
  * A model-agnostic adapter for binary information
@@ -123,7 +122,10 @@ public interface VisualStudioTargetBinary {
     Set<File> getIncludePaths();
 
     enum ProjectType {
-        EXE("Exe"), LIB("Lib"), DLL("Dll"), NONE("");
+        EXE("Exe"),
+        LIB("Lib"),
+        DLL("Dll"),
+        NONE("");
 
         private final String suffix;
 
@@ -153,16 +155,20 @@ public interface VisualStudioTargetBinary {
         }
 
         public static LanguageStandard from(List<String> arguments) {
-            return arguments.stream().filter(it -> it.matches("^[-/]std:c\\+\\+.+")).findFirst().map(it -> {
-                if (it.endsWith("++14")) {
-                    return LanguageStandard.STD_CPP_14;
-                } else if (it.endsWith("++17")) {
-                    return LanguageStandard.STD_CPP_17;
-                } else if (it.endsWith("++latest")) {
-                    return LanguageStandard.STD_CPP_LATEST;
-                }
-                return LanguageStandard.NONE;
-            }).orElse(LanguageStandard.NONE);
+            return arguments.stream()
+                    .filter(it -> it.matches("^[-/]std:c\\+\\+.+"))
+                    .findFirst()
+                    .map(it -> {
+                        if (it.endsWith("++14")) {
+                            return LanguageStandard.STD_CPP_14;
+                        } else if (it.endsWith("++17")) {
+                            return LanguageStandard.STD_CPP_17;
+                        } else if (it.endsWith("++latest")) {
+                            return LanguageStandard.STD_CPP_LATEST;
+                        }
+                        return LanguageStandard.NONE;
+                    })
+                    .orElse(LanguageStandard.NONE);
         }
     }
 }

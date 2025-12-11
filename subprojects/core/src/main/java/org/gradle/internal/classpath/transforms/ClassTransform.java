@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath.transforms;
 
+import java.io.IOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classpath.ClassData;
@@ -23,13 +24,12 @@ import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.hash.Hasher;
 import org.objectweb.asm.ClassVisitor;
 
-import java.io.IOException;
-
 /**
  * Transform that modifies a class
  */
 public interface ClassTransform {
     void applyConfigurationTo(Hasher hasher);
 
-    Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) throws IOException;
+    Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData)
+            throws IOException;
 }

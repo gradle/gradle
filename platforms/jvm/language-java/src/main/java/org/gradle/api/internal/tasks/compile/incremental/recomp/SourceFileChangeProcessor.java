@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 
 class SourceFileChangeProcessor {
     private final PreviousCompilation previousCompilation;
@@ -49,10 +48,12 @@ class SourceFileChangeProcessor {
         spec.addResourcesToGenerate(actualDependents.getDependentResources());
     }
 
-    public Set<String> processAnnotationDependenciesOfIndependentClasses(Set<String> classNames, RecompilationSpec spec) {
+    public Set<String> processAnnotationDependenciesOfIndependentClasses(
+            Set<String> classNames, RecompilationSpec spec) {
         Set<String> newAdded = new LinkedHashSet<>();
         for (String className : classNames) {
-            DependentsSet annotationProcessingDependentsSet = previousCompilation.getAnnotationProcessingDependentsSet(className);
+            DependentsSet annotationProcessingDependentsSet =
+                    previousCompilation.getAnnotationProcessingDependentsSet(className);
             for (String classToCompile : annotationProcessingDependentsSet.getAllDependentClasses()) {
                 if (spec.addClassToCompile(classToCompile)) {
                     newAdded.add(classToCompile);

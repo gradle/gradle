@@ -16,6 +16,10 @@
 
 package org.gradle.vcs.internal;
 
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -26,18 +30,14 @@ import org.gradle.vcs.VersionControlRepository;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
 
-import javax.inject.Inject;
-import java.net.URI;
-import java.util.HashSet;
-import java.util.Set;
-
 public class DefaultVersionControlRepository implements VersionControlRepository, Action<VcsMapping> {
     private final NotationParser<String, ModuleIdentifier> notationParser;
     private final VersionControlSpec spec;
     private final Set<ModuleIdentifier> modules = new HashSet<ModuleIdentifier>();
 
     @Inject
-    public DefaultVersionControlRepository(URI url, NotationParser<String, ModuleIdentifier> notationParser, GitVersionControlSpec spec) {
+    public DefaultVersionControlRepository(
+            URI url, NotationParser<String, ModuleIdentifier> notationParser, GitVersionControlSpec spec) {
         this.notationParser = notationParser;
         this.spec = spec;
         spec.setUrl(url);

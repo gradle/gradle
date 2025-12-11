@@ -17,17 +17,16 @@
 package org.gradle.vcs.internal.resolver;
 
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.gradle.vcs.internal.VersionRef;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceScope(Scope.BuildTree.class)
 public class VcsVersionSelectionCache {
@@ -61,7 +60,8 @@ public class VcsVersionSelectionCache {
         return resolvedVersions.get(cacheKey);
     }
 
-    public void putWorkingDirForSelector(VersionControlRepositoryConnection repository, VersionConstraint constraint, File workingDir) {
+    public void putWorkingDirForSelector(
+            VersionControlRepositoryConnection repository, VersionConstraint constraint, File workingDir) {
         String cacheKey = constraintCacheKey(repository, constraint);
         resolvedVersions.put(cacheKey, workingDir);
     }

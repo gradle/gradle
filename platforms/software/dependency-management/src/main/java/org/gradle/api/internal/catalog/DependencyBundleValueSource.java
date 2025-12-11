@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.catalog;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-public abstract class DependencyBundleValueSource implements ValueSource<List<DependencyModel>, DependencyBundleValueSource.Params> {
+public abstract class DependencyBundleValueSource
+        implements ValueSource<List<DependencyModel>, DependencyBundleValueSource.Params> {
 
     interface Params extends ValueSourceParameters {
         Property<String> getBundleName();
@@ -36,9 +36,7 @@ public abstract class DependencyBundleValueSource implements ValueSource<List<De
         DefaultVersionCatalog config = getParameters().getConfig().get();
         BundleModel bundleModel = config.getBundle(bundle);
         return bundleModel.getComponents().stream()
-            .map(config::getDependencyData)
-            .collect(Collectors.toList());
-
+                .map(config::getDependencyData)
+                .collect(Collectors.toList());
     }
-
 }

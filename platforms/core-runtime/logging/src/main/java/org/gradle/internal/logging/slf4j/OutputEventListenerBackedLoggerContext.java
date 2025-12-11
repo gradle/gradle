@@ -16,6 +16,9 @@
 
 package org.gradle.internal.logging.slf4j;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.console.DefaultUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -25,16 +28,13 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicReference;
-
 public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
 
     private static final LogLevel DEFAULT_LOG_LEVEL = LogLevel.LIFECYCLE;
 
     static final String HTTP_CLIENT_WIRE_LOGGER_NAME = "org.apache.http.wire";
-    static final String META_INF_EXTENSION_MODULE_LOGGER_NAME = "org.codehaus.groovy.runtime.m12n.MetaInfExtensionModule";
+    static final String META_INF_EXTENSION_MODULE_LOGGER_NAME =
+            "org.codehaus.groovy.runtime.m12n.MetaInfExtensionModule";
     private static final String GROOVY_VM_PLUGIN_FACTORY = "org.codehaus.groovy.vmplugin.VMPluginFactory";
 
     private final ConcurrentMap<String, Logger> loggers = new ConcurrentHashMap<String, Logger>();
@@ -55,8 +55,10 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         addNoOpLogger(META_INF_EXTENSION_MODULE_LOGGER_NAME);
         addNoOpLogger("org.littleshoot.proxy.HttpRequestHandler");
         // We ignore logging from here because this is when the Groovy runtime is initialized.
-        // This may happen in BuildOperationTrace, and then the logging from the plugin factory would go into the build operation trace again.
-        // That then will fail because we can't use JsonOutput in BuildOperationTrace when the Groovy VM hasn't been initialized.
+        // This may happen in BuildOperationTrace, and then the logging from the plugin factory would go into the build
+        // operation trace again.
+        // That then will fail because we can't use JsonOutput in BuildOperationTrace when the Groovy VM hasn't been
+        // initialized.
         addNoOpLogger(GROOVY_VM_PLUGIN_FACTORY);
     }
 
@@ -123,24 +125,19 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         }
 
         @Override
-        public void trace(String msg) {
-        }
+        public void trace(String msg) {}
 
         @Override
-        public void trace(String format, Object arg) {
-        }
+        public void trace(String format, Object arg) {}
 
         @Override
-        public void trace(String format, Object arg1, Object arg2) {
-        }
+        public void trace(String format, Object arg1, Object arg2) {}
 
         @Override
-        public void trace(String format, Object... arguments) {
-        }
+        public void trace(String format, Object... arguments) {}
 
         @Override
-        public void trace(String msg, Throwable t) {
-        }
+        public void trace(String msg, Throwable t) {}
 
         @Override
         public boolean isTraceEnabled(Marker marker) {
@@ -148,24 +145,19 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         }
 
         @Override
-        public void trace(Marker marker, String msg) {
-        }
+        public void trace(Marker marker, String msg) {}
 
         @Override
-        public void trace(Marker marker, String format, Object arg) {
-        }
+        public void trace(Marker marker, String format, Object arg) {}
 
         @Override
-        public void trace(Marker marker, String format, Object arg1, Object arg2) {
-        }
+        public void trace(Marker marker, String format, Object arg1, Object arg2) {}
 
         @Override
-        public void trace(Marker marker, String format, Object... argArray) {
-        }
+        public void trace(Marker marker, String format, Object... argArray) {}
 
         @Override
-        public void trace(Marker marker, String msg, Throwable t) {
-        }
+        public void trace(Marker marker, String msg, Throwable t) {}
 
         @Override
         public boolean isDebugEnabled() {
@@ -173,16 +165,13 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         }
 
         @Override
-        public void debug(String msg) {
-        }
+        public void debug(String msg) {}
 
         @Override
-        public void debug(String format, Object arg) {
-        }
+        public void debug(String format, Object arg) {}
 
         @Override
-        public void debug(String format, Object arg1, Object arg2) {
-        }
+        public void debug(String format, Object arg1, Object arg2) {}
 
         @Override
         public boolean isLifecycleEnabled() {
@@ -190,24 +179,19 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         }
 
         @Override
-        public void debug(String format, Object... arguments) {
-        }
+        public void debug(String format, Object... arguments) {}
 
         @Override
-        public void lifecycle(String message) {
-        }
+        public void lifecycle(String message) {}
 
         @Override
-        public void lifecycle(String message, Object... objects) {
-        }
+        public void lifecycle(String message, Object... objects) {}
 
         @Override
-        public void lifecycle(String message, Throwable throwable) {
-        }
+        public void lifecycle(String message, Throwable throwable) {}
 
         @Override
-        public void debug(String msg, Throwable t) {
-        }
+        public void debug(String msg, Throwable t) {}
 
         @Override
         public boolean isDebugEnabled(Marker marker) {
@@ -215,24 +199,19 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         }
 
         @Override
-        public void debug(Marker marker, String msg) {
-        }
+        public void debug(Marker marker, String msg) {}
 
         @Override
-        public void debug(Marker marker, String format, Object arg) {
-        }
+        public void debug(Marker marker, String format, Object arg) {}
 
         @Override
-        public void debug(Marker marker, String format, Object arg1, Object arg2) {
-        }
+        public void debug(Marker marker, String format, Object arg1, Object arg2) {}
 
         @Override
-        public void debug(Marker marker, String format, Object... arguments) {
-        }
+        public void debug(Marker marker, String format, Object... arguments) {}
 
         @Override
-        public void debug(Marker marker, String msg, Throwable t) {
-        }
+        public void debug(Marker marker, String msg, Throwable t) {}
 
         @Override
         public boolean isInfoEnabled() {
@@ -240,20 +219,16 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         }
 
         @Override
-        public void info(String msg) {
-        }
+        public void info(String msg) {}
 
         @Override
-        public void info(String format, Object arg) {
-        }
+        public void info(String format, Object arg) {}
 
         @Override
-        public void info(String format, Object arg1, Object arg2) {
-        }
+        public void info(String format, Object arg1, Object arg2) {}
 
         @Override
-        public void info(String format, Object... arguments) {
-        }
+        public void info(String format, Object... arguments) {}
 
         @Override
         public boolean isQuietEnabled() {
@@ -261,16 +236,13 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         }
 
         @Override
-        public void quiet(String message) {
-        }
+        public void quiet(String message) {}
 
         @Override
-        public void quiet(String message, Object... objects) {
-        }
+        public void quiet(String message, Object... objects) {}
 
         @Override
-        public void quiet(String message, Throwable throwable) {
-        }
+        public void quiet(String message, Throwable throwable) {}
 
         @Override
         public boolean isEnabled(LogLevel level) {
@@ -278,20 +250,16 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         }
 
         @Override
-        public void log(LogLevel level, String message) {
-        }
+        public void log(LogLevel level, String message) {}
 
         @Override
-        public void log(LogLevel level, String message, Object... objects) {
-        }
+        public void log(LogLevel level, String message, Object... objects) {}
 
         @Override
-        public void log(LogLevel level, String message, Throwable throwable) {
-        }
+        public void log(LogLevel level, String message, Throwable throwable) {}
 
         @Override
-        public void info(String msg, Throwable t) {
-        }
+        public void info(String msg, Throwable t) {}
 
         @Override
         public boolean isInfoEnabled(Marker marker) {
@@ -299,24 +267,19 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         }
 
         @Override
-        public void info(Marker marker, String msg) {
-        }
+        public void info(Marker marker, String msg) {}
 
         @Override
-        public void info(Marker marker, String format, Object arg) {
-        }
+        public void info(Marker marker, String format, Object arg) {}
 
         @Override
-        public void info(Marker marker, String format, Object arg1, Object arg2) {
-        }
+        public void info(Marker marker, String format, Object arg1, Object arg2) {}
 
         @Override
-        public void info(Marker marker, String format, Object... arguments) {
-        }
+        public void info(Marker marker, String format, Object... arguments) {}
 
         @Override
-        public void info(Marker marker, String msg, Throwable t) {
-        }
+        public void info(Marker marker, String msg, Throwable t) {}
 
         @Override
         public boolean isWarnEnabled() {
@@ -324,24 +287,19 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         }
 
         @Override
-        public void warn(String msg) {
-        }
+        public void warn(String msg) {}
 
         @Override
-        public void warn(String format, Object arg) {
-        }
+        public void warn(String format, Object arg) {}
 
         @Override
-        public void warn(String format, Object... arguments) {
-        }
+        public void warn(String format, Object... arguments) {}
 
         @Override
-        public void warn(String format, Object arg1, Object arg2) {
-        }
+        public void warn(String format, Object arg1, Object arg2) {}
 
         @Override
-        public void warn(String msg, Throwable t) {
-        }
+        public void warn(String msg, Throwable t) {}
 
         @Override
         public boolean isWarnEnabled(Marker marker) {
@@ -349,24 +307,19 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         }
 
         @Override
-        public void warn(Marker marker, String msg) {
-        }
+        public void warn(Marker marker, String msg) {}
 
         @Override
-        public void warn(Marker marker, String format, Object arg) {
-        }
+        public void warn(Marker marker, String format, Object arg) {}
 
         @Override
-        public void warn(Marker marker, String format, Object arg1, Object arg2) {
-        }
+        public void warn(Marker marker, String format, Object arg1, Object arg2) {}
 
         @Override
-        public void warn(Marker marker, String format, Object... arguments) {
-        }
+        public void warn(Marker marker, String format, Object... arguments) {}
 
         @Override
-        public void warn(Marker marker, String msg, Throwable t) {
-        }
+        public void warn(Marker marker, String msg, Throwable t) {}
 
         @Override
         public boolean isErrorEnabled() {
@@ -374,24 +327,19 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         }
 
         @Override
-        public void error(String msg) {
-        }
+        public void error(String msg) {}
 
         @Override
-        public void error(String format, Object arg) {
-        }
+        public void error(String format, Object arg) {}
 
         @Override
-        public void error(String format, Object arg1, Object arg2) {
-        }
+        public void error(String format, Object arg1, Object arg2) {}
 
         @Override
-        public void error(String format, Object... arguments) {
-        }
+        public void error(String format, Object... arguments) {}
 
         @Override
-        public void error(String msg, Throwable t) {
-        }
+        public void error(String msg, Throwable t) {}
 
         @Override
         public boolean isErrorEnabled(Marker marker) {
@@ -399,23 +347,18 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         }
 
         @Override
-        public void error(Marker marker, String msg) {
-        }
+        public void error(Marker marker, String msg) {}
 
         @Override
-        public void error(Marker marker, String format, Object arg) {
-        }
+        public void error(Marker marker, String format, Object arg) {}
 
         @Override
-        public void error(Marker marker, String format, Object arg1, Object arg2) {
-        }
+        public void error(Marker marker, String format, Object arg1, Object arg2) {}
 
         @Override
-        public void error(Marker marker, String format, Object... arguments) {
-        }
+        public void error(Marker marker, String format, Object... arguments) {}
 
         @Override
-        public void error(Marker marker, String msg, Throwable t) {
-        }
+        public void error(Marker marker, String msg, Throwable t) {}
     }
 }

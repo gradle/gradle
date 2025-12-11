@@ -22,9 +22,11 @@ import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultIvyConfigurationContainer extends AbstractNamedDomainObjectContainer<IvyConfiguration> implements IvyConfigurationContainer {
+public class DefaultIvyConfigurationContainer extends AbstractNamedDomainObjectContainer<IvyConfiguration>
+        implements IvyConfigurationContainer {
 
-    public DefaultIvyConfigurationContainer(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultIvyConfigurationContainer(
+            Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(IvyConfiguration.class, instantiator, collectionCallbackActionDecorator);
     }
 

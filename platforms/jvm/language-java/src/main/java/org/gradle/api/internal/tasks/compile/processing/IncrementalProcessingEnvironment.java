@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
+import java.util.Locale;
+import java.util.Map;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import java.util.Locale;
-import java.util.Map;
 
 /**
  * A decorator for the {@link ProcessingEnvironment} provided by the Java compiler,

@@ -15,14 +15,6 @@
  */
 package org.gradle.reporting;
 
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.html.SimpleHtmlWriter;
-import org.gradle.util.internal.GFileUtils;
-import org.jspecify.annotations.NonNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -31,6 +23,13 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.internal.ErroringAction;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.html.SimpleHtmlWriter;
+import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.NonNull;
 
 public class HtmlReportRenderer {
     /**
@@ -56,25 +55,33 @@ public class HtmlReportRenderer {
     /**
      * Renders a single page HTML report from the given model, into the given output file.
      */
-    public <T> void renderSinglePage(T model, final ReportRenderer<T, HtmlPageBuilder<SimpleHtmlWriter>> renderer, final File outputFile) {
-        render(model, new ReportRenderer<T, HtmlReportBuilder>() {
-            @Override
-            public void render(T model, HtmlReportBuilder output) {
-                output.renderHtmlPage(outputFile.getName(), model, renderer);
-            }
-        }, outputFile.getParentFile());
+    public <T> void renderSinglePage(
+            T model, final ReportRenderer<T, HtmlPageBuilder<SimpleHtmlWriter>> renderer, final File outputFile) {
+        render(
+                model,
+                new ReportRenderer<T, HtmlReportBuilder>() {
+                    @Override
+                    public void render(T model, HtmlReportBuilder output) {
+                        output.renderHtmlPage(outputFile.getName(), model, renderer);
+                    }
+                },
+                outputFile.getParentFile());
     }
 
     /**
      * Renders a single page HTML report from the given model, into the given output file.
      */
-    public <T> void renderRawSinglePage(T model, final ReportRenderer<T, HtmlPageBuilder<Writer>> renderer, final File outputFile) {
-        render(model, new ReportRenderer<T, HtmlReportBuilder>() {
-            @Override
-            public void render(T model, HtmlReportBuilder output) {
-                output.renderRawHtmlPage(outputFile.getName(), model, renderer);
-            }
-        }, outputFile.getParentFile());
+    public <T> void renderRawSinglePage(
+            T model, final ReportRenderer<T, HtmlPageBuilder<Writer>> renderer, final File outputFile) {
+        render(
+                model,
+                new ReportRenderer<T, HtmlReportBuilder>() {
+                    @Override
+                    public void render(T model, HtmlReportBuilder output) {
+                        output.renderRawHtmlPage(outputFile.getName(), model, renderer);
+                    }
+                },
+                outputFile.getParentFile());
     }
 
     private static class Resource {
@@ -117,12 +124,14 @@ public class HtmlReportRenderer {
         }
 
         @Override
-        public <T> void renderHtmlPage(final String name, final T model, final ReportRenderer<T, HtmlPageBuilder<SimpleHtmlWriter>> renderer) {
+        public <T> void renderHtmlPage(
+                final String name, final T model, final ReportRenderer<T, HtmlPageBuilder<SimpleHtmlWriter>> renderer) {
             File outputFile = new File(outputDirectory, name);
             IoActions.writeTextFile(outputFile, "utf-8", new ErroringAction<Writer>() {
                 @Override
                 protected void doExecute(@NonNull Writer writer) throws Exception {
-                    SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(writer, outputFile.getParentFile().toPath(), "");
+                    SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(
+                            writer, outputFile.getParentFile().toPath(), "");
                     htmlWriter.startElement("html");
                     renderer.render(model, new DefaultHtmlPageBuilder<>(prefix(name), htmlWriter));
                     htmlWriter.endElement();
@@ -131,7 +140,8 @@ public class HtmlReportRenderer {
         }
 
         @Override
-        public <T> void renderRawHtmlPage(final String name, final T model, final ReportRenderer<T, HtmlPageBuilder<Writer>> renderer) {
+        public <T> void renderRawHtmlPage(
+                final String name, final T model, final ReportRenderer<T, HtmlPageBuilder<Writer>> renderer) {
             File outputFile = new File(outputDirectory, name);
             IoActions.writeTextFile(outputFile, "utf-8", new ErroringAction<Writer>() {
                 @Override

@@ -55,5 +55,4 @@ public interface VariantSelectionDetails {
      * @param configurationAction the configuration action
      */
     void capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configurationAction);
-
 }

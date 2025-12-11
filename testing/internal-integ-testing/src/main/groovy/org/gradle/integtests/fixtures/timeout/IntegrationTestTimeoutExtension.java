@@ -17,12 +17,11 @@
 package org.gradle.integtests.fixtures.timeout;
 
 import groovy.lang.Closure;
+import java.lang.reflect.Constructor;
 import org.spockframework.runtime.extension.IAnnotationDrivenExtension;
 import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.MethodInfo;
 import org.spockframework.runtime.model.SpecInfo;
-
-import java.lang.reflect.Constructor;
 
 public class IntegrationTestTimeoutExtension implements IAnnotationDrivenExtension<IntegrationTestTimeout> {
     @Override
@@ -36,16 +35,13 @@ public class IntegrationTestTimeoutExtension implements IAnnotationDrivenExtensi
 
     @Override
     public void visitFeatureAnnotation(IntegrationTestTimeout timeout, FeatureInfo feature) {
-        runIfEnabled(timeout, () ->
-            feature.getFeatureMethod().addInterceptor(new IntegrationTestTimeoutInterceptor(timeout))
-        );
+        runIfEnabled(timeout, () -> feature.getFeatureMethod()
+                .addInterceptor(new IntegrationTestTimeoutInterceptor(timeout)));
     }
 
     @Override
     public void visitFixtureAnnotation(IntegrationTestTimeout timeout, MethodInfo fixtureMethod) {
-        runIfEnabled(timeout, () ->
-            fixtureMethod.addInterceptor(new IntegrationTestTimeoutInterceptor(timeout))
-        );
+        runIfEnabled(timeout, () -> fixtureMethod.addInterceptor(new IntegrationTestTimeoutInterceptor(timeout)));
     }
 
     @SuppressWarnings("unchecked")

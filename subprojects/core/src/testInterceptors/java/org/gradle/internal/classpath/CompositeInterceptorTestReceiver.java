@@ -26,7 +26,9 @@ public class CompositeInterceptorTestReceiver {
     private boolean testFlag = false;
 
     public void test() {}
+
     public void test(CompositeInterceptorTestReceiver arg) {}
+
     public void testVararg(Object... arg) {}
 
     public void callNonIntercepted() {

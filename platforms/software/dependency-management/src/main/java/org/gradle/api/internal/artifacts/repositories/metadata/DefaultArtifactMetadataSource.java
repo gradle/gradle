@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
+import java.util.List;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -36,30 +37,42 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-
 /**
  * A metadata source which simply verifies the existence of a given artifact and does not
  * attempt to fetch any further metadata from other external sources.
  */
 public class DefaultArtifactMetadataSource implements MetadataSource<MutableModuleComponentResolveMetadata> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
-    private final MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory;
+    private final MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata>
+            mutableModuleMetadataFactory;
 
-    public DefaultArtifactMetadataSource(MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory) {
+    public DefaultArtifactMetadataSource(
+            MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata>
+                    mutableModuleMetadataFactory) {
         this.mutableModuleMetadataFactory = mutableModuleMetadataFactory;
     }
 
     @Override
-    public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
+    public MutableModuleComponentResolveMetadata create(
+            String repositoryName,
+            ComponentResolvers componentResolvers,
+            ModuleComponentIdentifier moduleComponentIdentifier,
+            ComponentOverrideMetadata prescribedMetaData,
+            ExternalResourceArtifactResolver artifactResolver,
+            BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
         IvyArtifactName artifact = getPrimaryArtifact(moduleComponentIdentifier, prescribedMetaData);
-        if (!artifactResolver.artifactExists(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, artifact), result)) {
+        if (!artifactResolver.artifactExists(
+                new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, artifact), result)) {
             return null;
         }
 
-        LOGGER.debug("Using default metadata for artifact in module '{}' and repository '{}'.", moduleComponentIdentifier, repositoryName);
+        LOGGER.debug(
+                "Using default metadata for artifact in module '{}' and repository '{}'.",
+                moduleComponentIdentifier,
+                repositoryName);
 
-        MutableModuleComponentResolveMetadata metadata = mutableModuleMetadataFactory.missing(moduleComponentIdentifier);
+        MutableModuleComponentResolveMetadata metadata =
+                mutableModuleMetadataFactory.missing(moduleComponentIdentifier);
 
         // For empty metadata, we use a hash based on the identifier
         HashCode descriptorHash = Hashing.md5().hashString(moduleComponentIdentifier.toString());
@@ -67,7 +80,8 @@ public class DefaultArtifactMetadataSource implements MetadataSource<MutableModu
         return metadata;
     }
 
-    private static IvyArtifactName getPrimaryArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata) {
+    private static IvyArtifactName getPrimaryArtifact(
+            ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata) {
         if (overrideMetadata.getArtifact() != null) {
             return overrideMetadata.getArtifact();
         }
@@ -75,17 +89,23 @@ public class DefaultArtifactMetadataSource implements MetadataSource<MutableModu
     }
 
     @Override
-    public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
+    public void listModuleVersions(
+            ModuleComponentSelector selector,
+            ComponentOverrideMetadata overrideMetadata,
+            List<ResourcePattern> ivyPatterns,
+            List<ResourcePattern> artifactPatterns,
+            VersionLister versionLister,
+            BuildableModuleVersionListingResolveResult result) {
         // List modules with missing metadata files
         IvyArtifactName dependencyArtifact = getPrimaryArtifact(selector, overrideMetadata);
         versionLister.listVersions(selector.getModuleIdentifier(), dependencyArtifact, artifactPatterns, result);
     }
 
-    private static IvyArtifactName getPrimaryArtifact(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata) {
+    private static IvyArtifactName getPrimaryArtifact(
+            ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata) {
         if (overrideMetadata.getArtifact() != null) {
             return overrideMetadata.getArtifact();
         }
         return new DefaultIvyArtifactName(selector.getModule(), "jar", "jar");
     }
-
 }

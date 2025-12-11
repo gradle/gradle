@@ -29,5 +29,4 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD, ElementType.FIELD, ElementType.CONSTRUCTOR})
-public @interface AllowUsingApiForExternalUse {
-}
+public @interface AllowUsingApiForExternalUse {}

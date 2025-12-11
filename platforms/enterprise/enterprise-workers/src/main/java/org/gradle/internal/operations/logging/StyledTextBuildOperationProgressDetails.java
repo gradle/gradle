@@ -41,6 +41,5 @@ public interface StyledTextBuildOperationProgressDetails {
         String getStyleName();
 
         String getText();
-
     }
 }

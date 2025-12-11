@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import java.io.File;
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.SyncSpec;
@@ -29,8 +30,6 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.io.File;
-
 public class FileCopier {
     private final Deleter deleter;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
@@ -43,16 +42,15 @@ public class FileCopier {
     private final DocumentationRegistry documentationRegistry;
 
     public FileCopier(
-        Deleter deleter,
-        DirectoryFileTreeFactory directoryFileTreeFactory,
-        FileCollectionFactory fileCollectionFactory,
-        FileResolver fileResolver,
-        PatternSetFactory patternSetFactory,
-        PropertyFactory propertyFactory,
-        FileSystem fileSystem,
-        Instantiator instantiator,
-        DocumentationRegistry documentationRegistry
-    ) {
+            Deleter deleter,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            FileCollectionFactory fileCollectionFactory,
+            FileResolver fileResolver,
+            PatternSetFactory patternSetFactory,
+            PropertyFactory propertyFactory,
+            FileSystem fileSystem,
+            Instantiator instantiator,
+            DocumentationRegistry documentationRegistry) {
         this.deleter = deleter;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -65,7 +63,8 @@ public class FileCopier {
     }
 
     private DestinationRootCopySpec createCopySpec(Action<? super SyncSpec> action) {
-        DefaultCopySpec copySpec = new DefaultCopySpec(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory);
+        DefaultCopySpec copySpec =
+                new DefaultCopySpec(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory);
         DestinationRootCopySpec destinationRootCopySpec = new DestinationRootCopySpec(fileResolver, copySpec);
         SyncSpec wrapped = instantiator.newInstance(CopySpecWrapper.class, destinationRootCopySpec);
         action.execute(wrapped);
@@ -81,15 +80,14 @@ public class FileCopier {
     public WorkResult sync(Action<? super SyncSpec> action) {
         DestinationRootCopySpec copySpec = createCopySpec(action);
         File destinationDir = copySpec.getDestinationDir();
-        return doCopy(copySpec,
-            new SyncCopyActionDecorator(
-                destinationDir,
-                getCopyVisitor(destinationDir),
-                copySpec.getPreserve(),
-                deleter,
-                directoryFileTreeFactory
-            )
-        );
+        return doCopy(
+                copySpec,
+                new SyncCopyActionDecorator(
+                        destinationDir,
+                        getCopyVisitor(destinationDir),
+                        copySpec.getPreserve(),
+                        deleter,
+                        directoryFileTreeFactory));
     }
 
     private FileCopyAction getCopyVisitor(File destination) {
@@ -97,8 +95,8 @@ public class FileCopier {
     }
 
     private WorkResult doCopy(CopySpecInternal copySpec, CopyAction visitor) {
-        CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, propertyFactory, fileSystem, false, documentationRegistry);
+        CopyActionExecuter visitorDriver =
+                new CopyActionExecuter(instantiator, propertyFactory, fileSystem, false, documentationRegistry);
         return visitorDriver.execute(copySpec, visitor);
     }
-
 }

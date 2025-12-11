@@ -39,5 +39,4 @@ public interface OperationResult {
      * @return The end time, in milliseconds since the epoch.
      */
     long getEndTime();
-
 }

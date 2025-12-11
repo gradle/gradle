@@ -16,6 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.Map;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -26,24 +34,16 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.xml.sax.SAXException;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.text.ParseException;
-import java.util.Date;
-import java.util.Map;
-
-import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId;
-
 public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescriptorParser {
     private final IvyModuleDescriptorConverter moduleDescriptorConverter;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IvyMutableModuleMetadataFactory metadataFactory;
 
-    public DisconnectedIvyXmlModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter,
-                                                    ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                    FileResourceRepository fileResourceRepository,
-                                                    IvyMutableModuleMetadataFactory metadataFactory) {
+    public DisconnectedIvyXmlModuleDescriptorParser(
+            IvyModuleDescriptorConverter moduleDescriptorConverter,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            FileResourceRepository fileResourceRepository,
+            IvyMutableModuleMetadataFactory metadataFactory) {
         super(moduleDescriptorConverter, moduleIdentifierFactory, fileResourceRepository, metadataFactory);
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -51,8 +51,19 @@ public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescri
     }
 
     @Override
-    protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties) throws MalformedURLException {
-        return new DisconnectedParser(parseContext, moduleDescriptorConverter, resource, resource.getFile().toURI().toURL(), properties, moduleIdentifierFactory, metadataFactory);
+    protected Parser createParser(
+            DescriptorParseContext parseContext,
+            LocallyAvailableExternalResource resource,
+            Map<String, String> properties)
+            throws MalformedURLException {
+        return new DisconnectedParser(
+                parseContext,
+                moduleDescriptorConverter,
+                resource,
+                resource.getFile().toURI().toURL(),
+                properties,
+                moduleIdentifierFactory,
+                metadataFactory);
     }
 
     private static class DisconnectedParser extends Parser {
@@ -60,14 +71,22 @@ public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescri
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final IvyMutableModuleMetadataFactory metadataFactory;
 
-        public DisconnectedParser(DescriptorParseContext parseContext,
-                                  IvyModuleDescriptorConverter moduleDescriptorConverter,
-                                  ExternalResource res,
-                                  URL descriptorURL,
-                                  Map<String, String> properties,
-                                  ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                  IvyMutableModuleMetadataFactory metadataFactory) {
-            super(parseContext, moduleDescriptorConverter, res, descriptorURL, moduleIdentifierFactory, metadataFactory, properties);
+        public DisconnectedParser(
+                DescriptorParseContext parseContext,
+                IvyModuleDescriptorConverter moduleDescriptorConverter,
+                ExternalResource res,
+                URL descriptorURL,
+                Map<String, String> properties,
+                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                IvyMutableModuleMetadataFactory metadataFactory) {
+            super(
+                    parseContext,
+                    moduleDescriptorConverter,
+                    res,
+                    descriptorURL,
+                    moduleIdentifierFactory,
+                    metadataFactory,
+                    properties);
             this.moduleDescriptorConverter = moduleDescriptorConverter;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
             this.metadataFactory = metadataFactory;
@@ -75,14 +94,22 @@ public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescri
 
         @Override
         public Parser newParser(ExternalResource res, URL descriptorURL) {
-            Parser parser = new DisconnectedParser(getParseContext(), moduleDescriptorConverter, res, descriptorURL, properties, moduleIdentifierFactory, metadataFactory);
+            Parser parser = new DisconnectedParser(
+                    getParseContext(),
+                    moduleDescriptorConverter,
+                    res,
+                    descriptorURL,
+                    properties,
+                    moduleIdentifierFactory,
+                    metadataFactory);
             parser.setValidate(isValidate());
             return parser;
         }
 
         @Override
-        protected ModuleDescriptor parseOtherIvyFile(String parentOrganisation,
-                                                     String parentModule, String parentRevision) throws IOException, ParseException, SAXException {
+        protected ModuleDescriptor parseOtherIvyFile(
+                String parentOrganisation, String parentModule, String parentRevision)
+                throws IOException, ParseException, SAXException {
             ModuleRevisionId parentMrid = createModuleRevisionId(parentOrganisation, parentModule, parentRevision);
             return new DefaultModuleDescriptor(parentMrid, "release", new Date());
         }

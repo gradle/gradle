@@ -16,10 +16,9 @@
 
 package org.gradle.internal.serialize;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.io.OutputStream;
+import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractEncoder implements Encoder {
     private EncoderStream stream;

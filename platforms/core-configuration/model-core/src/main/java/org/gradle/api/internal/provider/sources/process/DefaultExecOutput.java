@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
+import java.nio.charset.Charset;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource.ExecOutputData;
 import org.gradle.api.provider.Provider;
 import org.gradle.process.ExecOutput;
 import org.gradle.process.ExecResult;
-
-import java.nio.charset.Charset;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 public class DefaultExecOutput implements ExecOutput {
     private final Provider<ExecOutputData> dataProvider;

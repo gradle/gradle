@@ -17,6 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
@@ -29,10 +32,6 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-
 /**
  * Builds {@link LocalVariantGraphResolveMetadata} instances from {@link ConfigurationInternal}s, while
  * caching intermediary dependency and exclude state.
@@ -44,37 +43,34 @@ public interface LocalVariantGraphResolveStateBuilder {
      * Create variant state to be used as a root variant of a dependency graph.
      */
     LocalVariantGraphResolveState createRootVariantState(
-        ConfigurationInternal configuration,
-        ComponentIdentifier componentId,
-        DependencyCache dependencyCache,
-        ModelContainer<?> model,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    );
+            ConfigurationInternal configuration,
+            ComponentIdentifier componentId,
+            DependencyCache dependencyCache,
+            ModelContainer<?> model,
+            CalculatedValueContainerFactory calculatedValueContainerFactory);
 
     /**
      * Create variant state to be used as a consumable variant of a component within a dependency graph.
      */
     LocalVariantGraphResolveState createConsumableVariantState(
-        ConfigurationInternal configuration,
-        ComponentIdentifier componentId,
-        DependencyCache dependencyCache,
-        ModelContainer<?> model,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    );
+            ConfigurationInternal configuration,
+            ComponentIdentifier componentId,
+            DependencyCache dependencyCache,
+            ModelContainer<?> model,
+            CalculatedValueContainerFactory calculatedValueContainerFactory);
 
     /**
      * A cache of the defined dependencies for dependency configurations. This tracks the cached internal
      * dependency representations for these types so when constructing leaf configuration metadata
      * (resolvable and consumable), these conversions do not need to be executed multiple times.
      */
-    @SuppressWarnings("NonCanonicalType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "NonCanonicalType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     class DependencyCache {
         private final Map<String, DefaultLocalVariantGraphResolveStateBuilder.DependencyState> cache = new HashMap<>();
 
         public DefaultLocalVariantGraphResolveStateBuilder.DependencyState computeIfAbsent(
-            ConfigurationInternal configuration,
-            Function<ConfigurationInternal, DependencyState> factory
-        ) {
+                ConfigurationInternal configuration, Function<ConfigurationInternal, DependencyState> factory) {
             DependencyState state = cache.get(configuration.getName());
             if (state == null) {
                 state = factory.apply(configuration);
@@ -98,10 +94,9 @@ public interface LocalVariantGraphResolveStateBuilder {
         public final ImmutableList<ExcludeMetadata> excludes;
 
         public DependencyState(
-            ImmutableList<LocalOriginDependencyMetadata> dependencies,
-            ImmutableSet<LocalFileDependencyMetadata> files,
-            ImmutableList<ExcludeMetadata> excludes
-        ) {
+                ImmutableList<LocalOriginDependencyMetadata> dependencies,
+                ImmutableSet<LocalFileDependencyMetadata> files,
+                ImmutableList<ExcludeMetadata> excludes) {
             this.dependencies = dependencies;
             this.files = files;
             this.excludes = excludes;

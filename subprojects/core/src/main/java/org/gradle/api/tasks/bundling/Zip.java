@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.bundling;
 
+import java.nio.charset.Charset;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -28,8 +29,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
-
-import java.nio.charset.Charset;
 
 /**
  * Assembles a ZIP archive.
@@ -63,7 +62,12 @@ public abstract class Zip extends AbstractArchiveTask {
     @Override
     protected CopyAction createCopyAction() {
         DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
-        return new ZipCopyAction(getArchiveFile().get().getAsFile(), getCompressor(), documentationRegistry, metadataCharset, isPreserveFileTimestamps());
+        return new ZipCopyAction(
+                getArchiveFile().get().getAsFile(),
+                getCompressor(),
+                documentationRegistry,
+                metadataCharset,
+                isPreserveFileTimestamps());
     }
 
     /**
@@ -122,7 +126,9 @@ public abstract class Zip extends AbstractArchiveTask {
      * @since 2.14
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getMetadataCharset() {
         return this.metadataCharset;
     }
@@ -139,9 +145,9 @@ public abstract class Zip extends AbstractArchiveTask {
             throw new InvalidUserDataException("metadataCharset must not be null");
         }
         if (!Charset.isSupported(metadataCharset)) {
-            throw new InvalidUserDataException(String.format("Charset for metadataCharset '%s' is not supported by your JVM", metadataCharset));
+            throw new InvalidUserDataException(
+                    String.format("Charset for metadataCharset '%s' is not supported by your JVM", metadataCharset));
         }
         this.metadataCharset = metadataCharset;
     }
-
 }

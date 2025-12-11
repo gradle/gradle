@@ -19,12 +19,11 @@ package org.gradle.model.internal.core.rule.describe;
 import com.google.common.base.Objects;
 import com.google.errorprone.annotations.FormatMethod;
 import com.google.errorprone.annotations.FormatString;
+import java.io.IOException;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
 
 @ThreadSafe
 public class SimpleModelRuleDescriptor extends AbstractModelRuleDescriptor {
@@ -34,6 +33,7 @@ public class SimpleModelRuleDescriptor extends AbstractModelRuleDescriptor {
     public SimpleModelRuleDescriptor(final Factory<String> descriptor) {
         this.factory = new Factory<String>() {
             String cachedValue;
+
             @Override
             public String create() {
                 if (cachedValue == null) {

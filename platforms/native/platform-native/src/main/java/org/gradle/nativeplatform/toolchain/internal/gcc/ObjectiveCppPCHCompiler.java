@@ -25,11 +25,28 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWor
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 
 public class ObjectiveCppPCHCompiler extends GccCompatibleNativeCompiler<ObjectiveCppPCHCompileSpec> {
-    public ObjectiveCppPCHCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, new ObjectiveCppPCHCompileArgsTransformer(), Transformers.<ObjectiveCppPCHCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile, workerLeaseService);
+    public ObjectiveCppPCHCompiler(
+            BuildOperationExecutor buildOperationExecutor,
+            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+            CommandLineToolInvocationWorker commandLineTool,
+            CommandLineToolContext invocationContext,
+            String objectFileExtension,
+            boolean useCommandFile,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                buildOperationExecutor,
+                compilerOutputFileNamingSchemeFactory,
+                commandLineTool,
+                invocationContext,
+                new ObjectiveCppPCHCompileArgsTransformer(),
+                Transformers.<ObjectiveCppPCHCompileSpec>noOpTransformer(),
+                objectFileExtension,
+                useCommandFile,
+                workerLeaseService);
     }
 
-    private static class ObjectiveCppPCHCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCppPCHCompileSpec> {
+    private static class ObjectiveCppPCHCompileArgsTransformer
+            extends GccCompilerArgsTransformer<ObjectiveCppPCHCompileSpec> {
         @Override
         protected String getLanguage() {
             return "objective-c++-header";

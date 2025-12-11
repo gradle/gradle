@@ -29,5 +29,4 @@ package org.gradle.internal;
  * <p>
  * There are some reusable implementations of this, such as {@link org.gradle.api.internal.InternalAction}.
  */
-public interface InternalListener {
-}
+public interface InternalListener {}

@@ -39,5 +39,4 @@ public class MultiPluginRequests implements PluginRequests {
     public Iterator<PluginRequestInternal> iterator() {
         return requests.iterator();
     }
-
 }

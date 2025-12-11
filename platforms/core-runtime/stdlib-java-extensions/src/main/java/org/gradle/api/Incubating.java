@@ -36,5 +36,4 @@ import java.lang.annotation.Target;
     ElementType.FIELD,
     ElementType.METHOD
 })
-public @interface Incubating {
-}
+public @interface Incubating {}

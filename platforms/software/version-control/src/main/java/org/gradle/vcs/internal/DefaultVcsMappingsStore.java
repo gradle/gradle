@@ -16,6 +16,11 @@
 
 package org.gradle.vcs.internal;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
@@ -26,12 +31,6 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlSpec;
 import org.jspecify.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 
 public class DefaultVcsMappingsStore implements VcsMappingsStore, VcsResolver {
     private final Set<Action<? super VcsMapping>> rootVcsMappings = new LinkedHashSet<>();
@@ -73,7 +72,10 @@ public class DefaultVcsMappingsStore implements VcsMappingsStore, VcsResolver {
             }
             if (resolutions.size() > 1) {
                 Set<String> resolutionDisplayNames = CollectionUtils.collect(resolutions, Describable::getDisplayName);
-                throw new GradleException("Conflicting external source dependency rules were found in nested builds for " + mapping.getRequested().getDisplayName() + ":\n  " + CollectionUtils.join("\n  ", resolutionDisplayNames));
+                throw new GradleException(
+                        "Conflicting external source dependency rules were found in nested builds for "
+                                + mapping.getRequested().getDisplayName() + ":\n  "
+                                + CollectionUtils.join("\n  ", resolutionDisplayNames));
             }
         }
     }

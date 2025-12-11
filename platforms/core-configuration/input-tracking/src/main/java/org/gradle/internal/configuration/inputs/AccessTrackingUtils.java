@@ -17,14 +17,12 @@
 package org.gradle.internal.configuration.inputs;
 
 import com.google.common.collect.Maps;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 class AccessTrackingUtils {
-    private AccessTrackingUtils() {
-    }
+    private AccessTrackingUtils() {}
 
     /**
      * Tries to convert the given Object (typically the argument of {@link Collection#contains(Object)})

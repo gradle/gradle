@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
-
 import com.google.common.base.Objects;
 
 /**
@@ -67,8 +66,7 @@ public class JarDirectory {
             return false;
         }
         JarDirectory that = (JarDirectory) o;
-        return recursive == that.recursive
-            && Objects.equal(path, that.path);
+        return recursive == that.recursive && Objects.equal(path, that.path);
     }
 
     @Override

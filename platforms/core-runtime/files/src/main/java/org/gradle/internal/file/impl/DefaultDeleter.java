@@ -16,11 +16,6 @@
 package org.gradle.internal.file.impl;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.internal.file.Deleter;
-import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,6 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.LongSupplier;
 import java.util.function.Predicate;
+import org.gradle.internal.file.Deleter;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("Since15")
 public class DefaultDeleter implements Deleter {
@@ -51,9 +50,12 @@ public class DefaultDeleter implements Deleter {
     static final int EMPTY_DIRECTORY_DELETION_ATTEMPTS = 10;
 
     @VisibleForTesting
-    static final String HELP_FAILED_DELETE_CHILDREN = "Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.";
+    static final String HELP_FAILED_DELETE_CHILDREN =
+            "Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.";
+
     @VisibleForTesting
-    static final String HELP_NEW_CHILDREN = "New files were found. This might happen because a process is still writing to the target directory.";
+    static final String HELP_NEW_CHILDREN =
+            "New files were found. This might happen because a process is still writing to the target directory.";
 
     public DefaultDeleter(LongSupplier timeProvider, Predicate<? super File> isSymlink, boolean runGcOnFailedDelete) {
         this.timeProvider = timeProvider;
@@ -69,9 +71,8 @@ public class DefaultDeleter implements Deleter {
     @Override
     public boolean deleteRecursively(File root, boolean followSymlinks) throws IOException {
         if (root.exists()) {
-            return deleteRecursively(root, followSymlinks
-                ? Handling.FOLLOW_SYMLINKED_DIRECTORIES
-                : Handling.DO_NOT_FOLLOW_SYMLINKS);
+            return deleteRecursively(
+                    root, followSymlinks ? Handling.FOLLOW_SYMLINKED_DIRECTORIES : Handling.DO_NOT_FOLLOW_SYMLINKS);
         } else {
             return false;
         }
@@ -85,11 +86,12 @@ public class DefaultDeleter implements Deleter {
     @Override
     public boolean ensureEmptyDirectory(File root, boolean followSymlinks) throws IOException {
         if (root.exists()) {
-            if (root.isDirectory()
-                && (followSymlinks || !isSymlink.test(root))) {
-                return deleteRecursively(root, followSymlinks
-                    ? Handling.KEEP_AND_FOLLOW_SYMLINKED_DIRECTORIES
-                    : Handling.KEEP_AND_DO_NOT_FOLLOW_CHILD_SYMLINKS);
+            if (root.isDirectory() && (followSymlinks || !isSymlink.test(root))) {
+                return deleteRecursively(
+                        root,
+                        followSymlinks
+                                ? Handling.KEEP_AND_FOLLOW_SYMLINKED_DIRECTORIES
+                                : Handling.KEEP_AND_DO_NOT_FOLLOW_CHILD_SYMLINKS);
             }
             tryHardToDeleteOrThrow(root);
         }
@@ -119,7 +121,9 @@ public class DefaultDeleter implements Deleter {
         return attemptedToRemoveAnything;
     }
 
-    private boolean deleteRecursively(long startTime, File baseDir, File file, Handling handling, Map<String, FileDeletionResult> failedPaths) throws IOException {
+    private boolean deleteRecursively(
+            long startTime, File baseDir, File file, Handling handling, Map<String, FileDeletionResult> failedPaths)
+            throws IOException {
 
         if (shouldRemoveContentsOf(file, handling)) {
             File[] contents = file.listFiles();
@@ -220,6 +224,7 @@ public class DefaultDeleter implements Deleter {
         }
 
         private final boolean isSuccessful;
+
         @Nullable
         private final Exception exception;
 
@@ -229,8 +234,11 @@ public class DefaultDeleter implements Deleter {
         }
     }
 
-    private void throwWithHelpMessage(long startTime, File file, Handling handling, Map<String, FileDeletionResult> failedPaths, boolean more) throws IOException {
-        IOException ex = new IOException(buildHelpMessageForFailedDelete(startTime, file, handling, failedPaths.keySet(), more));
+    private void throwWithHelpMessage(
+            long startTime, File file, Handling handling, Map<String, FileDeletionResult> failedPaths, boolean more)
+            throws IOException {
+        IOException ex =
+                new IOException(buildHelpMessageForFailedDelete(startTime, file, handling, failedPaths.keySet(), more));
         for (FileDeletionResult result : failedPaths.values()) {
             if (result.exception != null) {
                 ex.addSuppressed(result.exception);
@@ -239,7 +247,8 @@ public class DefaultDeleter implements Deleter {
         throw ex;
     }
 
-    private String buildHelpMessageForFailedDelete(long startTime, File file, Handling handling, Collection<String> failedPaths, boolean more) {
+    private String buildHelpMessageForFailedDelete(
+            long startTime, File file, Handling handling, Collection<String> failedPaths, boolean more) {
 
         StringBuilder help = new StringBuilder("Unable to delete ");
         if (isSymlink.test(file)) {
@@ -286,7 +295,9 @@ public class DefaultDeleter implements Deleter {
         while (!stack.isEmpty() && paths.size() < MAX_REPORTED_PATHS) {
             File current = stack.pop();
             String absolutePath = current.getAbsolutePath();
-            if (!current.equals(directory) && !failedPaths.contains(absolutePath) && current.lastModified() >= startTime) {
+            if (!current.equals(directory)
+                    && !failedPaths.contains(absolutePath)
+                    && current.lastModified() >= startTime) {
                 paths.add(absolutePath);
             }
             if (current.isDirectory()) {
@@ -352,6 +363,6 @@ public class DefaultDeleter implements Deleter {
         /**
          * How to handle descendants.
          */
-        abstract public Handling getDescendantHandling();
+        public abstract Handling getDescendantHandling();
     }
 }

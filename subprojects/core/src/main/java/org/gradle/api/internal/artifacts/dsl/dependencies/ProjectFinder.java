@@ -34,5 +34,4 @@ public interface ProjectFinder {
      * a build-tree project identity path based on the base project's owning build.
      */
     Path resolveIdentityPath(String path);
-
 }

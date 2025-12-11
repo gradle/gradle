@@ -16,6 +16,14 @@
 
 package org.gradle.api.publish.ivy.tasks;
 
+import static org.gradle.internal.serialization.Transient.varOf;
+
+import java.io.Serializable;
+import java.net.URI;
+import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
@@ -47,15 +55,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.Serializable;
-import java.net.URI;
-import java.util.Collection;
-import java.util.Set;
-import java.util.concurrent.Callable;
-
-import static org.gradle.internal.serialization.Transient.varOf;
-
 /**
  * Publishes an IvyPublication to an IvyArtifactRepository.
  *
@@ -70,12 +69,15 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     public PublishToIvyRepository() {
 
         // Allow the publication to participate in incremental build
-        getInputs().files((Callable<FileCollection>) () -> {
-                IvyPublicationInternal publicationInternal = getPublicationInternal();
-                return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
-            })
-            .withPropertyName("publication.publishableFiles")
-            .withPathSensitivity(PathSensitivity.NAME_ONLY);
+        getInputs()
+                .files((Callable<FileCollection>) () -> {
+                    IvyPublicationInternal publicationInternal = getPublicationInternal();
+                    return publicationInternal == null
+                            ? null
+                            : publicationInternal.getPublishableArtifacts().getFiles();
+                })
+                .withPropertyName("publication.publishableFiles")
+                .withPathSensitivity(PathSensitivity.NAME_ONLY);
 
         // Should repositories be able to participate in incremental?
         // At the least, they may be able to express themselves as output files
@@ -114,13 +116,10 @@ public abstract class PublishToIvyRepository extends DefaultTask {
         } else if (publication instanceof IvyPublicationInternal) {
             return (IvyPublicationInternal) publication;
         } else {
-            throw new InvalidUserDataException(
-                String.format(
+            throw new InvalidUserDataException(String.format(
                     "publication objects must implement the '%s' interface, implementation '%s' does not",
                     IvyPublicationInternal.class.getName(),
-                    publication.getClass().getName()
-                )
-            );
+                    publication.getClass().getName()));
         }
     }
 
@@ -169,16 +168,14 @@ public abstract class PublishToIvyRepository extends DefaultTask {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
         IvyNormalizedPublication normalizedPublication = publicationInternal.asNormalisedPublication();
-        return new PublishSpec(
-            RepositorySpec.of(repository),
-            normalizedPublication
-        );
+        return new PublishSpec(RepositorySpec.of(repository), normalizedPublication);
     }
 
     @Inject
     protected abstract IvyPublisher getIvyPublisher();
 
-    private void doPublish(final IvyNormalizedPublication normalizedPublication, final IvyArtifactRepository repository) {
+    private void doPublish(
+            final IvyNormalizedPublication normalizedPublication, final IvyArtifactRepository repository) {
         new PublishOperation(normalizedPublication.getName(), repository.getName()) {
             @Override
             protected void publish() {
@@ -193,16 +190,13 @@ public abstract class PublishToIvyRepository extends DefaultTask {
         private final RepositorySpec repository;
         private final IvyNormalizedPublication publication;
 
-        public PublishSpec(
-            RepositorySpec repository,
-            IvyNormalizedPublication publication
-        ) {
+        public PublishSpec(RepositorySpec repository, IvyNormalizedPublication publication) {
             this.repository = repository;
             this.publication = publication;
         }
     }
 
-    static abstract class RepositorySpec {
+    abstract static class RepositorySpec {
 
         static RepositorySpec of(DefaultIvyArtifactRepository repository) {
             return new Configured(repository);
@@ -224,21 +218,22 @@ public abstract class PublishToIvyRepository extends DefaultTask {
 
             private Object writeReplace() {
                 return new DefaultRepositorySpec(
-                    repository.getName(),
-                    repository.getUrl(),
-                    repository.isAllowInsecureProtocol(),
-                    credentialsSpec(),
-                    repository.getRepositoryLayout(),
-                    repository.additionalArtifactPatterns(),
-                    repository.additionalIvyPatterns(),
-                    repository.getConfiguredAuthentication());
+                        repository.getName(),
+                        repository.getUrl(),
+                        repository.isAllowInsecureProtocol(),
+                        credentialsSpec(),
+                        repository.getRepositoryLayout(),
+                        repository.additionalArtifactPatterns(),
+                        repository.additionalIvyPatterns(),
+                        repository.getConfiguredAuthentication());
             }
 
             @Nullable
             private CredentialsSpec credentialsSpec() {
-                return repository.getConfiguredCredentials().map(
-                    credentials -> CredentialsSpec.of(repository.getName(), credentials)
-                ).getOrNull();
+                return repository
+                        .getConfiguredCredentials()
+                        .map(credentials -> CredentialsSpec.of(repository.getName(), credentials))
+                        .getOrNull();
             }
         }
 
@@ -252,7 +247,15 @@ public abstract class PublishToIvyRepository extends DefaultTask {
             private final Set<String> ivyPatterns;
             private final Collection<Authentication> authentications;
 
-            public DefaultRepositorySpec(String name, URI repositoryUrl, boolean allowInsecureProtocol, CredentialsSpec credentials, AbstractRepositoryLayout layout, Set<String> artifactPatterns, Set<String> ivyPatterns, Collection<Authentication> authentications) {
+            public DefaultRepositorySpec(
+                    String name,
+                    URI repositoryUrl,
+                    boolean allowInsecureProtocol,
+                    CredentialsSpec credentials,
+                    AbstractRepositoryLayout layout,
+                    Set<String> artifactPatterns,
+                    Set<String> ivyPatterns,
+                    Collection<Authentication> authentications) {
                 this.name = name;
                 this.repositoryUrl = repositoryUrl;
                 this.allowInsecureProtocol = allowInsecureProtocol;
@@ -265,7 +268,8 @@ public abstract class PublishToIvyRepository extends DefaultTask {
 
             @Override
             IvyArtifactRepository get(ServiceRegistry services) {
-                DefaultIvyArtifactRepository repository = (DefaultIvyArtifactRepository) services.get(BaseRepositoryFactory.class).createIvyRepository();
+                DefaultIvyArtifactRepository repository = (DefaultIvyArtifactRepository)
+                        services.get(BaseRepositoryFactory.class).createIvyRepository();
                 repository.setName(name);
                 repository.setUrl(repositoryUrl);
                 artifactPatterns.forEach(repository::artifactPattern);
@@ -273,7 +277,8 @@ public abstract class PublishToIvyRepository extends DefaultTask {
                 repository.setAllowInsecureProtocol(allowInsecureProtocol);
                 repository.setRepositoryLayout(layout);
                 if (credentials != null) {
-                    Provider<? extends Credentials> provider = services.get(ProviderFactory.class).credentials(credentials.getType(), name);
+                    Provider<? extends Credentials> provider =
+                            services.get(ProviderFactory.class).credentials(credentials.getType(), name);
                     repository.setConfiguredCredentials(provider.get());
                 }
                 repository.authentication(container -> container.addAll(authentications));
@@ -292,7 +297,8 @@ public abstract class PublishToIvyRepository extends DefaultTask {
 
             @SuppressWarnings("unchecked")
             public static CredentialsSpec of(String identity, Credentials credentials) {
-                return new CredentialsSpec(identity, (Class<? extends Credentials>) GeneratedSubclasses.unpackType(credentials));
+                return new CredentialsSpec(
+                        identity, (Class<? extends Credentials>) GeneratedSubclasses.unpackType(credentials));
             }
 
             public Class<? extends Credentials> getType() {
@@ -307,5 +313,4 @@ public abstract class PublishToIvyRepository extends DefaultTask {
 
     @Inject
     protected abstract IvyDuplicatePublicationTracker getDuplicatePublicationTracker();
-
 }

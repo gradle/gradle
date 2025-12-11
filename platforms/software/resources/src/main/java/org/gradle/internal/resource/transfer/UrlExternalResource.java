@@ -16,6 +16,14 @@
 
 package org.gradle.internal.resource.transfer;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.List;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.ExternalResource;
@@ -26,15 +34,6 @@ import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.jspecify.annotations.Nullable;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.List;
-
 public class UrlExternalResource extends AbstractExternalResourceAccessor implements ExternalResourceConnector {
     public static ExternalResource open(URL url) throws IOException {
         URI uri;
@@ -44,17 +43,25 @@ public class UrlExternalResource extends AbstractExternalResourceAccessor implem
             throw UncheckedException.throwAsUncheckedException(e);
         }
         UrlExternalResource connector = new UrlExternalResource();
-        return new AccessorBackedExternalResource(new ExternalResourceName(uri), connector, connector, connector, false);
+        return new AccessorBackedExternalResource(
+                new ExternalResourceName(uri), connector, connector, connector, false);
     }
 
     @Nullable
     @Override
-    public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) throws ResourceException {
+    public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate)
+            throws ResourceException {
         try {
             URL url = location.getUri().toURL();
             URLConnection connection = url.openConnection();
             try {
-                return new DefaultExternalResourceMetaData(location.getUri(), connection.getLastModified(), connection.getContentLength(), connection.getContentType(), null, null);
+                return new DefaultExternalResourceMetaData(
+                        location.getUri(),
+                        connection.getLastModified(),
+                        connection.getContentLength(),
+                        connection.getContentType(),
+                        null,
+                        null);
             } finally {
                 connection.getInputStream().close();
             }
@@ -67,7 +74,8 @@ public class UrlExternalResource extends AbstractExternalResourceAccessor implem
 
     @Nullable
     @Override
-    public ExternalResourceReadResponse openResource(final ExternalResourceName location, boolean revalidate) throws ResourceException {
+    public ExternalResourceReadResponse openResource(final ExternalResourceName location, boolean revalidate)
+            throws ResourceException {
         try {
             URL url = location.getUri().toURL();
             final URLConnection connection = url.openConnection();
@@ -80,7 +88,13 @@ public class UrlExternalResource extends AbstractExternalResourceAccessor implem
 
                 @Override
                 public ExternalResourceMetaData getMetaData() {
-                    return new DefaultExternalResourceMetaData(location.getUri(), connection.getLastModified(), connection.getContentLength(), connection.getContentType(), null, null);
+                    return new DefaultExternalResourceMetaData(
+                            location.getUri(),
+                            connection.getLastModified(),
+                            connection.getContentLength(),
+                            connection.getContentType(),
+                            null,
+                            null);
                 }
 
                 @Override

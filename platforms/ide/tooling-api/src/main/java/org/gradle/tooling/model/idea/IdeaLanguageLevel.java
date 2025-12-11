@@ -27,5 +27,4 @@ public interface IdeaLanguageLevel {
      * Gets the level value
      */
     String getLevel();
-
 }

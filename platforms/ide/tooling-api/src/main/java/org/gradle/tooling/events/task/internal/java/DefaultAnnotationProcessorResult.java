@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.events.task.internal.java;
 
-import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.AnnotationProcessorResult;
-
 import java.time.Duration;
+import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.AnnotationProcessorResult;
 
 public class DefaultAnnotationProcessorResult implements AnnotationProcessorResult {
 
@@ -46,5 +45,4 @@ public class DefaultAnnotationProcessorResult implements AnnotationProcessorResu
     public Duration getDuration() {
         return duration;
     }
-
 }

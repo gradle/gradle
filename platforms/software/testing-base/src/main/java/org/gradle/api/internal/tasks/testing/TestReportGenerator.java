@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.nio.file.Path;
 import java.util.List;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Shared interface between legacy/JVM and generic test report generators.

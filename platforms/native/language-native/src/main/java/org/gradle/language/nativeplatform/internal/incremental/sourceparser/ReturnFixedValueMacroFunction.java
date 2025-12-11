@@ -17,11 +17,10 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.base.Objects;
+import java.util.List;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * A macro function that returns a fixed expression and ignores its parameters.
@@ -31,7 +30,8 @@ public class ReturnFixedValueMacroFunction extends AbstractMacroFunction impleme
     private final IncludeType type;
     private final List<Expression> arguments;
 
-    public ReturnFixedValueMacroFunction(String name, int parameters, IncludeType type, @Nullable String value, List<Expression> arguments) {
+    public ReturnFixedValueMacroFunction(
+            String name, int parameters, IncludeType type, @Nullable String value, List<Expression> arguments) {
         super(name, parameters);
         this.value = value;
         this.type = type;

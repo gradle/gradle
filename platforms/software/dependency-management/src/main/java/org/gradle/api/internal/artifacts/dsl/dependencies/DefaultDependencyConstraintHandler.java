@@ -44,9 +44,10 @@ import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
 public class DefaultDependencyConstraintHandler implements DependencyConstraintHandler, MethodMixIn {
-    private final static DependencyConstraint DUMMY_CONSTRAINT = new DependencyConstraint() {
+    private static final DependencyConstraint DUMMY_CONSTRAINT = new DependencyConstraint() {
         private InvalidUserCodeException shouldNotBeCalled() {
-            return new InvalidUserCodeException("You shouldn't use a dependency constraint created via a Provider directly");
+            return new InvalidUserCodeException(
+                    "You shouldn't use a dependency constraint created via a Provider directly");
         }
 
         @Override
@@ -112,10 +113,11 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     private final PlatformSupport platformSupport;
     private final Category enforcedPlatform;
 
-    public DefaultDependencyConstraintHandler(ConfigurationContainer configurationContainer,
-                                              DependencyConstraintFactoryInternal dependencyConstraintFactory,
-                                              ObjectFactory objects,
-                                              PlatformSupport platformSupport) {
+    public DefaultDependencyConstraintHandler(
+            ConfigurationContainer configurationContainer,
+            DependencyConstraintFactoryInternal dependencyConstraintFactory,
+            ObjectFactory objects,
+            PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;
         this.dependencyConstraintFactory = dependencyConstraintFactory;
         this.dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DependencyConstraintAdder());
@@ -130,7 +132,8 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     }
 
     @Override
-    public DependencyConstraint add(String configurationName, Object dependencyNotation, Action<? super DependencyConstraint> configureAction) {
+    public DependencyConstraint add(
+            String configurationName, Object dependencyNotation, Action<? super DependencyConstraint> configureAction) {
         return doAdd(configurationContainer.getByName(configurationName), dependencyNotation, configureAction);
     }
 
@@ -140,7 +143,10 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     }
 
     @Override
-    public <T> void addProvider(String configurationName, Provider<T> dependencyNotation, Action<? super DependencyConstraint> configureAction) {
+    public <T> void addProvider(
+            String configurationName,
+            Provider<T> dependencyNotation,
+            Action<? super DependencyConstraint> configureAction) {
         doAddProvider(configurationContainer.getByName(configurationName), dependencyNotation, configureAction);
     }
 
@@ -150,8 +156,12 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     }
 
     @Override
-    public <T> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation, Action<? super DependencyConstraint> configureAction) {
-        doAddProvider(configurationContainer.getByName(configurationName), dependencyNotation.asProvider(), configureAction);
+    public <T> void addProviderConvertible(
+            String configurationName,
+            ProviderConvertible<T> dependencyNotation,
+            Action<? super DependencyConstraint> configureAction) {
+        doAddProvider(
+                configurationContainer.getByName(configurationName), dependencyNotation.asProvider(), configureAction);
     }
 
     @Override
@@ -160,7 +170,8 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     }
 
     @Override
-    public DependencyConstraint create(Object dependencyNotation, Action<? super DependencyConstraint> configureAction) {
+    public DependencyConstraint create(
+            Object dependencyNotation, Action<? super DependencyConstraint> configureAction) {
         return doCreate(dependencyNotation, configureAction);
     }
 
@@ -173,23 +184,30 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     }
 
     @Override
-    public DependencyConstraint enforcedPlatform(Object notation, Action<? super DependencyConstraint> configureAction) {
+    public DependencyConstraint enforcedPlatform(
+            Object notation, Action<? super DependencyConstraint> configureAction) {
         DependencyConstraint dep = enforcedPlatform(notation);
         configureAction.execute(dep);
         return dep;
     }
 
-    private DependencyConstraint doCreate(Object dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {
-        DependencyConstraint dependencyConstraint = dependencyConstraintFactory.createDependencyConstraint(dependencyNotation);
+    private DependencyConstraint doCreate(
+            Object dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {
+        DependencyConstraint dependencyConstraint =
+                dependencyConstraintFactory.createDependencyConstraint(dependencyNotation);
         if (configureAction != null) {
             configureAction.execute(dependencyConstraint);
         }
         return dependencyConstraint;
     }
 
-    private DependencyConstraint doAdd(Configuration configuration, Object dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {
-        if(dependencyNotation instanceof ProviderConvertible<?>) {
-            return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureAction);
+    private DependencyConstraint doAdd(
+            Configuration configuration,
+            Object dependencyNotation,
+            @Nullable Action<? super DependencyConstraint> configureAction) {
+        if (dependencyNotation instanceof ProviderConvertible<?>) {
+            return doAddProvider(
+                    configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureAction);
         }
         if (dependencyNotation instanceof Provider<?>) {
             return doAddProvider(configuration, (Provider<?>) dependencyNotation, configureAction);
@@ -199,10 +217,14 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         return dependency;
     }
 
-    private DependencyConstraint doAddProvider(Configuration configuration, Provider<?> dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {
+    private DependencyConstraint doAddProvider(
+            Configuration configuration,
+            Provider<?> dependencyNotation,
+            @Nullable Action<? super DependencyConstraint> configureAction) {
         if (dependencyNotation instanceof ProviderInternal<?>) {
             ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
-            if (provider.getType() != null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+            if (provider.getType() != null
+                    && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
                 ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
                 for (MinimalExternalModuleDependency dependency : bundle) {
                     doAdd(configuration, dependency, configureAction);
@@ -210,13 +232,15 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
                 return DUMMY_CONSTRAINT;
             }
         }
-        Provider<DependencyConstraint> lazyConstraint = dependencyNotation.map(mapDependencyConstraintProvider(configureAction));
+        Provider<DependencyConstraint> lazyConstraint =
+                dependencyNotation.map(mapDependencyConstraintProvider(configureAction));
         configuration.getDependencyConstraints().addLater(lazyConstraint);
         // Return a fake dependency constraint object to satisfy Kotlin DSL backwards compatibility
         return DUMMY_CONSTRAINT;
     }
 
-    private <T> Transformer<DependencyConstraint, T> mapDependencyConstraintProvider(@Nullable Action<? super DependencyConstraint> configurationAction) {
+    private <T> Transformer<DependencyConstraint, T> mapDependencyConstraintProvider(
+            @Nullable Action<? super DependencyConstraint> configurationAction) {
         return lazyNotation -> doCreate(lazyNotation, configurationAction);
     }
 
@@ -229,17 +253,26 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         return objects.named(Category.class, category);
     }
 
-    private class DependencyConstraintAdder implements DynamicAddDependencyMethods.DependencyAdder<DependencyConstraint> {
+    private class DependencyConstraintAdder
+            implements DynamicAddDependencyMethods.DependencyAdder<DependencyConstraint> {
         @Override
         @SuppressWarnings("rawtypes")
-        public DependencyConstraint add(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
-            if(dependencyNotation instanceof ProviderConvertible<?>) {
-                return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), ConfigureUtil.configureUsing(configureClosure));
+        public DependencyConstraint add(
+                Configuration configuration, Object dependencyNotation, Closure configureClosure) {
+            if (dependencyNotation instanceof ProviderConvertible<?>) {
+                return doAddProvider(
+                        configuration,
+                        ((ProviderConvertible<?>) dependencyNotation).asProvider(),
+                        ConfigureUtil.configureUsing(configureClosure));
             }
             if (dependencyNotation instanceof Provider<?>) {
-                return doAddProvider(configuration, (Provider<?>) dependencyNotation, ConfigureUtil.configureUsing(configureClosure));
+                return doAddProvider(
+                        configuration,
+                        (Provider<?>) dependencyNotation,
+                        ConfigureUtil.configureUsing(configureClosure));
             }
-            DependencyConstraint dependencyConstraint = ConfigureUtil.configure(configureClosure, dependencyConstraintFactory.createDependencyConstraint(dependencyNotation));
+            DependencyConstraint dependencyConstraint = ConfigureUtil.configure(
+                    configureClosure, dependencyConstraintFactory.createDependencyConstraint(dependencyNotation));
             configuration.getDependencyConstraints().add(dependencyConstraint);
             return dependencyConstraint;
         }

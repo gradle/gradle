@@ -16,12 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.List;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.internal.CacheVersion;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
-
-import java.io.File;
-import java.util.List;
 
 public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata, GlobalCache {
 

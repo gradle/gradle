@@ -15,6 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import java.time.Duration;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
@@ -24,18 +28,16 @@ import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.jspecify.annotations.Nullable;
 
-import java.time.Duration;
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     private final long ageMillis;
     private final ModuleComponentResolveMetadata metadata;
 
     private volatile Map<Integer, ExternalModuleComponentGraphResolveState> processedMetadataByRules;
 
-    DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metadata, BuildCommencedTimeProvider timeProvider) {
+    DefaultCachedMetadata(
+            ModuleMetadataCacheEntry entry,
+            ModuleComponentResolveMetadata metadata,
+            BuildCommencedTimeProvider timeProvider) {
         this(timeProvider.getCurrentTime() - entry.createTimestamp, metadata);
     }
 
@@ -56,7 +58,9 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
 
     @Override
     public ResolvedModuleVersion getModuleVersion() {
-        return isMissing() ? null : new DefaultResolvedModuleVersion(getMetadata().getModuleVersionId());
+        return isMissing()
+                ? null
+                : new DefaultResolvedModuleVersion(getMetadata().getModuleVersionId());
     }
 
     @Override

@@ -16,10 +16,10 @@
 
 package org.gradle.internal.logging.progress;
 
-import org.gradle.internal.operations.BuildOperationContext;
-
 import static org.gradle.internal.util.NumberUtil.KIB_BASE;
 import static org.gradle.internal.util.NumberUtil.formatBytes;
+
+import org.gradle.internal.operations.BuildOperationContext;
 
 public class ResourceOperation {
     public enum Type {

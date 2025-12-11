@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.devel;
 
+import java.util.Arrays;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -26,9 +28,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import java.util.Arrays;
-import java.util.Set;
 
 /**
  * Configuration options for the {@link org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin}.
@@ -70,7 +69,7 @@ public abstract class GradlePluginDevelopmentExtension {
         testSourceSets(testSourceSet);
     }
 
-     /**
+    /**
      * Adds some source sets to the collection which will be using TestKit.
      *
      * Calling this method multiple times with different source sets is <strong>additive</strong> - this method
@@ -97,13 +96,12 @@ public abstract class GradlePluginDevelopmentExtension {
         this.testSourceSets.addAll(Arrays.asList(testSourceSets));
     }
 
-
     /**
      * Returns the source set that compiles the code under test. Defaults to {@code project.sourceSets.main}.
      *
      * @return the plugin source set
      */
-    @NotToBeReplacedByLazyProperty(because="this property will be made non-configurable")
+    @NotToBeReplacedByLazyProperty(because = "this property will be made non-configurable")
     public SourceSet getPluginSourceSet() {
         return pluginSourceSet;
     }
@@ -113,7 +111,7 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @return the test source sets
      */
-    @NotToBeReplacedByLazyProperty(because="this property will be replaced by another API")
+    @NotToBeReplacedByLazyProperty(because = "this property will be replaced by another API")
     public Set<SourceSet> getTestSourceSets() {
         return testSourceSets;
     }

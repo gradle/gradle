@@ -17,6 +17,11 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
+import java.io.File;
+import java.io.FilterReader;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFilePermissions;
@@ -32,15 +37,9 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.FilterReader;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
 
-    abstract protected CopySpecInternal getDelegateCopySpec();
+    protected abstract CopySpecInternal getDelegateCopySpec();
 
     @Override
     public boolean isCaseSensitive() {

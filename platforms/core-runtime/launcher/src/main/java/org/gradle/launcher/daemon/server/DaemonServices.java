@@ -15,7 +15,11 @@
  */
 package org.gradle.launcher.daemon.server;
 
+import static org.gradle.internal.FileUtils.canonicalize;
+import static org.gradle.launcher.daemon.server.DaemonLogFile.getDaemonLogFileName;
+
 import com.google.common.collect.ImmutableList;
+import java.io.File;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -68,11 +72,6 @@ import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.provider.action.BuildActionSerializer;
 
-import java.io.File;
-
-import static org.gradle.internal.FileUtils.canonicalize;
-import static org.gradle.launcher.daemon.server.DaemonLogFile.getDaemonLogFileName;
-
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
  */
@@ -89,18 +88,18 @@ public class DaemonServices implements ServiceRegistrationProvider {
     @Provides
     protected DaemonContext createDaemonContext(AgentStatus agentStatus, ProcessEnvironment processEnvironment) {
         LOGGER.debug("Creating daemon context with opts: {}", configuration.getJvmOptions());
-        return new DefaultDaemonContext(configuration.getUid(),
-            canonicalize(Jvm.current().getJavaHome()),
-            JavaLanguageVersion.current(),
-            Jvm.current().getVendor(),
-            configuration.getBaseDir(),
-            processEnvironment.maybeGetPid(),
-            configuration.getIdleTimeout(),
-            configuration.getJvmOptions(),
-            agentStatus.isAgentInstrumentationEnabled(),
-            configuration.getNativeServicesMode(),
-            configuration.getPriority()
-        );
+        return new DefaultDaemonContext(
+                configuration.getUid(),
+                canonicalize(Jvm.current().getJavaHome()),
+                JavaLanguageVersion.current(),
+                Jvm.current().getVendor(),
+                configuration.getBaseDir(),
+                processEnvironment.maybeGetPid(),
+                configuration.getIdleTimeout(),
+                configuration.getJvmOptions(),
+                agentStatus.isAgentInstrumentationEnabled(),
+                configuration.getNativeServicesMode(),
+                configuration.getPriority());
     }
 
     @Provides
@@ -110,7 +109,8 @@ public class DaemonServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected DaemonHealthCheck createDaemonHealthCheck(ListenerManager listenerManager, HealthExpirationStrategy healthExpirationStrategy) {
+    protected DaemonHealthCheck createDaemonHealthCheck(
+            ListenerManager listenerManager, HealthExpirationStrategy healthExpirationStrategy) {
         return new DaemonHealthCheck(healthExpirationStrategy, listenerManager);
     }
 
@@ -120,22 +120,37 @@ public class DaemonServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected DaemonScanInfo createDaemonScanInfo(DaemonRunningStats runningStats, ListenerManager listenerManager, DaemonRegistry daemonRegistry) {
-        return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), configuration.isSingleUse(), daemonRegistry, listenerManager);
+    protected DaemonScanInfo createDaemonScanInfo(
+            DaemonRunningStats runningStats, ListenerManager listenerManager, DaemonRegistry daemonRegistry) {
+        return new DefaultDaemonScanInfo(
+                runningStats,
+                configuration.getIdleTimeout(),
+                configuration.isSingleUse(),
+                daemonRegistry,
+                listenerManager);
     }
 
     @Provides
-    protected MasterExpirationStrategy createMasterExpirationStrategy(Daemon daemon, HealthExpirationStrategy healthExpirationStrategy, FileLockContentionHandler fileLockContentionHandler, ListenerManager listenerManager) {
-        return new MasterExpirationStrategy(daemon, configuration, healthExpirationStrategy, fileLockContentionHandler, listenerManager);
+    protected MasterExpirationStrategy createMasterExpirationStrategy(
+            Daemon daemon,
+            HealthExpirationStrategy healthExpirationStrategy,
+            FileLockContentionHandler fileLockContentionHandler,
+            ListenerManager listenerManager) {
+        return new MasterExpirationStrategy(
+                daemon, configuration, healthExpirationStrategy, fileLockContentionHandler, listenerManager);
     }
 
     @Provides
-    protected HealthExpirationStrategy createHealthExpirationStrategy(DaemonHealthStats stats, GarbageCollectorMonitoringStrategy strategy) {
+    protected HealthExpirationStrategy createHealthExpirationStrategy(
+            DaemonHealthStats stats, GarbageCollectorMonitoringStrategy strategy) {
         return new HealthExpirationStrategy(stats, strategy);
     }
 
     @Provides
-    protected DaemonHealthStats createDaemonHealthStats(DaemonRunningStats runningStats, GarbageCollectorMonitoringStrategy strategy, ExecutorFactory executorFactory) {
+    protected DaemonHealthStats createDaemonHealthStats(
+            DaemonRunningStats runningStats,
+            GarbageCollectorMonitoringStrategy strategy,
+            ExecutorFactory executorFactory) {
         return new DaemonHealthStats(runningStats, strategy, executorFactory);
     }
 
@@ -146,37 +161,36 @@ public class DaemonServices implements ServiceRegistrationProvider {
 
     @Provides
     protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(
-        BuildExecutor buildActionExecuter,
-        DaemonContext daemonContext,
-        DaemonHealthCheck healthCheck,
-        DaemonHealthStats healthStats,
-        DaemonRunningStats runningStats,
-        ExecutorFactory executorFactory,
-        ProcessEnvironment processEnvironment,
-        UserInputReader inputReader,
-        OutputEventListener eventDispatch,
-        DaemonLogFile daemonLogFile,
-        GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
-        ListenerManager listenerManager
-    ) {
+            BuildExecutor buildActionExecuter,
+            DaemonContext daemonContext,
+            DaemonHealthCheck healthCheck,
+            DaemonHealthStats healthStats,
+            DaemonRunningStats runningStats,
+            ExecutorFactory executorFactory,
+            ProcessEnvironment processEnvironment,
+            UserInputReader inputReader,
+            OutputEventListener eventDispatch,
+            DaemonLogFile daemonLogFile,
+            GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
+            ListenerManager listenerManager) {
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLogFile.getFile(), daemonContext.getPid());
         return ImmutableList.of(
-            new HandleStop(listenerManager),
-            new HandleInvalidateVirtualFileSystem(userHomeServiceRegistry),
-            new HandleCancel(),
-            new HandleReportStatus(),
-            new CleanUpVirtualFileSystemAfterBuild(executorFactory, userHomeServiceRegistry),
-            new ReturnResult(),
-            new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
-            new EstablishBuildEnvironment(processEnvironment),
-            new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
-            new LogAndCheckHealth(healthStats, healthCheck, runningStats),
-            new ForwardClientInput(inputReader, eventDispatch),
-            new RequestStopIfSingleUsedDaemon(),
-            new ResetDeprecationLogger(),
-            new WatchForDisconnection(),
-            new ExecuteBuild(buildActionExecuter, runningStats)
-        );
+                new HandleStop(listenerManager),
+                new HandleInvalidateVirtualFileSystem(userHomeServiceRegistry),
+                new HandleCancel(),
+                new HandleReportStatus(),
+                new CleanUpVirtualFileSystemAfterBuild(executorFactory, userHomeServiceRegistry),
+                new ReturnResult(),
+                new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
+                new EstablishBuildEnvironment(processEnvironment),
+                new LogToClient(
+                        loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
+                new LogAndCheckHealth(healthStats, healthCheck, runningStats),
+                new ForwardClientInput(inputReader, eventDispatch),
+                new RequestStopIfSingleUsedDaemon(),
+                new ResetDeprecationLogger(),
+                new WatchForDisconnection(),
+                new ExecuteBuild(buildActionExecuter, runningStats));
     }
 
     @Provides
@@ -186,25 +200,20 @@ public class DaemonServices implements ServiceRegistrationProvider {
 
     @Provides
     protected Daemon createDaemon(
-        ImmutableList<DaemonCommandAction> actions,
-        Serializer<BuildAction> buildActionSerializer,
-        ExecutorFactory executorFactory,
-        InetAddressFactory inetAddressFactory,
-        DaemonRegistry daemonRegistry,
-        DaemonContext daemonContext,
-        ListenerManager listenerManager
-    ) {
+            ImmutableList<DaemonCommandAction> actions,
+            Serializer<BuildAction> buildActionSerializer,
+            ExecutorFactory executorFactory,
+            InetAddressFactory inetAddressFactory,
+            DaemonRegistry daemonRegistry,
+            DaemonContext daemonContext,
+            ListenerManager listenerManager) {
         return new Daemon(
-            new DaemonTcpServerConnector(
+                new DaemonTcpServerConnector(
+                        executorFactory, inetAddressFactory, DaemonMessageSerializer.create(buildActionSerializer)),
+                daemonRegistry,
+                daemonContext,
+                new DaemonCommandExecuter(configuration, actions),
                 executorFactory,
-                inetAddressFactory,
-                DaemonMessageSerializer.create(buildActionSerializer)
-            ),
-            daemonRegistry,
-            daemonContext,
-            new DaemonCommandExecuter(configuration, actions),
-            executorFactory,
-            listenerManager
-        );
+                listenerManager);
     }
 }

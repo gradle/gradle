@@ -17,12 +17,11 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableListMultimap;
-import org.gradle.internal.hash.HashCode;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import org.gradle.internal.hash.HashCode;
 
 public class SnapshotUtil {
 
@@ -53,31 +52,37 @@ public class SnapshotUtil {
         return index;
     }
 
-    public static <T extends FileSystemNode> Optional<MetadataSnapshot> getMetadataFromChildren(ChildMap<T> children, VfsRelativePath targetPath, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
-        return children.withNode(targetPath, caseSensitivity, new ChildMap.NodeHandler<T, Optional<MetadataSnapshot>>() {
-            @Override
-            public Optional<MetadataSnapshot> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
-                return child.getSnapshot(pathInChild, caseSensitivity);
-            }
+    public static <T extends FileSystemNode> Optional<MetadataSnapshot> getMetadataFromChildren(
+            ChildMap<T> children,
+            VfsRelativePath targetPath,
+            CaseSensitivity caseSensitivity,
+            Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
+        return children.withNode(
+                targetPath, caseSensitivity, new ChildMap.NodeHandler<T, Optional<MetadataSnapshot>>() {
+                    @Override
+                    public Optional<MetadataSnapshot> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
+                        return child.getSnapshot(pathInChild, caseSensitivity);
+                    }
 
-            @Override
-            public Optional<MetadataSnapshot> handleAsAncestorOfChild(String childPath, T child) {
-                return noChildFoundResult.get();
-            }
+                    @Override
+                    public Optional<MetadataSnapshot> handleAsAncestorOfChild(String childPath, T child) {
+                        return noChildFoundResult.get();
+                    }
 
-            @Override
-            public Optional<MetadataSnapshot> handleExactMatchWithChild(T child) {
-                return child.getSnapshot();
-            }
+                    @Override
+                    public Optional<MetadataSnapshot> handleExactMatchWithChild(T child) {
+                        return child.getSnapshot();
+                    }
 
-            @Override
-            public Optional<MetadataSnapshot> handleUnrelatedToAnyChild() {
-                return noChildFoundResult.get();
-            }
-        });
+                    @Override
+                    public Optional<MetadataSnapshot> handleUnrelatedToAnyChild() {
+                        return noChildFoundResult.get();
+                    }
+                });
     }
 
-    public static <T extends FileSystemNode> Optional<FileSystemNode> getChild(ChildMap<T> children, VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+    public static <T extends FileSystemNode> Optional<FileSystemNode> getChild(
+            ChildMap<T> children, VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
         return children.withNode(targetPath, caseSensitivity, new ChildMap.NodeHandler<T, Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {

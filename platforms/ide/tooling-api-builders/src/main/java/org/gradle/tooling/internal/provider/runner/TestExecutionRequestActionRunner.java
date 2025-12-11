@@ -30,9 +30,8 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
     private final BuildOperationListenerManager buildOperationListenerManager;
 
     public TestExecutionRequestActionRunner(
-        BuildOperationAncestryTracker ancestryTracker,
-        BuildOperationListenerManager buildOperationListenerManager
-    ) {
+            BuildOperationAncestryTracker ancestryTracker,
+            BuildOperationListenerManager buildOperationListenerManager) {
         this.ancestryTracker = ancestryTracker;
         this.buildOperationListenerManager = buildOperationListenerManager;
     }
@@ -45,7 +44,8 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
 
         try {
             TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
-            TestExecutionResultEvaluator testExecutionResultEvaluator = new TestExecutionResultEvaluator(ancestryTracker, testExecutionRequestAction);
+            TestExecutionResultEvaluator testExecutionResultEvaluator =
+                    new TestExecutionResultEvaluator(ancestryTracker, testExecutionRequestAction);
             buildOperationListenerManager.addListener(testExecutionResultEvaluator);
             try {
                 doRun(testExecutionRequestAction, buildController);

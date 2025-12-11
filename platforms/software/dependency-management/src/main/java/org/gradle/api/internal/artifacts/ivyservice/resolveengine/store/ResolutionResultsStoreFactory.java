@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
+import java.io.Closeable;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -28,16 +33,10 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
-import java.io.Closeable;
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
 @ServiceScope(Scope.BuildTree.class)
 public class ResolutionResultsStoreFactory implements Closeable {
-    private final static Logger LOG = Logging.getLogger(ResolutionResultsStoreFactory.class);
-    private static final int DEFAULT_MAX_SIZE = 2000000000; //2 gigs
+    private static final Logger LOG = Logging.getLogger(ResolutionResultsStoreFactory.class);
+    private static final int DEFAULT_MAX_SIZE = 2000000000; // 2 gigs
 
     private final TemporaryFileProvider temp;
     private final int maxSize;
@@ -95,9 +94,10 @@ public class ResolutionResultsStoreFactory implements Closeable {
         return new StoreSet() {
             final int storeSetId = storeSetBaseId.getAndIncrement();
             int binaryStoreId;
+
             @Override
             public DefaultBinaryStore nextBinaryStore() {
-                //one binary store per id+threadId
+                // one binary store per id+threadId
                 String storeKey = Thread.currentThread().getId() + "-" + binaryStoreId++;
                 return createBinaryStore(storeKey);
             }
@@ -114,10 +114,10 @@ public class ResolutionResultsStoreFactory implements Closeable {
         };
     }
 
-    //offset based implementation is only safe up to certain figure
-    //because of the int max value
-    //for large streams/files (huge builds), we need to roll the file
-    //otherwise the stream.size() returns max integer and the offset is no longer correct
+    // offset based implementation is only safe up to certain figure
+    // because of the int max value
+    // for large streams/files (huge builds), we need to roll the file
+    // otherwise the stream.size() returns max integer and the offset is no longer correct
     private boolean isFull(DefaultBinaryStore store) {
         return store.getSize() > maxSize;
     }

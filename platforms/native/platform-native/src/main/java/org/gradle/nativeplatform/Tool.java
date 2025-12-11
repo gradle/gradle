@@ -15,9 +15,8 @@
  */
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
-
 import java.util.List;
+import org.gradle.api.Incubating;
 
 /**
  * Configuration of the arguments of a ToolChain executable.

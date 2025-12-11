@@ -17,7 +17,8 @@
 package org.gradle.api.tasks.util.internal;
 
 public class PatternSets {
-    private static final PatternSetFactory PATTERN_SET_FACTORY = new DefaultPatternSetFactory(PatternSpecFactory.INSTANCE);
+    private static final PatternSetFactory PATTERN_SET_FACTORY =
+            new DefaultPatternSetFactory(PatternSpecFactory.INSTANCE);
 
     /**
      * Should use as an injected service instead.

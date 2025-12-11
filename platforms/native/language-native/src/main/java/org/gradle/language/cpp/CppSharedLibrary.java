@@ -27,5 +27,10 @@ import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
  *
  * @since 4.2
  */
-public interface CppSharedLibrary extends CppBinary, ComponentWithSharedLibrary, ComponentWithLinkUsage, ComponentWithRuntimeUsage, ComponentWithOutputs, PublishableComponent {
-}
+public interface CppSharedLibrary
+        extends CppBinary,
+                ComponentWithSharedLibrary,
+                ComponentWithLinkUsage,
+                ComponentWithRuntimeUsage,
+                ComponentWithOutputs,
+                PublishableComponent {}

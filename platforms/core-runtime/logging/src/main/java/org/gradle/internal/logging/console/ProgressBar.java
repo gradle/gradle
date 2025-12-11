@@ -17,17 +17,16 @@
 package org.gradle.internal.logging.console;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 public class ProgressBar {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProgressBar.class);
@@ -49,7 +48,16 @@ public class ProgressBar {
     private String lastElapsedTimeStr;
     private List<StyledTextOutputEvent.Span> formatted;
 
-    public ProgressBar(ConsoleMetaData consoleMetaData, String progressBarPrefix, int progressBarWidth, String progressBarSuffix, char completeChar, char incompleteChar, String suffix, int initialProgress, int totalProgress) {
+    public ProgressBar(
+            ConsoleMetaData consoleMetaData,
+            String progressBarPrefix,
+            int progressBarWidth,
+            String progressBarSuffix,
+            char completeChar,
+            char incompleteChar,
+            String suffix,
+            int initialProgress,
+            int totalProgress) {
         this.consoleMetaData = consoleMetaData;
         this.progressBarPrefix = progressBarPrefix;
         this.progressBarWidth = progressBarWidth;
@@ -101,16 +109,22 @@ public class ProgressBar {
             int remainingWidth = progressBarWidth - completedWidth;
 
             String statusPrefix = trimToConsole(consoleCols, 0, progressBarPrefix);
-            String coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), fill(fillerChar, completedWidth));
-            String statusSuffix = trimToConsole(consoleCols, coloredProgress.length(), fill(incompleteChar, remainingWidth)
-                + progressBarSuffix + " " + (int) (current * 100.0 / total) + '%' + ' ' + suffix
-                + (timerEnabled ? " [" + elapsedTimeStr + "]" : ""));
+            String coloredProgress =
+                    trimToConsole(consoleCols, statusPrefix.length(), fill(fillerChar, completedWidth));
+            String statusSuffix = trimToConsole(
+                    consoleCols,
+                    coloredProgress.length(),
+                    fill(incompleteChar, remainingWidth)
+                            + progressBarSuffix + " " + (int) (current * 100.0 / total) + '%' + ' ' + suffix
+                            + (timerEnabled ? " [" + elapsedTimeStr + "]" : ""));
 
             lastElapsedTimeStr = elapsedTimeStr;
             formatted = ImmutableList.of(
-                new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusPrefix),
-                new StyledTextOutputEvent.Span(failing ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.SuccessHeader, coloredProgress),
-                new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusSuffix));
+                    new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusPrefix),
+                    new StyledTextOutputEvent.Span(
+                            failing ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.SuccessHeader,
+                            coloredProgress),
+                    new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusSuffix));
         }
         return formatted;
     }

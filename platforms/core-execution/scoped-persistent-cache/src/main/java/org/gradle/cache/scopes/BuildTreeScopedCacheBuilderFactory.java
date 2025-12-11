@@ -24,5 +24,4 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * in the build tree.
  */
 @ServiceScope(Scope.BuildSession.class)
-public interface BuildTreeScopedCacheBuilderFactory extends ScopedCacheBuilderFactory {
-}
+public interface BuildTreeScopedCacheBuilderFactory extends ScopedCacheBuilderFactory {}

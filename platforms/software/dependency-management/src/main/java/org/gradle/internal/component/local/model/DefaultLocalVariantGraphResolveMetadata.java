@@ -33,13 +33,12 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
     private final ImmutableCapabilities capabilities;
 
     public DefaultLocalVariantGraphResolveMetadata(
-        VariantIdentifier id,
-        String name,
-        boolean transitive,
-        ImmutableAttributes attributes,
-        ImmutableCapabilities capabilities,
-        boolean deprecatedForConsumption
-    ) {
+            VariantIdentifier id,
+            String name,
+            boolean transitive,
+            ImmutableAttributes attributes,
+            ImmutableCapabilities capabilities,
+            boolean deprecatedForConsumption) {
         this.id = id;
         this.name = name;
         this.transitive = transitive;
@@ -92,5 +91,4 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
     public String toString() {
         return "variant " + name;
     }
-
 }

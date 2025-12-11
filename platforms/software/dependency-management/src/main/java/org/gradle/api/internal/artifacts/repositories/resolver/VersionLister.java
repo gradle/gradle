@@ -16,15 +16,18 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import java.util.List;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
-
-import java.util.List;
 
 public interface VersionLister {
     /**
      * Uses resource listing to attempt to get the list of versions for a module across a set of patterns.
      */
-    void listVersions(ModuleIdentifier module, IvyArtifactName artifact, List<ResourcePattern> patterns, BuildableModuleVersionListingResolveResult result);
+    void listVersions(
+            ModuleIdentifier module,
+            IvyArtifactName artifact,
+            List<ResourcePattern> patterns,
+            BuildableModuleVersionListingResolveResult result);
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.openjdk.jmh.annotations.Level;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.openjdk.jmh.annotations.Level;
 
 public class InMemoryDataAccessor implements DataAccessor {
     @Override

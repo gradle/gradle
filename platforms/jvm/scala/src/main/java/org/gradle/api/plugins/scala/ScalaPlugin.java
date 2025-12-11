@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.scala;
 
+import java.util.concurrent.Callable;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -30,8 +31,6 @@ import org.gradle.api.tasks.ScalaSourceDirectorySet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
-
-import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link Plugin} which sets up a Scala project.</p>
@@ -48,15 +47,19 @@ public abstract class ScalaPlugin implements Plugin<Project> {
         project.getPluginManager().apply(ScalaBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
 
-        JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
+        JvmFeatureInternal mainFeature =
+                JavaPluginHelper.getJavaComponent(project).getMainFeature();
 
         configureScaladoc(project, mainFeature);
 
         String compileTaskName = mainFeature.getSourceSet().getCompileTaskName("scala");
-        final TaskProvider<AbstractScalaCompile> compileScala = project.getTasks().withType(AbstractScalaCompile.class).named(compileTaskName);
-        final Provider<RegularFile> compileScalaMapping = project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + compileTaskName + ".mapping");
+        final TaskProvider<AbstractScalaCompile> compileScala =
+                project.getTasks().withType(AbstractScalaCompile.class).named(compileTaskName);
+        final Provider<RegularFile> compileScalaMapping = project.getLayout()
+                .getBuildDirectory()
+                .file("tmp/scala/compilerAnalysis/" + compileTaskName + ".mapping");
         compileScala.configure(task -> task.getAnalysisMappingFile().set(compileScalaMapping));
-        project.getConfigurations().named("incrementalScalaAnalysisElements", conf ->  {
+        project.getConfigurations().named("incrementalScalaAnalysisElements", conf -> {
             conf.getOutgoing().artifact(compileScalaMapping, artifact -> artifact.builtBy(compileScala));
         });
     }

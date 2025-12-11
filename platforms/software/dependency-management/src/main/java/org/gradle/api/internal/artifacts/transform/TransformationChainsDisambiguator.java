@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
@@ -23,11 +27,6 @@ import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.resolution.failure.transform.TransformationChainData;
 import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter;
 import org.gradle.internal.lazy.Lazy;
-
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Disambiguates a set of related transformation chains that all satisfy an attribute matching request.
@@ -65,7 +64,8 @@ import java.util.Optional;
      * <p>
      * Fingerprinting is an expensive operation, so this map is computed only when needed.
      */
-    private final Lazy<LinkedHashMap<TransformationChainData.TransformationChainFingerprint, TransformedVariant>> preferredChainsByFingerprint;
+    private final Lazy<LinkedHashMap<TransformationChainData.TransformationChainFingerprint, TransformedVariant>>
+            preferredChainsByFingerprint;
 
     /**
      * Create an assessment of a given list of transformation chains by fingerprinting those chains
@@ -81,7 +81,12 @@ import java.util.Optional;
      * @param attributeMatcher the attribute matcher to use to determine compatible results
      * @param chainsToAssess the candidate transformation chains to disambiguate
      */
-    public TransformationChainsDisambiguator(ResolutionFailureHandler failureHandler, ResolvedVariantSet producer, ImmutableAttributes targetAttributes, AttributeMatcher attributeMatcher, List<TransformedVariant> chainsToAssess) {
+    public TransformationChainsDisambiguator(
+            ResolutionFailureHandler failureHandler,
+            ResolvedVariantSet producer,
+            ImmutableAttributes targetAttributes,
+            AttributeMatcher attributeMatcher,
+            List<TransformedVariant> chainsToAssess) {
         this.failureHandler = failureHandler;
         this.producer = producer;
         this.targetAttributes = targetAttributes;
@@ -90,10 +95,13 @@ import java.util.Optional;
         this.preferredChainsByFingerprint = Lazy.unsafe().of(() -> {
             TransformedVariantConverter transformedVariantConverter = new TransformedVariantConverter();
 
-            // Fingerprint all preferred chains to build a map from each unique fingerprint -> all preferred chains with that fingerprint
-            LinkedHashMap<TransformationChainData.TransformationChainFingerprint, TransformedVariant> result = new LinkedHashMap<>(preferredChains.size());
+            // Fingerprint all preferred chains to build a map from each unique fingerprint -> all preferred chains with
+            // that fingerprint
+            LinkedHashMap<TransformationChainData.TransformationChainFingerprint, TransformedVariant> result =
+                    new LinkedHashMap<>(preferredChains.size());
             preferredChains.forEach(chain -> {
-                TransformationChainData.TransformationChainFingerprint fingerprint = transformedVariantConverter.convert(chain).fingerprint();
+                TransformationChainData.TransformationChainFingerprint fingerprint =
+                        transformedVariantConverter.convert(chain).fingerprint();
                 result.putIfAbsent(fingerprint, chain);
             });
 
@@ -125,7 +133,8 @@ import java.util.Optional;
             // Multiple unique fingerprints in the preferred chains is a problem.
             // This now fails the build.  The error message should report one representative of each
             // distinct chain, so that the author can understand what's happening here and correct it.
-            throw failureHandler.ambiguousArtifactTransformsFailure(producer, targetAttributes, getDistinctPreferredChainRepresentatives());
+            throw failureHandler.ambiguousArtifactTransformsFailure(
+                    producer, targetAttributes, getDistinctPreferredChainRepresentatives());
         } else {
             return getArbitraryPreferredMatchingChain();
         }
@@ -140,7 +149,9 @@ import java.util.Optional;
      * @return first preferred transformation chain in this result set if one exists; else {@link Optional#empty()}
      */
     private Optional<TransformedVariant> getArbitraryPreferredMatchingChain() {
-        return !preferredChains.isEmpty() ? Optional.of(preferredChains.get(preferredChains.size() - 1)) : Optional.empty();
+        return !preferredChains.isEmpty()
+                ? Optional.of(preferredChains.get(preferredChains.size() - 1))
+                : Optional.empty();
     }
 
     /**

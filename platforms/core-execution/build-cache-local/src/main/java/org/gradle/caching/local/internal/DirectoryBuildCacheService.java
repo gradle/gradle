@@ -16,6 +16,9 @@
 
 package org.gradle.caching.local.internal;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.function.Consumer;
 import org.gradle.cache.PersistentCache;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
@@ -27,16 +30,13 @@ import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.hash.HashCode;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.function.Consumer;
-
 @NullMarked
 public class DirectoryBuildCacheService implements LocalBuildCacheService, BuildCacheService {
 
     private final DirectoryBuildCache cache;
 
-    public DirectoryBuildCacheService(PersistentCache persistentCache, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
+    public DirectoryBuildCacheService(
+            PersistentCache persistentCache, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
         this.cache = new DirectoryBuildCache(persistentCache, fileAccessTracker, failedFileSuffix);
     }
 

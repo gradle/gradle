@@ -16,18 +16,17 @@
 package org.gradle.launcher.daemon.context;
 
 import com.google.common.base.Joiner;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.daemon.configuration.DaemonPriority;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Keep in mind that this is a serialized value object.
@@ -49,18 +48,17 @@ public class DefaultDaemonContext implements DaemonContext {
     private final String javaVendor;
 
     public DefaultDaemonContext(
-        String uid,
-        File javaHome,
-        JavaLanguageVersion javaVersion,
-        String javaVendor,
-        File daemonRegistryDir,
-        Long pid,
-        Integer idleTimeout,
-        Collection<String> daemonOpts,
-        boolean applyInstrumentationAgent,
-        NativeServicesMode nativeServicesMode,
-        DaemonPriority priority
-    ) {
+            String uid,
+            File javaHome,
+            JavaLanguageVersion javaVersion,
+            String javaVendor,
+            File daemonRegistryDir,
+            Long pid,
+            Integer idleTimeout,
+            Collection<String> daemonOpts,
+            boolean applyInstrumentationAgent,
+            NativeServicesMode nativeServicesMode,
+            DaemonPriority priority) {
         this.uid = uid;
         this.javaHome = javaHome;
         this.javaVersion = javaVersion;
@@ -77,8 +75,19 @@ public class DefaultDaemonContext implements DaemonContext {
     @Override
     public String toString() {
         // Changes to this also affect org.gradle.integtests.fixtures.daemon.DaemonContextParser
-        return String.format("DefaultDaemonContext[uid=%s,javaHome=%s,javaVersion=%s,javaVendor=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,priority=%s,applyInstrumentationAgent=%s,nativeServicesMode=%s,daemonOpts=%s]",
-            uid, javaHome, javaVersion, javaVendor, daemonRegistryDir, pid, idleTimeout, priority, applyInstrumentationAgent, nativeServicesMode, Joiner.on(',').join(daemonOpts));
+        return String.format(
+                "DefaultDaemonContext[uid=%s,javaHome=%s,javaVersion=%s,javaVendor=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,priority=%s,applyInstrumentationAgent=%s,nativeServicesMode=%s,daemonOpts=%s]",
+                uid,
+                javaHome,
+                javaVersion,
+                javaVendor,
+                daemonRegistryDir,
+                pid,
+                idleTimeout,
+                priority,
+                applyInstrumentationAgent,
+                nativeServicesMode,
+                Joiner.on(',').join(daemonOpts));
     }
 
     @Override
@@ -138,7 +147,12 @@ public class DefaultDaemonContext implements DaemonContext {
 
     @Override
     public DaemonRequestContext toRequest() {
-        return new DaemonRequestContext(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.EXISTING_DAEMON, javaHome), this.getDaemonOpts(), this.shouldApplyInstrumentationAgent(), this.getNativeServicesMode(), this.getPriority());
+        return new DaemonRequestContext(
+                new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.EXISTING_DAEMON, javaHome),
+                this.getDaemonOpts(),
+                this.shouldApplyInstrumentationAgent(),
+                this.getNativeServicesMode(),
+                this.getPriority());
     }
 
     @Override
@@ -151,22 +165,33 @@ public class DefaultDaemonContext implements DaemonContext {
             return false;
         }
         DefaultDaemonContext that = (DefaultDaemonContext) o;
-        return applyInstrumentationAgent == that.applyInstrumentationAgent &&
-            Objects.equals(uid, that.uid) &&
-            Objects.equals(javaHome, that.javaHome) &&
-            Objects.equals(daemonRegistryDir, that.daemonRegistryDir) &&
-            Objects.equals(pid, that.pid) &&
-            Objects.equals(idleTimeout, that.idleTimeout) &&
-            Objects.equals(daemonOpts, that.daemonOpts) &&
-            priority == that.priority &&
-            nativeServicesMode == that.nativeServicesMode &&
-            Objects.equals(javaVersion, that.javaVersion) &&
-            Objects.equals(javaVendor, that.javaVendor);
+        return applyInstrumentationAgent == that.applyInstrumentationAgent
+                && Objects.equals(uid, that.uid)
+                && Objects.equals(javaHome, that.javaHome)
+                && Objects.equals(daemonRegistryDir, that.daemonRegistryDir)
+                && Objects.equals(pid, that.pid)
+                && Objects.equals(idleTimeout, that.idleTimeout)
+                && Objects.equals(daemonOpts, that.daemonOpts)
+                && priority == that.priority
+                && nativeServicesMode == that.nativeServicesMode
+                && Objects.equals(javaVersion, that.javaVersion)
+                && Objects.equals(javaVendor, that.javaVendor);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(uid, javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts, applyInstrumentationAgent, priority, nativeServicesMode, javaVersion, javaVendor);
+        return Objects.hash(
+                uid,
+                javaHome,
+                daemonRegistryDir,
+                pid,
+                idleTimeout,
+                daemonOpts,
+                applyInstrumentationAgent,
+                priority,
+                nativeServicesMode,
+                javaVersion,
+                javaVendor);
     }
 
     static class Serializer implements org.gradle.internal.serialize.Serializer<DefaultDaemonContext> {
@@ -190,7 +215,18 @@ public class DefaultDaemonContext implements DaemonContext {
             NativeServicesMode nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
             DaemonPriority priority = decoder.readBoolean() ? DaemonPriority.values()[decoder.readInt()] : null;
 
-            return new DefaultDaemonContext(uid, javaHome, javaVersion, javaVendor, registryDir, pid, idle, daemonOpts, applyInstrumentationAgent, nativeServicesMode, priority);
+            return new DefaultDaemonContext(
+                    uid,
+                    javaHome,
+                    javaVersion,
+                    javaVendor,
+                    registryDir,
+                    pid,
+                    idle,
+                    daemonOpts,
+                    applyInstrumentationAgent,
+                    nativeServicesMode,
+                    priority);
         }
 
         @Override

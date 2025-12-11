@@ -15,13 +15,12 @@
  */
 package gradlebuild.docs.dsl.docbook;
 
-import org.gradle.internal.UncheckedException;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.gradle.internal.UncheckedException;
 
 /**
  * Extracts the main description of a javadoc comment from its raw text, as a stream of characters. See

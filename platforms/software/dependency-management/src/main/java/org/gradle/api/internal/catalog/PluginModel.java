@@ -24,10 +24,8 @@ public class PluginModel extends AbstractContextAwareModel {
     private final String versionRef;
     private final int hashCode;
 
-    public PluginModel(String id,
-                       @Nullable String versionRef,
-                       ImmutableVersionConstraint version,
-                       @Nullable String context) {
+    public PluginModel(
+            String id, @Nullable String versionRef, ImmutableVersionConstraint version, @Nullable String context) {
         super(context);
         this.id = id;
         this.version = version;
@@ -82,9 +80,6 @@ public class PluginModel extends AbstractContextAwareModel {
 
     @Override
     public String toString() {
-        return "plugin {" +
-            "id='" + id + '\'' +
-            ", version='" + version + '\'' +
-            '}';
+        return "plugin {" + "id='" + id + '\'' + ", version='" + version + '\'' + '}';
     }
 }

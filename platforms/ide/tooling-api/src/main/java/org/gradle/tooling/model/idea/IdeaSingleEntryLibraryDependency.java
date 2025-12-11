@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.model.idea;
 
+import java.io.File;
 import org.gradle.tooling.model.ExternalDependency;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * "Single-Entry Module Library" as IDEA calls it. For example a single Jar file with sources Jar.

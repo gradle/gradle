@@ -17,10 +17,9 @@
 package org.gradle.model.internal.core.rule.describe;
 
 import com.google.common.base.Objects;
-import org.gradle.internal.UncheckedException;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.internal.UncheckedException;
 
 @ThreadSafe
 class NestedModelRuleDescriptor extends AbstractModelRuleDescriptor {
@@ -53,8 +52,7 @@ class NestedModelRuleDescriptor extends AbstractModelRuleDescriptor {
             return false;
         }
         NestedModelRuleDescriptor that = (NestedModelRuleDescriptor) o;
-        return Objects.equal(parent, that.parent)
-            && Objects.equal(child, that.child);
+        return Objects.equal(parent, that.parent) && Objects.equal(child, that.child);
     }
 
     @Override

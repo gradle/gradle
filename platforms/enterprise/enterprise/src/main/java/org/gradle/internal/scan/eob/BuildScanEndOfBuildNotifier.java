@@ -35,9 +35,7 @@ public interface BuildScanEndOfBuildNotifier {
         Throwable getFailure();
     }
 
-    interface BuildScanResult {
-
-    }
+    interface BuildScanResult {}
 
     interface Listener {
         /**
@@ -47,5 +45,4 @@ public interface BuildScanEndOfBuildNotifier {
     }
 
     void notify(Listener listener);
-
 }

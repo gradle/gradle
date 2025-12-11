@@ -16,20 +16,19 @@
 
 package org.gradle.plugins.ide.eclipse.model;
 
+import static java.util.stream.Collectors.toMap;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import groovy.util.Node;
 import groovy.util.NodeList;
-import org.gradle.internal.Cast;
-import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
-
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-
-import static java.util.stream.Collectors.toMap;
+import org.gradle.internal.Cast;
+import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
 
 // TODO: consider entryAttributes in equals, hashCode, and toString
 
@@ -37,7 +36,8 @@ import static java.util.stream.Collectors.toMap;
  * Common superclass for all {@link ClasspathEntry} instances.
  */
 public abstract class AbstractClasspathEntry implements ClasspathEntry {
-    private static final String NATIVE_LIBRARY_ATTRIBUTE = "org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY";
+    private static final String NATIVE_LIBRARY_ATTRIBUTE =
+            "org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY";
     public static final String COMPONENT_NON_DEPENDENCY_ATTRIBUTE = "org.eclipse.jst.component.nondependency";
     public static final String COMPONENT_DEPENDENCY_ATTRIBUTE = "org.eclipse.jst.component.dependency";
 
@@ -125,7 +125,6 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         allAttributes.put("kind", getKind());
         allAttributes.put("path", path);
 
-
         if (exported && !(this instanceof SourceFolder)) {
             allAttributes.put("exported", true);
         }
@@ -147,7 +146,8 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
             NodeList accessRuleNodes = (NodeList) ((Node) accessRulesNode).get("accessrule");
             for (Object accessRuleNode : accessRuleNodes) {
                 Node ruleNode = (Node) accessRuleNode;
-                accessRules.add(new AccessRule((String) ruleNode.attribute("kind"), (String) ruleNode.attribute("pattern")));
+                accessRules.add(
+                        new AccessRule((String) ruleNode.attribute("kind"), (String) ruleNode.attribute("pattern")));
             }
         }
         return accessRules;
@@ -159,10 +159,11 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         }
         Node accessRulesNode = getAttributesNode(node, "accessrules");
         for (AccessRule rule : accessRules) {
-            accessRulesNode.appendNode("accessrule",
-                ImmutableMap.of(
-                    "kind", rule.getKind(),
-                    "pattern", rule.getPattern()));
+            accessRulesNode.appendNode(
+                    "accessrule",
+                    ImmutableMap.of(
+                            "kind", rule.getKind(),
+                            "pattern", rule.getPattern()));
         }
     }
 
@@ -190,29 +191,36 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
 
         effectiveEntryAttrs.forEach((key, value) -> {
             // If the attribute value is an Iterable, an <attribute> node is produced for each element in the Iterable.
-            // This is something that is supported by the classpath entry format and it allows users to define multi-value
+            // This is something that is supported by the classpath entry format and it allows users to define
+            // multi-value
             // entries by putting a list as value into the 'entryAttributes' Map.
-            // For exmaple: entryAttributes['add-exports'] = ['java.base/jdk.internal.access=ALL-UNNAMED', 'java.base/jdk.internal.loader=ALL-UNNAMED']
+            // For exmaple: entryAttributes['add-exports'] = ['java.base/jdk.internal.access=ALL-UNNAMED',
+            // 'java.base/jdk.internal.loader=ALL-UNNAMED']
             if (value instanceof Iterable) {
-                Cast.<Iterable<?>>uncheckedCast(value).forEach(valueElement ->
-                    attributesNode.appendNode("attribute", ImmutableMap.of(
-                        "name", key,
-                        "value", valueElement)
-                    )
-                );
+                Cast.<Iterable<?>>uncheckedCast(value)
+                        .forEach(valueElement -> attributesNode.appendNode(
+                                "attribute",
+                                ImmutableMap.of(
+                                        "name", key,
+                                        "value", valueElement)));
             } else {
-                attributesNode.appendNode("attribute", ImmutableMap.of(
-                    "name", key,
-                    "value", value)
-                );
+                attributesNode.appendNode(
+                        "attribute",
+                        ImmutableMap.of(
+                                "name", key,
+                                "value", value));
             }
         });
     }
 
     private Map<String, Object> getEffectiveEntryAttrs() {
         return entryAttributes.entrySet().stream()
-            .filter(entry -> entry.getValue() != null)
-            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (existing, replacement) -> existing, LinkedHashMap::new));
+                .filter(entry -> entry.getValue() != null)
+                .collect(toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (existing, replacement) -> existing,
+                        LinkedHashMap::new));
     }
 
     private static Node getAttributesNode(Node node, String attributes) {
@@ -233,9 +241,9 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         }
         AbstractClasspathEntry that = (AbstractClasspathEntry) o;
         return exported == that.exported
-            && Objects.equal(path, that.path)
-            && Objects.equal(accessRules, that.accessRules)
-            && Objects.equal(getNativeLibraryLocation(), that.getNativeLibraryLocation());
+                && Objects.equal(path, that.path)
+                && Objects.equal(accessRules, that.accessRules)
+                && Objects.equal(getNativeLibraryLocation(), that.getNativeLibraryLocation());
     }
 
     @Override
@@ -245,6 +253,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
 
     @Override
     public String toString() {
-        return "{path='" + path + "', nativeLibraryLocation='" + getNativeLibraryLocation() + "', exported=" + exported + ", accessRules=" + accessRules + "}";
+        return "{path='" + path + "', nativeLibraryLocation='" + getNativeLibraryLocation() + "', exported=" + exported
+                + ", accessRules=" + accessRules + "}";
     }
 }

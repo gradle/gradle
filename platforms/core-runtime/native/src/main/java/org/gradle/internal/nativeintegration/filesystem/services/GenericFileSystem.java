@@ -16,6 +16,12 @@
 package org.gradle.internal.nativeintegration.filesystem.services;
 
 import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
+import java.util.UUID;
+import javax.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.SystemProperties;
@@ -29,13 +35,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Locale;
-import java.util.UUID;
 
 class GenericFileSystem implements FileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericFileSystem.class);
@@ -51,13 +50,12 @@ class GenericFileSystem implements FileSystem {
     private final StatStatistics.Collector statisticsCollector;
 
     public GenericFileSystem(
-        FileModeMutator chmod,
-        FileModeAccessor stat,
-        Symlink symlink,
-        FileMetadataAccessor metadata,
-        StatStatistics.Collector statisticsCollector,
-        TemporaryFileProvider temporaryFileProvider
-    ) {
+            FileModeMutator chmod,
+            FileModeAccessor stat,
+            Symlink symlink,
+            FileMetadataAccessor metadata,
+            StatStatistics.Collector statisticsCollector,
+            TemporaryFileProvider temporaryFileProvider) {
         this.metadata = metadata;
         this.stat = stat;
         this.symlink = symlink;
@@ -83,7 +81,8 @@ class GenericFileSystem implements FileSystem {
         try {
             symlink.symlink(link, target);
         } catch (Exception e) {
-            throw new FileException(String.format("Could not create symlink from '%s' to '%s'.", link.getPath(), target.getPath()), e);
+            throw new FileException(
+                    String.format("Could not create symlink from '%s' to '%s'.", link.getPath(), target.getPath()), e);
         }
     }
 
@@ -158,7 +157,10 @@ class GenericFileSystem implements FileSystem {
     }
 
     private boolean hasContent(File file, String content) throws IOException {
-        return file.exists() && Files.asCharSource(file, StandardCharsets.UTF_8).readFirstLine().equals(content);
+        return file.exists()
+                && Files.asCharSource(file, StandardCharsets.UTF_8)
+                        .readFirstLine()
+                        .equals(content);
     }
 
     private void checkJavaIoTmpDirExists() throws IOException {
@@ -175,14 +177,18 @@ class GenericFileSystem implements FileSystem {
         private final TemporaryFileProvider temporaryFileProvider;
 
         @Inject
-        Factory(FileMetadataAccessor fileMetadataAccessor, StatStatistics.Collector statisticsCollector, TemporaryFileProvider temporaryFileProvider) {
+        Factory(
+                FileMetadataAccessor fileMetadataAccessor,
+                StatStatistics.Collector statisticsCollector,
+                TemporaryFileProvider temporaryFileProvider) {
             this.fileMetadataAccessor = fileMetadataAccessor;
             this.statisticsCollector = statisticsCollector;
             this.temporaryFileProvider = temporaryFileProvider;
         }
 
         GenericFileSystem create(FileModeMutator chmod, FileModeAccessor stat, Symlink symlink) {
-            return new GenericFileSystem(chmod, stat, symlink, fileMetadataAccessor, statisticsCollector, temporaryFileProvider);
+            return new GenericFileSystem(
+                    chmod, stat, symlink, fileMetadataAccessor, statisticsCollector, temporaryFileProvider);
         }
     }
 }

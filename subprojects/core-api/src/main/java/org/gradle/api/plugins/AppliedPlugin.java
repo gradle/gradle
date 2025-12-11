@@ -64,5 +64,4 @@ public interface AppliedPlugin {
      * @return the name of the plugin
      */
     String getName();
-
 }

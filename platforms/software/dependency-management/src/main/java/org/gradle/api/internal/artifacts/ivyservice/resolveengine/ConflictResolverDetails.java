@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collection;
+import org.jspecify.annotations.Nullable;
 
 public interface ConflictResolverDetails<T> {
     Collection<? extends T> getCandidates();

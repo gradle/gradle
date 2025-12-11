@@ -16,10 +16,9 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.Describable;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.Closeable;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.api.Describable;
 
 /**
  * An execution plan that has been finalized and can no longer be mutated.
@@ -43,8 +42,7 @@ public interface FinalizedExecutionPlan extends Describable, Closeable {
         }
 
         @Override
-        public void close() {
-        }
+        public void close() {}
     };
 
     /**

@@ -19,5 +19,5 @@ package org.gradle.language.objectivecpp.internal;
 import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 
-public class DefaultObjectiveCppPCHCompileSpec extends AbstractNativeCompileSpec implements ObjectiveCppPCHCompileSpec {
-}
+public class DefaultObjectiveCppPCHCompileSpec extends AbstractNativeCompileSpec
+        implements ObjectiveCppPCHCompileSpec {}

@@ -16,6 +16,11 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.collections.CollectionFilter;
@@ -27,22 +32,30 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.ListIterator;
-
-public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectList<T> {
-    public DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
+public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCollection<T>
+        implements NamedDomainObjectList<T> {
+    public DefaultNamedDomainObjectList(
+            DefaultNamedDomainObjectList<? super T> objects,
+            CollectionFilter<T> filter,
+            Instantiator instantiator,
+            Namer<? super T> namer) {
         super(objects, filter, instantiator, namer);
     }
 
-    public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator decorator) {
+    public DefaultNamedDomainObjectList(
+            Class<T> type,
+            Instantiator instantiator,
+            Namer<? super T> namer,
+            CollectionCallbackActionDecorator decorator) {
         super(type, new ListElementSource<T>(), instantiator, namer, decorator);
     }
 
-    private DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer) {
+    private DefaultNamedDomainObjectList(
+            DefaultNamedDomainObjectList<? super T> objects,
+            Spec<String> nameFilter,
+            CollectionFilter<T> elementFilter,
+            Instantiator instantiator,
+            Namer<? super T> namer) {
         super(objects, nameFilter, elementFilter, instantiator, namer);
     }
 
@@ -133,7 +146,8 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     }
 
     @Override
-    protected <S extends T> IndexedElementSource<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
+    protected <S extends T> IndexedElementSource<S> filteredStore(
+            CollectionFilter<S> filter, ElementSource<T> elementSource) {
         return new FilteredIndexedElementSource<T, S>(elementSource, filter);
     }
 
@@ -233,5 +247,4 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
             lastElement = null;
         }
     }
-
 }

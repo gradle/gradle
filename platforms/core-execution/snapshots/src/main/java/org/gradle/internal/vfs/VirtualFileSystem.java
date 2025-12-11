@@ -16,12 +16,11 @@
 
 package org.gradle.internal.vfs;
 
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.MetadataSnapshot;
-
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.MetadataSnapshot;
 
 public interface VirtualFileSystem {
 
@@ -47,7 +46,6 @@ public interface VirtualFileSystem {
      * then the snapshot is not stored in the VFS to avoid inconsistent state.
      */
     FileSystemLocationSnapshot store(String absolutePath, Supplier<FileSystemLocationSnapshot> snapshotSupplier);
-
 
     /**
      * Snapshots via a {@link StoringAction} and stores the result in the VFS.
@@ -80,5 +78,4 @@ public interface VirtualFileSystem {
      * Removes any information from the VFS.
      */
     void invalidateAll();
-
 }

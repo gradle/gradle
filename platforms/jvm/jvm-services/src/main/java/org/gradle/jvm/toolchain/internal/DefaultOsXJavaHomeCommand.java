@@ -17,12 +17,6 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.process.ProcessExecutionException;
-import org.gradle.process.internal.ClientExecHandleBuilder;
-import org.gradle.process.internal.ClientExecHandleBuilderFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -35,6 +29,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.gradle.process.ProcessExecutionException;
+import org.gradle.process.internal.ClientExecHandleBuilder;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultOsXJavaHomeCommand implements OsXJavaHomeCommand {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOsXJavaHomeCommand.class);
@@ -49,14 +48,17 @@ public class DefaultOsXJavaHomeCommand implements OsXJavaHomeCommand {
     @VisibleForTesting
     static Set<File> parse(Reader output) {
         BufferedReader reader = new BufferedReader(output);
-        return reader.lines().flatMap(line -> {
-            Matcher matcher = INSTALLATION_PATTERN.matcher(line);
-            if (matcher.matches()) {
-                String javaHome = matcher.group(1);
-                return Stream.of(javaHome);
-            }
-            return Stream.empty();
-        }).map(File::new).collect(Collectors.toSet());
+        return reader.lines()
+                .flatMap(line -> {
+                    Matcher matcher = INSTALLATION_PATTERN.matcher(line);
+                    if (matcher.matches()) {
+                        String javaHome = matcher.group(1);
+                        return Stream.of(javaHome);
+                    }
+                    return Stream.empty();
+                })
+                .map(File::new)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -75,7 +77,8 @@ public class DefaultOsXJavaHomeCommand implements OsXJavaHomeCommand {
         return Collections.emptySet();
     }
 
-    @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "DefaultCharset") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private Reader executeJavaHome() {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         executeCommand(outputStream);
@@ -87,7 +90,9 @@ public class DefaultOsXJavaHomeCommand implements OsXJavaHomeCommand {
         ClientExecHandleBuilder execHandleBuilder = execHandleFactory.newExecHandleBuilder();
         execHandleBuilder.setWorkingDir(new File(".").getAbsoluteFile());
         execHandleBuilder.commandLine("/usr/libexec/java_home", "-V");
-        execHandleBuilder.getEnvironment().remove("JAVA_VERSION"); //JAVA_VERSION filters the content of java_home's output
+        execHandleBuilder
+                .getEnvironment()
+                .remove("JAVA_VERSION"); // JAVA_VERSION filters the content of java_home's output
         execHandleBuilder.setErrorOutput(outputStream); // verbose output is written to stderr
         execHandleBuilder.setStandardOutput(new ByteArrayOutputStream());
         execHandleBuilder.build().start().waitForFinish().assertNormalExitValue();

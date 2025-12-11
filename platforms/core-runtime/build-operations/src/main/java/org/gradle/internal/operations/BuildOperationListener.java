@@ -39,5 +39,4 @@ public interface BuildOperationListener {
     void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent);
 
     void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent);
-
 }

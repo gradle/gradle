@@ -16,6 +16,12 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -54,13 +60,6 @@ import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.gradle.internal.Cast.uncheckedCast;
-
 /**
  * Default implementation of a {@link JvmTestSuite}.
  * <p>
@@ -77,7 +76,11 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final ToolchainFactory toolchainFactory;
 
     @Inject
-    public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskDependencyFactory taskDependencyFactory) {
+    public DefaultJvmTestSuite(
+            String name,
+            SourceSetContainer sourceSets,
+            ConfigurationContainer configurations,
+            TaskDependencyFactory taskDependencyFactory) {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
         this.taskDependencyFactory = taskDependencyFactory;
@@ -85,25 +88,40 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         getTargets().registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
-        configurations.named(sourceSet.getCompileOnlyConfigurationName(), compileOnly -> compileOnly.fromDependencyCollector(getDependencies().getCompileOnly()));
-        configurations.named(sourceSet.getImplementationConfigurationName(), implementation -> implementation.fromDependencyCollector(getDependencies().getImplementation()));
-        configurations.named(sourceSet.getRuntimeOnlyConfigurationName(), runtimeOnly -> runtimeOnly.fromDependencyCollector(getDependencies().getRuntimeOnly()));
-        configurations.named(sourceSet.getAnnotationProcessorConfigurationName(), annotationProcessor -> annotationProcessor.fromDependencyCollector(getDependencies().getAnnotationProcessor()));
+        configurations.named(
+                sourceSet.getCompileOnlyConfigurationName(),
+                compileOnly ->
+                        compileOnly.fromDependencyCollector(getDependencies().getCompileOnly()));
+        configurations.named(
+                sourceSet.getImplementationConfigurationName(),
+                implementation ->
+                        implementation.fromDependencyCollector(getDependencies().getImplementation()));
+        configurations.named(
+                sourceSet.getRuntimeOnlyConfigurationName(),
+                runtimeOnly ->
+                        runtimeOnly.fromDependencyCollector(getDependencies().getRuntimeOnly()));
+        configurations.named(
+                sourceSet.getAnnotationProcessorConfigurationName(),
+                annotationProcessor -> annotationProcessor.fromDependencyCollector(
+                        getDependencies().getAnnotationProcessor()));
 
         if (name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
-            // if a user explicitly calls useJUnit or useJUnitJupiter, the built-in test suite will behave like a custom one
+            // if a user explicitly calls useJUnit or useJUnitJupiter, the built-in test suite will behave like a custom
+            // one
             // and add dependencies automatically.
             getTestToolchain().convention(toolchainFactory.getOrCreate(LegacyJUnit4TestToolchain.class));
         } else {
-            JvmTestToolchain<? extends JUnitJupiterToolchainParameters> toolchain = toolchainFactory.getOrCreate(JUnitJupiterTestToolchain.class);
+            JvmTestToolchain<? extends JUnitJupiterToolchainParameters> toolchain =
+                    toolchainFactory.getOrCreate(JUnitJupiterTestToolchain.class);
             getTestToolchain().convention(toolchain);
             toolchain.getParameters().getJupiterVersion().convention(JUnitJupiterTestToolchain.DEFAULT_VERSION);
         }
 
         addDefaultTestTarget();
 
-        getTargets().withType(JvmTestSuiteTarget.class).configureEach(target -> target.getTestTask().configure(this::initializeTestFramework));
+        getTargets().withType(JvmTestSuiteTarget.class).configureEach(target -> target.getTestTask()
+                .configure(this::initializeTestFramework));
 
         addTestFrameworkDependenciesToDependencies();
     }
@@ -112,13 +130,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         JvmComponentDependencies dependencies = getDependencies();
 
         dependencies.getCompileOnly().bundle(getTestToolchain().map(JvmTestToolchain::getCompileOnlyDependencies));
-        dependencies.getImplementation().bundle(getTestToolchain().map(JvmTestToolchain::getImplementationDependencies));
+        dependencies
+                .getImplementation()
+                .bundle(getTestToolchain().map(JvmTestToolchain::getImplementationDependencies));
         dependencies.getRuntimeOnly().bundle(getTestToolchain().map(JvmTestToolchain::getRuntimeOnlyDependencies));
     }
 
     private void initializeTestFramework(Test task) {
         // The Test task's testing framework is derived from the test suite's toolchain
-        task.getTestFrameworkProperty().convention(getTestToolchain().map(toolchain -> toolchain.createTestFramework(task)));
+        task.getTestFrameworkProperty()
+                .convention(getTestToolchain().map(toolchain -> toolchain.createTestFramework(task)));
     }
 
     private void addDefaultTestTarget() {
@@ -126,7 +147,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         if (getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             target = JvmConstants.TEST_TASK_NAME;
         } else {
-            target = getName(); // For now, we'll just name the test task for the single target for the suite with the suite name
+            target = getName(); // For now, we'll just name the test task for the single target for the suite with the
+            // suite name
         }
 
         getTargets().register(target);
@@ -274,7 +296,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         });
     }
 
-    private <T extends JvmTestToolchainParameters> void setToolchainAndConfigure(Class<? extends JvmTestToolchain<T>> toolchainType, Action<T> action) {
+    private <T extends JvmTestToolchainParameters> void setToolchainAndConfigure(
+            Class<? extends JvmTestToolchain<T>> toolchainType, Action<T> action) {
         JvmTestToolchain<T> toolchain = toolchainFactory.getOrCreate(toolchainType);
         getTestToolchain().set(toolchain);
         action.execute(toolchain.getParameters());
@@ -302,7 +325,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         private final InstantiatorFactory instantiatorFactory;
         private final Map<Class<? extends JvmTestToolchain<?>>, JvmTestToolchain<?>> cache = new HashMap<>();
 
-        public ToolchainFactory(ObjectFactory objectFactory, ServiceLookup parentServices, InstantiatorFactory instantiatorFactory) {
+        public ToolchainFactory(
+                ObjectFactory objectFactory, ServiceLookup parentServices, InstantiatorFactory instantiatorFactory) {
             this.objectFactory = objectFactory;
             this.parentServices = parentServices;
             this.instantiatorFactory = instantiatorFactory;
@@ -312,12 +336,18 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             return uncheckedCast(cache.computeIfAbsent(type, t -> create(uncheckedCast(type))));
         }
 
-        private <T extends JvmTestToolchainParameters> JvmTestToolchain<T> create(Class<? extends JvmTestToolchain<T>> type) {
-            IsolationScheme<JvmTestToolchain<?>, JvmTestToolchainParameters> isolationScheme = new IsolationScheme<>(uncheckedCast(JvmTestToolchain.class), JvmTestToolchainParameters.class, JvmTestToolchainParameters.None.class);
+        private <T extends JvmTestToolchainParameters> JvmTestToolchain<T> create(
+                Class<? extends JvmTestToolchain<T>> type) {
+            IsolationScheme<JvmTestToolchain<?>, JvmTestToolchainParameters> isolationScheme = new IsolationScheme<>(
+                    uncheckedCast(JvmTestToolchain.class),
+                    JvmTestToolchainParameters.class,
+                    JvmTestToolchainParameters.None.class);
             Class<T> parametersType = isolationScheme.parameterTypeFor(type);
             T parameters = parametersType == null ? null : objectFactory.newInstance(parametersType);
-            ServiceLookup lookup = isolationScheme.servicesForImplementation(parameters, parentServices, Collections.singleton(DependencyFactory.class));
-            return new FrameworkCachingJvmTestToolchain<>(instantiatorFactory.decorate(lookup).newInstance(type));
+            ServiceLookup lookup = isolationScheme.servicesForImplementation(
+                    parameters, parentServices, Collections.singleton(DependencyFactory.class));
+            return new FrameworkCachingJvmTestToolchain<>(
+                    instantiatorFactory.decorate(lookup).newInstance(type));
         }
     }
 }

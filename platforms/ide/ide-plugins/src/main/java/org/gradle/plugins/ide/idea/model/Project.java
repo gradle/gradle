@@ -15,16 +15,13 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import groovy.util.NodeList;
-import org.gradle.api.JavaVersion;
-import org.gradle.internal.Cast;
-import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -32,8 +29,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
+import org.gradle.api.JavaVersion;
+import org.gradle.internal.Cast;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
 /**
  * Represents the customizable elements of an ipr (via XML hooks everything of the ipr is customizable).
@@ -126,9 +125,14 @@ public class Project extends XmlPersistableConfigurationObject {
         return "defaultProject.xml";
     }
 
-    public void configure(List<IdeaModule> modules,
-                          String jdkName, IdeaLanguageLevel languageLevel, JavaVersion bytecodeVersion,
-                          Collection<String> wildcards, Collection<ProjectLibrary> projectLibraries, String vcs) {
+    public void configure(
+            List<IdeaModule> modules,
+            String jdkName,
+            IdeaLanguageLevel languageLevel,
+            JavaVersion bytecodeVersion,
+            Collection<String> wildcards,
+            Collection<ProjectLibrary> projectLibraries,
+            String vcs) {
         if (!isNullOrEmpty(jdkName)) {
             jdk = new Jdk(jdkName, languageLevel);
         }
@@ -285,7 +289,8 @@ public class Project extends XmlPersistableConfigurationObject {
     }
 
     private Node findOrCreateModules() {
-        Node moduleManager = findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "ProjectModuleManager");
+        Node moduleManager =
+                findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "ProjectModuleManager");
         Preconditions.checkNotNull(moduleManager);
         Node modules = findFirstChildNamed(moduleManager, "modules");
         if (modules == null) {
@@ -309,7 +314,8 @@ public class Project extends XmlPersistableConfigurationObject {
     }
 
     private Node findVcsDirectoryMappings() {
-        Node vcsDirMappings = findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "VcsDirectoryMappings");
+        Node vcsDirMappings =
+                findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "VcsDirectoryMappings");
         return findFirstChildNamed(vcsDirMappings, "mapping");
     }
 
@@ -338,10 +344,10 @@ public class Project extends XmlPersistableConfigurationObject {
         }
         Project project = (Project) o;
         return Objects.equal(jdk, project.jdk)
-            && Objects.equal(modulePaths, project.modulePaths)
-            && Objects.equal(projectLibraries, project.projectLibraries)
-            && Objects.equal(wildcards, project.wildcards)
-            && Objects.equal(vcs, project.vcs);
+                && Objects.equal(modulePaths, project.modulePaths)
+                && Objects.equal(projectLibraries, project.projectLibraries)
+                && Objects.equal(wildcards, project.wildcards)
+                && Objects.equal(vcs, project.vcs);
     }
 
     @Override

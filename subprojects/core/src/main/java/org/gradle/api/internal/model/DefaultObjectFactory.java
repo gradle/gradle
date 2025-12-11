@@ -56,16 +56,15 @@ public class DefaultObjectFactory implements ObjectFactory {
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     public DefaultObjectFactory(
-        Instantiator instantiator,
-        NamedObjectInstantiator namedObjectInstantiator,
-        DirectoryFileTreeFactory directoryFileTreeFactory,
-        PatternSetFactory patternSetFactory,
-        PropertyFactory propertyFactory,
-        FilePropertyFactory filePropertyFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        FileCollectionFactory fileCollectionFactory,
-        DomainObjectCollectionFactory domainObjectCollectionFactory
-    ) {
+            Instantiator instantiator,
+            NamedObjectInstantiator namedObjectInstantiator,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            PatternSetFactory patternSetFactory,
+            PropertyFactory propertyFactory,
+            FilePropertyFactory filePropertyFactory,
+            TaskDependencyFactory taskDependencyFactory,
+            FileCollectionFactory fileCollectionFactory,
+            DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -99,7 +98,15 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     @Override
     public SourceDirectorySet sourceDirectorySet(final String name, final String displayName) {
-        return newInstance(DefaultSourceDirectorySet.class, name, displayName, patternSetFactory, taskDependencyFactory, fileCollectionFactory, directoryFileTreeFactory, DefaultObjectFactory.this);
+        return newInstance(
+                DefaultSourceDirectorySet.class,
+                name,
+                displayName,
+                patternSetFactory,
+                taskDependencyFactory,
+                fileCollectionFactory,
+                directoryFileTreeFactory,
+                DefaultObjectFactory.this);
     }
 
     @Override
@@ -118,7 +125,8 @@ public class DefaultObjectFactory implements ObjectFactory {
     }
 
     @Override
-    public <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory) {
+    public <T> NamedDomainObjectContainer<T> domainObjectContainer(
+            Class<T> elementType, NamedDomainObjectFactory<T> factory) {
         return domainObjectCollectionFactory.newNamedDomainObjectContainer(elementType, factory);
     }
 

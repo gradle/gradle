@@ -16,10 +16,10 @@
 
 package org.gradle.plugins.ide.eclipse.model;
 
+import java.util.Set;
 import org.gradle.api.Action;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
 /**
  * The model of an Eclipse resource filter matcher.
  * <p>

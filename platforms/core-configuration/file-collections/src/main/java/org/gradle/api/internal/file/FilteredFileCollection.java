@@ -17,16 +17,15 @@
 package org.gradle.api.internal.file;
 
 import com.google.common.collect.Iterators;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.specs.Spec;
-import org.gradle.util.internal.CollectionUtils;
-
 import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.internal.CollectionUtils;
 
 public class FilteredFileCollection extends AbstractFileCollection {
     private final FileCollectionInternal collection;
@@ -82,8 +81,10 @@ public class FilteredFileCollection extends AbstractFileCollection {
 
     @Override
     public Optional<FileCollectionExecutionTimeValue> calculateExecutionTimeValue() {
-        return collection.calculateExecutionTimeValue()
-            .map(fileCollectionExecutionTimeValue -> new FilteredExecutionTimeValue(fileCollectionExecutionTimeValue, filterSpec));
+        return collection
+                .calculateExecutionTimeValue()
+                .map(fileCollectionExecutionTimeValue ->
+                        new FilteredExecutionTimeValue(fileCollectionExecutionTimeValue, filterSpec));
     }
 
     private static class FilteredExecutionTimeValue implements FileCollectionExecutionTimeValue {

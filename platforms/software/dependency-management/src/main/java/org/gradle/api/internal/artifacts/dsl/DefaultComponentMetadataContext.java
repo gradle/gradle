@@ -23,9 +23,11 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 class DefaultComponentMetadataContext implements ComponentMetadataContext {
 
     private final ComponentMetadataDetails details;
-    // We keep this field for access from Groovy scripts, as we currently miss some public API: https://github.com/gradle/gradle/issues/12349
+    // We keep this field for access from Groovy scripts, as we currently miss some public API:
+    // https://github.com/gradle/gradle/issues/12349
     @SuppressWarnings("UnusedVariable")
     private final ModuleComponentResolveMetadata metadata;
+
     private final MetadataDescriptorFactory descriptorFactory;
 
     DefaultComponentMetadataContext(ComponentMetadataDetails details, ModuleComponentResolveMetadata metadata) {

@@ -57,5 +57,4 @@ public interface MavenPomMailingList {
      * The alternate URLs where you can browse the archive of this mailing list.
      */
     SetProperty<String> getOtherArchives();
-
 }

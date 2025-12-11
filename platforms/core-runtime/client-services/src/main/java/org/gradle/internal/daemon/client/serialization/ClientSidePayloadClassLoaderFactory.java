@@ -16,6 +16,11 @@
 
 package org.gradle.internal.daemon.client.serialization;
 
+import java.net.URL;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -28,12 +33,6 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-
-import java.net.URL;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 
 public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFactory {
     private final PayloadClassLoaderFactory classLoaderFactory;
@@ -49,7 +48,8 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             if (parents.size() != 1) {
                 throw new IllegalStateException("Expected exactly one parent ClassLoader");
             }
-            return new MixInClassLoader(clSpec.getName() + "-client-payload-loader", parents.get(0), clSpec.getClasspath());
+            return new MixInClassLoader(
+                    clSpec.getName() + "-client-payload-loader", parents.get(0), clSpec.getClasspath());
         }
         return classLoaderFactory.getClassLoaderFor(spec, parents);
     }
@@ -81,7 +81,13 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             if (findLoadedClass(detector.interfaceName) == null) {
                 // TODO:ADAM - need to do this earlier
                 ClassWriter emptyWriter = new ClassWriter(0);
-                emptyWriter.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC | Opcodes.ACC_INTERFACE, detector.interfaceName.replace('.', '/'), null, Type.getType(Object.class).getInternalName(), null);
+                emptyWriter.visit(
+                        Opcodes.V1_5,
+                        Opcodes.ACC_PUBLIC | Opcodes.ACC_INTERFACE,
+                        detector.interfaceName.replace('.', '/'),
+                        null,
+                        Type.getType(Object.class).getInternalName(),
+                        null);
                 emptyWriter.visitEnd();
                 byte[] emptyBytecode = emptyWriter.toByteArray();
                 defineClass(detector.interfaceName, emptyBytecode, 0, emptyBytecode.length);
@@ -94,7 +100,8 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
         }
 
         private static class AnnotationDetector extends ClassVisitor {
-            private static final String ANNOTATION_DESCRIPTOR = Type.getType(LegacyConsumerInterface.class).getDescriptor();
+            private static final String ANNOTATION_DESCRIPTOR =
+                    Type.getType(LegacyConsumerInterface.class).getDescriptor();
             String interfaceName;
             private boolean found;
 
@@ -128,7 +135,8 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             }
 
             @Override
-            public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+            public void visit(
+                    int version, int access, String name, String signature, String superName, String[] interfaces) {
                 Set<String> allInterfaces = new LinkedHashSet<String>(Arrays.asList(interfaces));
                 allInterfaces.add(mixInInterface.replace('.', '/'));
                 super.visit(version, access, name, signature, superName, allInterfaces.toArray(new String[0]));

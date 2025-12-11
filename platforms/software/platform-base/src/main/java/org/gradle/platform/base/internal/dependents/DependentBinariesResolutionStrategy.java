@@ -25,5 +25,4 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 public interface DependentBinariesResolutionStrategy extends Named {
 
     DependentBinariesResolutionResult resolve(BinarySpecInternal target);
-
 }

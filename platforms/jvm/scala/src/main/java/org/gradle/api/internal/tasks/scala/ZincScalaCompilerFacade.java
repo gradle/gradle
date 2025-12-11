@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks.scala;
 
+import java.io.Serializable;
+import javax.inject.Inject;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.language.base.internal.compile.Compiler;
-
-import javax.inject.Inject;
-import java.io.Serializable;
 
 public class ZincScalaCompilerFacade implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
     private final GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory;
@@ -29,13 +28,15 @@ public class ZincScalaCompilerFacade implements Compiler<ScalaJavaJointCompileSp
     private final HashedClasspath scalaClasspath;
 
     @Inject
-    public ZincScalaCompilerFacade(GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory, HashedClasspath scalaClasspath) {
+    public ZincScalaCompilerFacade(
+            GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory, HashedClasspath scalaClasspath) {
         this.globalScopedCacheBuilderFactory = globalScopedCacheBuilderFactory;
         this.scalaClasspath = scalaClasspath;
     }
 
     @Override
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
-        return ZincScalaCompilerFactory.getCompiler(globalScopedCacheBuilderFactory, scalaClasspath).execute(spec);
+        return ZincScalaCompilerFactory.getCompiler(globalScopedCacheBuilderFactory, scalaClasspath)
+                .execute(spec);
     }
 }

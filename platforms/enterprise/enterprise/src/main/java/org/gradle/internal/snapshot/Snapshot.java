@@ -25,5 +25,4 @@ public interface Snapshot {
      * Returns the hash of the snapshot.
      */
     String getHashValue();
-
 }

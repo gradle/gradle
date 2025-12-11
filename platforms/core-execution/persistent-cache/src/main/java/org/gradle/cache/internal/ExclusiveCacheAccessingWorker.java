@@ -16,14 +16,6 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.cache.AsyncCacheAccess;
-import org.gradle.cache.ExclusiveCacheAccessCoordinator;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.ExecutorPolicy;
-import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.time.CountdownTimer;
-import org.gradle.internal.time.Time;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -33,6 +25,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import org.gradle.cache.AsyncCacheAccess;
+import org.gradle.cache.ExclusiveCacheAccessCoordinator;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.ExecutorPolicy;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.time.CountdownTimer;
+import org.gradle.internal.time.Time;
 
 public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private final BlockingQueue<Runnable> workQueue;
@@ -103,8 +102,7 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
         private CountDownLatch latch = new CountDownLatch(1);
 
         @Override
-        public void run() {
-        }
+        public void run() {}
 
         public void await() {
             try {

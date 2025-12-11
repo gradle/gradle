@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.List;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.GradleInternal;
@@ -35,8 +36,6 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.util.Path;
 
-import java.util.List;
-
 /**
  * Handles locating and processing setting.gradle files.  Also deals with the buildSrc module, since that module is
  * found after settings is located, but needs to be built before settings is processed.
@@ -51,22 +50,25 @@ public class DefaultSettingsLoader implements SettingsLoader {
     private final InternalProblems problems;
 
     public DefaultSettingsLoader(
-        SettingsProcessor settingsProcessor,
-        BuildLayoutFactory buildLayoutFactory,
-        List<BuiltInCommand> builtInCommands,
-        InternalProblems problems
-    ) {
-        this(settingsProcessor, buildLayoutFactory, builtInCommands, Logging.getLogger(DefaultSettingsLoader.class), problems);
+            SettingsProcessor settingsProcessor,
+            BuildLayoutFactory buildLayoutFactory,
+            List<BuiltInCommand> builtInCommands,
+            InternalProblems problems) {
+        this(
+                settingsProcessor,
+                buildLayoutFactory,
+                builtInCommands,
+                Logging.getLogger(DefaultSettingsLoader.class),
+                problems);
     }
 
     @VisibleForTesting
-        /* package */ DefaultSettingsLoader(
-        SettingsProcessor settingsProcessor,
-        BuildLayoutFactory buildLayoutFactory,
-        List<BuiltInCommand> builtInCommands,
-        Logger logger,
-        InternalProblems problems
-    ) {
+    /* package */ DefaultSettingsLoader(
+            SettingsProcessor settingsProcessor,
+            BuildLayoutFactory buildLayoutFactory,
+            List<BuiltInCommand> builtInCommands,
+            Logger logger,
+            InternalProblems problems) {
         this.settingsProcessor = settingsProcessor;
         this.buildLayoutFactory = buildLayoutFactory;
         this.builtInCommands = builtInCommands;
@@ -77,7 +79,8 @@ public class DefaultSettingsLoader implements SettingsLoader {
     @Override
     public SettingsState findAndLoadSettings(GradleInternal gradle) {
         StartParameterInternal startParameter = gradle.getStartParameter();
-        SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
+        SettingsLocation settingsLocation =
+                buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
 
         SettingsState state;
         ProjectSpec spec;
@@ -87,12 +90,15 @@ public class DefaultSettingsLoader implements SettingsLoader {
             spec = ProjectSpecs.forStartParameter(startParameter, state.getSettings());
         } else {
             logger.debug("Loading build definition for build: '{}'", gradle.getIdentityPath());
-            state = findSettingsAndLoadIfAppropriate(gradle, startParameter, settingsLocation, gradle.getClassLoaderScope());
+            state = findSettingsAndLoadIfAppropriate(
+                    gradle, startParameter, settingsLocation, gradle.getClassLoaderScope());
             SettingsInternal settings = state.getSettings();
             spec = ProjectSpecs.forStartParameter(startParameter, settings);
             if (useEmptySettings(spec, settings, startParameter)) {
                 // Discard the loaded settings and replace with an empty one
-                logger.debug("Discarding loaded settings and replacing with empty settings for build: '{}'", gradle.getIdentityPath());
+                logger.debug(
+                        "Discarding loaded settings and replacing with empty settings for build: '{}'",
+                        gradle.getIdentityPath());
                 state.close();
                 state = createEmptySettings(gradle, startParameter, settings.getClassLoaderScope());
             }
@@ -123,25 +129,31 @@ public class DefaultSettingsLoader implements SettingsLoader {
             return false;
         }
 
-        // Allow a built-in command to run in a directory not contained in the settings file (but don't use the settings from that file)
+        // Allow a built-in command to run in a directory not contained in the settings file (but don't use the settings
+        // from that file)
         for (BuiltInCommand command : builtInCommands) {
             if (command.wasInvoked(startParameter)) {
-                // Allow built-in command to run in a directory not contained in the settings file (but don't use the settings from that file)
+                // Allow built-in command to run in a directory not contained in the settings file (but don't use the
+                // settings from that file)
                 return true;
             }
         }
 
         // Allow a buildSrc directory to have no settings file
-        if (startParameter.getProjectDir() != null && startParameter.getProjectDir().getName().equals(SettingsInternal.BUILD_SRC) && BuildSrcDetector.isValidBuildSrcBuild(startParameter.getProjectDir())) {
+        if (startParameter.getProjectDir() != null
+                && startParameter.getProjectDir().getName().equals(SettingsInternal.BUILD_SRC)
+                && BuildSrcDetector.isValidBuildSrcBuild(startParameter.getProjectDir())) {
             return true;
         }
 
         // Use an empty settings for a target build file located in the same directory as the settings file.
-        return startParameter.getProjectDir() != null && loadedSettings.getSettingsDir().equals(startParameter.getProjectDir());
+        return startParameter.getProjectDir() != null
+                && loadedSettings.getSettingsDir().equals(startParameter.getProjectDir());
     }
 
     @SuppressWarnings("deprecation") // StartParameter.setSettingsFile() and StartParameter.getBuildFile()
-    private SettingsState createEmptySettings(GradleInternal gradle, StartParameter startParameter, ClassLoaderScope classLoaderScope) {
+    private SettingsState createEmptySettings(
+            GradleInternal gradle, StartParameter startParameter, ClassLoaderScope classLoaderScope) {
         logger.debug("Creating empty settings for build: '{}'", gradle.getIdentityPath());
         StartParameterInternal noSearchParameter = (StartParameterInternal) startParameter.newInstance();
         noSearchParameter.useEmptySettings();
@@ -152,7 +164,8 @@ public class DefaultSettingsLoader implements SettingsLoader {
     }
 
     private void setDefaultProject(ProjectSpec spec, SettingsInternal settings) {
-        settings.setDefaultProject(spec.selectProject(settings.getSettingsScript().getDisplayName(), settings.getProjectRegistry()));
+        settings.setDefaultProject(
+                spec.selectProject(settings.getSettingsScript().getDisplayName(), settings.getProjectRegistry()));
     }
 
     /**
@@ -161,43 +174,47 @@ public class DefaultSettingsLoader implements SettingsLoader {
      * loaded (executed), then a null is returned.
      */
     private SettingsState findSettingsAndLoadIfAppropriate(
-        GradleInternal gradle,
-        StartParameter startParameter,
-        SettingsLocation settingsLocation,
-        ClassLoaderScope classLoaderScope
-    ) {
+            GradleInternal gradle,
+            StartParameter startParameter,
+            SettingsLocation settingsLocation,
+            ClassLoaderScope classLoaderScope) {
         SettingsState state = settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter);
         validate(state.getSettings());
         return state;
     }
 
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     private void validate(SettingsInternal settings) {
         settings.getProjectRegistry().getAllProjects().forEach(project -> {
             if (project.getPath().equals(BUILD_SRC_PROJECT_PATH)) {
                 Path buildPath = settings.getGradle().getIdentityPath();
                 String suffix = buildPath == Path.ROOT ? "" : " (in build " + buildPath + ")";
-                throw new GradleException("'" + SettingsInternal.BUILD_SRC + "' cannot be used as a project name as it is a reserved name" + suffix);
+                throw new GradleException("'" + SettingsInternal.BUILD_SRC
+                        + "' cannot be used as a project name as it is a reserved name" + suffix);
             }
-            if (!project.getProjectDir().exists() || !project.getProjectDir().isDirectory() || !project.getProjectDir().canWrite()) {
-                failOnMissingProjectDirectory(project.getPath(), project.getProjectDir().toString());
+            if (!project.getProjectDir().exists()
+                    || !project.getProjectDir().isDirectory()
+                    || !project.getProjectDir().canWrite()) {
+                failOnMissingProjectDirectory(
+                        project.getPath(), project.getProjectDir().toString());
             }
         });
     }
 
     private void failOnMissingProjectDirectory(String projectPath, String projectDir) {
-        throw problems.getInternalReporter().throwing(
-            new GradleException(
-                String.format(
-                    "Configuring project '%s' without an existing directory is not allowed. The configured projectDirectory '%s' does not exist, can't be written to or is not a directory.",
-                    projectPath,
-                    projectDir
-                )
-            ),
-            ProblemId.create("confituring-project-with-invalid-directory", "Configuring project with invalid directory", GradleCoreProblemGroup.configurationUsage()),
-            spec ->
-                spec.solution("Make sure the project directory exists and is writable.")
-                    .documentedAt(Documentation.userManual("multi_project_builds", "include_existing_projects_only").getUrl())
-        );
+        throw problems.getInternalReporter()
+                .throwing(
+                        new GradleException(String.format(
+                                "Configuring project '%s' without an existing directory is not allowed. The configured projectDirectory '%s' does not exist, can't be written to or is not a directory.",
+                                projectPath, projectDir)),
+                        ProblemId.create(
+                                "confituring-project-with-invalid-directory",
+                                "Configuring project with invalid directory",
+                                GradleCoreProblemGroup.configurationUsage()),
+                        spec -> spec.solution("Make sure the project directory exists and is writable.")
+                                .documentedAt(Documentation.userManual(
+                                                "multi_project_builds", "include_existing_projects_only")
+                                        .getUrl()));
     }
 }

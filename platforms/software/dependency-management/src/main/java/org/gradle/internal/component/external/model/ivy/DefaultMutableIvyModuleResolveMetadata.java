@@ -18,6 +18,9 @@ package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -29,11 +32,8 @@ import org.gradle.internal.component.external.model.AbstractMutableModuleCompone
 import org.gradle.internal.component.model.Exclude;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableIvyModuleResolveMetadata {
+public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata
+        implements MutableIvyModuleResolveMetadata {
     private final ImmutableList<Artifact> artifactDefinitions;
     private final ImmutableMap<String, Configuration> configurationDefinitions;
     private final ImmutableList<IvyDependencyDescriptor> dependencies;
@@ -43,14 +43,14 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     private String branch;
 
     public DefaultMutableIvyModuleResolveMetadata(
-        AttributesFactory attributesFactory,
-        ModuleVersionIdentifier id,
-        ModuleComponentIdentifier componentIdentifier,
-        List<IvyDependencyDescriptor> dependencies,
-        Collection<Configuration> configurationDefinitions,
-        Collection<? extends Artifact> artifactDefinitions,
-        Collection<? extends Exclude> excludes,
-        ImmutableAttributesSchema schema) {
+            AttributesFactory attributesFactory,
+            ModuleVersionIdentifier id,
+            ModuleComponentIdentifier componentIdentifier,
+            List<IvyDependencyDescriptor> dependencies,
+            Collection<Configuration> configurationDefinitions,
+            Collection<? extends Artifact> artifactDefinitions,
+            Collection<? extends Exclude> excludes,
+            ImmutableAttributesSchema schema) {
         super(attributesFactory, id, componentIdentifier, schema);
         this.configurationDefinitions = toMap(configurationDefinitions);
         this.artifactDefinitions = ImmutableList.copyOf(artifactDefinitions);

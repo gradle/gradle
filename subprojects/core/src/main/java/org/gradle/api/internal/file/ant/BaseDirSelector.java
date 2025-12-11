@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.file.ant;
 
-import org.apache.tools.ant.types.selectors.FileSelector;
-
 import java.io.File;
+import org.apache.tools.ant.types.selectors.FileSelector;
 
 public class BaseDirSelector implements FileSelector {
     private File baseDir;

@@ -17,6 +17,9 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import com.google.common.collect.Iterables;
+import java.io.File;
+import java.util.Collection;
+import java.util.Objects;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilation;
@@ -34,10 +37,6 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.Objects;
-
 /**
  * A compiler that selects classes for compilation. It also handles restore of output state in case of a compile failure.
  */
@@ -50,12 +49,11 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
     private final PreviousCompilationAccess previousCompilationAccess;
 
     public SelectiveCompiler(
-        CleaningJavaCompiler<T> cleaningJavaCompiler,
-        Compiler<T> rebuildAllCompiler,
-        RecompilationSpecProvider recompilationSpecProvider,
-        CurrentCompilationAccess classpathSnapshotter,
-        PreviousCompilationAccess previousCompilationAccess
-    ) {
+            CleaningJavaCompiler<T> cleaningJavaCompiler,
+            Compiler<T> rebuildAllCompiler,
+            RecompilationSpecProvider recompilationSpecProvider,
+            CurrentCompilationAccess classpathSnapshotter,
+            PreviousCompilationAccess previousCompilationAccess) {
         this.cleaningCompiler = cleaningJavaCompiler;
         this.rebuildAllCompiler = rebuildAllCompiler;
         this.recompilationSpecProvider = recompilationSpecProvider;
@@ -66,10 +64,12 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
     @Override
     public WorkResult execute(T spec) {
         if (!recompilationSpecProvider.isIncremental()) {
-            LOG.info("Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.");
+            LOG.info(
+                    "Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.");
             return rebuildAllCompiler.execute(spec);
         }
-        File previousCompilationDataFile = Objects.requireNonNull(spec.getCompileOptions().getPreviousCompilationDataFile());
+        File previousCompilationDataFile =
+                Objects.requireNonNull(spec.getCompileOptions().getPreviousCompilationDataFile());
         if (!previousCompilationDataFile.exists()) {
             LOG.info("Full recompilation is required because no previous compilation result is available.");
             return rebuildAllCompiler.execute(spec);
@@ -82,18 +82,25 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
         Timer clock = Time.startTimer();
         CurrentCompilation currentCompilation = new CurrentCompilation(spec, classpathSnapshotter);
 
-        PreviousCompilationData previousCompilationData = previousCompilationAccess.readPreviousCompilationData(previousCompilationDataFile);
+        PreviousCompilationData previousCompilationData =
+                previousCompilationAccess.readPreviousCompilationData(previousCompilationDataFile);
         PreviousCompilation previousCompilation = new PreviousCompilation(previousCompilationData);
-        RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(spec, currentCompilation, previousCompilation);
+        RecompilationSpec recompilationSpec =
+                recompilationSpecProvider.provideRecompilationSpec(spec, currentCompilation, previousCompilation);
 
         if (recompilationSpec.isFullRebuildNeeded()) {
-            LOG.info("Full recompilation is required because {}. Analysis took {}.", recompilationSpec.getFullRebuildCause(), clock.getElapsed());
+            LOG.info(
+                    "Full recompilation is required because {}. Analysis took {}.",
+                    recompilationSpec.getFullRebuildCause(),
+                    clock.getElapsed());
             return rebuildAllCompiler.execute(spec);
         }
 
-        CompileTransaction transaction = recompilationSpecProvider.initCompilationSpecAndTransaction(spec, recompilationSpec);
+        CompileTransaction transaction =
+                recompilationSpecProvider.initCompilationSpecAndTransaction(spec, recompilationSpec);
         return transaction.execute(workResult -> {
-            if (Iterables.isEmpty(spec.getSourceFiles()) && spec.getClassesToProcess().isEmpty()) {
+            if (Iterables.isEmpty(spec.getSourceFiles())
+                    && spec.getClassesToProcess().isEmpty()) {
                 LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
                 return new RecompilationNotNecessary(previousCompilationData, recompilationSpec);
             }
@@ -103,7 +110,10 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
                 return result.or(workResult);
             } finally {
                 Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();
-                LOG.info("Incremental compilation of {} classes completed in {}.", classesToCompile.size(), clock.getElapsed());
+                LOG.info(
+                        "Incremental compilation of {} classes completed in {}.",
+                        classesToCompile.size(),
+                        clock.getElapsed());
                 LOG.debug("Recompiled classes {}", classesToCompile);
             }
         });

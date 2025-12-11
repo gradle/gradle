@@ -16,6 +16,8 @@
 
 package org.gradle.internal.daemon.clientinput;
 
+import java.io.InputStream;
+import java.util.function.Function;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -24,9 +26,6 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.UserResponse;
-
-import java.io.InputStream;
-import java.util.function.Function;
 
 /**
  * Forwards user input received from the client to this process' System.in and {@link UserInputReader}.

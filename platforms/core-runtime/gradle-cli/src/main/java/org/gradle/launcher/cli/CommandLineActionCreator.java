@@ -40,5 +40,6 @@ public interface CommandLineActionCreator {
      * @return {@code null} if this creator does not know how to create an action from the given command-line args
      */
     @Nullable
-    Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters);
+    Action<? super ExecutionListener> createAction(
+            CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters);
 }

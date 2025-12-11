@@ -16,10 +16,9 @@
 
 package org.gradle.internal;
 
-import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A non-thread-safe type to hold a reference to a single value.

@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.nativeplatform.NativeBinarySpec;
@@ -23,8 +24,6 @@ import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.AbstractNativeBinaryRenderer;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
-
-import javax.inject.Inject;
 
 public class NativeTestSuiteBinaryRenderer extends AbstractNativeBinaryRenderer<NativeTestSuiteBinarySpec> {
     @Inject
@@ -52,7 +51,7 @@ public class NativeTestSuiteBinaryRenderer extends AbstractNativeBinaryRenderer<
     protected void renderDetails(NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
         NativeTestSuiteSpec testSuite = binary.getTestSuite();
         NativeComponentSpec testedComponent = testSuite.getTestedComponent();
-        if (testedComponent!=null) {
+        if (testedComponent != null) {
             builder.item("component under test", testedComponent.getDisplayName());
         }
         NativeBinarySpec testedBinary = binary.getTestedBinary();

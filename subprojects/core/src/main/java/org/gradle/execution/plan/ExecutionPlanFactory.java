@@ -31,14 +31,13 @@ public class ExecutionPlanFactory {
     private final ResourceLockCoordinationService lockCoordinationService;
 
     public ExecutionPlanFactory(
-        String displayName,
-        TaskNodeFactory taskNodeFactory,
-        OrdinalGroupFactory ordinalGroupFactory,
-        TaskDependencyResolver dependencyResolver,
-        ExecutionNodeAccessHierarchy outputHierarchy,
-        ExecutionNodeAccessHierarchy destroyableHierarchy,
-        ResourceLockCoordinationService lockCoordinationService
-    ) {
+            String displayName,
+            TaskNodeFactory taskNodeFactory,
+            OrdinalGroupFactory ordinalGroupFactory,
+            TaskDependencyResolver dependencyResolver,
+            ExecutionNodeAccessHierarchy outputHierarchy,
+            ExecutionNodeAccessHierarchy destroyableHierarchy,
+            ResourceLockCoordinationService lockCoordinationService) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
         this.ordinalGroupFactory = ordinalGroupFactory;
@@ -49,6 +48,13 @@ public class ExecutionPlanFactory {
     }
 
     public ExecutionPlan createPlan() {
-        return new DefaultExecutionPlan(displayName, taskNodeFactory, ordinalGroupFactory, dependencyResolver, outputHierarchy, destroyableHierarchy, lockCoordinationService);
+        return new DefaultExecutionPlan(
+                displayName,
+                taskNodeFactory,
+                ordinalGroupFactory,
+                dependencyResolver,
+                outputHierarchy,
+                destroyableHierarchy,
+                lockCoordinationService);
     }
 }

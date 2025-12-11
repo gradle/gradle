@@ -16,6 +16,9 @@
 
 package org.gradle.problems.internal.services;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemEmitter;
@@ -34,10 +37,6 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-
 public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     private final BuildOperationProgressEventEmitter eventEmitter;
@@ -47,21 +46,22 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private final SummarizerStrategy summarizerStrategy;
     private final TaskIdentityProvider taskProvider;
 
-    public static final InternalOption<Integer> THRESHOLD_OPTION = new IntegerInternalOption("org.gradle.internal.problem.summary.threshold", 15);
+    public static final InternalOption<Integer> THRESHOLD_OPTION =
+            new IntegerInternalOption("org.gradle.internal.problem.summary.threshold", 15);
     public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
 
     public DefaultProblemSummarizer(
-        BuildOperationProgressEventEmitter eventEmitter,
-        CurrentBuildOperationRef currentBuildOperationRef,
-        Collection<ProblemEmitter> problemEmitters,
-        InternalOptions internalOptions,
-        ProblemReportCreator problemReportCreator,
-        TaskIdentityProvider taskProvider
-    ) {
+            BuildOperationProgressEventEmitter eventEmitter,
+            CurrentBuildOperationRef currentBuildOperationRef,
+            Collection<ProblemEmitter> problemEmitters,
+            InternalOptions internalOptions,
+            ProblemReportCreator problemReportCreator,
+            TaskIdentityProvider taskProvider) {
         this.eventEmitter = eventEmitter;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problemEmitters = problemEmitters;
-        this.summarizerStrategy = new SummarizerStrategy(internalOptions.getOption(THRESHOLD_OPTION).get());
+        this.summarizerStrategy = new SummarizerStrategy(
+                internalOptions.getOption(THRESHOLD_OPTION).get());
         this.problemReportCreator = problemReportCreator;
         this.taskProvider = taskProvider;
     }
@@ -75,7 +75,8 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     public void report(File reportDir, ProblemConsumer validationFailures) {
         List<ProblemSummaryData> cutOffProblems = summarizerStrategy.getCutOffProblems();
         problemReportCreator.createReportFile(reportDir, cutOffProblems);
-        eventEmitter.emitNow(currentBuildOperationRef.getId(), new DefaultProblemsSummaryProgressDetails(cutOffProblems));
+        eventEmitter.emitNow(
+                currentBuildOperationRef.getId(), new DefaultProblemsSummaryProgressDetails(cutOffProblems));
     }
 
     @Override
@@ -93,7 +94,9 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private InternalProblem maybeAddTaskLocation(InternalProblem problem, @Nullable OperationIdentifier id) {
         TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
         if (taskIdentity != null) {
-            problem = problem.toBuilder(new ProblemsInfrastructure(null, null, null, null, null, null)).taskLocation(taskIdentity.getTaskPath()).build();
+            problem = problem.toBuilder(new ProblemsInfrastructure(null, null, null, null, null, null))
+                    .taskLocation(taskIdentity.getTaskPath())
+                    .build();
         }
         return problem;
     }

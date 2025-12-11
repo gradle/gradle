@@ -15,9 +15,8 @@
  */
 package org.gradle.internal.logging.format;
 
-import org.gradle.internal.logging.events.StyledTextOutputEvent;
-
 import java.util.List;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
 
 public interface LogHeaderFormatter {
     /**

@@ -16,12 +16,11 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.publish.maven.MavenPomRelocation;
 import org.gradle.api.publish.maven.MavenPomDeploymentRepository;
-
-import javax.inject.Inject;
+import org.gradle.api.publish.maven.MavenPomRelocation;
 
 public abstract class DefaultMavenPomDistributionManagement implements MavenPomDistributionManagementInternal {
 
@@ -59,5 +58,4 @@ public abstract class DefaultMavenPomDistributionManagement implements MavenPomD
     public MavenPomDeploymentRepository getRepository() {
         return repository;
     }
-
 }

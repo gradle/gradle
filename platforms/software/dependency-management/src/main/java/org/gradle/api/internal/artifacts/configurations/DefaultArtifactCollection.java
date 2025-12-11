@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
@@ -31,10 +34,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueFactory;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
-
 public class DefaultArtifactCollection implements ArtifactCollectionInternal {
 
     private final SelectedArtifactSet artifacts;
@@ -44,13 +43,12 @@ public class DefaultArtifactCollection implements ArtifactCollectionInternal {
     private final TaskDependencyFactory taskDependencyFactory;
 
     public DefaultArtifactCollection(
-        SelectedArtifactSet artifacts,
-        boolean lenient,
-        ResolutionHost resolutionHost,
-        TaskDependencyFactory taskDependencyFactory,
-        CalculatedValueFactory calculatedValueFactory,
-        AttributeDesugaring attributeDesugaring
-    ) {
+            SelectedArtifactSet artifacts,
+            boolean lenient,
+            ResolutionHost resolutionHost,
+            TaskDependencyFactory taskDependencyFactory,
+            CalculatedValueFactory calculatedValueFactory,
+            AttributeDesugaring attributeDesugaring) {
         this.artifacts = artifacts;
         this.lenient = lenient;
         this.resolutionHost = resolutionHost;
@@ -82,12 +80,7 @@ public class DefaultArtifactCollection implements ArtifactCollectionInternal {
 
     @Override
     public FileCollectionInternal getArtifactFiles() {
-        return new ResolutionBackedFileCollection(
-            artifacts,
-            lenient,
-            resolutionHost,
-            taskDependencyFactory
-        );
+        return new ResolutionBackedFileCollection(artifacts, lenient, resolutionHost, taskDependencyFactory);
     }
 
     @Override
@@ -98,7 +91,10 @@ public class DefaultArtifactCollection implements ArtifactCollectionInternal {
 
     @Override
     public Provider<Set<ResolvedArtifactResult>> getResolvedArtifacts() {
-        return new BuildableBackedProvider<>(getArtifactFiles(), Cast.uncheckedCast(Set.class), new ArtifactCollectionResolvedArtifactsFactory(this));
+        return new BuildableBackedProvider<>(
+                getArtifactFiles(),
+                Cast.uncheckedCast(Set.class),
+                new ArtifactCollectionResolvedArtifactsFactory(this));
     }
 
     @Override
@@ -146,5 +142,4 @@ public class DefaultArtifactCollection implements ArtifactCollectionInternal {
             return artifactCollection.getArtifacts();
         }
     }
-
 }

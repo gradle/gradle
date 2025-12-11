@@ -16,14 +16,13 @@
 
 package org.gradle.plugins.ide.internal;
 
+import java.util.List;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * This should merge into {@link org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry}.

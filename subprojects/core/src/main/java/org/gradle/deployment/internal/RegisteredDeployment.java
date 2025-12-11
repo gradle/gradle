@@ -32,14 +32,25 @@ class RegisteredDeployment implements Stoppable {
         this.handle = handle;
     }
 
-    static RegisteredDeployment create(String id, DeploymentRegistry.ChangeBehavior changeBehavior, ContinuousExecutionGate continuousExecutionGate, DeploymentHandle deploymentHandle) {
-        switch(changeBehavior) {
+    static RegisteredDeployment create(
+            String id,
+            DeploymentRegistry.ChangeBehavior changeBehavior,
+            ContinuousExecutionGate continuousExecutionGate,
+            DeploymentHandle deploymentHandle) {
+        switch (changeBehavior) {
             case NONE:
                 return new RegisteredDeployment(id, false, deploymentHandle, new OutOfDateTrackingDeployment());
             case RESTART:
-                return new RegisteredDeployment(id, true, deploymentHandle, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment()));
+                return new RegisteredDeployment(
+                        id, true, deploymentHandle, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment()));
             case BLOCK:
-                return new RegisteredDeployment(id, false, deploymentHandle, new GateControllingDeployment(continuousExecutionGate, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment())));
+                return new RegisteredDeployment(
+                        id,
+                        false,
+                        deploymentHandle,
+                        new GateControllingDeployment(
+                                continuousExecutionGate,
+                                new SimpleBlockingDeployment(new OutOfDateTrackingDeployment())));
             default:
                 throw new IllegalArgumentException("Unknown changeBehavior " + changeBehavior);
         }
@@ -76,10 +87,6 @@ class RegisteredDeployment implements Stoppable {
 
     @Override
     public String toString() {
-        return "Deployment{"
-            + "id='" + id + '\''
-            + ", handle=" + handle
-            + ", restartable=" + restartable
-            + '}';
+        return "Deployment{" + "id='" + id + '\'' + ", handle=" + handle + ", restartable=" + restartable + '}';
     }
 }

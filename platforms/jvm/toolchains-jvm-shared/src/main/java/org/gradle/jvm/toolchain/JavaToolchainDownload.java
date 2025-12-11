@@ -16,10 +16,9 @@
 
 package org.gradle.jvm.toolchain;
 
+import java.net.URI;
 import org.gradle.api.Incubating;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainDownload;
-
-import java.net.URI;
 
 /**
  * The response provided by a {@link JavaToolchainResolver} to a specific
@@ -39,5 +38,4 @@ public interface JavaToolchainDownload {
     static JavaToolchainDownload fromUri(URI uri) {
         return DefaultJavaToolchainDownload.fromUri(uri);
     }
-
 }

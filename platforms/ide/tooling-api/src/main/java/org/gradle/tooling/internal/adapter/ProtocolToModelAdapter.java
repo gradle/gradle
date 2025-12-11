@@ -16,19 +16,6 @@
 package org.gradle.tooling.internal.adapter;
 
 import com.google.common.base.Optional;
-import org.gradle.internal.Cast;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.time.CountdownTimer;
-import org.gradle.internal.time.Time;
-import org.gradle.tooling.ToolingModelContract;
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.internal.Exceptions;
-import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -58,6 +45,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.time.CountdownTimer;
+import org.gradle.internal.time.Time;
+import org.gradle.tooling.ToolingModelContract;
+import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.internal.Exceptions;
+import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Adapts some source object to some target view type.
@@ -142,7 +141,11 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     @Nullable
-    private static <T> T createView(Class<T> targetType, @Nullable Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
+    private static <T> T createView(
+            Class<T> targetType,
+            @Nullable Object sourceObject,
+            ViewDecoration decoration,
+            ViewGraphDetails graphDetails) {
         if (sourceObject == null) {
             return null;
         }
@@ -161,7 +164,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         // Restrict the decorations to those required to decorate all views reachable from this type
-        ViewDecoration decorationsForThisType = decoration.isNoOp() ? decoration : decoration.restrictTo(TYPE_INSPECTOR.getReachableTypes(targetType));
+        ViewDecoration decorationsForThisType =
+                decoration.isNoOp() ? decoration : decoration.restrictTo(TYPE_INSPECTOR.getReachableTypes(targetType));
 
         ViewKey viewKey = new ViewKey(viewType, decorationsForThisType);
         Object view = graphDetails.getViewFor(sourceObject, viewKey);
@@ -170,7 +174,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         // Create a proxy
-        InvocationHandlerImpl handler = new InvocationHandlerImpl(targetType, sourceObject, decorationsForThisType, graphDetails);
+        InvocationHandlerImpl handler =
+                new InvocationHandlerImpl(targetType, sourceObject, decorationsForThisType, graphDetails);
         Class<?>[] modelContractInterfaces = getModelContractInterfaces(targetType, sourceObject, viewType);
         Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), modelContractInterfaces, handler);
         handler.attachProxy(proxy);
@@ -180,9 +185,11 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         return viewType.cast(proxy);
     }
 
-    private static <T> Class<?>[] getModelContractInterfaces(Class<T> targetType, Object sourceObject, Class<? extends T> viewType) {
+    private static <T> Class<?>[] getModelContractInterfaces(
+            Class<T> targetType, Object sourceObject, Class<? extends T> viewType) {
         Map<String, Class<?>> potentialSubInterfaces = getPotentialModelContractSubInterfaces(targetType);
-        Set<Class<?>> actualSubInterfaces = getActualImplementedModelContractSubInterfaces(sourceObject, potentialSubInterfaces);
+        Set<Class<?>> actualSubInterfaces =
+                getActualImplementedModelContractSubInterfaces(sourceObject, potentialSubInterfaces);
 
         List<Class<?>> modelContractInterfaces = new ArrayList<>();
         modelContractInterfaces.add(viewType); // base interface
@@ -197,10 +204,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static <T> void getPotentialModelContractSubInterfaces(
-        Class<T> targetType,
-        Set<Class<?>> visited,
-        Map<String, Class<?>> result
-    ) {
+            Class<T> targetType, Set<Class<?>> visited, Map<String, Class<?>> result) {
         boolean isNew = visited.add(targetType);
         if (isNew) {
             Annotation[] annotations = targetType.getAnnotations();
@@ -216,7 +220,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
     }
 
-    private static Set<Class<?>> getActualImplementedModelContractSubInterfaces(Object sourceObject, Map<String, Class<?>> potentialModelContractInterfaces) {
+    private static Set<Class<?>> getActualImplementedModelContractSubInterfaces(
+            Object sourceObject, Map<String, Class<?>> potentialModelContractInterfaces) {
         if (potentialModelContractInterfaces.isEmpty()) {
             return Collections.emptySet();
         }
@@ -291,10 +296,9 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             sep = ", ";
         }
 
-        throw new IllegalArgumentException(
-            String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
-                literal, enumType.getName(), builder.toString())
-        );
+        throw new IllegalArgumentException(String.format(
+                "Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
+                literal, enumType.getName(), builder.toString()));
     }
 
     @Nullable
@@ -346,19 +350,27 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     @Nullable
-    private static Object convert(Type targetType, Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
+    private static Object convert(
+            Type targetType, Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
         if (targetType instanceof ParameterizedType) {
             ParameterizedType parameterizedTargetType = (ParameterizedType) targetType;
             if (parameterizedTargetType.getRawType() instanceof Class) {
                 Class<?> rawClass = (Class<?>) parameterizedTargetType.getRawType();
                 if (Iterable.class.isAssignableFrom(rawClass)) {
                     Type targetElementType = getElementType(parameterizedTargetType, 0);
-                    return convertCollectionInternal(rawClass, targetElementType, (Iterable<?>) sourceObject, decoration, graphDetails);
+                    return convertCollectionInternal(
+                            rawClass, targetElementType, (Iterable<?>) sourceObject, decoration, graphDetails);
                 }
                 if (Map.class.isAssignableFrom(rawClass)) {
                     Type targetKeyType = getElementType(parameterizedTargetType, 0);
                     Type targetValueType = getElementType(parameterizedTargetType, 1);
-                    return convertMap(rawClass, targetKeyType, targetValueType, (Map<?, ?>) sourceObject, decoration, graphDetails);
+                    return convertMap(
+                            rawClass,
+                            targetKeyType,
+                            targetValueType,
+                            (Map<?, ?>) sourceObject,
+                            decoration,
+                            graphDetails);
                 }
             }
         }
@@ -369,18 +381,32 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
             return createView(targetClassType, sourceObject, decoration, graphDetails);
         }
-        throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", sourceObject.getClass(), targetType));
+        throw new UnsupportedOperationException(
+                String.format("Cannot convert object of %s to %s.", sourceObject.getClass(), targetType));
     }
 
-    private static Map<Object, Object> convertMap(Class<?> mapClass, Type targetKeyType, Type targetValueType, Map<?, ?> sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
+    private static Map<Object, Object> convertMap(
+            Class<?> mapClass,
+            Type targetKeyType,
+            Type targetValueType,
+            Map<?, ?> sourceObject,
+            ViewDecoration decoration,
+            ViewGraphDetails graphDetails) {
         Map<Object, Object> convertedElements = COLLECTION_MAPPER.createEmptyMap(mapClass);
         for (Map.Entry<?, ?> entry : sourceObject.entrySet()) {
-            convertedElements.put(convert(targetKeyType, entry.getKey(), decoration, graphDetails), convert(targetValueType, entry.getValue(), decoration, graphDetails));
+            convertedElements.put(
+                    convert(targetKeyType, entry.getKey(), decoration, graphDetails),
+                    convert(targetValueType, entry.getValue(), decoration, graphDetails));
         }
         return convertedElements;
     }
 
-    private static Object convertCollectionInternal(Class<?> collectionClass, Type targetElementType, Iterable<?> sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
+    private static Object convertCollectionInternal(
+            Class<?> collectionClass,
+            Type targetElementType,
+            Iterable<?> sourceObject,
+            ViewDecoration decoration,
+            ViewGraphDetails graphDetails) {
         Collection<Object> convertedElements = COLLECTION_MAPPER.createEmptyCollection(collectionClass);
         convertCollectionInternal(convertedElements, targetElementType, sourceObject, decoration, graphDetails);
         if (collectionClass.equals(DomainObjectSet.class)) {
@@ -390,7 +416,12 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
     }
 
-    private static void convertCollectionInternal(Collection<Object> targetCollection, Type targetElementType, Iterable<?> sourceObject, ViewDecoration viewDecoration, ViewGraphDetails graphDetails) {
+    private static void convertCollectionInternal(
+            Collection<Object> targetCollection,
+            Type targetElementType,
+            Iterable<?> sourceObject,
+            ViewDecoration viewDecoration,
+            ViewGraphDetails graphDetails) {
         for (Object element : sourceObject) {
             targetCollection.add(convert(targetElementType, element, viewDecoration, graphDetails));
         }
@@ -409,7 +440,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
      * Unpacks the source object from a given view object.
      */
     public Object unpack(Object viewObject) {
-        if (!Proxy.isProxyClass(viewObject.getClass()) || !(Proxy.getInvocationHandler(viewObject) instanceof InvocationHandlerImpl)) {
+        if (!Proxy.isProxyClass(viewObject.getClass())
+                || !(Proxy.getInvocationHandler(viewObject) instanceof InvocationHandlerImpl)) {
             throw new IllegalArgumentException("The given object is not a view object");
         }
         InvocationHandlerImpl handler = (InvocationHandlerImpl) Proxy.getInvocationHandler(viewObject);
@@ -417,8 +449,10 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static class ViewGraphDetails implements Serializable {
-        // Transient, don't serialize all the views that happen to have been visited, recreate them when visited via the deserialized view
-        private transient WeakIdentityHashMap<Object, Map<ViewKey, WeakReference<Object>>> views = new WeakIdentityHashMap<>();
+        // Transient, don't serialize all the views that happen to have been visited, recreate them when visited via the
+        // deserialized view
+        private transient WeakIdentityHashMap<Object, Map<ViewKey, WeakReference<Object>>> views =
+                new WeakIdentityHashMap<>();
         private final TargetTypeProvider typeProvider;
 
         ViewGraphDetails(TargetTypeProvider typeProvider) {
@@ -426,13 +460,13 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         private void putViewFor(Object sourceObject, ViewKey key, Object proxy) {
-            Map<ViewKey, WeakReference<Object>> viewsForSource = views.computeIfAbsent(sourceObject,
-                new WeakIdentityHashMap.AbsentValueProvider<Map<ViewKey, WeakReference<Object>>>() {
-                    @Override
-                    public Map<ViewKey, WeakReference<Object>> provide() {
-                        return new HashMap<>();
-                    }
-                });
+            Map<ViewKey, WeakReference<Object>> viewsForSource = views.computeIfAbsent(
+                    sourceObject, new WeakIdentityHashMap.AbsentValueProvider<Map<ViewKey, WeakReference<Object>>>() {
+                        @Override
+                        public Map<ViewKey, WeakReference<Object>> provide() {
+                            return new HashMap<>();
+                        }
+                    });
 
             viewsForSource.put(key, new WeakReference<>(proxy));
         }
@@ -492,7 +526,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         // Recreate the invoker when deserialized, rather than serialize all its state
         private transient MethodInvoker invoker;
 
-        InvocationHandlerImpl(Class<?> targetType, Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
+        InvocationHandlerImpl(
+                Class<?> targetType, Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
             this.targetType = targetType;
             this.sourceObject = sourceObject;
             this.decoration = decoration;
@@ -511,13 +546,11 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             invokers.add(REFLECTION_METHOD_INVOKER);
             decoration.collectInvokers(sourceObject, targetType, invokers);
 
-            MethodInvoker mixInMethodInvoker = invokers.size() == 1 ? invokers.get(0) : new ChainedMethodInvoker(invokers);
+            MethodInvoker mixInMethodInvoker =
+                    invokers.size() == 1 ? invokers.get(0) : new ChainedMethodInvoker(invokers);
 
-            invoker = new SupportedPropertyInvoker(
-                new SafeMethodInvoker(
-                    new PropertyCachingMethodInvoker(
-                        new AdaptingMethodInvoker(decoration, graphDetails,
-                            mixInMethodInvoker))));
+            invoker = new SupportedPropertyInvoker(new SafeMethodInvoker(new PropertyCachingMethodInvoker(
+                    new AdaptingMethodInvoker(decoration, graphDetails, mixInMethodInvoker))));
         }
 
         @Override
@@ -551,7 +584,15 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 return hashCode();
             }
 
-            MethodInvocation invocation = new MethodInvocation(method.getName(), method.getReturnType(), method.getGenericReturnType(), method.getParameterTypes(), target, targetType, sourceObject, params);
+            MethodInvocation invocation = new MethodInvocation(
+                    method.getName(),
+                    method.getReturnType(),
+                    method.getGenericReturnType(),
+                    method.getParameterTypes(),
+                    target,
+                    targetType,
+                    sourceObject,
+                    params);
             invoker.invoke(invocation);
             if (!invocation.found()) {
                 String methodName = method.getDeclaringClass().getSimpleName() + "." + method.getName() + "()";
@@ -596,15 +637,17 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         public void invoke(MethodInvocation invocation) throws Throwable {
             next.invoke(invocation);
             if (invocation.found() && invocation.getResult() != null) {
-                invocation.setResult(convert(invocation.getGenericReturnType(), invocation.getResult(), decoration, graphDetails));
+                invocation.setResult(
+                        convert(invocation.getGenericReturnType(), invocation.getResult(), decoration, graphDetails));
             }
         }
     }
 
     private static class MethodInvocationCache {
-        private final Map<MethodInvocationKey, Optional<Method>> store = new HashMap<MethodInvocationKey, Optional<Method>>();
+        private final Map<MethodInvocationKey, Optional<Method>> store =
+                new HashMap<MethodInvocationKey, Optional<Method>>();
         private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-        private final static long MINIMAL_CLEANUP_INTERVAL = 30000;
+        private static final long MINIMAL_CLEANUP_INTERVAL = 30000;
 
         // For stats we don't really care about thread safety
         private int cacheMiss;
@@ -619,7 +662,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             private final SoftReference<Class<?>[]> parameterTypes;
             private final int hashCode;
 
-            private MethodInvocationKey(@Nullable Class<?> lookupClass, @Nullable String methodName, Class<?>[] parameterTypes) {
+            private MethodInvocationKey(
+                    @Nullable Class<?> lookupClass, @Nullable String methodName, Class<?>[] parameterTypes) {
                 this.lookupClass = new SoftReference<Class<?>>(lookupClass);
                 this.methodName = methodName;
                 this.parameterTypes = new SoftReference<Class<?>[]>(parameterTypes);
@@ -656,7 +700,6 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                     return false;
                 }
                 return eq(parameterTypes, that.parameterTypes);
-
             }
 
             private static boolean eq(SoftReference<?> aRef, SoftReference<?> bRef) {
@@ -689,11 +732,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             Class<?> owner = invocation.getDelegate().getClass();
             String name = invocation.getName();
             Class<?>[] parameterTypes = invocation.getParameterTypes();
-            MethodInvocationKey key = new MethodInvocationKey(
-                owner,
-                name,
-                parameterTypes
-            );
+            MethodInvocationKey key = new MethodInvocationKey(owner, name, parameterTypes);
             lock.readLock().lock();
             try {
                 Optional<Method> cached = store.get(key);
@@ -868,7 +907,15 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 return;
             }
 
-            MethodInvocation getterInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), EMPTY_CLASS_ARRAY, invocation.getView(), invocation.getViewType(), invocation.getDelegate(), EMPTY);
+            MethodInvocation getterInvocation = new MethodInvocation(
+                    invocation.getName(),
+                    invocation.getReturnType(),
+                    invocation.getGenericReturnType(),
+                    EMPTY_CLASS_ARRAY,
+                    invocation.getView(),
+                    invocation.getViewType(),
+                    invocation.getDelegate(),
+                    EMPTY);
             next.invoke(getterInvocation);
             if (getterInvocation.found() && getterInvocation.getResult() != null) {
                 invocation.setResult(getterInvocation.getResult());
@@ -893,13 +940,22 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
 
             String methodName = invocation.getName();
-            boolean isSupportMethod = methodName.length() > 11 && methodName.startsWith("is") && methodName.endsWith("Supported");
+            boolean isSupportMethod =
+                    methodName.length() > 11 && methodName.startsWith("is") && methodName.endsWith("Supported");
             if (!isSupportMethod) {
                 return;
             }
 
             String getterName = "get" + methodName.substring(2, methodName.length() - 9);
-            MethodInvocation getterInvocation = new MethodInvocation(getterName, invocation.getReturnType(), invocation.getGenericReturnType(), EMPTY_CLASS_ARRAY, invocation.getView(), invocation.getViewType(), invocation.getDelegate(), EMPTY);
+            MethodInvocation getterInvocation = new MethodInvocation(
+                    getterName,
+                    invocation.getReturnType(),
+                    invocation.getGenericReturnType(),
+                    EMPTY_CLASS_ARRAY,
+                    invocation.getView(),
+                    invocation.getViewType(),
+                    invocation.getDelegate(),
+                    EMPTY);
             next.invoke(getterInvocation);
             invocation.setResult(getterInvocation.found());
         }
@@ -916,7 +972,15 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         @Override
         public void invoke(MethodInvocation invocation) throws Throwable {
-            MethodInvocation beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), invocation.getParameterTypes(), invocation.getView(), invocation.getViewType(), instance, invocation.getParameters());
+            MethodInvocation beanInvocation = new MethodInvocation(
+                    invocation.getName(),
+                    invocation.getReturnType(),
+                    invocation.getGenericReturnType(),
+                    invocation.getParameterTypes(),
+                    invocation.getView(),
+                    invocation.getViewType(),
+                    instance,
+                    invocation.getParameters());
             next.invoke(beanInvocation);
             if (beanInvocation.found()) {
                 invocation.setResult(beanInvocation.getResult());
@@ -926,7 +990,15 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 return;
             }
 
-            beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), new Class<?>[]{invocation.getViewType()}, invocation.getView(), invocation.getViewType(), instance, new Object[]{invocation.getView()});
+            beanInvocation = new MethodInvocation(
+                    invocation.getName(),
+                    invocation.getReturnType(),
+                    invocation.getGenericReturnType(),
+                    new Class<?>[] {invocation.getViewType()},
+                    invocation.getView(),
+                    invocation.getViewType(),
+                    instance,
+                    new Object[] {invocation.getView()});
             next.invoke(beanInvocation);
             if (beanInvocation.found()) {
                 invocation.setResult(beanInvocation.getResult());
@@ -938,7 +1010,9 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private Object instance;
         private final Class<?> mixInClass;
         private final MethodInvoker next;
-        @SuppressWarnings("ThreadLocalUsage") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+
+        @SuppressWarnings("ThreadLocalUsage") // TODO: evaluate errorprone suppression
+        // (https://github.com/gradle/gradle/issues/35864)
         private final ThreadLocal<MethodInvocation> current = new ThreadLocal<>();
 
         ClassMixInMethodInvoker(Class<?> mixInClass, MethodInvoker next) {
@@ -956,7 +1030,15 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             if (instance == null) {
                 instance = DirectInstantiator.INSTANCE.newInstance(mixInClass, invocation.getView());
             }
-            MethodInvocation beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), invocation.getParameterTypes(), invocation.getView(), invocation.getViewType(), instance, invocation.getParameters());
+            MethodInvocation beanInvocation = new MethodInvocation(
+                    invocation.getName(),
+                    invocation.getReturnType(),
+                    invocation.getGenericReturnType(),
+                    invocation.getParameterTypes(),
+                    invocation.getView(),
+                    invocation.getViewType(),
+                    instance,
+                    invocation.getParameters());
             current.set(beanInvocation);
             try {
                 next.invoke(beanInvocation);
@@ -982,8 +1064,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
     private static class NoOpDecoration implements ViewDecoration, Serializable {
         @Override
-        public void collectInvokers(Object sourceObject, Class<?> viewType, List<MethodInvoker> invokers) {
-        }
+        public void collectInvokers(Object sourceObject, Class<?> viewType, List<MethodInvoker> invokers) {}
 
         @Override
         public boolean equals(Object obj) {
@@ -1081,7 +1162,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
     }
 
-    private static abstract class TypeSpecificMappingAction implements ViewDecoration, Serializable {
+    private abstract static class TypeSpecificMappingAction implements ViewDecoration, Serializable {
         protected final Class<?> targetType;
 
         TypeSpecificMappingAction(Class<?> targetType) {
@@ -1169,8 +1250,10 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
     private class DefaultViewBuilder<T> implements ViewBuilder<T> {
         private final Class<T> viewType;
+
         @Nullable
         private final ViewGraphDetails graphDetails;
+
         List<ViewDecoration> viewDecorations = new ArrayList<ViewDecoration>();
 
         DefaultViewBuilder(Class<T> viewType) {
@@ -1202,7 +1285,11 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
 
             ViewDecoration viewDecoration = MixInMappingAction.chain(viewDecorations);
-            return createView(viewType, sourceObject, viewDecoration, graphDetails != null ? graphDetails : new ViewGraphDetails(targetTypeProvider));
+            return createView(
+                    viewType,
+                    sourceObject,
+                    viewDecoration,
+                    graphDetails != null ? graphDetails : new ViewGraphDetails(targetTypeProvider));
         }
     }
 }

@@ -15,9 +15,8 @@
  */
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.Incubating;
-
 import java.util.List;
+import org.gradle.api.Incubating;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
@@ -55,5 +54,4 @@ public interface InternalFailure {
      */
     @Incubating
     List<InternalBasicProblemDetailsVersion3> getProblems();
-
 }

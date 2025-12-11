@@ -15,10 +15,6 @@
  */
 package org.gradle.internal.exceptions;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.Factory;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
@@ -27,8 +23,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import org.gradle.api.GradleException;
+import org.gradle.internal.Factory;
+import org.jspecify.annotations.Nullable;
 
-public class DefaultMultiCauseException extends GradleException implements MultiCauseException, NonGradleCauseExceptionsHolder {
+public class DefaultMultiCauseException extends GradleException
+        implements MultiCauseException, NonGradleCauseExceptionsHolder {
     private final List<Throwable> causes = new CopyOnWriteArrayList<Throwable>();
     private transient ThreadLocal<Boolean> hideCause = threadLocal();
     private transient @Nullable Factory<String> messageFactory;

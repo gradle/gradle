@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.project;
 
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
@@ -25,9 +27,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Mediates access to other projects, across project boundaries, within a single build.
@@ -43,7 +42,8 @@ public interface CrossProjectModelAccess {
      *
      * @throws IllegalArgumentException If {@code path} is not absolute.
      */
-    @Nullable ProjectInternal findProject(ProjectInternal referrer, Path path);
+    @Nullable
+    ProjectInternal findProject(ProjectInternal referrer, Path path);
 
     /**
      * @param referrer The project from which the return value will be used.
@@ -94,7 +94,8 @@ public interface CrossProjectModelAccess {
      * @param referrerProject The project that views the task graph.
      * @return A task graph instance that implements correct cross-project model access.
      */
-    TaskExecutionGraphInternal taskGraphForProject(ProjectInternal referrerProject, TaskExecutionGraphInternal taskGraph);
+    TaskExecutionGraphInternal taskGraphForProject(
+            ProjectInternal referrerProject, TaskExecutionGraphInternal taskGraph);
 
     /**
      * Produces a {@code DynamicObject} for the inherited scope from the parent project of the specified project, behaving correctly

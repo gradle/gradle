@@ -22,5 +22,4 @@ import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
  * Test suite of CUnit tests.
  */
 @Incubating
-public interface CUnitTestSuiteSpec extends NativeTestSuiteSpec {
-}
+public interface CUnitTestSuiteSpec extends NativeTestSuiteSpec {}

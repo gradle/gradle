@@ -16,20 +16,23 @@
 
 package org.gradle.tooling.internal.consumer.async;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.AsyncStoppable;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.AsyncStoppable;
 
 /**
  * Manages the lifecycle of some thread-safe service or resource.
  */
 public class ServiceLifecycle implements AsyncStoppable {
-    private enum State {RUNNING, STOPPING, STOPPED}
+    private enum State {
+        RUNNING,
+        STOPPING,
+        STOPPED
+    }
 
     private final String displayName;
     private final Lock lock = new ReentrantLock();
@@ -48,9 +51,11 @@ public class ServiceLifecycle implements AsyncStoppable {
                 case RUNNING:
                     break;
                 case STOPPING:
-                    throw new IllegalStateException(String.format("Cannot use %s as it is currently stopping.", displayName));
+                    throw new IllegalStateException(
+                            String.format("Cannot use %s as it is currently stopping.", displayName));
                 case STOPPED:
-                    throw new IllegalStateException(String.format("Cannot use %s as it has been stopped.", displayName));
+                    throw new IllegalStateException(
+                            String.format("Cannot use %s as it has been stopped.", displayName));
             }
             Integer depth = usages.get(Thread.currentThread());
             if (depth == null) {
@@ -104,7 +109,8 @@ public class ServiceLifecycle implements AsyncStoppable {
         lock.lock();
         try {
             if (usages.containsKey(Thread.currentThread())) {
-                throw new IllegalStateException(String.format("Cannot stop %s from a thread that is using it.", displayName));
+                throw new IllegalStateException(
+                        String.format("Cannot stop %s from a thread that is using it.", displayName));
             }
             if (state == State.RUNNING) {
                 state = State.STOPPING;

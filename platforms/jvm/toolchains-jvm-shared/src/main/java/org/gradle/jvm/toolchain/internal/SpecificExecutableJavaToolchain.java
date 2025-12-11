@@ -16,11 +16,10 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import java.io.File;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
-
-import java.io.File;
 
 /**
  * A Java toolchain that uses a specific 'java' executable.  This toolchain does not support finding other tools.
@@ -28,7 +27,12 @@ import java.io.File;
 public class SpecificExecutableJavaToolchain extends JavaToolchain {
     private final RegularFile javaExecutable;
 
-    public SpecificExecutableJavaToolchain(JvmInstallationMetadata metadata, FileFactory fileFactory, JavaToolchainInput input, boolean isFallbackToolchain, File javaExecutableFile) {
+    public SpecificExecutableJavaToolchain(
+            JvmInstallationMetadata metadata,
+            FileFactory fileFactory,
+            JavaToolchainInput input,
+            boolean isFallbackToolchain,
+            File javaExecutableFile) {
         super(metadata, fileFactory, input, isFallbackToolchain);
         this.javaExecutable = fileFactory.file(javaExecutableFile);
     }
@@ -38,7 +42,9 @@ public class SpecificExecutableJavaToolchain extends JavaToolchain {
         if (toolName.equals("java")) {
             return javaExecutable;
         } else {
-            throw new UnsupportedOperationException("This toolchain only supports retrieving the 'java' executable at " + javaExecutable.getAsFile().getAbsolutePath() + ".  It cannot be used to resolve the '" + toolName + "' executable.");
+            throw new UnsupportedOperationException("This toolchain only supports retrieving the 'java' executable at "
+                    + javaExecutable.getAsFile().getAbsolutePath() + ".  It cannot be used to resolve the '" + toolName
+                    + "' executable.");
         }
     }
 }

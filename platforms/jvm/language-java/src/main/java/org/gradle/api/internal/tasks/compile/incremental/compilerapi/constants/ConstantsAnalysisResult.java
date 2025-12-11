@@ -42,5 +42,4 @@ public class ConstantsAnalysisResult implements Serializable {
             constantToDependentsMappingBuilder.addPrivateDependent(constantOrigin, constantDependent);
         }
     }
-
 }

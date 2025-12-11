@@ -16,11 +16,10 @@
 
 package org.gradle.testkit.runner;
 
-import org.gradle.api.Incubating;
-import org.jspecify.annotations.Nullable;
-
 import java.io.BufferedReader;
 import java.util.List;
+import org.gradle.api.Incubating;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The result of executing a build, via the {@link GradleRunner}.
@@ -100,5 +99,4 @@ public interface BuildResult {
      */
     @Nullable
     BuildTask task(String taskPath);
-
 }

@@ -22,5 +22,4 @@ package org.gradle.platform.base.internal.dependents;
 public interface DependentBinariesResolutionResult {
 
     DependentBinariesResolvedResult getRoot();
-
 }

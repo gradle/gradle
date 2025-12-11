@@ -22,30 +22,26 @@ public enum BytecodeInterceptorType {
      * An interceptor that is applied to the bytecode always.
      */
     INSTRUMENTATION(
-        FilterableBytecodeInterceptor.InstrumentationInterceptor.class,
-        FilterableBytecodeInterceptorFactory.InstrumentationInterceptorFactory.class
-    ),
+            FilterableBytecodeInterceptor.InstrumentationInterceptor.class,
+            FilterableBytecodeInterceptorFactory.InstrumentationInterceptorFactory.class),
 
     /**
      * An interceptor that is applied to the bytecode only for upgrades.
      */
     BYTECODE_UPGRADE(
-        FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor.class,
-        FilterableBytecodeInterceptorFactory.BytecodeUpgradeInterceptorFactory.class
-    ),
+            FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor.class,
+            FilterableBytecodeInterceptorFactory.BytecodeUpgradeInterceptorFactory.class),
 
     BYTECODE_UPGRADE_REPORT(
-        FilterableBytecodeInterceptor.BytecodeUpgradeReportInterceptor.class,
-        FilterableBytecodeInterceptorFactory.BytecodeUpgradeReportInterceptorFactory.class
-    );
+            FilterableBytecodeInterceptor.BytecodeUpgradeReportInterceptor.class,
+            FilterableBytecodeInterceptorFactory.BytecodeUpgradeReportInterceptorFactory.class);
 
     private final Class<? extends FilterableBytecodeInterceptor> interceptorMarkerInterface;
     private final Class<? extends FilterableBytecodeInterceptorFactory> interceptorFactoryMarkerInterface;
 
     BytecodeInterceptorType(
-        Class<? extends FilterableBytecodeInterceptor> interceptorMarkerInterface,
-        Class<? extends FilterableBytecodeInterceptorFactory> interceptorFactoryMarkerInterface
-    ) {
+            Class<? extends FilterableBytecodeInterceptor> interceptorMarkerInterface,
+            Class<? extends FilterableBytecodeInterceptorFactory> interceptorFactoryMarkerInterface) {
         this.interceptorMarkerInterface = interceptorMarkerInterface;
         this.interceptorFactoryMarkerInterface = interceptorFactoryMarkerInterface;
     }

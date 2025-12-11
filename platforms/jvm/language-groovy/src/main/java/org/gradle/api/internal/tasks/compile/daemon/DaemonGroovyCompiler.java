@@ -17,6 +17,11 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import com.google.common.collect.Iterables;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
@@ -46,14 +51,15 @@ import org.gradle.workers.internal.DaemonForkOptionsBuilder;
 import org.gradle.workers.internal.HierarchicalClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-
 public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJointCompileSpec> {
-    private final static Iterable<String> SHARED_PACKAGES = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant", "com.sun.tools.javac");
+    private static final Iterable<String> SHARED_PACKAGES = Arrays.asList(
+            "groovy",
+            "org.codehaus.groovy",
+            "groovyjarjarantlr",
+            "groovyjarjarasm",
+            "groovyjarjarcommonscli",
+            "org.apache.tools.ant",
+            "com.sun.tools.javac");
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
     private final JavaForkOptionsFactory forkOptionsFactory;
@@ -62,14 +68,13 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     private final InternalProblemReporter problemReporter;
 
     public DaemonGroovyCompiler(
-        File daemonWorkingDir,
-        ClassPathRegistry classPathRegistry,
-        CompilerWorkerExecutor compilerWorkerExecutor,
-        ClassLoaderRegistry classLoaderRegistry,
-        JavaForkOptionsFactory forkOptionsFactory,
-        JvmVersionDetector jvmVersionDetector,
-        InternalProblemReporter problemReporter
-    ) {
+            File daemonWorkingDir,
+            ClassPathRegistry classPathRegistry,
+            CompilerWorkerExecutor compilerWorkerExecutor,
+            ClassLoaderRegistry classLoaderRegistry,
+            JavaForkOptionsFactory forkOptionsFactory,
+            JvmVersionDetector jvmVersionDetector,
+            InternalProblemReporter problemReporter) {
         super(compilerWorkerExecutor);
         this.classPathRegistry = classPathRegistry;
         this.classLoaderRegistry = classLoaderRegistry;
@@ -81,7 +86,12 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
 
     @Override
     protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(GroovyJavaJointCompileSpec spec) {
-        return new GroovyCompilerParameters(GroovyCompilerFactory.DaemonSideCompiler.class.getName(), new Object[]{classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles()}, spec);
+        return new GroovyCompilerParameters(
+                GroovyCompilerFactory.DaemonSideCompiler.class.getName(),
+                new Object[] {
+                    classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles()
+                },
+                spec);
     }
 
     @Override
@@ -91,14 +101,17 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
 
     @Override
     protected DaemonForkOptions toDaemonForkOptions(GroovyJavaJointCompileSpec spec) {
-        MinimalJavaCompilerDaemonForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
-        MinimalGroovyCompilerDaemonForkOptions groovyOptions = spec.getGroovyCompileOptions().getForkOptions();
+        MinimalJavaCompilerDaemonForkOptions javaOptions =
+                spec.getCompileOptions().getForkOptions();
+        MinimalGroovyCompilerDaemonForkOptions groovyOptions =
+                spec.getGroovyCompileOptions().getForkOptions();
         // Ant is optional dependency of groovy(-all) module but mandatory dependency of Groovy compiler;
         // that's why we add it here. The following assumes that any Groovy compiler version supported by Gradle
         // is compatible with Gradle's current Ant version.
         Collection<File> antFiles = classPathRegistry.getClassPath("ANT").getAsFiles();
         Iterable<File> classpath = Iterables.concat(spec.getGroovyClasspath(), antFiles);
-        VisitableURLClassLoader.Spec targetGroovyClasspath = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(classpath).getAsURLs());
+        VisitableURLClassLoader.Spec targetGroovyClasspath = new VisitableURLClassLoader.Spec(
+                "worker-loader", DefaultClassPath.of(classpath).getAsURLs());
 
         ClassPath languageGroovyClasspath = classPathRegistry.getClassPath("GROOVY-COMPILER");
 
@@ -108,7 +121,8 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             gradleAndUserFilter.allowPackage(sharedPackage);
         }
 
-        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
+        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory)
+                .transform(mergeForkOptions(javaOptions, groovyOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(javaOptions.getExecutable());
         int javaVersionMajor = jvmVersionDetector.getJavaVersionMajor(javaOptions.getExecutable());
@@ -119,31 +133,36 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             JavaInfo jvm = Jvm.forHome(javaExecutable.getParentFile().getParentFile());
             File toolsJar = jvm.getToolsJar();
             if (toolsJar == null) {
-                String contextualMessage = String.format("The 'tools.jar' cannot be found in the JDK '%s'.", jvm.getJavaHome());
-                ProblemId problemId = ProblemId.create("missing-tools-jar", "Missing tools.jar", GradleCoreProblemGroup.compilation().groovy());
-                throw problemReporter.throwing(new IllegalStateException(contextualMessage), problemId, problemSpec -> problemSpec
-                    .contextualLabel(contextualMessage)
-                    .solution("Check if the installation is not a JRE but a JDK.")
-                    .severity(Severity.ERROR)
-                );
+                String contextualMessage =
+                        String.format("The 'tools.jar' cannot be found in the JDK '%s'.", jvm.getJavaHome());
+                ProblemId problemId = ProblemId.create(
+                        "missing-tools-jar",
+                        "Missing tools.jar",
+                        GradleCoreProblemGroup.compilation().groovy());
+                throw problemReporter.throwing(
+                        new IllegalStateException(contextualMessage), problemId, problemSpec -> problemSpec
+                                .contextualLabel(contextualMessage)
+                                .solution("Check if the installation is not a JRE but a JDK.")
+                                .severity(Severity.ERROR));
             } else {
                 languageGroovyClasspath = languageGroovyClasspath.plus(Collections.singletonList(toolsJar));
             }
         }
 
-        VisitableURLClassLoader.Spec compilerClasspath = new VisitableURLClassLoader.Spec("compiler-loader", languageGroovyClasspath.getAsURLs());
-        HierarchicalClassLoaderStructure classLoaderStructure =
-            new HierarchicalClassLoaderStructure(classLoaderRegistry.getGradleWorkerExtensionSpec())
+        VisitableURLClassLoader.Spec compilerClasspath =
+                new VisitableURLClassLoader.Spec("compiler-loader", languageGroovyClasspath.getAsURLs());
+        HierarchicalClassLoaderStructure classLoaderStructure = new HierarchicalClassLoaderStructure(
+                        classLoaderRegistry.getGradleWorkerExtensionSpec())
                 .withChild(getMinimalGradleFilter())
                 .withChild(targetGroovyClasspath)
                 .withChild(gradleAndUserFilter)
                 .withChild(compilerClasspath);
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
-            .javaForkOptions(javaForkOptions)
-            .keepAliveMode(KeepAliveMode.SESSION)
-            .withClassLoaderStructure(classLoaderStructure)
-            .build();
+                .javaForkOptions(javaForkOptions)
+                .keepAliveMode(KeepAliveMode.SESSION)
+                .withClassLoaderStructure(classLoaderStructure)
+                .build();
     }
 
     private static FilteringClassLoader.Spec getMinimalGradleFilter() {
@@ -185,7 +204,8 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     public static class GroovyCompilerParameters extends CompilerWorkerExecutor.CompilerParameters {
         private final GroovyJavaJointCompileSpec compileSpec;
 
-        public GroovyCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, GroovyJavaJointCompileSpec compileSpec) {
+        public GroovyCompilerParameters(
+                String compilerClassName, Object[] compilerInstanceParameters, GroovyJavaJointCompileSpec compileSpec) {
             super(compilerClassName, compilerInstanceParameters);
             this.compileSpec = compileSpec;
         }

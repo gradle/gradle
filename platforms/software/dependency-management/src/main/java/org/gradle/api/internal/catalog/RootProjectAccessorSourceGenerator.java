@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.catalog;
 
-import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.internal.UncheckedException;
-
 import java.io.IOException;
 import java.io.Writer;
+import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.internal.UncheckedException;
 
 public class RootProjectAccessorSourceGenerator extends AbstractProjectAccessorsSourceGenerator {
 
@@ -29,9 +28,7 @@ public class RootProjectAccessorSourceGenerator extends AbstractProjectAccessors
         super(writer);
     }
 
-    public static void generateSource(Writer writer,
-                                      ProjectDescriptor root,
-                                      String packageName) {
+    public static void generateSource(Writer writer, ProjectDescriptor root, String packageName) {
         RootProjectAccessorSourceGenerator generator = new RootProjectAccessorSourceGenerator(writer);
         try {
             generator.generate(packageName, ROOT_PROJECT_ACCESSOR_CLASSNAME, root);
@@ -55,5 +52,4 @@ public class RootProjectAccessorSourceGenerator extends AbstractProjectAccessors
 
         writeLn("}");
     }
-
 }

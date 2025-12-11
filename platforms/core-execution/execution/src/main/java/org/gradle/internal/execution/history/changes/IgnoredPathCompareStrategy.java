@@ -19,14 +19,13 @@ package org.gradle.internal.execution.history.changes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Compares {@link FileCollectionFingerprint}s ignoring the path.
@@ -34,7 +33,8 @@ import java.util.Map;
 public class IgnoredPathCompareStrategy extends AbstractFingerprintCompareStrategy {
     public static final FingerprintCompareStrategy INSTANCE = new IgnoredPathCompareStrategy();
 
-    private static final Comparator<Map.Entry<HashCode, FilePathWithType>> ENTRY_COMPARATOR = Map.Entry.comparingByKey();
+    private static final Comparator<Map.Entry<HashCode, FilePathWithType>> ENTRY_COMPARATOR =
+            Map.Entry.comparingByKey();
 
     private IgnoredPathCompareStrategy() {
         super(IgnoredPathCompareStrategy::visitChangesSince);
@@ -49,16 +49,18 @@ public class IgnoredPathCompareStrategy extends AbstractFingerprintCompareStrate
      * </ul>
      */
     private static boolean visitChangesSince(
-        Map<String, FileSystemLocationFingerprint> previous,
-        Map<String, FileSystemLocationFingerprint> current,
-        String propertyTitle,
-        ChangeVisitor visitor
-    ) {
-        ListMultimap<HashCode, FilePathWithType> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
+            Map<String, FileSystemLocationFingerprint> previous,
+            Map<String, FileSystemLocationFingerprint> current,
+            String propertyTitle,
+            ChangeVisitor visitor) {
+        ListMultimap<HashCode, FilePathWithType> unaccountedForPreviousFiles =
+                MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
         for (Map.Entry<String, FileSystemLocationFingerprint> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();
             FileSystemLocationFingerprint previousFingerprint = entry.getValue();
-            unaccountedForPreviousFiles.put(previousFingerprint.getNormalizedContentHash(), new FilePathWithType(absolutePath, previousFingerprint.getType()));
+            unaccountedForPreviousFiles.put(
+                    previousFingerprint.getNormalizedContentHash(),
+                    new FilePathWithType(absolutePath, previousFingerprint.getType()));
         }
 
         for (Map.Entry<String, FileSystemLocationFingerprint> entry : current.entrySet()) {
@@ -67,7 +69,11 @@ public class IgnoredPathCompareStrategy extends AbstractFingerprintCompareStrate
             HashCode normalizedContentHash = currentFingerprint.getNormalizedContentHash();
             List<FilePathWithType> previousFilesForContent = unaccountedForPreviousFiles.get(normalizedContentHash);
             if (previousFilesForContent.isEmpty()) {
-                DefaultFileChange added = DefaultFileChange.added(currentAbsolutePath, propertyTitle, currentFingerprint.getType(), IgnoredPathFingerprintingStrategy.IGNORED_PATH);
+                DefaultFileChange added = DefaultFileChange.added(
+                        currentAbsolutePath,
+                        propertyTitle,
+                        currentFingerprint.getType(),
+                        IgnoredPathFingerprintingStrategy.IGNORED_PATH);
                 if (!visitor.visitChange(added)) {
                     return false;
                 }
@@ -76,15 +82,19 @@ public class IgnoredPathCompareStrategy extends AbstractFingerprintCompareStrate
             }
         }
 
-        List<Map.Entry<HashCode, FilePathWithType>> unaccountedForPreviousEntries = ImmutableList.sortedCopyOf(ENTRY_COMPARATOR, unaccountedForPreviousFiles.entries());
+        List<Map.Entry<HashCode, FilePathWithType>> unaccountedForPreviousEntries =
+                ImmutableList.sortedCopyOf(ENTRY_COMPARATOR, unaccountedForPreviousFiles.entries());
         for (Map.Entry<HashCode, FilePathWithType> unaccountedForPreviousEntry : unaccountedForPreviousEntries) {
             FilePathWithType removedFile = unaccountedForPreviousEntry.getValue();
-            DefaultFileChange removed = DefaultFileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType(), IgnoredPathFingerprintingStrategy.IGNORED_PATH);
+            DefaultFileChange removed = DefaultFileChange.removed(
+                    removedFile.getAbsolutePath(),
+                    propertyTitle,
+                    removedFile.getFileType(),
+                    IgnoredPathFingerprintingStrategy.IGNORED_PATH);
             if (!visitor.visitChange(removed)) {
                 return false;
             }
         }
         return true;
     }
-
 }

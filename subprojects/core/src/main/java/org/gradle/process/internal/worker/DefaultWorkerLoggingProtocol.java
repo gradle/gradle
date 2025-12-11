@@ -37,5 +37,4 @@ public class DefaultWorkerLoggingProtocol implements WorkerLoggingProtocol {
     public void sendOutputEvent(StyledTextOutputEvent event) {
         outputEventListener.onOutput(event);
     }
-
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import java.util.Map;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -37,9 +38,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-
-
 public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final Instantiator instantiator;
     private final DependencyNotationParser dependencyNotationParser;
@@ -50,13 +48,12 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final AttributesFactory attributesFactory;
 
     public DefaultDependencyFactory(
-        Instantiator instantiator,
-        DependencyNotationParser dependencyNotationParser,
-        NotationParser<Object, Capability> capabilityNotationParser,
-        ObjectFactory objectFactory,
-        ProjectDependencyFactory projectDependencyFactory,
-        AttributesFactory attributesFactory
-    ) {
+            Instantiator instantiator,
+            DependencyNotationParser dependencyNotationParser,
+            NotationParser<Object, Capability> capabilityNotationParser,
+            ObjectFactory objectFactory,
+            ProjectDependencyFactory projectDependencyFactory,
+            AttributesFactory attributesFactory) {
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;
         this.capabilityNotationParser = capabilityNotationParser;
@@ -68,7 +65,8 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     @Override
     public Dependency createDependency(Object dependencyNotation) {
         Dependency dependency;
-        if (dependencyNotation instanceof Dependency && !(dependencyNotation instanceof MinimalExternalModuleDependency)) {
+        if (dependencyNotation instanceof Dependency
+                && !(dependencyNotation instanceof MinimalExternalModuleDependency)) {
             dependency = (Dependency) dependencyNotation;
         } else {
             dependency = dependencyNotationParser.getNotationParser().parseNotation(dependencyNotation);
@@ -87,7 +85,8 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     }
 
     @Override
-    public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map) {
+    public ProjectDependency createProjectDependencyFromMap(
+            ProjectFinder projectFinder, Map<? extends String, ? extends Object> map) {
         return projectDependencyFactory.createFromMap(projectFinder, map);
     }
 
@@ -95,7 +94,8 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
     @Override
     public ExternalModuleDependency create(CharSequence dependencyNotation) {
-        ExternalModuleDependency dependency = dependencyNotationParser.getStringNotationParser().parseNotation(dependencyNotation.toString());
+        ExternalModuleDependency dependency =
+                dependencyNotationParser.getStringNotationParser().parseNotation(dependencyNotation.toString());
         injectServices(dependency);
         return dependency;
     }
@@ -106,8 +106,14 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     }
 
     @Override
-    public ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension) {
-        DefaultExternalModuleDependency dependency = instantiator.newInstance(DefaultExternalModuleDependency.class, group, name, version);
+    public ExternalModuleDependency create(
+            @Nullable String group,
+            String name,
+            @Nullable String version,
+            @Nullable String classifier,
+            @Nullable String extension) {
+        DefaultExternalModuleDependency dependency =
+                instantiator.newInstance(DefaultExternalModuleDependency.class, group, name, version);
         ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, extension, classifier);
         injectServices(dependency);
         return dependency;
@@ -120,7 +126,8 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
     @Override
     public ProjectDependency create(Project project) {
-        ProjectDependency dependency = dependencyNotationParser.getProjectNotationParser().parseNotation(project);
+        ProjectDependency dependency =
+                dependencyNotationParser.getProjectNotationParser().parseNotation(project);
         injectServices(dependency);
         return dependency;
     }

@@ -16,13 +16,12 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import java.io.Serializable;
+import java.util.Collection;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFetchModelResult;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.Collection;
 
 @NullMarked
 class DefaultInternalFetchModelResult<M> implements InternalFetchModelResult<M>, Serializable {

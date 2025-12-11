@@ -49,7 +49,8 @@ public interface MetadataSupplierAware {
      *
      * @since 4.9
      */
-    void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction);
+    void setMetadataSupplier(
+            Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction);
 
     /**
      * Sets a custom component versions lister. A versions lister will be called whenever a dynamic version is requested.
@@ -68,6 +69,7 @@ public interface MetadataSupplierAware {
      *
      * @since 4.9
      */
-    void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister, Action<? super ActionConfiguration> configureAction);
-
+    void setComponentVersionsLister(
+            Class<? extends ComponentMetadataVersionLister> lister,
+            Action<? super ActionConfiguration> configureAction);
 }

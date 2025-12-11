@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import java.io.IOException;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-
-import java.io.IOException;
 
 public class ModuleDescriptorHashCodec implements PersistentModuleSource.Codec<ModuleDescriptorHashModuleSource> {
     @Override
@@ -31,10 +30,7 @@ public class ModuleDescriptorHashCodec implements PersistentModuleSource.Codec<M
 
     @Override
     public ModuleDescriptorHashModuleSource decode(Decoder decoder) throws IOException {
-        return new ModuleDescriptorHashModuleSource(
-            HashCode.fromBytes(decoder.readBinary()),
-            decoder.readBoolean()
-        );
+        return new ModuleDescriptorHashModuleSource(HashCode.fromBytes(decoder.readBinary()), decoder.readBoolean());
     }
 
     @Override

@@ -15,8 +15,8 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.groovy.scripts.ScriptSource;
 
 public interface InitScriptProcessor {
     void process(ScriptSource initScript, GradleInternal gradle);

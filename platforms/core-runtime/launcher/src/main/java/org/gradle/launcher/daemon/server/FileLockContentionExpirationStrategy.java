@@ -34,7 +34,8 @@ public class FileLockContentionExpirationStrategy implements DaemonExpirationStr
     @Override
     public DaemonExpirationResult checkExpiration() {
         if (!fileLockContentionHandler.isRunning()) {
-            return new DaemonExpirationResult(DaemonExpirationStatus.IMMEDIATE_EXPIRE, "Unable to coordinate lock ownership with other builds.");
+            return new DaemonExpirationResult(
+                    DaemonExpirationStatus.IMMEDIATE_EXPIRE, "Unable to coordinate lock ownership with other builds.");
         }
         return DaemonExpirationResult.NOT_TRIGGERED;
     }

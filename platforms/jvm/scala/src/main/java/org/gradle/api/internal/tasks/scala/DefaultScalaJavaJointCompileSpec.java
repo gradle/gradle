@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
-
 import java.io.File;
 import java.util.Map;
+import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 
 public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec implements ScalaJavaJointCompileSpec {
     private final File javaExecutable;

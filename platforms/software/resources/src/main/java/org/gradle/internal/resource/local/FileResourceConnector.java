@@ -15,15 +15,14 @@
  */
 package org.gradle.internal.resource.local;
 
+import java.io.File;
+import java.net.URI;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.LocalBinaryResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-
-import java.io.File;
-import java.net.URI;
 
 public class FileResourceConnector implements FileResourceRepository {
     private final FileSystem fileSystem;
@@ -61,7 +60,8 @@ public class FileResourceConnector implements FileResourceRepository {
     }
 
     @Override
-    public LocallyAvailableExternalResource resource(File file, URI originUri, ExternalResourceMetaData originMetadata) {
+    public LocallyAvailableExternalResource resource(
+            File file, URI originUri, ExternalResourceMetaData originMetadata) {
         return new DefaultLocallyAvailableExternalResource(originUri, file, originMetadata, fileSystem);
     }
 

@@ -16,12 +16,11 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import java.util.Objects;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Objects;
 
 public class ClassImplementationSnapshot extends ImplementationSnapshot {
     private final HashCode classLoaderHash;
@@ -59,8 +58,7 @@ public class ClassImplementationSnapshot extends ImplementationSnapshot {
         }
 
         ClassImplementationSnapshot that = (ClassImplementationSnapshot) o;
-        return classIdentifier.equals(that.classIdentifier) &&
-            classLoaderHash.equals(that.classLoaderHash);
+        return classIdentifier.equals(that.classIdentifier) && classLoaderHash.equals(that.classLoaderHash);
     }
 
     @Override

@@ -16,22 +16,21 @@
 
 package org.gradle.internal.classpath.transforms;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.model.internal.asm.AsmConstants;
-import org.gradle.internal.classloader.TransformReplacer.MarkerResource;
-import org.gradle.internal.classpath.ClasspathBuilder;
-import org.gradle.internal.classpath.ClasspathEntryVisitor;
-import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.util.internal.JarUtil;
+import static org.gradle.model.internal.asm.AsmConstants.isSupportedVersion;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
-
-import static org.gradle.model.internal.asm.AsmConstants.isSupportedVersion;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.internal.classloader.TransformReplacer.MarkerResource;
+import org.gradle.internal.classpath.ClasspathBuilder;
+import org.gradle.internal.classpath.ClasspathEntryVisitor;
+import org.gradle.internal.classpath.ClasspathWalker;
+import org.gradle.model.internal.asm.AsmConstants;
+import org.gradle.util.internal.JarUtil;
 
 /**
  * Transformation for agent-based instrumentation.
@@ -43,20 +42,25 @@ class ClasspathElementTransformForAgent extends BaseClasspathElementTransform {
     private int lowestUnsupportedVersionInJar = Integer.MAX_VALUE;
     private boolean isMultiReleaseJar;
 
-    ClasspathElementTransformForAgent(File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, ClassTransform transform) {
+    ClasspathElementTransformForAgent(
+            File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, ClassTransform transform) {
         super(source, classpathBuilder, classpathWalker, transform);
     }
 
     @Override
-    protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry) throws IOException {
+    protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry)
+            throws IOException {
         // We can filter out "unsupported" classes without checking the manifest beforehand.
-        // Even if this JAR isn't multi-release per manifest, classes in META-INF/ cannot be loaded, so they are just weird resources.
+        // Even if this JAR isn't multi-release per manifest, classes in META-INF/ cannot be loaded, so they are just
+        // weird resources.
         // The agent-based instrumentation doesn't load resources from the instrumented JAR, but from the original.
-        // TODO(https://github.com/gradle/gradle/issues/18024) we really shouldn't instrument these "resource-looks-like-class" things.
+        // TODO(https://github.com/gradle/gradle/issues/18024) we really shouldn't instrument these
+        // "resource-looks-like-class" things.
 
         // We don't know the actual minimal supported version of the non-versioned class entries.
         // We fall back to some supported default to make checks below simpler.
-        int version = JarUtil.getVersionedDirectoryMajorVersion(classEntry.getName()).orElse(AsmConstants.MIN_SUPPORTED_JAVA_VERSION);
+        int version = JarUtil.getVersionedDirectoryMajorVersion(classEntry.getName())
+                .orElse(AsmConstants.MIN_SUPPORTED_JAVA_VERSION);
         if (isSupportedVersion(version)) {
             super.processClassFile(builder, classEntry);
         } else if (lowestUnsupportedVersionInJar > version) {
@@ -65,7 +69,8 @@ class ClasspathElementTransformForAgent extends BaseClasspathElementTransform {
     }
 
     @Override
-    protected void processManifest(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry manifestEntry) throws IOException {
+    protected void processManifest(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry manifestEntry)
+            throws IOException {
         try {
             Manifest parsedManifest = JarUtil.readManifest(manifestEntry.getContent());
             if (!JarUtil.isMultiReleaseJarManifest(parsedManifest)) {
@@ -77,7 +82,8 @@ class ClasspathElementTransformForAgent extends BaseClasspathElementTransform {
             // We want the transformed JAR to also be a proper multi-release JAR.
             // To do so it must have the "Multi-Release: true" attribute.
             // "Manifest-Version" attribute is also required.
-            // For everything else (classpath, sealed, etc.) classloader will check the original JAR, so no need to copy it.
+            // For everything else (classpath, sealed, etc.) classloader will check the original JAR, so no need to copy
+            // it.
             Manifest processedManifest = new Manifest();
             copyManifestMainAttribute(parsedManifest, processedManifest, Attributes.Name.MANIFEST_VERSION);
             setManifestMainAttribute(processedManifest, JarUtil.MULTI_RELEASE_ATTRIBUTE, "true");
@@ -98,12 +104,16 @@ class ClasspathElementTransformForAgent extends BaseClasspathElementTransform {
     @Override
     protected void finishProcessing(ClasspathBuilder.EntryBuilder builder) throws IOException {
         if (isMultiReleaseJar) {
-            // Put marker resource into a multi-release JAR so the classloader can recognize that it tries to load non-instrumented classes.
-            // Root directory is always supported. Every Java version before lowestUnsupportedVersion should also load from root.
+            // Put marker resource into a multi-release JAR so the classloader can recognize that it tries to load
+            // non-instrumented classes.
+            // Root directory is always supported. Every Java version before lowestUnsupportedVersion should also load
+            // from root.
             builder.put(MarkerResource.RESOURCE_NAME, MarkerResource.TRANSFORMED.asBytes());
             if (hasUnsupportedVersionInJar()) {
                 // Every Java version starting from lowestUnsupportedVersion should see this jar as unsupported.
-                builder.put(JarUtil.toVersionedPath(lowestUnsupportedVersionInJar, MarkerResource.RESOURCE_NAME), MarkerResource.NOT_TRANSFORMED.asBytes());
+                builder.put(
+                        JarUtil.toVersionedPath(lowestUnsupportedVersionInJar, MarkerResource.RESOURCE_NAME),
+                        MarkerResource.NOT_TRANSFORMED.asBytes());
             }
         }
     }

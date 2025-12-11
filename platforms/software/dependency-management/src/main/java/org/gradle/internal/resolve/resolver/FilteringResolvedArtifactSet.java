@@ -16,8 +16,8 @@
 
 package org.gradle.internal.resolve.resolver;
 
+import java.util.function.Predicate;
 import org.gradle.api.Action;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -28,10 +28,9 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-
-import java.util.function.Predicate;
 
 /**
  * A {@link ResolvedArtifactSet} that applies a filter to the artifacts of a delegate {@link ResolvedArtifactSet}.
@@ -89,7 +88,12 @@ public final class FilteringResolvedArtifactSet implements ResolvedArtifactSet {
         }
 
         @Override
-        public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+        public void visitArtifact(
+                DisplayName artifactSetName,
+                VariantIdentifier sourceVariantId,
+                ImmutableAttributes attributes,
+                ImmutableCapabilities capabilities,
+                ResolvableArtifact artifact) {
             if (filter.test(artifact)) {
                 visitor.visitArtifact(artifactSetName, sourceVariantId, attributes, capabilities, artifact);
             }
@@ -199,6 +203,5 @@ public final class FilteringResolvedArtifactSet implements ResolvedArtifactSet {
                 visitor.execute(artifact);
             }
         }
-
     }
 }

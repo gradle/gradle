@@ -26,5 +26,4 @@ import org.gradle.internal.HasInternalProtocol;
  * information about the variants that the component provides.
  */
 @HasInternalProtocol
-public interface SoftwareComponent extends Named {
-}
+public interface SoftwareComponent extends Named {}

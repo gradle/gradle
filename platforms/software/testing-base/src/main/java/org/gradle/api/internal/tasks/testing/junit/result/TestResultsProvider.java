@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import org.gradle.api.Action;
-import org.gradle.api.tasks.testing.TestOutputEvent;
-
 import java.io.Closeable;
 import java.io.Writer;
+import org.gradle.api.Action;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 
 public interface TestResultsProvider extends Closeable {
     /**

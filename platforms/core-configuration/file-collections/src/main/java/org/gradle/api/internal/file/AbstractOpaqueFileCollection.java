@@ -16,25 +16,24 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.tasks.util.internal.PatternSetFactory;
-
 import java.io.File;
 import java.util.Iterator;
 import java.util.Set;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 
 /**
  * A base class for {@link org.gradle.api.file.FileCollection} implementations that are not composed from other file collections.
  */
 public abstract class AbstractOpaqueFileCollection extends AbstractFileCollection {
-    public AbstractOpaqueFileCollection() {
-    }
+    public AbstractOpaqueFileCollection() {}
 
     public AbstractOpaqueFileCollection(TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
     }
 
-    public AbstractOpaqueFileCollection(TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
+    public AbstractOpaqueFileCollection(
+            TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
         super(taskDependencyFactory, patternSetFactory);
     }
 
@@ -59,5 +58,5 @@ public abstract class AbstractOpaqueFileCollection extends AbstractFileCollectio
         visitor.visitCollection(OTHER, this);
     }
 
-    abstract protected Set<File> getIntrinsicFiles();
+    protected abstract Set<File> getIntrinsicFiles();
 }

@@ -38,5 +38,4 @@ public interface InMemoryInterner<T> {
      * Invalidates the interner, clearing all entries.
      */
     void invalidate();
-
 }

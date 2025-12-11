@@ -23,16 +23,16 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 5.6
  */
-public final class ExecuteTaskActionBuildOperationType implements BuildOperationType<ExecuteTaskActionBuildOperationType.Details, ExecuteTaskActionBuildOperationType.Result> {
+public final class ExecuteTaskActionBuildOperationType
+        implements BuildOperationType<
+                ExecuteTaskActionBuildOperationType.Details, ExecuteTaskActionBuildOperationType.Result> {
 
     // Info about the owning task can be inferred, and we don't provide any further info at this point.
     // This is largely to expose timing information about executed tasks
 
-    public interface Details {
-    }
+    public interface Details {}
 
-    public interface Result {
-    }
+    public interface Result {}
 
     static final Details DETAILS_INSTANCE = new Details() {};
     static final Result RESULT_INSTANCE = new Result() {};

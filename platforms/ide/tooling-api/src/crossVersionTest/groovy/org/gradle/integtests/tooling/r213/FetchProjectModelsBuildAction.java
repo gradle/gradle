@@ -16,12 +16,11 @@
 
 package org.gradle.integtests.tooling.r213;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class FetchProjectModelsBuildAction implements BuildAction<List<Object>> {
     private final Class<?> modelType;
@@ -32,7 +31,7 @@ public class FetchProjectModelsBuildAction implements BuildAction<List<Object>> 
 
     public List<Object> execute(BuildController controller) {
         List<Object> models = new ArrayList<Object>();
-        for (BasicGradleProject project: controller.getBuildModel().getProjects()) {
+        for (BasicGradleProject project : controller.getBuildModel().getProjects()) {
             Object model = controller.getModel(project, modelType);
             models.add(model);
         }

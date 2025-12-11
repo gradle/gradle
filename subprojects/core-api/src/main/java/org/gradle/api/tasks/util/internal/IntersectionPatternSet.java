@@ -68,7 +68,8 @@ public class IntersectionPatternSet extends PatternSet {
             return false;
         }
 
-        org.gradle.api.tasks.util.internal.IntersectionPatternSet that = (org.gradle.api.tasks.util.internal.IntersectionPatternSet) o;
+        org.gradle.api.tasks.util.internal.IntersectionPatternSet that =
+                (org.gradle.api.tasks.util.internal.IntersectionPatternSet) o;
 
         return other != null ? other.equals(that.other) : that.other == null;
     }

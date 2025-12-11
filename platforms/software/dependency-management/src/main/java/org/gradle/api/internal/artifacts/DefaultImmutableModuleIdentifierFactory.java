@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleIdentifierFactory {
     private final Map<String, Map<String, ModuleIdentifier>> groupIdToModules = new ConcurrentHashMap<>();
@@ -53,7 +52,7 @@ public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleI
         }
         ModuleVersionIdentifier identifier = byVersion.get(version);
         if (identifier == null) {
-            identifier =  DefaultModuleVersionIdentifier.newId(mi, version);
+            identifier = DefaultModuleVersionIdentifier.newId(mi, version);
             byVersion.put(version, identifier);
         }
         return identifier;

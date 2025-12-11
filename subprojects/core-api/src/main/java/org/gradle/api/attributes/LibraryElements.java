@@ -24,7 +24,8 @@ import org.gradle.api.Named;
  * @since 5.6
  */
 public interface LibraryElements extends Named {
-    Attribute<LibraryElements> LIBRARY_ELEMENTS_ATTRIBUTE = Attribute.of("org.gradle.libraryelements", LibraryElements.class);
+    Attribute<LibraryElements> LIBRARY_ELEMENTS_ATTRIBUTE =
+            Attribute.of("org.gradle.libraryelements", LibraryElements.class);
 
     /**
      * The JVM classes format

@@ -74,5 +74,4 @@ public interface ResolvedConfiguration {
      * @throws ResolveException when the resolve was not successful.
      */
     Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException;
-
 }

@@ -30,5 +30,4 @@ public interface ComponentSelectorInternal extends ComponentSelector {
 
     @Override
     ImmutableSet<CapabilitySelector> getCapabilitySelectors();
-
 }

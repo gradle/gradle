@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.verification.verifier;
 
-import org.gradle.internal.logging.text.TreeFormatter;
-
 import java.io.File;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 public class OnlyIgnoredKeys extends AbstractVerificationFailure {
     public OnlyIgnoredKeys(File file) {

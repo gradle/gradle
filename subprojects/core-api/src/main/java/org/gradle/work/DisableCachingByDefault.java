@@ -16,14 +16,13 @@
 
 package org.gradle.work;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskOutputs;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskOutputs;
 
 /**
  * Attached to a task or artifact transform type to indicate that task output caching should be disabled by default for work of this type.

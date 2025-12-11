@@ -16,12 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
+import java.io.File;
 import org.gradle.util.internal.VersionNumber;
 
-import java.io.File;
-
 public interface VisualStudioInstallCandidate {
-    enum Compatibility { LEGACY, VS2017_OR_LATER }
+    enum Compatibility {
+        LEGACY,
+        VS2017_OR_LATER
+    }
 
     VersionNumber getVersion();
 

@@ -16,11 +16,10 @@
 
 package org.gradle.cache;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Represents a location for global Gradle caches.

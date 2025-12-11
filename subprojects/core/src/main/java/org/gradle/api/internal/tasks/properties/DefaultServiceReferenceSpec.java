@@ -22,7 +22,8 @@ public class DefaultServiceReferenceSpec extends AbstractPropertySpec implements
     private final Class<? extends BuildService<?>> buildServiceType;
     private final String buildServiceName;
 
-    protected DefaultServiceReferenceSpec(String propertyName, Class<? extends BuildService<?>> buildServiceType, String buildServiceName) {
+    protected DefaultServiceReferenceSpec(
+            String propertyName, Class<? extends BuildService<?>> buildServiceType, String buildServiceName) {
         super(propertyName);
         this.buildServiceType = buildServiceType;
         this.buildServiceName = buildServiceName;

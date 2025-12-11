@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import javax.inject.Inject;
 import org.gradle.StartParameter;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
@@ -40,8 +41,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.internal.VcsResolver;
 
-import javax.inject.Inject;
-
 /**
  * Creates fully initialized {@link ResolutionStrategyInternal} instances.
  */
@@ -63,18 +62,17 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
 
     @Inject
     public ResolutionStrategyFactory(
-        BuildState currentBuild,
-        Instantiator instantiator,
-        GlobalDependencyResolutionRules globalDependencySubstitutionRules,
-        VcsResolver vcsResolver,
-        AttributesFactory attributesFactory,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        ComponentSelectorConverter componentSelectorConverter,
-        DependencyLockingProvider dependencyLockingProvider,
-        ComponentSelectorNotationConverter moduleSelectorNotationParser,
-        ObjectFactory objectFactory,
-        StartParameter startParameter
-    ) {
+            BuildState currentBuild,
+            Instantiator instantiator,
+            GlobalDependencyResolutionRules globalDependencySubstitutionRules,
+            VcsResolver vcsResolver,
+            AttributesFactory attributesFactory,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            ComponentSelectorConverter componentSelectorConverter,
+            DependencyLockingProvider dependencyLockingProvider,
+            ComponentSelectorNotationConverter moduleSelectorNotationParser,
+            ObjectFactory objectFactory,
+            StartParameter startParameter) {
         this.currentBuild = currentBuild;
         this.instantiator = instantiator;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
@@ -91,28 +89,30 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
 
     @Override
     public ResolutionStrategyInternal create() {
-        CapabilitiesResolutionInternal capabilitiesResolutionInternal = instantiator.newInstance(
-            DefaultCapabilitiesResolution.class,
-            capabilityNotationParser
-        );
+        CapabilitiesResolutionInternal capabilitiesResolutionInternal =
+                instantiator.newInstance(DefaultCapabilitiesResolution.class, capabilityNotationParser);
 
         DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forResolutionStrategy(
-            currentBuild, moduleSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser
-        );
+                currentBuild,
+                moduleSelectorNotationParser,
+                instantiator,
+                objectFactory,
+                attributesFactory,
+                capabilityNotationParser);
 
         CachePolicy cachePolicy = createCachePolicy(startParameter);
 
-        return instantiator.newInstance(DefaultResolutionStrategy.class,
-            cachePolicy,
-            dependencySubstitutions,
-            globalDependencySubstitutionRules,
-            vcsResolver,
-            moduleIdentifierFactory,
-            componentSelectorConverter,
-            dependencyLockingProvider,
-            capabilitiesResolutionInternal,
-            objectFactory
-        );
+        return instantiator.newInstance(
+                DefaultResolutionStrategy.class,
+                cachePolicy,
+                dependencySubstitutions,
+                globalDependencySubstitutionRules,
+                vcsResolver,
+                moduleIdentifierFactory,
+                componentSelectorConverter,
+                dependencyLockingProvider,
+                capabilitiesResolutionInternal,
+                objectFactory);
     }
 
     private static CachePolicy createCachePolicy(StartParameter startParameter) {

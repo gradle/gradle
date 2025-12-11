@@ -72,7 +72,9 @@ public class TestOutputRedirector {
         @Override
         public void onOutput(CharSequence output) {
             if (outputOwner == null) {
-                throw new RuntimeException("Unable send output event from test executor. Please report this problem. Destination: " + dest + ", event: " + output.toString());
+                throw new RuntimeException(
+                        "Unable send output event from test executor. Please report this problem. Destination: " + dest
+                                + ", event: " + output.toString());
             }
             processor.output(outputOwner, new DefaultTestOutputEvent(clock.getCurrentTime(), dest, output.toString()));
         }

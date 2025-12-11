@@ -34,5 +34,4 @@ public interface GradleEnterprisePluginCheckInResult {
      * @throws IllegalStateException if {@link #getUnsupportedMessage()} is non null
      */
     GradleEnterprisePluginServiceRef getPluginServiceRef();
-
 }

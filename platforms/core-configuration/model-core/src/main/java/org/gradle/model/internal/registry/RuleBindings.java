@@ -17,10 +17,6 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.collect.Maps;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.type.ModelType;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
@@ -28,6 +24,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.type.ModelType;
 
 class RuleBindings {
     private final NodeAtStateIndex rulesBySubject;
@@ -247,7 +246,8 @@ class RuleBindings {
     }
 
     private static class NodeAtStateIndex {
-        private final EnumMap<ModelNode.State, Map<String, List<RuleBinder>>> boundAtState = Maps.newEnumMap(ModelNode.State.class);
+        private final EnumMap<ModelNode.State, Map<String, List<RuleBinder>>> boundAtState =
+                Maps.newEnumMap(ModelNode.State.class);
 
         private final String name;
 

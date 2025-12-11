@@ -15,5 +15,4 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-public class Cancel extends Message {
-}
+public class Cancel extends Message {}

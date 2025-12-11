@@ -1,7 +1,5 @@
 package com.example;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
@@ -10,6 +8,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.unauthorized;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+
 public class MavenRepositoryStub {
 
     // tag::credentials[]
@@ -17,7 +17,8 @@ public class MavenRepositoryStub {
     private static final String PASSWORD = "secret-password";
     // end::credentials[]
 
-    private static final WireMockServer SERVER = new WireMockServer(wireMockConfig().dynamicPort());
+    private static final WireMockServer SERVER =
+            new WireMockServer(wireMockConfig().dynamicPort());
 
     public static String start() {
         SERVER.start();
@@ -32,5 +33,4 @@ public class MavenRepositoryStub {
     public static void stop() {
         SERVER.stop();
     }
-
 }

@@ -15,6 +15,11 @@
  */
 package org.gradle.profile;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.StartParameterBuildOptions;
@@ -25,21 +30,13 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
-
 @ServiceScope(Scope.BuildTree.class)
 public class ReportGeneratingProfileListener {
     private final StyledTextOutputFactory textOutputFactory;
     private final BuildStateRegistry buildStateRegistry;
 
     public ReportGeneratingProfileListener(
-        StyledTextOutputFactory textOutputFactory,
-        BuildStateRegistry buildStateRegistry
-    ) {
+            StyledTextOutputFactory textOutputFactory, BuildStateRegistry buildStateRegistry) {
         this.textOutputFactory = textOutputFactory;
         this.buildStateRegistry = buildStateRegistry;
     }
@@ -47,26 +44,29 @@ public class ReportGeneratingProfileListener {
     public void buildFinished(BuildProfile buildProfile) {
         ProfileReportRenderer renderer = new ProfileReportRenderer();
         SimpleDateFormat fileDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-        File file = new File(getBuildDir(), "reports/profile/profile-" + fileDateFormat.format(new Date(buildProfile.getBuildStarted())) + ".html");
+        File file = new File(
+                getBuildDir(),
+                "reports/profile/profile-" + fileDateFormat.format(new Date(buildProfile.getBuildStarted())) + ".html");
         renderer.writeTo(buildProfile, file);
         renderReportUrl(file);
     }
 
     private File getBuildDir() {
         return buildStateRegistry
-            .getRootBuild()
-            .getProjects()
-            .getRootProject()
-            .getMutableModel()
-            .getServices()
-            .get(ProjectLayout.class)
-            .getBuildDirectory()
-            .getAsFile()
-            .get();
+                .getRootBuild()
+                .getProjects()
+                .getRootProject()
+                .getMutableModel()
+                .getServices()
+                .get(ProjectLayout.class)
+                .getBuildDirectory()
+                .getAsFile()
+                .get();
     }
 
     private void renderReportUrl(File reportFile) {
-        StyledTextOutput textOutput = textOutputFactory.create(ReportGeneratingProfileListener.class, LogLevel.LIFECYCLE);
+        StyledTextOutput textOutput =
+                textOutputFactory.create(ReportGeneratingProfileListener.class, LogLevel.LIFECYCLE);
         textOutput.println();
         String reportUrl = new ConsoleRenderer().asClickableFileUrl(reportFile);
         textOutput.formatln("See the profiling report at: %s", reportUrl);
@@ -76,4 +76,3 @@ public class ReportGeneratingProfileListener {
         textOutput.println();
     }
 }
-

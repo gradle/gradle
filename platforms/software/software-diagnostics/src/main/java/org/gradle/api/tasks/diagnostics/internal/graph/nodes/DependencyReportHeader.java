@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import java.util.List;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -24,8 +25,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 public class DependencyReportHeader extends AbstractRenderableDependency {
     private final DependencyEdge dependency;
@@ -75,9 +74,7 @@ public class DependencyReportHeader extends AbstractRenderableDependency {
 
     public AttributeContainer getAttributes() {
         ComponentSelector requested = dependency.getRequested();
-        return requested instanceof ModuleComponentSelector
-            ? requested.getAttributes()
-            : ImmutableAttributes.EMPTY;
+        return requested instanceof ModuleComponentSelector ? requested.getAttributes() : ImmutableAttributes.EMPTY;
     }
 
     @Override

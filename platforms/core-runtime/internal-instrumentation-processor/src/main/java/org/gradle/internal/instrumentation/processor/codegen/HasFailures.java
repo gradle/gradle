@@ -16,10 +16,9 @@
 
 package org.gradle.internal.instrumentation.processor.codegen;
 
+import java.util.List;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 public interface HasFailures {
 
@@ -28,6 +27,7 @@ public interface HasFailures {
     class FailureInfo {
         @Nullable
         final CallInterceptionRequest request;
+
         final String reason;
 
         public FailureInfo(@Nullable CallInterceptionRequest request, String reason) {
@@ -35,5 +35,4 @@ public interface HasFailures {
             this.reason = reason;
         }
     }
-
 }

@@ -38,5 +38,4 @@ public class AbstractProxyClassGenerator {
         methodVisitor.visitMaxs(0, 0);
         methodVisitor.visitEnd();
     }
-
 }

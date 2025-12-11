@@ -55,7 +55,8 @@ public class EnumValueSnapshot implements ValueSnapshot {
     private boolean isEqualEnum(@Nullable Object value) {
         if (value instanceof Enum<?>) {
             Enum<?> enumValue = (Enum<?>) value;
-            return enumValue.name().equals(name) && enumValue.getDeclaringClass().getName().equals(className);
+            return enumValue.name().equals(name)
+                    && enumValue.getDeclaringClass().getName().equals(className);
         }
         return false;
     }

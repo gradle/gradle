@@ -16,6 +16,11 @@
 
 package org.gradle.ide.visualstudio.internal;
 
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.language.cpp.CppBinary;
@@ -32,13 +37,7 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLibraries;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.metadata.VisualCppMetadata;
 import org.gradle.util.internal.VersionNumber;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-abstract public class AbstractCppBinaryVisualStudioTargetBinary implements VisualStudioTargetBinary {
+public abstract class AbstractCppBinaryVisualStudioTargetBinary implements VisualStudioTargetBinary {
     public static final VersionNumber DEFAULT_SDK_VERSION = VersionNumber.parse("8.1");
     public static final VersionNumber DEFAULT_VISUAL_STUDIO_VERSION = VersionNumber.version(14);
     protected final String projectName;
@@ -46,7 +45,8 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
     private final CppComponent component;
     private final ProjectLayout projectLayout;
 
-    protected AbstractCppBinaryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component, ProjectLayout projectLayout) {
+    protected AbstractCppBinaryVisualStudioTargetBinary(
+            String projectName, String projectPath, CppComponent component, ProjectLayout projectLayout) {
         this.projectName = projectName;
         this.projectPath = projectPath;
         this.component = component;
@@ -55,7 +55,8 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
 
     @Override
     public LanguageStandard getLanguageStandard() {
-        return LanguageStandard.from(getBinary().getCompileTask().get().getCompilerArgs().get());
+        return LanguageStandard.from(
+                getBinary().getCompileTask().get().getCompilerArgs().get());
     }
 
     abstract CppBinary getBinary();
@@ -83,8 +84,18 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
             buildType = "release";
         }
 
-        String operatingSystemFamilySuffix = Dimensions.createDimensionSuffix(getBinary().getTargetMachine().getOperatingSystemFamily(), component.getBinaries().get().stream().map(CppBinary::getTargetMachine).map(TargetMachine::getOperatingSystemFamily).collect(Collectors.toSet()));
-        String architectureSuffix = Dimensions.createDimensionSuffix(getBinary().getTargetMachine().getArchitecture(), component.getBinaries().get().stream().map(CppBinary::getTargetMachine).map(TargetMachine::getArchitecture).collect(Collectors.toSet()));
+        String operatingSystemFamilySuffix = Dimensions.createDimensionSuffix(
+                getBinary().getTargetMachine().getOperatingSystemFamily(),
+                component.getBinaries().get().stream()
+                        .map(CppBinary::getTargetMachine)
+                        .map(TargetMachine::getOperatingSystemFamily)
+                        .collect(Collectors.toSet()));
+        String architectureSuffix = Dimensions.createDimensionSuffix(
+                getBinary().getTargetMachine().getArchitecture(),
+                component.getBinaries().get().stream()
+                        .map(CppBinary::getTargetMachine)
+                        .map(TargetMachine::getArchitecture)
+                        .collect(Collectors.toSet()));
 
         return buildType + operatingSystemFamilySuffix + architectureSuffix;
     }
@@ -158,7 +169,8 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
 
     @Override
     public List<String> getCompilerDefines() {
-        return new MacroArgsConverter().transform(getBinary().getCompileTask().get().getMacros());
+        return new MacroArgsConverter()
+                .transform(getBinary().getCompileTask().get().getMacros());
     }
 
     @Override

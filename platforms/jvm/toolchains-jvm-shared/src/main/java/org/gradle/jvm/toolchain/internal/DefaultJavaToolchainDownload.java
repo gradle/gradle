@@ -16,9 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.jvm.toolchain.JavaToolchainDownload;
-
 import java.net.URI;
+import org.gradle.jvm.toolchain.JavaToolchainDownload;
 
 public class DefaultJavaToolchainDownload implements JavaToolchainDownload {
 

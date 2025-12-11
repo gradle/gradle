@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal;
 
+import java.util.Optional;
 import org.gradle.api.Describable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.concurrent.Stoppable;
@@ -24,10 +25,9 @@ import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.worker.MultiRequestClient;
 import org.gradle.process.internal.worker.WorkerProcess;
 
-import java.util.Optional;
-
 class WorkerDaemonClient implements Stoppable, Describable {
-    public static final String DISABLE_EXPIRATION_PROPERTY_KEY = "org.gradle.workers.internal.disable-daemons-expiration";
+    public static final String DISABLE_EXPIRATION_PROPERTY_KEY =
+            "org.gradle.workers.internal.disable-daemons-expiration";
     private final DaemonForkOptions forkOptions;
     private final MultiRequestClient<TransportableActionExecutionSpec, DefaultWorkResult> workerClient;
     private final WorkerProcess workerProcess;
@@ -36,7 +36,12 @@ class WorkerDaemonClient implements Stoppable, Describable {
     private int uses;
     private boolean cannotBeExpired = Boolean.getBoolean(DISABLE_EXPIRATION_PROPERTY_KEY);
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, MultiRequestClient<TransportableActionExecutionSpec, DefaultWorkResult> workerClient, WorkerProcess workerProcess, LogLevel logLevel, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public WorkerDaemonClient(
+            DaemonForkOptions forkOptions,
+            MultiRequestClient<TransportableActionExecutionSpec, DefaultWorkResult> workerClient,
+            WorkerProcess workerProcess,
+            LogLevel logLevel,
+            ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.forkOptions = forkOptions;
         this.workerClient = workerClient;
         this.workerProcess = workerProcess;
@@ -83,7 +88,10 @@ class WorkerDaemonClient implements Stoppable, Describable {
     }
 
     public boolean isFailed() {
-        return workerProcess.getExecResult().map(execResult -> execResult.getExitValue() != 0).orElse(false);
+        return workerProcess
+                .getExecResult()
+                .map(execResult -> execResult.getExitValue() != 0)
+                .orElse(false);
     }
 
     public Optional<Integer> getExitCode() {
@@ -101,13 +109,12 @@ class WorkerDaemonClient implements Stoppable, Describable {
 
     @Override
     public String toString() {
-        return "WorkerDaemonClient{" +
-            " log level=" + logLevel +
-            ", use count=" + uses +
-            ", has failed=" + isFailed() +
-            ", can be expired=" + !cannotBeExpired +
-            ", workerProcess=" + workerProcess +
-            ", forkOptions=" + forkOptions +
-            '}';
+        return "WorkerDaemonClient{" + " log level="
+                + logLevel + ", use count="
+                + uses + ", has failed="
+                + isFailed() + ", can be expired="
+                + !cannotBeExpired + ", workerProcess="
+                + workerProcess + ", forkOptions="
+                + forkOptions + '}';
     }
 }

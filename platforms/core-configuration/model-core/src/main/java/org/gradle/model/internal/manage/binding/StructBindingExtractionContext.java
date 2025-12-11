@@ -16,13 +16,12 @@
 
 package org.gradle.model.internal.manage.binding;
 
-import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
-import org.gradle.model.internal.manage.schema.StructSchema;
-import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
+import org.gradle.model.internal.manage.schema.StructSchema;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 
 public class StructBindingExtractionContext<T> implements StructBindingValidationProblemCollector {
     private final StructSchema<T> publicSchema;
@@ -30,7 +29,10 @@ public class StructBindingExtractionContext<T> implements StructBindingValidatio
     private final StructSchema<?> delegateSchema;
     final FormattingValidationProblemCollector problems;
 
-    public StructBindingExtractionContext(StructSchema<T> publicSchema, Iterable<StructSchema<?>> implementedSchemas, StructSchema<?> delegateSchema) {
+    public StructBindingExtractionContext(
+            StructSchema<T> publicSchema,
+            Iterable<StructSchema<?>> implementedSchemas,
+            StructSchema<?> delegateSchema) {
         this.publicSchema = publicSchema;
         this.implementedSchemas = implementedSchemas;
         this.delegateSchema = delegateSchema;
@@ -93,5 +95,4 @@ public class StructBindingExtractionContext<T> implements StructBindingValidatio
     public void add(String property, String problem) {
         problems.add("Property '" + property + "' is not valid: " + problem);
     }
-
 }

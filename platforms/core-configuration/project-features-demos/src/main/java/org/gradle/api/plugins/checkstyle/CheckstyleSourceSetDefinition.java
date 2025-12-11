@@ -19,5 +19,4 @@ package org.gradle.api.plugins.checkstyle;
 import org.gradle.api.internal.plugins.Definition;
 import org.jspecify.annotations.NonNull;
 
-public interface CheckstyleSourceSetDefinition extends CheckstyleDefinition, Definition<@NonNull CheckstyleModel> {
-}
+public interface CheckstyleSourceSetDefinition extends CheckstyleDefinition, Definition<@NonNull CheckstyleModel> {}

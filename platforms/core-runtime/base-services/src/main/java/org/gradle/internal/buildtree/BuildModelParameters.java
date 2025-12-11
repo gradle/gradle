@@ -16,11 +16,10 @@
 
 package org.gradle.internal.buildtree;
 
+import java.util.Map;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildModelParameters {

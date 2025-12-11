@@ -26,17 +26,15 @@ import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
 import org.gradle.api.model.ObjectFactory;
 import org.jspecify.annotations.Nullable;
 
-
 public class DefaultDependencyConstraintFactory implements DependencyConstraintFactoryInternal {
     private final ObjectFactory objectFactory;
     private final DependencyConstraintNotationParser dependencyConstraintNotationParser;
     private final AttributesFactory attributesFactory;
 
     public DefaultDependencyConstraintFactory(
-        ObjectFactory objectFactory,
-        DependencyConstraintNotationParser dependencyConstraintNotationParser,
-        AttributesFactory attributesFactory
-    ) {
+            ObjectFactory objectFactory,
+            DependencyConstraintNotationParser dependencyConstraintNotationParser,
+            AttributesFactory attributesFactory) {
         this.objectFactory = objectFactory;
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;
         this.attributesFactory = attributesFactory;
@@ -44,7 +42,8 @@ public class DefaultDependencyConstraintFactory implements DependencyConstraintF
 
     @Override
     public DependencyConstraint createDependencyConstraint(Object dependencyNotation) {
-        DependencyConstraint dependencyConstraint = dependencyConstraintNotationParser.getNotationParser().parseNotation(dependencyNotation);
+        DependencyConstraint dependencyConstraint =
+                dependencyConstraintNotationParser.getNotationParser().parseNotation(dependencyNotation);
         injectServices(dependencyConstraint);
         return dependencyConstraint;
     }
@@ -59,28 +58,35 @@ public class DefaultDependencyConstraintFactory implements DependencyConstraintF
 
     @Override
     public DependencyConstraint create(CharSequence dependencyNotation) {
-        DependencyConstraint dependencyConstraint = dependencyConstraintNotationParser.getStringNotationParser().parseNotation(dependencyNotation.toString());
+        DependencyConstraint dependencyConstraint = dependencyConstraintNotationParser
+                .getStringNotationParser()
+                .parseNotation(dependencyNotation.toString());
         injectServices(dependencyConstraint);
         return dependencyConstraint;
     }
 
     @Override
     public DependencyConstraint create(@Nullable String group, String name, @Nullable String version) {
-        DefaultDependencyConstraint dependencyConstraint = objectFactory.newInstance(DefaultDependencyConstraint.class, group, name, version);
+        DefaultDependencyConstraint dependencyConstraint =
+                objectFactory.newInstance(DefaultDependencyConstraint.class, group, name, version);
         injectServices(dependencyConstraint);
         return dependencyConstraint;
     }
 
     @Override
     public DependencyConstraint create(MinimalExternalModuleDependency dependency) {
-        DependencyConstraint dependencyConstraint = dependencyConstraintNotationParser.getMinimalExternalModuleDependencyNotationParser().parseNotation(dependency);
+        DependencyConstraint dependencyConstraint = dependencyConstraintNotationParser
+                .getMinimalExternalModuleDependencyNotationParser()
+                .parseNotation(dependency);
         injectServices(dependencyConstraint);
         return dependencyConstraint;
     }
 
     @Override
     public DependencyConstraint create(ProjectDependency project) {
-        DependencyConstraint dependencyConstraint = dependencyConstraintNotationParser.getProjectDependencyNotationParser().parseNotation(project);
+        DependencyConstraint dependencyConstraint = dependencyConstraintNotationParser
+                .getProjectDependencyNotationParser()
+                .parseNotation(project);
         injectServices(dependencyConstraint);
         return dependencyConstraint;
     }

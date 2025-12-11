@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.internal.provider.connection;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
+import org.jspecify.annotations.Nullable;
 
 public interface ProviderConnectionParameters {
     boolean getVerboseLogging();

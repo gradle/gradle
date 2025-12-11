@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import static java.util.Arrays.asList;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -27,35 +32,35 @@ import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResul
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Arrays.asList;
-
 public class CachingDependencyResultFactory {
 
     private final Map<List<Object>, DefaultUnresolvedDependencyResult> unresolvedDependencies = new HashMap<>();
     private final Map<List<Object>, DefaultResolvedDependencyResult> resolvedDependencies = new HashMap<>();
 
-    public UnresolvedDependencyResult createUnresolvedDependency(ComponentSelector requested, ResolvedComponentResult from, boolean constraint,
-                                                                 ComponentSelectionReason reason, ModuleVersionResolveException failure) {
+    public UnresolvedDependencyResult createUnresolvedDependency(
+            ComponentSelector requested,
+            ResolvedComponentResult from,
+            boolean constraint,
+            ComponentSelectionReason reason,
+            ModuleVersionResolveException failure) {
         List<Object> key = asList(requested, from, constraint);
         if (!unresolvedDependencies.containsKey(key)) {
-            unresolvedDependencies.put(key, new DefaultUnresolvedDependencyResult(requested, constraint, reason, from, failure));
+            unresolvedDependencies.put(
+                    key, new DefaultUnresolvedDependencyResult(requested, constraint, reason, from, failure));
         }
         return unresolvedDependencies.get(key);
     }
 
-    public ResolvedDependencyResult createResolvedDependency(ComponentSelector requested,
-                                                             ResolvedComponentResult from,
-                                                             ResolvedComponentResult selected,
-                                                             @Nullable
-                                                             ResolvedVariantResult resolvedVariant,
-                                                             boolean constraint) {
+    public ResolvedDependencyResult createResolvedDependency(
+            ComponentSelector requested,
+            ResolvedComponentResult from,
+            ResolvedComponentResult selected,
+            @Nullable ResolvedVariantResult resolvedVariant,
+            boolean constraint) {
         List<Object> key = asList(requested, from, selected, resolvedVariant, constraint);
         if (!resolvedDependencies.containsKey(key)) {
-            resolvedDependencies.put(key, new DefaultResolvedDependencyResult(requested, constraint, selected, resolvedVariant, from));
+            resolvedDependencies.put(
+                    key, new DefaultResolvedDependencyResult(requested, constraint, selected, resolvedVariant, from));
         }
         return resolvedDependencies.get(key);
     }

@@ -69,5 +69,4 @@ package org.gradle.internal.operations;
  * @since 4.0
  */
 @SuppressWarnings("unused")
-public interface BuildOperationType<D, R> {
-}
+public interface BuildOperationType<D, R> {}

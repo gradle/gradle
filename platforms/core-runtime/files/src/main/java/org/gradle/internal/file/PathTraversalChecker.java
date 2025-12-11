@@ -16,16 +16,17 @@
 
 package org.gradle.internal.file;
 
+import static java.lang.String.format;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import static java.lang.String.format;
-
 public class PathTraversalChecker {
-    private static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase(Locale.US).contains("windows");
+    private static final boolean IS_WINDOWS =
+            System.getProperty("os.name").toLowerCase(Locale.US).contains("windows");
 
     /**
      * Checks the entry name for path traversal vulnerable sequences.

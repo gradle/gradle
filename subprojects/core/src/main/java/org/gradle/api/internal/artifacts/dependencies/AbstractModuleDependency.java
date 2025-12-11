@@ -15,9 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import static org.gradle.util.internal.ConfigureUtil.configureUsing;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.DependencyArtifact;
@@ -38,16 +44,9 @@ import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.gradle.util.internal.ConfigureUtil.configureUsing;
-
 public abstract class AbstractModuleDependency implements ModuleDependency {
 
-    private final static Logger LOG = Logging.getLogger(AbstractModuleDependency.class);
+    private static final Logger LOG = Logging.getLogger(AbstractModuleDependency.class);
 
     // TODO: Require these to be provided upon construction
     private AttributesFactory attributesFactory;
@@ -183,14 +182,14 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
     }
 
     protected boolean isCommonContentEquals(ModuleDependency dependencyRhs) {
-        return Objects.equal(getTargetConfiguration(), dependencyRhs.getTargetConfiguration()) &&
-            isTransitive() == dependencyRhs.isTransitive() &&
-            isEndorsingStrictVersions() == dependencyRhs.isEndorsingStrictVersions() &&
-            Objects.equal(getReason(), dependencyRhs.getReason()) &&
-            Objects.equal(getArtifacts(), dependencyRhs.getArtifacts()) &&
-            Objects.equal(getExcludeRules(), dependencyRhs.getExcludeRules()) &&
-            getAttributes().equals(dependencyRhs.getAttributes()) &&
-            getCapabilitySelectors().equals(dependencyRhs.getCapabilitySelectors());
+        return Objects.equal(getTargetConfiguration(), dependencyRhs.getTargetConfiguration())
+                && isTransitive() == dependencyRhs.isTransitive()
+                && isEndorsingStrictVersions() == dependencyRhs.isEndorsingStrictVersions()
+                && Objects.equal(getReason(), dependencyRhs.getReason())
+                && Objects.equal(getArtifacts(), dependencyRhs.getArtifacts())
+                && Objects.equal(getExcludeRules(), dependencyRhs.getExcludeRules())
+                && getAttributes().equals(dependencyRhs.getAttributes())
+                && getCapabilitySelectors().equals(dependencyRhs.getCapabilitySelectors());
     }
 
     @Override
@@ -223,9 +222,7 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
         }
         if (moduleDependencyCapabilities == null) {
             moduleDependencyCapabilities = objectFactory.newInstance(
-                DefaultMutableModuleDependencyCapabilitiesHandler.class,
-                capabilityNotationParser
-            );
+                    DefaultMutableModuleDependencyCapabilitiesHandler.class, capabilityNotationParser);
         }
         configureAction.execute(moduleDependencyCapabilities);
         return this;
@@ -236,7 +233,8 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
         if (moduleDependencyCapabilities == null) {
             return Collections.emptySet();
         }
-        return ImmutableSet.copyOf(moduleDependencyCapabilities.getCapabilitySelectors().get());
+        return ImmutableSet.copyOf(
+                moduleDependencyCapabilities.getCapabilitySelectors().get());
     }
 
     @Override
@@ -255,7 +253,8 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
     }
 
     private void warnAboutInternalApiUse(String thing) {
-        LOG.warn("Cannot set " + thing + " for dependency \"" + this.getGroup() + ":" + this.getName() + ":" + this.getVersion() + "\": it was probably created by a plugin using internal APIs");
+        LOG.warn("Cannot set " + thing + " for dependency \"" + this.getGroup() + ":" + this.getName() + ":"
+                + this.getVersion() + "\": it was probably created by a plugin using internal APIs");
     }
 
     public void setAttributesFactory(AttributesFactory attributesFactory) {
@@ -302,13 +301,15 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
 
     private void validateNotVariantAware() {
         if (!getAttributes().isEmpty() || !getCapabilitySelectors().isEmpty()) {
-            throw new InvalidUserCodeException("Cannot set artifact / configuration information on a dependency that has attributes or capabilities configured");
+            throw new InvalidUserCodeException(
+                    "Cannot set artifact / configuration information on a dependency that has attributes or capabilities configured");
         }
     }
 
     private void validateNotLegacyConfigured() {
         if (getTargetConfiguration() != null || !getArtifacts().isEmpty()) {
-            throw new InvalidUserCodeException("Cannot add attributes or capabilities on a dependency that specifies artifacts or configuration information");
+            throw new InvalidUserCodeException(
+                    "Cannot add attributes or capabilities on a dependency that specifies artifacts or configuration information");
         }
     }
 
@@ -317,5 +318,4 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
             throw new InvalidUserCodeException("Cannot add artifact if target configuration has been set");
         }
     }
-
 }

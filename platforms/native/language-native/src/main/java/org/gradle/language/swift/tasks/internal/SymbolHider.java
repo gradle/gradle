@@ -23,7 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-
 /**
  * Parse and hide given symbols in on object file based on COFF format documented
  * here: https://docs.microsoft.com/en-us/windows/desktop/debug/pe-format

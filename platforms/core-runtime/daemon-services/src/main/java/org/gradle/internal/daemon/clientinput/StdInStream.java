@@ -16,12 +16,11 @@
 
 package org.gradle.internal.daemon.clientinput;
 
+import java.io.IOException;
+import java.io.InputStream;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ReadStdInEvent;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * A replacement for {@code System.in} in the daemon. When read from, requests that the client read from its stdin stream and forward the result.

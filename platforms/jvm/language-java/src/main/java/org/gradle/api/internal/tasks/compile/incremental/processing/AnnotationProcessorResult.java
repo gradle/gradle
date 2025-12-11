@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
-
 import java.io.Serializable;
 import java.util.Set;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
 
 public class AnnotationProcessorResult implements Serializable {
 

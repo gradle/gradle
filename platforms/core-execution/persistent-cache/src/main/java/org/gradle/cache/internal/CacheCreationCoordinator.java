@@ -16,11 +16,10 @@
 
 package org.gradle.cache.internal;
 
+import java.io.Closeable;
 import org.gradle.cache.HasCleanupAction;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
-
-import java.io.Closeable;
 
 public interface CacheCreationCoordinator extends Closeable, HasCleanupAction {
     void open();
@@ -34,5 +33,4 @@ public interface CacheCreationCoordinator extends Closeable, HasCleanupAction {
     <K, V> IndexedCache<K, V> newCache(IndexedCacheParameters<K, V> parameters);
 
     <K, V> boolean cacheExists(IndexedCacheParameters<K, V> parameters);
-
 }

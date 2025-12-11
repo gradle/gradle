@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.project;
 
+import java.util.Collection;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -27,9 +29,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.util.Collection;
 
 /**
  * A registry of all projects present in a build tree.
@@ -60,7 +59,8 @@ public interface ProjectStateRegistry {
     /**
      * Locates the state object that owns the project with the given identity path, or null if this project is not present.
      */
-    @Nullable ProjectState findProjectState(Path identityPath);
+    @Nullable
+    ProjectState findProjectState(Path identityPath);
 
     /**
      * Locates the state objects for all projects of the given build.

@@ -15,12 +15,11 @@
  */
 package org.gradle.internal.util;
 
-import org.gradle.api.Action;
-import org.jspecify.annotations.NonNull;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.gradle.api.Action;
+import org.jspecify.annotations.NonNull;
 
 public class Trie implements Comparable<Trie> {
     private final char c;

@@ -15,9 +15,8 @@
  */
 package org.gradle.internal.resource.local;
 
-import org.gradle.api.Action;
-
 import java.io.File;
+import org.gradle.api.Action;
 
 /**
  * An indexed store that maps a key to a file or directory.

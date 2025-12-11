@@ -29,7 +29,8 @@ import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
  * @deprecated This class is no longer in use as of Gradle 9.0.
  */
 @Deprecated
-public abstract class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
+public abstract class CompositeProjectComponentArtifactMetadata
+        implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
 
     public CompositeProjectComponentArtifactMetadata() {
         throw new UnsupportedOperationException("Do not instantiate this type.");

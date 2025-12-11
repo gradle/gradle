@@ -22,8 +22,10 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentArtifa
 /**
  * Subtype to provide `ModuleDescriptorArtifactMetadata` marker interface.
  */
-public class DefaultModuleDescriptorArtifactMetadata extends DefaultModuleComponentArtifactMetadata implements ModuleDescriptorArtifactMetadata {
-    public DefaultModuleDescriptorArtifactMetadata(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
+public class DefaultModuleDescriptorArtifactMetadata extends DefaultModuleComponentArtifactMetadata
+        implements ModuleDescriptorArtifactMetadata {
+    public DefaultModuleDescriptorArtifactMetadata(
+            ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
         super(componentIdentifier, artifact);
     }
 }

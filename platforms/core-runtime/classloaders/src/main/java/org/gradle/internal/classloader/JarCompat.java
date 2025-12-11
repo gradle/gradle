@@ -16,12 +16,11 @@
 
 package org.gradle.internal.classloader;
 
-import org.gradle.api.JavaVersion;
-
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.jar.JarFile;
+import org.gradle.api.JavaVersion;
 
 /**
  * Compatibility wrapper for multi-release JARs that can be used on Java 8 too.
@@ -55,7 +54,6 @@ abstract class JarCompat implements Closeable {
         // Running on Java 8, fall back to the old ways.
         return new LegacyJar(jarFile);
     }
-
 
     private static class LegacyJar extends JarCompat {
         public LegacyJar(File jarFile) throws IOException {

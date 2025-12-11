@@ -17,7 +17,6 @@
 package org.gradle.api.publish.internal.metadata;
 
 import com.google.gson.stream.JsonWriter;
-
 import java.io.IOException;
 import java.util.List;
 

@@ -18,6 +18,10 @@ package org.gradle.caching.internal.services;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedMap;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.cache.StringInterner;
@@ -42,12 +46,8 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheService> implements BuildCacheControllerFactory {
+public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheService>
+        implements BuildCacheControllerFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractBuildCacheControllerFactory.class);
     protected final StartParameter startParameter;
@@ -56,35 +56,42 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
     protected final OriginMetadataFactory originMetadataFactory;
 
     public enum BuildCacheMode {
-        ENABLED, DISABLED
+        ENABLED,
+        DISABLED
     }
 
     public enum RemoteAccessMode {
-        ONLINE, OFFLINE
+        ONLINE,
+        OFFLINE
     }
 
     public AbstractBuildCacheControllerFactory(
-        StartParameter startParameter,
-        BuildOperationRunner buildOperationRunner,
-        OriginMetadataFactory originMetadataFactory,
-        StringInterner stringInterner
-    ) {
+            StartParameter startParameter,
+            BuildOperationRunner buildOperationRunner,
+            OriginMetadataFactory originMetadataFactory,
+            StringInterner stringInterner) {
         this.startParameter = startParameter;
         this.buildOperationRunner = buildOperationRunner;
         this.originMetadataFactory = originMetadataFactory;
         this.stringInterner = stringInterner;
     }
 
-    abstract protected BuildCacheController doCreateController(
-        Path buildIdentityPath,
-        @Nullable DescribedBuildCacheService<DirectoryBuildCache, L> localDescribedService,
-        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
-    );
+    protected abstract BuildCacheController doCreateController(
+            Path buildIdentityPath,
+            @Nullable DescribedBuildCacheService<DirectoryBuildCache, L> localDescribedService,
+            @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService);
 
     @Override
-    public BuildCacheController createController(Path buildIdentityPath, BuildCacheConfigurationInternal buildCacheConfiguration, InstanceGenerator instanceGenerator) {
-        BuildCacheMode buildCacheState = startParameter.isBuildCacheEnabled() ? AbstractBuildCacheControllerFactory.BuildCacheMode.ENABLED : AbstractBuildCacheControllerFactory.BuildCacheMode.DISABLED;
-        RemoteAccessMode remoteAccessMode = startParameter.isOffline() ? AbstractBuildCacheControllerFactory.RemoteAccessMode.OFFLINE : AbstractBuildCacheControllerFactory.RemoteAccessMode.ONLINE;
+    public BuildCacheController createController(
+            Path buildIdentityPath,
+            BuildCacheConfigurationInternal buildCacheConfiguration,
+            InstanceGenerator instanceGenerator) {
+        BuildCacheMode buildCacheState = startParameter.isBuildCacheEnabled()
+                ? AbstractBuildCacheControllerFactory.BuildCacheMode.ENABLED
+                : AbstractBuildCacheControllerFactory.BuildCacheMode.DISABLED;
+        RemoteAccessMode remoteAccessMode = startParameter.isOffline()
+                ? AbstractBuildCacheControllerFactory.RemoteAccessMode.OFFLINE
+                : AbstractBuildCacheControllerFactory.RemoteAccessMode.ONLINE;
 
         return buildOperationRunner.call(new CallableBuildOperation<BuildCacheController>() {
             @Override
@@ -106,20 +113,29 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
                 }
 
                 DescribedBuildCacheService<DirectoryBuildCache, L> localDescribedService = localEnabled
-                    ? createBuildCacheService(local, BuildCacheServiceRole.LOCAL, buildIdentityPath, buildCacheConfiguration, instanceGenerator)
-                    : null;
+                        ? createBuildCacheService(
+                                local,
+                                BuildCacheServiceRole.LOCAL,
+                                buildIdentityPath,
+                                buildCacheConfiguration,
+                                instanceGenerator)
+                        : null;
 
                 DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService = remoteEnabled
-                    ? createBuildCacheService(remote, BuildCacheServiceRole.REMOTE, buildIdentityPath, buildCacheConfiguration, instanceGenerator)
-                    : null;
+                        ? createBuildCacheService(
+                                remote,
+                                BuildCacheServiceRole.REMOTE,
+                                buildIdentityPath,
+                                buildCacheConfiguration,
+                                instanceGenerator)
+                        : null;
 
                 context.setResult(new ResultImpl(
-                    true,
-                    local.isEnabled(),
-                    remote != null && remote.isEnabled() && remoteAccessMode == RemoteAccessMode.ONLINE,
-                    localDescribedService == null ? null : localDescribedService.description,
-                    remoteDescribedService == null ? null : remoteDescribedService.description
-                ));
+                        true,
+                        local.isEnabled(),
+                        remote != null && remote.isEnabled() && remoteAccessMode == RemoteAccessMode.ONLINE,
+                        localDescribedService == null ? null : localDescribedService.description,
+                        remoteDescribedService == null ? null : remoteDescribedService.description));
 
                 if (!localEnabled && !remoteEnabled) {
                     LOGGER.warn("Using the build cache is enabled, but no build caches are configured or enabled.");
@@ -132,21 +148,19 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Finalize build cache configuration")
-                    .details(new DetailsImpl(buildIdentityPath.asString()));
+                        .details(new DetailsImpl(buildIdentityPath.asString()));
             }
         });
     }
 
     private static <C extends BuildCache, S> DescribedBuildCacheService<C, S> createBuildCacheService(
-        C configuration,
-        BuildCacheServiceRole role,
-        Path buildIdentityPath,
-        BuildCacheConfigurationInternal buildCacheConfiguration,
-        InstanceGenerator instantiator
-    ) {
+            C configuration,
+            BuildCacheServiceRole role,
+            Path buildIdentityPath,
+            BuildCacheConfigurationInternal buildCacheConfiguration,
+            InstanceGenerator instantiator) {
         Class<? extends BuildCacheServiceFactory<C>> castFactoryType = Cast.uncheckedNonnullCast(
-            buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass())
-        );
+                buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass()));
 
         BuildCacheServiceFactory<C> factory = instantiator.newInstance(castFactoryType);
         Describer describer = new Describer();
@@ -159,7 +173,8 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
         return new DescribedBuildCacheService<>(configuration, service, description);
     }
 
-    private static void logConfig(Path buildIdentityPath, BuildCacheServiceRole role, BuildCacheDescriptionImpl description) {
+    private static void logConfig(
+            Path buildIdentityPath, BuildCacheServiceRole role, BuildCacheDescriptionImpl description) {
         if (LOGGER.isInfoEnabled()) {
             StringBuilder config = new StringBuilder();
             boolean pullOnly = !description.isPush();
@@ -174,13 +189,15 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
                     configMap = description.config;
                 }
                 config.append(" (");
-                config.append(configMap.entrySet().stream().map(input -> {
-                    if (input.getValue() == null) {
-                        return input.getKey();
-                    } else {
-                        return input.getKey() + " = " + input.getValue();
-                    }
-                }).collect(Collectors.joining(", ")));
+                config.append(configMap.entrySet().stream()
+                        .map(input -> {
+                            if (input.getValue() == null) {
+                                return input.getKey();
+                            } else {
+                                return input.getKey() + " = " + input.getValue();
+                            }
+                        })
+                        .collect(Collectors.joining(", ")));
                 config.append(")");
             }
 
@@ -191,23 +208,25 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
                 buildDescription = "build '" + buildIdentityPath + "'";
             }
 
-            LOGGER.info("Using {} {} build cache for {}{}.",
-                role.getDisplayName(),
-                description.type == null ? description.className : description.type,
-                buildDescription,
-                config
-            );
+            LOGGER.info(
+                    "Using {} {} build cache for {}{}.",
+                    role.getDisplayName(),
+                    description.type == null ? description.className : description.type,
+                    buildDescription,
+                    config);
         }
     }
 
-    private static final class BuildCacheDescriptionImpl implements FinalizeBuildCacheConfigurationBuildOperationType.Result.BuildCacheDescription {
+    private static final class BuildCacheDescriptionImpl
+            implements FinalizeBuildCacheConfigurationBuildOperationType.Result.BuildCacheDescription {
 
         private final String className;
         private final boolean push;
         private final String type;
         private final ImmutableSortedMap<String, String> config;
 
-        private BuildCacheDescriptionImpl(BuildCache buildCache, String type, ImmutableSortedMap<String, String> config) {
+        private BuildCacheDescriptionImpl(
+                BuildCache buildCache, String type, ImmutableSortedMap<String, String> config) {
             this.className = GeneratedSubclasses.unpackType(buildCache).getName();
             this.push = buildCache.isPush();
             this.type = type;
@@ -288,7 +307,12 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
         private final boolean remoteEnabled;
         private final BuildCacheDescription remote;
 
-        ResultImpl(boolean enabled, boolean localEnabled, boolean remoteEnabled, @Nullable BuildCacheDescription local, @Nullable BuildCacheDescription remote) {
+        ResultImpl(
+                boolean enabled,
+                boolean localEnabled,
+                boolean remoteEnabled,
+                @Nullable BuildCacheDescription local,
+                @Nullable BuildCacheDescription remote) {
             this.enabled = enabled;
             this.localEnabled = localEnabled;
             this.remoteEnabled = remoteEnabled;
@@ -326,6 +350,5 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
         public BuildCacheDescription getRemote() {
             return remote;
         }
-
     }
 }

@@ -43,5 +43,4 @@ public class InjectedAutoAppliedPluginRegistry implements AutoAppliedPluginRegis
 
         return buildDefinition.getInjectedPluginRequests();
     }
-
 }

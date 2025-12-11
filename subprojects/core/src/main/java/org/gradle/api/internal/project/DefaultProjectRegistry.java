@@ -15,16 +15,15 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 // This default implementation is referenced by the Develocity plugin in ImportJUnitXmlReports.
 // We must leave this type in until we no longer support a Develocity plugin version that use this API.
@@ -40,7 +39,8 @@ public class DefaultProjectRegistry implements ProjectRegistry, HoldsProjectStat
     public void addProject(ProjectInternal project) {
         ProjectInternal previous = projects.put(project.getPath(), project);
         if (previous != null) {
-            throw new IllegalArgumentException(String.format("Multiple projects registered for path '%s'.", project.getPath()));
+            throw new IllegalArgumentException(
+                    String.format("Multiple projects registered for path '%s'.", project.getPath()));
         }
         subProjects.put(project.getPath(), new HashSet<>());
         addProjectToParentSubProjects(project);
@@ -82,7 +82,8 @@ public class DefaultProjectRegistry implements ProjectRegistry, HoldsProjectStat
     @Override
     public Set<ProjectInternal> getSubProjects(String path) {
         Set<ProjectInternal> subprojects = subProjects.get(path);
-        return subprojects != null && !subprojects.isEmpty() ? Collections.unmodifiableSet(subprojects) : Collections.emptySet();
+        return subprojects != null && !subprojects.isEmpty()
+                ? Collections.unmodifiableSet(subprojects)
+                : Collections.emptySet();
     }
-
 }

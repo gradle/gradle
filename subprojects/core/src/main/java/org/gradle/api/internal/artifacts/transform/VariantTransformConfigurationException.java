@@ -16,23 +16,24 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.ResolutionProvider;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * An exception to report a problem registering or configuring an Artifact Transform that also provides helpful resolutions.
  */
 @Contextual
 public final class VariantTransformConfigurationException extends GradleException implements ResolutionProvider {
-    private static final String RUN_REPORT_SUGGESTION = "Run the 'artifactTransforms' report task to view details about registered transforms.";
+    private static final String RUN_REPORT_SUGGESTION =
+            "Run the 'artifactTransforms' report task to view details about registered transforms.";
     private final List<String> resolutions;
 
-    public VariantTransformConfigurationException(String message, Throwable cause, DocumentationRegistry documentationRegistry) {
+    public VariantTransformConfigurationException(
+            String message, Throwable cause, DocumentationRegistry documentationRegistry) {
         super(message, cause);
         resolutions = buildResolutions(documentationRegistry);
     }
@@ -44,8 +45,9 @@ public final class VariantTransformConfigurationException extends GradleExceptio
 
     private static List<String> buildResolutions(DocumentationRegistry documentationRegistry) {
         return Arrays.asList(
-            RUN_REPORT_SUGGESTION,
-            "Review the documentation on Artifact Transforms at " + documentationRegistry.getDocumentationFor("artifact_transforms") + ".");
+                RUN_REPORT_SUGGESTION,
+                "Review the documentation on Artifact Transforms at "
+                        + documentationRegistry.getDocumentationFor("artifact_transforms") + ".");
     }
 
     @Override

@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
+import java.io.File;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.

@@ -16,33 +16,28 @@
 
 package org.gradle.internal.instrumentation.api.annotations;
 
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 
 public class ParameterKind {
     @Retention(RetentionPolicy.CLASS)
     @Target(ElementType.PARAMETER)
-    public @interface Receiver {
-    }
+    public @interface Receiver {}
 
     @Retention(RetentionPolicy.CLASS)
     @Target(ElementType.PARAMETER)
-    public @interface CallerClassName {
-    }
+    public @interface CallerClassName {}
 
     @Retention(RetentionPolicy.CLASS)
     @Target(ElementType.PARAMETER)
-    public @interface KotlinDefaultMask {
-    }
+    public @interface KotlinDefaultMask {}
 
     @Retention(RetentionPolicy.CLASS)
     @Target(ElementType.PARAMETER)
-    public @interface VarargParameter {
-    }
+    public @interface VarargParameter {}
 
     /**
      * Injects some context from visitor. Not supported for Groovy at the moment.
@@ -51,6 +46,5 @@ public class ParameterKind {
      */
     @Retention(RetentionPolicy.CLASS)
     @Target(ElementType.PARAMETER)
-    public @interface InjectVisitorContext {
-    }
+    public @interface InjectVisitorContext {}
 }

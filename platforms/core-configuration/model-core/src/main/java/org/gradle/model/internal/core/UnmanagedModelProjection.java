@@ -16,16 +16,16 @@
 
 package org.gradle.model.internal.core;
 
+import static org.gradle.internal.reflect.JavaPropertyReflectionUtil.hasDefaultToString;
+import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.defaultValueOf;
+import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.isPrimitiveType;
+import static org.gradle.model.internal.manage.schema.extract.ScalarTypes.isScalarType;
+
 import com.google.common.base.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
-
-import static org.gradle.internal.reflect.JavaPropertyReflectionUtil.hasDefaultToString;
-import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.defaultValueOf;
-import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.isPrimitiveType;
-import static org.gradle.model.internal.manage.schema.extract.ScalarTypes.isScalarType;
 
 @ThreadSafe
 public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {

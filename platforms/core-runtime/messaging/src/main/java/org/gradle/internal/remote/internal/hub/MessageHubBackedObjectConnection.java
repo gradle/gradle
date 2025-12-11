@@ -16,6 +16,10 @@
 
 package org.gradle.internal.remote.internal.hub;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.internal.classloader.CachingClassLoader;
@@ -40,11 +44,6 @@ import org.gradle.internal.serialize.kryo.TypeSafeSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 public class MessageHubBackedObjectConnection implements ObjectConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageHubBackedObjectConnection.class);
     private final MessageHub hub;
@@ -65,7 +64,8 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
                     try {
                         handler.execute(current);
                     } catch (Throwable e) {
-                        current = new DefaultMultiCauseException("Error in unrecoverable error handler: " + handler, e, throwable);
+                        current = new DefaultMultiCauseException(
+                                "Error in unrecoverable error handler: " + handler, e, throwable);
                     }
                 }
             }
@@ -106,7 +106,8 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
             throw new GradleException("Cannot add outgoing message transmitter after connection established.");
         }
         methodParamClassLoaders.add(type.getClassLoader());
-        ProxyDispatchAdapter<T> adapter = new ProxyDispatchAdapter<T>(hub.getOutgoing(type.getName(), MethodInvocation.class), type, ThreadSafe.class);
+        ProxyDispatchAdapter<T> adapter = new ProxyDispatchAdapter<T>(
+                hub.getOutgoing(type.getName(), MethodInvocation.class), type, ThreadSafe.class);
         return adapter.getSource();
     }
 
@@ -125,13 +126,12 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         } else {
             methodParamClassLoader = new CachingClassLoader(new MultiParentClassLoader(methodParamClassLoaders));
         }
-        MethodArgsSerializer argsSerializer = new DefaultMethodArgsSerializer(paramSerializers, new JavaSerializationBackedMethodArgsSerializer(methodParamClassLoader));
+        MethodArgsSerializer argsSerializer = new DefaultMethodArgsSerializer(
+                paramSerializers, new JavaSerializationBackedMethodArgsSerializer(methodParamClassLoader));
 
-        StatefulSerializer<InterHubMessage> serializer = new InterHubMessageSerializer(
-            new TypeSafeSerializer<MethodInvocation>(MethodInvocation.class,
-                new MethodInvocationSerializer(
-                    methodParamClassLoader,
-                    argsSerializer)));
+        StatefulSerializer<InterHubMessage> serializer = new InterHubMessageSerializer(new TypeSafeSerializer<
+                MethodInvocation>(
+                MethodInvocation.class, new MethodInvocationSerializer(methodParamClassLoader, argsSerializer)));
 
         connection = completion.create(serializer);
         hub.addConnection(connection);
@@ -173,7 +173,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         @Override
         public void endStream() {
             if (instance instanceof StreamCompletion) {
-                ((StreamCompletion)instance).endStream();
+                ((StreamCompletion) instance).endStream();
             }
         }
 
@@ -185,7 +185,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         @Override
         public void handleStreamFailure(Throwable t) {
             if (instance instanceof StreamFailureHandler) {
-                ((StreamFailureHandler)instance).handleStreamFailure(t);
+                ((StreamFailureHandler) instance).handleStreamFailure(t);
             }
         }
     }

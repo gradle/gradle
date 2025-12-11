@@ -16,10 +16,9 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.Action;
-
 import java.io.Serializable;
 import java.util.concurrent.Callable;
+import org.gradle.api.Action;
 
 public class ClassWithActionAndSerializableLambda {
     public static Action<StringBuilder> action(int value) {
@@ -30,6 +29,5 @@ public class ClassWithActionAndSerializableLambda {
         return () -> String.valueOf(value);
     }
 
-    public interface SerializableThing extends Callable<String>, Serializable {
-    }
+    public interface SerializableThing extends Callable<String>, Serializable {}
 }

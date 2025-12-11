@@ -17,6 +17,8 @@
 package org.gradle.internal.file;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.Set;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.BuildAdapter;
 import org.gradle.api.initialization.Settings;
@@ -24,9 +26,6 @@ import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
-
-import java.util.List;
-import java.util.Set;
 
 public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefaultExcludesProvider {
 

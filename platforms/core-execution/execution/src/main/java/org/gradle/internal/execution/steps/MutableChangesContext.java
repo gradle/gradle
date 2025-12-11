@@ -17,22 +17,21 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Optional;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Optional;
 
 public class MutableChangesContext extends MutableValidationFinishedContext {
 
     private final ImmutableList<String> rebuildReasons;
+
     @Nullable
     private final ExecutionStateChanges executionStateChanges;
 
     public MutableChangesContext(
-        MutableValidationFinishedContext parent,
-        ImmutableList<String> rebuildReasons,
-        @Nullable ExecutionStateChanges executionStateChanges
-    ) {
+            MutableValidationFinishedContext parent,
+            ImmutableList<String> rebuildReasons,
+            @Nullable ExecutionStateChanges executionStateChanges) {
         super(parent);
         this.rebuildReasons = rebuildReasons;
         this.executionStateChanges = executionStateChanges;

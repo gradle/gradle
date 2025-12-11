@@ -16,20 +16,19 @@
 
 package org.gradle.internal.execution;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static org.gradle.internal.RenderingUtils.oxfordJoin;
+import static org.gradle.util.internal.TextUtil.getPluralEnding;
+
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import java.util.Collection;
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static org.gradle.internal.RenderingUtils.oxfordJoin;
-import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 /**
  * A {@code WorkValidationException} is thrown when there is some validation problem with a work item.
@@ -59,41 +58,45 @@ public class WorkValidationException extends GradleException {
      *
      * This class represents step 1, call {@link #withSummaryForContext(String, WorkValidationContext)} or {@link #withSummaryForPlugin()} to return Step 2.
      */
-    public final static class Builder {
+    public static final class Builder {
         private final List<String> problems;
 
         public Builder(Collection<String> problems) {
             this.problems = problems.stream()
-                    .limit(Integer.getInteger(MAX_ERR_COUNT_PROPERTY, DEFAULT_MAX_ERR_COUNT)) // Only retrieve the property upon building an error report
+                    .limit(Integer.getInteger(
+                            MAX_ERR_COUNT_PROPERTY,
+                            DEFAULT_MAX_ERR_COUNT)) // Only retrieve the property upon building an error report
                     .collect(toImmutableList());
         }
 
-        public BuilderWithSummary withSummaryForContext(String validatedObjectName, WorkValidationContext validationContext) {
+        public BuilderWithSummary withSummaryForContext(
+                String validatedObjectName, WorkValidationContext validationContext) {
             String summary = summarizeInContext(validatedObjectName, validationContext);
             return new BuilderWithSummary(problems, summary);
         }
 
         public BuilderWithSummary withSummaryForPlugin() {
-            String summary = "Plugin validation failed with " + problems.size() + " problem" + getPluralEnding(problems);
+            String summary =
+                    "Plugin validation failed with " + problems.size() + " problem" + getPluralEnding(problems);
             return new BuilderWithSummary(problems, summary);
         }
 
         private String summarizeInContext(String validatedObjectName, WorkValidationContext validationContext) {
-            return String.format("%s found with the configuration of %s (%s).",
+            return String.format(
+                    "%s found with the configuration of %s (%s).",
                     problems.size() == 1 ? "A problem was" : "Some problems were",
                     validatedObjectName,
                     describeTypesChecked(validationContext.getValidatedTypes()));
         }
 
         private static String describeTypesChecked(ImmutableCollection<Class<?>> types) {
-            return "type" + getPluralEnding(types) + " " + types.stream()
-                .map(s -> "'" + getTypeDisplayName(s) + "'")
-                .collect(oxfordJoin("and"));
+            return "type" + getPluralEnding(types) + " "
+                    + types.stream().map(s -> "'" + getTypeDisplayName(s) + "'").collect(oxfordJoin("and"));
         }
 
         private static String getTypeDisplayName(Class<?> type) {
-                return ModelType.of(type).getDisplayName();
-            }
+            return ModelType.of(type).getDisplayName();
+        }
     }
 
     /**
@@ -101,7 +104,7 @@ public class WorkValidationException extends GradleException {
      *
      * The {@link WorkValidationException.Builder} class is a Stepwise builder, this is step 2.
      */
-    public final static class BuilderWithSummary {
+    public static final class BuilderWithSummary {
         private final List<String> problems;
         private final String summary;
 

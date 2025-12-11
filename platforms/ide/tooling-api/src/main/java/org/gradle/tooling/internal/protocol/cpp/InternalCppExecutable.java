@@ -19,5 +19,4 @@ package org.gradle.tooling.internal.protocol.cpp;
 /**
  * Marker interface for {@link org.gradle.tooling.model.cpp.CppExecutable}.
  */
-public interface InternalCppExecutable {
-}
+public interface InternalCppExecutable {}

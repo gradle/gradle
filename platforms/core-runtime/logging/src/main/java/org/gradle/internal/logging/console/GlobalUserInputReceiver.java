@@ -16,12 +16,11 @@
 
 package org.gradle.internal.logging.console;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.ReadStdInEvent;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The global {@link UserInputReceiver} instance.

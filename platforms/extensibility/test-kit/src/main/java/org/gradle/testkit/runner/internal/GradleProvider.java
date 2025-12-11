@@ -16,17 +16,15 @@
 
 package org.gradle.testkit.runner.internal;
 
+import java.io.File;
+import java.net.URI;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 
-import java.io.File;
-import java.net.URI;
-
 public abstract class GradleProvider {
 
-    private GradleProvider() {
-    }
+    private GradleProvider() {}
 
     public abstract void applyTo(GradleConnector gradleConnector);
 
@@ -113,7 +111,6 @@ public abstract class GradleProvider {
         }
 
         @Override
-        public void applyTo(GradleRunner gradleRunner) {
-        }
+        public void applyTo(GradleRunner gradleRunner) {}
     }
 }

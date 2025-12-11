@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import java.io.File;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-
-import java.io.File;
 
 public interface PropertyValidationContext extends TypeValidationContext {
     PathToFileResolver getFileResolver();

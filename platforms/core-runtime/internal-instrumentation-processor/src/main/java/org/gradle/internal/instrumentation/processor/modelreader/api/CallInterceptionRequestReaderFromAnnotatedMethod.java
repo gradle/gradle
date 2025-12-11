@@ -16,10 +16,11 @@
 
 package org.gradle.internal.instrumentation.processor.modelreader.api;
 
-import javax.lang.model.element.ExecutableElement;
 import java.util.Collection;
+import javax.lang.model.element.ExecutableElement;
 
-public interface CallInterceptionRequestReaderFromAnnotatedMethod extends CallInterceptionRequestReader<ExecutableElement> {
+public interface CallInterceptionRequestReaderFromAnnotatedMethod
+        extends CallInterceptionRequestReader<ExecutableElement> {
     @Override
     Collection<Result> readRequest(ExecutableElement input, ReadRequestContext context);
 }

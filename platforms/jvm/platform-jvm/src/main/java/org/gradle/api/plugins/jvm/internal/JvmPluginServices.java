@@ -78,7 +78,8 @@ public interface JvmPluginServices extends JvmEcosystemUtilities {
      */
     void configureAsSources(HasConfigurableAttributes<?> configuration);
 
-    <T> void configureAttributes(HasConfigurableAttributes<T> configurableAttributes, Action<? super JvmEcosystemAttributesDetails> details);
+    <T> void configureAttributes(
+            HasConfigurableAttributes<T> configurableAttributes, Action<? super JvmEcosystemAttributesDetails> details);
 
     /**
      * Replaces the artifacts of an outgoing configuration with a new set of artifacts.

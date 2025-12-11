@@ -16,7 +16,11 @@
 
 package org.gradle.api.reporting.components.internal;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+
 import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.Set;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
@@ -24,11 +28,6 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.reporting.ReportRenderer;
-
-import java.util.Collection;
-import java.util.Set;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
 public class ComponentReportRenderer extends TextReportRenderer {
     private final ComponentRenderer componentRenderer;
@@ -45,7 +44,9 @@ public class ComponentReportRenderer extends TextReportRenderer {
     @Override
     public void complete() {
         getTextOutput().println();
-        getTextOutput().println("Note: currently not all plugins register their components, so some components may not be visible here.");
+        getTextOutput()
+                .println(
+                        "Note: currently not all plugins register their components, so some components may not be visible here.");
         super.complete();
     }
 
@@ -70,7 +71,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
         outputCollection(additionalSourceSets, "Additional source sets", sourceSetRenderer, "source sets");
     }
 
-   public void renderBinaries(Collection<BinarySpec> binaries) {
+    public void renderBinaries(Collection<BinarySpec> binaries) {
         Set<BinarySpec> additionalBinaries = collectAdditionalBinaries(binaries);
         outputCollection(additionalBinaries, "Additional binaries", binaryRenderer, "binaries");
     }
@@ -82,14 +83,18 @@ public class ComponentReportRenderer extends TextReportRenderer {
         return result;
     }
 
-   private Set<BinarySpec> collectAdditionalBinaries(Collection<BinarySpec> binaries) {
-       Set<BinarySpec> result = Sets.newTreeSet(TypeAwareBinaryRenderer.SORT_ORDER);
-       result.addAll(binaries);
-       result.removeAll(binaryRenderer.getItems());
-       return result;
+    private Set<BinarySpec> collectAdditionalBinaries(Collection<BinarySpec> binaries) {
+        Set<BinarySpec> result = Sets.newTreeSet(TypeAwareBinaryRenderer.SORT_ORDER);
+        result.addAll(binaries);
+        result.removeAll(binaryRenderer.getItems());
+        return result;
     }
 
-    private <T> void outputCollection(Collection<? extends T> items, String title, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
+    private <T> void outputCollection(
+            Collection<? extends T> items,
+            String title,
+            ReportRenderer<T, TextReportBuilder> renderer,
+            String elementsPlural) {
         if (!items.isEmpty()) {
             getBuilder().getOutput().println();
             getBuilder().collection(title, items, renderer, elementsPlural);

@@ -31,6 +31,14 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
@@ -60,15 +68,6 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Stream;
-
 @NullMarked
 public class ValidationProblemSerialization {
     private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
@@ -91,10 +90,10 @@ public class ValidationProblemSerialization {
         return gsonBuilder;
     }
 
-
     public static Stream<String> toPlainMessage(List<? extends InternalProblem> problems) {
         return problems.stream()
-            .map(problem -> problem.getDefinition().getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
+                .map(problem -> problem.getDefinition().getSeverity() + ": "
+                        + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }
 
     /**
@@ -114,7 +113,6 @@ public class ValidationProblemSerialization {
 
             return (TypeAdapter<T>) new ThrowableTypeAdapter((TypeToken<Throwable>) typeToken);
         }
-
     }
 
     /**
@@ -161,18 +159,20 @@ public class ValidationProblemSerialization {
             try {
                 Constructor<Throwable> constructor;
                 if (message == null && cause == null) {
-                    constructor = (Constructor<Throwable>) typeToken.getRawType().getDeclaredConstructor();
+                    constructor =
+                            (Constructor<Throwable>) typeToken.getRawType().getDeclaredConstructor();
                     return constructor.newInstance();
                 } else if (message == null) {
-                    constructor = (Constructor<Throwable>) typeToken.getRawType()
-                        .getDeclaredConstructor(Throwable.class);
+                    constructor =
+                            (Constructor<Throwable>) typeToken.getRawType().getDeclaredConstructor(Throwable.class);
                     return constructor.newInstance(cause);
                 } else if (cause == null) {
-                    constructor = (Constructor<Throwable>) typeToken.getRawType().getDeclaredConstructor(String.class);
+                    constructor =
+                            (Constructor<Throwable>) typeToken.getRawType().getDeclaredConstructor(String.class);
                     return constructor.newInstance(message);
                 } else {
-                    constructor = (Constructor<Throwable>) typeToken.getRawType().getDeclaredConstructor(String.class,
-                        Throwable.class);
+                    constructor = (Constructor<Throwable>)
+                            typeToken.getRawType().getDeclaredConstructor(String.class, Throwable.class);
                     return constructor.newInstance(message, cause);
                 }
             } catch (NoSuchMethodException e) {
@@ -217,7 +217,6 @@ public class ValidationProblemSerialization {
             }
             return throwable.getMessage() == null || !throwable.getMessage().contains(cause.getMessage());
         }
-
     }
 
     public static class FileLocationAdapter extends TypeAdapter<FileLocation> {
@@ -497,7 +496,9 @@ public class ValidationProblemSerialization {
     private static class ProblemIdInstanceCreator implements JsonDeserializer<ProblemId>, JsonSerializer<ProblemId> {
 
         @Override
-        public ProblemId deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        public ProblemId deserialize(
+                JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext)
+                throws JsonParseException {
             JsonObject problemObject = jsonElement.getAsJsonObject();
             String name = problemObject.get("name").getAsString();
             String displayName = problemObject.get("displayName").getAsString();
@@ -517,14 +518,14 @@ public class ValidationProblemSerialization {
         }
 
         @Override
-        public JsonElement serialize(ProblemId problemId, Type type, JsonSerializationContext jsonSerializationContext) {
+        public JsonElement serialize(
+                ProblemId problemId, Type type, JsonSerializationContext jsonSerializationContext) {
             JsonObject result = new JsonObject();
             result.addProperty("name", problemId.getName());
             result.addProperty("displayName", problemId.getDisplayName());
             result.add("group", serializeGroup(problemId.getGroup()));
             return result;
         }
-
 
         private static JsonObject serializeGroup(ProblemGroup group) {
             JsonObject groupObject = new JsonObject();
@@ -562,7 +563,8 @@ public class ValidationProblemSerialization {
             out.beginObject();
             if (value instanceof DeprecationData) {
                 out.name(ADDITIONAL_DATA_TYPE).value(DEPRECATION_DATA);
-                out.name(FEATURE_USAGE).value(((DeprecationData) value).getType().name());
+                out.name(FEATURE_USAGE)
+                        .value(((DeprecationData) value).getType().name());
             } else if (value instanceof TypeValidationData) {
                 out.name(ADDITIONAL_DATA_TYPE).value(TYPE_VALIDATION_DATA);
                 TypeValidationData typeValidationData = (TypeValidationData) value;
@@ -661,24 +663,37 @@ public class ValidationProblemSerialization {
                 if (type == null) {
                     throw new JsonParseException("type must not be null");
                 }
-                return createAdditionalData(type, featureUsage, pluginId, propertyName, functionName, parentPropertyName, typeName, generalData, propertyTrace);
+                return createAdditionalData(
+                        type,
+                        featureUsage,
+                        pluginId,
+                        propertyName,
+                        functionName,
+                        parentPropertyName,
+                        typeName,
+                        generalData,
+                        propertyTrace);
             } finally {
                 in.endObject();
             }
         }
 
-        private static @NonNull AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String methodName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace) {
+        private static @NonNull AdditionalData createAdditionalData(
+                String type,
+                String featureUsage,
+                String pluginId,
+                String propertyName,
+                String methodName,
+                String parentPropertyName,
+                String typeName,
+                Map<String, String> generalData,
+                String propertyTrace) {
             switch (type) {
                 case DEPRECATION_DATA:
                     return new DefaultDeprecationData(DeprecationData.Type.valueOf(featureUsage));
                 case TYPE_VALIDATION_DATA:
                     return new DefaultTypeValidationData(
-                        pluginId,
-                        propertyName,
-                        methodName,
-                        parentPropertyName,
-                        typeName
-                    );
+                            pluginId, propertyName, methodName, parentPropertyName, typeName);
                 case GENERAL_DATA:
                     return new DefaultGeneralData(generalData);
                 case PROPERTY_TRACE_DATA:

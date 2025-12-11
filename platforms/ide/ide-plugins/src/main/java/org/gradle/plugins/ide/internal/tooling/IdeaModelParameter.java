@@ -22,5 +22,4 @@ import org.jspecify.annotations.NullMarked;
 public interface IdeaModelParameter {
 
     boolean getOfflineDependencyResolution();
-
 }

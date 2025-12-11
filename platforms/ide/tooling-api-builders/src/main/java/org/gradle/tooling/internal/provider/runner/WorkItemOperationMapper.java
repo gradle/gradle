@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildOperationListener.toOperationResult;
+
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
@@ -30,14 +32,13 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgr
 import org.gradle.workers.internal.ExecuteWorkItemBuildOperationType;
 import org.jspecify.annotations.Nullable;
 
-import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildOperationListener.toOperationResult;
-
 /**
  * Work item listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
  *
  * @since 5.1
  */
-class WorkItemOperationMapper implements BuildOperationMapper<ExecuteWorkItemBuildOperationType.Details, DefaultWorkItemDescriptor> {
+class WorkItemOperationMapper
+        implements BuildOperationMapper<ExecuteWorkItemBuildOperationType.Details, DefaultWorkItemDescriptor> {
     @Override
     public boolean isEnabled(BuildEventSubscriptions subscriptions) {
         return subscriptions.isRequested(OperationType.TASK) && subscriptions.isRequested(OperationType.WORK_ITEM);
@@ -49,7 +50,10 @@ class WorkItemOperationMapper implements BuildOperationMapper<ExecuteWorkItemBui
     }
 
     @Override
-    public DefaultWorkItemDescriptor createDescriptor(ExecuteWorkItemBuildOperationType.Details details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
+    public DefaultWorkItemDescriptor createDescriptor(
+            ExecuteWorkItemBuildOperationType.Details details,
+            BuildOperationDescriptor buildOperation,
+            @Nullable OperationIdentifier parent) {
         OperationIdentifier id = buildOperation.getId();
         String className = details.getClassName();
         String displayName = buildOperation.getDisplayName();
@@ -57,12 +61,19 @@ class WorkItemOperationMapper implements BuildOperationMapper<ExecuteWorkItemBui
     }
 
     @Override
-    public InternalOperationStartedProgressEvent createStartedEvent(DefaultWorkItemDescriptor descriptor, ExecuteWorkItemBuildOperationType.Details details, OperationStartEvent startEvent) {
+    public InternalOperationStartedProgressEvent createStartedEvent(
+            DefaultWorkItemDescriptor descriptor,
+            ExecuteWorkItemBuildOperationType.Details details,
+            OperationStartEvent startEvent) {
         return new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), descriptor);
     }
 
     @Override
-    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultWorkItemDescriptor descriptor, ExecuteWorkItemBuildOperationType.Details details, OperationFinishEvent finishEvent) {
-        return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, toOperationResult(finishEvent));
+    public InternalOperationFinishedProgressEvent createFinishedEvent(
+            DefaultWorkItemDescriptor descriptor,
+            ExecuteWorkItemBuildOperationType.Details details,
+            OperationFinishEvent finishEvent) {
+        return new DefaultOperationFinishedProgressEvent(
+                finishEvent.getEndTime(), descriptor, toOperationResult(finishEvent));
     }
 }

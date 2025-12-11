@@ -26,22 +26,25 @@ public class SftpArtifact extends SftpResource implements RemoteArtifact {
 
     @Override
     public SftpResource getMd5() {
-        return new SftpResource(getServer(), getFile().getParentFile().file(getFile().getName() + ".md5"));
+        return new SftpResource(
+                getServer(), getFile().getParentFile().file(getFile().getName() + ".md5"));
     }
 
     @Override
     public SftpResource getSha1() {
-        return new SftpResource(getServer(), getFile().getParentFile().file(getFile().getName() + ".sha1"));
+        return new SftpResource(
+                getServer(), getFile().getParentFile().file(getFile().getName() + ".sha1"));
     }
 
     @Override
     public SftpResource getSha256() {
-        return new SftpResource(getServer(), getFile().getParentFile().file(getFile().getName() + ".sha256"));
+        return new SftpResource(
+                getServer(), getFile().getParentFile().file(getFile().getName() + ".sha256"));
     }
 
     @Override
     public SftpResource getSha512() {
-        return new SftpResource(getServer(), getFile().getParentFile().file(getFile().getName() + ".sha512"));
+        return new SftpResource(
+                getServer(), getFile().getParentFile().file(getFile().getName() + ".sha512"));
     }
 }
-

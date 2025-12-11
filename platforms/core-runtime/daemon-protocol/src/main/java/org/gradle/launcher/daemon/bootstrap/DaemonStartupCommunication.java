@@ -16,6 +16,13 @@
 
 package org.gradle.launcher.daemon.bootstrap;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
@@ -30,14 +37,6 @@ import org.gradle.internal.stream.EncodedStream;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
 
 public class DaemonStartupCommunication {
 
@@ -62,16 +61,17 @@ public class DaemonStartupCommunication {
         }
         target.println(byteArrayOutputStream.toString());
 
-        //ibm vm 1.6 + windows XP gotchas:
-        //we need to print something else to the stream after we print the daemon greeting.
-        //without it, the parent hangs without receiving the message above (flushing does not help).
+        // ibm vm 1.6 + windows XP gotchas:
+        // we need to print something else to the stream after we print the daemon greeting.
+        // without it, the parent hangs without receiving the message above (flushing does not help).
         LOGGER.debug("Completed writing the daemon greeting. Closing streams...");
-        //btw. the ibm vm+winXP also has some issues detecting closed streams by the child but we handle this problem differently.
+        // btw. the ibm vm+winXP also has some issues detecting closed streams by the child but we handle this problem
+        // differently.
     }
 
     @SuppressWarnings("DefaultCharset")
     public DaemonStartupInfo readDiagnostics(String message) {
-        //Assuming the message has correct format. Not bullet proof, but seems to work ok for now.
+        // Assuming the message has correct format. Not bullet proof, but seems to work ok for now.
         if (!message.startsWith(daemonGreeting())) {
             throw new IllegalArgumentException(String.format("Unexpected daemon startup message: %s", message));
         }
@@ -92,7 +92,8 @@ public class DaemonStartupCommunication {
 
     public boolean containsGreeting(String message) {
         if (message == null) {
-            throw new IllegalArgumentException("Unable to detect the daemon greeting because the input message is null!");
+            throw new IllegalArgumentException(
+                    "Unable to detect the daemon greeting because the input message is null!");
         }
         return message.contains(daemonGreeting());
     }

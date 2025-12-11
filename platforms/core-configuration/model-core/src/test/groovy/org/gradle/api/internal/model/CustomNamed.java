@@ -18,5 +18,4 @@ package org.gradle.api.internal.model;
 
 import org.gradle.api.Named;
 
-public interface CustomNamed extends Named {
-}
+public interface CustomNamed extends Named {}

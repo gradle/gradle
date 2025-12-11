@@ -16,20 +16,6 @@
 
 package gradlebuild.docs;
 
-import org.gradle.api.DefaultTask;
-import org.gradle.api.GradleException;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.tasks.CacheableTask;
-import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.UncheckedException;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -44,6 +30,19 @@ import java.util.TreeMap;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.UncheckedException;
 
 /**
  * Checks adoc files for broken links.
@@ -78,7 +77,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getDocumentationRoot();
 
-    @Optional @InputDirectory
+    @Optional
+    @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getSamplesRoot();
 
@@ -86,7 +86,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getJavadocRoot();
 
-    @Optional @InputFile
+    @Optional
+    @InputFile
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getReleaseNotesFile();
 
@@ -100,16 +101,19 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         gatherDeadLinksInFileReleaseNotes(errors);
 
         getSamplesRoot()
-            .getAsFileTree()
-            .matching(pattern -> {
-                pattern.include("**/*.adoc");
-                pattern.exclude("**/index.adoc"); // Exclude index.adoc files
-            })
-            .forEach(file -> gatherDeadLinksInFileSamples(file, errors));
+                .getAsFileTree()
+                .matching(pattern -> {
+                    pattern.include("**/*.adoc");
+                    pattern.exclude("**/index.adoc"); // Exclude index.adoc files
+                })
+                .forEach(file -> gatherDeadLinksInFileSamples(file, errors));
 
-        getDocumentationRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
-            gatherDeadLinksInFile(file, errors);
-        });
+        getDocumentationRoot()
+                .getAsFileTree()
+                .matching(pattern -> pattern.include("**/*.adoc"))
+                .forEach(file -> {
+                    gatherDeadLinksInFile(file, errors);
+                });
 
         reportErrors(errors, getReportFile().get().getAsFile());
     }
@@ -127,7 +131,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
 
                 StringBuilder sb = new StringBuilder();
                 for (Error error : errorsForFile) {
-                    sb.append("ERROR: " + file.getName() + ":" + error.lineNumber + " " + error.message + "\n    " + error.line + "\n");
+                    sb.append("ERROR: " + file.getName() + ":" + error.lineNumber + " " + error.message + "\n    "
+                            + error.line + "\n");
                 }
                 String message = sb.toString();
                 getLogger().error(message);
@@ -136,18 +141,21 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        throw new GradleException("Documentation assertion failed: found invalid internal links. See " + new org.gradle.internal.logging.ConsoleRenderer().asClickableFileUrl(reportFile));
+        throw new GradleException("Documentation assertion failed: found invalid internal links. See "
+                + new org.gradle.internal.logging.ConsoleRenderer().asClickableFileUrl(reportFile));
     }
 
     private void writeHeader(PrintWriter fw) {
         fw.println("# Valid links are:");
         fw.println("# * Inside the same file: <<(#)section-name(,text)>>");
-        fw.println("# * To a different file: <<other-file(.adoc)#section-name,text>> - Note that the # and section are mandatory, otherwise the link is invalid in the single page output");
+        fw.println(
+                "# * To a different file: <<other-file(.adoc)#section-name,text>> - Note that the # and section are mandatory, otherwise the link is invalid in the single page output");
         fw.println("#");
-        fw.println("# The checker does not handle implicit section names, so they must be explicit and declared as: [[section-name]]");
+        fw.println(
+                "# The checker does not handle implicit section names, so they must be explicit and declared as: [[section-name]]");
         fw.println("#");
-        fw.println("# The checker also rejects Markdown-style links, such as [text](https://example.com/something) as they do not render properly");
-
+        fw.println(
+                "# The checker also rejects Markdown-style links, such as [text](https://example.com/something) as they do not render properly");
     }
 
     private void gatherDeadLinksInFileReleaseNotes(Map<File, List<Error>> errors) {
@@ -174,7 +182,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         }
     }
 
-    private void gatherDeadUserGuideLinksInLineReleaseNotes(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+    private void gatherDeadUserGuideLinksInLineReleaseNotes(
+            File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
         Matcher matcher = releaseNotesUserGuidePattern.matcher(line);
         while (matcher.find()) {
             MatchResult xrefMatcher = matcher.toMatchResult();
@@ -182,12 +191,13 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             String fileName = getFileName(link, sourceFile);
             File referencedFile = new File(getDocumentationRoot().get().getAsFile(), fileName);
             if (!referencedFile.exists()) {
-                    errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
+                errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
             }
         }
     }
 
-    private void gatherDeadSamplesLinksInLineReleaseNotes(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+    private void gatherDeadSamplesLinksInLineReleaseNotes(
+            File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
         Matcher matcher = releaseNotesSamplesPattern.matcher(line);
         while (matcher.find()) {
             MatchResult xrefMatcher = matcher.toMatchResult();
@@ -200,7 +210,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         }
     }
 
-    private void gatherDeadJavadocLinksInLineReleaseNotes(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+    private void gatherDeadJavadocLinksInLineReleaseNotes(
+            File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
         Matcher matcher = releaseNotesJavadocPattern.matcher(line);
         while (matcher.find()) {
             MatchResult linkMatcher = matcher.toMatchResult();
@@ -253,7 +264,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         }
     }
 
-    private void gatherDeadSamplesLinksInLineSamples(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+    private void gatherDeadSamplesLinksInLineSamples(
+            File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
         Matcher matcher = linkPattern.matcher(line);
         while (matcher.find()) {
             MatchResult xrefMatcher = matcher.toMatchResult();
@@ -297,8 +309,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     private void gatherMarkdownLinksInLine(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
         Matcher matcher = markdownLinkPattern.matcher(line);
         while (matcher.find()) {
-             String invalidLink = matcher.group();
-             errorsForFile.add(new Error(lineNumber, line, "Markdown-style links are not supported: " + invalidLink));
+            String invalidLink = matcher.group();
+            errorsForFile.add(new Error(lineNumber, line, "Markdown-style links are not supported: " + invalidLink));
         }
     }
 
@@ -318,17 +330,20 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                     } else {
                         String idName = result.group(2);
                         if (idName.isEmpty()) {
-                            errorsForFile.add(new Error(lineNumber, line, "Missing section reference for link to " + fileName));
+                            errorsForFile.add(
+                                    new Error(lineNumber, line, "Missing section reference for link to " + fileName));
                         } else {
                             if (!fileContainsText(referencedFile, "[[" + idName + "]]")) {
-                                errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + idName + " in " + fileName));
+                                errorsForFile.add(new Error(
+                                        lineNumber, line, "Looking for section named " + idName + " in " + fileName));
                             }
                         }
                     }
                 }
             } else {
                 if (!fileContainsText(sourceFile, "[[" + link + "]]")) {
-                    errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + link + " in " + sourceFile.getName()));
+                    errorsForFile.add(new Error(
+                            lineNumber, line, "Looking for section named " + link + " in " + sourceFile.getName()));
                 }
             }
         }

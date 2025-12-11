@@ -16,10 +16,7 @@
 
 package org.gradle.internal.instrumentation.processor.codegen.groovy;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
-import org.gradle.internal.instrumentation.model.RequestExtra;
-import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator;
+import static org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator.FILTERABLE_CALL_INTERCEPTOR;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -30,18 +27,23 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator.FILTERABLE_CALL_INTERCEPTOR;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.model.RequestExtra;
+import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator;
 
 /**
  * Generates META-INF/services resource with all generated CallInterceptors so we can load them at runtime
  */
 public class InterceptGroovyCallsResourceGenerator implements InstrumentationResourceGenerator {
     @Override
-    public Collection<CallInterceptionRequest> filterRequestsForResource(Collection<CallInterceptionRequest> interceptionRequests) {
+    public Collection<CallInterceptionRequest> filterRequestsForResource(
+            Collection<CallInterceptionRequest> interceptionRequests) {
         return interceptionRequests.stream()
-            .filter(request -> request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class).isPresent())
-            .collect(Collectors.toList());
+                .filter(request -> request.getRequestExtras()
+                        .getByType(RequestExtra.InterceptGroovyCalls.class)
+                        .isPresent())
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -64,10 +66,7 @@ public class InterceptGroovyCallsResourceGenerator implements InstrumentationRes
 
             @Override
             public void write(OutputStream outputStream) {
-                String types = callInterceptorTypes.stream()
-                    .distinct()
-                    .sorted()
-                    .collect(Collectors.joining("\n"));
+                String types = callInterceptorTypes.stream().distinct().sorted().collect(Collectors.joining("\n"));
                 try (Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
                     writer.write(types);
                 } catch (IOException e) {

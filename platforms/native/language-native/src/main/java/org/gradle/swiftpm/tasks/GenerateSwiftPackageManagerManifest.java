@@ -16,6 +16,14 @@
 
 package org.gradle.swiftpm.tasks;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Set;
+import java.util.TreeSet;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RegularFileProperty;
@@ -34,15 +42,6 @@ import org.gradle.swiftpm.internal.DefaultTarget;
 import org.gradle.swiftpm.internal.Dependency;
 import org.gradle.swiftpm.internal.VersionDependency;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * A task that produces a Swift Package Manager manifest.
@@ -128,13 +127,13 @@ public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
                                 writer.print("from: \"");
                                 writer.print(versionDependency.getLowerBound());
                                 writer.print("\"");
-                            } else if (versionDependency.isUpperInclusive()){
+                            } else if (versionDependency.isUpperInclusive()) {
                                 writer.print("\"");
                                 writer.print(versionDependency.getLowerBound());
                                 writer.print("\"...\"");
                                 writer.print(versionDependency.getUpperBound());
                                 writer.print("\"");
-                            }  else {
+                            } else {
                                 writer.print("\"");
                                 writer.print(versionDependency.getLowerBound());
                                 writer.print("\"..<\"");
@@ -156,7 +155,8 @@ public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
                     writer.print("            name: \"");
                     writer.print(target.getName());
                     writer.println("\",");
-                    if (!target.getRequiredTargets().isEmpty() || !target.getRequiredProducts().isEmpty()) {
+                    if (!target.getRequiredTargets().isEmpty()
+                            || !target.getRequiredProducts().isEmpty()) {
                         writer.println("            dependencies: [");
                         for (String dep : target.getRequiredTargets()) {
                             writer.print("                .target(name: \"");
@@ -189,7 +189,8 @@ public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
                     if (target.getPublicHeaderDir() != null) {
                         writer.println(",");
                         writer.print("            publicHeadersPath: \"");
-                        writer.print(productPath.relativize(target.getPublicHeaderDir().toPath()));
+                        writer.print(productPath.relativize(
+                                target.getPublicHeaderDir().toPath()));
                         writer.print("\"");
                     }
                     writer.println();

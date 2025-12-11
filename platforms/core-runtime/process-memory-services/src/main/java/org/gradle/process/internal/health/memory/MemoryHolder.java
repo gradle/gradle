@@ -29,5 +29,4 @@ public interface MemoryHolder {
      * @throws IllegalArgumentException if memoryAmountBytes is negative
      */
     long attemptToRelease(long memoryAmountBytes) throws IllegalArgumentException;
-
 }

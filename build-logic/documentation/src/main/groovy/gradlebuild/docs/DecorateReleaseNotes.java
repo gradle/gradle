@@ -16,6 +16,11 @@
 
 package gradlebuild.docs;
 
+import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import javax.inject.Inject;
 import org.apache.tools.ant.filters.ReplaceTokens;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -30,12 +35,6 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Takes a rendered release notes HTML file and decorates it with extra elements/content/links.
@@ -111,11 +110,14 @@ public abstract class DecorateReleaseNotes extends DefaultTask {
             // NOTE: These parameter names _must_ match the setter names in ReleaseNotesTransformer
             parameters.put("baseCss", getBaseCssFile().get().getAsFile());
             parameters.put("releaseNotesCss", getReleaseNotesCssFile().get().getAsFile());
-            parameters.put("releaseNotesJavascript", getReleaseNotesJavascriptFile().get().getAsFile());
+            parameters.put(
+                    "releaseNotesJavascript",
+                    getReleaseNotesJavascriptFile().get().getAsFile());
             parameters.put("jqueryFiles", getJquery().getFiles());
 
             copySpec.filter(parameters, ReleaseNotesTransformer.class);
-            copySpec.filter(Collections.singletonMap("tokens", getReplacementTokens().get()), ReplaceTokens.class);
+            copySpec.filter(
+                    Collections.singletonMap("tokens", getReplacementTokens().get()), ReplaceTokens.class);
         });
     }
 }

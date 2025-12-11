@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+
 import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
@@ -41,18 +45,12 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
-
 /**
  * Serializes the transient parts of the resolved configuration results.
  */
 public class TransientConfigurationResultsBuilder implements DependencyArtifactsVisitor {
 
-    private final static Logger LOG = Logging.getLogger(TransientConfigurationResultsBuilder.class);
+    private static final Logger LOG = Logging.getLogger(TransientConfigurationResultsBuilder.class);
 
     private static final byte NODE = 1;
     private static final byte ROOT = 2;
@@ -70,12 +68,11 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
     private BinaryStore.BinaryData binaryData;
 
     public TransientConfigurationResultsBuilder(
-        BinaryStore binaryStore,
-        Store<TransientConfigurationResults> cache,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        BuildOperationExecutor buildOperationExecutor,
-        ResolutionHost resolutionHost
-    ) {
+            BinaryStore binaryStore,
+            Store<TransientConfigurationResults> cache,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            BuildOperationExecutor buildOperationExecutor,
+            ResolutionHost resolutionHost) {
         this.moduleVersionIdSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
         this.binaryStore = binaryStore;
         this.cache = cache;
@@ -116,7 +113,8 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
+    public void visitArtifacts(
+            DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
         binaryStore.write(encoder -> {
             encoder.writeByte(EDGE);
             encoder.writeSmallLong(from.getNodeId());
@@ -126,7 +124,11 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {
+    public void visitArtifacts(
+            DependencyGraphNode from,
+            LocalFileDependencyMetadata fileDependency,
+            int artifactSetId,
+            ArtifactSet artifactSet) {
         binaryStore.write(encoder -> {
             encoder.writeByte(NODE_ARTIFACTS);
             encoder.writeSmallLong(from.getNodeId());
@@ -138,7 +140,8 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
         synchronized (lock) {
             return cache.load(() -> {
                 try (BinaryStore.BinaryData reader = binaryData) {
-                    return reader.read(decoder -> deserialize(decoder, artifactResults, buildOperationExecutor, resolutionHost));
+                    return reader.read(
+                            decoder -> deserialize(decoder, artifactResults, buildOperationExecutor, resolutionHost));
                 } catch (IOException e) {
                     throw throwAsUncheckedException(e);
                 }
@@ -147,11 +150,10 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
     }
 
     private TransientConfigurationResults deserialize(
-        Decoder decoder,
-        SelectedArtifactResults artifactResults,
-        BuildOperationExecutor buildOperationProcessor,
-        ResolutionHost resolutionHost
-    ) {
+            Decoder decoder,
+            SelectedArtifactResults artifactResults,
+            BuildOperationExecutor buildOperationProcessor,
+            ResolutionHost resolutionHost) {
         Timer clock = Time.startTimer();
         Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<>();
         ImmutableSet.Builder<ResolvedDependency> firstLevelDependencies = ImmutableSet.builder();
@@ -168,22 +170,28 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
                         id = decoder.readSmallLong();
                         ModuleVersionIdentifier moduleVersionId = moduleVersionIdSerializer.read(decoder);
                         String variantName = decoder.readString();
-                        allDependencies.put(id, new DefaultResolvedDependency(variantName, moduleVersionId, buildOperationProcessor, resolutionHost));
+                        allDependencies.put(
+                                id,
+                                new DefaultResolvedDependency(
+                                        variantName, moduleVersionId, buildOperationProcessor, resolutionHost));
                         break;
                     case ROOT:
                         id = decoder.readSmallLong();
                         ResolvedDependency root = allDependencies.get(id);
                         if (root == null) {
-                            throw new IllegalStateException(String.format("Unexpected root id %s. Seen ids: %s", id, allDependencies.keySet()));
+                            throw new IllegalStateException(
+                                    String.format("Unexpected root id %s. Seen ids: %s", id, allDependencies.keySet()));
                         }
-                        //root should be the last entry
-                        LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getElapsed(), binaryStore);
+                        // root should be the last entry
+                        LOG.debug(
+                                "Loaded resolved configuration results ({}) from {}", clock.getElapsed(), binaryStore);
                         return new DefaultTransientConfigurationResults(root, firstLevelDependencies.build());
                     case FIRST_LEVEL:
                         id = decoder.readSmallLong();
                         DefaultResolvedDependency dependency = allDependencies.get(id);
                         if (dependency == null) {
-                            throw new IllegalStateException(String.format("Unexpected first level id %s. Seen ids: %s", id, allDependencies.keySet()));
+                            throw new IllegalStateException(String.format(
+                                    "Unexpected first level id %s. Seen ids: %s", id, allDependencies.keySet()));
                         }
                         firstLevelDependencies.add(dependency);
                         break;
@@ -193,10 +201,14 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
                         DefaultResolvedDependency parent = allDependencies.get(parentId);
                         DefaultResolvedDependency child = allDependencies.get(childId);
                         if (parent == null) {
-                            throw new IllegalStateException(String.format("Unexpected parent dependency id %s. Seen ids: %s", parentId, allDependencies.keySet()));
+                            throw new IllegalStateException(String.format(
+                                    "Unexpected parent dependency id %s. Seen ids: %s",
+                                    parentId, allDependencies.keySet()));
                         }
                         if (child == null) {
-                            throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
+                            throw new IllegalStateException(String.format(
+                                    "Unexpected child dependency id %s. Seen ids: %s",
+                                    childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
                         artifacts = artifactResults.getArtifactsWithId(decoder.readSmallInt());
@@ -206,7 +218,8 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
                         id = decoder.readSmallLong();
                         DefaultResolvedDependency node = allDependencies.get(id);
                         if (node == null) {
-                            throw new IllegalStateException(String.format("Unexpected node id %s. Seen ids: %s", node, allDependencies.keySet()));
+                            throw new IllegalStateException(String.format(
+                                    "Unexpected node id %s. Seen ids: %s", node, allDependencies.keySet()));
                         }
                         artifacts = artifactResults.getArtifactsWithId(decoder.readSmallInt());
                         node.addModuleArtifacts(artifacts);
@@ -216,7 +229,9 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("Problems loading the resolved configuration. Read " + valuesRead + " values, last was: " + type, e);
+            throw new RuntimeException(
+                    "Problems loading the resolved configuration. Read " + valuesRead + " values, last was: " + type,
+                    e);
         }
     }
 }

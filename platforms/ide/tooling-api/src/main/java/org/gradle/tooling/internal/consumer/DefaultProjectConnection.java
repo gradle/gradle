@@ -15,6 +15,9 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.BuildLauncher;
@@ -27,16 +30,15 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
 class DefaultProjectConnection implements ProjectConnection {
     private final AsyncConsumerActionExecutor connection;
     private final ConnectionParameters parameters;
     private final ProjectConnectionCloseListener listener;
 
-    public DefaultProjectConnection(AsyncConsumerActionExecutor connection, ConnectionParameters parameters, ProjectConnectionCloseListener listener) {
+    public DefaultProjectConnection(
+            AsyncConsumerActionExecutor connection,
+            ConnectionParameters parameters,
+            ProjectConnectionCloseListener listener) {
         this.connection = connection;
         this.parameters = parameters;
         this.listener = listener;
@@ -75,7 +77,8 @@ class DefaultProjectConnection implements ProjectConnection {
     @Override
     public <T> ModelBuilder<T> model(Class<T> modelType) {
         if (!modelType.isInterface()) {
-            throw new IllegalArgumentException(String.format("Cannot fetch a model of type '%s' as this type is not an interface.", modelType.getName()));
+            throw new IllegalArgumentException(String.format(
+                    "Cannot fetch a model of type '%s' as this type is not an interface.", modelType.getName()));
         }
         return new DefaultModelBuilder<T>(modelType, connection, parameters);
     }
@@ -104,25 +107,28 @@ class DefaultProjectConnection implements ProjectConnection {
         operationParamsBuilder.setParameters(parameters);
         operationParamsBuilder.setEntryPoint("Notify daemons about changed paths API");
         connection.run(
-            new ConsumerAction<Void>() {
-                @Override
-                public ConsumerOperationParameters getParameters() {
-                    return operationParamsBuilder.build();
-                }
-
-                @Override
-                public Void run(ConsumerConnection connection) {
-                    connection.notifyDaemonsAboutChangedPaths(absolutePaths, getParameters());
-                    return null;
-                }
-            },
-            new ResultHandlerAdapter<Void>(new BlockingResultHandler<Void>(Void.class),
-                new ConnectionExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
+                new ConsumerAction<Void>() {
                     @Override
-                    public String getConnectionFailureMessage(Throwable throwable) {
-                        return String.format("Could not notify daemons about changed paths: %s.", connection.getDisplayName());
+                    public ConsumerOperationParameters getParameters() {
+                        return operationParamsBuilder.build();
                     }
-                })
-            ));
+
+                    @Override
+                    public Void run(ConsumerConnection connection) {
+                        connection.notifyDaemonsAboutChangedPaths(absolutePaths, getParameters());
+                        return null;
+                    }
+                },
+                new ResultHandlerAdapter<Void>(
+                        new BlockingResultHandler<Void>(Void.class),
+                        new ConnectionExceptionTransformer(
+                                new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
+                                    @Override
+                                    public String getConnectionFailureMessage(Throwable throwable) {
+                                        return String.format(
+                                                "Could not notify daemons about changed paths: %s.",
+                                                connection.getDisplayName());
+                                    }
+                                })));
     }
 }

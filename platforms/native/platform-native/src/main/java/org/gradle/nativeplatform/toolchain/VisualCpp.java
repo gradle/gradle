@@ -16,10 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain;
 
+import java.io.File;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-
-import java.io.File;
 
 /**
  * The Visual C++ tool chain.

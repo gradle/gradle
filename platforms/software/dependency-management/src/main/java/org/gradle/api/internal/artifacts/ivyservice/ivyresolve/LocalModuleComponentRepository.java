@@ -61,7 +61,10 @@ public class LocalModuleComponentRepository<T> extends BaseModuleComponentReposi
         }
 
         @Override
-        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
+        public void listModuleVersions(
+                ModuleComponentSelector selector,
+                ComponentOverrideMetadata overrideMetadata,
+                BuildableModuleVersionListingResolveResult result) {
             delegate.getLocalAccess().listModuleVersions(selector, overrideMetadata, result);
             if (!result.hasResult()) {
                 delegate.getRemoteAccess().listModuleVersions(selector, overrideMetadata, result);
@@ -69,7 +72,10 @@ public class LocalModuleComponentRepository<T> extends BaseModuleComponentReposi
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<T> result) {
+        public void resolveComponentMetaData(
+                ModuleComponentIdentifier moduleComponentIdentifier,
+                ComponentOverrideMetadata requestMetaData,
+                BuildableModuleComponentMetaDataResolveResult<T> result) {
             delegate.getLocalAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
             if (!result.hasResult()) {
                 delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
@@ -77,17 +83,23 @@ public class LocalModuleComponentRepository<T> extends BaseModuleComponentReposi
         }
 
         @Override
-        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveArtifactsWithType(
+                ComponentArtifactResolveMetadata component,
+                ArtifactType artifactType,
+                BuildableArtifactSetResolveResult result) {
             delegate.getLocalAccess().resolveArtifactsWithType(component, artifactType, result);
-            if(!result.hasResult()) {
+            if (!result.hasResult()) {
                 delegate.getRemoteAccess().resolveArtifactsWithType(component, artifactType, result);
             }
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
+        public void resolveArtifact(
+                ComponentArtifactMetadata artifact,
+                ModuleSources moduleSources,
+                BuildableArtifactFileResolveResult result) {
             delegate.getLocalAccess().resolveArtifact(artifact, moduleSources, result);
-            if(!result.hasResult()) {
+            if (!result.hasResult()) {
                 delegate.getRemoteAccess().resolveArtifact(artifact, moduleSources, result);
             }
         }
@@ -105,20 +117,28 @@ public class LocalModuleComponentRepository<T> extends BaseModuleComponentReposi
         }
 
         @Override
-        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
-        }
+        public void listModuleVersions(
+                ModuleComponentSelector selector,
+                ComponentOverrideMetadata overrideMetadata,
+                BuildableModuleVersionListingResolveResult result) {}
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<T> result) {
-        }
+        public void resolveComponentMetaData(
+                ModuleComponentIdentifier moduleComponentIdentifier,
+                ComponentOverrideMetadata requestMetaData,
+                BuildableModuleComponentMetaDataResolveResult<T> result) {}
 
         @Override
-        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        }
+        public void resolveArtifactsWithType(
+                ComponentArtifactResolveMetadata component,
+                ArtifactType artifactType,
+                BuildableArtifactSetResolveResult result) {}
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
-        }
+        public void resolveArtifact(
+                ComponentArtifactMetadata artifact,
+                ModuleSources moduleSources,
+                BuildableArtifactFileResolveResult result) {}
 
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {

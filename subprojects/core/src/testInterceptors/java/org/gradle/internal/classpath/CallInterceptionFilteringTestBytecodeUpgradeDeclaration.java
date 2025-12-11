@@ -16,22 +16,29 @@
 
 package org.gradle.internal.classpath;
 
+import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType.BYTECODE_UPGRADE;
+
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 
-import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType.BYTECODE_UPGRADE;
-
-@SpecificJvmCallInterceptors(generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS + "BytecodeUpgrade", type = BYTECODE_UPGRADE)
-@SpecificGroovyCallInterceptors(generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS + "BytecodeUpgrade", type = BYTECODE_UPGRADE)
+@SpecificJvmCallInterceptors(
+        generatedClassName =
+                BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS + "BytecodeUpgrade",
+        type = BYTECODE_UPGRADE)
+@SpecificGroovyCallInterceptors(
+        generatedClassName =
+                BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS + "BytecodeUpgrade",
+        type = BYTECODE_UPGRADE)
 public class CallInterceptionFilteringTestBytecodeUpgradeDeclaration {
 
     @InterceptCalls
     @CallableKind.InstanceMethod
     @SuppressWarnings("NewMethodNamingConvention")
-    public static void intercept_testBytecodeUpgrade(@ParameterKind.Receiver CallInterceptionFilteringTestReceiver self) {
+    public static void intercept_testBytecodeUpgrade(
+            @ParameterKind.Receiver CallInterceptionFilteringTestReceiver self) {
         self.intercepted = "testBytecodeUpgrade()";
     }
 }

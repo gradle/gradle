@@ -16,12 +16,11 @@
 
 package org.gradle.plugins.ide.tooling.r33;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.GradleBuild;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class FetchBuilds implements BuildAction<List<GradleBuild>> {
     @Override

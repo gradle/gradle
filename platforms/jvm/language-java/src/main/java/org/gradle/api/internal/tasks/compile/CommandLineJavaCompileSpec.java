@@ -21,5 +21,4 @@ import java.io.File;
 public interface CommandLineJavaCompileSpec {
 
     File getExecutable();
-
 }

@@ -23,5 +23,4 @@ import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
  * Test suite of Google Test tests.
  */
 @Incubating
-public interface GoogleTestTestSuiteSpec extends NativeTestSuiteSpec {
-}
+public interface GoogleTestTestSuiteSpec extends NativeTestSuiteSpec {}

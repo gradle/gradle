@@ -38,5 +38,4 @@ public interface FeatureCapabilitySelector extends CapabilitySelector {
      * @return The feature name
      */
     String getFeatureName();
-
 }

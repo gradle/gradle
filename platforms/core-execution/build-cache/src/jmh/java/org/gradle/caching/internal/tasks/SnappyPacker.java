@@ -18,7 +18,6 @@ package org.gradle.caching.internal.tasks;
 
 import io.airlift.compress.snappy.SnappyFramedInputStream;
 import io.airlift.compress.snappy.SnappyFramedOutputStream;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -43,11 +42,13 @@ public class SnappyPacker implements Packer {
 
     @Override
     public void unpack(DataSource input, DataTargetFactory targetFactory) throws IOException {
-        delegate.unpack(new DelegatingDataSource(input) {
-            @Override
-            public InputStream openInput() throws IOException {
-                return new SnappyFramedInputStream(super.openInput());
-            }
-        }, targetFactory);
+        delegate.unpack(
+                new DelegatingDataSource(input) {
+                    @Override
+                    public InputStream openInput() throws IOException {
+                        return new SnappyFramedInputStream(super.openInput());
+                    }
+                },
+                targetFactory);
     }
 }

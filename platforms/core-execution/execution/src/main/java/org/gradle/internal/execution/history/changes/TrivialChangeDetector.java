@@ -16,10 +16,9 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import java.util.Map;
 import org.gradle.internal.execution.history.changes.CompareStrategy.ChangeDetector;
 import org.gradle.internal.execution.history.changes.CompareStrategy.ChangeFactory;
-
-import java.util.Map;
 
 /**
  * Compares collections if either current or previous are empty, or both current and previous have one element.
@@ -30,17 +29,15 @@ public class TrivialChangeDetector<S> implements ChangeDetector<S> {
     private final ChangeDetector<S> delegate;
 
     public TrivialChangeDetector(
-        ItemComparator<S> itemComparator,
-        ChangeFactory<S> changeFactory,
-        ChangeDetector<S> delegate
-    ) {
+            ItemComparator<S> itemComparator, ChangeFactory<S> changeFactory, ChangeDetector<S> delegate) {
         this.itemComparator = itemComparator;
         this.changeFactory = changeFactory;
         this.delegate = delegate;
     }
 
     @Override
-    public boolean visitChangesSince(Map<String, S> previous, Map<String, S> current, String propertyTitle, ChangeVisitor visitor) {
+    public boolean visitChangesSince(
+            Map<String, S> previous, Map<String, S> current, String propertyTitle, ChangeVisitor visitor) {
         switch (current.size()) {
             case 0:
                 if (previous.isEmpty()) {
@@ -58,8 +55,10 @@ public class TrivialChangeDetector<S> implements ChangeDetector<S> {
                     case 0:
                         return reportAllAdded(visitor, current, propertyTitle);
                     case 1:
-                        Map.Entry<String, S> previousEntry = previous.entrySet().iterator().next();
-                        Map.Entry<String, S> currentEntry = current.entrySet().iterator().next();
+                        Map.Entry<String, S> previousEntry =
+                                previous.entrySet().iterator().next();
+                        Map.Entry<String, S> currentEntry =
+                                current.entrySet().iterator().next();
                         return compareTrivialEntries(visitor, previousEntry, currentEntry, propertyTitle);
                     default:
                         return delegate.visitChangesSince(previous, current, propertyTitle, visitor);
@@ -82,7 +81,11 @@ public class TrivialChangeDetector<S> implements ChangeDetector<S> {
         return true;
     }
 
-    private boolean compareTrivialEntries(ChangeVisitor visitor, Map.Entry<String, S> previousEntry, Map.Entry<String, S> currentEntry, String propertyTitle) {
+    private boolean compareTrivialEntries(
+            ChangeVisitor visitor,
+            Map.Entry<String, S> previousEntry,
+            Map.Entry<String, S> currentEntry,
+            String propertyTitle) {
         S previous = previousEntry.getValue();
         S current = currentEntry.getValue();
         if (itemComparator.hasSamePath(previous, current)) {

@@ -24,7 +24,8 @@ public class DefaultTransientConfigurationResults implements TransientConfigurat
     private final ImmutableSet<ResolvedDependency> firstLevelDependencies;
     private final ResolvedDependency root;
 
-    public DefaultTransientConfigurationResults(ResolvedDependency root, ImmutableSet<ResolvedDependency> firstLevelDependencies) {
+    public DefaultTransientConfigurationResults(
+            ResolvedDependency root, ImmutableSet<ResolvedDependency> firstLevelDependencies) {
         this.firstLevelDependencies = firstLevelDependencies;
         this.root = root;
     }
@@ -38,5 +39,4 @@ public class DefaultTransientConfigurationResults implements TransientConfigurat
     public ResolvedDependency getRootNode() {
         return root;
     }
-
 }

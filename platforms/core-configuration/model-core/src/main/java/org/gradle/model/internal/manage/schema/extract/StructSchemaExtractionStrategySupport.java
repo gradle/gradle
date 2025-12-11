@@ -27,19 +27,18 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import org.gradle.api.Action;
-import org.gradle.internal.reflect.PropertyAccessorType;
-import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
-import org.gradle.model.internal.type.ModelType;
-
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import org.gradle.api.Action;
+import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
+import org.gradle.model.internal.type.ModelType;
 
 public abstract class StructSchemaExtractionStrategySupport implements ModelSchemaExtractionStrategy {
 
@@ -62,13 +61,15 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         List<ModelPropertyExtractionResult<?>> extractedProperties = extractProperties(candidateProperties);
         List<ModelSchemaAspect> aspects = aspectExtractor.extract(extractionContext, extractedProperties);
 
-        Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods = getNonPropertyMethods(candidateMethods, extractedProperties);
-        Iterable<ModelProperty<?>> properties = Iterables.transform(extractedProperties, new Function<ModelPropertyExtractionResult<?>, ModelProperty<?>>() {
-            @Override
-            public ModelProperty<?> apply(ModelPropertyExtractionResult<?> propertyResult) {
-                return propertyResult.getProperty();
-            }
-        });
+        Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods =
+                getNonPropertyMethods(candidateMethods, extractedProperties);
+        Iterable<ModelProperty<?>> properties = Iterables.transform(
+                extractedProperties, new Function<ModelPropertyExtractionResult<?>, ModelProperty<?>>() {
+                    @Override
+                    public ModelProperty<?> apply(ModelPropertyExtractionResult<?> propertyResult) {
+                        return propertyResult.getProperty();
+                    }
+                });
 
         ModelSchema<R> schema = createSchema(extractionContext, properties, nonPropertyMethods, aspects);
         for (ModelPropertyExtractionResult<?> propertyResult : extractedProperties) {
@@ -78,31 +79,35 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         extractionContext.found(schema);
     }
 
-    private Set<WeaklyTypeReferencingMethod<?, ?>> getNonPropertyMethods(CandidateMethods candidateMethods, List<ModelPropertyExtractionResult<?>> extractedProperties) {
-        Set<Method> nonPropertyMethods = Sets.newLinkedHashSet(Iterables.transform(candidateMethods.allMethods().keySet(), new Function<Wrapper<Method>, Method>() {
-            @Override
-            public Method apply(Wrapper<Method> method) {
-                return method.get();
-            }
-        }));
+    private Set<WeaklyTypeReferencingMethod<?, ?>> getNonPropertyMethods(
+            CandidateMethods candidateMethods, List<ModelPropertyExtractionResult<?>> extractedProperties) {
+        Set<Method> nonPropertyMethods = Sets.newLinkedHashSet(
+                Iterables.transform(candidateMethods.allMethods().keySet(), new Function<Wrapper<Method>, Method>() {
+                    @Override
+                    public Method apply(Wrapper<Method> method) {
+                        return method.get();
+                    }
+                }));
         for (ModelPropertyExtractionResult<?> extractedProperty : extractedProperties) {
             for (PropertyAccessorExtractionContext accessor : extractedProperty.getAccessors()) {
                 nonPropertyMethods.removeAll(accessor.getDeclaringMethods());
             }
         }
-        return Sets.newLinkedHashSet(Iterables.transform(nonPropertyMethods, new Function<Method, WeaklyTypeReferencingMethod<?, ?>>() {
-            @Override
-            public WeaklyTypeReferencingMethod<?, ?> apply(Method method) {
-                return WeaklyTypeReferencingMethod.of(method);
-            }
-        }));
+        return Sets.newLinkedHashSet(
+                Iterables.transform(nonPropertyMethods, new Function<Method, WeaklyTypeReferencingMethod<?, ?>>() {
+                    @Override
+                    public WeaklyTypeReferencingMethod<?, ?> apply(Method method) {
+                        return WeaklyTypeReferencingMethod.of(method);
+                    }
+                }));
     }
 
     protected abstract boolean isTarget(ModelType<?> type);
 
     private Iterable<ModelPropertyExtractionContext> selectProperties(CandidateMethods candidateMethods) {
         Map<String, ModelPropertyExtractionContext> propertiesMap = new TreeMap<>();
-        for (Map.Entry<Wrapper<Method>, Collection<Method>> entry : candidateMethods.allMethods().entrySet()) {
+        for (Map.Entry<Wrapper<Method>, Collection<Method>> entry :
+                candidateMethods.allMethods().entrySet()) {
             Method method = entry.getKey().get();
             PropertyAccessorType propertyAccessorType = PropertyAccessorType.of(method);
             Collection<Method> methodsWithEqualSignature = entry.getValue();
@@ -113,7 +118,8 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
                     propertyContext = new ModelPropertyExtractionContext(propertyName);
                     propertiesMap.put(propertyName, propertyContext);
                 }
-                propertyContext.addAccessor(new PropertyAccessorExtractionContext(propertyAccessorType, methodsWithEqualSignature));
+                propertyContext.addAccessor(
+                        new PropertyAccessorExtractionContext(propertyAccessorType, methodsWithEqualSignature));
             }
         }
         return Collections2.filter(propertiesMap.values(), new Predicate<ModelPropertyExtractionContext>() {
@@ -124,7 +130,8 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         });
     }
 
-    private static List<ModelPropertyExtractionResult<?>> extractProperties(Iterable<ModelPropertyExtractionContext> properties) {
+    private static List<ModelPropertyExtractionResult<?>> extractProperties(
+            Iterable<ModelPropertyExtractionContext> properties) {
         ImmutableList.Builder<ModelPropertyExtractionResult<?>> builder = ImmutableList.builder();
         for (ModelPropertyExtractionContext propertyContext : properties) {
             builder.add(extractProperty(propertyContext));
@@ -144,25 +151,28 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
     }
 
     private static ModelType<?> determinePropertyType(PropertyAccessorExtractionContext accessor) {
-        return accessor == null ? null : ModelType.of(accessor.getAccessorType().genericPropertyTypeFor(accessor.getMostSpecificDeclaration()));
+        return accessor == null
+                ? null
+                : ModelType.of(
+                        accessor.getAccessorType().genericPropertyTypeFor(accessor.getMostSpecificDeclaration()));
     }
 
-    private static <P> ModelPropertyExtractionResult<P> createProperty(ModelType<P> propertyType, ModelPropertyExtractionContext propertyContext) {
-        ImmutableMap.Builder<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors = ImmutableMap.builder();
+    private static <P> ModelPropertyExtractionResult<P> createProperty(
+            ModelType<P> propertyType, ModelPropertyExtractionContext propertyContext) {
+        ImmutableMap.Builder<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors =
+                ImmutableMap.builder();
         for (PropertyAccessorExtractionContext accessor : propertyContext.getAccessors()) {
-            WeaklyTypeReferencingMethod<?, ?> accessorMethod = WeaklyTypeReferencingMethod.of(accessor.getMostSpecificDeclaration());
+            WeaklyTypeReferencingMethod<?, ?> accessorMethod =
+                    WeaklyTypeReferencingMethod.of(accessor.getMostSpecificDeclaration());
             accessors.put(accessor.getAccessorType(), accessorMethod);
         }
         ModelProperty<P> property = new ModelProperty<P>(
-            propertyType,
-            propertyContext.getPropertyName(),
-            propertyContext.getDeclaredBy(),
-            accessors.build()
-        );
+                propertyType, propertyContext.getPropertyName(), propertyContext.getDeclaredBy(), accessors.build());
         return new ModelPropertyExtractionResult<P>(property, propertyContext.getAccessors());
     }
 
-    private static <R, P> void toPropertyExtractionContext(ModelSchemaExtractionContext<R> parentContext, ModelPropertyExtractionResult<P> propertyResult) {
+    private static <R, P> void toPropertyExtractionContext(
+            ModelSchemaExtractionContext<R> parentContext, ModelPropertyExtractionResult<P> propertyResult) {
         ModelProperty<P> property = propertyResult.getProperty();
         String propertyDescription = propertyDescription(parentContext, property);
         parentContext.child(property.getType(), propertyDescription, attachSchema(property));
@@ -177,14 +187,22 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         };
     }
 
-    private static String propertyDescription(ModelSchemaExtractionContext<?> parentContext, ModelProperty<?> property) {
+    private static String propertyDescription(
+            ModelSchemaExtractionContext<?> parentContext, ModelProperty<?> property) {
         if (property.getDeclaredBy().size() == 1 && property.getDeclaredBy().contains(parentContext.getType())) {
             return String.format("property '%s'", property.getName());
         } else {
-            ImmutableSortedSet<String> declaredBy = ImmutableSortedSet.copyOf(Iterables.transform(property.getDeclaredBy(), Functions.toStringFunction()));
-            return String.format("property '%s' declared by %s", property.getName(), Joiner.on(", ").join(declaredBy));
+            ImmutableSortedSet<String> declaredBy = ImmutableSortedSet.copyOf(
+                    Iterables.transform(property.getDeclaredBy(), Functions.toStringFunction()));
+            return String.format(
+                    "property '%s' declared by %s",
+                    property.getName(), Joiner.on(", ").join(declaredBy));
         }
     }
 
-    protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods, Iterable<ModelSchemaAspect> aspects);
+    protected abstract <R> ModelSchema<R> createSchema(
+            ModelSchemaExtractionContext<R> extractionContext,
+            Iterable<ModelProperty<?>> properties,
+            Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods,
+            Iterable<ModelSchemaAspect> aspects);
 }

@@ -16,9 +16,8 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import org.gradle.ide.visualstudio.VisualStudioSolution;
-
 import java.util.List;
+import org.gradle.ide.visualstudio.VisualStudioSolution;
 
 public interface VisualStudioSolutionInternal extends VisualStudioSolution {
     /**

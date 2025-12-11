@@ -16,11 +16,10 @@
 package org.gradle.plugins.ide.api;
 
 import groovy.lang.Closure;
+import java.util.Properties;
 import org.gradle.api.Action;
 import org.gradle.api.internal.PropertiesTransformer;
 import org.gradle.util.internal.ClosureBackedAction;
-
-import java.util.Properties;
 
 /**
  * Models the generation/parsing/merging capabilities.

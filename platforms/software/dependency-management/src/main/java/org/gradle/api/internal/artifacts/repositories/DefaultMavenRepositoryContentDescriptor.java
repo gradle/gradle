@@ -17,18 +17,19 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import java.util.function.Supplier;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.internal.Actions;
 
-import java.util.function.Supplier;
-
-class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDescriptor implements MavenRepositoryContentDescriptor {
+class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDescriptor
+        implements MavenRepositoryContentDescriptor {
     private boolean snapshots = true;
     private boolean releases = true;
 
-    public DefaultMavenRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier, VersionParser versionParser) {
+    public DefaultMavenRepositoryContentDescriptor(
+            Supplier<String> repositoryNameSupplier, VersionParser versionParser) {
         super(repositoryNameSupplier, versionParser);
     }
 
@@ -70,7 +71,8 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
 
     @Override
     public RepositoryContentDescriptorInternal asMutableCopy() {
-        DefaultMavenRepositoryContentDescriptor copy = new DefaultMavenRepositoryContentDescriptor(getRepositoryNameSupplier(), getVersionParser());
+        DefaultMavenRepositoryContentDescriptor copy =
+                new DefaultMavenRepositoryContentDescriptor(getRepositoryNameSupplier(), getVersionParser());
         if (getIncludedConfigurations() != null) {
             copy.setIncludedConfigurations(Sets.newHashSet(getIncludedConfigurations()));
         }

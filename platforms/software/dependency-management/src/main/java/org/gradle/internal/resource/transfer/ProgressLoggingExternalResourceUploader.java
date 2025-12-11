@@ -16,6 +16,9 @@
 
 package org.gradle.internal.resource.transfer;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import org.gradle.internal.logging.progress.ProgressLoggingInputStream;
 import org.gradle.internal.logging.progress.ResourceOperation;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -27,15 +30,13 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceWriteBuildOperationType;
 import org.gradle.internal.resource.ReadableContent;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-
-public class ProgressLoggingExternalResourceUploader extends AbstractProgressLoggingHandler implements ExternalResourceUploader {
+public class ProgressLoggingExternalResourceUploader extends AbstractProgressLoggingHandler
+        implements ExternalResourceUploader {
     private final ExternalResourceUploader delegate;
     private final BuildOperationRunner buildOperationRunner;
 
-    public ProgressLoggingExternalResourceUploader(ExternalResourceUploader delegate, BuildOperationRunner buildOperationRunner) {
+    public ProgressLoggingExternalResourceUploader(
+            ExternalResourceUploader delegate, BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
         this.buildOperationRunner = buildOperationRunner;
     }
@@ -72,7 +73,8 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         }
     }
 
-    private static class PutOperationDetails extends LocationDetails implements ExternalResourceWriteBuildOperationType.Details {
+    private static class PutOperationDetails extends LocationDetails
+            implements ExternalResourceWriteBuildOperationType.Details {
         private PutOperationDetails(URI location) {
             super(location);
         }
@@ -110,10 +112,9 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor
-                .displayName("Upload " + destination.getUri())
-                .progressDisplayName(destination.getShortDisplayName())
-                .details(new PutOperationDetails(destination.getUri()));
+            return BuildOperationDescriptor.displayName("Upload " + destination.getUri())
+                    .progressDisplayName(destination.getShortDisplayName())
+                    .details(new PutOperationDetails(destination.getUri()));
         }
     }
 }

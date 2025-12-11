@@ -50,16 +50,15 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     private final InternalOptions options;
 
     public FileSystemWatchingBuildActionRunner(
-        BuildOperationProgressEventEmitter eventEmitter,
-        BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-        DeploymentRegistryInternal deploymentRegistry,
-        StatStatistics.Collector statStatisticsCollector,
-        FileHasherStatistics.Collector fileHasherStatisticsCollector,
-        DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
-        BuildOperationRunner buildOperationRunner,
-        InternalOptions options,
-        BuildActionRunner delegate
-    ) {
+            BuildOperationProgressEventEmitter eventEmitter,
+            BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+            DeploymentRegistryInternal deploymentRegistry,
+            StatStatistics.Collector statStatisticsCollector,
+            FileHasherStatistics.Collector fileHasherStatisticsCollector,
+            DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
+            BuildOperationRunner buildOperationRunner,
+            InternalOptions options,
+            BuildActionRunner delegate) {
         this.eventEmitter = eventEmitter;
         this.virtualFileSystem = virtualFileSystem;
         this.deploymentRegistry = deploymentRegistry;
@@ -76,13 +75,12 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         StartParameterInternal startParameter = action.getStartParameter();
 
         WatchMode watchFileSystemMode = startParameter.getWatchFileSystemMode();
-        VfsLogging verboseVfsLogging = startParameter.isVfsVerboseLogging()
-            ? VfsLogging.VERBOSE
-            : VfsLogging.NORMAL;
+        VfsLogging verboseVfsLogging = startParameter.isVfsVerboseLogging() ? VfsLogging.VERBOSE : VfsLogging.NORMAL;
 
         LOGGER.info("Watching the file system is configured to be {}", watchFileSystemMode.getDescription());
 
-        boolean continuousBuild = startParameter.isContinuous() || !deploymentRegistry.getRunningDeployments().isEmpty();
+        boolean continuousBuild = startParameter.isContinuous()
+                || !deploymentRegistry.getRunningDeployments().isEmpty();
 
         if (continuousBuild && watchFileSystemMode == WatchMode.DEFAULT) {
             // Try to watch as much as possible when using continuous build.
@@ -92,7 +90,11 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             dropVirtualFileSystemIfRequested(options, virtualFileSystem);
         }
         if (verboseVfsLogging == VfsLogging.VERBOSE) {
-            logVfsStatistics("since last build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
+            logVfsStatistics(
+                    "since last build",
+                    statStatisticsCollector,
+                    fileHasherStatisticsCollector,
+                    directorySnapshotterStatisticsCollector);
         }
 
         if (action.getStartParameter().getProjectCacheDir() != null) {
@@ -101,7 +103,10 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             // See https://github.com/gradle/gradle/issues/17262
             switch (watchFileSystemMode) {
                 case ENABLED:
-                    throw new IllegalStateException("Enabling file system watching via --watch-fs (or via the " + StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY + " property) with --project-cache-dir also specified is not supported; remove either option to fix this problem");
+                    throw new IllegalStateException(
+                            "Enabling file system watching via --watch-fs (or via the "
+                                    + StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY
+                                    + " property) with --project-cache-dir also specified is not supported; remove either option to fix this problem");
                 case DEFAULT:
                     LOGGER.info("File system watching is disabled because --project-cache-dir is specified");
                     watchFileSystemMode = WatchMode.DISABLED;
@@ -112,11 +117,8 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         }
 
         LOGGER.debug("Watching the file system computed to be {}", watchFileSystemMode.getDescription());
-        boolean actuallyWatching = virtualFileSystem.afterBuildStarted(
-            watchFileSystemMode,
-            verboseVfsLogging,
-            buildOperationRunner
-        );
+        boolean actuallyWatching =
+                virtualFileSystem.afterBuildStarted(watchFileSystemMode, verboseVfsLogging, buildOperationRunner);
         LOGGER.info("File system watching is {}", actuallyWatching ? "active" : "inactive");
         //noinspection Convert2Lambda
         eventEmitter.emitNowForCurrent(new FileSystemWatchingSettingsFinalizedProgressDetails() {
@@ -134,32 +136,33 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         try {
             return delegate.run(action, buildController);
         } finally {
-            int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(options);
+            int maximumNumberOfWatchedHierarchies =
+                    VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(options);
             virtualFileSystem.beforeBuildFinished(
-                watchFileSystemMode,
-                verboseVfsLogging,
-                buildOperationRunner,
-                maximumNumberOfWatchedHierarchies
-            );
+                    watchFileSystemMode, verboseVfsLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
             if (verboseVfsLogging == VfsLogging.VERBOSE) {
-                logVfsStatistics("during current build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
+                logVfsStatistics(
+                        "during current build",
+                        statStatisticsCollector,
+                        fileHasherStatisticsCollector,
+                        directorySnapshotterStatisticsCollector);
             }
         }
     }
 
     private static void logVfsStatistics(
-        String title,
-        StatStatistics.Collector statStatisticsCollector,
-        FileHasherStatistics.Collector fileHasherStatisticsCollector,
-        DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector
-    ) {
+            String title,
+            StatStatistics.Collector statStatisticsCollector,
+            FileHasherStatistics.Collector fileHasherStatisticsCollector,
+            DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector) {
         LOGGER.warn("VFS> Statistics {}:", title);
         LOGGER.warn("VFS> > Stat: {}", statStatisticsCollector.collect());
         LOGGER.warn("VFS> > FileHasher: {}", fileHasherStatisticsCollector.collect());
         LOGGER.warn("VFS> > DirectorySnapshotter: {}", directorySnapshotterStatisticsCollector.collect());
     }
 
-    private static void dropVirtualFileSystemIfRequested(InternalOptions options, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {
+    private static void dropVirtualFileSystemIfRequested(
+            InternalOptions options, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {
         if (VirtualFileSystemServices.isDropVfs(options)) {
             virtualFileSystem.invalidateAll();
         }

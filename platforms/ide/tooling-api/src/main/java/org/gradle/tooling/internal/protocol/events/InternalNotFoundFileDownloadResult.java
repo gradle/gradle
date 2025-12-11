@@ -21,6 +21,4 @@ package org.gradle.tooling.internal.protocol.events;
  *
  * @since 8.1
  */
-
-public interface InternalNotFoundFileDownloadResult extends InternalFileDownloadResult {
-}
+public interface InternalNotFoundFileDownloadResult extends InternalFileDownloadResult {}

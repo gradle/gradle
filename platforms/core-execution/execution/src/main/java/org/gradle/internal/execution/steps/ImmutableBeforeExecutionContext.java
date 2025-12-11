@@ -17,19 +17,15 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import java.util.Optional;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
-import java.util.Optional;
-
 public class ImmutableBeforeExecutionContext extends WorkspaceContext implements BeforeExecutionContext {
     private final BeforeExecutionState beforeExecutionState;
 
-    public ImmutableBeforeExecutionContext(
-        WorkspaceContext parent,
-        BeforeExecutionState beforeExecutionState
-    ) {
+    public ImmutableBeforeExecutionContext(WorkspaceContext parent, BeforeExecutionState beforeExecutionState) {
         super(parent);
         this.beforeExecutionState = beforeExecutionState;
     }

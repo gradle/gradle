@@ -16,14 +16,14 @@
 
 package org.gradle.internal.authentication;
 
+import java.util.Map;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Map;
-
 @ServiceScope(Scope.Build.class)
 public interface AuthenticationSchemeRegistry {
     <T extends Authentication> void registerScheme(Class<T> type, final Class<? extends T> implementationType);
+
     <T extends Authentication> Map<Class<T>, Class<? extends T>> getRegisteredSchemes();
 }

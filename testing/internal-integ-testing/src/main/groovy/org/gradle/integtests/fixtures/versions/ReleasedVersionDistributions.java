@@ -16,20 +16,19 @@
 
 package org.gradle.integtests.fixtures.versions;
 
+import static org.gradle.util.internal.CollectionUtils.findFirst;
+import static org.gradle.util.internal.CollectionUtils.sort;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Properties;
+import java.util.stream.Collectors;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.internal.Factory;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
-import static org.gradle.util.internal.CollectionUtils.findFirst;
-import static org.gradle.util.internal.CollectionUtils.sort;
 
 /**
  * Provides access to {@link GradleDistribution}s for versions of Gradle that have been released.
@@ -88,17 +87,16 @@ public class ReleasedVersionDistributions {
     public List<GradleDistribution> getAll() {
         if (distributions == null) {
             distributions = CollectionUtils.collect(
-                getProperties().getProperty("versions").split("\\s+"),
-                buildContext::distribution
-            );
+                    getProperties().getProperty("versions").split("\\s+"), buildContext::distribution);
         }
         return distributions;
     }
 
     public List<GradleDistribution> getSupported() {
         return getAll().stream()
-            .filter(element -> element.getVersion().compareTo(DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION) >= 0)
-            .collect(Collectors.toList());
+                .filter(element ->
+                        element.getVersion().compareTo(DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION) >= 0)
+                .collect(Collectors.toList());
     }
 
     public GradleDistribution getDistribution(final GradleVersion gradleVersion) {

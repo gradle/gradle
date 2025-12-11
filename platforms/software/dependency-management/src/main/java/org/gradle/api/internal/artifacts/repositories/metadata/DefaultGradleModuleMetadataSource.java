@@ -15,6 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -42,23 +46,23 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * TODO: This class sources Gradle metadata files, but there's no corresponding ModuleComponentResolveMetadata for this metadata yet.
  * Because of this, we will generate an empty instance (either a Ivy or Maven) based on the repository type.
  */
 public class DefaultGradleModuleMetadataSource implements MetadataSource<MutableModuleComponentResolveMetadata> {
     private final GradleModuleMetadataParser metadataParser;
-    private final MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory;
+    private final MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata>
+            mutableModuleMetadataFactory;
     private final boolean listVersions;
     private final ChecksumService checksumService;
 
     @Inject
-    public DefaultGradleModuleMetadataSource(GradleModuleMetadataParser metadataParser, MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory, boolean listVersions, ChecksumService checksumService) {
+    public DefaultGradleModuleMetadataSource(
+            GradleModuleMetadataParser metadataParser,
+            MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory,
+            boolean listVersions,
+            ChecksumService checksumService) {
         this.metadataParser = metadataParser;
         this.mutableModuleMetadataFactory = mutableModuleMetadataFactory;
         this.listVersions = listVersions;
@@ -66,12 +70,21 @@ public class DefaultGradleModuleMetadataSource implements MetadataSource<Mutable
     }
 
     @Override
-    public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
-        DefaultIvyArtifactName moduleMetadataArtifact = new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "module", "module");
-        DefaultModuleComponentArtifactMetadata artifactId = new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, moduleMetadataArtifact);
+    public MutableModuleComponentResolveMetadata create(
+            String repositoryName,
+            ComponentResolvers componentResolvers,
+            ModuleComponentIdentifier moduleComponentIdentifier,
+            ComponentOverrideMetadata prescribedMetaData,
+            ExternalResourceArtifactResolver artifactResolver,
+            BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
+        DefaultIvyArtifactName moduleMetadataArtifact =
+                new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "module", "module");
+        DefaultModuleComponentArtifactMetadata artifactId =
+                new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, moduleMetadataArtifact);
         LocallyAvailableExternalResource gradleMetadataArtifact = artifactResolver.resolveArtifact(artifactId, result);
         if (gradleMetadataArtifact != null) {
-            MutableModuleComponentResolveMetadata metaDataFromResource = mutableModuleMetadataFactory.createForGradleModuleMetadata(moduleComponentIdentifier);
+            MutableModuleComponentResolveMetadata metaDataFromResource =
+                    mutableModuleMetadataFactory.createForGradleModuleMetadata(moduleComponentIdentifier);
             metadataParser.parse(gradleMetadataArtifact, metaDataFromResource);
             validateGradleMetadata(metaDataFromResource);
             createModuleSources(artifactId, gradleMetadataArtifact, metaDataFromResource);
@@ -81,11 +94,15 @@ public class DefaultGradleModuleMetadataSource implements MetadataSource<Mutable
         return null;
     }
 
-    private void createModuleSources(DefaultModuleComponentArtifactMetadata artifactId, LocallyAvailableExternalResource gradleMetadataArtifact, MutableModuleComponentResolveMetadata metaDataFromResource) {
+    private void createModuleSources(
+            DefaultModuleComponentArtifactMetadata artifactId,
+            LocallyAvailableExternalResource gradleMetadataArtifact,
+            MutableModuleComponentResolveMetadata metaDataFromResource) {
         MutableModuleSources sources = metaDataFromResource.getSources();
         File file = gradleMetadataArtifact.getFile();
         sources.add(new ModuleDescriptorHashModuleSource(checksumService.md5(file), metaDataFromResource.isChanging()));
-        sources.add(new DefaultMetadataFileSource(artifactId.getId(), file, findSha1(gradleMetadataArtifact.getMetaData(), file)));
+        sources.add(new DefaultMetadataFileSource(
+                artifactId.getId(), file, findSha1(gradleMetadataArtifact.getMetaData(), file)));
     }
 
     private HashCode findSha1(ExternalResourceMetaData metaData, File artifact) {
@@ -99,12 +116,19 @@ public class DefaultGradleModuleMetadataSource implements MetadataSource<Mutable
     private static void validateGradleMetadata(MutableModuleComponentResolveMetadata metaDataFromResource) {
         List<? extends MutableComponentVariant> mutableVariants = metaDataFromResource.getMutableVariants();
         if (mutableVariants == null || mutableVariants.isEmpty()) {
-            throw new InvalidUserDataException("Gradle Module Metadata for module " + metaDataFromResource.getModuleVersionId() + " is invalid because it doesn't declare any variant");
+            throw new InvalidUserDataException("Gradle Module Metadata for module "
+                    + metaDataFromResource.getModuleVersionId() + " is invalid because it doesn't declare any variant");
         }
     }
 
     @Override
-    public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
+    public void listModuleVersions(
+            ModuleComponentSelector selector,
+            ComponentOverrideMetadata overrideMetadata,
+            List<ResourcePattern> ivyPatterns,
+            List<ResourcePattern> artifactPatterns,
+            VersionLister versionLister,
+            BuildableModuleVersionListingResolveResult result) {
         if (listVersions) {
             // List modules based on metadata files, but only if we won't check for maven-metadata (which is preferred)
             ModuleIdentifier module = selector.getModuleIdentifier();
@@ -117,7 +141,8 @@ public class DefaultGradleModuleMetadataSource implements MetadataSource<Mutable
         if (metaDataFromResource.getId() instanceof MavenUniqueSnapshotComponentIdentifier) {
             // Action needed only for Maven unique snapshots
             // Verify that the URL of the artifacts properly references the unique version and not -SNAPSHOT
-            MavenUniqueSnapshotComponentIdentifier uniqueIdentifier = (MavenUniqueSnapshotComponentIdentifier) metaDataFromResource.getId();
+            MavenUniqueSnapshotComponentIdentifier uniqueIdentifier =
+                    (MavenUniqueSnapshotComponentIdentifier) metaDataFromResource.getId();
             for (MutableComponentVariant mutableVariant : metaDataFromResource.getMutableVariants()) {
                 List<ComponentVariant.File> invalidFiles = null;
                 for (ComponentVariant.File file : mutableVariant.getFiles()) {
@@ -131,11 +156,12 @@ public class DefaultGradleModuleMetadataSource implements MetadataSource<Mutable
                 if (invalidFiles != null) {
                     for (ComponentVariant.File invalidFile : invalidFiles) {
                         mutableVariant.removeFile(invalidFile);
-                        mutableVariant.addFile(invalidFile.getName(), invalidFile.getUri().replace("SNAPSHOT", uniqueIdentifier.getTimestamp()));
+                        mutableVariant.addFile(
+                                invalidFile.getName(),
+                                invalidFile.getUri().replace("SNAPSHOT", uniqueIdentifier.getTimestamp()));
                     }
                 }
             }
         }
     }
-
 }

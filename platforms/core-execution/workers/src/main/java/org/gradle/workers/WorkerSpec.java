@@ -25,5 +25,4 @@ import org.gradle.internal.HasInternalProtocol;
  * @since 5.6
  */
 @HasInternalProtocol
-public interface WorkerSpec {
-}
+public interface WorkerSpec {}

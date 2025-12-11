@@ -33,7 +33,9 @@ public class DefaultExecutionEngine implements ExecutionEngine {
     private final DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> pipeline;
     private final InternalProblems problems;
 
-    public DefaultExecutionEngine(DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> pipeline, InternalProblems problems) {
+    public DefaultExecutionEngine(
+            DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> pipeline,
+            InternalProblems problems) {
         this.pipeline = pipeline;
         this.problems = problems;
     }
@@ -43,13 +45,14 @@ public class DefaultExecutionEngine implements ExecutionEngine {
         return new Request() {
             @Nullable
             private String nonIncrementalReason;
+
             @Nullable
             private WorkValidationContext validationContext;
 
             private ExecutionRequestContext createExecutionRequestContext() {
                 WorkValidationContext validationContext = this.validationContext != null
-                    ? this.validationContext
-                    : new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems);
+                        ? this.validationContext
+                        : new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems);
                 return new ExecutionRequestContext(nonIncrementalReason, validationContext);
             }
 

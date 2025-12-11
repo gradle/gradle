@@ -27,7 +27,8 @@ import org.gradle.util.GradleVersion;
 @ServiceScope(Scope.Global.class)
 public class DocumentationRegistry {
     public static final String BASE_URL_WITHOUT_VERSION = "https://docs.gradle.org/";
-    public static final String BASE_URL = BASE_URL_WITHOUT_VERSION + GradleVersion.current().getVersion();
+    public static final String BASE_URL =
+            BASE_URL_WITHOUT_VERSION + GradleVersion.current().getVersion();
     public static final String DSL_PROPERTY_URL_FORMAT = "%s/dsl/%s.html#%s:%s";
     public static final String KOTLIN_DSL_URL_FORMAT = "%s/kotlin-dsl/gradle/%s";
     public static final String LEARN_MORE_STRING = "Learn more about Gradle by exploring our Samples at ";
@@ -42,15 +43,14 @@ public class DocumentationRegistry {
 
     private void validateId(String id) {
         if (id.endsWith(".html") || id.endsWith(".adoc")) {
-            throw new IllegalArgumentException("The id '" + id + "' should not end with '.html' or '.adoc'. " +
-                "Provide an id without its file extension to reference documentation.");
+            throw new IllegalArgumentException("The id '" + id + "' should not end with '.html' or '.adoc'. "
+                    + "Provide an id without its file extension to reference documentation.");
         }
         if (id.contains("#")) {
-            throw new IllegalArgumentException("The id '" + id + "' should not contain a '#' character. " +
-                "Use getDocumentationFor(id, section) to reference a section anchor in documentation.");
+            throw new IllegalArgumentException("The id '" + id + "' should not contain a '#' character. "
+                    + "Use getDocumentationFor(id, section) to reference a section anchor in documentation.");
         }
     }
-
 
     /**
      * Returns the location of the documentation for the given feature, referenced by id and section. The location may be local or remote.
@@ -62,8 +62,8 @@ public class DocumentationRegistry {
 
     private void validateSection(String section) {
         if (section.contains("#")) {
-            throw new IllegalArgumentException("The section '" + section + "' should not contain a '#' character. " +
-                "Provide only the section name without a leading '#'.");
+            throw new IllegalArgumentException("The section '" + section + "' should not contain a '#' character. "
+                    + "Provide only the section name without a leading '#'.");
         }
     }
 
@@ -113,7 +113,6 @@ public class DocumentationRegistry {
         String url = docLink.getUrl();
         return getRecommendationString(topic, url == null ? "<N/A>" : url);
     }
-
 
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
 

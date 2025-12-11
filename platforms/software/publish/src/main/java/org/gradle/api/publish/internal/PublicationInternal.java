@@ -15,6 +15,7 @@
  */
 package org.gradle.api.publish.internal;
 
+import java.io.File;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -23,8 +24,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
-
-import java.io.File;
 
 public interface PublicationInternal<T extends PublicationArtifact> extends Publication, ProjectComponentPublication {
     ModuleVersionIdentifier getCoordinates();
@@ -71,7 +70,6 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
 
     boolean isPublishBuildId();
 
-
     interface PublishedFile {
         String getName();
 
@@ -80,6 +78,7 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
 
     interface DerivedArtifact {
         boolean shouldBePublished();
+
         File create();
     }
 }

@@ -18,6 +18,12 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.Execution.ExecutionOutcome;
@@ -43,13 +49,6 @@ import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-
 public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipEmptyMutableWorkStep.class);
 
@@ -61,12 +60,11 @@ public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionConte
     protected final Step<? super PreviousExecutionContext, ? extends CachingResult> delegate;
 
     public SkipEmptyMutableWorkStep(
-        ExecutionProblemHandler problemHandler,
-        OutputChangeListener outputChangeListener,
-        WorkInputListeners workInputListeners,
-        Supplier<OutputsCleaner> outputsCleanerSupplier,
-        Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
-    ) {
+            ExecutionProblemHandler problemHandler,
+            OutputChangeListener outputChangeListener,
+            WorkInputListeners workInputListeners,
+            Supplier<OutputsCleaner> outputsCleanerSupplier,
+            Step<? super PreviousExecutionContext, ? extends CachingResult> delegate) {
         this.problemHandler = problemHandler;
         this.workInputListeners = workInputListeners;
         this.outputChangeListener = outputChangeListener;
@@ -76,40 +74,50 @@ public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionConte
 
     @Override
     protected CachingResult executeMutable(MutableUnitOfWork work, PreviousExecutionContext context) {
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints = context.getInputFileProperties();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints =
+                context.getInputFileProperties();
         ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots = context.getInputProperties();
-        InputFingerprinter.Result newInputs = fingerprintPrimaryInputs(work, context, knownFileFingerprints, knownValueSnapshots);
+        InputFingerprinter.Result newInputs =
+                fingerprintPrimaryInputs(work, context, knownFileFingerprints, knownValueSnapshots);
 
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties = newInputs.getFileFingerprints();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties =
+                newInputs.getFileFingerprints();
         if (sourceFileProperties.isEmpty()) {
             return executeWithNonEmptySources(work, context);
         } else {
             if (hasEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)) {
                 return skipExecutionWithEmptySources(work, context);
             } else {
-                return executeWithNonEmptySources(work, recreateContextWithNewInputFiles(context, newInputs.getAllFileFingerprints()));
+                return executeWithNonEmptySources(
+                        work, recreateContextWithNewInputFiles(context, newInputs.getAllFileFingerprints()));
             }
         }
     }
 
-    private static boolean hasEmptySources(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties, ImmutableSet<String> propertiesRequiringIsEmptyCheck, UnitOfWork work) {
+    private static boolean hasEmptySources(
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties,
+            ImmutableSet<String> propertiesRequiringIsEmptyCheck,
+            UnitOfWork work) {
         if (propertiesRequiringIsEmptyCheck.isEmpty()) {
-            return sourceFileProperties.values().stream()
-                .allMatch(CurrentFileCollectionFingerprint::isEmpty);
+            return sourceFileProperties.values().stream().allMatch(CurrentFileCollectionFingerprint::isEmpty);
         } else {
             // We need to check the underlying file collections for properties in propertiesRequiringIsEmptyCheck,
             // since those are backed by files which may be empty archives.
             // And being empty archives is not reflected in the fingerprint.
-            return hasEmptyFingerprints(sourceFileProperties, propertyName -> !propertiesRequiringIsEmptyCheck.contains(propertyName))
-                && hasEmptyInputFileCollections(work, propertiesRequiringIsEmptyCheck::contains);
+            return hasEmptyFingerprints(
+                            sourceFileProperties,
+                            propertyName -> !propertiesRequiringIsEmptyCheck.contains(propertyName))
+                    && hasEmptyInputFileCollections(work, propertiesRequiringIsEmptyCheck::contains);
         }
     }
 
-    private static boolean hasEmptyFingerprints(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties, Predicate<String> propertyNameFilter) {
+    private static boolean hasEmptyFingerprints(
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties,
+            Predicate<String> propertyNameFilter) {
         return sourceFileProperties.entrySet().stream()
-            .filter(entry -> propertyNameFilter.test(entry.getKey()))
-            .map(Map.Entry::getValue)
-            .allMatch(CurrentFileCollectionFingerprint::isEmpty);
+                .filter(entry -> propertyNameFilter.test(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .allMatch(CurrentFileCollectionFingerprint::isEmpty);
     }
 
     private static boolean hasEmptyInputFileCollections(UnitOfWork work, Predicate<String> propertyNameFilter) {
@@ -118,7 +126,8 @@ public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionConte
         return visitor.isAllEmpty();
     }
 
-    protected PreviousExecutionContext recreateContextWithNewInputFiles(PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles) {
+    protected PreviousExecutionContext recreateContextWithNewInputFiles(
+            PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles) {
         return new PreviousExecutionContext(context) {
             @Override
             public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
@@ -129,20 +138,22 @@ public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionConte
 
     protected ImmutableSortedMap<String, ValueSnapshot> getKnownInputProperties(PreviousExecutionContext context) {
         return context.getPreviousExecutionState()
-            .map(ExecutionInputState::getInputProperties)
-            .orElse(ImmutableSortedMap.of());
+                .map(ExecutionInputState::getInputProperties)
+                .orElse(ImmutableSortedMap.of());
     }
 
-    protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getKnownInputFileProperties(PreviousExecutionContext context) {
+    protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getKnownInputFileProperties(
+            PreviousExecutionContext context) {
         return context.getPreviousExecutionState()
-            .map(ExecutionInputState::getInputFileProperties)
-            .orElse(ImmutableSortedMap.of());
+                .map(ExecutionInputState::getInputFileProperties)
+                .orElse(ImmutableSortedMap.of());
     }
 
     protected CachingResult performSkip(UnitOfWork work, PreviousExecutionContext context) {
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesAfterPreviousExecution = context.getPreviousExecutionState()
-            .map(PreviousExecutionState::getOutputFilesProducedByWork)
-            .orElse(ImmutableSortedMap.of());
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesAfterPreviousExecution =
+                context.getPreviousExecutionState()
+                        .map(PreviousExecutionState::getOutputFilesProducedByWork)
+                        .orElse(ImmutableSortedMap.of());
 
         ExecutionOutcome skipOutcome;
         Timer timer = Time.startTimer();
@@ -160,15 +171,19 @@ public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionConte
                 skipOutcome = Execution.ExecutionOutcome.SHORT_CIRCUITED;
             }
         }
-        Duration duration = skipOutcome == Execution.ExecutionOutcome.SHORT_CIRCUITED ? Duration.ZERO : Duration.ofMillis(timer.getElapsedMillis());
-        return CachingResult.shortcutResult(duration, Execution.skipped(skipOutcome, work), null, executionReason, null);
+        Duration duration = skipOutcome == Execution.ExecutionOutcome.SHORT_CIRCUITED
+                ? Duration.ZERO
+                : Duration.ofMillis(timer.getElapsedMillis());
+        return CachingResult.shortcutResult(
+                duration, Execution.skipped(skipOutcome, work), null, executionReason, null);
     }
 
     private boolean cleanPreviousOutputs(Map<String, FileSystemSnapshot> outputFileSnapshots) {
         OutputsCleaner outputsCleaner = outputsCleanerSupplier.get();
         for (FileSystemSnapshot outputFileSnapshot : outputFileSnapshots.values()) {
             try {
-                outputChangeListener.invalidateCachesFor(SnapshotUtil.rootIndex(outputFileSnapshot).keySet());
+                outputChangeListener.invalidateCachesFor(
+                        SnapshotUtil.rootIndex(outputFileSnapshot).keySet());
                 outputsCleaner.cleanupOutputs(outputFileSnapshot);
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -177,21 +192,27 @@ public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionConte
         return outputsCleaner.getDidWork();
     }
 
-    private InputFingerprinter.Result fingerprintPrimaryInputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints, ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots) {
-        return work.getInputFingerprinter().fingerprintInputProperties(
-            getKnownInputProperties(context),
-            getKnownInputFileProperties(context),
-            knownValueSnapshots,
-            knownFileFingerprints,
-            visitor -> work.visitMutableInputs(new InputVisitor() {
-                @Override
-                public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
-                    if (behavior.shouldSkipWhenEmpty()) {
-                        visitor.visitInputFileProperty(propertyName, behavior, value);
-                    }
-                }
-            }),
-            work.getInputDependencyChecker(context.getValidationContext()));
+    private InputFingerprinter.Result fingerprintPrimaryInputs(
+            UnitOfWork work,
+            PreviousExecutionContext context,
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints,
+            ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots) {
+        return work.getInputFingerprinter()
+                .fingerprintInputProperties(
+                        getKnownInputProperties(context),
+                        getKnownInputFileProperties(context),
+                        knownValueSnapshots,
+                        knownFileFingerprints,
+                        visitor -> work.visitMutableInputs(new InputVisitor() {
+                            @Override
+                            public void visitInputFileProperty(
+                                    String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
+                                if (behavior.shouldSkipWhenEmpty()) {
+                                    visitor.visitInputFileProperty(propertyName, behavior, value);
+                                }
+                            }
+                        }),
+                        work.getInputDependencyChecker(context.getValidationContext()));
     }
 
     private CachingResult skipExecutionWithEmptySources(UnitOfWork work, PreviousExecutionContext context) {

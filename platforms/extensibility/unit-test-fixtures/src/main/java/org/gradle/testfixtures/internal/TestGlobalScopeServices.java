@@ -39,7 +39,10 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
 
     @Provides
     @Override
-    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
+    protected CacheFactory createCacheFactory(
+            FileLockManager fileLockManager,
+            ExecutorFactory executorFactory,
+            BuildOperationRunner buildOperationRunner) {
         return new TestInMemoryCacheFactory();
     }
 
@@ -51,10 +54,9 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
     @Provides
     @Override
     protected BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
-        Clock clock,
-        CurrentBuildOperationRef currentBuildOperationRef,
-        BuildOperationListenerManager listenerManager
-    ) {
+            Clock clock,
+            CurrentBuildOperationRef currentBuildOperationRef,
+            BuildOperationListenerManager listenerManager) {
         return new NoOpBuildOperationProgressEventEmitter();
     }
 }

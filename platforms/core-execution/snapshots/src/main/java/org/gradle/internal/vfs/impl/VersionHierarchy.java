@@ -16,12 +16,11 @@
 
 package org.gradle.internal.vfs.impl;
 
+import javax.annotation.CheckReturnValue;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.ChildMap;
 import org.gradle.internal.snapshot.EmptyChildMap;
 import org.gradle.internal.snapshot.VfsRelativePath;
-
-import javax.annotation.CheckReturnValue;
 
 /**
  * Node in a structure for tracking modifications in a hierarchy.
@@ -83,33 +82,36 @@ public class VersionHierarchy {
      * @param newVersion The new version. Must be bigger than the current maximum version in this hierarchy.
      */
     @CheckReturnValue
-    public VersionHierarchy updateVersion(VfsRelativePath relativePath, long newVersion, CaseSensitivity caseSensitivity) {
-        ChildMap<VersionHierarchy> newChildren = children.store(relativePath, caseSensitivity, new ChildMap.StoreHandler<VersionHierarchy>() {
-            @Override
-            public VersionHierarchy handleAsDescendantOfChild(VfsRelativePath pathInChild, VersionHierarchy child) {
-                return child.updateVersion(pathInChild, newVersion, caseSensitivity);
-            }
+    public VersionHierarchy updateVersion(
+            VfsRelativePath relativePath, long newVersion, CaseSensitivity caseSensitivity) {
+        ChildMap<VersionHierarchy> newChildren =
+                children.store(relativePath, caseSensitivity, new ChildMap.StoreHandler<VersionHierarchy>() {
+                    @Override
+                    public VersionHierarchy handleAsDescendantOfChild(
+                            VfsRelativePath pathInChild, VersionHierarchy child) {
+                        return child.updateVersion(pathInChild, newVersion, caseSensitivity);
+                    }
 
-            @Override
-            public VersionHierarchy handleAsAncestorOfChild(String childPath, VersionHierarchy child) {
-                return createChild();
-            }
+                    @Override
+                    public VersionHierarchy handleAsAncestorOfChild(String childPath, VersionHierarchy child) {
+                        return createChild();
+                    }
 
-            @Override
-            public VersionHierarchy mergeWithExisting(VersionHierarchy child) {
-                return createChild();
-            }
+                    @Override
+                    public VersionHierarchy mergeWithExisting(VersionHierarchy child) {
+                        return createChild();
+                    }
 
-            @Override
-            public VersionHierarchy createChild() {
-                return VersionHierarchy.empty(newVersion);
-            }
+                    @Override
+                    public VersionHierarchy createChild() {
+                        return VersionHierarchy.empty(newVersion);
+                    }
 
-            @Override
-            public VersionHierarchy createNodeFromChildren(ChildMap<VersionHierarchy> children) {
-                return new VersionHierarchy(children, version, newVersion);
-            }
-        });
+                    @Override
+                    public VersionHierarchy createNodeFromChildren(ChildMap<VersionHierarchy> children) {
+                        return new VersionHierarchy(children, version, newVersion);
+                    }
+                });
         return new VersionHierarchy(newChildren, version, newVersion);
     }
 

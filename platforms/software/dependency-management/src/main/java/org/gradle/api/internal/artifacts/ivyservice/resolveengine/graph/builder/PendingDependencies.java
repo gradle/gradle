@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.api.artifacts.ModuleIdentifier;
 
 /**
  * Tracks hard (non-constraint) dependencies targeting a given module. A module should end up in a graph if it has

@@ -22,7 +22,8 @@ import org.jspecify.annotations.Nullable;
 
 public class DefaultManagedFactoryRegistry implements ManagedFactoryRegistry {
     private final ManagedFactoryRegistry parent;
-    private final Cache<Integer, ManagedFactory> managedFactoryCache = CacheBuilder.newBuilder().build();
+    private final Cache<Integer, ManagedFactory> managedFactoryCache =
+            CacheBuilder.newBuilder().build();
 
     public DefaultManagedFactoryRegistry(ManagedFactoryRegistry parent) {
         this.parent = parent;
@@ -52,7 +53,9 @@ public class DefaultManagedFactoryRegistry implements ManagedFactoryRegistry {
     private void register(ManagedFactory factory) {
         ManagedFactory existing = managedFactoryCache.getIfPresent(factory.getId());
         if (existing != null) {
-            throw new IllegalArgumentException("A managed factory with type " + existing.getClass().getSimpleName() + " (id: " + existing.getId() + ") has already been registered.");
+            throw new IllegalArgumentException(
+                    "A managed factory with type " + existing.getClass().getSimpleName() + " (id: " + existing.getId()
+                            + ") has already been registered.");
         }
         managedFactoryCache.put(factory.getId(), factory);
     }

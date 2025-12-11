@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.source;
 
-import org.gradle.api.tasks.testing.source.DirectorySource;
-
 import java.io.File;
+import org.gradle.api.tasks.testing.source.DirectorySource;
 
 public final class DefaultDirectorySource implements DirectorySource {
 

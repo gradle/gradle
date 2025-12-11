@@ -21,5 +21,4 @@ import org.gradle.authentication.Authentication;
 /**
  * Authentication scheme for digest access authentication over HTTP.
  */
-public interface DigestAuthentication extends Authentication {
-}
+public interface DigestAuthentication extends Authentication {}

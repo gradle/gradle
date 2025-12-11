@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.io.IOException;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
@@ -24,8 +25,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.jspecify.annotations.Nullable;
-
-import java.io.IOException;
 
 /**
  * Caches the result of hashing regular files with a {@link ResourceHasher}.
@@ -37,7 +36,8 @@ public class CachingResourceHasher implements ResourceHasher {
     private final ResourceSnapshotterCacheService resourceSnapshotterCacheService;
     private final HashCode delegateConfigurationHash;
 
-    public CachingResourceHasher(ResourceHasher delegate, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
+    public CachingResourceHasher(
+            ResourceHasher delegate, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
         this.delegate = delegate;
         this.resourceSnapshotterCacheService = resourceSnapshotterCacheService;
         Hasher hasher = Hashing.newHasher();

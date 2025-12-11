@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.provider.Property;
@@ -29,8 +30,6 @@ import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
-
-import java.util.List;
 
 public interface IvyModuleDescriptorSpecInternal extends IvyModuleDescriptorSpec {
 

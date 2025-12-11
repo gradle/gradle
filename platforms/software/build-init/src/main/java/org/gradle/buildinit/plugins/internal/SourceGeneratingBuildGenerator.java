@@ -16,16 +16,15 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * Generator for some software and an associated Gradle build.
@@ -34,7 +33,8 @@ public class SourceGeneratingBuildGenerator extends AbstractBuildGenerator imple
     private final ProjectGenerator descriptor;
     private final List<? extends BuildContentGenerator> generators;
 
-    public SourceGeneratingBuildGenerator(ProjectGenerator projectGenerator, List<? extends BuildContentGenerator> generators) {
+    public SourceGeneratingBuildGenerator(
+            ProjectGenerator projectGenerator, List<? extends BuildContentGenerator> generators) {
         super(projectGenerator, generators);
         this.generators = generators;
         this.descriptor = projectGenerator;
@@ -112,19 +112,23 @@ public class SourceGeneratingBuildGenerator extends AbstractBuildGenerator imple
 
     @Override
     public Map<String, List<String>> generateWithExternalComments(InitSettings settings) {
-        BuildContentGenerationContext buildContentGenerationContext = new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(false));
+        BuildContentGenerationContext buildContentGenerationContext =
+                new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(false));
         if (!(descriptor instanceof LanguageSpecificAdaptor)) {
             throw new UnsupportedOperationException();
         }
         for (BuildContentGenerator generator : generators) {
             if (generator instanceof SimpleGlobalFilesBuildSettingsDescriptor) {
-                ((SimpleGlobalFilesBuildSettingsDescriptor) generator).generateWithoutComments(settings, buildContentGenerationContext);
+                ((SimpleGlobalFilesBuildSettingsDescriptor) generator)
+                        .generateWithoutComments(settings, buildContentGenerationContext);
             } else {
                 generator.generate(settings, buildContentGenerationContext);
             }
         }
-        Map<String, List<String>> comments = ((LanguageSpecificAdaptor) descriptor).generateWithExternalComments(settings, buildContentGenerationContext);
-        VersionCatalogGenerator.create(settings.getTarget()).generate(buildContentGenerationContext, settings.isWithComments());
+        Map<String, List<String>> comments = ((LanguageSpecificAdaptor) descriptor)
+                .generateWithExternalComments(settings, buildContentGenerationContext);
+        VersionCatalogGenerator.create(settings.getTarget())
+                .generate(buildContentGenerationContext, settings.isWithComments());
         return comments;
     }
 }

@@ -16,6 +16,8 @@
 
 package gradlebuild.docs;
 
+import gradlebuild.docs.dsl.docbook.AssembleDslDocTask;
+import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -24,8 +26,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
-import gradlebuild.docs.dsl.docbook.AssembleDslDocTask;
-import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask;
 
 /**
  * Generates DSL reference material using Docbook and some homegrown class parsing.
@@ -44,13 +44,20 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
         generateDslReference(project, layout, tasks, objects, extension);
     }
 
-    private void generateDslReference(Project project, ProjectLayout layout, TaskContainer tasks, ObjectFactory objects, GradleDocumentationExtension extension) {
+    private void generateDslReference(
+            Project project,
+            ProjectLayout layout,
+            TaskContainer tasks,
+            ObjectFactory objects,
+            GradleDocumentationExtension extension) {
         DslReference dslReference = extension.getDslReference();
 
-        TaskProvider<ExtractDslMetaDataTask> dslMetaData = tasks.register("dslMetaData", ExtractDslMetaDataTask.class, task -> {
-            task.source(extension.getDocumentedSource());
-            task.getDestinationFile().convention(dslReference.getStagingRoot().file("dsl-meta-data.bin"));
-        });
+        TaskProvider<ExtractDslMetaDataTask> dslMetaData =
+                tasks.register("dslMetaData", ExtractDslMetaDataTask.class, task -> {
+                    task.source(extension.getDocumentedSource());
+                    task.getDestinationFile()
+                            .convention(dslReference.getStagingRoot().file("dsl-meta-data.bin"));
+                });
 
         TaskProvider<AssembleDslDocTask> dslDocbook = tasks.register("dslDocbook", AssembleDslDocTask.class, task -> {
             task.getSourceFile().convention(dslReference.getRoot().file("dsl.xml"));
@@ -62,17 +69,19 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
             task.getLinksFile().convention(dslReference.getStagingRoot().file("api-links.bin"));
         });
 
-        TaskProvider<UserGuideTransformTask> dslStandaloneDocbook = tasks.register("dslStandaloneDocbook", UserGuideTransformTask.class, task -> {
-            task.getVersion().convention(project.provider(() -> project.getVersion().toString()));
-            task.getSourceFile().convention(dslDocbook.flatMap(AssembleDslDocTask::getDestFile));
-            task.getLinksFile().convention(dslDocbook.flatMap(AssembleDslDocTask::getLinksFile));
+        TaskProvider<UserGuideTransformTask> dslStandaloneDocbook =
+                tasks.register("dslStandaloneDocbook", UserGuideTransformTask.class, task -> {
+                    task.getVersion().convention(project.provider(() -> project.getVersion()
+                            .toString()));
+                    task.getSourceFile().convention(dslDocbook.flatMap(AssembleDslDocTask::getDestFile));
+                    task.getLinksFile().convention(dslDocbook.flatMap(AssembleDslDocTask::getLinksFile));
 
-            task.getDsldocUrl().convention("../dsl");
-            task.getJavadocUrl().convention("../javadoc");
-            task.getWebsiteUrl().convention("https://gradle.org");
+                    task.getDsldocUrl().convention("../dsl");
+                    task.getJavadocUrl().convention("../javadoc");
+                    task.getWebsiteUrl().convention("https://gradle.org");
 
-            task.getDestFile().convention(dslReference.getStagingRoot().file("index.xml"));
-        });
+                    task.getDestFile().convention(dslReference.getStagingRoot().file("index.xml"));
+                });
 
         Configuration userGuideTask = project.getConfigurations().create("userGuideTask");
         Configuration userGuideStyleSheetConf = project.getConfigurations().create("userGuideStyleSheets");
@@ -89,7 +98,8 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
 
             task.getClasspath().from(userGuideTask);
 
-            task.getDestinationDirectory().convention(dslReference.getStagingRoot().dir("dsl"));
+            task.getDestinationDirectory()
+                    .convention(dslReference.getStagingRoot().dir("dsl"));
         });
 
         extension.dslReference(dslRef -> {
@@ -103,11 +113,13 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
 
             dslRef.getRoot().convention(extension.getSourceRoot().dir("dsl"));
             dslRef.getStylesheetDirectory().convention(extension.getSourceRoot().dir("stylesheets"));
-            dslRef.getHighlightStylesheet().convention(dslRef.getStylesheetDirectory().file("custom-highlight/custom-xslthl-config.xml"));
+            dslRef.getHighlightStylesheet()
+                    .convention(dslRef.getStylesheetDirectory().file("custom-highlight/custom-xslthl-config.xml"));
 
             dslRef.getStagingRoot().convention(extension.getStagingRoot().dir("dsl"));
 
-            dslRef.getGeneratedMetaDataFile().convention(dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile));
+            dslRef.getGeneratedMetaDataFile()
+                    .convention(dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile));
 
             dslRef.getRenderedDocumentation().from(dslRef.getResources());
             dslRef.getRenderedDocumentation().from(dslHtml.flatMap(Docbook2Xhtml::getDestinationDirectory));

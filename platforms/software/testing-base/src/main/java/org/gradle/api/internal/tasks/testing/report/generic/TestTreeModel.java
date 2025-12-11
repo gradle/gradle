@@ -20,13 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
-import org.gradle.api.internal.tasks.testing.results.serializable.OutputRanges;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
-import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.util.Path;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -38,13 +31,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputRanges;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The model for the test report. Each root is merged into a single tree, but each result is preserved under its root's name, so no merging takes place aside from by name.
  */
 public class TestTreeModel {
 
-    private static final TestTreeModel EMPTY_MODEL = new TestTreeModel(SmallPath.ROOT, ImmutableList.of(), ImmutableList.of());
+    private static final TestTreeModel EMPTY_MODEL =
+            new TestTreeModel(SmallPath.ROOT, ImmutableList.of(), ImmutableList.of());
 
     /**
      * Variant of {@link Path} optimized for minimal memory usage.
@@ -56,6 +56,7 @@ public class TestTreeModel {
 
         @Nullable
         private final SmallPath parent;
+
         private final String segment;
 
         private SmallPath(@Nullable SmallPath parent, String segment) {
@@ -146,7 +147,7 @@ public class TestTreeModel {
 
         @Override
         public void process(long id, @Nullable Long parentId, SerializableTestResult result, OutputRanges outputRanges)
-            throws IOException {
+                throws IOException {
             List<Child> children = childrenByParentId.get(id);
             int totalLeafCount = 0;
             int failedLeafCount = 0;
@@ -175,7 +176,15 @@ public class TestTreeModel {
                     childIsLeaf.set(i);
                 }
             }
-            PerRootInfo.Builder thisInfo = new PerRootInfo.Builder(id, result, outputRanges, childNames, childIsLeaf, totalLeafCount, failedLeafCount, skippedLeafCount);
+            PerRootInfo.Builder thisInfo = new PerRootInfo.Builder(
+                    id,
+                    result,
+                    outputRanges,
+                    childNames,
+                    childIsLeaf,
+                    totalLeafCount,
+                    failedLeafCount,
+                    skippedLeafCount);
             if (parentId == null) {
                 // We have the root, so now we can resolve all paths and attach to the models.
                 finalizePath(SmallPath.ROOT, id, thisInfo);
@@ -187,22 +196,26 @@ public class TestTreeModel {
         private void finalizePath(SmallPath path, long id, PerRootInfo.Builder rootInfo) {
             // We use LinkedHashMap for the roots to keep them in the order of declaration in TestReport.
             // We use LinkedHashMap for the children to keep them in the order of results in the store.
-            TestTreeModel.Builder model = modelsByPath.computeIfAbsent(path, p -> new TestTreeModel.Builder(rootCount, p));
+            TestTreeModel.Builder model =
+                    modelsByPath.computeIfAbsent(path, p -> new TestTreeModel.Builder(rootCount, p));
 
             List<PerRootInfo.Builder> existingRootInfos = model.perRootInfoBuilders.get(rootIndex);
             if (!existingRootInfos.isEmpty()) {
-                // Only merge non-leaf nodes.  Leaf nodes might be repeated by test retries, so we'll want to add them all to the model.
-                // The merging is necessary to support test engines like TestNG which can split test methods in a single class between
-                // multiple test workers.  These results must be recombined in the model to get the correct counts and report structure.
+                // Only merge non-leaf nodes.  Leaf nodes might be repeated by test retries, so we'll want to add them
+                // all to the model.
+                // The merging is necessary to support test engines like TestNG which can split test methods in a single
+                // class between
+                // multiple test workers.  These results must be recombined in the model to get the correct counts and
+                // report structure.
                 boolean isLeaf = rootInfo.isLeaf();
                 if (isLeaf) {
                     existingRootInfos.add(rootInfo);
                 } else {
                     // Merge into the one that is also not a leaf if possible, otherwise just merge into the first one.
                     PerRootInfo.Builder toMerge = existingRootInfos.stream()
-                        .filter(info -> !info.isLeaf())
-                        .findFirst()
-                        .orElseGet(() -> existingRootInfos.get(0));
+                            .filter(info -> !info.isLeaf())
+                            .findFirst()
+                            .orElseGet(() -> existingRootInfos.get(0));
                     toMerge.merge(rootInfo);
                 }
             } else {
@@ -239,13 +252,14 @@ public class TestTreeModel {
 
         private List<List<PerRootInfo>> buildPerRootInfos() {
             ImmutableList.Builder<List<PerRootInfo>> perRootInfosBuilder =
-                ImmutableList.builderWithExpectedSize(perRootInfoBuilders.size());
+                    ImmutableList.builderWithExpectedSize(perRootInfoBuilders.size());
             for (int i = 0; i < perRootInfoBuilders.size(); i++) {
                 List<PerRootInfo.Builder> builders = perRootInfoBuilders.get(i);
                 // Clean up per root info builders as we build, to let GC reclaim their memory.
                 perRootInfoBuilders.set(i, ImmutableList.of());
 
-                ImmutableList.Builder<PerRootInfo> infosBuilder = ImmutableList.builderWithExpectedSize(builders.size());
+                ImmutableList.Builder<PerRootInfo> infosBuilder =
+                        ImmutableList.builderWithExpectedSize(builders.size());
                 for (PerRootInfo.Builder builder : builders) {
                     infosBuilder.add(builder.build());
                 }
@@ -258,10 +272,7 @@ public class TestTreeModel {
             int size = children.size();
             ImmutableList.Builder<TestTreeModel> childrenBuilder = ImmutableList.builderWithExpectedSize(size);
             // Clean up child map as we build, to let GC reclaim their memory.
-            for (
-                Iterator<TestTreeModel.Builder> iterator = children.values().iterator();
-                iterator.hasNext();
-            ) {
+            for (Iterator<TestTreeModel.Builder> iterator = children.values().iterator(); iterator.hasNext(); ) {
                 Builder value = iterator.next();
                 iterator.remove();
                 childrenBuilder.add(value.build());
@@ -274,11 +285,7 @@ public class TestTreeModel {
     private final List<List<PerRootInfo>> perRootInfo;
     private final List<TestTreeModel> children;
 
-    private TestTreeModel(
-        SmallPath path,
-        List<List<PerRootInfo>> perRootInfo,
-        List<TestTreeModel> children
-    ) {
+    private TestTreeModel(SmallPath path, List<List<PerRootInfo>> perRootInfo, List<TestTreeModel> children) {
         this.path = path;
         this.perRootInfo = perRootInfo;
         this.children = children;
@@ -308,9 +315,9 @@ public class TestTreeModel {
     public Iterable<TestTreeModel> getChildrenOf(int rootIndex) {
         // There should only be one perRootInfo with children.
         PerRootInfo perRootInfoWithChildren = perRootInfo.get(rootIndex).stream()
-            .filter(info -> !info.getChildren().isEmpty())
-            .findFirst()
-            .orElse(null);
+                .filter(info -> !info.getChildren().isEmpty())
+                .findFirst()
+                .orElse(null);
         if (perRootInfoWithChildren == null) {
             return Collections.emptyList();
         }

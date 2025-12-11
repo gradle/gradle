@@ -17,10 +17,9 @@
 package org.gradle.internal.logging.events;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.List;
 
 public class YesNoQuestionPromptEvent extends PromptOutputEvent {
     public static final List<String> YES_NO_CHOICES = ImmutableList.of("yes", "no");

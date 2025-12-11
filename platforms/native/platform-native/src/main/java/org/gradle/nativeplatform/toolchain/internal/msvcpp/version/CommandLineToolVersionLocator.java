@@ -18,6 +18,11 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.stream.JsonReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
@@ -30,14 +35,9 @@ import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.internal.VersionNumber;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
-
 @ServiceScope(Scope.BuildSession.class)
-public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
+public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLocator
+        implements VisualStudioVersionLocator {
     private static final Logger LOGGER = Logging.getLogger(CommandLineToolVersionLocator.class);
 
     private final ExecActionFactory execActionFactory;
@@ -47,7 +47,10 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
     private static final String INSTALLATION_PATH_KEY = "installationPath";
     private static final String INSTALLATION_VERSION_KEY = "installationVersion";
 
-    public CommandLineToolVersionLocator(ExecActionFactory execActionFactory, VisualCppMetadataProvider visualCppMetadataProvider, VswhereVersionLocator vswhereLocator) {
+    public CommandLineToolVersionLocator(
+            ExecActionFactory execActionFactory,
+            VisualCppMetadataProvider visualCppMetadataProvider,
+            VswhereVersionLocator vswhereLocator) {
         this.execActionFactory = execActionFactory;
         this.visualCppMetadataProvider = visualCppMetadataProvider;
         this.vswhereLocator = vswhereLocator;
@@ -135,18 +138,20 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
         reader.endObject();
 
         File visualStudioInstallDir = new File(visualStudioInstallPath);
-        VisualCppInstallCandidate visualCppMetadata = findVisualCppMetadata(visualStudioInstallDir, visualStudioVersion);
+        VisualCppInstallCandidate visualCppMetadata =
+                findVisualCppMetadata(visualStudioInstallDir, visualStudioVersion);
 
         if (visualCppMetadata == null) {
-            LOGGER.debug("Ignoring candidate Visual Studio version " + visualStudioVersion + " at " + visualStudioInstallPath + " because it does not appear to be a valid installation");
+            LOGGER.debug("Ignoring candidate Visual Studio version " + visualStudioVersion + " at "
+                    + visualStudioInstallPath + " because it does not appear to be a valid installation");
             return null;
         } else {
             return new VisualStudioMetadataBuilder()
-                .installDir(visualStudioInstallDir)
-                .visualCppDir(visualCppMetadata.getVisualCppDir())
-                .version(VersionNumber.parse(visualStudioVersion))
-                .visualCppVersion(visualCppMetadata.getVersion())
-                .build();
+                    .installDir(visualStudioInstallDir)
+                    .visualCppDir(visualCppMetadata.getVisualCppDir())
+                    .version(VersionNumber.parse(visualStudioVersion))
+                    .visualCppVersion(visualCppMetadata.getVersion())
+                    .build();
         }
     }
 

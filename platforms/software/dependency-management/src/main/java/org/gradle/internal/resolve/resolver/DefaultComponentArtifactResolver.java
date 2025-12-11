@@ -17,13 +17,12 @@
 package org.gradle.internal.resolve.resolver;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * Default implementation of {@link ComponentArtifactResolver}.
@@ -33,14 +32,16 @@ public class DefaultComponentArtifactResolver implements ComponentArtifactResolv
     private final ComponentArtifactResolveMetadata component;
     private final ArtifactResolver artifactResolver;
 
-    public DefaultComponentArtifactResolver(ComponentArtifactResolveMetadata component, ArtifactResolver artifactResolver) {
+    public DefaultComponentArtifactResolver(
+            ComponentArtifactResolveMetadata component, ArtifactResolver artifactResolver) {
         this.component = component;
         this.artifactResolver = artifactResolver;
     }
 
     @Override
     public Set<ResolvableArtifact> resolveArtifacts(List<? extends ComponentArtifactMetadata> artifacts) {
-        ImmutableSet.Builder<ResolvableArtifact> resolvedArtifacts = ImmutableSet.builderWithExpectedSize(artifacts.size());
+        ImmutableSet.Builder<ResolvableArtifact> resolvedArtifacts =
+                ImmutableSet.builderWithExpectedSize(artifacts.size());
         for (ComponentArtifactMetadata artifact : artifacts) {
             DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(component, artifact, result);

@@ -15,10 +15,9 @@
  */
 package org.gradle.internal.lazy;
 
-import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.Supplier;
+import javax.annotation.concurrent.ThreadSafe;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This is basically the same thing as Guava's NonSerializableMemoizingSupplier

@@ -17,6 +17,13 @@
 package org.gradle.api.reporting.dependencies.internal;
 
 import com.google.gson.stream.JsonWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -35,14 +42,6 @@ import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReport
 import org.gradle.internal.Actions;
 import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.Nullable;
-
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  * Renderer that emits a JSON tree containing the HTML dependency report structure for a given project. The structure is the following:
@@ -105,7 +104,10 @@ import java.util.Set;
  * </pre>
  */
 class JsonProjectDependencyRenderer {
-    public JsonProjectDependencyRenderer(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
+    public JsonProjectDependencyRenderer(
+            VersionSelectorScheme versionSelectorScheme,
+            VersionComparator versionComparator,
+            VersionParser versionParser) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
@@ -116,12 +118,15 @@ class JsonProjectDependencyRenderer {
      *
      * @param project the project for which the report must be generated
      */
-    public void render(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, Writer writer) throws IOException {
+    public void render(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, Writer writer)
+            throws IOException {
         JsonWriter json = new JsonWriter(writer);
         writeProject(project, configurations, json);
     }
 
-    private void writeProject(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, JsonWriter json) throws IOException {
+    private void writeProject(
+            ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, JsonWriter json)
+            throws IOException {
         json.beginObject();
         json.name("gradleVersion").value(GradleVersion.current().toString());
         json.name("generationDate").value(new Date().toString());
@@ -146,21 +151,25 @@ class JsonProjectDependencyRenderer {
 
     private void writeDependencies(ConfigurationDetails configuration, JsonWriter json) throws IOException {
         if (configuration.isCanBeResolved()) {
-            RenderableDependency root = new RenderableModuleResult(configuration.getResolutionResultRoot().get());
+            RenderableDependency root = new RenderableModuleResult(
+                    configuration.getResolutionResultRoot().get());
             writeDependencyChildren(root, new HashSet<>(), json, "dependencies");
         } else {
             writeDependencyChildren(configuration.getUnresolvableResult(), new HashSet<>(), json, "dependencies");
         }
     }
 
-    private void writeDependencyChildren(RenderableDependency dependency, final Set<Object> visited, JsonWriter json, String fieldName) throws IOException {
+    private void writeDependencyChildren(
+            RenderableDependency dependency, final Set<Object> visited, JsonWriter json, String fieldName)
+            throws IOException {
         Iterable<? extends RenderableDependency> children = dependency.getChildren();
         json.name(fieldName);
         json.beginArray();
         for (RenderableDependency childDependency : children) {
             json.beginObject();
             boolean alreadyVisited = !visited.add(childDependency.getId());
-            boolean alreadyRendered = alreadyVisited && !childDependency.getChildren().isEmpty();
+            boolean alreadyRendered =
+                    alreadyVisited && !childDependency.getChildren().isEmpty();
             String name = replaceArrow(childDependency.getName());
             boolean hasConflict = !name.equals(childDependency.getName());
             ModuleIdentifier moduleIdentifier = getModuleIdentifier(childDependency);
@@ -177,7 +186,6 @@ class JsonProjectDependencyRenderer {
                 json.endArray();
             }
             json.endObject();
-
         }
         json.endArray();
     }
@@ -205,7 +213,8 @@ class JsonProjectDependencyRenderer {
     private Set<ModuleIdentifier> collectModules(ConfigurationDetails configuration) {
         RenderableDependency root;
         if (configuration.isCanBeResolved()) {
-            root = new RenderableModuleResult(configuration.getResolutionResultRoot().get());
+            root = new RenderableModuleResult(
+                    configuration.getResolutionResultRoot().get());
         } else {
             root = configuration.getUnresolvableResult();
         }
@@ -215,7 +224,8 @@ class JsonProjectDependencyRenderer {
         return modules;
     }
 
-    private void populateModulesWithChildDependencies(RenderableDependency dependency, Set<ComponentIdentifier> visited, Set<ModuleIdentifier> modules) {
+    private void populateModulesWithChildDependencies(
+            RenderableDependency dependency, Set<ComponentIdentifier> visited, Set<ModuleIdentifier> modules) {
         for (RenderableDependency childDependency : dependency.getChildren()) {
             ModuleIdentifier moduleId = getModuleIdentifier(childDependency);
             if (moduleId == null) {
@@ -229,24 +239,40 @@ class JsonProjectDependencyRenderer {
         }
     }
 
-    private void writeModuleInsight(ModuleIdentifier module, ConfigurationDetails configuration, JsonWriter json) throws IOException {
+    private void writeModuleInsight(ModuleIdentifier module, ConfigurationDetails configuration, JsonWriter json)
+            throws IOException {
         json.name("module").value(module.toString());
         json.name("insight");
-        writeInsight(module, configuration.getName(), configuration.getResolutionResultRoot().get(), json);
+        writeInsight(
+                module,
+                configuration.getName(),
+                configuration.getResolutionResultRoot().get(),
+                json);
     }
 
-    private void writeInsight(ModuleIdentifier module, String configurationName, ResolvedComponentResult incomingResolution, JsonWriter json) throws IOException {
+    private void writeInsight(
+            ModuleIdentifier module,
+            String configurationName,
+            ResolvedComponentResult incomingResolution,
+            JsonWriter json)
+            throws IOException {
         json.beginArray();
         final Spec<DependencyResult> dependencySpec = new StrictDependencyResultSpec(module);
 
         final Set<DependencyResult> selectedDependencies = new LinkedHashSet<>();
-        DefaultResolvedComponentResult.eachElement(incomingResolution, Actions.doNothing(), it -> {
-            if (dependencySpec.isSatisfiedBy(it)) {
-                selectedDependencies.add(it);
-            }
-        }, new HashSet<>());
+        DefaultResolvedComponentResult.eachElement(
+                incomingResolution,
+                Actions.doNothing(),
+                it -> {
+                    if (dependencySpec.isSatisfiedBy(it)) {
+                        selectedDependencies.add(it);
+                    }
+                },
+                new HashSet<>());
 
-        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter(versionSelectorScheme, versionComparator, versionParser).convertToRenderableItems(selectedDependencies, false);
+        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter(
+                        versionSelectorScheme, versionComparator, versionParser)
+                .convertToRenderableItems(selectedDependencies, false);
 
         for (RenderableDependency dependency : sortedDeps) {
             json.beginObject();
@@ -262,7 +288,9 @@ class JsonProjectDependencyRenderer {
         json.endArray();
     }
 
-    private void writeInsightDependencyChildren(RenderableDependency dependency, final Set<Object> visited, final String configurationName, JsonWriter json) throws IOException {
+    private void writeInsightDependencyChildren(
+            RenderableDependency dependency, final Set<Object> visited, final String configurationName, JsonWriter json)
+            throws IOException {
         json.beginArray();
         Iterable<? extends RenderableDependency> children = dependency.getChildren();
         for (RenderableDependency childDependency : children) {

@@ -16,10 +16,9 @@
 
 package org.gradle.internal.properties;
 
+import java.util.concurrent.Callable;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.jspecify.annotations.Nullable;
-
-import java.util.concurrent.Callable;
 
 /**
  * A supplier of a property value.

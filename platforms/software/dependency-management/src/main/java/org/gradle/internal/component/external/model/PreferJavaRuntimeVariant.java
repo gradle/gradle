@@ -17,6 +17,8 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.LibraryElements;
@@ -27,9 +29,6 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFac
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.inject.Inject;
-import java.util.Set;
 
 /**
  * When no consumer attributes are provided, prefer the Java runtime variant over the API variant.
@@ -48,9 +47,7 @@ public class PreferJavaRuntimeVariant {
 
     @Inject
     public PreferJavaRuntimeVariant(
-        NamedObjectInstantiator instantiator,
-        ImmutableAttributesSchemaFactory schemaFactory
-    ) {
+            NamedObjectInstantiator instantiator, ImmutableAttributesSchemaFactory schemaFactory) {
         this.instance = create(instantiator, schemaFactory);
     }
 
@@ -59,36 +56,30 @@ public class PreferJavaRuntimeVariant {
     }
 
     private static ImmutableAttributesSchema create(
-        NamedObjectInstantiator instantiator,
-        ImmutableAttributesSchemaFactory schemaFactory
-    ) {
+            NamedObjectInstantiator instantiator, ImmutableAttributesSchemaFactory schemaFactory) {
         Usage runtimeUsage = instantiator.named(Usage.class, Usage.JAVA_RUNTIME);
         LibraryElements jarLibraryElements = instantiator.named(LibraryElements.class, LibraryElements.JAR);
 
-        PreferRuntimeVariantUsageDisambiguationRule usageDisambiguationRule = new PreferRuntimeVariantUsageDisambiguationRule(runtimeUsage);
-        PreferJarVariantUsageDisambiguationRule formatDisambiguationRule = new PreferJarVariantUsageDisambiguationRule(jarLibraryElements);
+        PreferRuntimeVariantUsageDisambiguationRule usageDisambiguationRule =
+                new PreferRuntimeVariantUsageDisambiguationRule(runtimeUsage);
+        PreferJarVariantUsageDisambiguationRule formatDisambiguationRule =
+                new PreferJarVariantUsageDisambiguationRule(jarLibraryElements);
 
         ImmutableMap<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> strategies =
-            ImmutableMap.of(
-                Usage.USAGE_ATTRIBUTE,
-                new ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<>(
-                    ImmutableList.of(),
-                    ImmutableList.of(usageDisambiguationRule)
-                ),
-                LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                new ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<>(
-                    ImmutableList.of(),
-                    ImmutableList.of(formatDisambiguationRule)
-                )
-            );
+                ImmutableMap.of(
+                        Usage.USAGE_ATTRIBUTE,
+                        new ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<>(
+                                ImmutableList.of(), ImmutableList.of(usageDisambiguationRule)),
+                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        new ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<>(
+                                ImmutableList.of(), ImmutableList.of(formatDisambiguationRule)));
 
         return schemaFactory.create(
-            strategies,
-            ImmutableList.of(Usage.USAGE_ATTRIBUTE, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)
-        );
+                strategies, ImmutableList.of(Usage.USAGE_ATTRIBUTE, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE));
     }
 
-    private static class PreferRuntimeVariantUsageDisambiguationRule implements Action<MultipleCandidatesDetails<Usage>> {
+    private static class PreferRuntimeVariantUsageDisambiguationRule
+            implements Action<MultipleCandidatesDetails<Usage>> {
         private final Usage runtimeUsage;
 
         public PreferRuntimeVariantUsageDisambiguationRule(Usage runtimeUsage) {
@@ -106,7 +97,8 @@ public class PreferJavaRuntimeVariant {
         }
     }
 
-    private static class PreferJarVariantUsageDisambiguationRule implements Action<MultipleCandidatesDetails<LibraryElements>> {
+    private static class PreferJarVariantUsageDisambiguationRule
+            implements Action<MultipleCandidatesDetails<LibraryElements>> {
         private final LibraryElements jarLibraryElements;
 
         public PreferJarVariantUsageDisambiguationRule(LibraryElements jarLibraryElements) {

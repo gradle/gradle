@@ -16,11 +16,11 @@
 
 package org.gradle.internal.hash;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Output stream decorator that hashes data written to the stream.

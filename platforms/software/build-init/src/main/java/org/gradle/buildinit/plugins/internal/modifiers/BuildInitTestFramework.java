@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public enum BuildInitTestFramework implements WithIdentifier {
-
     NONE("none"),
     JUNIT("JUnit 4"),
     TESTNG("TestNG"),

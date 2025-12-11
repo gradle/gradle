@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.plugins;
 
+import java.lang.reflect.Modifier;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.lang.reflect.Modifier;
 
 /**
  * An instantiator that uses the correct instantiation scheme depending on the plugin type.  This allows
@@ -39,7 +38,8 @@ public class PluginInstantiator implements Instantiator {
     }
 
     @Override
-    public <T> T newInstance(Class<? extends T> type, @Nullable Object... parameters) throws ObjectInstantiationException {
+    public <T> T newInstance(Class<? extends T> type, @Nullable Object... parameters)
+            throws ObjectInstantiationException {
         // If the plugin type is abstract, it likely has abstract methods that should be implemented
         // during class generation. In this case, we should use the decorated instantiator to create
         // the plugin instance.  Otherwise, we should use the injected instantiator to create the plugin

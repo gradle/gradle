@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.events.problems.internal;
 
+import java.util.List;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.ContextualLabel;
@@ -26,8 +27,6 @@ import org.gradle.tooling.events.problems.ProblemDefinition;
 import org.gradle.tooling.events.problems.Solution;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 @NullMarked
 public class DefaultProblem implements Problem {
@@ -41,14 +40,14 @@ public class DefaultProblem implements Problem {
     private final Failure failure;
 
     public DefaultProblem(
-        ProblemDefinition problemDefinition,
-        ContextualLabel contextualLabel,
-        Details details,
-        List<Location> originLocations,
-        List<Location> contextualLocations,
-        List<Solution> solutions,
-        AdditionalData additionalData,
-        @Nullable Failure failure) {
+            ProblemDefinition problemDefinition,
+            ContextualLabel contextualLabel,
+            Details details,
+            List<Location> originLocations,
+            List<Location> contextualLocations,
+            List<Solution> solutions,
+            AdditionalData additionalData,
+            @Nullable Failure failure) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
         this.details = details;

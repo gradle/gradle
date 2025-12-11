@@ -16,6 +16,14 @@
 
 package org.gradle.language.cpp.plugins;
 
+import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildOnHost;
+import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDefaultTargetMachine;
+
+import java.io.File;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.stream.Stream;
+import javax.inject.Inject;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
@@ -42,15 +50,6 @@ import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.stream.Stream;
-
-import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildOnHost;
-import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDefaultTargetMachine;
-
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
  *
@@ -72,7 +71,11 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
      * @since 4.2
      */
     @Inject
-    public CppLibraryPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, AttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
+    public CppLibraryPlugin(
+            NativeComponentFactory componentFactory,
+            ToolChainSelector toolChainSelector,
+            AttributesFactory attributesFactory,
+            TargetMachineFactory targetMachineFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
         this.attributesFactory = attributesFactory;
@@ -88,7 +91,8 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
         final ProviderFactory providers = project.getProviders();
 
         // Add the library and extension
-        final DefaultCppLibrary library = componentFactory.newInstance(CppLibrary.class, DefaultCppLibrary.class, "main");
+        final DefaultCppLibrary library =
+                componentFactory.newInstance(CppLibrary.class, DefaultCppLibrary.class, "main");
         project.getExtensions().add(CppLibrary.class, "library", library);
         project.getComponents().add(library);
 
@@ -98,10 +102,11 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
         library.getDevelopmentBinary().convention(project.provider(new Callable<CppBinary>() {
             @Override
             public CppBinary call() throws Exception {
-                return getDebugSharedHostStream().findFirst().orElseGet(
-                        () -> getDebugStaticHostStream().findFirst().orElseGet(
-                                () -> getDebugSharedStream().findFirst().orElseGet(
-                                        () -> getDebugStaticStream().findFirst().orElse(null))));
+                return getDebugSharedHostStream().findFirst().orElseGet(() -> getDebugStaticHostStream()
+                        .findFirst()
+                        .orElseGet(() -> getDebugSharedStream().findFirst().orElseGet(() -> getDebugStaticStream()
+                                .findFirst()
+                                .orElse(null))));
             }
 
             private Stream<CppBinary> getDebugStream() {
@@ -113,7 +118,9 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
             }
 
             private Stream<CppBinary> getDebugSharedHostStream() {
-                return getDebugSharedStream().filter(binary -> Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()));
+                return getDebugSharedStream().filter(binary -> Architectures.forInput(
+                                binary.getTargetMachine().getArchitecture().getName())
+                        .equals(DefaultNativePlatform.host().getArchitecture()));
             }
 
             private Stream<CppBinary> getDebugStaticStream() {
@@ -121,7 +128,9 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
             }
 
             private Stream<CppBinary> getDebugStaticHostStream() {
-                return getDebugStaticStream().filter(binary -> Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()));
+                return getDebugStaticStream().filter(binary -> Architectures.forInput(
+                                binary.getTargetMachine().getArchitecture().getName())
+                        .equals(DefaultNativePlatform.host().getArchitecture()));
             }
         }));
 
@@ -131,16 +140,31 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
 
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
-            Dimensions.libraryVariants(library.getBaseName(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
-                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+            Dimensions.libraryVariants(
+                    library.getBaseName(),
+                    library.getLinkage(),
+                    library.getTargetMachines(),
+                    objectFactory,
+                    attributesFactory,
+                    providers.provider(() -> project.getGroup().toString()),
+                    providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
-                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
+                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(
+                                    CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
 
                             if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {
-                                library.addSharedLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                                library.addSharedLibrary(
+                                        variantIdentity,
+                                        result.getTargetPlatform(),
+                                        result.getToolChain(),
+                                        result.getPlatformToolProvider());
                             } else {
-                                library.addStaticLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                                library.addStaticLibrary(
+                                        variantIdentity,
+                                        result.getTargetPlatform(),
+                                        result.getToolChain(),
+                                        result.getPlatformToolProvider());
                             }
                         } else {
                             // Known, but not buildable
@@ -152,7 +176,9 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
             Provider<File> publicHeaders = providers.provider(() -> {
                 Set<File> files = library.getPublicHeaderDirs().getFiles();
                 if (files.size() != 1) {
-                    throw new UnsupportedOperationException(String.format("The C++ library plugin currently requires exactly one public header directory, however there are %d directories configured: %s", files.size(), files));
+                    throw new UnsupportedOperationException(String.format(
+                            "The C++ library plugin currently requires exactly one public header directory, however there are %d directories configured: %s",
+                            files.size(), files));
                 }
                 return files.iterator().next();
             });
@@ -163,11 +189,16 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
             project.getPluginManager().withPlugin("maven-publish", appliedPlugin -> {
                 final TaskProvider<Zip> headersZip = tasks.register("cppHeaders", Zip.class, task -> {
                     task.from(library.getPublicHeaderFiles());
-                    task.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir("headers"));
+                    task.getDestinationDirectory()
+                            .set(project.getLayout().getBuildDirectory().dir("headers"));
                     task.getArchiveClassifier().set("cpp-api-headers");
                     task.getArchiveFileName().set("cpp-api-headers.zip");
                 });
-                library.getMainPublication().addArtifact(new LazyPublishArtifact(headersZip, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory()));
+                library.getMainPublication()
+                        .addArtifact(new LazyPublishArtifact(
+                                headersZip,
+                                ((ProjectInternal) project).getFileResolver(),
+                                ((ProjectInternal) project).getTaskDependencyFactory()));
             });
 
             library.getBinaries().realizeNow();

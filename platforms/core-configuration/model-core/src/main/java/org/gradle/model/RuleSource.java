@@ -78,5 +78,4 @@ import org.gradle.api.Incubating;
  * </ul>
  */
 @Incubating
-public class RuleSource {
-}
+public class RuleSource {}

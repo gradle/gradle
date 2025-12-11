@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.collect.ImmutableList;
+import java.io.IOException;
+import java.util.List;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
@@ -27,9 +29,6 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  * This component metadata serializer is responsible for serializing metadata that comes out
@@ -43,7 +42,9 @@ public class SuppliedComponentMetadataSerializer extends AbstractSerializer<Comp
     private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer;
     private final AttributeContainerSerializer attributeContainerSerializer;
 
-    public SuppliedComponentMetadataSerializer(ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer, AttributeContainerSerializer attributeContainerSerializer) {
+    public SuppliedComponentMetadataSerializer(
+            ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer,
+            AttributeContainerSerializer attributeContainerSerializer) {
         this.moduleVersionIdentifierSerializer = moduleVersionIdentifierSerializer;
         this.attributeContainerSerializer = attributeContainerSerializer;
     }
@@ -82,7 +83,7 @@ public class SuppliedComponentMetadataSerializer extends AbstractSerializer<Comp
     private List<String> readStatusScheme(Decoder decoder) throws IOException {
         int size = decoder.readSmallInt();
         ImmutableList.Builder<String> scheme = ImmutableList.builder();
-        for (int i=0; i<size; i++) {
+        for (int i = 0; i < size; i++) {
             scheme.add(decoder.readString());
         }
         return scheme.build();

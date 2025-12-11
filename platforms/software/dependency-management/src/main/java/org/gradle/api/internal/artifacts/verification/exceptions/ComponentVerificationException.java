@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.artifacts.verification.exceptions;
 
+import java.util.function.Consumer;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.logging.text.TreeFormatter;
-
-import java.util.function.Consumer;
 
 public class ComponentVerificationException extends GradleException {
 
@@ -44,7 +43,8 @@ public class ComponentVerificationException extends GradleException {
      * @param component the component which failed the verification
      * @param causeErrorFormatter a consumer, which will be called with a {@link TreeFormatter}, and can put extra details what happened
      */
-    public ComponentVerificationException(ModuleComponentIdentifier component, Consumer<TreeFormatter> causeErrorFormatter) {
+    public ComponentVerificationException(
+            ModuleComponentIdentifier component, Consumer<TreeFormatter> causeErrorFormatter) {
         this.component = component;
         this.causeErrorFormatter = causeErrorFormatter;
     }
@@ -53,19 +53,15 @@ public class ComponentVerificationException extends GradleException {
     public String getMessage() {
         final TreeFormatter treeFormatter = new TreeFormatter();
         // Add our header first
-        treeFormatter.node(
-            String.format(
+        treeFormatter.node(String.format(
                 "An error happened while verifying '%s:%s:%s':",
-                component.getGroup(), component.getModule(), component.getVersion()
-            )
-        );
+                component.getGroup(), component.getModule(), component.getVersion()));
 
         if (this.causeErrorFormatter != null) {
             treeFormatter.startChildren();
             // Let the underlying exception explain the situation
             causeErrorFormatter.accept(treeFormatter);
             treeFormatter.endChildren();
-
         }
         return treeFormatter.toString();
     }

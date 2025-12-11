@@ -16,12 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.internal.CollectionUtils;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.newOutputStream;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -33,14 +29,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.newOutputStream;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.internal.CollectionUtils;
 
 @ServiceScope(Scope.Build.class)
 public class TaskStatistics implements Closeable {
-    private final static Logger LOGGER = Logging.getLogger(TaskStatistics.class);
-    private final static String TASK_STATISTICS_PROPERTY = "org.gradle.internal.tasks.stats";
+    private static final Logger LOGGER = Logging.getLogger(TaskStatistics.class);
+    private static final String TASK_STATISTICS_PROPERTY = "org.gradle.internal.tasks.stats";
 
     private final AtomicInteger eagerTasks = new AtomicInteger();
     private final AtomicInteger lazyTasks = new AtomicInteger();
@@ -57,7 +56,8 @@ public class TaskStatistics implements Closeable {
             collectStatistics = true;
             if (!taskStatistics.isEmpty()) {
                 try {
-                    lazyTaskLog = new PrintWriter(new OutputStreamWriter(newOutputStream(Paths.get(taskStatistics)), UTF_8));
+                    lazyTaskLog =
+                            new PrintWriter(new OutputStreamWriter(newOutputStream(Paths.get(taskStatistics)), UTF_8));
                 } catch (IOException e) {
                     // don't care
                 }
@@ -117,13 +117,19 @@ public class TaskStatistics implements Closeable {
             int lazyTaskCount = lazyTasks.getAndSet(0);
             int lazyTaskCreatedCount = lazyRealizedTasks.getAndSet(0);
             int totalTaskCount = eagerTaskCount + lazyTaskCount;
-            LOGGER.lifecycle("Task counts: Old API {}, New API {}, total {}", eagerTaskCount, lazyTaskCount, totalTaskCount);
+            LOGGER.lifecycle(
+                    "Task counts: Old API {}, New API {}, total {}", eagerTaskCount, lazyTaskCount, totalTaskCount);
 
             int createdTaskCount = lazyTaskCreatedCount + eagerTaskCount;
-            LOGGER.lifecycle("Task counts: created {}, avoided {}, %-lazy {}", createdTaskCount, lazyTaskCount-lazyTaskCreatedCount, 100-100*createdTaskCount/totalTaskCount);
+            LOGGER.lifecycle(
+                    "Task counts: created {}, avoided {}, %-lazy {}",
+                    createdTaskCount,
+                    lazyTaskCount - lazyTaskCreatedCount,
+                    100 - 100 * createdTaskCount / totalTaskCount);
 
             printTypeCounts("\nTask types that were created with the old API", typeCounts);
-            printTypeCounts("\nTask types that were registered with the new API but were created anyways", realizedTypeCounts);
+            printTypeCounts(
+                    "\nTask types that were registered with the new API but were created anyways", realizedTypeCounts);
             IoActions.closeQuietly(lazyTaskLog);
         }
     }
@@ -131,12 +137,13 @@ public class TaskStatistics implements Closeable {
     private void printTypeCounts(String header, Map<Class, Integer> typeCounts) {
         if (!typeCounts.isEmpty()) {
             LOGGER.lifecycle(header);
-            List<Map.Entry<Class, Integer>> sorted = CollectionUtils.sort(typeCounts.entrySet(), new Comparator<Map.Entry<Class, Integer>>() {
-                @Override
-                public int compare(Map.Entry<Class, Integer> a, Map.Entry<Class, Integer> b) {
-                    return b.getValue().compareTo(a.getValue());
-                }
-            });
+            List<Map.Entry<Class, Integer>> sorted =
+                    CollectionUtils.sort(typeCounts.entrySet(), new Comparator<Map.Entry<Class, Integer>>() {
+                        @Override
+                        public int compare(Map.Entry<Class, Integer> a, Map.Entry<Class, Integer> b) {
+                            return b.getValue().compareTo(a.getValue());
+                        }
+                    });
             for (Map.Entry<Class, Integer> typeCount : sorted) {
                 LOGGER.lifecycle(typeCount.getKey() + " " + typeCount.getValue());
             }

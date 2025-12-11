@@ -16,12 +16,11 @@
 
 package org.gradle.caching.internal.controller;
 
+import java.util.List;
+import java.util.Map;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-
-import java.util.List;
-import java.util.Map;
 
 public class CacheManifest {
     private final OriginMetadata originMetadata;
@@ -29,7 +28,11 @@ public class CacheManifest {
     private final String identity;
     private final Map<String, List<ManifestEntry>> propertyManifests;
 
-    public CacheManifest(OriginMetadata originMetadata, String workType, String identity, Map<String, List<ManifestEntry>> propertyManifests) {
+    public CacheManifest(
+            OriginMetadata originMetadata,
+            String workType,
+            String identity,
+            Map<String, List<ManifestEntry>> propertyManifests) {
         this.originMetadata = originMetadata;
         this.workType = workType;
         this.identity = identity;

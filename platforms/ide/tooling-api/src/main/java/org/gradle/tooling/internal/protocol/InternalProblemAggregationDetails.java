@@ -22,6 +22,4 @@ import org.jspecify.annotations.NullMarked;
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  */
 @NullMarked
-public interface InternalProblemAggregationDetails extends InternalProblemDetails {
-
-}
+public interface InternalProblemAggregationDetails extends InternalProblemDetails {}

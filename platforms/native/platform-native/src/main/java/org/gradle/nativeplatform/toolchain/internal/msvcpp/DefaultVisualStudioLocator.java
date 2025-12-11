@@ -16,30 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import net.rubygrapefruit.platform.SystemInfo;
-import org.gradle.nativeplatform.platform.Architecture;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator;
-import org.gradle.platform.base.internal.toolchain.ComponentFound;
-import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
-import org.gradle.platform.base.internal.toolchain.SearchResult;
-import org.gradle.util.internal.CollectionUtils;
-import org.gradle.util.internal.VersionNumber;
-import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.AMD64_ON_AMD64;
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.AMD64_ON_X86;
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.ARM64_ON_AMD64;
@@ -55,6 +31,29 @@ import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDe
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_X86_ON_X86;
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.X86_ON_AMD64;
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.X86_ON_X86;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import net.rubygrapefruit.platform.SystemInfo;
+import org.gradle.nativeplatform.platform.Architecture;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator;
+import org.gradle.platform.base.internal.toolchain.ComponentFound;
+import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
+import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultVisualStudioLocator.class);
@@ -72,7 +71,12 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private final SystemInfo systemInfo;
     private boolean initialised;
 
-    public DefaultVisualStudioLocator(VisualStudioVersionLocator commandLineLocator, VisualStudioVersionLocator windowsRegistryLocator, VisualStudioVersionLocator systemPathLocator, VisualStudioMetaDataProvider versionDeterminer, SystemInfo systemInfo) {
+    public DefaultVisualStudioLocator(
+            VisualStudioVersionLocator commandLineLocator,
+            VisualStudioVersionLocator windowsRegistryLocator,
+            VisualStudioVersionLocator systemPathLocator,
+            VisualStudioMetaDataProvider versionDeterminer,
+            SystemInfo systemInfo) {
         this.commandLineLocator = commandLineLocator;
         this.windowsRegistryLocator = windowsRegistryLocator;
         this.systemPathLocator = systemPathLocator;
@@ -123,7 +127,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
     }
 
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     private boolean addInstallIfValid(VisualStudioInstallCandidate install, String source) {
         File visualCppDir = install.getVisualCppDir();
         File visualStudioDir = install.getInstallDir();
@@ -138,13 +143,23 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         if (isValidInstall(install) && install.getVisualCppVersion() != VersionNumber.UNKNOWN) {
             LOGGER.debug("Found Visual C++ {} at {}", install.getVisualCppVersion(), visualCppDir);
             VersionNumber visualStudioVersion = install.getVersion();
-            String visualStudioDisplayVersion = install.getVersion() == VersionNumber.UNKNOWN ? "from " + source : install.getVersion().toString();
-            VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + install.getVisualCppVersion(), visualStudioDir, visualCppDir, install.getVisualCppVersion(), install.getCompatibility());
-            VisualStudioInstall visualStudio = new VisualStudioInstall("Visual Studio " + visualStudioDisplayVersion, visualStudioDir, visualStudioVersion, visualCpp);
+            String visualStudioDisplayVersion = install.getVersion() == VersionNumber.UNKNOWN
+                    ? "from " + source
+                    : install.getVersion().toString();
+            VisualCppInstall visualCpp = buildVisualCppInstall(
+                    "Visual C++ " + install.getVisualCppVersion(),
+                    visualStudioDir,
+                    visualCppDir,
+                    install.getVisualCppVersion(),
+                    install.getCompatibility());
+            VisualStudioInstall visualStudio = new VisualStudioInstall(
+                    "Visual Studio " + visualStudioDisplayVersion, visualStudioDir, visualStudioVersion, visualCpp);
             foundInstalls.put(visualStudioDir, visualStudio);
             return true;
         } else {
-            LOGGER.debug("Ignoring candidate Visual C++ directory {} as it does not look like a Visual C++ installation.", visualCppDir);
+            LOGGER.debug(
+                    "Ignoring candidate Visual C++ directory {} as it does not look like a Visual C++ installation.",
+                    visualCppDir);
             brokenInstalls.add(visualStudioDir);
             return false;
         }
@@ -156,23 +171,30 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         if (install != null && addInstallIfValid(install, "user provided path")) {
             return new ComponentFound<VisualStudioInstall>(foundInstalls.get(install.getInstallDir()));
         } else {
-            LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", candidate);
-            return new ComponentNotFound<VisualStudioInstall>(String.format("The specified installation directory '%s' does not appear to contain a Visual Studio installation.", candidate));
+            LOGGER.debug(
+                    "Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.",
+                    candidate);
+            return new ComponentNotFound<VisualStudioInstall>(String.format(
+                    "The specified installation directory '%s' does not appear to contain a Visual Studio installation.",
+                    candidate));
         }
     }
 
-    private VisualCppInstall buildVisualCppInstall(String name, File vsPath, File basePath, VersionNumber version, Compatibility compatibility) {
+    private VisualCppInstall buildVisualCppInstall(
+            String name, File vsPath, File basePath, VersionNumber version, Compatibility compatibility) {
         switch (compatibility) {
             case LEGACY:
                 return buildLegacyVisualCppInstall(name, vsPath, basePath, version);
             case VS2017_OR_LATER:
                 return buildVisualCppInstall(name, vsPath, basePath, version);
             default:
-                throw new IllegalArgumentException("Cannot build VisualCpp install for unknown compatibility level: " + compatibility);
+                throw new IllegalArgumentException(
+                        "Cannot build VisualCpp install for unknown compatibility level: " + compatibility);
         }
     }
 
-    private VisualCppInstall buildLegacyVisualCppInstall(String name, File vsPath, File basePath, VersionNumber version) {
+    private VisualCppInstall buildLegacyVisualCppInstall(
+            String name, File vsPath, File basePath, VersionNumber version) {
 
         List<ArchitectureDescriptorBuilder> architectureDescriptorBuilders = new ArrayList<>();
 
@@ -192,7 +214,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         // populates descriptors, last descriptor in wins for a given architecture
         Map<Architecture, ArchitectureSpecificVisualCpp> descriptors = new HashMap<>();
         for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
-            ArchitectureSpecificVisualCpp descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
+            ArchitectureSpecificVisualCpp descriptor =
+                    architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
             if (descriptor.isInstalled()) {
                 descriptors.put(architectureDescriptorBuilder.architecture, descriptor);
             }
@@ -222,7 +245,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         // populates descriptors, last descriptor in wins for a given architecture
         Map<Architecture, ArchitectureSpecificVisualCpp> descriptors = new HashMap<>();
         for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
-            ArchitectureSpecificVisualCpp descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
+            ArchitectureSpecificVisualCpp descriptor =
+                    architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
             if (descriptor.isInstalled()) {
                 descriptors.put(architectureDescriptorBuilder.architecture, descriptor);
             }
@@ -244,23 +268,25 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             return new ComponentFound<VisualStudioInstall>(candidate);
         }
         if (brokenInstalls.isEmpty()) {
-            return new ComponentNotFound<VisualStudioInstall>("Could not locate a Visual Studio installation, using the command line tool, Windows registry or system path.");
+            return new ComponentNotFound<VisualStudioInstall>(
+                    "Could not locate a Visual Studio installation, using the command line tool, Windows registry or system path.");
         }
-        return new ComponentNotFound<VisualStudioInstall>("Could not locate a Visual Studio installation. None of the following locations contain a valid installation",
-            CollectionUtils.collect(brokenInstalls, new ArrayList<String>(), File::getAbsolutePath)
-        );
+        return new ComponentNotFound<VisualStudioInstall>(
+                "Could not locate a Visual Studio installation. None of the following locations contain a valid installation",
+                CollectionUtils.collect(brokenInstalls, new ArrayList<String>(), File::getAbsolutePath));
     }
 
     private static boolean isValidInstall(VisualStudioInstallCandidate install) {
         switch (install.getCompatibility()) {
             case LEGACY:
                 return new File(install.getInstallDir(), PATH_COMMON).isDirectory()
-                    && isLegacyVisualCpp(install.getVisualCppDir());
+                        && isLegacyVisualCpp(install.getVisualCppDir());
             case VS2017_OR_LATER:
                 return new File(install.getInstallDir(), PATH_COMMON).isDirectory()
-                    && isVS2017VisualCpp(install.getVisualCppDir());
+                        && isVS2017VisualCpp(install.getVisualCppDir());
             default:
-                throw new IllegalArgumentException("Cannot determine valid install for unknown compatibility: " + install.getCompatibility());
+                throw new IllegalArgumentException(
+                        "Cannot determine valid install for unknown compatibility: " + install.getCompatibility());
         }
     }
 

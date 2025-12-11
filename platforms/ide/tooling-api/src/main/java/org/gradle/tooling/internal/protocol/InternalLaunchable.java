@@ -27,5 +27,4 @@ import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
  *
  * @since 1.12
  */
-public interface InternalLaunchable extends InternalProtocolInterface, GradleProjectIdentity {
-}
+public interface InternalLaunchable extends InternalProtocolInterface, GradleProjectIdentity {}

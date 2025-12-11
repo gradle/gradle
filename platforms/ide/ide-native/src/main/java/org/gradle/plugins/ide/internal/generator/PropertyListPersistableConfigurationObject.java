@@ -16,19 +16,19 @@
 
 package org.gradle.plugins.ide.internal.generator;
 
+import static org.gradle.util.internal.ConfigureUtil.configureUsing;
+
 import com.dd.plist.NSObject;
 import com.dd.plist.PropertyListParser;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.gradle.api.Action;
 import org.gradle.api.internal.PropertyListTransformer;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import static org.gradle.util.internal.ConfigureUtil.configureUsing;
-
-public abstract class PropertyListPersistableConfigurationObject<T extends NSObject> extends AbstractPersistableConfigurationObject {
+public abstract class PropertyListPersistableConfigurationObject<T extends NSObject>
+        extends AbstractPersistableConfigurationObject {
     private final Class<T> clazz;
     private final PropertyListTransformer<T> transformer;
     private T rootObject;

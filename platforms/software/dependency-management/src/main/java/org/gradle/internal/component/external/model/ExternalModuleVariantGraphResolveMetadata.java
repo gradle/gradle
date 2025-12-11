@@ -16,11 +16,10 @@
 
 package org.gradle.internal.component.external.model;
 
+import java.util.List;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
-
-import java.util.List;
 
 /**
  * A variant of an external module component.
@@ -39,5 +38,4 @@ public interface ExternalModuleVariantGraphResolveMetadata extends VariantGraphR
      * Get exclusions to apply to the dependencies and artifacts of this variant.
      */
     List<? extends ExcludeMetadata> getExcludes();
-
 }

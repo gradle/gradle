@@ -15,23 +15,21 @@
  */
 package org.gradle.internal.resource.transport.http;
 
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
-import org.gradle.authentication.Authentication;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.verifier.HttpRedirectVerifier;
-
+import java.security.GeneralSecurityException;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.security.GeneralSecurityException;
-import java.security.cert.X509Certificate;
-import java.util.Collection;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
+import org.gradle.authentication.Authentication;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.verifier.HttpRedirectVerifier;
 
 public class DefaultHttpSettings implements HttpSettings {
     private static final int DEFAULT_MAX_REDIRECTS = 10;
@@ -55,15 +53,14 @@ public class DefaultHttpSettings implements HttpSettings {
     }
 
     private DefaultHttpSettings(
-        Collection<Authentication> authenticationSettings,
-        SslContextFactory sslContextFactory,
-        HostnameVerifier hostnameVerifier,
-        HttpRedirectVerifier redirectVerifier,
-        RedirectMethodHandlingStrategy redirectMethodHandlingStrategy,
-        int maxRedirects,
-        int maxConnTotal,
-        int maxConnPerRoute
-    ) {
+            Collection<Authentication> authenticationSettings,
+            SslContextFactory sslContextFactory,
+            HostnameVerifier hostnameVerifier,
+            HttpRedirectVerifier redirectVerifier,
+            RedirectMethodHandlingStrategy redirectMethodHandlingStrategy,
+            int maxRedirects,
+            int maxConnTotal,
+            int maxConnPerRoute) {
         Preconditions.checkArgument(maxRedirects >= 0, "maxRedirects must be positive");
         Preconditions.checkArgument(maxConnTotal > 0, "maxConnTotal must be positive");
         Preconditions.checkArgument(maxConnPerRoute > 0, "maxConnPerRoute must be positive");
@@ -155,7 +152,8 @@ public class DefaultHttpSettings implements HttpSettings {
         private int maxRedirects = DEFAULT_MAX_REDIRECTS;
         private int maxConnTotal = DEFAULT_MAX_CONNECTIONS;
         private int maxConnPerRoute = DEFAULT_MAX_CONNECTIONS;
-        private RedirectMethodHandlingStrategy redirectMethodHandlingStrategy = RedirectMethodHandlingStrategy.ALWAYS_FOLLOW_AND_PRESERVE;
+        private RedirectMethodHandlingStrategy redirectMethodHandlingStrategy =
+                RedirectMethodHandlingStrategy.ALWAYS_FOLLOW_AND_PRESERVE;
 
         public Builder withAuthenticationSettings(Collection<Authentication> authenticationSettings) {
             this.authenticationSettings = authenticationSettings;
@@ -197,13 +195,22 @@ public class DefaultHttpSettings implements HttpSettings {
             return this;
         }
 
-        public Builder withRedirectMethodHandlingStrategy(RedirectMethodHandlingStrategy redirectMethodHandlingStrategy) {
+        public Builder withRedirectMethodHandlingStrategy(
+                RedirectMethodHandlingStrategy redirectMethodHandlingStrategy) {
             this.redirectMethodHandlingStrategy = redirectMethodHandlingStrategy;
             return this;
         }
 
         public HttpSettings build() {
-            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier, redirectVerifier, redirectMethodHandlingStrategy, maxRedirects, maxConnTotal, maxConnPerRoute);
+            return new DefaultHttpSettings(
+                    authenticationSettings,
+                    sslContextFactory,
+                    hostnameVerifier,
+                    redirectVerifier,
+                    redirectMethodHandlingStrategy,
+                    maxRedirects,
+                    maxConnTotal,
+                    maxConnPerRoute);
         }
     }
 
@@ -233,7 +240,7 @@ public class DefaultHttpSettings implements HttpSettings {
             return sslContextSupplier.get();
         }
 
-        private final TrustManager[] allTrustingTrustManager = new TrustManager[]{
+        private final TrustManager[] allTrustingTrustManager = new TrustManager[] {
             new X509TrustManager() {
                 @Override
                 public X509Certificate[] getAcceptedIssuers() {
@@ -241,14 +248,11 @@ public class DefaultHttpSettings implements HttpSettings {
                 }
 
                 @Override
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                }
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
 
                 @Override
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                }
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
             }
         };
     };
-
 }

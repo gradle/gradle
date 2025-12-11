@@ -26,5 +26,4 @@ import org.gradle.api.internal.project.ProjectInternal;
  * Each action is invoked for each project that is to be configured, before the project has been configured. Actions are executed
  * in an arbitrary order.
  */
-public interface ProjectConfigureAction extends Action<ProjectInternal> {
-}
+public interface ProjectConfigureAction extends Action<ProjectInternal> {}

@@ -23,5 +23,4 @@ import java.io.Serializable;
  *
  * Subclasses should implement equals() and hashCode(), so that the spec can be used as a hashmap key.
  */
-public abstract class ClassLoaderSpec implements Serializable {
-}
+public abstract class ClassLoaderSpec implements Serializable {}

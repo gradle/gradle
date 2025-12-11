@@ -25,5 +25,4 @@ import org.gradle.tooling.events.StartEvent;
  * @since 7.6
  */
 @Incubating
-public interface BuildPhaseStartEvent extends BuildPhaseProgressEvent, StartEvent {
-}
+public interface BuildPhaseStartEvent extends BuildPhaseProgressEvent, StartEvent {}

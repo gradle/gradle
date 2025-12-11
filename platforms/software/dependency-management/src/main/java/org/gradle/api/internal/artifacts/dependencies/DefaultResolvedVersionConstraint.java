@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
@@ -24,11 +25,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 public class DefaultResolvedVersionConstraint implements ResolvedVersionConstraint {
     @Nullable
     private final VersionSelector preferredVersionSelector;
+
     private final VersionSelector requiredVersionSelector;
     private final VersionSelector rejectedVersionsSelector;
     private final boolean isStrict;
@@ -36,11 +36,21 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     private final boolean isDynamic;
 
     public DefaultResolvedVersionConstraint(VersionConstraint parent, VersionSelectorScheme scheme) {
-        this(parent.getRequiredVersion(), parent.getPreferredVersion(), parent.getStrictVersion(), parent.getRejectedVersions(), scheme);
+        this(
+                parent.getRequiredVersion(),
+                parent.getPreferredVersion(),
+                parent.getStrictVersion(),
+                parent.getRejectedVersions(),
+                scheme);
     }
 
     @VisibleForTesting
-    public DefaultResolvedVersionConstraint(String requiredVersion, String preferredVersion, String strictVersion, List<String> rejectedVersions, VersionSelectorScheme scheme) {
+    public DefaultResolvedVersionConstraint(
+            String requiredVersion,
+            String preferredVersion,
+            String strictVersion,
+            List<String> rejectedVersions,
+            VersionSelectorScheme scheme) {
         // For now, required and preferred are treated the same
 
         isStrict = !strictVersion.isEmpty();
@@ -52,7 +62,8 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
             VersionSelector rejectionForStrict = getRejectionForStrict(version, scheme);
             if (!rejectedVersions.isEmpty()) {
                 VersionSelector explicitRejected = toRejectSelector(scheme, rejectedVersions);
-                this.rejectedVersionsSelector = new UnionVersionSelector(ImmutableList.of(rejectionForStrict, explicitRejected));
+                this.rejectedVersionsSelector =
+                        new UnionVersionSelector(ImmutableList.of(rejectionForStrict, explicitRejected));
             } else {
                 this.rejectedVersionsSelector = rejectionForStrict;
             }
@@ -70,7 +81,7 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     }
 
     private static VersionSelector toRejectSelector(VersionSelectorScheme scheme, List<String> rejectedVersions) {
-        if (rejectedVersions.size()>1) {
+        if (rejectedVersions.size() > 1) {
             return UnionVersionSelector.of(rejectedVersions, scheme);
         }
         return rejectedVersions.isEmpty() ? null : scheme.parseSelector(rejectedVersions.get(0));
@@ -124,8 +135,8 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     @Override
     public boolean canBeStable() {
         return canBeStable(preferredVersionSelector)
-            && canBeStable(requiredVersionSelector)
-            && canBeStable(rejectedVersionsSelector);
+                && canBeStable(requiredVersionSelector)
+                && canBeStable(rejectedVersionsSelector);
     }
 
     private static boolean canBeStable(VersionSelector vs) {
@@ -146,8 +157,7 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     }
 
     private static boolean isRejectAll(String preferredVersion, List<String> rejectedVersions) {
-        return "".equals(preferredVersion)
-            && hasMatchAllSelector(rejectedVersions);
+        return "".equals(preferredVersion) && hasMatchAllSelector(rejectedVersions);
     }
 
     private static boolean hasMatchAllSelector(List<String> rejectedVersions) {

@@ -16,10 +16,9 @@
 
 package org.gradle.internal.logging.text;
 
-import org.gradle.api.Action;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.api.Action;
 
 /**
  * A {@link StyledTextOutput} which buffers the content written to it, for later forwarding to another {@link StyledTextOutput} instance.

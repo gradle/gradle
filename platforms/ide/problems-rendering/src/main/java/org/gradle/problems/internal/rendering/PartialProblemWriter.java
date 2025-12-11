@@ -16,9 +16,8 @@
 
 package org.gradle.problems.internal.rendering;
 
-import org.gradle.api.problems.internal.InternalProblem;
-
 import java.io.PrintWriter;
+import org.gradle.api.problems.internal.InternalProblem;
 
 /**
  * Writes a part of a problem.

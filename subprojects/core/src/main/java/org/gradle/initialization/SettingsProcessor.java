@@ -31,9 +31,8 @@ public interface SettingsProcessor {
      * Load the settings for the given build. The caller is responsible for closing the return value.
      */
     SettingsState process(
-        GradleInternal gradle,
-        SettingsLocation settingsLocation,
-        ClassLoaderScope buildRootClassLoaderScope,
-        StartParameter startParameter
-    );
+            GradleInternal gradle,
+            SettingsLocation settingsLocation,
+            ClassLoaderScope buildRootClassLoaderScope,
+            StartParameter startParameter);
 }

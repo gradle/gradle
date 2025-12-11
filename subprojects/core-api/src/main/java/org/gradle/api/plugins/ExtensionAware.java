@@ -88,5 +88,4 @@ public interface ExtensionAware {
      */
     @Internal
     ExtensionContainer getExtensions();
-
 }

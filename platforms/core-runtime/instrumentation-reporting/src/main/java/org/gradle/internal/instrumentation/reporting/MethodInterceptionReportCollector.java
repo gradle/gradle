@@ -16,10 +16,9 @@
 
 package org.gradle.internal.instrumentation.reporting;
 
+import java.io.File;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 /**
  * A class that collects method interception reports.

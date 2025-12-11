@@ -16,20 +16,19 @@
 
 package org.gradle.internal.buildoption;
 
+import java.util.List;
+import java.util.Map;
 import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
-import java.util.List;
-import java.util.Map;
-
 public abstract class BuildOptionSet<T> {
     /**
      * Returns the options defined by this set.
      */
-    abstract public List<? extends BuildOption<? super T>> getAllOptions();
+    public abstract List<? extends BuildOption<? super T>> getAllOptions();
 
     /**
      * Returns a {@link CommandLineConverter} that can parse the options defined by this set.

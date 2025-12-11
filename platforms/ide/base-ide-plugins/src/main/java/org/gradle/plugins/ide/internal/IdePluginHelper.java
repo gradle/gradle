@@ -16,12 +16,12 @@
 
 package org.gradle.plugins.ide.internal;
 
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.jspecify.annotations.NullMarked;
-
-import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
-import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 /**
  * This class provides a place for sharing functionality with {@link IdePlugin} subclasses
@@ -34,6 +34,7 @@ public class IdePluginHelper {
      * on the consumed task.
      */
     public static Action<Task> withGracefulDegradation() {
-        return task -> requireDegradation(uncheckedNonnullCast(task), "Task is not compatible with the configuration cache");
+        return task ->
+                requireDegradation(uncheckedNonnullCast(task), "Task is not compatible with the configuration cache");
     }
 }

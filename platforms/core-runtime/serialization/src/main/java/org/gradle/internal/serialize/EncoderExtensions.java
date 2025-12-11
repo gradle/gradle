@@ -16,9 +16,8 @@
 
 package org.gradle.internal.serialize;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.io.IOException;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class EncoderExtensions {

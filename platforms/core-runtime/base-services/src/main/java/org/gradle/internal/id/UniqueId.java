@@ -17,11 +17,10 @@
 package org.gradle.internal.id;
 
 import com.google.common.io.BaseEncoding;
-import org.gradle.internal.Factory;
-
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import org.gradle.internal.Factory;
 
 /**
  * A more compact / aesthetically pleasing representation of effectively a UUID.
@@ -33,7 +32,8 @@ import java.util.regex.Pattern;
  */
 public final class UniqueId {
 
-    private static final BaseEncoding ENCODING = BaseEncoding.base32().lowerCase().omitPadding();
+    private static final BaseEncoding ENCODING =
+            BaseEncoding.base32().lowerCase().omitPadding();
     private static final Pattern PATTERN = Pattern.compile("[a-z2-7]{26}");
 
     private static final Factory<UniqueId> FACTORY = new Factory<UniqueId>() {
@@ -103,5 +103,4 @@ public final class UniqueId {
     public int hashCode() {
         return value.hashCode();
     }
-
 }

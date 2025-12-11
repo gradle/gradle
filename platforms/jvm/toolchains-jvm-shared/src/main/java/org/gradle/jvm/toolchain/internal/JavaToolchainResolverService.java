@@ -16,14 +16,12 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-
+import java.util.Optional;
 import org.gradle.api.Incubating;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
 import org.gradle.jvm.toolchain.JavaToolchainRequest;
-
-import java.util.Optional;
 
 /**
  * Resolves Java toolchains based on a request.

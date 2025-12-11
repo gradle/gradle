@@ -17,14 +17,13 @@
 package org.gradle.internal.enterprise.test.impl;
 
 import com.google.common.collect.ImmutableList;
+import java.util.stream.Stream;
 import org.gradle.internal.enterprise.test.CandidateClassFile;
 import org.gradle.internal.enterprise.test.InputFileProperty;
 import org.gradle.internal.enterprise.test.OutputFileProperty;
 import org.gradle.internal.enterprise.test.TestTaskFilters;
 import org.gradle.internal.enterprise.test.TestTaskForkOptions;
 import org.gradle.internal.enterprise.test.TestTaskProperties;
-
-import java.util.stream.Stream;
 
 class DefaultTestTaskProperties implements TestTaskProperties {
 
@@ -38,15 +37,14 @@ class DefaultTestTaskProperties implements TestTaskProperties {
     private final ImmutableList<OutputFileProperty> outputFileProperties;
 
     DefaultTestTaskProperties(
-        boolean usingJUnitPlatform,
-        long forkEvery,
-        boolean isDryRun,
-        TestTaskFilters filters,
-        TestTaskForkOptions forkOptions,
-        ImmutableList<CandidateClassFile> candidateClassFiles,
-        ImmutableList<InputFileProperty> inputFileProperties,
-        ImmutableList<OutputFileProperty> outputFileProperties
-    ) {
+            boolean usingJUnitPlatform,
+            long forkEvery,
+            boolean isDryRun,
+            TestTaskFilters filters,
+            TestTaskForkOptions forkOptions,
+            ImmutableList<CandidateClassFile> candidateClassFiles,
+            ImmutableList<InputFileProperty> inputFileProperties,
+            ImmutableList<OutputFileProperty> outputFileProperties) {
         this.usingJUnitPlatform = usingJUnitPlatform;
         this.forkEvery = forkEvery;
         this.isDryRun = isDryRun;

@@ -15,9 +15,8 @@
  */
 package org.gradle.cache;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.function.Function;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A persistent store of objects of type V indexed by a key of type K.

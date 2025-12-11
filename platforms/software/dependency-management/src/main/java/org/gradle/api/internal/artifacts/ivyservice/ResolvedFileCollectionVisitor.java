@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedFileVisitor;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedFileVisitor;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 
 public class ResolvedFileCollectionVisitor implements ResolvedFileVisitor {
     private final FileCollectionStructureVisitor visitor;

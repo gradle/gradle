@@ -16,6 +16,9 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.function.Consumer;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
@@ -25,10 +28,6 @@ import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.function.Consumer;
 
 /**
  * A {@link DirectorySnapshotBuilder} that tracks whether a directory has been filtered.
@@ -44,11 +43,13 @@ public class FilteredTrackingMerkleDirectorySnapshotBuilder implements Directory
     private final Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder;
     private final DirectorySnapshotBuilder delegate;
 
-    public static FilteredTrackingMerkleDirectorySnapshotBuilder sortingRequired(Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
+    public static FilteredTrackingMerkleDirectorySnapshotBuilder sortingRequired(
+            Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
         return new FilteredTrackingMerkleDirectorySnapshotBuilder(unfilteredSnapshotConsumer);
     }
 
-    private FilteredTrackingMerkleDirectorySnapshotBuilder(Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder) {
+    private FilteredTrackingMerkleDirectorySnapshotBuilder(
+            Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder) {
         this.delegate = MerkleDirectorySnapshotBuilder.sortingRequired();
         this.unfilteredSnapshotRecorder = unfilteredSnapshotRecorder;
         // The root starts out as unfiltered.
@@ -56,7 +57,11 @@ public class FilteredTrackingMerkleDirectorySnapshotBuilder implements Directory
     }
 
     @Override
-    public void enterDirectory(FileMetadata.AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
+    public void enterDirectory(
+            FileMetadata.AccessType accessType,
+            String absolutePath,
+            String name,
+            EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
         isCurrentLevelUnfiltered.addLast(true);
         delegate.enterDirectory(accessType, absolutePath, name, emptyDirectoryHandlingStrategy);
     }

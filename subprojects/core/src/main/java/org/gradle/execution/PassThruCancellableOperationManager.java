@@ -32,6 +32,5 @@ public class PassThruCancellableOperationManager implements CancellableOperation
     }
 
     @Override
-    public void closeInput() {
-    }
+    public void closeInput() {}
 }

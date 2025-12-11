@@ -16,6 +16,8 @@
 
 package org.gradle.api.services.internal;
 
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.services.BuildService;
@@ -27,13 +29,11 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /**
  * A build service that is consumed.
  */
-public class ConsumedBuildServiceProvider<T extends BuildService<BuildServiceParameters>> extends BuildServiceProvider<T, BuildServiceParameters> {
+public class ConsumedBuildServiceProvider<T extends BuildService<BuildServiceParameters>>
+        extends BuildServiceProvider<T, BuildServiceParameters> {
     protected final ServiceRegistry internalServices;
     private final String serviceName;
     private final Class<T> serviceType;
@@ -41,11 +41,10 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     private volatile RegisteredBuildServiceProvider<T, BuildServiceParameters> resolvedProvider;
 
     public ConsumedBuildServiceProvider(
-        BuildIdentifier buildIdentifier,
-        String serviceName,
-        Class<T> serviceType,
-        ServiceRegistry internalServices
-    ) {
+            BuildIdentifier buildIdentifier,
+            String serviceName,
+            Class<T> serviceType,
+            ServiceRegistry internalServices) {
         this.buildIdentifier = buildIdentifier;
         this.serviceName = serviceName;
         this.serviceType = serviceType;
@@ -71,7 +70,8 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     private RegisteredBuildServiceProvider<T, BuildServiceParameters> resolve(boolean failIfAmbiguous) {
         if (resolvedProvider == null) {
             BuildServiceRegistry buildServiceRegistry = internalServices.get(BuildServiceRegistry.class);
-            Set<BuildServiceRegistration<?, ?>> results = ((BuildServiceRegistryInternal) buildServiceRegistry).findRegistrations(this.getType(), this.getName());
+            Set<BuildServiceRegistration<?, ?>> results = ((BuildServiceRegistryInternal) buildServiceRegistry)
+                    .findRegistrations(this.getType(), this.getName());
             if (results.isEmpty()) {
                 return null;
             }
@@ -80,12 +80,16 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
                     return null;
                 }
                 String names = results.stream()
-                    .map(it -> it.getName() + ": " + getProvidedType(it.getService()).getTypeName())
-                    .collect(Collectors.joining(", "));
-                throw new IllegalArgumentException(String.format("Cannot resolve service by type for type '%s' when there are two or more instances. Please also provide a service name. Instances found: %s.", getType().getTypeName(), names));
+                        .map(it -> it.getName() + ": "
+                                + getProvidedType(it.getService()).getTypeName())
+                        .collect(Collectors.joining(", "));
+                throw new IllegalArgumentException(String.format(
+                        "Cannot resolve service by type for type '%s' when there are two or more instances. Please also provide a service name. Instances found: %s.",
+                        getType().getTypeName(), names));
             }
             // resolved, so remember it
-            resolvedProvider = Cast.uncheckedCast(results.stream().findFirst().get().getService());
+            resolvedProvider =
+                    Cast.uncheckedCast(results.stream().findFirst().get().getService());
         }
         return resolvedProvider;
     }
@@ -109,7 +113,9 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     @Override
     public BuildServiceDetails<T, BuildServiceParameters> getServiceDetails() {
         BuildServiceProvider<T, BuildServiceParameters> resolvedProvider = resolve(true);
-        return resolvedProvider != null ? resolvedProvider.getServiceDetails() : new BuildServiceDetails<>(buildIdentifier, serviceName, serviceType);
+        return resolvedProvider != null
+                ? resolvedProvider.getServiceDetails()
+                : new BuildServiceDetails<>(buildIdentifier, serviceName, serviceType);
     }
 
     @Override

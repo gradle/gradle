@@ -64,5 +64,4 @@ public class UnknownTestDescriptor implements TestDescriptorInternal {
     public String getClassDisplayName() {
         return getClassName();
     }
-
 }

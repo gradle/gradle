@@ -39,5 +39,4 @@ public abstract class WrapperPlugin implements Plugin<Project> {
             });
         }
     }
-
 }

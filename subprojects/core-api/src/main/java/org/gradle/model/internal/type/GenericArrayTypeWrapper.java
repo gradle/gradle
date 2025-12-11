@@ -17,7 +17,6 @@
 package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
-
 import java.lang.reflect.Array;
 
 class GenericArrayTypeWrapper implements TypeWrapper {

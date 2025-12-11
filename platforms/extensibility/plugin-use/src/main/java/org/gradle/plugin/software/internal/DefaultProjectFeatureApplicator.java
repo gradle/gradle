@@ -42,7 +42,12 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     private final ClassLoaderScope classLoaderScope;
     private final ObjectFactory objectFactory;
 
-    public DefaultProjectFeatureApplicator(ProjectFeatureDeclarations projectFeatureDeclarations, ModelDefaultsApplicator modelDefaultsApplicator, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
+    public DefaultProjectFeatureApplicator(
+            ProjectFeatureDeclarations projectFeatureDeclarations,
+            ModelDefaultsApplicator modelDefaultsApplicator,
+            PluginManagerInternal pluginManager,
+            ClassLoaderScope classLoaderScope,
+            ObjectFactory objectFactory) {
         this.projectFeatureDeclarations = projectFeatureDeclarations;
         this.modelDefaultsApplicator = modelDefaultsApplicator;
         this.pluginManager = pluginManager;
@@ -51,63 +56,77 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     }
 
     @Override
-    public <T extends Definition<V>, V extends BuildModel> T applyFeatureTo(DynamicObjectAware parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
-        ProjectFeatureDefinitionContext parentDefinitionContext = ProjectFeatureSupportInternal.getContext(parentDefinition);
+    public <T extends Definition<V>, V extends BuildModel> T applyFeatureTo(
+            DynamicObjectAware parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
+        ProjectFeatureDefinitionContext parentDefinitionContext =
+                ProjectFeatureSupportInternal.getContext(parentDefinition);
 
-        ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult result = parentDefinitionContext.getOrAddChildDefinition(projectFeature, () -> {
-            if (parentDefinition instanceof Project) {
-                checkSingleProjectTypeApplication(parentDefinitionContext, projectFeature);
-            }
+        ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult result =
+                parentDefinitionContext.getOrAddChildDefinition(projectFeature, () -> {
+                    if (parentDefinition instanceof Project) {
+                        checkSingleProjectTypeApplication(parentDefinitionContext, projectFeature);
+                    }
 
-            pluginManager.apply(projectFeature.getPluginClass());
+                    pluginManager.apply(projectFeature.getPluginClass());
 
-            Object definition = instantiateBoundFeatureObjectsAndApply(parentDefinition, projectFeature);
+                    Object definition = instantiateBoundFeatureObjectsAndApply(parentDefinition, projectFeature);
 
-            return Cast.uncheckedNonnullCast(definition);
-        });
+                    return Cast.uncheckedNonnullCast(definition);
+                });
 
         if (result.isNew) {
             Plugin<Project> plugin = pluginManager.getPluginContainer().getPlugin(projectFeature.getPluginClass());
-            modelDefaultsApplicator.applyDefaultsTo(parentDefinition, result.definition, new ClassLoaderContextFromScope(classLoaderScope), plugin, projectFeature);
+            modelDefaultsApplicator.applyDefaultsTo(
+                    parentDefinition,
+                    result.definition,
+                    new ClassLoaderContextFromScope(classLoaderScope),
+                    plugin,
+                    projectFeature);
         }
 
         return Cast.uncheckedNonnullCast(result.definition);
     }
 
-    private static <T extends Definition<V>, V extends BuildModel> void checkSingleProjectTypeApplication(ProjectFeatureDefinitionContext context, ProjectFeatureImplementation<T, V> projectFeature) {
+    private static <T extends Definition<V>, V extends BuildModel> void checkSingleProjectTypeApplication(
+            ProjectFeatureDefinitionContext context, ProjectFeatureImplementation<T, V> projectFeature) {
         context.childrenDefinitions().keySet().stream().findFirst().ifPresent(projectTypeAlreadyApplied -> {
             throw new IllegalStateException(
-                "The project has already applied the '" +
-                    projectTypeAlreadyApplied.getFeatureName() +
-                    "' project type and is also attempting to apply the '" +
-                    projectFeature.getFeatureName() +
-                    "' project type.  Only one project type can be applied to a project."
-            );
+                    "The project has already applied the '" + projectTypeAlreadyApplied.getFeatureName()
+                            + "' project type and is also attempting to apply the '"
+                            + projectFeature.getFeatureName()
+                            + "' project type.  Only one project type can be applied to a project.");
         });
     }
 
-    private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
+    private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(
+            Object parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
         T definition = instantiateDefinitionObject(parentDefinition, projectFeature);
-        V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(objectFactory, definition, projectFeature);
-        ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, projectFeatureDeclarations, objectFactory);
+        V buildModelInstance =
+                ProjectFeatureSupportInternal.createBuildModelInstance(objectFactory, definition, projectFeature);
+        ProjectFeatureSupportInternal.attachDefinitionContext(
+                definition, buildModelInstance, this, projectFeatureDeclarations, objectFactory);
 
         ProjectFeatureApplicationContext applyActionContext =
-            objectFactory.newInstance(ProjectFeatureApplicationContextInternal.class);
+                objectFactory.newInstance(ProjectFeatureApplicationContextInternal.class);
 
-        projectFeature.getBindingTransform().transform(applyActionContext, definition, buildModelInstance, Cast.uncheckedCast(parentDefinition));
+        projectFeature
+                .getBindingTransform()
+                .transform(applyActionContext, definition, buildModelInstance, Cast.uncheckedCast(parentDefinition));
 
         return definition;
     }
 
-    private <T extends Definition<V>, V extends BuildModel> T instantiateDefinitionObject(Object target, ProjectFeatureImplementation<T, V> projectFeature) {
+    private <T extends Definition<V>, V extends BuildModel> T instantiateDefinitionObject(
+            Object target, ProjectFeatureImplementation<T, V> projectFeature) {
         Class<? extends T> dslType = projectFeature.getDefinitionImplementationType();
 
         if (Named.class.isAssignableFrom(dslType)) {
             if (target instanceof Named) {
                 return objectFactory.newInstance(projectFeature.getDefinitionPublicType(), ((Named) target).getName());
             } else {
-                throw new IllegalArgumentException("Cannot infer a name for definition " + dslType.getSimpleName() +
-                    " because the parent definition of type " + target.getClass().getSimpleName() + " does not implement Named.");
+                throw new IllegalArgumentException("Cannot infer a name for definition " + dslType.getSimpleName()
+                        + " because the parent definition of type "
+                        + target.getClass().getSimpleName() + " does not implement Named.");
             }
         } else {
             return objectFactory.newInstance(dslType);

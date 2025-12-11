@@ -17,14 +17,13 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Formatter;
+import java.util.List;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Formatter;
-import java.util.List;
 
 /**
  * Default implementation of {@link PluginResolutionResult}.
@@ -53,7 +52,8 @@ public class PluginResolutionResult {
      * @param notFoundMessage message on why the plugin couldn't be found (e.g. it might be available by a different version)
      */
     public static PluginResolutionResult notFound(String sourceDescription, String notFoundMessage) {
-        return new PluginResolutionResult(null, ImmutableList.of(new NotFound(sourceDescription, notFoundMessage, null)));
+        return new PluginResolutionResult(
+                null, ImmutableList.of(new NotFound(sourceDescription, notFoundMessage, null)));
     }
 
     /**
@@ -63,8 +63,10 @@ public class PluginResolutionResult {
      * @param notFoundMessage message on why the plugin couldn't be found (e.g. it might be available by a different version)
      * @param notFoundDetail detail on how the plugin couldn't be found (e.g. searched locations)
      */
-    public static PluginResolutionResult notFound(String sourceDescription, String notFoundMessage, String notFoundDetail) {
-        return new PluginResolutionResult(null, ImmutableList.of(new NotFound(sourceDescription, notFoundMessage, notFoundDetail)));
+    public static PluginResolutionResult notFound(
+            String sourceDescription, String notFoundMessage, String notFoundDetail) {
+        return new PluginResolutionResult(
+                null, ImmutableList.of(new NotFound(sourceDescription, notFoundMessage, notFoundDetail)));
     }
     /**
      * Record that the plugin was not found in multiple sources of plugins

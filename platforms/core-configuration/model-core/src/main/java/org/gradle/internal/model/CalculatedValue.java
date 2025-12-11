@@ -16,9 +16,8 @@
 
 package org.gradle.internal.model;
 
-import org.gradle.internal.Try;
-
 import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.internal.Try;
 
 /**
  * Represents a calculated immutable value that is calculated once and then consumed by multiple threads.
@@ -27,7 +26,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public interface CalculatedValue<T> {
-    // TODO(https://github.com/gradle/gradle/issues/24767): with JSpecify, the nullable nature of the type argument <T> should be expressed as <T extends @Nullable Object>.
+    // TODO(https://github.com/gradle/gradle/issues/24767): with JSpecify, the nullable nature of the type argument <T>
+    // should be expressed as <T extends @Nullable Object>.
 
     /**
      * Returns the value, failing if it has not been calculated.

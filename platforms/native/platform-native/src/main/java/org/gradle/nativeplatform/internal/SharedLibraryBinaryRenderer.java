@@ -16,11 +16,10 @@
 
 package org.gradle.nativeplatform.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
-
-import javax.inject.Inject;
 
 public class SharedLibraryBinaryRenderer extends AbstractNativeBinaryRenderer<SharedLibraryBinarySpec> {
     @Inject

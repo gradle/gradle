@@ -81,5 +81,4 @@ public interface DependencyLockingHandler {
      * @since 6.7
      */
     ListProperty<String> getIgnoredDependencies();
-
 }

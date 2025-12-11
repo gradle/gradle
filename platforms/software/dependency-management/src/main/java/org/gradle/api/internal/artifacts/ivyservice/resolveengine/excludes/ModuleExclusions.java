@@ -15,6 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.CachingExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
@@ -28,27 +33,20 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 @ServiceScope(Scope.Build.class)
 public class ModuleExclusions {
     private final CachingExcludeFactory.MergeCaches mergeCaches = new CachingExcludeFactory.MergeCaches();
     // please keep the formatting below as it helps enabling or disabling stages
-    private final ExcludeFactory factory = new OptimizingExcludeFactory(// optimizes for nulls, 2-params, ... mandatory
-        new CachingExcludeFactory(// caches the result of TL operations
-            LoggingExcludeFactory.maybeLog(new NormalizingExcludeFactory(// performs algebra
-                new CachingExcludeFactory(// caches the result of optimization operations
-                    new DefaultExcludeFactory(), // the end of the chain, mandatory
-                    mergeCaches // shares the same caches as the top level one as after reducing we can find already cached merge operations
-                )
-            )),
-            mergeCaches
-        )
-    );
+    private final ExcludeFactory factory = new OptimizingExcludeFactory( // optimizes for nulls, 2-params, ... mandatory
+            new CachingExcludeFactory( // caches the result of TL operations
+                    LoggingExcludeFactory.maybeLog(
+                            new NormalizingExcludeFactory( // performs algebra
+                                    new CachingExcludeFactory( // caches the result of optimization operations
+                                            new DefaultExcludeFactory(), // the end of the chain, mandatory
+                                            mergeCaches // shares the same caches as the top level one as after reducing
+                                            // we can find already cached merge operations
+                                            ))),
+                    mergeCaches));
     private final Map<ExcludeMetadata, ExcludeSpec> metadataToExcludeCache = new ConcurrentHashMap<>();
     private final ExcludeSpec nothing;
 
@@ -77,7 +75,8 @@ public class ModuleExclusions {
 
     private ExcludeSpec forExclude(ExcludeMetadata r) {
         return metadataToExcludeCache.computeIfAbsent(r, rule -> {
-            // For custom ivy pattern matchers, don't inspect the rule any more deeply: this prevents us from doing smart merging later
+            // For custom ivy pattern matchers, don't inspect the rule any more deeply: this prevents us from doing
+            // smart merging later
             if (!PatternMatchers.isExactMatcher(rule.getMatcher())) {
                 return factory.ivyPatternExclude(rule.getModuleId(), rule.getArtifact(), rule.getMatcher());
             }

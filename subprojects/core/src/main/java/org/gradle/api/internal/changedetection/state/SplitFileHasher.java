@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.io.File;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-
-import java.io.File;
 
 /**
  * A {@link FileHasher} that delegates to the global hasher for immutable files

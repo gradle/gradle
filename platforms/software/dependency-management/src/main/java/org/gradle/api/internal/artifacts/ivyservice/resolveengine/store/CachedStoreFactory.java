@@ -18,6 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.io.Closeable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.Store;
@@ -25,16 +29,13 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.time.TimeFormatting;
 import org.gradle.internal.time.Timer;
 
-import java.io.Closeable;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Supplier;
-
 public class CachedStoreFactory<T> implements Closeable {
 
     private static final Logger LOG = Logging.getLogger(CachedStoreFactory.class);
-    private static final int CACHE_SIZE = Integer.getInteger("org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.cacheSize", 100);
-    private static final int CACHE_EXPIRY = Integer.getInteger("org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.cacheExpiryMs", 10000);
+    private static final int CACHE_SIZE =
+            Integer.getInteger("org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.cacheSize", 100);
+    private static final int CACHE_EXPIRY =
+            Integer.getInteger("org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.cacheExpiryMs", 10000);
 
     private final Cache<Object, T> cache;
     private final Stats stats;
@@ -42,7 +43,10 @@ public class CachedStoreFactory<T> implements Closeable {
 
     public CachedStoreFactory(String displayName) {
         this.displayName = displayName;
-        cache = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).expireAfterAccess(CACHE_EXPIRY, TimeUnit.MILLISECONDS).build();
+        cache = CacheBuilder.newBuilder()
+                .maximumSize(CACHE_SIZE)
+                .expireAfterAccess(CACHE_EXPIRY, TimeUnit.MILLISECONDS)
+                .build();
         stats = new Stats();
     }
 
@@ -54,7 +58,8 @@ public class CachedStoreFactory<T> implements Closeable {
     public void close() {
         LOG.debug(displayName + " cache closed. Cache reads: "
                 + stats.readsFromCache + ", disk reads: "
-                + stats.readsFromDisk + " (avg: " + TimeFormatting.formatDurationVerbose(stats.getDiskReadsAvgMs()) + ", total: " + TimeFormatting.formatDurationVerbose(stats.diskReadsTotalMs.get()) + ")");
+                + stats.readsFromDisk + " (avg: " + TimeFormatting.formatDurationVerbose(stats.getDiskReadsAvgMs())
+                + ", total: " + TimeFormatting.formatDurationVerbose(stats.diskReadsTotalMs.get()) + ")");
     }
 
     private static class Stats {

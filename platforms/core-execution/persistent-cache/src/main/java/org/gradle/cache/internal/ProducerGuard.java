@@ -16,13 +16,12 @@
 package org.gradle.cache.internal;
 
 import com.google.common.util.concurrent.Striped;
-import org.gradle.internal.UncheckedException;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+import org.gradle.internal.UncheckedException;
 
 /**
  * Synchronizes access to some resource, by making sure that 2 threads do not try to produce it at the same time.
@@ -65,9 +64,7 @@ public abstract class ProducerGuard<T> {
         return new SerialProducerGuard<T>();
     }
 
-    private ProducerGuard() {
-
-    }
+    private ProducerGuard() {}
 
     /**
      * Runs the given factory, guarded by the given key.

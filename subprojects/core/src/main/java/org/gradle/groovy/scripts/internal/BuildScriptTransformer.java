@@ -15,6 +15,8 @@
  */
 package org.gradle.groovy.scripts.internal;
 
+import java.util.Arrays;
+import java.util.List;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.gradle.api.specs.Spec;
@@ -24,18 +26,19 @@ import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.Factory;
 import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class BuildScriptTransformer implements Transformer, Factory<BuildScriptData> {
 
     private final Spec<? super Statement> filter;
     private final ScriptSource scriptSource;
 
-    private final ImperativeStatementDetectingTransformer imperativeStatementDetectingTransformer = new ImperativeStatementDetectingTransformer();
+    private final ImperativeStatementDetectingTransformer imperativeStatementDetectingTransformer =
+            new ImperativeStatementDetectingTransformer();
 
     public BuildScriptTransformer(ScriptSource scriptSource, ScriptTarget scriptTarget) {
-        final List<String> blocksToIgnore = Arrays.asList(scriptTarget.getClasspathBlockName(), InitialPassStatementTransformer.PLUGINS, InitialPassStatementTransformer.PLUGIN_MANAGEMENT);
+        final List<String> blocksToIgnore = Arrays.asList(
+                scriptTarget.getClasspathBlockName(),
+                InitialPassStatementTransformer.PLUGINS,
+                InitialPassStatementTransformer.PLUGIN_MANAGEMENT);
         this.filter = new Spec<Statement>() {
             @Override
             public boolean isSatisfiedBy(Statement statement) {
@@ -51,7 +54,10 @@ public class BuildScriptTransformer implements Transformer, Factory<BuildScriptD
         new TaskDefinitionScriptTransformer().register(compilationUnit);
         new FixMainScriptTransformer().register(compilationUnit);
         new StatementLabelsScriptTransformer().register(compilationUnit);
-        new ModelBlockTransformer(scriptSource.getDisplayName(), scriptSource.getResource().getLocation().getURI()).register(compilationUnit);
+        new ModelBlockTransformer(
+                        scriptSource.getDisplayName(),
+                        scriptSource.getResource().getLocation().getURI())
+                .register(compilationUnit);
         imperativeStatementDetectingTransformer.register(compilationUnit);
     }
 

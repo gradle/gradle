@@ -28,7 +28,6 @@ public interface BuildServiceParameters {
      * @since 6.1
      */
     final class None implements BuildServiceParameters {
-        private None() {
-        }
+        private None() {}
     }
 }

@@ -16,15 +16,14 @@
 
 package org.gradle.internal.remote.internal.inet;
 
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 public class MultiChoiceAddressSerializer implements Serializer<MultiChoiceAddress> {
     @Override

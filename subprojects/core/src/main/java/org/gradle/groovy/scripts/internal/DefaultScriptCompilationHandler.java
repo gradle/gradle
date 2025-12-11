@@ -20,6 +20,17 @@ import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyResourceLoader;
 import groovy.lang.Script;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
+import java.util.List;
+import java.util.Map;
+import javax.inject.Inject;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
@@ -68,18 +79,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.net.URL;
-import java.security.CodeSource;
-import java.security.ProtectionDomain;
-import java.util.List;
-import java.util.Map;
-
 @SuppressWarnings("deprecation")
 @ServiceScope(Scope.Build.class)
 public abstract class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
@@ -104,9 +103,13 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
 
     @Override
     public void compileToDir(
-        ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> extractingTransformer,
-        Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier
-    ) {
+            ScriptSource source,
+            ClassLoader classLoader,
+            File classesDir,
+            File metadataDir,
+            CompileOperation<?> extractingTransformer,
+            Class<? extends Script> scriptBaseClass,
+            Action<? super ClassNode> verifier) {
         Timer clock = Time.startTimer();
         try {
             getDeleter().ensureEmptyDirectory(classesDir);
@@ -127,26 +130,32 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
             throw e;
         }
 
-        logger.debug("Timing: Writing script to cache at {} took: {}", classesDir.getAbsolutePath(), clock.getElapsed());
+        logger.debug(
+                "Timing: Writing script to cache at {} took: {}", classesDir.getAbsolutePath(), clock.getElapsed());
     }
 
     private void compileScript(
-        ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File metadataDir,
-        final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier
-    ) {
+            ScriptSource source,
+            ClassLoader classLoader,
+            CompilerConfiguration configuration,
+            File metadataDir,
+            final CompileOperation<?> extractingTransformer,
+            final Action<? super ClassNode> customVerifier) {
         final Transformer transformer = extractingTransformer != null ? extractingTransformer.getTransformer() : null;
-        logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
+        logger.info(
+                "Compiling {} using {}.",
+                source.getDisplayName(),
+                transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
 
         final EmptyScriptDetector emptyScriptDetector = new EmptyScriptDetector();
         final PackageStatementDetector packageDetector = new PackageStatementDetector();
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
             protected CompilationUnit createCompilationUnit(
-                CompilerConfiguration compilerConfiguration,
-                CodeSource codeSource
-            ) {
+                    CompilerConfiguration compilerConfiguration, CodeSource codeSource) {
 
-                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, this, simpleNameToFQN);
+                CompilationUnit compilationUnit = new CustomCompilationUnit(
+                        compilerConfiguration, codeSource, customVerifier, this, simpleNameToFQN);
 
                 if (transformer != null) {
                     transformer.register(compilationUnit);
@@ -161,7 +170,8 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
         groovyClassLoader.setResourceLoader(NO_OP_GROOVY_RESOURCE_LOADER);
         String scriptText = source.getResource().getText();
         String scriptName = source.getClassName();
-        GroovyCodeSource codeSource = new GroovyCodeSource(scriptText == null ? "" : scriptText, scriptName, "/groovy/script");
+        GroovyCodeSource codeSource =
+                new GroovyCodeSource(scriptText == null ? "" : scriptText, scriptName, "/groovy/script");
         try {
             try {
                 groovyClassLoader.parseClass(codeSource, false);
@@ -172,15 +182,27 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
             }
 
             if (packageDetector.hasPackageStatement) {
-                throw new UnsupportedOperationException(String.format("%s should not contain a package statement.", source.getLongDisplayName().getCapitalizedDisplayName()));
+                throw new UnsupportedOperationException(String.format(
+                        "%s should not contain a package statement.",
+                        source.getLongDisplayName().getCapitalizedDisplayName()));
             }
-            serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript(), emptyScriptDetector.getHasMethods());
+            serializeMetadata(
+                    source,
+                    extractingTransformer,
+                    metadataDir,
+                    emptyScriptDetector.isEmptyScript(),
+                    emptyScriptDetector.getHasMethods());
         } finally {
             ClassLoaderUtils.tryClose(groovyClassLoader);
         }
     }
 
-    private <M> void serializeMetadata(ScriptSource scriptSource, CompileOperation<M> extractingTransformer, File metadataDir, boolean emptyScript, boolean hasMethods) {
+    private <M> void serializeMetadata(
+            ScriptSource scriptSource,
+            CompileOperation<M> extractingTransformer,
+            File metadataDir,
+            boolean emptyScript,
+            boolean hasMethods) {
         File metadataFile = new File(metadataDir, METADATA_FILE_NAME);
         try {
             GFileUtils.mkdirs(metadataDir);
@@ -193,7 +215,10 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
                 }
             }
         } catch (Exception e) {
-            throw new GradleException(String.format("Failed to serialize script metadata extracted for %s", scriptSource.getDisplayName()), e);
+            throw new GradleException(
+                    String.format(
+                            "Failed to serialize script metadata extracted for %s", scriptSource.getDisplayName()),
+                    e);
         }
     }
 
@@ -218,13 +243,19 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
         SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
         int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
         String message = String.format("Could not compile %s.", source.getDisplayName());
-        ProblemId problemId = ProblemId.create(TextUtil.screamingSnakeToKebabCase("compilation-failed"), "Groovy DSL script compilation problem", GradleCoreProblemGroup.compilation().groovyDsl());
-        throw ((InternalProblems) getProblemsService()).getInternalReporter().throwing(new ScriptCompilationException(message, e, source, lineNumber), problemId, builder -> builder
-            .contextualLabel(message)
-            .lineInFileLocation(source.getFileName(), lineNumber)
-            .severity(Severity.ERROR)
-            .withException(new ScriptCompilationException(message, e, source, lineNumber))
-        );
+        ProblemId problemId = ProblemId.create(
+                TextUtil.screamingSnakeToKebabCase("compilation-failed"),
+                "Groovy DSL script compilation problem",
+                GradleCoreProblemGroup.compilation().groovyDsl());
+        throw ((InternalProblems) getProblemsService())
+                .getInternalReporter()
+                .throwing(
+                        new ScriptCompilationException(message, e, source, lineNumber),
+                        problemId,
+                        builder -> builder.contextualLabel(message)
+                                .lineInFileLocation(source.getFileName(), lineNumber)
+                                .severity(Severity.ERROR)
+                                .withException(new ScriptCompilationException(message, e, source, lineNumber)));
     }
 
     private static CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
@@ -236,9 +267,13 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
 
     @Override
     public <T extends Script, M> CompiledScript<T, M> loadFromDir(
-        ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, ClassPath scriptClassPath,
-        File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass
-    ) {
+            ScriptSource source,
+            HashCode sourceHashCode,
+            ClassLoaderScope targetScope,
+            ClassPath scriptClassPath,
+            File metadataCacheDir,
+            CompileOperation<M> transformer,
+            Class<T> scriptBaseClass) {
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
         try (KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile))) {
             byte flags = decoder.readByte();
@@ -250,9 +285,12 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
             } else {
                 data = null;
             }
-            return new ClassesDirCompiledScript<>(isEmpty, hasMethods, scriptBaseClass, scriptClassPath, targetScope, source, sourceHashCode, data);
+            return new ClassesDirCompiledScript<>(
+                    isEmpty, hasMethods, scriptBaseClass, scriptClassPath, targetScope, source, sourceHashCode, data);
         } catch (Exception e) {
-            throw new IllegalStateException(String.format("Failed to deserialize script metadata extracted for %s", source.getDisplayName()), e);
+            throw new IllegalStateException(
+                    String.format("Failed to deserialize script metadata extracted for %s", source.getDisplayName()),
+                    e);
         }
     }
 
@@ -317,7 +355,15 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
         private Class<? extends T> scriptClass;
         private ClassLoaderScope scope;
 
-        public ClassesDirCompiledScript(boolean isEmpty, boolean hasMethods, Class<T> scriptBaseClass, ClassPath scriptClassPath, ClassLoaderScope targetScope, ScriptSource source, HashCode sourceHashCode, M metadata) {
+        public ClassesDirCompiledScript(
+                boolean isEmpty,
+                boolean hasMethods,
+                Class<T> scriptBaseClass,
+                ClassPath scriptClassPath,
+                ClassLoaderScope targetScope,
+                ScriptSource source,
+                HashCode sourceHashCode,
+                M metadata) {
             this.isEmpty = isEmpty;
             this.hasMethods = hasMethods;
             this.scriptBaseClass = scriptBaseClass;
@@ -346,7 +392,8 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
         @Override
         public void onReuse() {
             if (scriptClass != null) {
-                // Recreate the script scope and ClassLoader, so that things that use scopes are notified that the scope exists
+                // Recreate the script scope and ClassLoader, so that things that use scopes are notified that the scope
+                // exists
                 scope.onReuse();
                 assert scriptClass.getClassLoader() == scope.getLocalClassLoader();
             }
@@ -364,9 +411,13 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
                     scriptClass = loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
                 } catch (Exception e) {
                     if (scriptClassPath.isEmpty()) {
-                        throw new IllegalStateException(String.format("The cache entry for %s appears to be corrupted.", source.getDisplayName()));
+                        throw new IllegalStateException(String.format(
+                                "The cache entry for %s appears to be corrupted.", source.getDisplayName()));
                     }
-                    throw new GradleException(String.format("Could not load compiled classes for %s from cache.", source.getDisplayName()), e);
+                    throw new GradleException(
+                            String.format(
+                                    "Could not load compiled classes for %s from cache.", source.getDisplayName()),
+                            e);
                 }
             }
             return scriptClass;
@@ -374,10 +425,12 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
 
         private ClassLoaderScope prepareClassLoaderScope() {
             String scopeName = "groovy-dsl:" + source.getFileName() + ":" + scriptBaseClass.getSimpleName();
-            ClassLoaderScopeOrigin origin = new ClassLoaderScopeOrigin.Script(source.getFileName(), source.getLongDisplayName(), source.getShortDisplayName());
+            ClassLoaderScopeOrigin origin = new ClassLoaderScopeOrigin.Script(
+                    source.getFileName(), source.getLongDisplayName(), source.getShortDisplayName());
             return targetScope.createLockedChild(scopeName, origin, scriptClassPath, sourceHashCode, parent -> {
                 if (scriptClassPath instanceof TransformedClassPath) {
-                    return new InstrumentingScriptClassLoader(source, parent, (TransformedClassPath) scriptClassPath, sourceHashCode);
+                    return new InstrumentingScriptClassLoader(
+                            source, parent, (TransformedClassPath) scriptClassPath, sourceHashCode);
                 }
                 return new ScriptClassLoader(source, parent, scriptClassPath, sourceHashCode);
             });
@@ -391,7 +444,8 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
         private final ScriptSource scriptSource;
         private final HashCode implementationHash;
 
-        ScriptClassLoader(ScriptSource scriptSource, ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
+        ScriptClassLoader(
+                ScriptSource scriptSource, ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
             super("groovy-script-" + scriptSource.getFileName() + "-loader", parent, classPath);
             this.scriptSource = scriptSource;
             this.implementationHash = implementationHash;
@@ -426,14 +480,19 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
         private final TransformReplacer replacer;
         private final TransformErrorHandler errorHandler;
 
-        InstrumentingScriptClassLoader(ScriptSource scriptSource, ClassLoader parent, TransformedClassPath classPath, HashCode implementationHash) {
+        InstrumentingScriptClassLoader(
+                ScriptSource scriptSource,
+                ClassLoader parent,
+                TransformedClassPath classPath,
+                HashCode implementationHash) {
             super(scriptSource, parent, classPath, implementationHash);
             replacer = new TransformReplacer(classPath);
             errorHandler = new TransformErrorHandler(getName());
         }
 
         @Override
-        public byte @Nullable [] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+        public byte @Nullable [] instrumentClass(
+                @Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
             return replacer.getInstrumentedClass(className, protectionDomain);
         }
 

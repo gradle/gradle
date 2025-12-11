@@ -16,10 +16,9 @@
 
 package org.gradle.launcher.daemon.configuration;
 
-import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 
 public interface DaemonServerConfiguration {
 

@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.provider;
 
+import java.io.Serializable;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
-
-import java.io.Serializable;
 
 /**
  * Result of one of the actions of a phased action. Must be serializable since will be dispatched to client.

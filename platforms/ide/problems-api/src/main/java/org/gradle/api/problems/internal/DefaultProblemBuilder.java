@@ -17,6 +17,8 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
@@ -36,9 +38,6 @@ import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class DefaultProblemBuilder implements InternalProblemBuilder {
     private final ProblemsInfrastructure problemsInfrastructure;
 
@@ -55,18 +54,13 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private boolean collectStackLocation = false;
     private ProblemDiagnostics diagnostics;
 
-    public DefaultProblemBuilder(
-        ProblemsInfrastructure infrastructure
-    ) {
+    public DefaultProblemBuilder(ProblemsInfrastructure infrastructure) {
         this.problemsInfrastructure = infrastructure;
         this.additionalData = null;
         this.solutions = new ArrayList<String>();
     }
 
-    public DefaultProblemBuilder(
-        InternalProblem problem,
-        ProblemsInfrastructure infrastructure
-    ) {
+    public DefaultProblemBuilder(InternalProblem problem, ProblemsInfrastructure infrastructure) {
         this(infrastructure);
         this.id = problem.getDefinition().getId();
         this.contextualLabel = problem.getContextualLabel();
@@ -90,27 +84,34 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         }
 
         if (additionalData instanceof UnsupportedAdditionalDataSpec) {
-            return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
-                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() +
-                    ". Supported types are: " + problemsInfrastructure.getAdditionalDataBuilderFactory().getSupportedTypes());
+            return invalidProblem(
+                    "unsupported-additional-data",
+                    "Unsupported additional data type",
+                    "Unsupported additional data type: "
+                            + ((UnsupportedAdditionalDataSpec) additionalData)
+                                    .getType()
+                                    .getName() + ". Supported types are: "
+                            + problemsInfrastructure
+                                    .getAdditionalDataBuilderFactory()
+                                    .getSupportedTypes());
         }
 
         ProblemDiagnostics diagnostics = determineDiagnostics();
         if (diagnostics != null) {
-            addLocationsFromDiagnostics(collectStackLocation ? this.originLocations : this.contextLocations, diagnostics);
+            addLocationsFromDiagnostics(
+                    collectStackLocation ? this.originLocations : this.contextLocations, diagnostics);
         }
 
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(getId(), getSeverity(), docLink);
         return new DefaultProblem(
-            problemDefinition,
-            contextualLabel,
-            solutions,
-            originLocations,
-            contextLocations,
-            details,
-            exception,
-            additionalData
-        );
+                problemDefinition,
+                contextualLabel,
+                solutions,
+                originLocations,
+                contextLocations,
+                details,
+                exception,
+                additionalData);
     }
 
     @Nullable
@@ -169,25 +170,22 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     private InternalProblem invalidProblem(String id, String displayName, @Nullable String contextualLabel) {
-        id(id, displayName, ProblemGroup.create(
-            "problems-api",
-            "Problems API")
-        ).stackLocation();
+        id(id, displayName, ProblemGroup.create("problems-api", "Problems API")).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.getId(), Severity.WARNING, null);
         List<ProblemLocation> problemLocations = new ArrayList<ProblemLocation>();
         ProblemDiagnostics diagnostics = determineDiagnostics();
         if (diagnostics != null) {
             addLocationsFromDiagnostics(problemLocations, diagnostics);
         }
-        return new DefaultProblem(problemDefinition,
-            contextualLabel,
-            ImmutableList.<String>of(),
-            problemLocations,
-            ImmutableList.<ProblemLocation>of(),
-            null,
-            null,
-            null
-        );
+        return new DefaultProblem(
+                problemDefinition,
+                contextualLabel,
+                ImmutableList.<String>of(),
+                problemLocations,
+                ImmutableList.<ProblemLocation>of(),
+                null,
+                null,
+                null);
     }
 
     protected Severity getSeverity() {
@@ -309,7 +307,10 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     private static ProblemGroup cloneGroup(ProblemGroup original) {
-        return ProblemGroup.create(original.getName(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
+        return ProblemGroup.create(
+                original.getName(),
+                original.getDisplayName(),
+                original.getParent() == null ? null : cloneGroup(original.getParent()));
     }
 
     @Override
@@ -317,7 +318,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.docLink = url == null ? null : new DefaultDocLink(url);
         return this;
     }
-
 
     @Override
     public InternalProblemBuilder solution(@Nullable String solution) {
@@ -330,9 +330,12 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <U extends AdditionalDataSpec> InternalProblemBuilder additionalDataInternal(Class<? extends U> specType, Action<? super U> config) {
+    public <U extends AdditionalDataSpec> InternalProblemBuilder additionalDataInternal(
+            Class<? extends U> specType, Action<? super U> config) {
         if (problemsInfrastructure.getAdditionalDataBuilderFactory().hasProviderForSpec(specType)) {
-            AdditionalDataBuilder<? extends AdditionalData> additionalDataBuilder = problemsInfrastructure.getAdditionalDataBuilderFactory().createAdditionalDataBuilder(specType, additionalData);
+            AdditionalDataBuilder<? extends AdditionalData> additionalDataBuilder = problemsInfrastructure
+                    .getAdditionalDataBuilderFactory()
+                    .createAdditionalDataBuilder(specType, additionalData);
             config.execute((U) additionalDataBuilder);
             additionalData = additionalDataBuilder.build();
         } else {
@@ -344,10 +347,13 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     public <T extends AdditionalData> InternalProblemBuilder additionalData(Class<T> type, Action<? super T> config) {
         AdditionalData additionalDataInstance = createAdditionalData(type, config);
-        Isolatable<AdditionalData> isolated = problemsInfrastructure.getIsolatableFactory().isolate(additionalDataInstance);
+        Isolatable<AdditionalData> isolated =
+                problemsInfrastructure.getIsolatableFactory().isolate(additionalDataInstance);
 
-        SerializedPayload serializedBaseClass = problemsInfrastructure.getPayloadSerializer().serialize(type);
-        byte[] serialized = this.problemsInfrastructure.getIsolatableSerializer().serialize(isolated);
+        SerializedPayload serializedBaseClass =
+                problemsInfrastructure.getPayloadSerializer().serialize(type);
+        byte[] serialized =
+                this.problemsInfrastructure.getIsolatableSerializer().serialize(isolated);
 
         this.additionalData = new DefaultTypedAdditionalData(serializedBaseClass, serialized);
         return this;

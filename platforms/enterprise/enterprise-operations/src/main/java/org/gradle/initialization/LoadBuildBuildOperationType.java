@@ -19,7 +19,8 @@ package org.gradle.initialization;
 import org.gradle.internal.operations.BuildOperationType;
 import org.jspecify.annotations.Nullable;
 
-public final class LoadBuildBuildOperationType implements BuildOperationType<LoadBuildBuildOperationType.Details, LoadBuildBuildOperationType.Result> {
+public final class LoadBuildBuildOperationType
+        implements BuildOperationType<LoadBuildBuildOperationType.Details, LoadBuildBuildOperationType.Result> {
     public interface Details {
         /**
          * @since 4.6
@@ -37,6 +38,5 @@ public final class LoadBuildBuildOperationType implements BuildOperationType<Loa
         String getIncludedBy();
     }
 
-    public interface Result {
-    }
+    public interface Result {}
 }

@@ -16,11 +16,10 @@
 
 package org.gradle.internal.execution.steps;
 
+import java.io.File;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class WorkspaceResult extends CachingResult implements ExecutionEngine.Result {
     @Nullable
@@ -33,8 +32,6 @@ public class WorkspaceResult extends CachingResult implements ExecutionEngine.Re
 
     @Override
     public <T> Try<T> getOutputAs(Class<T> type) {
-        return getExecution()
-            .map(execution -> execution.getOutput(workspace))
-            .map(type::cast);
+        return getExecution().map(execution -> execution.getOutput(workspace)).map(type::cast);
     }
 }

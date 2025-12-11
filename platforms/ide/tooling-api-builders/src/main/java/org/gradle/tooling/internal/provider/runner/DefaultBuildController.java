@@ -16,7 +16,12 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.function.Supplier;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
@@ -49,19 +54,13 @@ import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInter
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-import java.util.function.Supplier;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static org.gradle.internal.Cast.uncheckedNonnullCast;
-
 @NullMarked
-class DefaultBuildController implements
-    InternalBuildController,
-    InternalBuildControllerVersion2,
-    InternalActionAwareBuildController,
-    InternalStreamedValueRelay,
-    InternalFetchAwareBuildController {
+class DefaultBuildController
+        implements InternalBuildController,
+                InternalBuildControllerVersion2,
+                InternalActionAwareBuildController,
+                InternalStreamedValueRelay,
+                InternalFetchAwareBuildController {
 
     private final WorkerThreadRegistry workerThreadRegistry;
     private final BuildTreeModelController controller;
@@ -71,13 +70,12 @@ class DefaultBuildController implements
     private final PayloadSerializer payloadSerializer;
 
     public DefaultBuildController(
-        BuildTreeModelController controller,
-        WorkerThreadRegistry workerThreadRegistry,
-        BuildCancellationToken cancellationToken,
-        BuildEventConsumer buildEventConsumer,
-        BuildTreeModelSideEffectExecutor sideEffectExecutor,
-        PayloadSerializer payloadSerializer
-    ) {
+            BuildTreeModelController controller,
+            WorkerThreadRegistry workerThreadRegistry,
+            BuildCancellationToken cancellationToken,
+            BuildEventConsumer buildEventConsumer,
+            BuildTreeModelSideEffectExecutor sideEffectExecutor,
+            PayloadSerializer payloadSerializer) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.controller = controller;
         this.cancellationToken = cancellationToken;
@@ -101,7 +99,8 @@ class DefaultBuildController implements
      */
     @Override
     @Deprecated
-    public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
+    public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier)
+            throws BuildExceptionVersion1, InternalUnsupportedModelException {
         return getModel(target, modelIdentifier, null);
     }
 
@@ -110,16 +109,19 @@ class DefaultBuildController implements
      */
     @Override
     public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
-        throws BuildExceptionVersion1, InternalUnsupportedModelException {
-        ToolingModelBuilderResultInternal model = doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, false));
+            throws BuildExceptionVersion1, InternalUnsupportedModelException {
+        ToolingModelBuilderResultInternal model =
+                doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, false));
         return new ProviderBuildResult<>(model.getModel());
     }
 
-    private ToolingModelBuilderResultInternal doGetModel(@Nullable Object target, ToolingModelRequestContext modelRequestContext)
-        throws BuildExceptionVersion1, InternalUnsupportedModelException {
+    private ToolingModelBuilderResultInternal doGetModel(
+            @Nullable Object target, ToolingModelRequestContext modelRequestContext)
+            throws BuildExceptionVersion1, InternalUnsupportedModelException {
         assertCanQuery();
         if (cancellationToken.isCancellationRequested()) {
-            throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelRequestContext.getModelName()));
+            throw new BuildCancelledException(
+                    String.format("Could not build '%s' model. Build cancelled.", modelRequestContext.getModelName()));
         }
 
         BuildTreeModelTarget scopedTarget = resolveTarget(target);
@@ -157,7 +159,8 @@ class DefaultBuildController implements
 
     private void assertCanQuery() {
         if (!workerThreadRegistry.isWorkerThread()) {
-            throw new IllegalStateException("A build controller cannot be used from a thread that is not managed by Gradle.");
+            throw new IllegalStateException(
+                    "A build controller cannot be used from a thread that is not managed by Gradle.");
         }
     }
 
@@ -170,9 +173,11 @@ class DefaultBuildController implements
     }
 
     @Override
-    public <M> InternalFetchModelResult<M> fetch(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
+    public <M> InternalFetchModelResult<M> fetch(
+            @Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
         try {
-            ToolingModelBuilderResultInternal resultInternal = doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, true));
+            ToolingModelBuilderResultInternal resultInternal =
+                    doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, true));
             List<InternalFailure> failures = toInternalFailures(resultInternal.getFailures());
             return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(resultInternal.getModel()), failures);
         } catch (Exception e) {
@@ -182,9 +187,8 @@ class DefaultBuildController implements
     }
 
     private static List<InternalFailure> toInternalFailures(List<Failure> failures) {
-        return failures
-            .stream()
-            .map(failure -> DefaultFailure.fromFailure(failure, dummy -> null))
-            .collect(toImmutableList());
+        return failures.stream()
+                .map(failure -> DefaultFailure.fromFailure(failure, dummy -> null))
+                .collect(toImmutableList());
     }
 }

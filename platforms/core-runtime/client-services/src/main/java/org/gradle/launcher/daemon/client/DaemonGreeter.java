@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.client;
 
 import com.google.common.base.Joiner;
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.service.scopes.Scope;
@@ -24,8 +25,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.bootstrap.DaemonStartupCommunication;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-
-import java.util.List;
 
 @ServiceScope(Scope.Global.class)
 public class DaemonGreeter {
@@ -41,19 +40,20 @@ public class DaemonGreeter {
             throw new GradleException(prepareMessage(output, startupArgs));
         }
         String[] lines = output.split("\n");
-        //Assuming that the diagnostics were printed out to the last line. It's not bullet-proof but seems to be doing fine.
+        // Assuming that the diagnostics were printed out to the last line. It's not bullet-proof but seems to be doing
+        // fine.
         String lastLine = lines[lines.length - 1];
         return startupCommunication.readDiagnostics(lastLine);
     }
 
     private String prepareMessage(String output, List<String> startupArgs) {
-        return DaemonMessages.UNABLE_TO_START_DAEMON +
-            "\nThis problem might be caused by incorrect configuration of the daemon." +
-            "\nFor example, an unrecognized jvm option is used." +
-            documentationRegistry.getDocumentationRecommendationFor("details on the daemon", "gradle_daemon") +
-            "\nProcess command line: " + Joiner.on(" ").join(startupArgs) +
-            "\nPlease read the following process output to find out more:" +
-            "\n-----------------------\n" +
-            output;
+        return DaemonMessages.UNABLE_TO_START_DAEMON
+                + "\nThis problem might be caused by incorrect configuration of the daemon."
+                + "\nFor example, an unrecognized jvm option is used."
+                + documentationRegistry.getDocumentationRecommendationFor("details on the daemon", "gradle_daemon")
+                + "\nProcess command line: "
+                + Joiner.on(" ").join(startupArgs) + "\nPlease read the following process output to find out more:"
+                + "\n-----------------------\n"
+                + output;
     }
 }

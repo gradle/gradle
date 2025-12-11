@@ -34,5 +34,4 @@ public abstract class KotlinDslReference {
      * Will use the Dokkatoo default, if not specified.
      */
     public abstract Property<String> getDokkaVersionOverride();
-
 }

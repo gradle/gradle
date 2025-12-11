@@ -26,10 +26,10 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 8.7
  */
-public final class RunRequestedWorkBuildOperationType implements BuildOperationType<RunRequestedWorkBuildOperationType.Details, RunRequestedWorkBuildOperationType.Result> {
-    public interface Details {
-    }
+public final class RunRequestedWorkBuildOperationType
+        implements BuildOperationType<
+                RunRequestedWorkBuildOperationType.Details, RunRequestedWorkBuildOperationType.Result> {
+    public interface Details {}
 
-    public interface Result {
-    }
+    public interface Result {}
 }

@@ -26,5 +26,4 @@ import org.gradle.api.Incubating;
  * @since 9.0.0
  */
 @Incubating
-public interface RootComponentIdentifier extends ComponentIdentifier {
-}
+public interface RootComponentIdentifier extends ComponentIdentifier {}

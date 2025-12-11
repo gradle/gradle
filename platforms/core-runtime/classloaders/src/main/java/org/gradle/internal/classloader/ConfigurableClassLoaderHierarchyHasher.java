@@ -16,21 +16,21 @@
 
 package org.gradle.internal.classloader;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.WeakHashMap;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.jspecify.annotations.Nullable;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.WeakHashMap;
-
 public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierarchyHasher {
     private final Map<ClassLoader, byte[]> knownClassLoaders;
     private final HashingClassLoaderFactory classLoaderFactory;
 
-    public ConfigurableClassLoaderHierarchyHasher(Map<ClassLoader, String> knownClassLoaders, HashingClassLoaderFactory classLoaderFactory) {
+    public ConfigurableClassLoaderHierarchyHasher(
+            Map<ClassLoader, String> knownClassLoaders, HashingClassLoaderFactory classLoaderFactory) {
         this.classLoaderFactory = classLoaderFactory;
         Map<ClassLoader, byte[]> hashes = new WeakHashMap<ClassLoader, byte[]>();
         for (Map.Entry<ClassLoader, String> entry : knownClassLoaders.entrySet()) {

@@ -15,6 +15,12 @@
  */
 package org.gradle.docs.samples;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.docs.samples.bucket.Buckets;
 import org.gradle.exemplar.model.Sample;
 import org.junit.platform.engine.EngineDiscoveryRequest;
@@ -27,13 +33,6 @@ import org.junit.platform.engine.support.descriptor.EngineDescriptor;
 import org.junit.platform.engine.support.hierarchical.EngineExecutionContext;
 import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
 import org.junit.runners.model.InitializationError;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * We have thousands of {@link Sample}s to test. To enable parallel execution, we implement a custom {@link org.junit.platform.engine.TestEngine}
@@ -53,11 +52,10 @@ import java.util.stream.Collectors;
  * A sample is mapped into bucket N by simply {@code int bucketNumber = Math.abs(sampleId.hashCode()) % Buckets.BUCKET_NUMBER + 1;}
  */
 public class SamplesTestEngine extends HierarchicalTestEngine<SamplesTestEngine.SamplesEngineExecutionContext> {
-    public static class SamplesEngineExecutionContext implements EngineExecutionContext {
-    }
+    public static class SamplesEngineExecutionContext implements EngineExecutionContext {}
 
-    public final static String SAMPLES_TEST_ENGINE_ID = "samples-test-engine";
-    public final static UniqueId SAMPLES_TEST_ENGINE_UID = UniqueId.forEngine(SAMPLES_TEST_ENGINE_ID);
+    public static final String SAMPLES_TEST_ENGINE_ID = "samples-test-engine";
+    public static final UniqueId SAMPLES_TEST_ENGINE_UID = UniqueId.forEngine(SAMPLES_TEST_ENGINE_ID);
     private final IntegrationTestSamplesRunner samplesRunner;
 
     public SamplesTestEngine() throws InitializationError {
@@ -100,10 +98,11 @@ public class SamplesTestEngine extends HierarchicalTestEngine<SamplesTestEngine.
 
     private List<Sample> determineSamplesToBeRun(EngineDiscoveryRequest discoveryRequest) {
         Set<String> classNames = discoveryRequest.getSelectorsByType(ClassSelector.class).stream()
-            .map(ClassSelector::getClassName).collect(Collectors.toSet());
+                .map(ClassSelector::getClassName)
+                .collect(Collectors.toSet());
         Set<UniqueId> uniqueIds = discoveryRequest.getSelectorsByType(UniqueIdSelector.class).stream()
-            .map(UniqueIdSelector::getUniqueId)
-            .collect(Collectors.toSet());
+                .map(UniqueIdSelector::getUniqueId)
+                .collect(Collectors.toSet());
         List<Sample> allSamples = samplesRunner.getAllSamples();
 
         List<Sample> result = new ArrayList<>();
@@ -121,8 +120,8 @@ public class SamplesTestEngine extends HierarchicalTestEngine<SamplesTestEngine.
             List<Sample> samplesToBeRun = determineSamplesToBeRun(discoveryRequest);
 
             Set<String> sampleBucketClassesToBeRun = samplesToBeRun.stream()
-                .map(SamplesTestEngine::getBucketClassName)
-                .collect(Collectors.toSet());
+                    .map(SamplesTestEngine::getBucketClassName)
+                    .collect(Collectors.toSet());
 
             TestDescriptor engineDescriptor = new EngineDescriptor(SAMPLES_TEST_ENGINE_UID, SAMPLES_TEST_ENGINE_ID);
 

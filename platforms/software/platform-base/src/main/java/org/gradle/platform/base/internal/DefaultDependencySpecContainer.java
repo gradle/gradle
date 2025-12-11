@@ -16,15 +16,14 @@
 
 package org.gradle.platform.base.internal;
 
-import com.google.common.collect.ImmutableSet;
-import org.gradle.platform.base.*;
+import static java.util.Collections.emptySet;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import static java.util.Collections.emptySet;
+import org.gradle.platform.base.*;
 
 public class DefaultDependencySpecContainer implements DependencySpecContainer {
 

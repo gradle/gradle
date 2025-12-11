@@ -18,14 +18,13 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByAttributesFailure;
-
-import java.util.List;
 
 /**
  * A specialization of {@link VariantSelectionByAttributesFailure} that represents the situation when multiple variants are
@@ -34,7 +33,11 @@ import java.util.List;
 public final class AmbiguousVariantsFailure extends AbstractVariantSelectionByAttributesFailure {
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
-    public AmbiguousVariantsFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, ImmutableSet<CapabilitySelector> capabilitySelectors, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+    public AmbiguousVariantsFailure(
+            ComponentIdentifier targetComponent,
+            AttributeContainerInternal requestedAttributes,
+            ImmutableSet<CapabilitySelector> capabilitySelectors,
+            List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
         super(ResolutionFailureProblemId.AMBIGUOUS_VARIANTS, targetComponent, requestedAttributes, capabilitySelectors);
         this.candidates = ImmutableList.copyOf(candidates);
     }

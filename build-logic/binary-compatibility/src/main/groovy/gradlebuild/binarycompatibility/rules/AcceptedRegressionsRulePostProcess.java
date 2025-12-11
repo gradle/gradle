@@ -17,26 +17,27 @@
 package gradlebuild.binarycompatibility.rules;
 
 import gradlebuild.binarycompatibility.ApiChange;
+import java.util.HashSet;
+import java.util.Set;
 import me.champeau.gradle.japicmp.report.PostProcessViolationsRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContextWithViolations;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class AcceptedRegressionsRulePostProcess implements PostProcessViolationsRule {
 
     @Override
     @SuppressWarnings("unchecked")
     public void execute(ViolationCheckContextWithViolations context) {
-        Set<ApiChange> acceptedApiChanges = (Set<ApiChange>) context.getUserData().get("acceptedApiChanges");
+        Set<ApiChange> acceptedApiChanges =
+                (Set<ApiChange>) context.getUserData().get("acceptedApiChanges");
         Set<ApiChange> seenApiChanges = (Set<ApiChange>) context.getUserData().get("seenApiChanges");
         Set<ApiChange> left = new HashSet<>(acceptedApiChanges);
         left.removeAll(seenApiChanges);
         if (!left.isEmpty()) {
             String formattedLeft = CollectionUtils.join("\n", left);
-            throw new RuntimeException("The following regressions are declared as accepted, but didn't match any rule:\n\n" + formattedLeft);
+            throw new RuntimeException(
+                    "The following regressions are declared as accepted, but didn't match any rule:\n\n"
+                            + formattedLeft);
         }
     }
-
 }

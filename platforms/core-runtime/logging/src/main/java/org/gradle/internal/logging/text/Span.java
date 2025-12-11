@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.text;
 
 import com.google.common.base.Objects;
-
 import java.io.Serializable;
 
 public class Span implements Serializable {
@@ -54,8 +53,7 @@ public class Span implements Serializable {
         }
 
         Span rhs = (Span) obj;
-        return Objects.equal(getStyle(), rhs.getStyle())
-            && Objects.equal(getText(), rhs.getText());
+        return Objects.equal(getStyle(), rhs.getStyle()) && Objects.equal(getText(), rhs.getText());
     }
 
     @Override

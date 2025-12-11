@@ -30,5 +30,4 @@ public class DefaultWorkItemStartEvent extends DefaultStartEvent implements Work
     public WorkItemOperationDescriptor getDescriptor() {
         return (WorkItemOperationDescriptor) super.getDescriptor();
     }
-
 }

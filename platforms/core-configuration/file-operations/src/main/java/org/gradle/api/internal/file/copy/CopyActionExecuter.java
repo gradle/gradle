@@ -29,7 +29,12 @@ public class CopyActionExecuter {
     private final boolean reproducibleFileOrder;
     private final DocumentationRegistry documentationRegistry;
 
-    public CopyActionExecuter(Instantiator instantiator, PropertyFactory propertyFactory, FileSystem fileSystem, boolean reproducibleFileOrder, DocumentationRegistry documentationRegistry) {
+    public CopyActionExecuter(
+            Instantiator instantiator,
+            PropertyFactory propertyFactory,
+            FileSystem fileSystem,
+            boolean reproducibleFileOrder,
+            DocumentationRegistry documentationRegistry) {
         this.instantiator = instantiator;
         this.propertyFactory = propertyFactory;
         this.fileSystem = fileSystem;
@@ -39,13 +44,10 @@ public class CopyActionExecuter {
 
     public WorkResult execute(final CopySpecInternal spec, CopyAction action) {
         final CopyAction effectiveVisitor = new DuplicateHandlingCopyActionDecorator(
-                new NormalizingCopyActionDecorator(action, fileSystem),
-                spec,
-                documentationRegistry
-        );
+                new NormalizingCopyActionDecorator(action, fileSystem), spec, documentationRegistry);
 
-        CopyActionProcessingStream processingStream = new CopySpecBackedCopyActionProcessingStream(spec, instantiator, propertyFactory, fileSystem, reproducibleFileOrder);
+        CopyActionProcessingStream processingStream = new CopySpecBackedCopyActionProcessingStream(
+                spec, instantiator, propertyFactory, fileSystem, reproducibleFileOrder);
         return effectiveVisitor.execute(processingStream);
     }
-
 }

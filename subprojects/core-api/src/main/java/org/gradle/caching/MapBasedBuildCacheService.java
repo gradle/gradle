@@ -16,11 +16,10 @@
 
 package org.gradle.caching;
 
-import org.gradle.internal.io.StreamByteBuffer;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentMap;
+import org.gradle.internal.io.StreamByteBuffer;
 
 /**
  * Simple build cache implementation that delegates to a {@link ConcurrentMap}.

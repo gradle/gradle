@@ -53,36 +53,47 @@ public class CompileServices extends AbstractGradleModuleServices {
     private static class BuildScopeCompileServices implements ServiceRegistrationProvider {
         @Provides
         @SuppressWarnings("UnusedVariable")
-            //registration
+        // registration
         void configure(ServiceRegistration registration, JdkToolsInitializer initializer) {
             // Hackery
             initializer.initializeJdkTools();
         }
 
         @Provides
-        public IncrementalCompilerFactory createIncrementalCompilerFactory(BuildOperationExecutor buildOperationExecutor, StringInterner interner, ClassSetAnalyzer classSetAnalyzer) {
+        public IncrementalCompilerFactory createIncrementalCompilerFactory(
+                BuildOperationExecutor buildOperationExecutor,
+                StringInterner interner,
+                ClassSetAnalyzer classSetAnalyzer) {
             return new IncrementalCompilerFactory(buildOperationExecutor, interner, classSetAnalyzer);
         }
 
         @Provides
         ClassDependenciesAnalyzer createClassAnalyzer(StringInterner interner, GeneralCompileCaches cache) {
-            return new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(interner), cache.getClassAnalysisCache());
+            return new CachingClassDependenciesAnalyzer(
+                    new DefaultClassDependenciesAnalyzer(interner), cache.getClassAnalysisCache());
         }
 
         @Provides
-        ClassSetAnalyzer createClassSetAnalyzer(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer classAnalyzer,
-                                                       FileOperations fileOperations, FileSystemAccess fileSystemAccess, GeneralCompileCaches cache) {
+        ClassSetAnalyzer createClassSetAnalyzer(
+                FileHasher fileHasher,
+                StreamHasher streamHasher,
+                ClassDependenciesAnalyzer classAnalyzer,
+                FileOperations fileOperations,
+                FileSystemAccess fileSystemAccess,
+                GeneralCompileCaches cache) {
             return new CachingClassSetAnalyzer(
-                new DefaultClassSetAnalyzer(fileHasher, streamHasher, classAnalyzer, fileOperations),
-                fileSystemAccess,
-                cache.getClassSetAnalysisCache()
-            );
+                    new DefaultClassSetAnalyzer(fileHasher, streamHasher, classAnalyzer, fileOperations),
+                    fileSystemAccess,
+                    cache.getClassSetAnalysisCache());
         }
     }
 
     private static class UserHomeScopeServices implements ServiceRegistrationProvider {
         @Provides
-        GeneralCompileCaches createCompileCaches(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
+        GeneralCompileCaches createCompileCaches(
+                GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+                InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+                StringInterner interner) {
             return new UserHomeScopedCompileCaches(cacheBuilderFactory, inMemoryCacheDecoratorFactory, interner);
         }
     }

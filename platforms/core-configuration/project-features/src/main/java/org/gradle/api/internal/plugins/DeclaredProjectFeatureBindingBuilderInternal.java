@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.plugins;
 
-public interface DeclaredProjectFeatureBindingBuilderInternal<T extends Definition<V>, V extends BuildModel> extends DeclaredProjectFeatureBindingBuilder<T, V> {
+public interface DeclaredProjectFeatureBindingBuilderInternal<T extends Definition<V>, V extends BuildModel>
+        extends DeclaredProjectFeatureBindingBuilder<T, V> {
 
     ProjectFeatureBindingDeclaration<T, V> build();
 }

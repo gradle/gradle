@@ -16,12 +16,11 @@
 
 package org.gradle.model;
 
-import org.gradle.api.Incubating;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.Incubating;
 
 /**
  * A managed type is transparent to the model space, and enforces immutability at the appropriate times in the object's lifecycle.
@@ -116,5 +115,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Incubating
-public @interface Managed {
-}
+public @interface Managed {}

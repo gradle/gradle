@@ -40,12 +40,11 @@ public class DefaultProjectDependencyFactory {
     private final ProjectStateRegistry projectStateRegistry;
 
     public DefaultProjectDependencyFactory(
-        Instantiator instantiator,
-        CapabilityNotationParser capabilityNotationParser,
-        ObjectFactory objectFactory,
-        AttributesFactory attributesFactory,
-        ProjectStateRegistry projectStateRegistry
-    ) {
+            Instantiator instantiator,
+            CapabilityNotationParser capabilityNotationParser,
+            ObjectFactory objectFactory,
+            AttributesFactory attributesFactory,
+            ProjectStateRegistry projectStateRegistry) {
         this.instantiator = instantiator;
         this.capabilityNotationParser = capabilityNotationParser;
         this.objectFactory = objectFactory;
@@ -54,7 +53,8 @@ public class DefaultProjectDependencyFactory {
     }
 
     public ProjectDependency create(ProjectState projectState) {
-        DefaultProjectDependency projectDependency = instantiator.newInstance(DefaultProjectDependency.class, projectState);
+        DefaultProjectDependency projectDependency =
+                instantiator.newInstance(DefaultProjectDependency.class, projectState);
         injectServices(projectDependency);
         return projectDependency;
     }
@@ -62,7 +62,8 @@ public class DefaultProjectDependencyFactory {
     public ProjectDependency create(Path projectIdentityPath) {
         ProjectState projectState = projectStateRegistry.findProjectState(projectIdentityPath);
         if (projectState == null) {
-            throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", projectIdentityPath.asString()));
+            throw new UnknownProjectException(
+                    String.format("Project with path '%s' could not be found.", projectIdentityPath.asString()));
         }
         return create(projectState);
     }
@@ -72,5 +73,4 @@ public class DefaultProjectDependencyFactory {
         projectDependency.setCapabilityNotationParser(capabilityNotationParser);
         projectDependency.setObjectFactory(objectFactory);
     }
-
 }

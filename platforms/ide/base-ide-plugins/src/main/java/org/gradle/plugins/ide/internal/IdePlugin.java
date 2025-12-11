@@ -16,6 +16,10 @@
 package org.gradle.plugins.ide.internal;
 
 import com.google.common.base.Optional;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
@@ -34,11 +38,6 @@ import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.process.ExecOperations;
-
-import javax.inject.Inject;
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
 
 public abstract class IdePlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(IdePlugin.class);
@@ -68,7 +67,10 @@ public abstract class IdePlugin implements Plugin<Project> {
         }
 
         if (gradle.getGradleHomeDir() != null) {
-            if (gradleWrapperPath.isPresent() && gradle.getGradleHomeDir().getAbsolutePath().startsWith(gradle.getGradleUserHomeDir().getAbsolutePath())) {
+            if (gradleWrapperPath.isPresent()
+                    && gradle.getGradleHomeDir()
+                            .getAbsolutePath()
+                            .startsWith(gradle.getGradleUserHomeDir().getAbsolutePath())) {
                 return gradleWrapperPath.get();
             }
             return gradle.getGradleHomeDir().getAbsolutePath() + "/bin/gradle";
@@ -124,12 +126,13 @@ public abstract class IdePlugin implements Plugin<Project> {
 
     public void addWorker(final TaskProvider<? extends Task> worker, String workerName, boolean includeInClean) {
         lifecycleTask.configure(dependsOn(worker));
-        final TaskProvider<Delete> cleanWorker = project.getTasks().register(cleanName(workerName), Delete.class, new Action<Delete>() {
-            @Override
-            public void execute(Delete cleanWorker) {
-                cleanWorker.delete(worker);
-            }
-        });
+        final TaskProvider<Delete> cleanWorker = project.getTasks()
+                .register(cleanName(workerName), Delete.class, new Action<Delete>() {
+                    @Override
+                    public void execute(Delete cleanWorker) {
+                        cleanWorker.delete(worker);
+                    }
+                });
 
         if (includeInClean) {
             cleanTask.configure(dependsOn(cleanWorker));
@@ -171,8 +174,7 @@ public abstract class IdePlugin implements Plugin<Project> {
         };
     }
 
-    protected void onApply(Project target) {
-    }
+    protected void onApply(Project target) {}
 
     protected void addWorkspace(final IdeWorkspace workspace) {
         lifecycleTask.configure(new Action<Task>() {
@@ -181,7 +183,11 @@ public abstract class IdePlugin implements Plugin<Project> {
                 String displayName = workspace.getDisplayName();
                 Provider<? extends FileSystemLocation> location = workspace.getLocation();
                 lifecycleTask.doLast(SerializableLambdas.action(t -> {
-                    LOGGER.lifecycle(String.format("Generated %s at %s", displayName, new ConsoleRenderer().asClickableFileUrl(location.get().getAsFile())));
+                    LOGGER.lifecycle(String.format(
+                            "Generated %s at %s",
+                            displayName,
+                            new ConsoleRenderer()
+                                    .asClickableFileUrl(location.get().getAsFile())));
                 }));
             }
         });
@@ -198,10 +204,12 @@ public abstract class IdePlugin implements Plugin<Project> {
                     @Override
                     public void execute(Task task) {
                         if (OperatingSystem.current().isMacOsX()) {
-                            execOperations.exec(execSpec -> execSpec.commandLine("open", workspace.getLocation().get()));
+                            execOperations.exec(execSpec -> execSpec.commandLine(
+                                    "open", workspace.getLocation().get()));
                         } else {
                             try {
-                                Desktop.getDesktop().open(workspace.getLocation().get().getAsFile());
+                                Desktop.getDesktop()
+                                        .open(workspace.getLocation().get().getAsFile());
                             } catch (IOException e) {
                                 throw UncheckedException.throwAsUncheckedException(e);
                             }

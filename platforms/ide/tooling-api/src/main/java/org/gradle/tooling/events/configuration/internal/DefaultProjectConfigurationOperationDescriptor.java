@@ -23,11 +23,13 @@ import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationDescriptor;
 import org.gradle.tooling.model.ProjectIdentifier;
 
-public class DefaultProjectConfigurationOperationDescriptor extends DefaultOperationDescriptor implements ProjectConfigurationOperationDescriptor {
+public class DefaultProjectConfigurationOperationDescriptor extends DefaultOperationDescriptor
+        implements ProjectConfigurationOperationDescriptor {
 
     private final ProjectIdentifier projectIdentifier;
 
-    public DefaultProjectConfigurationOperationDescriptor(InternalProjectConfigurationDescriptor descriptor, OperationDescriptor parent) {
+    public DefaultProjectConfigurationOperationDescriptor(
+            InternalProjectConfigurationDescriptor descriptor, OperationDescriptor parent) {
         super(descriptor, parent);
         this.projectIdentifier = new DefaultProjectIdentifier(descriptor.getRootDir(), descriptor.getProjectPath());
     }
@@ -36,5 +38,4 @@ public class DefaultProjectConfigurationOperationDescriptor extends DefaultOpera
     public ProjectIdentifier getProject() {
         return projectIdentifier;
     }
-
 }

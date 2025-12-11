@@ -63,5 +63,4 @@ public interface ResourcePattern {
      * Checks if the given identifier contains sufficient information to bind the tokens in this pattern.
      */
     boolean isComplete(ModuleComponentArtifactMetadata id);
-
 }

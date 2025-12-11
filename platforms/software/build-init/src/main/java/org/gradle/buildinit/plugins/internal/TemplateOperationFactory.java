@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-
 package org.gradle.buildinit.plugins.internal;
-
-import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.net.URL;
@@ -28,6 +24,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.util.GradleVersion;
 
 public class TemplateOperationFactory {
 
@@ -42,7 +40,8 @@ public class TemplateOperationFactory {
     }
 
     private Map<String, String> loadDefaultBindings() {
-        String now = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(new Date());
+        String now = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
+                .format(new Date());
         Map<String, String> map = new LinkedHashMap<>(3);
         map.put("genDate", now);
         map.put("genUser", System.getProperty("user.name"));
@@ -56,7 +55,7 @@ public class TemplateOperationFactory {
 
     public class TemplateOperationBuilder {
         private File target;
-        final private Map<String, String> bindings =  new HashMap<>();
+        private final Map<String, String> bindings = new HashMap<>();
         private URL templateUrl;
 
         public TemplateOperationBuilder(Map<String, String> defaultBindings) {
@@ -66,7 +65,8 @@ public class TemplateOperationFactory {
         public TemplateOperationBuilder withTemplate(final String relativeTemplatePath) {
             this.templateUrl = getClass().getResource(templatepackage + "/" + relativeTemplatePath);
             if (templateUrl == null) {
-                throw new IllegalArgumentException(String.format("Could not find template '%s' in classpath.", relativeTemplatePath));
+                throw new IllegalArgumentException(
+                        String.format("Could not find template '%s' in classpath.", relativeTemplatePath));
             }
             return this;
         }
@@ -82,7 +82,7 @@ public class TemplateOperationFactory {
         }
 
         public TemplateOperationBuilder withDocumentationBindings(Map<String, String> documentationBindings) {
-            for (Map.Entry<String, String> entry : documentationBindings.entrySet()){
+            for (Map.Entry<String, String> entry : documentationBindings.entrySet()) {
                 bindings.put(entry.getKey(), documentationRegistry.getDocumentationFor(entry.getValue()));
             }
             return this;

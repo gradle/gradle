@@ -16,11 +16,10 @@
 
 package org.gradle.initialization.exception;
 
+import java.util.List;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 public class StackTraceSanitizingExceptionAnalyser implements ExceptionAnalyser {
     private final ExceptionAnalyser analyser;

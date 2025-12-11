@@ -18,9 +18,8 @@ package org.gradle.internal.metaobject;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
-import org.jspecify.annotations.Nullable;
-
 import javax.annotation.concurrent.NotThreadSafe;
+import org.jspecify.annotations.Nullable;
 
 @SuppressWarnings({"FieldNamingConvention", "NewMethodNamingConvention"})
 @NotThreadSafe

@@ -22,7 +22,9 @@ import static org.gradle.test.fixtures.server.http.AbstractFailure.withLeadingSl
 class ExpectationState {
 
     private enum FailureType {
-        None, UnexpectedRequest, Timeout
+        None,
+        UnexpectedRequest,
+        Timeout
     }
 
     private FailureType failure = FailureType.None;
@@ -56,7 +58,12 @@ class ExpectationState {
         if (failure == FailureType.None) {
             failure = FailureType.Timeout;
         }
-        return new RequestConditionFailure(requestMethod, path, String.format("Failed to handle %s %s due to a timeout %s%s", requestMethod, withLeadingSlash(path), waitingFor, contextSuffix(context)));
+        return new RequestConditionFailure(
+                requestMethod,
+                path,
+                String.format(
+                        "Failed to handle %s %s due to a timeout %s%s",
+                        requestMethod, withLeadingSlash(path), waitingFor, contextSuffix(context)));
     }
 
     /**
@@ -74,9 +81,23 @@ class ExpectationState {
     public ResponseProducer alreadyFailed(String requestMethod, String path, String context) {
         switch (failure) {
             case UnexpectedRequest:
-                return new RequestConditionFailure(requestMethod, path, String.format("Failed to handle %s %s due to unexpected request %s %s%s", requestMethod, withLeadingSlash(path), unexpectedMethod, withLeadingSlash(unexpectedPath), contextSuffix(context)));
+                return new RequestConditionFailure(
+                        requestMethod,
+                        path,
+                        String.format(
+                                "Failed to handle %s %s due to unexpected request %s %s%s",
+                                requestMethod,
+                                withLeadingSlash(path),
+                                unexpectedMethod,
+                                withLeadingSlash(unexpectedPath),
+                                contextSuffix(context)));
             case Timeout:
-                return new RequestConditionFailure(requestMethod, path, String.format("Failed to handle %s %s due to a previous timeout%s", requestMethod, withLeadingSlash(path), contextSuffix(context)));
+                return new RequestConditionFailure(
+                        requestMethod,
+                        path,
+                        String.format(
+                                "Failed to handle %s %s due to a previous timeout%s",
+                                requestMethod, withLeadingSlash(path), contextSuffix(context)));
             default:
                 throw new IllegalStateException();
         }
@@ -88,9 +109,23 @@ class ExpectationState {
     public ResponseProducer failureWhileWaiting(String requestMethod, String path, String waitingFor, String context) {
         switch (failure) {
             case UnexpectedRequest:
-                return new RequestConditionFailure(requestMethod, path, String.format("Failed to handle %s %s due to unexpected request %s %s%s", requestMethod, withLeadingSlash(path), unexpectedMethod, withLeadingSlash(unexpectedPath), contextSuffix(context)));
+                return new RequestConditionFailure(
+                        requestMethod,
+                        path,
+                        String.format(
+                                "Failed to handle %s %s due to unexpected request %s %s%s",
+                                requestMethod,
+                                withLeadingSlash(path),
+                                unexpectedMethod,
+                                withLeadingSlash(unexpectedPath),
+                                contextSuffix(context)));
             case Timeout:
-                return new RequestConditionFailure(requestMethod, path, String.format("Failed to handle %s %s due to a timeout %s%s", requestMethod, withLeadingSlash(path), waitingFor, contextSuffix(context)));
+                return new RequestConditionFailure(
+                        requestMethod,
+                        path,
+                        String.format(
+                                "Failed to handle %s %s due to a timeout %s%s",
+                                requestMethod, withLeadingSlash(path), waitingFor, contextSuffix(context)));
             default:
                 throw new IllegalStateException();
         }
@@ -102,9 +137,12 @@ class ExpectationState {
     public RuntimeException getWaitFailure(String context) {
         switch (failure) {
             case UnexpectedRequest:
-                return new RuntimeException(String.format("Unexpected request %s %s received%s", unexpectedMethod, withLeadingSlash(unexpectedPath), contextSuffix(context)));
+                return new RuntimeException(String.format(
+                        "Unexpected request %s %s received%s",
+                        unexpectedMethod, withLeadingSlash(unexpectedPath), contextSuffix(context)));
             case Timeout:
-                return new RuntimeException(String.format("Timeout waiting for expected requests%s", contextSuffix(context)));
+                return new RuntimeException(
+                        String.format("Timeout waiting for expected requests%s", contextSuffix(context)));
             default:
                 throw new IllegalStateException();
         }

@@ -16,6 +16,9 @@
 
 package org.gradle.nativeplatform.test.googletest.plugins;
 
+import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNativeTestSuiteBinaries;
+
+import java.io.File;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -32,10 +35,6 @@ import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.platform.base.ComponentBinaries;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
-
-import java.io.File;
-
-import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNativeTestSuiteBinaries;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with GoogleTest.
@@ -63,11 +62,18 @@ public abstract class GoogleTestPlugin implements Plugin<Project> {
         }
 
         @ComponentBinaries
-        public void createGoogleTestTestBinaries(ModelMap<GoogleTestTestSuiteBinarySpec> binaries,
-                                                 GoogleTestTestSuiteSpec testSuite,
-                                                 @Path("buildDir") final File buildDir,
-                                                 final ServiceRegistry serviceRegistry) {
-            createNativeTestSuiteBinaries(binaries, testSuite, GoogleTestTestSuiteBinarySpec.class, "GoogleTestExe", buildDir, serviceRegistry);
-       }
+        public void createGoogleTestTestBinaries(
+                ModelMap<GoogleTestTestSuiteBinarySpec> binaries,
+                GoogleTestTestSuiteSpec testSuite,
+                @Path("buildDir") final File buildDir,
+                final ServiceRegistry serviceRegistry) {
+            createNativeTestSuiteBinaries(
+                    binaries,
+                    testSuite,
+                    GoogleTestTestSuiteBinarySpec.class,
+                    "GoogleTestExe",
+                    buildDir,
+                    serviceRegistry);
+        }
     }
 }

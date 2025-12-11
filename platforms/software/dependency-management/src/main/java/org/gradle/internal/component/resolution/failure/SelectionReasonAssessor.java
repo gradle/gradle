@@ -17,6 +17,10 @@
 package org.gradle.internal.component.resolution.failure;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -27,11 +31,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.SelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 /**
  * A static utility class used by {@link ResolutionFailureHandler} to assess and classify
  * component selection failures during graph construction.
@@ -41,7 +40,9 @@ import java.util.stream.Collectors;
  * the information necessary to describe the failure.
  */
 public final class SelectionReasonAssessor {
-    private SelectionReasonAssessor() { /* not instantiable */ }
+    private SelectionReasonAssessor() {
+        /* not instantiable */
+    }
 
     /**
      * Assess the reasons for selecting (or failing to select) a module, based on the given {@link ModuleResolveState}.
@@ -63,21 +64,22 @@ public final class SelectionReasonAssessor {
         return new AssessedSelection(moduleResolveState.getId(), assessedReasons);
     }
 
-    private static List<AssessedSelection.AssessedSelectionReason> assessReason(SelectorState selectorState, List<String> pathSegments) {
+    private static List<AssessedSelection.AssessedSelectionReason> assessReason(
+            SelectorState selectorState, List<String> pathSegments) {
         boolean isStrictRequirement = isStrictRequirement(selectorState);
         String requiredVersion = describeRequiredVersion(selectorState);
 
         return selectorState.getSelectionReason().getDescriptions().stream()
-            .map(selectionDescriptor -> new AssessedSelection.AssessedSelectionReason(
-                selectorState.getRequested(),
-                selectorState.getSelector(),
-                pathSegments,
-                requiredVersion,
-                isStrictRequirement,
-                selectionDescriptor.getCause(),
-                describeSelectionReason(selectionDescriptor),
-                selectorState.isFromLock()
-            )).collect(Collectors.toList());
+                .map(selectionDescriptor -> new AssessedSelection.AssessedSelectionReason(
+                        selectorState.getRequested(),
+                        selectorState.getSelector(),
+                        pathSegments,
+                        requiredVersion,
+                        isStrictRequirement,
+                        selectionDescriptor.getCause(),
+                        describeSelectionReason(selectionDescriptor),
+                        selectorState.isFromLock()))
+                .collect(Collectors.toList());
     }
 
     private static boolean isStrictRequirement(SelectorState selectorState) {
@@ -138,7 +140,15 @@ public final class SelectionReasonAssessor {
             private final String description;
             private final boolean isFromLock;
 
-            public AssessedSelectionReason(ComponentSelector requested, ComponentSelector selected, List<String> segmentedSelectionPath, String requiredVersion, boolean isStrict, ComponentSelectionCause cause, String description, boolean isFromLock) {
+            public AssessedSelectionReason(
+                    ComponentSelector requested,
+                    ComponentSelector selected,
+                    List<String> segmentedSelectionPath,
+                    String requiredVersion,
+                    boolean isStrict,
+                    ComponentSelectionCause cause,
+                    String description,
+                    boolean isFromLock) {
                 this.requested = requested;
                 this.selected = selected;
                 this.segmentedSelectionPath = ImmutableList.copyOf(segmentedSelectionPath);

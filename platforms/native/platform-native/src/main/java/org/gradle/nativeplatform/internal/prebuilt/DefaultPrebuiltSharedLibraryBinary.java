@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.internal.prebuilt;
 
+import java.io.File;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.nativeplatform.BuildType;
@@ -24,13 +25,18 @@ import org.gradle.nativeplatform.PrebuiltLibrary;
 import org.gradle.nativeplatform.PrebuiltSharedLibraryBinary;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
-import java.io.File;
-
-public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryBinary implements PrebuiltSharedLibraryBinary {
+public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryBinary
+        implements PrebuiltSharedLibraryBinary {
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
-    public DefaultPrebuiltSharedLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+    public DefaultPrebuiltSharedLibraryBinary(
+            String name,
+            PrebuiltLibrary library,
+            BuildType buildType,
+            NativePlatform targetPlatform,
+            Flavor flavor,
+            FileCollectionFactory fileCollectionFactory) {
         super(name, library, buildType, targetPlatform, flavor, fileCollectionFactory);
     }
 

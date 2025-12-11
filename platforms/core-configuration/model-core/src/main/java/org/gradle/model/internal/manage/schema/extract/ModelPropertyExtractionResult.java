@@ -23,7 +23,8 @@ public class ModelPropertyExtractionResult<T> {
     private final ModelProperty<T> property;
     private final Iterable<PropertyAccessorExtractionContext> accessors;
 
-    public ModelPropertyExtractionResult(ModelProperty<T> property, Iterable<PropertyAccessorExtractionContext> accessors) {
+    public ModelPropertyExtractionResult(
+            ModelProperty<T> property, Iterable<PropertyAccessorExtractionContext> accessors) {
         this.property = property;
         this.accessors = ImmutableSet.copyOf(accessors);
     }

@@ -23,11 +23,13 @@ import org.jspecify.annotations.NullMarked;
 public class LongFromCharSequenceNotationConverter implements NotationConverter<CharSequence, Long> {
 
     @Override
-    public void convert(CharSequence notation, NotationConvertResult<? super Long> result) throws TypeConversionException {
+    public void convert(CharSequence notation, NotationConvertResult<? super Long> result)
+            throws TypeConversionException {
         try {
             result.converted(Long.valueOf(notation.toString()));
         } catch (NumberFormatException ex) {
-            throw new TypeConversionException(String.format("Cannot convert string value '%s' to a long.", notation), ex);
+            throw new TypeConversionException(
+                    String.format("Cannot convert string value '%s' to a long.", notation), ex);
         }
     }
 

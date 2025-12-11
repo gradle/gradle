@@ -16,6 +16,12 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import java.io.File;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Stream;
 import org.gradle.api.internal.GradleApiImplicitImportsProvider;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.classpath.GradleApiClasspathProvider;
@@ -27,13 +33,6 @@ import org.gradle.tooling.model.dsl.GroovyDslBaseScriptModel;
 import org.gradle.tooling.model.dsl.KotlinDslBaseScriptModel;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.File;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Stream;
 
 @NullMarked
 public class GradleDslBaseScriptModelBuilder implements BuildScopeModelBuilder {
@@ -47,34 +46,32 @@ public class GradleDslBaseScriptModelBuilder implements BuildScopeModelBuilder {
     public Object create(BuildState target) {
         GradleInternal gradle = target.getMutableModel();
         ModuleRegistry moduleRegistry = gradle.getServices().get(ModuleRegistry.class);
-        GradleApiImplicitImportsProvider implicitImports = gradle.getServices().get(GradleApiImplicitImportsProvider.class);
+        GradleApiImplicitImportsProvider implicitImports =
+                gradle.getServices().get(GradleApiImplicitImportsProvider.class);
         GradleApiClasspathProvider apiClasspathProvider = gradle.getServices().get(GradleApiClasspathProvider.class);
 
         DefaultKotlinDslBaseScriptModel kotlinDslBaseScriptModel = new DefaultKotlinDslBaseScriptModel(
-            getKotlinScriptTemplatesClassPath(moduleRegistry),
-            apiClasspathProvider.getGradleKotlinDslApi(),
-            implicitImports.getKotlinDslImplicitImports()
-        );
+                getKotlinScriptTemplatesClassPath(moduleRegistry),
+                apiClasspathProvider.getGradleKotlinDslApi(),
+                implicitImports.getKotlinDslImplicitImports());
 
         DefaultGroovyDslBaseScriptModel groovyDslBaseScriptModel = new DefaultGroovyDslBaseScriptModel(
-            apiClasspathProvider.getGradleApi(),
-            implicitImports.getGroovyDslImplicitImports()
-        );
+                apiClasspathProvider.getGradleApi(), implicitImports.getGroovyDslImplicitImports());
 
-        return new DefaultGradleDslBaseScriptModel(
-            groovyDslBaseScriptModel,
-            kotlinDslBaseScriptModel
-        );
+        return new DefaultGradleDslBaseScriptModel(groovyDslBaseScriptModel, kotlinDslBaseScriptModel);
     }
 
     private static ClassPath getKotlinScriptTemplatesClassPath(ModuleRegistry moduleRegistry) {
         return Stream.of("gradle-core")
-            .map(moduleRegistry::getModule)
-            .flatMap(it -> it.getAllRequiredModules().stream())
-            .flatMap(it -> it.getClasspath().getAsFiles().stream())
-            .filter(GradleDslBaseScriptModelBuilder::isNeededOnScriptTemplateClassPath)
-            .sorted()
-            .reduce(ClassPath.EMPTY, (classPath, file) -> classPath.plus(Collections.singleton(file)), ClassPath::plus);
+                .map(moduleRegistry::getModule)
+                .flatMap(it -> it.getAllRequiredModules().stream())
+                .flatMap(it -> it.getClasspath().getAsFiles().stream())
+                .filter(GradleDslBaseScriptModelBuilder::isNeededOnScriptTemplateClassPath)
+                .sorted()
+                .reduce(
+                        ClassPath.EMPTY,
+                        (classPath, file) -> classPath.plus(Collections.singleton(file)),
+                        ClassPath::plus);
     }
 
     private static boolean isNeededOnScriptTemplateClassPath(File file) {
@@ -82,7 +79,10 @@ public class GradleDslBaseScriptModelBuilder implements BuildScopeModelBuilder {
         if (!name.endsWith(".jar")) {
             return false;
         }
-        return name.startsWith("gradle-kotlin-dsl-") || name.startsWith("gradle-core-api-") || name.startsWith("gradle-base-services-") || name.startsWith("kotlin-script-runtime-");
+        return name.startsWith("gradle-kotlin-dsl-")
+                || name.startsWith("gradle-core-api-")
+                || name.startsWith("gradle-base-services-")
+                || name.startsWith("kotlin-script-runtime-");
     }
 }
 
@@ -93,7 +93,8 @@ class DefaultGradleDslBaseScriptModel implements GradleDslBaseScriptModel, Seria
 
     private final KotlinDslBaseScriptModel kotlinDslBaseScriptModel;
 
-    public DefaultGradleDslBaseScriptModel(GroovyDslBaseScriptModel groovyDslBaseScriptModel, KotlinDslBaseScriptModel kotlinDslBaseScriptModel) {
+    public DefaultGradleDslBaseScriptModel(
+            GroovyDslBaseScriptModel groovyDslBaseScriptModel, KotlinDslBaseScriptModel kotlinDslBaseScriptModel) {
         this.groovyDslBaseScriptModel = groovyDslBaseScriptModel;
         this.kotlinDslBaseScriptModel = kotlinDslBaseScriptModel;
     }
@@ -107,7 +108,6 @@ class DefaultGradleDslBaseScriptModel implements GradleDslBaseScriptModel, Seria
     public KotlinDslBaseScriptModel getKotlinDslBaseScriptModel() {
         return kotlinDslBaseScriptModel;
     }
-
 }
 
 @NullMarked
@@ -136,16 +136,16 @@ class DefaultGroovyDslBaseScriptModel implements GroovyDslBaseScriptModel, Seria
 class DefaultKotlinDslBaseScriptModel implements KotlinDslBaseScriptModel, Serializable {
 
     private static final List<String> TEMPLATE_CLASS_NAMES = Arrays.asList(
-        "org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
-        "org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
-        "org.gradle.kotlin.dsl.KotlinProjectScriptTemplate"
-    );
+            "org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
+            "org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
+            "org.gradle.kotlin.dsl.KotlinProjectScriptTemplate");
 
     private final List<File> scriptTemplatesClassPath;
     private final List<File> compileClassPath;
     private final List<String> implicitImports;
 
-    public DefaultKotlinDslBaseScriptModel(ClassPath scriptTemplatesClassPath, ClassPath compileClassPath, List<String> implicitImports) {
+    public DefaultKotlinDslBaseScriptModel(
+            ClassPath scriptTemplatesClassPath, ClassPath compileClassPath, List<String> implicitImports) {
         this.scriptTemplatesClassPath = scriptTemplatesClassPath.getAsFiles();
         this.compileClassPath = compileClassPath.getAsFiles();
         this.implicitImports = implicitImports;

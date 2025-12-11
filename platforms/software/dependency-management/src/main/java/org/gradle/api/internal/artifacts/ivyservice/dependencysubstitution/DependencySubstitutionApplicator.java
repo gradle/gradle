@@ -31,7 +31,8 @@ public interface DependencySubstitutionApplicator {
     /**
      * A substitution applicator that does not perform any substitutions.
      */
-    DependencySubstitutionApplicator NO_OP = metadata -> new DependencyState(metadata, metadata.getSelector(), ImmutableList.of(), null);
+    DependencySubstitutionApplicator NO_OP =
+            metadata -> new DependencyState(metadata, metadata.getSelector(), ImmutableList.of(), null);
 
     /**
      * Execute any dependency substitution rules that apply to the given dependency metadata.
@@ -39,5 +40,4 @@ public interface DependencySubstitutionApplicator {
      * @return a dependency state representing the result of applying any substitution rules.
      */
     DependencyState applySubstitutions(DependencyMetadata metadata);
-
 }

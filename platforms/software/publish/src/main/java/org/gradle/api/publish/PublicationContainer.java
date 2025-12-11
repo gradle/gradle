@@ -46,5 +46,4 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
  * @see PublishingExtension
  */
 @SuppressWarnings("JavadocReference")
-public interface PublicationContainer extends ExtensiblePolymorphicDomainObjectContainer<Publication> {
-}
+public interface PublicationContainer extends ExtensiblePolymorphicDomainObjectContainer<Publication> {}

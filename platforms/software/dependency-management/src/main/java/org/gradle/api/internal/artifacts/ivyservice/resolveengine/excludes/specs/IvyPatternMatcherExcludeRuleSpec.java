@@ -15,5 +15,4 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
-public interface IvyPatternMatcherExcludeRuleSpec extends ArtifactExclude {
-}
+public interface IvyPatternMatcherExcludeRuleSpec extends ArtifactExclude {}

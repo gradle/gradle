@@ -32,7 +32,7 @@ public class ParameterAnnotationMember extends AnnotationMember {
     @Override
     public int compareTo(AnnotationMember o) {
         return super.compare(o)
-            .compare(parameter, ((ParameterAnnotationMember) o).parameter)
-            .result();
+                .compare(parameter, ((ParameterAnnotationMember) o).parameter)
+                .result();
     }
 }

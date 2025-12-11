@@ -16,9 +16,8 @@
 
 package org.gradle.api.artifacts.repositories;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
 import java.net.URI;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * A repository that supports resolving artifacts from a URL.

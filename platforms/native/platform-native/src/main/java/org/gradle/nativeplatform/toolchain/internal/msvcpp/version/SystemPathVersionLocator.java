@@ -16,17 +16,15 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
-
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NonNull;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 @ServiceScope(Scope.BuildSession.class)
 public class SystemPathVersionLocator implements VisualStudioVersionLocator {
@@ -50,7 +48,8 @@ public class SystemPathVersionLocator implements VisualStudioVersionLocator {
         if (compilerInPath == null) {
             LOGGER.debug("No visual c++ compiler found in system path.");
         } else {
-            VisualStudioInstallCandidate install = versionDeterminer.getVisualStudioMetadataFromCompiler(compilerInPath);
+            VisualStudioInstallCandidate install =
+                    versionDeterminer.getVisualStudioMetadataFromCompiler(compilerInPath);
             if (install != null) {
                 installs.add(install);
             }

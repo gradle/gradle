@@ -16,10 +16,9 @@
 
 package org.gradle.internal.component.external.model;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A specialized {@link ComponentGraphResolveState} for external module components.

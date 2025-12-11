@@ -29,5 +29,4 @@ public interface ResolutionAwareRepository {
      * Returns details about this repository, such as its name, type, and a map of properties used for reporting.
      */
     RepositoryDescriptor getDescriptor();
-
 }

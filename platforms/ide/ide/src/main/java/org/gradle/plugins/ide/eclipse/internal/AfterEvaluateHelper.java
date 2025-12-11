@@ -39,5 +39,4 @@ public class AfterEvaluateHelper {
             project.afterEvaluate(action);
         }
     }
-
 }

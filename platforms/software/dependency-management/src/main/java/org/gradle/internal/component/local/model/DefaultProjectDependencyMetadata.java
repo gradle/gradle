@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
+import java.util.List;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.internal.component.model.DelegatingDependencyMetadata;
@@ -23,9 +24,8 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.List;
-
-public class DefaultProjectDependencyMetadata extends DelegatingDependencyMetadata implements ForcingDependencyMetadata {
+public class DefaultProjectDependencyMetadata extends DelegatingDependencyMetadata
+        implements ForcingDependencyMetadata {
     private final ProjectComponentSelector selector;
     private final DependencyMetadata delegate;
 

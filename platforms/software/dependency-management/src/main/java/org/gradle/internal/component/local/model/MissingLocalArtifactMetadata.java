@@ -16,13 +16,12 @@
 
 package org.gradle.internal.component.local.model;
 
+import java.io.File;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.IvyArtifactName;
-
-import java.io.File;
 
 /**
  * Represents an unknown local artifact, referenced from a dependency definition.

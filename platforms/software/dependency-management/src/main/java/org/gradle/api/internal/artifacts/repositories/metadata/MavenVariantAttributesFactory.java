@@ -29,15 +29,20 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.BuildSession.class)
 public interface MavenVariantAttributesFactory {
 
-    // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
+    // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the
+    // `PreferJavaRuntimeVariant` schema
     Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
-    Attribute<String> FORMAT_ATTRIBUTE = Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class);
+    Attribute<String> FORMAT_ATTRIBUTE =
+            Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class);
     Attribute<String> CATEGORY_ATTRIBUTE = Attribute.of(Category.CATEGORY_ATTRIBUTE.getName(), String.class);
 
     ImmutableAttributes compileScope(ImmutableAttributes original);
-    ImmutableAttributes runtimeScope(ImmutableAttributes original);
-    ImmutableAttributes platformWithUsage(ImmutableAttributes original, String usage, boolean enforced);
-    ImmutableAttributes sourcesVariant(ImmutableAttributes original);
-    ImmutableAttributes javadocVariant(ImmutableAttributes original);
 
+    ImmutableAttributes runtimeScope(ImmutableAttributes original);
+
+    ImmutableAttributes platformWithUsage(ImmutableAttributes original, String usage, boolean enforced);
+
+    ImmutableAttributes sourcesVariant(ImmutableAttributes original);
+
+    ImmutableAttributes javadocVariant(ImmutableAttributes original);
 }

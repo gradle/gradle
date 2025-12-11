@@ -33,15 +33,24 @@ public class ProcessOutputProviderFactory {
         this.execSpecFactory = execSpecFactory;
     }
 
-    public void configureParametersForExec(ProcessOutputValueSource.Parameters parameters, Action<? super ExecSpec> action) {
-        configureParameters(parameters, instantiator.newInstance(ProviderCompatibleExecSpec.class, execSpecFactory.newExecSpec()), action);
+    public void configureParametersForExec(
+            ProcessOutputValueSource.Parameters parameters, Action<? super ExecSpec> action) {
+        configureParameters(
+                parameters,
+                instantiator.newInstance(ProviderCompatibleExecSpec.class, execSpecFactory.newExecSpec()),
+                action);
     }
 
-    public void configureParametersForJavaExec(ProcessOutputValueSource.Parameters parameters, Action<? super JavaExecSpec> action) {
-        configureParameters(parameters, instantiator.newInstance(ProviderCompatibleJavaExecSpec.class, execSpecFactory.newJavaExecSpec()), action);
+    public void configureParametersForJavaExec(
+            ProcessOutputValueSource.Parameters parameters, Action<? super JavaExecSpec> action) {
+        configureParameters(
+                parameters,
+                instantiator.newInstance(ProviderCompatibleJavaExecSpec.class, execSpecFactory.newJavaExecSpec()),
+                action);
     }
 
-    private <T extends ProviderCompatibleBaseExecSpec> void configureParameters(ProcessOutputValueSource.Parameters parameters, T spec, Action<? super T> action) {
+    private <T extends ProviderCompatibleBaseExecSpec> void configureParameters(
+            ProcessOutputValueSource.Parameters parameters, T spec, Action<? super T> action) {
         action.execute(spec);
         spec.copyToParameters(parameters);
     }

@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.fixtures.codegen;
 
 import java.util.Collection;
 
-
 public interface ClassToKClass {
 
     @SuppressWarnings("rawtypes")

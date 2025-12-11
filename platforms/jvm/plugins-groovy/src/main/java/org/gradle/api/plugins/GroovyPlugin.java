@@ -46,10 +46,15 @@ public abstract class GroovyPlugin implements Plugin<Project> {
             groovyDoc.setDescription("Generates Groovydoc API documentation for the main source code.");
             groovyDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
 
-            JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
-            groovyDoc.setClasspath(mainFeature.getSourceSet().getOutput().plus(mainFeature.getSourceSet().getCompileClasspath()));
+            JvmFeatureInternal mainFeature =
+                    JavaPluginHelper.getJavaComponent(project).getMainFeature();
+            groovyDoc.setClasspath(mainFeature
+                    .getSourceSet()
+                    .getOutput()
+                    .plus(mainFeature.getSourceSet().getCompileClasspath()));
 
-            SourceDirectorySet groovySourceSet = mainFeature.getSourceSet().getExtensions().getByType(GroovySourceDirectorySet.class);
+            SourceDirectorySet groovySourceSet =
+                    mainFeature.getSourceSet().getExtensions().getByType(GroovySourceDirectorySet.class);
             groovyDoc.setSource(groovySourceSet);
         });
     }

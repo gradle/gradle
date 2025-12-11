@@ -16,20 +16,18 @@
 
 package org.gradle.caching.internal.controller.service;
 
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.local.internal.LocalBuildCacheService;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.Optional;
 import java.util.function.Function;
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.local.internal.LocalBuildCacheService;
+import org.jspecify.annotations.Nullable;
 
 public class NullLocalBuildCacheServiceHandle implements LocalBuildCacheServiceHandle {
 
     public static final LocalBuildCacheServiceHandle INSTANCE = new NullLocalBuildCacheServiceHandle();
 
-    private NullLocalBuildCacheServiceHandle() {
-    }
+    private NullLocalBuildCacheServiceHandle() {}
 
     @Nullable
     @Override
@@ -38,7 +36,8 @@ public class NullLocalBuildCacheServiceHandle implements LocalBuildCacheServiceH
     }
 
     @Override
-    public Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheLoadResult> unpackFunction) {
+    public Optional<BuildCacheLoadResult> maybeLoad(
+            BuildCacheKey key, Function<File, BuildCacheLoadResult> unpackFunction) {
         return Optional.empty();
     }
 
@@ -53,7 +52,5 @@ public class NullLocalBuildCacheServiceHandle implements LocalBuildCacheServiceH
     }
 
     @Override
-    public void close() {
-
-    }
+    public void close() {}
 }

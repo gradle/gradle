@@ -79,6 +79,4 @@ public interface BuildFeature {
      * @since 8.5
      */
     Provider<Boolean> getActive();
-
 }
-

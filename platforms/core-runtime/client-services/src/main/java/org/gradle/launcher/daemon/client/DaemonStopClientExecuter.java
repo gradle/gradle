@@ -16,14 +16,13 @@
 
 package org.gradle.launcher.daemon.client;
 
+import java.io.File;
+import java.util.function.Consumer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.File;
-import java.util.function.Consumer;
 
 /**
  * Manages the lifecycle for creating {@link DaemonStopClient}s and using them.
@@ -39,7 +38,8 @@ public class DaemonStopClientExecuter {
     }
 
     public void execute(ServiceRegistry loggingServices, File daemonBaseDir, Consumer<DaemonStopClient> action) {
-        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices, daemonBaseDir);
+        ServiceRegistry clientServices =
+                daemonClientFactory.createMessageDaemonServices(loggingServices, daemonBaseDir);
         try {
             DaemonStopClient daemonStopClient = clientServices.get(DaemonStopClient.class);
             action.accept(daemonStopClient);

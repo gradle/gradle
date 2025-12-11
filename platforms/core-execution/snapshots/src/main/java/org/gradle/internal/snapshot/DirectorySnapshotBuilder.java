@@ -34,14 +34,23 @@ public interface DirectorySnapshotBuilder {
      * Convenience method for {@link #enterDirectory(FileMetadata.AccessType, String, String, EmptyDirectoryHandlingStrategy)}
      * when you already have a {@link DirectorySnapshot}.
      */
-    default void enterDirectory(DirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
-        enterDirectory(directorySnapshot.getAccessType(), directorySnapshot.getAbsolutePath(), directorySnapshot.getName(), emptyDirectoryHandlingStrategy);
+    default void enterDirectory(
+            DirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
+        enterDirectory(
+                directorySnapshot.getAccessType(),
+                directorySnapshot.getAbsolutePath(),
+                directorySnapshot.getName(),
+                emptyDirectoryHandlingStrategy);
     }
 
     /**
      * Method to call before visiting all the entries of a directory.
      */
-    void enterDirectory(FileMetadata.AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy);
+    void enterDirectory(
+            FileMetadata.AccessType accessType,
+            String absolutePath,
+            String name,
+            EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy);
 
     void visitLeafElement(FileSystemLeafSnapshot snapshot);
 

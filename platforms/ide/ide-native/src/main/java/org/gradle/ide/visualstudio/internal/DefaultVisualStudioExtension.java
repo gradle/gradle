@@ -27,8 +27,20 @@ import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 public class DefaultVisualStudioExtension implements VisualStudioExtensionInternal {
     private final VisualStudioProjectRegistry projectRegistry;
 
-    public DefaultVisualStudioExtension(Instantiator instantiator, FileResolver fileResolver, IdeArtifactRegistry ideArtifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator, ObjectFactory objectFactory, ProviderFactory providerFactory) {
-        this.projectRegistry = new VisualStudioProjectRegistry(fileResolver, instantiator, ideArtifactRegistry, collectionCallbackActionDecorator, objectFactory, providerFactory);
+    public DefaultVisualStudioExtension(
+            Instantiator instantiator,
+            FileResolver fileResolver,
+            IdeArtifactRegistry ideArtifactRegistry,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+            ObjectFactory objectFactory,
+            ProviderFactory providerFactory) {
+        this.projectRegistry = new VisualStudioProjectRegistry(
+                fileResolver,
+                instantiator,
+                ideArtifactRegistry,
+                collectionCallbackActionDecorator,
+                objectFactory,
+                providerFactory);
     }
 
     @Override

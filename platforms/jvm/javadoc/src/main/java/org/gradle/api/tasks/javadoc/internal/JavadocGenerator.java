@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 public class JavadocGenerator {
 
-    private final static Logger LOG = LoggerFactory.getLogger(JavadocGenerator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JavadocGenerator.class);
 
     private final ExecActionFactory execActionFactory;
 
@@ -40,7 +40,10 @@ public class JavadocGenerator {
     public WorkResult execute(JavadocSpec spec) {
         JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder(execActionFactory);
         javadocExecHandleBuilder.setExecutable(spec.getExecutable());
-        javadocExecHandleBuilder.execDirectory(spec.getWorkingDir()).options(spec.getOptions()).optionsFile(spec.getOptionsFile());
+        javadocExecHandleBuilder
+                .execDirectory(spec.getWorkingDir())
+                .options(spec.getOptions())
+                .optionsFile(spec.getOptionsFile());
 
         ExecAction execAction = javadocExecHandleBuilder.getExecHandle();
         if (spec.isIgnoreFailures()) {
@@ -50,10 +53,16 @@ public class JavadocGenerator {
         try {
             execAction.execute();
         } catch (ProcessExecutionException e) {
-            LOG.info("Problems generating Javadoc."
-                    + "\n  Command line issued: " + execAction.getCommandLine()
-                    + "\n  Generated Javadoc options file has following contents:\n------\n{}------", GFileUtils.readFileQuietly(spec.getOptionsFile()));
-            throw new GradleException(String.format("Javadoc generation failed. Generated Javadoc options file (useful for troubleshooting): '%s'", spec.getOptionsFile()), e);
+            LOG.info(
+                    "Problems generating Javadoc."
+                            + "\n  Command line issued: " + execAction.getCommandLine()
+                            + "\n  Generated Javadoc options file has following contents:\n------\n{}------",
+                    GFileUtils.readFileQuietly(spec.getOptionsFile()));
+            throw new GradleException(
+                    String.format(
+                            "Javadoc generation failed. Generated Javadoc options file (useful for troubleshooting): '%s'",
+                            spec.getOptionsFile()),
+                    e);
         }
 
         return WorkResults.didWork(true);

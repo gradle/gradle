@@ -16,8 +16,16 @@
 
 package org.gradle.api.reporting.dependents;
 
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
+import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllComponents;
+import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllTestSuites;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -34,15 +42,6 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
-import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllComponents;
-import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllTestSuites;
 
 /**
  * Displays dependent components.
@@ -119,7 +118,9 @@ public abstract class DependentComponentsReport extends DefaultTask {
      *
      * @param components the components.
      */
-    @Option(option = "component", description = "Component to generate the report for (can be specified more than once).")
+    @Option(
+            option = "component",
+            description = "Component to generate the report for (can be specified more than once).")
     public void setComponents(List<String> components) {
         this.components = components;
     }
@@ -139,7 +140,8 @@ public abstract class DependentComponentsReport extends DefaultTask {
     }
 
     private void doReport() {
-        // Once we are here, the project lock is held. If we synchronize to avoid cross-project operations, we will have a dead lock.
+        // Once we are here, the project lock is held. If we synchronize to avoid cross-project operations, we will have
+        // a dead lock.
         getWorkerLeaseService().runAsIsolatedTask(() -> {
             // Output reports per execution, not mixed.
             // Cross-project ModelRegistry operations do not happen concurrently.
@@ -147,10 +149,12 @@ public abstract class DependentComponentsReport extends DefaultTask {
                 ((ProjectInternal) getProject()).getOwner().applyToMutableState(project -> {
                     ModelRegistry modelRegistry = getModelRegistry();
 
-                    DependentBinariesResolver dependentBinariesResolver = modelRegistry.find("dependentBinariesResolver", DependentBinariesResolver.class);
+                    DependentBinariesResolver dependentBinariesResolver =
+                            modelRegistry.find("dependentBinariesResolver", DependentBinariesResolver.class);
 
                     StyledTextOutput textOutput = getTextOutputFactory().create(DependentComponentsReport.class);
-                    TextDependentComponentsReportRenderer reportRenderer = new TextDependentComponentsReportRenderer(dependentBinariesResolver, showNonBuildable, showTestSuites);
+                    TextDependentComponentsReportRenderer reportRenderer = new TextDependentComponentsReportRenderer(
+                            dependentBinariesResolver, showNonBuildable, showTestSuites);
 
                     reportRenderer.setOutput(textOutput);
                     ProjectDetails projectDetails = ProjectDetails.of(project);
@@ -196,7 +200,10 @@ public abstract class DependentComponentsReport extends DefaultTask {
             error.append(" '").append(notFound.get(0));
         } else {
             String last = notFound.remove(notFound.size() - 1);
-            error.append("s '").append(Joiner.on("', '").join(notFound)).append("' and '").append(last);
+            error.append("s '")
+                    .append(Joiner.on("', '").join(notFound))
+                    .append("' and '")
+                    .append(last);
         }
         error.append("' not found.");
         throw new InvalidUserDataException(error.toString());

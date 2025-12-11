@@ -59,5 +59,4 @@ public interface InternalJvmTestDescriptor extends InternalTestDescriptor {
      */
     @Nullable
     String getMethodName();
-
 }

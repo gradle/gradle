@@ -16,14 +16,6 @@
 
 package org.gradle.model.internal.asm;
 
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Handle;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
-
-import java.util.List;
-
 import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType;
 import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.AALOAD;
@@ -60,6 +52,13 @@ import static org.objectweb.asm.Opcodes.SWAP;
 import static org.objectweb.asm.Type.getMethodDescriptor;
 import static org.objectweb.asm.Type.getType;
 
+import java.util.List;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+
 /**
  * Simplifies emitting bytecode to a {@link MethodVisitor} by providing a JVM bytecode DSL.
  */
@@ -93,10 +92,7 @@ public class MethodVisitorScope extends MethodVisitor {
     }
 
     protected AnnotationVisitor visitAnnotation(Class<?> clazz) {
-        return visitAnnotation(
-            getType(clazz).getDescriptor(),
-            true
-        );
+        return visitAnnotation(getType(clazz).getDescriptor(), true);
     }
     /**
      * Unboxes or casts the value at the top of the stack.
@@ -200,7 +196,8 @@ public class MethodVisitorScope extends MethodVisitor {
         super.visitMethodInsn(INVOKEVIRTUAL, owner, name, descriptor, false);
     }
 
-    public void _INVOKEDYNAMIC(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
+    public void _INVOKEDYNAMIC(
+            String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments.toArray());
     }
 

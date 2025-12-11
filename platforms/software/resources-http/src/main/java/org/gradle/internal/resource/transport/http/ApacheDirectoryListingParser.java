@@ -16,14 +16,6 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.gradle.api.resources.ResourceException;
-import org.gradle.internal.resource.UriTextResource;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -34,6 +26,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.UriTextResource;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ApacheDirectoryListingParser {
 
@@ -42,24 +41,37 @@ public class ApacheDirectoryListingParser {
     public List<String> parse(URI baseURI, InputStream content, String contentType) throws Exception {
         baseURI = addTrailingSlashes(baseURI);
         if (contentType == null || !contentType.startsWith("text/html")) {
-            throw new ResourceException(baseURI, String.format("Unsupported ContentType %s for directory listing '%s'", contentType, baseURI));
+            throw new ResourceException(
+                    baseURI,
+                    String.format("Unsupported ContentType %s for directory listing '%s'", contentType, baseURI));
         }
         Charset contentEncoding = UriTextResource.extractCharacterEncoding(contentType, StandardCharsets.UTF_8);
         Document document = Jsoup.parse(content, contentEncoding.name(), baseURI.toString());
         Elements elements = document.select("a[href]");
-        List<String> hrefs = elements.stream()
-            .map(it -> it.attr("href"))
-            .collect(Collectors.toList());
+        List<String> hrefs = elements.stream().map(it -> it.attr("href")).collect(Collectors.toList());
         List<URI> uris = resolveURIs(baseURI, hrefs);
         return filterNonDirectChilds(baseURI, uris);
     }
 
     private URI addTrailingSlashes(URI uri) throws IOException, URISyntaxException {
-        if(uri.getPath() == null){
-            uri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), "/", uri.getQuery(), uri.getFragment());
-        }else if (!uri.getPath().endsWith("/") && !uri.getPath().endsWith(".html")) {
-            uri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), uri.getPath() + "/", uri.getQuery(), uri.getFragment());
-
+        if (uri.getPath() == null) {
+            uri = new URI(
+                    uri.getScheme(),
+                    uri.getUserInfo(),
+                    uri.getHost(),
+                    uri.getPort(),
+                    "/",
+                    uri.getQuery(),
+                    uri.getFragment());
+        } else if (!uri.getPath().endsWith("/") && !uri.getPath().endsWith(".html")) {
+            uri = new URI(
+                    uri.getScheme(),
+                    uri.getUserInfo(),
+                    uri.getHost(),
+                    uri.getPort(),
+                    uri.getPath() + "/",
+                    uri.getQuery(),
+                    uri.getFragment());
         }
         return uri;
     }
@@ -84,7 +96,9 @@ public class ApacheDirectoryListingParser {
             if (parsedURI.getPath() != null && !parsedURI.getPath().startsWith(prefixPath)) {
                 continue;
             }
-            String childPathPart = parsedURI.getPath().substring(prefixPath.length(), parsedURI.getPath().length());
+            String childPathPart = parsedURI
+                    .getPath()
+                    .substring(prefixPath.length(), parsedURI.getPath().length());
             if (childPathPart.startsWith("../")) {
                 continue;
             }

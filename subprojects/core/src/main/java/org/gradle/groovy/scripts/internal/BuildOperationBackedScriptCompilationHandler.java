@@ -17,6 +17,7 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
+import java.io.File;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -29,29 +30,36 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.scripts.CompileScriptBuildOperationType;
 
-import java.io.File;
-
 public class BuildOperationBackedScriptCompilationHandler implements ScriptCompilationHandler {
 
     public static final String GROOVY_LANGUAGE = "GROOVY";
 
-    private static final CompileScriptBuildOperationType.Result RESULT = new CompileScriptBuildOperationType.Result() {
-    };
+    private static final CompileScriptBuildOperationType.Result RESULT =
+            new CompileScriptBuildOperationType.Result() {};
 
     private final DefaultScriptCompilationHandler delegate;
     private final BuildOperationRunner buildOperationRunner;
 
-    public BuildOperationBackedScriptCompilationHandler(DefaultScriptCompilationHandler delegate, BuildOperationRunner buildOperationRunner) {
+    public BuildOperationBackedScriptCompilationHandler(
+            DefaultScriptCompilationHandler delegate, BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
         this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
-    public void compileToDir(final ScriptSource source, final ClassLoader classLoader, final File classesDir, final File metadataDir, final CompileOperation<?> transformer, final Class<? extends Script> scriptBaseClass, final Action<? super ClassNode> verifier) {
+    public void compileToDir(
+            final ScriptSource source,
+            final ClassLoader classLoader,
+            final File classesDir,
+            final File metadataDir,
+            final CompileOperation<?> transformer,
+            final Class<? extends Script> scriptBaseClass,
+            final Action<? super ClassNode> verifier) {
         buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                delegate.compileToDir(source, classLoader, classesDir, metadataDir, transformer, scriptBaseClass, verifier);
+                delegate.compileToDir(
+                        source, classLoader, classesDir, metadataDir, transformer, scriptBaseClass, verifier);
                 context.setResult(RESULT);
             }
 
@@ -59,16 +67,22 @@ public class BuildOperationBackedScriptCompilationHandler implements ScriptCompi
             public BuildOperationDescriptor.Builder description() {
                 String stage = transformer.getStage();
                 String name = "Compile " + source.getShortDisplayName() + " (" + stage + ")";
-                return BuildOperationDescriptor.displayName(name)
-                    .name(name)
-                    .details(new Details(stage));
+                return BuildOperationDescriptor.displayName(name).name(name).details(new Details(stage));
             }
         });
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, ClassPath scriptClassPath, File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass) {
-        return delegate.loadFromDir(source, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, transformer, scriptBaseClass);
+    public <T extends Script, M> CompiledScript<T, M> loadFromDir(
+            ScriptSource source,
+            HashCode sourceHashCode,
+            ClassLoaderScope targetScope,
+            ClassPath scriptClassPath,
+            File metadataCacheDir,
+            CompileOperation<M> transformer,
+            Class<T> scriptBaseClass) {
+        return delegate.loadFromDir(
+                source, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, transformer, scriptBaseClass);
     }
 
     private static class Details implements CompileScriptBuildOperationType.Details {

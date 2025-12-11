@@ -16,9 +16,8 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.component.ComponentSelector;
-
 import java.util.List;
+import org.gradle.api.artifacts.component.ComponentSelector;
 
 /**
  * A dependency that is defined locally in a build script, not resolved from a repository.

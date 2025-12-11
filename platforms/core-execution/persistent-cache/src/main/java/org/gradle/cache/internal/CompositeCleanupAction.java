@@ -17,15 +17,14 @@
 package org.gradle.cache.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.cache.CleanableStore;
-import org.gradle.cache.CleanupAction;
-import org.gradle.cache.CleanupProgressMonitor;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.cache.CleanableStore;
+import org.gradle.cache.CleanupAction;
+import org.gradle.cache.CleanupProgressMonitor;
 
 public class CompositeCleanupAction implements CleanupAction {
 
@@ -49,8 +48,7 @@ public class CompositeCleanupAction implements CleanupAction {
     public static class Builder {
         private List<CleanupAction> cleanups = new ArrayList<CleanupAction>();
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder add(CleanupAction... actions) {
             Collections.addAll(cleanups, actions);

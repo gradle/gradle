@@ -23,8 +23,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject;
  */
 public class EclipseProjectHasAutoBuildMixin {
 
-    public EclipseProjectHasAutoBuildMixin(EclipseProject eclipseProject) {
-    }
+    public EclipseProjectHasAutoBuildMixin(EclipseProject eclipseProject) {}
 
     public boolean hasAutoBuildTasks() {
         return false;

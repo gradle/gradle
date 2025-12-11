@@ -16,13 +16,12 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import java.util.List;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.jspecify.annotations.NonNull;
-
-import java.util.List;
 
 public abstract class AbstractRenderableModuleResult extends AbstractRenderableDependency {
 

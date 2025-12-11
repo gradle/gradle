@@ -16,14 +16,13 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.process.CommandLineArgumentProvider;
-import org.gradle.process.ProcessForkOptions;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ProcessForkOptions;
 
 /**
  * Deprecated. Use {@link ClientExecHandleBuilder} instead. Kept for now since it's used by the Kotlin plugin.
@@ -32,7 +31,8 @@ import java.util.Map;
  */
 @SuppressWarnings("DeprecatedIsStillUsed")
 @Deprecated
-public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
+public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder
+        implements ExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 
     public DefaultExecHandleBuilder(ClientExecHandleBuilder delegate) {
         super(delegate);

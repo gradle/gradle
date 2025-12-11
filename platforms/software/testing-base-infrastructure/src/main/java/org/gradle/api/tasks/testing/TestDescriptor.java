@@ -71,7 +71,6 @@ public interface TestDescriptor {
     @Nullable
     TestDescriptor getParent();
 
-
     /**
      * Returns the source of the test descriptor.
      *

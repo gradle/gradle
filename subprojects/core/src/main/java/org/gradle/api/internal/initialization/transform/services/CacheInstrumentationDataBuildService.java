@@ -16,10 +16,20 @@
 
 package org.gradle.api.internal.initialization.transform.services;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.initialization.transform.InstrumentationArtifactMetadata;
@@ -39,26 +49,19 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 public abstract class CacheInstrumentationDataBuildService implements BuildService<BuildServiceParameters.None> {
 
     private final Map<Long, ResolutionData> resolutionData = new ConcurrentHashMap<>();
-    private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInstrumentationServices.class));
-    private final Lazy<InstrumentationAnalysisSerializer> serializer = Lazy.locking().of(() -> new CachedInstrumentationAnalysisSerializer(new DefaultInstrumentationAnalysisSerializer(internalServices.get().getStringInterner())));
-    private final Lazy<Cache<Set<File>, ExternalPluginsInstrumentationTypeRegistry>> typeRegistryCache = Lazy.locking().of(() -> CacheBuilder.newBuilder()
-        .concurrencyLevel(1)
-        .maximumSize(100)
-        .build());
+    private final Lazy<InjectedInstrumentationServices> internalServices =
+            Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInstrumentationServices.class));
+    private final Lazy<InstrumentationAnalysisSerializer> serializer = Lazy.locking()
+            .of(() -> new CachedInstrumentationAnalysisSerializer(new DefaultInstrumentationAnalysisSerializer(
+                    internalServices.get().getStringInterner())));
+    private final Lazy<Cache<Set<File>, ExternalPluginsInstrumentationTypeRegistry>> typeRegistryCache = Lazy.locking()
+            .of(() -> CacheBuilder.newBuilder()
+                    .concurrencyLevel(1)
+                    .maximumSize(100)
+                    .build());
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
@@ -68,7 +71,8 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     }
 
     public InstrumentationTypeRegistry getInstrumentationTypeRegistry(long contextId) {
-        InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.get().getGradleCoreInstrumentationTypeRegistry();
+        InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry =
+                internalServices.get().getGradleCoreInstrumentationTypeRegistry();
         if (gradleCoreInstrumentationTypeRegistry.isEmpty()) {
             // In case core types registry is empty, it means we don't have any upgrades
             // in Gradle core, so we can return empty registry
@@ -84,9 +88,12 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     public File getOriginalFile(long contextId, InstrumentationArtifactMetadata metadata) {
         String hash = metadata.getArtifactHash();
         String artifactName = metadata.getArtifactName();
-        return checkNotNull(getResolutionData(contextId).getOriginalFile(metadata.getArtifactHash()),
-            "Original file for artifact with name '%s' and hash '%s' does not exist! " +
-                "That indicates that artifact changed during resolution from another process. That is not supported!", artifactName, hash);
+        return checkNotNull(
+                getResolutionData(contextId).getOriginalFile(metadata.getArtifactHash()),
+                "Original file for artifact with name '%s' and hash '%s' does not exist! "
+                        + "That indicates that artifact changed during resolution from another process. That is not supported!",
+                artifactName,
+                hash);
     }
 
     @Nullable
@@ -104,13 +111,19 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
     public ResolutionScope newResolutionScope(long contextId) {
         ResolutionData resolutionData = this.resolutionData.compute(contextId, (__, value) -> {
-            checkArgument(value == null, "Resolution data for id %s already exists! Was previous resolution scope closed properly?", contextId);
-            return getObjectFactory().newInstance(ResolutionData.class, internalServices.get(), serializer.get(), typeRegistryCache.get());
+            checkArgument(
+                    value == null,
+                    "Resolution data for id %s already exists! Was previous resolution scope closed properly?",
+                    contextId);
+            return getObjectFactory()
+                    .newInstance(
+                            ResolutionData.class, internalServices.get(), serializer.get(), typeRegistryCache.get());
         });
         return new ResolutionScope() {
             @Override
             public void setTypeHierarchyAnalysisResult(FileCollection analysisResult) {
-                FileCollection typeHierarchyAnalysisResult = analysisResult.filter(InstrumentationTransformUtils::isTypeHierarchyAnalysisFile);
+                FileCollection typeHierarchyAnalysisResult =
+                        analysisResult.filter(InstrumentationTransformUtils::isTypeHierarchyAnalysisFile);
                 resolutionData.getTypeHierarchyAnalysisResult().setFrom(typeHierarchyAnalysisResult);
                 resolutionData.getTypeHierarchyAnalysisResult().finalizeValueOnRead();
             }
@@ -131,6 +144,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     public interface ResolutionScope extends AutoCloseable {
 
         void setTypeHierarchyAnalysisResult(FileCollection analysisResult);
+
         void setOriginalClasspath(FileCollection originalClasspath);
 
         @Override
@@ -146,7 +160,10 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         private final Cache<Set<File>, ExternalPluginsInstrumentationTypeRegistry> typeRegistryCache;
 
         @Inject
-        public ResolutionData(InjectedInstrumentationServices internalServices, InstrumentationAnalysisSerializer serializer, Cache<Set<File>, ExternalPluginsInstrumentationTypeRegistry> typeRegistryCache) {
+        public ResolutionData(
+                InjectedInstrumentationServices internalServices,
+                InstrumentationAnalysisSerializer serializer,
+                Cache<Set<File>, ExternalPluginsInstrumentationTypeRegistry> typeRegistryCache) {
             this.serializer = serializer;
             this.hashCache = new ConcurrentHashMap<>();
             this.typeRegistryCache = typeRegistryCache;
@@ -162,18 +179,22 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
                 return originalFiles;
             });
             this.instrumentationTypeRegistry = Lazy.locking().of(() -> {
-                Set<File> typeHierarchyAnalysis = getTypeHierarchyAnalysisResult().getFiles();
+                Set<File> typeHierarchyAnalysis =
+                        getTypeHierarchyAnalysisResult().getFiles();
                 return getInstrumentationTypeRegistryFromCache(typeHierarchyAnalysis);
             });
             this.internalServices = internalServices;
         }
 
-        private ExternalPluginsInstrumentationTypeRegistry getInstrumentationTypeRegistryFromCache(Set<File> typeHierarchyAnalysis) {
+        private ExternalPluginsInstrumentationTypeRegistry getInstrumentationTypeRegistryFromCache(
+                Set<File> typeHierarchyAnalysis) {
             try {
                 return typeRegistryCache.get(typeHierarchyAnalysis, () -> {
-                    InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.getGradleCoreInstrumentationTypeRegistry();
+                    InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry =
+                            internalServices.getGradleCoreInstrumentationTypeRegistry();
                     Map<String, Set<String>> directSuperTypes = mergeTypeHierarchyAnalysis(typeHierarchyAnalysis);
-                    return new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreInstrumentationTypeRegistry);
+                    return new ExternalPluginsInstrumentationTypeRegistry(
+                            directSuperTypes, gradleCoreInstrumentationTypeRegistry);
                 });
             } catch (ExecutionException e) {
                 throw new RuntimeException(e);
@@ -182,11 +203,12 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
         private Map<String, Set<String>> mergeTypeHierarchyAnalysis(Set<File> typeHierarchyAnalysis) {
             return typeHierarchyAnalysis.stream()
-                .flatMap(file -> serializer.readTypeHierarchyAnalysis(file).entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Sets::union));
+                    .flatMap(file -> serializer.readTypeHierarchyAnalysis(file).entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Sets::union));
         }
 
         abstract ConfigurableFileCollection getTypeHierarchyAnalysisResult();
+
         abstract ConfigurableFileCollection getOriginalClasspath();
 
         private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
@@ -202,7 +224,8 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         private String getArtifactHash(File file) {
             return hashCache.computeIfAbsent(file, __ -> {
                 Hasher hasher = Hashing.newHasher();
-                FileSystemLocationSnapshot snapshot = internalServices.getFileSystemAccess().read(file.getAbsolutePath());
+                FileSystemLocationSnapshot snapshot =
+                        internalServices.getFileSystemAccess().read(file.getAbsolutePath());
                 if (snapshot.getType() == FileType.Missing) {
                     return null;
                 }

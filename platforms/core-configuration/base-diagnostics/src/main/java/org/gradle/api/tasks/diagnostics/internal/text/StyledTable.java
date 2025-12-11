@@ -16,17 +16,16 @@
 
 package org.gradle.api.tasks.diagnostics.internal.text;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.reporting.ReportRenderer;
-
 import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.reporting.ReportRenderer;
 
 /**
  * Simple utility for printing a table.
@@ -64,9 +63,11 @@ public class StyledTable {
             for (int i = 0; i < model.headers.size(); i++) {
                 int finalI = i;
                 colWidths[i] = Stream.concat(
-                    Stream.of(model.headers.get(i)),
-                    model.rows.stream().map(row -> row.text.get(finalI))
-                ).mapToInt(String::length).max().orElse(0);
+                                Stream.of(model.headers.get(i)),
+                                model.rows.stream().map(row -> row.text.get(finalI)))
+                        .mapToInt(String::length)
+                        .max()
+                        .orElse(0);
             }
 
             output.style(Header);
@@ -75,10 +76,11 @@ public class StyledTable {
             output.println();
             // Print the separator row
             printRow(
-                model, output, colWidths,
-                IntStream.range(0, colWidths.length).mapToObj(i -> "").collect(ImmutableList.toImmutableList()),
-                '-'
-            );
+                    model,
+                    output,
+                    colWidths,
+                    IntStream.range(0, colWidths.length).mapToObj(i -> "").collect(ImmutableList.toImmutableList()),
+                    '-');
             output.println();
             List<Row> rowList = model.rows;
             for (int i = 0; i < rowList.size(); i++) {
@@ -92,7 +94,8 @@ public class StyledTable {
             }
         }
 
-        private void printRow(StyledTable model, StyledTextOutput output, int[] colWidths, List<String> row, char padChar) {
+        private void printRow(
+                StyledTable model, StyledTextOutput output, int[] colWidths, List<String> row, char padChar) {
             output.withStyle(Normal).text(model.indent + "|" + padChar);
             for (int i = 0; i < row.size(); i++) {
                 output.text(Strings.padEnd(row.get(i), colWidths[i], padChar));

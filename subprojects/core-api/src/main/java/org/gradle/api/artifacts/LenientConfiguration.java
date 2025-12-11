@@ -73,5 +73,4 @@ public interface LenientConfiguration {
      * @since 3.3
      */
     Set<ResolvedArtifact> getArtifacts();
-
 }

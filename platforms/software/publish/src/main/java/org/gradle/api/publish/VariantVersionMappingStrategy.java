@@ -39,7 +39,6 @@ public interface VariantVersionMappingStrategy {
      */
     void fromResolutionOf(Configuration configuration);
 
-
     /**
      * Declares that this variant should use versions from the resolution
      * of the configuration provided as an argument.

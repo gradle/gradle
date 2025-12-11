@@ -22,7 +22,13 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-@ServiceScope({Scope.Global.class, Scope.UserHome.class, Scope.BuildSession.class, Scope.BuildTree.class, Scope.Build.class})
+@ServiceScope({
+    Scope.Global.class,
+    Scope.UserHome.class,
+    Scope.BuildSession.class,
+    Scope.BuildTree.class,
+    Scope.Build.class
+})
 public interface ScopedListenerManager extends ListenerManager, AnnotatedServiceLifecycleHandler {
 
     /**
@@ -36,5 +42,4 @@ public interface ScopedListenerManager extends ListenerManager, AnnotatedService
      * @return The child
      */
     ScopedListenerManager createChild(Class<? extends Scope> scope);
-
 }

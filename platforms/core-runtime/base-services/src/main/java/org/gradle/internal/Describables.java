@@ -21,8 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Describable;
 
 public class Describables {
-    private Describables() {
-    }
+    private Describables() {}
 
     /**
      * Returns a describable that converts the provided value to a string each time the display name is queried. Can pass a {@link Describable} or {@link DisplayName}.
@@ -136,7 +135,7 @@ public class Describables {
         }
     }
 
-    private static abstract class AbstractDescribable implements DisplayName {
+    private abstract static class AbstractDescribable implements DisplayName {
         @Override
         public String toString() {
             return getDisplayName();
@@ -221,8 +220,7 @@ public class Describables {
                 return false;
             }
             TwoPartDescribable that = (TwoPartDescribable) o;
-            return Objects.equal(part1, that.part1) &&
-                Objects.equal(part2, that.part2);
+            return Objects.equal(part1, that.part1) && Objects.equal(part2, that.part2);
         }
 
         @Override
@@ -273,9 +271,9 @@ public class Describables {
                 return false;
             }
             ThreePartDescribable that = (ThreePartDescribable) o;
-            return Objects.equal(part1, that.part1) &&
-                Objects.equal(part2, that.part2) &&
-                Objects.equal(part3, that.part3);
+            return Objects.equal(part1, that.part1)
+                    && Objects.equal(part2, that.part2)
+                    && Objects.equal(part3, that.part3);
         }
 
         @Override
@@ -297,7 +295,9 @@ public class Describables {
         public String getCapitalizedDisplayName() {
             synchronized (this) {
                 if (capDisplayName == null) {
-                    capDisplayName = describable instanceof DisplayName ? ((DisplayName) describable).getCapitalizedDisplayName() : StringUtils.capitalize(getDisplayName());
+                    capDisplayName = describable instanceof DisplayName
+                            ? ((DisplayName) describable).getCapitalizedDisplayName()
+                            : StringUtils.capitalize(getDisplayName());
                     if (displayName != null) {
                         describable = null;
                     }

@@ -45,5 +45,4 @@ public class ModelRuleExecutionException extends GradleException {
         builder.append(error);
         return builder.toString();
     }
-
 }

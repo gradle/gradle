@@ -16,15 +16,14 @@
 
 package org.gradle.internal.resource.local;
 
+import java.io.File;
+import java.net.URI;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.LocalBinaryResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
-import java.net.URI;
 
 @ServiceScope(Scope.Build.class)
 public interface FileResourceRepository extends ExternalResourceRepository {

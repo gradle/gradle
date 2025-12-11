@@ -24,8 +24,7 @@ import org.gradle.internal.serialize.Serializer;
 public class UserInputRequestEventSerializer implements Serializer<UserInputRequestEvent> {
 
     @Override
-    public void write(Encoder encoder, UserInputRequestEvent event) throws Exception {
-    }
+    public void write(Encoder encoder, UserInputRequestEvent event) throws Exception {}
 
     @Override
     public UserInputRequestEvent read(Decoder decoder) throws Exception {

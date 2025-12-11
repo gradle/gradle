@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.resolve.caching;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -24,9 +26,6 @@ import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 
 /**
  * An instantiator which is responsible for allowing the capture of implicit
@@ -53,21 +52,24 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
     }
 
     @Override
-    public <T> T newInstance(Class<? extends T> type, @Nullable Object... parameters) throws ObjectInstantiationException {
+    public <T> T newInstance(Class<? extends T> type, @Nullable Object... parameters)
+            throws ObjectInstantiationException {
         return instantiatorFactory.inject(delegate).newInstance(type, parameters);
     }
 
     public Instantiator capturing(final ImplicitInputRecorder registrar) {
         return new Instantiator() {
             @Override
-            public <T> T newInstance(Class<? extends T> type, @Nullable Object... parameters) throws ObjectInstantiationException {
+            public <T> T newInstance(Class<? extends T> type, @Nullable Object... parameters)
+                    throws ObjectInstantiationException {
                 return instantiatorFactory.inject(capturingRegistry(registrar)).newInstance(type, parameters);
             }
         };
     }
 
     @Nullable
-    public <IN, OUT, SERVICE> ImplicitInputsProvidingService<IN, OUT, SERVICE> findInputCapturingServiceByName(String name) {
+    public <IN, OUT, SERVICE> ImplicitInputsProvidingService<IN, OUT, SERVICE> findInputCapturingServiceByName(
+            String name) {
         try {
             // TODO: Whenever we allow _user_ services to be injected, this would have to know
             // from which classloader we need to load the service
@@ -95,7 +97,8 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
         }
 
         @Override
-        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith)
+                throws UnknownServiceException, ServiceLookupException {
             return delegate.get(serviceType, annotatedWith);
         }
 
@@ -103,11 +106,9 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
         public Object find(Type serviceType) throws ServiceLookupException {
             Object service = delegate.find(serviceType);
             if (service instanceof ImplicitInputsProvidingService) {
-                return ((ImplicitInputsProvidingService)service).withImplicitInputRecorder(registrar);
+                return ((ImplicitInputsProvidingService) service).withImplicitInputRecorder(registrar);
             }
             return service;
         }
-
     }
-
 }

@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.model.dsl;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.api.Incubating;
 
 /**
  * This interface describes the Kotlin DSL specific part of {@link GradleDslBaseScriptModel}.
@@ -60,5 +59,4 @@ public interface KotlinDslBaseScriptModel {
      */
     @Incubating
     List<String> getTemplateClassNames();
-
 }

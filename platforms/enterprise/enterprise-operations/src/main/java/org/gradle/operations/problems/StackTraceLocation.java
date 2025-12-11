@@ -16,9 +16,8 @@
 
 package org.gradle.operations.problems;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A stack trace for the location of a problem.
@@ -46,5 +45,4 @@ public interface StackTraceLocation extends ProblemLocation {
      * @since 8.14
      */
     List<StackTraceElement> getStackTrace();
-
 }

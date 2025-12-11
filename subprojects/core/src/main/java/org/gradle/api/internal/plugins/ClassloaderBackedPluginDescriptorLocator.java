@@ -35,5 +35,4 @@ public class ClassloaderBackedPluginDescriptorLocator implements PluginDescripto
             return new PluginDescriptor(resource);
         }
     }
-
 }

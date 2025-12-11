@@ -23,7 +23,8 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 4.10
  */
-public class CompileScriptBuildOperationType implements BuildOperationType<CompileScriptBuildOperationType.Details, CompileScriptBuildOperationType.Result> {
+public class CompileScriptBuildOperationType
+        implements BuildOperationType<CompileScriptBuildOperationType.Details, CompileScriptBuildOperationType.Result> {
 
     public interface Details {
         /**
@@ -41,7 +42,5 @@ public class CompileScriptBuildOperationType implements BuildOperationType<Compi
         String getStage();
     }
 
-    public interface Result {
-    }
-
+    public interface Result {}
 }

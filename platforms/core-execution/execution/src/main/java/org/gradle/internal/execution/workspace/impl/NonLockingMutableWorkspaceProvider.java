@@ -16,9 +16,8 @@
 
 package org.gradle.internal.execution.workspace.impl;
 
-import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
-
 import java.io.File;
+import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 
 public class NonLockingMutableWorkspaceProvider implements MutableWorkspaceProvider {
     private final File baseDirectory;

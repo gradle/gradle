@@ -34,5 +34,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
 @Documented
-public @interface Incremental {
-}
+public @interface Incremental {}

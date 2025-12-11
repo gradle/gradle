@@ -15,9 +15,8 @@
  */
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.component.Artifact;
-
 import java.util.Set;
+import org.gradle.api.component.Artifact;
 
 /**
  * The result of successfully resolving a component with a set of artifacts.

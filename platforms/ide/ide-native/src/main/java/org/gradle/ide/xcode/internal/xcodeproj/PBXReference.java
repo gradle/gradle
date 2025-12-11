@@ -28,6 +28,7 @@ import org.jspecify.annotations.Nullable;
  */
 public class PBXReference extends PBXContainerItem implements Named {
     private final String name;
+
     @Nullable
     private String path;
     /**
@@ -88,11 +89,7 @@ public class PBXReference extends PBXContainerItem implements Named {
     @Override
     public String toString() {
         return String.format(
-            "%s name=%s path=%s sourceTree=%s",
-            super.toString(),
-            getName(),
-            getPath(),
-            getSourceTree());
+                "%s name=%s path=%s sourceTree=%s", super.toString(), getName(), getPath(), getSourceTree());
     }
 
     public enum SourceTree {
@@ -124,7 +121,8 @@ public class PBXReference extends PBXContainerItem implements Named {
          * Relative to the Developer content directory inside the Xcode application
          * (e.g. {@code /Applications/Xcode.app/Contents/Developer}).
          */
-        DEVELOPER_DIR("DEVELOPER_DIR"),;
+        DEVELOPER_DIR("DEVELOPER_DIR"),
+        ;
 
         private final String rep;
 

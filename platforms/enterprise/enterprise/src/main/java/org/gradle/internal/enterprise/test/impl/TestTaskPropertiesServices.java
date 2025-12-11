@@ -26,5 +26,4 @@ public class TestTaskPropertiesServices extends AbstractGradleModuleServices {
     public void registerProjectServices(ServiceRegistration registration) {
         registration.add(TestTaskPropertiesService.class, DefaultTestTaskPropertiesService.class);
     }
-
 }

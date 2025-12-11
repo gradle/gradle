@@ -26,5 +26,6 @@ public interface JUnitPlatformSupport {
      * An empty string for file-based tests.
      */
     String NON_CLASS = "";
+
     String UNKNOWN = "Unknown";
 }

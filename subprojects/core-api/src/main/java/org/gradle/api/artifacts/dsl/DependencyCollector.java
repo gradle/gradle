@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts.dsl;
 
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
@@ -28,8 +29,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-
-import java.util.Set;
 
 /**
  * A {@code DependencyCollector} is used as part of a dependencies block in the DSL. A collector implements
@@ -117,7 +116,9 @@ public interface DependencyCollector {
      * @since 8.6
      */
     @Incubating
-    void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, Action<? super ExternalModuleDependency> configuration);
+    void add(
+            ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule,
+            Action<? super ExternalModuleDependency> configuration);
 
     /**
      * Add a dependency.
@@ -189,7 +190,9 @@ public interface DependencyCollector {
      * @param configuration an action to configure the dependency constraint
      * @since 8.7
      */
-    void addConstraint(Provider<? extends DependencyConstraint> dependencyConstraint, Action<? super DependencyConstraint> configuration);
+    void addConstraint(
+            Provider<? extends DependencyConstraint> dependencyConstraint,
+            Action<? super DependencyConstraint> configuration);
 
     /**
      * Add a bundle.
@@ -231,7 +234,8 @@ public interface DependencyCollector {
      * @since 8.6
      */
     @Incubating
-    <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
+    <D extends Dependency> void bundle(
+            Provider<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
     /**
      * Add a bundle.
@@ -252,7 +256,8 @@ public interface DependencyCollector {
      * @since 8.6
      */
     @Incubating
-    <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
+    <D extends Dependency> void bundle(
+            ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
     /**
      * Returns all dependencies declared on this collector.
@@ -267,5 +272,4 @@ public interface DependencyCollector {
      * @since 8.7
      */
     Provider<Set<DependencyConstraint>> getDependencyConstraints();
-
 }

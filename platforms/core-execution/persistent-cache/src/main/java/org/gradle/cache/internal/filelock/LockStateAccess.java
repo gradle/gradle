@@ -78,7 +78,9 @@ public class LockStateAccess {
 
             byte protocolVersion = dataInput.readByte();
             if (protocolVersion != protocol.getVersion()) {
-                throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file. Expected %s, found %s.", protocol.getVersion(), protocolVersion));
+                throw new IllegalStateException(String.format(
+                        "Unexpected lock protocol found in lock file. Expected %s, found %s.",
+                        protocol.getVersion(), protocolVersion));
             }
             return protocol.read(dataInput);
         } catch (EOFException e) {

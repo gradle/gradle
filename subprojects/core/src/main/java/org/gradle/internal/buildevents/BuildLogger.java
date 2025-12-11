@@ -48,32 +48,29 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
     private String action;
 
     public BuildLogger(
-        Logger logger,
-        StyledTextOutputFactory textOutputFactory,
-        LoggingConfiguration loggingConfiguration,
-        BuildRequestMetaData requestMetaData,
-        BuildStartedTime buildStartedTime,
-        Clock clock,
-        WorkValidationWarningReporter workValidationWarningReporter,
-        GradleEnterprisePluginManager gradleEnterprisePluginManager,
-        FailureFactory failureFactory
-    ) {
+            Logger logger,
+            StyledTextOutputFactory textOutputFactory,
+            LoggingConfiguration loggingConfiguration,
+            BuildRequestMetaData requestMetaData,
+            BuildStartedTime buildStartedTime,
+            Clock clock,
+            WorkValidationWarningReporter workValidationWarningReporter,
+            GradleEnterprisePluginManager gradleEnterprisePluginManager,
+            FailureFactory failureFactory) {
         this.logger = logger;
         this.failureFactory = failureFactory;
         exceptionReporter = new BuildExceptionReporter(
-            textOutputFactory,
-            loggingConfiguration,
-            requestMetaData.getClient(),
-            gradleEnterprisePluginManager,
-            failureFactory
-        );
+                textOutputFactory,
+                loggingConfiguration,
+                requestMetaData.getClient(),
+                gradleEnterprisePluginManager,
+                failureFactory);
         resultLogger = new BuildResultLogger(
-            textOutputFactory,
-            buildStartedTime,
-            clock,
-            new TersePrettyDurationFormatter(),
-            workValidationWarningReporter
-        );
+                textOutputFactory,
+                buildStartedTime,
+                clock,
+                new TersePrettyDurationFormatter(),
+                workValidationWarningReporter);
     }
 
     @Override
@@ -90,8 +87,9 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
     public void settingsEvaluated(Settings settings) {
         SettingsInternal settingsInternal = (SettingsInternal) settings;
         if (logger.isInfoEnabled()) {
-            logger.info("Settings evaluated using {}.",
-                settingsInternal.getSettingsScript().getDisplayName());
+            logger.info(
+                    "Settings evaluated using {}.",
+                    settingsInternal.getSettingsScript().getDisplayName());
         }
     }
 
@@ -99,8 +97,9 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
     public void projectsLoaded(Gradle gradle) {
         if (logger.isInfoEnabled()) {
             ProjectInternal projectInternal = (ProjectInternal) gradle.getRootProject();
-            logger.info("Projects loaded. Root project using {}.",
-                projectInternal.getBuildScriptSource().getDisplayName());
+            logger.info(
+                    "Projects loaded. Root project using {}.",
+                    projectInternal.getBuildScriptSource().getDisplayName());
             logger.info("Included projects: {}", projectInternal.getAllprojects());
         }
     }
@@ -114,7 +113,7 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
     public void graphPopulated(TaskExecutionGraph graph) {
         if (logger.isInfoEnabled()) {
             logger.info("Tasks to be executed: {}", graph.getAllTasks());
-            logger.info("Tasks that were excluded: {}", ((TaskExecutionGraphInternal)graph).getFilteredTasks());
+            logger.info("Tasks that were excluded: {}", ((TaskExecutionGraphInternal) graph).getFilteredTasks());
         }
     }
 
@@ -133,7 +132,8 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
             // This logger has been replaced (for example using `Gradle.useLogger()`), so don't log anything
             return;
         }
-        BuildResult buildResult = new BuildResult(action, null, buildFailure == null ? null : buildFailure.getOriginal());
+        BuildResult buildResult =
+                new BuildResult(action, null, buildFailure == null ? null : buildFailure.getOriginal());
         exceptionReporter.buildFinished(buildFailure);
         resultLogger.buildFinished(buildResult);
     }

@@ -15,7 +15,12 @@
  */
 package org.gradle.api.internal.initialization;
 
+import static java.lang.Boolean.getBoolean;
+
 import groovy.lang.Closure;
+import java.io.File;
+import java.net.URI;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NonExtensible;
@@ -38,12 +43,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.util.internal.ConfigureUtil;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.net.URI;
-
-import static java.lang.Boolean.getBoolean;
-
 @NonExtensible
 public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInternal {
 
@@ -51,7 +50,8 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
      * If set to {@code true}, the buildscript's {@code classpath} configuration will not be reset after the
      * classpath has been assembled. Defaults to {@code false}.
      */
-    public static final String DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY = "org.gradle.incubating.reset-buildscript-classpath.disabled";
+    public static final String DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY =
+            "org.gradle.incubating.reset-buildscript-classpath.disabled";
 
     private static final Logger LOGGER = Logging.getLogger(DefaultScriptHandler.class);
 
@@ -73,16 +73,18 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Inject
     public DefaultScriptHandler(
-        ScriptSource scriptSource,
-        DependencyResolutionServices dependencyResolutionServices,
-        ClassLoaderScope classLoaderScope,
-        BuildLogicBuilder buildLogicBuilder
-    ) {
+            ScriptSource scriptSource,
+            DependencyResolutionServices dependencyResolutionServices,
+            ClassLoaderScope classLoaderScope,
+            BuildLogicBuilder buildLogicBuilder) {
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.scriptResource = scriptSource.getResource().getLocation();
         this.classLoaderScope = classLoaderScope;
         this.buildLogicBuilder = buildLogicBuilder;
-        JavaEcosystemSupport.configureServices(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getAttributeDescribers(), dependencyResolutionServices.getObjectFactory());
+        JavaEcosystemSupport.configureServices(
+                dependencyResolutionServices.getAttributesSchema(),
+                dependencyResolutionServices.getAttributeDescribers(),
+                dependencyResolutionServices.getObjectFactory());
     }
 
     @Override
@@ -111,11 +113,13 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     public ClassPath getInstrumentedScriptClassPath() {
         if (resolvedClasspath == null) {
             if (classpathConfiguration != null) {
-                Factory<ClassPath> classPathFactory = () -> buildLogicBuilder.resolveClassPath(classpathConfiguration, resolutionContext);
+                Factory<ClassPath> classPathFactory =
+                        () -> buildLogicBuilder.resolveClassPath(classpathConfiguration, resolutionContext);
                 if (getBoolean(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY)) {
                     resolvedClasspath = classPathFactory.create();
                 } else {
-                    resolvedClasspath = ((ResettableConfiguration) classpathConfiguration).callAndResetResolutionState(classPathFactory);
+                    resolvedClasspath = ((ResettableConfiguration) classpathConfiguration)
+                            .callAndResetResolutionState(classPathFactory);
                 }
             } else {
                 resolvedClasspath = ClassPath.EMPTY;
@@ -161,9 +165,11 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @SuppressWarnings("deprecation")
     private void defineConfiguration() {
-        // Defer creation and resolution of configuration until required. Short-circuit when script does not require classpath
+        // Defer creation and resolution of configuration until required. Short-circuit when script does not require
+        // classpath
         if (configContainer == null) {
-            configContainer = (RoleBasedConfigurationContainerInternal) dependencyResolutionServices.getConfigurationContainer();
+            configContainer =
+                    (RoleBasedConfigurationContainerInternal) dependencyResolutionServices.getConfigurationContainer();
         }
         if (dependencyHandler == null) {
             dependencyHandler = dependencyResolutionServices.getDependencyHandler();
@@ -173,9 +179,8 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             classpathConfiguration = configContainer.resolvableDependencyScopeLocked(CLASSPATH_CONFIGURATION);
             configContainer.beforeCollectionChanges(methodName -> {
                 throw new InvalidUserCodeException(
-                    "Cannot mutate " + configContainer.getDisplayName() + " using " + methodName + ". " +
-                        "Configurations cannot be added or removed from the buildscript configuration container."
-                );
+                        "Cannot mutate " + configContainer.getDisplayName() + " using " + methodName + ". "
+                                + "Configurations cannot be added or removed from the buildscript configuration container.");
             });
             buildLogicBuilder.prepareClassPath(classpathConfiguration, resolutionContext);
         }
@@ -212,7 +217,9 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     @Override
     public ClassLoader getClassLoader() {
         if (!classLoaderScope.isLocked()) {
-            LOGGER.debug("Eager creation of script class loader for {}. This may result in performance issues.", scriptResource.getDisplayName());
+            LOGGER.debug(
+                    "Eager creation of script class loader for {}. This may result in performance issues.",
+                    scriptResource.getDisplayName());
         }
         return classLoaderScope.getLocalClassLoader();
     }

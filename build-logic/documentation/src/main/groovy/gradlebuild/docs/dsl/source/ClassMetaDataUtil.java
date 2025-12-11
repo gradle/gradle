@@ -18,14 +18,14 @@ package gradlebuild.docs.dsl.source;
 
 import gradlebuild.docs.dsl.source.model.ClassMetaData;
 import gradlebuild.docs.model.SimpleClassMetaDataRepository;
-import org.gradle.api.Action;
-
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import org.gradle.api.Action;
 
 class ClassMetaDataUtil {
-    static void extractFromMetadata(File metaData, Set<String> excludedPackagePatterns, Action<ClassMetaData> extractor) {
+    static void extractFromMetadata(
+            File metaData, Set<String> excludedPackagePatterns, Action<ClassMetaData> extractor) {
         SimpleClassMetaDataRepository<ClassMetaData> repository = new SimpleClassMetaDataRepository<>();
         repository.load(metaData);
 

@@ -16,10 +16,9 @@
 package org.gradle.api.internal.file.collections;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.util.internal.GUtil;
-
 import java.io.File;
 import java.util.Set;
+import org.gradle.util.internal.GUtil;
 
 /**
  * Adapts a java util collection into a file set.

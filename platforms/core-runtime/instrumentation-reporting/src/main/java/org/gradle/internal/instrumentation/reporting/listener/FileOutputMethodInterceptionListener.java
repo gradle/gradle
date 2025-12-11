@@ -16,16 +16,15 @@
 
 package org.gradle.internal.instrumentation.reporting.listener;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
+import org.jspecify.annotations.Nullable;
 
 class FileOutputMethodInterceptionListener implements MethodInterceptionListener, AutoCloseable {
 
@@ -44,9 +43,18 @@ class FileOutputMethodInterceptionListener implements MethodInterceptionListener
     }
 
     @Override
-    public void onInterceptedMethodInstruction(BytecodeInterceptorType type, String sourceFileName, String relativePath, String owner, String name, String descriptor, int lineNumber) {
+    public void onInterceptedMethodInstruction(
+            BytecodeInterceptorType type,
+            String sourceFileName,
+            String relativePath,
+            String owner,
+            String name,
+            String descriptor,
+            int lineNumber) {
         try {
-            writer.write(formatter.format(this.source, sourceFileName, relativePath, owner, name, descriptor, lineNumber) + "\n");
+            writer.write(
+                    formatter.format(this.source, sourceFileName, relativePath, owner, name, descriptor, lineNumber)
+                            + "\n");
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

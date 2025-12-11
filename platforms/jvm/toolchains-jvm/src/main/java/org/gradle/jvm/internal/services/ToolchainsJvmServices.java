@@ -87,23 +87,38 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
 
         @Provides
         protected JavaToolchainResolverRegistryInternal createJavaToolchainResolverRegistry(
-            Gradle gradle,
-            Instantiator instantiator,
-            ObjectFactory objectFactory,
-            ProviderFactory providerFactory,
-            AuthenticationSchemeRegistry authenticationSchemeRegistry) {
-            return objectFactory.newInstance(DefaultJavaToolchainResolverRegistry.class, gradle, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
+                Gradle gradle,
+                Instantiator instantiator,
+                ObjectFactory objectFactory,
+                ProviderFactory providerFactory,
+                AuthenticationSchemeRegistry authenticationSchemeRegistry) {
+            return objectFactory.newInstance(
+                    DefaultJavaToolchainResolverRegistry.class,
+                    gradle,
+                    instantiator,
+                    objectFactory,
+                    providerFactory,
+                    authenticationSchemeRegistry);
         }
 
         @Provides
-        protected JvmToolchainManagement createToolchainManagement(ObjectFactory objectFactory, JavaToolchainResolverRegistry registry) {
+        protected JvmToolchainManagement createToolchainManagement(
+                ObjectFactory objectFactory, JavaToolchainResolverRegistry registry) {
             return objectFactory.newInstance(DefaultJvmToolchainManagement.class, registry);
         }
 
         @Provides
-        protected JdkCacheDirectory createJdkCacheDirectory(ObjectFactory objectFactory, GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, ClientExecHandleBuilderFactory execHandleFactory, GradleUserHomeTemporaryFileProvider temporaryFileProvider) {
-            DefaultJvmMetadataDetector silentDetector = new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
-            return new DefaultJdkCacheDirectory(homeDirProvider, operations, lockManager, silentDetector, temporaryFileProvider);
+        protected JdkCacheDirectory createJdkCacheDirectory(
+                ObjectFactory objectFactory,
+                GradleUserHomeDirProvider homeDirProvider,
+                FileOperations operations,
+                FileLockManager lockManager,
+                ClientExecHandleBuilderFactory execHandleFactory,
+                GradleUserHomeTemporaryFileProvider temporaryFileProvider) {
+            DefaultJvmMetadataDetector silentDetector =
+                    new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
+            return new DefaultJdkCacheDirectory(
+                    homeDirProvider, operations, lockManager, silentDetector, temporaryFileProvider);
         }
 
         public void configure(ServiceRegistration registration) {
@@ -122,12 +137,12 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
             registration.add(InstallationSupplier.class, WindowsInstallationSupplier.class);
 
             registration.add(JavaInstallationRegistry.class, DefaultJavaInstallationRegistry.class);
-            // This has a dependency on RepositoryTransportFactory, which is build scoped, and is required by the following services as well
+            // This has a dependency on RepositoryTransportFactory, which is build scoped, and is required by the
+            // following services as well
             registration.add(ExternalResourceFactory.class, DefaultToolchainExternalResourceFactory.class);
             registration.add(SecureFileDownloader.class);
             registration.add(JavaToolchainProvisioningService.class, DefaultJavaToolchainProvisioningService.class);
             registration.add(JavaToolchainQueryService.class);
-
         }
     }
 

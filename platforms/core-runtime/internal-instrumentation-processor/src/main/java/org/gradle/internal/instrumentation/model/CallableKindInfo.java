@@ -16,12 +16,15 @@
 
 package org.gradle.internal.instrumentation.model;
 
+import java.lang.annotation.Annotation;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 
-import java.lang.annotation.Annotation;
-
 public enum CallableKindInfo {
-    STATIC_METHOD, INSTANCE_METHOD, AFTER_CONSTRUCTOR, GROOVY_PROPERTY_GETTER, GROOVY_PROPERTY_SETTER;
+    STATIC_METHOD,
+    INSTANCE_METHOD,
+    AFTER_CONSTRUCTOR,
+    GROOVY_PROPERTY_GETTER,
+    GROOVY_PROPERTY_SETTER;
 
     public static CallableKindInfo fromAnnotation(Annotation annotation) {
         if (annotation instanceof CallableKind.StaticMethod) {

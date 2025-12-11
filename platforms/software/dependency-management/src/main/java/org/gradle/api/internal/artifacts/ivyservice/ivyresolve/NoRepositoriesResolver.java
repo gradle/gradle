@@ -38,7 +38,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * Used as a fallback when no repositories are defined for a given resolution.
  */
-public class NoRepositoriesResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+public class NoRepositoriesResolver
+        implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
     @Override
     public DependencyToComponentIdResolver getComponentIdResolver() {
         return this;
@@ -55,12 +56,25 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
     }
 
     @Override
-    public void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes) {
-        result.failed(new ModuleVersionNotFoundException(selector, () -> String.format("Cannot resolve external dependency %s because no repositories are defined.", selector), ImmutableList.of()));
+    public void resolve(
+            ComponentSelector selector,
+            ComponentOverrideMetadata overrideMetadata,
+            VersionSelector acceptor,
+            @Nullable VersionSelector rejector,
+            BuildableComponentIdResolveResult result,
+            ImmutableAttributes consumerAttributes) {
+        result.failed(new ModuleVersionNotFoundException(
+                selector,
+                () -> String.format(
+                        "Cannot resolve external dependency %s because no repositories are defined.", selector),
+                ImmutableList.of()));
     }
 
     @Override
-    public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
+    public void resolve(
+            ComponentIdentifier identifier,
+            ComponentOverrideMetadata componentOverrideMetadata,
+            BuildableComponentResolveResult result) {
         throw new UnsupportedOperationException();
     }
 
@@ -70,12 +84,18 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
     }
 
     @Override
-    public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifactsWithType(
+            ComponentArtifactResolveMetadata component,
+            ArtifactType artifactType,
+            BuildableArtifactSetResolveResult result) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(
+            ComponentArtifactResolveMetadata component,
+            ComponentArtifactMetadata artifact,
+            BuildableArtifactResolveResult result) {
         throw new UnsupportedOperationException();
     }
 }

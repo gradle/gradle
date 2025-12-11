@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.lambdas;
 
-import org.gradle.api.Action;
-import org.gradle.api.Transformer;
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.Factory;
-
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factory;
 
 /**
  * Provides a mechanism for creating Java lambdas that can be stored to the configuration cache.
@@ -69,48 +68,39 @@ public class SerializableLambdas {
     /**
      * A {@link Serializable} version of {@link Spec}.
      */
-    public interface SerializableSpec<T> extends Spec<T>, Serializable {
-    }
+    public interface SerializableSpec<T> extends Spec<T>, Serializable {}
 
     /**
      * A {@link Serializable} version of {@link Action}.
      */
-    public interface SerializableAction<T> extends Action<T>, Serializable {
-    }
+    public interface SerializableAction<T> extends Action<T>, Serializable {}
 
     /**
      * A {@link Serializable} version of {@link Factory}.
      */
-    public interface SerializableFactory<T> extends Factory<T>, Serializable {
-    }
+    public interface SerializableFactory<T> extends Factory<T>, Serializable {}
 
     /**
      * A {@link Serializable} version of {@link org.gradle.api.Transformer}.
      */
-    public interface SerializableTransformer<OUT, IN> extends Transformer<OUT, IN>, Serializable {
-    }
+    public interface SerializableTransformer<OUT, IN> extends Transformer<OUT, IN>, Serializable {}
 
     /**
      * A {@link Serializable} version of {@link BiFunction}.
      */
-    public interface SerializableBiFunction<T, U, R> extends BiFunction<T, U, R>, Serializable {
-    }
+    public interface SerializableBiFunction<T, U, R> extends BiFunction<T, U, R>, Serializable {}
 
     /**
      * A {@link Serializable} version of {@link Callable}.
      */
-    public interface SerializableCallable<T> extends Callable<T>, Serializable {
-    }
+    public interface SerializableCallable<T> extends Callable<T>, Serializable {}
 
     /**
      * A {@link Serializable} version of {@link Supplier}.
      */
-    public interface SerializableSupplier<T> extends Supplier<T>, Serializable {
-    }
+    public interface SerializableSupplier<T> extends Supplier<T>, Serializable {}
 
-    public interface SerializablePredicate<T> extends Predicate<T>, Serializable{
-    }
+    public interface SerializablePredicate<T> extends Predicate<T>, Serializable {}
 
-    private SerializableLambdas() {
-    }
+    private SerializableLambdas() {}
 }

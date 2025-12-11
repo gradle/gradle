@@ -35,5 +35,4 @@ public interface MethodArgumentsTransformer {
      * these arguments at all.
      */
     boolean canTransform(Object[] args);
-
 }

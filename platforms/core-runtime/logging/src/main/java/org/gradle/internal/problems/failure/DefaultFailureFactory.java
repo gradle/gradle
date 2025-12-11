@@ -17,6 +17,12 @@
 package org.gradle.internal.problems.failure;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.problems.internal.InternalProblem;
@@ -25,20 +31,11 @@ import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-
 public class DefaultFailureFactory implements FailureFactory {
 
     public static DefaultFailureFactory withDefaultClassifier() {
-        return new DefaultFailureFactory(new CompositeStackTraceClassifier(
-            new InternalStackTraceClassifier(),
-            StackTraceClassifier.USER_CODE
-        ));
+        return new DefaultFailureFactory(
+                new CompositeStackTraceClassifier(new InternalStackTraceClassifier(), StackTraceClassifier.USER_CODE));
     }
 
     private final StackTraceClassifier stackTraceClassifier;
@@ -49,14 +46,12 @@ public class DefaultFailureFactory implements FailureFactory {
 
     @Override
     public Failure create(Throwable failure) {
-        return new Job(stackTraceClassifier, ProblemLocator.EMPTY_LOCATOR)
-            .convert(failure);
+        return new Job(stackTraceClassifier, ProblemLocator.EMPTY_LOCATOR).convert(failure);
     }
 
     @Override
     public Failure create(Throwable failure, ProblemLocator problemLocator) {
-        return new Job(stackTraceClassifier, problemLocator)
-            .convert(failure);
+        return new Job(stackTraceClassifier, problemLocator).convert(failure);
     }
 
     private static final class Job {
@@ -72,7 +67,10 @@ public class DefaultFailureFactory implements FailureFactory {
             this(stackTraceClassifier, problemLocator, null);
         }
 
-        private Job(StackTraceClassifier stackTraceClassifier, ProblemLocator problemLocator, @Nullable Set<Throwable> parentSeen) {
+        private Job(
+                StackTraceClassifier stackTraceClassifier,
+                ProblemLocator problemLocator,
+                @Nullable Set<Throwable> parentSeen) {
             this.stackTraceClassifier = stackTraceClassifier;
             this.problemLocator = problemLocator;
             this.seen = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
@@ -101,7 +99,8 @@ public class DefaultFailureFactory implements FailureFactory {
             return new DefaultFailure(failure, stackTrace, relevances, suppressed, causes, problems);
         }
 
-        private static List<StackTraceRelevance> classify(List<StackTraceElement> stackTrace, StackTraceClassifier classifier) {
+        private static List<StackTraceRelevance> classify(
+                List<StackTraceElement> stackTrace, StackTraceClassifier classifier) {
             ArrayList<StackTraceRelevance> relevance = new ArrayList<StackTraceRelevance>(stackTrace.size());
             for (StackTraceElement stackTraceElement : stackTrace) {
                 StackTraceRelevance r = classifier.classify(stackTraceElement);
@@ -148,11 +147,7 @@ public class DefaultFailureFactory implements FailureFactory {
                 return Collections.emptyList();
             }
 
-            return CollectionUtils.collect(
-                suppressed,
-                determineRecursiveConverter(suppressedAndCauses.childCount())
-            );
-
+            return CollectionUtils.collect(suppressed, determineRecursiveConverter(suppressedAndCauses.childCount()));
         }
 
         private List<Failure> convertCauses(SuppressedAndCauses suppressedAndCauses) {
@@ -160,17 +155,15 @@ public class DefaultFailureFactory implements FailureFactory {
             if (causes.isEmpty()) {
                 return Collections.emptyList();
             }
-            return CollectionUtils.collect(
-                causes,
-                determineRecursiveConverter(suppressedAndCauses.childCount())
-            );
+            return CollectionUtils.collect(causes, determineRecursiveConverter(suppressedAndCauses.childCount()));
         }
 
         private Function<Throwable, Failure> determineRecursiveConverter(int size) {
             if (size <= 1) {
                 return recursiveConverter;
             } else {
-                // when we branch, we need to have separate seen sets on each branch, since we there cannot be cycles between branches
+                // when we branch, we need to have separate seen sets on each branch, since we there cannot be cycles
+                // between branches
                 return this::multiChildTransformer;
             }
         }
@@ -183,10 +176,7 @@ public class DefaultFailureFactory implements FailureFactory {
             private final Throwable[] suppressed;
             private final List<Throwable> causes;
 
-            public SuppressedAndCauses(
-                @Nullable Throwable[] suppressed,
-                List<Throwable> causes
-            ) {
+            public SuppressedAndCauses(@Nullable Throwable[] suppressed, List<Throwable> causes) {
                 this.causes = causes;
                 this.suppressed = suppressed;
             }

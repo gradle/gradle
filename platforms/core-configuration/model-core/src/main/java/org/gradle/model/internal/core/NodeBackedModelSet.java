@@ -16,10 +16,14 @@
 
 package org.gradle.model.internal.core;
 
+import static org.gradle.model.internal.core.NodePredicate.allLinks;
+
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import java.util.Collection;
+import java.util.Iterator;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Specs;
 import org.gradle.model.ModelSet;
@@ -27,11 +31,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.internal.ClosureBackedAction;
-
-import java.util.Collection;
-import java.util.Iterator;
-
-import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
 public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
 
@@ -45,7 +44,13 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
 
     private Collection<T> elements;
 
-    public NodeBackedModelSet(ModelType<?> publicType, ModelType<T> elementType, ModelRuleDescriptor descriptor, MutableModelNode modelNode, ModelViewState state, ChildNodeInitializerStrategy<T> creatorStrategy) {
+    public NodeBackedModelSet(
+            ModelType<?> publicType,
+            ModelType<T> elementType,
+            ModelRuleDescriptor descriptor,
+            MutableModelNode modelNode,
+            ModelViewState state,
+            ChildNodeInitializerStrategy<T> creatorStrategy) {
         this.publicType = publicType;
         this.elementType = elementType;
         this.elementTypeReference = ModelReference.of(elementType);
@@ -90,9 +95,11 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
 
         NodeInitializer nodeInitializer = creatorStrategy.initializer(elementType, Specs.<ModelType<?>>satisfyAll());
         ModelRegistration registration = ModelRegistrations.of(childPath, nodeInitializer)
-            .descriptor(descriptor)
-            .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(childPath, elementType), descriptor, action))
-            .build();
+                .descriptor(descriptor)
+                .action(
+                        ModelActionRole.Initialize,
+                        NoInputsModelAction.of(ModelReference.of(childPath, elementType), descriptor, action))
+                .build();
 
         modelNode.addLink(registration);
     }
@@ -100,13 +107,19 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     @Override
     public void afterEach(Action<? super T> configAction) {
         state.assertCanMutate();
-        modelNode.applyTo(allLinks(), ModelActionRole.Finalize, NoInputsModelAction.of(elementTypeReference, descriptor.append("afterEach()"), configAction));
+        modelNode.applyTo(
+                allLinks(),
+                ModelActionRole.Finalize,
+                NoInputsModelAction.of(elementTypeReference, descriptor.append("afterEach()"), configAction));
     }
 
     @Override
     public void beforeEach(Action<? super T> configAction) {
         state.assertCanMutate();
-        modelNode.applyTo(allLinks(), ModelActionRole.Defaults, NoInputsModelAction.of(elementTypeReference, descriptor.append("afterEach()"), configAction));
+        modelNode.applyTo(
+                allLinks(),
+                ModelActionRole.Defaults,
+                NoInputsModelAction.of(elementTypeReference, descriptor.append("afterEach()"), configAction));
     }
 
     @Override
@@ -191,16 +204,14 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     private Collection<T> getElements() {
         state.assertCanReadChildren();
         if (elements == null) {
-            elements = Lists.newArrayList(
-                Iterables.transform(modelNode.getLinks(ModelNodes.withType(elementType)), new Function<MutableModelNode, T>() {
-                    @Override
-                    public T apply(MutableModelNode input) {
-                        return input.asImmutable(elementType, descriptor).getInstance();
-                    }
-                })
-            );
+            elements = Lists.newArrayList(Iterables.transform(
+                    modelNode.getLinks(ModelNodes.withType(elementType)), new Function<MutableModelNode, T>() {
+                        @Override
+                        public T apply(MutableModelNode input) {
+                            return input.asImmutable(elementType, descriptor).getInstance();
+                        }
+                    }));
         }
         return elements;
     }
-
 }

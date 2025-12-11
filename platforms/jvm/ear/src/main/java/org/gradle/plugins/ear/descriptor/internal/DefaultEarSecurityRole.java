@@ -16,9 +16,8 @@
 package org.gradle.plugins.ear.descriptor.internal;
 
 import com.google.common.base.Objects;
-import org.gradle.plugins.ear.descriptor.EarSecurityRole;
-
 import javax.inject.Inject;
+import org.gradle.plugins.ear.descriptor.EarSecurityRole;
 
 public class DefaultEarSecurityRole implements EarSecurityRole {
 
@@ -26,8 +25,7 @@ public class DefaultEarSecurityRole implements EarSecurityRole {
     private String roleName;
 
     @Inject
-    public DefaultEarSecurityRole() {
-    }
+    public DefaultEarSecurityRole() {}
 
     public DefaultEarSecurityRole(String roleName) {
         this.roleName = roleName;
@@ -68,7 +66,7 @@ public class DefaultEarSecurityRole implements EarSecurityRole {
 
     @Override
     public boolean equals(Object o) {
-        if (this==o) {
+        if (this == o) {
             return true;
         }
         if (!(o instanceof DefaultEarSecurityRole)) {

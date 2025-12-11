@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import java.io.Serializable;
+import java.util.Set;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
-
-import java.io.Serializable;
-import java.util.Set;
 
 /**
  * Encapsulates the logic to execute a work item for an {@link AbstractDaemonCompiler}.
@@ -31,7 +30,10 @@ public interface CompilerWorkerExecutor {
     /**
      * Executes a compiler specified by the {@link CompilerParameters}
      */
-    DefaultWorkResult execute(CompilerParameters parameters, DaemonForkOptions daemonForkOptions, Set<Class<?>> additionalWhitelistedServices);
+    DefaultWorkResult execute(
+            CompilerParameters parameters,
+            DaemonForkOptions daemonForkOptions,
+            Set<Class<?>> additionalWhitelistedServices);
 
     abstract class CompilerParameters implements WorkParameters, Serializable {
         private final String compilerClassName;
@@ -50,7 +52,6 @@ public interface CompilerWorkerExecutor {
             return compilerInstanceParameters;
         }
 
-        abstract public CompileSpec getCompileSpec();
+        public abstract CompileSpec getCompileSpec();
     }
-
 }

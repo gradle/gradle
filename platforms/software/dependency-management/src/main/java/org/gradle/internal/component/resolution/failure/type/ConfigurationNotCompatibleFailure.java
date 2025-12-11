@@ -17,14 +17,13 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByNameFailure;
-
-import java.util.List;
 
 /**
  * A {@link VariantSelectionByNameFailure} that represents the situation when a configuration is
@@ -34,7 +33,11 @@ public final class ConfigurationNotCompatibleFailure extends AbstractVariantSele
     private final ImmutableAttributes requestedAttributes;
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
-    public ConfigurationNotCompatibleFailure(ComponentIdentifier targetComponent, String requestedConfigurationName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+    public ConfigurationNotCompatibleFailure(
+            ComponentIdentifier targetComponent,
+            String requestedConfigurationName,
+            AttributeContainerInternal requestedAttributes,
+            List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
         super(ResolutionFailureProblemId.CONFIGURATION_NOT_COMPATIBLE, targetComponent, requestedConfigurationName);
         this.requestedAttributes = requestedAttributes.asImmutable();
         this.candidates = ImmutableList.copyOf(candidates);

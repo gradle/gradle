@@ -16,9 +16,8 @@
 
 package org.gradle.internal.reflect;
 
-import org.jspecify.annotations.Nullable;
-
 import java.lang.ref.WeakReference;
+import org.jspecify.annotations.Nullable;
 
 public class CachedInvokable<T> {
     private final WeakReference<T> invokable;

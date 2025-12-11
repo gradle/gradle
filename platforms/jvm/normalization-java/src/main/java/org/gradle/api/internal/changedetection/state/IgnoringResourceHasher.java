@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.io.IOException;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.jspecify.annotations.Nullable;
-
-import java.io.IOException;
 
 public class IgnoringResourceHasher implements ResourceHasher {
     private final ResourceHasher delegate;
@@ -44,12 +43,16 @@ public class IgnoringResourceHasher implements ResourceHasher {
     @Nullable
     @Override
     public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
-        return resourceFilter.shouldBeIgnored(snapshotContext.getRelativePathSegments()) ? null : delegate.hash(snapshotContext);
+        return resourceFilter.shouldBeIgnored(snapshotContext.getRelativePathSegments())
+                ? null
+                : delegate.hash(snapshotContext);
     }
 
     @Nullable
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        return resourceFilter.shouldBeIgnored(zipEntryContext.getRelativePathSegments()) ? null : delegate.hash(zipEntryContext);
+        return resourceFilter.shouldBeIgnored(zipEntryContext.getRelativePathSegments())
+                ? null
+                : delegate.hash(zipEntryContext);
     }
 }

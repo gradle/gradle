@@ -16,8 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import javax.inject.Inject;
 import java.util.Set;
+import javax.inject.Inject;
 
 public class IntellijInstallationSupplier implements InstallationSupplier {
     public static final String INTELLIJ_JDK_DIR_PROPERTY = "org.gradle.java.installations.idea-jdks-directory";
@@ -36,6 +36,7 @@ public class IntellijInstallationSupplier implements InstallationSupplier {
 
     @Override
     public Set<InstallationLocation> get() {
-        return FileBasedInstallationFactory.fromDirectory(toolchainConfiguration.getIntelliJdkDirectory(), getSourceName(), InstallationLocation::autoDetected);
+        return FileBasedInstallationFactory.fromDirectory(
+                toolchainConfiguration.getIntelliJdkDirectory(), getSourceName(), InstallationLocation::autoDetected);
     }
 }

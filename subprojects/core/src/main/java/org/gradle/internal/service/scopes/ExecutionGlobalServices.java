@@ -15,10 +15,17 @@
  */
 package org.gradle.internal.service.scopes;
 
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.GroovyObject;
 import groovy.transform.Generated;
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
@@ -105,52 +112,40 @@ import org.gradle.work.DisableCachingByDefault;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
-import java.lang.annotation.Annotation;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
-import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
-
 public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     @VisibleForTesting
     public static final ImmutableSet<Class<? extends Annotation>> PROPERTY_TYPE_ANNOTATIONS = ImmutableSet.of(
-        Console.class,
-        Destroys.class,
-        Input.class,
-        InputArtifact.class,
-        InputArtifactDependencies.class,
-        InputDirectory.class,
-        InputFile.class,
-        InputFiles.class,
-        LocalState.class,
-        Nested.class,
-        OptionValues.class,
-        OutputDirectories.class,
-        OutputDirectory.class,
-        OutputFile.class,
-        OutputFiles.class,
-        ServiceReference.class
-    );
+            Console.class,
+            Destroys.class,
+            Input.class,
+            InputArtifact.class,
+            InputArtifactDependencies.class,
+            InputDirectory.class,
+            InputFile.class,
+            InputFiles.class,
+            LocalState.class,
+            Nested.class,
+            OptionValues.class,
+            OutputDirectories.class,
+            OutputDirectory.class,
+            OutputFile.class,
+            OutputFiles.class,
+            ServiceReference.class);
 
-    public static final ImmutableSet<Class<? extends Annotation>> FUNCTION_TYPE_ANNOTATIONS = ImmutableSet.of(
-        TaskAction.class
-    );
+    public static final ImmutableSet<Class<? extends Annotation>> FUNCTION_TYPE_ANNOTATIONS =
+            ImmutableSet.of(TaskAction.class);
 
     @VisibleForTesting
-    public static final ImmutableSet<Class<? extends Annotation>> IGNORED_METHOD_ANNOTATIONS = ImmutableSet.of(
-        Internal.class,
-        ReplacedBy.class
-    );
+    public static final ImmutableSet<Class<? extends Annotation>> IGNORED_METHOD_ANNOTATIONS =
+            ImmutableSet.of(Internal.class, ReplacedBy.class);
 
     @VisibleForTesting
-    public static final ImmutableSet<Class<? extends Annotation>> IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS = ImmutableSet.of(
-        ReplacesEagerProperty.class
-    );
+    public static final ImmutableSet<Class<? extends Annotation>> IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS =
+            ImmutableSet.of(ReplacesEagerProperty.class);
 
     @Provides
-    WorkExecutionTracker createWorkExecutionTracker(BuildOperationAncestryTracker ancestryTracker, BuildOperationListenerManager operationListenerManager) {
+    WorkExecutionTracker createWorkExecutionTracker(
+            BuildOperationAncestryTracker ancestryTracker, BuildOperationListenerManager operationListenerManager) {
         return new DefaultWorkExecutionTracker(ancestryTracker, operationListenerManager);
     }
 
@@ -160,102 +155,93 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory, AnnotationHandlerRegistar annotationRegistry) {
+    TypeAnnotationMetadataStore createAnnotationMetadataStore(
+            CrossBuildInMemoryCacheFactory cacheFactory, AnnotationHandlerRegistar annotationRegistry) {
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
         builder.addAll(PROPERTY_TYPE_ANNOTATIONS);
         annotationRegistry.registerAnnotationTypes(builder);
         return new DefaultTypeAnnotationMetadataStore(
-            ImmutableSet.of(
-                CacheableTask.class,
-                CacheableTransform.class,
-                DisableCachingByDefault.class,
-                UntrackedTask.class,
-                RegistersSoftwareTypes.class,
-                RegistersProjectFeatures.class,
-                BindsProjectType.class,
-                BindsProjectFeature.class
-            ),
-            ModifierAnnotationCategory.asMap(builder.build()),
-            FUNCTION_TYPE_ANNOTATIONS.stream().collect(Collectors.toMap(annotation -> annotation, annotation -> ModifierAnnotationCategory.TYPE)),
-            ImmutableSet.of(
-                "java",
-                "groovy",
-                "kotlin"
-            ),
-            ImmutableSet.of(
-                // Used by a nested bean with action in a task, example:
-                // `NestedInputIntegrationTest.implementation of nested closure in decorated bean is tracked`
-                ConfigureUtil.WrappedConfigureAction.class,
-                // DefaultTestTaskReports used by AbstractTestTask extends this class
-                DefaultNamedDomainObjectSet.class,
-                // Used in gradle-base so it can't have annotations anyway
-                Describable.class
-            ),
-            ImmutableSet.of(
-                GroovyObject.class,
-                Object.class,
-                ScriptOrigin.class
-            ),
-            ImmutableSet.of(
-                ConfigurableFileCollection.class,
-                Property.class
-            ),
-            IGNORED_METHOD_ANNOTATIONS,
-            IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS,
-            method -> method.isAnnotationPresent(Generated.class),
-            cacheFactory);
+                ImmutableSet.of(
+                        CacheableTask.class,
+                        CacheableTransform.class,
+                        DisableCachingByDefault.class,
+                        UntrackedTask.class,
+                        RegistersSoftwareTypes.class,
+                        RegistersProjectFeatures.class,
+                        BindsProjectType.class,
+                        BindsProjectFeature.class),
+                ModifierAnnotationCategory.asMap(builder.build()),
+                FUNCTION_TYPE_ANNOTATIONS.stream()
+                        .collect(Collectors.toMap(
+                                annotation -> annotation, annotation -> ModifierAnnotationCategory.TYPE)),
+                ImmutableSet.of("java", "groovy", "kotlin"),
+                ImmutableSet.of(
+                        // Used by a nested bean with action in a task, example:
+                        // `NestedInputIntegrationTest.implementation of nested closure in decorated bean is tracked`
+                        ConfigureUtil.WrappedConfigureAction.class,
+                        // DefaultTestTaskReports used by AbstractTestTask extends this class
+                        DefaultNamedDomainObjectSet.class,
+                        // Used in gradle-base so it can't have annotations anyway
+                        Describable.class),
+                ImmutableSet.of(GroovyObject.class, Object.class, ScriptOrigin.class),
+                ImmutableSet.of(ConfigurableFileCollection.class, Property.class),
+                IGNORED_METHOD_ANNOTATIONS,
+                IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS,
+                method -> method.isAnnotationPresent(Generated.class),
+                cacheFactory);
     }
 
     @Provides
     InspectionSchemeFactory createInspectionSchemeFactory(
-        List<TypeAnnotationHandler> typeHandlers,
-        List<PropertyAnnotationHandler> propertyHandlers,
-        List<FunctionAnnotationHandler> functionHandlers,
-        TypeAnnotationMetadataStore typeAnnotationMetadataStore,
-        CrossBuildInMemoryCacheFactory cacheFactory
-    ) {
-        return new InspectionSchemeFactory(typeHandlers, propertyHandlers, functionHandlers, typeAnnotationMetadataStore, cacheFactory);
+            List<TypeAnnotationHandler> typeHandlers,
+            List<PropertyAnnotationHandler> propertyHandlers,
+            List<FunctionAnnotationHandler> functionHandlers,
+            TypeAnnotationMetadataStore typeAnnotationMetadataStore,
+            CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new InspectionSchemeFactory(
+                typeHandlers, propertyHandlers, functionHandlers, typeAnnotationMetadataStore, cacheFactory);
     }
 
     @Provides
-    TaskScheme createTaskScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory, AnnotationHandlerRegistar annotationRegistry) {
+    TaskScheme createTaskScheme(
+            InspectionSchemeFactory inspectionSchemeFactory,
+            InstantiatorFactory instantiatorFactory,
+            AnnotationHandlerRegistar annotationRegistry) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
         ImmutableSet.Builder<Class<? extends Annotation>> allAnnotationTypes = ImmutableSet.builder();
         allAnnotationTypes.addAll(ImmutableSet.of(
-            Input.class,
-            InputFile.class,
-            InputFiles.class,
-            InputDirectory.class,
-            OutputFile.class,
-            OutputFiles.class,
-            OutputDirectory.class,
-            OutputDirectories.class,
-            Destroys.class,
-            LocalState.class,
-            Nested.class,
-            Console.class,
-            ReplacedBy.class,
-            Internal.class,
-            ServiceReference.class,
-            OptionValues.class,
-            TaskAction.class
-        ));
+                Input.class,
+                InputFile.class,
+                InputFiles.class,
+                InputDirectory.class,
+                OutputFile.class,
+                OutputFiles.class,
+                OutputDirectory.class,
+                OutputDirectories.class,
+                Destroys.class,
+                LocalState.class,
+                Nested.class,
+                Console.class,
+                ReplacedBy.class,
+                Internal.class,
+                ServiceReference.class,
+                OptionValues.class,
+                TaskAction.class));
         annotationRegistry.registerAnnotationTypes(allAnnotationTypes);
         InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
-            allAnnotationTypes.build(),
-            ImmutableSet.of(
-                Classpath.class,
-                CompileClasspath.class,
-                Incremental.class,
-                Optional.class,
-                PathSensitive.class,
-                SkipWhenEmpty.class,
-                IgnoreEmptyDirectories.class,
-                NormalizeLineEndings.class,
-                ReplacesEagerProperty.class
-            ),
-            ImmutableSet.of(),
-            instantiationScheme);
+                allAnnotationTypes.build(),
+                ImmutableSet.of(
+                        Classpath.class,
+                        CompileClasspath.class,
+                        Incremental.class,
+                        Optional.class,
+                        PathSensitive.class,
+                        SkipWhenEmpty.class,
+                        IgnoreEmptyDirectories.class,
+                        NormalizeLineEndings.class,
+                        ReplacesEagerProperty.class),
+                ImmutableSet.of(),
+                instantiationScheme);
         return new TaskScheme(instantiationScheme, inspectionScheme);
     }
 
@@ -366,7 +352,8 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
 
     @Provides
     PropertyAnnotationHandler createNestedBeanPropertyAnnotationHandler() {
-        return new NestedBeanAnnotationHandler(ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
+        return new NestedBeanAnnotationHandler(
+                ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
     }
 
     @Provides

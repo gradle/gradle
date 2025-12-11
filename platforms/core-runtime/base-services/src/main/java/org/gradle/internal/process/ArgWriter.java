@@ -78,11 +78,13 @@ public class ArgWriter implements ArgCollector {
     /**
      * Returns an args transformer that replaces the provided args with a generated args file containing the args. Uses platform text encoding.
      */
-    public static Function<List<String>, List<String>> argsFileGenerator(final File argsFile, final Function<PrintWriter, ArgWriter> argWriterFactory) {
+    public static Function<List<String>, List<String>> argsFileGenerator(
+            final File argsFile, final Function<PrintWriter, ArgWriter> argWriterFactory) {
         return args -> generateArgsFile(argsFile, argWriterFactory, args);
     }
 
-    private static List<String> generateArgsFile(File argsFile, Function<PrintWriter, ArgWriter> argWriterFactory, List<String> args) {
+    private static List<String> generateArgsFile(
+            File argsFile, Function<PrintWriter, ArgWriter> argWriterFactory, List<String> args) {
         if (args.isEmpty()) {
             return args;
         }
@@ -98,7 +100,8 @@ public class ArgWriter implements ArgCollector {
                 writer.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not write options file '%s'.", argsFile.getAbsolutePath()), e);
+            throw new UncheckedIOException(
+                    String.format("Could not write options file '%s'.", argsFile.getAbsolutePath()), e);
         }
         return Collections.singletonList("@" + argsFile.getAbsolutePath());
     }

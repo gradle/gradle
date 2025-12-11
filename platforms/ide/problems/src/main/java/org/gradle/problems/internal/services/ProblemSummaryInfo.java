@@ -39,7 +39,7 @@ class ProblemSummaryInfo {
     boolean shouldEmit(int hash, int threshold) {
         if (addHash(hash)) {
             increaseCount();
-            //if we haven't seen this exact problem before, we should emit it if the count is below the threshold
+            // if we haven't seen this exact problem before, we should emit it if the count is below the threshold
             return getCount() <= threshold;
         }
         return false;

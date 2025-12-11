@@ -24,5 +24,4 @@ public class DefaultTransformSuccessResult extends DefaultOperationSuccessResult
     public DefaultTransformSuccessResult(long startTime, long endTime) {
         super(startTime, endTime);
     }
-
 }

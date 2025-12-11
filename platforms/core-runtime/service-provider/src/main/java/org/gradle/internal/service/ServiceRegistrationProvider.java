@@ -137,5 +137,4 @@ package org.gradle.internal.service;
  * {@link org.gradle.internal.concurrent.Stoppable#stop() Stoppable} then the appropriate
  * method is called to dispose of it when the owning service registry is {@link CloseableServiceRegistry#close() closed}.
  */
-public interface ServiceRegistrationProvider {
-}
+public interface ServiceRegistrationProvider {}

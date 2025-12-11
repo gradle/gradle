@@ -36,7 +36,8 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
         return new DefaultIvyPatternMatcherExcludeRuleSpec(moduleId, artifact, matcher);
     }
 
-    private DefaultIvyPatternMatcherExcludeRuleSpec(ModuleIdentifier moduleId, @Nullable IvyArtifactName artifact, String matcher) {
+    private DefaultIvyPatternMatcherExcludeRuleSpec(
+            ModuleIdentifier moduleId, @Nullable IvyArtifactName artifact, String matcher) {
         this.moduleId = moduleId;
         this.ivyArtifactName = artifact;
         this.matcher = PatternMatchers.getInstance().getMatcher(matcher);
@@ -46,7 +47,8 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
 
     @Override
     public String toString() {
-        return "{ \"exclude-rule\" : { \"moduleId\": \""  + moduleId + "\", \"artifact\" : \"" + ivyArtifactName.getDisplayName() + "\", \"matcher\": \"" + matcher.getName() + "\"} }";
+        return "{ \"exclude-rule\" : { \"moduleId\": \"" + moduleId + "\", \"artifact\" : \""
+                + ivyArtifactName.getDisplayName() + "\", \"matcher\": \"" + matcher.getName() + "\"} }";
     }
 
     @Override
@@ -63,10 +65,10 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
             return false;
         }
         return matches(moduleId.getGroup(), module.getGroup())
-            && matches(moduleId.getName(), module.getName())
-            && matches(ivyArtifactName.getName(), artifact.getName())
-            && matches(ivyArtifactName.getExtension(), artifact.getExtension())
-            && matches(ivyArtifactName.getType(), artifact.getType());
+                && matches(moduleId.getName(), module.getName())
+                && matches(ivyArtifactName.getName(), artifact.getName())
+                && matches(ivyArtifactName.getExtension(), artifact.getExtension())
+                && matches(ivyArtifactName.getType(), artifact.getType());
     }
 
     @Override
@@ -93,11 +95,11 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
             return false;
         }
         DefaultIvyPatternMatcherExcludeRuleSpec that = (DefaultIvyPatternMatcherExcludeRuleSpec) o;
-        return hashCode == that.hashCode &&
-            isArtifactExclude == that.isArtifactExclude &&
-            Objects.equal(moduleId, that.moduleId) &&
-            Objects.equal(ivyArtifactName, that.ivyArtifactName) &&
-            Objects.equal(matcher, that.matcher);
+        return hashCode == that.hashCode
+                && isArtifactExclude == that.isArtifactExclude
+                && Objects.equal(moduleId, that.moduleId)
+                && Objects.equal(ivyArtifactName, that.ivyArtifactName)
+                && Objects.equal(matcher, that.matcher);
     }
 
     @Override
@@ -109,5 +111,4 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
     public IvyArtifactName getArtifact() {
         return ivyArtifactName;
     }
-
 }

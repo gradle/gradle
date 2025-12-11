@@ -16,15 +16,14 @@
 
 package org.gradle.internal.execution.steps;
 
+import java.time.Duration;
+import java.util.Optional;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.timeout.Timeout;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
-
-import java.time.Duration;
-import java.util.Optional;
 
 public class TimeoutStep<C extends Context, R extends Result> implements Step<C, R> {
 
@@ -33,10 +32,9 @@ public class TimeoutStep<C extends Context, R extends Result> implements Step<C,
     private final Step<? super C, ? extends R> delegate;
 
     public TimeoutStep(
-        TimeoutHandler timeoutHandler,
-        CurrentBuildOperationRef currentBuildOperationRef,
-        Step<? super C, ? extends R> delegate
-    ) {
+            TimeoutHandler timeoutHandler,
+            CurrentBuildOperationRef currentBuildOperationRef,
+            Step<? super C, ? extends R> delegate) {
         this.timeoutHandler = timeoutHandler;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.delegate = delegate;
@@ -48,7 +46,8 @@ public class TimeoutStep<C extends Context, R extends Result> implements Step<C,
         if (timeoutProperty.isPresent()) {
             Duration timeout = timeoutProperty.get();
             if (timeout.isNegative()) {
-                throw new InvalidUserDataException("Timeout of " + work.getDisplayName() + " must be positive, but was " + timeout.toString().substring(2));
+                throw new InvalidUserDataException("Timeout of " + work.getDisplayName() + " must be positive, but was "
+                        + timeout.toString().substring(2));
             }
             return executeWithTimeout(work, context, timeout);
         } else {
@@ -58,7 +57,8 @@ public class TimeoutStep<C extends Context, R extends Result> implements Step<C,
 
     @SuppressWarnings("Finally")
     private R executeWithTimeout(UnitOfWork work, C context, Duration timeout) {
-        Timeout taskTimeout = timeoutHandler.start(Thread.currentThread(), timeout, work, currentBuildOperationRef.get());
+        Timeout taskTimeout =
+                timeoutHandler.start(Thread.currentThread(), timeout, work, currentBuildOperationRef.get());
         try {
             return executeWithoutTimeout(work, context);
         } finally {

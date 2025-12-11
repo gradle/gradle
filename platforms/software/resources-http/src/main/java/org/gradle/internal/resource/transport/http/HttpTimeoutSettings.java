@@ -23,5 +23,4 @@ public interface HttpTimeoutSettings {
     int getSocketTimeoutMs();
 
     int getIdleConnectionTimeoutMs();
-
 }

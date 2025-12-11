@@ -16,13 +16,12 @@
 
 package org.gradle.api.plugins.internal;
 
+import java.util.ArrayList;
 import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.provider.Property;
-
-import java.util.ArrayList;
 
 public class DefaultJavaApplication implements JavaApplication {
     private final Property<String> mainModule;

@@ -16,12 +16,11 @@
 
 package org.gradle.internal.instantiation.managed;
 
-import org.gradle.api.model.ManagedType;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.model.ManagedType;
 
 /**
  * Annotates methods that create {@link ManagedType managed types}.
@@ -38,5 +37,4 @@ public @interface ManagedObjectCreator {
      * If not specified, the method's return type is used.
      */
     Class<?> publicType() default void.class;
-
 }

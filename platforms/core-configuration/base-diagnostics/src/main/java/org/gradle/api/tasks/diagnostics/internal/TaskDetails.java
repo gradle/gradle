@@ -39,7 +39,9 @@ public interface TaskDetails {
     final class DefaultTaskDetails implements TaskDetails {
         private final Path path;
         private final String typeName;
-        @Nullable private final String description;
+
+        @Nullable
+        private final String description;
 
         private DefaultTaskDetails(Path path, String typeName, @Nullable String description) {
             this.path = path;
@@ -62,6 +64,5 @@ public interface TaskDetails {
         public String getDescription() {
             return description;
         }
-
     }
 }

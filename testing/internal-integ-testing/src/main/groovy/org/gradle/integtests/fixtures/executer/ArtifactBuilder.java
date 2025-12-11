@@ -15,10 +15,9 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.test.fixtures.file.TestFile;
-
 import java.io.File;
 import java.util.Map;
+import org.gradle.test.fixtures.file.TestFile;
 
 public interface ArtifactBuilder {
     TestFile sourceFile(String path);

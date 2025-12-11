@@ -39,5 +39,4 @@ public interface FileCollectionSnapshotter {
      * Snapshot the roots of a file collection and call the given visitor during snapshotting.
      */
     FileSystemSnapshot snapshot(FileCollection fileCollection, FileCollectionStructureVisitor visitor);
-
 }

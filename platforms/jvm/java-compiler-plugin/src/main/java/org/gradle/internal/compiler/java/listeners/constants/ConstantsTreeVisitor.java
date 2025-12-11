@@ -25,15 +25,14 @@ import com.sun.source.tree.ModuleTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePathScanner;
 import com.sun.source.util.Trees;
-
+import java.util.Objects;
+import java.util.Set;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
-import java.util.Objects;
-import java.util.Set;
 
 public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContext, ConstantsVisitorContext> {
 
@@ -53,14 +52,17 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
 
     @Override
     public ConstantsVisitorContext visitCompilationUnit(CompilationUnitTree node, ConstantsVisitorContext context) {
-        // For JDK8 visitPackage is not called for package-info.java, so we have to resolve package-info from compilation unit
+        // For JDK8 visitPackage is not called for package-info.java, so we have to resolve package-info from
+        // compilation unit
         String sourceName = node.getSourceFile().getName();
         if (sourceName.endsWith(PACKAGE_INFO_JAVA)) {
             PackageElement packageElement = elements.getPackageOf(trees.getElement(getCurrentPath()));
-            String visitedPackageInfo = packageElement == null || packageElement.getQualifiedName().toString().isEmpty()
-                ? PACKAGE_INFO
-                : packageElement.getQualifiedName().toString() + "." + PACKAGE_INFO;
-            return super.visitCompilationUnit(node, new ConstantsVisitorContext(visitedPackageInfo, consumer::consumeAccessibleDependent));
+            String visitedPackageInfo = packageElement == null
+                            || packageElement.getQualifiedName().toString().isEmpty()
+                    ? PACKAGE_INFO
+                    : packageElement.getQualifiedName().toString() + "." + PACKAGE_INFO;
+            return super.visitCompilationUnit(
+                    node, new ConstantsVisitorContext(visitedPackageInfo, consumer::consumeAccessibleDependent));
         }
         return super.visitCompilationUnit(node, context);
     }
@@ -84,10 +86,13 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
 
     @Override
     public ConstantsVisitorContext visitVariable(VariableTree node, ConstantsVisitorContext context) {
-        if (isAccessibleConstantVariableDeclaration(node) && node.getInitializer() != null && !(node.getInitializer() instanceof MethodInvocationTree)) {
+        if (isAccessibleConstantVariableDeclaration(node)
+                && node.getInitializer() != null
+                && !(node.getInitializer() instanceof MethodInvocationTree)) {
             // We now just check, that constant declaration is not `static {}` or `CONSTANT = methodInvocation()`,
             // but it could be further optimized to check if expression is one that can be inlined or not.
-            return super.visitVariable(node, new ConstantsVisitorContext(context.getVisitedClass(), consumer::consumeAccessibleDependent));
+            return super.visitVariable(
+                    node, new ConstantsVisitorContext(context.getVisitedClass(), consumer::consumeAccessibleDependent));
         } else {
             return super.visitVariable(node, context);
         }
@@ -95,14 +100,17 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
 
     private boolean isAccessibleConstantVariableDeclaration(VariableTree node) {
         Set<Modifier> modifiers = node.getModifiers().getFlags();
-        return modifiers.contains(Modifier.FINAL) && modifiers.contains(Modifier.STATIC) && !modifiers.contains(Modifier.PRIVATE);
+        return modifiers.contains(Modifier.FINAL)
+                && modifiers.contains(Modifier.STATIC)
+                && !modifiers.contains(Modifier.PRIVATE);
     }
 
     @Override
     public ConstantsVisitorContext visitMemberSelect(MemberSelectTree node, ConstantsVisitorContext context) {
         Element element = trees.getElement(getCurrentPath());
         if (isPrimitiveConstantVariable(element)) {
-            context.addConstantOrigin(getBinaryClassName(Objects.requireNonNull((TypeElement) element.getEnclosingElement())));
+            context.addConstantOrigin(
+                    getBinaryClassName(Objects.requireNonNull((TypeElement) element.getEnclosingElement())));
         }
         return super.visitMemberSelect(node, context);
     }
@@ -112,7 +120,8 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
         Element element = trees.getElement(getCurrentPath());
 
         if (isPrimitiveConstantVariable(element)) {
-            context.addConstantOrigin(getBinaryClassName(Objects.requireNonNull((TypeElement) element.getEnclosingElement())));
+            context.addConstantOrigin(
+                    getBinaryClassName(Objects.requireNonNull((TypeElement) element.getEnclosingElement())));
         }
         return super.visitIdentifier(node, context);
     }
@@ -127,8 +136,7 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
 
     private boolean isPrimitiveConstantVariable(Element element) {
         return element instanceof VariableElement
-            && element.getEnclosingElement() instanceof TypeElement
-            && ((VariableElement) element).getConstantValue() != null;
+                && element.getEnclosingElement() instanceof TypeElement
+                && ((VariableElement) element).getConstantValue() != null;
     }
-
 }

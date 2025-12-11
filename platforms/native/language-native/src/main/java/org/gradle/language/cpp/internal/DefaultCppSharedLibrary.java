@@ -17,6 +17,8 @@
 package org.gradle.language.cpp.internal;
 
 import com.google.common.collect.Sets;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -43,10 +45,12 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.Set;
-
-public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppSharedLibrary, ConfigurableComponentWithSharedLibrary, ConfigurableComponentWithLinkUsage, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
+public class DefaultCppSharedLibrary extends DefaultCppBinary
+        implements CppSharedLibrary,
+                ConfigurableComponentWithSharedLibrary,
+                ConfigurableComponentWithLinkUsage,
+                ConfigurableComponentWithRuntimeUsage,
+                SoftwareComponentInternal {
     private final RegularFileProperty linkFile;
     private final Property<Task> linkFileProducer;
     private final RegularFileProperty runtimeFile;
@@ -56,8 +60,30 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultCppSharedLibrary(Names names, ObjectFactory objectFactory, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, RoleBasedConfigurationContainerInternal configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultCppSharedLibrary(
+            Names names,
+            ObjectFactory objectFactory,
+            Provider<String> baseName,
+            FileCollection sourceFiles,
+            FileCollection componentHeaderDirs,
+            RoleBasedConfigurationContainerInternal configurations,
+            Configuration implementation,
+            CppPlatform targetPlatform,
+            NativeToolChainInternal toolChain,
+            PlatformToolProvider platformToolProvider,
+            NativeVariantIdentity identity) {
+        super(
+                names,
+                objectFactory,
+                baseName,
+                sourceFiles,
+                componentHeaderDirs,
+                configurations,
+                implementation,
+                targetPlatform,
+                toolChain,
+                platformToolProvider,
+                identity);
         this.linkFile = objectFactory.fileProperty();
         this.linkFileProducer = objectFactory.property(Task.class);
         this.runtimeFile = objectFactory.fileProperty();
@@ -118,9 +144,10 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
         Configuration linkElements = getLinkElements().get();
         Configuration runtimeElements = getRuntimeElements().get();
         return Sets.newHashSet(
-            new ConfigurationSoftwareComponentVariant(getIdentity().getLinkVariant(), linkElements.getAllArtifacts(), linkElements),
-            new ConfigurationSoftwareComponentVariant(getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements)
-        );
+                new ConfigurationSoftwareComponentVariant(
+                        getIdentity().getLinkVariant(), linkElements.getAllArtifacts(), linkElements),
+                new ConfigurationSoftwareComponentVariant(
+                        getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements));
     }
 
     @Override

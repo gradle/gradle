@@ -16,7 +16,11 @@
 
 package org.gradle.internal.execution.history.impl;
 
+import static org.gradle.internal.snapshot.SnapshotUtil.getRootHashes;
+
 import com.google.common.collect.ImmutableSortedMap;
+import java.util.Map;
+import java.util.Objects;
 import org.gradle.internal.RelativePathSupplier;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.OverlappingOutputs;
@@ -31,19 +35,17 @@ import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-import java.util.Objects;
-
-import static org.gradle.internal.snapshot.SnapshotUtil.getRootHashes;
-
 public class DefaultOverlappingOutputDetector implements OverlappingOutputDetector {
     @Override
     @Nullable
-    public OverlappingOutputs detect(ImmutableSortedMap<String, FileSystemSnapshot> previous, ImmutableSortedMap<String, FileSystemSnapshot> current) {
+    public OverlappingOutputs detect(
+            ImmutableSortedMap<String, FileSystemSnapshot> previous,
+            ImmutableSortedMap<String, FileSystemSnapshot> current) {
         for (Map.Entry<String, FileSystemSnapshot> entry : current.entrySet()) {
             String propertyName = entry.getKey();
             FileSystemSnapshot currentSnapshot = entry.getValue();
-            FileSystemSnapshot previousSnapshot = Objects.requireNonNull(previous.getOrDefault(propertyName, FileSystemSnapshot.EMPTY));
+            FileSystemSnapshot previousSnapshot =
+                    Objects.requireNonNull(previous.getOrDefault(propertyName, FileSystemSnapshot.EMPTY));
             // If the root hashes are the same there are no overlapping outputs
             if (getRootHashes(previousSnapshot).equals(getRootHashes(currentSnapshot))) {
                 continue;
@@ -57,16 +59,20 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
     }
 
     @Nullable
-    private static OverlappingOutputs detect(String propertyName, FileSystemSnapshot previous, FileSystemSnapshot before) {
+    private static OverlappingOutputs detect(
+            String propertyName, FileSystemSnapshot previous, FileSystemSnapshot before) {
         Map<String, FileSystemLocationSnapshot> previousIndex = SnapshotUtil.indexByRelativePath(previous);
-        OverlappingOutputsDetectingVisitor outputsDetectingVisitor = new OverlappingOutputsDetectingVisitor(previousIndex);
+        OverlappingOutputsDetectingVisitor outputsDetectingVisitor =
+                new OverlappingOutputsDetectingVisitor(previousIndex);
         before.accept(new RelativePathTracker(), outputsDetectingVisitor);
         String overlappingPath = outputsDetectingVisitor.getOverlappingPath();
         return overlappingPath == null ? null : new OverlappingOutputs(propertyName, overlappingPath);
     }
 
-    private static class OverlappingOutputsDetectingVisitor implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
+    private static class OverlappingOutputsDetectingVisitor
+            implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
         private final Map<String, FileSystemLocationSnapshot> previousSnapshots;
+
         @Nullable
         private String overlappingPath;
 
@@ -76,30 +82,31 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
 
         @Override
         public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
-            boolean newContent = snapshot.accept(new FileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer<Boolean>() {
-                @Override
-                public Boolean visitDirectory(DirectorySnapshot directorySnapshot) {
-                    // Check if a new directory appeared. For matching directories don't check content
-                    // hash as we should detect individual entries that are different instead)
-                    return hasNewContent(relativePath, directorySnapshot);
-                }
+            boolean newContent =
+                    snapshot.accept(new FileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer<Boolean>() {
+                        @Override
+                        public Boolean visitDirectory(DirectorySnapshot directorySnapshot) {
+                            // Check if a new directory appeared. For matching directories don't check content
+                            // hash as we should detect individual entries that are different instead)
+                            return hasNewContent(relativePath, directorySnapshot);
+                        }
 
-                @Override
-                public Boolean visitRegularFile(RegularFileSnapshot fileSnapshot) {
-                    // Check if a new file has appeared, or if an existing file's content has changed
-                    return hasNewContent(relativePath, fileSnapshot);
-                }
+                        @Override
+                        public Boolean visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                            // Check if a new file has appeared, or if an existing file's content has changed
+                            return hasNewContent(relativePath, fileSnapshot);
+                        }
 
-                @Override
-                public Boolean visitMissing(MissingFileSnapshot missingSnapshot) {
-                    // If the root has gone missing then we don't have overlaps
-                    if (relativePath.isRoot()) {
-                        return false;
-                    }
-                    // Otherwise check for newly added broken symlinks and unreadable files
-                    return hasNewContent(relativePath, missingSnapshot);
-                }
-            });
+                        @Override
+                        public Boolean visitMissing(MissingFileSnapshot missingSnapshot) {
+                            // If the root has gone missing then we don't have overlaps
+                            if (relativePath.isRoot()) {
+                                return false;
+                            }
+                            // Otherwise check for newly added broken symlinks and unreadable files
+                            return hasNewContent(relativePath, missingSnapshot);
+                        }
+                    });
             if (newContent) {
                 overlappingPath = snapshot.getAbsolutePath();
                 return SnapshotVisitResult.TERMINATE;

@@ -25,7 +25,11 @@ public class ModuleRepositoryCaches {
     public final AbstractArtifactsCache moduleArtifactsCache;
     public final ModuleArtifactCache moduleArtifactCache;
 
-    public ModuleRepositoryCaches(AbstractModuleVersionsCache moduleVersionsCache, AbstractModuleMetadataCache moduleMetadataCache, AbstractArtifactsCache moduleArtifactsCache, ModuleArtifactCache moduleArtifactCache) {
+    public ModuleRepositoryCaches(
+            AbstractModuleVersionsCache moduleVersionsCache,
+            AbstractModuleMetadataCache moduleMetadataCache,
+            AbstractArtifactsCache moduleArtifactsCache,
+            ModuleArtifactCache moduleArtifactCache) {
         this.moduleVersionsCache = moduleVersionsCache;
         this.moduleMetadataCache = moduleMetadataCache;
         this.moduleArtifactsCache = moduleArtifactsCache;

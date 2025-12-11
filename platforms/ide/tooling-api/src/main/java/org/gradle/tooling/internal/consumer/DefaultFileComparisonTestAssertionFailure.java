@@ -16,20 +16,29 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import java.util.List;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.FileComparisonTestAssertionFailure;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 @NullMarked
-public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssertionFailure implements FileComparisonTestAssertionFailure {
+public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssertionFailure
+        implements FileComparisonTestAssertionFailure {
 
     private final byte[] expectedContent;
     private final byte[] actualContent;
 
-    public DefaultFileComparisonTestAssertionFailure(String message, String description, String expected, String actual, List<? extends Failure> causes, String className, String stacktrace, byte[] expectedContent, byte[] actualContent) {
+    public DefaultFileComparisonTestAssertionFailure(
+            String message,
+            String description,
+            String expected,
+            String actual,
+            List<? extends Failure> causes,
+            String className,
+            String stacktrace,
+            byte[] expectedContent,
+            byte[] actualContent) {
         super(message, description, expected, actual, causes, className, stacktrace);
         this.expectedContent = expectedContent;
         this.actualContent = actualContent;
@@ -39,7 +48,6 @@ public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssert
     public byte @Nullable [] getExpectedContent() {
         return expectedContent;
     }
-
 
     @Override
     public byte @Nullable [] getActualContent() {

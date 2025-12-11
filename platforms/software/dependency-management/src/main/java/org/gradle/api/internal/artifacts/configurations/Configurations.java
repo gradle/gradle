@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import java.util.Set;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.Capability;
 
-import java.util.Set;
-
 public class Configurations {
 
-    public static Set<Capability> collectCapabilities(Configuration configuration, Set<Capability> out, Set<Configuration> visited) {
+    public static Set<Capability> collectCapabilities(
+            Configuration configuration, Set<Capability> out, Set<Configuration> visited) {
         if (visited.add(configuration)) {
             out.addAll(configuration.getOutgoing().getCapabilities());
             for (Configuration parent : configuration.getExtendsFrom()) {
@@ -31,5 +31,4 @@ public class Configurations {
         }
         return out;
     }
-
 }

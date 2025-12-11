@@ -17,6 +17,7 @@
 package org.gradle.internal.jacoco;
 
 import com.google.common.collect.ImmutableList;
+import javax.inject.Inject;
 import org.gradle.api.Describable;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.ConfigurableReport;
@@ -28,17 +29,18 @@ import org.gradle.api.reporting.internal.DelegatingReportContainer;
 import org.gradle.api.reporting.internal.SingleDirectoryReport;
 import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
 
-import javax.inject.Inject;
-
-public class JacocoReportsContainerImpl extends DelegatingReportContainer<ConfigurableReport> implements JacocoReportsContainer {
+public class JacocoReportsContainerImpl extends DelegatingReportContainer<ConfigurableReport>
+        implements JacocoReportsContainer {
 
     @Inject
     public JacocoReportsContainerImpl(Describable owner, ObjectFactory objectFactory) {
-        super(DefaultReportContainer.create(objectFactory, ConfigurableReport.class, factory -> ImmutableList.of(
-            factory.instantiateReport(SingleDirectoryReport.class, "html", owner, "index.html"),
-            factory.instantiateReport(DefaultSingleFileReport.class, "xml", owner),
-            factory.instantiateReport(DefaultSingleFileReport.class, "csv", owner)
-        )));
+        super(DefaultReportContainer.create(
+                objectFactory,
+                ConfigurableReport.class,
+                factory -> ImmutableList.of(
+                        factory.instantiateReport(SingleDirectoryReport.class, "html", owner, "index.html"),
+                        factory.instantiateReport(DefaultSingleFileReport.class, "xml", owner),
+                        factory.instantiateReport(DefaultSingleFileReport.class, "csv", owner))));
     }
 
     @Override

@@ -16,6 +16,10 @@
 
 package org.gradle.api.publish.maven.tasks;
 
+import static org.gradle.internal.serialization.Transient.varOf;
+
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
@@ -30,11 +34,6 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 
-import javax.inject.Inject;
-import java.io.File;
-
-import static org.gradle.internal.serialization.Transient.varOf;
-
 /**
  * Generates a Maven module descriptor (POM) file.
  *
@@ -45,9 +44,8 @@ public abstract class GenerateMavenPom extends DefaultTask {
 
     private final Transient.Var<MavenPom> pom = varOf();
     private Object destination;
-    private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(() ->
-        MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom())
-    );
+    private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec =
+            Cached.of(() -> MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom()));
 
     @Inject
     protected abstract FileResolver getFileResolver();
@@ -103,5 +101,4 @@ public abstract class GenerateMavenPom extends DefaultTask {
     public void doGenerate() {
         mavenPomSpec.get().writeTo(getDestination());
     }
-
 }

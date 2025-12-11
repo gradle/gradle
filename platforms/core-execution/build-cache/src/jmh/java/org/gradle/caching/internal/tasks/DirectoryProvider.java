@@ -16,9 +16,8 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.openjdk.jmh.annotations.Level;
-
 import java.nio.file.Path;
+import org.openjdk.jmh.annotations.Level;
 
 public interface DirectoryProvider {
     Path getRoot(Level level);

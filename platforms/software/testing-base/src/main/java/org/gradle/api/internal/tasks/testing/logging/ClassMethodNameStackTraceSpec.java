@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import java.util.regex.Pattern;
 import org.gradle.api.specs.Spec;
 import org.jspecify.annotations.Nullable;
-
-import java.util.regex.Pattern;
 
 public class ClassMethodNameStackTraceSpec implements Spec<StackTraceElement> {
     private static final Pattern ANONYMOUS_CLASS_NAME_SUFFIX = Pattern.compile("\\$[\\d$]+");

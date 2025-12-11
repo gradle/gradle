@@ -16,8 +16,6 @@
 
 package org.gradle.internal.installation;
 
-import org.gradle.internal.UncheckedException;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -25,15 +23,15 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import org.gradle.internal.UncheckedException;
 
 public class GradleRuntimeShadedJarDetector {
 
-    private final static String FILE_PROTOCOL = "file";
-    private final static String JAR_FILE_EXTENSION = ".jar";
-    public final static String MARKER_FILENAME = "META-INF/.gradle-runtime-shaded";
+    private static final String FILE_PROTOCOL = "file";
+    private static final String JAR_FILE_EXTENSION = ".jar";
+    public static final String MARKER_FILENAME = "META-INF/.gradle-runtime-shaded";
 
-    private GradleRuntimeShadedJarDetector() {
-    }
+    private GradleRuntimeShadedJarDetector() {}
 
     public static boolean isLoadedFrom(Class<?> clazz) {
         if (clazz == null) {
@@ -58,7 +56,8 @@ public class GradleRuntimeShadedJarDetector {
     }
 
     private static boolean isJarUrl(URL location) {
-        return location.getProtocol().equals(FILE_PROTOCOL) && location.getPath().endsWith(JAR_FILE_EXTENSION);
+        return location.getProtocol().equals(FILE_PROTOCOL)
+                && location.getPath().endsWith(JAR_FILE_EXTENSION);
     }
 
     private static boolean findMarkerFileInJar(File jar) {

@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.toolchains;
 
+import javax.inject.Inject;
 import org.gradle.internal.Cast;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppPlatform;
@@ -33,8 +34,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInter
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.util.internal.VersionNumber;
-
-import javax.inject.Inject;
 
 public class DefaultToolChainSelector implements ToolChainSelector {
     private final NativeToolChainRegistry registry;
@@ -55,7 +54,6 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         } else {
             throw new IllegalArgumentException("Unknown type of platform " + platformType);
         }
-
     }
 
     public Result<CppPlatform> select(CppPlatform requestPlatform) {
@@ -86,18 +84,23 @@ public class DefaultToolChainSelector implements ToolChainSelector {
 
         SwiftVersion sourceCompatibility = requestPlatform.getSourceCompatibility();
         if (sourceCompatibility == null && toolProvider.isAvailable()) {
-            sourceCompatibility = toSwiftVersion(toolProvider.getCompilerMetadata(ToolType.SWIFT_COMPILER).getVersion());
+            sourceCompatibility = toSwiftVersion(
+                    toolProvider.getCompilerMetadata(ToolType.SWIFT_COMPILER).getVersion());
         }
-        SwiftPlatform targetPlatform = new DefaultSwiftPlatform(requestPlatform.getTargetMachine(), sourceCompatibility, targetNativePlatform);
+        SwiftPlatform targetPlatform =
+                new DefaultSwiftPlatform(requestPlatform.getTargetMachine(), sourceCompatibility, targetNativePlatform);
         return new DefaultResult<SwiftPlatform>(toolChain, toolProvider, targetPlatform);
     }
 
     private DefaultNativePlatform newNativePlatform(TargetMachine targetMachine) {
-        return host.withArchitecture(Architectures.forInput(targetMachine.getArchitecture().getName()));
+        return host.withArchitecture(
+                Architectures.forInput(targetMachine.getArchitecture().getName()));
     }
 
-    private NativeToolChainInternal getToolChain(NativeLanguage sourceLanguage, NativePlatformInternal targetNativePlatform) {
-        NativeToolChainInternal toolChain = Cast.<NativeToolChainRegistryInternal>uncheckedCast(registry).getForPlatform(sourceLanguage, targetNativePlatform);
+    private NativeToolChainInternal getToolChain(
+            NativeLanguage sourceLanguage, NativePlatformInternal targetNativePlatform) {
+        NativeToolChainInternal toolChain = Cast.<NativeToolChainRegistryInternal>uncheckedCast(registry)
+                .getForPlatform(sourceLanguage, targetNativePlatform);
         toolChain.assertSupported();
 
         return toolChain;
@@ -109,7 +112,9 @@ public class DefaultToolChainSelector implements ToolChainSelector {
                 return version;
             }
         }
-        throw new IllegalArgumentException(String.format("Swift language version is unknown for the specified Swift compiler version (%s)", swiftCompilerVersion.toString()));
+        throw new IllegalArgumentException(String.format(
+                "Swift language version is unknown for the specified Swift compiler version (%s)",
+                swiftCompilerVersion.toString()));
     }
 
     static class DefaultResult<T> implements Result<T> {

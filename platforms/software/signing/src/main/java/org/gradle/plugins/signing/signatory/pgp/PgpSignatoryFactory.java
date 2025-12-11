@@ -15,13 +15,8 @@
  */
 package org.gradle.plugins.signing.signatory.pgp;
 
-import org.bouncycastle.openpgp.PGPSecretKey;
-import org.bouncycastle.openpgp.PGPSecretKeyRing;
-import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
-import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.jspecify.annotations.Nullable;
+import static org.gradle.internal.Cast.uncheckedCast;
+import static org.gradle.internal.IoActions.uncheckedClose;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -30,16 +25,20 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
-
-import static org.gradle.internal.Cast.uncheckedCast;
-import static org.gradle.internal.IoActions.uncheckedClose;
+import org.bouncycastle.openpgp.PGPSecretKey;
+import org.bouncycastle.openpgp.PGPSecretKeyRing;
+import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
+import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Creates {@link PgpSignatory} instances.
  */
 public class PgpSignatoryFactory {
 
-    private static final String[] PROPERTIES = new String[]{"keyId", "secretKeyRingFile", "password"};
+    private static final String[] PROPERTIES = new String[] {"keyId", "secretKeyRingFile", "password"};
 
     public PgpSignatory createSignatory(Project project, boolean required) {
         return readProperties(project, null, "default", required);
@@ -80,7 +79,7 @@ public class PgpSignatoryFactory {
     protected PgpSignatory readProperties(Project project, String prefix, String name, boolean required) {
         ArrayList<Object> values = new ArrayList<>();
         for (String property : PROPERTIES) {
-            String qualifiedProperty = (String)getQualifiedPropertyName(prefix, property);
+            String qualifiedProperty = (String) getQualifiedPropertyName(prefix, property);
             Object prop = getPropertySafely(project, qualifiedProperty, required);
             if (prop != null) {
                 values.add(prop);
@@ -99,13 +98,15 @@ public class PgpSignatoryFactory {
         final boolean propertyFound = project.hasProperty(qualifiedProperty);
 
         if (!propertyFound && required) {
-            throw new InvalidUserDataException("property '" + qualifiedProperty + "' could not be found on project and is needed for signing");
+            throw new InvalidUserDataException(
+                    "property '" + qualifiedProperty + "' could not be found on project and is needed for signing");
         }
 
         if (propertyFound) {
             Object prop = project.property(qualifiedProperty);
             if (prop == null && required) {
-                throw new InvalidUserDataException("property '" + qualifiedProperty + "' was null. A valid value is needed for signing");
+                throw new InvalidUserDataException(
+                        "property '" + qualifiedProperty + "' was null. A valid value is needed for signing");
             }
             return prop;
         }
@@ -130,7 +131,8 @@ public class PgpSignatoryFactory {
         try {
             return new BufferedInputStream(new FileInputStream(file));
         } catch (FileNotFoundException e) {
-            throw new InvalidUserDataException("Unable to retrieve secret key from key ring file '" + file + "' as it does not exist");
+            throw new InvalidUserDataException(
+                    "Unable to retrieve secret key from key ring file '" + file + "' as it does not exist");
         }
     }
 
@@ -139,15 +141,19 @@ public class PgpSignatoryFactory {
         try {
             keyRingCollection = new BcPGPSecretKeyRingCollection(input);
         } catch (Exception e) {
-            throw new InvalidUserDataException("Unable to read secret key from " + sourceDescription + " (it may not be a PGP secret key ring)", e);
+            throw new InvalidUserDataException(
+                    "Unable to read secret key from " + sourceDescription + " (it may not be a PGP secret key ring)",
+                    e);
         }
         return readSecretKey(keyRingCollection, normalizeKeyId(keyId), sourceDescription);
     }
 
-    protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, final PgpKeyId keyId, String sourceDescription) {
+    protected PGPSecretKey readSecretKey(
+            PGPSecretKeyRingCollection keyRings, final PgpKeyId keyId, String sourceDescription) {
         PGPSecretKey key = findSecretKey(keyRings, keyId);
         if (key == null) {
-            throw new InvalidUserDataException("did not find secret key for id '" + keyId + "' in key source '" + sourceDescription + "'");
+            throw new InvalidUserDataException(
+                    "did not find secret key for id '" + keyId + "' in key source '" + sourceDescription + "'");
         }
         return key;
     }

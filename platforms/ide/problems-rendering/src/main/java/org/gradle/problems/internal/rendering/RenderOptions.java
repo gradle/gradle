@@ -24,10 +24,7 @@ class RenderOptions {
     private final String prefix;
     private final boolean renderId;
 
-    public RenderOptions(
-        String prefix,
-        boolean renderId
-    ) {
+    public RenderOptions(String prefix, boolean renderId) {
         this.prefix = prefix;
         this.renderId = renderId;
     }

@@ -16,13 +16,12 @@
 
 package org.gradle.internal.reflect;
 
-import org.jspecify.annotations.Nullable;
-
 import java.beans.Introspector;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Distinguishes "get" getters, "is" getters and setters from non-property methods.

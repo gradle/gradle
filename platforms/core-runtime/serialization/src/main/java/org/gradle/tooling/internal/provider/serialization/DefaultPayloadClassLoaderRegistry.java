@@ -17,16 +17,6 @@
 package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.ClassLoaderSpec;
-import org.gradle.internal.classloader.ClassLoaderVisitor;
-import org.gradle.internal.classloader.SystemClassLoaderSpec;
-import org.gradle.internal.classloader.VisitableURLClassLoader;
-import org.gradle.util.internal.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -38,6 +28,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClassLoaderSpec;
+import org.gradle.internal.classloader.ClassLoaderVisitor;
+import org.gradle.internal.classloader.SystemClassLoaderSpec;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.util.internal.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@link PayloadClassLoaderRegistry} that maps classes loaded by a set of ClassLoaders that it manages. For ClassLoaders owned by this JVM, inspects the ClassLoader to determine a ClassLoader spec to send across to the peer JVM. For classes serialized from the peer, maintains a set of cached ClassLoaders created using the ClassLoader specs received from the peer.
@@ -50,7 +49,8 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
     private final ClassLoaderToDetailsTransformer detailsToClassLoader = new ClassLoaderToDetailsTransformer();
     private final DetailsToClassLoaderTransformer classLoaderToDetails = new DetailsToClassLoaderTransformer();
 
-    public DefaultPayloadClassLoaderRegistry(ClassLoaderCache cache, PayloadClassLoaderFactory payloadClassLoaderFactory) {
+    public DefaultPayloadClassLoaderRegistry(
+            ClassLoaderCache cache, PayloadClassLoaderFactory payloadClassLoaderFactory) {
         this.cache = cache;
         this.classLoaderFactory = payloadClassLoaderFactory;
     }
@@ -91,7 +91,8 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
     public DeserializeMap newDeserializeSession() {
         return new DeserializeMap() {
             @Override
-            public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
+            public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className)
+                    throws ClassNotFoundException {
                 ClassLoader classLoader = getClassLoader(classLoaderDetails);
                 return Class.forName(className, false, classLoader);
             }
@@ -166,7 +167,8 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
         }
     }
 
-    private class ClassLoaderToDetailsTransformer implements ClassLoaderCache.Transformer<ClassLoader, ClassLoaderDetails> {
+    private class ClassLoaderToDetailsTransformer
+            implements ClassLoaderCache.Transformer<ClassLoader, ClassLoaderDetails> {
         @Override
         public ClassLoader transform(ClassLoaderDetails details) {
             List<ClassLoader> parents = new ArrayList<ClassLoader>();
@@ -174,7 +176,8 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 parents.add(getClassLoader(parentDetails));
             }
             if (parents.isEmpty()) {
-                parents.add(classLoaderFactory.getClassLoaderFor(SystemClassLoaderSpec.INSTANCE, ImmutableList.<ClassLoader>of()));
+                parents.add(classLoaderFactory.getClassLoaderFor(
+                        SystemClassLoaderSpec.INSTANCE, ImmutableList.<ClassLoader>of()));
             }
 
             LOGGER.info("Creating ClassLoader {} from {} and {}.", details.uuid, details.spec, parents);
@@ -183,7 +186,8 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
         }
     }
 
-    private class DetailsToClassLoaderTransformer implements ClassLoaderCache.Transformer<ClassLoaderDetails, ClassLoader> {
+    private class DetailsToClassLoaderTransformer
+            implements ClassLoaderCache.Transformer<ClassLoaderDetails, ClassLoader> {
         @Override
         public ClassLoaderDetails transform(ClassLoader classLoader) {
             ClassLoaderSpecVisitor visitor = new ClassLoaderSpecVisitor(classLoader);
@@ -193,7 +197,8 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 if (visitor.classPath == null) {
                     visitor.spec = SystemClassLoaderSpec.INSTANCE;
                 } else {
-                    visitor.spec = new VisitableURLClassLoader.Spec("unknown-loader", CollectionUtils.toList(visitor.classPath));
+                    visitor.spec = new VisitableURLClassLoader.Spec(
+                            "unknown-loader", CollectionUtils.toList(visitor.classPath));
                 }
             }
 

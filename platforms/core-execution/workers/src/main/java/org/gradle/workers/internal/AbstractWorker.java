@@ -37,7 +37,10 @@ public abstract class AbstractWorker implements BuildOperationAwareWorker {
         return execute(spec, buildOperationRunner.getCurrentOperation());
     }
 
-    DefaultWorkResult executeWrappedInBuildOperation(final IsolatedParametersActionExecutionSpec<?> spec, final BuildOperationRef parentBuildOperation, final Work work) {
+    DefaultWorkResult executeWrappedInBuildOperation(
+            final IsolatedParametersActionExecutionSpec<?> spec,
+            final BuildOperationRef parentBuildOperation,
+            final Work work) {
         return buildOperationRunner.call(new CallableBuildOperation<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call(BuildOperationContext context) {
@@ -50,8 +53,8 @@ public abstract class AbstractWorker implements BuildOperationAwareWorker {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName(spec.getDisplayName())
-                    .parent(parentBuildOperation)
-                    .details(new Details(spec.getActionImplementationClassName(), spec.getDisplayName()));
+                        .parent(parentBuildOperation)
+                        .details(new Details(spec.getActionImplementationClassName(), spec.getDisplayName()));
             }
         });
     }
@@ -79,10 +82,7 @@ public abstract class AbstractWorker implements BuildOperationAwareWorker {
         public String getDisplayName() {
             return displayName;
         }
-
     }
 
-    static class Result implements ExecuteWorkItemBuildOperationType.Result {
-    }
-
+    static class Result implements ExecuteWorkItemBuildOperationType.Result {}
 }

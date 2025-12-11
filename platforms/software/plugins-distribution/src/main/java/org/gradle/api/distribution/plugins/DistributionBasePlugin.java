@@ -16,6 +16,8 @@
 
 package org.gradle.api.distribution.plugins;
 
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -42,9 +44,6 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.TextUtil;
 
-import javax.inject.Inject;
-import java.util.concurrent.Callable;
-
 /**
  * A plugin that configures rules allowing projects to be packaged as a distribution.
  * <p>
@@ -67,7 +66,10 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
     private final CollectionCallbackActionDecorator callbackActionDecorator;
 
     @Inject
-    public DistributionBasePlugin(Instantiator instantiator, FileOperations fileOperations, CollectionCallbackActionDecorator callbackActionDecorator) {
+    public DistributionBasePlugin(
+            Instantiator instantiator,
+            FileOperations fileOperations,
+            CollectionCallbackActionDecorator callbackActionDecorator) {
         this.instantiator = instantiator;
         this.fileOperations = fileOperations;
         this.callbackActionDecorator = callbackActionDecorator;
@@ -77,7 +79,16 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(BasePlugin.class);
 
-        DistributionContainer distributions = project.getExtensions().create(DistributionContainer.class, "distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, project.getObjects(), fileOperations, callbackActionDecorator);
+        DistributionContainer distributions = project.getExtensions()
+                .create(
+                        DistributionContainer.class,
+                        "distributions",
+                        DefaultDistributionContainer.class,
+                        Distribution.class,
+                        instantiator,
+                        project.getObjects(),
+                        fileOperations,
+                        callbackActionDecorator);
         distributions.all(dist -> configureDistribution((ProjectInternal) project, dist));
 
         // TODO: Maintain old behavior of checking for empty-string distribution base names.
@@ -85,7 +96,8 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
         project.afterEvaluate(p -> {
             distributions.forEach(distribution -> {
                 if (distribution.getDistributionBaseName().get().equals("")) {
-                    throw new GradleException(String.format("Distribution '%s' must not have an empty distributionBaseName.", distribution.getName()));
+                    throw new GradleException(String.format(
+                            "Distribution '%s' must not have an empty distributionBaseName.", distribution.getName()));
                 }
             });
         });
@@ -94,10 +106,7 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
     /**
      * Configures conventions and associated domain objects for a single distribution.
      */
-    private static void configureDistribution(
-        ProjectInternal project,
-        Distribution dist
-    ) {
+    private static void configureDistribution(ProjectInternal project, Distribution dist) {
         dist.getContents().from("src/" + dist.getName() + "/dist");
 
         String zipTaskName;
@@ -125,10 +134,14 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
         addAssembleTask(project, dist, assembleTaskName, zipTask, tarTask);
 
         // Build zips and tars by default when running the build-wide assemble task.
-        PublishArtifactSet archivesArtifacts = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts();
+        PublishArtifactSet archivesArtifacts = project.getConfigurations()
+                .getByName(Dependency.ARCHIVES_CONFIGURATION)
+                .getArtifacts();
         DeprecationLogger.whileDisabled(() -> {
-            archivesArtifacts.add(new LazyPublishArtifact(zipTask, project.getFileResolver(), project.getTaskDependencyFactory()));
-            archivesArtifacts.add(new LazyPublishArtifact(tarTask, project.getFileResolver(), project.getTaskDependencyFactory()));
+            archivesArtifacts.add(
+                    new LazyPublishArtifact(zipTask, project.getFileResolver(), project.getTaskDependencyFactory()));
+            archivesArtifacts.add(
+                    new LazyPublishArtifact(tarTask, project.getFileResolver(), project.getTaskDependencyFactory()));
         });
     }
 
@@ -136,11 +149,7 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
      * Adds a task that archives the contents of the distribution into an archive file.
      */
     private static <T extends AbstractArchiveTask> TaskProvider<T> addArchiveTask(
-        Project project,
-        String taskName,
-        Class<T> type,
-        Distribution distribution
-    ) {
+            Project project, String taskName, Class<T> type, Distribution distribution) {
         return project.getTasks().register(taskName, type, task -> {
             task.setDescription("Bundles the project as a distribution.");
             task.setGroup(DISTRIBUTION_GROUP);
@@ -149,9 +158,9 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
 
             CopySpec childSpec = project.copySpec();
             childSpec.with(distribution.getContents());
-            childSpec.into((Callable<String>) () ->
-                TextUtil.removeTrailing(task.getArchiveFileName().get(), "." + task.getArchiveExtension().get())
-            );
+            childSpec.into((Callable<String>) () -> TextUtil.removeTrailing(
+                    task.getArchiveFileName().get(),
+                    "." + task.getArchiveExtension().get()));
             task.with(childSpec);
         });
     }
@@ -177,12 +186,11 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
      * Adds a task that builds all archives for distribution.
      */
     private static void addAssembleTask(
-        ProjectInternal project,
-        Distribution dist,
-        String distAssembleTaskName,
-        TaskProvider<Zip> zipTask,
-        TaskProvider<Tar> tarTask
-    ) {
+            ProjectInternal project,
+            Distribution dist,
+            String distAssembleTaskName,
+            TaskProvider<Zip> zipTask,
+            TaskProvider<Tar> tarTask) {
         project.getTasks().register(distAssembleTaskName, DefaultTask.class, assembleTask -> {
             assembleTask.setDescription("Assembles the " + dist.getName() + " distributions");
             assembleTask.setGroup(DISTRIBUTION_GROUP);

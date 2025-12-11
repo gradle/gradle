@@ -23,7 +23,7 @@ import org.gradle.api.tasks.TaskState;
  */
 public class TaskExecution extends ContinuousOperation {
 
-    final static String NO_WORK_MESSAGE = "Did No Work";
+    static final String NO_WORK_MESSAGE = "Did No Work";
 
     private final String path;
     private TaskState state;

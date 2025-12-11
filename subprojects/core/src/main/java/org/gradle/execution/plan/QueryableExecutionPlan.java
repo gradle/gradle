@@ -16,12 +16,11 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.Task;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import org.gradle.api.Task;
 
 /**
  * An execution plan that has been finalized and can no longer be mutated.

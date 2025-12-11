@@ -23,10 +23,11 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 7.5
  */
-public class ConfigurationCacheStoreBuildOperationType implements BuildOperationType<ConfigurationCacheStoreBuildOperationType.Details, ConfigurationCacheStoreBuildOperationType.Result> {
+public class ConfigurationCacheStoreBuildOperationType
+        implements BuildOperationType<
+                ConfigurationCacheStoreBuildOperationType.Details, ConfigurationCacheStoreBuildOperationType.Result> {
 
-    public interface Details {
-    }
+    public interface Details {}
 
     public interface Result {
         /**
@@ -36,5 +37,4 @@ public class ConfigurationCacheStoreBuildOperationType implements BuildOperation
          */
         long getCacheEntrySize();
     }
-
 }

@@ -17,6 +17,13 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.execution.plan.PlanExecutor;
@@ -27,14 +34,6 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 
-import java.util.Comparator;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 class DefaultBuildControllers implements BuildControllers {
     // Always iterate over the controllers in a fixed order
     private final Map<BuildIdentifier, BuildController> controllers = new TreeMap<>(idComparator());
@@ -44,7 +43,12 @@ class DefaultBuildControllers implements BuildControllers {
     private final int monitoringPollTime;
     private final TimeUnit monitoringPollTimeUnit;
 
-    DefaultBuildControllers(ManagedExecutor executorService, WorkerLeaseService workerLeaseService, PlanExecutor planExecutor, int monitoringPollTime, TimeUnit monitoringPollTimeUnit) {
+    DefaultBuildControllers(
+            ManagedExecutor executorService,
+            WorkerLeaseService workerLeaseService,
+            PlanExecutor planExecutor,
+            int monitoringPollTime,
+            TimeUnit monitoringPollTimeUnit) {
         this.executorService = executorService;
         this.workerLeaseService = workerLeaseService;
         this.planExecutor = planExecutor;

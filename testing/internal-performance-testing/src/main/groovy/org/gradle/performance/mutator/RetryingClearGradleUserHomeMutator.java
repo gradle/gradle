@@ -16,13 +16,12 @@
 
 package org.gradle.performance.mutator;
 
-import org.gradle.profiler.mutations.AbstractScheduledMutator;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
+import org.gradle.profiler.mutations.AbstractScheduledMutator;
 
 /**
  * Clone of {@link org.gradle.profiler.mutations.ClearGradleUserHomeMutator} that retries a few times before giving up.
@@ -51,9 +50,7 @@ public class RetryingClearGradleUserHomeMutator extends AbstractScheduledMutator
         System.out.println(String.format("> Cleaning Gradle user home: %s", gradleUserHome.getAbsolutePath()));
         if (!gradleUserHome.exists()) {
             throw new IllegalArgumentException(String.format(
-                "Cannot delete Gradle user home directory (%s) since it does not exist",
-                gradleUserHome
-            ));
+                    "Cannot delete Gradle user home directory (%s) since it does not exist", gradleUserHome));
         }
         // Sometimes the build / daemon processes may not have released all files in the Gradle user home directory yet
         // so we may need to retry a few times before we can delete the directory
@@ -68,9 +65,8 @@ public class RetryingClearGradleUserHomeMutator extends AbstractScheduledMutator
                 }
                 retry++;
                 System.out.println(String.format(
-                    "Failed to delete contents of Gradle user home directory (%s), retrying (%s/%s)...",
-                    gradleUserHome, retry, MAX_RETRIES
-                ));
+                        "Failed to delete contents of Gradle user home directory (%s), retrying (%s/%s)...",
+                        gradleUserHome, retry, MAX_RETRIES));
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException interruptedException) {
@@ -85,9 +81,10 @@ public class RetryingClearGradleUserHomeMutator extends AbstractScheduledMutator
     private void deleteContents() throws IOException {
         try (Stream<Path> paths = Files.list(gradleUserHome.toPath())) {
             paths
-                // Don't delete the wrapper dir, since this is where the Gradle distribution we are going to run is located
-                .filter(path -> !path.getFileName().toString().equals("wrapper"))
-                .forEach(path -> deleteFileOrDirectory(path.toFile()));
+                    // Don't delete the wrapper dir, since this is where the Gradle distribution we are going to run is
+                    // located
+                    .filter(path -> !path.getFileName().toString().equals("wrapper"))
+                    .forEach(path -> deleteFileOrDirectory(path.toFile()));
         }
     }
 }

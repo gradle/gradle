@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import java.util.Map;
 import org.gradle.api.artifacts.ivy.IvyExtraInfo;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 public class DefaultIvyModuleDescriptor implements IvyModuleDescriptor {
     private final String branch;

@@ -17,10 +17,9 @@
 package org.gradle.execution.plan.edges;
 
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.execution.plan.Node;
-
 import java.util.Set;
 import java.util.function.Consumer;
+import org.gradle.execution.plan.Node;
 
 /**
  * Tracks the nodes that have a hard dependency on a given node.
@@ -43,8 +42,7 @@ public interface DependentNodesSet {
         }
 
         @Override
-        public void visitAllNodes(Consumer<Node> visitor) {
-        }
+        public void visitAllNodes(Consumer<Node> visitor) {}
     };
 
     /**

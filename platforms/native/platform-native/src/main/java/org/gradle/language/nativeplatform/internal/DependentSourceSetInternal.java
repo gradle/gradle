@@ -16,9 +16,8 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.language.nativeplatform.DependentSourceSet;
-
 import java.io.File;
+import org.gradle.language.nativeplatform.DependentSourceSet;
 
 public interface DependentSourceSetInternal extends DependentSourceSet {
     File getPrefixHeaderFile();

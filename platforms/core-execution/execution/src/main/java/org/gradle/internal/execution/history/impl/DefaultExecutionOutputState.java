@@ -27,7 +27,11 @@ public class DefaultExecutionOutputState implements ExecutionOutputState {
     private final OriginMetadata originMetadata;
     private final boolean reused;
 
-    public DefaultExecutionOutputState(boolean successful, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, OriginMetadata originMetadata, boolean reused) {
+    public DefaultExecutionOutputState(
+            boolean successful,
+            ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork,
+            OriginMetadata originMetadata,
+            boolean reused) {
         this.successful = successful;
         this.outputFilesProducedByWork = outputFilesProducedByWork;
         this.originMetadata = originMetadata;

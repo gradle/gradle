@@ -38,5 +38,4 @@ public abstract class ObjectiveCppPlugin implements Plugin<Project> {
         project.getPluginManager().apply(NativeComponentModelPlugin.class);
         project.getPluginManager().apply(ObjectiveCppLangPlugin.class);
     }
-
 }

@@ -16,12 +16,12 @@
 
 package org.gradle.api;
 
-import javax.annotation.meta.TypeQualifierDefault;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import javax.annotation.meta.TypeQualifierDefault;
 
 /**
  * Marks a type or a whole package as providing a non-null API by default.
@@ -44,5 +44,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Deprecated
 @SuppressWarnings("unused")
-public @interface NonNullApi {
-}
+public @interface NonNullApi {}

@@ -16,7 +16,10 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import static java.util.Collections.emptyList;
+
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
@@ -48,26 +51,29 @@ import org.gradle.platform.base.plugins.BinaryBasePlugin;
 import org.gradle.platform.base.plugins.ComponentBasePlugin;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
+public class ComponentTypeModelRuleExtractor
+        extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentType> {
 
-import static java.util.Collections.emptyList;
-
-public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentType> {
-
-    public static final ModelType<ComponentSpecFactory> COMPONENT_SPEC_FACTORY_CLASS = ModelType.of(ComponentSpecFactory.class);
-    private static final ModelReference<ComponentSpecFactory> COMPONENT_SPEC_FACTORY_MODEL_REFERENCE = ModelReference.of(COMPONENT_SPEC_FACTORY_CLASS);
+    public static final ModelType<ComponentSpecFactory> COMPONENT_SPEC_FACTORY_CLASS =
+            ModelType.of(ComponentSpecFactory.class);
+    private static final ModelReference<ComponentSpecFactory> COMPONENT_SPEC_FACTORY_MODEL_REFERENCE =
+            ModelReference.of(COMPONENT_SPEC_FACTORY_CLASS);
     private static final ModelType<ComponentSpec> COMPONENT_SPEC_MODEL_TYPE = ModelType.of(ComponentSpec.class);
-    private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODEL_TYPE = ModelType.of(LanguageSourceSet.class);
+    private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODEL_TYPE =
+            ModelType.of(LanguageSourceSet.class);
     private static final ModelType<BinarySpec> BINARY_SPEC_MODEL_TYPE = ModelType.of(BinarySpec.class);
-    private static final ModelType<SourceComponentSpec> SOURCE_COMPONENT_SPEC_MODEL_TYPE = ModelType.of(SourceComponentSpec.class);
-    private static final ModelType<VariantComponentSpec> VARIANT_COMPONENT_SPEC_MODEL_TYPE = ModelType.of(VariantComponentSpec.class);
+    private static final ModelType<SourceComponentSpec> SOURCE_COMPONENT_SPEC_MODEL_TYPE =
+            ModelType.of(SourceComponentSpec.class);
+    private static final ModelType<VariantComponentSpec> VARIANT_COMPONENT_SPEC_MODEL_TYPE =
+            ModelType.of(VariantComponentSpec.class);
 
     private static class ComponentTypeRegistrationInfo {
         private final String modelName;
         private final ModelType<? extends ComponentSpec> baseInterface;
         private final List<Class<?>> requiredPlugins;
 
-        private ComponentTypeRegistrationInfo(String modelName, ModelType<? extends ComponentSpec> baseInterface, Class<?> requiredPlugins) {
+        private ComponentTypeRegistrationInfo(
+                String modelName, ModelType<? extends ComponentSpec> baseInterface, Class<?> requiredPlugins) {
             this.modelName = modelName;
             this.baseInterface = baseInterface;
             this.requiredPlugins = ImmutableList.<Class<?>>of(requiredPlugins);
@@ -84,11 +90,16 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
 
     @Nullable
     @Override
-    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
+    public <R, S> ExtractedModelRule registration(
+            MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
         validateIsVoidMethod(ruleDefinition, context);
 
         if (ruleDefinition.getReferences().size() != 1) {
-            context.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), TypeBuilder.class.getName()));
+            context.add(
+                    ruleDefinition,
+                    String.format(
+                            "A method %s must have a single parameter of type %s.",
+                            getDescription(), TypeBuilder.class.getName()));
             return null;
         }
 
@@ -96,25 +107,39 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
         ModelType<?> subjectType = subjectReference.getType();
         Class<?> rawSubjectType = subjectType.getRawClass();
         if (!rawSubjectType.equals(TypeBuilder.class)) {
-            context.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), TypeBuilder.class.getName()));
+            context.add(
+                    ruleDefinition,
+                    String.format(
+                            "A method %s must have a single parameter of type %s.",
+                            getDescription(), TypeBuilder.class.getName()));
             return null;
         }
 
         List<ModelType<?>> typeVariables = subjectType.getTypeVariables();
         if (typeVariables.size() != 1) {
-            context.add(ruleDefinition, String.format("Parameter of type %s must declare a type parameter.", rawSubjectType.getName()));
+            context.add(
+                    ruleDefinition,
+                    String.format("Parameter of type %s must declare a type parameter.", rawSubjectType.getName()));
             return null;
         }
 
         ModelType<?> builtType = typeVariables.get(0);
         if (builtType.isWildcard()) {
-            context.add(ruleDefinition, String.format("Type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", builtType.toString()));
+            context.add(
+                    ruleDefinition,
+                    String.format(
+                            "Type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).",
+                            builtType.toString()));
             return null;
         }
 
         ComponentTypeRegistrationInfo info = componentTypeRegistrationInfoFor(builtType);
         if (info == null) {
-            context.add(ruleDefinition, String.format("Type '%s' is not a subtype of '%s'.", builtType.toString(), COMPONENT_SPEC_MODEL_TYPE.toString()));
+            context.add(
+                    ruleDefinition,
+                    String.format(
+                            "Type '%s' is not a subtype of '%s'.",
+                            builtType.toString(), COMPONENT_SPEC_MODEL_TYPE.toString()));
             return null;
         }
 
@@ -123,15 +148,17 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
 
     private ComponentTypeRegistrationInfo componentTypeRegistrationInfoFor(ModelType<?> builtType) {
         if (LANGUAGE_SOURCE_SET_MODEL_TYPE.isAssignableFrom(builtType)) {
-            return new ComponentTypeRegistrationInfo("language", LANGUAGE_SOURCE_SET_MODEL_TYPE, LanguageBasePlugin.class);
+            return new ComponentTypeRegistrationInfo(
+                    "language", LANGUAGE_SOURCE_SET_MODEL_TYPE, LanguageBasePlugin.class);
         }
         if (BINARY_SPEC_MODEL_TYPE.isAssignableFrom(builtType)) {
             return new ComponentTypeRegistrationInfo("binary", BINARY_SPEC_MODEL_TYPE, BinaryBasePlugin.class);
         }
         if (COMPONENT_SPEC_MODEL_TYPE.isAssignableFrom(builtType)) {
-            Class<?> requiredPlugin = SOURCE_COMPONENT_SPEC_MODEL_TYPE.isAssignableFrom(builtType) || VARIANT_COMPONENT_SPEC_MODEL_TYPE.isAssignableFrom(builtType)
-                ? ComponentModelBasePlugin.class
-                : ComponentBasePlugin.class;
+            Class<?> requiredPlugin = SOURCE_COMPONENT_SPEC_MODEL_TYPE.isAssignableFrom(builtType)
+                            || VARIANT_COMPONENT_SPEC_MODEL_TYPE.isAssignableFrom(builtType)
+                    ? ComponentModelBasePlugin.class
+                    : ComponentBasePlugin.class;
             return new ComponentTypeRegistrationInfo("component", COMPONENT_SPEC_MODEL_TYPE, requiredPlugin);
         }
         return null;
@@ -151,7 +178,8 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
     private void validateInternalViewsAreInterfaces(TypeBuilderInternal<?> builder) {
         for (Class<?> internalView : builder.getInternalViews()) {
             if (!internalView.isInterface()) {
-                throw new InvalidModelException(String.format("Internal view %s must be an interface.", internalView.getName()));
+                throw new InvalidModelException(
+                        String.format("Internal view %s must be an interface.", internalView.getName()));
             }
         }
     }
@@ -160,7 +188,10 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
         private final ComponentTypeRegistrationInfo info;
         private final ModelType<? extends ComponentSpec> modelType;
 
-        public ExtractedTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ComponentTypeRegistrationInfo info, ModelType<? extends ComponentSpec> modelType) {
+        public ExtractedTypeRule(
+                MethodRuleDefinition<?, ?> ruleDefinition,
+                ComponentTypeRegistrationInfo info,
+                ModelType<? extends ComponentSpec> modelType) {
             super(ruleDefinition);
             this.info = info;
             this.modelType = modelType;
@@ -173,9 +204,8 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
 
         @Override
         public void apply(final MethodModelRuleApplicationContext context, MutableModelNode target) {
-            context.getRegistry().configure(
-                ModelActionRole.Mutate,
-                context.contextualize(new TypeRegistrationAction()));
+            context.getRegistry()
+                    .configure(ModelActionRole.Mutate, context.contextualize(new TypeRegistrationAction()));
         }
 
         private class TypeRegistrationAction extends AbstractMethodRuleAction<ComponentSpecFactory> {
@@ -189,10 +219,12 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
             }
 
             @Override
-            protected void execute(ModelRuleInvoker<?> invoker, ComponentSpecFactory registry, List<ModelView<?>> inputs) {
+            protected void execute(
+                    ModelRuleInvoker<?> invoker, ComponentSpecFactory registry, List<ModelView<?>> inputs) {
                 try {
                     ModelSchema<? extends ComponentSpec> schema = schemaStore.getSchema(modelType);
-                    TypeBuilderInternal<? extends ComponentSpec> builder = new DefaultTypeBuilder<ComponentSpec>(getAnnotationType(), schema);
+                    TypeBuilderInternal<? extends ComponentSpec> builder =
+                            new DefaultTypeBuilder<ComponentSpec>(getAnnotationType(), schema);
                     invoker.invoke(builder);
                     ModelType<?> implModelType = determineImplementationType(builder);
                     registry.register(modelType, builder.getInternalViews(), implModelType, getDescriptor());
@@ -201,7 +233,8 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
                 }
             }
 
-            private InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<?, ?> ruleDefinition, String modelName, InvalidModelException e) {
+            private InvalidModelRuleDeclarationException invalidModelRule(
+                    MethodRuleDefinition<?, ?> ruleDefinition, String modelName, InvalidModelException e) {
                 StringBuilder sb = new StringBuilder();
                 ruleDefinition.getDescriptor().describeTo(sb);
                 sb.append(String.format(" is not a valid %s model rule method.", modelName));

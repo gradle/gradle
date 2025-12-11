@@ -25,8 +25,7 @@ public class AbsolutePathFingerprintCompareStrategy extends AbstractFingerprintC
 
     private AbsolutePathFingerprintCompareStrategy() {
         super(new AbsolutePathChangeDetector<>(
-            (previous, current) -> previous.getNormalizedContentHash().equals(current.getNormalizedContentHash()),
-            FINGERPRINT_CHANGE_FACTORY
-        ));
+                (previous, current) -> previous.getNormalizedContentHash().equals(current.getNormalizedContentHash()),
+                FINGERPRINT_CHANGE_FACTORY));
     }
 }

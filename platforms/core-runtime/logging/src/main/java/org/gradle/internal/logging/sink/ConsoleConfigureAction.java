@@ -16,6 +16,10 @@
 
 package org.gradle.internal.logging.sink;
 
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+import java.util.function.Supplier;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.ColorMap;
@@ -25,21 +29,25 @@ import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
-import java.util.function.Supplier;
-
 public class ConsoleConfigureAction {
 
-    private ConsoleConfigureAction() {
-    }
+    private ConsoleConfigureAction() {}
 
     public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
-        execute(renderer, consoleOutput, getConsoleMetaData(), renderer.getOriginalStdOut(), renderer.getOriginalStdErr());
+        execute(
+                renderer,
+                consoleOutput,
+                getConsoleMetaData(),
+                renderer.getOriginalStdOut(),
+                renderer.getOriginalStdErr());
     }
 
-    public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata, OutputStream stdout, OutputStream stderr) {
+    public static void execute(
+            OutputEventRenderer renderer,
+            ConsoleOutput consoleOutput,
+            ConsoleMetaData consoleMetadata,
+            OutputStream stdout,
+            OutputStream stderr) {
         if (consoleOutput == ConsoleOutput.Auto) {
             configureAutoConsole(renderer, consoleMetadata, stdout, stderr);
         } else if (consoleOutput == ConsoleOutput.Rich) {
@@ -62,9 +70,11 @@ public class ConsoleConfigureAction {
         return FallbackConsoleMetaData.NOT_ATTACHED;
     }
 
-    private static void configureAutoConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
+    private static void configureAutoConsole(
+            OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
         if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
-            // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
+            // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are
+            // attached to the same console
             // This avoids interleaving problems when stdout and stderr end up at the same location
             Console console = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, false);
@@ -81,9 +91,11 @@ public class ConsoleConfigureAction {
         }
     }
 
-    private static void configurePlainConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
+    private static void configurePlainConsole(
+            OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
         if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
-            // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
+            // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are
+            // attached to the same console
             // This avoids interleaving problems when stdout and stderr end up at the same location
             renderer.addPlainConsoleWithErrorOutputOnStdout(stdout);
         } else {
@@ -91,7 +103,8 @@ public class ConsoleConfigureAction {
         }
     }
 
-    private static void configureColoredConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
+    private static void configureColoredConsole(
+            OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
         if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console.
             // Assume that they are attached to the same console.
@@ -106,7 +119,12 @@ public class ConsoleConfigureAction {
         }
     }
 
-    private static void configureRichConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr, boolean verbose) {
+    private static void configureRichConsole(
+            OutputEventRenderer renderer,
+            ConsoleMetaData consoleMetaData,
+            OutputStream stdout,
+            OutputStream stderr,
+            boolean verbose) {
         if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console.
             // Assume that they are attached to the same console.
@@ -121,9 +139,14 @@ public class ConsoleConfigureAction {
         }
     }
 
-    private static Console consoleFor(OutputStream stream, Supplier<OutputStream> jansiFallback, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
+    private static Console consoleFor(
+            OutputStream stream,
+            Supplier<OutputStream> jansiFallback,
+            ConsoleMetaData consoleMetaData,
+            ColorMap colourMap) {
         boolean force = !consoleMetaData.isWrapStreams();
-        OutputStreamWriter writer = new OutputStreamWriter(force ? stream : jansiFallback.get(), Charset.defaultCharset());
+        OutputStreamWriter writer =
+                new OutputStreamWriter(force ? stream : jansiFallback.get(), Charset.defaultCharset());
         return new AnsiConsole(writer, writer, colourMap, consoleMetaData, force);
     }
 

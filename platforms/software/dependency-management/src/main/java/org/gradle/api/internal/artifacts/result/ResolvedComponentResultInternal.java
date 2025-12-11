@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.artifacts.result;
 
+import java.util.List;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 public interface ResolvedComponentResultInternal extends ResolvedComponentResult {
     /**

@@ -16,12 +16,11 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
-import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 
 public class DefaultProjectPublications implements Serializable, GradleProjectIdentity {
     private List<DefaultGradlePublication> publications;

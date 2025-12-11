@@ -17,7 +17,8 @@ package org.gradle.nativeplatform.toolchain.internal.tools;
 
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 
-public class DefaultGccCommandLineToolConfiguration extends DefaultCommandLineToolConfiguration implements GccCommandLineToolConfigurationInternal {
+public class DefaultGccCommandLineToolConfiguration extends DefaultCommandLineToolConfiguration
+        implements GccCommandLineToolConfigurationInternal {
     private String executable;
 
     public DefaultGccCommandLineToolConfiguration(ToolType toolType, String defaultExecutable) {

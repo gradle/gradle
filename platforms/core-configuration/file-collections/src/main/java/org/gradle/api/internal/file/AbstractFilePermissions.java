@@ -54,5 +54,4 @@ public abstract class AbstractFilePermissions implements FilePermissions {
     protected static String getOtherPartOf(String unixSymbolic) {
         return unixSymbolic.substring(6, 9);
     }
-
 }

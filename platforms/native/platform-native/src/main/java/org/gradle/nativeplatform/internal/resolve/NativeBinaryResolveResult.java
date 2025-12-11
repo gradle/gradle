@@ -16,18 +16,18 @@
 
 package org.gradle.nativeplatform.internal.resolve;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 public class NativeBinaryResolveResult {
     private final NativeBinarySpec target;
-    private final List<NativeBinaryRequirementResolveResult> resolutions = new ArrayList<NativeBinaryRequirementResolveResult>();
+    private final List<NativeBinaryRequirementResolveResult> resolutions =
+            new ArrayList<NativeBinaryRequirementResolveResult>();
 
     public NativeBinaryResolveResult(NativeBinarySpec target, Collection<?> libs) {
         this.target = target;
@@ -45,7 +45,8 @@ public class NativeBinaryResolveResult {
     }
 
     public List<NativeDependencySet> getAllResults() {
-        return CollectionUtils.collect(getAllResolutions(), NativeBinaryRequirementResolveResult::getNativeDependencySet);
+        return CollectionUtils.collect(
+                getAllResolutions(), NativeBinaryRequirementResolveResult::getNativeDependencySet);
     }
 
     public List<NativeLibraryBinary> getAllLibraryBinaries() {

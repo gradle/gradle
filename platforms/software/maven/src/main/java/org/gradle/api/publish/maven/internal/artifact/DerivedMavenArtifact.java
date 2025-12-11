@@ -16,19 +16,21 @@
 
 package org.gradle.api.publish.maven.internal.artifact;
 
+import static com.google.common.io.Files.getFileExtension;
+
+import java.io.File;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.publish.internal.PublicationInternal;
-
-import java.io.File;
-
-import static com.google.common.io.Files.getFileExtension;
 
 public class DerivedMavenArtifact extends AbstractMavenArtifact {
     private final AbstractMavenArtifact original;
     private final PublicationInternal.DerivedArtifact derivedFile;
 
-    public DerivedMavenArtifact(AbstractMavenArtifact original, PublicationInternal.DerivedArtifact derivedFile, TaskDependencyFactory taskDependencyFactory) {
+    public DerivedMavenArtifact(
+            AbstractMavenArtifact original,
+            PublicationInternal.DerivedArtifact derivedFile,
+            TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         this.original = original;
         this.derivedFile = derivedFile;

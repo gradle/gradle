@@ -15,8 +15,17 @@
  */
 package org.gradle.plugins.signing;
 
+import static org.codehaus.groovy.runtime.StringGroovyMethods.capitalize;
+import static org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation.castToBoolean;
+
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Incubating;
@@ -47,16 +56,6 @@ import org.gradle.plugins.signing.type.SignatureType;
 import org.gradle.plugins.signing.type.SignatureTypeProvider;
 import org.gradle.util.internal.DeferredUtil;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import static org.codehaus.groovy.runtime.StringGroovyMethods.capitalize;
-import static org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation.castToBoolean;
 
 /**
  * The global signing configuration for a project.
@@ -161,8 +160,8 @@ public abstract class SigningExtension {
         final RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
         final Configuration configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME);
         return configuration != null
-            ? configuration
-            : configurations.consumable(DEFAULT_CONFIGURATION_NAME).get();
+                ? configuration
+                : configurations.consumable(DEFAULT_CONFIGURATION_NAME).get();
     }
 
     /**
@@ -287,7 +286,8 @@ public abstract class SigningExtension {
      * @since 6.0
      */
     @SuppressWarnings("unused")
-    public void useInMemoryPgpKeys(@Nullable String defaultKeyId, @Nullable String defaultSecretKey, @Nullable String defaultPassword) {
+    public void useInMemoryPgpKeys(
+            @Nullable String defaultKeyId, @Nullable String defaultSecretKey, @Nullable String defaultPassword) {
         setSignatories(new InMemoryPgpSignatoryProvider(defaultKeyId, defaultSecretKey, defaultPassword));
     }
 
@@ -304,7 +304,8 @@ public abstract class SigningExtension {
      */
     protected void addSignatureSpecConventions(SignatureSpec spec) {
         if (!(spec instanceof IConventionAware)) {
-            throw new InvalidUserDataException("Cannot add conventions to signature spec '" + spec + "' as it is not convention aware");
+            throw new InvalidUserDataException(
+                    "Cannot add conventions to signature spec '" + spec + "' as it is not convention aware");
         }
 
         ConventionMapping conventionMapping = ((IConventionAware) spec).getConventionMapping();
@@ -326,12 +327,10 @@ public abstract class SigningExtension {
     public List<Sign> sign(Task... tasks) {
         final List<Sign> result = new ArrayList<>(tasks.length);
         for (final Task taskToSign : tasks) {
-            result.add(
-                createSignTaskFor(taskToSign.getName(), task -> {
-                    task.setDescription("Signs the archive produced by the '" + taskToSign.getName() + "' task.");
-                    task.sign(taskToSign);
-                })
-            );
+            result.add(createSignTaskFor(taskToSign.getName(), task -> {
+                task.setDescription("Signs the archive produced by the '" + taskToSign.getName() + "' task.");
+                task.sign(taskToSign);
+            }));
         }
         return result;
     }
@@ -349,12 +348,11 @@ public abstract class SigningExtension {
     public List<Sign> sign(Configuration... configurations) {
         final List<Sign> result = new ArrayList<>(configurations.length);
         for (final Configuration configurationToSign : configurations) {
-            result.add(
-                createSignTaskFor(configurationToSign.getName(), task -> {
-                    task.setDescription("Signs all artifacts in the '" + configurationToSign.getName() + "' configuration.");
-                    task.sign(configurationToSign);
-                })
-            );
+            result.add(createSignTaskFor(configurationToSign.getName(), task -> {
+                task.setDescription(
+                        "Signs all artifacts in the '" + configurationToSign.getName() + "' configuration.");
+                task.sign(configurationToSign);
+            }));
         }
         return result;
     }
@@ -416,9 +414,8 @@ public abstract class SigningExtension {
         final Map<Signature, T> artifacts = new HashMap<>();
         signTask.getSignatures().all(signature -> {
             final T artifact = publicationToSign.addDerivedArtifact(
-                Cast.uncheckedNonnullCast(signature.getSource()),
-                new DefaultDerivedArtifactFile(signature, signTask)
-            );
+                    Cast.uncheckedNonnullCast(signature.getSource()),
+                    new DefaultDerivedArtifactFile(signature, signTask));
             artifact.builtBy(signTask);
             artifacts.put(signature, artifact);
         });
@@ -446,7 +443,8 @@ public abstract class SigningExtension {
 
     protected Object addSignaturesToConfiguration(Sign task, final Configuration configuration) {
         task.getSignatures().all(sig -> configuration.getArtifacts().add(sig));
-        return task.getSignatures().whenObjectRemoved(sig -> configuration.getArtifacts().remove(sig));
+        return task.getSignatures()
+                .whenObjectRemoved(sig -> configuration.getArtifacts().remove(sig));
     }
 
     /**
@@ -566,8 +564,7 @@ public abstract class SigningExtension {
 
         @Override
         public boolean shouldBePublished() {
-            return signTask.isEnabled()
-                && signTask.getOnlyIf().isSatisfiedBy(signTask);
+            return signTask.isEnabled() && signTask.getOnlyIf().isSatisfiedBy(signTask);
         }
     }
 }

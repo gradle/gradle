@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.List;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -58,60 +60,74 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
-import java.io.File;
-import java.util.List;
-
-public class DependencyManagementValueSnapshotterSerializerRegistry extends DefaultSerializerRegistry implements ValueSnapshotterSerializerRegistry {
+public class DependencyManagementValueSnapshotterSerializerRegistry extends DefaultSerializerRegistry
+        implements ValueSnapshotterSerializerRegistry {
 
     private static final List<Class<?>> SUPPORTED_TYPES = ImmutableList.of(
-        Capability.class,
-        ModuleVersionIdentifier.class,
-        PublishArtifactLocalArtifactMetadata.class,
-        OpaqueComponentArtifactIdentifier.class,
-        DefaultModuleComponentArtifactIdentifier.class,
-        ModuleComponentFileArtifactIdentifier.class,
-        ComponentFileArtifactIdentifier.class,
-        ComponentIdentifier.class,
-        AttributeContainer.class,
-        ResolvedVariantResult.class,
-        ComponentSelectionDescriptor.class,
-        ComponentSelectionReason.class,
-        ComponentSelector.class,
-        ResolvedComponentResult.class
-    );
+            Capability.class,
+            ModuleVersionIdentifier.class,
+            PublishArtifactLocalArtifactMetadata.class,
+            OpaqueComponentArtifactIdentifier.class,
+            DefaultModuleComponentArtifactIdentifier.class,
+            ModuleComponentFileArtifactIdentifier.class,
+            ComponentFileArtifactIdentifier.class,
+            ComponentIdentifier.class,
+            AttributeContainer.class,
+            ResolvedVariantResult.class,
+            ComponentSelectionDescriptor.class,
+            ComponentSelectionReason.class,
+            ComponentSelector.class,
+            ResolvedComponentResult.class);
 
     public DependencyManagementValueSnapshotterSerializerRegistry(
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        AttributesFactory attributesFactory,
-        NamedObjectInstantiator namedObjectInstantiator,
-        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory
-    ) {
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            AttributesFactory attributesFactory,
+            NamedObjectInstantiator namedObjectInstantiator,
+            ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
         super(true);
 
         CapabilitySelectorSerializer capabilitySelectorSerializer = new CapabilitySelectorSerializer();
         ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
-        AttributeContainerSerializer attributeContainerSerializer = new DesugaringAttributeContainerSerializer(attributesFactory, namedObjectInstantiator);
-        ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
-        Serializer<ComponentSelector> componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer, capabilitySelectorSerializer);
+        AttributeContainerSerializer attributeContainerSerializer =
+                new DesugaringAttributeContainerSerializer(attributesFactory, namedObjectInstantiator);
+        ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer =
+                new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
+        Serializer<ComponentSelector> componentSelectorSerializer =
+                new ComponentSelectorSerializer(attributeContainerSerializer, capabilitySelectorSerializer);
 
         register(Capability.class, new CapabilitySerializer());
         register(ModuleVersionIdentifier.class, moduleVersionIdentifierSerializer);
-        register(PublishArtifactLocalArtifactMetadata.class, new PublishArtifactLocalArtifactMetadataSerializer(componentIdentifierSerializer));
+        register(
+                PublishArtifactLocalArtifactMetadata.class,
+                new PublishArtifactLocalArtifactMetadataSerializer(componentIdentifierSerializer));
         register(OpaqueComponentArtifactIdentifier.class, new OpaqueComponentArtifactIdentifierSerializer());
         register(DefaultModuleComponentArtifactIdentifier.class, new ComponentArtifactIdentifierSerializer());
         register(ModuleComponentFileArtifactIdentifier.class, new ModuleComponentFileArtifactIdentifierSerializer());
         register(ComponentFileArtifactIdentifier.class, new ComponentFileArtifactIdentifierSerializer());
-        register(TransformedComponentFileArtifactIdentifier.class, new TransformedComponentFileArtifactIdentifierSerializer());
+        register(
+                TransformedComponentFileArtifactIdentifier.class,
+                new TransformedComponentFileArtifactIdentifierSerializer());
         register(DefaultModuleComponentIdentifier.class, Cast.uncheckedCast(componentIdentifierSerializer));
         register(AttributeContainer.class, attributeContainerSerializer);
-        registerWithFactory(ResolvedVariantResult.class, () -> new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer));
-        register(ComponentSelectionDescriptor.class, new ComponentSelectionDescriptorSerializer(componentSelectionDescriptorFactory));
-        ComponentSelectionReasonSerializer componentSelectionReasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
+        registerWithFactory(
+                ResolvedVariantResult.class,
+                () -> new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer));
+        register(
+                ComponentSelectionDescriptor.class,
+                new ComponentSelectionDescriptorSerializer(componentSelectionDescriptorFactory));
+        ComponentSelectionReasonSerializer componentSelectionReasonSerializer =
+                new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
         register(ComponentSelectionReason.class, componentSelectionReasonSerializer);
         register(ComponentSelector.class, componentSelectorSerializer);
         registerWithFactory(ResolvedComponentResult.class, () -> {
-            ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer);
-            return new ResolvedComponentResultSerializer(moduleVersionIdentifierSerializer, componentIdentifierSerializer, componentSelectorSerializer, resolvedVariantResultSerializer, componentSelectionReasonSerializer);
+            ResolvedVariantResultSerializer resolvedVariantResultSerializer =
+                    new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer);
+            return new ResolvedComponentResultSerializer(
+                    moduleVersionIdentifierSerializer,
+                    componentIdentifierSerializer,
+                    componentSelectorSerializer,
+                    resolvedVariantResultSerializer,
+                    componentSelectionReasonSerializer);
         });
     }
 
@@ -137,7 +153,8 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
     /**
      * A thread-safe and reusable serializer for {@link OpaqueComponentArtifactIdentifier}.
      */
-    private static class OpaqueComponentArtifactIdentifierSerializer implements Serializer<OpaqueComponentArtifactIdentifier> {
+    private static class OpaqueComponentArtifactIdentifierSerializer
+            implements Serializer<OpaqueComponentArtifactIdentifier> {
 
         @Override
         public OpaqueComponentArtifactIdentifier read(Decoder decoder) throws Exception {

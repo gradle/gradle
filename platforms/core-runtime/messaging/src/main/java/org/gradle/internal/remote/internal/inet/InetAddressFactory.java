@@ -15,15 +15,14 @@
  */
 package org.gradle.internal.remote.internal.inet;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 
 /**
  * Provides information on how two processes on this machine can communicate via IP addresses
@@ -116,7 +115,11 @@ public class InetAddressFactory {
                 try {
                     return InetAddress.getByName(ipAddress);
                 } catch (UnknownHostException e) {
-                    throw new RuntimeException(String.format("Unable to use OPENSHIFT IP - invalid IP address '%s' specified in environment variable %s.", ipAddress, key), e);
+                    throw new RuntimeException(
+                            String.format(
+                                    "Unable to use OPENSHIFT IP - invalid IP address '%s' specified in environment variable %s.",
+                                    ipAddress, key),
+                            e);
                 }
             }
         }

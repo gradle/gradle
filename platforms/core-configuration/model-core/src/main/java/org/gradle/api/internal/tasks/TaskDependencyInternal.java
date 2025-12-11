@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
+import java.util.Collections;
+import java.util.Set;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.Set;
 
 public interface TaskDependencyInternal extends TaskDependency {
     /**
@@ -57,8 +56,6 @@ public interface TaskDependencyInternal extends TaskDependency {
         }
 
         @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-        }
+        public void visitDependencies(TaskDependencyResolveContext context) {}
     };
 }
-

@@ -18,7 +18,6 @@ package org.gradle.internal.buildtree;
 
 import org.jspecify.annotations.NullMarked;
 
-
 @NullMarked
 public class DefaultBuildTreeModelSideEffectExecutor implements BuildTreeModelSideEffectExecutor {
 

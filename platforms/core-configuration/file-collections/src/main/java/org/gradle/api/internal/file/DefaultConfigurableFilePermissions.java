@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.ConfigurableUserClassFilePermissions;
-import org.gradle.api.file.ConfigurableFilePermissions;
-
-import javax.inject.Inject;
-
 import static org.gradle.internal.nativeintegration.filesystem.FileSystem.DEFAULT_DIR_MODE;
 import static org.gradle.internal.nativeintegration.filesystem.FileSystem.DEFAULT_FILE_MODE;
+
+import javax.inject.Inject;
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.ConfigurableFilePermissions;
+import org.gradle.api.file.ConfigurableUserClassFilePermissions;
 
 public class DefaultConfigurableFilePermissions extends AbstractFilePermissions implements ConfigurableFilePermissions {
 
@@ -87,14 +86,16 @@ public class DefaultConfigurableFilePermissions extends AbstractFilePermissions 
                 other.unix(getOtherPartOf(normalizedPermissions));
             }
         } catch (IllegalArgumentException cause) {
-            throw new InvalidUserDataException("'" + unixNumericOrSymbolic + "' isn't a proper Unix permission. " + cause.getMessage());
+            throw new InvalidUserDataException(
+                    "'" + unixNumericOrSymbolic + "' isn't a proper Unix permission. " + cause.getMessage());
         }
     }
 
     @Override
     public void unix(int unixNumeric) {
         if (unixNumeric < 0 || unixNumeric >= 512) {
-            throw new IllegalArgumentException(unixNumeric + " is not a valid unix numeric permission from the range of [0, 512)");
+            throw new IllegalArgumentException(
+                    unixNumeric + " is not a valid unix numeric permission from the range of [0, 512)");
         }
 
         user.unix(getUserPartOf(unixNumeric));
@@ -108,7 +109,8 @@ public class DefaultConfigurableFilePermissions extends AbstractFilePermissions 
             return trimmed.substring(1);
         }
         if (trimmed.length() != 3 && trimmed.length() != 9) {
-            throw new IllegalArgumentException("Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+            throw new IllegalArgumentException(
+                    "Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
         }
         return trimmed;
     }

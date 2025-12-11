@@ -18,10 +18,6 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelPath;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
@@ -31,10 +27,14 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
+import org.jspecify.annotations.Nullable;
 
 class ModelGraph {
     private enum PendingState {
-        ADD, NOTIFY
+        ADD,
+        NOTIFY
     }
 
     private final ModelNodeInternal root;
@@ -195,7 +195,8 @@ class ModelGraph {
             doAddListener(pendingListeners.removeFirst());
         }
         while (!pendingNodes.isEmpty()) {
-            Iterator<Map.Entry<ModelNodeInternal, PendingState>> iPendingNodes = pendingNodes.entrySet().iterator();
+            Iterator<Map.Entry<ModelNodeInternal, PendingState>> iPendingNodes =
+                    pendingNodes.entrySet().iterator();
             Map.Entry<ModelNodeInternal, PendingState> entry = iPendingNodes.next();
             iPendingNodes.remove();
             ModelNodeInternal pendingNode = entry.getKey();

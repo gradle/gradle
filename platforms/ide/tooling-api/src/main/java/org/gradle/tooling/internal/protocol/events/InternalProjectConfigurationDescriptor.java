@@ -34,5 +34,4 @@ public interface InternalProjectConfigurationDescriptor extends InternalOperatio
      * The path of the project, relative to its build.
      */
     String getProjectPath();
-
 }

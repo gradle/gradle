@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.classpath;
 
+import java.io.File;
+import java.util.List;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * Represents a location for global Gradle caches.

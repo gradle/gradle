@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.internal.resolve;
 
+import java.io.File;
+import java.util.Set;
 import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -25,14 +27,12 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.nativeplatform.NativeDependencySet;
 
-import java.io.File;
-import java.util.Set;
-
 public class SourceSetNativeDependencyResolver implements NativeDependencyResolver {
     private final NativeDependencyResolver delegate;
     private final FileCollectionFactory fileCollectionFactory;
 
-    public SourceSetNativeDependencyResolver(NativeDependencyResolver delegate, FileCollectionFactory fileCollectionFactory) {
+    public SourceSetNativeDependencyResolver(
+            NativeDependencyResolver delegate, FileCollectionFactory fileCollectionFactory) {
         this.delegate = delegate;
         this.fileCollectionFactory = fileCollectionFactory;
     }
@@ -50,7 +50,8 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
 
     private NativeDependencySet createNativeDependencySet(LanguageSourceSet sourceSet) {
         if (sourceSet instanceof HeaderExportingSourceSet) {
-            return new LanguageSourceSetNativeDependencySet((HeaderExportingSourceSet) sourceSet, fileCollectionFactory);
+            return new LanguageSourceSetNativeDependencySet(
+                    (HeaderExportingSourceSet) sourceSet, fileCollectionFactory);
         }
         return EmptyNativeDependencySet.INSTANCE;
     }
@@ -79,7 +80,8 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
         private final HeaderExportingSourceSet sourceSet;
         private final FileCollectionFactory fileCollectionFactory;
 
-        private LanguageSourceSetNativeDependencySet(HeaderExportingSourceSet sourceSet, FileCollectionFactory fileCollectionFactory) {
+        private LanguageSourceSetNativeDependencySet(
+                HeaderExportingSourceSet sourceSet, FileCollectionFactory fileCollectionFactory) {
             this.sourceSet = sourceSet;
             this.fileCollectionFactory = fileCollectionFactory;
         }

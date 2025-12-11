@@ -16,12 +16,12 @@
 
 package org.gradle.internal.instrumentation.api.annotations;
 
+import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_REMOVED;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_REMOVED;
 
 /**
  * Marks that a property replaces an eager property.
@@ -69,8 +69,7 @@ public @interface ReplacesEagerProperty {
      */
     Class<?> adapter() default DefaultValue.class;
 
-    interface DefaultValue {
-    }
+    interface DefaultValue {}
 
     enum BinaryCompatibility {
         /**

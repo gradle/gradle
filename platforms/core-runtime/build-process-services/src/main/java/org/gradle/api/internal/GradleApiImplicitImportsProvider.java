@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal;
 
+import java.util.List;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.List;
 
 /**
  * Provides the lists of imports implicitly added to build script (for the various DSLs).

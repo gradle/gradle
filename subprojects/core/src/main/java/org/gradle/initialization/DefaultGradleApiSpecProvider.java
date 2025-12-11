@@ -17,62 +17,54 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.apache.groovy.json.DefaultFastStringServiceFactory;
 import org.apache.groovy.json.FastStringServiceFactory;
-
-import java.util.Set;
 
 public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdapter implements GradleApiSpecProvider {
 
     @Override
     public Set<Class<?>> getExportedClasses() {
-        return ImmutableSet.<Class<?>>of(
-            FastStringServiceFactory.class,
-            DefaultFastStringServiceFactory.class
-        );
+        return ImmutableSet.<Class<?>>of(FastStringServiceFactory.class, DefaultFastStringServiceFactory.class);
     }
 
     @Override
     public Set<String> getExportedPackages() {
         return ImmutableSet.of(
-            //"org.gradle.internal.declarativedsl", // TODO: adding this makes all integration tests fail
-            "org.gradle",
-            "org.apache.tools.ant",
-            "groovy",
-            "org.apache.groovy",
-            "org.codehaus.groovy",
-            "groovyjarjarantlr",
-            "org.slf4j",
-            "org.apache.commons.logging",
-            "org.apache.log4j",
-            "org.jspecify.annotations",
-            "javax.annotation",
-            "javax.inject");
+                // "org.gradle.internal.declarativedsl", // TODO: adding this makes all integration tests fail
+                "org.gradle",
+                "org.apache.tools.ant",
+                "groovy",
+                "org.apache.groovy",
+                "org.codehaus.groovy",
+                "groovyjarjarantlr",
+                "org.slf4j",
+                "org.apache.commons.logging",
+                "org.apache.log4j",
+                "org.jspecify.annotations",
+                "javax.annotation",
+                "javax.inject");
     }
 
     @Override
     public Set<String> getUnexportedPackages() {
         return ImmutableSet.of(
-            // This package is not exported to Gradle API default classloader,
-            // and can be used for worker action code that needs to access external libraries.
-            // See also explanation in https://github.com/gradle/gradle/pull/29591#issuecomment-2216917657.
-            "org.gradle.unexported"
-        );
+                // This package is not exported to Gradle API default classloader,
+                // and can be used for worker action code that needs to access external libraries.
+                // See also explanation in https://github.com/gradle/gradle/pull/29591#issuecomment-2216917657.
+                "org.gradle.unexported");
     }
 
     @Override
     public Set<String> getExportedResourcePrefixes() {
-        return ImmutableSet.of(
-            "META-INF/gradle-plugins"
-        );
+        return ImmutableSet.of("META-INF/gradle-plugins");
     }
 
     @Override
     public Set<String> getExportedResources() {
         return ImmutableSet.of(
-            "META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule",
-            "META-INF/services/org.apache.groovy.json.FastStringServiceFactory"
-        );
+                "META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule",
+                "META-INF/services/org.apache.groovy.json.FastStringServiceFactory");
     }
 
     @Override

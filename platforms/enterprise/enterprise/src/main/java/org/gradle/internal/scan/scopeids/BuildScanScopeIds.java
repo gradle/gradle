@@ -32,5 +32,4 @@ public interface BuildScanScopeIds {
     String getWorkspaceId();
 
     String getUserId();
-
 }

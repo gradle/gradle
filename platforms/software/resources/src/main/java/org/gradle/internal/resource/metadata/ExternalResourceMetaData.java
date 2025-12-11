@@ -16,11 +16,10 @@
 
 package org.gradle.internal.resource.metadata;
 
-import org.gradle.internal.hash.HashCode;
-import org.jspecify.annotations.Nullable;
-
 import java.net.URI;
 import java.util.Date;
+import org.gradle.internal.hash.HashCode;
+import org.jspecify.annotations.Nullable;
 
 public interface ExternalResourceMetaData {
 

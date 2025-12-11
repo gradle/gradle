@@ -29,13 +29,15 @@ public class ClosureToSpecNotationConverter<T> implements NotationConverter<Clos
     }
 
     @Override
-    public void convert(Closure notation, NotationConvertResult<? super Spec<T>> result) throws TypeConversionException {
+    public void convert(Closure notation, NotationConvertResult<? super Spec<T>> result)
+            throws TypeConversionException {
         Spec<T> spec = Specs.convertClosureToSpec(notation);
         result.converted(spec);
     }
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate(String.format("Closure that returns boolean and takes a single %s as a parameter.", type.getSimpleName()));
+        visitor.candidate(String.format(
+                "Closure that returns boolean and takes a single %s as a parameter.", type.getSimpleName()));
     }
 }

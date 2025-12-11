@@ -16,24 +16,23 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.internal.tasks.TaskPropertyRegistration;
-import org.gradle.api.tasks.TaskFilePropertyBuilder;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.gradle.api.internal.tasks.TaskPropertyRegistration;
+import org.gradle.api.tasks.TaskFilePropertyBuilder;
 
 /**
  * Container for {@link TaskPropertyRegistration}s that might not have a name. The container
  * ensures that whenever parameters are iterated they are always assigned a name.
  */
-public class FilePropertyContainer<T extends TaskFilePropertyBuilder & TaskPropertyRegistration> implements Iterable<T> {
+public class FilePropertyContainer<T extends TaskFilePropertyBuilder & TaskPropertyRegistration>
+        implements Iterable<T> {
     private final List<T> properties = new ArrayList<>();
     private boolean changed;
     private int unnamedPropertyCounter;
 
-    private FilePropertyContainer() {
-    }
+    private FilePropertyContainer() {}
 
     public static <T extends TaskFilePropertyBuilder & TaskPropertyRegistration> FilePropertyContainer<T> create() {
         return new FilePropertyContainer<T>();

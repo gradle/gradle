@@ -15,6 +15,11 @@
  */
 package org.gradle.api.publish.internal.component;
 
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
+import java.util.function.Consumer;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
@@ -33,18 +38,15 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
-import java.util.function.Consumer;
-
 public class ConfigurationVariantMapping {
     private final ConfigurationInternal outgoingConfiguration;
     private Action<? super ConfigurationVariantDetails> action;
     private final ObjectFactory objectFactory;
 
-    public ConfigurationVariantMapping(ConfigurationInternal outgoingConfiguration, Action<? super ConfigurationVariantDetails> action, ObjectFactory objectFactory) {
+    public ConfigurationVariantMapping(
+            ConfigurationInternal outgoingConfiguration,
+            Action<? super ConfigurationVariantDetails> action,
+            ObjectFactory objectFactory) {
         this.outgoingConfiguration = outgoingConfiguration;
         this.action = action;
         this.objectFactory = objectFactory;
@@ -61,22 +63,25 @@ public class ConfigurationVariantMapping {
         String outgoingConfigurationName = outgoingConfiguration.getName();
 
         if (!outgoingConfiguration.isTransitive()) {
-            DeprecationLogger.deprecateBehaviour(String.format("Publishing non-transitive configuration '%s'.", outgoingConfigurationName))
-                .withContext("Setting 'transitive = false' at the configuration level is ignored by publishing.")
-                .withAdvice("Consider using 'transitive = false' on each dependency if this needs to be published.")
-                .willBecomeAnErrorInGradle10()
-                .undocumented() // TODO: We don't have documentation for this anymore?
-                .nagUser();
+            DeprecationLogger.deprecateBehaviour(
+                            String.format("Publishing non-transitive configuration '%s'.", outgoingConfigurationName))
+                    .withContext("Setting 'transitive = false' at the configuration level is ignored by publishing.")
+                    .withAdvice("Consider using 'transitive = false' on each dependency if this needs to be published.")
+                    .willBecomeAnErrorInGradle10()
+                    .undocumented() // TODO: We don't have documentation for this anymore?
+                    .nagUser();
         }
 
         Set<String> seen = new HashSet<>();
 
         // Visit implicit sub-variant
-        ConfigurationVariant defaultConfigurationVariant = objectFactory.newInstance(DefaultConfigurationVariant.class, outgoingConfiguration);
+        ConfigurationVariant defaultConfigurationVariant =
+                objectFactory.newInstance(DefaultConfigurationVariant.class, outgoingConfiguration);
         visitVariant(collector, seen, defaultConfigurationVariant, outgoingConfigurationName);
 
         // Visit explicit sub-variants
-        NamedDomainObjectContainer<ConfigurationVariant> subvariants = outgoingConfiguration.getOutgoing().getVariants();
+        NamedDomainObjectContainer<ConfigurationVariant> subvariants =
+                outgoingConfiguration.getOutgoing().getVariants();
         for (ConfigurationVariant subvariant : subvariants) {
             String publishedVariantName = outgoingConfigurationName + StringUtils.capitalize(subvariant.getName());
             visitVariant(collector, seen, subvariant, publishedVariantName);
@@ -84,12 +89,9 @@ public class ConfigurationVariantMapping {
     }
 
     private void visitVariant(
-        Consumer<UsageContext> collector,
-        Set<String> seen,
-        ConfigurationVariant subvariant,
-        String name
-    ) {
-        DefaultConfigurationVariantDetails details = objectFactory.newInstance(DefaultConfigurationVariantDetails.class, subvariant);
+            Consumer<UsageContext> collector, Set<String> seen, ConfigurationVariant subvariant, String name) {
+        DefaultConfigurationVariantDetails details =
+                objectFactory.newInstance(DefaultConfigurationVariantDetails.class, subvariant);
         action.execute(details);
 
         if (!details.shouldPublish()) {
@@ -97,21 +99,21 @@ public class ConfigurationVariantMapping {
         }
 
         if (!seen.add(name)) {
-            throw new InvalidUserDataException("Cannot add feature variant '" + name + "' as a variant with the same name is already registered");
+            throw new InvalidUserDataException(
+                    "Cannot add feature variant '" + name + "' as a variant with the same name is already registered");
         }
 
         collector.accept(new FeatureConfigurationVariant(
-            name,
-            outgoingConfiguration,
-            subvariant,
-            details.getMavenScope(),
-            details.isOptional(),
-            details.dependencyMappingDetails
-        ));
+                name,
+                outgoingConfiguration,
+                subvariant,
+                details.getMavenScope(),
+                details.isOptional(),
+                details.dependencyMappingDetails));
     }
 
     // Cannot be private due to reflective instantiation
-    static abstract class DefaultConfigurationVariant implements ConfigurationVariant {
+    abstract static class DefaultConfigurationVariant implements ConfigurationVariant {
         private final ConfigurationInternal outgoingConfiguration;
 
         @Inject
@@ -199,7 +201,8 @@ public class ConfigurationVariantMapping {
             if ("compile".equals(scope) || "runtime".equals(scope)) {
                 return scope;
             }
-            throw new InvalidUserCodeException("Invalid Maven scope '" + scope + "'. You must choose between 'compile' and 'runtime'");
+            throw new InvalidUserCodeException(
+                    "Invalid Maven scope '" + scope + "'. You must choose between 'compile' and 'runtime'");
         }
 
         public boolean shouldPublish() {
@@ -215,7 +218,8 @@ public class ConfigurationVariantMapping {
         }
     }
 
-    public static abstract class DefaultDependencyMappingDetails implements ConfigurationVariantDetailsInternal.DependencyMappingDetails {
+    public abstract static class DefaultDependencyMappingDetails
+            implements ConfigurationVariantDetailsInternal.DependencyMappingDetails {
 
         private Configuration resolutionConfiguration;
 

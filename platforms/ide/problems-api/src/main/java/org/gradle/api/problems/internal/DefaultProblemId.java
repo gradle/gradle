@@ -17,12 +17,11 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.base.Objects;
+import java.io.Serializable;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
-
-import java.io.Serializable;
 
 public class DefaultProblemId extends ProblemId implements Serializable {
 

@@ -29,5 +29,6 @@ public interface GradlePluginApiVersion extends Named {
     /**
      * Minimal Gradle version required. See {@link org.gradle.util.GradleVersion} for supported values.
      */
-    Attribute<GradlePluginApiVersion> GRADLE_PLUGIN_API_VERSION_ATTRIBUTE = Attribute.of("org.gradle.plugin.api-version", GradlePluginApiVersion.class);
+    Attribute<GradlePluginApiVersion> GRADLE_PLUGIN_API_VERSION_ATTRIBUTE =
+            Attribute.of("org.gradle.plugin.api-version", GradlePluginApiVersion.class);
 }

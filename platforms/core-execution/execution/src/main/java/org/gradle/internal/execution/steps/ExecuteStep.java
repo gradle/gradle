@@ -16,8 +16,15 @@
 
 package org.gradle.internal.execution.steps;
 
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_INCREMENTALLY;
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE;
+
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
+import java.io.File;
+import java.time.Duration;
+import java.util.Optional;
 import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.Execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionContext;
@@ -35,14 +42,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.work.InputChanges;
-
-import java.io.File;
-import java.time.Duration;
-import java.util.Optional;
-
-import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_INCREMENTALLY;
-import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
-import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE;
 
 public abstract class ExecuteStep<C extends WorkspaceContext> implements Step<C, Result> {
 
@@ -98,7 +97,7 @@ public abstract class ExecuteStep<C extends WorkspaceContext> implements Step<C,
                 @Override
                 public Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs() {
                     return context.getPreviousExecutionState()
-                        .map(PreviousExecutionState::getOutputFilesProducedByWork);
+                            .map(PreviousExecutionState::getOutputFilesProducedByWork);
                 }
             };
         }
@@ -110,9 +109,9 @@ public abstract class ExecuteStep<C extends WorkspaceContext> implements Step<C,
                     return UP_TO_DATE;
                 case DID_WORK:
                     return context.getInputChanges()
-                        .filter(InputChanges::isIncremental)
-                        .map(Functions.constant(EXECUTED_INCREMENTALLY))
-                        .orElse(EXECUTED_NON_INCREMENTALLY);
+                            .filter(InputChanges::isIncremental)
+                            .map(Functions.constant(EXECUTED_INCREMENTALLY))
+                            .orElse(EXECUTED_NON_INCREMENTALLY);
                 default:
                     throw new AssertionError();
             }
@@ -141,19 +140,18 @@ public abstract class ExecuteStep<C extends WorkspaceContext> implements Step<C,
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor
-                    .displayName("Executing " + work.getDisplayName())
-                    .details(new Operation.Details() {
-                        @Override
-                        public Class<?> getWorkType() {
-                            return workType;
-                        }
+                return BuildOperationDescriptor.displayName("Executing " + work.getDisplayName())
+                        .details(new Operation.Details() {
+                            @Override
+                            public Class<?> getWorkType() {
+                                return workType;
+                            }
 
-                        @Override
-                        public Identity getIdentity() {
-                            return identity;
-                        }
-                    });
+                            @Override
+                            public Identity getIdentity() {
+                                return identity;
+                            }
+                        });
             }
         });
     }
@@ -199,12 +197,12 @@ public abstract class ExecuteStep<C extends WorkspaceContext> implements Step<C,
     public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
         interface Details {
             Class<?> getWorkType();
+
             Identity getIdentity();
         }
 
         interface Result {
-            Operation.Result INSTANCE = new Operation.Result() {
-            };
+            Operation.Result INSTANCE = new Operation.Result() {};
         }
     }
 }

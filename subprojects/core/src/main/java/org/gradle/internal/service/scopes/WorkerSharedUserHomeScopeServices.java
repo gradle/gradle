@@ -42,15 +42,14 @@ public class WorkerSharedUserHomeScopeServices implements ServiceRegistrationPro
     }
 
     @Provides({GlobalScopedCacheBuilderFactory.class, GlobalCache.class})
-    DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+    DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(
+            GlobalCacheDir globalCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         return new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
     @Provides
     IsolatableFactory createIsolatableFactory(
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        ManagedFactoryRegistry managedFactoryRegistry
-    ) {
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
         return new DefaultIsolatableFactory(classLoaderHierarchyHasher, managedFactoryRegistry);
     }
 }

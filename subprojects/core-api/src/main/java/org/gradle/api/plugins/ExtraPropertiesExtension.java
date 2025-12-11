@@ -16,10 +16,9 @@
 
 package org.gradle.api.plugins;
 
+import java.util.Map;
 import org.gradle.api.InvalidUserDataException;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * Additional, ad-hoc, properties for Gradle domain objects.
@@ -176,8 +175,8 @@ public interface ExtraPropertiesExtension {
         }
 
         public static String createMessage(String propertyName) {
-            return String.format("Cannot get property '%s' on extra properties extension as it does not exist", propertyName);
+            return String.format(
+                    "Cannot get property '%s' on extra properties extension as it does not exist", propertyName);
         }
     }
-
 }

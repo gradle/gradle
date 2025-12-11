@@ -15,12 +15,11 @@
  */
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.internal.operations.logging.BuildOperationLogger;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.logging.BuildOperationLogger;
 
 class DefaultCommandLineToolInvocation implements CommandLineToolInvocation {
     private String description;
@@ -29,7 +28,12 @@ class DefaultCommandLineToolInvocation implements CommandLineToolInvocation {
     private final CommandLineToolContext context;
     private final BuildOperationLogger oplogger;
 
-    DefaultCommandLineToolInvocation(String description, File workDirectory, Iterable<String> args, CommandLineToolContext context, BuildOperationLogger oplogger) {
+    DefaultCommandLineToolInvocation(
+            String description,
+            File workDirectory,
+            Iterable<String> args,
+            CommandLineToolContext context,
+            BuildOperationLogger oplogger) {
         this.description = description;
         this.workDirectory = workDirectory;
         this.args = args;

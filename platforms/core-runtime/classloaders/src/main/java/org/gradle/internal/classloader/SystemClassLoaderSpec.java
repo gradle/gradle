@@ -19,8 +19,7 @@ package org.gradle.internal.classloader;
 public class SystemClassLoaderSpec extends ClassLoaderSpec {
     public static final ClassLoaderSpec INSTANCE = new SystemClassLoaderSpec();
 
-    private SystemClassLoaderSpec() {
-    }
+    private SystemClassLoaderSpec() {}
 
     @Override
     public boolean equals(Object obj) {

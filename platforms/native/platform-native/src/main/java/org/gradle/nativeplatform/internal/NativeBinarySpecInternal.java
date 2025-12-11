@@ -16,6 +16,9 @@
 
 package org.gradle.nativeplatform.internal;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.Map;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.language.nativeplatform.DependentSourceSet;
@@ -27,10 +30,6 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.internal.BinarySpecInternal;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Map;
 
 public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecInternal {
 

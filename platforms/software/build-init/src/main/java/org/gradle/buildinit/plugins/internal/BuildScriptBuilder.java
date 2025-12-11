@@ -16,10 +16,28 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singletonList;
+import static org.gradle.buildinit.plugins.internal.SimpleGlobalFilesBuildSettingsDescriptor.PLUGINS_BUILD_LOCATION;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -42,31 +60,13 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.singletonList;
-import static org.gradle.buildinit.plugins.internal.SimpleGlobalFilesBuildSettingsDescriptor.PLUGINS_BUILD_LOCATION;
-
 /**
  * Assembles the parts of a build script.
  */
 @SuppressWarnings("UnusedReturnValue")
 public class BuildScriptBuilder {
-    private static final String INCUBATING_APIS_WARNING = "This project uses @Incubating APIs which are subject to change.";
+    private static final String INCUBATING_APIS_WARNING =
+            "This project uses @Incubating APIs which are subject to change.";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptBuilder.class);
 
@@ -83,12 +83,20 @@ public class BuildScriptBuilder {
     private final boolean useTestSuites;
     private final boolean useVersionCatalog;
 
-    BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, BuildContentGenerationContext buildContentGenerationContext, String fileNameWithoutExtension, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption, boolean useVersionCatalog) {
+    BuildScriptBuilder(
+            BuildInitDsl dsl,
+            DocumentationRegistry documentationRegistry,
+            BuildContentGenerationContext buildContentGenerationContext,
+            String fileNameWithoutExtension,
+            boolean useIncubatingAPIs,
+            InsecureProtocolOption insecureProtocolOption,
+            boolean useVersionCatalog) {
         this.dsl = dsl;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
         this.useIncubatingAPIs = useIncubatingAPIs;
         this.useTestSuites = useIncubatingAPIs;
-        this.mavenRepoURLHandler = MavenRepositoryURLHandler.forInsecureProtocolOption(insecureProtocolOption, dsl, documentationRegistry);
+        this.mavenRepoURLHandler =
+                MavenRepositoryURLHandler.forInsecureProtocolOption(insecureProtocolOption, dsl, documentationRegistry);
         this.block = new TopLevelBlock(this);
         this.buildContentGenerationContext = buildContentGenerationContext;
         this.useVersionCatalog = useVersionCatalog;
@@ -149,7 +157,8 @@ public class BuildScriptBuilder {
      */
     public BuildScriptBuilder conventionPluginSupport(@Nullable String comment) {
         Syntax syntax = syntaxFor(dsl);
-        block.repositories.gradlePluginPortal("Use the plugin portal to apply community plugins in convention plugins.");
+        block.repositories.gradlePluginPortal(
+                "Use the plugin portal to apply community plugins in convention plugins.");
         syntax.configureConventionPlugin(comment, block.plugins, block.repositories);
         return this;
     }
@@ -159,10 +168,13 @@ public class BuildScriptBuilder {
      *
      * @param comment A description of why the plugin is required
      */
-    public BuildScriptBuilder plugin(@Nullable String comment, String pluginId, @Nullable String version, @Nullable String pluginAlias) {
+    public BuildScriptBuilder plugin(
+            @Nullable String comment, String pluginId, @Nullable String version, @Nullable String pluginAlias) {
         AbstractStatement plugin;
         if (useVersionCatalog && version != null) {
-            String versionCatalogRef = buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerPlugin(pluginId, version, pluginAlias);
+            String versionCatalogRef = buildContentGenerationContext
+                    .getVersionCatalogDependencyRegistry()
+                    .registerPlugin(pluginId, version, pluginAlias);
             plugin = new PluginSpec(versionCatalogRef, comment);
         } else {
             plugin = new PluginSpec(pluginId, version, comment);
@@ -178,7 +190,8 @@ public class BuildScriptBuilder {
      * @param comment A description of why the dependencies are required
      * @param dependencies the dependencies
      */
-    public BuildScriptBuilder dependency(String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
+    public BuildScriptBuilder dependency(
+            String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
         dependencies().dependency(configuration, comment, dependencies);
         return this;
     }
@@ -199,7 +212,8 @@ public class BuildScriptBuilder {
      * @param comment A description of why the constraints are required
      * @param dependencies The dependency constraints
      */
-    public BuildScriptBuilder implementationDependencyConstraint(@Nullable String comment, BuildInitDependency... dependencies) {
+    public BuildScriptBuilder implementationDependencyConstraint(
+            @Nullable String comment, BuildInitDependency... dependencies) {
         dependencies().dependencyConstraint("implementation", comment, dependencies);
         return this;
     }
@@ -210,7 +224,8 @@ public class BuildScriptBuilder {
      * @param comment A description of why the dependencies are required
      * @param dependencies The dependencies
      */
-    public BuildScriptBuilder testImplementationDependency(@Nullable String comment, BuildInitDependency... dependencies) {
+    public BuildScriptBuilder testImplementationDependency(
+            @Nullable String comment, BuildInitDependency... dependencies) {
         assert !isUsingTestSuites() : "do not add dependencies directly to testImplementation configuration";
         return dependency("testImplementation", comment, dependencies);
     }
@@ -325,7 +340,8 @@ public class BuildScriptBuilder {
      *
      * @return this
      */
-    public BuildScriptBuilder methodInvocation(@Nullable String comment, Expression target, String methodName, Object... methodArgs) {
+    public BuildScriptBuilder methodInvocation(
+            @Nullable String comment, Expression target, String methodName, Object... methodArgs) {
         block.methodInvocation(comment, target, methodName, methodArgs);
         return this;
     }
@@ -352,7 +368,8 @@ public class BuildScriptBuilder {
     /**
      * Adds a top level block statement.
      */
-    public BuildScriptBuilder block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentBuilder) {
+    public BuildScriptBuilder block(
+            @Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentBuilder) {
         blockContentBuilder.execute(block.block(comment, methodName));
         return this;
     }
@@ -360,9 +377,14 @@ public class BuildScriptBuilder {
     public BuildScriptBuilder javaToolchainFor(JavaLanguageVersion languageVersion) {
         return block("Apply a specific Java toolchain to ease working on different environments.", "java", t -> {
             t.block(null, "toolchain", t1 -> {
-                t1.propertyAssignment(null, "languageVersion",
-                    new MethodInvocationExpression(null, "JavaLanguageVersion.of", singletonList(new LiteralValue(languageVersion.asInt()))),
-                    true);
+                t1.propertyAssignment(
+                        null,
+                        "languageVersion",
+                        new MethodInvocationExpression(
+                                null,
+                                "JavaLanguageVersion.of",
+                                singletonList(new LiteralValue(languageVersion.asInt()))),
+                        true);
             });
         });
     }
@@ -370,30 +392,34 @@ public class BuildScriptBuilder {
     /**
      * Adds a method invocation statement to the configuration of a particular task.
      */
-    public BuildScriptBuilder taskMethodInvocation(@Nullable String comment, String taskName, String taskType, String methodName, Object... methodArgs) {
+    public BuildScriptBuilder taskMethodInvocation(
+            @Nullable String comment, String taskName, String taskType, String methodName, Object... methodArgs) {
         block.tasks.add(
-            new TaskSelector(taskName, taskType),
-            new MethodInvocation(comment, new MethodInvocationExpression(null, methodName, expressionValues(methodArgs))));
+                new TaskSelector(taskName, taskType),
+                new MethodInvocation(
+                        comment, new MethodInvocationExpression(null, methodName, expressionValues(methodArgs))));
         return this;
     }
 
     /**
      * Adds a property assignment statement to the configuration of a particular task.
      */
-    public BuildScriptBuilder taskPropertyAssignment(@Nullable String comment, String taskName, String taskType, String propertyName, Object propertyValue) {
+    public BuildScriptBuilder taskPropertyAssignment(
+            @Nullable String comment, String taskName, String taskType, String propertyName, Object propertyValue) {
         block.tasks.add(
-            new TaskSelector(taskName, taskType),
-            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue), true));
+                new TaskSelector(taskName, taskType),
+                new PropertyAssignment(comment, propertyName, expressionValue(propertyValue), true));
         return this;
     }
 
     /**
      * Adds a property assignment statement to the configuration of all tasks of a particular type.
      */
-    public BuildScriptBuilder taskPropertyAssignment(@Nullable String comment, String taskType, String propertyName, Object propertyValue) {
+    public BuildScriptBuilder taskPropertyAssignment(
+            @Nullable String comment, String taskType, String propertyName, Object propertyValue) {
         block.taskTypes.add(
-            new TaskTypeSelector(taskType),
-            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue), true));
+                new TaskTypeSelector(taskType),
+                new PropertyAssignment(comment, propertyName, expressionValue(propertyValue), true));
         return this;
     }
 
@@ -402,7 +428,11 @@ public class BuildScriptBuilder {
      *
      * @return An expression that can be used to refer to the task later.
      */
-    public TaskConfiguration taskConfiguration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+    public TaskConfiguration taskConfiguration(
+            @Nullable String comment,
+            String taskName,
+            String taskType,
+            Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         TaskConfiguration conf = new TaskConfiguration(comment, taskName, taskType);
         block.add(conf);
         blockContentsBuilder.execute(conf.body);
@@ -414,7 +444,12 @@ public class BuildScriptBuilder {
      *
      * @return An expression that can be used to refer to the task later.
      */
-    public TaskConfiguration taskConfiguration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+    public TaskConfiguration taskConfiguration(
+            @Nullable String comment,
+            BlockStatement containingBlock,
+            String taskName,
+            String taskType,
+            Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         TaskConfiguration conf = new TaskConfiguration(comment, taskName, taskType);
         containingBlock.add(conf);
         blockContentsBuilder.execute(conf.body);
@@ -426,7 +461,11 @@ public class BuildScriptBuilder {
      *
      * @return An expression that can be used to refer to the task later.
      */
-    public TaskRegistration taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+    public TaskRegistration taskRegistration(
+            @Nullable String comment,
+            String taskName,
+            String taskType,
+            Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
         block.add(registration);
         blockContentsBuilder.execute(registration.body);
@@ -438,7 +477,12 @@ public class BuildScriptBuilder {
      *
      * @return An expression that can be used to refer to the task later.
      */
-    public TaskRegistration taskRegistration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+    public TaskRegistration taskRegistration(
+            @Nullable String comment,
+            BlockStatement containingBlock,
+            String taskName,
+            String taskType,
+            Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
         containingBlock.add(registration);
         blockContentsBuilder.execute(registration.body);
@@ -450,7 +494,12 @@ public class BuildScriptBuilder {
      *
      * @return An expression that can be used to refer to the task later.
      */
-    public SuiteConfiguration suiteConfiguration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+    public SuiteConfiguration suiteConfiguration(
+            @Nullable String comment,
+            BlockStatement containingBlock,
+            String taskName,
+            String taskType,
+            Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         SuiteConfiguration conf = new SuiteConfiguration(comment, taskName, taskType);
         containingBlock.add(conf);
         blockContentsBuilder.execute(conf.body);
@@ -462,7 +511,12 @@ public class BuildScriptBuilder {
      *
      * @return An expression that can be used to refer to the task later.
      */
-    public SuiteRegistration suiteRegistration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+    public SuiteRegistration suiteRegistration(
+            @Nullable String comment,
+            BlockStatement containingBlock,
+            String taskName,
+            String taskType,
+            Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         SuiteRegistration registration = new SuiteRegistration(comment, taskName, taskType);
         containingBlock.add(registration);
         blockContentsBuilder.execute(registration.body);
@@ -475,7 +529,8 @@ public class BuildScriptBuilder {
      * @param varName A variable to use to reference the element, if required by the DSL. If {@code null}, then use the element name.
      * @return An expression that can be used to refer to the element later in the script.
      */
-    public Expression createContainerElement(@Nullable String comment, String container, String elementName, @Nullable String varName) {
+    public Expression createContainerElement(
+            @Nullable String comment, String container, String elementName, @Nullable String varName) {
         ContainerElement containerElement = new ContainerElement(comment, container, elementName, null, varName);
         block.add(containerElement);
         return containerElement;
@@ -528,8 +583,7 @@ public class BuildScriptBuilder {
         block.useVersionCatalogFromOuterBuild(comment);
     }
 
-    public interface Expression {
-    }
+    public interface Expression {}
 
     private interface ExpressionValue extends Expression {
         default boolean isBooleanType() {
@@ -593,7 +647,8 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        @SuppressWarnings("GetClassOnEnum") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+        @SuppressWarnings("GetClassOnEnum") // TODO: evaluate errorprone suppression
+        // (https://github.com/gradle/gradle/issues/35864)
         public String with(Syntax syntax) {
             return literal.getClass().getSimpleName() + "." + literal.name();
         }
@@ -628,26 +683,30 @@ public class BuildScriptBuilder {
 
         @Override
         public String with(Syntax syntax) {
-            return "{" + calls.stream()
-                .map(call -> call.invocationExpression.with(syntax))
-                .collect(Collectors.joining("\n", " ", " ")) +
-                "}";
+            return "{"
+                    + calls.stream()
+                            .map(call -> call.invocationExpression.with(syntax))
+                            .collect(Collectors.joining("\n", " ", " "))
+                    + "}";
         }
     }
 
     private static class MethodInvocationExpression implements ExpressionValue {
         @Nullable
         private final ExpressionValue target;
+
         final String methodName;
         final List<ExpressionValue> arguments;
 
-        MethodInvocationExpression(@Nullable ExpressionValue target, String methodName, List<ExpressionValue> arguments) {
+        MethodInvocationExpression(
+                @Nullable ExpressionValue target, String methodName, List<ExpressionValue> arguments) {
             this.target = target;
             this.methodName = methodName;
             this.arguments = arguments;
         }
 
-        MethodInvocationExpression(@Nullable ExpressionValue target, String methodName, NoArgClosureExpression closureArg) {
+        MethodInvocationExpression(
+                @Nullable ExpressionValue target, String methodName, NoArgClosureExpression closureArg) {
             this.target = target;
             this.methodName = methodName;
             this.arguments = singletonList(closureArg);
@@ -712,8 +771,10 @@ public class BuildScriptBuilder {
     private static class PluginSpec extends AbstractStatement {
         @Nullable
         final String id;
+
         @Nullable
         final String version;
+
         @Nullable
         final String versionCatalogRef;
 
@@ -746,7 +807,11 @@ public class BuildScriptBuilder {
         final String dependencyOrCatalogReference;
         final boolean catalogReference;
 
-        DepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, boolean catalogReference) {
+        DepSpec(
+                String configuration,
+                @Nullable String comment,
+                String dependencyOrCatalogReference,
+                boolean catalogReference) {
             super(comment);
             this.configuration = configuration;
             this.dependencyOrCatalogReference = dependencyOrCatalogReference;
@@ -758,7 +823,8 @@ public class BuildScriptBuilder {
             if (catalogReference) {
                 printer.println(printer.syntax.dependencySpec(configuration, dependencyOrCatalogReference));
             } else {
-                printer.println(printer.syntax.dependencySpec(configuration, printer.syntax.string(dependencyOrCatalogReference)));
+                printer.println(printer.syntax.dependencySpec(
+                        configuration, printer.syntax.string(dependencyOrCatalogReference)));
             }
         }
     }
@@ -768,7 +834,11 @@ public class BuildScriptBuilder {
         private final String dependencyOrCatalogReference;
         final boolean catalogReference;
 
-        PlatformDepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, boolean catalogReference) {
+        PlatformDepSpec(
+                String configuration,
+                @Nullable String comment,
+                String dependencyOrCatalogReference,
+                boolean catalogReference) {
             super(comment);
             this.configuration = configuration;
             this.dependencyOrCatalogReference = dependencyOrCatalogReference;
@@ -778,13 +848,11 @@ public class BuildScriptBuilder {
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
             if (catalogReference) {
-                printer.println(printer.syntax.dependencySpec(
-                    configuration, "platform(" + dependencyOrCatalogReference + ")"
-                ));
+                printer.println(
+                        printer.syntax.dependencySpec(configuration, "platform(" + dependencyOrCatalogReference + ")"));
             } else {
                 printer.println(printer.syntax.dependencySpec(
-                    configuration, "platform(" + printer.syntax.string(dependencyOrCatalogReference) + ")"
-                ));
+                        configuration, "platform(" + printer.syntax.string(dependencyOrCatalogReference) + ")"));
             }
         }
     }
@@ -815,7 +883,8 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            printer.println(printer.syntax.dependencySpec(configuration, "project(" + printer.syntax.string(projectPath) + ")"));
+            printer.println(printer.syntax.dependencySpec(
+                    configuration, "project(" + printer.syntax.string(projectPath) + ")"));
         }
     }
 
@@ -894,7 +963,11 @@ public class BuildScriptBuilder {
      * Represents a statement in a script. Each statement has an optional comment that explains its purpose.
      */
     public interface Statement {
-        enum Type {Empty, Single, Group}
+        enum Type {
+            Empty,
+            Single,
+            Group
+        }
 
         @Nullable
         String getComment();
@@ -910,7 +983,7 @@ public class BuildScriptBuilder {
         void writeCodeTo(PrettyPrinter printer);
     }
 
-    private static abstract class AbstractStatement implements Statement {
+    private abstract static class AbstractStatement implements Statement {
 
         private final String comment;
 
@@ -976,13 +1049,21 @@ public class BuildScriptBuilder {
         private final String containerComment;
         private final String container;
         private final String elementName;
+
         @Nullable
         private final String varName;
+
         @Nullable
         private final String elementType;
+
         private final ScriptBlockImpl body = new ScriptBlockImpl();
 
-        public ContainerElement(String containerComment, String container, String elementName, @Nullable String elementType, @Nullable String varName) {
+        public ContainerElement(
+                String containerComment,
+                String container,
+                String elementName,
+                @Nullable String elementType,
+                @Nullable String varName) {
             super(null);
             this.containerComment = containerComment;
             this.container = container;
@@ -993,7 +1074,8 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            Statement statement = printer.syntax.createContainerElement(containerComment, container, elementName, elementType, varName, body.statements);
+            Statement statement = printer.syntax.createContainerElement(
+                    containerComment, container, elementName, elementType, varName, body.statements);
             printer.printStatement(statement);
         }
 
@@ -1009,7 +1091,8 @@ public class BuildScriptBuilder {
         final ExpressionValue propertyValue;
         final boolean assignOperator;
 
-        private PropertyAssignment(String comment, String propertyName, ExpressionValue propertyValue, boolean assignOperator) {
+        private PropertyAssignment(
+                String comment, String propertyName, ExpressionValue propertyValue, boolean assignOperator) {
             super(comment);
             this.propertyName = propertyName;
             this.propertyValue = propertyValue;
@@ -1120,8 +1203,10 @@ public class BuildScriptBuilder {
 
     private static class DependenciesBlock implements DependenciesBuilder, Statement, BlockBody {
         final BuildScriptBuilder buildScriptBuilder;
-        final ListMultimap<String, Statement> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
-        final ListMultimap<String, Statement> constraints = MultimapBuilder.linkedHashKeys().arrayListValues().build();
+        final ListMultimap<String, Statement> dependencies =
+                MultimapBuilder.linkedHashKeys().arrayListValues().build();
+        final ListMultimap<String, Statement> constraints =
+                MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
         public DependenciesBlock(BuildScriptBuilder buildScriptBuilder) {
             this.buildScriptBuilder = buildScriptBuilder;
@@ -1133,15 +1218,20 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void dependencyConstraint(String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
+        public void dependencyConstraint(
+                String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
             this.constraints.put(configuration, makeDepSpec(configuration, comment, dependencies));
         }
 
-        private Statement makeDepSpec(String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
+        private Statement makeDepSpec(
+                String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
             StatementGroup statementGroup = new StatementGroup(comment);
             for (BuildInitDependency d : dependencies) {
                 if (d.version != null && buildScriptBuilder.useVersionCatalog) {
-                    String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.module, d.version);
+                    String versionCatalogRef = buildScriptBuilder
+                            .buildContentGenerationContext
+                            .getVersionCatalogDependencyRegistry()
+                            .registerLibrary(d.module, d.version);
                     statementGroup.add(new DepSpec(configuration, null, versionCatalogRef, true));
                 } else {
                     statementGroup.add(new DepSpec(configuration, null, d.toNotation(), false));
@@ -1151,11 +1241,15 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void platformDependency(String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
+        public void platformDependency(
+                String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
             StatementGroup statementGroup = new StatementGroup(comment);
             for (BuildInitDependency d : dependencies) {
                 if (d.version != null && buildScriptBuilder.useVersionCatalog) {
-                    String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.module, d.version);
+                    String versionCatalogRef = buildScriptBuilder
+                            .buildContentGenerationContext
+                            .getVersionCatalogDependencyRegistry()
+                            .registerLibrary(d.module, d.version);
                     statementGroup.add(new PlatformDepSpec(configuration, comment, versionCatalogRef, true));
                 } else {
                     statementGroup.add(new PlatformDepSpec(configuration, comment, d.toNotation(), false));
@@ -1266,35 +1360,60 @@ public class BuildScriptBuilder {
 
         @Override
         public SuiteSpec junitSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT, libraryVersionProvider.getVersion("junit"), builder);
+            final SuiteSpec spec = new SuiteSpec(
+                    null,
+                    name,
+                    SuiteSpec.TestSuiteFramework.JUNIT,
+                    libraryVersionProvider.getVersion("junit"),
+                    builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
         public SuiteSpec junitJupiterSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, libraryVersionProvider.getVersion("junit-jupiter"), builder);
+            final SuiteSpec spec = new SuiteSpec(
+                    null,
+                    name,
+                    SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM,
+                    libraryVersionProvider.getVersion("junit-jupiter"),
+                    builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
         public SuiteSpec spockSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.SPOCK, libraryVersionProvider.getVersion("spock"), builder);
+            final SuiteSpec spec = new SuiteSpec(
+                    null,
+                    name,
+                    SuiteSpec.TestSuiteFramework.SPOCK,
+                    libraryVersionProvider.getVersion("spock"),
+                    builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
         public SuiteSpec kotlinTestSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, libraryVersionProvider.getVersion("kotlin"), builder);
+            final SuiteSpec spec = new SuiteSpec(
+                    null,
+                    name,
+                    SuiteSpec.TestSuiteFramework.KOTLIN_TEST,
+                    libraryVersionProvider.getVersion("kotlin"),
+                    builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
         public SuiteSpec testNG(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.TEST_NG, libraryVersionProvider.getVersion("testng"), builder);
+            final SuiteSpec spec = new SuiteSpec(
+                    null,
+                    name,
+                    SuiteSpec.TestSuiteFramework.TEST_NG,
+                    libraryVersionProvider.getVersion("testng"),
+                    builder);
             suites.add(spec);
             return spec;
         }
@@ -1313,7 +1432,12 @@ public class BuildScriptBuilder {
         private final boolean isDefaultTestSuite;
         private final boolean isDefaultFramework;
 
-        SuiteSpec(@Nullable String comment, String name, TestSuiteFramework framework, String frameworkVersion, BuildScriptBuilder builder) {
+        SuiteSpec(
+                @Nullable String comment,
+                String name,
+                TestSuiteFramework framework,
+                String frameworkVersion,
+                BuildScriptBuilder builder) {
             super(comment);
             this.builder = builder;
             this.framework = framework;
@@ -1326,7 +1450,8 @@ public class BuildScriptBuilder {
             isDefaultFramework = framework == TestSuiteFramework.getDefault();
 
             if (!isDefaultTestSuite) {
-                dependencies.selfDependency("implementation", name + " test suite depends on the production code in tests");
+                dependencies.selfDependency(
+                        "implementation", name + " test suite depends on the production code in tests");
                 targets.all(true);
             }
         }
@@ -1335,9 +1460,13 @@ public class BuildScriptBuilder {
             return b -> {
                 if (isDefaultTestSuite || !isDefaultFramework) {
                     if (frameworkVersion == null) {
-                        b.methodInvocation("Use " + framework.displayName + " test framework", framework.method.methodName);
+                        b.methodInvocation(
+                                "Use " + framework.displayName + " test framework", framework.method.methodName);
                     } else {
-                        b.methodInvocation("Use " + framework.displayName + " test framework", framework.method.methodName, frameworkVersion);
+                        b.methodInvocation(
+                                "Use " + framework.displayName + " test framework",
+                                framework.method.methodName,
+                                frameworkVersion);
                     }
                 }
 
@@ -1375,9 +1504,19 @@ public class BuildScriptBuilder {
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
             if (isDefaultTestSuite) {
-                printer.printStatement(builder.suiteConfiguration("Configure the built-in test suite", builder.block.testing, name, JvmTestSuite.class.getSimpleName(), buildSuiteConfigurationContents()));
+                printer.printStatement(builder.suiteConfiguration(
+                        "Configure the built-in test suite",
+                        builder.block.testing,
+                        name,
+                        JvmTestSuite.class.getSimpleName(),
+                        buildSuiteConfigurationContents()));
             } else {
-                printer.printStatement(builder.suiteRegistration("Create a new test suite", builder.block.testing, name, JvmTestSuite.class.getSimpleName(), buildSuiteConfigurationContents()));
+                printer.printStatement(builder.suiteRegistration(
+                        "Create a new test suite",
+                        builder.block.testing,
+                        name,
+                        JvmTestSuite.class.getSimpleName(),
+                        buildSuiteConfigurationContents()));
             }
         }
 
@@ -1389,7 +1528,9 @@ public class BuildScriptBuilder {
             TEST_NG(new MethodInvocationExpression("useTestNG"), "TestNG");
 
             final String displayName;
-            @SuppressWarnings("ImmutableEnumChecker") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+
+            @SuppressWarnings("ImmutableEnumChecker") // TODO: evaluate errorprone suppression
+            // (https://github.com/gradle/gradle/issues/35864)
             final MethodInvocationExpression method;
 
             TestSuiteFramework(MethodInvocationExpression method, String displayName) {
@@ -1400,7 +1541,6 @@ public class BuildScriptBuilder {
             public static TestSuiteFramework getDefault() {
                 return JUNIT_PLATFORM;
             }
-
         }
     }
 
@@ -1468,9 +1608,14 @@ public class BuildScriptBuilder {
         }
 
         private void configureShouldRunAfterTest() {
-            final MethodInvocation shouldRunAfterCall = new MethodInvocation(null, new MethodInvocationExpression(null, "shouldRunAfter", singletonList(new LiteralValue("test"))));
+            final MethodInvocation shouldRunAfterCall = new MethodInvocation(
+                    null,
+                    new MethodInvocationExpression(null, "shouldRunAfter", singletonList(new LiteralValue("test"))));
             final NoArgClosureExpression configBlock = new NoArgClosureExpression(shouldRunAfterCall);
-            final MethodInvocation functionalTestConfiguration = new MethodInvocation("This test suite should run after the built-in test suite has run its tests", new MethodInvocationExpression(expressionValue(builder.propertyExpression("testTask")), "configure", configBlock));
+            final MethodInvocation functionalTestConfiguration = new MethodInvocation(
+                    "This test suite should run after the built-in test suite has run its tests",
+                    new MethodInvocationExpression(
+                            expressionValue(builder.propertyExpression("testTask")), "configure", configBlock));
             add(functionalTestConfiguration);
         }
 
@@ -1530,18 +1675,24 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void propertyAssignment(String comment, String propertyName, Object propertyValue, boolean assignOperator) {
-            statements.add(new PropertyAssignment(comment, propertyName, expressionValue(propertyValue), assignOperator));
+        public void propertyAssignment(
+                String comment, String propertyName, Object propertyValue, boolean assignOperator) {
+            statements.add(
+                    new PropertyAssignment(comment, propertyName, expressionValue(propertyValue), assignOperator));
         }
 
         @Override
         public void methodInvocation(String comment, String methodName, Object... methodArgs) {
-            statements.add(new MethodInvocation(comment, new MethodInvocationExpression(null, methodName, expressionValues(methodArgs))));
+            statements.add(new MethodInvocation(
+                    comment, new MethodInvocationExpression(null, methodName, expressionValues(methodArgs))));
         }
 
         @Override
-        public void methodInvocation(@Nullable String comment, Expression target, String methodName, Object... methodArgs) {
-            statements.add(new MethodInvocation(comment, new MethodInvocationExpression(expressionValue(target), methodName, expressionValues(methodArgs))));
+        public void methodInvocation(
+                @Nullable String comment, Expression target, String methodName, Object... methodArgs) {
+            statements.add(new MethodInvocation(
+                    comment,
+                    new MethodInvocationExpression(expressionValue(target), methodName, expressionValues(methodArgs))));
         }
 
         @Override
@@ -1557,13 +1708,20 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+        public void block(
+                @Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
             blockContentsBuilder.execute(block(comment, methodName));
         }
 
         @Override
-        public Expression containerElement(@Nullable String comment, String container, String elementName, @Nullable String elementType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
-            ContainerElement containerElement = new ContainerElement(comment, container, elementName, elementType, null);
+        public Expression containerElement(
+                @Nullable String comment,
+                String container,
+                String elementName,
+                @Nullable String elementType,
+                Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+            ContainerElement containerElement =
+                    new ContainerElement(comment, container, elementName, elementType, null);
             statements.add(containerElement);
             blockContentsBuilder.execute(containerElement.body);
             return containerElement;
@@ -1619,13 +1777,25 @@ public class BuildScriptBuilder {
         }
 
         private void addCheckDependsOn(SuiteSpec suite) {
-            final ExpressionValue testSuites = expressionValue(builder.propertyExpression(builder.propertyExpression("testing"), "suites"));
+            final ExpressionValue testSuites =
+                    expressionValue(builder.propertyExpression(builder.propertyExpression("testing"), "suites"));
             if (builder.dsl == BuildInitDsl.GROOVY) {
                 final Expression suiteDependedUpon = builder.propertyExpression(testSuites, suite.getName());
-                builder.taskMethodInvocation("Include " + suite.getName() + " as part of the check lifecycle", "check", Task.class.getSimpleName(), "dependsOn", suiteDependedUpon);
+                builder.taskMethodInvocation(
+                        "Include " + suite.getName() + " as part of the check lifecycle",
+                        "check",
+                        Task.class.getSimpleName(),
+                        "dependsOn",
+                        suiteDependedUpon);
             } else {
-                final ExpressionValue namedMethod = new MethodInvocationExpression(testSuites, "named", singletonList(new StringValue(suite.getName())));
-                builder.taskMethodInvocation("Include " + suite.getName() + " as part of the check lifecycle", "check", Task.class.getSimpleName(), "dependsOn", namedMethod);
+                final ExpressionValue namedMethod = new MethodInvocationExpression(
+                        testSuites, "named", singletonList(new StringValue(suite.getName())));
+                builder.taskMethodInvocation(
+                        "Include " + suite.getName() + " as part of the check lifecycle",
+                        "check",
+                        Task.class.getSimpleName(),
+                        "dependsOn",
+                        namedMethod);
             }
         }
 
@@ -1652,13 +1822,20 @@ public class BuildScriptBuilder {
         }
 
         public void includePluginsBuild() {
-            pluginsManagement.add(new MethodInvocation("Include 'plugins build' to define convention plugins.",
-                new MethodInvocationExpression(null, "includeBuild", expressionValues(PLUGINS_BUILD_LOCATION))));
+            pluginsManagement.add(new MethodInvocation(
+                    "Include 'plugins build' to define convention plugins.",
+                    new MethodInvocationExpression(null, "includeBuild", expressionValues(PLUGINS_BUILD_LOCATION))));
         }
 
         public void useVersionCatalogFromOuterBuild(String comment) {
             BlockStatement vc = new BlockStatement(comment, "versionCatalogs");
-            vc.body.add(new MethodInvocation(null, new MethodInvocationExpression(null, "create", expressionValues("libs", new LiteralValue("{ from(files(\"../gradle/libs.versions.toml\")) }")))));
+            vc.body.add(new MethodInvocation(
+                    null,
+                    new MethodInvocationExpression(
+                            null,
+                            "create",
+                            expressionValues(
+                                    "libs", new LiteralValue("{ from(files(\"../gradle/libs.versions.toml\")) }")))));
             dependencyResolutionManagement.add(vc);
         }
     }
@@ -1800,7 +1977,8 @@ public class BuildScriptBuilder {
     }
 
     private static class ConfigurationStatements<T extends ConfigSelector> implements Statement {
-        final ListMultimap<T, Statement> blocks = MultimapBuilder.linkedHashKeys().arrayListValues().build();
+        final ListMultimap<T, Statement> blocks =
+                MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
         void add(T selector, Statement statement) {
             blocks.put(selector, statement);
@@ -1912,7 +2090,8 @@ public class BuildScriptBuilder {
             boolean hasComment = statement.getComment() != null;
 
             // Add separators before and after anything with a comment or that is a block or group of statements
-            boolean needsSeparator = type == Statement.Type.Group || (hasComment && comments.equals(BuildInitComments.ON));
+            boolean needsSeparator =
+                    type == Statement.Type.Group || (hasComment && comments.equals(BuildInitComments.ON));
             if (needsSeparator && !firstStatementOfBlock) {
                 needSeparatorLine = true;
             }
@@ -1997,13 +2176,20 @@ public class BuildScriptBuilder {
 
         String firstArg(ExpressionValue argument);
 
-        Statement createContainerElement(@Nullable String comment, String container, String elementName, @Nullable String elementType, @Nullable String varName, List<Statement> body);
+        Statement createContainerElement(
+                @Nullable String comment,
+                String container,
+                String elementName,
+                @Nullable String elementType,
+                @Nullable String varName,
+                List<Statement> body);
 
         String referenceCreatedContainerElement(String container, String elementName, @Nullable String varName);
 
         String containerElement(String container, String element);
 
-        void configureConventionPlugin(@Nullable String comment, BlockStatement plugins, RepositoriesBlock repositories);
+        void configureConventionPlugin(
+                @Nullable String comment, BlockStatement plugins, RepositoriesBlock repositories);
     }
 
     private static final class KotlinSyntax implements Syntax {
@@ -2013,10 +2199,7 @@ public class BuildScriptBuilder {
         }
 
         private String escapeKotlinStringLiteral(String string) {
-            return string
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("$", "\\$");
+            return string.replace("\\", "\\\\").replace("\"", "\\\"").replace("$", "\\$");
         }
 
         @Override
@@ -2140,7 +2323,13 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public Statement createContainerElement(String comment, String container, String elementName, @Nullable String elementType, String varName, List<Statement> body) {
+        public Statement createContainerElement(
+                String comment,
+                String container,
+                String elementName,
+                @Nullable String elementType,
+                String varName,
+                List<Statement> body) {
             String literal = getLiteral(container, elementName, elementType, varName);
             BlockStatement blockStatement = new ScriptBlock(comment, literal);
             for (Statement statement : body) {
@@ -2178,7 +2367,8 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void configureConventionPlugin(@Nullable String comment, BlockStatement plugins, RepositoriesBlock repositories) {
+        public void configureConventionPlugin(
+                @Nullable String comment, BlockStatement plugins, RepositoriesBlock repositories) {
             plugins.add(new PluginSpec("kotlin-dsl", null, comment));
         }
     }
@@ -2302,9 +2492,16 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public Statement createContainerElement(String comment, String container, String elementName, @Nullable String elementType, String varName, List<Statement> body) {
+        public Statement createContainerElement(
+                String comment,
+                String container,
+                String elementName,
+                @Nullable String elementType,
+                String varName,
+                List<Statement> body) {
             ScriptBlock outerBlock = new ScriptBlock(comment, container);
-            ScriptBlock innerBlock = new ScriptBlock(null, elementType == null ? elementName : elementName + "(" + elementType + ")");
+            ScriptBlock innerBlock =
+                    new ScriptBlock(null, elementType == null ? elementName : elementName + "(" + elementType + ")");
             outerBlock.add(innerBlock);
             for (Statement statement : body) {
                 innerBlock.add(statement);
@@ -2323,7 +2520,8 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void configureConventionPlugin(@Nullable String comment, BlockStatement plugins, RepositoriesBlock repositories) {
+        public void configureConventionPlugin(
+                @Nullable String comment, BlockStatement plugins, RepositoriesBlock repositories) {
             plugins.add(new PluginSpec("groovy-gradle-plugin", null, comment));
         }
     }
@@ -2331,7 +2529,10 @@ public class BuildScriptBuilder {
     private interface MavenRepositoryURLHandler {
         void handleURL(URI repoLocation, PrettyPrinter printer);
 
-        static MavenRepositoryURLHandler forInsecureProtocolOption(InsecureProtocolOption insecureProtocolOption, BuildInitDsl dsl, DocumentationRegistry documentationRegistry) {
+        static MavenRepositoryURLHandler forInsecureProtocolOption(
+                InsecureProtocolOption insecureProtocolOption,
+                BuildInitDsl dsl,
+                DocumentationRegistry documentationRegistry) {
             switch (insecureProtocolOption) {
                 case FAIL:
                     return new FailingHandler(documentationRegistry);
@@ -2361,7 +2562,12 @@ public class BuildScriptBuilder {
             }
 
             protected void handleSecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
-                statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", singletonList(new StringValue(repoLocation.toString()))), true);
+                statements.propertyAssignment(
+                        null,
+                        "url",
+                        new MethodInvocationExpression(
+                                null, "uri", singletonList(new StringValue(repoLocation.toString()))),
+                        true);
             }
 
             protected abstract void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements);
@@ -2376,9 +2582,12 @@ public class BuildScriptBuilder {
 
             @Override
             protected void handleInsecureURL(URI repoLocation, ScriptBlockImpl statements) {
-                LOGGER.error("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. {}",
-                    documentationRegistry.getDocumentationRecommendationFor("options", "build_init_plugin", "sec:allow_insecure"));
-                throw new GradleException(String.format("Build generation aborted due to insecure protocol in repository: %s", repoLocation));
+                LOGGER.error(
+                        "Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. {}",
+                        documentationRegistry.getDocumentationRecommendationFor(
+                                "options", "build_init_plugin", "sec:allow_insecure"));
+                throw new GradleException(String.format(
+                        "Build generation aborted due to insecure protocol in repository: %s", repoLocation));
             }
         }
 
@@ -2393,16 +2602,26 @@ public class BuildScriptBuilder {
 
             @Override
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
-                LOGGER.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. {}",
-                    documentationRegistry.getDocumentationRecommendationFor("information on how to do this", "build_init_plugin", "sec:allow_insecure"));
+                LOGGER.warn(
+                        "Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. {}",
+                        documentationRegistry.getDocumentationRecommendationFor(
+                                "information on how to do this", "build_init_plugin", "sec:allow_insecure"));
                 // use the insecure URL as-is
-                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
+                statements.propertyAssignment(
+                        null,
+                        "url",
+                        new BuildScriptBuilder.MethodInvocationExpression(
+                                null,
+                                "uri",
+                                singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))),
+                        true);
                 // Leave a commented out block for opting into using the insecure repository
                 statements.comment(buildAllowInsecureProtocolComment(dsl));
             }
 
             private String buildAllowInsecureProtocolComment(BuildInitDsl dsl) {
-                final PropertyAssignment assignment = new PropertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
+                final PropertyAssignment assignment = new PropertyAssignment(
+                        null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
 
                 final StringWriter result = new StringWriter();
                 try (PrintWriter writer = new PrintWriter(result)) {
@@ -2420,7 +2639,12 @@ public class BuildScriptBuilder {
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
                 // convert the insecure url for this repository from http to https
                 final URI secureUri = GUtil.toSecureUrl(repoLocation);
-                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(secureUri.toString()))), true);
+                statements.propertyAssignment(
+                        null,
+                        "url",
+                        new BuildScriptBuilder.MethodInvocationExpression(
+                                null, "uri", singletonList(new BuildScriptBuilder.StringValue(secureUri.toString()))),
+                        true);
             }
         }
 
@@ -2428,9 +2652,17 @@ public class BuildScriptBuilder {
             @Override
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
                 // use the insecure URL as-is
-                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
+                statements.propertyAssignment(
+                        null,
+                        "url",
+                        new BuildScriptBuilder.MethodInvocationExpression(
+                                null,
+                                "uri",
+                                singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))),
+                        true);
                 // Opt into using an insecure protocol with this repository
-                statements.propertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
+                statements.propertyAssignment(
+                        null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
             }
         }
     }

@@ -16,7 +16,19 @@
 
 package org.gradle.api.internal.initialization.transform;
 
+import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.Parameters;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createNewFile;
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.AGENT_INSTRUMENTATION_MARKER;
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.LEGACY_INSTRUMENTATION_MARKER;
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER;
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_DIR_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_ENTRY_PREFIX;
+import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NAME;
+
 import com.google.common.base.Function;
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
@@ -38,19 +50,6 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-import java.io.File;
-
-import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.Parameters;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createNewFile;
-import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.AGENT_INSTRUMENTATION_MARKER;
-import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.LEGACY_INSTRUMENTATION_MARKER;
-import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER;
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_DIR_NAME;
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_ENTRY_PREFIX;
-import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NAME;
-
 /**
  * Base artifact transform that instruments plugins with Gradle instrumentation, e.g. for configuration cache detection or property upgrades.
  */
@@ -60,13 +59,16 @@ public abstract class BaseInstrumentingArtifactTransform<T extends Parameters> i
     public interface Parameters extends TransformParameters {
         @Internal
         Property<CacheInstrumentationDataBuildService> getBuildService();
+
         @Internal
         Property<Long> getContextId();
+
         @Input
         Property<Boolean> getAgentSupported();
     }
 
-    protected final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
+    protected final Lazy<InjectedInstrumentationServices> internalServices =
+            Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
 
     @Inject
     public abstract ObjectFactory getObjects();
@@ -85,7 +87,8 @@ public abstract class BaseInstrumentingArtifactTransform<T extends Parameters> i
         if (isAgentSupported()) {
             // When agent is supported, we output an instrumented jar and an original jar,
             // so we can then later reconstruct instrumented jars classpath and original jars classpath.
-            // We add `instrumented-` prefix to the file since names for the same transform needs to be unique when querying results via ArtifactCollection.
+            // We add `instrumented-` prefix to the file since names for the same transform needs to be unique when
+            // querying results via ArtifactCollection.
             createNewFile(outputs.file(AGENT_INSTRUMENTATION_MARKER.getFileName()));
             doTransform(artifactToTransform, outputs, originalName -> INSTRUMENTED_ENTRY_PREFIX + originalName);
         } else {
@@ -98,12 +101,14 @@ public abstract class BaseInstrumentingArtifactTransform<T extends Parameters> i
         return getParameters().getAgentSupported().get();
     }
 
-    private void doTransform(File input, TransformOutputs outputs, Function<String, String> instrumentedEntryNameMapper) {
+    private void doTransform(
+            File input, TransformOutputs outputs, Function<String, String> instrumentedEntryNameMapper) {
         String outputPath = getOutputPath(input, instrumentedEntryNameMapper);
         File output = input.isDirectory() ? outputs.dir(outputPath) : outputs.file(outputPath);
         try (InstrumentingClassTransformProvider provider = instrumentingClassTransformProvider(outputs)) {
             InstrumentingClassTransform classTransform = provider.getClassTransform();
-            ClasspathElementTransformFactory transformFactory = internalServices.get().getTransformFactory(isAgentSupported());
+            ClasspathElementTransformFactory transformFactory =
+                    internalServices.get().getTransformFactory(isAgentSupported());
             ClasspathElementTransform transform = transformFactory.createTransformer(input, classTransform);
             transform.transform(output);
         }
@@ -125,13 +130,15 @@ public abstract class BaseInstrumentingArtifactTransform<T extends Parameters> i
             outputs.file(input);
         } else {
             // Jars that are in some mutable location (e.g. build/ directory) need to be copied to the global cache,
-            // since daemon keeps them locked when loading them to a classloader, which prevents e.g. deleting the build directory on windows
+            // since daemon keeps them locked when loading them to a classloader, which prevents e.g. deleting the build
+            // directory on windows
             File copyOfOriginalFile = outputs.file(ORIGINAL_DIR_NAME + "/" + input.getName());
             GFileUtils.copyFile(input, copyOfOriginalFile);
         }
     }
 
-    protected abstract InstrumentingClassTransformProvider instrumentingClassTransformProvider(TransformOutputs outputs);
+    protected abstract InstrumentingClassTransformProvider instrumentingClassTransformProvider(
+            TransformOutputs outputs);
 
     protected interface InstrumentingClassTransformProvider extends AutoCloseable {
         InstrumentingClassTransform getClassTransform();

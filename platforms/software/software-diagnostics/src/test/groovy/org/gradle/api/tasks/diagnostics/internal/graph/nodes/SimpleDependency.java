@@ -16,13 +16,12 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 
 public class SimpleDependency extends AbstractRenderableDependency {
 

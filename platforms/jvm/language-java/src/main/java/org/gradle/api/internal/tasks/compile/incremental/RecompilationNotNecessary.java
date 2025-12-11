@@ -26,7 +26,8 @@ public class RecompilationNotNecessary implements WorkResult, IncrementalCompila
     private final PreviousCompilationData previousCompilationData;
     private final RecompilationSpec recompilationSpec;
 
-    public RecompilationNotNecessary(PreviousCompilationData previousCompilationData, RecompilationSpec recompilationSpec) {
+    public RecompilationNotNecessary(
+            PreviousCompilationData previousCompilationData, RecompilationSpec recompilationSpec) {
         this.previousCompilationData = previousCompilationData;
         this.recompilationSpec = recompilationSpec;
     }

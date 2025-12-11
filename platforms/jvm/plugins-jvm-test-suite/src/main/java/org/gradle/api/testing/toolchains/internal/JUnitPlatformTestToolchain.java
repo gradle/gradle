@@ -17,6 +17,7 @@
 package org.gradle.api.testing.toolchains.internal;
 
 import com.google.common.collect.ImmutableSet;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -24,18 +25,18 @@ import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFram
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.Test;
 
-import javax.inject.Inject;
-
 /**
  * A toolchain for running JUnit Platform tests.
  *
  * @since 8.5
  */
-abstract public class JUnitPlatformTestToolchain<T extends JUnitPlatformToolchainParameters> implements JvmTestToolchain<T> {
+public abstract class JUnitPlatformTestToolchain<T extends JUnitPlatformToolchainParameters>
+        implements JvmTestToolchain<T> {
     /**
      * The default version of the JUnit Platform to use for executing tests.
      */
     public static final String DEFAULT_VERSION = "1.10.0";
+
     private static final String GROUP_NAME = "org.junit.platform:junit-platform-launcher";
 
     @Inject
@@ -51,8 +52,14 @@ abstract public class JUnitPlatformTestToolchain<T extends JUnitPlatformToolchai
 
     @Override
     public Iterable<Dependency> getRuntimeOnlyDependencies() {
-        // Use the version of the platform launcher specified in the parameters if present, otherwise assume that the version is provided via a bom
+        // Use the version of the platform launcher specified in the parameters if present, otherwise assume that the
+        // version is provided via a bom
         // referenced by the test engine or otherwise provided in the dependencies.
-        return ImmutableSet.of(getDependencyFactory().create(GROUP_NAME + getParameters().getPlatformVersion().map(version -> ":" + version).getOrElse("")));
+        return ImmutableSet.of(getDependencyFactory()
+                .create(GROUP_NAME
+                        + getParameters()
+                                .getPlatformVersion()
+                                .map(version -> ":" + version)
+                                .getOrElse("")));
     }
 }

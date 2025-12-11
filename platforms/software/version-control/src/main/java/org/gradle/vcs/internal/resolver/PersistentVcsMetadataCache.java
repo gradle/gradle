@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal.resolver;
 
+import java.util.function.Supplier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
@@ -32,8 +33,6 @@ import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.gradle.vcs.internal.VersionRef;
 import org.jspecify.annotations.Nullable;
 
-import java.util.function.Supplier;
-
 @ServiceScope(Scope.BuildSession.class)
 public class PersistentVcsMetadataCache implements Stoppable {
     private static final VersionRefSerializer VALUE_SERIALIZER = new VersionRefSerializer();
@@ -42,10 +41,11 @@ public class PersistentVcsMetadataCache implements Stoppable {
 
     public PersistentVcsMetadataCache(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
         cache = cacheBuilderFactory
-            .createCacheBuilder("vcsMetadata")
-            .withDisplayName("VCS metadata")
-            .withInitialLockMode(FileLockManager.LockMode.OnDemand) // Don't need to lock anything until we use the caches
-            .open();
+                .createCacheBuilder("vcsMetadata")
+                .withDisplayName("VCS metadata")
+                .withInitialLockMode(
+                        FileLockManager.LockMode.OnDemand) // Don't need to lock anything until we use the caches
+                .open();
         workingDirCache = cache.createIndexedCache("workingDirs", String.class, VALUE_SERIALIZER);
     }
 
@@ -55,7 +55,8 @@ public class PersistentVcsMetadataCache implements Stoppable {
     }
 
     @Nullable
-    public VersionRef getVersionForSelector(final VersionControlRepositoryConnection repository, final VersionConstraint constraint) {
+    public VersionRef getVersionForSelector(
+            final VersionControlRepositoryConnection repository, final VersionConstraint constraint) {
         return cache.useCache(new Supplier<VersionRef>() {
             @Nullable
             @Override
@@ -65,7 +66,10 @@ public class PersistentVcsMetadataCache implements Stoppable {
         });
     }
 
-    public void putVersionForSelector(final VersionControlRepositoryConnection repository, final VersionConstraint constraint, final VersionRef selectedVersion) {
+    public void putVersionForSelector(
+            final VersionControlRepositoryConnection repository,
+            final VersionConstraint constraint,
+            final VersionRef selectedVersion) {
         cache.useCache(() -> workingDirCache.put(constraintCacheKey(repository, constraint), selectedVersion));
     }
 

@@ -16,7 +16,15 @@
 
 package org.gradle.model.internal.registry;
 
+import static org.gradle.model.internal.core.ModelNode.State.Discovered;
+import static org.gradle.model.internal.core.ModelNodes.withType;
+
 import com.google.common.base.Optional;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ChainingModelProjection;
 import org.gradle.model.internal.core.EmptyModelProjection;
@@ -35,15 +43,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.gradle.model.internal.core.ModelNode.State.Discovered;
-import static org.gradle.model.internal.core.ModelNodes.withType;
 
 abstract class ModelNodeInternal implements MutableModelNode {
     protected final ModelRegistryInternal modelRegistry;
@@ -164,14 +163,16 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     public ModelPromise getPromise() {
         if (!state.isAtLeast(State.Discovered)) {
-            throw new IllegalStateException(String.format("Cannot get promise for '%s' in state %s.", getPath(), state));
+            throw new IllegalStateException(
+                    String.format("Cannot get promise for '%s' in state %s.", getPath(), state));
         }
         return toProjection();
     }
 
     public ModelAdapter getAdapter() {
         if (!state.isAtLeast(State.Created)) {
-            throw new IllegalStateException(String.format("Cannot get adapter for '%s' in state %s.", getPath(), state));
+            throw new IllegalStateException(
+                    String.format("Cannot get adapter for '%s' in state %s.", getPath(), state));
         }
         return toProjection();
     }
@@ -183,7 +184,8 @@ abstract class ModelNodeInternal implements MutableModelNode {
     @Override
     public void addProjection(ModelProjection projection) {
         if (isAtLeast(Discovered)) {
-            throw new IllegalStateException(String.format("Cannot add projections to '%s' as it is already in state %s.", getPath(), state));
+            throw new IllegalStateException(
+                    String.format("Cannot add projections to '%s' as it is already in state %s.", getPath(), state));
         }
         if (projections == null) {
             projections = new ArrayList<>();

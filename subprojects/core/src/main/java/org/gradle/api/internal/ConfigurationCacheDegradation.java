@@ -31,8 +31,9 @@ public class ConfigurationCacheDegradation {
      * @param reason a provider that produces a reason string if degradation is indeed required, or has no value otherwise
      */
     public static <T extends AbstractTask> void requireDegradation(T task, Provider<String> reason) {
-        task.getServices().get(ConfigurationCacheDegradationController.class)
-            .requireConfigurationCacheDegradation(task, reason);
+        task.getServices()
+                .get(ConfigurationCacheDegradationController.class)
+                .requireConfigurationCacheDegradation(task, reason);
     }
 
     /**
@@ -44,5 +45,4 @@ public class ConfigurationCacheDegradation {
     public static <T extends AbstractTask> void requireDegradation(T task, String reason) {
         requireDegradation(task, Providers.of(reason));
     }
-
 }

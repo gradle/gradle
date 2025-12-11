@@ -15,6 +15,17 @@
  */
 package org.gradle.cache.internal;
 
+import java.io.Closeable;
+import java.io.File;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
@@ -27,18 +38,6 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.serialize.Serializer;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Closeable;
-import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 public class DefaultCacheFactory implements CacheFactory, Closeable {
     private final Map<File, DirCacheReference> dirCaches = new HashMap<>();
     private final FileLockManager lockManager;
@@ -50,14 +49,19 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         this.executorFactory = executorFactory;
     }
 
-    void onOpen(Object cache) {
-    }
+    void onOpen(Object cache) {}
 
-    void onClose(Object cache) {
-    }
+    void onClose(Object cache) {}
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+    public PersistentCache open(
+            File cacheDir,
+            String displayName,
+            Map<String, ?> properties,
+            LockOptions lockOptions,
+            @Nullable Consumer<? super PersistentCache> initializer,
+            CacheCleanupStrategy cacheCleanupStrategy)
+            throws CacheOpenException {
         lock.lock();
         try {
             return doOpen(cacheDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy);
@@ -68,7 +72,9 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
 
     @Override
     public void visitCaches(CacheVisitor visitor) {
-        dirCaches.values().stream().map(dirCacheReference -> dirCacheReference.cache).forEach(visitor::visit);
+        dirCaches.values().stream()
+                .map(dirCacheReference -> dirCacheReference.cache)
+                .forEach(visitor::visit);
     }
 
     @Override
@@ -83,31 +89,41 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     private PersistentCache doOpen(
-        File cacheDir,
-        String displayName,
-        Map<String, ?> properties,
-        LockOptions lockOptions,
-        @Nullable Consumer<? super PersistentCache> initializer,
-        CacheCleanupStrategy cacheCleanupStrategy
-    ) {
+            File cacheDir,
+            String displayName,
+            Map<String, ?> properties,
+            LockOptions lockOptions,
+            @Nullable Consumer<? super PersistentCache> initializer,
+            CacheCleanupStrategy cacheCleanupStrategy) {
         DirCacheReference dirCacheReference = dirCaches.get(cacheDir);
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache;
             if (!properties.isEmpty() || initializer != null) {
                 Consumer<? super PersistentCache> initAction = initializer != null ? initializer : __ -> {};
-                cache = new DefaultPersistentDirectoryCache(cacheDir, displayName, properties, lockOptions, initAction, cacheCleanupStrategy, lockManager, executorFactory);
+                cache = new DefaultPersistentDirectoryCache(
+                        cacheDir,
+                        displayName,
+                        properties,
+                        lockOptions,
+                        initAction,
+                        cacheCleanupStrategy,
+                        lockManager,
+                        executorFactory);
             } else {
-                cache = new DefaultPersistentDirectoryStore(cacheDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory);
+                cache = new DefaultPersistentDirectoryStore(
+                        cacheDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory);
             }
             cache.open();
             dirCacheReference = new DirCacheReference(cache, properties, lockOptions);
             dirCaches.put(cacheDir, dirCacheReference);
         } else {
             if (!lockOptions.equals(dirCacheReference.lockOptions)) {
-                throw new IllegalStateException(String.format("Cache '%s' is already open with different lock options.", cacheDir));
+                throw new IllegalStateException(
+                        String.format("Cache '%s' is already open with different lock options.", cacheDir));
             }
             if (!properties.equals(dirCacheReference.properties)) {
-                throw new IllegalStateException(String.format("Cache '%s' is already open with different properties.", cacheDir));
+                throw new IllegalStateException(
+                        String.format("Cache '%s' is already open with different properties.", cacheDir));
             }
         }
         return new ReferenceTrackingCache(dirCacheReference);
@@ -189,7 +205,8 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
-        public <K, V> IndexedCache<K, V> createIndexedCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+        public <K, V> IndexedCache<K, V> createIndexedCache(
+                String name, Class<K> keyType, Serializer<V> valueSerializer) {
             return reference.cache.createIndexedCache(name, keyType, valueSerializer);
         }
 

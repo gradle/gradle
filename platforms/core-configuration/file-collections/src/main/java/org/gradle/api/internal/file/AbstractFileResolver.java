@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.file;
 
+import java.io.File;
+import java.net.URI;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
 import org.gradle.internal.FileUtils;
@@ -25,22 +27,20 @@ import org.gradle.internal.typeconversion.TransformingConverter;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.internal.DeferredUtil;
 
-import java.io.File;
-import java.net.URI;
-
 public abstract class AbstractFileResolver implements FileResolver {
     private final NotationParser<Object, File> fileNotationParser;
     private final NotationParser<Object, URI> uriOrFileNotationParser;
 
     protected AbstractFileResolver() {
         this.fileNotationParser = FileNotationConverter.parser();
-        this.uriOrFileNotationParser = NotationParserBuilder
-            .toType(URI.class)
-            .typeDisplayName("a URI or File")
-            .noImplicitConverters()
-            .converter(new UriNotationConverter())
-            .converter(new TransformingConverter<>(new FileNotationConverter(), file -> resolveFile(file, PathValidation.NONE).toURI()))
-            .toComposite();
+        this.uriOrFileNotationParser = NotationParserBuilder.toType(URI.class)
+                .typeDisplayName("a URI or File")
+                .noImplicitConverters()
+                .converter(new UriNotationConverter())
+                .converter(new TransformingConverter<>(
+                        new FileNotationConverter(),
+                        file -> resolveFile(file, PathValidation.NONE).toURI()))
+                .toComposite();
     }
 
     public FileResolver withBaseDir(Object path) {
@@ -62,7 +62,8 @@ public abstract class AbstractFileResolver implements FileResolver {
         return new NotationParser<Object, File>() {
             @Override
             public File parseNotation(Object notation) throws UnsupportedNotationException {
-                // TODO Further differentiate between unsupported notation errors and others (particularly when we remove the deprecated 'notation.toString()' resolution)
+                // TODO Further differentiate between unsupported notation errors and others (particularly when we
+                // remove the deprecated 'notation.toString()' resolution)
                 return resolve(notation, PathValidation.NONE);
             }
 

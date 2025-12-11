@@ -30,10 +30,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     protected final ProviderInternal<T> provider;
     protected final Spec<? super T> spec;
 
-    public FilteringProvider(
-        ProviderInternal<T> provider,
-        Spec<? super T> spec
-    ) {
+    public FilteringProvider(ProviderInternal<T> provider, Spec<? super T> spec) {
         this.spec = spec;
         this.provider = provider;
     }
@@ -93,9 +90,9 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     protected void beforeRead(EvaluationScopeContext ignored) {
         provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
-                throw new InvalidUserCodeException(
-                    String.format("Querying the filtered value of %s before %s has completed is not supported", provider, producer)
-                );
+                throw new InvalidUserCodeException(String.format(
+                        "Querying the filtered value of %s before %s has completed is not supported",
+                        provider, producer));
             }
         });
     }

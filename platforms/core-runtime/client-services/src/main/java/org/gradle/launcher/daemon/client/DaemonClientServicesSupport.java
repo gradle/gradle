@@ -15,6 +15,8 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import java.io.InputStream;
+import java.util.UUID;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.provider.DefaultPropertyFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
@@ -62,9 +64,6 @@ import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 
-import java.io.InputStream;
-import java.util.UUID;
-
 /**
  * Some support wiring for daemon clients.
  *
@@ -96,13 +95,19 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides({GlobalScopedCacheBuilderFactory.class, GlobalCache.class})
-    DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+    DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(
+            GlobalCacheDir globalCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         return new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
     @Provides
-    JvmMetadataDetector createJvmMetadataDetector(ClientExecHandleBuilderFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider, GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory) {
-        return new PersistentJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider), globalScopedCacheBuilderFactory.createCacheBuilder("jvms"));
+    JvmMetadataDetector createJvmMetadataDetector(
+            ClientExecHandleBuilderFactory execHandleFactory,
+            TemporaryFileProvider temporaryFileProvider,
+            GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory) {
+        return new PersistentJvmMetadataDetector(
+                new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider),
+                globalScopedCacheBuilderFactory.createCacheBuilder("jvms"));
     }
 
     @Provides
@@ -131,23 +136,56 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides
-    ProgressLoggerFactory createProgressLoggerFactory(Clock clock, BuildOperationIdFactory buildOperationIdFactory, OutputEventListener outputEventListener) {
-        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
+    ProgressLoggerFactory createProgressLoggerFactory(
+            Clock clock, BuildOperationIdFactory buildOperationIdFactory, OutputEventListener outputEventListener) {
+        return new DefaultProgressLoggerFactory(
+                new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
     }
 
     @Provides
-    DaemonConnector createDaemonConnector(DaemonDir daemonDir, DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, Serializer<BuildAction> buildActionSerializer) {
-        return new DefaultDaemonConnector(daemonDir, daemonRegistry, outgoingConnector, daemonStarter, listenerManager.getBroadcaster(DaemonStartListener.class), progressLoggerFactory, DaemonMessageSerializer.create(buildActionSerializer));
+    DaemonConnector createDaemonConnector(
+            DaemonDir daemonDir,
+            DaemonRegistry daemonRegistry,
+            OutgoingConnector outgoingConnector,
+            DaemonStarter daemonStarter,
+            ListenerManager listenerManager,
+            ProgressLoggerFactory progressLoggerFactory,
+            Serializer<BuildAction> buildActionSerializer) {
+        return new DefaultDaemonConnector(
+                daemonDir,
+                daemonRegistry,
+                outgoingConnector,
+                daemonStarter,
+                listenerManager.getBroadcaster(DaemonStartListener.class),
+                progressLoggerFactory,
+                DaemonMessageSerializer.create(buildActionSerializer));
     }
 
     @Provides
-    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionDetector jvmVersionDetector, DaemonRequestContext daemonRequestContext, PropertyFactory propertyFactory, ServiceRegistry serviceRegistry) {
+    DaemonStarter createDaemonStarter(
+            DaemonDir daemonDir,
+            DaemonParameters daemonParameters,
+            DaemonGreeter daemonGreeter,
+            JvmVersionDetector jvmVersionDetector,
+            DaemonRequestContext daemonRequestContext,
+            PropertyFactory propertyFactory,
+            ServiceRegistry serviceRegistry) {
         // The creation of this service is deemed expensive enough in the context of the launcher.
-        // We defer it, because it is only needed if daemon toolchains are active and there is no compatible running daemon.
+        // We defer it, because it is only needed if daemon toolchains are active and there is no compatible running
+        // daemon.
         // The service registry does not currently support lazy service injection out-of-the-box.
-        // Caveat of this hack: the service registry does not observe the dependency between these two services, so there is no closing order guarantee
-        Lazy<JavaToolchainQueryService> javaToolchainQueryService = Lazy.unsafe().of(() -> serviceRegistry.get(JavaToolchainQueryService.class));
-        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonRequestContext, daemonGreeter, jvmVersionDetector, javaToolchainQueryService, propertyFactory);
+        // Caveat of this hack: the service registry does not observe the dependency between these two services, so
+        // there is no closing order guarantee
+        Lazy<JavaToolchainQueryService> javaToolchainQueryService =
+                Lazy.unsafe().of(() -> serviceRegistry.get(JavaToolchainQueryService.class));
+        return new DefaultDaemonStarter(
+                daemonDir,
+                daemonParameters,
+                daemonRequestContext,
+                daemonGreeter,
+                jvmVersionDetector,
+                javaToolchainQueryService,
+                propertyFactory);
     }
 
     @Provides

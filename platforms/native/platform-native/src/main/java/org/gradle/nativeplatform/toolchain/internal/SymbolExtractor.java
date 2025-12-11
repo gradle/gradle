@@ -17,25 +17,35 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.collect.Lists;
+import java.io.File;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.SymbolExtractorSpec;
 
-import java.io.File;
-import java.util.List;
-
 public class SymbolExtractor extends AbstractCompiler<SymbolExtractorSpec> {
-    public SymbolExtractor(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new SymbolExtractorArgsTransformer(), false, workerLeaseService);
+    public SymbolExtractor(
+            BuildOperationExecutor buildOperationExecutor,
+            CommandLineToolInvocationWorker commandLineToolInvocationWorker,
+            CommandLineToolContext invocationContext,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                buildOperationExecutor,
+                commandLineToolInvocationWorker,
+                invocationContext,
+                new SymbolExtractorArgsTransformer(),
+                false,
+                workerLeaseService);
     }
 
     @Override
-    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final SymbolExtractorSpec spec, List<String> args) {
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(
+            final SymbolExtractorSpec spec, List<String> args) {
 
         final CommandLineToolInvocation invocation = newInvocation(
-            "Extracting symbols from " + spec.getBinaryFile().getName(), args, spec.getOperationLogger());
+                "Extracting symbols from " + spec.getBinaryFile().getName(), args, spec.getOperationLogger());
 
         return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override
@@ -47,7 +57,7 @@ public class SymbolExtractor extends AbstractCompiler<SymbolExtractorSpec> {
     }
 
     @Override
-    protected void addOptionsFileArgs(List<String> args, File tempDir) { }
+    protected void addOptionsFileArgs(List<String> args, File tempDir) {}
 
     private static class SymbolExtractorArgsTransformer implements ArgsTransformer<SymbolExtractorSpec> {
         @Override
@@ -55,7 +65,8 @@ public class SymbolExtractor extends AbstractCompiler<SymbolExtractorSpec> {
             SymbolExtractorOsConfig symbolExtractorOsConfig = SymbolExtractorOsConfig.current();
             List<String> args = Lists.newArrayList(symbolExtractorOsConfig.getArguments());
             args.addAll(spec.getArgs());
-            args.addAll(symbolExtractorOsConfig.getInputOutputFileArguments(spec.getBinaryFile().getAbsolutePath(), spec.getSymbolFile().getAbsolutePath()));
+            args.addAll(symbolExtractorOsConfig.getInputOutputFileArguments(
+                    spec.getBinaryFile().getAbsolutePath(), spec.getSymbolFile().getAbsolutePath()));
             return args;
         }
     }

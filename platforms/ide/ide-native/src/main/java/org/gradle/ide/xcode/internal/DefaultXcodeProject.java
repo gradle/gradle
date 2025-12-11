@@ -16,16 +16,15 @@
 
 package org.gradle.ide.xcode.internal;
 
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.ide.xcode.XcodeProject;
-
-import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import javax.inject.Inject;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.ide.xcode.XcodeProject;
 
 public class DefaultXcodeProject implements XcodeProject {
     public static final String BUILD_DEBUG = "Debug";
@@ -74,7 +73,7 @@ public class DefaultXcodeProject implements XcodeProject {
         this.locationDir = locationDir;
     }
 
-    public static abstract class Groups {
+    public abstract static class Groups {
         public abstract ConfigurableFileCollection getRoot();
 
         public abstract ConfigurableFileCollection getSources();

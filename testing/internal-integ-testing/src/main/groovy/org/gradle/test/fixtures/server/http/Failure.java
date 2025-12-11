@@ -16,5 +16,4 @@
 
 package org.gradle.test.fixtures.server.http;
 
-interface Failure extends ResponseProducer {
-}
+interface Failure extends ResponseProducer {}

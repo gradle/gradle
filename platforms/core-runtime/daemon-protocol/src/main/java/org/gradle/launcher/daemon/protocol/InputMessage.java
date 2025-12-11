@@ -15,5 +15,4 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-public abstract class InputMessage extends Message {
-}
+public abstract class InputMessage extends Message {}

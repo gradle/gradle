@@ -16,12 +16,6 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.RelativePath;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.os.OperatingSystem;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,6 +23,11 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.RelativePath;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.os.OperatingSystem;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A factory for creating {@link AttributeBasedFileVisitDetails} instances.
@@ -48,12 +47,11 @@ public class AttributeBasedFileVisitDetailsFactory {
      * @return FileVisitDetails
      */
     public static FileVisitDetails getRootFileVisitDetails(
-        Path path,
-        RelativePath relativePath,
-        @Nullable BasicFileAttributes attrs,
-        AtomicBoolean stopFlag,
-        FileSystem fileSystem
-    ) {
+            Path path,
+            RelativePath relativePath,
+            @Nullable BasicFileAttributes attrs,
+            AtomicBoolean stopFlag,
+            FileSystem fileSystem) {
         File file = path.toFile();
         if (attrs == null) {
             return new UnauthorizedFileVisitDetails(file, relativePath);
@@ -75,11 +73,7 @@ public class AttributeBasedFileVisitDetailsFactory {
      * @return FileVisitDetails
      */
     public static FileVisitDetails getRootFileVisitDetails(
-        Path path,
-        RelativePath relativePath,
-        AtomicBoolean stopFlag,
-        FileSystem fileSystem
-    ) {
+            Path path, RelativePath relativePath, AtomicBoolean stopFlag, FileSystem fileSystem) {
         BasicFileAttributes attrs = getAttributes(path);
         return getRootFileVisitDetails(path, relativePath, attrs, stopFlag, fileSystem);
     }
@@ -95,14 +89,14 @@ public class AttributeBasedFileVisitDetailsFactory {
      * @return FileVisitDetails
      */
     public static FileVisitDetails getFileVisitDetails(
-        Path path,
-        RelativePath parentPath,
-        @Nullable BasicFileAttributes attrs,
-        AtomicBoolean stopFlag,
-        FileSystem fileSystem
-    ) {
+            Path path,
+            RelativePath parentPath,
+            @Nullable BasicFileAttributes attrs,
+            AtomicBoolean stopFlag,
+            FileSystem fileSystem) {
         boolean isDirectory = attrs != null && attrs.isDirectory();
-        RelativePath relativePath = parentPath.append(!isDirectory, path.getFileName().toString());
+        RelativePath relativePath =
+                parentPath.append(!isDirectory, path.getFileName().toString());
         return getRootFileVisitDetails(path, relativePath, attrs, stopFlag, fileSystem);
     }
 
@@ -116,11 +110,7 @@ public class AttributeBasedFileVisitDetailsFactory {
      * @return FileVisitDetails
      */
     public static FileVisitDetails getFileVisitDetails(
-        Path path,
-        RelativePath parentPath,
-        AtomicBoolean stopFlag,
-        FileSystem fileSystem
-    ) {
+            Path path, RelativePath parentPath, AtomicBoolean stopFlag, FileSystem fileSystem) {
         BasicFileAttributes attrs = getAttributes(path);
         return getFileVisitDetails(path, parentPath, attrs, stopFlag, fileSystem);
     }

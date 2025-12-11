@@ -16,12 +16,11 @@
 
 package org.gradle.workers.internal;
 
+import java.io.File;
+import java.util.Set;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
-
-import java.io.File;
-import java.util.Set;
 
 public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
     private final Class<? extends WorkAction<T>> implementationClass;
@@ -34,15 +33,14 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
     private final File projectCacheDir;
 
     public IsolatedParametersActionExecutionSpec(
-        Class<? extends WorkAction<T>> implementationClass,
-        String displayName,
-        String actionImplementationClassName,
-        Isolatable<T> isolatedParams,
-        ClassLoaderStructure classLoaderStructure,
-        File baseDir,
-        File projectCacheDir,
-        Set<Class<?>> additionalWhitelistedServices
-    ) {
+            Class<? extends WorkAction<T>> implementationClass,
+            String displayName,
+            String actionImplementationClassName,
+            Isolatable<T> isolatedParams,
+            ClassLoaderStructure classLoaderStructure,
+            File baseDir,
+            File projectCacheDir,
+            Set<Class<?>> additionalWhitelistedServices) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.actionImplementationClassName = actionImplementationClassName;

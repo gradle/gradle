@@ -43,11 +43,13 @@ public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
         if (repositories == null) {
             return null;
         }
-        PrebuiltLibrary prebuiltLibrary = getPrebuiltLibrary(repositories.withType(PrebuiltLibraries.class), library.getLibraryName());
+        PrebuiltLibrary prebuiltLibrary =
+                getPrebuiltLibrary(repositories.withType(PrebuiltLibraries.class), library.getLibraryName());
         return prebuiltLibrary != null ? prebuiltLibrary.getBinaries() : null;
     }
 
-    private PrebuiltLibrary getPrebuiltLibrary(NamedDomainObjectSet<PrebuiltLibraries> repositories, String libraryName) {
+    private PrebuiltLibrary getPrebuiltLibrary(
+            NamedDomainObjectSet<PrebuiltLibraries> repositories, String libraryName) {
         for (PrebuiltLibraries prebuiltLibraries : repositories) {
             PrebuiltLibrary prebuiltLibrary = prebuiltLibraries.resolveLibrary(libraryName);
             if (prebuiltLibrary != null) {

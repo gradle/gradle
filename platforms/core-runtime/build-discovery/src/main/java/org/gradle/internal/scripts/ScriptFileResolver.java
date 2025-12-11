@@ -15,13 +15,12 @@
  */
 package org.gradle.internal.scripts;
 
+import java.io.File;
+import java.util.List;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.scripts.ScriptingLanguage;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * Resolves script files according to available {@link ScriptingLanguage} providers.

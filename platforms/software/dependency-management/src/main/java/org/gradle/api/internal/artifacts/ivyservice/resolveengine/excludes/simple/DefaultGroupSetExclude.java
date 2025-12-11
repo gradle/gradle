@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple;
 
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupSetExclude;
 import org.gradle.internal.component.model.IvyArtifactName;
-
-import java.util.Set;
 
 final class DefaultGroupSetExclude implements GroupSetExclude {
     private final Set<String> groups;
@@ -42,7 +41,6 @@ final class DefaultGroupSetExclude implements GroupSetExclude {
         DefaultGroupSetExclude that = (DefaultGroupSetExclude) o;
 
         return groups.equals(that.groups);
-
     }
 
     @Override
@@ -74,5 +72,4 @@ final class DefaultGroupSetExclude implements GroupSetExclude {
     public String toString() {
         return "{ \"groups\" : [" + ExcludeJsonHelper.toJson(groups) + "]}";
     }
-
 }

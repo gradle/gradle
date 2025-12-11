@@ -16,11 +16,10 @@
 
 package org.gradle.vcs;
 
+import java.net.URI;
 import org.gradle.api.Action;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.net.URI;
 
 /**
  * Configuration that defines the source dependencies available in this build.

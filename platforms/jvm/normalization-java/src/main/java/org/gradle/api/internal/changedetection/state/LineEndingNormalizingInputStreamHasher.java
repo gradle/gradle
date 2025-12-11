@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.apache.commons.io.input.CloseShieldInputStream;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.hash.PrimitiveHasher;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
+import org.apache.commons.io.input.CloseShieldInputStream;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.hash.PrimitiveHasher;
 
 /**
  * Hashes input streams while normalizing line endings in text files.  Normalization involves treating '\r' and '\r\n' characters
@@ -67,7 +66,8 @@ public class LineEndingNormalizingInputStreamHasher {
 
         hasher.putHash(SIGNATURE);
 
-        try (BufferedInputStream input = new BufferedInputStream(CloseShieldInputStream.wrap(inputStream), BUFFER_SIZE)) {
+        try (BufferedInputStream input =
+                new BufferedInputStream(CloseShieldInputStream.wrap(inputStream), BUFFER_SIZE)) {
             int peekAhead = -1;
 
             while (true) {

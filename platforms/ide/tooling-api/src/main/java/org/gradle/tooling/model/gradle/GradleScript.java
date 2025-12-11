@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.model.gradle;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a Gradle script. A Gradle script may be a build script, settings script or initialization script.

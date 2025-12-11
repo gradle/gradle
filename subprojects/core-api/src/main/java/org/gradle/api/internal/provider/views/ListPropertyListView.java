@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.provider.views;
 
-import org.gradle.api.provider.ListProperty;
-
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.gradle.api.provider.ListProperty;
 
 /**
  * Implementation of List, that is used for Property upgrades

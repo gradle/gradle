@@ -16,6 +16,8 @@
 
 package org.gradle.workers.internal;
 
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -24,67 +26,72 @@ import org.gradle.internal.snapshot.impl.WorkSerializationException;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
 public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFactory {
     private final IsolatableFactory isolatableFactory;
     private final IsolatableSerializerRegistry serializerRegistry;
 
-    public DefaultActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
+    public DefaultActionExecutionSpecFactory(
+            IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
         this.isolatableFactory = isolatableFactory;
         this.serializerRegistry = serializerRegistry;
     }
 
     @Override
-    public <T extends WorkParameters> TransportableActionExecutionSpec newTransportableSpec(IsolatedParametersActionExecutionSpec<T> spec) {
+    public <T extends WorkParameters> TransportableActionExecutionSpec newTransportableSpec(
+            IsolatedParametersActionExecutionSpec<T> spec) {
         return new TransportableActionExecutionSpec(
-            spec.getImplementationClass().getName(),
-            serializerRegistry.serialize(spec.getIsolatedParams()),
-            spec.getClassLoaderStructure(),
-            spec.getBaseDir(),
-            spec.getProjectCacheDir(),
-            spec.getAdditionalWhitelistedServices().stream().map(Class::getName).collect(Collectors.toSet())
-        );
+                spec.getImplementationClass().getName(),
+                serializerRegistry.serialize(spec.getIsolatedParams()),
+                spec.getClassLoaderStructure(),
+                spec.getBaseDir(),
+                spec.getProjectCacheDir(),
+                spec.getAdditionalWhitelistedServices().stream()
+                        .map(Class::getName)
+                        .collect(Collectors.toSet()));
     }
 
     @Override
     public <T extends WorkParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(
-        String displayName,
-        Class<? extends WorkAction<T>> implementationClass,
-        T params,
-        WorkerRequirement workerRequirement,
-        Set<Class<?>> additionalWhitelistedServices
-    ) {
+            String displayName,
+            Class<? extends WorkAction<T>> implementationClass,
+            T params,
+            WorkerRequirement workerRequirement,
+            Set<Class<?>> additionalWhitelistedServices) {
         ClassLoaderStructure classLoaderStructure = workerRequirement instanceof IsolatedClassLoaderWorkerRequirement
-            ? ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure()
-            : null;
+                ? ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure()
+                : null;
 
         return new IsolatedParametersActionExecutionSpec<>(
-            implementationClass,
-            displayName,
-            implementationClass.getName(),
-            isolatableFactory.isolate(params),
-            classLoaderStructure,
-            workerRequirement.getWorkerDirectory(),
-            workerRequirement.getProjectCacheDir(),
-            additionalWhitelistedServices
-        );
+                implementationClass,
+                displayName,
+                implementationClass.getName(),
+                isolatableFactory.isolate(params),
+                classLoaderStructure,
+                workerRequirement.getWorkerDirectory(),
+                workerRequirement.getProjectCacheDir(),
+                additionalWhitelistedServices);
     }
 
     @Override
-    public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(IsolatedParametersActionExecutionSpec<T> spec) {
+    public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(
+            IsolatedParametersActionExecutionSpec<T> spec) {
         T params = Cast.uncheckedCast(spec.getIsolatedParams().isolate());
-        return new SimpleActionExecutionSpec<>(spec.getImplementationClass(), params, spec.getAdditionalWhitelistedServices());
+        return new SimpleActionExecutionSpec<>(
+                spec.getImplementationClass(), params, spec.getAdditionalWhitelistedServices());
     }
 
     @Override
-    public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(TransportableActionExecutionSpec spec) {
-        T params = Cast.uncheckedCast(serializerRegistry.deserialize(spec.getSerializedParameters()).isolate());
-        Set<Class<?>> additionalWhitelistedServices = spec.getAdditionalWhitelistedServicesClassNames()
-            .stream().map(DefaultActionExecutionSpecFactory::fromClassName)
-            .collect(Collectors.toSet());
-        return new SimpleActionExecutionSpec<>(Cast.uncheckedCast(fromClassName(spec.getImplementationClassName())), params, additionalWhitelistedServices);
+    public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(
+            TransportableActionExecutionSpec spec) {
+        T params = Cast.uncheckedCast(
+                serializerRegistry.deserialize(spec.getSerializedParameters()).isolate());
+        Set<Class<?>> additionalWhitelistedServices = spec.getAdditionalWhitelistedServicesClassNames().stream()
+                .map(DefaultActionExecutionSpecFactory::fromClassName)
+                .collect(Collectors.toSet());
+        return new SimpleActionExecutionSpec<>(
+                Cast.uncheckedCast(fromClassName(spec.getImplementationClassName())),
+                params,
+                additionalWhitelistedServices);
     }
 
     static Class<?> fromClassName(String className) {
@@ -94,5 +101,4 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
             throw new WorkSerializationException("Could not deserialize unit of work.", e);
         }
     }
-
 }

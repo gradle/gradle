@@ -15,14 +15,13 @@
  */
 package org.gradle.api.file;
 
+import java.util.Set;
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.SupportsConvention;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 /**
  * <p>A {@code ConfigurableFileCollection} is a mutable {@code FileCollection}.</p>

@@ -19,6 +19,12 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Callables;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
@@ -36,13 +42,6 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Cast;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.Callable;
 
 public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
     protected static ConventionMapping conventionMappingOf(Object object) {
@@ -95,8 +94,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         return JavaBasePlugin.class;
     }
 
-    protected void beforeApply() {
-    }
+    protected void beforeApply() {}
 
     @SuppressWarnings("deprecation")
     protected void createConfigurations() {
@@ -122,9 +120,9 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     private Map<String, String> excludeProperties(String group, String module) {
         return ImmutableMap.<String, String>builder()
-            .put("group", group)
-            .put("module", module)
-            .build();
+                .put("group", group)
+                .put("module", module)
+                .build();
     }
 
     protected abstract CodeQualityExtension createExtension();
@@ -136,7 +134,12 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         extensionMapping.map("reportsDir", new Callable<File>() {
             @Override
             public File call() {
-                return project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(getReportName()).get().getAsFile();
+                return project.getExtensions()
+                        .getByType(ReportingExtension.class)
+                        .getBaseDirectory()
+                        .dir(getReportName())
+                        .get()
+                        .getAsFile();
             }
         });
         withBasePlugin(new Action<Plugin>() {
@@ -167,8 +170,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         });
     }
 
-    protected void configureTaskDefaults(T task, String baseName) {
-    }
+    protected void configureTaskDefaults(T task, String baseName) {}
 
     @SuppressWarnings("rawtypes")
     private void configureSourceSetRule() {
@@ -185,18 +187,21 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         sourceSets.all(new Action<SourceSet>() {
             @Override
             public void execute(final SourceSet sourceSet) {
-                project.getTasks().register(sourceSet.getTaskName(getTaskBaseName(), null), getCastedTaskType(), new Action<Task>() {
-                    @Override
-                    public void execute(Task task) {
-                        configureForSourceSet(sourceSet, (T) task);
-                    }
-                });
+                project.getTasks()
+                        .register(
+                                sourceSet.getTaskName(getTaskBaseName(), null),
+                                getCastedTaskType(),
+                                new Action<Task>() {
+                                    @Override
+                                    public void execute(Task task) {
+                                        configureForSourceSet(sourceSet, (T) task);
+                                    }
+                                });
             }
         });
     }
 
-    protected void configureForSourceSet(SourceSet sourceSet, T task) {
-    }
+    protected void configureForSourceSet(SourceSet sourceSet, T task) {}
 
     @SuppressWarnings("rawtypes")
     private void configureCheckTask() {

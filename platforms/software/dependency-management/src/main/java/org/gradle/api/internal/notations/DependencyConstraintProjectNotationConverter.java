@@ -32,7 +32,8 @@ public class DependencyConstraintProjectNotationConverter implements NotationCon
     private final Instantiator instantiator;
     private final DefaultProjectDependencyFactory factory;
 
-    public DependencyConstraintProjectNotationConverter(Instantiator instantiator, DefaultProjectDependencyFactory factory) {
+    public DependencyConstraintProjectNotationConverter(
+            Instantiator instantiator, DefaultProjectDependencyFactory factory) {
         this.instantiator = instantiator;
         this.factory = factory;
     }
@@ -43,7 +44,9 @@ public class DependencyConstraintProjectNotationConverter implements NotationCon
     }
 
     @Override
-    public void convert(Project notation, NotationConvertResult<? super DependencyConstraint> result) throws TypeConversionException {
-        result.converted(instantiator.newInstance(DefaultProjectDependencyConstraint.class, factory.create(((ProjectInternal) notation).getOwner())));
+    public void convert(Project notation, NotationConvertResult<? super DependencyConstraint> result)
+            throws TypeConversionException {
+        result.converted(instantiator.newInstance(
+                DefaultProjectDependencyConstraint.class, factory.create(((ProjectInternal) notation).getOwner())));
     }
 }

@@ -16,10 +16,9 @@
 
 package org.gradle.api.tasks.diagnostics.internal;
 
+import java.util.Objects;
 import org.gradle.api.Project;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Objects;
 
 /**
  * Provides common projections for selected project properties.
@@ -31,6 +30,7 @@ public interface ProjectDetails {
     String getDescription();
 
     String getRelativeProjectDir();
+
     String getAbsoluteProjectDir();
 
     static ProjectDetails of(Project project) {
@@ -47,8 +47,10 @@ public interface ProjectDetails {
 
     class ProjectDisplayNameAndDescription implements ProjectDetails {
         private final String displayName;
+
         @Nullable
         private final String description;
+
         private final String absoluteProjectDirPath;
         private final String relativeProjectDirPath;
         private final String projectLogicalPath;
@@ -57,7 +59,11 @@ public interface ProjectDetails {
             displayName = project.getDisplayName();
             description = project.getDescription();
             absoluteProjectDirPath = project.getProjectDir().toPath().toString();
-            relativeProjectDirPath = project.getRootProject().getProjectDir().toPath().relativize(project.getProjectDir().toPath()).toString();
+            relativeProjectDirPath = project.getRootProject()
+                    .getProjectDir()
+                    .toPath()
+                    .relativize(project.getProjectDir().toPath())
+                    .toString();
             projectLogicalPath = project.getBuildTreePath();
         }
 
@@ -96,9 +102,10 @@ public interface ProjectDetails {
                 return false;
             }
             ProjectDisplayNameAndDescription that = (ProjectDisplayNameAndDescription) obj;
-            return Objects.equals(displayName, that.displayName) && Objects.equals(description, that.description)
-                && Objects.equals(relativeProjectDirPath, that.relativeProjectDirPath)
-                && Objects.equals(projectLogicalPath, that.projectLogicalPath);
+            return Objects.equals(displayName, that.displayName)
+                    && Objects.equals(description, that.description)
+                    && Objects.equals(relativeProjectDirPath, that.relativeProjectDirPath)
+                    && Objects.equals(projectLogicalPath, that.projectLogicalPath);
         }
     }
 

@@ -16,15 +16,14 @@
 
 package org.gradle.docs.asciidoctor;
 
-import org.apache.commons.io.IOUtils;
-import org.asciidoctor.Asciidoctor;
-import org.asciidoctor.extension.JavaExtensionRegistry;
-import org.asciidoctor.jruby.extension.spi.ExtensionRegistry;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.io.IOUtils;
+import org.asciidoctor.Asciidoctor;
+import org.asciidoctor.extension.JavaExtensionRegistry;
+import org.asciidoctor.jruby.extension.spi.ExtensionRegistry;
 
 public class GradleDocsHtmlAsciidoctorExtensionRegistry implements ExtensionRegistry {
 
@@ -35,7 +34,6 @@ public class GradleDocsHtmlAsciidoctorExtensionRegistry implements ExtensionRegi
     private String headHtml;
     private String headerHtml;
     private String footerHtml;
-
 
     @Override
     public void register(Asciidoctor asciidoctor) {
@@ -51,7 +49,6 @@ public class GradleDocsHtmlAsciidoctorExtensionRegistry implements ExtensionRegi
         footerOptions.put("location", ":footer");
         registry.docinfoProcessor(new NavigationDocinfoProcessor(footerOptions, footerHtml));
     }
-
 
     private void initializeHtmlToInject() {
         headHtml = loadResource(HEAD_HTML_PATH);

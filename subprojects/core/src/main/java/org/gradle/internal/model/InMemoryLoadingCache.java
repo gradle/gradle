@@ -35,5 +35,4 @@ public interface InMemoryLoadingCache<K, V> {
      * Invalidates the cache, clearing all cached entries.
      */
     void invalidate();
-
 }

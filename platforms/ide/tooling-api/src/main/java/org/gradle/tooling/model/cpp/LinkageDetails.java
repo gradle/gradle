@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.model.cpp;
 
-import org.gradle.tooling.model.Task;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.tooling.model.Task;
 
 /**
  * Represents the linkage details for a binary.

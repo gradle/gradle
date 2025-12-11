@@ -17,5 +17,4 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.VersionConstraint;
 
-public interface ImmutableVersionConstraint extends VersionConstraint {
-}
+public interface ImmutableVersionConstraint extends VersionConstraint {}

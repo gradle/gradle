@@ -16,12 +16,11 @@
 
 package org.gradle.internal.execution.steps;
 
+import java.time.Duration;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.ExecutionContext;
 import org.gradle.internal.execution.UnitOfWork;
-
-import java.time.Duration;
 
 public class Result {
 

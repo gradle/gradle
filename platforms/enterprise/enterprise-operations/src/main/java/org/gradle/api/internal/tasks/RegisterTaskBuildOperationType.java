@@ -23,7 +23,8 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 4.9
  */
-public final class RegisterTaskBuildOperationType implements BuildOperationType<RegisterTaskBuildOperationType.Details, RegisterTaskBuildOperationType.Result> {
+public final class RegisterTaskBuildOperationType
+        implements BuildOperationType<RegisterTaskBuildOperationType.Details, RegisterTaskBuildOperationType.Result> {
 
     public interface Details {
 
@@ -43,13 +44,9 @@ public final class RegisterTaskBuildOperationType implements BuildOperationType<
         long getTaskId();
 
         boolean isReplacement();
-
     }
 
-    public interface Result {
-    }
+    public interface Result {}
 
-    private RegisterTaskBuildOperationType() {
-    }
-
+    private RegisterTaskBuildOperationType() {}
 }

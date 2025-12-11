@@ -16,6 +16,10 @@
 
 package org.gradle.caching.internal.packaging;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Map;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginReader;
@@ -25,14 +29,14 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Map;
-
 @ServiceScope(Scope.Build.class)
 public interface BuildCacheEntryPacker {
-    PackResult pack(CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, OutputStream output, OriginWriter writeOrigin) throws IOException;
+    PackResult pack(
+            CacheableEntity entity,
+            Map<String, ? extends FileSystemSnapshot> snapshots,
+            OutputStream output,
+            OriginWriter writeOrigin)
+            throws IOException;
 
     class PackResult {
         private final long entries;
@@ -53,7 +57,8 @@ public interface BuildCacheEntryPacker {
         private final long entries;
         private final Map<String, FileSystemLocationSnapshot> snapshots;
 
-        public UnpackResult(OriginMetadata originMetadata, long entries, Map<String, FileSystemLocationSnapshot> snapshots) {
+        public UnpackResult(
+                OriginMetadata originMetadata, long entries, Map<String, FileSystemLocationSnapshot> snapshots) {
             this.originMetadata = originMetadata;
             this.entries = entries;
             this.snapshots = snapshots;

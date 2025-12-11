@@ -106,5 +106,4 @@ public interface CacheConfigurations {
      * @since 8.1
      */
     Property<MarkingStrategy> getMarkingStrategy();
-
 }

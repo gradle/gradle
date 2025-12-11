@@ -16,9 +16,12 @@
 
 package org.gradle.jvm.tasks;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
+
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.nio.charset.Charset;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
@@ -40,10 +43,6 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.nio.charset.Charset;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * Assembles a JAR archive.
@@ -70,7 +69,9 @@ public abstract class Jar extends Zip {
 
     private String evaluateDegradationReason() {
         if (!manifestContentCharset.equals(DefaultManifest.DEFAULT_CONTENT_CHARSET)) {
-            return String.format("Custom charset '%s' was used. Only '%s' is supported with the configuration cache", manifestContentCharset, DefaultManifest.DEFAULT_CONTENT_CHARSET);
+            return String.format(
+                    "Custom charset '%s' was used. Only '%s' is supported with the configuration cache",
+                    manifestContentCharset, DefaultManifest.DEFAULT_CONTENT_CHARSET);
         }
         return null;
     }
@@ -78,12 +79,13 @@ public abstract class Jar extends Zip {
     private FileTreeInternal manifestFileTree() {
         final Cached<ManifestInternal> manifest = Cached.of(this::computeManifest);
         final OutputChangeListener outputChangeListener = outputChangeListener();
-        return fileCollectionFactory().generated(
-            getTemporaryDirFactory(),
-            "MANIFEST.MF",
-            action(file -> outputChangeListener.invalidateCachesFor(ImmutableList.of(file.getAbsolutePath()))),
-            action(outputStream -> manifest.get().writeTo(outputStream))
-        );
+        return fileCollectionFactory()
+                .generated(
+                        getTemporaryDirFactory(),
+                        "MANIFEST.MF",
+                        action(file ->
+                                outputChangeListener.invalidateCachesFor(ImmutableList.of(file.getAbsolutePath()))),
+                        action(outputStream -> manifest.get().writeTo(outputStream)));
     }
 
     private ManifestInternal computeManifest() {
@@ -162,7 +164,8 @@ public abstract class Jar extends Zip {
             throw new InvalidUserDataException("manifestContentCharset must not be null");
         }
         if (!Charset.isSupported(manifestContentCharset)) {
-            throw new InvalidUserDataException(String.format("Charset for manifestContentCharset '%s' is not supported by your JVM", manifestContentCharset));
+            throw new InvalidUserDataException(String.format(
+                    "Charset for manifestContentCharset '%s' is not supported by your JVM", manifestContentCharset));
         }
         this.manifestContentCharset = manifestContentCharset;
     }

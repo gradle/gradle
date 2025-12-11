@@ -16,10 +16,9 @@
 
 package org.gradle.internal.component.resolution.failure.interfaces;
 
+import java.util.Set;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
-
-import java.util.Set;
 
 /**
  * Represents a failure validating the nodes for a specific component in the final resulting dependency graph.

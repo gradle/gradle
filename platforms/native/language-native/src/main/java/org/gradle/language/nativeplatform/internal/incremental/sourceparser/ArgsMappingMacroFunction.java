@@ -17,12 +17,11 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.base.Objects;
-import org.gradle.language.nativeplatform.internal.Expression;
-import org.gradle.language.nativeplatform.internal.IncludeType;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.gradle.language.nativeplatform.internal.Expression;
+import org.gradle.language.nativeplatform.internal.IncludeType;
 
 class ArgsMappingMacroFunction extends AbstractMacroFunction {
     // Keep the argument from this expression
@@ -34,7 +33,13 @@ class ArgsMappingMacroFunction extends AbstractMacroFunction {
     private final String value;
     private final List<Expression> arguments;
 
-    public ArgsMappingMacroFunction(String macroName, int parameters, int[] argsMap, IncludeType type,  String value, List<Expression> arguments) {
+    public ArgsMappingMacroFunction(
+            String macroName,
+            int parameters,
+            int[] argsMap,
+            IncludeType type,
+            String value,
+            List<Expression> arguments) {
         super(macroName, parameters);
         this.argsMap = argsMap;
         this.type = type;
@@ -81,7 +86,8 @@ class ArgsMappingMacroFunction extends AbstractMacroFunction {
             mapped.add(expression);
         } else if (replaceWith == REPLACE_ARGS) {
             // Map the arguments of this expression
-            List<Expression> mappedArgs = new ArrayList<Expression>(expression.getArguments().size());
+            List<Expression> mappedArgs =
+                    new ArrayList<Expression>(expression.getArguments().size());
             for (Expression arg : expression.getArguments()) {
                 currentMapPos = mapInto(arg, arguments, currentMapPos, mappedArgs);
             }
@@ -103,7 +109,10 @@ class ArgsMappingMacroFunction extends AbstractMacroFunction {
         }
 
         ArgsMappingMacroFunction other = (ArgsMappingMacroFunction) obj;
-        return type == other.type && Objects.equal(value, other.value) && Arrays.equals(argsMap, other.argsMap) && arguments.equals(other.arguments);
+        return type == other.type
+                && Objects.equal(value, other.value)
+                && Arrays.equals(argsMap, other.argsMap)
+                && arguments.equals(other.arguments);
     }
 
     @Override

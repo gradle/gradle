@@ -15,7 +15,19 @@
  */
 package org.gradle.internal.nativeintegration.services;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
+
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.EnumSet;
+import java.util.Locale;
+import java.util.Map;
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.NativeIntegration;
@@ -65,19 +77,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
-
 /**
  * Provides various native platform integration services.
  */
@@ -102,7 +101,8 @@ public class NativeServices implements ServiceRegistrationProvider {
     public enum NativeFeatures {
         FILE_SYSTEM_WATCHING {
             @Override
-            public boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean useNativeIntegrations) {
+            public boolean initialize(
+                    File nativeBaseDir, ServiceRegistryBuilder builder, boolean useNativeIntegrations) {
                 if (!useNativeIntegrations) {
                     return false;
                 }
@@ -110,7 +110,9 @@ public class NativeServices implements ServiceRegistrationProvider {
                 if (operatingSystem.isMacOsX()) {
                     String version = operatingSystem.getVersion();
                     if (VersionNumber.parse(version).getMajor() < 12) {
-                        LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
+                        LOGGER.info(
+                                "Disabling file system watching on macOS {}, as it is only supported for macOS 12+",
+                                version);
                         return false;
                     }
                 }
@@ -126,7 +128,8 @@ public class NativeServices implements ServiceRegistrationProvider {
                                     if (fileEvents != null) {
                                         return fileEvents.get(type);
                                     } else {
-                                        throw new NativeIntegrationUnavailableException("File events are not available.");
+                                        throw new NativeIntegrationUnavailableException(
+                                                "File events are not available.");
                                     }
                                 }
                             };
@@ -142,7 +145,8 @@ public class NativeServices implements ServiceRegistrationProvider {
             @Override
             public void doWhenDisabled(ServiceRegistryBuilder builder) {
                 // We still need to provide an implementation of FileEventFunctionsProvider,
-                // even if file watching is disabled, otherwise the service registry will throw an exception for a missing service.
+                // even if file watching is disabled, otherwise the service registry will throw an exception for a
+                // missing service.
                 builder.provider(new ServiceRegistrationProvider() {
                     @Provides
                     FileEventFunctionsProvider createFileEventFunctionsProvider() {
@@ -158,17 +162,20 @@ public class NativeServices implements ServiceRegistrationProvider {
         },
         JANSI {
             @Override
-            public boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean useNativeIntegrations) {
+            public boolean initialize(
+                    File nativeBaseDir, ServiceRegistryBuilder builder, boolean useNativeIntegrations) {
                 JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
                 LOGGER.info("Initialized jansi services in: {}", nativeBaseDir);
                 return true;
             }
+
             @Override
-            public void doWhenDisabled(ServiceRegistryBuilder builder) {
-            }
+            public void doWhenDisabled(ServiceRegistryBuilder builder) {}
         };
 
-        public abstract boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean canUseNativeIntegrations);
+        public abstract boolean initialize(
+                File nativeBaseDir, ServiceRegistryBuilder builder, boolean canUseNativeIntegrations);
+
         public abstract void doWhenDisabled(ServiceRegistryBuilder builder);
     }
 
@@ -198,7 +205,8 @@ public class NativeServices implements ServiceRegistrationProvider {
         NOT_SET {
             @Override
             public boolean isEnabled() {
-                throw new UnsupportedOperationException("Cannot determine if native services are enabled or not for " + this + " mode.");
+                throw new UnsupportedOperationException(
+                        "Cannot determine if native services are enabled or not for " + this + " mode.");
             }
 
             @Override
@@ -281,7 +289,8 @@ public class NativeServices implements ServiceRegistrationProvider {
      *
      * @param requestedFeatures Whether to initialize additional native libraries like jansi and file-events.
      */
-    private static void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
+    private static void initialize(
+            File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
         checkNativeServicesMode(mode);
         if (instance == null) {
             try {
@@ -294,7 +303,9 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     private static void checkNativeServicesMode(NativeServicesMode mode) {
         if (mode != NativeServicesMode.ENABLED && mode != NativeServicesMode.DISABLED) {
-            throw new IllegalArgumentException("Only explicit ENABLED or DISABLED mode is allowed for the NativeServices initialization, but was: " + mode);
+            throw new IllegalArgumentException(
+                    "Only explicit ENABLED or DISABLED mode is allowed for the NativeServices initialization, but was: "
+                            + mode);
         }
     }
 
@@ -311,12 +322,20 @@ public class NativeServices implements ServiceRegistrationProvider {
                 LOGGER.debug("Native-platform is not available.", ex);
                 useNativeIntegrations = false;
             } catch (NativeException ex) {
-                if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase(Locale.ROOT).contains("already loaded in another classloader")) {
+                if (ex.getCause() instanceof UnsatisfiedLinkError
+                        && ex.getCause()
+                                .getMessage()
+                                .toLowerCase(Locale.ROOT)
+                                .contains("already loaded in another classloader")) {
                     LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
                     useNativeIntegrations = false;
                 } else if (ex.getMessage().equals("Could not extract native JNI library.")
-                    && ex.getCause().getMessage().contains("native-platform.dll (The process cannot access the file because it is being used by another process)")) {
-                    //triggered through tooling API of Gradle <2.3 - native-platform.dll is shared by tooling client (<2.3) and daemon (current) and it is locked by the client (<2.3 issue)
+                        && ex.getCause()
+                                .getMessage()
+                                .contains(
+                                        "native-platform.dll (The process cannot access the file because it is being used by another process)")) {
+                    // triggered through tooling API of Gradle <2.3 - native-platform.dll is shared by tooling client
+                    // (<2.3) and daemon (current) and it is locked by the client (<2.3 issue)
                     LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
                     useNativeIntegrations = false;
                 } else {
@@ -329,18 +348,19 @@ public class NativeServices implements ServiceRegistrationProvider {
         this.nativeIntegration = nativeIntegration;
 
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
-            .displayName("native services")
-            .provider(new FileSystemServices())
-            .provider(this)
-            .provider(new ServiceRegistrationProvider() {
-                @SuppressWarnings("unused")
-                public void configure(ServiceRegistration registration) {
-                    registration.add(GradleUserHomeTemporaryFileProvider.class);
-                }
-            });
+                .displayName("native services")
+                .provider(new FileSystemServices())
+                .provider(this)
+                .provider(new ServiceRegistrationProvider() {
+                    @SuppressWarnings("unused")
+                    public void configure(ServiceRegistration registration) {
+                        registration.add(GradleUserHomeTemporaryFileProvider.class);
+                    }
+                });
 
         for (NativeFeatures nativeFeature : NativeFeatures.values()) {
-            if (requestedFeatures.contains(nativeFeature) && nativeFeature.initialize(nativeBaseDir, builder, useNativeIntegrations)) {
+            if (requestedFeatures.contains(nativeFeature)
+                    && nativeFeature.initialize(nativeBaseDir, builder, useNativeIntegrations)) {
                 enabledFeatures.add(nativeFeature);
             } else {
                 nativeFeature.doWhenDisabled(builder);
@@ -371,8 +391,10 @@ public class NativeServices implements ServiceRegistrationProvider {
     public static synchronized ServiceRegistry getInstance() {
         if (instance == null) {
             // If this occurs while running gradle or running integration tests, it is indicative of a problem.
-            // If this occurs while running unit tests, then either use the NativeServicesTestFixture or the '@UsesNativeServices' annotation.
-            throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize().");
+            // If this occurs while running unit tests, then either use the NativeServicesTestFixture or the
+            // '@UsesNativeServices' annotation.
+            throw new IllegalStateException(
+                    "Cannot get an instance of NativeServices without first calling initialize().");
         }
         return instance.services;
     }
@@ -429,7 +451,9 @@ public class NativeServices implements ServiceRegistrationProvider {
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform terminal integration is not available. Continuing with fallback.");
             } catch (NativeException ex) {
-                LOGGER.debug("Unable to load from native-platform backed ConsoleDetector. Continuing with fallback. Failure: {}", format(ex));
+                LOGGER.debug(
+                        "Unable to load from native-platform backed ConsoleDetector. Continuing with fallback. Failure: {}",
+                        format(ex));
             }
 
             try {
@@ -523,7 +547,8 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected FileMetadataAccessor createFileMetadataAccessor(OperatingSystem operatingSystem) {
-        // Based on the benchmark found in org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessorBenchmark
+        // Based on the benchmark found in
+        // org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessorBenchmark
         // and the results in the PR https://github.com/gradle/gradle/pull/12966
         // we're using "native platform" for all OSes if available.
         // If it isn't available, we fall back to using Java NIO and, if that fails, to using the old `File` APIs.
@@ -537,7 +562,10 @@ public class NativeServices implements ServiceRegistrationProvider {
         }
 
         if (JavaVersion.current().isJava7Compatible()) {
-            return newInstanceOrFallback("org.gradle.internal.file.nio.NioFileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
+            return newInstanceOrFallback(
+                    "org.gradle.internal.file.nio.NioFileMetadataAccessor",
+                    NativeServices.class.getClassLoader(),
+                    FallbackFileMetadataAccessor.class);
         }
 
         return new FallbackFileMetadataAccessor();
@@ -571,7 +599,10 @@ public class NativeServices implements ServiceRegistrationProvider {
     }
 
     private <T> T notAvailable(Class<T> type, OperatingSystem operatingSystem) {
-        return Cast.uncheckedNonnullCast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, new BrokenService(type.getSimpleName(), useNativeIntegrations, operatingSystem)));
+        return Cast.uncheckedNonnullCast(Proxy.newProxyInstance(
+                type.getClassLoader(),
+                new Class<?>[] {type},
+                new BrokenService(type.getSimpleName(), useNativeIntegrations, operatingSystem)));
     }
 
     private static String format(Throwable throwable) {
@@ -598,7 +629,9 @@ public class NativeServices implements ServiceRegistrationProvider {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
-            throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("Service '%s' is not available (os=%s, enabled=%s).", type, operatingSystem, useNativeIntegrations));
+            throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format(
+                    "Service '%s' is not available (os=%s, enabled=%s).",
+                    type, operatingSystem, useNativeIntegrations));
         }
     }
 

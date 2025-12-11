@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import java.lang.reflect.Method;
 import org.gradle.api.Task;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.work.InputChanges;
-
-import java.lang.reflect.Method;
 
 public class IncrementalTaskAction extends StandardTaskAction {
     private InputChangesInternal inputChanges;

@@ -17,9 +17,8 @@
 package org.gradle.internal.fingerprint;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.hash.Hasher;
-
 import java.util.Collection;
+import org.gradle.internal.hash.Hasher;
 
 /**
  * Strategy for appending a collection of fingerprints to a hasher.
@@ -41,7 +40,8 @@ public enum FingerprintHashingStrategy {
 
     public abstract void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints);
 
-    protected void appendCollectionToHasherKeepingOrder(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
+    protected void appendCollectionToHasherKeepingOrder(
+            Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
         for (FileSystemLocationFingerprint fingerprint : fingerprints) {
             fingerprint.appendToHasher(hasher);
         }

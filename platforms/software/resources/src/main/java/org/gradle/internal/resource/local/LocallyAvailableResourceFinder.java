@@ -32,5 +32,4 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface LocallyAvailableResourceFinder<C> {
 
     LocallyAvailableResourceCandidates findCandidates(C criterion);
-
 }

@@ -31,14 +31,13 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
     private final PropertyValue value;
 
     public DefaultInputFilePropertySpec(
-        String propertyName,
-        FileNormalizer normalizer,
-        FileCollectionInternal files,
-        PropertyValue value,
-        InputBehavior behavior,
-        DirectorySensitivity directorySensitivity,
-        LineEndingSensitivity lineEndingSensitivity
-    ) {
+            String propertyName,
+            FileNormalizer normalizer,
+            FileCollectionInternal files,
+            PropertyValue value,
+            InputBehavior behavior,
+            DirectorySensitivity directorySensitivity,
+            LineEndingSensitivity lineEndingSensitivity) {
         super(propertyName, normalizer, files);
         this.behavior = behavior;
         this.directorySensitivity = directorySensitivity;

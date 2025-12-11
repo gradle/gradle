@@ -16,6 +16,12 @@
 
 package org.gradle.api.internal.provider;
 
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
@@ -31,13 +37,6 @@ import org.gradle.internal.credentials.DefaultHttpHeaderCredentials;
 import org.gradle.internal.credentials.DefaultPasswordCredentials;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.Nullable;
-
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class CredentialsProviderFactory implements TaskExecutionGraphListener {
 
@@ -63,27 +62,34 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
         }
 
         if (PasswordCredentials.class.isAssignableFrom(credentialsType)) {
-            return (Provider<T>) passwordProviders.computeIfAbsent(identity, id -> evaluateAtConfigurationTime(new PasswordCredentialsProvider(id)));
+            return (Provider<T>) passwordProviders.computeIfAbsent(
+                    identity, id -> evaluateAtConfigurationTime(new PasswordCredentialsProvider(id)));
         }
         if (AwsCredentials.class.isAssignableFrom(credentialsType)) {
-            return (Provider<T>) awsProviders.computeIfAbsent(identity, id -> evaluateAtConfigurationTime(new AwsCredentialsProvider(id)));
+            return (Provider<T>) awsProviders.computeIfAbsent(
+                    identity, id -> evaluateAtConfigurationTime(new AwsCredentialsProvider(id)));
         }
         if (HttpHeaderCredentials.class.isAssignableFrom(credentialsType)) {
-            return (Provider<T>) httpHeaderProviders.computeIfAbsent(identity, id -> evaluateAtConfigurationTime(new HttpHeaderCredentialsProvider(id)));
+            return (Provider<T>) httpHeaderProviders.computeIfAbsent(
+                    identity, id -> evaluateAtConfigurationTime(new HttpHeaderCredentialsProvider(id)));
         }
 
         throw new IllegalArgumentException(String.format("Unsupported credentials type: %s", credentialsType));
     }
 
     public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, Provider<String> identity) {
-        return evaluateAtConfigurationTime(() -> provide(credentialsType, identity.get()).get());
+        return evaluateAtConfigurationTime(
+                () -> provide(credentialsType, identity.get()).get());
     }
 
     @Override
     public void graphPopulated(TaskExecutionGraph graph) {
         if (!missingProviderErrors.isEmpty()) {
-            throw new ProjectConfigurationException("Credentials required for this build could not be resolved.",
-                missingProviderErrors.stream().map(MissingValueException::new).collect(Collectors.toList()));
+            throw new ProjectConfigurationException(
+                    "Credentials required for this build could not be resolved.",
+                    missingProviderErrors.stream()
+                            .map(MissingValueException::new)
+                            .collect(Collectors.toList()));
         }
     }
 
@@ -115,7 +121,10 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
         void assertRequiredValuesPresent() {
             if (!missingProperties.isEmpty()) {
                 TreeFormatter errorBuilder = new TreeFormatter();
-                errorBuilder.node("The following Gradle properties are missing for '").append(identity).append("' credentials");
+                errorBuilder
+                        .node("The following Gradle properties are missing for '")
+                        .append(identity)
+                        .append("' credentials");
                 errorBuilder.startChildren();
                 for (String missingProperty : missingProperties) {
                     errorBuilder.node(missingProperty);
@@ -125,7 +134,8 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
                 throw new MissingValueException(errorBuilder.toString());
             }
             if (objectFactory == null) {
-                throw new UnsupportedOperationException("Cannot create credentials in this context since ObjectFactory is not available");
+                throw new UnsupportedOperationException(
+                        "Cannot create credentials in this context since ObjectFactory is not available");
             }
         }
 

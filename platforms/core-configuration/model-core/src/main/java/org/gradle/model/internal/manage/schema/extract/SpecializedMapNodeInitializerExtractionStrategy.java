@@ -25,8 +25,7 @@ import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.type.ModelType;
 
 public class SpecializedMapNodeInitializerExtractionStrategy extends ModelMapNodeInitializerExtractionStrategy {
-    private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {
-    };
+    private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {};
 
     @Override
     public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema, NodeInitializerContext<T> context) {
@@ -34,7 +33,8 @@ public class SpecializedMapNodeInitializerExtractionStrategy extends ModelMapNod
     }
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
+    protected <T, E> NodeInitializer extractNodeInitializer(
+            CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
         if (schema instanceof SpecializedMapSchema) {
             return new SpecializedMapNodeInitializer<T, E>((SpecializedMapSchema<T, E>) schema);
         }

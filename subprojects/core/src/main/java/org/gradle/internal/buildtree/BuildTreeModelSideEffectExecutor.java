@@ -31,5 +31,4 @@ import org.jspecify.annotations.NullMarked;
 public interface BuildTreeModelSideEffectExecutor {
 
     void runIsolatableSideEffect(BuildTreeModelSideEffect sideEffect);
-
 }

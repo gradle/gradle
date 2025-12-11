@@ -31,5 +31,4 @@ import org.gradle.api.Action;
  * @param <T> The attribute value type.
  * @see CompatibilityCheckDetails
  */
-public interface AttributeCompatibilityRule<T> extends Action<CompatibilityCheckDetails<T>> {
-}
+public interface AttributeCompatibilityRule<T> extends Action<CompatibilityCheckDetails<T>> {}

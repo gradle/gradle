@@ -16,6 +16,11 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
+import static java.util.Collections.singletonList;
+import static org.gradle.internal.util.NumberUtil.formatBytes;
+
+import java.net.URI;
+import java.util.Optional;
 import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.build.event.types.DefaultFileDownloadDescriptor;
 import org.gradle.internal.build.event.types.DefaultFileDownloadFailureResult;
@@ -31,12 +36,6 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.jspecify.annotations.Nullable;
 
-import java.net.URI;
-import java.util.Optional;
-
-import static java.util.Collections.singletonList;
-import static org.gradle.internal.util.NumberUtil.formatBytes;
-
 /**
  * Class responsible for listening to the download of a toolchain for starting the Gradle daemon.
  * <p>
@@ -47,10 +46,14 @@ public class ToolchainDownloadProgressListener implements DownloadProgressListen
     private final ProgressLogger progressLogger;
     private final Optional<InternalBuildProgressListener> buildProgressListener;
     private final BuildOperationIdFactory operationIdFactory;
+
     @Nullable
     private DefaultFileDownloadDescriptor defaultFileDownloadDescriptor;
 
-    public ToolchainDownloadProgressListener(ProgressLoggerFactory progressLoggerFactory, Optional<InternalBuildProgressListener> buildProgressListener, BuildOperationIdFactory operationIdFactory) {
+    public ToolchainDownloadProgressListener(
+            ProgressLoggerFactory progressLoggerFactory,
+            Optional<InternalBuildProgressListener> buildProgressListener,
+            BuildOperationIdFactory operationIdFactory) {
         this.progressLogger = progressLoggerFactory.newOperation(ToolchainDownloadProgressListener.class);
         this.buildProgressListener = buildProgressListener;
         this.operationIdFactory = operationIdFactory;
@@ -63,19 +66,28 @@ public class ToolchainDownloadProgressListener implements DownloadProgressListen
         if (buildProgressListener.isPresent()) {
             String displayName = getDisplayName(uri);
             assert defaultFileDownloadDescriptor == null;
-            defaultFileDownloadDescriptor = new DefaultFileDownloadDescriptor(new OperationIdentifier(operationIdFactory.nextId()), displayName, displayName + " as a JVM for starting the Gradle daemon", null, uri);
-            DefaultOperationStartedProgressEvent startEvent = new DefaultOperationStartedProgressEvent(startTime, defaultFileDownloadDescriptor);
+            defaultFileDownloadDescriptor = new DefaultFileDownloadDescriptor(
+                    new OperationIdentifier(operationIdFactory.nextId()),
+                    displayName,
+                    displayName + " as a JVM for starting the Gradle daemon",
+                    null,
+                    uri);
+            DefaultOperationStartedProgressEvent startEvent =
+                    new DefaultOperationStartedProgressEvent(startTime, defaultFileDownloadDescriptor);
             buildProgressListener.get().onEvent(startEvent);
         }
     }
 
     @Override
     public void downloadStatusChanged(URI uri, long downloadedBytes, long contentLengthBytes, long eventTime) {
-        String downloadProgressMessage = String.format("Downloading toolchain from URI %s > %s/%s %sed", uri, formatBytes(downloadedBytes), formatBytes(contentLengthBytes), ResourceOperation.Type.download);
+        String downloadProgressMessage = String.format(
+                "Downloading toolchain from URI %s > %s/%s %sed",
+                uri, formatBytes(downloadedBytes), formatBytes(contentLengthBytes), ResourceOperation.Type.download);
         progressLogger.progress(downloadProgressMessage);
 
         buildProgressListener.ifPresent(listener -> {
-            listener.onEvent(new DefaultStatusEvent(eventTime, defaultFileDownloadDescriptor, downloadedBytes, contentLengthBytes, "bytes"));
+            listener.onEvent(new DefaultStatusEvent(
+                    eventTime, defaultFileDownloadDescriptor, downloadedBytes, contentLengthBytes, "bytes"));
         });
     }
 
@@ -84,8 +96,10 @@ public class ToolchainDownloadProgressListener implements DownloadProgressListen
         progressLogger.completed("Downloaded toolchain " + uri, false);
 
         buildProgressListener.ifPresent(listener -> {
-            DefaultFileDownloadSuccessResult result = new DefaultFileDownloadSuccessResult(startTime, finishTime, downloadedBytes);
-            listener.onEvent(new DefaultOperationFinishedProgressEvent(finishTime, defaultFileDownloadDescriptor, result));
+            DefaultFileDownloadSuccessResult result =
+                    new DefaultFileDownloadSuccessResult(startTime, finishTime, downloadedBytes);
+            listener.onEvent(
+                    new DefaultOperationFinishedProgressEvent(finishTime, defaultFileDownloadDescriptor, result));
         });
     }
 
@@ -94,8 +108,10 @@ public class ToolchainDownloadProgressListener implements DownloadProgressListen
         progressLogger.completed("Failed to download toolchain " + uri, true);
 
         buildProgressListener.ifPresent(listener -> {
-            DefaultFileDownloadFailureResult result = new DefaultFileDownloadFailureResult(startTime, finishTime, singletonList(DefaultFailure.fromThrowable(exception)), downloadedBytes);
-            listener.onEvent(new DefaultOperationFinishedProgressEvent(finishTime, defaultFileDownloadDescriptor, result));
+            DefaultFileDownloadFailureResult result = new DefaultFileDownloadFailureResult(
+                    startTime, finishTime, singletonList(DefaultFailure.fromThrowable(exception)), downloadedBytes);
+            listener.onEvent(
+                    new DefaultOperationFinishedProgressEvent(finishTime, defaultFileDownloadDescriptor, result));
         });
     }
 

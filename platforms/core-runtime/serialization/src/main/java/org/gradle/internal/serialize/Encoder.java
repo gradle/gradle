@@ -16,10 +16,9 @@
 
 package org.gradle.internal.serialize;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.io.OutputStream;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides a way to encode structured data to a backing byte stream. Implementations may buffer outgoing encoded bytes prior

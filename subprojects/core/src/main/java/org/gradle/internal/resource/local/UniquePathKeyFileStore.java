@@ -16,12 +16,11 @@
 
 package org.gradle.internal.resource.local;
 
+import java.io.File;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
 import org.gradle.internal.hash.ChecksumService;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.File;
 
 /**
  * Assumes that files do not need to be replaced in the filestore.

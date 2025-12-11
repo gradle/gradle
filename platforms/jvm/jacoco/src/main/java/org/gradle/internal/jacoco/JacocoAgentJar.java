@@ -17,13 +17,12 @@ package org.gradle.internal.jacoco;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.VersionNumber;
-
-import java.io.File;
-import javax.inject.Inject;
 
 /**
  * Helper to resolve the {@code jacocoagent.jar} from inside of the {@code org.jacoco.agent.jar}.
@@ -63,12 +62,15 @@ public class JacocoAgentJar {
      */
     public File getJar() {
         if (agentJar == null) {
-            agentJar = fileOperations.zipTree(getAgentConf().getSingleFile()).filter(new Spec<File>() {
-                @Override
-                public boolean isSatisfiedBy(File file) {
-                    return file.getName().equals("jacocoagent.jar");
-                }
-            }).getSingleFile();
+            agentJar = fileOperations
+                    .zipTree(getAgentConf().getSingleFile())
+                    .filter(new Spec<File>() {
+                        @Override
+                        public boolean isSatisfiedBy(File file) {
+                            return file.getName().equals("jacocoagent.jar");
+                        }
+                    })
+                    .getSingleFile();
         }
         return agentJar;
     }

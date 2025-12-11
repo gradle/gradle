@@ -16,10 +16,10 @@
 package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
+import org.gradle.internal.daemon.clientinput.ClientInputForwarder;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
-import org.gradle.internal.daemon.clientinput.ClientInputForwarder;
 
 /**
  * Listens for {@link org.gradle.launcher.daemon.protocol.InputMessage} commands during execution and forwards them to this process' System.in and services such

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import java.util.Collections;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -38,14 +40,14 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Map;
-
-public class FilteredModuleComponentRepository implements ModuleComponentRepository<ExternalModuleComponentGraphResolveState> {
+public class FilteredModuleComponentRepository
+        implements ModuleComponentRepository<ExternalModuleComponentGraphResolveState> {
     private final ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate;
     private final Action<? super ArtifactResolutionDetails> filterAction;
 
-    public FilteredModuleComponentRepository(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate, Action<? super ArtifactResolutionDetails> filterAction) {
+    public FilteredModuleComponentRepository(
+            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate,
+            Action<? super ArtifactResolutionDetails> filterAction) {
         this.delegate = delegate;
         this.filterAction = filterAction;
     }
@@ -93,39 +95,62 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         }
 
         @Override
-        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
+        public void listModuleVersions(
+                ModuleComponentSelector selector,
+                ComponentOverrideMetadata overrideMetadata,
+                BuildableModuleVersionListingResolveResult result) {
             ModuleIdentifier identifier = selector.getModuleIdentifier();
-            whenModulePresent(identifier, null,
+            whenModulePresent(
+                    identifier,
+                    null,
                     () -> delegate.listModuleVersions(selector, overrideMetadata, result),
                     () -> result.listed(Collections.emptyList()));
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
-            whenModulePresent(moduleComponentIdentifier.getModuleIdentifier(), moduleComponentIdentifier,
+        public void resolveComponentMetaData(
+                ModuleComponentIdentifier moduleComponentIdentifier,
+                ComponentOverrideMetadata requestMetaData,
+                BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
+            whenModulePresent(
+                    moduleComponentIdentifier.getModuleIdentifier(),
+                    moduleComponentIdentifier,
                     () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
-                result::missing);
+                    result::missing);
         }
 
         @Override
-        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveArtifactsWithType(
+                ComponentArtifactResolveMetadata component,
+                ArtifactType artifactType,
+                BuildableArtifactSetResolveResult result) {
             delegate.resolveArtifactsWithType(component, artifactType, result);
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
+        public void resolveArtifact(
+                ComponentArtifactMetadata artifact,
+                ModuleSources moduleSources,
+                BuildableArtifactFileResolveResult result) {
             delegate.resolveArtifact(artifact, moduleSources, result);
         }
 
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
-            return whenModulePresent(moduleComponentIdentifier.getModuleIdentifier(), moduleComponentIdentifier,
+            return whenModulePresent(
+                    moduleComponentIdentifier.getModuleIdentifier(),
+                    moduleComponentIdentifier,
                     () -> delegate.estimateMetadataFetchingCost(moduleComponentIdentifier),
                     () -> MetadataFetchingCost.FAST);
         }
 
-        private void whenModulePresent(ModuleIdentifier id, @Nullable ModuleComponentIdentifier moduleComponentIdentifier, Runnable present, Runnable absent) {
-            DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier);
+        private void whenModulePresent(
+                ModuleIdentifier id,
+                @Nullable ModuleComponentIdentifier moduleComponentIdentifier,
+                Runnable present,
+                Runnable absent) {
+            DefaultArtifactResolutionDetails details =
+                    new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier);
             filterAction.execute(details);
             if (details.notFound) {
                 absent.run();
@@ -134,8 +159,13 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
             }
         }
 
-        private <T> T whenModulePresent(ModuleIdentifier id, ModuleComponentIdentifier moduleComponentIdentifier, Factory<T> present, Factory<T> absent) {
-            DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier);
+        private <T> T whenModulePresent(
+                ModuleIdentifier id,
+                ModuleComponentIdentifier moduleComponentIdentifier,
+                Factory<T> present,
+                Factory<T> absent) {
+            DefaultArtifactResolutionDetails details =
+                    new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier);
             filterAction.execute(details);
             if (details.notFound) {
                 return absent.create();
@@ -149,7 +179,8 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         private final ModuleComponentIdentifier moduleComponentIdentifier;
         private boolean notFound;
 
-        private DefaultArtifactResolutionDetails(ModuleIdentifier moduleIdentifier, @Nullable ModuleComponentIdentifier componentId) {
+        private DefaultArtifactResolutionDetails(
+                ModuleIdentifier moduleIdentifier, @Nullable ModuleComponentIdentifier componentId) {
             this.moduleIdentifier = moduleIdentifier;
             this.moduleComponentIdentifier = componentId;
         }

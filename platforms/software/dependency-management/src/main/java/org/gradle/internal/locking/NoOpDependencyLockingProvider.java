@@ -16,6 +16,7 @@
 
 package org.gradle.internal.locking;
 
+import java.util.Set;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.dsl.LockMode;
 import org.gradle.api.file.RegularFileProperty;
@@ -24,8 +25,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.DisplayName;
-
-import java.util.Set;
 
 public class NoOpDependencyLockingProvider implements DependencyLockingProvider {
 
@@ -45,7 +44,11 @@ public class NoOpDependencyLockingProvider implements DependencyLockingProvider 
     }
 
     @Override
-    public void persistResolvedDependencies(String lockId, DisplayName lockOwner, Set<ModuleComponentIdentifier> resolutionResult, Set<ModuleComponentIdentifier> changingResolvedModules) {
+    public void persistResolvedDependencies(
+            String lockId,
+            DisplayName lockOwner,
+            Set<ModuleComponentIdentifier> resolutionResult,
+            Set<ModuleComponentIdentifier> changingResolvedModules) {
         // No-op
     }
 

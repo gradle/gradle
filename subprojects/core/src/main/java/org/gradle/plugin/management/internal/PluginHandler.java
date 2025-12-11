@@ -44,7 +44,8 @@ public interface PluginHandler extends AutoAppliedPluginHandler, ArgumentSourced
      */
     default PluginRequests getAllPluginRequests(PluginRequests initialPluginRequests, Object pluginTarget) {
         PluginRequests autoAppliedPlugins = getAutoAppliedPlugins(initialPluginRequests, pluginTarget);
-        PluginRequests argumentLoadedPlugins = pluginTarget instanceof Settings ? getArgumentSourcedPlugins() : PluginRequests.EMPTY;
+        PluginRequests argumentLoadedPlugins =
+                pluginTarget instanceof Settings ? getArgumentSourcedPlugins() : PluginRequests.EMPTY;
         return initialPluginRequests.mergeWith(autoAppliedPlugins).mergeWith(argumentLoadedPlugins);
     }
 }

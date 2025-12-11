@@ -16,6 +16,13 @@
 
 package org.gradle.deployment.internal;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.BuildResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -29,14 +36,6 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @ServiceScope(Scope.BuildSession.class)
 public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, PendingChangesListener, Stoppable {
@@ -52,7 +51,10 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
     private boolean stopped;
     private boolean anyStarted;
 
-    public DefaultDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationRunner buildOperationRunner, ObjectFactory objectFactory) {
+    public DefaultDeploymentRegistry(
+            PendingChangesManager pendingChangesManager,
+            BuildOperationRunner buildOperationRunner,
+            ObjectFactory objectFactory) {
         this.pendingChangesManager = pendingChangesManager;
         this.buildOperationRunner = buildOperationRunner;
         this.objectFactory = objectFactory;
@@ -66,7 +68,8 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
     }
 
     @Override
-    public <T extends DeploymentHandle> T start(final String name, final ChangeBehavior changeBehavior, final Class<T> handleType, final Object... params) {
+    public <T extends DeploymentHandle> T start(
+            final String name, final ChangeBehavior changeBehavior, final Class<T> handleType, final Object... params) {
         anyStarted = true;
         lock.lock();
         try {
@@ -81,7 +84,8 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
                     @Override
                     public T call(BuildOperationContext context) {
                         T handle = objectFactory.newInstance(handleType, params);
-                        RegisteredDeployment deployment = RegisteredDeployment.create(name, changeBehavior, continuousExecutionGate, handle);
+                        RegisteredDeployment deployment =
+                                RegisteredDeployment.create(name, changeBehavior, continuousExecutionGate, handle);
                         handle.start(deployment.getDeployment());
                         if (pendingChanges.hasRemainingChanges()) {
                             deployment.outOfDate();
@@ -162,7 +166,6 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
         }
     }
 
-
     @Override
     public void stop() {
         lock.lock();
@@ -192,7 +195,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
         }
 
         void changesIncorporated() {
-            pendingChanges = Math.max(0, pendingChanges-1);
+            pendingChanges = Math.max(0, pendingChanges - 1);
         }
 
         boolean hasRemainingChanges() {

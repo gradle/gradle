@@ -17,17 +17,17 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
-import java.util.Set;
-
 public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProjectInitDescriptor {
     private final TemplateLibraryVersionProvider libraryVersionProvider;
 
-    public KotlinGradlePluginProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+    public KotlinGradlePluginProjectInitDescriptor(
+            TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
         super(documentationRegistry, libraryVersionProvider);
         this.libraryVersionProvider = libraryVersionProvider;
     }
@@ -53,22 +53,28 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     }
 
     @Override
-    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generateProjectBuildScript(
+            String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
 
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
-        buildScriptBuilder.plugin("Apply the Kotlin JVM plugin to add support for Kotlin.", "org.jetbrains.kotlin.jvm", kotlinVersion, "kotlin-jvm");
+        buildScriptBuilder.plugin(
+                "Apply the Kotlin JVM plugin to add support for Kotlin.",
+                "org.jetbrains.kotlin.jvm",
+                kotlinVersion,
+                "kotlin-jvm");
 
         if (!settings.isUseTestSuites()) {
-            buildScriptBuilder.testImplementationDependency("Use the Kotlin Test integration.",
-                BuildInitDependency.of("org.jetbrains.kotlin:kotlin-test"));
-            buildScriptBuilder.testRuntimeOnlyDependency(null,
-                BuildInitDependency.of("org.junit.platform:junit-platform-launcher"));
+            buildScriptBuilder.testImplementationDependency(
+                    "Use the Kotlin Test integration.", BuildInitDependency.of("org.jetbrains.kotlin:kotlin-test"));
+            buildScriptBuilder.testRuntimeOnlyDependency(
+                    null, BuildInitDependency.of("org.junit.platform:junit-platform-launcher"));
         }
     }
 
     @Override
-    protected TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName) {
+    protected TemplateOperation sourceTemplate(
+            InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName) {
         return templateFactory.fromSourceTemplate("plugin/kotlin/Plugin.kt.template", t -> {
             t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("main");
@@ -78,7 +84,8 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     }
 
     @Override
-    protected TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+    protected TemplateOperation testTemplate(
+            InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
         return templateFactory.fromSourceTemplate("plugin/kotlin/kotlintest/PluginTest.kt.template", t -> {
             t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("test");
@@ -88,7 +95,8 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     }
 
     @Override
-    protected TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+    protected TemplateOperation functionalTestTemplate(
+            InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
         return templateFactory.fromSourceTemplate("plugin/kotlin/kotlintest/PluginFunctionalTest.kt.template", t -> {
             t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("functionalTest");

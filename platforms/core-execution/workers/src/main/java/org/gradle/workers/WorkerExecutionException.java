@@ -37,5 +37,4 @@ public class WorkerExecutionException extends DefaultMultiCauseException {
     public WorkerExecutionException(String message, Iterable<? extends Throwable> causes) {
         super(message, causes);
     }
-
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import java.time.Duration;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
@@ -23,12 +24,13 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.model.ModuleSources;
 import org.jspecify.annotations.Nullable;
 
-import java.time.Duration;
-
 public interface ModuleMetadataCache {
     CachedMetadata cacheMissing(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id);
 
-    CachedMetadata cacheMetaData(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id, ModuleComponentResolveMetadata metaData);
+    CachedMetadata cacheMetaData(
+            ModuleComponentRepository<?> repository,
+            ModuleComponentIdentifier id,
+            ModuleComponentResolveMetadata metaData);
 
     CachedMetadata getCachedModuleDescriptor(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id);
 

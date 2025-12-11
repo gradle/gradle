@@ -18,11 +18,10 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import groovy.util.Node;
-import org.gradle.api.Incubating;
-import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.gradle.api.Incubating;
+import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
 
 /**
  * A wtp descriptor dependent module entry.
@@ -34,7 +33,8 @@ public class WbDependentModule implements WbModuleEntry {
     private String handle;
 
     public WbDependentModule(Node node) {
-        this((String) node.attribute("archiveName"), (String) node.attribute("deploy-path"), (String) node.attribute("handle"));
+        this((String) node.attribute("archiveName"), (String) node.attribute("deploy-path"), (String)
+                node.attribute("handle"));
     }
 
     public WbDependentModule(String deployPath, String handle) {
@@ -112,7 +112,9 @@ public class WbDependentModule implements WbModuleEntry {
             return false;
         }
         WbDependentModule that = (WbDependentModule) o;
-        return Objects.equal(archiveName, that.archiveName) && Objects.equal(deployPath, that.deployPath) && Objects.equal(handle, that.handle);
+        return Objects.equal(archiveName, that.archiveName)
+                && Objects.equal(deployPath, that.deployPath)
+                && Objects.equal(handle, that.handle);
     }
 
     @Override
@@ -127,9 +129,9 @@ public class WbDependentModule implements WbModuleEntry {
     @Override
     public String toString() {
         return "WbDependentModule{"
-            + "archiveName='" + archiveName + "\'"
-            + "deployPath='" + deployPath + "\'"
-            + ", handle='" + handle + "\'"
-            + "}";
+                + "archiveName='" + archiveName + "\'"
+                + "deployPath='" + deployPath + "\'"
+                + ", handle='" + handle + "\'"
+                + "}";
     }
 }

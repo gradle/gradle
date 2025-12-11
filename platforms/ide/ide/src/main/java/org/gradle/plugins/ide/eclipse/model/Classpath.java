@@ -16,24 +16,23 @@
 
 package org.gradle.plugins.ide.eclipse.model;
 
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import groovy.util.Node;
 import groovy.util.NodeList;
-import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
-import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
+import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
 /**
  * Represents the customizable elements of an eclipse classpath file. (via XML hooks everything is customizable).
@@ -70,7 +69,7 @@ public class Classpath extends XmlPersistableConfigurationObject {
 
     @Override
     protected void load(Node xml) {
-        for (Object e : (NodeList)xml.get("classpathentry")) {
+        for (Object e : (NodeList) xml.get("classpathentry")) {
             Node entryNode = (Node) e;
             Object kind = entryNode.attribute("kind");
             if ("src".equals(kind)) {
@@ -91,23 +90,24 @@ public class Classpath extends XmlPersistableConfigurationObject {
     @SuppressWarnings({"unchecked"}) // TODO: Change this signature once we can break compatibility
     public Object configure(List<?> newEntries) {
         List<SourceFolder> newSourceFolders = newEntries.stream()
-            .filter(SourceFolder.class::isInstance)
-            .map(SourceFolder.class::cast)
-            .collect(toList());
+                .filter(SourceFolder.class::isInstance)
+                .map(SourceFolder.class::cast)
+                .collect(toList());
 
         Set<ClasspathEntry> updatedEntries = entries.stream()
-            .filter(entry -> shouldKeepEntry(newSourceFolders, entry))
-            .collect(toCollection(LinkedHashSet::new));
+                .filter(entry -> shouldKeepEntry(newSourceFolders, entry))
+                .collect(toCollection(LinkedHashSet::new));
 
-        updatedEntries.addAll((List<ClasspathEntry>)newEntries); //merge new and old entries with matching path entries
+        updatedEntries.addAll(
+                (List<ClasspathEntry>) newEntries); // merge new and old entries with matching path entries
         return entries = Lists.newArrayList(updatedEntries);
     }
 
     private boolean shouldKeepEntry(List<SourceFolder> newEntries, ClasspathEntry entry) {
         return !isDependency(entry)
-            && !isJreContainer(entry)
-            && !isOutputLocation(entry)
-            && !isExistingEntryDuplicate(newEntries, entry);
+                && !isJreContainer(entry)
+                && !isOutputLocation(entry)
+                && !isExistingEntryDuplicate(newEntries, entry);
     }
 
     private static boolean isExistingEntryDuplicate(List<SourceFolder> newSourceFolders, ClasspathEntry existingEntry) {
@@ -118,15 +118,15 @@ public class Classpath extends XmlPersistableConfigurationObject {
         SourceFolder sourceFolder = (SourceFolder) existingEntry;
         return newSourceFolders.stream().anyMatch(newSourceFolder -> {
             return Objects.equal(sourceFolder.getKind(), newSourceFolder.getKind())
-                && Objects.equal(sourceFolder.getPath(), newSourceFolder.getPath())
-                && Objects.equal(sourceFolder.getExcludes(), newSourceFolder.getExcludes())
-                && Objects.equal(sourceFolder.getIncludes(), newSourceFolder.getIncludes());
+                    && Objects.equal(sourceFolder.getPath(), newSourceFolder.getPath())
+                    && Objects.equal(sourceFolder.getExcludes(), newSourceFolder.getExcludes())
+                    && Objects.equal(sourceFolder.getIncludes(), newSourceFolder.getIncludes());
         });
     }
 
     @Override
     protected void store(Node xml) {
-        NodeList classpathEntryNodes = (NodeList)xml.get("classpathentry");
+        NodeList classpathEntryNodes = (NodeList) xml.get("classpathentry");
         for (Object classpathEntry : classpathEntryNodes) {
             xml.remove((Node) classpathEntry);
         }
@@ -165,7 +165,8 @@ public class Classpath extends XmlPersistableConfigurationObject {
                 ProjectDependency projectDependency = (ProjectDependency) entry;
                 String path = projectDependency.getPath();
                 // skip duplicate paths and also test source paths with a corresponding main source path
-                if (!paths.contains(path) && (!mainSourcePaths.contains(path) || !hasTestSourcesAttribute(projectDependency))) {
+                if (!paths.contains(path)
+                        && (!mainSourcePaths.contains(path) || !hasTestSourcesAttribute(projectDependency))) {
                     paths.add(path);
                     filtered.add(entry);
                 }
@@ -208,7 +209,8 @@ public class Classpath extends XmlPersistableConfigurationObject {
     }
 
     private boolean isJreContainer(ClasspathEntry entry) {
-        return entry instanceof Container && ((Container) entry).getPath().startsWith("org.eclipse.jdt.launching.JRE_CONTAINER");
+        return entry instanceof Container
+                && ((Container) entry).getPath().startsWith("org.eclipse.jdt.launching.JRE_CONTAINER");
     }
 
     private boolean isOutputLocation(ClasspathEntry entry) {
@@ -234,8 +236,8 @@ public class Classpath extends XmlPersistableConfigurationObject {
             return fileReferenceFactory.fromVariablePath((String) reference);
         } else {
             String type = reference == null ? "null" : reference.getClass().getName();
-            throw new RuntimeException("File reference can only be created from File or String instances but " + type + " was passed");
+            throw new RuntimeException(
+                    "File reference can only be created from File or String instances but " + type + " was passed");
         }
     }
-
 }

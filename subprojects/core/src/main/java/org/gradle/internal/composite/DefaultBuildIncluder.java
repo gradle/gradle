@@ -16,6 +16,10 @@
 
 package org.gradle.internal.composite;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.IncludedBuildSpec;
@@ -30,11 +34,6 @@ import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.reflect.Instantiator;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @NullMarked
 public class DefaultBuildIncluder implements BuildIncluder {
 
@@ -47,13 +46,12 @@ public class DefaultBuildIncluder implements BuildIncluder {
     private final List<BuildDefinition> pluginBuildDefinitions = new ArrayList<>();
 
     public DefaultBuildIncluder(
-        BuildStateRegistry buildRegistry,
-        BuildInclusionCoordinator coordinator,
-        PublicBuildPath publicBuildPath,
-        Instantiator instantiator,
-        GradleInternal gradle,
-        BuildIncludeListener buildIncludeListener
-    ) {
+            BuildStateRegistry buildRegistry,
+            BuildInclusionCoordinator coordinator,
+            PublicBuildPath publicBuildPath,
+            Instantiator instantiator,
+            GradleInternal gradle,
+            BuildIncludeListener buildIncludeListener) {
         this.buildRegistry = buildRegistry;
         this.coordinator = coordinator;
         this.publicBuildPath = publicBuildPath;
@@ -89,19 +87,21 @@ public class DefaultBuildIncluder implements BuildIncluder {
 
     @Override
     public Collection<IncludedBuildState> getRegisteredPluginBuilds() {
-        return pluginBuildDefinitions.stream().map(buildDefinition -> {
-            IncludedBuildState build = buildRegistry.addIncludedBuild(buildDefinition, gradle.getOwner());
-            coordinator.prepareForInclusion(build, true);
-            return build;
-        }).collect(Collectors.toList());
+        return pluginBuildDefinitions.stream()
+                .map(buildDefinition -> {
+                    IncludedBuildState build = buildRegistry.addIncludedBuild(buildDefinition, gradle.getOwner());
+                    coordinator.prepareForInclusion(build, true);
+                    return build;
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
     public Collection<IncludedBuildState> getIncludedBuildsForPluginResolution() {
         BuildState thisBuild = gradle.getOwner();
-        return buildRegistry.getIncludedBuilds().stream().filter(build ->
-            build != thisBuild && !build.isImplicitBuild() && !build.isPluginBuild()
-        ).collect(Collectors.toList());
+        return buildRegistry.getIncludedBuilds().stream()
+                .filter(build -> build != thisBuild && !build.isImplicitBuild() && !build.isPluginBuild())
+                .collect(Collectors.toList());
     }
 
     @Override

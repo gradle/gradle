@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.tooling.r86;
 
+import java.io.IOException;
+import java.net.URI;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.eclipse.EclipseProject;
-
-import java.io.IOException;
-import java.net.URI;
 
 class BlockingModelSendingBuildAction implements BuildAction<CustomModel> {
     private final URI uri;

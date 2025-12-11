@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Properties;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Properties;
 
 /**
  * Transformer implementation to support modification of Properties objects.

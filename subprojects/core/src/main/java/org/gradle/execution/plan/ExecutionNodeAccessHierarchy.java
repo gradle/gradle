@@ -17,6 +17,10 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.plan.ValuedVfsHierarchy.ValueVisitor;
@@ -24,12 +28,6 @@ import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.VfsRelativePath;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.io.File;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
-
 
 @ThreadSafe
 public class ExecutionNodeAccessHierarchy {
@@ -82,7 +80,8 @@ public class ExecutionNodeAccessHierarchy {
             @Override
             boolean acceptChildren(Supplier<String> relativePathSupplier) {
                 String relativePathFromLocation = relativePathSupplier.get();
-                return matcher.elementWithRelativePathMatches(filter, new File(location, relativePathFromLocation), relativePathFromLocation);
+                return matcher.elementWithRelativePathMatches(
+                        filter, new File(location, relativePathFromLocation), relativePathFromLocation);
             }
         });
     }
@@ -203,7 +202,8 @@ public class ExecutionNodeAccessHierarchy {
 
         @Override
         public boolean accessesChild(VfsRelativePath childPath) {
-            return matcher.elementWithRelativePathMatches(spec, new File(childPath.getAbsolutePath()), childPath.getAsString());
+            return matcher.elementWithRelativePathMatches(
+                    spec, new File(childPath.getAbsolutePath()), childPath.getAsString());
         }
     }
 }

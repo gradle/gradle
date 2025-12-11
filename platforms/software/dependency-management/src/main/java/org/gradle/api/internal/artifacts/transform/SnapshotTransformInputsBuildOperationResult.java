@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.internal.tasks.BaseSnapshotInputsBuildOperationResult;
 import org.gradle.api.internal.tasks.FilePropertyVisitState;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
@@ -25,14 +27,13 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuildOperationType;
 import org.gradle.operations.execution.FilePropertyVisitor;
 
-import java.util.Map;
-import java.util.Set;
-
-public class SnapshotTransformInputsBuildOperationResult extends BaseSnapshotInputsBuildOperationResult implements SnapshotTransformInputsBuildOperationType.Result {
+public class SnapshotTransformInputsBuildOperationResult extends BaseSnapshotInputsBuildOperationResult
+        implements SnapshotTransformInputsBuildOperationType.Result {
 
     private final Set<InputFilePropertySpec> inputFilePropertySpecs;
 
-    public SnapshotTransformInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs) {
+    public SnapshotTransformInputsBuildOperationResult(
+            CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs) {
         super(cachingState);
         this.inputFilePropertySpecs = inputFilePropertySpecs;
     }
@@ -40,8 +41,9 @@ public class SnapshotTransformInputsBuildOperationResult extends BaseSnapshotInp
     @Override
     public void visitInputFileProperties(FilePropertyVisitor visitor) {
         getBeforeExecutionState()
-            .map(BeforeExecutionState::getInputFileProperties)
-            .ifPresent(inputFileProperties -> FilePropertyVisitState.visitInputFileProperties(inputFileProperties, visitor, inputFilePropertySpecs));
+                .map(BeforeExecutionState::getInputFileProperties)
+                .ifPresent(inputFileProperties -> FilePropertyVisitState.visitInputFileProperties(
+                        inputFileProperties, visitor, inputFilePropertySpecs));
     }
 
     @Override
@@ -51,11 +53,13 @@ public class SnapshotTransformInputsBuildOperationResult extends BaseSnapshotInp
         return visitor.getFileProperties();
     }
 
-    private static class FilePropertyCollectingVisitor extends BaseFilePropertyCollectingVisitor<FilePropertyVisitor.VisitState> implements FilePropertyVisitor {
+    private static class FilePropertyCollectingVisitor
+            extends BaseFilePropertyCollectingVisitor<FilePropertyVisitor.VisitState> implements FilePropertyVisitor {
 
         @Override
         protected Property createProperty(FilePropertyVisitor.VisitState state) {
-            return new Property(HashCode.fromBytes(state.getPropertyHashBytes()).toString(), state.getPropertyAttributes());
+            return new Property(
+                    HashCode.fromBytes(state.getPropertyHashBytes()).toString(), state.getPropertyAttributes());
         }
     }
 }

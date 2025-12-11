@@ -16,10 +16,9 @@
 
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
+import java.io.Serializable;
 import org.gradle.api.JavaVersion;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
-
-import java.io.Serializable;
 
 public class DefaultEclipseJavaSourceSettings implements Serializable {
     private JavaVersion sourceLanguageLevel;

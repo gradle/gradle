@@ -16,6 +16,13 @@
 
 package org.gradle.api.plugins;
 
+import static org.gradle.api.distribution.plugins.DistributionPlugin.TASK_INSTALL_NAME;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
@@ -44,14 +51,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.Callable;
-import java.util.function.BiFunction;
-
-import static org.gradle.api.distribution.plugins.DistributionPlugin.TASK_INSTALL_NAME;
-
 /**
  * <p>A {@link Plugin} which packages and runs a project as a Java Application.</p>
  *
@@ -74,7 +73,8 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaPlugin.class);
         project.getPluginManager().apply(DistributionPlugin.class);
 
-        JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
+        JvmFeatureInternal mainFeature =
+                JavaPluginHelper.getJavaComponent(project).getMainFeature();
 
         JavaApplication extension = addExtension(project);
         addRunTask(project, mainFeature, extension);
@@ -91,14 +91,13 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         javaCompile.configure(j -> j.getOptions().getJavaModuleMainClass().convention(pluginExtension.getMainClass()));
     }
 
-    private void configureInstallTask(ProviderFactory providers, TaskProvider<Sync> installTask, JavaApplication pluginExtension) {
+    private void configureInstallTask(
+            ProviderFactory providers, TaskProvider<Sync> installTask, JavaApplication pluginExtension) {
         installTask.configure(task -> task.doFirst(
-            "don't overwrite existing directories",
-            new PreventDestinationOverwrite(
-                providers.provider(pluginExtension::getApplicationName),
-                providers.provider(pluginExtension::getExecutableDir)
-            )
-        ));
+                "don't overwrite existing directories",
+                new PreventDestinationOverwrite(
+                        providers.provider(pluginExtension::getApplicationName),
+                        providers.provider(pluginExtension::getExecutableDir))));
     }
 
     private static class PreventDestinationOverwrite implements Action<Task> {
@@ -117,17 +116,19 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             if (destinationDir.isDirectory()) {
                 String[] children = destinationDir.list();
                 if (children == null) {
-                    throw UncheckedException.throwAsUncheckedException(new IOException("Could not list directory " + destinationDir), true);
+                    throw UncheckedException.throwAsUncheckedException(
+                            new IOException("Could not list directory " + destinationDir), true);
                 }
                 if (children.length > 0) {
-                    if (!new File(destinationDir, "lib").isDirectory() || !new File(destinationDir, executableDir.get()).isDirectory()) {
+                    if (!new File(destinationDir, "lib").isDirectory()
+                            || !new File(destinationDir, executableDir.get()).isDirectory()) {
                         throw new GradleException("The specified installation directory \'"
-                            + destinationDir
-                            + "\' is neither empty nor does it contain an installation for \'"
-                            + applicationName.get()
-                            + "\'.\n"
-                            + "If you really want to install to this directory, delete it and run the install task again.\n"
-                            + "Alternatively, choose a different installation directory.");
+                                + destinationDir
+                                + "\' is neither empty nor does it contain an installation for \'"
+                                + applicationName.get()
+                                + "\'.\n"
+                                + "If you really want to install to this directory, delete it and run the install task again.\n"
+                                + "Alternatively, choose a different installation directory.");
                     }
                 }
             }
@@ -135,7 +136,8 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     private JavaApplication addExtension(Project project) {
-        JavaApplication javaApplication = project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class);
+        JavaApplication javaApplication =
+                project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class);
         javaApplication.setApplicationName(project.getName());
         return javaApplication;
     }
@@ -158,29 +160,31 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             run.getJvmArguments().convention(project.provider(pluginExtension::getApplicationDefaultJvmArgs));
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-            run.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
+            run.getModularity()
+                    .getInferModulePath()
+                    .convention(javaPluginExtension.getModularity().getInferModulePath());
             PropertyFactory propertyFactory = getPropertyFactory();
 
-            Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
-                JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(run, propertyFactory));
-            run.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
+            Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(
+                    () -> JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(run, propertyFactory));
+            run.getJavaLauncher()
+                    .convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
         });
     }
 
     private <T> Provider<T> getToolchainTool(
-        Project project,
-        BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper,
-        Provider<JavaToolchainSpec> toolchainOverride
-    ) {
+            Project project,
+            BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper,
+            Provider<JavaToolchainSpec> toolchainOverride) {
         JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
         JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
-        return toolchainOverride.orElse(extension.getToolchain())
-            .flatMap(spec -> toolMapper.apply(service, spec));
+        return toolchainOverride.orElse(extension.getToolchain()).flatMap(spec -> toolMapper.apply(service, spec));
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
     @SuppressWarnings("deprecation")
-    private void addCreateScriptsTask(Project project, JvmFeatureInternal mainFeature, JavaApplication pluginExtension) {
+    private void addCreateScriptsTask(
+            Project project, JvmFeatureInternal mainFeature, JavaApplication pluginExtension) {
         project.getTasks().register(TASK_START_SCRIPTS_NAME, CreateStartScripts.class, startScripts -> {
             startScripts.setDescription("Creates OS specific scripts to run the project as a JVM application.");
             startScripts.setClasspath(jarsOnlyRuntimeClasspath(mainFeature));
@@ -197,7 +201,10 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             startScripts.getConventionMapping().map("defaultJvmOpts", pluginExtension::getApplicationDefaultJvmArgs);
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-            startScripts.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
+            startScripts
+                    .getModularity()
+                    .getInferModulePath()
+                    .convention(javaPluginExtension.getModularity().getInferModulePath());
         });
     }
 
@@ -206,10 +213,19 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     private FileCollection jarsOnlyRuntimeClasspath(JvmFeatureInternal mainFeature) {
-        return mainFeature.getJarTask().get().getOutputs().getFiles().plus(mainFeature.getRuntimeClasspathConfiguration());
+        return mainFeature
+                .getJarTask()
+                .get()
+                .getOutputs()
+                .getFiles()
+                .plus(mainFeature.getRuntimeClasspathConfiguration());
     }
 
-    private CopySpec configureDistribution(Project project, JvmFeatureInternal mainFeature, Distribution mainDistribution, JavaApplication pluginExtension) {
+    private CopySpec configureDistribution(
+            Project project,
+            JvmFeatureInternal mainFeature,
+            Distribution mainDistribution,
+            JavaApplication pluginExtension) {
         mainDistribution.getDistributionBaseName().convention(project.provider(pluginExtension::getApplicationName));
         CopySpec distSpec = mainDistribution.getContents();
 

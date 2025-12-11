@@ -17,6 +17,11 @@
 package org.gradle.internal.execution.timeout.impl;
 
 import com.google.common.io.CharStreams;
+import java.io.PrintWriter;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import org.gradle.api.Describable;
 import org.gradle.internal.concurrent.ManagedScheduledExecutor;
 import org.gradle.internal.concurrent.Stoppable;
@@ -31,19 +36,15 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.PrintWriter;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
 public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTimeoutHandler.class);
 
     // Only intended to be used for integration testing
-    public static final String POST_TIMEOUT_CHECK_FREQUENCY_PROPERTY = DefaultTimeoutHandler.class.getName() + ".postTimeoutCheckFrequency";
-    public static final String SLOW_STOP_LOG_STACKTRACE_FREQUENCY_PROPERTY = DefaultTimeoutHandler.class.getName() + ".slowStopLogStacktraceFrequency";
+    public static final String POST_TIMEOUT_CHECK_FREQUENCY_PROPERTY =
+            DefaultTimeoutHandler.class.getName() + ".postTimeoutCheckFrequency";
+    public static final String SLOW_STOP_LOG_STACKTRACE_FREQUENCY_PROPERTY =
+            DefaultTimeoutHandler.class.getName() + ".slowStopLogStacktraceFrequency";
 
     private final ManagedScheduledExecutor executor;
     private final CurrentBuildOperationRef currentBuildOperationRef;
@@ -54,7 +55,11 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
     }
 
     @Override
-    public Timeout start(Thread taskExecutionThread, Duration timeout, Describable workUnitDescription, @Nullable BuildOperationRef buildOperationRef) {
+    public Timeout start(
+            Thread taskExecutionThread,
+            Duration timeout,
+            Describable workUnitDescription,
+            @Nullable BuildOperationRef buildOperationRef) {
         return new DefaultTimeout(taskExecutionThread, timeout, workUnitDescription, buildOperationRef);
     }
 
@@ -93,7 +98,11 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
 
         private ScheduledFuture<?> scheduledFuture;
 
-        private DefaultTimeout(Thread thread, Duration timeout, Describable workUnitDescription, @Nullable BuildOperationRef buildOperationRef) {
+        private DefaultTimeout(
+                Thread thread,
+                Duration timeout,
+                Describable workUnitDescription,
+                @Nullable BuildOperationRef buildOperationRef) {
             this.thread = thread;
             this.timeout = timeout;
             this.workUnitDescription = workUnitDescription;
@@ -105,10 +114,14 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
             synchronized (lock) {
                 if (!stopped) {
                     interrupted = true;
-                    doAsPartOfBuildOperation(() -> LOGGER.warn("Requesting stop of {} as it has exceeded its configured timeout of {}.", workUnitDescription.getDisplayName(), TimeFormatting.formatDurationTerse(timeout.toMillis())));
+                    doAsPartOfBuildOperation(() -> LOGGER.warn(
+                            "Requesting stop of {} as it has exceeded its configured timeout of {}.",
+                            workUnitDescription.getDisplayName(),
+                            TimeFormatting.formatDurationTerse(timeout.toMillis())));
                     thread.interrupt();
                     logStacktraceTimer = Time.startCountdownTimer(slowStopLogStacktraceFrequency());
-                    scheduledFuture = executor.schedule(this::onAfterTimeoutCheck, postTimeoutCheckFrequency(), TimeUnit.MILLISECONDS);
+                    scheduledFuture = executor.schedule(
+                            this::onAfterTimeoutCheck, postTimeoutCheckFrequency(), TimeUnit.MILLISECONDS);
                 }
             }
         }
@@ -132,7 +145,8 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
 
                     thread.interrupt(); // interrupt again in case the work unit cleared the interrupt.
 
-                    scheduledFuture = executor.schedule(this::onAfterTimeoutCheck, postTimeoutCheckFrequency(), TimeUnit.MILLISECONDS);
+                    scheduledFuture = executor.schedule(
+                            this::onAfterTimeoutCheck, postTimeoutCheckFrequency(), TimeUnit.MILLISECONDS);
                 }
             }
         }

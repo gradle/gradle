@@ -35,7 +35,11 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
         this(cause, description, true, cause == ComponentSelectionCause.FORCED);
     }
 
-    private DefaultComponentSelectionDescriptor(ComponentSelectionCause cause, Describable description, boolean hasCustomDescription, boolean isEquivalentToForce) {
+    private DefaultComponentSelectionDescriptor(
+            ComponentSelectionCause cause,
+            Describable description,
+            boolean hasCustomDescription,
+            boolean isEquivalentToForce) {
         this.cause = cause;
         this.description = description;
         this.hasCustomDescription = hasCustomDescription;
@@ -77,9 +81,9 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
         }
         DefaultComponentSelectionDescriptor that = (DefaultComponentSelectionDescriptor) o;
         return hashCode == that.hashCode
-            && cause == that.cause
-            && isEquivalentToForce == that.isEquivalentToForce
-            && Objects.equal(description, that.description);
+                && cause == that.cause
+                && isEquivalentToForce == that.isEquivalentToForce
+                && Objects.equal(description, that.description);
     }
 
     @Override

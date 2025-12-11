@@ -18,13 +18,12 @@ package org.gradle.api.internal.initialization.transform.utils;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.gradle.api.internal.initialization.transform.InstrumentationArtifactMetadata;
-import org.gradle.api.internal.initialization.transform.InstrumentationDependencyAnalysis;
-
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import org.gradle.api.internal.initialization.transform.InstrumentationArtifactMetadata;
+import org.gradle.api.internal.initialization.transform.InstrumentationDependencyAnalysis;
 
 public class CachedInstrumentationAnalysisSerializer implements InstrumentationAnalysisSerializer {
 
@@ -35,13 +34,13 @@ public class CachedInstrumentationAnalysisSerializer implements InstrumentationA
     public CachedInstrumentationAnalysisSerializer(InstrumentationAnalysisSerializer delegate) {
         this.delegate = delegate;
         dependencyAnalysisCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1)
-            .maximumSize(20_000)
-            .build();
+                .concurrencyLevel(1)
+                .maximumSize(20_000)
+                .build();
         typeHierarchyCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1)
-            .maximumSize(20_000)
-            .build();
+                .concurrencyLevel(1)
+                .maximumSize(20_000)
+                .build();
     }
 
     @Override
@@ -68,7 +67,9 @@ public class CachedInstrumentationAnalysisSerializer implements InstrumentationA
     @Override
     public InstrumentationArtifactMetadata readMetadataOnly(File input) {
         try {
-            return dependencyAnalysisCache.get(input, () -> delegate.readDependencyAnalysis(input)).getMetadata();
+            return dependencyAnalysisCache
+                    .get(input, () -> delegate.readDependencyAnalysis(input))
+                    .getMetadata();
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }

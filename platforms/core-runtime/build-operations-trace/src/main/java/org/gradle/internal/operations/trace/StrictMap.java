@@ -29,7 +29,7 @@ class StrictMap<K, V> extends HashMap<K, V> {
     @Override
     public V get(Object key) {
         if (!containsKey(key)) {
-            throw new NoSuchElementException("No entry with key: " + key + " (keys: " + keySet() +  ")");
+            throw new NoSuchElementException("No entry with key: " + key + " (keys: " + keySet() + ")");
         }
 
         return super.get(key);

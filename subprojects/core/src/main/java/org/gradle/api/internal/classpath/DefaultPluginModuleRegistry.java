@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.classpath;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultPluginModuleRegistry implements PluginModuleRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPluginModuleRegistry.class);

@@ -15,6 +15,13 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import java.io.File;
+import java.net.URI;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicReference;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -39,21 +46,14 @@ import org.gradle.wrapper.Logger;
 import org.gradle.wrapper.PathAssembler;
 import org.gradle.wrapper.WrapperConfiguration;
 
-import java.io.File;
-import java.net.URI;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicReference;
-
 public class DistributionInstaller {
     private static final String APP_NAME = "Gradle Tooling API";
     private static final InternalBuildProgressListener NO_OP = new NoOpListener();
     private final ProgressLoggerFactory progressLoggerFactory;
     private final InternalBuildProgressListener buildProgressListener;
     private final Clock clock;
-    private final AtomicReference<InternalBuildProgressListener> currentListener = new AtomicReference<InternalBuildProgressListener>(NO_OP);
+    private final AtomicReference<InternalBuildProgressListener> currentListener =
+            new AtomicReference<InternalBuildProgressListener>(NO_OP);
     // Protects the following state
     private final Object lock = new Object();
     private boolean completed;
@@ -61,7 +61,11 @@ public class DistributionInstaller {
     private Throwable failure;
     private final int timeout;
 
-    public DistributionInstaller(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener, Clock clock, int timeout) {
+    public DistributionInstaller(
+            ProgressLoggerFactory progressLoggerFactory,
+            InternalBuildProgressListener buildProgressListener,
+            Clock clock,
+            int timeout) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildProgressListener = getListener(buildProgressListener);
         this.clock = clock;
@@ -79,8 +83,14 @@ public class DistributionInstaller {
     /**
      * Installs the distribution and returns the result.
      */
-    public File install(File userHomeDir, File projectDir, WrapperConfiguration wrapperConfiguration, Map<String, String> systemProperties) throws Exception {
-        Install install = new Install(new Logger(false), new AsyncDownload(systemProperties), new PathAssembler(userHomeDir, projectDir));
+    public File install(
+            File userHomeDir,
+            File projectDir,
+            WrapperConfiguration wrapperConfiguration,
+            Map<String, String> systemProperties)
+            throws Exception {
+        Install install = new Install(
+                new Logger(false), new AsyncDownload(systemProperties), new PathAssembler(userHomeDir, projectDir));
         return install.createDist(wrapperConfiguration);
     }
 
@@ -96,8 +106,7 @@ public class DistributionInstaller {
 
     private static class NoOpListener implements InternalBuildProgressListener {
         @Override
-        public void onEvent(Object event) {
-        }
+        public void onEvent(Object event) {}
 
         @Override
         public List<String> getSubscribedOperations() {
@@ -116,7 +125,8 @@ public class DistributionInstaller {
         @Override
         public void downloadStatusChanged(URI address, long contentLength, long downloaded) {
             this.downloaded = downloaded;
-            StatusEvent statusEvent = new DefaultStatusEvent(clock.getCurrentTime(), descriptor, contentLength, downloaded, "bytes");
+            StatusEvent statusEvent =
+                    new DefaultStatusEvent(clock.getCurrentTime(), descriptor, contentLength, downloaded, "bytes");
             // This is called from the download thread. Only forward the events when not cancelled
             currentListener.get().onEvent(statusEvent);
         }
@@ -138,9 +148,11 @@ public class DistributionInstaller {
 
         private void doDownload(URI address, File destination) throws Exception {
             String displayName = "Download " + address;
-            FileDownloadOperationDescriptor descriptor = new DefaultFileDownloadOperationDescriptor(displayName, address, null);
+            FileDownloadOperationDescriptor descriptor =
+                    new DefaultFileDownloadOperationDescriptor(displayName, address, null);
             long startTime = clock.getCurrentTime();
-            buildProgressListener.onEvent(new DefaultFileDownloadStartEvent(startTime, displayName + " started", descriptor));
+            buildProgressListener.onEvent(
+                    new DefaultFileDownloadStartEvent(startTime, displayName + " started", descriptor));
 
             Throwable failure = null;
             long bytesDownloaded = 0;
@@ -151,8 +163,15 @@ public class DistributionInstaller {
             }
 
             long endTime = clock.getCurrentTime();
-            FileDownloadResult result = failure == null ? new DefaultFileDownloadSuccessResult(startTime, endTime, bytesDownloaded) : new DefaultFileDownloadFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)), bytesDownloaded);
-            buildProgressListener.onEvent(new DefaultFileDownloadFinishEvent(endTime, displayName + " finished", descriptor, result));
+            FileDownloadResult result = failure == null
+                    ? new DefaultFileDownloadSuccessResult(startTime, endTime, bytesDownloaded)
+                    : new DefaultFileDownloadFailureResult(
+                            startTime,
+                            endTime,
+                            Collections.singletonList(DefaultFailure.fromThrowable(failure)),
+                            bytesDownloaded);
+            buildProgressListener.onEvent(
+                    new DefaultFileDownloadFinishEvent(endTime, displayName + " finished", descriptor, result));
             if (failure != null) {
                 if (failure instanceof Exception) {
                     throw (Exception) failure;
@@ -161,7 +180,8 @@ public class DistributionInstaller {
             }
         }
 
-        private long withProgressLogging(URI address, File destination, OperationDescriptor operationDescriptor) throws Throwable {
+        private long withProgressLogging(URI address, File destination, OperationDescriptor operationDescriptor)
+                throws Throwable {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionInstaller.class);
             progressLogger.setDescription("Download " + address);
             progressLogger.started();
@@ -172,8 +192,11 @@ public class DistributionInstaller {
             }
         }
 
-        private long withAsyncDownload(final URI address, final File destination, final OperationDescriptor operationDescriptor) throws Throwable {
-            final ForwardingDownloadProgressListener listener = new ForwardingDownloadProgressListener(operationDescriptor);
+        private long withAsyncDownload(
+                final URI address, final File destination, final OperationDescriptor operationDescriptor)
+                throws Throwable {
+            final ForwardingDownloadProgressListener listener =
+                    new ForwardingDownloadProgressListener(operationDescriptor);
             currentListener.set(buildProgressListener);
             try {
                 // Start the download in another thread and wait for the result
@@ -181,7 +204,14 @@ public class DistributionInstaller {
                     @Override
                     public void run() {
                         try {
-                            new Download(new Logger(false), listener, APP_NAME, GradleVersion.current().getVersion(), systemProperties, timeout).download(address, destination);
+                            new Download(
+                                            new Logger(false),
+                                            listener,
+                                            APP_NAME,
+                                            GradleVersion.current().getVersion(),
+                                            systemProperties,
+                                            timeout)
+                                    .download(address, destination);
                         } catch (Throwable t) {
                             synchronized (lock) {
                                 failure = t;

@@ -16,9 +16,8 @@
 
 package org.gradle.deployment.internal;
 
-import org.jspecify.annotations.Nullable;
-
 import javax.annotation.concurrent.ThreadSafe;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A registry of deployment handles.
@@ -37,7 +36,8 @@ public interface DeploymentRegistry {
      *
      * @throws IllegalStateException if deployment handle with the given name already exists
      */
-    <T extends DeploymentHandle> T start(String name, ChangeBehavior changeBehavior, Class<T> handleType, Object... params);
+    <T extends DeploymentHandle> T start(
+            String name, ChangeBehavior changeBehavior, Class<T> handleType, Object... params);
 
     /**
      * Retrieves a deployment handle from the registry with the given name and type.

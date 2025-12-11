@@ -15,19 +15,18 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.cache.IndexedCache;
-import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.serialize.InputStreamBackedDecoder;
-import org.gradle.internal.serialize.OutputStreamBackedEncoder;
-import org.gradle.internal.serialize.Serializer;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.serialize.InputStreamBackedDecoder;
+import org.gradle.internal.serialize.OutputStreamBackedEncoder;
+import org.gradle.internal.serialize.Serializer;
 
 /**
  * A simple in-memory cache, used by the testing fixtures.

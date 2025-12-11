@@ -15,7 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
+import static java.util.stream.Collectors.toSet;
+
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeAnyOf;
@@ -29,12 +34,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import static java.util.stream.Collectors.toSet;
 
 @NullMarked
 class Intersections {
@@ -82,10 +81,10 @@ class Intersections {
             return left;
         } else {
             return intersections.stream()
-                .filter(i -> i.applies(left, right))
-                .findFirst()
-                .map(i -> i.intersect(left, right, factory))
-                .orElse(null);
+                    .filter(i -> i.applies(left, right))
+                    .findFirst()
+                    .map(i -> i.intersect(left, right, factory))
+                    .orElse(null);
         }
     }
 
@@ -118,7 +117,8 @@ class Intersections {
             } else {
                 // slowest path, full distribution
                 // (A ∪ B) ∩ (C ∪ D) = (A ∩ C) ∪ (A ∩ D) ∪ (B ∩ C) ∪ (B ∩ D)
-                Set<ExcludeSpec> intersections = Sets.newHashSetWithExpectedSize(leftComponents.size() * rightComponents.size());
+                Set<ExcludeSpec> intersections =
+                        Sets.newHashSetWithExpectedSize(leftComponents.size() * rightComponents.size());
                 for (ExcludeSpec leftSpec : leftComponents) {
                     for (ExcludeSpec rightSpec : rightComponents) {
                         ExcludeSpec merged = tryIntersect(leftSpec, rightSpec);
@@ -181,7 +181,7 @@ class Intersections {
         public boolean applies(ExcludeSpec left, ExcludeSpec right) {
             // We want to use the more specific AnyWithAny intersection if possible
             return (left instanceof ExcludeAnyOf && !(right instanceof ExcludeAnyOf))
-                || (right instanceof ExcludeAnyOf && !(left instanceof ExcludeAnyOf));
+                    || (right instanceof ExcludeAnyOf && !(left instanceof ExcludeAnyOf));
         }
     }
 
@@ -232,7 +232,8 @@ class Intersections {
     }
 
     @NullMarked
-    private static final class IntersectGroupWithModuleIdSet extends AbstractIntersection<GroupExclude, ModuleIdSetExclude> {
+    private static final class IntersectGroupWithModuleIdSet
+            extends AbstractIntersection<GroupExclude, ModuleIdSetExclude> {
         private IntersectGroupWithModuleIdSet() {
             super(GroupExclude.class, ModuleIdSetExclude.class);
         }
@@ -240,7 +241,9 @@ class Intersections {
         @Override
         public ExcludeSpec doIntersect(GroupExclude left, ModuleIdSetExclude right, ExcludeFactory factory) {
             String group = left.getGroup();
-            Set<ModuleIdentifier> moduleIds = right.getModuleIds().stream().filter(id -> id.getGroup().equals(group)).collect(toSet());
+            Set<ModuleIdentifier> moduleIds = right.getModuleIds().stream()
+                    .filter(id -> id.getGroup().equals(group))
+                    .collect(toSet());
             return factory.fromModuleIds(moduleIds);
         }
     }
@@ -258,23 +261,23 @@ class Intersections {
     }
 
     @NullMarked
-    private static final class IntersectGroupWithModuleSet extends AbstractIntersection<GroupExclude, ModuleSetExclude> {
+    private static final class IntersectGroupWithModuleSet
+            extends AbstractIntersection<GroupExclude, ModuleSetExclude> {
         private IntersectGroupWithModuleSet() {
             super(GroupExclude.class, ModuleSetExclude.class);
         }
 
         @Override
         public ExcludeSpec doIntersect(GroupExclude left, ModuleSetExclude right, ExcludeFactory factory) {
-            return factory.moduleIdSet(right.getModules()
-                .stream()
-                .map(module -> DefaultModuleIdentifier.newId(left.getGroup(), module))
-                .collect(toSet())
-            );
+            return factory.moduleIdSet(right.getModules().stream()
+                    .map(module -> DefaultModuleIdentifier.newId(left.getGroup(), module))
+                    .collect(toSet()));
         }
     }
 
     @NullMarked
-    private static final class IntersectGroupSetWithGroupSet extends AbstractIntersection<GroupSetExclude, GroupSetExclude> {
+    private static final class IntersectGroupSetWithGroupSet
+            extends AbstractIntersection<GroupSetExclude, GroupSetExclude> {
         private IntersectGroupSetWithGroupSet() {
             super(GroupSetExclude.class, GroupSetExclude.class);
         }
@@ -289,7 +292,8 @@ class Intersections {
     }
 
     @NullMarked
-    private static final class IntersectGroupSetWithModuleId extends AbstractIntersection<GroupSetExclude, ModuleIdExclude> {
+    private static final class IntersectGroupSetWithModuleId
+            extends AbstractIntersection<GroupSetExclude, ModuleIdExclude> {
         private IntersectGroupSetWithModuleId() {
             super(GroupSetExclude.class, ModuleIdExclude.class);
         }
@@ -305,7 +309,8 @@ class Intersections {
     }
 
     @NullMarked
-    private static final class IntersectGroupSetWithModuleIdSet extends AbstractIntersection<GroupSetExclude, ModuleIdSetExclude> {
+    private static final class IntersectGroupSetWithModuleIdSet
+            extends AbstractIntersection<GroupSetExclude, ModuleIdSetExclude> {
         private IntersectGroupSetWithModuleIdSet() {
             super(GroupSetExclude.class, ModuleIdSetExclude.class);
         }
@@ -313,10 +318,9 @@ class Intersections {
         @Override
         public ExcludeSpec doIntersect(GroupSetExclude left, ModuleIdSetExclude right, ExcludeFactory factory) {
             Set<String> groups = left.getGroups();
-            Set<ModuleIdentifier> filtered = right.getModuleIds()
-                .stream()
-                .filter(id -> groups.contains(id.getGroup()))
-                .collect(toSet());
+            Set<ModuleIdentifier> filtered = right.getModuleIds().stream()
+                    .filter(id -> groups.contains(id.getGroup()))
+                    .collect(toSet());
             return factory.fromModuleIds(filtered);
         }
     }
@@ -339,7 +343,8 @@ class Intersections {
     }
 
     @NullMarked
-    private static final class IntersectModuleWithModuleId extends AbstractIntersection<ModuleExclude, ModuleIdExclude> {
+    private static final class IntersectModuleWithModuleId
+            extends AbstractIntersection<ModuleExclude, ModuleIdExclude> {
         private IntersectModuleWithModuleId() {
             super(ModuleExclude.class, ModuleIdExclude.class);
         }
@@ -356,7 +361,8 @@ class Intersections {
     }
 
     @NullMarked
-    private static final class IntersectModuleWithModuleSet extends AbstractIntersection<ModuleExclude, ModuleSetExclude> {
+    private static final class IntersectModuleWithModuleSet
+            extends AbstractIntersection<ModuleExclude, ModuleSetExclude> {
         private IntersectModuleWithModuleSet() {
             super(ModuleExclude.class, ModuleSetExclude.class);
         }
@@ -372,7 +378,8 @@ class Intersections {
     }
 
     @NullMarked
-    private static final class IntersectModuleWithModuleIdSet extends AbstractIntersection<ModuleExclude, ModuleIdSetExclude> {
+    private static final class IntersectModuleWithModuleIdSet
+            extends AbstractIntersection<ModuleExclude, ModuleIdSetExclude> {
         private IntersectModuleWithModuleIdSet() {
             super(ModuleExclude.class, ModuleIdSetExclude.class);
         }
@@ -380,13 +387,16 @@ class Intersections {
         @Override
         public ExcludeSpec doIntersect(ModuleExclude left, ModuleIdSetExclude right, ExcludeFactory factory) {
             String module = left.getModule();
-            Set<ModuleIdentifier> common = right.getModuleIds().stream().filter(id -> id.getName().equals(module)).collect(toSet());
+            Set<ModuleIdentifier> common = right.getModuleIds().stream()
+                    .filter(id -> id.getName().equals(module))
+                    .collect(toSet());
             return factory.fromModuleIds(common);
         }
     }
 
     @NullMarked
-    private static final class IntersectModuleIdWithModuleId extends AbstractIntersection<ModuleIdExclude, ModuleIdExclude> {
+    private static final class IntersectModuleIdWithModuleId
+            extends AbstractIntersection<ModuleIdExclude, ModuleIdExclude> {
         private IntersectModuleIdWithModuleId() {
             super(ModuleIdExclude.class, ModuleIdExclude.class);
         }
@@ -401,7 +411,8 @@ class Intersections {
     }
 
     @NullMarked
-    private static final class IntersectModuleIdWithModuleIdSet extends AbstractIntersection<ModuleIdExclude, ModuleIdSetExclude> {
+    private static final class IntersectModuleIdWithModuleIdSet
+            extends AbstractIntersection<ModuleIdExclude, ModuleIdSetExclude> {
         private IntersectModuleIdWithModuleIdSet() {
             super(ModuleIdExclude.class, ModuleIdSetExclude.class);
         }
@@ -417,7 +428,8 @@ class Intersections {
     }
 
     @NullMarked
-    private static final class IntersectModuleIdWithModuleSet extends AbstractIntersection<ModuleIdExclude, ModuleSetExclude> {
+    private static final class IntersectModuleIdWithModuleSet
+            extends AbstractIntersection<ModuleIdExclude, ModuleSetExclude> {
         private IntersectModuleIdWithModuleSet() {
             super(ModuleIdExclude.class, ModuleSetExclude.class);
         }
@@ -433,7 +445,8 @@ class Intersections {
     }
 
     @NullMarked
-    private static final class IntersectModuleIdSetWithModuleIdSet extends AbstractIntersection<ModuleIdSetExclude, ModuleIdSetExclude> {
+    private static final class IntersectModuleIdSetWithModuleIdSet
+            extends AbstractIntersection<ModuleIdSetExclude, ModuleIdSetExclude> {
         private IntersectModuleIdSetWithModuleIdSet() {
             super(ModuleIdSetExclude.class, ModuleIdSetExclude.class);
         }
@@ -448,7 +461,8 @@ class Intersections {
     }
 
     @NullMarked
-    private static final class IntersectModuleIdSetWithModuleSet extends AbstractIntersection<ModuleIdSetExclude, ModuleSetExclude> {
+    private static final class IntersectModuleIdSetWithModuleSet
+            extends AbstractIntersection<ModuleIdSetExclude, ModuleSetExclude> {
         private IntersectModuleIdSetWithModuleSet() {
             super(ModuleIdSetExclude.class, ModuleSetExclude.class);
         }
@@ -458,8 +472,8 @@ class Intersections {
             Set<ModuleIdentifier> moduleIds = left.getModuleIds();
             Set<String> modules = right.getModules();
             Set<ModuleIdentifier> identifiers = moduleIds.stream()
-                .filter(e -> modules.contains(e.getName()))
-                .collect(toSet());
+                    .filter(e -> modules.contains(e.getName()))
+                    .collect(toSet());
             if (identifiers.isEmpty()) {
                 return factory.nothing();
             }
@@ -472,7 +486,8 @@ class Intersections {
     }
 
     @NullMarked
-    private static final class IntersectModuleSetWithModuleSet extends AbstractIntersection<ModuleSetExclude, ModuleSetExclude> {
+    private static final class IntersectModuleSetWithModuleSet
+            extends AbstractIntersection<ModuleSetExclude, ModuleSetExclude> {
         private IntersectModuleSetWithModuleSet() {
             super(ModuleSetExclude.class, ModuleSetExclude.class);
         }
@@ -492,26 +507,33 @@ class Intersections {
     }
 
     @NullMarked
-    private static final class IntersectModuleSetWithGroupSet extends AbstractIntersection<ModuleSetExclude, GroupSetExclude> {
+    private static final class IntersectModuleSetWithGroupSet
+            extends AbstractIntersection<ModuleSetExclude, GroupSetExclude> {
         private IntersectModuleSetWithGroupSet() {
             super(ModuleSetExclude.class, GroupSetExclude.class);
         }
 
         @Override
         public ExcludeSpec doIntersect(ModuleSetExclude left, GroupSetExclude right, ExcludeFactory factory) {
-            return factory.moduleIdSet(right.getGroups().stream().flatMap(group -> left.getModules().stream().map(module -> DefaultModuleIdentifier.newId(group, module))).collect(toSet()));
+            return factory.moduleIdSet(right.getGroups().stream()
+                    .flatMap(group ->
+                            left.getModules().stream().map(module -> DefaultModuleIdentifier.newId(group, module)))
+                    .collect(toSet()));
         }
     }
 
     @NullMarked
-    private static final class IntersectModuleWithGroupSet extends AbstractIntersection<ModuleExclude, GroupSetExclude> {
+    private static final class IntersectModuleWithGroupSet
+            extends AbstractIntersection<ModuleExclude, GroupSetExclude> {
         private IntersectModuleWithGroupSet() {
             super(ModuleExclude.class, GroupSetExclude.class);
         }
 
         @Override
         public ExcludeSpec doIntersect(ModuleExclude left, GroupSetExclude right, ExcludeFactory factory) {
-            return factory.moduleIdSet(right.getGroups().stream().map(group -> DefaultModuleIdentifier.newId(group, left.getModule())).collect(toSet()));
+            return factory.moduleIdSet(right.getGroups().stream()
+                    .map(group -> DefaultModuleIdentifier.newId(group, left.getModule()))
+                    .collect(toSet()));
         }
     }
 }

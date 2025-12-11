@@ -16,9 +16,8 @@
 
 package org.gradle.caching.internal.origin;
 
-import org.gradle.internal.hash.HashCode;
-
 import java.time.Duration;
+import org.gradle.internal.hash.HashCode;
 
 public class OriginMetadata {
 
@@ -75,9 +74,9 @@ public class OriginMetadata {
     @Override
     public String toString() {
         return "OriginMetadata{"
-            + "buildInvocationId=" + buildInvocationId
-            + ", buildCacheKey=" + buildCacheKey
-            + ", executionTime=" + executionTime
-            + '}';
+                + "buildInvocationId=" + buildInvocationId
+                + ", buildCacheKey=" + buildCacheKey
+                + ", executionTime=" + executionTime
+                + '}';
     }
 }

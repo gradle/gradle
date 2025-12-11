@@ -17,13 +17,12 @@
 package org.gradle.api.internal.tasks.scala;
 
 import com.google.common.collect.ImmutableList;
+import java.io.Serializable;
+import java.util.List;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 import org.gradle.language.scala.tasks.KeepAliveMode;
 import org.jspecify.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.List;
 
 public class MinimalScalaCompileOptions implements Serializable {
     private boolean failOnError = true;
@@ -52,7 +51,9 @@ public class MinimalScalaCompileOptions implements Serializable {
         this.additionalParameters = ImmutableList.copyOf(compileOptions.getAdditionalParameters());
         this.listFiles = compileOptions.isListFiles();
         this.loggingLevel = compileOptions.getLoggingLevel();
-        this.loggingPhases = compileOptions.getLoggingPhases() == null ? null : ImmutableList.copyOf(compileOptions.getLoggingPhases());
+        this.loggingPhases = compileOptions.getLoggingPhases() == null
+                ? null
+                : ImmutableList.copyOf(compileOptions.getLoggingPhases());
         this.forkOptions = new MinimalScalaCompilerDaemonForkOptions(compileOptions.getForkOptions());
         this.incrementalOptions = compileOptions.getIncrementalOptions();
         this.keepAliveMode = compileOptions.getKeepAliveMode().get();

@@ -17,18 +17,18 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
 abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE> extends AbstractMinimalProvider<TYPE> {
-    // The underlying list is shared by the collectors produced by `plus`, so we don't have to copy the collectors every time.
+    // The underlying list is shared by the collectors produced by `plus`, so we don't have to copy the collectors every
+    // time.
     // However, this also means that you can only call plus on a given collector once.
     protected final AppendOnceList<COLLECTOR> collectors;
 
@@ -78,10 +78,9 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
     }
 
     protected <ENTRIES, BUILDER> Value<ENTRIES> calculateValue(
-        BiFunction<BUILDER, COLLECTOR, Value<Void>> collectEntriesForCollector,
-        BUILDER builder,
-        Function<BUILDER, ENTRIES> buildEntries
-    ) {
+            BiFunction<BUILDER, COLLECTOR, Value<Void>> collectEntriesForCollector,
+            BUILDER builder,
+            Function<BUILDER, ENTRIES> buildEntries) {
         SideEffectBuilder<ENTRIES> sideEffects = SideEffect.builder();
         for (COLLECTOR collector : collectors) {
             Value<Void> result = collectEntriesForCollector.apply(builder, collector);
@@ -95,16 +94,21 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
     }
 
     protected ExecutionTimeValue<? extends TYPE> calculateExecutionTimeValue(
-        Function<COLLECTOR, ExecutionTimeValue<? extends TYPE>> calculateExecutionTimeValueForCollector,
-        BiFunction<List<ExecutionTimeValue<? extends TYPE>>, SideEffectBuilder<TYPE>, ExecutionTimeValue<? extends TYPE>> calculateFixedExecutionTimeValue,
-        Function<List<ExecutionTimeValue<? extends TYPE>>, ExecutionTimeValue<? extends TYPE>> calculateChangingExecutionTimeValue
-    ) {
+            Function<COLLECTOR, ExecutionTimeValue<? extends TYPE>> calculateExecutionTimeValueForCollector,
+            BiFunction<
+                            List<ExecutionTimeValue<? extends TYPE>>,
+                            SideEffectBuilder<TYPE>,
+                            ExecutionTimeValue<? extends TYPE>>
+                    calculateFixedExecutionTimeValue,
+            Function<List<ExecutionTimeValue<? extends TYPE>>, ExecutionTimeValue<? extends TYPE>>
+                    calculateChangingExecutionTimeValue) {
         List<ExecutionTimeValue<? extends TYPE>> executionTimeValues =
-            collectExecutionTimeValues(calculateExecutionTimeValueForCollector);
+                collectExecutionTimeValues(calculateExecutionTimeValueForCollector);
         if (executionTimeValues.isEmpty()) {
             return ExecutionTimeValue.missing();
         }
-        ExecutionTimeValue<? extends TYPE> fixedOrMissing = fixedOrMissingValueOf(executionTimeValues, calculateFixedExecutionTimeValue);
+        ExecutionTimeValue<? extends TYPE> fixedOrMissing =
+                fixedOrMissingValueOf(executionTimeValues, calculateFixedExecutionTimeValue);
         if (fixedOrMissing != null) {
             return fixedOrMissing;
         }
@@ -114,8 +118,10 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
     /**
      * Returns an empty list when the overall value is missing.
      */
-    protected List<ExecutionTimeValue<? extends TYPE>> collectExecutionTimeValues(Function<COLLECTOR, ExecutionTimeValue<? extends TYPE>> calculateExecutionTimeValueForCollector) {
-        ImmutableList.Builder<ExecutionTimeValue<? extends TYPE>> executionTimeValues = ImmutableList.builderWithExpectedSize(collectors.size());
+    protected List<ExecutionTimeValue<? extends TYPE>> collectExecutionTimeValues(
+            Function<COLLECTOR, ExecutionTimeValue<? extends TYPE>> calculateExecutionTimeValueForCollector) {
+        ImmutableList.Builder<ExecutionTimeValue<? extends TYPE>> executionTimeValues =
+                ImmutableList.builderWithExpectedSize(collectors.size());
 
         for (COLLECTOR collector : collectors) {
             ExecutionTimeValue<? extends TYPE> result = calculateExecutionTimeValueForCollector.apply(collector);
@@ -146,9 +152,12 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
      */
     @Nullable
     private ExecutionTimeValue<? extends TYPE> fixedOrMissingValueOf(
-        List<ExecutionTimeValue<? extends TYPE>> values,
-        BiFunction<List<ExecutionTimeValue<? extends TYPE>>, SideEffectBuilder<TYPE>, ExecutionTimeValue<? extends TYPE>> calculateFixedExecutionTimeValue
-    ) {
+            List<ExecutionTimeValue<? extends TYPE>> values,
+            BiFunction<
+                            List<ExecutionTimeValue<? extends TYPE>>,
+                            SideEffectBuilder<TYPE>,
+                            ExecutionTimeValue<? extends TYPE>>
+                    calculateFixedExecutionTimeValue) {
         boolean fixed = true;
         boolean changingContent = false;
         for (ExecutionTimeValue<? extends TYPE> value : values) {
@@ -163,7 +172,8 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
         }
         if (fixed) {
             SideEffectBuilder<TYPE> sideEffectBuilder = SideEffect.builder();
-            ExecutionTimeValue<? extends TYPE> fixedValue = calculateFixedExecutionTimeValue.apply(values, sideEffectBuilder);
+            ExecutionTimeValue<? extends TYPE> fixedValue =
+                    calculateFixedExecutionTimeValue.apply(values, sideEffectBuilder);
             fixedValue = changingContent ? fixedValue.withChangingContent() : fixedValue;
             return fixedValue.withSideEffect(sideEffectBuilder.build());
         }

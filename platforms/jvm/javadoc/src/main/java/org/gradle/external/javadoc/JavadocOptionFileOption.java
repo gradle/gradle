@@ -26,6 +26,7 @@ import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazy
  */
 @HasInternalProtocol
 public interface JavadocOptionFileOption<T> extends OptionLessJavadocOptionFileOption<T> {
-    @NotToBeReplacedByLazyProperty(because = "JavadocOptionFileOption should be deprecated and replaced with a Property")
+    @NotToBeReplacedByLazyProperty(
+            because = "JavadocOptionFileOption should be deprecated and replaced with a Property")
     String getOption();
 }

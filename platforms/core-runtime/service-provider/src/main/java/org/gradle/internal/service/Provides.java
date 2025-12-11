@@ -17,7 +17,6 @@
 package org.gradle.internal.service;
 
 import com.google.errorprone.annotations.Keep;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -37,5 +36,4 @@ public @interface Provides {
      * The return type of the method is used when this is empty.
      */
     Class<?>[] value() default {};
-
 }

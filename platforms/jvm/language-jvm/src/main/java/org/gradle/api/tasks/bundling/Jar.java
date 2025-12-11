@@ -29,5 +29,4 @@ public abstract class Jar extends org.gradle.jvm.tasks.Jar {
         super.manifest(configureClosure);
         return this;
     }
-
 }

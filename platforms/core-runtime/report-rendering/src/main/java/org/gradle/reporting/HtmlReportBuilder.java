@@ -16,10 +16,9 @@
 
 package org.gradle.reporting;
 
-import org.gradle.internal.html.SimpleHtmlWriter;
-
 import java.io.Writer;
 import java.net.URL;
+import org.gradle.internal.html.SimpleHtmlWriter;
 
 public interface HtmlReportBuilder {
     void requireResource(URL resource);

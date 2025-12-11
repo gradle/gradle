@@ -16,12 +16,11 @@
 
 package org.gradle.internal.fingerprint.hashing;
 
+import java.io.IOException;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.jspecify.annotations.Nullable;
-
-import java.io.IOException;
 
 public interface FileSystemLocationSnapshotHasher extends ConfigurableNormalizer {
     /**

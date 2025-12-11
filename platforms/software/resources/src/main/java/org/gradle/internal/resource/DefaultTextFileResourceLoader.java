@@ -15,10 +15,9 @@
  */
 package org.gradle.internal.resource;
 
+import java.io.File;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class DefaultTextFileResourceLoader implements TextFileResourceLoader {
     private final RelativeFilePathResolver resolver;

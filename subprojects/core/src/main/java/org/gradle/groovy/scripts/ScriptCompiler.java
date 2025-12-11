@@ -31,5 +31,10 @@ public interface ScriptCompiler {
      * @return a {@code ScriptRunner} for the script.
      * @throws ScriptCompilationException On compilation failure.
      */
-    <T extends Script, M> ScriptRunner<T, M> compile(Class<T> scriptType, Object target, ClassLoaderScope targetScope, CompileOperation<M> extractingTransformer, Action<? super ClassNode> verifier);
+    <T extends Script, M> ScriptRunner<T, M> compile(
+            Class<T> scriptType,
+            Object target,
+            ClassLoaderScope targetScope,
+            CompileOperation<M> extractingTransformer,
+            Action<? super ClassNode> verifier);
 }

@@ -27,7 +27,8 @@ public class DefaultNativeComponentFactory implements NativeComponentFactory {
     }
 
     @Override
-    public <P extends SoftwareComponent, I extends P> I newInstance(Class<P> publicType, Class<I> implementationType, String name) {
+    public <P extends SoftwareComponent, I extends P> I newInstance(
+            Class<P> publicType, Class<I> implementationType, String name) {
         return objectFactory.newInstance(implementationType, name);
     }
 }

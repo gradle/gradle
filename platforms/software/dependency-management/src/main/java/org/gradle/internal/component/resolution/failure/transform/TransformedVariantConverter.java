@@ -17,14 +17,13 @@
 package org.gradle.internal.component.resolution.failure.transform;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Collection;
 import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.transform.Transform;
 import org.gradle.api.internal.artifacts.transform.TransformStep;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Collection;
 
 /**
  * This type is responsible for converting from heavyweight {@link TransformedVariant} instances to
@@ -43,7 +42,9 @@ public final class TransformedVariantConverter {
     public TransformationChainData convert(TransformedVariant transformedVariant) {
         TransformDataRecordingVisitor visitor = new TransformDataRecordingVisitor();
         transformedVariant.getTransformChain().visitTransformSteps(visitor);
-        SourceVariantData source = new SourceVariantData(transformedVariant.getRoot().asDescribable().getDisplayName(), transformedVariant.getRoot().getAttributes());
+        SourceVariantData source = new SourceVariantData(
+                transformedVariant.getRoot().asDescribable().getDisplayName(),
+                transformedVariant.getRoot().getAttributes());
         return new TransformationChainData(source, visitor.getSteps(), transformedVariant.getAttributes());
     }
 
@@ -62,7 +63,11 @@ public final class TransformedVariantConverter {
 
         private TransformData convert(TransformStep step) {
             Transform transform = step.getTransform();
-            return new TransformData(transform.getImplementationClass(), transform.getDisplayName(), transform.getFromAttributes(), transform.getToAttributes());
+            return new TransformData(
+                    transform.getImplementationClass(),
+                    transform.getDisplayName(),
+                    transform.getFromAttributes(),
+                    transform.getToAttributes());
         }
     }
 }

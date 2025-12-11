@@ -16,14 +16,13 @@
 
 package org.gradle.plugins.ide.tooling.r82;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.Task;
 import org.gradle.tooling.model.gradle.GradleBuild;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class FetchRootProjectsTasks implements BuildAction<List<Task>> {
     @Override

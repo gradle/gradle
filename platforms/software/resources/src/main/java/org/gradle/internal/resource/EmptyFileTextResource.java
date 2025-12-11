@@ -15,16 +15,15 @@
  */
 package org.gradle.internal.resource;
 
+import java.io.File;
+import java.io.Reader;
+import java.io.StringReader;
+import java.nio.charset.Charset;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.jspecify.annotations.NonNull;
-
-import java.io.File;
-import java.io.Reader;
-import java.io.StringReader;
-import java.nio.charset.Charset;
 
 /**
  * A {@link UriTextResource} that is empty and maps to an actual (non-null) file location

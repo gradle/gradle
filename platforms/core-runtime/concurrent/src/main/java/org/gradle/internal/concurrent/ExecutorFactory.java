@@ -16,10 +16,9 @@
 
 package org.gradle.internal.concurrent;
 
+import java.util.concurrent.TimeUnit;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.concurrent.TimeUnit;
 
 @ServiceScope(Scope.Global.class)
 public interface ExecutorFactory {
@@ -58,7 +57,8 @@ public interface ExecutorFactory {
      * @param timeUnit the time unit for the {@code keepAliveTime} argument
      * @return The executor.
      */
-    ManagedThreadPoolExecutor createThreadPool(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit);
+    ManagedThreadPoolExecutor createThreadPool(
+            String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit);
 
     /**
      * Creates a scheduled executor which can run tasks periodically. It is the caller's responsibility to stop the executor.

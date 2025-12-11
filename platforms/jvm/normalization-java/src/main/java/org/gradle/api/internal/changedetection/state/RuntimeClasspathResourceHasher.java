@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.io.IOException;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
@@ -24,8 +25,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.jspecify.annotations.Nullable;
-
-import java.io.IOException;
 
 /**
  * Hashes contents of resources files and {@link ZipEntry}s) in runtime classpath entries.

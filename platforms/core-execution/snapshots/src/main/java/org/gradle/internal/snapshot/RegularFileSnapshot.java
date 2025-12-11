@@ -17,11 +17,10 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.collect.Interner;
+import java.util.Optional;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-
-import java.util.Optional;
 
 /**
  * A snapshot of a regular file.
@@ -39,7 +38,8 @@ public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot impl
     }
 
     @Override
-    protected Optional<RegularFileSnapshot> relocateDirectAccess(String targetPath, String name, Interner<String> interner) {
+    protected Optional<RegularFileSnapshot> relocateDirectAccess(
+            String targetPath, String name, Interner<String> interner) {
         return Optional.of(new RegularFileSnapshot(targetPath, name, contentHash, metadata));
     }
 
@@ -82,7 +82,10 @@ public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot impl
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
+    public Optional<FileSystemNode> invalidate(
+            VfsRelativePath targetPath,
+            CaseSensitivity caseSensitivity,
+            SnapshotHierarchy.NodeDiffListener diffListener) {
         diffListener.nodeRemoved(this);
         return Optional.empty();
     }

@@ -15,11 +15,6 @@
  */
 package org.gradle.internal.service;
 
-import org.gradle.api.reflect.ObjectInstantiationException;
-import org.gradle.internal.Factory;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.jspecify.annotations.NonNull;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +30,10 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.jspecify.annotations.NonNull;
 
 /**
  * Uses the Jar service resource specification to locate service implementations.
@@ -71,7 +70,11 @@ public class DefaultServiceLocator implements ServiceLocator {
     public <T> ServiceFactory<T> getFactory(final Class<T> serviceType) throws UnknownServiceException {
         ServiceFactory<T> factory = findFactory(serviceType);
         if (factory == null) {
-            throw new UnknownServiceException(serviceType, String.format("Could not find meta-data resource 'META-INF/services/%s' for service '%s'.", serviceType.getName(), serviceType.getName()));
+            throw new UnknownServiceException(
+                    serviceType,
+                    String.format(
+                            "Could not find meta-data resource 'META-INF/services/%s' for service '%s'.",
+                            serviceType.getName(), serviceType.getName()));
         }
         return factory;
     }
@@ -97,7 +100,10 @@ public class DefaultServiceLocator implements ServiceLocator {
         } catch (ServiceLookupException e) {
             throw e;
         } catch (Exception e) {
-            throw new ServiceLookupException(String.format("Could not determine implementation classes for service '%s'.", serviceType.getName()), e);
+            throw new ServiceLookupException(
+                    String.format(
+                            "Could not determine implementation classes for service '%s'.", serviceType.getName()),
+                    e);
         }
     }
 
@@ -105,7 +111,8 @@ public class DefaultServiceLocator implements ServiceLocator {
         return factoriesFor(serviceType, implementationsOf(serviceType));
     }
 
-    private <T> List<ServiceFactory<T>> factoriesFor(Class<T> serviceType, List<Class<? extends T>> implementationClasses) {
+    private <T> List<ServiceFactory<T>> factoriesFor(
+            Class<T> serviceType, List<Class<? extends T>> implementationClasses) {
         List<ServiceFactory<T>> factories = new ArrayList<ServiceFactory<T>>();
         for (Class<? extends T> implementationClass : implementationClasses) {
             factories.add(new ServiceFactory<T>(serviceType, implementationClass));
@@ -125,10 +132,15 @@ public class DefaultServiceLocator implements ServiceLocator {
                 try {
                     implementationClassNamesFromResource = extractImplementationClassNames(resource);
                     if (implementationClassNamesFromResource.isEmpty()) {
-                        throw new RuntimeException(String.format("No implementation class for service '%s' specified.", serviceType.getName()));
+                        throw new RuntimeException(String.format(
+                                "No implementation class for service '%s' specified.", serviceType.getName()));
                     }
                 } catch (Throwable e) {
-                    throw new ServiceLookupException(String.format("Could not determine implementation class for service '%s' specified in resource '%s'.", serviceType.getName(), resource), e);
+                    throw new ServiceLookupException(
+                            String.format(
+                                    "Could not determine implementation class for service '%s' specified in resource '%s'.",
+                                    serviceType.getName(), resource),
+                            e);
                 }
 
                 for (String implementationClassName : implementationClassNamesFromResource) {
@@ -136,11 +148,17 @@ public class DefaultServiceLocator implements ServiceLocator {
                         try {
                             Class<?> implClass = classLoader.loadClass(implementationClassName);
                             if (!serviceType.isAssignableFrom(implClass)) {
-                                throw new RuntimeException(String.format("Implementation class '%s' is not assignable to service class '%s'.", implementationClassName, serviceType.getName()));
+                                throw new RuntimeException(String.format(
+                                        "Implementation class '%s' is not assignable to service class '%s'.",
+                                        implementationClassName, serviceType.getName()));
                             }
                             implementations.add(implClass.asSubclass(serviceType));
                         } catch (Throwable e) {
-                            throw new ServiceLookupException(String.format("Could not load implementation class '%s' for service '%s' specified in resource '%s'.", implementationClassName, serviceType.getName(), resource), e);
+                            throw new ServiceLookupException(
+                                    String.format(
+                                            "Could not load implementation class '%s' for service '%s' specified in resource '%s'.",
+                                            implementationClassName, serviceType.getName(), resource),
+                                    e);
                         }
                     }
                 }
@@ -196,7 +214,8 @@ public class DefaultServiceLocator implements ServiceLocator {
             try {
                 return DirectInstantiator.instantiate(implementationClass, params);
             } catch (ObjectInstantiationException t) {
-                throw new RuntimeException(String.format("Could not create an implementation of service '%s'.", serviceType.getName()), t);
+                throw new RuntimeException(
+                        String.format("Could not create an implementation of service '%s'.", serviceType.getName()), t);
             }
         }
     }

@@ -18,12 +18,11 @@ package org.gradle.internal.metaobject;
 import groovy.lang.GroovyRuntimeException;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.codehaus.groovy.runtime.metaclass.MissingMethodExecutionFailed;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import org.codehaus.groovy.runtime.metaclass.MissingMethodExecutionFailed;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An empty {@link DynamicObject}.
@@ -87,15 +86,22 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
-            return new MissingPropertyException(String.format("Could not get unknown property '%s' for %s of type %s.", name,
-                    getDisplayName(), publicType.getName()), name, publicType);
+            return new MissingPropertyException(
+                    String.format(
+                            "Could not get unknown property '%s' for %s of type %s.",
+                            name, getDisplayName(), publicType.getName()),
+                    name,
+                    publicType);
         } else if (publicType != null) {
-            return new MissingPropertyException(String.format("Could not get unknown property '%s' for object of type %s.", name,
-                    publicType.getName()), name, publicType);
+            return new MissingPropertyException(
+                    String.format(
+                            "Could not get unknown property '%s' for object of type %s.", name, publicType.getName()),
+                    name,
+                    publicType);
         } else {
             // Use the display name anyway
-            return new MissingPropertyException(String.format("Could not get unknown property '%s' for %s.", name,
-                    getDisplayName()), name, null);
+            return new MissingPropertyException(
+                    String.format("Could not get unknown property '%s' for %s.", name, getDisplayName()), name, null);
         }
     }
 
@@ -104,14 +110,16 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
             return new GroovyRuntimeException(String.format(
-                    "Cannot get the value of write-only property '%s' for %s of type %s.", name, getDisplayName(), publicType.getName()));
+                    "Cannot get the value of write-only property '%s' for %s of type %s.",
+                    name, getDisplayName(), publicType.getName()));
         } else if (publicType != null) {
             return new GroovyRuntimeException(String.format(
-                    "Cannot get the value of write-only property '%s' for object of type %s.", name, publicType.getName()));
+                    "Cannot get the value of write-only property '%s' for object of type %s.",
+                    name, publicType.getName()));
         } else {
             // Use the display name anyway
-            return new GroovyRuntimeException(String.format(
-                    "Cannot get the value of write-only property '%s' for %s.", name, getDisplayName()));
+            return new GroovyRuntimeException(
+                    String.format("Cannot get the value of write-only property '%s' for %s.", name, getDisplayName()));
         }
     }
 
@@ -120,15 +128,22 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
-            return new MissingPropertyException(String.format("Could not set unknown property '%s' for %s of type %s.", name,
-                    getDisplayName(), publicType.getName()), name, publicType);
+            return new MissingPropertyException(
+                    String.format(
+                            "Could not set unknown property '%s' for %s of type %s.",
+                            name, getDisplayName(), publicType.getName()),
+                    name,
+                    publicType);
         } else if (publicType != null) {
-            return new MissingPropertyException(String.format("Could not set unknown property '%s' for object of type %s.", name,
-                    publicType.getName()), name, publicType);
+            return new MissingPropertyException(
+                    String.format(
+                            "Could not set unknown property '%s' for object of type %s.", name, publicType.getName()),
+                    name,
+                    publicType);
         } else {
             // Use the display name anyway
-            return new MissingPropertyException(String.format("Could not set unknown property '%s' for %s.", name,
-                    getDisplayName()), name, null);
+            return new MissingPropertyException(
+                    String.format("Could not set unknown property '%s' for %s.", name, getDisplayName()), name, null);
         }
     }
 
@@ -137,14 +152,16 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
             return new GroovyRuntimeException(String.format(
-                    "Cannot set the value of read-only property '%s' for %s of type %s.", name, getDisplayName(), publicType.getName()));
+                    "Cannot set the value of read-only property '%s' for %s of type %s.",
+                    name, getDisplayName(), publicType.getName()));
         } else if (publicType != null) {
             return new GroovyRuntimeException(String.format(
-                    "Cannot set the value of read-only property '%s' for object of type %s.", name, publicType.getName()));
+                    "Cannot set the value of read-only property '%s' for object of type %s.",
+                    name, publicType.getName()));
         } else {
             // Use the display name anyway
-            return new GroovyRuntimeException(String.format(
-                    "Cannot set the value of read-only property '%s' for %s.", name, getDisplayName()));
+            return new GroovyRuntimeException(
+                    String.format("Cannot set the value of read-only property '%s' for %s.", name, getDisplayName()));
         }
     }
 
@@ -178,12 +195,18 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         boolean includeDisplayName = hasUsefulDisplayName();
         final String message;
         if (publicType != null && includeDisplayName) {
-            message = String.format("Could not find method %s() for arguments %s on %s of type %s.", name, Arrays.toString(params), getDisplayName(), publicType.getName());
+            message = String.format(
+                    "Could not find method %s() for arguments %s on %s of type %s.",
+                    name, Arrays.toString(params), getDisplayName(), publicType.getName());
         } else if (publicType != null) {
-            message = String.format("Could not find method %s() for arguments %s on object of type %s.", name, Arrays.toString(params), publicType.getName());
+            message = String.format(
+                    "Could not find method %s() for arguments %s on object of type %s.",
+                    name, Arrays.toString(params), publicType.getName());
         } else {
             // Include the display name anyway
-            message = String.format("Could not find method %s() for arguments %s on %s.", name, Arrays.toString(params), getDisplayName());
+            message = String.format(
+                    "Could not find method %s() for arguments %s on %s.",
+                    name, Arrays.toString(params), getDisplayName());
         }
         // https://github.com/apache/groovy/commit/75c068207ba24648ea2d698c520601c6fcf0a45b
         return new CustomMissingMethodExecutionFailed(name, publicType, message, params);
@@ -191,8 +214,14 @@ public abstract class AbstractDynamicObject implements DynamicObject {
 
     private static class CustomMissingMethodExecutionFailed extends MissingMethodExecutionFailed {
 
-        public CustomMissingMethodExecutionFailed(String name, @Nullable Class<?> publicType, String message, @Nullable Object... params) {
-            super(name, publicType, params, false, new CustomMessageMissingMethodException(name, publicType, message, params));
+        public CustomMissingMethodExecutionFailed(
+                String name, @Nullable Class<?> publicType, String message, @Nullable Object... params) {
+            super(
+                    name,
+                    publicType,
+                    params,
+                    false,
+                    new CustomMessageMissingMethodException(name, publicType, message, params));
         }
 
         @Override
@@ -204,7 +233,8 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     private static class CustomMessageMissingMethodException extends MissingMethodException {
         private final String message;
 
-        CustomMessageMissingMethodException(String name, @Nullable Class<?> publicType, String message, @Nullable Object... params) {
+        CustomMessageMissingMethodException(
+                String name, @Nullable Class<?> publicType, String message, @Nullable Object... params) {
             super(name, publicType, params);
             this.message = message;
         }

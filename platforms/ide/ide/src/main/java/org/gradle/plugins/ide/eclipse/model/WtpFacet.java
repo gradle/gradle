@@ -16,17 +16,15 @@
 
 package org.gradle.plugins.ide.eclipse.model;
 
-
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import groovy.util.NodeList;
-import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
 /**
  * Creates the .settings/org.eclipse.wst.common.project.facet.core.xml file for WTP projects.
@@ -85,10 +83,10 @@ public class WtpFacet extends XmlPersistableConfigurationObject {
         NodeList fixed = (NodeList) xml.get("fixed");
         NodeList installed = (NodeList) xml.get("installed");
         for (Object n : fixed) {
-            xml.remove((Node)n);
+            xml.remove((Node) n);
         }
         for (Object n : installed) {
-            xml.remove((Node)n);
+            xml.remove((Node) n);
         }
     }
 

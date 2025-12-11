@@ -23,7 +23,8 @@ import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.PluginResolveDetails;
 
 public class DefaultPluginResolveDetails implements PluginResolveDetails {
-    private static final NotationParser<Object, ModuleComponentSelector> USE_MODULE_NOTATION_PARSER = ModuleComponentSelectorParsers.parser("useModule()");
+    private static final NotationParser<Object, ModuleComponentSelector> USE_MODULE_NOTATION_PARSER =
+            ModuleComponentSelectorParsers.parser("useModule()");
 
     private final PluginRequestInternal pluginRequest;
     private PluginRequestInternal targetPluginRequest;
@@ -41,31 +42,29 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
     @Override
     public void useModule(Object notation) {
         targetPluginRequest = new DefaultPluginRequest(
-            targetPluginRequest.getId(),
-            targetPluginRequest.isApply(),
-            targetPluginRequest.getOrigin(),
-            targetPluginRequest.getScriptDisplayName(),
-            targetPluginRequest.getLineNumber(),
-            targetPluginRequest.getVersion(),
-            USE_MODULE_NOTATION_PARSER.parseNotation(notation),
-            targetPluginRequest,
-            targetPluginRequest.getAlternativeCoordinates().orElse(null)
-        );
+                targetPluginRequest.getId(),
+                targetPluginRequest.isApply(),
+                targetPluginRequest.getOrigin(),
+                targetPluginRequest.getScriptDisplayName(),
+                targetPluginRequest.getLineNumber(),
+                targetPluginRequest.getVersion(),
+                USE_MODULE_NOTATION_PARSER.parseNotation(notation),
+                targetPluginRequest,
+                targetPluginRequest.getAlternativeCoordinates().orElse(null));
     }
 
     @Override
     public void useVersion(String version) {
         targetPluginRequest = new DefaultPluginRequest(
-            targetPluginRequest.getId(),
-            targetPluginRequest.isApply(),
-            targetPluginRequest.getOrigin(),
-            targetPluginRequest.getScriptDisplayName(),
-            targetPluginRequest.getLineNumber(),
-            version,
-            targetPluginRequest.getSelector(),
-            targetPluginRequest,
-            targetPluginRequest.getAlternativeCoordinates().orElse(null)
-        );
+                targetPluginRequest.getId(),
+                targetPluginRequest.isApply(),
+                targetPluginRequest.getOrigin(),
+                targetPluginRequest.getScriptDisplayName(),
+                targetPluginRequest.getLineNumber(),
+                version,
+                targetPluginRequest.getSelector(),
+                targetPluginRequest,
+                targetPluginRequest.getAlternativeCoordinates().orElse(null));
     }
 
     @Override

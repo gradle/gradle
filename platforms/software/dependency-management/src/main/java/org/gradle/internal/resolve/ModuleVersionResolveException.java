@@ -15,6 +15,11 @@
  */
 package org.gradle.internal.resolve;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Formatter;
+import java.util.List;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -26,12 +31,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseExceptionNoStackTrace;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.List;
 
 @Contextual
 public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoStackTrace {
@@ -59,23 +58,43 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
     }
 
     public ModuleVersionResolveException(ModuleVersionIdentifier id, Factory<String> message) {
-        this(DefaultModuleComponentSelector.newSelector(id.getModule(), DefaultImmutableVersionConstraint.of(id.getVersion())), message);
+        this(
+                DefaultModuleComponentSelector.newSelector(
+                        id.getModule(), DefaultImmutableVersionConstraint.of(id.getVersion())),
+                message);
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Factory<String> messageFormat) {
-        this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), messageFormat);
+        this(
+                DefaultModuleComponentSelector.newSelector(
+                        DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()),
+                        DefaultImmutableVersionConstraint.of(id.getVersion())),
+                messageFormat);
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Factory<String> messageFormat, Throwable cause) {
-        this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), messageFormat, cause);
+        this(
+                DefaultModuleComponentSelector.newSelector(
+                        DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()),
+                        DefaultImmutableVersionConstraint.of(id.getVersion())),
+                messageFormat,
+                cause);
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Throwable cause) {
-        this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), Collections.singletonList(cause));
+        this(
+                DefaultModuleComponentSelector.newSelector(
+                        DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()),
+                        DefaultImmutableVersionConstraint.of(id.getVersion())),
+                Collections.singletonList(cause));
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Iterable<? extends Throwable> causes) {
-        this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), causes);
+        this(
+                DefaultModuleComponentSelector.newSelector(
+                        DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()),
+                        DefaultImmutableVersionConstraint.of(id.getVersion())),
+                causes);
     }
 
     /**
@@ -123,7 +142,9 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
     protected ModuleVersionResolveException createCopy() {
         try {
             String message = getMessage();
-            return getClass().getConstructor(ComponentSelector.class, Factory.class).newInstance(getSelector(), (Factory<String>) () -> message);
+            return getClass()
+                    .getConstructor(ComponentSelector.class, Factory.class)
+                    .newInstance(getSelector(), (Factory<String>) () -> message);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

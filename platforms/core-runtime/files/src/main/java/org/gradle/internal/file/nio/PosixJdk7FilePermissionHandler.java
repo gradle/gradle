@@ -16,16 +16,15 @@
 
 package org.gradle.internal.file.nio;
 
-import org.gradle.internal.file.FilePermissionHandler;
+import static org.gradle.internal.file.nio.PosixFilePermissionConverter.convertToInt;
+import static org.gradle.internal.file.nio.PosixFilePermissionConverter.convertToPermissionsSet;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
-
-import static org.gradle.internal.file.nio.PosixFilePermissionConverter.convertToInt;
-import static org.gradle.internal.file.nio.PosixFilePermissionConverter.convertToPermissionsSet;
+import org.gradle.internal.file.FilePermissionHandler;
 
 @SuppressWarnings("Since15")
 public class PosixJdk7FilePermissionHandler implements FilePermissionHandler {

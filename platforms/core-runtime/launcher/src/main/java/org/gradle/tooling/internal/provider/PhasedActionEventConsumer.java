@@ -29,7 +29,10 @@ public class PhasedActionEventConsumer implements BuildEventConsumer {
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer delegate;
 
-    PhasedActionEventConsumer(PhasedActionResultListener phasedActionResultListener, PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
+    PhasedActionEventConsumer(
+            PhasedActionResultListener phasedActionResultListener,
+            PayloadSerializer payloadSerializer,
+            BuildEventConsumer delegate) {
         this.phasedActionResultListener = phasedActionResultListener;
         this.payloadSerializer = payloadSerializer;
         this.delegate = delegate;

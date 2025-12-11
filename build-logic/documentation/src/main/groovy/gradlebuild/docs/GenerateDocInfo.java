@@ -16,6 +16,13 @@
 
 package gradlebuild.docs;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.Collections;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
@@ -28,14 +35,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.Collections;
 
 @CacheableTask
 public abstract class GenerateDocInfo extends DefaultTask {
@@ -60,17 +59,24 @@ public abstract class GenerateDocInfo extends DefaultTask {
         destinationDirectory.mkdirs();
 
         Path adocDir = getDocumentationRoot().get().getAsFile().toPath();
-        getDocumentationFiles().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(adocFile -> {
-            String adocFileName = adocFile.getName();
-            // getting_started.adoc -> getting_started-docinfo.html
-            String docInfoName = adocFileName.substring(0, adocFileName.lastIndexOf('.')) + "-docinfo.html";
-            String relativePath = adocDir.relativize(adocFile.toPath()).toString();
-            File docInfo = new File(destinationDirectory, docInfoName);
-            try {
-                Files.write(docInfo.toPath(), Collections.singleton(String.format("<meta name=\"adoc-src-path\" content=\"%s\">", relativePath)), StandardOpenOption.CREATE);
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        });
+        getDocumentationFiles()
+                .getAsFileTree()
+                .matching(pattern -> pattern.include("**/*.adoc"))
+                .forEach(adocFile -> {
+                    String adocFileName = adocFile.getName();
+                    // getting_started.adoc -> getting_started-docinfo.html
+                    String docInfoName = adocFileName.substring(0, adocFileName.lastIndexOf('.')) + "-docinfo.html";
+                    String relativePath = adocDir.relativize(adocFile.toPath()).toString();
+                    File docInfo = new File(destinationDirectory, docInfoName);
+                    try {
+                        Files.write(
+                                docInfo.toPath(),
+                                Collections.singleton(
+                                        String.format("<meta name=\"adoc-src-path\" content=\"%s\">", relativePath)),
+                                StandardOpenOption.CREATE);
+                    } catch (IOException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                });
     }
 }

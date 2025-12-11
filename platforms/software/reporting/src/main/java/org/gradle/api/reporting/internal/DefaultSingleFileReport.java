@@ -16,15 +16,14 @@
 
 package org.gradle.api.reporting.internal;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.Describable;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.internal.Describables;
-
-import javax.inject.Inject;
-import java.io.File;
 
 public abstract class DefaultSingleFileReport extends SimpleReport implements SingleFileReport {
 
@@ -34,7 +33,9 @@ public abstract class DefaultSingleFileReport extends SimpleReport implements Si
         // This is for backwards compatibility for plugins that attach a convention mapping to the replaced property
         // TODO - this wiring should happen automatically (and be deprecated too)
         getOutputLocation().convention(getProjectLayout().file(new DefaultProvider<>(() -> {
-            return (File) ((IConventionAware) DefaultSingleFileReport.this).getConventionMapping().getConventionValue(null, "destination", false);
+            return (File) ((IConventionAware) DefaultSingleFileReport.this)
+                    .getConventionMapping()
+                    .getConventionValue(null, "destination", false);
         })));
         getRequired().convention(false);
     }

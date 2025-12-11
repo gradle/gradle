@@ -18,6 +18,12 @@ package org.gradle.caching.internal.tasks;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import org.apache.commons.io.FileUtils;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
@@ -29,13 +35,6 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
 @Fork(1)
 @Warmup(iterations = 3)
 @Measurement(iterations = 7)
@@ -44,27 +43,27 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
     private static final DefaultDirectoryProvider DIRECTORY_PROVIDER = new DefaultDirectoryProvider();
 
     private static final Map<String, Packer> PACKERS = ImmutableMap.<String, Packer>builder()
-        .put("tar.snappy", new SnappyPacker(new CommonsTarPacker(4)))
-        .put("tar.snappy.commons", new SnappyCommonsPacker(new CommonsTarPacker(4)))
-        .put("tar.snappy.dain", new SnappyDainPacker(new CommonsTarPacker(4)))
-        .put("tar.snappy.small", new SnappyPacker(new CommonsTarPacker(2)))
-        .put("tar.snappy.large", new SnappyPacker(new CommonsTarPacker(64)))
-        .put("tar", new CommonsTarPacker(4))
-        .put("tar.commons", new CommonsTarPacker(4))
-        .put("tar.jtar", new JTarPacker(4))
-        .put("tar.small", new CommonsTarPacker(2))
-        .put("tar.large", new CommonsTarPacker(64))
-        .put("tar.gz", new GzipPacker(new CommonsTarPacker(4)))
-        .put("zip", new ZipPacker(4))
-        .build();
+            .put("tar.snappy", new SnappyPacker(new CommonsTarPacker(4)))
+            .put("tar.snappy.commons", new SnappyCommonsPacker(new CommonsTarPacker(4)))
+            .put("tar.snappy.dain", new SnappyDainPacker(new CommonsTarPacker(4)))
+            .put("tar.snappy.small", new SnappyPacker(new CommonsTarPacker(2)))
+            .put("tar.snappy.large", new SnappyPacker(new CommonsTarPacker(64)))
+            .put("tar", new CommonsTarPacker(4))
+            .put("tar.commons", new CommonsTarPacker(4))
+            .put("tar.jtar", new JTarPacker(4))
+            .put("tar.small", new CommonsTarPacker(2))
+            .put("tar.large", new CommonsTarPacker(64))
+            .put("tar.gz", new GzipPacker(new CommonsTarPacker(4)))
+            .put("zip", new ZipPacker(4))
+            .build();
 
     private static final Map<String, DataAccessor> ACCESSORS = ImmutableMap.<String, DataAccessor>builder()
-        .put("direct", new DirectFileFileAccessor(DIRECTORY_PROVIDER))
-        .put("buffered", new BufferedFileAccessor(8, DIRECTORY_PROVIDER))
-        .put("buffered.small", new BufferedFileAccessor(2, DIRECTORY_PROVIDER))
-        .put("buffered.large", new BufferedFileAccessor(64, DIRECTORY_PROVIDER))
-        .put("in-memory", new InMemoryDataAccessor())
-        .build();
+            .put("direct", new DirectFileFileAccessor(DIRECTORY_PROVIDER))
+            .put("buffered", new BufferedFileAccessor(8, DIRECTORY_PROVIDER))
+            .put("buffered.small", new BufferedFileAccessor(2, DIRECTORY_PROVIDER))
+            .put("buffered.large", new BufferedFileAccessor(64, DIRECTORY_PROVIDER))
+            .put("in-memory", new InMemoryDataAccessor())
+            .build();
 
     DataSource sample;
 
@@ -104,7 +103,8 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
         DIRECTORY_PROVIDER.tearDownIteration();
     }
 
-    private static ImmutableList<DataSource> createInputFiles(int fileCount, int minFileSize, int maxFileSize, DataAccessor accessor) throws IOException {
+    private static ImmutableList<DataSource> createInputFiles(
+            int fileCount, int minFileSize, int maxFileSize, DataAccessor accessor) throws IOException {
         Random random = new Random(1234L);
         ImmutableList.Builder<DataSource> inputs = ImmutableList.builder();
         for (int idx = 0; idx < fileCount; idx++) {
@@ -118,7 +118,8 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
         return inputs.build();
     }
 
-    private static DataSource packSample(String name, List<DataSource> inputs, Packer packer, DataAccessor accessor) throws IOException {
+    private static DataSource packSample(String name, List<DataSource> inputs, Packer packer, DataAccessor accessor)
+            throws IOException {
         long sumLength = 0;
         for (DataSource input : inputs) {
             sumLength += input.getLength();
@@ -126,7 +127,9 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
         DataTarget target = accessor.createTarget(name, Level.Trial);
         packer.pack(inputs, target);
         DataSource source = target.toSource();
-        System.out.printf(">>> %s is %d bytes long (uncompressed length: %d, compression ratio: %,.2f%%)%n", name, source.getLength(), sumLength, (double) source.getLength() / sumLength);
+        System.out.printf(
+                ">>> %s is %d bytes long (uncompressed length: %d, compression ratio: %,.2f%%)%n",
+                name, source.getLength(), sumLength, (double) source.getLength() / sumLength);
         return source;
     }
 

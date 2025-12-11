@@ -18,14 +18,6 @@ package org.gradle.integtests.fixtures.daemon;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
-import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.launcher.daemon.configuration.DaemonPriority;
-import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.context.DefaultDaemonContext;
-import org.gradle.util.GradleVersion;
-
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -34,14 +26,27 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.launcher.daemon.configuration.DaemonPriority;
+import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.context.DefaultDaemonContext;
+import org.gradle.util.GradleVersion;
 
 public class DaemonContextParser {
     @Nullable
     public static DaemonContext parseFromFile(DaemonLogFile log, GradleVersion version) {
         try (Stream<String> lines = log.lines()) {
-            return lines.map(line -> parseFrom(line, version)).filter(Objects::nonNull).findFirst().orElse(null);
+            return lines.map(line -> parseFrom(line, version))
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElse(null);
         } catch (IOException | UncheckedIOException e) {
-            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + log.getFile().getAbsolutePath() + "].", e);
+            throw new IllegalStateException(
+                    "unable to parse DefaultDaemonContext from source: ["
+                            + log.getFile().getAbsolutePath() + "].",
+                    e);
         }
     }
 
@@ -66,8 +71,9 @@ public class DaemonContextParser {
 
     @Nullable
     private static DefaultDaemonContext parseCurrent(String source) {
-        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[uid=([^\\n,]+),javaHome=([^\\n]+),javaVersion=([^\\n]+),javaVendor=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?),priority=([^\\n]+),applyInstrumentationAgent=([^\\n]+),nativeServicesMode=([^\\n]+),daemonOpts=([^\\n]+)].*",
-            Pattern.MULTILINE + Pattern.DOTALL);
+        Pattern pattern = Pattern.compile(
+                "^.*DefaultDaemonContext\\[uid=([^\\n,]+),javaHome=([^\\n]+),javaVersion=([^\\n]+),javaVendor=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?),priority=([^\\n]+),applyInstrumentationAgent=([^\\n]+),nativeServicesMode=([^\\n]+),daemonOpts=([^\\n]+)].*",
+                Pattern.MULTILINE + Pattern.DOTALL);
         Matcher matcher = pattern.matcher(source);
 
         if (matcher.matches()) {
@@ -84,7 +90,18 @@ public class DaemonContextParser {
             boolean applyInstrumentationAgent = Boolean.parseBoolean(matcher.group(idx++));
             NativeServicesMode nativeServicesMode = NativeServicesMode.valueOf(matcher.group(idx++));
             List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(idx++)));
-            return new DefaultDaemonContext(uid, new File(javaHome), javaVersion, javaVendor, new File(daemonRegistryDir), pid, idleTimeout, jvmOpts, applyInstrumentationAgent, nativeServicesMode, priority);
+            return new DefaultDaemonContext(
+                    uid,
+                    new File(javaHome),
+                    javaVersion,
+                    javaVendor,
+                    new File(daemonRegistryDir),
+                    pid,
+                    idleTimeout,
+                    jvmOpts,
+                    applyInstrumentationAgent,
+                    nativeServicesMode,
+                    priority);
         } else {
             return null;
         }
@@ -92,7 +109,8 @@ public class DaemonContextParser {
 
     @Nullable
     private static DefaultDaemonContext parseFrom88(String source) {
-        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[(uid=[^\\n,]+)?,?javaHome=([^\\n]+),javaVersion=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)(,priority=[^\\n,]+)?(?:,applyInstrumentationAgent=([^\\n,]+))?(?:,nativeServicesMode=([^\\n,]+))?,daemonOpts=([^\\n]+)].*",
+        Pattern pattern = Pattern.compile(
+                "^.*DefaultDaemonContext\\[(uid=[^\\n,]+)?,?javaHome=([^\\n]+),javaVersion=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)(,priority=[^\\n,]+)?(?:,applyInstrumentationAgent=([^\\n,]+))?(?:,nativeServicesMode=([^\\n,]+))?,daemonOpts=([^\\n]+)].*",
                 Pattern.MULTILINE + Pattern.DOTALL);
         Matcher matcher = pattern.matcher(source);
 
@@ -104,11 +122,26 @@ public class DaemonContextParser {
             String pidStr = matcher.group(5);
             Long pid = pidStr.equals("null") ? null : Long.parseLong(pidStr);
             Integer idleTimeout = Integer.decode(matcher.group(6));
-            DaemonPriority priority = matcher.group(7) == null ? DaemonPriority.NORMAL : DaemonPriority.valueOf(matcher.group(7).substring(",priority=".length()));
+            DaemonPriority priority = matcher.group(7) == null
+                    ? DaemonPriority.NORMAL
+                    : DaemonPriority.valueOf(matcher.group(7).substring(",priority=".length()));
             boolean applyInstrumentationAgent = Boolean.parseBoolean(matcher.group(8));
-            NativeServicesMode nativeServicesMode = matcher.group(9) == null ? NativeServicesMode.ENABLED : NativeServicesMode.valueOf(matcher.group(9));
+            NativeServicesMode nativeServicesMode = matcher.group(9) == null
+                    ? NativeServicesMode.ENABLED
+                    : NativeServicesMode.valueOf(matcher.group(9));
             List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(10)));
-            return new DefaultDaemonContext(uid, new File(javaHome), javaVersion, "unknown", new File(daemonRegistryDir), pid, idleTimeout, jvmOpts, applyInstrumentationAgent, nativeServicesMode, priority);
+            return new DefaultDaemonContext(
+                    uid,
+                    new File(javaHome),
+                    javaVersion,
+                    "unknown",
+                    new File(daemonRegistryDir),
+                    pid,
+                    idleTimeout,
+                    jvmOpts,
+                    applyInstrumentationAgent,
+                    nativeServicesMode,
+                    priority);
         } else {
             return null;
         }
@@ -116,8 +149,9 @@ public class DaemonContextParser {
 
     @Nullable
     private static DaemonContext parseFrom87(String source) {
-        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[(uid=[^\\n,]+)?,?javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)(,priority=[^\\n,]+)?(?:,applyInstrumentationAgent=([^\\n,]+))?(?:,nativeServicesMode=([^\\n,]+))?,daemonOpts=([^\\n]+)].*",
-            Pattern.MULTILINE + Pattern.DOTALL);
+        Pattern pattern = Pattern.compile(
+                "^.*DefaultDaemonContext\\[(uid=[^\\n,]+)?,?javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)(,priority=[^\\n,]+)?(?:,applyInstrumentationAgent=([^\\n,]+))?(?:,nativeServicesMode=([^\\n,]+))?,daemonOpts=([^\\n]+)].*",
+                Pattern.MULTILINE + Pattern.DOTALL);
         Matcher matcher = pattern.matcher(source);
 
         if (matcher.matches()) {
@@ -127,11 +161,26 @@ public class DaemonContextParser {
             String pidStr = matcher.group(4);
             Long pid = pidStr.equals("null") ? null : Long.parseLong(pidStr);
             Integer idleTimeout = Integer.decode(matcher.group(5));
-            DaemonPriority priority = matcher.group(6) == null ? DaemonPriority.NORMAL : DaemonPriority.valueOf(matcher.group(6).substring(",priority=".length()));
+            DaemonPriority priority = matcher.group(6) == null
+                    ? DaemonPriority.NORMAL
+                    : DaemonPriority.valueOf(matcher.group(6).substring(",priority=".length()));
             boolean applyInstrumentationAgent = Boolean.parseBoolean(matcher.group(7));
-            NativeServicesMode nativeServicesMode = matcher.group(8) == null ? NativeServicesMode.ENABLED : NativeServicesMode.valueOf(matcher.group(8));
+            NativeServicesMode nativeServicesMode = matcher.group(8) == null
+                    ? NativeServicesMode.ENABLED
+                    : NativeServicesMode.valueOf(matcher.group(8));
             List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(9)));
-            return new DefaultDaemonContext(uid, new File(javaHome), JavaLanguageVersion.of(8), "unknown", new File(daemonRegistryDir), pid, idleTimeout, jvmOpts, applyInstrumentationAgent, nativeServicesMode, priority);
+            return new DefaultDaemonContext(
+                    uid,
+                    new File(javaHome),
+                    JavaLanguageVersion.of(8),
+                    "unknown",
+                    new File(daemonRegistryDir),
+                    pid,
+                    idleTimeout,
+                    jvmOpts,
+                    applyInstrumentationAgent,
+                    nativeServicesMode,
+                    priority);
         } else {
             return null;
         }

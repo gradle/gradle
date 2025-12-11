@@ -16,6 +16,12 @@
 
 package org.gradle.ide.visualstudio.tasks;
 
+import static org.gradle.util.internal.CollectionUtils.collect;
+
+import java.io.File;
+import java.util.List;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
@@ -34,13 +40,6 @@ import org.gradle.internal.serialization.Cached;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
-import java.util.Set;
-
-import static org.gradle.util.internal.CollectionUtils.collect;
-
 /**
  * Task for generating a Visual Studio filters file (e.g. {@code foo.vcxproj.filters}).
  */
@@ -48,7 +47,9 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFiltersFile> {
     private transient DefaultVisualStudioProject visualStudioProject;
-    private final Provider<File> outputFile = getProject().provider(SerializableLambdas.callable(() -> visualStudioProject.getFiltersFile().getLocation()));
+    private final Provider<File> outputFile = getProject()
+            .provider(SerializableLambdas.callable(
+                    () -> visualStudioProject.getFiltersFile().getLocation()));
     private final Cached<FiltersSpec> spec = Cached.of(this::calculateSpec);
 
     @Inject
@@ -114,10 +115,13 @@ public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStu
     }
 
     private FiltersSpec calculateSpec() {
-        return new FiltersSpec(visualStudioProject.getSourceFiles(),
-            visualStudioProject.getHeaderFiles(),
-            visualStudioProject.getFiltersFile().getXmlActions(),
-            RelativeFileNameTransformer.forFile(getProject().getRootDir(), visualStudioProject.getFiltersFile().getLocation()));
+        return new FiltersSpec(
+                visualStudioProject.getSourceFiles(),
+                visualStudioProject.getHeaderFiles(),
+                visualStudioProject.getFiltersFile().getXmlActions(),
+                RelativeFileNameTransformer.forFile(
+                        getProject().getRootDir(),
+                        visualStudioProject.getFiltersFile().getLocation()));
     }
 
     /**
@@ -132,7 +136,11 @@ public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStu
         private final List<Action<? super XmlProvider>> actions;
         private final Transformer<String, File> fileNameTransformer;
 
-        private FiltersSpec(FileCollection sourceFiles, FileCollection headerFiles, List<Action<? super XmlProvider>> actions, Transformer<String, File> fileNameTransformer) {
+        private FiltersSpec(
+                FileCollection sourceFiles,
+                FileCollection headerFiles,
+                List<Action<? super XmlProvider>> actions,
+                Transformer<String, File> fileNameTransformer) {
             this.sourceFiles = sourceFiles;
             this.headerFiles = headerFiles;
             this.actions = actions;
@@ -147,7 +155,9 @@ public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStu
         @Input
         @Incubating
         public Provider<Set<String>> getSourceFilePaths() {
-            return sourceFiles.getElements().map(files -> collect(files, file -> file.getAsFile().getAbsolutePath()));
+            return sourceFiles
+                    .getElements()
+                    .map(files -> collect(files, file -> file.getAsFile().getAbsolutePath()));
         }
 
         /**
@@ -158,7 +168,9 @@ public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStu
         @Input
         @Incubating
         public Provider<Set<String>> getHeaderFilesPaths() {
-            return headerFiles.getElements().map(files -> collect(files, file -> file.getAsFile().getAbsolutePath()));
+            return headerFiles
+                    .getElements()
+                    .map(files -> collect(files, file -> file.getAsFile().getAbsolutePath()));
         }
 
         /**

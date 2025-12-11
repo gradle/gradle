@@ -57,8 +57,7 @@ public abstract class BinaryBasePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @Model
-        void binaries(BinaryContainer binaries) {
-        }
+        void binaries(BinaryContainer binaries) {}
 
         @ComponentType
         void registerBaseBinarySpec(TypeBuilder<BinarySpec> builder) {
@@ -82,11 +81,13 @@ public abstract class BinaryBasePlugin implements Plugin<Project> {
         }
 
         @Finalize
-        public void defineBuildLifecycleTask(@Each BinarySpecInternal binary, NamedEntityInstantiator<Task> taskInstantiator) {
+        public void defineBuildLifecycleTask(
+                @Each BinarySpecInternal binary, NamedEntityInstantiator<Task> taskInstantiator) {
             if (binary.isLegacyBinary()) {
                 return;
             }
-            TaskInternal binaryLifecycleTask = taskInstantiator.create(binary.getProjectScopedName(), DefaultTask.class);
+            TaskInternal binaryLifecycleTask =
+                    taskInstantiator.create(binary.getProjectScopedName(), DefaultTask.class);
             binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
             binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
             binary.setBuildTask(binaryLifecycleTask);

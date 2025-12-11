@@ -15,12 +15,11 @@
  */
 package org.gradle.launcher;
 
+import java.util.Arrays;
 import org.gradle.launcher.bootstrap.CommandLineActionFactory;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
-
-import java.util.Arrays;
 
 /**
  * The main command-line entry-point for Gradle.

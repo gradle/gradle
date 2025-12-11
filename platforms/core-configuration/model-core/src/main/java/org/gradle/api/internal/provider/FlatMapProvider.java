@@ -25,7 +25,9 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     private final ProviderInternal<? extends T> provider;
     private final Transformer<? extends Provider<? extends S>, ? super T> transformer;
 
-    FlatMapProvider(ProviderInternal<? extends T> provider, Transformer<? extends Provider<? extends S>, ? super T> transformer) {
+    FlatMapProvider(
+            ProviderInternal<? extends T> provider,
+            Transformer<? extends Provider<? extends S>, ? super T> transformer) {
         this.provider = provider;
         this.transformer = transformer;
     }

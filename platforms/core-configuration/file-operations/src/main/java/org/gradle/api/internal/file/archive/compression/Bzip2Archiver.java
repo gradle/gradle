@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.apache.tools.bzip2.CBZip2InputStream;
-import org.apache.tools.bzip2.CBZip2OutputStream;
-import org.gradle.api.resources.internal.ReadableResourceInternal;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.resource.ResourceExceptions;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.apache.tools.bzip2.CBZip2InputStream;
+import org.apache.tools.bzip2.CBZip2OutputStream;
+import org.gradle.api.resources.internal.ReadableResourceInternal;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.resource.ResourceExceptions;
 
 public class Bzip2Archiver extends AbstractArchiver {
     public Bzip2Archiver(ReadableResourceInternal resource) {

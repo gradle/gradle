@@ -17,11 +17,10 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
-
-import java.io.File;
 
 /**
  * Transform subject is either an initial artifact for the transform chain or a result of a previous transform step.

@@ -27,7 +27,8 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
     private final ScriptRunnerFactory scriptRunnerFactory;
     private final ScriptClassCompiler scriptClassCompiler;
 
-    public DefaultScriptCompilerFactory(ScriptClassCompiler scriptClassCompiler, ScriptRunnerFactory scriptRunnerFactory) {
+    public DefaultScriptCompilerFactory(
+            ScriptClassCompiler scriptClassCompiler, ScriptRunnerFactory scriptRunnerFactory) {
         this.scriptClassCompiler = scriptClassCompiler;
         this.scriptRunnerFactory = scriptRunnerFactory;
     }
@@ -45,8 +46,14 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
         }
 
         @Override
-        public <T extends Script, M> ScriptRunner<T, M> compile(Class<T> scriptType, Object target, ClassLoaderScope targetScope, CompileOperation<M> extractingTransformer, Action<? super ClassNode> verifier) {
-            CompiledScript<T, M> compiledScript = scriptClassCompiler.compile(source, scriptType, target, targetScope, extractingTransformer, verifier);
+        public <T extends Script, M> ScriptRunner<T, M> compile(
+                Class<T> scriptType,
+                Object target,
+                ClassLoaderScope targetScope,
+                CompileOperation<M> extractingTransformer,
+                Action<? super ClassNode> verifier) {
+            CompiledScript<T, M> compiledScript = scriptClassCompiler.compile(
+                    source, scriptType, target, targetScope, extractingTransformer, verifier);
             return scriptRunnerFactory.create(compiledScript, source, targetScope.getExportClassLoader());
         }
     }

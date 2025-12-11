@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.file.Directory;
+import org.gradle.api.project.IsolatedProject;
 
 public final class DefaultIsolatedProject implements IsolatedProject {
 
@@ -51,9 +51,7 @@ public final class DefaultIsolatedProject implements IsolatedProject {
 
     @Override
     public IsolatedProject getRootProject() {
-        return project.equals(rootProject)
-            ? this
-            : rootProject.getIsolated();
+        return project.equals(rootProject) ? this : rootProject.getIsolated();
     }
 
     @Override

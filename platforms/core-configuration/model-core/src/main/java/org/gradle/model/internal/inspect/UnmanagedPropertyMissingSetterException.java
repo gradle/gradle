@@ -25,7 +25,6 @@ public class UnmanagedPropertyMissingSetterException extends GradleException {
 
     private static String getMessage(String propertyName) {
         return String.format(
-            "unmanaged property '%s' cannot be read only, unmanaged properties must have setters",
-            propertyName);
+                "unmanaged property '%s' cannot be read only, unmanaged properties must have setters", propertyName);
     }
 }

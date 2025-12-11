@@ -191,5 +191,4 @@ public final class TaskIdentity<T extends Task> {
     public ProjectIdentity getProjectIdentity() {
         return projectIdentity;
     }
-
 }

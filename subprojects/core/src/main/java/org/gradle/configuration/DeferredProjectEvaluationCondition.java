@@ -24,10 +24,7 @@ import org.jspecify.annotations.NullMarked;
 public class DeferredProjectEvaluationCondition {
 
     public static boolean skipEvaluationDuringProjectPreparation(
-        BuildModelParameters buildModelParameters,
-        GradleInternal gradle
-    ) {
+            BuildModelParameters buildModelParameters, GradleInternal gradle) {
         return buildModelParameters.isConfigureOnDemand() && gradle.isRootBuild();
     }
-
 }

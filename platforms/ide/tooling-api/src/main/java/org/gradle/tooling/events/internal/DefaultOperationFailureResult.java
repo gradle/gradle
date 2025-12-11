@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.events.internal;
 
+import java.util.List;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.FailureResult;
-
-import java.util.List;
 
 /**
  * Implementation of the {@code BuildFailureResult} interface.
@@ -50,5 +49,4 @@ public class DefaultOperationFailureResult implements FailureResult {
     public List<? extends Failure> getFailures() {
         return failures;
     }
-
 }

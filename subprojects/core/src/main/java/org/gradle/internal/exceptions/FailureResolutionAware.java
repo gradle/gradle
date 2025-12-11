@@ -16,10 +16,9 @@
 
 package org.gradle.internal.exceptions;
 
+import java.util.function.Consumer;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutput;
-
-import java.util.function.Consumer;
 
 /**
  * Enhancement interface that exceptions can implement to provide additional information on how to resolve the failure.

@@ -16,15 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.nativeplatform.platform.Architecture;
-import org.gradle.nativeplatform.platform.internal.Architectures;
-import org.gradle.util.internal.VersionNumber;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.nativeplatform.platform.Architecture;
+import org.gradle.nativeplatform.platform.internal.Architectures;
+import org.gradle.util.internal.VersionNumber;
 
 public enum ArchitectureDescriptorBuilder {
     // See https://blogs.msdn.microsoft.com/vcblog/2016/10/07/compiler-tools-layout-in-visual-studio-15/
@@ -133,7 +132,7 @@ public enum ArchitectureDescriptorBuilder {
     // Host: x86
     // Target: ia64
     // (ia64 is no longer supported on later versions of Visual Studio)
-    LEGACY_IA64_ON_X86("ia64", "bin/x86_ia64", "lib/ia64", "ias.exe")  {
+    LEGACY_IA64_ON_X86("ia64", "bin/x86_ia64", "lib/ia64", "ias.exe") {
         @Override
         File getCrossCompilePath(File basePath) {
             return LEGACY_X86_ON_X86.getBinPath(basePath);
@@ -149,6 +148,7 @@ public enum ArchitectureDescriptorBuilder {
 
     @SuppressWarnings("ImmutableEnumChecker")
     final Architecture architecture;
+
     final String binPath;
     final String libPath;
     final String asmFilename;
@@ -187,10 +187,18 @@ public enum ArchitectureDescriptorBuilder {
         paths.add(commonTools);
         paths.add(commonIde);
         File crossCompilePath = getCrossCompilePath(basePath);
-        if (crossCompilePath!=null) {
+        if (crossCompilePath != null) {
             paths.add(crossCompilePath);
         }
         File includePath = new File(basePath, PATH_INCLUDE);
-        return new ArchitectureSpecificVisualCpp(compilerVersion, paths, getBinPath(basePath), getLibPath(basePath), getCompilerPath(basePath), includePath, asmFilename, getDefinitions());
+        return new ArchitectureSpecificVisualCpp(
+                compilerVersion,
+                paths,
+                getBinPath(basePath),
+                getLibPath(basePath),
+                getCompilerPath(basePath),
+                includePath,
+                asmFilename,
+                getDefinitions());
     }
 }

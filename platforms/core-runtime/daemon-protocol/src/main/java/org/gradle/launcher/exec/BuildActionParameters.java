@@ -15,11 +15,10 @@
  */
 package org.gradle.launcher.exec;
 
-import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.classpath.ClassPath;
-
 import java.io.File;
 import java.util.Map;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.classpath.ClassPath;
 
 public interface BuildActionParameters {
     Map<String, String> getSystemProperties();

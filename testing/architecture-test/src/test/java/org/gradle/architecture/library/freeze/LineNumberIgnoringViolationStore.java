@@ -16,14 +16,13 @@
 
 package org.gradle.architecture.library.freeze;
 
+import static java.util.stream.Collectors.toList;
+
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.freeze.TextFileBasedViolationStore;
 import com.tngtech.archunit.library.freeze.ViolationStore;
-
 import java.util.List;
 import java.util.Properties;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * Changes the line numbers in all sources to 0. That way line changes are not captured when
@@ -50,8 +49,8 @@ public class LineNumberIgnoringViolationStore implements ViolationStore {
     @Override
     public void save(ArchRule rule, List<String> violations) {
         List<String> violationsWithoutLineNumbers = violations.stream()
-            .map(it -> it.replaceAll("\\.(java|kt):\\d+", ".$1:0"))
-            .collect(toList());
+                .map(it -> it.replaceAll("\\.(java|kt):\\d+", ".$1:0"))
+                .collect(toList());
         delegate.save(rule, violationsWithoutLineNumbers);
     }
 

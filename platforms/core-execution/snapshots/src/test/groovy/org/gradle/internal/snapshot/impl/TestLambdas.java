@@ -16,11 +16,10 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.lambdas.SerializableLambdas;
-
 import java.io.Serializable;
 import java.util.function.Consumer;
+import org.gradle.api.Action;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 
 public class TestLambdas {
 

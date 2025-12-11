@@ -16,6 +16,12 @@
 
 package org.gradle.api.reporting.components;
 
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
+import static org.gradle.model.internal.type.ModelTypes.modelMap;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -34,13 +40,6 @@ import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
-import static org.gradle.model.internal.type.ModelTypes.modelMap;
 
 /**
  * Displays some details about the software components produced by the project.

@@ -16,6 +16,14 @@
 package org.gradle.api.publish.internal.component;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
@@ -31,15 +39,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
 
 public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants, SoftwareComponentInternal {
 
@@ -63,25 +62,31 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     }
 
     @Override
-    public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> spec) {
+    public void addVariantsFromConfiguration(
+            Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> spec) {
         checkNotObserved();
         actions.add(new ConfigurationVariantAction(() -> outgoingConfiguration, spec, false));
     }
 
     @Override
-    public void addVariantsFromConfiguration(Provider<ConsumableConfiguration> outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
+    public void addVariantsFromConfiguration(
+            Provider<ConsumableConfiguration> outgoingConfiguration,
+            Action<? super ConfigurationVariantDetails> action) {
         checkNotObserved();
         actions.add(new ConfigurationVariantAction(outgoingConfiguration::get, action, false));
     }
 
     @Override
-    public void withVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
+    public void withVariantsFromConfiguration(
+            Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
         checkNotObserved();
         actions.add(new ConfigurationVariantAction(() -> outgoingConfiguration, action, true));
     }
 
     @Override
-    public void withVariantsFromConfiguration(Provider<ConsumableConfiguration> outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
+    public void withVariantsFromConfiguration(
+            Provider<ConsumableConfiguration> outgoingConfiguration,
+            Action<? super ConfigurationVariantDetails> action) {
         checkNotObserved();
         actions.add(new ConfigurationVariantAction(outgoingConfiguration::get, action, true));
     }
@@ -99,13 +104,16 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
         for (ConfigurationVariantAction action : actions) {
             Configuration configuration = action.getConfiguration();
             if (!action.isMutate()) {
-                variants.put(configuration, new ConfigurationVariantMapping((ConfigurationInternal) configuration, action.getSpec(), objectFactory));
+                variants.put(
+                        configuration,
+                        new ConfigurationVariantMapping(
+                                (ConfigurationInternal) configuration, action.getSpec(), objectFactory));
             } else {
                 if (!variants.containsKey(configuration)) {
                     throw new InvalidUserDataException(
-                        "Variant for configuration '" + configuration.getName() + "' does not exist in component '" + componentName + "'. " +
-                            "For a given configuration, 'addVariantsFromConfiguration' must be called before 'withVariantsFromConfiguration'."
-                    );
+                            "Variant for configuration '" + configuration.getName() + "' does not exist in component '"
+                                    + componentName + "'. "
+                                    + "For a given configuration, 'addVariantsFromConfiguration' must be called before 'withVariantsFromConfiguration'.");
                 }
                 variants.get(configuration).addAction(action.getSpec());
             }
@@ -125,7 +133,8 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
      */
     protected void checkNotObserved() {
         if (cachedVariants != null) {
-            throw new MetadataModificationException("Gradle Module Metadata can't be modified after an eagerly populated publication.");
+            throw new MetadataModificationException(
+                    "Gradle Module Metadata can't be modified after an eagerly populated publication.");
         }
     }
 
@@ -136,7 +145,9 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
 
         @Override
         public List<String> getResolutions() {
-            return Collections.singletonList(Documentation.upgradeMinorGuide(8, "gmm_modification_after_publication_populated").getConsultDocumentationMessage());
+            return Collections.singletonList(
+                    Documentation.upgradeMinorGuide(8, "gmm_modification_after_publication_populated")
+                            .getConsultDocumentationMessage());
         }
     }
 
@@ -146,7 +157,10 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
         private final Action<? super ConfigurationVariantDetails> spec;
         private final boolean mutate;
 
-        public ConfigurationVariantAction(Supplier<Configuration> configuration, Action<? super ConfigurationVariantDetails> spec, boolean mutate) {
+        public ConfigurationVariantAction(
+                Supplier<Configuration> configuration,
+                Action<? super ConfigurationVariantDetails> spec,
+                boolean mutate) {
             this.configuration = configuration;
             this.spec = spec;
             this.mutate = mutate;
@@ -163,7 +177,5 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
         public boolean isMutate() {
             return mutate;
         }
-
     }
-
 }

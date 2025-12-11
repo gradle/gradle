@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
+import java.util.function.Function;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.initialization.ClassLoaderScopeOrigin;
@@ -24,28 +25,27 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.jspecify.annotations.Nullable;
 
-import java.util.function.Function;
-
 /**
  * A simplified scope that provides only a single local classpath and no exports, and that cannot be mutated.
  */
 public class ImmutableClassLoaderScope extends AbstractClassLoaderScope {
     private final ClassLoaderScope parent;
     private final ClassPath classPath;
+
     @Nullable
     private final HashCode classpathImplementationHash;
+
     private final ClassLoader localClassLoader;
 
     public ImmutableClassLoaderScope(
-        ClassLoaderScopeIdentifier id,
-        ClassLoaderScope parent,
-        @Nullable ClassLoaderScopeOrigin origin,
-        ClassPath classPath,
-        @Nullable HashCode classpathImplementationHash,
-        @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory,
-        ClassLoaderCache classLoaderCache,
-        ClassLoaderScopeRegistryListener listener
-    ) {
+            ClassLoaderScopeIdentifier id,
+            ClassLoaderScope parent,
+            @Nullable ClassLoaderScopeOrigin origin,
+            ClassPath classPath,
+            @Nullable HashCode classpathImplementationHash,
+            @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory,
+            ClassLoaderCache classLoaderCache,
+            ClassLoaderScopeRegistryListener listener) {
         super(id, origin, classLoaderCache, listener);
         this.parent = parent;
         this.classPath = classPath;
@@ -53,9 +53,15 @@ public class ImmutableClassLoaderScope extends AbstractClassLoaderScope {
         listener.childScopeCreated(parent.getId(), id, origin);
         ClassLoaderId classLoaderId = id.localId();
         if (localClassLoaderFactory != null) {
-            localClassLoader = classLoaderCache.createIfAbsent(classLoaderId, classPath, parent.getExportClassLoader(), localClassLoaderFactory, classpathImplementationHash);
+            localClassLoader = classLoaderCache.createIfAbsent(
+                    classLoaderId,
+                    classPath,
+                    parent.getExportClassLoader(),
+                    localClassLoaderFactory,
+                    classpathImplementationHash);
         } else {
-            localClassLoader = classLoaderCache.get(classLoaderId, classPath, parent.getExportClassLoader(), null, classpathImplementationHash);
+            localClassLoader = classLoaderCache.get(
+                    classLoaderId, classPath, parent.getExportClassLoader(), null, classpathImplementationHash);
         }
         listener.classloaderCreated(id, classLoaderId, localClassLoader, classPath, classpathImplementationHash);
     }

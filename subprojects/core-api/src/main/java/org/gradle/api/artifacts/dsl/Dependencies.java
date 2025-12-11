@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts.dsl;
 
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -28,8 +29,6 @@ import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
 
 /**
  * Universal APIs that are available for all {@code dependencies} blocks.
@@ -127,13 +126,13 @@ public interface Dependencies {
      */
     @Deprecated
     default ExternalModuleDependency module(@Nullable String group, String name, @Nullable String version) {
-        String suggestedNotation = (group == null ? "" : group)  + ":" + name + (version == null ? "" : ":" + version);
+        String suggestedNotation = (group == null ? "" : group) + ":" + name + (version == null ? "" : ":" + version);
 
         DeprecationLogger.deprecateAction("Declaring dependencies using multi-string notation")
-            .withAdvice("Please use single-string notation instead: \"" + suggestedNotation + "\".")
-            .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "dependency_multi_string_notation")
-            .nagUser();
+                .withAdvice("Please use single-string notation instead: \"" + suggestedNotation + "\".")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "dependency_multi_string_notation")
+                .nagUser();
 
         return getDependencyFactory().create(group, name, version);
     }
@@ -158,7 +157,8 @@ public interface Dependencies {
      * @since 8.7
      */
     @Incubating
-    default Provider<? extends DependencyConstraint> constraint(Provider<? extends MinimalExternalModuleDependency> dependencyConstraint) {
+    default Provider<? extends DependencyConstraint> constraint(
+            Provider<? extends MinimalExternalModuleDependency> dependencyConstraint) {
         return dependencyConstraint.map(getDependencyConstraintFactory()::create);
     }
 
@@ -170,7 +170,8 @@ public interface Dependencies {
      * @since 8.7
      */
     @Incubating
-    default Provider<? extends DependencyConstraint> constraint(ProviderConvertible<? extends MinimalExternalModuleDependency> dependencyConstraint) {
+    default Provider<? extends DependencyConstraint> constraint(
+            ProviderConvertible<? extends MinimalExternalModuleDependency> dependencyConstraint) {
         return constraint(dependencyConstraint.asProvider());
     }
 

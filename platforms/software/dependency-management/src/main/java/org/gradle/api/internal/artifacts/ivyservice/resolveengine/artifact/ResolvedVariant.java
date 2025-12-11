@@ -46,5 +46,4 @@ public interface ResolvedVariant extends AttributeMatchingCandidate {
     ResolvedArtifactSet getArtifacts();
 
     ImmutableCapabilities getCapabilities();
-
 }

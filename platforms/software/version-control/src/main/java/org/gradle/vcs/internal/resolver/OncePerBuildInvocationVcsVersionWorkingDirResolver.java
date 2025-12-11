@@ -16,14 +16,13 @@
 
 package org.gradle.vcs.internal.resolver;
 
+import java.io.File;
+import java.util.function.Supplier;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.io.File;
-import java.util.function.Supplier;
 
 /**
  * Ensures that a given resolution from (repo + selector) -&gt; working dir is performed once per build invocation. Allows resolution for different repos to happen in parallel.
@@ -34,14 +33,16 @@ public class OncePerBuildInvocationVcsVersionWorkingDirResolver implements VcsVe
     private final VcsVersionSelectionCache inMemoryCache;
     private final VcsVersionWorkingDirResolver delegate;
 
-    public OncePerBuildInvocationVcsVersionWorkingDirResolver(VcsVersionSelectionCache inMemoryCache, VcsVersionWorkingDirResolver delegate) {
+    public OncePerBuildInvocationVcsVersionWorkingDirResolver(
+            VcsVersionSelectionCache inMemoryCache, VcsVersionWorkingDirResolver delegate) {
         this.inMemoryCache = inMemoryCache;
         this.delegate = delegate;
     }
 
     @Nullable
     @Override
-    public File selectVersion(final ModuleComponentSelector selector, final VersionControlRepositoryConnection repository) {
+    public File selectVersion(
+            final ModuleComponentSelector selector, final VersionControlRepositoryConnection repository) {
         // Perform the work per repository
         return perRepoGuard.guardByKey(repository.getUniqueId(), new Supplier<File>() {
             @Nullable

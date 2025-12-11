@@ -20,6 +20,4 @@ package org.gradle.api.internal.tasks.testing.report.generic;
  * Kept for backwards compatibility
  */
 @Deprecated
-public final class MetadataRendererRegistry {
-
-}
+public final class MetadataRendererRegistry {}

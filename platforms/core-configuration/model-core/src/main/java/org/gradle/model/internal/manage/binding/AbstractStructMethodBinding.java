@@ -26,7 +26,8 @@ public abstract class AbstractStructMethodBinding implements StructMethodBinding
     private final WeaklyTypeReferencingMethod<?, ?> viewMethod;
     private final PropertyAccessorType accessorType;
 
-    public AbstractStructMethodBinding(WeaklyTypeReferencingMethod<?, ?> viewMethod, PropertyAccessorType accessorType) {
+    public AbstractStructMethodBinding(
+            WeaklyTypeReferencingMethod<?, ?> viewMethod, PropertyAccessorType accessorType) {
         this.viewMethod = viewMethod;
         this.accessorType = accessorType;
     }

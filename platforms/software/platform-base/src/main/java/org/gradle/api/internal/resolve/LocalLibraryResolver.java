@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.resolve;
 
+import java.util.Collection;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.VariantComponent;
-
-import java.util.Collection;
 
 public interface LocalLibraryResolver {
     Collection<VariantComponent> resolveCandidates(ModelRegistry projectModel, String libraryName);

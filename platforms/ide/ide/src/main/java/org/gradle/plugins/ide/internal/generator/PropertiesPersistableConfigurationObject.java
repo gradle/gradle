@@ -15,16 +15,15 @@
  */
 package org.gradle.plugins.ide.internal.generator;
 
+import static org.gradle.util.internal.ConfigureUtil.configureUsing;
+
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import org.gradle.api.Action;
-import org.gradle.api.internal.PropertiesTransformer;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Properties;
-
-import static org.gradle.util.internal.ConfigureUtil.configureUsing;
+import org.gradle.api.Action;
+import org.gradle.api.internal.PropertiesTransformer;
 
 public abstract class PropertiesPersistableConfigurationObject extends AbstractPersistableConfigurationObject {
 

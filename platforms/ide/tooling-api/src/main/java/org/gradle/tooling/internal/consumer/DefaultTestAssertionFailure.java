@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import java.util.List;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.TestAssertionFailure;
-
-import java.util.List;
 
 public class DefaultTestAssertionFailure extends DefaultFailure implements TestAssertionFailure {
     private final String expected;
@@ -27,7 +26,14 @@ public class DefaultTestAssertionFailure extends DefaultFailure implements TestA
     private final String stacktrace;
     private final String className;
 
-    public DefaultTestAssertionFailure(String message, String description, String expected, String actual, List<? extends Failure> causes, String className, String stacktrace) {
+    public DefaultTestAssertionFailure(
+            String message,
+            String description,
+            String expected,
+            String actual,
+            List<? extends Failure> causes,
+            String className,
+            String stacktrace) {
         super(message, description, causes);
         this.expected = expected;
         this.actual = actual;

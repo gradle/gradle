@@ -16,8 +16,15 @@
 
 package org.gradle.api.tasks.javadoc;
 
+import static org.gradle.util.internal.GUtil.isTrue;
+
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -56,14 +63,6 @@ import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.gradle.util.internal.GUtil.isTrue;
 
 /**
  * <p>Generates HTML API documentation for Java classes.</p>
@@ -125,6 +124,7 @@ public abstract class Javadoc extends SourceTask {
 
     @Nullable
     private String executable;
+
     private final Property<JavadocTool> javadocTool;
 
     public Javadoc() {
@@ -133,9 +133,9 @@ public abstract class Javadoc extends SourceTask {
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavadocTool> javadocToolConvention = getProviderFactory()
-            .provider(() -> JavadocExecutableUtils.getExecutableOverrideToolchainSpec(this, propertyFactory))
-            .flatMap(javaToolchainService::javadocToolFor)
-            .orElse(javaToolchainService.javadocToolFor(it -> {}));
+                .provider(() -> JavadocExecutableUtils.getExecutableOverrideToolchainSpec(this, propertyFactory))
+                .flatMap(javaToolchainService::javadocToolFor)
+                .orElse(javaToolchainService.javadocToolFor(it -> {}));
         this.javadocTool = propertyFactory.property(JavadocTool.class).convention(javadocToolConvention);
         this.javadocTool.finalizeValueOnRead();
     }
@@ -149,7 +149,8 @@ public abstract class Javadoc extends SourceTask {
             throw UncheckedException.throwAsUncheckedException(ex);
         }
 
-        StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
+        StandardJavadocDocletOptions options =
+                new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
 
         if (options.getDestinationDirectory() == null) {
             options.destinationDirectory(destinationDir);
@@ -157,8 +158,10 @@ public abstract class Javadoc extends SourceTask {
 
         boolean isModule = isModule();
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
-        options.classpath(new ArrayList<>(javaModuleDetector.inferClasspath(isModule, getClasspath()).getFiles()));
-        options.modulePath(new ArrayList<>(javaModuleDetector.inferModulePath(isModule, getClasspath()).getFiles()));
+        options.classpath(new ArrayList<>(
+                javaModuleDetector.inferClasspath(isModule, getClasspath()).getFiles()));
+        options.modulePath(new ArrayList<>(
+                javaModuleDetector.inferModulePath(isModule, getClasspath()).getFiles()));
         if (options.getBootClasspath() != null && !options.getBootClasspath().isEmpty()) {
             // Added so JavaDoc has the same behavior as JavaCompile regarding the bootClasspath
             getProjectLayout().files(options.getBootClasspath()).getAsPath();
@@ -186,8 +189,8 @@ public abstract class Javadoc extends SourceTask {
         File toolchainExecutable = getJavadocTool().get().getExecutablePath().getAsFile();
         String customExecutable = getExecutable();
         JavaExecutableUtils.validateExecutable(
-            customExecutable, "Toolchain from `executable` property",
-            toolchainExecutable, "toolchain from `javadocTool` property");
+                customExecutable, "Toolchain from `executable` property",
+                toolchainExecutable, "toolchain from `javadocTool` property");
     }
 
     private boolean isModule() {

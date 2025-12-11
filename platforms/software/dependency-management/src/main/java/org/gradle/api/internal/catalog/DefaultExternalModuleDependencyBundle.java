@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.catalog;
 
+import java.util.ArrayList;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-
-import java.util.ArrayList;
 
 /**
  * Default implementation of {@link ExternalModuleDependencyBundle}.
  */
-public class DefaultExternalModuleDependencyBundle extends ArrayList<MinimalExternalModuleDependency> implements ExternalModuleDependencyBundle {
-}
+public class DefaultExternalModuleDependencyBundle extends ArrayList<MinimalExternalModuleDependency>
+        implements ExternalModuleDependencyBundle {}

@@ -48,5 +48,4 @@ class DefaultTimer implements Timer {
     public void reset() {
         startTime = timeSource.nanoTime();
     }
-
 }

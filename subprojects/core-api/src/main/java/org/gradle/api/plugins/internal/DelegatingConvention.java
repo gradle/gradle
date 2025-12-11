@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Action;
@@ -67,12 +66,14 @@ public class DelegatingConvention implements ExtensionContainer {
     }
 
     @Override
-    public <T> T create(Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
+    public <T> T create(
+            Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
         return delegate.create(publicType, name, instanceType, constructionArguments);
     }
 
     @Override
-    public <T> T create(TypeOf<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
+    public <T> T create(
+            TypeOf<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
         return delegate.create(publicType, name, instanceType, constructionArguments);
     }
 

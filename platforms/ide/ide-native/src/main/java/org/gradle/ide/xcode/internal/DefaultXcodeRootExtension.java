@@ -16,10 +16,9 @@
 
 package org.gradle.ide.xcode.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.ide.xcode.XcodeRootExtension;
-
-import javax.inject.Inject;
 
 public class DefaultXcodeRootExtension extends DefaultXcodeExtension implements XcodeRootExtension {
     private final DefaultXcodeWorkspace workspace;

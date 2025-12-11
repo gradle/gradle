@@ -16,6 +16,11 @@
 
 package org.gradle.api.reporting.dependents.internal;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+
+import java.util.LinkedHashSet;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -28,12 +33,6 @@ import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import org.gradle.reporting.ReportRenderer;
 import org.jspecify.annotations.Nullable;
 
-import java.util.LinkedHashSet;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
-
 public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
 
     private final DependentBinariesResolver resolver;
@@ -44,7 +43,10 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
     private boolean hiddenTestSuite;
     private boolean hiddenNonBuildable;
 
-    public DependentComponentsRenderer(@Nullable DependentBinariesResolver dependentBinariesResolver, boolean showNonBuildable, boolean showTestSuites) {
+    public DependentComponentsRenderer(
+            @Nullable DependentBinariesResolver dependentBinariesResolver,
+            boolean showNonBuildable,
+            boolean showTestSuites) {
         this.resolver = dependentBinariesResolver;
         this.showNonBuildable = showNonBuildable;
         this.showTestSuites = showTestSuites;
@@ -60,11 +62,14 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
         }
         StyledTextOutput output = builder.getOutput();
         GraphRenderer renderer = new GraphRenderer(output);
-        renderer.visit(output1 -> {
-            output1.withStyle(Identifier).text(component.getName());
-            output1.withStyle(Description).text(" - Components that depend on " + component.getDisplayName());
-        }, true);
-        DependentComponentsGraphRenderer dependentsGraphRenderer = new DependentComponentsGraphRenderer(renderer, showNonBuildable, showTestSuites);
+        renderer.visit(
+                output1 -> {
+                    output1.withStyle(Identifier).text(component.getName());
+                    output1.withStyle(Description).text(" - Components that depend on " + component.getDisplayName());
+                },
+                true);
+        DependentComponentsGraphRenderer dependentsGraphRenderer =
+                new DependentComponentsGraphRenderer(renderer, showNonBuildable, showTestSuites);
         if (root.getChildren().isEmpty()) {
             output.withStyle(Info).text("No dependents");
             output.println();
@@ -83,11 +88,13 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
         }
     }
 
-    private DependentComponentsRenderableDependency getRenderableDependencyOf(final ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
+    private DependentComponentsRenderableDependency getRenderableDependencyOf(
+            final ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
         if (resolver != null && componentSpec instanceof VariantComponentSpec) {
             VariantComponentSpec variantComponentSpec = (VariantComponentSpec) componentSpec;
             LinkedHashSet<DependentComponentsRenderableDependency> children = new LinkedHashSet<>();
-            for (BinarySpecInternal binarySpec : variantComponentSpec.getBinaries().withType(BinarySpecInternal.class)) {
+            for (BinarySpecInternal binarySpec :
+                    variantComponentSpec.getBinaries().withType(BinarySpecInternal.class)) {
                 DependentBinariesResolutionResult resolvedBinary = resolver.resolve(binarySpec);
                 children.add(DependentComponentsRenderableDependency.of(resolvedBinary.getRoot()));
             }
@@ -106,10 +113,13 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
                     output.println();
                 }
             } else if (hiddenTestSuite) {
-                output.withStyle(Info).println("Some test suites were not shown, use --test-suites or --all to show them.");
+                output.withStyle(Info)
+                        .println("Some test suites were not shown, use --test-suites or --all to show them.");
             }
             if (hiddenNonBuildable) {
-                output.withStyle(Info).println("Some non-buildable components were not shown, use --non-buildable or --all to show them.");
+                output.withStyle(Info)
+                        .println(
+                                "Some non-buildable components were not shown, use --non-buildable or --all to show them.");
             }
         }
     }

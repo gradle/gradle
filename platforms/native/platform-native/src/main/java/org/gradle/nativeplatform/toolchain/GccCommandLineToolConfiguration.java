@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain;
 
-
 import org.gradle.api.Incubating;
 
 /**
@@ -34,5 +33,4 @@ public interface GccCommandLineToolConfiguration extends CommandLineToolConfigur
      * The executable will be located in the tool chain path.
      */
     void setExecutable(String file);
-
 }

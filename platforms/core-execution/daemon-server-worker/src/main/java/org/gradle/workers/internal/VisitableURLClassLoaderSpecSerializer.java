@@ -16,15 +16,14 @@
 
 package org.gradle.workers.internal;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.initialization.MixInLegacyTypesClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
-
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 public class VisitableURLClassLoaderSpecSerializer implements Serializer<VisitableURLClassLoader.Spec> {
     private static final byte VISITABLE_URL_CLASSLOADER_SPEC = (byte) 0;
@@ -51,11 +50,11 @@ public class VisitableURLClassLoaderSpecSerializer implements Serializer<Visitab
         String name = decoder.readString();
         List<URL> classpath = new ArrayList<>();
         int classpathSize = decoder.readInt();
-        for (int i=0; i<classpathSize; i++) {
+        for (int i = 0; i < classpathSize; i++) {
             classpath.add(new URL(decoder.readString()));
         }
 
-        switch(typeTag) {
+        switch (typeTag) {
             case VISITABLE_URL_CLASSLOADER_SPEC:
                 return new VisitableURLClassLoader.Spec(name, classpath);
             case MIXIN_CLASSLOADER_SPEC:

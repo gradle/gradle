@@ -52,5 +52,4 @@ public interface OperationDescriptor {
      */
     @Nullable
     OperationDescriptor getParent();
-
 }

@@ -17,14 +17,6 @@
 package org.gradle.api.reporting.internal;
 
 import com.googlecode.jatl.Html;
-import org.gradle.api.reporting.DirectoryReport;
-import org.gradle.api.reporting.Report;
-import org.gradle.reporting.HtmlPageBuilder;
-import org.gradle.reporting.HtmlReportRenderer;
-import org.gradle.reporting.ReportRenderer;
-import org.gradle.util.GradleVersion;
-import org.gradle.util.internal.RelativePathUtil;
-
 import java.io.File;
 import java.io.Writer;
 import java.util.Collection;
@@ -32,6 +24,13 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Set;
 import java.util.TreeSet;
+import org.gradle.api.reporting.DirectoryReport;
+import org.gradle.api.reporting.Report;
+import org.gradle.reporting.HtmlPageBuilder;
+import org.gradle.reporting.HtmlReportRenderer;
+import org.gradle.reporting.ReportRenderer;
+import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.RelativePathUtil;
 
 public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, File> {
     private Set<Report> reports;
@@ -49,54 +48,64 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
         this.outputFile = outputFile;
 
         HtmlReportRenderer renderer = new HtmlReportRenderer();
-        renderer.renderRawSinglePage(reports, new ReportRenderer<Collection<Report>, HtmlPageBuilder<Writer>>() {
-            @Override
-            public void render(Collection<Report> model, HtmlPageBuilder<Writer> builder) {
-                generate(builder);
-            }
-        }, outputFile);
+        renderer.renderRawSinglePage(
+                reports,
+                new ReportRenderer<Collection<Report>, HtmlPageBuilder<Writer>>() {
+                    @Override
+                    public void render(Collection<Report> model, HtmlPageBuilder<Writer> builder) {
+                        generate(builder);
+                    }
+                },
+                outputFile);
     }
 
     private void generate(final HtmlPageBuilder<Writer> builder) {
-        final String baseCssLink = builder.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
+        final String baseCssLink =
+                builder.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
         final String cssLink = builder.requireResource(getClass().getResource("style.css"));
-        new Html(builder.getOutput()) {{
-            html();
+        new Html(builder.getOutput()) {
+            {
+                html();
                 head();
-                    meta().httpEquiv("Content-Type").content("text/html; charset=utf-8");
-                    meta().httpEquiv("x-ua-compatible").content("IE=edge");
-                    link().rel("stylesheet").type("text/css").href(baseCssLink).end();
-                    link().rel("stylesheet").type("text/css").href(cssLink).end();
-                    title().text("Build dashboard").end();
+                meta().httpEquiv("Content-Type").content("text/html; charset=utf-8");
+                meta().httpEquiv("x-ua-compatible").content("IE=edge");
+                link().rel("stylesheet").type("text/css").href(baseCssLink).end();
+                link().rel("stylesheet").type("text/css").href(cssLink).end();
+                title().text("Build dashboard").end();
                 end();
                 body();
                 div().id("content");
-                    if (reports.size() > 0) {
-                        h1().text("Build reports").end();
-                        ul();
-                        for (Report report : reports) {
-                            li();
-                            if (report.getOutputLocation().get().getAsFile().exists()) {
-                                a().href(RelativePathUtil.relativePath(outputFile.getParentFile(), getHtmlLinkedFileFromReport(report))).text(report.getDisplayName());
-                            } else {
-                                span().classAttr("unavailable").text(report.getDisplayName());
-                            }
-                            end(2);
+                if (reports.size() > 0) {
+                    h1().text("Build reports").end();
+                    ul();
+                    for (Report report : reports) {
+                        li();
+                        if (report.getOutputLocation().get().getAsFile().exists()) {
+                            a().href(RelativePathUtil.relativePath(
+                                            outputFile.getParentFile(), getHtmlLinkedFileFromReport(report)))
+                                    .text(report.getDisplayName());
+                        } else {
+                            span().classAttr("unavailable").text(report.getDisplayName());
                         }
-                        end();
-                    } else {
-                        h1().text("There are no build reports available.").end();
+                        end(2);
                     }
-                    div().id("footer");
-                        p();
-                            text("Generated by ");
-                            a().href("http://www.gradle.org").text(GradleVersion.current().toString()).end();
-                            text(" at " + builder.formatDate(new Date()));
-                        end();
                     end();
+                } else {
+                    h1().text("There are no build reports available.").end();
+                }
+                div().id("footer");
+                p();
+                text("Generated by ");
+                a().href("http://www.gradle.org")
+                        .text(GradleVersion.current().toString())
+                        .end();
+                text(" at " + builder.formatDate(new Date()));
                 end();
-            endAll();
-        }};
+                end();
+                end();
+                endAll();
+            }
+        };
     }
 
     private File getHtmlLinkedFileFromReport(Report report) {

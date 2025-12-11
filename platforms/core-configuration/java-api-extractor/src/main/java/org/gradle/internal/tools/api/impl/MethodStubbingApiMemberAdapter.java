@@ -16,16 +16,16 @@
 
 package org.gradle.internal.tools.api.impl;
 
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-
 import static org.objectweb.asm.Opcodes.ACC_ABSTRACT;
 import static org.objectweb.asm.Opcodes.ATHROW;
 import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.NEW;
+
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 /**
  * Adapts members selected by {@link ApiMemberSelector}, stripping out method implementations and replacing them
@@ -56,8 +56,7 @@ public class MethodStubbingApiMemberAdapter extends ClassVisitor {
             mv.visitCode();
             mv.visitTypeInsn(NEW, exceptionClassName);
             mv.visitInsn(DUP);
-            mv.visitMethodInsn(
-                INVOKESPECIAL, exceptionClassName, "<init>", "()V", false);
+            mv.visitMethodInsn(INVOKESPECIAL, exceptionClassName, "<init>", "()V", false);
             mv.visitInsn(ATHROW);
             mv.visitMaxs(2, 0);
             mv.visitEnd();

@@ -15,12 +15,11 @@
  */
 package org.gradle.api.initialization;
 
+import java.io.File;
+import java.util.Set;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.Set;
 
 /**
  * <p>A {@code ProjectDescriptor} declares the configuration required to create and evaluate a {@link

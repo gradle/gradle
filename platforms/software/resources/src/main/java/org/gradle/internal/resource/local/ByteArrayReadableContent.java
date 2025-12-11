@@ -16,10 +16,9 @@
 
 package org.gradle.internal.resource.local;
 
-import org.gradle.internal.resource.ReadableContent;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import org.gradle.internal.resource.ReadableContent;
 
 public class ByteArrayReadableContent implements ReadableContent {
     private final byte[] source;

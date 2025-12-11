@@ -17,6 +17,8 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
@@ -35,9 +37,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.List;
-import java.util.Set;
-
 public class DefaultModuleComponentSelector implements ModuleComponentSelector, ComponentSelectorInternal {
 
     private final ModuleIdentifier moduleIdentifier;
@@ -46,7 +45,11 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector, 
     private final ImmutableSet<CapabilitySelector> capabilitySelectors;
     private final int hashCode;
 
-    private DefaultModuleComponentSelector(ModuleIdentifier module, ImmutableVersionConstraint version, ImmutableAttributes attributes, ImmutableSet<CapabilitySelector> capabilitySelectors) {
+    private DefaultModuleComponentSelector(
+            ModuleIdentifier module,
+            ImmutableVersionConstraint version,
+            ImmutableAttributes attributes,
+            ImmutableSet<CapabilitySelector> capabilitySelectors) {
         this.moduleIdentifier = module;
         this.versionConstraint = version;
         this.attributes = attributes;
@@ -56,7 +59,11 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector, 
         this.hashCode = computeHashcode(module, version, attributes, capabilitySelectors);
     }
 
-    private int computeHashcode(ModuleIdentifier module, ImmutableVersionConstraint version, ImmutableAttributes attributes, ImmutableSet<CapabilitySelector> capabilitySelectors) {
+    private int computeHashcode(
+            ModuleIdentifier module,
+            ImmutableVersionConstraint version,
+            ImmutableAttributes attributes,
+            ImmutableSet<CapabilitySelector> capabilitySelectors) {
         int hashCode = version.hashCode();
         hashCode = 31 * hashCode + module.hashCode();
         hashCode = 31 * hashCode + attributes.hashCode();
@@ -68,7 +75,10 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector, 
     public String getDisplayName() {
         String group = moduleIdentifier.getGroup();
         String module = moduleIdentifier.getName();
-        StringBuilder builder = new StringBuilder(group.length() + module.length() + versionConstraint.getRequiredVersion().length() + 2);
+        StringBuilder builder = new StringBuilder(group.length()
+                + module.length()
+                + versionConstraint.getRequiredVersion().length()
+                + 2);
         builder.append(group);
         builder.append(":");
         builder.append(module);
@@ -109,20 +119,20 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector, 
     @SuppressWarnings("deprecation")
     public List<Capability> getRequestedCapabilities() {
         return capabilitySelectors.stream()
-            .map(c -> {
-                if (c instanceof SpecificCapabilitySelector) {
-                    return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
-                } else if (c instanceof FeatureCapabilitySelector) {
-                    return new DefaultImmutableCapability(
-                        getGroup(),
-                        getModule() + "-" + ((FeatureCapabilitySelector) c).getFeatureName(),
-                        getVersion()
-                    );
-                } else {
-                    throw new UnsupportedOperationException("Unsupported capability selector type: " + c.getClass().getName());
-                }
-            })
-            .collect(ImmutableList.toImmutableList());
+                .map(c -> {
+                    if (c instanceof SpecificCapabilitySelector) {
+                        return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
+                    } else if (c instanceof FeatureCapabilitySelector) {
+                        return new DefaultImmutableCapability(
+                                getGroup(),
+                                getModule() + "-" + ((FeatureCapabilitySelector) c).getFeatureName(),
+                                getVersion());
+                    } else {
+                        throw new UnsupportedOperationException("Unsupported capability selector type: "
+                                + c.getClass().getName());
+                    }
+                })
+                .collect(ImmutableList.toImmutableList());
     }
 
     @Override
@@ -140,8 +150,8 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector, 
         if (identifier instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) identifier;
             return moduleIdentifier.getName().equals(moduleComponentIdentifier.getModule())
-                && moduleIdentifier.getGroup().equals(moduleComponentIdentifier.getGroup())
-                && getVersion().equals(moduleComponentIdentifier.getVersion());
+                    && moduleIdentifier.getGroup().equals(moduleComponentIdentifier.getGroup())
+                    && getVersion().equals(moduleComponentIdentifier.getVersion());
         }
 
         return false;
@@ -184,36 +194,39 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector, 
         return getDisplayName();
     }
 
-    public static ModuleComponentSelector newSelector(ModuleIdentifier id, VersionConstraint version, AttributeContainer attributes, Set<CapabilitySelector> capabilitySelectors) {
-        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ((AttributeContainerInternal) attributes).asImmutable(), ImmutableSet.copyOf(capabilitySelectors));
+    public static ModuleComponentSelector newSelector(
+            ModuleIdentifier id,
+            VersionConstraint version,
+            AttributeContainer attributes,
+            Set<CapabilitySelector> capabilitySelectors) {
+        return new DefaultModuleComponentSelector(
+                id,
+                DefaultImmutableVersionConstraint.of(version),
+                ((AttributeContainerInternal) attributes).asImmutable(),
+                ImmutableSet.copyOf(capabilitySelectors));
     }
 
     public static ModuleComponentSelector newSelector(ModuleIdentifier id, VersionConstraint version) {
-        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ImmutableAttributes.EMPTY, ImmutableSet.of());
+        return new DefaultModuleComponentSelector(
+                id, DefaultImmutableVersionConstraint.of(version), ImmutableAttributes.EMPTY, ImmutableSet.of());
     }
 
     public static ModuleComponentSelector newSelector(ModuleIdentifier id, String version) {
-        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ImmutableAttributes.EMPTY, ImmutableSet.of());
+        return new DefaultModuleComponentSelector(
+                id, DefaultImmutableVersionConstraint.of(version), ImmutableAttributes.EMPTY, ImmutableSet.of());
     }
 
-    public static ModuleComponentSelector withAttributes(ModuleComponentSelector selector, ImmutableAttributes attributes) {
+    public static ModuleComponentSelector withAttributes(
+            ModuleComponentSelector selector, ImmutableAttributes attributes) {
         DefaultModuleComponentSelector cs = (DefaultModuleComponentSelector) selector;
         return new DefaultModuleComponentSelector(
-            cs.moduleIdentifier,
-            cs.versionConstraint,
-            attributes,
-            cs.capabilitySelectors
-        );
+                cs.moduleIdentifier, cs.versionConstraint, attributes, cs.capabilitySelectors);
     }
 
-    public static ComponentSelector withCapabilities(ModuleComponentSelector selector, ImmutableSet<CapabilitySelector> capabilitySelectors) {
+    public static ComponentSelector withCapabilities(
+            ModuleComponentSelector selector, ImmutableSet<CapabilitySelector> capabilitySelectors) {
         DefaultModuleComponentSelector cs = (DefaultModuleComponentSelector) selector;
         return new DefaultModuleComponentSelector(
-            cs.moduleIdentifier,
-            cs.versionConstraint,
-            cs.attributes,
-            ImmutableSet.copyOf(capabilitySelectors)
-        );
+                cs.moduleIdentifier, cs.versionConstraint, cs.attributes, ImmutableSet.copyOf(capabilitySelectors));
     }
-
 }

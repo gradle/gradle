@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import groovy.lang.Closure;
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
@@ -31,28 +33,29 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
 
     private final ConfigurationContainer configurationContainer;
     private final NotationParser<Object, ConfigurablePublishArtifact> publishArtifactFactory;
     private final DynamicMethods dynamicMethods;
 
-    public DefaultArtifactHandler(ConfigurationContainer configurationContainer, NotationParser<Object, ConfigurablePublishArtifact> publishArtifactFactory) {
+    public DefaultArtifactHandler(
+            ConfigurationContainer configurationContainer,
+            NotationParser<Object, ConfigurablePublishArtifact> publishArtifactFactory) {
         this.configurationContainer = configurationContainer;
         this.publishArtifactFactory = publishArtifactFactory;
         dynamicMethods = new DynamicMethods();
     }
 
     @SuppressWarnings("rawtypes")
-    private PublishArtifact pushArtifact(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
+    private PublishArtifact pushArtifact(
+            org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
         Action<Object> configureAction = ConfigureUtil.configureUsing(configureClosure);
         return pushArtifact(configuration, notation, configureAction);
     }
 
-    private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
+    private PublishArtifact pushArtifact(
+            Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
         ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
         configureAction.execute(publishArtifact);
@@ -60,7 +63,10 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     @Override
-    public PublishArtifact add(String configurationName, Object artifactNotation, Action<? super ConfigurablePublishArtifact> configureAction) {
+    public PublishArtifact add(
+            String configurationName,
+            Object artifactNotation,
+            Action<? super ConfigurablePublishArtifact> configureAction) {
         return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, configureAction);
     }
 
@@ -97,7 +103,8 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
             }
             List<Object> normalizedArgs = GUtil.flatten(Arrays.asList(arguments), false);
             if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
-                return DynamicInvokeResult.found(pushArtifact(configuration, normalizedArgs.get(0), (Closure<?>) normalizedArgs.get(1)));
+                return DynamicInvokeResult.found(
+                        pushArtifact(configuration, normalizedArgs.get(0), (Closure<?>) normalizedArgs.get(1)));
             } else {
                 for (Object notation : normalizedArgs) {
                     pushArtifact(configuration, notation, Actions.doNothing());

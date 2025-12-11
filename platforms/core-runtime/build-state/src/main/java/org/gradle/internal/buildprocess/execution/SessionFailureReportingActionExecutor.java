@@ -36,30 +36,39 @@ import org.gradle.launcher.exec.BuildActionResult;
 /**
  * Reports any unreported failure that causes the session to finish.
  */
-public class SessionFailureReportingActionExecutor implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
+public class SessionFailureReportingActionExecutor
+        implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
     private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate;
     private final BuildLoggerFactory buildLoggerFactory;
 
-    public SessionFailureReportingActionExecutor(BuildLoggerFactory buildLoggerFactory, BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
+    public SessionFailureReportingActionExecutor(
+            BuildLoggerFactory buildLoggerFactory,
+            BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
         this.delegate = delegate;
         this.buildLoggerFactory = buildLoggerFactory;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
+    public BuildActionResult execute(
+            BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         try {
             return delegate.execute(action, actionParameters, requestContext);
         } catch (Throwable e) {
             // TODO - wire this stuff in properly
 
             // Sanitise the exception and report it
-            ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(new NoOpProblemDiagnosticsFactory()));
+            ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(
+                    new DefaultExceptionAnalyser(new NoOpProblemDiagnosticsFactory()));
             if (action.getStartParameter().getShowStacktrace() != ShowStacktrace.ALWAYS_FULL) {
                 exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
             }
             RuntimeException failure = exceptionAnalyser.transform(e);
             BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(requestContext.getStartTime());
-            BuildLogger buildLogger = buildLoggerFactory.create(Logging.getLogger(SessionFailureReportingActionExecutor.class), action.getStartParameter(), buildStartedTime, requestContext);
+            BuildLogger buildLogger = buildLoggerFactory.create(
+                    Logging.getLogger(SessionFailureReportingActionExecutor.class),
+                    action.getStartParameter(),
+                    buildStartedTime,
+                    requestContext);
             buildLogger.buildFinished(new BuildResult(null, failure));
             buildLogger.logResult(failure);
             return BuildActionResult.failed(failure);

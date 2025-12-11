@@ -38,7 +38,8 @@ public class DefaultInputNormalizationHandler implements InputNormalizationHandl
 
     @Override
     public CachedState computeCachedState() {
-        RuntimeClasspathNormalizationInternal.CachedState runtimeClasspathState = runtimeClasspathNormalization.computeCachedState();
+        RuntimeClasspathNormalizationInternal.CachedState runtimeClasspathState =
+                runtimeClasspathNormalization.computeCachedState();
         if (runtimeClasspathState == null) {
             return null;
         }

@@ -15,14 +15,13 @@
  */
 package org.gradle.cache.internal.btree;
 
-import org.gradle.internal.UncheckedException;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import org.gradle.internal.UncheckedException;
 
 public class FileBackedBlockStore implements BlockStore {
     private final File cacheFile;
@@ -106,8 +105,7 @@ public class FileBackedBlockStore implements BlockStore {
     }
 
     @Override
-    public void flush() {
-    }
+    public void flush() {}
 
     @Override
     public <T extends BlockPayload> T readFirst(Class<T> payloadType) {
@@ -264,9 +262,8 @@ public class FileBackedBlockStore implements BlockStore {
 
         @Override
         public RuntimeException blockCorruptedException() {
-            return new CorruptedCacheException(String.format("Corrupted %s found in %s.", this,
-                    FileBackedBlockStore.this));
+            return new CorruptedCacheException(
+                    String.format("Corrupted %s found in %s.", this, FileBackedBlockStore.this));
         }
     }
-
 }

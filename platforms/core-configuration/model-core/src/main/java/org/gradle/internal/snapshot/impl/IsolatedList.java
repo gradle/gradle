@@ -17,12 +17,11 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class IsolatedList extends AbstractListSnapshot<Isolatable<?>> implements Isolatable<List<Object>> {
     public static final IsolatedList EMPTY = new IsolatedList(ImmutableList.of());
@@ -57,14 +56,15 @@ public class IsolatedList extends AbstractListSnapshot<Isolatable<?>> implements
     @Override
     public <S> S coerce(Class<S> type) {
         S result = null;
-        if  (List.class.isAssignableFrom(type)) {
+        if (List.class.isAssignableFrom(type)) {
             try {
                 result = type.getConstructor().newInstance();
                 for (Isolatable<?> element : elements) {
                     ((List) result).add(element.isolate());
                 }
             } catch (Exception e) {
-                // This method's contract is a "best-effort" so if given a List type that can't be constructed or populated, that's fine
+                // This method's contract is a "best-effort" so if given a List type that can't be constructed or
+                // populated, that's fine
                 result = null;
             }
         }

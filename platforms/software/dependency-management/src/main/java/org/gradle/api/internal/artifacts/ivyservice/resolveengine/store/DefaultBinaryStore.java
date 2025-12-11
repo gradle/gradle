@@ -15,20 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
-import org.gradle.cache.internal.BinaryStore;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.file.RandomAccessFileInputStream;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedDecoder;
-import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder;
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
-
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+import org.gradle.cache.internal.BinaryStore;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.file.RandomAccessFileInputStream;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder;
 
 class DefaultBinaryStore implements BinaryStore, Closeable {
     private File file;

@@ -15,6 +15,14 @@
  */
 package org.gradle.internal.daemon.client.clientinput;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.Dispatch;
@@ -24,15 +32,6 @@ import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.InputMessage;
 import org.gradle.launcher.daemon.protocol.UserResponse;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Reads input from this client stdin and forwards it to the daemon. Can either read raw content or read the user's response to some prompt.
@@ -45,13 +44,11 @@ public class DaemonClientInputForwarder implements Stoppable {
     private final ExecutorService executor;
 
     public DaemonClientInputForwarder(
-        InputStream inputStream,
-        Dispatch<? super InputMessage> dispatch,
-        GlobalUserInputReceiver userInput
-    ) {
+            InputStream inputStream, Dispatch<? super InputMessage> dispatch, GlobalUserInputReceiver userInput) {
         this.userInput = userInput;
         // Use a single reader thread, and make it a daemon thread so that it does not block process shutdown
-        // In most cases, we try to cleanly shut down all threads. However, in this case it is difficult to disconnect a thread blocked trying to read from the
+        // In most cases, we try to cleanly shut down all threads. However, in this case it is difficult to disconnect a
+        // thread blocked trying to read from the
         // process' stdin, so use a daemon thread instead.
         executor = Executors.newSingleThreadExecutor(r -> {
             Thread thread = new Thread(r);
@@ -79,7 +76,8 @@ public class DaemonClientInputForwarder implements Stoppable {
         private final Object lock = new Object();
         private boolean closed;
 
-        public ForwardingUserInput(InputStream inputStream, Dispatch<? super InputMessage> dispatch, Executor executor) {
+        public ForwardingUserInput(
+                InputStream inputStream, Dispatch<? super InputMessage> dispatch, Executor executor) {
             this.dispatch = dispatch;
             this.reader = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()));
             this.executor = executor;
@@ -93,7 +91,8 @@ public class DaemonClientInputForwarder implements Stoppable {
                 }
                 int nread;
                 try {
-                    // Read input as text rather than bytes, so that readAndForwardText() below can also read lines of text
+                    // Read input as text rather than bytes, so that readAndForwardText() below can also read lines of
+                    // text
                     nread = reader.read(buffer);
                 } catch (IOException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
@@ -139,7 +138,8 @@ public class DaemonClientInputForwarder implements Stoppable {
         }
 
         private void maybeClosed() {
-            // This can be invoked from the reader thread or some other thread that is attempting to shut the client down.
+            // This can be invoked from the reader thread or some other thread that is attempting to shut the client
+            // down.
             synchronized (lock) {
                 if (!closed) {
                     CloseInput message = new CloseInput();

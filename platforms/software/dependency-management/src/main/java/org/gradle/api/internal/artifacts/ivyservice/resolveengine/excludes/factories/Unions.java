@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude;
@@ -23,9 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
-
-import java.util.Set;
-import java.util.stream.Collectors;
 
 class Unions {
     private final ExcludeFactory factory;
@@ -75,7 +74,9 @@ class Unions {
         }
         if (right instanceof ModuleIdSetExclude) {
             ModuleIdSetExclude ids = (ModuleIdSetExclude) right;
-            Set<ModuleIdentifier> items = ids.getModuleIds().stream().filter(id -> !id.getName().equals(leftModule)).collect(Collectors.toSet());
+            Set<ModuleIdentifier> items = ids.getModuleIds().stream()
+                    .filter(id -> !id.getName().equals(leftModule))
+                    .collect(Collectors.toSet());
             if (items.size() == 1) {
                 return factory.anyOf(left, factory.moduleId(items.iterator().next()));
             }
@@ -99,7 +100,9 @@ class Unions {
         }
         if (right instanceof ModuleIdSetExclude) {
             ModuleIdSetExclude ids = (ModuleIdSetExclude) right;
-            Set<ModuleIdentifier> items = ids.getModuleIds().stream().filter(id -> !id.getGroup().equals(leftGroup)).collect(Collectors.toSet());
+            Set<ModuleIdentifier> items = ids.getModuleIds().stream()
+                    .filter(id -> !id.getGroup().equals(leftGroup))
+                    .collect(Collectors.toSet());
             if (items.size() == 1) {
                 return factory.anyOf(left, factory.moduleId(items.iterator().next()));
             }
@@ -123,7 +126,9 @@ class Unions {
         }
         if (right instanceof ModuleIdSetExclude) {
             ModuleIdSetExclude ids = (ModuleIdSetExclude) right;
-            Set<ModuleIdentifier> items = ids.getModuleIds().stream().filter(id -> !leftModules.contains(id.getName())).collect(Collectors.toSet());
+            Set<ModuleIdentifier> items = ids.getModuleIds().stream()
+                    .filter(id -> !leftModules.contains(id.getName()))
+                    .collect(Collectors.toSet());
             if (items.size() == 1) {
                 return factory.anyOf(left, factory.moduleId(items.iterator().next()));
             }
@@ -147,7 +152,9 @@ class Unions {
         }
         if (right instanceof ModuleIdSetExclude) {
             ModuleIdSetExclude ids = (ModuleIdSetExclude) right;
-            Set<ModuleIdentifier> items = ids.getModuleIds().stream().filter(id -> !leftGroups.contains(id.getGroup())).collect(Collectors.toSet());
+            Set<ModuleIdentifier> items = ids.getModuleIds().stream()
+                    .filter(id -> !leftGroups.contains(id.getGroup()))
+                    .collect(Collectors.toSet());
             if (items.size() == 1) {
                 return factory.anyOf(left, factory.moduleId(items.iterator().next()));
             }
@@ -160,5 +167,4 @@ class Unions {
         }
         return null;
     }
-
 }

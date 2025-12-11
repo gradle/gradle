@@ -16,9 +16,8 @@
 
 package org.gradle.internal.resource;
 
-import org.gradle.api.resources.ResourceException;
-
 import java.io.InputStream;
+import org.gradle.api.resources.ResourceException;
 
 /**
  * Some resource content with a known length.

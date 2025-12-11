@@ -16,6 +16,10 @@
 
 package org.gradle.internal.buildconfiguration.tasks;
 
+import static org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUtils.getPlatformFromToolchainProperty;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
@@ -23,11 +27,6 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.platform.BuildPlatform;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUtils.getPlatformFromToolchainProperty;
 
 public class DaemonJvmPropertiesAccessor {
 
@@ -46,7 +45,9 @@ public class DaemonJvmPropertiesAccessor {
         try {
             return DefaultJavaLanguageVersion.fromFullVersion(requestedVersion);
         } catch (Exception e) {
-            throw new IllegalArgumentException(String.format("Value '%s' given for %s is an invalid Java version", requestedVersion, DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY));
+            throw new IllegalArgumentException(String.format(
+                    "Value '%s' given for %s is an invalid Java version",
+                    requestedVersion, DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY));
         }
     }
 
@@ -61,12 +62,14 @@ public class DaemonJvmPropertiesAccessor {
     }
 
     public boolean getNativeImageCapable() {
-        return Boolean.parseBoolean(properties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_NATIVE_IMAGE_CAPABLE_PROPERTY));
+        return Boolean.parseBoolean(
+                properties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_NATIVE_IMAGE_CAPABLE_PROPERTY));
     }
 
     public Map<BuildPlatform, String> getToolchainDownloadUrls() {
         return properties.entrySet().stream()
-            .filter(entry -> entry.getKey().startsWith(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_PREFIX))
-                .collect(Collectors.toMap(entry -> getPlatformFromToolchainProperty(entry.getKey()), Map.Entry::getValue));
+                .filter(entry -> entry.getKey().startsWith(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_PREFIX))
+                .collect(Collectors.toMap(
+                        entry -> getPlatformFromToolchainProperty(entry.getKey()), Map.Entry::getValue));
     }
 }

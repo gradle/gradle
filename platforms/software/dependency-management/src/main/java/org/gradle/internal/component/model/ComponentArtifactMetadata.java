@@ -16,12 +16,11 @@
 
 package org.gradle.internal.component.model;
 
+import java.util.Optional;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
-
-import java.util.Optional;
 
 /**
  * Meta-data for an artifact that belongs to some component.

@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.project;
 
+import java.util.Collection;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-
-import java.util.Collection;
 
 public class DefaultProjectTaskLister implements ProjectTaskLister {
     @Override

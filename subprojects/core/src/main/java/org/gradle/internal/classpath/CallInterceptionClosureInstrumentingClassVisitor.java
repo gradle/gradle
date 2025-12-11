@@ -16,7 +16,18 @@
 
 package org.gradle.internal.classpath;
 
+import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
+import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Type.BOOLEAN_TYPE;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.commons.InstructionAdapter.OBJECT_TYPE;
+
 import groovy.lang.Closure;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Optional;
+import java.util.function.BiFunction;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.jspecify.annotations.NonNull;
@@ -27,18 +38,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Optional;
-import java.util.function.BiFunction;
-
-import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
-import static org.objectweb.asm.Opcodes.IRETURN;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
-import static org.objectweb.asm.commons.InstructionAdapter.OBJECT_TYPE;
 
 /**
  * Instruments implementations of {@link Closure} in the following way:
@@ -63,7 +62,8 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
 
     private final BytecodeInterceptorFilter interceptorFilter;
 
-    public CallInterceptionClosureInstrumentingClassVisitor(ClassVisitor delegate, BytecodeInterceptorFilter interceptorFilter) {
+    public CallInterceptionClosureInstrumentingClassVisitor(
+            ClassVisitor delegate, BytecodeInterceptorFilter interceptorFilter) {
         super(ASM_LEVEL, delegate);
         this.interceptorFilter = interceptorFilter;
     }
@@ -73,37 +73,52 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         /**
          * Whenever the closure's delegate is set, we want to make sure that the call interception hooks are added to the new delegate's metaclass.
          */
-        SET_DELEGATE("setDelegate", getMethodDescriptor(Type.VOID_TYPE, getType(Object.class)), true, (classData, mv) -> {
-            @NullMarked
-            class MethodVisitorScopeImpl extends MethodVisitorScope {
-                public MethodVisitorScopeImpl(MethodVisitor methodVisitor) {
-                    super(methodVisitor);
-                }
+        SET_DELEGATE(
+                "setDelegate", getMethodDescriptor(Type.VOID_TYPE, getType(Object.class)), true, (classData, mv) -> {
+                    @NullMarked
+                    class MethodVisitorScopeImpl extends MethodVisitorScope {
+                        public MethodVisitorScopeImpl(MethodVisitor methodVisitor) {
+                            super(methodVisitor);
+                        }
 
-                @Override
-                public void visitCode() {
-                    /*
-                     * // The boolean is passed to this call rather than being checked here at the call site in order to simplify code generation.
-                     * InstrumentedGroovyMetaClassHelper.addInvocationHooksInClosureDispatchObject(newDelegate, isEffectivelyInstrumented, interceptorsRequest);
-                     * super.setDelegate(newDelegate);
-                     */
+                        @Override
+                        public void visitCode() {
+                            /*
+                             * // The boolean is passed to this call rather than being checked here at the call site in order to simplify code generation.
+                             * InstrumentedGroovyMetaClassHelper.addInvocationHooksInClosureDispatchObject(newDelegate, isEffectivelyInstrumented, interceptorsRequest);
+                             * super.setDelegate(newDelegate);
+                             */
 
-                    _ALOAD(1);
-                    _ALOAD(0);
-                    _GETFIELD(classData.className, IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME, "Z");
-                    _GETSTATIC(BYTECODE_INTERCEPTOR_FILTER_TYPE, classData.interceptorFilter.name(), BYTECODE_INTERCEPTOR_FILTER_TYPE.getDescriptor());
-                    String descriptor = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, BOOLEAN_TYPE, BYTECODE_INTERCEPTOR_FILTER_TYPE);
-                    _INVOKESTATIC(getType(InstrumentedGroovyMetaClassHelper.class).getInternalName(), "addInvocationHooksInClosureDispatchObject", descriptor, false);
+                            _ALOAD(1);
+                            _ALOAD(0);
+                            _GETFIELD(classData.className, IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME, "Z");
+                            _GETSTATIC(
+                                    BYTECODE_INTERCEPTOR_FILTER_TYPE,
+                                    classData.interceptorFilter.name(),
+                                    BYTECODE_INTERCEPTOR_FILTER_TYPE.getDescriptor());
+                            String descriptor = getMethodDescriptor(
+                                    Type.VOID_TYPE, OBJECT_TYPE, BOOLEAN_TYPE, BYTECODE_INTERCEPTOR_FILTER_TYPE);
+                            _INVOKESTATIC(
+                                    getType(InstrumentedGroovyMetaClassHelper.class)
+                                            .getInternalName(),
+                                    "addInvocationHooksInClosureDispatchObject",
+                                    descriptor,
+                                    false);
 
-                    _ALOAD(0);
-                    _ALOAD(1);
-                    _INVOKESPECIAL(getType(Closure.class).getInternalName(), "setDelegate", "(Ljava/lang/Object;)V", false);
+                            _ALOAD(0);
+                            _ALOAD(1);
+                            _INVOKESPECIAL(
+                                    getType(Closure.class).getInternalName(),
+                                    "setDelegate",
+                                    "(Ljava/lang/Object;)V",
+                                    false);
 
-                    mv.visitCode();
-                }
-            }
-            return new MethodVisitorScopeImpl(classData.visitor.visitMethod(mv.access, mv.name, mv.descriptor, mv.signature, mv.exceptions));
-        }),
+                            mv.visitCode();
+                        }
+                    }
+                    return new MethodVisitorScopeImpl(classData.visitor.visitMethod(
+                            mv.access, mv.name, mv.descriptor, mv.signature, mv.exceptions));
+                }),
         /**
          * Renames the Closure's original `doCall` method and adds a wrapper method that invokes the original one.
          */
@@ -111,7 +126,12 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
             // A Closure implementation may have an abstract doCall method. It makes no sense to rewrite that.
             boolean isValidDoCallMethod = !methodData.isAbstract() && methodData.name.equals("doCall");
             String methodNameToVisit = isValidDoCallMethod ? "doCall$original" : methodData.name;
-            MethodVisitor original = clazz.visitor.visitMethod(methodData.access, methodNameToVisit, methodData.descriptor, methodData.signature, methodData.exceptions);
+            MethodVisitor original = clazz.visitor.visitMethod(
+                    methodData.access,
+                    methodNameToVisit,
+                    methodData.descriptor,
+                    methodData.signature,
+                    methodData.exceptions);
             if (isValidDoCallMethod) {
                 @NullMarked
                 class MethodVisitorScopeImpl extends MethodVisitorScope {
@@ -130,8 +150,13 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                          * }
                          */
                         _ALOAD(0);
-                        String enterLeaveDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, getType(InstrumentableClosure.class));
-                        _INVOKESTATIC(Type.getType(InstrumentedClosuresHelper.class).getInternalName(), "enterInstrumentedClosure", enterLeaveDescriptor, false);
+                        String enterLeaveDescriptor =
+                                Type.getMethodDescriptor(Type.VOID_TYPE, getType(InstrumentableClosure.class));
+                        _INVOKESTATIC(
+                                Type.getType(InstrumentedClosuresHelper.class).getInternalName(),
+                                "enterInstrumentedClosure",
+                                enterLeaveDescriptor,
+                                false);
 
                         Label tryBlockStart = new Label();
                         Label tryBlockEnd = new Label();
@@ -151,66 +176,91 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
 
                         // finally block inlined before normal return:
                         _ALOAD(0);
-                        _INVOKESTATIC(Type.getType(InstrumentedClosuresHelper.class).getInternalName(), "leaveInstrumentedClosure", enterLeaveDescriptor, false);
+                        _INVOKESTATIC(
+                                Type.getType(InstrumentedClosuresHelper.class).getInternalName(),
+                                "leaveInstrumentedClosure",
+                                enterLeaveDescriptor,
+                                false);
                         // and return:
                         visitInsn(Type.getReturnType(methodData.descriptor).getOpcode(IRETURN));
 
                         // start exception handler:
                         mv.visitLabel(catchBlockStart);
-                        Object[] locals = new Object[]{clazz.className.replaceAll("\\.", "/")};
+                        Object[] locals = new Object[] {clazz.className.replaceAll("\\.", "/")};
                         // Must use an F_NEW frame, as we may encounter class versions <= V1_5, see ASM MethodWriter
-                        mv.visitFrame(Opcodes.F_NEW, 1, locals, 1, new Object[]{"java/lang/Throwable"});
+                        mv.visitFrame(Opcodes.F_NEW, 1, locals, 1, new Object[] {"java/lang/Throwable"});
 
                         // finally block inlined before rethrowing a caught exception:
                         _ALOAD(0);
-                        _INVOKESTATIC(Type.getType(InstrumentedClosuresHelper.class).getInternalName(), "leaveInstrumentedClosure", enterLeaveDescriptor, false);
+                        _INVOKESTATIC(
+                                Type.getType(InstrumentedClosuresHelper.class).getInternalName(),
+                                "leaveInstrumentedClosure",
+                                enterLeaveDescriptor,
+                                false);
                         // and rethrow:
                         mv.visitInsn(Opcodes.ATHROW);
 
                         visitMaxs(argumentTypes.length * 2 + 1, argumentTypes.length + 1);
                     }
                 }
-                MethodVisitorScope bridge = new MethodVisitorScopeImpl(
-                    clazz.visitor.visitMethod(methodData.access, methodData.name, methodData.descriptor, methodData.signature, methodData.exceptions)
-                );
+                MethodVisitorScope bridge = new MethodVisitorScopeImpl(clazz.visitor.visitMethod(
+                        methodData.access,
+                        methodData.name,
+                        methodData.descriptor,
+                        methodData.signature,
+                        methodData.exceptions));
                 bridge.visitCode();
                 bridge.visitEnd();
             }
             return original;
         }),
 
-        ADD_MAKE_EFFECTIVELY_INSTRUMENTED_METHOD("makeEffectivelyInstrumented", "()V", true, (classData, methodData) -> {
-            @NullMarked
-            class MethodVisitorScopeImpl extends MethodVisitorScope {
-                public MethodVisitorScopeImpl(MethodVisitor methodVisitor) {
-                    super(methodVisitor);
-                }
+        ADD_MAKE_EFFECTIVELY_INSTRUMENTED_METHOD(
+                "makeEffectivelyInstrumented", "()V", true, (classData, methodData) -> {
+                    @NullMarked
+                    class MethodVisitorScopeImpl extends MethodVisitorScope {
+                        public MethodVisitorScopeImpl(MethodVisitor methodVisitor) {
+                            super(methodVisitor);
+                        }
 
-                @Override
-                public void visitCode() {
-                    /*
-                     * this.isEffectivelyInstrumented = true; // from now on, setDelegate will update the delegate's metaclass
-                     * addInvocationHooksToEffectivelyInstrumentedClosure(this, interceptorsRequest);
-                     */
+                        @Override
+                        public void visitCode() {
+                            /*
+                             * this.isEffectivelyInstrumented = true; // from now on, setDelegate will update the delegate's metaclass
+                             * addInvocationHooksToEffectivelyInstrumentedClosure(this, interceptorsRequest);
+                             */
 
-                    _ALOAD(0);
-                    _DUP();
+                            _ALOAD(0);
+                            _DUP();
 
-                    _ICONST_1();
-                    _PUTFIELD(classData.className, IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME, "Z");
+                            _ICONST_1();
+                            _PUTFIELD(classData.className, IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME, "Z");
 
-                    _GETSTATIC(BYTECODE_INTERCEPTOR_FILTER_TYPE, classData.interceptorFilter.name(), BYTECODE_INTERCEPTOR_FILTER_TYPE.getDescriptor());
-                    String methodDescriptor = getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE, BYTECODE_INTERCEPTOR_FILTER_TYPE);
-                    _INVOKESTATIC(Type.getType(InstrumentedGroovyMetaClassHelper.class), "addInvocationHooksToEffectivelyInstrumentClosure", methodDescriptor);
-                }
-            }
-            return new MethodVisitorScopeImpl(classData.visitor.visitMethod(Opcodes.ACC_PUBLIC, methodData.name, "()V", null, null));
-        }),
+                            _GETSTATIC(
+                                    BYTECODE_INTERCEPTOR_FILTER_TYPE,
+                                    classData.interceptorFilter.name(),
+                                    BYTECODE_INTERCEPTOR_FILTER_TYPE.getDescriptor());
+                            String methodDescriptor =
+                                    getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE, BYTECODE_INTERCEPTOR_FILTER_TYPE);
+                            _INVOKESTATIC(
+                                    Type.getType(InstrumentedGroovyMetaClassHelper.class),
+                                    "addInvocationHooksToEffectivelyInstrumentClosure",
+                                    methodDescriptor);
+                        }
+                    }
+                    return new MethodVisitorScopeImpl(
+                            classData.visitor.visitMethod(Opcodes.ACC_PUBLIC, methodData.name, "()V", null, null));
+                }),
 
         /**
          * Does not perform any transformations.
          */
-        DEFAULT(null, null, false, (classData, mv) -> classData.visitor.visitMethod(mv.access, mv.name, mv.descriptor, mv.signature, mv.exceptions));
+        DEFAULT(
+                null,
+                null,
+                false,
+                (classData, mv) ->
+                        classData.visitor.visitMethod(mv.access, mv.name, mv.descriptor, mv.signature, mv.exceptions));
 
         public final @Nullable String methodName;
         public final @Nullable String descriptor;
@@ -225,7 +275,12 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
             public final @Nullable String signature;
             public final @Nullable String[] exceptions;
 
-            public MethodData(int access, String name, String descriptor, @Nullable String signature, @Nullable String[] exceptions) {
+            public MethodData(
+                    int access,
+                    String name,
+                    String descriptor,
+                    @Nullable String signature,
+                    @Nullable String[] exceptions) {
                 this.access = access;
                 this.name = name;
                 this.descriptor = descriptor;
@@ -252,11 +307,10 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         }
 
         MethodInstrumentationStrategy(
-            @Nullable String methodName,
-            @Nullable String descriptor,
-            boolean generateIfNotPresent,
-            BiFunction<ClassData, MethodData, MethodVisitor> methodVisitorFactory
-        ) {
+                @Nullable String methodName,
+                @Nullable String descriptor,
+                boolean generateIfNotPresent,
+                BiFunction<ClassData, MethodData, MethodVisitor> methodVisitorFactory) {
             this.methodName = methodName;
             this.descriptor = descriptor;
             this.generateIfNotPresent = generateIfNotPresent;
@@ -281,7 +335,8 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
 
     @NonNull
     private static String[] interfacesWithInstrumentableClosure(String[] interfaces, boolean isClosureImplementation) {
-        String[] modifiedInterfaces = isClosureImplementation ? Arrays.copyOf(interfaces, interfaces.length + 1) : interfaces;
+        String[] modifiedInterfaces =
+                isClosureImplementation ? Arrays.copyOf(interfaces, interfaces.length + 1) : interfaces;
         if (isClosureImplementation) {
             modifiedInterfaces[modifiedInterfaces.length - 1] = Type.getInternalName(InstrumentableClosure.class);
         }
@@ -289,18 +344,19 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
     }
 
     @Override
-    public MethodVisitor visitMethod(int access, String name, String descriptor, @Nullable String signature, @Nullable String[] exceptions) {
+    public MethodVisitor visitMethod(
+            int access, String name, String descriptor, @Nullable String signature, @Nullable String[] exceptions) {
         if (!inClosureImplementation) {
             return super.visitMethod(access, name, descriptor, signature, exceptions);
         }
-        Optional<MethodInstrumentationStrategy> matchingStrategy =
-            Arrays.stream(MethodInstrumentationStrategy.values()).filter(it -> name.equals(it.methodName) && (it.descriptor == null || descriptor.equals(it.descriptor))).findAny();
+        Optional<MethodInstrumentationStrategy> matchingStrategy = Arrays.stream(MethodInstrumentationStrategy.values())
+                .filter(it -> name.equals(it.methodName) && (it.descriptor == null || descriptor.equals(it.descriptor)))
+                .findAny();
         matchingStrategy.ifPresent(usedStrategies::add);
         MethodInstrumentationStrategy strategy = matchingStrategy.orElse(MethodInstrumentationStrategy.DEFAULT);
         return strategy.methodVisitorFactory.apply(
-            new MethodInstrumentationStrategy.ClassData(cv, className, interceptorFilter),
-            new MethodInstrumentationStrategy.MethodData(access, name, descriptor, signature, exceptions)
-        );
+                new MethodInstrumentationStrategy.ClassData(cv, className, interceptorFilter),
+                new MethodInstrumentationStrategy.MethodData(access, name, descriptor, signature, exceptions));
     }
 
     private void enterClass(String className, boolean isClosureSubtype) {
@@ -313,10 +369,16 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
     public void visitEnd() {
         if (inClosureImplementation) {
             for (MethodInstrumentationStrategy methodInstrumentationStrategy : MethodInstrumentationStrategy.values()) {
-                if (methodInstrumentationStrategy.generateIfNotPresent && !usedStrategies.contains(methodInstrumentationStrategy)) {
+                if (methodInstrumentationStrategy.generateIfNotPresent
+                        && !usedStrategies.contains(methodInstrumentationStrategy)) {
                     assert methodInstrumentationStrategy.methodName != null;
                     assert methodInstrumentationStrategy.descriptor != null;
-                    MethodVisitor visitor = visitMethod(Opcodes.ACC_PUBLIC, methodInstrumentationStrategy.methodName, methodInstrumentationStrategy.descriptor, null, null);
+                    MethodVisitor visitor = visitMethod(
+                            Opcodes.ACC_PUBLIC,
+                            methodInstrumentationStrategy.methodName,
+                            methodInstrumentationStrategy.descriptor,
+                            null,
+                            null);
                     visitor.visitCode();
                     visitor.visitInsn(Opcodes.RETURN);
                     visitor.visitMaxs(4, 4);
@@ -331,4 +393,3 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
 
     private static final String IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME = "$isEffectivelyInstrumented";
 }
-

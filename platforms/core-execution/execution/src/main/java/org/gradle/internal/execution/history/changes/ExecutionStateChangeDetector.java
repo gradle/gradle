@@ -27,10 +27,9 @@ public interface ExecutionStateChangeDetector {
     int MAX_OUT_OF_DATE_MESSAGES = 3;
 
     ExecutionStateChanges detectChanges(
-        Describable executable,
-        PreviousExecutionState lastExecution,
-        BeforeExecutionState thisExecution,
-        IncrementalInputProperties incrementalInputProperties,
-        boolean hasOverlappingOutputs
-        );
+            Describable executable,
+            PreviousExecutionState lastExecution,
+            BeforeExecutionState thisExecution,
+            IncrementalInputProperties incrementalInputProperties,
+            boolean hasOverlappingOutputs);
 }

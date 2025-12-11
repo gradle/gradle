@@ -16,6 +16,13 @@
 
 package org.gradle.execution.plan;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static org.gradle.internal.deprecation.DeprecationMessageBuilder.withDocumentation;
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
+
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.problems.Severity;
@@ -26,14 +33,6 @@ import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-
-import java.util.List;
-import java.util.Set;
-
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static org.gradle.internal.deprecation.DeprecationMessageBuilder.withDocumentation;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
 /**
  * This class will validate a {@link LocalTaskNode}, logging any warnings discovered and halting
@@ -67,22 +66,23 @@ public class DefaultNodeValidator implements NodeValidator {
 
     private void logWarnings(List<? extends InternalProblem> problems) {
         // We are logging all the warnings that we encountered during validation here
-        problems.stream()
-            .filter(DefaultNodeValidator::isWarning)
-            .forEach(problem -> {
-                // Because our deprecation warning system doesn't support multiline strings (bummer!) both in rendering
-                // **and** testing (no way to capture multiline deprecation warnings), we have to resort to removing details
-                // and rendering
-                String warning = convertToSingleLine(renderMinimalInformationAbout(problem, false, false));
-                withDocumentation(problem, DeprecationLogger.deprecateBehaviour(warning)
-                    .withContext("Execution optimizations are disabled to ensure correctness.")
-                    // Bump this to a next major version when we bump Gradle major version
-                    .willBecomeAnErrorInGradle10())
+        problems.stream().filter(DefaultNodeValidator::isWarning).forEach(problem -> {
+            // Because our deprecation warning system doesn't support multiline strings (bummer!) both in rendering
+            // **and** testing (no way to capture multiline deprecation warnings), we have to resort to removing details
+            // and rendering
+            String warning = convertToSingleLine(renderMinimalInformationAbout(problem, false, false));
+            withDocumentation(
+                            problem,
+                            DeprecationLogger.deprecateBehaviour(warning)
+                                    .withContext("Execution optimizations are disabled to ensure correctness.")
+                                    // Bump this to a next major version when we bump Gradle major version
+                                    .willBecomeAnErrorInGradle10())
                     .nagUser();
-            });
+        });
     }
 
-    private void reportErrors(List<? extends InternalProblem> problems, TaskInternal task, WorkValidationContext validationContext) {
+    private void reportErrors(
+            List<? extends InternalProblem> problems, TaskInternal task, WorkValidationContext validationContext) {
         for (InternalProblem problem : problems) {
             problemsService.getInternalReporter().report(problem);
         }
@@ -90,16 +90,16 @@ public class DefaultNodeValidator implements NodeValidator {
         Set<String> uniqueErrors = getUniqueErrors(problems);
         if (!uniqueErrors.isEmpty()) {
             throw WorkValidationException.forProblems(uniqueErrors)
-                .withSummaryForContext(task.toString(), validationContext)
-                .get();
+                    .withSummaryForContext(task.toString(), validationContext)
+                    .get();
         }
     }
 
     private static Set<String> getUniqueErrors(List<? extends InternalProblem> problems) {
         return problems.stream()
-            .filter(problem -> !isWarning(problem))
-            .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-            .collect(toImmutableSet());
+                .filter(problem -> !isWarning(problem))
+                .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+                .collect(toImmutableSet());
     }
 
     private static boolean isWarning(InternalProblem problem) {

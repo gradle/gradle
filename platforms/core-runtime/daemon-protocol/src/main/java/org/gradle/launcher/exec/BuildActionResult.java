@@ -30,7 +30,11 @@ public class BuildActionResult {
     private final RuntimeException failure;
     private final boolean wasCancelled;
 
-    private BuildActionResult(SerializedPayload result, SerializedPayload serializedFailure, RuntimeException failure, boolean wasCancelled) {
+    private BuildActionResult(
+            SerializedPayload result,
+            SerializedPayload serializedFailure,
+            RuntimeException failure,
+            boolean wasCancelled) {
         this.result = result;
         this.serializedFailure = serializedFailure;
         this.failure = failure;
@@ -57,7 +61,8 @@ public class BuildActionResult {
         return new BuildActionResult(null, null, failure, true);
     }
 
-    public static BuildActionResult failed(boolean wasCancelled, @Nullable SerializedPayload failure, @Nullable RuntimeException exception) {
+    public static BuildActionResult failed(
+            boolean wasCancelled, @Nullable SerializedPayload failure, @Nullable RuntimeException exception) {
         return new BuildActionResult(null, failure, exception, wasCancelled);
     }
 

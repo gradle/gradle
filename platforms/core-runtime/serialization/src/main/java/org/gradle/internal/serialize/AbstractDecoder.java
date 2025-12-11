@@ -16,11 +16,10 @@
 
 package org.gradle.internal.serialize;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractDecoder implements Decoder {
     private DecoderStream stream;

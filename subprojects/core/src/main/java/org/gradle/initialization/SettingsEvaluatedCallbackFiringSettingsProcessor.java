@@ -30,7 +30,11 @@ public class SettingsEvaluatedCallbackFiringSettingsProcessor implements Setting
     }
 
     @Override
-    public SettingsState process(GradleInternal gradle, SettingsLocation settingsLocation, ClassLoaderScope buildRootClassLoaderScope, StartParameter startParameter) {
+    public SettingsState process(
+            GradleInternal gradle,
+            SettingsLocation settingsLocation,
+            ClassLoaderScope buildRootClassLoaderScope,
+            StartParameter startParameter) {
         SettingsState state = delegate.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
         SettingsInternal settings = state.getSettings();
         gradle.getBuildListenerBroadcaster().settingsEvaluated(settings);

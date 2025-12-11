@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.resource.transport.http;
 
-
 import com.google.common.base.Preconditions;
 import org.gradle.api.credentials.Credentials;
 import org.jspecify.annotations.NullMarked;

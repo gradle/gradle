@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.tasks.compile.GroovyForkOptions;
-
 import java.io.Serializable;
+import org.gradle.api.tasks.compile.GroovyForkOptions;
 
 public class MinimalGroovyCompilerDaemonForkOptions extends MinimalCompilerDaemonForkOptions implements Serializable {
     public MinimalGroovyCompilerDaemonForkOptions(GroovyForkOptions forkOptions) {

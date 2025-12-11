@@ -24,5 +24,4 @@ import org.gradle.api.Action;
  * @since 4.0
  * @param <T> The attribute value type.
  */
-public interface AttributeDisambiguationRule<T> extends Action<MultipleCandidatesDetails<T>> {
-}
+public interface AttributeDisambiguationRule<T> extends Action<MultipleCandidatesDetails<T>> {}

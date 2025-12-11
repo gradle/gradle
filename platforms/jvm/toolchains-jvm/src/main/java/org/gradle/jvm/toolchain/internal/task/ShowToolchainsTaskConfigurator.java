@@ -30,5 +30,4 @@ public class ShowToolchainsTaskConfigurator implements ProjectConfigureAction {
             task.setImpliesSubProjects(true);
         });
     }
-
 }

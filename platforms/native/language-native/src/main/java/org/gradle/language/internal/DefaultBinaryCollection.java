@@ -18,6 +18,11 @@ package org.gradle.language.internal;
 
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
@@ -28,17 +33,13 @@ import org.gradle.language.BinaryProvider;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 // TODO - error messages
 // TODO - display names for this container and the Provider implementations
 public class DefaultBinaryCollection<T extends SoftwareComponent> implements BinaryCollection<T> {
     private enum State {
-        Collecting, Realizing, Finalized
+        Collecting,
+        Realizing,
+        Finalized
     }
 
     private final Class<T> elementType;
@@ -119,7 +120,8 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
 
     public void add(T element) {
         if (state != State.Collecting) {
-            throw new IllegalStateException("Cannot add an element to this collection as it has already been realized.");
+            throw new IllegalStateException(
+                    "Cannot add an element to this collection as it has already been realized.");
         }
         elements.add(element);
     }
@@ -157,7 +159,8 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
     @Override
     public Set<T> get() {
         if (state != State.Finalized) {
-            throw new IllegalStateException("Cannot query the elements of this container as the elements have not been created yet.");
+            throw new IllegalStateException(
+                    "Cannot query the elements of this container as the elements have not been created yet.");
         }
         return ImmutableSet.copyOf(elements);
     }

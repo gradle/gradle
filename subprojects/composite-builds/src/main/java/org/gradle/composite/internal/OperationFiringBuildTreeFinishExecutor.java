@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import java.util.List;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -24,14 +25,13 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.operations.lifecycle.FinishRootBuildTreeBuildOperationType;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 public class OperationFiringBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
 
     private final BuildOperationRunner buildOperationRunner;
     private final BuildTreeFinishExecutor delegate;
 
-    public OperationFiringBuildTreeFinishExecutor(BuildOperationRunner buildOperationRunner, BuildTreeFinishExecutor delegate) {
+    public OperationFiringBuildTreeFinishExecutor(
+            BuildOperationRunner buildOperationRunner, BuildTreeFinishExecutor delegate) {
         this.buildOperationRunner = buildOperationRunner;
         this.delegate = delegate;
     }
@@ -52,11 +52,13 @@ public class OperationFiringBuildTreeFinishExecutor implements BuildTreeFinishEx
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Finish root build tree")
-                    .details(DETAILS);
+                        .details(DETAILS);
             }
         });
     }
 
-    private static final FinishRootBuildTreeBuildOperationType.Details DETAILS = new FinishRootBuildTreeBuildOperationType.Details() {};
-    private static final FinishRootBuildTreeBuildOperationType.Result RESULT = new FinishRootBuildTreeBuildOperationType.Result() {};
+    private static final FinishRootBuildTreeBuildOperationType.Details DETAILS =
+            new FinishRootBuildTreeBuildOperationType.Details() {};
+    private static final FinishRootBuildTreeBuildOperationType.Result RESULT =
+            new FinishRootBuildTreeBuildOperationType.Result() {};
 }

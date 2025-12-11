@@ -15,10 +15,9 @@
  */
 package org.gradle.internal.extensibility;
 
+import java.util.Iterator;
 import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.internal.Cast;
-
-import java.util.Iterator;
 
 public class DefaultExtensionsSchema implements ExtensionsSchema {
 

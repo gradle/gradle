@@ -56,12 +56,20 @@ public abstract class ProjectReportsPlugin implements Plugin<Project> {
             configureReportTask(project, dependencyReportTask, "dependencies.txt", "library dependencies");
         });
 
-        project.getTasks().register(HTML_DEPENDENCY_REPORT, HtmlDependencyReportTask.class, htmlDependencyReportTask -> {
-            htmlDependencyReportTask.getProjectReportDirectory().convention(getProjectFile(project));
-            htmlDependencyReportTask.setDescription("Generates an HTML report about your library dependencies.");
-            htmlDependencyReportTask.getReports().getHtml().getOutputLocation().convention(htmlDependencyReportTask.getProjectReportDirectory().dir("dependencies"));
-            htmlDependencyReportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
-        });
+        project.getTasks()
+                .register(HTML_DEPENDENCY_REPORT, HtmlDependencyReportTask.class, htmlDependencyReportTask -> {
+                    htmlDependencyReportTask.getProjectReportDirectory().convention(getProjectFile(project));
+                    htmlDependencyReportTask.setDescription(
+                            "Generates an HTML report about your library dependencies.");
+                    htmlDependencyReportTask
+                            .getReports()
+                            .getHtml()
+                            .getOutputLocation()
+                            .convention(htmlDependencyReportTask
+                                    .getProjectReportDirectory()
+                                    .dir("dependencies"));
+                    htmlDependencyReportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
+                });
 
         project.getTasks().register(PROJECT_REPORT, projectReportTask -> {
             projectReportTask.dependsOn(TASK_REPORT, PROPERTY_REPORT, DEPENDENCY_REPORT, HTML_DEPENDENCY_REPORT);
@@ -71,13 +79,21 @@ public abstract class ProjectReportsPlugin implements Plugin<Project> {
     }
 
     private static Provider<Directory> getProjectFile(Project project) {
-        return project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir("project");
+        return project.getExtensions()
+                .getByType(ReportingExtension.class)
+                .getBaseDirectory()
+                .dir("project");
     }
 
-    private static void configureReportTask(Project project, ConventionReportTask reportTask, String outputFileName, String description) {
+    private static void configureReportTask(
+            Project project, ConventionReportTask reportTask, String outputFileName, String description) {
         reportTask.getProjectReportDirectory().convention(getProjectFile(project));
         reportTask.setDescription("Generates a report about your " + description + " project.");
-        reportTask.conventionMapping("outputFile", () -> reportTask.getProjectReportDirectory().file(outputFileName).get().getAsFile());
+        reportTask.conventionMapping("outputFile", () -> reportTask
+                .getProjectReportDirectory()
+                .file(outputFileName)
+                .get()
+                .getAsFile());
         reportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
     }
 }

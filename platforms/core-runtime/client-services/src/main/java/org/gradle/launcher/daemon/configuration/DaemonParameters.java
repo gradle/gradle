@@ -16,6 +16,11 @@
 package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesAccessor;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
@@ -31,17 +36,12 @@ import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
 
-    public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
+    public static final List<String> DEFAULT_JVM_ARGS =
+            ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
 
     private final ToolchainConfiguration toolchainConfiguration;
     private final File gradleUserHomeDir;
@@ -66,11 +66,18 @@ public class DaemonParameters {
         this(gradleUserHomeDir, fileCollectionFactory, Collections.emptyMap());
     }
 
-    public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties) {
+    public DaemonParameters(
+            File gradleUserHomeDir,
+            FileCollectionFactory fileCollectionFactory,
+            Map<String, String> extraSystemProperties) {
         this(gradleUserHomeDir, fileCollectionFactory, extraSystemProperties, null);
     }
 
-    public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties, @Nullable Map<String, String> environmentVariables) {
+    public DaemonParameters(
+            File gradleUserHomeDir,
+            FileCollectionFactory fileCollectionFactory,
+            Map<String, String> extraSystemProperties,
+            @Nullable Map<String, String> environmentVariables) {
         this.jvmOptions = new JvmOptions(fileCollectionFactory);
         if (!extraSystemProperties.isEmpty()) {
             jvmOptions.systemProperties(extraSystemProperties);
@@ -83,7 +90,12 @@ public class DaemonParameters {
     }
 
     public DaemonRequestContext toRequestContext() {
-        return new DaemonRequestContext(getRequestedJvmCriteria(), getEffectiveJvmArgs(), shouldApplyInstrumentationAgent(), getNativeServicesMode(), getPriority());
+        return new DaemonRequestContext(
+                getRequestedJvmCriteria(),
+                getEffectiveJvmArgs(),
+                shouldApplyInstrumentationAgent(),
+                getNativeServicesMode(),
+                getPriority());
     }
 
     public boolean isEnabled() {
@@ -135,8 +147,13 @@ public class DaemonParameters {
         JavaLanguageVersion requestedVersion = daemonJvmAccessor.getVersion();
         if (requestedVersion != null) {
             JvmVendorSpec requestedJavaVendor = daemonJvmAccessor.getVendor();
-            this.requestedJvmCriteria = new DaemonJvmCriteria.Spec(requestedVersion, requestedJavaVendor, JvmImplementation.VENDOR_SPECIFIC, daemonJvmAccessor.getNativeImageCapable());
-            this.toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider(daemonJvmAccessor.getToolchainDownloadUrls());
+            this.requestedJvmCriteria = new DaemonJvmCriteria.Spec(
+                    requestedVersion,
+                    requestedJavaVendor,
+                    JvmImplementation.VENDOR_SPECIFIC,
+                    daemonJvmAccessor.getNativeImageCapable());
+            this.toolchainDownloadUrlProvider =
+                    new ToolchainDownloadUrlProvider(daemonJvmAccessor.getToolchainDownloadUrls());
         }
     }
 

@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import java.io.File;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.execution.model.OutputNormalizer;
 import org.gradle.internal.file.TreeType;
-
-import java.io.File;
 
 /**
  * A (possibly filtered) directory tree which is used as an output.

@@ -16,6 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
@@ -37,22 +48,10 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
-
 public class StreamingResolutionResultBuilder implements DependencyGraphVisitor {
-    private final static byte ROOT = 1;
-    private final static byte COMPONENT = 2;
-    private final static byte NODE_DEPENDENCIES = 5;
+    private static final byte ROOT = 1;
+    private static final byte COMPONENT = 2;
+    private static final byte NODE_DEPENDENCIES = 5;
 
     private final Map<ComponentSelector, ModuleVersionResolveException> failures = new HashMap<>();
     private final BinaryStore store;
@@ -69,14 +68,13 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private boolean mayHaveVirtualPlatforms;
 
     public StreamingResolutionResultBuilder(
-        BinaryStore store,
-        Store<ResolvedDependencyGraph> cache,
-        AttributeContainerSerializer attributeContainerSerializer,
-        CapabilitySelectorSerializer capabilitySelectorSerializer,
-        AdhocHandlingComponentResultSerializer componentResultSerializer,
-        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        boolean includeAllSelectableVariantResults
-    ) {
+            BinaryStore store,
+            Store<ResolvedDependencyGraph> cache,
+            AttributeContainerSerializer attributeContainerSerializer,
+            CapabilitySelectorSerializer capabilitySelectorSerializer,
+            AdhocHandlingComponentResultSerializer componentResultSerializer,
+            ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+            boolean includeAllSelectableVariantResults) {
         this.store = store;
         this.cache = cache;
         this.componentResultSerializer = componentResultSerializer;
@@ -87,21 +85,23 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         // However, since they are stateful, we must create a new instance each time we
         // serialize and deserialize a graph.
         this.dependencyResultSerializerFactory = () -> new DependencyResultSerializer(
-            new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory),
-            new DeduplicatingComponentSelectorSerializer(
-                new ComponentSelectorSerializer(
-                    new DeduplicatingAttributeContainerSerializer(attributeContainerSerializer),
-                    capabilitySelectorSerializer
-                )
-            )
-        );
+                new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory),
+                new DeduplicatingComponentSelectorSerializer(new ComponentSelectorSerializer(
+                        new DeduplicatingAttributeContainerSerializer(attributeContainerSerializer),
+                        capabilitySelectorSerializer)));
 
         this.dependencyResultSerializer = dependencyResultSerializerFactory.create();
     }
 
     public MinimalResolutionResult getResolutionResult(Set<UnresolvedDependency> dependencyLockingFailures) {
         BinaryStore.BinaryData data = store.done();
-        GraphFactory graphSource = new GraphFactory(data, failures, cache, dependencyResultSerializerFactory, componentResultSerializer, dependencyLockingFailures);
+        GraphFactory graphSource = new GraphFactory(
+                data,
+                failures,
+                cache,
+                dependencyResultSerializerFactory,
+                componentResultSerializer,
+                dependencyLockingFailures);
         return new MinimalResolutionResult(graphSource::create, rootAttributes);
     }
 
@@ -134,10 +134,10 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     @Override
     public void visitEdges(DependencyGraphNode node) {
         final Collection<? extends DependencyGraphEdge> dependencies = mayHaveVirtualPlatforms
-            ? node.getOutgoingEdges().stream()
-            .filter(dep -> !dep.isTargetVirtualPlatform())
-            .collect(Collectors.toList())
-            : node.getOutgoingEdges();
+                ? node.getOutgoingEdges().stream()
+                        .filter(dep -> !dep.isTargetVirtualPlatform())
+                        .collect(Collectors.toList())
+                : node.getOutgoingEdges();
         if (!dependencies.isEmpty()) {
             store.write(encoder -> {
                 encoder.writeByte(NODE_DEPENDENCIES);
@@ -147,8 +147,9 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                 for (DependencyGraphEdge dependency : dependencies) {
                     dependencyResultSerializer.write(encoder, dependency);
                     if (dependency.getFailure() != null) {
-                        //by keying the failures only by 'requested' we lose some precision
-                        //at edge case we'll lose info about a different exception if we have different failure for the same requested version
+                        // by keying the failures only by 'requested' we lose some precision
+                        // at edge case we'll lose info about a different exception if we have different failure for the
+                        // same requested version
                         failures.put(dependency.getRequested(), dependency.getFailure());
                     }
                 }
@@ -158,7 +159,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
 
     private static class GraphFactory implements Factory<ResolvedDependencyGraph> {
 
-        private final static Logger LOG = Logging.getLogger(GraphFactory.class);
+        private static final Logger LOG = Logging.getLogger(GraphFactory.class);
         private final AdhocHandlingComponentResultSerializer componentResultSerializer;
 
         private final BinaryStore.BinaryData data;
@@ -169,13 +170,12 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         private final Set<UnresolvedDependency> dependencyLockingFailures;
 
         GraphFactory(
-            BinaryStore.BinaryData data,
-            Map<ComponentSelector, ModuleVersionResolveException> failures,
-            Store<ResolvedDependencyGraph> cache,
-            Factory<DependencyResultSerializer> dependencyResultSerializerFactory,
-            AdhocHandlingComponentResultSerializer componentResultSerializer,
-            Set<UnresolvedDependency> dependencyLockingFailures
-        ) {
+                BinaryStore.BinaryData data,
+                Map<ComponentSelector, ModuleVersionResolveException> failures,
+                Store<ResolvedDependencyGraph> cache,
+                Factory<DependencyResultSerializer> dependencyResultSerializerFactory,
+                AdhocHandlingComponentResultSerializer componentResultSerializer,
+                Set<UnresolvedDependency> dependencyLockingFailures) {
             this.data = data;
             this.failures = failures;
             this.cache = cache;
@@ -212,7 +212,8 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                             // Last entry, complete the result
                             long rootVariantId = decoder.readSmallLong();
                             long rootComponentId = decoder.readSmallLong();
-                            builder.addDependencyLockingFailures(rootComponentId, rootVariantId, dependencyLockingFailures);
+                            builder.addDependencyLockingFailures(
+                                    rootComponentId, rootVariantId, dependencyLockingFailures);
                             ResolvedDependencyGraph graph = builder.getResolvedGraph(rootComponentId, rootVariantId);
                             LOG.debug("Loaded resolution results ({}) from {}", clock.getElapsed(), data);
                             return graph;
@@ -236,8 +237,10 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                     }
                 }
             } catch (Exception e) {
-                throw new RuntimeException("Problems loading the resolution results (" + clock.getElapsed() + "). "
-                    + "Read " + valuesRead + " values, last was: " + type, e);
+                throw new RuntimeException(
+                        "Problems loading the resolution results (" + clock.getElapsed() + "). " + "Read " + valuesRead
+                                + " values, last was: " + type,
+                        e);
             }
         }
     }

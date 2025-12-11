@@ -17,7 +17,6 @@ package org.gradle.internal.remote.internal.inet;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +66,9 @@ public class MultiChoiceAddress implements InetEndpoint {
             return false;
         }
         MultiChoiceAddress other = (MultiChoiceAddress) o;
-        return other.canonicalAddress.equals(canonicalAddress) && port == other.port && candidates.equals(other.candidates);
+        return other.canonicalAddress.equals(canonicalAddress)
+                && port == other.port
+                && candidates.equals(other.candidates);
     }
 
     @Override
@@ -76,6 +77,7 @@ public class MultiChoiceAddress implements InetEndpoint {
     }
 
     public MultiChoiceAddress addAddresses(Iterable<InetAddress> candidates) {
-        return new MultiChoiceAddress(canonicalAddress, port, Lists.newArrayList(Iterables.concat(candidates, this.candidates)));
+        return new MultiChoiceAddress(
+                canonicalAddress, port, Lists.newArrayList(Iterables.concat(candidates, this.candidates)));
     }
 }

@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.file.collections;
 
+import java.io.File;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
-
-import java.io.File;
 
 public class DefaultDirectoryFileTreeFactory implements DirectoryFileTreeFactory {
     private final PatternSetFactory patternSetFactory;

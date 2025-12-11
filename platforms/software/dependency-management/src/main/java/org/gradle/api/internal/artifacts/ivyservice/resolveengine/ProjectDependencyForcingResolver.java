@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails;
-import org.gradle.internal.Cast;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails;
+import org.gradle.internal.Cast;
 
 public class ProjectDependencyForcingResolver<T extends ComponentResolutionState> implements ModuleConflictResolver<T> {
     private final ModuleConflictResolver<T> delegate;
@@ -55,7 +54,8 @@ public class ProjectDependencyForcingResolver<T extends ComponentResolutionState
         // if more than one conflicting project dependencies
         // let the delegate resolver select among them
         if (projectCandidates != null) {
-            ConflictResolverDetails<T> projectDetails = new DefaultConflictResolverDetails<>(Cast.<List<T>>uncheckedCast(projectCandidates));
+            ConflictResolverDetails<T> projectDetails =
+                    new DefaultConflictResolverDetails<>(Cast.<List<T>>uncheckedCast(projectCandidates));
             delegate.select(projectDetails);
             details.select(projectDetails.getSelected());
             return;

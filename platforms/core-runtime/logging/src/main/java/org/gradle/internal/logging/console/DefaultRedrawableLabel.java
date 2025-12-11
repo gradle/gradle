@@ -16,17 +16,16 @@
 
 package org.gradle.internal.logging.console;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 
-import java.util.Collections;
-import java.util.List;
-
 public class DefaultRedrawableLabel implements RedrawableLabel {
-    private final Cursor writePos;  // Relative coordinate system
+    private final Cursor writePos; // Relative coordinate system
     private List<StyledTextOutputEvent.Span> spans = Collections.emptyList();
     private List<StyledTextOutputEvent.Span> writtenSpans = Collections.emptyList();
-    private int absolutePositionRow;  // Absolute coordinate system
+    private int absolutePositionRow; // Absolute coordinate system
     private int previousWriteRow = absolutePositionRow;
     private boolean isVisible = true;
     private boolean previousVisibility = isVisible;

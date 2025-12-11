@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -23,9 +25,6 @@ import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A wrapper that prepares artifacts in parallel when visiting the delegate.
@@ -37,7 +36,8 @@ public abstract class ParallelResolveArtifactSet {
 
     public abstract void visit(ArtifactVisitor visitor);
 
-    public static ParallelResolveArtifactSet wrap(ResolvedArtifactSet artifacts, BuildOperationExecutor buildOperationProcessor) {
+    public static ParallelResolveArtifactSet wrap(
+            ResolvedArtifactSet artifacts, BuildOperationExecutor buildOperationProcessor) {
         if (artifacts == ResolvedArtifactSet.EMPTY) {
             return EMPTY;
         }
@@ -46,8 +46,7 @@ public abstract class ParallelResolveArtifactSet {
 
     private static class EmptySet extends ParallelResolveArtifactSet {
         @Override
-        public void visit(ArtifactVisitor visitor) {
-        }
+        public void visit(ArtifactVisitor visitor) {}
     }
 
     private static class VisitingSet extends ParallelResolveArtifactSet {
@@ -69,7 +68,8 @@ public abstract class ParallelResolveArtifactSet {
             visitAction.visitResults();
         }
 
-        private class StartVisitAction implements Action<BuildOperationQueue<RunnableBuildOperation>>, ResolvedArtifactSet.Visitor {
+        private class StartVisitAction
+                implements Action<BuildOperationQueue<RunnableBuildOperation>>, ResolvedArtifactSet.Visitor {
             private final ArtifactVisitor visitor;
             private final List<ResolvedArtifactSet.Artifacts> results = new ArrayList<>();
             private BuildOperationQueue<RunnableBuildOperation> queue;

@@ -30,7 +30,8 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 /**
  * A configurable view of a component that produces a static library. This should become public in some form.
  */
-public interface ConfigurableComponentWithStaticLibrary extends ComponentWithStaticLibrary, ComponentWithObjectFiles, ComponentWithOutputs, ComponentWithNames {
+public interface ConfigurableComponentWithStaticLibrary
+        extends ComponentWithStaticLibrary, ComponentWithObjectFiles, ComponentWithOutputs, ComponentWithNames {
     PlatformToolProvider getPlatformToolProvider();
 
     NativePlatform getNativePlatform();

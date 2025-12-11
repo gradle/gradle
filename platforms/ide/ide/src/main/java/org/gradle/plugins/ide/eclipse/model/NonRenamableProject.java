@@ -17,15 +17,14 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import groovy.lang.Closure;
 import groovy.util.Node;
-import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.XmlProvider;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.XmlProvider;
 
 class NonRenamableProject extends Project {
     private final Project delegate;
@@ -37,7 +36,8 @@ class NonRenamableProject extends Project {
 
     @Override
     public void setName(String name) {
-        throw new InvalidUserDataException("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook is not allowed.");
+        throw new InvalidUserDataException(
+                "Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook is not allowed.");
     }
 
     @Override

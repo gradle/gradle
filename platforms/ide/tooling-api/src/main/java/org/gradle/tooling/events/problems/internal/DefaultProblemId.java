@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.events.problems.internal;
 
+import java.util.Objects;
 import org.gradle.tooling.events.problems.ProblemGroup;
 import org.gradle.tooling.events.problems.ProblemId;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Objects;
 
 @NullMarked
 public class DefaultProblemId implements ProblemId {
@@ -59,7 +58,9 @@ public class DefaultProblemId implements ProblemId {
             return false;
         }
         DefaultProblemId that = (DefaultProblemId) o;
-        return Objects.equals(name, that.name) && Objects.equals(displayName, that.displayName) && Objects.equals(group, that.group);
+        return Objects.equals(name, that.name)
+                && Objects.equals(displayName, that.displayName)
+                && Objects.equals(group, that.group);
     }
 
     @Override

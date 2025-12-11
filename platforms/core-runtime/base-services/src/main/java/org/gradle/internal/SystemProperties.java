@@ -15,15 +15,13 @@
  */
 package org.gradle.internal;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides access to frequently used system properties.
@@ -72,8 +70,7 @@ public class SystemProperties {
         return INSTANCE;
     }
 
-    private SystemProperties() {
-    }
+    private SystemProperties() {}
 
     public String getLineSeparator() {
         return System.lineSeparator();

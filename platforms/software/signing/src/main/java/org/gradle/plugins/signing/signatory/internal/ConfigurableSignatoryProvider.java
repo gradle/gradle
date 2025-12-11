@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.signing.signatory.internal;
 
+import static org.codehaus.groovy.runtime.DefaultGroovyMethods.asType;
+
 import groovy.lang.Closure;
 import org.gradle.api.Project;
 import org.gradle.plugins.signing.SigningExtension;
@@ -23,9 +25,8 @@ import org.gradle.plugins.signing.signatory.SignatoryProvider;
 import org.gradle.security.internal.BaseSignatoryProvider;
 import org.gradle.util.internal.ConfigureUtil;
 
-import static org.codehaus.groovy.runtime.DefaultGroovyMethods.asType;
-
-public interface ConfigurableSignatoryProvider<T extends Signatory> extends BaseSignatoryProvider<T>, SignatoryProvider<T> {
+public interface ConfigurableSignatoryProvider<T extends Signatory>
+        extends BaseSignatoryProvider<T>, SignatoryProvider<T> {
     @Override
     default void configure(SigningExtension settings, Closure closure) {
         ConfigureUtil.configure(closure, new Object() {

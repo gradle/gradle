@@ -17,13 +17,12 @@
 package org.gradle.integtests.fixtures.timeout;
 
 import groovy.lang.Closure;
-import org.spockframework.runtime.extension.ExtensionAnnotation;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.concurrent.TimeUnit;
+import org.spockframework.runtime.extension.ExtensionAnnotation;
 
 /**
  * Indicates that the execution of a method should time out
@@ -35,7 +34,6 @@ import java.util.concurrent.TimeUnit;
  * all threads' stack traces of current JVM (embedded executer) or forked JVM (forking executer)
  * are printed to help us debug deadlock issues.
  */
-
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @ExtensionAnnotation(IntegrationTestTimeoutExtension.class)

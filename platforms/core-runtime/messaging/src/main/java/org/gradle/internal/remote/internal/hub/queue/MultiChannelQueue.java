@@ -16,17 +16,17 @@
 
 package org.gradle.internal.remote.internal.hub.queue;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
 import org.gradle.internal.remote.internal.hub.protocol.ChannelIdentifier;
 import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
 import org.gradle.internal.remote.internal.hub.protocol.Routable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-
 public class MultiChannelQueue {
     private final Lock lock;
-    private final Map<ChannelIdentifier, MultiEndPointQueue> channels = new HashMap<ChannelIdentifier, MultiEndPointQueue>();
+    private final Map<ChannelIdentifier, MultiEndPointQueue> channels =
+            new HashMap<ChannelIdentifier, MultiEndPointQueue>();
     private final QueueInitializer initializer = new QueueInitializer();
 
     public MultiChannelQueue(Lock lock) {
@@ -50,7 +50,8 @@ public class MultiChannelQueue {
         if (message instanceof Routable) {
             Routable routableMessage = (Routable) message;
             getChannel(routableMessage.getChannel()).dispatch(message);
-        } else if (message.getDelivery() == InterHubMessage.Delivery.Stateful || message.getDelivery() == InterHubMessage.Delivery.AllHandlers) {
+        } else if (message.getDelivery() == InterHubMessage.Delivery.Stateful
+                || message.getDelivery() == InterHubMessage.Delivery.AllHandlers) {
             for (MultiEndPointQueue queue : channels.values()) {
                 queue.dispatch(message);
             }

@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.util.function.Consumer;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Something that consumes tests (such as by running them).
@@ -26,5 +25,4 @@ import java.util.function.Consumer;
  * Implemented by JUnit and JUnit Platform test frameworks to create types that execute tests.
  */
 @NullMarked
-public interface TestDefinitionConsumer<D extends TestDefinition> extends Consumer<D> {
-}
+public interface TestDefinitionConsumer<D extends TestDefinition> extends Consumer<D> {}

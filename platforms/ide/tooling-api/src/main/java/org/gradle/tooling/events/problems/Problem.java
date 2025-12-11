@@ -16,13 +16,11 @@
 
 package org.gradle.tooling.events.problems;
 
-
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.Failure;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * A problem report

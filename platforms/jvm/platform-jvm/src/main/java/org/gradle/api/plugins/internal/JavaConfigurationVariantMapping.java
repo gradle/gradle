@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.internal;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
@@ -26,8 +27,6 @@ import org.gradle.api.publish.internal.component.ConfigurationVariantDetailsInte
 import org.gradle.api.specs.Spec;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
-
 public class JavaConfigurationVariantMapping implements Action<ConfigurationVariantDetails> {
 
     /**
@@ -35,10 +34,9 @@ public class JavaConfigurationVariantMapping implements Action<ConfigurationVari
      * publication.
      */
     public static final Set<String> UNPUBLISHABLE_VARIANT_ARTIFACTS = ImmutableSet.of(
-        ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
-        ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY,
-        ArtifactTypeDefinition.DIRECTORY_TYPE
-    );
+            ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
+            ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY,
+            ArtifactTypeDefinition.DIRECTORY_TYPE);
 
     private final String scope;
     private final boolean optional;
@@ -48,7 +46,8 @@ public class JavaConfigurationVariantMapping implements Action<ConfigurationVari
         this(scope, optional, null);
     }
 
-    public JavaConfigurationVariantMapping(String scope, boolean optional, @Nullable Configuration resolutionConfiguration) {
+    public JavaConfigurationVariantMapping(
+            String scope, boolean optional, @Nullable Configuration resolutionConfiguration) {
         this.scope = scope;
         this.optional = optional;
         this.resolutionConfiguration = resolutionConfiguration;

@@ -17,12 +17,11 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.artifacts.DependencyArtifactSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetailsInternal {
 
@@ -40,9 +39,10 @@ public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetails
 
     @Override
     public List<DependencyArtifactSelector> getRequestedSelectors() {
-        return Lists.transform(requestedArtifacts, artifact ->
-            new DefaultDependencyArtifactSelector(artifact.getType(), artifact.getExtension(), artifact.getClassifier())
-        );
+        return Lists.transform(
+                requestedArtifacts,
+                artifact -> new DefaultDependencyArtifactSelector(
+                        artifact.getType(), artifact.getExtension(), artifact.getClassifier()));
     }
 
     @Override
@@ -67,5 +67,4 @@ public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetails
     public @Nullable ImmutableList<DependencyArtifactSelector> getConfiguredSelectors() {
         return targetSelectors != null ? ImmutableList.copyOf(targetSelectors) : null;
     }
-
 }

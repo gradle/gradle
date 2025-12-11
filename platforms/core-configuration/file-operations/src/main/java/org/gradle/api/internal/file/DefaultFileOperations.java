@@ -15,6 +15,12 @@
  */
 package org.gradle.api.internal.file;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
@@ -63,13 +69,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GFileUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.util.Map;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
-
 // Suppress warnings that could lead the code to be refactored in a configuration cache incompatible way.
 @SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef"})
 public class DefaultFileOperations implements FileOperations {
@@ -90,22 +89,21 @@ public class DefaultFileOperations implements FileOperations {
     private final DecompressionCoordinator decompressionCoordinator;
 
     public DefaultFileOperations(
-        FileResolver fileResolver,
-        Instantiator instantiator,
-        DirectoryFileTreeFactory directoryFileTreeFactory,
-        FileHasher fileHasher,
-        DefaultResourceHandler.Factory resourceHandlerFactory,
-        FileCollectionFactory fileCollectionFactory,
-        PropertyFactory propertyFactory,
-        FileSystem fileSystem,
-        PatternSetFactory patternSetFactory,
-        Deleter deleter,
-        DocumentationRegistry documentationRegistry,
-        TaskDependencyFactory taskDependencyFactory,
-        ProviderFactory providers,
-        DecompressionCoordinator decompressionCoordinator,
-        TemporaryFileProvider temporaryFileProvider
-    ) {
+            FileResolver fileResolver,
+            Instantiator instantiator,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            FileHasher fileHasher,
+            DefaultResourceHandler.Factory resourceHandlerFactory,
+            FileCollectionFactory fileCollectionFactory,
+            PropertyFactory propertyFactory,
+            FileSystem fileSystem,
+            PatternSetFactory patternSetFactory,
+            Deleter deleter,
+            DocumentationRegistry documentationRegistry,
+            TaskDependencyFactory taskDependencyFactory,
+            ProviderFactory providers,
+            DecompressionCoordinator decompressionCoordinator,
+            TemporaryFileProvider temporaryFileProvider) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
         this.propertyFactory = propertyFactory;
@@ -118,16 +116,15 @@ public class DefaultFileOperations implements FileOperations {
         this.providers = providers;
         this.temporaryFileProvider = temporaryFileProvider;
         this.fileCopier = new FileCopier(
-            deleter,
-            directoryFileTreeFactory,
-            fileCollectionFactory,
-            fileResolver,
-            patternSetFactory,
-            propertyFactory,
-            fileSystem,
-            instantiator,
-            documentationRegistry
-        );
+                deleter,
+                directoryFileTreeFactory,
+                fileCollectionFactory,
+                fileResolver,
+                patternSetFactory,
+                propertyFactory,
+                fileSystem,
+                instantiator,
+                documentationRegistry);
         this.fileSystem = fileSystem;
         this.deleter = deleter;
         this.decompressionCoordinator = decompressionCoordinator;
@@ -180,7 +177,16 @@ public class DefaultFileOperations implements FileOperations {
     @Override
     public FileTreeInternal zipTree(Object zipPath) {
         Provider<File> fileProvider = asFileProvider(zipPath);
-        return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, decompressionCoordinator, temporaryFileProvider), taskDependencyFactory, patternSetFactory);
+        return new FileTreeAdapter(
+                new ZipFileTree(
+                        fileProvider,
+                        fileSystem,
+                        directoryFileTreeFactory,
+                        fileHasher,
+                        decompressionCoordinator,
+                        temporaryFileProvider),
+                taskDependencyFactory,
+                patternSetFactory);
     }
 
     @Override
@@ -188,9 +194,7 @@ public class DefaultFileOperations implements FileOperations {
         Provider<File> fileProvider = asFileProvider(zipPath);
         DecompressionCoordinator nonLockingCache = new DecompressionCoordinator() {
             @Override
-            public void close() throws IOException {
-
-            }
+            public void close() throws IOException {}
 
             @Override
             public void exclusiveAccessTo(File expandedDir, Runnable action) {
@@ -198,7 +202,16 @@ public class DefaultFileOperations implements FileOperations {
             }
         };
 
-        return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, nonLockingCache, temporaryFileProvider), taskDependencyFactory, patternSetFactory);
+        return new FileTreeAdapter(
+                new ZipFileTree(
+                        fileProvider,
+                        fileSystem,
+                        directoryFileTreeFactory,
+                        fileHasher,
+                        nonLockingCache,
+                        temporaryFileProvider),
+                taskDependencyFactory,
+                patternSetFactory);
     }
 
     @Override
@@ -213,14 +226,21 @@ public class DefaultFileOperations implements FileOperations {
             }
         });
 
-        TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), fileSystem, directoryFileTreeFactory, fileHasher, decompressionCoordinator, temporaryFileProvider);
+        TarFileTree tarTree = new TarFileTree(
+                fileProvider,
+                resource.map(MaybeCompressedFileResource::new),
+                fileSystem,
+                directoryFileTreeFactory,
+                fileHasher,
+                decompressionCoordinator,
+                temporaryFileProvider);
         return new FileTreeAdapter(tarTree, taskDependencyFactory, patternSetFactory);
     }
 
     private Provider<File> asFileProvider(Object path) {
         if (path instanceof ReadableResource) {
             boolean hasBackingFile = path instanceof ReadableResourceInternal
-                && ((ReadableResourceInternal) path).getBackingFile() != null;
+                    && ((ReadableResourceInternal) path).getBackingFile() != null;
             if (!hasBackingFile) {
                 throw new InvalidUserCodeException("Cannot use tarTree() on a resource without a backing file.");
             }
@@ -252,7 +272,8 @@ public class DefaultFileOperations implements FileOperations {
     public File mkdir(Object path) {
         File dir = fileResolver.resolve(path);
         if (dir.isFile()) {
-            throw new InvalidUserDataException(String.format("Can't create directory. The path=%s points to an existing file.", path));
+            throw new InvalidUserDataException(
+                    String.format("Can't create directory. The path=%s points to an existing file.", path));
         }
         GFileUtils.mkdirs(dir);
         return dir;
@@ -260,7 +281,8 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public boolean delete(Object... paths) {
-        return delete(deleteSpec -> deleteSpec.delete(paths).setFollowSymlinks(false)).getDidWork();
+        return delete(deleteSpec -> deleteSpec.delete(paths).setFollowSymlinks(false))
+                .getDidWork();
     }
 
     @Override
@@ -297,7 +319,8 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public CopySpec copySpec() {
-        return instantiator.newInstance(DefaultCopySpec.class, fileCollectionFactory, propertyFactory, instantiator, patternSetFactory);
+        return instantiator.newInstance(
+                DefaultCopySpec.class, fileCollectionFactory, propertyFactory, instantiator, patternSetFactory);
     }
 
     @Override
@@ -310,7 +333,8 @@ public class DefaultFileOperations implements FileOperations {
         return resourceHandler;
     }
 
-    public static DefaultFileOperations createSimple(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
+    public static DefaultFileOperations createSimple(
+            FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
         Instantiator instantiator = services.get(Instantiator.class);
         PropertyFactory propertyFactory = services.get(PropertyFactory.class);
         FileSystem fileSystem = services.get(FileSystem.class);
@@ -326,29 +350,23 @@ public class DefaultFileOperations implements FileOperations {
         TemporaryFileProvider temporaryFileProvider = services.get(TemporaryFileProvider.class);
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
-            fileResolver,
-            taskDependencyFactory,
-            fileSystem,
-            temporaryFileProvider,
-            textResourceAdapterFactory
-        );
+                fileResolver, taskDependencyFactory, fileSystem, temporaryFileProvider, textResourceAdapterFactory);
 
         return new DefaultFileOperations(
-            fileResolver,
-            instantiator,
-            directoryFileTreeFactory,
-            fileHasher,
-            resourceHandlerFactory,
-            fileTreeFactory,
-            propertyFactory,
-            fileSystem,
-            patternSetFactory,
-            deleter,
-            documentationRegistry,
-            taskDependencyFactory,
-            providers,
-            decompressionCoordinator,
-            temporaryFileProvider
-        );
+                fileResolver,
+                instantiator,
+                directoryFileTreeFactory,
+                fileHasher,
+                resourceHandlerFactory,
+                fileTreeFactory,
+                propertyFactory,
+                fileSystem,
+                patternSetFactory,
+                deleter,
+                documentationRegistry,
+                taskDependencyFactory,
+                providers,
+                decompressionCoordinator,
+                temporaryFileProvider);
     }
 }

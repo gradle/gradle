@@ -23,13 +23,13 @@ import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-public class CaptureImmutableStateBeforeExecutionStep<C extends WorkspaceContext, R extends CachingResult> implements Step<C, R> {
+public class CaptureImmutableStateBeforeExecutionStep<C extends WorkspaceContext, R extends CachingResult>
+        implements Step<C, R> {
 
     private final Step<? super ImmutableBeforeExecutionContext, ? extends R> delegate;
 
     public CaptureImmutableStateBeforeExecutionStep(
-        Step<? super ImmutableBeforeExecutionContext, ? extends R> delegate
-    ) {
+            Step<? super ImmutableBeforeExecutionContext, ? extends R> delegate) {
         this.delegate = delegate;
     }
 
@@ -42,15 +42,15 @@ public class CaptureImmutableStateBeforeExecutionStep<C extends WorkspaceContext
                 outputProperties.put(propertyName, FileSystemSnapshot.EMPTY);
             }
         });
-        return delegate.execute(work, new ImmutableBeforeExecutionContext(
-            context,
-            new DefaultBeforeExecutionState(
-                context.getImplementation(),
-                context.getAdditionalImplementations(),
-                context.getInputProperties(),
-                context.getInputFileProperties(),
-                outputProperties.build()
-            )
-        ));
+        return delegate.execute(
+                work,
+                new ImmutableBeforeExecutionContext(
+                        context,
+                        new DefaultBeforeExecutionState(
+                                context.getImplementation(),
+                                context.getAdditionalImplementations(),
+                                context.getInputProperties(),
+                                context.getInputFileProperties(),
+                                outputProperties.build())));
     }
 }

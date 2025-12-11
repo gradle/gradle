@@ -32,13 +32,16 @@ public class SetupLoggingActionExecutor implements BuildExecutor {
     private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate;
     private final LoggingManagerInternal loggingManager;
 
-    public SetupLoggingActionExecutor(LoggingManagerInternal loggingManager, BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
+    public SetupLoggingActionExecutor(
+            LoggingManagerInternal loggingManager,
+            BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
         this.loggingManager = loggingManager;
         this.delegate = delegate;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
+    public BuildActionResult execute(
+            BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         StartParameter startParameter = action.getStartParameter();
         loggingManager.setLevelInternal(startParameter.getLogLevel());
         loggingManager.enableUserStandardOutputListeners();

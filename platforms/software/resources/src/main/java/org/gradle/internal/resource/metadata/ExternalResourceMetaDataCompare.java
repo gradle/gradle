@@ -16,13 +16,13 @@
 
 package org.gradle.internal.resource.metadata;
 
+import java.util.Date;
 import org.gradle.internal.Factory;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Date;
-
 public abstract class ExternalResourceMetaDataCompare {
-    public static boolean isDefinitelyUnchanged(@Nullable ExternalResourceMetaData local, Factory<ExternalResourceMetaData> remoteFactory) {
+    public static boolean isDefinitelyUnchanged(
+            @Nullable ExternalResourceMetaData local, Factory<ExternalResourceMetaData> remoteFactory) {
         if (local == null) {
             return false;
         }
@@ -61,7 +61,6 @@ public abstract class ExternalResourceMetaDataCompare {
             return false;
         }
 
-        return localContentLength == remoteContentLength
-            && remoteLastModified.getTime() == localLastModified.getTime();
+        return localContentLength == remoteContentLength && remoteLastModified.getTime() == localLastModified.getTime();
     }
 }

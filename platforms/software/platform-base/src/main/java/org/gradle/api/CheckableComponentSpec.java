@@ -41,5 +41,4 @@ public interface CheckableComponentSpec extends ComponentSpec {
      * added as dependencies of this component's {@link #getCheckTask() check task}.
      */
     void checkedBy(Object... tasks);
-
 }

@@ -18,5 +18,4 @@ package org.gradle.internal.resolve.caching;
 public interface ImplicitInputRecorder {
 
     <IN, OUT> void register(String serviceName, ImplicitInputRecord<IN, OUT> input);
-
 }

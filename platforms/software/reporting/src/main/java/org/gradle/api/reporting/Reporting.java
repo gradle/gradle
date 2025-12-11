@@ -83,7 +83,7 @@ public interface Reporting<T extends ReportContainer> {
      * @param closure The configuration
      * @return The report container
      */
-    T reports(@DelegatesTo(type="T", strategy = Closure.DELEGATE_FIRST) Closure closure);
+    T reports(@DelegatesTo(type = "T", strategy = Closure.DELEGATE_FIRST) Closure closure);
 
     /**
      * Allow configuration of the report container by closure.

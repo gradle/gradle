@@ -15,6 +15,9 @@
  */
 package org.gradle.configuration;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
+
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
@@ -30,15 +33,12 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.GradleVersion;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
-
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class Help extends DefaultTask {
     private final Property<String> taskPath = getObjectFactory().property(String.class);
 
-    private final Property<TaskDetailsModel> taskModel = getObjectFactory().property(TaskDetailsModel.class).convention(taskPath.map(this::mapFromTaskPath));
+    private final Property<TaskDetailsModel> taskModel =
+            getObjectFactory().property(TaskDetailsModel.class).convention(taskPath.map(this::mapFromTaskPath));
 
     public Help() {
         // optimization: so value does not need to be recomputed during execution
@@ -83,7 +83,8 @@ public abstract class Help extends DefaultTask {
 
     private void printTaskHelp(StyledTextOutput output) {
         TaskDetailsModel taskDetailModel = taskModel.get();
-        TaskDetailPrinter taskDetailPrinter = new TaskDetailPrinter(taskDetailModel.getTaskPath(), taskDetailModel.getTasks());
+        TaskDetailPrinter taskDetailPrinter =
+                new TaskDetailPrinter(taskDetailModel.getTaskPath(), taskDetailModel.getTasks());
         taskDetailPrinter.print(output);
     }
 
@@ -106,7 +107,11 @@ public abstract class Help extends DefaultTask {
             output.println();
             output.println();
             output.append("For more detail on creating a Gradle build, see ");
-            output.withStyle(UserInput).append(getDocumentationRegistry().getDocumentationFor("tutorial_using_tasks")); // this is the "build script basics" chapter, we're missing some kind of "how to write a Gradle build chapter"
+            output.withStyle(UserInput)
+                    .append(getDocumentationRegistry()
+                            .getDocumentationFor("tutorial_using_tasks")); // this is the "build script basics" chapter,
+            // we're missing some kind of "how to write a
+            // Gradle build chapter"
             output.println();
         } else {
             output.text("To run a build, run ");

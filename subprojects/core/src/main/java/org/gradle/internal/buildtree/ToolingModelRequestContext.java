@@ -23,6 +23,7 @@ import org.jspecify.annotations.Nullable;
 @NullMarked
 public class ToolingModelRequestContext {
     private final String modelName;
+
     @Nullable
     private final Object parameter;
     // this is true if the `fetch` API is used.

@@ -28,14 +28,22 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
     private final int defaultPort;
 
     public JavaSystemPropertiesProxySettings(String propertyPrefix, int defaultPort) {
-        this(propertyPrefix, defaultPort,
+        this(
+                propertyPrefix,
+                defaultPort,
                 getAndTrimSystemProperty(propertyPrefix + ".proxyHost"),
                 getAndTrimSystemProperty(propertyPrefix + ".proxyPort"),
                 getAndTrimSystemProperty(propertyPrefix + ".proxyUser"),
                 getAndTrimSystemProperty(propertyPrefix + ".proxyPassword"));
     }
 
-    JavaSystemPropertiesProxySettings(String propertyPrefix, int defaultPort, String proxyHost, String proxyPortString, String proxyUser, String proxyPassword) {
+    JavaSystemPropertiesProxySettings(
+            String propertyPrefix,
+            int defaultPort,
+            String proxyHost,
+            String proxyPortString,
+            String proxyUser,
+            String proxyPassword) {
         this.propertyPrefix = propertyPrefix;
         this.defaultPort = defaultPort;
         if (StringUtils.isBlank(proxyHost)) {
@@ -53,8 +61,11 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
             return Integer.parseInt(proxyPortString);
         } catch (NumberFormatException e) {
             String key = propertyPrefix + ".proxyPort";
-            LOGGER.warn("Invalid value for java system property '{}': '{}'. Value is not a valid number. Default port '{}' will be used.",
-                key, proxyPortString, defaultPort);
+            LOGGER.warn(
+                    "Invalid value for java system property '{}': '{}'. Value is not a valid number. Default port '{}' will be used.",
+                    key,
+                    proxyPortString,
+                    defaultPort);
             return defaultPort;
         }
     }

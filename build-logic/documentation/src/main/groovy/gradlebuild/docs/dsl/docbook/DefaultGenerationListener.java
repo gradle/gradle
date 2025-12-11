@@ -15,10 +15,9 @@
  */
 package gradlebuild.docs.dsl.docbook;
 
+import java.util.LinkedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.LinkedList;
 
 public class DefaultGenerationListener implements GenerationListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGenerationListener.class);

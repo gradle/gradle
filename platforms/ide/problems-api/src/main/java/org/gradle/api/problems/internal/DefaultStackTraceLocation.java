@@ -16,10 +16,9 @@
 
 package org.gradle.api.problems.internal;
 
+import java.util.List;
 import org.gradle.api.problems.FileLocation;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 public class DefaultStackTraceLocation implements StackTraceLocation {
 
@@ -49,7 +48,8 @@ public class DefaultStackTraceLocation implements StackTraceLocation {
         }
 
         DefaultStackTraceLocation that = (DefaultStackTraceLocation) o;
-        return (location == null ? that.location == null : location.equals(that.location)) && stackTrace.equals(that.stackTrace);
+        return (location == null ? that.location == null : location.equals(that.location))
+                && stackTrace.equals(that.stackTrace);
     }
 
     @Override

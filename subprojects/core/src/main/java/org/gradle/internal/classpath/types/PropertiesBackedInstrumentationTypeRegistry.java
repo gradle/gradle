@@ -16,12 +16,11 @@
 
 package org.gradle.internal.classpath.types;
 
-import org.gradle.internal.lazy.Lazy;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import org.gradle.internal.lazy.Lazy;
 
 public class PropertiesBackedInstrumentationTypeRegistry implements InstrumentationTypeRegistry {
 

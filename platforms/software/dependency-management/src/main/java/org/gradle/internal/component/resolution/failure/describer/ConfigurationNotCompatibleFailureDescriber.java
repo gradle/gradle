@@ -16,6 +16,10 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import static org.gradle.internal.exceptions.StyledException.style;
+
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
@@ -26,52 +30,48 @@ import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCom
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import javax.inject.Inject;
-import java.util.List;
-
-import static org.gradle.internal.exceptions.StyledException.style;
-
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link ConfigurationNotCompatibleFailure}.
  */
-public abstract class ConfigurationNotCompatibleFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationNotCompatibleFailure> {
-    private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
+public abstract class ConfigurationNotCompatibleFailureDescriber
+        extends AbstractResolutionFailureDescriber<ConfigurationNotCompatibleFailure> {
+    private static final String INCOMPATIBLE_VARIANTS_PREFIX =
+            "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     private final AttributeDescriberRegistry attributeDescribers;
 
     @Inject
-    public ConfigurationNotCompatibleFailureDescriber(
-        AttributeDescriberRegistry attributeDescribers
-    ) {
+    public ConfigurationNotCompatibleFailureDescriber(AttributeDescriberRegistry attributeDescribers) {
         this.attributeDescribers = attributeDescribers;
     }
 
     @Override
     public VariantSelectionByNameException describeFailure(ConfigurationNotCompatibleFailure failure) {
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), attributeDescribers.getDescribers());
+        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(
+                failure.getRequestedAttributes(), attributeDescribers.getDescribers());
         String message = buildFailureMsg(failure, describer);
-        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION), suggestReviewAlgorithm());
+        List<String> resolutions = buildResolutions(
+                suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION),
+                suggestReviewAlgorithm());
         return new VariantSelectionByNameException(message, failure, resolutions);
     }
 
-    private String buildFailureMsg(
-        ConfigurationNotCompatibleFailure failure,
-        AttributeDescriber describer
-    ) {
-        ResolutionCandidateAssessor.AssessedCandidate assessedCandidate = failure.getCandidates().get(0);
+    private String buildFailureMsg(ConfigurationNotCompatibleFailure failure, AttributeDescriber describer) {
+        ResolutionCandidateAssessor.AssessedCandidate assessedCandidate =
+                failure.getCandidates().get(0);
         TreeFormatter formatter = new TreeFormatter();
         String candidateName = assessedCandidate.getDisplayName();
-        formatter.node("Configuration '" + candidateName + "' in " + style(StyledTextOutput.Style.Info, failure.getTargetComponent().getDisplayName()) + " does not match the consumer attributes");
+        formatter.node("Configuration '" + candidateName + "' in "
+                + style(
+                        StyledTextOutput.Style.Info,
+                        failure.getTargetComponent().getDisplayName()) + " does not match the consumer attributes");
         formatUnselectable(assessedCandidate, formatter, describer);
         return formatter.toString();
     }
 
     private void formatUnselectable(
-        AssessedCandidate assessedCandidate,
-        TreeFormatter formatter,
-        AttributeDescriber describer
-    ) {
+            AssessedCandidate assessedCandidate, TreeFormatter formatter, AttributeDescriber describer) {
         formatter.node("Configuration '");
         formatter.append(assessedCandidate.getDisplayName());
         formatter.append("'");

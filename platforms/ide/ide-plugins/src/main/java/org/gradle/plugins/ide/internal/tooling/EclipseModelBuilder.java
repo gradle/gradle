@@ -17,6 +17,17 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.Strings;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -75,18 +86,6 @@ import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
     private final GradleProjectBuilderInternal gradleProjectBuilder;
     private final EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider;
@@ -101,18 +100,22 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     private Map<String, Boolean> projectOpenStatus = new HashMap<>();
 
     @VisibleForTesting
-    public EclipseModelBuilder(GradleProjectBuilderInternal gradleProjectBuilder, EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider) {
+    public EclipseModelBuilder(
+            GradleProjectBuilderInternal gradleProjectBuilder,
+            EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider) {
         this.gradleProjectBuilder = gradleProjectBuilder;
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
     }
 
-    public EclipseModelBuilder(GradleProjectBuilderInternal gradleProjectBuilder, ProjectStateRegistry projectStateRegistry) {
+    public EclipseModelBuilder(
+            GradleProjectBuilderInternal gradleProjectBuilder, ProjectStateRegistry projectStateRegistry) {
         this(gradleProjectBuilder, new EclipseModelAwareUniqueProjectNameProvider(projectStateRegistry));
     }
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject") || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
+        return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject")
+                || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
     }
 
     @Override
@@ -126,13 +129,16 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         List<EclipseWorkspaceProject> projects = eclipseRuntime.getWorkspace().getProjects();
         HashSet<EclipseWorkspaceProject> projectsInBuild = new HashSet<>(projects);
         projectsInBuild.removeAll(gatherExternalProjects((ProjectInternal) project.getRootProject(), projects));
-        projectOpenStatus = projectsInBuild.stream().collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a || b));
+        projectOpenStatus = projectsInBuild.stream()
+                .collect(Collectors.toMap(
+                        EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a || b));
 
         return buildAll(modelName, project);
     }
 
     public static boolean isProjectOpen(EclipseWorkspaceProject project) {
-        // TODO we should refactor this to general, compatibility mapping solution, as we have it for model loading. See HasCompatibilityMapping class.
+        // TODO we should refactor this to general, compatibility mapping solution, as we have it for model loading. See
+        // HasCompatibilityMapping class.
         try {
             return project.isOpen();
         } catch (UnsupportedMethodException e) {
@@ -164,7 +170,10 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         for (Project project : root.getAllprojects()) {
             EclipseModel eclipseModel = project.getExtensions().findByType(EclipseModel.class);
             if (eclipseModel != null) {
-                eclipseModel.getProject().setName(uniqueProjectNameProvider.getUniqueName(((ProjectInternal) project).getProjectIdentity()));
+                eclipseModel
+                        .getProject()
+                        .setName(uniqueProjectNameProvider.getUniqueName(
+                                ((ProjectInternal) project).getProjectIdentity()));
             }
         }
     }
@@ -193,14 +202,16 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             children.add(buildHierarchy(child));
         }
 
-        EclipseModel eclipseModel = projectState.getMutableModel().getExtensions().getByType(EclipseModel.class);
+        EclipseModel eclipseModel =
+                projectState.getMutableModel().getExtensions().getByType(EclipseModel.class);
         org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
 
         String name = internalProject.getName();
         String path = projectState.getIdentity().getProjectPath().asString();
         String description = GUtil.elvis(internalProject.getComment(), null);
         File projectDir = projectState.getProjectDir();
-        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, path, description, projectDir, children).setGradleProject(rootGradleProject.findByPath(path));
+        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, path, description, projectDir, children)
+                .setGradleProject(rootGradleProject.findByPath(path));
 
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);
@@ -222,7 +233,8 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
             boolean projectDependenciesOnly = this.projectDependenciesOnly;
 
-            ClasspathElements classpathElements = gatherClasspathElements(projectOpenStatus, eclipseModel.getClasspath(), projectDependenciesOnly);
+            ClasspathElements classpathElements =
+                    gatherClasspathElements(projectOpenStatus, eclipseModel.getClasspath(), projectDependenciesOnly);
 
             DefaultEclipseProject eclipseProject = findEclipseProject(project);
 
@@ -230,10 +242,16 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             eclipseProject.setProjectDependencies(classpathElements.getProjectDependencies());
             eclipseProject.setSourceDirectories(classpathElements.getSourceDirectories());
             eclipseProject.setClasspathContainers(classpathElements.getClasspathContainers());
-            eclipseProject.setOutputLocation(classpathElements.getEclipseOutputLocation() != null ? classpathElements.getEclipseOutputLocation() : new DefaultEclipseOutputLocation("bin"));
-            eclipseProject.setAutoBuildTasks(!TaskDependencyUtil.getDependenciesForInternalUse(eclipseModel.getAutoBuildTasks(), null).isEmpty());
+            eclipseProject.setOutputLocation(
+                    classpathElements.getEclipseOutputLocation() != null
+                            ? classpathElements.getEclipseOutputLocation()
+                            : new DefaultEclipseOutputLocation("bin"));
+            eclipseProject.setAutoBuildTasks(
+                    !TaskDependencyUtil.getDependenciesForInternalUse(eclipseModel.getAutoBuildTasks(), null)
+                            .isEmpty());
 
-            org.gradle.plugins.ide.eclipse.model.Project xmlProject = new org.gradle.plugins.ide.eclipse.model.Project(new XmlTransformer());
+            org.gradle.plugins.ide.eclipse.model.Project xmlProject =
+                    new org.gradle.plugins.ide.eclipse.model.Project(new XmlTransformer());
 
             XmlFileContentMerger projectFile = eclipseModel.getProject().getFile();
             if (projectFile == null) {
@@ -252,7 +270,10 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         }
     }
 
-    public static ClasspathElements gatherClasspathElements(Map<String, Boolean> projectOpenStatus, EclipseClasspath eclipseClasspath, boolean projectDependenciesOnly) {
+    public static ClasspathElements gatherClasspathElements(
+            Map<String, Boolean> projectOpenStatus,
+            EclipseClasspath eclipseClasspath,
+            boolean projectDependenciesOnly) {
         ClasspathElements classpathElements = new ClasspathElements();
         eclipseClasspath.setProjectDependenciesOnly(projectDependenciesOnly);
 
@@ -268,19 +289,38 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         final Map<String, DefaultEclipseProjectDependency> projectDependencyMap = new LinkedHashMap<>();
 
         for (ClasspathEntry entry : classpathEntries) {
-            //we don't handle Variables at the moment because users didn't request it yet
-            //and it would probably push us to add support in the tooling api to retrieve the variable mappings.
+            // we don't handle Variables at the moment because users didn't request it yet
+            // and it would probably push us to add support in the tooling api to retrieve the variable mappings.
             if (entry instanceof Library) {
                 AbstractLibrary library = (AbstractLibrary) entry;
                 final File file = library.getLibrary().getFile();
-                final File source = library.getSourcePath() == null ? null : library.getSourcePath().getFile();
-                final File javadoc = library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
+                final File source = library.getSourcePath() == null
+                        ? null
+                        : library.getSourcePath().getFile();
+                final File javadoc = library.getJavadocPath() == null
+                        ? null
+                        : library.getJavadocPath().getFile();
                 DefaultEclipseExternalDependency dependency;
                 if (entry instanceof UnresolvedLibrary) {
                     UnresolvedLibrary unresolvedLibrary = (UnresolvedLibrary) entry;
-                    dependency = DefaultEclipseExternalDependency.createUnresolved(file, javadoc, source, library.getModuleVersion(), library.isExported(), createAttributes(library), createAccessRules(library), unresolvedLibrary.getAttemptedSelector().getDisplayName());
+                    dependency = DefaultEclipseExternalDependency.createUnresolved(
+                            file,
+                            javadoc,
+                            source,
+                            library.getModuleVersion(),
+                            library.isExported(),
+                            createAttributes(library),
+                            createAccessRules(library),
+                            unresolvedLibrary.getAttemptedSelector().getDisplayName());
                 } else {
-                    dependency = DefaultEclipseExternalDependency.createResolved(file, javadoc, source, library.getModuleVersion(), library.isExported(), createAttributes(library), createAccessRules(library));
+                    dependency = DefaultEclipseExternalDependency.createResolved(
+                            file,
+                            javadoc,
+                            source,
+                            library.getModuleVersion(),
+                            library.isExported(),
+                            createAttributes(library),
+                            createAccessRules(library));
                 }
                 classpathElements.getExternalDependencies().add(dependency);
             } else if (entry instanceof ProjectDependency) {
@@ -289,13 +329,36 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
                 final String path = Strings.CS.removeStart(projectDependency.getPath(), "/");
                 boolean isProjectOpen = projectOpenStatus.getOrDefault(path, true);
                 if (!isProjectOpen) {
-                    final File source = projectDependency.getPublicationSourcePath() == null ? null : projectDependency.getPublicationSourcePath().getFile();
-                    final File javadoc = projectDependency.getPublicationJavadocPath() == null ? null : projectDependency.getPublicationJavadocPath().getFile();
-                    classpathElements.getExternalDependencies().add(DefaultEclipseExternalDependency.createResolved(projectDependency.getPublication().getFile(), javadoc, source, null, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency)));
+                    final File source = projectDependency.getPublicationSourcePath() == null
+                            ? null
+                            : projectDependency.getPublicationSourcePath().getFile();
+                    final File javadoc = projectDependency.getPublicationJavadocPath() == null
+                            ? null
+                            : projectDependency.getPublicationJavadocPath().getFile();
+                    classpathElements
+                            .getExternalDependencies()
+                            .add(DefaultEclipseExternalDependency.createResolved(
+                                    projectDependency.getPublication().getFile(),
+                                    javadoc,
+                                    source,
+                                    null,
+                                    projectDependency.isExported(),
+                                    createAttributes(projectDependency),
+                                    createAccessRules(projectDependency)));
                     classpathElements.getBuildDependencies().add(projectDependency.getBuildDependencies());
                 } else {
-                    DefaultEclipseProjectDependency dependency = new DefaultEclipseProjectDependency(path, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
-                    projectDependencyMap.merge(path, dependency, (oldDependency, newDependency) -> !hasTestSourcesAttribute(oldDependency) && hasTestSourcesAttribute(newDependency) ? oldDependency : newDependency);
+                    DefaultEclipseProjectDependency dependency = new DefaultEclipseProjectDependency(
+                            path,
+                            projectDependency.isExported(),
+                            createAttributes(projectDependency),
+                            createAccessRules(projectDependency));
+                    projectDependencyMap.merge(
+                            path,
+                            dependency,
+                            (oldDependency, newDependency) ->
+                                    !hasTestSourcesAttribute(oldDependency) && hasTestSourcesAttribute(newDependency)
+                                            ? oldDependency
+                                            : newDependency);
                 }
             } else if (entry instanceof SourceFolder) {
                 final SourceFolder sourceFolder = (SourceFolder) entry;
@@ -303,12 +366,28 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
                 List<String> excludes = sourceFolder.getExcludes();
                 List<String> includes = sourceFolder.getIncludes();
                 String output = sourceFolder.getOutput();
-                classpathElements.getSourceDirectories().add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir(), excludes, includes, output, createAttributes(sourceFolder), createAccessRules(sourceFolder)));
+                classpathElements
+                        .getSourceDirectories()
+                        .add(new DefaultEclipseSourceDirectory(
+                                path,
+                                sourceFolder.getDir(),
+                                excludes,
+                                includes,
+                                output,
+                                createAttributes(sourceFolder),
+                                createAccessRules(sourceFolder)));
             } else if (entry instanceof Container) {
                 final Container container = (Container) entry;
-                classpathElements.getClasspathContainers().add(new DefaultEclipseClasspathContainer(container.getPath(), container.isExported(), createAttributes(container), createAccessRules(container)));
+                classpathElements
+                        .getClasspathContainers()
+                        .add(new DefaultEclipseClasspathContainer(
+                                container.getPath(),
+                                container.isExported(),
+                                createAttributes(container),
+                                createAccessRules(container)));
             } else if (entry instanceof Output) {
-                classpathElements.setEclipseOutputLocation(new DefaultEclipseOutputLocation(((Output) entry).getPath()));
+                classpathElements.setEclipseOutputLocation(
+                        new DefaultEclipseOutputLocation(((Output) entry).getPath()));
             }
         }
         classpathElements.getProjectDependencies().addAll(projectDependencyMap.values());
@@ -323,10 +402,12 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         eclipseProject.setTasks(tasks);
     }
 
-    private static void populateEclipseProject(DefaultEclipseProject eclipseProject, org.gradle.plugins.ide.eclipse.model.Project xmlProject) {
+    private static void populateEclipseProject(
+            DefaultEclipseProject eclipseProject, org.gradle.plugins.ide.eclipse.model.Project xmlProject) {
         List<DefaultEclipseLinkedResource> linkedResources = new LinkedList<>();
         for (Link r : xmlProject.getLinkedResources()) {
-            linkedResources.add(new DefaultEclipseLinkedResource(r.getName(), r.getType(), r.getLocation(), r.getLocationUri()));
+            linkedResources.add(
+                    new DefaultEclipseLinkedResource(r.getName(), r.getType(), r.getLocation(), r.getLocationUri()));
         }
         eclipseProject.setLinkedResources(linkedResources);
 
@@ -349,12 +430,16 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     private static void populateEclipseProjectJdt(DefaultEclipseProject eclipseProject, EclipseJdt jdt) {
         if (jdt != null) {
-            eclipseProject.setJavaSourceSettings(new DefaultEclipseJavaSourceSettings().setSourceLanguageLevel(jdt.getSourceCompatibility()).setTargetBytecodeVersion(jdt.getTargetCompatibility()).setJdk(DefaultInstalledJdk.current()));
+            eclipseProject.setJavaSourceSettings(new DefaultEclipseJavaSourceSettings()
+                    .setSourceLanguageLevel(jdt.getSourceCompatibility())
+                    .setTargetBytecodeVersion(jdt.getTargetCompatibility())
+                    .setJdk(DefaultInstalledJdk.current()));
         }
     }
 
     private DefaultEclipseProject findEclipseProject(final Project project) {
-        return CollectionUtils.findFirst(eclipseProjects, element -> element.getGradleProject().getPath().equals(project.getPath()));
+        return CollectionUtils.findFirst(
+                eclipseProjects, element -> element.getGradleProject().getPath().equals(project.getPath()));
     }
 
     private static List<DefaultClasspathAttribute> createAttributes(AbstractClasspathEntry classpathEntry) {
@@ -362,7 +447,8 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         Map<String, Object> attributes = classpathEntry.getEntryAttributes();
         for (Map.Entry<String, Object> entry : attributes.entrySet()) {
             Object value = entry.getValue();
-            result.add(new DefaultClasspathAttribute(convertGString(entry.getKey()), value == null ? "" : value.toString()));
+            result.add(new DefaultClasspathAttribute(
+                    convertGString(entry.getKey()), value == null ? "" : value.toString()));
         }
         return result;
     }
@@ -446,13 +532,20 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         return reservedProjectNames;
     }
 
-    private List<EclipseWorkspaceProject> gatherExternalProjects(ProjectInternal rootProject, List<EclipseWorkspaceProject> projects) {
+    private List<EclipseWorkspaceProject> gatherExternalProjects(
+            ProjectInternal rootProject, List<EclipseWorkspaceProject> projects) {
         // The eclipse workspace contains projects from root and included builds. Check projects from all builds
         // so that models built for included builds do not consider projects from parent builds as external.
-        Set<File> gradleProjectLocations = collectAllProjects(new ArrayList<>(), getRootBuild(rootProject.getGradle()), new HashSet<>()).stream().map(p -> p.getProjectDir().getAbsoluteFile()).collect(Collectors.toSet());
+        Set<File> gradleProjectLocations =
+                collectAllProjects(new ArrayList<>(), getRootBuild(rootProject.getGradle()), new HashSet<>()).stream()
+                        .map(p -> p.getProjectDir().getAbsoluteFile())
+                        .collect(Collectors.toSet());
         List<EclipseWorkspaceProject> externalProjects = new ArrayList<>();
         for (EclipseWorkspaceProject project : projects) {
-            if (project == null || project.getLocation() == null || project.getName() == null || project.getLocation() == null) {
+            if (project == null
+                    || project.getLocation() == null
+                    || project.getName() == null
+                    || project.getLocation() == null) {
                 continue;
             }
             if (!gradleProjectLocations.contains(project.getLocation().getAbsoluteFile())) {
@@ -463,9 +556,10 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     }
 
     private static boolean hasTestSourcesAttribute(DefaultEclipseProjectDependency projectDependency) {
-        return projectDependency.getClasspathAttributes().stream().anyMatch(attribute -> EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY.equals(attribute.getName()) && EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE.equals(attribute.getValue()));
+        return projectDependency.getClasspathAttributes().stream()
+                .anyMatch(attribute -> EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY.equals(attribute.getName())
+                        && EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE.equals(attribute.getValue()));
     }
-
 
     /*
      * Groovy manipulates the JVM to let GString extend String.

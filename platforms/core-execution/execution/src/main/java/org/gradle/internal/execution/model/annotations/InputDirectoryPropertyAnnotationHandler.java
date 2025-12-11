@@ -15,11 +15,6 @@
  */
 package org.gradle.internal.execution.model.annotations;
 
-import org.gradle.api.tasks.InputDirectory;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.properties.InputFilePropertyType;
-import org.gradle.internal.properties.annotations.PropertyMetadata;
-
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.INCREMENTAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
@@ -27,13 +22,23 @@ import static org.gradle.internal.execution.model.annotations.ModifierAnnotation
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
 
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
+
 public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
     public InputDirectoryPropertyAnnotationHandler() {
         super(
-            InputDirectory.class,
-            InputFilePropertyType.DIRECTORY,
-            ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS, REPLACES_EAGER_PROPERTY)
-        );
+                InputDirectory.class,
+                InputFilePropertyType.DIRECTORY,
+                ModifierAnnotationCategory.annotationsOf(
+                        INCREMENTAL,
+                        NORMALIZATION,
+                        OPTIONAL,
+                        IGNORE_EMPTY_DIRECTORIES,
+                        NORMALIZE_LINE_ENDINGS,
+                        REPLACES_EAGER_PROPERTY));
     }
 
     @Override

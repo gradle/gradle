@@ -16,6 +16,13 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserCodeException;
@@ -36,14 +43,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
 import org.gradle.jvm.toolchain.JavaToolchainResolver;
 
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepositoryHandlerInternal {
 
     private final DefaultNamedDomainObjectList<JavaToolchainRepository> repositories;
@@ -63,14 +62,18 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
             Instantiator instantiator,
             ObjectFactory objectFactory,
             ProviderFactory providerFactory,
-            AuthenticationSchemeRegistry authenticationSchemeRegistry
-    ) {
-        this.repositories = new DefaultNamedDomainObjectList<JavaToolchainRepository>(JavaToolchainRepository.class, instantiator, new RepositoryNamer(), CollectionCallbackActionDecorator.NOOP) {
-            @Override
-            public String getTypeDisplayName() {
-                return "repository";
-            }
-        };
+            AuthenticationSchemeRegistry authenticationSchemeRegistry) {
+        this.repositories =
+                new DefaultNamedDomainObjectList<JavaToolchainRepository>(
+                        JavaToolchainRepository.class,
+                        instantiator,
+                        new RepositoryNamer(),
+                        CollectionCallbackActionDecorator.NOOP) {
+                    @Override
+                    public String getTypeDisplayName() {
+                        return "repository";
+                    }
+                };
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
         this.providerFactory = providerFactory;
@@ -88,13 +91,21 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
     public void repository(String name, Action<? super JavaToolchainRepository> configureAction) {
         assertMutable();
 
-        DefaultAuthenticationContainer authenticationContainer = new DefaultAuthenticationContainer(instantiator, CollectionCallbackActionDecorator.NOOP);
-        for (Map.Entry<Class<Authentication>, Class<? extends Authentication>> e : authenticationSchemeRegistry.getRegisteredSchemes().entrySet()) {
+        DefaultAuthenticationContainer authenticationContainer =
+                new DefaultAuthenticationContainer(instantiator, CollectionCallbackActionDecorator.NOOP);
+        for (Map.Entry<Class<Authentication>, Class<? extends Authentication>> e :
+                authenticationSchemeRegistry.getRegisteredSchemes().entrySet()) {
             authenticationContainer.registerBinding(e.getKey(), e.getValue());
         }
-        AuthenticationSupporter authenticationSupporter = new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer, providerFactory);
+        AuthenticationSupporter authenticationSupporter =
+                new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer, providerFactory);
 
-        DefaultJavaToolchainRepository repository = objectFactory.newInstance(DefaultJavaToolchainRepository.class, name, authenticationContainer, authenticationSupporter, providerFactory);
+        DefaultJavaToolchainRepository repository = objectFactory.newInstance(
+                DefaultJavaToolchainRepository.class,
+                name,
+                authenticationContainer,
+                authenticationSupporter,
+                providerFactory);
         configureAction.execute(repository);
 
         boolean isNew = repositories.add(repository);
@@ -136,7 +147,8 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
 
     private void assertMutable() {
         if (!mutable) {
-            throw new InvalidUserCodeException("Mutation of toolchain repositories declared in settings is only allowed during settings evaluation");
+            throw new InvalidUserCodeException(
+                    "Mutation of toolchain repositories declared in settings is only allowed during settings evaluation");
         }
     }
 
@@ -198,5 +210,4 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
             return delegate.getResolverClass();
         }
     }
-
 }

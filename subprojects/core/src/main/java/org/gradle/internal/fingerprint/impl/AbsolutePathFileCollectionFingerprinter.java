@@ -26,7 +26,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.BuildSession.class)
 public class AbsolutePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public AbsolutePathFileCollectionFingerprinter(DirectorySensitivity directorySensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
+    public AbsolutePathFileCollectionFingerprinter(
+            DirectorySensitivity directorySensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
         super(new AbsolutePathFingerprintingStrategy(directorySensitivity, normalizedContentHasher));
     }
 

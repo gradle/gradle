@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
@@ -26,9 +28,6 @@ import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
 
 interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     @Override

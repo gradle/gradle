@@ -30,7 +30,12 @@ public class DefaultLoggingManagerFactory implements LoggingManagerFactory {
     private final LoggingRouter loggingRouter;
     private boolean created;
 
-    public DefaultLoggingManagerFactory(LoggingRouter loggingRouter, LoggingSourceSystem slf4j, LoggingSourceSystem javaUtilLoggingSystem, LoggingSourceSystem stdOutLoggingSystem, LoggingSourceSystem stdErrLoggingSystem) {
+    public DefaultLoggingManagerFactory(
+            LoggingRouter loggingRouter,
+            LoggingSourceSystem slf4j,
+            LoggingSourceSystem javaUtilLoggingSystem,
+            LoggingSourceSystem stdOutLoggingSystem,
+            LoggingSourceSystem stdErrLoggingSystem) {
         this.loggingRouter = loggingRouter;
         this.slfLoggingSystem = slf4j;
         this.javaUtilLoggingSystem = javaUtilLoggingSystem;
@@ -54,6 +59,7 @@ public class DefaultLoggingManagerFactory implements LoggingManagerFactory {
     }
 
     private DefaultLoggingManager newManager() {
-        return new DefaultLoggingManager(slfLoggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingRouter);
+        return new DefaultLoggingManager(
+                slfLoggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingRouter);
     }
 }

@@ -16,16 +16,15 @@
 
 package org.gradle.process.internal.util;
 
-import org.gradle.api.InvalidUserDataException;
-import org.jspecify.annotations.Nullable;
+import static com.google.common.base.Strings.nullToEmpty;
 
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.base.Strings.nullToEmpty;
+import org.gradle.api.InvalidUserDataException;
+import org.jspecify.annotations.Nullable;
 
 public class MergeOptionsUtil {
     public static int getHeapSizeMb(String heapSize) {
@@ -88,7 +87,8 @@ public class MergeOptionsUtil {
                 return false;
             } else {
                 for (String leftKey : left.keySet()) {
-                    if (normalized(leftKey).equals(normalized(rightKey)) && !left.get(leftKey).equals(right.get(rightKey))) {
+                    if (normalized(leftKey).equals(normalized(rightKey))
+                            && !left.get(leftKey).equals(right.get(rightKey))) {
                         return false;
                     }
                 }

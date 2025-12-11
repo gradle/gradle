@@ -16,10 +16,9 @@
 
 package org.gradle.internal.buildtree;
 
+import java.io.File;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.problems.buildtree.ProblemReporter;
-
-import java.io.File;
 
 public class DeprecationsReporter implements ProblemReporter {
     @Override

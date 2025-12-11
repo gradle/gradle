@@ -15,10 +15,9 @@
  */
 package org.gradle.cache;
 
+import java.io.File;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 /**
  * A repository of persistent caches. A cache is a store of persistent data backed by a directory.

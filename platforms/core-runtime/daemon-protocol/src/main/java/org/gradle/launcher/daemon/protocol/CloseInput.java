@@ -15,5 +15,4 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-public class CloseInput extends InputMessage {
-}
+public class CloseInput extends InputMessage {}

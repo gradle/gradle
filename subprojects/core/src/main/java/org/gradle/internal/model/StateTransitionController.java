@@ -16,16 +16,15 @@
 
 package org.gradle.internal.model;
 
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.work.Synchronizer;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Manages the transition between states of some object with mutable state.
@@ -52,7 +51,8 @@ public class StateTransitionController<T extends StateTransitionController.State
      */
     public void assertNotInState(T forbidden) {
         if (state.state == forbidden) {
-            throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + ".");
+            throw new IllegalStateException(
+                    displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + ".");
         }
     }
 
@@ -74,7 +74,8 @@ public class StateTransitionController<T extends StateTransitionController.State
     public void assertInStateOrLater(T expected) {
         CurrentState<T> current = state;
         if (!current.hasSeenStateIgnoringTransitions(expected)) {
-            throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should be in state " + expected + " or later.");
+            throw new IllegalStateException(
+                    displayName.getCapitalizedDisplayName() + " should be in state " + expected + " or later.");
         }
     }
 
@@ -84,7 +85,8 @@ public class StateTransitionController<T extends StateTransitionController.State
     public void assertInStateOrLaterIgnoringFailures(T expected) {
         CurrentState<T> current = state;
         if (!current.hasSeenStateIgnoringTransitionsOrFailures(expected)) {
-            throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should be in state " + expected + " or later.");
+            throw new IllegalStateException(
+                    displayName.getCapitalizedDisplayName() + " should be in state " + expected + " or later.");
         }
     }
 
@@ -204,7 +206,9 @@ public class StateTransitionController<T extends StateTransitionController.State
      * Blocks until other operations are complete.
      */
     public <S> S transition(T fromState, T toState, Supplier<? extends S> action) {
-        return synchronizer.withLock(() -> doTransition(fromState, toState, () -> ExecutionResult.succeeded(action.get())).getValueOrRethrow());
+        return synchronizer.withLock(
+                () -> doTransition(fromState, toState, () -> ExecutionResult.succeeded(action.get()))
+                        .getValueOrRethrow());
     }
 
     /**
@@ -255,7 +259,8 @@ public class StateTransitionController<T extends StateTransitionController.State
     /**
      * Transitions to a final state, taking any failures from previous transitions and transforming them.
      */
-    public ExecutionResult<Void> transition(T fromState, T toState, Function<ExecutionResult<Void>, ExecutionResult<Void>> action) {
+    public ExecutionResult<Void> transition(
+            T fromState, T toState, Function<ExecutionResult<Void>, ExecutionResult<Void>> action) {
         return synchronizer.withLock(() -> {
             CurrentState<T> current = state;
             current.assertCanTransition(fromState, toState, true);
@@ -263,7 +268,8 @@ public class StateTransitionController<T extends StateTransitionController.State
         });
     }
 
-    public ExecutionResult<Void> transition(List<T> fromStates, T toState, Function<ExecutionResult<Void>, ExecutionResult<Void>> action) {
+    public ExecutionResult<Void> transition(
+            List<T> fromStates, T toState, Function<ExecutionResult<Void>, ExecutionResult<Void>> action) {
         return synchronizer.withLock(() -> {
             CurrentState<T> current = state;
             current.assertCanTransition(fromStates, toState, true);
@@ -271,7 +277,8 @@ public class StateTransitionController<T extends StateTransitionController.State
         });
     }
 
-    private ExecutionResult<Void> doTransitionWithFailures(T toState, Function<ExecutionResult<Void>, ExecutionResult<Void>> action, CurrentState<T> current) {
+    private ExecutionResult<Void> doTransitionWithFailures(
+            T toState, Function<ExecutionResult<Void>, ExecutionResult<Void>> action, CurrentState<T> current) {
         ExecutionResult<Void> currentResult = current.asResult();
         state = current.transitioningTo(toState);
         ExecutionResult<Void> result;
@@ -290,9 +297,10 @@ public class StateTransitionController<T extends StateTransitionController.State
 
     private void doTransition(T fromState, T toState, Runnable action) {
         doTransition(fromState, toState, () -> {
-            action.run();
-            return ExecutionResult.succeeded();
-        }).getValueOrRethrow();
+                    action.run();
+                    return ExecutionResult.succeeded();
+                })
+                .getValueOrRethrow();
     }
 
     private <S> ExecutionResult<S> doTransition(T fromState, T toState, Supplier<ExecutionResult<S>> action) {
@@ -313,7 +321,7 @@ public class StateTransitionController<T extends StateTransitionController.State
         return result;
     }
 
-    private static abstract class CurrentState<T> {
+    private abstract static class CurrentState<T> {
         final DisplayName displayName;
         final T state;
 
@@ -380,14 +388,16 @@ public class StateTransitionController<T extends StateTransitionController.State
         @Override
         public void assertInState(T expected) {
             if (state != expected) {
-                throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + expected + " but is in state " + state + ".");
+                throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state "
+                        + expected + " but is in state " + state + ".");
             }
         }
 
         @Override
         public void assertNotInState(T forbidden) {
             if (state == forbidden) {
-                throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + ".");
+                throw new IllegalStateException(
+                        displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + ".");
             }
         }
 
@@ -399,14 +409,18 @@ public class StateTransitionController<T extends StateTransitionController.State
         @Override
         public void assertCanTransition(T fromState, T toState, boolean ignoreFailures) {
             if (state != fromState) {
-                throw new IllegalStateException("Can only transition " + displayName.getCapitalizedDisplayName() + " to state " + toState + " from state " + fromState + " however it is currently in state " + state + ".");
+                throw new IllegalStateException(
+                        "Can only transition " + displayName.getCapitalizedDisplayName() + " to state " + toState
+                                + " from state " + fromState + " however it is currently in state " + state + ".");
             }
         }
 
         @Override
         public void assertCanTransition(List<T> fromStates, T toState, boolean ignoreFailures) {
             if (!fromStates.contains(state)) {
-                throw new IllegalStateException("Can only transition " + displayName.getCapitalizedDisplayName() + " to state " + toState + " from states " + fromStates + " however it is currently in state " + state + ".");
+                throw new IllegalStateException(
+                        "Can only transition " + displayName.getCapitalizedDisplayName() + " to state " + toState
+                                + " from states " + fromStates + " however it is currently in state " + state + ".");
             }
         }
 
@@ -468,7 +482,8 @@ public class StateTransitionController<T extends StateTransitionController.State
 
         @Override
         public boolean inStateAndNotTransitioning(T toState) {
-            throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + toState + " but is in state " + state + " and transitioning to " + targetState + ".");
+            throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + toState
+                    + " but is in state " + state + " and transitioning to " + targetState + ".");
         }
 
         @Override
@@ -476,17 +491,20 @@ public class StateTransitionController<T extends StateTransitionController.State
             if (targetState == toState) {
                 return true;
             }
-            throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + toState + " but is in state " + state + " and transitioning to " + targetState + ".");
+            throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + toState
+                    + " but is in state " + state + " and transitioning to " + targetState + ".");
         }
 
         @Override
         public void assertInState(T expected) {
-            throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + expected + " but is in state " + state + " and transitioning to " + targetState + ".");
+            throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + expected
+                    + " but is in state " + state + " and transitioning to " + targetState + ".");
         }
 
         @Override
         public void assertNotInState(T forbidden) {
-            throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + " but is in state " + state + " and transitioning to " + targetState + ".");
+            throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state "
+                    + forbidden + " but is in state " + state + " and transitioning to " + targetState + ".");
         }
 
         @Override
@@ -506,15 +524,18 @@ public class StateTransitionController<T extends StateTransitionController.State
 
         private void failDueToTransition(T toState) {
             if (targetState == toState) {
-                throw new IllegalStateException("Cannot transition " + displayName.getDisplayName() + " to state " + toState + " as already transitioning to this state.");
+                throw new IllegalStateException("Cannot transition " + displayName.getDisplayName() + " to state "
+                        + toState + " as already transitioning to this state.");
             } else {
-                throw new IllegalStateException("Cannot transition " + displayName.getDisplayName() + " to state " + toState + " as already transitioning to state " + targetState + ".");
+                throw new IllegalStateException("Cannot transition " + displayName.getDisplayName() + " to state "
+                        + toState + " as already transitioning to state " + targetState + ".");
             }
         }
 
         @Override
         public boolean hasSeenStateAndNotTransitioning(T toState) {
-            throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + toState + " or later but is in state " + state + " and transitioning to " + targetState + ".");
+            throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + toState
+                    + " or later but is in state " + state + " and transitioning to " + targetState + ".");
         }
 
         @Override
@@ -630,6 +651,5 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
     }
 
-    public interface State {
-    }
+    public interface State {}
 }

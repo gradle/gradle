@@ -47,5 +47,4 @@ public interface VariantDependencyResolver {
      * @throws RuntimeException if the project cannot be resolved.
      */
     ResolvedCoordinates resolveVariantCoordinates(ProjectDependency dependency, VariantWarningCollector warnings);
-
 }

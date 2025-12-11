@@ -27,5 +27,4 @@ import org.gradle.api.Incubating;
  * @since 8.6
  */
 @Incubating
-public interface Location {
-}
+public interface Location {}

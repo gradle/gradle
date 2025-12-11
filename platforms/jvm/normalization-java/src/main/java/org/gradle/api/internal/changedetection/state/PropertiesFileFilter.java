@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
-
 import java.util.Map;
 
 public interface PropertiesFileFilter {

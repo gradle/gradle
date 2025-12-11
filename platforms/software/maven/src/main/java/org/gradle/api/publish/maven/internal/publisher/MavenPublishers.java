@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import java.io.File;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.internal.Factory;
@@ -23,15 +24,16 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.io.File;
-
 @ServiceScope(Scope.Build.class)
 public class MavenPublishers {
     private final BuildCommencedTimeProvider timeProvider;
     private RepositoryTransportFactory repositoryTransportFactory;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
-    public MavenPublishers(BuildCommencedTimeProvider timeProvider, RepositoryTransportFactory repositoryTransportFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+    public MavenPublishers(
+            BuildCommencedTimeProvider timeProvider,
+            RepositoryTransportFactory repositoryTransportFactory,
+            LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.timeProvider = timeProvider;
         this.repositoryTransportFactory = repositoryTransportFactory;
         this.mavenRepositoryLocator = mavenRepositoryLocator;

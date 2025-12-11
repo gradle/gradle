@@ -23,5 +23,4 @@ import org.gradle.tooling.events.FailureResult;
  *
  * @since 5.1
  */
-public interface TransformFailureResult extends TransformOperationResult, FailureResult {
-}
+public interface TransformFailureResult extends TransformOperationResult, FailureResult {}

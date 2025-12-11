@@ -16,11 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
-import org.gradle.util.internal.VersionNumber;
-
 import java.io.File;
+import org.gradle.util.internal.VersionNumber;
 
 public interface VisualCppInstallCandidate {
     File getVisualCppDir();
+
     VersionNumber getVersion();
 }

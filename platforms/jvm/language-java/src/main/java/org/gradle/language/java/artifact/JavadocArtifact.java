@@ -22,5 +22,4 @@ import org.gradle.api.component.Artifact;
  *
  * @since 2.0
  */
-public interface JavadocArtifact extends Artifact {
-}
+public interface JavadocArtifact extends Artifact {}

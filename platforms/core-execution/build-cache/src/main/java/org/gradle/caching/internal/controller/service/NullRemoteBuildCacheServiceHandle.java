@@ -16,13 +16,12 @@
 
 package org.gradle.caching.internal.controller.service;
 
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.Optional;
 import java.util.function.Function;
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.BuildCacheService;
+import org.jspecify.annotations.Nullable;
 
 public class NullRemoteBuildCacheServiceHandle implements RemoteBuildCacheServiceHandle {
 
@@ -40,7 +39,8 @@ public class NullRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
     }
 
     @Override
-    public Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, File toFile, Function<File, BuildCacheLoadResult> unpackFunction) {
+    public Optional<BuildCacheLoadResult> maybeLoad(
+            BuildCacheKey key, File toFile, Function<File, BuildCacheLoadResult> unpackFunction) {
         return Optional.empty();
     }
 
@@ -55,7 +55,5 @@ public class NullRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
     }
 
     @Override
-    public void close() {
-
-    }
+    public void close() {}
 }

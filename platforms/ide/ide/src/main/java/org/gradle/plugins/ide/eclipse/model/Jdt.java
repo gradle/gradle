@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import java.util.Properties;
-
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.PropertiesTransformer;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
@@ -53,8 +52,7 @@ public class Jdt extends PropertiesPersistableConfigurationObject {
     }
 
     @Override
-    protected void load(Properties properties) {
-    }
+    protected void load(Properties properties) {}
 
     @Override
     protected void store(Properties properties) {

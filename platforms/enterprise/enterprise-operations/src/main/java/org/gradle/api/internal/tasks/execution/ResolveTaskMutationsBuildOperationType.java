@@ -29,7 +29,9 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 7.6
  */
-public final class ResolveTaskMutationsBuildOperationType implements BuildOperationType<ResolveTaskMutationsBuildOperationType.Details, ResolveTaskMutationsBuildOperationType.Result> {
+public final class ResolveTaskMutationsBuildOperationType
+        implements BuildOperationType<
+                ResolveTaskMutationsBuildOperationType.Details, ResolveTaskMutationsBuildOperationType.Result> {
 
     public interface Details {
 
@@ -47,10 +49,7 @@ public final class ResolveTaskMutationsBuildOperationType implements BuildOperat
          * See {@code org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId}.
          */
         long getTaskId();
-
     }
 
-    public interface Result {
-    }
-
+    public interface Result {}
 }

@@ -17,11 +17,10 @@
 package org.gradle.api.publish.ivy.internal.dependency;
 
 import com.google.common.base.Strings;
+import java.util.Set;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 public class DefaultIvyDependency implements IvyDependency {
     private final String organisation;
@@ -34,15 +33,14 @@ public class DefaultIvyDependency implements IvyDependency {
     private final Set<ExcludeRule> excludeRules;
 
     public DefaultIvyDependency(
-        String organisation,
-        String module,
-        String revision,
-        String confMapping,
-        boolean transitive,
-        @Nullable String revConstraint,
-        Set<DependencyArtifact> artifacts,
-        Set<ExcludeRule> excludeRules
-    ) {
+            String organisation,
+            String module,
+            String revision,
+            String confMapping,
+            boolean transitive,
+            @Nullable String revConstraint,
+            Set<DependencyArtifact> artifacts,
+            Set<ExcludeRule> excludeRules) {
         this.organisation = organisation;
         this.module = module;
         this.revision = Strings.nullToEmpty(revision);

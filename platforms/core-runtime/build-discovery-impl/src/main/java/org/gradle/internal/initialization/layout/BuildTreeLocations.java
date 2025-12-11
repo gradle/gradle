@@ -16,11 +16,10 @@
 
 package org.gradle.internal.initialization.layout;
 
+import java.io.File;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 /**
  * Locations required to set up and manage a build tree.

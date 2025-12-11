@@ -24,7 +24,8 @@ class MessageRewritingBuildOperationAwareLogger extends BuildOperationAwareLogge
     private final BuildOperationAwareLogger delegate;
     private final ContextAwareTaskLogger.MessageRewriter messageRewriter;
 
-    MessageRewritingBuildOperationAwareLogger(BuildOperationAwareLogger delegate, ContextAwareTaskLogger.MessageRewriter messageRewriter) {
+    MessageRewritingBuildOperationAwareLogger(
+            BuildOperationAwareLogger delegate, ContextAwareTaskLogger.MessageRewriter messageRewriter) {
         this.delegate = delegate;
         this.messageRewriter = messageRewriter;
     }

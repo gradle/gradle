@@ -30,5 +30,4 @@ import org.gradle.api.Incubating;
  * @since 8.11
  */
 @Incubating
-public interface CapabilitySelector extends Describable {
-}
+public interface CapabilitySelector extends Describable {}

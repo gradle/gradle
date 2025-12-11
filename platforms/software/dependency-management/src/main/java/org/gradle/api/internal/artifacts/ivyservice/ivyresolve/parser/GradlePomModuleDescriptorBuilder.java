@@ -18,6 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -38,35 +43,31 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * This file was originally a copy of org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder, but has since been significantly modified.
  */
 public class GradlePomModuleDescriptorBuilder {
-    public static final ImmutableMap<String, Configuration> MAVEN2_CONFIGURATIONS = ImmutableMap.<String, Configuration>builder()
-        .put("default", new Configuration("default", true, true, ImmutableSet.of("runtime", "master")))
-        .put("master", new Configuration("master", true, true, ImmutableSet.of()))
-        .put("compile", new Configuration("compile", true, true, ImmutableSet.of()))
-        .put("provided", new Configuration("provided", true, true, ImmutableSet.of()))
-        .put("runtime", new Configuration("runtime", true, true, ImmutableSet.of("compile")))
-        .put("test", new Configuration("test", true, false, ImmutableSet.of("runtime")))
-        .put("system", new Configuration("system", true, true, ImmutableSet.of()))
-        .put("sources", new Configuration("sources", true, true, ImmutableSet.of()))
-        .put("javadoc", new Configuration("javadoc", true, true, ImmutableSet.of()))
-        .put("optional", new Configuration("optional", true, true, ImmutableSet.of())).build();
+    public static final ImmutableMap<String, Configuration> MAVEN2_CONFIGURATIONS =
+            ImmutableMap.<String, Configuration>builder()
+                    .put("default", new Configuration("default", true, true, ImmutableSet.of("runtime", "master")))
+                    .put("master", new Configuration("master", true, true, ImmutableSet.of()))
+                    .put("compile", new Configuration("compile", true, true, ImmutableSet.of()))
+                    .put("provided", new Configuration("provided", true, true, ImmutableSet.of()))
+                    .put("runtime", new Configuration("runtime", true, true, ImmutableSet.of("compile")))
+                    .put("test", new Configuration("test", true, false, ImmutableSet.of("runtime")))
+                    .put("system", new Configuration("system", true, true, ImmutableSet.of()))
+                    .put("sources", new Configuration("sources", true, true, ImmutableSet.of()))
+                    .put("javadoc", new Configuration("javadoc", true, true, ImmutableSet.of()))
+                    .put("optional", new Configuration("optional", true, true, ImmutableSet.of()))
+                    .build();
 
     private static final Map<String, MavenScope> SCOPES = ImmutableMap.<String, MavenScope>builder()
-        .put("compile", MavenScope.Compile)
-        .put("runtime", MavenScope.Runtime)
-        .put("provided", MavenScope.Provided)
-        .put("test", MavenScope.Test)
-        .put("system", MavenScope.System)
-        .build();
+            .put("compile", MavenScope.Compile)
+            .put("runtime", MavenScope.Runtime)
+            .put("provided", MavenScope.Provided)
+            .put("test", MavenScope.Test)
+            .put("system", MavenScope.System)
+            .build();
 
     private final VersionSelectorScheme defaultVersionSelectorScheme;
     private final VersionSelectorScheme mavenVersionSelectorScheme;
@@ -76,7 +77,10 @@ public class GradlePomModuleDescriptorBuilder {
     private String status;
     private ModuleComponentIdentifier componentIdentifier;
 
-    public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme) {
+    public GradlePomModuleDescriptorBuilder(
+            PomReader pomReader,
+            VersionSelectorScheme gradleVersionSelectorScheme,
+            VersionSelectorScheme mavenVersionSelectorScheme) {
         this.defaultVersionSelectorScheme = gradleVersionSelectorScheme;
         this.mavenVersionSelectorScheme = mavenVersionSelectorScheme;
         this.pomReader = pomReader;
@@ -97,11 +101,13 @@ public class GradlePomModuleDescriptorBuilder {
     public void setModuleRevId(String group, String module, String version) {
         String effectiveVersion = MavenVersionUtils.toEffectiveVersion(version);
         status = MavenVersionUtils.inferStatusFromEffectiveVersion(version);
-        componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, module), effectiveVersion);
+        componentIdentifier =
+                DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, module), effectiveVersion);
     }
 
     public void addDependency(PomDependencyData dep) {
-        MavenDependencyType type = dep.isOptional() ? MavenDependencyType.OPTIONAL_DEPENDENCY : MavenDependencyType.DEPENDENCY;
+        MavenDependencyType type =
+                dep.isOptional() ? MavenDependencyType.OPTIONAL_DEPENDENCY : MavenDependencyType.DEPENDENCY;
         doAddDependency(dep, type);
     }
 
@@ -125,7 +131,9 @@ public class GradlePomModuleDescriptorBuilder {
 
         String version = determineVersion(dep);
         String mappedVersion = convertVersionFromMavenSyntax(version);
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dep.getGroupId(), dep.getArtifactId()), new DefaultImmutableVersionConstraint(mappedVersion));
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
+                DefaultModuleIdentifier.newId(dep.getGroupId(), dep.getArtifactId()),
+                new DefaultImmutableVersionConstraint(mappedVersion));
 
         // Some POMs depend on themselves, don't add this dependency: Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/net/jini/jsk-platform/2.1/jsk-platform-2.1.pom
@@ -134,7 +142,8 @@ public class GradlePomModuleDescriptorBuilder {
         }
 
         IvyArtifactName dependencyArtifact = null;
-        boolean hasClassifier = dep.getClassifier() != null && dep.getClassifier().length() > 0;
+        boolean hasClassifier =
+                dep.getClassifier() != null && dep.getClassifier().length() > 0;
         boolean hasNonJarType = dep.getType() != null && !"jar".equals(dep.getType());
         if (hasClassifier || hasNonJarType) {
             String type = "jar";
@@ -188,23 +197,28 @@ public class GradlePomModuleDescriptorBuilder {
      * @param type Type
      */
     private String getClassifierForType(String type) {
-        if(JarDependencyType.TEST_JAR.getName().equals(type)) {
+        if (JarDependencyType.TEST_JAR.getName().equals(type)) {
             return "tests";
-        } else if(JarDependencyType.EJB_CLIENT.getName().equals(type)) {
+        } else if (JarDependencyType.EJB_CLIENT.getName().equals(type)) {
             return "client";
         }
         return null;
     }
 
     private enum JarDependencyType {
-        TEST_JAR("test-jar"), EJB_CLIENT("ejb-client"), EJB("ejb"), BUNDLE("bundle"), MAVEN_PLUGIN("maven-plugin"), ECLIPSE_PLUGIN("eclipse-plugin");
+        TEST_JAR("test-jar"),
+        EJB_CLIENT("ejb-client"),
+        EJB("ejb"),
+        BUNDLE("bundle"),
+        MAVEN_PLUGIN("maven-plugin"),
+        ECLIPSE_PLUGIN("eclipse-plugin");
 
         private static final Map<String, JarDependencyType> TYPES;
 
         static {
             TYPES = new HashMap<>();
 
-            for(JarDependencyType type : values()) {
+            for (JarDependencyType type : values()) {
                 TYPES.put(type.name, type);
             }
         }
@@ -242,11 +256,12 @@ public class GradlePomModuleDescriptorBuilder {
         // since Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/com/atomikos/atomikos-util/3.6.4/atomikos-util-3.6.4.pom
         if (selector.getGroup().equals(componentIdentifier.getGroup())
-            && selector.getModule().equals(componentIdentifier.getModule())) {
+                && selector.getModule().equals(componentIdentifier.getModule())) {
             return;
         }
 
-        dependencies.add(new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.RELOCATION, selector, null, ImmutableList.of()));
+        dependencies.add(new MavenDependencyDescriptor(
+                MavenScope.Compile, MavenDependencyType.RELOCATION, selector, null, ImmutableList.of()));
     }
 
     private String getDefaultVersion(PomDependencyMgt dep) {

@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.apache.commons.lang3.Strings;
-import org.apache.commons.lang3.StringUtils;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Given a Module and a File that is to be an artifact, attempts to determine the appropriate name+classifier+extension from the file name.

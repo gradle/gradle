@@ -15,6 +15,11 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import java.io.File;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -22,17 +27,12 @@ import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 public class DefaultGradleConnector extends GradleConnector implements ProjectConnectionCloseListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleConnector.class);
 
     public static final int MINIMAL_CLIENT_MAJOR_VERSION = 4;
-    public static final GradleVersion MINIMUM_SUPPORTED_GRADLE_VERSION = GradleVersion.version(MINIMAL_CLIENT_MAJOR_VERSION + ".0");
+    public static final GradleVersion MINIMUM_SUPPORTED_GRADLE_VERSION =
+            GradleVersion.version(MINIMAL_CLIENT_MAJOR_VERSION + ".0");
     private final ConnectionFactory connectionFactory;
     private final DistributionFactory distributionFactory;
     private Distribution distribution;
@@ -160,19 +160,24 @@ public class DefaultGradleConnector extends GradleConnector implements ProjectCo
 
     @Override
     public ProjectConnection connect() throws GradleConnectionException {
-        LOGGER.debug("Connecting from tooling API consumer version {}", GradleVersion.current().getVersion());
+        LOGGER.debug(
+                "Connecting from tooling API consumer version {}",
+                GradleVersion.current().getVersion());
 
         ConnectionParameters connectionParameters = connectionParamsBuilder.build();
         if (connectionParameters.getProjectDir() == null) {
             throw new IllegalStateException("A project directory must be specified before creating a connection.");
         }
         if (distribution == null) {
-            distribution = distributionFactory.getDefaultDistribution(connectionParameters.getProjectDir(), connectionParameters.isSearchUpwards() != null ? connectionParameters.isSearchUpwards() : true);
+            distribution = distributionFactory.getDefaultDistribution(
+                    connectionParameters.getProjectDir(),
+                    connectionParameters.isSearchUpwards() != null ? connectionParameters.isSearchUpwards() : true);
         }
 
         synchronized (connections) {
             if (stopped) {
-                throw new IllegalStateException("Tooling API client has been disconnected. No other connections may be used.");
+                throw new IllegalStateException(
+                        "Tooling API client has been disconnected. No other connections may be used.");
             }
 
             ProjectConnection connection = connectionFactory.create(distribution, connectionParameters, this);

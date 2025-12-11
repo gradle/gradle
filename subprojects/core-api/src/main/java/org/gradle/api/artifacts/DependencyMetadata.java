@@ -99,5 +99,4 @@ public interface DependencyMetadata<SELF extends DependencyMetadata> {
      * @since 4.9
      */
     ModuleIdentifier getModule();
-
 }

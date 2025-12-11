@@ -16,6 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.FileUtils;
@@ -23,16 +26,10 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.VersionNumber;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 @ServiceScope(Scope.BuildSession.class)
-public class WindowsRegistryVersionLocator extends AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
-    static final String[] REGISTRY_BASEPATHS = {
-        "SOFTWARE\\",
-        "SOFTWARE\\Wow6432Node\\"
-    };
+public class WindowsRegistryVersionLocator extends AbstractVisualStudioVersionLocator
+        implements VisualStudioVersionLocator {
+    static final String[] REGISTRY_BASEPATHS = {"SOFTWARE\\", "SOFTWARE\\Wow6432Node\\"};
     static final String REGISTRY_ROOTPATH_VC = "Microsoft\\VisualStudio\\SxS\\VC7";
 
     private final WindowsRegistry windowsRegistry;
@@ -58,7 +55,8 @@ public class WindowsRegistryVersionLocator extends AbstractVisualStudioVersionLo
     private void locateInstallsInRegistry(List<VisualStudioInstallCandidate> installs, String baseKey) {
         List<String> visualCppVersions;
         try {
-            visualCppVersions = windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC);
+            visualCppVersions = windowsRegistry.getValueNames(
+                    WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC);
         } catch (MissingRegistryEntryException e) {
             // No Visual Studio information available in the registry
             return;
@@ -69,16 +67,17 @@ public class WindowsRegistryVersionLocator extends AbstractVisualStudioVersionLo
                 // Ignore the other values
                 continue;
             }
-            File visualCppDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC, versionString));
+            File visualCppDir = new File(windowsRegistry.getStringValue(
+                    WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC, versionString));
             visualCppDir = FileUtils.canonicalize(visualCppDir);
             File visualStudioDir = visualCppDir.getParentFile();
             VersionNumber version = VersionNumber.parse(versionString);
             installs.add(new VisualStudioMetadataBuilder()
-                .installDir(visualStudioDir)
-                .visualCppDir(visualCppDir)
-                .version(version)
-                .visualCppVersion(version)
-                .build());
+                    .installDir(visualStudioDir)
+                    .visualCppDir(visualCppDir)
+                    .version(version)
+                    .visualCppVersion(version)
+                    .build());
         }
     }
 }

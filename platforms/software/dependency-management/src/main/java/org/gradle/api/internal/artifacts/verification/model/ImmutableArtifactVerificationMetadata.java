@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.verification.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +27,8 @@ public class ImmutableArtifactVerificationMetadata implements ArtifactVerificati
     private final Set<IgnoredKey> ignoredPgpKeys;
     private final int hashCode;
 
-    public ImmutableArtifactVerificationMetadata(String artifactName, List<Checksum> checksums, Set<String> trustedPgpKeys, Set<IgnoredKey> ignoredPgpKeys) {
+    public ImmutableArtifactVerificationMetadata(
+            String artifactName, List<Checksum> checksums, Set<String> trustedPgpKeys, Set<IgnoredKey> ignoredPgpKeys) {
         this.artifactName = artifactName;
         this.checksums = ImmutableList.copyOf(checksums);
         this.trustedPgpKeys = ImmutableSet.copyOf(trustedPgpKeys);

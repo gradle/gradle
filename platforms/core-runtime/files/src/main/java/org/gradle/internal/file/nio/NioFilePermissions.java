@@ -16,13 +16,12 @@
 
 package org.gradle.internal.file.nio;
 
-import org.gradle.internal.file.FilePermissionHandler;
-import org.gradle.internal.file.FileSystem;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import org.gradle.internal.file.FilePermissionHandler;
+import org.gradle.internal.file.FileSystem;
 
 @SuppressWarnings("Since15")
 public class NioFilePermissions {

@@ -16,15 +16,14 @@
 
 package org.gradle.integtests.fixtures.logging.comparison;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 
 /**
  * Copied from the Google Truth project: https://github.com/google/truth/blob/master/core/src/main/java/com/google/common/truth/DiffUtils.java.
@@ -50,8 +49,7 @@ public final class DiffUtils {
     private int offsetHead = 0;
     private int offsetTail = 0;
 
-    private List<String> diff(
-            List<String> originalLines, List<String> revisedLines, int contextSize) {
+    private List<String> diff(List<String> originalLines, List<String> revisedLines, int contextSize) {
         reduceEqualLinesFromHeadAndTail(originalLines, revisedLines, contextSize);
         originalLines = originalLines.subList(offsetHead, originalLines.size() - offsetTail);
         revisedLines = revisedLines.subList(offsetHead, revisedLines.size() - offsetTail);
@@ -98,8 +96,7 @@ public final class DiffUtils {
     }
 
     /** An optimization to reduce the problem size by removing equal lines from head and tail. */
-    private void reduceEqualLinesFromHeadAndTail(
-            List<String> original, List<String> revised, int contextSize) {
+    private void reduceEqualLinesFromHeadAndTail(List<String> original, List<String> revised, int contextSize) {
         int head = 0;
         int maxHead = min(original.size(), revised.size());
         while (head < maxHead && original.get(head).equals(revised.get(head))) {
@@ -111,9 +108,7 @@ public final class DiffUtils {
         int tail = 0;
         int maxTail = min(original.size() - head - contextSize, revised.size() - head - contextSize);
         while (tail < maxTail
-                && original
-                .get(original.size() - 1 - tail)
-                .equals(revised.get(revised.size() - 1 - tail))) {
+                && original.get(original.size() - 1 - tail).equals(revised.get(revised.size() - 1 - tail))) {
             tail++;
         }
         tail = max(tail - contextSize, 0);
@@ -212,8 +207,7 @@ public final class DiffUtils {
             int blockSizeRevised = lineNumRevised - startLineRevised - (next - end - 1);
 
             StringBuilder header = new StringBuilder();
-            header
-                    .append("@@ -")
+            header.append("@@ -")
                     .append(startLineOrigin)
                     .append(",")
                     .append(blockSizeOrigin)
@@ -225,14 +219,12 @@ public final class DiffUtils {
 
             reducedUnifiedDiff.add(header.toString());
             for (int i = start; i < end; i++) {
-                reducedUnifiedDiff.add(
-                        unifiedDiffType.get(i) + stringList.get(unifiedDiffContentId.get(i)));
+                reducedUnifiedDiff.add(unifiedDiffType.get(i) + stringList.get(unifiedDiffContentId.get(i)));
             }
         }
     }
 
-    public static List<String> generateUnifiedDiff(
-            List<String> original, List<String> revised, int contextSize) {
+    public static List<String> generateUnifiedDiff(List<String> original, List<String> revised, int contextSize) {
         return new DiffUtils().diff(original, revised, contextSize);
     }
 }

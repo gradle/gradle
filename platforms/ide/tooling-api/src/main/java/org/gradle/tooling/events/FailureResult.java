@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.tooling.Failure;
-
 import java.util.List;
+import org.gradle.tooling.Failure;
 
 /**
  * Describes how an operation finished with failures.
@@ -33,5 +32,4 @@ public interface FailureResult extends OperationResult {
      * @return the failures, empty if the operation failed without any specific failure information.
      */
     List<? extends Failure> getFailures();
-
 }

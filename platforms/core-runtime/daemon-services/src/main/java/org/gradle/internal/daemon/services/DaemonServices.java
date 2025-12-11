@@ -56,19 +56,14 @@ public class DaemonServices extends AbstractGradleModuleServices {
             FilteringClassLoader modelClassLoader = new FilteringClassLoader(parent, filterSpec);
 
             return new DaemonSidePayloadClassLoaderFactory(
-                new ModelClassLoaderFactory(modelClassLoader),
-                cachedClasspathTransformer
-            );
+                    new ModelClassLoaderFactory(modelClassLoader), cachedClasspathTransformer);
         }
 
         @Provides
-        PayloadSerializer createPayloadSerializer(ClassLoaderCache classLoaderCache, PayloadClassLoaderFactory classLoaderFactory) {
-            return new PayloadSerializer(
-                new WellKnownClassLoaderRegistry(
-                    new DefaultPayloadClassLoaderRegistry(
-                        classLoaderCache,
-                        classLoaderFactory))
-            );
+        PayloadSerializer createPayloadSerializer(
+                ClassLoaderCache classLoaderCache, PayloadClassLoaderFactory classLoaderFactory) {
+            return new PayloadSerializer(new WellKnownClassLoaderRegistry(
+                    new DefaultPayloadClassLoaderRegistry(classLoaderCache, classLoaderFactory)));
         }
     }
 }

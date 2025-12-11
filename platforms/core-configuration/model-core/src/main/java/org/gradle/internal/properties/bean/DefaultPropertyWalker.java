@@ -16,7 +16,14 @@
 
 package org.gradle.internal.properties.bean;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
 import com.google.common.base.Suppliers;
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import org.gradle.api.Buildable;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -41,24 +48,20 @@ import org.gradle.internal.snapshot.impl.ImplementationValue;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
-import java.util.Collection;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
-
 @NullMarked
 public class DefaultPropertyWalker implements PropertyWalker {
     private final InstanceMetadataWalker walker;
     private final ImplementationResolver implementationResolver;
     private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> handlers;
 
-    public DefaultPropertyWalker(TypeMetadataStore typeMetadataStore, ImplementationResolver implementationResolver, Collection<PropertyAnnotationHandler> propertyHandlers) {
+    public DefaultPropertyWalker(
+            TypeMetadataStore typeMetadataStore,
+            ImplementationResolver implementationResolver,
+            Collection<PropertyAnnotationHandler> propertyHandlers) {
         this.walker = TypeMetadataWalker.instanceWalker(typeMetadataStore, Nested.class);
         this.implementationResolver = implementationResolver;
-        this.handlers = propertyHandlers.stream().collect(toImmutableMap(PropertyAnnotationHandler::getAnnotationType, Function.identity()));
+        this.handlers = propertyHandlers.stream()
+                .collect(toImmutableMap(PropertyAnnotationHandler::getAnnotationType, Function.identity()));
     }
 
     @Override
@@ -70,10 +73,15 @@ public class DefaultPropertyWalker implements PropertyWalker {
             }
 
             @Override
-            public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Object value) {
+            public void visitNested(
+                    TypeMetadata typeMetadata,
+                    String qualifiedName,
+                    PropertyMetadata propertyMetadata,
+                    @Nullable Object value) {
                 typeMetadata.visitValidationFailures(qualifiedName, validationContext);
                 if (value != null) {
-                    NestedValidationUtil.validateBeanType(validationContext, propertyMetadata.getPropertyName(), typeMetadata.getType());
+                    NestedValidationUtil.validateBeanType(
+                            validationContext, propertyMetadata.getPropertyName(), typeMetadata.getType());
                     ImplementationValue implementation = implementationResolver.resolveImplementation(value);
                     visitor.visitInputProperty(qualifiedName, new ImplementationPropertyValue(implementation), false);
                 } else if (!propertyMetadata.isAnnotationPresent(Optional.class)) {
@@ -89,13 +97,13 @@ public class DefaultPropertyWalker implements PropertyWalker {
             @Override
             public void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata) {
                 PropertyValue cachedValue = new CachedPropertyValue(
-                    () -> propertyMetadata.getPropertyValue(parent),
-                    propertyMetadata.getDeclaredType().getRawType(),
-                    propertyMetadata.isAnnotationPresent(ReplacesEagerProperty.class)
-                );
+                        () -> propertyMetadata.getPropertyValue(parent),
+                        propertyMetadata.getDeclaredType().getRawType(),
+                        propertyMetadata.isAnnotationPresent(ReplacesEagerProperty.class));
                 PropertyAnnotationHandler handler = handlers.get(propertyMetadata.getPropertyType());
                 if (handler == null) {
-                    throw new IllegalStateException("Property handler should not be null for: " + propertyMetadata.getPropertyType());
+                    throw new IllegalStateException(
+                            "Property handler should not be null for: " + propertyMetadata.getPropertyType());
                 }
                 handler.visitPropertyValue(qualifiedName, cachedValue, propertyMetadata, visitor);
             }
@@ -107,11 +115,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
         private final Supplier<Object> cachedInvoker;
         private final Class<?> declaredType;
 
-        public CachedPropertyValue(
-            Supplier<Object> supplier,
-            Class<?> declaredType,
-            boolean isUpgradedProperty
-        ) {
+        public CachedPropertyValue(Supplier<Object> supplier, Class<?> declaredType, boolean isUpgradedProperty) {
             this.declaredType = declaredType;
             this.cachedInvoker = Suppliers.memoize(() -> {
                 Object value = DeprecationLogger.whileDisabled(supplier::get);

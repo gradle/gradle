@@ -16,16 +16,15 @@
 
 package org.gradle.internal.event;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.dispatch.Dispatch;
-import org.gradle.internal.dispatch.MethodInvocation;
-import org.gradle.internal.operations.BuildOperationInvocationException;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.dispatch.MethodInvocation;
+import org.gradle.internal.operations.BuildOperationInvocationException;
 
 public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInvocation> {
     protected final Class<T> type;
@@ -35,7 +34,8 @@ public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInv
     }
 
     private String getErrorMessage() {
-        String typeDescription = type.getSimpleName().replaceAll("(\\p{Upper})", " $1").trim().toLowerCase(Locale.ROOT);
+        String typeDescription =
+                type.getSimpleName().replaceAll("(\\p{Upper})", " $1").trim().toLowerCase(Locale.ROOT);
         return "Failed to notify " + typeDescription + ".";
     }
 
@@ -43,9 +43,11 @@ public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInv
         try {
             handler.dispatch(invocation);
         } catch (UncheckedException e) {
-            throw new ListenerNotificationException(invocation, getErrorMessage(), Collections.singletonList(e.getCause()));
+            throw new ListenerNotificationException(
+                    invocation, getErrorMessage(), Collections.singletonList(e.getCause()));
         } catch (BuildOperationInvocationException e) {
-            throw new ListenerNotificationException(invocation, getErrorMessage(), Collections.singletonList(e.getCause()));
+            throw new ListenerNotificationException(
+                    invocation, getErrorMessage(), Collections.singletonList(e.getCause()));
         } catch (RuntimeException t) {
             throw t;
         } catch (Throwable t) {

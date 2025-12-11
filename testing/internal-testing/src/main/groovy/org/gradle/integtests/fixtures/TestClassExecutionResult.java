@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.api.tasks.testing.TestResult;
-import org.hamcrest.Matcher;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import org.gradle.api.tasks.testing.TestResult;
+import org.hamcrest.Matcher;
 
 public interface TestClassExecutionResult {
     /**
@@ -71,7 +70,6 @@ public interface TestClassExecutionResult {
         return this;
     }
 
-
     int getTestCount();
 
     /**
@@ -113,7 +111,8 @@ public interface TestClassExecutionResult {
     /**
      * Asserts that the given test failed.
      */
-    TestClassExecutionResult assertTestFailed(String name, String displayName, Matcher<? super String>... messageMatchers);
+    TestClassExecutionResult assertTestFailed(
+            String name, String displayName, Matcher<? super String>... messageMatchers);
 
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers);
 

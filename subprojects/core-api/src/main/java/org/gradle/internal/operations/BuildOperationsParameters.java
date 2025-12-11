@@ -27,5 +27,4 @@ public interface BuildOperationsParameters {
      * For observability purposes, potentially at the cost of some performance.
      */
     boolean emitLockingOperations();
-
 }

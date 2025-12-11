@@ -20,6 +20,9 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.google.common.io.ByteStreams;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ReadableContent;
@@ -30,10 +33,6 @@ import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 
 public class S3ResourceConnector extends AbstractExternalResourceAccessor implements ExternalResourceConnector {
 
@@ -69,19 +68,22 @@ public class S3ResourceConnector extends AbstractExternalResourceAccessor implem
         }
         try {
             ObjectMetadata objectMetadata = s3Object.getObjectMetadata();
-            return new DefaultExternalResourceMetaData(location.getUri(),
-                objectMetadata.getLastModified().getTime(),
-                objectMetadata.getContentLength(),
-                objectMetadata.getContentType(),
-                objectMetadata.getETag(),
-                null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
+            return new DefaultExternalResourceMetaData(
+                    location.getUri(),
+                    objectMetadata.getLastModified().getTime(),
+                    objectMetadata.getContentLength(),
+                    objectMetadata.getContentType(),
+                    objectMetadata.getETag(),
+                    null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file
+            // (when less than 5Gb)
         } finally {
             discardEmptyContentAndClose(s3Object);
         }
     }
 
     private static void discardEmptyContentAndClose(S3Object s3Object) {
-        // Consume the content stream to avoid warning from S3 SDK. The response should have only 1 byte there because Range header was specified.
+        // Consume the content stream to avoid warning from S3 SDK. The response should have only 1 byte there because
+        // Range header was specified.
         try {
             S3ObjectInputStream objectContent = s3Object.getObjectContent();
             if (objectContent == null) {
@@ -90,7 +92,9 @@ public class S3ResourceConnector extends AbstractExternalResourceAccessor implem
             long downloadedContentLength = ByteStreams.exhaust(objectContent);
             if (downloadedContentLength > 1L) {
                 // This may happen if the endpoint ignores Range HTTP header for whatever reason.
-                LOGGER.debug("Downloaded {} bytes of the object content for metadata request which is too much.", downloadedContentLength);
+                LOGGER.debug(
+                        "Downloaded {} bytes of the object content for metadata request which is too much.",
+                        downloadedContentLength);
             }
         } catch (IOException e) {
             // Don't complain loudly to the user about the error there because we were discarding the response anyway.

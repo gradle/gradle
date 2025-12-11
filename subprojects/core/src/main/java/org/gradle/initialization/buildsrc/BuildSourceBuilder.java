@@ -32,8 +32,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Build.class)
 public class BuildSourceBuilder {
-    private static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
-    };
+    private static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT =
+            new BuildBuildSrcBuildOperationType.Result() {};
 
     private final BuildState currentBuild;
     private final BuildOperationRunner buildOperationRunner;
@@ -43,13 +43,12 @@ public class BuildSourceBuilder {
     private final BuildLogicBuildQueue buildQueue;
 
     public BuildSourceBuilder(
-        BuildState currentBuild,
-        BuildOperationRunner buildOperationRunner,
-        BuildSrcBuildListenerFactory buildSrcBuildListenerFactory,
-        BuildStateRegistry buildRegistry,
-        PublicBuildPath publicBuildPath,
-        BuildLogicBuildQueue buildQueue
-    ) {
+            BuildState currentBuild,
+            BuildOperationRunner buildOperationRunner,
+            BuildSrcBuildListenerFactory buildSrcBuildListenerFactory,
+            BuildStateRegistry buildRegistry,
+            PublicBuildPath publicBuildPath,
+            BuildLogicBuildQueue buildQueue) {
         this.currentBuild = currentBuild;
         this.buildOperationRunner = buildOperationRunner;
         this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
@@ -75,23 +74,21 @@ public class BuildSourceBuilder {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 //noinspection Convert2Lambda
-                return BuildOperationDescriptor.displayName("Build buildSrc").
-                    progressDisplayName("Building buildSrc").
-                    details(
-                        new BuildBuildSrcBuildOperationType.Details() {
+                return BuildOperationDescriptor.displayName("Build buildSrc")
+                        .progressDisplayName("Building buildSrc")
+                        .details(new BuildBuildSrcBuildOperationType.Details() {
                             @Override
                             public String getBuildPath() {
                                 return publicBuildPath.getBuildPath().toString();
                             }
-                        }
-                    );
+                        });
             }
         });
     }
 
     private ClassPath buildBuildSrc(StandAloneNestedBuild buildSrcBuild) {
-        return buildQueue.buildBuildSrc(buildSrcBuild, buildController ->
-            new BuildSrcUpdateFactory(buildSrcBuildListenerFactory).create(buildController)
-        );
+        return buildQueue.buildBuildSrc(
+                buildSrcBuild,
+                buildController -> new BuildSrcUpdateFactory(buildSrcBuildListenerFactory).create(buildController));
     }
 }

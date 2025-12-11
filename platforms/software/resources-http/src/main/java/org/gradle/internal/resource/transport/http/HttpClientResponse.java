@@ -16,16 +16,15 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 
 public class HttpClientResponse implements Closeable {
 
@@ -48,7 +47,9 @@ public class HttpClientResponse implements Closeable {
     public InputStream getContent() throws IOException {
         HttpEntity entity = httpResponse.getEntity();
         if (entity == null) {
-            throw new IOException(String.format("Response %d: %s has no content!", getStatusLine().getStatusCode(), getStatusLine().getReasonPhrase()));
+            throw new IOException(String.format(
+                    "Response %d: %s has no content!",
+                    getStatusLine().getStatusCode(), getStatusLine().getReasonPhrase()));
         }
         return entity.getContent();
     }

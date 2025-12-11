@@ -18,5 +18,4 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
 
-public interface LocalDependencyFiles extends FileCollectionInternal.Source {
-}
+public interface LocalDependencyFiles extends FileCollectionInternal.Source {}

@@ -48,5 +48,4 @@ public class ScopeId {
     public int hashCode() {
         return id.hashCode();
     }
-
 }

@@ -16,24 +16,25 @@
 
 package org.gradle.api.testing.toolchains.internal;
 
-import org.gradle.api.artifacts.Dependency;
-
 import java.util.Collections;
+import org.gradle.api.artifacts.Dependency;
 
 /**
  * A {@link JUnitPlatformTestToolchain} that uses the JUnit Jupiter test engine.
  *
  * @since 8.5
  */
-abstract public class JUnitJupiterTestToolchain extends JUnitPlatformTestToolchain<JUnitJupiterToolchainParameters> {
+public abstract class JUnitJupiterTestToolchain extends JUnitPlatformTestToolchain<JUnitJupiterToolchainParameters> {
     /**
      * The default version of JUnit Jupiter to use for compiling and executing tests.
      */
     public static final String DEFAULT_VERSION = "5.12.2";
+
     private static final String GROUP_NAME = "org.junit.jupiter:junit-jupiter";
 
     @Override
     public Iterable<Dependency> getImplementationDependencies() {
-        return Collections.singletonList(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getJupiterVersion().get()));
+        return Collections.singletonList(getDependencyFactory()
+                .create(GROUP_NAME + ":" + getParameters().getJupiterVersion().get()));
     }
 }

@@ -21,5 +21,4 @@ interface JavaMethodTestSubjectInterface {
     default String defaultMethod() {
         return "parent-interface";
     }
-
 }

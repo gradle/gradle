@@ -16,7 +16,23 @@
 
 package org.gradle.api.publish.tasks;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+
 import com.google.common.collect.ImmutableSet;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
+import java.io.Writer;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
@@ -60,23 +76,6 @@ import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.NonNull;
-
-import javax.inject.Inject;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.UncheckedIOException;
-import java.io.Writer;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * Generates a Gradle metadata file to represent a published {@link SoftwareComponent} instance.
@@ -184,9 +183,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
         if (!(inputState instanceof InputState.Ready)) {
             throw new IllegalStateException(inputState.toString());
         }
-        writeModuleMetadata(
-            ((InputState.Ready) inputState).moduleMetadataSpec.get()
-        );
+        writeModuleMetadata(((InputState.Ready) inputState).moduleMetadataSpec.get());
     }
 
     private void writeModuleMetadata(ModuleMetadataSpec moduleMetadataSpec) {
@@ -210,9 +207,10 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
         InputState inputState = inputState();
         if (inputState instanceof InputState.ComponentMissing) {
             String publicationName = ((InputState.ComponentMissing) inputState).publicationName;
-            getLogger().warn(
-                publicationName + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
-            );
+            getLogger()
+                    .warn(
+                            publicationName
+                                    + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)");
             return false;
         }
         return true;
@@ -220,8 +218,8 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
 
     private InputState computeInputState() {
         return component() == null
-            ? new InputState.ComponentMissing(publicationName())
-            : new InputState.Ready(moduleMetadataSpec());
+                ? new InputState.ComponentMissing(publicationName())
+                : new InputState.Ready(moduleMetadataSpec());
     }
 
     private Try<ModuleMetadataSpec> moduleMetadataSpec() {
@@ -230,13 +228,14 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
 
     private ModuleMetadataSpec computeModuleMetadataSpec() {
         PublicationInternal<?> publication = publication();
-        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), getPath(), getSuppressedValidationErrors().get());
+        InvalidPublicationChecker checker = new InvalidPublicationChecker(
+                publication.getName(),
+                getPath(),
+                getSuppressedValidationErrors().get());
         ModuleMetadataSpec spec = new ModuleMetadataSpecBuilder(
-            publication,
-            publications(),
-            checker,
-            getDependencyCoordinateResolverFactory()
-        ).build().get();
+                        publication, publications(), checker, getDependencyCoordinateResolverFactory())
+                .build()
+                .get();
         checker.validate();
         return spec;
     }
@@ -295,7 +294,6 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
             Set<File> files = new LinkedHashSet<>();
             forEachArtifactOf(component, artifact -> files.add(artifact.getFile()));
             return files;
-
         }
 
         private void forEachArtifactOf(SoftwareComponentInternal component, Action<PublishArtifact> action) {
@@ -335,5 +333,4 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
 
     @Inject
     protected abstract TaskDependencyFactory getTaskDependencyFactory();
-
 }

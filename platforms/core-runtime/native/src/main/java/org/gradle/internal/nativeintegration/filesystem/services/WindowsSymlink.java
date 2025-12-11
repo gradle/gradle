@@ -16,10 +16,9 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import org.gradle.internal.nativeintegration.filesystem.Symlink;
-
 import java.io.File;
 import java.io.IOException;
+import org.gradle.internal.nativeintegration.filesystem.Symlink;
 
 class WindowsSymlink implements Symlink {
     @Override

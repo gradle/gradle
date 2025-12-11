@@ -16,13 +16,12 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.gradle.util.internal.IncubationLogger.INCUBATION_MESSAGE;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.gradle.util.internal.IncubationLogger.INCUBATION_MESSAGE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LoggingIncubatingFeatureHandler implements FeatureHandler<IncubatingFeatureUsage> {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingIncubatingFeatureHandler.class);

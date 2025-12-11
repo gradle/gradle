@@ -16,15 +16,14 @@
 
 package org.gradle.internal.instrumentation.processor.modelreader.api;
 
-import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 
 public interface CallInterceptionRequestReader<T> {
 

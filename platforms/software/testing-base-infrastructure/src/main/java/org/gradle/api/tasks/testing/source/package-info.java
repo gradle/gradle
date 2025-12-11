@@ -20,7 +20,6 @@
  * The class hierarchy is meant to mirror the one in the JUnit Platform
  * (see {@code org.junit.platform.engine.TestSource}), but applies to any kind of test.
  */
-
 @NullMarked
 package org.gradle.api.tasks.testing.source;
 

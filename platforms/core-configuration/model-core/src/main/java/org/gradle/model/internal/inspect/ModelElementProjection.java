@@ -35,7 +35,8 @@ public class ModelElementProjection extends TypeCompatibilityModelProjectionSupp
     }
 
     @Override
-    protected ModelView<ModelElement> toView(final MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
+    protected ModelView<ModelElement> toView(
+            final MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
         return InstanceModelView.of(modelNode.getPath(), MODEL_ELEMENT_MODEL_TYPE, new ModelElement() {
             @Override
             public String toString() {

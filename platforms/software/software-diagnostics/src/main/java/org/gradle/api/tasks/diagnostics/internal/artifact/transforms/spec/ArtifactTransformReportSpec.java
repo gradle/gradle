@@ -16,9 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics.internal.artifact.transforms.spec;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Contains options describing how to run an {@link org.gradle.api.tasks.diagnostics.ArtifactTransformsReportTask}, which describes what features of the data model for

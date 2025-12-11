@@ -16,12 +16,11 @@
 
 package org.gradle.internal.composite;
 
+import java.io.File;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.SettingsLoader;
 import org.gradle.initialization.SettingsState;
-
-import java.io.File;
 
 public class CommandLineIncludedBuildSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;

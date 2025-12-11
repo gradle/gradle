@@ -27,5 +27,4 @@ public interface CandidateClassFile {
      * Always uses '/' as separator, regardless of the platform file separator.
      */
     String getRelativePath();
-
 }

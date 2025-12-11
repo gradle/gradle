@@ -18,6 +18,9 @@ package org.gradle.launcher.daemon.client;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -30,10 +33,6 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
 import org.gradle.launcher.daemon.registry.DaemonStopEvents;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 public class ReportDaemonStatusClient {
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
     private final DaemonRegistry daemonRegistry;
@@ -44,7 +43,11 @@ public class ReportDaemonStatusClient {
     public static final String STATUS_FOOTER = "Only Daemons for the current Gradle version are displayed.";
     private static final String STATUS_FORMAT = "%1$6s %2$-8s %3$s";
 
-    public ReportDaemonStatusClient(DaemonRegistry daemonRegistry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry) {
+    public ReportDaemonStatusClient(
+            DaemonRegistry daemonRegistry,
+            DaemonConnector connector,
+            IdGenerator<UUID> idGenerator,
+            DocumentationRegistry documentationRegistry) {
         Preconditions.checkNotNull(daemonRegistry, "DaemonRegistry must not be null");
         Preconditions.checkNotNull(connector, "DaemonConnector must not be null");
         Preconditions.checkNotNull(idGenerator, "IdGenerator must not be null");
@@ -77,7 +80,8 @@ public class ReportDaemonStatusClient {
             }
         }
 
-        final List<DaemonStopEvent> stopEvents = DaemonStopEvents.uniqueRecentDaemonStopEvents(daemonRegistry.getStopEvents());
+        final List<DaemonStopEvent> stopEvents =
+                DaemonStopEvents.uniqueRecentDaemonStopEvents(daemonRegistry.getStopEvents());
         if (statuses.isEmpty()) {
             LOGGER.quiet(DaemonMessages.NO_DAEMONS_RUNNING);
         }
@@ -90,15 +94,17 @@ public class ReportDaemonStatusClient {
         printStoppedDaemons(stopEvents);
 
         LOGGER.quiet("");
-        LOGGER.quiet(STATUS_FOOTER + " " + documentationRegistry.getDocumentationRecommendationFor("on this", "gradle_daemon", "sec:status"));
+        LOGGER.quiet(STATUS_FOOTER + " "
+                + documentationRegistry.getDocumentationRecommendationFor("on this", "gradle_daemon", "sec:status"));
     }
 
     @VisibleForTesting
     void printRunningDaemons(final List<Status> statuses) {
         if (!statuses.isEmpty()) {
-            for(Status status : statuses) {
+            for (Status status : statuses) {
                 Long pid = status.getPid();
-                LOGGER.quiet(String.format(STATUS_FORMAT, pid == null ? "PID unknown" : pid, status.getStatus(), status.getVersion()));
+                LOGGER.quiet(String.format(
+                        STATUS_FORMAT, pid == null ? "PID unknown" : pid, status.getStatus(), status.getVersion()));
             }
         }
     }
@@ -106,9 +112,10 @@ public class ReportDaemonStatusClient {
     @VisibleForTesting
     void printStoppedDaemons(final List<DaemonStopEvent> stopEvents) {
         if (!stopEvents.isEmpty()) {
-            for(DaemonStopEvent event : stopEvents) {
+            for (DaemonStopEvent event : stopEvents) {
                 Long pid = event.getPid();
-                LOGGER.quiet(String.format(STATUS_FORMAT, pid == null ? "PID unknown" : pid, "STOPPED", "(" + event.getReason() + ")"));
+                LOGGER.quiet(String.format(
+                        STATUS_FORMAT, pid == null ? "PID unknown" : pid, "STOPPED", "(" + event.getReason() + ")"));
             }
         }
     }

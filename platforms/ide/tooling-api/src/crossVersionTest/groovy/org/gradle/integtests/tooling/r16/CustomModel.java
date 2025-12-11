@@ -30,6 +30,5 @@ public interface CustomModel {
 
     Thing findThing(String name);
 
-    interface Thing {
-    }
+    interface Thing {}
 }

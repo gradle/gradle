@@ -32,7 +32,8 @@ public class PluginClasspathInjectionSupportedCheckModelProducer implements Mode
     @Override
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
         if (!operationParameters.getInjectedPluginClasspath().isEmpty() && !isSupported()) {
-            throw Exceptions.unsupportedFeature("plugin classpath injection feature", versionDetails.getVersion(), "2.8");
+            throw Exceptions.unsupportedFeature(
+                    "plugin classpath injection feature", versionDetails.getVersion(), "2.8");
         }
 
         return delegate.produceModel(type, operationParameters);
@@ -41,5 +42,4 @@ public class PluginClasspathInjectionSupportedCheckModelProducer implements Mode
     private boolean isSupported() {
         return versionDetails.supportsPluginClasspathInjection();
     }
-
 }

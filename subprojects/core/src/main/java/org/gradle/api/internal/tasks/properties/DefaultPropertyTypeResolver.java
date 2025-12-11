@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import java.lang.annotation.Annotation;
+import java.util.Map;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputFiles;
@@ -23,9 +25,6 @@ import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategor
 import org.gradle.internal.properties.annotations.PropertyTypeResolver;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.jspecify.annotations.Nullable;
-
-import java.lang.annotation.Annotation;
-import java.util.Map;
 
 public class DefaultPropertyTypeResolver implements PropertyTypeResolver {
     @Nullable

@@ -15,10 +15,9 @@
  */
 package org.gradle.internal.service;
 
-import org.gradle.internal.UncheckedException;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import org.gradle.internal.UncheckedException;
 
 class MethodHandleBasedServiceMethodFactory implements ServiceMethodFactory {
 
@@ -33,7 +32,8 @@ class MethodHandleBasedServiceMethodFactory implements ServiceMethodFactory {
 
     @Override
     public ServiceMethod toServiceMethod(Method method) {
-        if (Modifier.isPublic(method.getModifiers()) && Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
+        if (Modifier.isPublic(method.getModifiers())
+                && Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
             try {
                 return new MethodHandleBasedServiceMethod(method);
             } catch (IllegalAccessException ex) {

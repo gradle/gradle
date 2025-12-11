@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer;
 
+import java.util.Set;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationResultBuilder;
 import org.gradle.security.internal.Fingerprint;
-
-import java.util.Set;
 
 class WriterSignatureVerificationResult implements SignatureVerificationResultBuilder {
     private final Set<String> ignoredKeys;

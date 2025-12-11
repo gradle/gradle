@@ -16,15 +16,14 @@
 
 package org.gradle.internal.vfs;
 
+import java.io.IOException;
+import java.util.Optional;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.io.IoRunnable;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
-
-import java.io.IOException;
-import java.util.Optional;
 
 /**
  * Provides access to snapshots of the content and metadata of the file system.

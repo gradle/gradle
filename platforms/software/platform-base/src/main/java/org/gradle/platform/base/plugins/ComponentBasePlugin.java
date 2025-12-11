@@ -62,14 +62,26 @@ public abstract class ComponentBasePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class PluginRules extends RuleSource {
         @Model
-        void components(ComponentSpecContainer componentSpecs) {
-        }
+        void components(ComponentSpecContainer componentSpecs) {}
 
         @Hidden
         @Model
-        ComponentSpecFactory componentSpecFactory(ProjectIdentifier projectIdentifier, Instantiator instantiator, ObjectFactory objectFactory, NamedEntityInstantiator<Task> taskInstantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator, ServiceRegistry serviceRegistry) {
-            DomainObjectCollectionFactory domainObjectCollectionFactory = serviceRegistry.get(DomainObjectCollectionFactory.class);
-            return new ComponentSpecFactory(projectIdentifier, instantiator, taskInstantiator, objectFactory, collectionCallbackActionDecorator, domainObjectCollectionFactory);
+        ComponentSpecFactory componentSpecFactory(
+                ProjectIdentifier projectIdentifier,
+                Instantiator instantiator,
+                ObjectFactory objectFactory,
+                NamedEntityInstantiator<Task> taskInstantiator,
+                CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+                ServiceRegistry serviceRegistry) {
+            DomainObjectCollectionFactory domainObjectCollectionFactory =
+                    serviceRegistry.get(DomainObjectCollectionFactory.class);
+            return new ComponentSpecFactory(
+                    projectIdentifier,
+                    instantiator,
+                    taskInstantiator,
+                    objectFactory,
+                    collectionCallbackActionDecorator,
+                    domainObjectCollectionFactory);
         }
 
         @ComponentType
@@ -79,8 +91,12 @@ public abstract class ComponentBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, StructBindingsStore bindingsStore) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, bindingsStore));
+        void registerNodeInitializerExtractors(
+                NodeInitializerRegistry nodeInitializerRegistry,
+                ComponentSpecFactory componentSpecFactory,
+                StructBindingsStore bindingsStore) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<
+                    ComponentSpec>(componentSpecFactory, bindingsStore));
         }
 
         @Validate

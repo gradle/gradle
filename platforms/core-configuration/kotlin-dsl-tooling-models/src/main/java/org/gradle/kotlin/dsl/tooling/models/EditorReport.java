@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.tooling.models;
 
 import org.jspecify.annotations.Nullable;
 
-
 public interface EditorReport {
 
     EditorReportSeverity getSeverity();

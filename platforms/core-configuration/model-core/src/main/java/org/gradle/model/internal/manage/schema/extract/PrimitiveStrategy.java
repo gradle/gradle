@@ -16,10 +16,10 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.isPrimitiveType;
+
 import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.type.ModelType;
-
-import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.isPrimitiveType;
 
 public class PrimitiveStrategy implements ModelSchemaExtractionStrategy {
 

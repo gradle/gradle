@@ -16,10 +16,9 @@
 
 package org.gradle.nativeplatform;
 
+import java.io.File;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-
-import java.io.File;
 
 /**
  * A {@link NativeLibrary} that has been compiled and archived into a static library.

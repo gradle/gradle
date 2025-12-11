@@ -58,5 +58,4 @@ public interface DirectDependencyMetadata extends DependencyMetadata<DirectDepen
      * @since 6.3
      */
     List<DependencyArtifact> getArtifactSelectors();
-
 }

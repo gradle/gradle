@@ -16,6 +16,13 @@
 
 package org.gradle.ide.visualstudio.internal;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Transformer;
@@ -40,14 +47,6 @@ import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.VersionNumber;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
 public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBinary {
     private final NativeBinarySpecInternal binary;
 
@@ -67,7 +66,9 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
     @Override
     public String getVisualStudioProjectName() {
-        return projectPrefix(getProjectPath()) + getComponentName() + getProjectType().getSuffix();
+        return projectPrefix(getProjectPath())
+                + getComponentName()
+                + getProjectType().getSuffix();
     }
 
     @Override
@@ -95,14 +96,16 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
                 return !(sourceSet instanceof WindowsResourceSet);
             }
         };
-        Transformer<FileCollection, LanguageSourceSet> transform = new Transformer<FileCollection, LanguageSourceSet>() {
-            @Override
-            public FileCollection transform(LanguageSourceSet sourceSet) {
-                return sourceSet.getSource();
-            }
-        };
+        Transformer<FileCollection, LanguageSourceSet> transform =
+                new Transformer<FileCollection, LanguageSourceSet>() {
+                    @Override
+                    public FileCollection transform(LanguageSourceSet sourceSet) {
+                        return sourceSet.getSource();
+                    }
+                };
 
-        return new LanguageSourceSetCollectionAdapter(getComponentName() + " source files", binary.getInputs(), filter, transform);
+        return new LanguageSourceSetCollectionAdapter(
+                getComponentName() + " source files", binary.getInputs(), filter, transform);
     }
 
     @Override
@@ -113,14 +116,16 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
                 return sourceSet instanceof WindowsResourceSet;
             }
         };
-        Transformer<FileCollection, LanguageSourceSet> transform = new Transformer<FileCollection, LanguageSourceSet>() {
-            @Override
-            public FileCollection transform(LanguageSourceSet sourceSet) {
-                return sourceSet.getSource();
-            }
-        };
+        Transformer<FileCollection, LanguageSourceSet> transform =
+                new Transformer<FileCollection, LanguageSourceSet>() {
+                    @Override
+                    public FileCollection transform(LanguageSourceSet sourceSet) {
+                        return sourceSet.getSource();
+                    }
+                };
 
-        return new LanguageSourceSetCollectionAdapter(getComponentName() + " resource files", binary.getInputs(), filter, transform);
+        return new LanguageSourceSetCollectionAdapter(
+                getComponentName() + " resource files", binary.getInputs(), filter, transform);
     }
 
     @Override
@@ -131,15 +136,17 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
                 return sourceSet instanceof HeaderExportingSourceSet;
             }
         };
-        Transformer<FileCollection, LanguageSourceSet> transform = new Transformer<FileCollection, LanguageSourceSet>() {
-            @Override
-            public FileCollection transform(LanguageSourceSet sourceSet) {
-                HeaderExportingSourceSet exportingSourceSet = (HeaderExportingSourceSet) sourceSet;
-                return exportingSourceSet.getExportedHeaders().plus(exportingSourceSet.getImplicitHeaders());
-            }
-        };
+        Transformer<FileCollection, LanguageSourceSet> transform =
+                new Transformer<FileCollection, LanguageSourceSet>() {
+                    @Override
+                    public FileCollection transform(LanguageSourceSet sourceSet) {
+                        HeaderExportingSourceSet exportingSourceSet = (HeaderExportingSourceSet) sourceSet;
+                        return exportingSourceSet.getExportedHeaders().plus(exportingSourceSet.getImplicitHeaders());
+                    }
+                };
 
-        return new LanguageSourceSetCollectionAdapter(getComponentName() + " header files", binary.getInputs(), filter, transform);
+        return new LanguageSourceSetCollectionAdapter(
+                getComponentName() + " header files", binary.getInputs(), filter, transform);
     }
 
     @Override
@@ -149,11 +156,13 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
     @Override
     public ProjectType getProjectType() {
-        return binary instanceof SharedLibraryBinarySpec ? ProjectType.DLL
-            : binary instanceof StaticLibraryBinarySpec ? ProjectType.LIB
-            : binary instanceof NativeExecutableBinarySpec ? ProjectType.EXE
-            : binary instanceof NativeTestSuiteBinarySpec ? ProjectType.EXE
-            : ProjectType.NONE;
+        return binary instanceof SharedLibraryBinarySpec
+                ? ProjectType.DLL
+                : binary instanceof StaticLibraryBinarySpec
+                        ? ProjectType.LIB
+                        : binary instanceof NativeExecutableBinarySpec
+                                ? ProjectType.EXE
+                                : binary instanceof NativeTestSuiteBinarySpec ? ProjectType.EXE : ProjectType.NONE;
     }
 
     @Override
@@ -167,7 +176,8 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
     }
 
     private InstallExecutable getInstallTask() {
-        final DomainObjectSet<InstallExecutable> installTasks = binary.getTasks().withType(InstallExecutable.class);
+        final DomainObjectSet<InstallExecutable> installTasks =
+                binary.getTasks().withType(InstallExecutable.class);
         return installTasks.isEmpty() ? null : installTasks.iterator().next();
     }
 
@@ -203,7 +213,9 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
     public File getOutputFile() {
         if (isExecutable()) {
             InstallExecutable installTask = getInstallTask();
-            return new File(installTask.getInstallDirectory().get().getAsFile(), "lib/" + installTask.getExecutableFile().get().getAsFile().getName());
+            return new File(
+                    installTask.getInstallDirectory().get().getAsFile(),
+                    "lib/" + installTask.getExecutableFile().get().getAsFile().getName());
         } else {
             return binary.getPrimaryOutput();
         }
@@ -238,7 +250,9 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
         for (LanguageSourceSet sourceSet : binary.getInputs()) {
             if (sourceSet instanceof HeaderExportingSourceSet) {
-                includes.addAll(((HeaderExportingSourceSet) sourceSet).getExportedHeaders().getSrcDirs());
+                includes.addAll(((HeaderExportingSourceSet) sourceSet)
+                        .getExportedHeaders()
+                        .getSrcDirs());
             }
         }
 
@@ -295,7 +309,11 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
         private final Spec<LanguageSourceSet> filterSpec;
         private final Transformer<FileCollection, LanguageSourceSet> transformer;
 
-        public LanguageSourceSetCollectionAdapter(String displayName, Set<LanguageSourceSet> inputs, Spec<LanguageSourceSet> filterSpec, Transformer<FileCollection, LanguageSourceSet> transformer) {
+        public LanguageSourceSetCollectionAdapter(
+                String displayName,
+                Set<LanguageSourceSet> inputs,
+                Spec<LanguageSourceSet> filterSpec,
+                Transformer<FileCollection, LanguageSourceSet> transformer) {
             this.displayName = displayName;
             this.inputs = inputs;
             this.filterSpec = filterSpec;

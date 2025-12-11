@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.notations;
 
+import static org.gradle.api.internal.notations.ModuleNotationValidation.validate;
+
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -23,8 +25,6 @@ import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
-
-import static org.gradle.api.internal.notations.ModuleNotationValidation.validate;
 
 public class ModuleIdentifierNotationConverter implements NotationConverter<String, ModuleIdentifier> {
 
@@ -38,7 +38,8 @@ public class ModuleIdentifierNotationConverter implements NotationConverter<Stri
      * Empty String for either group or module name is not allowed.
      */
     @Override
-    public void convert(String notation, NotationConvertResult<? super ModuleIdentifier> result) throws TypeConversionException {
+    public void convert(String notation, NotationConvertResult<? super ModuleIdentifier> result)
+            throws TypeConversionException {
         assert notation != null;
         String[] split = notation.split(":");
         if (split.length != 2) {

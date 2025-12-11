@@ -16,11 +16,10 @@
 
 package org.gradle.api.file;
 
+import java.io.File;
 import org.gradle.api.provider.Provider;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Represents a directory at some fixed location on the file system.

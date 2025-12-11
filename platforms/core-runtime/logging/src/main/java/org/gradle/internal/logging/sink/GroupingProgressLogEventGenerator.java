@@ -17,6 +17,11 @@
 package org.gradle.internal.logging.sink;
 
 import com.google.common.base.Objects;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
@@ -34,12 +39,6 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 /**
  * An {@code org.gradle.logging.internal.OutputEventListener} implementation which generates output events to log the
  * progress of operations.
@@ -53,6 +52,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
      * (worst case scenario when each codepoint will be stored as UTF-16).
      */
     public static final long HIGH_WATERMARK_CODEPOINTS = 1000000L / 2L;
+
     public static final long HIGH_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
     public static final long LOW_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
 
@@ -61,13 +61,15 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     private final boolean verbose;
 
     // Maintain a hierarchy of all progress operations in progress — heads up: this is a *forest*, not just 1 tree
-    private final Map<OperationIdentifier, OperationState> operationsInProgress = new LinkedHashMap<OperationIdentifier, OperationState>();
+    private final Map<OperationIdentifier, OperationState> operationsInProgress =
+            new LinkedHashMap<OperationIdentifier, OperationState>();
 
     private Object lastRenderedBuildOpId;
     private boolean needHeaderSeparator;
     private long currentTimePeriod;
 
-    public GroupingProgressLogEventGenerator(OutputEventListener listener, LogHeaderFormatter headerFormatter, boolean verbose) {
+    public GroupingProgressLogEventGenerator(
+            OutputEventListener listener, LogHeaderFormatter headerFormatter, boolean verbose) {
         this.listener = listener;
         this.headerFormatter = headerFormatter;
         this.verbose = verbose;
@@ -95,15 +97,31 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         OperationIdentifier progressId = startEvent.getProgressOperationId();
         if (startEvent.isBuildOperationStart() && isGrouped) {
             // Create a new group for tasks or configure project
-            operationsInProgress.put(progressId, new OperationGroup(startEvent.getCategory(), startEvent.getDescription(), startEvent.getTimestamp(), startEvent.getParentProgressOperationId(), progressId, startEvent.getBuildOperationCategory()));
+            operationsInProgress.put(
+                    progressId,
+                    new OperationGroup(
+                            startEvent.getCategory(),
+                            startEvent.getDescription(),
+                            startEvent.getTimestamp(),
+                            startEvent.getParentProgressOperationId(),
+                            progressId,
+                            startEvent.getBuildOperationCategory()));
         } else {
-            operationsInProgress.put(progressId, new OperationState(startEvent.getParentProgressOperationId(), progressId));
+            operationsInProgress.put(
+                    progressId, new OperationState(startEvent.getParentProgressOperationId(), progressId));
         }
 
-        // Preserve logging of headers for progress operations started outside of the build operation executor as was done in Gradle 3.x
+        // Preserve logging of headers for progress operations started outside of the build operation executor as was
+        // done in Gradle 3.x
         // Basically, if we see an operation with a logging header and it's not grouped, just log it
         if (!isGrouped && GUtil.isTrue(startEvent.getLoggingHeader())) {
-            onUngroupedOutput(new LogEvent(startEvent.getTimestamp(), startEvent.getCategory(), startEvent.getLogLevel(), startEvent.getLoggingHeader(), null, null));
+            onUngroupedOutput(new LogEvent(
+                    startEvent.getTimestamp(),
+                    startEvent.getCategory(),
+                    startEvent.getLogLevel(),
+                    startEvent.getLoggingHeader(),
+                    null,
+                    null));
         }
     }
 
@@ -129,7 +147,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     }
 
     private void onEnd(EndOutputEvent event) {
-        for (OperationState state: operationsInProgress.values()) {
+        for (OperationState state : operationsInProgress.values()) {
             state.flushOutput();
         }
         listener.onOutput(event);
@@ -138,7 +156,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private void onUpdateNow(UpdateNowEvent event) {
         currentTimePeriod = event.getTimestamp();
-        for (OperationState state: operationsInProgress.values()) {
+        for (OperationState state : operationsInProgress.values()) {
             state.maybeFlushOutput(event.getTimestamp());
         }
     }
@@ -152,13 +170,15 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         listener.onOutput(event);
     }
 
-    // Return the group to use for the given build operation, searching up the build operation hierarchy for the first group
+    // Return the group to use for the given build operation, searching up the build operation hierarchy for the first
+    // group
     private OperationGroup getGroupFor(@Nullable final OperationIdentifier progressId) {
         OperationIdentifier current = progressId;
         while (current != null) {
             OperationState state = operationsInProgress.get(current);
             if (state == null) {
-                // This shouldn't be the case, however, start and complete events are filtered in the prior stage when the logging level is > lifecycle
+                // This shouldn't be the case, however, start and complete events are filtered in the prior stage when
+                // the logging level is > lifecycle
                 // Should instead move the filtering after this stage
                 break;
             }
@@ -175,8 +195,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     }
 
     private static class OperationState {
-        final @Nullable
-        OperationIdentifier parentProgressOp;
+        final @Nullable OperationIdentifier parentProgressOp;
         final OperationIdentifier buildOpIdentifier;
 
         OperationState(@Nullable OperationIdentifier parentProgressOp, OperationIdentifier buildOpIdentifier) {
@@ -184,11 +203,9 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             this.buildOpIdentifier = buildOpIdentifier;
         }
 
-        void flushOutput() {
-        }
+        void flushOutput() {}
 
-        void maybeFlushOutput(long timestamp) {
-        }
+        void maybeFlushOutput(long timestamp) {}
     }
 
     private class OperationGroup extends OperationState {
@@ -208,9 +225,16 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
          * This marks a best-case scenario, as codepoints varies in size depending on the character encoding.
          */
         private long approximateBufferCodepointSize = 0L;
+
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
-        OperationGroup(String category, String description, long startTime, @Nullable OperationIdentifier parentBuildOp, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
+        OperationGroup(
+                String category,
+                String description,
+                long startTime,
+                @Nullable OperationIdentifier parentBuildOp,
+                OperationIdentifier buildOpIdentifier,
+                BuildOperationCategory buildOperationCategory) {
             super(parentBuildOp, buildOpIdentifier);
             this.category = category;
             this.lastUpdateTime = startTime;
@@ -219,7 +243,12 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private StyledTextOutputEvent header() {
-            return new StyledTextOutputEvent(lastUpdateTime, category, LogLevel.LIFECYCLE, buildOpIdentifier, headerFormatter.format(description, status, failed));
+            return new StyledTextOutputEvent(
+                    lastUpdateTime,
+                    category,
+                    LogLevel.LIFECYCLE,
+                    buildOpIdentifier,
+                    headerFormatter.format(description, status, failed));
         }
 
         void bufferOutput(RenderableOutputEvent output) {
@@ -264,7 +293,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                     lastHeaderStatus = status;
                 }
 
-                for (RenderableOutputEvent renderableEvent: bufferedLogs) {
+                for (RenderableOutputEvent renderableEvent : bufferedLogs) {
                     outputRendered = true;
                     listener.onOutput(renderableEvent);
                 }
@@ -279,7 +308,8 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
         @Override
         void maybeFlushOutput(long eventTimestamp) {
-            if (timeoutExpired(eventTimestamp, HIGH_WATERMARK_FLUSH_TIMEOUT) || (timeoutExpired(eventTimestamp, LOW_WATERMARK_FLUSH_TIMEOUT) && canClaimForeground())) {
+            if (timeoutExpired(eventTimestamp, HIGH_WATERMARK_FLUSH_TIMEOUT)
+                    || (timeoutExpired(eventTimestamp, LOW_WATERMARK_FLUSH_TIMEOUT) && canClaimForeground())) {
                 flushOutput();
             }
         }
@@ -318,7 +348,8 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private boolean shouldForward() {
-            return !bufferedLogs.isEmpty() || (buildOperationCategory.isShowHeader() && (shouldPrintHeader() || statusIsFailed()));
+            return !bufferedLogs.isEmpty()
+                    || (buildOperationCategory.isShowHeader() && (shouldPrintHeader() || statusIsFailed()));
         }
     }
 }

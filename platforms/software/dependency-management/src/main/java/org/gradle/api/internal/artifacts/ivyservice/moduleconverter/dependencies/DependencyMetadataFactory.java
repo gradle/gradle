@@ -24,5 +24,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.Global.class)
 public interface DependencyMetadataFactory {
     LocalOriginDependencyMetadata createDependencyMetadata(ModuleDependency dependency);
+
     LocalOriginDependencyMetadata createDependencyConstraintMetadata(DependencyConstraint dependencyConstraint);
 }

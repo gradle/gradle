@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.events.transform;
 
-import org.gradle.tooling.events.OperationDescriptor;
-
 import java.util.Set;
+import org.gradle.tooling.events.OperationDescriptor;
 
 /**
  * Describes a transform operation for which an event has occurred.
@@ -53,7 +52,6 @@ public interface TransformOperationDescriptor extends OperationDescriptor {
          * Returns the display name of this transformer.
          */
         String getDisplayName();
-
     }
 
     /**
@@ -67,7 +65,5 @@ public interface TransformOperationDescriptor extends OperationDescriptor {
          * Returns the display name of this subject.
          */
         String getDisplayName();
-
     }
-
 }

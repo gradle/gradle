@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import java.util.List;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -25,23 +26,39 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 
-import java.util.List;
-
 class Assembler extends GccCompatibleNativeCompiler<AssembleSpec> {
 
-    Assembler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, new AssemblerArgsTransformer(), Transformers.<AssembleSpec>noOpTransformer(), objectFileExtension, useCommandFile, workerLeaseService);
+    Assembler(
+            BuildOperationExecutor buildOperationExecutor,
+            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+            CommandLineToolInvocationWorker commandLineTool,
+            CommandLineToolContext invocationContext,
+            String objectFileExtension,
+            boolean useCommandFile,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                buildOperationExecutor,
+                compilerOutputFileNamingSchemeFactory,
+                commandLineTool,
+                invocationContext,
+                new AssemblerArgsTransformer(),
+                Transformers.<AssembleSpec>noOpTransformer(),
+                objectFileExtension,
+                useCommandFile,
+                workerLeaseService);
     }
 
     @Override
-    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
+    protected Iterable<String> buildPerFileArgs(
+            List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
         if (pchArgs != null && !pchArgs.isEmpty()) {
-            throw new UnsupportedOperationException("Precompiled header arguments cannot be specified for an Assembler compiler.");
+            throw new UnsupportedOperationException(
+                    "Precompiled header arguments cannot be specified for an Assembler compiler.");
         }
         return super.buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs);
     }
 
-    private static class AssemblerArgsTransformer  extends GccCompilerArgsTransformer<AssembleSpec> {
+    private static class AssemblerArgsTransformer extends GccCompilerArgsTransformer<AssembleSpec> {
         @Override
         protected String getLanguage() {
             return "assembler";

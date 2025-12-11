@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import java.io.File;
+import java.util.Objects;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
-
-import java.io.File;
-import java.util.Objects;
 
 public class FileCopyAction implements CopyAction {
 

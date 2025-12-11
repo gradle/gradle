@@ -25,7 +25,12 @@ public class CallableInfoImpl implements CallableInfo {
     private final CallableReturnTypeInfo returnType;
     private final List<ParameterInfo> parameters;
 
-    public CallableInfoImpl(CallableKindInfo kind, CallableOwnerInfo owner, String callableName, CallableReturnTypeInfo returnType, List<ParameterInfo> parameters) {
+    public CallableInfoImpl(
+            CallableKindInfo kind,
+            CallableOwnerInfo owner,
+            String callableName,
+            CallableReturnTypeInfo returnType,
+            List<ParameterInfo> parameters) {
         this.kind = kind;
         this.owner = owner;
         this.callableName = callableName;

@@ -20,44 +20,51 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGenerator {
-    final static String PLUGINS_BUILD_LOCATION = "build-logic";
+    static final String PLUGINS_BUILD_LOCATION = "build-logic";
 
     private final DocumentationRegistry documentationRegistry;
     private final BuildScriptBuilderFactory scriptBuilderFactory;
 
-    public SimpleGlobalFilesBuildSettingsDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, DocumentationRegistry documentationRegistry) {
+    public SimpleGlobalFilesBuildSettingsDescriptor(
+            BuildScriptBuilderFactory scriptBuilderFactory, DocumentationRegistry documentationRegistry) {
         this.scriptBuilderFactory = scriptBuilderFactory;
         this.documentationRegistry = documentationRegistry;
     }
 
-    public void generateWithoutComments(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
+    public void generateWithoutComments(
+            InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         builder(settings, buildContentGenerationContext)
-            .withComments(settings.isWithComments() ? BuildInitComments.EXTERNAL : BuildInitComments.OFF)
-            .create(settings.getTarget())
-            .generate();
+                .withComments(settings.isWithComments() ? BuildInitComments.EXTERNAL : BuildInitComments.OFF)
+                .create(settings.getTarget())
+                .generate();
     }
 
     @Override
     public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
-        builder(settings, buildContentGenerationContext).create(settings.getTarget()).generate();
+        builder(settings, buildContentGenerationContext)
+                .create(settings.getTarget())
+                .generate();
     }
 
-    private BuildScriptBuilder builder(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
-        BuildScriptBuilder builder = scriptBuilderFactory.scriptForNewProjectsWithoutVersionCatalog(settings.getDsl(), buildContentGenerationContext, "settings", settings.isUseIncubatingAPIs());
+    private BuildScriptBuilder builder(
+            InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
+        BuildScriptBuilder builder = scriptBuilderFactory.scriptForNewProjectsWithoutVersionCatalog(
+                settings.getDsl(), buildContentGenerationContext, "settings", settings.isUseIncubatingAPIs());
         builder.withComments(settings.isWithComments() ? BuildInitComments.ON : BuildInitComments.OFF);
         builder.fileComment("The settings file is used to specify which projects to include in your build.\n\n")
-            .fileComment(documentationRegistry.getDocumentationRecommendationFor("detailed information on multi-project builds", "multi_project_builds"));
-        if (settings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS && settings.isUseIncubatingAPIs()) {
+                .fileComment(documentationRegistry.getDocumentationRecommendationFor(
+                        "detailed information on multi-project builds", "multi_project_builds"));
+        if (settings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS
+                && settings.isUseIncubatingAPIs()) {
             builder.includePluginsBuild();
         }
 
         if (settings.getJavaLanguageVersion().isPresent()) {
             builder.plugin(
-                "Apply the foojay-resolver plugin to allow automatic download of JDKs",
-                "org.gradle.toolchains.foojay-resolver-convention",
-                "1.0.0",
-                null
-            );
+                    "Apply the foojay-resolver plugin to allow automatic download of JDKs",
+                    "org.gradle.toolchains.foojay-resolver-convention",
+                    "1.0.0",
+                    null);
         }
 
         builder.propertyAssignment(null, "rootProject.name", settings.getProjectName());

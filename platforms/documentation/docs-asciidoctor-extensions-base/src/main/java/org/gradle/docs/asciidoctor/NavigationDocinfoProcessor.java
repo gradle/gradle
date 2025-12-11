@@ -15,10 +15,9 @@
  */
 package org.gradle.docs.asciidoctor;
 
+import java.util.Map;
 import org.asciidoctor.ast.Document;
 import org.asciidoctor.extension.DocinfoProcessor;
-
-import java.util.Map;
 
 class NavigationDocinfoProcessor extends DocinfoProcessor {
     private final String html;

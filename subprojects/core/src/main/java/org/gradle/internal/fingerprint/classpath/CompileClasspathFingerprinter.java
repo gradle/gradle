@@ -26,5 +26,4 @@ import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprin
  *
  * @see org.gradle.api.tasks.CompileClasspath
  */
-public interface CompileClasspathFingerprinter extends FileCollectionFingerprinter {
-}
+public interface CompileClasspathFingerprinter extends FileCollectionFingerprinter {}

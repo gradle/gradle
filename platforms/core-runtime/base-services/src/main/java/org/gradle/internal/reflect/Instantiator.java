@@ -45,5 +45,4 @@ public interface Instantiator {
      * @throws ObjectInstantiationException On failure to create the new instance.
      */
     <T> T newInstance(Class<? extends T> type, @Nullable Object... parameters) throws ObjectInstantiationException;
-
 }

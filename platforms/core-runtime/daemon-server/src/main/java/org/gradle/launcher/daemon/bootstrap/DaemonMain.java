@@ -15,7 +15,18 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
+import static java.nio.file.Files.newOutputStream;
+import static org.gradle.launcher.daemon.server.DaemonLogFile.DAEMON_LOG_PREFIX;
+import static org.gradle.launcher.daemon.server.DaemonLogFile.DAEMON_LOG_SUFFIX;
+
 import com.google.common.io.Files;
+import java.io.ByteArrayInputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -49,18 +60,6 @@ import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
 import org.gradle.util.internal.DefaultGradleVersion;
-
-import java.io.ByteArrayInputStream;
-import java.io.EOFException;
-import java.io.File;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static java.nio.file.Files.newOutputStream;
-import static org.gradle.launcher.daemon.server.DaemonLogFile.DAEMON_LOG_PREFIX;
-import static org.gradle.launcher.daemon.server.DaemonLogFile.DAEMON_LOG_SUFFIX;
 
 /**
  * The entry point for a daemon process.
@@ -97,9 +96,11 @@ public class DaemonMain extends EntryPoint {
 
         NativeServices.initializeOnDaemon(gradleHomeDir, NativeServicesMode.fromSystemProperties());
         ServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
-        LoggingManagerInternal loggingManager = loggingRegistry.get(LoggingManagerFactory.class).createLoggingManager();
+        LoggingManagerInternal loggingManager =
+                loggingRegistry.get(LoggingManagerFactory.class).createLoggingManager();
 
-        DaemonProcessState daemonProcessState = new DaemonProcessState(parameters, loggingRegistry, loggingManager, DefaultClassPath.of(additionalClassPath));
+        DaemonProcessState daemonProcessState = new DaemonProcessState(
+                parameters, loggingRegistry, loggingManager, DefaultClassPath.of(additionalClassPath));
         ServiceRegistry daemonServices = daemonProcessState.getServices();
         File daemonLog = daemonServices.get(DaemonLogFile.class).getFile();
         File daemonBaseDir = daemonServices.get(DaemonDir.class).getBaseDir();
@@ -123,11 +124,13 @@ public class DaemonMain extends EntryPoint {
             Long pid = daemonContext.getPid();
             daemonStarted(pid, daemon.getUid(), daemon.getAddress(), daemonLog);
             DaemonExpirationStrategy expirationStrategy = daemonServices.get(MasterExpirationStrategy.class);
-            DaemonStopState stopState = daemon.stopOnExpiration(expirationStrategy, parameters.getPeriodicCheckIntervalMs());
+            DaemonStopState stopState =
+                    daemon.stopOnExpiration(expirationStrategy, parameters.getPeriodicCheckIntervalMs());
             daemonProcessState.stopped(stopState);
         } finally {
             CompositeStoppable.stoppable(daemon, daemonProcessState).stop();
-            //TODO This should actually be used in `GradleUserHomeCleanupService`, but this is in core and core can't use the classes to get the proper daemon log dir name.
+            // TODO This should actually be used in `GradleUserHomeCleanupService`, but this is in core and core can't
+            // use the classes to get the proper daemon log dir name.
             cleanupOldLogFiles(daemonBaseDir);
         }
     }
@@ -141,7 +144,8 @@ public class DaemonMain extends EntryPoint {
         return additionalClassPath;
     }
 
-    private static DaemonServerConfiguration readDaemonServerConfiguration(KryoBackedDecoder decoder) throws EOFException {
+    private static DaemonServerConfiguration readDaemonServerConfiguration(KryoBackedDecoder decoder)
+            throws EOFException {
         File daemonBaseDir = new File(decoder.readString());
         int idleTimeoutMs = decoder.readSmallInt();
         int periodicCheckIntervalMs = decoder.readSmallInt();
@@ -154,7 +158,15 @@ public class DaemonMain extends EntryPoint {
         for (int i = 0; i < argCount; i++) {
             startupJvmOpts.add(decoder.readString());
         }
-        return new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, startupJvmOpts, nativeServicesMode);
+        return new DefaultDaemonServerConfiguration(
+                daemonUid,
+                daemonBaseDir,
+                idleTimeoutMs,
+                periodicCheckIntervalMs,
+                singleUse,
+                priority,
+                startupJvmOpts,
+                nativeServicesMode);
     }
 
     private static void invalidArgs() {
@@ -172,22 +184,27 @@ public class DaemonMain extends EntryPoint {
      */
     public static void cleanupOldLogFiles(File daemonBaseDir) {
         try {
-            File[] daemonLogDirectories = daemonBaseDir.listFiles(file ->
-                file.isDirectory() && DefaultGradleVersion.VERSION_PATTERN.matcher(file.getName()).matches());
+            File[] daemonLogDirectories = daemonBaseDir.listFiles(file -> file.isDirectory()
+                    && DefaultGradleVersion.VERSION_PATTERN
+                            .matcher(file.getName())
+                            .matches());
             if (daemonLogDirectories == null) {
-                LOGGER.warn("Could not list daemon log directories for cleanup in: {}", daemonBaseDir.getAbsolutePath());
+                LOGGER.warn(
+                        "Could not list daemon log directories for cleanup in: {}", daemonBaseDir.getAbsolutePath());
                 return;
             }
             long maxAge = System.currentTimeMillis() - FOURTEEN_DAYS_MILLIS;
             for (File daemonLogDirectory : daemonLogDirectories) {
-                File[] logFiles = daemonLogDirectory.listFiles(f -> f.isFile() && f.getName().endsWith(DAEMON_LOG_SUFFIX) && f.getName().startsWith(DAEMON_LOG_PREFIX));
+                File[] logFiles = daemonLogDirectory.listFiles(f -> f.isFile()
+                        && f.getName().endsWith(DAEMON_LOG_SUFFIX)
+                        && f.getName().startsWith(DAEMON_LOG_PREFIX));
                 if (logFiles == null) {
                     LOGGER.warn("Could not list log files for cleanup in: {}", daemonLogDirectory.getAbsolutePath());
                     return;
                 }
                 for (File logFile : logFiles) {
                     if (logFile.equals(daemonBaseDir) // Should never happen, but just to be safe
-                        || logFile.lastModified() >= maxAge) {
+                            || logFile.lastModified() >= maxAge) {
                         continue;
                     }
 
@@ -199,7 +216,6 @@ public class DaemonMain extends EntryPoint {
         } catch (Exception e) {
             LOGGER.error("Error cleaning up old log files", e);
         }
-
     }
 
     protected void daemonStarted(Long pid, String uid, Address address, File daemonLog) {
@@ -235,7 +251,8 @@ public class DaemonMain extends EntryPoint {
         loggingManager.attachSystemOutAndErr();
 
         // Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
-        // Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)
+        // Each build request carries it's own log level and it is used during the execution of the build (see
+        // LogToClient)
         loggingManager.setLevelInternal(LogLevel.DEBUG);
 
         loggingManager.start();

@@ -17,17 +17,16 @@
 package org.gradle.testkit.runner.internal;
 
 import com.google.common.io.ByteSource;
-import org.gradle.testkit.runner.BuildResult;
-import org.gradle.testkit.runner.BuildTask;
-import org.gradle.testkit.runner.TaskOutcome;
-import org.gradle.util.internal.CollectionUtils;
-import org.jspecify.annotations.Nullable;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.testkit.runner.BuildResult;
+import org.gradle.testkit.runner.BuildTask;
+import org.gradle.testkit.runner.TaskOutcome;
+import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultBuildResult implements BuildResult {
 
@@ -88,5 +87,4 @@ public class DefaultBuildResult implements BuildResult {
 
         return null;
     }
-
 }

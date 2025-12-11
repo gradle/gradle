@@ -15,6 +15,8 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import java.io.InputStream;
+import java.util.UUID;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -22,9 +24,6 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.Provides;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
-
-import java.io.InputStream;
-import java.util.UUID;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon client.
@@ -37,14 +36,20 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
 
     @Provides
     protected DaemonClient createDaemonClient(
-        DaemonRequestContext daemonRequestContext,
-        DaemonConnector daemonConnector,
-        OutputEventListener outputEventListener,
-        GlobalUserInputReceiver globalUserInputReceiver,
-        IdGenerator<UUID> idGenerator,
-        ProcessEnvironment processEnvironment
-    ) {
+            DaemonRequestContext daemonRequestContext,
+            DaemonConnector daemonConnector,
+            OutputEventListener outputEventListener,
+            GlobalUserInputReceiver globalUserInputReceiver,
+            IdGenerator<UUID> idGenerator,
+            ProcessEnvironment processEnvironment) {
         DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(daemonRequestContext);
-        return new DaemonClient(daemonConnector, outputEventListener, matchingContextSpec, getBuildStandardInput(), globalUserInputReceiver, idGenerator, processEnvironment);
+        return new DaemonClient(
+                daemonConnector,
+                outputEventListener,
+                matchingContextSpec,
+                getBuildStandardInput(),
+                globalUserInputReceiver,
+                idGenerator,
+                processEnvironment);
     }
 }

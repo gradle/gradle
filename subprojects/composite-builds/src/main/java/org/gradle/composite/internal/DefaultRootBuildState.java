@@ -16,6 +16,8 @@
 
 package org.gradle.composite.internal;
 
+import java.io.File;
+import java.util.function.Function;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
@@ -47,19 +49,12 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.util.Path;
 
-import java.io.File;
-import java.util.function.Function;
-
 class DefaultRootBuildState extends AbstractCompositeParticipantBuildState implements RootBuildState {
     private final ListenerManager listenerManager;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
     private boolean completed;
 
-    DefaultRootBuildState(
-        BuildDefinition buildDefinition,
-        BuildTreeState buildTree,
-        ListenerManager listenerManager
-    ) {
+    DefaultRootBuildState(BuildDefinition buildDefinition, BuildTreeState buildTree, ListenerManager listenerManager) {
         super(buildTree, buildDefinition, null);
         this.listenerManager = listenerManager;
 
@@ -69,11 +64,16 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
             ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
             BuildOperationRunner buildOperationRunner = buildScopeServices.get(BuildOperationRunner.class);
             BuildStateRegistry buildStateRegistry = buildScopeServices.get(BuildStateRegistry.class);
-            BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
-            BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(), buildOperationRunner);
-            BuildTreeFinishExecutor finishExecutor = new OperationFiringBuildTreeFinishExecutor(buildOperationRunner,
-                new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController));
-            this.buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createRootBuildController(buildLifecycleController, workExecutor, finishExecutor);
+            BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory =
+                    buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
+            BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(
+                    new DefaultBuildTreeWorkExecutor(), buildOperationRunner);
+            BuildTreeFinishExecutor finishExecutor = new OperationFiringBuildTreeFinishExecutor(
+                    buildOperationRunner,
+                    new DefaultBuildTreeFinishExecutor(
+                            buildStateRegistry, exceptionAnalyser, buildLifecycleController));
+            this.buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createRootBuildController(
+                    buildLifecycleController, workExecutor, finishExecutor);
         } catch (Throwable t) {
             CompositeStoppable.stoppable().addFailure(t).add(buildScopeServices).stop();
             throw UncheckedException.throwAsUncheckedException(t);
@@ -91,8 +91,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     }
 
     @Override
-    public void assertCanAdd(IncludedBuildSpec includedBuildSpec) {
-    }
+    public void assertCanAdd(IncludedBuildSpec includedBuildSpec) {}
 
     @Override
     public File getBuildRootDir() {
@@ -111,12 +110,14 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
             throw new IllegalStateException("Cannot run more than one action for a build.");
         }
         try {
-            RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
+            RootBuildLifecycleListener buildLifecycleListener =
+                    listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
             buildLifecycleListener.afterStart();
             Throwable failure = null;
             try {
                 GradleInternal gradle = getBuildController().getGradle();
-                DefaultDeploymentRegistry deploymentRegistry = gradle.getServices().get(DefaultDeploymentRegistry.class);
+                DefaultDeploymentRegistry deploymentRegistry =
+                        gradle.getServices().get(DefaultDeploymentRegistry.class);
                 gradle.addBuildListener(new InternalBuildAdapter() {
                     @Override
                     public void buildFinished(BuildResult result) {

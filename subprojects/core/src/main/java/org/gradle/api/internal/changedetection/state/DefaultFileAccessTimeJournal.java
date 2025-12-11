@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
+import static org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER;
+
+import java.io.File;
+import java.util.Properties;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
@@ -25,12 +30,6 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.util.internal.GUtil;
-
-import java.io.File;
-import java.util.Properties;
-
-import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
-import static org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER;
 
 public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stoppable {
 
@@ -43,14 +42,16 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
     private final IndexedCache<File, Long> store;
     private final long inceptionTimestamp;
 
-    public DefaultFileAccessTimeJournal(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
+    public DefaultFileAccessTimeJournal(
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         cache = cacheBuilderFactory
-            .createCrossVersionCacheBuilder(CACHE_KEY)
-            .withDisplayName("journal cache")
-            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-            .open();
-        store = cache.createIndexedCache(IndexedCacheParameters.of(FILE_ACCESS_CACHE_NAME, FILE_SERIALIZER, LONG_SERIALIZER)
-            .withCacheDecorator(cacheDecoratorFactory.decorator(10000, true)));
+                .createCrossVersionCacheBuilder(CACHE_KEY)
+                .withDisplayName("journal cache")
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+                .open();
+        store = cache.createIndexedCache(
+                IndexedCacheParameters.of(FILE_ACCESS_CACHE_NAME, FILE_SERIALIZER, LONG_SERIALIZER)
+                        .withCacheDecorator(cacheDecoratorFactory.decorator(10000, true)));
         inceptionTimestamp = loadOrPersistInceptionTimestamp();
     }
 

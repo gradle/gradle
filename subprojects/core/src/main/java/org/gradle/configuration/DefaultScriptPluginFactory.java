@@ -52,10 +52,12 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(
-        ServiceRegistry scriptServices, ScriptCompilerFactory scriptCompilerFactory, LoggingManagerFactory loggingFactoryManager,
-        PluginHandler pluginHandler, PluginRequestApplicator pluginRequestApplicator,
-        CompileOperationFactory compileOperationFactory
-    ) {
+            ServiceRegistry scriptServices,
+            ScriptCompilerFactory scriptCompilerFactory,
+            LoggingManagerFactory loggingFactoryManager,
+            PluginHandler pluginHandler,
+            PluginRequestApplicator pluginRequestApplicator,
+            CompileOperationFactory compileOperationFactory) {
         this.scriptServices = scriptServices;
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingFactoryManager = loggingFactoryManager;
@@ -70,8 +72,14 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     }
 
     @Override
-    public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript) {
-        return new ScriptPluginImpl(scriptSource, (ScriptHandlerInternal) scriptHandler, targetScope, baseScope, topLevelScript);
+    public ScriptPlugin create(
+            ScriptSource scriptSource,
+            ScriptHandler scriptHandler,
+            ClassLoaderScope targetScope,
+            ClassLoaderScope baseScope,
+            boolean topLevelScript) {
+        return new ScriptPluginImpl(
+                scriptSource, (ScriptHandlerInternal) scriptHandler, targetScope, baseScope, topLevelScript);
     }
 
     private class ScriptPluginImpl implements ScriptPlugin {
@@ -81,7 +89,12 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         private final ScriptHandlerInternal scriptHandler;
         private final boolean topLevelScript;
 
-        public ScriptPluginImpl(ScriptSource scriptSource, ScriptHandlerInternal scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript) {
+        public ScriptPluginImpl(
+                ScriptSource scriptSource,
+                ScriptHandlerInternal scriptHandler,
+                ClassLoaderScope targetScope,
+                ClassLoaderScope baseScope,
+                boolean topLevelScript) {
             this.scriptSource = scriptSource;
             this.targetScope = targetScope;
             this.baseScope = baseScope;
@@ -97,24 +110,27 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         @Override
         public void apply(final Object target) {
             CloseableServiceRegistry services = ServiceRegistryBuilder.builder()
-                .displayName("script plugin services")
-                .parent(scriptServices)
-                .provider(registration -> {
-                    registration.add(ScriptPluginFactory.class, scriptPluginFactory);
-                    registration.add(ClassLoaderScope.class, baseScope);
-                    registration.add(LoggingManagerInternal.class, loggingFactoryManager.createLoggingManager());
-                    registration.add(ScriptHandler.class, scriptHandler);
-                })
-                .build();
+                    .displayName("script plugin services")
+                    .parent(scriptServices)
+                    .provider(registration -> {
+                        registration.add(ScriptPluginFactory.class, scriptPluginFactory);
+                        registration.add(ClassLoaderScope.class, baseScope);
+                        registration.add(LoggingManagerInternal.class, loggingFactoryManager.createLoggingManager());
+                        registration.add(ScriptHandler.class, scriptHandler);
+                    })
+                    .build();
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(scriptSource);
 
-            // Pass 1, extract plugin requests and plugin repositories and execute buildscript {}, ignoring (i.e. not even compiling) anything else
-            CompileOperation<?> initialOperation = compileOperationFactory.getPluginsBlockCompileOperation(initialPassScriptTarget);
+            // Pass 1, extract plugin requests and plugin repositories and execute buildscript {}, ignoring (i.e. not
+            // even compiling) anything else
+            CompileOperation<?> initialOperation =
+                    compileOperationFactory.getPluginsBlockCompileOperation(initialPassScriptTarget);
             Class<? extends BasicScript> scriptType = initialPassScriptTarget.getScriptClass();
-            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, target, baseScope, initialOperation, Actions.doNothing());
+            ScriptRunner<? extends BasicScript, ?> initialRunner =
+                    compiler.compile(scriptType, target, baseScope, initialOperation, Actions.doNothing());
             initialRunner.run(target, services);
 
             PluginManagerInternal pluginManager = topLevelScript ? initialPassScriptTarget.getPluginManager() : null;
@@ -126,9 +142,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             final ScriptTarget scriptTarget = secondPassTarget(target);
             scriptType = scriptTarget.getScriptClass();
 
-            CompileOperation<BuildScriptData> operation = compileOperationFactory.getScriptCompileOperation(scriptSource, scriptTarget);
+            CompileOperation<BuildScriptData> operation =
+                    compileOperationFactory.getScriptCompileOperation(scriptSource, scriptTarget);
 
-            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, target, targetScope, operation, ClosureCreationInterceptingVerifier.INSTANCE);
+            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(
+                    scriptType, target, targetScope, operation, ClosureCreationInterceptingVerifier.INSTANCE);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
                 BasicScript script = runner.getScript();
                 script.init(scriptTarget, scriptServices);

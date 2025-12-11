@@ -24,7 +24,8 @@ import org.gradle.tooling.events.OperationResult;
 /**
  * Base implementation of the {@code FinishEvent} interface.
  */
-public class DefaultFinishEvent<D extends OperationDescriptor, R extends OperationResult> extends BaseProgressEvent implements FinishEvent {
+public class DefaultFinishEvent<D extends OperationDescriptor, R extends OperationResult> extends BaseProgressEvent
+        implements FinishEvent {
 
     private final R result;
 
@@ -42,5 +43,4 @@ public class DefaultFinishEvent<D extends OperationDescriptor, R extends Operati
     public R getResult() {
         return result;
     }
-
 }

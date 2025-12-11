@@ -23,41 +23,26 @@ import org.gradle.internal.service.ServiceRegistration;
  */
 public class AbstractGradleModuleServices implements GradleModuleServices {
     @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
-
-    }
+    public void registerGlobalServices(ServiceRegistration registration) {}
 
     @Override
-    public void registerGradleUserHomeServices(ServiceRegistration registration) {
-
-    }
+    public void registerGradleUserHomeServices(ServiceRegistration registration) {}
 
     @Override
-    public void registerCrossBuildSessionServices(ServiceRegistration registration) {
-    }
+    public void registerCrossBuildSessionServices(ServiceRegistration registration) {}
 
     @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-
-    }
+    public void registerBuildSessionServices(ServiceRegistration registration) {}
 
     @Override
-    public void registerBuildTreeServices(ServiceRegistration registration) {
-
-    }
+    public void registerBuildTreeServices(ServiceRegistration registration) {}
 
     @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-
-    }
+    public void registerBuildServices(ServiceRegistration registration) {}
 
     @Override
-    public void registerSettingsServices(ServiceRegistration registration) {
-
-    }
+    public void registerSettingsServices(ServiceRegistration registration) {}
 
     @Override
-    public void registerProjectServices(ServiceRegistration registration) {
-
-    }
+    public void registerProjectServices(ServiceRegistration registration) {}
 }

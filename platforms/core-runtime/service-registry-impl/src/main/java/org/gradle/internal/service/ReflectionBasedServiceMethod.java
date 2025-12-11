@@ -15,11 +15,10 @@
  */
 package org.gradle.internal.service;
 
+import java.lang.reflect.Method;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
 import org.jspecify.annotations.Nullable;
-
-import java.lang.reflect.Method;
 
 class ReflectionBasedServiceMethod extends AbstractServiceMethod {
     private final JavaMethod<Object, Object> javaMethod;

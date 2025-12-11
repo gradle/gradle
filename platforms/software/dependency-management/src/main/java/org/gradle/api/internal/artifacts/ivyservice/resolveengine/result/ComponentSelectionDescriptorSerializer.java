@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import java.io.IOException;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
-
-import java.io.IOException;
 
 /**
  * A thread-safe and reusable serializer for {@link ComponentSelectionDescriptor} if and only if the passed in
@@ -32,7 +31,8 @@ public class ComponentSelectionDescriptorSerializer implements Serializer<Compon
 
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
 
-    public ComponentSelectionDescriptorSerializer(ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
+    public ComponentSelectionDescriptorSerializer(
+            ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
     }
 

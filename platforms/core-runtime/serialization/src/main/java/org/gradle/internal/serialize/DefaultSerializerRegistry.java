@@ -17,9 +17,6 @@
 package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
-import org.gradle.internal.Cast;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -29,6 +26,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.internal.Cast;
 
 /**
  * Default implementation of {@link SerializerRegistry}.
@@ -43,10 +42,12 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
             return o1.getName().compareTo(o2.getName());
         }
     };
-    private final Map<Class<?>, SerializerFactory<?>> serializerMap = new ConcurrentSkipListMap<Class<?>, SerializerFactory<?>>(CLASS_COMPARATOR);
+    private final Map<Class<?>, SerializerFactory<?>> serializerMap =
+            new ConcurrentSkipListMap<Class<?>, SerializerFactory<?>>(CLASS_COMPARATOR);
 
     // We are using a ConcurrentHashMap here because:
-    //   - We don't want to use a Set with CLASS_COMPARATOR, since that would treat two classes with the same name originating from different classloaders as identical, allowing only one in the Set.
+    //   - We don't want to use a Set with CLASS_COMPARATOR, since that would treat two classes with the same name
+    // originating from different classloaders as identical, allowing only one in the Set.
     //   - ConcurrentHashMap.newKeySet() isn't available on Java 6, yet, and that is where this code needs to run.
     //   - CopyOnWriteArraySet has slower insert performance, since it is not hash based.
     private final Map<Class<?>, Boolean> javaSerialization = new ConcurrentHashMap<Class<?>, Boolean>();
@@ -57,7 +58,9 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
     }
 
     public DefaultSerializerRegistry(boolean supportClassHierarchy) {
-        this.classMatcher = supportClassHierarchy ? SerializerClassMatcherStrategy.HIERARCHY : SerializerClassMatcherStrategy.STRICT;
+        this.classMatcher = supportClassHierarchy
+                ? SerializerClassMatcherStrategy.HIERARCHY
+                : SerializerClassMatcherStrategy.STRICT;
     }
 
     @Override
@@ -104,7 +107,8 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
             }
         }
         if (matches.isEmpty() && matchingJavaSerialization.isEmpty()) {
-            throw new IllegalArgumentException(String.format("Don't know how to serialize objects of type %s.", baseType.getName()));
+            throw new IllegalArgumentException(
+                    String.format("Don't know how to serialize objects of type %s.", baseType.getName()));
         }
         if (matches.size() == 1 && matchingJavaSerialization.isEmpty()) {
             return Cast.uncheckedNonnullCast(matches.values().iterator().next().serializerInstance());
@@ -126,7 +130,8 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
 
     private static class TaggedTypeSerializer<T> extends AbstractSerializer<T> {
         private static final int JAVA_TYPE = 1; // Reserve 0 for null (to be added later)
-        private static final TypeInfo JAVA_SERIALIZATION = new TypeInfo(JAVA_TYPE, true, new DefaultSerializer<Object>());
+        private static final TypeInfo JAVA_SERIALIZATION =
+                new TypeInfo(JAVA_TYPE, true, new DefaultSerializer<Object>());
         private final Map<Class<?>, TypeInfo> serializersByType = new HashMap<Class<?>, TypeInfo>();
         private final Map<Class<?>, TypeInfo> typeHierarchies = new HashMap<Class<?>, TypeInfo>();
         private final TypeInfo[] serializersByTag;
@@ -179,13 +184,14 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
 
             TaggedTypeSerializer<?> rhs = (TaggedTypeSerializer<?>) obj;
             return Objects.equal(serializersByType, rhs.serializersByType)
-                && Objects.equal(typeHierarchies, rhs.typeHierarchies)
-                && Arrays.equals(serializersByTag, rhs.serializersByTag);
+                    && Objects.equal(typeHierarchies, rhs.typeHierarchies)
+                    && Arrays.equals(serializersByTag, rhs.serializersByTag);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(super.hashCode(), serializersByType, typeHierarchies, Arrays.hashCode(serializersByTag));
+            return Objects.hashCode(
+                    super.hashCode(), serializersByType, typeHierarchies, Arrays.hashCode(serializersByTag));
         }
 
         private TypeInfo map(Class<?> valueType) {
@@ -198,7 +204,8 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
                     return entry.getValue();
                 }
             }
-            throw new IllegalArgumentException(String.format("Don't know how to serialize an object of type %s.", valueType.getName()));
+            throw new IllegalArgumentException(
+                    String.format("Don't know how to serialize an object of type %s.", valueType.getName()));
         }
     }
 
@@ -207,7 +214,6 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
         SerializerClassMatcherStrategy HIERARCHY = new HierarchySerializerMatcher();
 
         boolean matches(Class<?> baseType, Class<?> candidate);
-
     }
 
     /**

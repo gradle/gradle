@@ -88,11 +88,12 @@ public abstract class InterceptScope {
     }
 
     public abstract String getCallSiteName();
+
     abstract String getTargetDescription();
 
     @Override
     public String toString() {
-        return "InterceptScope{" + callType.descriptorStringPrefix + " " + getTargetDescription() +"}";
+        return "InterceptScope{" + callType.descriptorStringPrefix + " " + getTargetDescription() + "}";
     }
 
     private static class NamedMemberScope extends InterceptScope {

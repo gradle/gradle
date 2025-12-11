@@ -16,9 +16,21 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
+import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
+import java.io.File;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Supplier;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
@@ -88,19 +100,6 @@ import org.gradle.util.internal.TextUtil;
 import org.gradle.work.InputChanges;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Map;
-import java.util.function.Supplier;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
-import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.deprecation.Documentation.userManual;
-
 public class DefaultTransform implements Transform {
 
     private final Class<? extends TransformAction<?>> implementationClass;
@@ -121,28 +120,27 @@ public class DefaultTransform implements Transform {
     private final LineEndingSensitivity dependenciesLineEndingSensitivity;
 
     public DefaultTransform(
-        Class<? extends TransformAction<?>> implementationClass,
-        @Nullable TransformParameters parameterObject,
-        ImmutableAttributes fromAttributes,
-        ImmutableAttributes toAttributes,
-        FileNormalizer inputArtifactNormalizer,
-        FileNormalizer dependenciesNormalizer,
-        boolean cacheable,
-        DirectorySensitivity artifactDirectorySensitivity,
-        DirectorySensitivity dependenciesDirectorySensitivity,
-        LineEndingSensitivity artifactLineEndingSensitivity,
-        LineEndingSensitivity dependenciesLineEndingSensitivity,
-        BuildOperationRunner buildOperationRunner,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        IsolatableFactory isolatableFactory,
-        FileCollectionFactory fileCollectionFactory,
-        FileLookup fileLookup,
-        PropertyWalker parameterPropertyWalker,
-        InstantiationScheme actionInstantiationScheme,
-        DomainObjectContext owner,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        ServiceLookup internalServices
-    ) {
+            Class<? extends TransformAction<?>> implementationClass,
+            @Nullable TransformParameters parameterObject,
+            ImmutableAttributes fromAttributes,
+            ImmutableAttributes toAttributes,
+            FileNormalizer inputArtifactNormalizer,
+            FileNormalizer dependenciesNormalizer,
+            boolean cacheable,
+            DirectorySensitivity artifactDirectorySensitivity,
+            DirectorySensitivity dependenciesDirectorySensitivity,
+            LineEndingSensitivity artifactLineEndingSensitivity,
+            LineEndingSensitivity dependenciesLineEndingSensitivity,
+            BuildOperationRunner buildOperationRunner,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            IsolatableFactory isolatableFactory,
+            FileCollectionFactory fileCollectionFactory,
+            FileLookup fileLookup,
+            PropertyWalker parameterPropertyWalker,
+            InstantiationScheme actionInstantiationScheme,
+            DomainObjectContext owner,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
+            ServiceLookup internalServices) {
         this.implementationClass = implementationClass;
         this.fromAttributes = fromAttributes;
         this.toAttributes = toAttributes;
@@ -151,7 +149,8 @@ public class DefaultTransform implements Transform {
         this.fileLookup = fileLookup;
         this.internalServices = internalServices;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
-        this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
+        this.requiresDependencies =
+                instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
         this.requiresInputChanges = instanceFactory.requiresService(InputChanges.class);
         this.cacheable = cacheable;
         this.artifactDirectorySensitivity = artifactDirectorySensitivity;
@@ -159,33 +158,39 @@ public class DefaultTransform implements Transform {
         this.artifactLineEndingSensitivity = artifactLineEndingSensitivity;
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
         this.isolatedParameters = calculatedValueContainerFactory.create(
-            Describables.of("parameters of", this),
-            new IsolateTransformParameters(
-                parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker,
-                isolatableFactory, buildOperationRunner, classLoaderHierarchyHasher, fileCollectionFactory,
-                (InternalProblems) internalServices.get(InternalProblems.class),
-                (DocumentationRegistry) internalServices.get(DocumentationRegistry.class)));
+                Describables.of("parameters of", this),
+                new IsolateTransformParameters(
+                        parameterObject,
+                        implementationClass,
+                        cacheable,
+                        owner,
+                        parameterPropertyWalker,
+                        isolatableFactory,
+                        buildOperationRunner,
+                        classLoaderHierarchyHasher,
+                        fileCollectionFactory,
+                        (InternalProblems) internalServices.get(InternalProblems.class),
+                        (DocumentationRegistry) internalServices.get(DocumentationRegistry.class)));
     }
 
     /**
      * Used to recreate a transformer from the configuration cache.
      */
     public DefaultTransform(
-        Class<? extends TransformAction<?>> implementationClass,
-        CalculatedValueContainer<IsolatedParameters, IsolateTransformParameters> isolatedParameters,
-        ImmutableAttributes fromAttributes,
-        ImmutableAttributes toAttributes,
-        FileNormalizer inputArtifactNormalizer,
-        FileNormalizer dependenciesNormalizer,
-        boolean cacheable,
-        FileLookup fileLookup,
-        InstantiationScheme actionInstantiationScheme,
-        ServiceLookup internalServices,
-        DirectorySensitivity artifactDirectorySensitivity,
-        DirectorySensitivity dependenciesDirectorySensitivity,
-        LineEndingSensitivity artifactLineEndingSensitivity,
-        LineEndingSensitivity dependenciesLineEndingSensitivity
-    ) {
+            Class<? extends TransformAction<?>> implementationClass,
+            CalculatedValueContainer<IsolatedParameters, IsolateTransformParameters> isolatedParameters,
+            ImmutableAttributes fromAttributes,
+            ImmutableAttributes toAttributes,
+            FileNormalizer inputArtifactNormalizer,
+            FileNormalizer dependenciesNormalizer,
+            boolean cacheable,
+            FileLookup fileLookup,
+            InstantiationScheme actionInstantiationScheme,
+            ServiceLookup internalServices,
+            DirectorySensitivity artifactDirectorySensitivity,
+            DirectorySensitivity dependenciesDirectorySensitivity,
+            LineEndingSensitivity artifactLineEndingSensitivity,
+            LineEndingSensitivity dependenciesLineEndingSensitivity) {
         this.implementationClass = implementationClass;
         this.fromAttributes = fromAttributes;
         this.toAttributes = toAttributes;
@@ -194,7 +199,8 @@ public class DefaultTransform implements Transform {
         this.fileLookup = fileLookup;
         this.internalServices = internalServices;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
-        this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
+        this.requiresDependencies =
+                instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
         this.requiresInputChanges = instanceFactory.requiresService(InputChanges.class);
         this.cacheable = cacheable;
         this.isolatedParameters = isolatedParameters;
@@ -204,20 +210,31 @@ public class DefaultTransform implements Transform {
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
     }
 
-    private static final String CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY = "CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY";
+    private static final String CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY =
+            "CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY";
 
-    public static void validateInputFileNormalizer(String propertyName, @Nullable FileNormalizer normalizer, boolean cacheable, TypeValidationContext validationContext) {
+    public static void validateInputFileNormalizer(
+            String propertyName,
+            @Nullable FileNormalizer normalizer,
+            boolean cacheable,
+            TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == InputNormalizer.ABSOLUTE_PATH) {
-                validationContext.visitPropertyProblem(problem ->
-                    problem
-                        .forProperty(propertyName)
-                        .id(TextUtil.screamingSnakeToKebabCase(CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY), "Property declared to be sensitive to absolute paths", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
-                        .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
-                        .contextualLabel("is declared to be sensitive to absolute paths")
-                        .severity(ERROR)
-                        .details("This is not allowed for cacheable transforms")
-                        .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
+                validationContext.visitPropertyProblem(
+                        problem -> problem.forProperty(propertyName)
+                                .id(
+                                        TextUtil.screamingSnakeToKebabCase(
+                                                CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY),
+                                        "Property declared to be sensitive to absolute paths",
+                                        GradleCoreProblemGroup.validation()
+                                                .property()) // TODO (donat) missing test coverage
+                                .documentedAt(userManual(
+                                        "validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
+                                .contextualLabel("is declared to be sensitive to absolute paths")
+                                .severity(ERROR)
+                                .details("This is not allowed for cacheable transforms")
+                                .solution(
+                                        "Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
             }
         }
     }
@@ -278,9 +295,14 @@ public class DefaultTransform implements Transform {
     }
 
     @Override
-    public TransformExecutionResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, TransformDependencies dependencies, @Nullable InputChanges inputChanges) {
+    public TransformExecutionResult transform(
+            Provider<FileSystemLocation> inputArtifactProvider,
+            File outputDir,
+            TransformDependencies dependencies,
+            @Nullable InputChanges inputChanges) {
         TransformAction<?> transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
-        DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir, fileLookup);
+        DefaultTransformOutputs transformOutputs =
+                new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir, fileLookup);
         transformAction.transform(transformOutputs);
         return transformOutputs.getRegisteredOutputs();
     }
@@ -295,116 +317,117 @@ public class DefaultTransform implements Transform {
         isolatedParameters.finalizeIfNotAlready();
     }
 
-
-    private static final String ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT = "ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT";
+    private static final String ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT =
+            "ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT";
 
     private static void fingerprintParameters(
-        InputFingerprinter inputFingerprinter,
-        FileCollectionFactory fileCollectionFactory,
-        PropertyWalker propertyWalker,
-        Hasher hasher,
-        Object parameterObject,
-        boolean cacheable,
-        InternalProblems problems
-    ) {
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable, problems);
+            InputFingerprinter inputFingerprinter,
+            FileCollectionFactory fileCollectionFactory,
+            PropertyWalker propertyWalker,
+            Hasher hasher,
+            Object parameterObject,
+            boolean cacheable,
+            InternalProblems problems) {
+        DefaultTypeValidationContext validationContext =
+                DefaultTypeValidationContext.withoutRootType(cacheable, problems);
         InputFingerprinter.Result result = inputFingerprinter.fingerprintInputProperties(
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            visitor -> propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor() {
-                @Override
-                public void visitInputProperty(
-                    String propertyName,
-                    PropertyValue value,
-                    boolean optional
-                ) {
-                    try {
-                        // TODO Unify this with AbstractValidatingProperty.validate();
-                        //   we are doing a slightly different version of the same code here,
-                        //   see https://github.com/gradle/gradle/issues/10846
-                        Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
+                ImmutableSortedMap.of(),
+                ImmutableSortedMap.of(),
+                ImmutableSortedMap.of(),
+                ImmutableSortedMap.of(),
+                visitor -> propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor() {
+                    @Override
+                    public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
+                        try {
+                            // TODO Unify this with AbstractValidatingProperty.validate();
+                            //   we are doing a slightly different version of the same code here,
+                            //   see https://github.com/gradle/gradle/issues/10846
+                            Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
-                        if (preparedValue == null && !optional) {
-                            reportValueNotSet(propertyName, validationContext, true);
+                            if (preparedValue == null && !optional) {
+                                reportValueNotSet(propertyName, validationContext, true);
+                            }
+                            visitor.visitInputProperty(propertyName, () -> preparedValue);
+                        } catch (Throwable e) {
+                            throw new InvalidUserDataException(
+                                    String.format(
+                                            "Error while evaluating property '%s' of %s",
+                                            propertyName, getParameterObjectDisplayName(parameterObject)),
+                                    e);
                         }
-                        visitor.visitInputProperty(propertyName, () -> preparedValue);
-                    } catch (Throwable e) {
-                        throw new InvalidUserDataException(String.format(
-                            "Error while evaluating property '%s' of %s",
-                            propertyName,
-                            getParameterObjectDisplayName(parameterObject)
-                        ), e);
                     }
-                }
 
-                @Override
-                public void visitInputFileProperty(
-                    String propertyName,
-                    boolean optional,
-                    InputBehavior behavior,
-                    DirectorySensitivity directorySensitivity,
-                    LineEndingSensitivity lineEndingNormalization,
-                    @Nullable FileNormalizer normalizer,
-                    PropertyValue value,
-                    InputFilePropertyType filePropertyType
-                ) {
-                    validateInputFileNormalizer(propertyName, normalizer, cacheable, validationContext);
-                    visitor.visitInputFileProperty(
-                        propertyName,
-                        behavior,
-                        new InputFileValueSupplier(
-                            value,
-                            normalizer == null ? InputNormalizer.ABSOLUTE_PATH : normalizer,
-                            directorySensitivity,
-                            lineEndingNormalization,
-                            () -> FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value)));
-                }
+                    @Override
+                    public void visitInputFileProperty(
+                            String propertyName,
+                            boolean optional,
+                            InputBehavior behavior,
+                            DirectorySensitivity directorySensitivity,
+                            LineEndingSensitivity lineEndingNormalization,
+                            @Nullable FileNormalizer normalizer,
+                            PropertyValue value,
+                            InputFilePropertyType filePropertyType) {
+                        validateInputFileNormalizer(propertyName, normalizer, cacheable, validationContext);
+                        visitor.visitInputFileProperty(
+                                propertyName,
+                                behavior,
+                                new InputFileValueSupplier(
+                                        value,
+                                        normalizer == null ? InputNormalizer.ABSOLUTE_PATH : normalizer,
+                                        directorySensitivity,
+                                        lineEndingNormalization,
+                                        () -> FileParameterUtils.resolveInputFileValue(
+                                                fileCollectionFactory, filePropertyType, value)));
+                    }
 
-                @Override
-                public void visitOutputFileProperty(
-                    String propertyName,
-                    boolean optional,
-                    PropertyValue value,
-                    OutputFilePropertyType filePropertyType
-                ) {
-                    validationContext.visitPropertyProblem(problem ->
-                        problem
-                            .forProperty(propertyName)
-                            .id(TextUtil.screamingSnakeToKebabCase(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT), "Artifact transform should not declare output", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
-                            .contextualLabel("declares an output")
-                            .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase(Locale.ROOT)))
-                            .severity(ERROR)
-                            .details("is annotated with an output annotation")
-                            .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
-                    );
-                }
-            }),
-            // We are not validating transform parameter locations
-            FileCollectionStructureVisitor.NO_OP
-        );
+                    @Override
+                    public void visitOutputFileProperty(
+                            String propertyName,
+                            boolean optional,
+                            PropertyValue value,
+                            OutputFilePropertyType filePropertyType) {
+                        validationContext.visitPropertyProblem(
+                                problem -> problem.forProperty(propertyName)
+                                        .id(
+                                                TextUtil.screamingSnakeToKebabCase(
+                                                        ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT),
+                                                "Artifact transform should not declare output",
+                                                GradleCoreProblemGroup.validation()
+                                                        .property()) // TODO (donat) missing test coverage
+                                        .contextualLabel("declares an output")
+                                        .documentedAt(userManual(
+                                                "validation_problems",
+                                                ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase(Locale.ROOT)))
+                                        .severity(ERROR)
+                                        .details("is annotated with an output annotation")
+                                        .solution(
+                                                "Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead"));
+                    }
+                }),
+                // We are not validating transform parameter locations
+                FileCollectionStructureVisitor.NO_OP);
 
         ImmutableList<InternalProblem> validationMessages = validationContext.getProblems();
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
-                String.format(validationMessages.size() == 1
-                        ? "A problem was found with the configuration of the artifact transform parameter %s."
-                        : "Some problems were found with the configuration of the artifact transform parameter %s.",
-                    getParameterObjectDisplayName(parameterObject)),
-                validationMessages.stream()
-                    .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-                    .sorted()
-                    .map(InvalidUserDataException::new)
-                    .collect(toImmutableList())
-            );
+                    String.format(
+                            validationMessages.size() == 1
+                                    ? "A problem was found with the configuration of the artifact transform parameter %s."
+                                    : "Some problems were found with the configuration of the artifact transform parameter %s.",
+                            getParameterObjectDisplayName(parameterObject)),
+                    validationMessages.stream()
+                            .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+                            .sorted()
+                            .map(InvalidUserDataException::new)
+                            .collect(toImmutableList()));
         }
 
         for (Map.Entry<String, ValueSnapshot> entry : result.getValueSnapshots().entrySet()) {
             hasher.putString(entry.getKey());
             entry.getValue().appendToHasher(hasher);
         }
-        for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : result.getFileFingerprints().entrySet()) {
+        for (Map.Entry<String, CurrentFileCollectionFingerprint> entry :
+                result.getFileFingerprints().entrySet()) {
             hasher.putString(entry.getKey());
             hasher.putHash(entry.getValue().getHash());
         }
@@ -414,10 +437,17 @@ public class DefaultTransform implements Transform {
         return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 
-    private TransformAction<?> newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, TransformDependencies transformDependencies, @Nullable InputChanges inputChanges) {
-        TransformParameters parameters = isolatedParameters.get().getIsolatedParameterObject().isolate();
-        ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class).servicesForImplementation(parameters, internalServices, Collections.emptySet());
-        services = new TransformServiceLookup(inputArtifactProvider, requiresDependencies ? transformDependencies : null, inputChanges, services);
+    private TransformAction<?> newTransformAction(
+            Provider<FileSystemLocation> inputArtifactProvider,
+            TransformDependencies transformDependencies,
+            @Nullable InputChanges inputChanges) {
+        TransformParameters parameters =
+                isolatedParameters.get().getIsolatedParameterObject().isolate();
+        ServiceLookup services = new IsolationScheme<>(
+                        TransformAction.class, TransformParameters.class, TransformParameters.None.class)
+                .servicesForImplementation(parameters, internalServices, Collections.emptySet());
+        services = new TransformServiceLookup(
+                inputArtifactProvider, requiresDependencies ? transformDependencies : null, inputChanges, services);
         return instanceFactory.newInstance(services);
     }
 
@@ -446,18 +476,27 @@ public class DefaultTransform implements Transform {
     }
 
     private static class TransformServiceLookup implements ServiceLookup {
-        private static final Type FILE_SYSTEM_LOCATION_PROVIDER = new TypeToken<Provider<FileSystemLocation>>() {
-        }.getType();
+        private static final Type FILE_SYSTEM_LOCATION_PROVIDER =
+                new TypeToken<Provider<FileSystemLocation>>() {}.getType();
 
         private final ImmutableList<InjectionPoint> injectionPoints;
         private final ServiceLookup delegate;
 
-        public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable TransformDependencies transformDependencies, @Nullable InputChanges inputChanges, ServiceLookup delegate) {
+        public TransformServiceLookup(
+                Provider<FileSystemLocation> inputFileProvider,
+                @Nullable TransformDependencies transformDependencies,
+                @Nullable InputChanges inputChanges,
+                ServiceLookup delegate) {
             this.delegate = delegate;
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
+            builder.add(InjectionPoint.injectedByAnnotation(
+                    InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
             if (transformDependencies != null) {
-                builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, () -> transformDependencies.getFiles().orElseThrow(() -> new IllegalStateException("Transform does not use artifact dependencies."))));
+                builder.add(
+                        InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, () -> transformDependencies
+                                .getFiles()
+                                .orElseThrow(() ->
+                                        new IllegalStateException("Transform does not use artifact dependencies."))));
             }
             if (inputChanges != null) {
                 builder.add(InjectionPoint.injectedByType(InputChanges.class, () -> inputChanges));
@@ -469,7 +508,8 @@ public class DefaultTransform implements Transform {
         private Object find(Type serviceType, @Nullable Class<? extends Annotation> annotatedWith) {
             TypeToken<?> serviceTypeToken = TypeToken.of(serviceType);
             for (InjectionPoint injectionPoint : injectionPoints) {
-                if (annotatedWith == injectionPoint.getAnnotation() && serviceTypeToken.isSupertypeOf(injectionPoint.getInjectedType())) {
+                if (annotatedWith == injectionPoint.getAnnotation()
+                        && serviceTypeToken.isSupertypeOf(injectionPoint.getInjectedType())) {
                     return injectionPoint.getValueToInject();
                 }
             }
@@ -496,7 +536,8 @@ public class DefaultTransform implements Transform {
         }
 
         @Override
-        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith)
+                throws UnknownServiceException, ServiceLookupException {
             Object result = find(serviceType, annotatedWith);
             if (result != null) {
                 return result;
@@ -509,11 +550,13 @@ public class DefaultTransform implements Transform {
             private final Type injectedType;
             private final Supplier<Object> valueToInject;
 
-            public static InjectionPoint injectedByAnnotation(Class<? extends Annotation> annotation, Supplier<Object> valueToInject) {
+            public static InjectionPoint injectedByAnnotation(
+                    Class<? extends Annotation> annotation, Supplier<Object> valueToInject) {
                 return new InjectionPoint(annotation, determineTypeFromAnnotation(annotation), valueToInject);
             }
 
-            public static InjectionPoint injectedByAnnotation(Class<? extends Annotation> annotation, Type injectedType, Supplier<Object> valueToInject) {
+            public static InjectionPoint injectedByAnnotation(
+                    Class<? extends Annotation> annotation, Type injectedType, Supplier<Object> valueToInject) {
                 return new InjectionPoint(annotation, injectedType, valueToInject);
             }
 
@@ -521,16 +564,21 @@ public class DefaultTransform implements Transform {
                 return new InjectionPoint(null, injectedType, valueToInject);
             }
 
-            private InjectionPoint(@Nullable Class<? extends Annotation> annotation, Type injectedType, Supplier<Object> valueToInject) {
+            private InjectionPoint(
+                    @Nullable Class<? extends Annotation> annotation,
+                    Type injectedType,
+                    Supplier<Object> valueToInject) {
                 this.annotation = annotation;
                 this.injectedType = injectedType;
                 this.valueToInject = valueToInject;
             }
 
             private static Class<?> determineTypeFromAnnotation(Class<? extends Annotation> annotation) {
-                Class<?>[] supportedTypes = annotation.getAnnotation(InjectionPointQualifier.class).supportedTypes();
+                Class<?>[] supportedTypes =
+                        annotation.getAnnotation(InjectionPointQualifier.class).supportedTypes();
                 if (supportedTypes.length != 1) {
-                    throw new IllegalArgumentException("Cannot determine supported type for annotation " + annotation.getName());
+                    throw new IllegalArgumentException(
+                            "Cannot determine supported type for annotation " + annotation.getName());
                 }
                 return supportedTypes[0];
             }
@@ -554,7 +602,8 @@ public class DefaultTransform implements Transform {
         private final HashCode secondaryInputsHash;
         private final Isolatable<? extends TransformParameters> isolatedParameterObject;
 
-        public IsolatedParameters(Isolatable<? extends TransformParameters> isolatedParameterObject, HashCode secondaryInputsHash) {
+        public IsolatedParameters(
+                Isolatable<? extends TransformParameters> isolatedParameterObject, HashCode secondaryInputsHash) {
             this.secondaryInputsHash = secondaryInputsHash;
             this.isolatedParameterObject = isolatedParameterObject;
         }
@@ -582,18 +631,17 @@ public class DefaultTransform implements Transform {
         private final DocumentationRegistry documentationRegistry;
 
         public IsolateTransformParameters(
-            @Nullable TransformParameters parameterObject,
-            Class<?> implementationClass,
-            boolean cacheable,
-            DomainObjectContext owner,
-            PropertyWalker parameterPropertyWalker,
-            IsolatableFactory isolatableFactory,
-            BuildOperationRunner buildOperationRunner,
-            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-            FileCollectionFactory fileCollectionFactory,
-            InternalProblems problems,
-            DocumentationRegistry documentationRegistry
-        ) {
+                @Nullable TransformParameters parameterObject,
+                Class<?> implementationClass,
+                boolean cacheable,
+                DomainObjectContext owner,
+                PropertyWalker parameterPropertyWalker,
+                IsolatableFactory isolatableFactory,
+                BuildOperationRunner buildOperationRunner,
+                ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+                FileCollectionFactory fileCollectionFactory,
+                InternalProblems problems,
+                DocumentationRegistry documentationRegistry) {
             this.parameterObject = parameterObject;
             this.implementationClass = implementationClass;
             this.cacheable = cacheable;
@@ -634,21 +682,21 @@ public class DefaultTransform implements Transform {
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             if (parameterObject != null) {
-                parameterPropertyWalker.visitProperties(parameterObject, TypeValidationContext.NOOP, new PropertyVisitor() {
-                    @Override
-                    public void visitInputFileProperty(
-                        String propertyName,
-                        boolean optional,
-                        InputBehavior behavior,
-                        DirectorySensitivity directorySensitivity,
-                        LineEndingSensitivity lineEndingSensitivity,
-                        @Nullable FileNormalizer fileNormalizer,
-                        PropertyValue value,
-                        InputFilePropertyType filePropertyType
-                    ) {
-                        context.add(value.getTaskDependencies());
-                    }
-                });
+                parameterPropertyWalker.visitProperties(
+                        parameterObject, TypeValidationContext.NOOP, new PropertyVisitor() {
+                            @Override
+                            public void visitInputFileProperty(
+                                    String propertyName,
+                                    boolean optional,
+                                    InputBehavior behavior,
+                                    DirectorySensitivity directorySensitivity,
+                                    LineEndingSensitivity lineEndingSensitivity,
+                                    @Nullable FileNormalizer fileNormalizer,
+                                    PropertyValue value,
+                                    InputFilePropertyType filePropertyType) {
+                                context.add(value.getTaskDependencies());
+                            }
+                        });
             }
         }
 
@@ -661,19 +709,30 @@ public class DefaultTransform implements Transform {
         private IsolatedParameters isolateParameters(InputFingerprinter inputFingerprinter) {
             ModelContainer<?> model = owner.getModel();
             if (!model.hasMutableState()) {
-                // This may happen when a task visits artifacts using a FileCollection instance created from a Configuration instance in a different project (not an artifact produced by a different project, these work fine)
-                // There is a check in DefaultConfiguration that deprecates resolving dependencies via FileCollection instance created by a different project, however that check may not
-                // necessarily be triggered. For example, the configuration may be legitimately resolved by some other task prior to the problematic task running
-                // TODO - hoist this up into configuration file collection visiting (and not when visiting the upstream dependencies of a transform), and deprecate this in Gradle 7.x
+                // This may happen when a task visits artifacts using a FileCollection instance created from a
+                // Configuration instance in a different project (not an artifact produced by a different project, these
+                // work fine)
+                // There is a check in DefaultConfiguration that deprecates resolving dependencies via FileCollection
+                // instance created by a different project, however that check may not
+                // necessarily be triggered. For example, the configuration may be legitimately resolved by some other
+                // task prior to the problematic task running
+                // TODO - hoist this up into configuration file collection visiting (and not when visiting the upstream
+                // dependencies of a transform), and deprecate this in Gradle 7.x
                 //
-                // This may also happen when a transform takes upstream dependencies and the dependencies are transformed using a different transform
-                // In this case, the main thread that schedules the work should isolate the transform parameters prior to scheduling the work. However, the dependencies may
-                // be filtered from the result, so that the transform is not visited by the main thread, or the transform worker may start work before the main thread
+                // This may also happen when a transform takes upstream dependencies and the dependencies are
+                // transformed using a different transform
+                // In this case, the main thread that schedules the work should isolate the transform parameters prior
+                // to scheduling the work. However, the dependencies may
+                // be filtered from the result, so that the transform is not visited by the main thread, or the
+                // transform worker may start work before the main thread
                 // has a chance to isolate the upstream transform
-                // TODO - ensure all transform parameters required by a transform worker are isolated prior to starting the worker
+                // TODO - ensure all transform parameters required by a transform worker are isolated prior to starting
+                // the worker
                 //
-                // Force access to the state of the owner, regardless of whether any other thread has access. This is because attempting to acquire a lock for a project may deadlock
-                // when performed from a worker thread (see DefaultBuildOperationQueue.waitForCompletion() which intentionally does not release the project locks while waiting)
+                // Force access to the state of the owner, regardless of whether any other thread has access. This is
+                // because attempting to acquire a lock for a project may deadlock
+                // when performed from a worker thread (see DefaultBuildOperationQueue.waitForCompletion() which
+                // intentionally does not release the project locks while waiting)
                 // TODO - add validation to fail eagerly when a worker attempts to lock a project
                 //
                 return model.forceAccessToMutableState(o -> doIsolateParameters(inputFingerprinter));
@@ -687,7 +746,11 @@ public class DefaultTransform implements Transform {
                 return isolateParametersExclusively(inputFingerprinter);
             } catch (Exception e) {
                 TreeFormatter formatter = new TreeFormatter();
-                formatter.node("Could not isolate parameters ").appendValue(parameterObject).append(" of artifact transform ").appendType(implementationClass);
+                formatter
+                        .node("Could not isolate parameters ")
+                        .appendValue(parameterObject)
+                        .append(" of artifact transform ")
+                        .appendType(implementationClass);
                 throw new VariantTransformConfigurationException(formatter.toString(), e, documentationRegistry);
             }
         }
@@ -704,24 +767,23 @@ public class DefaultTransform implements Transform {
                 buildOperationRunner.run(new RunnableBuildOperation() {
                     @Override
                     public void run(BuildOperationContext context) {
-                        // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
+                        // TODO wolfs - schedule fingerprinting separately, it can be done without having the project
+                        // lock
                         fingerprintParameters(
-                            inputFingerprinter,
-                            fileCollectionFactory,
-                            parameterPropertyWalker,
-                            hasher,
-                            isolatedTransformParameters,
-                            cacheable,
-                            problems
-                        );
+                                inputFingerprinter,
+                                fileCollectionFactory,
+                                parameterPropertyWalker,
+                                hasher,
+                                isolatedTransformParameters,
+                                cacheable,
+                                problems);
                         context.setResult(FingerprintTransformInputsOperation.Result.INSTANCE);
                     }
 
                     @Override
                     public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor
-                            .displayName("Fingerprint transform inputs")
-                            .details(FingerprintTransformInputsOperation.Details.INSTANCE);
+                        return BuildOperationDescriptor.displayName("Fingerprint transform inputs")
+                                .details(FingerprintTransformInputsOperation.Details.INSTANCE);
                     }
                 });
             }
@@ -733,15 +795,15 @@ public class DefaultTransform implements Transform {
     /*
      * This operation is only used here temporarily. Should be replaced with a more stable operation in the long term.
      */
-    public interface FingerprintTransformInputsOperation extends BuildOperationType<FingerprintTransformInputsOperation.Details, FingerprintTransformInputsOperation.Result> {
+    public interface FingerprintTransformInputsOperation
+            extends BuildOperationType<
+                    FingerprintTransformInputsOperation.Details, FingerprintTransformInputsOperation.Result> {
         interface Details {
-            Details INSTANCE = new Details() {
-            };
+            Details INSTANCE = new Details() {};
         }
 
         interface Result {
-            Result INSTANCE = new Result() {
-            };
+            Result INSTANCE = new Result() {};
         }
     }
 }

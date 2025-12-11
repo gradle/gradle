@@ -16,6 +16,17 @@
 package org.gradle.tooling.internal.consumer.parameters;
 
 import com.google.common.collect.Lists;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
@@ -35,18 +46,6 @@ import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-
 /**
  * This is used via reflection from {@code ProviderOperationParameters}.
  */
@@ -57,8 +56,10 @@ public class ConsumerOperationParameters implements BuildParameters {
     }
 
     public static class Builder {
-        private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners = new ArrayList<org.gradle.tooling.ProgressListener>();
-        private final Map<OperationType, List<ProgressListener>> progressListeners = new EnumMap<OperationType, List<ProgressListener>>(OperationType.class);
+        private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners =
+                new ArrayList<org.gradle.tooling.ProgressListener>();
+        private final Map<OperationType, List<ProgressListener>> progressListeners =
+                new EnumMap<OperationType, List<ProgressListener>>(OperationType.class);
         private String entryPoint;
         private CancellationToken cancellationToken;
         private ConnectionParameters parameters;
@@ -75,11 +76,11 @@ public class ConsumerOperationParameters implements BuildParameters {
         private List<InternalLaunchable> launchables;
         private ClassPath injectedPluginClasspath = ClassPath.EMPTY;
         private Map<String, String> systemProperties;
+
         @Nullable
         private StreamedValueListener streamedValueListener;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder setEntryPoint(String entryPoint) {
             this.entryPoint = entryPoint;
@@ -176,7 +177,7 @@ public class ConsumerOperationParameters implements BuildParameters {
                     taskPaths.add(((Task) launchable).getPath());
                 } else {
                     throw new GradleException("Only Task or TaskSelector instances are supported: "
-                        + (launchable != null ? launchable.getClass() : "null"));
+                            + (launchable != null ? launchable.getClass() : "null"));
                 }
             }
             // Tasks are ignored by providers if launchables is not null
@@ -201,12 +202,13 @@ public class ConsumerOperationParameters implements BuildParameters {
 
         public void addProgressListener(ProgressListener listener, Set<OperationType> eventTypes) {
             for (OperationType type : eventTypes) {
-                List<ProgressListener> listeners = this.progressListeners.computeIfAbsent(type, new Function<OperationType, List<ProgressListener>>() {
-                    @Override
-                    public List<ProgressListener> apply(OperationType operationType) {
-                        return new ArrayList<ProgressListener>();
-                    }
-                });
+                List<ProgressListener> listeners = this.progressListeners.computeIfAbsent(
+                        type, new Function<OperationType, List<ProgressListener>>() {
+                            @Override
+                            public List<ProgressListener> apply(OperationType operationType) {
+                                return new ArrayList<ProgressListener>();
+                            }
+                        });
                 listeners.add(listener);
             }
         }
@@ -225,26 +227,25 @@ public class ConsumerOperationParameters implements BuildParameters {
             }
 
             return new ConsumerOperationParameters(
-                entryPoint,
-                parameters,
-                stdout,
-                stderr,
-                colorOutput,
-                stdin,
-                javaHome,
-                baseJvmArguments,
-                additionalJvmArguments,
-                envVariables,
-                arguments,
-                tasks,
-                launchables,
-                injectedPluginClasspath,
-                legacyProgressListeners,
-                progressListeners,
-                cancellationToken,
-                systemProperties,
-                new FailsafeStreamedValueListener(streamedValueListener)
-            );
+                    entryPoint,
+                    parameters,
+                    stdout,
+                    stderr,
+                    colorOutput,
+                    stdin,
+                    javaHome,
+                    baseJvmArguments,
+                    additionalJvmArguments,
+                    envVariables,
+                    arguments,
+                    tasks,
+                    launchables,
+                    injectedPluginClasspath,
+                    legacyProgressListeners,
+                    progressListeners,
+                    cancellationToken,
+                    systemProperties,
+                    new FailsafeStreamedValueListener(streamedValueListener));
         }
 
         public void copyFrom(ConsumerOperationParameters operationParameters) {
@@ -295,28 +296,25 @@ public class ConsumerOperationParameters implements BuildParameters {
     private final FailsafeStreamedValueListener streamedValueListener;
 
     private ConsumerOperationParameters(
-        String entryPointName,
-        ConnectionParameters parameters,
-        OutputStream stdout,
-        OutputStream stderr,
-        Boolean colorOutput,
-        InputStream stdin,
-        File javaHome,
-        @Nullable
-        List<String> baseJvmArguments,
-        @Nullable
-        List<String> additionalJvmArguments,
-        Map<String, String> envVariables,
-        List<String> arguments,
-        List<String> tasks,
-        List<InternalLaunchable> launchables,
-        ClassPath injectedPluginClasspath,
-        List<org.gradle.tooling.ProgressListener> legacyProgressListeners,
-        Map<OperationType, List<ProgressListener>> progressListeners,
-        CancellationToken cancellationToken,
-        Map<String, String> systemProperties,
-        FailsafeStreamedValueListener streamedValueListener
-    ) {
+            String entryPointName,
+            ConnectionParameters parameters,
+            OutputStream stdout,
+            OutputStream stderr,
+            Boolean colorOutput,
+            InputStream stdin,
+            File javaHome,
+            @Nullable List<String> baseJvmArguments,
+            @Nullable List<String> additionalJvmArguments,
+            Map<String, String> envVariables,
+            List<String> arguments,
+            List<String> tasks,
+            List<InternalLaunchable> launchables,
+            ClassPath injectedPluginClasspath,
+            List<org.gradle.tooling.ProgressListener> legacyProgressListeners,
+            Map<OperationType, List<ProgressListener>> progressListeners,
+            CancellationToken cancellationToken,
+            Map<String, String> systemProperties,
+            FailsafeStreamedValueListener streamedValueListener) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
         this.stdout = stdout;
@@ -338,10 +336,13 @@ public class ConsumerOperationParameters implements BuildParameters {
         this.streamedValueListener = streamedValueListener;
 
         // create the listener adapters right when the ConsumerOperationParameters are instantiated but no earlier,
-        // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
-        // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
+        // this ensures that when multiple requests are issued that are built from the same builder, such requests do
+        // not share any state kept in the listener adapters
+        // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests
+        // built from the same builder
         this.progressListener = new ProgressListenerAdapter(this.legacyProgressListeners);
-        this.buildProgressListener = new FailsafeBuildProgressListenerAdapter(new BuildProgressListenerAdapter(this.progressListeners));
+        this.buildProgressListener =
+                new FailsafeBuildProgressListenerAdapter(new BuildProgressListenerAdapter(this.progressListeners));
     }
 
     private static void validateJavaHome(File javaHome) {
@@ -451,17 +452,22 @@ public class ConsumerOperationParameters implements BuildParameters {
         // Backport fix for https://github.com/gradle/gradle/issues/31462
         // Cross-version scenarios
         // - Old TAPI (8.12 and before) invokes new Gradle (8.13 and after):
-        //     ProviderConnection will catch UnsupportedMethodException when calling getBaseJvmArgs() and will fall back to this method, but with the previous behavior (ie `return jvmArguments`)
-        //     see https://github.com/gradle/gradle/blob/v8.12.0/platforms/ide/tooling-api/src/main/java/org/gradle/tooling/internal/consumer/parameters/ConsumerOperationParameters.java#L406
+        //     ProviderConnection will catch UnsupportedMethodException when calling getBaseJvmArgs() and will fall back
+        // to this method, but with the previous behavior (ie `return jvmArguments`)
+        //     see
+        // https://github.com/gradle/gradle/blob/v8.12.0/platforms/ide/tooling-api/src/main/java/org/gradle/tooling/internal/consumer/parameters/ConsumerOperationParameters.java#L406
         // - New TAPI (8.13 and after) invokes old Gradle (8.12 and before):
-        //     We try to approximate the behavior of the new Gradle by returning the combined list of JVM arguments defined in gradle.properties and in the TAPI client config; see the method body below.
-        //     see https://github.com/gradle/gradle/blob/v8.12.0/platforms/core-runtime/launcher/src/main/java/org/gradle/tooling/internal/provider/ProviderConnection.java#L350
+        //     We try to approximate the behavior of the new Gradle by returning the combined list of JVM arguments
+        // defined in gradle.properties and in the TAPI client config; see the method body below.
+        //     see
+        // https://github.com/gradle/gradle/blob/v8.12.0/platforms/core-runtime/launcher/src/main/java/org/gradle/tooling/internal/provider/ProviderConnection.java#L350
 
         if (baseJvmArguments == null && additionalJvmArguments == null) {
             // To keep the old behavior, when no JVM arguments are set, return null.
             return null;
         } else {
-            // Otherwise, return the combined list of JVM arguments defined in the gradle.properties file and in the TAPI client config.
+            // Otherwise, return the combined list of JVM arguments defined in the gradle.properties file and in the
+            // TAPI client config.
             List<String> arguments = new ArrayList<>();
             if (baseJvmArguments != null) {
                 arguments.addAll(baseJvmArguments);

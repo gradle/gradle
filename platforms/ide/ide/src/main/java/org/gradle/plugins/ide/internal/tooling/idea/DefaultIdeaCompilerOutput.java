@@ -16,10 +16,9 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.tooling.model.idea.IdeaCompilerOutput;
-
 import java.io.File;
 import java.io.Serializable;
+import org.gradle.tooling.model.idea.IdeaCompilerOutput;
 
 public class DefaultIdeaCompilerOutput implements IdeaCompilerOutput, Serializable {
 

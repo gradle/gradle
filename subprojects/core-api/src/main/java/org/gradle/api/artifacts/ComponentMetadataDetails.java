@@ -15,11 +15,10 @@
  */
 package org.gradle.api.artifacts;
 
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.attributes.HasConfigurableAttributes;
-
-import java.util.List;
 
 /**
  * Describes a resolved component's metadata, which typically originates from
@@ -29,7 +28,8 @@ import java.util.List;
  * @since 1.8
  */
 @NonExtensible
-public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigurableAttributes<ComponentMetadataDetails> {
+public interface ComponentMetadataDetails
+        extends ComponentMetadata, HasConfigurableAttributes<ComponentMetadataDetails> {
     /**
      * Sets whether the component is changing or immutable.
      *

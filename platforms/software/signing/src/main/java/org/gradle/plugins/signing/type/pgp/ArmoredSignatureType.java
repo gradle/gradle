@@ -15,14 +15,13 @@
  */
 package org.gradle.plugins.signing.type.pgp;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.gradle.internal.UncheckedException;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.AbstractSignatureType;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * Armored signature type.

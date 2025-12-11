@@ -15,8 +15,23 @@
  */
 package org.gradle.cache.internal;
 
+import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.CacheDecorator;
@@ -40,25 +55,9 @@ import org.gradle.internal.serialize.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
-
 @ThreadSafe
 public class DefaultCacheCoordinator implements CacheCreationCoordinator, ExclusiveCacheAccessCoordinator {
-    private final static Logger LOG = LoggerFactory.getLogger(DefaultCacheCoordinator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultCacheCoordinator.class);
 
     private final String cacheDisplayName;
     private final File baseDir;
@@ -82,7 +81,15 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     private int cacheClosedCount;
     private boolean alreadyCleaned;
 
-    public DefaultCacheCoordinator(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ExecutorFactory executorFactory) {
+    public DefaultCacheCoordinator(
+            String cacheDisplayName,
+            File lockTarget,
+            LockOptions lockOptions,
+            File baseDir,
+            FileLockManager lockManager,
+            CacheInitializationAction initializationAction,
+            CacheCleanupExecutor cleanupAction,
+            ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
         this.baseDir = baseDir;
         this.cleanupAction = cleanupAction;
@@ -94,28 +101,49 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
         switch (lockOptions.getMode()) {
             case Shared:
-                crossProcessCacheAccess = new FixedSharedModeCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions, lockManager, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
+                crossProcessCacheAccess = new FixedSharedModeCrossProcessCacheAccess(
+                        cacheDisplayName,
+                        lockTarget,
+                        lockOptions,
+                        lockManager,
+                        initializationAction,
+                        onFileLockAcquireAction,
+                        onFileLockReleaseAction);
                 fileAccess = new UnitOfWorkFileAccess();
                 break;
             case Exclusive:
-                crossProcessCacheAccess = new FixedExclusiveModeCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions, lockManager, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
+                crossProcessCacheAccess = new FixedExclusiveModeCrossProcessCacheAccess(
+                        cacheDisplayName,
+                        lockTarget,
+                        lockOptions,
+                        lockManager,
+                        initializationAction,
+                        onFileLockAcquireAction,
+                        onFileLockReleaseAction);
                 fileAccess = new UnitOfWorkFileAccess();
                 break;
             case OnDemand:
-                crossProcessCacheAccess = new LockOnDemandCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions.copyWithMode(Exclusive), lockManager, stateLock, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
+                crossProcessCacheAccess = new LockOnDemandCrossProcessCacheAccess(
+                        cacheDisplayName,
+                        lockTarget,
+                        lockOptions.copyWithMode(Exclusive),
+                        lockManager,
+                        stateLock,
+                        initializationAction,
+                        onFileLockAcquireAction,
+                        onFileLockReleaseAction);
                 fileAccess = new UnitOfWorkFileAccess();
                 break;
             case OnDemandEagerRelease:
                 crossProcessCacheAccess = new LockOnDemandEagerReleaseCrossProcessCacheAccess(
-                    cacheDisplayName,
-                    lockTarget,
-                    lockOptions.copyWithMode(Exclusive),
-                    lockManager,
-                    stateLock,
-                    initializationAction,
-                    onFileLockAcquireAction,
-                    onFileLockReleaseAction
-                );
+                        cacheDisplayName,
+                        lockTarget,
+                        lockOptions.copyWithMode(Exclusive),
+                        lockManager,
+                        stateLock,
+                        initializationAction,
+                        onFileLockAcquireAction,
+                        onFileLockReleaseAction);
                 fileAccess = new UnitOfWorkFileAccess();
                 break;
             case None:
@@ -298,7 +326,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
      */
     private void takeOwnershipNow() {
         if (owner != null && owner != Thread.currentThread()) {
-            throw new IllegalStateException(String.format("Cannot take ownership of %s as it is currently being used by another thread.", cacheDisplayName));
+            throw new IllegalStateException(String.format(
+                    "Cannot take ownership of %s as it is currently being used by another thread.", cacheDisplayName));
         }
         owner = Thread.currentThread();
         operations.pushCacheAction();
@@ -324,12 +353,19 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
             if (entry == null) {
                 File cacheFile = findCacheFile(parameters);
                 LOG.debug("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
-                Supplier<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = () -> doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
+                Supplier<BTreePersistentIndexedCache<K, V>> indexedCacheFactory =
+                        () -> doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
 
-                MultiProcessSafeIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafeIndexedCache<>(indexedCacheFactory, fileAccess);
+                MultiProcessSafeIndexedCache<K, V> indexedCache =
+                        new DefaultMultiProcessSafeIndexedCache<>(indexedCacheFactory, fileAccess);
                 CacheDecorator decorator = parameters.getCacheDecorator();
                 if (decorator != null) {
-                    indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
+                    indexedCache = decorator.decorate(
+                            cacheFile.getAbsolutePath(),
+                            parameters.getCacheName(),
+                            indexedCache,
+                            crossProcessCacheAccess,
+                            getCacheAccessWorker());
                     if (fileLock == null) {
                         useCache(() -> {
                             // Empty initial operation to trigger onStartWork calls
@@ -359,7 +395,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         return findCacheFile(parameters).exists();
     }
 
-    <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+    <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(
+            File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         return new BTreePersistentIndexedCache<>(cacheFile, keySerializer, valueSerializer);
     }
 
@@ -431,7 +468,9 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         stateLock.lock();
         try {
             if (Thread.currentThread() != owner) {
-                throw new IllegalStateException(String.format("The %s has not been locked for this thread. File lock: %s, owner: %s", cacheDisplayName, fileLock != null, owner));
+                throw new IllegalStateException(String.format(
+                        "The %s has not been locked for this thread. File lock: %s, owner: %s",
+                        cacheDisplayName, fileLock != null, owner));
             }
         } finally {
             stateLock.unlock();
@@ -443,7 +482,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         private static final FileAccess INSTANCE = new TransparentFileAccess();
 
         @Override
-        public <T> T readFile(Callable<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException {
+        public <T> T readFile(Callable<? extends T> action)
+                throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException {
             try {
                 return action.call();
             } catch (Exception e) {
@@ -452,12 +492,14 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         }
 
         @Override
-        public <T> T readFile(Supplier<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException {
+        public <T> T readFile(Supplier<? extends T> action)
+                throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException {
             return action.get();
         }
 
         @Override
-        public void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException {
+        public void updateFile(Runnable action)
+                throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException {
             action.run();
         }
 
@@ -521,23 +563,23 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
             if (!faultMessages.isEmpty()) {
                 String lineSeparator = System.lineSeparator();
                 String faultMessage = String.join(lineSeparator, faultMessages);
-                throw new InvalidCacheReuseException(
-                    "Cache '" + parameters.getCacheName() + "' couldn't be reused because of the following mismatch:" + lineSeparator + faultMessage);
+                throw new InvalidCacheReuseException("Cache '" + parameters.getCacheName()
+                        + "' couldn't be reused because of the following mismatch:" + lineSeparator + faultMessage);
             }
         }
 
         private void checkCacheNameMatch(Collection<String> faultMessages, String cacheName) {
             if (!Objects.equal(cacheName, parameters.getCacheName())) {
-                faultMessages.add(
-                    String.format(" * Requested cache name (%s) doesn't match current cache name (%s)", cacheName,
-                        parameters.getCacheName()));
+                faultMessages.add(String.format(
+                        " * Requested cache name (%s) doesn't match current cache name (%s)",
+                        cacheName, parameters.getCacheName()));
             }
         }
 
         private void checkCompatibleKeySerializer(Collection<String> faultMessages, Serializer<K> keySerializer) {
             if (!Objects.equal(keySerializer, parameters.getKeySerializer())) {
-                faultMessages.add(
-                    String.format(" * Requested key serializer type (%s) doesn't match current cache type (%s)",
+                faultMessages.add(String.format(
+                        " * Requested key serializer type (%s) doesn't match current cache type (%s)",
                         keySerializer.getClass().getCanonicalName(),
                         parameters.getKeySerializer().getClass().getCanonicalName()));
             }
@@ -545,8 +587,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
         private void checkCompatibleValueSerializer(Collection<String> faultMessages, Serializer<V> valueSerializer) {
             if (!Objects.equal(valueSerializer, parameters.getValueSerializer())) {
-                faultMessages.add(
-                    String.format(" * Requested value serializer type (%s) doesn't match current cache type (%s)",
+                faultMessages.add(String.format(
+                        " * Requested value serializer type (%s) doesn't match current cache type (%s)",
                         valueSerializer.getClass().getCanonicalName(),
                         parameters.getValueSerializer().getClass().getCanonicalName()));
             }
@@ -554,8 +596,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
         private void checkCompatibleCacheDecorator(Collection<String> faultMessages, CacheDecorator cacheDecorator) {
             if (!Objects.equal(cacheDecorator, parameters.getCacheDecorator())) {
-                faultMessages.add(
-                    String.format(" * Requested cache decorator type (%s) doesn't match current cache type (%s)",
+                faultMessages.add(String.format(
+                        " * Requested cache decorator type (%s) doesn't match current cache type (%s)",
                         cacheDecorator, parameters.getCacheDecorator()));
             }
         }

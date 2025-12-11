@@ -16,24 +16,18 @@
 
 package org.gradle.test.fixtures.file;
 
+import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.file.PathUtils;
-import org.apache.commons.io.file.StandardDeleteOption;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.taskdefs.Zip;
-import org.codehaus.groovy.runtime.ResourceGroovyMethods;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hashing;
-import org.gradle.testing.internal.util.RetryUtil;
-import org.hamcrest.Matcher;
-import org.intellij.lang.annotations.Language;
-import org.junit.Assert;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -66,14 +60,19 @@ import java.util.TreeSet;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
-
-import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.file.PathUtils;
+import org.apache.commons.io.file.StandardDeleteOption;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.Zip;
+import org.codehaus.groovy.runtime.ResourceGroovyMethods;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
+import org.gradle.testing.internal.util.RetryUtil;
+import org.hamcrest.Matcher;
+import org.intellij.lang.annotations.Language;
+import org.junit.Assert;
 
 public class TestFile extends File {
     private boolean useNativeTools;
@@ -102,7 +101,8 @@ public class TestFile extends File {
     }
 
     public TestFile java(@Language("java") String src) {
-        Assert.assertTrue(getName() + " doesn't look like a Java file.", getName().endsWith(".java"));
+        Assert.assertTrue(
+                getName() + " doesn't look like a Java file.", getName().endsWith(".java"));
         return setText(src);
     }
 
@@ -144,7 +144,8 @@ public class TestFile extends File {
         try {
             return new TestFile(this, path);
         } catch (RuntimeException e) {
-            throw new RuntimeException(String.format("Could not locate file '%s' relative to '%s'.", Arrays.toString(path), this), e);
+            throw new RuntimeException(
+                    String.format("Could not locate file '%s' relative to '%s'.", Arrays.toString(path), this), e);
         }
     }
 
@@ -298,25 +299,32 @@ public class TestFile extends File {
             try {
                 final Path targetDir = target.toPath();
                 final Path sourceDir = this.toPath();
-                Files.walkFileTree(sourceDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult visitFile(Path sourceFile, BasicFileAttributes attributes) throws IOException {
-                        Path targetFile = targetDir.resolve(sourceDir.relativize(sourceFile));
-                        Files.copy(sourceFile, targetFile, COPY_ATTRIBUTES, REPLACE_EXISTING);
+                Files.walkFileTree(
+                        sourceDir,
+                        EnumSet.of(FileVisitOption.FOLLOW_LINKS),
+                        Integer.MAX_VALUE,
+                        new SimpleFileVisitor<Path>() {
+                            @Override
+                            public FileVisitResult visitFile(Path sourceFile, BasicFileAttributes attributes)
+                                    throws IOException {
+                                Path targetFile = targetDir.resolve(sourceDir.relativize(sourceFile));
+                                Files.copy(sourceFile, targetFile, COPY_ATTRIBUTES, REPLACE_EXISTING);
 
-                        return FileVisitResult.CONTINUE;
-                    }
+                                return FileVisitResult.CONTINUE;
+                            }
 
-                    @Override
-                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes) throws IOException {
-                        Path newDir = targetDir.resolve(sourceDir.relativize(dir));
-                        Files.createDirectories(newDir);
+                            @Override
+                            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes)
+                                    throws IOException {
+                                Path newDir = targetDir.resolve(sourceDir.relativize(dir));
+                                Files.createDirectories(newDir);
 
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
+                                return FileVisitResult.CONTINUE;
+                            }
+                        });
             } catch (IOException e) {
-                throw new RuntimeException(String.format("Could not copy test directory '%s' to '%s'", this, target), e);
+                throw new RuntimeException(
+                        String.format("Could not copy test directory '%s' to '%s'", this, target), e);
             }
         } else {
             try {
@@ -352,7 +360,8 @@ public class TestFile extends File {
         try {
             FileUtils.moveFileToDirectory(this, target, true);
         } catch (IOException e) {
-            throw new RuntimeException(String.format("Could not move test file '%s' to directory '%s'", this, target), e);
+            throw new RuntimeException(
+                    String.format("Could not move test file '%s' to directory '%s'", this, target), e);
         }
     }
 
@@ -393,7 +402,8 @@ public class TestFile extends File {
      * }
      * </pre>
      */
-    public TestFile create(@DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure structure) {
+    public TestFile create(
+            @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure structure) {
         assertTrue(isDirectory() || mkdirs());
         new TestWorkspaceBuilder(this).apply(structure);
         return this;
@@ -478,7 +488,8 @@ public class TestFile extends File {
                 throw new AssertionError(String.format("%s should not exist", this));
             } else {
                 visit(descendants, "", this, false);
-                throw new AssertionError(String.format("%s should not exist:\n%s", this, String.join("\n", descendants)));
+                throw new AssertionError(
+                        String.format("%s should not exist:\n%s", this, String.join("\n", descendants)));
             }
         }
         return this;
@@ -493,7 +504,10 @@ public class TestFile extends File {
         assertIsFile();
         other.assertIsFile();
         assertEquals(String.format("%s is not the same length as %s", this, other), other.length(), this.length());
-        assertEquals(String.format("%s does not have the same content as %s", this, other), getMd5Hash(), other.getMd5Hash());
+        assertEquals(
+                String.format("%s does not have the same content as %s", this, other),
+                getMd5Hash(),
+                other.getMd5Hash());
         return this;
     }
 
@@ -541,8 +555,8 @@ public class TestFile extends File {
     public TestFile createNamedPipe() {
         try {
             Process mkfifo = new ProcessBuilder("mkfifo", getAbsolutePath())
-                .redirectErrorStream(true)
-                .start();
+                    .redirectErrorStream(true)
+                    .start();
             assert mkfifo.waitFor() == 0; // assert the exit value signals success
             return this;
         } catch (IOException | InterruptedException e) {
@@ -610,7 +624,12 @@ public class TestFile extends File {
         Set<String> missing = new TreeSet<>(expected);
         missing.removeAll(actual);
 
-        assertEquals(String.format("For dir: %s\n extra files: %s, missing files: %s, expected: %s", this, extras, missing, expected), expected, actual);
+        assertEquals(
+                String.format(
+                        "For dir: %s\n extra files: %s, missing files: %s, expected: %s",
+                        this, extras, missing, expected),
+                expected,
+                actual);
 
         return this;
     }
@@ -628,7 +647,10 @@ public class TestFile extends File {
         Set<String> missing = new TreeSet<>(expected);
         missing.removeAll(actual);
 
-        assertTrue(String.format("For dir: %s\n missing files: %s, expected: %s, actual: %s", this, missing, expected, actual), missing.isEmpty());
+        assertTrue(
+                String.format(
+                        "For dir: %s\n missing files: %s, expected: %s, actual: %s", this, missing, expected, actual),
+                missing.isEmpty());
 
         return this;
     }
@@ -682,8 +704,8 @@ public class TestFile extends File {
         if (isDirectory()) {
             return this;
         }
-        throw new AssertionError("Problems creating dir: " + this
-            + ". Diagnostics: exists=" + this.exists() + ", isFile=" + this.isFile() + ", isDirectory=" + this.isDirectory());
+        throw new AssertionError("Problems creating dir: " + this + ". Diagnostics: exists=" + this.exists()
+                + ", isFile=" + this.isFile() + ", isDirectory=" + this.isDirectory());
     }
 
     public TestFile createDir(Object path) {
@@ -720,7 +742,8 @@ public class TestFile extends File {
         return this;
     }
 
-    private static final Set<PosixFilePermission> ALLOW_ALL = ImmutableSet.copyOf(EnumSet.allOf(PosixFilePermission.class));
+    private static final Set<PosixFilePermission> ALLOW_ALL =
+            ImmutableSet.copyOf(EnumSet.allOf(PosixFilePermission.class));
 
     /**
      * Recursively delete this directory, reporting all failed paths.
@@ -859,7 +882,9 @@ public class TestFile extends File {
 
     public void assertHasChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertTrue(String.format("contents or modification time of %s have not changed", this), now.modTime != snapshot.modTime || !now.hash.equals(snapshot.hash));
+        assertTrue(
+                String.format("contents or modification time of %s have not changed", this),
+                now.modTime != snapshot.modTime || !now.hash.equals(snapshot.hash));
     }
 
     public void assertContentsHaveChangedSince(Snapshot snapshot) {

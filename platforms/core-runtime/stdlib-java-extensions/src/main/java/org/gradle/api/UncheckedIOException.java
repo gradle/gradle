@@ -24,8 +24,7 @@ import org.jspecify.annotations.Nullable;
  */
 @Deprecated
 public class UncheckedIOException extends RuntimeException {
-    public UncheckedIOException() {
-    }
+    public UncheckedIOException() {}
 
     public UncheckedIOException(@Nullable String message) {
         super(message);

@@ -16,7 +16,16 @@
 
 package org.gradle.performance.fixture;
 
+import static java.util.Collections.emptyMap;
+
 import groovy.transform.CompileStatic;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import joptsimple.OptionParser;
 import org.apache.commons.io.FileUtils;
 import org.gradle.internal.UncheckedException;
@@ -35,16 +44,6 @@ import org.gradle.profiler.ScenarioDefinition;
 import org.gradle.profiler.report.Format;
 import org.gradle.profiler.result.BuildInvocationResult;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import static java.util.Collections.emptyMap;
-
 /**
  * Runs a single build experiment.
  *
@@ -59,7 +58,8 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
     private final Profiler profiler;
     private final OutputDirSelector outputDirSelector;
 
-    public AbstractBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter, OutputDirSelector outputDirSelector) {
+    public AbstractBuildExperimentRunner(
+            GradleProfilerReporter gradleProfilerReporter, OutputDirSelector outputDirSelector) {
         this.outputDirSelector = outputDirSelector;
         String profilerName = System.getProperty(PROFILER_KEY);
         this.profiler = isProfilingActive() ? createProfiler(profilerName) : Profiler.NONE;
@@ -77,8 +77,8 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         ProfilerFactory.configureParser(optionParser);
         ProfilerFactory profilerFactory = ProfilerFactory.of(Collections.singletonList(profilerName));
         String[] options = profilerName.equals("jprofiler")
-            ? new String[] {"--profile", "jprofiler", "--jprofiler-home", System.getenv("JPROFILER_HOME")}
-            : new String[] {};
+                ? new String[] {"--profile", "jprofiler", "--jprofiler-home", System.getenv("JPROFILER_HOME")}
+                : new String[] {};
         return profilerFactory.createFromOptions(optionParser.parse(options));
     }
 
@@ -112,29 +112,37 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         }
     }
 
-    protected InvocationSettings.InvocationSettingsBuilder createInvocationSettingsBuilder(String testId, BuildExperimentSpec experiment) {
+    protected InvocationSettings.InvocationSettingsBuilder createInvocationSettingsBuilder(
+            String testId, BuildExperimentSpec experiment) {
         File outputDir = outputDirFor(testId, experiment);
         InvocationSpec invocationSpec = experiment.getInvocation();
         return new InvocationSettings.InvocationSettingsBuilder()
-            .setProjectDir(invocationSpec.getWorkingDirectory())
-            .setProfiler(profiler)
-            .setBenchmark(true)
-            .setOutputDir(outputDir)
-            .setScenarioFile(null)
-            .setSysProperties(emptyMap())
-            .setWarmupCount(warmupsForExperiment(experiment))
-            .setIterations(invocationsForExperiment(experiment))
-            .setCsvFormat(Format.LONG);
+                .setProjectDir(invocationSpec.getWorkingDirectory())
+                .setProfiler(profiler)
+                .setBenchmark(true)
+                .setOutputDir(outputDir)
+                .setScenarioFile(null)
+                .setSysProperties(emptyMap())
+                .setWarmupCount(warmupsForExperiment(experiment))
+                .setIterations(invocationsForExperiment(experiment))
+                .setCsvFormat(Format.LONG);
     }
 
     private File outputDirFor(String testId, BuildExperimentSpec spec) {
-        boolean crossVersion = spec instanceof GradleBuildExperimentSpec && ((GradleBuildExperimentSpec) spec).isCrossVersion();
+        boolean crossVersion =
+                spec instanceof GradleBuildExperimentSpec && ((GradleBuildExperimentSpec) spec).isCrossVersion();
         File outputDir;
         if (crossVersion) {
-            String version = ((GradleBuildExperimentSpec) spec).getInvocation().getGradleDistribution().getVersion().getVersion();
+            String version = ((GradleBuildExperimentSpec) spec)
+                    .getInvocation()
+                    .getGradleDistribution()
+                    .getVersion()
+                    .getVersion();
             outputDir = new File(outputDirSelector.outputDirFor(testId), version);
         } else {
-            outputDir = new File(outputDirSelector.outputDirFor(testId), OutputDirSelectorUtil.fileSafeNameFor(spec.getDisplayName()));
+            outputDir = new File(
+                    outputDirSelector.outputDirFor(testId),
+                    OutputDirSelectorUtil.fileSafeNameFor(spec.getDisplayName()));
         }
         outputDir.mkdirs();
         return outputDir;
@@ -183,23 +191,22 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
     }
 
     protected <T extends BuildInvocationResult> Consumer<T> consumerFor(
-        ScenarioDefinition scenarioDefinition,
-        MeasuredOperationList results,
-        Consumer<T> scenarioReporter
-    ) {
+            ScenarioDefinition scenarioDefinition, MeasuredOperationList results, Consumer<T> scenarioReporter) {
         AtomicInteger iterationCount = new AtomicInteger();
         return invocationResult -> {
             int currentIteration = iterationCount.incrementAndGet();
             if (currentIteration > scenarioDefinition.getWarmUpCount()) {
                 MeasuredOperation measuredOperation = new MeasuredOperation();
-                measuredOperation.setTotalTime(Duration.millis(invocationResult.getExecutionTime().toMillis()));
+                measuredOperation.setTotalTime(
+                        Duration.millis(invocationResult.getExecutionTime().toMillis()));
                 results.add(measuredOperation);
             }
             scenarioReporter.accept(invocationResult);
         };
     }
 
-    protected static Supplier<BuildMutator> toMutatorSupplierForSettings(InvocationSettings invocationSettings, Function<InvocationSettings, BuildMutator> mutatorFunction) {
+    protected static Supplier<BuildMutator> toMutatorSupplierForSettings(
+            InvocationSettings invocationSettings, Function<InvocationSettings, BuildMutator> mutatorFunction) {
         return () -> mutatorFunction.apply(invocationSettings);
     }
 }

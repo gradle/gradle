@@ -37,7 +37,6 @@ public interface CacheInitializationAction {
         }
 
         @Override
-        public void initialize(FileLock fileLock) {
-        }
+        public void initialize(FileLock fileLock) {}
     };
 }

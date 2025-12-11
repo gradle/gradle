@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.attributes.MultipleCandidatesDetails;
-
 import java.util.Set;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
 
 public interface MultipleCandidatesResult<T> extends MultipleCandidatesDetails<T> {
     boolean hasResult();

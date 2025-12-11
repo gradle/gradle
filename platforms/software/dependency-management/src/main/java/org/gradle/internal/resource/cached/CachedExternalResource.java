@@ -16,10 +16,9 @@
 
 package org.gradle.internal.resource.cached;
 
+import java.util.Date;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Date;
 
 /**
  * A record of some kind of external resource that has been cached locally (typically into the filestore).
@@ -42,5 +41,4 @@ public interface CachedExternalResource extends CachedItem {
      * @return The external last modified, or null if unavailable.
      */
     Date getExternalLastModified();
-
 }

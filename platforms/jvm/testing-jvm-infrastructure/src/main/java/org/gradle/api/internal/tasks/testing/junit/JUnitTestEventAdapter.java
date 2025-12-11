@@ -16,6 +16,21 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
@@ -47,22 +62,6 @@ import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * A {@link RunListener} that maps JUnit4 events to Gradle test events.
  */
@@ -70,19 +69,21 @@ import java.util.regex.Pattern;
 public class JUnitTestEventAdapter extends RunListener {
 
     private static final List<TestFailureMapper> MAPPERS = Arrays.asList(
-        new JUnitComparisonTestFailureMapper(),
-        new OpenTestAssertionFailedMapper(),
-        new OpenTestMultipleFailuresErrorMapper(),
-        new AssertjMultipleAssertionsErrorMapper(),
-        new AssertErrorMapper()
-    );
+            new JUnitComparisonTestFailureMapper(),
+            new OpenTestAssertionFailedMapper(),
+            new OpenTestMultipleFailuresErrorMapper(),
+            new AssertjMultipleAssertionsErrorMapper(),
+            new AssertErrorMapper());
 
     private static final class TestNode {
         // Avoid generating the id too early, as it leads to a confusing ordering of ids
-        // Ordering generally shouldn't be relied on, but the tests read cleaner if ids are generated in a depth-first order
+        // Ordering generally shouldn't be relied on, but the tests read cleaner if ids are generated in a depth-first
+        // order
         private final IdGenerator<?> idGenerator;
+
         @Nullable
         private volatile Object resolvedId;
+
         final Description description;
 
         TestNode(IdGenerator<?> idGenerator, Description description) {
@@ -109,22 +110,21 @@ public class JUnitTestEventAdapter extends RunListener {
         final Map<Description, TestNode> descToNode;
         final Map<Description, TestNode> childDescToParentNode;
 
-        PostRunStartData(
-            Map<Description, TestNode> descToNode,
-            Map<Description, TestNode> childDescToParentNode
-        ) {
+        PostRunStartData(Map<Description, TestNode> descToNode, Map<Description, TestNode> childDescToParentNode) {
             this.descToNode = descToNode;
             this.childDescToParentNode = childDescToParentNode;
         }
     }
 
-    private static final DefaultThrowableToTestFailureMapper FAILURE_MAPPER = new DefaultThrowableToTestFailureMapper(MAPPERS);
+    private static final DefaultThrowableToTestFailureMapper FAILURE_MAPPER =
+            new DefaultThrowableToTestFailureMapper(MAPPERS);
 
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)(\\[\\d+])?", Pattern.DOTALL);
     private final IdGenerator<?> idGenerator;
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
     private final Object lock = new Object();
+
     @Nullable
     private volatile PostRunStartData postRunStartData;
     // This uses a Deque so grandparents are completed after parents
@@ -132,6 +132,7 @@ public class JUnitTestEventAdapter extends RunListener {
     private final Map<Description, TestDescriptorInternal> executing = new HashMap<>();
     private final Set<Description> assumptionFailed = new HashSet<>();
     private volatile boolean testsStarted = false;
+
     @Nullable
     private volatile String rootName;
 
@@ -308,10 +309,12 @@ public class JUnitTestEventAdapter extends RunListener {
         Object syntheticParentId = null;
 
         if (parent == null) {
-            // This can happen if there's a setup method in a suite that doesn't actually get executed according to the test run data.
+            // This can happen if there's a setup method in a suite that doesn't actually get executed according to the
+            // test run data.
             // We must synthesize a parent in this case.
             syntheticParentId = idGenerator.generateId();
-            DefaultTestClassDescriptor syntheticParent = new DefaultTestClassDescriptor(syntheticParentId, parentClassName);
+            DefaultTestClassDescriptor syntheticParent =
+                    new DefaultTestClassDescriptor(syntheticParentId, parentClassName);
             resultProcessor.started(syntheticParent, new TestStartEvent(now));
         }
 
@@ -325,7 +328,8 @@ public class JUnitTestEventAdapter extends RunListener {
     @Nullable
     private TestNode startParentMatchingClassName(String className, long now) {
         TestNode parent = null;
-        for (Map.Entry<Description, TestNode> entry : requirePostRunStartData().descToNode.entrySet()) {
+        for (Map.Entry<Description, TestNode> entry :
+                requirePostRunStartData().descToNode.entrySet()) {
             if (className.equals(className(entry.getKey()))) {
                 parent = entry.getValue();
                 startParentByNodeIfNeeded(entry.getValue(), now);
@@ -360,7 +364,8 @@ public class JUnitTestEventAdapter extends RunListener {
                 resultProcessor.started(child, startEvent(parentId));
                 Throwable exception = failure.getException();
                 reportAssumptionFailure(child.getId(), exception);
-                resultProcessor.completed(child.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.SKIPPED));
+                resultProcessor.completed(
+                        child.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.SKIPPED));
             });
         }
     }
@@ -384,7 +389,8 @@ public class JUnitTestEventAdapter extends RunListener {
                 String testName = testsStarted ? "executionError" : "initializationError";
 
                 withPotentiallyMissingParent(testClassDefinition.getTestClassName(), now, parentId -> {
-                    DefaultTestDescriptor initializationError = new DefaultTestDescriptor(idGenerator.generateId(), testClassDefinition.getTestClassName(), testName);
+                    DefaultTestDescriptor initializationError = new DefaultTestDescriptor(
+                            idGenerator.generateId(), testClassDefinition.getTestClassName(), testName);
                     resultProcessor.started(initializationError, new TestStartEvent(now, parentId));
                     resultProcessor.failure(initializationError.getId(), failure);
                     resultProcessor.completed(initializationError.getId(), new TestCompleteEvent(now));
@@ -411,7 +417,8 @@ public class JUnitTestEventAdapter extends RunListener {
             TestDescriptorInternal descriptor = descriptor(idGenerator.generateId(), description);
             resultProcessor.started(descriptor, startEvent(parentId));
             long endTime = clock.getCurrentTime();
-            resultProcessor.completed(descriptor.getId(), new TestCompleteEvent(endTime, TestResult.ResultType.SKIPPED));
+            resultProcessor.completed(
+                    descriptor.getId(), new TestCompleteEvent(endTime, TestResult.ResultType.SKIPPED));
         }
     }
 
@@ -427,7 +434,8 @@ public class JUnitTestEventAdapter extends RunListener {
             Object parentId = classNode.resolveId();
             TestDescriptorInternal descriptor = descriptor(idGenerator.generateId(), childDescription);
             resultProcessor.started(descriptor, startEvent(parentId));
-            resultProcessor.completed(descriptor.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.SKIPPED));
+            resultProcessor.completed(
+                    descriptor.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.SKIPPED));
         }
     }
 
@@ -475,7 +483,8 @@ public class JUnitTestEventAdapter extends RunListener {
         if (methodName != null) {
             return new DefaultTestDescriptor(id, className, methodName, new DefaultMethodSource(className, methodName));
         } else {
-            return new DefaultTestDescriptor(id, className, "classMethod", new DefaultMethodSource(className, "classMethod"));
+            return new DefaultTestDescriptor(
+                    id, className, "classMethod", new DefaultMethodSource(className, "classMethod"));
         }
     }
 
@@ -563,19 +572,16 @@ public class JUnitTestEventAdapter extends RunListener {
         Map<Description, TestNode> childDescToParentNode = new HashMap<>();
         addParentIds(description, descToNode, childDescToParentNode);
         this.postRunStartData = new PostRunStartData(
-            Collections.unmodifiableMap(descToNode),
-            Collections.unmodifiableMap(childDescToParentNode)
-        );
+                Collections.unmodifiableMap(descToNode), Collections.unmodifiableMap(childDescToParentNode));
 
         // Start root immediately so output is captured for it
         startParentByNodeIfNeeded(Objects.requireNonNull(descToNode.get(description)), clock.getCurrentTime());
     }
 
     private void addParentIds(
-        Description description,
-        Map<Description, TestNode> descToNode,
-        Map<Description, TestNode> childDescToParentNode
-    ) {
+            Description description,
+            Map<Description, TestNode> descToNode,
+            Map<Description, TestNode> childDescToParentNode) {
         TestNode thisNode = new TestNode(idGenerator, description);
         descToNode.put(description, thisNode);
         for (Description child : description.getChildren()) {
@@ -599,7 +605,8 @@ public class JUnitTestEventAdapter extends RunListener {
             PostRunStartData postRunStartData = requirePostRunStartData();
             Description parent;
             while ((parent = activeParents.pollLast()) != null) {
-                Object parentId = Objects.requireNonNull(postRunStartData.descToNode.get(parent)).resolveId();
+                Object parentId = Objects.requireNonNull(postRunStartData.descToNode.get(parent))
+                        .resolveId();
                 resultProcessor.completed(parentId, new TestCompleteEvent(now));
             }
 

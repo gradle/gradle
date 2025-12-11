@@ -16,9 +16,9 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
+import javax.inject.Inject;
 
 public class AsdfInstallationSupplier implements InstallationSupplier {
     private final ToolchainConfiguration toolchainConfiguration;

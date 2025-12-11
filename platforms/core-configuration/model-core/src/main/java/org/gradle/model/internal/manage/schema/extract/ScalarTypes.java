@@ -16,29 +16,27 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.model.internal.type.ModelType;
-
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
+import org.gradle.model.internal.type.ModelType;
 
 public abstract class ScalarTypes {
 
-    public final static List<ModelType<?>> TYPES = ImmutableList.<ModelType<?>>of(
-        ModelType.of(String.class),
-        ModelType.of(Boolean.class),
-        ModelType.of(Character.class),
-        ModelType.of(Byte.class),
-        ModelType.of(Short.class),
-        ModelType.of(Integer.class),
-        ModelType.of(Float.class),
-        ModelType.of(Long.class),
-        ModelType.of(Double.class),
-        ModelType.of(BigInteger.class),
-        ModelType.of(BigDecimal.class),
-        ModelType.of(File.class)
-    );
+    public static final List<ModelType<?>> TYPES = ImmutableList.<ModelType<?>>of(
+            ModelType.of(String.class),
+            ModelType.of(Boolean.class),
+            ModelType.of(Character.class),
+            ModelType.of(Byte.class),
+            ModelType.of(Short.class),
+            ModelType.of(Integer.class),
+            ModelType.of(Float.class),
+            ModelType.of(Long.class),
+            ModelType.of(Double.class),
+            ModelType.of(BigInteger.class),
+            ModelType.of(BigDecimal.class),
+            ModelType.of(File.class));
 
     public static boolean isScalarType(ModelType<?> modelType) {
         return TYPES.contains(modelType);

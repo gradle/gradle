@@ -16,11 +16,10 @@
 
 package org.gradle.api.publish.ivy.internal.dependency;
 
+import java.util.Set;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 /**
  * Represents a dependency within an ivy descriptor file. This is the "Ivy view"

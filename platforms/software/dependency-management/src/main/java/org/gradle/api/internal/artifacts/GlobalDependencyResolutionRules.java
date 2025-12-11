@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts;
 
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
@@ -23,9 +25,6 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.CollectionUtils;
-
-import javax.inject.Inject;
-import java.util.List;
 
 @ServiceScope(Scope.Project.class)
 public class GlobalDependencyResolutionRules {
@@ -50,7 +49,8 @@ public class GlobalDependencyResolutionRules {
 
         @Override
         public Action<DependencySubstitution> getRuleAction() {
-            return Actions.composite(CollectionUtils.collect(ruleProviders, DependencySubstitutionRules::getRuleAction));
+            return Actions.composite(
+                    CollectionUtils.collect(ruleProviders, DependencySubstitutionRules::getRuleAction));
         }
 
         @Override
@@ -63,5 +63,4 @@ public class GlobalDependencyResolutionRules {
             return false;
         }
     }
-
 }

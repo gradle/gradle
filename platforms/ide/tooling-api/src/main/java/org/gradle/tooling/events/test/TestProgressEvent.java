@@ -32,5 +32,4 @@ public interface TestProgressEvent extends ProgressEvent {
      */
     @Override
     TestOperationDescriptor getDescriptor();
-
 }

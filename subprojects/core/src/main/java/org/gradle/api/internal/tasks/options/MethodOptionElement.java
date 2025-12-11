@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import java.io.File;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.provider.HasMultipleValues;
@@ -26,20 +29,18 @@ import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-
 public class MethodOptionElement {
 
     private static String assertValidOptionName(Option option, String elementName, Class<?> declaredClass) {
         if (option.option().length() == 0) {
-            throw new OptionValidationException(String.format("No option name set on '%s' in class '%s'.", elementName, declaredClass.getName()));
+            throw new OptionValidationException(
+                    String.format("No option name set on '%s' in class '%s'.", elementName, declaredClass.getName()));
         }
         return option.option();
     }
 
-    public static OptionElement create(Option option, Method method, OptionValueNotationParserFactory optionValueNotationParserFactory) {
+    public static OptionElement create(
+            Option option, Method method, OptionValueNotationParserFactory optionValueNotationParserFactory) {
         String optionName = assertValidOptionName(option, method.getName(), method.getDeclaringClass());
         if (Property.class.isAssignableFrom(method.getReturnType())) {
             assertCanUseMethodReturnType(optionName, method);
@@ -50,7 +51,8 @@ public class MethodOptionElement {
             assertCanUseMethodReturnType(optionName, method);
             PropertySetter setter = mutateUsingReturnValue(method);
             Class<?> elementType = setter.getRawType();
-            return new MultipleValueOptionElement(optionName, option, elementType, setter, optionValueNotationParserFactory);
+            return new MultipleValueOptionElement(
+                    optionName, option, elementType, setter, optionValueNotationParserFactory);
         }
         if (method.getParameterTypes().length == 0) {
             return new BooleanOptionElement(optionName, option, setFlagUsingMethod(method));
@@ -82,15 +84,20 @@ public class MethodOptionElement {
     private static void assertCanUseMethodReturnType(String optionName, Method method) {
         final Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length != 0) {
-            throw new OptionValidationException(String.format("Option '%s' on method that returns %s cannot take parameters in class '%s#%s'.",
-                    optionName, method.getGenericReturnType(), method.getDeclaringClass().getName(), method.getName()));
+            throw new OptionValidationException(String.format(
+                    "Option '%s' on method that returns %s cannot take parameters in class '%s#%s'.",
+                    optionName,
+                    method.getGenericReturnType(),
+                    method.getDeclaringClass().getName(),
+                    method.getName()));
         }
     }
 
     private static void assertCanUseMethodParam(String optionName, Method method) {
         final Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length > 1) {
-            throw new OptionValidationException(String.format("Option '%s' on method cannot take multiple parameters in class '%s#%s'.",
+            throw new OptionValidationException(String.format(
+                    "Option '%s' on method cannot take multiple parameters in class '%s#%s'.",
                     optionName, method.getDeclaringClass().getName(), method.getName()));
         }
     }
@@ -128,7 +135,12 @@ public class MethodOptionElement {
         private final Class<?> elementType;
 
         public PropertyValueSetter(Method method) {
-            this(method, ModelType.of(method.getGenericReturnType()).getTypeVariables().get(0).getRawClass());
+            this(
+                    method,
+                    ModelType.of(method.getGenericReturnType())
+                            .getTypeVariables()
+                            .get(0)
+                            .getRawClass());
         }
 
         public PropertyValueSetter(Method method, Class<?> elementType) {
@@ -153,7 +165,8 @@ public class MethodOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            Property<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, method).invoke(target));
+            Property<Object> property = Cast.uncheckedNonnullCast(
+                    JavaMethod.of(Object.class, method).invoke(target));
             property.set(value);
         }
 
@@ -170,7 +183,8 @@ public class MethodOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            HasMultipleValues<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getMethod()).invoke(target));
+            HasMultipleValues<Object> property = Cast.uncheckedNonnullCast(
+                    JavaMethod.of(Object.class, getMethod()).invoke(target));
             property.set((Iterable<?>) value);
         }
     }
@@ -183,8 +197,9 @@ public class MethodOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            FileSystemLocationProperty<FileSystemLocation> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getMethod()).invoke(target));
-            property.set(new File((String)value));
+            FileSystemLocationProperty<FileSystemLocation> property = Cast.uncheckedNonnullCast(
+                    JavaMethod.of(Object.class, getMethod()).invoke(target));
+            property.set(new File((String) value));
         }
     }
 

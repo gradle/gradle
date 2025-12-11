@@ -16,21 +16,20 @@
 
 package org.gradle.internal.classpath.transforms;
 
+import static org.gradle.initialization.ConventionInterfaceGenerator.DEFAULT_DECORATED_CONVENTION_NAME;
+import static org.gradle.internal.classpath.transforms.CommonTypes.OBJECT_TYPE;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.function.Supplier;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.initialization.ConventionInterfaceGenerator;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.function.Supplier;
-
-import static org.gradle.initialization.ConventionInterfaceGenerator.DEFAULT_DECORATED_CONVENTION_NAME;
-import static org.gradle.internal.classpath.transforms.CommonTypes.OBJECT_TYPE;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.getMethodDescriptor;
 
 public class ConventionInterceptors {
     static final Type PROJECT_TYPE = Type.getType(Project.class);
@@ -40,22 +39,35 @@ public class ConventionInterceptors {
 
     // this is executed instead of `Project.getConvention()`
     // usage is in `visitMethodInsn`
-    public static Object interceptProjectGetConventionMethod(Project project) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Class<?> aClass = Class.forName(DEFAULT_DECORATED_CONVENTION_NAME, true, Thread.currentThread().getContextClassLoader());
+    public static Object interceptProjectGetConventionMethod(Project project)
+            throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException,
+                    IllegalAccessException {
+        Class<?> aClass = Class.forName(
+                DEFAULT_DECORATED_CONVENTION_NAME, true, Thread.currentThread().getContextClassLoader());
         return aClass.getConstructor(ExtensionContainer.class).newInstance(project.getExtensions());
     }
 
-    public boolean visitMethodInsn(MethodVisitorScope mv, String className, int opcode, String owner, String name, String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
+    public boolean visitMethodInsn(
+            MethodVisitorScope mv,
+            String className,
+            int opcode,
+            String owner,
+            String name,
+            String descriptor,
+            boolean isInterface,
+            Supplier<MethodNode> readMethodNode) {
         if (opcode != INVOKEVIRTUAL && opcode != INVOKEINTERFACE) {
             return false;
         }
-//      Project.getConvention -> ProjectInterceptors.interceptGetConvention()
-//      This generates the code placed where Project.getConvention() is called.
-        if (PROJECT_TYPE.getInternalName().equals(owner) && "getConvention".equals(name) && RETURN_CONVENTION.equals(descriptor)) {
-            mv._INVOKESTATIC(CONVENTION_INTERCEPTORS_TYPE, "interceptProjectGetConventionMethod", RETURN_OBJECT_FROM_PROJECT);
+        //      Project.getConvention -> ProjectInterceptors.interceptGetConvention()
+        //      This generates the code placed where Project.getConvention() is called.
+        if (PROJECT_TYPE.getInternalName().equals(owner)
+                && "getConvention".equals(name)
+                && RETURN_CONVENTION.equals(descriptor)) {
+            mv._INVOKESTATIC(
+                    CONVENTION_INTERCEPTORS_TYPE, "interceptProjectGetConventionMethod", RETURN_OBJECT_FROM_PROJECT);
             return true;
         }
         return false;
     }
-
 }

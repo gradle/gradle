@@ -16,10 +16,9 @@
 
 package org.gradle.internal.component.resolution.failure.interfaces;
 
+import java.util.Set;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-
-import java.util.Set;
 
 /**
  * Represents a specific type of {@link VariantSelectionFailure} where the failure occurred

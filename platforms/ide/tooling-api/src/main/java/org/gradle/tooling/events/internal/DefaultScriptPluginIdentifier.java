@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.events.internal;
 
-import org.gradle.tooling.events.ScriptPluginIdentifier;
-
 import java.net.URI;
+import org.gradle.tooling.events.ScriptPluginIdentifier;
 
 public class DefaultScriptPluginIdentifier extends AbstractPluginIdentifier implements ScriptPluginIdentifier {
 
@@ -33,5 +32,4 @@ public class DefaultScriptPluginIdentifier extends AbstractPluginIdentifier impl
     public URI getUri() {
         return uri;
     }
-
 }

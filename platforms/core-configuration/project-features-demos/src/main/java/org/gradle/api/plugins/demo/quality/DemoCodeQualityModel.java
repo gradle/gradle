@@ -25,5 +25,6 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public interface DemoCodeQualityModel extends BuildModel {
     Provider<ReportContainer<SingleFileReport>> getReports();
+
     void setReports(Provider<ReportContainer<SingleFileReport>> reports);
 }

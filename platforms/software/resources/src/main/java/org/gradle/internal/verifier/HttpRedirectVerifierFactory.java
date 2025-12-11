@@ -16,14 +16,13 @@
 
 package org.gradle.internal.verifier;
 
-import org.gradle.util.internal.GUtil;
-import org.jspecify.annotations.Nullable;
+import static java.util.Objects.requireNonNull;
 
 import java.net.URI;
 import java.util.Collection;
 import java.util.function.Consumer;
-
-import static java.util.Objects.requireNonNull;
+import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Used to create instances of {@link HttpRedirectVerifier}.
@@ -40,11 +39,10 @@ public class HttpRedirectVerifierFactory {
      * @param insecureRedirect Callback when the server returns an 30x redirect to an insecure server.
      */
     public static HttpRedirectVerifier create(
-        @Nullable URI baseHost,
-        boolean allowInsecureProtocol,
-        Runnable insecureBaseHost,
-        Consumer<URI> insecureRedirect
-    ) {
+            @Nullable URI baseHost,
+            boolean allowInsecureProtocol,
+            Runnable insecureBaseHost,
+            Consumer<URI> insecureRedirect) {
         requireNonNull(insecureBaseHost, "insecureBaseHost must not be null");
         requireNonNull(insecureRedirect, "insecureRedirect must not be null");
         if (allowInsecureProtocol) {
@@ -57,9 +55,7 @@ public class HttpRedirectVerifierFactory {
 
             // Verify that any future redirect locations are secure.
             // Lambda will be called back on for every redirect in the chain.
-            return redirectLocations ->
-                redirectLocations
-                    .stream()
+            return redirectLocations -> redirectLocations.stream()
                     .filter(url -> !GUtil.isSecureUrl(url))
                     .forEach(insecureRedirect);
         }

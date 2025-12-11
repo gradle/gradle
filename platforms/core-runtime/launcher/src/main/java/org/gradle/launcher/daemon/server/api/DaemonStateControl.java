@@ -73,5 +73,6 @@ public interface DaemonStateControl {
      * @throws DaemonStoppedException When this daemon started executing the command but was unable to complete it because the daemon is about to stop.
      * The caller should note that the command may still be running at the time the method returns but should consider the command as abandoned.
      */
-    void runCommand(Runnable command, String commandDisplayName) throws DaemonUnavailableException, DaemonStoppedException;
+    void runCommand(Runnable command, String commandDisplayName)
+            throws DaemonUnavailableException, DaemonStoppedException;
 }

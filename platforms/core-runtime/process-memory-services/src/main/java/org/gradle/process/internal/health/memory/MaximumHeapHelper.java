@@ -17,10 +17,9 @@
 package org.gradle.process.internal.health.memory;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.internal.jvm.Jvm;
-
 import java.util.Arrays;
 import java.util.Locale;
+import org.gradle.internal.jvm.Jvm;
 
 /**
  * Helper to compute maximum heap sizes.

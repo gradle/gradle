@@ -16,10 +16,9 @@
 
 package org.gradle.vcs.git;
 
+import java.net.URI;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.vcs.VersionControlSpec;
-
-import java.net.URI;
 
 /**
  * A specification of a Git repository.

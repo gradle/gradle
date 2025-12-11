@@ -22,5 +22,4 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
  * and something that was either created in a component metadata rule or
  * internally by the engine. Typically, virtual platforms.
  */
-public interface VirtualComponentIdentifier extends ComponentIdentifier {
-}
+public interface VirtualComponentIdentifier extends ComponentIdentifier {}

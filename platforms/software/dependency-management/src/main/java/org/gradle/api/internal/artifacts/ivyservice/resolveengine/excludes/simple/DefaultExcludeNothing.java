@@ -26,8 +26,7 @@ class DefaultExcludeNothing implements ExcludeNothing {
         return INSTANCE;
     }
 
-    private DefaultExcludeNothing() {
-    }
+    private DefaultExcludeNothing() {}
 
     @Override
     public boolean excludes(ModuleIdentifier module) {

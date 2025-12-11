@@ -15,7 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.verification.signatures;
 
+import static org.gradle.security.internal.SecuritySupport.toLongIdHexString;
+
 import com.google.common.collect.ImmutableList;
+import java.io.ByteArrayInputStream;
+import java.io.Closeable;
+import java.io.EOFException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.bouncycastle.openpgp.PGPObjectFactory;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
@@ -42,20 +53,8 @@ import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.io.ByteArrayInputStream;
-import java.io.Closeable;
-import java.io.EOFException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.gradle.security.internal.SecuritySupport.toLongIdHexString;
-
 public class CrossBuildCachingKeyService implements PublicKeyService, Closeable {
-    final static long MISSING_KEY_TIMEOUT = TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS);
+    static final long MISSING_KEY_TIMEOUT = TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS);
 
     private final PersistentCache cache;
     private final BuildOperationRunner buildOperationRunner;
@@ -69,37 +68,31 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
     private final ProducerGuard<Long> longIdGuard = ProducerGuard.adaptive();
 
     public CrossBuildCachingKeyService(
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        InMemoryCacheDecoratorFactory decoratorFactory,
-        BuildOperationRunner buildOperationRunner,
-        PublicKeyService delegate,
-        BuildCommencedTimeProvider timeProvider,
-        boolean refreshKeys) {
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory decoratorFactory,
+            BuildOperationRunner buildOperationRunner,
+            PublicKeyService delegate,
+            BuildCommencedTimeProvider timeProvider,
+            boolean refreshKeys) {
         cache = cacheBuilderFactory
-            .createCrossVersionCacheBuilder("keyrings")
-            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-            .open();
+                .createCrossVersionCacheBuilder("keyrings")
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+                .open();
         this.buildOperationRunner = buildOperationRunner;
         this.delegate = delegate;
         this.timeProvider = timeProvider;
         this.refreshKeys = refreshKeys;
         FingerprintSerializer fingerprintSerializer = new FingerprintSerializer();
         IndexedCacheParameters<Fingerprint, CacheEntry<PGPPublicKeyRing>> keyringParams = IndexedCacheParameters.of(
-            "publickeyrings",
-            fingerprintSerializer,
-            new PublicKeyRingCacheEntrySerializer()
-        ).withCacheDecorator(
-            decoratorFactory.decorator(2000, true)
-        );
+                        "publickeyrings", fingerprintSerializer, new PublicKeyRingCacheEntrySerializer())
+                .withCacheDecorator(decoratorFactory.decorator(2000, true));
         publicKeyRings = cache.createIndexedCache(keyringParams);
 
         IndexedCacheParameters<Long, CacheEntry<List<Fingerprint>>> mappingParameters = IndexedCacheParameters.of(
-            "keymappings",
-            BaseSerializerFactory.LONG_SERIALIZER,
-            new FingerprintListCacheEntrySerializer(new ListSerializer<>(fingerprintSerializer))
-        ).withCacheDecorator(
-            decoratorFactory.decorator(2000, true)
-        );
+                        "keymappings",
+                        BaseSerializerFactory.LONG_SERIALIZER,
+                        new FingerprintListCacheEntrySerializer(new ListSerializer<>(fingerprintSerializer)))
+                .withCacheDecorator(decoratorFactory.decorator(2000, true));
         longIdToFingerprint = cache.createIndexedCache(mappingParameters);
     }
 
@@ -157,7 +150,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
                     @Override
                     public BuildOperationDescriptor.Builder description() {
                         return BuildOperationDescriptor.displayName("Fetching public key")
-                            .progressDisplayName("Downloading public key " + toLongIdHexString(keyId));
+                                .progressDisplayName("Downloading public key " + toLongIdHexString(keyId));
                     }
                 });
             } else {
@@ -230,7 +223,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
             if (present) {
                 byte[] encoded = decoder.readBinary();
                 PGPObjectFactory objectFactory = new PGPObjectFactory(
-                    PGPUtil.getDecoderStream(new ByteArrayInputStream(encoded)), new BcKeyFingerprintCalculator());
+                        PGPUtil.getDecoderStream(new ByteArrayInputStream(encoded)), new BcKeyFingerprintCalculator());
                 Object object = objectFactory.nextObject();
                 if (object instanceof PGPPublicKeyRing) {
                     return new CacheEntry<>(timestamp, (PGPPublicKeyRing) object);
@@ -292,8 +285,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         }
 
         @Override
-        public void publicKey(PGPPublicKey publicKey) {
-        }
+        public void publicKey(PGPPublicKey publicKey) {}
     }
 
     private static class FingerprintListCacheEntrySerializer extends AbstractSerializer<CacheEntry<List<Fingerprint>>> {

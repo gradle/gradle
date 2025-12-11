@@ -16,8 +16,19 @@
 
 package org.gradle;
 
+import static java.util.Collections.emptyList;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
@@ -41,18 +52,6 @@ import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static java.util.Collections.emptyList;
 
 /**
  * <p>{@code StartParameter} defines the configuration used by a Gradle instance to execute a build. The properties of {@code StartParameter} generally correspond to the command-line options of
@@ -103,7 +102,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private DependencyVerificationMode verificationMode = DependencyVerificationMode.STRICT;
     private boolean refreshKeys;
     private boolean exportKeys;
-    private WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
+    private WelcomeMessageConfiguration welcomeMessageConfiguration =
+            new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
 
     /**
      * {@inheritDoc}
@@ -394,7 +394,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         this.projectProperties = projectProperties;
     }
 
-
     /**
      * Key-value map of system properties. These are derived from the command-line arguments (-D) and do not reflect the final system properties available.
      *
@@ -432,7 +431,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @param gradleUserHomeDir The home directory. May be null.
      */
     public void setGradleUserHomeDir(@Nullable File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir == null ? new BuildLayoutParameters().getGradleUserHomeDir() : FileUtils.canonicalize(gradleUserHomeDir);
+        this.gradleUserHomeDir = gradleUserHomeDir == null
+                ? new BuildLayoutParameters().getGradleUserHomeDir()
+                : FileUtils.canonicalize(gradleUserHomeDir);
     }
 
     /**
@@ -505,9 +506,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public List<File> getAllInitScripts() {
         CompositeInitScriptFinder initScriptFinder = new CompositeInitScriptFinder(
-            new UserHomeInitScriptFinder(getGradleUserHomeDir()),
-            new DistributionInitScriptFinder(gradleHomeDir)
-        );
+                new UserHomeInitScriptFinder(getGradleUserHomeDir()), new DistributionInitScriptFinder(gradleHomeDir));
 
         List<File> scripts = new ArrayList<>(getInitScripts());
         initScriptFinder.findScripts(scripts);
@@ -713,45 +712,45 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Override
     public String toString() {
         return "StartParameter{"
-            + "taskRequests=" + taskRequests
-            + ", excludedTaskNames=" + excludedTaskNames
-            + ", buildProjectDependencies=" + buildProjectDependencies
-            + ", currentDir=" + currentDir
-            + ", projectDir=" + projectDir
-            + ", projectProperties=" + projectProperties
-            + ", systemPropertiesArgs=" + systemPropertiesArgs
-            + ", gradleUserHomeDir=" + gradleUserHomeDir
-            + ", gradleHome=" + gradleHomeDir
-            + ", logLevel=" + getLogLevel()
-            + ", showStacktrace=" + getShowStacktrace()
-            + ", settingsFile=" + settingsFile
-            + ", buildFile=" + buildFile
-            + ", initScripts=" + initScripts
-            + ", dryRun=" + dryRun
-            + ", rerunTasks=" + rerunTasks
-            + ", taskGraph=" + taskGraph
-            + ", profile=" + profile
-            + ", continueOnFailure=" + continueOnFailure
-            + ", offline=" + offline
-            + ", projectCacheDir=" + projectCacheDir
-            + ", refreshDependencies=" + refreshDependencies
-            + ", buildCacheEnabled=" + buildCacheEnabled
-            + ", buildCacheDebugLogging=" + buildCacheDebugLogging
-            + ", parallelProjectExecution=" + isParallelProjectExecutionEnabled()
-            + ", configureOnDemand=" + configureOnDemand
-            + ", continuous=" + continuous
-            + ", maxWorkerCount=" + getMaxWorkerCount()
-            + ", includedBuilds=" + includedBuilds
-            + ", buildScan=" + buildScan
-            + ", noBuildScan=" + noBuildScan
-            + ", writeDependencyLocks=" + writeDependencyLocks
-            + ", writeDependencyVerifications=" + writeDependencyVerifications
-            + ", lockedDependenciesToUpdate=" + lockedDependenciesToUpdate
-            + ", verificationMode=" + verificationMode
-            + ", refreshKeys=" + refreshKeys
-            + ", exportKeys=" + exportKeys
-            + ", welcomeMessageConfiguration=" + welcomeMessageConfiguration
-            + '}';
+                + "taskRequests=" + taskRequests
+                + ", excludedTaskNames=" + excludedTaskNames
+                + ", buildProjectDependencies=" + buildProjectDependencies
+                + ", currentDir=" + currentDir
+                + ", projectDir=" + projectDir
+                + ", projectProperties=" + projectProperties
+                + ", systemPropertiesArgs=" + systemPropertiesArgs
+                + ", gradleUserHomeDir=" + gradleUserHomeDir
+                + ", gradleHome=" + gradleHomeDir
+                + ", logLevel=" + getLogLevel()
+                + ", showStacktrace=" + getShowStacktrace()
+                + ", settingsFile=" + settingsFile
+                + ", buildFile=" + buildFile
+                + ", initScripts=" + initScripts
+                + ", dryRun=" + dryRun
+                + ", rerunTasks=" + rerunTasks
+                + ", taskGraph=" + taskGraph
+                + ", profile=" + profile
+                + ", continueOnFailure=" + continueOnFailure
+                + ", offline=" + offline
+                + ", projectCacheDir=" + projectCacheDir
+                + ", refreshDependencies=" + refreshDependencies
+                + ", buildCacheEnabled=" + buildCacheEnabled
+                + ", buildCacheDebugLogging=" + buildCacheDebugLogging
+                + ", parallelProjectExecution=" + isParallelProjectExecutionEnabled()
+                + ", configureOnDemand=" + configureOnDemand
+                + ", continuous=" + continuous
+                + ", maxWorkerCount=" + getMaxWorkerCount()
+                + ", includedBuilds=" + includedBuilds
+                + ", buildScan=" + buildScan
+                + ", noBuildScan=" + noBuildScan
+                + ", writeDependencyLocks=" + writeDependencyLocks
+                + ", writeDependencyVerifications=" + writeDependencyVerifications
+                + ", lockedDependenciesToUpdate=" + lockedDependenciesToUpdate
+                + ", verificationMode=" + verificationMode
+                + ", refreshKeys=" + refreshKeys
+                + ", exportKeys=" + exportKeys
+                + ", welcomeMessageConfiguration=" + welcomeMessageConfiguration
+                + '}';
     }
 
     /**

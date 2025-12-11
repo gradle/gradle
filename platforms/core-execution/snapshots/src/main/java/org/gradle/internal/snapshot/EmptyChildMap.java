@@ -26,8 +26,7 @@ public class EmptyChildMap<T> implements ChildMap<T> {
         return (EmptyChildMap<T>) INSTANCE;
     }
 
-    private EmptyChildMap() {
-    }
+    private EmptyChildMap() {}
 
     @Override
     public <R> R withNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, R> handler) {
@@ -35,13 +34,15 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
+    public <RESULT> ChildMap<RESULT> invalidate(
+            VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
         handler.handleUnrelatedToAnyChild();
         return getInstance();
     }
 
     @Override
-    public ChildMap<T> store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler) {
+    public ChildMap<T> store(
+            VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler) {
         return new SingletonChildMap<>(targetPath.getAsString(), storeHandler.createChild());
     }
 

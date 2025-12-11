@@ -16,9 +16,9 @@
 
 package org.gradle.internal.snapshot;
 
-import java.util.stream.Stream;
-
 import static org.gradle.internal.snapshot.ChildMapFactory.childMap;
+
+import java.util.stream.Stream;
 
 public class SingletonChildMap<T> implements ChildMap<T> {
     private final Entry<T> entry;
@@ -52,7 +52,8 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
+    public <RESULT> ChildMap<RESULT> invalidate(
+            VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
         return entry.withNode(targetPath, caseSensitivity, new AbstractInvalidateChildHandler<T, RESULT>(handler) {
             @SuppressWarnings("unchecked")
             @Override
@@ -78,24 +79,27 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public ChildMap<T> store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler) {
-        return entry.handlePath(targetPath, caseSensitivity, new AbstractStorePathRelationshipHandler<T>(caseSensitivity, storeHandler) {
-            @Override
-            public ChildMap<T> withReplacedChild(T newChild) {
-                return withReplacedChild(entry.getPath(), newChild);
-            }
+    public ChildMap<T> store(
+            VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler) {
+        return entry.handlePath(
+                targetPath,
+                caseSensitivity,
+                new AbstractStorePathRelationshipHandler<T>(caseSensitivity, storeHandler) {
+                    @Override
+                    public ChildMap<T> withReplacedChild(T newChild) {
+                        return withReplacedChild(entry.getPath(), newChild);
+                    }
 
-            @Override
-            public ChildMap<T> withReplacedChild(String newChildPath, T newChild) {
-                return SingletonChildMap.this.withReplacedChild(newChildPath, newChild);
-            }
+                    @Override
+                    public ChildMap<T> withReplacedChild(String newChildPath, T newChild) {
+                        return SingletonChildMap.this.withReplacedChild(newChildPath, newChild);
+                    }
 
-            @Override
-            public ChildMap<T> withNewChild(String newChildPath, T newChild) {
-                return SingletonChildMap.this.withNewChild(caseSensitivity, newChildPath, newChild);
-            }
-
-        });
+                    @Override
+                    public ChildMap<T> withNewChild(String newChildPath, T newChild) {
+                        return SingletonChildMap.this.withNewChild(caseSensitivity, newChildPath, newChild);
+                    }
+                });
     }
 
     private ChildMap<T> withNewChild(CaseSensitivity caseSensitivity, String newChildPath, T newChild) {

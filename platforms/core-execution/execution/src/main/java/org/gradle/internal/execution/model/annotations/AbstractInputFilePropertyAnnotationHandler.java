@@ -16,7 +16,14 @@
 
 package org.gradle.internal.execution.model.annotations;
 
+import static org.gradle.internal.deprecation.Documentation.userManual;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.internal.reflect.DefaultTypeValidationContext.MISSING_NORMALIZATION_ANNOTATION;
+import static org.gradle.internal.reflect.DefaultTypeValidationContext.MISSING_NORMALIZATION_ID;
+
 import com.google.common.collect.ImmutableSet;
+import java.lang.annotation.Annotation;
+import java.util.Locale;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
@@ -38,19 +45,14 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
-import java.lang.annotation.Annotation;
-import java.util.Locale;
-
-import static org.gradle.internal.deprecation.Documentation.userManual;
-import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
-import static org.gradle.internal.reflect.DefaultTypeValidationContext.MISSING_NORMALIZATION_ANNOTATION;
-import static org.gradle.internal.reflect.DefaultTypeValidationContext.MISSING_NORMALIZATION_ID;
-
 public abstract class AbstractInputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
 
     private final InputFilePropertyType filePropertyType;
 
-    public AbstractInputFilePropertyAnnotationHandler(Class<? extends Annotation> annotationType, InputFilePropertyType filePropertyType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
+    public AbstractInputFilePropertyAnnotationHandler(
+            Class<? extends Annotation> annotationType,
+            InputFilePropertyType filePropertyType,
+            ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
         super(annotationType, allowedModifiers);
         this.filePropertyType = filePropertyType;
     }
@@ -61,51 +63,52 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
-        FileNormalizer normalizer = propertyMetadata.getAnnotationForCategory(NORMALIZATION)
-            .map(fileNormalization -> {
-                if (fileNormalization instanceof PathSensitive) {
-                    PathSensitivity pathSensitivity = ((PathSensitive) fileNormalization).value();
-                    return InputNormalizer.determineNormalizerForPathSensitivity(pathSensitivity);
-                } else if (fileNormalization instanceof Classpath) {
-                    return InputNormalizer.RUNTIME_CLASSPATH;
-                } else if (fileNormalization instanceof CompileClasspath) {
-                    return InputNormalizer.COMPILE_CLASSPATH;
-                } else {
-                    throw new IllegalStateException("Unknown normalization annotation used: " + fileNormalization);
-                }
-            })
-            .orElse(null);
+    public void visitPropertyValue(
+            String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+        FileNormalizer normalizer = propertyMetadata
+                .getAnnotationForCategory(NORMALIZATION)
+                .map(fileNormalization -> {
+                    if (fileNormalization instanceof PathSensitive) {
+                        PathSensitivity pathSensitivity = ((PathSensitive) fileNormalization).value();
+                        return InputNormalizer.determineNormalizerForPathSensitivity(pathSensitivity);
+                    } else if (fileNormalization instanceof Classpath) {
+                        return InputNormalizer.RUNTIME_CLASSPATH;
+                    } else if (fileNormalization instanceof CompileClasspath) {
+                        return InputNormalizer.COMPILE_CLASSPATH;
+                    } else {
+                        throw new IllegalStateException("Unknown normalization annotation used: " + fileNormalization);
+                    }
+                })
+                .orElse(null);
         visitor.visitInputFileProperty(
-            propertyName,
-            propertyMetadata.isAnnotationPresent(Optional.class),
-            determineBehavior(propertyMetadata),
-            determineDirectorySensitivity(propertyMetadata),
-            determineLineEndingSensitivity(propertyMetadata),
-            normalizer,
-            value,
-            filePropertyType
-        );
+                propertyName,
+                propertyMetadata.isAnnotationPresent(Optional.class),
+                determineBehavior(propertyMetadata),
+                determineDirectorySensitivity(propertyMetadata),
+                determineLineEndingSensitivity(propertyMetadata),
+                normalizer,
+                value,
+                filePropertyType);
     }
 
     private static InputBehavior determineBehavior(PropertyMetadata propertyMetadata) {
         return propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class)
-            ? InputBehavior.PRIMARY
-            : propertyMetadata.isAnnotationPresent(Incremental.class)
-            ? InputBehavior.INCREMENTAL
-            : InputBehavior.NON_INCREMENTAL;
+                ? InputBehavior.PRIMARY
+                : propertyMetadata.isAnnotationPresent(Incremental.class)
+                        ? InputBehavior.INCREMENTAL
+                        : InputBehavior.NON_INCREMENTAL;
     }
 
     private static LineEndingSensitivity determineLineEndingSensitivity(PropertyMetadata propertyMetadata) {
         return propertyMetadata.isAnnotationPresent(NormalizeLineEndings.class)
-            ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS
-            : LineEndingSensitivity.DEFAULT;
+                ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS
+                : LineEndingSensitivity.DEFAULT;
     }
 
     protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {
         return propertyMetadata.isAnnotationPresent(IgnoreEmptyDirectories.class)
-            ? DirectorySensitivity.IGNORE_DIRECTORIES
-            : DirectorySensitivity.DEFAULT;
+                ? DirectorySensitivity.IGNORE_DIRECTORIES
+                : DirectorySensitivity.DEFAULT;
     }
 
     @Override
@@ -114,14 +117,21 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
         if (!propertyMetadata.hasAnnotationForCategory(NORMALIZATION)) {
             validationContext.visitPropertyProblem(problem -> {
                 String propertyName = propertyMetadata.getPropertyName();
-                problem
-                    .forProperty(propertyName)
-                    .id(MISSING_NORMALIZATION_ID.getName(), MISSING_NORMALIZATION_ID.getDisplayName(), MISSING_NORMALIZATION_ID.getGroup()) // TODO (donat) missing test coverage
-                    .contextualLabel(String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
-                    .documentedAt(userManual("validation_problems", MISSING_NORMALIZATION_ANNOTATION.toLowerCase(Locale.ROOT)))
-                    .severity(Severity.ERROR)
-                    .details("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
-                    .solution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath");
+                problem.forProperty(propertyName)
+                        .id(
+                                MISSING_NORMALIZATION_ID.getName(),
+                                MISSING_NORMALIZATION_ID.getDisplayName(),
+                                MISSING_NORMALIZATION_ID.getGroup()) // TODO (donat) missing test coverage
+                        .contextualLabel(String.format(
+                                "is annotated with @%s but missing a normalization strategy",
+                                getAnnotationType().getSimpleName()))
+                        .documentedAt(userManual(
+                                "validation_problems", MISSING_NORMALIZATION_ANNOTATION.toLowerCase(Locale.ROOT)))
+                        .severity(Severity.ERROR)
+                        .details(
+                                "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
+                        .solution(
+                                "Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath");
             });
         }
     }

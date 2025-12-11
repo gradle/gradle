@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import java.io.File;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
@@ -26,9 +28,6 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.BinaryToolSpec;
 
-import java.io.File;
-import java.util.List;
-
 public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Compiler<T> {
     private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final ArgsTransformer<T> argsTransformer;
@@ -37,7 +36,13 @@ public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Comp
     private final BuildOperationExecutor buildOperationExecutor;
     private final WorkerLeaseService workerLeaseService;
 
-    protected AbstractCompiler(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
+    protected AbstractCompiler(
+            BuildOperationExecutor buildOperationExecutor,
+            CommandLineToolInvocationWorker commandLineToolInvocationWorker,
+            CommandLineToolContext invocationContext,
+            ArgsTransformer<T> argsTransformer,
+            boolean useCommandFile,
+            WorkerLeaseService workerLeaseService) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.argsTransformer = argsTransformer;
         this.invocationContext = invocationContext;
@@ -49,7 +54,8 @@ public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Comp
     @Override
     public WorkResult execute(final T spec) {
         List<String> commonArguments = getArguments(spec);
-        final Action<BuildOperationQueue<CommandLineToolInvocation>> invocationAction = newInvocationAction(spec, commonArguments);
+        final Action<BuildOperationQueue<CommandLineToolInvocation>> invocationAction =
+                newInvocationAction(spec, commonArguments);
 
         workerLeaseService.runAsIsolatedTask(new Runnable() {
             @Override
@@ -63,7 +69,8 @@ public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Comp
 
     // TODO(daniel): Should support in a better way multi file invocation.
     // Override this method to have multi file invocation
-    protected abstract Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(T spec, List<String> commonArguments);
+    protected abstract Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(
+            T spec, List<String> commonArguments);
 
     protected List<String> getArguments(T spec) {
         List<String> args = argsTransformer.transform(spec);
@@ -82,11 +89,13 @@ public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Comp
 
     protected abstract void addOptionsFileArgs(List<String> args, File tempDir);
 
-    protected CommandLineToolInvocation newInvocation(String name, File workingDirectory, Iterable<String> args, BuildOperationLogger operationLogger) {
+    protected CommandLineToolInvocation newInvocation(
+            String name, File workingDirectory, Iterable<String> args, BuildOperationLogger operationLogger) {
         return invocationContext.createInvocation(name, workingDirectory, args, operationLogger);
     }
 
-    protected CommandLineToolInvocation newInvocation(String name, Iterable<String> args, BuildOperationLogger operationLogger) {
+    protected CommandLineToolInvocation newInvocation(
+            String name, Iterable<String> args, BuildOperationLogger operationLogger) {
         return invocationContext.createInvocation(name, args, operationLogger);
     }
 }

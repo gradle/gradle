@@ -18,9 +18,8 @@ package org.gradle.internal.fingerprint;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.hash.HashCode;
-
 import java.util.Map;
+import org.gradle.internal.hash.HashCode;
 
 /**
  * An immutable snapshot of some aspects of the contents and meta-data of a collection of files or directories.

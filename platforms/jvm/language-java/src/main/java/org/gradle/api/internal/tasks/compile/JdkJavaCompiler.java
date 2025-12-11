@@ -15,7 +15,21 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import static java.util.stream.Collectors.toList;
+
 import com.sun.tools.javac.util.Context;
+import java.io.Serializable;
+import java.nio.charset.Charset;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import javax.inject.Inject;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileManager;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
@@ -32,21 +46,6 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileManager;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import java.io.Serializable;
-import java.nio.charset.Charset;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-
-import static java.util.stream.Collectors.toList;
-
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
 
@@ -56,14 +55,12 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private final DiagnosticToProblemListener diagnosticToProblemListener;
 
     @Inject
-    public JdkJavaCompiler(
-        Factory<ContextAwareJavaCompiler> compilerFactory,
-        InternalProblems problemsService
-    ) {
+    public JdkJavaCompiler(Factory<ContextAwareJavaCompiler> compilerFactory, InternalProblems problemsService) {
         this.context = new Context();
         this.compilerFactory = compilerFactory;
         this.problemsService = problemsService;
-        this.diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter(), context);
+        this.diagnosticToProblemListener =
+                new DiagnosticToProblemListener(problemsService.getInternalReporter(), context);
     }
 
     @Override
@@ -75,7 +72,10 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         try {
             task = createCompileTask(spec, result);
         } catch (RuntimeException ex) {
-            ProblemId id = ProblemId.create("initialization-failed", "Java compilation initialization error", GradleCoreProblemGroup.compilation().java());
+            ProblemId id = ProblemId.create(
+                    "initialization-failed",
+                    "Java compilation initialization error",
+                    GradleCoreProblemGroup.compilation().java());
             throw problemsService.getInternalReporter().throwing(ex, id, builder -> {
                 buildProblemFrom(ex, builder);
             });
@@ -86,8 +86,15 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
             System.err.println(diagnosticCounts);
         }
         if (!success) {
-            CompilationFailedException exception = new CompilationFailedException(result, diagnosticToProblemListener.getReportedProblems().stream().map(InternalProblem.class::cast).collect(toList()), diagnosticCounts);
-            throw problemsService.getInternalReporter().throwing(exception, diagnosticToProblemListener.getReportedProblems());
+            CompilationFailedException exception = new CompilationFailedException(
+                    result,
+                    diagnosticToProblemListener.getReportedProblems().stream()
+                            .map(InternalProblem.class::cast)
+                            .collect(toList()),
+                    diagnosticCounts);
+            throw problemsService
+                    .getInternalReporter()
+                    .throwing(exception, diagnosticToProblemListener.getReportedProblems());
         } else {
             problemsService.getInternalReporter().report(diagnosticToProblemListener.getReportedProblems());
         }
@@ -102,26 +109,37 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
 
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
         Charset charset = Optional.ofNullable(compileOptions.getEncoding())
-            .map(Charset::forName)
-            .orElse(null);
-        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(diagnosticToProblemListener, null, charset);
+                .map(Charset::forName)
+                .orElse(null);
+        StandardJavaFileManager standardFileManager =
+                compiler.getStandardFileManager(diagnosticToProblemListener, null, charset);
 
-        Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
+        Iterable<? extends JavaFileObject> compilationUnits =
+                standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
-        JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
+        JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(
+                standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
 
-        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticToProblemListener, options, spec.getClassesToProcess(), compilationUnits, context);
+        JavaCompiler.CompilationTask task = compiler.getTask(
+                null,
+                fileManager,
+                diagnosticToProblemListener,
+                options,
+                spec.getClassesToProcess(),
+                compilationUnits,
+                context);
         if (compiler instanceof IncrementalCompilationAwareJavaCompiler) {
-            task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(
-                task,
-                result.getSourceClassesMapping(),
-                result.getConstantsAnalysisResult(),
-                new CompilationSourceDirs(spec),
-                new CompilationClassBackupService(spec, result)
-            );
+            task = ((IncrementalCompilationAwareJavaCompiler) compiler)
+                    .makeIncremental(
+                            task,
+                            result.getSourceClassesMapping(),
+                            result.getConstantsAnalysisResult(),
+                            new CompilationSourceDirs(spec),
+                            new CompilationClassBackupService(spec, result));
         }
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
-        task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
+        task = new AnnotationProcessingCompileTask(
+                task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
         task = new ResourceCleaningCompilationTask(task, fileManager);
         return task;
     }
@@ -160,5 +178,4 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
 
         return true;
     }
-
 }

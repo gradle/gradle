@@ -35,7 +35,8 @@ public class ImmutableModuleReplacements {
         this.replacements = replacements;
     }
 
-    @Nullable public Replacement getReplacementFor(ModuleIdentifier sourceModule) {
+    @Nullable
+    public Replacement getReplacementFor(ModuleIdentifier sourceModule) {
         return replacements.get(sourceModule);
     }
 

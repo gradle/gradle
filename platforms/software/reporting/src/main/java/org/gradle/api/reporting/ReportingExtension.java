@@ -15,6 +15,8 @@
  */
 package org.gradle.api.reporting;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
@@ -23,9 +25,6 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.reporting.internal.ReportUtilities;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-
-import javax.inject.Inject;
-import java.io.File;
 
 /**
  * A project extension named "reporting" that provides basic reporting settings and utilities.
@@ -92,10 +91,10 @@ public abstract class ReportingExtension {
     @Deprecated
     public File file(String path) {
         DeprecationLogger.deprecateMethod(ReportingExtension.class, "file(String)")
-            .replaceWith("getBaseDirectory().file(String) or getBaseDirectory().dir(String)")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "reporting_extension_file")
-            .nagUser();
+                .replaceWith("getBaseDirectory().file(String) or getBaseDirectory().dir(String)")
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(9, "reporting_extension_file")
+                .nagUser();
         return getBaseDirectory().file(path).get().getAsFile();
     }
 
@@ -104,13 +103,13 @@ public abstract class ReportingExtension {
      *
      * @deprecated Use your own way of generating a title for API documentation.
      */
-    @NotToBeReplacedByLazyProperty(because="this method is deprecated")
+    @NotToBeReplacedByLazyProperty(because = "this method is deprecated")
     @Deprecated
     public String getApiDocTitle() {
         DeprecationLogger.deprecateMethod(ReportingExtension.class, "getApiDocTitle()")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "reporting_extension_api_doc_title")
-            .nagUser();
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(9, "reporting_extension_api_doc_title")
+                .nagUser();
         return ReportUtilities.getApiDocTitleFor(project);
     }
 

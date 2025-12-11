@@ -16,11 +16,10 @@
 
 package org.gradle.performance.results;
 
-import org.gradle.internal.concurrent.CompositeStoppable;
-
 import java.io.Closeable;
 import java.util.List;
 import java.util.Map;
+import org.gradle.internal.concurrent.CompositeStoppable;
 
 public class AllResultsStore implements ResultsStore, Closeable {
     private final CrossVersionResultsStore crossVersion = new CrossVersionResultsStore();
@@ -34,7 +33,12 @@ public class AllResultsStore implements ResultsStore, Closeable {
     }
 
     @Override
-    public PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, List<String> channelPatterns, List<String> teamcityBuildIds) {
+    public PerformanceTestHistory getTestResults(
+            PerformanceExperiment experiment,
+            int mostRecentN,
+            int maxDaysOld,
+            List<String> channelPatterns,
+            List<String> teamcityBuildIds) {
         return store.getTestResults(experiment, mostRecentN, maxDaysOld, channelPatterns, teamcityBuildIds);
     }
 

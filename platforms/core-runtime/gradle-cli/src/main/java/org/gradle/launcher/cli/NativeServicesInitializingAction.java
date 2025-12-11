@@ -32,11 +32,10 @@ public class NativeServicesInitializingAction implements Action<ExecutionListene
     private final Action<ExecutionListener> action;
 
     public NativeServicesInitializingAction(
-        BuildLayoutResult buildLayout,
-        LoggingConfiguration loggingConfiguration,
-        LoggingManagerInternal loggingManager,
-        Action<ExecutionListener> action
-    ) {
+            BuildLayoutResult buildLayout,
+            LoggingConfiguration loggingConfiguration,
+            LoggingManagerInternal loggingManager,
+            Action<ExecutionListener> action) {
         this.buildLayout = buildLayout;
         this.loggingConfiguration = loggingConfiguration;
         this.loggingManager = loggingManager;
@@ -45,7 +44,8 @@ public class NativeServicesInitializingAction implements Action<ExecutionListene
 
     @Override
     public void execute(ExecutionListener executionListener) {
-        NativeServices.initializeOnClient(buildLayout.getGradleUserHomeDir(), NativeServicesMode.fromSystemProperties());
+        NativeServices.initializeOnClient(
+                buildLayout.getGradleUserHomeDir(), NativeServicesMode.fromSystemProperties());
         loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
         action.execute(executionListener);
     }

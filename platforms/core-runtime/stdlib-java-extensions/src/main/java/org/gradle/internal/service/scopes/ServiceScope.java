@@ -47,5 +47,4 @@ public @interface ServiceScope {
      * from the longest lifecycle to the shortest.
      */
     Class<? extends Scope>[] value();
-
 }

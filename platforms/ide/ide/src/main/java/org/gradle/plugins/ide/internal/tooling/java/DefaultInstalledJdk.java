@@ -16,11 +16,10 @@
 
 package org.gradle.plugins.ide.internal.tooling.java;
 
-import org.gradle.api.JavaVersion;
-import org.gradle.internal.jvm.Jvm;
-
 import java.io.File;
 import java.io.Serializable;
+import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.Jvm;
 
 public class DefaultInstalledJdk implements Serializable {
 

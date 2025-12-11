@@ -16,10 +16,9 @@
 
 package org.gradle.internal.taskgraph;
 
-import org.gradle.internal.operations.BuildOperationType;
-
 import java.util.List;
 import java.util.Set;
+import org.gradle.internal.operations.BuildOperationType;
 
 /**
  * Computing the execution plan for a given build in the build tree based on the inputs and build configuration.
@@ -29,7 +28,9 @@ import java.util.Set;
  *
  * @since 4.0
  */
-public final class CalculateTaskGraphBuildOperationType implements BuildOperationType<CalculateTaskGraphBuildOperationType.Details, CalculateTaskGraphBuildOperationType.Result> {
+public final class CalculateTaskGraphBuildOperationType
+        implements BuildOperationType<
+                CalculateTaskGraphBuildOperationType.Details, CalculateTaskGraphBuildOperationType.Result> {
 
     /**
      * An identifiable node in the execution graph with its dependencies.
@@ -46,7 +47,6 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
          * Note that dependencies are not necessarily located in the same execution plan.
          */
         List<? extends NodeIdentity> getNodeDependencies();
-
     }
 
     /**
@@ -70,7 +70,6 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
          * See {@code org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId}.
          */
         long getTaskId();
-
     }
 
     /**
@@ -93,7 +92,6 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
         List<TaskIdentity> getShouldRunAfter();
 
         List<TaskIdentity> getFinalizedBy();
-
     }
 
     public interface Details {
@@ -142,7 +140,5 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
         List<PlannedNode> getExecutionPlan(Set<NodeIdentity.NodeType> types);
     }
 
-    private CalculateTaskGraphBuildOperationType() {
-    }
-
+    private CalculateTaskGraphBuildOperationType() {}
 }

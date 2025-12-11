@@ -23,5 +23,4 @@ import org.gradle.api.Incubating;
  * multiple output variants.
  */
 @Incubating
-public interface GeneralComponentSpec extends ComponentSpec, SourceComponentSpec, VariantComponentSpec {
-}
+public interface GeneralComponentSpec extends ComponentSpec, SourceComponentSpec, VariantComponentSpec {}

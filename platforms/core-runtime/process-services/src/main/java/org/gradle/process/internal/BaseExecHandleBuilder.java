@@ -16,16 +16,17 @@
 
 package org.gradle.process.internal;
 
+import java.io.OutputStream;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.io.OutputStream;
 
 @NullMarked
 public interface BaseExecHandleBuilder {
 
     BaseExecHandleBuilder setDisplayName(@Nullable String displayName);
+
     BaseExecHandleBuilder setStandardOutput(OutputStream outputStream);
+
     BaseExecHandleBuilder setErrorOutput(OutputStream outputStream);
 
     /**

@@ -29,5 +29,4 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface GradleEnterprisePluginServiceRef {
 
     GradleEnterprisePluginService get();
-
 }

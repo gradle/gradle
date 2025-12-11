@@ -15,12 +15,11 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.internal.operations.logging.BuildOperationLogger;
-import org.gradle.nativeplatform.platform.NativePlatform;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.internal.operations.logging.BuildOperationLogger;
+import org.gradle.nativeplatform.platform.NativePlatform;
 
 public class AbstractBinaryToolSpec implements BinaryToolSpec {
     private List<String> args = new ArrayList<String>();
@@ -66,9 +65,9 @@ public class AbstractBinaryToolSpec implements BinaryToolSpec {
 
     @Override
     public void systemArgs(List<String> args) {
-       if(!systemArgs.containsAll(args)){
-           systemArgs.addAll(args);
-       }
+        if (!systemArgs.containsAll(args)) {
+            systemArgs.addAll(args);
+        }
     }
 
     @Override

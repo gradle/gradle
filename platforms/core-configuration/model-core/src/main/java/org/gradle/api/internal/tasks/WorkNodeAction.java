@@ -39,8 +39,7 @@ public interface WorkNodeAction {
         return null;
     }
 
-    default void visitDependencies(TaskDependencyResolveContext context) {
-    }
+    default void visitDependencies(TaskDependencyResolveContext context) {}
 
     /**
      * Run the action, throwing any failure.

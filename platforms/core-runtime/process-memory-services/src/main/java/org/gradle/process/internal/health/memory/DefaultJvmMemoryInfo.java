@@ -17,7 +17,7 @@
 package org.gradle.process.internal.health.memory;
 
 public class DefaultJvmMemoryInfo implements JvmMemoryInfo {
-    private final long totalMemory; //this does not change
+    private final long totalMemory; // this does not change
 
     public DefaultJvmMemoryInfo() {
         this.totalMemory = Runtime.getRuntime().maxMemory();
@@ -34,7 +34,7 @@ public class DefaultJvmMemoryInfo implements JvmMemoryInfo {
      * Currently committed memory of this process in bytes. May return different value depending on how the heap has expanded. The returned value is less than or equal to {@link #getMaxMemory()}
      */
     long getCommittedMemory() {
-        //querying runtime for each invocation
+        // querying runtime for each invocation
         return Runtime.getRuntime().totalMemory();
     }
 

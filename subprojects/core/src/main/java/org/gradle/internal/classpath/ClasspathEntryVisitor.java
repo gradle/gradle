@@ -16,9 +16,8 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.file.RelativePath;
-
 import java.io.IOException;
+import org.gradle.api.file.RelativePath;
 
 public interface ClasspathEntryVisitor {
     /**

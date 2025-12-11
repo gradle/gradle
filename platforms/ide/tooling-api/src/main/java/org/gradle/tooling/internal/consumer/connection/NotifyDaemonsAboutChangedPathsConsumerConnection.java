@@ -16,13 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import java.util.List;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalInvalidatableVirtualFileSystemConnection;
-
-import java.util.List;
 
 /**
  * An adapter for {@link InternalInvalidatableVirtualFileSystemConnection}.
@@ -30,12 +29,15 @@ import java.util.List;
  * <p>Used for providers &gt;= 6.1.</p>
  */
 public class NotifyDaemonsAboutChangedPathsConsumerConnection extends PhasedActionAwareConsumerConnection {
-    public NotifyDaemonsAboutChangedPathsConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
+    public NotifyDaemonsAboutChangedPathsConsumerConnection(
+            ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, modelMapping, adapter);
     }
 
     @Override
-    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters) {
-        ((InternalInvalidatableVirtualFileSystemConnection) getDelegate()).notifyDaemonsAboutChangedPaths(changedPaths, operationParameters);
+    public void notifyDaemonsAboutChangedPaths(
+            List<String> changedPaths, ConsumerOperationParameters operationParameters) {
+        ((InternalInvalidatableVirtualFileSystemConnection) getDelegate())
+                .notifyDaemonsAboutChangedPaths(changedPaths, operationParameters);
     }
 }

@@ -16,11 +16,10 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
-import org.gradle.internal.component.model.VariantGraphResolveState;
-
 import java.util.List;
 import java.util.Set;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 
 /**
  * {@link VariantGraphResolveState} for variants of local components.
@@ -39,5 +38,4 @@ public interface LocalVariantGraphResolveState extends VariantGraphResolveState 
      * These should be represented as dependencies, but are currently represented as files as a migration step.
      */
     Set<LocalFileDependencyMetadata> getFiles();
-
 }

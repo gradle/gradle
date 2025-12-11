@@ -52,7 +52,9 @@ public abstract class MixInClosurePropertiesAsMethodsDynamicObject extends Compo
                 }
                 return result;
             }
-            if (property instanceof NamedDomainObjectContainer && arguments.length == 1 && arguments[0] instanceof Closure) {
+            if (property instanceof NamedDomainObjectContainer
+                    && arguments.length == 1
+                    && arguments[0] instanceof Closure) {
                 ((NamedDomainObjectContainer) property).configure((Closure) arguments[0]);
                 return DynamicInvokeResult.found();
             }

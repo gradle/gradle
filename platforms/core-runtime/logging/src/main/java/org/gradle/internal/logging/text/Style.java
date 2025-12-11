@@ -17,19 +17,26 @@
 package org.gradle.internal.logging.text;
 
 import com.google.common.base.Objects;
-
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
 public class Style {
     public static final Style NORMAL = Style.of(Color.DEFAULT);
+
     public enum Emphasis {
-        BOLD, REVERSE, ITALIC
+        BOLD,
+        REVERSE,
+        ITALIC
     }
 
     public enum Color {
-        DEFAULT, YELLOW, RED, GREY, GREEN, BLACK
+        DEFAULT,
+        YELLOW,
+        RED,
+        GREY,
+        GREEN,
+        BLACK
     }
 
     public final Set<Emphasis> emphasises;
@@ -61,8 +68,7 @@ public class Style {
         }
 
         Style rhs = (Style) obj;
-        return Objects.equal(getEmphasises(), rhs.getEmphasises())
-            && Objects.equal(getColor(), rhs.getColor());
+        return Objects.equal(getEmphasises(), rhs.getEmphasises()) && Objects.equal(getColor(), rhs.getColor());
     }
 
     @Override

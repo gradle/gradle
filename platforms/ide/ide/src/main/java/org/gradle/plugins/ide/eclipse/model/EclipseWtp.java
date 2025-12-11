@@ -15,16 +15,15 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
+import static org.gradle.util.internal.ConfigureUtil.configure;
+
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-
-import javax.inject.Inject;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning wtp/wst details of the Eclipse plugin

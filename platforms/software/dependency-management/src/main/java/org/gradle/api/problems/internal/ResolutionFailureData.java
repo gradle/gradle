@@ -42,9 +42,9 @@ public interface ResolutionFailureData extends GeneralData {
     @Override
     default ImmutableMap<String, String> getAsMap() {
         return ImmutableMap.<String, String>builder()
-            .put("requestTarget", getResolutionFailure().describeRequestTarget())
-            .put("problemId", getResolutionFailure().getProblemId().name())
-            .put("problemDisplayName", getResolutionFailure().getProblemId().getDisplayName())
-            .build();
+                .put("requestTarget", getResolutionFailure().describeRequestTarget())
+                .put("problemId", getResolutionFailure().getProblemId().name())
+                .put("problemDisplayName", getResolutionFailure().getProblemId().getDisplayName())
+                .build();
     }
 }

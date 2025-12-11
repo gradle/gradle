@@ -16,10 +16,9 @@
 
 package org.gradle.api.file;
 
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Property;
-
-import java.util.Map;
 
 /**
  * Additional configuration parameters for {@link ContentFilterable#expand(Map, Action)} action.

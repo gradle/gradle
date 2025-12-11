@@ -17,6 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.time.Duration;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -29,11 +33,6 @@ import org.gradle.api.internal.artifacts.cache.ModuleResolutionControl;
 import org.gradle.api.internal.artifacts.cache.ResolutionControl;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-
-import java.io.File;
-import java.time.Duration;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Default implementation of {@link CacheExpirationControl}.
@@ -49,14 +48,13 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
     private final boolean refresh;
 
     public DefaultCacheExpirationControl(
-        ImmutableList<Action<? super DependencyResolutionControl>> dependencyCacheRules,
-        ImmutableList<Action<? super ModuleResolutionControl>> moduleCacheRules,
-        ImmutableList<Action<? super ArtifactResolutionControl>> artifactCacheRules,
-        long keepDynamicVersionsFor,
-        long keepChangingModulesFor,
-        boolean offline,
-        boolean refresh
-    ) {
+            ImmutableList<Action<? super DependencyResolutionControl>> dependencyCacheRules,
+            ImmutableList<Action<? super ModuleResolutionControl>> moduleCacheRules,
+            ImmutableList<Action<? super ArtifactResolutionControl>> artifactCacheRules,
+            long keepDynamicVersionsFor,
+            long keepChangingModulesFor,
+            boolean offline,
+            boolean refresh) {
         this.dependencyCacheRules = dependencyCacheRules;
         this.moduleCacheRules = moduleCacheRules;
         this.artifactCacheRules = artifactCacheRules;
@@ -67,8 +65,10 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
     }
 
     @Override
-    public Expiry versionListExpiry(ModuleIdentifier moduleIdentifier, Set<ModuleVersionIdentifier> moduleVersions, Duration age) {
-        CachedDependencyResolutionControl dependencyResolutionControl = new CachedDependencyResolutionControl(moduleIdentifier, moduleVersions, age.toMillis(), keepDynamicVersionsFor);
+    public Expiry versionListExpiry(
+            ModuleIdentifier moduleIdentifier, Set<ModuleVersionIdentifier> moduleVersions, Duration age) {
+        CachedDependencyResolutionControl dependencyResolutionControl = new CachedDependencyResolutionControl(
+                moduleIdentifier, moduleVersions, age.toMillis(), keepDynamicVersionsFor);
 
         if (applyOfflineRule(dependencyResolutionControl) || applyRefreshRule(dependencyResolutionControl)) {
             return dependencyResolutionControl;
@@ -90,7 +90,8 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
     }
 
     @Override
-    public Expiry moduleExpiry(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age) {
+    public Expiry moduleExpiry(
+            ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age) {
         return mustRefreshModule(component, resolvedModuleVersion, age, false);
     }
 
@@ -101,10 +102,13 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
 
     @Override
     public Expiry moduleArtifactsExpiry(
-        ModuleVersionIdentifier moduleVersionId, Set<ModuleComponentArtifactMetadata> artifacts,
-        Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync
-    ) {
-        CachedModuleResolutionControl resolutionControl = mustRefreshModule(moduleVersionId, new DefaultResolvedModuleVersion(moduleVersionId), age, belongsToChangingModule);
+            ModuleVersionIdentifier moduleVersionId,
+            Set<ModuleComponentArtifactMetadata> artifacts,
+            Duration age,
+            boolean belongsToChangingModule,
+            boolean moduleDescriptorInSync) {
+        CachedModuleResolutionControl resolutionControl = mustRefreshModule(
+                moduleVersionId, new DefaultResolvedModuleVersion(moduleVersionId), age, belongsToChangingModule);
         if (belongsToChangingModule && !moduleDescriptorInSync) {
             resolutionControl.refresh();
         }
@@ -112,8 +116,14 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
     }
 
     @Override
-    public Expiry artifactExpiry(ModuleComponentArtifactMetadata artifactMetadata, File cachedArtifactFile, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync) {
-        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(artifactMetadata, cachedArtifactFile, age.toMillis(), keepChangingModulesFor, belongsToChangingModule);
+    public Expiry artifactExpiry(
+            ModuleComponentArtifactMetadata artifactMetadata,
+            File cachedArtifactFile,
+            Duration age,
+            boolean belongsToChangingModule,
+            boolean moduleDescriptorInSync) {
+        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(
+                artifactMetadata, cachedArtifactFile, age.toMillis(), keepChangingModulesFor, belongsToChangingModule);
 
         if (applyOfflineRule(artifactResolutionControl) || applyRefreshRule(artifactResolutionControl)) {
             return artifactResolutionControl;
@@ -134,16 +144,31 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
     }
 
     @Override
-    public Expiry changingModuleExpiry(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age) {
+    public Expiry changingModuleExpiry(
+            ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age) {
         return mustRefreshModule(component, resolvedModuleVersion, age, true);
     }
 
-    private Expiry mustRefreshModule(ModuleComponentIdentifier component, ResolvedModuleVersion version, Duration age, boolean changingModule) {
-        return mustRefreshModule(DefaultModuleVersionIdentifier.newId(component.getModuleIdentifier(), component.getVersion()), version, age, changingModule);
+    private Expiry mustRefreshModule(
+            ModuleComponentIdentifier component, ResolvedModuleVersion version, Duration age, boolean changingModule) {
+        return mustRefreshModule(
+                DefaultModuleVersionIdentifier.newId(component.getModuleIdentifier(), component.getVersion()),
+                version,
+                age,
+                changingModule);
     }
 
-    private CachedModuleResolutionControl mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion version, Duration age, boolean changingModule) {
-        CachedModuleResolutionControl moduleResolutionControl = new CachedModuleResolutionControl(moduleVersionId, version, changingModule, age.toMillis(), changingModule ? keepChangingModulesFor: Long.MAX_VALUE);
+    private CachedModuleResolutionControl mustRefreshModule(
+            ModuleVersionIdentifier moduleVersionId,
+            ResolvedModuleVersion version,
+            Duration age,
+            boolean changingModule) {
+        CachedModuleResolutionControl moduleResolutionControl = new CachedModuleResolutionControl(
+                moduleVersionId,
+                version,
+                changingModule,
+                age.toMillis(),
+                changingModule ? keepChangingModulesFor : Long.MAX_VALUE);
 
         if (applyOfflineRule(moduleResolutionControl) || applyRefreshRule(moduleResolutionControl)) {
             return moduleResolutionControl;
@@ -183,7 +208,7 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
         return false;
     }
 
-    private static abstract class AbstractResolutionControl<A, B> implements ResolutionControl<A, B>, Expiry {
+    private abstract static class AbstractResolutionControl<A, B> implements ResolutionControl<A, B>, Expiry {
 
         private final A request;
         private final B cachedResult;
@@ -260,14 +285,20 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
         public boolean isMustCheck() {
             return mustCheck && ageMillis > 0;
         }
-
     }
 
-    private static class CachedModuleResolutionControl extends AbstractResolutionControl<ModuleVersionIdentifier, ResolvedModuleVersion> implements ModuleResolutionControl {
+    private static class CachedModuleResolutionControl
+            extends AbstractResolutionControl<ModuleVersionIdentifier, ResolvedModuleVersion>
+            implements ModuleResolutionControl {
 
         private final boolean changing;
 
-        private CachedModuleResolutionControl(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion cachedVersion, boolean changing, long ageMillis, long keepForMillis) {
+        private CachedModuleResolutionControl(
+                ModuleVersionIdentifier moduleVersionId,
+                ResolvedModuleVersion cachedVersion,
+                boolean changing,
+                long ageMillis,
+                long keepForMillis) {
             super(moduleVersionId, cachedVersion, ageMillis, keepForMillis);
             this.changing = changing;
         }
@@ -276,14 +307,20 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
         public boolean isChanging() {
             return changing;
         }
-
     }
 
-    private static class CachedArtifactResolutionControl extends AbstractResolutionControl<ModuleComponentArtifactMetadata, File> implements ArtifactResolutionControl {
+    private static class CachedArtifactResolutionControl
+            extends AbstractResolutionControl<ModuleComponentArtifactMetadata, File>
+            implements ArtifactResolutionControl {
 
         private final boolean belongsToChangingModule;
 
-        private CachedArtifactResolutionControl(ModuleComponentArtifactMetadata artifact, File cachedResult, long ageMillis, long keepForMillis, boolean belongsToChangingModule) {
+        private CachedArtifactResolutionControl(
+                ModuleComponentArtifactMetadata artifact,
+                File cachedResult,
+                long ageMillis,
+                long keepForMillis,
+                boolean belongsToChangingModule) {
             super(artifact, cachedResult, ageMillis, keepForMillis);
             this.belongsToChangingModule = belongsToChangingModule;
         }
@@ -292,15 +329,15 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
         public boolean belongsToChangingModule() {
             return belongsToChangingModule;
         }
-
     }
 
-    private static class CachedDependencyResolutionControl extends AbstractResolutionControl<ModuleIdentifier, Set<ModuleVersionIdentifier>> implements DependencyResolutionControl {
+    private static class CachedDependencyResolutionControl
+            extends AbstractResolutionControl<ModuleIdentifier, Set<ModuleVersionIdentifier>>
+            implements DependencyResolutionControl {
 
-        private CachedDependencyResolutionControl(ModuleIdentifier request, Set<ModuleVersionIdentifier> result, long ageMillis, long keepForMillis) {
+        private CachedDependencyResolutionControl(
+                ModuleIdentifier request, Set<ModuleVersionIdentifier> result, long ageMillis, long keepForMillis) {
             super(request, result, ageMillis, keepForMillis);
         }
-
     }
-
 }

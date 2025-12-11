@@ -16,16 +16,14 @@
 
 package org.gradle.api.internal.artifacts.repositories.transport;
 
+import java.util.concurrent.Callable;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Callable;
-
-
 public class NetworkOperationBackOffAndRetry<T> {
-    private final static String MAX_ATTEMPTS = "org.gradle.internal.network.retry.max.attempts";
-    private final static String INITIAL_BACKOFF_MS = "org.gradle.internal.network.retry.initial.backOff";
+    private static final String MAX_ATTEMPTS = "org.gradle.internal.network.retry.max.attempts";
+    private static final String INITIAL_BACKOFF_MS = "org.gradle.internal.network.retry.initial.backOff";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NetworkOperationBackOffAndRetry.class);
     private final int maxDeployAttempts;
@@ -61,7 +59,11 @@ public class NetworkOperationBackOffAndRetry<T> {
             if (!NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure) || retries == maxDeployAttempts) {
                 throw UncheckedException.throwAsUncheckedException(failure);
             } else {
-                LOGGER.info("Error in '{}'. Waiting {}ms before next retry, {} retries left", operation, backoff, maxDeployAttempts - retries);
+                LOGGER.info(
+                        "Error in '{}'. Waiting {}ms before next retry, {} retries left",
+                        operation,
+                        backoff,
+                        maxDeployAttempts - retries);
                 LOGGER.debug("Network operation failed", failure);
                 try {
                     Thread.sleep(backoff);

@@ -16,11 +16,10 @@
 
 package org.gradle.nativeplatform.internal;
 
+import java.util.Objects;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
-
-import java.util.Objects;
 
 public class DefaultTargetMachine implements TargetMachine {
     private final OperatingSystemFamily operatingSystemFamily;
@@ -50,8 +49,8 @@ public class DefaultTargetMachine implements TargetMachine {
             return false;
         }
         DefaultTargetMachine that = (DefaultTargetMachine) o;
-        return Objects.equals(operatingSystemFamily, that.operatingSystemFamily) &&
-                Objects.equals(architecture, that.architecture);
+        return Objects.equals(operatingSystemFamily, that.operatingSystemFamily)
+                && Objects.equals(architecture, that.architecture);
     }
 
     @Override

@@ -27,7 +27,8 @@ import org.gradle.model.internal.type.ModelType;
 public class ManagedPropertyMethodBinding extends AbstractStructMethodBinding {
     private final String propertyName;
 
-    public ManagedPropertyMethodBinding(WeaklyTypeReferencingMethod<?, ?> source, String propertyName, PropertyAccessorType accessorType) {
+    public ManagedPropertyMethodBinding(
+            WeaklyTypeReferencingMethod<?, ?> source, String propertyName, PropertyAccessorType accessorType) {
         super(source, Preconditions.checkNotNull(accessorType));
         this.propertyName = propertyName;
     }

@@ -46,5 +46,4 @@ public class ProblemTaskIdentityTracker {
     public static void clear() {
         TASK_IDENTITY.remove();
     }
-
 }

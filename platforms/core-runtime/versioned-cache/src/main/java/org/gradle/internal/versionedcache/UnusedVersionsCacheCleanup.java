@@ -16,6 +16,19 @@
 
 package org.gradle.internal.versionedcache;
 
+import static java.util.Collections.singleton;
+import static org.apache.commons.io.filefilter.FileFilterUtils.asFileFilter;
+import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.gradle.cache.CleanableStore;
@@ -27,20 +40,6 @@ import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static java.util.Collections.singleton;
-import static org.apache.commons.io.filefilter.FileFilterUtils.asFileFilter;
-import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
-
 public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UnusedVersionsCacheCleanup.class);
@@ -51,15 +50,23 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
 
     private Set<CacheVersion> usedVersions;
 
-    public static UnusedVersionsCacheCleanup create(String cacheName, CacheVersionMapping cacheVersionMapping, UsedGradleVersions usedGradleVersions) {
-        Pattern cacheNamePattern = Pattern.compile('^' + Pattern.quote(cacheName) + "-((?:\\d+" + Pattern.quote(CacheVersion.COMPONENT_SEPARATOR) + ")*\\d+)$");
+    public static UnusedVersionsCacheCleanup create(
+            String cacheName, CacheVersionMapping cacheVersionMapping, UsedGradleVersions usedGradleVersions) {
+        Pattern cacheNamePattern = Pattern.compile('^' + Pattern.quote(cacheName) + "-((?:\\d+"
+                + Pattern.quote(CacheVersion.COMPONENT_SEPARATOR) + ")*\\d+)$");
         return new UnusedVersionsCacheCleanup(cacheNamePattern, cacheVersionMapping, usedGradleVersions);
     }
 
-    private UnusedVersionsCacheCleanup(final Pattern cacheNamePattern, CacheVersionMapping cacheVersionMapping, UsedGradleVersions usedGradleVersions) {
+    private UnusedVersionsCacheCleanup(
+            final Pattern cacheNamePattern,
+            CacheVersionMapping cacheVersionMapping,
+            UsedGradleVersions usedGradleVersions) {
         super((baseDir, filter) -> {
-            FileFilter combinedFilter = FileFilterUtils.and(directoryFileFilter(), new RegexFileFilter(cacheNamePattern), asFileFilter(filter),
-                asFileFilter(new NonReservedFileFilter(singleton(baseDir))));
+            FileFilter combinedFilter = FileFilterUtils.and(
+                    directoryFileFilter(),
+                    new RegexFileFilter(cacheNamePattern),
+                    asFileFilter(filter),
+                    asFileFilter(new NonReservedFileFilter(singleton(baseDir))));
             File[] result = baseDir.getParentFile().listFiles(combinedFilter);
             return result == null ? Collections.<File>emptySet() : Arrays.asList(result);
         });

@@ -16,13 +16,13 @@
 
 package org.gradle.plugin.use.internal;
 
+import static com.google.common.base.CharMatcher.anyOf;
+import static com.google.common.base.CharMatcher.inRange;
+
 import com.google.common.base.CharMatcher;
 import org.gradle.plugin.internal.InvalidPluginIdException;
 import org.gradle.plugin.use.PluginId;
 import org.jspecify.annotations.Nullable;
-
-import static com.google.common.base.CharMatcher.anyOf;
-import static com.google.common.base.CharMatcher.inRange;
 
 public class DefaultPluginId implements PluginId {
 
@@ -32,10 +32,10 @@ public class DefaultPluginId implements PluginId {
 
     public static final String PLUGIN_ID_VALID_CHARS_DESCRIPTION = "ASCII alphanumeric characters, '.', '_' and '-'";
     public static final CharMatcher INVALID_PLUGIN_ID_CHAR_MATCHER = inRange('a', 'z')
-        .or(inRange('A', 'Z'))
-        .or(inRange('0', '9'))
-        .or(anyOf(".-_"))
-        .negate();
+            .or(inRange('A', 'Z'))
+            .or(inRange('0', '9'))
+            .or(anyOf(".-_"))
+            .negate();
 
     private final String value;
 
@@ -67,7 +67,8 @@ public class DefaultPluginId implements PluginId {
     }
 
     public static String invalidPluginIdCharMessage(char invalidChar) {
-        return "Plugin id contains invalid char '" + invalidChar + "' (only " + PLUGIN_ID_VALID_CHARS_DESCRIPTION + " characters are valid)";
+        return "Plugin id contains invalid char '" + invalidChar + "' (only " + PLUGIN_ID_VALID_CHARS_DESCRIPTION
+                + " characters are valid)";
     }
 
     private boolean isQualified() {
@@ -116,7 +117,6 @@ public class DefaultPluginId implements PluginId {
         DefaultPluginId pluginId = (DefaultPluginId) o;
 
         return value.equals(pluginId.value);
-
     }
 
     @Override

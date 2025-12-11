@@ -38,22 +38,32 @@ public interface ModuleComponentRepositoryAccess<T> {
     /**
      * Resolves the given selector to a list of module versions.
      */
-    void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result);
+    void listModuleVersions(
+            ModuleComponentSelector selector,
+            ComponentOverrideMetadata overrideMetadata,
+            BuildableModuleVersionListingResolveResult result);
 
     /**
      * Resolves the metadata for a module component.
      */
-    void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<T> result);
+    void resolveComponentMetaData(
+            ModuleComponentIdentifier moduleComponentIdentifier,
+            ComponentOverrideMetadata requestMetaData,
+            BuildableModuleComponentMetaDataResolveResult<T> result);
 
     /**
      * Resolves a set of artifacts belonging to the given component, with the type specified. Any failures are packaged up in the result.
      */
-    void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result);
+    void resolveArtifactsWithType(
+            ComponentArtifactResolveMetadata component,
+            ArtifactType artifactType,
+            BuildableArtifactSetResolveResult result);
 
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result);
+    void resolveArtifact(
+            ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result);
 
     MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier);
 }

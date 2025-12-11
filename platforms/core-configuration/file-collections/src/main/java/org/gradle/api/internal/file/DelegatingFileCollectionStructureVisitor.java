@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.file;
 
+import java.io.File;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
-
-import java.io.File;
 
 public class DelegatingFileCollectionStructureVisitor implements FileCollectionStructureVisitor {
     private final FileCollectionStructureVisitor delegate;
@@ -49,7 +48,8 @@ public class DelegatingFileCollectionStructureVisitor implements FileCollectionS
     }
 
     @Override
-    public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+    public void visitFileTreeBackedByFile(
+            File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
         delegate.visitFileTreeBackedByFile(file, fileTree, sourceTree);
     }
 }

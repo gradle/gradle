@@ -15,6 +15,9 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
+import java.io.File;
+import java.util.function.Function;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.file.DirectoryProperty;
@@ -28,10 +31,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.function.Function;
 
 public class DefaultJvmLanguageSourceDirectoryBuilder implements JvmLanguageSourceDirectoryBuilder {
     private final String name;
@@ -56,19 +55,20 @@ public class DefaultJvmLanguageSourceDirectoryBuilder implements JvmLanguageSour
     }
 
     @Override
-    public JvmLanguageSourceDirectoryBuilder compiledBy(Function<DirectoryProperty, TaskProvider<? extends AbstractCompile>> taskBuilder) {
+    public JvmLanguageSourceDirectoryBuilder compiledBy(
+            Function<DirectoryProperty, TaskProvider<? extends AbstractCompile>> taskBuilder) {
         this.taskBuilder = taskBuilder;
         return this;
     }
 
     @Override
     public JvmLanguageSourceDirectoryBuilder compiledWithJava(Action<? super JavaCompile> compilerConfiguration) {
-        Function<DirectoryProperty, TaskProvider<? extends AbstractCompile>> t = sourceDirectory ->
-            project.getTasks().register("compile" + StringUtils.capitalize(name), JavaCompile.class, compileTask -> {
-                compileTask.source(sourceDirectory);
-                compileTask.setClasspath(sourceSet.getCompileClasspath());
-                compilerConfiguration.execute(compileTask);
-            });
+        Function<DirectoryProperty, TaskProvider<? extends AbstractCompile>> t = sourceDirectory -> project.getTasks()
+                .register("compile" + StringUtils.capitalize(name), JavaCompile.class, compileTask -> {
+                    compileTask.source(sourceDirectory);
+                    compileTask.setClasspath(sourceSet.getCompileClasspath());
+                    compilerConfiguration.execute(compileTask);
+                });
         return includeInAllJava().compiledBy(t);
     }
 
@@ -80,33 +80,30 @@ public class DefaultJvmLanguageSourceDirectoryBuilder implements JvmLanguageSour
 
     void build() {
         if (taskBuilder == null) {
-            throw new IllegalStateException("You must specify the task which will contribute classes from this source directory");
+            throw new IllegalStateException(
+                    "You must specify the task which will contribute classes from this source directory");
         }
-        SourceDirectorySet langSrcDir = project.getObjects().sourceDirectorySet(name, description == null ? "Sources for " + name : description);
+        SourceDirectorySet langSrcDir = project.getObjects()
+                .sourceDirectorySet(name, description == null ? "Sources for " + name : description);
         langSrcDir.srcDir(project.getLayout().getProjectDirectory().dir("src/" + sourceSet.getName() + "/" + name));
-        Provider<File> srcDirProvider = project.getProviders().provider(() -> langSrcDir.getSourceDirectories().getSingleFile());
+        Provider<File> srcDirProvider = project.getProviders()
+                .provider(() -> langSrcDir.getSourceDirectories().getSingleFile());
 
-        TaskProvider<? extends AbstractCompile> compileTask = taskBuilder.apply(
-            project.getObjects().directoryProperty().fileProvider(srcDirProvider)
-        );
+        TaskProvider<? extends AbstractCompile> compileTask =
+                taskBuilder.apply(project.getObjects().directoryProperty().fileProvider(srcDirProvider));
 
         JvmPluginsHelper.configureOutputDirectoryForSourceSet(
-            sourceSet,
-            langSrcDir,
-            project,
-            compileTask,
-            compileTask.map(task -> {
-                if (task instanceof HasCompileOptions) {
-                    return ((HasCompileOptions) task).getOptions();
-                }
-                throw new UnsupportedOperationException("Unsupported compile task " + task.getClass().getName());
-            })
-        );
+                sourceSet, langSrcDir, project, compileTask, compileTask.map(task -> {
+                    if (task instanceof HasCompileOptions) {
+                        return ((HasCompileOptions) task).getOptions();
+                    }
+                    throw new UnsupportedOperationException(
+                            "Unsupported compile task " + task.getClass().getName());
+                }));
         if (includeInAllJava) {
             sourceSet.getAllJava().source(langSrcDir);
         }
         sourceSet.getAllSource().source(langSrcDir);
-        project.getTasks().named(JvmConstants.CLASSES_TASK_NAME).configure(classes ->
-            classes.dependsOn(compileTask));
+        project.getTasks().named(JvmConstants.CLASSES_TASK_NAME).configure(classes -> classes.dependsOn(compileTask));
     }
 }

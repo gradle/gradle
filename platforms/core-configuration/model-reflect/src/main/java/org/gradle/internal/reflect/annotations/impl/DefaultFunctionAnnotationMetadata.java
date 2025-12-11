@@ -17,21 +17,22 @@
 package org.gradle.internal.reflect.annotations.impl;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
-import org.gradle.internal.reflect.annotations.FunctionAnnotationMetadata;
-import org.jspecify.annotations.NonNull;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
+import org.gradle.internal.reflect.annotations.FunctionAnnotationMetadata;
+import org.jspecify.annotations.NonNull;
 
 /**
  * Default implementation of {@link FunctionAnnotationMetadata}.
  */
-public class DefaultFunctionAnnotationMetadata extends AbstractHasAnnotationMetadata implements FunctionAnnotationMetadata {
+public class DefaultFunctionAnnotationMetadata extends AbstractHasAnnotationMetadata
+        implements FunctionAnnotationMetadata {
 
-    public DefaultFunctionAnnotationMetadata(Method method, ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory) {
+    public DefaultFunctionAnnotationMetadata(
+            Method method, ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory) {
         super(method, annotationsByCategory);
     }
 
@@ -41,7 +42,9 @@ public class DefaultFunctionAnnotationMetadata extends AbstractHasAnnotationMeta
     }
 
     private String getParameterTypeString() {
-        return Arrays.stream(getMethod().getParameterTypes()).map(Class::getSimpleName).collect(Collectors.joining(", "));
+        return Arrays.stream(getMethod().getParameterTypes())
+                .map(Class::getSimpleName)
+                .collect(Collectors.joining(", "));
     }
 
     /**
@@ -59,7 +62,10 @@ public class DefaultFunctionAnnotationMetadata extends AbstractHasAnnotationMeta
                 for (int i = 0; i < getMethod().getParameterCount(); i++) {
                     // If the parameters don't match, return the comparison of the first mismatched parameter type name
                     if (getMethod().getParameterTypes()[i] != o.getMethod().getParameterTypes()[i]) {
-                        return getMethod().getParameterTypes()[i].getName().compareTo(o.getMethod().getParameterTypes()[i].getName());
+                        return getMethod()
+                                .getParameterTypes()[i]
+                                .getName()
+                                .compareTo(o.getMethod().getParameterTypes()[i].getName());
                     }
                 }
                 return 0;

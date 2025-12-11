@@ -38,9 +38,7 @@ public interface CapabilitiesResolutionInternal extends CapabilitiesResolution {
         private final Action<? super CapabilityResolutionDetails> action;
 
         public CapabilityResolutionRule(
-            @Nullable ImmutableCapability capability,
-            Action<? super CapabilityResolutionDetails> action
-        ) {
+                @Nullable ImmutableCapability capability, Action<? super CapabilityResolutionDetails> action) {
             this.capability = capability;
             this.action = action;
         }
@@ -50,7 +48,9 @@ public interface CapabilitiesResolutionInternal extends CapabilitiesResolution {
          * a capability with the given group and name.
          */
         public boolean appliesTo(String group, String name) {
-            return capability == null || (capability.getGroup().equals(group) && capability.getName().equals(name));
+            return capability == null
+                    || (capability.getGroup().equals(group)
+                            && capability.getName().equals(name));
         }
 
         /**
@@ -59,7 +59,5 @@ public interface CapabilitiesResolutionInternal extends CapabilitiesResolution {
         public Action<? super CapabilityResolutionDetails> getAction() {
             return action;
         }
-
     }
-
 }

@@ -18,6 +18,18 @@ package org.gradle.jvm.toolchain.internal.install;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URI;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -39,19 +51,6 @@ import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.URI;
-import java.nio.file.AtomicMoveNotSupportedException;
-import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultJdkCacheDirectory.class);
@@ -61,8 +60,10 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
      */
     @VisibleForTesting
     static final String LEGACY_MARKER_FILE = "provisioned.ok";
+
     @VisibleForTesting
     static final String MARKER_FILE = ".ready";
+
     private static final String MAC_OS_JAVA_HOME_FOLDER = "Contents/Home";
 
     private static final class UnpackedRoot {
@@ -80,7 +81,8 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
     private final FileLockManager lockManager;
 
     private final JvmMetadataDetector detector;
-    // Specifically requesting the GradleUserHomeTemporaryFileProvider to ensure that the temporary files are created on the same file system as the target directory
+    // Specifically requesting the GradleUserHomeTemporaryFileProvider to ensure that the temporary files are created on
+    // the same file system as the target directory
     // This is a prerequisite for atomic moves in most cases, which are used in the provisionFromArchive method
     private final GradleUserHomeTemporaryFileProvider temporaryFileProvider;
 
@@ -94,12 +96,11 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
      * @param temporaryFileProvider temporary file provider
      */
     public DefaultJdkCacheDirectory(
-        GradleUserHomeDirProvider homeDirProvider,
-        FileOperations operations,
-        FileLockManager lockManager,
-        JvmMetadataDetector detector,
-        GradleUserHomeTemporaryFileProvider temporaryFileProvider
-    ) {
+            GradleUserHomeDirProvider homeDirProvider,
+            FileOperations operations,
+            FileLockManager lockManager,
+            JvmMetadataDetector detector,
+            GradleUserHomeTemporaryFileProvider temporaryFileProvider) {
         this.operations = operations;
         this.jdkDirectory = new File(homeDirProvider.getGradleUserHomeDirectory(), "jdks");
         this.lockManager = lockManager;
@@ -131,7 +132,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
 
             File[] subfolders = location.listFiles(File::isDirectory);
             if (subfolders != null) {
-                for(File subfolder : subfolders) {
+                for (File subfolder : subfolders) {
                     if (new File(subfolder, MAC_OS_JAVA_HOME_FOLDER).exists()) {
                         return new File(subfolder, MAC_OS_JAVA_HOME_FOLDER);
                     }
@@ -156,29 +157,42 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
 
             // Check our target directory, to see if anything exists there, and if so, is it marked as ready?
             File installFolder = new File(jdkDirectory, getInstallFolderName(unpackedRoot.metadata));
-            if (!installFolder.getParentFile().mkdirs() && !installFolder.getParentFile().isDirectory()) {
+            if (!installFolder.getParentFile().mkdirs()
+                    && !installFolder.getParentFile().isDirectory()) {
                 throw new IOException("Failed to create install parent directory: " + installFolder.getParentFile());
             }
             // Before checking existence, lock the install folder name to prevent concurrent installations
             // An extra string is added to prevent the lock from being created inside the install folder
-            try (FileLock ignored = acquireWriteLock(new File(installFolder.getParentFile(), installFolder.getName() + ".reserved"), "Provisioning JDK from " + uri)) {
+            try (FileLock ignored = acquireWriteLock(
+                    new File(installFolder.getParentFile(), installFolder.getName() + ".reserved"),
+                    "Provisioning JDK from " + uri)) {
                 if (installFolder.exists()) {
                     if (isMarkedLocation(installFolder)) {
                         LOGGER.info("Toolchain from {} already installed at {}", uri, installFolder);
                         return getJavaHome(installFolder);
                     } else {
-                        // This can happen if atomic moves are unsupported, and the JVM is forcibly killed during the copy
-                        LOGGER.info("Found partially installed toolchain at {}, overwriting with toolchain from {}", installFolder, uri);
+                        // This can happen if atomic moves are unsupported, and the JVM is forcibly killed during the
+                        // copy
+                        LOGGER.info(
+                                "Found partially installed toolchain at {}, overwriting with toolchain from {}",
+                                installFolder,
+                                uri);
                         operations.delete(installFolder);
                     }
                 }
 
                 // Move the unpacked root to the install location, atomically if possible
                 try {
-                    java.nio.file.Files.move(unpackedRoot.dir.toPath(), installFolder.toPath(), StandardCopyOption.ATOMIC_MOVE);
+                    java.nio.file.Files.move(
+                            unpackedRoot.dir.toPath(), installFolder.toPath(), StandardCopyOption.ATOMIC_MOVE);
                 } catch (AtomicMoveNotSupportedException e) {
-                    // In theory, we should never hit this code, but some more obscure file systems or OSes may not support atomic moves
-                    LOGGER.info("Failed to use an atomic move for unpacked JDK from {} to {}. Will try to copy instead.", unpackedRoot.dir, installFolder, e);
+                    // In theory, we should never hit this code, but some more obscure file systems or OSes may not
+                    // support atomic moves
+                    LOGGER.info(
+                            "Failed to use an atomic move for unpacked JDK from {} to {}. Will try to copy instead.",
+                            unpackedRoot.dir,
+                            installFolder,
+                            e);
                     try {
                         operations.copy(copySpec -> {
                             copySpec.from(unpackedRoot.dir);
@@ -232,7 +246,9 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
                 return new UnpackedRoot(subFolder, uncheckedMetadata);
             }
         }
-        throw new IllegalStateException("Unpacked JDK archive does not contain a Java home: " + unpackFolder, uncheckedMetadata.getErrorCause());
+        throw new IllegalStateException(
+                "Unpacked JDK archive does not contain a Java home: " + unpackFolder,
+                uncheckedMetadata.getErrorCause());
     }
 
     private JvmInstallationMetadata getUncheckedMetadata(File root) {
@@ -254,9 +270,15 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
     private static void validateMetadataMatchesSpec(JavaToolchainSpec spec, URI uri, JvmInstallationMetadata metadata) {
         if (!new JvmInstallationMetadataMatcher(spec, JavaInstallationCapability.JDK_CAPABILITIES).test(metadata)) {
             // Log the metadata for debugging purposes
-            LOGGER.info("Provisioned JDK from '{}' does not satisfy the specification {} with metadata {} and capabilities {}", uri, spec.getDisplayName(), metadata, metadata.getCapabilities());
+            LOGGER.info(
+                    "Provisioned JDK from '{}' does not satisfy the specification {} with metadata {} and capabilities {}",
+                    uri,
+                    spec.getDisplayName(),
+                    metadata,
+                    metadata.getCapabilities());
             // Make a readable version of the capabilities for the
-            throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName() + " and must have " + JDK_CAPABILITIES_DISPLAY + ".");
+            throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: "
+                    + spec.getDisplayName() + " and must have " + JDK_CAPABILITIES_DISPLAY + ".");
         }
     }
 
@@ -269,8 +291,9 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         String architecture = metadata.getArchitecture();
         String os = OperatingSystem.current().getFamilyName();
         return String.format("%s-%d-%s-%s", vendor, version, architecture, os)
-                .replaceAll("[^a-zA-Z0-9\\-]", "_")
-                .toLowerCase(Locale.ROOT) + ".2";
+                        .replaceAll("[^a-zA-Z0-9\\-]", "_")
+                        .toLowerCase(Locale.ROOT)
+                + ".2";
     }
 
     private File unpack(File jdkArchive) {
@@ -311,7 +334,11 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
     }
 
     public FileLock acquireWriteLock(File destinationFile, String operationName) {
-        return lockManager.lock(destinationFile, DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive), destinationFile.getName(), operationName);
+        return lockManager.lock(
+                destinationFile,
+                DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive),
+                destinationFile.getName(),
+                operationName);
     }
 
     public File getDownloadLocation() {
@@ -319,7 +346,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
     }
 
     private static String getNameWithoutExtension(File file) {
-        //remove all extensions, for example for xxx.tar.gz files only xxx should be left
+        // remove all extensions, for example for xxx.tar.gz files only xxx should be left
         String output = file.getName();
         String input;
         do {
@@ -328,5 +355,4 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         } while (!input.equals(output));
         return output;
     }
-
 }

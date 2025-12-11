@@ -16,6 +16,10 @@
 
 package org.gradle.model.internal.core;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+import static org.gradle.model.internal.core.NodeInitializerContext.forExtensibleType;
+import static org.gradle.model.internal.core.NodePredicate.allLinks;
+
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
@@ -24,6 +28,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
@@ -39,16 +48,6 @@ import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import static org.gradle.internal.Cast.uncheckedCast;
-import static org.gradle.model.internal.core.NodeInitializerContext.forExtensibleType;
-import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
 // TODO - mix Groovy DSL support in
 public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements ManagedInstance {
@@ -80,13 +79,24 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     private final ModelType<?> publicType;
 
     // Note: used by generated subtypes
-    public NodeBackedModelMap(ModelType<?> publicType, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
-                              ModelViewState viewState, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
+    public NodeBackedModelMap(
+            ModelType<?> publicType,
+            ModelType<T> elementType,
+            ModelRuleDescriptor sourceDescriptor,
+            MutableModelNode modelNode,
+            ModelViewState viewState,
+            ChildNodeInitializerStrategy<? super T> creatorStrategy) {
         this(publicType, elementType, sourceDescriptor, modelNode, viewState, NO_PARENT, creatorStrategy);
     }
 
-    private NodeBackedModelMap(ModelType<?> publicType, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
-                               ModelViewState viewState, ElementFilter parentFilter, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
+    private NodeBackedModelMap(
+            ModelType<?> publicType,
+            ModelType<T> elementType,
+            ModelRuleDescriptor sourceDescriptor,
+            MutableModelNode modelNode,
+            ModelViewState viewState,
+            ElementFilter parentFilter,
+            ChildNodeInitializerStrategy<? super T> creatorStrategy) {
         this.publicType = publicType;
         this.viewState = viewState;
         this.creatorStrategy = creatorStrategy;
@@ -96,7 +106,8 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         this.elementFilter = parentFilter.withType(elementType);
     }
 
-    public static <T> ChildNodeInitializerStrategy<T> createUsingRegistry(final NodeInitializerRegistry nodeInitializerRegistry) {
+    public static <T> ChildNodeInitializerStrategy<T> createUsingRegistry(
+            final NodeInitializerRegistry nodeInitializerRegistry) {
         return new ChildNodeInitializerStrategy<T>() {
             @Override
             public <S extends T> NodeInitializer initializer(ModelType<S> type, Spec<ModelType<?>> constraints) {
@@ -114,27 +125,40 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         });
     }
 
-    public static <T> ChildNodeInitializerStrategy<T> createUsingParentNode(final Transformer<? extends NamedEntityInstantiator<T>, ? super MutableModelNode> instantiatorTransform) {
+    public static <T> ChildNodeInitializerStrategy<T> createUsingParentNode(
+            final Transformer<? extends NamedEntityInstantiator<T>, ? super MutableModelNode> instantiatorTransform) {
         return new ChildNodeInitializerStrategy<T>() {
             @Override
             public <S extends T> NodeInitializer initializer(final ModelType<S> type, Spec<ModelType<?>> constraints) {
                 return new NodeInitializer() {
                     @Override
-                    public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+                    public Multimap<ModelActionRole, ModelAction> getActions(
+                            ModelReference<?> subject, ModelRuleDescriptor descriptor) {
                         return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
-                            .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor,
-                                UnmanagedModelProjection.of(type),
-                                new ModelElementProjection(type)
-                            ))
-                            .put(ModelActionRole.Create, DirectNodeNoInputsModelAction.of(subject, descriptor, new Action<MutableModelNode>() {
-                                @Override
-                                public void execute(MutableModelNode modelNode) {
-                                    NamedEntityInstantiator<T> instantiator = instantiatorTransform.transform(modelNode.getParent());
-                                    S item = instantiator.create(modelNode.getPath().getName(), type.getConcreteClass());
-                                    modelNode.setPrivateData(type, item);
-                                }
-                            }))
-                            .build();
+                                .put(
+                                        ModelActionRole.Discover,
+                                        AddProjectionsAction.of(
+                                                subject,
+                                                descriptor,
+                                                UnmanagedModelProjection.of(type),
+                                                new ModelElementProjection(type)))
+                                .put(
+                                        ModelActionRole.Create,
+                                        DirectNodeNoInputsModelAction.of(
+                                                subject, descriptor, new Action<MutableModelNode>() {
+                                                    @Override
+                                                    public void execute(MutableModelNode modelNode) {
+                                                        NamedEntityInstantiator<T> instantiator =
+                                                                instantiatorTransform.transform(modelNode.getParent());
+                                                        S item = instantiator.create(
+                                                                modelNode
+                                                                        .getPath()
+                                                                        .getName(),
+                                                                type.getConcreteClass());
+                                                        modelNode.setPrivateData(type, item);
+                                                    }
+                                                }))
+                                .build();
                     }
                 };
             }
@@ -142,11 +166,8 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     }
 
     private static <I> ModelType<NamedEntityInstantiator<I>> instantiatorTypeOf(ModelType<I> type) {
-        return new ModelType.Builder<NamedEntityInstantiator<I>>() {
-        }.where(
-            new ModelType.Parameter<I>() {
-            }, type
-        ).build();
+        return new ModelType.Builder<NamedEntityInstantiator<I>>() {}.where(new ModelType.Parameter<I>() {}, type)
+                .build();
     }
 
     @Override
@@ -164,17 +185,24 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         return ModelType.of(this.getClass());
     }
 
-    private <E> void mutateChildren(ModelActionRole role, ModelType<E> filterType, String operation, Action<? super E> configAction) {
+    private <E> void mutateChildren(
+            ModelActionRole role, ModelType<E> filterType, String operation, Action<? super E> configAction) {
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append(operation);
         ModelReference<E> subject = ModelReference.of(filterType);
-        modelNode.applyTo(allLinks(elementFilter.withType(filterType)), role, NoInputsModelAction.of(subject, descriptor, configAction));
+        modelNode.applyTo(
+                allLinks(elementFilter.withType(filterType)),
+                role,
+                NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
     private <E> void mutateChildren(ModelActionRole role, ModelType<E> filterType, DeferredModelAction configAction) {
         viewState.assertCanMutate();
         ModelReference<E> subject = ModelReference.of(filterType);
-        modelNode.defineRulesFor(allLinks(elementFilter.withType(filterType)), role, new DeferredActionWrapper<E>(subject, role, configAction));
+        modelNode.defineRulesFor(
+                allLinks(elementFilter.withType(filterType)),
+                role,
+                new DeferredActionWrapper<E>(subject, role, configAction));
     }
 
     @Override
@@ -280,44 +308,51 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
             ManagedInstance target = (ManagedInstance) instance;
             modelNode.addReference(name, target.getManagedType(), target.getBackingNode(), descriptor);
         } else {
-            modelNode.addLink(
-                ModelRegistrations.unmanagedInstance(
-                    ModelReference.of(modelNode.getPath().child(name), type),
-                    Factories.constant(instance)
-                )
-                .descriptor(descriptor)
-                .build()
-            );
+            modelNode.addLink(ModelRegistrations.unmanagedInstance(
+                            ModelReference.of(modelNode.getPath().child(name), type), Factories.constant(instance))
+                    .descriptor(descriptor)
+                    .build());
         }
     }
 
     private <S extends T> void doCreate(String name, ModelType<S> type, final DeferredModelAction action) {
         ModelPath childPath = modelNode.getPath().child(name);
-        doCreate(childPath, type, action.getDescriptor(), DirectNodeNoInputsModelAction.of(ModelReference.of(childPath, type), action.getDescriptor(), new Action<MutableModelNode>() {
-            @Override
-            public void execute(MutableModelNode node) {
-                action.execute(node, ModelActionRole.Initialize);
-            }
-        }));
+        doCreate(
+                childPath,
+                type,
+                action.getDescriptor(),
+                DirectNodeNoInputsModelAction.of(
+                        ModelReference.of(childPath, type), action.getDescriptor(), new Action<MutableModelNode>() {
+                            @Override
+                            public void execute(MutableModelNode node) {
+                                action.execute(node, ModelActionRole.Initialize);
+                            }
+                        }));
     }
 
     private <S extends T> void doCreate(String name, ModelType<S> type, @Nullable Action<? super S> initAction) {
         ModelPath childPath = modelNode.getPath().child(name);
         ModelRuleDescriptor descriptor = sourceDescriptor.append("create(%s)", name);
         if (initAction != null) {
-            doCreate(childPath, type, descriptor, NoInputsModelAction.of(ModelReference.of(childPath, type), descriptor, initAction));
+            doCreate(
+                    childPath,
+                    type,
+                    descriptor,
+                    NoInputsModelAction.of(ModelReference.of(childPath, type), descriptor, initAction));
         } else {
             doCreate(childPath, type, descriptor, null);
         }
     }
 
-    private <S extends T> void doCreate(ModelPath childPath, ModelType<S> type, ModelRuleDescriptor descriptor, @Nullable ModelAction initAction) {
+    private <S extends T> void doCreate(
+            ModelPath childPath, ModelType<S> type, ModelRuleDescriptor descriptor, @Nullable ModelAction initAction) {
         viewState.assertCanMutate();
         elementFilter.validateCanCreateElement(childPath, type);
 
         NodeInitializer nodeInitializer = creatorStrategy.initializer(type, elementFilter);
 
-        ModelRegistrations.Builder builder = ModelRegistrations.of(childPath, nodeInitializer).descriptor(descriptor);
+        ModelRegistrations.Builder builder =
+                ModelRegistrations.of(childPath, nodeInitializer).descriptor(descriptor);
         if (initAction != null) {
             builder.action(ModelActionRole.Initialize, initAction);
         }
@@ -376,7 +411,10 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append("named(%s)", name);
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.applyToLink(ModelActionRole.Mutate, new FilteringActionWrapper<T>(elementFilter, subject, NoInputsModelAction.of(subject, descriptor, configAction)));
+        modelNode.applyToLink(
+                ModelActionRole.Mutate,
+                new FilteringActionWrapper<T>(
+                        elementFilter, subject, NoInputsModelAction.of(subject, descriptor, configAction)));
     }
 
     @Override
@@ -384,14 +422,22 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append("named(%s, %s)", name, ruleSource.getName());
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.defineRulesForLink(ModelActionRole.Defaults, new FilteringActionWrapper<T>(elementFilter, subject, DirectNodeNoInputsModelAction.of(subject, descriptor, new ApplyRuleSource(ruleSource))));
+        modelNode.defineRulesForLink(
+                ModelActionRole.Defaults,
+                new FilteringActionWrapper<T>(
+                        elementFilter,
+                        subject,
+                        DirectNodeNoInputsModelAction.of(subject, descriptor, new ApplyRuleSource(ruleSource))));
     }
 
     // Called from transformed DSL rules
     public void named(String name, final DeferredModelAction action) {
         viewState.assertCanMutate();
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.applyToLink(ModelActionRole.Initialize, new FilteringActionWrapper<T>(elementFilter, subject, new DeferredActionWrapper<T>(subject, ModelActionRole.Mutate, action)));
+        modelNode.applyToLink(
+                ModelActionRole.Initialize,
+                new FilteringActionWrapper<T>(
+                        elementFilter, subject, new DeferredActionWrapper<T>(subject, ModelActionRole.Mutate, action)));
     }
 
     @Override
@@ -449,7 +495,8 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         }
 
         ChildNodeInitializerStrategy<S> creatorStrategy1 = uncheckedCast(this.creatorStrategy);
-        return new NodeBackedModelMap<S>(publicType, type, sourceDescriptor, modelNode, viewState, elementFilter, creatorStrategy1);
+        return new NodeBackedModelMap<S>(
+                publicType, type, sourceDescriptor, modelNode, viewState, elementFilter, creatorStrategy1);
     }
 
     @Override
@@ -471,7 +518,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         return super.methodMissing(name, argsObj);
     }
 
-    private static abstract class ElementFilter implements Predicate<MutableModelNode>, Spec<ModelType<?>> {
+    private abstract static class ElementFilter implements Predicate<MutableModelNode>, Spec<ModelType<?>> {
         protected final ModelType<?> elementType;
 
         public ElementFilter(ModelType<?> elementType) {
@@ -518,9 +565,11 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         public void validateCanBindAction(MutableModelNode node, ModelAction action) {
             node.ensureAtLeast(ModelNode.State.Discovered);
             if (!node.canBeViewedAs(elementType)) {
-                throw new InvalidModelRuleException(action.getDescriptor(), new ModelRuleBindingException(
-                    IncompatibleTypeReferenceReporter.of(node, elementType, action.getSubject().getDescription(), true).asString()
-                ));
+                throw new InvalidModelRuleException(
+                        action.getDescriptor(),
+                        new ModelRuleBindingException(IncompatibleTypeReferenceReporter.of(
+                                        node, elementType, action.getSubject().getDescription(), true)
+                                .asString()));
             }
             parent.validateCanBindAction(node, action);
         }
@@ -528,7 +577,9 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         @Override
         public void validateCanCreateElement(ModelPath path, ModelType<?> type) {
             if (!elementType.isAssignableFrom(type)) {
-                throw new IllegalArgumentException(String.format("Cannot create '%s' with type '%s' as this is not a subtype of '%s'.", path, type, elementType));
+                throw new IllegalArgumentException(String.format(
+                        "Cannot create '%s' with type '%s' as this is not a subtype of '%s'.",
+                        path, type, elementType));
             }
             parent.validateCanCreateElement(path, type);
         }

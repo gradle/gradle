@@ -16,10 +16,9 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import java.util.Set;
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.specs.Spec;
-
-import java.util.Set;
 
 /**
  * <p>A specialization of {@link NamedDomainObjectCollection} that also implements {@link Set} and orders objects by their inherent name.</p>

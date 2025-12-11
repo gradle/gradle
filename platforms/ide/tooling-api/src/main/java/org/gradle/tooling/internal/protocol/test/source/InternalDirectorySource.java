@@ -21,6 +21,4 @@ package org.gradle.tooling.internal.protocol.test.source;
  *
  * @since 9.4.0
  */
-public interface InternalDirectorySource extends InternalFilesystemSource {
-
-}
+public interface InternalDirectorySource extends InternalFilesystemSource {}

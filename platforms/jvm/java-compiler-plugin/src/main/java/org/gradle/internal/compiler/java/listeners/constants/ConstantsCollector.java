@@ -22,7 +22,6 @@ import com.sun.source.util.TaskEvent.Kind;
 import com.sun.source.util.TaskListener;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,18 +43,16 @@ public class ConstantsCollector implements TaskListener {
     }
 
     @Override
-    public void started(TaskEvent e) {
-
-    }
+    public void started(TaskEvent e) {}
 
     @Override
     public void finished(TaskEvent e) {
         if (e.getKind() == Kind.ANALYZE) {
             Trees trees = Trees.instance(task);
-            ConstantsTreeVisitor visitor = new ConstantsTreeVisitor(task.getElements(), trees, constantDependentsConsumer);
+            ConstantsTreeVisitor visitor =
+                    new ConstantsTreeVisitor(task.getElements(), trees, constantDependentsConsumer);
             TreePath path = trees.getPath(e.getCompilationUnit(), e.getCompilationUnit());
             visitor.scan(path, null);
         }
     }
-
 }

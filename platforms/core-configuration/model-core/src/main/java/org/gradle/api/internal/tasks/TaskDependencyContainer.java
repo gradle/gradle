@@ -20,8 +20,7 @@ package org.gradle.api.internal.tasks;
  * An object that has task dependencies associated with it.
  */
 public interface TaskDependencyContainer {
-    TaskDependencyContainer EMPTY = context -> {
-    };
+    TaskDependencyContainer EMPTY = context -> {};
 
     /**
      * Adds the dependencies from this container to the given context. Failures to calculate the build dependencies should be supplied to the context rather than thrown.

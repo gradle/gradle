@@ -27,19 +27,65 @@ public class BuildScriptBuilderFactory {
         this.documentationRegistry = documentationRegistry;
     }
 
-    public BuildScriptBuilder scriptForNewProjects(BuildInitDsl dsl, BuildContentGenerationContext buildContentGenerationContext, String fileNameWithoutExtension, boolean useIncubatingAPIs) {
-        return new BuildScriptBuilder(dsl, documentationRegistry, buildContentGenerationContext, fileNameWithoutExtension, useIncubatingAPIs, InsecureProtocolOption.FAIL, true);
+    public BuildScriptBuilder scriptForNewProjects(
+            BuildInitDsl dsl,
+            BuildContentGenerationContext buildContentGenerationContext,
+            String fileNameWithoutExtension,
+            boolean useIncubatingAPIs) {
+        return new BuildScriptBuilder(
+                dsl,
+                documentationRegistry,
+                buildContentGenerationContext,
+                fileNameWithoutExtension,
+                useIncubatingAPIs,
+                InsecureProtocolOption.FAIL,
+                true);
     }
 
-    public BuildScriptBuilder scriptForNewProjectsWithoutVersionCatalog(BuildInitDsl dsl, BuildContentGenerationContext buildContentGenerationContext, String fileNameWithoutExtension, boolean useIncubatingAPIs) {
-        return new BuildScriptBuilder(dsl, documentationRegistry, buildContentGenerationContext, fileNameWithoutExtension, useIncubatingAPIs, InsecureProtocolOption.FAIL, false);
+    public BuildScriptBuilder scriptForNewProjectsWithoutVersionCatalog(
+            BuildInitDsl dsl,
+            BuildContentGenerationContext buildContentGenerationContext,
+            String fileNameWithoutExtension,
+            boolean useIncubatingAPIs) {
+        return new BuildScriptBuilder(
+                dsl,
+                documentationRegistry,
+                buildContentGenerationContext,
+                fileNameWithoutExtension,
+                useIncubatingAPIs,
+                InsecureProtocolOption.FAIL,
+                false);
     }
 
-    public BuildScriptBuilder scriptForMavenConversion(BuildInitDsl dsl, BuildContentGenerationContext buildContentGenerationContext, String fileNameWithoutExtension, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption) {
-        return new BuildScriptBuilder(dsl, documentationRegistry, buildContentGenerationContext, fileNameWithoutExtension, useIncubatingAPIs, insecureProtocolOption, true);
+    public BuildScriptBuilder scriptForMavenConversion(
+            BuildInitDsl dsl,
+            BuildContentGenerationContext buildContentGenerationContext,
+            String fileNameWithoutExtension,
+            boolean useIncubatingAPIs,
+            InsecureProtocolOption insecureProtocolOption) {
+        return new BuildScriptBuilder(
+                dsl,
+                documentationRegistry,
+                buildContentGenerationContext,
+                fileNameWithoutExtension,
+                useIncubatingAPIs,
+                insecureProtocolOption,
+                true);
     }
 
-    public BuildScriptBuilder scriptForMavenConversionWithoutVersionCatalog(BuildInitDsl dsl, BuildContentGenerationContext buildContentGenerationContext, String fileNameWithoutExtension, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption) {
-        return new BuildScriptBuilder(dsl, documentationRegistry, buildContentGenerationContext, fileNameWithoutExtension, useIncubatingAPIs, insecureProtocolOption, false);
+    public BuildScriptBuilder scriptForMavenConversionWithoutVersionCatalog(
+            BuildInitDsl dsl,
+            BuildContentGenerationContext buildContentGenerationContext,
+            String fileNameWithoutExtension,
+            boolean useIncubatingAPIs,
+            InsecureProtocolOption insecureProtocolOption) {
+        return new BuildScriptBuilder(
+                dsl,
+                documentationRegistry,
+                buildContentGenerationContext,
+                fileNameWithoutExtension,
+                useIncubatingAPIs,
+                insecureProtocolOption,
+                false);
     }
 }

@@ -25,5 +25,11 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Build.class)
 public interface ScriptClassCompiler {
-    <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, Class<T> scriptBaseClass, Object target, ClassLoaderScope targetScope, CompileOperation<M> transformer, Action<? super ClassNode> verifier);
+    <T extends Script, M> CompiledScript<T, M> compile(
+            ScriptSource source,
+            Class<T> scriptBaseClass,
+            Object target,
+            ClassLoaderScope targetScope,
+            CompileOperation<M> transformer,
+            Action<? super ClassNode> verifier);
 }

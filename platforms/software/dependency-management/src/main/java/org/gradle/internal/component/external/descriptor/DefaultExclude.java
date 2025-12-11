@@ -17,13 +17,12 @@
 package org.gradle.internal.component.external.descriptor;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Objects;
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Objects;
-import java.util.Set;
 
 public class DefaultExclude implements Exclude {
     private final ModuleIdentifier moduleId;
@@ -31,7 +30,8 @@ public class DefaultExclude implements Exclude {
     private final Set<String> configurations;
     private final String patternMatcher;
 
-    public DefaultExclude(ModuleIdentifier id, IvyArtifactName artifact, String[] configurations, @Nullable String patternMatcher) {
+    public DefaultExclude(
+            ModuleIdentifier id, IvyArtifactName artifact, String[] configurations, @Nullable String patternMatcher) {
         this.moduleId = id;
         this.artifact = artifact;
         this.patternMatcher = patternMatcher;

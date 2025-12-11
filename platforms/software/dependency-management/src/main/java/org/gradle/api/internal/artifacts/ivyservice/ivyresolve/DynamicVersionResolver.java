@@ -16,6 +16,19 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.hasCriticalFailure;
+import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
+import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Failed;
+import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Resolved;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -51,24 +64,11 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.hasCriticalFailure;
-import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
-import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Failed;
-import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Resolved;
-
 public class DynamicVersionResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicVersionResolver.class);
 
-    private final List<ModuleComponentRepository<ExternalModuleComponentGraphResolveState>> repositories = new ArrayList<>();
+    private final List<ModuleComponentRepository<ExternalModuleComponentGraphResolveState>> repositories =
+            new ArrayList<>();
     private final List<String> repositoryNames = new ArrayList<>();
     private final VersionedComponentChooser versionedComponentChooser;
     private final VersionParser versionParser;
@@ -78,13 +78,12 @@ public class DynamicVersionResolver {
     private final CacheExpirationControl cacheExpirationControl;
 
     public DynamicVersionResolver(
-        VersionedComponentChooser versionedComponentChooser,
-        VersionParser versionParser,
-        AttributesFactory attributesFactory,
-        ComponentMetadataProcessorFactory componentMetadataProcessor,
-        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-        CacheExpirationControl cacheExpirationControl
-    ) {
+            VersionedComponentChooser versionedComponentChooser,
+            VersionParser versionParser,
+            AttributesFactory attributesFactory,
+            ComponentMetadataProcessorFactory componentMetadataProcessor,
+            ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+            CacheExpirationControl cacheExpirationControl) {
         this.versionedComponentChooser = versionedComponentChooser;
         this.versionParser = versionParser;
         this.attributesFactory = attributesFactory;
@@ -99,19 +98,30 @@ public class DynamicVersionResolver {
     }
 
     public void resolve(
-        ModuleComponentSelector requested,
-        ComponentOverrideMetadata overrideMetadata,
-        VersionSelector versionSelector,
-        @Nullable VersionSelector rejectedVersionSelector,
-        ImmutableAttributes consumerAttributes,
-        BuildableComponentIdResolveResult result
-    ) {
+            ModuleComponentSelector requested,
+            ComponentOverrideMetadata overrideMetadata,
+            VersionSelector versionSelector,
+            @Nullable VersionSelector rejectedVersionSelector,
+            ImmutableAttributes consumerAttributes,
+            BuildableComponentIdResolveResult result) {
         LOGGER.debug("Attempting to resolve version for {} using repositories {}", requested, repositoryNames);
         List<Throwable> errors = new ArrayList<>();
 
         List<RepositoryResolveState> resolveStates = new ArrayList<>(repositories.size());
         for (ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository : repositories) {
-            resolveStates.add(new RepositoryResolveState(versionedComponentChooser, requested, overrideMetadata, repository, versionSelector, rejectedVersionSelector, versionParser, consumerAttributes, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cacheExpirationControl));
+            resolveStates.add(new RepositoryResolveState(
+                    versionedComponentChooser,
+                    requested,
+                    overrideMetadata,
+                    repository,
+                    versionSelector,
+                    rejectedVersionSelector,
+                    versionParser,
+                    consumerAttributes,
+                    attributesFactory,
+                    componentMetadataProcessor,
+                    componentMetadataSupplierRuleExecutor,
+                    cacheExpirationControl));
         }
 
         final RepositoryChainModuleResolution latestResolved = findLatestModule(resolveStates, errors);
@@ -131,14 +141,22 @@ public class DynamicVersionResolver {
         }
     }
 
-    private void found(BuildableComponentIdResolveResult result, List<RepositoryResolveState> resolveStates, RepositoryChainModuleResolution latestResolved) {
+    private void found(
+            BuildableComponentIdResolveResult result,
+            List<RepositoryResolveState> resolveStates,
+            RepositoryChainModuleResolution latestResolved) {
         for (RepositoryResolveState resolveState : resolveStates) {
             resolveState.registerAttempts(result);
         }
-        result.resolved(latestResolved.component, new ModuleComponentGraphSpecificResolveState(latestResolved.repository.getName()));
+        result.resolved(
+                latestResolved.component,
+                new ModuleComponentGraphSpecificResolveState(latestResolved.repository.getName()));
     }
 
-    private void notFound(BuildableComponentIdResolveResult result, ModuleComponentSelector requested, List<RepositoryResolveState> resolveStates) {
+    private void notFound(
+            BuildableComponentIdResolveResult result,
+            ModuleComponentSelector requested,
+            List<RepositoryResolveState> resolveStates) {
         for (RepositoryResolveState resolveState : resolveStates) {
             resolveState.applyTo(result);
         }
@@ -147,11 +165,13 @@ public class DynamicVersionResolver {
             // (after conflict resolution), so it is not a failure at this stage.
             return;
         }
-        result.failed(new ModuleVersionNotFoundException(requested, result.getAttempted(), result.getUnmatchedVersions(), result.getRejectedVersions()));
+        result.failed(new ModuleVersionNotFoundException(
+                requested, result.getAttempted(), result.getUnmatchedVersions(), result.getRejectedVersions()));
     }
 
     @Nullable
-    private RepositoryChainModuleResolution findLatestModule(List<RepositoryResolveState> resolveStates, Collection<Throwable> failures) {
+    private RepositoryChainModuleResolution findLatestModule(
+            List<RepositoryResolveState> resolveStates, Collection<Throwable> failures) {
         LinkedList<RepositoryResolveState> queue = new LinkedList<>(resolveStates);
 
         LinkedList<RepositoryResolveState> missing = new LinkedList<>();
@@ -172,8 +192,12 @@ public class DynamicVersionResolver {
     }
 
     @Nullable
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private RepositoryChainModuleResolution findLatestModule(LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
+    @SuppressWarnings(
+            "NonApiType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    private RepositoryChainModuleResolution findLatestModule(
+            LinkedList<RepositoryResolveState> queue,
+            Collection<Throwable> failures,
+            Collection<RepositoryResolveState> missing) {
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {
             RepositoryResolveState request = queue.removeFirst();
@@ -203,11 +227,13 @@ public class DynamicVersionResolver {
                     }
                     break;
                 case Resolved:
-                    RepositoryChainModuleResolution moduleResolution = new RepositoryChainModuleResolution(request.repository, request.resolvedVersionMetadata.getMetaData());
+                    RepositoryChainModuleResolution moduleResolution = new RepositoryChainModuleResolution(
+                            request.repository, request.resolvedVersionMetadata.getMetaData());
                     best = chooseBest(best, moduleResolution);
                     break;
                 default:
-                    throw new IllegalStateException("Unexpected state for resolution: " + request.resolvedVersionMetadata.getState());
+                    throw new IllegalStateException(
+                            "Unexpected state for resolution: " + request.resolvedVersionMetadata.getState());
             }
         }
 
@@ -215,11 +241,15 @@ public class DynamicVersionResolver {
     }
 
     @Nullable
-    private RepositoryChainModuleResolution chooseBest(@Nullable RepositoryChainModuleResolution one, @Nullable RepositoryChainModuleResolution two) {
+    private RepositoryChainModuleResolution chooseBest(
+            @Nullable RepositoryChainModuleResolution one, @Nullable RepositoryChainModuleResolution two) {
         if (one == null || two == null) {
             return two == null ? one : two;
         }
-        return versionedComponentChooser.selectNewestComponent(one.component.getMetadata(), two.component.getMetadata()) == one.component.getMetadata() ? one : two;
+        return versionedComponentChooser.selectNewestComponent(one.component.getMetadata(), two.component.getMetadata())
+                        == one.component.getMetadata()
+                ? one
+                : two;
     }
 
     private static class AttemptCollector implements Action<ResourceAwareResolveResult> {
@@ -246,7 +276,8 @@ public class DynamicVersionResolver {
      */
     private static class RepositoryResolveState implements ComponentSelectionContext {
         private final VersionedComponentChooser versionedComponentChooser;
-        private final BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> resolvedVersionMetadata = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
+        private final BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState>
+                resolvedVersionMetadata = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
         private final Map<String, CandidateResult> candidateComponents = new LinkedHashMap<>();
         private final Set<String> unmatchedVersions = new LinkedHashSet<>();
         private final Set<RejectedVersion> rejectedVersions = new LinkedHashSet<>();
@@ -266,19 +297,18 @@ public class DynamicVersionResolver {
         private ModuleComponentIdentifier firstRejected = null;
 
         public RepositoryResolveState(
-            VersionedComponentChooser versionedComponentChooser,
-            ModuleComponentSelector selector,
-            ComponentOverrideMetadata overrideMetadata,
-            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository,
-            VersionSelector versionSelector,
-            VersionSelector rejectedVersionSelector,
-            VersionParser versionParser,
-            ImmutableAttributes consumerAttributes,
-            AttributesFactory attributesFactory,
-            ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
-            ComponentMetadataSupplierRuleExecutor metadataSupplierRuleExecutor,
-            CacheExpirationControl cacheExpirationControl
-        ) {
+                VersionedComponentChooser versionedComponentChooser,
+                ModuleComponentSelector selector,
+                ComponentOverrideMetadata overrideMetadata,
+                ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository,
+                VersionSelector versionSelector,
+                VersionSelector rejectedVersionSelector,
+                VersionParser versionParser,
+                ImmutableAttributes consumerAttributes,
+                AttributesFactory attributesFactory,
+                ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
+                ComponentMetadataSupplierRuleExecutor metadataSupplierRuleExecutor,
+                CacheExpirationControl cacheExpirationControl) {
             this.versionedComponentChooser = versionedComponentChooser;
             this.overrideMetadata = overrideMetadata;
             this.selector = selector;
@@ -295,8 +325,10 @@ public class DynamicVersionResolver {
             this.versionListingResult = new VersionListResult(selector, overrideMetadata, repository);
         }
 
-        private ImmutableAttributes buildAttributes(ImmutableAttributes consumerAttributes, AttributesFactory attributesFactory) {
-            ImmutableAttributes dependencyAttributes = ((AttributeContainerInternal) selector.getAttributes()).asImmutable();
+        private ImmutableAttributes buildAttributes(
+                ImmutableAttributes consumerAttributes, AttributesFactory attributesFactory) {
+            ImmutableAttributes dependencyAttributes =
+                    ((AttributeContainerInternal) selector.getAttributes()).asImmutable();
             return attributesFactory.concat(consumerAttributes, dependencyAttributes);
         }
 
@@ -322,7 +354,8 @@ public class DynamicVersionResolver {
 
         private void selectMatchingVersionAndResolve() {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
-            versionedComponentChooser.selectNewestMatchingComponent(candidates(), this, versionSelector, rejectedVersionSelector, consumerAttributes);
+            versionedComponentChooser.selectNewestMatchingComponent(
+                    candidates(), this, versionSelector, rejectedVersionSelector, consumerAttributes);
         }
 
         @Override
@@ -378,7 +411,17 @@ public class DynamicVersionResolver {
             for (String version : versionListingResult.result.getVersions()) {
                 CandidateResult candidateResult = candidateComponents.get(version);
                 if (candidateResult == null) {
-                    candidateResult = new CandidateResult(selector, overrideMetadata, version, repository, attemptCollector, versionParser, componentMetadataProcessorFactory, attributesFactory, metadataSupplierRuleExecutor, cacheExpirationControl);
+                    candidateResult = new CandidateResult(
+                            selector,
+                            overrideMetadata,
+                            version,
+                            repository,
+                            attemptCollector,
+                            versionParser,
+                            componentMetadataProcessorFactory,
+                            attributesFactory,
+                            metadataSupplierRuleExecutor,
+                            cacheExpirationControl);
                     candidateComponents.put(version, candidateResult);
                 }
                 candidates.add(candidateResult);
@@ -413,10 +456,21 @@ public class DynamicVersionResolver {
         private final ComponentMetadataSupplierRuleExecutor supplierRuleExecutor;
         private boolean searchedLocally;
         private boolean searchedRemotely;
-        private final DefaultBuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
+        private final DefaultBuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState>
+                result = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
         private final CacheExpirationControl cacheExpirationControl;
 
-        public CandidateResult(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, String version, ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository, AttemptCollector attemptCollector, VersionParser versionParser, ComponentMetadataProcessorFactory componentMetadataProcessorFactory, AttributesFactory attributesFactory, ComponentMetadataSupplierRuleExecutor supplierRuleExecutor, CacheExpirationControl cacheExpirationControl) {
+        public CandidateResult(
+                ModuleComponentSelector selector,
+                ComponentOverrideMetadata overrideMetadata,
+                String version,
+                ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository,
+                AttemptCollector attemptCollector,
+                VersionParser versionParser,
+                ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
+                AttributesFactory attributesFactory,
+                ComponentMetadataSupplierRuleExecutor supplierRuleExecutor,
+                CacheExpirationControl cacheExpirationControl) {
             this.overrideMetadata = overrideMetadata;
             this.componentMetadataProcessorFactory = componentMetadataProcessorFactory;
             this.attributesFactory = attributesFactory;
@@ -494,7 +548,8 @@ public class DynamicVersionResolver {
          *
          * @param target where to put metadata
          */
-        private void tryResolveMetadata(BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> target) {
+        private void tryResolveMetadata(
+                BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> target) {
             BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result = resolve();
             switch (result.getState()) {
                 case Resolved:
@@ -516,7 +571,8 @@ public class DynamicVersionResolver {
     }
 
     private static class VersionListResult {
-        private final DefaultBuildableModuleVersionListingResolveResult result = new DefaultBuildableModuleVersionListingResolveResult();
+        private final DefaultBuildableModuleVersionListingResolveResult result =
+                new DefaultBuildableModuleVersionListingResolveResult();
         private final ModuleComponentRepository<?> repository;
         private final ModuleComponentSelector selector;
         private final ComponentOverrideMetadata overrideMetadata;
@@ -524,7 +580,10 @@ public class DynamicVersionResolver {
         private boolean searchedLocally;
         private boolean searchedRemotely;
 
-        public VersionListResult(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, ModuleComponentRepository<?> repository) {
+        public VersionListResult(
+                ModuleComponentSelector selector,
+                ComponentOverrideMetadata overrideMetadata,
+                ModuleComponentRepository<?> repository) {
             this.selector = selector;
             this.overrideMetadata = overrideMetadata;
             this.repository = repository;
@@ -559,9 +618,11 @@ public class DynamicVersionResolver {
             result.applyTo(target);
         }
 
-        private void process(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, ModuleComponentRepositoryAccess<?> moduleAccess) {
+        private void process(
+                ModuleComponentSelector selector,
+                ComponentOverrideMetadata overrideMetadata,
+                ModuleComponentRepositoryAccess<?> moduleAccess) {
             moduleAccess.listModuleVersions(selector, overrideMetadata, result);
         }
     }
-
 }

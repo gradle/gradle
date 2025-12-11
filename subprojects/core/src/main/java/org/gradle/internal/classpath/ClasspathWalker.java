@@ -16,6 +16,11 @@
 
 package org.gradle.internal.classpath;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Comparator;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
@@ -26,12 +31,6 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Comparator;
 
 /**
  * Allows the classes and resources of a classpath element such as a jar or directory to be visited.
@@ -158,7 +157,8 @@ public class ClasspathWalker {
         public CompressionMethod getCompressionMethod() {
             // One could argue that files have STORED as the compression method, as they obviously aren't compressed.
             // However, this property is mostly an accident of the way this classpath entry was produced.
-            // Exposing it may put unnecessary burden on clients if, for example, they try to keep the compression method
+            // Exposing it may put unnecessary burden on clients if, for example, they try to keep the compression
+            // method
             // while repackaging entries.
             return CompressionMethod.UNDEFINED;
         }

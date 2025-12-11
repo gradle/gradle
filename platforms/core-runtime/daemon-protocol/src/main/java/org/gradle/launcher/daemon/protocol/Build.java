@@ -15,11 +15,10 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
+import java.util.UUID;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.launcher.exec.BuildActionParameters;
-
-import java.util.UUID;
 
 public class Build extends Command {
     private final BuildAction action;
@@ -28,7 +27,14 @@ public class Build extends Command {
     private final boolean interactive;
     private final BuildActionParameters parameters;
 
-    public Build(UUID identifier, byte[] token, BuildAction action, GradleLauncherMetaData buildClientMetaData, long startTime, boolean interactive, BuildActionParameters parameters) {
+    public Build(
+            UUID identifier,
+            byte[] token,
+            BuildAction action,
+            GradleLauncherMetaData buildClientMetaData,
+            long startTime,
+            boolean interactive,
+            BuildActionParameters parameters) {
         super(identifier, token);
         this.action = action;
         this.buildClientMetaData = buildClientMetaData;
@@ -60,8 +66,8 @@ public class Build extends Command {
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{"
-            + "id=" + getIdentifier()
-            + ", currentDir=" + parameters.getCurrentDir()
-            + '}';
+                + "id=" + getIdentifier()
+                + ", currentDir=" + parameters.getCurrentDir()
+                + '}';
     }
 }

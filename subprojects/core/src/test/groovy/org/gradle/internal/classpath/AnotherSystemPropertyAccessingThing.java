@@ -16,5 +16,4 @@
 
 package org.gradle.internal.classpath;
 
-public class AnotherSystemPropertyAccessingThing {
-}
+public class AnotherSystemPropertyAccessingThing {}

@@ -16,13 +16,12 @@
 
 package org.gradle.internal.logging.services;
 
+import java.util.concurrent.atomic.AtomicReference;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A {@link OutputEventListener} implementation which assigns log levels to text output

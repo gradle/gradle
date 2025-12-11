@@ -16,6 +16,16 @@
 
 package org.gradle.plugin.devel.tasks;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.readAllBytes;
+import static java.util.stream.Collectors.joining;
+import static org.gradle.api.problems.Severity.ERROR;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Stream;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
@@ -53,17 +63,6 @@ import org.gradle.plugin.devel.tasks.internal.ValidateAction;
 import org.gradle.plugin.devel.tasks.internal.ValidationProblemSerialization;
 import org.gradle.workers.WorkerExecutor;
 
-import javax.inject.Inject;
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.readAllBytes;
-import static java.util.stream.Collectors.joining;
-import static org.gradle.api.problems.Severity.ERROR;
-
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
  *
@@ -98,98 +97,113 @@ public abstract class ValidatePlugins extends DefaultTask {
     }
 
     private void createToolchainConvention(JavaToolchainService toolchainService, JavaPluginExtension javaPlugin) {
-        getLauncher().convention(
-            toolchainService.launcherFor(javaPlugin.getToolchain()).zip(toolchainService.launcherFor(spec -> {}), (project, current) -> {
-                if (project.getMetadata().getLanguageVersion().canCompileOrRun(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION)) {
-                    // We use the project toolchain only if it is compatible with the minimum required version for the daemon
-                    return project;
-                } else {
-                    // Otherwise we fall back to the daemon JVM
-                    return current;
-                }
-            }));
+        getLauncher()
+                .convention(toolchainService
+                        .launcherFor(javaPlugin.getToolchain())
+                        .zip(toolchainService.launcherFor(spec -> {}), (project, current) -> {
+                            if (project.getMetadata()
+                                    .getLanguageVersion()
+                                    .canCompileOrRun(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION)) {
+                                // We use the project toolchain only if it is compatible with the minimum required
+                                // version for the daemon
+                                return project;
+                            } else {
+                                // Otherwise we fall back to the daemon JVM
+                                return current;
+                            }
+                        }));
     }
 
     @TaskAction
     public void validateTaskClasses() throws IOException {
         getWorkerExecutor()
-            .processIsolation(spec -> {
-                if (getLauncher().isPresent()) {
-                    JavaLauncher launcher = getLauncher().get();
-                    if (!launcher.getMetadata().getLanguageVersion().canCompileOrRun(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION)) {
-                        ProblemId problemId = ProblemId.create(
-                            "invalid-java-toolchain",
-                            "Running task ValidatePlugins with Java Toolchain lower than " + SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
-                            GradleCoreProblemGroup.validation().thisGroup()
-                        );
-                        ProblemReporter problemReporter = getServices().get(Problems.class).getReporter();
-                        GradleException exception = new GradleException(problemId.getDisplayName() + " is not supported.");
-                        throw problemReporter.throwing(
-                            exception,
-                            problemReporter.create(problemId, problemSpec -> {
-                                problemSpec.documentedAt(Documentation.upgradeMinorGuide(9, "validate_plugins_java_version").getUrl());
+                .processIsolation(spec -> {
+                    if (getLauncher().isPresent()) {
+                        JavaLauncher launcher = getLauncher().get();
+                        if (!launcher.getMetadata()
+                                .getLanguageVersion()
+                                .canCompileOrRun(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION)) {
+                            ProblemId problemId = ProblemId.create(
+                                    "invalid-java-toolchain",
+                                    "Running task ValidatePlugins with Java Toolchain lower than "
+                                            + SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
+                                    GradleCoreProblemGroup.validation().thisGroup());
+                            ProblemReporter problemReporter =
+                                    getServices().get(Problems.class).getReporter();
+                            GradleException exception =
+                                    new GradleException(problemId.getDisplayName() + " is not supported.");
+                            throw problemReporter.throwing(exception, problemReporter.create(problemId, problemSpec -> {
+                                problemSpec.documentedAt(
+                                        Documentation.upgradeMinorGuide(9, "validate_plugins_java_version")
+                                                .getUrl());
                                 problemSpec.contextualLabel(exception.getMessage());
-                            })
-                        );
-
-                    }
-                    spec.getForkOptions().setExecutable(launcher.getExecutablePath());
-                } else {
-                    ProblemId problemId = ProblemId.create(
-                        "missing-java-toolchain-plugin",
-                        "Using task ValidatePlugins without applying the Java Toolchain plugin",
-                        GradleCoreProblemGroup.validation().thisGroup()
-                    );
-                    ProblemReporter problemReporter = getServices().get(Problems.class).getReporter();
-                    GradleException exception = new GradleException(problemId.getDisplayName() + " is not supported.");
-                    throw problemReporter.throwing(
-                        exception,
-                        problemReporter.create(problemId, problemSpec -> {
-                            problemSpec.documentedAt(Documentation.upgradeMajorGuide(9, "validate_plugins_without_java_toolchain_90").getUrl());
+                            }));
+                        }
+                        spec.getForkOptions().setExecutable(launcher.getExecutablePath());
+                    } else {
+                        ProblemId problemId = ProblemId.create(
+                                "missing-java-toolchain-plugin",
+                                "Using task ValidatePlugins without applying the Java Toolchain plugin",
+                                GradleCoreProblemGroup.validation().thisGroup());
+                        ProblemReporter problemReporter =
+                                getServices().get(Problems.class).getReporter();
+                        GradleException exception =
+                                new GradleException(problemId.getDisplayName() + " is not supported.");
+                        throw problemReporter.throwing(exception, problemReporter.create(problemId, problemSpec -> {
+                            problemSpec.documentedAt(
+                                    Documentation.upgradeMajorGuide(9, "validate_plugins_without_java_toolchain_90")
+                                            .getUrl());
                             problemSpec.contextualLabel(exception.getMessage());
-                        })
-                    );
-                }
-                spec.getClasspath().setFrom(getClasses(), getClasspath());
-            })
-            .submit(ValidateAction.class, params -> {
-                params.getClasses().setFrom(getClasses());
-                params.getOutputFile().set(getOutputFile());
-                params.getEnableStricterValidation().set(getEnableStricterValidation());
-            });
+                        }));
+                    }
+                    spec.getClasspath().setFrom(getClasses(), getClasspath());
+                })
+                .submit(ValidateAction.class, params -> {
+                    params.getClasses().setFrom(getClasses());
+                    params.getOutputFile().set(getOutputFile());
+                    params.getEnableStricterValidation().set(getEnableStricterValidation());
+                });
         getWorkerExecutor().await();
 
-        List<? extends InternalProblem> problems = ValidationProblemSerialization.parseMessageList(new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
+        List<? extends InternalProblem> problems = ValidationProblemSerialization.parseMessageList(
+                new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
 
-        Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problems).sorted();
+        Stream<String> messages =
+                ValidationProblemSerialization.toPlainMessage(problems).sorted();
         if (problems.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
         } else {
-            if (getFailOnWarning().get() || problems.stream().anyMatch(problem -> problem.getDefinition().getSeverity() == ERROR)) {
+            if (getFailOnWarning().get()
+                    || problems.stream()
+                            .anyMatch(problem -> problem.getDefinition().getSeverity() == ERROR)) {
                 if (getIgnoreFailures().get()) {
-                    getLogger().warn("Plugin validation finished with errors. {} {}",
-                        annotateTaskPropertiesDoc(),
-                        messages.collect(joining()));
+                    getLogger()
+                            .warn(
+                                    "Plugin validation finished with errors. {} {}",
+                                    annotateTaskPropertiesDoc(),
+                                    messages.collect(joining()));
                 } else {
                     reportProblems(problems);
                     throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
-                        .withSummaryForPlugin()
-                        .getWithExplanation(annotateTaskPropertiesDoc());
+                            .withSummaryForPlugin()
+                            .getWithExplanation(annotateTaskPropertiesDoc());
                 }
             } else {
-                getLogger().warn("Plugin validation finished with warnings:{}",
-                    messages.collect(joining()));
+                getLogger().warn("Plugin validation finished with warnings:{}", messages.collect(joining()));
             }
         }
     }
 
     private void reportProblems(List<? extends Problem> problems) {
-        InternalProblemReporter reporter = getServices().get(InternalProblems.class).getInternalReporter();
+        InternalProblemReporter reporter =
+                getServices().get(InternalProblems.class).getInternalReporter();
         problems.forEach(reporter::report);
     }
 
     private String annotateTaskPropertiesDoc() {
-        return getDocumentationRegistry().getDocumentationRecommendationFor("on how to annotate task properties", "incremental_build", "sec:task_input_output_annotations");
+        return getDocumentationRegistry()
+                .getDocumentationRecommendationFor(
+                        "on how to annotate task properties", "incremental_build", "sec:task_input_output_annotations");
     }
 
     /**
@@ -242,8 +256,8 @@ public abstract class ValidatePlugins extends DefaultTask {
     public abstract RegularFileProperty getOutputFile();
 
     @Inject
-    abstract protected DocumentationRegistry getDocumentationRegistry();
+    protected abstract DocumentationRegistry getDocumentationRegistry();
 
     @Inject
-    abstract protected WorkerExecutor getWorkerExecutor();
+    protected abstract WorkerExecutor getWorkerExecutor();
 }

@@ -16,17 +16,17 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import java.util.HashSet;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
-import java.util.HashSet;
-
 /**
  * A {@link RootTrackingFileSystemSnapshotHierarchyVisitor} that ignores missing roots and multiple entries for the same path.
  */
-public abstract class MissingRootAndDuplicateIgnoringFileSystemSnapshotVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {
+public abstract class MissingRootAndDuplicateIgnoringFileSystemSnapshotVisitor
+        extends RootTrackingFileSystemSnapshotHierarchyVisitor {
     private final HashSet<String> processedEntries = new HashSet<>();
 
     @Override

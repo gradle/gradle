@@ -17,9 +17,8 @@
 package org.gradle.internal.enterprise.test.impl;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.enterprise.test.TestTaskFilters;
-
 import java.util.Set;
+import org.gradle.internal.enterprise.test.TestTaskFilters;
 
 class DefaultTestTaskFilters implements TestTaskFilters {
 
@@ -32,14 +31,13 @@ class DefaultTestTaskFilters implements TestTaskFilters {
     private final Set<String> excludeEngines;
 
     DefaultTestTaskFilters(
-        Set<String> includePatterns,
-        Set<String> commandLineIncludePatterns,
-        Set<String> excludePatterns,
-        Set<String> includeTags,
-        Set<String> excludeTags,
-        Set<String> includeEngines,
-        Set<String> excludeEngines
-    ) {
+            Set<String> includePatterns,
+            Set<String> commandLineIncludePatterns,
+            Set<String> excludePatterns,
+            Set<String> includeTags,
+            Set<String> excludeTags,
+            Set<String> includeEngines,
+            Set<String> excludeEngines) {
         this.includePatterns = ImmutableSet.copyOf(includePatterns);
         this.commandLineIncludePatterns = ImmutableSet.copyOf(commandLineIncludePatterns);
         this.excludePatterns = ImmutableSet.copyOf(excludePatterns);

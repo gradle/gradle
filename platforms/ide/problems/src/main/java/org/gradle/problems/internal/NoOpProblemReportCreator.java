@@ -16,12 +16,11 @@
 
 package org.gradle.problems.internal;
 
+import java.io.File;
+import java.util.List;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummaryData;
-
-import java.io.File;
-import java.util.List;
 
 public class NoOpProblemReportCreator implements ProblemReportCreator {
     @Override

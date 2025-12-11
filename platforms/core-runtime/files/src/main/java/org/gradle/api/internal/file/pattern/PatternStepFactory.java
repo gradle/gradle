@@ -23,7 +23,8 @@ public class PatternStepFactory {
             return new FixedPatternStep(source, caseSensitive);
         }
 
-        // Here, we try to avoid using the reg exp backed pattern step, as it is expensive in terms of performance and heap usage.
+        // Here, we try to avoid using the reg exp backed pattern step, as it is expensive in terms of performance and
+        // heap usage.
         // There are several special cases we handle here:
         // 1. '*'
         // 2. '*' <literal>
@@ -51,7 +52,7 @@ public class PatternStepFactory {
         // Zero or more * characters followed by at least one !*
 
         int endLiteral = endPrefixWildcard;
-        for(; endLiteral < source.length(); endLiteral++) {
+        for (; endLiteral < source.length(); endLiteral++) {
             ch = source.charAt(endLiteral);
             if (ch == '?') {
                 // No matches - fall back to regexp
@@ -101,6 +102,7 @@ public class PatternStepFactory {
         }
 
         // literal followed by * followed by literal: matches #4 above
-        return new HasPrefixAndSuffixPatternStep(source.substring(0, endLiteral), source.substring(endSuffixWildcard), caseSensitive);
+        return new HasPrefixAndSuffixPatternStep(
+                source.substring(0, endLiteral), source.substring(endSuffixWildcard), caseSensitive);
     }
 }

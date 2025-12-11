@@ -17,6 +17,8 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -24,9 +26,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Fork options for compilation that can accept user-defined {@link CommandLineArgumentProvider} objects.

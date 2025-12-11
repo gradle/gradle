@@ -15,6 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
@@ -25,12 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
 
 class SelectorStateResolverResults {
     private final Comparator<Version> versionComparator;
@@ -111,8 +110,15 @@ class SelectorStateResolverResults {
         return false;
     }
 
-    public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
-        T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getState(), idResolveResult.getGraphState());
+    public static <T extends ComponentResolutionState> T componentForIdResolveResult(
+            ComponentStateFactory<T> componentFactory,
+            ComponentIdResolveResult idResolveResult,
+            ResolvableSelectorState selector) {
+        T component = componentFactory.getRevision(
+                idResolveResult.getId(),
+                idResolveResult.getModuleVersionId(),
+                idResolveResult.getState(),
+                idResolveResult.getGraphState());
         if (idResolveResult.isRejected()) {
             component.reject();
         }
@@ -135,7 +141,7 @@ class SelectorStateResolverResults {
                 break;
             }
         }
-        if (found!=null) {
+        if (found != null) {
             register(selector, found);
             return true;
         }
@@ -151,8 +157,10 @@ class SelectorStateResolverResults {
             Registration registration = results.get(i);
             ComponentIdResolveResult previous = registration.result;
             ResolvableSelectorState previousSelector = registration.selector;
-            if (emptyVersion(previous) || sameVersion(previous, candidate) ||
-                (selectorAcceptsCandidate(previousSelector, candidate, isFromLock) && lowerVersion(previous, candidate))) {
+            if (emptyVersion(previous)
+                    || sameVersion(previous, candidate)
+                    || (selectorAcceptsCandidate(previousSelector, candidate, isFromLock)
+                            && lowerVersion(previous, candidate))) {
                 registration.result = candidate;
                 replaces = true;
             }
@@ -180,8 +188,10 @@ class SelectorStateResolverResults {
 
     private boolean lowerVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
         if (existing.getFailure() == null && resolveResult.getFailure() == null) {
-            Version existingVersion = versionParser.transform(existing.getModuleVersionId().getVersion());
-            Version candidateVersion = versionParser.transform(resolveResult.getModuleVersionId().getVersion());
+            Version existingVersion =
+                    versionParser.transform(existing.getModuleVersionId().getVersion());
+            Version candidateVersion =
+                    versionParser.transform(resolveResult.getModuleVersionId().getVersion());
 
             int comparison = versionComparator.compare(candidateVersion, existingVersion);
             return comparison < 0;
@@ -189,7 +199,8 @@ class SelectorStateResolverResults {
         return false;
     }
 
-    private static boolean selectorAcceptsCandidate(ResolvableSelectorState dep, ComponentIdResolveResult candidate, boolean candidateIsFromLock) {
+    private static boolean selectorAcceptsCandidate(
+            ResolvableSelectorState dep, ComponentIdResolveResult candidate, boolean candidateIsFromLock) {
         if (hasFailure(candidate)) {
             return false;
         }
@@ -198,8 +209,8 @@ class SelectorStateResolverResults {
             return dep.getSelector().matchesStrictly(candidate.getId());
         }
         VersionSelector versionSelector = versionConstraint.getRequiredSelector();
-        if (versionSelector != null &&
-            (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
+        if (versionSelector != null
+                && (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
 
             if (candidateIsFromLock && versionSelector instanceof LatestVersionSelector) {
                 // Always assume a candidate from a lock will satisfy the latest version selector

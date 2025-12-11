@@ -37,7 +37,8 @@ public class DependencyFilesNotationConverter implements NotationConverter<FileC
     }
 
     @Override
-    public void convert(FileCollection notation, NotationConvertResult<? super FileCollectionDependency> result) throws TypeConversionException {
+    public void convert(FileCollection notation, NotationConvertResult<? super FileCollectionDependency> result)
+            throws TypeConversionException {
         result.converted(instantiator.newInstance(DefaultFileCollectionDependency.class, notation));
     }
 }

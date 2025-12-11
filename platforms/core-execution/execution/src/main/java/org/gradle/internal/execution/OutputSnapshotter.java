@@ -17,11 +17,10 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import java.io.File;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-
-import java.io.File;
 
 @ServiceScope(Scope.BuildSession.class)
 public interface OutputSnapshotter {
@@ -29,7 +28,7 @@ public interface OutputSnapshotter {
      * Takes a snapshot of the outputs of a work.
      */
     ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work, File workspace)
-        throws OutputFileSnapshottingException;
+            throws OutputFileSnapshottingException;
 
     class OutputFileSnapshottingException extends RuntimeException {
         private final String propertyName;

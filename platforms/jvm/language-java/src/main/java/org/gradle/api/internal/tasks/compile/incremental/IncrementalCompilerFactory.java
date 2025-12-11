@@ -35,21 +35,32 @@ public class IncrementalCompilerFactory {
     private final StringInterner interner;
     private final ClassSetAnalyzer classSetAnalyzer;
 
-    public IncrementalCompilerFactory(BuildOperationExecutor buildOperationExecutor, StringInterner interner, ClassSetAnalyzer classSetAnalyzer) {
+    public IncrementalCompilerFactory(
+            BuildOperationExecutor buildOperationExecutor, StringInterner interner, ClassSetAnalyzer classSetAnalyzer) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.interner = interner;
         this.classSetAnalyzer = classSetAnalyzer;
     }
 
-    public <T extends JavaCompileSpec> Compiler<T> makeIncremental(CleaningJavaCompiler<T> cleaningJavaCompiler, FileTree sources, RecompilationSpecProvider recompilationSpecProvider) {
+    public <T extends JavaCompileSpec> Compiler<T> makeIncremental(
+            CleaningJavaCompiler<T> cleaningJavaCompiler,
+            FileTree sources,
+            RecompilationSpecProvider recompilationSpecProvider) {
         Compiler<T> rebuildAllCompiler = createRebuildAllCompiler(cleaningJavaCompiler, sources);
-        CurrentCompilationAccess currentCompilationAccess = new CurrentCompilationAccess(classSetAnalyzer, buildOperationExecutor);
+        CurrentCompilationAccess currentCompilationAccess =
+                new CurrentCompilationAccess(classSetAnalyzer, buildOperationExecutor);
         PreviousCompilationAccess previousCompilationAccess = new PreviousCompilationAccess(interner);
-        Compiler<T> compiler = new SelectiveCompiler<>(cleaningJavaCompiler, rebuildAllCompiler, recompilationSpecProvider, currentCompilationAccess, previousCompilationAccess);
+        Compiler<T> compiler = new SelectiveCompiler<>(
+                cleaningJavaCompiler,
+                rebuildAllCompiler,
+                recompilationSpecProvider,
+                currentCompilationAccess,
+                previousCompilationAccess);
         return new IncrementalResultStoringCompiler<>(compiler, currentCompilationAccess, previousCompilationAccess);
     }
 
-    private <T extends JavaCompileSpec> Compiler<T> createRebuildAllCompiler(CleaningJavaCompiler<T> cleaningJavaCompiler, FileTree sourceFiles) {
+    private <T extends JavaCompileSpec> Compiler<T> createRebuildAllCompiler(
+            CleaningJavaCompiler<T> cleaningJavaCompiler, FileTree sourceFiles) {
         return spec -> {
             spec.setSourceFiles(sourceFiles);
             return cleaningJavaCompiler.execute(spec);

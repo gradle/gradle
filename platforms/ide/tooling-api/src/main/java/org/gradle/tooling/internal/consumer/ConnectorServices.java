@@ -99,13 +99,14 @@ public class ConnectorServices {
 
         private static CloseableServiceRegistry create() {
             return ServiceRegistryBuilder.builder()
-                .displayName("connector services")
-                .provider(new ConnectorServiceRegistry())
-                .build();
+                    .displayName("connector services")
+                    .provider(new ConnectorServiceRegistry())
+                    .build();
         }
 
         @Provides
-        protected GradleConnectorFactory createConnectorFactory(ConnectionFactory connectionFactory, DistributionFactory distributionFactory) {
+        protected GradleConnectorFactory createConnectorFactory(
+                ConnectionFactory connectionFactory, DistributionFactory distributionFactory) {
             return new GradleConnectorFactory() {
                 @Override
                 public GradleConnector createConnector() {
@@ -139,7 +140,8 @@ public class ConnectorServices {
 
         @Provides
         protected ToolingImplementationLoader createToolingImplementationLoader() {
-            return new SynchronizedToolingImplementationLoader(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
+            return new SynchronizedToolingImplementationLoader(
+                    new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
         }
 
         @Provides
@@ -153,7 +155,10 @@ public class ConnectorServices {
         }
 
         @Provides
-        protected ConnectionFactory createConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ExecutorFactory executorFactory, LoggingProvider loggingProvider) {
+        protected ConnectionFactory createConnectionFactory(
+                ToolingImplementationLoader toolingImplementationLoader,
+                ExecutorFactory executorFactory,
+                LoggingProvider loggingProvider) {
             return new ConnectionFactory(toolingImplementationLoader, executorFactory, loggingProvider);
         }
     }

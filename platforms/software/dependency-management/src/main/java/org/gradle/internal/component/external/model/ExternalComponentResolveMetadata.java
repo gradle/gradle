@@ -17,6 +17,8 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -27,9 +29,6 @@ import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ModuleSources;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * The meta-data for an external component instance that is required during dependency resolution.

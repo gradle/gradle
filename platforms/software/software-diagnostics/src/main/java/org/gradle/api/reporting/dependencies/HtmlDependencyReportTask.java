@@ -17,6 +17,8 @@
 package org.gradle.api.reporting.dependencies;
 
 import groovy.lang.Closure;
+import java.util.stream.Stream;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -39,9 +41,6 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ClosureBackedAction;
-
-import javax.inject.Inject;
-import java.util.stream.Stream;
 
 /**
  * Generates an HTML dependency report. This report
@@ -69,12 +68,15 @@ import java.util.stream.Stream;
  * </pre>
  */
 @UntrackedTask(because = "We can't describe the dependency tree of all projects as input")
-public abstract class HtmlDependencyReportTask extends AbstractDependencyReportTask implements Reporting<DependencyReportContainer> {
-    private final Cached<ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails>> projectsWithConfigurations = Cached.of(this::computeProjectsWithConfigurations);
+public abstract class HtmlDependencyReportTask extends AbstractDependencyReportTask
+        implements Reporting<DependencyReportContainer> {
+    private final Cached<ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails>>
+            projectsWithConfigurations = Cached.of(this::computeProjectsWithConfigurations);
     private final DependencyReportContainer reports;
 
     public HtmlDependencyReportTask() {
-        reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, Describables.quoted("Task", getIdentityPath()));
+        reports = getObjectFactory()
+                .newInstance(DefaultDependencyReportContainer.class, Describables.quoted("Task", getIdentityPath()));
         reports.getHtml().getRequired().set(true);
     }
 
@@ -123,24 +125,32 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
             return;
         }
 
-        HtmlDependencyReporter reporter = new HtmlDependencyReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
-        reporter.render(projectsWithConfigurations.get(), reports.getHtml().getOutputLocation().getAsFile().get());
+        HtmlDependencyReporter reporter =
+                new HtmlDependencyReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
+        reporter.render(
+                projectsWithConfigurations.get(),
+                reports.getHtml().getOutputLocation().getAsFile().get());
 
-        getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(reports.getHtml().getEntryPoint()));
+        getLogger()
+                .lifecycle(
+                        "See the report at: {}",
+                        new ConsoleRenderer()
+                                .asClickableFileUrl(reports.getHtml().getEntryPoint()));
     }
 
-    private ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails> computeProjectsWithConfigurations() {
+    private ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails>
+            computeProjectsWithConfigurations() {
         return ProjectsWithConfigurations.from(
-            getProjects(),
-            ProjectDetails::withNameAndPath,
-            HtmlDependencyReportTask::getConfigurationsWhichCouldHaveDependencyInfo
-        );
+                getProjects(),
+                ProjectDetails::withNameAndPath,
+                HtmlDependencyReportTask::getConfigurationsWhichCouldHaveDependencyInfo);
     }
 
-    private static Stream<? extends ConfigurationDetails> getConfigurationsWhichCouldHaveDependencyInfo(Project project) {
+    private static Stream<? extends ConfigurationDetails> getConfigurationsWhichCouldHaveDependencyInfo(
+            Project project) {
         return project.getConfigurations().stream()
-            .map(ConfigurationInternal.class::cast)
-            .filter(c -> c.isDeclarableByExtension())
-            .map(ConfigurationDetails::of);
+                .map(ConfigurationInternal.class::cast)
+                .filter(c -> c.isDeclarableByExtension())
+                .map(ConfigurationDetails::of);
     }
 }

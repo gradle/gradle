@@ -15,6 +15,10 @@
  */
 package org.gradle.api.publish.maven.internal.artifact;
 
+import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -26,33 +30,26 @@ import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifact> implements MavenArtifactSet, PublicationArtifactSet<MavenArtifact> {
+public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifact>
+        implements MavenArtifactSet, PublicationArtifactSet<MavenArtifact> {
     private final String publicationName;
     private final FileCollection files;
     private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
 
     @Inject
     public DefaultMavenArtifactSet(
-        String publicationName,
-        NotationParser<Object, MavenArtifact> mavenArtifactParser,
-        FileCollectionFactory fileCollectionFactory,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator
-    ) {
+            String publicationName,
+            NotationParser<Object, MavenArtifact> mavenArtifactParser,
+            FileCollectionFactory fileCollectionFactory,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(MavenArtifact.class, collectionCallbackActionDecorator);
         this.publicationName = publicationName;
         this.mavenArtifactParser = mavenArtifactParser;
-        this.files = fileCollectionFactory.create(
-            new ArtifactsFileCollection(), context -> {
-                for (MavenArtifact mavenArtifact : DefaultMavenArtifactSet.this) {
-                    context.add(mavenArtifact);
-                }
+        this.files = fileCollectionFactory.create(new ArtifactsFileCollection(), context -> {
+            for (MavenArtifact mavenArtifact : DefaultMavenArtifactSet.this) {
+                context.add(mavenArtifact);
             }
-        );
+        });
     }
 
     @Override

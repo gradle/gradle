@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.devel.tasks.internal;
 
-
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked

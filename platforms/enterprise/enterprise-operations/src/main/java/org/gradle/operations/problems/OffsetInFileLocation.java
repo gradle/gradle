@@ -39,5 +39,4 @@ public interface OffsetInFileLocation extends FileLocation {
      * @since 8.14
      */
     int getLength();
-
 }

@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceProvider;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * Represents the set of shared build services required by a task.

@@ -16,13 +16,12 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-
-import javax.inject.Inject;
 
 @ServiceScope(Scope.Global.class)
 public abstract class CurrentJvmToolchainSpec extends DefaultToolchainSpec {
@@ -30,7 +29,8 @@ public abstract class CurrentJvmToolchainSpec extends DefaultToolchainSpec {
     @Inject
     public CurrentJvmToolchainSpec(PropertyFactory propertyFactory, Jvm currentJvm) {
         super(propertyFactory);
-        getLanguageVersion().set(JavaLanguageVersion.of(currentJvm.getJavaVersion().getMajorVersion()));
+        getLanguageVersion()
+                .set(JavaLanguageVersion.of(currentJvm.getJavaVersion().getMajorVersion()));
 
         // disallow changing property values
         finalizeProperties();

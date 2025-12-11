@@ -16,15 +16,14 @@
 
 package org.gradle.performance.results.report;
 
-import org.gradle.performance.results.CrossVersionResultsStore;
-import org.gradle.performance.results.FileRenderer;
-import org.gradle.performance.results.PerformanceFlakinessDataProvider;
-import org.gradle.performance.results.ResultsStore;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import org.gradle.performance.results.CrossVersionResultsStore;
+import org.gradle.performance.results.FileRenderer;
+import org.gradle.performance.results.PerformanceFlakinessDataProvider;
+import org.gradle.performance.results.ResultsStore;
 
 public class FlakinessReportGenerator extends AbstractReportGenerator<CrossVersionResultsStore> {
     public static void main(String[] args) {
@@ -32,16 +31,24 @@ public class FlakinessReportGenerator extends AbstractReportGenerator<CrossVersi
     }
 
     @Override
-    protected PerformanceExecutionDataProvider getExecutionDataProvider(ResultsStore store, List<File> resultJsons, Set<String> teamCityBuildIds) {
+    protected PerformanceExecutionDataProvider getExecutionDataProvider(
+            ResultsStore store, List<File> resultJsons, Set<String> teamCityBuildIds) {
         return new FlakinessDetectionPerformanceExecutionDataProvider(store, resultJsons, teamCityBuildIds);
     }
 
     @Override
-    protected void renderIndexPage(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File output) throws IOException {
-        new FileRenderer().render(null, new FlakinessIndexPageGenerator(flakinessDataProvider, executionDataProvider), output);
+    protected void renderIndexPage(
+            PerformanceFlakinessDataProvider flakinessDataProvider,
+            PerformanceExecutionDataProvider executionDataProvider,
+            File output)
+            throws IOException {
+        new FileRenderer()
+                .render(null, new FlakinessIndexPageGenerator(flakinessDataProvider, executionDataProvider), output);
     }
 
     @Override
-    protected void collectFailures(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector) {
-    }
+    protected void collectFailures(
+            PerformanceFlakinessDataProvider flakinessDataProvider,
+            PerformanceExecutionDataProvider executionDataProvider,
+            FailureCollector failureCollector) {}
 }

@@ -16,6 +16,11 @@
 
 package org.gradle.internal.tools.api.impl;
 
+import static org.objectweb.asm.Opcodes.ACC_ENUM;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
+
+import java.util.Optional;
+import java.util.Set;
 import org.gradle.internal.tools.api.ApiMemberWriter;
 import org.gradle.internal.tools.api.ApiMemberWriterAdapter;
 import org.jspecify.annotations.Nullable;
@@ -25,12 +30,6 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Type;
-
-import java.util.Optional;
-import java.util.Set;
-
-import static org.objectweb.asm.Opcodes.ACC_ENUM;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
 
 public class JavaApiMemberWriter implements ApiMemberWriter {
 
@@ -55,39 +54,51 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
     }
 
     @Override
-    public void writeClass(ClassMember classMember, Set<MethodMember> methods, Set<FieldMember> fields, Set<InnerClassMember> innerClasses) {
+    public void writeClass(
+            ClassMember classMember,
+            Set<MethodMember> methods,
+            Set<FieldMember> fields,
+            Set<InnerClassMember> innerClasses) {
         apiMemberAdapter.visit(
-            classMember.getVersion(), classMember.getAccess(), classMember.getName(), classMember.getSignature(),
-            classMember.getSuperName(), classMember.getInterfaces());
+                classMember.getVersion(),
+                classMember.getAccess(),
+                classMember.getName(),
+                classMember.getSignature(),
+                classMember.getSuperName(),
+                classMember.getInterfaces());
         writeClassAnnotations(classMember.getAnnotations());
         for (String permittedSubclass : classMember.getPermittedSubclasses()) {
             apiMemberAdapter.visitPermittedSubclass(permittedSubclass);
         }
         InnerClassMember declaringInnerClass = innerClasses.stream()
-            .filter(innerClass -> innerClass.getName().equals(classMember.getName()))
-            .findFirst()
-            .orElse(null);
+                .filter(innerClass -> innerClass.getName().equals(classMember.getName()))
+                .findFirst()
+                .orElse(null);
         for (MethodMember method : methods) {
             writeMethod(classMember, declaringInnerClass, method);
         }
         for (FieldMember field : fields) {
             FieldVisitor fieldVisitor = apiMemberAdapter.visitField(
-                field.getAccess(), field.getName(), field.getTypeDesc(), field.getSignature(), field.getValue());
+                    field.getAccess(), field.getName(), field.getTypeDesc(), field.getSignature(), field.getValue());
             writeFieldAnnotations(fieldVisitor, field.getAnnotations());
             fieldVisitor.visitEnd();
         }
         for (InnerClassMember innerClass : innerClasses) {
             apiMemberAdapter.visitInnerClass(
-                innerClass.getName(), innerClass.getOuterName(), innerClass.getInnerName(), innerClass.getAccess());
+                    innerClass.getName(), innerClass.getOuterName(), innerClass.getInnerName(), innerClass.getAccess());
         }
         apiMemberAdapter.visitEnd();
     }
 
     @Override
-    public void writeMethod(ClassMember classMember, @Nullable InnerClassMember declaringInnerClass, MethodMember method) {
+    public void writeMethod(
+            ClassMember classMember, @Nullable InnerClassMember declaringInnerClass, MethodMember method) {
         MethodVisitor mv = apiMemberAdapter.visitMethod(
-            method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(),
-            method.getExceptions().toArray(new String[0]));
+                method.getAccess(),
+                method.getName(),
+                method.getTypeDesc(),
+                method.getSignature(),
+                method.getExceptions().toArray(new String[0]));
         writeMethodAnnotations(mv, method.getAnnotations());
         writeMethodAnnotations(mv, method.getTypeAnnotations());
         writeMethodAnnotations(mv, method.getParameterAnnotations());
@@ -96,12 +107,12 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
         // in the written classfile. This is a workaround to fix that.
         // See https://gitlab.ow2.org/asm/asm/-/issues/318023
         calculateNonAnnotableParameterCount(classMember, declaringInnerClass, method)
-            .ifPresent(nonAnnotableParameterCount -> {
-                int totalParameterCount = Type.getArgumentCount(method.getTypeDesc());
-                int annotableParameterCount = totalParameterCount - nonAnnotableParameterCount;
-                mv.visitAnnotableParameterCount(annotableParameterCount, true);
-                mv.visitAnnotableParameterCount(annotableParameterCount, false);
-            });
+                .ifPresent(nonAnnotableParameterCount -> {
+                    int totalParameterCount = Type.getArgumentCount(method.getTypeDesc());
+                    int annotableParameterCount = totalParameterCount - nonAnnotableParameterCount;
+                    mv.visitAnnotableParameterCount(annotableParameterCount, true);
+                    mv.visitAnnotableParameterCount(annotableParameterCount, false);
+                });
 
         method.getAnnotationDefaultValue().ifPresent(value -> {
             AnnotationVisitor av = mv.visitAnnotationDefault();
@@ -111,14 +122,14 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
         mv.visitEnd();
     }
 
-    private static Optional<Integer> calculateNonAnnotableParameterCount(ClassMember classMember, @Nullable InnerClassMember declaringInnerClass, MethodMember method) {
+    private static Optional<Integer> calculateNonAnnotableParameterCount(
+            ClassMember classMember, @Nullable InnerClassMember declaringInnerClass, MethodMember method) {
         if (method.getName().equals("<init>")) {
             if ((classMember.getAccess() & ACC_ENUM) == ACC_ENUM) {
                 // Enum constructors have an implicit String and int parameter containing
                 // the name and ordinal of the value that is non-annotable.
                 return Optional.of(2);
-            } else if (declaringInnerClass != null
-                && (declaringInnerClass.getAccess() & ACC_STATIC) != ACC_STATIC) {
+            } else if (declaringInnerClass != null && (declaringInnerClass.getAccess() & ACC_STATIC) != ACC_STATIC) {
                 // Non-static inner-class constructors have an implicit, non-annotable parameter
                 // pointing to the enclosing class instance
                 return Optional.of(1);
@@ -131,7 +142,7 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
     public void writeClassAnnotations(Set<AnnotationMember> annotationMembers) {
         for (AnnotationMember annotation : annotationMembers) {
             AnnotationVisitor annotationVisitor =
-                apiMemberAdapter.visitAnnotation(annotation.getName(), annotation.isVisible());
+                    apiMemberAdapter.visitAnnotation(annotation.getName(), annotation.isVisible());
             writeAnnotationValues(annotation, annotationVisitor);
         }
     }
@@ -142,13 +153,14 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             AnnotationVisitor annotationVisitor;
             if (annotation instanceof ParameterAnnotationMember) {
                 annotationVisitor = mv.visitParameterAnnotation(
-                    ((ParameterAnnotationMember) annotation).getParameter(), annotation.getName(),
-                    annotation.isVisible());
+                        ((ParameterAnnotationMember) annotation).getParameter(),
+                        annotation.getName(),
+                        annotation.isVisible());
             } else if (annotation instanceof TypeAnnotationMember) {
                 TypeAnnotationMember typeAnnotationMember = (TypeAnnotationMember) annotation;
                 annotationVisitor = mv.visitTypeAnnotation(
-                    typeAnnotationMember.getTypeRef(), typeAnnotationMember.getTypePath(),
-                    typeAnnotationMember.getName(), typeAnnotationMember.isVisible());
+                        typeAnnotationMember.getTypeRef(), typeAnnotationMember.getTypePath(),
+                        typeAnnotationMember.getName(), typeAnnotationMember.isVisible());
             } else {
                 annotationVisitor = mv.visitAnnotation(annotation.getName(), annotation.isVisible());
             }
@@ -191,7 +203,8 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             AnnotationVisitor annVisitor = annotationVisitor.visitAnnotation(name, annotation.getName());
             writeAnnotationValues(annotation, annVisitor);
         } else {
-            throw new AssertionError("Unknown annotation value type: " + value.getClass().getName());
+            throw new AssertionError(
+                    "Unknown annotation value type: " + value.getClass().getName());
         }
     }
 }

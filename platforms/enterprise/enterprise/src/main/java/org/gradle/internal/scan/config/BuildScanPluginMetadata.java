@@ -29,5 +29,4 @@ public interface BuildScanPluginMetadata {
      * The full version string of the Develocity plugin.
      */
     String getVersion();
-
 }

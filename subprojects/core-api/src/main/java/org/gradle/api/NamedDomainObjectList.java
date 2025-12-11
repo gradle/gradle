@@ -16,10 +16,9 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import java.util.List;
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.specs.Spec;
-
-import java.util.List;
 
 /**
  * <p>A specialization of {@link org.gradle.api.NamedDomainObjectCollection} that also implements {@link java.util.List}.</p>

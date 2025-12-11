@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
-
 import java.io.Serializable;
 import java.util.Set;
+import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 
 public class JUnitSpec implements Serializable {
     private final TestFilterSpec filter;
@@ -27,11 +26,7 @@ public class JUnitSpec implements Serializable {
     private final boolean isDryRun;
 
     public JUnitSpec(
-        TestFilterSpec filter,
-        Set<String> includeCategories,
-        Set<String> excludeCategories,
-        boolean isDryRun
-    ) {
+            TestFilterSpec filter, Set<String> includeCategories, Set<String> excludeCategories, boolean isDryRun) {
         this.filter = filter;
         this.includeCategories = includeCategories;
         this.excludeCategories = excludeCategories;

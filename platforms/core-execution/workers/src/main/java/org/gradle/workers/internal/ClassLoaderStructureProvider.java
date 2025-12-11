@@ -16,6 +16,12 @@
 
 package org.gradle.workers.internal;
 
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.MixInLegacyTypesClassLoader;
 import org.gradle.internal.classloader.ClasspathUtil;
@@ -25,13 +31,6 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 @ServiceScope(Scope.UserHome.class)
 public class ClassLoaderStructureProvider {
     private final ClassLoaderRegistry classLoaderRegistry;
@@ -40,7 +39,8 @@ public class ClassLoaderStructureProvider {
         this.classLoaderRegistry = classLoaderRegistry;
     }
 
-    public ClassLoaderStructure getWorkerProcessClassLoaderStructure(final Iterable<File> additionalClasspath, Class<?>... classes) {
+    public ClassLoaderStructure getWorkerProcessClassLoaderStructure(
+            final Iterable<File> additionalClasspath, Class<?>... classes) {
         MixInLegacyTypesClassLoader.Spec workerExtensionSpec = classLoaderRegistry.getGradleWorkerExtensionSpec();
         FilteringClassLoader.Spec gradleApiFilter = classLoaderRegistry.getGradleApiFilterSpec();
         VisitableURLClassLoader.Spec userSpec = getUserSpec("worker-loader", additionalClasspath, classes);
@@ -51,20 +51,22 @@ public class ClassLoaderStructureProvider {
                 .withChild(userSpec);
     }
 
-    public ClassLoaderStructure getInProcessClassLoaderStructure(final Iterable<File> additionalClasspath, Class<?>... classes) {
+    public ClassLoaderStructure getInProcessClassLoaderStructure(
+            final Iterable<File> additionalClasspath, Class<?>... classes) {
         FilteringClassLoader.Spec gradleApiFilter = classLoaderRegistry.getGradleApiFilterSpec();
         VisitableURLClassLoader.Spec userSpec = getUserSpec("worker-loader", additionalClasspath, classes);
         // Add the Gradle API filter between the user classloader and the worker infrastructure classloader
-        return new HierarchicalClassLoaderStructure(gradleApiFilter)
-                .withChild(userSpec);
+        return new HierarchicalClassLoaderStructure(gradleApiFilter).withChild(userSpec);
     }
 
     /**
      * Returns a spec representing the combined "user" classloader for the given classes and additional classpath.  The user classloader assumes it is used as a child of a classloader with the Gradle API.
      */
-    // TODO Avoid hash-based containers of java.net.URL--the containers rely on equals() and hashCode(), which cause java.net.URL to make blocking internet connections.
+    // TODO Avoid hash-based containers of java.net.URL--the containers rely on equals() and hashCode(), which cause
+    // java.net.URL to make blocking internet connections.
     @SuppressWarnings("URLEqualsHashCode")
-    public VisitableURLClassLoader.Spec getUserSpec(String name, Iterable<File> additionalClasspath, Class<?>... classes) {
+    public VisitableURLClassLoader.Spec getUserSpec(
+            String name, Iterable<File> additionalClasspath, Class<?>... classes) {
         Set<URL> classpath = new LinkedHashSet<>();
         classpath.addAll(DefaultClassPath.of(additionalClasspath).getAsURLs());
 

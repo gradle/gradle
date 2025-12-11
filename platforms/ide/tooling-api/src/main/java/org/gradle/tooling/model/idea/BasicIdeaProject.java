@@ -24,5 +24,4 @@ package org.gradle.tooling.model.idea;
  *
  * @since 1.0-milestone-5
  */
-public interface BasicIdeaProject extends IdeaProject {
-}
+public interface BasicIdeaProject extends IdeaProject {}

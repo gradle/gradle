@@ -16,13 +16,12 @@
 
 package org.gradle.internal.work;
 
-import org.gradle.internal.UncheckedException;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
+import org.gradle.internal.UncheckedException;
 
 public abstract class AbstractConditionalExecution<T> implements ConditionalExecution<T> {
     private final CountDownLatch finished = new CountDownLatch(1);
@@ -76,5 +75,4 @@ public abstract class AbstractConditionalExecution<T> implements ConditionalExec
     public void cancel() {
         runnable.cancel(true);
     }
-
 }

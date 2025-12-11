@@ -16,9 +16,8 @@
 
 package org.gradle.plugin.software.internal;
 
-import org.gradle.api.Plugin;
-
 import java.util.List;
+import org.gradle.api.Plugin;
 
 /**
  * Applies the model defaults for a given project type to a target project if the provided plugin class is a project type plugin.
@@ -31,7 +30,13 @@ public class DefaultModelDefaultsApplicator implements ModelDefaultsApplicator {
     }
 
     @Override
-    public void applyDefaultsTo(Object target, Object definition, ClassLoaderContext classLoaderContext, Plugin<?> plugin, ProjectFeatureImplementation<?, ?> projectFeatureImplementation) {
-        defaultsHandlers.forEach(handler -> handler.apply(target, definition, classLoaderContext, projectFeatureImplementation.getFeatureName(), plugin));
+    public void applyDefaultsTo(
+            Object target,
+            Object definition,
+            ClassLoaderContext classLoaderContext,
+            Plugin<?> plugin,
+            ProjectFeatureImplementation<?, ?> projectFeatureImplementation) {
+        defaultsHandlers.forEach(handler -> handler.apply(
+                target, definition, classLoaderContext, projectFeatureImplementation.getFeatureName(), plugin));
     }
 }

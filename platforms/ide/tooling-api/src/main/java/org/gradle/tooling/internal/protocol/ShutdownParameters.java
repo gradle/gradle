@@ -23,5 +23,4 @@ package org.gradle.tooling.internal.protocol;
  *
  * @since 2.2-rc-1
  */
-public interface ShutdownParameters extends InternalProtocolInterface {
-}
+public interface ShutdownParameters extends InternalProtocolInterface {}

@@ -16,18 +16,18 @@
 
 package org.gradle.nativeplatform;
 
+import java.io.File;
 import org.gradle.api.Incubating;
 import org.gradle.model.internal.core.UnmanagedStruct;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
-
-import java.io.File;
 
 /**
  * Specifies how to build and where to place a native executable file.
  *
  * <p>TODO:HH resolve naming conflict with existing NativeExecutableSpec</p>
  */
-@Incubating @UnmanagedStruct
+@Incubating
+@UnmanagedStruct
 public class NativeExecutableFileSpec {
 
     private File file;

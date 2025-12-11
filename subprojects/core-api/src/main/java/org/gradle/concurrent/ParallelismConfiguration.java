@@ -64,5 +64,4 @@ public interface ParallelismConfiguration {
      * @see #getMaxWorkerCount()
      */
     void setMaxWorkerCount(int maxWorkerCount);
-
 }

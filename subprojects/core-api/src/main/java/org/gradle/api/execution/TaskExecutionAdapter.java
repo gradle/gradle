@@ -31,5 +31,4 @@ public class TaskExecutionAdapter implements TaskExecutionListener {
 
     @Override
     public void afterExecute(Task task, TaskState state) {}
-
 }

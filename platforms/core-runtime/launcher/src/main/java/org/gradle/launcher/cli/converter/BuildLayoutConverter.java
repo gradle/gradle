@@ -16,6 +16,9 @@
 
 package org.gradle.launcher.cli.converter;
 
+import java.io.File;
+import java.util.Map;
+import java.util.function.Consumer;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
@@ -28,10 +31,6 @@ import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.Map;
-import java.util.function.Consumer;
-
 public class BuildLayoutConverter {
     private final CommandLineConverter<BuildLayoutParameters> buildLayoutConverter = new LayoutCommandLineConverter();
 
@@ -43,19 +42,25 @@ public class BuildLayoutConverter {
         return new Result(new BuildLayoutParameters());
     }
 
-    public BuildLayoutResult convert(InitialProperties systemProperties, ParsedCommandLine commandLine, @Nullable File workingDir) {
-        return convert(systemProperties, commandLine, workingDir, parameters -> {
-        });
+    public BuildLayoutResult convert(
+            InitialProperties systemProperties, ParsedCommandLine commandLine, @Nullable File workingDir) {
+        return convert(systemProperties, commandLine, workingDir, parameters -> {});
     }
 
-    public BuildLayoutResult convert(InitialProperties systemProperties, ParsedCommandLine commandLine, @Nullable File workingDir, Consumer<BuildLayoutParameters> defaults) {
+    public BuildLayoutResult convert(
+            InitialProperties systemProperties,
+            ParsedCommandLine commandLine,
+            @Nullable File workingDir,
+            Consumer<BuildLayoutParameters> defaults) {
         BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
         if (workingDir != null) {
             layoutParameters.setCurrentDir(workingDir);
         }
         defaults.accept(layoutParameters);
         Map<String, String> requestedSystemProperties = systemProperties.getRequestedSystemProperties();
-        new BuildLayoutParametersBuildOptions().propertiesConverter().convert(requestedSystemProperties, layoutParameters);
+        new BuildLayoutParametersBuildOptions()
+                .propertiesConverter()
+                .convert(requestedSystemProperties, layoutParameters);
         buildLayoutConverter.convert(commandLine, layoutParameters);
         return new Result(layoutParameters);
     }

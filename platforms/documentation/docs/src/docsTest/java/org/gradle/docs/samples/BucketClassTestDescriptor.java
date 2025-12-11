@@ -16,11 +16,11 @@
 
 package org.gradle.docs.samples;
 
+import static org.gradle.docs.samples.SamplesTestEngine.SAMPLES_TEST_ENGINE_UID;
+
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.support.descriptor.AbstractTestDescriptor;
 import org.junit.platform.engine.support.descriptor.ClassSource;
-
-import static org.gradle.docs.samples.SamplesTestEngine.SAMPLES_TEST_ENGINE_UID;
 
 public class BucketClassTestDescriptor extends AbstractTestDescriptor {
     public static final String BUCKET_CLASS_SEGMENT = "class";

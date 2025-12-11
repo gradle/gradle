@@ -17,15 +17,14 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.base.Objects;
-import org.apache.commons.lang3.Strings;
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
-import org.gradle.internal.jvm.inspection.JvmVendor;
-import org.gradle.jvm.toolchain.JvmVendorSpec;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.function.Predicate;
+import org.apache.commons.lang3.Strings;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmVendor;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<JvmInstallationMetadata>, Serializable {
 

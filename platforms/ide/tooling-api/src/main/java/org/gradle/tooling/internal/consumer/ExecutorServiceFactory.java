@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.internal.Factory;
-
 import java.util.concurrent.ExecutorService;
+import org.gradle.internal.Factory;
 
 public interface ExecutorServiceFactory extends Factory<ExecutorService> {
     @Override

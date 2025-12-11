@@ -42,11 +42,13 @@ public class GzipPacker implements Packer {
 
     @Override
     public void unpack(DataSource input, DataTargetFactory targetFactory) throws IOException {
-        delegate.unpack(new DelegatingDataSource(input) {
-            @Override
-            public InputStream openInput() throws IOException {
-                return new GZIPInputStream(super.openInput());
-            }
-        }, targetFactory);
+        delegate.unpack(
+                new DelegatingDataSource(input) {
+                    @Override
+                    public InputStream openInput() throws IOException {
+                        return new GZIPInputStream(super.openInput());
+                    }
+                },
+                targetFactory);
     }
 }

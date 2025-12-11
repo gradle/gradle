@@ -16,9 +16,8 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.api.JavaVersion;
-
 import java.io.Serializable;
+import org.gradle.api.JavaVersion;
 
 public class StackTraceElementPlaceholder implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -50,7 +49,8 @@ public class StackTraceElementPlaceholder implements Serializable {
 
     public StackTraceElement toStackTraceElement() {
         if (JavaVersion.current().isJava9Compatible()) {
-            return new StackTraceElement(classLoaderName, moduleName, moduleVersion, declaringClass, methodName, fileName, lineNumber);
+            return new StackTraceElement(
+                    classLoaderName, moduleName, moduleVersion, declaringClass, methodName, fileName, lineNumber);
         } else {
             return new StackTraceElement(declaringClass, methodName, fileName, lineNumber);
         }

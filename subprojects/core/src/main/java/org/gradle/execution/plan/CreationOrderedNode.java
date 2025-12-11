@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Base class for nodes that are ordered based on their order of creation.
  */
-abstract public class CreationOrderedNode extends Node {
+public abstract class CreationOrderedNode extends Node {
 
     private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
 

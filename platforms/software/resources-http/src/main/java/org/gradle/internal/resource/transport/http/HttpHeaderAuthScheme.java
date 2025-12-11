@@ -31,8 +31,7 @@ public class HttpHeaderAuthScheme implements ContextAwareAuthScheme {
     public static final String AUTH_SCHEME_NAME = "header";
 
     @Override
-    public void processChallenge(final Header header) throws MalformedChallengeException {
-    }
+    public void processChallenge(final Header header) throws MalformedChallengeException {}
 
     @Override
     public String getSchemeName() {
@@ -61,13 +60,19 @@ public class HttpHeaderAuthScheme implements ContextAwareAuthScheme {
 
     @Override
     @SuppressWarnings("deprecation")
-    public Header authenticate(final Credentials credentials, final HttpRequest request) throws AuthenticationException {
+    public Header authenticate(final Credentials credentials, final HttpRequest request)
+            throws AuthenticationException {
         return this.authenticate(credentials, request, new BasicHttpContext());
     }
 
     @Override
-    public Header authenticate(final Credentials credentials, final HttpRequest request, final HttpContext context) throws AuthenticationException {
-        Args.check(credentials instanceof HttpClientHttpHeaderCredentials, "Only " + HttpClientHttpHeaderCredentials.class.getCanonicalName() + " supported for AuthScheme " + this.getClass().getCanonicalName() + ", got " + credentials.getClass().getName());
+    public Header authenticate(final Credentials credentials, final HttpRequest request, final HttpContext context)
+            throws AuthenticationException {
+        Args.check(
+                credentials instanceof HttpClientHttpHeaderCredentials,
+                "Only " + HttpClientHttpHeaderCredentials.class.getCanonicalName() + " supported for AuthScheme "
+                        + this.getClass().getCanonicalName() + ", got "
+                        + credentials.getClass().getName());
         HttpClientHttpHeaderCredentials httpClientHttpHeaderCredentials = (HttpClientHttpHeaderCredentials) credentials;
         return httpClientHttpHeaderCredentials.getHeader();
     }

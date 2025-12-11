@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins;
 
+import javax.inject.Inject;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -31,8 +32,6 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
-
-import javax.inject.Inject;
 
 /**
  * A base plugin for projects working in a JVM world. This plugin
@@ -61,21 +60,30 @@ public abstract class JvmEcosystemPlugin implements Plugin<Project> {
     }
 
     private void configureVariantDerivationStrategy(ProjectInternal project) {
-        ComponentMetadataHandlerInternal metadataHandler = (ComponentMetadataHandlerInternal) project.getDependencies().getComponents();
-        metadataHandler.setVariantDerivationStrategy(objectFactory.newInstance(JavaEcosystemVariantDerivationStrategy.class));
+        ComponentMetadataHandlerInternal metadataHandler =
+                (ComponentMetadataHandlerInternal) project.getDependencies().getComponents();
+        metadataHandler.setVariantDerivationStrategy(
+                objectFactory.newInstance(JavaEcosystemVariantDerivationStrategy.class));
     }
 
     private void configureSchema(ProjectInternal project) {
-        AttributesSchemaInternal attributesSchema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
+        AttributesSchemaInternal attributesSchema =
+                (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
 
         ResolutionFailureHandler handler = project.getServices().get(ResolutionFailureHandler.class);
         AttributeDescriberRegistry attributeDescribers = project.getServices().get(AttributeDescriberRegistry.class);
 
         JavaEcosystemSupport.configureServices(attributesSchema, attributeDescribers, objectFactory);
-        handler.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
+        handler.addFailureDescriber(
+                NoCompatibleVariantsFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
 
-        project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes()
-            .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME))
-            .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
+        project.getDependencies()
+                .getArtifactTypes()
+                .create(ArtifactTypeDefinition.JAR_TYPE)
+                .getAttributes()
+                .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME))
+                .attribute(
+                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        objectFactory.named(LibraryElements.class, LibraryElements.JAR));
     }
 }

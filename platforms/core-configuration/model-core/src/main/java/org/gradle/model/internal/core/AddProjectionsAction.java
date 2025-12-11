@@ -16,24 +16,26 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
 import java.util.Arrays;
 import java.util.List;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 public class AddProjectionsAction<T> extends AbstractModelAction<T> {
     private final Iterable<ModelProjection> projections;
 
-    private AddProjectionsAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, Iterable<ModelProjection> projections) {
+    private AddProjectionsAction(
+            ModelReference<T> subject, ModelRuleDescriptor descriptor, Iterable<ModelProjection> projections) {
         super(subject, descriptor);
         this.projections = projections;
     }
 
-    public static <T> AddProjectionsAction<T> of(ModelReference<T> subject, ModelRuleDescriptor descriptor, ModelProjection... projections) {
+    public static <T> AddProjectionsAction<T> of(
+            ModelReference<T> subject, ModelRuleDescriptor descriptor, ModelProjection... projections) {
         return of(subject, descriptor, Arrays.asList(projections));
     }
 
-    public static <T> AddProjectionsAction<T> of(ModelReference<T> subject, ModelRuleDescriptor descriptor, Iterable<ModelProjection> projections) {
+    public static <T> AddProjectionsAction<T> of(
+            ModelReference<T> subject, ModelRuleDescriptor descriptor, Iterable<ModelProjection> projections) {
         return new AddProjectionsAction<T>(subject, descriptor, projections);
     }
 

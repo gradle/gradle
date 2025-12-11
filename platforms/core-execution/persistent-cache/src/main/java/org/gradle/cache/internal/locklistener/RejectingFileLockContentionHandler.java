@@ -16,11 +16,10 @@
 
 package org.gradle.cache.internal.locklistener;
 
+import java.util.function.Consumer;
 import org.gradle.cache.FileLockReleasedSignal;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.Consumer;
 
 /**
  * A special contention handler that doesn't support negotiating for locks.
@@ -33,7 +32,8 @@ public class RejectingFileLockContentionHandler implements FileLockContentionHan
     @Override
     public void start(long lockId, Consumer<FileLockReleasedSignal> whenContended) {
         // FixedExclusiveModeCrossProcessCacheAccess supplies a no-op contention callback (it never yields a lock).
-        // Not providing a contention callback has some side effects on other implementations of FileLockContentionHandler, so we cannot
+        // Not providing a contention callback has some side effects on other implementations of
+        // FileLockContentionHandler, so we cannot
         // just throw here. Instead, we ask to release the lock immediately.
         whenContended.accept(() -> {});
     }
@@ -47,8 +47,10 @@ public class RejectingFileLockContentionHandler implements FileLockContentionHan
     }
 
     @Override
-    public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, @Nullable FileLockReleasedSignal signal) {
-        // This assumes that DefaultFileLockManager never tries to negotiate for the lock if it doesn't receive a valid port for it.
+    public boolean maybePingOwner(
+            int port, long lockId, String displayName, long timeElapsed, @Nullable FileLockReleasedSignal signal) {
+        // This assumes that DefaultFileLockManager never tries to negotiate for the lock if it doesn't receive a valid
+        // port for it.
         throw new UnsupportedOperationException("Cannot ping owners");
     }
 

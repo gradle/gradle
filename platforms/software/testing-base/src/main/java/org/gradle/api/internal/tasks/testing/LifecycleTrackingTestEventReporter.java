@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Map;
 
 @NullMarked
 class LifecycleTrackingTestEventReporter<T extends TestEventReporterInternal> implements TestEventReporterInternal {
@@ -31,8 +30,12 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporterInternal> im
 
     @NullMarked
     private enum State {
-        CREATED, STARTED, COMPLETED, CLOSED;
+        CREATED,
+        STARTED,
+        COMPLETED,
+        CLOSED;
     }
+
     private State state = State.CREATED;
 
     LifecycleTrackingTestEventReporter(T delegate) {
@@ -111,7 +114,8 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporterInternal> im
         delegate.close();
 
         if (state == State.STARTED) {
-            throw new IllegalStateException("succeeded(...)/skipped(...)/failed(...) must be called before close() if started(...) was called");
+            throw new IllegalStateException(
+                    "succeeded(...)/skipped(...)/failed(...) must be called before close() if started(...) was called");
         }
         state = State.CLOSED;
     }

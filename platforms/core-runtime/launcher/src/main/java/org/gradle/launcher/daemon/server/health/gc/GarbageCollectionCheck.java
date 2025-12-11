@@ -16,15 +16,14 @@
 
 package org.gradle.launcher.daemon.server.health.gc;
 
-import org.gradle.internal.time.Clock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.util.List;
+import org.gradle.internal.time.Clock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GarbageCollectionCheck implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(GarbageCollectionCheck.class);
@@ -38,7 +37,13 @@ public class GarbageCollectionCheck implements Runnable {
     private final String nonHeapMemoryPool;
     private final SlidingWindow<GarbageCollectionEvent> nonHeapEvents;
 
-    public GarbageCollectionCheck(Clock clock, GarbageCollectorMXBean garbageCollectorMXBean, String heapMemoryPool, SlidingWindow<GarbageCollectionEvent> heapEvents, String nonHeapMemoryPool, SlidingWindow<GarbageCollectionEvent> nonHeapEvents) {
+    public GarbageCollectionCheck(
+            Clock clock,
+            GarbageCollectorMXBean garbageCollectorMXBean,
+            String heapMemoryPool,
+            SlidingWindow<GarbageCollectionEvent> heapEvents,
+            String nonHeapMemoryPool,
+            SlidingWindow<GarbageCollectionEvent> nonHeapEvents) {
         this.clock = clock;
         this.garbageCollectorMXBean = garbageCollectorMXBean;
         this.heapMemoryPool = heapMemoryPool;
@@ -58,11 +63,13 @@ public class GarbageCollectionCheck implements Runnable {
                     long currentCount = garbageCollectorMXBean.getCollectionCount();
                     // There has been a GC event
                     if (latest == null || latest.getCount() != currentCount) {
-                        heapEvents.slideAndInsert(new GarbageCollectionEvent(clock.getCurrentTime(), memoryPoolMXBean.getCollectionUsage(), currentCount));
+                        heapEvents.slideAndInsert(new GarbageCollectionEvent(
+                                clock.getCurrentTime(), memoryPoolMXBean.getCollectionUsage(), currentCount));
                     }
                 }
                 if (memoryPoolMXBean.getType() == MemoryType.NON_HEAP && poolName.equals(nonHeapMemoryPool)) {
-                    nonHeapEvents.slideAndInsert(new GarbageCollectionEvent(clock.getCurrentTime(), memoryPoolMXBean.getUsage(), -1));
+                    nonHeapEvents.slideAndInsert(
+                            new GarbageCollectionEvent(clock.getCurrentTime(), memoryPoolMXBean.getUsage(), -1));
                 }
             }
         } catch (Throwable t) {

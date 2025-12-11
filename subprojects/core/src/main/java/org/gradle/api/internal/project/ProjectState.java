@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.project;
 
+import java.io.File;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -25,12 +30,6 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.io.File;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Encapsulates the identity and state of a particular project in a build tree.

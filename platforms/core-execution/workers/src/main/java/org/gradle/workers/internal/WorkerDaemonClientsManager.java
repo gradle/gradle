@@ -16,7 +16,13 @@
 
 package org.gradle.workers.internal;
 
+import static java.util.Comparator.comparingInt;
+
 import com.google.common.annotations.VisibleForTesting;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Consumer;
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
@@ -34,13 +40,6 @@ import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.function.Consumer;
-
-import static java.util.Comparator.comparingInt;
 
 @ServiceScope(Scope.UserHome.class)
 public class WorkerDaemonClientsManager implements Stoppable {
@@ -61,7 +60,12 @@ public class WorkerDaemonClientsManager implements Stoppable {
     private final MemoryManager memoryManager;
     private volatile LogLevel currentLogLevel;
 
-    public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter, ListenerManager listenerManager, LoggingManagerInternal loggingManager, MemoryManager memoryManager, OsMemoryInfo memoryInfo) {
+    public WorkerDaemonClientsManager(
+            WorkerDaemonStarter workerDaemonStarter,
+            ListenerManager listenerManager,
+            LoggingManagerInternal loggingManager,
+            MemoryManager memoryManager,
+            OsMemoryInfo memoryInfo) {
         this.workerDaemonStarter = workerDaemonStarter;
         this.listenerManager = listenerManager;
         this.loggingManager = loggingManager;
@@ -94,7 +98,8 @@ public class WorkerDaemonClientsManager implements Stoppable {
                         it.remove();
                         if (candidate.getLogLevel() != currentLogLevel) {
                             // TODO: Send a message to workers to change their log level rather than stopping
-                            LOGGER.info("Log level has changed, stopping idle worker daemon with out-of-date log level.");
+                            LOGGER.info(
+                                    "Log level has changed, stopping idle worker daemon with out-of-date log level.");
                             candidate.stop();
                         } else {
                             return candidate;
@@ -110,15 +115,18 @@ public class WorkerDaemonClientsManager implements Stoppable {
         if (candidate.getExitCode().isPresent()) {
             int exitCode = candidate.getExitCode().get();
             if (OperatingSystem.current().isUnix() && exitCode > 127) {
-                LOGGER.warn("Worker daemon '" + candidate.getDisplayName() + "' exited unexpectedly after being killed with signal " + (exitCode - 128) + ".  This is likely because an external process has killed the worker.");
+                LOGGER.warn("Worker daemon '" + candidate.getDisplayName()
+                        + "' exited unexpectedly after being killed with signal " + (exitCode - 128)
+                        + ".  This is likely because an external process has killed the worker.");
             } else {
-                LOGGER.warn("Worker daemon '" + candidate.getDisplayName() + "' exited unexpectedly with exit code " + exitCode + ".");
+                LOGGER.warn("Worker daemon '" + candidate.getDisplayName() + "' exited unexpectedly with exit code "
+                        + exitCode + ".");
             }
         }
     }
 
     WorkerDaemonClient reserveNewClient(DaemonForkOptions forkOptions) {
-        //allow the daemon to be started concurrently
+        // allow the daemon to be started concurrently
         WorkerDaemonClient client = workerDaemonStarter.startDaemon(forkOptions);
         synchronized (lock) {
             allClients.add(client);
@@ -141,7 +149,8 @@ public class WorkerDaemonClientsManager implements Stoppable {
             listenerManager.removeListener(stopSessionScopeWorkers);
             memoryManager.removeMemoryHolder(workerDaemonExpiration);
         }
-        // Do not hold lock while removing listener, as the listener may still be receiving events on another thread and will need to acquire the lock to handle these events
+        // Do not hold lock while removing listener, as the listener may still be receiving events on another thread and
+        // will need to acquire the lock to handle these events
         loggingManager.removeOutputEventListener(logLevelChangeEventListener);
     }
 
@@ -161,7 +170,8 @@ public class WorkerDaemonClientsManager implements Stoppable {
     @VisibleForTesting
     void selectIdleClientsToStop(Transformer<List<WorkerDaemonClient>, List<WorkerDaemonClient>> selectionFunction) {
         synchronized (lock) {
-            List<WorkerDaemonClient> sortedClients = CollectionUtils.sort(idleClients, comparingInt(WorkerDaemonClient::getUses));
+            List<WorkerDaemonClient> sortedClients =
+                    CollectionUtils.sort(idleClients, comparingInt(WorkerDaemonClient::getUses));
             List<WorkerDaemonClient> clientsToStop = selectionFunction.transform(new ArrayList<>(sortedClients));
             if (!clientsToStop.isEmpty()) {
                 stopWorkers(clientsToStop);
@@ -193,7 +203,10 @@ public class WorkerDaemonClientsManager implements Stoppable {
             idleClients.removeAll(clientsToStop);
             allClients.removeAll(clientsToStop);
             if (failureCount > 0) {
-                LOGGER.info("Stopped {} worker daemon(s).  {} worker daemons had failures while stopping.", clientCount, failureCount);
+                LOGGER.info(
+                        "Stopped {} worker daemon(s).  {} worker daemons had failures while stopping.",
+                        clientCount,
+                        failureCount);
             } else {
                 LOGGER.info("Stopped {} worker daemon(s).", clientCount);
             }
@@ -230,7 +243,8 @@ public class WorkerDaemonClientsManager implements Stoppable {
         @Override
         public void beforeComplete() {
             synchronized (lock) {
-                List<WorkerDaemonClient> sessionScopedClients = CollectionUtils.filter(allClients, client -> client.getKeepAliveMode() == KeepAliveMode.SESSION);
+                List<WorkerDaemonClient> sessionScopedClients = CollectionUtils.filter(
+                        allClients, client -> client.getKeepAliveMode() == KeepAliveMode.SESSION);
                 stopWorkers(sessionScopedClients);
             }
         }

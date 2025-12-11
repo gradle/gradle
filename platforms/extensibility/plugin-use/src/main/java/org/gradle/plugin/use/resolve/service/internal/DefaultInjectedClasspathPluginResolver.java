@@ -16,6 +16,9 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -41,10 +44,6 @@ import org.gradle.plugin.use.resolve.internal.PluginResolutionVisitor;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.stream.Collectors;
-
 public class DefaultInjectedClasspathPluginResolver implements ClientInjectedClasspathPluginResolver, PluginResolver {
 
     private final ClassPath injectedClasspath;
@@ -55,14 +54,13 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
     private final Lazy<PluginRegistry> pluginRegistry;
 
     public DefaultInjectedClasspathPluginResolver(
-        ClassLoaderScope parentScope,
-        ScriptClassPathResolver scriptClassPathResolver,
-        FileCollectionFactory fileCollectionFactory,
-        PluginInspector pluginInspector,
-        ClassPath injectedClasspath,
-        InjectedClasspathInstrumentationStrategy instrumentationStrategy,
-        Factory<DependencyResolutionServices> dependencyResolutionServicesFactory
-    ) {
+            ClassLoaderScope parentScope,
+            ScriptClassPathResolver scriptClassPathResolver,
+            FileCollectionFactory fileCollectionFactory,
+            PluginInspector pluginInspector,
+            ClassPath injectedClasspath,
+            InjectedClasspathInstrumentationStrategy instrumentationStrategy,
+            Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
         this.parentScope = parentScope;
         this.pluginInspector = pluginInspector;
         this.injectedClasspath = injectedClasspath;
@@ -72,9 +70,8 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
     }
 
     private Lazy<PluginRegistry> createPluginRegistry(
-        InjectedClasspathInstrumentationStrategy instrumentationStrategy,
-        Factory<DependencyResolutionServices> dependencyResolutionServicesFactory
-    ) {
+            InjectedClasspathInstrumentationStrategy instrumentationStrategy,
+            Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
 
         // One wanted side effect of calling InstrumentationStrategy.getTransform() is also to report
         // a configuration cache problem if third-party agent is used with TestKit with configuration cache,
@@ -94,24 +91,28 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
         return newPluginRegistryOf(injectedClasspath);
     }
 
-    private PluginRegistry createInstrumentedPluginRegistry(Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
+    private PluginRegistry createInstrumentedPluginRegistry(
+            Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
         DependencyResolutionServices dependencyResolutionServices = dependencyResolutionServicesFactory.create();
         DependencyHandler dependencies = dependencyResolutionServices.getDependencyHandler();
         ConfigurationContainer configurations = dependencyResolutionServices.getConfigurationContainer();
-        Dependency injectedClasspathDependency = dependencies.create(fileCollectionFactory.fixed(injectedClasspath.getAsFiles()));
+        Dependency injectedClasspathDependency =
+                dependencies.create(fileCollectionFactory.fixed(injectedClasspath.getAsFiles()));
         Configuration configuration = configurations.detachedConfiguration(injectedClasspathDependency);
-        ScriptClassPathResolutionContext resolutionContext = scriptClassPathResolver.prepareDependencyHandler(dependencies);
+        ScriptClassPathResolutionContext resolutionContext =
+                scriptClassPathResolver.prepareDependencyHandler(dependencies);
         scriptClassPathResolver.prepareClassPath(configuration, resolutionContext);
         ClassPath instrumentedClassPath = scriptClassPathResolver.resolveClassPath(configuration, resolutionContext);
         return newPluginRegistryOf(instrumentedClassPath);
     }
 
     private PluginRegistry newPluginRegistryOf(ClassPath classPath) {
-        return new DefaultPluginRegistry(pluginInspector,
-            parentScope.createChild("injected-plugin", null)
-                .local(classPath)
-                .lock()
-        );
+        return new DefaultPluginRegistry(
+                pluginInspector,
+                parentScope
+                        .createChild("injected-plugin", null)
+                        .local(classPath)
+                        .lock());
     }
 
     @Override
@@ -123,7 +124,9 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
     public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
         PluginImplementation<?> plugin = pluginRegistry.get().lookup(pluginRequest.getId());
         if (plugin == null) {
-            String classpathStr = injectedClasspath.getAsFiles().stream().map(File::getAbsolutePath).collect(Collectors.joining(File.pathSeparator));
+            String classpathStr = injectedClasspath.getAsFiles().stream()
+                    .map(File::getAbsolutePath)
+                    .collect(Collectors.joining(File.pathSeparator));
             return PluginResolutionResult.notFound(getDescription(), "classpath: " + classpathStr);
         } else {
             return PluginResolutionResult.found(new InjectedClasspathPluginResolution(plugin));

@@ -16,5 +16,4 @@
 
 package org.gradle.language.base.internal;
 
-public interface BareInternalView {
-}
+public interface BareInternalView {}

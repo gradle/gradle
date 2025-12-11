@@ -16,9 +16,9 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import com.google.common.collect.ImmutableList;
-
 import static com.google.common.base.Preconditions.checkArgument;
+
+import com.google.common.collect.ImmutableList;
 
 class MessageCollectingChangeVisitor implements ChangeVisitor {
     private final ImmutableList.Builder<String> messagesBuilder = ImmutableList.builder();

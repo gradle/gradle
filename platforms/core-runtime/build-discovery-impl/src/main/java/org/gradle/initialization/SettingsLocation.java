@@ -15,9 +15,8 @@
  */
 package org.gradle.initialization;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
+import org.jspecify.annotations.Nullable;
 
 public class SettingsLocation {
     private final File settingsDir;
@@ -45,4 +44,3 @@ public class SettingsLocation {
         return settingsFile;
     }
 }
-

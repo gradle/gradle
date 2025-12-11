@@ -15,7 +15,13 @@
  */
 package org.gradle.internal.execution.model.annotations;
 
+import static org.gradle.internal.deprecation.Documentation.userManual;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+
 import com.google.common.reflect.TypeToken;
+import java.lang.reflect.ParameterizedType;
+import java.util.List;
+import java.util.Locale;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.services.BuildService;
@@ -30,13 +36,6 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.internal.TextUtil;
 
-import java.lang.reflect.ParameterizedType;
-import java.util.List;
-import java.util.Locale;
-
-import static org.gradle.internal.deprecation.Documentation.userManual;
-import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
-
 public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public ServiceReferencePropertyAnnotationHandler() {
         super(ServiceReference.class, Kind.OTHER, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
@@ -48,12 +47,19 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+    public void visitPropertyValue(
+            String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
         propertyMetadata.getAnnotation(ServiceReference.class).ifPresent(annotation -> {
             String serviceName = annotation.value();
             TypeToken<?> declaredType = propertyMetadata.getDeclaredType();
-            Class<?> serviceType = Cast.uncheckedCast(((ParameterizedType) declaredType.getType()).getActualTypeArguments()[0]);
-            visitor.visitServiceReference(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, serviceName, Cast.uncheckedCast(serviceType));
+            Class<?> serviceType =
+                    Cast.uncheckedCast(((ParameterizedType) declaredType.getType()).getActualTypeArguments()[0]);
+            visitor.visitServiceReference(
+                    propertyName,
+                    propertyMetadata.isAnnotationPresent(Optional.class),
+                    value,
+                    serviceName,
+                    Cast.uncheckedCast(serviceType));
         });
     }
 
@@ -61,20 +67,31 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
-        ModelType<?> propertyType = ModelType.of(propertyMetadata.getDeclaredType().getType());
+        ModelType<?> propertyType =
+                ModelType.of(propertyMetadata.getDeclaredType().getType());
         List<ModelType<?>> typeVariables = Cast.uncheckedNonnullCast(propertyType.getTypeVariables());
-        if (typeVariables.size() != 1 || !BuildService.class.isAssignableFrom(typeVariables.get(0).getRawClass())) {
-            validationContext.visitPropertyProblem(problem ->
-                problem
-                    .forProperty(propertyMetadata.getPropertyName())
-                    .id(TextUtil.screamingSnakeToKebabCase(SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE), "Property has @ServiceReference annotation", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
-                    .contextualLabel(String.format("has @ServiceReference annotation used on property of type '%s' which is not a build service implementation", typeVariables.get(0).getName()))
-                    .documentedAt(userManual("validation_problems", SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE.toLowerCase(Locale.ROOT)))
+        if (typeVariables.size() != 1
+                || !BuildService.class.isAssignableFrom(typeVariables.get(0).getRawClass())) {
+            validationContext.visitPropertyProblem(problem -> problem.forProperty(propertyMetadata.getPropertyName())
+                    .id(
+                            TextUtil.screamingSnakeToKebabCase(SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE),
+                            "Property has @ServiceReference annotation",
+                            GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                    .contextualLabel(String.format(
+                            "has @ServiceReference annotation used on property of type '%s' which is not a build service implementation",
+                            typeVariables.get(0).getName()))
+                    .documentedAt(userManual(
+                            "validation_problems", SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE.toLowerCase(Locale.ROOT)))
                     .severity(Severity.ERROR)
-                    .details(String.format("A property annotated with @ServiceReference must be of a type that implements '%s'", BuildService.class.getName()))
-                    .solution(String.format("Make '%s' implement '%s'", typeVariables.get(0).getName(), BuildService.class.getName()))
-                    .solution(String.format("Replace the @ServiceReference annotation on '%s' with @Internal and assign a value of type '%s' explicitly", propertyMetadata.getPropertyName(), typeVariables.get(0).getName()))
-            );
+                    .details(String.format(
+                            "A property annotated with @ServiceReference must be of a type that implements '%s'",
+                            BuildService.class.getName()))
+                    .solution(String.format(
+                            "Make '%s' implement '%s'", typeVariables.get(0).getName(), BuildService.class.getName()))
+                    .solution(String.format(
+                            "Replace the @ServiceReference annotation on '%s' with @Internal and assign a value of type '%s' explicitly",
+                            propertyMetadata.getPropertyName(),
+                            typeVariables.get(0).getName())));
         }
     }
 }

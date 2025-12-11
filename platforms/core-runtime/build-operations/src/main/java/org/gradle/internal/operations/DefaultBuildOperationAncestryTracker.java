@@ -16,21 +16,22 @@
 
 package org.gradle.internal.operations;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import org.jspecify.annotations.Nullable;
 
 @SuppressWarnings("Since15")
 public class DefaultBuildOperationAncestryTracker implements BuildOperationListener, BuildOperationAncestryTracker {
 
-    private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
+    private final Map<OperationIdentifier, OperationIdentifier> parents =
+            new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
 
     @Override
-    public Optional<OperationIdentifier> findClosestMatchingAncestor(@Nullable OperationIdentifier id, Predicate<? super OperationIdentifier> predicate) {
+    public Optional<OperationIdentifier> findClosestMatchingAncestor(
+            @Nullable OperationIdentifier id, Predicate<? super OperationIdentifier> predicate) {
         if (id == null) {
             return Optional.empty();
         }
@@ -41,7 +42,8 @@ public class DefaultBuildOperationAncestryTracker implements BuildOperationListe
     }
 
     @Override
-    public <T> Optional<T> findClosestExistingAncestor(@Nullable OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction) {
+    public <T> Optional<T> findClosestExistingAncestor(
+            @Nullable OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction) {
         if (id == null) {
             return Optional.empty();
         }
@@ -60,8 +62,7 @@ public class DefaultBuildOperationAncestryTracker implements BuildOperationListe
     }
 
     @Override
-    public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-    }
+    public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {}
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {

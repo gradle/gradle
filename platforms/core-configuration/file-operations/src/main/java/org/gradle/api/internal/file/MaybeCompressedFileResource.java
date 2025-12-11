@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.file;
 
+import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.CompressedReadableResource;
@@ -24,10 +27,6 @@ import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.bundling.Compression;
-
-import java.io.File;
-import java.io.InputStream;
-import java.net.URI;
 
 public class MaybeCompressedFileResource implements ReadableResourceInternal {
 

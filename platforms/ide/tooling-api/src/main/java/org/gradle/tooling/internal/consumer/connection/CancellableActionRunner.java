@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import java.io.File;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionFailureException;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
@@ -27,14 +28,15 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 
-import java.io.File;
-
 class CancellableActionRunner implements ActionRunner {
     private final InternalCancellableConnection executor;
     private final CancellationExceptionTransformer exceptionTransformer;
     private final VersionDetails versionDetails;
 
-    CancellableActionRunner(InternalCancellableConnection executor, CancellationExceptionTransformer exceptionTransformer, VersionDetails versionDetails) {
+    CancellableActionRunner(
+            InternalCancellableConnection executor,
+            CancellationExceptionTransformer exceptionTransformer,
+            VersionDetails versionDetails) {
         this.executor = executor;
         this.exceptionTransformer = exceptionTransformer;
         this.versionDetails = versionDetails;
@@ -42,13 +44,16 @@ class CancellableActionRunner implements ActionRunner {
 
     @Override
     public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters)
-        throws UnsupportedOperationException, IllegalStateException {
+            throws UnsupportedOperationException, IllegalStateException {
 
         File rootDir = operationParameters.getProjectDir();
         BuildResult<T> result;
         try {
             try {
-                result = execute(new InternalBuildActionAdapter<T>(action, rootDir, versionDetails), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
+                result = execute(
+                        new InternalBuildActionAdapter<T>(action, rootDir, versionDetails),
+                        new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()),
+                        operationParameters);
             } catch (RuntimeException e) {
                 throw exceptionTransformer.transform(e);
             }
@@ -59,7 +64,10 @@ class CancellableActionRunner implements ActionRunner {
     }
 
     @SuppressWarnings("deprecation")
-    protected <T> BuildResult<T> execute(InternalBuildActionAdapter<T> buildActionAdapter, InternalCancellationToken cancellationTokenAdapter, BuildParameters operationParameters) {
+    protected <T> BuildResult<T> execute(
+            InternalBuildActionAdapter<T> buildActionAdapter,
+            InternalCancellationToken cancellationTokenAdapter,
+            BuildParameters operationParameters) {
         return executor.run(buildActionAdapter, cancellationTokenAdapter, operationParameters);
     }
 }

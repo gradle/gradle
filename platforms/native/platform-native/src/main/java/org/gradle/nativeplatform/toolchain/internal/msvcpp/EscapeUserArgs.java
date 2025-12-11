@@ -16,10 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.util.internal.CollectionUtils;
-
 import java.util.List;
 import java.util.function.Function;
+import org.gradle.util.internal.CollectionUtils;
 
 class EscapeUserArgs implements Function<String, String> {
     public static String escapeUserArg(String original) {

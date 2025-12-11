@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -25,8 +26,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VcsMappings;
 
-import javax.inject.Inject;
-
 public class DefaultVcsMappings implements VcsMappings {
     private final VcsMappingsStore vcsMappings;
     private final Gradle gradle;
@@ -34,7 +33,8 @@ public class DefaultVcsMappings implements VcsMappings {
     private final Object lock = new Object();
 
     @Inject
-    public DefaultVcsMappings(VcsMappingsStore vcsMappings, Gradle gradle, NotationParser<Object, ModuleIdentifier> notationParser) {
+    public DefaultVcsMappings(
+            VcsMappingsStore vcsMappings, Gradle gradle, NotationParser<Object, ModuleIdentifier> notationParser) {
         this.vcsMappings = vcsMappings;
         this.gradle = gradle;
         this.notationParser = notationParser;
@@ -48,7 +48,8 @@ public class DefaultVcsMappings implements VcsMappings {
 
     @Override
     public VcsMappings withModule(String module, Action<? super VcsMapping> rule) {
-        vcsMappings.addRule(new ModuleFilteredRule(notationParser.parseNotation(module), new DslAccessRule(rule, lock)), gradle);
+        vcsMappings.addRule(
+                new ModuleFilteredRule(notationParser.parseNotation(module), new DslAccessRule(rule, lock)), gradle);
         return this;
     }
 

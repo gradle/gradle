@@ -33,7 +33,8 @@ public class DefaultWorkerProblemProtocol implements WorkerProblemProtocol {
 
     @Override
     public void reportProblem(Problem problem, OperationIdentifier id) {
-        InternalProblemReporter problemsService = ProblemsProgressEventEmitterHolder.get().getInternalReporter();
+        InternalProblemReporter problemsService =
+                ProblemsProgressEventEmitterHolder.get().getInternalReporter();
         problemsService.report(problem, id);
     }
 }

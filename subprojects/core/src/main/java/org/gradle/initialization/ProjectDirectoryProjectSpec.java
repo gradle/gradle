@@ -15,10 +15,9 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.InvalidUserDataException;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.api.InvalidUserDataException;
 
 public class ProjectDirectoryProjectSpec extends AbstractProjectSpec {
     private final File dir;

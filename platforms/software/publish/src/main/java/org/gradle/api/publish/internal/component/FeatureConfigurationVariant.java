@@ -24,20 +24,24 @@ import org.jspecify.annotations.Nullable;
  * A {@link ConfigurationSoftwareComponentVariant} which is aware of both Maven and Ivy publishing, and can optionally
  * be backed by resolution during publication.
  */
-public class FeatureConfigurationVariant extends ConfigurationSoftwareComponentVariant implements MavenPublishingAwareVariant, IvyPublishingAwareVariant, ResolutionBackedVariant {
+public class FeatureConfigurationVariant extends ConfigurationSoftwareComponentVariant
+        implements MavenPublishingAwareVariant, IvyPublishingAwareVariant, ResolutionBackedVariant {
     private final ScopeMapping scopeMapping;
     private final boolean optional;
     ConfigurationVariantMapping.DefaultDependencyMappingDetails dependencyMapping;
 
     public FeatureConfigurationVariant(
-        String name,
-        Configuration configuration,
-        ConfigurationVariant variant,
-        String mavenScope,
-        boolean optional,
-        ConfigurationVariantMapping.@Nullable DefaultDependencyMappingDetails dependencyMapping
-    ) {
-        super(name, ((AttributeContainerInternal)variant.getAttributes()).asImmutable(), variant.getArtifacts(), configuration);
+            String name,
+            Configuration configuration,
+            ConfigurationVariant variant,
+            String mavenScope,
+            boolean optional,
+            ConfigurationVariantMapping.@Nullable DefaultDependencyMappingDetails dependencyMapping) {
+        super(
+                name,
+                ((AttributeContainerInternal) variant.getAttributes()).asImmutable(),
+                variant.getArtifacts(),
+                configuration);
         this.scopeMapping = ScopeMapping.of(mavenScope, optional);
         this.optional = optional;
         this.dependencyMapping = dependencyMapping;
@@ -55,7 +59,8 @@ public class FeatureConfigurationVariant extends ConfigurationSoftwareComponentV
 
     @Override
     public boolean getPublishResolvedCoordinates() {
-        return dependencyMapping != null && dependencyMapping.getPublishResolvedCoordinates().getOrElse(false);
+        return dependencyMapping != null
+                && dependencyMapping.getPublishResolvedCoordinates().getOrElse(false);
     }
 
     @Nullable

@@ -29,11 +29,10 @@ public class DisableCachingByDefaultTypeAnnotationHandler extends AbstractTypeAn
 
     @Override
     public void validateTypeMetadata(Class<?> classWithAnnotationAttached, TypeValidationContext visitor) {
-        if (!Task.class.isAssignableFrom(classWithAnnotationAttached) && !TransformAction.class.isAssignableFrom(classWithAnnotationAttached)) {
-            reportInvalidUseOfTypeAnnotation(classWithAnnotationAttached,
-                visitor,
-                getAnnotationType(),
-                Task.class, TransformAction.class);
+        if (!Task.class.isAssignableFrom(classWithAnnotationAttached)
+                && !TransformAction.class.isAssignableFrom(classWithAnnotationAttached)) {
+            reportInvalidUseOfTypeAnnotation(
+                    classWithAnnotationAttached, visitor, getAnnotationType(), Task.class, TransformAction.class);
         }
     }
 }

@@ -22,6 +22,7 @@ class UnexpectedRequestFailure extends AbstractFailure {
     }
 
     public UnexpectedRequestFailure(String method, String path, String context) {
-        super(new UnexpectedRequestException(String.format("Unexpected request %s %s received%s", method, withLeadingSlash(path), contextSuffix(context))));
+        super(new UnexpectedRequestException(String.format(
+                "Unexpected request %s %s received%s", method, withLeadingSlash(path), contextSuffix(context))));
     }
 }

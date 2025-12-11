@@ -32,14 +32,13 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
     private final boolean declarationDeprecated;
 
     public DefaultConfigurationRole(
-        String name,
-        boolean consumable,
-        boolean resolvable,
-        boolean declarable,
-        boolean consumptionDeprecated,
-        boolean resolutionDeprecated,
-        boolean declarationDeprecated
-    ) {
+            String name,
+            boolean consumable,
+            boolean resolvable,
+            boolean declarable,
+            boolean consumptionDeprecated,
+            boolean resolutionDeprecated,
+            boolean declarationDeprecated) {
         this.name = name;
         this.consumable = consumable;
         this.resolvable = resolvable;
@@ -97,18 +96,25 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
             return false;
         }
         DefaultConfigurationRole that = (DefaultConfigurationRole) o;
-        return consumable == that.consumable &&
-            resolvable == that.resolvable &&
-            declarable == that.declarable &&
-            consumptionDeprecated == that.consumptionDeprecated &&
-            resolutionDeprecated == that.resolutionDeprecated &&
-            declarationDeprecated == that.declarationDeprecated &&
-            name.equals(that.name);
+        return consumable == that.consumable
+                && resolvable == that.resolvable
+                && declarable == that.declarable
+                && consumptionDeprecated == that.consumptionDeprecated
+                && resolutionDeprecated == that.resolutionDeprecated
+                && declarationDeprecated == that.declarationDeprecated
+                && name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, consumable, resolvable, declarable, consumptionDeprecated, resolutionDeprecated, declarationDeprecated);
+        return Objects.hash(
+                name,
+                consumable,
+                resolvable,
+                declarable,
+                consumptionDeprecated,
+                resolutionDeprecated,
+                declarationDeprecated);
     }
 
     @Override

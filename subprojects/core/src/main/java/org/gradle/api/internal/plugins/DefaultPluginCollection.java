@@ -16,6 +16,7 @@
 package org.gradle.api.internal.plugins;
 
 import groovy.lang.Closure;
+import java.util.Collection;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -25,9 +26,9 @@ import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
-import java.util.Collection;
-
-@SuppressWarnings("deprecation") // Something is weird with the hierarchy of 'add(T)', the implementation inherited from DefaultDomainObjectSet is used internally in DefaultPluginContainer.pluginAdded() but at the same time PluginCollection.add(T) is deprecated
+@SuppressWarnings("deprecation") // Something is weird with the hierarchy of 'add(T)', the implementation inherited from
+// DefaultDomainObjectSet is used internally in DefaultPluginContainer.pluginAdded() but at the
+// same time PluginCollection.add(T) is deprecated
 class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T> implements PluginCollection<T> {
     DefaultPluginCollection(Class<T> type, CollectionCallbackActionDecorator decorator) {
         super(type, decorator);
@@ -86,5 +87,4 @@ class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T
     public void whenPluginAdded(Closure closure) {
         whenObjectAdded(closure);
     }
-
 }

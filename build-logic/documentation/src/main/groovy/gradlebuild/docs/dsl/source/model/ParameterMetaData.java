@@ -15,10 +15,9 @@
  */
 package gradlebuild.docs.dsl.source.model;
 
-import org.gradle.api.Action;
-
 import java.io.Serializable;
 import java.util.Objects;
+import org.gradle.api.Action;
 
 /**
  * Static meta-data about a method parameter extracted from the source for the method.
@@ -65,8 +64,7 @@ public class ParameterMetaData implements Serializable, TypeContainer {
             return false;
         }
         ParameterMetaData that = (ParameterMetaData) o;
-        return Objects.equals(name, that.name) &&
-            Objects.equals(type, that.type);
+        return Objects.equals(name, that.name) && Objects.equals(type, that.type);
     }
 
     @Override

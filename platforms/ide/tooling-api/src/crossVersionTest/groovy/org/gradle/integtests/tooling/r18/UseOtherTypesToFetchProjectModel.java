@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.tooling.r18;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.integtests.tooling.r16.CustomModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
@@ -24,9 +26,6 @@ import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class UseOtherTypesToFetchProjectModel implements BuildAction<Map<String, CustomModel>> {
     public Map<String, CustomModel> execute(BuildController controller) {

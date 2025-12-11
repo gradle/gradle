@@ -17,6 +17,8 @@
 package org.gradle.api.services.internal;
 
 import com.google.errorprone.annotations.concurrent.GuardedBy;
+import java.util.Collections;
+import java.util.function.Consumer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.services.BuildService;
@@ -32,11 +34,9 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.function.Consumer;
-
 // TODO:configuration-cache - complain when used at configuration time, except when opted in to this
-public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends BuildServiceProvider<T, P> {
+public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters>
+        extends BuildServiceProvider<T, P> {
 
     protected final ServiceRegistry internalServices;
     protected final BuildServiceDetails<T, P> serviceDetails;
@@ -47,6 +47,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     private final Listener listener;
 
     private final Object instanceLock = new Object();
+
     @GuardedBy("instanceLock")
     @Nullable
     private Try<T> instance;
@@ -55,21 +56,22 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
      */
     @GuardedBy("instanceLock")
     private PersistentList<Consumer<? super RegisteredBuildServiceProvider<T, P>>> stopActions = PersistentList.of();
+
     private boolean keepAlive;
 
     public RegisteredBuildServiceProvider(
-        BuildIdentifier buildIdentifier,
-        String name,
-        Class<T> implementationType,
-        @Nullable P parameters,
-        IsolationScheme<BuildService<?>, BuildServiceParameters> isolationScheme,
-        InstantiationScheme instantiationScheme,
-        IsolatableFactory isolatableFactory,
-        ServiceRegistry internalServices,
-        Listener listener,
-        @Nullable Integer maxUsages
-    ) {
-        this.serviceDetails = new BuildServiceDetails<>(buildIdentifier, name, implementationType, parameters, maxUsages);
+            BuildIdentifier buildIdentifier,
+            String name,
+            Class<T> implementationType,
+            @Nullable P parameters,
+            IsolationScheme<BuildService<?>, BuildServiceParameters> isolationScheme,
+            InstantiationScheme instantiationScheme,
+            IsolatableFactory isolatableFactory,
+            ServiceRegistry internalServices,
+            Listener listener,
+            @Nullable Integer maxUsages) {
+        this.serviceDetails =
+                new BuildServiceDetails<>(buildIdentifier, name, implementationType, parameters, maxUsages);
         this.internalServices = internalServices;
         this.isolationScheme = isolationScheme;
         this.instantiationScheme = instantiationScheme;
@@ -149,8 +151,10 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     }
 
     private Try<T> instantiate() {
-        // TODO - extract some shared infrastructure to take care of instantiation (eg which services are visible, strict vs lenient, decorated or not?)
-        // TODO - should hold the project lock to do the isolation. Should work the same way as artifact transforms (a work node does the isolation, etc)
+        // TODO - extract some shared infrastructure to take care of instantiation (eg which services are visible,
+        // strict vs lenient, decorated or not?)
+        // TODO - should hold the project lock to do the isolation. Should work the same way as artifact transforms (a
+        // work node does the isolation, etc)
         P isolatedParameters = isolatableFactory.isolate(getParameters()).isolate();
         // TODO - reuse this in other places
         ServiceLookup instantiationServices = instantiationServicesFor(isolatedParameters);
@@ -166,15 +170,14 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     }
 
     private T instantiate(ServiceLookup instantiationServices) {
-        return instantiationScheme.withServices(instantiationServices).instantiator().newInstance(getImplementationType());
+        return instantiationScheme
+                .withServices(instantiationServices)
+                .instantiator()
+                .newInstance(getImplementationType());
     }
 
     private ServiceLookup instantiationServicesFor(@Nullable P isolatedParameters) {
-        return isolationScheme.servicesForImplementation(
-            isolatedParameters,
-            internalServices,
-            Collections.emptySet()
-        );
+        return isolationScheme.servicesForImplementation(isolatedParameters, internalServices, Collections.emptySet());
     }
 
     @Override
@@ -200,7 +203,8 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
                             try {
                                 ((AutoCloseable) t).close();
                             } catch (Exception e) {
-                                ServiceLifecycleException failure = new ServiceLifecycleException("Failed to stop service '" + getName() + "'.", e);
+                                ServiceLifecycleException failure =
+                                        new ServiceLifecycleException("Failed to stop service '" + getName() + "'.", e);
                                 stopResult.getFailures().forEach(failure::addSuppressed);
                                 throw failure;
                             }

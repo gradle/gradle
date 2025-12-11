@@ -16,14 +16,13 @@
 
 package org.gradle.process.internal;
 
+import java.util.Objects;
+import javax.inject.Inject;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Optional;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.internal.JvmDebugSpec.DefaultJvmDebugSpec;
-
-import javax.inject.Inject;
-import java.util.Objects;
 
 public class DefaultJavaDebugOptions implements JavaDebugOptions {
     private final Property<Boolean> enabled;
@@ -44,10 +43,16 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getEnabled().get(), getHost().getOrNull(), getPort().get(), getServer().get(), getSuspend().get());
+        return Objects.hash(
+                getEnabled().get(),
+                getHost().getOrNull(),
+                getPort().get(),
+                getServer().get(),
+                getSuspend().get());
     }
 
-    @SuppressWarnings({"BoxedPrimitiveEquality", "ReferenceEquality"}) //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings({"BoxedPrimitiveEquality", "ReferenceEquality"
+    }) // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -58,10 +63,10 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
         }
         DefaultJavaDebugOptions that = (DefaultJavaDebugOptions) o;
         return enabled.get() == that.enabled.get()
-            && Objects.equals(host.getOrNull(), that.host.getOrNull())
-            && port.get().equals(that.port.get())
-            && server.get() == that.server.get()
-            && suspend.get() == that.suspend.get();
+                && Objects.equals(host.getOrNull(), that.host.getOrNull())
+                && port.get().equals(that.port.get())
+                && server.get() == that.server.get()
+                && suspend.get() == that.suspend.get();
     }
 
     @Override

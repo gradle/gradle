@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.function.LongFunction;
 import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
@@ -27,19 +32,15 @@ import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.time.Instant;
-import java.util.Collections;
-import java.util.function.LongFunction;
-
 @NullMarked
 class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
 
     private final Path binaryResultsDir;
     private final SerializableTestResultStore.Writer testResultWriter;
+
     @Nullable
     private final TestReportGenerator testReportGenerator;
+
     private final TestExecutionResultsListener executionResultsListener;
     private final boolean closeThrowsOnTestFailures;
     private final boolean addToAggregateReports;
@@ -49,22 +50,16 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     private String failureMessage;
 
     DefaultRootTestEventReporter(
-        LongFunction<TestDescriptorInternal> rootDescriptorFactory,
-        TestListenerInternal listener,
-        IdGenerator<Long> idGenerator,
-        Path binaryResultsDir,
-        SerializableTestResultStore.Writer testResultWriter,
-        @Nullable TestReportGenerator testReportGenerator,
-        TestExecutionResultsListener executionResultsListener,
-        boolean closeThrowsOnTestFailures,
-        boolean addToAggregateReports
-    ) {
-        super(
-            listener,
-            idGenerator,
-            rootDescriptorFactory.apply(idGenerator.generateId()),
-            new TestResultState(null)
-        );
+            LongFunction<TestDescriptorInternal> rootDescriptorFactory,
+            TestListenerInternal listener,
+            IdGenerator<Long> idGenerator,
+            Path binaryResultsDir,
+            SerializableTestResultStore.Writer testResultWriter,
+            @Nullable TestReportGenerator testReportGenerator,
+            TestExecutionResultsListener executionResultsListener,
+            boolean closeThrowsOnTestFailures,
+            boolean addToAggregateReports) {
+        super(listener, idGenerator, rootDescriptorFactory.apply(idGenerator.generateId()), new TestResultState(null));
 
         this.binaryResultsDir = binaryResultsDir;
         this.testResultWriter = testResultWriter;
@@ -96,8 +91,8 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
 
         // Generate HTML report
         Path reportIndexFile = testReportGenerator == null
-            ? null
-            : testReportGenerator.generate(Collections.singletonList(binaryResultsDir));
+                ? null
+                : testReportGenerator.generate(Collections.singletonList(binaryResultsDir));
 
         // Notify aggregate listener of final results
         boolean hasTestFailures = failureMessage != null;

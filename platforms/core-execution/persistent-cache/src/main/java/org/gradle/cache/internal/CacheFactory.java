@@ -15,6 +15,9 @@
  */
 package org.gradle.cache.internal;
 
+import java.io.File;
+import java.util.Map;
+import java.util.function.Consumer;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.LockOptions;
@@ -23,16 +26,19 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.Map;
-import java.util.function.Consumer;
-
 @ServiceScope(Scope.Global.class)
 public interface CacheFactory {
     /**
      * Opens a cache with the given options. The caller must close the cache when finished with it.
      */
-    PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException;
+    PersistentCache open(
+            File cacheDir,
+            String displayName,
+            Map<String, ?> properties,
+            LockOptions lockOptions,
+            @Nullable Consumer<? super PersistentCache> initializer,
+            CacheCleanupStrategy cacheCleanupStrategy)
+            throws CacheOpenException;
 
     /**
      * Visit the caches created by this factory.

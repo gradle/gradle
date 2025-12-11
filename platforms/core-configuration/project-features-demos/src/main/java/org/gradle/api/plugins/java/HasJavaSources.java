@@ -25,6 +25,5 @@ public interface HasJavaSources extends HasSources<JavaClasses> {
     @Override
     NamedDomainObjectContainer<JavaSources> getSources();
 
-    interface JavaSources extends Named, Sources<JavaClasses>, HasResources {
-    }
+    interface JavaSources extends Named, Sources<JavaClasses>, HasResources {}
 }

@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Dependency;
@@ -33,8 +34,6 @@ import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * <p>A {@code DependencyHandler} is used to declare dependencies. Dependencies are grouped into
@@ -271,7 +270,8 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 6.8
      */
-    <T, U extends ExternalModuleDependency> void addProvider(String configurationName, Provider<T> dependencyNotation, Action<? super U> configuration);
+    <T, U extends ExternalModuleDependency> void addProvider(
+            String configurationName, Provider<T> dependencyNotation, Action<? super U> configuration);
 
     /**
      * Adds a dependency provider to the given configuration.
@@ -292,7 +292,8 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 7.4
      */
-    <T, U extends ExternalModuleDependency> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation, Action<? super U> configuration);
+    <T, U extends ExternalModuleDependency> void addProviderConvertible(
+            String configurationName, ProviderConvertible<T> dependencyNotation, Action<? super U> configuration);
 
     /**
      * Adds a dependency provider to the given configuration.
@@ -492,7 +493,8 @@ public interface DependencyHandler extends ExtensionAware {
      * @see TransformAction
      * @since 5.3
      */
-    <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
+    <T extends TransformParameters> void registerTransform(
+            Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
     /**
      * Declares a dependency on a platform. If the target coordinates represent multiple
@@ -566,7 +568,9 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the configured variant
      * @since 6.8
      */
-    Provider<MinimalExternalModuleDependency> variantOf(Provider<MinimalExternalModuleDependency> dependencyProvider, Action<? super ExternalModuleDependencyVariantSpec> variantSpec);
+    Provider<MinimalExternalModuleDependency> variantOf(
+            Provider<MinimalExternalModuleDependency> dependencyProvider,
+            Action<? super ExternalModuleDependencyVariantSpec> variantSpec);
 
     /**
      * Allows fine-tuning what variant to select for the target dependency. This can be used to
@@ -577,8 +581,9 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the configured variant
      * @since 7.3
      */
-    default Provider<MinimalExternalModuleDependency> variantOf(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible,
-                                                                Action<? super ExternalModuleDependencyVariantSpec> variantSpec) {
+    default Provider<MinimalExternalModuleDependency> variantOf(
+            ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible,
+            Action<? super ExternalModuleDependencyVariantSpec> variantSpec) {
         return variantOf(dependencyProviderConvertible.asProvider(), variantSpec);
     }
 
@@ -588,7 +593,8 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the platform variant of the component
      * @since 6.8
      */
-    default Provider<MinimalExternalModuleDependency> platform(Provider<MinimalExternalModuleDependency> dependencyProvider) {
+    default Provider<MinimalExternalModuleDependency> platform(
+            Provider<MinimalExternalModuleDependency> dependencyProvider) {
         return variantOf(dependencyProvider, ExternalModuleDependencyVariantSpec::platform);
     }
 
@@ -598,7 +604,8 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the platform variant of the component
      * @since 7.3
      */
-    default Provider<MinimalExternalModuleDependency> platform(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
+    default Provider<MinimalExternalModuleDependency> platform(
+            ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
         return platform(dependencyProviderConvertible.asProvider());
     }
 
@@ -608,7 +615,8 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the enforced-platform variant of the component
      * @since 7.3
      */
-    Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider);
+    Provider<MinimalExternalModuleDependency> enforcedPlatform(
+            Provider<MinimalExternalModuleDependency> dependencyProvider);
 
     /**
      * Configures this dependency provider to select the enforced-platform variant of the target component
@@ -616,7 +624,8 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the enforced-platform variant of the component
      * @since 7.3
      */
-    default Provider<MinimalExternalModuleDependency> enforcedPlatform(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
+    default Provider<MinimalExternalModuleDependency> enforcedPlatform(
+            ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
         return enforcedPlatform(dependencyProviderConvertible.asProvider());
     }
 
@@ -626,7 +635,8 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the test fixtures of the component
      * @since 6.8
      */
-    default Provider<MinimalExternalModuleDependency> testFixtures(Provider<MinimalExternalModuleDependency> dependencyProvider) {
+    default Provider<MinimalExternalModuleDependency> testFixtures(
+            Provider<MinimalExternalModuleDependency> dependencyProvider) {
         return variantOf(dependencyProvider, ExternalModuleDependencyVariantSpec::testFixtures);
     }
 
@@ -636,8 +646,8 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the test fixtures of the component
      * @since 7.3
      */
-    default Provider<MinimalExternalModuleDependency> testFixtures(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
+    default Provider<MinimalExternalModuleDependency> testFixtures(
+            ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
         return testFixtures(dependencyProviderConvertible.asProvider());
     }
-
 }

@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
-import org.gradle.internal.classloader.ClassLoaderSpec;
-
 import java.net.URI;
 import java.util.List;
+import org.gradle.internal.classloader.ClassLoaderSpec;
 
 public class ClientOwnedClassLoaderSpec extends ClassLoaderSpec {
     private final List<URI> classpath;

@@ -20,7 +20,6 @@ import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,15 +39,14 @@ public class XCConfigurationList extends PBXProjectItem {
         defaultConfigurationName = Optional.absent();
         defaultConfigurationIsVisible = false;
 
-        buildConfigurationsByName = CacheBuilder.newBuilder().build(
-            new CacheLoader<String, XCBuildConfiguration>() {
-                @Override
-                public XCBuildConfiguration load(String key) throws Exception {
-                    XCBuildConfiguration configuration = new XCBuildConfiguration(key);
-                    buildConfigurations.add(configuration);
-                    return configuration;
-                }
-            });
+        buildConfigurationsByName = CacheBuilder.newBuilder().build(new CacheLoader<String, XCBuildConfiguration>() {
+            @Override
+            public XCBuildConfiguration load(String key) throws Exception {
+                XCBuildConfiguration configuration = new XCBuildConfiguration(key);
+                buildConfigurations.add(configuration);
+                return configuration;
+            }
+        });
     }
 
     public LoadingCache<String, XCBuildConfiguration> getBuildConfigurationsByName() {

@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.time.Instant;
 import java.util.Map;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Key-value data published by a test

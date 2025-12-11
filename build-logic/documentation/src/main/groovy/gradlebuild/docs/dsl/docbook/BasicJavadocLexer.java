@@ -123,7 +123,7 @@ class BasicJavadocLexer implements JavadocLexer {
         scanner.next(2);
         scanner.mark();
         scanner.find(';');
-        String value = new String(new char[]{(char) Integer.parseInt(scanner.region())});
+        String value = new String(new char[] {(char) Integer.parseInt(scanner.region())});
         buffer.append(value);
         scanner.next();
     }

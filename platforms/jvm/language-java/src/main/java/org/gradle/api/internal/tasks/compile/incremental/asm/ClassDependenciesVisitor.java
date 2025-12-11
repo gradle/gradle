@@ -18,6 +18,12 @@ package org.gradle.api.internal.tasks.compile.incremental.asm;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Predicate;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
@@ -34,13 +40,6 @@ import org.objectweb.asm.TypePath;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
 
-import java.lang.annotation.RetentionPolicy;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Predicate;
-
 public class ClassDependenciesVisitor extends ClassVisitor {
 
     private static final int API = AsmConstants.ASM_LEVEL;
@@ -48,22 +47,20 @@ public class ClassDependenciesVisitor extends ClassVisitor {
      * Handle describing {@link java.lang.invoke.ConstantBootstraps#invoke(MethodHandles.Lookup, String, Class, MethodHandle, Object...)}.
      */
     private static final Handle CONSTANT_BOOTSTRAPS_INVOKE = new Handle(
-        Opcodes.H_INVOKESTATIC,
-        "java/lang/invoke/ConstantBootstraps",
-        "invoke",
-        "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/invoke/MethodHandle;[Ljava/lang/Object;)Ljava/lang/Object;",
-        false
-    );
+            Opcodes.H_INVOKESTATIC,
+            "java/lang/invoke/ConstantBootstraps",
+            "invoke",
+            "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/invoke/MethodHandle;[Ljava/lang/Object;)Ljava/lang/Object;",
+            false);
     /**
      * Handle describing {@link java.lang.constant.ClassDesc#of(String)}.
      */
     private static final Handle CLASS_DESC_OF = new Handle(
-        Opcodes.H_INVOKESTATIC,
-        "java/lang/constant/ClassDesc",
-        "of",
-        "(Ljava/lang/String;)Ljava/lang/constant/ClassDesc;",
-        true
-    );
+            Opcodes.H_INVOKESTATIC,
+            "java/lang/constant/ClassDesc",
+            "of",
+            "(Ljava/lang/String;)Ljava/lang/constant/ClassDesc;",
+            true);
 
     private final IntSet constants;
     private final Set<String> privateTypes;
@@ -87,13 +84,19 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     }
 
     public static ClassAnalysis analyze(String className, ClassReader reader, StringInterner interner) {
-        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(new ClassRelevancyFilter(className), reader, interner);
+        ClassDependenciesVisitor visitor =
+                new ClassDependenciesVisitor(new ClassRelevancyFilter(className), reader, interner);
         reader.accept(visitor, ClassReader.SKIP_FRAMES);
 
         // Remove the "API accessible" types from the "privately used types"
         visitor.privateTypes.removeAll(visitor.accessibleTypes);
         String name = visitor.moduleName != null ? visitor.moduleName : className;
-        return new ClassAnalysis(interner.intern(name), visitor.getPrivateClassDependencies(), visitor.getAccessibleClassDependencies(), visitor.getDependencyToAllReason(), visitor.getConstants());
+        return new ClassAnalysis(
+                interner.intern(name),
+                visitor.getPrivateClassDependencies(),
+                visitor.getAccessibleClassDependencies(),
+                visitor.getDependencyToAllReason(),
+                visitor.getConstants());
     }
 
     @Override
@@ -180,7 +183,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             // we need to compute a hash for a constant, which is based on the name of the constant + its value
             // otherwise we miss the case where a class defines several constants with the same value, or when
             // two values are switched
-            constants.add((name + '|' + value).hashCode()); //non-private const
+            constants.add((name + '|' + value).hashCode()); // non-private const
         }
         return new FieldVisitor(types);
     }
@@ -242,7 +245,8 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         }
 
         @Override
-        public org.objectweb.asm.AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+        public org.objectweb.asm.AnnotationVisitor visitTypeAnnotation(
+                int typeRef, TypePath typePath, String descriptor, boolean visible) {
             maybeAddDependentType(types, Type.getType(descriptor));
             return new AnnotationVisitor(types);
         }
@@ -270,20 +274,24 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         }
 
         @Override
-        public org.objectweb.asm.AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
+        public org.objectweb.asm.AnnotationVisitor visitParameterAnnotation(
+                int parameter, String descriptor, boolean visible) {
             maybeAddDependentType(types, Type.getType(descriptor));
             return new AnnotationVisitor(types);
         }
 
         @Override
-        public org.objectweb.asm.AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+        public org.objectweb.asm.AnnotationVisitor visitTypeAnnotation(
+                int typeRef, TypePath typePath, String descriptor, boolean visible) {
             maybeAddDependentType(types, Type.getType(descriptor));
             return new AnnotationVisitor(types);
         }
 
         @Override
-        public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-            if (tryHandleSpecialBootstrapMethod(BootstrapMethod.fromIndy(bootstrapMethodHandle, bootstrapMethodArguments))) {
+        public void visitInvokeDynamicInsn(
+                String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+            if (tryHandleSpecialBootstrapMethod(
+                    BootstrapMethod.fromIndy(bootstrapMethodHandle, bootstrapMethodArguments))) {
                 return;
             }
             addTypesFromMethodDescriptor(privateTypes, descriptor);
@@ -305,7 +313,8 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             if (tryHandleSpecialBootstrapMethod(BootstrapMethod.fromConstantDynamic(arg))) {
                 return;
             }
-            maybeAddDependentType(privateTypes, Type.getObjectType(arg.getBootstrapMethod().getOwner()));
+            maybeAddDependentType(
+                    privateTypes, Type.getObjectType(arg.getBootstrapMethod().getOwner()));
 
             for (int i = 0; i < arg.getBootstrapMethodArgumentCount(); i++) {
                 addDependentTypeFromBootstrapMethodArgument(arg.getBootstrapMethodArgument(i));

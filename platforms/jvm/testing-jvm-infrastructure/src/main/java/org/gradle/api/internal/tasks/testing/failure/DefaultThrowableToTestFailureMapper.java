@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.failure;
 
+import java.util.List;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 @NullMarked
 public class DefaultThrowableToTestFailureMapper implements ThrowableToTestFailureMapper {
@@ -38,14 +37,19 @@ public class DefaultThrowableToTestFailureMapper implements ThrowableToTestFailu
     public TestFailure createFailure(Throwable throwable) {
         Throwable currentThrowable = throwable;
 
-        // We recursively dig down through the chain of causes, trying to find a Throwable which we can map to a proper test failure
+        // We recursively dig down through the chain of causes, trying to find a Throwable which we can map to a proper
+        // test failure
         while (currentThrowable != null) {
             for (TestFailureMapper mapper : mappers) {
                 if (mapper.supports(currentThrowable.getClass())) {
                     try {
                         return mapper.map(currentThrowable, this);
                     } catch (Exception ex) {
-                        LOGGER.error("Failed to map supported failure '{}' with mapper '{}': {}", currentThrowable, mapper, ex.getMessage());
+                        LOGGER.error(
+                                "Failed to map supported failure '{}' with mapper '{}': {}",
+                                currentThrowable,
+                                mapper,
+                                ex.getMessage());
                     }
                 }
             }

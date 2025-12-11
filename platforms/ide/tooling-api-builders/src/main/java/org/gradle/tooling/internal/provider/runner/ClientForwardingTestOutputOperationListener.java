@@ -39,36 +39,43 @@ class ClientForwardingTestOutputOperationListener implements BuildOperationListe
     private final ProgressEventConsumer eventConsumer;
     private final BuildOperationIdFactory idFactory;
 
-    ClientForwardingTestOutputOperationListener(ProgressEventConsumer eventConsumer, BuildOperationIdFactory idFactory) {
+    ClientForwardingTestOutputOperationListener(
+            ProgressEventConsumer eventConsumer, BuildOperationIdFactory idFactory) {
         this.eventConsumer = eventConsumer;
         this.idFactory = idFactory;
     }
 
     @Override
-    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-    }
+    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {}
 
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         Object details = progressEvent.getDetails();
         if (details instanceof ExecuteTestBuildOperationType.Output) {
             ExecuteTestBuildOperationType.Output progress = (ExecuteTestBuildOperationType.Output) details;
-            InternalTestOutputDescriptor descriptor = new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
+            InternalTestOutputDescriptor descriptor =
+                    new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
             int destination = getDestination(progress.getOutput().getDestination());
-            DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), destination, progress.getOutput().getMessage());
+            DefaultTestOutputResult result = new DefaultTestOutputResult(
+                    progressEvent.getTime(),
+                    progressEvent.getTime(),
+                    destination,
+                    progress.getOutput().getMessage());
             eventConsumer.progress(new DefaultTestOutputEvent(progressEvent.getTime(), descriptor, result));
         }
     }
 
     private static int getDestination(TestOutputEvent.Destination destination) {
         switch (destination) {
-            case StdOut: return Destination.StdOut.getCode();
-            case StdErr: return Destination.StdErr.getCode();
-            default: throw new IllegalStateException("Unknown output destination type: " + destination);
+            case StdOut:
+                return Destination.StdOut.getCode();
+            case StdErr:
+                return Destination.StdErr.getCode();
+            default:
+                throw new IllegalStateException("Unknown output destination type: " + destination);
         }
     }
 
     @Override
-    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-    }
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {}
 }

@@ -17,6 +17,9 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.Sets;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -119,10 +122,6 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-
 /**
  * The set of dependency management services that are created per build in the tree.
  */
@@ -139,18 +138,17 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
 
     @Provides
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(
-        Instantiator instantiator,
-        UserCodeApplicationContext context,
-        DependencyManagementServices dependencyManagementServices,
-        ObjectFactory objects,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator
-    ) {
-        return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
-            context,
-            dependencyManagementServices,
-            objects,
-            collectionCallbackActionDecorator
-        );
+            Instantiator instantiator,
+            UserCodeApplicationContext context,
+            DependencyManagementServices dependencyManagementServices,
+            ObjectFactory objects,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        return instantiator.newInstance(
+                DefaultDependencyResolutionManagement.class,
+                context,
+                dependencyManagementServices,
+                objects,
+                collectionCallbackActionDecorator);
     }
 
     @Provides
@@ -170,55 +168,56 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
 
     @Provides
     DependencyFactoryInternal createDependencyFactory(
-        Instantiator instantiator,
-        DefaultProjectDependencyFactory factory,
-        ClassPathRegistry classPathRegistry,
-        FileCollectionFactory fileCollectionFactory,
-        RuntimeShadedJarFactory runtimeShadedJarFactory,
-        AttributesFactory attributesFactory,
-        SimpleMapInterner stringInterner,
-        CapabilityNotationParser capabilityNotationParser,
-        ObjectFactory objectFactory
-    ) {
+            Instantiator instantiator,
+            DefaultProjectDependencyFactory factory,
+            ClassPathRegistry classPathRegistry,
+            FileCollectionFactory fileCollectionFactory,
+            RuntimeShadedJarFactory runtimeShadedJarFactory,
+            AttributesFactory attributesFactory,
+            SimpleMapInterner stringInterner,
+            CapabilityNotationParser capabilityNotationParser,
+            ObjectFactory objectFactory) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         DependencyNotationParser dependencyNotationParser = DependencyNotationParser.create(
-            instantiator,
-            factory,
-            classPathRegistry,
-            fileCollectionFactory,
-            runtimeShadedJarFactory,
-            stringInterner
-        );
+                instantiator,
+                factory,
+                classPathRegistry,
+                fileCollectionFactory,
+                runtimeShadedJarFactory,
+                stringInterner);
 
         return new DefaultDependencyFactory(
-            instantiator,
-            dependencyNotationParser,
-            capabilityNotationParser,
-            objectFactory,
-            projectDependencyFactory,
-            attributesFactory
-        );
+                instantiator,
+                dependencyNotationParser,
+                capabilityNotationParser,
+                objectFactory,
+                projectDependencyFactory,
+                attributesFactory);
     }
 
     @Provides
     DependencyConstraintFactoryInternal createDependencyConstraintFactory(
-        Instantiator instantiator,
-        ObjectFactory objectFactory,
-        DefaultProjectDependencyFactory factory,
-        AttributesFactory attributesFactory,
-        SimpleMapInterner stringInterner
-    ) {
+            Instantiator instantiator,
+            ObjectFactory objectFactory,
+            DefaultProjectDependencyFactory factory,
+            AttributesFactory attributesFactory,
+            SimpleMapInterner stringInterner) {
         return new DefaultDependencyConstraintFactory(
-            objectFactory,
-            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
-            attributesFactory
-        );
+                objectFactory,
+                DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
+                attributesFactory);
     }
 
     @Provides
-    RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, BuildOperationRunner buildOperationRunner) {
-        return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory, classpathWalker, classpathBuilder, buildOperationRunner);
+    RuntimeShadedJarFactory createRuntimeShadedJarFactory(
+            GeneratedGradleJarCache jarCache,
+            ProgressLoggerFactory progressLoggerFactory,
+            ClasspathWalker classpathWalker,
+            ClasspathBuilder classpathBuilder,
+            BuildOperationRunner buildOperationRunner) {
+        return new RuntimeShadedJarFactory(
+                jarCache, progressLoggerFactory, classpathWalker, classpathBuilder, buildOperationRunner);
     }
 
     @Provides
@@ -227,17 +226,23 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     }
 
     @Provides
-    TextUriResourceLoader.Factory createTextUrlResourceLoaderFactory(FileStoreAndIndexProvider fileStoreAndIndexProvider, RepositoryTransportFactory repositoryTransportFactory, RelativeFilePathResolver resolver) {
+    TextUriResourceLoader.Factory createTextUrlResourceLoaderFactory(
+            FileStoreAndIndexProvider fileStoreAndIndexProvider,
+            RepositoryTransportFactory repositoryTransportFactory,
+            RelativeFilePathResolver resolver) {
         final HashSet<String> schemas = Sets.newHashSet("https", "http");
         return redirectVerifier -> {
-            RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "resources http", Collections.emptyList(), redirectVerifier);
-            ExternalResourceAccessor externalResourceAccessor = new DefaultExternalResourceAccessor(fileStoreAndIndexProvider.getExternalResourceFileStore(), transport.getResourceAccessor());
+            RepositoryTransport transport = repositoryTransportFactory.createTransport(
+                    schemas, "resources http", Collections.emptyList(), redirectVerifier);
+            ExternalResourceAccessor externalResourceAccessor = new DefaultExternalResourceAccessor(
+                    fileStoreAndIndexProvider.getExternalResourceFileStore(), transport.getResourceAccessor());
             return new CachingTextUriResourceLoader(externalResourceAccessor, schemas, resolver);
         };
     }
 
     @Provides
-    protected ApiTextResourceAdapter.Factory createTextResourceAdapterFactory(TextUriResourceLoader.Factory textUriResourceLoaderFactory, TemporaryFileProvider tempFileProvider) {
+    protected ApiTextResourceAdapter.Factory createTextResourceAdapterFactory(
+            TextUriResourceLoader.Factory textUriResourceLoaderFactory, TemporaryFileProvider tempFileProvider) {
         return new ApiTextResourceAdapter.Factory(textUriResourceLoaderFactory, tempFileProvider);
     }
 
@@ -252,128 +257,167 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     }
 
     @Provides
-    LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> createArtifactRevisionIdLocallyAvailableResourceFinder(
-        ArtifactCachesProvider artifactCaches,
-        LocalMavenRepositoryLocator localMavenRepositoryLocator,
-        FileStoreAndIndexProvider fileStoreAndIndexProvider,
-        ChecksumService checksumService
-    ) {
+    LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>
+            createArtifactRevisionIdLocallyAvailableResourceFinder(
+                    ArtifactCachesProvider artifactCaches,
+                    LocalMavenRepositoryLocator localMavenRepositoryLocator,
+                    FileStoreAndIndexProvider fileStoreAndIndexProvider,
+                    ChecksumService checksumService) {
         LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
-            artifactCaches,
-            localMavenRepositoryLocator,
-            fileStoreAndIndexProvider.getArtifactIdentifierFileStore(), checksumService);
+                artifactCaches,
+                localMavenRepositoryLocator,
+                fileStoreAndIndexProvider.getArtifactIdentifierFileStore(),
+                checksumService);
         return finderFactory.create();
     }
 
     @Provides
     RepositoryTransportFactory createRepositoryTransportFactory(
-        TemporaryFileProvider temporaryFileProvider,
-        FileStoreAndIndexProvider fileStoreAndIndexProvider,
-        BuildCommencedTimeProvider buildCommencedTimeProvider,
-        ArtifactCachesProvider artifactCachesProvider,
-        List<ResourceConnectorFactory> resourceConnectorFactories,
-        BuildOperationRunner buildOperationRunner,
-        ProducerGuard<ExternalResourceName> producerGuard,
-        FileResourceRepository fileResourceRepository,
-        ChecksumService checksumService,
-        StartParameterResolutionOverride startParameterResolutionOverride
-    ) {
+            TemporaryFileProvider temporaryFileProvider,
+            FileStoreAndIndexProvider fileStoreAndIndexProvider,
+            BuildCommencedTimeProvider buildCommencedTimeProvider,
+            ArtifactCachesProvider artifactCachesProvider,
+            List<ResourceConnectorFactory> resourceConnectorFactories,
+            BuildOperationRunner buildOperationRunner,
+            ProducerGuard<ExternalResourceName> producerGuard,
+            FileResourceRepository fileResourceRepository,
+            ChecksumService checksumService,
+            StartParameterResolutionOverride startParameterResolutionOverride) {
         return artifactCachesProvider.withWritableCache((md, manager) -> new RepositoryTransportFactory(
-            resourceConnectorFactories,
-            temporaryFileProvider,
-            fileStoreAndIndexProvider.getExternalResourceIndex(),
-            buildCommencedTimeProvider,
-            manager,
-            buildOperationRunner,
-            startParameterResolutionOverride,
-            producerGuard,
-            fileResourceRepository,
-            checksumService
-        ));
+                resourceConnectorFactories,
+                temporaryFileProvider,
+                fileStoreAndIndexProvider.getExternalResourceIndex(),
+                buildCommencedTimeProvider,
+                manager,
+                buildOperationRunner,
+                startParameterResolutionOverride,
+                producerGuard,
+                fileResourceRepository,
+                checksumService));
     }
 
     @Provides
     DependencyVerificationOverride createDependencyVerificationOverride(
-        StartParameterResolutionOverride startParameterResolutionOverride,
-        BuildOperationExecutor buildOperationExecutor,
-        ChecksumService checksumService,
-        SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-        DocumentationRegistry documentationRegistry,
-        ListenerManager listenerManager,
-        BuildCommencedTimeProvider timeProvider,
-        ServiceRegistry serviceRegistry
-    ) {
-        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider, () -> serviceRegistry.get(GradleProperties.class), listenerManager.getBroadcaster(FileResourceListener.class));
+            StartParameterResolutionOverride startParameterResolutionOverride,
+            BuildOperationExecutor buildOperationExecutor,
+            ChecksumService checksumService,
+            SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+            DocumentationRegistry documentationRegistry,
+            ListenerManager listenerManager,
+            BuildCommencedTimeProvider timeProvider,
+            ServiceRegistry serviceRegistry) {
+        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(
+                buildOperationExecutor,
+                checksumService,
+                signatureVerificationServiceFactory,
+                documentationRegistry,
+                timeProvider,
+                () -> serviceRegistry.get(GradleProperties.class),
+                listenerManager.getBroadcaster(FileResourceListener.class));
         registerBuildFinishedHooks(listenerManager, override);
         return override;
     }
 
     @Provides
-    VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
+    VersionSelectorScheme createVersionSelectorScheme(
+            VersionComparator versionComparator, VersionParser versionParser) {
         DefaultVersionSelectorScheme delegate = new DefaultVersionSelectorScheme(versionComparator, versionParser);
         return new CachingVersionSelectorScheme(delegate);
     }
 
     @Provides
-    ModuleComponentResolveMetadataSerializer createModuleComponentResolveMetadataSerializer(AttributesFactory attributesFactory, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, NamedObjectInstantiator instantiator, ModuleSourcesSerializer moduleSourcesSerializer) {
-        DesugaringAttributeContainerSerializer attributeContainerSerializer = new DesugaringAttributeContainerSerializer(attributesFactory, instantiator);
+    ModuleComponentResolveMetadataSerializer createModuleComponentResolveMetadataSerializer(
+            AttributesFactory attributesFactory,
+            MavenMutableModuleMetadataFactory mavenMetadataFactory,
+            IvyMutableModuleMetadataFactory ivyMetadataFactory,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            NamedObjectInstantiator instantiator,
+            ModuleSourcesSerializer moduleSourcesSerializer) {
+        DesugaringAttributeContainerSerializer attributeContainerSerializer =
+                new DesugaringAttributeContainerSerializer(attributesFactory, instantiator);
         CapabilitySelectorSerializer capabilitySelectorSerializer = new CapabilitySelectorSerializer();
-        return new ModuleComponentResolveMetadataSerializer(new ModuleMetadataSerializer(attributeContainerSerializer, capabilitySelectorSerializer, mavenMetadataFactory, ivyMetadataFactory, moduleSourcesSerializer), attributeContainerSerializer, capabilitySelectorSerializer, moduleIdentifierFactory);
+        return new ModuleComponentResolveMetadataSerializer(
+                new ModuleMetadataSerializer(
+                        attributeContainerSerializer,
+                        capabilitySelectorSerializer,
+                        mavenMetadataFactory,
+                        ivyMetadataFactory,
+                        moduleSourcesSerializer),
+                attributeContainerSerializer,
+                capabilitySelectorSerializer,
+                moduleIdentifierFactory);
     }
 
     @Provides
-    SuppliedComponentMetadataSerializer createSuppliedComponentMetadataSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer) {
-        ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
+    SuppliedComponentMetadataSerializer createSuppliedComponentMetadataSerializer(
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            AttributeContainerSerializer attributeContainerSerializer) {
+        ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer =
+                new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
         return new SuppliedComponentMetadataSerializer(moduleVersionIdentifierSerializer, attributeContainerSerializer);
     }
 
     @Provides
     ComponentMetadataRuleExecutor createComponentMetadataRuleExecutor(
-        ValueSnapshotter valueSnapshotter,
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-        BuildCommencedTimeProvider timeProvider,
-        ModuleComponentResolveMetadataSerializer serializer
-    ) {
-        return new ComponentMetadataRuleExecutor(cacheBuilderFactory, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer);
+            ValueSnapshotter valueSnapshotter,
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+            BuildCommencedTimeProvider timeProvider,
+            ModuleComponentResolveMetadataSerializer serializer) {
+        return new ComponentMetadataRuleExecutor(
+                cacheBuilderFactory, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer);
     }
 
     @Provides
     ComponentMetadataSupplierRuleExecutor createComponentMetadataSupplierRuleExecutor(
-        ValueSnapshotter snapshotter,
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-        final BuildCommencedTimeProvider timeProvider,
-        SuppliedComponentMetadataSerializer suppliedComponentMetadataSerializer,
-        ListenerManager listenerManager
-    ) {
+            ValueSnapshotter snapshotter,
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+            final BuildCommencedTimeProvider timeProvider,
+            SuppliedComponentMetadataSerializer suppliedComponentMetadataSerializer,
+            ListenerManager listenerManager) {
         if (cacheDecoratorFactory instanceof CleaningInMemoryCacheDecoratorFactory) {
             listenerManager.addListener(new BuildModelLifecycleListener() {
                 @Override
                 public void beforeModelDiscarded(GradleInternal model, boolean buildFailed) {
-                    ((CleaningInMemoryCacheDecoratorFactory) cacheDecoratorFactory).clearCaches(ComponentMetadataRuleExecutor::isMetadataRuleExecutorCache);
+                    ((CleaningInMemoryCacheDecoratorFactory) cacheDecoratorFactory)
+                            .clearCaches(ComponentMetadataRuleExecutor::isMetadataRuleExecutorCache);
                 }
             });
         }
-        return new ComponentMetadataSupplierRuleExecutor(cacheBuilderFactory, cacheDecoratorFactory, snapshotter, timeProvider, suppliedComponentMetadataSerializer);
+        return new ComponentMetadataSupplierRuleExecutor(
+                cacheBuilderFactory,
+                cacheDecoratorFactory,
+                snapshotter,
+                timeProvider,
+                suppliedComponentMetadataSerializer);
     }
 
     @Provides
     SignatureVerificationServiceFactory createSignatureVerificationServiceFactory(
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        InMemoryCacheDecoratorFactory decoratorFactory,
-        RepositoryTransportFactory transportFactory,
-        BuildOperationRunner buildOperationRunner,
-        BuildCommencedTimeProvider timeProvider,
-        BuildScopedCacheBuilderFactory buildScopedCacheBuilderFactory,
-        FileHasher fileHasher,
-        StartParameter startParameter,
-        ListenerManager listenerManager
-    ) {
-        return new DefaultSignatureVerificationServiceFactory(transportFactory, cacheBuilderFactory, decoratorFactory, buildOperationRunner, fileHasher, buildScopedCacheBuilderFactory, timeProvider, startParameter.isRefreshKeys(), listenerManager.getBroadcaster(FileResourceListener.class));
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory decoratorFactory,
+            RepositoryTransportFactory transportFactory,
+            BuildOperationRunner buildOperationRunner,
+            BuildCommencedTimeProvider timeProvider,
+            BuildScopedCacheBuilderFactory buildScopedCacheBuilderFactory,
+            FileHasher fileHasher,
+            StartParameter startParameter,
+            ListenerManager listenerManager) {
+        return new DefaultSignatureVerificationServiceFactory(
+                transportFactory,
+                cacheBuilderFactory,
+                decoratorFactory,
+                buildOperationRunner,
+                fileHasher,
+                buildScopedCacheBuilderFactory,
+                timeProvider,
+                startParameter.isRefreshKeys(),
+                listenerManager.getBroadcaster(FileResourceListener.class));
     }
 
-    private static void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {
+    private static void registerBuildFinishedHooks(
+            ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {
         listenerManager.addListener(new BuildModelLifecycleListener() {
             @Override
             public void beforeModelDiscarded(GradleInternal model, boolean buildFailed) {
@@ -384,18 +428,27 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
 
     @Provides
     DependenciesAccessors createDependenciesAccessorGenerator(
-        ObjectFactory objectFactory,
-        ClassPathRegistry registry,
-        DependenciesAccessorsWorkspaceProvider workspace,
-        DefaultProjectDependencyFactory factory,
-        ExecutionEngine executionEngine,
-        FeatureFlags featureFlags,
-        FileCollectionFactory fileCollectionFactory,
-        AttributesFactory attributesFactory,
-        CapabilityNotationParser capabilityNotationParser,
-        InputFingerprinter inputFingerprinter
-    ) {
-        return objectFactory.newInstance(DefaultDependenciesAccessors.class, registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter, attributesFactory, capabilityNotationParser);
+            ObjectFactory objectFactory,
+            ClassPathRegistry registry,
+            DependenciesAccessorsWorkspaceProvider workspace,
+            DefaultProjectDependencyFactory factory,
+            ExecutionEngine executionEngine,
+            FeatureFlags featureFlags,
+            FileCollectionFactory fileCollectionFactory,
+            AttributesFactory attributesFactory,
+            CapabilityNotationParser capabilityNotationParser,
+            InputFingerprinter inputFingerprinter) {
+        return objectFactory.newInstance(
+                DefaultDependenciesAccessors.class,
+                registry,
+                workspace,
+                factory,
+                featureFlags,
+                executionEngine,
+                fileCollectionFactory,
+                inputFingerprinter,
+                attributesFactory,
+                capabilityNotationParser);
     }
 
     @Provides

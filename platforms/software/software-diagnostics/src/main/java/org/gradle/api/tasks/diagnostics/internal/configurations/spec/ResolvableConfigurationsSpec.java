@@ -26,7 +26,8 @@ import org.jspecify.annotations.Nullable;
 public final class ResolvableConfigurationsSpec extends AbstractConfigurationReportSpec {
     private final boolean recursive;
 
-    public ResolvableConfigurationsSpec(@Nullable String searchTarget, boolean showLegacy, boolean recursive, boolean showAttributePrecedence) {
+    public ResolvableConfigurationsSpec(
+            @Nullable String searchTarget, boolean showLegacy, boolean recursive, boolean showAttributePrecedence) {
         super(searchTarget, showLegacy, showAttributePrecedence);
         this.recursive = recursive;
     }

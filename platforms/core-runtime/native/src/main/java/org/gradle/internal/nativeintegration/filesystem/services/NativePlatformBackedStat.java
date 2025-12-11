@@ -16,10 +16,9 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
+import java.io.File;
 import net.rubygrapefruit.platform.file.PosixFiles;
 import org.gradle.internal.file.FileModeAccessor;
-
-import java.io.File;
 
 class NativePlatformBackedStat implements FileModeAccessor {
     private final PosixFiles posixFiles;

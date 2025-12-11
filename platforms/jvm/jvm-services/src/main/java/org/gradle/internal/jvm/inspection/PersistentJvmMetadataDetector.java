@@ -16,6 +16,9 @@
 
 package org.gradle.internal.jvm.inspection;
 
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
@@ -26,10 +29,6 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
 
 /**
  * A {@link JvmMetadataDetector} that caches the results of the JVM installation metadata in a persistent cache.
@@ -44,13 +43,11 @@ public class PersistentJvmMetadataDetector implements JvmMetadataDetector, Close
 
     public PersistentJvmMetadataDetector(JvmMetadataDetector delegate, CacheBuilder cacheBuilder) {
         this.delegate = delegate;
-        this.cache = cacheBuilder.withInitialLockMode(FileLockManager.LockMode.None).open();
+        this.cache =
+                cacheBuilder.withInitialLockMode(FileLockManager.LockMode.None).open();
         // TODO: This cache should be cleaned up
-        IndexedCacheParameters<File, JvmInstallationMetadata> parameters = IndexedCacheParameters.of(
-            "metadata",
-            new FileSerializer(),
-            new JvmInstallationMetadataSerializer()
-        );
+        IndexedCacheParameters<File, JvmInstallationMetadata> parameters =
+                IndexedCacheParameters.of("metadata", new FileSerializer(), new JvmInstallationMetadataSerializer());
         this.indexedCache = cache.createIndexedCache(parameters);
     }
 
@@ -58,7 +55,8 @@ public class PersistentJvmMetadataDetector implements JvmMetadataDetector, Close
     public JvmInstallationMetadata getMetadata(InstallationLocation javaInstallationLocation) {
         // If the Java installation was auto-provisioned, we can trust that it will not change
         if (javaInstallationLocation.isAutoProvisioned()) {
-            return cache.useCache(() -> indexedCache.get(javaInstallationLocation.getLocation(), key -> delegate.getMetadata(javaInstallationLocation)));
+            return cache.useCache(() -> indexedCache.get(
+                    javaInstallationLocation.getLocation(), key -> delegate.getMetadata(javaInstallationLocation)));
         } else {
             // Otherwise, we need to reprobe each time
             return delegate.getMetadata(javaInstallationLocation);
@@ -88,15 +86,15 @@ public class PersistentJvmMetadataDetector implements JvmMetadataDetector, Close
         @Override
         public JvmInstallationMetadata read(Decoder decoder) throws Exception {
             return JvmInstallationMetadata.from(
-                new File(decoder.readString()),
-                decoder.readString(),
-                decoder.readString(),
-                decoder.readString(),
-                decoder.readString(),
-                decoder.readString(),
-                decoder.readString(),
-                decoder.readString(),
-                decoder.readString());
+                    new File(decoder.readString()),
+                    decoder.readString(),
+                    decoder.readString(),
+                    decoder.readString(),
+                    decoder.readString(),
+                    decoder.readString(),
+                    decoder.readString(),
+                    decoder.readString(),
+                    decoder.readString());
         }
 
         @Override

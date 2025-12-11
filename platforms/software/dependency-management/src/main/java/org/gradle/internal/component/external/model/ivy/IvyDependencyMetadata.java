@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.external.model.ivy;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
@@ -28,9 +30,6 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Represents a dependency declared in an Ivy descriptor file.
@@ -48,11 +47,25 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
         this(configuration, dependencyDescriptor, null, false);
     }
 
-    public IvyDependencyMetadata(ConfigurationMetadata configuration, IvyDependencyDescriptor dependencyDescriptor, @Nullable String reason, boolean endorsing) {
-        this(configuration, dependencyDescriptor, reason, endorsing, dependencyDescriptor.getConfigurationArtifacts(configuration));
+    public IvyDependencyMetadata(
+            ConfigurationMetadata configuration,
+            IvyDependencyDescriptor dependencyDescriptor,
+            @Nullable String reason,
+            boolean endorsing) {
+        this(
+                configuration,
+                dependencyDescriptor,
+                reason,
+                endorsing,
+                dependencyDescriptor.getConfigurationArtifacts(configuration));
     }
 
-    private IvyDependencyMetadata(ConfigurationMetadata configuration, IvyDependencyDescriptor dependencyDescriptor, @Nullable String reason, boolean endorsing, List<IvyArtifactName> artifacts) {
+    private IvyDependencyMetadata(
+            ConfigurationMetadata configuration,
+            IvyDependencyDescriptor dependencyDescriptor,
+            @Nullable String reason,
+            boolean endorsing,
+            List<IvyArtifactName> artifacts) {
         super(reason, endorsing, artifacts);
         this.configuration = configuration;
         this.dependencyDescriptor = dependencyDescriptor;
@@ -65,21 +78,22 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
 
     @Override
     public List<? extends VariantGraphResolveState> selectLegacyVariants(
-        GraphVariantSelector variantSelector,
-        ImmutableAttributes consumerAttributes,
-        ComponentGraphResolveState targetComponentState,
-        ImmutableAttributesSchema consumerSchema
-    ) {
+            GraphVariantSelector variantSelector,
+            ImmutableAttributes consumerAttributes,
+            ComponentGraphResolveState targetComponentState,
+            ImmutableAttributesSchema consumerSchema) {
         // We only want to use ivy's configuration selection mechanism when an ivy component is selecting
         // configurations from another ivy component.
         if (targetComponentState instanceof IvyComponentGraphResolveState) {
             IvyComponentGraphResolveState ivyComponent = (IvyComponentGraphResolveState) targetComponentState;
-            return getDependencyDescriptor().selectLegacyConfigurations(configuration, ivyComponent, variantSelector.getFailureHandler());
+            return getDependencyDescriptor()
+                    .selectLegacyConfigurations(configuration, ivyComponent, variantSelector.getFailureHandler());
         }
 
         // We have already verified that the target component does not support attribute matching,
         // so if it is not an ivy component, use the standard legacy selection mechanism.
-        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
+        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(
+                consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
         return Collections.singletonList(selected);
     }
 
@@ -90,7 +104,8 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
 
     @Override
     public ModuleDependencyMetadata withReason(String reason) {
-        return new IvyDependencyMetadata(configuration, dependencyDescriptor, reason, isEndorsingStrictVersions(), getArtifacts());
+        return new IvyDependencyMetadata(
+                configuration, dependencyDescriptor, reason, isEndorsingStrictVersions(), getArtifacts());
     }
 
     @Override
@@ -101,21 +116,30 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
     @Override
     protected ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector) {
         IvyDependencyDescriptor newDescriptor = dependencyDescriptor.withRequested(newSelector);
-        return new IvyDependencyMetadata(configuration, newDescriptor, getReason(), isEndorsingStrictVersions(), getArtifacts());
+        return new IvyDependencyMetadata(
+                configuration, newDescriptor, getReason(), isEndorsingStrictVersions(), getArtifacts());
     }
 
     @Override
     protected ModuleDependencyMetadata withArtifacts(List<IvyArtifactName> newArtifacts) {
-        return new IvyDependencyMetadata(configuration, dependencyDescriptor, getReason(), isEndorsingStrictVersions(), newArtifacts);
+        return new IvyDependencyMetadata(
+                configuration, dependencyDescriptor, getReason(), isEndorsingStrictVersions(), newArtifacts);
     }
 
     @Override
-    protected ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> newArtifacts) {
+    protected ModuleDependencyMetadata withRequestedAndArtifacts(
+            ModuleComponentSelector newSelector, List<IvyArtifactName> newArtifacts) {
         IvyDependencyDescriptor newDelegate = dependencyDescriptor.withRequested(newSelector);
-        return new IvyDependencyMetadata(configuration, newDelegate, getReason(), isEndorsingStrictVersions(), newArtifacts);
+        return new IvyDependencyMetadata(
+                configuration, newDelegate, getReason(), isEndorsingStrictVersions(), newArtifacts);
     }
 
     public ModuleDependencyMetadata withDescriptor(IvyDependencyDescriptor descriptor) {
-        return new IvyDependencyMetadata(configuration, descriptor, getReason(), isEndorsingStrictVersions(), dependencyDescriptor.getConfigurationArtifacts(configuration));
+        return new IvyDependencyMetadata(
+                configuration,
+                descriptor,
+                getReason(),
+                isEndorsingStrictVersions(),
+                dependencyDescriptor.getConfigurationArtifacts(configuration));
     }
 }

@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
+import java.util.function.Function;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Try;
-
-import java.util.function.Function;
 
 public abstract class AbstractUserInputHandler implements UserInputHandler {
     @Override

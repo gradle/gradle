@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import java.util.List;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -24,9 +25,8 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.List;
-
-public class ForcedDependencyMetadataWrapper extends DelegatingDependencyMetadata implements ForcingDependencyMetadata, ModuleDependencyMetadata {
+public class ForcedDependencyMetadataWrapper extends DelegatingDependencyMetadata
+        implements ForcingDependencyMetadata, ModuleDependencyMetadata {
     private final ModuleDependencyMetadata delegate;
 
     public ForcedDependencyMetadataWrapper(ModuleDependencyMetadata delegate) {

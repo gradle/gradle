@@ -16,12 +16,11 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.work.DisableCachingByDefault;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Attaching this annotation to a {@link TransformAction} type it indicates that the build cache should be used for artifact transforms of this type.
@@ -58,5 +57,4 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface CacheableTransform {
-}
+public @interface CacheableTransform {}

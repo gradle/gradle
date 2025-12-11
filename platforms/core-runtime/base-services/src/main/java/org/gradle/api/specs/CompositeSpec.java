@@ -16,7 +16,6 @@
 package org.gradle.api.specs;
 
 import com.google.common.collect.Iterators;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;

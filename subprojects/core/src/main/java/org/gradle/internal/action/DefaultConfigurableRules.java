@@ -16,11 +16,10 @@
 
 package org.gradle.internal.action;
 
-import com.google.common.collect.ImmutableList;
-
-import java.util.List;
-
 import static java.util.Collections.singletonList;
+
+import com.google.common.collect.ImmutableList;
+import java.util.List;
 
 public class DefaultConfigurableRules<DETAILS> implements ConfigurableRules<DETAILS> {
 

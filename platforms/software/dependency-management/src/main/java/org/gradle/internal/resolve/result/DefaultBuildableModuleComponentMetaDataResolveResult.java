@@ -15,11 +15,11 @@
  */
 package org.gradle.internal.resolve.result;
 
+import java.util.function.Function;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-import java.util.function.Function;
-
-public class DefaultBuildableModuleComponentMetaDataResolveResult<T> extends DefaultResourceAwareResolveResult implements BuildableModuleComponentMetaDataResolveResult<T> {
+public class DefaultBuildableModuleComponentMetaDataResolveResult<T> extends DefaultResourceAwareResolveResult
+        implements BuildableModuleComponentMetaDataResolveResult<T> {
 
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;

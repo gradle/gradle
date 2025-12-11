@@ -16,12 +16,6 @@
 package org.gradle.internal.compiler.java;
 
 import com.sun.source.util.JavacTask;
-import org.gradle.internal.compiler.java.listeners.classnames.ClassNameCollector;
-import org.gradle.internal.compiler.java.listeners.constants.ConstantDependentsConsumer;
-import org.gradle.internal.compiler.java.listeners.constants.ConstantsCollector;
-
-import javax.annotation.processing.Processor;
-import javax.tools.JavaCompiler;
 import java.io.File;
 import java.util.Locale;
 import java.util.Map;
@@ -30,6 +24,11 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.annotation.processing.Processor;
+import javax.tools.JavaCompiler;
+import org.gradle.internal.compiler.java.listeners.classnames.ClassNameCollector;
+import org.gradle.internal.compiler.java.listeners.constants.ConstantDependentsConsumer;
+import org.gradle.internal.compiler.java.listeners.constants.ConstantsCollector;
 
 /**
  * This is a Java compiler plugin, which must be loaded in the same classloader
@@ -50,20 +49,23 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
     private final ConstantDependentsConsumer constantDependentsConsumer;
     private final JavacTask delegate;
 
-    public IncrementalCompileTask(JavaCompiler.CompilationTask delegate,
-                                  Function<File, Optional<String>> relativize,
-                                  Consumer<String> classBackupService,
-                                  Consumer<Map<String, Set<String>>> classNamesConsumer,
-                                  BiConsumer<String, String> publicDependentDelegate,
-                                  BiConsumer<String, String> privateDependentDelegate) {
+    public IncrementalCompileTask(
+            JavaCompiler.CompilationTask delegate,
+            Function<File, Optional<String>> relativize,
+            Consumer<String> classBackupService,
+            Consumer<Map<String, Set<String>>> classNamesConsumer,
+            BiConsumer<String, String> publicDependentDelegate,
+            BiConsumer<String, String> privateDependentDelegate) {
         this.relativize = relativize;
         this.classBackupService = classBackupService;
         this.classNameConsumer = classNamesConsumer;
-        this.constantDependentsConsumer = new ConstantDependentsConsumer(publicDependentDelegate, privateDependentDelegate);
+        this.constantDependentsConsumer =
+                new ConstantDependentsConsumer(publicDependentDelegate, privateDependentDelegate);
         if (delegate instanceof JavacTask) {
             this.delegate = (JavacTask) delegate;
         } else {
-            throw new UnsupportedOperationException("Unexpected Java compile task: " + delegate.getClass().getName());
+            throw new UnsupportedOperationException(
+                    "Unexpected Java compile task: " + delegate.getClass().getName());
         }
     }
 
@@ -84,7 +86,8 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
 
     @Override
     public Boolean call() {
-        ClassNameCollector classNameCollector = new ClassNameCollector(relativize, classBackupService, delegate.getElements());
+        ClassNameCollector classNameCollector =
+                new ClassNameCollector(relativize, classBackupService, delegate.getElements());
         ConstantsCollector constantsCollector = new ConstantsCollector(delegate, constantDependentsConsumer);
         delegate.addTaskListener(classNameCollector);
         delegate.addTaskListener(constantsCollector);
@@ -94,5 +97,4 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
             classNameConsumer.accept(classNameCollector.getMapping());
         }
     }
-
 }

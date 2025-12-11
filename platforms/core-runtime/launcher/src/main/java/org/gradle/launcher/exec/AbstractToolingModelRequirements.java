@@ -16,14 +16,13 @@
 
 package org.gradle.launcher.exec;
 
+import java.util.function.Supplier;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.buildtree.BuildActionModelRequirements;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-
-import java.util.function.Supplier;
 
 public abstract class AbstractToolingModelRequirements implements BuildActionModelRequirements {
 
@@ -32,10 +31,7 @@ public abstract class AbstractToolingModelRequirements implements BuildActionMod
     private final Supplier<HashCode> payloadHashProvider;
 
     public AbstractToolingModelRequirements(
-        StartParameterInternal startParameter,
-        boolean runsTasks,
-        Supplier<HashCode> payloadHashProvider
-    ) {
+            StartParameterInternal startParameter, boolean runsTasks, Supplier<HashCode> payloadHashProvider) {
         this.startParameter = startParameter;
         this.runsTasks = runsTasks;
         this.payloadHashProvider = payloadHashProvider;

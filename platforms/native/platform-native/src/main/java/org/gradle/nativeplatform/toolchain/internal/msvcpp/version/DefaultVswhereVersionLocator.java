@@ -16,20 +16,16 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
+import java.io.File;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.os.OperatingSystem;
-
-import java.io.File;
 
 public class DefaultVswhereVersionLocator implements VswhereVersionLocator {
     private final WindowsRegistry windowsRegistry;
     private final OperatingSystem os;
 
-    private static final String[] PROGRAM_FILES_KEYS = {
-        "ProgramFilesDir",
-        "ProgramFilesDir (x86)"
-    };
+    private static final String[] PROGRAM_FILES_KEYS = {"ProgramFilesDir", "ProgramFilesDir (x86)"};
 
     private static final String REGISTRY_PATH_WINDOWS = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion";
     private static final String VISUAL_STUDIO_INSTALLER = "Microsoft Visual Studio/Installer";
@@ -45,7 +41,8 @@ public class DefaultVswhereVersionLocator implements VswhereVersionLocator {
         for (String programFilesKey : PROGRAM_FILES_KEYS) {
             File programFilesDir;
             try {
-                programFilesDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_PATH_WINDOWS, programFilesKey));
+                programFilesDir = new File(windowsRegistry.getStringValue(
+                        WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_PATH_WINDOWS, programFilesKey));
             } catch (MissingRegistryEntryException e) {
                 // We'll get this when we try to look up "ProgramFilesDir (x86)" on a 32-bit OS
                 continue;

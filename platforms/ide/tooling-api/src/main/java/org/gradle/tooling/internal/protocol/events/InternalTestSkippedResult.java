@@ -23,5 +23,4 @@ package org.gradle.tooling.internal.protocol.events;
  *
  * @since 2.4
  */
-public interface InternalTestSkippedResult extends InternalTestResult {
-}
+public interface InternalTestSkippedResult extends InternalTestResult {}

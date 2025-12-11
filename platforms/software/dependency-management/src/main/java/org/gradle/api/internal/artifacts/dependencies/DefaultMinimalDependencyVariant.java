@@ -26,26 +26,32 @@ import org.gradle.internal.Actions;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
 
-public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDependency implements MinimalExternalModuleDependencyInternal, DependencyVariant {
+public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDependency
+        implements MinimalExternalModuleDependencyInternal, DependencyVariant {
     private Action<? super AttributeContainer> attributesMutator;
     private Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator;
     private String classifier;
     private String artifactType;
 
-    public DefaultMinimalDependencyVariant(MinimalExternalModuleDependency delegate,
-                                           @Nullable Action<? super AttributeContainer> attributesMutator,
-                                           @Nullable Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator,
-                                           @Nullable String classifier,
-                                           @Nullable String artifactType
-    ) {
-        super(delegate.getModule(), new DefaultMutableVersionConstraint(delegate.getVersionConstraint()), delegate.getTargetConfiguration());
+    public DefaultMinimalDependencyVariant(
+            MinimalExternalModuleDependency delegate,
+            @Nullable Action<? super AttributeContainer> attributesMutator,
+            @Nullable Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator,
+            @Nullable String classifier,
+            @Nullable String artifactType) {
+        super(
+                delegate.getModule(),
+                new DefaultMutableVersionConstraint(delegate.getVersionConstraint()),
+                delegate.getTargetConfiguration());
 
         attributesMutator = GUtil.elvis(attributesMutator, Actions.doNothing());
         capabilitiesMutator = GUtil.elvis(capabilitiesMutator, Actions.doNothing());
 
         if (delegate instanceof DefaultMinimalDependencyVariant) {
-            this.attributesMutator = Actions.composite(((DefaultMinimalDependencyVariant) delegate).attributesMutator, attributesMutator);
-            this.capabilitiesMutator = Actions.composite(((DefaultMinimalDependencyVariant) delegate).capabilitiesMutator, capabilitiesMutator);
+            this.attributesMutator = Actions.composite(
+                    ((DefaultMinimalDependencyVariant) delegate).attributesMutator, attributesMutator);
+            this.capabilitiesMutator = Actions.composite(
+                    ((DefaultMinimalDependencyVariant) delegate).capabilitiesMutator, capabilitiesMutator);
             this.classifier = GUtil.elvis(classifier, ((DefaultMinimalDependencyVariant) delegate).getClassifier());
             this.artifactType = GUtil.elvis(classifier, ((DefaultMinimalDependencyVariant) delegate).getArtifactType());
         } else {
@@ -62,14 +68,13 @@ public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDepend
     }
 
     private DefaultMinimalDependencyVariant(
-        ModuleIdentifier id,
-        MutableVersionConstraint versionConstraint,
-        @Nullable String configuration,
-        Action<? super AttributeContainer> attributesMutator,
-        Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator,
-        @Nullable String classifier,
-        @Nullable String artifactType
-    ) {
+            ModuleIdentifier id,
+            MutableVersionConstraint versionConstraint,
+            @Nullable String configuration,
+            Action<? super AttributeContainer> attributesMutator,
+            Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator,
+            @Nullable String classifier,
+            @Nullable String artifactType) {
         super(id, versionConstraint, configuration);
         this.attributesMutator = attributesMutator;
         this.capabilitiesMutator = capabilitiesMutator;
@@ -98,9 +103,13 @@ public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDepend
     @Override
     public MinimalExternalModuleDependency copy() {
         DefaultMinimalDependencyVariant dependency = new DefaultMinimalDependencyVariant(
-            getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()), getTargetConfiguration(),
-            attributesMutator, capabilitiesMutator, classifier, artifactType
-        );
+                getModule(),
+                new DefaultMutableVersionConstraint(getVersionConstraint()),
+                getTargetConfiguration(),
+                attributesMutator,
+                capabilitiesMutator,
+                classifier,
+                artifactType);
         copyTo(dependency);
         return dependency;
     }
@@ -144,11 +153,11 @@ public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDepend
 
     @Override
     public String toString() {
-        return "DefaultMinimalDependencyVariant{" +
-            ", attributesMutator=" + attributesMutator +
-            ", capabilitiesMutator=" + capabilitiesMutator +
-            ", classifier='" + classifier + '\'' +
-            ", artifactType='" + artifactType + '\'' +
-            "} " + super.toString();
+        return "DefaultMinimalDependencyVariant{" + ", attributesMutator="
+                + attributesMutator + ", capabilitiesMutator="
+                + capabilitiesMutator + ", classifier='"
+                + classifier + '\'' + ", artifactType='"
+                + artifactType + '\'' + "} "
+                + super.toString();
     }
 }

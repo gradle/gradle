@@ -16,6 +16,9 @@
 
 package org.gradle.nativeplatform.test.cunit.plugins;
 
+import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNativeTestSuiteBinaries;
+
+import java.io.File;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -40,10 +43,6 @@ import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.testing.base.TestSuiteContainer;
 
-import java.io.File;
-
-import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNativeTestSuiteBinaries;
-
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
  */
@@ -67,7 +66,8 @@ public abstract class CUnitPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        public void configureCUnitTestSuiteSources(@Each final CUnitTestSuiteSpec suite, @Path("buildDir") final File buildDir) {
+        public void configureCUnitTestSuiteSources(
+                @Each final CUnitTestSuiteSpec suite, @Path("buildDir") final File buildDir) {
             suite.getSources().create(CUNIT_LAUNCHER_SOURCE_SET, CSourceSet.class, new Action<CSourceSet>() {
                 @Override
                 public void execute(CSourceSet launcherSources) {
@@ -87,15 +87,21 @@ public abstract class CUnitPlugin implements Plugin<Project> {
 
         @Mutate
         public void createCUnitLauncherTasks(TaskContainer tasks, TestSuiteContainer testSuites) {
-            for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
+            for (final CUnitTestSuiteSpec suite :
+                    testSuites.withType(CUnitTestSuiteSpec.class).values()) {
 
                 String taskName = suite.getName() + "CUnitLauncher";
                 @SuppressWarnings("deprecation")
                 GenerateCUnitLauncher skeletonTask = tasks.create(taskName, GenerateCUnitLauncher.class);
 
                 CSourceSet launcherSources = findLauncherSources(suite);
-                skeletonTask.setSourceDir(launcherSources.getSource().getSrcDirs().iterator().next());
-                skeletonTask.setHeaderDir(launcherSources.getExportedHeaders().getSrcDirs().iterator().next());
+                skeletonTask.setSourceDir(
+                        launcherSources.getSource().getSrcDirs().iterator().next());
+                skeletonTask.setHeaderDir(launcherSources
+                        .getExportedHeaders()
+                        .getSrcDirs()
+                        .iterator()
+                        .next());
                 launcherSources.builtBy(skeletonTask);
             }
         }
@@ -110,12 +116,13 @@ public abstract class CUnitPlugin implements Plugin<Project> {
         }
 
         @ComponentBinaries
-        public void createCUnitTestBinaries(ModelMap<CUnitTestSuiteBinarySpec> binaries,
-                                            CUnitTestSuiteSpec testSuite,
-                                            @Path("buildDir") final File buildDir,
-                                            final ServiceRegistry serviceRegistry) {
-            createNativeTestSuiteBinaries(binaries, testSuite, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
+        public void createCUnitTestBinaries(
+                ModelMap<CUnitTestSuiteBinarySpec> binaries,
+                CUnitTestSuiteSpec testSuite,
+                @Path("buildDir") final File buildDir,
+                final ServiceRegistry serviceRegistry) {
+            createNativeTestSuiteBinaries(
+                    binaries, testSuite, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
         }
     }
-
 }

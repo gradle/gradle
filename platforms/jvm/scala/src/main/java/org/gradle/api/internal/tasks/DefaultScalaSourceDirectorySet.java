@@ -16,15 +16,16 @@
 
 package org.gradle.api.internal.tasks;
 
+import javax.inject.Inject;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.tasks.ScalaSourceDirectorySet;
 
-import javax.inject.Inject;
-
-public abstract class DefaultScalaSourceDirectorySet extends DefaultSourceDirectorySet implements ScalaSourceDirectorySet {
+public abstract class DefaultScalaSourceDirectorySet extends DefaultSourceDirectorySet
+        implements ScalaSourceDirectorySet {
     @Inject
-    public DefaultScalaSourceDirectorySet(SourceDirectorySet sourceDirectorySet, TaskDependencyFactory taskDependencyFactory) {
+    public DefaultScalaSourceDirectorySet(
+            SourceDirectorySet sourceDirectorySet, TaskDependencyFactory taskDependencyFactory) {
         super(sourceDirectorySet, taskDependencyFactory);
     }
 }

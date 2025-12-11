@@ -17,6 +17,10 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.GroovyClassLoader;
+import java.lang.reflect.Field;
+import java.security.CodeSource;
+import java.util.List;
+import java.util.Map;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.classgen.GeneratorContext;
 import org.codehaus.groovy.control.CompilationFailedException;
@@ -28,15 +32,15 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 
-import java.lang.reflect.Field;
-import java.security.CodeSource;
-import java.util.List;
-import java.util.Map;
-
 @SuppressWarnings("deprecation")
 class CustomCompilationUnit extends CompilationUnit {
 
-    public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, GroovyClassLoader groovyClassLoader, Map<String, List<String>> simpleNameToFQN) {
+    public CustomCompilationUnit(
+            CompilerConfiguration compilerConfiguration,
+            CodeSource codeSource,
+            final Action<? super ClassNode> customVerifier,
+            GroovyClassLoader groovyClassLoader,
+            Map<String, List<String>> simpleNameToFQN) {
         super(compilerConfiguration, codeSource, groovyClassLoader);
         this.resolveVisitor = new GradleResolveVisitor(this, simpleNameToFQN);
         installCustomCodegen(customVerifier);
@@ -78,7 +82,8 @@ class CustomCompilationUnit extends CompilationUnit {
         }
     }
 
-    private static IPrimaryClassNodeOperation decoratedNodeOperation(Action<? super ClassNode> customVerifier, IPrimaryClassNodeOperation realClassgen) {
+    private static IPrimaryClassNodeOperation decoratedNodeOperation(
+            Action<? super ClassNode> customVerifier, IPrimaryClassNodeOperation realClassgen) {
         return new IPrimaryClassNodeOperation() {
 
             @Override
@@ -87,11 +92,11 @@ class CustomCompilationUnit extends CompilationUnit {
             }
 
             @Override
-            public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
+            public void call(SourceUnit source, GeneratorContext context, ClassNode classNode)
+                    throws CompilationFailedException {
                 customVerifier.execute(classNode);
                 realClassgen.call(source, context, classNode);
             }
         };
     }
-
 }

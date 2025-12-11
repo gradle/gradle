@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.collections;
 
+import java.util.Collection;
+import java.util.Iterator;
 import org.gradle.api.Action;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
-
-import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * The heart of any domain object collection. This source is able to track eager and lazy (pending)
@@ -109,5 +108,4 @@ public interface ElementSource<T> extends Iterable<T> {
      * Tracks whether lazy actions are currently being executed against this element source.
      */
     MutationGuard getLazyBehaviorGuard();
-
 }

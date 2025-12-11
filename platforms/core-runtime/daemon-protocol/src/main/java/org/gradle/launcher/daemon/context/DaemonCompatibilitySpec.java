@@ -15,15 +15,14 @@
  */
 package org.gradle.launcher.daemon.context;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 
 public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
@@ -55,23 +54,27 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
     }
 
     private String description(DaemonContext context) {
-        return "Wanted: " + this + "\n"
-            + "Actual: " + context + "\n";
+        return "Wanted: " + this + "\n" + "Actual: " + context + "\n";
     }
 
     private boolean daemonOptsMatch(DaemonContext potentialContext) {
         return potentialContext.getDaemonOpts().containsAll(desiredContext.getDaemonOpts())
-            && potentialContext.getDaemonOpts().size() == desiredContext.getDaemonOpts().size();
+                && potentialContext.getDaemonOpts().size()
+                        == desiredContext.getDaemonOpts().size();
     }
 
     private boolean jvmCompatible(DaemonContext potentialContext) {
         DaemonJvmCriteria criteria = desiredContext.getJvmCriteria();
         if (criteria instanceof DaemonJvmCriteria.Spec) {
             DaemonJvmCriteria.Spec daemonJvmCriteria = (DaemonJvmCriteria.Spec) criteria;
-            if (daemonJvmCriteria.isCompatibleWith(potentialContext.getJavaVersion(), potentialContext.getJavaVendor())) {
+            if (daemonJvmCriteria.isCompatibleWith(
+                    potentialContext.getJavaVersion(), potentialContext.getJavaVendor())) {
                 if (daemonJvmCriteria.isNativeImageCapable()) {
                     // Need to assess that $JAVA_HOME/bin/native-image exists
-                    return new File(new File(potentialContext.getJavaHome(), "bin"), OperatingSystem.current().getExecutableName("native-image")).exists();
+                    return new File(
+                                    new File(potentialContext.getJavaHome(), "bin"),
+                                    OperatingSystem.current().getExecutableName("native-image"))
+                            .exists();
                 } else {
                     return true;
                 }
@@ -87,7 +90,8 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
             } else if (criteria instanceof DaemonJvmCriteria.LauncherJvm) {
                 desiredJavaInfo = Jvm.current();
             } else {
-                throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
+                throw new IllegalStateException(
+                        "Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
             }
             if (potentialJavaHome.exists() && desiredJavaInfo != null) {
                 File potentialJava = Jvm.forHome(potentialJavaHome).getJavaExecutable();

@@ -30,7 +30,8 @@ public interface FileCollectionFingerprinter {
     /**
      * Creates a fingerprint from the snapshot of a file collection.
      */
-    CurrentFileCollectionFingerprint fingerprint(FileSystemSnapshot snapshot, @Nullable FileCollectionFingerprint previousFingerprint);
+    CurrentFileCollectionFingerprint fingerprint(
+            FileSystemSnapshot snapshot, @Nullable FileCollectionFingerprint previousFingerprint);
 
     /**
      * Returns an empty fingerprint.

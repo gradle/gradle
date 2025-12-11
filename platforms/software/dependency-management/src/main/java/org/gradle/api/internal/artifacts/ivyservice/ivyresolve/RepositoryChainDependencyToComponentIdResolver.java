@@ -40,21 +40,19 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
     private final DynamicVersionResolver dynamicRevisionResolver;
 
     public RepositoryChainDependencyToComponentIdResolver(
-        VersionedComponentChooser componentChooser,
-        VersionParser versionParser,
-        AttributesFactory attributesFactory,
-        ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
-        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-        CacheExpirationControl cacheExpirationControl
-    ) {
+            VersionedComponentChooser componentChooser,
+            VersionParser versionParser,
+            AttributesFactory attributesFactory,
+            ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
+            ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+            CacheExpirationControl cacheExpirationControl) {
         this.dynamicRevisionResolver = new DynamicVersionResolver(
-            componentChooser,
-            versionParser,
-            attributesFactory,
-            componentMetadataProcessorFactory,
-            componentMetadataSupplierRuleExecutor,
-            cacheExpirationControl
-        );
+                componentChooser,
+                versionParser,
+                attributesFactory,
+                componentMetadataProcessorFactory,
+                componentMetadataSupplierRuleExecutor,
+                cacheExpirationControl);
     }
 
     public void add(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository) {
@@ -63,17 +61,17 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
 
     @Override
     public void resolve(
-        ComponentSelector selector,
-        ComponentOverrideMetadata overrideMetadata,
-        VersionSelector acceptor,
-        @Nullable VersionSelector rejector,
-        BuildableComponentIdResolveResult result,
-        ImmutableAttributes consumerAttributes
-    ) {
+            ComponentSelector selector,
+            ComponentOverrideMetadata overrideMetadata,
+            VersionSelector acceptor,
+            @Nullable VersionSelector rejector,
+            BuildableComponentIdResolveResult result,
+            ImmutableAttributes consumerAttributes) {
         if (selector instanceof ModuleComponentSelector) {
             ModuleComponentSelector module = (ModuleComponentSelector) selector;
             if (acceptor.isDynamic()) {
-                dynamicRevisionResolver.resolve(module, overrideMetadata, acceptor, rejector, consumerAttributes, result);
+                dynamicRevisionResolver.resolve(
+                        module, overrideMetadata, acceptor, rejector, consumerAttributes, result);
             } else {
                 String version = acceptor.getSelector();
                 ModuleIdentifier moduleId = module.getModuleIdentifier();

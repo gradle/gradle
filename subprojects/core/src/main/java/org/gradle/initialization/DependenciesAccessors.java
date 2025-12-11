@@ -15,6 +15,8 @@
  */
 package org.gradle.initialization;
 
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory;
@@ -25,15 +27,16 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.List;
-import java.util.Map;
-
 @ServiceScope(Scope.Build.class)
 public interface DependenciesAccessors {
     void generateAccessors(List<VersionCatalogBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings);
+
     void createExtensions(ProjectInternal project);
+
     Map<String, ExternalModuleDependencyFactory> createPluginsBlockFactories(ObjectFactory objects);
+
     ClassPath getSources();
+
     ClassPath getClasses();
 
     String IN_PLUGINS_BLOCK_FACTORIES_SUFFIX = "InPluginsBlock";

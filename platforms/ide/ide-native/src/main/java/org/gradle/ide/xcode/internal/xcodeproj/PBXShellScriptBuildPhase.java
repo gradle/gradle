@@ -18,10 +18,9 @@ package org.gradle.ide.xcode.internal.xcodeproj;
 
 import com.dd.plist.NSArray;
 import com.dd.plist.NSString;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Build phase which represents running a shell script.
@@ -29,8 +28,12 @@ import java.util.List;
 public class PBXShellScriptBuildPhase extends PBXBuildPhase {
     private List<String> inputPaths;
     private List<String> outputPaths;
-    @Nullable private String shellPath;
-    @Nullable private String shellScript;
+
+    @Nullable
+    private String shellPath;
+
+    @Nullable
+    private String shellScript;
 
     private static final NSString DEFAULT_SHELL_PATH = new NSString("/bin/sh");
     private static final NSString DEFAULT_SHELL_SCRIPT = new NSString("");

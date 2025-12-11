@@ -16,15 +16,14 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.apache.commons.io.FileUtils;
-import org.gradle.exemplar.model.Sample;
-import org.gradle.exemplar.test.runner.SampleModifier;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.commons.io.FileUtils;
+import org.gradle.exemplar.model.Sample;
+import org.gradle.exemplar.test.runner.SampleModifier;
 
 /**
  * We use "https://example.com:8123/cache/" as "example remote build cache url",
@@ -33,8 +32,9 @@ import java.util.List;
  * This modifier clears the init or setting script if they include "https://example.com:8123/cache/"
  */
 public class RemoveDeadEndCacheServerModifier implements SampleModifier {
-    private static final List<String> MANAGED_FILES = Arrays.asList("settings.gradle", "settings.gradle.kts", "init.gradle", "init.gradle.kts");
-    private static final String EXAMPLE_CACHE_SERVER ="https://example.com:8123/cache/";
+    private static final List<String> MANAGED_FILES =
+            Arrays.asList("settings.gradle", "settings.gradle.kts", "init.gradle", "init.gradle.kts");
+    private static final String EXAMPLE_CACHE_SERVER = "https://example.com:8123/cache/";
 
     @Override
     public Sample modify(Sample sample) {

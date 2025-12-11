@@ -129,5 +129,4 @@ public interface IvyModuleDescriptorSpec {
      * @since 4.8
      */
     void description(Action<? super IvyModuleDescriptorDescription> action);
-
 }

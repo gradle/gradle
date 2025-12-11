@@ -19,5 +19,4 @@ package org.gradle.internal.reflect.annotations;
 /**
  * Annotation metadata associated with functions (i.e. an annotated method not associated with a property).
  */
-public interface FunctionAnnotationMetadata extends HasAnnotationMetadata, Comparable<FunctionAnnotationMetadata> {
-}
+public interface FunctionAnnotationMetadata extends HasAnnotationMetadata, Comparable<FunctionAnnotationMetadata> {}

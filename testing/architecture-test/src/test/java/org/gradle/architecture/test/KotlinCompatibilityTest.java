@@ -16,25 +16,6 @@
 
 package org.gradle.architecture.test;
 
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.JavaModifier;
-import com.tngtech.archunit.junit.AnalyzeClasses;
-import com.tngtech.archunit.junit.ArchTest;
-import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ConditionEvents;
-import org.gradle.internal.reflect.PropertyAccessorType;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
@@ -45,35 +26,62 @@ import static java.util.stream.Collectors.toSet;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import org.gradle.internal.reflect.PropertyAccessorType;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
 @AnalyzeClasses(packages = "org.gradle")
 @NullMarked
 public class KotlinCompatibilityTest {
 
     @ArchTest
-    public static final ArchRule consistent_nullable_annotations_on_public_api = freeze(classes().that(are(gradlePublicApi())).should(haveAccessorsWithSymmetricalNullableAnnotations()));
+    public static final ArchRule consistent_nullable_annotations_on_public_api =
+            freeze(classes().that(are(gradlePublicApi())).should(haveAccessorsWithSymmetricalNullableAnnotations()));
 
     @ArchTest
-    public static final ArchRule consistent_nullable_annotations_on_internal_api = freeze(classes().that(are(not(gradlePublicApi()))).should(haveAccessorsWithSymmetricalNullableAnnotations()));
+    public static final ArchRule consistent_nullable_annotations_on_internal_api = freeze(
+            classes().that(are(not(gradlePublicApi()))).should(haveAccessorsWithSymmetricalNullableAnnotations()));
 
     private static ArchCondition<JavaClass> haveAccessorsWithSymmetricalNullableAnnotations() {
         return new ArchCondition<JavaClass>("have accessors with symmetrical @Nullable annotations") {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 findMutableProperties(item).stream()
-                    .filter(accessors -> !accessors.nullableIsSymmetric())
-                    .map(accessor -> violated(item, String.format("Accessors for %s don't use symmetrical @Nullable", accessor)))
-                    .forEach(events::add);
+                        .filter(accessors -> !accessors.nullableIsSymmetric())
+                        .map(accessor -> violated(
+                                item, String.format("Accessors for %s don't use symmetrical @Nullable", accessor)))
+                        .forEach(events::add);
             }
 
             private Set<Accessors> findMutableProperties(JavaClass javaClass) {
                 Map<String, List<Accessor>> accessors = findAccessors(javaClass.getMethods());
-                return accessors.entrySet().stream().map(entry -> Accessors.from(entry.getKey(), entry.getValue())).filter(Objects::nonNull).collect(toSet());
+                return accessors.entrySet().stream()
+                        .map(entry -> Accessors.from(entry.getKey(), entry.getValue()))
+                        .filter(Objects::nonNull)
+                        .collect(toSet());
             }
         };
     }
 
     private static Map<String, List<Accessor>> findAccessors(Set<JavaMethod> methods) {
-        return methods.stream().map(Accessor::from).filter(Objects::nonNull).collect(groupingBy(Accessor::getPropertyName));
+        return methods.stream()
+                .map(Accessor::from)
+                .filter(Objects::nonNull)
+                .collect(groupingBy(Accessor::getPropertyName));
     }
 
     private static class Accessor {
@@ -84,7 +92,9 @@ public class KotlinCompatibilityTest {
         @Nullable
         public static Accessor from(JavaMethod method) {
             PropertyAccessorType propertyAccessorType = PropertyAccessorType.fromName(method.getName());
-            if (propertyAccessorType != null && (KotlinCompatibilityTest.isGetter(method, propertyAccessorType) || KotlinCompatibilityTest.isSetter(method, propertyAccessorType))) {
+            if (propertyAccessorType != null
+                    && (KotlinCompatibilityTest.isGetter(method, propertyAccessorType)
+                            || KotlinCompatibilityTest.isSetter(method, propertyAccessorType))) {
                 return new Accessor(propertyAccessorType, method);
             }
             return null;
@@ -93,7 +103,8 @@ public class KotlinCompatibilityTest {
         private Accessor(PropertyAccessorType accessorType, JavaMethod method) {
             this.accessorType = accessorType;
             this.method = method;
-            this.isGetter = accessorType == PropertyAccessorType.IS_GETTER || accessorType == PropertyAccessorType.GET_GETTER;
+            this.isGetter =
+                    accessorType == PropertyAccessorType.IS_GETTER || accessorType == PropertyAccessorType.GET_GETTER;
         }
 
         public String getPropertyName() {
@@ -121,24 +132,36 @@ public class KotlinCompatibilityTest {
 
         @Nullable
         public static Accessors from(String propertyName, List<Accessor> accessors) {
-            Map<Boolean, List<Accessor>> gettersAndSetters = accessors.stream().collect(partitioningBy(Accessor::isGetter));
+            Map<Boolean, List<Accessor>> gettersAndSetters =
+                    accessors.stream().collect(partitioningBy(Accessor::isGetter));
             JavaClass owningClass = accessors.iterator().next().getMethod().getOwner();
-            Set<JavaMethod> getters = gettersAndSetters.get(Boolean.TRUE).stream().map(Accessor::getMethod).collect(toSet());
-            Set<JavaMethod> setters = gettersAndSetters.get(Boolean.FALSE).stream().map(Accessor::getMethod).collect(toSet());
+            Set<JavaMethod> getters = gettersAndSetters.get(Boolean.TRUE).stream()
+                    .map(Accessor::getMethod)
+                    .collect(toSet());
+            Set<JavaMethod> setters = gettersAndSetters.get(Boolean.FALSE).stream()
+                    .map(Accessor::getMethod)
+                    .collect(toSet());
             if (!getters.isEmpty() && !setters.isEmpty()) {
                 return new Accessors(owningClass, propertyName, getters, setters);
             }
-            List<Accessor> superclassAccessors = findAccessors(owningClass.getAllMethods()).get(propertyName);
+            List<Accessor> superclassAccessors =
+                    findAccessors(owningClass.getAllMethods()).get(propertyName);
             if (superclassAccessors == null) {
                 return null;
             }
             if (!setters.isEmpty()) {
-                Set<JavaMethod> superclassGetters = superclassAccessors.stream().filter(Accessor::isGetter).map(Accessor::getMethod).collect(toSet());
+                Set<JavaMethod> superclassGetters = superclassAccessors.stream()
+                        .filter(Accessor::isGetter)
+                        .map(Accessor::getMethod)
+                        .collect(toSet());
                 if (!superclassGetters.isEmpty()) {
                     return new Accessors(owningClass, propertyName, superclassGetters, setters);
                 }
             } else {
-                Set<JavaMethod> superclassSetters = superclassAccessors.stream().filter(Accessor::isSetter).map(Accessor::getMethod).collect(toSet());
+                Set<JavaMethod> superclassSetters = superclassAccessors.stream()
+                        .filter(Accessor::isSetter)
+                        .map(Accessor::getMethod)
+                        .collect(toSet());
                 if (!superclassSetters.isEmpty()) {
                     return new Accessors(owningClass, propertyName, getters, superclassSetters);
                 }
@@ -146,7 +169,8 @@ public class KotlinCompatibilityTest {
             return null;
         }
 
-        private Accessors(JavaClass owningClass, String propertyName, Set<JavaMethod> getters, Set<JavaMethod> setters) {
+        private Accessors(
+                JavaClass owningClass, String propertyName, Set<JavaMethod> getters, Set<JavaMethod> setters) {
             this.getters = getters;
             this.setters = setters;
             this.owningClass = owningClass;
@@ -154,11 +178,16 @@ public class KotlinCompatibilityTest {
         }
 
         public boolean nullableIsSymmetric() {
-            long nullableGetterCount = getters.stream().filter(Accessors::getterAnnotatedWithNullable).count();
-            long nullableSetterCount = setters.stream().filter(Accessors::setterAnnotatedWithNullable).count();
+            long nullableGetterCount = getters.stream()
+                    .filter(Accessors::getterAnnotatedWithNullable)
+                    .count();
+            long nullableSetterCount = setters.stream()
+                    .filter(Accessors::setterAnnotatedWithNullable)
+                    .count();
 
             // TODO(mlopatkin) the accessors may not be available for legitimate code. One violating example is
-            //   Throwable.getCause(): Throwable? and Throwable.setCause(Throwable), where the latter is package-private.
+            //   Throwable.getCause(): Throwable? and Throwable.setCause(Throwable), where the latter is
+            // package-private.
             boolean gettersArePartiallyNull = 0 < nullableGetterCount && nullableGetterCount < getters.size();
             boolean settersArePartiallyNull = 0 < nullableSetterCount && nullableSetterCount < setters.size();
             if (gettersArePartiallyNull || settersArePartiallyNull) {
@@ -181,9 +210,9 @@ public class KotlinCompatibilityTest {
         }
 
         private static boolean setterAnnotatedWithNullable(JavaMethod setter) {
-            return Arrays.stream(setter.reflect().getAnnotatedParameterTypes()[0].getAnnotations()).anyMatch(a ->
-                a instanceof Nullable
-            );
+            return Arrays.stream(
+                            setter.reflect().getAnnotatedParameterTypes()[0].getAnnotations())
+                    .anyMatch(a -> a instanceof Nullable);
         }
 
         @Override
@@ -195,14 +224,16 @@ public class KotlinCompatibilityTest {
     private static boolean isGetter(JavaMethod m, PropertyAccessorType accessorType) {
         // We avoid using reflect, since that leads to class loading exceptions
         return !m.getModifiers().contains(JavaModifier.STATIC)
-            && (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER)
-            && m.getRawParameterTypes().isEmpty()
-            && (accessorType != PropertyAccessorType.IS_GETTER || m.getRawReturnType().isEquivalentTo(Boolean.TYPE) || m.getRawReturnType().isEquivalentTo(Boolean.class));
+                && (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER)
+                && m.getRawParameterTypes().isEmpty()
+                && (accessorType != PropertyAccessorType.IS_GETTER
+                        || m.getRawReturnType().isEquivalentTo(Boolean.TYPE)
+                        || m.getRawReturnType().isEquivalentTo(Boolean.class));
     }
 
     private static boolean isSetter(JavaMethod m, PropertyAccessorType accessorType) {
         return !m.getModifiers().contains(JavaModifier.STATIC)
-            && accessorType == PropertyAccessorType.SETTER
-            && m.getRawParameterTypes().size() == 1;
+                && accessorType == PropertyAccessorType.SETTER
+                && m.getRawParameterTypes().size() == 1;
     }
 }

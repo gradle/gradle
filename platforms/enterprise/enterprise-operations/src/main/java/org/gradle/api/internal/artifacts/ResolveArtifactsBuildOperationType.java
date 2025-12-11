@@ -23,17 +23,13 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 4.0
  */
-public final class ResolveArtifactsBuildOperationType implements BuildOperationType<ResolveArtifactsBuildOperationType.Details, ResolveArtifactsBuildOperationType.Result> {
+public final class ResolveArtifactsBuildOperationType
+        implements BuildOperationType<
+                ResolveArtifactsBuildOperationType.Details, ResolveArtifactsBuildOperationType.Result> {
 
-    public interface Details {
+    public interface Details {}
 
-    }
+    public interface Result {}
 
-    public interface Result {
-
-    }
-
-    private ResolveArtifactsBuildOperationType() {
-    }
-
+    private ResolveArtifactsBuildOperationType() {}
 }

@@ -17,6 +17,9 @@
 package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableSortedMap;
+import java.io.File;
+import java.util.Objects;
+import java.util.stream.Stream;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
@@ -27,15 +30,13 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 
-import java.io.File;
-import java.util.Objects;
-import java.util.stream.Stream;
-
 public class NonIncrementalInputChanges implements InputChangesInternal {
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs;
     private final IncrementalInputProperties incrementalInputProperties;
 
-    public NonIncrementalInputChanges(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs, IncrementalInputProperties incrementalInputProperties) {
+    public NonIncrementalInputChanges(
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs,
+            IncrementalInputProperties incrementalInputProperties) {
         this.currentInputs = currentInputs;
         this.incrementalInputProperties = incrementalInputProperties;
     }
@@ -56,20 +57,27 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
     }
 
     public Iterable<FileChange> getObjectFileChanges(Object parameter) {
-        CurrentFileCollectionFingerprint currentFileCollectionFingerprint = currentInputs.get(incrementalInputProperties.getPropertyNameFor(parameter));
+        CurrentFileCollectionFingerprint currentFileCollectionFingerprint =
+                currentInputs.get(incrementalInputProperties.getPropertyNameFor(parameter));
         Objects.requireNonNull(currentFileCollectionFingerprint);
         return () -> getAllFileChanges(currentFileCollectionFingerprint).iterator();
     }
 
     @Override
     public Iterable<InputFileDetails> getAllFileChanges() {
-        Iterable<FileChange> changes = () -> currentInputs.values().stream().flatMap(NonIncrementalInputChanges::getAllFileChanges).iterator();
+        Iterable<FileChange> changes = () -> currentInputs.values().stream()
+                .flatMap(NonIncrementalInputChanges::getAllFileChanges)
+                .iterator();
         return Cast.uncheckedNonnullCast(changes);
     }
 
-    private static Stream<FileChange> getAllFileChanges(CurrentFileCollectionFingerprint currentFileCollectionFingerprint) {
+    private static Stream<FileChange> getAllFileChanges(
+            CurrentFileCollectionFingerprint currentFileCollectionFingerprint) {
         return currentFileCollectionFingerprint.getFingerprints().entrySet().stream()
-            .map(entry -> new RebuildFileChange(entry.getKey(), entry.getValue().getNormalizedPath(), entry.getValue().getType()));
+                .map(entry -> new RebuildFileChange(
+                        entry.getKey(),
+                        entry.getValue().getNormalizedPath(),
+                        entry.getValue().getType()));
     }
 
     private static class RebuildFileChange implements FileChange, InputFileDetails {
@@ -127,8 +135,7 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
                 return false;
             }
             RebuildFileChange that = (RebuildFileChange) o;
-            return path.equals(that.path) &&
-                normalizedPath.equals(that.normalizedPath);
+            return path.equals(that.path) && normalizedPath.equals(that.normalizedPath);
         }
 
         @Override

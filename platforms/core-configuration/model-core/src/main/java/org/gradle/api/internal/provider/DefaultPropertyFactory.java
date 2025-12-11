@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.provider;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class DefaultPropertyFactory implements PropertyFactory {
 
@@ -49,7 +48,8 @@ public class DefaultPropertyFactory implements PropertyFactory {
     @Override
     public <T> DefaultProperty<T> property(Class<T> type) {
         if (List.class.isAssignableFrom(type)) {
-            // This is a terrible hack. We made a mistake in making this type a List<Thing> vs using a ListProperty<Thing>
+            // This is a terrible hack. We made a mistake in making this type a List<Thing> vs using a
+            // ListProperty<Thing>
             // Allow this one type to be used with Property until we can fix this elsewhere
             if (!ExternalModuleDependencyBundle.class.isAssignableFrom(type)) {
                 throw new InvalidUserCodeException(invalidPropertyCreationError("List<..>", "ListProperty<..>"));
@@ -68,7 +68,8 @@ public class DefaultPropertyFactory implements PropertyFactory {
     }
 
     private static String invalidPropertyCreationError(String attemptedType, String correctType) {
-        return "Creating a property of type 'Property<" + attemptedType + ">' is unsupported. Use '" + correctType + "' instead.";
+        return "Creating a property of type 'Property<" + attemptedType + ">' is unsupported. Use '" + correctType
+                + "' instead.";
     }
 
     @Override
@@ -100,5 +101,4 @@ public class DefaultPropertyFactory implements PropertyFactory {
 
         return type;
     }
-
 }

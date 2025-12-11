@@ -17,6 +17,11 @@
 package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -38,12 +43,6 @@ import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 public class WtpClasspathAttributeSupport {
     private final String libDirName;
     private final boolean isUtilityProject;
@@ -51,7 +50,8 @@ public class WtpClasspathAttributeSupport {
     private final Set<File> libConfigFiles;
 
     public WtpClasspathAttributeSupport(Project project, EclipseModel model) {
-        isUtilityProject = !project.getPlugins().hasPlugin(WarPlugin.class) && !project.getPlugins().hasPlugin(EarPlugin.class);
+        isUtilityProject = !project.getPlugins().hasPlugin(WarPlugin.class)
+                && !project.getPlugins().hasPlugin(EarPlugin.class);
         EclipseWtp eclipseWtp = model.getWtp();
         EclipseWtpComponent wtpComponent = eclipseWtp.getComponent();
         libDirName = wtpComponent.getLibDeployPath();
@@ -62,10 +62,18 @@ public class WtpClasspathAttributeSupport {
         libConfigFiles = collectFilesFromConfigs(model.getClasspath(), libConfigs, minusConfigs);
     }
 
-    private static Set<File> collectFilesFromConfigs(EclipseClasspath classpath, Set<Configuration> configs, Set<Configuration> minusConfigs) {
+    private static Set<File> collectFilesFromConfigs(
+            EclipseClasspath classpath, Set<Configuration> configs, Set<Configuration> minusConfigs) {
         WtpClasspathAttributeDependencyVisitor visitor = new WtpClasspathAttributeDependencyVisitor(classpath);
-        new IdeDependencySet(classpath.getProject().getDependencies(), ((ProjectInternal) classpath.getProject()).getServices().get(JavaModuleDetector.class),
-            configs, minusConfigs, false, NullGradleApiSourcesResolver.INSTANCE, classpath.getTestConfigurations().getOrElse(Collections.emptySet())).visit(visitor);
+        new IdeDependencySet(
+                        classpath.getProject().getDependencies(),
+                        ((ProjectInternal) classpath.getProject()).getServices().get(JavaModuleDetector.class),
+                        configs,
+                        minusConfigs,
+                        false,
+                        NullGradleApiSourcesResolver.INSTANCE,
+                        classpath.getTestConfigurations().getOrElse(Collections.emptySet()))
+                .visit(visitor);
         return visitor.getFiles();
     }
 
@@ -126,16 +134,20 @@ public class WtpClasspathAttributeSupport {
 
         @Override
         public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
-            //already handled elsewhere
+            // already handled elsewhere
         }
 
         @Override
-        public void visitProjectDependency(ResolvedArtifactResult artifact, boolean testDependency, boolean asJavaModule) {
-
-        }
+        public void visitProjectDependency(
+                ResolvedArtifactResult artifact, boolean testDependency, boolean asJavaModule) {}
 
         @Override
-        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, boolean testDependency, boolean asJavaModule) {
+        public void visitModuleDependency(
+                ResolvedArtifactResult artifact,
+                Set<ResolvedArtifactResult> sources,
+                Set<ResolvedArtifactResult> javaDoc,
+                boolean testDependency,
+                boolean asJavaModule) {
             files.add(artifact.getFile());
         }
 

@@ -16,21 +16,22 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Action;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
 import java.util.Collections;
 import java.util.List;
+import org.gradle.api.Action;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 public class NoInputsModelAction<T> extends AbstractModelActionWithView<T> {
     private final Action<? super T> configAction;
 
-    public NoInputsModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
+    public NoInputsModelAction(
+            ModelReference<T> subject, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
         super(subject, descriptor, Collections.<ModelReference<?>>emptyList());
         this.configAction = configAction;
     }
 
-    public static <T> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
+    public static <T> ModelAction of(
+            ModelReference<T> reference, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
         return new NoInputsModelAction<T>(reference, descriptor, configAction);
     }
 

@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.source;
 
+import java.io.File;
 import org.gradle.api.tasks.testing.source.FilePosition;
 import org.gradle.api.tasks.testing.source.FileSource;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public final class DefaultFileSource implements FileSource {
 

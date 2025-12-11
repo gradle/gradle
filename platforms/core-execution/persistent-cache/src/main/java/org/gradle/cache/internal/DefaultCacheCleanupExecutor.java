@@ -16,6 +16,11 @@
 
 package org.gradle.cache.internal;
 
+import java.io.File;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CleanableStore;
@@ -25,12 +30,6 @@ import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Optional;
-
 public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCacheCleanupExecutor.class);
 
@@ -38,7 +37,8 @@ public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
     private final File gcFile;
     private final CacheCleanupStrategy cacheCleanupStrategy;
 
-    public DefaultCacheCleanupExecutor(CleanableStore cleanableStore, File gcFile, CacheCleanupStrategy cacheCleanupStrategy) {
+    public DefaultCacheCleanupExecutor(
+            CleanableStore cleanableStore, File gcFile, CacheCleanupStrategy cacheCleanupStrategy) {
         this.cleanableStore = cleanableStore;
         this.gcFile = gcFile;
         this.cacheCleanupStrategy = cacheCleanupStrategy;
@@ -46,14 +46,16 @@ public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
 
     @Override
     public void cleanup() {
-        getLastCleanupTime()
-            .ifPresent(this::performCleanupIfNecessary);
+        getLastCleanupTime().ifPresent(this::performCleanupIfNecessary);
     }
 
     private void performCleanupIfNecessary(Instant lastCleanupTime) {
         if (LOGGER.isDebugEnabled()) {
             Duration timeSinceLastCleanup = Duration.between(lastCleanupTime, Instant.now());
-            LOGGER.debug("{} has last been fully cleaned up {} hours ago", cleanableStore.getDisplayName(), timeSinceLastCleanup.toHours());
+            LOGGER.debug(
+                    "{} has last been fully cleaned up {} hours ago",
+                    cleanableStore.getDisplayName(),
+                    timeSinceLastCleanup.toHours());
         }
 
         if (!cacheCleanupStrategy.getCleanupFrequency().requiresCleanup(lastCleanupTime)) {

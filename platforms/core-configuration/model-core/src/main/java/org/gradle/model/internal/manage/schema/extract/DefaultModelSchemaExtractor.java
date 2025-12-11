@@ -20,38 +20,39 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
-import org.gradle.model.internal.type.ModelType;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
+import org.gradle.model.internal.type.ModelType;
 
 public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
 
     private final List<? extends ModelSchemaExtractionStrategy> strategies;
 
-    public static DefaultModelSchemaExtractor withDefaultStrategies(List<? extends ModelSchemaExtractionStrategy> strategies, ModelSchemaAspectExtractor aspectExtractor) {
+    public static DefaultModelSchemaExtractor withDefaultStrategies(
+            List<? extends ModelSchemaExtractionStrategy> strategies, ModelSchemaAspectExtractor aspectExtractor) {
         return new DefaultModelSchemaExtractor(ImmutableList.<ModelSchemaExtractionStrategy>builder()
-            .addAll(strategies)
-            .add(new PrimitiveStrategy())
-            .add(new EnumStrategy())
-            .add(new JdkValueTypeStrategy())
-            .add(new ModelSetStrategy())
-            .add(new SpecializedMapStrategy())
-            .add(new ModelMapStrategy())
-            .add(new JavaUtilCollectionStrategy())
-            .add(new ManagedImplStructStrategy(aspectExtractor))
-            .add(new RuleSourceSchemaExtractionStrategy(aspectExtractor))
-            .add(new UnmanagedImplStructStrategy(aspectExtractor))
-            .build());
+                .addAll(strategies)
+                .add(new PrimitiveStrategy())
+                .add(new EnumStrategy())
+                .add(new JdkValueTypeStrategy())
+                .add(new ModelSetStrategy())
+                .add(new SpecializedMapStrategy())
+                .add(new ModelMapStrategy())
+                .add(new JavaUtilCollectionStrategy())
+                .add(new ManagedImplStructStrategy(aspectExtractor))
+                .add(new RuleSourceSchemaExtractionStrategy(aspectExtractor))
+                .add(new UnmanagedImplStructStrategy(aspectExtractor))
+                .build());
     }
 
     public static DefaultModelSchemaExtractor withDefaultStrategies() {
-        return withDefaultStrategies(Collections.<ModelSchemaExtractionStrategy>emptyList(), new ModelSchemaAspectExtractor());
+        return withDefaultStrategies(
+                Collections.<ModelSchemaExtractionStrategy>emptyList(), new ModelSchemaAspectExtractor());
     }
 
     public DefaultModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies) {
@@ -62,7 +63,8 @@ public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
         DefaultModelSchemaExtractionContext<T> context = DefaultModelSchemaExtractionContext.root(type);
         List<DefaultModelSchemaExtractionContext<?>> validations = new ArrayList<>();
-        Queue<DefaultModelSchemaExtractionContext<?>> unsatisfiedDependencies = new ArrayDeque<DefaultModelSchemaExtractionContext<?>>();
+        Queue<DefaultModelSchemaExtractionContext<?>> unsatisfiedDependencies =
+                new ArrayDeque<DefaultModelSchemaExtractionContext<?>>();
         DefaultModelSchemaExtractionContext<?> extractionContext = context;
         validations.add(extractionContext);
 
@@ -82,13 +84,17 @@ public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
         return context.getResult();
     }
 
-    private void pushUnsatisfiedDependencies(Iterable<? extends DefaultModelSchemaExtractionContext<?>> allDependencies, Queue<DefaultModelSchemaExtractionContext<?>> dependencyQueue, final ModelSchemaCache cache) {
-        Iterables.addAll(dependencyQueue, Iterables.filter(allDependencies, new Predicate<ModelSchemaExtractionContext<?>>() {
-            @Override
-            public boolean apply(ModelSchemaExtractionContext<?> dependency) {
-                return cache.get(dependency.getType()) == null;
-            }
-        }));
+    private void pushUnsatisfiedDependencies(
+            Iterable<? extends DefaultModelSchemaExtractionContext<?>> allDependencies,
+            Queue<DefaultModelSchemaExtractionContext<?>> dependencyQueue,
+            final ModelSchemaCache cache) {
+        Iterables.addAll(
+                dependencyQueue, Iterables.filter(allDependencies, new Predicate<ModelSchemaExtractionContext<?>>() {
+                    @Override
+                    public boolean apply(ModelSchemaExtractionContext<?> dependency) {
+                        return cache.get(dependency.getType()) == null;
+                    }
+                }));
     }
 
     private <T> void validate(DefaultModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {

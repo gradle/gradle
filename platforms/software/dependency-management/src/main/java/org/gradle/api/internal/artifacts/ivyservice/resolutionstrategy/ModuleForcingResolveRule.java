@@ -16,18 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector;
 
 public class ModuleForcingResolveRule implements Action<DependencySubstitutionInternal> {
 
@@ -53,9 +52,12 @@ public class ModuleForcingResolveRule implements Action<DependencySubstitutionIn
             ModuleComponentSelector selector = (ModuleComponentSelector) details.getRequested();
             ModuleIdentifier key = selector.getModuleIdentifier();
             if (forcedModules.containsKey(key)) {
-                DefaultImmutableVersionConstraint versionConstraint = new DefaultImmutableVersionConstraint(forcedModules.get(key));
-                details.useTarget(newSelector(key, versionConstraint, selector.getAttributes(), selector.getCapabilitySelectors()), ComponentSelectionReasons.FORCED);
-
+                DefaultImmutableVersionConstraint versionConstraint =
+                        new DefaultImmutableVersionConstraint(forcedModules.get(key));
+                details.useTarget(
+                        newSelector(
+                                key, versionConstraint, selector.getAttributes(), selector.getCapabilitySelectors()),
+                        ComponentSelectionReasons.FORCED);
             }
         }
     }

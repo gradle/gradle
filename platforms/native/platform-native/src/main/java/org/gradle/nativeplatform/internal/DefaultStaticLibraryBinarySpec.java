@@ -16,6 +16,11 @@
 
 package org.gradle.nativeplatform.internal;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -26,13 +31,8 @@ import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
-public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements StaticLibraryBinary, StaticLibraryBinarySpecInternal {
+public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinarySpec
+        implements StaticLibraryBinary, StaticLibraryBinarySpecInternal {
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
     private File staticLibraryFile;
@@ -59,7 +59,8 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
 
     @Override
     public FileCollection getLinkFiles() {
-        ConfigurableFileCollection result = getFileCollectionFactory().configurableFiles("Link files for " + getDisplayName());
+        ConfigurableFileCollection result =
+                getFileCollectionFactory().configurableFiles("Link files for " + getDisplayName());
         result.from(getFileCollectionFactory().create(new StaticLibraryLinkOutputs()));
         result.from(additionalLinkFiles);
         return result;
@@ -80,7 +81,8 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         return tasks;
     }
 
-    static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements StaticLibraryBinarySpec.TasksCollection {
+    static class DefaultTasksCollection extends BinaryTasksCollectionWrapper
+            implements StaticLibraryBinarySpec.TasksCollection {
         public DefaultTasksCollection(BinaryTasksCollection delegate) {
             super(delegate);
         }

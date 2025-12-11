@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.gradle.api.Project;
-
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -25,6 +23,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.gradle.api.Project;
 
 /**
  * Provides access to essential details on projects and their configurations.
@@ -40,7 +39,10 @@ public interface ProjectsWithConfigurations<P extends ProjectDetails, C extends 
 
     Iterable<C> getConfigurationsFor(P project);
 
-    static <P extends ProjectDetails, C extends ConfigurationDetails> ProjectsWithConfigurations<P, C> from(Iterable<Project> projects, Function<Project, P> projectProjector,  Function<Project, Stream<? extends C>> configurationProjector) {
+    static <P extends ProjectDetails, C extends ConfigurationDetails> ProjectsWithConfigurations<P, C> from(
+            Iterable<Project> projects,
+            Function<Project, P> projectProjector,
+            Function<Project, Stream<? extends C>> configurationProjector) {
         Map<P, Iterable<C>> details = new LinkedHashMap<>();
         projects.forEach(p -> {
             P projectDetails = projectProjector.apply(p);

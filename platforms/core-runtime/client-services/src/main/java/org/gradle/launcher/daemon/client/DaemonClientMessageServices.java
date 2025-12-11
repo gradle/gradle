@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.client;
 
+import java.util.UUID;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
@@ -39,8 +40,6 @@ import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.UUID;
 
 /**
  * Services needed by clients that only communicate with running Daemons.
@@ -74,8 +73,10 @@ public class DaemonClientMessageServices implements ServiceRegistrationProvider 
     }
 
     @Provides
-    ProgressLoggerFactory createProgressLoggerFactory(Clock clock, BuildOperationIdFactory buildOperationIdFactory, OutputEventListener outputEventListener) {
-        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
+    ProgressLoggerFactory createProgressLoggerFactory(
+            Clock clock, BuildOperationIdFactory buildOperationIdFactory, OutputEventListener outputEventListener) {
+        return new DefaultProgressLoggerFactory(
+                new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
     }
 
     @Provides
@@ -84,18 +85,37 @@ public class DaemonClientMessageServices implements ServiceRegistrationProvider 
     }
 
     @Provides
-    NotifyDaemonAboutChangedPathsClient createNotifyDaemonAboutChangedPathsClient(DaemonConnector connector, IdGenerator<UUID> idGenerator, DaemonRegistry daemonRegistry) {
+    NotifyDaemonAboutChangedPathsClient createNotifyDaemonAboutChangedPathsClient(
+            DaemonConnector connector, IdGenerator<UUID> idGenerator, DaemonRegistry daemonRegistry) {
         return new NotifyDaemonAboutChangedPathsClient(connector, idGenerator, daemonRegistry);
     }
 
     @Provides
-    ReportDaemonStatusClient createReportDaemonStatusClient(DaemonRegistry registry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry) {
+    ReportDaemonStatusClient createReportDaemonStatusClient(
+            DaemonRegistry registry,
+            DaemonConnector connector,
+            IdGenerator<UUID> idGenerator,
+            DocumentationRegistry documentationRegistry) {
         return new ReportDaemonStatusClient(registry, connector, idGenerator, documentationRegistry);
     }
 
     @Provides
-    DaemonConnector createDaemonConnector(DaemonDir daemonDir, DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, Serializer<BuildAction> buildActionSerializer) {
-        return new DefaultDaemonConnector(daemonDir, daemonRegistry, outgoingConnector, daemonStarter, listenerManager.getBroadcaster(DaemonStartListener.class), progressLoggerFactory, DaemonMessageSerializer.create(buildActionSerializer));
+    DaemonConnector createDaemonConnector(
+            DaemonDir daemonDir,
+            DaemonRegistry daemonRegistry,
+            OutgoingConnector outgoingConnector,
+            DaemonStarter daemonStarter,
+            ListenerManager listenerManager,
+            ProgressLoggerFactory progressLoggerFactory,
+            Serializer<BuildAction> buildActionSerializer) {
+        return new DefaultDaemonConnector(
+                daemonDir,
+                daemonRegistry,
+                outgoingConnector,
+                daemonStarter,
+                listenerManager.getBroadcaster(DaemonStartListener.class),
+                progressLoggerFactory,
+                DaemonMessageSerializer.create(buildActionSerializer));
     }
 
     @Provides

@@ -15,17 +15,16 @@
  */
 package org.gradle.internal.reflect.validation;
 
-import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.internal.logging.text.TreeFormatter;
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.capitalize;
+import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.capitalize;
-import static org.gradle.util.internal.TextUtil.endLineWithDot;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 public class TypeValidationProblemRenderer {
 
@@ -37,15 +36,18 @@ public class TypeValidationProblemRenderer {
         return renderMinimalInformationAbout(problem, renderDocLink, true);
     }
 
-    public static String renderMinimalInformationAbout(InternalProblem problem, boolean renderDocLink, boolean renderSolutions) {
+    public static String renderMinimalInformationAbout(
+            InternalProblem problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(endLineWithDot(Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName())));
+        formatter.node(endLineWithDot(Optional.ofNullable(problem.getContextualLabel())
+                .orElseGet(() -> problem.getDefinition().getId().getDisplayName())));
         ofNullable(problem.getDetails()).ifPresent(reason -> {
             formatter.blankLine();
             formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
         });
         if (renderSolutions) {
-            List<String> allSolutions = new ArrayList<>(problem.getSolutions().size() + problem.getSolutions().size());
+            List<String> allSolutions = new ArrayList<>(
+                    problem.getSolutions().size() + problem.getSolutions().size());
             allSolutions.addAll(problem.getSolutions());
             renderSolutions(formatter, allSolutions);
         }
@@ -67,9 +69,7 @@ public class TypeValidationProblemRenderer {
             } else {
                 formatter.node("Possible solutions");
                 formatter.startNumberedChildren();
-                possibleSolutions.forEach(solution ->
-                    formatter.node(capitalize(endLineWithDot(solution)))
-                );
+                possibleSolutions.forEach(solution -> formatter.node(capitalize(endLineWithDot(solution))));
                 formatter.endChildren();
             }
         }
@@ -81,8 +81,8 @@ public class TypeValidationProblemRenderer {
      */
     public static String convertToSingleLine(String message) {
         return message.replaceAll("(\\r?\\n *)+", ". ")
-            .replaceAll("[.]+", ".")
-            .replaceAll("[ ]+", " ")
-            .replaceAll(": ?[. ]", ": ");
+                .replaceAll("[.]+", ".")
+                .replaceAll("[ ]+", " ")
+                .replaceAll(": ?[. ]", ": ");
     }
 }

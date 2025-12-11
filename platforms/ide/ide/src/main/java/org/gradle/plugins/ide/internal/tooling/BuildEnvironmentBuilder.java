@@ -16,6 +16,8 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import java.io.File;
+import java.util.List;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.jvm.Jvm;
@@ -24,9 +26,6 @@ import org.gradle.process.internal.CurrentProcess;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * Builds the GradleProject that contains the project hierarchy and task information
@@ -54,6 +53,7 @@ public class BuildEnvironmentBuilder implements ToolingModelBuilder {
 
         DefaultBuildIdentifier buildIdentifier = new DefaultBuildIdentifier(target.getRootDir());
         String versionInfo = VersionInfoRenderer.render(Jvm.current().toString());
-        return new DefaultBuildEnvironment(buildIdentifier, gradleUserHomeDir, gradleVersion, javaHome, jvmArgs, versionInfo);
+        return new DefaultBuildEnvironment(
+                buildIdentifier, gradleUserHomeDir, gradleVersion, javaHome, jvmArgs, versionInfo);
     }
 }

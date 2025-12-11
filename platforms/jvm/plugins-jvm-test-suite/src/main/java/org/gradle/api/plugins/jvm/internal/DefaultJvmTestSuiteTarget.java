@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.Buildable;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -25,8 +26,6 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.util.internal.GUtil;
-
-import javax.inject.Inject;
 
 public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, Buildable {
     private final String name;

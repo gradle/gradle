@@ -21,9 +21,8 @@ import org.jspecify.annotations.Nullable;
 
 public interface BuildOperationQueueFactory {
     <T extends BuildOperation> BuildOperationQueue<T> create(
-        ManagedExecutor executor,
-        boolean allowAccessToProjectState,
-        BuildOperationQueue.QueueWorker<T> worker,
-        @Nullable BuildOperationState parent
-    );
+            ManagedExecutor executor,
+            boolean allowAccessToProjectState,
+            BuildOperationQueue.QueueWorker<T> worker,
+            @Nullable BuildOperationState parent);
 }

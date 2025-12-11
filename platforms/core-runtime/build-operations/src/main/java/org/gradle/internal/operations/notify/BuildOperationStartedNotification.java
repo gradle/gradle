@@ -59,5 +59,4 @@ public interface BuildOperationStartedNotification {
      * A structured object providing details about the operation to be performed.
      */
     Object getNotificationOperationDetails();
-
 }

@@ -36,9 +36,7 @@ public class DependencyManagementManagedTypesFactory {
     private final Instantiator instantiator;
 
     public DependencyManagementManagedTypesFactory(
-        InstantiatorFactory instantiatorFactory,
-        ServiceRegistry serviceRegistry
-    ) {
+            InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry) {
         this.instantiator = instantiatorFactory.decorate(serviceRegistry);
     }
 
@@ -46,5 +44,4 @@ public class DependencyManagementManagedTypesFactory {
     public DependencyCollector dependencyCollector() {
         return instantiator.newInstance(DefaultDependencyCollector.class);
     }
-
 }

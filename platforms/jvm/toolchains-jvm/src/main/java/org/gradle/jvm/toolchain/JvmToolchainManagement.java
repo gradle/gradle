@@ -63,5 +63,4 @@ public interface JvmToolchainManagement {
      * </pre>
      */
     void javaRepositories(Action<? super JavaToolchainRepositoryHandler> configureAction);
-
 }

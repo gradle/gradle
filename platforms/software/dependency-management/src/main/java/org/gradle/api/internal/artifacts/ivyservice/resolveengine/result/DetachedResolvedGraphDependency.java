@@ -34,13 +34,13 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
     private final boolean constraint;
     private final Long targetVariant;
 
-    public DetachedResolvedGraphDependency(ComponentSelector requested,
-                                           Long selected,
-                                           ComponentSelectionReason reason,
-                                           ModuleVersionResolveException failure,
-                                           boolean constraint,
-                                           Long targetVariant
-    ) {
+    public DetachedResolvedGraphDependency(
+            ComponentSelector requested,
+            Long selected,
+            ComponentSelectionReason reason,
+            ModuleVersionResolveException failure,
+            boolean constraint,
+            Long targetVariant) {
         assert requested != null;
         assert failure != null || selected != null;
 

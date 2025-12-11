@@ -16,13 +16,12 @@
 
 package org.gradle.internal.remote.internal.hub;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.internal.remote.internal.hub.protocol.EndOfStream;
 import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
 import org.gradle.internal.remote.internal.hub.queue.EndPointQueue;
-
-import java.util.HashSet;
-import java.util.Set;
 
 class ConnectionSet {
     private final Set<ConnectionState> connections = new HashSet<ConnectionState>();

@@ -17,6 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
@@ -26,20 +27,21 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.util.Map;
-
 /**
  * Fingerprint files without path or content normalization.
  */
 public class AbsolutePathFingerprintingStrategy extends AbstractDirectorySensitiveFingerprintingStrategy {
-    public static final FingerprintingStrategy DEFAULT = new AbsolutePathFingerprintingStrategy(DirectorySensitivity.DEFAULT);
-    public static final FingerprintingStrategy IGNORE_DIRECTORIES = new AbsolutePathFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
+    public static final FingerprintingStrategy DEFAULT =
+            new AbsolutePathFingerprintingStrategy(DirectorySensitivity.DEFAULT);
+    public static final FingerprintingStrategy IGNORE_DIRECTORIES =
+            new AbsolutePathFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
 
     public static final String IDENTIFIER = "ABSOLUTE_PATH";
 
     private final FileSystemLocationSnapshotHasher normalizedContentHasher;
 
-    public AbsolutePathFingerprintingStrategy(DirectorySensitivity directorySensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
+    public AbsolutePathFingerprintingStrategy(
+            DirectorySensitivity directorySensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
         super(IDENTIFIER, directorySensitivity, normalizedContentHasher);
         this.normalizedContentHasher = normalizedContentHasher;
     }
@@ -58,7 +60,10 @@ public class AbsolutePathFingerprintingStrategy extends AbstractDirectorySensiti
                 if (getDirectorySensitivity().shouldFingerprint(snapshot)) {
                     HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
                     if (normalizedContentHash != null) {
-                        builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot.getType(), normalizedContentHash));
+                        builder.put(
+                                absolutePath,
+                                new DefaultFileSystemLocationFingerprint(
+                                        snapshot.getAbsolutePath(), snapshot.getType(), normalizedContentHash));
                     }
                 }
             }

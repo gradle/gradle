@@ -20,13 +20,12 @@ import gradlebuild.docs.dsl.source.model.EnumConstantMetaData;
 import gradlebuild.docs.dsl.source.model.MethodMetaData;
 import gradlebuild.docs.model.Attachable;
 import gradlebuild.docs.model.ClassMetaDataRepository;
-import org.gradle.util.internal.CollectionUtils;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.util.internal.CollectionUtils;
 
 public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMetaData> {
     private final String className;
@@ -81,16 +80,19 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
             }
         }
         if (candidates.isEmpty()) {
-            String message = String.format("No method '%s' found for class '%s'.\nFound the following methods:", method, className);
+            String message = String.format(
+                    "No method '%s' found for class '%s'.\nFound the following methods:", method, className);
             for (MethodLinkMetaData methodLinkMetaData : methods.values()) {
                 message += "\n  " + methodLinkMetaData;
             }
-            message += "\nThis problem may happen when some apilink from docbook template xmls refers to unknown method."
-                    + "\nExample: <apilink class=\"org.gradle.api.Project\" method=\"someMethodThatDoesNotExist\"/>";
+            message +=
+                    "\nThis problem may happen when some apilink from docbook template xmls refers to unknown method."
+                            + "\nExample: <apilink class=\"org.gradle.api.Project\" method=\"someMethodThatDoesNotExist\"/>";
             throw new RuntimeException(message);
         }
         if (candidates.size() != 1) {
-            String message = String.format("Found multiple methods called '%s' in class '%s'. Candidates: %s",
+            String message = String.format(
+                    "Found multiple methods called '%s' in class '%s'. Candidates: %s",
                     method, className, CollectionUtils.join(", ", candidates));
             message += "\nThis problem may happen when some apilink from docbook template xmls is incorrect. Example:"
                     + "\nIncorrect: <apilink class=\"org.gradle.api.Project\" method=\"tarTree\"/>"
@@ -109,7 +111,9 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
     }
 
     public void addMethod(MethodMetaData method, LinkMetaData.Style style) {
-        methods.put(method.getOverrideSignature(), new MethodLinkMetaData(method.getName(), method.getOverrideSignature(), style));
+        methods.put(
+                method.getOverrideSignature(),
+                new MethodLinkMetaData(method.getName(), method.getOverrideSignature(), style));
     }
 
     public void addEnumConstant(EnumConstantMetaData enumConstant, LinkMetaData.Style style) {
@@ -118,16 +122,19 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
     }
 
     public void addBlockMethod(MethodMetaData method) {
-        methods.put(method.getOverrideSignature(), new BlockLinkMetaData(method.getName(), method.getOverrideSignature()));
+        methods.put(
+                method.getOverrideSignature(), new BlockLinkMetaData(method.getName(), method.getOverrideSignature()));
     }
 
     public void addPropertyAccessorMethod(String propertyName, MethodMetaData getterOrSetter) {
-        methods.put(getterOrSetter.getOverrideSignature(), new PropertyLinkMetaData(propertyName, getterOrSetter.getName(), getterOrSetter.getOverrideSignature()));
+        methods.put(
+                getterOrSetter.getOverrideSignature(),
+                new PropertyLinkMetaData(
+                        propertyName, getterOrSetter.getName(), getterOrSetter.getOverrideSignature()));
     }
 
     @Override
-    public void attach(ClassMetaDataRepository<ClassLinkMetaData> linkMetaDataClassMetaDataRepository) {
-    }
+    public void attach(ClassMetaDataRepository<ClassLinkMetaData> linkMetaDataClassMetaDataRepository) {}
 
     private static class MethodLinkMetaData implements Serializable {
         final String name;
@@ -145,7 +152,9 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         }
 
         public String getUrlFragment(String className) {
-            return style == LinkMetaData.Style.Dsldoc ? String.format("%s:%s", className, signature) : signature.replace('(', '-').replace(')', '-');
+            return style == LinkMetaData.Style.Dsldoc
+                    ? String.format("%s:%s", className, signature)
+                    : signature.replace('(', '-').replace(')', '-');
         }
 
         @Override

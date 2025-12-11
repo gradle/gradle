@@ -16,9 +16,6 @@
 
 package org.gradle.performance.results;
 
-import org.gradle.reporting.ReportRenderer;
-import org.gradle.util.internal.GFileUtils;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,11 +23,14 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import org.gradle.reporting.ReportRenderer;
+import org.gradle.util.internal.GFileUtils;
 
 public class FileRenderer {
     public <T> void render(T model, ReportRenderer<T, Writer> renderer, File outputFile) throws IOException {
         GFileUtils.parentMkdirs(outputFile);
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8))) {
+        try (Writer writer =
+                new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8))) {
             renderer.render(model, writer);
         }
     }

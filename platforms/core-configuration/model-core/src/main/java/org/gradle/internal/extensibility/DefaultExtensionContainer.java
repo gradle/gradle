@@ -16,7 +16,12 @@
 
 package org.gradle.internal.extensibility;
 
+import static java.lang.String.format;
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 import groovy.lang.Closure;
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
@@ -32,15 +37,11 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static java.lang.String.format;
-import static org.gradle.api.reflect.TypeOf.typeOf;
-
 public class DefaultExtensionContainer implements ExtensionContainerInternal {
-    private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
-    private final DefaultExtensionContainer.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
+    private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE =
+            typeOf(ExtraPropertiesExtension.class);
+    private final DefaultExtensionContainer.ExtensionsDynamicObject extensionsDynamicObject =
+            new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
     private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
     private final InstanceGenerator instanceGenerator;
@@ -49,7 +50,6 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
         this.instanceGenerator = instanceGenerator;
         add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
-
 
     public DynamicObject getExtensionsAsDynamicObject() {
         // This implementation of Convention doesn't log a deprecation warning
@@ -86,12 +86,14 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
     }
 
     @Override
-    public <T> T create(Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
+    public <T> T create(
+            Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
         return create(typeOf(publicType), name, instanceType, constructionArguments);
     }
 
     @Override
-    public <T> T create(TypeOf<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
+    public <T> T create(
+            TypeOf<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
         T instance = instantiate(instanceType, name, constructionArguments);
         add(publicType, name, instance);
         return instance;
@@ -171,7 +173,8 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
     }
 
     private <T> T instantiate(Class<? extends T> instanceType, String name, Object[] constructionArguments) {
-        return instanceGenerator.newInstanceWithDisplayName(instanceType, Describables.withTypeAndName("extension", name), constructionArguments);
+        return instanceGenerator.newInstanceWithDisplayName(
+                instanceType, Describables.withTypeAndName("extension", name), constructionArguments);
     }
 
     private class ExtensionsDynamicObject extends AbstractDynamicObject {
@@ -207,7 +210,7 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
             return getProperty(name);
         }
 
-        @SuppressWarnings("unused")  // Groovy magic method
+        @SuppressWarnings("unused") // Groovy magic method
         public void propertyMissing(String name, Object value) {
             setProperty(name, value);
         }
@@ -249,15 +252,16 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
 
     private void checkExtensionIsNotReassigned(String name) {
         if (extensionsStorage.hasExtension(name)) {
-            throw new IllegalArgumentException(
-                format("There's an extension registered with name '%s'. You should not reassign it via a property setter.", name));
+            throw new IllegalArgumentException(format(
+                    "There's an extension registered with name '%s'. You should not reassign it via a property setter.",
+                    name));
         }
     }
 
     private boolean isConfigureExtensionMethod(String name, @Nullable Object[] args) {
-        return args.length == 1 &&
-            (args[0] instanceof Closure || args[0] instanceof Action) &&
-            extensionsStorage.hasExtension(name);
+        return args.length == 1
+                && (args[0] instanceof Closure || args[0] instanceof Action)
+                && extensionsStorage.hasExtension(name);
     }
 
     private Object configureExtension(String name, Object[] args) {

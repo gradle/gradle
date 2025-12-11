@@ -16,15 +16,14 @@
 
 package org.gradle.external.javadoc.internal;
 
+import java.io.File;
+import java.io.IOException;
 import org.gradle.api.GradleException;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.internal.GUtil;
-
-import java.io.File;
-import java.io.IOException;
 
 public class JavadocExecHandleBuilder {
     private final ExecActionFactory execActionFactory;

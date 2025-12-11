@@ -16,11 +16,10 @@
 
 package org.gradle.internal.operations.logging;
 
+import java.io.File;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.internal.GFileUtils;
-
-import java.io.File;
 
 public class DefaultBuildOperationLoggerFactory implements BuildOperationLoggerFactory {
     private static final int MAX_FAILURES = 10;
@@ -34,7 +33,6 @@ public class DefaultBuildOperationLoggerFactory implements BuildOperationLoggerF
     public DefaultBuildOperationLoggerFactory() {
         this(Logging.getLogger(DefaultBuildOperationLoggerFactory.class));
     }
-
 
     @Override
     public BuildOperationLogger newOperationLogger(String taskName, File outputDir) {

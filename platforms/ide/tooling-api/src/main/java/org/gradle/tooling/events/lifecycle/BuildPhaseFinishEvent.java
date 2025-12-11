@@ -25,5 +25,4 @@ import org.gradle.tooling.events.FinishEvent;
  * @since 7.6
  */
 @Incubating
-public interface BuildPhaseFinishEvent extends BuildPhaseProgressEvent, FinishEvent {
-}
+public interface BuildPhaseFinishEvent extends BuildPhaseProgressEvent, FinishEvent {}

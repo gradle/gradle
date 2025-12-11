@@ -16,11 +16,10 @@
 
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.util.internal.GUtil;
-
 import java.util.HashSet;
 import java.util.Set;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.util.internal.GUtil;
 
 public class ProgressOperation {
 
@@ -30,7 +29,8 @@ public class ProgressOperation {
     private final ProgressOperation parent;
     private Set<ProgressOperation> children;
 
-    public ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent) {
+    public ProgressOperation(
+            String status, String category, OperationIdentifier operationId, ProgressOperation parent) {
         this.status = status;
         this.category = category;
         this.operationId = operationId;
@@ -74,7 +74,8 @@ public class ProgressOperation {
 
     public boolean removeChild(ProgressOperation operation) {
         if (children == null) {
-            throw new IllegalStateException(String.format("Cannot remove child operation [%s] from operation with no children [%s]", operation, this));
+            throw new IllegalStateException(String.format(
+                    "Cannot remove child operation [%s] from operation with no children [%s]", operation, this));
         }
         return children.remove(operation);
     }

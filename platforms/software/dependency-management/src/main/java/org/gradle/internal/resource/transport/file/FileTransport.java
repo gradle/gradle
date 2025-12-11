@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.resource.transport.file;
 
+import java.io.IOException;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
@@ -33,17 +34,32 @@ import org.gradle.internal.resource.transport.AbstractRepositoryTransport;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.jspecify.annotations.Nullable;
 
-import java.io.IOException;
-
 public class FileTransport extends AbstractRepositoryTransport {
     private final FileResourceRepository repository;
     private final FileCacheAwareExternalResourceAccessor resourceAccessor;
 
-    public FileTransport(String name, FileResourceRepository repository, CachedExternalResourceIndex<String> cachedExternalResourceIndex, TemporaryFileProvider temporaryFileProvider, BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ProducerGuard<ExternalResourceName> producerGuard, ChecksumService checksumService) {
+    public FileTransport(
+            String name,
+            FileResourceRepository repository,
+            CachedExternalResourceIndex<String> cachedExternalResourceIndex,
+            TemporaryFileProvider temporaryFileProvider,
+            BuildCommencedTimeProvider timeProvider,
+            ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
+            ProducerGuard<ExternalResourceName> producerGuard,
+            ChecksumService checksumService) {
         super(name);
         this.repository = repository;
         ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
-        resourceAccessor = new FileCacheAwareExternalResourceAccessor(new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheAccessCoordinator, cachePolicy, producerGuard, repository, checksumService));
+        resourceAccessor = new FileCacheAwareExternalResourceAccessor(new DefaultCacheAwareExternalResourceAccessor(
+                repository,
+                cachedExternalResourceIndex,
+                timeProvider,
+                temporaryFileProvider,
+                cacheAccessCoordinator,
+                cachePolicy,
+                producerGuard,
+                repository,
+                checksumService));
     }
 
     @Override
@@ -70,7 +86,12 @@ public class FileTransport extends AbstractRepositoryTransport {
 
         @Nullable
         @Override
-        public LocallyAvailableExternalResource getResource(ExternalResourceName source, @Nullable String baseName, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
+        public LocallyAvailableExternalResource getResource(
+                ExternalResourceName source,
+                @Nullable String baseName,
+                ResourceFileStore fileStore,
+                @Nullable LocallyAvailableResourceCandidates additionalCandidates)
+                throws IOException {
             LocallyAvailableExternalResource resource = repository.resource(source);
             if (!resource.exists()) {
                 return null;

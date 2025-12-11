@@ -22,5 +22,4 @@ package org.gradle.ide.xcode;
  * @since 4.2
  * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Projects.html">XCode Project Concept</a>
  */
-public interface XcodeProject {
-}
+public interface XcodeProject {}

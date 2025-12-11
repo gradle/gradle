@@ -16,6 +16,13 @@
 
 package org.gradle.internal.execution.workspace.impl;
 
+import java.io.Closeable;
+import java.io.File;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategyFactory;
@@ -29,14 +36,6 @@ import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
-import java.io.Closeable;
-import java.io.File;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
-
 public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
     private static final int DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
@@ -48,68 +47,68 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     private final Map<String, CacheContainer> keyCaches = new ConcurrentHashMap<>();
 
     public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
-        CacheBuilder cacheBuilder,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
-    ) {
+            CacheBuilder cacheBuilder,
+            FileAccessTimeJournal fileAccessTimeJournal,
+            CacheConfigurationsInternal cacheConfigurations,
+            CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         return createWorkspaceProvider(
-            cacheBuilder,
-            fileAccessTimeJournal,
-            DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
-            cacheConfigurations,
-            cacheCleanupStrategyFactory,
-            unscopedCacheBuilderFactory
-        );
+                cacheBuilder,
+                fileAccessTimeJournal,
+                DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
+                cacheConfigurations,
+                cacheCleanupStrategyFactory,
+                unscopedCacheBuilderFactory);
     }
 
     public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
-        CacheBuilder cacheBuilder,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        int treeDepthToTrackAndCleanup,
-        CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
-    ) {
+            CacheBuilder cacheBuilder,
+            FileAccessTimeJournal fileAccessTimeJournal,
+            int treeDepthToTrackAndCleanup,
+            CacheConfigurationsInternal cacheConfigurations,
+            CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         return new CacheBasedImmutableWorkspaceProvider(
-            cacheBuilder,
-            fileAccessTimeJournal,
-            treeDepthToTrackAndCleanup,
-            cacheConfigurations,
-            cacheCleanupStrategyFactory,
-            unscopedCacheBuilderFactory
-        );
+                cacheBuilder,
+                fileAccessTimeJournal,
+                treeDepthToTrackAndCleanup,
+                cacheConfigurations,
+                cacheCleanupStrategyFactory,
+                unscopedCacheBuilderFactory);
     }
 
     private CacheBasedImmutableWorkspaceProvider(
-        CacheBuilder cacheBuilder,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        int treeDepthToTrackAndCleanup,
-        CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
-    ) {
+            CacheBuilder cacheBuilder,
+            FileAccessTimeJournal fileAccessTimeJournal,
+            int treeDepthToTrackAndCleanup,
+            CacheConfigurationsInternal cacheConfigurations,
+            CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         PersistentCache cache = cacheBuilder
-            .withCleanupStrategy(cacheCleanupStrategyFactory.create(createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations), cacheConfigurations.getCleanupFrequency()::get))
-            // We don't need to lock the cache for immutable workspaces
-            // as we are using unique temporary workspaces to run work in
-            // and move them atomically into the cache
-            // TODO Should use a read-write lock on the cache's base directory for cleanup, though
-            .withInitialLockMode(FileLockManager.LockMode.None)
-            .open();
+                .withCleanupStrategy(cacheCleanupStrategyFactory.create(
+                        createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations),
+                        cacheConfigurations.getCleanupFrequency()::get))
+                // We don't need to lock the cache for immutable workspaces
+                // as we are using unique temporary workspaces to run work in
+                // and move them atomically into the cache
+                // TODO Should use a read-write lock on the cache's base directory for cleanup, though
+                .withInitialLockMode(FileLockManager.LockMode.None)
+                .open();
         this.cache = cache;
         this.baseDirectory = cache.getBaseDir();
-        this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
+        this.fileAccessTracker =
+                new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
         this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
     }
 
-    private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {
+    private static CleanupAction createCleanupAction(
+            FileAccessTimeJournal fileAccessTimeJournal,
+            int treeDepthToTrackAndCleanup,
+            CacheConfigurationsInternal cacheConfigurations) {
         return new LeastRecentlyUsedCacheCleanup(
-            new SingleDepthFilesFinder(treeDepthToTrackAndCleanup),
-            fileAccessTimeJournal,
-            cacheConfigurations.getCreatedResources().getEntryRetentionTimestampSupplier()
-        );
+                new SingleDepthFilesFinder(treeDepthToTrackAndCleanup),
+                fileAccessTimeJournal,
+                cacheConfigurations.getCreatedResources().getEntryRetentionTimestampSupplier());
     }
 
     @Override
@@ -147,10 +146,12 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
 
             @Override
             public <T> T withWorkspaceLock(Supplier<T> supplier) {
-                CacheContainer cacheContainer = keyCaches.computeIfAbsent(path, cache ->
-                    new CacheContainer(unscopedCacheBuilderFactory.cache(workspaceBaseDir)
-                        .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-                        .open()));
+                CacheContainer cacheContainer = keyCaches.computeIfAbsent(
+                        path,
+                        cache -> new CacheContainer(unscopedCacheBuilderFactory
+                                .cache(workspaceBaseDir)
+                                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+                                .open()));
 
                 return cacheContainer.withFileLock(supplier);
             }

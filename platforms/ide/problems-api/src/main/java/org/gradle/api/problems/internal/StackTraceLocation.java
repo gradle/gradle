@@ -16,11 +16,10 @@
 
 package org.gradle.api.problems.internal;
 
+import java.util.List;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.ProblemLocation;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * A stack trace for the location of a problem.

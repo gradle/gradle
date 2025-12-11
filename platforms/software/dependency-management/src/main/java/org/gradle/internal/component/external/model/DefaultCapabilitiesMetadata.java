@@ -16,10 +16,9 @@
 
 package org.gradle.internal.component.external.model;
 
+import java.util.List;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
-
-import java.util.List;
 
 /**
  * An immutable implementation of {@link CapabilitiesMetadata}.

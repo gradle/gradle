@@ -61,11 +61,8 @@ public class WorkerProcessIsolationProblemsServiceProvider implements ServiceReg
         FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
         FilteringClassLoader modelClassLoader = new FilteringClassLoader(parent, filterSpec);
 
-        return new PayloadSerializer(
-            new WellKnownClassLoaderRegistry(
-                new DefaultPayloadClassLoaderRegistry(
-                    classLoaderCache,
-                    new ModelClassLoaderFactory(modelClassLoader))));
+        return new PayloadSerializer(new WellKnownClassLoaderRegistry(new DefaultPayloadClassLoaderRegistry(
+                classLoaderCache, new ModelClassLoaderFactory(modelClassLoader))));
     }
 
     @Provides
@@ -84,17 +81,13 @@ public class WorkerProcessIsolationProblemsServiceProvider implements ServiceReg
 
     @Provides
     IsolatableSerializerRegistry createIsolatableSerializerRegistry(
-        ManagedFactoryRegistry managedFactoryRegistry,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher
-    ) {
+            ManagedFactoryRegistry managedFactoryRegistry, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
     }
 
     @Provides
     IsolatableFactory createIsolatableFactory(
-        ManagedFactoryRegistry managedFactoryRegistry,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher
-    ) {
+            ManagedFactoryRegistry managedFactoryRegistry, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         return new DefaultIsolatableFactory(classLoaderHierarchyHasher, managedFactoryRegistry);
     }
 
@@ -105,23 +98,21 @@ public class WorkerProcessIsolationProblemsServiceProvider implements ServiceReg
 
     @Provides
     InternalProblems createInternalProblems(
-        PayloadSerializer payloadSerializer,
-        ServiceRegistry serviceRegistry,
-        IsolatableFactory isolatableFactory,
-        IsolatableSerializerRegistry isolatableSerializerRegistry,
-        InstantiatorFactory instantiatorFactory,
-        WorkerProblemProtocol responder
-    ) {
+            PayloadSerializer payloadSerializer,
+            ServiceRegistry serviceRegistry,
+            IsolatableFactory isolatableFactory,
+            IsolatableSerializerRegistry isolatableSerializerRegistry,
+            InstantiatorFactory instantiatorFactory,
+            WorkerProblemProtocol responder) {
         return new DefaultProblems(
-            new WorkerProblemEmitter(responder),
-            null,
-            CurrentBuildOperationRef.instance(),
-            new ExceptionProblemRegistry(),
-            null,
-            instantiatorFactory.decorate(serviceRegistry),
-            payloadSerializer,
-            isolatableFactory,
-            isolatableSerializerRegistry
-        );
+                new WorkerProblemEmitter(responder),
+                null,
+                CurrentBuildOperationRef.instance(),
+                new ExceptionProblemRegistry(),
+                null,
+                instantiatorFactory.decorate(serviceRegistry),
+                payloadSerializer,
+                isolatableFactory,
+                isolatableSerializerRegistry);
     }
 }

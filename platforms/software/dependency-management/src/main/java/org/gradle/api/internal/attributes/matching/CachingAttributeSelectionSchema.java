@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.attributes.matching;
 
+import java.util.Collection;
+import java.util.Set;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.InMemoryLoadingCache;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Set;
 
 /**
  * Caches results of a delegate {@link AttributeSelectionSchema}. Not all methods
@@ -37,10 +36,7 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
     private final InMemoryLoadingCache<ExtraAttributesKey, Attribute<?>[]> extraAttributesCache;
     private final InMemoryLoadingCache<MatchValueKey<?>, Boolean> matchValueCache;
 
-    public CachingAttributeSelectionSchema(
-        AttributeSelectionSchema delegate,
-        InMemoryCacheFactory cacheFactory
-    ) {
+    public CachingAttributeSelectionSchema(AttributeSelectionSchema delegate, InMemoryCacheFactory cacheFactory) {
         this.delegate = delegate;
 
         this.extraAttributesCache = cacheFactory.create(this::doCollectExtraAttributes);
@@ -92,9 +88,9 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
             }
 
             MatchValueKey<?> that = (MatchValueKey<?>) o;
-            return attribute.equals(that.attribute) &&
-                requested.equals(that.requested) &&
-                candidate.equals(that.candidate);
+            return attribute.equals(that.attribute)
+                    && requested.equals(that.requested)
+                    && candidate.equals(that.candidate);
         }
 
         @Override
@@ -116,7 +112,8 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
     }
 
     @Override
-    public Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidateAttributeSets, ImmutableAttributes requested) {
+    public Attribute<?>[] collectExtraAttributes(
+            ImmutableAttributes[] candidateAttributeSets, ImmutableAttributes requested) {
         // TODO: Evaluate whether we still need this cache
         ExtraAttributesKey entry = new ExtraAttributesKey(candidateAttributeSets, requested);
         return extraAttributesCache.get(entry);

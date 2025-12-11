@@ -36,5 +36,4 @@ public interface GradleEnterprisePluginService {
      * Notified when the build invocation has finished by Gradle.
      */
     GradleEnterprisePluginEndOfBuildListener getEndOfBuildListener();
-
 }

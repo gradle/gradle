@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.util.internal.GUtil;
-
 import java.io.File;
 import java.nio.file.Path;
+import org.gradle.util.internal.GUtil;
 
 public class BaseDirFileResolver extends AbstractFileResolver {
     private final File baseDir;
@@ -29,7 +28,8 @@ public class BaseDirFileResolver extends AbstractFileResolver {
      */
     public BaseDirFileResolver(File baseDir) {
         if (!GUtil.isTrue(baseDir)) {
-            throw new IllegalArgumentException(String.format("baseDir may not be null or empty string. basedir='%s'", baseDir));
+            throw new IllegalArgumentException(
+                    String.format("baseDir may not be null or empty string. basedir='%s'", baseDir));
         }
         if (!baseDir.isAbsolute()) {
             throw new IllegalArgumentException(String.format("base dir '%s' is not an absolute file.", baseDir));

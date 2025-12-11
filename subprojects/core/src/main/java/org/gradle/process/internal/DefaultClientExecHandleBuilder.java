@@ -17,6 +17,14 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.Executor;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -27,15 +35,6 @@ import org.gradle.process.internal.streams.OutputStreamsForwarder;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.Executor;
 
 @NullMarked
 public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
@@ -59,7 +58,8 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     private String executable;
     private File workingDir;
 
-    public DefaultClientExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
+    public DefaultClientExecHandleBuilder(
+            PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
         this.buildCancellationToken = buildCancellationToken;
         this.executor = executor;
         this.listeners = new ArrayList<>();
@@ -242,7 +242,7 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
 
     @Override
     public ClientExecHandleBuilder setWorkingDir(@Nullable File dir) {
-        this.workingDir = dir == null ? null:  fileResolver.resolve(dir);
+        this.workingDir = dir == null ? null : fileResolver.resolve(dir);
         return this;
     }
 
@@ -267,16 +267,14 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
         return effectiveEnvironment;
     }
 
-    private static StreamsHandler getEffectiveStreamsHandler(@Nullable StreamsHandler streamsHandler, ProcessStreamsSpec streamsSpec, boolean redirectErrorStream) {
+    private static StreamsHandler getEffectiveStreamsHandler(
+            @Nullable StreamsHandler streamsHandler, ProcessStreamsSpec streamsSpec, boolean redirectErrorStream) {
         if (streamsHandler != null) {
             return streamsHandler;
         }
         boolean shouldReadErrorStream = !redirectErrorStream;
         return new OutputStreamsForwarder(
-            streamsSpec.getStandardOutput(),
-            streamsSpec.getErrorOutput(),
-            shouldReadErrorStream
-        );
+                streamsSpec.getStandardOutput(), streamsSpec.getErrorOutput(), shouldReadErrorStream);
     }
 
     @Override
@@ -288,21 +286,21 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     public ExecHandle buildWithEffectiveArguments(List<String> effectiveArguments) {
         String displayName = this.displayName == null ? String.format("command '%s'", executable) : this.displayName;
         Map<String, String> effectiveEnvironment = getEffectiveEnvironment(getEnvironment());
-        StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler(streamsHandler, streamsSpec, redirectErrorStream);
+        StreamsHandler effectiveOutputHandler =
+                getEffectiveStreamsHandler(streamsHandler, streamsSpec, redirectErrorStream);
         return new DefaultExecHandle(
-            displayName,
-            getWorkingDir(),
-            executable,
-            effectiveArguments,
-            effectiveEnvironment,
-            effectiveOutputHandler,
-            inputHandler,
-            listeners,
-            redirectErrorStream,
-            timeoutMillis,
-            daemon,
-            executor,
-            buildCancellationToken
-        );
+                displayName,
+                getWorkingDir(),
+                executable,
+                effectiveArguments,
+                effectiveEnvironment,
+                effectiveOutputHandler,
+                inputHandler,
+                listeners,
+                redirectErrorStream,
+                timeoutMillis,
+                daemon,
+                executor,
+                buildCancellationToken);
     }
 }

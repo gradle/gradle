@@ -16,6 +16,11 @@
 
 package org.gradle.process.internal;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -29,12 +34,6 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JvmDebugSpec.JavaDebugOptionsBackedSpec;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
     private final JvmOptions options;
     private final FileCollectionFactory fileCollectionFactory;
@@ -43,10 +42,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
     @Inject
     public DefaultJavaForkOptions(
-        ObjectFactory objectFactory,
-        PathToFileResolver resolver,
-        FileCollectionFactory fileCollectionFactory
-    ) {
+            ObjectFactory objectFactory, PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory) {
         super(resolver);
         this.fileCollectionFactory = fileCollectionFactory;
         this.debugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
@@ -70,10 +66,11 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     @Deprecated
     public void setAllJvmArgs(List<String> arguments) {
         DeprecationLogger.deprecateMethod(DefaultJavaForkOptions.class, "setAllJvmArgs")
-            .withAdvice("Use `jvmArgs()`, `setJvmArgs()`, or `getJvmArgumentProviders()` instead to set JVM arguments.")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "set-all-jvm-args")
-            .nagUser();
+                .withAdvice(
+                        "Use `jvmArgs()`, `setJvmArgs()`, or `getJvmArgumentProviders()` instead to set JVM arguments.")
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(9, "set-all-jvm-args")
+                .nagUser();
         options.setAllJvmArgs(arguments);
         if (hasJvmArgumentProviders(this)) {
             jvmArgumentProviders.clear();
@@ -84,10 +81,11 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     @Deprecated
     public void setAllJvmArgs(Iterable<?> arguments) {
         DeprecationLogger.deprecateMethod(DefaultJavaForkOptions.class, "setAllJvmArgs")
-            .withAdvice("Use `jvmArgs()`, `setJvmArgs()`, or `getJvmArgumentProviders()` instead to set JVM arguments.")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "set-all-jvm-args")
-            .nagUser();
+                .withAdvice(
+                        "Use `jvmArgs()`, `setJvmArgs()`, or `getJvmArgumentProviders()` instead to set JVM arguments.")
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(9, "set-all-jvm-args")
+                .nagUser();
         options.setAllJvmArgs(arguments);
         if (hasJvmArgumentProviders(this)) {
             jvmArgumentProviders.clear();
@@ -258,12 +256,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
                 copy.jvmArgs(jvmArgumentProvider.asArguments());
             }
         }
-        return new EffectiveJavaForkOptions(
-            getExecutable(),
-            getWorkingDir(),
-            getEnvironment(),
-            copy
-        );
+        return new EffectiveJavaForkOptions(getExecutable(), getWorkingDir(), getEnvironment(), copy);
     }
 
     @Override

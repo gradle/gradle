@@ -15,6 +15,8 @@
  */
 package org.gradle.nativeplatform.internal;
 
+import java.util.Collections;
+import java.util.Set;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.platform.base.TransformationFileType;
@@ -22,10 +24,8 @@ import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.HasIntermediateOutputsComponentSpec;
 import org.gradle.util.internal.GUtil;
 
-import java.util.Collections;
-import java.util.Set;
-
-public abstract class AbstractNativeComponentSpec extends BaseComponentSpec implements NativeComponentSpec, HasIntermediateOutputsComponentSpec {
+public abstract class AbstractNativeComponentSpec extends BaseComponentSpec
+        implements NativeComponentSpec, HasIntermediateOutputsComponentSpec {
     private String baseName;
 
     @Override

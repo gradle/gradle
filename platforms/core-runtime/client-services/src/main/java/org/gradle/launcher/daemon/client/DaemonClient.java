@@ -15,6 +15,12 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
@@ -50,13 +56,6 @@ import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * The client piece of the build daemon.
@@ -104,17 +103,16 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
     private final IdGenerator<UUID> idGenerator;
     private final ProcessEnvironment processEnvironment;
 
-    //TODO - outputEventListener and buildStandardInput are per-build settings
-    //so down the road we should refactor the code accordingly and potentially attach them to BuildActionParameters
+    // TODO - outputEventListener and buildStandardInput are per-build settings
+    // so down the road we should refactor the code accordingly and potentially attach them to BuildActionParameters
     public DaemonClient(
-        DaemonConnector connector,
-        OutputEventListener outputEventListener,
-        ExplainingSpec<DaemonContext> compatibilitySpec,
-        InputStream buildStandardInput,
-        GlobalUserInputReceiver userInput,
-        IdGenerator<UUID> idGenerator,
-        ProcessEnvironment processEnvironment
-    ) {
+            DaemonConnector connector,
+            OutputEventListener outputEventListener,
+            ExplainingSpec<DaemonContext> compatibilitySpec,
+            InputStream buildStandardInput,
+            GlobalUserInputReceiver userInput,
+            IdGenerator<UUID> idGenerator,
+            ProcessEnvironment processEnvironment) {
         this.connector = connector;
         this.outputEventListener = outputEventListener;
         this.compatibilitySpec = compatibilitySpec;
@@ -138,14 +136,15 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
      * @param action The action
      */
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters parameters, ClientBuildRequestContext requestContext) {
+    public BuildActionResult execute(
+            BuildAction action, BuildActionParameters parameters, ClientBuildRequestContext requestContext) {
         UUID buildId = idGenerator.generateId();
         List<DaemonInitialConnectException> accumulatedExceptions = new ArrayList<>();
 
         LOGGER.debug("Executing build {} in daemon client {pid={}}", buildId, processEnvironment.maybeGetPid());
 
         // Attempt to connect to an existing idle and compatible daemon
-        int saneNumberOfAttempts = 100; //is it sane enough?
+        int saneNumberOfAttempts = 100; // is it sane enough?
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);
             // No existing, compatible daemon is available to try
@@ -154,8 +153,16 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
             }
             // Compatible daemon was found, try it
             try {
-                Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getStartTime(), requestContext.isInteractive(), parameters);
-                return executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
+                Build build = new Build(
+                        buildId,
+                        connection.getDaemon().getToken(),
+                        action,
+                        requestContext.getClient(),
+                        requestContext.getStartTime(),
+                        requestContext.isInteractive(),
+                        parameters);
+                return executeBuild(
+                        build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
             } catch (DaemonInitialConnectException e) {
                 // this exception means that we want to try again.
                 LOGGER.debug("{}, Trying a different daemon...", e.getMessage());
@@ -168,20 +175,34 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
         // No existing daemon was usable, so start a new one and try it once
         final DaemonClientConnection connection = connector.startDaemon(compatibilitySpec);
         try {
-            Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getStartTime(), requestContext.isInteractive(), parameters);
-            return executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
+            Build build = new Build(
+                    buildId,
+                    connection.getDaemon().getToken(),
+                    action,
+                    requestContext.getClient(),
+                    requestContext.getStartTime(),
+                    requestContext.isInteractive(),
+                    parameters);
+            return executeBuild(
+                    build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
         } catch (DaemonInitialConnectException e) {
             // This means we could not connect to the daemon we just started.  fail and don't try again
             accumulatedExceptions.add(e);
-            throw new NoUsableDaemonFoundException("A new daemon was started but could not be connected to. This is unexpected.\n" +
-                "diagnostics: " + connection.getDaemon(),
-                accumulatedExceptions);
+            throw new NoUsableDaemonFoundException(
+                    "A new daemon was started but could not be connected to. This is unexpected.\n" + "diagnostics: "
+                            + connection.getDaemon(),
+                    accumulatedExceptions);
         } finally {
             connection.stop();
         }
     }
 
-    protected BuildActionResult executeBuild(Build build, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) throws DaemonInitialConnectException {
+    protected BuildActionResult executeBuild(
+            Build build,
+            DaemonClientConnection connection,
+            BuildCancellationToken cancellationToken,
+            BuildEventConsumer buildEventConsumer)
+            throws DaemonInitialConnectException {
         Object result;
         try {
             LOGGER.debug("Connected to daemon {}. Dispatching request {}.", connection.getDaemon(), build);
@@ -198,7 +219,8 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
             // If the response from the daemon is unintelligible, mark the daemon as unavailable so other
             // clients won't try to communicate with it. We'll attempt to recovery by trying again.
             connector.markDaemonAsUnavailable(connection.getDaemon());
-            throw new DaemonInitialConnectException("The first result from the daemon was empty. The daemon process may have died or a non-daemon process is reusing the same port.");
+            throw new DaemonInitialConnectException(
+                    "The first result from the daemon was empty. The daemon process may have died or a non-daemon process is reusing the same port.");
         }
 
         LOGGER.debug("Received result {} from daemon {} (build should be starting).", result, connection.getDaemon());
@@ -212,7 +234,8 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
         LOGGER.debug("Received result {} from daemon {} (build should be done).", result, connection.getDaemon());
 
         // If we get an error here, it means the daemon has already closed the connection.  This might occur because the
-        // client is slow to send the Finished message, or because the daemon has expired for some reason.  Whatever the reason,
+        // client is slow to send the Finished message, or because the daemon has expired for some reason.  Whatever the
+        // reason,
         // this is not important to the client at this point, so we just log it and continue.
         try {
             connection.dispatch(new Finished());
@@ -223,11 +246,13 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
         if (result instanceof Failure) {
             Throwable failure = ((Failure) result).getValue();
             if (failure instanceof DaemonStoppedException && cancellationToken.isCancellationRequested()) {
-                return BuildActionResult.cancelled(new BuildCancelledException("Daemon was stopped to handle build cancel request.", failure));
+                return BuildActionResult.cancelled(
+                        new BuildCancelledException("Daemon was stopped to handle build cancel request.", failure));
             }
             throw UncheckedException.throwAsUncheckedException(failure);
         } else if (result instanceof DaemonUnavailable) {
-            throw new DaemonInitialConnectException("The daemon we connected to was unavailable: " + ((DaemonUnavailable) result).getReason());
+            throw new DaemonInitialConnectException(
+                    "The daemon we connected to was unavailable: " + ((DaemonUnavailable) result).getReason());
         } else if (result instanceof Result) {
             return (BuildActionResult) ((Result) result).getValue();
         } else {
@@ -235,8 +260,14 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
         }
     }
 
-    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) {
-        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, userInput);
+    private Object monitorBuild(
+            Build build,
+            DaemonDiagnostics diagnostics,
+            DaemonClientConnection connection,
+            BuildCancellationToken cancellationToken,
+            BuildEventConsumer buildEventConsumer) {
+        DaemonClientInputForwarder inputForwarder =
+                new DaemonClientInputForwarder(buildStandardInput, connection, userInput);
         DaemonCancelForwarder cancelForwarder = new DaemonCancelForwarder(connection, cancellationToken);
         try {
             cancelForwarder.start();
@@ -246,12 +277,16 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
                 Message object = connection.receive();
                 objectsReceived++;
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
+                    LOGGER.trace(
+                            "Received object #{}, type: {}",
+                            objectsReceived++,
+                            object == null ? null : object.getClass().getName());
                 }
 
                 if (object == null) {
                     // The daemon has potentially disappeared, so mark the connection as suspect.
-                    // This makes the connection lenient if outgoing messages cannot be written while attempting to gracefully shut down the connection (in the finally {} block below)
+                    // This makes the connection lenient if outgoing messages cannot be written while attempting to
+                    // gracefully shut down the connection (in the finally {} block below)
                     connection.markSuspect();
                     return handleDaemonDisappearance(build, diagnostics);
                 } else if (object instanceof OutputMessage) {
@@ -269,17 +304,20 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
     }
 
     private Result<?> handleDaemonDisappearance(Build build, DaemonDiagnostics diagnostics) {
-        //we can try sending something to the daemon and try out if it is really dead or use jps
-        //if it's really dead we should deregister it if it is not already deregistered.
-        //if the daemon is not dead we might continue receiving from it (and try to find the bug in messaging infrastructure)
-        LOGGER.error("The message received from the daemon indicates that the daemon has disappeared."
-            + "\nBuild request sent: {}"
-            + "\nAttempting to read last messages from the daemon log...", build);
+        // we can try sending something to the daemon and try out if it is really dead or use jps
+        // if it's really dead we should deregister it if it is not already deregistered.
+        // if the daemon is not dead we might continue receiving from it (and try to find the bug in messaging
+        // infrastructure)
+        LOGGER.error(
+                "The message received from the daemon indicates that the daemon has disappeared."
+                        + "\nBuild request sent: {}"
+                        + "\nAttempting to read last messages from the daemon log...",
+                build);
 
         LOGGER.error(diagnostics.describe());
-        findCrashLogFile(build, diagnostics).ifPresent(crashLogFile ->
-            LOGGER.error("JVM crash log found: " + new ConsoleRenderer().asClickableFileUrl(crashLogFile))
-        );
+        findCrashLogFile(build, diagnostics)
+                .ifPresent(crashLogFile ->
+                        LOGGER.error("JVM crash log found: " + new ConsoleRenderer().asClickableFileUrl(crashLogFile)));
         throw new DaemonDisappearedException();
     }
 
@@ -293,14 +331,13 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
         candidates.add(new File(diagnostics.getDaemonLog().getParent(), crashLogFileName));
         findCrashLogFile(crashLogFileName).ifPresent(candidates::add);
 
-        return candidates.stream()
-            .filter(File::isFile)
-            .findFirst();
+        return candidates.stream().filter(File::isFile).findFirst();
     }
 
     private static Optional<File> findCrashLogFile(String crashLogFileName) {
         // This use case for the JavaIOTmpDir is allowed since we are looking for the crash log file.
-        @SuppressWarnings("deprecation") String javaTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
+        @SuppressWarnings("deprecation")
+        String javaTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
         if (javaTmpDir != null && !javaTmpDir.isEmpty()) {
             return Optional.of(new File(javaTmpDir, crashLogFileName));
         }
@@ -310,7 +347,8 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
     private IllegalStateException invalidResponse(Object response, Build command, DaemonDiagnostics diagnostics) {
         String diagnosticsMessage = diagnostics == null ? "No diagnostics available." : diagnostics.describe();
         return new IllegalStateException(String.format(
-            "Received invalid response from the daemon: '%s' is a result of a type we don't have a strategy to handle. "
-                + "Earlier, '%s' request was sent to the daemon. Diagnostics:\n%s", response, command, diagnosticsMessage));
+                "Received invalid response from the daemon: '%s' is a result of a type we don't have a strategy to handle. "
+                        + "Earlier, '%s' request was sent to the daemon. Diagnostics:\n%s",
+                response, command, diagnosticsMessage));
     }
 }

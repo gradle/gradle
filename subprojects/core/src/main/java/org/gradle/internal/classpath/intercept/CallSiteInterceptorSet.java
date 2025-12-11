@@ -16,10 +16,9 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import java.util.List;
 import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
-
-import java.util.List;
 
 public interface CallSiteInterceptorSet {
     List<CallInterceptor> getCallInterceptors(BytecodeInterceptorFilter filter);

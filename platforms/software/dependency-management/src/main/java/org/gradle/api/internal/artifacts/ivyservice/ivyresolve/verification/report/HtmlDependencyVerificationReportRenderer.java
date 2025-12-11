@@ -15,19 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
-import org.bouncycastle.openpgp.PGPPublicKey;
-import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
-import org.gradle.api.internal.artifacts.verification.verifier.ChecksumVerificationFailure;
-import org.gradle.api.internal.artifacts.verification.verifier.DeletedArtifact;
-import org.gradle.api.internal.artifacts.verification.verifier.MissingChecksums;
-import org.gradle.api.internal.artifacts.verification.verifier.MissingSignature;
-import org.gradle.api.internal.artifacts.verification.verifier.OnlyIgnoredKeys;
-import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
-import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailure;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,6 +28,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
+import org.gradle.api.internal.artifacts.verification.verifier.ChecksumVerificationFailure;
+import org.gradle.api.internal.artifacts.verification.verifier.DeletedArtifact;
+import org.gradle.api.internal.artifacts.verification.verifier.MissingChecksums;
+import org.gradle.api.internal.artifacts.verification.verifier.MissingSignature;
+import org.gradle.api.internal.artifacts.verification.verifier.OnlyIgnoredKeys;
+import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
+import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailure;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
 /**
  * Generates an HTML report for verification. This report, unlike the text report,
@@ -58,7 +57,12 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     private final boolean useKeyServers;
     private boolean hasMissingKeys = false;
 
-    HtmlDependencyVerificationReportRenderer(DocumentationRegistry documentationRegistry, File verificationFile, List<String> writeFlags, File htmlReportOutputDirectory, boolean useKeyServers) {
+    HtmlDependencyVerificationReportRenderer(
+            DocumentationRegistry documentationRegistry,
+            File verificationFile,
+            List<String> writeFlags,
+            File htmlReportOutputDirectory,
+            boolean useKeyServers) {
         this.documentationRegistry = documentationRegistry;
         this.verificationFile = verificationFile;
         this.writeFlags = writeFlags;
@@ -84,7 +88,6 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     public void startNewArtifact(ModuleComponentArtifactIdentifier key, Runnable action) {
         currentSection.newArtifact(new ArtifactErrors(key));
         action.run();
-
     }
 
     @Override
@@ -98,25 +101,21 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     @Override
-    public void finish(VerificationHighLevelErrors highLevelErrors) {
-
-    }
+    public void finish(VerificationHighLevelErrors highLevelErrors) {}
 
     public void renderNavBar() {
-        contents.append("<nav class=\"uk-navbar-container\" uk-navbar>\n" +
-            "    <div class=\"uk-navbar-left\">\n" +
-            "        <a href=\"\" class=\"uk-navbar-item uk-logo\"><img src=\"img/gradle-logo.png\" width=\"120\"></a>\n" +
-            "        <ul class=\"uk-navbar-nav\">\n" +
-            "<li class=\"uk-active\"><a href=\"#\">Dependency verification report</a></li>\n" +
-            "        </ul>\n" +
-            "    </div>\n" +
-            "</nav>\n" +
-            "\n");
+        contents.append("<nav class=\"uk-navbar-container\" uk-navbar>\n" + "    <div class=\"uk-navbar-left\">\n"
+                + "        <a href=\"\" class=\"uk-navbar-item uk-logo\"><img src=\"img/gradle-logo.png\" width=\"120\"></a>\n"
+                + "        <ul class=\"uk-navbar-nav\">\n"
+                + "<li class=\"uk-active\"><a href=\"#\">Dependency verification report</a></li>\n"
+                + "        </ul>\n"
+                + "    </div>\n"
+                + "</nav>\n"
+                + "\n");
     }
 
     public void renderSections() {
-        contents.append("<div class=\"uk-container uk-container-expand\">\n")
-            .append("        <ul uk-accordion>\n");
+        contents.append("<div class=\"uk-container uk-container-expand\">\n").append("        <ul uk-accordion>\n");
         boolean first = true;
         for (Section section : sections.values()) {
             if (first) {
@@ -129,8 +128,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             contents.append("            </li>\n");
             first = false;
         }
-        contents.append("         </ul>\n")
-            .append("        </div>\n");
+        contents.append("         </ul>\n").append("        </div>\n");
     }
 
     File writeReport() {
@@ -163,47 +161,56 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
 
     private void generateContent() {
         contents.setLength(0);
-        contents.append("<!DOCTYPE html>\n" +
-            "<html>\n" +
-            "    <head>\n" +
-            "        <title>Dependency verification report</title>\n" +
-            "        <meta charset=\"utf-8\">\n" +
-            "        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n" +
-            "        <link rel=\"stylesheet\" href=\"css/uikit.min.css\" />\n" +
-            "        <script src=\"js/uikit.min.js\"></script>\n" +
-            "        <script src=\"js/uikit-icons.min.js\"></script>\n" +
-            "    </head>\n" +
-            "    <body>\n");
+        contents.append("<!DOCTYPE html>\n" + "<html>\n"
+                + "    <head>\n"
+                + "        <title>Dependency verification report</title>\n"
+                + "        <meta charset=\"utf-8\">\n"
+                + "        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+                + "        <link rel=\"stylesheet\" href=\"css/uikit.min.css\" />\n"
+                + "        <script src=\"js/uikit.min.js\"></script>\n"
+                + "        <script src=\"js/uikit-icons.min.js\"></script>\n"
+                + "    </head>\n"
+                + "    <body>\n");
         renderNavBar();
         renderSections();
         registerModals();
         registerStickyTip();
-        contents.append("    </body>\n" +
-            "</html>\n" +
-            "\n");
+        contents.append("    </body>\n" + "</html>\n" + "\n");
     }
 
     private void registerStickyTip() {
         contents.append("    <div class=\"uk-container uk-padding\">\n")
-            .append("        <div class=\"uk-card uk-card-default uk-card-body\" style=\"z-index: 980;\" uk-sticky=\"bottom: true\">\n")
-            .append("            <h2 class=\"uk-modal-title\">Troubleshooting</h2>\n")
-            .append("            <p>Please review the errors reported above carefully.")
-            .append("            Click on the icons near to the error descriptions for information about how to fix a particular problem.")
-            .append("            It is recommended that you edit the ").append(verificationFileLink()).append(" manually. ")
-            .append("            However, if you are confident that those are false positives, Gradle can help you by generating the missing verification metadata.");
+                .append(
+                        "        <div class=\"uk-card uk-card-default uk-card-body\" style=\"z-index: 980;\" uk-sticky=\"bottom: true\">\n")
+                .append("            <h2 class=\"uk-modal-title\">Troubleshooting</h2>\n")
+                .append("            <p>Please review the errors reported above carefully.")
+                .append(
+                        "            Click on the icons near to the error descriptions for information about how to fix a particular problem.")
+                .append("            It is recommended that you edit the ")
+                .append(verificationFileLink())
+                .append(" manually. ")
+                .append(
+                        "            However, if you are confident that those are false positives, Gradle can help you by generating the missing verification metadata.");
 
-            if (!useKeyServers && hasMissingKeys) {
-                contents.append("            In this case, you can ask Gradle to export all keys it used for verification of this build to the keyring with the following command-line:</p>")
-                        .append("            <pre>./gradlew --write-verification-metadata ").append(verificationOptions()).append(" --export-keys help</pre>");
-            } else {
-                contents.append("            In this case, you can run with the following command-line:</p>")
-                        .append("            <pre>./gradlew --write-verification-metadata ").append(verificationOptions()).append(" help</pre>");
-            }
+        if (!useKeyServers && hasMissingKeys) {
+            contents.append(
+                            "            In this case, you can ask Gradle to export all keys it used for verification of this build to the keyring with the following command-line:</p>")
+                    .append("            <pre>./gradlew --write-verification-metadata ")
+                    .append(verificationOptions())
+                    .append(" --export-keys help</pre>");
+        } else {
+            contents.append("            In this case, you can run with the following command-line:</p>")
+                    .append("            <pre>./gradlew --write-verification-metadata ")
+                    .append(verificationOptions())
+                    .append(" help</pre>");
+        }
 
-            contents.append("            <p>In any case you <b>must review the result</b> of this operation.")
-            .append("            <p>Please refer to the <a href=\"").append(documentationRegistry.getDocumentationFor("dependency_verification")).append("\" target=\"_blank\">documentation</a> for more information.</p>\n")
-            .append("        </div>\n")
-            .append("    </div>\n");
+        contents.append("            <p>In any case you <b>must review the result</b> of this operation.")
+                .append("            <p>Please refer to the <a href=\"")
+                .append(documentationRegistry.getDocumentationFor("dependency_verification"))
+                .append("\" target=\"_blank\">documentation</a> for more information.</p>\n")
+                .append("        </div>\n")
+                .append("    </div>\n");
     }
 
     private String verificationOptions() {
@@ -215,48 +222,69 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     private void registerModal(String id, String title, String... lines) {
-        contents.append("<div id=\"").append(id).append("\" uk-modal>\n")
-            .append("    <div class=\"uk-modal-dialog uk-modal-body\">\n")
-            .append("        <h2 class=\"uk-modal-title\">")
-            .append(title)
-            .append("</h2>\n");
+        contents.append("<div id=\"")
+                .append(id)
+                .append("\" uk-modal>\n")
+                .append("    <div class=\"uk-modal-dialog uk-modal-body\">\n")
+                .append("        <h2 class=\"uk-modal-title\">")
+                .append(title)
+                .append("</h2>\n");
         for (String line : lines) {
             contents.append(line).append("\n");
         }
-        contents.append("        <p>See the <a href=\"").append(documentationRegistry.getDocumentationFor("dependency_verification", "sec:^")).append("\" target=\"_blank\">documentation</a> to get more information.</p>\n")
-            .append("        <button class=\"uk-button uk-button-primary uk-modal-close\" type=\"button\">Ok</button>\n")
-            .append("    </div>\n")
-            .append("</div>\n");
+        contents.append("        <p>See the <a href=\"")
+                .append(documentationRegistry.getDocumentationFor("dependency_verification", "sec:^"))
+                .append("\" target=\"_blank\">documentation</a> to get more information.</p>\n")
+                .append(
+                        "        <button class=\"uk-button uk-button-primary uk-modal-close\" type=\"button\">Ok</button>\n")
+                .append("    </div>\n")
+                .append("</div>\n");
     }
 
     private void registerModals() {
-        registerModal("verified-not-trusted", "Key isn't trusted",
-            "        <p>This indicates that a dependency was <i>verified</i>, that the signature matched, but that you don't <i>trust</i> this signature.</p>\n",
-            "        <p>If you trust the author of the signature, you need to add the key to the trusted keys.</p>");
-        registerModal("signature-didnt-match", "Signature didn't match",
-            "        <p>This indicates that a dependency was <i>signed</i> but that the signature verification <b>failed</b>.</p>",
-            "        <p>This happens when a dependency was compromised or that the signature was made for a different artifact than the one you got.</p>",
-            "        <p>It's important that you <b>carefully review this problem</b>.</p>");
-        registerModal("ignored-key", "A key was ignored",
-            "        <p>This indicates that a dependency was <i>signed with an ignored key</i>.</p>",
-            "        <p>You must provide at least one checksum so that verification can pass.</p>");
-        registerModal("missing-key", "Public key couldn't be found",
-            "        <p>This indicates that a dependency was <i>signed</i> but that Gradle couldn't download the public key to verify the signature.</p>",
-            "        <p>You should check if the key is valid, and if so, provide a key server where to download it.</p>");
-        registerModal("missing-checksums", "Checksums are missing",
-            "        <p>This indicates that the dependency verification file doesn't contain at least one checksum for this artifact.</p>",
-            "        <p>You must provide at least one checksum for artifact verification to pass.</p>");
-        registerModal("checksum-mismatch", "Incorrect checksum",
-            "        <p>This indicates that the dependency verification file <b>failed</b> because the actual checksum of the dependency artifact didn't match the expected checksum declared in the verification metadata.</p>",
-            "        <p>This happens when a dependency was compromised or that downloaded artifact isn't the one that you expected.</p>",
-            "        <p>It's important that you <b>carefully review this problem</b>.</p>");
-        registerModal("deleted-artifact", "Deleted artifact",
-            "        <p>This error usually indicated that the local dependency cache was tampered with.</p>",
-            "        <p>This happens when someone manually deletes an artifact from the Gradle dependency cache, which is now corrupt.</p>");
-        registerModal("signature-file-missing", "Missing signature file",
-            "        <p>The signature file for this artifact wasn't found.</p>",
-            "        <p>Usually it indicates that the signature doesn't exist in the repository the artifact was downloaded from.</p>",
-            "        <p>In general this is not a problem but you should then declare at least one checksum for verification to pass.</p>");
+        registerModal(
+                "verified-not-trusted",
+                "Key isn't trusted",
+                "        <p>This indicates that a dependency was <i>verified</i>, that the signature matched, but that you don't <i>trust</i> this signature.</p>\n",
+                "        <p>If you trust the author of the signature, you need to add the key to the trusted keys.</p>");
+        registerModal(
+                "signature-didnt-match",
+                "Signature didn't match",
+                "        <p>This indicates that a dependency was <i>signed</i> but that the signature verification <b>failed</b>.</p>",
+                "        <p>This happens when a dependency was compromised or that the signature was made for a different artifact than the one you got.</p>",
+                "        <p>It's important that you <b>carefully review this problem</b>.</p>");
+        registerModal(
+                "ignored-key",
+                "A key was ignored",
+                "        <p>This indicates that a dependency was <i>signed with an ignored key</i>.</p>",
+                "        <p>You must provide at least one checksum so that verification can pass.</p>");
+        registerModal(
+                "missing-key",
+                "Public key couldn't be found",
+                "        <p>This indicates that a dependency was <i>signed</i> but that Gradle couldn't download the public key to verify the signature.</p>",
+                "        <p>You should check if the key is valid, and if so, provide a key server where to download it.</p>");
+        registerModal(
+                "missing-checksums",
+                "Checksums are missing",
+                "        <p>This indicates that the dependency verification file doesn't contain at least one checksum for this artifact.</p>",
+                "        <p>You must provide at least one checksum for artifact verification to pass.</p>");
+        registerModal(
+                "checksum-mismatch",
+                "Incorrect checksum",
+                "        <p>This indicates that the dependency verification file <b>failed</b> because the actual checksum of the dependency artifact didn't match the expected checksum declared in the verification metadata.</p>",
+                "        <p>This happens when a dependency was compromised or that downloaded artifact isn't the one that you expected.</p>",
+                "        <p>It's important that you <b>carefully review this problem</b>.</p>");
+        registerModal(
+                "deleted-artifact",
+                "Deleted artifact",
+                "        <p>This error usually indicated that the local dependency cache was tampered with.</p>",
+                "        <p>This happens when someone manually deletes an artifact from the Gradle dependency cache, which is now corrupt.</p>");
+        registerModal(
+                "signature-file-missing",
+                "Missing signature file",
+                "        <p>The signature file for this artifact wasn't found.</p>",
+                "        <p>Usually it indicates that the signature doesn't exist in the repository the artifact was downloaded from.</p>",
+                "        <p>In general this is not a problem but you should then declare at least one checksum for verification to pass.</p>");
     }
 
     private void copyReportResource(File outputDirectory, String dirName, String fileName) {
@@ -275,28 +303,27 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
 
     private void prerenderSection(Section section) {
         int size = section.errors.size();
-        contents.append("<a class=\"uk-accordion-title\" href=\"#\"><span uk-icon=\"chevron-right\"></span>").append(section.title)
-            .append("&nbsp;<span class=\"uk-badge\">")
-            .append(size)
-            .append(size < 2 ? " error" : " errors")
-            .append("</span></a>");
+        contents.append("<a class=\"uk-accordion-title\" href=\"#\"><span uk-icon=\"chevron-right\"></span>")
+                .append(section.title)
+                .append("&nbsp;<span class=\"uk-badge\">")
+                .append(size)
+                .append(size < 2 ? " error" : " errors")
+                .append("</span></a>");
     }
 
     private void renderSection(Section section) {
         contents.append("<div class=\"uk-accordion-content\">")
-            .append("<table class=\"uk-table uk-table-hover uk-table-divider uk-table-middle uk-table-small\">\n")
-            .append("    <thead>\n")
-            .append("        <tr>\n")
-            .append("            <th class=\"uk-table-shrink uk-width-auto uk-text-nowrap\">Module</th>\n")
-            .append("            <th class=\"uk-table-shrink uk-width-auto uk-text-nowrap\">Artifact</th>\n")
-            .append("            <th class=\"uk-table-shrink uk-width-expand\">Problem(s)</th>\n")
-            .append("        </tr>\n")
-            .append("    </thead>\n")
-            .append("    <tbody>\n");
+                .append("<table class=\"uk-table uk-table-hover uk-table-divider uk-table-middle uk-table-small\">\n")
+                .append("    <thead>\n")
+                .append("        <tr>\n")
+                .append("            <th class=\"uk-table-shrink uk-width-auto uk-text-nowrap\">Module</th>\n")
+                .append("            <th class=\"uk-table-shrink uk-width-auto uk-text-nowrap\">Artifact</th>\n")
+                .append("            <th class=\"uk-table-shrink uk-width-expand\">Problem(s)</th>\n")
+                .append("        </tr>\n")
+                .append("    </thead>\n")
+                .append("    <tbody>\n");
         section.errors.forEach(this::formatErrors);
-        contents.append("    </tbody>\n" +
-                "</table>")
-            .append("</div>");
+        contents.append("    </tbody>\n" + "</table>").append("</div>");
     }
 
     private void formatErrors(ArtifactErrors currentArtifact) {
@@ -306,8 +333,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         reportItem(createFileLink(currentArtifact.key, firstFailure.getFailure(), firstFailure.getRepositoryName()));
         contents.append("            <td>\n");
         currentArtifact.failures.forEach(this::formatError);
-        contents.append("            </td>\n")
-            .append("        </tr>\n");
+        contents.append("            </td>\n").append("        </tr>\n");
     }
 
     private void formatError(RepositoryAwareVerificationFailure failure) {
@@ -317,7 +343,8 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         reportOtherProblems(vf);
     }
 
-    private String createFileLink(ModuleComponentArtifactIdentifier key, VerificationFailure vf, String repositoryName) {
+    private String createFileLink(
+            ModuleComponentArtifactIdentifier key, VerificationFailure vf, String repositoryName) {
         String fileLink = "<div uk-tooltip=\"title: From repository '" + repositoryName + "'\">";
         fileLink += "<a href=\"" + vf.getFilePath().toURI().toASCIIString() + "\">" + key.getFileName() + "</a>";
         File signatureFile = vf.getSignatureFile();
@@ -341,7 +368,8 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             reportItem(reason, "missing-checksums", "info");
         } else if (vf instanceof ChecksumVerificationFailure) {
             ChecksumVerificationFailure cvf = (ChecksumVerificationFailure) vf;
-            String reason = "Expected a " + cvf.getKind() + " checksum of " + expected(cvf.getExpected()) + " but was " + actual(cvf.getActual());
+            String reason = "Expected a " + cvf.getKind() + " checksum of " + expected(cvf.getExpected()) + " but was "
+                    + actual(cvf.getActual());
             reportItem(reason, "checksum-mismatch", "warning");
         } else if (vf instanceof OnlyIgnoredKeys) {
             String reason = "All public keys have been ignored";
@@ -388,7 +416,8 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                 String keyInfo = "<b>" + keyId + " " + keyDetails + "</b>";
                 switch (error.getKind()) {
                     case PASSED_NOT_TRUSTED:
-                        String reason = warning("Artifact was signed with key " + keyInfo + " but this key is not in your trusted key list");
+                        String reason = warning("Artifact was signed with key " + keyInfo
+                                + " but this key is not in your trusted key list");
                         reportItem(reason, "verified-not-trusted", "question");
                         break;
                     case FAILED:
@@ -401,9 +430,13 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                         break;
                     case MISSING_KEY:
                         if (useKeyServers) {
-                            reason = warning("Key " + keyInfo + " couldn't be found in local key file or remote key servers so verification couldn't be performed.");
+                            reason = warning(
+                                    "Key " + keyInfo
+                                            + " couldn't be found in local key file or remote key servers so verification couldn't be performed.");
                         } else {
-                            reason = warning("Key " + keyInfo + " couldn't be found in local key file so verification couldn't be performed. Enable key resolution with --export-keys.");
+                            reason = warning(
+                                    "Key " + keyInfo
+                                            + " couldn't be found in local key file so verification couldn't be performed. Enable key resolution with --export-keys.");
                         }
                         reportItem(reason, "missing-key", "warning");
                         hasMissingKeys = true;
@@ -415,12 +448,18 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
 
     private void reportItem(String item) {
         contents.append("            <td class=\"uk-text-nowrap\"")
-            .append(">").append(item).append("</td>\n");
+                .append(">")
+                .append(item)
+                .append("</td>\n");
     }
 
     private void reportItem(String item, String tipTarget, String tipIcon) {
         String tip = "<a uk-toggle=\"target: #" + tipTarget + "\" uk-icon=\"icon: " + tipIcon + "\"></a>";
-        contents.append("            <p>").append(item).append("&nbsp;").append(tip).append("</p>\n");
+        contents.append("            <p>")
+                .append(item)
+                .append("&nbsp;")
+                .append(tip)
+                .append("</p>\n");
     }
 
     private static class Section {
@@ -436,7 +475,6 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             errors.add(artifactErrors);
             currentArtifact = artifactErrors;
         }
-
     }
 
     private static class ArtifactErrors {
@@ -451,5 +489,4 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             failures.add(failure);
         }
     }
-
 }

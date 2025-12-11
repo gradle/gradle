@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures;
 
 import com.google.common.annotations.VisibleForTesting;
+import javax.annotation.Nullable;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.test.fixtures.dsl.GradleDsl;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -26,8 +27,6 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
 
 /**
  * A Junit rule which copies a sample into the test directory before the test executes. Looks for a
@@ -78,9 +77,7 @@ public class Sample implements TestRule {
 
     private String getSampleName(Description description) {
         UsesSample annotation = description.getAnnotation(UsesSample.class);
-        return annotation != null
-            ? annotation.value()
-            : defaultSampleName;
+        return annotation != null ? annotation.value() : defaultSampleName;
     }
 
     public TestFile getDir() {

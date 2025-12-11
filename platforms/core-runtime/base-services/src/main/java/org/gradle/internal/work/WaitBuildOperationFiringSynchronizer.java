@@ -16,6 +16,7 @@
 
 package org.gradle.internal.work;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -23,15 +24,14 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.jspecify.annotations.Nullable;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public class WaitBuildOperationFiringSynchronizer implements Synchronizer {
 
     private final DisplayName targetDescription;
     private final Synchronizer delegate;
     private final BuildOperationRunner buildOperationRunner;
 
-    public WaitBuildOperationFiringSynchronizer(DisplayName targetDescription, Synchronizer delegate, BuildOperationRunner buildOperationRunner) {
+    public WaitBuildOperationFiringSynchronizer(
+            DisplayName targetDescription, Synchronizer delegate, BuildOperationRunner buildOperationRunner) {
         this.targetDescription = targetDescription;
         this.delegate = delegate;
         this.buildOperationRunner = buildOperationRunner;
@@ -78,13 +78,10 @@ public class WaitBuildOperationFiringSynchronizer implements Synchronizer {
                 buildOperationContext.setResult(null);
             }
         }
-
     }
 
     private BuildOperationContext startWaitingOperation() {
         return buildOperationRunner.start(
-            BuildOperationDescriptor
-                .displayName("Synchronizer wait: " + targetDescription.getDisplayName())
-        );
+                BuildOperationDescriptor.displayName("Synchronizer wait: " + targetDescription.getDisplayName()));
     }
 }

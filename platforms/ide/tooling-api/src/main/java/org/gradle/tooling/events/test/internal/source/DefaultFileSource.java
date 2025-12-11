@@ -16,14 +16,14 @@
 
 package org.gradle.tooling.events.test.internal.source;
 
+import java.io.File;
 import org.gradle.tooling.events.test.source.FilePosition;
 import org.gradle.tooling.events.test.source.FileSource;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-
 public class DefaultFileSource implements FileSource {
     private final File file;
+
     @Nullable
     private final FilePosition position;
 

@@ -16,15 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
-
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public abstract class AbstractArtifactsCache implements ModuleArtifactsCache {
     protected final BuildCommencedTimeProvider timeProvider;
@@ -34,9 +33,15 @@ public abstract class AbstractArtifactsCache implements ModuleArtifactsCache {
     }
 
     @Override
-    public CachedArtifacts cacheArtifacts(ModuleComponentRepository<?> repository, ComponentIdentifier componentId, String context, HashCode descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts) {
+    public CachedArtifacts cacheArtifacts(
+            ModuleComponentRepository<?> repository,
+            ComponentIdentifier componentId,
+            String context,
+            HashCode descriptorHash,
+            Collection<? extends ComponentArtifactMetadata> artifacts) {
         ArtifactsAtRepositoryKey key = new ArtifactsAtRepositoryKey(repository.getId(), componentId, context);
-        ModuleArtifactsCacheEntry entry = new ModuleArtifactsCacheEntry(ImmutableSet.copyOf(artifacts), timeProvider.getCurrentTime(), descriptorHash);
+        ModuleArtifactsCacheEntry entry = new ModuleArtifactsCacheEntry(
+                ImmutableSet.copyOf(artifacts), timeProvider.getCurrentTime(), descriptorHash);
         store(key, entry);
         return createCacheArtifacts(entry);
     }
@@ -44,7 +49,8 @@ public abstract class AbstractArtifactsCache implements ModuleArtifactsCache {
     protected abstract void store(ArtifactsAtRepositoryKey key, ModuleArtifactsCacheEntry entry);
 
     @Override
-    public CachedArtifacts getCachedArtifacts(ModuleComponentRepository<?> repository, ComponentIdentifier componentId, String context) {
+    public CachedArtifacts getCachedArtifacts(
+            ModuleComponentRepository<?> repository, ComponentIdentifier componentId, String context) {
         ArtifactsAtRepositoryKey key = new ArtifactsAtRepositoryKey(repository.getId(), componentId, context);
         ModuleArtifactsCacheEntry entry = get(key);
         return entry == null ? null : createCacheArtifacts(entry);
@@ -62,7 +68,10 @@ public abstract class AbstractArtifactsCache implements ModuleArtifactsCache {
         protected final HashCode moduleDescriptorHash;
         protected final long createTimestamp;
 
-        ModuleArtifactsCacheEntry(Set<? extends ComponentArtifactMetadata> artifacts, long createTimestamp, HashCode moduleDescriptorHash) {
+        ModuleArtifactsCacheEntry(
+                Set<? extends ComponentArtifactMetadata> artifacts,
+                long createTimestamp,
+                HashCode moduleDescriptorHash) {
             this.artifacts = new LinkedHashSet<>(artifacts);
             this.createTimestamp = createTimestamp;
             this.moduleDescriptorHash = moduleDescriptorHash;

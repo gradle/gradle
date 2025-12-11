@@ -26,7 +26,8 @@ class SpecConfigurableRule {
     private final ConfigurableRule<ComponentMetadataContext> configurableRule;
     private final Spec<ModuleVersionIdentifier> spec;
 
-    SpecConfigurableRule(ConfigurableRule<ComponentMetadataContext> configurableRule, Spec<ModuleVersionIdentifier> spec) {
+    SpecConfigurableRule(
+            ConfigurableRule<ComponentMetadataContext> configurableRule, Spec<ModuleVersionIdentifier> spec) {
 
         this.configurableRule = configurableRule;
         this.spec = spec;

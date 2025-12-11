@@ -27,7 +27,10 @@ public class FileStoreAndIndexProvider {
     private final ExternalResourceFileStore externalResourceFileStore;
     private final ArtifactIdentifierFileStore artifactIdentifierFileStore;
 
-    public FileStoreAndIndexProvider(CachedExternalResourceIndex<String> externalResourceIndex, ExternalResourceFileStore externalResourceFileStore, ArtifactIdentifierFileStore artifactIdentifierFileStore) {
+    public FileStoreAndIndexProvider(
+            CachedExternalResourceIndex<String> externalResourceIndex,
+            ExternalResourceFileStore externalResourceFileStore,
+            ArtifactIdentifierFileStore artifactIdentifierFileStore) {
         this.externalResourceIndex = externalResourceIndex;
         this.externalResourceFileStore = externalResourceFileStore;
         this.artifactIdentifierFileStore = artifactIdentifierFileStore;

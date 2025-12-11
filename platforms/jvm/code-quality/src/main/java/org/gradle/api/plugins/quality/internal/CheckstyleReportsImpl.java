@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.quality.internal;
 
 import com.google.common.collect.ImmutableList;
+import javax.inject.Inject;
 import org.gradle.api.Describable;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.CheckstyleReports;
@@ -27,17 +28,17 @@ import org.gradle.api.reporting.internal.DefaultReportContainer;
 import org.gradle.api.reporting.internal.DefaultSingleFileReport;
 import org.gradle.api.reporting.internal.DelegatingReportContainer;
 
-import javax.inject.Inject;
-
 public class CheckstyleReportsImpl extends DelegatingReportContainer<SingleFileReport> implements CheckstyleReports {
 
     @Inject
     public CheckstyleReportsImpl(Describable owner, ObjectFactory objectFactory) {
-        super(DefaultReportContainer.create(objectFactory, SingleFileReport.class, factory -> ImmutableList.of(
-            factory.instantiateReport(CustomizableHtmlReportImpl.class, "html", owner),
-            factory.instantiateReport(DefaultSingleFileReport.class, "xml", owner),
-            factory.instantiateReport(DefaultSingleFileReport.class, "sarif", owner)
-        )));
+        super(DefaultReportContainer.create(
+                objectFactory,
+                SingleFileReport.class,
+                factory -> ImmutableList.of(
+                        factory.instantiateReport(CustomizableHtmlReportImpl.class, "html", owner),
+                        factory.instantiateReport(DefaultSingleFileReport.class, "xml", owner),
+                        factory.instantiateReport(DefaultSingleFileReport.class, "sarif", owner))));
     }
 
     @Override

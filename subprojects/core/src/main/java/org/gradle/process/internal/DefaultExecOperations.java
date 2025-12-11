@@ -23,7 +23,6 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 
-
 public class DefaultExecOperations implements ExecOperations {
 
     private final ProcessOperations processOperations;

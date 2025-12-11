@@ -16,10 +16,8 @@
 
 package org.gradle.util.internal;
 
-
-import org.gradle.api.GradleException;
-import org.gradle.internal.UncheckedException;
-import org.gradle.util.GradleVersion;
+import static java.lang.String.format;
+import static org.gradle.internal.IoActions.uncheckedClose;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -30,12 +28,13 @@ import java.util.Properties;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static java.lang.String.format;
-import static org.gradle.internal.IoActions.uncheckedClose;
+import org.gradle.api.GradleException;
+import org.gradle.internal.UncheckedException;
+import org.gradle.util.GradleVersion;
 
 public final class DefaultGradleVersion extends GradleVersion {
-    public static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\w+))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
+    public static final Pattern VERSION_PATTERN =
+            Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\w+))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
     private static final int STAGE_MILESTONE = 0;
     private static final int STAGE_UNKNOWN = 1;
     private static final int STAGE_PREVIEW = 2;
@@ -82,7 +81,8 @@ public final class DefaultGradleVersion extends GradleVersion {
             String buildTimestamp = properties.get("buildTimestampIso").toString();
             String commitId = properties.get("commitId").toString();
 
-            CURRENT = new DefaultGradleVersion(version, "unknown".equals(buildTimestamp) ? null : buildTimestamp, commitId);
+            CURRENT = new DefaultGradleVersion(
+                    version, "unknown".equals(buildTimestamp) ? null : buildTimestamp, commitId);
         } catch (Exception e) {
             throw new GradleException(format("Could not load version details from resource '%s'.", resource), e);
         } finally {
@@ -110,7 +110,8 @@ public final class DefaultGradleVersion extends GradleVersion {
         this.buildTime = buildTime;
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
-            throw new IllegalArgumentException(format("'%s' is not a valid Gradle version string (examples: '9.0.0', '9.1.0-rc-1')", version));
+            throw new IllegalArgumentException(
+                    format("'%s' is not a valid Gradle version string (examples: '9.0.0', '9.1.0-rc-1')", version));
         }
 
         versionPart = matcher.group(1);
@@ -131,7 +132,9 @@ public final class DefaultGradleVersion extends GradleVersion {
         } else {
             try {
                 if (matcher.group(9) != null) {
-                    return new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(8)).getTime();
+                    return new SimpleDateFormat("yyyyMMddHHmmssZ")
+                            .parse(matcher.group(8))
+                            .getTime();
                 } else {
                     SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
                     format.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -225,7 +228,8 @@ public final class DefaultGradleVersion extends GradleVersion {
     @Override
     public int compareTo(GradleVersion gv) {
         if (!(gv instanceof DefaultGradleVersion)) {
-            throw new RuntimeException("Unexpected GradleVersion subclass: " + gv.getClass().getCanonicalName());
+            throw new RuntimeException(
+                    "Unexpected GradleVersion subclass: " + gv.getClass().getCanonicalName());
         }
 
         DefaultGradleVersion gradleVersion = (DefaultGradleVersion) gv;

@@ -16,6 +16,10 @@
 
 package org.gradle.internal.buildtree;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -24,11 +28,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Executor for batches of intermediate build actions that can be initiated
@@ -47,10 +46,9 @@ public class IntermediateBuildActionRunner {
     private final String buildOperationDescription;
 
     public IntermediateBuildActionRunner(
-        BuildOperationExecutor buildOperationExecutor,
-        BuildModelParameters buildModelParameters,
-        String buildOperationDescription
-    ) {
+            BuildOperationExecutor buildOperationExecutor,
+            BuildModelParameters buildModelParameters,
+            String buildOperationDescription) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildModelParameters = buildModelParameters;
         this.buildOperationDescription = buildOperationDescription;
@@ -131,5 +129,4 @@ public class IntermediateBuildActionRunner {
             return BuildOperationDescriptor.displayName(displayName);
         }
     }
-
 }

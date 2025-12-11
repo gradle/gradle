@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.file.archive;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.io.InputStream;
+import org.jspecify.annotations.Nullable;
 
 public interface ZipEntry {
     /**

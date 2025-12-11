@@ -17,14 +17,13 @@
 package org.gradle.language.cpp.internal;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
-
-import java.util.Set;
 
 public class MainExecutableVariant implements SoftwareComponentInternal, ComponentWithVariants {
     private final DomainObjectSet<SoftwareComponent> variants;

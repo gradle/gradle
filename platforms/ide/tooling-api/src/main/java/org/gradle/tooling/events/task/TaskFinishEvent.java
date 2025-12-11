@@ -38,5 +38,4 @@ public interface TaskFinishEvent extends TaskProgressEvent, FinishEvent {
      */
     @Override
     TaskOperationResult getResult();
-
 }

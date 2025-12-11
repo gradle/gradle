@@ -17,6 +17,12 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.base.MoreObjects;
+import java.io.File;
+import java.net.URI;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.ExecuteDomainObjectCollectionCallbackBuildOperationType;
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType;
@@ -33,13 +39,6 @@ import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifie
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.net.URI;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 class PluginApplicationTracker implements BuildOperationTracker {
 
@@ -59,36 +58,56 @@ class PluginApplicationTracker implements BuildOperationTracker {
     }
 
     public boolean hasRunningPluginApplication(OperationIdentifier id, Predicate<? super PluginApplication> predicate) {
-        return ancestryTracker.findClosestMatchingAncestor(id, parent -> {
-            PluginApplication pluginApplication = runningPluginApplications.get(parent);
-            return pluginApplication != null && predicate.test(pluginApplication);
-        }).isPresent();
+        return ancestryTracker
+                .findClosestMatchingAncestor(id, parent -> {
+                    PluginApplication pluginApplication = runningPluginApplications.get(parent);
+                    return pluginApplication != null && predicate.test(pluginApplication);
+                })
+                .isPresent();
     }
 
     @Nullable
     public PluginApplication findRunningPluginApplication(OperationIdentifier id) {
-        return ancestryTracker.findClosestExistingAncestor(id, runningPluginApplications::get)
-            .orElse(null);
+        return ancestryTracker
+                .findClosestExistingAncestor(id, runningPluginApplications::get)
+                .orElse(null);
     }
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         if (buildOperation.getDetails() instanceof ApplyPluginBuildOperationType.Details) {
-            ApplyPluginBuildOperationType.Details details = (ApplyPluginBuildOperationType.Details) buildOperation.getDetails();
-            createAndTrack(buildOperation, details.getTargetType(), details.getApplicationId(), () -> toBinaryPluginIdentifier(details));
+            ApplyPluginBuildOperationType.Details details =
+                    (ApplyPluginBuildOperationType.Details) buildOperation.getDetails();
+            createAndTrack(
+                    buildOperation,
+                    details.getTargetType(),
+                    details.getApplicationId(),
+                    () -> toBinaryPluginIdentifier(details));
         } else if (buildOperation.getDetails() instanceof ApplyScriptPluginBuildOperationType.Details) {
-            ApplyScriptPluginBuildOperationType.Details details = (ApplyScriptPluginBuildOperationType.Details) buildOperation.getDetails();
-            createAndTrack(buildOperation, details.getTargetType(), details.getApplicationId(), () -> toScriptPluginIdentifier(details));
+            ApplyScriptPluginBuildOperationType.Details details =
+                    (ApplyScriptPluginBuildOperationType.Details) buildOperation.getDetails();
+            createAndTrack(
+                    buildOperation,
+                    details.getTargetType(),
+                    details.getApplicationId(),
+                    () -> toScriptPluginIdentifier(details));
         } else if (buildOperation.getDetails() instanceof ExecuteListenerBuildOperationType.Details) {
-            ExecuteListenerBuildOperationType.Details details = (ExecuteListenerBuildOperationType.Details) buildOperation.getDetails();
+            ExecuteListenerBuildOperationType.Details details =
+                    (ExecuteListenerBuildOperationType.Details) buildOperation.getDetails();
             lookupAndTrack(buildOperation, details.getApplicationId());
-        } else if (buildOperation.getDetails() instanceof ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) {
-            ExecuteDomainObjectCollectionCallbackBuildOperationType.Details details = (ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) buildOperation.getDetails();
+        } else if (buildOperation.getDetails()
+                instanceof ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) {
+            ExecuteDomainObjectCollectionCallbackBuildOperationType.Details details =
+                    (ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) buildOperation.getDetails();
             lookupAndTrack(buildOperation, details.getApplicationId());
         }
     }
 
-    private void createAndTrack(BuildOperationDescriptor buildOperation, String targetType, long applicationId, Supplier<InternalPluginIdentifier> pluginSupplier) {
+    private void createAndTrack(
+            BuildOperationDescriptor buildOperation,
+            String targetType,
+            long applicationId,
+            Supplier<InternalPluginIdentifier> pluginSupplier) {
         if (PROJECT_TARGET_TYPE.equals(targetType)) {
             InternalPluginIdentifier plugin = pluginSupplier.get();
             if (plugin != null) {
@@ -111,8 +130,7 @@ class PluginApplicationTracker implements BuildOperationTracker {
     }
 
     @Override
-    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-    }
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {}
 
     @Override
     public void discardState(BuildOperationDescriptor buildOperation) {
@@ -126,7 +144,8 @@ class PluginApplicationTracker implements BuildOperationTracker {
         return new DefaultBinaryPluginIdentifier(displayName, className, pluginId);
     }
 
-    private InternalScriptPluginIdentifier toScriptPluginIdentifier(ApplyScriptPluginBuildOperationType.Details details) {
+    private InternalScriptPluginIdentifier toScriptPluginIdentifier(
+            ApplyScriptPluginBuildOperationType.Details details) {
         String fileString = details.getFile();
         if (fileString != null) {
             File file = new File(fileString);
@@ -157,7 +176,5 @@ class PluginApplicationTracker implements BuildOperationTracker {
         public InternalPluginIdentifier getPlugin() {
             return plugin;
         }
-
     }
-
 }

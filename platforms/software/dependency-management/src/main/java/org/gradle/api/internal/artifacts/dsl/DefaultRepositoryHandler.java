@@ -15,7 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
+import static org.gradle.util.internal.CollectionUtils.flattenCollections;
+
 import groovy.lang.Closure;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -36,16 +45,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ConfigureUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.gradle.util.internal.CollectionUtils.flattenCollections;
-
 public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandlerInternal {
 
     public static final String GRADLE_PLUGIN_PORTAL_REPO_NAME = "Gradle Central Plugin Repository";
@@ -59,7 +58,10 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     private final Instantiator instantiator;
     private boolean exclusiveContentInUse = false;
 
-    public DefaultRepositoryHandler(BaseRepositoryFactory repositoryFactory, Instantiator instantiator, CollectionCallbackActionDecorator decorator) {
+    public DefaultRepositoryHandler(
+            BaseRepositoryFactory repositoryFactory,
+            Instantiator instantiator,
+            CollectionCallbackActionDecorator decorator) {
         super(instantiator, decorator);
         this.repositoryFactory = repositoryFactory;
         this.instantiator = instantiator;
@@ -108,7 +110,10 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     @Override
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
         Map<String, Object> modifiedArgs = new HashMap<>(args);
-        return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, new ConfigureByMapAction<>(modifiedArgs));
+        return addRepository(
+                repositoryFactory.createMavenCentralRepository(),
+                DEFAULT_MAVEN_CENTRAL_REPO_NAME,
+                new ConfigureByMapAction<>(modifiedArgs));
     }
 
     @Override
@@ -155,7 +160,8 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     @Override
     public void exclusiveContent(Action<? super ExclusiveContentRepository> action) {
-        ExclusiveContentRepositorySpec spec = Cast.uncheckedCast(instantiator.newInstance(ExclusiveContentRepositorySpec.class, this));
+        ExclusiveContentRepositorySpec spec =
+                Cast.uncheckedCast(instantiator.newInstance(ExclusiveContentRepositorySpec.class, this));
         spec.apply(action);
         exclusiveContentInUse = true;
     }
@@ -165,7 +171,8 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         return exclusiveContentInUse;
     }
 
-    private static Action<? super RepositoryContentDescriptor> transformForExclusivity(Action<? super InclusiveRepositoryContentDescriptor> config) {
+    private static Action<? super RepositoryContentDescriptor> transformForExclusivity(
+            Action<? super InclusiveRepositoryContentDescriptor> config) {
         return desc -> config.execute(new InclusiveRepositoryContentDescriptor() {
             @Override
             public void includeGroup(String group) {
@@ -237,9 +244,11 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
                 throw new InvalidUserCodeException("You must declare the repository using forRepository { ... }");
             }
             if (filter == null) {
-                throw new InvalidUserCodeException("You must specify the filter for the repository using filter { ... }");
+                throw new InvalidUserCodeException(
+                        "You must specify the filter for the repository using filter { ... }");
             }
-            Set<? extends ArtifactRepository> targetRepositories = forRepositories.stream().map(Factory::create).collect(Collectors.toSet());
+            Set<? extends ArtifactRepository> targetRepositories =
+                    forRepositories.stream().map(Factory::create).collect(Collectors.toSet());
             Action<? super RepositoryContentDescriptor> forExclusivity = transformForExclusivity(filter);
             this.repositories.all(repo -> {
                 if (targetRepositories.contains(repo)) {
@@ -250,5 +259,4 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
             });
         }
     }
-
 }

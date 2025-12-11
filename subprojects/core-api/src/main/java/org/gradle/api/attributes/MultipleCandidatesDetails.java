@@ -15,9 +15,8 @@
  */
 package org.gradle.api.attributes;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides context about candidates for an attribute. In particular, this class gives access to
@@ -50,5 +49,4 @@ public interface MultipleCandidatesDetails<T> {
      * @param candidate The closest match. Must be present in {@link #getCandidateValues()}.
      */
     void closestMatch(T candidate);
-
 }

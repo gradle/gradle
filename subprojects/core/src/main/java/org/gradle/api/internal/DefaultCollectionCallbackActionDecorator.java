@@ -31,7 +31,8 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
-    public DefaultCollectionCallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+    public DefaultCollectionCallbackActionDecorator(
+            BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
         this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
@@ -63,7 +64,7 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
         };
     }
 
-    private static abstract class Operation implements RunnableBuildOperation {
+    private abstract static class Operation implements RunnableBuildOperation {
 
         private final UserCodeApplicationId applicationId;
 
@@ -73,9 +74,8 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor
-                .displayName("Execute container callback action")
-                .details(new OperationDetails(applicationId));
+            return BuildOperationDescriptor.displayName("Execute container callback action")
+                    .details(new OperationDetails(applicationId));
         }
     }
 
@@ -112,5 +112,4 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
             });
         }
     }
-
 }

@@ -35,5 +35,4 @@ public interface MavenPomCiManagement {
      * The URL of this CI management system.
      */
     Property<String> getUrl();
-
 }

@@ -23,7 +23,8 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public class JvmVendorSpecFromCharSequenceNotationConverter implements NotationConverter<CharSequence, JvmVendorSpec> {
     @Override
-    public void convert(CharSequence notation, NotationConvertResult<? super JvmVendorSpec> result) throws TypeConversionException {
+    public void convert(CharSequence notation, NotationConvertResult<? super JvmVendorSpec> result)
+            throws TypeConversionException {
         try {
             result.converted(JvmVendorSpec.of(notation.toString()));
         } catch (IllegalArgumentException e) {

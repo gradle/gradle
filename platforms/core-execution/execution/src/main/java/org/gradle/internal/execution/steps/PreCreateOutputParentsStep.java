@@ -16,15 +16,14 @@
 
 package org.gradle.internal.execution.steps;
 
+import static org.gradle.util.internal.GFileUtils.mkdirs;
+
+import java.io.File;
 import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.file.TreeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-
-import static org.gradle.util.internal.GFileUtils.mkdirs;
 
 public class PreCreateOutputParentsStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(PreCreateOutputParentsStep.class);

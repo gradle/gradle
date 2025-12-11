@@ -16,6 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.base.Strings;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.PatternHelper;
@@ -23,10 +26,6 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.jspecify.annotations.Nullable;
-
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 abstract class AbstractResourcePattern implements ResourcePattern {
     public static final String CLASSIFIER_KEY = "classifier";
@@ -40,7 +39,6 @@ abstract class AbstractResourcePattern implements ResourcePattern {
 
     public AbstractResourcePattern(String pattern) {
         this(new ExternalResourceName(pattern));
-
     }
 
     public AbstractResourcePattern(URI baseUri, String pattern) {
@@ -110,27 +108,28 @@ abstract class AbstractResourcePattern implements ResourcePattern {
     @Override
     public boolean isComplete(ModuleIdentifier moduleIdentifier) {
         return isValidSubstitute(moduleIdentifier.getName(), false)
-            && isValidSubstitute(moduleIdentifier.getGroup(), organisationIsOptional);
+                && isValidSubstitute(moduleIdentifier.getGroup(), organisationIsOptional);
     }
 
     @Override
     public boolean isComplete(ModuleComponentIdentifier componentIdentifier) {
         return isValidSubstitute(componentIdentifier.getModule(), false)
-            && isValidSubstitute(componentIdentifier.getGroup(), organisationIsOptional)
-            && isValidSubstitute(componentIdentifier.getVersion(), revisionIsOptional);
+                && isValidSubstitute(componentIdentifier.getGroup(), organisationIsOptional)
+                && isValidSubstitute(componentIdentifier.getVersion(), revisionIsOptional);
     }
 
     @Override
     public boolean isComplete(ModuleComponentArtifactMetadata artifactIdentifier) {
         IvyArtifactName artifactName = artifactIdentifier.getName();
-        ModuleComponentIdentifier componentIdentifier = artifactIdentifier.getId().getComponentIdentifier();
+        ModuleComponentIdentifier componentIdentifier =
+                artifactIdentifier.getId().getComponentIdentifier();
         return isValidSubstitute(componentIdentifier.getModule(), false)
-            && isValidSubstitute(componentIdentifier.getGroup(), organisationIsOptional)
-            && isValidSubstitute(componentIdentifier.getVersion(), revisionIsOptional)
-            && isValidSubstitute(artifactName.getName(), artifactIsOptional)
-            && isValidSubstitute(artifactName.getClassifier(), classifierIsOptional)
-            && isValidSubstitute(artifactName.getExtension(), extensionIsOptional)
-            && isValidSubstitute(artifactName.getType(), typeIsOptional);
+                && isValidSubstitute(componentIdentifier.getGroup(), organisationIsOptional)
+                && isValidSubstitute(componentIdentifier.getVersion(), revisionIsOptional)
+                && isValidSubstitute(artifactName.getName(), artifactIsOptional)
+                && isValidSubstitute(artifactName.getClassifier(), classifierIsOptional)
+                && isValidSubstitute(artifactName.getExtension(), extensionIsOptional)
+                && isValidSubstitute(artifactName.getType(), typeIsOptional);
     }
 
     private boolean isValidSubstitute(@Nullable String candidate, boolean optional) {

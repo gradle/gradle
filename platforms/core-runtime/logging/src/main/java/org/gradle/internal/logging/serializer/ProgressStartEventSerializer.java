@@ -46,9 +46,11 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
     private static final short BUILD_OP_CATEGORY_MASK = 0x7;
 
     public ProgressStartEventSerializer() {
-        BuildOperationCategory maxCategory = BuildOperationCategory.values()[BuildOperationCategory.values().length - 1];
+        BuildOperationCategory maxCategory =
+                BuildOperationCategory.values()[BuildOperationCategory.values().length - 1];
         if ((BUILD_OP_CATEGORY_MASK & maxCategory.ordinal()) != maxCategory.ordinal()) {
-            // Too many build operation categories to fit into the flags assigned to encode the category - so you will need to adjust the mask above
+            // Too many build operation categories to fit into the flags assigned to encode the category - so you will
+            // need to adjust the mask above
             throw new IllegalArgumentException("Too many categories to fit into flags.");
         }
     }
@@ -183,20 +185,20 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             buildOperationId = progressOperationId;
         }
 
-        BuildOperationCategory buildOperationCategory = BuildOperationCategory.values()[(int) ((flags >> BUILD_OP_CATEGORY_OFFSET) & BUILD_OP_CATEGORY_MASK)];
+        BuildOperationCategory buildOperationCategory =
+                BuildOperationCategory.values()[(int) ((flags >> BUILD_OP_CATEGORY_OFFSET) & BUILD_OP_CATEGORY_MASK)];
 
         return new ProgressStartEvent(
-            progressOperationId,
-            parentProgressOperationId,
-            timestamp,
-            category,
-            description,
-            loggingHeader,
-            status,
-            totalProgress,
-            buildOperationStart,
-            buildOperationId,
-            buildOperationCategory
-        );
+                progressOperationId,
+                parentProgressOperationId,
+                timestamp,
+                category,
+                description,
+                loggingHeader,
+                status,
+                totalProgress,
+                buildOperationStart,
+                buildOperationId,
+                buildOperationCategory);
     }
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.internal.Factory;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.gradle.internal.Factory;
 
 public class JavaHomeBasedJavaCompilerFactory implements Factory<ContextAwareJavaCompiler>, Serializable {
     private final List<File> compilerPluginsClasspath;
@@ -30,7 +29,7 @@ public class JavaHomeBasedJavaCompilerFactory implements Factory<ContextAwareJav
     // it has a huge impact on performance. Previously there was a single, JdkTools.current()
     // instance, but we can have different "compiler plugins" classpath. For this reason we use
     // a map, but in practice it's likely there's only one instance in this map.
-    private final static transient Map<List<File>, JdkTools> JDK_TOOLS = new ConcurrentHashMap<>();
+    private static final transient Map<List<File>, JdkTools> JDK_TOOLS = new ConcurrentHashMap<>();
 
     public JavaHomeBasedJavaCompilerFactory(List<File> compilerPluginsClasspath) {
         this.compilerPluginsClasspath = compilerPluginsClasspath;
@@ -38,7 +37,8 @@ public class JavaHomeBasedJavaCompilerFactory implements Factory<ContextAwareJav
 
     @Override
     public ContextAwareJavaCompiler create() {
-        JdkTools jdkTools = JavaHomeBasedJavaCompilerFactory.JDK_TOOLS.computeIfAbsent(compilerPluginsClasspath, JavaHomeBasedJavaCompilerFactory::createJdkTools);
+        JdkTools jdkTools = JavaHomeBasedJavaCompilerFactory.JDK_TOOLS.computeIfAbsent(
+                compilerPluginsClasspath, JavaHomeBasedJavaCompilerFactory::createJdkTools);
         return jdkTools.getSystemJavaCompiler();
     }
 

@@ -22,22 +22,22 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 
-public class ResolveImmutableCachingStateStep<C extends ImmutableValidationFinishedContext> extends AbstractResolveCachingStateStep<C> {
+public class ResolveImmutableCachingStateStep<C extends ImmutableValidationFinishedContext>
+        extends AbstractResolveCachingStateStep<C> {
     private final Step<? super ImmutableCachingContext, ? extends UpToDateResult> delegate;
 
     public ResolveImmutableCachingStateStep(
-        BuildCacheController buildCache,
-        boolean emitDebugLogging,
-        Step<? super ImmutableCachingContext, ? extends UpToDateResult> delegate
-    ) {
+            BuildCacheController buildCache,
+            boolean emitDebugLogging,
+            Step<? super ImmutableCachingContext, ? extends UpToDateResult> delegate) {
         super(buildCache, emitDebugLogging);
         this.delegate = delegate;
     }
 
     @Override
-    protected void checkIfWorkIsCacheable(UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder) {
-        work.shouldDisableCaching(null)
-            .ifPresent(cachingDisabledReasonsBuilder::add);
+    protected void checkIfWorkIsCacheable(
+            UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder) {
+        work.shouldDisableCaching(null).ifPresent(cachingDisabledReasonsBuilder::add);
     }
 
     @Override

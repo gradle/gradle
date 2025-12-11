@@ -50,6 +50,7 @@ public class DefaultCompilerVersion implements CompilerVersion {
 
     @Override
     public String toString() {
-        return "CompilerVersion{" + "type='" + type + '\'' + ", vendor='" + vendor + '\'' + ", version=" + version + '}';
+        return "CompilerVersion{" + "type='" + type + '\'' + ", vendor='" + vendor + '\'' + ", version=" + version
+                + '}';
     }
 }

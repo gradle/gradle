@@ -17,9 +17,8 @@
 package org.gradle.internal.serialize;
 
 import com.google.errorprone.annotations.Immutable;
-import org.gradle.internal.hash.HashCode;
-
 import java.io.IOException;
+import org.gradle.internal.hash.HashCode;
 
 @Immutable
 public class HashCodeSerializer extends AbstractSerializer<HashCode> {

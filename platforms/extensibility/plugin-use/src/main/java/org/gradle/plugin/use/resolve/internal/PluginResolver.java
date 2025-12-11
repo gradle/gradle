@@ -29,5 +29,4 @@ public interface PluginResolver {
      * @throws InvalidPluginRequestException If the plugin request was invalid.
      */
     PluginResolutionResult resolve(PluginRequestInternal pluginRequest);
-
 }

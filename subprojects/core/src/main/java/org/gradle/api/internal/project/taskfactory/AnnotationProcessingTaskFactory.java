@@ -31,7 +31,8 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
     private final TaskClassInfoStore taskClassInfoStore;
     private final ITaskFactory taskFactory;
 
-    public AnnotationProcessingTaskFactory(Instantiator instantiator, TaskClassInfoStore taskClassInfoStore, ITaskFactory taskFactory) {
+    public AnnotationProcessingTaskFactory(
+            Instantiator instantiator, TaskClassInfoStore taskClassInfoStore, ITaskFactory taskFactory) {
         this.instantiator = instantiator;
         this.taskClassInfoStore = taskClassInfoStore;
         this.taskFactory = taskFactory;
@@ -39,7 +40,8 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
     @Override
     public ITaskFactory createChild(ProjectInternal project, InstantiationScheme instantiationScheme) {
-        return new AnnotationProcessingTaskFactory(instantiator, taskClassInfoStore, taskFactory.createChild(project, instantiationScheme));
+        return new AnnotationProcessingTaskFactory(
+                instantiator, taskClassInfoStore, taskFactory.createChild(project, instantiationScheme));
     }
 
     @Override
@@ -58,8 +60,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         if (taskClassInfo.isCacheable()) {
             task.getOutputs().cacheIf("Annotated with @CacheableTask", Specs.SATISFIES_ALL);
         }
-        taskClassInfo.getReasonNotToTrackState()
-            .ifPresent(task::doNotTrackState);
+        taskClassInfo.getReasonNotToTrackState().ifPresent(task::doNotTrackState);
 
         return task;
     }

@@ -16,15 +16,15 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
+import static java.lang.String.format;
+import static org.gradle.api.internal.plugins.DefaultPluginManager.CORE_PLUGIN_NAMESPACE;
+
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
-
-import static java.lang.String.format;
-import static org.gradle.api.internal.plugins.DefaultPluginManager.CORE_PLUGIN_NAMESPACE;
 
 public class CorePluginResolver implements PluginResolver {
 
@@ -40,12 +40,17 @@ public class CorePluginResolver implements PluginResolver {
     public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
         PluginId id = pluginRequest.getId();
         if (!isCorePluginRequest(id)) {
-            return PluginResolutionResult.notFound(getDescription(), format("plugin is not in '%s' namespace", CORE_PLUGIN_NAMESPACE));
+            return PluginResolutionResult.notFound(
+                    getDescription(), format("plugin is not in '%s' namespace", CORE_PLUGIN_NAMESPACE));
         }
 
         PluginImplementation<?> plugin = pluginRegistry.lookup(id);
         if (plugin == null) {
-            return PluginResolutionResult.notFound(getDescription(), "not a core plugin. " + documentationRegistry.getDocumentationRecommendationFor("available plugins", "plugin_reference"));
+            return PluginResolutionResult.notFound(
+                    getDescription(),
+                    "not a core plugin. "
+                            + documentationRegistry.getDocumentationRecommendationFor(
+                                    "available plugins", "plugin_reference"));
         }
 
         validate(pluginRequest);
@@ -54,22 +59,23 @@ public class CorePluginResolver implements PluginResolver {
 
     private static void validate(PluginRequestInternal pluginRequest) {
         if (pluginRequest.getVersion() != null) {
-            throw new InvalidPluginRequestException(pluginRequest,
-                getCorePluginClarification(pluginRequest) + "which cannot be specified with a version number. "
-                    + "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration."
-            );
+            throw new InvalidPluginRequestException(
+                    pluginRequest,
+                    getCorePluginClarification(pluginRequest) + "which cannot be specified with a version number. "
+                            + "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration.");
         }
         if (pluginRequest.getSelector() != null) {
-            throw new InvalidPluginRequestException(pluginRequest,
-                getCorePluginClarification(pluginRequest) + "which cannot be specified with a custom implementation artifact. "
-                    + "Such plugins are versioned as part of Gradle. Please remove the custom artifact from the request."
-            );
+            throw new InvalidPluginRequestException(
+                    pluginRequest,
+                    getCorePluginClarification(pluginRequest)
+                            + "which cannot be specified with a custom implementation artifact. "
+                            + "Such plugins are versioned as part of Gradle. Please remove the custom artifact from the request.");
         }
         if (!pluginRequest.isApply()) {
-            throw new InvalidPluginRequestException(pluginRequest,
-                getCorePluginClarification(pluginRequest) + "which is already on the classpath. "
-                    + "Requesting it with the 'apply false' option is a no-op."
-            );
+            throw new InvalidPluginRequestException(
+                    pluginRequest,
+                    getCorePluginClarification(pluginRequest) + "which is already on the classpath. "
+                            + "Requesting it with the 'apply false' option is a no-op.");
         }
     }
 
@@ -77,7 +83,7 @@ public class CorePluginResolver implements PluginResolver {
         return "Plugin '" + pluginRequest.getId() + "' is a core Gradle plugin, ";
     }
 
-    private static  boolean isCorePluginRequest(PluginId id) {
+    private static boolean isCorePluginRequest(PluginId id) {
         String namespace = id.getNamespace();
         return namespace == null || namespace.equals(CORE_PLUGIN_NAMESPACE);
     }

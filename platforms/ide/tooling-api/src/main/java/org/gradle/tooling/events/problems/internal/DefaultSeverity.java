@@ -26,13 +26,15 @@ public class DefaultSeverity implements Severity {
     private final int severity;
     private final boolean known;
 
-    // Using the loading cache ensures that there's only one object in memory per severity level even when the level is unknown by the client
-    private static final LoadingCache<Integer, Severity> UNKNOWN_ENTRIES = CacheBuilder.newBuilder().build(new CacheLoader<Integer, Severity>() {
-        @Override
-        public Severity load(Integer key) {
-            return new DefaultSeverity(key, false);
-        }
-    });
+    // Using the loading cache ensures that there's only one object in memory per severity level even when the level is
+    // unknown by the client
+    private static final LoadingCache<Integer, Severity> UNKNOWN_ENTRIES = CacheBuilder.newBuilder()
+            .build(new CacheLoader<Integer, Severity>() {
+                @Override
+                public Severity load(Integer key) {
+                    return new DefaultSeverity(key, false);
+                }
+            });
 
     public DefaultSeverity(int severity, boolean known) {
         this.severity = severity;

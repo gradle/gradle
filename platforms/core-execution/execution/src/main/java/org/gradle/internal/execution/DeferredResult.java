@@ -16,10 +16,9 @@
 
 package org.gradle.internal.execution;
 
+import java.util.Optional;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-
-import java.util.Optional;
 
 /**
  * A deferred result of a unit of work execution.

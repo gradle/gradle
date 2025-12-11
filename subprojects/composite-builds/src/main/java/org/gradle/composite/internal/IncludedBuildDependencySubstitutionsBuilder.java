@@ -16,6 +16,8 @@
 
 package org.gradle.composite.internal;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
@@ -30,9 +32,6 @@ import org.gradle.internal.buildtree.GlobalDependencySubstitutionRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class IncludedBuildDependencySubstitutionsBuilder implements GlobalDependencySubstitutionRegistry {
     private final CompositeBuildContext context;
     private final Instantiator instantiator;
@@ -43,13 +42,12 @@ public class IncludedBuildDependencySubstitutionsBuilder implements GlobalDepend
     private final Set<IncludedBuildState> processed = new HashSet<>();
 
     public IncludedBuildDependencySubstitutionsBuilder(
-        CompositeBuildContext context,
-        Instantiator instantiator,
-        ObjectFactory objectFactory,
-        AttributesFactory attributesFactory,
-        NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-        NotationParser<Object, Capability> capabilitiesParser
-    ) {
+            CompositeBuildContext context,
+            Instantiator instantiator,
+            ObjectFactory objectFactory,
+            AttributesFactory attributesFactory,
+            NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
+            NotationParser<Object, Capability> capabilitiesParser) {
         this.context = context;
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
@@ -63,7 +61,7 @@ public class IncludedBuildDependencySubstitutionsBuilder implements GlobalDepend
         if (build instanceof IncludedBuildState) {
             build((IncludedBuildState) build);
         } else if (build instanceof RootBuildState) {
-            build((RootBuildState)build);
+            build((RootBuildState) build);
         } else {
             throw new IllegalArgumentException();
         }
@@ -92,7 +90,13 @@ public class IncludedBuildDependencySubstitutionsBuilder implements GlobalDepend
     }
 
     private DependencySubstitutionsInternal resolveDependencySubstitutions(IncludedBuildState build) {
-        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilitiesParser);
+        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(
+                build,
+                instantiator,
+                objectFactory,
+                attributesFactory,
+                moduleSelectorNotationParser,
+                capabilitiesParser);
         build.getRegisteredDependencySubstitutions().execute(dependencySubstitutions);
         return dependencySubstitutions;
     }

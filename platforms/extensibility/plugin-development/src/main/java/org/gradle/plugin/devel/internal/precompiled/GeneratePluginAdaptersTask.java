@@ -16,6 +16,15 @@
 
 package org.gradle.plugin.devel.internal.precompiled;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
@@ -43,29 +52,19 @@ import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 import org.gradle.util.GradleVersion;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Set;
-
 @CacheableTask
 public abstract class GeneratePluginAdaptersTask extends DefaultTask {
     @Inject
-    abstract protected FileSystemOperations getFileSystemOperations();
+    protected abstract FileSystemOperations getFileSystemOperations();
 
     @Inject
-    abstract protected ClassLoaderScopeRegistry getClassLoaderScopeRegistry();
+    protected abstract ClassLoaderScopeRegistry getClassLoaderScopeRegistry();
 
     @Inject
-    abstract protected ScriptCompilationHandler getScriptCompilationHandler();
+    protected abstract ScriptCompilationHandler getScriptCompilationHandler();
 
     @Inject
-    abstract protected CompileOperationFactory getCompileOperationFactory();
+    protected abstract CompileOperationFactory getCompileOperationFactory();
 
     @InputFiles
     @SkipWhenEmpty
@@ -100,13 +99,20 @@ public abstract class GeneratePluginAdaptersTask extends DefaultTask {
         validatePluginRequests(scriptPlugin, pluginRequests);
 
         StringBuilder applyPlugins = new StringBuilder();
-        applyPlugins.append("            Class<? extends BasicScript> pluginsBlockClass = Class.forName(\"").append(scriptPlugin.getFirstPassClassName()).append("\").asSubclass(BasicScript.class);\n");
-        applyPlugins.append("            BasicScript pluginsBlockScript = pluginsBlockClass.getDeclaredConstructor().newInstance();\n");
+        applyPlugins
+                .append("            Class<? extends BasicScript> pluginsBlockClass = Class.forName(\"")
+                .append(scriptPlugin.getFirstPassClassName())
+                .append("\").asSubclass(BasicScript.class);\n");
+        applyPlugins.append(
+                "            BasicScript pluginsBlockScript = pluginsBlockClass.getDeclaredConstructor().newInstance();\n");
         applyPlugins.append("            pluginsBlockScript.setScriptSource(scriptSource(pluginsBlockClass));\n");
         applyPlugins.append("            pluginsBlockScript.init(target, target.getServices());\n");
         applyPlugins.append("            pluginsBlockScript.run();\n");
         for (PluginRequest pluginRequest : pluginRequests) {
-            applyPlugins.append("            target.getPluginManager().apply(\"").append(pluginRequest.getId().getId()).append("\");\n");
+            applyPlugins
+                    .append("            target.getPluginManager().apply(\"")
+                    .append(pluginRequest.getId().getId())
+                    .append("\");\n");
         }
         return applyPlugins.toString();
     }
@@ -115,43 +121,64 @@ public abstract class GeneratePluginAdaptersTask extends DefaultTask {
         Set<String> validationErrors = new HashSet<>();
         for (PluginRequest pluginRequest : pluginRequests) {
             if (pluginRequest.getVersion() != null) {
-                validationErrors.add(String.format("Invalid plugin request %s. " +
-                        "Plugin requests from precompiled scripts must not include a version number. " +
-                        "Please remove the version from the offending request and make sure the module containing the " +
-                        "requested plugin '%s' is an implementation dependency",
-                    pluginRequest, pluginRequest.getId()));
+                validationErrors.add(String.format(
+                        "Invalid plugin request %s. "
+                                + "Plugin requests from precompiled scripts must not include a version number. "
+                                + "Please remove the version from the offending request and make sure the module containing the "
+                                + "requested plugin '%s' is an implementation dependency",
+                        pluginRequest, pluginRequest.getId()));
             }
         }
         if (!validationErrors.isEmpty()) {
-            throw new LocationAwareException(new IllegalArgumentException(String.join("\n", validationErrors)),
-                scriptPlugin.getBodySource().getResource().getLocation().getDisplayName(),
-                pluginRequests.iterator().next().getLineNumber());
+            throw new LocationAwareException(
+                    new IllegalArgumentException(String.join("\n", validationErrors)),
+                    scriptPlugin.getBodySource().getResource().getLocation().getDisplayName(),
+                    pluginRequests.iterator().next().getLineNumber());
         }
     }
 
-    private PluginRequests extractPluginRequests(CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin) {
+    private PluginRequests extractPluginRequests(
+            CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin) {
         try {
-            PluginsAwareScript pluginsAwareScript = pluginsBlock.loadClass().getDeclaredConstructor().newInstance();
+            PluginsAwareScript pluginsAwareScript =
+                    pluginsBlock.loadClass().getDeclaredConstructor().newInstance();
             pluginsAwareScript.setScriptSource(scriptPlugin.getBodySource());
             pluginsAwareScript.init(new FirstPassPrecompiledScriptRunner(), getServices());
             pluginsAwareScript.run();
             return pluginsAwareScript.getPluginRequests();
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        } catch (NoSuchMethodException
+                | InstantiationException
+                | IllegalAccessException
+                | InvocationTargetException e) {
             throw new IllegalStateException("Could not execute plugins block", e);
         }
     }
 
     private CompiledScript<PluginsAwareScript, ?> loadCompiledPluginsBlocks(PrecompiledGroovyScript scriptPlugin) {
         ClassLoaderScope classLoaderScope = getClassLoaderScopeRegistry().getCoreAndPluginsScope();
-        CompileOperation<?> pluginsCompileOperation = getCompileOperationFactory().getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
-        File compiledPluginRequestsDir = getExtractedPluginRequestsClassesDirectory().get().dir(scriptPlugin.getId()).getAsFile();
-        return getScriptCompilationHandler().loadFromDir(scriptPlugin.getFirstPassSource(), scriptPlugin.getContentHash(),
-            classLoaderScope, DefaultClassPath.of(compiledPluginRequestsDir), compiledPluginRequestsDir, pluginsCompileOperation, PluginsAwareScript.class);
+        CompileOperation<?> pluginsCompileOperation =
+                getCompileOperationFactory().getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
+        File compiledPluginRequestsDir = getExtractedPluginRequestsClassesDirectory()
+                .get()
+                .dir(scriptPlugin.getId())
+                .getAsFile();
+        return getScriptCompilationHandler()
+                .loadFromDir(
+                        scriptPlugin.getFirstPassSource(),
+                        scriptPlugin.getContentHash(),
+                        classLoaderScope,
+                        DefaultClassPath.of(compiledPluginRequestsDir),
+                        compiledPluginRequestsDir,
+                        pluginsCompileOperation,
+                        PluginsAwareScript.class);
     }
 
     private void generateScriptPluginAdapter(PrecompiledGroovyScript scriptPlugin, String firstPassCode) {
         String targetClass = scriptPlugin.getTargetClassName();
-        File outputFile = getPluginAdapterSourcesOutputDirectory().file(scriptPlugin.getPluginAdapterClassName() + ".java").get().getAsFile();
+        File outputFile = getPluginAdapterSourcesOutputDirectory()
+                .file(scriptPlugin.getPluginAdapterClassName() + ".java")
+                .get()
+                .getAsFile();
 
         try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get(outputFile.toURI())))) {
             writer.println("//CHECKSTYLE:OFF");
@@ -164,7 +191,8 @@ public abstract class GeneratePluginAdaptersTask extends DefaultTask {
             writer.println(" * Precompiled " + scriptPlugin.getId() + " script plugin.");
             writer.println(" **/");
             writer.println("@SuppressWarnings(\"DefaultPackage\")");
-            writer.println("public class " + scriptPlugin.getPluginAdapterClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {");
+            writer.println("public class " + scriptPlugin.getPluginAdapterClassName()
+                    + " implements org.gradle.api.Plugin<" + targetClass + "> {");
             writer.println("    private static final String MIN_SUPPORTED_GRADLE_VERSION = \"7.0\";");
             writer.println("    @Override");
             writer.println("    public void apply(" + targetClass + " target) {");
@@ -172,8 +200,10 @@ public abstract class GeneratePluginAdaptersTask extends DefaultTask {
             writer.println("        try {");
             writer.println(firstPassCode);
             writer.println();
-            writer.println("            Class<? extends BasicScript> precompiledScriptClass = Class.forName(\"" + scriptPlugin.getBodyClassName() + "\").asSubclass(BasicScript.class);");
-            writer.println("            BasicScript script = precompiledScriptClass.getDeclaredConstructor().newInstance();");
+            writer.println("            Class<? extends BasicScript> precompiledScriptClass = Class.forName(\""
+                    + scriptPlugin.getBodyClassName() + "\").asSubclass(BasicScript.class);");
+            writer.println(
+                    "            BasicScript script = precompiledScriptClass.getDeclaredConstructor().newInstance();");
             writer.println("            script.setScriptSource(scriptSource(precompiledScriptClass));");
             writer.println("            script.init(target, target.getServices());");
             writer.println("            script.run();");
@@ -182,11 +212,14 @@ public abstract class GeneratePluginAdaptersTask extends DefaultTask {
             writer.println("        }");
             writer.println("  }");
             writer.println("  private static ScriptSource scriptSource(Class<?> scriptClass) {");
-            writer.println("      return new TextResourceScriptSource(new StringTextResource(scriptClass.getSimpleName(), \"\"));");
+            writer.println(
+                    "      return new TextResourceScriptSource(new StringTextResource(scriptClass.getSimpleName(), \"\"));");
             writer.println("  }");
             writer.println("  private static void assertSupportedByCurrentGradleVersion() {");
-            writer.println("      if (GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version(MIN_SUPPORTED_GRADLE_VERSION)) < 0) {");
-            writer.println("          throw new RuntimeException(\"Precompiled Groovy script plugins built by " + GradleVersion.current() + " require Gradle \"+MIN_SUPPORTED_GRADLE_VERSION+\" or higher\");");
+            writer.println(
+                    "      if (GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version(MIN_SUPPORTED_GRADLE_VERSION)) < 0) {");
+            writer.println("          throw new RuntimeException(\"Precompiled Groovy script plugins built by "
+                    + GradleVersion.current() + " require Gradle \"+MIN_SUPPORTED_GRADLE_VERSION+\" or higher\");");
             writer.println("      }");
             writer.println("  }");
             writer.println("}");

@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import static java.util.Collections.singletonList;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -28,8 +28,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
-
-import static java.util.Collections.singletonList;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Generic container for conflicts. It's generic so that hopefully it's easier to comprehend (and test).
@@ -60,19 +59,19 @@ class ConflictContainer<K, T> {
         if (replacedBy != null) {
             targetToSource.put(replacedBy, target);
             if (elements.containsKey(replacedBy)) {
-                //1) we've seen the replacement, register new conflict and return
+                // 1) we've seen the replacement, register new conflict and return
                 return registerConflict(target, replacedBy);
             }
         }
 
         Collection<K> replacementSource = targetToSource.get(target);
         if (!replacementSource.isEmpty()) {
-            //2) new module is a replacement to a module we've seen already, register conflict and return
+            // 2) new module is a replacement to a module we've seen already, register conflict and return
             return registerConflict(replacementSource, target);
         }
 
         if (candidates.size() > 1) {
-            //3) new module has more than 1 version, register conflict and return
+            // 3) new module has more than 1 version, register conflict and return
             return registerConflict(target, target);
         }
         return null;
@@ -81,29 +80,29 @@ class ConflictContainer<K, T> {
     private Conflict registerConflict(Collection<K> targets, K replacedBy) {
         assert !targets.isEmpty();
 
-        //replacement candidates are the only important candidates
+        // replacement candidates are the only important candidates
         Collection<? extends T> candidates = elements.get(replacedBy);
         assert candidates != null;
 
         Set<K> participants = new LinkedHashSet<>(targets);
         participants.add(replacedBy);
 
-        //We need to ensure that the conflict is orderly injected to the list of conflicts
-        //Brand new conflict goes to the end
-        //If we find any matching conflict we have to hook up with it
+        // We need to ensure that the conflict is orderly injected to the list of conflicts
+        // Brand new conflict goes to the end
+        // If we find any matching conflict we have to hook up with it
 
-        //Find an existing matching conflict
+        // Find an existing matching conflict
         for (K participant : participants) {
             Conflict c = conflictsByParticipant.get(participant);
             if (c != null) {
-                //there is already registered conflict with at least one matching participant, hook up to this conflict
+                // there is already registered conflict with at least one matching participant, hook up to this conflict
                 c.candidates = candidates;
                 c.participants.addAll(participants);
                 return c;
             }
         }
 
-        //No conflict with matching participants found, create new
+        // No conflict with matching participants found, create new
         Conflict c = new Conflict(participants, candidates);
         conflicts.add(c);
         for (K participant : participants) {
@@ -141,7 +140,9 @@ class ConflictContainer<K, T> {
         if (isEmpty()) {
             return false;
         }
-        return conflicts.stream().flatMap(conflict -> conflict.candidates.stream()).anyMatch(predicate);
+        return conflicts.stream()
+                .flatMap(conflict -> conflict.candidates.stream())
+                .anyMatch(predicate);
     }
 
     class Conflict {

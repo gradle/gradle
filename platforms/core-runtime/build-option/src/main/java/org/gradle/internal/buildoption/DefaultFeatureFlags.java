@@ -16,11 +16,10 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.internal.event.ListenerManager;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import org.gradle.internal.event.ListenerManager;
 
 public class DefaultFeatureFlags implements FeatureFlags {
     private final Set<FeatureFlag> enabled = new CopyOnWriteArraySet<FeatureFlag>();

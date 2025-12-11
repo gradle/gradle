@@ -15,10 +15,10 @@
  */
 package org.gradle.api.specs;
 
-import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+
+import org.junit.Test;
 
 public class NotSpecTest {
     @Test

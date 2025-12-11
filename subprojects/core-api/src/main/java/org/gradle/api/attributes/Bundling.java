@@ -66,5 +66,4 @@ public interface Bundling extends Named {
      * but also in a different namespace to prevent conflicts.
      */
     String SHADOWED = "shadowed";
-
 }

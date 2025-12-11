@@ -27,13 +27,15 @@ public class DaemonJvmPropertiesUtils {
     public static String getToolchainUrlPropertyForPlatform(BuildPlatform buildPlatform) {
         String operatingSystemName = buildPlatform.getOperatingSystem().name();
         String architectureName = buildPlatform.getArchitecture().name();
-        return String.format(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_FORMAT, operatingSystemName, architectureName);
+        return String.format(
+                DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_FORMAT, operatingSystemName, architectureName);
     }
 
     public static BuildPlatform getPlatformFromToolchainProperty(String toolchainUrlProperty) {
         String[] parts = toolchainUrlProperty.split("\\.");
         if (parts.length != 3) {
-            throw new IllegalArgumentException(String.format("Invalid toolchain URL property name: %s", toolchainUrlProperty));
+            throw new IllegalArgumentException(
+                    String.format("Invalid toolchain URL property name: %s", toolchainUrlProperty));
         }
         return BuildPlatformFactory.of(Architecture.valueOf(parts[2]), OperatingSystem.valueOf(parts[1]));
     }

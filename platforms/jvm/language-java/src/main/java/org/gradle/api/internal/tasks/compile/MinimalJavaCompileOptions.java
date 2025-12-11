@@ -18,14 +18,13 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import java.io.File;
+import java.io.Serializable;
+import java.util.List;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.DebugOptions;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.io.Serializable;
-import java.util.List;
 
 public class MinimalJavaCompileOptions implements Serializable {
     private List<File> sourcepath;
@@ -65,11 +64,14 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.listFiles = compileOptions.isListFiles();
         this.verbose = compileOptions.isVerbose();
         this.warnings = compileOptions.isWarnings();
-        this.annotationProcessorGeneratedSourcesDirectory = compileOptions.getGeneratedSourceOutputDirectory().getAsFile().getOrNull();
-        this.headerOutputDirectory = compileOptions.getHeaderOutputDirectory().getAsFile().getOrNull();
+        this.annotationProcessorGeneratedSourcesDirectory =
+                compileOptions.getGeneratedSourceOutputDirectory().getAsFile().getOrNull();
+        this.headerOutputDirectory =
+                compileOptions.getHeaderOutputDirectory().getAsFile().getOrNull();
         this.javaModuleVersion = compileOptions.getJavaModuleVersion().getOrNull();
         this.javaModuleMainClass = compileOptions.getJavaModuleMainClass().getOrNull();
-        this.supportsIncrementalCompilationAfterFailure = compileOptions.getIncrementalAfterFailure().getOrElse(false);
+        this.supportsIncrementalCompilationAfterFailure =
+                compileOptions.getIncrementalAfterFailure().getOrElse(false);
     }
 
     @Nullable
@@ -187,7 +189,8 @@ public class MinimalJavaCompileOptions implements Serializable {
         return annotationProcessorGeneratedSourcesDirectory;
     }
 
-    public void setAnnotationProcessorGeneratedSourcesDirectory(@Nullable File annotationProcessorGeneratedSourcesDirectory) {
+    public void setAnnotationProcessorGeneratedSourcesDirectory(
+            @Nullable File annotationProcessorGeneratedSourcesDirectory) {
         this.annotationProcessorGeneratedSourcesDirectory = annotationProcessorGeneratedSourcesDirectory;
     }
 

@@ -16,6 +16,8 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import java.util.List;
+import java.util.ListIterator;
 import org.codehaus.groovy.ast.Parameter;
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.ArrayExpression;
@@ -69,9 +71,6 @@ import org.codehaus.groovy.ast.stmt.ThrowStatement;
 import org.codehaus.groovy.ast.stmt.TryCatchStatement;
 import org.codehaus.groovy.ast.stmt.WhileStatement;
 import org.codehaus.groovy.classgen.BytecodeExpression;
-
-import java.util.List;
-import java.util.ListIterator;
 
 /**
  * Groovy AST visitor that allows to replace both statements and expressions.
@@ -179,10 +178,8 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitStaticMethodCallExpression(StaticMethodCallExpression expr) {
-        StaticMethodCallExpression result = new StaticMethodCallExpression(
-            expr.getOwnerType(),
-            expr.getMethod(),
-            replaceExpr(expr.getArguments()));
+        StaticMethodCallExpression result =
+                new StaticMethodCallExpression(expr.getOwnerType(), expr.getMethod(), replaceExpr(expr.getArguments()));
         result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -190,9 +187,8 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitConstructorCallExpression(ConstructorCallExpression expr) {
-        ConstructorCallExpression result = new ConstructorCallExpression(
-            expr.getType(),
-            replaceExpr(expr.getArguments()));
+        ConstructorCallExpression result =
+                new ConstructorCallExpression(expr.getType(), replaceExpr(expr.getArguments()));
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
     }
@@ -206,9 +202,9 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
     @Override
     public void visitTernaryExpression(TernaryExpression expr) {
         TernaryExpression result = new TernaryExpression(
-            (BooleanExpression) replaceExpr(expr.getBooleanExpression()),
-            replaceExpr(expr.getTrueExpression()),
-            replaceExpr(expr.getFalseExpression()));
+                (BooleanExpression) replaceExpr(expr.getBooleanExpression()),
+                replaceExpr(expr.getTrueExpression()),
+                replaceExpr(expr.getFalseExpression()));
         result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -217,8 +213,7 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
     @Override
     public void visitShortTernaryExpression(ElvisOperatorExpression expr) {
         ElvisOperatorExpression result = new ElvisOperatorExpression(
-            replaceExpr(expr.getTrueExpression()),
-            replaceExpr(expr.getFalseExpression()));
+                replaceExpr(expr.getTrueExpression()), replaceExpr(expr.getFalseExpression()));
         result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -236,8 +231,7 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitBooleanExpression(BooleanExpression expr) {
-        BooleanExpression result = new BooleanExpression(
-            replaceExpr(expr.getExpression()));
+        BooleanExpression result = new BooleanExpression(replaceExpr(expr.getExpression()));
         result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -245,8 +239,7 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitNotExpression(NotExpression expr) {
-        NotExpression result = new NotExpression(
-            replaceExpr(expr.getExpression()));
+        NotExpression result = new NotExpression(replaceExpr(expr.getExpression()));
         result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -286,15 +279,12 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
     @SuppressWarnings("unchecked")
     public void visitMapExpression(MapExpression expr) {
         replaceAllExprs(expr.getMapEntryExpressions());
-
     }
 
     @Override
     public void visitMapEntryExpression(MapEntryExpression expr) {
-        MapEntryExpression result = new MapEntryExpression(
-            replaceExpr(expr.getKeyExpression()),
-            replaceExpr(expr.getValueExpression())
-        );
+        MapEntryExpression result =
+                new MapEntryExpression(replaceExpr(expr.getKeyExpression()), replaceExpr(expr.getValueExpression()));
         result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -302,11 +292,8 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitRangeExpression(RangeExpression expr) {
-        RangeExpression result = new RangeExpression(
-            replaceExpr(expr.getFrom()),
-            replaceExpr(expr.getTo()),
-            expr.isInclusive()
-        );
+        RangeExpression result =
+                new RangeExpression(replaceExpr(expr.getFrom()), replaceExpr(expr.getTo()), expr.isInclusive());
         result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -314,9 +301,7 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitSpreadExpression(SpreadExpression expr) {
-        SpreadExpression result = new SpreadExpression(
-            replaceExpr(expr.getExpression())
-        );
+        SpreadExpression result = new SpreadExpression(replaceExpr(expr.getExpression()));
         result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -324,9 +309,7 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitSpreadMapExpression(SpreadMapExpression expr) {
-        SpreadMapExpression result = new SpreadMapExpression(
-            replaceExpr(expr.getExpression())
-        );
+        SpreadMapExpression result = new SpreadMapExpression(replaceExpr(expr.getExpression()));
         result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -334,10 +317,8 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitMethodPointerExpression(MethodPointerExpression expr) {
-        MethodPointerExpression result = new MethodPointerExpression(
-            replaceExpr(expr.getExpression()),
-            expr.getMethodName()
-        );
+        MethodPointerExpression result =
+                new MethodPointerExpression(replaceExpr(expr.getExpression()), expr.getMethodName());
         result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -345,9 +326,7 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitUnaryMinusExpression(UnaryMinusExpression expr) {
-        UnaryMinusExpression result = new UnaryMinusExpression(
-            replaceExpr(expr.getExpression())
-        );
+        UnaryMinusExpression result = new UnaryMinusExpression(replaceExpr(expr.getExpression()));
         result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -355,9 +334,7 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitUnaryPlusExpression(UnaryPlusExpression expr) {
-        UnaryPlusExpression result = new UnaryPlusExpression(
-            replaceExpr(expr.getExpression())
-        );
+        UnaryPlusExpression result = new UnaryPlusExpression(replaceExpr(expr.getExpression()));
         result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -365,9 +342,7 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitBitwiseNegationExpression(BitwiseNegationExpression expr) {
-        BitwiseNegationExpression result = new BitwiseNegationExpression(
-            replaceExpr(expr.getExpression())
-        );
+        BitwiseNegationExpression result = new BitwiseNegationExpression(replaceExpr(expr.getExpression()));
         result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -375,11 +350,8 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitCastExpression(CastExpression expr) {
-        CastExpression result = new CastExpression(
-            expr.getType(),
-            replaceExpr(expr.getExpression()),
-            expr.isIgnoringAutoboxing()
-        );
+        CastExpression result =
+                new CastExpression(expr.getType(), replaceExpr(expr.getExpression()), expr.isIgnoringAutoboxing());
         result.setCoerce(expr.isCoerce());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
@@ -394,10 +366,7 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
     @Override
     public void visitPropertyExpression(PropertyExpression expr) {
         PropertyExpression result = new PropertyExpression(
-            replaceExpr(expr.getObjectExpression()),
-            replaceExpr(expr.getProperty()),
-            expr.isSafe()
-        );
+                replaceExpr(expr.getObjectExpression()), replaceExpr(expr.getProperty()), expr.isSafe());
         result.setSpreadSafe(expr.isSpreadSafe());
         result.setStatic(expr.isStatic());
         result.setImplicitThis(expr.isImplicitThis());
@@ -460,30 +429,23 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
     // remaining methods are here to make sure we didn't forget anything
 
     @Override
-    public void visitBreakStatement(BreakStatement stat) {
-    }
+    public void visitBreakStatement(BreakStatement stat) {}
 
     @Override
-    public void visitContinueStatement(ContinueStatement stat) {
-    }
+    public void visitContinueStatement(ContinueStatement stat) {}
 
     @Override
-    public void visitConstantExpression(ConstantExpression expr) {
-    }
+    public void visitConstantExpression(ConstantExpression expr) {}
 
     @Override
-    public void visitClassExpression(ClassExpression expr) {
-    }
+    public void visitClassExpression(ClassExpression expr) {}
 
     @Override
-    public void visitVariableExpression(VariableExpression expr) {
-    }
+    public void visitVariableExpression(VariableExpression expr) {}
 
     @Override
-    public void visitFieldExpression(FieldExpression expr) {
-    }
+    public void visitFieldExpression(FieldExpression expr) {}
 
     @Override
-    public void visitBytecodeExpression(BytecodeExpression expr) {
-    }
+    public void visitBytecodeExpression(BytecodeExpression expr) {}
 }

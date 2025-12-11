@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -29,9 +31,6 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * Adapts a {@link DependencyArtifactsVisitor} to a {@link DependencyGraphVisitor}. Calculates the artifacts contributed by each edge in the graph and forwards the results to the artifact visitor.
@@ -47,11 +46,10 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private int nextId;
 
     public ResolvedArtifactsGraphVisitor(
-        DependencyArtifactsVisitor artifactsBuilder,
-        ImmutableArtifactTypeRegistry artifactTypeRegistry,
-        VariantArtifactSetCache artifactSetCache,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
+            DependencyArtifactsVisitor artifactsBuilder,
+            ImmutableArtifactTypeRegistry artifactTypeRegistry,
+            VariantArtifactSetCache artifactSetCache,
+            CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.artifactResults = artifactsBuilder;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactSetCache = artifactSetCache;
@@ -72,7 +70,12 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
             // there are edges to this node that would follow this file dependency.
             for (LocalFileDependencyMetadata fileDependency : node.getOutgoingFileEdges()) {
                 int id = nextId++;
-                artifactResults.visitArtifacts(node, fileDependency, id, new FileDependencyArtifactSet(fileDependency, node.getId(), artifactTypeRegistry, calculatedValueContainerFactory));
+                artifactResults.visitArtifacts(
+                        node,
+                        fileDependency,
+                        id,
+                        new FileDependencyArtifactSet(
+                                fileDependency, node.getId(), artifactTypeRegistry, calculatedValueContainerFactory));
             }
         }
     }
@@ -104,7 +107,8 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
                 if (implicitArtifactSet == null) {
                     // We have not visited the implicit artifacts yet.
                     implicitArtifactSetId = nextId++;
-                    implicitArtifactSet = artifactSetCache.getImplicitVariant(node.getOwner().getResolveState(), node.getResolveState());
+                    implicitArtifactSet = artifactSetCache.getImplicitVariant(
+                            node.getOwner().getResolveState(), node.getResolveState());
                 }
 
                 artifactResults.visitArtifacts(edge.getFrom(), node, implicitArtifactSetId, implicitArtifactSet);
@@ -127,19 +131,20 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         ImmutableAttributes attributes = dependency.getAttributes();
         List<IvyArtifactName> artifacts = dependency.getDependencyMetadata().getArtifacts();
         ExcludeSpec exclusions = dependency.getExclusions();
-        Set<CapabilitySelector> capabilitySelectors = dependency.getDependencyMetadata().getSelector().getCapabilitySelectors();
+        Set<CapabilitySelector> capabilitySelectors =
+                dependency.getDependencyMetadata().getSelector().getCapabilitySelectors();
 
         // If all dependency modifiers are empty, this edge does not produce an adhoc artifact set.
-        if (artifacts.isEmpty() &&
-            attributes.isEmpty() &&
-            capabilitySelectors.isEmpty() &&
-            !exclusions.mayExcludeArtifacts()
-        ) {
+        if (artifacts.isEmpty()
+                && attributes.isEmpty()
+                && capabilitySelectors.isEmpty()
+                && !exclusions.mayExcludeArtifacts()) {
             return false;
         }
 
         int id = nextId++;
-        VariantResolvingArtifactSet artifactSet = new VariantResolvingArtifactSet(component, variant, attributes, artifacts, exclusions, capabilitySelectors);
+        VariantResolvingArtifactSet artifactSet = new VariantResolvingArtifactSet(
+                component, variant, attributes, artifacts, exclusions, capabilitySelectors);
         artifactResults.visitArtifacts(dependency.getFrom(), node, id, artifactSet);
 
         return true;

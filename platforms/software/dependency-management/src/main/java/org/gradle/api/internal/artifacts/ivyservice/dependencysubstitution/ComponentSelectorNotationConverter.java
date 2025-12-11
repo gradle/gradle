@@ -26,5 +26,4 @@ import org.gradle.internal.typeconversion.NotationParser;
  * for easy injection.
  */
 @ServiceScope(Scope.BuildSession.class)
-public interface ComponentSelectorNotationConverter extends NotationParser<Object, ComponentSelector> {
-}
+public interface ComponentSelectorNotationConverter extends NotationParser<Object, ComponentSelector> {}

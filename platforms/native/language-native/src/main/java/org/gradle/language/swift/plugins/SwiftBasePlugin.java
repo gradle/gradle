@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.plugins;
 
+import javax.inject.Inject;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
@@ -40,8 +41,6 @@ import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 import org.gradle.swiftpm.internal.NativeProjectPublication;
 import org.gradle.swiftpm.internal.SwiftPmTarget;
 
-import javax.inject.Inject;
-
 /**
  * A common base plugin for the Swift application and library plugins
  *
@@ -65,36 +64,45 @@ public abstract class SwiftBasePlugin implements Plugin<Project> {
         final TaskContainer tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
-        project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE).getCompatibilityRules().add(SwiftCppUsageCompatibilityRule.class);
+        project.getDependencies()
+                .getAttributesSchema()
+                .attribute(Usage.USAGE_ATTRIBUTE)
+                .getCompatibilityRules()
+                .add(SwiftCppUsageCompatibilityRule.class);
 
         project.getComponents().withType(DefaultSwiftBinary.class, binary -> {
             final Names names = binary.getNames();
-            TaskProvider<SwiftCompile> compile = tasks.register(names.getCompileTaskName("swift"), SwiftCompile.class, task -> {
-                task.getModules().from(binary.getCompileModules());
-                task.getSource().from(binary.getSwiftSource());
-                task.getDebuggable().set(binary.isDebuggable());
-                task.getOptimized().set(binary.isOptimized());
-                if (binary.isTestable()) {
-                    task.getCompilerArgs().add("-enable-testing");
-                }
-                if (binary.getTargetMachine().getOperatingSystemFamily().isMacOs()) {
-                    task.getCompilerArgs().add("-sdk");
-                    task.getCompilerArgs().add(locator.find().getAbsolutePath());
-                }
-                task.getModuleName().set(binary.getModule());
-                task.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
-                task.getModuleFile().set(buildDirectory.file(binary.getModule().map(moduleName -> "modules/" + names.getDirName() + moduleName + ".swiftmodule")));
-                task.getSourceCompatibility().set(binary.getTargetPlatform().getSourceCompatibility());
+            TaskProvider<SwiftCompile> compile =
+                    tasks.register(names.getCompileTaskName("swift"), SwiftCompile.class, task -> {
+                        task.getModules().from(binary.getCompileModules());
+                        task.getSource().from(binary.getSwiftSource());
+                        task.getDebuggable().set(binary.isDebuggable());
+                        task.getOptimized().set(binary.isOptimized());
+                        if (binary.isTestable()) {
+                            task.getCompilerArgs().add("-enable-testing");
+                        }
+                        if (binary.getTargetMachine().getOperatingSystemFamily().isMacOs()) {
+                            task.getCompilerArgs().add("-sdk");
+                            task.getCompilerArgs().add(locator.find().getAbsolutePath());
+                        }
+                        task.getModuleName().set(binary.getModule());
+                        task.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
+                        task.getModuleFile()
+                                .set(buildDirectory.file(binary.getModule()
+                                        .map(moduleName ->
+                                                "modules/" + names.getDirName() + moduleName + ".swiftmodule")));
+                        task.getSourceCompatibility()
+                                .set(binary.getTargetPlatform().getSourceCompatibility());
 
-                task.getTargetPlatform().set(binary.getNativePlatform());
+                        task.getTargetPlatform().set(binary.getNativePlatform());
 
-                // TODO - make this lazy
-                task.getToolChain().set(binary.getToolChain());
+                        // TODO - make this lazy
+                        task.getToolChain().set(binary.getToolChain());
 
-                if (binary instanceof SwiftSharedLibrary || binary instanceof SwiftStaticLibrary) {
-                    task.getCompilerArgs().add("-parse-as-library");
-                }
-            });
+                        if (binary instanceof SwiftSharedLibrary || binary instanceof SwiftStaticLibrary) {
+                            task.getCompilerArgs().add("-parse-as-library");
+                        }
+                    });
 
             binary.getModuleFile().set(compile.flatMap(task -> task.getModuleFile()));
             binary.getCompileTask().set(compile);
@@ -105,7 +113,11 @@ public abstract class SwiftBasePlugin implements Plugin<Project> {
             project.afterEvaluate(p -> {
                 DefaultNativeComponent componentInternal = (DefaultNativeComponent) component;
                 ProjectIdentity projectIdentity = ((ProjectInternal) project).getProjectIdentity();
-                publicationRegistry.registerPublication(projectIdentity, new NativeProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getModule().get())));
+                publicationRegistry.registerPublication(
+                        projectIdentity,
+                        new NativeProjectPublication(
+                                componentInternal.getDisplayName(),
+                                new SwiftPmTarget(component.getModule().get())));
             });
         });
     }

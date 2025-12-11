@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.events.test.source;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
+import org.gradle.api.Incubating;
 
 /**
  * Directory-based test source.

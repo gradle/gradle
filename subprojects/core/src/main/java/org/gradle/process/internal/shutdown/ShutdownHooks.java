@@ -15,11 +15,10 @@
  */
 package org.gradle.process.internal.shutdown;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 public class ShutdownHooks {
     private static final Logger LOGGER = Logging.getLogger(ShutdownHooks.class);

@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 
 public class CalculatedTaskInputFileCollection extends AbstractFileCollection implements LifecycleAwareValue {
     private final String taskPath;
@@ -32,7 +31,11 @@ public class CalculatedTaskInputFileCollection extends AbstractFileCollection im
     private Set<File> cachedFiles;
     private boolean taskIsExecuting;
 
-    public CalculatedTaskInputFileCollection(TaskDependencyFactory taskDependencyFactory, String taskPath, MinimalFileSet calculatedFiles, Object[] inputs) {
+    public CalculatedTaskInputFileCollection(
+            TaskDependencyFactory taskDependencyFactory,
+            String taskPath,
+            MinimalFileSet calculatedFiles,
+            Object[] inputs) {
         super(taskDependencyFactory);
         this.taskPath = taskPath;
         this.calculatedFiles = calculatedFiles;
@@ -55,7 +58,8 @@ public class CalculatedTaskInputFileCollection extends AbstractFileCollection im
     @Override
     public Set<File> getFiles() {
         if (!taskIsExecuting) {
-            throw new IllegalStateException("Can only query " + calculatedFiles.getDisplayName() + " while task " + taskPath + " is running");
+            throw new IllegalStateException(
+                    "Can only query " + calculatedFiles.getDisplayName() + " while task " + taskPath + " is running");
         }
         if (cachedFiles == null) {
             cachedFiles = calculatedFiles.getFiles();

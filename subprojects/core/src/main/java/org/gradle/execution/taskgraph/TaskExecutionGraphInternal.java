@@ -15,6 +15,7 @@
  */
 package org.gradle.execution.taskgraph;
 
+import java.util.Set;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
@@ -23,8 +24,6 @@ import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 @ServiceScope(Scope.Build.class)
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {

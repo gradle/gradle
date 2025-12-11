@@ -40,6 +40,6 @@ public interface InternalBuildControllerVersion2 {
      * @throws InternalUnsupportedModelException When the requested model is not supported.
      * @since 4.4
      */
-    BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter) throws BuildExceptionVersion1,
-        InternalUnsupportedModelException;
+    BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter)
+            throws BuildExceptionVersion1, InternalUnsupportedModelException;
 }

@@ -28,5 +28,6 @@ public interface BuildLogicBuilder {
 
     void prepareClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext);
 
-    ClassPath resolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext);
+    ClassPath resolveClassPath(
+            Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext);
 }

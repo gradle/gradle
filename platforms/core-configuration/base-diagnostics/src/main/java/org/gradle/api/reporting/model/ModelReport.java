@@ -16,6 +16,10 @@
 
 package org.gradle.api.reporting.model;
 
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
+
+import java.util.Locale;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.model.internal.ModelNodeRenderer;
@@ -31,11 +35,6 @@ import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
-import java.util.Locale;
-
-import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
 
 /**
  * Displays some details about the configuration model of the project.

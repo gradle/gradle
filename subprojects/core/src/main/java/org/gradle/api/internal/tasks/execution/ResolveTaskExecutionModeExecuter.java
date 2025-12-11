@@ -42,7 +42,8 @@ public class ResolveTaskExecutionModeExecuter implements TaskExecuter {
     }
 
     @Override
-    public TaskExecuterResult execute(final TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
+    public TaskExecuterResult execute(
+            final TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         Timer clock = Time.startTimer();
         TaskExecutionMode taskExecutionMode = executionModeResolver.getExecutionMode(task, context.getTaskProperties());
         context.setTaskExecutionMode(taskExecutionMode);
@@ -54,5 +55,4 @@ public class ResolveTaskExecutionModeExecuter implements TaskExecuter {
             LOGGER.debug("Removed task artifact state for {} from context.", task);
         }
     }
-
 }

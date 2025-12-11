@@ -16,6 +16,9 @@
 
 package org.gradle.internal.logging.events;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -23,21 +26,34 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.logging.LogEventLevel;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 @SuppressWarnings("deprecation")
-public class StyledTextOutputEvent extends RenderableOutputEvent implements org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails {
-    public static final StyledTextOutputEvent.Span EOL = new StyledTextOutputEvent.Span(SystemProperties.getInstance().getLineSeparator());
+public class StyledTextOutputEvent extends RenderableOutputEvent
+        implements org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails {
+    public static final StyledTextOutputEvent.Span EOL =
+            new StyledTextOutputEvent.Span(SystemProperties.getInstance().getLineSeparator());
 
     private final List<Span> spans;
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, String text) {
-        this(timestamp, category, logLevel, buildOperationIdentifier, Collections.singletonList(new Span(StyledTextOutput.Style.Normal, text)));
+    public StyledTextOutputEvent(
+            long timestamp,
+            String category,
+            LogLevel logLevel,
+            @Nullable OperationIdentifier buildOperationIdentifier,
+            String text) {
+        this(
+                timestamp,
+                category,
+                logLevel,
+                buildOperationIdentifier,
+                Collections.singletonList(new Span(StyledTextOutput.Style.Normal, text)));
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, List<Span> spans) {
+    public StyledTextOutputEvent(
+            long timestamp,
+            String category,
+            LogLevel logLevel,
+            @Nullable OperationIdentifier buildOperationIdentifier,
+            List<Span> spans) {
         super(timestamp, category, logLevel, buildOperationIdentifier);
         this.spans = new ArrayList<Span>(spans);
     }
@@ -86,7 +102,8 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements org.
         return LogLevelConverter.convert(getLogLevel());
     }
 
-    public static class Span implements org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails.Span {
+    public static class Span
+            implements org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails.Span {
         private final String text;
         private final StyledTextOutput.Style style;
 

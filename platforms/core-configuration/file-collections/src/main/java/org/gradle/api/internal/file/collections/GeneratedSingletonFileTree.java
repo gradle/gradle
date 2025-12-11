@@ -16,6 +16,11 @@
 package org.gradle.api.internal.file.collections;
 
 import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
@@ -29,12 +34,6 @@ import org.gradle.internal.file.Chmod;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Arrays;
-
 /**
  * A generated file tree which is composed using a mapping from relative path to file source.
  */
@@ -46,7 +45,12 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
     private final Action<File> fileGenerationListener;
     private final Action<OutputStream> contentWriter;
 
-    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentWriter, FileSystem fileSystem) {
+    public GeneratedSingletonFileTree(
+            Factory<File> tmpDirSource,
+            String fileName,
+            Action<File> fileGenerationListener,
+            Action<OutputStream> contentWriter,
+            FileSystem fileSystem) {
         this.tmpDirSource = tmpDirSource;
         this.fileName = fileName;
         this.fileGenerationListener = fileGenerationListener;
@@ -65,7 +69,11 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
         public final Action<File> fileGenerationListener;
         public final Action<OutputStream> contentGenerator;
 
-        public Spec(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentGenerator) {
+        public Spec(
+                Factory<File> tmpDir,
+                String fileName,
+                Action<File> fileGenerationListener,
+                Action<OutputStream> contentGenerator) {
             this.tmpDir = tmpDir;
             this.fileName = fileName;
             this.fileGenerationListener = fileGenerationListener;
@@ -217,6 +225,5 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
         public RelativePath getRelativePath() {
             return new RelativePath(true, fileName);
         }
-
     }
 }

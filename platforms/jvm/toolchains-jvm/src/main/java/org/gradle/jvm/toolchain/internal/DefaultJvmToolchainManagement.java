@@ -16,12 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.internal.FinalizableValue;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
 import org.gradle.jvm.toolchain.JvmToolchainManagement;
-
-import javax.inject.Inject;
 
 public abstract class DefaultJvmToolchainManagement implements JvmToolchainManagement, FinalizableValue {
 

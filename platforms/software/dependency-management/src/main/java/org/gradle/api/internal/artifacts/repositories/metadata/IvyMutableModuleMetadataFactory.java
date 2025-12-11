@@ -17,6 +17,9 @@ package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -34,51 +37,49 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.inject.Inject;
-import java.util.Collection;
-import java.util.List;
-
 @ServiceScope(Scope.BuildSession.class)
 public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFactory<MutableIvyModuleResolveMetadata> {
-    private static final Configuration DEFAULT_CONFIGURATION = new Configuration(Dependency.DEFAULT_CONFIGURATION, true, true, ImmutableSet.of());
+    private static final Configuration DEFAULT_CONFIGURATION =
+            new Configuration(Dependency.DEFAULT_CONFIGURATION, true, true, ImmutableSet.of());
     private static final List<Configuration> DEFAULT_CONFIGURATION_LIST = ImmutableList.of(DEFAULT_CONFIGURATION);
-    private static final ImmutableSet<String> SINGLE_DEFAULT_CONFIGURATION_NAME = ImmutableSet.of(Dependency.DEFAULT_CONFIGURATION);
+    private static final ImmutableSet<String> SINGLE_DEFAULT_CONFIGURATION_NAME =
+            ImmutableSet.of(Dependency.DEFAULT_CONFIGURATION);
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final AttributesFactory attributesFactory;
     private final ImmutableAttributesSchema schema;
 
     @Inject
-    public IvyMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributesFactory attributesFactory, PreferJavaRuntimeVariant schema) {
+    public IvyMutableModuleMetadataFactory(
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            AttributesFactory attributesFactory,
+            PreferJavaRuntimeVariant schema) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributesFactory = attributesFactory;
         this.schema = schema.getSchema();
     }
 
-    public MutableIvyModuleResolveMetadata create(ModuleComponentIdentifier from, List<IvyDependencyDescriptor> dependencies) {
-        return create(
-            from,
-            dependencies,
-            DEFAULT_CONFIGURATION_LIST,
-            createDefaultArtifact(from),
-            ImmutableList.of());
+    public MutableIvyModuleResolveMetadata create(
+            ModuleComponentIdentifier from, List<IvyDependencyDescriptor> dependencies) {
+        return create(from, dependencies, DEFAULT_CONFIGURATION_LIST, createDefaultArtifact(from), ImmutableList.of());
     }
 
-    public MutableIvyModuleResolveMetadata create(ModuleComponentIdentifier from,
-                                                  List<IvyDependencyDescriptor> dependencies,
-                                                  Collection<Configuration> configurationDefinitions,
-                                                  Collection<? extends Artifact> artifactDefinitions,
-                                                  Collection<? extends Exclude> excludes) {
+    public MutableIvyModuleResolveMetadata create(
+            ModuleComponentIdentifier from,
+            List<IvyDependencyDescriptor> dependencies,
+            Collection<Configuration> configurationDefinitions,
+            Collection<? extends Artifact> artifactDefinitions,
+            Collection<? extends Exclude> excludes) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
         return new DefaultMutableIvyModuleResolveMetadata(
-            attributesFactory,
-            mvi,
-            from,
-            dependencies,
-            configurationDefinitions,
-            artifactDefinitions,
-            excludes,
-            schema);
+                attributesFactory,
+                mvi,
+                from,
+                dependencies,
+                configurationDefinitions,
+                artifactDefinitions,
+                excludes,
+                schema);
     }
 
     @Override
@@ -87,7 +88,8 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
     }
 
     private ImmutableList<? extends Artifact> createDefaultArtifact(ModuleComponentIdentifier from) {
-        return ImmutableList.of(new Artifact(new DefaultIvyArtifactName(from.getModule(), "jar", "jar"), SINGLE_DEFAULT_CONFIGURATION_NAME));
+        return ImmutableList.of(new Artifact(
+                new DefaultIvyArtifactName(from.getModule(), "jar", "jar"), SINGLE_DEFAULT_CONFIGURATION_NAME));
     }
 
     private ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
@@ -100,5 +102,4 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
         metadata.setMissing(true);
         return metadata;
     }
-
 }

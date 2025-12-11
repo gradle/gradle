@@ -15,22 +15,21 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import java.io.Closeable;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
-
-import java.io.Closeable;
 
 public class DefaultExecutionHistoryCacheAccess implements ExecutionHistoryCacheAccess, Closeable {
     private final PersistentCache cache;
 
     public DefaultExecutionHistoryCacheAccess(ScopedCacheBuilderFactory cacheBuilderFactory) {
         this.cache = cacheBuilderFactory
-            .createCacheBuilder("executionHistory")
-            .withDisplayName("execution history cache")
-            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-            .open();
+                .createCacheBuilder("executionHistory")
+                .withDisplayName("execution history cache")
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+                .open();
     }
 
     @Override

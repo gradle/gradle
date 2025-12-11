@@ -16,6 +16,15 @@
 
 package org.gradle.external.javadoc;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
@@ -26,16 +35,6 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.process.ExecSpec;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Provides the core Javadoc Options. That is, provides the options which are not doclet specific.
@@ -105,7 +104,8 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
         sourceNames = optionFile.getSourceNames();
 
-        knownCoreOptionNames = Collections.unmodifiableSet(new HashSet<>(optionFile.getOptions().keySet()));
+        knownCoreOptionNames = Collections.unmodifiableSet(
+                new HashSet<>(optionFile.getOptions().keySet()));
     }
 
     protected CoreJavadocOptions(CoreJavadocOptions original, JavadocOptionFile optionFile) {
@@ -636,8 +636,8 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     @Override
     public void contributeCommandLineOptions(ExecSpec execHandleBuilder) {
         execHandleBuilder
-            .args(GUtil.prefix("-J", jFlags)) // J flags can not be set in the option file
-            .args(GUtil.prefix("@", GFileUtils.toPaths(optionFiles))); // add additional option files
+                .args(GUtil.prefix("-J", jFlags)) // J flags can not be set in the option file
+                .args(GUtil.prefix("@", GFileUtils.toPaths(optionFiles))); // add additional option files
     }
 
     @Override

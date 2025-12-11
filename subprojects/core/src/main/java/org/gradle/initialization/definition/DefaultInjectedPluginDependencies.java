@@ -16,11 +16,10 @@
 
 package org.gradle.initialization.definition;
 
-import org.gradle.api.initialization.definition.InjectedPluginDependencies;
-import org.gradle.api.initialization.definition.InjectedPluginDependency;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.api.initialization.definition.InjectedPluginDependencies;
+import org.gradle.api.initialization.definition.InjectedPluginDependency;
 
 public class DefaultInjectedPluginDependencies implements InjectedPluginDependencies {
     private final List<DefaultInjectedPluginDependency> dependencies = new ArrayList<>();

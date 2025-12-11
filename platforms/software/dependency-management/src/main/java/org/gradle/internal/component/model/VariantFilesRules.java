@@ -16,6 +16,8 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
+import java.util.LinkedList;
+import java.util.List;
 import org.gradle.api.artifacts.MutableVariantFilesMetadata;
 import org.gradle.api.artifacts.VariantFileMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -27,17 +29,18 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentArtifa
 import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 
-import java.util.LinkedList;
-import java.util.List;
-
 public class VariantFilesRules {
-    private final List<VariantMetadataRules.VariantAction<? super MutableVariantFilesMetadata>> actions = new LinkedList<>();
+    private final List<VariantMetadataRules.VariantAction<? super MutableVariantFilesMetadata>> actions =
+            new LinkedList<>();
 
     public void addFilesAction(VariantMetadataRules.VariantAction<? super MutableVariantFilesMetadata> action) {
         actions.add(action);
     }
 
-    public <T extends ComponentVariant.File> ImmutableList<T> executeForFiles(VariantResolveMetadata variant, ImmutableList<T> declaredFiles, ModuleComponentIdentifier componentIdentifier) {
+    public <T extends ComponentVariant.File> ImmutableList<T> executeForFiles(
+            VariantResolveMetadata variant,
+            ImmutableList<T> declaredFiles,
+            ModuleComponentIdentifier componentIdentifier) {
         DefaultMutableVariantFilesMetadata filesMetadata = execute(variant);
         if (filesMetadata.getFiles().isEmpty()) {
             return declaredFiles;
@@ -47,12 +50,14 @@ public class VariantFilesRules {
             builder.addAll(declaredFiles);
         }
         for (VariantFileMetadata file : filesMetadata.getFiles()) {
-            builder.add(Cast.<T>uncheckedNonnullCast(new AbstractMutableModuleComponentResolveMetadata.FileImpl(file.getName(), file.getUrl())));
+            builder.add(Cast.<T>uncheckedNonnullCast(
+                    new AbstractMutableModuleComponentResolveMetadata.FileImpl(file.getName(), file.getUrl())));
         }
         return builder.build();
     }
 
-    public <T extends ComponentArtifactMetadata> ImmutableList<T> executeForArtifacts(VariantResolveMetadata variant, ImmutableList<T> artifacts, ModuleComponentIdentifier componentIdentifier) {
+    public <T extends ComponentArtifactMetadata> ImmutableList<T> executeForArtifacts(
+            VariantResolveMetadata variant, ImmutableList<T> artifacts, ModuleComponentIdentifier componentIdentifier) {
         DefaultMutableVariantFilesMetadata filesMetadata = execute(variant);
         if (filesMetadata.getFiles().isEmpty()) {
             return artifacts;
@@ -66,7 +71,8 @@ public class VariantFilesRules {
             }
         }
         for (VariantFileMetadata file : filesMetadata.getFiles()) {
-            builder.add(Cast.<T>uncheckedNonnullCast(new UrlBackedArtifactMetadata(componentIdentifier, file.getName(), file.getUrl())));
+            builder.add(Cast.<T>uncheckedNonnullCast(
+                    new UrlBackedArtifactMetadata(componentIdentifier, file.getName(), file.getUrl())));
         }
         return builder.build();
     }
@@ -85,6 +91,7 @@ public class VariantFilesRules {
      * So we remove the artifact such that the user can explicitly add it in the rule.
      */
     private <T extends ComponentArtifactMetadata> boolean isFilePathUnambiguous(T existingArtifact) {
-        return !(existingArtifact instanceof DefaultModuleComponentArtifactMetadata) || "jar".equals(existingArtifact.getName().getExtension());
+        return !(existingArtifact instanceof DefaultModuleComponentArtifactMetadata)
+                || "jar".equals(existingArtifact.getName().getExtension());
     }
 }

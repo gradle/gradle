@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.deprecation;
 
+import javax.annotation.CheckReturnValue;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.Problems;
 import org.gradle.internal.Factory;
@@ -22,10 +24,6 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.CheckReturnValue;
-import javax.annotation.concurrent.ThreadSafe;
-
 
 /**
  * Provides entry points for constructing and emitting deprecation messages.
@@ -65,20 +63,26 @@ public class DeprecationLogger {
         }
     };
 
-    private static final LoggingDeprecatedFeatureHandler DEPRECATED_FEATURE_HANDLER = new LoggingDeprecatedFeatureHandler();
+    private static final LoggingDeprecatedFeatureHandler DEPRECATED_FEATURE_HANDLER =
+            new LoggingDeprecatedFeatureHandler();
 
     private static boolean initialized = false;
 
-    public synchronized static void init(WarningMode warningMode, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, Problems problemsService, ProblemStream problemStream) {
-        DEPRECATED_FEATURE_HANDLER.init(warningMode, buildOperationProgressEventEmitter, problemsService, problemStream);
+    public static synchronized void init(
+            WarningMode warningMode,
+            BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+            Problems problemsService,
+            ProblemStream problemStream) {
+        DEPRECATED_FEATURE_HANDLER.init(
+                warningMode, buildOperationProgressEventEmitter, problemsService, problemStream);
         initialized = true;
     }
 
-    public synchronized static void reset() {
+    public static synchronized void reset() {
         DEPRECATED_FEATURE_HANDLER.reset();
     }
 
-    public synchronized static void reportSuppressedDeprecations() {
+    public static synchronized void reportSuppressedDeprecations() {
         DEPRECATED_FEATURE_HANDLER.reportSuppressedDeprecations();
     }
 
@@ -142,7 +146,8 @@ public class DeprecationLogger {
      * Output: The ${property} property has been deprecated.
      */
     @CheckReturnValue
-    public static DeprecationMessageBuilder.DeprecateProperty deprecateProperty(Class<?> propertyClass, String property) {
+    public static DeprecationMessageBuilder.DeprecateProperty deprecateProperty(
+            Class<?> propertyClass, String property) {
         return new DeprecationMessageBuilder.DeprecateProperty(propertyClass, property);
     }
 
@@ -166,7 +171,8 @@ public class DeprecationLogger {
      * Output: The ${method} method has been deprecated.
      */
     @CheckReturnValue
-    public static DeprecationMessageBuilder.DeprecateMethod deprecateMethod(Class<?> methodClass, String methodWithParams) {
+    public static DeprecationMessageBuilder.DeprecateMethod deprecateMethod(
+            Class<?> methodClass, String methodWithParams) {
         return new DeprecationMessageBuilder.DeprecateMethod(methodClass, methodWithParams);
     }
 
@@ -219,31 +225,35 @@ public class DeprecationLogger {
      * Output: The ${configurationType} configuration has been deprecated for ${declarationType}.
      */
     @CheckReturnValue
-    public static DeprecationMessageBuilder.ConfigurationDeprecationTypeSelector deprecateConfiguration(String configurationType) {
+    public static DeprecationMessageBuilder.ConfigurationDeprecationTypeSelector deprecateConfiguration(
+            String configurationType) {
         return new DeprecationMessageBuilder.ConfigurationDeprecationTypeSelector(configurationType);
     }
 
     static void nagUserWith(DeprecationMessageBuilder<?> deprecationMessageBuilder, Class<?> calledFrom) {
         if (isEnabled()) {
-            // ideally, it should be checked outside of this condition, but that would fail a lot of unit tests that use suppressed deprecations
+            // ideally, it should be checked outside of this condition, but that would fail a lot of unit tests that use
+            // suppressed deprecations
             if (!initialized) {
-                throw new IllegalStateException(
-                    "DeprecationLogger has not been initialized. " +
-                        "Most probably, it's because you are trying to use it from the launcher/wrapper. " +
-                        "It's not available there. Move the deprecation logging to the daemon or use LOGGER.warn() instead. " +
-                        "Another reason could be that you are trying to use it from a unit test. " +
-                        "In that case, either fix the test to not use deprecated features, or mark it with @ExpectDeprecation. " +
-                        "If you hit this error as a user of Gradle, please report it as a bug. " +
-                        "The original deprecation message was: " +
-                        deprecationMessageBuilder.build().toDeprecatedFeatureUsage(calledFrom).formattedMessage()
-                );
+                throw new IllegalStateException("DeprecationLogger has not been initialized. "
+                        + "Most probably, it's because you are trying to use it from the launcher/wrapper. "
+                        + "It's not available there. Move the deprecation logging to the daemon or use LOGGER.warn() instead. "
+                        + "Another reason could be that you are trying to use it from a unit test. "
+                        + "In that case, either fix the test to not use deprecated features, or mark it with @ExpectDeprecation. "
+                        + "If you hit this error as a user of Gradle, please report it as a bug. "
+                        + "The original deprecation message was: "
+                        + deprecationMessageBuilder
+                                .build()
+                                .toDeprecatedFeatureUsage(calledFrom)
+                                .formattedMessage());
             }
             DeprecationMessage deprecationMessage = deprecationMessageBuilder.build();
             DeprecatedFeatureUsage featureUsage = deprecationMessage.toDeprecatedFeatureUsage(calledFrom);
             nagUserWith(featureUsage);
 
             if (!featureUsage.formattedMessage().contains("deprecated")) {
-                throw new RuntimeException("Deprecation message does not contain the word 'deprecated'. Message: \n" + featureUsage.formattedMessage());
+                throw new RuntimeException("Deprecation message does not contain the word 'deprecated'. Message: \n"
+                        + featureUsage.formattedMessage());
             }
         }
     }
@@ -280,7 +290,7 @@ public class DeprecationLogger {
         try {
             toUncheckedThrowingRunnable(runnable).run();
         } finally {
-           maybeEnable();
+            maybeEnable();
         }
     }
 
@@ -310,7 +320,8 @@ public class DeprecationLogger {
      * The compiler is happy with the casting that allows to hide the checked exception.
      * The runtime is happy with the casting because the checked exception type information is captured in a generic type parameter which gets erased.
      */
-    private static <T, E extends Exception> Factory<T> toUncheckedThrowingFactory(final ThrowingFactory<T, E> throwingFactory) {
+    private static <T, E extends Exception> Factory<T> toUncheckedThrowingFactory(
+            final ThrowingFactory<T, E> throwingFactory) {
         return new Factory<T>() {
             @Override
             public T create() {
@@ -326,7 +337,8 @@ public class DeprecationLogger {
      *
      * @see #toUncheckedThrowingFactory(ThrowingFactory)
      */
-    private static <E extends Exception> Runnable toUncheckedThrowingRunnable(final ThrowingRunnable<E> throwingRunnable) {
+    private static <E extends Exception> Runnable toUncheckedThrowingRunnable(
+            final ThrowingRunnable<E> throwingRunnable) {
         return new Runnable() {
             @Override
             public void run() {
@@ -337,11 +349,12 @@ public class DeprecationLogger {
         };
     }
 
-    private synchronized static void nagUserWith(DeprecatedFeatureUsage usage) {
+    private static synchronized void nagUserWith(DeprecatedFeatureUsage usage) {
         DEPRECATED_FEATURE_HANDLER.featureUsed(usage);
     }
 
-    private static class ExplicitDeprecationMessageBuilder extends DeprecationMessageBuilder<ExplicitDeprecationMessageBuilder> {
+    private static class ExplicitDeprecationMessageBuilder
+            extends DeprecationMessageBuilder<ExplicitDeprecationMessageBuilder> {
         private final String feature;
 
         public ExplicitDeprecationMessageBuilder(String feature) {
@@ -351,7 +364,7 @@ public class DeprecationLogger {
 
         @Override
         DeprecationMessage build() {
-            if(problemId == null) {
+            if (problemId == null) {
                 setProblemId(createDefaultDeprecationId(feature));
             }
             return super.build();

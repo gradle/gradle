@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.verification.verifier;
 
+import java.io.File;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public interface VerificationFailure {
 
@@ -33,8 +32,5 @@ public interface VerificationFailure {
         return true;
     }
 
-    default void explainTo(TreeFormatter formatter) {
-
-    }
-
+    default void explainTo(TreeFormatter formatter) {}
 }

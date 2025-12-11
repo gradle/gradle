@@ -23,7 +23,6 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-
 /**
  * Operations on the file system.
  *

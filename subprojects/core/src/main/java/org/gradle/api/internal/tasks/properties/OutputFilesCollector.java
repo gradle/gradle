@@ -17,11 +17,10 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.internal.properties.PropertyValue;
-import org.jspecify.annotations.NullMarked;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.internal.properties.PropertyValue;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class OutputFilesCollector implements OutputUnpacker.UnpackedOutputConsumer {
@@ -36,11 +35,11 @@ public class OutputFilesCollector implements OutputUnpacker.UnpackedOutputConsum
     }
 
     @Override
-    public void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec) {
+    public void visitUnpackedOutputFileProperty(
+            String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec) {
         specs.add(spec);
     }
 
     @Override
-    public void visitEmptyOutputFileProperty(String propertyName, boolean optional, PropertyValue value) {
-    }
+    public void visitEmptyOutputFileProperty(String propertyName, boolean optional, PropertyValue value) {}
 }

@@ -16,12 +16,11 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.internal.UncheckedException;
-
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.function.Function;
+import org.gradle.internal.UncheckedException;
 
 public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
     private Function<Object, Object> objectTransformer = obj -> {

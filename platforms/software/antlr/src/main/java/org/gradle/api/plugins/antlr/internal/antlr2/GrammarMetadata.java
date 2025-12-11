@@ -17,7 +17,6 @@ package org.gradle.api.plugins.antlr.internal.antlr2;
 
 import antlr.Parser;
 import antlr.TreeParser;
-
 import java.io.File;
 
 /**
@@ -55,10 +54,11 @@ public class GrammarMetadata {
 
     public boolean extendsStandardGrammar() {
         final String superGrammarClassName = getSuperGrammarDelegate().getClassName();
-        return Parser.class.getName().equals(superGrammarClassName) || Parser.class.getSimpleName().equals(
-                superGrammarClassName) || TreeParser.class.getName().equals(superGrammarClassName)
-                || TreeParser.class.getSimpleName().equals(superGrammarClassName) || "Lexer".equals(
-                superGrammarClassName);
+        return Parser.class.getName().equals(superGrammarClassName)
+                || Parser.class.getSimpleName().equals(superGrammarClassName)
+                || TreeParser.class.getName().equals(superGrammarClassName)
+                || TreeParser.class.getSimpleName().equals(superGrammarClassName)
+                || "Lexer".equals(superGrammarClassName);
     }
 
     public String getImportVocab() {

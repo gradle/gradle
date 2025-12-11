@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.catalog;
 
-import com.google.common.base.Splitter;
-import org.gradle.api.initialization.ProjectDescriptor;
+import static java.util.Comparator.comparing;
 
+import com.google.common.base.Splitter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.stream.Collectors;
-
-import static java.util.Comparator.comparing;
+import org.gradle.api.initialization.ProjectDescriptor;
 
 public class AbstractProjectAccessorsSourceGenerator extends AbstractSourceGenerator {
     public AbstractProjectAccessorsSourceGenerator(Writer writer) {
@@ -38,12 +37,9 @@ public class AbstractProjectAccessorsSourceGenerator extends AbstractSourceGener
     }
 
     protected static String toProjectName(String path) {
-        return Splitter.on(":")
-            .omitEmptyStrings()
-            .splitToList(path)
-            .stream()
-            .map(AbstractProjectAccessorsSourceGenerator::toJavaName)
-            .collect(Collectors.joining("_"));
+        return Splitter.on(":").omitEmptyStrings().splitToList(path).stream()
+                .map(AbstractProjectAccessorsSourceGenerator::toJavaName)
+                .collect(Collectors.joining("_"));
     }
 
     protected void writeHeader(String packageName) throws IOException {
@@ -74,20 +70,20 @@ public class AbstractProjectAccessorsSourceGenerator extends AbstractSourceGener
         writeLn("     * Creates a project dependency on the project at path \"" + path + "\"");
         writeLn("     */");
         String returnType = toClassName(path, rootProjectName(descriptor));
-        writeLn("    public " +  returnType + " get" + name + "() { return new " + returnType + "(getFactory(), create(\"" + path + "\")); }");
+        writeLn("    public " + returnType + " get" + name + "() { return new " + returnType
+                + "(getFactory(), create(\"" + path + "\")); }");
         writeLn();
     }
 
     protected void processChildren(ProjectDescriptor current) {
-        current.getChildren()
-            .stream()
-            .sorted(comparing(ProjectDescriptor::getPath))
-            .forEachOrdered(child -> {
-                try {
-                    writeProjectAccessor(toJavaName(child.getName()), child);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        current.getChildren().stream()
+                .sorted(comparing(ProjectDescriptor::getPath))
+                .forEachOrdered(child -> {
+                    try {
+                        writeProjectAccessor(toJavaName(child.getName()), child);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 }

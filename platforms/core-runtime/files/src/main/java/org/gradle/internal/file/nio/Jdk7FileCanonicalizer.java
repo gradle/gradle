@@ -16,11 +16,10 @@
 
 package org.gradle.internal.file.nio;
 
-import org.gradle.internal.file.FileCanonicalizer;
-import org.gradle.internal.file.FileException;
-
 import java.io.File;
 import java.io.IOException;
+import org.gradle.internal.file.FileCanonicalizer;
+import org.gradle.internal.file.FileException;
 
 // Used via FQCN
 @SuppressWarnings("unused")

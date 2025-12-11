@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.io.Closeable;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
@@ -25,26 +26,30 @@ import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.Closeable;
-
 @ServiceScope({Scope.UserHome.class, Scope.BuildSession.class})
 public class CrossBuildFileHashCache implements Closeable {
 
     private final PersistentCache cache;
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
 
-    public CrossBuildFileHashCache(ScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Kind cacheKind) {
+    public CrossBuildFileHashCache(
+            ScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+            Kind cacheKind) {
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
-        cache = cacheBuilderFactory.createCacheBuilder(cacheKind.cacheId)
-            .withDisplayName(cacheKind.description)
-            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-            .open();
+        cache = cacheBuilderFactory
+                .createCacheBuilder(cacheKind.cacheId)
+                .withDisplayName(cacheKind.description)
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+                .open();
     }
 
-    public <K, V> IndexedCache<K, V> createIndexedCache(IndexedCacheParameters<K, V> parameters, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
-        return cache.createIndexedCache(parameters
-            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses))
-        );
+    public <K, V> IndexedCache<K, V> createIndexedCache(
+            IndexedCacheParameters<K, V> parameters,
+            int maxEntriesToKeepInMemory,
+            boolean cacheInMemoryForShortLivedProcesses) {
+        return cache.createIndexedCache(parameters.withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(
+                maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses)));
     }
 
     @Override

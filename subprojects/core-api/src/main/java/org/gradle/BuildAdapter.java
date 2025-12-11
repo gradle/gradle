@@ -25,24 +25,18 @@ import org.gradle.api.invocation.Gradle;
 public class BuildAdapter implements BuildListener {
 
     @Override
-    public void beforeSettings(Settings settings) {
-    }
+    public void beforeSettings(Settings settings) {}
 
     @Override
-    public void settingsEvaluated(Settings settings) {
-    }
+    public void settingsEvaluated(Settings settings) {}
 
     @Override
-    public void projectsLoaded(Gradle gradle) {
-    }
+    public void projectsLoaded(Gradle gradle) {}
 
     @Override
-    public void projectsEvaluated(Gradle gradle) {
-    }
+    public void projectsEvaluated(Gradle gradle) {}
 
     @Deprecated
     @Override
-    public void buildFinished(BuildResult result) {
-    }
+    public void buildFinished(BuildResult result) {}
 }
-

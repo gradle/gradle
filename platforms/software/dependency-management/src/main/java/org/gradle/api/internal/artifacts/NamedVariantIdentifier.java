@@ -28,10 +28,7 @@ public class NamedVariantIdentifier implements VariantIdentifier {
     private final String name;
     private final int hashCode;
 
-    public NamedVariantIdentifier(
-        ComponentIdentifier componentIdentifier,
-        String name
-    ) {
+    public NamedVariantIdentifier(ComponentIdentifier componentIdentifier, String name) {
         this.componentIdentifier = componentIdentifier;
         this.name = name;
         this.hashCode = computeHashCode(componentIdentifier, name);

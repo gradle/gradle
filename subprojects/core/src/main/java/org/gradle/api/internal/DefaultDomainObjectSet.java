@@ -16,6 +16,8 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
@@ -24,16 +26,14 @@ import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSour
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> implements DomainObjectSet<T> {
 
     public DefaultDomainObjectSet(Class<? extends T> type, CollectionCallbackActionDecorator decorator) {
         super(type, new IterationOrderRetainingSetElementSource<T>(), decorator);
     }
 
-    public DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, CollectionCallbackActionDecorator decorator) {
+    public DefaultDomainObjectSet(
+            Class<? extends T> type, ElementSource<T> store, CollectionCallbackActionDecorator decorator) {
         super(type, store, decorator);
     }
 
@@ -41,7 +41,8 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
         this(filter.getType(), store.filteredStore(filter), store.filteredEvents(filter));
     }
 
-    protected DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister) {
+    protected DefaultDomainObjectSet(
+            Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister) {
         super(type, store, eventRegister);
     }
 

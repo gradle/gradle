@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import java.io.File;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -43,8 +44,6 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
-import java.io.File;
-
 /**
  * ParserSettings that control the scope of searches carried out during parsing.
  * If the parser asks for a resolver for the currently resolving revision, the resolver scope is only the repository where the module was resolved.
@@ -56,46 +55,68 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
     private final MutableModuleSources sources = new MutableModuleSources();
     private final ChecksumService checksumService;
 
-    public ExternalResourceResolverDescriptorParseContext(ComponentResolvers mainResolvers, FileResourceRepository fileResourceRepository, ChecksumService checksumService) {
+    public ExternalResourceResolverDescriptorParseContext(
+            ComponentResolvers mainResolvers,
+            FileResourceRepository fileResourceRepository,
+            ChecksumService checksumService) {
         this.mainResolvers = mainResolvers;
         this.fileResourceRepository = fileResourceRepository;
         this.checksumService = checksumService;
     }
 
     @Override
-    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ArtifactType artifactType) {
-        return resolveMetaDataArtifactFile(moduleComponentIdentifier, mainResolvers.getComponentResolver(), mainResolvers.getArtifactResolver(), artifactType);
+    public LocallyAvailableExternalResource getMetaDataArtifact(
+            ModuleComponentIdentifier moduleComponentIdentifier, ArtifactType artifactType) {
+        return resolveMetaDataArtifactFile(
+                moduleComponentIdentifier,
+                mainResolvers.getComponentResolver(),
+                mainResolvers.getArtifactResolver(),
+                artifactType);
     }
 
     @Override
-    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleComponentSelector selector, VersionSelector acceptor, ArtifactType artifactType) {
+    public LocallyAvailableExternalResource getMetaDataArtifact(
+            ModuleComponentSelector selector, VersionSelector acceptor, ArtifactType artifactType) {
         BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-        mainResolvers.getComponentIdResolver().resolve(selector, DefaultComponentOverrideMetadata.EMPTY, acceptor, null, idResolveResult, ImmutableAttributes.EMPTY);
+        mainResolvers
+                .getComponentIdResolver()
+                .resolve(
+                        selector,
+                        DefaultComponentOverrideMetadata.EMPTY,
+                        acceptor,
+                        null,
+                        idResolveResult,
+                        ImmutableAttributes.EMPTY);
         return getMetaDataArtifact((ModuleComponentIdentifier) idResolveResult.getId(), artifactType);
     }
 
     private LocallyAvailableExternalResource resolveMetaDataArtifactFile(
-        ModuleComponentIdentifier moduleComponentIdentifier,
-        ComponentMetaDataResolver componentResolver,
-        ArtifactResolver artifactResolver,
-        ArtifactType artifactType
-    ) {
+            ModuleComponentIdentifier moduleComponentIdentifier,
+            ComponentMetaDataResolver componentResolver,
+            ArtifactResolver artifactResolver,
+            ArtifactType artifactType) {
         BuildableComponentResolveResult moduleVersionResolveResult = new DefaultBuildableComponentResolveResult();
-        componentResolver.resolve(moduleComponentIdentifier, DefaultComponentOverrideMetadata.EMPTY, moduleVersionResolveResult);
+        componentResolver.resolve(
+                moduleComponentIdentifier, DefaultComponentOverrideMetadata.EMPTY, moduleVersionResolveResult);
 
         BuildableArtifactSetResolveResult moduleArtifactsResolveResult = new DefaultBuildableArtifactSetResolveResult();
-        ComponentArtifactResolveMetadata artifactMetadata = moduleVersionResolveResult.getState().prepareForArtifactResolution().getArtifactMetadata();
+        ComponentArtifactResolveMetadata artifactMetadata = moduleVersionResolveResult
+                .getState()
+                .prepareForArtifactResolution()
+                .getArtifactMetadata();
         artifactResolver.resolveArtifactsWithType(artifactMetadata, artifactType, moduleArtifactsResolveResult);
 
         BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
-        ComponentArtifactMetadata artifactMetaData = moduleArtifactsResolveResult.getResult().iterator().next();
+        ComponentArtifactMetadata artifactMetaData =
+                moduleArtifactsResolveResult.getResult().iterator().next();
         artifactResolver.resolveArtifact(artifactMetadata, artifactMetaData, artifactResolveResult);
 
         File file = artifactResolveResult.getResult().getFile();
         LocallyAvailableExternalResource resource = fileResourceRepository.resource(file);
         ComponentArtifactIdentifier id = artifactMetaData.getId();
         if (id instanceof ModuleComponentArtifactIdentifier) {
-            sources.add(new DefaultMetadataFileSource((ModuleComponentArtifactIdentifier) id, file, checksumService.sha1(file)));
+            sources.add(new DefaultMetadataFileSource(
+                    (ModuleComponentArtifactIdentifier) id, file, checksumService.sha1(file)));
         }
         return resource;
     }

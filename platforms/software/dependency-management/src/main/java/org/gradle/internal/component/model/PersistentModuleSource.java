@@ -15,10 +15,9 @@
  */
 package org.gradle.internal.component.model;
 
+import java.io.IOException;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-
-import java.io.IOException;
 
 /**
  * Interface for module sources which need to be serialized with
@@ -51,6 +50,7 @@ public interface PersistentModuleSource extends ModuleSource {
      */
     interface Codec<T extends PersistentModuleSource> {
         void encode(T moduleSource, Encoder encoder) throws IOException;
+
         T decode(Decoder decoder) throws IOException;
     }
 }

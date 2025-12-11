@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.verification.signatures;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.net.URI;
 import java.util.List;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Build.class)
 public interface SignatureVerificationServiceFactory {

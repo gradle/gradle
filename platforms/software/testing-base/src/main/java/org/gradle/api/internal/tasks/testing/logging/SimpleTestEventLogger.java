@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.testing.logging;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
@@ -32,9 +34,6 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Console logger for test events for non-composite (atomic) failed tests.
@@ -74,14 +73,22 @@ public class SimpleTestEventLogger implements TestListenerInternal {
                     if (!TextUtil.isBlank(details.getMessage())) {
                         if (details.isFileComparisonFailure()) {
                             // comparison failure
-                            output.append("    Expected: ").withStyle(StyledTextOutput.Style.Failure).println(details.getExpected());
-                            output.append("    Actual: ").withStyle(StyledTextOutput.Style.Success).println(details.getActual());
+                            output.append("    Expected: ")
+                                    .withStyle(StyledTextOutput.Style.Failure)
+                                    .println(details.getExpected());
+                            output.append("    Actual: ")
+                                    .withStyle(StyledTextOutput.Style.Success)
+                                    .println(details.getActual());
                         } else if (details.isAssertionFailure()) {
                             // test assertion
-                            output.append("    ").withStyle(StyledTextOutput.Style.Failure).println(details.getMessage());
+                            output.append("    ")
+                                    .withStyle(StyledTextOutput.Style.Failure)
+                                    .println(details.getMessage());
                         } else {
                             // test framework failure?
-                            output.append("    ").withStyle(StyledTextOutput.Style.Identifier).append(details.getClassName());
+                            output.append("    ")
+                                    .withStyle(StyledTextOutput.Style.Identifier)
+                                    .append(details.getClassName());
                             output.append(": ").println(details.getMessage());
                         }
                     }

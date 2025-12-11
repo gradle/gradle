@@ -17,12 +17,11 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
+import java.io.File;
+import java.util.Map;
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-
-import java.io.File;
-import java.util.Map;
 
 public class AntFileTreeBuilder implements AntBuilderAware {
 
@@ -42,10 +41,8 @@ public class AntFileTreeBuilder implements AntBuilderAware {
                     String name = entry.getKey();
                     File file = entry.getValue();
                     // gradleFileResource type is mapped to AntFileResource
-                    dynamicObject.invokeMethod("gradleFileResource", ImmutableMap.of(
-                        "file", file.getAbsolutePath(),
-                        "name", name
-                    ));
+                    dynamicObject.invokeMethod(
+                            "gradleFileResource", ImmutableMap.of("file", file.getAbsolutePath(), "name", name));
                 }
                 return null;
             }

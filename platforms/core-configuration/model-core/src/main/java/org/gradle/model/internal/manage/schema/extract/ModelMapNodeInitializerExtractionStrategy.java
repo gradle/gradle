@@ -27,11 +27,11 @@ import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 
 public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeInitializerExtractionSupport {
-    private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {
-    };
+    private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {};
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
+    protected <T, E> NodeInitializer extractNodeInitializer(
+            CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
         if (MODEL_MAP_MODEL_TYPE.isAssignableFrom(schema.getType())) {
             return new ModelMapNodeInitializer<T, E>(schema);
         }
@@ -51,22 +51,35 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
         }
 
         @Override
-        public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+        public Multimap<ModelActionRole, ModelAction> getActions(
+                ModelReference<?> subject, ModelRuleDescriptor descriptor) {
             return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
-                .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor,
-                    ModelMapModelProjection.managed(schema.getType(), schema.getElementType(), ChildNodeInitializerStrategyAccessors.fromPrivateData())
-                ))
-                .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
-                    ModelReference.of(NodeInitializerRegistry.class),
-                    new BiAction<MutableModelNode, NodeInitializerRegistry>() {
-                        @Override
-                        public void execute(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry) {
-                            ChildNodeInitializerStrategy<E> childStrategy = NodeBackedModelMap.createUsingRegistry(nodeInitializerRegistry);
-                            modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
-                        }
-                    }
-                ))
-                .build();
+                    .put(
+                            ModelActionRole.Discover,
+                            AddProjectionsAction.of(
+                                    subject,
+                                    descriptor,
+                                    ModelMapModelProjection.managed(
+                                            schema.getType(),
+                                            schema.getElementType(),
+                                            ChildNodeInitializerStrategyAccessors.fromPrivateData())))
+                    .put(
+                            ModelActionRole.Create,
+                            DirectNodeInputUsingModelAction.of(
+                                    subject,
+                                    descriptor,
+                                    ModelReference.of(NodeInitializerRegistry.class),
+                                    new BiAction<MutableModelNode, NodeInitializerRegistry>() {
+                                        @Override
+                                        public void execute(
+                                                MutableModelNode modelNode,
+                                                NodeInitializerRegistry nodeInitializerRegistry) {
+                                            ChildNodeInitializerStrategy<E> childStrategy =
+                                                    NodeBackedModelMap.createUsingRegistry(nodeInitializerRegistry);
+                                            modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
+                                        }
+                                    }))
+                    .build();
         }
     }
 }

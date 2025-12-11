@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
-
-import java.util.Set;
 
 public interface WorkDependencyResolver<T> {
     /**
@@ -38,7 +37,8 @@ public interface WorkDependencyResolver<T> {
         public boolean resolve(Task originalTask, Object node, Action<? super Task> resolveAction) {
             if (node instanceof TaskDependency) {
                 TaskDependency taskDependency = (TaskDependency) node;
-                Set<? extends Task> dependenciesForInternalUse = TaskDependencyUtil.getDependenciesForInternalUse(taskDependency, originalTask);
+                Set<? extends Task> dependenciesForInternalUse =
+                        TaskDependencyUtil.getDependenciesForInternalUse(taskDependency, originalTask);
 
                 for (Task dependencyTask : dependenciesForInternalUse) {
                     resolveAction.execute(dependencyTask);

@@ -16,6 +16,11 @@
 package org.gradle.api.internal.project.antbuilder;
 
 import com.google.common.collect.Lists;
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Vector;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -37,15 +42,9 @@ import org.gradle.internal.groovyloader.GroovySystemLoader;
 import org.gradle.internal.groovyloader.GroovySystemLoaderFactory;
 import org.gradle.internal.jvm.Jvm;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Vector;
-
 public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable {
 
-    private final static Logger LOG = Logging.getLogger(DefaultIsolatedAntBuilder.class);
+    private static final Logger LOG = Logging.getLogger(DefaultIsolatedAntBuilder.class);
 
     private final ClassLoader antLoader;
     private final ClassLoader baseAntLoader;
@@ -59,7 +58,8 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
     private final GroovySystemLoader antAdapterGroovyLoader;
 
     @Inject
-    public DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory, ModuleRegistry moduleRegistry) {
+    public DefaultIsolatedAntBuilder(
+            ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory, ModuleRegistry moduleRegistry) {
         this.classPathRegistry = classPathRegistry;
         this.classLoaderFactory = classLoaderFactory;
         this.moduleRegistry = moduleRegistry;
@@ -67,14 +67,16 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
         this.classLoaderCache = new ClassPathToClassLoaderCache(groovySystemLoaderFactory);
 
-        List<File> antClasspath = Lists.newArrayList(classPathRegistry.getClassPath("ANT").getAsFiles());
+        List<File> antClasspath =
+                Lists.newArrayList(classPathRegistry.getClassPath("ANT").getAsFiles());
         // Need tools.jar for compile tasks
         File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
             antClasspath.add(toolsJar);
         }
 
-        antLoader = classLoaderFactory.createIsolatedClassLoader("isolated-ant-loader", DefaultClassPath.of(antClasspath));
+        antLoader =
+                classLoaderFactory.createIsolatedClassLoader("isolated-ant-loader", DefaultClassPath.of(antClasspath));
         FilteringClassLoader.Spec loggingLoaderSpec = new FilteringClassLoader.Spec();
         loggingLoaderSpec.allowPackage("org.slf4j");
         loggingLoaderSpec.allowPackage("org.apache.commons.logging");
@@ -87,22 +89,35 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
 
         // Need gradle core to pick up ant logging adapter, AntBuilder and such
         ClassPath gradleCoreUrls = moduleRegistry.getModule("gradle-core-api").getImplementationClasspath();
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-logging-api").getImplementationClasspath());
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-logging").getImplementationClasspath());
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy").getClasspath());
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-ant").getClasspath());
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-datetime").getClasspath());
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-groovydoc").getClasspath());
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-json").getClasspath());
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-templates").getClasspath());
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-xml").getClasspath());
+        gradleCoreUrls =
+                gradleCoreUrls.plus(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
+        gradleCoreUrls = gradleCoreUrls.plus(
+                moduleRegistry.getModule("gradle-logging-api").getImplementationClasspath());
+        gradleCoreUrls =
+                gradleCoreUrls.plus(moduleRegistry.getModule("gradle-logging").getImplementationClasspath());
+        gradleCoreUrls =
+                gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy").getClasspath());
+        gradleCoreUrls = gradleCoreUrls.plus(
+                moduleRegistry.getExternalModule("groovy-ant").getClasspath());
+        gradleCoreUrls = gradleCoreUrls.plus(
+                moduleRegistry.getExternalModule("groovy-datetime").getClasspath());
+        gradleCoreUrls = gradleCoreUrls.plus(
+                moduleRegistry.getExternalModule("groovy-groovydoc").getClasspath());
+        gradleCoreUrls = gradleCoreUrls.plus(
+                moduleRegistry.getExternalModule("groovy-json").getClasspath());
+        gradleCoreUrls = gradleCoreUrls.plus(
+                moduleRegistry.getExternalModule("groovy-templates").getClasspath());
+        gradleCoreUrls = gradleCoreUrls.plus(
+                moduleRegistry.getExternalModule("groovy-xml").getClasspath());
 
         // Need Transformer (part of AntBuilder API) from base services
-        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
-        this.antAdapterLoader = VisitableURLClassLoader.fromClassPath("gradle-core-loader", baseAntLoader, gradleCoreUrls);
+        gradleCoreUrls = gradleCoreUrls.plus(
+                moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
+        this.antAdapterLoader =
+                VisitableURLClassLoader.fromClassPath("gradle-core-loader", baseAntLoader, gradleCoreUrls);
 
-        gradleApiGroovyLoader = groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
+        gradleApiGroovyLoader =
+                groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
         antAdapterGroovyLoader = groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
     }
 
@@ -133,29 +148,34 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
 
     @Override
     public void execute(Action<AntBuilderDelegate> antBuilderAction) {
-        classLoaderCache.withCachedClassLoader(libClasspath, gradleApiGroovyLoader, antAdapterGroovyLoader,
-            () -> new VisitableURLClassLoader("ant-lib-loader", baseAntLoader, libClasspath.getAsURLs()),
-            cachedClassLoader -> {
-                ClassLoader classLoader = cachedClassLoader.getClassLoader();
-                Object antBuilder = newInstanceOf("org.gradle.api.internal.project.ant.BasicAntBuilder");
-                Object antLogger = newInstanceOf("org.gradle.api.internal.project.ant.AntLoggingAdapter");
+        classLoaderCache.withCachedClassLoader(
+                libClasspath,
+                gradleApiGroovyLoader,
+                antAdapterGroovyLoader,
+                () -> new VisitableURLClassLoader("ant-lib-loader", baseAntLoader, libClasspath.getAsURLs()),
+                cachedClassLoader -> {
+                    ClassLoader classLoader = cachedClassLoader.getClassLoader();
+                    Object antBuilder = newInstanceOf("org.gradle.api.internal.project.ant.BasicAntBuilder");
+                    Object antLogger = newInstanceOf("org.gradle.api.internal.project.ant.AntLoggingAdapter");
 
-                // This looks ugly, very ugly, but that is apparently what Ant does itself
-                ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
-                Thread.currentThread().setContextClassLoader(classLoader);
+                    // This looks ugly, very ugly, but that is apparently what Ant does itself
+                    ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
+                    Thread.currentThread().setContextClassLoader(classLoader);
 
-                try {
-                    configureAntBuilder(antBuilder, antLogger);
+                    try {
+                        configureAntBuilder(antBuilder, antLogger);
 
-                    // Ideally, we'd delegate directly to the AntBuilder, but its Closure class is different to our caller's
-                    // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
-                    // because they are not an instanceof its Closure class.
-                    antBuilderAction.execute(new AntBuilderDelegate(antBuilder, classLoader));
-                } finally {
-                    Thread.currentThread().setContextClassLoader(originalLoader);
-                    disposeBuilder(antBuilder, antLogger);
-                }
-            });
+                        // Ideally, we'd delegate directly to the AntBuilder, but its Closure class is different to our
+                        // caller's
+                        // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our
+                        // Closures to String
+                        // because they are not an instanceof its Closure class.
+                        antBuilderAction.execute(new AntBuilderDelegate(antBuilder, classLoader));
+                    } finally {
+                        Thread.currentThread().setContextClassLoader(originalLoader);
+                        disposeBuilder(antBuilder, antLogger);
+                    }
+                });
     }
 
     private Object newInstanceOf(String className) {

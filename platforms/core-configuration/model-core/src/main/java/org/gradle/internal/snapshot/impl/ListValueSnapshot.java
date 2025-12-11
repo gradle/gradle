@@ -17,10 +17,9 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
-
-import java.util.List;
 
 public class ListValueSnapshot extends AbstractListSnapshot<ValueSnapshot> implements ValueSnapshot {
     public static final ListValueSnapshot EMPTY = new ListValueSnapshot(ImmutableList.of());
@@ -63,7 +62,8 @@ public class ListValueSnapshot extends AbstractListSnapshot<ValueSnapshot> imple
             newElements.add(elements.get(i));
         }
         if (pos < list.size()) {
-            // If we broke out of the comparison because there was a difference, we can reuse the snapshot of the new element
+            // If we broke out of the comparison because there was a difference, we can reuse the snapshot of the new
+            // element
             if (newElement != null) {
                 newElements.add(newElement);
                 pos++;

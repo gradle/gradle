@@ -16,10 +16,9 @@
 
 package org.gradle.initialization.exception;
 
+import java.util.Collection;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Collection;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface ExceptionCollector {

@@ -16,12 +16,11 @@
 
 package org.gradle.api.tasks.scala;
 
+import javax.inject.Inject;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
-
-import javax.inject.Inject;
 
 /**
  * Options for incremental compilation of Scala code. Only used for compilation with Zinc.

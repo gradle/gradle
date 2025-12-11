@@ -32,11 +32,10 @@ public class DefaultResolverResults implements ResolverResults {
     private final boolean fullyResolved;
 
     public DefaultResolverResults(
-        VisitedGraphResults graphResults,
-        VisitedArtifactSet visitedArtifacts,
-        LegacyResolverResults legacyResolverResults,
-        boolean fullyResolved
-    ) {
+            VisitedGraphResults graphResults,
+            VisitedArtifactSet visitedArtifacts,
+            LegacyResolverResults legacyResolverResults,
+            boolean fullyResolved) {
         this.graphResults = graphResults;
         this.visitedArtifacts = visitedArtifacts;
         this.legacyResolverResults = legacyResolverResults;
@@ -67,32 +66,20 @@ public class DefaultResolverResults implements ResolverResults {
      * Create a new result representing the result of resolving build dependencies.
      */
     public static ResolverResults buildDependenciesResolved(
-        VisitedGraphResults graphResults,
-        VisitedArtifactSet visitedArtifacts,
-        LegacyResolverResults legacyResolverResults
-    ) {
-        return new DefaultResolverResults(
-            graphResults,
-            visitedArtifacts,
-            legacyResolverResults,
-            false
-        );
+            VisitedGraphResults graphResults,
+            VisitedArtifactSet visitedArtifacts,
+            LegacyResolverResults legacyResolverResults) {
+        return new DefaultResolverResults(graphResults, visitedArtifacts, legacyResolverResults, false);
     }
 
     /**
      * Create a new result representing the result of resolving the dependency graph.
      */
     public static ResolverResults graphResolved(
-        VisitedGraphResults graphResults,
-        VisitedArtifactSet visitedArtifacts,
-        LegacyResolverResults legacyResolverResults
-    ) {
-        return new DefaultResolverResults(
-            graphResults,
-            visitedArtifacts,
-            legacyResolverResults,
-            true
-        );
+            VisitedGraphResults graphResults,
+            VisitedArtifactSet visitedArtifacts,
+            LegacyResolverResults legacyResolverResults) {
+        return new DefaultResolverResults(graphResults, visitedArtifacts, legacyResolverResults, true);
     }
 
     /**
@@ -109,7 +96,8 @@ public class DefaultResolverResults implements ResolverResults {
         @Override
         public ResolvedConfiguration getResolvedConfiguration() {
             if (configuration == null) {
-                throw new IllegalStateException("Cannot get resolved configuration when only build dependencies are resolved.");
+                throw new IllegalStateException(
+                        "Cannot get resolved configuration when only build dependencies are resolved.");
             }
 
             return configuration;
@@ -128,7 +116,5 @@ public class DefaultResolverResults implements ResolverResults {
         public static LegacyResolverResults graphResolved(ResolvedConfiguration configuration) {
             return new DefaultLegacyResolverResults(configuration);
         }
-
     }
-
 }

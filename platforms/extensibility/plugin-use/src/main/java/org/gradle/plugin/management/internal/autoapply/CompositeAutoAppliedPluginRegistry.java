@@ -16,11 +16,10 @@
 
 package org.gradle.plugin.management.internal.autoapply;
 
+import java.util.List;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.plugin.management.internal.PluginRequests;
-
-import java.util.List;
 
 public class CompositeAutoAppliedPluginRegistry implements AutoAppliedPluginRegistry {
 
@@ -32,14 +31,15 @@ public class CompositeAutoAppliedPluginRegistry implements AutoAppliedPluginRegi
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Project target) {
-        return registries.stream().map(r -> r.getAutoAppliedPlugins(target))
-            .reduce(PluginRequests.EMPTY, PluginRequests::mergeWith);
+        return registries.stream()
+                .map(r -> r.getAutoAppliedPlugins(target))
+                .reduce(PluginRequests.EMPTY, PluginRequests::mergeWith);
     }
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Settings target) {
-        return registries.stream().map(r -> r.getAutoAppliedPlugins(target))
-            .reduce(PluginRequests.EMPTY, PluginRequests::mergeWith);
+        return registries.stream()
+                .map(r -> r.getAutoAppliedPlugins(target))
+                .reduce(PluginRequests.EMPTY, PluginRequests::mergeWith);
     }
-
 }

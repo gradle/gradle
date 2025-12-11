@@ -16,6 +16,8 @@
 
 package org.gradle.cache.internal;
 
+import java.io.File;
+import java.io.IOException;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleUserHomeDirProvider;
@@ -23,31 +25,32 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.Hashing;
 
-import java.io.File;
-import java.io.IOException;
-
 public class BuildScopeCacheDir {
     public static final String UNDEFINED_BUILD = "undefined-build/";
 
     private final File cacheDir;
 
     public BuildScopeCacheDir(
-        GradleUserHomeDirProvider userHomeDirProvider,
-        BuildLayout buildLayout,
-        StartParameter startParameter
-    ) {
+            GradleUserHomeDirProvider userHomeDirProvider, BuildLayout buildLayout, StartParameter startParameter) {
         if (startParameter.getProjectCacheDir() != null) {
             // Use explicitly requested build scoped cache dir
             cacheDir = startParameter.getProjectCacheDir();
-        } else if (!buildLayout.getRootDirectory().getName().equals(SettingsInternal.BUILD_SRC) && buildLayout.isBuildDefinitionMissing()) {
-            // No build definition, use a cache dir in the user home directory to avoid generating garbage in the root directory
-            cacheDir = new File(userHomeDirProvider.getGradleUserHomeDirectory(), UNDEFINED_BUILD + Hashing.hashString(buildLayout.getRootDirectory().getAbsolutePath()));
+        } else if (!buildLayout.getRootDirectory().getName().equals(SettingsInternal.BUILD_SRC)
+                && buildLayout.isBuildDefinitionMissing()) {
+            // No build definition, use a cache dir in the user home directory to avoid generating garbage in the root
+            // directory
+            cacheDir = new File(
+                    userHomeDirProvider.getGradleUserHomeDirectory(),
+                    UNDEFINED_BUILD
+                            + Hashing.hashString(buildLayout.getRootDirectory().getAbsolutePath()));
         } else {
             // Use the .gradle directory in the build root directory
             cacheDir = new File(buildLayout.getRootDirectory(), ".gradle");
         }
         if (cacheDir.exists() && !cacheDir.isDirectory()) {
-            throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Cache directory '%s' exists and is not a directory.", cacheDir)), true);
+            throw UncheckedException.throwAsUncheckedException(
+                    new IOException(String.format("Cache directory '%s' exists and is not a directory.", cacheDir)),
+                    true);
         }
     }
 

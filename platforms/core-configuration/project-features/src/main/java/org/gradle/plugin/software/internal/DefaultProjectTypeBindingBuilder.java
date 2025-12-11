@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.software.internal;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.plugins.BuildModel;
@@ -23,43 +25,43 @@ import org.gradle.api.internal.plugins.DeclaredProjectFeatureBindingBuilder;
 import org.gradle.api.internal.plugins.DeclaredProjectFeatureBindingBuilderInternal;
 import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext;
-import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration;
 import org.gradle.api.internal.plugins.ProjectFeatureApplyAction;
+import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration;
+import org.gradle.api.internal.plugins.ProjectTypeApplyAction;
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder;
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilderInternal;
-import org.gradle.api.internal.plugins.ProjectTypeApplyAction;
 import org.gradle.api.internal.plugins.TargetTypeInformation;
 import org.gradle.util.Path;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuilderInternal {
     private final List<DeclaredProjectFeatureBindingBuilderInternal<?, ?>> bindings = new ArrayList<>();
 
     @Override
-    public <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, Class<V> buildModelClass, ProjectTypeApplyAction<T, V> transform) {
+    public <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(
+            String name, Class<T> definitionClass, Class<V> buildModelClass, ProjectTypeApplyAction<T, V> transform) {
         // This needs to be an anonymous class for configuration cache compatibility
         ProjectFeatureApplyAction<T, V, ?> featureTransform = new ProjectFeatureApplyAction<T, V, Object>() {
             @Override
-            public void transform(ProjectFeatureApplicationContext context, T definition, V buildModel, Object parentDefinition) {
+            public void transform(
+                    ProjectFeatureApplicationContext context, T definition, V buildModel, Object parentDefinition) {
                 transform.transform(context, definition, buildModel);
             }
         };
 
-        DeclaredProjectFeatureBindingBuilderInternal<T, V> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(definitionClass,
-            buildModelClass,
-            new TargetTypeInformation.DefinitionTargetTypeInformation<>(Project.class),
-            Path.path(name),
-            featureTransform
-        );
+        DeclaredProjectFeatureBindingBuilderInternal<T, V> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(
+                definitionClass,
+                buildModelClass,
+                new TargetTypeInformation.DefinitionTargetTypeInformation<>(Project.class),
+                Path.path(name),
+                featureTransform);
 
         bindings.add(builder);
         return builder;
     }
 
     @Override
-    public <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, ProjectTypeApplyAction<T, V> transform) {
+    public <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(
+            String name, Class<T> definitionClass, ProjectTypeApplyAction<T, V> transform) {
         return bindProjectType(name, definitionClass, ModelTypeUtils.getBuildModelClass(definitionClass), transform);
     }
 

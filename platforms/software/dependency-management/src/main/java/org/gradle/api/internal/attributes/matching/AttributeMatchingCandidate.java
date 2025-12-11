@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.attributes.matching;
 
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-
 import java.util.List;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 /**
  * Something that can participate in multiple-candidate attribute matching. During multiple-candidate
@@ -33,5 +32,4 @@ public interface AttributeMatchingCandidate {
      * Get the attributes that describe this candidate.
      */
     ImmutableAttributes getAttributes();
-
 }

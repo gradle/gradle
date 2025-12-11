@@ -17,14 +17,13 @@
 package org.gradle.internal.execution.impl;
 
 import com.google.common.collect.ImmutableSortedMap;
+import java.io.File;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-
-import java.io.File;
 
 public class DefaultOutputSnapshotter implements OutputSnapshotter {
     private final FileCollectionSnapshotter fileCollectionSnapshotter;

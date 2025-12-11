@@ -16,10 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import java.io.File;
 import org.gradle.api.Named;
 import org.gradle.util.internal.VersionNumber;
-
-import java.io.File;
 
 public abstract class WindowsKitInstall implements Named {
     private final File baseDir;
@@ -68,7 +67,6 @@ public abstract class WindowsKitInstall implements Named {
             return false;
         }
         return version.equals(component.version);
-
     }
 
     @Override

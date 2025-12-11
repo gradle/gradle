@@ -52,5 +52,4 @@ public abstract class XmlGeneratorTask<T extends PersistableConfigurationObject>
     protected abstract void configure(T object);
 
     protected abstract T create();
-
 }

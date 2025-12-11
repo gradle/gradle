@@ -16,9 +16,8 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.internal.core.MutableModelNode;
-
 import java.util.List;
+import org.gradle.model.internal.core.MutableModelNode;
 
 public interface ExtractedModelRule {
     void apply(MethodModelRuleApplicationContext context, MutableModelNode target);

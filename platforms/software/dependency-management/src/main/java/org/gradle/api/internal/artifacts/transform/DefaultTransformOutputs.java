@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.file.FileLookup;
-import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.util.internal.GFileUtils;
-
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.file.FileLookup;
+import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.util.internal.GFileUtils;
 
 public class DefaultTransformOutputs implements TransformOutputsInternal {
 
@@ -64,10 +63,12 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
             private void validate(File output) {
                 validateOutputExists(outputDir, output);
                 if (outputFiles.contains(output) && !output.isFile()) {
-                    throw new InvalidUserDataException("Transform output file " + output.getPath() + " must be a file, but is not.");
+                    throw new InvalidUserDataException(
+                            "Transform output file " + output.getPath() + " must be a file, but is not.");
                 }
                 if (outputDirectories.contains(output) && !output.isDirectory()) {
-                    throw new InvalidUserDataException("Transform output directory " + output.getPath() + " must be a directory, but is not.");
+                    throw new InvalidUserDataException(
+                            "Transform output directory " + output.getPath() + " must be a directory, but is not.");
                 }
             }
         });
@@ -100,8 +101,8 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
             String outputAbsolutePath = output.getAbsolutePath();
             String outputDirPrefix = outputDir.getAbsolutePath() + File.separator;
             String reportedPath = outputAbsolutePath.startsWith(outputDirPrefix)
-                ? outputAbsolutePath.substring(outputDirPrefix.length())
-                : outputAbsolutePath;
+                    ? outputAbsolutePath.substring(outputDirPrefix.length())
+                    : outputAbsolutePath;
             throw new InvalidUserDataException("Transform output " + reportedPath + " must exist.");
         }
     }

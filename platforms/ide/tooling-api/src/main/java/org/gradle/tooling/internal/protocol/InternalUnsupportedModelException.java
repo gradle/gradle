@@ -27,5 +27,4 @@ package org.gradle.tooling.internal.protocol;
  *
  * @since 1.6-rc-1
  */
-public class InternalUnsupportedModelException extends RuntimeException {
-}
+public class InternalUnsupportedModelException extends RuntimeException {}

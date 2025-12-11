@@ -16,30 +16,40 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.api.Named;
-import org.gradle.util.internal.GUtil;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.api.Named;
+import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     @Nullable
     final String parentName;
+
     @Nullable
     private final String binaryName;
+
     @Nullable
     final String binaryType;
+
     final String dimensionPrefix;
+
     @Nullable
     private final String role;
+
     private final boolean main;
     final List<String> dimensions;
 
-    DefaultBinaryNamingScheme(@Nullable String parentName, @Nullable String binaryName, @Nullable String binaryType, @Nullable String role, boolean main, List<String> dimensions) {
+    DefaultBinaryNamingScheme(
+            @Nullable String parentName,
+            @Nullable String binaryName,
+            @Nullable String binaryType,
+            @Nullable String role,
+            boolean main,
+            List<String> dimensions) {
         this.parentName = parentName;
         this.binaryName = binaryName;
         this.binaryType = binaryType;
@@ -62,7 +72,8 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     @Override
-    public <T extends Named> BinaryNamingScheme withVariantDimension(T value, Collection<? extends T> allValuesForAxis) {
+    public <T extends Named> BinaryNamingScheme withVariantDimension(
+            T value, Collection<? extends T> allValuesForAxis) {
         if (allValuesForAxis.size() == 1) {
             return this;
         }

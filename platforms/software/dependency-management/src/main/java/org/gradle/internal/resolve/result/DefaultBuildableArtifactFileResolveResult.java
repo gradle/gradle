@@ -16,13 +16,14 @@
 
 package org.gradle.internal.resolve.result;
 
+import java.io.File;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
 
-import java.io.File;
-
-public class DefaultBuildableArtifactFileResolveResult extends DefaultBuildableTypedResolveResult<File, ArtifactResolveException> implements BuildableArtifactFileResolveResult {
+public class DefaultBuildableArtifactFileResolveResult
+        extends DefaultBuildableTypedResolveResult<File, ArtifactResolveException>
+        implements BuildableArtifactFileResolveResult {
     @Override
     public void notFound(ComponentArtifactIdentifier artifact) {
         failed(new ArtifactNotFoundException(artifact, getAttempted()));

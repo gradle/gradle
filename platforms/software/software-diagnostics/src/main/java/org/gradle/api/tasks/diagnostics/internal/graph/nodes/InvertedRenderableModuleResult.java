@@ -16,14 +16,13 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
 /**
  * Children of this renderable dependency node are its dependents.
@@ -57,7 +56,9 @@ public class InvertedRenderableModuleResult extends AbstractRenderableModuleResu
     @Override
     public String getDescription() {
         if (dependencyResult != null) {
-            if (!exactMatch(dependencyResult.getRequested(), dependencyResult.getSelected().getId())) {
+            if (!exactMatch(
+                    dependencyResult.getRequested(),
+                    dependencyResult.getSelected().getId())) {
                 return "(requested " + dependencyResult.getRequested() + ")";
             }
         }

@@ -15,9 +15,8 @@
  */
 package org.gradle.security.internal.gnupg;
 
-import org.gradle.internal.os.OperatingSystem;
-
 import java.io.File;
+import org.gradle.internal.os.OperatingSystem;
 
 /**
  * Stores the settings for invoking gnupg.

@@ -17,6 +17,7 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
@@ -31,8 +32,6 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceLock;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-
 public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     private final LocalTaskNode node;
     private final NodeValidator nodeValidator;
@@ -40,7 +39,11 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     private final ExecutionNodeAccessHierarchies accessHierarchies;
     private Exception failure;
 
-    public ResolveMutationsNode(LocalTaskNode node, NodeValidator nodeValidator, BuildOperationRunner buildOperationRunner, ExecutionNodeAccessHierarchies accessHierarchies) {
+    public ResolveMutationsNode(
+            LocalTaskNode node,
+            NodeValidator nodeValidator,
+            BuildOperationRunner buildOperationRunner,
+            ExecutionNodeAccessHierarchies accessHierarchies) {
         this.node = node;
         this.nodeValidator = nodeValidator;
         this.buildOperationRunner = buildOperationRunner;
@@ -68,8 +71,7 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
-    }
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver) {}
 
     @Nullable
     @Override
@@ -90,8 +92,12 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
             public void run(BuildOperationContext context) {
                 try {
                     MutationInfo mutations = resolveAndValidateMutations();
-                    mutations.getOutputPaths().forEach(outputPath -> accessHierarchies.getOutputHierarchy().recordNodeAccessingLocation(node, outputPath));
-                    mutations.getDestroyablePaths().forEach(destroyablePath -> accessHierarchies.getDestroyableHierarchy().recordNodeAccessingLocation(node, destroyablePath));
+                    mutations.getOutputPaths().forEach(outputPath -> accessHierarchies
+                            .getOutputHierarchy()
+                            .recordNodeAccessingLocation(node, outputPath));
+                    mutations.getDestroyablePaths().forEach(destroyablePath -> accessHierarchies
+                            .getDestroyableHierarchy()
+                            .recordNodeAccessingLocation(node, destroyablePath));
                     node.mutationsResolved(mutations);
                     context.setResult(RESOLVE_TASK_MUTATIONS_RESULT);
                 } catch (Exception e) {
@@ -103,8 +109,9 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 TaskIdentity<?> taskIdentity = node.getTask().getTaskIdentity();
-                return BuildOperationDescriptor.displayName("Resolve mutations for task " + taskIdentity.getBuildTreePath().asString())
-                    .details(new ResolveTaskMutationsDetails(taskIdentity));
+                return BuildOperationDescriptor.displayName("Resolve mutations for task "
+                                + taskIdentity.getBuildTreePath().asString())
+                        .details(new ResolveTaskMutationsDetails(taskIdentity));
             }
         });
     }
@@ -132,7 +139,8 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
         }
     }
 
-    private static final ResolveTaskMutationsBuildOperationType.Result RESOLVE_TASK_MUTATIONS_RESULT = new ResolveTaskMutationsBuildOperationType.Result() {};
+    private static final ResolveTaskMutationsBuildOperationType.Result RESOLVE_TASK_MUTATIONS_RESULT =
+            new ResolveTaskMutationsBuildOperationType.Result() {};
 
     private MutationInfo resolveAndValidateMutations() {
         boolean hasValidationProblem = nodeValidator.hasValidationProblems(node);
@@ -174,25 +182,30 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
         boolean hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
 
         return new MutationInfo(
-            outputPaths.build(),
-            destroyablePaths.build(),
-            hasFileInputs,
-            hasOutputs,
-            hasLocalState,
-            hasValidationProblem
-        );
+                outputPaths.build(),
+                destroyablePaths.build(),
+                hasFileInputs,
+                hasOutputs,
+                hasLocalState,
+                hasValidationProblem);
     }
 
     private void validateMutations(MutationInfo mutations) {
         if (!mutations.getDestroyablePaths().isEmpty()) {
             if (mutations.hasOutputs()) {
-                throw new IllegalStateException("Task " + node + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
+                throw new IllegalStateException(
+                        "Task " + node
+                                + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
             }
             if (mutations.hasFileInputs()) {
-                throw new IllegalStateException("Task " + node + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
+                throw new IllegalStateException(
+                        "Task " + node
+                                + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
             }
             if (mutations.hasLocalState()) {
-                throw new IllegalStateException("Task " + node + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
+                throw new IllegalStateException(
+                        "Task " + node
+                                + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
             }
         }
     }

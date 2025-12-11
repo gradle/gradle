@@ -15,15 +15,14 @@
  */
 package org.gradle.api.file;
 
-import org.gradle.internal.file.FilePathUtil;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.Serializable;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ListIterator;
+import org.gradle.internal.file.FilePathUtil;
+import org.jspecify.annotations.Nullable;
 
 /**
  * <p>Represents a relative path from some base directory to a file.  Used in file copying to represent both a source
@@ -280,7 +279,8 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
     }
 
     @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     public int compareTo(RelativePath o) {
         int len1 = segments.length;
         int len2 = o.segments.length;

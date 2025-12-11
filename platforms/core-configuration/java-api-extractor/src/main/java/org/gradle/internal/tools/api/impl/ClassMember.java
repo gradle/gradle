@@ -16,22 +16,29 @@
 
 package org.gradle.internal.tools.api.impl;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 public class ClassMember extends AnnotatableMember {
 
     private final int version;
+
     @Nullable
     private final String superName;
+
     private final String[] interfaces;
 
     private final List<String> permittedSubclasses = new ArrayList<>();
 
-    public ClassMember(int version, int access, String name, @Nullable String signature, @Nullable String superName, String @Nullable [] interfaces) {
+    public ClassMember(
+            int version,
+            int access,
+            String name,
+            @Nullable String signature,
+            @Nullable String superName,
+            String @Nullable [] interfaces) {
         super(access, name, signature);
         this.version = version;
         this.superName = superName;

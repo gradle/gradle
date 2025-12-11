@@ -16,23 +16,26 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import java.io.File;
 import org.gradle.cache.internal.FileContentCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
-
-import java.io.File;
 
 public class CachingCSourceParser implements CSourceParser {
     private final FileContentCache<IncludeDirectives> cache;
 
     public CachingCSourceParser(FileContentCacheFactory cacheFactory) {
         final RegexBackedCSourceParser parser = new RegexBackedCSourceParser();
-        cache = cacheFactory.newCache("parsedCSource", 40000, new FileContentCacheFactory.Calculator<IncludeDirectives>() {
-            @Override
-            public IncludeDirectives calculate(File file, boolean isRegularFile) {
-                return parser.parseSource(file);
-            }
-        }, IncludeDirectivesSerializer.INSTANCE);
+        cache = cacheFactory.newCache(
+                "parsedCSource",
+                40000,
+                new FileContentCacheFactory.Calculator<IncludeDirectives>() {
+                    @Override
+                    public IncludeDirectives calculate(File file, boolean isRegularFile) {
+                        return parser.parseSource(file);
+                    }
+                },
+                IncludeDirectivesSerializer.INSTANCE);
     }
 
     @Override

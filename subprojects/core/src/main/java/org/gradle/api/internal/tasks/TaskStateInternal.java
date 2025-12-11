@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class TaskStateInternal implements TaskState {
     private boolean executing;

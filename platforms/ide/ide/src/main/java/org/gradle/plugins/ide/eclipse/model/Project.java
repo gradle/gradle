@@ -15,24 +15,6 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import groovy.util.Node;
-import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
-import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher;
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
 import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.FILES;
@@ -40,6 +22,23 @@ import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.FILES
 import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.FOLDERS;
 import static org.gradle.plugins.ide.eclipse.model.ResourceFilterType.EXCLUDE_ALL;
 import static org.gradle.plugins.ide.eclipse.model.ResourceFilterType.INCLUDE_ONLY;
+
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import groovy.util.Node;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher;
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
 /**
  * Represents the customizable elements of an eclipse project file. (via XML hooks everything is customizable).
@@ -206,11 +205,10 @@ public class Project extends XmlPersistableConfigurationObject {
             Node locationNode = findFirstChildNamed(linkNode, "location");
             Node locationUriNode = findFirstChildNamed(linkNode, "locationURI");
             linkedResources.add(new Link(
-                nameNode != null ? nameNode.text() : null,
-                typeNode != null ? typeNode.text() : null,
-                locationNode != null ? locationNode.text() : null,
-                locationUriNode != null ? locationUriNode.text() : null
-            ));
+                    nameNode != null ? nameNode.text() : null,
+                    typeNode != null ? typeNode.text() : null,
+                    locationNode != null ? locationNode.text() : null,
+                    locationUriNode != null ? locationUriNode.text() : null));
         }
     }
 
@@ -224,18 +222,14 @@ public class Project extends XmlPersistableConfigurationObject {
             ResourceFilterType type = resourceFilterTypeBitmaskToType(typeBitmask);
             boolean recursive = isResourceFilterTypeBitmaskRecursive(typeBitmask);
             ResourceFilterMatcher matcher = readResourceFilterMatcher(matcherNode);
-            resourceFilters.add(new DefaultResourceFilter(
-                appliesTo,
-                type,
-                recursive,
-                matcher
-            ));
+            resourceFilters.add(new DefaultResourceFilter(appliesTo, type, recursive, matcher));
         }
     }
 
     @Override
     protected void store(Node xml) {
-        for (String childNodeName : Arrays.asList("name", "comment", "projects", "natures", "buildSpec", "linkedResources", "filteredResources")) {
+        for (String childNodeName : Arrays.asList(
+                "name", "comment", "projects", "natures", "buildSpec", "linkedResources", "filteredResources")) {
             Node childNode = findFirstChildNamed(xml, childNodeName);
             if (childNode != null) {
                 xml.remove(childNode);
@@ -307,17 +301,17 @@ public class Project extends XmlPersistableConfigurationObject {
     }
 
     private void addResourceFilterMatcherToXml(Node parent, ResourceFilterMatcher matcher) {
-            Node matcherNode = parent.appendNode("matcher");
-             matcherNode.appendNode("id", matcher.getId());
-            // A matcher may have either arguments or children, but not both
-            if (!isNullOrEmpty(matcher.getArguments())) {
-                matcherNode.appendNode("arguments", matcher.getArguments());
-            } else if (!matcher.getChildren().isEmpty()) {
-                Node argumentsNode = matcherNode.appendNode("arguments");
-                for (ResourceFilterMatcher m : matcher.getChildren()) {
-                    addResourceFilterMatcherToXml(argumentsNode, m);
-                }
+        Node matcherNode = parent.appendNode("matcher");
+        matcherNode.appendNode("id", matcher.getId());
+        // A matcher may have either arguments or children, but not both
+        if (!isNullOrEmpty(matcher.getArguments())) {
+            matcherNode.appendNode("arguments", matcher.getArguments());
+        } else if (!matcher.getChildren().isEmpty()) {
+            Node argumentsNode = matcherNode.appendNode("arguments");
+            for (ResourceFilterMatcher m : matcher.getChildren()) {
+                addResourceFilterMatcherToXml(argumentsNode, m);
             }
+        }
     }
 
     private int getResourceFilterType(ResourceFilter resourceFilter) {
@@ -396,11 +390,7 @@ public class Project extends XmlPersistableConfigurationObject {
         } else {
             arguments = argumentsNode != null ? argumentsNode.text() : null;
         }
-        return new DefaultResourceFilterMatcher(
-            idNode != null ? idNode.text() : null,
-            arguments,
-            children
-        );
+        return new DefaultResourceFilterMatcher(idNode != null ? idNode.text() : null, arguments, children);
     }
 
     @Override
@@ -413,12 +403,12 @@ public class Project extends XmlPersistableConfigurationObject {
         }
         Project project = (Project) o;
         return Objects.equal(buildCommands, project.buildCommands)
-            && Objects.equal(comment, project.comment)
-            && Objects.equal(linkedResources, project.linkedResources)
-            && Objects.equal(resourceFilters, project.resourceFilters)
-            && Objects.equal(name, project.name)
-            && Objects.equal(natures, project.natures)
-            && Objects.equal(referencedProjects, project.referencedProjects);
+                && Objects.equal(comment, project.comment)
+                && Objects.equal(linkedResources, project.linkedResources)
+                && Objects.equal(resourceFilters, project.resourceFilters)
+                && Objects.equal(name, project.name)
+                && Objects.equal(natures, project.natures)
+                && Objects.equal(referencedProjects, project.referencedProjects);
     }
 
     @Override
@@ -437,13 +427,13 @@ public class Project extends XmlPersistableConfigurationObject {
     @Override
     public String toString() {
         return "Project{"
-            + "name='" + name + "\'"
-            + ", comment='" + comment + "\'"
-            + ", referencedProjects=" + referencedProjects
-            + ", natures=" + natures
-            + ", buildCommands=" + buildCommands
-            + ", linkedResources=" + linkedResources
-            + ", resourceFilters=" + resourceFilters
-            + "}";
+                + "name='" + name + "\'"
+                + ", comment='" + comment + "\'"
+                + ", referencedProjects=" + referencedProjects
+                + ", natures=" + natures
+                + ", buildCommands=" + buildCommands
+                + ", linkedResources=" + linkedResources
+                + ", resourceFilters=" + resourceFilters
+                + "}";
     }
 }

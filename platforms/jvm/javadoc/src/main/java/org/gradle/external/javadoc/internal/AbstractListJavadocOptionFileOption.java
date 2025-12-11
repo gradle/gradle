@@ -24,7 +24,8 @@ import java.util.List;
  *
  * @param <T> The type which this option represents.
  */
-public abstract class AbstractListJavadocOptionFileOption<T extends List<?>> extends AbstractJavadocOptionFileOption<T> {
+public abstract class AbstractListJavadocOptionFileOption<T extends List<?>>
+        extends AbstractJavadocOptionFileOption<T> {
     protected final String joinBy;
 
     protected AbstractListJavadocOptionFileOption(String option, T value, String joinBy) {

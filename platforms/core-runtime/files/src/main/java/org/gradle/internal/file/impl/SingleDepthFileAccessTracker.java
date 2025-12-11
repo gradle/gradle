@@ -17,11 +17,10 @@
 package org.gradle.internal.file.impl;
 
 import com.google.common.base.Preconditions;
-import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.file.FileAccessTracker;
-
 import java.io.File;
 import java.nio.file.Path;
+import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.file.FileAccessTracker;
 
 /**
  * Tracks access to files and directories at the supplied depth within the supplied base

@@ -16,6 +16,11 @@
 
 package org.gradle.internal.resource.local;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -25,12 +30,6 @@ import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.List;
-
 /**
  * A {@link LocallyAvailableExternalResource} implementation that represents a local file backed copy of some remote resource.
  */
@@ -39,7 +38,8 @@ public class DefaultLocallyAvailableExternalResource implements LocallyAvailable
     private final ExternalResourceMetaData metaData;
     private final LocallyAvailableExternalResource localFile;
 
-    public DefaultLocallyAvailableExternalResource(URI source, File locallyAvailableResource, ExternalResourceMetaData metaData, FileSystem fileSystem) {
+    public DefaultLocallyAvailableExternalResource(
+            URI source, File locallyAvailableResource, ExternalResourceMetaData metaData, FileSystem fileSystem) {
         localFile = new LocalFileStandInExternalResource(locallyAvailableResource, fileSystem);
         this.source = source;
         this.metaData = metaData;
@@ -99,29 +99,34 @@ public class DefaultLocallyAvailableExternalResource implements LocallyAvailable
     }
 
     @Override
-    public ExternalResourceReadResult<Void> withContent(Action<? super InputStream> readAction) throws ResourceException {
+    public ExternalResourceReadResult<Void> withContent(Action<? super InputStream> readAction)
+            throws ResourceException {
         return localFile.withContent(readAction);
     }
 
     @Override
-    public <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) throws ResourceException {
+    public <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction)
+            throws ResourceException {
         return localFile.withContent(readAction);
     }
 
     @Override
     @Nullable
-    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException {
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction)
+            throws ResourceException {
         return localFile.withContentIfPresent(readAction);
     }
 
     @Override
-    public <T> ExternalResourceReadResult<T> withContent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException {
+    public <T> ExternalResourceReadResult<T> withContent(ContentAndMetadataAction<? extends T> readAction)
+            throws ResourceException {
         return localFile.withContent(readAction);
     }
 
     @Override
     @Nullable
-    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException {
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAndMetadataAction<? extends T> readAction)
+            throws ResourceException {
         return localFile.withContentIfPresent(readAction);
     }
 }

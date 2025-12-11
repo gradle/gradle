@@ -17,10 +17,9 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.base.Equivalence;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 @SuppressWarnings("NullableProblems")
 public class Methods {
@@ -32,8 +31,8 @@ public class Methods {
         protected boolean doEquivalent(Method a, Method b) {
             if (a.getName().equals(b.getName())) {
                 if (a.getReturnType().equals(b.getReturnType())
-                    || (a.getReturnType().isAssignableFrom(b.getReturnType())
-                    || b.getReturnType().isAssignableFrom(a.getReturnType()))) {
+                        || (a.getReturnType().isAssignableFrom(b.getReturnType())
+                                || b.getReturnType().isAssignableFrom(a.getReturnType()))) {
                     return Arrays.equals(a.getGenericParameterTypes(), b.getGenericParameterTypes());
                 }
             }
@@ -43,9 +42,9 @@ public class Methods {
         @Override
         protected int doHash(Method method) {
             return new HashCodeBuilder()
-                .append(method.getName())
-                .append(method.getParameterTypes())
-                .toHashCode();
+                    .append(method.getName())
+                    .append(method.getParameterTypes())
+                    .toHashCode();
         }
     };
 
@@ -57,7 +56,7 @@ public class Methods {
         protected boolean doEquivalent(Method a, Method b) {
             if (a.getName().equals(b.getName())) {
                 return a.getGenericReturnType().equals(b.getGenericReturnType())
-                    && Arrays.equals(a.getGenericParameterTypes(), b.getGenericParameterTypes());
+                        && Arrays.equals(a.getGenericParameterTypes(), b.getGenericParameterTypes());
             }
             return false;
         }
@@ -65,10 +64,10 @@ public class Methods {
         @Override
         protected int doHash(Method method) {
             return new HashCodeBuilder()
-                .append(method.getName())
-                .append(method.getParameterTypes())
-                .append(method.getReturnType())
-                .toHashCode();
+                    .append(method.getName())
+                    .append(method.getParameterTypes())
+                    .append(method.getReturnType())
+                    .toHashCode();
         }
     };
 }

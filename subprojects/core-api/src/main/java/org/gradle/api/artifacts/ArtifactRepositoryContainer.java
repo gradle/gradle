@@ -46,7 +46,8 @@ import org.gradle.util.Configurable;
  * }
  * </pre>
  */
-public interface ArtifactRepositoryContainer extends NamedDomainObjectList<ArtifactRepository>, Configurable<ArtifactRepositoryContainer> {
+public interface ArtifactRepositoryContainer
+        extends NamedDomainObjectList<ArtifactRepository>, Configurable<ArtifactRepositoryContainer> {
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";
     String MAVEN_CENTRAL_URL = "https://repo.maven.apache.org/maven2/";
@@ -84,13 +85,15 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * {@inheritDoc}
      */
     @Override
-    ArtifactRepository getByName(String name, @DelegatesTo(ArtifactRepository.class) Closure configureClosure) throws UnknownRepositoryException;
+    ArtifactRepository getByName(String name, @DelegatesTo(ArtifactRepository.class) Closure configureClosure)
+            throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    ArtifactRepository getByName(String name, Action<? super ArtifactRepository> configureAction) throws UnknownRepositoryException;
+    ArtifactRepository getByName(String name, Action<? super ArtifactRepository> configureAction)
+            throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}

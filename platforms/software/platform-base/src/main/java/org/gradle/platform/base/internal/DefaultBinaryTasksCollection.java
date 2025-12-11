@@ -32,7 +32,10 @@ public class DefaultBinaryTasksCollection extends DefaultDomainObjectSet<Task> i
     private final BinarySpecInternal binary;
     private final NamedEntityInstantiator<Task> taskInstantiator;
 
-    public DefaultBinaryTasksCollection(BinarySpecInternal binarySpecInternal, NamedEntityInstantiator<Task> taskInstantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultBinaryTasksCollection(
+            BinarySpecInternal binarySpecInternal,
+            NamedEntityInstantiator<Task> taskInstantiator,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(Task.class, collectionCallbackActionDecorator);
         this.binary = binarySpecInternal;
         this.taskInstantiator = taskInstantiator;
@@ -64,14 +67,16 @@ public class DefaultBinaryTasksCollection extends DefaultDomainObjectSet<Task> i
             return null;
         }
         if (tasks.size() > 1) {
-            throw new UnknownDomainObjectException(String.format("Multiple tasks with type '%s' found.", type.getSimpleName()));
+            throw new UnknownDomainObjectException(
+                    String.format("Multiple tasks with type '%s' found.", type.getSimpleName()));
         }
         return tasks.iterator().next();
     }
 
     @Override
     public <T extends Task> void create(String name, Class<T> type, Action<? super T> config) {
-        @SuppressWarnings("unchecked") T task = (T) taskInstantiator.create(name, (Class<TaskInternal>) type);
+        @SuppressWarnings("unchecked")
+        T task = (T) taskInstantiator.create(name, (Class<TaskInternal>) type);
         add(task);
         config.execute(task);
     }

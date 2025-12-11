@@ -16,7 +16,21 @@
 
 package org.gradle.internal.event;
 
+import static org.gradle.util.internal.ArrayUtils.contains;
+import static org.gradle.util.internal.CollectionUtils.join;
+
 import com.google.common.collect.ImmutableList;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.internal.Cast;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
@@ -30,23 +44,9 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.StatefulListener;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantLock;
-
-import static org.gradle.util.internal.ArrayUtils.contains;
-import static org.gradle.util.internal.CollectionUtils.join;
-
 public class DefaultListenerManager implements ScopedListenerManager {
-    private static final List<Class<? extends Annotation>> ANNOTATIONS = ImmutableList.of(StatefulListener.class, ListenerService.class);
+    private static final List<Class<? extends Annotation>> ANNOTATIONS =
+            ImmutableList.of(StatefulListener.class, ListenerService.class);
     private final Map<Object, ListenerDetails> allListeners = new LinkedHashMap<Object, ListenerDetails>();
     private final Map<Object, ListenerDetails> allLoggers = new LinkedHashMap<Object, ListenerDetails>();
     private final Map<Class<?>, EventBroadcast<?>> broadcasters = new ConcurrentHashMap<Class<?>, EventBroadcast<?>>();
@@ -178,7 +178,8 @@ public class DefaultListenerManager implements ScopedListenerManager {
     @Override
     public <T> AnonymousListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass) {
         assertCanBroadcast(listenerClass);
-        return new AnonymousListenerBroadcast<T>(listenerClass, getBroadcasterInternal(listenerClass).getDispatch(true));
+        return new AnonymousListenerBroadcast<T>(
+                listenerClass, getBroadcasterInternal(listenerClass).getDispatch(true));
     }
 
     private <T> EventBroadcast<T> getBroadcasterInternal(Class<T> listenerClass) {
@@ -206,10 +207,13 @@ public class DefaultListenerManager implements ScopedListenerManager {
     private <T> void assertCanBroadcast(Class<T> listenerClass) {
         EventScope scope = listenerClass.getAnnotation(EventScope.class);
         if (scope == null) {
-            throw new IllegalArgumentException(String.format("Listener type %s is not annotated with @EventScope.", listenerClass.getName()));
+            throw new IllegalArgumentException(
+                    String.format("Listener type %s is not annotated with @EventScope.", listenerClass.getName()));
         }
         if (!contains(scope.value(), this.scope)) {
-            throw new IllegalArgumentException(String.format("Listener type %s with %s cannot be used to generate events in scope '%s'.", listenerClass.getName(), displayScopes(scope.value()), this.scope.getSimpleName()));
+            throw new IllegalArgumentException(String.format(
+                    "Listener type %s with %s cannot be used to generate events in scope '%s'.",
+                    listenerClass.getName(), displayScopes(scope.value()), this.scope.getSimpleName()));
         }
     }
 
@@ -230,7 +234,7 @@ public class DefaultListenerManager implements ScopedListenerManager {
      * A broadcaster. Manages all state and registered listener implementations for a given
      * listener interface.
      */
-    private abstract class EventBroadcast<T>  {
+    private abstract class EventBroadcast<T> {
         protected final Class<T> type;
         private final ListenerDispatch dispatch;
         private final ListenerDispatch dispatchNoLogger;
@@ -410,7 +414,6 @@ public class DefaultListenerManager implements ScopedListenerManager {
                     endDispatch();
                 }
             }
-
         }
     }
 
@@ -476,9 +479,8 @@ public class DefaultListenerManager implements ScopedListenerManager {
         protected List<Dispatch<MethodInvocation>> startDispatch(boolean includeLogger) {
             if (broadcasterLock.isHeldByCurrentThread()) {
                 throw new IllegalStateException(String.format(
-                    "Cannot notify listeners of type %s as these listeners are already being notified.",
-                    type.getSimpleName()
-                ));
+                        "Cannot notify listeners of type %s as these listeners are already being notified.",
+                        type.getSimpleName()));
             }
 
             broadcasterLock.lock();
@@ -527,17 +529,14 @@ public class DefaultListenerManager implements ScopedListenerManager {
         }
 
         @Override
-        protected void endDispatch() { }
+        protected void endDispatch() {}
 
         @Override
         protected void assertMutable(String operation) {
             synchronized (initializationLock) {
                 if (initialized) {
                     throw new IllegalStateException(String.format(
-                        "Cannot %s of type %s after events have been broadcast.",
-                        operation,
-                        type.getSimpleName())
-                    );
+                            "Cannot %s of type %s after events have been broadcast.", operation, type.getSimpleName()));
                 }
             }
         }

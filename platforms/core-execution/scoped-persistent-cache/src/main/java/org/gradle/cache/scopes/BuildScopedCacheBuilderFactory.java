@@ -23,5 +23,4 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * Factory for creating build scoped {@link org.gradle.cache.CacheBuilder}s. These typically live under the ~/.gradle directory of the build.
  */
 @ServiceScope(Scope.Build.class)
-public interface BuildScopedCacheBuilderFactory extends ScopedCacheBuilderFactory {
-}
+public interface BuildScopedCacheBuilderFactory extends ScopedCacheBuilderFactory {}

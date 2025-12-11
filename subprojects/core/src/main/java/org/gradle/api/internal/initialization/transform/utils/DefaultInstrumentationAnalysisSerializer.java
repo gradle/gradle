@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.initialization.transform.utils;
 
+import java.io.EOFException;
+import java.io.File;
+import java.nio.file.Files;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.initialization.transform.InstrumentationArtifactMetadata;
 import org.gradle.api.internal.initialization.transform.InstrumentationDependencyAnalysis;
@@ -26,12 +31,6 @@ import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-
-import java.io.EOFException;
-import java.io.File;
-import java.nio.file.Files;
-import java.util.Map;
-import java.util.Set;
 
 public class DefaultInstrumentationAnalysisSerializer implements InstrumentationAnalysisSerializer {
 
@@ -67,8 +66,11 @@ public class DefaultInstrumentationAnalysisSerializer implements Instrumentation
         encoder.writeString(metadata.getArtifactHash());
     }
 
-    private static void writeTypesMap(Map<String, Set<String>> typesMap, Encoder encoder, HierarchicalNameSerializer nameSerializer) throws Exception {
-        MapSerializer<String, Set<String>> serializer = new MapSerializer<>(nameSerializer, new SetSerializer<>(nameSerializer));
+    private static void writeTypesMap(
+            Map<String, Set<String>> typesMap, Encoder encoder, HierarchicalNameSerializer nameSerializer)
+            throws Exception {
+        MapSerializer<String, Set<String>> serializer =
+                new MapSerializer<>(nameSerializer, new SetSerializer<>(nameSerializer));
         serializer.write(encoder, typesMap);
     }
 
@@ -76,10 +78,7 @@ public class DefaultInstrumentationAnalysisSerializer implements Instrumentation
     public InstrumentationDependencyAnalysis readDependencyAnalysis(File output) {
         try (KryoBackedDecoder decoder = new KryoBackedDecoder(Files.newInputStream(output.toPath()))) {
             HierarchicalNameSerializer nameSerializer = new HierarchicalNameSerializer(stringInterner);
-            return new InstrumentationDependencyAnalysis(
-                readMetadata(decoder),
-                readTypesMap(decoder, nameSerializer)
-            );
+            return new InstrumentationDependencyAnalysis(readMetadata(decoder), readTypesMap(decoder, nameSerializer));
         } catch (Exception e) {
             throw new IllegalStateException("Could not serialize types map to a file: " + output, e);
         }
@@ -108,8 +107,10 @@ public class DefaultInstrumentationAnalysisSerializer implements Instrumentation
         return new InstrumentationArtifactMetadata(decoder.readString(), decoder.readString());
     }
 
-    private static Map<String, Set<String>> readTypesMap(Decoder decoder, HierarchicalNameSerializer nameSerializer) throws Exception {
-        MapSerializer<String, Set<String>> serializer = new MapSerializer<>(nameSerializer, new SetSerializer<>(nameSerializer));
+    private static Map<String, Set<String>> readTypesMap(Decoder decoder, HierarchicalNameSerializer nameSerializer)
+            throws Exception {
+        MapSerializer<String, Set<String>> serializer =
+                new MapSerializer<>(nameSerializer, new SetSerializer<>(nameSerializer));
         return serializer.read(decoder);
     }
 }

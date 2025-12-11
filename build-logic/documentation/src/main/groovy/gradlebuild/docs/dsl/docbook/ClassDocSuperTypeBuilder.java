@@ -18,7 +18,6 @@ package gradlebuild.docs.dsl.docbook;
 
 import gradlebuild.docs.dsl.docbook.model.ClassDoc;
 import gradlebuild.docs.dsl.source.model.ClassMetaData;
-
 import java.util.List;
 
 public class ClassDocSuperTypeBuilder {
@@ -37,7 +36,8 @@ public class ClassDocSuperTypeBuilder {
         ClassMetaData classMetaData = classDoc.getClassMetaData();
         String superClassName = classMetaData.getSuperClassName();
         if (superClassName != null && !superClassName.equals("org.gradle.api.DefaultTask")) {
-            // Assume this is a class and so has implemented all properties and methods somewhere in the superclass hierarchy
+            // Assume this is a class and so has implemented all properties and methods somewhere in the superclass
+            // hierarchy
             ClassDoc superClass = model.getClassDoc(superClassName);
             classDoc.setSuperClass(superClass);
             superClass.addSubClass(classDoc);
@@ -51,6 +51,5 @@ public class ClassDocSuperTypeBuilder {
                 superInterface.addSubClass(classDoc);
             }
         }
-
     }
 }

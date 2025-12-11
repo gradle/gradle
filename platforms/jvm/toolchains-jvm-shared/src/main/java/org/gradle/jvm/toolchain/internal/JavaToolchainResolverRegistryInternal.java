@@ -16,11 +16,10 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import java.util.List;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
-
-import java.util.List;
 
 @ServiceScope(Scope.Build.class)
 public interface JavaToolchainResolverRegistryInternal extends JavaToolchainResolverRegistry {

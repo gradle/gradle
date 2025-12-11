@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -31,15 +30,22 @@ import java.util.Set;
  */
 public abstract class DependentsSet {
 
-    public static DependentsSet dependentClasses(Set<String> privateDependentClasses, Set<String> accessibleDependentClasses) {
+    public static DependentsSet dependentClasses(
+            Set<String> privateDependentClasses, Set<String> accessibleDependentClasses) {
         return dependents(privateDependentClasses, accessibleDependentClasses, Collections.emptySet());
     }
 
-    public static DependentsSet dependents(Set<String> privateDependentClasses, Set<String> accessibleDependentClasses, Set<GeneratedResource> dependentResources) {
+    public static DependentsSet dependents(
+            Set<String> privateDependentClasses,
+            Set<String> accessibleDependentClasses,
+            Set<GeneratedResource> dependentResources) {
         if (privateDependentClasses.isEmpty() && accessibleDependentClasses.isEmpty() && dependentResources.isEmpty()) {
             return empty();
         } else {
-            return new DefaultDependentsSet(ImmutableSet.copyOf(privateDependentClasses), ImmutableSet.copyOf(accessibleDependentClasses), ImmutableSet.copyOf(dependentResources));
+            return new DefaultDependentsSet(
+                    ImmutableSet.copyOf(privateDependentClasses),
+                    ImmutableSet.copyOf(accessibleDependentClasses),
+                    ImmutableSet.copyOf(dependentResources));
         }
     }
 
@@ -72,14 +78,16 @@ public abstract class DependentsSet {
 
         ImmutableSet.Builder<String> privateDependentClasses = ImmutableSet.builderWithExpectedSize(privateCount);
         ImmutableSet.Builder<String> accessibleDependentClasses = ImmutableSet.builderWithExpectedSize(accessibleCount);
-        ImmutableSet.Builder<GeneratedResource> dependentResources = ImmutableSet.builderWithExpectedSize(resourceCount);
+        ImmutableSet.Builder<GeneratedResource> dependentResources =
+                ImmutableSet.builderWithExpectedSize(resourceCount);
 
         for (DependentsSet set : sets) {
             privateDependentClasses.addAll(set.getPrivateDependentClasses());
             accessibleDependentClasses.addAll(set.getAccessibleDependentClasses());
             dependentResources.addAll(set.getDependentResources());
         }
-        return DependentsSet.dependents(privateDependentClasses.build(), accessibleDependentClasses.build(), dependentResources.build());
+        return DependentsSet.dependents(
+                privateDependentClasses.build(), accessibleDependentClasses.build(), dependentResources.build());
     }
 
     public abstract boolean isEmpty();
@@ -96,8 +104,7 @@ public abstract class DependentsSet {
 
     public abstract String getDescription();
 
-    private DependentsSet() {
-    }
+    private DependentsSet() {}
 
     public abstract Set<String> getAllDependentClasses();
 
@@ -151,7 +158,10 @@ public abstract class DependentsSet {
         private final Set<String> accessibleDependentClasses;
         private final Set<GeneratedResource> dependentResources;
 
-        private DefaultDependentsSet(Set<String> privateDependentClasses, Set<String> accessibleDependentClasses, Set<GeneratedResource> dependentResources) {
+        private DefaultDependentsSet(
+                Set<String> privateDependentClasses,
+                Set<String> accessibleDependentClasses,
+                Set<GeneratedResource> dependentResources) {
             this.privateDependentClasses = privateDependentClasses;
             this.accessibleDependentClasses = accessibleDependentClasses;
             this.dependentResources = dependentResources;
@@ -245,7 +255,8 @@ public abstract class DependentsSet {
 
         @Override
         public Set<GeneratedResource> getDependentResources() {
-            throw new UnsupportedOperationException("This dependents set does not have dependent resources information.");
+            throw new UnsupportedOperationException(
+                    "This dependents set does not have dependent resources information.");
         }
 
         @Override

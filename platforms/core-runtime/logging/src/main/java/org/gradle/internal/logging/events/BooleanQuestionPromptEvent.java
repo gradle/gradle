@@ -17,11 +17,10 @@
 package org.gradle.internal.logging.events;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.List;
 import java.util.Locale;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class BooleanQuestionPromptEvent extends PromptOutputEvent {
     private static final List<String> LENIENT_YES_NO_CHOICES = ImmutableList.of("yes", "no", "y", "n");

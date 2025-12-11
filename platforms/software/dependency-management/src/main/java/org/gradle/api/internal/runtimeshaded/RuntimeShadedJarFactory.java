@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.runtimeshaded;
 
+import java.io.File;
+import java.util.Collection;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
@@ -29,9 +31,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.Collection;
-
 @ServiceScope(Scope.Build.class)
 public class RuntimeShadedJarFactory {
 
@@ -43,7 +42,12 @@ public class RuntimeShadedJarFactory {
     private final ClasspathBuilder classpathBuilder;
     private final BuildOperationRunner buildOperationRunner;
 
-    public RuntimeShadedJarFactory(GeneratedGradleJarCache cache, ProgressLoggerFactory progressLoggerFactory, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, BuildOperationRunner buildOperationRunner) {
+    public RuntimeShadedJarFactory(
+            GeneratedGradleJarCache cache,
+            ProgressLoggerFactory progressLoggerFactory,
+            ClasspathWalker classpathWalker,
+            ClasspathBuilder classpathBuilder,
+            BuildOperationRunner buildOperationRunner) {
         this.cache = cache;
         this.progressLoggerFactory = progressLoggerFactory;
         this.classpathWalker = classpathWalker;
@@ -52,25 +56,25 @@ public class RuntimeShadedJarFactory {
     }
 
     public File get(final RuntimeShadedJarType type, final Collection<? extends File> classpath) {
-        final File jarFile = cache.get(type.getIdentifier(), file -> buildOperationRunner.run(new RunnableBuildOperation() {
-            @Override
-            public void run(BuildOperationContext context) {
-                RuntimeShadedJarCreator creator = new RuntimeShadedJarCreator(
-                    progressLoggerFactory,
-                    new ImplementationDependencyRelocator(type),
-                    classpathWalker,
-                    classpathBuilder
-                );
-                creator.create(type, file, classpath);
-            }
+        final File jarFile = cache.get(
+                type.getIdentifier(),
+                file -> buildOperationRunner.run(new RunnableBuildOperation() {
+                    @Override
+                    public void run(BuildOperationContext context) {
+                        RuntimeShadedJarCreator creator = new RuntimeShadedJarCreator(
+                                progressLoggerFactory,
+                                new ImplementationDependencyRelocator(type),
+                                classpathWalker,
+                                classpathBuilder);
+                        creator.create(type, file, classpath);
+                    }
 
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor
-                    .displayName("Generate " + type.getDisplayName())
-                    .progressDisplayName("Generating " + type.getDisplayName());
-            }
-        }));
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("Generate " + type.getDisplayName())
+                                .progressDisplayName("Generating " + type.getDisplayName());
+                    }
+                }));
         LOGGER.debug("Using Gradle runtime shaded JAR file: {}", jarFile);
         return jarFile;
     }

@@ -15,32 +15,29 @@
  */
 package org.gradle.internal.scripts;
 
-import org.gradle.scripts.ScriptingLanguage;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.scripts.ScriptingLanguage;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Registry of scripting languages.
  */
 public final class ScriptingLanguages {
 
-    private static final List<ScriptingLanguage> ALL =
-        Collections.unmodifiableList(
-            Arrays.asList(
-                scriptingLanguage(".gradle", null),
-                scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory"),
-                scriptingLanguage(".gradle.dcl", "org.gradle.internal.declarativedsl.provider.DeclarativeDslScriptPluginFactory")
-            )
-        );
+    private static final List<ScriptingLanguage> ALL = Collections.unmodifiableList(Arrays.asList(
+            scriptingLanguage(".gradle", null),
+            scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory"),
+            scriptingLanguage(
+                    ".gradle.dcl", "org.gradle.internal.declarativedsl.provider.DeclarativeDslScriptPluginFactory")));
 
     public static List<ScriptingLanguage> all() {
         return ALL;
     }
 
-    private static ScriptingLanguage scriptingLanguage(final String extension, @Nullable final String scriptPluginFactory) {
+    private static ScriptingLanguage scriptingLanguage(
+            final String extension, @Nullable final String scriptPluginFactory) {
         return new ScriptingLanguage() {
             @Override
             public String getExtension() {

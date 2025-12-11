@@ -15,9 +15,8 @@
  */
 package gradlebuild.docs.dsl.docbook;
 
-import org.w3c.dom.Element;
-
 import java.util.List;
+import org.w3c.dom.Element;
 
 public interface DocComment {
     List<Element> getDocbook();

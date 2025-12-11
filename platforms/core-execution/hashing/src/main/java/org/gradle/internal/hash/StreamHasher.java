@@ -15,12 +15,11 @@
  */
 package org.gradle.internal.hash;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Global.class)
 public interface StreamHasher {

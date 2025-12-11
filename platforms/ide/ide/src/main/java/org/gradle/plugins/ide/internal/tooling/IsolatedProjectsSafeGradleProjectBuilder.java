@@ -16,8 +16,13 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
+import java.util.Collection;
+import java.util.List;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -28,12 +33,6 @@ import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Collection;
-import java.util.List;
-
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Builds the {@link GradleProject} model that contains the project hierarchy and task information.
@@ -70,15 +69,22 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements GradleProjectBu
 
     private static void requireRootProject(Project project) {
         if (!project.equals(project.getRootProject())) {
-            throw new IllegalArgumentException(String.format("%s can only be requested on the root project, got %s", MODEL_NAME, project));
+            throw new IllegalArgumentException(
+                    String.format("%s can only be requested on the root project, got %s", MODEL_NAME, project));
         }
     }
 
-    private IsolatedGradleProjectInternal getRootIsolatedModel(ProjectState rootProject, IsolatedGradleProjectParameter parameter) {
-        return getIsolatedModels(rootProject, singletonList(rootProject), parameter).get(0);
+    private IsolatedGradleProjectInternal getRootIsolatedModel(
+            ProjectState rootProject, IsolatedGradleProjectParameter parameter) {
+        return getIsolatedModels(rootProject, singletonList(rootProject), parameter)
+                .get(0);
     }
 
-    private DefaultGradleProject build(ProjectState root, ProjectState project, IsolatedGradleProjectInternal isolatedModel, IsolatedGradleProjectParameter parameter) {
+    private DefaultGradleProject build(
+            ProjectState root,
+            ProjectState project,
+            IsolatedGradleProjectInternal isolatedModel,
+            IsolatedGradleProjectParameter parameter) {
         DefaultGradleProject model = buildWithoutChildren(project, isolatedModel);
         List<ProjectState> children = ImmutableList.copyOf(project.getChildProjects());
         List<IsolatedGradleProjectInternal> isolatedChildrenModels = getIsolatedModels(root, children, parameter);
@@ -87,51 +93,59 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements GradleProjectBu
     }
 
     private List<DefaultGradleProject> buildChildren(
-        ProjectState rootProject,
-        DefaultGradleProject parent,
-        IsolatedGradleProjectParameter parameter,
-        Collection<ProjectState> children,
-        List<IsolatedGradleProjectInternal> isolatedChildrenModels
-    ) {
-        return Streams.zip(children.stream(), isolatedChildrenModels.stream(), (c, ic) -> build(rootProject, c, ic, parameter))
-            .map(it -> it.setParent(parent))
-            .collect(toList());
+            ProjectState rootProject,
+            DefaultGradleProject parent,
+            IsolatedGradleProjectParameter parameter,
+            Collection<ProjectState> children,
+            List<IsolatedGradleProjectInternal> isolatedChildrenModels) {
+        return Streams.zip(
+                        children.stream(),
+                        isolatedChildrenModels.stream(),
+                        (c, ic) -> build(rootProject, c, ic, parameter))
+                .map(it -> it.setParent(parent))
+                .collect(toList());
     }
 
-    private List<IsolatedGradleProjectInternal> getIsolatedModels(ProjectState root, List<ProjectState> projects, IsolatedGradleProjectParameter parameter) {
-        return intermediateToolingModelProvider.getModels(root, projects, IsolatedGradleProjectInternal.class, parameter);
+    private List<IsolatedGradleProjectInternal> getIsolatedModels(
+            ProjectState root, List<ProjectState> projects, IsolatedGradleProjectParameter parameter) {
+        return intermediateToolingModelProvider.getModels(
+                root, projects, IsolatedGradleProjectInternal.class, parameter);
     }
 
-    private static DefaultGradleProject buildWithoutChildren(ProjectState project, IsolatedGradleProjectInternal isolatedModel) {
+    private static DefaultGradleProject buildWithoutChildren(
+            ProjectState project, IsolatedGradleProjectInternal isolatedModel) {
         DefaultGradleProject model = new DefaultGradleProject();
 
         model.setProjectIdentifier(isolatedModel.getProjectIdentifier())
-            .setName(isolatedModel.getName())
-            .setDescription(isolatedModel.getDescription())
-            .setBuildDirectory(isolatedModel.getBuildDirectory())
-            .setProjectDirectory(isolatedModel.getProjectDirectory())
-            .setBuildTreePath(project.getIdentityPath().asString());
+                .setName(isolatedModel.getName())
+                .setDescription(isolatedModel.getDescription())
+                .setBuildDirectory(isolatedModel.getBuildDirectory())
+                .setProjectDirectory(isolatedModel.getProjectDirectory())
+                .setBuildTreePath(project.getIdentityPath().asString());
 
         model.getBuildScript().setSourceFile(isolatedModel.getBuildScript().getSourceFile());
 
         Collection<LaunchableGradleTask> isolatedTasks = isolatedModel.getTasks();
         if (!isolatedTasks.isEmpty()) {
-            model.setTasks(isolatedTasks.stream().map(it -> buildProjectTask(model, it)).collect(toList()));
+            model.setTasks(isolatedTasks.stream()
+                    .map(it -> buildProjectTask(model, it))
+                    .collect(toList()));
         }
 
         return model;
     }
 
-    private static LaunchableGradleProjectTask buildProjectTask(DefaultGradleProject owner, LaunchableGradleTask model) {
+    private static LaunchableGradleProjectTask buildProjectTask(
+            DefaultGradleProject owner, LaunchableGradleTask model) {
         LaunchableGradleProjectTask target = new LaunchableGradleProjectTask();
         target.setPath(model.getPath())
-            .setName(model.getName())
-            .setGroup(model.getGroup())
-            .setDisplayName(model.getDisplayName())
-            .setDescription(model.getDescription())
-            .setPublic(model.isPublic())
-            .setProjectIdentifier(model.getProjectIdentifier())
-            .setBuildTreePath(model.getBuildTreePath());
+                .setName(model.getName())
+                .setGroup(model.getGroup())
+                .setDisplayName(model.getDisplayName())
+                .setDescription(model.getDescription())
+                .setPublic(model.isPublic())
+                .setProjectIdentifier(model.getProjectIdentifier())
+                .setBuildTreePath(model.getBuildTreePath());
         target.setProject(owner);
         return target;
     }
@@ -139,5 +153,4 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements GradleProjectBu
     private static IsolatedGradleProjectParameter createParameter(boolean realizeTasks) {
         return () -> realizeTasks;
     }
-
 }

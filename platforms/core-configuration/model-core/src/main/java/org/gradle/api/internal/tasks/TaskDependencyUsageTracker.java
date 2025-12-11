@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Task;
-
 import java.util.Set;
+import org.gradle.api.Task;
 
 public interface TaskDependencyUsageTracker {
     void onTaskDependencyUsage(Set<? extends Task> taskDependencies);

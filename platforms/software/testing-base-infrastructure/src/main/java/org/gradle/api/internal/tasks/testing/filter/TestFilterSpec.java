@@ -30,11 +30,7 @@ public class TestFilterSpec implements Serializable {
     private final Set<String> excludedTests;
     private final Set<String> includedTestsCommandLine;
 
-    public TestFilterSpec(
-        Set<String> includedTests,
-        Set<String> excludedTests,
-        Set<String> includedTestsCommandLine
-    ) {
+    public TestFilterSpec(Set<String> includedTests, Set<String> excludedTests, Set<String> includedTestsCommandLine) {
         this.includedTests = includedTests;
         this.excludedTests = excludedTests;
         this.includedTestsCommandLine = includedTestsCommandLine;

@@ -47,13 +47,11 @@ public interface InternalPhasedActionConnection extends InternalProtocolInterfac
      * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    BuildResult<?> run(InternalPhasedAction internalPhasedAction,
-                       PhasedActionResultListener listener,
-                       InternalCancellationToken cancellationToken,
-                       BuildParameters operationParameters) throws
-        BuildExceptionVersion1,
-        InternalUnsupportedBuildArgumentException,
-        InternalBuildActionFailureException,
-        InternalBuildCancelledException,
-        IllegalStateException;
+    BuildResult<?> run(
+            InternalPhasedAction internalPhasedAction,
+            PhasedActionResultListener listener,
+            InternalCancellationToken cancellationToken,
+            BuildParameters operationParameters)
+            throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException,
+                    InternalBuildActionFailureException, InternalBuildCancelledException, IllegalStateException;
 }

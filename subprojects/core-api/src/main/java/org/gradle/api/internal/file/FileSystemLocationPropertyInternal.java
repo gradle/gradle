@@ -27,7 +27,8 @@ import org.jspecify.annotations.NullMarked;
  * Should be removed once ConventionMapping is removed.
  */
 @NullMarked
-public interface FileSystemLocationPropertyInternal<T extends FileSystemLocation> extends FileSystemLocationProperty<T> {
+public interface FileSystemLocationPropertyInternal<T extends FileSystemLocation>
+        extends FileSystemLocationProperty<T> {
 
     /**
      * Same as {@link FileSystemLocationProperty#convention(Provider)} but it also works with a Provider of a File.

@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.classpath;
 
+import java.net.URL;
+import java.util.Properties;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.NullMarked;
-
-import java.net.URL;
-import java.util.Properties;
 
 /**
  * Provides access to information about the Gradle distribution, loaded from the
@@ -37,10 +36,8 @@ public class RuntimeApiInfo {
     private final ClassLoader classLoader;
 
     public static RuntimeApiInfo create(ClassPath apiInfoClasspath) {
-        ClassLoader classLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader(
-            "runtime-api-info",
-            apiInfoClasspath
-        );
+        ClassLoader classLoader =
+                new DefaultClassLoaderFactory().createIsolatedClassLoader("runtime-api-info", apiInfoClasspath);
         return new RuntimeApiInfo(classLoader);
     }
 
@@ -75,5 +72,4 @@ public class RuntimeApiInfo {
         }
         return url;
     }
-
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal;
 
+import java.io.File;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.util.PatternSet;
@@ -25,15 +26,17 @@ import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 
-import java.io.File;
-
 public class SourceCompileTaskConfig extends CompileTaskConfig {
-    public SourceCompileTaskConfig(NativeLanguageTransform<?> languageTransform, Class<? extends DefaultTask> taskType) {
+    public SourceCompileTaskConfig(
+            NativeLanguageTransform<?> languageTransform, Class<? extends DefaultTask> taskType) {
         super(languageTransform, taskType);
     }
 
     @Override
-    protected void configureCompileTask(AbstractNativeCompileTask abstractTask, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet) {
+    protected void configureCompileTask(
+            AbstractNativeCompileTask abstractTask,
+            final NativeBinarySpecInternal binary,
+            final LanguageSourceSetInternal sourceSet) {
         AbstractNativeSourceCompileTask task = (AbstractNativeSourceCompileTask) abstractTask;
 
         task.setDescription("Compiles the " + sourceSet + " of " + binary);
@@ -42,17 +45,25 @@ public class SourceCompileTaskConfig extends CompileTaskConfig {
 
         final Project project = task.getProject();
 
-        task.getObjectFileDir().fileProvider(project.getLayout().getBuildDirectory().getAsFile().map(it -> new File(binary.getNamingScheme().getOutputDirectory(it, "objs"), sourceSet.getProjectScopedName())));
+        task.getObjectFileDir()
+                .fileProvider(project.getLayout()
+                        .getBuildDirectory()
+                        .getAsFile()
+                        .map(it -> new File(
+                                binary.getNamingScheme().getOutputDirectory(it, "objs"),
+                                sourceSet.getProjectScopedName())));
 
         // If this task uses a pre-compiled header
-        if (sourceSet instanceof DependentSourceSetInternal && ((DependentSourceSetInternal) sourceSet).getPreCompiledHeader() != null) {
-            final DependentSourceSetInternal dependentSourceSet = (DependentSourceSetInternal)sourceSet;
+        if (sourceSet instanceof DependentSourceSetInternal
+                && ((DependentSourceSetInternal) sourceSet).getPreCompiledHeader() != null) {
+            final DependentSourceSetInternal dependentSourceSet = (DependentSourceSetInternal) sourceSet;
             PreCompiledHeader pch = binary.getPrefixFileToPCH().get(dependentSourceSet.getPrefixHeaderFile());
             pch.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
             pch.setIncludeString(dependentSourceSet.getPreCompiledHeader());
             task.setPreCompiledHeader(pch);
         }
 
-        binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+        binary.binaryInputs(
+                task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
     }
 }

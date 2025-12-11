@@ -16,11 +16,9 @@
 
 package org.gradle.internal.file.excludes;
 
+import java.util.List;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
-
-import java.util.List;
-
 
 @EventScope(Scope.BuildSession.class)
 public interface FileSystemDefaultExcludesListener {

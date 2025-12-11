@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.provider.continuous;
 
+import java.io.File;
+import java.util.function.Supplier;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.plan.SingleFileTreeElementMatcher;
@@ -25,9 +27,6 @@ import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.VfsRelativePath;
-
-import java.io.File;
-import java.util.function.Supplier;
 
 /**
  * Allows recording and querying the input locations of a build.
@@ -122,7 +121,8 @@ public class BuildInputHierarchy {
 
         @Override
         public boolean contains(VfsRelativePath childPath) {
-            return matcher.elementWithRelativePathMatches(spec, new File(childPath.getAbsolutePath()), childPath.getAsString());
+            return matcher.elementWithRelativePathMatches(
+                    spec, new File(childPath.getAbsolutePath()), childPath.getAsString());
         }
     }
 }

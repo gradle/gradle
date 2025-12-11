@@ -16,6 +16,14 @@
 
 package org.gradle.api.tasks.diagnostics;
 
+import static java.util.Collections.singleton;
+import static java.util.Objects.requireNonNull;
+import static org.gradle.internal.serialization.Transient.varOf;
+
+import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
@@ -31,15 +39,6 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
-
-import static java.util.Collections.singleton;
-import static java.util.Objects.requireNonNull;
-import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
  * The base class for all project based report tasks with custom task actions.
@@ -122,11 +121,7 @@ public abstract class ConventionReportTask extends ConventionTask {
     }
 
     ReportGenerator reportGenerator() {
-        return new ReportGenerator(
-            getRenderer(),
-            getOutputFile(),
-            getTextOutputFactory()
-        );
+        return new ReportGenerator(getRenderer(), getOutputFile(), getTextOutputFactory());
     }
 
     void logClickableOutputFileUrl() {

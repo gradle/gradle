@@ -40,5 +40,4 @@ public interface WorkerLimits {
      * @return maximum number of concurrent workers, always &gt;= 1.
      */
     int getMaxWorkerCount();
-
 }

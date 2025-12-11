@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import java.io.File;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.daemon.ClassloaderIsolatedCompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
@@ -38,10 +41,6 @@ import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
-
 @ServiceScope(Scope.Project.class)
 public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCompileSpec> {
     private final WorkerDaemonFactory workerDaemonFactory;
@@ -57,18 +56,17 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     private final InternalProblems problems;
 
     public GroovyCompilerFactory(
-        WorkerDaemonFactory workerDaemonFactory,
-        IsolatedClassloaderWorkerFactory inProcessWorkerFactory,
-        JavaForkOptionsFactory forkOptionsFactory,
-        AnnotationProcessorDetector processorDetector,
-        JvmVersionDetector jvmVersionDetector,
-        WorkerDirectoryProvider workerDirectoryProvider,
-        ClassPathRegistry classPathRegistry,
-        ClassLoaderRegistry classLoaderRegistry,
-        ActionExecutionSpecFactory actionExecutionSpecFactory,
-        ProjectCacheDir projectCacheDir,
-        InternalProblems problems
-    ) {
+            WorkerDaemonFactory workerDaemonFactory,
+            IsolatedClassloaderWorkerFactory inProcessWorkerFactory,
+            JavaForkOptionsFactory forkOptionsFactory,
+            AnnotationProcessorDetector processorDetector,
+            JvmVersionDetector jvmVersionDetector,
+            WorkerDirectoryProvider workerDirectoryProvider,
+            ClassPathRegistry classPathRegistry,
+            ClassLoaderRegistry classLoaderRegistry,
+            ActionExecutionSpecFactory actionExecutionSpecFactory,
+            ProjectCacheDir projectCacheDir,
+            InternalProblems problems) {
         this.workerDaemonFactory = workerDaemonFactory;
         this.inProcessWorkerFactory = inProcessWorkerFactory;
         this.forkOptionsFactory = forkOptionsFactory;
@@ -86,14 +84,24 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     public Compiler<GroovyJavaJointCompileSpec> newCompiler(GroovyJavaJointCompileSpec spec) {
         MinimalGroovyCompileOptions groovyOptions = spec.getGroovyCompileOptions();
         CompilerWorkerExecutor compilerWorkerExecutor = newExecutor(groovyOptions);
-        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(workerDirectoryProvider.getWorkingDirectory(), classPathRegistry, compilerWorkerExecutor, classLoaderRegistry, forkOptionsFactory, jvmVersionDetector, problems.getInternalReporter());
-        return new AnnotationProcessorDiscoveringCompiler<>(new NormalizingGroovyCompiler(groovyCompiler), processorDetector);
+        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(
+                workerDirectoryProvider.getWorkingDirectory(),
+                classPathRegistry,
+                compilerWorkerExecutor,
+                classLoaderRegistry,
+                forkOptionsFactory,
+                jvmVersionDetector,
+                problems.getInternalReporter());
+        return new AnnotationProcessorDiscoveringCompiler<>(
+                new NormalizingGroovyCompiler(groovyCompiler), processorDetector);
     }
 
     private CompilerWorkerExecutor newExecutor(MinimalGroovyCompileOptions groovyOptions) {
-        return groovyOptions.isFork() ?
-            new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, projectCacheDir) :
-            new ClassloaderIsolatedCompilerWorkerExecutor(inProcessWorkerFactory, actionExecutionSpecFactory, projectCacheDir);
+        return groovyOptions.isFork()
+                ? new ProcessIsolatedCompilerWorkerExecutor(
+                        workerDaemonFactory, actionExecutionSpecFactory, projectCacheDir)
+                : new ClassloaderIsolatedCompilerWorkerExecutor(
+                        inProcessWorkerFactory, actionExecutionSpecFactory, projectCacheDir);
     }
 
     public static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec> {
@@ -102,7 +110,8 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         private final InternalProblems problemsService;
 
         @Inject
-        public DaemonSideCompiler(ObjectFactory objectFactory, List<File> javaCompilerPlugins, InternalProblems problemsService) {
+        public DaemonSideCompiler(
+                ObjectFactory objectFactory, List<File> javaCompilerPlugins, InternalProblems problemsService) {
             this.objectFactory = objectFactory;
             this.javaCompilerPlugins = javaCompilerPlugins;
             this.problemsService = problemsService;
@@ -110,10 +119,10 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
 
         @Override
         public WorkResult execute(GroovyJavaJointCompileSpec spec) {
-            Compiler<JavaCompileSpec> javaCompiler = new JdkJavaCompiler(new JavaHomeBasedJavaCompilerFactory(javaCompilerPlugins), problemsService);
+            Compiler<JavaCompileSpec> javaCompiler =
+                    new JdkJavaCompiler(new JavaHomeBasedJavaCompilerFactory(javaCompilerPlugins), problemsService);
             Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler, objectFactory);
             return groovyCompiler.execute(spec);
         }
     }
-
 }

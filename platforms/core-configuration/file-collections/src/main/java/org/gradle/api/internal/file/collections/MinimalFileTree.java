@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import java.io.File;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
-
-import java.io.File;
 
 /**
  * A minimal file tree implementation. An implementation can optionally also implement the following interfaces:

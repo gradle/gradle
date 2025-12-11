@@ -16,11 +16,10 @@
 
 package org.gradle.internal.work;
 
+import java.util.List;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.List;
 
 /**
  * Allows asynchronous work to be tracked based on the build operation it is associated with.
@@ -28,7 +27,9 @@ import java.util.List;
 @ServiceScope(Scope.BuildSession.class)
 public interface AsyncWorkTracker {
     enum ProjectLockRetention {
-        RETAIN_PROJECT_LOCKS, RELEASE_PROJECT_LOCKS, RELEASE_AND_REACQUIRE_PROJECT_LOCKS
+        RETAIN_PROJECT_LOCKS,
+        RELEASE_PROJECT_LOCKS,
+        RELEASE_AND_REACQUIRE_PROJECT_LOCKS
     }
     /**
      * Register a new item of asynchronous work with the provided build operation.
@@ -59,7 +60,8 @@ public interface AsyncWorkTracker {
      * @param workCompletions - The items of work that should be waited on
      * @param lockRetention - How project locks should be treated while waiting on work
      */
-    void waitForCompletion(BuildOperationRef operation, List<AsyncWorkCompletion> workCompletions, ProjectLockRetention lockRetention);
+    void waitForCompletion(
+            BuildOperationRef operation, List<AsyncWorkCompletion> workCompletions, ProjectLockRetention lockRetention);
 
     /**
      * Returns true if the given operation has work registered that has not completed.

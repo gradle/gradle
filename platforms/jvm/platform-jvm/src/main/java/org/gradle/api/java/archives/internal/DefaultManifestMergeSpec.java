@@ -17,6 +17,13 @@ package org.gradle.api.java.archives.internal;
 
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.java.archives.Attributes;
@@ -29,17 +36,10 @@ import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapUtil;
 
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     List<Object> mergePaths = new ArrayList<Object>();
-    private final List<Action<? super ManifestMergeDetails>> actions = new ArrayList<Action<? super ManifestMergeDetails>>();
+    private final List<Action<? super ManifestMergeDetails>> actions =
+            new ArrayList<Action<? super ManifestMergeDetails>>();
     private String contentCharset = DefaultManifest.DEFAULT_CONTENT_CHARSET;
 
     @Override
@@ -53,7 +53,8 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
             throw new InvalidUserDataException("contentCharset must not be null");
         }
         if (!Charset.isSupported(contentCharset)) {
-            throw new InvalidUserDataException(String.format("Charset for contentCharset '%s' is not supported by your JVM", contentCharset));
+            throw new InvalidUserDataException(
+                    String.format("Charset for contentCharset '%s' is not supported by your JVM", contentCharset));
         }
         this.contentCharset = contentCharset;
     }
@@ -76,7 +77,9 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     }
 
     public DefaultManifest merge(Manifest baseManifest, PathToFileResolver fileResolver) {
-        String baseContentCharset = baseManifest instanceof ManifestInternal ? ((ManifestInternal) baseManifest).getContentCharset() : DefaultManifest.DEFAULT_CONTENT_CHARSET;
+        String baseContentCharset = baseManifest instanceof ManifestInternal
+                ? ((ManifestInternal) baseManifest).getContentCharset()
+                : DefaultManifest.DEFAULT_CONTENT_CHARSET;
         DefaultManifest mergedManifest = new DefaultManifest(fileResolver, baseContentCharset);
         mergedManifest.getAttributes().putAll(baseManifest.getAttributes());
         mergedManifest.getSections().putAll(baseManifest.getSections());
@@ -87,19 +90,25 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         return mergedManifest;
     }
 
-    private DefaultManifest mergeManifest(Manifest baseManifest, Manifest toMergeManifest, PathToFileResolver fileResolver) {
+    private DefaultManifest mergeManifest(
+            Manifest baseManifest, Manifest toMergeManifest, PathToFileResolver fileResolver) {
         DefaultManifest mergedManifest = new DefaultManifest(fileResolver);
         mergeSection(null, mergedManifest, baseManifest.getAttributes(), toMergeManifest.getAttributes());
-        Set<String> allSections = Sets.union(baseManifest.getSections().keySet(), toMergeManifest.getSections().keySet());
+        Set<String> allSections = Sets.union(
+                baseManifest.getSections().keySet(),
+                toMergeManifest.getSections().keySet());
         for (String section : allSections) {
-            mergeSection(section, mergedManifest,
+            mergeSection(
+                    section,
+                    mergedManifest,
                     GUtil.getOrDefault(baseManifest.getSections().get(section), DefaultAttributes::new),
                     GUtil.getOrDefault(toMergeManifest.getSections().get(section), DefaultAttributes::new));
         }
         return mergedManifest;
     }
 
-    private void mergeSection(String section, Manifest mergedManifest, Attributes baseAttributes, Attributes mergeAttributes) {
+    private void mergeSection(
+            String section, Manifest mergedManifest, Attributes baseAttributes, Attributes mergeAttributes) {
         Map<String, Object> mergeOnlyAttributes = new LinkedHashMap<String, Object>(mergeAttributes);
         Set<DefaultManifestMergeDetails> mergeDetailsSet = new LinkedHashSet<DefaultManifestMergeDetails>();
 
@@ -120,7 +129,8 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         }
     }
 
-    private DefaultManifestMergeDetails getMergeDetails(String section, String key, Object baseValue, Object mergeValue) {
+    private DefaultManifestMergeDetails getMergeDetails(
+            String section, String key, Object baseValue, Object mergeValue) {
         String baseValueString = resolveValueToString(baseValue);
         String mergeValueString = resolveValueToString(mergeValue);
         String value = mergeValueString == null ? baseValueString : mergeValueString;
@@ -138,7 +148,8 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         }
     }
 
-    private void addMergeDetailToManifest(String section, Manifest mergedManifest, DefaultManifestMergeDetails mergeDetails) {
+    private void addMergeDetailToManifest(
+            String section, Manifest mergedManifest, DefaultManifestMergeDetails mergeDetails) {
         if (!mergeDetails.isExcluded()) {
             if (section == null) {
                 mergedManifest.attributes(WrapUtil.toMap(mergeDetails.getKey(), mergeDetails.getValue()));

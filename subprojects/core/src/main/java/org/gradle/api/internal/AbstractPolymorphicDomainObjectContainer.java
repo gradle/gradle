@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -31,14 +32,16 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-
-public abstract class AbstractPolymorphicDomainObjectContainer<T>
-        extends AbstractNamedDomainObjectContainer<T> implements PolymorphicDomainObjectContainerInternal<T> {
+public abstract class AbstractPolymorphicDomainObjectContainer<T> extends AbstractNamedDomainObjectContainer<T>
+        implements PolymorphicDomainObjectContainerInternal<T> {
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
 
-    protected AbstractPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
+    protected AbstractPolymorphicDomainObjectContainer(
+            Class<T> type,
+            Instantiator instantiator,
+            Namer<? super T> namer,
+            CollectionCallbackActionDecorator callbackDecorator) {
         super(type, instantiator, namer, callbackDecorator);
     }
 
@@ -72,29 +75,37 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     }
 
     @Override
-    public <U extends T> NamedDomainObjectProvider<U> register(String name, Class<U> type) throws InvalidUserDataException {
+    public <U extends T> NamedDomainObjectProvider<U> register(String name, Class<U> type)
+            throws InvalidUserDataException {
         assertCanMutate("register(String, Class)");
         return createDomainObjectProvider(name, type, null);
     }
 
     @Override
-    public <U extends T> NamedDomainObjectProvider<U> register(String name, Class<U> type, Action<? super U> configurationAction) throws InvalidUserDataException {
+    public <U extends T> NamedDomainObjectProvider<U> register(
+            String name, Class<U> type, Action<? super U> configurationAction) throws InvalidUserDataException {
         assertCanMutate("register(String, Class, Action)");
         return createDomainObjectProvider(name, type, configurationAction);
     }
 
-    protected <U extends T> NamedDomainObjectProvider<U> createDomainObjectProvider(String name, Class<U> type, @Nullable Action<? super U> configurationAction) {
+    protected <U extends T> NamedDomainObjectProvider<U> createDomainObjectProvider(
+            String name, Class<U> type, @Nullable Action<? super U> configurationAction) {
         assertElementNotPresent(name);
-        NamedDomainObjectProvider<U> provider = Cast.uncheckedCast(
-            getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, AbstractPolymorphicDomainObjectContainer.this, name, type, configurationAction)
-        );
+        NamedDomainObjectProvider<U> provider = Cast.uncheckedCast(getInstantiator()
+                .newInstance(
+                        NamedDomainObjectCreatingProvider.class,
+                        AbstractPolymorphicDomainObjectContainer.this,
+                        name,
+                        type,
+                        configurationAction));
         addLater(provider);
         return provider;
     }
 
     // Cannot be private due to reflective instantiation
     public class NamedDomainObjectCreatingProvider<I extends T> extends AbstractDomainObjectCreatingProvider<I> {
-        public NamedDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
+        public NamedDomainObjectCreatingProvider(
+                String name, Class<I> type, @Nullable Action<? super I> configureAction) {
             super(name, type, configureAction);
         }
 
@@ -156,15 +167,17 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
         private boolean isConfigureMethod(String name, @Nullable Object... arguments) {
             return ((arguments.length == 1 && arguments[0] instanceof Closure)
-                || (arguments.length == 1 && arguments[0] instanceof Class)
-                || (arguments.length == 2 && arguments[0] instanceof Class && arguments[1] instanceof Closure))
+                            || (arguments.length == 1 && arguments[0] instanceof Class)
+                            || (arguments.length == 2
+                                    && arguments[0] instanceof Class
+                                    && arguments[1] instanceof Closure))
                     && hasProperty(name);
         }
     }
 
     @Override
     public <U extends T> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
-        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(TypedDomainObjectContainerWrapper.class, type, this));
+        return Cast.uncheckedNonnullCast(
+                getInstantiator().newInstance(TypedDomainObjectContainerWrapper.class, type, this));
     }
-
 }

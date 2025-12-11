@@ -15,13 +15,12 @@
  */
 package org.gradle.plugins.ide.internal.tooling;
 
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import static java.util.Collections.emptySet;
 
 import java.util.Map;
 import java.util.Set;
-
-import static java.util.Collections.emptySet;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 
 public class TasksFactory {
     Map<Project, Set<Task>> allTasks;
@@ -42,5 +41,4 @@ public class TasksFactory {
             return emptySet();
         }
     }
-
 }

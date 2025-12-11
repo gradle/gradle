@@ -28,5 +28,4 @@ package org.gradle.internal.component.resolution.failure.interfaces;
  * @implSpec This interface is meant only to be extended by other interfaces, it should not
  * be implemented directly.
  */
-public interface GraphValidationFailure extends ResolutionFailure {
-}
+public interface GraphValidationFailure extends ResolutionFailure {}

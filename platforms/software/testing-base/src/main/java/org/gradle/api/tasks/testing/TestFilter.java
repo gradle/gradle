@@ -15,10 +15,9 @@
  */
 package org.gradle.api.tasks.testing;
 
+import java.util.Set;
 import org.gradle.api.tasks.Input;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import java.util.Set;
 
 /**
  * Allows filtering tests for execution. Some examples:

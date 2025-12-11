@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import java.util.Collection;
+import java.util.Collections;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
@@ -35,9 +37,6 @@ import org.gradle.internal.credentials.DefaultHttpHeaderCredentials;
 import org.gradle.internal.credentials.DefaultPasswordCredentials;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.Collection;
-import java.util.Collections;
-
 public class AuthenticationSupporter {
     private final Instantiator instantiator;
     private final AuthenticationContainer authenticationContainer;
@@ -46,7 +45,11 @@ public class AuthenticationSupporter {
     private final Property<Credentials> credentials;
     private boolean usesCredentials = false;
 
-    public AuthenticationSupporter(Instantiator instantiator, ObjectFactory objectFactory, AuthenticationContainer authenticationContainer, ProviderFactory providerFactory) {
+    public AuthenticationSupporter(
+            Instantiator instantiator,
+            ObjectFactory objectFactory,
+            AuthenticationContainer authenticationContainer,
+            ProviderFactory providerFactory) {
         this.instantiator = instantiator;
         this.authenticationContainer = authenticationContainer;
         this.credentials = objectFactory.property(Credentials.class);
@@ -59,7 +62,8 @@ public class AuthenticationSupporter {
         } else if (credentials.get() instanceof PasswordCredentials) {
             return Cast.uncheckedCast(credentials.get());
         } else {
-            throw new IllegalStateException("Can not use getCredentials() method when not using PasswordCredentials; please use getCredentials(Class)");
+            throw new IllegalStateException(
+                    "Can not use getCredentials() method when not using PasswordCredentials; please use getCredentials(Class)");
         }
     }
 
@@ -69,18 +73,23 @@ public class AuthenticationSupporter {
         } else if (credentialsType.isInstance(credentials.get())) {
             return Cast.uncheckedCast(credentials.get());
         } else {
-            throw new IllegalArgumentException(String.format("Given credentials type '%s' does not match actual type '%s'", credentialsType.getName(), getCredentialsPublicType(credentials.get().getClass()).getName()));
+            throw new IllegalArgumentException(String.format(
+                    "Given credentials type '%s' does not match actual type '%s'",
+                    credentialsType.getName(),
+                    getCredentialsPublicType(credentials.get().getClass()).getName()));
         }
     }
 
     public void credentials(Action<? super PasswordCredentials> action) {
         if (usesCredentials() && !(credentials.get() instanceof PasswordCredentials)) {
-            throw new IllegalStateException("Can not use credentials(Action) method when not using PasswordCredentials; please use credentials(Class, Action)");
+            throw new IllegalStateException(
+                    "Can not use credentials(Action) method when not using PasswordCredentials; please use credentials(Class, Action)");
         }
         credentials(PasswordCredentials.class, action);
     }
 
-    public <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action) throws IllegalStateException {
+    public <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action)
+            throws IllegalStateException {
         action.execute(getCredentials(credentialsType));
     }
 
@@ -148,7 +157,12 @@ public class AuthenticationSupporter {
         } else if (publicType == HttpHeaderCredentials.class) {
             return Cast.uncheckedCast(DefaultHttpHeaderCredentials.class);
         } else {
-            throw new IllegalArgumentException(String.format("Unknown credentials type: '%s' (supported types: %s, %s and %s).", publicType.getName(), PasswordCredentials.class.getName(), AwsCredentials.class.getName(), HttpHeaderCredentials.class.getName()));
+            throw new IllegalArgumentException(String.format(
+                    "Unknown credentials type: '%s' (supported types: %s, %s and %s).",
+                    publicType.getName(),
+                    PasswordCredentials.class.getName(),
+                    AwsCredentials.class.getName(),
+                    HttpHeaderCredentials.class.getName()));
         }
     }
 
@@ -160,8 +174,12 @@ public class AuthenticationSupporter {
         } else if (HttpHeaderCredentials.class.isAssignableFrom(implType)) {
             return Cast.uncheckedCast(HttpHeaderCredentials.class);
         } else {
-            throw new IllegalArgumentException(String.format("Unknown credentials implementation type: '%s' (supported types: %s, %s and %s).", implType.getName(), DefaultPasswordCredentials.class.getName(), DefaultAwsCredentials.class.getName(), DefaultHttpHeaderCredentials.class.getName()));
+            throw new IllegalArgumentException(String.format(
+                    "Unknown credentials implementation type: '%s' (supported types: %s, %s and %s).",
+                    implType.getName(),
+                    DefaultPasswordCredentials.class.getName(),
+                    DefaultAwsCredentials.class.getName(),
+                    DefaultHttpHeaderCredentials.class.getName()));
         }
     }
-
 }

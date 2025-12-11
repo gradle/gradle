@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.model;
 
+import java.util.Collection;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -22,11 +23,10 @@ import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import java.util.Collection;
-
 public class LoggingAttributeMatchingExplanationBuilder implements AttributeMatchingExplanationBuilder {
-    private final static AttributeMatchingExplanationBuilder INSTANCE = new LoggingAttributeMatchingExplanationBuilder();
-    private final static Logger LOGGER = Logging.getLogger(LoggingAttributeMatchingExplanationBuilder.class);
+    private static final AttributeMatchingExplanationBuilder INSTANCE =
+            new LoggingAttributeMatchingExplanationBuilder();
+    private static final Logger LOGGER = Logging.getLogger(LoggingAttributeMatchingExplanationBuilder.class);
 
     static AttributeMatchingExplanationBuilder logging() {
         if (LOGGER.isDebugEnabled()) {
@@ -41,7 +41,10 @@ public class LoggingAttributeMatchingExplanationBuilder implements AttributeMatc
     }
 
     @Override
-    public void singleMatch(ImmutableAttributes candidate, Collection<ImmutableAttributes> candidates, AttributeContainerInternal requested) {
+    public void singleMatch(
+            ImmutableAttributes candidate,
+            Collection<ImmutableAttributes> candidates,
+            AttributeContainerInternal requested) {
         LOGGER.debug("Selected match {} from candidates {} for {}", candidate, candidates, requested);
     }
 
@@ -51,17 +54,29 @@ public class LoggingAttributeMatchingExplanationBuilder implements AttributeMatc
     }
 
     @Override
-    public void candidateAttributeDoesNotMatch(ImmutableAttributes candidate, Attribute<?> attribute, Object requestedValue, ImmutableAttributesEntry<?> candidateEntry) {
-        LOGGER.debug("Candidate {} attribute {} value {} doesn't requested value {}", candidate, attribute, candidateEntry, requestedValue);
+    public void candidateAttributeDoesNotMatch(
+            ImmutableAttributes candidate,
+            Attribute<?> attribute,
+            Object requestedValue,
+            ImmutableAttributesEntry<?> candidateEntry) {
+        LOGGER.debug(
+                "Candidate {} attribute {} value {} doesn't requested value {}",
+                candidate,
+                attribute,
+                candidateEntry,
+                requestedValue);
     }
 
     @Override
-    public void candidateAttributeMissing(ImmutableAttributes candidate, Attribute<?> attribute, Object requestedValue) {
+    public void candidateAttributeMissing(
+            ImmutableAttributes candidate, Attribute<?> attribute, Object requestedValue) {
         LOGGER.debug("Candidate {} doesn't have attribute {}", candidate, attribute);
     }
 
     @Override
     public void candidateIsSuperSetOfAllOthers(ImmutableAttributes candidate) {
-        LOGGER.debug("Candidate {} selected because its attributes are a superset of all other candidate attributes", candidate);
+        LOGGER.debug(
+                "Candidate {} selected because its attributes are a superset of all other candidate attributes",
+                candidate);
     }
 }

@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.events.test.internal;
 
+import java.util.Map;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.TestKeyValueMetadataEvent;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Map;
 
 /**
  * Consumer implementation of key-value metadata event
@@ -29,7 +28,8 @@ import java.util.Map;
 public class DefaultTestKeyValueMetadataEvent extends AbstractTestMetadataEvent implements TestKeyValueMetadataEvent {
     private final Map<String, String> values;
 
-    public DefaultTestKeyValueMetadataEvent(long eventTime, OperationDescriptor descriptor, Map<String, String> values) {
+    public DefaultTestKeyValueMetadataEvent(
+            long eventTime, OperationDescriptor descriptor, Map<String, String> values) {
         super(eventTime, descriptor);
         this.values = values;
     }

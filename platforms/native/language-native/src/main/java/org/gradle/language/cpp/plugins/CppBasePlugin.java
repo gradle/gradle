@@ -16,6 +16,10 @@
 
 package org.gradle.language.cpp.plugins;
 
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
@@ -36,11 +40,6 @@ import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPl
 import org.gradle.swiftpm.internal.NativeProjectPublication;
 import org.gradle.swiftpm.internal.SwiftPmTarget;
 import org.jspecify.annotations.NullMarked;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * A common base plugin for the C++ executable and library plugins
@@ -69,26 +68,29 @@ public abstract class CppBasePlugin implements Plugin<Project> {
             final Names names = binary.getNames();
             String language = "cpp";
 
-            TaskProvider<CppCompile> compile = tasks.register(names.getCompileTaskName(language), CppCompile.class, task -> {
-                final Callable<List<File>> systemIncludes = () -> binary.getPlatformToolProvider().getSystemLibraries(ToolType.CPP_COMPILER).getIncludeDirs();
+            TaskProvider<CppCompile> compile =
+                    tasks.register(names.getCompileTaskName(language), CppCompile.class, task -> {
+                        final Callable<List<File>> systemIncludes = () -> binary.getPlatformToolProvider()
+                                .getSystemLibraries(ToolType.CPP_COMPILER)
+                                .getIncludeDirs();
 
-                task.includes(binary.getCompileIncludePath());
-                task.getSystemIncludes().from(systemIncludes);
-                task.source(binary.getCppSource());
-                if (binary.isDebuggable()) {
-                    task.setDebuggable(true);
-                }
-                if (binary.isOptimized()) {
-                    task.setOptimized(true);
-                }
-                task.getTargetPlatform().set(binary.getNativePlatform());
-                task.getToolChain().set(binary.getToolChain());
-                task.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
+                        task.includes(binary.getCompileIncludePath());
+                        task.getSystemIncludes().from(systemIncludes);
+                        task.source(binary.getCppSource());
+                        if (binary.isDebuggable()) {
+                            task.setDebuggable(true);
+                        }
+                        if (binary.isOptimized()) {
+                            task.setOptimized(true);
+                        }
+                        task.getTargetPlatform().set(binary.getNativePlatform());
+                        task.getToolChain().set(binary.getToolChain());
+                        task.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
 
-                if (binary instanceof CppSharedLibrary) {
-                    task.setPositionIndependentCode(true);
-                }
-            });
+                        if (binary instanceof CppSharedLibrary) {
+                            task.setPositionIndependentCode(true);
+                        }
+                    });
 
             binary.getObjectsDir().set(compile.flatMap(task -> task.getObjectFileDir()));
             binary.getCompileTask().set(compile);
@@ -98,7 +100,11 @@ public abstract class CppBasePlugin implements Plugin<Project> {
             project.afterEvaluate(p -> {
                 DefaultCppComponent componentInternal = (DefaultCppComponent) component;
                 ProjectIdentity projectIdentity = ((ProjectInternal) project).getProjectIdentity();
-                publicationRegistry.registerPublication(projectIdentity, new NativeProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getBaseName().get())));
+                publicationRegistry.registerPublication(
+                        projectIdentity,
+                        new NativeProjectPublication(
+                                componentInternal.getDisplayName(),
+                                new SwiftPmTarget(component.getBaseName().get())));
             });
         });
     }

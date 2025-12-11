@@ -16,18 +16,17 @@
 
 package org.gradle.integtests.tooling.r68;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class AccessIncludedBuildProjectBuildAction implements BuildAction<List<String>> {
     public List<String> execute(BuildController controller) {
         List<String> model = new ArrayList<String>();
-        for (GradleBuild included: controller.getBuildModel().getIncludedBuilds()) {
+        for (GradleBuild included : controller.getBuildModel().getIncludedBuilds()) {
             EclipseProject project = controller.getModel(included.getRootProject(), EclipseProject.class);
             model.add(project.getName());
         }

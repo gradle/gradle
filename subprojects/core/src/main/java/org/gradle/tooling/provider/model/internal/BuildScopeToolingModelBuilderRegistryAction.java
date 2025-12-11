@@ -26,5 +26,4 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
  * @since 4.0
  */
 @ServiceScope(Scope.Build.class)
-public interface BuildScopeToolingModelBuilderRegistryAction extends Action<ToolingModelBuilderRegistry> {
-}
+public interface BuildScopeToolingModelBuilderRegistryAction extends Action<ToolingModelBuilderRegistry> {}

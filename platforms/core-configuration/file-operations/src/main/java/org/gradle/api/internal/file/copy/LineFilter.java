@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.Transformer;
-import org.gradle.internal.SystemProperties;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import org.gradle.api.Transformer;
+import org.gradle.internal.SystemProperties;
 
 public class LineFilter extends Reader {
     private static enum State {
@@ -84,7 +83,9 @@ public class LineFilter extends Reader {
     }
 
     private void ensureData() throws IOException {
-        while (state == State.SKIP_LINE || (state == State.NORMAL && (transformedLine == null || transformedIndex >= transformedLine.length()))) {
+        while (state == State.SKIP_LINE
+                || (state == State.NORMAL
+                        && (transformedLine == null || transformedIndex >= transformedLine.length()))) {
             readTransformedLine();
             transformedIndex = 0;
         }

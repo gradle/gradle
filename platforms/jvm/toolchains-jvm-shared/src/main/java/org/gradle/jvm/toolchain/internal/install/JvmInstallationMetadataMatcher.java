@@ -17,6 +17,8 @@
 package org.gradle.jvm.toolchain.internal.install;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
+import java.util.function.Predicate;
 import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmVendor;
@@ -26,29 +28,38 @@ import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
-import java.util.Set;
-import java.util.function.Predicate;
-
 public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallationMetadata> {
     private final JavaLanguageVersion languageVersion;
     private final DefaultJvmVendorSpec vendorSpec;
     private final JvmImplementation jvmImplementation;
     private final Set<JavaInstallationCapability> requiredCapabilities;
 
-    public JvmInstallationMetadataMatcher(JavaLanguageVersion languageVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation, Set<JavaInstallationCapability> requiredCapabilities) {
+    public JvmInstallationMetadataMatcher(
+            JavaLanguageVersion languageVersion,
+            JvmVendorSpec vendorSpec,
+            JvmImplementation jvmImplementation,
+            Set<JavaInstallationCapability> requiredCapabilities) {
         this.languageVersion = languageVersion;
-        this.vendorSpec = (DefaultJvmVendorSpec)vendorSpec;
+        this.vendorSpec = (DefaultJvmVendorSpec) vendorSpec;
         this.jvmImplementation = jvmImplementation;
         this.requiredCapabilities = ImmutableSet.copyOf(requiredCapabilities);
     }
 
-    public JvmInstallationMetadataMatcher(JavaToolchainSpec spec, Set<JavaInstallationCapability> requiredCapabilities) {
-        this(spec.getLanguageVersion().get(), spec.getVendor().get(), spec.getImplementation().get(), requiredCapabilities);
+    public JvmInstallationMetadataMatcher(
+            JavaToolchainSpec spec, Set<JavaInstallationCapability> requiredCapabilities) {
+        this(
+                spec.getLanguageVersion().get(),
+                spec.getVendor().get(),
+                spec.getImplementation().get(),
+                requiredCapabilities);
     }
 
     @Override
     public boolean test(JvmInstallationMetadata metadata) {
-        return hasMatchingMajorVersion(metadata) && vendorSpec.test(metadata) && hasRequiredCapabilities(metadata) && hasMatchingImplementation(metadata);
+        return hasMatchingMajorVersion(metadata)
+                && vendorSpec.test(metadata)
+                && hasRequiredCapabilities(metadata)
+                && hasMatchingImplementation(metadata);
     }
 
     private boolean hasMatchingMajorVersion(JvmInstallationMetadata metadata) {
@@ -77,5 +88,4 @@ public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallation
     private boolean isJ9RequestedViaVendor() {
         return vendorSpec != DefaultJvmVendorSpec.any() && vendorSpec.test(JvmVendor.KnownJvmVendor.IBM.asJvmVendor());
     }
-
 }

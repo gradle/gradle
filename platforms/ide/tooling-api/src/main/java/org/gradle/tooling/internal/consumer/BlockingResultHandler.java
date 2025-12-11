@@ -15,15 +15,14 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.ResultHandler;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import org.gradle.internal.UncheckedException;
+import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.ResultHandler;
 
 public class BlockingResultHandler<T> implements ResultHandler<T> {
     private final BlockingQueue<Object> queue = new ArrayBlockingQueue<Object>(1);
@@ -54,7 +53,8 @@ public class BlockingResultHandler<T> implements ResultHandler<T> {
     public static Throwable attachCallerThreadStackTrace(Throwable failure) {
         List<StackTraceElement> adjusted = new ArrayList<StackTraceElement>();
         adjusted.addAll(Arrays.asList(failure.getStackTrace()));
-        List<StackTraceElement> currentThreadStack = Arrays.asList(Thread.currentThread().getStackTrace());
+        List<StackTraceElement> currentThreadStack =
+                Arrays.asList(Thread.currentThread().getStackTrace());
         if (!currentThreadStack.isEmpty()) {
             adjusted.addAll(currentThreadStack.subList(2, currentThreadStack.size()));
         }

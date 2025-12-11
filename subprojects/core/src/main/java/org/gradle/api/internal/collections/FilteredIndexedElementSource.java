@@ -20,14 +20,16 @@ import java.util.List;
 import java.util.ListIterator;
 
 // TODO make this work with pending elements
-public class FilteredIndexedElementSource<T, S extends T> extends FilteredElementSource<T, S> implements IndexedElementSource<S> {
+public class FilteredIndexedElementSource<T, S extends T> extends FilteredElementSource<T, S>
+        implements IndexedElementSource<S> {
     public FilteredIndexedElementSource(ElementSource<T> collection, CollectionFilter<S> filter) {
         super(collection, filter);
     }
 
     @Override
     public void add(int index, S element) {
-        throw new UnsupportedOperationException(String.format("Cannot add '%s' to '%s' as it is a filtered collection", element, this));
+        throw new UnsupportedOperationException(
+                String.format("Cannot add '%s' to '%s' as it is a filtered collection", element, this));
     }
 
     @Override
@@ -47,12 +49,14 @@ public class FilteredIndexedElementSource<T, S extends T> extends FilteredElemen
 
     @Override
     public S set(int index, S element) {
-        throw new UnsupportedOperationException(String.format("Cannot set '%s' in '%s' as it is a filtered collection", element, this));
+        throw new UnsupportedOperationException(
+                String.format("Cannot set '%s' in '%s' as it is a filtered collection", element, this));
     }
 
     @Override
     public S remove(int index) {
-        throw new UnsupportedOperationException(String.format("Cannot remove element from '%s' as it is a filtered collection", this));
+        throw new UnsupportedOperationException(
+                String.format("Cannot remove element from '%s' as it is a filtered collection", this));
     }
 
     @Override

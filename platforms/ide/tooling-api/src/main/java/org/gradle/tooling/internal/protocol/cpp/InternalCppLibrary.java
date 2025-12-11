@@ -19,5 +19,4 @@ package org.gradle.tooling.internal.protocol.cpp;
 /**
  * Marker interface for {@link org.gradle.tooling.model.cpp.CppLibrary}.
  */
-public interface InternalCppLibrary {
-}
+public interface InternalCppLibrary {}

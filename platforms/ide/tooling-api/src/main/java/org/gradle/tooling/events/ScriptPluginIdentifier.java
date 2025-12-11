@@ -31,5 +31,4 @@ public interface ScriptPluginIdentifier extends PluginIdentifier {
      * <p>The URI may point to the local file system or a remote server.
      */
     URI getUri();
-
 }

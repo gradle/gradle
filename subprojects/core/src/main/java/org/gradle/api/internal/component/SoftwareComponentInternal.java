@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.component;
 
-import org.gradle.api.component.SoftwareComponent;
-
 import java.util.Set;
+import org.gradle.api.component.SoftwareComponent;
 
 /**
  * This will be replaced by {@link org.gradle.api.component.ComponentWithVariants} and other public APIs.

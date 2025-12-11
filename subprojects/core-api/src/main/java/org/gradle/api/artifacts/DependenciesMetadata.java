@@ -16,10 +16,9 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Action;
-
 import java.util.Collection;
 import java.util.Map;
+import org.gradle.api.Action;
 
 /**
  * Describes metadata about a dependency - direct dependencies or dependency constraints - declared in a resolved component's metadata.

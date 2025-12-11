@@ -96,5 +96,6 @@ public interface AttributesFactory {
      *
      * Attributes with same name but different type are considered equal for the purpose of merging.
      */
-    ImmutableAttributes safeConcat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) throws AttributeMergingException;
+    ImmutableAttributes safeConcat(ImmutableAttributes attributes1, ImmutableAttributes attributes2)
+            throws AttributeMergingException;
 }

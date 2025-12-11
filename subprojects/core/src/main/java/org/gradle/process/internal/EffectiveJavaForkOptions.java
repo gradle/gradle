@@ -16,19 +16,18 @@
 
 package org.gradle.process.internal;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import org.gradle.api.file.FileCollection;
-import org.gradle.process.JavaForkOptions;
-import org.jspecify.annotations.NullMarked;
-
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-
 import static org.gradle.process.internal.util.MergeOptionsUtil.containsAll;
 import static org.gradle.process.internal.util.MergeOptionsUtil.getHeapSizeMb;
 import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+import org.gradle.api.file.FileCollection;
+import org.gradle.process.JavaForkOptions;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Represents effective options for forking a Java process.
@@ -44,7 +43,8 @@ public class EffectiveJavaForkOptions {
     private final Map<String, Object> environment;
     private final ReadOnlyJvmOptions jvmOptions;
 
-    public EffectiveJavaForkOptions(String executable, File workingDir, Map<String, Object> environment, JvmOptions jvmOptions) {
+    public EffectiveJavaForkOptions(
+            String executable, File workingDir, Map<String, Object> environment, JvmOptions jvmOptions) {
         this.executable = executable;
         this.workingDir = workingDir;
         this.environment = ImmutableMap.copyOf(environment);
@@ -72,16 +72,29 @@ public class EffectiveJavaForkOptions {
      */
     public boolean isCompatibleWith(EffectiveJavaForkOptions forkOptions) {
         return jvmOptions.getDebug() == forkOptions.getJvmOptions().getDebug()
-            && jvmOptions.getEnableAssertions() == forkOptions.getJvmOptions().getEnableAssertions()
-            && normalized(executable).equals(normalized(forkOptions.getExecutable()))
-            && workingDir.equals(forkOptions.getWorkingDir())
-            && normalized(jvmOptions.getDefaultCharacterEncoding()).equals(normalized(forkOptions.getJvmOptions().getDefaultCharacterEncoding()))
-            && getHeapSizeMb(jvmOptions.getMinHeapSize()) >= getHeapSizeMb(forkOptions.getJvmOptions().getMinHeapSize())
-            && getHeapSizeMb(jvmOptions.getMaxHeapSize()) >= getHeapSizeMb(forkOptions.getJvmOptions().getMaxHeapSize())
-            && normalized(jvmOptions.getJvmArgs()).containsAll(normalized(forkOptions.getJvmOptions().getJvmArgs()))
-            && containsAll(jvmOptions.getMutableSystemProperties(), forkOptions.getJvmOptions().getMutableSystemProperties())
-            && containsAll(environment, forkOptions.getEnvironment())
-            && jvmOptions.getBootstrapClasspath().getFiles().containsAll(forkOptions.getJvmOptions().getBootstrapClasspath().getFiles());
+                && jvmOptions.getEnableAssertions()
+                        == forkOptions.getJvmOptions().getEnableAssertions()
+                && normalized(executable).equals(normalized(forkOptions.getExecutable()))
+                && workingDir.equals(forkOptions.getWorkingDir())
+                && normalized(jvmOptions.getDefaultCharacterEncoding())
+                        .equals(normalized(forkOptions.getJvmOptions().getDefaultCharacterEncoding()))
+                && getHeapSizeMb(jvmOptions.getMinHeapSize())
+                        >= getHeapSizeMb(forkOptions.getJvmOptions().getMinHeapSize())
+                && getHeapSizeMb(jvmOptions.getMaxHeapSize())
+                        >= getHeapSizeMb(forkOptions.getJvmOptions().getMaxHeapSize())
+                && normalized(jvmOptions.getJvmArgs())
+                        .containsAll(normalized(forkOptions.getJvmOptions().getJvmArgs()))
+                && containsAll(
+                        jvmOptions.getMutableSystemProperties(),
+                        forkOptions.getJvmOptions().getMutableSystemProperties())
+                && containsAll(environment, forkOptions.getEnvironment())
+                && jvmOptions
+                        .getBootstrapClasspath()
+                        .getFiles()
+                        .containsAll(forkOptions
+                                .getJvmOptions()
+                                .getBootstrapClasspath()
+                                .getFiles());
     }
 
     public void copyTo(JavaExecHandleBuilder target) {
@@ -93,12 +106,11 @@ public class EffectiveJavaForkOptions {
 
     @Override
     public String toString() {
-        return "EffectiveJavaForkOptions{" +
-            "executable='" + executable + '\'' +
-            ", workingDir=" + workingDir +
-            ", environment=" + environment +
-            ", jvmOptions=" + jvmOptions +
-            '}';
+        return "EffectiveJavaForkOptions{" + "executable='"
+                + executable + '\'' + ", workingDir="
+                + workingDir + ", environment="
+                + environment + ", jvmOptions="
+                + jvmOptions + '}';
     }
 
     @NullMarked

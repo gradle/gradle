@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import java.io.File;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
@@ -24,8 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.model.CalculatedValue;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Default implementation of {@link ResolvedArtifact}, the artifact type used by the legacy
@@ -40,7 +39,11 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifactName;
 
-    public DefaultResolvedArtifact(ComponentArtifactIdentifier id, CalculatedValue<File> fileSource, @Nullable ModuleVersionIdentifier owner, IvyArtifactName artifactName) {
+    public DefaultResolvedArtifact(
+            ComponentArtifactIdentifier id,
+            CalculatedValue<File> fileSource,
+            @Nullable ModuleVersionIdentifier owner,
+            IvyArtifactName artifactName) {
         this.id = id;
         this.fileSource = fileSource;
         this.owner = owner;

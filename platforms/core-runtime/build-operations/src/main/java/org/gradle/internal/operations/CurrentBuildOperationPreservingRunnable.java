@@ -23,7 +23,8 @@ public class CurrentBuildOperationPreservingRunnable implements Runnable {
     }
 
     static Runnable wrapIfNeeded(Runnable delegate, CurrentBuildOperationRef ref) {
-        if (delegate instanceof CurrentBuildOperationPreservingRunnable && ((CurrentBuildOperationPreservingRunnable) delegate).ref == ref) {
+        if (delegate instanceof CurrentBuildOperationPreservingRunnable
+                && ((CurrentBuildOperationPreservingRunnable) delegate).ref == ref) {
             // Even if the build operation of the delegate would be different, it would override a new wrapper anyway,
             // so we can just return the delegate.
             return delegate;
@@ -40,7 +41,8 @@ public class CurrentBuildOperationPreservingRunnable implements Runnable {
     private final CurrentBuildOperationRef ref;
     private final BuildOperationRef buildOperation;
 
-    private CurrentBuildOperationPreservingRunnable(Runnable delegate, CurrentBuildOperationRef ref, BuildOperationRef buildOperation) {
+    private CurrentBuildOperationPreservingRunnable(
+            Runnable delegate, CurrentBuildOperationRef ref, BuildOperationRef buildOperation) {
         this.delegate = delegate;
         this.ref = ref;
         this.buildOperation = buildOperation;

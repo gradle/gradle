@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import java.io.File;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class MinimalJavaCompilerDaemonForkOptions extends MinimalCompilerDaemonForkOptions {
     private String executable;

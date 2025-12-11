@@ -15,11 +15,10 @@
  */
 package org.gradle.process;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * Specifies options for launching a child process.

@@ -15,9 +15,8 @@
  */
 package org.gradle.plugins.ide.internal.generator.generator;
 
-import org.gradle.internal.Factory;
-
 import java.io.File;
+import org.gradle.internal.Factory;
 
 /**
  * Adapts a {@link PersistableConfigurationObject} to a {@link
@@ -25,7 +24,8 @@ import java.io.File;
  *
  * @param <T> the configuration object type.
  */
-public abstract class PersistableConfigurationObjectGenerator<T extends PersistableConfigurationObject> implements Generator<T>, Factory<T> {
+public abstract class PersistableConfigurationObjectGenerator<T extends PersistableConfigurationObject>
+        implements Generator<T>, Factory<T> {
     @Override
     public T read(File inputFile) {
         T obj = create();

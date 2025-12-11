@@ -16,13 +16,12 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.plugins.JvmTestSuitePlugin;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
-import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
-
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSpecificProjectGenerator {
     protected String withPackage(InitSettings settings, String className) {
@@ -43,11 +42,19 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
         return Optional.empty();
     }
 
-    protected BuildScriptBuilder.SuiteSpec configureDefaultTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework, TemplateLibraryVersionProvider libraryVersionProvider) {
-        return addTestSuite(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, buildScriptBuilder, testFramework, libraryVersionProvider);
+    protected BuildScriptBuilder.SuiteSpec configureDefaultTestSuite(
+            BuildScriptBuilder buildScriptBuilder,
+            BuildInitTestFramework testFramework,
+            TemplateLibraryVersionProvider libraryVersionProvider) {
+        return addTestSuite(
+                JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, buildScriptBuilder, testFramework, libraryVersionProvider);
     }
 
-    protected BuildScriptBuilder.SuiteSpec addTestSuite(String name, BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework, TemplateLibraryVersionProvider libraryVersionProvider) {
+    protected BuildScriptBuilder.SuiteSpec addTestSuite(
+            String name,
+            BuildScriptBuilder buildScriptBuilder,
+            BuildInitTestFramework testFramework,
+            TemplateLibraryVersionProvider libraryVersionProvider) {
         switch (testFramework) {
             case JUNIT:
                 return buildScriptBuilder.testing().junitSuite(name, libraryVersionProvider);
@@ -60,15 +67,20 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
             case TESTNG:
                 return buildScriptBuilder.testing().testNG(name, libraryVersionProvider);
             case SCALATEST:
-                BuildScriptBuilder.SuiteSpec suiteSpec = buildScriptBuilder.testing().junitSuite(name, libraryVersionProvider);
+                BuildScriptBuilder.SuiteSpec suiteSpec =
+                        buildScriptBuilder.testing().junitSuite(name, libraryVersionProvider);
                 String scalaVersion = libraryVersionProvider.getVersion("scala");
                 String scalaTestVersion = libraryVersionProvider.getVersion("scalatest");
                 String scalaTestPlusJunitVersion = libraryVersionProvider.getVersion("scalatestplus-junit");
                 String scalaXmlVersion = libraryVersionProvider.getVersion("scala-xml");
-                suiteSpec.implementation("Use Scalatest for testing our library",
-                    BuildInitDependency.of("org.scalatest:scalatest_" + scalaVersion, scalaTestVersion),
-                    BuildInitDependency.of("org.scalatestplus:junit-4-13_" + scalaVersion, scalaTestPlusJunitVersion));
-                suiteSpec.runtimeOnly("Need scala-xml at test runtime", BuildInitDependency.of("org.scala-lang.modules:scala-xml_" + scalaVersion, scalaXmlVersion));
+                suiteSpec.implementation(
+                        "Use Scalatest for testing our library",
+                        BuildInitDependency.of("org.scalatest:scalatest_" + scalaVersion, scalaTestVersion),
+                        BuildInitDependency.of(
+                                "org.scalatestplus:junit-4-13_" + scalaVersion, scalaTestPlusJunitVersion));
+                suiteSpec.runtimeOnly(
+                        "Need scala-xml at test runtime",
+                        BuildInitDependency.of("org.scala-lang.modules:scala-xml_" + scalaVersion, scalaXmlVersion));
                 return suiteSpec;
             default:
                 throw new IllegalArgumentException(testFramework + " is not yet supported.");

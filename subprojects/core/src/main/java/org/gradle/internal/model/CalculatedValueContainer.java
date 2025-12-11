@@ -16,6 +16,8 @@
 
 package org.gradle.internal.model;
 
+import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Project;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
@@ -26,9 +28,6 @@ import org.gradle.internal.Try;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.service.ServiceLookupException;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Represents a calculated immutable value that is calculated once and then consumed by multiple threads.
@@ -46,18 +45,24 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>This type can hold null as the computed value.</p>
  */
 @ThreadSafe
-public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>> implements CalculatedValue<T>, WorkNodeAction {
-    // TODO(https://github.com/gradle/gradle/issues/24767): with JSpecify, the nullable nature of the type argument <T> should be expressed as <T extends @Nullable Object>.
-    //  We cannot use this syntax until adopting JSpecify with e.g. Jetbrains Annotations, because IDEA wrongly treats all usages as having a nullable type, even when
+public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
+        implements CalculatedValue<T>, WorkNodeAction {
+    // TODO(https://github.com/gradle/gradle/issues/24767): with JSpecify, the nullable nature of the type argument <T>
+    // should be expressed as <T extends @Nullable Object>.
+    //  We cannot use this syntax until adopting JSpecify with e.g. Jetbrains Annotations, because IDEA wrongly treats
+    // all usages as having a nullable type, even when
     //  it is explicitly spelled.
 
     private final DisplayName displayName;
-    // Null when the value has been calculated and assigned to the result field. When not null the result has not been calculated
-    // or is currently being calculated or has just been calculated. It is possible for both this field and the result field to be
+    // Null when the value has been calculated and assigned to the result field. When not null the result has not been
+    // calculated
+    // or is currently being calculated or has just been calculated. It is possible for both this field and the result
+    // field to be
     // non-null at the same time for a brief period just after the result has been calculated
     @Nullable
     private volatile CalculationState<T, S> calculationState;
-    // Not null when the value has been calculated. When not null the result has not been calculated or is currently being calculated
+    // Not null when the value has been calculated. When not null the result has not been calculated or is currently
+    // being calculated
     @Nullable
     private volatile Try<T> result;
 
@@ -66,7 +71,11 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
      *
      * Note: this is package protected. Use {@link CalculatedValueContainerFactory} instead.
      */
-    CalculatedValueContainer(DisplayName displayName, S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
+    CalculatedValueContainer(
+            DisplayName displayName,
+            S supplier,
+            ProjectLeaseRegistry projectLeaseRegistry,
+            NodeExecutionContext defaultContext) {
         this.displayName = displayName;
         this.calculationState = new CalculationState<>(supplier, projectLeaseRegistry, defaultContext);
     }
@@ -202,7 +211,8 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         final NodeExecutionContext defaultContext;
         boolean done;
 
-        public CalculationState(S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
+        public CalculationState(
+                S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
             this.supplier = supplier;
             this.projectLeaseRegistry = projectLeaseRegistry;
             this.defaultContext = defaultContext;

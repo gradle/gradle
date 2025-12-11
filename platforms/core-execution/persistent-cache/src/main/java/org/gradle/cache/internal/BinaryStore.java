@@ -16,15 +16,14 @@
 
 package org.gradle.cache.internal;
 
+import java.io.Closeable;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-
-import java.io.Closeable;
 
 public interface BinaryStore {
     void write(WriteAction write);
 
-    //done writing data, release any resources
+    // done writing data, release any resources
     BinaryData done();
 
     interface WriteAction {

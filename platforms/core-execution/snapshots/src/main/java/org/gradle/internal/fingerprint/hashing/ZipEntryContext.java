@@ -16,9 +16,8 @@
 
 package org.gradle.internal.fingerprint.hashing;
 
-import org.gradle.api.internal.file.archive.ZipEntry;
-
 import java.util.function.Supplier;
+import org.gradle.api.internal.file.archive.ZipEntry;
 
 public interface ZipEntryContext {
     ZipEntry getEntry();

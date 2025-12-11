@@ -84,7 +84,8 @@ public abstract class NodePredicate {
         private final ModelPath ancestor;
         private final Predicate<? super MutableModelNode> matcher;
 
-        public BasicPredicate(ModelPath path, ModelPath parent, ModelPath ancestor, Predicate<? super MutableModelNode> matcher) {
+        public BasicPredicate(
+                ModelPath path, ModelPath parent, ModelPath ancestor, Predicate<? super MutableModelNode> matcher) {
             this.path = path;
             this.parent = parent;
             this.ancestor = ancestor;

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import java.net.URI;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -24,8 +25,6 @@ import org.apache.http.client.methods.*;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.protocol.HttpContext;
 
-import java.net.URI;
-
 /**
  * A class which makes httpclient follow redirects for all http methods.
  * This has been introduced to overcome a regression caused by switching to apache httpclient as the transport mechanism for publishing (https://issues.gradle.org/browse/GRADLE-3312)
@@ -33,8 +32,7 @@ import java.net.URI;
  */
 public class AlwaysFollowAndPreserveMethodRedirectStrategy extends DefaultRedirectStrategy {
 
-    public AlwaysFollowAndPreserveMethodRedirectStrategy() {
-    }
+    public AlwaysFollowAndPreserveMethodRedirectStrategy() {}
 
     @Override
     protected boolean isRedirectable(String method) {
@@ -42,7 +40,8 @@ public class AlwaysFollowAndPreserveMethodRedirectStrategy extends DefaultRedire
     }
 
     @Override
-    public HttpUriRequest getRedirect(HttpRequest request, HttpResponse response, HttpContext context) throws ProtocolException {
+    public HttpUriRequest getRedirect(HttpRequest request, HttpResponse response, HttpContext context)
+            throws ProtocolException {
         URI uri = this.getLocationURI(request, response, context);
         String method = request.getRequestLine().getMethod();
         if (method.equalsIgnoreCase(HttpHead.METHOD_NAME)) {

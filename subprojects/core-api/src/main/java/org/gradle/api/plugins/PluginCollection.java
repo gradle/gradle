@@ -16,12 +16,11 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
+import java.util.Collection;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.specs.Spec;
-
-import java.util.Collection;
 
 /**
  * <p>A {@code PluginCollection} represents a collection of {@link org.gradle.api.Plugin} instances.</p>

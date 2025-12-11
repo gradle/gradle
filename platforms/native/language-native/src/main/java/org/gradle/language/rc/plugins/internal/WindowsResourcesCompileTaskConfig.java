@@ -15,6 +15,9 @@
  */
 package org.gradle.language.rc.plugins.internal;
 
+import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -38,10 +41,6 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.BinarySpec;
 
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskConfig {
     @Override
     public String getTaskPrefix() {
@@ -54,11 +53,14 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
     }
 
     @Override
-    public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
-        configureResourceCompileTask((WindowsResourceCompile) task, (NativeBinarySpecInternal) binary, (WindowsResourceSet) sourceSet);
+    public void configureTask(
+            Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+        configureResourceCompileTask(
+                (WindowsResourceCompile) task, (NativeBinarySpecInternal) binary, (WindowsResourceSet) sourceSet);
     }
 
-    private void configureResourceCompileTask(WindowsResourceCompile task, final NativeBinarySpecInternal binary, final WindowsResourceSet sourceSet) {
+    private void configureResourceCompileTask(
+            WindowsResourceCompile task, final NativeBinarySpecInternal binary, final WindowsResourceSet sourceSet) {
         task.setDescription("Compiles resources of the " + sourceSet + " of " + binary);
 
         task.getToolChain().set(binary.getToolChain());
@@ -66,12 +68,16 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
 
         task.includes(sourceSet.getExportedHeaders().getSourceDirectories());
 
-        FileCollectionFactory fileCollectionFactory = ((ProjectInternal) task.getProject()).getServices().get(FileCollectionFactory.class);
+        FileCollectionFactory fileCollectionFactory =
+                ((ProjectInternal) task.getProject()).getServices().get(FileCollectionFactory.class);
         task.includes(fileCollectionFactory.create(new MinimalFileSet() {
             @Override
             public Set<File> getFiles() {
-                PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
-                return new LinkedHashSet<File>(platformToolProvider.getSystemLibraries(ToolType.WINDOW_RESOURCES_COMPILER).getIncludeDirs());
+                PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain())
+                        .select((NativePlatformInternal) binary.getTargetPlatform());
+                return new LinkedHashSet<File>(platformToolProvider
+                        .getSystemLibraries(ToolType.WINDOW_RESOURCES_COMPILER)
+                        .getIncludeDirs());
             }
 
             @Override
@@ -84,17 +90,23 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
 
         final Project project = task.getProject();
 
-        task.setOutputDir(project.getLayout().getBuildDirectory().getAsFile().map(it -> new File(binary.getNamingScheme().getOutputDirectory(it, "objs"), ((LanguageSourceSetInternal) sourceSet).getProjectScopedName())).get());
+        task.setOutputDir(project.getLayout()
+                .getBuildDirectory()
+                .getAsFile()
+                .map(it -> new File(
+                        binary.getNamingScheme().getOutputDirectory(it, "objs"),
+                        ((LanguageSourceSetInternal) sourceSet).getProjectScopedName()))
+                .get());
 
         PreprocessingTool rcCompiler = (PreprocessingTool) binary.getToolByName("rcCompiler");
         task.setMacros(rcCompiler.getMacros());
         task.getCompilerArgs().set(rcCompiler.getArgs());
 
-        FileTree resourceOutputs = task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.res"));
+        FileTree resourceOutputs =
+                task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.res"));
         binary.binaryInputs(resourceOutputs);
         if (binary instanceof StaticLibraryBinarySpecInternal) {
             ((StaticLibraryBinarySpecInternal) binary).additionalLinkFiles(resourceOutputs);
         }
     }
-
 }

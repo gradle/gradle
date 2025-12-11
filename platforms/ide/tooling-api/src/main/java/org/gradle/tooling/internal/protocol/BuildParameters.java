@@ -24,5 +24,4 @@ package org.gradle.tooling.internal.protocol;
  *
  * @since 1.2-rc-1
  */
-public interface BuildParameters extends InternalProtocolInterface {
-}
+public interface BuildParameters extends InternalProtocolInterface {}

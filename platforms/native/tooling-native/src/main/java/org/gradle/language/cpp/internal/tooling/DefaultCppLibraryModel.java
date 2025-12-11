@@ -16,9 +16,8 @@
 
 package org.gradle.language.cpp.internal.tooling;
 
-import org.gradle.tooling.internal.protocol.cpp.InternalCppLibrary;
-
 import java.util.List;
+import org.gradle.tooling.internal.protocol.cpp.InternalCppLibrary;
 
 public class DefaultCppLibraryModel extends DefaultCppComponentModel implements InternalCppLibrary {
     public DefaultCppLibraryModel(String name, String baseName, List<DefaultCppBinaryModel> binaries) {

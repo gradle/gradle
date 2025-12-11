@@ -18,6 +18,13 @@ package org.gradle.language.scala.tasks;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -59,14 +66,6 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * An abstract Scala compile task sharing common functionality for compiling scala.
  */
@@ -80,14 +79,16 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     private final Property<JavaLauncher> javaLauncher;
 
     {
-        // Calling this(getProject().getObject()...) in the constructor is invalid as getProject() is an instance method.
+        // Calling this(getProject().getObject()...) in the constructor is invalid as getProject() is an instance
+        // method.
         // To avoid code duplication, the initialization logic is extracted to an instance initialization block.
         ObjectFactory objectFactory = getObjectFactory();
         this.analysisMappingFile = objectFactory.fileProperty();
         this.analysisFiles = objectFactory.fileCollection();
         this.compileOptions = objectFactory.newInstance(CompileOptions.class);
         JavaToolchainService javaToolchainService = getJavaToolchainService();
-        this.javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaToolchainService.launcherFor(it -> {}));
+        this.javaLauncher =
+                objectFactory.property(JavaLauncher.class).convention(javaToolchainService.launcherFor(it -> {}));
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
@@ -119,7 +120,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         return compileOptions;
     }
 
-    abstract protected Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec);
+    protected abstract Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec);
 
     @TaskAction
     public void compile() {
@@ -144,7 +145,11 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     }
 
     private boolean isNonIncrementalCompilation() {
-        File analysisFile = getScalaCompileOptions().getIncrementalOptions().getAnalysisFile().getAsFile().get();
+        File analysisFile = getScalaCompileOptions()
+                .getIncrementalOptions()
+                .getAnalysisFile()
+                .getAsFile()
+                .get();
         if (!analysisFile.exists()) {
             LOGGER.info("Zinc is doing a full recompile since the analysis file doesn't exist");
             return true;
@@ -166,7 +171,9 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         spec.setTempDir(getTemporaryDir());
         List<File> effectiveClasspath;
         if (scalaCompileOptions.getKeepAliveMode().get() == KeepAliveMode.DAEMON) {
-            effectiveClasspath = getCachedClasspathTransformer().copyingTransform(DefaultClassPath.of(getClasspath())).getAsFiles();
+            effectiveClasspath = getCachedClasspathTransformer()
+                    .copyingTransform(DefaultClassPath.of(getClasspath()))
+                    .getAsFiles();
         } else {
             effectiveClasspath = ImmutableList.copyOf(getClasspath());
         }
@@ -174,15 +181,18 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         configureCompatibilityOptions(spec);
         spec.setCompileOptions(getOptions());
         spec.setScalaCompileOptions(new MinimalScalaCompileOptions(scalaCompileOptions));
-        spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null
-            ? ImmutableList.of()
-            : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
+        spec.setAnnotationProcessorPath(
+                compileOptions.getAnnotationProcessorPath() == null
+                        ? ImmutableList.of()
+                        : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setBuildStartTimestamp(getServices().get(BuildStartedTime.class).getStartTime());
         return spec;
     }
 
     private void configureCompatibilityOptions(DefaultScalaJavaJointCompileSpec spec) {
-        String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
+        String toolchainVersion = JavaVersion.toVersion(
+                        getToolchain().getLanguageVersion().asInt())
+                .toString();
         String sourceCompatibility = getSourceCompatibility();
         if (sourceCompatibility == null) {
             sourceCompatibility = toolchainVersion;
@@ -200,7 +210,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         IncrementalCompileOptions incrementalOptions = scalaCompileOptions.getIncrementalOptions();
 
         File analysisFile = incrementalOptions.getAnalysisFile().getAsFile().get();
-        File classpathBackupDir = incrementalOptions.getClassfileBackupDir().getAsFile().get();
+        File classpathBackupDir =
+                incrementalOptions.getClassfileBackupDir().getAsFile().get();
         Map<File, File> globalAnalysisMap = resolveAnalysisMappingsForOtherProjects();
         spec.setAnalysisMap(globalAnalysisMap);
         spec.setAnalysisFile(analysisFile);
@@ -208,7 +219,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
 
         // If this Scala compile is published into a jar, generate a analysis mapping file
         if (incrementalOptions.getPublishedCode().isPresent()) {
-            File publishedCode = incrementalOptions.getPublishedCode().getAsFile().get();
+            File publishedCode =
+                    incrementalOptions.getPublishedCode().getAsFile().get();
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("scala-incremental Analysis file: {}", analysisFile);
@@ -216,7 +228,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
                 LOGGER.debug("scala-incremental Published code: {}", publishedCode);
             }
             File analysisMapping = getAnalysisMappingFile().getAsFile().get();
-            GFileUtils.writeFile(publishedCode.getAbsolutePath() + "\n" + analysisFile.getAbsolutePath(), analysisMapping);
+            GFileUtils.writeFile(
+                    publishedCode.getAbsolutePath() + "\n" + analysisFile.getAbsolutePath(), analysisMapping);
         }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("scala-incremental Analysis map: {}", globalAnalysisMap);

@@ -16,18 +16,18 @@
 
 package org.gradle.internal.service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @ServiceScope(Scope.Global.class)
 public class CachingServiceLocator implements ServiceLocator {
     private final ServiceLocator delegate;
-    private final Map<Class<?>, DefaultServiceLocator.ServiceFactory<?>> serviceFactories = new HashMap<Class<?>, DefaultServiceLocator.ServiceFactory<?>>();
+    private final Map<Class<?>, DefaultServiceLocator.ServiceFactory<?>> serviceFactories =
+            new HashMap<Class<?>, DefaultServiceLocator.ServiceFactory<?>>();
     private final Map<Class<?>, Object> services = new HashMap<Class<?>, Object>();
     private final Map<Class<?>, List<?>> allServices = new HashMap<Class<?>, List<?>>();
 
@@ -70,10 +70,15 @@ public class CachingServiceLocator implements ServiceLocator {
     }
 
     @Override
-    public synchronized <T> DefaultServiceLocator.ServiceFactory<T> getFactory(Class<T> serviceType) throws UnknownServiceException {
+    public synchronized <T> DefaultServiceLocator.ServiceFactory<T> getFactory(Class<T> serviceType)
+            throws UnknownServiceException {
         DefaultServiceLocator.ServiceFactory<T> factory = findFactory(serviceType);
         if (factory == null) {
-            throw new UnknownServiceException(serviceType, String.format("Could not find meta-data resource 'META-INF/services/%s' for service '%s'.", serviceType.getName(), serviceType.getName()));
+            throw new UnknownServiceException(
+                    serviceType,
+                    String.format(
+                            "Could not find meta-data resource 'META-INF/services/%s' for service '%s'.",
+                            serviceType.getName(), serviceType.getName()));
         }
         return factory;
     }

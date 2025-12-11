@@ -16,23 +16,23 @@
 
 package org.gradle.performance.results.report;
 
-import com.google.common.collect.Sets;
-import org.gradle.performance.results.PerformanceFlakinessDataProvider;
-import org.gradle.performance.results.PerformanceReportScenario;
-import org.gradle.performance.results.ResultsStore;
+import static org.gradle.performance.results.report.FlakinessDetectionPerformanceExecutionDataProvider.isFlaky;
+import static org.gradle.performance.results.report.Tag.FixedTag.FLAKY;
 
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
-import static org.gradle.performance.results.report.FlakinessDetectionPerformanceExecutionDataProvider.isFlaky;
-import static org.gradle.performance.results.report.Tag.FixedTag.FLAKY;
+import org.gradle.performance.results.PerformanceFlakinessDataProvider;
+import org.gradle.performance.results.PerformanceReportScenario;
+import org.gradle.performance.results.ResultsStore;
 
 public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
-    public FlakinessIndexPageGenerator(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider dataProvider) {
+    public FlakinessIndexPageGenerator(
+            PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider dataProvider) {
         super(flakinessDataProvider, dataProvider);
     }
 
@@ -47,7 +47,9 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
             @Override
             protected String getTableTitle() {
                 int total = executionDataProvider.getReportScenarios().size();
-                long flakyCount = executionDataProvider.getReportScenarios().stream().filter(FlakinessDetectionPerformanceExecutionDataProvider::isFlaky).count();
+                long flakyCount = executionDataProvider.getReportScenarios().stream()
+                        .filter(FlakinessDetectionPerformanceExecutionDataProvider::isFlaky)
+                        .count();
                 return "Scenarios ( total: " + total + ", flaky: " + flakyCount + ")";
             }
 
@@ -77,9 +79,7 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
             }
 
             @Override
-            protected void renderScenarioButtons(int index, PerformanceReportScenario scenario) {
-            }
+            protected void renderScenarioButtons(int index, PerformanceReportScenario scenario) {}
         };
     }
-
 }

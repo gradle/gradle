@@ -15,10 +15,10 @@
  */
 package org.gradle.api.specs;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 
 public class OrSpecTest extends AbstractCompositeSpecTest {
 

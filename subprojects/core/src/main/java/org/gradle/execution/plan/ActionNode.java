@@ -17,15 +17,14 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.function.Consumer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.resources.ResourceLock;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 public class ActionNode extends Node implements SelfExecutingNode {
     private WorkNodeAction action;
@@ -93,7 +92,8 @@ public class ActionNode extends Node implements SelfExecutingNode {
         try {
             action.run(context);
             if (action instanceof PostExecutionNodeAwareActionNode) {
-                postExecutionNodes = ImmutableList.copyOf(((PostExecutionNodeAwareActionNode) action).getPostExecutionNodes());
+                postExecutionNodes =
+                        ImmutableList.copyOf(((PostExecutionNodeAwareActionNode) action).getPostExecutionNodes());
             }
         } finally {
             action = null;

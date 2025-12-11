@@ -16,6 +16,8 @@
 
 package org.gradle.composite.internal;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.build.BuildState;
@@ -24,17 +26,12 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.util.Path;
 
-import javax.inject.Inject;
-import java.io.File;
-
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
 
     private final BuildTreeState buildTree;
 
     @Inject
-    public DefaultIncludedBuildFactory(
-        BuildTreeState buildTree
-    ) {
+    public DefaultIncludedBuildFactory(BuildTreeState buildTree) {
         this.buildTree = buildTree;
     }
 
@@ -48,15 +45,9 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     }
 
     @Override
-    public IncludedBuildState createBuild(Path identityPath, BuildDefinition buildDefinition, boolean isImplicit, BuildState owner) {
+    public IncludedBuildState createBuild(
+            Path identityPath, BuildDefinition buildDefinition, boolean isImplicit, BuildState owner) {
         validateBuildDirectory(buildDefinition.getBuildRootDir());
-        return new DefaultIncludedBuild(
-            identityPath,
-            buildDefinition,
-            isImplicit,
-            owner,
-            buildTree
-        );
+        return new DefaultIncludedBuild(identityPath, buildDefinition, isImplicit, owner, buildTree);
     }
-
 }

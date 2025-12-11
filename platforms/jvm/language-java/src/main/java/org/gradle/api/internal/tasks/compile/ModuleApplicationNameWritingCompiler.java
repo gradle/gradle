@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.objectweb.asm.ClassReader;
@@ -23,12 +28,6 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Post processes the compilation result to add the ModuleMainClass attribute to module-info.class
@@ -67,7 +66,6 @@ public class ModuleApplicationNameWritingCompiler<T extends JavaCompileSpec> imp
             throw new RuntimeException(e);
         }
     }
-
 
     private static class ModuleInfoVisitor extends ClassVisitor {
         private final String mainClass;

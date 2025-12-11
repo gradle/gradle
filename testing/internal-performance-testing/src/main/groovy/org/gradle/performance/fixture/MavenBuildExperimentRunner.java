@@ -16,8 +16,16 @@
 
 package org.gradle.performance.fixture;
 
+import static java.util.Collections.emptyList;
+
 import com.google.common.collect.ImmutableList;
 import groovy.transform.CompileStatic;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import org.gradle.internal.UncheckedException;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
@@ -29,18 +37,10 @@ import org.gradle.profiler.maven.MavenScenarioDefinition;
 import org.gradle.profiler.maven.MavenScenarioInvoker;
 import org.gradle.profiler.result.BuildInvocationResult;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import static java.util.Collections.emptyList;
-
 @CompileStatic
 public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
-    public MavenBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter, OutputDirSelector outputDirSelector) {
+    public MavenBuildExperimentRunner(
+            GradleProfilerReporter gradleProfilerReporter, OutputDirSelector outputDirSelector) {
         super(gradleProfilerReporter, outputDirSelector);
     }
 
@@ -58,10 +58,8 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
             MavenScenarioInvoker scenarioInvoker = new MavenScenarioInvoker();
             Logging.setupLogging(workingDirectory);
 
-            Consumer<BuildInvocationResult> scenarioReporter = getResultCollector().scenario(
-                scenarioDefinition,
-                scenarioInvoker.samplesFor(invocationSettings, scenarioDefinition)
-            );
+            Consumer<BuildInvocationResult> scenarioReporter = getResultCollector()
+                    .scenario(scenarioDefinition, scenarioInvoker.samplesFor(invocationSettings, scenarioDefinition));
             Consumer<BuildInvocationResult> resultConsumer = consumerFor(scenarioDefinition, results, scenarioReporter);
             scenarioInvoker.run(scenarioDefinition, invocationSettings, resultConsumer);
         } catch (IOException | InterruptedException e) {
@@ -77,31 +75,31 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
     private InvocationSettings createInvocationSettings(String testId, MavenBuildExperimentSpec experimentSpec) {
         return createInvocationSettingsBuilder(testId, experimentSpec)
-            .setInvoker(BuildInvoker.Maven)
-            .setVersions(ImmutableList.of(experimentSpec.getInvocation().getMavenVersion()))
-            .setTargets(experimentSpec.getInvocation().getTasksToRun())
-            .setMeasuredBuildOperations(emptyList())
-            .build();
+                .setInvoker(BuildInvoker.Maven)
+                .setVersions(ImmutableList.of(experimentSpec.getInvocation().getMavenVersion()))
+                .setTargets(experimentSpec.getInvocation().getTasksToRun())
+                .setMeasuredBuildOperations(emptyList())
+                .build();
     }
 
-    private MavenScenarioDefinition createScenarioDefinition(MavenBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings) {
+    private MavenScenarioDefinition createScenarioDefinition(
+            MavenBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings) {
         MavenInvocationSpec invocation = experimentSpec.getInvocation();
         List<String> arguments = ImmutableList.<String>builder()
-            .addAll(invocation.getTasksToRun())
-            .addAll(invocation.getArgs())
-            .build();
+                .addAll(invocation.getTasksToRun())
+                .addAll(invocation.getArgs())
+                .build();
         return new MavenScenarioDefinition(
-            experimentSpec.getDisplayName(),
-            experimentSpec.getDisplayName(),
-            arguments,
-            Collections.emptyMap(),
-            experimentSpec.getBuildMutators().stream()
-                .map(mutatorFunction -> mutatorFunction.apply(invocationSettings))
-                .collect(Collectors.toList()),
-            invocationSettings.getWarmUpCount(),
-            invocationSettings.getBuildCount(),
-            invocationSettings.getOutputDir(),
-            experimentSpec.getInvocation().getInstallation().getHome()
-        );
+                experimentSpec.getDisplayName(),
+                experimentSpec.getDisplayName(),
+                arguments,
+                Collections.emptyMap(),
+                experimentSpec.getBuildMutators().stream()
+                        .map(mutatorFunction -> mutatorFunction.apply(invocationSettings))
+                        .collect(Collectors.toList()),
+                invocationSettings.getWarmUpCount(),
+                invocationSettings.getBuildCount(),
+                invocationSettings.getOutputDir(),
+                experimentSpec.getInvocation().getInstallation().getHome());
     }
 }

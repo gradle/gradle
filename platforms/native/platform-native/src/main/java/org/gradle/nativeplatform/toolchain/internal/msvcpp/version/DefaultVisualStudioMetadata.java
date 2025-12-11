@@ -16,10 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
+import java.io.File;
 import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class DefaultVisualStudioMetadata implements VisualStudioInstallCandidate {
     private final File installDir;
@@ -28,7 +27,12 @@ public class DefaultVisualStudioMetadata implements VisualStudioInstallCandidate
     private final VersionNumber visualCppVersion;
     private final Compatibility compatibility;
 
-    DefaultVisualStudioMetadata(File installDir, @Nullable File visualCppDir, VersionNumber version, @Nullable VersionNumber visualCppVersion, Compatibility compatibility) {
+    DefaultVisualStudioMetadata(
+            File installDir,
+            @Nullable File visualCppDir,
+            VersionNumber version,
+            @Nullable VersionNumber visualCppVersion,
+            Compatibility compatibility) {
         this.installDir = installDir;
         this.visualCppDir = visualCppDir;
         this.version = version;

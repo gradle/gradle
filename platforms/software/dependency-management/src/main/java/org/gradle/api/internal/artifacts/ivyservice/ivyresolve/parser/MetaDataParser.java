@@ -16,11 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 public interface MetaDataParser<T extends MutableModuleComponentResolveMetadata> {
     /**
@@ -38,29 +37,30 @@ public interface MetaDataParser<T extends MutableModuleComponentResolveMetadata>
      * moved from publishing `pom` only to also publish `module` files.
      */
     String GRADLE_6_METADATA_MARKER = "do_not_remove: published-with-gradle-metadata";
-    List<String> GRADLE_METADATA_MARKER_COMMENT_LINES = ImmutableList.of(
-        "This module was also published with a richer model, Gradle metadata, ",
-        "which should be used instead. Do not delete the following line which ",
-        "is to indicate to Gradle or any Gradle module metadata file consumer ",
-        "that they should prefer consuming it instead."
-    );
 
-    ParseResult<T> parseMetaData(DescriptorParseContext context, LocallyAvailableExternalResource resource) throws MetaDataParseException;
+    List<String> GRADLE_METADATA_MARKER_COMMENT_LINES = ImmutableList.of(
+            "This module was also published with a richer model, Gradle metadata, ",
+            "which should be used instead. Do not delete the following line which ",
+            "is to indicate to Gradle or any Gradle module metadata file consumer ",
+            "that they should prefer consuming it instead.");
+
+    ParseResult<T> parseMetaData(DescriptorParseContext context, LocallyAvailableExternalResource resource)
+            throws MetaDataParseException;
 
     ParseResult<T> parseMetaData(DescriptorParseContext context, File descriptorFile) throws MetaDataParseException;
 
-    ParseResult<T> parseMetaData(DescriptorParseContext context, File descriptorFile, boolean validate) throws MetaDataParseException;
+    ParseResult<T> parseMetaData(DescriptorParseContext context, File descriptorFile, boolean validate)
+            throws MetaDataParseException;
 
     interface ParseResult<T> {
         boolean hasGradleMetadataRedirectionMarker();
+
         T getResult();
 
         static <T> ParseResult<T> of(T parsed, boolean hasGradleMetadataRedirect) {
             return new DefaultParseResult<>(parsed, hasGradleMetadataRedirect);
         }
-
     }
-
 }
 
 class DefaultParseResult<T> implements MetaDataParser.ParseResult<T> {

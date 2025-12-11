@@ -24,5 +24,4 @@ public interface OutputFileProperty extends FileProperty {
         FILE,
         DIRECTORY
     }
-
 }

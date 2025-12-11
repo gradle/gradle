@@ -16,6 +16,15 @@
 
 package org.gradle.ide.visualstudio.tasks;
 
+import static org.gradle.util.internal.CollectionUtils.collect;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
@@ -41,16 +50,6 @@ import org.gradle.util.internal.VersionNumber;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Callable;
-
-import static org.gradle.util.internal.CollectionUtils.collect;
-
 /**
  * Task for generating a Visual Studio project file (e.g. {@code foo.vcxproj}).
  */
@@ -59,8 +58,11 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> {
     private transient DefaultVisualStudioProject visualStudioProject;
     private final Cached<ProjectSpec> spec = Cached.of(this::calculateSpec);
-    private final Provider<File> outputFile = getProject().provider(SerializableLambdas.callable(() -> visualStudioProject.getProjectFile().getLocation()));
-    private final Cached<Transformer<@org.jetbrains.annotations.NotNull String, File>> transformer = Cached.of(this::getTransformer);
+    private final Provider<File> outputFile = getProject()
+            .provider(SerializableLambdas.callable(
+                    () -> visualStudioProject.getProjectFile().getLocation()));
+    private final Cached<Transformer<@org.jetbrains.annotations.NotNull String, File>> transformer =
+            Cached.of(this::getTransformer);
     private String gradleExe;
     private String gradleArgs;
 
@@ -96,7 +98,8 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
 
     @Internal
     public Transformer<@org.jetbrains.annotations.NotNull String, File> getTransformer() {
-        return RelativeFileNameTransformer.forFile(getProject().getRootDir(), visualStudioProject.getProjectFile().getLocation());
+        return RelativeFileNameTransformer.forFile(
+                getProject().getRootDir(), visualStudioProject.getProjectFile().getLocation());
     }
 
     public void setVisualStudioProject(VisualStudioProject vsProject) {
@@ -201,7 +204,8 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
     private ProjectSpec calculateSpec() {
         String warning;
         if (visualStudioProject.getConfigurations().stream().noneMatch(it -> it.isBuildable())) {
-            warning = "'" + visualStudioProject.getComponentName() + "' component in project '" + getProject().getPath() + "' is not buildable.";
+            warning = "'" + visualStudioProject.getComponentName() + "' component in project '"
+                    + getProject().getPath() + "' is not buildable.";
         } else {
             warning = null;
         }
@@ -211,50 +215,47 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
             VisualStudioTargetBinary targetBinary = configuration.getTargetBinary();
             if (targetBinary != null) {
                 configurations.add(new VisualStudioProjectFile.ConfigurationSpec(
-                    configuration.getName(),
-                    configuration.getConfigurationName(),
-                    configuration.getProject().getName(),
-                    configuration.getPlatformName(),
-                    configuration.getType(),
-                    configuration.isBuildable(),
-                    targetBinary.isDebuggable(),
-                    targetBinary.getIncludePaths(),
-                    targetBinary.getBuildTaskPath(),
-                    targetBinary.getCleanTaskPath(),
-                    targetBinary.getCompilerDefines(),
-                    targetBinary.getOutputFile(),
-                    targetBinary.getLanguageStandard()
-                ));
+                        configuration.getName(),
+                        configuration.getConfigurationName(),
+                        configuration.getProject().getName(),
+                        configuration.getPlatformName(),
+                        configuration.getType(),
+                        configuration.isBuildable(),
+                        targetBinary.isDebuggable(),
+                        targetBinary.getIncludePaths(),
+                        targetBinary.getBuildTaskPath(),
+                        targetBinary.getCleanTaskPath(),
+                        targetBinary.getCompilerDefines(),
+                        targetBinary.getOutputFile(),
+                        targetBinary.getLanguageStandard()));
             } else {
                 configurations.add(new VisualStudioProjectFile.ConfigurationSpec(
-                    configuration.getName(),
-                    configuration.getConfigurationName(),
-                    configuration.getProject().getName(),
-                    configuration.getPlatformName(),
-                    configuration.getType(),
-                    configuration.isBuildable(),
-                    false,
-                    Collections.emptySet(),
-                    null,
-                    null,
-                    Collections.emptyList(),
-                    null,
-                    null
-                ));
+                        configuration.getName(),
+                        configuration.getConfigurationName(),
+                        configuration.getProject().getName(),
+                        configuration.getPlatformName(),
+                        configuration.getType(),
+                        configuration.isBuildable(),
+                        false,
+                        Collections.emptySet(),
+                        null,
+                        null,
+                        Collections.emptyList(),
+                        null,
+                        null));
             }
         }
 
         return new ProjectSpec(
-            visualStudioProject.getVisualStudioVersion(),
-            visualStudioProject.getSdkVersion(),
-            visualStudioProject.getSourceFiles(),
-            visualStudioProject.getResourceFiles(),
-            visualStudioProject.getHeaderFiles(),
-            buildGradleCommand(),
-            warning,
-            configurations,
-            visualStudioProject.getProjectFile().getXmlActions()
-        );
+                visualStudioProject.getVisualStudioVersion(),
+                visualStudioProject.getSdkVersion(),
+                visualStudioProject.getSourceFiles(),
+                visualStudioProject.getResourceFiles(),
+                visualStudioProject.getHeaderFiles(),
+                buildGradleCommand(),
+                warning,
+                configurations,
+                visualStudioProject.getProjectFile().getXmlActions());
     }
 
     /**
@@ -275,16 +276,15 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
         final List<Action<? super XmlProvider>> xmlActions;
 
         private ProjectSpec(
-            Provider<VersionNumber> visualStudioVersion,
-            Provider<VersionNumber> sdkVersion,
-            FileCollection sourceFiles,
-            Set<File> resourceFiles,
-            FileCollection headerFiles,
-            String gradleCommand,
-            @Nullable String warning,
-            List<VisualStudioProjectFile.ConfigurationSpec> configurations,
-            List<Action<? super XmlProvider>> xmlActions
-        ) {
+                Provider<VersionNumber> visualStudioVersion,
+                Provider<VersionNumber> sdkVersion,
+                FileCollection sourceFiles,
+                Set<File> resourceFiles,
+                FileCollection headerFiles,
+                String gradleCommand,
+                @Nullable String warning,
+                List<VisualStudioProjectFile.ConfigurationSpec> configurations,
+                List<Action<? super XmlProvider>> xmlActions) {
             this.visualStudioVersion = visualStudioVersion;
             this.sdkVersion = sdkVersion;
             this.sourceFiles = sourceFiles;
@@ -325,7 +325,9 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
         @Input
         @Incubating
         public Provider<Set<String>> getSourceFilePaths() {
-            return sourceFiles.getElements().map(files -> collect(files, file -> file.getAsFile().getAbsolutePath()));
+            return sourceFiles
+                    .getElements()
+                    .map(files -> collect(files, file -> file.getAsFile().getAbsolutePath()));
         }
 
         /**
@@ -346,7 +348,9 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
         @Input
         @Incubating
         public Provider<Set<String>> getHeaderFilesPaths() {
-            return headerFiles.getElements().map(files -> collect(files, file -> file.getAsFile().getAbsolutePath()));
+            return headerFiles
+                    .getElements()
+                    .map(files -> collect(files, file -> file.getAsFile().getAbsolutePath()));
         }
 
         /**

@@ -18,20 +18,21 @@ package org.gradle.internal.tools.api.impl;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
-import org.jspecify.annotations.Nullable;
-import org.objectweb.asm.Type;
-
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import org.jspecify.annotations.Nullable;
+import org.objectweb.asm.Type;
 
 public class MethodMember extends TypedMember implements Comparable<MethodMember> {
-    private static final Ordering<Iterable<String>> LEXICOGRAPHICAL_ORDERING = Ordering.<String>natural().lexicographical();
+    private static final Ordering<Iterable<String>> LEXICOGRAPHICAL_ORDERING =
+            Ordering.<String>natural().lexicographical();
     private final SortedSet<String> exceptions = new TreeSet<>();
     private final SortedSet<AnnotationMember> parameterAnnotations = new TreeSet<>();
     private final SortedSet<AnnotationMember> typeAnnotations = new TreeSet<>();
+
     @Nullable
     private AnnotationValue<?> annotationDefaultValue;
 
@@ -73,8 +74,8 @@ public class MethodMember extends TypedMember implements Comparable<MethodMember
     @Override
     public int compareTo(MethodMember o) {
         return super.compare(o)
-            .compare(exceptions, o.exceptions, LEXICOGRAPHICAL_ORDERING)
-            .result();
+                .compare(exceptions, o.exceptions, LEXICOGRAPHICAL_ORDERING)
+                .result();
     }
 
     @Override

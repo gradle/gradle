@@ -27,7 +27,8 @@ import org.gradle.util.Path;
 public interface TaskSelector {
     Spec<Task> getFilter(SelectionContext context, ProjectState project, String taskName, boolean selectAllMatching);
 
-    TaskSelection getSelection(SelectionContext context, ProjectState project, String taskName, boolean selectAllMatching);
+    TaskSelection getSelection(
+            SelectionContext context, ProjectState project, String taskName, boolean selectAllMatching);
 
     class SelectionContext {
         private final Path originalPath;

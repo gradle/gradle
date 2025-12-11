@@ -27,14 +27,17 @@ import org.jspecify.annotations.NullMarked;
  *
  * @since 9.0.0
  */
-
 @NullMarked
-abstract public class ModelReportingTasksPlugin implements Plugin<Project> {
+public abstract class ModelReportingTasksPlugin implements Plugin<Project> {
 
     @Override
     @SuppressWarnings("deprecation")
     public void apply(Project project) {
-        project.getTasks().register(DiagnosticsTaskNames.MODEL_TASK, org.gradle.api.reporting.model.ModelReport.class, new ModelReportAction(project.toString()));
+        project.getTasks()
+                .register(
+                        DiagnosticsTaskNames.MODEL_TASK,
+                        org.gradle.api.reporting.model.ModelReport.class,
+                        new ModelReportAction(project.toString()));
     }
 
     @SuppressWarnings("deprecation")

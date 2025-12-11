@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.Action;
-import org.gradle.api.attributes.MultipleCandidatesDetails;
-
 import java.util.Comparator;
 import java.util.Set;
+import org.gradle.api.Action;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
 
 public class DefaultOrderedDisambiguationRule<T> implements Action<MultipleCandidatesDetails<T>> {
     private final Comparator<? super T> comparator;

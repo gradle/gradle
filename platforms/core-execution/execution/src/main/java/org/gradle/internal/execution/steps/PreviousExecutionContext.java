@@ -16,10 +16,9 @@
 
 package org.gradle.internal.execution.steps;
 
+import java.util.Optional;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Optional;
 
 public class PreviousExecutionContext extends WorkspaceContext {
     @Nullable

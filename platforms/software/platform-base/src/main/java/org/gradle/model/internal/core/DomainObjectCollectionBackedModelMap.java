@@ -16,10 +16,15 @@
 
 package org.gradle.model.internal.core;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
@@ -31,12 +36,6 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
-
-import static org.gradle.internal.Cast.uncheckedCast;
-
 public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<T> {
 
     private final String name;
@@ -46,7 +45,13 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
     private final org.gradle.api.Namer<? super T> namer;
     private final Action<? super T> onCreateAction;
 
-    public DomainObjectCollectionBackedModelMap(String name, Class<T> elementType, DomainObjectCollection<T> backingCollection, NamedEntityInstantiator<T> instantiator, org.gradle.api.Namer<? super T> namer, Action<? super T> onCreateAction) {
+    public DomainObjectCollectionBackedModelMap(
+            String name,
+            Class<T> elementType,
+            DomainObjectCollection<T> backingCollection,
+            NamedEntityInstantiator<T> instantiator,
+            org.gradle.api.Namer<? super T> namer,
+            Action<? super T> onCreateAction) {
         this.name = name;
         this.elementType = elementType;
         this.collection = backingCollection;
@@ -68,7 +73,13 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
     private <S> ModelMap<S> toNonSubtypeMap(Class<S> type) {
         DomainObjectCollection<S> cast = toNonSubtype(type);
         org.gradle.api.Namer<S> castNamer = Cast.uncheckedCast(namer);
-        return DomainObjectCollectionBackedModelMap.wrap(name, type, cast, NamedEntityInstantiators.nonSubtype(type, elementType), castNamer, Actions.doNothing());
+        return DomainObjectCollectionBackedModelMap.wrap(
+                name,
+                type,
+                cast,
+                NamedEntityInstantiators.nonSubtype(type, elementType),
+                castNamer,
+                Actions.doNothing());
     }
 
     private <S> DomainObjectSet<S> toNonSubtype(final Class<S> type) {
@@ -77,7 +88,8 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
 
     private <S extends T> ModelMap<S> toSubtypeMap(Class<S> itemSubtype) {
         NamedEntityInstantiator<S> instantiator = uncheckedCast(this.instantiator);
-        return DomainObjectCollectionBackedModelMap.wrap(name, itemSubtype, collection.withType(itemSubtype), instantiator, namer, onCreateAction);
+        return DomainObjectCollectionBackedModelMap.wrap(
+                name, itemSubtype, collection.withType(itemSubtype), instantiator, namer, onCreateAction);
     }
 
     @Nullable
@@ -124,8 +136,15 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
         }
     }
 
-    public static <T> DomainObjectCollectionBackedModelMap<T> wrap(String name, Class<T> elementType, DomainObjectCollection<T> domainObjectSet, NamedEntityInstantiator<T> instantiator, org.gradle.api.Namer<? super T> namer, Action<? super T> onCreate) {
-        return new DomainObjectCollectionBackedModelMap<T>(name, elementType, domainObjectSet, instantiator, namer, onCreate);
+    public static <T> DomainObjectCollectionBackedModelMap<T> wrap(
+            String name,
+            Class<T> elementType,
+            DomainObjectCollection<T> domainObjectSet,
+            NamedEntityInstantiator<T> instantiator,
+            org.gradle.api.Namer<? super T> namer,
+            Action<? super T> onCreate) {
+        return new DomainObjectCollectionBackedModelMap<T>(
+                name, elementType, domainObjectSet, instantiator, namer, onCreate);
     }
 
     @Override
@@ -233,12 +252,14 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
 
     @Override
     public void named(final String name, Action<? super T> configAction) {
-        collection.matching(new Spec<T>() {
-            @Override
-            public boolean isSatisfiedBy(T element) {
-                return get(name) == element;
-            }
-        }).all(configAction);
+        collection
+                .matching(new Spec<T>() {
+                    @Override
+                    public boolean isSatisfiedBy(T element) {
+                        return get(name) == element;
+                    }
+                })
+                .all(configAction);
     }
 
     @Override
@@ -255,5 +276,4 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
 
         return toNonSubtypeMap(type);
     }
-
 }

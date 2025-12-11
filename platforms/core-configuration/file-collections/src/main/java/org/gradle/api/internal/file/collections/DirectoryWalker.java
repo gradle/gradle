@@ -16,14 +16,19 @@
 
 package org.gradle.api.internal.file.collections;
 
+import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 
-import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public interface DirectoryWalker {
-    void walkDir(Path rootDir, RelativePath rootPath, FileVisitor visitor, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix);
+    void walkDir(
+            Path rootDir,
+            RelativePath rootPath,
+            FileVisitor visitor,
+            Spec<? super FileTreeElement> spec,
+            AtomicBoolean stopFlag,
+            boolean postfix);
 }

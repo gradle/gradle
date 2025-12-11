@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.plugins;
 
+import javax.inject.Inject;
 import org.gradle.api.Project;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
-
-import javax.inject.Inject;
 
 /**
  * Represents the context in which a project feature is applied and the services
@@ -80,5 +79,6 @@ public interface ProjectFeatureApplicationContext {
      *
      * @throws IllegalStateException if there is already a build model instance registered for the definition.
      */
-    <T extends Definition<V>, V extends BuildModel> V registerBuildModel(T definition, Class<? extends V> implementationType);
+    <T extends Definition<V>, V extends BuildModel> V registerBuildModel(
+            T definition, Class<? extends V> implementationType);
 }

@@ -17,6 +17,9 @@ package org.gradle.api.plugins.quality;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
@@ -45,10 +48,6 @@ import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 /**
  * Runs Checkstyle against some source files.
  */
@@ -68,7 +67,8 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     public Checkstyle() {
         super();
         this.configDirectory = getObjectFactory().directoryProperty();
-        this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
+        this.reports = getObjectFactory()
+                .newInstance(CheckstyleReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
         this.enableExternalDtdLoad = getObjectFactory().property(Boolean.class).convention(false);
     }
 
@@ -108,7 +108,8 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      */
     @Override
     @SuppressWarnings("rawtypes")
-    public CheckstyleReports reports(@DelegatesTo(value = CheckstyleReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
+    public CheckstyleReports reports(
+            @DelegatesTo(value = CheckstyleReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
         return reports(new ClosureBackedAction<>(closure));
     }
 
@@ -145,7 +146,11 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     private void runWithProcessIsolation() {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
             configureForkOptions(spec.getForkOptions());
-            spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", enableExternalDtdLoad.get().toString());
+            spec.getForkOptions()
+                    .getSystemProperties()
+                    .put(
+                            "checkstyle.enableExternalDtdLoad",
+                            enableExternalDtdLoad.get().toString());
         });
         workQueue.submit(CheckstyleAction.class, this::setupParameters);
     }

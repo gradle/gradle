@@ -15,11 +15,10 @@
  */
 package org.gradle.internal.resource;
 
+import java.io.File;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 @ServiceScope(Scope.Build.class)
 public interface TextFileResourceLoader {

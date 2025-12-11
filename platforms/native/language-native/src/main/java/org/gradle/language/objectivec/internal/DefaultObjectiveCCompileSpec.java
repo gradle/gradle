@@ -19,6 +19,4 @@ package org.gradle.language.objectivec.internal;
 import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompileSpec;
 
-public class DefaultObjectiveCCompileSpec extends AbstractNativeCompileSpec implements ObjectiveCCompileSpec {
-
-}
+public class DefaultObjectiveCCompileSpec extends AbstractNativeCompileSpec implements ObjectiveCCompileSpec {}

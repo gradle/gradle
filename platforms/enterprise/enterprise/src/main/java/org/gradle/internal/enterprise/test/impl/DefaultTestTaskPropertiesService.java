@@ -18,6 +18,9 @@ package org.gradle.internal.enterprise.test.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
+import java.util.function.Function;
+import javax.inject.Inject;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
@@ -52,10 +55,6 @@ import org.gradle.process.internal.DefaultProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.Set;
-import java.util.function.Function;
-
 public class DefaultTestTaskPropertiesService implements TestTaskPropertiesService {
 
     private final PropertyWalker propertyWalker;
@@ -66,12 +65,11 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
 
     @Inject
     public DefaultTestTaskPropertiesService(
-        PropertyWalker propertyWalker,
-        FileCollectionFactory fileCollectionFactory,
-        JavaForkOptionsFactory forkOptionsFactory,
-        JvmVersionDetector jvmVersionDetector,
-        JavaModuleDetector javaModuleDetector
-    ) {
+            PropertyWalker propertyWalker,
+            FileCollectionFactory fileCollectionFactory,
+            JavaForkOptionsFactory forkOptionsFactory,
+            JvmVersionDetector jvmVersionDetector,
+            JavaModuleDetector javaModuleDetector) {
         this.propertyWalker = propertyWalker;
         this.fileCollectionFactory = fileCollectionFactory;
         this.forkOptionsFactory = forkOptionsFactory;
@@ -86,43 +84,40 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
         TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
             @Override
             public void visitInputFileProperty(
-                String propertyName,
-                boolean optional,
-                InputBehavior behavior,
-                DirectorySensitivity directorySensitivity,
-                LineEndingSensitivity lineEndingSensitivity,
-                @Nullable FileNormalizer fileNormalizer,
-                PropertyValue value,
-                InputFilePropertyType filePropertyType
-            ) {
+                    String propertyName,
+                    boolean optional,
+                    InputBehavior behavior,
+                    DirectorySensitivity directorySensitivity,
+                    LineEndingSensitivity lineEndingSensitivity,
+                    @Nullable FileNormalizer fileNormalizer,
+                    PropertyValue value,
+                    InputFilePropertyType filePropertyType) {
                 FileCollection files = resolveLeniently(value);
                 inputFileProperties.add(new DefaultInputFileProperty(propertyName, files));
             }
 
             @Override
             public void visitOutputFileProperty(
-                String propertyName,
-                boolean optional,
-                PropertyValue value,
-                OutputFilePropertyType filePropertyType
-            ) {
+                    String propertyName,
+                    boolean optional,
+                    PropertyValue value,
+                    OutputFilePropertyType filePropertyType) {
                 FileCollection files = resolveLeniently(value);
                 OutputFileProperty.Type type = filePropertyType.getOutputType() == TreeType.DIRECTORY
-                    ? OutputFileProperty.Type.DIRECTORY
-                    : OutputFileProperty.Type.FILE;
+                        ? OutputFileProperty.Type.DIRECTORY
+                        : OutputFileProperty.Type.FILE;
                 outputFileProperties.add(new DefaultOutputFileProperty(propertyName, files, type));
             }
         });
         return new DefaultTestTaskProperties(
-            task.getOptions() instanceof JUnitPlatformOptions,
-            task.getForkEvery(),
-            task.getDryRun().get(),
-            collectFilters(task),
-            collectForkOptions(task),
-            collectCandidateClassFiles(task),
-            inputFileProperties.build(),
-            outputFileProperties.build()
-        );
+                task.getOptions() instanceof JUnitPlatformOptions,
+                task.getForkEvery(),
+                task.getDryRun().get(),
+                collectFilters(task),
+                collectForkOptions(task),
+                collectCandidateClassFiles(task),
+                inputFileProperties.build(),
+                outputFileProperties.build());
     }
 
     @Override
@@ -143,45 +138,42 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
 
     private FileCollection resolveLeniently(PropertyValue value) {
         Object sources = value.call();
-        return sources == null
-            ? FileCollectionFactory.empty()
-            : fileCollectionFactory.resolvingLeniently(sources);
+        return sources == null ? FileCollectionFactory.empty() : fileCollectionFactory.resolvingLeniently(sources);
     }
 
     private TestTaskFilters collectFilters(Test task) {
         DefaultTestFilter filter = (DefaultTestFilter) task.getFilter();
         TestFrameworkOptions options = task.getOptions();
         return new DefaultTestTaskFilters(
-            filter.getIncludePatterns(),
-            filter.getCommandLineIncludePatterns(),
-            filter.getExcludePatterns(),
-            getOrEmpty(options, JUnitPlatformOptions::getIncludeTags),
-            getOrEmpty(options, JUnitPlatformOptions::getExcludeTags),
-            getOrEmpty(options, JUnitPlatformOptions::getIncludeEngines),
-            getOrEmpty(options, JUnitPlatformOptions::getExcludeEngines)
-        );
+                filter.getIncludePatterns(),
+                filter.getCommandLineIncludePatterns(),
+                filter.getExcludePatterns(),
+                getOrEmpty(options, JUnitPlatformOptions::getIncludeTags),
+                getOrEmpty(options, JUnitPlatformOptions::getExcludeTags),
+                getOrEmpty(options, JUnitPlatformOptions::getIncludeEngines),
+                getOrEmpty(options, JUnitPlatformOptions::getExcludeEngines));
     }
 
     private <T> Set<T> getOrEmpty(TestFrameworkOptions options, Function<JUnitPlatformOptions, Set<T>> extractor) {
         return options instanceof JUnitPlatformOptions junitPlatformOptions
-            ? extractor.apply(junitPlatformOptions)
-            : ImmutableSet.of();
+                ? extractor.apply(junitPlatformOptions)
+                : ImmutableSet.of();
     }
 
     private TestTaskForkOptions collectForkOptions(Test task) {
-        boolean testIsModule = javaModuleDetector.isModule(task.getModularity().getInferModulePath().get(), task.getTestClassesDirs());
+        boolean testIsModule = javaModuleDetector.isModule(
+                task.getModularity().getInferModulePath().get(), task.getTestClassesDirs());
         JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
         task.copyTo(forkOptions);
         String executable = forkOptions.getExecutable();
         return new DefaultTestTaskForkOptions(
-            forkOptions.getWorkingDir(),
-            executable,
-            detectJavaVersion(executable),
-            javaModuleDetector.inferClasspath(testIsModule, task.getClasspath()),
-            javaModuleDetector.inferModulePath(testIsModule, task.getClasspath()),
-            forkOptions.getAllJvmArgs(),
-            DefaultProcessForkOptions.getActualEnvironment(forkOptions)
-        );
+                forkOptions.getWorkingDir(),
+                executable,
+                detectJavaVersion(executable),
+                javaModuleDetector.inferClasspath(testIsModule, task.getClasspath()),
+                javaModuleDetector.inferModulePath(testIsModule, task.getClasspath()),
+                forkOptions.getAllJvmArgs(),
+                DefaultProcessForkOptions.getActualEnvironment(forkOptions));
     }
 
     private int detectJavaVersion(String executable) {

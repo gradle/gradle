@@ -45,7 +45,5 @@ public interface InternalProjectConfigurationResult extends InternalOperationRes
          * Returns the total configuration time of this plugin.
          */
         Duration getTotalConfigurationTime();
-
     }
-
 }

@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.provider;
 
+import java.util.Collection;
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 
-import java.util.Collection;
-
-public interface CollectionPropertyInternal<T, C extends Collection<T>> extends PropertyInternal<C>, HasMultipleValues<T>, CollectionProviderInternal<T, C> {
+public interface CollectionPropertyInternal<T, C extends Collection<T>>
+        extends PropertyInternal<C>, HasMultipleValues<T>, CollectionProviderInternal<T, C> {
     @Override
     Class<T> getElementType();
 

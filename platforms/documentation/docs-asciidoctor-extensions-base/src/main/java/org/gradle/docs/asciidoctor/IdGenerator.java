@@ -27,8 +27,10 @@ import java.util.regex.Pattern;
  */
 public class IdGenerator {
 
-    // Matches invalid ID characters in a section title. (taken from https://www.rubydoc.info/gems/asciidoctor/Asciidoctor)
-    private static final Pattern ID_PATTERN = Pattern.compile("<[^>]+>|&(?:[a-z][a-z]+\\d{0,2}|#\\d\\d\\d{0,4}|#x[\\da-f][\\da-f][\\da-f]{0,3});|[^ a-zA-Z0-9_\\-.]+?");
+    // Matches invalid ID characters in a section title. (taken from
+    // https://www.rubydoc.info/gems/asciidoctor/Asciidoctor)
+    private static final Pattern ID_PATTERN = Pattern.compile(
+            "<[^>]+>|&(?:[a-z][a-z]+\\d{0,2}|#\\d\\d\\d{0,4}|#x[\\da-f][\\da-f][\\da-f]{0,3});|[^ a-zA-Z0-9_\\-.]+?");
     private static final Pattern SEPARATOR_PATTERN = Pattern.compile("[ _.-]+");
 
     private static final String PART_SEPARATOR = "-";

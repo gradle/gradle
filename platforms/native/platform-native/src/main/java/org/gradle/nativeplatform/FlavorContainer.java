@@ -26,5 +26,4 @@ import org.gradle.api.NamedDomainObjectContainer;
  * Any flavors explicitly configured will overwrite the default flavor.
  */
 @Incubating
-public interface FlavorContainer extends NamedDomainObjectContainer<Flavor> {
-}
+public interface FlavorContainer extends NamedDomainObjectContainer<Flavor> {}

@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import static org.gradle.util.internal.GUtil.toEnum;
+import static org.gradle.util.internal.GUtil.toEnumSet;
+
+import java.util.EnumSet;
+import java.util.Set;
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
-
-import java.util.EnumSet;
-import java.util.Set;
-
-import static org.gradle.util.internal.GUtil.toEnum;
-import static org.gradle.util.internal.GUtil.toEnumSet;
 
 public class DefaultTestLogging implements TestLogging {
     private Set<TestLogEvent> events = EnumSet.noneOf(TestLogEvent.class);
@@ -167,5 +166,4 @@ public class DefaultTestLogging implements TestLogging {
         }
         return this;
     }
-
 }

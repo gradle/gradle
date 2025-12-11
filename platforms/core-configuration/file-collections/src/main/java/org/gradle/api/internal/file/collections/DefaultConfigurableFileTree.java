@@ -16,6 +16,9 @@
 package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
+import java.io.File;
+import java.util.Set;
+import java.util.function.Consumer;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileTree;
@@ -31,10 +34,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.file.PathToFileResolver;
 
-import java.io.File;
-import java.util.Set;
-import java.util.function.Consumer;
-
 public class DefaultConfigurableFileTree extends CompositeFileTree implements ConfigurableFileTree {
     private Object dir;
     private final PatternSet patternSet;
@@ -44,12 +43,11 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
     public DefaultConfigurableFileTree(
-        PathToFileResolver resolver,
-        FileCollectionObservationListener listener,
-        PatternSetFactory patternSetFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        DirectoryFileTreeFactory directoryFileTreeFactory
-    ) {
+            PathToFileResolver resolver,
+            FileCollectionObservationListener listener,
+            PatternSetFactory patternSetFactory,
+            TaskDependencyFactory taskDependencyFactory,
+            DirectoryFileTreeFactory directoryFileTreeFactory) {
         super(taskDependencyFactory);
         this.resolver = resolver;
         this.listener = listener;
@@ -96,7 +94,8 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     @Override
     public File getDir() {
         if (dir == null) {
-            throw new InvalidUserDataException("A base directory must be specified in the task or via a method argument!");
+            throw new InvalidUserDataException(
+                    "A base directory must be specified in the task or via a method argument!");
         }
         return resolver.resolve(dir);
     }
@@ -185,7 +184,8 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         File dir = getDir();
-        visitor.accept(new FileTreeAdapter(directoryFileTreeFactory.create(dir, patternSet), listener, taskDependencyFactory, patternSetFactory));
+        visitor.accept(new FileTreeAdapter(
+                directoryFileTreeFactory.create(dir, patternSet), listener, taskDependencyFactory, patternSetFactory));
     }
 
     @Override

@@ -19,13 +19,12 @@ package org.gradle.api.internal.attributes.immutable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.util.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Objects;
 
 /**
  * An immutable schema for describing the behavior of {@link Attribute attributes}.
@@ -39,10 +38,8 @@ public class ImmutableAttributesSchema {
     /**
      * An attribute schema that describes no attributes.
      */
-    public static final ImmutableAttributesSchema EMPTY = new ImmutableAttributesSchema(
-        ImmutableMap.of(),
-        ImmutableList.of()
-    );
+    public static final ImmutableAttributesSchema EMPTY =
+            new ImmutableAttributesSchema(ImmutableMap.of(), ImmutableList.of());
 
     // package-private to allow access from ImmutableAttributesSchemaFactory
     final ImmutableMap<Attribute<?>, ImmutableAttributeMatchingStrategy<?>> strategies;
@@ -54,9 +51,8 @@ public class ImmutableAttributesSchema {
 
     // package-private to allow instantiation from ImmutableAttributesSchemaFactory
     ImmutableAttributesSchema(
-        ImmutableMap<Attribute<?>, ImmutableAttributeMatchingStrategy<?>> strategies,
-        ImmutableList<Attribute<?>> precedence
-    ) {
+            ImmutableMap<Attribute<?>, ImmutableAttributeMatchingStrategy<?>> strategies,
+            ImmutableList<Attribute<?>> precedence) {
         this.strategies = strategies;
         this.precedence = precedence;
 
@@ -64,7 +60,8 @@ public class ImmutableAttributesSchema {
         this.hashCode = computeHashCode(strategies, precedence);
     }
 
-    private static ImmutableMap<String, Attribute<?>> computeAttributesByName(ImmutableMap<Attribute<?>, ?> strategies) {
+    private static ImmutableMap<String, Attribute<?>> computeAttributesByName(
+            ImmutableMap<Attribute<?>, ?> strategies) {
         ImmutableMap.Builder<String, Attribute<?>> attributesByName = ImmutableMap.builder();
         for (Attribute<?> attribute : strategies.keySet()) {
             attributesByName.put(attribute.getName(), attribute);
@@ -76,9 +73,8 @@ public class ImmutableAttributesSchema {
     }
 
     private static int computeHashCode(
-        ImmutableMap<Attribute<?>, ImmutableAttributeMatchingStrategy<?>> strategies,
-        ImmutableList<Attribute<?>> precedence
-    ) {
+            ImmutableMap<Attribute<?>, ImmutableAttributeMatchingStrategy<?>> strategies,
+            ImmutableList<Attribute<?>> precedence) {
         int result = strategies.hashCode();
         result = 31 * result + precedence.hashCode();
         return result;
@@ -144,8 +140,7 @@ public class ImmutableAttributesSchema {
         }
 
         ImmutableAttributesSchema that = (ImmutableAttributesSchema) o;
-        return strategies.equals(that.strategies) &&
-            precedence.equals(that.precedence);
+        return strategies.equals(that.strategies) && precedence.equals(that.precedence);
     }
 
     @Override
@@ -158,9 +153,8 @@ public class ImmutableAttributesSchema {
         final ImmutableList<Action<? super MultipleCandidatesDetails<T>>> disambiguationRules;
 
         public ImmutableAttributeMatchingStrategy(
-            ImmutableList<Action<? super CompatibilityCheckDetails<T>>> compatibilityRules,
-            ImmutableList<Action<? super MultipleCandidatesDetails<T>>> disambiguationRules
-        ) {
+                ImmutableList<Action<? super CompatibilityCheckDetails<T>>> compatibilityRules,
+                ImmutableList<Action<? super MultipleCandidatesDetails<T>>> disambiguationRules) {
             this.compatibilityRules = compatibilityRules;
             this.disambiguationRules = disambiguationRules;
         }
@@ -184,8 +178,8 @@ public class ImmutableAttributesSchema {
 
             ImmutableAttributeMatchingStrategy<?> that = (ImmutableAttributeMatchingStrategy<?>) o;
             //noinspection EqualsBetweenInconvertibleTypes
-            return compatibilityRules.equals(that.compatibilityRules) &&
-                disambiguationRules.equals(that.disambiguationRules);
+            return compatibilityRules.equals(that.compatibilityRules)
+                    && disambiguationRules.equals(that.disambiguationRules);
         }
 
         @Override
@@ -193,5 +187,4 @@ public class ImmutableAttributesSchema {
             return Objects.hash(compatibilityRules, disambiguationRules);
         }
     }
-
 }

@@ -17,9 +17,8 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSet;
-import org.jspecify.annotations.Nullable;
-
 import java.util.function.Consumer;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultTaskDependencyFactory implements TaskDependencyFactory {
     @Nullable
@@ -32,7 +31,8 @@ public class DefaultTaskDependencyFactory implements TaskDependencyFactory {
         return new DefaultTaskDependencyFactory(null, null);
     }
 
-    public DefaultTaskDependencyFactory(@Nullable TaskResolver taskResolver, @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker) {
+    public DefaultTaskDependencyFactory(
+            @Nullable TaskResolver taskResolver, @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker) {
         this.taskResolver = taskResolver;
         this.taskDependencyUsageTracker = taskDependencyUsageTracker;
     }
@@ -48,7 +48,8 @@ public class DefaultTaskDependencyFactory implements TaskDependencyFactory {
     }
 
     @Override
-    public DefaultTaskDependency visitingDependencies(Consumer<? super TaskDependencyResolveContext> visitDependencies) {
+    public DefaultTaskDependency visitingDependencies(
+            Consumer<? super TaskDependencyResolveContext> visitDependencies) {
         return configurableDependency(ImmutableSet.of(new DefaultTaskDependency.VisitBehavior(visitDependencies)));
     }
 }

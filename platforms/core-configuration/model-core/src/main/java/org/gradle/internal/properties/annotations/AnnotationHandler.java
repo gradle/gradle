@@ -17,7 +17,6 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
-
 import java.lang.annotation.Annotation;
 
 /**

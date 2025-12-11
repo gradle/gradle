@@ -22,5 +22,4 @@ public class Zip64RequiredException extends GradleException {
     public Zip64RequiredException(String message) {
         super(message);
     }
-
 }

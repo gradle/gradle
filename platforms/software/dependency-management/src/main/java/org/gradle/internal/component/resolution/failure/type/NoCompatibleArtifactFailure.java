@@ -16,12 +16,11 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import java.util.List;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
-
-import java.util.List;
 
 /**
  * An {@link ArtifactSelectionFailure} that represents the situation when an artifact variant cannot
@@ -30,7 +29,11 @@ import java.util.List;
 public final class NoCompatibleArtifactFailure extends AbstractArtifactSelectionFailure {
     private final List<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
-    public NoCompatibleArtifactFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+    public NoCompatibleArtifactFailure(
+            ComponentIdentifier targetComponent,
+            String targetVariant,
+            AttributeContainerInternal requestedAttributes,
+            List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
         super(ResolutionFailureProblemId.NO_COMPATIBLE_ARTIFACT, targetComponent, targetVariant, requestedAttributes);
         this.candidates = candidates;
     }

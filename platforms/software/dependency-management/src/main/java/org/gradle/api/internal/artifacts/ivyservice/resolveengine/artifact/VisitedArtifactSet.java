@@ -34,5 +34,4 @@ public interface VisitedArtifactSet {
      * {@link org.gradle.api.artifacts.LenientConfiguration}.
      */
     SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec);
-
 }

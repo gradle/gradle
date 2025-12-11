@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
@@ -27,9 +29,6 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Tracks all currently executing tests and updates the console progress logger with the test name.
@@ -62,7 +61,8 @@ public class TestWorkerProgressListener implements TestListenerInternal {
             String description = createProgressLoggerDescription(testDescriptor);
 
             if (!testWorkerProgressLoggers.containsKey(description)) {
-                ProgressLogger progressLogger = factory.newOperation(TestWorkerProgressListener.class, parentProgressLogger);
+                ProgressLogger progressLogger =
+                        factory.newOperation(TestWorkerProgressListener.class, parentProgressLogger);
                 progressLogger.start(description, description);
                 testWorkerProgressLoggers.put(description, progressLogger);
             }
@@ -70,7 +70,8 @@ public class TestWorkerProgressListener implements TestListenerInternal {
     }
 
     @Override
-    public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
+    public void completed(
+            TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
         boolean testClassDescriptor = isDefaultTestClassDescriptor(testDescriptor);
 
         if (testClassDescriptor) {
@@ -84,9 +85,7 @@ public class TestWorkerProgressListener implements TestListenerInternal {
     }
 
     @Override
-    public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
-    }
-
+    public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {}
 
     @Override
     public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {
@@ -106,8 +105,8 @@ public class TestWorkerProgressListener implements TestListenerInternal {
 
     private boolean isDefaultTestClassDescriptor(TestDescriptorInternal testDescriptor) {
         if (testDescriptor.isComposite()
-            && testDescriptor instanceof DecoratingTestDescriptor
-            && ((DecoratingTestDescriptor)testDescriptor).getDescriptor() instanceof DefaultTestClassDescriptor) {
+                && testDescriptor instanceof DecoratingTestDescriptor
+                && ((DecoratingTestDescriptor) testDescriptor).getDescriptor() instanceof DefaultTestClassDescriptor) {
             return true;
         }
 
@@ -115,9 +114,12 @@ public class TestWorkerProgressListener implements TestListenerInternal {
     }
 
     private String createProgressLoggerDescription(TestDescriptorInternal testDescriptor) {
-        DecoratingTestDescriptor decoratingTestDescriptor = (DecoratingTestDescriptor)testDescriptor;
-        DefaultTestClassDescriptor defaultTestClassDescriptor = (DefaultTestClassDescriptor)decoratingTestDescriptor.getDescriptor();
-        return "Executing test " + JavaClassNameFormatter.abbreviateJavaPackage(defaultTestClassDescriptor.getClassName(), MAX_TEST_NAME_LENGTH);
+        DecoratingTestDescriptor decoratingTestDescriptor = (DecoratingTestDescriptor) testDescriptor;
+        DefaultTestClassDescriptor defaultTestClassDescriptor =
+                (DefaultTestClassDescriptor) decoratingTestDescriptor.getDescriptor();
+        return "Executing test "
+                + JavaClassNameFormatter.abbreviateJavaPackage(
+                        defaultTestClassDescriptor.getClassName(), MAX_TEST_NAME_LENGTH);
     }
 
     Map<String, ProgressLogger> getTestWorkerProgressLoggers() {

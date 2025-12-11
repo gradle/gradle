@@ -16,7 +16,6 @@
 package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
-
 import java.io.EOFException;
 import java.util.Collection;
 
@@ -67,5 +66,4 @@ public abstract class AbstractCollectionSerializer<T, C extends Collection<T>> i
             entrySerializer.write(encoder, t);
         }
     }
-
 }

@@ -17,16 +17,15 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 public class CompilationStateSerializer implements Serializer<CompilationState> {
     private final Serializer<File> fileSerializer;

@@ -16,6 +16,12 @@
 
 package org.gradle.launcher.daemon.client;
 
+import static org.gradle.launcher.daemon.server.api.DaemonState.Busy;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Canceled;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
+
+import java.util.List;
+import java.util.UUID;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.remote.internal.Connection;
@@ -29,19 +35,13 @@ import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.api.DaemonState;
 
-import java.util.List;
-import java.util.UUID;
-
-import static org.gradle.launcher.daemon.server.api.DaemonState.Busy;
-import static org.gradle.launcher.daemon.server.api.DaemonState.Canceled;
-import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
-
 public class NotifyDaemonAboutChangedPathsClient {
     private final DaemonConnector connector;
     private final IdGenerator<UUID> idGenerator;
     private final DaemonRegistry daemonRegistry;
 
-    public NotifyDaemonAboutChangedPathsClient(DaemonConnector connector, IdGenerator<UUID> idGenerator, DaemonRegistry daemonRegistry) {
+    public NotifyDaemonAboutChangedPathsClient(
+            DaemonConnector connector, IdGenerator<UUID> idGenerator, DaemonRegistry daemonRegistry) {
         this.connector = connector;
         this.idGenerator = idGenerator;
         this.daemonRegistry = daemonRegistry;
@@ -55,7 +55,12 @@ public class NotifyDaemonAboutChangedPathsClient {
                 if (connection == null) {
                     continue;
                 }
-                dispatch(connection, new InvalidateVirtualFileSystemAfterChange(changedPaths, idGenerator.generateId(), connection.getDaemon().getToken()));
+                dispatch(
+                        connection,
+                        new InvalidateVirtualFileSystemAfterChange(
+                                changedPaths,
+                                idGenerator.generateId(),
+                                connection.getDaemon().getToken()));
             }
         }
     }

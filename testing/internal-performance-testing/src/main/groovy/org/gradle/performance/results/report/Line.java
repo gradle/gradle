@@ -16,12 +16,11 @@
 
 package org.gradle.performance.results.report;
 
-import org.gradle.performance.results.MeasuredOperationList;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.gradle.performance.results.MeasuredOperationList;
 
 public class Line {
     String label;
@@ -31,8 +30,8 @@ public class Line {
         List<Double> points = measuredOperations.getTotalTime().asDoubleList();
         this.label = measuredOperations.getName();
         this.data = IntStream.range(0, points.size())
-            .mapToObj(index -> Arrays.<Number>asList(index, points.get(index)))
-            .collect(Collectors.toList());
+                .mapToObj(index -> Arrays.<Number>asList(index, points.get(index)))
+                .collect(Collectors.toList());
     }
 
     public String getLabel() {

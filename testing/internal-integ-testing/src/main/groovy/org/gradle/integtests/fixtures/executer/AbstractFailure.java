@@ -16,9 +16,8 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import junit.framework.AssertionFailedError;
-
 import java.util.List;
+import junit.framework.AssertionFailedError;
 
 abstract class AbstractFailure implements ExecutionFailure.Failure {
 

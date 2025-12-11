@@ -15,13 +15,12 @@
  */
 package org.gradle.configuration;
 
-import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
-import org.gradle.internal.logging.text.StyledTextOutput;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
+import static org.gradle.util.internal.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.sort;
+import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -34,11 +33,11 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
-import static org.gradle.util.internal.CollectionUtils.collect;
-import static org.gradle.util.internal.CollectionUtils.sort;
-import static org.gradle.util.internal.TextUtil.getPluralEnding;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class TaskDetailPrinter {
@@ -91,7 +90,8 @@ public class TaskDetailPrinter {
     }
 
     private Map<String, List<TaskDetails>> groupTasksByType(Collection<TaskDetails> tasks) {
-        return tasks.stream().collect(Collectors.groupingBy(TaskDetails::getTaskType, LinkedHashMap::new, Collectors.toList()));
+        return tasks.stream()
+                .collect(Collectors.groupingBy(TaskDetails::getTaskType, LinkedHashMap::new, Collectors.toList()));
     }
 
     private void printTaskDescription(StyledTextOutput output, List<TaskDetails> tasks) {
@@ -102,7 +102,11 @@ public class TaskDetailPrinter {
         printTaskAttribute(output, "Group", tasks, TaskDetails::getGroup);
     }
 
-    private void printTaskAttribute(StyledTextOutput output, String attributeHeader, List<TaskDetails> tasks, Function<TaskDetails, @Nullable String> transformer) {
+    private void printTaskAttribute(
+            StyledTextOutput output,
+            String attributeHeader,
+            List<TaskDetails> tasks,
+            Function<TaskDetails, @Nullable String> transformer) {
         int count = collect(tasks, new HashSet<>(), transformer).size();
         final LinePrefixingStyledTextOutput attributeOutput = createIndentedOutput(output, INDENT);
         if (count == 1) {
@@ -141,7 +145,8 @@ public class TaskDetailPrinter {
             output.text(INDENT).text(optionToDescription.get(currentOption));
             if (!availableValues.isEmpty()) {
                 final int optionDescriptionOffset = 2 * INDENT.length() + optionString.length();
-                final LinePrefixingStyledTextOutput prefixedOutput = createIndentedOutput(output, optionDescriptionOffset);
+                final LinePrefixingStyledTextOutput prefixedOutput =
+                        createIndentedOutput(output, optionDescriptionOffset);
                 prefixedOutput.println();
                 prefixedOutput.println("Available values are:");
                 for (String value : availableValues) {
@@ -161,7 +166,8 @@ public class TaskDetailPrinter {
         Map<String, Set<String>> result = new LinkedHashMap<>();
         for (TaskDetails.OptionDetails optionDescriptor : allOptions) {
             if (result.containsKey(optionDescriptor.getName())) {
-                Collection<String> commonValues = Sets.intersection(optionDescriptor.getAvailableValues(), result.get(optionDescriptor.getName()));
+                Collection<String> commonValues = Sets.intersection(
+                        optionDescriptor.getAvailableValues(), result.get(optionDescriptor.getName()));
                 result.put(optionDescriptor.getName(), new TreeSet<>(commonValues));
             } else {
                 result.put(optionDescriptor.getName(), optionDescriptor.getAvailableValues());

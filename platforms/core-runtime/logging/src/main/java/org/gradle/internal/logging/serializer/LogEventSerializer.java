@@ -54,7 +54,8 @@ public class LogEventSerializer implements Serializer<LogEvent> {
         LogLevel logLevel = logLevelSerializer.read(decoder);
         String message = decoder.readNullableString();
         Throwable throwable = throwableSerializer.read(decoder);
-        OperationIdentifier buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
+        OperationIdentifier buildOperationId =
+                decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
         return new LogEvent(timestamp, category, logLevel, message, throwable, buildOperationId);
     }
 }

@@ -16,6 +16,9 @@
 
 package org.gradle.internal.classpath.transforms;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.function.BiConsumer;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -30,10 +33,6 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.function.BiConsumer;
-
 /**
  * Base class for the transformations. Note that the order in which entries are visited is not defined.
  */
@@ -47,11 +46,7 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
     private final ClassTransform transform;
 
     BaseClasspathElementTransform(
-        File source,
-        ClasspathBuilder classpathBuilder,
-        ClasspathWalker classpathWalker,
-        ClassTransform transform
-    ) {
+            File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, ClassTransform transform) {
         this.source = source;
         this.classpathBuilder = classpathBuilder;
         this.classpathWalker = classpathWalker;
@@ -84,7 +79,8 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
         finishProcessing(builder);
     }
 
-    private void visitEntry(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry) throws IOException {
+    private void visitEntry(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry)
+            throws IOException {
         try {
             if (isClassFile(entry)) {
                 processClassFile(builder, entry);
@@ -106,11 +102,13 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
      * @param classEntry the entry to process
      * @throws IOException if reading or writing entry fails
      */
-    protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry) throws IOException {
+    protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry)
+            throws IOException {
         byte[] content = classEntry.getContent();
         ClassReader reader = new ClassReader(content);
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        Pair<RelativePath, ClassVisitor> chain = transform.apply(classEntry, classWriter, new ClassData(reader, content));
+        Pair<RelativePath, ClassVisitor> chain =
+                transform.apply(classEntry, classWriter, new ClassData(reader, content));
         reader.accept(chain.right, 0);
         byte[] bytes = classWriter.toByteArray();
         builder.put(chain.left.getPathString(), bytes, classEntry.getCompressionMethod());
@@ -123,7 +121,8 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
      * @param manifestEntry the entry to process
      * @throws IOException if reading or writing entry fails
      */
-    protected void processManifest(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry manifestEntry) throws IOException {
+    protected void processManifest(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry manifestEntry)
+            throws IOException {
         processResource(builder, manifestEntry);
     }
 
@@ -134,7 +133,8 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
      * @param resourceEntry the entry to process
      * @throws IOException if reading or writing entry fails
      */
-    protected void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry resourceEntry) throws IOException {
+    protected void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry resourceEntry)
+            throws IOException {
         builder.put(resourceEntry.getName(), resourceEntry.getContent(), resourceEntry.getCompressionMethod());
     }
 

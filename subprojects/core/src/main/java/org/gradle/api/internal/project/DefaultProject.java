@@ -16,8 +16,26 @@
 
 package org.gradle.api.internal.project;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.Collections.singletonMap;
+import static org.gradle.util.internal.ConfigureUtil.configureUsing;
+import static org.gradle.util.internal.GUtil.addMaps;
+
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
+import java.io.File;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
@@ -132,31 +150,14 @@ import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.util.Collections.singletonMap;
-import static org.gradle.util.internal.ConfigureUtil.configureUsing;
-import static org.gradle.util.internal.GUtil.addMaps;
-
 @NoConventionMapping
 public abstract class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
     private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
-    private static final ModelType<ProjectIdentifier> PROJECT_IDENTIFIER_MODEL_TYPE = ModelType.of(ProjectIdentifier.class);
-    private static final ModelType<ExtensionContainer> EXTENSION_CONTAINER_MODEL_TYPE = ModelType.of(ExtensionContainer.class);
+    private static final ModelType<ProjectIdentifier> PROJECT_IDENTIFIER_MODEL_TYPE =
+            ModelType.of(ProjectIdentifier.class);
+    private static final ModelType<ExtensionContainer> EXTENSION_CONTAINER_MODEL_TYPE =
+            ModelType.of(ExtensionContainer.class);
     private static final Logger BUILD_LOGGER = Logging.getLogger(Project.class);
 
     private final ProjectState owner;
@@ -197,7 +198,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
 
-    private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<>(RuleBasedPluginListener.class);
+    private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast =
+            new ListenerBroadcast<>(RuleBasedPluginListener.class);
 
     private final ExtensibleDynamicObject extensibleDynamicObject;
 
@@ -211,17 +213,16 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private Object beforeProjectActionState;
 
     public DefaultProject(
-        String name,
-        @Nullable ProjectInternal parent,
-        File projectDir,
-        File buildFile,
-        ScriptSource buildScriptSource,
-        GradleInternal gradle,
-        ProjectState owner,
-        ServiceRegistryFactory serviceRegistryFactory,
-        ClassLoaderScope selfClassLoaderScope,
-        ClassLoaderScope baseClassLoaderScope
-    ) {
+            String name,
+            @Nullable ProjectInternal parent,
+            File projectDir,
+            File buildFile,
+            ScriptSource buildScriptSource,
+            GradleInternal gradle,
+            ProjectState owner,
+            ServiceRegistryFactory serviceRegistryFactory,
+            ClassLoaderScope selfClassLoaderScope,
+            ClassLoaderScope baseClassLoaderScope) {
         this.owner = owner;
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
@@ -236,19 +237,28 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.get(TaskContainerInternal.class);
-        extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
+        extensibleDynamicObject = new ExtensibleDynamicObject(
+                this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
 
-        @Nullable DynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
+        @Nullable
+        DynamicObject parentInherited =
+                services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
         if (parentInherited != null) {
             extensibleDynamicObject.setParent(parentInherited);
         }
-        extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
+        extensibleDynamicObject.addObject(
+                taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
-        ProjectFeatureSupportInternal.attachLegacyDefinitionContext(this, services.get(ProjectFeatureApplicator.class), services.get(ProjectFeatureDeclarations.class), getObjects());
+        ProjectFeatureSupportInternal.attachLegacyDefinitionContext(
+                this,
+                services.get(ProjectFeatureApplicator.class),
+                services.get(ProjectFeatureDeclarations.class),
+                getObjects());
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
-        ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
+        ruleBasedPluginListenerBroadcast.add(
+                (RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
 
         dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
     }
@@ -305,7 +315,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         @Hidden
         @Model
-        NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
+        NodeInitializerRegistry nodeInitializerRegistry(
+                ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
             return new DefaultNodeInitializerRegistry(schemaStore, structBindingsStore);
         }
 
@@ -327,9 +338,17 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
-        registerServiceOn(modelRegistry, "serviceRegistry", SERVICE_REGISTRY_MODEL_TYPE, services, instanceDescriptorFor("serviceRegistry"));
+        registerServiceOn(
+                modelRegistry,
+                "serviceRegistry",
+                SERVICE_REGISTRY_MODEL_TYPE,
+                services,
+                instanceDescriptorFor("serviceRegistry"));
         // TODO:LPTR This ignores changes to Project.layout.buildDirectory after model node has been created
-        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, () -> getLayout().getBuildDirectory().getAsFile().get());
+        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, () -> getLayout()
+                .getBuildDirectory()
+                .getAsFile()
+                .get());
         registerInstanceOn(modelRegistry, "projectIdentifier", PROJECT_IDENTIFIER_MODEL_TYPE, this);
         registerInstanceOn(modelRegistry, "extensionContainer", EXTENSION_CONTAINER_MODEL_TYPE, getExtensions());
         modelRegistry.getRoot().applyToSelf(BasicServicesRules.class);
@@ -339,19 +358,19 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         registerFactoryOn(modelRegistry, path, type, Factories.constant(instance));
     }
 
-    private <T> void registerFactoryOn(ModelRegistry modelRegistry, String path, ModelType<T> type, Factory<T> factory) {
-        modelRegistry.register(ModelRegistrations
-            .unmanagedInstance(ModelReference.of(path, type), factory)
-            .descriptor(instanceDescriptorFor(path))
-            .hidden(true)
-            .build());
+    private <T> void registerFactoryOn(
+            ModelRegistry modelRegistry, String path, ModelType<T> type, Factory<T> factory) {
+        modelRegistry.register(ModelRegistrations.unmanagedInstance(ModelReference.of(path, type), factory)
+                .descriptor(instanceDescriptorFor(path))
+                .hidden(true)
+                .build());
     }
 
-    private <T> void registerServiceOn(ModelRegistry modelRegistry, String path, ModelType<T> type, T instance, String descriptor) {
+    private <T> void registerServiceOn(
+            ModelRegistry modelRegistry, String path, ModelType<T> type, T instance, String descriptor) {
         modelRegistry.register(ModelRegistrations.serviceInstance(ModelReference.of(path, type), instance)
-            .descriptor(descriptor)
-            .build()
-        );
+                .descriptor(descriptor)
+                .build());
     }
 
     private String instanceDescriptorFor(String path) {
@@ -387,8 +406,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void setScript(groovy.lang.Script buildScript) {
-        extensibleDynamicObject.addObject(new BeanDynamicObject(buildScript).withNoProperties().withNotImplementsMissing(),
-            ExtensibleDynamicObject.Location.BeforeConvention);
+        extensibleDynamicObject.addObject(
+                new BeanDynamicObject(buildScript).withNoProperties().withNotImplementsMissing(),
+                ExtensibleDynamicObject.Location.BeforeConvention);
     }
 
     @Override
@@ -469,9 +489,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         }
 
         return Stream.concat(
-            Stream.of(rootProject.getName()),
-            parent.getProjectIdentity().getProjectPath().segments().stream()
-        ).collect(Collectors.joining("."));
+                        Stream.of(rootProject.getName()),
+                        parent.getProjectIdentity().getProjectPath().segments().stream())
+                .collect(Collectors.joining("."));
     }
 
     @Override
@@ -684,7 +704,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public ProjectInternal project(ProjectInternal referrer, String path) throws UnknownProjectException {
         ProjectInternal project = findProject(referrer, path);
         if (project == null) {
-            throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, this));
+            throw new UnknownProjectException(
+                    String.format("Project with path '%s' could not be found in %s.", path, this));
         }
         return project;
     }
@@ -802,7 +823,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         try {
             getModelRegistry().bindAllReferences();
         } catch (Exception e) {
-            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", getDisplayName()), e);
+            throw new ProjectConfigurationException(
+                    String.format("A problem occurred configuring %s.", getDisplayName()), e);
         }
         return this;
     }
@@ -868,8 +890,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private Project evaluationDependsOn(ProjectInternal projectToEvaluate) {
         if (projectToEvaluate.getState().isConfiguring()) {
-            throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
-                projectToEvaluate));
+            throw new CircularReferenceException(
+                    String.format("Circular referencing during evaluation for %s.", projectToEvaluate));
         }
         projectToEvaluate.getOwner().ensureConfigured();
         return projectToEvaluate;
@@ -1073,32 +1095,41 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public void beforeEvaluate(Action<? super Project> action) {
         assertEagerContext("beforeEvaluate(Action)");
-        evaluationListener.add("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", action));
+        evaluationListener.add(
+                "beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", action));
     }
 
     @Override
     public void afterEvaluate(Action<? super Project> action) {
         assertEagerContext("afterEvaluate(Action)");
         failAfterProjectIsEvaluated("afterEvaluate(Action)");
-        evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
+        evaluationListener.add(
+                "afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
     }
 
     @Override
     public void beforeEvaluate(Closure closure) {
         assertEagerContext("beforeEvaluate(Closure)");
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch(
+                "beforeEvaluate",
+                getListenerBuildOperationDecorator()
+                        .decorate("Project.beforeEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     @Override
     public void afterEvaluate(Closure closure) {
         assertEagerContext("afterEvaluate(Closure)");
         failAfterProjectIsEvaluated("afterEvaluate(Closure)");
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch(
+                "afterEvaluate",
+                getListenerBuildOperationDecorator()
+                        .decorate("Project.afterEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     private void failAfterProjectIsEvaluated(String methodPrototype) {
         if (!state.isUnconfigured() && !state.isConfiguring()) {
-            throw new InvalidUserCodeException("Cannot run Project." + methodPrototype + " when the project is already evaluated.");
+            throw new InvalidUserCodeException(
+                    "Cannot run Project." + methodPrototype + " when the project is already evaluated.");
         }
     }
 
@@ -1332,7 +1363,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @SuppressWarnings("deprecation")
     @Override
     public Task task(Map options, String task, Closure configureClosure) {
-        return taskContainer.create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, task))).configure(configureClosure);
+        return taskContainer
+                .create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, task)))
+                .configure(configureClosure);
     }
 
     public Task task(Map options, Object task, Closure configureClosure) {
@@ -1350,7 +1383,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
         TextUriResourceLoader.Factory textUriResourceLoaderFactory = services.get(TextUriResourceLoader.Factory.class);
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), textUriResourceLoaderFactory, this);
+        return new DefaultObjectConfigurationAction(
+                getFileResolver(),
+                getScriptPluginFactory(),
+                getScriptHandlerFactory(),
+                getBaseClassLoaderScope(),
+                textUriResourceLoaderFactory,
+                this);
     }
 
     @Inject
@@ -1383,37 +1422,39 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
-// KGP uses this method to create a container for the Kotlin DSL
-//        DeprecationLogger.deprecateMethod(Project.class, "container(Class)").
-//            replaceWith("objects.domainObjectContainer(Class)").
-//            willBeRemovedInGradle10().
-//            withUpgradeGuideSection(9, "project_container_methods").
-//            nagUser();
+        // KGP uses this method to create a container for the Kotlin DSL
+        //        DeprecationLogger.deprecateMethod(Project.class, "container(Class)").
+        //            replaceWith("objects.domainObjectContainer(Class)").
+        //            willBeRemovedInGradle10().
+        //            withUpgradeGuideSection(9, "project_container_methods").
+        //            nagUser();
         return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainerUndecorated(type);
     }
 
     @Override
     @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
-// KGP uses this method to create a container for the Kotlin DSL
-// https://youtrack.jetbrains.com/issue/KT-80186
-//        DeprecationLogger.deprecateMethod(Project.class, "container(Class, NamedDomainObjectFactory)").
-//            replaceWith("objects.domainObjectContainer(Class, NamedDomainObjectFactory)").
-//            willBeRemovedInGradle10().
-//            withUpgradeGuideSection(9, "project_container_methods").
-//            nagUser();
+        // KGP uses this method to create a container for the Kotlin DSL
+        // https://youtrack.jetbrains.com/issue/KT-80186
+        //        DeprecationLogger.deprecateMethod(Project.class, "container(Class, NamedDomainObjectFactory)").
+        //            replaceWith("objects.domainObjectContainer(Class, NamedDomainObjectFactory)").
+        //            willBeRemovedInGradle10().
+        //            withUpgradeGuideSection(9, "project_container_methods").
+        //            nagUser();
         return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainer(type, factory);
     }
 
     @Override
     @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
-        DeprecationLogger.deprecateMethod(Project.class, "container(Class, Closure)").
-            replaceWith("objects.domainObjectContainer(Class, NamedDomainObjectFactory)").
-            willBeRemovedInGradle10().
-            withUpgradeGuideSection(9, "project_container_methods").
-            nagUser();
-        return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainer(type, factoryClosure);
+        DeprecationLogger.deprecateMethod(Project.class, "container(Class, Closure)")
+                .replaceWith("objects.domainObjectContainer(Class, NamedDomainObjectFactory)")
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(9, "project_container_methods")
+                .nagUser();
+        return getServices()
+                .get(DomainObjectCollectionFactory.class)
+                .newNamedDomainObjectContainer(type, factoryClosure);
     }
 
     @Override
@@ -1426,7 +1467,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         prepareForRuleBasedPlugins();
         ModelRegistry modelRegistry = getModelRegistry();
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
-            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, this.getRootProject().getFileResolver()), modelRules);
+            ClosureBackedAction.execute(
+                    new TransformedModelDslBacking(
+                            modelRegistry, this.getRootProject().getFileResolver()),
+                    modelRules);
         } else {
             new NonTransformedModelDslBacking(modelRegistry).configure(modelRules);
         }
@@ -1502,7 +1546,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public ProjectEvaluationListener stepEvaluationListener(ProjectEvaluationListener listener, Action<ProjectEvaluationListener> step) {
+    public ProjectEvaluationListener stepEvaluationListener(
+            ProjectEvaluationListener listener, Action<ProjectEvaluationListener> step) {
         ListenerBroadcast<ProjectEvaluationListener> original = this.evaluationListener;
         ListenerBroadcast<ProjectEvaluationListener> nextBatch = newProjectEvaluationListenerBroadcast();
         this.evaluationListener = nextBatch;
@@ -1511,9 +1556,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         } finally {
             this.evaluationListener = original;
         }
-        return nextBatch.isEmpty()
-            ? null
-            : nextBatch.getSource();
+        return nextBatch.isEmpty() ? null : nextBatch.getSource();
     }
 
     /**
@@ -1533,10 +1576,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public DetachedResolver newDetachedResolver() {
         DependencyManagementServices dms = getGradle().getServices().get(DependencyManagementServices.class);
         DependencyResolutionServices resolver = dms.newDetachedResolver(
-            services.get(FileResolver.class),
-            services.get(FileCollectionFactory.class),
-            StandaloneDomainObjectContext.detachedFrom(this)
-        );
+                services.get(FileResolver.class),
+                services.get(FileCollectionFactory.class),
+                StandaloneDomainObjectContext.detachedFrom(this));
 
         return new LocalDetachedResolver(resolver);
     }

@@ -16,14 +16,13 @@
 
 package org.gradle.api.file;
 
+import java.io.File;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Provides access to several important locations for a project.

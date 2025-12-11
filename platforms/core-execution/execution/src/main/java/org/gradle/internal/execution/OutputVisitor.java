@@ -16,18 +16,13 @@
 
 package org.gradle.internal.execution;
 
+import java.io.File;
+import java.util.function.Supplier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.file.TreeType;
 
-import java.io.File;
-import java.util.function.Supplier;
-
 public interface OutputVisitor {
-    default void visitOutputProperty(
-        String propertyName,
-        TreeType type,
-        OutputFileValueSupplier value
-    ) {}
+    default void visitOutputProperty(String propertyName, TreeType type, OutputFileValueSupplier value) {}
 
     default void visitLocalState(File localStateRoot) {}
 
@@ -59,7 +54,7 @@ public interface OutputVisitor {
         }
 
         @Override
-        abstract public File getValue();
+        public abstract File getValue();
 
         @Override
         public FileCollection getFiles() {

@@ -16,6 +16,14 @@
 
 package org.gradle.composite.internal;
 
+import java.io.StringWriter;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
@@ -38,18 +46,12 @@ import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.work.WorkerLeaseService;
 
-import java.io.StringWriter;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-
 class DefaultBuildController implements BuildController {
     private enum State {
-        DiscoveringTasks, ReadyToRun, RunningTasks, Finished
+        DiscoveringTasks,
+        ReadyToRun,
+        RunningTasks,
+        Finished
     }
 
     private final BuildWorkGraph workGraph;
@@ -110,7 +112,8 @@ class DefaultBuildController implements BuildController {
             throw new IllegalStateException("Queued tasks have not been scheduled.");
         }
 
-        // TODO - This check should live in the task execution plan, so that it can reuse checks that have already been performed and
+        // TODO - This check should live in the task execution plan, so that it can reuse checks that have already been
+        // performed and
         //   also check for cycles across all nodes
         Set<TaskInternal> visited = new HashSet<>();
         Set<TaskInternal> visiting = new HashSet<>();
@@ -123,10 +126,12 @@ class DefaultBuildController implements BuildController {
     }
 
     @Override
-    @SuppressWarnings("FutureReturnValueIgnored") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("FutureReturnValueIgnored") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     public void startExecution(ExecutorService executorService, Consumer<ExecutionResult<Void>> completionHandler) {
         assertInState(State.ReadyToRun);
-        executorService.submit(new BuildOpRunnable(CurrentBuildOperationRef.instance().get(), completionHandler));
+        executorService.submit(
+                new BuildOpRunnable(CurrentBuildOperationRef.instance().get(), completionHandler));
         state = State.RunningTasks;
     }
 
@@ -148,19 +153,24 @@ class DefaultBuildController implements BuildController {
         }
         if (!visiting.add(task)) {
             // Visiting dependencies -> have found a cycle
-            CachingDirectedGraphWalker<TaskInternal, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> visitDependenciesOf(node, connectedNodes::add));
+            CachingDirectedGraphWalker<TaskInternal, Void> graphWalker = new CachingDirectedGraphWalker<>(
+                    (node, values, connectedNodes) -> visitDependenciesOf(node, connectedNodes::add));
             graphWalker.add(task);
             List<Set<TaskInternal>> cycles = graphWalker.findCycles();
             Set<TaskInternal> cycle = cycles.get(0);
 
-            DirectedGraphRenderer<TaskInternal> graphRenderer = new DirectedGraphRenderer<>((node, output, alreadySeen) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getIdentityPath()), (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
-                if (cycle.contains(dep)) {
-                    connectedNodes.add(dep);
-                }
-            }));
+            DirectedGraphRenderer<TaskInternal> graphRenderer = new DirectedGraphRenderer<>(
+                    (node, output, alreadySeen) ->
+                            output.withStyle(StyledTextOutput.Style.Identifier).text(node.getIdentityPath()),
+                    (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
+                        if (cycle.contains(dep)) {
+                            connectedNodes.add(dep);
+                        }
+                    }));
             StringWriter writer = new StringWriter();
             graphRenderer.renderTo(task, writer);
-            throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer));
+            throw new CircularReferenceException(
+                    String.format("Circular dependency between the following tasks:%n%s", writer));
         }
         visitDependenciesOf(task, dep -> checkForCyclesFor(dep, visited, visiting));
         visiting.remove(task);
@@ -168,7 +178,8 @@ class DefaultBuildController implements BuildController {
     }
 
     private static void visitDependenciesOf(TaskInternal task, Consumer<TaskInternal> consumer) {
-        TaskNodeFactory taskNodeFactory = ((GradleInternal) task.getProject().getGradle()).getServices().get(TaskNodeFactory.class);
+        TaskNodeFactory taskNodeFactory =
+                ((GradleInternal) task.getProject().getGradle()).getServices().get(TaskNodeFactory.class);
         TaskNode node = taskNodeFactory.getOrCreateNode(task);
         for (Node dependency : node.getAllSuccessors()) {
             if (dependency instanceof TaskNode) {

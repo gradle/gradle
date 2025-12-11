@@ -18,13 +18,12 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.sun.source.util.JavacTask;
 import com.sun.tools.javac.util.Context;
-import org.jspecify.annotations.Nullable;
-
+import java.io.Writer;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
-import java.io.Writer;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This interface extends the standard {@link JavaCompiler} interface with {@link com.sun.tools.javac.api.JavacTool}'s internal method
@@ -33,13 +32,11 @@ import java.io.Writer;
 public interface ContextAwareJavaCompiler extends JavaCompiler {
 
     JavacTask getTask(
-        @Nullable Writer out,
-        JavaFileManager fileManager,
-        DiagnosticListener<? super JavaFileObject> diagnosticListener,
-        Iterable<String> options,
-        Iterable<String> classes,
-        Iterable<? extends JavaFileObject> compilationUnits,
-        Context context
-    );
-
+            @Nullable Writer out,
+            JavaFileManager fileManager,
+            DiagnosticListener<? super JavaFileObject> diagnosticListener,
+            Iterable<String> options,
+            Iterable<String> classes,
+            Iterable<? extends JavaFileObject> compilationUnits,
+            Context context);
 }

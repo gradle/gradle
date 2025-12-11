@@ -16,16 +16,10 @@
 
 package org.gradle.cache.internal.locklistener;
 
+import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_RELEASE_CONFIRMATION;
+
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import org.gradle.cache.FileLockReleasedSignal;
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.concurrent.Stoppable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.concurrent.GuardedBy;
 import java.net.DatagramPacket;
 import java.net.SocketAddress;
 import java.util.LinkedHashSet;
@@ -34,8 +28,13 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
-
-import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_RELEASE_CONFIRMATION;
+import javax.annotation.concurrent.GuardedBy;
+import org.gradle.cache.FileLockReleasedSignal;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.Stoppable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The contention handler is responsible for negotiating the transfer of a lock from one process to another.
@@ -83,10 +82,13 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     @GuardedBy("lock")
     private final Long2ObjectOpenHashMap<ContendedAction> contendedActions = new Long2ObjectOpenHashMap<>();
+
     @GuardedBy("lock")
     private final Long2ObjectOpenHashMap<FileLockReleasedSignal> lockReleasedSignals = new Long2ObjectOpenHashMap<>();
+
     @GuardedBy("lock")
     private final Long2IntOpenHashMap unlocksRequestedFrom = new Long2IntOpenHashMap();
+
     @GuardedBy("lock")
     private final Long2IntOpenHashMap unlocksConfirmedFrom = new Long2IntOpenHashMap();
 
@@ -96,18 +98,23 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     @GuardedBy("lock")
     private ManagedExecutor fileLockRequestListener;
+
     @GuardedBy("lock")
     private ManagedExecutor unlockActionExecutor;
 
     @GuardedBy("lock")
     private boolean stopped;
+
     private volatile boolean listenerFailed;
 
     public DefaultFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressProvider inetAddressProvider) {
         this(new DefaultFileLockCommunicator(inetAddressProvider), inetAddressProvider, executorFactory);
     }
 
-    DefaultFileLockContentionHandler(FileLockCommunicator communicator, InetAddressProvider inetAddressProvider, ExecutorFactory executorFactory) {
+    DefaultFileLockContentionHandler(
+            FileLockCommunicator communicator,
+            InetAddressProvider inetAddressProvider,
+            ExecutorFactory executorFactory) {
         this.communicator = communicator;
         this.inetAddressProvider = inetAddressProvider;
         this.executorFactory = executorFactory;
@@ -217,7 +224,8 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
             assertNotStopped();
 
             if (contendedActions.containsKey(lockId)) {
-                throw new UnsupportedOperationException("Multiple contention actions for a given lock are currently not supported.");
+                throw new UnsupportedOperationException(
+                        "Multiple contention actions for a given lock are currently not supported.");
             }
             contendedActions.put(lockId, new ContendedAction(lockId, whenContended));
         } finally {
@@ -226,24 +234,26 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     }
 
     @Override
-    public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal) {
+    public boolean maybePingOwner(
+            int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal) {
         assert port != UNKNOWN_PORT;
 
         lock.lock();
         try {
             if (port == unlocksConfirmedFrom.getOrDefault(lockId, UNKNOWN_PORT)) {
-                //the unlock was confirmed we are waiting
+                // the unlock was confirmed we are waiting
                 return false;
             }
             if (timeElapsed < PING_DELAY && port == unlocksRequestedFrom.getOrDefault(lockId, UNKNOWN_PORT)) {
-                //the unlock was just requested but not yet confirmed, give it some more time
+                // the unlock was just requested but not yet confirmed, give it some more time
                 return false;
             }
         } finally {
             lock.unlock();
         }
 
-        boolean pingSentSuccessfully = getCommunicator().pingOwner(inetAddressProvider.getCommunicationAddress(), port, lockId, displayName);
+        boolean pingSentSuccessfully =
+                getCommunicator().pingOwner(inetAddressProvider.getCommunicationAddress(), port, lockId, displayName);
         if (pingSentSuccessfully) {
             lock.lock();
             try {
@@ -265,7 +275,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private void assertNotStopped() {
         if (stopped) {
             throw new IllegalStateException(
-                "Cannot start managing file contention because this handler has been closed.");
+                    "Cannot start managing file contention because this handler has been closed.");
         }
     }
 
@@ -337,7 +347,8 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
             action.accept(() -> {
                 Set<SocketAddress> requesters = consumeRequesters();
                 if (requesters == null) {
-                    throw new IllegalStateException("trigger() has already been called and must at most be called once");
+                    throw new IllegalStateException(
+                            "trigger() has already been called and must at most be called once");
                 }
                 communicator.confirmLockRelease(requesters, lockId);
             });
@@ -364,5 +375,4 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
             }
         }
     }
-
 }

@@ -28,5 +28,4 @@ package org.gradle.api.tasks;
  *
  * @since 4.3
  */
-public interface CompileClasspathNormalizer extends FileNormalizer {
-}
+public interface CompileClasspathNormalizer extends FileNormalizer {}

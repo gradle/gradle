@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import javax.inject.Inject;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
@@ -25,8 +26,6 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
 
 /**
  * A simple dependency-management scoped wrapper around {@link BuildTreeLocalComponentProvider} that
@@ -43,13 +42,13 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
 
     @Inject
     public DefaultLocalComponentRegistry(
-        DomainObjectContext domainObjectContext,
-        ListenerManager listenerManager,
-        BuildTreeLocalComponentProvider componentProvider
-    ) {
+            DomainObjectContext domainObjectContext,
+            ListenerManager listenerManager,
+            BuildTreeLocalComponentProvider componentProvider) {
         this.currentProjectPath = getProjectBuildTreePath(domainObjectContext);
         this.currentBuildPath = domainObjectContext.getBuildPath();
-        this.projectComponentObservationListener = listenerManager.getBroadcaster(ProjectComponentObservationListener.class);
+        this.projectComponentObservationListener =
+                listenerManager.getBroadcaster(ProjectComponentObservationListener.class);
         this.componentProvider = componentProvider;
     }
 
@@ -62,7 +61,8 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
             // dependencies, but we should be. Removing this condition breaks some Isolated Projects tests,
             // so we need to investigate why they are failing and then remove this condition.
             // Specifically, the following test breaks when we remove this check:
-            // IsolatedProjectsToolingApiIdeaProjectIntegrationTest.ensures unique name for all Idea modules in composite
+            // IsolatedProjectsToolingApiIdeaProjectIntegrationTest.ensures unique name for all Idea modules in
+            // composite
             if (projectIdentifier.getBuild().getBuildPath().equals(currentBuildPath.asString())) {
                 projectComponentObservationListener.projectObserved(currentProjectPath, targetProjectPath);
             }
@@ -80,5 +80,4 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
 
         return null;
     }
-
 }

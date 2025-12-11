@@ -22,5 +22,4 @@ package org.gradle.internal.service;
 public interface ServiceRegistrationAction {
 
     void registerServices(ServiceRegistration registration);
-
 }

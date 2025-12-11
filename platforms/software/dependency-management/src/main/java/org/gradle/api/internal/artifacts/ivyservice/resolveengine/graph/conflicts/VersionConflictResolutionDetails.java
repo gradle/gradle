@@ -15,20 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import com.google.common.base.Objects;
-import org.gradle.api.Describable;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
+import static org.gradle.api.artifacts.result.ComponentSelectionCause.CONFLICT_RESOLUTION;
 
+import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-import static org.gradle.api.artifacts.result.ComponentSelectionCause.CONFLICT_RESOLUTION;
+import org.gradle.api.Describable;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 
 public class VersionConflictResolutionDetails implements Describable {
     private final Collection<? extends ComponentResolutionState> candidates;
@@ -92,8 +91,10 @@ public class VersionConflictResolutionDetails implements Describable {
      * @param descriptors all selection descriptors
      * @return a filtered descriptors list, with merged conflict version resolution
      */
-    public static List<ComponentSelectionDescriptorInternal> mergeCauses(List<ComponentSelectionDescriptorInternal> descriptors) {
-        List<VersionConflictResolutionDetails> byVersionConflictResolution = collectVersionConflictCandidates(descriptors);
+    public static List<ComponentSelectionDescriptorInternal> mergeCauses(
+            List<ComponentSelectionDescriptorInternal> descriptors) {
+        List<VersionConflictResolutionDetails> byVersionConflictResolution =
+                collectVersionConflictCandidates(descriptors);
         if (byVersionConflictResolution.size() > 1) {
             Set<ComponentResolutionState> allCandidates = mergeAllCandidates(byVersionConflictResolution);
             List<ComponentSelectionDescriptorInternal> merged = new ArrayList<>(descriptors.size() - 1);
@@ -101,7 +102,8 @@ public class VersionConflictResolutionDetails implements Describable {
             for (ComponentSelectionDescriptorInternal descriptor : descriptors) {
                 if (isByVersionConflict(descriptor)) {
                     if (!added) {
-                        merged.add(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(new VersionConflictResolutionDetails(allCandidates)));
+                        merged.add(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(
+                                new VersionConflictResolutionDetails(allCandidates)));
                     }
                     added = true;
                 } else {
@@ -113,7 +115,8 @@ public class VersionConflictResolutionDetails implements Describable {
         return descriptors;
     }
 
-    private static Set<ComponentResolutionState> mergeAllCandidates(List<VersionConflictResolutionDetails> byVersionConflictResolution) {
+    private static Set<ComponentResolutionState> mergeAllCandidates(
+            List<VersionConflictResolutionDetails> byVersionConflictResolution) {
         Set<ComponentResolutionState> allCandidates = new LinkedHashSet<>();
         for (VersionConflictResolutionDetails versionConflictResolutionDetails : byVersionConflictResolution) {
             allCandidates.addAll(versionConflictResolutionDetails.getCandidates());
@@ -121,7 +124,8 @@ public class VersionConflictResolutionDetails implements Describable {
         return allCandidates;
     }
 
-    private static List<VersionConflictResolutionDetails> collectVersionConflictCandidates(List<ComponentSelectionDescriptorInternal> descriptors) {
+    private static List<VersionConflictResolutionDetails> collectVersionConflictCandidates(
+            List<ComponentSelectionDescriptorInternal> descriptors) {
         List<VersionConflictResolutionDetails> byVersionConflictResolution = new ArrayList<>(descriptors.size());
         for (ComponentSelectionDescriptorInternal descriptor : descriptors) {
             if (isByVersionConflict(descriptor)) {
@@ -133,7 +137,6 @@ public class VersionConflictResolutionDetails implements Describable {
 
     private static boolean isByVersionConflict(ComponentSelectionDescriptorInternal descriptor) {
         return descriptor.getCause() == CONFLICT_RESOLUTION
-            && descriptor.getDescribable() instanceof VersionConflictResolutionDetails;
+                && descriptor.getDescribable() instanceof VersionConflictResolutionDetails;
     }
-
 }

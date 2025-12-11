@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * A {@link TestReportGenerator} that uses multiple report generators to generate reports. A primary generator is used as the user-facing report.
@@ -34,8 +33,7 @@ public final class MultiTestReportGenerator implements TestReportGenerator {
     public MultiTestReportGenerator(TestReportGenerator primary, Set<TestReportGenerator> others) {
         if (others.contains(primary)) {
             throw new IllegalArgumentException(
-                "The primary report generator must not be in the set of other report generators."
-            );
+                    "The primary report generator must not be in the set of other report generators.");
         }
         this.primary = primary;
         this.others = others;

@@ -16,14 +16,14 @@
 
 package org.gradle.internal.execution.steps;
 
+import java.util.Optional;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Optional;
 
 public class ExecutionRequestContext implements ValidatingContext {
     @Nullable
     private final String nonIncrementalReason;
+
     private final WorkValidationContext validationContext;
 
     public ExecutionRequestContext(@Nullable String nonIncrementalReason, WorkValidationContext validationContext) {

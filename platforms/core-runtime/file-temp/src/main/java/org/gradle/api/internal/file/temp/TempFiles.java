@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.file.temp;
 
-import org.jspecify.annotations.Nullable;
-
-import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.io.IOException;
+import javax.annotation.CheckReturnValue;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Security safe API's for creating temporary files.
@@ -39,12 +38,13 @@ public final class TempFiles {
     @CheckReturnValue
     static File createTempFile(@Nullable String prefix, @Nullable String suffix, File directory) throws IOException {
         if (directory == null) {
-            throw new NullPointerException("The `directory` argument must not be null as this will default to the system temporary directory");
+            throw new NullPointerException(
+                    "The `directory` argument must not be null as this will default to the system temporary directory");
         }
-        if(prefix == null) {
+        if (prefix == null) {
             prefix = "gradle-";
         }
-        if(prefix.length() <= 3) {
+        if (prefix.length() <= 3) {
             prefix = "tmp-" + prefix;
         }
         return File.createTempFile(prefix, suffix, directory);

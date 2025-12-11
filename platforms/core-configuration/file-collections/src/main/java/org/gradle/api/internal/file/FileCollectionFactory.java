@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.file;
 
+import java.io.File;
+import java.io.OutputStream;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -35,12 +40,6 @@ import org.gradle.internal.instantiation.managed.ManagedObjectProvider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.File;
-import java.io.OutputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-
 @ManagedObjectProvider
 @ServiceScope({Scope.Global.class, Scope.BuildTree.class, Scope.Build.class, Scope.Project.class})
 public interface FileCollectionFactory {
@@ -53,7 +52,8 @@ public interface FileCollectionFactory {
 
     FileCollectionFactory forChildScope(FileCollectionObservationListener listener);
 
-    FileCollectionFactory forChildScope(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost);
+    FileCollectionFactory forChildScope(
+            PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost);
 
     /**
      * Creates a {@link FileCollection} with the given contents.
@@ -78,7 +78,8 @@ public interface FileCollectionFactory {
      * @param visitTaskDependencies The implementation of visiting dependencies for the constructed file collection's {@link Buildable#getBuildDependencies()}
      * @see org.gradle.api.internal.tasks.TaskDependencyFactory#visitingDependencies(Consumer)
      */
-    FileCollectionInternal create(MinimalFileSet contents, Consumer<? super TaskDependencyResolveContext> visitTaskDependencies);
+    FileCollectionInternal create(
+            MinimalFileSet contents, Consumer<? super TaskDependencyResolveContext> visitTaskDependencies);
 
     /**
      * Creates an empty {@link FileCollection}
@@ -182,7 +183,11 @@ public interface FileCollectionFactory {
     /**
      * Creates a file tree containing the given generated file.
      */
-    FileTreeInternal generated(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentGenerator);
+    FileTreeInternal generated(
+            Factory<File> tmpDir,
+            String fileName,
+            Action<File> fileGenerationListener,
+            Action<OutputStream> contentGenerator);
 
     /**
      * Creates a file tree made up of the union of the given trees.

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.attributes;
 
-public interface CompatibilityRule<T>  {
+public interface CompatibilityRule<T> {
 
     /* private */ CompatibilityRule<Object> DO_NOTHING = new CompatibilityRule<Object>() {
         @Override
@@ -24,7 +24,7 @@ public interface CompatibilityRule<T>  {
         }
 
         @Override
-        public void execute(CompatibilityCheckResult<Object> t) { }
+        public void execute(CompatibilityCheckResult<Object> t) {}
     };
 
     @SuppressWarnings("unchecked")

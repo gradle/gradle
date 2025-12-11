@@ -26,13 +26,20 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.PrebuiltLibraries;
 import org.gradle.nativeplatform.PrebuiltLibrary;
 
-public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer<PrebuiltLibrary> implements PrebuiltLibraries {
+public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer<PrebuiltLibrary>
+        implements PrebuiltLibraries {
     private final ObjectFactory objectFactory;
     private final Action<PrebuiltLibrary> libraryInitializer;
     private String name;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-    public DefaultPrebuiltLibraries(String name, Instantiator instantiator, ObjectFactory objectFactory, Action<PrebuiltLibrary> libraryInitializer, CollectionCallbackActionDecorator collectionCallbackActionDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    public DefaultPrebuiltLibraries(
+            String name,
+            Instantiator instantiator,
+            ObjectFactory objectFactory,
+            Action<PrebuiltLibrary> libraryInitializer,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+            DomainObjectCollectionFactory domainObjectCollectionFactory) {
         super(PrebuiltLibrary.class, instantiator, collectionCallbackActionDecorator);
         this.name = name;
         this.objectFactory = objectFactory;
@@ -57,7 +64,8 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
 
     @Override
     protected PrebuiltLibrary doCreate(String name) {
-        return getInstantiator().newInstance(DefaultPrebuiltLibrary.class, name, objectFactory, domainObjectCollectionFactory);
+        return getInstantiator()
+                .newInstance(DefaultPrebuiltLibrary.class, name, objectFactory, domainObjectCollectionFactory);
     }
 
     @Override
@@ -72,5 +80,4 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
         }
         return library;
     }
-
 }

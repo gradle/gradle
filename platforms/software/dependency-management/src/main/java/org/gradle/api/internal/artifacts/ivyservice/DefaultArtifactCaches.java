@@ -16,6 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
+import java.io.Closeable;
+import java.io.File;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
@@ -34,14 +39,8 @@ import org.gradle.internal.versionedcache.UsedGradleVersions;
 import org.gradle.util.internal.IncubationLogger;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Closeable;
-import java.io.File;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
-
 public class DefaultArtifactCaches implements ArtifactCachesProvider {
-    private final static Logger LOGGER = Logging.getLogger(DefaultArtifactCaches.class);
+    private static final Logger LOGGER = Logging.getLogger(DefaultArtifactCaches.class);
 
     private final DefaultArtifactCacheMetadata writableCacheMetadata;
     private final DefaultArtifactCacheMetadata readOnlyCacheMetadata;
@@ -57,7 +56,13 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
             CacheCleanupStrategyFactory cacheCleanupStrategyFactory) {
         writableCacheMetadata = new DefaultArtifactCacheMetadata(cacheBuilderFactory);
         writableCacheAccessCoordinator = new LateInitWritableArtifactCacheLockingAccessCoordinator(() -> {
-            return new WritableArtifactCacheLockingAccessCoordinator(unscopedCacheBuilderFactory, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cacheConfigurations, cacheCleanupStrategyFactory);
+            return new WritableArtifactCacheLockingAccessCoordinator(
+                    unscopedCacheBuilderFactory,
+                    writableCacheMetadata,
+                    params.getFileAccessTimeJournal(),
+                    params.getUsedGradleVersions(),
+                    cacheConfigurations,
+                    cacheCleanupStrategyFactory);
         });
         String roCache = System.getenv(READONLY_CACHE_ENV_VAR);
         if (StringUtils.isNotEmpty(roCache)) {
@@ -65,8 +70,12 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
             File baseDir = validateReadOnlyCache(documentationRegistry, new File(roCache).getAbsoluteFile());
             if (baseDir != null) {
                 readOnlyCacheMetadata = new DefaultArtifactCacheMetadata(cacheBuilderFactory, baseDir);
-                readOnlyCacheAccessCoordinator = new ReadOnlyArtifactCacheLockingAccessCoordinator(unscopedCacheBuilderFactory, readOnlyCacheMetadata);
-                LOGGER.info("The read-only dependency cache is enabled \nThe {} environment variable was set to {}", READONLY_CACHE_ENV_VAR, baseDir);
+                readOnlyCacheAccessCoordinator = new ReadOnlyArtifactCacheLockingAccessCoordinator(
+                        unscopedCacheBuilderFactory, readOnlyCacheMetadata);
+                LOGGER.info(
+                        "The read-only dependency cache is enabled \nThe {} environment variable was set to {}",
+                        READONLY_CACHE_ENV_VAR,
+                        baseDir);
             } else {
                 readOnlyCacheMetadata = null;
                 readOnlyCacheAccessCoordinator = null;
@@ -81,15 +90,18 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
     private static File validateReadOnlyCache(DocumentationRegistry documentationRegistry, File cacheDir) {
         if (!cacheDir.exists()) {
             LOGGER.warn("The read-only dependency cache is disabled because of a configuration problem:");
-            LOGGER.warn("The " + READONLY_CACHE_ENV_VAR + " environment variable was set to " + cacheDir + " which doesn't exist!");
+            LOGGER.warn("The " + READONLY_CACHE_ENV_VAR + " environment variable was set to " + cacheDir
+                    + " which doesn't exist!");
             return null;
         }
         File root = CacheLayout.MODULES.getPath(cacheDir);
         if (!root.exists()) {
-            String docLink = documentationRegistry.getDocumentationRecommendationFor("instructions on how to do this", "dependency_resolution", "sub:shared-readonly-cache");
+            String docLink = documentationRegistry.getDocumentationRecommendationFor(
+                    "instructions on how to do this", "dependency_resolution", "sub:shared-readonly-cache");
             LOGGER.warn("The read-only dependency cache is disabled because of a configuration problem:");
-            LOGGER.warn("Read-only cache is configured but the directory layout isn't expected. You must have a pre-populated " +
-                CacheLayout.MODULES.getKey() + " directory at " + root + " . " + docLink);
+            LOGGER.warn(
+                    "Read-only cache is configured but the directory layout isn't expected. You must have a pre-populated "
+                            + CacheLayout.MODULES.getKey() + " directory at " + root + " . " + docLink);
             return null;
         }
         return cacheDir;
@@ -117,9 +129,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
 
     @Override
     public List<File> getGlobalCacheRoots() {
-        return readOnlyCacheMetadata == null
-            ? ImmutableList.of()
-            : readOnlyCacheMetadata.getGlobalCacheRoots();
+        return readOnlyCacheMetadata == null ? ImmutableList.of() : readOnlyCacheMetadata.getGlobalCacheRoots();
     }
 
     @Override
@@ -137,11 +147,13 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
         UsedGradleVersions getUsedGradleVersions();
     }
 
-    private static class LateInitWritableArtifactCacheLockingAccessCoordinator implements ArtifactCacheLockingAccessCoordinator, Closeable {
+    private static class LateInitWritableArtifactCacheLockingAccessCoordinator
+            implements ArtifactCacheLockingAccessCoordinator, Closeable {
         private final Factory<WritableArtifactCacheLockingAccessCoordinator> factory;
         private volatile WritableArtifactCacheLockingAccessCoordinator delegate;
 
-        private LateInitWritableArtifactCacheLockingAccessCoordinator(Factory<WritableArtifactCacheLockingAccessCoordinator> factory) {
+        private LateInitWritableArtifactCacheLockingAccessCoordinator(
+                Factory<WritableArtifactCacheLockingAccessCoordinator> factory) {
             this.factory = factory;
         }
 
@@ -184,7 +196,8 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
         }
 
         @Override
-        public <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        public <K, V> IndexedCache<K, V> createCache(
+                String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
             return getDelegate().createCache(cacheName, keySerializer, valueSerializer);
         }
     }

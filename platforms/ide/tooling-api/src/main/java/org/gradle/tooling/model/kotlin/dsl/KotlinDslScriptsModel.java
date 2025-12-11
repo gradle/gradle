@@ -19,7 +19,6 @@ package org.gradle.tooling.model.kotlin.dsl;
 import java.io.File;
 import java.util.Map;
 
-
 /**
  * Editor model for a set of Kotlin DSL scripts.
  * <p>

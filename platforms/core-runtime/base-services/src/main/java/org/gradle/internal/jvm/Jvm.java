@@ -17,15 +17,6 @@
 package org.gradle.internal.jvm;
 
 import com.google.common.base.Optional;
-import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.jvm.JavaVersionParser;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.SystemProperties;
-import org.gradle.internal.os.OperatingSystem;
-import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,6 +25,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
+import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.jvm.JavaVersionParser;
+import org.gradle.internal.FileUtils;
+import org.gradle.internal.SystemProperties;
+import org.gradle.internal.os.OperatingSystem;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Jvm implements JavaInfo {
 
@@ -44,9 +43,9 @@ public class Jvm implements JavaInfo {
     private static final Pattern JAVA_MAIN_CLASS_REGEX = Pattern.compile("JAVA_MAIN_CLASS_\\d+");
 
     private final OperatingSystem os;
-    //supplied java location
+    // supplied java location
     private final File javaBase;
-    //discovered java location
+    // discovered java location
     private final File javaHome;
     private final boolean userSupplied;
     private final String implementationJavaVersion;
@@ -68,7 +67,8 @@ public class Jvm implements JavaInfo {
         return jvm;
     }
 
-    private static Jvm create(File javaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor) {
+    private static Jvm create(
+            File javaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor) {
         Jvm jvm = new Jvm(OperatingSystem.current(), javaBase, implementationJavaVersion, javaVersionMajor);
         Jvm current = current();
         return jvm.getJavaHome().equals(current.getJavaHome()) ? current : jvm;
@@ -78,17 +78,31 @@ public class Jvm implements JavaInfo {
      * Constructs JVM details by inspecting the current JVM.
      */
     Jvm(OperatingSystem os) {
-        this(os, FileUtils.canonicalize(new File(System.getProperty("java.home"))), System.getProperty("java.version"), JavaVersionParser.parseMajorVersion(System.getProperty("java.version")), false);
+        this(
+                os,
+                FileUtils.canonicalize(new File(System.getProperty("java.home"))),
+                System.getProperty("java.version"),
+                JavaVersionParser.parseMajorVersion(System.getProperty("java.version")),
+                false);
     }
 
     /**
      * Constructs JVM details from the given values
      */
-    Jvm(OperatingSystem os, File suppliedJavaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor) {
+    Jvm(
+            OperatingSystem os,
+            File suppliedJavaBase,
+            @Nullable String implementationJavaVersion,
+            @Nullable Integer javaVersionMajor) {
         this(os, suppliedJavaBase, implementationJavaVersion, javaVersionMajor, true);
     }
 
-    private Jvm(OperatingSystem os, File suppliedJavaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor, boolean userSupplied) {
+    private Jvm(
+            OperatingSystem os,
+            File suppliedJavaBase,
+            @Nullable String implementationJavaVersion,
+            @Nullable Integer javaVersionMajor,
+            boolean userSupplied) {
         this.os = os;
         this.javaBase = suppliedJavaBase;
         this.implementationJavaVersion = implementationJavaVersion;
@@ -108,10 +122,11 @@ public class Jvm implements JavaInfo {
      */
     public static JavaInfo forHome(File javaHome) throws JavaHomeException, IllegalArgumentException {
         if (!javaHome.isDirectory()) {
-            throw new IllegalArgumentException("Supplied javaHome must be a valid directory. You supplied: " + javaHome);
+            throw new IllegalArgumentException(
+                    "Supplied javaHome must be a valid directory. You supplied: " + javaHome);
         }
         Jvm jvm = create(javaHome, null, null);
-        //some validation:
+        // some validation:
         jvm.getJavaExecutable();
         return jvm;
     }
@@ -136,7 +151,8 @@ public class Jvm implements JavaInfo {
         if (userSupplied) {
             return "User-supplied java: " + javaBase;
         }
-        return SystemProperties.getInstance().getJavaVersion() + " (" + System.getProperty("java.vm.vendor") + " " + System.getProperty("java.vm.version") + ")";
+        return SystemProperties.getInstance().getJavaVersion() + " (" + System.getProperty("java.vm.vendor") + " "
+                + System.getProperty("java.vm.version") + ")";
     }
 
     @Override
@@ -183,21 +199,26 @@ public class Jvm implements JavaInfo {
             return executable;
         }
 
-        if (userSupplied) { //then we want to validate strictly
-            throw new JavaHomeException(String.format("The supplied javaHome seems to be invalid."
-                + " I cannot find the %s executable. Tried location: %s", command, executable.getAbsolutePath()));
+        if (userSupplied) { // then we want to validate strictly
+            throw new JavaHomeException(String.format(
+                    "The supplied javaHome seems to be invalid."
+                            + " I cannot find the %s executable. Tried location: %s",
+                    command, executable.getAbsolutePath()));
         }
 
         File pathExecutable = os.findInPath(command);
         if (pathExecutable != null) {
-            LOGGER.info(String.format("Unable to find the '%s' executable using home: %s. We found it on the PATH: %s.",
-                command, getJavaHome(), pathExecutable));
+            LOGGER.info(String.format(
+                    "Unable to find the '%s' executable using home: %s. We found it on the PATH: %s.",
+                    command, getJavaHome(), pathExecutable));
             return pathExecutable;
         }
 
-        LOGGER.warn("Unable to find the '{}' executable. Tried the java home: {} and the PATH."
-                + " We will assume the executable can be run in the current working folder.",
-            command, getJavaHome());
+        LOGGER.warn(
+                "Unable to find the '{}' executable. Tried the java home: {} and the PATH."
+                        + " We will assume the executable can be run in the current working folder.",
+                command,
+                getJavaHome());
         return new File(os.getExecutableName(command));
     }
 
@@ -276,7 +297,8 @@ public class Jvm implements JavaInfo {
         Optional<File> toolsJar = findToolsJar(javaBase);
         if (toolsJar.isPresent()) {
             return toolsJar.get().getParentFile().getParentFile();
-        } else if (javaBase.getName().equalsIgnoreCase("jre") && new File(javaBase.getParentFile(), "bin/java").exists()) {
+        } else if (javaBase.getName().equalsIgnoreCase("jre")
+                && new File(javaBase.getParentFile(), "bin/java").exists()) {
             return javaBase.getParentFile();
         } else {
             return javaBase;
@@ -373,9 +395,9 @@ public class Jvm implements JavaInfo {
         for (Map.Entry<String, ?> entry : envVars.entrySet()) {
             // The following are known variables that can change between builds and should not be inherited
             if (APP_NAME_REGEX.matcher(entry.getKey()).matches()
-                || JAVA_MAIN_CLASS_REGEX.matcher(entry.getKey()).matches()
-                || entry.getKey().equals("TERM_SESSION_ID")
-                || entry.getKey().equals("ITERM_SESSION_ID")) {
+                    || JAVA_MAIN_CLASS_REGEX.matcher(entry.getKey()).matches()
+                    || entry.getKey().equals("TERM_SESSION_ID")
+                    || entry.getKey().equals("ITERM_SESSION_ID")) {
                 continue;
             }
             vars.put(entry.getKey(), entry.getValue());
@@ -386,7 +408,9 @@ public class Jvm implements JavaInfo {
     public boolean isIbmJvm() {
         for (String vendorProperty : VENDOR_PROPERTIES) {
             if (System.getProperties().containsKey(vendorProperty)
-                && System.getProperty(vendorProperty).toLowerCase(Locale.ROOT).startsWith("ibm corporation")) {
+                    && System.getProperty(vendorProperty)
+                            .toLowerCase(Locale.ROOT)
+                            .startsWith("ibm corporation")) {
                 return true;
             }
         }
@@ -396,7 +420,8 @@ public class Jvm implements JavaInfo {
     @Nullable
     public String getVendor() {
         for (String vendorProperty : VENDOR_PROPERTIES) {
-            if (System.getProperties().containsKey(vendorProperty) && !System.getProperty(vendorProperty).isEmpty()) {
+            if (System.getProperties().containsKey(vendorProperty)
+                    && !System.getProperty(vendorProperty).isEmpty()) {
                 return System.getProperty(vendorProperty);
             }
         }

@@ -16,6 +16,17 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import javax.inject.Inject;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
@@ -41,18 +52,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.util.internal.GUtil;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
     private final List<Object> source = new ArrayList<>();
     private final String name;
@@ -63,16 +62,41 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final PatternSet filter;
     private final FileCollection dirs;
     private final DirectoryProperty destinationDirectory; // the user configurable output directory
-    private final DirectoryProperty classesDirectory;     // bound to the compile task output
+    private final DirectoryProperty classesDirectory; // bound to the compile task output
 
     private TaskProvider<?> compileTaskProvider;
 
     @Inject
-    public DefaultSourceDirectorySet(String name, String displayName, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
-        this(name, displayName, patternSetFactory.createPatternSet(), patternSetFactory.createPatternSet(), taskDependencyFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory.directoryProperty(), objectFactory.directoryProperty());
+    public DefaultSourceDirectorySet(
+            String name,
+            String displayName,
+            PatternSetFactory patternSetFactory,
+            TaskDependencyFactory taskDependencyFactory,
+            FileCollectionFactory fileCollectionFactory,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            ObjectFactory objectFactory) {
+        this(
+                name,
+                displayName,
+                patternSetFactory.createPatternSet(),
+                patternSetFactory.createPatternSet(),
+                taskDependencyFactory,
+                fileCollectionFactory,
+                directoryFileTreeFactory,
+                objectFactory.directoryProperty(),
+                objectFactory.directoryProperty());
     }
 
-    DefaultSourceDirectorySet(String name, String displayName, PatternSet patterns, PatternSet filters, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, DirectoryProperty destinationDirectory, DirectoryProperty classesDirectory) {
+    DefaultSourceDirectorySet(
+            String name,
+            String displayName,
+            PatternSet patterns,
+            PatternSet filters,
+            TaskDependencyFactory taskDependencyFactory,
+            FileCollectionFactory fileCollectionFactory,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            DirectoryProperty destinationDirectory,
+            DirectoryProperty classesDirectory) {
         super(taskDependencyFactory);
         this.name = name;
         this.displayName = displayName;
@@ -243,7 +267,8 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
             } else {
                 for (File srcDir : fileCollectionFactory.resolving(path)) {
                     if (!srcDir.isDirectory() && srcDir.exists()) {
-                        throw new InvalidUserDataException(String.format("Source directory '%s' is not a directory.", srcDir));
+                        throw new InvalidUserDataException(
+                                String.format("Source directory '%s' is not a directory.", srcDir));
                     }
                     result.add(directoryFileTreeFactory.create(srcDir, patterns));
                 }

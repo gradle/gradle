@@ -33,9 +33,7 @@ public class ResolutionResultProviderBackedSelectedArtifactSet implements Select
 
     private SelectedArtifactSet delegate;
 
-    public ResolutionResultProviderBackedSelectedArtifactSet(
-        ResolutionResultProvider<SelectedArtifactSet> artifacts
-    ) {
+    public ResolutionResultProviderBackedSelectedArtifactSet(ResolutionResultProvider<SelectedArtifactSet> artifacts) {
         this.artifacts = artifacts;
     }
 

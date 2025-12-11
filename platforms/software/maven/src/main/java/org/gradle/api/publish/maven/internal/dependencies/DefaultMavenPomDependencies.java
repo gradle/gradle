@@ -27,9 +27,7 @@ public class DefaultMavenPomDependencies implements MavenPomDependencies {
     private final ImmutableList<MavenDependency> dependencyManagement;
 
     public DefaultMavenPomDependencies(
-        ImmutableList<MavenDependency> dependencies,
-        ImmutableList<MavenDependency> dependencyManagement
-    ) {
+            ImmutableList<MavenDependency> dependencies, ImmutableList<MavenDependency> dependencyManagement) {
         this.dependencies = dependencies;
         this.dependencyManagement = dependencyManagement;
     }

@@ -16,10 +16,9 @@
 
 package org.gradle.initialization;
 
+import java.util.Set;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.util.Path;
-
-import java.util.Set;
 
 /**
  * Internal counterpart of {@link ProjectDescriptor}.
@@ -38,5 +37,4 @@ public interface ProjectDescriptorInternal extends ProjectDescriptor {
     void setPath(Path path);
 
     Path path();
-
 }

@@ -16,7 +16,11 @@
 
 package org.gradle.internal.component.resolution.failure.exception;
 
+import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
+
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -33,11 +37,6 @@ import org.gradle.internal.exceptions.StyledException;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
-import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.deprecation.Documentation.userManual;
-
 /**
  * Abstract base class for all {@link ResolutionFailure}s occurring during dependency resolution that can be handled
  * by the {@link ResolutionFailureHandler ResolutionFailureHandler}.
@@ -50,7 +49,8 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  * {@link VariantSelectionByAttributesException} subtypes.  All subtypes should remain immutable.
  */
 @Contextual
-public abstract class AbstractResolutionFailureException extends StyledException implements ResolutionProvider, ReportableAsProblem {
+public abstract class AbstractResolutionFailureException extends StyledException
+        implements ResolutionProvider, ReportableAsProblem {
     protected static final Logger LOGGER = Logging.getLogger(AbstractResolutionFailureException.class);
 
     private final ImmutableList<String> resolutions;
@@ -60,12 +60,16 @@ public abstract class AbstractResolutionFailureException extends StyledException
         this(message, failure, resolutions, null);
     }
 
-    public AbstractResolutionFailureException(String message, ResolutionFailure failure, List<String> resolutions, @Nullable Throwable cause) {
+    public AbstractResolutionFailureException(
+            String message, ResolutionFailure failure, List<String> resolutions, @Nullable Throwable cause) {
         super(message, cause);
         this.failure = failure;
         this.resolutions = ImmutableList.copyOf(resolutions);
 
-        LOGGER.info("Variant Selection Exception: {} caused by Resolution Failure: {}", this.getClass().getName(), getFailure().getClass().getName());
+        LOGGER.info(
+                "Variant Selection Exception: {} caused by Resolution Failure: {}",
+                this.getClass().getName(),
+                getFailure().getClass().getName());
     }
 
     public abstract ResolutionFailure getFailure();
@@ -79,11 +83,14 @@ public abstract class AbstractResolutionFailureException extends StyledException
     public AbstractResolutionFailureException reportAsProblem(InternalProblems problemsService) {
         Problem problem = problemsService.getInternalReporter().internalCreate(builder -> {
             ResolutionFailureProblemId problemId = getFailure().getProblemId();
-            builder.id(TextUtil.screamingSnakeToKebabCase(problemId.name()), problemId.getDisplayName(), GradleCoreProblemGroup.variantResolution())
-                .contextualLabel(getMessage())
-                .documentedAt(userManual("variant_model", "sec:variant-select-errors"))
-                .severity(ERROR)
-                .additionalDataInternal(ResolutionFailureDataSpec.class, data -> data.from(getFailure()));
+            builder.id(
+                            TextUtil.screamingSnakeToKebabCase(problemId.name()),
+                            problemId.getDisplayName(),
+                            GradleCoreProblemGroup.variantResolution())
+                    .contextualLabel(getMessage())
+                    .documentedAt(userManual("variant_model", "sec:variant-select-errors"))
+                    .severity(ERROR)
+                    .additionalDataInternal(ResolutionFailureDataSpec.class, data -> data.from(getFailure()));
         });
         problemsService.getInternalReporter().report(problem);
 

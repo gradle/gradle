@@ -16,19 +16,18 @@
 
 package org.gradle.launcher.daemon.bootstrap;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.process.internal.StreamsHandler;
-
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Scanner;
 import java.util.concurrent.Executor;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.process.internal.StreamsHandler;
 
 public class DaemonOutputConsumer implements StreamsHandler {
 
-    private final static Logger LOGGER = Logging.getLogger(DaemonOutputConsumer.class);
+    private static final Logger LOGGER = Logging.getLogger(DaemonOutputConsumer.class);
     DaemonStartupCommunication startupCommunication = new DaemonStartupCommunication();
 
     private String processOutput;
@@ -43,7 +42,8 @@ public class DaemonOutputConsumer implements StreamsHandler {
     @SuppressWarnings("DefaultCharset")
     public void start() {
         if (processStdOutput == null) {
-            throw new IllegalStateException("Cannot start consuming daemon output because streams have not been connected first.");
+            throw new IllegalStateException(
+                    "Cannot start consuming daemon output because streams have not been connected first.");
         }
         LOGGER.debug("Starting consuming the daemon process output.");
 
@@ -71,14 +71,11 @@ public class DaemonOutputConsumer implements StreamsHandler {
     }
 
     @Override
-    public void removeStartupContext() {
-    }
+    public void removeStartupContext() {}
 
     @Override
-    public void stop() {
-    }
+    public void stop() {}
 
     @Override
-    public void disconnect() {
-    }
+    public void disconnect() {}
 }

@@ -18,11 +18,10 @@ package org.gradle.vcs.git.internal;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
+import java.util.List;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.gradle.vcs.internal.VersionRef;
-
-import java.util.List;
 
 public class GitVersionRef implements VersionRef {
     private final String version;
@@ -73,6 +72,6 @@ public class GitVersionRef implements VersionRef {
 
     private static String extractName(Ref ref) {
         List<String> parts = Splitter.on("/").splitToList(ref.getName());
-        return parts.get(parts.size()-1);
+        return parts.get(parts.size() - 1);
     }
 }

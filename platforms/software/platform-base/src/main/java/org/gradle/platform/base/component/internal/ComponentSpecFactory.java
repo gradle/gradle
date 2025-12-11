@@ -40,47 +40,72 @@ import org.jspecify.annotations.Nullable;
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     private final ProjectIdentifier projectIdentifier;
 
-    public ComponentSpecFactory(final ProjectIdentifier projectIdentifier, final Instantiator instantiator, final NamedEntityInstantiator<Task> taskInstantiator, final ObjectFactory objectFactory,
-                                final CollectionCallbackActionDecorator collectionCallbackActionDecorator, final DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    public ComponentSpecFactory(
+            final ProjectIdentifier projectIdentifier,
+            final Instantiator instantiator,
+            final NamedEntityInstantiator<Task> taskInstantiator,
+            final ObjectFactory objectFactory,
+            final CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+            final DomainObjectCollectionFactory domainObjectCollectionFactory) {
         super(ComponentSpec.class);
         this.projectIdentifier = projectIdentifier;
         registerFactory(DefaultComponentSpec.class, new ImplementationFactory<ComponentSpec, DefaultComponentSpec>() {
             @Override
-            public <T extends DefaultComponentSpec> T create(ModelType<? extends ComponentSpec> publicType, ModelType<T> implementationType, String name, MutableModelNode componentNode) {
+            public <T extends DefaultComponentSpec> T create(
+                    ModelType<? extends ComponentSpec> publicType,
+                    ModelType<T> implementationType,
+                    String name,
+                    MutableModelNode componentNode) {
                 ComponentSpecIdentifier id = getId(findOwner(componentNode), name);
-                return DefaultComponentSpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode);
+                return DefaultComponentSpec.create(
+                        publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode);
             }
         });
         registerFactory(BaseBinarySpec.class, new ImplementationFactory<BinarySpec, BaseBinarySpec>() {
             @Override
-            public <T extends BaseBinarySpec> T create(ModelType<? extends BinarySpec> publicType, ModelType<T> implementationType, String name, MutableModelNode binaryNode) {
+            public <T extends BaseBinarySpec> T create(
+                    ModelType<? extends BinarySpec> publicType,
+                    ModelType<T> implementationType,
+                    String name,
+                    MutableModelNode binaryNode) {
                 MutableModelNode componentNode = findOwner(binaryNode);
                 ComponentSpecIdentifier id = getId(componentNode, name);
                 return BaseBinarySpec.create(
-                    publicType.getConcreteClass(),
-                    implementationType.getConcreteClass(),
-                    id,
-                    binaryNode,
-                    componentNode,
-                    instantiator,
-                    taskInstantiator,
-                    collectionCallbackActionDecorator,
-                    domainObjectCollectionFactory);
+                        publicType.getConcreteClass(),
+                        implementationType.getConcreteClass(),
+                        id,
+                        binaryNode,
+                        componentNode,
+                        instantiator,
+                        taskInstantiator,
+                        collectionCallbackActionDecorator,
+                        domainObjectCollectionFactory);
             }
         });
-        registerFactory(BaseLanguageSourceSet.class, new ImplementationFactory<LanguageSourceSet, BaseLanguageSourceSet>() {
-            @Override
-            public <T extends BaseLanguageSourceSet> T create(ModelType<? extends LanguageSourceSet> publicType, ModelType<T> implementationType, String sourceSetName, MutableModelNode node) {
-                ComponentSpecIdentifier id = getId(findOwner(node), sourceSetName);
-                return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, objectFactory));
-            }
-        });
+        registerFactory(
+                BaseLanguageSourceSet.class, new ImplementationFactory<LanguageSourceSet, BaseLanguageSourceSet>() {
+                    @Override
+                    public <T extends BaseLanguageSourceSet> T create(
+                            ModelType<? extends LanguageSourceSet> publicType,
+                            ModelType<T> implementationType,
+                            String sourceSetName,
+                            MutableModelNode node) {
+                        ComponentSpecIdentifier id = getId(findOwner(node), sourceSetName);
+                        return Cast.uncheckedCast(BaseLanguageSourceSet.create(
+                                publicType.getConcreteClass(),
+                                implementationType.getConcreteClass(),
+                                id,
+                                objectFactory));
+                    }
+                });
     }
 
     @Nullable
     private ComponentSpecIdentifier getId(@Nullable MutableModelNode ownerNode, String name) {
         if (ownerNode != null) {
-            ComponentSpecInternal componentSpec = ownerNode.asImmutable(ModelType.of(ComponentSpecInternal.class), null).getInstance();
+            ComponentSpecInternal componentSpec = ownerNode
+                    .asImmutable(ModelType.of(ComponentSpecInternal.class), null)
+                    .getInstance();
             return componentSpec.getIdentifier().child(name);
         }
 

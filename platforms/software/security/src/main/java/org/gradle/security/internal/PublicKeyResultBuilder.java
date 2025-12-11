@@ -20,5 +20,6 @@ import org.bouncycastle.openpgp.PGPPublicKeyRing;
 
 public interface PublicKeyResultBuilder {
     void keyRing(PGPPublicKeyRing keyring);
+
     void publicKey(PGPPublicKey publicKey);
 }

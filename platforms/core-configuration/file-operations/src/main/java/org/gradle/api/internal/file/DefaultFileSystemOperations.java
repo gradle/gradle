@@ -28,7 +28,6 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 
-
 public class DefaultFileSystemOperations implements FileSystemOperations {
 
     private final Instantiator instantiator;
@@ -71,7 +70,8 @@ public class DefaultFileSystemOperations implements FileSystemOperations {
     }
 
     @Override
-    public ConfigurableFilePermissions directoryPermissions(Action<? super ConfigurableFilePermissions> configureAction) {
+    public ConfigurableFilePermissions directoryPermissions(
+            Action<? super ConfigurableFilePermissions> configureAction) {
         return permissions(true, configureAction);
     }
 
@@ -90,8 +90,11 @@ public class DefaultFileSystemOperations implements FileSystemOperations {
         return permissions.map(SerializableLambdas.transformer(this::permissions));
     }
 
-    private ConfigurableFilePermissions permissions(boolean directory, Action<? super ConfigurableFilePermissions> configureAction) {
-        ConfigurableFilePermissions permissions = instantiator.newInstance(DefaultConfigurableFilePermissions.class, DefaultConfigurableFilePermissions.getDefaultUnixNumeric(directory));
+    private ConfigurableFilePermissions permissions(
+            boolean directory, Action<? super ConfigurableFilePermissions> configureAction) {
+        ConfigurableFilePermissions permissions = instantiator.newInstance(
+                DefaultConfigurableFilePermissions.class,
+                DefaultConfigurableFilePermissions.getDefaultUnixNumeric(directory));
         configureAction.execute(permissions);
         return permissions;
     }

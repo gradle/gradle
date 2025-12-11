@@ -19,6 +19,13 @@ package org.gradle.api.publish.internal.metadata;
 import com.google.common.base.Objects;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -29,18 +36,11 @@ import org.gradle.api.publish.internal.validation.PublicationErrorChecker;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.Nullable;
 
-import javax.annotation.concurrent.NotThreadSafe;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 @NotThreadSafe
 public class InvalidPublicationChecker {
 
-    private static final String DEPENDENCIES_WITHOUT_VERSION_SUPPRESSION = "dependencies-without-versions";;
+    private static final String DEPENDENCIES_WITHOUT_VERSION_SUPPRESSION = "dependencies-without-versions";
+    ;
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
@@ -61,7 +61,8 @@ public class InvalidPublicationChecker {
 
     public void checkComponent(SoftwareComponent component) {
         if (component instanceof SoftwareComponentInternal) {
-            PublicationErrorChecker.checkForUnpublishableAttributes((SoftwareComponentInternal) component, DOCUMENTATION_REGISTRY);
+            PublicationErrorChecker.checkForUnpublishableAttributes(
+                    (SoftwareComponentInternal) component, DOCUMENTATION_REGISTRY);
         }
     }
 
@@ -75,7 +76,9 @@ public class InvalidPublicationChecker {
             VariantIdentity identity = new VariantIdentity(attributes, capabilities);
             if (variants.containsValue(identity)) {
                 String found = variants.inverse().get(identity);
-                failWith("Variants '" + found + "' and '" + name + "' have the same attributes and capabilities. Please make sure either attributes or capabilities are different.");
+                failWith(
+                        "Variants '" + found + "' and '" + name
+                                + "' have the same attributes and capabilities. Please make sure either attributes or capabilities are different.");
             } else {
                 variants.put(name, identity);
             }
@@ -83,19 +86,26 @@ public class InvalidPublicationChecker {
     }
 
     private void checkVariantDependencyVersions() {
-        if (!suppressedValidationErrors.contains(DEPENDENCIES_WITHOUT_VERSION_SUPPRESSION) && publicationHasDependencyOrConstraint && !publicationHasVersion) {
+        if (!suppressedValidationErrors.contains(DEPENDENCIES_WITHOUT_VERSION_SUPPRESSION)
+                && publicationHasDependencyOrConstraint
+                && !publicationHasVersion) {
             // Previous variant did not declare any version
-            failWith("Publication only contains dependencies and/or constraints without a version. " +
-                "You should add minimal version information, publish resolved versions (" + DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("on this", "publishing_maven", "publishing_maven:resolved_dependencies") + ") or " +
-                "reference a platform (" + DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("platforms", "platforms") + "). " +
-                "Disable this check by adding 'dependencies-without-versions' to the suppressed validations of the " + taskPath + " task.");
+            failWith("Publication only contains dependencies and/or constraints without a version. "
+                    + "You should add minimal version information, publish resolved versions ("
+                    + DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor(
+                            "on this", "publishing_maven", "publishing_maven:resolved_dependencies")
+                    + ") or " + "reference a platform ("
+                    + DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("platforms", "platforms") + "). "
+                    + "Disable this check by adding 'dependencies-without-versions' to the suppressed validations of the "
+                    + taskPath + " task.");
         }
     }
 
     public void validateAttributes(String variant, String group, String name, AttributeContainer attributes) {
         for (DependencyAttributesValidator validator : dependencyAttributeValidators()) {
             Optional<String> error = validator.validationErrorFor(group, name, attributes);
-            error.ifPresent(s -> addDependencyValidationError(variant, s, validator.getExplanation(), validator.getSuppressor()));
+            error.ifPresent(s ->
+                    addDependencyValidationError(variant, s, validator.getExplanation(), validator.getSuppressor()));
         }
     }
 
@@ -147,15 +157,16 @@ public class InvalidPublicationChecker {
         publicationHasDependencyOrConstraint = true;
     }
 
-    public void addDependencyValidationError(String variant, String errorMessage, String genericExplanation, String suppressor) {
-        failWith("Variant '" + variant + "' " + errorMessage,
-            genericExplanation + explainHowToSuppress(suppressor)
-        );
+    public void addDependencyValidationError(
+            String variant, String errorMessage, String genericExplanation, String suppressor) {
+        failWith("Variant '" + variant + "' " + errorMessage, genericExplanation + explainHowToSuppress(suppressor));
     }
 
     private String explainHowToSuppress(String suppressor) {
-        return " If you did this intentionally you can disable this check by adding '" + suppressor + "' to the suppressed validations of the " + taskPath + " task. " +
-            DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("on suppressing validations", "publishing_setup", "sec:suppressing_validation_errors");
+        return " If you did this intentionally you can disable this check by adding '" + suppressor
+                + "' to the suppressed validations of the " + taskPath + " task. "
+                + DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor(
+                        "on suppressing validations", "publishing_setup", "sec:suppressing_validation_errors");
     }
 
     private static final class VariantIdentity {
@@ -176,8 +187,7 @@ public class InvalidPublicationChecker {
                 return false;
             }
             VariantIdentity that = (VariantIdentity) o;
-            return Objects.equal(attributes, that.attributes) &&
-                Objects.equal(capabilities, that.capabilities);
+            return Objects.equal(attributes, that.attributes) && Objects.equal(capabilities, that.capabilities);
         }
 
         @Override

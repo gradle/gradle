@@ -24,7 +24,8 @@ import org.gradle.internal.typeconversion.*;
 
 public class DependencyResultSpecNotationConverter implements NotationConverter<String, Spec<DependencyResult>> {
     @Override
-    public void convert(String notation, NotationConvertResult<? super Spec<DependencyResult>> result) throws TypeConversionException {
+    public void convert(String notation, NotationConvertResult<? super Spec<DependencyResult>> result)
+            throws TypeConversionException {
         final String stringNotation = notation.trim();
         if (stringNotation.length() > 0) {
             result.converted(new DependencyResultSpec(stringNotation));
@@ -37,8 +38,7 @@ public class DependencyResultSpecNotationConverter implements NotationConverter<
     }
 
     public static NotationParser<Object, Spec<DependencyResult>> parser() {
-        return NotationParserBuilder
-                .toType(new TypeInfo<Spec<DependencyResult>>(Spec.class))
+        return NotationParserBuilder.toType(new TypeInfo<Spec<DependencyResult>>(Spec.class))
                 .invalidNotationMessage("Please check the input for the DependencyInsight.dependency element.")
                 .fromType(Closure.class, new ClosureToSpecNotationConverter<>(DependencyResult.class))
                 .fromCharSequence(new DependencyResultSpecNotationConverter())

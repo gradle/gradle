@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.internal;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -25,9 +27,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.deprecation.DeprecationLogger;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class DefaultJavaFeatureSpec implements FeatureSpec {
 
@@ -84,14 +83,17 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
         }
 
         if (SourceSet.isMain(sourceSet)) {
-            DeprecationLogger.deprecateBehaviour(String.format("The '%s' feature was created using the main source set.", name))
-                .withAdvice("The main source set is reserved for production code and should not be used for features. Use another source set instead.")
-                .willBecomeAnErrorInGradle10()
-                .withUpgradeGuideSection(8, "deprecate_register_feature_main_source_set")
-                .nagUser();
+            DeprecationLogger.deprecateBehaviour(
+                            String.format("The '%s' feature was created using the main source set.", name))
+                    .withAdvice(
+                            "The main source set is reserved for production code and should not be used for features. Use another source set instead.")
+                    .willBecomeAnErrorInGradle10()
+                    .withUpgradeGuideSection(8, "deprecate_register_feature_main_source_set")
+                    .nagUser();
         }
 
-        JvmFeatureInternal feature = new DefaultJvmFeature(name, sourceSet, capabilities, project, SourceSet.isMain(sourceSet));
+        JvmFeatureInternal feature =
+                new DefaultJvmFeature(name, sourceSet, capabilities, project, SourceSet.isMain(sourceSet));
         feature.withApi();
         return feature;
     }
@@ -109,5 +111,4 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
     public boolean hasSourcesJar() {
         return withSourcesJar;
     }
-
 }

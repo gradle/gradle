@@ -18,5 +18,4 @@ package org.gradle.cache;
 /**
  * A {@link IndexedCache} implementation that is aware of file locking.
  */
-public interface MultiProcessSafeIndexedCache<K, V> extends IndexedCache<K, V>, UnitOfWorkParticipant {
-}
+public interface MultiProcessSafeIndexedCache<K, V> extends IndexedCache<K, V>, UnitOfWorkParticipant {}

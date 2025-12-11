@@ -16,10 +16,9 @@
 
 package org.gradle.initialization;
 
+import java.io.File;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.SettingsInternal;
-
-import java.io.File;
 
 class ProjectSpecs {
 

@@ -17,22 +17,21 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.model.internal.type.ModelType;
-
 import java.util.Map;
+import org.gradle.model.internal.type.ModelType;
 
 public abstract class PrimitiveTypes {
 
     private static final Map<ModelType<?>, Object> TYPES_DEFAULT_VALUES = ImmutableMap.<ModelType<?>, Object>builder()
-        .put(ModelType.of(boolean.class), false)
-        .put(ModelType.of(char.class), '\u0000')
-        .put(ModelType.of(byte.class), (byte) 0)
-        .put(ModelType.of(short.class), (short) 0)
-        .put(ModelType.of(int.class), 0)
-        .put(ModelType.of(float.class), 0.0F)
-        .put(ModelType.of(long.class), 0L)
-        .put(ModelType.of(double.class), 0.0D)
-        .build();
+            .put(ModelType.of(boolean.class), false)
+            .put(ModelType.of(char.class), '\u0000')
+            .put(ModelType.of(byte.class), (byte) 0)
+            .put(ModelType.of(short.class), (short) 0)
+            .put(ModelType.of(int.class), 0)
+            .put(ModelType.of(float.class), 0.0F)
+            .put(ModelType.of(long.class), 0L)
+            .put(ModelType.of(double.class), 0.0D)
+            .build();
 
     public static boolean isPrimitiveType(ModelType<?> modelType) {
         return TYPES_DEFAULT_VALUES.containsKey(modelType);
@@ -45,5 +44,4 @@ public abstract class PrimitiveTypes {
         }
         return defaultValue;
     }
-
 }

@@ -23,7 +23,9 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 4.0
  */
-public final class ExternalResourceReadBuildOperationType implements BuildOperationType<ExternalResourceReadBuildOperationType.Details, ExternalResourceReadBuildOperationType.Result> {
+public final class ExternalResourceReadBuildOperationType
+        implements BuildOperationType<
+                ExternalResourceReadBuildOperationType.Details, ExternalResourceReadBuildOperationType.Result> {
 
     public interface Details {
 
@@ -32,7 +34,6 @@ public final class ExternalResourceReadBuildOperationType implements BuildOperat
          * A valid URI.
          */
         String getLocation();
-
     }
 
     public interface Result {
@@ -52,10 +53,7 @@ public final class ExternalResourceReadBuildOperationType implements BuildOperat
          * @since 8.11
          */
         boolean isMissing();
-
     }
 
-    private ExternalResourceReadBuildOperationType() {
-    }
-
+    private ExternalResourceReadBuildOperationType() {}
 }

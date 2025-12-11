@@ -16,17 +16,16 @@
 
 package org.gradle.nativeplatform.internal.modulemap;
 
-import com.google.common.io.Files;
-import org.apache.commons.io.FileUtils;
+import static org.gradle.util.internal.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.filter;
 
+import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.gradle.util.internal.CollectionUtils.collect;
-import static org.gradle.util.internal.CollectionUtils.filter;
+import org.apache.commons.io.FileUtils;
 
 public class GenerateModuleMapFile {
     public static void generateFile(File moduleMapFile, String moduleName, List<String> publicHeaderDirs) {

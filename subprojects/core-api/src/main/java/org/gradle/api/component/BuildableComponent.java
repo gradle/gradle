@@ -21,6 +21,4 @@ package org.gradle.api.component;
  *
  * @since 4.7
  */
-public interface BuildableComponent extends SoftwareComponent {
-
-}
+public interface BuildableComponent extends SoftwareComponent {}

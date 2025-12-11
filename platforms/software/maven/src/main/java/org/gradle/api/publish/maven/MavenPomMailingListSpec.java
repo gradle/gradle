@@ -31,5 +31,4 @@ public interface MavenPomMailingListSpec {
      * Creates, configures and adds a mailing list to the publication.
      */
     void mailingList(Action<? super MavenPomMailingList> action);
-
 }

@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import java.util.concurrent.atomic.AtomicLong;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Tracks the number of tests and successes/failures and the hierarchy of test results.
@@ -47,7 +46,7 @@ class TestResultState {
 
     void incrementTotalCount() {
         totalCount.incrementAndGet();
-        if (parent!=null) {
+        if (parent != null) {
             parent.incrementTotalCount();
         }
     }
@@ -55,9 +54,10 @@ class TestResultState {
     long getSuccessfulCount() {
         return successfulCount.get();
     }
+
     void incrementSuccessfulCount() {
         successfulCount.incrementAndGet();
-        if (parent!=null) {
+        if (parent != null) {
             parent.incrementSuccessfulCount();
         }
     }
@@ -65,9 +65,10 @@ class TestResultState {
     long getFailureCount() {
         return failureCount.get();
     }
+
     void incrementFailureCount() {
         failureCount.incrementAndGet();
-        if (parent!=null) {
+        if (parent != null) {
             parent.incrementFailureCount();
         }
     }

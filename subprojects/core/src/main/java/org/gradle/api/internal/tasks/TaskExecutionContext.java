@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks;
 
+import java.util.Optional;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-
-import java.util.Optional;
 
 public interface TaskExecutionContext {
 

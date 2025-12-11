@@ -15,6 +15,8 @@
  */
 package org.gradle.execution;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -23,9 +25,6 @@ import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.build.ExecutionResult;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class SelectedTaskExecutionAction implements BuildWorkExecutor {
     @Override

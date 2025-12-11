@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
+import java.util.Optional;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.AppliedPlugin;
@@ -24,8 +25,6 @@ import org.gradle.api.plugins.PluginManager;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.PluginId;
-
-import java.util.Optional;
 
 @ServiceScope({Scope.Build.class, Scope.Settings.class, Scope.Project.class})
 public interface PluginManagerInternal extends PluginManager {

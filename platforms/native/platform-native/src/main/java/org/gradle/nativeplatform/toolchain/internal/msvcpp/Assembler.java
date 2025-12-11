@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.collect.Iterables;
+import java.util.List;
 import org.gradle.api.Transformer;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -25,18 +26,35 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 
-import java.util.List;
-
 class Assembler extends VisualCppNativeCompiler<AssembleSpec> {
 
-    Assembler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<AssembleSpec, AssembleSpec> specTransformer, String objectFileExtension, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, new AssemblerArgsTransformer(), specTransformer, objectFileExtension, useCommandFile, workerLeaseService);
+    Assembler(
+            BuildOperationExecutor buildOperationExecutor,
+            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+            CommandLineToolInvocationWorker commandLineTool,
+            CommandLineToolContext invocationContext,
+            Transformer<AssembleSpec, AssembleSpec> specTransformer,
+            String objectFileExtension,
+            boolean useCommandFile,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                buildOperationExecutor,
+                compilerOutputFileNamingSchemeFactory,
+                commandLineTool,
+                invocationContext,
+                new AssemblerArgsTransformer(),
+                specTransformer,
+                objectFileExtension,
+                useCommandFile,
+                workerLeaseService);
     }
 
     @Override
-    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
+    protected Iterable<String> buildPerFileArgs(
+            List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
         if (pchArgs != null && !pchArgs.isEmpty()) {
-            throw new UnsupportedOperationException("Precompiled header arguments cannot be specified for a Assembler compiler.");
+            throw new UnsupportedOperationException(
+                    "Precompiled header arguments cannot be specified for a Assembler compiler.");
         }
         // ml/ml64 have position sensitive arguments,
         // e.g., /Fo must appear before /c and /c must appear before the source file.
@@ -44,6 +62,5 @@ class Assembler extends VisualCppNativeCompiler<AssembleSpec> {
         return Iterables.concat(outputArgs, genericArgs, sourceArgs);
     }
 
-    private static class AssemblerArgsTransformer extends VisualCppCompilerArgsTransformer<AssembleSpec> {
-    }
+    private static class AssemblerArgsTransformer extends VisualCppCompilerArgsTransformer<AssembleSpec> {}
 }

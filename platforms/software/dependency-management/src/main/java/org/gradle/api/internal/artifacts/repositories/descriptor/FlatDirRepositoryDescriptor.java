@@ -18,14 +18,14 @@ package org.gradle.api.internal.artifacts.repositories.descriptor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 import java.io.File;
 import java.util.Collection;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 public final class FlatDirRepositoryDescriptor extends RepositoryDescriptor {
 
-    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
+    @UsedByScanPlugin(
+            "doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
     private enum Property {
         DIRS,
     }

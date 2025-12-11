@@ -19,6 +19,13 @@ package org.gradle.api.internal.artifacts.result;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -29,14 +36,6 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
 
@@ -53,13 +52,12 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private @Nullable Set<DependencyResult> cachedComponentDependencies;
 
     public DefaultResolvedComponentResult(
-        ModuleVersionIdentifier moduleVersion,
-        ComponentSelectionReason selectionReason,
-        ComponentIdentifier componentId,
-        ImmutableMap<Long, ResolvedVariantResult> selectedVariants,
-        ImmutableList<ResolvedVariantResult> allVariants,
-        @Nullable String repositoryName
-    ) {
+            ModuleVersionIdentifier moduleVersion,
+            ComponentSelectionReason selectionReason,
+            ComponentIdentifier componentId,
+            ImmutableMap<Long, ResolvedVariantResult> selectedVariants,
+            ImmutableList<ResolvedVariantResult> allVariants,
+            @Nullable String repositoryName) {
         this.moduleVersion = moduleVersion;
         this.selectionReason = selectionReason;
         this.componentId = componentId;
@@ -150,12 +148,15 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     private void reportInvalidVariant(ResolvedVariantResult variant) {
         Optional<ResolvedVariantResult> sameName = selectedVariants.stream()
-            .filter(v -> v.getDisplayName().equals(variant.getDisplayName()))
-            .findFirst();
+                .filter(v -> v.getDisplayName().equals(variant.getDisplayName()))
+                .findFirst();
         String moreInfo = sameName.isPresent()
-            ? "A variant with the same name exists but is not the same instance."
-            : "There's no resolved variant with the same name.";
-        throw new InvalidUserCodeException("Variant '" + variant.getDisplayName() + "' doesn't belong to resolved component '" + this + "'. " + moreInfo + " Most likely you are using a variant from another component to get the dependencies of this component.");
+                ? "A variant with the same name exists but is not the same instance."
+                : "There's no resolved variant with the same name.";
+        throw new InvalidUserCodeException(
+                "Variant '" + variant.getDisplayName() + "' doesn't belong to resolved component '" + this + "'. "
+                        + moreInfo
+                        + " Most likely you are using a variant from another component to get the dependencies of this component.");
     }
 
     @Override
@@ -178,11 +179,10 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
      * @param visited tracks the visited nodes during the recursive traversal
      */
     public static void eachElement(
-        ResolvedComponentResult start,
-        Action<? super ResolvedComponentResult> moduleAction,
-        Action<? super DependencyResult> dependencyAction,
-        Set<ResolvedComponentResult> visited
-    ) {
+            ResolvedComponentResult start,
+            Action<? super ResolvedComponentResult> moduleAction,
+            Action<? super DependencyResult> dependencyAction,
+            Set<ResolvedComponentResult> visited) {
         if (!visited.add(start)) {
             return;
         }

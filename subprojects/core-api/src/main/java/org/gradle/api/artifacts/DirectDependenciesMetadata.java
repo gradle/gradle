@@ -23,6 +23,4 @@ package org.gradle.api.artifacts;
  *
  * @since 4.5
  */
-public interface DirectDependenciesMetadata extends DependenciesMetadata<DirectDependencyMetadata> {
-
-}
+public interface DirectDependenciesMetadata extends DependenciesMetadata<DirectDependencyMetadata> {}

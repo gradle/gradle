@@ -15,9 +15,8 @@
  */
 package org.gradle.internal.nativeintegration.processenvironment;
 
-import net.rubygrapefruit.platform.Process;
-
 import java.io.File;
+import net.rubygrapefruit.platform.Process;
 
 public class NativePlatformBackedProcessEnvironment extends AbstractProcessEnvironment {
     private final Process process;

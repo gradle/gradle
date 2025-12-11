@@ -43,5 +43,4 @@ public interface CapabilitiesConflictHandler {
      * Must be called only if {@link #hasConflicts()} returns true.
      */
     void resolveNextConflict();
-
 }

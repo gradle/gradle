@@ -16,11 +16,9 @@
 
 package org.gradle.kotlin.dsl.tooling.models;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.List;
-
+import org.jspecify.annotations.Nullable;
 
 public interface KotlinBuildScriptModel {
 

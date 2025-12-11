@@ -15,12 +15,12 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
+import static org.gradle.util.internal.ConfigureUtil.configure;
+
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning workspace details (*.iws file) of the IDEA plugin.
@@ -79,8 +79,8 @@ public abstract class IdeaWorkspace {
     public void mergeXmlWorkspace(Workspace xmlWorkspace) {
         iws.getBeforeMerged().execute(xmlWorkspace);
 
-        //we don't merge anything in the iws, yet.
-        //I kept the logic for the sake of consistency
+        // we don't merge anything in the iws, yet.
+        // I kept the logic for the sake of consistency
         // and compatibility with pre M4 ways of configuring IDEA information.
 
         iws.getWhenMerged().execute(xmlWorkspace);

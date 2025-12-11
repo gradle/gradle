@@ -15,11 +15,10 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.Tool;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.nativeplatform.Tool;
 
 /**
  * A tool that is part of a tool chain (compiler, linker, assembler, etc).

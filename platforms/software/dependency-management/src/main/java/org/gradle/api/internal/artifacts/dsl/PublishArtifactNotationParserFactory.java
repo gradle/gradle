@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileSystemLocation;
@@ -39,18 +41,20 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 
-import javax.inject.Inject;
-import java.io.File;
-
 @ServiceScope(Scope.Project.class)
-public class PublishArtifactNotationParserFactory implements Factory<NotationParser<Object, ConfigurablePublishArtifact>> {
+public class PublishArtifactNotationParserFactory
+        implements Factory<NotationParser<Object, ConfigurablePublishArtifact>> {
     private final ObjectFactory objectFactory;
     private final DependencyMetaDataProvider metaDataProvider;
     private final FileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public PublishArtifactNotationParserFactory(ObjectFactory objectFactory, DependencyMetaDataProvider metaDataProvider, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
+    public PublishArtifactNotationParserFactory(
+            ObjectFactory objectFactory,
+            DependencyMetaDataProvider metaDataProvider,
+            FileResolver fileResolver,
+            TaskDependencyFactory taskDependencyFactory) {
         this.objectFactory = objectFactory;
         this.metaDataProvider = metaDataProvider;
         this.fileResolver = fileResolver;
@@ -60,8 +64,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
     @Override
     public NotationParser<Object, ConfigurablePublishArtifact> create() {
         FileNotationConverter fileConverter = new FileNotationConverter();
-        return NotationParserBuilder
-                .toType(ConfigurablePublishArtifact.class)
+        return NotationParserBuilder.toType(ConfigurablePublishArtifact.class)
                 .converter(new DecoratingConverter())
                 .converter(new ArchiveTaskNotationConverter())
                 .converter(new FileProviderNotationConverter())
@@ -82,7 +85,8 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         }
     }
 
-    private class ArchiveTaskNotationConverter extends TypedNotationConverter<AbstractArchiveTask, ConfigurablePublishArtifact> {
+    private class ArchiveTaskNotationConverter
+            extends TypedNotationConverter<AbstractArchiveTask, ConfigurablePublishArtifact> {
         private ArchiveTaskNotationConverter() {
             super(AbstractArchiveTask.class);
         }
@@ -116,7 +120,8 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         }
     }
 
-    private class FileProviderNotationConverter extends TypedNotationConverter<Provider<?>, ConfigurablePublishArtifact> {
+    private class FileProviderNotationConverter
+            extends TypedNotationConverter<Provider<?>, ConfigurablePublishArtifact> {
         @SuppressWarnings("unchecked")
         FileProviderNotationConverter() {
             super((Class<Provider<?>>) (Class<?>) Provider.class);
@@ -132,11 +137,15 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         @Override
         protected ConfigurablePublishArtifact parseType(Provider<?> notation) {
             Module module = metaDataProvider.getModule();
-            return objectFactory.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new LazyPublishArtifact(notation, module.getVersion(), fileResolver, taskDependencyFactory));
+            return objectFactory.newInstance(
+                    DecoratingPublishArtifact.class,
+                    taskDependencyFactory,
+                    new LazyPublishArtifact(notation, module.getVersion(), fileResolver, taskDependencyFactory));
         }
     }
 
-    private class FileSystemLocationNotationConverter extends TypedNotationConverter<FileSystemLocation, ConfigurablePublishArtifact> {
+    private class FileSystemLocationNotationConverter
+            extends TypedNotationConverter<FileSystemLocation, ConfigurablePublishArtifact> {
         FileSystemLocationNotationConverter() {
             super(FileSystemLocation.class);
         }
@@ -150,7 +159,10 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         @Override
         protected ConfigurablePublishArtifact parseType(FileSystemLocation notation) {
             Module module = metaDataProvider.getModule();
-            return objectFactory.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new FileSystemPublishArtifact(notation, module.getVersion()));
+            return objectFactory.newInstance(
+                    DecoratingPublishArtifact.class,
+                    taskDependencyFactory,
+                    new FileSystemPublishArtifact(notation, module.getVersion()));
         }
     }
 
@@ -163,7 +175,8 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         protected ConfigurablePublishArtifact parseType(File file) {
             Module module = metaDataProvider.getModule();
             ArtifactFile artifactFile = new ArtifactFile(file, module.getVersion());
-            DefaultPublishArtifact defaultPublishArtifact = objectFactory.newInstance(DefaultPublishArtifact.class, taskDependencyFactory);
+            DefaultPublishArtifact defaultPublishArtifact =
+                    objectFactory.newInstance(DefaultPublishArtifact.class, taskDependencyFactory);
             defaultPublishArtifact.setName(artifactFile.getName());
             defaultPublishArtifact.setExtension(artifactFile.getExtension());
             defaultPublishArtifact.setType(artifactFile.getExtension());

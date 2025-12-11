@@ -31,17 +31,15 @@ public class ProjectScopedTaskResolver implements TaskResolver {
     private final TaskContainer taskContainer;
 
     public ProjectScopedTaskResolver(
-        BuildScopedTaskResolver buildTaskResolver,
-        ProjectIdentity currentProject,
-        TaskContainer taskContainer
-    ) {
+            BuildScopedTaskResolver buildTaskResolver, ProjectIdentity currentProject, TaskContainer taskContainer) {
         this.buildTaskResolver = buildTaskResolver;
         this.currentProject = currentProject;
         this.taskContainer = taskContainer;
     }
 
     @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     public Task resolveTask(Path path) {
         String targetTaskName = path.getName();
         if (targetTaskName == null) {
@@ -53,9 +51,8 @@ public class ProjectScopedTaskResolver implements TaskResolver {
             return taskContainer.getByName(targetTaskName);
         }
 
-        Path targetProjectPath = path.getParent() != null
-            ? currentProject.getProjectPath().absolutePath(path.getParent())
-            : Path.ROOT;
+        Path targetProjectPath =
+                path.getParent() != null ? currentProject.getProjectPath().absolutePath(path.getParent()) : Path.ROOT;
 
         if (targetProjectPath.equals(currentProject.getProjectPath())) {
             return taskContainer.getByName(targetTaskName);
@@ -65,5 +62,4 @@ public class ProjectScopedTaskResolver implements TaskResolver {
         Path absoluteTaskPath = targetProjectPath.child(targetTaskName);
         return buildTaskResolver.resolveTask(absoluteTaskPath);
     }
-
 }

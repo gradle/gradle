@@ -60,5 +60,4 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
             return cache.size();
         }
     }
-
 }

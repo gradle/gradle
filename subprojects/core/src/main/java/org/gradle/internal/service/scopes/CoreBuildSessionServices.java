@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import java.io.File;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
@@ -72,8 +73,6 @@ import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.process.internal.ExecFactory;
 
-import java.io.File;
-
 public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(CalculatedValueContainerFactory.class);
@@ -93,7 +92,10 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    DefaultDeploymentRegistry createDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationRunner buildOperationRunner, ObjectFactory objectFactory) {
+    DefaultDeploymentRegistry createDeploymentRegistry(
+            PendingChangesManager pendingChangesManager,
+            BuildOperationRunner buildOperationRunner,
+            ObjectFactory objectFactory) {
         return new DefaultDeploymentRegistry(pendingChangesManager, buildOperationRunner, objectFactory);
     }
 
@@ -104,7 +106,8 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
 
     @Provides
     BuildTreeLocations createBuildTreeLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
-        BuildLayout rootBuildLayout = buildLayoutFactory.getLayoutFor(((StartParameterInternal) startParameter).toBuildLayoutConfiguration());
+        BuildLayout rootBuildLayout =
+                buildLayoutFactory.getLayoutFor(((StartParameterInternal) startParameter).toBuildLayoutConfiguration());
         return new BuildTreeLocations(rootBuildLayout);
     }
 
@@ -115,18 +118,19 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
 
     @Provides
     ProjectCacheDir createProjectCacheDir(
-        GradleUserHomeDirProvider userHomeDirProvider,
-        BuildTreeLocations buildTreeLocations,
-        Deleter deleter,
-        BuildOperationRunner buildOperationRunner,
-        StartParameter startParameter
-    ) {
-        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildTreeLocations.getRootBuildLayout(), startParameter);
+            GradleUserHomeDirProvider userHomeDirProvider,
+            BuildTreeLocations buildTreeLocations,
+            Deleter deleter,
+            BuildOperationRunner buildOperationRunner,
+            StartParameter startParameter) {
+        BuildScopeCacheDir cacheDir =
+                new BuildScopeCacheDir(userHomeDirProvider, buildTreeLocations.getRootBuildLayout(), startParameter);
         return new ProjectCacheDir(cacheDir.getDir(), buildOperationRunner, deleter);
     }
 
     @Provides
-    BuildTreeScopedCacheBuilderFactory createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+    BuildTreeScopedCacheBuilderFactory createBuildTreeScopedCache(
+            ProjectCacheDir projectCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         return new DefaultBuildTreeScopedCacheBuilderFactory(projectCacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
@@ -136,7 +140,8 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(
+            BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
         File workDir = cacheBuilderFactory.baseDirForCache("fileChanges");
         return new BuildSessionScopeFileTimeStampInspector(workDir);
     }
@@ -159,38 +164,40 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
 
     @Provides
     protected ExecFactory decorateExecFactory(
-        ExecFactory execFactory,
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
-        Instantiator instantiator,
-        BuildCancellationToken buildCancellationToken,
-        ObjectFactory objectFactory,
-        JavaModuleDetector javaModuleDetector
-    ) {
-        return execFactory.forContext()
-            .withFileResolver(fileResolver)
-            .withFileCollectionFactory(fileCollectionFactory)
-            .withInstantiator(instantiator)
-            .withBuildCancellationToken(buildCancellationToken)
-            .withObjectFactory(objectFactory)
-            .withJavaModuleDetector(javaModuleDetector)
-            .build();
+            ExecFactory execFactory,
+            FileResolver fileResolver,
+            FileCollectionFactory fileCollectionFactory,
+            Instantiator instantiator,
+            BuildCancellationToken buildCancellationToken,
+            ObjectFactory objectFactory,
+            JavaModuleDetector javaModuleDetector) {
+        return execFactory
+                .forContext()
+                .withFileResolver(fileResolver)
+                .withFileCollectionFactory(fileCollectionFactory)
+                .withInstantiator(instantiator)
+                .withBuildCancellationToken(buildCancellationToken)
+                .withObjectFactory(objectFactory)
+                .withJavaModuleDetector(javaModuleDetector)
+                .build();
     }
 
     @Provides
     @PrivateService
-    CrossBuildFileHashCache createCrossBuildChecksumCache(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new CrossBuildFileHashCache(cacheBuilderFactory, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
+    CrossBuildFileHashCache createCrossBuildChecksumCache(
+            BuildTreeScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        return new CrossBuildFileHashCache(
+                cacheBuilderFactory, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
     }
 
     @Provides
     ChecksumService createChecksumService(
-        StringInterner stringInterner,
-        FileSystem fileSystem,
-        CrossBuildFileHashCache crossBuildCache,
-        BuildSessionScopeFileTimeStampInspector inspector,
-        FileHasherStatistics.Collector statisticsCollector
-    ) {
+            StringInterner stringInterner,
+            FileSystem fileSystem,
+            CrossBuildFileHashCache crossBuildCache,
+            BuildSessionScopeFileTimeStampInspector inspector,
+            FileHasherStatistics.Collector statisticsCollector) {
         return new DefaultChecksumService(stringInterner, crossBuildCache, fileSystem, inspector, statisticsCollector);
     }
 }

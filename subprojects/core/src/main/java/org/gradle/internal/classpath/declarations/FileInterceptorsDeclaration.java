@@ -16,85 +16,65 @@
 
 package org.gradle.internal.classpath.declarations;
 
-import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.instrumentation.api.annotations.CallableKind.InstanceMethod;
-import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
-import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
-import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receiver;
-import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
+import org.gradle.internal.classpath.Instrumented;
+import org.gradle.internal.instrumentation.api.annotations.CallableKind.InstanceMethod;
+import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
+import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
+import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receiver;
+import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
+import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
+import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 
 @SuppressWarnings("NewMethodNamingConvention")
-@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
-@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificJvmCallInterceptors(
+        generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificGroovyCallInterceptors(
+        generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
 public class FileInterceptorsDeclaration {
     @InterceptCalls
     @InstanceMethod
-    public static File[] intercept_listFiles(
-        @Receiver File thisFile,
-        @CallerClassName String consumer
-    ) {
+    public static File[] intercept_listFiles(@Receiver File thisFile, @CallerClassName String consumer) {
         return Instrumented.fileListFiles(thisFile, consumer);
     }
 
     @InterceptCalls
     @InstanceMethod
     public static File[] intercept_listFiles(
-        @Receiver File thisFile,
-        FileFilter fileFilter,
-        @CallerClassName String consumer
-    ) {
+            @Receiver File thisFile, FileFilter fileFilter, @CallerClassName String consumer) {
         return Instrumented.fileListFiles(thisFile, fileFilter, consumer);
     }
 
     @InterceptCalls
     @InstanceMethod
     public static File[] intercept_listFiles(
-        @Receiver File thisFile,
-        FilenameFilter fileFilter,
-        @CallerClassName String consumer
-    ) {
+            @Receiver File thisFile, FilenameFilter fileFilter, @CallerClassName String consumer) {
         return Instrumented.fileListFiles(thisFile, fileFilter, consumer);
     }
 
     @InterceptCalls
     @InstanceMethod
-    public static boolean intercept_exists(
-        @Receiver File thisFile,
-        @CallerClassName String consumer
-    ) {
+    public static boolean intercept_exists(@Receiver File thisFile, @CallerClassName String consumer) {
         return Instrumented.fileExists(thisFile, consumer);
     }
 
     @InterceptCalls
     @InstanceMethod
-    public static boolean intercept_isFile(
-        @Receiver File thisFile,
-        @CallerClassName String consumer
-    ) {
+    public static boolean intercept_isFile(@Receiver File thisFile, @CallerClassName String consumer) {
         return Instrumented.fileIsFile(thisFile, consumer);
     }
 
     @InterceptCalls
     @InstanceMethod
-    public static boolean intercept_isDirectory(
-        @Receiver File thisFile,
-        @CallerClassName String consumer
-    ) {
+    public static boolean intercept_isDirectory(@Receiver File thisFile, @CallerClassName String consumer) {
         return Instrumented.fileIsDirectory(thisFile, consumer);
     }
 
     @InterceptCalls
     @InstanceMethod
-    public static String[] intercept_list(
-        @Receiver File thisFile,
-        @CallerClassName String consumer
-    ) {
+    public static String[] intercept_list(@Receiver File thisFile, @CallerClassName String consumer) {
         Instrumented.directoryContentObserved(thisFile, consumer);
         return thisFile.list();
     }
@@ -102,20 +82,14 @@ public class FileInterceptorsDeclaration {
     @InterceptCalls
     @InstanceMethod
     public static String[] intercept_list(
-        @Receiver File thisFile,
-        FilenameFilter filenameFilter,
-        @CallerClassName String consumer
-    ) {
+            @Receiver File thisFile, FilenameFilter filenameFilter, @CallerClassName String consumer) {
         Instrumented.directoryContentObserved(thisFile, consumer);
         return thisFile.list(filenameFilter);
     }
 
     @InterceptCalls
     @InstanceMethod
-    public static long intercept_length(
-        @Receiver File thisFile,
-        @CallerClassName String consumer
-    ) {
+    public static long intercept_length(@Receiver File thisFile, @CallerClassName String consumer) {
         Instrumented.fileOpened(thisFile, consumer);
         return thisFile.length();
     }

@@ -16,11 +16,10 @@
 
 package org.gradle.api.attributes;
 
+import java.util.Comparator;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.internal.HasInternalProtocol;
-
-import java.util.Comparator;
 
 /**
  * <p>A chain of disambiguation rules. By default the chain is empty and will not do any disambiguation.</p>
@@ -58,7 +57,9 @@ public interface DisambiguationRuleChain<T> {
      * @param configureAction the action to use to configure the rule
      * @since 4.0
      */
-    void add(Class<? extends AttributeDisambiguationRule<T>> ruleClass, Action<? super ActionConfiguration> configureAction);
+    void add(
+            Class<? extends AttributeDisambiguationRule<T>> ruleClass,
+            Action<? super ActionConfiguration> configureAction);
 
     /**
      * Adds an ordered disambiguation rule. Values will be compared using the
@@ -79,5 +80,4 @@ public interface DisambiguationRuleChain<T> {
      * @param comparator the comparator to use
      */
     void pickLast(Comparator<? super T> comparator);
-
 }

@@ -20,5 +20,4 @@ package org.gradle.launcher.daemon.protocol;
  * Sent from the daemon client to the daemon to indicate it has finished with the connection. This is the last
  * message sent from the client to the daemon.
  */
-public class Finished extends Message {
-}
+public class Finished extends Message {}

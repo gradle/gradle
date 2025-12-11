@@ -24,22 +24,17 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class DefaultBeforeExecutionState extends AbstractInputExecutionState<CurrentFileCollectionFingerprint> implements BeforeExecutionState {
+public class DefaultBeforeExecutionState extends AbstractInputExecutionState<CurrentFileCollectionFingerprint>
+        implements BeforeExecutionState {
     private final ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots;
 
     public DefaultBeforeExecutionState(
-        ImplementationSnapshot implementation,
-        ImmutableList<ImplementationSnapshot> additionalImplementations,
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots
-    ) {
-        super(
-            implementation,
-            additionalImplementations,
-            inputProperties,
-            inputFileProperties
-        );
+            ImplementationSnapshot implementation,
+            ImmutableList<ImplementationSnapshot> additionalImplementations,
+            ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+            ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots) {
+        super(implementation, additionalImplementations, inputProperties, inputFileProperties);
         this.outputFileLocationSnapshots = outputFileLocationSnapshots;
     }
 

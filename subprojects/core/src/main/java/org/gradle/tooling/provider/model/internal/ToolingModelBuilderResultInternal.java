@@ -17,12 +17,11 @@
 package org.gradle.tooling.provider.model.internal;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Internal type for a model builder result that contains additional data beyond the model itself if needed.
@@ -37,6 +36,7 @@ public class ToolingModelBuilderResultInternal {
 
     @Nullable
     private final Object model;
+
     private final List<Failure> failures;
 
     private ToolingModelBuilderResultInternal(@Nullable Object model, List<Failure> failures) {
@@ -64,13 +64,14 @@ public class ToolingModelBuilderResultInternal {
         return failures;
     }
 
-    public static ToolingModelBuilderResultInternal attachFailures(@Nullable Object model, List<Failure> additionalFailures) {
+    public static ToolingModelBuilderResultInternal attachFailures(
+            @Nullable Object model, List<Failure> additionalFailures) {
         if (model instanceof ToolingModelBuilderResultInternal) {
             ToolingModelBuilderResultInternal result = (ToolingModelBuilderResultInternal) model;
             List<Failure> merged = ImmutableList.<Failure>builder()
-                .addAll(additionalFailures)
-                .addAll(result.getFailures())
-                .build();
+                    .addAll(additionalFailures)
+                    .addAll(result.getFailures())
+                    .build();
             return of(result.getModel(), merged);
         }
         return of(model, ImmutableList.copyOf(additionalFailures));

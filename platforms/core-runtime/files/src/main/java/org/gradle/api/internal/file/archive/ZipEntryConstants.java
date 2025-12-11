@@ -36,8 +36,8 @@ public class ZipEntryConstants {
      *
      * The date is 1980 February 1st CET.
      */
-    public static final long CONSTANT_TIME_FOR_ZIP_ENTRIES = new GregorianCalendar(1980, Calendar.FEBRUARY, 1, 0, 0, 0).getTimeInMillis();
+    public static final long CONSTANT_TIME_FOR_ZIP_ENTRIES =
+            new GregorianCalendar(1980, Calendar.FEBRUARY, 1, 0, 0, 0).getTimeInMillis();
 
     private ZipEntryConstants() {}
-
 }

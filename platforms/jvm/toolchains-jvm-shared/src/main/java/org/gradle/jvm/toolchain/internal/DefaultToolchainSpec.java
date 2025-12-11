@@ -16,15 +16,14 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import java.util.Objects;
+import javax.inject.Inject;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.util.Objects;
 
 public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
 
@@ -39,7 +38,11 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
         private final JvmImplementation implementation;
         private final boolean nativeImageCapable;
 
-        public Key(@Nullable JavaLanguageVersion languageVersion, @Nullable JvmVendorSpec vendor, @Nullable JvmImplementation implementation, boolean nativeImageCapable) {
+        public Key(
+                @Nullable JavaLanguageVersion languageVersion,
+                @Nullable JvmVendorSpec vendor,
+                @Nullable JvmImplementation implementation,
+                boolean nativeImageCapable) {
             this.languageVersion = languageVersion;
             this.vendor = vendor;
             this.implementation = implementation;
@@ -56,9 +59,9 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
             }
             Key that = (Key) o;
             return Objects.equals(languageVersion, that.languageVersion)
-                && Objects.equals(vendor, that.vendor)
-                && Objects.equals(implementation, that.implementation)
-                && nativeImageCapable == that.nativeImageCapable;
+                    && Objects.equals(vendor, that.vendor)
+                    && Objects.equals(implementation, that.implementation)
+                    && nativeImageCapable == that.nativeImageCapable;
         }
 
         @Override
@@ -68,12 +71,11 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
 
         @Override
         public String toString() {
-            return "DefaultKey{" +
-                "languageVersion=" + languageVersion +
-                ", vendor=" + vendor +
-                ", implementation=" + implementation +
-                ", nativeImageCapable=" + nativeImageCapable +
-                '}';
+            return "DefaultKey{" + "languageVersion="
+                    + languageVersion + ", vendor="
+                    + vendor + ", implementation="
+                    + implementation + ", nativeImageCapable="
+                    + nativeImageCapable + '}';
         }
     }
 
@@ -110,7 +112,11 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
 
     @Override
     public JavaToolchainSpecInternal.Key toKey() {
-        return new Key(getLanguageVersion().getOrNull(), getVendor().getOrNull(), getImplementation().getOrNull(), nativeImageCapable.getOrElse(false));
+        return new Key(
+                getLanguageVersion().getOrNull(),
+                getVendor().getOrNull(),
+                getImplementation().getOrNull(),
+                nativeImageCapable.getOrElse(false));
     }
 
     @Override
@@ -121,12 +127,14 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
     @SuppressWarnings("deprecation")
     @Override
     public boolean isValid() {
-        return (getLanguageVersion().isPresent() || isSecondaryPropertiesUnchanged()) && getLanguageVersion().getOrNull() != DefaultJavaLanguageVersion.UNKNOWN;
+        return (getLanguageVersion().isPresent() || isSecondaryPropertiesUnchanged())
+                && getLanguageVersion().getOrNull() != DefaultJavaLanguageVersion.UNKNOWN;
     }
 
     private boolean isSecondaryPropertiesUnchanged() {
-        return Objects.equals(getConventionVendor(), getVendor().getOrNull()) &&
-            Objects.equals(getConventionImplementation(), getImplementation().getOrNull());
+        return Objects.equals(getConventionVendor(), getVendor().getOrNull())
+                && Objects.equals(
+                        getConventionImplementation(), getImplementation().getOrNull());
     }
 
     @Override

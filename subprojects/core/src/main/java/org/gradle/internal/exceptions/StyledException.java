@@ -16,15 +16,14 @@
 
 package org.gradle.internal.exceptions;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.jspecify.annotations.Nullable;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * <p>A styled exception is an exception which can be rendered to the console
@@ -37,10 +36,11 @@ import java.util.regex.Pattern;
  * </p>
  */
 public class StyledException extends GradleException {
-    private final static Logger LOGGER = Logging.getLogger(StyledException.class);
+    private static final Logger LOGGER = Logging.getLogger(StyledException.class);
 
     // Keep only the outermost style
-    private final static Pattern STYLES_REGEX = Pattern.compile("<([A-Za-z]+)>(?:<([A-Za-z]+)>)*(.*?)(?:</\\2>)*</\\1>");
+    private static final Pattern STYLES_REGEX =
+            Pattern.compile("<([A-Za-z]+)>(?:<([A-Za-z]+)>)*(.*?)(?:</\\2>)*</\\1>");
     private final String styledMessage;
 
     public StyledException() {
@@ -100,5 +100,4 @@ public class StyledException extends GradleException {
             return StyledTextOutput.Style.Normal;
         }
     }
-
 }

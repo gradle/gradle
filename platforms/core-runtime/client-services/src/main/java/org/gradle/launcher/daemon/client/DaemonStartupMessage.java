@@ -17,7 +17,6 @@
 package org.gradle.launcher.daemon.client;
 
 import com.google.common.base.Joiner;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,8 +40,8 @@ public class DaemonStartupMessage {
             }
 
             return STARTING_DAEMON_MESSAGE + ", "
-                + Joiner.on(" and ").join(reasons) + " Daemon" + (totalUnavailableDaemons > 1 ? "s" : "")
-                + NOT_REUSED_MESSAGE;
+                    + Joiner.on(" and ").join(reasons) + " Daemon" + (totalUnavailableDaemons > 1 ? "s" : "")
+                    + NOT_REUSED_MESSAGE;
         } else {
             return STARTING_DAEMON_MESSAGE + " " + SUBSEQUENT_BUILDS_WILL_BE_FASTER;
         }

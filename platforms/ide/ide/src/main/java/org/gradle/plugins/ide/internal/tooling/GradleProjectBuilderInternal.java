@@ -31,5 +31,4 @@ public interface GradleProjectBuilderInternal extends ToolingModelBuilder {
      * @param project used to discover the root project to build the model for
      */
     DefaultGradleProject buildForRoot(Project project);
-
 }

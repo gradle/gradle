@@ -16,21 +16,20 @@
 
 package org.gradle.util;
 
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.join;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.AbstractIterator;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * Represents a path in Gradle.
@@ -84,7 +83,7 @@ public class Path implements Comparable<Path> {
 
     @Override
     public String toString() {
-       return asString();
+        return asString();
     }
 
     /**
@@ -156,7 +155,7 @@ public class Path implements Comparable<Path> {
      * @since 8.5
      */
     @Incubating
-    public List<String> segments(){
+    public List<String> segments() {
         return asList(segments);
     }
 
@@ -269,7 +268,6 @@ public class Path implements Comparable<Path> {
         }
         return append(path);
     }
-
 
     public boolean isAbsolute() {
         return absolute;

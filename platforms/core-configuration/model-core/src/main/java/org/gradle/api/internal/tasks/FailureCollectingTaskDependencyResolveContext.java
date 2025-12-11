@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.AbstractTaskDependencyContainerVisitingContext;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.api.internal.AbstractTaskDependencyContainerVisitingContext;
 
 public class FailureCollectingTaskDependencyResolveContext extends AbstractTaskDependencyContainerVisitingContext {
     private final Set<Throwable> failures = new LinkedHashSet<Throwable>();

@@ -26,7 +26,8 @@ public class GradleVsMavenBuildExperimentRunner extends AbstractBuildExperimentR
     private final GradleBuildExperimentRunner gradleRunner;
     private final MavenBuildExperimentRunner mavenRunner;
 
-    public GradleVsMavenBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter, OutputDirSelector outputDirSelector) {
+    public GradleVsMavenBuildExperimentRunner(
+            GradleProfilerReporter gradleProfilerReporter, OutputDirSelector outputDirSelector) {
         super(gradleProfilerReporter, outputDirSelector);
         this.gradleRunner = new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector);
         this.mavenRunner = new MavenBuildExperimentRunner(gradleProfilerReporter, outputDirSelector);

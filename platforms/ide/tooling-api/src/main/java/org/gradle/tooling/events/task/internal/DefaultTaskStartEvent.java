@@ -33,5 +33,4 @@ public final class DefaultTaskStartEvent extends DefaultStartEvent implements Ta
     public TaskOperationDescriptor getDescriptor() {
         return (TaskOperationDescriptor) super.getDescriptor();
     }
-
 }

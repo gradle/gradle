@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
+import java.io.File;
+import java.util.Set;
+import java.util.regex.Pattern;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
@@ -23,12 +26,8 @@ import org.gradle.api.file.ReproducibleFileVisitor;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
-import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
-
-import java.io.File;
-import java.util.Set;
-import java.util.regex.Pattern;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 
 /**
  * The default test definition scanner.
@@ -45,11 +44,11 @@ public class DefaultTestScanner implements TestDetector {
     private final TestFrameworkDetector testFrameworkDetector;
     private final TestDefinitionProcessor<TestDefinition> testDefinitionProcessor;
 
-    public DefaultTestScanner(FileTree candidateClassFiles,
-                              Set<File> candidateDefinitionDirs,
-                              TestFrameworkDetector testFrameworkDetector,
-                              TestDefinitionProcessor<TestDefinition> testDefinitionProcessor
-    ) {
+    public DefaultTestScanner(
+            FileTree candidateClassFiles,
+            Set<File> candidateDefinitionDirs,
+            TestFrameworkDetector testFrameworkDetector,
+            TestDefinitionProcessor<TestDefinition> testDefinitionProcessor) {
         this.candidateClassFiles = candidateClassFiles;
         this.candidateDefinitionDirs = candidateDefinitionDirs;
         this.testFrameworkDetector = testFrameworkDetector;
@@ -70,7 +69,8 @@ public class DefaultTestScanner implements TestDetector {
         candidateClassFiles.visit(new ClassFileVisitor() {
             @Override
             public void visitClassFile(FileVisitDetails fileDetails) {
-                testFrameworkDetector.processTestClass(new RelativeFile(fileDetails.getFile(), fileDetails.getRelativePath()));
+                testFrameworkDetector.processTestClass(
+                        new RelativeFile(fileDetails.getFile(), fileDetails.getRelativePath()));
             }
         });
     }
@@ -115,6 +115,10 @@ public class DefaultTestScanner implements TestDetector {
     }
 
     private String getClassName(FileVisitDetails fileDetails) {
-        return fileDetails.getRelativePath().getPathString().replaceAll("\\.class", "").replace('/', '.');
+        return fileDetails
+                .getRelativePath()
+                .getPathString()
+                .replaceAll("\\.class", "")
+                .replace('/', '.');
     }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures;
 
+import java.util.Arrays;
+import java.util.Collection;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.internal.Resources;
@@ -24,9 +26,6 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
-import java.util.Collection;
 
 /**
  * Provides access to test resources for integration testing. Looks for the following directory in the test classpath:
@@ -46,7 +45,11 @@ public class TestResources implements MethodRule {
         resources = new Resources(testDirectoryProvider);
     }
 
-    public TestResources(TestDirectoryProvider testDirectoryProvider, Class<?> declaringTestClass, Class<?> runningTestClass, String... extraResources) {
+    public TestResources(
+            TestDirectoryProvider testDirectoryProvider,
+            Class<?> declaringTestClass,
+            Class<?> runningTestClass,
+            String... extraResources) {
         testWorkDirProvider = testDirectoryProvider;
         this.extraResources = Arrays.asList(extraResources);
         resources = new Resources(testDirectoryProvider, declaringTestClass, runningTestClass);

@@ -16,16 +16,17 @@
 
 package org.gradle.api.internal.tasks;
 
+import javax.inject.Inject;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.tasks.GroovySourceDirectorySet;
 
-import javax.inject.Inject;
-
-public abstract class DefaultGroovySourceDirectorySet extends DefaultSourceDirectorySet implements GroovySourceDirectorySet {
+public abstract class DefaultGroovySourceDirectorySet extends DefaultSourceDirectorySet
+        implements GroovySourceDirectorySet {
 
     @Inject
-    public DefaultGroovySourceDirectorySet(SourceDirectorySet sourceDirectorySet, TaskDependencyFactory taskDependencyFactory) {
+    public DefaultGroovySourceDirectorySet(
+            SourceDirectorySet sourceDirectorySet, TaskDependencyFactory taskDependencyFactory) {
         super(sourceDirectorySet, taskDependencyFactory);
     }
 }

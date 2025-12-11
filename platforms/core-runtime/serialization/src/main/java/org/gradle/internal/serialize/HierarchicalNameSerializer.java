@@ -20,7 +20,6 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Interner;
-
 import java.io.IOException;
 
 /**
@@ -31,7 +30,8 @@ import java.io.IOException;
  * This class is stateful. Use a new one for each serialization/deserialization attempt.
  */
 public class HierarchicalNameSerializer extends AbstractSerializer<String> {
-    private static final CharMatcher SEPARATOR_MATCHER = CharMatcher.anyOf(".$/").or(CharMatcher.inRange('A', 'Z'));
+    private static final CharMatcher SEPARATOR_MATCHER =
+            CharMatcher.anyOf(".$/").or(CharMatcher.inRange('A', 'Z'));
 
     private final Interner<String> interner;
     private final BiMap<Integer, String> namesById = HashBiMap.create();

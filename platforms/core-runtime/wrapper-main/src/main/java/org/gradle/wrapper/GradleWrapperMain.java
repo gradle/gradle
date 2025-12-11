@@ -16,9 +16,7 @@
 
 package org.gradle.wrapper;
 
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
-import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import static org.gradle.wrapper.Download.UNKNOWN_VERSION;
 
 import java.io.File;
 import java.net.URI;
@@ -26,8 +24,9 @@ import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Properties;
-
-import static org.gradle.wrapper.Download.UNKNOWN_VERSION;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
+import org.gradle.cli.SystemPropertiesCommandLineConverter;
 
 public class GradleWrapperMain {
     public static final String GRADLE_USER_HOME_OPTION = "g";
@@ -72,7 +71,8 @@ public class GradleWrapperMain {
     private static void addSystemProperties(Properties systemProperties, File gradleUserHome, File rootDir) {
         // The location with highest priority needs to come last here, as it overwrites any previous entries.
         systemProperties.putAll(PropertiesFileHandler.getSystemProperties(new File(rootDir, "gradle.properties")));
-        systemProperties.putAll(PropertiesFileHandler.getSystemProperties(new File(gradleUserHome, "gradle.properties")));
+        systemProperties.putAll(
+                PropertiesFileHandler.getSystemProperties(new File(gradleUserHome, "gradle.properties")));
     }
 
     private static File rootDir(File wrapperJar) {
@@ -86,12 +86,17 @@ public class GradleWrapperMain {
     private static File wrapperJar() {
         URI location;
         try {
-            location = GradleWrapperMain.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+            location = GradleWrapperMain.class
+                    .getProtectionDomain()
+                    .getCodeSource()
+                    .getLocation()
+                    .toURI();
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
         if (!location.getScheme().equals("file")) {
-            throw new RuntimeException(String.format("Cannot determine classpath for wrapper Jar from codebase '%s'.", location));
+            throw new RuntimeException(
+                    String.format("Cannot determine classpath for wrapper Jar from codebase '%s'.", location));
         }
         try {
             return Paths.get(location).toFile();

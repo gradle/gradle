@@ -16,6 +16,13 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
+import java.util.concurrent.Callable;
+import java.util.regex.Pattern;
 import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
@@ -40,19 +47,12 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Locale;
-import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
-
 @NullMarked
 abstract class AbstractMavenPublisher implements MavenPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenPublisher.class);
 
-    private final NetworkOperationBackOffAndRetry<ExternalResourceReadResult<Metadata>> metadataRetryCaller = new NetworkOperationBackOffAndRetry<>();
+    private final NetworkOperationBackOffAndRetry<ExternalResourceReadResult<Metadata>> metadataRetryCaller =
+            new NetworkOperationBackOffAndRetry<>();
     private static final String POM_FILE_ENCODING = "UTF-8";
     private static final String SNAPSHOT_VERSION = "SNAPSHOT";
     private static final Pattern VERSION_FILE_PATTERN = Pattern.compile("^(.*)-([0-9]{8}.[0-9]{6})-([0-9]+)$");
@@ -63,13 +63,19 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         this.temporaryDirFactory = temporaryDirFactory;
     }
 
-    protected void publish(MavenNormalizedPublication publication, ExternalResourceRepository repository, URI rootUri, boolean localRepo) {
+    protected void publish(
+            MavenNormalizedPublication publication,
+            ExternalResourceRepository repository,
+            URI rootUri,
+            boolean localRepo) {
         String groupId = publication.getGroupId();
         String artifactId = publication.getArtifactId();
         String version = publication.getVersion();
 
-        ModuleArtifactPublisher artifactPublisher = new ModuleArtifactPublisher(repository, localRepo, rootUri, groupId, artifactId, version);
-        SnapshotMetadataResult snapshotMetadataResult = computeSnapshotMetadata(publication, repository, version, artifactPublisher, groupId, artifactId);
+        ModuleArtifactPublisher artifactPublisher =
+                new ModuleArtifactPublisher(repository, localRepo, rootUri, groupId, artifactId, version);
+        SnapshotMetadataResult snapshotMetadataResult =
+                computeSnapshotMetadata(publication, repository, version, artifactPublisher, groupId, artifactId);
 
         if (snapshotMetadataResult != null && !localRepo) {
             // Use the timestamped version for all published artifacts
@@ -82,18 +88,33 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
     }
 
     @Nullable
-    private SnapshotMetadataResult computeSnapshotMetadata(MavenNormalizedPublication publication, ExternalResourceRepository repository, String version, ModuleArtifactPublisher artifactPublisher, String groupId, String artifactId) {
+    private SnapshotMetadataResult computeSnapshotMetadata(
+            MavenNormalizedPublication publication,
+            ExternalResourceRepository repository,
+            String version,
+            ModuleArtifactPublisher artifactPublisher,
+            String groupId,
+            String artifactId) {
         if (isSnapshot(version)) {
             ExternalResourceName snapshotMetadataPath = artifactPublisher.getSnapshotMetadataLocation();
-            Metadata snapshotMetadata = createSnapshotMetadata(publication, groupId, artifactId, version, repository, snapshotMetadataPath);
+            Metadata snapshotMetadata =
+                    createSnapshotMetadata(publication, groupId, artifactId, version, repository, snapshotMetadataPath);
             return new SnapshotMetadataResult(snapshotMetadataPath, snapshotMetadata);
         }
         return null;
     }
 
-    private void publishPublicationMetadata(ExternalResourceRepository repository, String version, ModuleArtifactPublisher artifactPublisher, String groupId, String artifactId, @Nullable SnapshotMetadataResult snapshotMetadataResult) {
+    private void publishPublicationMetadata(
+            ExternalResourceRepository repository,
+            String version,
+            ModuleArtifactPublisher artifactPublisher,
+            String groupId,
+            String artifactId,
+            @Nullable SnapshotMetadataResult snapshotMetadataResult) {
         if (snapshotMetadataResult != null) {
-            artifactPublisher.publish(snapshotMetadataResult.snapshotMetadataPath, writeMetadataToTmpFile(snapshotMetadataResult.snapshotMetadata, "snapshot-maven-metadata.xml"));
+            artifactPublisher.publish(
+                    snapshotMetadataResult.snapshotMetadataPath,
+                    writeMetadataToTmpFile(snapshotMetadataResult.snapshotMetadata, "snapshot-maven-metadata.xml"));
         }
 
         ExternalResourceName externalResource = artifactPublisher.getMetadataLocation();
@@ -101,9 +122,13 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         artifactPublisher.publish(externalResource, writeMetadataToTmpFile(metadata, "module-maven-metadata.xml"));
     }
 
-    private static void publishArtifactsAndMetadata(MavenNormalizedPublication publication, ModuleArtifactPublisher artifactPublisher) {
+    private static void publishArtifactsAndMetadata(
+            MavenNormalizedPublication publication, ModuleArtifactPublisher artifactPublisher) {
         if (publication.getMainArtifact() != null) {
-            artifactPublisher.publish(null, publication.getMainArtifact().getExtension(), publication.getMainArtifact().getFile());
+            artifactPublisher.publish(
+                    null,
+                    publication.getMainArtifact().getExtension(),
+                    publication.getMainArtifact().getFile());
         }
         artifactPublisher.publish(null, "pom", publication.getPomArtifact().getFile());
         for (MavenArtifact artifact : publication.getAdditionalArtifacts()) {
@@ -111,7 +136,12 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         }
     }
 
-    private Metadata createMetadata(String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource) {
+    private Metadata createMetadata(
+            String groupId,
+            String artifactId,
+            String version,
+            ExternalResourceRepository repository,
+            ExternalResourceName metadataResource) {
         Versioning versioning = getExistingVersioning(repository, metadataResource);
         if (!versioning.getVersions().contains(version)) {
             versioning.addVersion(version);
@@ -129,7 +159,8 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         return metadata;
     }
 
-    private Versioning getExistingVersioning(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
+    private Versioning getExistingVersioning(
+            ExternalResourceRepository repository, ExternalResourceName metadataResource) {
         ExternalResourceReadResult<Metadata> existing = readExistingMetadata(repository, metadataResource);
 
         if (existing != null) {
@@ -156,8 +187,12 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
 
     private boolean isSnapshot(@Nullable String version) {
         if (version != null) {
-            if (version.regionMatches(true, version.length() - SNAPSHOT_VERSION.length(),
-                SNAPSHOT_VERSION, 0, SNAPSHOT_VERSION.length())) {
+            if (version.regionMatches(
+                    true,
+                    version.length() - SNAPSHOT_VERSION.length(),
+                    SNAPSHOT_VERSION,
+                    0,
+                    SNAPSHOT_VERSION.length())) {
                 return true;
             } else {
                 return VERSION_FILE_PATTERN.matcher(version).matches();
@@ -167,7 +202,8 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
     }
 
     @Nullable
-    ExternalResourceReadResult<Metadata> readExistingMetadata(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
+    ExternalResourceReadResult<Metadata> readExistingMetadata(
+            ExternalResourceRepository repository, ExternalResourceName metadataResource) {
         return metadataRetryCaller.withBackoffAndRetry(new Callable<ExternalResourceReadResult<Metadata>>() {
             @Override
             @Nullable
@@ -186,10 +222,15 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
                 return "GET " + metadataResource.getDisplayName();
             }
         });
-
     }
 
-    protected abstract Metadata createSnapshotMetadata(MavenNormalizedPublication publication, String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource);
+    protected abstract Metadata createSnapshotMetadata(
+            MavenNormalizedPublication publication,
+            String groupId,
+            String artifactId,
+            String version,
+            ExternalResourceRepository repository,
+            ExternalResourceName metadataResource);
 
     @NullMarked
     private static class SnapshotMetadataResult {
@@ -215,7 +256,8 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
      * Publishes artifacts for a single Maven module.
      */
     private static class ModuleArtifactPublisher {
-        private final NetworkOperationBackOffAndRetry<Void> networkOperationCaller = new NetworkOperationBackOffAndRetry<>();
+        private final NetworkOperationBackOffAndRetry<Void> networkOperationCaller =
+                new NetworkOperationBackOffAndRetry<>();
         private final ExternalResourceRepository repository;
         private final boolean localRepo;
         private final URI rootUri;
@@ -224,7 +266,13 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         private final String moduleVersion;
         private String artifactVersion;
 
-        ModuleArtifactPublisher(ExternalResourceRepository repository, boolean localRepo, URI rootUri, String groupId, String artifactId, String moduleVersion) {
+        ModuleArtifactPublisher(
+                ExternalResourceRepository repository,
+                boolean localRepo,
+                URI rootUri,
+                String groupId,
+                String artifactId,
+                String moduleVersion) {
             this.repository = repository.withProgressLogging();
             this.localRepo = localRepo;
             this.rootUri = rootUri;
@@ -297,21 +345,34 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             }
         }
 
-        private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, HashFunction hashFunction) {
+        private void publishPossiblyUnsupportedChecksum(
+                ExternalResourceName destination, File content, HashFunction hashFunction) {
             try {
                 publishChecksum(destination, content, hashFunction);
             } catch (Exception ex) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + hashFunction + ". This will not fail the build.", ex);
+                    LOGGER.warn(
+                            "Cannot upload checksum for " + content.getName()
+                                    + " because the remote repository doesn't support " + hashFunction
+                                    + ". This will not fail the build.",
+                            ex);
                 } else {
-                    LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + hashFunction + ". This will not fail the build.");
+                    LOGGER.warn("Cannot upload checksum for " + content.getName()
+                            + " because the remote repository doesn't support " + hashFunction
+                            + ". This will not fail the build.");
                 }
             }
         }
 
         private void publishChecksum(ExternalResourceName destination, File content, HashFunction hashFunction) {
             byte[] checksum = createChecksumFile(content, hashFunction);
-            putResource(destination.append("." + hashFunction.getAlgorithm().toLowerCase(Locale.ROOT).replaceAll("-", "")), new ByteArrayReadableContent(checksum));
+            putResource(
+                    destination.append("."
+                            + hashFunction
+                                    .getAlgorithm()
+                                    .toLowerCase(Locale.ROOT)
+                                    .replaceAll("-", "")),
+                    new ByteArrayReadableContent(checksum));
         }
 
         private byte[] createChecksumFile(File src, HashFunction hashFunction) {
@@ -340,5 +401,4 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             });
         }
     }
-
 }

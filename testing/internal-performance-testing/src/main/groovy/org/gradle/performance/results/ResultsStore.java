@@ -32,8 +32,14 @@ public interface ResultsStore extends Closeable {
      *
      * This returns all the executions which are either from the channel or in the list of provided teamcity build ids.
      */
-    default PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel, List<String> teamcityBuildIds) {
-        return getTestResults(experiment, mostRecentN, maxDaysOld, Collections.singletonList(channel), teamcityBuildIds);
+    default PerformanceTestHistory getTestResults(
+            PerformanceExperiment experiment,
+            int mostRecentN,
+            int maxDaysOld,
+            String channel,
+            List<String> teamcityBuildIds) {
+        return getTestResults(
+                experiment, mostRecentN, maxDaysOld, Collections.singletonList(channel), teamcityBuildIds);
     }
 
     /**
@@ -41,7 +47,12 @@ public interface ResultsStore extends Closeable {
      *
      * This returns all the executions which either match the channel patterns or are in the list of provided teamcity build ids.
      */
-    PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, List<String> channelPatterns, List<String> teamcityBuildIds);
+    PerformanceTestHistory getTestResults(
+            PerformanceExperiment experiment,
+            int mostRecentN,
+            int maxDaysOld,
+            List<String> channelPatterns,
+            List<String> teamcityBuildIds);
 
     /**
      * Returns the estimated duration for each experiment in milliseconds.

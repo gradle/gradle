@@ -27,7 +27,11 @@ public class DefaultTestOutputOperationDescriptor extends DefaultOperationDescri
     private final Destination destination;
     private final String message;
 
-    public DefaultTestOutputOperationDescriptor(InternalOperationDescriptor internalDescriptor, OperationDescriptor parent, Destination destination, String message) {
+    public DefaultTestOutputOperationDescriptor(
+            InternalOperationDescriptor internalDescriptor,
+            OperationDescriptor parent,
+            Destination destination,
+            String message) {
         super(internalDescriptor, parent);
         this.destination = destination;
         this.message = message;

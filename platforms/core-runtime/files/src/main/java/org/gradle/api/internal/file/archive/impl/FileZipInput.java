@@ -17,11 +17,6 @@
 package org.gradle.api.internal.file.archive.impl;
 
 import com.google.common.collect.AbstractIterator;
-import org.gradle.api.internal.file.archive.ZipEntry;
-import org.gradle.api.internal.file.archive.ZipInput;
-import org.gradle.internal.file.FileException;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -30,6 +25,10 @@ import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.zip.ZipFile;
+import org.gradle.api.internal.file.archive.ZipEntry;
+import org.gradle.api.internal.file.archive.ZipInput;
+import org.gradle.internal.file.FileException;
+import org.jspecify.annotations.Nullable;
 
 public class FileZipInput implements ZipInput {
 

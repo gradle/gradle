@@ -20,6 +20,14 @@ import com.google.common.collect.Iterables;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.SafeFileLocationUtils;
@@ -40,16 +48,8 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.VersionNumber;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-// TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of it applies to SwiftCompiler)
+// TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of it applies to
+// SwiftCompiler)
 class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
@@ -57,8 +57,21 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
     private final VersionNumber swiftCompilerVersion;
     private final SwiftDepsHandler swiftDepsHandler;
 
-    SwiftCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, WorkerLeaseService workerLeaseService, VersionNumber swiftCompilerVersion) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new SwiftCompileArgsTransformer(), false, workerLeaseService);
+    SwiftCompiler(
+            BuildOperationExecutor buildOperationExecutor,
+            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+            CommandLineToolInvocationWorker commandLineToolInvocationWorker,
+            CommandLineToolContext invocationContext,
+            String objectFileExtension,
+            WorkerLeaseService workerLeaseService,
+            VersionNumber swiftCompilerVersion) {
+        super(
+                buildOperationExecutor,
+                commandLineToolInvocationWorker,
+                invocationContext,
+                new SwiftCompileArgsTransformer(),
+                false,
+                workerLeaseService);
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.objectFileExtension = objectFileExtension;
         this.swiftCompilerVersion = swiftCompilerVersion;
@@ -66,13 +79,17 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
     }
 
     @Override
-    protected void addOptionsFileArgs(List<String> args, File tempDir) {
-    }
+    protected void addOptionsFileArgs(List<String> args, File tempDir) {}
 
     @Override
     public WorkResult execute(SwiftCompileSpec spec) {
-        if (swiftCompilerVersion.getMajor() < spec.getSourceCompatibility().getVersion() || (swiftCompilerVersion.getMajor() >= 5 && spec.getSourceCompatibility().equals(SwiftVersion.SWIFT3))) {
-            throw new IllegalArgumentException(String.format("Swift compiler version '%s' doesn't support Swift language version '%d'", swiftCompilerVersion.toString(), spec.getSourceCompatibility().getVersion()));
+        if (swiftCompilerVersion.getMajor() < spec.getSourceCompatibility().getVersion()
+                || (swiftCompilerVersion.getMajor() >= 5
+                        && spec.getSourceCompatibility().equals(SwiftVersion.SWIFT3))) {
+            throw new IllegalArgumentException(String.format(
+                    "Swift compiler version '%s' doesn't support Swift language version '%d'",
+                    swiftCompilerVersion.toString(),
+                    spec.getSourceCompatibility().getVersion()));
         }
         return super.execute(spec);
     }
@@ -80,17 +97,21 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
     protected File getOutputFileDir(File sourceFile, File objectFileDir, String fileSuffix) {
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
 
-        File outputFile = compilerOutputFileNamingSchemeFactory.create()
-            .withObjectFileNameSuffix(fileSuffix)
-            .withOutputBaseFolder(objectFileDir)
-            .map(sourceFile);
+        File outputFile = compilerOutputFileNamingSchemeFactory
+                .create()
+                .withObjectFileNameSuffix(fileSuffix)
+                .withOutputBaseFolder(objectFileDir)
+                .map(sourceFile);
         File outputDirectory = outputFile.getParentFile();
         GFileUtils.mkdirs(outputDirectory);
-        return windowsPathLimitation ? SafeFileLocationUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
+        return windowsPathLimitation
+                ? SafeFileLocationUtils.assertInWindowsPathLengthLimitation(outputFile)
+                : outputFile;
     }
 
     @Override
-    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final SwiftCompileSpec spec, final List<String> genericArgs) {
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(
+            final SwiftCompileSpec spec, final List<String> genericArgs) {
         final File objectDir = spec.getObjectFileDir();
         return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override
@@ -103,12 +124,13 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 outputFileMap.root().swiftDependenciesFile(moduleSwiftDeps);
 
                 for (File sourceFile : spec.getSourceFiles()) {
-                    outputFileMap.newEntry(sourceFile.getAbsolutePath())
-                        .dependencyFile(getOutputFileDir(sourceFile, objectDir, ".d"))
-                        .diagnosticsFile(getOutputFileDir(sourceFile, objectDir, ".dia"))
-                        .objectFile(getOutputFileDir(sourceFile, objectDir, objectFileExtension))
-                        .swiftModuleFile(getOutputFileDir(sourceFile, objectDir, "~partial.swiftmodule"))
-                        .swiftDependenciesFile(getOutputFileDir(sourceFile, objectDir, ".swiftdeps"));
+                    outputFileMap
+                            .newEntry(sourceFile.getAbsolutePath())
+                            .dependencyFile(getOutputFileDir(sourceFile, objectDir, ".d"))
+                            .diagnosticsFile(getOutputFileDir(sourceFile, objectDir, ".dia"))
+                            .objectFile(getOutputFileDir(sourceFile, objectDir, objectFileExtension))
+                            .swiftModuleFile(getOutputFileDir(sourceFile, objectDir, "~partial.swiftmodule"))
+                            .swiftDependenciesFile(getOutputFileDir(sourceFile, objectDir, ".swiftdeps"));
                     genericArgs.add(sourceFile.getAbsolutePath());
                 }
                 if (null != spec.getModuleName()) {
@@ -118,8 +140,8 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                     genericArgs.add(spec.getModuleFile().getAbsolutePath());
                 }
 
-
-                boolean canSafelyCompileIncrementally = swiftDepsHandler.adjustTimestampsFor(moduleSwiftDeps, spec.getChangedFiles());
+                boolean canSafelyCompileIncrementally =
+                        swiftDepsHandler.adjustTimestampsFor(moduleSwiftDeps, spec.getChangedFiles());
                 if (canSafelyCompileIncrementally) {
                     genericArgs.add("-incremental");
                     genericArgs.add("-emit-dependencies");
@@ -151,9 +173,14 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 genericArgs.add("-swift-version");
                 genericArgs.add(String.valueOf(spec.getSourceCompatibility().getVersion()));
 
-                CommandLineToolInvocation perFileInvocation =
-                    newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs, importRootArgs), spec.getOperationLogger());
-                perFileInvocation.getEnvironment().put("TMPDIR", spec.getTempDir().getAbsolutePath());
+                CommandLineToolInvocation perFileInvocation = newInvocation(
+                        "compiling swift file(s)",
+                        objectDir,
+                        Iterables.concat(genericArgs, outputArgs, importRootArgs),
+                        spec.getOperationLogger());
+                perFileInvocation
+                        .getEnvironment()
+                        .put("TMPDIR", spec.getTempDir().getAbsolutePath());
                 buildQueue.add(perFileInvocation);
             }
         };
@@ -182,13 +209,14 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
         private void toJson(Appendable writer) {
             Gson gson = new GsonBuilder()
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
-                .setPrettyPrinting()
-                .create();
+                    .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
+                    .setPrettyPrinting()
+                    .create();
             gson.toJson(entries, writer);
         }
 
-        @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+        @SuppressWarnings("DefaultCharset") // TODO: evaluate errorprone suppression
+        // (https://github.com/gradle/gradle/issues/35864)
         public void writeToFile(File outputFile) {
             try (Writer writer = new PrintWriter(outputFile)) {
                 toJson(writer);
@@ -199,6 +227,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
         private static class Builder {
             private final Entry entry;
+
             Builder(Entry entry) {
                 this.entry = entry;
             }

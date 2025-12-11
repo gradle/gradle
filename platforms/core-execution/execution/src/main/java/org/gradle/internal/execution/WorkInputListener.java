@@ -16,11 +16,10 @@
 
 package org.gradle.internal.execution;
 
+import java.util.EnumSet;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope.Global;
-
-import java.util.EnumSet;
 
 /**
  * Registered via {@link WorkInputListeners}.

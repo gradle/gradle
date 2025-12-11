@@ -15,15 +15,6 @@
  */
 package org.gradle.api.internal.catalog;
 
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.logging.text.TreeFormatter;
-
-import javax.tools.Diagnostic;
-import javax.tools.DiagnosticCollector;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +22,14 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 class SimpleGeneratedJavaClassCompiler {
     /**
@@ -41,10 +40,12 @@ class SimpleGeneratedJavaClassCompiler {
      * @param classes the classes to compile
      * @param classPath the classpath to use for compilation
      */
-    public static void compile(File srcDir, File dstDir, List<ClassSource> classes, ClassPath classPath) throws GeneratedClassCompilationException {
+    public static void compile(File srcDir, File dstDir, List<ClassSource> classes, ClassPath classPath)
+            throws GeneratedClassCompilationException {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
-            throw new GeneratedClassCompilationException("No Java compiler found, please ensure you are running Gradle with a JDK");
+            throw new GeneratedClassCompilationException(
+                    "No Java compiler found, please ensure you are running Gradle with a JDK");
         }
         DiagnosticCollector<JavaFileObject> ds = new DiagnosticCollector<>();
         try (StandardJavaFileManager mgr = compiler.getStandardFileManager(ds, null, null)) {
@@ -61,8 +62,8 @@ class SimpleGeneratedJavaClassCompiler {
             throw new GeneratedClassCompilationException("Unable to compile generated classes", e);
         }
         List<Diagnostic<? extends JavaFileObject>> diagnostics = ds.getDiagnostics().stream()
-            .filter(d -> d.getKind() == Diagnostic.Kind.ERROR)
-            .collect(Collectors.toList());
+                .filter(d -> d.getKind() == Diagnostic.Kind.ERROR)
+                .collect(Collectors.toList());
         if (!diagnostics.isEmpty()) {
             throwCompilationError(diagnostics);
         }
@@ -111,7 +112,9 @@ class SimpleGeneratedJavaClassCompiler {
         options.add("-target");
         options.add("1.8");
         options.add("-classpath");
-        String cp = classPath.getAsFiles().stream().map(File::getAbsolutePath).collect(Collectors.joining(File.pathSeparator));
+        String cp = classPath.getAsFiles().stream()
+                .map(File::getAbsolutePath)
+                .collect(Collectors.joining(File.pathSeparator));
         options.add(cp);
         options.add("-d");
         options.add(dstDir.getAbsolutePath());

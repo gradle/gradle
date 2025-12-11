@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics;
 
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -36,8 +37,6 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-
 /**
  * A task which reports information about the Artifact Transforms (implemented by {@link TransformAction}) used by a project.
  *
@@ -51,9 +50,14 @@ import javax.inject.Inject;
 public abstract class ArtifactTransformsReportTask extends DefaultTask {
     private final Cached<ArtifactTransformReportModel> reportModel = Cached.of(() -> buildReportModel(getProject()));
 
-    @Inject protected abstract ObjectFactory getObjectFactory();
-    @Inject protected abstract StyledTextOutputFactory getTextOutputFactory();
-    @Inject protected abstract DocumentationRegistry getDocumentationRegistry();
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
+
+    @Inject
+    protected abstract DocumentationRegistry getDocumentationRegistry();
 
     /**
      * Limits the report to reporting on transforms using a type with this (simple) classname.
@@ -86,13 +90,15 @@ public abstract class ArtifactTransformsReportTask extends DefaultTask {
     }
 
     private void reportToConsole(ArtifactTransformReportSpec reportSpec, ArtifactTransformReportModel reportModel) {
-        final ConsoleArtifactTransformReportRenderer renderer = new ConsoleArtifactTransformReportRenderer(reportSpec, getDocumentationRegistry());
+        final ConsoleArtifactTransformReportRenderer renderer =
+                new ConsoleArtifactTransformReportRenderer(reportSpec, getDocumentationRegistry());
         final StyledTextOutput output = getTextOutputFactory().create(getClass());
         renderer.render(reportModel, output);
     }
 
     private ArtifactTransformReportModel buildReportModel(Project project) {
-        final ArtifactTransformReportModelFactory factory = getObjectFactory().newInstance(ArtifactTransformReportModelFactory.class);
+        final ArtifactTransformReportModelFactory factory =
+                getObjectFactory().newInstance(ArtifactTransformReportModelFactory.class);
         return factory.buildForProject(project);
     }
 

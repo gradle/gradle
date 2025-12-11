@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.internal.SafeFileLocationUtils;
-
 import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.internal.SafeFileLocationUtils;
 
 /**
  * Test results for a given class.

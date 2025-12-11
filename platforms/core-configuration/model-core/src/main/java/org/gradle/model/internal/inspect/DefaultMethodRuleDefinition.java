@@ -16,7 +16,15 @@
 
 package org.gradle.model.internal.inspect;
 
+import static org.gradle.util.internal.CollectionUtils.findFirst;
+
 import com.google.common.collect.ImmutableList;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
@@ -26,15 +34,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static org.gradle.util.internal.CollectionUtils.findFirst;
 
 @ThreadSafe
 public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinition<R, S> {
@@ -97,7 +96,9 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
 
     @Override
     public List<ModelReference<?>> getTailReferences() {
-        return references.size() > 1 ? references.subList(1, references.size()) : Collections.<ModelReference<?>>emptyList();
+        return references.size() > 1
+                ? references.subList(1, references.size())
+                : Collections.<ModelReference<?>>emptyList();
     }
 
     @Override
@@ -126,7 +127,8 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
     }
 
     private ModelReference<?> reference(List<Annotation> annotations, int i) {
-        Path pathAnnotation = (Path) findFirst(annotations, element -> element.annotationType().equals(Path.class));
+        Path pathAnnotation = (Path)
+                findFirst(annotations, element -> element.annotationType().equals(Path.class));
         ModelPath path = pathAnnotation == null ? null : ModelPath.path(pathAnnotation.value());
         ModelType<?> cast = method.getGenericParameterTypes().get(i);
         return ModelReference.of(path, cast, PARAMETER_DESC[i]);

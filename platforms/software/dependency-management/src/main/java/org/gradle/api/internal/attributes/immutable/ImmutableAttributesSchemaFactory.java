@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
@@ -31,8 +32,6 @@ import org.gradle.internal.model.InMemoryInterner;
 import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Map;
 
 /**
  * Factory for creating and interning immutable attribute schemas.
@@ -59,13 +58,9 @@ public class ImmutableAttributesSchemaFactory {
      * @return The new immutable schema.
      */
     public ImmutableAttributesSchema create(
-        ImmutableMap<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> strategies,
-        ImmutableList<Attribute<?>> precedence
-    ) {
-        return schemas.intern(new ImmutableAttributesSchema(
-            strategies,
-            precedence
-        ));
+            ImmutableMap<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> strategies,
+            ImmutableList<Attribute<?>> precedence) {
+        return schemas.intern(new ImmutableAttributesSchema(strategies, precedence));
     }
 
     /**
@@ -78,27 +73,25 @@ public class ImmutableAttributesSchemaFactory {
     public ImmutableAttributesSchema create(AttributesSchemaInternal mutable) {
         // TODO: "Lock in" the mutable schema once we create an immutable copy of it,
         // as to prevent further mutations that will be ignored.
-        return create(
-            convertStrategies(mutable),
-            ImmutableList.copyOf(mutable.getAttributePrecedence())
-        );
+        return create(convertStrategies(mutable), ImmutableList.copyOf(mutable.getAttributePrecedence()));
     }
 
-    private static ImmutableMap<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> convertStrategies(AttributesSchemaInternal mutable) {
-        ImmutableMap.Builder<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> strategies = ImmutableMap.builder();
-        for (Map.Entry<Attribute<?>, DefaultAttributeMatchingStrategy<?>> entry : mutable.getStrategies().entrySet()) {
+    private static ImmutableMap<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>>
+            convertStrategies(AttributesSchemaInternal mutable) {
+        ImmutableMap.Builder<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> strategies =
+                ImmutableMap.builder();
+        for (Map.Entry<Attribute<?>, DefaultAttributeMatchingStrategy<?>> entry :
+                mutable.getStrategies().entrySet()) {
             strategies.put(entry.getKey(), convertStrategy(entry.getValue()));
         }
         return strategies.build();
     }
 
     private static <T> ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> convertStrategy(
-        DefaultAttributeMatchingStrategy<T> mutableStrategy
-    ) {
+            DefaultAttributeMatchingStrategy<T> mutableStrategy) {
         return new ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<>(
-            ImmutableList.copyOf(mutableStrategy.getCompatibilityRules().getRules()),
-            ImmutableList.copyOf(mutableStrategy.getDisambiguationRules().getRules())
-        );
+                ImmutableList.copyOf(mutableStrategy.getCompatibilityRules().getRules()),
+                ImmutableList.copyOf(mutableStrategy.getDisambiguationRules().getRules()));
     }
 
     /**
@@ -115,9 +108,8 @@ public class ImmutableAttributesSchemaFactory {
 
     private ImmutableAttributesSchema doConcatSchemas(SchemaPair pair) {
         return create(
-            mergeStrategies(pair.consumer, pair.producer),
-            mergePrecedence(pair.consumer.precedence, pair.producer.precedence)
-        );
+                mergeStrategies(pair.consumer, pair.producer),
+                mergePrecedence(pair.consumer.precedence, pair.producer.precedence));
     }
 
     private static class SchemaPair {
@@ -137,9 +129,9 @@ public class ImmutableAttributesSchemaFactory {
             return result;
         }
 
-
         @Override
-        @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+        @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+        // (https://github.com/gradle/gradle/issues/35864)
         public boolean equals(Object obj) {
             if (this == obj) {
                 return true;
@@ -162,11 +154,10 @@ public class ImmutableAttributesSchemaFactory {
      * Merge the attributes matching strategies of a consumer and producer schema, with the entries from the
      * consumer taking precedence over the producer.
      */
-    private static ImmutableMap<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> mergeStrategies(
-        ImmutableAttributesSchema consumer,
-        ImmutableAttributesSchema producer
-    ) {
-        ImmutableMap.Builder<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> builder = ImmutableMap.builder();
+    private static ImmutableMap<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>>
+            mergeStrategies(ImmutableAttributesSchema consumer, ImmutableAttributesSchema producer) {
+        ImmutableMap.Builder<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> builder =
+                ImmutableMap.builder();
         for (Attribute<?> attribute : Sets.union(producer.strategies.keySet(), consumer.strategies.keySet())) {
             builder.put(attribute, mergeStrategyFor(attribute, consumer, producer));
         }
@@ -174,12 +165,11 @@ public class ImmutableAttributesSchemaFactory {
     }
 
     private static <T> ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> mergeStrategyFor(
-        Attribute<T> attribute,
-        ImmutableAttributesSchema consumer,
-        ImmutableAttributesSchema producer
-    ) {
-        ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> consumerStrategy = consumer.getStrategy(attribute);
-        ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> producerStrategy = producer.getStrategy(attribute);
+            Attribute<T> attribute, ImmutableAttributesSchema consumer, ImmutableAttributesSchema producer) {
+        ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> consumerStrategy =
+                consumer.getStrategy(attribute);
+        ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> producerStrategy =
+                producer.getStrategy(attribute);
 
         assert consumerStrategy != null || producerStrategy != null;
 
@@ -197,19 +187,17 @@ public class ImmutableAttributesSchemaFactory {
      * configured in the consumer strategy.
      */
     public static <T> ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> doMergeStrategies(
-        ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> consumer,
-        ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> producer
-    ) {
+            ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> consumer,
+            ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> producer) {
         return new ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<>(
-            ImmutableList.<Action<? super CompatibilityCheckDetails<T>>>builder()
-                .addAll(consumer.compatibilityRules)
-                .addAll(producer.compatibilityRules)
-                .build(),
-            ImmutableList.<Action<? super MultipleCandidatesDetails<T>>>builder()
-                .addAll(consumer.disambiguationRules)
-                .addAll(producer.disambiguationRules)
-                .build()
-        );
+                ImmutableList.<Action<? super CompatibilityCheckDetails<T>>>builder()
+                        .addAll(consumer.compatibilityRules)
+                        .addAll(producer.compatibilityRules)
+                        .build(),
+                ImmutableList.<Action<? super MultipleCandidatesDetails<T>>>builder()
+                        .addAll(consumer.disambiguationRules)
+                        .addAll(producer.disambiguationRules)
+                        .build());
     }
 
     /**
@@ -217,10 +205,10 @@ public class ImmutableAttributesSchemaFactory {
      */
     private static <T> ImmutableList<T> mergePrecedence(ImmutableList<T> consumer, ImmutableList<T> producer) {
         return ImmutableSet.<T>builder()
-            .addAll(consumer)
-            .addAll(producer) // "Elements appear in the resulting set in the same order they were first added to the builder"
-            .build()
-            .asList();
+                .addAll(consumer)
+                .addAll(producer) // "Elements appear in the resulting set in the same order they were first added to
+                // the builder"
+                .build()
+                .asList();
     }
-
 }

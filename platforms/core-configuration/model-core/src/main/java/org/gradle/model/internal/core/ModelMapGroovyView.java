@@ -16,14 +16,14 @@
 
 package org.gradle.model.internal.core;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.model.ModelMap;
 import org.gradle.util.internal.ClosureBackedAction;
-
-import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * Used as the superclass for views for types that extend {@link org.gradle.model.ModelMap}. Mixes in Groovy DSL support.
@@ -104,6 +104,4 @@ public abstract class ModelMapGroovyView<I> extends GroovyObjectSupport implemen
         }
         return null;
     }
-
 }
-

@@ -16,15 +16,14 @@
 
 package org.gradle.internal.classloader;
 
-import org.jspecify.annotations.Nullable;
+import static java.lang.ClassLoader.getSystemClassLoader;
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-
-import static java.lang.ClassLoader.getSystemClassLoader;
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+import org.jspecify.annotations.Nullable;
 
 public class ClassLoaderVisitor {
     private static final String JAVA_CLASS_PATH = "java.class.path";
@@ -82,11 +81,9 @@ public class ClassLoaderVisitor {
         return urls;
     }
 
-    public void visitSpec(ClassLoaderSpec spec) {
-    }
+    public void visitSpec(ClassLoaderSpec spec) {}
 
-    public void visitClassPath(URL[] classPath) {
-    }
+    public void visitClassPath(URL[] classPath) {}
 
     public void visitParent(ClassLoader classLoader) {
         visit(classLoader);

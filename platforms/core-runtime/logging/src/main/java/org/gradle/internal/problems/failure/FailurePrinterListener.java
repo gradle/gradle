@@ -46,5 +46,4 @@ public interface FailurePrinterListener {
      * Invoked after all stack frames of a failure have been printed.
      */
     void afterFrames();
-
 }

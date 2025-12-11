@@ -37,5 +37,4 @@ public abstract class ObjectiveCPlugin implements Plugin<Project> {
         project.getPluginManager().apply(NativeComponentModelPlugin.class);
         project.getPluginManager().apply(ObjectiveCLangPlugin.class);
     }
-
 }

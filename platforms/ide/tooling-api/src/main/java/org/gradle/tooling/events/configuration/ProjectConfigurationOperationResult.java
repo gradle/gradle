@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.events.configuration;
 
-import org.gradle.tooling.events.OperationResult;
-import org.gradle.tooling.events.PluginIdentifier;
-
 import java.time.Duration;
 import java.util.List;
+import org.gradle.tooling.events.OperationResult;
+import org.gradle.tooling.events.PluginIdentifier;
 
 /**
  * Describes the result of running a project configuration operation.
@@ -56,7 +55,5 @@ public interface ProjectConfigurationOperationResult extends OperationResult {
          * Returns the total configuration time of this plugin.
          */
         Duration getTotalConfigurationTime();
-
     }
-
 }

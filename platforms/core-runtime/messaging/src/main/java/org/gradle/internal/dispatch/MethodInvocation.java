@@ -15,12 +15,11 @@
  */
 package org.gradle.internal.dispatch;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.util.internal.CollectionUtils;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import org.gradle.internal.UncheckedException;
+import org.gradle.util.internal.CollectionUtils;
 
 public class MethodInvocation {
     private static final Object[] ZERO_ARGS = new Object[0];
@@ -68,7 +67,8 @@ public class MethodInvocation {
 
     @Override
     public String toString() {
-        return String.format("[MethodInvocation method: %s(%s)]", method.getName(), CollectionUtils.join(", ", arguments));
+        return String.format(
+                "[MethodInvocation method: %s(%s)]", method.getName(), CollectionUtils.join(", ", arguments));
     }
 
     public void invokeOn(Object target) {
@@ -82,4 +82,3 @@ public class MethodInvocation {
         }
     }
 }
-

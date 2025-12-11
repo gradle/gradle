@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Used for the Gradle user home file hash cache.
@@ -34,7 +33,8 @@ import java.util.Set;
  * during the last build and which have a timestamp equal to the end of build timestamp.
  */
 @ServiceScope(Scope.UserHome.class)
-public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
+public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInspector
+        implements RootBuildLifecycleListener {
     private CachingFileHasher fileHasher;
     private final Object lock = new Object();
     private long currentTimestamp;
@@ -78,7 +78,8 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
         updateOnFinishBuild();
         synchronized (lock) {
             try {
-                // These files have an unreliable timestamp - discard any cached state for them and rehash next time they are seen
+                // These files have an unreliable timestamp - discard any cached state for them and rehash next time
+                // they are seen
                 if (currentTimestamp == getLastBuildTimestamp()) {
                     for (String path : filesWithCurrentTimestamp) {
                         fileHasher.discard(path);

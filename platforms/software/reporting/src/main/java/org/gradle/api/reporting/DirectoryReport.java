@@ -16,11 +16,10 @@
 
 package org.gradle.api.reporting;
 
+import java.io.File;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
-
-import java.io.File;
 
 /**
  * A directory based report to be created.

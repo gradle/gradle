@@ -28,6 +28,5 @@ public class WithExtensionReferencesExtra implements RequestExtra {
         this.methodName = methodName;
     }
 
-    public static class ProducedSynthetically implements RequestExtra {
-    }
+    public static class ProducedSynthetically implements RequestExtra {}
 }

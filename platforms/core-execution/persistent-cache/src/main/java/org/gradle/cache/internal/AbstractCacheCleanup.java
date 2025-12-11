@@ -16,14 +16,13 @@
 
 package org.gradle.cache.internal;
 
+import java.io.File;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
 
 public abstract class AbstractCacheCleanup implements CleanupAction {
 
@@ -69,7 +68,7 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
     protected abstract void handleDeletion(File file);
 
     private Iterable<File> findEligibleFiles(CleanableStore cleanableStore) {
-        return eligibleFilesFinder.find(cleanableStore.getBaseDir(), new NonReservedFileFilter(cleanableStore.getReservedCacheFiles()));
+        return eligibleFilesFinder.find(
+                cleanableStore.getBaseDir(), new NonReservedFileFilter(cleanableStore.getReservedCacheFiles()));
     }
-
 }

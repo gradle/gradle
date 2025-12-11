@@ -248,7 +248,7 @@ public interface MavenPublication extends Publication {
      * task sourceJar(type: Jar) {
      *   archiveClassifier = "sources"
      * }
-
+     *
      * publishing {
      *   publications {
      *     maven(MavenPublication) {
@@ -342,7 +342,6 @@ public interface MavenPublication extends Publication {
      * @since 6.0
      */
     void suppressPomMetadataWarningsFor(String variantName);
-
 
     /**
      * Silences all the compatibility warnings for the Maven publication.

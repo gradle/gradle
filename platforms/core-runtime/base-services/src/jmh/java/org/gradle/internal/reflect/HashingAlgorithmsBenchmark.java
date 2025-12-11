@@ -20,6 +20,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+import java.util.Random;
 import org.bouncycastle.jcajce.provider.digest.Blake2b;
 import org.bouncycastle.jcajce.provider.digest.MD5;
 import org.bouncycastle.jcajce.provider.digest.SHA1;
@@ -34,11 +38,6 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Map;
-import java.util.Random;
 
 @Fork(1)
 @Threads(4)
@@ -56,13 +55,13 @@ public class HashingAlgorithmsBenchmark {
     }
 
     static final Map<String, HashProcessorFactory> HASHERS = ImmutableMap.<String, HashProcessorFactory>builder()
-        .put("md5.java", new MessageDigestHashProcessorFactory(getDigest("MD5")))
-        .put("md5.bc", new MessageDigestHashProcessorFactory(new MD5.Digest()))
-        .put("sha1.java", new MessageDigestHashProcessorFactory(getDigest("SHA-1")))
-        .put("sha1.bc", new MessageDigestHashProcessorFactory(new SHA1.Digest()))
-        .put("blake2b.bc", new MessageDigestHashProcessorFactory(new Blake2b.Blake2b160()))
-        .put("murmur3.guava", new GuavaProcessorFactory(Hashing.murmur3_128()))
-        .build();
+            .put("md5.java", new MessageDigestHashProcessorFactory(getDigest("MD5")))
+            .put("md5.bc", new MessageDigestHashProcessorFactory(new MD5.Digest()))
+            .put("sha1.java", new MessageDigestHashProcessorFactory(getDigest("SHA-1")))
+            .put("sha1.bc", new MessageDigestHashProcessorFactory(new SHA1.Digest()))
+            .put("blake2b.bc", new MessageDigestHashProcessorFactory(new Blake2b.Blake2b160()))
+            .put("murmur3.guava", new GuavaProcessorFactory(Hashing.murmur3_128()))
+            .build();
 
     Random random = new Random(1234L);
 

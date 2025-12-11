@@ -16,14 +16,6 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
-import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
-import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.resolution.failure.ReportableAsProblem;
-import org.gradle.internal.exceptions.MultiCauseException;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -31,6 +23,13 @@ import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
+import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.resolution.failure.ReportableAsProblem;
+import org.gradle.internal.exceptions.MultiCauseException;
 
 /**
  * The "Host" or owner of a resolution -- the thing in charge of the resolution, or the thing being resolved.
@@ -111,7 +110,8 @@ public interface ResolutionHost {
         while (!exceptionQueue.isEmpty()) {
             Throwable current = exceptionQueue.poll();
 
-            // If we have self-caused exceptions, or other circular references, we may encounter the same failure again, in which case we can skip processing
+            // If we have self-caused exceptions, or other circular references, we may encounter the same failure again,
+            // in which case we can skip processing
             if (!seen.add(current)) {
                 continue;
             }

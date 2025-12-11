@@ -20,19 +20,18 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.gradle.api.GradleException;
-import org.gradle.internal.Cast;
-import org.gradle.internal.UncheckedException;
-import org.gradle.model.internal.type.ModelType;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.gradle.api.GradleException;
+import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
+import org.gradle.model.internal.type.ModelType;
 
 public class WeaklyTypeReferencingMethod<T, R> {
 
@@ -51,12 +50,13 @@ public class WeaklyTypeReferencingMethod<T, R> {
         this.declaringType = declaringType;
         this.returnType = returnType;
         this.name = method.getName();
-        paramTypes = ImmutableList.copyOf(Iterables.transform(Arrays.asList(method.getGenericParameterTypes()), new Function<Type, ModelType<?>>() {
-            @Override
-            public ModelType<?> apply(Type type) {
-                return ModelType.of(type);
-            }
-        }));
+        paramTypes = ImmutableList.copyOf(Iterables.transform(
+                Arrays.asList(method.getGenericParameterTypes()), new Function<Type, ModelType<?>>() {
+                    @Override
+                    public ModelType<?> apply(Type type) {
+                        return ModelType.of(type);
+                    }
+                }));
         modifiers = method.getModifiers();
     }
 
@@ -64,7 +64,8 @@ public class WeaklyTypeReferencingMethod<T, R> {
         return of(ModelType.declaringType(method), ModelType.returnType(method), method);
     }
 
-    public static <T, R> WeaklyTypeReferencingMethod<T, R> of(ModelType<T> target, ModelType<R> returnType, Method method) {
+    public static <T, R> WeaklyTypeReferencingMethod<T, R> of(
+            ModelType<T> target, ModelType<R> returnType, Method method) {
         return new WeaklyTypeReferencingMethod<T, R>(target, returnType, method);
     }
 
@@ -85,8 +86,9 @@ public class WeaklyTypeReferencingMethod<T, R> {
     }
 
     public Annotation[] getAnnotations() {
-        //we could retrieve annotations at construction time and hold references to them but unfortunately
-        //in IBM JDK strong references are held from annotation instance to class in which it is used so we have to reflect
+        // we could retrieve annotations at construction time and hold references to them but unfortunately
+        // in IBM JDK strong references are held from annotation instance to class in which it is used so we have to
+        // reflect
         return getMethod().getAnnotations();
     }
 
@@ -103,17 +105,23 @@ public class WeaklyTypeReferencingMethod<T, R> {
         } catch (InvocationTargetException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), target), e);
+            throw new GradleException(
+                    String.format(
+                            "Could not call %s.%s() on %s",
+                            method.getDeclaringClass().getSimpleName(), method.getName(), target),
+                    e);
         }
     }
 
     public Method getMethod() {
-        Class<?>[] paramTypesArray = Iterables.toArray(Iterables.transform(paramTypes, new Function<ModelType<?>, Class<?>>() {
-            @Override
-            public Class<?> apply(ModelType<?> modelType) {
-                return modelType.getRawClass();
-            }
-        }), Class.class);
+        Class<?>[] paramTypesArray = Iterables.toArray(
+                Iterables.transform(paramTypes, new Function<ModelType<?>, Class<?>>() {
+                    @Override
+                    public Class<?> apply(ModelType<?> modelType) {
+                        return modelType.getRawClass();
+                    }
+                }),
+                Class.class);
         try {
             return declaringType.getRawClass().getDeclaredMethod(name, paramTypesArray);
         } catch (NoSuchMethodException e) {
@@ -158,15 +166,15 @@ public class WeaklyTypeReferencingMethod<T, R> {
 
     @Override
     public String toString() {
-        return String.format("%s.%s(%s)",
-            declaringType.getDisplayName(),
-            name,
-            Joiner.on(", ").join(Iterables.transform(paramTypes, new Function<ModelType<?>, String>() {
-                @Override
-                public String apply(ModelType<?> paramType) {
-                    return paramType.getDisplayName();
-                }
-            }))
-        );
+        return String.format(
+                "%s.%s(%s)",
+                declaringType.getDisplayName(),
+                name,
+                Joiner.on(", ").join(Iterables.transform(paramTypes, new Function<ModelType<?>, String>() {
+                    @Override
+                    public String apply(ModelType<?> paramType) {
+                        return paramType.getDisplayName();
+                    }
+                })));
     }
 }

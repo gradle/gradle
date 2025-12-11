@@ -16,13 +16,12 @@
 
 package org.gradle.internal.resource.local;
 
-import org.gradle.internal.resource.ReadableContent;
-import org.gradle.internal.resource.ResourceExceptions;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import org.gradle.internal.resource.ReadableContent;
+import org.gradle.internal.resource.ResourceExceptions;
 
 public class FileReadableContent implements ReadableContent {
     private final File file;

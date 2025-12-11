@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.server.exec;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
@@ -27,9 +29,6 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Asynchronously cleans up the VFS after a build.
@@ -46,7 +45,8 @@ public class CleanUpVirtualFileSystemAfterBuild extends BuildCommandOnly impleme
 
     private CompletableFuture<Void> pendingCleanup = CompletableFuture.completedFuture(null);
 
-    public CleanUpVirtualFileSystemAfterBuild(ExecutorFactory executorFactory, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
+    public CleanUpVirtualFileSystemAfterBuild(
+            ExecutorFactory executorFactory, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
         this.executor = executorFactory.create("VFS cleanup");
         this.userHomeServiceRegistry = userHomeServiceRegistry;
     }
@@ -62,14 +62,17 @@ public class CleanUpVirtualFileSystemAfterBuild extends BuildCommandOnly impleme
     }
 
     private CompletableFuture<Void> startAsyncCleanupAfterBuild() {
-        return userHomeServiceRegistry.getCurrentServices()
-            .map(serviceRegistry ->
-                CompletableFuture.runAsync(() -> {
-                    LOGGER.debug("Cleaning virtual file system after build finished");
-                    BuildLifecycleAwareVirtualFileSystem virtualFileSystem = serviceRegistry.get(BuildLifecycleAwareVirtualFileSystem.class);
-                    virtualFileSystem.afterBuildFinished();
-                }, executor))
-            .orElseGet(() -> CompletableFuture.completedFuture(null));
+        return userHomeServiceRegistry
+                .getCurrentServices()
+                .map(serviceRegistry -> CompletableFuture.runAsync(
+                        () -> {
+                            LOGGER.debug("Cleaning virtual file system after build finished");
+                            BuildLifecycleAwareVirtualFileSystem virtualFileSystem =
+                                    serviceRegistry.get(BuildLifecycleAwareVirtualFileSystem.class);
+                            virtualFileSystem.afterBuildFinished();
+                        },
+                        executor))
+                .orElseGet(() -> CompletableFuture.completedFuture(null));
     }
 
     private void waitForPendingCleanupToFinish(CompletableFuture<Void> pendingCleanup) {

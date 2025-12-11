@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts.repositories.descriptor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import java.net.URI;
+import java.util.List;
+import java.util.function.Consumer;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.cache.StringInterner;
@@ -25,13 +28,10 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.net.URI;
-import java.util.List;
-import java.util.function.Consumer;
-
 public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
 
-    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
+    @UsedByScanPlugin(
+            "doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
     public enum Property {
         URL,
         METADATA_SOURCES,
@@ -45,13 +45,12 @@ public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
     public final ImmutableList<String> authenticationSchemes;
 
     protected UrlRepositoryDescriptor(
-        String id,
-        String name,
-        URI url,
-        ImmutableList<String> metadataSources,
-        boolean authenticated,
-        ImmutableList<String> authenticationSchemes
-    ) {
+            String id,
+            String name,
+            URI url,
+            ImmutableList<String> metadataSources,
+            boolean authenticated,
+            ImmutableList<String> authenticationSchemes) {
         super(id, name);
         this.url = url;
         this.metadataSources = metadataSources;
@@ -73,7 +72,7 @@ public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
         builder.put(Property.AUTHENTICATION_SCHEMES.name(), authenticationSchemes);
     }
 
-    static abstract class Builder<T extends Builder<T>> {
+    abstract static class Builder<T extends Builder<T>> {
         private static final StringInterner REPOSITORY_ID_INTERNER = new StringInterner();
 
         final String name;
@@ -109,12 +108,11 @@ public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
         }
 
         protected String calculateId(
-            Class<? extends ExternalResourceResolver> implementation,
-            List<ResourcePattern> metadataResources,
-            List<ResourcePattern> artifactResources,
-            List<String> metadataSources,
-            Consumer<Hasher> additionalInputs
-        ) {
+                Class<? extends ExternalResourceResolver> implementation,
+                List<ResourcePattern> metadataResources,
+                List<ResourcePattern> artifactResources,
+                List<String> metadataSources,
+                Consumer<Hasher> additionalInputs) {
             Hasher cacheHasher = Hashing.newHasher();
             cacheHasher.putString(implementation.getName());
             cacheHasher.putInt(metadataResources.size());

@@ -16,10 +16,8 @@
 
 package org.gradle.internal.service;
 
-
-import org.jspecify.annotations.Nullable;
-
 import java.util.concurrent.atomic.AtomicInteger;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Factory for {@link ServiceAccessToken} and {@link ServiceAccessScope}.

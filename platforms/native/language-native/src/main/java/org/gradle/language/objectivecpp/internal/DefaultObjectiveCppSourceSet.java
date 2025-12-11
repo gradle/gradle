@@ -19,7 +19,8 @@ package org.gradle.language.objectivecpp.internal;
 import org.gradle.language.nativeplatform.internal.AbstractHeaderExportingDependentSourceSet;
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet;
 
-public class DefaultObjectiveCppSourceSet extends AbstractHeaderExportingDependentSourceSet implements ObjectiveCppSourceSet {
+public class DefaultObjectiveCppSourceSet extends AbstractHeaderExportingDependentSourceSet
+        implements ObjectiveCppSourceSet {
     @Override
     protected String getLanguageName() {
         return "Objective-C++";

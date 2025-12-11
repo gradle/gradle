@@ -22,7 +22,9 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 public interface DescriptorParseContext {
-    LocallyAvailableExternalResource getMetaDataArtifact(ModuleComponentIdentifier componentIdentifier, ArtifactType artifactType);
+    LocallyAvailableExternalResource getMetaDataArtifact(
+            ModuleComponentIdentifier componentIdentifier, ArtifactType artifactType);
 
-    LocallyAvailableExternalResource getMetaDataArtifact(ModuleComponentSelector selector, VersionSelector acceptor, ArtifactType artifactType);
+    LocallyAvailableExternalResource getMetaDataArtifact(
+            ModuleComponentSelector selector, VersionSelector acceptor, ArtifactType artifactType);
 }

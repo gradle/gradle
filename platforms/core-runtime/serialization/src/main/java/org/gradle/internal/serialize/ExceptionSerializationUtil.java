@@ -16,10 +16,6 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.internal.Cast;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.exceptions.MultiCauseException;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -29,13 +25,17 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.gradle.internal.Cast;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.exceptions.MultiCauseException;
 
 /**
  * Static util class containing helper methods for exception serialization.
  */
 public final class ExceptionSerializationUtil {
     // It would be nice to use Guava's immutable collections here, if we could get them on the proper classpath
-    public static final Set<String> CANDIDATE_GET_CAUSES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("getCauses", "getFailures")));
+    public static final Set<String> CANDIDATE_GET_CAUSES =
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList("getCauses", "getFailures")));
 
     private ExceptionSerializationUtil() {
         // Can't instantiate static util class

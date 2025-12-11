@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
-
 import java.io.Serializable;
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
 
 /**
  * Information about an annotation processor, based on its static metadata

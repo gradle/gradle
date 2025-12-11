@@ -16,11 +16,10 @@
 
 package org.gradle.caching.local.internal;
 
-import org.apache.commons.io.FileUtils;
-import org.gradle.internal.hash.HashCode;
-
 import java.io.File;
 import java.util.function.Consumer;
+import org.apache.commons.io.FileUtils;
+import org.gradle.internal.hash.HashCode;
 
 public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
 

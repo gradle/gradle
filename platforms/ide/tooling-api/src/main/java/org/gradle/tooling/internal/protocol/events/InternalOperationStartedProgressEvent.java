@@ -21,5 +21,4 @@ package org.gradle.tooling.internal.protocol.events;
  *
  * @since 2.5
  */
-public interface InternalOperationStartedProgressEvent extends InternalProgressEvent {
-}
+public interface InternalOperationStartedProgressEvent extends InternalProgressEvent {}

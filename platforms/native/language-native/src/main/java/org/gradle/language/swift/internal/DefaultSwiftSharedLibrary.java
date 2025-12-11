@@ -17,6 +17,8 @@
 package org.gradle.language.swift.internal;
 
 import com.google.common.collect.Sets;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -45,10 +47,12 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.Set;
-
-public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements SwiftSharedLibrary, ConfigurableComponentWithSharedLibrary, ConfigurableComponentWithLinkUsage, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
+public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary
+        implements SwiftSharedLibrary,
+                ConfigurableComponentWithSharedLibrary,
+                ConfigurableComponentWithLinkUsage,
+                ConfigurableComponentWithRuntimeUsage,
+                SoftwareComponentInternal {
     private final RegularFileProperty linkFile;
     private final Property<Task> linkFileProducer;
     private final RegularFileProperty runtimeFile;
@@ -58,8 +62,34 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultSwiftSharedLibrary(Names names, ObjectFactory objectFactory, NativeDependencyCache nativeDependencyCache, TaskDependencyFactory taskDependencyFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objectFactory, nativeDependencyCache, taskDependencyFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultSwiftSharedLibrary(
+            Names names,
+            ObjectFactory objectFactory,
+            NativeDependencyCache nativeDependencyCache,
+            TaskDependencyFactory taskDependencyFactory,
+            Provider<String> module,
+            boolean testable,
+            FileCollection source,
+            ConfigurationContainer configurations,
+            Configuration implementation,
+            SwiftPlatform targetPlatform,
+            NativeToolChainInternal toolChain,
+            PlatformToolProvider platformToolProvider,
+            NativeVariantIdentity identity) {
+        super(
+                names,
+                objectFactory,
+                nativeDependencyCache,
+                taskDependencyFactory,
+                module,
+                testable,
+                source,
+                configurations,
+                implementation,
+                targetPlatform,
+                toolChain,
+                platformToolProvider,
+                identity);
         this.linkFile = objectFactory.fileProperty();
         this.linkFileProducer = objectFactory.property(Task.class);
         this.runtimeFile = objectFactory.fileProperty();
@@ -130,8 +160,9 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
         Configuration linkElements = getLinkElements().get();
         Configuration runtimeElements = getRuntimeElements().get();
         return Sets.newHashSet(
-            new ConfigurationSoftwareComponentVariant(getIdentity().getLinkVariant(), linkElements.getAllArtifacts(), linkElements),
-            new ConfigurationSoftwareComponentVariant(getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements)
-        );
+                new ConfigurationSoftwareComponentVariant(
+                        getIdentity().getLinkVariant(), linkElements.getAllArtifacts(), linkElements),
+                new ConfigurationSoftwareComponentVariant(
+                        getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements));
     }
 }

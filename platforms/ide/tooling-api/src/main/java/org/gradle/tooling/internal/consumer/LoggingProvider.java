@@ -21,5 +21,6 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
 public interface LoggingProvider {
     ListenerManager getListenerManager();
+
     ProgressLoggerFactory getProgressLoggerFactory();
 }

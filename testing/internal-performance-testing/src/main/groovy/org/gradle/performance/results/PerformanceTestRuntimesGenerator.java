@@ -16,9 +16,9 @@
 
 package org.gradle.performance.results;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jspecify.annotations.Nullable;
+import static java.util.stream.Collectors.toMap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -30,8 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toMap;
+import org.jspecify.annotations.Nullable;
 
 public class PerformanceTestRuntimesGenerator {
 
@@ -41,53 +40,68 @@ public class PerformanceTestRuntimesGenerator {
 
     public void generate(File runtimesFile) throws IOException {
         try (AllResultsStore resultsStore = new AllResultsStore()) {
-            Map<OperatingSystem, PerformanceFlakinessDataProvider> flakinessDataProviders = Arrays.stream(OperatingSystem.values())
-                .collect(toMap(
-                    os -> os,
-                    os -> new DefaultPerformanceFlakinessDataProvider(new CrossVersionResultsStore(), os)));
-            Map<PerformanceExperimentOnOs, Long> estimatedExperimentDurations = resultsStore.getEstimatedExperimentDurationsInMillis();
+            Map<OperatingSystem, PerformanceFlakinessDataProvider> flakinessDataProviders = Arrays.stream(
+                            OperatingSystem.values())
+                    .collect(toMap(
+                            os -> os,
+                            os -> new DefaultPerformanceFlakinessDataProvider(new CrossVersionResultsStore(), os)));
+            Map<PerformanceExperimentOnOs, Long> estimatedExperimentDurations =
+                    resultsStore.getEstimatedExperimentDurationsInMillis();
             Map<PerformanceScenario, List<Map.Entry<PerformanceExperimentOnOs, Long>>> performanceScenarioMap =
-                estimatedExperimentDurations.entrySet().stream()
-                    .collect(Collectors.groupingBy(
-                        it -> it.getKey().getPerformanceExperiment().getScenario(),
-                        LinkedHashMap::new,
-                        Collectors.toList())
-                    );
+                    estimatedExperimentDurations.entrySet().stream()
+                            .collect(Collectors.groupingBy(
+                                    it -> it.getKey().getPerformanceExperiment().getScenario(),
+                                    LinkedHashMap::new,
+                                    Collectors.toList()));
             List<PerformanceScenarioDurations> json = performanceScenarioMap.entrySet().stream()
-                .map(entry -> {
-                    PerformanceScenario scenario = entry.getKey();
-                    Map<String, Map<OperatingSystem, Long>> perTestProject = entry.getValue().stream()
-                        .collect(Collectors.groupingBy(
-                            it -> it.getKey().getPerformanceExperiment().getTestProject(),
-                            LinkedHashMap::new,
-                            toMap(it -> it.getKey().getOperatingSystem(), Map.Entry::getValue)
-                        ));
-                    return new PerformanceScenarioDurations(
-                        scenario.getClassName() + "." + scenario.getTestName(),
-                        perTestProject.entrySet().stream()
-                            .map(experimentEntry -> {
-                                    PerformanceExperiment experiment = new PerformanceExperiment(experimentEntry.getKey(), scenario);
-                                    Map<OperatingSystem, Long> perOs = experimentEntry.getValue();
-                                    return new TestProjectDuration(
-                                        experimentEntry.getKey(),
-                                        estimatedTimeForOs(experiment, OperatingSystem.LINUX, perOs, flakinessDataProviders),
-                                        estimatedTimeForOs(experiment, OperatingSystem.WINDOWS, perOs, flakinessDataProviders),
-                                        estimatedTimeForOs(experiment, OperatingSystem.MAC_OS, perOs, flakinessDataProviders)
-                                    );
-                                }
-                            )
-                            .collect(Collectors.toList())
-                    );
-                })
-                .collect(Collectors.toList());
+                    .map(entry -> {
+                        PerformanceScenario scenario = entry.getKey();
+                        Map<String, Map<OperatingSystem, Long>> perTestProject = entry.getValue().stream()
+                                .collect(Collectors.groupingBy(
+                                        it -> it.getKey()
+                                                .getPerformanceExperiment()
+                                                .getTestProject(),
+                                        LinkedHashMap::new,
+                                        toMap(it -> it.getKey().getOperatingSystem(), Map.Entry::getValue)));
+                        return new PerformanceScenarioDurations(
+                                scenario.getClassName() + "." + scenario.getTestName(),
+                                perTestProject.entrySet().stream()
+                                        .map(experimentEntry -> {
+                                            PerformanceExperiment experiment =
+                                                    new PerformanceExperiment(experimentEntry.getKey(), scenario);
+                                            Map<OperatingSystem, Long> perOs = experimentEntry.getValue();
+                                            return new TestProjectDuration(
+                                                    experimentEntry.getKey(),
+                                                    estimatedTimeForOs(
+                                                            experiment,
+                                                            OperatingSystem.LINUX,
+                                                            perOs,
+                                                            flakinessDataProviders),
+                                                    estimatedTimeForOs(
+                                                            experiment,
+                                                            OperatingSystem.WINDOWS,
+                                                            perOs,
+                                                            flakinessDataProviders),
+                                                    estimatedTimeForOs(
+                                                            experiment,
+                                                            OperatingSystem.MAC_OS,
+                                                            perOs,
+                                                            flakinessDataProviders));
+                                        })
+                                        .collect(Collectors.toList()));
+                    })
+                    .collect(Collectors.toList());
 
-            new ObjectMapper().writerWithDefaultPrettyPrinter()
-                .writeValue(runtimesFile, json);
+            new ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(runtimesFile, json);
             Files.write(runtimesFile.toPath(), "\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         }
     }
 
-    private static Long estimatedTimeForOs(PerformanceExperiment experiment, OperatingSystem os, Map<OperatingSystem, Long> perOs, Map<OperatingSystem, PerformanceFlakinessDataProvider> flakinessDataProviders) {
+    private static Long estimatedTimeForOs(
+            PerformanceExperiment experiment,
+            OperatingSystem os,
+            Map<OperatingSystem, Long> perOs,
+            Map<OperatingSystem, PerformanceFlakinessDataProvider> flakinessDataProviders) {
         Long baseDuration = perOs.get(os);
         PerformanceFlakinessDataProvider performanceFlakinessDataProvider = flakinessDataProviders.get(os);
         BigDecimal flakinessRate = performanceFlakinessDataProvider.getFlakinessRate(experiment);
@@ -98,7 +112,7 @@ public class PerformanceTestRuntimesGenerator {
         if (flakinessRate == null || baseDuration == null) {
             return baseDuration;
         }
-        return baseDuration + flakinessRate.multiply(BigDecimal.valueOf(baseDuration)).longValue();
+        return baseDuration
+                + flakinessRate.multiply(BigDecimal.valueOf(baseDuration)).longValue();
     }
-
 }

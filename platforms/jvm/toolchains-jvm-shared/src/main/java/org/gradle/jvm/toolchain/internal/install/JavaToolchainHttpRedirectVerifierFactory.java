@@ -16,14 +16,13 @@
 
 package org.gradle.jvm.toolchain.internal.install;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 
 @ServiceScope(Scope.Global.class)
 public class JavaToolchainHttpRedirectVerifierFactory {
@@ -31,14 +30,18 @@ public class JavaToolchainHttpRedirectVerifierFactory {
     public HttpRedirectVerifier createVerifier(URI toolchainUri) {
         final HttpRedirectVerifier redirectVerifier;
         try {
-            redirectVerifier = HttpRedirectVerifierFactory.create(new URI(toolchainUri.getScheme(), toolchainUri.getAuthority(), null, null, null), false,
-                () -> {
-                    throw new InvalidUserCodeException("Attempting to download java toolchain from an insecure URI " + toolchainUri + ". This is not supported, use a secure URI instead.");
-                },
-                uri -> {
-                    throw new InvalidUserCodeException("Attempting to download java toolchain from an insecure URI " + uri +
-                        ". This URI was reached as a redirect from " + toolchainUri + ". This is not supported, make sure no insecure URIs appear in the redirect");
-                });
+            redirectVerifier = HttpRedirectVerifierFactory.create(
+                    new URI(toolchainUri.getScheme(), toolchainUri.getAuthority(), null, null, null),
+                    false,
+                    () -> {
+                        throw new InvalidUserCodeException("Attempting to download java toolchain from an insecure URI "
+                                + toolchainUri + ". This is not supported, use a secure URI instead.");
+                    },
+                    uri -> {
+                        throw new InvalidUserCodeException("Attempting to download java toolchain from an insecure URI "
+                                + uri + ". This URI was reached as a redirect from " + toolchainUri
+                                + ". This is not supported, make sure no insecure URIs appear in the redirect");
+                    });
         } catch (URISyntaxException e) {
             throw new InvalidUserCodeException("Cannot extract host information from specified URI " + toolchainUri);
         }

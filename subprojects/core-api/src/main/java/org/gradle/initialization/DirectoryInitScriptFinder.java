@@ -15,13 +15,12 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.internal.scripts.DefaultScriptFileResolver;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.internal.scripts.DefaultScriptFileResolver;
+import org.jspecify.annotations.Nullable;
 
 public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
 

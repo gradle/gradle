@@ -16,12 +16,11 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import java.lang.reflect.Method;
 import org.gradle.api.Action;
 import org.gradle.model.internal.inspect.ValidationProblemCollector;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
-
-import java.lang.reflect.Method;
 
 public interface ModelSchemaExtractionContext<T> extends ValidationProblemCollector {
     /**
@@ -37,7 +36,8 @@ public interface ModelSchemaExtractionContext<T> extends ValidationProblemCollec
     /**
      * Registers a type that should be inspected. The given action is invoked after the type has been inspected.
      */
-    <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description, Action<? super ModelSchema<C>> validator);
+    <C> ModelSchemaExtractionContext<C> child(
+            ModelType<C> type, String description, Action<? super ModelSchema<C>> validator);
 
     /**
      * Marks the type as recognized.

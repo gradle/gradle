@@ -16,13 +16,12 @@
 
 package org.gradle.api.tasks.testing.junitplatform;
 
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.testing.TestFrameworkOptions;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.testing.TestFrameworkOptions;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * The JUnit platform specific test options.

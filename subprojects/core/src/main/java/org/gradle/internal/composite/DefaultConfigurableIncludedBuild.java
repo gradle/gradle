@@ -17,6 +17,7 @@
 package org.gradle.internal.composite;
 
 import com.google.common.base.Preconditions;
+import java.io.File;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
@@ -24,8 +25,6 @@ import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.ImmutableActionSet;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class DefaultConfigurableIncludedBuild implements ConfigurableIncludedBuild {
 

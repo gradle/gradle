@@ -16,6 +16,4 @@
 
 package org.gradlebuild;
 
-public class ConcreteClass {
-
-}
+public class ConcreteClass {}

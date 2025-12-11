@@ -33,7 +33,7 @@ import org.jspecify.annotations.Nullable;
 public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? extends T>> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
-    private final static ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
+    private static final ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
 
     public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
         super(propertyHost);
@@ -98,7 +98,8 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     public ProviderInternal<? extends T> getProvider() {
-        // TODO(mlopatkin) while calling getProvider is not going to cause StackOverflowError by itself, the returned provider is typically used in some recursive call.
+        // TODO(mlopatkin) while calling getProvider is not going to cause StackOverflowError by itself, the returned
+        // provider is typically used in some recursive call.
         //  Without the safety net of the EvaluationContext, it can cause hard-to-debug exceptions.
         try (EvaluationScopeContext context = openScope()) {
             return getSupplier(context);
@@ -147,18 +148,21 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     @Override
-    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(EvaluationScopeContext context, ProviderInternal<? extends T> value) {
+    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(
+            EvaluationScopeContext context, ProviderInternal<? extends T> value) {
         // Discard this property from a provider chain, as it does not contribute anything to the calculation.
         return value.calculateExecutionTimeValue();
     }
 
     @Override
-    protected Value<? extends T> calculateValueFrom(EvaluationScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
+    protected Value<? extends T> calculateValueFrom(
+            EvaluationScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
         return value.calculateValue(consumer);
     }
 
     @Override
-    protected ProviderInternal<? extends T> finalValue(EvaluationScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
+    protected ProviderInternal<? extends T> finalValue(
+            EvaluationScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
         return value.withFinalValue(consumer);
     }
 
@@ -174,7 +178,8 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
 
     @Override
     protected String describeContents() {
-        // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
+        // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and
+        // make debugging really frustrating.
         return String.format("property(%s, %s)", type.getName(), describeValue());
     }
 

@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures;
 
 import groovy.lang.Closure;
-
 import java.lang.annotation.*;
 
 /**

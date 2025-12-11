@@ -16,13 +16,12 @@
 
 package org.gradle.internal.deployment;
 
+import javax.inject.Inject;
 import org.gradle.deployment.internal.Deployment;
 import org.gradle.deployment.internal.DeploymentHandle;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleState;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-
-import javax.inject.Inject;
 
 public class JavaApplicationHandle implements DeploymentHandle {
     private final JavaExecHandleBuilder builder;

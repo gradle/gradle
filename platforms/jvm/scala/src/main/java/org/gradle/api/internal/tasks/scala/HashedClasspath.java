@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks.scala;
 
+import java.io.Serializable;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
-
-import java.io.Serializable;
 
 /**
  * Immutable classpath with it's precomputed hash.

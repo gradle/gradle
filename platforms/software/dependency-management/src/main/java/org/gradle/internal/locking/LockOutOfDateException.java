@@ -16,11 +16,10 @@
 
 package org.gradle.internal.locking;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphValidationException;
+import static java.util.Collections.emptyList;
 
 import java.util.List;
-
-import static java.util.Collections.emptyList;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphValidationException;
 
 public class LockOutOfDateException extends GraphValidationException {
 

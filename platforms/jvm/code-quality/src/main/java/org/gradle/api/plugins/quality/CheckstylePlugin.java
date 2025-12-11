@@ -15,7 +15,13 @@
  */
 package org.gradle.api.plugins.quality;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
+
 import com.google.common.util.concurrent.Callables;
+import java.io.File;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
@@ -30,13 +36,6 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * Checkstyle Plugin.
@@ -69,9 +68,14 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
         Directory directory = getRootProjectDirectory().dir(CONFIG_DIR_NAME);
         extension.getConfigDirectory().convention(directory);
-        extension.setConfig(project.getResources().getText().fromFile(extension.getConfigDirectory().file("checkstyle.xml")
-            // If for whatever reason the provider above cannot be resolved, go back to default location, which we know how to ignore if missing
-            .orElse(directory.file("checkstyle.xml"))));
+        extension.setConfig(project.getResources()
+                .getText()
+                .fromFile(extension
+                        .getConfigDirectory()
+                        .file("checkstyle.xml")
+                        // If for whatever reason the provider above cannot be resolved, go back to default location,
+                        // which we know how to ignore if missing
+                        .orElse(directory.file("checkstyle.xml"))));
         return extension;
     }
 
@@ -89,9 +93,8 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
-        configuration.defaultDependencies(dependencies ->
-            dependencies.add(project.getDependencies().create("com.puppycrawl.tools:checkstyle:" + extension.getToolVersion()))
-        );
+        configuration.defaultDependencies(dependencies -> dependencies.add(
+                project.getDependencies().create("com.puppycrawl.tools:checkstyle:" + extension.getToolVersion())));
     }
 
     private void configureTaskConventionMapping(Configuration configuration, Checkstyle task) {
@@ -113,21 +116,21 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
         task.getReports().all(action(report -> {
             report.getRequired().convention(!report.getName().equals("sarif"));
-            report.getOutputLocation().convention(
-                layout.getProjectDirectory().file(providers.provider(() -> {
-                    String reportFileName = baseName + "." + report.getName();
-                    return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
-                }))
-            );
+            report.getOutputLocation().convention(layout.getProjectDirectory().file(providers.provider(() -> {
+                String reportFileName = baseName + "." + report.getName();
+                return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
+            })));
         }));
     }
 
     private void configureToolchains(Checkstyle task) {
-        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(project.getObjects().newInstance(CurrentJvmToolchainSpec.class));
+        Provider<JavaLauncher> javaLauncherProvider =
+                getToolchainService().launcherFor(project.getObjects().newInstance(CurrentJvmToolchainSpec.class));
         task.getJavaLauncher().convention(javaLauncherProvider);
         project.getPluginManager().withPlugin("java-base", p -> {
             JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
-            task.getJavaLauncher().convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
+            task.getJavaLauncher()
+                    .convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
         });
     }
 

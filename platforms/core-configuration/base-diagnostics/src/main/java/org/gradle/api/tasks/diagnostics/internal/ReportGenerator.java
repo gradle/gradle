@@ -16,16 +16,14 @@
 
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.gradle.api.Project;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 import java.util.function.Function;
-
+import org.gradle.api.Project;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.jspecify.annotations.Nullable;
 
 public final class ReportGenerator {
 
@@ -34,10 +32,7 @@ public final class ReportGenerator {
     private final StyledTextOutputFactory textOutputFactory;
 
     public ReportGenerator(
-        ReportRenderer renderer,
-        @Nullable File outputFile,
-        StyledTextOutputFactory textOutputFactory
-    ) {
+            ReportRenderer renderer, @Nullable File outputFile, StyledTextOutputFactory textOutputFactory) {
         this.renderer = renderer;
         this.outputFile = outputFile;
         this.textOutputFactory = textOutputFactory;
@@ -65,20 +60,23 @@ public final class ReportGenerator {
     }
 
     public <T> void generateReport(
-        Iterable<T> projects,
-        Function<T, ProjectDetails> projectDetailsProvider,
-        ReportAction<T> projectReportGenerator
-    ) {
-        generateReport(projects, projectDetailsProvider, ReportMarginaliaAction.DO_NOTHING, projectReportGenerator, ReportMarginaliaAction.DO_NOTHING);
+            Iterable<T> projects,
+            Function<T, ProjectDetails> projectDetailsProvider,
+            ReportAction<T> projectReportGenerator) {
+        generateReport(
+                projects,
+                projectDetailsProvider,
+                ReportMarginaliaAction.DO_NOTHING,
+                projectReportGenerator,
+                ReportMarginaliaAction.DO_NOTHING);
     }
 
     public <T> void generateReport(
-        Iterable<T> projects,
-        Function<T, ProjectDetails> projectDetailsProvider,
-        ReportMarginaliaAction projectReportHeaderGenerator,
-        ReportAction<T> projectReportGenerator,
-        ReportMarginaliaAction projectReportFooterGenerator
-    ) {
+            Iterable<T> projects,
+            Function<T, ProjectDetails> projectDetailsProvider,
+            ReportMarginaliaAction projectReportHeaderGenerator,
+            ReportAction<T> projectReportGenerator,
+            ReportMarginaliaAction projectReportFooterGenerator) {
         try {
             ReportRenderer renderer = getRenderer();
             File outputFile = getOutputFile();

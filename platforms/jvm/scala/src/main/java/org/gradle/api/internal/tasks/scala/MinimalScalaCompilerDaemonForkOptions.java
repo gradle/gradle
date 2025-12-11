@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.scala;
 
+import java.io.Serializable;
 import org.gradle.api.internal.tasks.compile.MinimalCompilerDaemonForkOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
-
-import java.io.Serializable;
 
 public class MinimalScalaCompilerDaemonForkOptions extends MinimalCompilerDaemonForkOptions implements Serializable {
     public MinimalScalaCompilerDaemonForkOptions(ScalaForkOptions forkOptions) {

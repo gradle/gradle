@@ -21,5 +21,4 @@ package org.gradle.api.internal.plugins;
  *
  * @implNote This is to be treated as a "sealed" interface. All usage points need updating if a new implementation is added.
  */
-public interface AppEntryPoint {
-}
+public interface AppEntryPoint {}

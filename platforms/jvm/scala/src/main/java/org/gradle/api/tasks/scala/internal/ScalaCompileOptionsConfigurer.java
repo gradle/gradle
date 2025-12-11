@@ -16,15 +16,14 @@
 
 package org.gradle.api.tasks.scala.internal;
 
-import org.gradle.api.tasks.scala.ScalaCompileOptions;
-import org.gradle.jvm.toolchain.JavaInstallationMetadata;
-import org.gradle.jvm.toolchain.internal.JavaToolchain;
-import org.gradle.util.internal.VersionNumber;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.tasks.scala.ScalaCompileOptions;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
+import org.gradle.jvm.toolchain.internal.JavaToolchain;
+import org.gradle.util.internal.VersionNumber;
 
 /**
  * Configures scala compile options to include the proper jvm target.
@@ -42,20 +41,20 @@ public class ScalaCompileOptionsConfigurer {
      * but we need to detect as many variants as possible to avoid overriding the target or release.
      */
     private static final List<String> TARGET_DEFINING_PARAMETERS = Arrays.asList(
-        // Scala 2
-        "-target", "--target",
-        // Scala 2 and 3
-        "-release", "--release",
-        // Scala 3
-        "-java-output-version", "--java-output-version",
-        "-Xunchecked-java-output-version", "--Xunchecked-java-output-version",
-        "-Xtarget", "--Xtarget"
-    );
+            // Scala 2
+            "-target", "--target",
+            // Scala 2 and 3
+            "-release", "--release",
+            // Scala 3
+            "-java-output-version", "--java-output-version",
+            "-Xunchecked-java-output-version", "--Xunchecked-java-output-version",
+            "-Xtarget", "--Xtarget");
 
     private static final VersionNumber PLAIN_TARGET_FORMAT_SINCE_VERSION = VersionNumber.parse("2.13.1");
     private static final VersionNumber RELEASE_REPLACES_TARGET_SINCE_VERSION = VersionNumber.parse("2.13.9");
 
-    public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
+    public static void configure(
+            ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
         if (toolchain == null) {
             return;
         }
@@ -83,8 +82,8 @@ public class ScalaCompileOptionsConfigurer {
     }
 
     private static boolean hasTargetDefiningParameter(List<String> additionalParameters) {
-        return additionalParameters.stream()
-            .anyMatch(s -> TARGET_DEFINING_PARAMETERS.stream().anyMatch(param -> param.equals(s) || s.startsWith(param + ":")));
+        return additionalParameters.stream().anyMatch(s -> TARGET_DEFINING_PARAMETERS.stream()
+                .anyMatch(param -> param.equals(s) || s.startsWith(param + ":")));
     }
 
     /**
@@ -98,7 +97,9 @@ public class ScalaCompileOptionsConfigurer {
      */
     private static String determineTargetParameter(VersionNumber scalaVersion, JavaToolchain javaToolchain) {
         boolean explicitToolchain = !javaToolchain.isFallbackToolchain();
-        int effectiveTarget = !explicitToolchain ? FALLBACK_JVM_TARGET : javaToolchain.getLanguageVersion().asInt();
+        int effectiveTarget = !explicitToolchain
+                ? FALLBACK_JVM_TARGET
+                : javaToolchain.getLanguageVersion().asInt();
         if (scalaVersion.compareTo(VersionNumber.parse("3.0.0")) >= 0) {
             if (explicitToolchain) {
                 return String.format("-release:%s", effectiveTarget);

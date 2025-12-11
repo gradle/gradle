@@ -23,16 +23,18 @@ public class InterceptorTestReceiver {
     private String testString = "testString";
     public String intercepted = null;
     private boolean testFlag = false;
-    private final MapProperty<String, String> richProperty = TestUtil.propertyFactory().mapProperty(String.class, String.class);
+    private final MapProperty<String, String> richProperty =
+            TestUtil.propertyFactory().mapProperty(String.class, String.class);
 
     public void test() {}
+
     public void test(InterceptorTestReceiver arg) {}
+
     public void testVararg(Object... arg) {}
 
     public void callNonIntercepted() {
         intercepted = "callNotIntercepted()-not-intercepted";
     }
-
 
     public String getTestString() {
         return testString;

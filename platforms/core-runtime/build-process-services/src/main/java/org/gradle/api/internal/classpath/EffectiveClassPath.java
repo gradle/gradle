@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.classpath;
 
-import org.gradle.internal.classloader.ClasspathUtil;
-import org.gradle.internal.classpath.DefaultClassPath;
-
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.internal.classloader.ClasspathUtil;
+import org.gradle.internal.classpath.DefaultClassPath;
 
 public class EffectiveClassPath extends DefaultClassPath {
     public EffectiveClassPath(ClassLoader classLoader) {
@@ -36,8 +35,10 @@ public class EffectiveClassPath extends DefaultClassPath {
             addClasspathFile(classpathFile, classpathFiles);
         }
 
-        // The file names passed to -cp are canonicalised by the JVM when it creates the system classloader, and so the file names are
-        // lost if they happen to refer to links, for example, into the Gradle artifact cache. Try to reconstitute the file names
+        // The file names passed to -cp are canonicalised by the JVM when it creates the system classloader, and so the
+        // file names are
+        // lost if they happen to refer to links, for example, into the Gradle artifact cache. Try to reconstitute the
+        // file names
         // from the system classpath
         if (classLoader == ClassLoader.getSystemClassLoader()) {
             for (String value : System.getProperty("java.class.path").split(File.pathSeparator)) {

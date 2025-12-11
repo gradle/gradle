@@ -16,11 +16,10 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import java.security.Principal;
 import org.apache.http.Header;
 import org.apache.http.auth.Credentials;
 import org.apache.http.message.BasicHeader;
-
-import java.security.Principal;
 
 public class HttpClientHttpHeaderCredentials implements Credentials {
 

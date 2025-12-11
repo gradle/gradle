@@ -16,5 +16,4 @@
 
 package org.gradle.internal.service;
 
-public interface GenericRunnable<T> extends Runnable {
-}
+public interface GenericRunnable<T> extends Runnable {}

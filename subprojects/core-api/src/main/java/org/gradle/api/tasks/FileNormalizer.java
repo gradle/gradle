@@ -26,5 +26,4 @@ package org.gradle.api.tasks;
  *
  * @since 4.3
  */
-public interface FileNormalizer {
-}
+public interface FileNormalizer {}

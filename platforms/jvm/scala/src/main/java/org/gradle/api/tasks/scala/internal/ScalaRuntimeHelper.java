@@ -16,11 +16,10 @@
 
 package org.gradle.api.tasks.scala.internal;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jspecify.annotations.Nullable;
 
 public class ScalaRuntimeHelper {
 

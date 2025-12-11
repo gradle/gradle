@@ -17,16 +17,6 @@
 package org.gradle.internal.locking;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.internal.resource.local.FileResourceListener;
-import org.gradle.util.internal.GFileUtils;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -43,18 +33,35 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.internal.resource.local.FileResourceListener;
+import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.Nullable;
 
 public class LockFileReaderWriter {
 
     private static final Logger LOGGER = Logging.getLogger(LockFileReaderWriter.class);
-    private static final String LIMITATIONS_DOC_LINK = new DocumentationRegistry().getDocumentationRecommendationFor("information on limitations", "dependency_locking", "locking_limitations");
-    static final String FORMATTING_DOC_LINK = "Verify the lockfile content. " + new DocumentationRegistry().getDocumentationRecommendationFor("information on lock file format", "dependency_locking", "lock_state_location_and_format");
+    private static final String LIMITATIONS_DOC_LINK = new DocumentationRegistry()
+            .getDocumentationRecommendationFor(
+                    "information on limitations", "dependency_locking", "locking_limitations");
+    static final String FORMATTING_DOC_LINK = "Verify the lockfile content. "
+            + new DocumentationRegistry()
+                    .getDocumentationRecommendationFor(
+                            "information on lock file format", "dependency_locking", "lock_state_location_and_format");
 
     static final String UNIQUE_LOCKFILE_NAME = "gradle.lockfile";
     static final String FILE_SUFFIX = ".lockfile";
     static final String DEPENDENCY_LOCKING_FOLDER = "gradle/dependency-locks";
     static final Charset CHARSET = StandardCharsets.UTF_8;
-    static final List<String> LOCKFILE_HEADER_LIST = ImmutableList.of("# This is a Gradle generated file for dependency locking.", "# Manual edits can break the build and are not advised.", "# This file is expected to be part of source control.");
+    static final List<String> LOCKFILE_HEADER_LIST = ImmutableList.of(
+            "# This is a Gradle generated file for dependency locking.",
+            "# Manual edits can break the build and are not advised.",
+            "# This file is expected to be part of source control.");
     static final String EMPTY_RESOLUTIONS_ENTRY = "empty=";
     static final String BUILD_SCRIPT_PREFIX = "buildscript-";
     static final String SETTINGS_SCRIPT_PREFIX = "settings-";
@@ -64,7 +71,11 @@ public class LockFileReaderWriter {
     private final RegularFileProperty lockFile;
     private final FileResourceListener listener;
 
-    public LockFileReaderWriter(FileResolver fileResolver, DomainObjectContext context, RegularFileProperty lockFile, FileResourceListener listener) {
+    public LockFileReaderWriter(
+            FileResolver fileResolver,
+            DomainObjectContext context,
+            RegularFileProperty lockFile,
+            FileResourceListener listener) {
         this.context = context;
         this.lockFile = lockFile;
         this.listener = listener;
@@ -112,7 +123,8 @@ public class LockFileReaderWriter {
 
     private void checkValidRoot() {
         if (lockFilesRoot == null) {
-            throw new IllegalStateException("Dependency locking cannot be used for " + context.getDisplayName() + ". " + LIMITATIONS_DOC_LINK);
+            throw new IllegalStateException(
+                    "Dependency locking cannot be used for " + context.getDisplayName() + ". " + LIMITATIONS_DOC_LINK);
         }
     }
 
@@ -137,15 +149,16 @@ public class LockFileReaderWriter {
         if (Files.exists(uniqueLockFile)) {
             try (Stream<String> lines = Files.lines(uniqueLockFile, CHARSET)) {
                 lines.filter(empty.or(comment).negate())
-                    .filter(line -> {
-                        if (line.startsWith(EMPTY_RESOLUTIONS_ENTRY)) {
-                            // This is a perf hack for handling the last line in the file in a special way
-                            collectEmptyLockIds(line, emptyLockIds);
-                            return false;
-                        } else {
-                            return true;
-                        }
-                    }).forEach(line -> parseLine(line, uniqueLockState));
+                        .filter(line -> {
+                            if (line.startsWith(EMPTY_RESOLUTIONS_ENTRY)) {
+                                // This is a perf hack for handling the last line in the file in a special way
+                                collectEmptyLockIds(line, emptyLockIds);
+                                return false;
+                            } else {
+                                return true;
+                            }
+                        })
+                        .forEach(line -> parseLine(line, uniqueLockState));
             } catch (IOException e) {
                 throw new RuntimeException("Unable to load unique lockfile", e);
             }
@@ -172,7 +185,9 @@ public class LockFileReaderWriter {
     private void parseLine(String line, Map<String, List<String>> result) {
         String[] split = line.split("=");
         if (split.length != 2) {
-            throw new InvalidLockFileException("lock file specified in '" + getUniqueLockfilePath().toString() + "'. Line: '" + line + "'", FORMATTING_DOC_LINK);
+            throw new InvalidLockFileException(
+                    "lock file specified in '" + getUniqueLockfilePath().toString() + "'. Line: '" + line + "'",
+                    FORMATTING_DOC_LINK);
         }
         String[] lockIds = split[1].split(",");
         for (String lockId : lockIds) {
@@ -219,18 +234,20 @@ public class LockFileReaderWriter {
      */
     private void cleanupLegacyLockFiles(Set<String> lockIdsToDelete) {
         lockIdsToDelete.stream()
-            .map(f -> lockFilesRoot.resolve(decorate(f) + FILE_SUFFIX))
-            .map(Path::toFile)
-            .forEach(GFileUtils::deleteQuietly);
+                .map(f -> lockFilesRoot.resolve(decorate(f) + FILE_SUFFIX))
+                .map(Path::toFile)
+                .forEach(GFileUtils::deleteQuietly);
     }
 
-    private static void writeUniqueLockfile(Path lockfilePath, Map<String, List<String>> dependencyToLockId, List<String> emptyLockIds) {
+    private static void writeUniqueLockfile(
+            Path lockfilePath, Map<String, List<String>> dependencyToLockId, List<String> emptyLockIds) {
         try {
             Files.createDirectories(lockfilePath.getParent());
             List<String> content = new ArrayList<>(50);
             content.addAll(LOCKFILE_HEADER_LIST);
             for (Map.Entry<String, List<String>> entry : dependencyToLockId.entrySet()) {
-                String builder = entry.getKey() + "=" + entry.getValue().stream().sorted().collect(Collectors.joining(","));
+                String builder = entry.getKey() + "="
+                        + entry.getValue().stream().sorted().collect(Collectors.joining(","));
                 content.add(builder);
             }
             content.add("empty=" + emptyLockIds.stream().sorted().collect(Collectors.joining(",")));
@@ -240,7 +257,10 @@ public class LockFileReaderWriter {
         }
     }
 
-    private static void mapLockStateFromDependencyToLockId(Map<String, List<String>> lockState, Map<String, List<String>> dependencyToLockIds, List<String> emptyLockIds) {
+    private static void mapLockStateFromDependencyToLockId(
+            Map<String, List<String>> lockState,
+            Map<String, List<String>> dependencyToLockIds,
+            List<String> emptyLockIds) {
         for (Map.Entry<String, List<String>> entry : lockState.entrySet()) {
             List<String> dependencies = entry.getValue();
             if (dependencies.isEmpty()) {

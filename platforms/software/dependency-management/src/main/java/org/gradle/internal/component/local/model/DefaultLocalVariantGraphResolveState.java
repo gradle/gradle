@@ -17,6 +17,8 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -27,9 +29,6 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValue;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * Default implementation of {@link LocalVariantGraphResolveState}.
@@ -45,16 +44,16 @@ public class DefaultLocalVariantGraphResolveState implements LocalVariantGraphRe
     private final DefaultLocalVariantArtifactResolveState artifactState;
 
     public DefaultLocalVariantGraphResolveState(
-        long instanceId,
-        LocalVariantGraphResolveMetadata metadata,
-        CalculatedValue<VariantDependencyMetadata> dependencies,
-        Set<LocalVariantMetadata> artifactSets
-    ) {
+            long instanceId,
+            LocalVariantGraphResolveMetadata metadata,
+            CalculatedValue<VariantDependencyMetadata> dependencies,
+            Set<LocalVariantMetadata> artifactSets) {
         this.instanceId = instanceId;
         this.metadata = metadata;
 
         this.dependencies = dependencies;
-        this.artifactState = new DefaultLocalVariantArtifactResolveState(metadata.getId().getComponentId(), artifactSets);
+        this.artifactState =
+                new DefaultLocalVariantArtifactResolveState(metadata.getId().getComponentId(), artifactSets);
     }
 
     @Override
@@ -120,15 +119,13 @@ public class DefaultLocalVariantGraphResolveState implements LocalVariantGraphRe
         public final ImmutableList<ExcludeMetadata> excludes;
 
         public VariantDependencyMetadata(
-            List<LocalOriginDependencyMetadata> dependencies,
-            Set<LocalFileDependencyMetadata> files,
-            List<ExcludeMetadata> excludes
-        ) {
+                List<LocalOriginDependencyMetadata> dependencies,
+                Set<LocalFileDependencyMetadata> files,
+                List<ExcludeMetadata> excludes) {
             this.dependencies = dependencies;
             this.files = files;
             this.excludes = ImmutableList.copyOf(excludes);
         }
-
     }
 
     private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState {
@@ -137,16 +134,15 @@ public class DefaultLocalVariantGraphResolveState implements LocalVariantGraphRe
         private final Set<LocalVariantMetadata> artifactSets;
 
         public DefaultLocalVariantArtifactResolveState(
-            ComponentIdentifier componentId,
-            Set<LocalVariantMetadata> artifactSets
-        ) {
+                ComponentIdentifier componentId, Set<LocalVariantMetadata> artifactSets) {
             this.componentId = componentId;
             this.artifactSets = artifactSets;
         }
 
         @Override
         public ImmutableList<ComponentArtifactMetadata> getAdhocArtifacts(List<IvyArtifactName> dependencyArtifacts) {
-            ImmutableList.Builder<ComponentArtifactMetadata> artifacts = ImmutableList.builderWithExpectedSize(dependencyArtifacts.size());
+            ImmutableList.Builder<ComponentArtifactMetadata> artifacts =
+                    ImmutableList.builderWithExpectedSize(dependencyArtifacts.size());
             for (IvyArtifactName dependencyArtifact : dependencyArtifacts) {
                 artifacts.add(getArtifactWithName(dependencyArtifact));
             }
@@ -169,7 +165,5 @@ public class DefaultLocalVariantGraphResolveState implements LocalVariantGraphRe
         public Set<LocalVariantMetadata> getArtifactVariants() {
             return artifactSets;
         }
-
     }
-
 }

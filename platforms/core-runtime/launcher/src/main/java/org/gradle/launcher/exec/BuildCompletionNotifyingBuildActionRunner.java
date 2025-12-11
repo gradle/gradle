@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.exec;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildtree.BuildActionRunner;
@@ -26,9 +28,6 @@ import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * An {@link BuildActionRunner} that notifies the GE plugin manager that the build has completed.
  */
@@ -38,10 +37,9 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
     private final FailureFactory failureFactory;
 
     public BuildCompletionNotifyingBuildActionRunner(
-        GradleEnterprisePluginManager gradleEnterprisePluginManager,
-        FailureFactory failureFactory,
-        BuildActionRunner delegate
-    ) {
+            GradleEnterprisePluginManager gradleEnterprisePluginManager,
+            FailureFactory failureFactory,
+            BuildActionRunner delegate) {
         this.gradleEnterprisePluginManager = gradleEnterprisePluginManager;
         this.failureFactory = failureFactory;
         this.delegate = delegate;
@@ -53,8 +51,10 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
         try {
             result = delegate.run(action, buildController);
         } catch (Throwable t) {
-            // Note: throw the failure rather than returning a result object containing the failure, as console failure logging based on the _result_ happens down in the root build scope
-            // whereas console failure logging based on the _thrown exception_ happens up outside session scope. It would be better to refactor so that a result can be returned from here
+            // Note: throw the failure rather than returning a result object containing the failure, as console failure
+            // logging based on the _result_ happens down in the root build scope
+            // whereas console failure logging based on the _thrown exception_ happens up outside session scope. It
+            // would be better to refactor so that a result can be returned from here
             notifyEnterprisePluginManager(Result.failed(t, failureFactory.create(t)));
             throw UncheckedException.throwAsUncheckedException(t);
         }
@@ -66,7 +66,8 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
         // Validate the invariant, but avoid failing in production to allow Develocity to receive _a_ result
         // to provide a better user experience in the face of a bug on the Gradle side
         assert result.getBuildFailure() == null || result.getRichBuildFailure() != null
-            : "Rich build failure must not be null when build failure is present. Build failure: " + result.getBuildFailure();
+                : "Rich build failure must not be null when build failure is present. Build failure: "
+                        + result.getBuildFailure();
         List<Failure> unwrappedBuildFailure = unwrapBuildFailure(result.getRichBuildFailure());
         gradleEnterprisePluginManager.buildFinished(result.getBuildFailure(), unwrappedBuildFailure);
     }
@@ -78,7 +79,7 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
             return null;
         }
         return richBuildFailure.getOriginal() instanceof MultipleBuildFailures
-            ? richBuildFailure.getCauses()
-            : Collections.singletonList(richBuildFailure);
+                ? richBuildFailure.getCauses()
+                : Collections.singletonList(richBuildFailure);
     }
 }

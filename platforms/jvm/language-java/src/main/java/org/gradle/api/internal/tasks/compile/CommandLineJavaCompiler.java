@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import java.io.Serializable;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.process.ArgCollector;
@@ -27,15 +28,14 @@ import org.gradle.process.internal.ExecHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-
 /**
  * Executes the Java command line compiler executable.
  */
 public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompiler.class);
 
-    private final CompileSpecToArguments<JavaCompileSpec> argumentsGenerator = new CommandLineJavaCompilerArgumentsGenerator();
+    private final CompileSpecToArguments<JavaCompileSpec> argumentsGenerator =
+            new CommandLineJavaCompilerArgumentsGenerator();
     private final ClientExecHandleBuilderFactory execHandleFactory;
 
     public CommandLineJavaCompiler(ClientExecHandleBuilderFactory execHandleFactory) {
@@ -45,7 +45,10 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
         if (!(spec instanceof CommandLineJavaCompileSpec)) {
-            throw new IllegalArgumentException(String.format("Expected a %s, but got %s", CommandLineJavaCompileSpec.class.getSimpleName(), spec.getClass().getSimpleName()));
+            throw new IllegalArgumentException(String.format(
+                    "Expected a %s, but got %s",
+                    CommandLineJavaCompileSpec.class.getSimpleName(),
+                    spec.getClass().getSimpleName()));
         }
 
         String executable = ((CommandLineJavaCompileSpec) spec).getExecutable().toString();

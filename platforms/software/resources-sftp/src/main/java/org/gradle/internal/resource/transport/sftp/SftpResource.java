@@ -16,13 +16,12 @@
 
 package org.gradle.internal.resource.transport.sftp;
 
+import java.io.InputStream;
+import java.net.URI;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
-
-import java.io.InputStream;
-import java.net.URI;
 
 public class SftpResource implements ExternalResourceReadResponse {
 
@@ -33,7 +32,11 @@ public class SftpResource implements ExternalResourceReadResponse {
 
     private LockableSftpClient client;
 
-    public SftpResource(SftpClientFactory clientFactory, ExternalResourceMetaData metaData, URI uri, PasswordCredentials credentials) {
+    public SftpResource(
+            SftpClientFactory clientFactory,
+            ExternalResourceMetaData metaData,
+            URI uri,
+            PasswordCredentials credentials) {
         this.clientFactory = clientFactory;
         this.metaData = metaData;
         this.uri = uri;

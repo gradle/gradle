@@ -24,8 +24,7 @@ import org.gradle.internal.serialize.Serializer;
 public class ReadStdInEventSerializer implements Serializer<ReadStdInEvent> {
 
     @Override
-    public void write(Encoder encoder, ReadStdInEvent event) throws Exception {
-    }
+    public void write(Encoder encoder, ReadStdInEvent event) throws Exception {}
 
     @Override
     public ReadStdInEvent read(Decoder decoder) throws Exception {

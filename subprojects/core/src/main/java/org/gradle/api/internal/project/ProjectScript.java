@@ -16,13 +16,12 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
+import java.util.Map;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
-
-import java.util.Map;
 
 public abstract class ProjectScript extends PluginsAwareScript {
 

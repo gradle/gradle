@@ -27,7 +27,8 @@ public class IdentityFileResolver extends AbstractFileResolver {
     @Override
     protected File doResolve(File path) {
         if (!path.isAbsolute()) {
-            throw new UnsupportedOperationException(String.format("Cannot convert relative path %s to an absolute file.", path));
+            throw new UnsupportedOperationException(
+                    String.format("Cannot convert relative path %s to an absolute file.", path));
         }
         return path;
     }

@@ -29,5 +29,4 @@ public interface PomModuleDescriptor {
      * @return the packaging type
      */
     String getPackaging();
-
 }

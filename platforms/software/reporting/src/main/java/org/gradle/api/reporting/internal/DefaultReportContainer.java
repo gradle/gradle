@@ -17,6 +17,9 @@
 package org.gradle.api.reporting.internal;
 
 import groovy.lang.Closure;
+import java.util.Collection;
+import java.util.Map;
+import javax.inject.Inject;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -30,10 +33,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.internal.ConfigureUtil;
 
-import javax.inject.Inject;
-import java.util.Collection;
-import java.util.Map;
-
 /**
  * An immutable container of {@link Report} instances. Reports can be enabled or disabled.
  * <p>
@@ -41,7 +40,8 @@ import java.util.Map;
  *
  * @param <T> The type of report held by this container.
  */
-public class DefaultReportContainer<T extends Report> extends DefaultNamedDomainObjectSet<T> implements ReportContainer<T> {
+public class DefaultReportContainer<T extends Report> extends DefaultNamedDomainObjectSet<T>
+        implements ReportContainer<T> {
 
     /**
      * The set of all enabled reports.
@@ -61,10 +61,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
      */
     @SuppressWarnings("unchecked")
     public static <T extends Report> DefaultReportContainer<T> create(
-        ObjectFactory objectFactory,
-        Class<? extends T> type,
-        ReportGenerator<T> reportGenerator
-    ) {
+            ObjectFactory objectFactory, Class<? extends T> type, ReportGenerator<T> reportGenerator) {
         return objectFactory.newInstance(DefaultReportContainer.class, type, reportGenerator);
     }
 
@@ -73,19 +70,19 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
      */
     @Inject
     public DefaultReportContainer(
-        Class<? extends T> type,
-        ReportGenerator<T> reportGenerator,
-        InstantiatorFactory instantiatorFactory,
-        ServiceRegistry servicesToInject,
-        CollectionCallbackActionDecorator callbackActionDecorator
-    ) {
+            Class<? extends T> type,
+            ReportGenerator<T> reportGenerator,
+            InstantiatorFactory instantiatorFactory,
+            ServiceRegistry servicesToInject,
+            CollectionCallbackActionDecorator callbackActionDecorator) {
         super(type, instantiatorFactory.decorateLenient(servicesToInject), Report.NAMER, callbackActionDecorator);
         this.addAll(reportGenerator.generateReports(new DefaultReportFactory<>(getInstantiator())));
         beforeCollectionChanges(SerializableLambdas.action(arg -> {
             throw new ImmutableViolationException();
         }));
 
-        this.enabled = matching(SerializableLambdas.spec(element -> element.getRequired().get()));
+        this.enabled = matching(
+                SerializableLambdas.spec(element -> element.getRequired().get()));
     }
 
     @Override
@@ -131,7 +128,8 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
             N report = instantiator.newInstance(clazz, constructionArgs);
             String name = report.getName();
             if (name.equals("enabled")) {
-                throw new InvalidUserDataException("Reports that are part of a ReportContainer cannot be named 'enabled'");
+                throw new InvalidUserDataException(
+                        "Reports that are part of a ReportContainer cannot be named 'enabled'");
             }
             return report;
         }

@@ -17,18 +17,18 @@
 package org.gradle.api.reporting.internal;
 
 import groovy.lang.Closure;
+import java.util.Map;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.DelegatingNamedDomainObjectSet;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.tasks.Internal;
 
-import java.util.Map;
-
 /**
  * A {@link ReportContainer} which delegates all methods to a provided delegate.
  */
-public abstract class DelegatingReportContainer<T extends Report> extends DelegatingNamedDomainObjectSet<T> implements ReportContainer<T> {
+public abstract class DelegatingReportContainer<T extends Report> extends DelegatingNamedDomainObjectSet<T>
+        implements ReportContainer<T> {
 
     public DelegatingReportContainer(ReportContainer<T> delegate) {
         super(delegate);

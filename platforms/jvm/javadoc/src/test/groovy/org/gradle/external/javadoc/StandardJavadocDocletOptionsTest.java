@@ -16,13 +16,13 @@
 
 package org.gradle.external.javadoc;
 
-import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import spock.lang.Issue;
+import static org.gradle.util.Matchers.containsNormalizedString;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,14 +32,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static org.gradle.util.Matchers.containsNormalizedString;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import spock.lang.Issue;
 
 public class StandardJavadocDocletOptionsTest {
     @Rule
@@ -153,7 +152,7 @@ public class StandardJavadocDocletOptionsTest {
 
     @Test
     public void testFluentDocletClasspath() {
-        final File[] docletClasspathValue = new File[]{new File("doclet.jar"), new File("doclet-dep.jar")};
+        final File[] docletClasspathValue = new File[] {new File("doclet.jar"), new File("doclet-dep.jar")};
         assertEquals(options, options.docletpath(docletClasspathValue));
         assertArrayEquals(docletClasspathValue, options.getDocletpath().toArray());
     }
@@ -167,21 +166,21 @@ public class StandardJavadocDocletOptionsTest {
 
     @Test
     public void testFluentClasspath() {
-        final File[] classpathValue = new File[]{new File("classpath.jar"), new File("classpath-dir")};
+        final File[] classpathValue = new File[] {new File("classpath.jar"), new File("classpath-dir")};
         assertEquals(options, options.classpath(classpathValue));
         assertArrayEquals(classpathValue, options.getClasspath().toArray());
     }
 
     @Test
     public void testFluentBootclasspath() {
-        final File[] bootClasspathValue = new File[]{new File("bootclasspath.jar"), new File("bootclasspath2.jar")};
+        final File[] bootClasspathValue = new File[] {new File("bootclasspath.jar"), new File("bootclasspath2.jar")};
         assertEquals(options, options.bootClasspath(bootClasspathValue));
         assertArrayEquals(bootClasspathValue, options.getBootClasspath().toArray());
     }
 
     @Test
     public void testFluentExtDirs() {
-        final File[] extDirsValue = new File[]{new File("extDirOne"), new File("extDirTwo")};
+        final File[] extDirsValue = new File[] {new File("extDirOne"), new File("extDirTwo")};
         assertEquals(options, options.extDirs(extDirsValue));
         assertArrayEquals(extDirsValue, options.getExtDirs().toArray());
     }
@@ -280,7 +279,7 @@ public class StandardJavadocDocletOptionsTest {
 
     @Test
     public void testFluentLink() {
-        final String[] linkValue = new String[]{"http://otherdomain.org/javadoc"};
+        final String[] linkValue = new String[] {"http://otherdomain.org/javadoc"};
         assertEquals(options, options.links(linkValue));
         assertArrayEquals(linkValue, options.getLinks().toArray());
     }
@@ -303,16 +302,18 @@ public class StandardJavadocDocletOptionsTest {
     @Test
     public void testFluentGroup() {
         final String groupOneName = "groupOneName";
-        final String[] groupOnePackages = new String[]{"java.lang", "java.io"};
+        final String[] groupOnePackages = new String[] {"java.lang", "java.io"};
 
         final String groupTwoName = "gradle";
-        final String[] groupTwoPackages = new String[]{"org.gradle"};
+        final String[] groupTwoPackages = new String[] {"org.gradle"};
 
         assertEquals(options, options.group(groupOneName, groupOnePackages));
         assertEquals(options, options.group(groupTwoName, groupTwoPackages));
         assertEquals(2, options.getGroups().size());
-        assertArrayEquals(groupOnePackages, options.getGroups().get(groupOneName).toArray());
-        assertArrayEquals(groupTwoPackages, options.getGroups().get(groupTwoName).toArray());
+        assertArrayEquals(
+                groupOnePackages, options.getGroups().get(groupOneName).toArray());
+        assertArrayEquals(
+                groupTwoPackages, options.getGroups().get(groupTwoName).toArray());
     }
 
     @Test
@@ -393,7 +394,7 @@ public class StandardJavadocDocletOptionsTest {
 
     @Test
     public void testFluentTags() {
-        final String[] tagsValue = new String[]{"param", "return", "todo:a:\"To Do:\""};
+        final String[] tagsValue = new String[] {"param", "return", "todo:a:\"To Do:\""};
 
         final List<String> tempList = new ArrayList<String>();
         tempList.addAll(Arrays.asList(tagsValue));
@@ -405,7 +406,7 @@ public class StandardJavadocDocletOptionsTest {
 
     @Test
     public void testFluentTaglets() {
-        final String[] tagletsValue = new String[]{"com.sun.tools.doclets.ToDoTaglet"};
+        final String[] tagletsValue = new String[] {"com.sun.tools.doclets.ToDoTaglet"};
 
         final List<String> tempList = new ArrayList<String>();
         tempList.addAll(Arrays.asList(tagletsValue));
@@ -417,7 +418,7 @@ public class StandardJavadocDocletOptionsTest {
 
     @Test
     public void testFluentTagletPath() {
-        final File[] tagletPathValue = new File[]{new File("tagletOne.jar"), new File("tagletTwo.jar")};
+        final File[] tagletPathValue = new File[] {new File("tagletOne.jar"), new File("tagletTwo.jar")};
         assertEquals(options, options.tagletPath(tagletPathValue));
         assertArrayEquals(tagletPathValue, options.getTagletPath().toArray());
     }
@@ -430,14 +431,15 @@ public class StandardJavadocDocletOptionsTest {
 
     @Test
     public void testFluentExcludeDocFilesSubDir() {
-        final String[] excludeDocFilesSubDirValue = new String[]{".hg", ".svn", ".bzr", ".git"};
+        final String[] excludeDocFilesSubDirValue = new String[] {".hg", ".svn", ".bzr", ".git"};
         assertEquals(options, options.excludeDocFilesSubDir(excludeDocFilesSubDirValue));
-        assertArrayEquals(excludeDocFilesSubDirValue, options.getExcludeDocFilesSubDir().toArray());
+        assertArrayEquals(
+                excludeDocFilesSubDirValue, options.getExcludeDocFilesSubDir().toArray());
     }
 
     @Test
     public void testFluentNoQualifier() {
-        String[] noQualifierValue = new String[]{"java.lang", "java.io"};
+        String[] noQualifierValue = new String[] {"java.lang", "java.io"};
         assertEquals(options, options.noQualifiers(noQualifierValue));
         assertArrayEquals(noQualifierValue, options.getNoQualifiers().toArray());
     }
@@ -459,21 +461,24 @@ public class StandardJavadocDocletOptionsTest {
     public void emitsVariousMultiValuedOptionsCorrectly() throws IOException {
         options.addMultilineStringsOption("addMultilineStringsOption").setValue(Arrays.asList("a", "b", "c"));
         options.addStringsOption("addStringsOption", " ").setValue(Arrays.asList("a", "b", "c"));
-        options.addMultilineMultiValueOption("addMultilineMultiValueOption").setValue(Arrays.asList(Collections.singletonList("a"), Arrays.asList("b", "c")));
+        options.addMultilineMultiValueOption("addMultilineMultiValueOption")
+                .setValue(Arrays.asList(Collections.singletonList("a"), Arrays.asList("b", "c")));
 
         TestFile optionsFile = temporaryFolder.file("javadoc.options");
         options.write(optionsFile);
 
-        assertEquals("addMultilineStringsOption:[a, b, c], addStringsOption:[a, b, c], addMultilineMultiValueOption:[[a], [b, c]]", options.getExtraOptions());
+        assertEquals(
+                "addMultilineStringsOption:[a, b, c], addStringsOption:[a, b, c], addMultilineMultiValueOption:[[a], [b, c]]",
+                options.getExtraOptions());
 
-        optionsFile.assertContents(containsNormalizedString("-addMultilineStringsOption 'a'\n" +
-            "-addMultilineStringsOption 'b'\n" +
-            "-addMultilineStringsOption 'c'\n" +
-            "-addStringsOption 'a b c'\n" +
-            "-addMultilineMultiValueOption \n" +
-            "'a' \n" +
-            "-addMultilineMultiValueOption \n" +
-            "'b' 'c' "));
+        optionsFile.assertContents(
+                containsNormalizedString("-addMultilineStringsOption 'a'\n" + "-addMultilineStringsOption 'b'\n"
+                        + "-addMultilineStringsOption 'c'\n"
+                        + "-addStringsOption 'a b c'\n"
+                        + "-addMultilineMultiValueOption \n"
+                        + "'a' \n"
+                        + "-addMultilineMultiValueOption \n"
+                        + "'b' 'c' "));
     }
 
     @After

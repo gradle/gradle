@@ -16,10 +16,9 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Map;
 import org.gradle.api.attributes.Attribute;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 public interface AttributeDescriber {
     /**

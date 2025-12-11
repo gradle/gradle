@@ -16,8 +16,19 @@
 
 package org.gradle.external.javadoc;
 
+import static org.gradle.api.tasks.PathSensitivity.NAME_ONLY;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -29,18 +40,6 @@ import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.gradle.api.tasks.PathSensitivity.NAME_ONLY;
 
 /**
  * Provides the options for the standard Javadoc doclet.
@@ -169,7 +168,8 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         noTimestamp = addBooleanOption(OPTION_NOTIMESTAMP, true);
         noComment = addBooleanOption(OPTION_NOCOMMENT);
 
-        knownStandardOptionNames = Collections.unmodifiableSet(new HashSet<>(Sets.difference(optionFile.getOptions().keySet(), knownCoreOptionNames)));
+        knownStandardOptionNames = Collections.unmodifiableSet(
+                new HashSet<>(Sets.difference(optionFile.getOptions().keySet(), knownCoreOptionNames)));
     }
 
     public StandardJavadocDocletOptions(StandardJavadocDocletOptions original) {
@@ -453,7 +453,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return this;
     }
 
-
     /**
      * -doctitle title
      * <p>
@@ -463,7 +462,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * javadoc -doctitle "Java&lt;sup&gt;&lt;font size=\"-2\"&gt;TM&lt;/font&gt;&lt;/sup&gt;" com.mypackage
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getDocTitle() {
         return docTitle.getValue();
     }
@@ -485,7 +486,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within footer may have to be escaped.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getFooter() {
         return footer.getValue();
     }
@@ -508,7 +511,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Any internal quotation marks within text may have to be escaped.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getBottom() {
         return bottom.getValue();
     }
@@ -542,7 +547,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * do this only if everyone wanting to access the generated documentation shares the same file system.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public List<String> getLinks() {
         return links.getValue();
     }
@@ -586,7 +593,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * make it relative to the current directory from where javadoc was run. Do not include the package-list filename.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public List<JavadocOfflineLink> getLinksOffline() {
         return linksOffline.getValue();
     }
@@ -680,7 +689,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <br>java.new
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public Map<String, List<String>> getGroups() {
         return groups.getValue();
     }
@@ -893,7 +904,10 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * javadoc -helpfile C:/user/myhelp.html java.awt
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @PathSensitive(NAME_ONLY) @InputFile
+    @Nullable
+    @Optional
+    @PathSensitive(NAME_ONLY)
+    @InputFile
     public File getHelpFile() {
         return helpFile.getValue();
     }
@@ -915,7 +929,10 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * javadoc -stylesheetfile C:/user/mystylesheet.css com.mypackage
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @PathSensitive(NAME_ONLY) @InputFile
+    @Nullable
+    @Optional
+    @PathSensitive(NAME_ONLY)
+    @InputFile
     public File getStylesheetFile() {
         return stylesheetFile.getValue();
     }
@@ -971,7 +988,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Also see -encoding and -docencoding.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getCharSet() {
         return charSet.getValue();
     }
@@ -995,7 +1014,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Also see -encoding and -charset.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getDocEncoding() {
         return docEncoding.getValue();
     }
@@ -1035,7 +1056,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -tag tagname:Xaoptcmf:"taghead".
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public List<String> getTags() {
         return tags.getValue();
     }
@@ -1061,7 +1084,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -taglet class.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public List<String> getTaglets() {
         return taglets.getValue();
     }
@@ -1083,7 +1108,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -tagletpath tagletpathlist.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Classpath
+    @Nullable
+    @Optional
+    @Classpath
     public List<File> getTagletPath() {
         return tagletPath.getValue();
     }
@@ -1127,7 +1154,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -excludedocfilessubdir name1:name2...
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public List<String> getExcludeDocFilesSubDir() {
         return excludeDocFilesSubDir.getValue();
     }
@@ -1149,7 +1178,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -noqualifier all | packagename1:packagename2:...
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public List<String> getNoQualifiers() {
         return noQualifiers.getValue();
     }

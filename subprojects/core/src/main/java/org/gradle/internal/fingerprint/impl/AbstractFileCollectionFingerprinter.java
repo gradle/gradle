@@ -38,7 +38,8 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
     }
 
     @Override
-    public CurrentFileCollectionFingerprint fingerprint(FileSystemSnapshot snapshot, @Nullable FileCollectionFingerprint previousFingerprint) {
+    public CurrentFileCollectionFingerprint fingerprint(
+            FileSystemSnapshot snapshot, @Nullable FileCollectionFingerprint previousFingerprint) {
         return DefaultCurrentFileCollectionFingerprint.from(snapshot, fingerprintingStrategy, previousFingerprint);
     }
 

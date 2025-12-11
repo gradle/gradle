@@ -22,7 +22,7 @@ import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.gradle.util.internal.ConfigureUtil;
 
-abstract public class PluginsAwareScript extends DefaultScript {
+public abstract class PluginsAwareScript extends DefaultScript {
 
     private PluginRequestCollector pluginRequestCollector;
 
@@ -40,5 +40,4 @@ abstract public class PluginsAwareScript extends DefaultScript {
         }
         return PluginRequests.EMPTY;
     }
-
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
+import java.io.File;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -23,12 +24,11 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 
-import java.io.File;
-
 /**
  * Criteria for selecting a JVM for the daemon. This may be as straightforward as a specific Java home, or more complex, such as a specific version of the JVM.
  */
-// Implementation note: This works like a sealed interface, so any additional subclasses need to be checked anywhere DaemonJvmCriteria is `instanceof`'d to a subclass.
+// Implementation note: This works like a sealed interface, so any additional subclasses need to be checked anywhere
+// DaemonJvmCriteria is `instanceof`'d to a subclass.
 public interface DaemonJvmCriteria {
     /**
      * Probes the Java language version of the JVM criteria. This may need to launch a JVM to determine the version.
@@ -49,7 +49,8 @@ public interface DaemonJvmCriteria {
 
         @Override
         public String toString() {
-            return Jvm.current().getJavaHome().getAbsolutePath() + " (no Daemon JVM specified, using current Java home)";
+            return Jvm.current().getJavaHome().getAbsolutePath()
+                    + " (no Daemon JVM specified, using current Java home)";
         }
     }
 
@@ -115,7 +116,11 @@ public interface DaemonJvmCriteria {
         private final JvmImplementation jvmImplementation;
         private final boolean nativeImageCapable;
 
-        public Spec(JavaLanguageVersion javaVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation, boolean nativeImageCapable) {
+        public Spec(
+                JavaLanguageVersion javaVersion,
+                JvmVendorSpec vendorSpec,
+                JvmImplementation jvmImplementation,
+                boolean nativeImageCapable) {
             this.javaVersion = javaVersion;
             this.vendorSpec = vendorSpec;
             this.jvmImplementation = jvmImplementation;
@@ -153,7 +158,12 @@ public interface DaemonJvmCriteria {
 
         @Override
         public String toString() {
-            return String.format("Compatible with Java %s, %s, nativeImageCapable=%s (from %s)", getJavaVersion(), getVendorSpec(), isNativeImageCapable(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE);
+            return String.format(
+                    "Compatible with Java %s, %s, nativeImageCapable=%s (from %s)",
+                    getJavaVersion(),
+                    getVendorSpec(),
+                    isNativeImageCapable(),
+                    DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE);
         }
 
         public boolean isNativeImageCapable() {

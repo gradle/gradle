@@ -15,14 +15,13 @@
  */
 package org.gradle.tooling.internal.consumer.connection;
 
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.internal.consumer.PhasedBuildAction;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.model.internal.Exceptions;
-
-import java.util.List;
 
 public class ParameterValidatingConsumerConnection implements ConsumerConnection {
     private final VersionDetails targetVersionDetails;
@@ -44,13 +43,15 @@ public class ParameterValidatingConsumerConnection implements ConsumerConnection
     }
 
     @Override
-    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters)
+            throws UnsupportedOperationException, IllegalStateException {
         validateParameters(operationParameters);
         return delegate.run(type, operationParameters);
     }
 
     @Override
-    public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters)
+            throws UnsupportedOperationException, IllegalStateException {
         validateParameters(operationParameters);
         validateBuildActionParameters(operationParameters);
         return delegate.run(action, operationParameters);
@@ -69,7 +70,8 @@ public class ParameterValidatingConsumerConnection implements ConsumerConnection
     }
 
     @Override
-    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters) {
+    public void notifyDaemonsAboutChangedPaths(
+            List<String> changedPaths, ConsumerOperationParameters operationParameters) {
         delegate.notifyDaemonsAboutChangedPaths(changedPaths, operationParameters);
     }
 
@@ -81,7 +83,8 @@ public class ParameterValidatingConsumerConnection implements ConsumerConnection
     private void validateParameters(ConsumerOperationParameters operationParameters) {
         if (!targetVersionDetails.supportsEnvironmentVariablesCustomization()) {
             if (operationParameters.getEnvironmentVariables() != null) {
-                throw Exceptions.unsupportedFeature("environment variables customization feature", targetVersionDetails.getVersion(), "3.5");
+                throw Exceptions.unsupportedFeature(
+                        "environment variables customization feature", targetVersionDetails.getVersion(), "3.5");
             }
         }
     }
@@ -89,7 +92,8 @@ public class ParameterValidatingConsumerConnection implements ConsumerConnection
     private void validateBuildActionParameters(ConsumerOperationParameters operationParameters) {
         if (!targetVersionDetails.supportsRunTasksBeforeExecutingAction()) {
             if (operationParameters.getTasks() != null) {
-                throw Exceptions.unsupportedFeature("forTasks() method on BuildActionExecuter", targetVersionDetails.getVersion(), "3.5");
+                throw Exceptions.unsupportedFeature(
+                        "forTasks() method on BuildActionExecuter", targetVersionDetails.getVersion(), "3.5");
             }
         }
     }

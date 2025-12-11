@@ -23,10 +23,16 @@ import org.jspecify.annotations.Nullable;
 public class AssertionFailureDetails extends DefaultTestFailureDetails {
     @Nullable
     private final String expected;
+
     @Nullable
     private final String actual;
 
-    public AssertionFailureDetails(@Nullable String message, String className, String stacktrace, @Nullable String expected, @Nullable String actual) {
+    public AssertionFailureDetails(
+            @Nullable String message,
+            String className,
+            String stacktrace,
+            @Nullable String expected,
+            @Nullable String actual) {
         super(message, className, stacktrace);
         this.expected = expected;
         this.actual = actual;

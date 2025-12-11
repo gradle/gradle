@@ -16,6 +16,10 @@
 
 package org.gradle.nativeplatform.toolchain.internal.metadata;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -25,11 +29,6 @@ import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadat
 import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadataProvider;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.process.internal.ExecActionFactory;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @ServiceScope(Scope.Build.class)
 public class CompilerMetaDataProviderFactory {
@@ -55,7 +54,8 @@ public class CompilerMetaDataProviderFactory {
         return swiftc;
     }
 
-    private static class CachingCompilerMetaDataProvider<T extends CompilerMetadata> implements CompilerMetaDataProvider<T> {
+    private static class CachingCompilerMetaDataProvider<T extends CompilerMetadata>
+            implements CompilerMetaDataProvider<T> {
         private final CompilerMetaDataProvider<T> delegate;
         private final Map<Key, SearchResult<T>> resultMap = new HashMap<Key, SearchResult<T>>();
 
@@ -65,7 +65,8 @@ public class CompilerMetaDataProviderFactory {
 
         @Override
         public SearchResult<T> getCompilerMetaData(List<File> path, Action<? super CompilerExecSpec> configureAction) {
-            AbstractMetadataProvider.DefaultCompilerExecSpec execSpec = new AbstractMetadataProvider.DefaultCompilerExecSpec();
+            AbstractMetadataProvider.DefaultCompilerExecSpec execSpec =
+                    new AbstractMetadataProvider.DefaultCompilerExecSpec();
             configureAction.execute(execSpec);
 
             Key key = new Key(execSpec.executable, execSpec.args, path, execSpec.environments);
@@ -102,7 +103,10 @@ public class CompilerMetaDataProviderFactory {
                 return false;
             }
             Key other = (Key) obj;
-            return other.gccBinary.equals(gccBinary) && other.args.equals(args) && other.path.equals(path) && other.environmentVariables.equals(environmentVariables);
+            return other.gccBinary.equals(gccBinary)
+                    && other.args.equals(args)
+                    && other.path.equals(path)
+                    && other.environmentVariables.equals(environmentVariables);
         }
 
         @Override

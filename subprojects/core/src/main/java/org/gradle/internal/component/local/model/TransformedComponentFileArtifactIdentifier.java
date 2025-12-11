@@ -16,11 +16,10 @@
 
 package org.gradle.internal.component.local.model;
 
+import java.util.Objects;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.DisplayName;
-
-import java.util.Objects;
 
 /**
  * Identifies the transformed artifact of a component. The original file name is tracked in order to guarantee uniqueness,
@@ -33,7 +32,8 @@ public class TransformedComponentFileArtifactIdentifier implements ComponentArti
     private final String fileName;
     private final String originalFileName;
 
-    public TransformedComponentFileArtifactIdentifier(ComponentIdentifier componentId, String fileName, String originalFileName) {
+    public TransformedComponentFileArtifactIdentifier(
+            ComponentIdentifier componentId, String fileName, String originalFileName) {
         this.componentId = componentId;
         this.fileName = fileName;
         this.originalFileName = originalFileName;
@@ -54,7 +54,8 @@ public class TransformedComponentFileArtifactIdentifier implements ComponentArti
 
     @Override
     public String getDisplayName() {
-        return getOriginalFileName() + " -> " + getFileName() + " (" + getComponentIdentifier().getDisplayName() + ")";
+        return getOriginalFileName() + " -> " + getFileName() + " ("
+                + getComponentIdentifier().getDisplayName() + ")";
     }
 
     @Override
@@ -76,7 +77,9 @@ public class TransformedComponentFileArtifactIdentifier implements ComponentArti
             return false;
         }
         TransformedComponentFileArtifactIdentifier other = (TransformedComponentFileArtifactIdentifier) obj;
-        return componentId.equals(other.componentId) && fileName.equals(other.fileName) && originalFileName.equals(other.originalFileName);
+        return componentId.equals(other.componentId)
+                && fileName.equals(other.fileName)
+                && originalFileName.equals(other.originalFileName);
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.management.internal;
 
+import java.util.Optional;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -23,8 +24,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.use.PluginId;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Optional;
 
 public class DefaultPluginRequest implements PluginRequestInternal {
 
@@ -39,16 +38,15 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final @Nullable PluginCoordinates alternativeCoordinates;
 
     public DefaultPluginRequest(
-        PluginId id,
-        boolean apply,
-        Origin origin,
-        @Nullable String scriptDisplayName,
-        @Nullable Integer lineNumber,
-        @Nullable String version,
-        @Nullable ComponentSelector selector,
-        @Nullable PluginRequest originalRequest,
-        @Nullable PluginCoordinates alternativeCoordinates
-    ) {
+            PluginId id,
+            boolean apply,
+            Origin origin,
+            @Nullable String scriptDisplayName,
+            @Nullable Integer lineNumber,
+            @Nullable String version,
+            @Nullable ComponentSelector selector,
+            @Nullable PluginRequest originalRequest,
+            @Nullable PluginCoordinates alternativeCoordinates) {
         this.id = id;
         this.version = version;
         this.apply = apply;

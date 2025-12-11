@@ -40,5 +40,4 @@ public class DefaultBinaryPluginIdentifier extends AbstractPluginIdentifier impl
     public String getPluginId() {
         return pluginId;
     }
-
 }

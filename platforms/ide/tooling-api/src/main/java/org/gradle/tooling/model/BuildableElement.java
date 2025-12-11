@@ -30,5 +30,4 @@ public interface BuildableElement extends Element {
      * @since 1.0-milestone-5
      */
     DomainObjectSet<? extends Task> getTasks();
-
 }

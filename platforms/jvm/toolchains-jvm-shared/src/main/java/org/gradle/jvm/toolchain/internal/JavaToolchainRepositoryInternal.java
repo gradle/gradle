@@ -16,13 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import java.util.Collection;
 import org.gradle.authentication.Authentication;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
-
-import java.util.Collection;
 
 public interface JavaToolchainRepositoryInternal extends JavaToolchainRepository {
 
     Collection<Authentication> getConfiguredAuthentication();
-
 }

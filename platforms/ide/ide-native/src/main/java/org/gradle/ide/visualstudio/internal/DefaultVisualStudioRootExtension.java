@@ -26,11 +26,25 @@ import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
-public class DefaultVisualStudioRootExtension extends DefaultVisualStudioExtension implements VisualStudioRootExtension, VisualStudioExtensionInternal {
+public class DefaultVisualStudioRootExtension extends DefaultVisualStudioExtension
+        implements VisualStudioRootExtension, VisualStudioExtensionInternal {
     private final VisualStudioSolution solution;
 
-    public DefaultVisualStudioRootExtension(String projectName, Instantiator instantiator, ObjectFactory objectFactory, FileResolver fileResolver, IdeArtifactRegistry ideArtifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator, ProviderFactory providerFactory) {
-        super(instantiator, fileResolver, ideArtifactRegistry, collectionCallbackActionDecorator, objectFactory, providerFactory);
+    public DefaultVisualStudioRootExtension(
+            String projectName,
+            Instantiator instantiator,
+            ObjectFactory objectFactory,
+            FileResolver fileResolver,
+            IdeArtifactRegistry ideArtifactRegistry,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+            ProviderFactory providerFactory) {
+        super(
+                instantiator,
+                fileResolver,
+                ideArtifactRegistry,
+                collectionCallbackActionDecorator,
+                objectFactory,
+                providerFactory);
         this.solution = objectFactory.newInstance(DefaultVisualStudioSolution.class, projectName);
     }
 

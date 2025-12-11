@@ -16,6 +16,9 @@
 
 package org.gradle.language.cpp.internal;
 
+import java.util.Collections;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -44,11 +47,11 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.Set;
-
-public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable, ConfigurableComponentWithExecutable, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
+public class DefaultCppExecutable extends DefaultCppBinary
+        implements CppExecutable,
+                ConfigurableComponentWithExecutable,
+                ConfigurableComponentWithRuntimeUsage,
+                SoftwareComponentInternal {
     private final RegularFileProperty executableFile;
     private final Property<Task> executableFileProducer;
     private final DirectoryProperty installationDirectory;
@@ -59,8 +62,30 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultCppExecutable(Names names, ObjectFactory objectFactory, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, RoleBasedConfigurationContainerInternal configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultCppExecutable(
+            Names names,
+            ObjectFactory objectFactory,
+            Provider<String> baseName,
+            FileCollection sourceFiles,
+            FileCollection componentHeaderDirs,
+            RoleBasedConfigurationContainerInternal configurations,
+            Configuration implementation,
+            CppPlatform targetPlatform,
+            NativeToolChainInternal toolChain,
+            PlatformToolProvider platformToolProvider,
+            NativeVariantIdentity identity) {
+        super(
+                names,
+                objectFactory,
+                baseName,
+                sourceFiles,
+                componentHeaderDirs,
+                configurations,
+                implementation,
+                targetPlatform,
+                toolChain,
+                platformToolProvider,
+                identity);
         this.executableFile = objectFactory.fileProperty();
         this.executableFileProducer = objectFactory.property(Task.class);
         this.debuggerExecutableFile = objectFactory.fileProperty();
@@ -130,7 +155,8 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     @Override
     public Set<? extends UsageContext> getUsages() {
         Configuration runtimeElements = runtimeElementsProperty.get();
-        return Collections.singleton(new ConfigurationSoftwareComponentVariant(getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements));
+        return Collections.singleton(new ConfigurationSoftwareComponentVariant(
+                getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements));
     }
 
     @Override

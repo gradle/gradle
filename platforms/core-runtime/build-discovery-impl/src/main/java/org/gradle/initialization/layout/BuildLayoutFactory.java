@@ -15,6 +15,8 @@
  */
 package org.gradle.initialization.layout;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
@@ -22,9 +24,6 @@ import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.File;
 
 @ServiceScope(Scope.Global.class)
 public class BuildLayoutFactory {

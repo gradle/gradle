@@ -72,16 +72,19 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
         registration.add(IvyContextManager.class, DefaultIvyContextManager.class);
         registration.add(ImmutableModuleIdentifierFactory.class, DefaultImmutableModuleIdentifierFactory.class);
         registration.add(ExcludeRuleConverter.class, DefaultExcludeRuleConverter.class);
-        registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactAnnotationHandler.class);
-        registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactDependenciesAnnotationHandler.class);
+        registration.add(
+                PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactAnnotationHandler.class);
+        registration.add(
+                PropertyAnnotationHandler.class,
+                InjectAnnotationHandler.class,
+                InputArtifactDependenciesAnnotationHandler.class);
     }
 
     @Provides
     DependencyMetadataFactory createDependencyMetadataFactory(ExcludeRuleConverter excludeRuleConverter) {
         return new DefaultDependencyMetadataFactory(
-            new ProjectDependencyMetadataConverter(excludeRuleConverter),
-            new ExternalModuleDependencyMetadataConverter(excludeRuleConverter)
-        );
+                new ProjectDependencyMetadataConverter(excludeRuleConverter),
+                new ExternalModuleDependencyMetadataConverter(excludeRuleConverter));
     }
 
     @Provides
@@ -105,58 +108,50 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
     }
 
     @Provides
-    TransformParameterScheme createTransformParameterScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
+    TransformParameterScheme createTransformParameterScheme(
+            InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
         InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
-            ImmutableSet.of(
-                Console.class,
-                Input.class,
-                InputDirectory.class,
-                InputFile.class,
-                InputFiles.class,
-                Internal.class,
-                Nested.class,
-                ReplacedBy.class,
-                ServiceReference.class
-            ),
-            ImmutableSet.of(
-                Classpath.class,
-                CompileClasspath.class,
-                Incremental.class,
-                Optional.class,
-                PathSensitive.class,
-                IgnoreEmptyDirectories.class,
-                NormalizeLineEndings.class
-            ),
-            ImmutableSet.of(),
-            instantiationScheme
-        );
+                ImmutableSet.of(
+                        Console.class,
+                        Input.class,
+                        InputDirectory.class,
+                        InputFile.class,
+                        InputFiles.class,
+                        Internal.class,
+                        Nested.class,
+                        ReplacedBy.class,
+                        ServiceReference.class),
+                ImmutableSet.of(
+                        Classpath.class,
+                        CompileClasspath.class,
+                        Incremental.class,
+                        Optional.class,
+                        PathSensitive.class,
+                        IgnoreEmptyDirectories.class,
+                        NormalizeLineEndings.class),
+                ImmutableSet.of(),
+                instantiationScheme);
         return new TransformParameterScheme(instantiationScheme, inspectionScheme);
     }
 
     @Provides
-    TransformActionScheme createTransformActionScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
-        InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme(ImmutableSet.of(
-            InputArtifact.class,
-            InputArtifactDependencies.class
-        ));
+    TransformActionScheme createTransformActionScheme(
+            InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
+        InstantiationScheme instantiationScheme =
+                instantiatorFactory.injectScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class));
         InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
-            ImmutableSet.of(
-                InputArtifact.class,
-                InputArtifactDependencies.class
-            ),
-            ImmutableSet.of(
-                Classpath.class,
-                CompileClasspath.class,
-                Incremental.class,
-                Optional.class,
-                PathSensitive.class,
-                IgnoreEmptyDirectories.class,
-                NormalizeLineEndings.class
-            ),
-            ImmutableSet.of(),
-            instantiationScheme
-        );
+                ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class),
+                ImmutableSet.of(
+                        Classpath.class,
+                        CompileClasspath.class,
+                        Incremental.class,
+                        Optional.class,
+                        PathSensitive.class,
+                        IgnoreEmptyDirectories.class,
+                        NormalizeLineEndings.class),
+                ImmutableSet.of(),
+                instantiationScheme);
         return new TransformActionScheme(instantiationScheme, inspectionScheme);
     }
 }

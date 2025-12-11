@@ -17,11 +17,11 @@
 package org.gradle.external.javadoc.internal;
 
 import com.google.common.collect.Lists;
-
 import java.io.IOException;
 import java.util.List;
 
-public class OptionLessStringsJavadocOptionFileOption implements OptionLessJavadocOptionFileOptionInternal<List<String>> {
+public class OptionLessStringsJavadocOptionFileOption
+        implements OptionLessJavadocOptionFileOptionInternal<List<String>> {
     private List<String> value;
 
     public OptionLessStringsJavadocOptionFileOption(List<String> value) {

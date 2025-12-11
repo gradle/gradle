@@ -26,11 +26,11 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 8.3
  */
-public final class FinishRootBuildTreeBuildOperationType implements BuildOperationType<FinishRootBuildTreeBuildOperationType.Details, FinishRootBuildTreeBuildOperationType.Result> {
+public final class FinishRootBuildTreeBuildOperationType
+        implements BuildOperationType<
+                FinishRootBuildTreeBuildOperationType.Details, FinishRootBuildTreeBuildOperationType.Result> {
 
-    public interface Details {
-    }
+    public interface Details {}
 
-    public interface Result {
-    }
+    public interface Result {}
 }

@@ -24,8 +24,10 @@ import org.jspecify.annotations.Nullable;
 public final class ReportArtifact {
     private final String name;
     private final String displayName;
+
     @Nullable
     private final String classifier;
+
     private final String type;
 
     ReportArtifact(String name, String displayName, @Nullable String classifier, String type) {
@@ -51,5 +53,4 @@ public final class ReportArtifact {
     public String getType() {
         return type;
     }
-
 }

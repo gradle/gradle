@@ -16,9 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
+import java.io.Serializable;
+import java.security.AccessControlException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.internal.Cast;
@@ -43,11 +47,6 @@ import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.security.AccessControlException;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-
 /**
  * Processes tests in a remote process with the given {@link TestDefinitionProcessor} until a stop command is received.  Requires that
  * methods willed be called sequentially in the following order:
@@ -60,8 +59,13 @@ import java.util.concurrent.BlockingQueue;
  * any of the methods from {@link RemoteTestDefinitionProcessor} are supported, the commands will still be executed sequentially in the
  * main thread in order of arrival.
  */
-public class TestWorker<D extends TestDefinition> implements Action<WorkerProcessContext>, RemoteTestDefinitionProcessor<D>, Serializable, Stoppable {
-    private enum State {INITIALIZING, STARTED, STOPPED}
+public class TestWorker<D extends TestDefinition>
+        implements Action<WorkerProcessContext>, RemoteTestDefinitionProcessor<D>, Serializable, Stoppable {
+    private enum State {
+        INITIALIZING,
+        STARTED,
+        STOPPED
+    }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
     public static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker";
@@ -92,7 +96,8 @@ public class TestWorker<D extends TestDefinition> implements Action<WorkerProces
 
         SecurityManagerRef securityManagerRef = SecurityManagerRef.getOrFake();
 
-        System.setProperty(WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
+        System.setProperty(
+                WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
 
         CloseableServiceRegistry testServices = TestFrameworkServiceRegistry.create(workerProcessContext);
         startReceivingTests(workerProcessContext, testServices);
@@ -125,24 +130,28 @@ public class TestWorker<D extends TestDefinition> implements Action<WorkerProces
         try {
             action.run();
         } finally {
-            // Reset the thread name if the action changes it (e.g. if a test sets the thread name without resetting it afterwards)
+            // Reset the thread name if the action changes it (e.g. if a test sets the thread name without resetting it
+            // afterwards)
             Thread.currentThread().setName(WORK_THREAD_NAME);
         }
     }
 
     private void startReceivingTests(WorkerProcessContext workerProcessContext, ServiceRegistry testServices) {
         TestDefinitionProcessor<D> targetProcessor = factory.create(
-            testServices.get(IdGenerator.class),
-            testServices.get(ActorFactory.class),
-            testServices.get(Clock.class)
-        );
+                testServices.get(IdGenerator.class),
+                testServices.get(ActorFactory.class),
+                testServices.get(Clock.class));
         IdGenerator<Object> idGenerator = Cast.uncheckedNonnullCast(testServices.get(IdGenerator.class));
 
-        targetProcessor = new WorkerTestDefinitionProcessor<>(targetProcessor, idGenerator.generateId(),
-            workerProcessContext.getDisplayName(), testServices.get(Clock.class));
+        targetProcessor = new WorkerTestDefinitionProcessor<>(
+                targetProcessor,
+                idGenerator.generateId(),
+                workerProcessContext.getDisplayName(),
+                testServices.get(Clock.class));
         ContextClassLoaderProxy<TestDefinitionProcessor<D>> proxy = new ContextClassLoaderProxy<>(
-            Cast.uncheckedNonnullCast(TestDefinitionProcessor.class), targetProcessor, workerProcessContext.getApplicationClassLoader()
-        );
+                Cast.uncheckedNonnullCast(TestDefinitionProcessor.class),
+                targetProcessor,
+                workerProcessContext.getApplicationClassLoader());
         processor = proxy.getSource();
 
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
@@ -172,7 +181,8 @@ public class TestWorker<D extends TestDefinition> implements Action<WorkerProces
             @Override
             public void run() {
                 if (state != State.STARTED) {
-                    throw new IllegalStateException("Test classes cannot be processed until a command to start processing has been received");
+                    throw new IllegalStateException(
+                            "Test classes cannot be processed until a command to start processing has been received");
                 }
                 try {
                     processor.processTestDefinition(testDefinition);
@@ -217,9 +227,9 @@ public class TestWorker<D extends TestDefinition> implements Action<WorkerProces
 
         public static CloseableServiceRegistry create(WorkerProcessContext workerProcessContext) {
             return ServiceRegistryBuilder.builder()
-                .displayName("test framework services")
-                .provider(new TestFrameworkServiceRegistry(workerProcessContext))
-                .build();
+                    .displayName("test framework services")
+                    .provider(new TestFrameworkServiceRegistry(workerProcessContext))
+                    .build();
         }
 
         private final WorkerProcessContext workerProcessContext;

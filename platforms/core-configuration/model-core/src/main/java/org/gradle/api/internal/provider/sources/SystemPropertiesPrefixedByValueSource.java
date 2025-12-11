@@ -19,9 +19,9 @@ package org.gradle.api.internal.provider.sources;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public abstract class SystemPropertiesPrefixedByValueSource extends MapWithPrefixedKeysValueSource<SystemPropertiesPrefixedByValueSource.Parameters> {
-    public interface Parameters extends MapWithPrefixedKeysValueSource.Parameters {
-    }
+public abstract class SystemPropertiesPrefixedByValueSource
+        extends MapWithPrefixedKeysValueSource<SystemPropertiesPrefixedByValueSource.Parameters> {
+    public interface Parameters extends MapWithPrefixedKeysValueSource.Parameters {}
 
     @Override
     protected Map<String, String> collectItems(String prefix) {
@@ -30,12 +30,12 @@ public abstract class SystemPropertiesPrefixedByValueSource extends MapWithPrefi
 
     private static Stream<Map.Entry<String, String>> itemsToFilter() {
         return System.getProperties().entrySet().stream()
-            .filter(e -> e.getKey() instanceof String && e.getValue() instanceof String)
-            .map(e -> {
-                Map.Entry<?, ?> untypedEntry = e;
-                @SuppressWarnings("unchecked")
-                Map.Entry<String, String> stringEntry = (Map.Entry<String, String>) untypedEntry;
-                return stringEntry;
-            });
+                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof String)
+                .map(e -> {
+                    Map.Entry<?, ?> untypedEntry = e;
+                    @SuppressWarnings("unchecked")
+                    Map.Entry<String, String> stringEntry = (Map.Entry<String, String>) untypedEntry;
+                    return stringEntry;
+                });
     }
 }

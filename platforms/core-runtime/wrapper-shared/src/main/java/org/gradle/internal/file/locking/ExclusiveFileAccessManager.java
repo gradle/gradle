@@ -38,8 +38,7 @@ public class ExclusiveFileAccessManager {
     public <T> T access(File exclusiveFile, Callable<T> task) throws Exception {
         final File lockFile = new File(exclusiveFile.getParentFile(), exclusiveFile.getName() + LOCK_FILE_SUFFIX);
         File lockFileDirectory = lockFile.getParentFile();
-        if (!lockFileDirectory.mkdirs()
-            && (!lockFileDirectory.exists() || !lockFileDirectory.isDirectory())) {
+        if (!lockFileDirectory.mkdirs() && (!lockFileDirectory.exists() || !lockFileDirectory.isDirectory())) {
             throw new RuntimeException("Could not create parent directory for lock file " + lockFile.getAbsolutePath());
         }
         RandomAccessFile randomAccessFile = null;
@@ -62,7 +61,8 @@ public class ExclusiveFileAccessManager {
             }
 
             if (lock == null) {
-                throw new RuntimeException("Timeout of " + timeoutMs + " reached waiting for exclusive access to file: " + exclusiveFile.getAbsolutePath());
+                throw new RuntimeException("Timeout of " + timeoutMs + " reached waiting for exclusive access to file: "
+                        + exclusiveFile.getAbsolutePath());
             }
 
             try {

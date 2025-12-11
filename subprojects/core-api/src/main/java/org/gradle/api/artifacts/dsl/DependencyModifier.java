@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts.dsl;
 
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -24,8 +25,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Cast;
-
-import javax.inject.Inject;
 
 /**
  * A {@code DependencyModifier} defines how to modify a dependency inside a custom {@code dependencies} block to select a different variant.
@@ -54,8 +53,7 @@ public abstract class DependencyModifier {
      *
      * @since 8.4
      */
-    protected DependencyModifier() {
-    }
+    protected DependencyModifier() {}
 
     /**
      * A dependency factory is used to convert supported dependency notations into {@link org.gradle.api.artifacts.Dependency} instances.
@@ -86,7 +84,8 @@ public abstract class DependencyModifier {
      * @return a provider to the modified dependency
      */
     @Incubating
-    public final Provider<? extends MinimalExternalModuleDependency> modify(ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
+    public final Provider<? extends MinimalExternalModuleDependency> modify(
+            ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
         return providerConvertibleToDependency.asProvider().map(this::modify);
     }
 
@@ -127,5 +126,4 @@ public abstract class DependencyModifier {
      * @since 8.4
      */
     protected abstract void modifyImplementation(ModuleDependency dependency);
-
 }

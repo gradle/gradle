@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import org.gradle.tooling.model.ProjectIdentifier;
-
 import java.io.File;
 import java.io.Serializable;
+import org.gradle.tooling.model.ProjectIdentifier;
 
 public class DefaultProjectIdentifier implements Serializable, GradleProjectIdentity, ProjectIdentifier {
     private final DefaultBuildIdentifier build;

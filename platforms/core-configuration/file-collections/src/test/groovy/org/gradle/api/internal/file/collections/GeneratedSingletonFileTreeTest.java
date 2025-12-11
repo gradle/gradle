@@ -15,6 +15,18 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import static org.gradle.api.file.FileVisitorUtil.assertVisits;
+import static org.gradle.util.internal.WrapUtil.toList;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.Factory;
@@ -27,23 +39,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.gradle.api.file.FileVisitorUtil.assertVisits;
-import static org.gradle.util.internal.WrapUtil.toList;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 public class GeneratedSingletonFileTreeTest {
 
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
+
     private TestFile rootDir = tmpDir.getTestDirectory();
 
     private Factory<File> fileFactory = new Factory<File>() {
@@ -68,7 +68,8 @@ public class GeneratedSingletonFileTreeTest {
         };
         GeneratedSingletonFileTree tree = tree("file.txt", fileAction);
 
-        FileTreeAdapter fileTreeAdapter = new FileTreeAdapter(tree, TestFiles.taskDependencyFactory(), TestFiles.getPatternSetFactory());
+        FileTreeAdapter fileTreeAdapter =
+                new FileTreeAdapter(tree, TestFiles.taskDependencyFactory(), TestFiles.getPatternSetFactory());
         File file = rootDir.file("file.txt");
 
         assertTrue(fileTreeAdapter.contains(file));

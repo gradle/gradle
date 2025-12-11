@@ -17,10 +17,9 @@ package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
 import groovy.lang.GString;
-import org.gradle.api.Transformer;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.api.Transformer;
 
 public class ChainingTransformer<T> implements Transformer<T, T> {
     private final List<Transformer<T, T>> transformers = new ArrayList<Transformer<T, T>>();

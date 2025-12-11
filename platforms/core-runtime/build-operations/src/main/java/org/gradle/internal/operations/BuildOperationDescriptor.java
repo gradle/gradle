@@ -32,15 +32,14 @@ public final class BuildOperationDescriptor {
     private final int totalProgress;
 
     private BuildOperationDescriptor(
-        @Nullable OperationIdentifier id,
-        @Nullable OperationIdentifier parentId,
-        String name,
-        String displayName,
-        @Nullable String progressDisplayName,
-        @Nullable Object details,
-        BuildOperationMetadata metadata,
-        int totalProgress
-    ) {
+            @Nullable OperationIdentifier id,
+            @Nullable OperationIdentifier parentId,
+            String name,
+            String displayName,
+            @Nullable String progressDisplayName,
+            @Nullable Object details,
+            BuildOperationMetadata metadata,
+            int totalProgress) {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
@@ -114,16 +113,15 @@ public final class BuildOperationDescriptor {
 
     @Override
     public String toString() {
-        return "BuildOperationDescriptor{" +
-            "id=" + id +
-            ", parentId=" + parentId +
-            ", displayName='" + displayName + '\'' +
-            ", name='" + name + '\'' +
-            ", progressDisplayName='" + progressDisplayName + '\'' +
-            ", details=" + details +
-            ", metadata=" + metadata +
-            ", totalProgress=" + totalProgress +
-            '}';
+        return "BuildOperationDescriptor{" + "id="
+                + id + ", parentId="
+                + parentId + ", displayName='"
+                + displayName + '\'' + ", name='"
+                + name + '\'' + ", progressDisplayName='"
+                + progressDisplayName + '\'' + ", details="
+                + details + ", metadata="
+                + metadata + ", totalProgress="
+                + totalProgress + '}';
     }
 
     public static final class Builder {
@@ -186,8 +184,17 @@ public final class BuildOperationDescriptor {
             return parent;
         }
 
-        public BuildOperationDescriptor build(@Nullable OperationIdentifier id, @Nullable OperationIdentifier defaultParentId) {
-            return new BuildOperationDescriptor(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details, metadata, totalProgress);
+        public BuildOperationDescriptor build(
+                @Nullable OperationIdentifier id, @Nullable OperationIdentifier defaultParentId) {
+            return new BuildOperationDescriptor(
+                    id,
+                    parent == null ? defaultParentId : parent.getId(),
+                    name,
+                    displayName,
+                    progressDisplayName,
+                    details,
+                    metadata,
+                    totalProgress);
         }
     }
 }

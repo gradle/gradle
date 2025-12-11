@@ -16,7 +16,8 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapingExecutionResult implements DelegatingExecutionFailure {
+public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapingExecutionResult
+        implements DelegatingExecutionFailure {
     private final ExecutionFailure delegate;
 
     public ErrorsOnStdoutScrapingExecutionFailure(ExecutionFailure delegate) {

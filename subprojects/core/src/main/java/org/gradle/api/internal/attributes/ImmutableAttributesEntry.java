@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.attributes;
 
+import java.util.Objects;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.isolation.Isolatable;
-
-import java.util.Objects;
 
 /**
  * An entry of an {@link ImmutableAttributes} container. This type contains
@@ -59,5 +58,4 @@ public interface ImmutableAttributesEntry<T> {
      * @throws IllegalArgumentException if this attribute is not compatible with the other one.
      */
     <S> S coerce(Attribute<S> otherAttribute);
-
 }

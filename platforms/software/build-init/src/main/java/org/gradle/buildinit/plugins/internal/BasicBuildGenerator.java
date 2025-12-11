@@ -16,6 +16,14 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import static java.util.Collections.singleton;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.NONE;
+import static org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption.SINGLE_PROJECT;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
@@ -23,22 +31,16 @@ import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static java.util.Collections.singleton;
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN;
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.NONE;
-import static org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption.SINGLE_PROJECT;
-
 /**
  * Generator for a "basic" Gradle build.
  */
 public class BasicBuildGenerator extends AbstractBuildGenerator {
     private final DocumentationRegistry documentationRegistry;
 
-    public BasicBuildGenerator(BuildScriptBuilderFactory scriptBuilderFactory, DocumentationRegistry documentationRegistry, List<? extends BuildContentGenerator> generators) {
+    public BasicBuildGenerator(
+            BuildScriptBuilderFactory scriptBuilderFactory,
+            DocumentationRegistry documentationRegistry,
+            List<? extends BuildContentGenerator> generators) {
         super(new BasicProjectGenerator(scriptBuilderFactory, documentationRegistry), generators);
         this.documentationRegistry = documentationRegistry;
     }

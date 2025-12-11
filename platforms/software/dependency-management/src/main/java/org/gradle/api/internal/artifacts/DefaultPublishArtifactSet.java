@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -22,36 +25,31 @@ import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Describables;
 
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<PublishArtifact> implements PublishArtifactSet {
+public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<PublishArtifact>
+        implements PublishArtifactSet {
     private final TaskDependencyInternal builtBy;
     private final FileCollection files;
     private final Describable displayName;
 
     public DefaultPublishArtifactSet(
-        String displayName,
-        DomainObjectSet<PublishArtifact> backingSet,
-        FileCollectionFactory fileCollectionFactory,
-        TaskDependencyFactory taskDependencyFactory
-    ) {
+            String displayName,
+            DomainObjectSet<PublishArtifact> backingSet,
+            FileCollectionFactory fileCollectionFactory,
+            TaskDependencyFactory taskDependencyFactory) {
         this(Describables.of(displayName), backingSet, fileCollectionFactory, taskDependencyFactory);
     }
 
     public DefaultPublishArtifactSet(
-        Describable displayName,
-        DomainObjectSet<PublishArtifact> backingSet,
-        FileCollectionFactory fileCollectionFactory,
-        TaskDependencyFactory taskDependencyFactory
-    ) {
+            Describable displayName,
+            DomainObjectSet<PublishArtifact> backingSet,
+            FileCollectionFactory fileCollectionFactory,
+            TaskDependencyFactory taskDependencyFactory) {
         super(backingSet);
         this.displayName = displayName;
         this.builtBy = taskDependencyFactory.visitingDependencies(context -> {

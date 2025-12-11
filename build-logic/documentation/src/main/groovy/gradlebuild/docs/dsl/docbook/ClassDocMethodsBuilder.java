@@ -16,19 +16,18 @@
 
 package gradlebuild.docs.dsl.docbook;
 
-import groovy.lang.Closure;
 import gradlebuild.docs.dsl.docbook.model.BlockDoc;
 import gradlebuild.docs.dsl.docbook.model.ClassDoc;
 import gradlebuild.docs.dsl.docbook.model.MethodDoc;
 import gradlebuild.docs.dsl.docbook.model.PropertyDoc;
 import gradlebuild.docs.dsl.source.model.MethodMetaData;
 import gradlebuild.docs.dsl.source.model.TypeMetaData;
-import org.w3c.dom.Element;
-
+import groovy.lang.Closure;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.w3c.dom.Element;
 
 public class ClassDocMethodsBuilder extends ModelBuilderSupport {
     private final JavadocConverter javadocConverter;
@@ -53,17 +52,29 @@ public class ClassDocMethodsBuilder extends ModelBuilderSupport {
             String methodName = cells.get(0).getTextContent().trim();
             Collection<MethodMetaData> methods = classDoc.getClassMetaData().findDeclaredMethods(methodName);
             if (methods.isEmpty()) {
-                throw new RuntimeException(String.format("No metadata for method '%s.%s()'. Available methods: %s", classDoc.getName(), methodName, classDoc.getClassMetaData().getDeclaredMethodNames()));
+                throw new RuntimeException(String.format(
+                        "No metadata for method '%s.%s()'. Available methods: %s",
+                        classDoc.getName(),
+                        methodName,
+                        classDoc.getClassMetaData().getDeclaredMethodNames()));
             }
             for (MethodMetaData method : methods) {
                 DocComment docComment = javadocConverter.parse(method, listener);
                 MethodDoc methodDoc = new MethodDoc(method, docComment.getDocbook());
                 if (methodDoc.getDescription() == null) {
-                    throw new RuntimeException(String.format("Docbook content for '%s %s' does not contain a description paragraph.", classDoc.getName(), method.getSignature()));
+                    throw new RuntimeException(String.format(
+                            "Docbook content for '%s %s' does not contain a description paragraph.",
+                            classDoc.getName(), method.getSignature()));
                 }
                 PropertyDoc property = classDoc.findProperty(methodName);
                 boolean multiValued = false;
-                if (property != null && method.getParameters().size() == 1 && method.getParameters().get(0).getType().getSignature().equals(Closure.class.getName())) {
+                if (property != null
+                        && method.getParameters().size() == 1
+                        && method.getParameters()
+                                .get(0)
+                                .getType()
+                                .getSignature()
+                                .equals(Closure.class.getName())) {
                     TypeMetaData type = property.getMetaData().getType();
                     if (type.getName().equals("java.util.List")
                             || type.getName().equals("java.util.Collection")
@@ -81,7 +92,7 @@ public class ClassDocMethodsBuilder extends ModelBuilderSupport {
         }
 
         for (ClassDoc supertype : classDoc.getSuperTypes()) {
-            for (MethodDoc method: supertype.getClassMethods()){
+            for (MethodDoc method : supertype.getClassMethods()) {
                 if (signatures.add(method.getMetaData().getOverrideSignature())) {
                     classDoc.addClassMethod(method);
                 }

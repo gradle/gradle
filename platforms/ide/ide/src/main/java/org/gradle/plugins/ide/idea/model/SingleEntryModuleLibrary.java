@@ -15,14 +15,13 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Single entry module library
@@ -51,14 +50,14 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
      * @param source paths to source jars or source folders
      * @param scope scope
      */
-    public SingleEntryModuleLibrary(FilePath library, @Nullable FilePath javadoc, @Nullable FilePath source, String scope) {
+    public SingleEntryModuleLibrary(
+            FilePath library, @Nullable FilePath javadoc, @Nullable FilePath source, String scope) {
         super(
-            Collections.singletonList(library),
-            javadoc != null ? Collections.singletonList(javadoc) : new ArrayList<>(),
-            source != null ? Collections.singletonList(source) : new ArrayList<>(),
-            new LinkedHashSet<>(),
-            scope
-        );
+                Collections.singletonList(library),
+                javadoc != null ? Collections.singletonList(javadoc) : new ArrayList<>(),
+                source != null ? Collections.singletonList(source) : new ArrayList<>(),
+                new LinkedHashSet<>(),
+                scope);
     }
 
     /**

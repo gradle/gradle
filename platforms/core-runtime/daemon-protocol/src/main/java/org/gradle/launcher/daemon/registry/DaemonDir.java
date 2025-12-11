@@ -16,12 +16,11 @@
 
 package org.gradle.launcher.daemon.registry;
 
+import java.io.File;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.GradleVersion;
-
-import java.io.File;
+import org.gradle.util.internal.GFileUtils;
 
 @ServiceScope(Scope.Global.class)
 public class DaemonDir {

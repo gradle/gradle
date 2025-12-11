@@ -16,9 +16,8 @@
 
 package org.gradle.internal.resource;
 
-import org.gradle.api.resources.ResourceException;
-
 import java.net.URI;
+import org.gradle.api.resources.ResourceException;
 
 /**
  * Exception thrown when one attempts to read a folder

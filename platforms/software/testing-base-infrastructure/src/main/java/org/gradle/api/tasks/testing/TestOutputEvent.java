@@ -45,6 +45,7 @@ public interface TestOutputEvent {
      * Destination of the message
      */
     enum Destination {
-        StdOut, StdErr
+        StdOut,
+        StdErr
     }
 }

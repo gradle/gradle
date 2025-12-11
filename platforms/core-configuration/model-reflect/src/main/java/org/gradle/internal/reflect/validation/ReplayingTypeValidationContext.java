@@ -15,12 +15,11 @@
  */
 package org.gradle.internal.reflect.validation;
 
-import org.gradle.api.Action;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import org.gradle.api.Action;
+import org.jspecify.annotations.Nullable;
 
 public class ReplayingTypeValidationContext implements TypeValidationContext {
     private final List<BiConsumer<String, TypeValidationContext>> problems = new ArrayList<>();

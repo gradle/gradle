@@ -17,20 +17,20 @@
 package org.gradle.plugin.management.internal.argumentloaded;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.buildinit.specs.internal.BuildInitSpecRegistry;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Provides a mechanism for requesting and applying plugins via arguments to a build.
  */
 public interface ArgumentSourcedPluginHandler {
-    List<String> ARGUMENT_SOURCES_PLUGIN_SUPPLIERS_PROPS = ImmutableList.of(BuildInitSpecRegistry.BUILD_INIT_SPECS_PLUGIN_SUPPLIER);
+    List<String> ARGUMENT_SOURCES_PLUGIN_SUPPLIERS_PROPS =
+            ImmutableList.of(BuildInitSpecRegistry.BUILD_INIT_SPECS_PLUGIN_SUPPLIER);
 
     /**
      * A static util class responsible for gathering {@link PluginRequest}s added outside any build script.
@@ -50,8 +50,8 @@ public interface ArgumentSourcedPluginHandler {
             if (propValue != null) {
                 String[] pluginRequests = propValue.split(",");
                 Arrays.stream(pluginRequests)
-                    .map(ArgumentSourcedPluginRequest::parsePluginRequest)
-                    .forEach(requests::add);
+                        .map(ArgumentSourcedPluginRequest::parsePluginRequest)
+                        .forEach(requests::add);
             }
         });
 

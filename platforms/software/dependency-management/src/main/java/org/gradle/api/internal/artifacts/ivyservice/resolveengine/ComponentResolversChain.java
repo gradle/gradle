@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -33,9 +35,6 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A factory for the various resolver services backed by a chain of repositories.
@@ -83,7 +82,10 @@ public class ComponentResolversChain implements ComponentResolvers {
         }
 
         @Override
-        public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
+        public void resolve(
+                ComponentIdentifier identifier,
+                ComponentOverrideMetadata componentOverrideMetadata,
+                BuildableComponentResolveResult result) {
             for (ComponentMetaDataResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;
@@ -111,7 +113,10 @@ public class ComponentResolversChain implements ComponentResolvers {
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(
+                ComponentArtifactResolveMetadata component,
+                ComponentArtifactMetadata artifact,
+                BuildableArtifactResolveResult result) {
             for (ArtifactResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;
@@ -121,7 +126,10 @@ public class ComponentResolversChain implements ComponentResolvers {
         }
 
         @Override
-        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveArtifactsWithType(
+                ComponentArtifactResolveMetadata component,
+                ArtifactType artifactType,
+                BuildableArtifactSetResolveResult result) {
             for (ArtifactResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;
@@ -141,7 +149,13 @@ public class ComponentResolversChain implements ComponentResolvers {
         }
 
         @Override
-        public void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes) {
+        public void resolve(
+                ComponentSelector selector,
+                ComponentOverrideMetadata overrideMetadata,
+                VersionSelector acceptor,
+                @Nullable VersionSelector rejector,
+                BuildableComponentIdResolveResult result,
+                ImmutableAttributes consumerAttributes) {
             for (DependencyToComponentIdResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;

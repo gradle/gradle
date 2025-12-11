@@ -15,10 +15,9 @@
  */
 package org.gradle.cache;
 
-import org.gradle.internal.serialize.Serializer;
-
 import java.io.Closeable;
 import java.io.File;
+import org.gradle.internal.serialize.Serializer;
 
 /**
  * Represents a directory that can be used for caching.

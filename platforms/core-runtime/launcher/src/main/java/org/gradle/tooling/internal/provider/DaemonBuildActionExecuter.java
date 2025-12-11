@@ -27,7 +27,8 @@ import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
-public class DaemonBuildActionExecuter implements BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> {
+public class DaemonBuildActionExecuter
+        implements BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> {
     private final BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> delegate;
 
     public DaemonBuildActionExecuter(BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> delegate) {
@@ -35,12 +36,21 @@ public class DaemonBuildActionExecuter implements BuildActionExecutor<Connection
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, ConnectionOperationParameters parameters, ClientBuildRequestContext buildRequestContext) {
+    public BuildActionResult execute(
+            BuildAction action,
+            ConnectionOperationParameters parameters,
+            ClientBuildRequestContext buildRequestContext) {
         ProviderOperationParameters operationParameters = parameters.getOperationParameters();
         ClassPath classPath = DefaultClassPath.of(operationParameters.getInjectedPluginClasspath());
 
         DaemonParameters daemonParameters = parameters.getDaemonParameters();
-        BuildActionParameters actionParameters = new DefaultBuildActionParameters(parameters.getTapiSystemProperties(), daemonParameters.getEnvironmentVariables(), SystemProperties.getInstance().getCurrentDir(), action.getStartParameter().getLogLevel(), daemonParameters.isEnabled(), classPath);
+        BuildActionParameters actionParameters = new DefaultBuildActionParameters(
+                parameters.getTapiSystemProperties(),
+                daemonParameters.getEnvironmentVariables(),
+                SystemProperties.getInstance().getCurrentDir(),
+                action.getStartParameter().getLogLevel(),
+                daemonParameters.isEnabled(),
+                classPath);
         return delegate.execute(action, actionParameters, buildRequestContext);
     }
 }

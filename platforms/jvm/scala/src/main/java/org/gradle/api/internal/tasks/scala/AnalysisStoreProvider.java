@@ -16,19 +16,19 @@
 
 package org.gradle.api.internal.tasks.scala;
 
+import java.io.File;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.cache.Cache;
 import org.gradle.cache.internal.MapBackedCache;
 import xsbti.compile.AnalysisStore;
 import xsbti.compile.FileAnalysisStore;
-
-import java.io.File;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class AnalysisStoreProvider {
 
     private final Cache<File, AnalysisStore> cache = new MapBackedCache<>(new ConcurrentHashMap<>());
 
     AnalysisStore get(final File analysisFile) {
-        return AnalysisStore.getCachedStore(cache.get(analysisFile, () -> AnalysisStore.getThreadSafeStore(FileAnalysisStore.getDefault(analysisFile))));
+        return AnalysisStore.getCachedStore(cache.get(
+                analysisFile, () -> AnalysisStore.getThreadSafeStore(FileAnalysisStore.getDefault(analysisFile))));
     }
 }

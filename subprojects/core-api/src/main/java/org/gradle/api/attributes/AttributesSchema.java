@@ -16,11 +16,10 @@
 
 package org.gradle.api.attributes;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
 /**
  * An attributes schema stores information about {@link Attribute attributes} and how they
@@ -60,7 +59,8 @@ public interface AttributesSchema {
      * @param <T> the concrete type of the attribute
      * @return the configured strategy
      */
-    <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction);
+    <T> AttributeMatchingStrategy<T> attribute(
+            Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction);
 
     /**
      * Returns the set of attributes known to this schema.

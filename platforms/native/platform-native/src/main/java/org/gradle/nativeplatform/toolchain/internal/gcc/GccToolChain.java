@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import javax.inject.Inject;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
@@ -28,9 +29,6 @@ import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataPro
 import org.gradle.process.internal.ExecActionFactory;
 import org.jspecify.annotations.NullMarked;
 
-import javax.inject.Inject;
-
-
 /**
  * Compiler adapter for GCC.
  */
@@ -39,8 +37,28 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     public static final String DEFAULT_NAME = "gcc";
 
     @Inject
-    public GccToolChain(Instantiator instantiator, String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProviderFactory metaDataProviderFactory, SystemLibraryDiscovery standardLibraryDiscovery, WorkerLeaseService workerLeaseService) {
-        super(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory.gcc(), standardLibraryDiscovery, instantiator, workerLeaseService);
+    public GccToolChain(
+            Instantiator instantiator,
+            String name,
+            BuildOperationExecutor buildOperationExecutor,
+            OperatingSystem operatingSystem,
+            FileResolver fileResolver,
+            ExecActionFactory execActionFactory,
+            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+            CompilerMetaDataProviderFactory metaDataProviderFactory,
+            SystemLibraryDiscovery standardLibraryDiscovery,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                name,
+                buildOperationExecutor,
+                operatingSystem,
+                fileResolver,
+                execActionFactory,
+                compilerOutputFileNamingSchemeFactory,
+                metaDataProviderFactory.gcc(),
+                standardLibraryDiscovery,
+                instantiator,
+                workerLeaseService);
     }
 
     @Override

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -23,9 +25,6 @@ import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinished
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.hash.HashCode;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * This operation represents the work of analyzing the task's inputs plus the calculating the cache key.
@@ -36,21 +35,25 @@ import java.util.Set;
  * in {@link MarkSnapshottingInputsStartedStep} and finished in {@link MarkSnapshottingInputsFinishedStep}.
  * </p>
  */
-public class SnapshotTaskInputsBuildOperationResult extends BaseSnapshotInputsBuildOperationResult implements SnapshotTaskInputsBuildOperationType.Result {
+public class SnapshotTaskInputsBuildOperationResult extends BaseSnapshotInputsBuildOperationResult
+        implements SnapshotTaskInputsBuildOperationType.Result {
 
     private final Set<InputFilePropertySpec> inputFilePropertySpecs;
 
-    public SnapshotTaskInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs) {
+    public SnapshotTaskInputsBuildOperationResult(
+            CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs) {
         super(cachingState);
         this.inputFilePropertySpecs = inputFilePropertySpecs;
     }
 
-
     @Override
-    public void visitInputFileProperties(final SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor visitor) {
+    public void visitInputFileProperties(
+            final SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor visitor) {
         getBeforeExecutionState()
-            .map(BeforeExecutionState::getInputFileProperties)
-            .ifPresent(inputFileProperties -> SnapshotTaskInputsResultFilePropertyVisitState.visitInputFileProperties(inputFileProperties, visitor, inputFilePropertySpecs));
+                .map(BeforeExecutionState::getInputFileProperties)
+                .ifPresent(
+                        inputFileProperties -> SnapshotTaskInputsResultFilePropertyVisitState.visitInputFileProperties(
+                                inputFileProperties, visitor, inputFilePropertySpecs));
     }
 
     @Nullable
@@ -67,12 +70,16 @@ public class SnapshotTaskInputsBuildOperationResult extends BaseSnapshotInputsBu
         return visitor.getFileProperties();
     }
 
-    private static class FilePropertyCollectingVisitor extends BaseFilePropertyCollectingVisitor<VisitState> implements InputFilePropertyVisitor {
+    private static class FilePropertyCollectingVisitor extends BaseFilePropertyCollectingVisitor<VisitState>
+            implements InputFilePropertyVisitor {
 
         @SuppressWarnings("deprecation")
         @Override
         protected Property createProperty(VisitState state) {
-            return new TaskProperty(HashCode.fromBytes(state.getPropertyHashBytes()).toString(), state.getPropertyNormalizationStrategyName(), state.getPropertyAttributes());
+            return new TaskProperty(
+                    HashCode.fromBytes(state.getPropertyHashBytes()).toString(),
+                    state.getPropertyNormalizationStrategyName(),
+                    state.getPropertyAttributes());
         }
 
         static class TaskProperty extends Property {
@@ -89,5 +96,4 @@ public class SnapshotTaskInputsBuildOperationResult extends BaseSnapshotInputsBu
             }
         }
     }
-
 }

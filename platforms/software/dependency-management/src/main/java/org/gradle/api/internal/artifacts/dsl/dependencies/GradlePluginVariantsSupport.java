@@ -30,26 +30,33 @@ import org.gradle.util.GradleVersion;
 public class GradlePluginVariantsSupport {
 
     public static void configureSchema(AttributesSchema attributesSchema) {
-        AttributeMatchingStrategy<GradlePluginApiVersion> strategy = attributesSchema.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
+        AttributeMatchingStrategy<GradlePluginApiVersion> strategy =
+                attributesSchema.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
         strategy.getCompatibilityRules().add(TargetGradleVersionCompatibilityRule.class);
         strategy.getDisambiguationRules().add(TargetGradleVersionDisambiguationRule.class);
     }
 
-    public static void configureFailureHandler(ResolutionFailureHandler handler)  {
+    public static void configureFailureHandler(ResolutionFailureHandler handler) {
         handler.addFailureDescriber(NoCompatibleVariantsFailure.class, NewerGradleNeededByPluginFailureDescriber.class);
-        handler.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnPluginTooNewFailureDescriber.class);
+        handler.addFailureDescriber(
+                NoCompatibleVariantsFailure.class, TargetJVMVersionOnPluginTooNewFailureDescriber.class);
     }
 
-    public static class TargetGradleVersionCompatibilityRule implements AttributeCompatibilityRule<GradlePluginApiVersion> {
+    public static class TargetGradleVersionCompatibilityRule
+            implements AttributeCompatibilityRule<GradlePluginApiVersion> {
 
         @Override
         public void execute(CompatibilityCheckDetails<GradlePluginApiVersion> details) {
-            // we compare to the base version of the consumer, because pre-release versions should already match variants targeting the final release
+            // we compare to the base version of the consumer, because pre-release versions should already match
+            // variants targeting the final release
             GradlePluginApiVersion consumer = details.getConsumerValue();
             GradlePluginApiVersion producer = details.getProducerValue();
             if (consumer == null || producer == null) {
                 details.compatible();
-            } else if (GradleVersion.version(consumer.getName()).getBaseVersion().compareTo(GradleVersion.version(producer.getName())) >= 0) {
+            } else if (GradleVersion.version(consumer.getName())
+                            .getBaseVersion()
+                            .compareTo(GradleVersion.version(producer.getName()))
+                    >= 0) {
                 details.compatible();
             } else {
                 details.incompatible();
@@ -57,16 +64,18 @@ public class GradlePluginVariantsSupport {
         }
     }
 
-    public static class TargetGradleVersionDisambiguationRule implements AttributeDisambiguationRule<GradlePluginApiVersion> {
+    public static class TargetGradleVersionDisambiguationRule
+            implements AttributeDisambiguationRule<GradlePluginApiVersion> {
 
         @Override
         public void execute(MultipleCandidatesDetails<GradlePluginApiVersion> details) {
             GradlePluginApiVersion consumerValue = details.getConsumerValue();
-            GradleVersion consumer = consumerValue == null ? GradleVersion.current() : GradleVersion.version(consumerValue.getName());
+            GradleVersion consumer =
+                    consumerValue == null ? GradleVersion.current() : GradleVersion.version(consumerValue.getName());
             GradleVersion bestMatchVersion = GradleVersion.version("0.0");
             GradlePluginApiVersion bestMatchAttribute = null;
 
-            for(GradlePluginApiVersion candidate : details.getCandidateValues()) {
+            for (GradlePluginApiVersion candidate : details.getCandidateValues()) {
                 GradleVersion producer = GradleVersion.version(candidate.getName());
                 if (producer.compareTo(consumer) <= 0 && producer.compareTo(bestMatchVersion) > 0) {
                     bestMatchVersion = producer;

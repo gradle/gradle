@@ -16,6 +16,11 @@
 
 package gradlebuild.docs;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static java.util.stream.Collectors.toList;
+
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -30,12 +35,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider;
-
-import javax.inject.Inject;
-import java.io.File;
-
-import static com.google.common.collect.Iterables.getOnlyElement;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Extracts Kotlin DSL runtime generated sources.
@@ -77,9 +76,9 @@ public abstract class GradleKotlinDslRuntimeGeneratedSources extends DefaultTask
     protected abstract FileSystemOperations getFs();
 
     public GradleKotlinDslRuntimeGeneratedSources() {
-        getInputClasspath().from(
-            ClasspathUtil.getClasspath(getInputClassLoaderScope().getExportClassLoader()).getAsFiles()
-        );
+        getInputClasspath()
+                .from(ClasspathUtil.getClasspath(getInputClassLoaderScope().getExportClassLoader())
+                        .getAsFiles());
     }
 
     private ClassLoaderScope getInputClassLoaderScope() {
@@ -101,12 +100,11 @@ public abstract class GradleKotlinDslRuntimeGeneratedSources extends DefaultTask
 
     private File getKotlinDslExtensionsJar() {
         return getOnlyElement(
-            getKotlinScriptClassPathProvider()
-                .compilationClassPathOf(getInputClassLoaderScope())
-                .getAsFiles()
-                .stream()
-                .filter(file -> file.getName().startsWith("gradle-kotlin-dsl-extensions"))
-                .collect(toList())
-        );
+                getKotlinScriptClassPathProvider()
+                        .compilationClassPathOf(getInputClassLoaderScope())
+                        .getAsFiles()
+                        .stream()
+                        .filter(file -> file.getName().startsWith("gradle-kotlin-dsl-extensions"))
+                        .collect(toList()));
     }
 }

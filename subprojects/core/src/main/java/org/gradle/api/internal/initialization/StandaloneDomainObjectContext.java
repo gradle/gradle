@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.initialization;
 
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -24,10 +27,6 @@ import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Domain object context implementation intended for identifying contexts that wrap no mutable state.
@@ -123,8 +122,7 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
         };
     }
 
-    private StandaloneDomainObjectContext() {
-    }
+    private StandaloneDomainObjectContext() {}
 
     @Override
     public Path identityPath(String name) {

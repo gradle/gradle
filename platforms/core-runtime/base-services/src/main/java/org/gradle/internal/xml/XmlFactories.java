@@ -16,10 +16,6 @@
 
 package org.gradle.internal.xml;
 
-import org.jspecify.annotations.NullMarked;
-import org.xml.sax.SAXNotRecognizedException;
-import org.xml.sax.SAXNotSupportedException;
-
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -28,6 +24,9 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathFactoryConfigurationException;
+import org.jspecify.annotations.NullMarked;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 
 /**
  * Factories for javax.xml.
@@ -80,7 +79,8 @@ public final class XmlFactories {
     }
 
     private static String errorMessageFor(String factory) {
-        return "Unable to create secure " + factory + ", please make sure that your build does not depend on an old XML parser.";
+        return "Unable to create secure " + factory
+                + ", please make sure that your build does not depend on an old XML parser.";
     }
 
     private XmlFactories() {}

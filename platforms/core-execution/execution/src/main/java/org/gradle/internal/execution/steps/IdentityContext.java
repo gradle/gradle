@@ -32,12 +32,12 @@ public class IdentityContext extends ExecutionRequestContext implements Identify
     private final Identity identity;
 
     public IdentityContext(
-        ExecutionRequestContext parent,
-        ImplementationSnapshot implementation,
-        ImmutableList<ImplementationSnapshot> additionalImplementations,
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-        Identity identity) {
+            ExecutionRequestContext parent,
+            ImplementationSnapshot implementation,
+            ImmutableList<ImplementationSnapshot> additionalImplementations,
+            ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+            Identity identity) {
         super(parent);
         this.implementation = implementation;
         this.additionalImplementations = additionalImplementations;
@@ -48,13 +48,12 @@ public class IdentityContext extends ExecutionRequestContext implements Identify
 
     protected IdentityContext(IdentityContext parent) {
         this(
-            parent,
-            parent.getImplementation(),
-            parent.getAdditionalImplementations(),
-            parent.getInputProperties(),
-            parent.getInputFileProperties(),
-            parent.getIdentity()
-        );
+                parent,
+                parent.getImplementation(),
+                parent.getAdditionalImplementations(),
+                parent.getInputProperties(),
+                parent.getInputFileProperties(),
+                parent.getIdentity());
     }
 
     public ImplementationSnapshot getImplementation() {

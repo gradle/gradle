@@ -21,7 +21,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public class ManagedScheduledExecutorImpl extends AbstractManagedExecutor<ScheduledExecutorService> implements ManagedScheduledExecutor {
+public class ManagedScheduledExecutorImpl extends AbstractManagedExecutor<ScheduledExecutorService>
+        implements ManagedScheduledExecutor {
     ManagedScheduledExecutorImpl(ScheduledExecutorService delegate, ExecutorPolicy executorPolicy) {
         super(delegate, executorPolicy);
     }

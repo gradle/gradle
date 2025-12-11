@@ -33,5 +33,4 @@ public interface Module {
     String getVersion();
 
     String getStatus();
-
 }

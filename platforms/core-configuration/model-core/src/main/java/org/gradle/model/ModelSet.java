@@ -16,10 +16,9 @@
 
 package org.gradle.model;
 
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-
-import java.util.Set;
 
 /**
  * A set of managed model objects.

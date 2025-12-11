@@ -25,7 +25,8 @@ import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositoriesProvider;
 
 @ServiceScope(Scope.Build.class)
-public class PluginDependencyResolutionServices implements PluginRepositoryHandlerProvider, PluginArtifactRepositoriesProvider {
+public class PluginDependencyResolutionServices
+        implements PluginRepositoryHandlerProvider, PluginArtifactRepositoriesProvider {
     private final Factory<DependencyResolutionServices> factory;
     private DependencyResolutionServices dependencyResolutionServices;
 

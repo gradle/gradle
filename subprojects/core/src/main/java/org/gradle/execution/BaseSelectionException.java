@@ -16,10 +16,10 @@
 
 package org.gradle.execution;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
+
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.exceptions.FailureResolutionAware;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 abstract class BaseSelectionException extends InvalidUserDataException implements FailureResolutionAware {
     private final String taskName;

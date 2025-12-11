@@ -17,6 +17,11 @@
 package org.gradle.api.internal.tasks.testing;
 
 import com.google.common.base.Preconditions;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestFailure;
@@ -25,12 +30,6 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.time.Instant;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 @NullMarked
 class DefaultTestEventReporter implements TestEventReporterInternal {
@@ -41,7 +40,8 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
 
     private long startTime;
 
-    DefaultTestEventReporter(TestListenerInternal listener, TestDescriptorInternal testDescriptor, TestResultState testResultState) {
+    DefaultTestEventReporter(
+            TestListenerInternal listener, TestDescriptorInternal testDescriptor, TestResultState testResultState) {
         this.listener = listener;
         this.testDescriptor = testDescriptor;
         this.testResultState = testResultState;
@@ -61,7 +61,13 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
             testResultState.incrementTotalCount();
         }
         this.startTime = startTime.toEpochMilli();
-        listener.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), testDescriptor.getParent() == null ? null : testDescriptor.getParent().getId()));
+        listener.started(
+                testDescriptor,
+                new TestStartEvent(
+                        startTime.toEpochMilli(),
+                        testDescriptor.getParent() == null
+                                ? null
+                                : testDescriptor.getParent().getId()));
     }
 
     @Override
@@ -74,7 +80,8 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
         Preconditions.checkNotNull(logTime, "logTime can not be null!");
         Preconditions.checkNotNull(key, "Metadata key can not be null!");
         Preconditions.checkNotNull(value, "Metadata value can not be null!");
-        listener.metadata(testDescriptor, new DefaultTestKeyValueDataEvent(logTime, Collections.singletonMap(key, value)));
+        listener.metadata(
+                testDescriptor, new DefaultTestKeyValueDataEvent(logTime, Collections.singletonMap(key, value)));
     }
 
     @Override
@@ -96,7 +103,18 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
         if (!isComposite()) {
             testResultState.incrementSuccessfulCount();
         }
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SUCCESS, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.emptyList(), null), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
+        listener.completed(
+                testDescriptor,
+                new DefaultTestResult(
+                        TestResult.ResultType.SUCCESS,
+                        startTime,
+                        endTime.toEpochMilli(),
+                        testResultState.getTotalCount(),
+                        testResultState.getSuccessfulCount(),
+                        testResultState.getFailureCount(),
+                        Collections.emptyList(),
+                        null),
+                new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
     }
 
     @Override
@@ -106,13 +124,26 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
 
     @Override
     public void skipped(Instant endTime, @Nullable TestFailure assumptionFailure) {
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SKIPPED, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.emptyList(), assumptionFailure), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
+        listener.completed(
+                testDescriptor,
+                new DefaultTestResult(
+                        TestResult.ResultType.SKIPPED,
+                        startTime,
+                        endTime.toEpochMilli(),
+                        testResultState.getTotalCount(),
+                        testResultState.getSuccessfulCount(),
+                        testResultState.getFailureCount(),
+                        Collections.emptyList(),
+                        assumptionFailure),
+                new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
     }
 
     @Override
     public void failed(Instant endTime, String message, String additionalContent) {
-        TestFailureDetails failureDetails = new AssertionFailureDetails(message, Throwable.class.getName(), additionalContent, null, null);
-        TestFailure testFailure = new DefaultTestFailure(new Throwable(message), failureDetails, Collections.emptyList());
+        TestFailureDetails failureDetails =
+                new AssertionFailureDetails(message, Throwable.class.getName(), additionalContent, null, null);
+        TestFailure testFailure =
+                new DefaultTestFailure(new Throwable(message), failureDetails, Collections.emptyList());
         failed(endTime, Collections.singletonList(testFailure));
     }
 
@@ -121,7 +152,18 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
         if (!isComposite()) {
             testResultState.incrementFailureCount();
         }
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), failures, null), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
+        listener.completed(
+                testDescriptor,
+                new DefaultTestResult(
+                        TestResult.ResultType.FAILURE,
+                        startTime,
+                        endTime.toEpochMilli(),
+                        testResultState.getTotalCount(),
+                        testResultState.getSuccessfulCount(),
+                        testResultState.getFailureCount(),
+                        failures,
+                        null),
+                new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 
     @Override

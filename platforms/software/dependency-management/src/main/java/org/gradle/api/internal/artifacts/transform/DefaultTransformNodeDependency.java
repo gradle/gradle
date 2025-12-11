@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.util.Collection;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class DefaultTransformNodeDependency implements TransformNodeDependency {

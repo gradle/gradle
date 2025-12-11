@@ -36,8 +36,10 @@ public abstract class CancellationExceptionTransformer {
             @Override
             public RuntimeException transform(RuntimeException e) {
                 for (Throwable t = e; t != null; t = t.getCause()) {
-                    if ("org.gradle.api.BuildCancelledException".equals(t.getClass().getName())
-                        || "org.gradle.tooling.BuildCancelledException".equals(t.getClass().getName())) {
+                    if ("org.gradle.api.BuildCancelledException"
+                                    .equals(t.getClass().getName())
+                            || "org.gradle.tooling.BuildCancelledException"
+                                    .equals(t.getClass().getName())) {
                         return new InternalBuildCancelledException(e.getCause());
                     }
                 }

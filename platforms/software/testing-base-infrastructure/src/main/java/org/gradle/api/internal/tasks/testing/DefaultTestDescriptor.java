@@ -27,8 +27,10 @@ import org.jspecify.annotations.Nullable;
 @NullMarked
 public class DefaultTestDescriptor extends AbstractTestDescriptor {
     private final String displayName;
+
     @Nullable
     private final String className;
+
     private final String classDisplayName;
 
     @UsedByScanPlugin("test-distribution")
@@ -41,11 +43,18 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
     }
 
     @UsedByScanPlugin("test-distribution")
-    public DefaultTestDescriptor(Object id, @Nullable String className, String name, @Nullable String classDisplayName, String displayName) {
+    public DefaultTestDescriptor(
+            Object id, @Nullable String className, String name, @Nullable String classDisplayName, String displayName) {
         this(id, className, name, classDisplayName, displayName, DefaultNoSource.getInstance());
     }
 
-    public DefaultTestDescriptor(Object id, @Nullable String className, String name, @Nullable String classDisplayName, String displayName, TestSource source) {
+    public DefaultTestDescriptor(
+            Object id,
+            @Nullable String className,
+            String name,
+            @Nullable String classDisplayName,
+            String displayName,
+            TestSource source) {
         super(id, name, source);
         this.className = className;
         this.classDisplayName = classDisplayName == null ? className : classDisplayName;

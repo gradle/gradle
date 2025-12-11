@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.fixtures.extensions;
 
-import org.spockframework.runtime.extension.ExtensionAnnotation;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.spockframework.runtime.extension.ExtensionAnnotation;
 
 /**
  * Marks a test class as needing to run twice, with and without fluid dependencies enabled.
@@ -33,5 +32,4 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @ExtensionAnnotation(FluidDependenciesResolveTestExtension.class)
 @Inherited
-public @interface FluidDependenciesResolveTest {
-}
+public @interface FluidDependenciesResolveTest {}

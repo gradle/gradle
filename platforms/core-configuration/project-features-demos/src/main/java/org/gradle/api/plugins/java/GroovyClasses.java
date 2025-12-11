@@ -16,11 +16,10 @@
 
 package org.gradle.api.plugins.java;
 
-import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.model.ObjectFactory;
-
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.model.ObjectFactory;
 
 public interface GroovyClasses extends JvmOutputs, HasInputSources {
 

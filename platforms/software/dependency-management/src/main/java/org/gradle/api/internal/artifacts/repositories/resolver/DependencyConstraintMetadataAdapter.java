@@ -20,7 +20,8 @@ import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 
-public class DependencyConstraintMetadataAdapter extends AbstractDependencyMetadataAdapter<DependencyConstraintMetadata> implements DependencyConstraintMetadata {
+public class DependencyConstraintMetadataAdapter extends AbstractDependencyMetadataAdapter<DependencyConstraintMetadata>
+        implements DependencyConstraintMetadata {
 
     public DependencyConstraintMetadataAdapter(AttributesFactory attributesFactory, ModuleDependencyMetadata metadata) {
         super(attributesFactory, metadata);

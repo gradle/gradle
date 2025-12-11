@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.tasks;
 
+import static java.util.Arrays.asList;
+import static org.gradle.api.internal.tasks.WorkDependencyResolver.TASK_AS_TASK;
+
+import java.util.Set;
+import java.util.function.Supplier;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.transform.TransformNodeDependency;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
-import java.util.function.Supplier;
-
-import static java.util.Arrays.asList;
-import static org.gradle.api.internal.tasks.WorkDependencyResolver.TASK_AS_TASK;
 
 @NullMarked
 public abstract class AbstractTaskDependency implements TaskDependencyContainerInternal {
@@ -38,13 +37,14 @@ public abstract class AbstractTaskDependency implements TaskDependencyContainerI
         this.dependencyUsageTracker = dependencyUsageTracker;
     }
 
-    private static final WorkDependencyResolver<Task> IGNORE_ARTIFACT_TRANSFORM_RESOLVER = new WorkDependencyResolver<Task>() {
-        @Override
-        public boolean resolve(Task task, Object node, Action<? super Task> resolveAction) {
-            // Ignore artifact transforms
-            return node instanceof TransformNodeDependency || node instanceof WorkNodeAction;
-        }
-    };
+    private static final WorkDependencyResolver<Task> IGNORE_ARTIFACT_TRANSFORM_RESOLVER =
+            new WorkDependencyResolver<Task>() {
+                @Override
+                public boolean resolve(Task task, Object node, Action<? super Task> resolveAction) {
+                    // Ignore artifact transforms
+                    return node instanceof TransformNodeDependency || node instanceof WorkNodeAction;
+                }
+            };
 
     private Supplier<String> toStringProvider = null;
 
@@ -68,9 +68,8 @@ public abstract class AbstractTaskDependency implements TaskDependencyContainerI
 
     @Override
     public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
-        CachingTaskDependencyResolveContext<Task> context = new CachingTaskDependencyResolveContext<Task>(
-            asList(TASK_AS_TASK, IGNORE_ARTIFACT_TRANSFORM_RESOLVER)
-        );
+        CachingTaskDependencyResolveContext<Task> context =
+                new CachingTaskDependencyResolveContext<Task>(asList(TASK_AS_TASK, IGNORE_ARTIFACT_TRANSFORM_RESOLVER));
         return context.getDependencies(task, this);
     }
 }

@@ -23,11 +23,13 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
-public class DirectDependenciesMetadataAdapter extends AbstractDependenciesMetadataAdapter<DirectDependencyMetadata, DirectDependencyMetadataAdapter> implements DirectDependenciesMetadata {
+public class DirectDependenciesMetadataAdapter
+        extends AbstractDependenciesMetadataAdapter<DirectDependencyMetadata, DirectDependencyMetadataAdapter>
+        implements DirectDependenciesMetadata {
     public DirectDependenciesMetadataAdapter(
-        AttributesFactory attributesFactory,
-        Instantiator instantiator,
-        NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser) {
+            AttributesFactory attributesFactory,
+            Instantiator instantiator,
+            NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser) {
         super(attributesFactory, instantiator, dependencyNotationParser);
     }
 
@@ -50,5 +52,4 @@ public class DirectDependenciesMetadataAdapter extends AbstractDependenciesMetad
     protected boolean isEndorsingStrictVersions(DirectDependencyMetadata details) {
         return details.isEndorsingStrictVersions();
     }
-
 }

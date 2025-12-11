@@ -16,20 +16,19 @@
 
 package org.gradle.api.tasks.diagnostics.internal.text;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
+
 import com.google.common.base.Joiner;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.reporting.ReportRenderer;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class DefaultTextReportBuilder implements TextReportBuilder {
     public static final String SEPARATOR = "------------------------------------------------------------";
@@ -119,7 +118,11 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     }
 
     @Override
-    public <T> void collection(String title, Collection<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
+    public <T> void collection(
+            String title,
+            Collection<? extends T> items,
+            ReportRenderer<T, TextReportBuilder> renderer,
+            String elementsPlural) {
         if (depth <= 1 && !hasTitledItems) {
             writeSubheading(title);
         } else if (depth == 2 && !hasTitledItems) {
@@ -176,5 +179,4 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
             hasTitledItems = originalItems;
         }
     }
-
 }

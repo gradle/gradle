@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.publish;
 
+import java.io.File;
+import java.util.Date;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Date;
 
 public class DefaultPublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
     private String name;
@@ -49,9 +48,14 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
     }
 
     public DefaultPublishArtifact(
-        TaskDependencyFactory taskDependencyFactory,
-        String name, String extension, String type,
-        String classifier, Date date, File file, Object... tasks) {
+            TaskDependencyFactory taskDependencyFactory,
+            String name,
+            String extension,
+            String type,
+            String classifier,
+            Date date,
+            File file,
+            Object... tasks) {
         super(taskDependencyFactory, tasks);
         this.name = name;
         this.extension = extension;
@@ -61,8 +65,8 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
         this.file = file;
     }
 
-    public DefaultPublishArtifact(String name, String extension, String type,
-                                  String classifier, Date date, File file, Object... tasks) {
+    public DefaultPublishArtifact(
+            String name, String extension, String type, String classifier, Date date, File file, Object... tasks) {
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
         this.name = name;
         this.extension = extension;

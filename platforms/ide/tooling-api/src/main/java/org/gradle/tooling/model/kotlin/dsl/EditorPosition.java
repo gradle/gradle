@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.model.kotlin.dsl;
 
-
 /**
  * Position in the editor.
  *

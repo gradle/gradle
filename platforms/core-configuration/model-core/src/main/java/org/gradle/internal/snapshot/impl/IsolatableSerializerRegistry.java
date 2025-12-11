@@ -19,6 +19,11 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Array;
+import java.util.Collection;
+import java.util.List;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.problems.internal.IsolatableToBytesSerializer;
 import org.gradle.internal.Cast;
@@ -39,14 +44,9 @@ import org.gradle.internal.state.ManagedFactory;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.lang.reflect.Array;
-import java.util.Collection;
-import java.util.List;
-
 @NullMarked
-@ServiceScope({Scope.UserHome.class, Scope.Global.class})  //Global scope is needed for the usage in process isolated worker actions
+@ServiceScope({Scope.UserHome.class, Scope.Global.class
+}) // Global scope is needed for the usage in process isolated worker actions
 public class IsolatableSerializerRegistry extends DefaultSerializerRegistry implements IsolatableToBytesSerializer {
     private static final byte STRING_VALUE = (byte) 0;
     private static final byte BOOLEAN_VALUE = (byte) 1;
@@ -96,7 +96,8 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ManagedFactoryRegistry managedFactoryRegistry;
 
-    public IsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+    public IsolatableSerializerRegistry(
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
         super(false);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.managedFactoryRegistry = managedFactoryRegistry;
@@ -111,7 +112,8 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
         }
     }
 
-    public static IsolatableSerializerRegistry create(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+    public static IsolatableSerializerRegistry create(
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
         return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
     }
 
@@ -125,7 +127,8 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
         build(isolatable.getClass()).write(encoder, Cast.uncheckedCast(isolatable));
     }
 
-    private void readIsolatableSequence(Decoder decoder, ImmutableCollection.Builder<Isolatable<?>> builder) throws Exception {
+    private void readIsolatableSequence(Decoder decoder, ImmutableCollection.Builder<Isolatable<?>> builder)
+            throws Exception {
         int size = decoder.readInt();
         for (int i = 0; i < size; i++) {
             builder.add(readIsolatable(decoder));
@@ -219,7 +222,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
         return outputStream.toByteArray();
     }
 
-    private static abstract class IsolatableSerializer<T extends Isolatable<?>> implements Serializer<T> {
+    private abstract static class IsolatableSerializer<T extends Isolatable<?>> implements Serializer<T> {
 
         public abstract Class<T> getIsolatableClass();
 
@@ -472,7 +475,8 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
         }
     }
 
-    private static class IsolatedJavaSerializedValueSnapshotSerializer extends IsolatableSerializer<IsolatedJavaSerializedValueSnapshot> {
+    private static class IsolatedJavaSerializedValueSnapshotSerializer
+            extends IsolatableSerializer<IsolatedJavaSerializedValueSnapshot> {
 
         @Override
         protected void serialize(Encoder encoder, IsolatedJavaSerializedValueSnapshot value) throws Exception {
@@ -512,8 +516,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
 
     private static class NullValueSnapshotSerializer extends IsolatableSerializer<NullValueSnapshot> {
         @Override
-        protected void serialize(Encoder encoder, NullValueSnapshot value) {
-        }
+        protected void serialize(Encoder encoder, NullValueSnapshot value) {}
 
         @Override
         protected NullValueSnapshot deserialize(Decoder decoder) {
@@ -530,7 +533,6 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
             return NULL_VALUE;
         }
     }
-
 
     public static class IsolatedEnumValueSnapshotSerializer extends IsolatableSerializer<IsolatedEnumValueSnapshot> {
 
@@ -559,7 +561,8 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
         }
     }
 
-    private abstract class AbstractIsolatedMapSerializer<T extends AbstractIsolatedMap<?>> extends IsolatableSerializer<T> {
+    private abstract class AbstractIsolatedMapSerializer<T extends AbstractIsolatedMap<?>>
+            extends IsolatableSerializer<T> {
         protected abstract T getIsolatedObject(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries);
 
         @Override
@@ -621,7 +624,8 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
     }
 
     @NullMarked
-    private static class IsolatedArrayOfPrimitiveSerializer extends IsolatableSerializer<ArrayOfPrimitiveValueSnapshot> {
+    private static class IsolatedArrayOfPrimitiveSerializer
+            extends IsolatableSerializer<ArrayOfPrimitiveValueSnapshot> {
 
         @Override
         protected void serialize(Encoder encoder, ArrayOfPrimitiveValueSnapshot value) throws Exception {

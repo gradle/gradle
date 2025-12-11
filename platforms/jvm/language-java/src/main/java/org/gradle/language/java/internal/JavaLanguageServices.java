@@ -16,6 +16,9 @@
 
 package org.gradle.language.java.internal;
 
+import static java.util.Collections.emptyList;
+
+import java.util.Collections;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
@@ -33,10 +36,6 @@ import org.gradle.language.java.artifact.JavadocArtifact;
 import org.gradle.tooling.events.OperationType;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-
-import static java.util.Collections.emptyList;
-
 public class JavaLanguageServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -52,8 +51,12 @@ public class JavaLanguageServices extends AbstractGradleModuleServices {
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new ServiceRegistrationProvider() {
             @Provides
-            public AnnotationProcessorDetector createAnnotationProcessorDetector(FileContentCacheFactory cacheFactory, LoggingConfiguration loggingConfiguration) {
-                return new AnnotationProcessorDetector(cacheFactory, LoggerFactory.getLogger(AnnotationProcessorDetector.class), loggingConfiguration.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS);
+            public AnnotationProcessorDetector createAnnotationProcessorDetector(
+                    FileContentCacheFactory cacheFactory, LoggingConfiguration loggingConfiguration) {
+                return new AnnotationProcessorDetector(
+                        cacheFactory,
+                        LoggerFactory.getLogger(AnnotationProcessorDetector.class),
+                        loggingConfiguration.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS);
             }
         });
     }
@@ -62,17 +65,18 @@ public class JavaLanguageServices extends AbstractGradleModuleServices {
         @Provides
         OperationResultPostProcessorFactory createJavaSubscribableBuildActionRunnerRegistration() {
             return (clientSubscriptions, consumer) -> clientSubscriptions.isRequested(OperationType.TASK)
-                ? Collections.singletonList(new JavaCompileTaskSuccessResultPostProcessor())
-                : emptyList();
+                    ? Collections.singletonList(new JavaCompileTaskSuccessResultPostProcessor())
+                    : emptyList();
         }
     }
 
     private static class JavaBuildScopeServices implements ServiceRegistrationProvider {
         @Provides
-        @SuppressWarnings("UnusedVariable") //registration
+        @SuppressWarnings("UnusedVariable") // registration
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
-            componentTypeRegistry.maybeRegisterComponentType(JvmLibrary.class)
-                .registerArtifactType(JavadocArtifact.class, ArtifactType.JAVADOC);
+            componentTypeRegistry
+                    .maybeRegisterComponentType(JvmLibrary.class)
+                    .registerArtifactType(JavadocArtifact.class, ArtifactType.JAVADOC);
         }
     }
 }

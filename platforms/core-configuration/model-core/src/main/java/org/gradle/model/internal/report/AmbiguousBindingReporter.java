@@ -17,21 +17,20 @@
 package org.gradle.model.internal.report;
 
 import com.google.common.collect.ImmutableList;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Comparator;
+import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Comparator;
-import java.util.List;
-
 @ThreadSafe
 public class AmbiguousBindingReporter {
 
-    private final static String INDENT = "  ";
+    private static final String INDENT = "  ";
     private static final Comparator<Provider> PROVIDER_COMPARATOR = new Comparator<Provider>() {
         @Override
         public int compare(Provider o1, Provider o2) {
@@ -61,11 +60,18 @@ public class AmbiguousBindingReporter {
         }
     }
 
-    public AmbiguousBindingReporter(ModelReference<?> reference, ModelPath path1, ModelRuleDescriptor creator1, ModelPath path2, ModelRuleDescriptor creator2) {
-        this(reference.getType().toString(), reference.getDescription(), ImmutableList.of(
-                new Provider(String.valueOf(path1), String.valueOf(creator1)),
-                new Provider(String.valueOf(path2), String.valueOf(creator2))
-        ));
+    public AmbiguousBindingReporter(
+            ModelReference<?> reference,
+            ModelPath path1,
+            ModelRuleDescriptor creator1,
+            ModelPath path2,
+            ModelRuleDescriptor creator2) {
+        this(
+                reference.getType().toString(),
+                reference.getDescription(),
+                ImmutableList.of(
+                        new Provider(String.valueOf(path1), String.valueOf(creator1)),
+                        new Provider(String.valueOf(path2), String.valueOf(creator2))));
     }
 
     public AmbiguousBindingReporter(String referenceType, String referenceDescription, List<Provider> providers) {
@@ -81,7 +87,8 @@ public class AmbiguousBindingReporter {
     }
 
     public void writeTo(PrintWriter writer) {
-        //"type-only model reference of type '%s'%s is ambiguous as multiple model elements are available for this type:%n  %s (created by %s)%n  %s (created by %s)",
+        // "type-only model reference of type '%s'%s is ambiguous as multiple model elements are available for this
+        // type:%n  %s (created by %s)%n  %s (created by %s)",
         writer.print("Type-only model reference of type ");
         writer.print(referenceType);
         if (referenceDescription != null) {
@@ -105,5 +112,4 @@ public class AmbiguousBindingReporter {
             first = false;
         }
     }
-
 }

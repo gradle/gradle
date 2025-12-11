@@ -47,5 +47,4 @@ public interface LegacyResolutionParameters {
      * Rules that specify which components dynamic version selection may select.
      */
     ComponentSelectionRulesInternal getComponentSelectionRules();
-
 }

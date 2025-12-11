@@ -16,6 +16,9 @@
 
 package org.gradle.plugin.devel.plugins;
 
+import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
+
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -35,10 +38,6 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
-import javax.inject.Inject;
-
-import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
 abstract class IvyPluginPublishingPlugin implements Plugin<Project> {
 
@@ -65,7 +64,8 @@ abstract class IvyPluginPublishingPlugin implements Plugin<Project> {
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             @Override
             public void execute(PublishingExtension publishing) {
-                final GradlePluginDevelopmentExtension pluginDevelopment = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
+                final GradlePluginDevelopmentExtension pluginDevelopment =
+                        project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
                 if (!pluginDevelopment.isAutomatedPublishing()) {
                     return;
                 }
@@ -82,15 +82,22 @@ abstract class IvyPluginPublishingPlugin implements Plugin<Project> {
         return publication;
     }
 
-    private void addMarkerPublications(IvyPublication mainPublication, PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
+    private void addMarkerPublications(
+            IvyPublication mainPublication,
+            PublishingExtension publishing,
+            GradlePluginDevelopmentExtension pluginDevelopment) {
         for (PluginDeclaration declaration : pluginDevelopment.getPlugins()) {
             createIvyMarkerPublication(declaration, mainPublication, publishing.getPublications());
         }
     }
 
-    private void createIvyMarkerPublication(final PluginDeclaration declaration, final IvyPublication mainPublication, PublicationContainer publications) {
+    private void createIvyMarkerPublication(
+            final PluginDeclaration declaration,
+            final IvyPublication mainPublication,
+            PublicationContainer publications) {
         String pluginId = declaration.getId();
-        IvyPublicationInternal publication = (IvyPublicationInternal) publications.create(declaration.getName() + "PluginMarkerIvy", IvyPublication.class);
+        IvyPublicationInternal publication = (IvyPublicationInternal)
+                publications.create(declaration.getName() + "PluginMarkerIvy", IvyPublication.class);
         publication.setAlias(true);
         publication.setOrganisation(pluginId);
         publication.setModule(pluginId + PLUGIN_MARKER_SUFFIX);
@@ -113,7 +120,8 @@ abstract class IvyPluginPublishingPlugin implements Plugin<Project> {
                     public void execute(XmlProvider xmlProvider) {
                         Element root = xmlProvider.asElement();
                         Document document = root.getOwnerDocument();
-                        Node dependencies = root.getElementsByTagName("dependencies").item(0);
+                        Node dependencies =
+                                root.getElementsByTagName("dependencies").item(0);
                         Node dependency = dependencies.appendChild(document.createElement("dependency"));
                         Attr org = document.createAttribute("org");
                         org.setValue(organisation.get());

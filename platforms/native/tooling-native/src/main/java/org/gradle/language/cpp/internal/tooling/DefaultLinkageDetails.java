@@ -16,11 +16,10 @@
 
 package org.gradle.language.cpp.internal.tooling;
 
-import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
+import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 
 public class DefaultLinkageDetails implements Serializable {
     private final LaunchableGradleTask linkTask;

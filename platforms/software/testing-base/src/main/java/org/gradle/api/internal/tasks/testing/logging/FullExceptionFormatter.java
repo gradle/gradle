@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.testing.logging;
 
 import com.google.common.base.Strings;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.testing.TestDescriptor;
@@ -24,9 +26,6 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class FullExceptionFormatter implements TestExceptionFormatter {
     private static final String INDENT = "    ";
@@ -49,9 +48,13 @@ public class FullExceptionFormatter implements TestExceptionFormatter {
         return builder.toString();
     }
 
-    private void printException(TestDescriptor descriptor, Throwable exception,
-                                @Nullable List<StackTraceElement> parentTrace, int exceptionLevel, StringBuilder builder) {
-        @SuppressWarnings("InlineMeInliner") //Strings.repeat is from guava not Java 11+
+    private void printException(
+            TestDescriptor descriptor,
+            Throwable exception,
+            @Nullable List<StackTraceElement> parentTrace,
+            int exceptionLevel,
+            StringBuilder builder) {
+        @SuppressWarnings("InlineMeInliner") // Strings.repeat is from guava not Java 11+
         String exceptionIndent = Strings.repeat(INDENT, exceptionLevel + 1);
         String exceptionText = exceptionLevel == 0 ? exception.toString() : "\nCaused by:\n" + exception.toString();
         String indentedText = TextUtil.indent(exceptionText, exceptionIndent);
@@ -118,8 +121,9 @@ public class FullExceptionFormatter implements TestExceptionFormatter {
 
         int commonElements = 0;
         for (int i = stackTrace.size() - 1, j = parentTrace.size() - 1;
-            // i >= 1 makes sure that commonElements < stackTrace.size()
-             i >= 1 && j >= 0 && stackTrace.get(i).equals(parentTrace.get(j)); i--, j--) {
+                // i >= 1 makes sure that commonElements < stackTrace.size()
+                i >= 1 && j >= 0 && stackTrace.get(i).equals(parentTrace.get(j));
+                i--, j--) {
             commonElements++;
         }
         return commonElements;

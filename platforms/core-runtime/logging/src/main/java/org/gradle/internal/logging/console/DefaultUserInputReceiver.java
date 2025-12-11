@@ -17,14 +17,13 @@
 package org.gradle.internal.logging.console;
 
 import com.google.common.base.CharMatcher;
+import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.ReadStdInEvent;
 import org.gradle.internal.logging.events.UserInputValidationProblemEvent;
 import org.jspecify.annotations.Nullable;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultUserInputReceiver implements GlobalUserInputReceiver {
     private final AtomicReference<UserInputReceiver> delegate = new AtomicReference<UserInputReceiver>();
@@ -46,7 +45,8 @@ public class DefaultUserInputReceiver implements GlobalUserInputReceiver {
             @Nullable
             @Override
             public String normalize(String text) {
-                PromptOutputEvent.PromptResult<?> result = event.convert(CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(text)));
+                PromptOutputEvent.PromptResult<?> result =
+                        event.convert(CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(text)));
                 if (result.newPrompt != null) {
                     // Need to prompt the user again
                     console.onOutput(new UserInputValidationProblemEvent(event.getTimestamp(), result.newPrompt));

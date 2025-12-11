@@ -16,6 +16,14 @@
 
 package org.gradle.api.tasks.testing;
 
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
@@ -37,15 +45,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
-import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
 
 /**
  * Generates an HTML test report from the results of one or more {@link Test} tasks.
@@ -83,12 +82,11 @@ public abstract class TestReport extends DefaultTask {
      */
     @OutputDirectory
     @ReplacesEagerProperty(
-        replacedAccessors = {
-            @ReplacedAccessor(value = GETTER, name = "getDestinationDir"),
-            @ReplacedAccessor(value = SETTER, name = "setDestinationDir")
-        },
-        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9)
-    )
+            replacedAccessors = {
+                @ReplacedAccessor(value = GETTER, name = "getDestinationDir"),
+                @ReplacedAccessor(value = SETTER, name = "setDestinationDir")
+            },
+            deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9))
     public abstract DirectoryProperty getDestinationDirectory();
 
     /**
@@ -105,7 +103,8 @@ public abstract class TestReport extends DefaultTask {
     @TaskAction
     void generateReport() {
         try {
-            List<Path> resultDirsAsPaths = new ArrayList<>(getTestResults().getFiles().size());
+            List<Path> resultDirsAsPaths =
+                    new ArrayList<>(getTestResults().getFiles().size());
             for (File resultDir : getTestResults().getFiles()) {
                 if (!resultDir.exists()) {
                     continue;
@@ -114,10 +113,14 @@ public abstract class TestReport extends DefaultTask {
             }
 
             Path reportsDir = getDestinationDirectory().get().getAsFile().toPath();
-            getObjectFactory().newInstance(GenericHtmlTestReportGenerator.class, reportsDir).generate(resultDirsAsPaths);
+            getObjectFactory()
+                    .newInstance(GenericHtmlTestReportGenerator.class, reportsDir)
+                    .generate(resultDirsAsPaths);
         } catch (Exception e) {
-            throw new RuntimeException("Could not write test report for results in " + getTestResults().getFiles(), e);
+            throw new RuntimeException(
+                    "Could not write test report for results in "
+                            + getTestResults().getFiles(),
+                    e);
         }
     }
-
 }

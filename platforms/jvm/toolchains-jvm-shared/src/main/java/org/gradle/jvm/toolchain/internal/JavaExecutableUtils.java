@@ -16,12 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import java.io.File;
+import java.io.IOException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * Utility class for resolving and validating string paths pointing to
@@ -33,7 +32,8 @@ public class JavaExecutableUtils {
         File executableFile = new File(executable);
         if (!executableFile.isAbsolute()) {
             DeprecationLogger.deprecateBehaviour("Configuring a Java executable via a relative path.")
-                    .withContext("Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against.")
+                    .withContext(
+                            "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against.")
                     .withAdvice("Configure an absolute path to a Java executable instead.")
                     .willBecomeAnErrorInGradle10()
                     .withUpgradeGuideSection(8, "no_relative_paths_for_java_executables")
@@ -41,10 +41,12 @@ public class JavaExecutableUtils {
         }
         File executableAbsoluteFile = executableFile.getAbsoluteFile();
         if (!executableAbsoluteFile.exists()) {
-            throw new InvalidUserDataException("The configured executable does not exist (" + executableFile.getAbsolutePath() + ")");
+            throw new InvalidUserDataException(
+                    "The configured executable does not exist (" + executableFile.getAbsolutePath() + ")");
         }
         if (executableAbsoluteFile.isDirectory()) {
-            throw new InvalidUserDataException("The configured executable is a directory (" + executableFile.getAbsolutePath() + ")");
+            throw new InvalidUserDataException(
+                    "The configured executable is a directory (" + executableFile.getAbsolutePath() + ")");
         }
         return executableAbsoluteFile;
     }
@@ -54,8 +56,11 @@ public class JavaExecutableUtils {
         return resolveExecutable(executable).getParentFile().getParentFile();
     }
 
-
-    public static void validateExecutable(@Nullable String executable, String executableDescription, File referenceFile, String referenceDescription) {
+    public static void validateExecutable(
+            @Nullable String executable,
+            String executableDescription,
+            File referenceFile,
+            String referenceDescription) {
         if (executable == null) {
             return;
         }
@@ -64,7 +69,8 @@ public class JavaExecutableUtils {
         validateMatchingFiles(executableFile, executableDescription, referenceFile, referenceDescription);
     }
 
-    public static void validateMatchingFiles(File customFile, String customDescription, File referenceFile, String referenceDescription) {
+    public static void validateMatchingFiles(
+            File customFile, String customDescription, File referenceFile, String referenceDescription) {
         if (customFile.equals(referenceFile)) {
             return;
         }
@@ -85,5 +91,4 @@ public class JavaExecutableUtils {
             throw new RuntimeException("Can't resolve canonical path of file " + file, e);
         }
     }
-
 }

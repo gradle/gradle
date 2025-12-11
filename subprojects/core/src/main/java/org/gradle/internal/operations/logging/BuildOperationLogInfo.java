@@ -43,6 +43,7 @@ class BuildOperationLogInfo {
 
     @Override
     public String toString() {
-        return "log for " + getTaskName() + " to " + getOutputFile().getAbsolutePath() + ", showing up to " + getMaximumFailedOperationsShown() + " failures";
+        return "log for " + getTaskName() + " to " + getOutputFile().getAbsolutePath() + ", showing up to "
+                + getMaximumFailedOperationsShown() + " failures";
     }
 }

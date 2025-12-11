@@ -16,15 +16,14 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.TestSpec;
-import org.gradle.tooling.internal.protocol.test.InternalTestSpec;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.tooling.TestSpec;
+import org.gradle.tooling.internal.protocol.test.InternalTestSpec;
 
 public class DefaultTestSpec extends DefaultTaskSpec implements TestSpec, InternalTestSpec {
     private final List<String> classes;
@@ -33,10 +32,20 @@ public class DefaultTestSpec extends DefaultTaskSpec implements TestSpec, Intern
     private final List<String> patterns;
 
     DefaultTestSpec(String taskPath) {
-        this(taskPath, new ArrayList<String>(), new LinkedHashMap<String, List<String>>(), new ArrayList<String>(), new ArrayList<String>());
+        this(
+                taskPath,
+                new ArrayList<String>(),
+                new LinkedHashMap<String, List<String>>(),
+                new ArrayList<String>(),
+                new ArrayList<String>());
     }
 
-    public DefaultTestSpec(String taskPath, List<String> classes, Map<String, List<String>> methods, List<String> packages, List<String> patterns) {
+    public DefaultTestSpec(
+            String taskPath,
+            List<String> classes,
+            Map<String, List<String>> methods,
+            List<String> packages,
+            List<String> patterns) {
         super(taskPath);
         this.packages = packages;
         this.classes = classes;

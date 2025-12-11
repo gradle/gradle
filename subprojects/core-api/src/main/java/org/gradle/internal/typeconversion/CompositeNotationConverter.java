@@ -16,9 +16,8 @@
 
 package org.gradle.internal.typeconversion;
 
-import org.gradle.internal.exceptions.DiagnosticsVisitor;
-
 import java.util.List;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
 public class CompositeNotationConverter<N, T> implements NotationConverter<N, T> {
     private final List<NotationConverter<? super N, ? extends T>> converters;

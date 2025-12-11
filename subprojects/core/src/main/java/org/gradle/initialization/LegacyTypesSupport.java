@@ -16,10 +16,9 @@
 
 package org.gradle.initialization;
 
+import java.util.Set;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Set;
 
 /**
  * Enriches class loading with empty interfaces for certain types that have been removed,

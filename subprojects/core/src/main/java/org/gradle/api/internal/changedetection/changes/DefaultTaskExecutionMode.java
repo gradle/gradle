@@ -15,33 +15,38 @@
  */
 package org.gradle.api.internal.changedetection.changes;
 
-import org.gradle.api.internal.changedetection.TaskExecutionMode;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Objects;
 import java.util.Optional;
+import org.gradle.api.internal.changedetection.TaskExecutionMode;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Keeps information about the execution mode of a task.
  */
 public class DefaultTaskExecutionMode implements TaskExecutionMode {
 
-    private static final DefaultTaskExecutionMode UP_TO_DATE_WHEN_FALSE = new DefaultTaskExecutionMode("Task.upToDateWhen is false.", true, false);
-    private static final DefaultTaskExecutionMode UNTRACKED_NO_REASON = new DefaultTaskExecutionMode("Task state is not tracked.", false, false);
-    private static final DefaultTaskExecutionMode RERUN_TASKS_ENABLED = new DefaultTaskExecutionMode("Executed with '--rerun-tasks'.", true, false);
-    private static final DefaultTaskExecutionMode NO_OUTPUTS = new DefaultTaskExecutionMode("Task has not declared any outputs despite executing actions.", false, false);
+    private static final DefaultTaskExecutionMode UP_TO_DATE_WHEN_FALSE =
+            new DefaultTaskExecutionMode("Task.upToDateWhen is false.", true, false);
+    private static final DefaultTaskExecutionMode UNTRACKED_NO_REASON =
+            new DefaultTaskExecutionMode("Task state is not tracked.", false, false);
+    private static final DefaultTaskExecutionMode RERUN_TASKS_ENABLED =
+            new DefaultTaskExecutionMode("Executed with '--rerun-tasks'.", true, false);
+    private static final DefaultTaskExecutionMode NO_OUTPUTS =
+            new DefaultTaskExecutionMode("Task has not declared any outputs despite executing actions.", false, false);
     private static final DefaultTaskExecutionMode INCREMENTAL = new DefaultTaskExecutionMode(null, true, true);
+
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private final Optional<String> rebuildReason;
+
     private final boolean taskHistoryMaintained;
     private final boolean allowedToUseCachedResults;
 
-    DefaultTaskExecutionMode(@Nullable String rebuildReason, boolean taskHistoryMaintained, boolean allowedToUseCachedResults) {
+    DefaultTaskExecutionMode(
+            @Nullable String rebuildReason, boolean taskHistoryMaintained, boolean allowedToUseCachedResults) {
         this.rebuildReason = Optional.ofNullable(rebuildReason);
         this.taskHistoryMaintained = taskHistoryMaintained;
         this.allowedToUseCachedResults = allowedToUseCachedResults;
     }
-
 
     /**
      * {@inheritDoc}
@@ -76,7 +81,9 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
             return false;
         }
         DefaultTaskExecutionMode that = (DefaultTaskExecutionMode) o;
-        return taskHistoryMaintained == that.taskHistoryMaintained && allowedToUseCachedResults == that.allowedToUseCachedResults && Objects.equals(rebuildReason, that.rebuildReason);
+        return taskHistoryMaintained == that.taskHistoryMaintained
+                && allowedToUseCachedResults == that.allowedToUseCachedResults
+                && Objects.equals(rebuildReason, that.rebuildReason);
     }
 
     @Override

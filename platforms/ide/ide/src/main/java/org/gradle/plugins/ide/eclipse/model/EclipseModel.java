@@ -16,9 +16,14 @@
 
 package org.gradle.plugins.ide.eclipse.model;
 
+import static org.gradle.util.internal.ConfigureUtil.configure;
+
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.util.Map;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -28,12 +33,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Map;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * DSL-friendly model of the Eclipse project information.
@@ -277,7 +276,6 @@ public abstract class EclipseModel {
      * @return the tasks names
      * @since 5.4
      */
-
     public TaskDependency getAutoBuildTasks() {
         return autoBuildTasks;
     }
@@ -288,7 +286,6 @@ public abstract class EclipseModel {
      * @see #getAutoBuildTasks()
      * @since 5.4
      */
-
     public void autoBuildTasks(Object... autoBuildTasks) {
         this.autoBuildTasks.add(autoBuildTasks);
     }

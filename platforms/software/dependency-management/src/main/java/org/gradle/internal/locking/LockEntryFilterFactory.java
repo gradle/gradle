@@ -17,12 +17,11 @@
 package org.gradle.internal.locking;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.dsl.dependencies.LockEntryFilter;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.dsl.dependencies.LockEntryFilter;
 
 class LockEntryFilterFactory {
 
@@ -57,7 +56,8 @@ class LockEntryFilterFactory {
     }
 
     private static void throwInvalid(String lockExclude, String context) {
-        throw new IllegalArgumentException(context + " format must be <group>:<artifact> but '" + lockExclude + "' is invalid.");
+        throw new IllegalArgumentException(
+                context + " format must be <group>:<artifact> but '" + lockExclude + "' is invalid.");
     }
 
     private static LockEntryFilter createFilter(final String group, final String module) {
@@ -68,21 +68,22 @@ class LockEntryFilterFactory {
         return new GroupModuleLockEntryFilter(group, module);
     }
 
-    private static void validateNotation(String lockExclude, String[] split, boolean allowFullWildcard, String context) {
+    private static void validateNotation(
+            String lockExclude, String[] split, boolean allowFullWildcard, String context) {
         if (split.length != 2) {
             throwInvalid(lockExclude, context);
         }
         String group = split[0];
         String module = split[1];
 
-        if ((group.contains(WILDCARD_SUFFIX) && !group.endsWith(WILDCARD_SUFFIX)) || (module.contains(WILDCARD_SUFFIX) && !module.endsWith(WILDCARD_SUFFIX))) {
+        if ((group.contains(WILDCARD_SUFFIX) && !group.endsWith(WILDCARD_SUFFIX))
+                || (module.contains(WILDCARD_SUFFIX) && !module.endsWith(WILDCARD_SUFFIX))) {
             throwInvalid(lockExclude, context);
         }
 
         if (!allowFullWildcard && group.equals(WILDCARD_SUFFIX) && module.equals(WILDCARD_SUFFIX)) {
             throwInvalid(lockExclude, context);
         }
-
     }
 
     public static LockEntryFilter combine(LockEntryFilter firstFilter, LockEntryFilter secondFilter) {

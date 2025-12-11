@@ -17,6 +17,9 @@
 package org.gradle.workers.internal;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.os.OperatingSystem;
@@ -24,11 +27,8 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.workers.ClassLoaderWorkerSpec;
 import org.gradle.workers.ProcessWorkerSpec;
 
-import javax.inject.Inject;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec implements ProcessWorkerSpec, ClassLoaderWorkerSpec {
+public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec
+        implements ProcessWorkerSpec, ClassLoaderWorkerSpec {
     /**
      * Environment variables inherited automatically on Unix systems.
      *
@@ -56,8 +56,9 @@ public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec imple
             return ImmutableMap.of();
         }
         return forkOptions.getEnvironment().entrySet().stream()
-            .filter(entry -> INHERITED_UNIX_ENVIRONMENT.matcher(entry.getKey()).matches())
-            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+                .filter(entry ->
+                        INHERITED_UNIX_ENVIRONMENT.matcher(entry.getKey()).matches())
+                .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override

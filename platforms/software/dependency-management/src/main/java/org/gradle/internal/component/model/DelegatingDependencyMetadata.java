@@ -16,12 +16,11 @@
 
 package org.gradle.internal.component.model;
 
+import java.util.List;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * A {@link DependencyMetadata} implementation which delegates all method calls to a provided {@code delegate}.
@@ -40,12 +39,21 @@ public abstract class DelegatingDependencyMetadata implements DependencyMetadata
     }
 
     @Override
-    public @Nullable List<? extends VariantGraphResolveState> overrideVariantSelection(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, ImmutableAttributesSchema consumerSchema) {
-        return delegate.overrideVariantSelection(variantSelector, consumerAttributes, targetComponentState, consumerSchema);
+    public @Nullable List<? extends VariantGraphResolveState> overrideVariantSelection(
+            GraphVariantSelector variantSelector,
+            ImmutableAttributes consumerAttributes,
+            ComponentGraphResolveState targetComponentState,
+            ImmutableAttributesSchema consumerSchema) {
+        return delegate.overrideVariantSelection(
+                variantSelector, consumerAttributes, targetComponentState, consumerSchema);
     }
 
     @Override
-    public List<? extends VariantGraphResolveState> selectLegacyVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, ImmutableAttributesSchema consumerSchema) {
+    public List<? extends VariantGraphResolveState> selectLegacyVariants(
+            GraphVariantSelector variantSelector,
+            ImmutableAttributes consumerAttributes,
+            ComponentGraphResolveState targetComponentState,
+            ImmutableAttributesSchema consumerSchema) {
         return delegate.selectLegacyVariants(variantSelector, consumerAttributes, targetComponentState, consumerSchema);
     }
 
@@ -98,5 +106,4 @@ public abstract class DelegatingDependencyMetadata implements DependencyMetadata
     public DependencyMetadata withReason(String reason) {
         return delegate.withReason(reason);
     }
-
 }

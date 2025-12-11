@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
+import java.util.Map;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -25,8 +26,6 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
 import org.gradle.internal.state.ManagedFactory;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 public class ManagedFactories {
     public static class ProviderManagedFactory implements ManagedFactory {
@@ -80,14 +79,17 @@ public class ManagedFactories {
 
         @SuppressWarnings("deprecation")
         <V> Property<V> propertyOf(Class<V> type, Provider<V> value) {
-            // As we're inferring the type from the value, it may not exactly match the type of property and may actually be forbidden.
-            // Imagine Property<Object> holding a List - if we didn't use `propertyOfAnyType` we would throw an exception asking the user to use ListProperty.
+            // As we're inferring the type from the value, it may not exactly match the type of property and may
+            // actually be forbidden.
+            // Imagine Property<Object> holding a List - if we didn't use `propertyOfAnyType` we would throw an
+            // exception asking the user to use ListProperty.
             return propertyFactory.propertyOfAnyType(type).value(value);
         }
 
         @SuppressWarnings("deprecation")
         <V> Property<V> propertyWithNoType(ProviderInternal<V> provider) {
-            return Cast.<Property<V>>uncheckedCast(propertyFactory.propertyWithNoType()).value(provider);
+            return Cast.<Property<V>>uncheckedCast(propertyFactory.propertyWithNoType())
+                    .value(provider);
         }
 
         @Override

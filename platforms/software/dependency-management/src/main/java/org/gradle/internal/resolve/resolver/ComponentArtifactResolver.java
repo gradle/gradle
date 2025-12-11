@@ -16,11 +16,10 @@
 
 package org.gradle.internal.resolve.resolver;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
-
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 /**
  * Resolves artifact metadata into concrete files in the context

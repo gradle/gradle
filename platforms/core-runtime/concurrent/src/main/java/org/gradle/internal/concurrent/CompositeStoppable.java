@@ -16,15 +16,14 @@
 
 package org.gradle.internal.concurrent;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.jspecify.annotations.Nullable;
-
-import javax.annotation.CheckReturnValue;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.CheckReturnValue;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link org.gradle.internal.concurrent.Stoppable} that stops a collection of things. If an element implements
@@ -37,8 +36,7 @@ import java.util.List;
 public class CompositeStoppable implements Stoppable {
     private final List<Stoppable> elements = new ArrayList<>();
 
-    public CompositeStoppable() {
-    }
+    public CompositeStoppable() {}
 
     @CheckReturnValue
     public static CompositeStoppable stoppable(Object... elements) {

@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
+
 import org.gradle.api.tasks.LocalState;
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.properties.PropertyValue;
@@ -22,12 +25,12 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
-import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
-
 public class LocalStatePropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public LocalStatePropertyAnnotationHandler() {
-        super(LocalState.class, Kind.OTHER, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
+        super(
+                LocalState.class,
+                Kind.OTHER,
+                ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
     }
 
     @Override
@@ -36,7 +39,8 @@ public class LocalStatePropertyAnnotationHandler extends AbstractPropertyAnnotat
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+    public void visitPropertyValue(
+            String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
         visitor.visitLocalStateProperty(value);
     }
 }

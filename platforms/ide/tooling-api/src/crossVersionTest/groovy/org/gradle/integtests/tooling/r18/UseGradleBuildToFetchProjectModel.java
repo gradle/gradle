@@ -16,14 +16,13 @@
 
 package org.gradle.integtests.tooling.r18;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.integtests.tooling.r16.CustomModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class UseGradleBuildToFetchProjectModel implements BuildAction<Map<String, CustomModel>> {
     public Map<String, CustomModel> execute(BuildController controller) {

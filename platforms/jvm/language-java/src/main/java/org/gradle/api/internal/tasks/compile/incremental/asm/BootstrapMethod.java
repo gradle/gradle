@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.asm;
 
-import org.jspecify.annotations.NullMarked;
-import org.objectweb.asm.ConstantDynamic;
-import org.objectweb.asm.Handle;
-
 import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.List;
+import org.jspecify.annotations.NullMarked;
+import org.objectweb.asm.ConstantDynamic;
+import org.objectweb.asm.Handle;
 
 /**
  * Unifying type between {@code invokedynamic} and {@code CONSTANT_Dynamic} bootstrap methods.
@@ -34,7 +33,8 @@ public final class BootstrapMethod {
     }
 
     public static BootstrapMethod fromConstantDynamic(ConstantDynamic constantDynamic) {
-        return new BootstrapMethod(constantDynamic.getBootstrapMethod(), new ConstantDynamicBootstrapArguments(constantDynamic));
+        return new BootstrapMethod(
+                constantDynamic.getBootstrapMethod(), new ConstantDynamicBootstrapArguments(constantDynamic));
     }
 
     @NullMarked

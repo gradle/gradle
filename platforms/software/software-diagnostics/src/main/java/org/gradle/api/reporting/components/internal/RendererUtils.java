@@ -16,9 +16,8 @@
 
 package org.gradle.api.reporting.components.internal;
 
-import org.gradle.api.Named;
-
 import java.lang.reflect.Method;
+import org.gradle.api.Named;
 
 public class RendererUtils {
     /**

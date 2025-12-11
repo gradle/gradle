@@ -20,7 +20,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
 public class CppLibraryProjectInitDescriptor extends CppProjectInitDescriptor {
-    public CppLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
+    public CppLibraryProjectInitDescriptor(
+            TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
         super(templateOperationFactory, documentationRegistry);
     }
 
@@ -41,7 +42,8 @@ public class CppLibraryProjectInitDescriptor extends CppProjectInitDescriptor {
 
     @Override
     protected TemplateOperation headerTemplateOperation(InitSettings settings) {
-        return fromCppTemplate("cpplibrary/hello.h.template", settings.getProjectName() + ".h", settings, "main", "public");
+        return fromCppTemplate(
+                "cpplibrary/hello.h.template", settings.getProjectName() + ".h", settings, "main", "public");
     }
 
     @Override
@@ -52,13 +54,16 @@ public class CppLibraryProjectInitDescriptor extends CppProjectInitDescriptor {
     @Override
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
-            .plugin(
-                "Apply the cpp-library plugin to add support for building C++ libraries",
-                "cpp-library")
-            .plugin("Apply the cpp-unit-test plugin to add support for building and running C++ test executables",
-                "cpp-unit-test")
-            .block(null,
-                "library",
-                b -> b.methodInvocation("Set the target operating system and architecture for this library", "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition())));
+                .plugin("Apply the cpp-library plugin to add support for building C++ libraries", "cpp-library")
+                .plugin(
+                        "Apply the cpp-unit-test plugin to add support for building and running C++ test executables",
+                        "cpp-unit-test")
+                .block(
+                        null,
+                        "library",
+                        b -> b.methodInvocation(
+                                "Set the target operating system and architecture for this library",
+                                "targetMachines.add",
+                                buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition())));
     }
 }

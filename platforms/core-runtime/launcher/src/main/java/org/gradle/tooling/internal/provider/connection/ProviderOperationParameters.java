@@ -15,18 +15,17 @@
  */
 package org.gradle.tooling.internal.provider.connection;
 
-import org.gradle.api.logging.LogLevel;
-import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
-import org.gradle.tooling.internal.protocol.InternalLaunchable;
-import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
+import org.gradle.tooling.internal.protocol.InternalLaunchable;
+import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Defines what information is needed on the provider side regarding the build operation.
@@ -97,7 +96,6 @@ public interface ProviderOperationParameters {
      * @since 1.0-milestone-3
      */
     File getProjectDir();
-
 
     /**
      * @return When null, use the provider's default value for embedded.

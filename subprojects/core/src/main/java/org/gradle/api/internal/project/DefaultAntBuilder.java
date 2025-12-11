@@ -20,6 +20,16 @@ import com.google.common.collect.Sets;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableMap;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.apache.tools.ant.MagicNames;
 import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.PropertyHelper;
@@ -37,17 +47,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.ant.AntTarget;
 import org.gradle.internal.Transformers;
 import org.jspecify.annotations.Nullable;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
 
@@ -86,7 +85,8 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
             }
         });
 
-        @SuppressWarnings("unchecked") Map<String, Object> castMap = (Map<String, Object>) map;
+        @SuppressWarnings("unchecked")
+        Map<String, Object> castMap = (Map<String, Object>) map;
         return castMap;
     }
 
@@ -100,7 +100,8 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
             }
         });
 
-        @SuppressWarnings("unchecked") Map<String, Object> castMap = (Map<String, Object>) map;
+        @SuppressWarnings("unchecked")
+        Map<String, Object> castMap = (Map<String, Object>) map;
         return castMap;
     }
 
@@ -120,13 +121,16 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
     }
 
     @Override
-    public void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends String, ? super String> taskNamer) {
+    public void importBuild(
+            Object antBuildFile, String baseDirectory, Transformer<? extends String, ? super String> taskNamer) {
         File file = gradleProject.file(antBuildFile);
 
         Optional<Object> baseDirectoryOptional = Optional.ofNullable(baseDirectory);
-        final File baseDir = gradleProject.file(baseDirectoryOptional.orElse(file.getParentFile().getAbsolutePath()));
+        final File baseDir = gradleProject.file(
+                baseDirectoryOptional.orElse(file.getParentFile().getAbsolutePath()));
 
-        Set<String> existingAntTargets = new HashSet<String>(getAntProject().getTargets().keySet());
+        Set<String> existingAntTargets =
+                new HashSet<String>(getAntProject().getTargets().keySet());
         File oldBaseDir = getAntProject().getBaseDir();
         getAntProject().setBaseDir(baseDir);
         try {
@@ -142,7 +146,8 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         getAntProject().getTargets().remove("");
 
         // Add an adapter for each newly added target
-        Set<String> newAntTargets = new HashSet<String>(getAntProject().getTargets().keySet());
+        Set<String> newAntTargets =
+                new HashSet<String>(getAntProject().getTargets().keySet());
         newAntTargets.removeAll(existingAntTargets);
         for (String name : newAntTargets) {
             final Target target = getAntProject().getTargets().get(name);
@@ -153,7 +158,8 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         }
     }
 
-    private static void configureTask(Target target, AntTarget task, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
+    private static void configureTask(
+            Target target, AntTarget task, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
         task.setTarget(target);
         task.setBaseDir(baseDir);
 
@@ -162,7 +168,8 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         addDependencyOrdering(taskDependencyNames, task.getProject().getTasks());
     }
 
-    private static List<String> getTaskDependencyNames(Target target, Transformer<? extends String, ? super String> taskNamer) {
+    private static List<String> getTaskDependencyNames(
+            Target target, Transformer<? extends String, ? super String> taskNamer) {
         Enumeration<String> dependencies = target.getDependencies();
         List<String> taskDependencyNames = new LinkedList<>();
         while (dependencies.hasMoreElements()) {
@@ -215,7 +222,9 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
             for (String dependedOnTaskName : taskDependencyNames) {
                 Task dependency = task.getProject().getTasks().findByName(dependedOnTaskName);
                 if (dependency == null) {
-                    throw new UnknownTaskException(String.format("Imported Ant target '%s' depends on target or task '%s' which does not exist", task.getName(), dependedOnTaskName));
+                    throw new UnknownTaskException(String.format(
+                            "Imported Ant target '%s' depends on target or task '%s' which does not exist",
+                            task.getName(), dependedOnTaskName));
                 }
                 tasks.add(dependency);
             }

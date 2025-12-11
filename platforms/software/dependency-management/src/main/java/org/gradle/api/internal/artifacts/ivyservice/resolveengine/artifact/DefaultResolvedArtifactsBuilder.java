@@ -17,11 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 /**
  * Collects all artifacts and their build dependencies.
@@ -35,12 +34,17 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifacts) {
+    public void visitArtifacts(
+            DependencyGraphNode from,
+            LocalFileDependencyMetadata fileDependency,
+            int artifactSetId,
+            ArtifactSet artifacts) {
         collectArtifacts(artifactSetId, artifacts);
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
+    public void visitArtifacts(
+            DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
         // Don't collect build dependencies if not required
         if (!buildProjectDependencies) {
             artifacts = new NoBuildDependenciesArtifactSet(artifacts);

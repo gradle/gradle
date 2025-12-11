@@ -15,6 +15,17 @@
  */
 package org.gradle.api.internal.file.archive;
 
+import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
+import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
+import static org.gradle.api.internal.file.TestFiles.fileHasher;
+import static org.gradle.api.internal.file.TestFiles.fileSystem;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.EmptyFileVisitor;
@@ -24,29 +35,19 @@ import org.gradle.cache.internal.TestDecompressionCoordinators;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.Test;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
-import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
-import static org.gradle.api.internal.file.TestFiles.fileHasher;
-import static org.gradle.api.internal.file.TestFiles.fileSystem;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
-
 public class ZipFileTreeTest extends AbstractArchiveFileTreeTest {
     private final TestFile archiveFile = tempDirProvider.getTestDirectory().file("test.zip");
     private final ZipFileTree tree = zipTree(archiveFile);
 
     private ZipFileTree zipTree(File archiveFile) {
-        return new ZipFileTree(Providers.of(archiveFile),
-            fileSystem(),
-            directoryFileTreeFactory(),
-            fileHasher(),
-            TestDecompressionCoordinators.decompressionCoordinator(tempDirProvider.getTestDirectory().createDir("cache-dir")),
-            TestFiles.tmpDirTemporaryFileProvider(tempDirProvider.getTestDirectory()));
+        return new ZipFileTree(
+                Providers.of(archiveFile),
+                fileSystem(),
+                directoryFileTreeFactory(),
+                fileHasher(),
+                TestDecompressionCoordinators.decompressionCoordinator(
+                        tempDirProvider.getTestDirectory().createDir("cache-dir")),
+                TestFiles.tmpDirTemporaryFileProvider(tempDirProvider.getTestDirectory()));
     }
 
     @Override

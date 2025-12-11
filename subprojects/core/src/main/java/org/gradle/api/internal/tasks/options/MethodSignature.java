@@ -25,10 +25,8 @@ import java.util.Objects;
  */
 public final class MethodSignature {
     public static MethodSignature from(Method method) {
-        return new MethodSignature(method.getName(), MethodType.methodType(
-            method.getReturnType(),
-            method.getParameterTypes()
-        ));
+        return new MethodSignature(
+                method.getName(), MethodType.methodType(method.getReturnType(), method.getParameterTypes()));
     }
 
     private final String methodName;

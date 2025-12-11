@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.internal.provider;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.internal.event.ListenerNotificationException;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Listener that will collect failures from the delegate listener and rethrow them in the right moment of the build.
@@ -45,7 +44,8 @@ public class FailsafePhasedActionResultListener implements PhasedActionResultLis
 
     public void rethrowErrors() {
         if (!listenerFailures.isEmpty()) {
-            throw new ListenerNotificationException(null, "One or more build phasedAction listeners failed with an exception.", listenerFailures);
+            throw new ListenerNotificationException(
+                    null, "One or more build phasedAction listeners failed with an exception.", listenerFailures);
         }
     }
 }

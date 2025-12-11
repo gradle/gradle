@@ -16,7 +16,8 @@
 
 package org.gradle.internal.snapshot;
 
-public abstract class AbstractStorePathRelationshipHandler<T> implements ChildMap.Entry.PathRelationshipHandler<ChildMap<T>, T> {
+public abstract class AbstractStorePathRelationshipHandler<T>
+        implements ChildMap.Entry.PathRelationshipHandler<ChildMap<T>, T> {
 
     private final CaseSensitivity caseSensitivity;
     private final ChildMap.StoreHandler<T> handler;
@@ -51,7 +52,8 @@ public abstract class AbstractStorePathRelationshipHandler<T> implements ChildMa
     }
 
     @Override
-    public ChildMap<T> handleSiblingOfChild(VfsRelativePath targetPath, String childPath, T child, int commonPrefixLength) {
+    public ChildMap<T> handleSiblingOfChild(
+            VfsRelativePath targetPath, String childPath, T child, int commonPrefixLength) {
         String commonPrefix = childPath.substring(0, commonPrefixLength);
         String newChildPath = childPath.substring(commonPrefixLength + 1);
         ChildMap.Entry<T> newChild = new ChildMap.Entry<>(newChildPath, child);

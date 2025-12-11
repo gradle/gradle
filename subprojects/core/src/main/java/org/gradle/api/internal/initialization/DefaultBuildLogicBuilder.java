@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.initialization;
 
+import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesForInternalUse;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -26,21 +30,13 @@ import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesForInternalUse;
-
 public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
     private final BuildState currentBuild;
     private final ScriptClassPathResolver scriptClassPathResolver;
     private final BuildLogicBuildQueue buildQueue;
 
     public DefaultBuildLogicBuilder(
-        BuildState currentBuild,
-        ScriptClassPathResolver scriptClassPathResolver,
-        BuildLogicBuildQueue buildQueue
-    ) {
+            BuildState currentBuild, ScriptClassPathResolver scriptClassPathResolver, BuildLogicBuildQueue buildQueue) {
         this.currentBuild = currentBuild;
         this.scriptClassPathResolver = scriptClassPathResolver;
         this.buildQueue = buildQueue;
@@ -52,25 +48,28 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
     }
 
     @Override
-    public void prepareClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
+    public void prepareClassPath(
+            Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
         scriptClassPathResolver.prepareClassPath(classpathConfiguration, resolutionContext);
     }
 
     @Override
-    public ClassPath resolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
+    public ClassPath resolveClassPath(
+            Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
         return buildQueue.build(
-            currentBuild,
-            taskIdentifiersForBuildDependenciesOf(classpathConfiguration),
-            () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration, resolutionContext)
-        );
+                currentBuild,
+                taskIdentifiersForBuildDependenciesOf(classpathConfiguration),
+                () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration, resolutionContext));
     }
 
-    private List<TaskIdentifier.TaskBasedTaskIdentifier> taskIdentifiersForBuildDependenciesOf(Configuration classpath) {
+    private List<TaskIdentifier.TaskBasedTaskIdentifier> taskIdentifiersForBuildDependenciesOf(
+            Configuration classpath) {
         List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = new ArrayList<>();
         for (Task task : getDependenciesForInternalUse(classpath)) {
             BuildState targetBuild = owningBuildOf(task);
             if (targetBuild == currentBuild) {
-                throw new InvalidUserDataException("Script classpath dependencies must reside in a separate build from the script itself.");
+                throw new InvalidUserDataException(
+                        "Script classpath dependencies must reside in a separate build from the script itself.");
             }
             tasksToBuild.add(TaskIdentifier.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));
         }

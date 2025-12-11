@@ -63,5 +63,4 @@ public interface AwsCredentials extends Credentials {
      * @since 3.3
      */
     void setSessionToken(@Nullable String token);
-
 }

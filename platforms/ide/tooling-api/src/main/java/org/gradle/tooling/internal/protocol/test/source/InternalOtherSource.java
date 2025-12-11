@@ -21,5 +21,4 @@ package org.gradle.tooling.internal.protocol.test.source;
  *
  * @since 9.4.0
  */
-public interface InternalOtherSource extends InternalTestSource {
-}
+public interface InternalOtherSource extends InternalTestSource {}

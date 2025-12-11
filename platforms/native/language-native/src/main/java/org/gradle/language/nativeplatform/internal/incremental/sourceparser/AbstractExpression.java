@@ -17,13 +17,12 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.base.Joiner;
-import org.gradle.language.nativeplatform.internal.Expression;
-import org.gradle.language.nativeplatform.internal.IncludeType;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.language.nativeplatform.internal.Expression;
+import org.gradle.language.nativeplatform.internal.IncludeType;
+import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractExpression implements Expression {
     @Override
@@ -51,10 +50,13 @@ public abstract class AbstractExpression implements Expression {
             return new SimpleExpression(expression.getValue(), IncludeType.MACRO);
         }
         if (expression.getType() == IncludeType.TOKEN_CONCATENATION) {
-            return new ComplexExpression(IncludeType.EXPAND_TOKEN_CONCATENATION, expression.getValue(), expression.getArguments());
+            return new ComplexExpression(
+                    IncludeType.EXPAND_TOKEN_CONCATENATION, expression.getValue(), expression.getArguments());
         }
-        if (expression.getType() == IncludeType.ARGS_LIST && !expression.getArguments().isEmpty()) {
-            List<Expression> mapped = new ArrayList<Expression>(expression.getArguments().size());
+        if (expression.getType() == IncludeType.ARGS_LIST
+                && !expression.getArguments().isEmpty()) {
+            List<Expression> mapped =
+                    new ArrayList<Expression>(expression.getArguments().size());
             for (Expression arg : expression.getArguments()) {
                 mapped.add(arg.asMacroExpansion());
             }
@@ -79,7 +81,8 @@ public abstract class AbstractExpression implements Expression {
                 return value;
             case TOKEN_CONCATENATION:
             case EXPAND_TOKEN_CONCATENATION:
-                return arguments.get(0).getAsSourceText() + "##" + arguments.get(1).getAsSourceText();
+                return arguments.get(0).getAsSourceText() + "##"
+                        + arguments.get(1).getAsSourceText();
             case MACRO_FUNCTION:
                 return value + "(" + Joiner.on(", ").join(arguments) + ")";
             case EXPRESSIONS:

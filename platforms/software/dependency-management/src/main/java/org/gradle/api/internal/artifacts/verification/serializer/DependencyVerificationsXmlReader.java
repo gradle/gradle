@@ -15,35 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.verification.serializer;
 
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
-import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
-import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
-import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
-import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
-import org.gradle.internal.xml.XmlFactories;
-import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.ext.DefaultHandler2;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ALSO_TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
@@ -74,6 +45,34 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_SIGNATURES;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
+
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
+import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
+import org.gradle.internal.xml.XmlFactories;
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.ext.DefaultHandler2;
 
 public class DependencyVerificationsXmlReader {
     public static void readFromXml(InputStream in, DependencyVerifierBuilder builder) {
@@ -214,13 +213,19 @@ public class DependencyVerificationsXmlReader {
                     break;
                 default:
                     if (currentChecksum != null && ALSO_TRUST.equals(qName)) {
-                        builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null, null);
+                        builder.addChecksum(
+                                currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null, null);
                     } else if (currentArtifact != null) {
                         if (PGP.equals(qName)) {
                             builder.addTrustedKey(currentArtifact, getAttribute(attributes, VALUE));
                         } else {
                             currentChecksum = ChecksumKind.valueOf(qName);
-                            builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN), getNullableAttribute(attributes, REASON));
+                            builder.addChecksum(
+                                    currentArtifact,
+                                    currentChecksum,
+                                    getAttribute(attributes, VALUE),
+                                    getNullableAttribute(attributes, ORIGIN),
+                                    getNullableAttribute(attributes, REASON));
                         }
                     }
             }
@@ -249,13 +254,12 @@ public class DependencyVerificationsXmlReader {
                 regex = Boolean.parseBoolean(regexAttr);
             }
             builder.addTrustedArtifact(
-                getNullableAttribute(attributes, GROUP),
-                getNullableAttribute(attributes, NAME),
-                getNullableAttribute(attributes, VERSION),
-                getNullableAttribute(attributes, FILE),
-                regex,
-                getNullableAttribute(attributes, REASON)
-            );
+                    getNullableAttribute(attributes, GROUP),
+                    getNullableAttribute(attributes, NAME),
+                    getNullableAttribute(attributes, VERSION),
+                    getNullableAttribute(attributes, FILE),
+                    regex,
+                    getNullableAttribute(attributes, REASON));
         }
 
         private void addTrustedKey(Attributes attributes) {
@@ -273,15 +277,8 @@ public class DependencyVerificationsXmlReader {
             String name = getNullableAttribute(attributes, NAME);
             String version = getNullableAttribute(attributes, VERSION);
             String file = getNullableAttribute(attributes, FILE);
-            if (group != null || name!=null || version != null || file != null) {
-                builder.addTrustedKey(
-                    currentTrustedKey,
-                    group,
-                    name,
-                    version,
-                    file,
-                    regex
-                );
+            if (group != null || name != null || version != null || file != null) {
+                builder.addTrustedKey(currentTrustedKey, group, name, version, file, regex);
             }
         }
 
@@ -374,17 +371,12 @@ public class DependencyVerificationsXmlReader {
         }
 
         private ModuleComponentFileArtifactIdentifier createArtifactId(Attributes attributes) {
-            return new ModuleComponentFileArtifactIdentifier(
-                currentComponent,
-                getAttribute(attributes, NAME)
-            );
+            return new ModuleComponentFileArtifactIdentifier(currentComponent, getAttribute(attributes, NAME));
         }
 
         private ModuleComponentIdentifier createComponentId(Attributes attributes) {
             return DefaultModuleComponentIdentifier.newId(
-                createModuleId(attributes),
-                getAttribute(attributes, VERSION)
-            );
+                    createModuleId(attributes), getAttribute(attributes, VERSION));
         }
 
         private ModuleIdentifier createModuleId(Attributes attributes) {

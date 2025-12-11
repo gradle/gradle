@@ -15,6 +15,7 @@
  */
 package org.gradle.model.internal.manage.schema.extract;
 
+import java.util.Collection;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.DefaultModelViewState;
 import org.gradle.model.internal.core.ModelPath;
@@ -22,8 +23,6 @@ import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
-
-import java.util.Collection;
 
 public abstract class ScalarCollectionModelView<E, C extends Collection<E>> implements ModelView<C> {
     protected final ModelPath path;
@@ -33,7 +32,14 @@ public abstract class ScalarCollectionModelView<E, C extends Collection<E>> impl
     protected final boolean overwritable;
     protected final DefaultModelViewState state;
 
-    public ScalarCollectionModelView(ModelPath path, ModelType<C> type, ModelType<E> elementType, MutableModelNode modelNode, ModelRuleDescriptor descriptor, boolean overwritable, boolean mutable) {
+    public ScalarCollectionModelView(
+            ModelPath path,
+            ModelType<C> type,
+            ModelType<E> elementType,
+            MutableModelNode modelNode,
+            ModelRuleDescriptor descriptor,
+            boolean overwritable,
+            boolean mutable) {
         this.path = path;
         this.type = type;
         this.elementType = elementType;

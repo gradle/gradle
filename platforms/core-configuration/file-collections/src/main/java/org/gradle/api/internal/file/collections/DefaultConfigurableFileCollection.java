@@ -19,6 +19,17 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.AbstractSet;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -50,22 +61,11 @@ import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.AbstractSet;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
-public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, OwnerAware, HasConfigurableValueInternal, LazyGroovySupport {
+public class DefaultConfigurableFileCollection extends CompositeFileCollection
+        implements ConfigurableFileCollection, Managed, OwnerAware, HasConfigurableValueInternal, LazyGroovySupport {
     private static final EmptyCollector EMPTY_COLLECTOR = new EmptyCollector();
     private final PathSet filesWrapper;
     private DisplayName displayName;
@@ -77,7 +77,12 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private ValueState<ValueCollector> valueState;
     private final ValueCollector defaultValue = new EmptyCollector();
 
-    public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, TaskDependencyFactory dependencyFactory, PatternSetFactory patternSetFactory, PropertyHost host) {
+    public DefaultConfigurableFileCollection(
+            @Nullable String displayName,
+            PathToFileResolver fileResolver,
+            TaskDependencyFactory dependencyFactory,
+            PatternSetFactory patternSetFactory,
+            PropertyHost host) {
         super(dependencyFactory, patternSetFactory);
         this.displayName = displayName != null ? Describables.of(displayName) : null;
         this.resolver = fileResolver;
@@ -203,7 +208,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void setFromAnyValue(Object object) {
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
-        FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
+        FileCollectionInternal fileCollection =
+                Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
 
         throwOnSelfSubtraction(fileCollection);
 
@@ -212,7 +218,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             @Override
             public boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal fileCollection) {
                 if (DefaultConfigurableFileCollection.this == fileCollection) {
-                    throw new UnsupportedOperationException("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.");
+                    throw new UnsupportedOperationException(
+                            "Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.");
                 }
                 // Only visit the children of a CompositeFileCollection but not other types of FileCollections,
                 // since we might accidentally resolve them, for example we don't want to resolve Configurations
@@ -225,16 +232,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             }
 
             @Override
-            public void visitCollection(Source source, Iterable<File> contents) {
-            }
+            public void visitCollection(Source source, Iterable<File> contents) {}
 
             @Override
-            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-            }
+            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {}
 
             @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-            }
+            public void visitFileTreeBackedByFile(
+                    File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {}
         });
 
         setFrom(Cast.castNullable(FileCollection.class, object));
@@ -247,7 +252,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         if (fileCollection instanceof SubtractingFileCollection) {
             SubtractingFileCollection subtraction = (SubtractingFileCollection) fileCollection;
             if (DefaultConfigurableFileCollection.this == subtraction.getLeft()) {
-                throw new UnsupportedOperationException("ConfigurableFileCollection does not support '-=' operator or assignment of subtraction via '-' operator or a minus() method");
+                throw new UnsupportedOperationException(
+                        "ConfigurableFileCollection does not support '-=' operator or assignment of subtraction via '-' operator or a minus() method");
             }
         }
     }
@@ -327,9 +333,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void setFrom(Object... paths) {
         assertMutable();
-        setExplicitCollector(paths.length > 0
-            ? newExplicitValue(paths)
-            : EMPTY_COLLECTOR);
+        setExplicitCollector(paths.length > 0 ? newExplicitValue(paths) : EMPTY_COLLECTOR);
     }
 
     private ValueCollector newConventionValue(Iterable<?> paths) {
@@ -388,7 +392,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         if (newItems == null) {
             return this;
         }
-        DefaultConfigurableFileCollection newFiles = new DefaultConfigurableFileCollection(null, resolver, dependencyFactory, patternSetFactory, host);
+        DefaultConfigurableFileCollection newFiles =
+                new DefaultConfigurableFileCollection(null, resolver, dependencyFactory, patternSetFactory, host);
         newFiles.from(newItems);
         return newFiles;
     }
@@ -425,7 +430,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             public void visitCollection(Source source, Iterable<File> contents) {
                 ImmutableSet<File> files = ImmutableSet.copyOf(contents);
                 if (!files.isEmpty()) {
-                    builder.add(new FileCollectionAdapter(new ListBackedFileSet(files), taskDependencyFactory, patternSetFactory));
+                    builder.add(new FileCollectionAdapter(
+                            new ListBackedFileSet(files), taskDependencyFactory, patternSetFactory));
                 }
             }
 
@@ -435,7 +441,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             }
 
             @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+            public void visitFileTreeBackedByFile(
+                    File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                 builder.add(fileTree);
             }
         }));
@@ -444,7 +451,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-        valueState.finalizeOnReadIfNeeded(this::displayNameForThisCollection, null, ValueSupplier.ValueConsumer.IgnoreUnsafeRead, unused -> finalizeNow());
+        valueState.finalizeOnReadIfNeeded(
+                this::displayNameForThisCollection,
+                null,
+                ValueSupplier.ValueConsumer.IgnoreUnsafeRead,
+                unused -> finalizeNow());
         value.visitContents(visitor);
     }
 
@@ -488,7 +499,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
      * @return the shallow copy of this collection
      */
     public FileCollectionInternal shallowCopy() {
-        DefaultConfigurableFileCollection result = new DefaultConfigurableFileCollection(null, resolver, taskDependencyFactory, patternSetFactory, host);
+        DefaultConfigurableFileCollection result =
+                new DefaultConfigurableFileCollection(null, resolver, taskDependencyFactory, patternSetFactory, host);
         result.buildDependency.setValues(buildDependency.getMutableValues());
         // getFrom returns a live view of the current structure, but here we need a snapshot.
         result.setFrom(new ArrayList<>(getFrom()));
@@ -520,11 +532,29 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         boolean remove(Object source);
 
-        ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Iterable<?> path);
+        ValueCollector setFrom(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Iterable<?> path);
 
-        ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object[] paths);
+        ValueCollector setFrom(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Object[] paths);
 
-        ValueCollector plus(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object... paths);
+        ValueCollector plus(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Object... paths);
 
         @Nullable
         List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier);
@@ -544,12 +574,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public void collectSource(Collection<Object> dest) {
-        }
+        public void collectSource(Collection<Object> dest) {}
 
         @Override
-        public void visitContents(Consumer<FileCollectionInternal> visitor) {
-        }
+        public void visitContents(Consumer<FileCollectionInternal> visitor) {}
 
         @Override
         public boolean remove(Object source) {
@@ -557,17 +585,36 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Iterable<?> path) {
-            return new UnresolvedItemsCollector(owner, resolver, patternSetFactory, taskDependencyFactory, propertyHost, path);
+        public ValueCollector setFrom(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Iterable<?> path) {
+            return new UnresolvedItemsCollector(
+                    owner, resolver, patternSetFactory, taskDependencyFactory, propertyHost, path);
         }
 
         @Override
-        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object[] paths) {
+        public ValueCollector setFrom(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Object[] paths) {
             return new UnresolvedItemsCollector(resolver, taskDependencyFactory, patternSetFactory, paths);
         }
 
         @Override
-        public ValueCollector plus(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object... paths) {
+        public ValueCollector plus(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Object... paths) {
             return setFrom(owner, resolver, patternSetFactory, taskDependencyFactory, propertyHost, paths);
         }
 
@@ -589,14 +636,24 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         private final TaskDependencyFactory taskDependencyFactory;
         private final Set<Object> items = new LinkedHashSet<>();
 
-        public UnresolvedItemsCollector(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Iterable<?> item) {
+        public UnresolvedItemsCollector(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Iterable<?> item) {
             this.resolver = resolver;
             this.patternSetFactory = patternSetFactory;
             this.taskDependencyFactory = taskDependencyFactory;
             setFrom(owner, resolver, patternSetFactory, taskDependencyFactory, propertyHost, item);
         }
 
-        public UnresolvedItemsCollector(PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory, Object[] item) {
+        public UnresolvedItemsCollector(
+                PathToFileResolver resolver,
+                TaskDependencyFactory taskDependencyFactory,
+                PatternSetFactory patternSetFactory,
+                Object[] item) {
             this.resolver = resolver;
             this.taskDependencyFactory = taskDependencyFactory;
             this.patternSetFactory = patternSetFactory;
@@ -642,7 +699,13 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Iterable<?> path) {
+        public ValueCollector setFrom(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Iterable<?> path) {
             ImmutableList<Object> oldItems = ImmutableList.copyOf(items);
             items.clear();
             addItem(owner, resolver, patternSetFactory, taskDependencyFactory, propertyHost, path, oldItems);
@@ -650,7 +713,13 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object[] paths) {
+        public ValueCollector setFrom(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Object[] paths) {
             ImmutableList<Object> oldItems = ImmutableList.copyOf(items);
             items.clear();
             for (Object path : paths) {
@@ -660,7 +729,13 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public ValueCollector plus(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object... paths) {
+        public ValueCollector plus(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Object... paths) {
             ImmutableList<Object> oldItems = ImmutableList.copyOf(items);
             for (Object path : paths) {
                 addItem(owner, resolver, patternSetFactory, taskDependencyFactory, propertyHost, path, oldItems);
@@ -668,15 +743,24 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             return this;
         }
 
-        private void addItem(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object path, ImmutableList<Object> oldItems) {
+        private void addItem(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Object path,
+                ImmutableList<Object> oldItems) {
             // Unpack to deal with DSL syntax: collection += someFiles
             if (path instanceof FileCollectionInternal) {
                 path = ((FileCollectionInternal) path).replace(owner, () -> {
-                    // Should use FileCollectionFactory here, and it can take care of simplifying the tree. For example, ths returned collection does not need to be mutable
+                    // Should use FileCollectionFactory here, and it can take care of simplifying the tree. For example,
+                    // ths returned collection does not need to be mutable
                     if (oldItems.size() == 1 && oldItems.get(0) instanceof FileCollectionInternal) {
                         return (FileCollectionInternal) oldItems.get(0);
                     }
-                    DefaultConfigurableFileCollection oldFiles = new DefaultConfigurableFileCollection(null, resolver, taskDependencyFactory, patternSetFactory, propertyHost);
+                    DefaultConfigurableFileCollection oldFiles = new DefaultConfigurableFileCollection(
+                            null, resolver, taskDependencyFactory, patternSetFactory, propertyHost);
                     oldFiles.from(oldItems);
                     return oldFiles;
                 });
@@ -694,7 +778,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
                     continue;
                 }
                 if (candidate instanceof FileCollectionInternal) {
-                    FileCollectionInternal newCollection = ((FileCollectionInternal) candidate).replace(original, supplier);
+                    FileCollectionInternal newCollection =
+                            ((FileCollectionInternal) candidate).replace(original, supplier);
                     hasChanges |= newCollection != candidate;
                     builder.add(newCollection);
                 } else {
@@ -734,17 +819,35 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Iterable<?> path) {
+        public ValueCollector setFrom(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Iterable<?> path) {
             throw new UnsupportedOperationException("Should not be called");
         }
 
         @Override
-        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object[] paths) {
+        public ValueCollector setFrom(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Object[] paths) {
             throw new UnsupportedOperationException("Should not be called");
         }
 
         @Override
-        public ValueCollector plus(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object... paths) {
+        public ValueCollector plus(
+                DefaultConfigurableFileCollection owner,
+                PathToFileResolver resolver,
+                PatternSetFactory patternSetFactory,
+                TaskDependencyFactory taskDependencyFactory,
+                PropertyHost propertyHost,
+                Object... paths) {
             throw new UnsupportedOperationException("Should not be called");
         }
 
@@ -808,7 +911,13 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         public boolean add(Object o) {
             assertMutable();
             if (!delegate().contains(o)) {
-                setExplicitCollector(value.plus(DefaultConfigurableFileCollection.this, resolver, patternSetFactory, dependencyFactory, host, o));
+                setExplicitCollector(value.plus(
+                        DefaultConfigurableFileCollection.this,
+                        resolver,
+                        patternSetFactory,
+                        dependencyFactory,
+                        host,
+                        o));
                 return true;
             } else {
                 return false;
@@ -841,7 +950,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         public Configurer from(Object... paths) {
             assertMutable();
             if (paths.length > 0) {
-                setValue(getValue().plus(DefaultConfigurableFileCollection.this, resolver, patternSetFactory, dependencyFactory, host, paths));
+                setValue(getValue()
+                        .plus(
+                                DefaultConfigurableFileCollection.this,
+                                resolver,
+                                patternSetFactory,
+                                dependencyFactory,
+                                host,
+                                paths));
             }
             return this;
         }

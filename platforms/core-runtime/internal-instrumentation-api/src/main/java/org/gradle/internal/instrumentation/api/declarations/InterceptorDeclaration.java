@@ -17,11 +17,18 @@
 package org.gradle.internal.instrumentation.api.declarations;
 
 public class InterceptorDeclaration {
-    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONVENTIONS = "org.gradle.internal.classpath.generated.InterceptorDeclaration_Conventions";
-    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE = "org.gradle.internal.classpath.generated.InterceptorDeclaration_ConfigCacheJvmBytecode";
-    public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE = "org.gradle.internal.classpath.generated.InterceptorDeclaration_ConfigCacheGroovyInterceptors";
-    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES = "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesJvmBytecode";
-    public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES = "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesGroovyInterceptors";
-    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES_REPORT = "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesReportJvmBytecode";
-    public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES_REPORT = "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesReportGroovyInterceptors";
+    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONVENTIONS =
+            "org.gradle.internal.classpath.generated.InterceptorDeclaration_Conventions";
+    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE =
+            "org.gradle.internal.classpath.generated.InterceptorDeclaration_ConfigCacheJvmBytecode";
+    public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE =
+            "org.gradle.internal.classpath.generated.InterceptorDeclaration_ConfigCacheGroovyInterceptors";
+    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES =
+            "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesJvmBytecode";
+    public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES =
+            "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesGroovyInterceptors";
+    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES_REPORT =
+            "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesReportJvmBytecode";
+    public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES_REPORT =
+            "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesReportGroovyInterceptors";
 }

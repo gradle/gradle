@@ -16,15 +16,15 @@
 
 package org.gradle.integtests.tooling.r32;
 
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
-
 import java.util.Collections;
 import java.util.List;
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
 
 public class Action2 implements BuildAction<List<String>> {
     @Override
     public List<String> execute(BuildController controller) {
-        return Collections.singletonList(controller.getBuildModel().getRootProject().getName() + " " + (++SharedActionStaticState.counter));
+        return Collections.singletonList(
+                controller.getBuildModel().getRootProject().getName() + " " + (++SharedActionStaticState.counter));
     }
 }

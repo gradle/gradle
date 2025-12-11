@@ -24,5 +24,4 @@ import org.gradle.api.Incubating;
  * @since 8.4
  */
 @Incubating
-public interface ConsumableConfiguration extends Configuration {
-}
+public interface ConsumableConfiguration extends Configuration {}

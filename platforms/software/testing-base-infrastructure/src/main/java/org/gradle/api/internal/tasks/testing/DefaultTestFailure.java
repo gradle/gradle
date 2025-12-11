@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 import org.jspecify.annotations.Nullable;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Collections;
-import java.util.List;
 
 public class DefaultTestFailure extends TestFailure {
 
@@ -57,35 +56,52 @@ public class DefaultTestFailure extends TestFailure {
 
     @Override
     public String toString() {
-        return "test failure {" +
-            "rawFailure=" + rawFailure.getClass().getCanonicalName() +
-            ", causes=" + causes.size() +
-            ", details=" + details +
-            '}';
+        return "test failure {" + "rawFailure="
+                + rawFailure.getClass().getCanonicalName() + ", causes="
+                + causes.size() + ", details="
+                + details + '}';
     }
 
     public static TestFailure fromTestAssumptionFailure(Throwable failure) {
-        TestFailureDetails details = new AssumptionFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
+        TestFailureDetails details =
+                new AssumptionFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
         return new DefaultTestFailure(failure, details, Collections.emptyList());
     }
 
-    public static TestFailure fromTestAssertionFailure(Throwable failure, String expected, String actual, @Nullable List<TestFailure> causes) {
-        TestFailureDetails details = new AssertionFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), expected, actual);
+    public static TestFailure fromTestAssertionFailure(
+            Throwable failure, String expected, String actual, @Nullable List<TestFailure> causes) {
+        TestFailureDetails details = new AssertionFailureDetails(
+                messageOf(failure), classNameOf(failure), stacktraceOf(failure), expected, actual);
         return new DefaultTestFailure(failure, details, emptyIfNull(causes));
     }
 
-    public static TestFailure fromFileComparisonTestAssertionFailure(Throwable failure, String expected, String actual, @Nullable List<TestFailure> causes, byte[] expectedContent, byte[] actualContent) {
-        TestFailureDetails details = new FileComparisonFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), expected, actual, expectedContent, actualContent);
+    public static TestFailure fromFileComparisonTestAssertionFailure(
+            Throwable failure,
+            String expected,
+            String actual,
+            @Nullable List<TestFailure> causes,
+            byte[] expectedContent,
+            byte[] actualContent) {
+        TestFailureDetails details = new FileComparisonFailureDetails(
+                messageOf(failure),
+                classNameOf(failure),
+                stacktraceOf(failure),
+                expected,
+                actual,
+                expectedContent,
+                actualContent);
         return new DefaultTestFailure(failure, details, emptyIfNull(causes));
     }
 
     public static TestFailure fromTestFrameworkFailure(Throwable failure, @Nullable List<TestFailure> causes) {
-        TestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
+        TestFailureDetails details =
+                new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
         return new DefaultTestFailure(failure, details, emptyIfNull(causes));
     }
 
     public static TestFailure fromTestFrameworkStartupFailure(Throwable failure) {
-        TestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
+        TestFailureDetails details =
+                new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
         return new DefaultTestFailure(failure, details, Collections.emptyList());
     }
 
@@ -104,8 +120,8 @@ public class DefaultTestFailure extends TestFailure {
 
     private static String classNameOf(Throwable failure) {
         return failure instanceof PlaceholderExceptionSupport
-            ? ((PlaceholderExceptionSupport) failure).getExceptionClassName()
-            : failure.getClass().getName();
+                ? ((PlaceholderExceptionSupport) failure).getExceptionClassName()
+                : failure.getClass().getName();
     }
 
     private static String stacktraceOf(Throwable throwable) {
@@ -122,9 +138,9 @@ public class DefaultTestFailure extends TestFailure {
 
     private static Throwable createFailedToReadThrowableException(String part, Throwable original, Throwable cause) {
         return new GradleException(
-            String.format("Could not determine failure %s for exception of type %s: %s", part, classNameOf(original), cause),
-            cause
-        );
+                String.format(
+                        "Could not determine failure %s for exception of type %s: %s",
+                        part, classNameOf(original), cause),
+                cause);
     }
-
 }

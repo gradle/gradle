@@ -16,10 +16,9 @@
 
 package org.gradle.initialization;
 
+import java.io.Closeable;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.service.CloseableServiceRegistry;
-
-import java.io.Closeable;
 
 /**
  * A container that controls the lifecycle of a {@link org.gradle.api.initialization.Settings} object and its associated services.

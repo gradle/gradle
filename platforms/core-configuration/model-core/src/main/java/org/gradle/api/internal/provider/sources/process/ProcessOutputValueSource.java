@@ -16,6 +16,12 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
+import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import javax.inject.Inject;
 import org.gradle.api.Describable;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
@@ -27,14 +33,9 @@ import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-public abstract class ProcessOutputValueSource implements ValueSource<ProcessOutputValueSource.ExecOutputData, ProcessOutputValueSource.Parameters>, Describable {
+public abstract class ProcessOutputValueSource
+        implements ValueSource<ProcessOutputValueSource.ExecOutputData, ProcessOutputValueSource.Parameters>,
+                Describable {
     public interface Parameters extends ValueSourceParameters {
         /**
          * The full command line of the process to be executed, including all parameters and
@@ -102,7 +103,7 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
 
         if (hasFullEnvironment() && hasAdditionalEnvVars()) {
             throw new IllegalArgumentException(
-                "Providing both full environment and additional environment variables isn't supported");
+                    "Providing both full environment and additional environment variables isn't supported");
         }
     }
 
@@ -130,7 +131,8 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
             if (hasFullEnvironment()) {
                 spec.setEnvironment(getParameters().getFullEnvironment().get());
             } else if (hasAdditionalEnvVars()) {
-                spec.environment(getParameters().getAdditionalEnvironmentVariables().get());
+                spec.environment(
+                        getParameters().getAdditionalEnvironmentVariables().get());
             }
             spec.setStandardOutput(stdout);
             spec.setErrorOutput(stderr);
@@ -175,7 +177,9 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
                 return false;
             }
             ExecOutputData that = (ExecOutputData) o;
-            return result.getExitValue() == that.result.getExitValue() && Arrays.equals(output, that.output) && Arrays.equals(error, that.error);
+            return result.getExitValue() == that.result.getExitValue()
+                    && Arrays.equals(output, that.output)
+                    && Arrays.equals(error, that.error);
         }
 
         @Override

@@ -17,7 +17,6 @@
 package org.gradle.internal.jvm.inspection;
 
 enum ProbedSystemProperty {
-
     JAVA_HOME("java.home"),
     JAVA_VERSION("java.version"),
     JAVA_VENDOR("java.vendor"),
@@ -38,5 +37,4 @@ enum ProbedSystemProperty {
     String getSystemPropertyKey() {
         return key;
     }
-
 }

@@ -15,11 +15,10 @@
  */
 package org.gradle.plugins.signing.type;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * Convenience base class for {@link SignatureTypeProvider} implementations.

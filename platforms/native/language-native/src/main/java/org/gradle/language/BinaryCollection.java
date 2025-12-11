@@ -16,12 +16,11 @@
 
 package org.gradle.language;
 
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
-
-import java.util.Set;
 
 /**
  * A collection of binaries that are created and configured as they are required.

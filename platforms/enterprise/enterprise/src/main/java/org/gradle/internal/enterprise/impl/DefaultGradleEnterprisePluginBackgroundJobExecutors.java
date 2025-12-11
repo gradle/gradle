@@ -16,38 +16,35 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.internal.concurrent.ExecutorPolicy;
-import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.concurrent.ManagedExecutorImpl;
-import org.gradle.internal.enterprise.DevelocityPluginUnsafeConfigurationService;
-import org.jspecify.annotations.NonNull;
-
-import javax.inject.Inject;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import javax.inject.Inject;
+import org.gradle.internal.concurrent.ExecutorPolicy;
+import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.ManagedExecutorImpl;
+import org.gradle.internal.enterprise.DevelocityPluginUnsafeConfigurationService;
+import org.jspecify.annotations.NonNull;
 
-public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements GradleEnterprisePluginBackgroundJobExecutorsInternal {
+public class DefaultGradleEnterprisePluginBackgroundJobExecutors
+        implements GradleEnterprisePluginBackgroundJobExecutorsInternal {
     private final ManagedExecutor executorService = createExecutor();
     private final DevelocityPluginUnsafeConfigurationService unsafeConfigurationService;
 
     private static ManagedExecutor createExecutor() {
         ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(
-            4, 4,
-            30, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(),
-            new BackgroundThreadFactory()
-        );
+                4, 4, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), new BackgroundThreadFactory());
         poolExecutor.allowCoreThreadTimeOut(true);
 
         return new ManagedExecutorImpl(poolExecutor, new ExecutorPolicy.CatchAndRecordFailures());
     }
 
     @Inject
-    public DefaultGradleEnterprisePluginBackgroundJobExecutors(DevelocityPluginUnsafeConfigurationService unsafeConfigurationService) {
+    public DefaultGradleEnterprisePluginBackgroundJobExecutors(
+            DevelocityPluginUnsafeConfigurationService unsafeConfigurationService) {
         this.unsafeConfigurationService = unsafeConfigurationService;
     }
 

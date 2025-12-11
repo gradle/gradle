@@ -16,6 +16,9 @@
 
 package org.gradle.nativeplatform.internal.prebuilt;
 
+import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
@@ -25,10 +28,6 @@ import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.PrebuiltLibrary;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.Set;
-
 public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBinary {
     private final String name;
     private final PrebuiltLibrary library;
@@ -37,7 +36,13 @@ public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBina
     private final Flavor flavor;
     protected final FileCollectionFactory fileCollectionFactory;
 
-    public AbstractPrebuiltLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+    public AbstractPrebuiltLibraryBinary(
+            String name,
+            PrebuiltLibrary library,
+            BuildType buildType,
+            NativePlatform targetPlatform,
+            Flavor flavor,
+            FileCollectionFactory fileCollectionFactory) {
         this.name = name;
         this.library = library;
         this.buildType = buildType;
@@ -102,10 +107,13 @@ public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBina
         @Override
         public Set<File> getFiles() {
             if (file == null) {
-                throw new PrebuiltLibraryResolveException(String.format("%s not set for %s.", fileDescription, AbstractPrebuiltLibraryBinary.this.getDisplayName()));
+                throw new PrebuiltLibraryResolveException(String.format(
+                        "%s not set for %s.", fileDescription, AbstractPrebuiltLibraryBinary.this.getDisplayName()));
             }
             if (!file.exists() || !file.isFile()) {
-                throw new PrebuiltLibraryResolveException(String.format("%s %s does not exist for %s.", fileDescription, file.getAbsolutePath(), AbstractPrebuiltLibraryBinary.this.getDisplayName()));
+                throw new PrebuiltLibraryResolveException(String.format(
+                        "%s %s does not exist for %s.",
+                        fileDescription, file.getAbsolutePath(), AbstractPrebuiltLibraryBinary.this.getDisplayName()));
             }
             return Collections.singleton(file);
         }

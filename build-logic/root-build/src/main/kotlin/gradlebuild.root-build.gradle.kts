@@ -22,6 +22,11 @@ plugins {
     id("gradlebuild.warmup-ec2") // Warm up EC2 AMI
 
     id("com.autonomousapps.dependency-analysis")
+    // id("com.diffplug.spotless") version ("8.1.0") apply false
+}
+
+allprojects {
+    apply(from = "$rootDir/gradle/spotless.gradle")
 }
 
 configure<DependencyAnalysisExtension> {

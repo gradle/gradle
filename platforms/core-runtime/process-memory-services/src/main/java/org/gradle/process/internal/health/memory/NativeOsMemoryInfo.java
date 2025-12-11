@@ -29,7 +29,8 @@ public class NativeOsMemoryInfo implements OsMemoryInfo {
         try {
             Memory memory = NativeServices.getInstance().get(Memory.class);
             MemoryInfo memoryInfo = memory.getMemoryInfo();
-            return new OsMemoryStatusSnapshot(memoryInfo.getTotalPhysicalMemory(), memoryInfo.getAvailablePhysicalMemory());
+            return new OsMemoryStatusSnapshot(
+                    memoryInfo.getTotalPhysicalMemory(), memoryInfo.getAvailablePhysicalMemory());
         } catch (NativeException ex) {
             throw new UnsupportedOperationException("Unable to get system memory", ex);
         } catch (NativeIntegrationException ex) {

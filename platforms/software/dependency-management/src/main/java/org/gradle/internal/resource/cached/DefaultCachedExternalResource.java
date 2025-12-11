@@ -16,18 +16,18 @@
 
 package org.gradle.internal.resource.cached;
 
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.Date;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 public class DefaultCachedExternalResource implements CachedExternalResource, Serializable {
     private final File cachedFile;
     private final long cachedAt;
     private final ExternalResourceMetaData externalResourceMetaData;
 
-    public DefaultCachedExternalResource(File cachedFile, long cachedAt, ExternalResourceMetaData externalResourceMetaData) {
+    public DefaultCachedExternalResource(
+            File cachedFile, long cachedAt, ExternalResourceMetaData externalResourceMetaData) {
         this.cachedFile = cachedFile;
         this.cachedAt = cachedAt;
         this.externalResourceMetaData = externalResourceMetaData;
@@ -69,5 +69,4 @@ public class DefaultCachedExternalResource implements CachedExternalResource, Se
     public long getContentLength() {
         return isMissing() ? -1 : cachedFile.length();
     }
-
 }

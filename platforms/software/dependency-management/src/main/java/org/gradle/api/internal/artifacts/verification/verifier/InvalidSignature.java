@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.verification.verifier;
 
+import java.io.File;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.File;
 
 @NullMarked
 public class InvalidSignature extends AbstractVerificationFailure {

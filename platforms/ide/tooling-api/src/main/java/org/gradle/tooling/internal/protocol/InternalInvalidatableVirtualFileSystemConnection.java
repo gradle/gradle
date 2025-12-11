@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.protocol;
 
+import java.util.List;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
-
-import java.util.List;
 
 /**
  * Mixed into a provider connection, to allow notifying the daemon about changed paths.

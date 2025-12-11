@@ -16,9 +16,8 @@
 
 package org.gradle.process.internal.health.memory;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.util.Arrays;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class DefaultAvailableOsMemoryStatusAspect implements OsMemoryStatusAspect.Available {
@@ -70,7 +69,7 @@ public class DefaultAvailableOsMemoryStatusAspect implements OsMemoryStatusAspec
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{name, total, free});
+        return Arrays.hashCode(new Object[] {name, total, free});
     }
 
     @Override

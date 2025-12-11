@@ -23,7 +23,8 @@ public class DefaultBuildCacheServiceRegistration implements BuildCacheServiceRe
     private final Class<? extends BuildCacheServiceFactory<?>> factoryType;
     private final Class<? extends BuildCache> configurationType;
 
-    public DefaultBuildCacheServiceRegistration(Class<? extends BuildCache> configurationType, Class<? extends BuildCacheServiceFactory<?>> factoryType) {
+    public DefaultBuildCacheServiceRegistration(
+            Class<? extends BuildCache> configurationType, Class<? extends BuildCacheServiceFactory<?>> factoryType) {
         this.factoryType = factoryType;
         this.configurationType = configurationType;
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.plugins;
 
+import javax.inject.Inject;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -36,8 +37,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 
-import javax.inject.Inject;
-
 /**
  * Installs a {@link org.gradle.api.publish.PublishingExtension} with name {@value org.gradle.api.publish.PublishingExtension#NAME}.
  *
@@ -56,10 +55,11 @@ public abstract class PublishingPlugin implements Plugin<Project> {
     private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
-    public PublishingPlugin(ArtifactPublicationServices publicationServices,
-                            Instantiator instantiator,
-                            ProjectPublicationRegistry projectPublicationRegistry,
-                            CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public PublishingPlugin(
+            ArtifactPublicationServices publicationServices,
+            Instantiator instantiator,
+            ProjectPublicationRegistry projectPublicationRegistry,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.publicationServices = publicationServices;
         this.instantiator = instantiator;
         this.projectPublicationRegistry = projectPublicationRegistry;
@@ -69,8 +69,15 @@ public abstract class PublishingPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         RepositoryHandler repositories = publicationServices.createRepositoryHandler();
-        PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator, collectionCallbackActionDecorator);
-        PublishingExtension extension = project.getExtensions().create(PublishingExtension.class, PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
+        PublicationContainer publications = instantiator.newInstance(
+                DefaultPublicationContainer.class, instantiator, collectionCallbackActionDecorator);
+        PublishingExtension extension = project.getExtensions()
+                .create(
+                        PublishingExtension.class,
+                        PublishingExtension.NAME,
+                        DefaultPublishingExtension.class,
+                        repositories,
+                        publications);
         project.getTasks().register(PUBLISH_LIFECYCLE_TASK_NAME, task -> {
             task.setDescription("Publishes all publications produced by this project.");
             task.setGroup(PUBLISH_TASK_GROUP);
@@ -90,13 +97,15 @@ public abstract class PublishingPlugin implements Plugin<Project> {
             for (ArtifactRepository repository : extension.getRepositories()) {
                 String repositoryName = repository.getName();
                 if (!repositoryName.matches(VALID_NAME_REGEX)) {
-                    throw new InvalidUserDataException("Repository name '" + repositoryName + "' is not valid for publication. Must match regex " + VALID_NAME_REGEX + ".");
+                    throw new InvalidUserDataException("Repository name '" + repositoryName
+                            + "' is not valid for publication. Must match regex " + VALID_NAME_REGEX + ".");
                 }
             }
             for (Publication publication : extension.getPublications()) {
                 String publicationName = publication.getName();
                 if (!publicationName.matches(VALID_NAME_REGEX)) {
-                    throw new InvalidUserDataException("Publication name '" + publicationName + "' is not valid for publication. Must match regex " + VALID_NAME_REGEX + ".");
+                    throw new InvalidUserDataException("Publication name '" + publicationName
+                            + "' is not valid for publication. Must match regex " + VALID_NAME_REGEX + ".");
                 }
             }
         });
@@ -110,5 +119,4 @@ public abstract class PublishingPlugin implements Plugin<Project> {
             }
         });
     }
-
 }

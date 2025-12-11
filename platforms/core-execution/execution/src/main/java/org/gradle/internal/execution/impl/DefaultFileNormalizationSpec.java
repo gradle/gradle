@@ -16,19 +16,21 @@
 
 package org.gradle.internal.execution.impl;
 
+import java.util.Objects;
 import org.gradle.internal.execution.FileNormalizationSpec;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-
-import java.util.Objects;
 
 public class DefaultFileNormalizationSpec implements FileNormalizationSpec {
     private final FileNormalizer normalizer;
     private final DirectorySensitivity directorySensitivity;
     private final LineEndingSensitivity lineEndingSensitivity;
 
-    private DefaultFileNormalizationSpec(FileNormalizer normalizer, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity) {
+    private DefaultFileNormalizationSpec(
+            FileNormalizer normalizer,
+            DirectorySensitivity directorySensitivity,
+            LineEndingSensitivity lineEndingSensitivity) {
         this.normalizer = normalizer;
         this.directorySensitivity = directorySensitivity;
         this.lineEndingSensitivity = lineEndingSensitivity;
@@ -49,7 +51,10 @@ public class DefaultFileNormalizationSpec implements FileNormalizationSpec {
         return lineEndingSensitivity;
     }
 
-    public static FileNormalizationSpec from(FileNormalizer normalizer, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity) {
+    public static FileNormalizationSpec from(
+            FileNormalizer normalizer,
+            DirectorySensitivity directorySensitivity,
+            LineEndingSensitivity lineEndingSensitivity) {
         return new DefaultFileNormalizationSpec(normalizer, directorySensitivity, lineEndingSensitivity);
     }
 
@@ -62,9 +67,9 @@ public class DefaultFileNormalizationSpec implements FileNormalizationSpec {
             return false;
         }
         DefaultFileNormalizationSpec that = (DefaultFileNormalizationSpec) o;
-        return normalizer.equals(that.normalizer) &&
-            directorySensitivity == that.directorySensitivity &&
-            lineEndingSensitivity == that.lineEndingSensitivity;
+        return normalizer.equals(that.normalizer)
+                && directorySensitivity == that.directorySensitivity
+                && lineEndingSensitivity == that.lineEndingSensitivity;
     }
 
     @Override

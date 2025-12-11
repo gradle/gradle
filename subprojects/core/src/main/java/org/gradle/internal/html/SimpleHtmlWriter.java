@@ -16,8 +16,6 @@
 
 package org.gradle.internal.html;
 
-import org.gradle.internal.xml.SimpleMarkupWriter;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
@@ -26,6 +24,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import org.gradle.internal.xml.SimpleMarkupWriter;
 
 /**
  * <p>A streaming HTML writer.</p>
@@ -70,20 +69,10 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
 
     // All valid tags should be in lowercase
     // Add more tags as necessary
-    private final static Set<String> VALID_HTML_TAGS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-        "html",
-        "head",
-        "meta", "title", "link", "script",
-        "body",
-        "h1", "h2", "h3", "h4", "h5",
-        "table", "thead", "tbody", "th", "td", "tr",
-        "img", "video",
-        "ul", "li",
-        "a", "p",
-        "pre", "div", "span",
-        "label", "input",
-        "button"
-    )));
+    private static final Set<String> VALID_HTML_TAGS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "html", "head", "meta", "title", "link", "script", "body", "h1", "h2", "h3", "h4", "h5", "table", "thead",
+            "tbody", "th", "td", "tr", "img", "video", "ul", "li", "a", "p", "pre", "div", "span", "label", "input",
+            "button")));
 
     private static boolean isValidHtmlTag(String name) {
         return VALID_HTML_TAGS.contains(name.toLowerCase(Locale.ROOT));

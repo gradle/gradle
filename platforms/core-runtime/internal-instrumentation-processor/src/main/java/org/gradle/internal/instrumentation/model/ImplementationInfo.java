@@ -20,6 +20,8 @@ import org.objectweb.asm.Type;
 
 public interface ImplementationInfo {
     Type getOwner();
+
     String getName();
+
     String getDescriptor();
 }

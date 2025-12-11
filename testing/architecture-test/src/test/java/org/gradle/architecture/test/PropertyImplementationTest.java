@@ -16,19 +16,19 @@
 
 package org.gradle.architecture.test;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.beAssignableTo;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import org.gradle.api.internal.provider.AbstractProperty;
 import org.gradle.api.provider.Property;
 
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.beAssignableTo;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-
 @AnalyzeClasses(packages = "org.gradle")
 public class PropertyImplementationTest {
     @ArchTest
-    public static final ArchRule property_implementations_extend_abstract_property = classes().that(implement(Property.class))
-        .should(beAssignableTo(AbstractProperty.class));
+    public static final ArchRule property_implementations_extend_abstract_property =
+            classes().that(implement(Property.class)).should(beAssignableTo(AbstractProperty.class));
 }

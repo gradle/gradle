@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
-
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 /**
  * A serializer for {@link ComponentSelector} that deduplicates the values and delegates to
@@ -73,5 +72,4 @@ public class DeduplicatingComponentSelectorSerializer implements Serializer<Comp
             encoder.writeSmallInt(idx);
         }
     }
-
 }

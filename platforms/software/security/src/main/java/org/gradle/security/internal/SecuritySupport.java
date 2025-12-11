@@ -15,6 +15,15 @@
  */
 package org.gradle.security.internal;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.security.Security;
+import java.util.ArrayList;
+import java.util.List;
 import org.bouncycastle.bcpg.ArmoredInputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPCompressedData;
@@ -35,16 +44,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.security.Security;
-import java.util.ArrayList;
-import java.util.List;
 
 public class SecuritySupport {
     private static final Logger LOGGER = Logging.getLogger(SecuritySupport.class);
@@ -79,10 +78,8 @@ public class SecuritySupport {
 
     @Nullable
     public static PGPSignatureList readSignatures(File file) {
-        try (
-            InputStream stream = new BufferedInputStream(Files.newInputStream(file.toPath()));
-            InputStream decoderStream = PGPUtil.getDecoderStream(stream)
-        ) {
+        try (InputStream stream = new BufferedInputStream(Files.newInputStream(file.toPath()));
+                InputStream decoderStream = PGPUtil.getDecoderStream(stream)) {
             return readSignatureList(decoderStream, file.toString());
         } catch (IOException | PGPException e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -90,7 +87,8 @@ public class SecuritySupport {
     }
 
     @Nullable
-    private static PGPSignatureList readSignatureList(InputStream decoderStream, String locationHint) throws IOException, PGPException {
+    private static PGPSignatureList readSignatureList(InputStream decoderStream, String locationHint)
+            throws IOException, PGPException {
         PGPObjectFactory objectFactory = new PGPObjectFactory(decoderStream, new BcKeyFingerprintCalculator());
         Object nextObject = objectFactory.nextObject();
         if (nextObject instanceof PGPSignatureList) {
@@ -98,7 +96,10 @@ public class SecuritySupport {
         } else if (nextObject instanceof PGPCompressedData) {
             return readSignatureList(((PGPCompressedData) nextObject).getDataStream(), locationHint);
         } else {
-            LOGGER.warn("Expected a signature list in {}, but got {}. Skipping this signature.", locationHint, nextObject == null ? "invalid file" : nextObject.getClass());
+            LOGGER.warn(
+                    "Expected a signature list in {}, but got {}. Skipping this signature.",
+                    locationHint,
+                    nextObject == null ? "invalid file" : nextObject.getClass());
             return null;
         }
     }
@@ -121,12 +122,14 @@ public class SecuritySupport {
                 for (Object o : objectFactory) {
                     if (o instanceof PGPPublicKeyRing) {
                         // backward compatibility: old keyrings should be stripped too
-                        PGPPublicKeyRing strippedKeyRing = KeyringStripper.strip((PGPPublicKeyRing) o, fingerprintCalculator);
+                        PGPPublicKeyRing strippedKeyRing =
+                                KeyringStripper.strip((PGPPublicKeyRing) o, fingerprintCalculator);
                         existingRings.add(strippedKeyRing);
                     }
                 }
             } catch (Exception e) {
-                LOGGER.warn("Error while reading the keyring file. {} keys read: {}", existingRings.size(), e.getMessage());
+                LOGGER.warn(
+                        "Error while reading the keyring file. {} keys read: {}", existingRings.size(), e.getMessage());
             }
         }
         return existingRings;

@@ -105,5 +105,4 @@ public interface Report extends Configurable<Report> {
      */
     @Input
     OutputType getOutputType();
-
 }

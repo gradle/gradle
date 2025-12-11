@@ -15,11 +15,10 @@
  */
 package org.gradle.security.internal.gnupg;
 
-import org.gradle.api.Project;
-import org.gradle.security.internal.BaseSignatoryProvider;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.gradle.api.Project;
+import org.gradle.security.internal.BaseSignatoryProvider;
 
 /**
  * A {@link BaseSignatoryProvider} of {@link GnupgSignatory} instances.
@@ -30,7 +29,6 @@ public class BaseGnupgSignatoryProvider implements BaseSignatoryProvider<GnupgSi
 
     private final GnupgSignatoryFactory factory = new GnupgSignatoryFactory();
     private final Map<String, GnupgSignatory> signatories = new LinkedHashMap<String, GnupgSignatory>();
-
 
     protected void addSignatory(Project project, String name) {
         signatories.put(name, factory.createSignatory(project, name, name));
@@ -45,6 +43,4 @@ public class BaseGnupgSignatoryProvider implements BaseSignatoryProvider<GnupgSi
     public GnupgSignatory getSignatory(String name) {
         return signatories.get(name);
     }
-
-
 }

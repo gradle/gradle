@@ -16,15 +16,15 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.type.ModelType;
-
 import java.util.List;
+import org.gradle.model.internal.type.ModelType;
 
 public abstract class ModelViews {
 
     public static <T> ModelView<T> assertType(ModelView<?> untypedView, ModelType<T> type) {
         if (type.isAssignableFrom(untypedView.getType())) {
-            @SuppressWarnings("unchecked") ModelView<T> view = (ModelView<T>) untypedView;
+            @SuppressWarnings("unchecked")
+            ModelView<T> view = (ModelView<T>) untypedView;
             return view;
         } else {
             // TODO better exception type

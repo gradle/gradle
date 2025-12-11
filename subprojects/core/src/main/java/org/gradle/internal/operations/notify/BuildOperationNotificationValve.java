@@ -35,5 +35,4 @@ public interface BuildOperationNotificationValve {
     void start();
 
     void stop();
-
 }

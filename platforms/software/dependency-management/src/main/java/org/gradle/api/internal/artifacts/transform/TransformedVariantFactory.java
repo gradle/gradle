@@ -25,16 +25,14 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.Project.class)
 public interface TransformedVariantFactory {
     ResolvedArtifactSet transformedExternalArtifacts(
-        ComponentIdentifier componentIdentifier,
-        ResolvedVariant sourceVariant,
-        VariantDefinition variantDefinition,
-        TransformUpstreamDependenciesResolver dependenciesResolver
-    );
+            ComponentIdentifier componentIdentifier,
+            ResolvedVariant sourceVariant,
+            VariantDefinition variantDefinition,
+            TransformUpstreamDependenciesResolver dependenciesResolver);
 
     ResolvedArtifactSet transformedProjectArtifacts(
-        ComponentIdentifier componentIdentifier,
-        ResolvedVariant sourceVariant,
-        VariantDefinition variantDefinition,
-        TransformUpstreamDependenciesResolver dependenciesResolver
-    );
+            ComponentIdentifier componentIdentifier,
+            ResolvedVariant sourceVariant,
+            VariantDefinition variantDefinition,
+            TransformUpstreamDependenciesResolver dependenciesResolver);
 }

@@ -16,11 +16,11 @@
 
 package org.gradle.util.internal;
 
-import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
+import javax.crypto.SecretKey;
 
 /**
  * Encrypts and decrypts streams of data by wrapping plaintext and ciphertext streams.

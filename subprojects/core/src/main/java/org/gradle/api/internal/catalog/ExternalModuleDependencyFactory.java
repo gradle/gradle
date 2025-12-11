@@ -25,15 +25,11 @@ public interface ExternalModuleDependencyFactory {
 
     Provider<MinimalExternalModuleDependency> create(String alias);
 
-    interface DependencyNotationSupplier extends ProviderConvertible<MinimalExternalModuleDependency> {
-    }
+    interface DependencyNotationSupplier extends ProviderConvertible<MinimalExternalModuleDependency> {}
 
-    interface VersionNotationSupplier extends ProviderConvertible<String> {
-    }
+    interface VersionNotationSupplier extends ProviderConvertible<String> {}
 
-    interface BundleNotationSupplier extends ProviderConvertible<ExternalModuleDependencyBundle> {
-    }
+    interface BundleNotationSupplier extends ProviderConvertible<ExternalModuleDependencyBundle> {}
 
-    interface PluginNotationSupplier extends ProviderConvertible<PluginDependency> {
-    }
+    interface PluginNotationSupplier extends ProviderConvertible<PluginDependency> {}
 }

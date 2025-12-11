@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems;
 
-
 import org.gradle.api.Incubating;
 
 /**
@@ -25,5 +24,4 @@ import org.gradle.api.Incubating;
  * @since 8.13
  */
 @Incubating
-public interface ProblemLocation {
-}
+public interface ProblemLocation {}

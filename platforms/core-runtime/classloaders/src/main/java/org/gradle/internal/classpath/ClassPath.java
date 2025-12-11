@@ -16,13 +16,12 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.specs.Spec;
-
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
+import org.gradle.api.specs.Spec;
 
 /**
  * An immutable classpath.

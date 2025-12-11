@@ -15,17 +15,16 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
+import static org.gradle.util.internal.ConfigureUtil.configure;
+
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SimpleType;
-import org.gradle.api.Action;
-
 import java.io.File;
 import java.util.Map;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
+import org.gradle.api.Action;
 
 /**
  * DSL-friendly model of the IDEA project information.
@@ -89,9 +88,11 @@ public abstract class IdeaModel {
     /**
      * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
      */
-    public void module(@DelegatesTo(IdeaModule.class)
-                       @ClosureParams(value = SimpleType.class, options = "org.gradle.plugins.ide.idea.model.IdeaModule")
-                       @SuppressWarnings("rawtypes") Closure closure) {
+    public void module(
+            @DelegatesTo(IdeaModule.class)
+                    @ClosureParams(value = SimpleType.class, options = "org.gradle.plugins.ide.idea.model.IdeaModule")
+                    @SuppressWarnings("rawtypes")
+                    Closure closure) {
         configure(closure, getModule());
     }
 

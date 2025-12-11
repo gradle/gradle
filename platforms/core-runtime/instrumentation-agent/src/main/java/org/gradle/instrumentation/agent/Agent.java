@@ -16,10 +16,9 @@
 
 package org.gradle.instrumentation.agent;
 
-import org.jspecify.annotations.Nullable;
-
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An entry point for the on-the-fly bytecode instrumentation agent.
@@ -39,12 +38,12 @@ public class Agent {
         instrumentation = inst;
     }
 
-    @SuppressWarnings("unused")  // Used reflectively.
+    @SuppressWarnings("unused") // Used reflectively.
     public static boolean isApplied() {
         return instrumentation != null;
     }
 
-    @SuppressWarnings("unused")  // Used reflectively.
+    @SuppressWarnings("unused") // Used reflectively.
     public static boolean installTransformer(ClassFileTransformer transformer) {
         Instrumentation inst = instrumentation;
         if (inst != null) {

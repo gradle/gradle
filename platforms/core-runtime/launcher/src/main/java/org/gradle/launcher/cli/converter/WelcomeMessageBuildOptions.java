@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.cli.converter;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.internal.buildoption.BuildOption;
@@ -23,19 +25,18 @@ import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.EnumBuildOption;
 import org.gradle.internal.buildoption.Origin;
 
-import java.util.Collections;
-import java.util.List;
-
 public class WelcomeMessageBuildOptions extends BuildOptionSet<WelcomeMessageConfiguration> {
 
-    private static List<BuildOption<WelcomeMessageConfiguration>> options = Collections.singletonList(new WelcomeMessageOption());
+    private static List<BuildOption<WelcomeMessageConfiguration>> options =
+            Collections.singletonList(new WelcomeMessageOption());
 
     @Override
     public List<? extends BuildOption<? super WelcomeMessageConfiguration>> getAllOptions() {
         return options;
     }
 
-    public static class WelcomeMessageOption extends EnumBuildOption<WelcomeMessageDisplayMode, WelcomeMessageConfiguration> {
+    public static class WelcomeMessageOption
+            extends EnumBuildOption<WelcomeMessageDisplayMode, WelcomeMessageConfiguration> {
 
         public static final String PROPERTY_NAME = "org.gradle.welcome";
 

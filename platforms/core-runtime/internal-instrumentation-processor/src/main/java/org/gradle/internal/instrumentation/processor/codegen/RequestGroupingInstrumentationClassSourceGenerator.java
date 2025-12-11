@@ -17,8 +17,6 @@
 package org.gradle.internal.instrumentation.processor.codegen;
 
 import com.squareup.javapoet.TypeSpec;
-import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -28,30 +26,30 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 
 public abstract class RequestGroupingInstrumentationClassSourceGenerator implements InstrumentationCodeGenerator {
     protected abstract String classNameForRequest(CallInterceptionRequest request);
 
     protected abstract Consumer<TypeSpec.Builder> classContentForClass(
-        String className,
-        List<CallInterceptionRequest> requestsClassGroup,
-        Consumer<? super CallInterceptionRequest> onProcessedRequest,
-        Consumer<? super HasFailures.FailureInfo> onFailure
-    );
+            String className,
+            List<CallInterceptionRequest> requestsClassGroup,
+            Consumer<? super CallInterceptionRequest> onProcessedRequest,
+            Consumer<? super HasFailures.FailureInfo> onFailure);
 
     @Override
-    public GenerationResult generateCodeForRequestedInterceptors(Collection<CallInterceptionRequest> interceptionRequests) {
+    public GenerationResult generateCodeForRequestedInterceptors(
+            Collection<CallInterceptionRequest> interceptionRequests) {
         LinkedHashMap<String, List<CallInterceptionRequest>> requestsByImplClass = interceptionRequests.stream()
-            .filter(it -> classNameForRequest(it) != null)
-            .collect(Collectors.groupingBy(this::classNameForRequest, LinkedHashMap::new, Collectors.toList()));
+                .filter(it -> classNameForRequest(it) != null)
+                .collect(Collectors.groupingBy(this::classNameForRequest, LinkedHashMap::new, Collectors.toList()));
 
         List<HasFailures.FailureInfo> failuresInfo = new ArrayList<>();
         Set<CallInterceptionRequest> processedRequests = new LinkedHashSet<>(interceptionRequests.size());
         Map<String, Consumer<TypeSpec.Builder>> classContentByName = new LinkedHashMap<>();
 
-        requestsByImplClass.forEach((className, requests) ->
-            classContentByName.put(className, classContentForClass(className, requests, processedRequests::add, failuresInfo::add))
-        );
+        requestsByImplClass.forEach((className, requests) -> classContentByName.put(
+                className, classContentForClass(className, requests, processedRequests::add, failuresInfo::add)));
 
         if (failuresInfo.isEmpty()) {
             return successResult(processedRequests, classContentByName);
@@ -60,7 +58,9 @@ public abstract class RequestGroupingInstrumentationClassSourceGenerator impleme
         }
     }
 
-    private static GenerationResult.CanGenerateClasses successResult(Set<CallInterceptionRequest> processedRequests, Map<String, Consumer<TypeSpec.Builder>> classContentByName) {
+    private static GenerationResult.CanGenerateClasses successResult(
+            Set<CallInterceptionRequest> processedRequests,
+            Map<String, Consumer<TypeSpec.Builder>> classContentByName) {
         return new GenerationResult.CanGenerateClasses() {
             @Override
             public Collection<String> getClassNames() {

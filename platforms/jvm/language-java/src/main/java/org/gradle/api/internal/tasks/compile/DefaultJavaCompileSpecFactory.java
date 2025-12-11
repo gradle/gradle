@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import java.io.File;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
-
-import java.io.File;
 
 public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultJavaCompileSpec> {
     public DefaultJavaCompileSpecFactory(CompileOptions compileOptions, JavaInstallationMetadata toolchain) {
@@ -41,7 +40,8 @@ public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactor
         return new DefaultJavaCompileSpec();
     }
 
-    private static class DefaultCommandLineJavaSpec extends DefaultJavaCompileSpec implements CommandLineJavaCompileSpec {
+    private static class DefaultCommandLineJavaSpec extends DefaultJavaCompileSpec
+            implements CommandLineJavaCompileSpec {
         private final File executable;
 
         private DefaultCommandLineJavaSpec(File executable) {
@@ -54,7 +54,8 @@ public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactor
         }
     }
 
-    private static class DefaultForkingJavaCompileSpec extends DefaultJavaCompileSpec implements ForkingJavaCompileSpec {
+    private static class DefaultForkingJavaCompileSpec extends DefaultJavaCompileSpec
+            implements ForkingJavaCompileSpec {
         private final File javaHome;
         private final int javaLanguageVersion;
 

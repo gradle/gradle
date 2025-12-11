@@ -17,18 +17,18 @@
 package org.gradle.api.internal.initialization;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
-import org.gradle.initialization.ClassLoaderScopeId;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Objects;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.initialization.ClassLoaderScopeId;
+import org.jspecify.annotations.Nullable;
 
 public class ClassLoaderScopeIdentifier implements ClassLoaderScopeId {
 
     @Nullable
     private final ClassLoaderScopeIdentifier parent;
+
     private final String name;
 
     public ClassLoaderScopeIdentifier(@Nullable ClassLoaderScopeIdentifier parent, String name) {

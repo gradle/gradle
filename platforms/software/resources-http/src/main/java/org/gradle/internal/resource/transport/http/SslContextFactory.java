@@ -16,10 +16,9 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import javax.net.ssl.SSLContext;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.net.ssl.SSLContext;
 
 @ServiceScope(Scope.Global.class)
 public interface SslContextFactory {

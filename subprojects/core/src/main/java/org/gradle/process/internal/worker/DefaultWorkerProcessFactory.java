@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.worker;
 
+import java.io.File;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -28,8 +29,6 @@ import org.gradle.internal.remote.MessagingServer;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerImplementationFactory;
-
-import java.io.File;
 
 public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
 
@@ -44,24 +43,24 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private int connectTimeoutSeconds = 120;
 
     public DefaultWorkerProcessFactory(
-        LoggingManager loggingManager,
-        MessagingServer server,
-        ClassPathRegistry classPathRegistry,
-        IdGenerator<Long> idGenerator,
-        File gradleUserHomeDir,
-        TemporaryFileProvider temporaryFileProvider,
-        JavaExecHandleFactory execHandleFactory,
-        JvmVersionDetector jvmVersionDetector,
-        OutputEventListener outputEventListener,
-        MemoryManager memoryManager
-    ) {
+            LoggingManager loggingManager,
+            MessagingServer server,
+            ClassPathRegistry classPathRegistry,
+            IdGenerator<Long> idGenerator,
+            File gradleUserHomeDir,
+            TemporaryFileProvider temporaryFileProvider,
+            JavaExecHandleFactory execHandleFactory,
+            JvmVersionDetector jvmVersionDetector,
+            OutputEventListener outputEventListener,
+            MemoryManager memoryManager) {
         this.loggingManager = loggingManager;
         this.server = server;
         this.idGenerator = idGenerator;
         this.execHandleFactory = execHandleFactory;
         this.jvmVersionDetector = jvmVersionDetector;
         this.outputEventListener = outputEventListener;
-        this.workerImplementationFactory = new ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(classPathRegistry, temporaryFileProvider, gradleUserHomeDir);
+        this.workerImplementationFactory = new ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(
+                classPathRegistry, temporaryFileProvider, gradleUserHomeDir);
         this.memoryManager = memoryManager;
     }
 
@@ -73,17 +72,28 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     public WorkerProcessBuilder create(Action<? super WorkerProcessContext> workerAction) {
         DefaultWorkerProcessBuilder builder = newWorkerProcessBuilder();
         builder.worker(workerAction);
-        builder.setImplementationClasspath(ClasspathUtil.getClasspath(workerAction.getClass().getClassLoader()).getAsURLs());
+        builder.setImplementationClasspath(
+                ClasspathUtil.getClasspath(workerAction.getClass().getClassLoader())
+                        .getAsURLs());
         return builder;
     }
 
     @Override
-    public <IN, OUT> MultiRequestWorkerProcessBuilder<IN, OUT> multiRequestWorker(Class<? extends RequestHandler<? super IN, ? extends OUT>> workerImplementation) {
-        return new DefaultMultiRequestWorkerProcessBuilder<>(workerImplementation, newWorkerProcessBuilder(), outputEventListener);
+    public <IN, OUT> MultiRequestWorkerProcessBuilder<IN, OUT> multiRequestWorker(
+            Class<? extends RequestHandler<? super IN, ? extends OUT>> workerImplementation) {
+        return new DefaultMultiRequestWorkerProcessBuilder<>(
+                workerImplementation, newWorkerProcessBuilder(), outputEventListener);
     }
 
     private DefaultWorkerProcessBuilder newWorkerProcessBuilder() {
-        DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerImplementationFactory, outputEventListener, memoryManager, jvmVersionDetector);
+        DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(
+                execHandleFactory,
+                server,
+                idGenerator,
+                workerImplementationFactory,
+                outputEventListener,
+                memoryManager,
+                jvmVersionDetector);
         builder.setLogLevel(loggingManager.getLevel());
         builder.setConnectTimeoutSeconds(connectTimeoutSeconds);
         return builder;

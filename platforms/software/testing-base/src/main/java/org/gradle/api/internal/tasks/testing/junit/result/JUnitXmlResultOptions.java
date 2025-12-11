@@ -23,7 +23,8 @@ public class JUnitXmlResultOptions {
     public final boolean includeSystemOutLog;
     public final boolean includeSystemErrLog;
 
-    public JUnitXmlResultOptions(boolean outputPerTestCase, boolean mergeReruns, boolean includeSystemOutLog, boolean includeSystemErrLog) {
+    public JUnitXmlResultOptions(
+            boolean outputPerTestCase, boolean mergeReruns, boolean includeSystemOutLog, boolean includeSystemErrLog) {
         this.outputPerTestCase = outputPerTestCase;
         this.mergeReruns = mergeReruns;
         this.includeSystemOutLog = includeSystemOutLog;

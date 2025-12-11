@@ -30,7 +30,9 @@ public class WatchForDisconnection implements DaemonCommandAction {
         execution.getConnection().onDisconnect(new Runnable() {
             @Override
             public void run() {
-                LOGGER.warn("thread {}: client disconnection detected, canceling the build", Thread.currentThread().getId());
+                LOGGER.warn(
+                        "thread {}: client disconnection detected, canceling the build",
+                        Thread.currentThread().getId());
                 execution.getDaemonStateControl().requestCancel();
             }
         });
@@ -42,5 +44,4 @@ public class WatchForDisconnection implements DaemonCommandAction {
             execution.getConnection().onDisconnect(null);
         }
     }
-
 }

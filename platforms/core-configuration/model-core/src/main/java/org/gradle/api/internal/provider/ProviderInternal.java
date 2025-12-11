@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.provider;
 
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.evaluation.EvaluationOwner;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
 
 /**
  * <p>The internal view of a {@link Provider}.</p>
@@ -111,7 +110,8 @@ import java.util.function.Supplier;
  * <p>There are further optimizations that could be implemented with configuration caching. For example, when a work node has only fixed inputs, the node could be executed prior to writing the work graph to
  * the configuration cache, so that its outputs in turn become fixed. The node can then be discarded from the graph and replaced with its (now fixed) outputs.</p>
  */
-public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDependencyContainer, EvaluationOwner, Supplier<T> {
+public interface ProviderInternal<T>
+        extends Provider<T>, ValueSupplier, TaskDependencyContainer, EvaluationOwner, Supplier<T> {
     /**
      * Return the upper bound on the type of all values that this provider may produce, if known.
      *

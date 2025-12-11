@@ -15,17 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -37,9 +30,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
-
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
 
@@ -53,7 +52,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     private final Deque<String> conflicts = new ArrayDeque<>();
 
-    public DefaultCapabilitiesConflictHandler(ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules, ResolveState resolveState) {
+    public DefaultCapabilitiesConflictHandler(
+            ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules, ResolveState resolveState) {
         this.resolver = new CapabilityConflictResolver(rules);
         this.resolveState = resolveState;
     }
@@ -69,23 +69,27 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             // capability in order to detect the conflict between the two.
             // Note that the fact that the implicit capability is not included in other cases
             // is not a bug but a performance optimization.
-            if (node.getComponent().hasMoreThanOneSelectedNodeUsingVariantAwareResolution() ||
-                hasSeenNonDefaultCapabilityExplicitly(node.getComponent().getImplicitCapability())
-            ) {
+            if (node.getComponent().hasMoreThanOneSelectedNodeUsingVariantAwareResolution()
+                    || hasSeenNonDefaultCapabilityExplicitly(node.getComponent().getImplicitCapability())) {
                 CapabilityInternal capability = node.getComponent().getImplicitCapability();
                 return registerCapability(node, capability);
             }
 
             return false;
         } else {
-            boolean defaultCapabilityHasConflict = hasSeenNonDefaultCapabilityExplicitly(node.getComponent().getImplicitCapability());
+            boolean defaultCapabilityHasConflict =
+                    hasSeenNonDefaultCapabilityExplicitly(node.getComponent().getImplicitCapability());
 
             boolean foundConflict = false;
             for (CapabilityInternal capability : capabilities) {
                 // Only process non-default capabilities
-                // Or, for the default capability if we have seen that capability on a node for which it is not the default
-                // Or, the component has multiple selected variants, in which case two nodes in that component may conflict with each other
-                if (!capability.equals(node.getComponent().getImplicitCapability()) || defaultCapabilityHasConflict || node.getComponent().hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
+                // Or, for the default capability if we have seen that capability on a node for which it is not the
+                // default
+                // Or, the component has multiple selected variants, in which case two nodes in that component may
+                // conflict with each other
+                if (!capability.equals(node.getComponent().getImplicitCapability())
+                        || defaultCapabilityHasConflict
+                        || node.getComponent().hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
                     foundConflict |= registerCapability(node, capability);
                 }
             }
@@ -95,20 +99,28 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     }
 
     private boolean registerCapability(NodeState node, CapabilityInternal capability) {
-        ConflictedNodesTracker tracker = capabilityWithoutVersionToTracker.computeIfAbsent(capability.getCapabilityId(), k -> new ConflictedNodesTracker(capability));
+        ConflictedNodesTracker tracker = capabilityWithoutVersionToTracker.computeIfAbsent(
+                capability.getCapabilityId(), k -> new ConflictedNodesTracker(capability));
         // TODO: Is there a way to not do this filtering here?
         tracker.removeIf(n -> !n.isSelected());
 
-        // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically registering
-        // an implicit capability for each module that we see, we only consider modules which _declare_ capabilities. If they do,
-        // then we try to find a module which provides the same capability. If that module has been found, then we register it.
+        // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically
+        // registering
+        // an implicit capability for each module that we see, we only consider modules which _declare_ capabilities. If
+        // they do,
+        // then we try to find a module which provides the same capability. If that module has been found, then we
+        // register it.
         // Otherwise, we have nothing to do. This avoids most registrations.
-        ModuleResolveState module = resolveState.findModule(DefaultModuleIdentifier.newId(capability.getGroup(), capability.getName()));
+        ModuleResolveState module =
+                resolveState.findModule(DefaultModuleIdentifier.newId(capability.getGroup(), capability.getName()));
         if (module != null) {
             for (ComponentState version : module.getVersions()) {
                 for (NodeState potentialNode : version.getNodes()) {
-                    // Collect nodes as implicit capability providers if different from current node, selected and not having explicit capabilities
-                    if (node != potentialNode && potentialNode.isSelected() && potentialNode.getMetadata().getCapabilities().isEmpty()) {
+                    // Collect nodes as implicit capability providers if different from current node, selected and not
+                    // having explicit capabilities
+                    if (node != potentialNode
+                            && potentialNode.isSelected()
+                            && potentialNode.getMetadata().getCapabilities().isEmpty()) {
                         tracker.add(potentialNode);
                     }
                 }
@@ -133,12 +145,15 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 // allow 2 modules to have the same capability, so we filter the nodes coming
                 // from transitive dependencies
                 ModuleIdentifier rootModuleId = rootId;
-                candidatesForConflict.removeIf(n -> !n.isRoot() && n.getComponent().getModule().getId().equals(rootModuleId));
+                candidatesForConflict.removeIf(
+                        n -> !n.isRoot() && n.getComponent().getModule().getId().equals(rootModuleId));
             }
 
             // For a conflict we want at least 2 nodes, and at least one of them should not be rejected
             // TODO: Seems odd to filter for rejected nodes here
-            if (candidatesForConflict.size() > 1 && !candidatesForConflict.stream().allMatch(n -> n.getComponent().isRejected())) {
+            if (candidatesForConflict.size() > 1
+                    && !candidatesForConflict.stream()
+                            .allMatch(n -> n.getComponent().isRejected())) {
                 if (tracker.createOrUpdateConflict(candidatesForConflict)) {
                     conflicts.add(tracker.capabilityId);
                 }
@@ -206,7 +221,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             this(group, name, nodes, alreadySeen ? buildDependentRelationships(nodes) : emptyMap());
         }
 
-        private CapabilityConflict(String group, String name, Set<NodeState> nodes, Map<NodeState, Set<NodeState>> nodeToDependentNodes) {
+        private CapabilityConflict(
+                String group, String name, Set<NodeState> nodes, Map<NodeState, Set<NodeState>> nodeToDependentNodes) {
             this.group = group;
             this.name = name;
             this.nodes = nodes;
@@ -223,7 +239,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          * @return {@code true} if the conflict is valid
          */
         private boolean isValidConflict() {
-            return !nodes.isEmpty() && nodes.stream().anyMatch(node -> !node.getComponent().isRejected());
+            return !nodes.isEmpty()
+                    && nodes.stream().anyMatch(node -> !node.getComponent().isRejected());
         }
 
         private static Map<NodeState, Set<NodeState>> buildDependentRelationships(Set<NodeState> nodes) {
@@ -235,13 +252,14 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                         continue;
                     }
                     if (reachableNodes.contains(possibleDependency)) {
-                        nodeToDependents.computeIfAbsent(possibleDependency, k -> new HashSet<>()).add(node);
+                        nodeToDependents
+                                .computeIfAbsent(possibleDependency, k -> new HashSet<>())
+                                .add(node);
                     }
                 }
             }
             return nodeToDependents;
         }
-
     }
 
     /**
@@ -284,7 +302,10 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             Set<NodeState> selectedNodes = new LinkedHashSet<>();
             boolean didFilter = false;
             for (NodeState node : currentConflict.nodes) {
-                if (node.isSelected() || (!currentConflict.nodeToDependentNodes.isEmpty() && currentConflict.nodeToDependentNodes.getOrDefault(node, emptySet()).stream().anyMatch(NodeState::isSelected))) {
+                if (node.isSelected()
+                        || (!currentConflict.nodeToDependentNodes.isEmpty()
+                                && currentConflict.nodeToDependentNodes.getOrDefault(node, emptySet()).stream()
+                                        .anyMatch(NodeState::isSelected))) {
                     selectedNodes.add(node);
                 } else {
                     didFilter = true;
@@ -333,9 +354,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          */
         private boolean createOrUpdateConflict(Set<NodeState> candidatesForConflict) {
             boolean newConflict = pendingConflict == null;
-            this.pendingConflict = new CapabilityConflict(group, name, candidatesForConflict, previousConflictedNodes.contains(candidatesForConflict));
+            this.pendingConflict = new CapabilityConflict(
+                    group, name, candidatesForConflict, previousConflictedNodes.contains(candidatesForConflict));
             return newConflict;
         }
     }
-
 }

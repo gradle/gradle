@@ -16,13 +16,11 @@
 
 package org.gradle.internal.classpath;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.gradle.api.specs.Spec;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
@@ -32,8 +30,9 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkArgument;
+import org.gradle.api.specs.Spec;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A special ClassPath that keeps track of the transformed "doubles" of the original classpath entries (JARs and class directories).
@@ -69,6 +68,7 @@ public class TransformedClassPath implements ClassPath {
         UNKNOWN_FILE_MARKER("");
 
         private static final Map<String, FileMarker> FILE_MARKER_MAP;
+
         static {
             ImmutableMap.Builder<String, FileMarker> builder = ImmutableMap.builder();
             for (FileMarker fileMarker : values()) {
@@ -189,7 +189,8 @@ public class TransformedClassPath implements ClassPath {
         ClassPath mergedOriginals = originalClassPath.plus(classPath.originalClassPath);
 
         // Merge transformations, keeping in mind that classpath is searched left-to-right.
-        ImmutableMap.Builder<File, File> mergedTransforms = ImmutableMap.builderWithExpectedSize(transforms.size() + classPath.transforms.size());
+        ImmutableMap.Builder<File, File> mergedTransforms =
+                ImmutableMap.builderWithExpectedSize(transforms.size() + classPath.transforms.size());
         Set<File> thisClassPathFiles = ImmutableSet.copyOf(originalClassPath.getAsFiles());
         mergedTransforms.putAll(transforms);
         for (Map.Entry<File, File> appendedTransform : classPath.transforms.entrySet()) {
@@ -235,7 +236,8 @@ public class TransformedClassPath implements ClassPath {
     public TransformedClassPath removeIf(Spec<? super File> filter) {
         ClassPath filteredClassPath = originalClassPath.removeIf(filter);
         Set<File> remainingOriginals = ImmutableSet.copyOf(filteredClassPath.getAsFiles());
-        ImmutableMap.Builder<File, File> remainingTransforms = ImmutableMap.builderWithExpectedSize(Math.min(remainingOriginals.size(), transforms.size()));
+        ImmutableMap.Builder<File, File> remainingTransforms =
+                ImmutableMap.builderWithExpectedSize(Math.min(remainingOriginals.size(), transforms.size()));
         for (Map.Entry<File, File> remainingEntry : transforms.entrySet()) {
             if (remainingOriginals.contains(remainingEntry.getKey())) {
                 remainingTransforms.put(remainingEntry);
@@ -320,22 +322,24 @@ public class TransformedClassPath implements ClassPath {
 
     private static ClassPath fromInstrumentingArtifactTransformOutput(List<File> inputFiles) {
         Map<File, File> transformedEntries = Maps.newLinkedHashMapWithExpectedSize(inputFiles.size());
-        for (int i = 0; i < inputFiles.size();) {
+        for (int i = 0; i < inputFiles.size(); ) {
             File markerFile = inputFiles.get(i++);
             FileMarker fileMarker = FileMarker.of(markerFile.getName());
             switch (fileMarker) {
                 case AGENT_INSTRUMENTATION_MARKER:
                     // Agent instrumentation always contain 3 entries:
                     // [a marker, a transformed file, an original file or a copy of it]
-                    checkArgument(i + 1 < inputFiles.size(), "Missing the instrumented or original entry for classpath %s", inputFiles);
+                    checkArgument(
+                            i + 1 < inputFiles.size(),
+                            "Missing the instrumented or original entry for classpath %s",
+                            inputFiles);
                     File instrumentedEntry = inputFiles.get(i++);
                     File originalEntry = inputFiles.get(i++);
                     checkArgument(
-                        areInstrumentedAndOriginalEntriesValid(instrumentedEntry, originalEntry),
-                        "Instrumented entry %s doesn't match original entry %s",
-                        instrumentedEntry.getAbsolutePath(),
-                        originalEntry.getAbsolutePath()
-                    );
+                            areInstrumentedAndOriginalEntriesValid(instrumentedEntry, originalEntry),
+                            "Instrumented entry %s doesn't match original entry %s",
+                            instrumentedEntry.getAbsolutePath(),
+                            originalEntry.getAbsolutePath());
                     putIfAbsent(transformedEntries, originalEntry, instrumentedEntry);
                     break;
                 case LEGACY_INSTRUMENTATION_MARKER:
@@ -351,8 +355,9 @@ public class TransformedClassPath implements ClassPath {
                     break;
                 case UNKNOWN_FILE_MARKER:
                 default:
-                    throw new IllegalArgumentException("Unexpected marker file: " + markerFile + " in instrumented buildscript classpath. " +
-                        "Possible reason: Injecting custom artifact transform in between instrumentation stages is not supported.");
+                    throw new IllegalArgumentException(
+                            "Unexpected marker file: " + markerFile + " in instrumented buildscript classpath. "
+                                    + "Possible reason: Injecting custom artifact transform in between instrumentation stages is not supported.");
             }
         }
         Builder result = builderWithExactSize(transformedEntries.size());
@@ -373,9 +378,9 @@ public class TransformedClassPath implements ClassPath {
 
     private static boolean areInstrumentedAndOriginalEntriesValid(File instrumentedEntry, File originalEntry) {
         return instrumentedEntry.getParentFile() != null
-            && instrumentedEntry.getParentFile().getName().equals(INSTRUMENTED_DIR_NAME)
-            && !originalEntry.equals(instrumentedEntry)
-            && instrumentedEntry.getName().equals(INSTRUMENTED_ENTRY_PREFIX + originalEntry.getName());
+                && instrumentedEntry.getParentFile().getName().equals(INSTRUMENTED_DIR_NAME)
+                && !originalEntry.equals(instrumentedEntry)
+                && instrumentedEntry.getName().equals(INSTRUMENTED_ENTRY_PREFIX + originalEntry.getName());
     }
 
     /**

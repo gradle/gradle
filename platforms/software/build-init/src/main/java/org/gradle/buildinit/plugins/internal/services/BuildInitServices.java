@@ -39,8 +39,13 @@ public class BuildInitServices extends AbstractGradleModuleServices {
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ServiceRegistrationProvider() {
             @Provides
-            ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, WorkerExecutor workerExecutor) {
-                return new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, workerExecutor).createProjectLayoutSetupRegistry();
+            ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(
+                    MavenSettingsProvider mavenSettingsProvider,
+                    DocumentationRegistry documentationRegistry,
+                    WorkerExecutor workerExecutor) {
+                return new ProjectLayoutSetupRegistryFactory(
+                                mavenSettingsProvider, documentationRegistry, workerExecutor)
+                        .createProjectLayoutSetupRegistry();
             }
         });
     }

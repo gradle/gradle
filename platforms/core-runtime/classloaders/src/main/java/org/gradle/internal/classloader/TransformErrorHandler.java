@@ -17,8 +17,8 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.base.Throwables;
-import org.jspecify.annotations.Nullable;
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A helper to handle transform errors in {@link InstrumentingClassLoader}.
@@ -53,6 +53,7 @@ import org.gradle.internal.UncheckedException;
 public class TransformErrorHandler {
     @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<ClassNotFoundException> lastError = new ThreadLocal<ClassNotFoundException>();
+
     private final String classLoaderName;
 
     public TransformErrorHandler(String classLoaderName) {
@@ -68,7 +69,9 @@ public class TransformErrorHandler {
         ClassNotFoundException lastError = getLastErrorAndClear();
         if (lastError != null) {
             throw new ClassNotFoundException(
-                "A pending instrumentation exception prevented loading a class " + className + " in " + classLoaderName, lastError);
+                    "A pending instrumentation exception prevented loading a class " + className + " in "
+                            + classLoaderName,
+                    lastError);
         }
     }
 
@@ -83,8 +86,8 @@ public class TransformErrorHandler {
      * @param cause the original exception
      */
     public void classLoadingError(@Nullable String className, Throwable cause) {
-        ClassNotFoundException newError = new ClassNotFoundException(
-            "Failed to instrument class " + className + " in " + classLoaderName, cause);
+        ClassNotFoundException newError =
+                new ClassNotFoundException("Failed to instrument class " + className + " in " + classLoaderName, cause);
         Throwable prevError = lastError.get();
         if (prevError == null) {
             lastError.set(newError);

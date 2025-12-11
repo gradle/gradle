@@ -86,5 +86,4 @@ public class CurrentBuildOperationRef {
             set(oldState);
         }
     }
-
 }

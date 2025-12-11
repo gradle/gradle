@@ -153,7 +153,6 @@ public enum OperationType {
      */
     FILE_DOWNLOAD,
 
-
     /**
      * Flag for build phase events.
      *

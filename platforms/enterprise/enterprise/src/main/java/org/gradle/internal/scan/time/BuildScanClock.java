@@ -33,5 +33,4 @@ public interface BuildScanClock {
      * The current wall clock time.
      */
     long getCurrentTime();
-
 }

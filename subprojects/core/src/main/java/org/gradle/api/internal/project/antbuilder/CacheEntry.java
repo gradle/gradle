@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
-import org.gradle.internal.classpath.ClassPath;
-
 import java.lang.ref.SoftReference;
+import org.gradle.internal.classpath.ClassPath;
 
 class CacheEntry extends SoftReference<CachedClassLoader> {
 

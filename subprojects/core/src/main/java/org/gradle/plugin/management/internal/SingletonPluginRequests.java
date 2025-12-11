@@ -17,7 +17,6 @@
 package org.gradle.plugin.management.internal;
 
 import com.google.common.collect.Iterators;
-
 import java.util.Iterator;
 
 public class SingletonPluginRequests implements PluginRequests {

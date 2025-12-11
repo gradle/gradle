@@ -16,15 +16,14 @@
 
 package org.gradle.plugin.use.tracker.internal;
 
+import static java.util.Collections.emptyMap;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static java.util.Collections.emptyMap;
 
 /**
  * Tracks plugin versions available at different {@link org.gradle.api.internal.initialization.ClassLoaderScope scopes}.
@@ -35,7 +34,8 @@ public class PluginVersionTracker {
     final Map<ClassLoaderScope, Map<String, String>> pluginVersionsPerScope = new ConcurrentHashMap<>();
 
     public void setPluginVersionAt(ClassLoaderScope scope, String pluginId, String pluginVersion) {
-        Map<String, String> pluginVersions = pluginVersionsPerScope.computeIfAbsent(scope, ignored -> new ConcurrentHashMap<>());
+        Map<String, String> pluginVersions =
+                pluginVersionsPerScope.computeIfAbsent(scope, ignored -> new ConcurrentHashMap<>());
         if (pluginVersions.containsKey(pluginId)) {
             throw new IllegalStateException("Plugin version already set for " + pluginId);
         }
@@ -45,7 +45,8 @@ public class PluginVersionTracker {
     @Nullable
     public String findPluginVersionAt(ClassLoaderScope scope, String pluginId) {
         while (scope != null) {
-            String pluginVersion = pluginVersionsPerScope.getOrDefault(scope, emptyMap()).get(pluginId);
+            String pluginVersion =
+                    pluginVersionsPerScope.getOrDefault(scope, emptyMap()).get(pluginId);
             if (pluginVersion != null) {
                 return pluginVersion;
             }

@@ -16,10 +16,9 @@
 
 package org.gradle.internal.io;
 
-import org.gradle.internal.UncheckedException;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 
 /**
  * A variant of {@link Runnable} that is allowed to throw {@link IOException}.

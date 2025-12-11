@@ -16,12 +16,6 @@
 
 package org.gradle.api.internal.runtimeshaded;
 
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.util.Trie;
-import org.gradle.model.internal.asm.AsmConstants;
-import org.objectweb.asm.commons.Remapper;
-
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -30,6 +24,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.gradle.internal.ErroringAction;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.util.Trie;
+import org.gradle.model.internal.asm.AsmConstants;
+import org.objectweb.asm.commons.Remapper;
 
 class ImplementationDependencyRelocator extends Remapper {
 
@@ -38,19 +37,22 @@ class ImplementationDependencyRelocator extends Remapper {
 
     private static Trie readPrefixes(RuntimeShadedJarType type) {
         final Trie.Builder builder = new Trie.Builder();
-        IoActions.withResource(ImplementationDependencyRelocator.class.getResourceAsStream(type.getIdentifier() + "-relocated.txt"), new ErroringAction<InputStream>() {
-            @Override
-            protected void doExecute(InputStream thing) throws Exception {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(thing, Charset.forName("UTF-8")));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    line = line.trim();
-                    if (line.length() > 0) {
-                        builder.addWord(line);
+        IoActions.withResource(
+                ImplementationDependencyRelocator.class.getResourceAsStream(type.getIdentifier() + "-relocated.txt"),
+                new ErroringAction<InputStream>() {
+                    @Override
+                    protected void doExecute(InputStream thing) throws Exception {
+                        BufferedReader reader =
+                                new BufferedReader(new InputStreamReader(thing, Charset.forName("UTF-8")));
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            line = line.trim();
+                            if (line.length() > 0) {
+                                builder.addWord(line);
+                            }
+                        }
                     }
-                }
-            }
-        });
+                });
         return builder.build();
     }
 
@@ -87,17 +89,15 @@ class ImplementationDependencyRelocator extends Remapper {
     }
 
     public boolean keepOriginalResource(String resource) {
-        return resource == null
-            || maybeRelocateResource(resource) == null
-            || !mustBeRelocated(resource);
+        return resource == null || maybeRelocateResource(resource) == null || !mustBeRelocated(resource);
     }
 
     private final List<String> mustRelocateList = Arrays.asList(
-        // In order to use a newer version of jna the resources must not be available in the old location
-        "com/sun/jna",
-        "org/apache/groovy",
-        // JGit properties work from their relocated locations and conflict if they are left in place.
-        "org/eclipse/jgit");
+            // In order to use a newer version of jna the resources must not be available in the old location
+            "com/sun/jna",
+            "org/apache/groovy",
+            // JGit properties work from their relocated locations and conflict if they are left in place.
+            "org/eclipse/jgit");
 
     private final boolean mustBeRelocated(String resource) {
         for (String mustRelocate : mustRelocateList) {
@@ -144,5 +144,4 @@ class ImplementationDependencyRelocator extends Remapper {
             return fieldNameReplacement;
         }
     }
-
 }

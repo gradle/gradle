@@ -40,7 +40,11 @@ public class EventFiringTaskExecuter implements TaskExecuter {
     private final TaskListenerInternal taskListener;
     private final TaskExecuter delegate;
 
-    public EventFiringTaskExecuter(BuildOperationRunner buildOperationRunner, org.gradle.api.execution.TaskExecutionListener taskExecutionListener, TaskListenerInternal taskListener, TaskExecuter delegate) {
+    public EventFiringTaskExecuter(
+            BuildOperationRunner buildOperationRunner,
+            org.gradle.api.execution.TaskExecutionListener taskExecutionListener,
+            TaskListenerInternal taskListener,
+            TaskExecuter delegate) {
         this.buildOperationRunner = buildOperationRunner;
         this.taskExecutionListener = taskExecutionListener;
         this.taskListener = taskListener;
@@ -48,7 +52,8 @@ public class EventFiringTaskExecuter implements TaskExecuter {
     }
 
     @Override
-    public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
+    public TaskExecuterResult execute(
+            final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
         return buildOperationRunner.call(new CallableBuildOperation<TaskExecuterResult>() {
             @Override
             public TaskExecuterResult call(BuildOperationContext operationContext) {
@@ -80,12 +85,11 @@ public class EventFiringTaskExecuter implements TaskExecuter {
                     contextAwareTaskLogger.setFallbackBuildOperationId(null);
                 }
                 operationContext.setResult(new ExecuteTaskBuildOperationResult(
-                    state,
-                    result.getCachingState(),
-                    result.getReusedOutputOriginMetadata().orElse(null),
-                    result.executedIncrementally(),
-                    result.getExecutionReasons()
-                ));
+                        state,
+                        result.getCachingState(),
+                        result.getReusedOutputOriginMetadata().orElse(null),
+                        result.executedIncrementally(),
+                        result.getExecutionReasons()));
 
                 try {
                     taskExecutionListener.afterExecute(task, state);
@@ -99,12 +103,13 @@ public class EventFiringTaskExecuter implements TaskExecuter {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                ExecuteTaskBuildOperationDetails taskOperation = new ExecuteTaskBuildOperationDetails(context.getLocalTaskNode());
+                ExecuteTaskBuildOperationDetails taskOperation =
+                        new ExecuteTaskBuildOperationDetails(context.getLocalTaskNode());
                 return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
-                    .name(task.getIdentityPath().toString())
-                    .progressDisplayName(task.getIdentityPath().toString())
-                    .metadata(BuildOperationCategory.TASK)
-                    .details(taskOperation);
+                        .name(task.getIdentityPath().toString())
+                        .progressDisplayName(task.getIdentityPath().toString())
+                        .metadata(BuildOperationCategory.TASK)
+                        .details(taskOperation);
             }
         });
     }

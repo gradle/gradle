@@ -31,5 +31,4 @@ public class DefaultPomModuleDescriptor implements PomModuleDescriptor {
     public String getPackaging() {
         return packaging;
     }
-
 }

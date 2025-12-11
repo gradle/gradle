@@ -15,15 +15,14 @@
  */
 package org.gradle.plugins.ide.idea;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.idea.model.Module;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
-import java.io.File;
 
 /**
  * Generates an IDEA module file. If you want to fine tune the idea configuration
@@ -91,5 +90,4 @@ public abstract class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     public void setModule(IdeaModule module) {
         this.module = module;
     }
-
 }

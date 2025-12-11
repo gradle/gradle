@@ -32,5 +32,4 @@ public interface ToolingModelProjectDependencyListener {
      * should handle this specifically, probably ignoring such calls.
      */
     void onToolingModelDependency(ProjectState consumer, ProjectState target);
-
 }

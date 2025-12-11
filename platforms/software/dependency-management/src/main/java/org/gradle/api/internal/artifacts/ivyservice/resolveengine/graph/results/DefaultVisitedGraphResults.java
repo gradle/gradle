@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
-import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
-
 import java.util.Set;
 import java.util.function.Consumer;
+import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 
 /**
  * Default implementation of {@link VisitedGraphResults}.
@@ -31,9 +30,7 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
     private final Set<UnresolvedDependency> unresolvedDependencies;
 
     public DefaultVisitedGraphResults(
-        MinimalResolutionResult resolutionResult,
-        Set<UnresolvedDependency> unresolvedDependencies
-    ) {
+            MinimalResolutionResult resolutionResult, Set<UnresolvedDependency> unresolvedDependencies) {
         this.resolutionResult = resolutionResult;
         this.unresolvedDependencies = unresolvedDependencies;
     }
@@ -59,5 +56,4 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
     public Set<UnresolvedDependency> getUnresolvedDependencies() {
         return unresolvedDependencies;
     }
-
 }

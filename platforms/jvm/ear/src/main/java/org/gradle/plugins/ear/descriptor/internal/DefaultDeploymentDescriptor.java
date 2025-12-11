@@ -19,6 +19,18 @@ import groovy.lang.Closure;
 import groovy.namespace.QName;
 import groovy.util.Node;
 import groovy.xml.XmlParser;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.DomNode;
@@ -34,19 +46,6 @@ import org.gradle.plugins.ear.descriptor.EarSecurityRole;
 import org.gradle.plugins.ear.descriptor.EarWebModule;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
 
 public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
@@ -231,7 +230,8 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     }
 
     @Override
-    @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "DefaultCharset") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public boolean readFrom(Object path) {
         if (fileResolver == null) {
             return false;
@@ -274,32 +274,26 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
                 String childLocalName = localNameOf(child);
                 switch (childLocalName) {
                     case "application-name":
-
                         applicationName = child.text();
 
                         break;
                     case "initialize-in-order":
-
                         initializeInOrder = Boolean.parseBoolean(child.text());
 
                         break;
                     case "description":
-
                         description = child.text();
 
                         break;
                     case "display-name":
-
                         displayName = child.text();
 
                         break;
                     case "library-directory":
-
                         libraryDirectory = child.text();
 
                         break;
                     case "module":
-
                         EarModule module = null;
                         for (Node moduleNode : Cast.<List<Node>>uncheckedCast(child.children())) {
                             String moduleNodeLocalName = localNameOf(moduleNode);
@@ -321,7 +315,6 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
                         break;
                     case "security-role":
-
                         String roleName = childNodeText(child, "role-name");
                         String description = childNodeText(child, "description");
                         securityRoles.add(new DefaultEarSecurityRole(roleName, description));
@@ -383,13 +376,24 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             root.setPublicId("-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN");
             root.setSystemId("http://java.sun.com/dtd/application_1_3.dtd");
         } else if ("1.4".equals(version)) {
-            rootAttributes.put("xsi:schemaLocation", "http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/application_1_4.xsd");
+            rootAttributes.put(
+                    "xsi:schemaLocation",
+                    "http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/application_1_4.xsd");
         } else if ("5".equals(version) || "6".equals(version)) {
-            rootAttributes.put("xsi:schemaLocation", "http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_" + version + ".xsd");
+            rootAttributes.put(
+                    "xsi:schemaLocation",
+                    "http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_" + version
+                            + ".xsd");
         } else if ("7".equals(version) || "8".equals(version)) {
-            rootAttributes.put("xsi:schemaLocation", "http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_" + version + ".xsd");
+            rootAttributes.put(
+                    "xsi:schemaLocation",
+                    "http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_" + version
+                            + ".xsd");
         } else if (version != null && JAKARTA_VERSION_PATTERN.matcher(version).matches()) {
-            rootAttributes.put("xsi:schemaLocation", "https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/application_" + version + ".xsd");
+            rootAttributes.put(
+                    "xsi:schemaLocation",
+                    "https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/application_" + version
+                            + ".xsd");
         }
         if (applicationName != null) {
             new Node(root, nodeNameFor("application-name"), applicationName);

@@ -53,5 +53,4 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
-public @interface NormalizeLineEndings {
-}
+public @interface NormalizeLineEndings {}

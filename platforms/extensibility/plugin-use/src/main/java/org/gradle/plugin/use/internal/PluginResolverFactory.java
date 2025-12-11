@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.use.internal;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.CorePluginRegistryProvider;
 import org.gradle.api.internal.plugins.PluginRegistry;
@@ -30,9 +32,6 @@ import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;
 
-import java.util.LinkedList;
-import java.util.List;
-
 @ServiceScope(Scope.Build.class)
 public class PluginResolverFactory {
 
@@ -42,11 +41,10 @@ public class PluginResolverFactory {
     private final List<PluginResolverContributor> pluginResolverContributors;
 
     public PluginResolverFactory(
-        CorePluginRegistryProvider corePluginRegistryProvider,
-        DocumentationRegistry documentationRegistry,
-        ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver,
-        List<PluginResolverContributor> pluginResolverContributors
-    ) {
+            CorePluginRegistryProvider corePluginRegistryProvider,
+            DocumentationRegistry documentationRegistry,
+            ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver,
+            List<PluginResolverContributor> pluginResolverContributors) {
         this.corePluginRegistry = corePluginRegistryProvider.getCorePluginRegistry();
         this.documentationRegistry = documentationRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;

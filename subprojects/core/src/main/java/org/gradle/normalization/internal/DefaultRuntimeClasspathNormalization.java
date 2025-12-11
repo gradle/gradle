@@ -19,6 +19,13 @@ package org.gradle.normalization.internal;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.changedetection.state.IgnoringResourceEntryFilter;
@@ -29,18 +36,12 @@ import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.normalization.MetaInfNormalization;
 import org.gradle.normalization.PropertiesFileNormalization;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNormalizationInternal {
     private final MetaInfNormalization metaInfNormalization = new RuntimeMetaInfNormalization();
-    private final EvaluatableFilter<ResourceFilter> resourceFilter = filter(IgnoringResourceFilter::new, ResourceFilter.FILTER_NOTHING);
-    private final EvaluatableFilter<ResourceEntryFilter> manifestAttributeResourceFilter = filter(IgnoringResourceEntryFilter::new, ResourceEntryFilter.FILTER_NOTHING);
+    private final EvaluatableFilter<ResourceFilter> resourceFilter =
+            filter(IgnoringResourceFilter::new, ResourceFilter.FILTER_NOTHING);
+    private final EvaluatableFilter<ResourceEntryFilter> manifestAttributeResourceFilter =
+            filter(IgnoringResourceEntryFilter::new, ResourceEntryFilter.FILTER_NOTHING);
     private final DefaultPropertiesFileFilter propertyFileFilters = new DefaultPropertiesFileFilter();
 
     @Override
@@ -96,13 +97,16 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
 
         @Override
         public void ignoreProperty(String name) {
-            propertyFileFilters.configure("META-INF/**/*.properties", propertiesFileNormalization -> propertiesFileNormalization.ignoreProperty(name));
+            propertyFileFilters.configure(
+                    "META-INF/**/*.properties",
+                    propertiesFileNormalization -> propertiesFileNormalization.ignoreProperty(name));
         }
     }
 
     @Override
     public CachedState computeCachedState() {
-        DefaultCachedState cachedState = new DefaultCachedState(resourceFilter, manifestAttributeResourceFilter, propertyFileFilters);
+        DefaultCachedState cachedState =
+                new DefaultCachedState(resourceFilter, manifestAttributeResourceFilter, propertyFileFilters);
         if (cachedState.isTrivial()) {
             return null;
         }
@@ -112,7 +116,8 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
     @Override
     public void configureFromCachedState(CachedState state) {
         if (!(state instanceof DefaultCachedState)) {
-            throw new IllegalArgumentException("Cannot restore state from " + state.getClass() + ", expecting DefaultCachedState");
+            throw new IllegalArgumentException(
+                    "Cannot restore state from " + state.getClass() + ", expecting DefaultCachedState");
         }
         DefaultCachedState defaultCachedState = (DefaultCachedState) state;
         defaultCachedState.resourceFilterState.forEach(resourceFilter::ignore);
@@ -135,9 +140,9 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
             this.builder = ImmutableSet.builder();
             // if there are configured ignores, use the initializer to create the value, otherwise return emptyValue
             this.valueSupplier = () -> Optional.of(builder.build())
-                                                .filter(ignores -> !ignores.isEmpty())
-                                                .map(initializer)
-                                                .orElse(emptyValue);
+                    .filter(ignores -> !ignores.isEmpty())
+                    .map(initializer)
+                    .orElse(emptyValue);
         }
 
         public T evaluate() {
@@ -170,7 +175,9 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
         private Map<String, ResourceEntryFilter> finalPropertyFilters;
 
         DefaultPropertiesFileFilter() {
-            propertyFilters.put(PropertiesFileFilter.ALL_PROPERTIES, filter(IgnoringResourceEntryFilter::new, ResourceEntryFilter.FILTER_NOTHING));
+            propertyFilters.put(
+                    PropertiesFileFilter.ALL_PROPERTIES,
+                    filter(IgnoringResourceEntryFilter::new, ResourceEntryFilter.FILTER_NOTHING));
         }
 
         @Override
@@ -195,14 +202,17 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
                 PropertiesFileNormalization normalization = filter::ignore;
                 configuration.execute(normalization);
             } else {
-                throw new IllegalStateException("Cannot configure runtime classpath normalization after execution started.");
+                throw new IllegalStateException(
+                        "Cannot configure runtime classpath normalization after execution started.");
             }
         }
 
         Map<String, Set<String>> getState() {
             // Ensure that configuration is finished to avoid skipping anything from cache.
             getFilters();
-            return propertyFilters.entrySet().stream().collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, e -> e.getValue().getState()));
+            return propertyFilters.entrySet().stream()
+                    .collect(ImmutableMap.toImmutableMap(
+                            Map.Entry::getKey, e -> e.getValue().getState()));
         }
     }
 
@@ -211,14 +221,19 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
         final Set<String> manifestAttributesFilterState;
         final Map<String, Set<String>> propertiesFileFiltersState;
 
-        DefaultCachedState(EvaluatableFilter<?> resourceFilter, EvaluatableFilter<?> manifestAttributesFilter, DefaultPropertiesFileFilter propertiesFileFilters) {
+        DefaultCachedState(
+                EvaluatableFilter<?> resourceFilter,
+                EvaluatableFilter<?> manifestAttributesFilter,
+                DefaultPropertiesFileFilter propertiesFileFilters) {
             resourceFilterState = resourceFilter.getState();
             manifestAttributesFilterState = manifestAttributesFilter.getState();
             propertiesFileFiltersState = propertiesFileFilters.getState();
         }
 
         boolean isTrivial() {
-            return resourceFilterState.isEmpty() && manifestAttributesFilterState.isEmpty() && propertiesFileFiltersState.values().stream().allMatch(Set::isEmpty);
+            return resourceFilterState.isEmpty()
+                    && manifestAttributesFilterState.isEmpty()
+                    && propertiesFileFiltersState.values().stream().allMatch(Set::isEmpty);
         }
     }
 }

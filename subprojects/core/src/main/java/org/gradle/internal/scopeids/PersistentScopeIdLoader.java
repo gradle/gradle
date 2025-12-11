@@ -27,5 +27,4 @@ public interface PersistentScopeIdLoader {
     UserScopeId getUser();
 
     WorkspaceScopeId getWorkspace();
-
 }

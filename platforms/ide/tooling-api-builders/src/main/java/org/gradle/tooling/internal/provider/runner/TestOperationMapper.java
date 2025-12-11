@@ -16,6 +16,8 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.internal.tasks.testing.AbstractTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
@@ -65,10 +67,8 @@ import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.source.InternalTestSource;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
-class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperationType.Details, InternalTestDescriptor> {
+class TestOperationMapper
+        implements BuildOperationMapper<ExecuteTestBuildOperationType.Details, InternalTestDescriptor> {
     private final TaskForTestEventTracker taskTracker;
 
     TestOperationMapper(TaskForTestEventTracker taskTracker) {
@@ -91,58 +91,83 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
     }
 
     @Override
-    public InternalTestDescriptor createDescriptor(ExecuteTestBuildOperationType.Details details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
+    public InternalTestDescriptor createDescriptor(
+            ExecuteTestBuildOperationType.Details details,
+            BuildOperationDescriptor buildOperation,
+            @Nullable OperationIdentifier parent) {
         TestDescriptor testDescriptor = details.getTestDescriptor();
-        return testDescriptor.isComposite() ? toTestDescriptorForSuite(buildOperation.getId(), parent, testDescriptor) : toTestDescriptorForTest(buildOperation.getId(), parent, testDescriptor);
+        return testDescriptor.isComposite()
+                ? toTestDescriptorForSuite(buildOperation.getId(), parent, testDescriptor)
+                : toTestDescriptorForTest(buildOperation.getId(), parent, testDescriptor);
     }
 
     @Override
-    public InternalOperationStartedProgressEvent createStartedEvent(InternalTestDescriptor descriptor, ExecuteTestBuildOperationType.Details details, OperationStartEvent startEvent) {
+    public InternalOperationStartedProgressEvent createStartedEvent(
+            InternalTestDescriptor descriptor,
+            ExecuteTestBuildOperationType.Details details,
+            OperationStartEvent startEvent) {
         return new DefaultTestStartedProgressEvent(details.getStartTime(), descriptor);
     }
 
     @Override
-    public InternalOperationFinishedProgressEvent createFinishedEvent(InternalTestDescriptor descriptor, ExecuteTestBuildOperationType.Details details, OperationFinishEvent finishEvent) {
+    public InternalOperationFinishedProgressEvent createFinishedEvent(
+            InternalTestDescriptor descriptor,
+            ExecuteTestBuildOperationType.Details details,
+            OperationFinishEvent finishEvent) {
         TestResult testResult = ((ExecuteTestBuildOperationType.Result) finishEvent.getResult()).getResult();
         return new DefaultTestFinishedProgressEvent(testResult.getEndTime(), descriptor, adapt(testResult));
     }
 
-    private InternalTestDescriptor toTestDescriptorForSuite(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptor suite) {
+    private InternalTestDescriptor toTestDescriptorForSuite(
+            OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptor suite) {
         String methodName = null;
         String operationDisplayName = suite.toString();
         TestDescriptor originalDescriptor = getOriginalDescriptor(suite);
         if (originalDescriptor instanceof AbstractTestDescriptor) {
             methodName = ((AbstractTestDescriptor) originalDescriptor).getMethodName();
-            operationDisplayName = adjustOperationDisplayNameForIntelliJ(operationDisplayName, (AbstractTestDescriptor) originalDescriptor);
+            operationDisplayName = adjustOperationDisplayNameForIntelliJ(
+                    operationDisplayName, (AbstractTestDescriptor) originalDescriptor);
         } else {
             operationDisplayName = getLegacyOperationDisplayName(operationDisplayName, originalDescriptor);
         }
         InternalTestSource testSource = toInternalTestSource(suite.getSource());
-        return new DefaultTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId), testSource);
+        return new DefaultTestDescriptor(
+                buildOperationId,
+                suite.getName(),
+                operationDisplayName,
+                suite.getDisplayName(),
+                InternalJvmTestDescriptor.KIND_SUITE,
+                suite.getName(),
+                suite.getClassName(),
+                methodName,
+                parentId,
+                taskTracker.getTaskPath(buildOperationId),
+                testSource);
     }
 
-    private InternalTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptor test) {
+    private InternalTestDescriptor toTestDescriptorForTest(
+            OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptor test) {
         String operationDisplayName = test.toString();
         TestDescriptor originalDescriptor = getOriginalDescriptor(test);
         if (originalDescriptor instanceof AbstractTestDescriptor) {
-            operationDisplayName = adjustOperationDisplayNameForIntelliJ(operationDisplayName, (AbstractTestDescriptor) originalDescriptor);
+            operationDisplayName = adjustOperationDisplayNameForIntelliJ(
+                    operationDisplayName, (AbstractTestDescriptor) originalDescriptor);
         } else {
             operationDisplayName = getLegacyOperationDisplayName(operationDisplayName, originalDescriptor);
         }
         InternalTestSource testSource = toInternalTestSource(test.getSource());
         return new DefaultTestDescriptor(
-            buildOperationId,
-            test.getName(),
-            operationDisplayName,
-            test.getDisplayName(),
-            InternalJvmTestDescriptor.KIND_ATOMIC,
-            null,
-            test.getClassName(),
-            test.getName(),
-            parentId,
-            taskTracker.getTaskPath(buildOperationId),
-            testSource
-        );
+                buildOperationId,
+                test.getName(),
+                operationDisplayName,
+                test.getDisplayName(),
+                InternalJvmTestDescriptor.KIND_ATOMIC,
+                null,
+                test.getClassName(),
+                test.getName(),
+                parentId,
+                taskTracker.getTaskPath(buildOperationId),
+                testSource);
     }
 
     private static InternalTestSource toInternalTestSource(TestSource source) {
@@ -159,7 +184,9 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
             return new DefaultMethodSource(methodSource.getClassName(), methodSource.getMethodName());
         } else if (source instanceof ClasspathResourceSource) {
             ClasspathResourceSource classpathResourceSource = (ClasspathResourceSource) source;
-            return new DefaultClasspathResourceSource(classpathResourceSource.getClasspathResourceName(), toFilePosition(classpathResourceSource.getPosition()));
+            return new DefaultClasspathResourceSource(
+                    classpathResourceSource.getClasspathResourceName(),
+                    toFilePosition(classpathResourceSource.getPosition()));
         } else if (source instanceof NoSource) {
             return DefaultNoSource.getInstance();
         } else {
@@ -181,9 +208,12 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
      * Alternatively, it can be removed in Gradle 10.
      * See <a href="https://github.com/gradle/gradle/issues/24538">this issue</a> for more details.
      */
-    private String adjustOperationDisplayNameForIntelliJ(String operationDisplayName, AbstractTestDescriptor descriptor) {
+    private String adjustOperationDisplayNameForIntelliJ(
+            String operationDisplayName, AbstractTestDescriptor descriptor) {
         String displayName = descriptor.getDisplayName();
-        if (!descriptor.getName().equals(displayName) && !(descriptor.getClassDisplayName() != null && descriptor.getName().endsWith(descriptor.getClassDisplayName()))) {
+        if (!descriptor.getName().equals(displayName)
+                && !(descriptor.getClassDisplayName() != null
+                        && descriptor.getName().endsWith(descriptor.getClassDisplayName()))) {
             return descriptor.getDisplayName();
         } else if (descriptor instanceof DefaultParameterizedTestDescriptor) { // for spock parameterized tests
             return descriptor.getDisplayName();
@@ -226,7 +256,8 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
             case SKIPPED:
                 return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
             case FAILURE:
-                return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), convertExceptions(result.getFailures()));
+                return new DefaultTestFailureResult(
+                        result.getStartTime(), result.getEndTime(), convertExceptions(result.getFailures()));
             default:
                 throw new IllegalStateException("Unknown test result type: " + resultType);
         }
@@ -238,34 +269,31 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
             if (failure.getDetails().isAssertionFailure()) {
                 if (failure.getDetails().isFileComparisonFailure()) {
                     result.add(DefaultFileComparisonTestAssertionFailure.create(
-                        failure.getRawFailure(),
-                        failure.getDetails().getMessage(),
-                        failure.getDetails().getClassName(),
-                        failure.getDetails().getStacktrace(),
-                        failure.getDetails().getExpected(),
-                        failure.getDetails().getActual(),
-                        convertExceptions(failure.getCauses()),
-                        failure.getDetails().getExpectedContent(),
-                        failure.getDetails().getActualContent()
-                    ));
+                            failure.getRawFailure(),
+                            failure.getDetails().getMessage(),
+                            failure.getDetails().getClassName(),
+                            failure.getDetails().getStacktrace(),
+                            failure.getDetails().getExpected(),
+                            failure.getDetails().getActual(),
+                            convertExceptions(failure.getCauses()),
+                            failure.getDetails().getExpectedContent(),
+                            failure.getDetails().getActualContent()));
                 } else {
                     result.add(DefaultTestAssertionFailure.create(
-                        failure.getRawFailure(),
-                        failure.getDetails().getMessage(),
-                        failure.getDetails().getClassName(),
-                        failure.getDetails().getStacktrace(),
-                        failure.getDetails().getExpected(),
-                        failure.getDetails().getActual(),
-                        convertExceptions(failure.getCauses())
-                    ));
+                            failure.getRawFailure(),
+                            failure.getDetails().getMessage(),
+                            failure.getDetails().getClassName(),
+                            failure.getDetails().getStacktrace(),
+                            failure.getDetails().getExpected(),
+                            failure.getDetails().getActual(),
+                            convertExceptions(failure.getCauses())));
                 }
             } else {
                 result.add(DefaultTestFrameworkFailure.create(
-                    failure.getRawFailure(),
-                    failure.getDetails().getMessage(),
-                    failure.getDetails().getClassName(),
-                    failure.getDetails().getStacktrace()
-                ));
+                        failure.getRawFailure(),
+                        failure.getDetails().getMessage(),
+                        failure.getDetails().getClassName(),
+                        failure.getDetails().getStacktrace()));
             }
         }
         return result;

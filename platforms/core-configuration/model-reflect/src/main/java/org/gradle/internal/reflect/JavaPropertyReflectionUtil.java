@@ -17,11 +17,6 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.reflect.TypeToken;
-import org.apache.commons.lang3.reflect.MethodUtils;
-import org.gradle.internal.UncheckedException;
-import org.gradle.util.internal.CollectionUtils;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,6 +29,10 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.WeakHashMap;
+import org.apache.commons.lang3.reflect.MethodUtils;
+import org.gradle.internal.UncheckedException;
+import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
 public class JavaPropertyReflectionUtil {
 
@@ -44,10 +43,12 @@ public class JavaPropertyReflectionUtil {
      *
      * @throws NoSuchPropertyException when the given property does not exist.
      */
-    public static <T, F> PropertyAccessor<T, F> readableProperty(Class<T> target, Class<F> returnType, String property) throws NoSuchPropertyException {
+    public static <T, F> PropertyAccessor<T, F> readableProperty(Class<T> target, Class<F> returnType, String property)
+            throws NoSuchPropertyException {
         final Method getterMethod = findGetterMethod(target, property);
         if (getterMethod == null) {
-            throw new NoSuchPropertyException(String.format("Could not find getter method for property '%s' on class %s.", property, target.getSimpleName()));
+            throw new NoSuchPropertyException(String.format(
+                    "Could not find getter method for property '%s' on class %s.", property, target.getSimpleName()));
         }
         return new GetterMethodBackedPropertyAccessor<T, F>(property, returnType, getterMethod);
     }
@@ -57,7 +58,8 @@ public class JavaPropertyReflectionUtil {
      *
      * @throws NoSuchPropertyException when the given property does not exist.
      */
-    public static <T, F> PropertyAccessor<T, F> readableProperty(T target, Class<F> returnType, String property) throws NoSuchPropertyException {
+    public static <T, F> PropertyAccessor<T, F> readableProperty(T target, Class<F> returnType, String property)
+            throws NoSuchPropertyException {
         @SuppressWarnings("unchecked")
         Class<T> targetClass = (Class<T>) target.getClass();
         return readableProperty(targetClass, returnType, property);
@@ -85,13 +87,17 @@ public class JavaPropertyReflectionUtil {
      *
      * @throws NoSuchPropertyException when the given property does not exist.
      */
-    public static PropertyMutator writeableProperty(Class<?> target, String property, @Nullable Class<?> valueType) throws NoSuchPropertyException {
+    public static PropertyMutator writeableProperty(Class<?> target, String property, @Nullable Class<?> valueType)
+            throws NoSuchPropertyException {
         PropertyMutator mutator = writeablePropertyIfExists(target, property, valueType);
         if (mutator != null) {
             return mutator;
         }
-        throw new NoSuchPropertyException(String.format("Could not find setter method for property '%s' %s on class %s.",
-            property, valueType == null ? "accepting null value" : "of type " + valueType.getSimpleName(), target.getSimpleName()));
+        throw new NoSuchPropertyException(String.format(
+                "Could not find setter method for property '%s' %s on class %s.",
+                property,
+                valueType == null ? "accepting null value" : "of type " + valueType.getSimpleName(),
+                target.getSimpleName()));
     }
 
     /**
@@ -100,9 +106,10 @@ public class JavaPropertyReflectionUtil {
      * Returns null if no such property exists.
      */
     @Nullable
-    public static PropertyMutator writeablePropertyIfExists(Class<?> target, String property, @Nullable Class<?> valueType) throws NoSuchPropertyException {
+    public static PropertyMutator writeablePropertyIfExists(
+            Class<?> target, String property, @Nullable Class<?> valueType) throws NoSuchPropertyException {
         String setterName = toMethodName("set", property);
-        Method method = MethodUtils.getMatchingAccessibleMethod(target, setterName, new Class<?>[]{valueType});
+        Method method = MethodUtils.getMatchingAccessibleMethod(target, setterName, new Class<?>[] {valueType});
         if (method != null) {
             return new MethodBackedPropertyMutator(property, method);
         }
@@ -145,8 +152,11 @@ public class JavaPropertyReflectionUtil {
             // No need to resolve type parameters if the method is from the same class.
             return returnType;
         }
-        // Checking if there is a type variable to resolve, since resolving the type variable via `TypeToken` is quite expensive.
-        return hasTypeVariable(returnType) ? TypeToken.of(type).method(method).getReturnType().getType() : returnType;
+        // Checking if there is a type variable to resolve, since resolving the type variable via `TypeToken` is quite
+        // expensive.
+        return hasTypeVariable(returnType)
+                ? TypeToken.of(type).method(method).getReturnType().getType()
+                : returnType;
     }
 
     /**

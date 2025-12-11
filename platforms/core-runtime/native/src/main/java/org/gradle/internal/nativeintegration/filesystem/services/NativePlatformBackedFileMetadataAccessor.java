@@ -16,6 +16,8 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
+import java.io.File;
+import java.io.IOException;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileInfo;
 import net.rubygrapefruit.platform.file.Files;
@@ -24,9 +26,6 @@ import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
-
-import java.io.File;
-import java.io.IOException;
 
 public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAccessor {
     private final Files files;
@@ -41,7 +40,8 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
         try {
             stat = files.stat(f, false);
         } catch (NativeException e) {
-            throw UncheckedException.throwAsUncheckedException(new IOException("Could not stat file " + f.getAbsolutePath(), e), true);
+            throw UncheckedException.throwAsUncheckedException(
+                    new IOException("Could not stat file " + f.getAbsolutePath(), e), true);
         }
         AccessType accessType = AccessType.viaSymlink(stat.getType() == FileInfo.Type.Symlink);
         if (accessType == AccessType.VIA_SYMLINK) {
@@ -52,7 +52,8 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
                 if (!f.exists()) {
                     return DefaultFileMetadata.missing(accessType);
                 }
-                throw UncheckedException.throwAsUncheckedException(new IOException("Could not stat file " + f.getAbsolutePath(), e), true);
+                throw UncheckedException.throwAsUncheckedException(
+                        new IOException("Could not stat file " + f.getAbsolutePath(), e), true);
             }
         }
         switch (stat.getType()) {
@@ -63,7 +64,8 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
             case Missing:
                 return DefaultFileMetadata.missing(accessType);
             case Other:
-                throw UncheckedException.throwAsUncheckedException(new IOException("Unsupported file type for " + f.getAbsolutePath()), true);
+                throw UncheckedException.throwAsUncheckedException(
+                        new IOException("Unsupported file type for " + f.getAbsolutePath()), true);
             default:
                 throw new IllegalArgumentException("Unrecognised file type: " + stat.getType());
         }

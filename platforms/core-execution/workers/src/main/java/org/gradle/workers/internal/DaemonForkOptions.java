@@ -18,12 +18,11 @@ package org.gradle.workers.internal;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import java.io.File;
+import java.util.Map;
 import org.gradle.process.internal.EffectiveJavaForkOptions;
 import org.gradle.process.internal.EffectiveJavaForkOptions.ReadOnlyJvmOptions;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-
-import java.io.File;
-import java.util.Map;
 
 public class DaemonForkOptions {
     private final EffectiveJavaForkOptions forkOptions;
@@ -31,10 +30,9 @@ public class DaemonForkOptions {
     private final ClassLoaderStructure classLoaderStructure;
 
     DaemonForkOptions(
-        EffectiveJavaForkOptions forkOptions,
-        KeepAliveMode keepAliveMode,
-        ClassLoaderStructure classLoaderStructure
-    ) {
+            EffectiveJavaForkOptions forkOptions,
+            KeepAliveMode keepAliveMode,
+            ClassLoaderStructure classLoaderStructure) {
         this.forkOptions = forkOptions;
         this.keepAliveMode = keepAliveMode;
         this.classLoaderStructure = classLoaderStructure;
@@ -70,18 +68,18 @@ public class DaemonForkOptions {
 
     public boolean isCompatibleWith(DaemonForkOptions other) {
         return forkOptions.isCompatibleWith(other.forkOptions)
-            && keepAliveMode == other.getKeepAliveMode()
-            && Objects.equal(classLoaderStructure, other.getClassLoaderStructure());
+                && keepAliveMode == other.getKeepAliveMode()
+                && Objects.equal(classLoaderStructure, other.getClassLoaderStructure());
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-            .add("executable", getExecutable())
-            .add("minHeapSize", getJvmOptions().getMinHeapSize())
-            .add("maxHeapSize", getJvmOptions().getMaxHeapSize())
-            .add("jvmArgs", getJvmOptions().getJvmArgs())
-            .add("keepAliveMode", getKeepAliveMode())
-            .toString();
+                .add("executable", getExecutable())
+                .add("minHeapSize", getJvmOptions().getMinHeapSize())
+                .add("maxHeapSize", getJvmOptions().getMaxHeapSize())
+                .add("jvmArgs", getJvmOptions().getJvmArgs())
+                .add("keepAliveMode", getKeepAliveMode())
+                .toString();
     }
 }

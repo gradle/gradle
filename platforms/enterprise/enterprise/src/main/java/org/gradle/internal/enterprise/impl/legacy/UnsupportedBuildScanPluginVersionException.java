@@ -24,5 +24,4 @@ public class UnsupportedBuildScanPluginVersionException extends IllegalStateExce
     UnsupportedBuildScanPluginVersionException(String s) {
         super(s);
     }
-
 }

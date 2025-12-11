@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.versioning;
 
-import org.gradle.util.GradleVersion;
-
 import java.io.Serializable;
+import org.gradle.util.GradleVersion;
 
 public abstract class VersionDetails implements Serializable {
     public static VersionDetails from(String version) {

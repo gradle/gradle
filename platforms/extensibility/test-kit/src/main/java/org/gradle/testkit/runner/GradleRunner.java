@@ -16,15 +16,14 @@
 
 package org.gradle.testkit.runner;
 
-import org.gradle.api.Incubating;
-import org.gradle.testkit.runner.internal.DefaultGradleRunner;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.Writer;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import org.gradle.api.Incubating;
+import org.gradle.testkit.runner.internal.DefaultGradleRunner;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Executes a Gradle build, allowing inspection of the outcome.

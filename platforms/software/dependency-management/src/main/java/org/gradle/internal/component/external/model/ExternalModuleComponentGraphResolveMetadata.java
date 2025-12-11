@@ -16,13 +16,12 @@
 
 package org.gradle.internal.component.external.model;
 
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * Component metadata for external module components.
@@ -40,7 +39,6 @@ public interface ExternalModuleComponentGraphResolveMetadata extends ComponentGr
      * Was the metadata artifact for this component missing? When true, the metadata for this component was generated using some defaults.
      */
     boolean isMissing();
-
 
     /**
      * Returns the set of variants of this component to use for variant aware resolution of the dependency graph nodes.
@@ -61,5 +59,4 @@ public interface ExternalModuleComponentGraphResolveMetadata extends ComponentGr
      */
     @Nullable
     ConfigurationGraphResolveMetadata getConfiguration(String name);
-
 }

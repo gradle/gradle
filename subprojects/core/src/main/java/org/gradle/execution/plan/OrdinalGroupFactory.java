@@ -16,12 +16,11 @@
 
 package org.gradle.execution.plan;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Preserves identity of {@link OrdinalGroup} instances so there's a 1-to-1 mapping of ordinals to groups allowing groups

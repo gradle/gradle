@@ -16,7 +16,15 @@
 
 package org.gradle.api.plugins.antlr.internal;
 
+import static org.gradle.api.plugins.antlr.internal.AntlrSpec.PACKAGE_ARG;
+import static org.gradle.api.plugins.antlr.internal.antlr2.MetadataExtractor.extractMetadata;
+
 import com.google.common.collect.Lists;
+import java.io.File;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlan;
 import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlanBuilder;
@@ -29,15 +37,6 @@ import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.util.internal.RelativePathUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-
-import static org.gradle.api.plugins.antlr.internal.AntlrSpec.PACKAGE_ARG;
-import static org.gradle.api.plugins.antlr.internal.antlr2.MetadataExtractor.extractMetadata;
 
 public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
 
@@ -67,7 +66,8 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
 
     private static void errorIfPackageArgumentSet(List<String> arguments, String antlrVersion) {
         if (arguments.contains(PACKAGE_ARG)) {
-            throw new IllegalArgumentException("The " + PACKAGE_ARG + " argument is not supported by ANTLR " + antlrVersion + ".");
+            throw new IllegalArgumentException(
+                    "The " + PACKAGE_ARG + " argument is not supported by ANTLR " + antlrVersion + ".");
         }
     }
 
@@ -78,10 +78,13 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
             final Object backedObject = loadTool("org.antlr.Tool", null);
             String[] argArray = arguments.toArray(new String[0]);
             if (inputDirectory != null) {
-                JavaMethod.of(backedObject, Void.class, "setInputDirectory", String.class).invoke(backedObject, inputDirectory.getAbsolutePath());
-                JavaMethod.of(backedObject, Void.class, "setForceRelativeOutput", boolean.class).invoke(backedObject, true);
+                JavaMethod.of(backedObject, Void.class, "setInputDirectory", String.class)
+                        .invoke(backedObject, inputDirectory.getAbsolutePath());
+                JavaMethod.of(backedObject, Void.class, "setForceRelativeOutput", boolean.class)
+                        .invoke(backedObject, true);
             }
-            JavaMethod.of(backedObject, Void.class, "processArgs", String[].class).invoke(backedObject, new Object[]{argArray});
+            JavaMethod.of(backedObject, Void.class, "processArgs", String[].class)
+                    .invoke(backedObject, new Object[] {argArray});
             JavaMethod.of(backedObject, Void.class, "process").invoke(backedObject);
             return JavaMethod.of(backedObject, Integer.class, "getNumErrors").invoke(backedObject);
         }
@@ -110,9 +113,9 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
                     return JavaReflectionUtil.newInstance(toolClass);
                 } else {
                     Constructor<?> constructor = toolClass.getConstructor(String[].class);
-                    return constructor.newInstance(new Object[]{args});
+                    return constructor.newInstance(new Object[] {args});
                 }
-            }catch(ClassNotFoundException cnf){
+            } catch (ClassNotFoundException cnf) {
                 throw cnf;
             } catch (InvocationTargetException e) {
                 throw new GradleException("Failed to load ANTLR", e.getCause());
@@ -125,7 +128,7 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
             try {
                 return doProcess(spec);
             } catch (ClassNotFoundException e) {
-                //this shouldn't happen if you call check availability with #available first
+                // this shouldn't happen if you call check availability with #available first
                 throw new GradleException("Cannot process antlr sources", e);
             }
         }
@@ -166,7 +169,6 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
         protected static String[] toArray(List<String> strings) {
             return strings.toArray(new String[0]);
         }
-
     }
 
     static class Antlr4Tool extends AntlrTool {
@@ -176,7 +178,8 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
             if (inputDirectory != null) {
                 setField(backedObject, "inputDirectory", inputDirectory);
             }
-            JavaMethod.of(backedObject, Void.class, "processGrammarsOnCommandLine").invoke(backedObject);
+            JavaMethod.of(backedObject, Void.class, "processGrammarsOnCommandLine")
+                    .invoke(backedObject);
             return JavaMethod.of(backedObject, Integer.class, "getNumErrors").invoke(backedObject);
         }
 
@@ -204,11 +207,13 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
         @Override
         public AntlrResult doProcess(AntlrSpec spec) throws ClassNotFoundException {
             XRef xref = extractMetadata(spec.getGrammarFiles());
-            List<GenerationPlan> generationPlans = new GenerationPlanBuilder(spec.getOutputDirectory()).buildGenerationPlans(xref);
+            List<GenerationPlan> generationPlans =
+                    new GenerationPlanBuilder(spec.getOutputDirectory()).buildGenerationPlans(xref);
             for (GenerationPlan generationPlan : generationPlans) {
                 List<String> generationPlanArguments = Lists.newArrayList(spec.getArguments());
                 generationPlanArguments.add("-o");
-                generationPlanArguments.add(generationPlan.getGenerationDirectory().getAbsolutePath());
+                generationPlanArguments.add(
+                        generationPlan.getGenerationDirectory().getAbsolutePath());
                 generationPlanArguments.add(generationPlan.getSource().getAbsolutePath());
                 try {
                     invoke(generationPlanArguments, null);
@@ -218,9 +223,8 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
                     }
                     throw e;
                 }
-
             }
-            return new AntlrResult(0);  // ANTLR 2 always returning 0
+            return new AntlrResult(0); // ANTLR 2 always returning 0
         }
 
         /**
@@ -230,7 +234,8 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
         int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
             errorIfPackageArgumentSet(arguments, "2");
             final Object backedAntlrTool = loadTool("antlr.Tool", null);
-            JavaMethod.of(backedAntlrTool, Integer.class, "doEverything", String[].class).invoke(backedAntlrTool, new Object[]{toArray(arguments)});
+            JavaMethod.of(backedAntlrTool, Integer.class, "doEverything", String[].class)
+                    .invoke(backedAntlrTool, new Object[] {toArray(arguments)});
             return 0;
         }
 

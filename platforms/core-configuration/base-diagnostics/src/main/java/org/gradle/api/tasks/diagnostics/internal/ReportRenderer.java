@@ -15,10 +15,9 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.gradle.internal.logging.text.StyledTextOutput;
-
 import java.io.File;
 import java.io.IOException;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 /**
  * Renders the model of a project report.
@@ -57,5 +56,4 @@ public interface ReportRenderer {
      * Completes this report. This method must be called last on this renderer.
      */
     void complete();
-
 }

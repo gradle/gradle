@@ -19,10 +19,9 @@ package gradlebuild.docs.dsl.docbook;
 import gradlebuild.docs.dsl.docbook.model.ClassDoc;
 import gradlebuild.docs.dsl.docbook.model.ClassExtensionDoc;
 import gradlebuild.docs.dsl.docbook.model.PropertyDoc;
+import java.util.Collection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import java.util.Collection;
 
 class PropertiesRenderer implements ClassDocMemberRenderer {
     private final PropertyTableRenderer propertyTableRenderer = new PropertyTableRenderer();
@@ -101,5 +100,4 @@ class PropertiesRenderer implements ClassDocMemberRenderer {
         }
         return hasProperties;
     }
-
 }

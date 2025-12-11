@@ -16,12 +16,11 @@
 
 package org.gradle.internal.authentication;
 
-import org.gradle.authentication.Authentication;
-import org.gradle.internal.Cast;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import org.gradle.authentication.Authentication;
+import org.gradle.internal.Cast;
 
 public class DefaultAuthenticationSchemeRegistry implements AuthenticationSchemeRegistry {
     Map<Class<? extends Authentication>, Class<? extends Authentication>> registeredSchemes = new HashMap<>();

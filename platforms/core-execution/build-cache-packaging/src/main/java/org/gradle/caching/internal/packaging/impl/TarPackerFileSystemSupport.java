@@ -16,12 +16,11 @@
 
 package org.gradle.caching.internal.packaging.impl;
 
+import java.io.File;
+import java.io.IOException;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
-import java.io.IOException;
 
 @ServiceScope(Scope.Build.class)
 public interface TarPackerFileSystemSupport {

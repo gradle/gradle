@@ -15,14 +15,14 @@
  */
 package org.gradle.plugins.signing.signatory.internal.pgp;
 
+import java.util.Arrays;
 import org.gradle.api.Project;
 import org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvider;
-import org.gradle.security.internal.pgp.BaseInMemoryPgpSignatoryProvider;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatory;
+import org.gradle.security.internal.pgp.BaseInMemoryPgpSignatoryProvider;
 
-import java.util.Arrays;
-
-public class InMemoryPgpSignatoryProvider extends BaseInMemoryPgpSignatoryProvider implements ConfigurableSignatoryProvider<PgpSignatory> {
+public class InMemoryPgpSignatoryProvider extends BaseInMemoryPgpSignatoryProvider
+        implements ConfigurableSignatoryProvider<PgpSignatory> {
     public InMemoryPgpSignatoryProvider(String defaultSecretKey, String defaultPassword) {
         super(defaultSecretKey, defaultPassword);
     }
@@ -57,5 +57,4 @@ public class InMemoryPgpSignatoryProvider extends BaseInMemoryPgpSignatoryProvid
     public PgpSignatory propertyMissing(String signatoryName) {
         return getSignatory(signatoryName);
     }
-
 }

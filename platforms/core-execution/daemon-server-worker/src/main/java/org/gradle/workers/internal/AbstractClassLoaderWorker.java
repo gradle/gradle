@@ -16,6 +16,9 @@
 
 package org.gradle.workers.internal;
 
+import static org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader;
+
+import java.util.Collections;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -27,24 +30,26 @@ import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-
-import static org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader;
-
-public abstract class AbstractClassLoaderWorker implements RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> {
+public abstract class AbstractClassLoaderWorker
+        implements RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> {
     private final Worker worker;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
-    public AbstractClassLoaderWorker(ServiceRegistry workServices, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
+    public AbstractClassLoaderWorker(
+            ServiceRegistry workServices,
+            ActionExecutionSpecFactory actionExecutionSpecFactory,
+            InstantiatorFactory instantiatorFactory) {
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
         this.worker = new DefaultWorkerServer(
-            workServices,
-            instantiatorFactory,
-            new IsolationScheme<>(Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class),
-            Collections.singletonList(IsolatedAntBuilder.class));
+                workServices,
+                instantiatorFactory,
+                new IsolationScheme<>(
+                        Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class),
+                Collections.singletonList(IsolatedAntBuilder.class));
     }
 
-    public DefaultWorkResult executeInClassLoader(TransportableActionExecutionSpec spec, ClassLoader workerClassLoader) {
+    public DefaultWorkResult executeInClassLoader(
+            TransportableActionExecutionSpec spec, ClassLoader workerClassLoader) {
         return executeInClassloader(workerClassLoader, new Factory<DefaultWorkResult>() {
             @Nullable
             @Override

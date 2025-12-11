@@ -18,6 +18,4 @@ package org.gradle.tooling.model;
 /**
  * Represents a dependency on another project.
  */
-public interface ProjectDependency extends Dependency {
-
-}
+public interface ProjectDependency extends Dependency {}

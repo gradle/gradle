@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.base.Objects;
+import java.io.InputStream;
+import java.net.URI;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.internal.resolve.caching.ImplicitInputRecord;
@@ -27,17 +29,19 @@ import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.jspecify.annotations.Nullable;
 
-import java.io.InputStream;
-import java.net.URI;
-
-public class ExternalRepositoryResourceAccessor implements RepositoryResourceAccessor, ImplicitInputsProvidingService<String, Long, RepositoryResourceAccessor> {
+public class ExternalRepositoryResourceAccessor
+        implements RepositoryResourceAccessor,
+                ImplicitInputsProvidingService<String, Long, RepositoryResourceAccessor> {
     private static final String SERVICE_TYPE = RepositoryResourceAccessor.class.getName();
 
     private final URI rootUri;
     private final String rootUriAsString;
     private final ExternalResourceAccessor resourceResolver;
 
-    public ExternalRepositoryResourceAccessor(URI rootUri, CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor, FileStore<String> fileStore) {
+    public ExternalRepositoryResourceAccessor(
+            URI rootUri,
+            CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor,
+            FileStore<String> fileStore) {
         this.rootUri = rootUri;
         this.rootUriAsString = rootUri.toString();
         this.resourceResolver = new DefaultExternalResourceAccessor(fileStore, cacheAwareExternalResourceAccessor);
@@ -66,7 +70,9 @@ public class ExternalRepositoryResourceAccessor implements RepositoryResourceAcc
 
     @Nullable
     private static Long hashFor(@Nullable LocallyAvailableExternalResource resource) {
-        return resource == null ? null : resource.getMetaData().getLastModified().getTime();
+        return resource == null
+                ? null
+                : resource.getMetaData().getLastModified().getTime();
     }
 
     @Override
@@ -77,7 +83,8 @@ public class ExternalRepositoryResourceAccessor implements RepositoryResourceAcc
             return false;
         }
         ExternalResourceName externalResourceName = new ExternalResourceName(rootUri, parts[1]);
-        LocallyAvailableExternalResource locallyAvailableExternalResource = resourceResolver.resolveResource(externalResourceName);
+        LocallyAvailableExternalResource locallyAvailableExternalResource =
+                resourceResolver.resolveResource(externalResourceName);
         return Objects.equal(oldValue, hashFor(locallyAvailableExternalResource));
     }
 

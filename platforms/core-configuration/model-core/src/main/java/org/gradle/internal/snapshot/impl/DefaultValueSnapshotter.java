@@ -18,6 +18,8 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.List;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
@@ -28,16 +30,12 @@ import org.gradle.internal.snapshot.ValueSnapshottingException;
 import org.gradle.internal.state.Managed;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.List;
-
 public class DefaultValueSnapshotter extends AbstractValueProcessor implements ValueSnapshotter {
     private final ValueVisitor<ValueSnapshot> valueSnapshotValueVisitor;
 
     public DefaultValueSnapshotter(
-        List<ValueSnapshotterSerializerRegistry> valueSnapshotterSerializerRegistryList,
-        ClassLoaderHierarchyHasher classLoaderHasher
-    ) {
+            List<ValueSnapshotterSerializerRegistry> valueSnapshotterSerializerRegistryList,
+            ClassLoaderHierarchyHasher classLoaderHasher) {
         super(valueSnapshotterSerializerRegistryList);
         this.valueSnapshotValueVisitor = new ValueSnapshotVisitor(classLoaderHasher);
     }
@@ -107,9 +105,10 @@ public class DefaultValueSnapshotter extends AbstractValueProcessor implements V
         @Override
         public ValueSnapshot implementationValue(String implementationClassIdentifier, Object implementation) {
             return ImplementationSnapshot.of(
-                implementationClassIdentifier,
-                implementation,
-                classLoaderHasher.getClassLoaderHash(implementation.getClass().getClassLoader()));
+                    implementationClassIdentifier,
+                    implementation,
+                    classLoaderHasher.getClassLoaderHash(
+                            implementation.getClass().getClassLoader()));
         }
 
         @Override
@@ -139,12 +138,14 @@ public class DefaultValueSnapshotter extends AbstractValueProcessor implements V
 
         @Override
         public ValueSnapshot gradleSerialized(Object value, byte[] serializedValue) {
-            return new GradleSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue);
+            return new GradleSerializedValueSnapshot(
+                    classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue);
         }
 
         @Override
         public ValueSnapshot javaSerialized(Object value, byte[] serializedValue) {
-            return new JavaSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue);
+            return new JavaSerializedValueSnapshot(
+                    classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue);
         }
 
         @Override

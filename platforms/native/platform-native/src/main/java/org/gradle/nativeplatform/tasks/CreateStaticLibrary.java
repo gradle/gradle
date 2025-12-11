@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.tasks;
 
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -46,8 +47,6 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
 
 /**
  * Assembles a static library from object files.
@@ -94,17 +93,21 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
         spec.objectFiles(getSource());
         spec.args(getStaticLibArgs().get());
 
-        BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
+        BuildOperationLogger operationLogger =
+                getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         spec.setOperationLogger(operationLogger);
 
         Compiler<StaticLibraryArchiverSpec> compiler = createCompiler();
-        WorkResult result = BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
+        WorkResult result =
+                BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
         setDidWork(result.getDidWork());
     }
 
     private Compiler<StaticLibraryArchiverSpec> createCompiler() {
-        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.getTargetPlatform().get());
-        NativeToolChainInternal toolChain = Cast.cast(NativeToolChainInternal.class, getToolChain().get());
+        NativePlatformInternal targetPlatform =
+                Cast.cast(NativePlatformInternal.class, this.getTargetPlatform().get());
+        NativeToolChainInternal toolChain =
+                Cast.cast(NativeToolChainInternal.class, getToolChain().get());
         PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
         return toolProvider.newCompiler(StaticLibraryArchiverSpec.class);
     }
@@ -148,5 +151,4 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
      */
     @Input
     public abstract ListProperty<String> getStaticLibArgs();
-
 }

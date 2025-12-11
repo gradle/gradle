@@ -17,25 +17,26 @@
 package org.gradle.api.reporting.internal;
 
 import com.google.common.collect.ImmutableList;
+import javax.inject.Inject;
 import org.gradle.api.Describable;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.BuildDashboardReports;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
 
-import javax.inject.Inject;
-
 public class DefaultBuildDashboardReports extends DelegatingReportContainer<Report> implements BuildDashboardReports {
 
     @Inject
     public DefaultBuildDashboardReports(Describable owner, ObjectFactory objectFactory) {
-        super(DefaultReportContainer.create(objectFactory, Report.class, factory -> ImmutableList.of(
-            factory.instantiateReport(SingleDirectoryReport.class, "html", owner, "index.html")
-        )));
+        super(DefaultReportContainer.create(
+                objectFactory,
+                Report.class,
+                factory -> ImmutableList.of(
+                        factory.instantiateReport(SingleDirectoryReport.class, "html", owner, "index.html"))));
     }
 
     @Override
     public DirectoryReport getHtml() {
-        return (DirectoryReport)getByName("html");
+        return (DirectoryReport) getByName("html");
     }
 }

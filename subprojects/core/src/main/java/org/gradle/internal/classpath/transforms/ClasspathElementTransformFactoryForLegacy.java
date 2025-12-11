@@ -16,6 +16,8 @@
 
 package org.gradle.internal.classpath.transforms;
 
+import java.io.File;
+import java.io.IOException;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
@@ -31,16 +33,14 @@ import org.gradle.util.internal.JarUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-
 @ServiceScope(Scope.UserHome.class)
 public class ClasspathElementTransformFactoryForLegacy implements ClasspathElementTransformFactory {
 
     private final ClasspathBuilder classpathBuilder;
     private final ClasspathWalker classpathWalker;
 
-    public ClasspathElementTransformFactoryForLegacy(ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker) {
+    public ClasspathElementTransformFactoryForLegacy(
+            ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker) {
         this.classpathBuilder = classpathBuilder;
         this.classpathWalker = classpathWalker;
     }
@@ -60,7 +60,8 @@ public class ClasspathElementTransformFactoryForLegacy implements ClasspathEleme
                 for (ZipEntry entry : entries) {
                     String entryName = entry.getName();
                     if (isJarSignatureFile(entryName)) {
-                        // TODO(mlopatkin) Manifest of the signed JAR contains signature information and must be the first entry in the JAR.
+                        // TODO(mlopatkin) Manifest of the signed JAR contains signature information and must be the
+                        // first entry in the JAR.
                         //  Looking into the manifest here should be more effective.
                         // This policy doesn't transform signed JARs so no further checks are necessary.
                         return new SkipClasspathElementTransform(source);
@@ -76,7 +77,8 @@ public class ClasspathElementTransformFactoryForLegacy implements ClasspathEleme
             }
         }
         if (isMultiReleaseJar != null && isMultiReleaseJar) {
-            return new MultiReleaseClasspathElementTransformForLegacy(source, classpathBuilder, classpathWalker, classTransform);
+            return new MultiReleaseClasspathElementTransformForLegacy(
+                    source, classpathBuilder, classpathWalker, classTransform);
         }
         return new BaseClasspathElementTransform(source, classpathBuilder, classpathWalker, classTransform);
     }

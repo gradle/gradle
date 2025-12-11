@@ -113,8 +113,10 @@ public class FreeListBlockStore implements BlockStore {
 
         @Override
         protected int getSize() {
-            return Block.LONG_SIZE + Block.INT_SIZE + Block.INT_SIZE + maxBlockEntries * (Block.LONG_SIZE
-                    + Block.INT_SIZE);
+            return Block.LONG_SIZE
+                    + Block.INT_SIZE
+                    + Block.INT_SIZE
+                    + maxBlockEntries * (Block.LONG_SIZE + Block.INT_SIZE);
         }
 
         @Override

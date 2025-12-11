@@ -16,10 +16,9 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.renderer;
 
+import java.io.Writer;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
-
-import java.io.Writer;
 
 /**
  * An {@code abstract} {@link AbstractConfigurationReportRenderer} extension that can be used to render a {@link ConfigurationReportModel}

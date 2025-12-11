@@ -15,9 +15,8 @@
  */
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
+import org.gradle.api.Incubating;
 
 /**
  * A binary artifact for a {@link NativeExecutable}, targeted at a particular platform with specific configuration.

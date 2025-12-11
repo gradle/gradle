@@ -17,15 +17,14 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.internal.SystemProperties;
-import org.gradle.internal.os.OperatingSystem;
-import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import javax.inject.Inject;
+import org.gradle.internal.SystemProperties;
+import org.gradle.internal.os.OperatingSystem;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultToolchainConfiguration implements ToolchainConfiguration {
     private Collection<String> javaInstallationsFromEnvironment;
@@ -47,7 +46,8 @@ public class DefaultToolchainConfiguration implements ToolchainConfiguration {
     }
 
     @VisibleForTesting
-    DefaultToolchainConfiguration(OperatingSystem os, SystemProperties systemProperties, Map<String, String> environment) {
+    DefaultToolchainConfiguration(
+            OperatingSystem os, SystemProperties systemProperties, Map<String, String> environment) {
         this.systemProperties = systemProperties;
         this.environment = environment;
         this.autoDetectEnabled = true;

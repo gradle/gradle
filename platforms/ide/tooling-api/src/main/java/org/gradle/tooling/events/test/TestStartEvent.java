@@ -23,5 +23,4 @@ import org.gradle.tooling.events.StartEvent;
  *
  * @since 2.4
  */
-public interface TestStartEvent extends TestProgressEvent, StartEvent {
-}
+public interface TestStartEvent extends TestProgressEvent, StartEvent {}

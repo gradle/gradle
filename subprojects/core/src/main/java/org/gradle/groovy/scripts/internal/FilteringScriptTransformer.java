@@ -16,13 +16,12 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import java.util.ListIterator;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.specs.Spec;
-
-import java.util.ListIterator;
 
 public class FilteringScriptTransformer extends AbstractScriptTransformer {
 
@@ -39,7 +38,8 @@ public class FilteringScriptTransformer extends AbstractScriptTransformer {
 
     @Override
     public void call(SourceUnit source) throws CompilationFailedException {
-        ListIterator<Statement> iterator = source.getAST().getStatementBlock().getStatements().listIterator();
+        ListIterator<Statement> iterator =
+                source.getAST().getStatementBlock().getStatements().listIterator();
         while (iterator.hasNext()) {
             if (spec.isSatisfiedBy(iterator.next())) {
                 iterator.remove();

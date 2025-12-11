@@ -15,10 +15,9 @@
  */
 package org.gradle.cache.internal;
 
+import java.io.File;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
-
-import java.io.File;
 
 public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderFactory {
     private final CacheFactory factory;
@@ -31,5 +30,4 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
     public CacheBuilder cache(File baseDir) {
         return new DefaultCacheBuilder(factory, baseDir);
     }
-
 }

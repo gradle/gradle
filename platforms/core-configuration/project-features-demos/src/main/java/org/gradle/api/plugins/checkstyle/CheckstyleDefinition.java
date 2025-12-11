@@ -24,6 +24,7 @@ import org.gradle.declarative.dsl.model.annotations.Restricted;
 public interface CheckstyleDefinition {
     @Restricted
     Property<Boolean> getIgnoreFailures();
+
     @Restricted
     RegularFileProperty getConfigFile();
 }

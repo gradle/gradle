@@ -15,6 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import java.net.URI;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
@@ -34,18 +38,20 @@ import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.net.URI;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-public abstract class AbstractAuthenticationSupportedRepository<T extends RepositoryDescriptor> extends AbstractResolutionAwareArtifactRepository<T> implements AuthenticationSupportedInternal {
+public abstract class AbstractAuthenticationSupportedRepository<T extends RepositoryDescriptor>
+        extends AbstractResolutionAwareArtifactRepository<T> implements AuthenticationSupportedInternal {
     private final AuthenticationSupporter delegate;
     private final ProviderFactory providerFactory;
 
-    AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ObjectFactory objectFactory, ProviderFactory providerFactory, VersionParser versionParser) {
+    AbstractAuthenticationSupportedRepository(
+            Instantiator instantiator,
+            AuthenticationContainer authenticationContainer,
+            ObjectFactory objectFactory,
+            ProviderFactory providerFactory,
+            VersionParser versionParser) {
         super(objectFactory, versionParser);
-        this.delegate = new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer, providerFactory);
+        this.delegate =
+                new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer, providerFactory);
         this.providerFactory = providerFactory;
     }
 
@@ -79,7 +85,8 @@ public abstract class AbstractAuthenticationSupportedRepository<T extends Reposi
     }
 
     @Override
-    public <C extends Credentials> void credentials(Class<C> credentialsType, Action<? super C> action) throws IllegalStateException {
+    public <C extends Credentials> void credentials(Class<C> credentialsType, Action<? super C> action)
+            throws IllegalStateException {
         invalidateDescriptor();
         delegate.credentials(credentialsType, action);
     }
@@ -123,7 +130,10 @@ public abstract class AbstractAuthenticationSupportedRepository<T extends Reposi
     }
 
     List<String> getAuthenticationSchemes() {
-        return CollectionUtils.collect(getConfiguredAuthentication(), authentication -> Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName());
+        return CollectionUtils.collect(
+                getConfiguredAuthentication(), authentication -> Cast.cast(AuthenticationInternal.class, authentication)
+                        .getType()
+                        .getSimpleName());
     }
 
     boolean usesCredentials() {
@@ -132,9 +142,7 @@ public abstract class AbstractAuthenticationSupportedRepository<T extends Reposi
 
     @Override
     public Provider<Boolean> isUsingCredentialsProvider() {
-        return getConfiguredCredentials().map(configured ->
-            isUsingCredentialsProvider(getName(), configured)
-        );
+        return getConfiguredCredentials().map(configured -> isUsingCredentialsProvider(getName(), configured));
     }
 
     private boolean isUsingCredentialsProvider(String identity, Credentials toCheck) {

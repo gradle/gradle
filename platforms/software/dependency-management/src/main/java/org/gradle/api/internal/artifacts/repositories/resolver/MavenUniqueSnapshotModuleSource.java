@@ -28,5 +28,4 @@ class MavenUniqueSnapshotModuleSource implements ModuleSource {
     public String getTimestamp() {
         return timestamp;
     }
-
 }

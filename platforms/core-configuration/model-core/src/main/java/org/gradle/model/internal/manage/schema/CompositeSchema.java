@@ -19,5 +19,4 @@ package org.gradle.model.internal.manage.schema;
 /**
  * The schema for an element that is composed from other elements.
  */
-public interface CompositeSchema<T> extends ModelSchema<T> {
-}
+public interface CompositeSchema<T> extends ModelSchema<T> {}

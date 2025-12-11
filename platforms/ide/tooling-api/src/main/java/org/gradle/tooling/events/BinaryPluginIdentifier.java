@@ -35,5 +35,4 @@ public interface BinaryPluginIdentifier extends PluginIdentifier {
      */
     @Nullable
     String getPluginId();
-
 }

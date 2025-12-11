@@ -41,7 +41,8 @@ public interface InternalProblemSpec extends ProblemSpec {
      * @return this
      * @param <U> The type of the configurator object that will be applied to the additional data
      */
-    <U extends org.gradle.api.problems.internal.AdditionalDataSpec> InternalProblemSpec additionalDataInternal(Class<? extends U> specType, Action<? super U> config);
+    <U extends org.gradle.api.problems.internal.AdditionalDataSpec> InternalProblemSpec additionalDataInternal(
+            Class<? extends U> specType, Action<? super U> config);
 
     @Override
     <T extends AdditionalData> InternalProblemSpec additionalData(Class<T> type, Action<? super T> config);

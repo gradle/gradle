@@ -19,6 +19,8 @@ package org.gradle.internal.component.local.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
@@ -27,9 +29,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.component.ComponentSelectorInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
 
 public class DefaultLibraryComponentSelector implements LibraryComponentSelector, ComponentSelectorInternal {
 
@@ -84,8 +83,8 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
         if (identifier instanceof LibraryBinaryIdentifier) {
             LibraryBinaryIdentifier projectComponentIdentifier = (LibraryBinaryIdentifier) identifier;
             return Objects.equal(projectComponentIdentifier.getProjectPath(), projectPath)
-                && Objects.equal(projectComponentIdentifier.getLibraryName(), libraryName)
-                && Objects.equal(projectComponentIdentifier.getVariant(), variant);
+                    && Objects.equal(projectComponentIdentifier.getLibraryName(), libraryName)
+                    && Objects.equal(projectComponentIdentifier.getVariant(), variant);
         }
 
         return false;
@@ -116,8 +115,8 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
         }
         DefaultLibraryComponentSelector that = (DefaultLibraryComponentSelector) o;
         return Objects.equal(projectPath, that.projectPath)
-            && Objects.equal(libraryName, that.libraryName)
-            && Objects.equal(variant, that.variant);
+                && Objects.equal(libraryName, that.libraryName)
+                && Objects.equal(variant, that.variant);
     }
 
     @Override
@@ -129,5 +128,4 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
     public String toString() {
         return getDisplayName();
     }
-
 }

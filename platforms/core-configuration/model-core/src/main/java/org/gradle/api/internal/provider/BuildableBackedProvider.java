@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
@@ -26,10 +28,8 @@ import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.Factory;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-public class BuildableBackedProvider<B extends Buildable & TaskDependencyContainer, T> extends AbstractProviderWithValue<T> {
+public class BuildableBackedProvider<B extends Buildable & TaskDependencyContainer, T>
+        extends AbstractProviderWithValue<T> {
 
     private final B buildable;
     private final Class<T> valueType;

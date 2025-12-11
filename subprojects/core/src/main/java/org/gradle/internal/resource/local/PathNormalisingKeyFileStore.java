@@ -16,11 +16,10 @@
 
 package org.gradle.internal.resource.local;
 
-import org.gradle.api.Action;
-import org.gradle.internal.hash.ChecksumService;
-
 import java.io.File;
 import java.util.Set;
+import org.gradle.api.Action;
+import org.gradle.internal.hash.ChecksumService;
 
 public class PathNormalisingKeyFileStore implements FileStore<String>, FileStoreSearcher<String> {
 

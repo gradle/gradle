@@ -56,5 +56,4 @@ public interface LineInFileLocation extends FileLocation {
      */
     @Nullable
     Integer getLength();
-
 }

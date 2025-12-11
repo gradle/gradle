@@ -18,17 +18,16 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import org.gradle.api.Named;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.provider.Provider;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import org.gradle.api.Named;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.provider.Provider;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Joins a primary and fallback attribute container to each other. Any attribute in the primary
@@ -40,7 +39,10 @@ import java.util.TreeMap;
     private final AttributeContainerInternal fallback;
     private final AttributeContainerInternal primary;
 
-    HierarchicalMutableAttributeContainer(AttributesFactory attributesFactory, AttributeContainerInternal fallback, AttributeContainerInternal primary) {
+    HierarchicalMutableAttributeContainer(
+            AttributesFactory attributesFactory,
+            AttributeContainerInternal fallback,
+            AttributeContainerInternal primary) {
         this.attributesFactory = attributesFactory;
         this.fallback = fallback;
         this.primary = primary;
@@ -85,12 +87,14 @@ import java.util.TreeMap;
 
     @Override
     public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntriesProvider() {
-        return primary.getEntriesProvider().zip(fallback.getEntriesProvider(), (prim, fall) ->
-            ImmutableMap.<Attribute<?>, AttributeEntry<?>>builderWithExpectedSize(prim.size() + fall.size())
-                .putAll(fall)
-                .putAll(prim)
-                .buildKeepingLast()
-        );
+        return primary.getEntriesProvider()
+                .zip(
+                        fallback.getEntriesProvider(),
+                        (prim, fall) -> ImmutableMap.<Attribute<?>, AttributeEntry<?>>builderWithExpectedSize(
+                                        prim.size() + fall.size())
+                                .putAll(fall)
+                                .putAll(prim)
+                                .buildKeepingLast());
     }
 
     @Override

@@ -15,12 +15,11 @@
  */
 package org.gradle.launcher.daemon.server.api;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Command;
-
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * A continuation style object used to model the execution of a command.
@@ -33,15 +32,21 @@ import java.util.List;
 public class DaemonCommandExecution {
 
     private final DaemonServerConfiguration configuration;
-    final private DaemonConnection connection;
-    final private Command command;
-    final private DaemonContext daemonContext;
-    final private DaemonStateControl daemonStateControl;
-    final private LinkedList<DaemonCommandAction> actions;
+    private final DaemonConnection connection;
+    private final Command command;
+    private final DaemonContext daemonContext;
+    private final DaemonStateControl daemonStateControl;
+    private final LinkedList<DaemonCommandAction> actions;
 
     private Object result;
 
-    public DaemonCommandExecution(DaemonServerConfiguration configuration, DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, List<DaemonCommandAction> actions) {
+    public DaemonCommandExecution(
+            DaemonServerConfiguration configuration,
+            DaemonConnection connection,
+            Command command,
+            DaemonContext daemonContext,
+            DaemonStateControl daemonStateControl,
+            List<DaemonCommandAction> actions) {
         this.configuration = configuration;
         this.connection = connection;
         this.command = command;

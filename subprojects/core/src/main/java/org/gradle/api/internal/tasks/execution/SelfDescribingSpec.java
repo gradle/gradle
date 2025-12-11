@@ -45,8 +45,6 @@ public class SelfDescribingSpec<T> implements Describable, Spec<T> {
 
     @Override
     public String toString() {
-        return "SelfDescribingSpec{"
-            + "description='" + description + '\''
-            + '}';
+        return "SelfDescribingSpec{" + "description='" + description + '\'' + '}';
     }
 }

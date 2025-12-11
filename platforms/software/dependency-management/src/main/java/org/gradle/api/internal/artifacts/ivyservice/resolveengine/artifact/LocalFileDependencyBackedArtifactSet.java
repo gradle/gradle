@@ -17,6 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -47,11 +51,6 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.jspecify.annotations.NonNull;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Abstract file dependency implementation. The two {@code default} and {@code deserialized} subtypes
@@ -86,14 +85,13 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
     private final boolean allowNoMatchingVariants;
 
     public LocalFileDependencyBackedArtifactSet(
-        LocalFileDependencyMetadata dependencyMetadata,
-        VariantIdentifier sourceVariantId,
-        Spec<? super ComponentIdentifier> componentFilter,
-        ArtifactVariantSelector variantSelector,
-        ImmutableArtifactTypeRegistry artifactTypeRegistry,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        boolean allowNoMatchingVariants
-    ) {
+            LocalFileDependencyMetadata dependencyMetadata,
+            VariantIdentifier sourceVariantId,
+            Spec<? super ComponentIdentifier> componentFilter,
+            ArtifactVariantSelector variantSelector,
+            ImmutableArtifactTypeRegistry artifactTypeRegistry,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
+            boolean allowNoMatchingVariants) {
         this.dependencyMetadata = dependencyMetadata;
         this.sourceVariantId = sourceVariantId;
         this.componentFilter = componentFilter;
@@ -152,7 +150,8 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
             return;
         }
 
-        ImmutableList.Builder<ResolvedArtifactSet> selectedArtifacts = ImmutableList.builderWithExpectedSize(files.size());
+        ImmutableList.Builder<ResolvedArtifactSet> selectedArtifacts =
+                ImmutableList.builderWithExpectedSize(files.size());
         for (File file : files) {
             ComponentArtifactIdentifier artifactIdentifier;
             if (componentIdentifier == null) {
@@ -165,7 +164,14 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
             }
 
             ImmutableAttributes variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
-            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, sourceVariantId, LOCAL_FILE, variantAttributes, dependencyMetadata, calculatedValueContainerFactory);
+            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(
+                    file,
+                    artifactIdentifier,
+                    sourceVariantId,
+                    LOCAL_FILE,
+                    variantAttributes,
+                    dependencyMetadata,
+                    calculatedValueContainerFactory);
             selectedArtifacts.add(variantSelector.select(variant, getRequestAttributes(), allowNoMatchingVariants));
         }
         CompositeResolvedArtifactSet.of(selectedArtifacts.build()).visit(listener);
@@ -188,7 +194,8 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         context.add(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
-    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Artifacts, ResolvedVariantSet {
+    private static class SingletonFileResolvedVariant
+            implements ResolvedVariant, ResolvedArtifactSet, Artifacts, ResolvedVariantSet {
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final VariantIdentifier sourceVariantId;
         private final DisplayName artifactSetName;
@@ -197,7 +204,14 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         private final ResolvableArtifact artifact;
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, VariantIdentifier sourceVariantId, DisplayName artifactSetName, ImmutableAttributes variantAttributes, LocalFileDependencyMetadata dependencyMetadata, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        SingletonFileResolvedVariant(
+                File file,
+                ComponentArtifactIdentifier artifactIdentifier,
+                VariantIdentifier sourceVariantId,
+                DisplayName artifactSetName,
+                ImmutableAttributes variantAttributes,
+                LocalFileDependencyMetadata dependencyMetadata,
+                CalculatedValueContainerFactory calculatedValueContainerFactory) {
             this.artifactIdentifier = artifactIdentifier;
             this.sourceVariantId = sourceVariantId;
             this.artifactSetName = artifactSetName;
@@ -205,7 +219,13 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
             this.dependencyMetadata = dependencyMetadata;
             this.calculatedValueContainerFactory = calculatedValueContainerFactory;
 
-            artifact = new DefaultResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), this.artifactIdentifier, this.dependencyMetadata.getFiles(), calculatedValueContainerFactory.create(Describables.of(artifactIdentifier), file), calculatedValueContainerFactory);
+            artifact = new DefaultResolvableArtifact(
+                    null,
+                    DefaultIvyArtifactName.forFile(file, null),
+                    this.artifactIdentifier,
+                    this.dependencyMetadata.getFiles(),
+                    calculatedValueContainerFactory.create(Describables.of(artifactIdentifier), file),
+                    calculatedValueContainerFactory);
         }
 
         @Override
@@ -272,12 +292,12 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         }
 
         @Override
-        public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
-        }
+        public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {}
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            visitor.visitArtifact(artifactSetName, sourceVariantId, variantAttributes, ImmutableCapabilities.EMPTY, artifact);
+            visitor.visitArtifact(
+                    artifactSetName, sourceVariantId, variantAttributes, ImmutableCapabilities.EMPTY, artifact);
             visitor.endVisitCollection(FileCollectionInternal.OTHER);
         }
 
@@ -297,33 +317,39 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         }
 
         @Override
-        public ResolvedArtifactSet transformCandidate(ResolvedVariant sourceVariant, VariantDefinition variantDefinition) {
+        public ResolvedArtifactSet transformCandidate(
+                ResolvedVariant sourceVariant, VariantDefinition variantDefinition) {
             assert sourceVariant == this;
-            return new TransformedLocalFileArtifactSet(this, sourceVariantId, variantDefinition.getTargetAttributes(), variantDefinition.getTransformChain(), calculatedValueContainerFactory);
+            return new TransformedLocalFileArtifactSet(
+                    this,
+                    sourceVariantId,
+                    variantDefinition.getTargetAttributes(),
+                    variantDefinition.getTransformChain(),
+                    calculatedValueContainerFactory);
         }
     }
 
     /**
      * An artifact set that contains a single transformed local file.
      */
-    private static class TransformedLocalFileArtifactSet extends AbstractTransformedArtifactSet implements FileCollectionInternal.Source {
+    private static class TransformedLocalFileArtifactSet extends AbstractTransformedArtifactSet
+            implements FileCollectionInternal.Source {
         public TransformedLocalFileArtifactSet(
-            SingletonFileResolvedVariant delegate,
-            VariantIdentifier sourceVariantId,
-            ImmutableAttributes attributes,
-            TransformChain transformChain,
-            CalculatedValueContainerFactory calculatedValueContainerFactory
-        ) {
+                SingletonFileResolvedVariant delegate,
+                VariantIdentifier sourceVariantId,
+                ImmutableAttributes attributes,
+                TransformChain transformChain,
+                CalculatedValueContainerFactory calculatedValueContainerFactory) {
             super(
-                delegate.getComponentIdentifier(),
-                sourceVariantId,
-                delegate,
-                attributes,
-                ImmutableCapabilities.EMPTY,
-                transformChain,
-                TransformUpstreamDependenciesResolver.NO_DEPENDENCIES, // File dependencies do not themselves depend on other artifacts.
-                calculatedValueContainerFactory
-            );
+                    delegate.getComponentIdentifier(),
+                    sourceVariantId,
+                    delegate,
+                    attributes,
+                    ImmutableCapabilities.EMPTY,
+                    transformChain,
+                    TransformUpstreamDependenciesResolver
+                            .NO_DEPENDENCIES, // File dependencies do not themselves depend on other artifacts.
+                    calculatedValueContainerFactory);
         }
     }
 }

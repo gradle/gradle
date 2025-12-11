@@ -16,13 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 
 /**
  * A utility class that packages the logic necessary to build a message describing why a {@link ComponentState} was rejected.
@@ -40,7 +39,9 @@ import java.util.Set;
         if (hasRejectAll) {
             sb.append("Module '").append(module.getId()).append("' has been rejected:\n");
         } else {
-            sb.append("Cannot find a version of '").append(module.getId()).append("' that satisfies the version constraints:\n");
+            sb.append("Cannot find a version of '")
+                    .append(module.getId())
+                    .append("' that satisfies the version constraints:\n");
         }
 
         Set<EdgeState> allEdges = module.getAllEdges();
@@ -70,7 +71,8 @@ import java.util.Set;
         if (selectionReason.hasCustomDescriptions()) {
             sb.append(" because of the following reason");
             List<String> reasons = new ArrayList<>(1);
-            for (ComponentSelectionDescriptorInternal componentSelectionDescriptor : selectionReason.getDescriptions()) {
+            for (ComponentSelectionDescriptorInternal componentSelectionDescriptor :
+                    selectionReason.getDescriptions()) {
                 if (componentSelectionDescriptor.hasCustomDescription()) {
                     reasons.add(componentSelectionDescriptor.getDescription());
                 }

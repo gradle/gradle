@@ -19,10 +19,9 @@ package gradlebuild.docs.dsl.docbook;
 import gradlebuild.docs.dsl.docbook.model.ClassDoc;
 import gradlebuild.docs.dsl.docbook.model.ClassExtensionDoc;
 import gradlebuild.docs.dsl.docbook.model.MethodDoc;
+import java.util.Collection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import java.util.Collection;
 
 class MethodsRenderer implements ClassDocMemberRenderer {
     private final MethodTableRenderer methodTableRenderer = new MethodTableRenderer();

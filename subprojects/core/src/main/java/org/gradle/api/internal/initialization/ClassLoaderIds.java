@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.initialization;
 
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
-
 import java.util.Arrays;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 
 /**
  * Provides implementations of classloader ids

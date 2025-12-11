@@ -15,6 +15,11 @@
  */
 package org.gradle.docs.samples;
 
+import static org.gradle.docs.samples.SamplesTestEngine.getNormalizedSampleId;
+
+import java.io.File;
+import java.nio.file.Paths;
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.exemplar.executor.CommandExecutor;
 import org.gradle.exemplar.executor.ExecutionMetadata;
@@ -28,12 +33,6 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runner.notification.StoppedByUserException;
 import org.junit.runners.model.InitializationError;
-
-import java.io.File;
-import java.nio.file.Paths;
-import java.util.List;
-
-import static org.gradle.docs.samples.SamplesTestEngine.getNormalizedSampleId;
 
 @NullMarked
 class IntegrationTestSamplesRunner extends SamplesRunner {
@@ -79,25 +78,26 @@ class IntegrationTestSamplesRunner extends SamplesRunner {
         }
 
         @Override
-        public void fireTestStarted(final Description description) throws StoppedByUserException {
-        }
+        public void fireTestStarted(final Description description) throws StoppedByUserException {}
 
         @Override
-        public void fireTestFinished(final Description description) {
-        }
+        public void fireTestFinished(final Description description) {}
     }
 
     public void runSample(Sample sample) {
         try {
             runChild(sample, new RunNotifierAdapter());
         } catch (Throwable e) {
-            String extraParameter = "configCache".equals(System.getProperty("org.gradle.integtest.executer")) ?
-                "-PenableConfigurationCacheForDocsTests=true" : "";
+            String extraParameter = "configCache".equals(System.getProperty("org.gradle.integtest.executer"))
+                    ? "-PenableConfigurationCacheForDocsTests=true"
+                    : "";
             throw new GradleException(
-                "Sample test run failed.\nTo understand how docsTest works, See:\n" +
-                    "  https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/README.md#testing-docs\n" +
-                    "To reproduce this failure, run:\n" +
-                    "  ./gradlew docs:docsTest --tests '*" + getNormalizedSampleId(sample) + "*' " + extraParameter, e);
+                    "Sample test run failed.\nTo understand how docsTest works, See:\n"
+                            + "  https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/README.md#testing-docs\n"
+                            + "To reproduce this failure, run:\n"
+                            + "  ./gradlew docs:docsTest --tests '*"
+                            + getNormalizedSampleId(sample) + "*' " + extraParameter,
+                    e);
         }
     }
 }

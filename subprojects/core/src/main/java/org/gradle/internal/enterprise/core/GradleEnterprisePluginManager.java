@@ -17,6 +17,7 @@
 package org.gradle.internal.enterprise.core;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.List;
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
@@ -29,20 +30,19 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-
 @ServiceScope(Scope.BuildTree.class)
 public class GradleEnterprisePluginManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleEnterprisePluginManager.class);
 
     @VisibleForTesting
-    public static final String NO_SCAN_PLUGIN_MSG = "An internal error occurred that prevented a Build Scan from being created.\n" +
-        "Please report this via https://github.com/gradle/gradle/issues";
+    public static final String NO_SCAN_PLUGIN_MSG =
+            "An internal error occurred that prevented a Build Scan from being created.\n"
+                    + "Please report this via https://github.com/gradle/gradle/issues";
 
     public static final String OLD_SCAN_PLUGIN_VERSION_MESSAGE =
-        "The Develocity plugin is not compatible with this version of Gradle.\n"
-            + "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information.";
+            "The Develocity plugin is not compatible with this version of Gradle.\n"
+                    + "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information.";
 
     @Nullable
     private GradleEnterprisePluginAdapter adapter;
@@ -99,5 +99,4 @@ public class GradleEnterprisePluginManager {
             }
         }
     }
-
 }

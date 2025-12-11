@@ -16,9 +16,8 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.internal.snapshot.VfsRelativePath;
-
 import java.util.Collection;
+import org.gradle.internal.snapshot.VfsRelativePath;
 
 public interface ProducedDirectoriesNode {
     Collection<Node> getNodesProducing(VfsRelativePath relativePath);

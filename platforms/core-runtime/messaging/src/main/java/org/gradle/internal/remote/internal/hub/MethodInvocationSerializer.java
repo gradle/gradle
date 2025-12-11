@@ -16,13 +16,12 @@
 
 package org.gradle.internal.remote.internal.hub;
 
-import org.gradle.internal.serialize.*;
-import org.gradle.internal.dispatch.MethodInvocation;
-
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import org.gradle.internal.dispatch.MethodInvocation;
+import org.gradle.internal.serialize.*;
 
 public class MethodInvocationSerializer implements StatefulSerializer<MethodInvocation> {
     private final ClassLoader classLoader;
@@ -68,7 +67,8 @@ public class MethodInvocationSerializer implements StatefulSerializer<MethodInvo
         @Override
         public void write(MethodInvocation value) throws Exception {
             if (value.getArguments().length != value.getMethod().getParameterTypes().length) {
-                throw new IllegalArgumentException(String.format("Mismatched number of parameters to method %s.", value.getMethod()));
+                throw new IllegalArgumentException(
+                        String.format("Mismatched number of parameters to method %s.", value.getMethod()));
             }
             MethodDetails methodDetails = writeMethod(value.getMethod());
             writeArgs(methodDetails, value);
@@ -82,7 +82,8 @@ public class MethodInvocationSerializer implements StatefulSerializer<MethodInvo
             MethodDetails methodDetails = methods.get(method);
             if (methodDetails == null) {
                 int methodId = methods.size();
-                methodDetails = new MethodDetails(methodId, method, methodArgsSerializer.forTypes(method.getParameterTypes()));
+                methodDetails =
+                        new MethodDetails(methodId, method, methodArgsSerializer.forTypes(method.getParameterTypes()));
                 methods.put(method, methodDetails);
                 encoder.writeSmallInt(methodId);
                 encoder.writeString(method.getDeclaringClass().getName());
@@ -101,6 +102,7 @@ public class MethodInvocationSerializer implements StatefulSerializer<MethodInvo
 
     private static class MethodInvocationReader implements ObjectReader<MethodInvocation> {
         private static final Map<String, Class<?>> PRIMITIVE_TYPES;
+
         static {
             PRIMITIVE_TYPES = new HashMap<String, Class<?>>();
             PRIMITIVE_TYPES.put(Integer.TYPE.getName(), Integer.TYPE);
@@ -140,7 +142,8 @@ public class MethodInvocationSerializer implements StatefulSerializer<MethodInvo
                     paramTypes[i] = readType();
                 }
                 Method method = declaringClass.getDeclaredMethod(methodName, paramTypes);
-                methodDetails = new MethodDetails(methodId, method, methodArgsSerializer.forTypes(method.getParameterTypes()));
+                methodDetails =
+                        new MethodDetails(methodId, method, methodArgsSerializer.forTypes(method.getParameterTypes()));
                 methods.put(methodId, methodDetails);
             }
             return methodDetails;

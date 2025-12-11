@@ -15,6 +15,8 @@
  */
 package org.gradle.language.rc.plugins;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -34,9 +36,6 @@ import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Adds core language support for Windows resource script files.

@@ -16,16 +16,15 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.initialization.DefaultPlannedTask;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
-import org.gradle.internal.taskgraph.NodeIdentity;
-import org.jspecify.annotations.NullMarked;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.gradle.initialization.DefaultPlannedTask;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
+import org.gradle.internal.taskgraph.NodeIdentity;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * A {@link ToPlannedTaskConverter} for {@link TaskNode}s.
@@ -114,12 +113,11 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
 
         LocalTaskNode taskNode = (LocalTaskNode) node;
         return new DefaultPlannedTask(
-            getNodeIdentity(taskNode),
-            nodeDependencies,
-            getTaskIdentities(taskNode.getMustSuccessors()),
-            getTaskIdentities(taskNode.getShouldSuccessors()),
-            getTaskIdentities(taskNode.getFinalizers())
-        );
+                getNodeIdentity(taskNode),
+                nodeDependencies,
+                getTaskIdentities(taskNode.getMustSuccessors()),
+                getTaskIdentities(taskNode.getShouldSuccessors()),
+                getTaskIdentities(taskNode.getFinalizers()));
     }
 
     private List<TaskIdentity> getTaskIdentities(Collection<Node> nodes) {
@@ -128,10 +126,10 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
         }
 
         return nodes.stream()
-            .filter(TaskNode.class::isInstance)
-            .map(TaskNode.class::cast)
-            .map(this::getNodeIdentity)
-            .collect(Collectors.toList());
+                .filter(TaskNode.class::isInstance)
+                .map(TaskNode.class::cast)
+                .map(this::getNodeIdentity)
+                .collect(Collectors.toList());
     }
 
     @Override

@@ -17,6 +17,15 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.repositories.PatternHelper;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -27,16 +36,6 @@ import org.gradle.internal.resource.ResourceExceptions;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class ResourceVersionLister implements VersionLister {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceVersionLister.class);
@@ -52,10 +51,16 @@ public class ResourceVersionLister implements VersionLister {
     }
 
     @Override
-    public void listVersions(ModuleIdentifier module, IvyArtifactName artifact, List<ResourcePattern> patterns, BuildableModuleVersionListingResolveResult result) {
+    public void listVersions(
+            ModuleIdentifier module,
+            IvyArtifactName artifact,
+            List<ResourcePattern> patterns,
+            BuildableModuleVersionListingResolveResult result) {
         List<String> collector = new ArrayList<>();
         List<ResourcePattern> filteredPatterns = filterDuplicates(patterns);
-        Map<ResourcePattern, ExternalResourceName> versionListPatterns = filteredPatterns.stream().collect(Collectors.toMap(pattern -> pattern, pattern -> pattern.toVersionListPattern(module, artifact)));
+        Map<ResourcePattern, ExternalResourceName> versionListPatterns = filteredPatterns.stream()
+                .collect(Collectors.toMap(
+                        pattern -> pattern, pattern -> pattern.toVersionListPattern(module, artifact)));
         for (ResourcePattern pattern : filteredPatterns) {
             visit(pattern, versionListPatterns, collector, result);
         }
@@ -93,18 +98,26 @@ public class ResourceVersionLister implements VersionLister {
         }
     }
 
-    private void visit(ResourcePattern pattern, Map<ResourcePattern, ExternalResourceName> versionListPatterns, List<String> collector, BuildableModuleVersionListingResolveResult result) {
+    private void visit(
+            ResourcePattern pattern,
+            Map<ResourcePattern, ExternalResourceName> versionListPatterns,
+            List<String> collector,
+            BuildableModuleVersionListingResolveResult result) {
         ExternalResourceName versionListPattern = versionListPatterns.get(pattern);
         LOGGER.debug("Listing all in {}", versionListPattern);
         try {
             collector.addAll(listRevisionToken(versionListPattern, result, versionListPatterns));
         } catch (Exception e) {
-            throw ResourceExceptions.failure(versionListPattern.getUri(), String.format("Could not list versions using %s.", pattern), e);
+            throw ResourceExceptions.failure(
+                    versionListPattern.getUri(), String.format("Could not list versions using %s.", pattern), e);
         }
     }
 
     // lists all the values a revision token listed by a given url lister
-    private List<String> listRevisionToken(ExternalResourceName versionListPattern, BuildableModuleVersionListingResolveResult result, Map<ResourcePattern, ExternalResourceName> versionListPatterns) {
+    private List<String> listRevisionToken(
+            ExternalResourceName versionListPattern,
+            BuildableModuleVersionListingResolveResult result,
+            Map<ResourcePattern, ExternalResourceName> versionListPatterns) {
         String pattern = versionListPattern.getPath();
         if (!pattern.contains(REVISION_TOKEN)) {
             LOGGER.debug("revision token not defined in pattern {}.", pattern);
@@ -117,7 +130,8 @@ public class ResourceVersionLister implements VersionLister {
             listedVersions = listAll(parent, result);
         } else {
             int parentFolderSlashIndex = prefix.lastIndexOf(fileSeparator);
-            String revisionParentFolder = parentFolderSlashIndex == -1 ? "" : prefix.substring(0, parentFolderSlashIndex + 1);
+            String revisionParentFolder =
+                    parentFolderSlashIndex == -1 ? "" : prefix.substring(0, parentFolderSlashIndex + 1);
             ExternalResourceName parent = versionListPattern.getRoot().resolve(revisionParentFolder);
             LOGGER.debug("using {} to list all in {} ", repository, revisionParentFolder);
             result.attempted(parent);
@@ -132,23 +146,33 @@ public class ResourceVersionLister implements VersionLister {
         }
         if (versionListPatterns.size() > 1) {
             // Verify that none of the listed "versions" do match another pattern
-            return filterOutMatchesWithOverlappingPatterns(listedVersions, versionListPattern, versionListPatterns.values());
+            return filterOutMatchesWithOverlappingPatterns(
+                    listedVersions, versionListPattern, versionListPatterns.values());
         }
         return listedVersions;
     }
 
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private List<String> filterOutMatchesWithOverlappingPatterns(List<String> listedVersions, ExternalResourceName currentVersionListPattern, Collection<ExternalResourceName> versionListPatterns) {
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
+    private List<String> filterOutMatchesWithOverlappingPatterns(
+            List<String> listedVersions,
+            ExternalResourceName currentVersionListPattern,
+            Collection<ExternalResourceName> versionListPatterns) {
         List<String> remaining = Lists.newArrayList(listedVersions);
         for (ExternalResourceName otherVersionListPattern : versionListPatterns) {
             if (otherVersionListPattern != currentVersionListPattern) {
                 String patternPath = otherVersionListPattern.getPath();
                 Pattern regexPattern = toControlRegexPattern(patternPath);
                 List<String> matching = listedVersions.stream()
-                    .filter(version -> regexPattern.matcher(currentVersionListPattern.getPath().replace(REVISION_TOKEN, version)).matches())
-                    .collect(Collectors.toList());
+                        .filter(version -> regexPattern
+                                .matcher(currentVersionListPattern.getPath().replace(REVISION_TOKEN, version))
+                                .matches())
+                        .collect(Collectors.toList());
                 if (!matching.isEmpty()) {
-                    LOGGER.debug("Filtered out {} from results for overlapping match with {}", matching, otherVersionListPattern);
+                    LOGGER.debug(
+                            "Filtered out {} from results for overlapping match with {}",
+                            matching,
+                            otherVersionListPattern);
                     remaining.removeAll(matching);
                 }
             }
@@ -185,8 +209,7 @@ public class ResourceVersionLister implements VersionLister {
         pattern = pattern.replaceAll("\\.", "\\\\.");
 
         // Creates a control regexp pattern where extra revision tokens _must_ have the same value as the original one
-        String acceptNamePattern = pattern.replaceFirst("\\[revision]", "(.+)")
-            .replaceAll("\\[revision]", "\1");
+        String acceptNamePattern = pattern.replaceFirst("\\[revision]", "(.+)").replaceAll("\\[revision]", "\1");
         return Pattern.compile(acceptNamePattern);
     }
 

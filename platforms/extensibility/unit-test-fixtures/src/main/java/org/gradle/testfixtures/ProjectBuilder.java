@@ -15,11 +15,10 @@
  */
 package org.gradle.testfixtures;
 
+import java.io.File;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.internal.ProjectBuilderImpl;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * <p>Creates dummy instances of {@link org.gradle.api.Project} which you can use in testing custom task and plugin

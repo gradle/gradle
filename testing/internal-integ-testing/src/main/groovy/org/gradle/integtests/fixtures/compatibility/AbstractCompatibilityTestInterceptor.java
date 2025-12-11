@@ -16,18 +16,18 @@
 
 package org.gradle.integtests.fixtures.compatibility;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 import org.gradle.integtests.fixtures.GradleDistributionTool;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.stream.Collectors;
-
-public abstract class AbstractCompatibilityTestInterceptor extends AbstractContextualMultiVersionTestInterceptor<GradleDistributionTool> {
+public abstract class AbstractCompatibilityTestInterceptor
+        extends AbstractContextualMultiVersionTestInterceptor<GradleDistributionTool> {
     protected final IntegrationTestBuildContext buildContext = IntegrationTestBuildContext.INSTANCE;
     final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(buildContext);
     protected final GradleDistribution current = new UnderDevelopmentGradleDistribution(buildContext);
@@ -45,9 +45,9 @@ public abstract class AbstractCompatibilityTestInterceptor extends AbstractConte
     @Override
     protected Collection<GradleDistributionTool> getAllVersions() {
         return releasedVersions.getSupported().stream()
-            .sorted(Comparator.comparing(GradleDistribution::getVersion))
-            .map(GradleDistributionTool::new)
-            .collect(Collectors.toList());
+                .sorted(Comparator.comparing(GradleDistribution::getVersion))
+                .map(GradleDistributionTool::new)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -63,9 +63,9 @@ public abstract class AbstractCompatibilityTestInterceptor extends AbstractConte
     private void validateTestName(Class<?> target) {
         if (!target.getSimpleName().contains("CrossVersion")) {
             throw new RuntimeException("The tests that use " + this.getClass().getSimpleName()
-                + " must follow a certain naming convention, e.g. name must contain 'CrossVersion' substring.\n"
-                + "This way we can include/exclude those test nicely and it is easier to configure the CI.\n"
-                + "Please include 'CrossVersion' in the name of the test: '" + target.getSimpleName() + "'");
+                    + " must follow a certain naming convention, e.g. name must contain 'CrossVersion' substring.\n"
+                    + "This way we can include/exclude those test nicely and it is easier to configure the CI.\n"
+                    + "Please include 'CrossVersion' in the name of the test: '" + target.getSimpleName() + "'");
         }
     }
 }

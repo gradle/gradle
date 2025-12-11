@@ -21,5 +21,4 @@ package org.gradle.tooling.internal.protocol.events;
  *
  * @since 8.12
  */
-public interface InternalTestMetadataDescriptor extends InternalOperationDescriptor {
-}
+public interface InternalTestMetadataDescriptor extends InternalOperationDescriptor {}

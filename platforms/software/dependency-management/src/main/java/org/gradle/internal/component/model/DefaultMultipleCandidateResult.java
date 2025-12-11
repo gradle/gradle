@@ -17,11 +17,10 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.internal.attributes.MultipleCandidatesResult;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.Set;
+import org.gradle.api.internal.attributes.MultipleCandidatesResult;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResult<T> {
     private final Set<T> candidateValues;
@@ -36,7 +35,7 @@ public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResu
             throw new IllegalArgumentException("Insufficient number of candidate values: " + candidateValues.size());
         }
         for (T candidateValue : candidateValues) {
-            if (candidateValue == null)  {
+            if (candidateValue == null) {
                 throw new IllegalArgumentException("candidateValues cannot contain null elements");
             }
         }
@@ -47,7 +46,7 @@ public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResu
 
     @Override
     public boolean hasResult() {
-        return singleMatch != null || multipleMatches!=null;
+        return singleMatch != null || multipleMatches != null;
     }
 
     @Override

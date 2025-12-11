@@ -17,6 +17,13 @@
 package org.gradle.nativeplatform.internal;
 
 import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.language.nativeplatform.DependentSourceSet;
@@ -41,14 +48,6 @@ import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 
 public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements NativeBinarySpecInternal {
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
@@ -208,8 +207,8 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     @Override
     public void addPreCompiledHeaderFor(DependentSourceSet sourceSet) {
         prefixFileToPCH.put(
-            ((DependentSourceSetInternal)sourceSet).getPrefixHeaderFile(),
-            new PreCompiledHeader(getIdentifier().child("pch")));
+                ((DependentSourceSetInternal) sourceSet).getPrefixHeaderFile(),
+                new PreCompiledHeader(getIdentifier().child("pch")));
     }
 
     private NativeBinaryResolveResult resolve(Iterable<? extends DependentSourceSet> sourceSets) {
@@ -255,7 +254,8 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     @Override
     public void binaryInputs(FileCollection files) {
-        // TODO - should split this up, so that the inputs are attached to an object that represents the binary, which is then later used to configure the link/assemble tasks
+        // TODO - should split this up, so that the inputs are attached to an object that represents the binary, which
+        // is then later used to configure the link/assemble tasks
         getCreateOrLink().source(files);
     }
 

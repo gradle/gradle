@@ -37,5 +37,4 @@ public final class UserScopeId extends ScopeId {
     public UserScopeId(UniqueId id) {
         super(id);
     }
-
 }

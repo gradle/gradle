@@ -18,12 +18,11 @@ package org.gradle.internal.deprecation;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import javax.annotation.CheckReturnValue;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.internal.InternalDocLink;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.CheckReturnValue;
 
 public abstract class Documentation implements InternalDocLink {
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
@@ -58,10 +57,9 @@ public abstract class Documentation implements InternalDocLink {
         return String.format(RECOMMENDATION, "information", getUrl());
     }
 
-    private static abstract class SerializableDocumentation extends Documentation {
-    }
+    private abstract static class SerializableDocumentation extends Documentation {}
 
-    public static abstract class AbstractBuilder<T> {
+    public abstract static class AbstractBuilder<T> {
         public abstract T withDocumentation(@Nullable DocLink documentation);
 
         /**
@@ -127,7 +125,9 @@ public abstract class Documentation implements InternalDocLink {
                 return false;
             }
             UserGuide userGuide = (UserGuide) o;
-            return Objects.equal(page, userGuide.page) && Objects.equal(section, userGuide.section) && Objects.equal(topic, userGuide.topic);
+            return Objects.equal(page, userGuide.page)
+                    && Objects.equal(section, userGuide.section)
+                    && Objects.equal(topic, userGuide.topic);
         }
 
         @Override
@@ -211,8 +211,4 @@ public abstract class Documentation implements InternalDocLink {
             return Objects.hashCode(extensionName);
         }
     }
-
 }
-
-
-

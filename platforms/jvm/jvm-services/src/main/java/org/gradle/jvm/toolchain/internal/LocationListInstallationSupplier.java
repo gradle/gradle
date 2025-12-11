@@ -16,12 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.internal.file.FileResolver;
-
-import javax.inject.Inject;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import org.gradle.api.internal.file.FileResolver;
 
 public class LocationListInstallationSupplier implements InstallationSupplier {
 
@@ -45,12 +44,12 @@ public class LocationListInstallationSupplier implements InstallationSupplier {
     public Set<InstallationLocation> get() {
         final Collection<String> property = buildOptions.getInstallationsFromPaths();
         return property.stream()
-            .filter(path -> !path.trim().isEmpty())
-            .map(this::asInstallations).collect(Collectors.toSet());
+                .filter(path -> !path.trim().isEmpty())
+                .map(this::asInstallations)
+                .collect(Collectors.toSet());
     }
 
     private InstallationLocation asInstallations(String candidate) {
         return InstallationLocation.userDefined(fileResolver.resolve(candidate), getSourceName());
     }
-
 }

@@ -15,10 +15,9 @@
  */
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.logging.text.TestStyledTextOutput;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.internal.logging.text.TestStyledTextOutput;
 
 public class ConsoleStub implements Console {
     private final TestableBuildOutputTextArea buildOutputArea = new TestableBuildOutputTextArea();
@@ -48,8 +47,7 @@ public class ConsoleStub implements Console {
         buildProgressArea.redraw();
     }
 
-    protected static class TestableBuildOutputTextArea extends TestStyledTextOutput implements TextArea {
-    }
+    protected static class TestableBuildOutputTextArea extends TestStyledTextOutput implements TextArea {}
 
     protected static class TestableRedrawableLabel extends TestStyledLabel implements RedrawableLabel {
         String id; // Allows individual identification for debugging
@@ -106,7 +104,8 @@ public class ConsoleStub implements Console {
         @Override
         public void resizeBuildProgressTo(int buildProgressLabelCount) {
             for (int i = buildProgressLabelCount - this.buildProgressLabelCount; i > 0; --i) {
-                final TestableRedrawableLabel label = new TestableRedrawableLabel(String.valueOf((buildProgressLabelCount - i) + 1));
+                final TestableRedrawableLabel label =
+                        new TestableRedrawableLabel(String.valueOf((buildProgressLabelCount - i) + 1));
                 buildProgressLabels.add(label);
                 testableLabels.add(label);
             }

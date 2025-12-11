@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.project;
 
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
@@ -52,14 +54,18 @@ import org.gradle.util.Path;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-import java.util.Set;
-
 @UsedByScanPlugin("scan, test-retry")
 @ServiceScope(Scope.Project.class)
-public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptServices, DomainObjectContext, ModelRegistryScope, PluginAwareInternal {
+public interface ProjectInternal
+        extends Project,
+                ProjectIdentifier,
+                HasScriptServices,
+                DomainObjectContext,
+                ModelRegistryScope,
+                PluginAwareInternal {
 
-    // These constants are defined here and not with the rest of their kind in HelpTasksPlugin because they are referenced
+    // These constants are defined here and not with the rest of their kind in HelpTasksPlugin because they are
+    // referenced
     // in the ‘core’ modules, which don't depend on ‘plugins’ where HelpTasksPlugin is defined.
     String HELP_TASK = "help";
     String TASKS_TASK = "tasks";
@@ -182,7 +188,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * @return null if no listeners were added during evaluation or the {@link ProjectEvaluationListener} instance representing the new batch of registered listeners
      */
     @Nullable
-    ProjectEvaluationListener stepEvaluationListener(ProjectEvaluationListener listener, Action<ProjectEvaluationListener> action);
+    ProjectEvaluationListener stepEvaluationListener(
+            ProjectEvaluationListener listener, Action<ProjectEvaluationListener> action);
 
     /**
      * Returns the {@link ProjectState} that manages the state of this instance.

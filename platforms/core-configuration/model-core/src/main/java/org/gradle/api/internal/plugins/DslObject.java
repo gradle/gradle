@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.plugins;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclasses;
@@ -26,8 +28,6 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.jspecify.annotations.Nullable;
-
-import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * Provides a unified, typed, interface to an enhanced DSL object.
@@ -42,8 +42,10 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
 
     @Nullable
     private DynamicObject dynamicObject;
+
     @Nullable
     private ExtensionContainer extensionContainer;
+
     @Nullable
     private ConventionMapping conventionMapping;
 
@@ -96,11 +98,9 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
         if (type.isInstance(delegate)) {
             return type.cast(delegate);
         } else {
-            throw new IllegalStateException(
-                String.format("Cannot create DslObject for '%s' (class: %s) as it does not implement '%s' (it is not a DSL object)",
-                    delegate, delegate.getClass().getSimpleName(), type.getName())
-            );
+            throw new IllegalStateException(String.format(
+                    "Cannot create DslObject for '%s' (class: %s) as it does not implement '%s' (it is not a DSL object)",
+                    delegate, delegate.getClass().getSimpleName(), type.getName()));
         }
     }
-
 }

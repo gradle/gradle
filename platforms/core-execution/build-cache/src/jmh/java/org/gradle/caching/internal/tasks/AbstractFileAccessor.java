@@ -16,14 +16,13 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.openjdk.jmh.annotations.Level;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import org.openjdk.jmh.annotations.Level;
 
 public abstract class AbstractFileAccessor implements DataAccessor {
     private final DirectoryProvider directoryProvider;

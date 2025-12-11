@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.artifacts.ComponentMetadataDetails;
-import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.NoOpDerivationStrategy;
-import org.gradle.internal.component.external.model.VariantDerivationStrategy;
-import org.gradle.internal.rules.SpecRuleAction;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
+import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.NoOpDerivationStrategy;
+import org.gradle.internal.component.external.model.VariantDerivationStrategy;
+import org.gradle.internal.rules.SpecRuleAction;
 
 /**
  * Container for registered ComponentMetadataRules, either class based or closure / action based.
@@ -78,7 +77,8 @@ class ComponentMetadataRuleContainer implements Iterable<MetadataRuleWrapper> {
 
     Collection<SpecConfigurableRule> getOnlyClassRules() {
         if (!isClassBasedRulesOnly() || isEmpty()) {
-            throw new IllegalStateException("This method cannot be used unless there is at least one rule and they are all class based");
+            throw new IllegalStateException(
+                    "This method cannot be used unless there is at least one rule and they are all class based");
         }
         return rules.get(0).getClassRules();
     }

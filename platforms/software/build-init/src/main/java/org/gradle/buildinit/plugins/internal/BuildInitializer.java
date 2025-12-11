@@ -15,13 +15,12 @@
  */
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
-import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 /**
  * Initializes a Gradle build, either by converting an existing build to Gradle or generating a new Gradle build.

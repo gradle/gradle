@@ -37,5 +37,4 @@ public interface FileSystemSnapshotHierarchyVisitor {
      * Called after all entries in the directory has been visited.
      */
     default void leaveDirectory(DirectorySnapshot directorySnapshot) {}
-
 }

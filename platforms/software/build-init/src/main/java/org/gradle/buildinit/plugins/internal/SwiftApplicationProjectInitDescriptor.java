@@ -20,7 +20,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
 public class SwiftApplicationProjectInitDescriptor extends SwiftProjectInitDescriptor {
-    public SwiftApplicationProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
+    public SwiftApplicationProjectInitDescriptor(
+            TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
         super(templateOperationFactory, documentationRegistry);
     }
 
@@ -52,11 +53,15 @@ public class SwiftApplicationProjectInitDescriptor extends SwiftProjectInitDescr
     @Override
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
-            .plugin(
-                "Apply the swift-application plugin to add support for building Swift executables",
-                "swift-application")
-            .plugin("Apply the xctest plugin to add support for building and running Swift test executables (Linux) or bundles (macOS)",
-                "xctest")
-            .block("Set the target operating system and architecture for this application", "application", this::configureTargetMachineDefinition);
+                .plugin(
+                        "Apply the swift-application plugin to add support for building Swift executables",
+                        "swift-application")
+                .plugin(
+                        "Apply the xctest plugin to add support for building and running Swift test executables (Linux) or bundles (macOS)",
+                        "xctest")
+                .block(
+                        "Set the target operating system and architecture for this application",
+                        "application",
+                        this::configureTargetMachineDefinition);
     }
 }

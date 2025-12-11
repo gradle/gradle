@@ -16,17 +16,16 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import static org.gradle.internal.classpath.intercept.CallInterceptorRegistry.getGroovyCallDecorator;
+
+import java.util.EnumMap;
+import java.util.Map;
 import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
 import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.lazy.Lazy;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.EnumMap;
-import java.util.Map;
-
-import static org.gradle.internal.classpath.intercept.CallInterceptorRegistry.getGroovyCallDecorator;
 
 @NullMarked
 public interface CallInterceptorResolver {
@@ -39,13 +38,15 @@ public interface CallInterceptorResolver {
     @NullMarked
     final class ClosureCallInterceptorResolver implements CallInterceptorResolver {
 
-        private static final Lazy<Map<BytecodeInterceptorFilter, ClosureCallInterceptorResolver>> RESOLVERS = Lazy.locking().of(() -> {
-            Map<BytecodeInterceptorFilter, ClosureCallInterceptorResolver> resolvers = new EnumMap<>(BytecodeInterceptorFilter.class);
-            for (BytecodeInterceptorFilter filter : BytecodeInterceptorFilter.values()) {
-                resolvers.put(filter, new ClosureCallInterceptorResolver(filter));
-            }
-            return resolvers;
-        });
+        private static final Lazy<Map<BytecodeInterceptorFilter, ClosureCallInterceptorResolver>> RESOLVERS =
+                Lazy.locking().of(() -> {
+                    Map<BytecodeInterceptorFilter, ClosureCallInterceptorResolver> resolvers =
+                            new EnumMap<>(BytecodeInterceptorFilter.class);
+                    for (BytecodeInterceptorFilter filter : BytecodeInterceptorFilter.values()) {
+                        resolvers.put(filter, new ClosureCallInterceptorResolver(filter));
+                    }
+                    return resolvers;
+                });
 
         private final BytecodeInterceptorFilter interceptorFilter;
 

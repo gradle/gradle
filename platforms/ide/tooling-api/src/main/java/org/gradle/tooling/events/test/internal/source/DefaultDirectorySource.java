@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.events.test.internal.source;
 
-import org.gradle.tooling.events.test.source.DirectorySource;
-
 import java.io.File;
+import org.gradle.tooling.events.test.source.DirectorySource;
 
 public class DefaultDirectorySource implements DirectorySource {
     private final File file;

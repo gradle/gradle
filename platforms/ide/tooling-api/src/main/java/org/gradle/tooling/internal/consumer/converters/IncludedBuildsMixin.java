@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
+import java.io.Serializable;
+import java.util.Collections;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-
-import java.io.Serializable;
-import java.util.Collections;
 
 public class IncludedBuildsMixin implements Serializable {
     private final GradleBuild gradleBuild;

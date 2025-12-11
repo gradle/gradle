@@ -63,9 +63,11 @@ public class IntQuestionPromptEvent extends PromptOutputEvent {
             if (result >= minValue) {
                 return PromptResult.response(result);
             }
-            return PromptResult.newPrompt("Please enter an integer value >= " + minValue + " (default: " + defaultValue + "): ");
+            return PromptResult.newPrompt(
+                    "Please enter an integer value >= " + minValue + " (default: " + defaultValue + "): ");
         } catch (NumberFormatException e) {
-            return PromptResult.newPrompt("Please enter an integer value (min: " + minValue + ", default: " + defaultValue + "): ");
+            return PromptResult.newPrompt(
+                    "Please enter an integer value (min: " + minValue + ", default: " + defaultValue + "): ");
         }
     }
 }

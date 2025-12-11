@@ -89,7 +89,8 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
 
     @Override
     protected ScalaJavaJointCompileSpec createSpec() {
-        ScalaCompileOptionsConfigurer.configure(getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles());
+        ScalaCompileOptionsConfigurer.configure(
+                getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles());
         ScalaJavaJointCompileSpec spec = super.createSpec();
         if (getScalaCompilerPlugins() != null) {
             spec.setScalaCompilerPlugins(ImmutableList.copyOf(getScalaCompilerPlugins()));
@@ -118,20 +119,27 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
     }
 
     @Override
-    protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
+    protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(
+            ScalaJavaJointCompileSpec spec) {
         assertScalaClasspathIsNonEmpty();
         if (compiler == null) {
             WorkerDaemonFactory workerDaemonFactory = getServices().get(WorkerDaemonFactory.class);
             JavaForkOptionsFactory forkOptionsFactory = getServices().get(JavaForkOptionsFactory.class);
             ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
             ClassLoaderRegistry classLoaderRegistry = getServices().get(ClassLoaderRegistry.class);
-            ActionExecutionSpecFactory actionExecutionSpecFactory = getServices().get(ActionExecutionSpecFactory.class);
+            ActionExecutionSpecFactory actionExecutionSpecFactory =
+                    getServices().get(ActionExecutionSpecFactory.class);
             ProjectCacheDir projectCacheDir = getServices().get(ProjectCacheDir.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
-                getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(),
-                new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, projectCacheDir), getScalaClasspath(),
-                getZincClasspath(), forkOptionsFactory, classPathRegistry, classLoaderRegistry,
-                getServices().get(ClasspathHasher.class));
+                    getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(),
+                    new ProcessIsolatedCompilerWorkerExecutor(
+                            workerDaemonFactory, actionExecutionSpecFactory, projectCacheDir),
+                    getScalaClasspath(),
+                    getZincClasspath(),
+                    forkOptionsFactory,
+                    classPathRegistry,
+                    classLoaderRegistry,
+                    getServices().get(ClasspathHasher.class));
             compiler = scalaCompilerFactory.newCompiler(spec);
         }
         return compiler;
@@ -139,8 +147,9 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
 
     protected void assertScalaClasspathIsNonEmpty() {
         if (getScalaClasspath().isEmpty()) {
-            throw new InvalidUserDataException("'" + getName() + ".scalaClasspath' must not be empty. If a Scala compile dependency is provided, "
-                    + "the 'scala-base' plugin will attempt to configure 'scalaClasspath' automatically. Alternatively, you may configure 'scalaClasspath' explicitly.");
+            throw new InvalidUserDataException(
+                    "'" + getName() + ".scalaClasspath' must not be empty. If a Scala compile dependency is provided, "
+                            + "the 'scala-base' plugin will attempt to configure 'scalaClasspath' automatically. Alternatively, you may configure 'scalaClasspath' explicitly.");
         }
     }
 }

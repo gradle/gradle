@@ -17,11 +17,10 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.annotation.Annotation;
 import java.util.Optional;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
+import org.jspecify.annotations.Nullable;
 
 public interface PropertyMetadata {
     String getPropertyName();

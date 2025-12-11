@@ -16,11 +16,7 @@
 
 package org.gradle.model.internal.asm;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
-
-import org.objectweb.asm.signature.SignatureVisitor;
-import org.objectweb.asm.signature.SignatureWriter;
+import static org.objectweb.asm.Type.getType;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
@@ -29,8 +25,10 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
-
-import static org.objectweb.asm.Type.getType;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+import org.objectweb.asm.signature.SignatureVisitor;
+import org.objectweb.asm.signature.SignatureWriter;
 
 public class AsmClassGeneratorUtils {
     private static final String OBJECT_INTERNAL_NAME = Object.class.getName().replace('.', '/');
@@ -65,16 +63,19 @@ public class AsmClassGeneratorUtils {
     private static void copyTypeVariables(SignatureWriter writer, TypeVariable<? extends Class<?>>[] typeParameters) {
         for (TypeVariable<? extends Class<?>> typeParameter : typeParameters) {
             writer.visitFormalTypeParameter(typeParameter.getName());
-            // For now, not copying the bounds as that is expensive and complex; and we probably don't need to be fully accurate here.
+            // For now, not copying the bounds as that is expensive and complex; and we probably don't need to be fully
+            // accurate here.
             // We must still specify _some_ bound due to what I believe to be a bug in the signature parser of the JVM.
-            // Specifically, it requires <T:Ljava/lang/Object;> instead of just <T:> which is legal according to https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-4.html#jvms-4.7.9.1
+            // Specifically, it requires <T:Ljava/lang/Object;> instead of just <T:> which is legal according to
+            // https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-4.html#jvms-4.7.9.1
             SignatureVisitor typeParameterBoundWriter = writer.visitClassBound();
             typeParameterBoundWriter.visitClassType(OBJECT_INTERNAL_NAME);
             typeParameterBoundWriter.visitEnd();
         }
     }
 
-    private static void addSuperTypeGenericInfo(Class<?> type, SignatureWriter writer, TypeVariable<? extends Class<?>>[] typeParameters) {
+    private static void addSuperTypeGenericInfo(
+            Class<?> type, SignatureWriter writer, TypeVariable<? extends Class<?>>[] typeParameters) {
         SignatureVisitor superVisitor;
         if (type.isInterface()) {
             // We must visit the superclass first
@@ -104,7 +105,8 @@ public class AsmClassGeneratorUtils {
         return builder.toString();
     }
 
-    private static void visitConstructorParameters(Type[] parameterTypes, boolean addNameParameter, StringBuilder builder) {
+    private static void visitConstructorParameters(
+            Type[] parameterTypes, boolean addNameParameter, StringBuilder builder) {
         builder.append('(');
         if (addNameParameter) {
             visitClass(String.class, builder);

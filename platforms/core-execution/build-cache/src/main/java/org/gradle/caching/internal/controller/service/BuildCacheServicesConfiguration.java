@@ -30,12 +30,11 @@ public final class BuildCacheServicesConfiguration {
     private final boolean remotePush;
 
     public BuildCacheServicesConfiguration(
-        String buildPath,
-        @Nullable LocalBuildCacheService local,
-        boolean localPush,
-        @Nullable BuildCacheService remote,
-        boolean remotePush
-    ) {
+            String buildPath,
+            @Nullable LocalBuildCacheService local,
+            boolean localPush,
+            @Nullable BuildCacheService remote,
+            boolean remotePush) {
         this.buildPath = buildPath;
         this.remote = remote;
         this.remotePush = remotePush;

@@ -52,6 +52,6 @@ public class AntUtil {
      * @return The masked String
      */
     public static String maskFilename(String string) {
-            return string.replaceAll("\\$", "\\$\\$");
+        return string.replaceAll("\\$", "\\$\\$");
     }
 }

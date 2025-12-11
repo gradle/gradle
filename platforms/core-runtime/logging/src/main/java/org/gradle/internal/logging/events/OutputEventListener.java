@@ -21,7 +21,6 @@ public interface OutputEventListener {
 
     OutputEventListener NO_OP = new OutputEventListener() {
         @Override
-        public void onOutput(OutputEvent event) {
-        }
+        public void onOutput(OutputEvent event) {}
     };
 }

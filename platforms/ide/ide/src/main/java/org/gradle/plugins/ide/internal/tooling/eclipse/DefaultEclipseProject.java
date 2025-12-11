@@ -16,14 +16,13 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import com.google.common.collect.Lists;
-import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
-import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 
 /**
  * An implementation for {@link org.gradle.tooling.model.eclipse.EclipseProject}.
@@ -48,7 +47,12 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
     private DefaultEclipseOutputLocation outputLocation;
     private boolean hasAutoBuildTasks;
 
-    public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends DefaultEclipseProject> children) {
+    public DefaultEclipseProject(
+            String name,
+            String path,
+            String description,
+            File projectDirectory,
+            Iterable<? extends DefaultEclipseProject> children) {
         this.name = name;
         this.path = path;
         this.description = description;

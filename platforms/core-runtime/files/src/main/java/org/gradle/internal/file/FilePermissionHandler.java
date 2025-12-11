@@ -16,5 +16,4 @@
 
 package org.gradle.internal.file;
 
-public interface FilePermissionHandler extends FileModeAccessor, FileModeMutator {
-}
+public interface FilePermissionHandler extends FileModeAccessor, FileModeMutator {}

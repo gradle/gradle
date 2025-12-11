@@ -21,5 +21,4 @@ public class SimulatedJavaException {
     public static RuntimeException simulateDeeperException() {
         return new RuntimeException("Simulated exception");
     }
-
 }

@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.io.Closeable;
 import org.gradle.cache.Cache;
 import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.Closeable;
 
 @ServiceScope(Scope.UserHome.class)
 public interface ImmutableTransformWorkspaceServices extends Closeable {

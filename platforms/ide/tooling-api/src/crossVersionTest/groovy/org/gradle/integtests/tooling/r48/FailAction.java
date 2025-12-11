@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.tooling.r48;
 
+import java.io.Serializable;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-
-import java.io.Serializable;
 
 public class FailAction implements BuildAction<String>, Serializable {
     @Override

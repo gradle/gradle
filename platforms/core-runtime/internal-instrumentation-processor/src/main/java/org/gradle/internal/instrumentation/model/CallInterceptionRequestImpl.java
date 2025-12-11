@@ -24,10 +24,7 @@ public class CallInterceptionRequestImpl implements CallInterceptionRequest {
     private final RequestExtrasContainer requestExtras;
 
     public CallInterceptionRequestImpl(
-        CallableInfo interceptedCallable,
-        ImplementationInfo implementationInfo,
-        List<RequestExtra> requestExtras
-    ) {
+            CallableInfo interceptedCallable, ImplementationInfo implementationInfo, List<RequestExtra> requestExtras) {
         this.interceptedCallable = interceptedCallable;
         this.implementationInfo = implementationInfo;
 

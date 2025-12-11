@@ -15,11 +15,10 @@
  */
 package org.gradle.tooling.internal.consumer.parameters;
 
-import org.gradle.internal.event.ListenerNotificationException;
-import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
-
 import java.util.Collections;
 import java.util.List;
+import org.gradle.internal.event.ListenerNotificationException;
+import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 
 public class FailsafeBuildProgressListenerAdapter implements InternalBuildProgressListener {
     private final InternalBuildProgressListener delegate;
@@ -49,7 +48,10 @@ public class FailsafeBuildProgressListenerAdapter implements InternalBuildProgre
 
     public void rethrowErrors() {
         if (listenerFailure != null) {
-            throw new ListenerNotificationException(null, "One or more progress listeners failed with an exception.", Collections.singletonList(listenerFailure));
+            throw new ListenerNotificationException(
+                    null,
+                    "One or more progress listeners failed with an exception.",
+                    Collections.singletonList(listenerFailure));
         }
     }
 }

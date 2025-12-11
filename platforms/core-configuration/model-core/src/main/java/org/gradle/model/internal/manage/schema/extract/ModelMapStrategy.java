@@ -16,18 +16,16 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.manage.schema.ModelMapSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
-
 public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
 
-    private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {
-    };
+    private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {};
 
     // TODO extract common stuff from this and ModelSet and reuse
 
@@ -41,13 +39,15 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
             }
 
             if (type.isHasWildcardTypeVariables()) {
-                extractionContext.add(String.format("type parameter of %s cannot be a wildcard.", ModelMap.class.getName()));
+                extractionContext.add(
+                        String.format("type parameter of %s cannot be a wildcard.", ModelMap.class.getName()));
                 return;
             }
 
             List<ModelType<?>> typeVariables = type.getTypeVariables();
             if (typeVariables.isEmpty()) {
-                extractionContext.add(String.format("type parameter of %s has to be specified.", ModelMap.class.getName()));
+                extractionContext.add(
+                        String.format("type parameter of %s has to be specified.", ModelMap.class.getName()));
                 return;
             }
 
@@ -56,7 +56,8 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
         }
     }
 
-    private <T, E> ModelSchema<T> getModelSchema(ModelSchemaExtractionContext<T> extractionContext, ModelType<E> elementType) {
+    private <T, E> ModelSchema<T> getModelSchema(
+            ModelSchemaExtractionContext<T> extractionContext, ModelType<E> elementType) {
         final ModelMapSchema<T, E> schema = new ModelMapSchema<T, E>(extractionContext.getType(), elementType);
         extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
             @Override

@@ -54,5 +54,4 @@ public interface UserClassFilePermissions {
      * must have 'execute' access to the 'bin' directory in order to execute the 'ls' or 'cd' commands.
      */
     boolean getExecute();
-
 }

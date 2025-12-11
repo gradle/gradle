@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.internal.UncheckedException;
+import static org.gradle.internal.UncheckedException.unchecked;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,8 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.gradle.internal.UncheckedException.unchecked;
+import org.gradle.internal.UncheckedException;
 
 public class TransformExecutionResultSerializer {
     private static final String INPUT_FILE_PATH_PREFIX = "i/";

@@ -16,6 +16,8 @@
 
 package org.gradle.problems.internal.emitters;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
@@ -26,9 +28,6 @@ import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 public class ConsoleProblemEmitter implements ProblemEmitter {
 
@@ -53,8 +52,9 @@ public class ConsoleProblemEmitter implements ProblemEmitter {
         }
 
         // For now, don't write deprecation and java compilation warnings
-        if (ProblemUtils.isInGroup(problem, GradleCoreProblemGroup.deprecation()) ||
-            ProblemUtils.isInGroup(problem, GradleCoreProblemGroup.compilation().java())) {
+        if (ProblemUtils.isInGroup(problem, GradleCoreProblemGroup.deprecation())
+                || ProblemUtils.isInGroup(
+                        problem, GradleCoreProblemGroup.compilation().java())) {
             return false;
         }
         return true;

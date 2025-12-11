@@ -16,18 +16,18 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import java.time.Duration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.time.Duration;
 
 public class JavaSystemPropertiesHttpTimeoutSettings implements HttpTimeoutSettings {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaSystemPropertiesHttpTimeoutSettings.class);
     public static final String CONNECTION_TIMEOUT_SYSTEM_PROPERTY = "org.gradle.internal.http.connectionTimeout";
     public static final String SOCKET_TIMEOUT_SYSTEM_PROPERTY = "org.gradle.internal.http.socketTimeout";
-    public static final String IDLE_CONNECTION_TIMEOUT_SYSTEM_PROPERTY = "org.gradle.internal.http.idleConnectionTimeout";
+    public static final String IDLE_CONNECTION_TIMEOUT_SYSTEM_PROPERTY =
+            "org.gradle.internal.http.idleConnectionTimeout";
     public static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
     public static final int DEFAULT_SOCKET_TIMEOUT = 30000;
     /**
@@ -35,7 +35,8 @@ public class JavaSystemPropertiesHttpTimeoutSettings implements HttpTimeoutSetti
      * <a href="https://azure.microsoft.com/en-us/blog/new-configurable-idle-timeout-for-azure-load-balancer/">Microsoft Azure closes idle connections after 4 min</a>,
      * so we set our default to be below that.
      */
-    public static final int DEFAULT_IDLE_CONNECTION_TIMEOUT = (int) Duration.ofMinutes(3).toMillis();
+    public static final int DEFAULT_IDLE_CONNECTION_TIMEOUT =
+            (int) Duration.ofMinutes(3).toMillis();
 
     private final int connectionTimeoutMs;
     private final int socketTimeoutMs;
@@ -44,7 +45,8 @@ public class JavaSystemPropertiesHttpTimeoutSettings implements HttpTimeoutSetti
     public JavaSystemPropertiesHttpTimeoutSettings() {
         this.connectionTimeoutMs = initTimeout(CONNECTION_TIMEOUT_SYSTEM_PROPERTY, DEFAULT_CONNECTION_TIMEOUT);
         this.socketTimeoutMs = initTimeout(SOCKET_TIMEOUT_SYSTEM_PROPERTY, DEFAULT_SOCKET_TIMEOUT);
-        this.idleConnectionTimeoutMs = initTimeout(IDLE_CONNECTION_TIMEOUT_SYSTEM_PROPERTY, DEFAULT_IDLE_CONNECTION_TIMEOUT);
+        this.idleConnectionTimeoutMs =
+                initTimeout(IDLE_CONNECTION_TIMEOUT_SYSTEM_PROPERTY, DEFAULT_IDLE_CONNECTION_TIMEOUT);
     }
 
     @Override
@@ -69,8 +71,11 @@ public class JavaSystemPropertiesHttpTimeoutSettings implements HttpTimeoutSetti
             try {
                 return Integer.parseInt(systemProperty);
             } catch (NumberFormatException e) {
-                LOGGER.warn("Invalid value for java system property '{}': {}. Default timeout '{}' will be used.",
-                    propertyName, systemProperty, defaultValue);
+                LOGGER.warn(
+                        "Invalid value for java system property '{}': {}. Default timeout '{}' will be used.",
+                        propertyName,
+                        systemProperty,
+                        defaultValue);
             }
         }
 

@@ -20,15 +20,14 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
-import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.annotations.FunctionAnnotationMetadata;
-import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
-import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
-import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
-
 import java.lang.annotation.Annotation;
 import java.util.Optional;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.annotations.FunctionAnnotationMetadata;
+import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
+import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 /**
  * Default implementation of {@link TypeAnnotationMetadata}.
@@ -39,7 +38,11 @@ public class DefaultTypeAnnotationMetadata implements TypeAnnotationMetadata {
     private final ImmutableSortedSet<FunctionAnnotationMetadata> methods;
     private final ReplayingTypeValidationContext validationProblems;
 
-    public DefaultTypeAnnotationMetadata(Iterable<? extends Annotation> annotations, Iterable<? extends PropertyAnnotationMetadata> properties, Iterable<? extends FunctionAnnotationMetadata> methods, ReplayingTypeValidationContext validationProblems) {
+    public DefaultTypeAnnotationMetadata(
+            Iterable<? extends Annotation> annotations,
+            Iterable<? extends PropertyAnnotationMetadata> properties,
+            Iterable<? extends FunctionAnnotationMetadata> methods,
+            ReplayingTypeValidationContext validationProblems) {
         this.annotations = ImmutableBiMap.copyOf(Maps.uniqueIndex(annotations, Annotation::annotationType));
         this.properties = ImmutableSortedSet.copyOf(properties);
         this.methods = ImmutableSortedSet.copyOf(methods);

@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collection;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Allows the user to be asked various questions, potentially interactively.

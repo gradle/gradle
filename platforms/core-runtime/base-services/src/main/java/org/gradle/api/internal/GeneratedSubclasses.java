@@ -20,8 +20,7 @@ import org.gradle.internal.UncheckedException;
 
 public class GeneratedSubclasses {
 
-    private GeneratedSubclasses() {
-    }
+    private GeneratedSubclasses() {}
 
     public static Class<?> unpack(Class<?> type) {
         if (isGeneratedType(type)) {

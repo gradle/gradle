@@ -19,5 +19,6 @@ import java.util.List;
 
 public interface Section {
     String getDescription();
+
     List<Section> getChildren();
 }

@@ -48,5 +48,4 @@ public interface ScalaPluginExtension {
      */
     @Incubating
     Property<String> getScalaVersion();
-
 }

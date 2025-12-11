@@ -24,5 +24,4 @@ import org.gradle.work.DisableCachingByDefault;
  */
 @Incubating
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
-public abstract class AbstractNativePCHCompileTask extends AbstractNativeCompileTask {
-}
+public abstract class AbstractNativePCHCompileTask extends AbstractNativeCompileTask {}

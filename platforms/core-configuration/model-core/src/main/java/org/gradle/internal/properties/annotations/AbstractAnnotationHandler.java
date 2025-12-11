@@ -17,7 +17,6 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
-
 import java.lang.annotation.Annotation;
 
 /**
@@ -27,7 +26,8 @@ public abstract class AbstractAnnotationHandler implements AnnotationHandler {
     protected final Class<? extends Annotation> annotationType;
     protected final ImmutableSet<Class<? extends Annotation>> allowedModifiers;
 
-    public AbstractAnnotationHandler(Class<? extends Annotation> annotationType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
+    public AbstractAnnotationHandler(
+            Class<? extends Annotation> annotationType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
         this.annotationType = annotationType;
         this.allowedModifiers = allowedModifiers;
     }

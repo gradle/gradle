@@ -15,21 +15,20 @@
  */
 package org.gradle.api.plugins.catalog.internal;
 
-import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-import org.gradle.api.internal.catalog.DefaultVersionCatalog;
-import org.gradle.api.internal.catalog.DependencyModel;
-import org.gradle.api.internal.catalog.PluginModel;
-import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.catalog.DefaultVersionCatalog;
+import org.gradle.api.internal.catalog.DependencyModel;
+import org.gradle.api.internal.catalog.PluginModel;
+import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser;
 
 class TomlWriter {
-    private final static Pattern SEPARATOR = Pattern.compile("[_.-]");
+    private static final Pattern SEPARATOR = Pattern.compile("[_.-]");
 
     private static String normalizeForToml(String alias) {
         return SEPARATOR.matcher(alias).replaceAll("-");
@@ -94,11 +93,11 @@ class TomlWriter {
             ImmutableVersionConstraint version = data.getVersion();
             StringBuilder sb = new StringBuilder();
             sb.append(normalizeForToml(alias))
-                .append(" = {")
-                .append(keyValuePair("group", group))
-                .append(", ")
-                .append(keyValuePair("name", name))
-                .append(", ");
+                    .append(" = {")
+                    .append(keyValuePair("group", group))
+                    .append(", ")
+                    .append(keyValuePair("name", name))
+                    .append(", ");
             if (versionRef != null) {
                 sb.append(keyValuePair("version.ref", normalizeForToml(versionRef)));
             } else {
@@ -118,10 +117,12 @@ class TomlWriter {
         writeTableHeader("bundles");
         for (String alias : aliases) {
             List<String> bundle = model.getBundle(alias).getComponents();
-            writeLn(normalizeForToml(alias) + " = [" + bundle.stream()
-                .map(TomlWriter::normalizeForToml)
-                .map(TomlWriter::quoted)
-                .collect(Collectors.joining(", ")) + "]");
+            writeLn(normalizeForToml(alias) + " = ["
+                    + bundle.stream()
+                            .map(TomlWriter::normalizeForToml)
+                            .map(TomlWriter::quoted)
+                            .collect(Collectors.joining(", "))
+                    + "]");
         }
         writeLn();
     }
@@ -139,9 +140,9 @@ class TomlWriter {
             ImmutableVersionConstraint version = data.getVersion();
             StringBuilder sb = new StringBuilder();
             sb.append(normalizeForToml(alias))
-                .append(" = {")
-                .append(keyValuePair("id", id))
-                .append(", ");
+                    .append(" = {")
+                    .append(keyValuePair("id", id))
+                    .append(", ");
             if (versionRef != null) {
                 sb.append(keyValuePair("version.ref", normalizeForToml(versionRef)));
             } else {
@@ -179,7 +180,8 @@ class TomlWriter {
             if (rejectedVersions.contains("+")) {
                 parts.add("rejectAll = true");
             } else {
-                parts.add("reject = [" + rejectedVersions.stream().map(TomlWriter::quoted).collect(Collectors.joining(", ")) + "]");
+                parts.add("reject = ["
+                        + rejectedVersions.stream().map(TomlWriter::quoted).collect(Collectors.joining(", ")) + "]");
             }
         }
         sb.append(String.join(", ", parts)).append(" }");

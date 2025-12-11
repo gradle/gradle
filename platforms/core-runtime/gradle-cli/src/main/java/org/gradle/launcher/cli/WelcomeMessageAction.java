@@ -18,6 +18,10 @@ package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
@@ -32,13 +36,9 @@ import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-
 public class WelcomeMessageAction implements Action<ExecutionListener> {
-    public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "org.gradle.internal.launcher.welcomeMessageEnabled";
+    public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY =
+            "org.gradle.internal.launcher.welcomeMessageEnabled";
 
     private final Logger logger;
     private final BuildLayoutResult buildLayout;
@@ -47,18 +47,33 @@ public class WelcomeMessageAction implements Action<ExecutionListener> {
     private final WelcomeMessageConfiguration welcomeMessageConfiguration;
     private final Action<ExecutionListener> action;
 
-    WelcomeMessageAction(BuildLayoutResult buildLayout, WelcomeMessageConfiguration welcomeMessageConfiguration, Action<ExecutionListener> action) {
-        this(Logging.getLogger(WelcomeMessageAction.class), buildLayout, welcomeMessageConfiguration, GradleVersion.current(), new Function<String, InputStream>() {
-            @Nullable
-            @Override
-            public InputStream apply(@Nullable String input) {
-                return getClass().getClassLoader().getResourceAsStream(input);
-            }
-        }, action);
+    WelcomeMessageAction(
+            BuildLayoutResult buildLayout,
+            WelcomeMessageConfiguration welcomeMessageConfiguration,
+            Action<ExecutionListener> action) {
+        this(
+                Logging.getLogger(WelcomeMessageAction.class),
+                buildLayout,
+                welcomeMessageConfiguration,
+                GradleVersion.current(),
+                new Function<String, InputStream>() {
+                    @Nullable
+                    @Override
+                    public InputStream apply(@Nullable String input) {
+                        return getClass().getClassLoader().getResourceAsStream(input);
+                    }
+                },
+                action);
     }
 
     @VisibleForTesting
-    WelcomeMessageAction(Logger logger, BuildLayoutResult buildLayout, WelcomeMessageConfiguration welcomeMessageConfiguration, GradleVersion gradleVersion, Function<String, InputStream> inputStreamProvider, Action<ExecutionListener> action) {
+    WelcomeMessageAction(
+            Logger logger,
+            BuildLayoutResult buildLayout,
+            WelcomeMessageConfiguration welcomeMessageConfiguration,
+            GradleVersion gradleVersion,
+            Function<String, InputStream> inputStreamProvider,
+            Action<ExecutionListener> action) {
         this.logger = logger;
         this.buildLayout = buildLayout;
         this.gradleVersion = gradleVersion;
@@ -86,7 +101,8 @@ public class WelcomeMessageAction implements Action<ExecutionListener> {
 
                 if (!gradleVersion.isSnapshot()) {
                     logger.lifecycle("");
-                    logger.lifecycle("For more details see https://docs.gradle.org/" + gradleVersion.getVersion() + "/release-notes.html");
+                    logger.lifecycle("For more details see https://docs.gradle.org/" + gradleVersion.getVersion()
+                            + "/release-notes.html");
                 }
 
                 logger.lifecycle("");

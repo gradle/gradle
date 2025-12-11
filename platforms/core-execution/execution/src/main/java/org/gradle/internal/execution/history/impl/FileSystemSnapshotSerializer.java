@@ -17,6 +17,13 @@
 package org.gradle.internal.execution.history.impl;
 
 import com.google.common.collect.Interner;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.List;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
@@ -33,14 +40,6 @@ import org.gradle.internal.snapshot.PathUtil;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.List;
 
 public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapshot> {
     private enum EntryType {
@@ -92,7 +91,11 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
                     HashCode contentHash = readHashCode(decoder);
                     long lastModified = decoder.readSmallLong();
                     long length = decoder.readSmallLong();
-                    stack.add(new RegularFileSnapshot(internedAbsolutePath, internedName, contentHash, DefaultFileMetadata.file(lastModified, length, accessType)));
+                    stack.add(new RegularFileSnapshot(
+                            internedAbsolutePath,
+                            internedName,
+                            contentHash,
+                            DefaultFileMetadata.file(lastModified, length, accessType)));
                     break;
                 case MISSING:
                     stack.add(new MissingFileSnapshot(internedAbsolutePath, internedName, accessType));
@@ -100,7 +103,8 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
                 case DIR_CLOSE:
                     HashCode merkleHash = readHashCode(decoder);
                     List<FileSystemLocationSnapshot> children = stack.pop();
-                    stack.add(new DirectorySnapshot(internedAbsolutePath, internedName, accessType, merkleHash, children));
+                    stack.add(new DirectorySnapshot(
+                            internedAbsolutePath, internedName, accessType, merkleHash, children));
                     break;
                 default:
                     throw new AssertionError();
@@ -168,7 +172,8 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
         encoder.writeByte((byte) EntryType.END.ordinal());
     }
 
-    private static void writePath(Encoder encoder, boolean isRoot, FileSystemLocationSnapshot snapshot) throws IOException {
+    private static void writePath(Encoder encoder, boolean isRoot, FileSystemLocationSnapshot snapshot)
+            throws IOException {
         encoder.writeString(isRoot ? snapshot.getAbsolutePath() : snapshot.getName());
     }
 
@@ -221,9 +226,9 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
     }
 
     private static String toAbsolutePath(Collection<String> parents, String fileName) {
-        int length = fileName.length() + parents.size()  + parents.stream()
-            .mapToInt(String::length)
-            .sum();
+        int length = fileName.length()
+                + parents.size()
+                + parents.stream().mapToInt(String::length).sum();
         StringBuilder buffer = new StringBuilder(length);
         for (String parent : parents) {
             buffer.append(parent);

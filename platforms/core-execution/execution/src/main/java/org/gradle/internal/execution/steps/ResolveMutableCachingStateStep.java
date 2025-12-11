@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Optional;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -27,42 +28,40 @@ import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.hash.HashCode;
 
-import java.util.Optional;
-
-public class ResolveMutableCachingStateStep<C extends MutableChangesContext> extends AbstractResolveCachingStateStep<C> {
+public class ResolveMutableCachingStateStep<C extends MutableChangesContext>
+        extends AbstractResolveCachingStateStep<C> {
     private final Step<? super MutableCachingContext, ? extends UpToDateResult> delegate;
 
     public ResolveMutableCachingStateStep(
-        BuildCacheController buildCache,
-        boolean emitDebugLogging,
-        Step<? super MutableCachingContext, ? extends UpToDateResult> delegate
-    ) {
+            BuildCacheController buildCache,
+            boolean emitDebugLogging,
+            Step<? super MutableCachingContext, ? extends UpToDateResult> delegate) {
         super(buildCache, emitDebugLogging);
         this.delegate = delegate;
     }
 
     @Override
-    protected HashCode calculateCacheKey(C context, BeforeExecutionState beforeExecutionState, CachingStateFactory cachingStateFactory) {
+    protected HashCode calculateCacheKey(
+            C context, BeforeExecutionState beforeExecutionState, CachingStateFactory cachingStateFactory) {
         return getPreviousCacheKeyIfApplicable(context)
-            .orElseGet(() -> super.calculateCacheKey(context, beforeExecutionState, cachingStateFactory));
+                .orElseGet(() -> super.calculateCacheKey(context, beforeExecutionState, cachingStateFactory));
     }
 
     /**
      * Return cache key from previous build if there are no changes.
      */
     private static Optional<HashCode> getPreviousCacheKeyIfApplicable(MutableChangesContext context) {
-        return context.getChanges()
-            .flatMap(changes -> context.getPreviousExecutionState()
+        return context.getChanges().flatMap(changes -> context.getPreviousExecutionState()
                 .filter(__ -> changes.getChangeDescriptions().isEmpty())
                 .map(PreviousExecutionState::getCacheKey));
     }
 
     @Override
-    protected void checkIfWorkIsCacheable(UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder) {
-        OverlappingOutputs detectedOverlappingOutputs = context.getDetectedOverlappingOutputs()
-            .orElse(null);
-        work.shouldDisableCaching(detectedOverlappingOutputs)
-            .ifPresent(cachingDisabledReasonsBuilder::add);
+    protected void checkIfWorkIsCacheable(
+            UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder) {
+        OverlappingOutputs detectedOverlappingOutputs =
+                context.getDetectedOverlappingOutputs().orElse(null);
+        work.shouldDisableCaching(detectedOverlappingOutputs).ifPresent(cachingDisabledReasonsBuilder::add);
     }
 
     @Override

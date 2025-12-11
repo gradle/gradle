@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 import org.gradle.operations.dependencies.variants.Capability;
 import org.gradle.operations.dependencies.variants.ComponentIdentifier;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 public class DefaultPlannedTransformStepIdentity implements PlannedTransformStepIdentity {
 
@@ -39,17 +38,15 @@ public class DefaultPlannedTransformStepIdentity implements PlannedTransformStep
     private final long transformStepNodeId;
 
     public DefaultPlannedTransformStepIdentity(
-        String consumerBuildPath,
-        String consumerProjectPath,
-        ComponentIdentifier componentId,
-        Map<String, String> sourceAttributes,
-        Map<String, String> targetAttributes,
-        List<Capability> capabilities,
-        String artifactName,
-        @Nullable
-        ConfigurationIdentity dependenciesConfigurationIdentity,
-        long transformStepNodeId
-    ) {
+            String consumerBuildPath,
+            String consumerProjectPath,
+            ComponentIdentifier componentId,
+            Map<String, String> sourceAttributes,
+            Map<String, String> targetAttributes,
+            List<Capability> capabilities,
+            String artifactName,
+            @Nullable ConfigurationIdentity dependenciesConfigurationIdentity,
+            long transformStepNodeId) {
         this.consumerBuildPath = consumerBuildPath;
         this.consumerProjectPath = consumerProjectPath;
         this.componentId = componentId;

@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
+import java.net.URI;
+import java.util.Set;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 import org.jspecify.annotations.Nullable;
-
-import java.net.URI;
-import java.util.Set;
 
 /**
  * Represents the directory structure for a repository.

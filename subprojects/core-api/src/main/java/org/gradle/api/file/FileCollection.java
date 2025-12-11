@@ -16,14 +16,13 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
+import java.io.File;
+import java.util.Set;
 import org.gradle.api.Buildable;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.internal.HasInternalProtocol;
-
-import java.io.File;
-import java.util.Set;
 
 /**
  * <p>A {@code FileCollection} represents a collection of file system locations which you can query in certain ways. A file collection
@@ -151,7 +150,9 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      * Ant types which a {@code FileCollection} can be mapped to.
      */
     enum AntType {
-        MatchingTask, FileSet, ResourceCollection
+        MatchingTask,
+        FileSet,
+        ResourceCollection
     }
 
     /**

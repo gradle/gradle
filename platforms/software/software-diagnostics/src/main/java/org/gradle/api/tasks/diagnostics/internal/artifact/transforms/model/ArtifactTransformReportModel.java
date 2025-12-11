@@ -50,8 +50,8 @@ public final class ArtifactTransformReportModel {
      */
     public ArtifactTransformReportModel filterTransformsByType(String typeName) {
         List<ReportArtifactTransform> matchingTransforms = transforms.stream()
-            .filter(t -> t.getTransformClass().getSimpleName().contains(typeName))
-            .collect(Collectors.toList());
+                .filter(t -> t.getTransformClass().getSimpleName().contains(typeName))
+                .collect(Collectors.toList());
         return new ArtifactTransformReportModel(projectDisplayName, matchingTransforms);
     }
 }

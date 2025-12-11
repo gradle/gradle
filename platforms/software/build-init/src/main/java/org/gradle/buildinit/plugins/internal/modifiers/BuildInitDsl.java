@@ -16,16 +16,14 @@
 package org.gradle.buildinit.plugins.internal.modifiers;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.Locale;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-import java.util.Locale;
-
 public enum BuildInitDsl implements WithIdentifier {
-
     KOTLIN(".gradle.kts"),
     GROOVY(".gradle");
 

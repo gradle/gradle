@@ -16,14 +16,13 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.Describable;
-import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
-
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 import java.util.Collection;
 import java.util.function.Consumer;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.gradle.api.Describable;
+import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 
 /**
  * Represents a mutable graph of dependent work items.

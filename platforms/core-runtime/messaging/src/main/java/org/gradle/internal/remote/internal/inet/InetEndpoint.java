@@ -16,10 +16,9 @@
 
 package org.gradle.internal.remote.internal.inet;
 
-import org.gradle.internal.remote.Address;
-
 import java.net.InetAddress;
 import java.util.List;
+import org.gradle.internal.remote.Address;
 
 /**
  * A Inet-based route. Has a port and a set of potential inet addresses.

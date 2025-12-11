@@ -16,11 +16,10 @@
 
 package org.gradle.ide.xcode.tasks.internal;
 
-import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
 public class XcodeWorkspaceFile extends XmlPersistableConfigurationObject {
     public XcodeWorkspaceFile(XmlTransformer transformer) {
@@ -37,5 +36,4 @@ public class XcodeWorkspaceFile extends XmlPersistableConfigurationObject {
         attributes.put("location", "absolute:" + location);
         getXml().appendNode("FileRef", attributes);
     }
-
 }

@@ -16,10 +16,9 @@
 
 package org.gradle.internal.classpath;
 
+import java.util.Stack;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Stack;
 
 @NullMarked
 public class DefaultInstrumentedGroovyCallsTracker implements InstrumentedGroovyCallsTracker {
@@ -97,9 +96,10 @@ public class DefaultInstrumentedGroovyCallsTracker implements InstrumentedGroovy
         EntryPointCallSiteImpl entryPointImpl = (EntryPointCallSiteImpl) entryPoint;
         EntryPointCallSiteImpl top = callSiteStack.peek();
         throw new IllegalStateException(
-            "Illegal state of the instrumented Groovy call tracker. " +
-                "Expected the call to " + entryPointImpl.getCallableName() + " from " + entryPointImpl.getCallerClassName() + " on top, " +
-                "got a call to " + top.getCallableName() + " from " + top.getCallerClassName());
+                "Illegal state of the instrumented Groovy call tracker. " + "Expected the call to "
+                        + entryPointImpl.getCallableName() + " from " + entryPointImpl.getCallerClassName()
+                        + " on top, " + "got a call to "
+                        + top.getCallableName() + " from " + top.getCallerClassName());
     }
 
     @Nullable
@@ -126,10 +126,11 @@ public class DefaultInstrumentedGroovyCallsTracker implements InstrumentedGroovy
     public void markCurrentCallAsIntercepted(String callableName, CallKind kind) {
         String result = findCallerForCurrentCallIfNotIntercepted(callableName, kind);
         if (result == null) {
-            throw new IllegalStateException(
-                "Failed to match the current call: tried to intercept " + callableName + ", but " +
-                    (callSiteStack.empty() ? "there is no current call" : "the current call is " + callSiteStack.peek().getCallableName())
-            );
+            throw new IllegalStateException("Failed to match the current call: tried to intercept " + callableName
+                    + ", but "
+                    + (callSiteStack.empty()
+                            ? "there is no current call"
+                            : "the current call is " + callSiteStack.peek().getCallableName()));
         }
         callSiteStack.peek().markedAsMatchedAtDispatchSite();
     }

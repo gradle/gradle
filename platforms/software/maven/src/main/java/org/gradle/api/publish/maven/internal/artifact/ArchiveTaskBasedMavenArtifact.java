@@ -17,11 +17,10 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-
 import java.io.File;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
 public class ArchiveTaskBasedMavenArtifact extends AbstractMavenArtifact {
     private final AbstractArchiveTask archiveTask;

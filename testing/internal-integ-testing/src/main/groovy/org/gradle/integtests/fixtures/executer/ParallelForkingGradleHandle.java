@@ -16,18 +16,23 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import static java.lang.String.format;
+
+import java.io.PipedOutputStream;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.BaseExecHandleBuilder;
 import org.gradle.util.internal.IncubationLogger;
 
-import java.io.PipedOutputStream;
-
-import static java.lang.String.format;
-
 public class ParallelForkingGradleHandle extends ForkingGradleHandle {
 
-    public ParallelForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<BaseExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
+    public ParallelForkingGradleHandle(
+            PipedOutputStream stdinPipe,
+            boolean isDaemon,
+            Action<ExecutionResult> resultAssertion,
+            String outputEncoding,
+            Factory<BaseExecHandleBuilder> execHandleFactory,
+            DurationMeasurement durationMeasurement) {
         super(stdinPipe, isDaemon, resultAssertion, outputEncoding, execHandleFactory, durationMeasurement);
     }
 
@@ -57,7 +62,8 @@ public class ParallelForkingGradleHandle extends ForkingGradleHandle {
         }
 
         @Override
-        public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
+        public ExecutionResult assertOutputEquals(
+                String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
             // We always ignore line order for matching out of parallel builds
             super.assertOutputEquals(expectedOutput, ignoreExtraLines, true);
             return this;

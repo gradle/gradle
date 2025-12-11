@@ -25,7 +25,7 @@ import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class HelpBuilder implements ToolingModelBuilder {
-    public HelpBuilder() { }
+    public HelpBuilder() {}
 
     @Override
     public boolean canBuild(String modelName) {
@@ -34,8 +34,6 @@ public class HelpBuilder implements ToolingModelBuilder {
 
     @Override
     public Object buildAll(String modelName, Project project) {
-        return new DefaultHelp(
-            HelpRenderer.render(null, true)
-        );
+        return new DefaultHelp(HelpRenderer.render(null, true));
     }
 }

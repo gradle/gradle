@@ -17,7 +17,6 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
-
 import java.util.List;
 import java.util.Set;
 
@@ -43,5 +42,4 @@ public interface VariantArtifactResolveState {
      * For example, zipped and unzipped versions of the same content.
      */
     Set<? extends VariantResolveMetadata> getArtifactVariants();
-
 }

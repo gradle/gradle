@@ -18,6 +18,9 @@ package org.gradle.api.tasks.util;
 
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
@@ -32,17 +35,14 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 /**
  * Standalone implementation of {@link PatternFilterable}.
  */
 @NotToBeMigratedToLazy
 public class PatternSet implements AntBuilderAware, PatternFilterable {
 
-    private static final NotationParser<Object, String> PARSER = NotationParserBuilder.toType(String.class).fromCharSequence().toComposite();
+    private static final NotationParser<Object, String> PARSER =
+            NotationParserBuilder.toType(String.class).fromCharSequence().toComposite();
     private final PatternSpecFactory patternSpecFactory;
 
     private Set<String> includes;
@@ -161,9 +161,9 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
      */
     public boolean isEmpty() {
         return (includes == null || includes.isEmpty())
-            && (excludes == null || excludes.isEmpty())
-            && (includeSpecs == null || includeSpecs.isEmpty())
-            && (excludeSpecs == null || excludeSpecs.isEmpty());
+                && (excludes == null || excludes.isEmpty())
+                && (includeSpecs == null || includeSpecs.isEmpty())
+                && (excludeSpecs == null || excludeSpecs.isEmpty());
     }
 
     public Spec<FileTreeElement> getAsSpec() {
@@ -292,7 +292,6 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return exclude(excludes);
     }
 
-
     public boolean isCaseSensitive() {
         return caseSensitive;
     }
@@ -350,9 +349,11 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     public Object addToAntBuilder(Object node, String childNodeName) {
 
         if (!nullToEmpty(includeSpecs).isEmpty() || !nullToEmpty(excludeSpecs).isEmpty()) {
-            throw new UnsupportedOperationException("Cannot add include/exclude specs to Ant node. Only include/exclude patterns are currently supported.");
+            throw new UnsupportedOperationException(
+                    "Cannot add include/exclude specs to Ant node. Only include/exclude patterns are currently supported.");
         }
 
-        return new PatternSetAntBuilderDelegate(getIncludesView(), getExcludesView(), isCaseSensitive()).addToAntBuilder(node, childNodeName);
+        return new PatternSetAntBuilderDelegate(getIncludesView(), getExcludesView(), isCaseSensitive())
+                .addToAntBuilder(node, childNodeName);
     }
 }

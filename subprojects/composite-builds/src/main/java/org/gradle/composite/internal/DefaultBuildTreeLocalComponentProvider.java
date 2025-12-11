@@ -16,6 +16,9 @@
 
 package org.gradle.composite.internal;
 
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
@@ -44,10 +47,6 @@ import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.util.Path;
 
-import javax.inject.Inject;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Default implementation of {@link BuildTreeLocalComponentProvider}.
  */
@@ -72,14 +71,13 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
 
     @Inject
     public DefaultBuildTreeLocalComponentProvider(
-        InMemoryCacheFactory cacheFactory,
-        LocalComponentCache localComponentCache,
-        ProjectStateRegistry projectStateRegistry,
-        BuildStateRegistry buildStateRegistry,
-        ImmutableAttributesSchemaFactory attributesSchemaFactory,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        LocalComponentGraphResolveStateFactory resolveStateFactory
-    ) {
+            InMemoryCacheFactory cacheFactory,
+            LocalComponentCache localComponentCache,
+            ProjectStateRegistry projectStateRegistry,
+            BuildStateRegistry buildStateRegistry,
+            ImmutableAttributesSchemaFactory attributesSchemaFactory,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            LocalComponentGraphResolveStateFactory resolveStateFactory) {
         this.localComponentCache = localComponentCache;
         this.projectStateRegistry = projectStateRegistry;
         this.buildStateRegistry = buildStateRegistry;
@@ -87,7 +85,8 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.resolveStateFactory = resolveStateFactory;
 
-        this.components = cacheFactory.createCalculatedValueCache(Describables.of("project components"), this::loadOrCreateLocalComponentState);
+        this.components = cacheFactory.createCalculatedValueCache(
+                Describables.of("project components"), this::loadOrCreateLocalComponentState);
     }
 
     @Override
@@ -111,18 +110,17 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
 
     private LocalComponentGraphResolveState createLocalComponentState(ProjectInternal project) {
         ProjectState projectState = project.getOwner();
-        Module module = project.getServices().get(DependencyMetaDataProvider.class).getModule();
-        ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
+        Module module =
+                project.getServices().get(DependencyMetaDataProvider.class).getModule();
+        ModuleVersionIdentifier moduleVersionIdentifier =
+                moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ProjectComponentIdentifier componentIdentifier = projectState.getComponentIdentifier();
-        AttributesSchemaInternal mutableSchema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
+        AttributesSchemaInternal mutableSchema =
+                (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
         ImmutableAttributesSchema schema = attributesSchemaFactory.create(mutableSchema);
 
         LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
-            moduleVersionIdentifier,
-            componentIdentifier,
-            module.getStatus(),
-            schema
-        );
+                moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema);
 
         ConfigurationsProvider configurations = (DefaultConfigurationContainer) project.getConfigurations();
         return resolveStateFactory.stateFor(projectState, metadata, configurations);
@@ -150,5 +148,4 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
             configuredBuilds.add(targetBuild);
         }
     }
-
 }

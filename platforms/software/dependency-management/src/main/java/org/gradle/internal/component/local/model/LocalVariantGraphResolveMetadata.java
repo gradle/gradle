@@ -29,5 +29,4 @@ public interface LocalVariantGraphResolveMetadata extends VariantGraphResolveMet
      */
     @Nullable
     String getConfigurationName();
-
 }

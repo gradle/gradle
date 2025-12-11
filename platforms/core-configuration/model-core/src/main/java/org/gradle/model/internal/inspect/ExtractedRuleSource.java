@@ -16,11 +16,10 @@
 
 package org.gradle.model.internal.inspect;
 
+import java.util.List;
 import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.registry.ModelRegistry;
-
-import java.util.List;
 
 public interface ExtractedRuleSource<T> {
     /**

@@ -17,15 +17,14 @@
 package org.gradle.internal.jvm.inspection;
 
 import com.google.common.collect.Sets;
+import java.util.Objects;
+import java.util.Set;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Objects;
-import java.util.Set;
 
 /**
  * A BuildSession-scoped service that reports JVM installation problems.
@@ -40,7 +39,8 @@ import java.util.Set;
 public final class JvmInstallationProblemReporter {
     @NullMarked
     private static final class ProblemReport {
-        // Include auto-detection as it affects visibility of the problem. We do want to report twice if a location was auto-detected and then explicitly configured.
+        // Include auto-detection as it affects visibility of the problem. We do want to report twice if a location was
+        // auto-detected and then explicitly configured.
         private final boolean autoDetected;
         private final String problem;
 
@@ -79,8 +79,10 @@ public final class JvmInstallationProblemReporter {
         if (!reportedProblems.add(key)) {
             return;
         }
-        // If a user has explicitly configured a java installation, we should always log problems with it visibly, because they have bad configuration they can change.
-        // But if we are just locating it automatically, we should log problems less visibly, because the user may be unable to fix the problem.
+        // If a user has explicitly configured a java installation, we should always log problems with it visibly,
+        // because they have bad configuration they can change.
+        // But if we are just locating it automatically, we should log problems less visibly, because the user may be
+        // unable to fix the problem.
         targetLogger.log(key.autoDetected ? LogLevel.INFO : LogLevel.WARN, message);
     }
 }

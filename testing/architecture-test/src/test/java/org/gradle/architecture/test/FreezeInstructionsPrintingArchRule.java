@@ -48,7 +48,9 @@ public class FreezeInstructionsPrintingArchRule implements ArchRule {
             return delegate.evaluate(classes);
         } catch (RuntimeException e) {
             if (e.getMessage() != null && e.getMessage().contains("freeze.store")) {
-                throw new RuntimeException("ArchUnit violations changed, please refreeze and check the differences by running ./gradlew architecture-test:test -ParchunitRefreeze", e);
+                throw new RuntimeException(
+                        "ArchUnit violations changed, please refreeze and check the differences by running ./gradlew architecture-test:test -ParchunitRefreeze",
+                        e);
             } else {
                 throw e;
             }

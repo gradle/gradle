@@ -16,6 +16,13 @@
 
 package org.gradle.api.internal.provider;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
+import static org.gradle.api.internal.provider.Providers.changing;
+import static org.gradle.api.internal.provider.Providers.memoizing;
+
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 import org.gradle.api.Action;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.FileContents;
@@ -45,21 +52,15 @@ import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.function.BiFunction;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
-import static org.gradle.api.internal.provider.Providers.changing;
-import static org.gradle.api.internal.provider.Providers.memoizing;
-
 public class DefaultProviderFactory implements ProviderFactory {
     @Nullable
     private final ValueSourceProviderFactory valueSourceProviderFactory;
+
     @Nullable
     private final ProcessOutputProviderFactory processOutputProviderFactory;
 
     private final CredentialsProviderFactory credentialsProviderFactory;
+
     @Nullable
     private final GradleProperties gradleProperties;
 
@@ -68,12 +69,11 @@ public class DefaultProviderFactory implements ProviderFactory {
     }
 
     public DefaultProviderFactory(
-        @Nullable ValueSourceProviderFactory valueSourceProviderFactory,
-        @Nullable ProcessOutputProviderFactory processOutputProviderFactory,
-        @Nullable ListenerManager listenerManager,
-        @Nullable ObjectFactory objectFactory,
-        @Nullable GradleProperties gradleProperties
-    ) {
+            @Nullable ValueSourceProviderFactory valueSourceProviderFactory,
+            @Nullable ProcessOutputProviderFactory processOutputProviderFactory,
+            @Nullable ListenerManager listenerManager,
+            @Nullable ObjectFactory objectFactory,
+            @Nullable GradleProperties gradleProperties) {
         this.valueSourceProviderFactory = valueSourceProviderFactory;
         this.processOutputProviderFactory = processOutputProviderFactory;
         this.credentialsProviderFactory = new CredentialsProviderFactory(this, objectFactory);
@@ -99,9 +99,8 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<String> environmentVariable(Provider<String> variableName) {
         return of(
-            EnvironmentVariableValueSource.class,
-            spec -> spec.getParameters().getVariableName().set(variableName)
-        );
+                EnvironmentVariableValueSource.class,
+                spec -> spec.getParameters().getVariableName().set(variableName));
     }
 
     @Override
@@ -112,9 +111,8 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<Map<String, String>> environmentVariablesPrefixedBy(Provider<String> variableNamePrefix) {
         return of(
-            EnvironmentVariablesPrefixedByValueSource.class,
-            spec -> spec.getParameters().getPrefix().set(variableNamePrefix)
-        );
+                EnvironmentVariablesPrefixedByValueSource.class,
+                spec -> spec.getParameters().getPrefix().set(variableNamePrefix));
     }
 
     @Override
@@ -125,9 +123,8 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<String> systemProperty(Provider<String> propertyName) {
         return of(
-            SystemPropertyValueSource.class,
-            spec -> spec.getParameters().getPropertyName().set(propertyName)
-        );
+                SystemPropertyValueSource.class,
+                spec -> spec.getParameters().getPropertyName().set(propertyName));
     }
 
     @Override
@@ -138,32 +135,28 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<Map<String, String>> systemPropertiesPrefixedBy(Provider<String> variableNamePrefix) {
         return of(
-            SystemPropertiesPrefixedByValueSource.class,
-            spec -> spec.getParameters().getPrefix().set(variableNamePrefix)
-        );
+                SystemPropertiesPrefixedByValueSource.class,
+                spec -> spec.getParameters().getPrefix().set(variableNamePrefix));
     }
 
     @Override
     public Provider<String> gradleProperty(String propertyName) {
         GradleProperties gradleProperties = getGradleProperties();
         return memoizing(
-            changing(() -> gradleProperties.find(propertyName)),
-            () -> Describables.quoted("Gradle property", propertyName)
-        );
+                changing(() -> gradleProperties.find(propertyName)),
+                () -> Describables.quoted("Gradle property", propertyName));
     }
 
     @Override
     public Provider<String> gradleProperty(Provider<String> propertyName) {
         GradleProperties gradleProperties = getGradleProperties();
         return memoizing(
-            new BiProvider<>(
-                String.class,
-                changing(() -> gradleProperties),
-                propertyName,
-                bifunction(GradleProperties::find)
-            ),
-            () -> Describables.quoted("Gradle property", propertyName)
-        );
+                new BiProvider<>(
+                        String.class,
+                        changing(() -> gradleProperties),
+                        propertyName,
+                        bifunction(GradleProperties::find)),
+                () -> Describables.quoted("Gradle property", propertyName));
     }
 
     @Override
@@ -175,14 +168,11 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> propertyNamePrefix) {
         GradleProperties gradleProperties = getGradleProperties();
-        return memoizing(
-            new BiProvider<>(
+        return memoizing(new BiProvider<>(
                 new TypeOf<Map<String, String>>() {}.getConcreteClass(),
                 changing(() -> gradleProperties),
                 propertyNamePrefix,
-                bifunction(GradleProperties::getPropertiesWithPrefix)
-            )
-        );
+                bifunction(GradleProperties::getPropertiesWithPrefix)));
     }
 
     private GradleProperties getGradleProperties() {
@@ -208,17 +198,15 @@ public class DefaultProviderFactory implements ProviderFactory {
             @Override
             public Provider<String> getAsText() {
                 return of(
-                    FileTextValueSource.class,
-                    spec -> setFileProperty.execute(spec.getParameters().getFile())
-                );
+                        FileTextValueSource.class,
+                        spec -> setFileProperty.execute(spec.getParameters().getFile()));
             }
 
             @Override
             public Provider<byte[]> getAsBytes() {
                 return of(
-                    FileBytesValueSource.class,
-                    spec -> setFileProperty.execute(spec.getParameters().getFile())
-                );
+                        FileBytesValueSource.class,
+                        spec -> setFileProperty.execute(spec.getParameters().getFile()));
             }
         };
     }
@@ -228,7 +216,9 @@ public class DefaultProviderFactory implements ProviderFactory {
         if (processOutputProviderFactory == null) {
             throw new UnsupportedOperationException();
         }
-        return new DefaultExecOutput(of(ProcessOutputValueSource.class, spec -> processOutputProviderFactory.configureParametersForExec(spec.getParameters(), action)));
+        return new DefaultExecOutput(of(
+                ProcessOutputValueSource.class,
+                spec -> processOutputProviderFactory.configureParametersForExec(spec.getParameters(), action)));
     }
 
     @Override
@@ -236,11 +226,14 @@ public class DefaultProviderFactory implements ProviderFactory {
         if (processOutputProviderFactory == null) {
             throw new UnsupportedOperationException();
         }
-        return new DefaultExecOutput(of(ProcessOutputValueSource.class, spec -> processOutputProviderFactory.configureParametersForJavaExec(spec.getParameters(), action)));
+        return new DefaultExecOutput(of(
+                ProcessOutputValueSource.class,
+                spec -> processOutputProviderFactory.configureParametersForJavaExec(spec.getParameters(), action)));
     }
 
     @Override
-    public <T, P extends ValueSourceParameters> Provider<T> of(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configuration) {
+    public <T, P extends ValueSourceParameters> Provider<T> of(
+            Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configuration) {
         if (valueSourceProviderFactory == null) {
             throw new UnsupportedOperationException();
         }
@@ -258,8 +251,8 @@ public class DefaultProviderFactory implements ProviderFactory {
     }
 
     @Override
-    public <A, B, R> Provider<R> zip(Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends R> combiner) {
+    public <A, B, R> Provider<R> zip(
+            Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends R> combiner) {
         return left.zip(right, combiner);
     }
-
 }

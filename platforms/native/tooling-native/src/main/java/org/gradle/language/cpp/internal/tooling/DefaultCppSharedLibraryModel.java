@@ -19,7 +19,12 @@ package org.gradle.language.cpp.internal.tooling;
 import org.gradle.tooling.internal.protocol.cpp.InternalCppSharedLibrary;
 
 public class DefaultCppSharedLibraryModel extends DefaultCppBinaryModel implements InternalCppSharedLibrary {
-    public DefaultCppSharedLibraryModel(String name, String variantName, String baseName, DefaultCompilationDetails compilationDetails, DefaultLinkageDetails linkageDetails) {
+    public DefaultCppSharedLibraryModel(
+            String name,
+            String variantName,
+            String baseName,
+            DefaultCompilationDetails compilationDetails,
+            DefaultLinkageDetails linkageDetails) {
         super(name, variantName, baseName, compilationDetails, linkageDetails);
     }
 }

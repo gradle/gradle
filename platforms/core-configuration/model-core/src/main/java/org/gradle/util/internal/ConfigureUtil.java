@@ -16,7 +16,11 @@
 
 package org.gradle.util.internal;
 
+import static org.gradle.util.internal.CollectionUtils.toStringList;
+
 import groovy.lang.Closure;
+import java.util.Collection;
+import java.util.Map;
 import org.codehaus.groovy.runtime.GeneratedClosure;
 import org.gradle.api.Action;
 import org.gradle.api.IsolatedAction;
@@ -27,11 +31,6 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.util.Configurable;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Map;
-
-import static org.gradle.util.internal.CollectionUtils.toStringList;
 
 public class ConfigureUtil {
 
@@ -64,7 +63,9 @@ public class ConfigureUtil {
             Collection<String> missingKeys = toStringList(mandatoryKeys);
             missingKeys.removeAll(toStringList(properties.keySet()));
             if (!missingKeys.isEmpty()) {
-                throw new IncompleteInputException("Input configuration map does not contain following mandatory keys: " + missingKeys, missingKeys);
+                throw new IncompleteInputException(
+                        "Input configuration map does not contain following mandatory keys: " + missingKeys,
+                        missingKeys);
             }
         }
         return configureByMap(properties, delegate);
@@ -161,7 +162,8 @@ public class ConfigureUtil {
             return;
         }
 
-        // Hackery to make closure execution faster, by short-circuiting the expensive property and method lookup on Closure
+        // Hackery to make closure execution faster, by short-circuiting the expensive property and method lookup on
+        // Closure
         Closure withNewOwner = configureClosure.rehydrate(target, closureDelegate, configureClosure.getThisObject());
         new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false).execute(target);
     }

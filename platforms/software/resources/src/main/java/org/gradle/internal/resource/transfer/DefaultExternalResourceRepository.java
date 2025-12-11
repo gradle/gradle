@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transfer;
 
-
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
@@ -28,11 +27,10 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     private final ExternalResourceLister lister;
 
     public DefaultExternalResourceRepository(
-        String name,
-        ExternalResourceAccessor accessor,
-        ExternalResourceUploader uploader,
-        ExternalResourceLister lister
-    ) {
+            String name,
+            ExternalResourceAccessor accessor,
+            ExternalResourceUploader uploader,
+            ExternalResourceLister lister) {
         this.name = name;
         this.accessor = accessor;
         this.uploader = uploader;
@@ -58,5 +56,4 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     public String toString() {
         return name;
     }
-
 }

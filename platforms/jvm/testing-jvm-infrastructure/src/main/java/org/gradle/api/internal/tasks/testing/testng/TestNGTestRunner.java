@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -34,10 +37,6 @@ import org.testng.ISuite;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.TestNG;
-
-import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Responsible for executing TestNG tests.
@@ -60,15 +59,14 @@ public class TestNGTestRunner {
     private final List<Class<?>> testClasses;
 
     public TestNGTestRunner(
-        File testReportDir,
-        List<File> suiteFiles,
-        IdGenerator<?> idGenerator,
-        Clock clock,
-        TestResultProcessor resultProcessor,
-        ClassLoader applicationClassLoader,
-        TestNGSpec spec,
-        List<Class<?>> testClasses
-    ) {
+            File testReportDir,
+            List<File> suiteFiles,
+            IdGenerator<?> idGenerator,
+            Clock clock,
+            TestResultProcessor resultProcessor,
+            ClassLoader applicationClassLoader,
+            TestNGSpec spec,
+            List<Class<?>> testClasses) {
         this.testReportDir = testReportDir;
         this.suiteFiles = suiteFiles;
         this.idGenerator = idGenerator;
@@ -111,12 +109,15 @@ public class TestNGTestRunner {
             try {
                 testNg.addListener(JavaReflectionUtil.newInstance(applicationClassLoader.loadClass(listenerClass)));
             } catch (Throwable e) {
-                throw new GradleException(String.format("Could not add a test listener with class '%s'.", listenerClass), e);
+                throw new GradleException(
+                        String.format("Could not add a test listener with class '%s'.", listenerClass), e);
             }
         }
 
         TestFilterSpec filter = spec.getFilter();
-        if (!filter.getIncludedTests().isEmpty() || !filter.getIncludedTestsCommandLine().isEmpty() || !filter.getExcludedTests().isEmpty()) {
+        if (!filter.getIncludedTests().isEmpty()
+                || !filter.getIncludedTestsCommandLine().isEmpty()
+                || !filter.getExcludedTests().isEmpty()) {
             testNg.addListener(new SelectedTestsFilter(filter));
         }
 
@@ -144,7 +145,10 @@ public class TestNGTestRunner {
         Class<?> argType;
         Object argValue;
         try {
-            argType = Class.forName("org.testng.xml.XmlSuite$FailurePolicy", false, testNg.getClass().getClassLoader());
+            argType = Class.forName(
+                    "org.testng.xml.XmlSuite$FailurePolicy",
+                    false,
+                    testNg.getClass().getClassLoader());
             argValue = argType.getMethod("getValidPolicy", String.class).invoke(null, value);
         } catch (Exception e) {
             // New API not found. Fallback to legacy String argument.
@@ -153,10 +157,12 @@ public class TestNGTestRunner {
         }
 
         try {
-            JavaMethod.of(TestNG.class, Object.class, "setConfigFailurePolicy", argType).invoke(testNg, argValue);
+            JavaMethod.of(TestNG.class, Object.class, "setConfigFailurePolicy", argType)
+                    .invoke(testNg, argValue);
         } catch (org.gradle.internal.reflect.NoSuchMethodException e) {
             if (!argValue.equals(DEFAULT_CONFIG_FAILURE_POLICY)) {
-                String message = String.format("The version of TestNG used does not support setting config failure policy to '%s'.", value);
+                String message = String.format(
+                        "The version of TestNG used does not support setting config failure policy to '%s'.", value);
                 throw new InvalidUserDataException(message);
             }
         }
@@ -164,29 +170,35 @@ public class TestNGTestRunner {
 
     private void setPreserveOrder(TestNG testNg, boolean value) {
         try {
-            JavaMethod.of(TestNG.class, Object.class, "setPreserveOrder", boolean.class).invoke(testNg, value);
+            JavaMethod.of(TestNG.class, Object.class, "setPreserveOrder", boolean.class)
+                    .invoke(testNg, value);
         } catch (org.gradle.internal.reflect.NoSuchMethodException e) {
             if (value) {
-                throw new InvalidUserDataException("Preserving the order of tests is not supported by this version of TestNG.");
+                throw new InvalidUserDataException(
+                        "Preserving the order of tests is not supported by this version of TestNG.");
             }
         }
     }
 
     private void setGroupByInstances(TestNG testNg, boolean value) {
         try {
-            JavaMethod.of(TestNG.class, Object.class, "setGroupByInstances", boolean.class).invoke(testNg, value);
+            JavaMethod.of(TestNG.class, Object.class, "setGroupByInstances", boolean.class)
+                    .invoke(testNg, value);
         } catch (org.gradle.internal.reflect.NoSuchMethodException e) {
             if (value) {
-                throw new InvalidUserDataException("Grouping tests by instances is not supported by this version of TestNG.");
+                throw new InvalidUserDataException(
+                        "Grouping tests by instances is not supported by this version of TestNG.");
             }
         }
     }
 
     private void setThreadPoolFactoryClass(TestNG testNg, String threadPoolFactoryClass) {
         try {
-            JavaMethod.of(TestNG.class, Object.class, "setExecutorFactoryClass", String.class).invoke(testNg, threadPoolFactoryClass);
+            JavaMethod.of(TestNG.class, Object.class, "setExecutorFactoryClass", String.class)
+                    .invoke(testNg, threadPoolFactoryClass);
         } catch (org.gradle.internal.reflect.NoSuchMethodException e) {
-            throw new InvalidUserDataException("The version of TestNG used does not support setting thread pool factory class.");
+            throw new InvalidUserDataException(
+                    "The version of TestNG used does not support setting thread pool factory class.");
         }
     }
 
@@ -196,10 +208,12 @@ public class TestNGTestRunner {
         }
 
         try {
-            JavaMethod.of(TestNG.class, Object.class, "setSuiteThreadPoolSize", Integer.class).invoke(testNg, suiteThreadPoolSize);
+            JavaMethod.of(TestNG.class, Object.class, "setSuiteThreadPoolSize", Integer.class)
+                    .invoke(testNg, suiteThreadPoolSize);
         } catch (NoSuchMethodException e) {
             if (suiteThreadPoolSize != 1) {
-                throw new InvalidUserDataException("The version of TestNG used does not support setting thread pool size.");
+                throw new InvalidUserDataException(
+                        "The version of TestNG used does not support setting thread pool size.");
             }
         }
     }
@@ -217,13 +231,14 @@ public class TestNGTestRunner {
             ISuite suite = context.getSuite();
             List<IMethodInstance> filtered = new LinkedList<IMethodInstance>();
             for (IMethodInstance candidate : methods) {
-                if (matcher.matchesTest(candidate.getMethod().getTestClass().getName(), candidate.getMethod().getMethodName())
-                    || matcher.matchesTest(suite.getName(), null)) {
+                if (matcher.matchesTest(
+                                candidate.getMethod().getTestClass().getName(),
+                                candidate.getMethod().getMethodName())
+                        || matcher.matchesTest(suite.getName(), null)) {
                     filtered.add(candidate);
                 }
             }
             return filtered;
         }
     }
-
 }

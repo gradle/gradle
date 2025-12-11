@@ -16,7 +16,13 @@
 
 package org.gradle.plugin.devel.tasks;
 
+import static org.gradle.util.internal.CollectionUtils.collect;
+
 import com.google.common.base.Joiner;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
@@ -27,13 +33,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
-
-import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * Custom task for generating the metadata for a plugin user test.

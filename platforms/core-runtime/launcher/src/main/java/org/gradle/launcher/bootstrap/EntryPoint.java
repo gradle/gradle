@@ -16,6 +16,7 @@
 package org.gradle.launcher.bootstrap;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.io.PrintStream;
 import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.configuration.DefaultBuildClientMetaData;
@@ -25,8 +26,6 @@ import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.text.StreamingStyledTextOutputFactory;
 import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.jspecify.annotations.Nullable;
-
-import java.io.PrintStream;
 
 /**
  * An entry point is the point at which execution will never return from.
@@ -74,11 +73,11 @@ public abstract class EntryPoint {
     protected Action<Throwable> createErrorHandler() {
         DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
         loggingConfiguration.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
-        return new BuildExceptionReporter(new StreamingStyledTextOutputFactory(originalStdErr),
-            loggingConfiguration,
-            new DefaultBuildClientMetaData(new GradleLauncherMetaData()),
-            DefaultFailureFactory.withDefaultClassifier()
-        );
+        return new BuildExceptionReporter(
+                new StreamingStyledTextOutputFactory(originalStdErr),
+                loggingConfiguration,
+                new DefaultBuildClientMetaData(new GradleLauncherMetaData()),
+                DefaultFailureFactory.withDefaultClassifier());
     }
 
     protected abstract void doAction(String[] args, ExecutionListener listener);
@@ -96,5 +95,4 @@ public abstract class EntryPoint {
             return failure;
         }
     }
-
 }

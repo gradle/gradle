@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.file.copy;
 
-
+import java.util.Collection;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -27,18 +28,20 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 
-import java.util.Collection;
-import java.util.List;
-
 public interface CopySpecResolver {
 
     boolean isCaseSensitive();
 
     Provider<ConfigurableFilePermissions> getFilePermissions();
+
     Provider<FilePermissions> getImmutableFilePermissions();
+
     Provider<ConfigurableFilePermissions> getDirPermissions();
+
     Provider<FilePermissions> getImmutableDirPermissions();
+
     boolean getIncludeEmptyDirs();
+
     String getFilteringCharset();
 
     RelativePath getDestPath();
@@ -68,6 +71,4 @@ public interface CopySpecResolver {
     boolean isDefaultDuplicateStrategy();
 
     void walk(Action<? super CopySpecResolver> action);
-
-
 }

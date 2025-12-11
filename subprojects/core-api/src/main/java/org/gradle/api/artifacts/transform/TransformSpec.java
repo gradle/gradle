@@ -50,7 +50,7 @@ public interface TransformSpec<T extends TransformParameters> {
 
     /**
      * Configure the parameters for the transform action.
-     * 
+     *
      * @see org.gradle.api.artifacts.dsl.DependencyHandler#registerTransform(Class, Action)
      */
     void parameters(Action<? super T> action);

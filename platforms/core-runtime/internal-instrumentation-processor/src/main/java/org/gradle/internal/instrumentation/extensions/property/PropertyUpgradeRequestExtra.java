@@ -17,11 +17,10 @@
 package org.gradle.internal.instrumentation.extensions.property;
 
 import com.squareup.javapoet.TypeName;
+import javax.lang.model.element.ExecutableElement;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
 import org.gradle.internal.instrumentation.model.RequestExtra;
-
-import javax.lang.model.element.ExecutableElement;
 
 class PropertyUpgradeRequestExtra implements RequestExtra {
 
@@ -38,18 +37,17 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
     private final BridgedMethodInfo bridgedMethodInfo;
 
     public PropertyUpgradeRequestExtra(
-        String propertyName,
-        String methodName,
-        String methodDescriptor,
-        TypeName returnType,
-        String implementationClassName,
-        String interceptedPropertyName,
-        String interceptedPropertyAccessorName,
-        TypeName newPropertyType,
-        DeprecationSpec deprecationSpec,
-        BinaryCompatibility binaryCompatibility,
-        BridgedMethodInfo bridgedMethodInfo
-    ) {
+            String propertyName,
+            String methodName,
+            String methodDescriptor,
+            TypeName returnType,
+            String implementationClassName,
+            String interceptedPropertyName,
+            String interceptedPropertyAccessorName,
+            TypeName newPropertyType,
+            DeprecationSpec deprecationSpec,
+            BinaryCompatibility binaryCompatibility,
+            BridgedMethodInfo bridgedMethodInfo) {
         this.propertyName = propertyName;
         this.methodName = methodName;
         this.methodDescriptor = methodDescriptor;
@@ -82,7 +80,6 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
     public String getImplementationClassName() {
         return implementationClassName;
     }
-
 
     public String getInterceptedPropertyName() {
         return interceptedPropertyName;

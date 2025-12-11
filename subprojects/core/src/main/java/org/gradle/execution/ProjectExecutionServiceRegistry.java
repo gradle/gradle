@@ -19,6 +19,7 @@ package org.gradle.execution;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import java.io.Closeable;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -28,20 +29,18 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Closeable;
-
 /**
  * Registry of services provided at execution time for already configured projects.
  */
 public class ProjectExecutionServiceRegistry implements AutoCloseable {
     private final NodeExecutionContext global;
     private final LoadingCache<ProjectInternal, NodeExecutionContext> projectRegistries = CacheBuilder.newBuilder()
-        .build(new CacheLoader<ProjectInternal, NodeExecutionContext>() {
-            @Override
-            public NodeExecutionContext load(@NonNull ProjectInternal project) {
-                return new DefaultNodeExecutionContext(ProjectExecutionServices.create(project));
-            }
-        });
+            .build(new CacheLoader<ProjectInternal, NodeExecutionContext>() {
+                @Override
+                public NodeExecutionContext load(@NonNull ProjectInternal project) {
+                    return new DefaultNodeExecutionContext(ProjectExecutionServices.create(project));
+                }
+            });
 
     public ProjectExecutionServiceRegistry(ServiceRegistry globalServices) {
         global = globalServices::get;

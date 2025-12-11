@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.collections;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.jspecify.annotations.Nullable;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class DefaultCollectionEventRegister<T> implements CollectionEventRegister<T> {
 
@@ -181,5 +180,4 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
             return new FilteredEventRegister<N>(filter, Cast.uncheckedNonnullCast(this));
         }
     }
-
 }

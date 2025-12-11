@@ -16,16 +16,17 @@
 
 package org.gradle.tooling.events.configuration.internal;
 
+import java.util.List;
 import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 
-import java.util.List;
-
-public class DefaultProjectConfigurationSuccessResult extends DefaultOperationSuccessResult implements ProjectConfigurationSuccessResult {
+public class DefaultProjectConfigurationSuccessResult extends DefaultOperationSuccessResult
+        implements ProjectConfigurationSuccessResult {
 
     private final List<? extends PluginApplicationResult> pluginApplicationResults;
 
-    public DefaultProjectConfigurationSuccessResult(long startTime, long endTime, List<? extends PluginApplicationResult> pluginApplicationResults) {
+    public DefaultProjectConfigurationSuccessResult(
+            long startTime, long endTime, List<? extends PluginApplicationResult> pluginApplicationResults) {
         super(startTime, endTime);
         this.pluginApplicationResults = pluginApplicationResults;
     }
@@ -34,5 +35,4 @@ public class DefaultProjectConfigurationSuccessResult extends DefaultOperationSu
     public List<? extends PluginApplicationResult> getPluginApplicationResults() {
         return pluginApplicationResults;
     }
-
 }

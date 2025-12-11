@@ -17,17 +17,16 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.io.ByteStreams;
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.GradleException;
-import org.gradle.internal.classpath.ClassPath;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.cert.Certificate;
 import java.util.Collection;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.GradleException;
+import org.gradle.internal.classpath.ClassPath;
+import org.jspecify.annotations.Nullable;
 
 public abstract class TransformingClassLoader extends VisitableURLClassLoader {
     static {
@@ -61,7 +60,9 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
             if (resource != null) {
                 bytes = loadBytecode(resource);
                 bytes = transform(name, bytes);
-                URL codeBase = ClasspathUtil.getClasspathForResource(resource, resourceName).toURI().toURL();
+                URL codeBase = ClasspathUtil.getClasspathForResource(resource, resourceName)
+                        .toURI()
+                        .toURL();
                 codeSource = new CodeSource(codeBase, (Certificate[]) null);
             } else {
                 bytes = generateMissingClass(name);

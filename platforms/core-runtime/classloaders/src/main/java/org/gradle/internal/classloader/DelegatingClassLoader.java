@@ -20,5 +20,4 @@ package org.gradle.internal.classloader;
  * Marker interface for {@link ClassLoader} types that always delegate
  * classloading thus are never visible via {@link Class#getClassLoader()}.
  */
-public interface DelegatingClassLoader {
-}
+public interface DelegatingClassLoader {}

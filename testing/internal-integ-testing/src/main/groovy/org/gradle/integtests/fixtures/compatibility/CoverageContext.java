@@ -17,7 +17,11 @@
 package org.gradle.integtests.fixtures.compatibility;
 
 public enum CoverageContext {
-    DEFAULT("default"), LATEST("latest"), PARTIAL("partial"), FULL("all"), UNKNOWN(null);
+    DEFAULT("default"),
+    LATEST("latest"),
+    PARTIAL("partial"),
+    FULL("all"),
+    UNKNOWN(null);
 
     public final String selector;
 

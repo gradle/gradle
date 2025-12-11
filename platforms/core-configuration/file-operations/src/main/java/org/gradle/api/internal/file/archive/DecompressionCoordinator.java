@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.file.archive;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.io.Closeable;
 import java.io.File;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A coordinator that can be used to manage access to decompressed data extracted from archive files like zip and tars.

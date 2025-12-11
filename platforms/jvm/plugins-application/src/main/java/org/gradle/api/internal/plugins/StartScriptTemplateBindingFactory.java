@@ -20,11 +20,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.Transformer;
-import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
-import org.gradle.util.internal.CollectionUtils;
-
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
@@ -32,8 +27,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.Transformer;
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
+import org.gradle.util.internal.CollectionUtils;
 
-public class StartScriptTemplateBindingFactory implements Transformer<Map<String, String>, JavaAppStartScriptGenerationDetails> {
+public class StartScriptTemplateBindingFactory
+        implements Transformer<Map<String, String>, JavaAppStartScriptGenerationDetails> {
 
     private final boolean windows;
 
@@ -61,15 +61,20 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
         String entryPointArgs = encodeEntryPoint(entryPoint);
         binding.put(ScriptBindingParameter.ENTRY_POINT_ARGS.getKey(), entryPointArgs);
         binding.put(ScriptBindingParameter.MAIN_CLASS_NAME.getKey(), getMainClassName(entryPoint, entryPointArgs));
-        binding.put(ScriptBindingParameter.MODULE_ENTRY_POINT.getKey(), entryPoint instanceof MainModule ? getModuleEntryPoint((MainModule) entryPoint) : null);
+        binding.put(
+                ScriptBindingParameter.MODULE_ENTRY_POINT.getKey(),
+                entryPoint instanceof MainModule ? getModuleEntryPoint((MainModule) entryPoint) : null);
 
-        binding.put(ScriptBindingParameter.DEFAULT_JVM_OPTS.getKey(), createJoinedDefaultJvmOpts(details.getDefaultJvmOpts()));
+        binding.put(
+                ScriptBindingParameter.DEFAULT_JVM_OPTS.getKey(),
+                createJoinedDefaultJvmOpts(details.getDefaultJvmOpts()));
         binding.put(ScriptBindingParameter.APP_NAME_SYS_PROP.getKey(), details.getAppNameSystemProperty());
-        binding.put(ScriptBindingParameter.APP_HOME_REL_PATH.getKey(), createJoinedAppHomeRelativePath(details.getScriptRelPath()));
+        binding.put(
+                ScriptBindingParameter.APP_HOME_REL_PATH.getKey(),
+                createJoinedAppHomeRelativePath(details.getScriptRelPath()));
         binding.put(ScriptBindingParameter.CLASSPATH.getKey(), createJoinedPath(details.getClasspath()));
         binding.put(ScriptBindingParameter.MODULE_PATH.getKey(), createJoinedPath(details.getModulePath()));
         return binding;
-
     }
 
     private static String getMainClassName(AppEntryPoint entryPoint, String entryPointArgs) {
@@ -99,8 +104,10 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
             return "--module " + getModuleEntryPoint((MainModule) entryPoint);
         } else if (entryPoint instanceof ExecutableJar) {
             // We need to also escape quotes in the JAR path, so our quotes aren't broken by the JAR path
-            // In theory we should be doing this in `encodePath`, but I wanted to avoid making behavioral changes to `classpath` and `modulePath`
-            String jarPathEscaped = encodePath(((ExecutableJar) entryPoint).getJarPath()).replace("\"", "\\\"");
+            // In theory we should be doing this in `encodePath`, but I wanted to avoid making behavioral changes to
+            // `classpath` and `modulePath`
+            String jarPathEscaped =
+                    encodePath(((ExecutableJar) entryPoint).getJarPath()).replace("\"", "\\\"");
             return "-jar \"" + jarPathEscaped + "\"";
         } else {
             throw new IllegalArgumentException("Unknown entry point type: " + entryPoint);
@@ -131,12 +138,13 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
                 return "";
             }
 
-            Iterable<String> quotedDefaultJvmOpts = Iterables.transform(CollectionUtils.toStringList(defaultJvmOpts), new Function<String, String>() {
-                @Override
-                public String apply(String jvmOpt) {
-                    return "\"" + escapeWindowsJvmOpt(jvmOpt) + "\"";
-                }
-            });
+            Iterable<String> quotedDefaultJvmOpts =
+                    Iterables.transform(CollectionUtils.toStringList(defaultJvmOpts), new Function<String, String>() {
+                        @Override
+                        public String apply(String jvmOpt) {
+                            return "\"" + escapeWindowsJvmOpt(jvmOpt) + "\"";
+                        }
+                    });
 
             Joiner spaceJoiner = Joiner.on(" ");
             return spaceJoiner.join(quotedDefaultJvmOpts);
@@ -145,20 +153,22 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
                 return "";
             }
 
-            Iterable<String> quotedDefaultJvmOpts = Iterables.transform(CollectionUtils.toStringList(defaultJvmOpts), new Function<String, String>() {
-                @Override
-                public String apply(String jvmOpt) {
-                    //quote ', ", \, $. Probably not perfect. TODO: identify non-working cases, fail-fast on them
-                    jvmOpt = jvmOpt.replace("\\", "\\\\");
-                    jvmOpt = jvmOpt.replace("\"", "\\\"");
-                    jvmOpt = jvmOpt.replace("'", "'\"'\"'");
-                    jvmOpt = jvmOpt.replace("`", "'\"`\"'");
-                    jvmOpt = jvmOpt.replace("$", "\\$");
-                    return "\"" + jvmOpt + "\"";
-                }
-            });
+            Iterable<String> quotedDefaultJvmOpts =
+                    Iterables.transform(CollectionUtils.toStringList(defaultJvmOpts), new Function<String, String>() {
+                        @Override
+                        public String apply(String jvmOpt) {
+                            // quote ', ", \, $. Probably not perfect. TODO: identify non-working cases, fail-fast on
+                            // them
+                            jvmOpt = jvmOpt.replace("\\", "\\\\");
+                            jvmOpt = jvmOpt.replace("\"", "\\\"");
+                            jvmOpt = jvmOpt.replace("'", "'\"'\"'");
+                            jvmOpt = jvmOpt.replace("`", "'\"`\"'");
+                            jvmOpt = jvmOpt.replace("$", "\\$");
+                            return "\"" + jvmOpt + "\"";
+                        }
+                    });
 
-            //put the whole arguments string in single quotes, unless defaultJvmOpts was empty,
+            // put the whole arguments string in single quotes, unless defaultJvmOpts was empty,
             // in which case we output "" to stay compatible with existing builds that scan the script for it
             Joiner spaceJoiner = Joiner.on(" ");
             if (Iterables.size(quotedDefaultJvmOpts) > 0) {
@@ -174,7 +184,7 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
         StringBuilder escapedJvmOpt = new StringBuilder();
         CharacterIterator it = new StringCharacterIterator(jvmOpts);
 
-        //argument quoting:
+        // argument quoting:
         // - " must be encoded as \"
         // - % must be encoded as %%
         // - pathological case: \" must be encoded as \\\", but other than that, \ MUST NOT be quoted
@@ -254,5 +264,4 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
     private String getMultiPathSeparator() {
         return windows ? ";" : ":";
     }
-
 }

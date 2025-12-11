@@ -32,11 +32,12 @@ public class StrictVersionParser {
         }
         int idx = version.indexOf("!!");
         if (idx == 0) {
-            throw new InvalidUserCodeException("The strict version modifier (!!) must be appended to a valid version number");
+            throw new InvalidUserCodeException(
+                    "The strict version modifier (!!) must be appended to a valid version number");
         }
         if (idx > 0) {
             String strictly = stringInterner.intern(version.substring(0, idx));
-            String prefer = stringInterner.intern(version.substring(idx+2));
+            String prefer = stringInterner.intern(version.substring(idx + 2));
             return new RichVersion(null, strictly, prefer);
         }
         return new RichVersion(stringInterner.intern(version), null, null);

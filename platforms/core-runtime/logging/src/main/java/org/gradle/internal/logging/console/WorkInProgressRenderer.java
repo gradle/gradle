@@ -18,15 +18,6 @@ package org.gradle.internal.logging.console;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import org.gradle.internal.logging.events.EndOutputEvent;
-import org.gradle.internal.logging.events.OutputEvent;
-import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.logging.events.ProgressCompleteEvent;
-import org.gradle.internal.logging.events.ProgressEvent;
-import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.events.UpdateNowEvent;
-import org.gradle.internal.operations.OperationIdentifier;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -35,6 +26,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.internal.logging.events.EndOutputEvent;
+import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.ProgressCompleteEvent;
+import org.gradle.internal.logging.events.ProgressEvent;
+import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.UpdateNowEvent;
+import org.gradle.internal.operations.OperationIdentifier;
 
 public class WorkInProgressRenderer implements OutputEventListener {
     private final OutputEventListener listener;
@@ -51,10 +50,15 @@ public class WorkInProgressRenderer implements OutputEventListener {
     // Track currently associated label with its progress operation
     private final Map<OperationIdentifier, AssociationLabel> operationIdToAssignedLabels = new HashMap<>();
 
-    // Track any progress operation that either can't be display due to label shortage or child progress operation is already been displayed
+    // Track any progress operation that either can't be display due to label shortage or child progress operation is
+    // already been displayed
     private final Deque<ProgressOperation> unassignedProgressOperations = new ArrayDeque<>();
 
-    public WorkInProgressRenderer(OutputEventListener listener, BuildProgressArea progressArea, DefaultWorkInProgressFormatter labelFormatter, ConsoleLayoutCalculator consoleLayoutCalculator) {
+    public WorkInProgressRenderer(
+            OutputEventListener listener,
+            BuildProgressArea progressArea,
+            DefaultWorkInProgressFormatter labelFormatter,
+            ConsoleLayoutCalculator consoleLayoutCalculator) {
         this.listener = listener;
         this.progressArea = progressArea;
         this.labelFormatter = labelFormatter;
@@ -81,8 +85,10 @@ public class WorkInProgressRenderer implements OutputEventListener {
     }
 
     private void resizeTo(int newBuildProgressLabelCount) {
-        int previousBuildProgressLabelCount = progressArea.getBuildProgressLabels().size();
-        newBuildProgressLabelCount = consoleLayoutCalculator.calculateNumWorkersForConsoleDisplay(newBuildProgressLabelCount);
+        int previousBuildProgressLabelCount =
+                progressArea.getBuildProgressLabels().size();
+        newBuildProgressLabelCount =
+                consoleLayoutCalculator.calculateNumWorkersForConsoleDisplay(newBuildProgressLabelCount);
         if (previousBuildProgressLabelCount >= newBuildProgressLabelCount) {
             // We don't support shrinking at the moment
             return;
@@ -189,7 +195,8 @@ public class WorkInProgressRenderer implements OutputEventListener {
         }
 
         // Skip processing of any operations that both start and complete in the queue
-        Set<OperationIdentifier> completeEventOperationIds = toOperationIdSet(Iterables.filter(queue, ProgressCompleteEvent.class));
+        Set<OperationIdentifier> completeEventOperationIds =
+                toOperationIdSet(Iterables.filter(queue, ProgressCompleteEvent.class));
         Set<OperationIdentifier> operationIdsToSkip = new HashSet<>();
 
         for (OutputEvent event : queue) {
@@ -200,7 +207,11 @@ public class WorkInProgressRenderer implements OutputEventListener {
                     operationIdsToSkip.add(startEvent.getProgressOperationId());
                     // Don't attach to any labels
                 } else {
-                    attach(operations.start(startEvent.getStatus(), startEvent.getCategory(), startEvent.getProgressOperationId(), startEvent.getParentProgressOperationId()));
+                    attach(operations.start(
+                            startEvent.getStatus(),
+                            startEvent.getCategory(),
+                            startEvent.getProgressOperationId(),
+                            startEvent.getParentProgressOperationId()));
                 }
             } else if (event instanceof ProgressCompleteEvent) {
                 ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;

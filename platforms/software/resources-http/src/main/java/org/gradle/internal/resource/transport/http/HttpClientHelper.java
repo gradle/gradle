@@ -16,8 +16,22 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import static java.lang.String.join;
+import static org.apache.http.client.protocol.HttpClientContext.REDIRECT_LOCATIONS;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.SocketException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -36,21 +50,6 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
-import java.io.Closeable;
-import java.io.IOException;
-import java.net.SocketException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import static java.lang.String.join;
-import static org.apache.http.client.protocol.HttpClientContext.REDIRECT_LOCATIONS;
 
 /**
  * Provides some convenience and unified logging.
@@ -124,8 +123,10 @@ public class HttpClientHelper implements Closeable {
     }
 
     private Exception wrapWithExplanation(IOException e) {
-        if (e instanceof SocketException || (e instanceof SSLException && e.getMessage().contains("readHandshakeRecord"))) {
-            return new HttpRequestException("Got socket exception during request. It might be caused by SSL misconfiguration", e);
+        if (e instanceof SocketException
+                || (e instanceof SSLException && e.getMessage().contains("readHandshakeRecord"))) {
+            return new HttpRequestException(
+                    "Got socket exception during request. It might be caused by SSL misconfiguration", e);
         }
 
         if (!(e instanceof SSLHandshakeException)) {
@@ -135,17 +136,18 @@ public class HttpClientHelper implements Closeable {
         SSLHandshakeException sslException = (SSLHandshakeException) e;
         String message;
 
-        if (e.getMessage().contains("PKIX path building failed") || e.getMessage().contains("certificate_unknown")) {
+        if (e.getMessage().contains("PKIX path building failed")
+                || e.getMessage().contains("certificate_unknown")) {
             message = "Got SSL handshake exception during request. It might be caused by SSL misconfiguration";
         } else {
             message = String.format(
-                "The server %s not support the client's requested TLS protocol versions: (%s). " +
-                    "You may need to configure the client to allow other protocols to be used. " +
-                    "%s",
-                getConfidenceNote(sslException),
-                join(", ", supportedTlsVersions),
-                documentationRegistry.getDocumentationRecommendationFor("on this", "build_environment", "sec:gradle_system_properties")
-            );
+                    "The server %s not support the client's requested TLS protocol versions: (%s). "
+                            + "You may need to configure the client to allow other protocols to be used. "
+                            + "%s",
+                    getConfidenceNote(sslException),
+                    join(", ", supportedTlsVersions),
+                    documentationRegistry.getDocumentationRecommendationFor(
+                            "on this", "build_environment", "sec:gradle_system_properties"));
         }
         return new HttpRequestException(message, e);
     }
@@ -153,10 +155,12 @@ public class HttpClientHelper implements Closeable {
     @NonNull
     private static String getConfidenceNote(SSLHandshakeException sslException) {
         if (sslException.getMessage() != null && sslException.getMessage().contains("protocol_version")) {
-            // If we're handling an SSLHandshakeException with the error of 'protocol_version' we know that the server doesn't support this protocol.
+            // If we're handling an SSLHandshakeException with the error of 'protocol_version' we know that the server
+            // doesn't support this protocol.
             return "does";
         }
-        // Sometimes the SSLHandshakeException doesn't include the 'protocol_version', even though this is the cause of the error.
+        // Sometimes the SSLHandshakeException doesn't include the 'protocol_version', even though this is the cause of
+        // the error.
         // Tell the user this but with less confidence.
         return "may";
     }
@@ -206,7 +210,8 @@ public class HttpClientHelper implements Closeable {
         }
     }
 
-    private HttpClientResponse toHttpClientResponse(HttpRequestBase request, HttpContext httpContext, CloseableHttpResponse response) {
+    private HttpClientResponse toHttpClientResponse(
+            HttpRequestBase request, HttpContext httpContext, CloseableHttpResponse response) {
         validateRedirectChain(httpContext);
         URI lastRedirectLocation = getLastRedirectLocation(httpContext);
         URI effectiveUri = lastRedirectLocation == null ? request.getURI() : lastRedirectLocation;
@@ -228,7 +233,6 @@ public class HttpClientHelper implements Closeable {
         return redirects == null ? Collections.emptyList() : redirects;
     }
 
-
     private static URI getLastRedirectLocation(HttpContext httpContext) {
         List<URI> redirectLocations = getRedirectLocations(httpContext);
         return redirectLocations.isEmpty() ? null : Iterables.getLast(redirectLocations);
@@ -237,7 +241,10 @@ public class HttpClientHelper implements Closeable {
     @NonNull
     private HttpClientResponse processResponse(HttpClientResponse response) {
         if (response.wasMissing()) {
-            LOGGER.info("Resource missing. [HTTP {}: {}]", response.getMethod(), stripUserCredentials(response.getEffectiveUri()));
+            LOGGER.info(
+                    "Resource missing. [HTTP {}: {}]",
+                    response.getMethod(),
+                    stripUserCredentials(response.getEffectiveUri()));
             return response;
         }
 
@@ -246,8 +253,16 @@ public class HttpClientHelper implements Closeable {
         }
 
         URI effectiveUri = stripUserCredentials(response.getEffectiveUri());
-        LOGGER.info("Failed to get resource: {}. [HTTP {}: {})]", response.getMethod(), response.getStatusLine(), effectiveUri);
-        throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+        LOGGER.info(
+                "Failed to get resource: {}. [HTTP {}: {})]",
+                response.getMethod(),
+                response.getStatusLine(),
+                effectiveUri);
+        throw new HttpErrorStatusCodeException(
+                response.getMethod(),
+                effectiveUri.toString(),
+                response.getStatusLine().getStatusCode(),
+                response.getStatusLine().getReasonPhrase());
     }
 
     private synchronized CloseableHttpClient getClient() {
@@ -317,5 +332,4 @@ public class HttpClientHelper implements Closeable {
             return settings -> new HttpClientHelper(documentationRegistry, settings);
         }
     }
-
 }

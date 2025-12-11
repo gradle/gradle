@@ -38,10 +38,9 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     protected final Transformer<? extends OUT, ? super IN> transformer;
 
     public TransformBackedProvider(
-        @Nullable Class<OUT> type,
-        ProviderInternal<? extends IN> provider,
-        Transformer<? extends OUT, ? super IN> transformer
-    ) {
+            @Nullable Class<OUT> type,
+            ProviderInternal<? extends IN> provider,
+            Transformer<? extends OUT, ? super IN> transformer) {
         this.type = type;
         this.transformer = transformer;
         this.provider = provider;
@@ -67,7 +66,8 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
             if (value.hasChangingContent()) {
                 // Need the value contents in order to transform it to produce the value of this provider,
                 // so if the value or its contents are built by tasks, the value of this provider is also built by tasks
-                return ExecutionTimeValue.changingValue(new TransformBackedProvider<OUT, IN>(type, value.toProvider(), transformer));
+                return ExecutionTimeValue.changingValue(
+                        new TransformBackedProvider<OUT, IN>(type, value.toProvider(), transformer));
             }
 
             return ExecutionTimeValue.value(mapValue(context, value.toValue()));
@@ -94,9 +94,9 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     protected void beforeRead(EvaluationScopeContext context) {
         provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
-                throw new InvalidUserCodeException(
-                    String.format("Querying the mapped value of %s before %s has completed is not supported", provider, producer)
-                );
+                throw new InvalidUserCodeException(String.format(
+                        "Querying the mapped value of %s before %s has completed is not supported",
+                        provider, producer));
             }
         });
     }

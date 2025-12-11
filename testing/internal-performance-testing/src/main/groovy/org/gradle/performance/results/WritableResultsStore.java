@@ -16,5 +16,4 @@
 
 package org.gradle.performance.results;
 
-public interface WritableResultsStore<T extends PerformanceTestResult> extends DataReporter<T>, ResultsStore {
-}
+public interface WritableResultsStore<T extends PerformanceTestResult> extends DataReporter<T>, ResultsStore {}

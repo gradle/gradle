@@ -29,14 +29,16 @@ import org.jspecify.annotations.Nullable;
  *
  * TODO Separate these two purposes into separate classes
  */
-public class BuildOperationProgressEventListenerAdapter implements DefaultBuildOperationRunner.BuildOperationExecutionListener {
+public class BuildOperationProgressEventListenerAdapter
+        implements DefaultBuildOperationRunner.BuildOperationExecutionListener {
     private final BuildOperationListener buildOperationListener;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final Clock clock;
     private ProgressLogger progressLogger;
     private ProgressLogger statusProgressLogger;
 
-    public BuildOperationProgressEventListenerAdapter(BuildOperationListener buildOperationListener, ProgressLoggerFactory progressLoggerFactory, Clock clock) {
+    public BuildOperationProgressEventListenerAdapter(
+            BuildOperationListener buildOperationListener, ProgressLoggerFactory progressLoggerFactory, Clock clock) {
         this.buildOperationListener = buildOperationListener;
         this.progressLoggerFactory = progressLoggerFactory;
         this.clock = clock;
@@ -45,18 +47,23 @@ public class BuildOperationProgressEventListenerAdapter implements DefaultBuildO
     @Override
     public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
         buildOperationListener.started(descriptor, new OperationStartEvent(operationState.getStartTime()));
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationRunner.class, descriptor);
+        ProgressLogger progressLogger =
+                progressLoggerFactory.newOperation(DefaultBuildOperationRunner.class, descriptor);
         this.progressLogger = progressLogger.start(descriptor.getDisplayName(), descriptor.getProgressDisplayName());
     }
 
     @Override
     public void progress(BuildOperationDescriptor descriptor, String status) {
-        // Currently, need to start a new progress operation to hold the status, as changing the status of the progress operation replaces the
-        // progress display name on the console, whereas we want to display both the progress display name and the status
-        // This should be pushed down into the progress logger infrastructure so that an operation can have both a display name (that doesn't change) and
+        // Currently, need to start a new progress operation to hold the status, as changing the status of the progress
+        // operation replaces the
+        // progress display name on the console, whereas we want to display both the progress display name and the
+        // status
+        // This should be pushed down into the progress logger infrastructure so that an operation can have both a
+        // display name (that doesn't change) and
         // a status (that does)
         if (statusProgressLogger == null) {
-            statusProgressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationRunner.class, progressLogger);
+            statusProgressLogger =
+                    progressLoggerFactory.newOperation(DefaultBuildOperationRunner.class, progressLogger);
             statusProgressLogger.start(descriptor.getDisplayName(), status);
         } else {
             statusProgressLogger.progress(status);
@@ -66,19 +73,31 @@ public class BuildOperationProgressEventListenerAdapter implements DefaultBuildO
     @Override
     public void progress(BuildOperationDescriptor descriptor, long progress, long total, String units, String status) {
         progress(descriptor, status);
-        buildOperationListener.progress(descriptor.getId(), new OperationProgressEvent(clock.getCurrentTime(), new OperationProgressDetails(progress, total, units)));
+        buildOperationListener.progress(
+                descriptor.getId(),
+                new OperationProgressEvent(
+                        clock.getCurrentTime(), new OperationProgressDetails(progress, total, units)));
     }
 
     @Override
-    public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationRunner.ReadableBuildOperationContext context) {
+    public void stop(
+            BuildOperationDescriptor descriptor,
+            BuildOperationState operationState,
+            @Nullable BuildOperationState parent,
+            DefaultBuildOperationRunner.ReadableBuildOperationContext context) {
         if (statusProgressLogger != null) {
             statusProgressLogger.completed();
         }
         progressLogger.completed(context.getStatus(), context.getFailure() != null);
-        buildOperationListener.finished(descriptor, new OperationFinishEvent(operationState.getStartTime(), clock.getCurrentTime(), context.getFailure(), context.getResult()));
+        buildOperationListener.finished(
+                descriptor,
+                new OperationFinishEvent(
+                        operationState.getStartTime(),
+                        clock.getCurrentTime(),
+                        context.getFailure(),
+                        context.getResult()));
     }
 
     @Override
-    public void close(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
-    }
+    public void close(BuildOperationDescriptor descriptor, BuildOperationState operationState) {}
 }

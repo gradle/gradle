@@ -49,15 +49,20 @@ public class DefaultJvmToolchainsConfigurationValidator implements JvmToolchains
     public void validatePropertyConfiguration(String propertyName) {
         if (startParameter.getProjectProperties().containsKey(propertyName)) {
             if (System.getProperties().containsKey(propertyName)) {
-                if (!startParameter.getProjectProperties().get(propertyName).equals(System.getProperties().get(propertyName))) {
-                    throw new InvalidUserDataException(
-                        "The Gradle property '" + propertyName + "' (set to '" + System.getProperties().get(propertyName) + "') " +
-                            "has a different value than the project property '" + propertyName + "' (set to '" + startParameter.getProjectProperties().get(propertyName) + "')." +
-                            " Please set them to the same value or only set the Gradle property."
-                    );
+                if (!startParameter
+                        .getProjectProperties()
+                        .get(propertyName)
+                        .equals(System.getProperties().get(propertyName))) {
+                    throw new InvalidUserDataException("The Gradle property '" + propertyName + "' (set to '"
+                            + System.getProperties().get(propertyName) + "') "
+                            + "has a different value than the project property '"
+                            + propertyName + "' (set to '"
+                            + startParameter.getProjectProperties().get(propertyName) + "')."
+                            + " Please set them to the same value or only set the Gradle property.");
                 }
             } else {
-                emitDeprecatedWarning(propertyName, startParameter.getProjectProperties().get(propertyName));
+                emitDeprecatedWarning(
+                        propertyName, startParameter.getProjectProperties().get(propertyName));
             }
         }
     }
@@ -68,7 +73,8 @@ public class DefaultJvmToolchainsConfigurationValidator implements JvmToolchains
     @Override
     public void validateAllPropertiesConfigurationsForDaemonJvmToolchains() {
         if (startParameter.isDaemonJvmCriteriaConfigured()) {
-            validatePropertyConfiguration(EnvironmentVariableListInstallationSupplier.JAVA_INSTALLATIONS_FROM_ENV_PROPERTY);
+            validatePropertyConfiguration(
+                    EnvironmentVariableListInstallationSupplier.JAVA_INSTALLATIONS_FROM_ENV_PROPERTY);
             validatePropertyConfiguration(LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY);
             validatePropertyConfiguration(ToolchainConfiguration.AUTO_DETECT);
             validatePropertyConfiguration(AutoInstalledInstallationSupplier.AUTO_DOWNLOAD);
@@ -78,10 +84,9 @@ public class DefaultJvmToolchainsConfigurationValidator implements JvmToolchains
 
     private static void emitDeprecatedWarning(String propertyName, String value) {
         DeprecationLogger.deprecateAction("Specifying '" + propertyName + "' as a project property on the command line")
-            .withAdvice("Instead, specify it as a Gradle property: '-D" + propertyName + "=" + value + "'.")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "toolchain-project-properties")
-            .nagUser();
+                .withAdvice("Instead, specify it as a Gradle property: '-D" + propertyName + "=" + value + "'.")
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(9, "toolchain-project-properties")
+                .nagUser();
     }
-
 }

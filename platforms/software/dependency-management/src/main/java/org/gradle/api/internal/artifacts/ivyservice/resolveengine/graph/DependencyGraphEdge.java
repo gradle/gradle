@@ -44,5 +44,4 @@ public interface DependencyGraphEdge extends ResolvedGraphDependency {
     ImmutableAttributes getAttributes();
 
     boolean isTargetVirtualPlatform();
-
 }

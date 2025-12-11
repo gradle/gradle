@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @NullMarked
-class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEventReporter<DefaultGroupTestEventReporter> implements GroupTestEventReporterInternal {
+class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEventReporter<DefaultGroupTestEventReporter>
+        implements GroupTestEventReporterInternal {
     private final Set<LifecycleTrackingTestEventReporter<?>> children = new HashSet<>();
 
     LifecycleTrackingGroupTestEventReporter(DefaultGroupTestEventReporter delegate) {
@@ -52,28 +52,32 @@ class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEvent
 
     @Override
     public TestEventReporter reportTest(String name, String displayName) {
-        LifecycleTrackingTestEventReporter<DefaultTestEventReporter> child = new LifecycleTrackingTestEventReporter<>(delegate.reportTest(name, displayName));
+        LifecycleTrackingTestEventReporter<DefaultTestEventReporter> child =
+                new LifecycleTrackingTestEventReporter<>(delegate.reportTest(name, displayName));
         children.add(child);
         return child;
     }
 
     @Override
     public TestEventReporter reportTestDirectly(TestDescriptorInternal testDescriptor) {
-        LifecycleTrackingTestEventReporter<DefaultTestEventReporter> child = new LifecycleTrackingTestEventReporter<>(delegate.reportTestDirectly(testDescriptor));
+        LifecycleTrackingTestEventReporter<DefaultTestEventReporter> child =
+                new LifecycleTrackingTestEventReporter<>(delegate.reportTestDirectly(testDescriptor));
         children.add(child);
         return child;
     }
 
     @Override
     public GroupTestEventReporter reportTestGroup(String name) {
-        LifecycleTrackingGroupTestEventReporter child = new LifecycleTrackingGroupTestEventReporter(delegate.reportTestGroup(name));
+        LifecycleTrackingGroupTestEventReporter child =
+                new LifecycleTrackingGroupTestEventReporter(delegate.reportTestGroup(name));
         children.add(child);
         return child;
     }
 
     @Override
     public GroupTestEventReporter reportTestGroupDirectly(TestDescriptorInternal testDescriptor) {
-        LifecycleTrackingGroupTestEventReporter child = new LifecycleTrackingGroupTestEventReporter(delegate.reportTestGroupDirectly(testDescriptor));
+        LifecycleTrackingGroupTestEventReporter child =
+                new LifecycleTrackingGroupTestEventReporter(delegate.reportTestGroupDirectly(testDescriptor));
         children.add(child);
         return child;
     }

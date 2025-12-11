@@ -18,22 +18,20 @@ package org.gradle.plugins.ide.eclipse.model.internal;
 import com.google.common.base.Objects;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.plugins.ide.eclipse.model.ResourceFilterMatcher;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.jspecify.annotations.Nullable;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public final class DefaultResourceFilterMatcher implements ResourceFilterMatcher {
     private String id;
     private String arguments;
     private Set<ResourceFilterMatcher> children = new LinkedHashSet<>();
 
-    public DefaultResourceFilterMatcher() {
-    }
+    public DefaultResourceFilterMatcher() {}
 
     public DefaultResourceFilterMatcher(String id, String arguments, Set<ResourceFilterMatcher> children) {
         this();
@@ -75,7 +73,9 @@ public final class DefaultResourceFilterMatcher implements ResourceFilterMatcher
         this.children = children;
     }
 
-    public ResourceFilterMatcher matcher(@DelegatesTo(value = ResourceFilterMatcher.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
+    public ResourceFilterMatcher matcher(
+            @DelegatesTo(value = ResourceFilterMatcher.class, strategy = Closure.DELEGATE_FIRST)
+                    Closure configureClosure) {
         return matcher(new ClosureBackedAction<ResourceFilterMatcher>(configureClosure));
     }
 
@@ -100,8 +100,8 @@ public final class DefaultResourceFilterMatcher implements ResourceFilterMatcher
         }
         DefaultResourceFilterMatcher resourceFilterMatcher = (DefaultResourceFilterMatcher) o;
         return Objects.equal(id, resourceFilterMatcher.id)
-            && Objects.equal(arguments, resourceFilterMatcher.arguments)
-            && Objects.equal(children, resourceFilterMatcher.children);
+                && Objects.equal(arguments, resourceFilterMatcher.arguments)
+                && Objects.equal(children, resourceFilterMatcher.children);
     }
 
     @Override
@@ -116,9 +116,9 @@ public final class DefaultResourceFilterMatcher implements ResourceFilterMatcher
     @Override
     public String toString() {
         return "ResourceFilterMatcher{"
-            + "id='" + id + '\''
-            + ", arguments='" + arguments + '\''
-            + ", children='" + children + '\''
-            + '}';
+                + "id='" + id + '\''
+                + ", arguments='" + arguments + '\''
+                + ", children='" + children + '\''
+                + '}';
     }
 }

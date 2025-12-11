@@ -25,7 +25,9 @@ import org.gradle.internal.operations.BuildOperationType;
  * It may also fail.
  * Load operation results and failures are mutually exclusive.
  */
-public final class BuildCacheRemoteLoadBuildOperationType implements BuildOperationType<BuildCacheRemoteLoadBuildOperationType.Details, BuildCacheRemoteLoadBuildOperationType.Result> {
+public final class BuildCacheRemoteLoadBuildOperationType
+        implements BuildOperationType<
+                BuildCacheRemoteLoadBuildOperationType.Details, BuildCacheRemoteLoadBuildOperationType.Result> {
 
     public interface Details {
 
@@ -33,7 +35,6 @@ public final class BuildCacheRemoteLoadBuildOperationType implements BuildOperat
          * The cache key.
          */
         String getCacheKey();
-
     }
 
     public interface Result {
@@ -48,9 +49,7 @@ public final class BuildCacheRemoteLoadBuildOperationType implements BuildOperat
          * Else undetermined.
          */
         long getArchiveSize();
-
     }
 
-    private BuildCacheRemoteLoadBuildOperationType() {
-    }
+    private BuildCacheRemoteLoadBuildOperationType() {}
 }

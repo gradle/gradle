@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
+import java.io.File;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -23,19 +24,20 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.io.File;
-
-public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
+public class PublishArtifactLocalArtifactMetadata
+        implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
     private final ComponentIdentifier componentIdentifier;
     private final PublishArtifact publishArtifact;
     private final DefaultIvyArtifactName ivyArtifactName;
 
-    public PublishArtifactLocalArtifactMetadata(ComponentIdentifier componentIdentifier, PublishArtifact publishArtifact) {
+    public PublishArtifactLocalArtifactMetadata(
+            ComponentIdentifier componentIdentifier, PublishArtifact publishArtifact) {
         this.componentIdentifier = componentIdentifier;
         this.publishArtifact = publishArtifact;
         // In case the publish artifact is backed by an ArchiveTask, this causes the task to be realized.
         // However, if we are at this point, we need the realized task to determine the archive extension/type later
-        // to set the 'artifactType' attribute required in matching (even if the variant with the artifact is not selected in the end).
+        // to set the 'artifactType' attribute required in matching (even if the variant with the artifact is not
+        // selected in the end).
         ivyArtifactName = DefaultIvyArtifactName.forPublishArtifact(publishArtifact);
     }
 

@@ -17,10 +17,9 @@
 package org.gradle.caching.internal.packaging.impl;
 
 import com.google.common.base.CharMatcher;
-import org.gradle.internal.file.FilePathUtil;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
+import org.gradle.internal.file.FilePathUtil;
 
 public class RelativePathParser {
     private static final CharMatcher IS_SLASH = CharMatcher.is('/');

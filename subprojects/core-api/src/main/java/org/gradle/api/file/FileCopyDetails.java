@@ -144,5 +144,4 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      * @return The path, relative to the root of the containing file tree. Never returns null.
      */
     RelativePath getRelativeSourcePath();
-
 }

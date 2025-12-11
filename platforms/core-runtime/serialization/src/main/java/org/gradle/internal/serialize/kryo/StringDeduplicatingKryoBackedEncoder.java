@@ -19,16 +19,16 @@ package org.gradle.internal.serialize.kryo;
 import com.esotericsoftware.kryo.io.Output;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.OutputStream;
 import org.gradle.internal.serialize.AbstractEncoder;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.PositionAwareEncoder;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.OutputStream;
-
-public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implements PositionAwareEncoder, FlushableEncoder, Closeable {
+public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder
+        implements PositionAwareEncoder, FlushableEncoder, Closeable {
 
     static final int NULL_STRING = 0;
     static final int NEW_STRING = 1;
@@ -129,11 +129,11 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
 
     private void writeNewString(String key) {
         /*
-          Actual stored string indices start from 2 so `0` and `1` can be used as special codes:
-          - 0 for null
-          - 1 for a new string
-          And be efficiently encoded as var ints (writeVarInt/readVarInt) to save even more space.
-         */
+         Actual stored string indices start from 2 so `0` and `1` can be used as special codes:
+         - 0 for null
+         - 1 for a new string
+         And be efficiently encoded as var ints (writeVarInt/readVarInt) to save even more space.
+        */
         int newIndex = strings.size() + 2;
         strings.put(key, newIndex);
         writeStringIndex(NEW_STRING);
@@ -165,5 +165,4 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
     public void done() {
         strings = null;
     }
-
 }

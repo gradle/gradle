@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal;
 
+import static com.google.common.collect.Iterables.transform;
+
 import com.google.common.base.Function;
+import java.util.List;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistry;
-
-import java.util.List;
-
-import static com.google.common.collect.Iterables.transform;
 
 /**
  * Service loader that applies JSR-330 style dependency injection.
@@ -42,14 +41,12 @@ public class DependencyInjectingServiceLoader {
      */
     public <T> Iterable<T> load(Class<T> serviceType, ClassLoader classLoader) {
         final Instantiator instantiator = dependencyInjectingInstantiator();
-        return transform(
-            implementationsOf(serviceType, classLoader),
-            new Function<Class<? extends T>, T>() {
-                @Override
-                public T apply(Class<? extends T> serviceImplementation) {
-                    return instantiator.newInstance(serviceImplementation);
-                }
-            });
+        return transform(implementationsOf(serviceType, classLoader), new Function<Class<? extends T>, T>() {
+            @Override
+            public T apply(Class<? extends T> serviceImplementation) {
+                return instantiator.newInstance(serviceImplementation);
+            }
+        });
     }
 
     private <T> List<Class<? extends T>> implementationsOf(Class<T> serviceType, ClassLoader classLoader) {

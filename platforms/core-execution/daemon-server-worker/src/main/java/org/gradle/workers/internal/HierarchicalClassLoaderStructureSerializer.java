@@ -30,8 +30,10 @@ public class HierarchicalClassLoaderStructureSerializer implements Serializer<Hi
     private static final byte FILTERING_SPEC = (byte) 0;
     private static final byte VISITABLE_URL_CLASSLOADER_SPEC = (byte) 1;
 
-    private final FilteringClassLoaderSpecSerializer filteringClassLoaderSpecSerializer = new FilteringClassLoaderSpecSerializer();
-    private final VisitableURLClassLoaderSpecSerializer visitableURLClassLoaderSpecSerializer = new VisitableURLClassLoaderSpecSerializer();
+    private final FilteringClassLoaderSpecSerializer filteringClassLoaderSpecSerializer =
+            new FilteringClassLoaderSpecSerializer();
+    private final VisitableURLClassLoaderSpecSerializer visitableURLClassLoaderSpecSerializer =
+            new VisitableURLClassLoaderSpecSerializer();
 
     @Override
     public void write(Encoder encoder, HierarchicalClassLoaderStructure classLoaderStructure) throws Exception {
@@ -44,10 +46,12 @@ public class HierarchicalClassLoaderStructureSerializer implements Serializer<Hi
 
         if (classLoaderStructure.getSpec() instanceof FilteringClassLoader.Spec) {
             encoder.writeByte(FILTERING_SPEC);
-            filteringClassLoaderSpecSerializer.write(encoder, (FilteringClassLoader.Spec) classLoaderStructure.getSpec());
+            filteringClassLoaderSpecSerializer.write(
+                    encoder, (FilteringClassLoader.Spec) classLoaderStructure.getSpec());
         } else if (classLoaderStructure.getSpec() instanceof VisitableURLClassLoader.Spec) {
             encoder.writeByte(VISITABLE_URL_CLASSLOADER_SPEC);
-            visitableURLClassLoaderSpecSerializer.write(encoder, (VisitableURLClassLoader.Spec) classLoaderStructure.getSpec());
+            visitableURLClassLoaderSpecSerializer.write(
+                    encoder, (VisitableURLClassLoader.Spec) classLoaderStructure.getSpec());
         }
     }
 

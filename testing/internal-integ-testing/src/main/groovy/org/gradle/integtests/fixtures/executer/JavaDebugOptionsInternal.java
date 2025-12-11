@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.process.internal.JvmOptions;
-
 import static com.google.common.base.Strings.isNullOrEmpty;
+
+import org.gradle.process.internal.JvmOptions;
 
 public class JavaDebugOptionsInternal {
     private boolean enabled = false;
@@ -32,8 +32,7 @@ public class JavaDebugOptionsInternal {
         this.port = port;
     }
 
-    public JavaDebugOptionsInternal() {
-    }
+    public JavaDebugOptionsInternal() {}
 
     public String toDebugArgument() {
         return JvmOptions.getDebugArgument(server, suspend, getAddress());
@@ -79,7 +78,7 @@ public class JavaDebugOptionsInternal {
         this.suspend = suspend;
     }
 
-    public String getAddress(){
+    public String getAddress() {
         String port = Integer.toString(this.port);
         return isNullOrEmpty(host) ? port : host + ":" + port;
     }

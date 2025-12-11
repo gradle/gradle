@@ -19,25 +19,29 @@ package org.gradle.cache.internal;
 import com.google.common.cache.Cache;
 import com.google.common.util.concurrent.Runnables;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import org.gradle.cache.FileLock;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-
-class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V>, InMemoryCacheController {
-    private final static Logger LOG = LoggerFactory.getLogger(InMemoryDecoratedCache.class);
-    private final static Object NULL = new Object();
+class InMemoryDecoratedCache<K, V>
+        implements MultiProcessSafeAsyncPersistentIndexedCache<K, V>, InMemoryCacheController {
+    private static final Logger LOG = LoggerFactory.getLogger(InMemoryDecoratedCache.class);
+    private static final Object NULL = new Object();
     private final MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate;
     private final Cache<Object, Object> inMemoryCache;
     private final String cacheId;
     private final AtomicReference<FileLock.State> fileLockStateReference;
 
-    public InMemoryDecoratedCache(MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate, Cache<Object, Object> inMemoryCache, String cacheId, AtomicReference<FileLock.State> fileLockStateReference) {
+    public InMemoryDecoratedCache(
+            MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate,
+            Cache<Object, Object> inMemoryCache,
+            String cacheId,
+            AtomicReference<FileLock.State> fileLockStateReference) {
         this.delegate = delegate;
         this.inMemoryCache = inMemoryCache;
         this.cacheId = cacheId;

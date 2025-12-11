@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.provider.Provider;
-
-import java.util.Set;
 
 public interface ModuleDependencyCapabilitiesInternal extends ModuleDependencyCapabilitiesHandler {
     Provider<Set<CapabilitySelector>> getCapabilitySelectors();

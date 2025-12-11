@@ -16,13 +16,12 @@
 
 package org.gradle.internal.jacoco;
 
+import javax.inject.Inject;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.testing.jacoco.plugins.JacocoCoverageReport;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
-
-import javax.inject.Inject;
 
 public abstract class DefaultJacocoCoverageReport implements JacocoCoverageReport {
     private final String name;

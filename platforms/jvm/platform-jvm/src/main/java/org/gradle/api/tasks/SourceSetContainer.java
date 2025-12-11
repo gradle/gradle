@@ -23,5 +23,4 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * A {@code SourceSetContainer} manages a set of {@link SourceSet} objects.
  */
 @ServiceScope(Scope.Project.class)
-public interface SourceSetContainer extends NamedDomainObjectContainer<SourceSet> {
-}
+public interface SourceSetContainer extends NamedDomainObjectContainer<SourceSet> {}

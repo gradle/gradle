@@ -16,15 +16,14 @@
 
 package org.gradle.launcher.daemon.server;
 
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE;
+
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
+import java.util.concurrent.TimeUnit;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE;
 
 public class DaemonIdleTimeoutExpirationStrategy implements DaemonExpirationStrategy {
     private final Function<?, Long> idleTimeout;
@@ -46,7 +45,8 @@ public class DaemonIdleTimeoutExpirationStrategy implements DaemonExpirationStra
         long idleMillis = daemon.getStateCoordinator().getIdleMillis();
         boolean idleTimeoutExceeded = idleMillis > idleTimeout.apply(null);
         if (idleTimeoutExceeded) {
-            return new DaemonExpirationResult(QUIET_EXPIRE, EXPIRATION_REASON + " for " + (idleMillis / 60000) + " minutes");
+            return new DaemonExpirationResult(
+                    QUIET_EXPIRE, EXPIRATION_REASON + " for " + (idleMillis / 60000) + " minutes");
         }
         return DaemonExpirationResult.NOT_TRIGGERED;
     }

@@ -19,8 +19,11 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 
 public interface SignatureVerificationResultBuilder {
     void missingKey(String keyId);
+
     void verified(PGPPublicKey key, boolean trusted);
+
     void failed(PGPPublicKey pgpPublicKey);
+
     void ignored(String keyId);
 
     void noSignatures();

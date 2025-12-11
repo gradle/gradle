@@ -16,14 +16,13 @@
 
 package org.gradle.execution.plan.edges;
 
+import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
+
 import com.google.common.collect.ImmutableSortedSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import org.gradle.execution.plan.Node;
-
 import java.util.Iterator;
 import java.util.Set;
-
-import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
+import org.gradle.execution.plan.Node;
 
 /**
  * Maintains the state for the dependencies of a node.
@@ -47,9 +46,11 @@ public class DependencySuccessorsOnlyNodeSet implements DependencyNodesSet {
         if (waitingFor == null) {
             waitingFor = new ObjectOpenHashSet<>();
         }
-        // It would be better to discard dependencies that have already completed at this point, rather than collecting them and checking their state later
+        // It would be better to discard dependencies that have already completed at this point, rather than collecting
+        // them and checking their state later
         // However, it is not always known whether a dependency will be scheduled or not when it is added here.
-        // For example, the dependency may later be filtered from the graph and this set is never notified that it is complete
+        // For example, the dependency may later be filtered from the graph and this set is never notified that it is
+        // complete
         // This lifecycle could be simplified and allow the dependencies to be discarded at this point
         pruned = false;
         waitingFor.add(node);

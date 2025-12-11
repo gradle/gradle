@@ -28,11 +28,13 @@ import org.gradle.model.internal.type.ModelType;
 @Incubating
 public class WriteOnlyModelViewException extends GradleException {
 
-    public WriteOnlyModelViewException(String property, ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
+    public WriteOnlyModelViewException(
+            String property, ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
         super(createMessage(property, path, type, ruleDescriptor));
     }
 
-    private static String createMessage(String property, ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
+    private static String createMessage(
+            String property, ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
         StringBuilder result = new StringBuilder();
         result.append("Attempt to read");
         if (property != null) {

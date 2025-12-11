@@ -29,5 +29,4 @@ public interface InternalPluginIdentifier extends InternalProtocolInterface {
      * Returns the display name of this plugin.
      */
     String getDisplayName();
-
 }

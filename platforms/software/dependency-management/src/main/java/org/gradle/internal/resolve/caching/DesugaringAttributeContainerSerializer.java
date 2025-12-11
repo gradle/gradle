@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.resolve.caching;
 
+import java.io.IOException;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -25,8 +26,6 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
-
-import java.io.IOException;
 
 /**
  * A thread-safe and reusable attribute container serializer that will desugar typed attributes.
@@ -43,7 +42,8 @@ public class DesugaringAttributeContainerSerializer implements AttributeContaine
     private static final byte DESUGARED_ATTRIBUTE = 3;
     private static final byte INTEGER_ATTRIBUTE = 4;
 
-    public DesugaringAttributeContainerSerializer(AttributesFactory attributesFactory, NamedObjectInstantiator namedObjectInstantiator) {
+    public DesugaringAttributeContainerSerializer(
+            AttributesFactory attributesFactory, NamedObjectInstantiator namedObjectInstantiator) {
         this.attributesFactory = attributesFactory;
         this.namedObjectInstantiator = namedObjectInstantiator;
     }
@@ -56,16 +56,20 @@ public class DesugaringAttributeContainerSerializer implements AttributeContaine
             String name = decoder.readString();
             byte type = decoder.readByte();
             if (type == BOOLEAN_ATTRIBUTE) {
-                attributes = attributesFactory.concat(attributes, Attribute.of(name, Boolean.class), decoder.readBoolean());
-            } else if (type == STRING_ATTRIBUTE){
+                attributes =
+                        attributesFactory.concat(attributes, Attribute.of(name, Boolean.class), decoder.readBoolean());
+            } else if (type == STRING_ATTRIBUTE) {
                 String value = decoder.readString();
                 attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), value);
-            } else if (type == INTEGER_ATTRIBUTE){
+            } else if (type == INTEGER_ATTRIBUTE) {
                 int value = decoder.readInt();
                 attributes = attributesFactory.concat(attributes, Attribute.of(name, Integer.class), value);
             } else if (type == DESUGARED_ATTRIBUTE) {
                 String value = decoder.readString();
-                attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), new CoercingStringValueSnapshot(value, namedObjectInstantiator));
+                attributes = attributesFactory.concat(
+                        attributes,
+                        Attribute.of(name, String.class),
+                        new CoercingStringValueSnapshot(value, namedObjectInstantiator));
             }
         }
         return attributes;
@@ -79,10 +83,10 @@ public class DesugaringAttributeContainerSerializer implements AttributeContaine
             if (attribute.getType().equals(Boolean.class)) {
                 encoder.writeByte(BOOLEAN_ATTRIBUTE);
                 encoder.writeBoolean((Boolean) container.getAttribute(attribute));
-            } else if (attribute.getType().equals(String.class)){
+            } else if (attribute.getType().equals(String.class)) {
                 encoder.writeByte(STRING_ATTRIBUTE);
                 encoder.writeString((String) container.getAttribute(attribute));
-            } else if (attribute.getType().equals(Integer.class)){
+            } else if (attribute.getType().equals(Integer.class)) {
                 encoder.writeByte(INTEGER_ATTRIBUTE);
                 encoder.writeInt((Integer) container.getAttribute(attribute));
             } else {

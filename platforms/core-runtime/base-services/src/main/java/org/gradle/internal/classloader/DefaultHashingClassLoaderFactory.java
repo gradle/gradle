@@ -15,20 +15,20 @@
  */
 package org.gradle.internal.classloader;
 
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.Hashing;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 
 public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory implements HashingClassLoaderFactory {
     private final ClasspathHasher classpathHasher;
-    private final Map<ClassLoader, HashCode> hashCodes = Collections.synchronizedMap(new WeakHashMap<ClassLoader, HashCode>());
+    private final Map<ClassLoader, HashCode> hashCodes =
+            Collections.synchronizedMap(new WeakHashMap<ClassLoader, HashCode>());
 
     public DefaultHashingClassLoaderFactory(ClasspathHasher classpathHasher) {
         this.classpathHasher = classpathHasher;
@@ -49,10 +49,9 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
     }
 
     @Override
-    public ClassLoader createChildClassLoader(String name, ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
-        HashCode hashCode = implementationHash != null
-            ? implementationHash
-            : calculateClassLoaderHash(classPath);
+    public ClassLoader createChildClassLoader(
+            String name, ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
+        HashCode hashCode = implementationHash != null ? implementationHash : calculateClassLoaderHash(classPath);
         ClassLoader classLoader = super.doCreateClassLoader(name, parent, classPath);
         hashCodes.put(classLoader, hashCode);
         return classLoader;

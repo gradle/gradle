@@ -16,17 +16,16 @@
 
 package org.gradle.internal.resource;
 
+import java.io.File;
+import java.io.Reader;
+import java.io.StringReader;
+import java.nio.charset.Charset;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.PrimitiveHasher;
-
-import java.io.File;
-import java.io.Reader;
-import java.io.StringReader;
-import java.nio.charset.Charset;
 
 public class CachingTextResource implements TextResource {
     private static final HashCode SIGNATURE = Hashing.signature(CachingTextResource.class);

@@ -16,6 +16,8 @@
 package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
@@ -56,9 +58,6 @@ import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
  */
@@ -80,16 +79,16 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         LoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
 
-        return new WithLogging(loggingServices,
-            args,
-            loggingConfiguration,
-            new ParseAndBuildAction(loggingServices, args),
-            new BuildExceptionReporter(
-                loggingServices.get(StyledTextOutputFactory.class),
+        return new WithLogging(
+                loggingServices,
+                args,
                 loggingConfiguration,
-                clientMetaData(),
-                DefaultFailureFactory.withDefaultClassifier()
-            ));
+                new ParseAndBuildAction(loggingServices, args),
+                new BuildExceptionReporter(
+                        loggingServices.get(StyledTextOutputFactory.class),
+                        loggingConfiguration,
+                        clientMetaData(),
+                        DefaultFailureFactory.withDefaultClassifier()));
     }
 
     private static BuildClientMetaData clientMetaData() {
@@ -105,7 +104,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
      * @param actionCreators collection of {@link CommandLineActionCreator}s to which to add a new {@link BuildActionsFactory}
      */
     @VisibleForTesting
-    protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, ServiceRegistry basicServices, List<CommandLineActionCreator> actionCreators) {
+    protected void createBuildActionFactoryActionCreator(
+            ServiceRegistry loggingServices,
+            ServiceRegistry basicServices,
+            List<CommandLineActionCreator> actionCreators) {
         actionCreators.add(new BuildActionsFactory(loggingServices, basicServices));
     }
 
@@ -129,7 +131,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         @Nullable
-        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
+        public Action<? super ExecutionListener> createAction(
+                CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
             if (commandLine.hasOption(HELP)) {
                 return new ShowUsageAction(parser, commandLine);
             }
@@ -146,9 +149,11 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     private static class ContinuingActionCreator extends NonParserConfiguringCommandLineActionCreator {
         @Override
         @Nullable
-        public ContinuingAction<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
+        public ContinuingAction<? super ExecutionListener> createAction(
+                CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
             if (commandLine.hasOption(DefaultCommandLineActionFactory.VERSION_CONTINUE)) {
-                return (ContinuingAction<ExecutionListener>) executionListener -> new ShowVersionAction(parameters).execute(executionListener);
+                return (ContinuingAction<ExecutionListener>)
+                        executionListener -> new ShowVersionAction(parameters).execute(executionListener);
             }
             return null;
         }
@@ -220,7 +225,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         public void execute(ExecutionListener executionListener) {
-            String versionInfo = VersionInfoRenderer.renderWithLauncherJvm(parameters.getDaemonParameters().getRequestedJvmCriteria().toString());
+            String versionInfo = VersionInfoRenderer.renderWithLauncherJvm(
+                    parameters.getDaemonParameters().getRequestedJvmCriteria().toString());
             System.out.print(versionInfo);
         }
     }
@@ -252,12 +258,13 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         @Override
         public void execute(ExecutionListener executionListener) {
             ServiceRegistry basicServices = createBasicGlobalServices(loggingServices);
-            BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
-                new BuildLayoutFactory(),
-                basicServices.get(FileCollectionFactory.class));
+            BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter =
+                    new BuildEnvironmentConfigurationConverter(
+                            new BuildLayoutFactory(), basicServices.get(FileCollectionFactory.class));
             buildEnvironmentConfigurationConverter.configure(parser);
 
-            // This must be added only during execute, because the actual constructor is called by various tests and this will not succeed if called then
+            // This must be added only during execute, because the actual constructor is called by various tests and
+            // this will not succeed if called then
             createBuildActionFactoryActionCreator(loggingServices, basicServices, actionCreators);
             configureCreators();
 
@@ -277,7 +284,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             actionCreators.forEach(creator -> creator.configureCommandLineParser(parser));
         }
 
-        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
+        public Action<? super ExecutionListener> createAction(
+                CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
             List<Action<? super ExecutionListener>> actions = new ArrayList<>(2);
             for (CommandLineActionCreator actionCreator : actionCreators) {
                 Action<? super ExecutionListener> action = actionCreator.createAction(parser, commandLine, parameters);
@@ -300,19 +308,19 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     @VisibleForTesting
     public ServiceRegistry createBasicGlobalServices(ServiceRegistry loggingServices) {
         return ServiceRegistryBuilder.builder()
-            .scopeStrictly(Scope.Global.class)
-            .displayName("Basic global services")
-            .parent(loggingServices)
-            .parent(NativeServices.getInstance())
-            .provider(new BasicGlobalScopeServices())
-            .build();
+                .scopeStrictly(Scope.Global.class)
+                .displayName("Basic global services")
+                .parent(loggingServices)
+                .parent(NativeServices.getInstance())
+                .provider(new BasicGlobalScopeServices())
+                .build();
     }
 
     /**
      * Abstract type for any {@link CommandLineActionCreator} that does not make use of the {@link #configureCommandLineParser(CommandLineParser)}
      * method.
      */
-    private static abstract class NonParserConfiguringCommandLineActionCreator implements CommandLineActionCreator {
+    private abstract static class NonParserConfiguringCommandLineActionCreator implements CommandLineActionCreator {
         @Override
         public void configureCommandLineParser(CommandLineParser parser) {
             // no-op
@@ -326,7 +334,12 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         private final Action<ExecutionListener> action;
         private final Action<Throwable> reporter;
 
-        WithLogging(ServiceRegistry loggingServices, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action, Action<Throwable> reporter) {
+        WithLogging(
+                ServiceRegistry loggingServices,
+                List<String> args,
+                LoggingConfiguration loggingConfiguration,
+                Action<ExecutionListener> action,
+                Action<Throwable> reporter) {
             this.loggingServices = loggingServices;
             this.args = args;
             this.loggingConfiguration = loggingConfiguration;
@@ -336,11 +349,14 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         public void execute(ExecutionListener executionListener) {
-            BuildOptionBackedConverter<WelcomeMessageConfiguration> welcomeMessageConverter = new BuildOptionBackedConverter<>(new WelcomeMessageBuildOptions());
-            BuildOptionBackedConverter<LoggingConfiguration> loggingBuildOptions = new BuildOptionBackedConverter<>(new LoggingConfigurationBuildOptions());
+            BuildOptionBackedConverter<WelcomeMessageConfiguration> welcomeMessageConverter =
+                    new BuildOptionBackedConverter<>(new WelcomeMessageBuildOptions());
+            BuildOptionBackedConverter<LoggingConfiguration> loggingBuildOptions =
+                    new BuildOptionBackedConverter<>(new LoggingConfigurationBuildOptions());
             InitialPropertiesConverter propertiesConverter = new InitialPropertiesConverter();
             BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
-            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(new BuildLayoutFactory());
+            LayoutToPropertiesConverter layoutToPropertiesConverter =
+                    new LayoutToPropertiesConverter(new BuildLayoutFactory());
 
             BuildLayoutResult buildLayout = buildLayoutConverter.defaultValues();
 
@@ -352,7 +368,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             parser.allowUnknownOptions();
             parser.allowMixedSubcommandsAndOptions();
 
-            WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
+            WelcomeMessageConfiguration welcomeMessageConfiguration =
+                    new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
 
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
@@ -368,20 +385,28 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 loggingBuildOptions.convert(parsedCommandLine, properties.getProperties(), loggingConfiguration);
 
                 // Get configuration for showing the welcome message
-                welcomeMessageConverter.convert(parsedCommandLine, properties.getProperties(), welcomeMessageConfiguration);
+                welcomeMessageConverter.convert(
+                        parsedCommandLine, properties.getProperties(), welcomeMessageConfiguration);
             } catch (CommandLineArgumentException e) {
                 // Ignore, deal with this problem later
             }
 
-            LoggingManagerInternal loggingManager = loggingServices.get(LoggingManagerFactory.class).createLoggingManager();
+            LoggingManagerInternal loggingManager =
+                    loggingServices.get(LoggingManagerFactory.class).createLoggingManager();
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
             loggingManager.start();
             try {
-                Action<ExecutionListener> exceptionReportingAction =
-                    new ExceptionReportingAction(reporter, loggingManager,
-                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
-                            new WelcomeMessageAction(buildLayout, welcomeMessageConfiguration,
-                                new DebugLoggerWarningAction(loggingConfiguration, action))));
+                Action<ExecutionListener> exceptionReportingAction = new ExceptionReportingAction(
+                        reporter,
+                        loggingManager,
+                        new NativeServicesInitializingAction(
+                                buildLayout,
+                                loggingConfiguration,
+                                loggingManager,
+                                new WelcomeMessageAction(
+                                        buildLayout,
+                                        welcomeMessageConfiguration,
+                                        new DebugLoggerWarningAction(loggingConfiguration, action))));
                 exceptionReportingAction.execute(executionListener);
             } finally {
                 loggingManager.stop();

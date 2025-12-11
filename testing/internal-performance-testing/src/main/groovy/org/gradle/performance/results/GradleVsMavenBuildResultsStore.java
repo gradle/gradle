@@ -21,5 +21,4 @@ public class GradleVsMavenBuildResultsStore extends BaseCrossBuildResultsStore<G
     public GradleVsMavenBuildResultsStore() {
         super("gvsm-build-results");
     }
-
 }

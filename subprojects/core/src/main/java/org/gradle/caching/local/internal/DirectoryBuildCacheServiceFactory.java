@@ -16,6 +16,12 @@
 
 package org.gradle.caching.local.internal;
 
+import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.function.Supplier;
+import javax.inject.Inject;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheCleanupStrategyFactory;
@@ -32,13 +38,6 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.function.Supplier;
-
-import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
 
 public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
     public static final String FAILED_READ_SUFFIX = ".failed";
@@ -57,13 +56,12 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
 
     @Inject
     public DirectoryBuildCacheServiceFactory(
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        PathToFileResolver resolver,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
-    ) {
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            PathToFileResolver resolver,
+            FileAccessTimeJournal fileAccessTimeJournal,
+            CacheConfigurationsInternal cacheConfigurations,
+            CacheCleanupStrategyFactory cacheCleanupStrategyFactory) {
         this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
         this.cacheBuilderFactory = cacheBuilderFactory;
         this.resolver = resolver;
@@ -85,30 +83,33 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
 
         DirectoryBuildCacheEntryRetention entryExpiration = new DirectoryBuildCacheEntryRetention(cacheConfigurations);
 
-        describer.type(DIRECTORY_BUILD_CACHE_TYPE).
-            config("location", target.getAbsolutePath()).
-            config("remove unused entries", entryExpiration.getDescription());
+        describer
+                .type(DIRECTORY_BUILD_CACHE_TYPE)
+                .config("location", target.getAbsolutePath())
+                .config("remove unused entries", entryExpiration.getDescription());
 
         PersistentCache persistentCache = unscopedCacheBuilderFactory
-            .cache(target)
-            .withCleanupStrategy(createCacheCleanupStrategy(entryExpiration.getEntryRetentionTimestampSupplier()))
-            .withDisplayName("Build cache")
-            .withInitialLockMode(OnDemand)
-            .open();
-        FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+                .cache(target)
+                .withCleanupStrategy(createCacheCleanupStrategy(entryExpiration.getEntryRetentionTimestampSupplier()))
+                .withDisplayName("Build cache")
+                .withInitialLockMode(OnDemand)
+                .open();
+        FileAccessTracker fileAccessTracker =
+                new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
 
         return new DirectoryBuildCacheService(persistentCache, fileAccessTracker, FAILED_READ_SUFFIX);
     }
 
     private CacheCleanupStrategy createCacheCleanupStrategy(Supplier<Long> removeUnusedEntriesTimestamp) {
         return cacheCleanupStrategyFactory.create(
-            createCleanupAction(removeUnusedEntriesTimestamp),
-            cacheConfigurations.getCleanupFrequency()::get
-        );
+                createCleanupAction(removeUnusedEntriesTimestamp), cacheConfigurations.getCleanupFrequency()::get);
     }
 
     private LeastRecentlyUsedCacheCleanup createCleanupAction(Supplier<Long> removeUnusedEntriesTimestamp) {
-        return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, removeUnusedEntriesTimestamp);
+        return new LeastRecentlyUsedCacheCleanup(
+                new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
+                fileAccessTimeJournal,
+                removeUnusedEntriesTimestamp);
     }
 
     private static void checkDirectory(File directory) {
@@ -124,7 +125,8 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             }
         } else {
             if (!directory.mkdirs()) {
-                throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not create cache directory: %s", directory)), true);
+                throw UncheckedException.throwAsUncheckedException(
+                        new IOException(String.format("Could not create cache directory: %s", directory)), true);
             }
         }
     }

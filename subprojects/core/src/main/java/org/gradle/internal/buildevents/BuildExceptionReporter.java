@@ -15,7 +15,30 @@
  */
 package org.gradle.internal.buildevents;
 
+import static java.lang.String.join;
+import static org.apache.commons.lang3.StringUtils.repeat;
+import static org.gradle.api.logging.LogLevel.DEBUG;
+import static org.gradle.api.logging.LogLevel.INFO;
+import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption.LONG_OPTION;
+import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption.DEBUG_LONG_OPTION;
+import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption.INFO_LONG_OPTION;
+import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.StacktraceOption.STACKTRACE_LONG_OPTION;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
+
 import com.google.common.collect.ImmutableList;
+import java.io.StringWriter;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
+import java.util.function.Consumer;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -44,30 +67,6 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.io.StringWriter;
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static java.lang.String.join;
-import static org.apache.commons.lang3.StringUtils.repeat;
-import static org.gradle.api.logging.LogLevel.DEBUG;
-import static org.gradle.api.logging.LogLevel.INFO;
-import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption.LONG_OPTION;
-import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption.DEBUG_LONG_OPTION;
-import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption.INFO_LONG_OPTION;
-import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.StacktraceOption.STACKTRACE_LONG_OPTION;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
-
 /**
  * Reports the build exception, if any.
  */
@@ -80,7 +79,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     @NullMarked
     private enum ExceptionStyle {
-        NONE, FULL
+        NONE,
+        FULL
     }
 
     private final StyledTextOutputFactory textOutputFactory;
@@ -90,12 +90,11 @@ public class BuildExceptionReporter implements Action<Throwable> {
     private final FailureFactory failureFactory;
 
     public BuildExceptionReporter(
-        StyledTextOutputFactory textOutputFactory,
-        LoggingConfiguration loggingConfiguration,
-        BuildClientMetaData clientMetaData,
-        @Nullable GradleEnterprisePluginManager gradleEnterprisePluginManager,
-        FailureFactory failureFactory
-    ) {
+            StyledTextOutputFactory textOutputFactory,
+            LoggingConfiguration loggingConfiguration,
+            BuildClientMetaData clientMetaData,
+            @Nullable GradleEnterprisePluginManager gradleEnterprisePluginManager,
+            FailureFactory failureFactory) {
         this.textOutputFactory = textOutputFactory;
         this.loggingConfiguration = loggingConfiguration;
         this.clientMetaData = clientMetaData;
@@ -104,18 +103,11 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     public BuildExceptionReporter(
-        StyledTextOutputFactory textOutputFactory,
-        LoggingConfiguration loggingConfiguration,
-        BuildClientMetaData clientMetaData,
-        FailureFactory failureFactory
-    ) {
-        this(
-            textOutputFactory,
-            loggingConfiguration,
-            clientMetaData,
-            null,
-            failureFactory
-        );
+            StyledTextOutputFactory textOutputFactory,
+            LoggingConfiguration loggingConfiguration,
+            BuildClientMetaData clientMetaData,
+            FailureFactory failureFactory) {
+        this(textOutputFactory, loggingConfiguration, clientMetaData, null, failureFactory);
     }
 
     public void buildFinished(@Nullable Failure failure) {
@@ -245,8 +237,10 @@ public class BuildExceptionReporter implements Action<Throwable> {
         public void node(Failure node) {
             if (shouldBePrinted(node)) {
                 // We use the original here, since identity is not preserved when converting to a Failure.
-                // And we still want to report branches even if the most deep exception is the same as the one on another branch.
-                // For example, if you run into timeouts when resolving two different dependencies, we still want to report both.
+                // And we still want to report branches even if the most deep exception is the same as the one on
+                // another branch.
+                // For example, if you run into timeouts when resolving two different dependencies, we still want to
+                // report both.
                 // And the dependency that is being resolved is only part of the context, not part of the root cause.
                 printedNodes.add(node.getOriginal());
                 if (node.getCauses().isEmpty() || isUsefulMessage(getMessage(node))) {
@@ -254,7 +248,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
                     renderStyledError(node, output);
                 }
             } else {
-                // Only increment the suppressed branch count for the ultimate cause of the failure, which has no cause itself
+                // Only increment the suppressed branch count for the ultimate cause of the failure, which has no cause
+                // itself
                 if (node.getCauses().isEmpty()) {
                     suppressedDuplicateBranchCount++;
                 }
@@ -326,7 +321,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
                 LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
                 boolean plural = suppressedDuplicateBranchCount > 1;
                 if (plural) {
-                    output.append(String.format("There are %d more failures with identical causes.", suppressedDuplicateBranchCount));
+                    output.append(String.format(
+                            "There are %d more failures with identical causes.", suppressedDuplicateBranchCount));
                 } else {
                     output.append("There is 1 more failure with an identical cause.");
                 }
@@ -340,16 +336,14 @@ public class BuildExceptionReporter implements Action<Throwable> {
             ((FailureResolutionAware) details.failure.getOriginal()).appendResolutions(context);
         }
         getResolutions(details.failure).stream()
-            .distinct()
-            .forEach(resolution ->
-                context.appendResolution(output ->
-                    output.text(join("\n " + LINE_PREFIX_LENGTH_SPACES, resolution.split("\n"))))
-            );
-        boolean shouldDisplayGenericResolutions = !hasCauseAncestry(details.failure, NonGradleCause.class) && !hasProblemReportsWithSolutions(details.failure);
+                .distinct()
+                .forEach(resolution -> context.appendResolution(
+                        output -> output.text(join("\n " + LINE_PREFIX_LENGTH_SPACES, resolution.split("\n")))));
+        boolean shouldDisplayGenericResolutions = !hasCauseAncestry(details.failure, NonGradleCause.class)
+                && !hasProblemReportsWithSolutions(details.failure);
         if (details.exceptionStyle == ExceptionStyle.NONE && shouldDisplayGenericResolutions) {
-            context.appendResolution(output ->
-                runWithOption(output, STACKTRACE_LONG_OPTION, " option to get the stack trace.")
-            );
+            context.appendResolution(
+                    output -> runWithOption(output, STACKTRACE_LONG_OPTION, " option to get the stack trace."));
         }
 
         LogLevel logLevel = loggingConfiguration.getLogLevel();
@@ -377,8 +371,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     private static boolean hasProblemReportsWithSolutions(Failure failure) {
         Optional<String> solution = failure.getProblems().stream()
-            .flatMap(p -> p.getSolutions().stream())
-            .findFirst();
+                .flatMap(p -> p.getSolutions().stream())
+                .findFirst();
         if (solution.isPresent()) {
             return true;
         } else {
@@ -416,7 +410,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private void addBuildScanMessage(ContextImpl context) {
-        context.appendResolution(output -> runWithOption(output, LONG_OPTION, " to get full insights from a Build Scan (powered by Develocity)."));
+        context.appendResolution(output ->
+                runWithOption(output, LONG_OPTION, " to get full insights from a Build Scan (powered by Develocity)."));
     }
 
     private boolean isGradleEnterprisePluginApplied() {
@@ -444,9 +439,11 @@ public class BuildExceptionReporter implements Action<Throwable> {
                 ProblemWriter.grouping().write(problems, problemWriter);
                 builder.append(problemWriter);
 
-                // Workaround to keep the original behavior for Java compilation. We should render counters for all problems in the future.
+                // Workaround to keep the original behavior for Java compilation. We should render counters for all
+                // problems in the future.
                 if (failure.getOriginal() instanceof CompilationFailedIndicator) {
-                    String diagnosticCounts = ((CompilationFailedIndicator) failure.getOriginal()).getDiagnosticCounts();
+                    String diagnosticCounts =
+                            ((CompilationFailedIndicator) failure.getOriginal()).getDiagnosticCounts();
                     if (diagnosticCounts != null) {
                         builder.append(System.lineSeparator());
                         builder.append(diagnosticCounts);
@@ -462,7 +459,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
             }
             return String.format("%s %s", failure.getExceptionType().getName(), NO_ERROR_MESSAGE_INDICATOR);
         } catch (Throwable t) {
-            return String.format("Unable to get message for failure of type %s due to %s", failure.getExceptionType().getSimpleName(), t.getMessage());
+            return String.format(
+                    "Unable to get message for failure of type %s due to %s",
+                    failure.getExceptionType().getSimpleName(), t.getMessage());
         }
     }
 
@@ -473,7 +472,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
         writeSection(details.stackTrace, output, "* Exception is:");
     }
 
-    private static void writeSection(BufferingStyledTextOutput textOutput, StyledTextOutput output, String sectionTitle) {
+    private static void writeSection(
+            BufferingStyledTextOutput textOutput, StyledTextOutput output, String sectionTitle) {
         if (textOutput.getHasContent()) {
             output.println();
             output.println(sectionTitle);
@@ -553,8 +553,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         @Override
         public void appendDocumentationResolution(String prefix, String userGuideId, String userGuideSection) {
-            appendResolution(output -> output.text(documentationRegistry.getDocumentationRecommendationFor(prefix, userGuideId, userGuideSection)));
+            appendResolution(output -> output.text(
+                    documentationRegistry.getDocumentationRecommendationFor(prefix, userGuideId, userGuideSection)));
         }
     }
-
 }

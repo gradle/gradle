@@ -22,7 +22,8 @@ package org.gradle.language.swift;
  * @since 4.6
  */
 public enum SwiftVersion {
-    SWIFT3(3), SWIFT4(4),
+    SWIFT3(3),
+    SWIFT4(4),
 
     /**
      * Swift 5 major version.

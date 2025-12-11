@@ -17,13 +17,12 @@
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Describes the set of filtered XCTests.
@@ -50,7 +49,7 @@ public class XCTestSelection {
     }
 
     private void removeLogicalDuplication(Set<String> testSuiteCache) {
-        for (Iterator<String> it = includedTests.iterator(); it.hasNext();) {
+        for (Iterator<String> it = includedTests.iterator(); it.hasNext(); ) {
             String includedTest = it.next();
             if (isIncludedTestCase(includedTest)) {
                 if (testSuiteCache.contains(getTestSuiteName(includedTest))) {
@@ -82,7 +81,8 @@ public class XCTestSelection {
 
     private String disallowForwardSlash(String testFilter) {
         if (testFilter.contains("/")) {
-            throw new IllegalArgumentException(String.format("'%s' is an invalid pattern. Patterns cannot contain forward slash.", testFilter));
+            throw new IllegalArgumentException(
+                    String.format("'%s' is an invalid pattern. Patterns cannot contain forward slash.", testFilter));
         }
         return testFilter;
     }
@@ -90,7 +90,8 @@ public class XCTestSelection {
     private String prepareIncludedTest(String testFilter, Set<String> testSuiteCache) {
         String[] tokens = StringUtils.splitPreserveAllTokens(testFilter, '.');
         if (tokens.length > 3) {
-            throw new IllegalArgumentException(String.format("'%s' is an invalid pattern. Patterns should have one or two dots.", testFilter));
+            throw new IllegalArgumentException(
+                    String.format("'%s' is an invalid pattern. Patterns should have one or two dots.", testFilter));
         } else if (tokens.length == 3) {
             if (WILDCARD.equals(tokens[2])) {
                 String filter = tokens[0] + "." + tokens[1];

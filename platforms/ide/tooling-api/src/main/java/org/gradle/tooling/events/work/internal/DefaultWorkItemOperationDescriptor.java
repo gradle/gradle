@@ -21,7 +21,8 @@ import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.work.WorkItemOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
 
-public class DefaultWorkItemOperationDescriptor extends DefaultOperationDescriptor implements WorkItemOperationDescriptor {
+public class DefaultWorkItemOperationDescriptor extends DefaultOperationDescriptor
+        implements WorkItemOperationDescriptor {
 
     private final String className;
 
@@ -34,5 +35,4 @@ public class DefaultWorkItemOperationDescriptor extends DefaultOperationDescript
     public String getClassName() {
         return className;
     }
-
 }

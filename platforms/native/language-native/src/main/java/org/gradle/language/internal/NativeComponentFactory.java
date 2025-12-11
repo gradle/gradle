@@ -28,5 +28,6 @@ public interface NativeComponentFactory {
     /**
      * Creates a new top-level component.
      */
-    <P extends SoftwareComponent, I extends P> I newInstance(Class<P> publicType, Class<I> implementationType, String name);
+    <P extends SoftwareComponent, I extends P> I newInstance(
+            Class<P> publicType, Class<I> implementationType, String name);
 }

@@ -15,11 +15,10 @@
  */
 package org.gradle.internal.remote.internal;
 
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.FlushableEncoder;
-
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.FlushableEncoder;
 
 public interface MessageSerializer {
     /**

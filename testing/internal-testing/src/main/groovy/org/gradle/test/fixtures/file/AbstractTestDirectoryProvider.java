@@ -17,16 +17,14 @@
 package org.gradle.test.fixtures.file;
 
 import groovy.lang.Closure;
+import java.io.IOException;
+import java.util.Random;
+import java.util.regex.Pattern;
 import org.gradle.api.GradleException;
 import org.gradle.test.fixtures.ConcurrentTestUtil;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-
-import java.io.IOException;
-import java.util.Random;
-import java.util.regex.Pattern;
-
 
 /**
  * A JUnit rule which provides a unique temporary folder for the test.
@@ -42,7 +40,8 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
     private static final Random RANDOM = new Random();
     private static final int ALL_DIGITS_AND_LETTERS_RADIX = 36;
     private static final int MAX_RANDOM_PART_VALUE = Integer.parseInt("zzzzz", ALL_DIGITS_AND_LETTERS_RADIX);
-    private static final Pattern WINDOWS_RESERVED_NAMES = Pattern.compile("(con)|(prn)|(aux)|(nul)|(com\\d)|(lpt\\d)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern WINDOWS_RESERVED_NAMES =
+            Pattern.compile("(con)|(prn)|(aux)|(nul)|(com\\d)|(lpt\\d)", Pattern.CASE_INSENSITIVE);
 
     private String prefix;
     private TestFile dir;
@@ -119,8 +118,8 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
 
         private boolean suppressCleanupErrors() {
             return suppressCleanupErrors
-                || testClass().getAnnotation(LeaksFileHandles.class) != null
-                || description.getAnnotation(LeaksFileHandles.class) != null;
+                    || testClass().getAnnotation(LeaksFileHandles.class) != null
+                    || description.getAnnotation(LeaksFileHandles.class) != null;
         }
 
         private Class<?> testClass() {
@@ -129,7 +128,7 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
 
         private String cleanupErrorMessage() {
             return "Couldn't delete test dir for `" + displayName() + "` (test is holding files open). "
-                + "In order to find out which files are held open, you may find `org.gradle.integtests.fixtures.executer.GradleExecuter.withFileLeakDetection` useful.";
+                    + "In order to find out which files are held open, you may find `org.gradle.integtests.fixtures.executer.GradleExecuter.withFileLeakDetection` useful.";
         }
 
         private String displayName() {
@@ -149,8 +148,8 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
     }
 
     /*
-     Shorten a long name to at most {expectedMaxLength}, replace middle characters with ".".
-     */
+    Shorten a long name to at most {expectedMaxLength}, replace middle characters with ".".
+    */
     private String shortenPath(String longName, int expectedMaxLength) {
         if (longName.length() <= expectedMaxLength) {
             return longName;
@@ -173,7 +172,8 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
             String randomPrefix = Integer.toString(RANDOM.nextInt(MAX_RANDOM_PART_VALUE), ALL_DIGITS_AND_LETTERS_RADIX);
             if (WINDOWS_RESERVED_NAMES.matcher(randomPrefix).matches() || Character.isDigit(randomPrefix.charAt(0))) {
                 // project name starting with digit may cause troubles:
-                // Cannot generate project dependency accessors because project '1mg78' doesn't follow the naming convention: [a-zA-Z]([A-Za-z0-9\-_])*
+                // Cannot generate project dependency accessors because project '1mg78' doesn't follow the naming
+                // convention: [a-zA-Z]([A-Za-z0-9\-_])*
                 continue;
             }
             TestFile dir = root.file(getPrefix(), randomPrefix);

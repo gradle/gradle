@@ -45,5 +45,4 @@ public interface MavenPomScm {
      * The tag of current code in this SCM.
      */
     Property<String> getTag();
-
 }

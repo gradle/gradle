@@ -22,7 +22,8 @@ import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.jspecify.annotations.Nullable;
 
-public abstract class EnvironmentVariableValueSource implements ValueSource<String, EnvironmentVariableValueSource.Parameters>, Describable {
+public abstract class EnvironmentVariableValueSource
+        implements ValueSource<String, EnvironmentVariableValueSource.Parameters>, Describable {
 
     public interface Parameters extends ValueSourceParameters {
         Property<String> getVariableName();

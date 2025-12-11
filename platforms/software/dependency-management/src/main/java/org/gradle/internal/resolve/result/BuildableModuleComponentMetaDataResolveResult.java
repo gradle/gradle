@@ -24,9 +24,14 @@ import org.jspecify.annotations.Nullable;
  *
  * @param <T> the resolution result type
  */
-public interface BuildableModuleComponentMetaDataResolveResult<T> extends ResourceAwareResolveResult, ErroringResolveResult<ModuleVersionResolveException> {
+public interface BuildableModuleComponentMetaDataResolveResult<T>
+        extends ResourceAwareResolveResult, ErroringResolveResult<ModuleVersionResolveException> {
     enum State {
-        Resolved, Missing, Failed, Unknown, Redirect
+        Resolved,
+        Missing,
+        Failed,
+        Unknown,
+        Redirect
     }
 
     /**

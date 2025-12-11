@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import java.util.List;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
@@ -25,13 +26,13 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
 
-import java.util.List;
-
-public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<DefaultModelBuilder<T>> implements ModelBuilder<T> {
+public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<DefaultModelBuilder<T>>
+        implements ModelBuilder<T> {
     private final Class<T> modelType;
     private final AsyncConsumerActionExecutor connection;
 
-    public DefaultModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
+    public DefaultModelBuilder(
+            Class<T> modelType, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
         this.modelType = modelType;
         this.connection = connection;
@@ -53,23 +54,28 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
     @Override
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
-        connection.run(new ConsumerAction<T>() {
-            @Override
-            public ConsumerOperationParameters getParameters() {
-                return operationParameters;
-            }
-            @Override
-            public T run(ConsumerConnection connection) {
-                T model = connection.run(modelType, operationParameters);
-                return model;
-            }
-        }, new ResultHandlerAdapter<T>(handler));
+        connection.run(
+                new ConsumerAction<T>() {
+                    @Override
+                    public ConsumerOperationParameters getParameters() {
+                        return operationParameters;
+                    }
+
+                    @Override
+                    public T run(ConsumerConnection connection) {
+                        T model = connection.run(modelType, operationParameters);
+                        return model;
+                    }
+                },
+                new ResultHandlerAdapter<T>(handler));
     }
 
     @Override
     public DefaultModelBuilder<T> forTasks(String... tasks) {
-        // only set a non-null task list on the operationParamsBuilder if at least one task has been given to this method,
-        // this is needed since any non-null list, even if empty, is treated as 'execute these tasks before building the model'
+        // only set a non-null task list on the operationParamsBuilder if at least one task has been given to this
+        // method,
+        // this is needed since any non-null list, even if empty, is treated as 'execute these tasks before building the
+        // model'
         // this would cause an error when fetching the BuildEnvironment model
         List<String> rationalizedTasks = rationalizeInput(tasks);
         operationParamsBuilder.setTasks(rationalizedTasks);
@@ -84,16 +90,22 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
 
     private class ResultHandlerAdapter<R> extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<R> {
         public ResultHandlerAdapter(ResultHandler<? super R> handler) {
-            super(handler, DefaultModelBuilder.this.createExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
-                @Override
-                public String getConnectionFailureMessage(Throwable failure) {
-                    String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
-                    if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
-                        message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
-                    }
-                    return message;
-                }
-            }));
+            super(
+                    handler,
+                    DefaultModelBuilder.this.createExceptionTransformer(
+                            new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
+                                @Override
+                                public String getConnectionFailureMessage(Throwable failure) {
+                                    String message = String.format(
+                                            "Could not fetch model of type '%s' using %s.",
+                                            modelType.getSimpleName(), connection.getDisplayName());
+                                    if (!(failure instanceof UnsupportedMethodException)
+                                            && failure instanceof UnsupportedOperationException) {
+                                        message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
+                                    }
+                                    return message;
+                                }
+                            }));
         }
     }
 }

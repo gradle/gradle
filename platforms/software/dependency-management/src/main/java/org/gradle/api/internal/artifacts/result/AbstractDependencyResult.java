@@ -48,5 +48,4 @@ public class AbstractDependencyResult implements DependencyResult {
     public boolean isConstraint() {
         return constraint;
     }
-
 }

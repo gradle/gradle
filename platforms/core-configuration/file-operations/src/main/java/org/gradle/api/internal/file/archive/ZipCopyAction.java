@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.archive;
 
+import java.io.File;
 import org.apache.commons.compress.archivers.zip.UnixStat;
 import org.apache.commons.compress.archivers.zip.Zip64RequiredException;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -31,8 +32,6 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.IoActions;
 
-import java.io.File;
-
 public class ZipCopyAction implements CopyAction {
 
     private final File zipFile;
@@ -41,7 +40,12 @@ public class ZipCopyAction implements CopyAction {
     private final String encoding;
     private final boolean preserveFileTimestamps;
 
-    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding, boolean preserveFileTimestamps) {
+    public ZipCopyAction(
+            File zipFile,
+            ZipCompressor compressor,
+            DocumentationRegistry documentationRegistry,
+            String encoding,
+            boolean preserveFileTimestamps) {
         this.zipFile = zipFile;
         this.compressor = compressor;
         this.documentationRegistry = documentationRegistry;
@@ -65,10 +69,10 @@ public class ZipCopyAction implements CopyAction {
             });
         } catch (Exception e) {
             if (e.getCause() instanceof Zip64RequiredException) {
-                throw new org.gradle.api.tasks.bundling.internal.Zip64RequiredException(
-                    String.format("%s\n\nTo build this archive, please enable the zip64 extension.\nSee: %s",
-                        e.getCause().getMessage(), documentationRegistry.getDslRefForProperty("org.gradle.api.tasks.bundling.Zip", "zip64"))
-                );
+                throw new org.gradle.api.tasks.bundling.internal.Zip64RequiredException(String.format(
+                        "%s\n\nTo build this archive, please enable the zip64 extension.\nSee: %s",
+                        e.getCause().getMessage(),
+                        documentationRegistry.getDslRefForProperty("org.gradle.api.tasks.bundling.Zip", "zip64")));
             }
             zipFile.delete();
             throw e;
@@ -98,9 +102,11 @@ public class ZipCopyAction implements CopyAction {
 
         private void visitFile(FileCopyDetails fileDetails) {
             try {
-                ZipArchiveEntry archiveEntry = new ZipArchiveEntry(fileDetails.getRelativePath().getPathString());
+                ZipArchiveEntry archiveEntry =
+                        new ZipArchiveEntry(fileDetails.getRelativePath().getPathString());
                 archiveEntry.setTime(getArchiveTimeFor(fileDetails));
-                archiveEntry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getPermissions().toUnixNumeric());
+                archiveEntry.setUnixMode(
+                        UnixStat.FILE_FLAG | fileDetails.getPermissions().toUnixNumeric());
                 zipOutStr.putArchiveEntry(archiveEntry);
                 fileDetails.copyTo(zipOutStr);
                 zipOutStr.closeArchiveEntry();
@@ -112,9 +118,11 @@ public class ZipCopyAction implements CopyAction {
         private void visitDir(FileCopyDetails dirDetails) {
             try {
                 // Trailing slash in name indicates that entry is a directory
-                ZipArchiveEntry archiveEntry = new ZipArchiveEntry(dirDetails.getRelativePath().getPathString() + '/');
+                ZipArchiveEntry archiveEntry =
+                        new ZipArchiveEntry(dirDetails.getRelativePath().getPathString() + '/');
                 archiveEntry.setTime(getArchiveTimeFor(dirDetails));
-                archiveEntry.setUnixMode(UnixStat.DIR_FLAG | dirDetails.getPermissions().toUnixNumeric());
+                archiveEntry.setUnixMode(
+                        UnixStat.DIR_FLAG | dirDetails.getPermissions().toUnixNumeric());
                 zipOutStr.putArchiveEntry(archiveEntry);
                 zipOutStr.closeArchiveEntry();
             } catch (Exception e) {

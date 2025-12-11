@@ -16,12 +16,11 @@
 
 package org.gradle.internal.instantiation.managed;
 
-import org.gradle.api.model.ManagedType;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.model.ManagedType;
 
 /**
  * Annotates classes that provide {@link ManagedType managed types}.
@@ -31,5 +30,4 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ManagedObjectProvider {
-}
+public @interface ManagedObjectProvider {}

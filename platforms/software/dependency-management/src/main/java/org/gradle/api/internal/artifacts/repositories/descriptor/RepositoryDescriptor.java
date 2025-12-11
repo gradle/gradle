@@ -16,10 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories.descriptor;
 
 import com.google.common.collect.ImmutableSortedMap;
+import java.util.Map;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.scan.UsedByScanPlugin;
-
-import java.util.Map;
 
 /**
  * A non-functional, immutable, description of a {@link ResolutionAwareRepository} at a point in time.
@@ -28,7 +27,8 @@ import java.util.Map;
  */
 public abstract class RepositoryDescriptor {
 
-    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
+    @UsedByScanPlugin(
+            "doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
     public enum Type {
         MAVEN,
         IVY,
@@ -65,5 +65,4 @@ public abstract class RepositoryDescriptor {
     }
 
     protected abstract void addProperties(ImmutableSortedMap.Builder<String, Object> builder);
-
 }

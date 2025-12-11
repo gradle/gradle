@@ -21,7 +21,10 @@ public class TwoStageArtifactsCache extends AbstractArtifactsCache {
     private final AbstractArtifactsCache readOnlyCache;
     private final AbstractArtifactsCache writableCache;
 
-    public TwoStageArtifactsCache(BuildCommencedTimeProvider timeProvider, AbstractArtifactsCache readOnlyCache, AbstractArtifactsCache writableCache) {
+    public TwoStageArtifactsCache(
+            BuildCommencedTimeProvider timeProvider,
+            AbstractArtifactsCache readOnlyCache,
+            AbstractArtifactsCache writableCache) {
         super(timeProvider);
         this.readOnlyCache = readOnlyCache;
         this.writableCache = writableCache;

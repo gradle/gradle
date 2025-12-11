@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import com.google.common.base.Objects;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
@@ -30,9 +32,6 @@ import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.inject.Inject;
-import java.util.Set;
 
 @ServiceScope(Scope.Global.class)
 public class PlatformSupport {
@@ -58,11 +57,13 @@ public class PlatformSupport {
     public void configureSchema(AttributesSchemaInternal attributesSchema) {
         configureCategoryDisambiguationRule(attributesSchema);
     }
+
     public static void configureFailureHandler(ResolutionFailureHandler handler) {
         // TODO: This should not be here.
         // This failure handler has nothing to do with platforms.
         // This should live in JavaEcosystemSupport.
-        handler.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
+        handler.addFailureDescriber(
+                NoCompatibleVariantsFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
     }
 
     private void configureCategoryDisambiguationRule(AttributesSchema attributesSchema) {
@@ -74,7 +75,8 @@ public class PlatformSupport {
     }
 
     public <T> void addPlatformAttribute(HasConfigurableAttributes<T> dependency, final Category category) {
-        dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, category));
+        dependency.attributes(
+                attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, category));
     }
 
     /**
@@ -86,7 +88,9 @@ public class PlatformSupport {
      * @return {@code true} if this represents an {@code enforced-platform}, {@code false} otherwise
      */
     public static boolean hasForcedDependencies(ComponentVariant variant) {
-        return Objects.equal(variant.getAttributes().getAttribute(MavenVariantAttributesFactory.CATEGORY_ATTRIBUTE), Category.ENFORCED_PLATFORM);
+        return Objects.equal(
+                variant.getAttributes().getAttribute(MavenVariantAttributesFactory.CATEGORY_ATTRIBUTE),
+                Category.ENFORCED_PLATFORM);
     }
 
     public static class ComponentCategoryDisambiguationRule implements AttributeDisambiguationRule<Category> {

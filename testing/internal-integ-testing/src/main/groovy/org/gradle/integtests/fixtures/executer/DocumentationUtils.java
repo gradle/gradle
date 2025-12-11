@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.util.GradleVersion;
-
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL;
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL_WITHOUT_VERSION;
+
+import org.gradle.util.GradleVersion;
 
 public class DocumentationUtils {
     public static final String CURRENT_DOCS_URL = BASE_URL_WITHOUT_VERSION + "current/";

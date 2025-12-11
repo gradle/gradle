@@ -16,9 +16,8 @@
 
 package org.gradle.swiftpm.internal;
 
-import org.gradle.swiftpm.Product;
-
 import java.io.Serializable;
+import org.gradle.swiftpm.Product;
 
 public abstract class AbstractProduct implements Product, Serializable {
     private final String name;

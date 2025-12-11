@@ -28,5 +28,4 @@ public class DefaultImmutableMetadataSources implements ImmutableMetadataSources
     public ImmutableList<MetadataSource<?>> sources() {
         return sources;
     }
-
 }

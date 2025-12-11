@@ -16,6 +16,15 @@
 
 package org.gradle.internal.resource.local;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
 import org.gradle.api.file.EmptyFileVisitor;
@@ -28,16 +37,6 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.RelativePathUtil;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import static org.gradle.internal.FileUtils.hasExtension;
 
 /**
  * File store that accepts the target path as the key for the entry.
@@ -58,10 +57,10 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
     private final ChecksumService checksumService;
 
     /*
-        When writing a file into the filestore a marker file with this suffix is written alongside,
-        then removed after the write. This is used to detect partially written files (due to a serious crash)
-        and to silently clean them.
-     */
+       When writing a file into the filestore a marker file with this suffix is written alongside,
+       then removed after the write. This is used to detect partially written files (due to a serious crash)
+       and to silently clean them.
+    */
     public static final String IN_PROGRESS_MARKER_FILE_SUFFIX = ".fslck";
 
     private File baseDir;
@@ -82,12 +81,11 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
         } else {
             // We need to ignore empty Strings as this is what "new File(parent, path)" was doing for "path" empty.
             composedPath = Arrays.stream(path)
-                .filter(((Predicate<String>) String::isEmpty).negate())
-                .collect(Collectors.joining(File.separator));
+                    .filter(((Predicate<String>) String::isEmpty).negate())
+                    .collect(Collectors.joining(File.separator));
         }
         return new File(baseDir, PathTraversalChecker.safePathName(trimLeadingSlash(composedPath)));
     }
-
 
     private File getFileWhileCleaningInProgress(String... path) {
         File file = getFile(path);
@@ -108,21 +106,30 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
                     try {
                         addAction.execute(file);
                     } catch (Throwable e) {
-                        throw new FileStoreAddActionException(String.format("Failed to add into filestore '%s' at '%s' ", getBaseDir().getAbsolutePath(), path), e);
+                        throw new FileStoreAddActionException(
+                                String.format(
+                                        "Failed to add into filestore '%s' at '%s' ",
+                                        getBaseDir().getAbsolutePath(), path),
+                                e);
                     }
                 }
             });
         } catch (FileStoreAddActionException e) {
             throw e;
         } catch (Throwable e) {
-            throw new FileStoreException(String.format("Failed to add into filestore '%s' at '%s' ", getBaseDir().getAbsolutePath(), path), e);
+            throw new FileStoreException(
+                    String.format(
+                            "Failed to add into filestore '%s' at '%s' ",
+                            getBaseDir().getAbsolutePath(), path),
+                    e);
         }
     }
 
     @Override
     public LocallyAvailableResource move(String path, final File source) {
         if (!source.exists()) {
-            throw new FileStoreException(String.format("Cannot move '%s' into filestore @ '%s' as it does not exist", source, path));
+            throw new FileStoreException(
+                    String.format("Cannot move '%s' into filestore @ '%s' as it does not exist", source, path));
         }
 
         try {
@@ -137,7 +144,8 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
                 }
             });
         } catch (Throwable e) {
-            throw new FileStoreException(String.format("Failed to move file '%s' into filestore at '%s' ", source, path), e);
+            throw new FileStoreException(
+                    String.format("Failed to move file '%s' into filestore at '%s' ", source, path), e);
         }
     }
 
@@ -228,4 +236,5 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
             return composedPath.substring(1);
         }
         return composedPath;
-    }}
+    }
+}

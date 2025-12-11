@@ -17,13 +17,12 @@
 package org.gradle.cache.internal.btree;
 
 import com.google.common.io.CountingInputStream;
-import org.gradle.internal.file.RandomAccessFileInputStream;
-
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import org.gradle.internal.file.RandomAccessFileInputStream;
 
 /**
  * Allows a stream of bytes to be read from a particular location of some backing byte stream.

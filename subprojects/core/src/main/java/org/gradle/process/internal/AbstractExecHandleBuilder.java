@@ -15,12 +15,11 @@
  */
 package org.gradle.process.internal;
 
-import org.gradle.process.BaseExecSpec;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.process.BaseExecSpec;
 
 /**
  * Deprecated. Will be removed in Gradle 10. Kept for now it's subclass is used by the Kotlin plugin.

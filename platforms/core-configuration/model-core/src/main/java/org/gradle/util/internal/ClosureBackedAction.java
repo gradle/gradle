@@ -97,8 +97,8 @@ public class ClosureBackedAction<T> implements Action<T> {
 
         ClosureBackedAction that = (ClosureBackedAction) o;
         return configurableAware == that.configurableAware
-            && resolveStrategy == that.resolveStrategy
-            && closure.equals(that.closure);
+                && resolveStrategy == that.resolveStrategy
+                && closure.equals(that.closure);
     }
 
     @Override

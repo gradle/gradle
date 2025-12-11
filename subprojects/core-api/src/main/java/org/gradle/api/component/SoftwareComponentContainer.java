@@ -24,5 +24,4 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * A Container that contains all of the Software Components produced by a Project.
  */
 @ServiceScope(Scope.Project.class)
-public interface SoftwareComponentContainer extends ExtensiblePolymorphicDomainObjectContainer<SoftwareComponent> {
-}
+public interface SoftwareComponentContainer extends ExtensiblePolymorphicDomainObjectContainer<SoftwareComponent> {}

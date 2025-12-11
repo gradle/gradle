@@ -15,15 +15,14 @@
  */
 package org.gradle.ide.visualstudio.tasks.internal;
 
+import static java.util.Collections.singletonMap;
+
 import groovy.util.Node;
+import java.io.File;
+import java.util.Objects;
 import org.gradle.api.Transformer;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
-
-import java.io.File;
-import java.util.Objects;
-
-import static java.util.Collections.singletonMap;
 
 public class VisualStudioFiltersFile extends XmlPersistableConfigurationObject {
 
@@ -41,21 +40,20 @@ public class VisualStudioFiltersFile extends XmlPersistableConfigurationObject {
 
     public void addSource(File sourceFile) {
         getItemGroupForLabel("Sources")
-            .appendNode("ClCompile", singletonMap("Include", toPath(sourceFile)))
-            .appendNode("Filter", "Source Files");
+                .appendNode("ClCompile", singletonMap("Include", toPath(sourceFile)))
+                .appendNode("Filter", "Source Files");
     }
 
     public void addHeader(File headerFile) {
         getItemGroupForLabel("Headers")
-            .appendNode("ClInclude", singletonMap("Include", toPath(headerFile)))
-            .appendNode("Filter", "Header Files");
+                .appendNode("ClInclude", singletonMap("Include", toPath(headerFile)))
+                .appendNode("Filter", "Header Files");
     }
 
     private Node getItemGroupForLabel(String label) {
         return Objects.requireNonNull(
-            findFirstChildWithAttributeValue(getXml(), "ItemGroup", "Label", label),
-            "No 'ItemGroup' with attribute 'Label = " + label + "' found"
-        );
+                findFirstChildWithAttributeValue(getXml(), "ItemGroup", "Label", label),
+                "No 'ItemGroup' with attribute 'Label = " + label + "' found");
     }
 
     private String toPath(File file) {

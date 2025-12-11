@@ -16,12 +16,11 @@
 
 package org.gradle.internal.service.scopes;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.composite.BuildIncludeListener;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class BrokenBuildsCapturingListener implements BuildIncludeListener {
 

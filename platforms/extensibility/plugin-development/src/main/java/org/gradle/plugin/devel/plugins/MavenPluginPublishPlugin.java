@@ -16,6 +16,9 @@
 
 package org.gradle.plugin.devel.plugins;
 
+import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
+
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -32,10 +35,6 @@ import org.gradle.plugin.devel.PluginDeclaration;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
-import javax.inject.Inject;
-
-import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
 abstract class MavenPluginPublishPlugin implements Plugin<Project> {
 
@@ -62,7 +61,8 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             @Override
             public void execute(PublishingExtension publishing) {
-                final GradlePluginDevelopmentExtension pluginDevelopment = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
+                final GradlePluginDevelopmentExtension pluginDevelopment =
+                        project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
                 if (!pluginDevelopment.isAutomatedPublishing()) {
                     return;
                 }
@@ -79,15 +79,20 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
         return publication;
     }
 
-    private void addMarkerPublications(MavenPublication mainPublication, PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
+    private void addMarkerPublications(
+            MavenPublication mainPublication,
+            PublishingExtension publishing,
+            GradlePluginDevelopmentExtension pluginDevelopment) {
         for (PluginDeclaration declaration : pluginDevelopment.getPlugins()) {
             createMavenMarkerPublication(declaration, mainPublication, publishing.getPublications());
         }
     }
 
-    private void createMavenMarkerPublication(PluginDeclaration declaration, final MavenPublication coordinates, PublicationContainer publications) {
+    private void createMavenMarkerPublication(
+            PluginDeclaration declaration, final MavenPublication coordinates, PublicationContainer publications) {
         String pluginId = declaration.getId();
-        MavenPublicationInternal publication = (MavenPublicationInternal) publications.create(declaration.getName() + "PluginMarkerMaven", MavenPublication.class);
+        MavenPublicationInternal publication = (MavenPublicationInternal)
+                publications.create(declaration.getName() + "PluginMarkerMaven", MavenPublication.class);
         publication.setAlias(true);
         publication.setArtifactId(pluginId + PLUGIN_MARKER_SUFFIX);
         publication.setGroupId(pluginId);

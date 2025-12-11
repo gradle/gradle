@@ -16,14 +16,13 @@
 
 package org.gradle.internal.component.model;
 
+import static com.google.common.base.Objects.equal;
+
 import com.google.common.io.Files;
+import java.io.File;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-
-import static com.google.common.base.Objects.equal;
 
 public class DefaultIvyArtifactName implements IvyArtifactName {
     private final String name;
@@ -102,9 +101,9 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         }
         DefaultIvyArtifactName other = (DefaultIvyArtifactName) obj;
         return equal(name, other.name)
-            && equal(type, other.type)
-            && equal(extension, other.extension)
-            && equal(classifier, other.classifier);
+                && equal(type, other.type)
+                && equal(extension, other.extension)
+                && equal(classifier, other.classifier);
     }
 
     @Override

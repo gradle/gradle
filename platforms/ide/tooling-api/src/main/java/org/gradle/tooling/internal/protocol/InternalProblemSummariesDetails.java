@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.protocol;
 
+import java.util.List;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.List;
 
 @NullMarked
 public interface InternalProblemSummariesDetails extends InternalProblemDetailsVersion2 {

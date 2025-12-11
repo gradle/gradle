@@ -28,7 +28,8 @@ import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.Names;
 
-public abstract class DefaultNativeBinary implements ComponentWithNames, ComponentWithObjectFiles, ComponentWithDependencies {
+public abstract class DefaultNativeBinary
+        implements ComponentWithNames, ComponentWithObjectFiles, ComponentWithDependencies {
     private final Names names;
     private final DirectoryProperty objectsDir;
     private final DefaultComponentDependencies dependencies;
@@ -37,7 +38,8 @@ public abstract class DefaultNativeBinary implements ComponentWithNames, Compone
         this.names = names;
 
         this.objectsDir = objectFactory.directoryProperty();
-        dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, names.getName() + "Implementation");
+        dependencies =
+                objectFactory.newInstance(DefaultComponentDependencies.class, names.getName() + "Implementation");
         dependencies.getImplementationDependencies().extendsFrom(componentImplementation);
     }
 

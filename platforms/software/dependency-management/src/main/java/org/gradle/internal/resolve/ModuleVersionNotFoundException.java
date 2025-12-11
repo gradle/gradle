@@ -16,6 +16,10 @@
 package org.gradle.internal.resolve;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -25,11 +29,6 @@ import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.NonNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
 public class ModuleVersionNotFoundException extends ModuleVersionResolveException implements ResolutionProvider {
     private List<String> resolutions = ImmutableList.of();
 
@@ -37,13 +36,17 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
      * This is used by {@link ModuleVersionResolveException#withIncomingPaths(java.util.Collection)}.
      */
     @SuppressWarnings("UnusedDeclaration")
-    public ModuleVersionNotFoundException(ComponentSelector selector, Factory<String> message, Collection<String> resolutions) {
+    public ModuleVersionNotFoundException(
+            ComponentSelector selector, Factory<String> message, Collection<String> resolutions) {
         super(selector, message);
         this.resolutions = ImmutableList.copyOf(resolutions);
     }
 
-
-    public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations, Collection<String> unmatchedVersions, Collection<RejectedVersion> rejectedVersions) {
+    public ModuleVersionNotFoundException(
+            ModuleComponentSelector selector,
+            Collection<String> attemptedLocations,
+            Collection<String> unmatchedVersions,
+            Collection<RejectedVersion> rejectedVersions) {
         super(selector, format(selector, attemptedLocations, unmatchedVersions, rejectedVersions));
         recordPossibleResolution(attemptedLocations);
     }
@@ -58,11 +61,17 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         recordPossibleResolution(attemptedLocations);
     }
 
-    private static Factory<String> format(ModuleComponentSelector selector, Collection<String> locations, Collection<String> unmatchedVersions, Collection<RejectedVersion> rejectedVersions) {
+    private static Factory<String> format(
+            ModuleComponentSelector selector,
+            Collection<String> locations,
+            Collection<String> unmatchedVersions,
+            Collection<RejectedVersion> rejectedVersions) {
         return () -> {
             TreeFormatter builder = new TreeFormatter();
             if (unmatchedVersions.isEmpty() && rejectedVersions.isEmpty()) {
-                builder.node(String.format("Could not find any matches for %s as no versions of %s:%s are available.", selector, selector.getGroup(), selector.getModule()));
+                builder.node(String.format(
+                        "Could not find any matches for %s as no versions of %s:%s are available.",
+                        selector, selector.getGroup(), selector.getModule()));
             } else {
                 builder.node(String.format("Could not find any version that matches %s.", selector));
                 if (!unmatchedVersions.isEmpty()) {
@@ -88,7 +97,10 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         };
     }
 
-    private static void mapRejections(Collection<RejectedVersion> in, Collection<RejectedVersion> outByRule, Collection<RejectedVersion> outByAttributes) {
+    private static void mapRejections(
+            Collection<RejectedVersion> in,
+            Collection<RejectedVersion> outByRule,
+            Collection<RejectedVersion> outByAttributes) {
         for (RejectedVersion version : in) {
             if (version instanceof RejectedByAttributesVersion) {
                 outByAttributes.add(version);
@@ -157,7 +169,9 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
             String singleLocation = locations.iterator().next();
             String format = getFormatName(singleLocation);
             if (format != null) {
-                resolutions = ImmutableList.of(String.format("If the artifact you are trying to retrieve can be found in the repository but without metadata in '%s' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.", format));
+                resolutions = ImmutableList.of(String.format(
+                        "If the artifact you are trying to retrieve can be found in the repository but without metadata in '%s' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.",
+                        format));
             }
         }
     }
@@ -179,7 +193,9 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
     protected ModuleVersionResolveException createCopy() {
         try {
             String message = getMessage();
-            return getClass().getConstructor(ComponentSelector.class, Factory.class, Collection.class).newInstance(getSelector(), (Factory<String>) () -> message, resolutions);
+            return getClass()
+                    .getConstructor(ComponentSelector.class, Factory.class, Collection.class)
+                    .newInstance(getSelector(), (Factory<String>) () -> message, resolutions);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

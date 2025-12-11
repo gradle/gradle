@@ -16,6 +16,9 @@
 
 package org.gradle.cache.internal;
 
+import java.io.File;
+import java.time.Instant;
+import java.util.function.Supplier;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupAction;
@@ -25,16 +28,15 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import java.io.File;
-import java.time.Instant;
-import java.util.function.Supplier;
-
 class DefaultCacheCleanupStrategy implements CacheCleanupStrategy {
     private final CleanupAction cleanupAction;
     private final Supplier<CleanupFrequency> cleanupFrequency;
     private final BuildOperationRunner buildOperationRunner;
 
-    DefaultCacheCleanupStrategy(CleanupAction cleanupAction, Supplier<CleanupFrequency> cleanupFrequency, BuildOperationRunner buildOperationRunner) {
+    DefaultCacheCleanupStrategy(
+            CleanupAction cleanupAction,
+            Supplier<CleanupFrequency> cleanupFrequency,
+            BuildOperationRunner buildOperationRunner) {
         this.cleanupAction = cleanupAction;
         this.cleanupFrequency = cleanupFrequency;
         this.buildOperationRunner = buildOperationRunner;
@@ -53,11 +55,10 @@ class DefaultCacheCleanupStrategy implements CacheCleanupStrategy {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Clean up " + cleanableStore.getDisplayName())
-                    .details(new CacheCleanupDetails(cleanableStore.getBaseDir()));
+                        .details(new CacheCleanupDetails(cleanableStore.getBaseDir()));
             }
         });
     }
-
 
     private static class CacheCleanupDetails implements CacheCleanupBuildOperationType.Details {
         private final File cacheLocation;

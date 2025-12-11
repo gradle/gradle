@@ -16,12 +16,11 @@
 
 package org.gradle.api.artifacts;
 
+import java.io.File;
+import java.util.Date;
 import org.gradle.api.Buildable;
 import org.gradle.internal.HasInternalProtocol;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.Date;
 
 /**
  * <p>A {@code PublishArtifact} is an artifact produced by a project.</p>
@@ -78,5 +77,4 @@ public interface PublishArtifact extends Buildable {
      */
     @Nullable
     Date getDate();
-
 }

@@ -15,10 +15,9 @@
  */
 package org.gradle.api;
 
+import java.util.Map;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * <p>An {@code AntBuilder} allows you to use Ant from your build script.</p>
@@ -72,7 +71,9 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      * @param antBuildFile The build file. This is resolved as per {@link org.gradle.api.Project#file(Object)}.
      * @param taskNamer A transformer that calculates the name of the Gradle task for a corresponding Ant target.
      */
-    public abstract void importBuild(Object antBuildFile, Transformer<? extends @org.jetbrains.annotations.NotNull String, ? super String> taskNamer);
+    public abstract void importBuild(
+            Object antBuildFile,
+            Transformer<? extends @org.jetbrains.annotations.NotNull String, ? super String> taskNamer);
 
     /**
      * Imports an Ant build into the associated Gradle project, specifying the base directory and potentially providing alternative names
@@ -92,7 +93,10 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      *
      * @since 7.1
      */
-    public abstract void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends @org.jetbrains.annotations.NotNull String, ? super String> taskNamer);
+    public abstract void importBuild(
+            Object antBuildFile,
+            String baseDirectory,
+            Transformer<? extends @org.jetbrains.annotations.NotNull String, ? super String> taskNamer);
 
     /**
      * Returns this AntBuilder. Useful when you need to pass this builder to methods from within closures.
@@ -135,7 +139,11 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      * Represents the normal Ant message priorities.
      */
     public enum AntMessagePriority {
-        DEBUG, VERBOSE, INFO, WARN, ERROR;
+        DEBUG,
+        VERBOSE,
+        INFO,
+        WARN,
+        ERROR;
 
         public static AntMessagePriority from(int messagePriority) {
             switch (messagePriority) {

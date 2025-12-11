@@ -16,12 +16,11 @@
 
 package org.gradle.nativeplatform;
 
+import java.io.File;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.platform.base.BinaryTasksCollection;
-
-import java.io.File;
 
 /**
  * A static library binary built by Gradle for a native library.

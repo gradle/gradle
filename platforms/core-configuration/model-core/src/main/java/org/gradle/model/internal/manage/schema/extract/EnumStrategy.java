@@ -28,5 +28,4 @@ public class EnumStrategy implements ModelSchemaExtractionStrategy {
             extractionContext.found(new ScalarValueSchema<T>(type));
         }
     }
-
 }

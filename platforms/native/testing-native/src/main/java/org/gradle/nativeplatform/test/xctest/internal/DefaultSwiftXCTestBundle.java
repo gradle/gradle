@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
@@ -32,14 +33,38 @@ import org.gradle.nativeplatform.test.xctest.SwiftXCTestBundle;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-import javax.inject.Inject;
-
 public class DefaultSwiftXCTestBundle extends DefaultSwiftXCTestBinary implements SwiftXCTestBundle {
     private final Property<LinkMachOBundle> linkTask;
 
     @Inject
-    public DefaultSwiftXCTestBundle(Names names, ObjectFactory objectFactory, NativeDependencyCache nativeDependencyCache, TaskDependencyFactory taskDependencyFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objectFactory, nativeDependencyCache, taskDependencyFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultSwiftXCTestBundle(
+            Names names,
+            ObjectFactory objectFactory,
+            NativeDependencyCache nativeDependencyCache,
+            TaskDependencyFactory taskDependencyFactory,
+            Provider<String> module,
+            boolean testable,
+            FileCollection source,
+            ConfigurationContainer configurations,
+            Configuration implementation,
+            SwiftPlatform targetPlatform,
+            NativeToolChainInternal toolChain,
+            PlatformToolProvider platformToolProvider,
+            NativeVariantIdentity identity) {
+        super(
+                names,
+                objectFactory,
+                nativeDependencyCache,
+                taskDependencyFactory,
+                module,
+                testable,
+                source,
+                configurations,
+                implementation,
+                targetPlatform,
+                toolChain,
+                platformToolProvider,
+                identity);
         linkTask = objectFactory.property(LinkMachOBundle.class);
     }
 

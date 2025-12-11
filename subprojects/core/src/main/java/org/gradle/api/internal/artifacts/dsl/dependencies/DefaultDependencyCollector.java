@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.Dependency;
@@ -35,11 +39,6 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public abstract class DefaultDependencyCollector implements DependencyCollector {
     private final DependencyFactoryInternal dependencyFactory;
@@ -75,9 +74,9 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
             ((AbstractModuleDependency) mutable).addMutationValidator(dep -> {
                 if (((PropertyInternal<?>) getDependencies()).isFinalized()) {
                     DeprecationLogger.deprecateAction("Mutating dependency " + dep + " after it has been finalized")
-                        .willBecomeAnErrorInGradle10()
-                        .withUpgradeGuideSection(8, "dependency_mutate_dependency_collector_after_finalize")
-                        .nagUser();
+                            .willBecomeAnErrorInGradle10()
+                            .withUpgradeGuideSection(8, "dependency_mutate_dependency_collector_after_finalize")
+                            .nagUser();
                 }
             });
         }
@@ -94,22 +93,24 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
         DefaultSetProperty.addOptionalProvider(getDependencies(), provider);
     }
 
-    private <D extends Dependency> List<Dependency> createDependencyList(Iterable<? extends D> bundle, @Nullable Action<? super D> config) {
-        List<Dependency> newList = new ArrayList<>(
-            bundle instanceof Collection<?> ? ((Collection<?>) bundle).size() : 0
-        );
+    private <D extends Dependency> List<Dependency> createDependencyList(
+            Iterable<? extends D> bundle, @Nullable Action<? super D> config) {
+        List<Dependency> newList =
+                new ArrayList<>(bundle instanceof Collection<?> ? ((Collection<?>) bundle).size() : 0);
         for (D dep : bundle) {
             newList.add(applyConfiguration(dep, config));
         }
         return newList;
     }
 
-    private <D extends Dependency> void doAddBundleEager(Iterable<? extends D> bundle, @Nullable Action<? super D> config) {
+    private <D extends Dependency> void doAddBundleEager(
+            Iterable<? extends D> bundle, @Nullable Action<? super D> config) {
         List<Dependency> dependencies = createDependencyList(bundle, config);
         getDependencies().addAll(dependencies);
     }
 
-    private <D extends Dependency> void doAddBundleLazy(Provider<? extends Iterable<? extends D>> dependency, @Nullable Action<? super D> config) {
+    private <D extends Dependency> void doAddBundleLazy(
+            Provider<? extends Iterable<? extends D>> dependency, @Nullable Action<? super D> config) {
         Provider<List<Dependency>> provider = dependency.map(bundle -> createDependencyList(bundle, config));
         getDependencies().addAll(provider);
     }
@@ -140,7 +141,9 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     }
 
     @Override
-    public void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, Action<? super ExternalModuleDependency> configuration) {
+    public void add(
+            ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule,
+            Action<? super ExternalModuleDependency> configuration) {
         doAddLazy(externalModule.asProvider(), configuration);
     }
 
@@ -164,27 +167,32 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
         doAddLazy(dependency, configuration);
     }
 
-
-    private DependencyConstraint applyConstraintConfiguration(DependencyConstraint dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
+    private DependencyConstraint applyConstraintConfiguration(
+            DependencyConstraint dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
         if (config != null) {
             config.execute(dependencyConstraint);
         }
 
         ((DependencyConstraintInternal) dependencyConstraint).addMutationValidator(constraint -> {
             if (((PropertyInternal<?>) getDependencyConstraints()).isFinalized()) {
-                throw new InvalidUserCodeException("Cannot mutate dependency constraint " + constraint + " after it has been finalized");
+                throw new InvalidUserCodeException(
+                        "Cannot mutate dependency constraint " + constraint + " after it has been finalized");
             }
         });
 
         return dependencyConstraint;
     }
 
-    private void doAddConstraintEager(DependencyConstraint dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
+    private void doAddConstraintEager(
+            DependencyConstraint dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
         getDependencyConstraints().add(applyConstraintConfiguration(dependencyConstraint, config));
     }
 
-    private void doAddConstraintLazy(Provider<? extends DependencyConstraint> dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
-        Provider<DependencyConstraint> provider = dependencyConstraint.map(dep -> applyConstraintConfiguration(dep, config));
+    private void doAddConstraintLazy(
+            Provider<? extends DependencyConstraint> dependencyConstraint,
+            @Nullable Action<? super DependencyConstraint> config) {
+        Provider<DependencyConstraint> provider =
+                dependencyConstraint.map(dep -> applyConstraintConfiguration(dep, config));
         DefaultSetProperty.addOptionalProvider(getDependencyConstraints(), provider);
     }
 
@@ -194,7 +202,8 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     }
 
     @Override
-    public void addConstraint(DependencyConstraint dependencyConstraint, Action<? super DependencyConstraint> configuration) {
+    public void addConstraint(
+            DependencyConstraint dependencyConstraint, Action<? super DependencyConstraint> configuration) {
         doAddConstraintEager(dependencyConstraint, configuration);
     }
 
@@ -204,7 +213,9 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     }
 
     @Override
-    public void addConstraint(Provider<? extends DependencyConstraint> dependencyConstraint, Action<? super DependencyConstraint> configuration) {
+    public void addConstraint(
+            Provider<? extends DependencyConstraint> dependencyConstraint,
+            Action<? super DependencyConstraint> configuration) {
         doAddConstraintLazy(dependencyConstraint, configuration);
     }
 
@@ -224,7 +235,8 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     }
 
     @Override
-    public <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle, Action<? super D> configuration) {
+    public <D extends Dependency> void bundle(
+            Provider<? extends Iterable<? extends D>> bundle, Action<? super D> configuration) {
         doAddBundleLazy(bundle, configuration);
     }
 
@@ -234,7 +246,8 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     }
 
     @Override
-    public <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration) {
+    public <D extends Dependency> void bundle(
+            ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration) {
         doAddBundleLazy(bundle.asProvider(), configuration);
     }
 }

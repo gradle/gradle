@@ -58,19 +58,22 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, DaemonStopClientExecuter daemonStopClient) {
+    ShutdownCoordinator createShutdownCoordinator(
+            ListenerManager listenerManager, DaemonStopClientExecuter daemonStopClient) {
         ShutdownCoordinator shutdownCoordinator = new ShutdownCoordinator(daemonStopClient);
         listenerManager.addListener(shutdownCoordinator);
         return shutdownCoordinator;
     }
 
     @Provides
-    DaemonStopClientExecuter createDaemonStopClientFactory(DaemonClientFactory daemonClientFactory, FileCollectionFactory fileCollectionFactory) {
+    DaemonStopClientExecuter createDaemonStopClientFactory(
+            DaemonClientFactory daemonClientFactory, FileCollectionFactory fileCollectionFactory) {
         return new DaemonStopClientExecuter(daemonClientFactory);
     }
 
     @Provides
-    NotifyDaemonClientExecuter createNotifyDaemonClientExecuter(DaemonClientFactory daemonClientFactory, FileCollectionFactory fileCollectionFactory) {
+    NotifyDaemonClientExecuter createNotifyDaemonClientExecuter(
+            DaemonClientFactory daemonClientFactory, FileCollectionFactory fileCollectionFactory) {
         return new NotifyDaemonClientExecuter(daemonClientFactory);
     }
 
@@ -86,31 +89,29 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+    IsolatableSerializerRegistry createIsolatableSerializerRegistry(
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
         return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
     }
 
     @Provides
     IsolatableFactory createIsolatableFactory(
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        ManagedFactoryRegistry managedFactoryRegistry
-    ) {
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
         return new DefaultIsolatableFactory(classLoaderHierarchyHasher, managedFactoryRegistry);
     }
 
     @Provides
     ProviderConnection createProviderConnection(
-        BuildExecutor buildActionExecuter,
-        DaemonClientFactory daemonClientFactory,
-        BuildLayoutFactory buildLayoutFactory,
-        ServiceRegistry serviceRegistry,
-        FileCollectionFactory fileCollectionFactory,
-        GlobalUserInputReceiver userInput,
-        UserInputReader userInputReader,
-        ShutdownCoordinator shutdownCoordinator,
-        NotifyDaemonClientExecuter notifyDaemonClientExecuter,
-        IsolatableSerializerRegistry isolatableSerializerRegistry
-    ) {
+            BuildExecutor buildActionExecuter,
+            DaemonClientFactory daemonClientFactory,
+            BuildLayoutFactory buildLayoutFactory,
+            ServiceRegistry serviceRegistry,
+            FileCollectionFactory fileCollectionFactory,
+            GlobalUserInputReceiver userInput,
+            UserInputReader userInputReader,
+            ShutdownCoordinator shutdownCoordinator,
+            NotifyDaemonClientExecuter notifyDaemonClientExecuter,
+            IsolatableSerializerRegistry isolatableSerializerRegistry) {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
 
         ClassLoader parent = this.getClass().getClassLoader();
@@ -119,34 +120,26 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
         filterSpec.allowClass(TaskExecutionRequest.class);
         FilteringClassLoader modelClassLoader = new FilteringClassLoader(parent, filterSpec);
 
-        PayloadSerializer payloadSerializer = new PayloadSerializer(
-            new WellKnownClassLoaderRegistry(
-                new ClientSidePayloadClassLoaderRegistry(
-                    new DefaultPayloadClassLoaderRegistry(
-                        classLoaderCache,
-                        new ClientSidePayloadClassLoaderFactory(
-                            new ModelClassLoaderFactory(modelClassLoader)
-                        )
-                    ),
-                    new ClasspathInferer(),
-                    classLoaderCache
-                )
-            )
-        );
+        PayloadSerializer payloadSerializer =
+                new PayloadSerializer(new WellKnownClassLoaderRegistry(new ClientSidePayloadClassLoaderRegistry(
+                        new DefaultPayloadClassLoaderRegistry(
+                                classLoaderCache,
+                                new ClientSidePayloadClassLoaderFactory(new ModelClassLoaderFactory(modelClassLoader))),
+                        new ClasspathInferer(),
+                        classLoaderCache)));
 
         return new ProviderConnection(
-            serviceRegistry,
-            buildLayoutFactory,
-            daemonClientFactory,
-            buildActionExecuter,
-            payloadSerializer,
-            fileCollectionFactory,
-            userInput,
-            userInputReader,
-            shutdownCoordinator,
-            notifyDaemonClientExecuter,
-            isolatableSerializerRegistry
-        );
+                serviceRegistry,
+                buildLayoutFactory,
+                daemonClientFactory,
+                buildActionExecuter,
+                payloadSerializer,
+                fileCollectionFactory,
+                userInput,
+                userInputReader,
+                shutdownCoordinator,
+                notifyDaemonClientExecuter,
+                isolatableSerializerRegistry);
     }
 
     @Provides

@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.management;
 
+import java.util.List;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
@@ -25,8 +26,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.List;
 
 @ServiceScope(Scope.Build.class)
 public interface DependencyResolutionManagementInternal extends DependencyResolutionManagement, FinalizableValue {
@@ -54,6 +53,7 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
         RepositoriesModeInternal(boolean useProjectRepositories) {
             this.useProjectRepositories = useProjectRepositories;
         }
+
         public boolean useProjectRepositories() {
             return useProjectRepositories;
         }
@@ -73,6 +73,7 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
         RulesModeInternal(boolean useProjectRules) {
             this.useProjectRules = useProjectRules;
         }
+
         public boolean useProjectRules() {
             return useProjectRules;
         }

@@ -16,11 +16,10 @@
 
 package org.gradle.api.tasks.testing;
 
+import java.util.List;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
-
 import org.jspecify.annotations.Nullable;
-import java.util.List;
 
 /**
  * Describes a test failure. Contains a reference to the failure and some structural information retrieved by the test worker.
@@ -74,7 +73,8 @@ public abstract class TestFailure {
      * @param causes the list of cause failures; can be {@code null}
      * @return the new instance
      */
-    public static TestFailure fromTestAssertionFailure(Throwable failure, String expected, String actual, @Nullable List<TestFailure> causes) {
+    public static TestFailure fromTestAssertionFailure(
+            Throwable failure, String expected, String actual, @Nullable List<TestFailure> causes) {
         return DefaultTestFailure.fromTestAssertionFailure(failure, expected, actual, causes);
     }
 
@@ -82,8 +82,15 @@ public abstract class TestFailure {
      * Todo
      * @since 8.3
      */
-    public static TestFailure fromFileComparisonFailure(Throwable failure, String expected, String actual, byte[] expectedContent, byte[] actualContent, @Nullable List<TestFailure> causes) {
-        return DefaultTestFailure.fromFileComparisonTestAssertionFailure(failure, expected, actual, causes, expectedContent, actualContent);
+    public static TestFailure fromFileComparisonFailure(
+            Throwable failure,
+            String expected,
+            String actual,
+            byte[] expectedContent,
+            byte[] actualContent,
+            @Nullable List<TestFailure> causes) {
+        return DefaultTestFailure.fromFileComparisonTestAssertionFailure(
+                failure, expected, actual, causes, expectedContent, actualContent);
     }
 
     /**

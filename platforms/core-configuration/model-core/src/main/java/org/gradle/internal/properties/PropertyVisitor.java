@@ -26,11 +26,20 @@ import org.jspecify.annotations.Nullable;
  * Visits properties of beans which are inputs, outputs, destroyables, local state, service references or project types.
  */
 public interface PropertyVisitor {
-    default void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable FileNormalizer fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {}
+    default void visitInputFileProperty(
+            String propertyName,
+            boolean optional,
+            InputBehavior behavior,
+            DirectorySensitivity directorySensitivity,
+            LineEndingSensitivity lineEndingSensitivity,
+            @Nullable FileNormalizer fileNormalizer,
+            PropertyValue value,
+            InputFilePropertyType filePropertyType) {}
 
     default void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {}
 
-    default void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {}
+    default void visitOutputFileProperty(
+            String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {}
 
     default void visitDestroyableProperty(Object value) {}
 
@@ -39,5 +48,10 @@ public interface PropertyVisitor {
     /**
      * Visits a service reference. Service references may or may not be declared with a name.
      */
-    default void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName, Class<? extends BuildService<?>> buildServiceType) {}
+    default void visitServiceReference(
+            String propertyName,
+            boolean optional,
+            PropertyValue value,
+            @Nullable String serviceName,
+            Class<? extends BuildService<?>> buildServiceType) {}
 }

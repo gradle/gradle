@@ -16,14 +16,12 @@
 
 package org.gradle.internal.enterprise.impl;
 
-
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.enterprise.DevelocityBuildLifecycleService;
-
-import javax.inject.Inject;
 
 public class DefaultDevelocityBuildLifecycleService implements DevelocityBuildLifecycleService {
 
@@ -40,7 +38,8 @@ public class DefaultDevelocityBuildLifecycleService implements DevelocityBuildLi
     public void beforeProject(Action<? super Project> action) {
         // GradleLifecycle#beforeProject isolates the action to be safe with Isolated Projects.
         // This brings additional serializability requirements for any state referenced by the action.
-        // Therefore, the new callback cannot be used without Isolated Projects, because it implies a breaking change in behavior
+        // Therefore, the new callback cannot be used without Isolated Projects, because it implies a breaking change in
+        // behavior
         if (isIsolatedProjects()) {
             gradle.getLifecycle().beforeProject(action::execute);
         } else {

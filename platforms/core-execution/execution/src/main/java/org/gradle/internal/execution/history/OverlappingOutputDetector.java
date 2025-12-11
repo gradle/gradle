@@ -25,5 +25,7 @@ import org.jspecify.annotations.Nullable;
 @ServiceScope(Scope.Global.class)
 public interface OverlappingOutputDetector {
     @Nullable
-    OverlappingOutputs detect(ImmutableSortedMap<String, FileSystemSnapshot> previous, ImmutableSortedMap<String, FileSystemSnapshot> current);
+    OverlappingOutputs detect(
+            ImmutableSortedMap<String, FileSystemSnapshot> previous,
+            ImmutableSortedMap<String, FileSystemSnapshot> current);
 }

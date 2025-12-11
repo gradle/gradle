@@ -17,6 +17,9 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.execution.model.InputNormalizer;
@@ -24,18 +27,12 @@ import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
 public class FileParameterUtils {
 
     public static FileNormalizer normalizerOrDefault(@Nullable FileNormalizer fileNormalizer) {
         // If this default is ever changed, ensure the documentation on PathSensitive is updated as well as this guide:
         // https://docs.gradle.org/current/userguide/build_cache_concepts.html#relocatability
-        return fileNormalizer == null
-            ? InputNormalizer.ABSOLUTE_PATH
-            : fileNormalizer;
+        return fileNormalizer == null ? InputNormalizer.ABSOLUTE_PATH : fileNormalizer;
     }
 
     /**
@@ -43,14 +40,16 @@ public class FileParameterUtils {
      *
      * @throws IllegalArgumentException if there are multiple properties declared with the same name.
      */
-    public static <T extends FilePropertySpec> ImmutableSortedSet<T> collectFileProperties(String displayName, Iterator<? extends T> fileProperties) {
+    public static <T extends FilePropertySpec> ImmutableSortedSet<T> collectFileProperties(
+            String displayName, Iterator<? extends T> fileProperties) {
         Set<String> names = new HashSet<>();
         ImmutableSortedSet.Builder<T> builder = ImmutableSortedSet.naturalOrder();
         while (fileProperties.hasNext()) {
             T propertySpec = fileProperties.next();
             String propertyName = propertySpec.getPropertyName();
             if (!names.add(propertyName)) {
-                throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", displayName, propertyName));
+                throw new IllegalArgumentException(
+                        String.format("Multiple %s file properties with name '%s'", displayName, propertyName));
             }
             builder.add(propertySpec);
         }
@@ -62,10 +61,11 @@ public class FileParameterUtils {
      *
      * The value is the file tree rooted at the provided path for an input directory, and the provided path otherwise.
      */
-    public static FileCollectionInternal resolveInputFileValue(FileCollectionFactory fileCollectionFactory, InputFilePropertyType inputFilePropertyType, Object path) {
+    public static FileCollectionInternal resolveInputFileValue(
+            FileCollectionFactory fileCollectionFactory, InputFilePropertyType inputFilePropertyType, Object path) {
         FileCollectionInternal fileCollection = fileCollectionFactory.resolvingLeniently(path);
         return inputFilePropertyType == InputFilePropertyType.DIRECTORY
-            ? fileCollection.getAsFileTree()
-            : fileCollection;
+                ? fileCollection.getAsFileTree()
+                : fileCollection;
     }
 }

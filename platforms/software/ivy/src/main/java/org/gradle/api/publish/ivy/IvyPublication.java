@@ -246,7 +246,7 @@ public interface IvyPublication extends Publication {
      * task sourceJar(type: Jar) {
      *   archiveClassifier = "source"
      * }
-
+     *
      * task genDocs {
      *   doLast {
      *     // Generate 'my-docs-file.htm'

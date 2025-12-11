@@ -37,5 +37,4 @@ public @interface UsedByScanPlugin {
      * Any clarifying comments about how it is used.
      */
     String value() default "";
-
 }

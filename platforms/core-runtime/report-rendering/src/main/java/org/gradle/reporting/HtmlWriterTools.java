@@ -16,12 +16,10 @@
 
 package org.gradle.reporting;
 
+import java.io.IOException;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.xml.SimpleMarkupWriter;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.IOException;
-
 
 /**
  * More complex HTML generation code that doesn't belong on the {@link SimpleHtmlWriter} itself.
@@ -38,12 +36,13 @@ public class HtmlWriterTools {
      * @return the writer
      * @throws IOException if an I/O error occurs
      */
-    public static SimpleMarkupWriter addClipboardCopyButton(SimpleHtmlWriter writer, String copyElementId) throws IOException {
+    public static SimpleMarkupWriter addClipboardCopyButton(SimpleHtmlWriter writer, String copyElementId)
+            throws IOException {
         return writer.startElement("button")
-            .attribute("class", "clipboard-copy-btn")
-            .attribute("aria-label", "Copy to clipboard")
-            .attribute("data-copy-element-id", copyElementId)
-            .characters("Copy")
-            .endElement();
+                .attribute("class", "clipboard-copy-btn")
+                .attribute("aria-label", "Copy to clipboard")
+                .attribute("data-copy-element-id", copyElementId)
+                .characters("Copy")
+                .endElement();
     }
 }

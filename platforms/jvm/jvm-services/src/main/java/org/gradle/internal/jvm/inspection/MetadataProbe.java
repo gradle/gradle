@@ -16,19 +16,6 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import org.gradle.api.GradleException;
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.IoActions;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SUPER;
@@ -39,6 +26,18 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.RETURN;
 import static org.objectweb.asm.Opcodes.V1_1;
+
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import org.gradle.api.GradleException;
+import org.gradle.internal.ErroringAction;
+import org.gradle.internal.IoActions;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 public class MetadataProbe {
     public static final String PROBE_CLASS_NAME = "JavaProbe";
@@ -100,7 +99,12 @@ public class MetadataProbe {
         mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
         mv.visitLdcInsn(property);
         mv.visitLdcInsn("unknown");
-        mv.visitMethodInsn(INVOKESTATIC, "java/lang/System", "getProperty", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", false);
+        mv.visitMethodInsn(
+                INVOKESTATIC,
+                "java/lang/System",
+                "getProperty",
+                "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;",
+                false);
         mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
     }
 
@@ -118,5 +122,4 @@ public class MetadataProbe {
         mv.visitMaxs(1, 1);
         mv.visitEnd();
     }
-
 }

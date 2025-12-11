@@ -15,6 +15,9 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
+import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
+
+import javax.inject.Inject;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
@@ -25,10 +28,6 @@ import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.model.ObjectFactory;
-
-import javax.inject.Inject;
-
-import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
 
 public class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemAttributesDetails {
     private final ObjectFactory objectFactory;
@@ -61,13 +60,15 @@ public class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemAttribu
     @Override
     public JvmEcosystemAttributesDetails library(String elementsType) {
         library();
-        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, elementsType));
+        attributes.attribute(
+                LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, elementsType));
         return this;
     }
 
     @Override
     public JvmEcosystemAttributesDetails platform() {
-        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.REGULAR_PLATFORM));
+        attributes.attribute(
+                Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.REGULAR_PLATFORM));
         return this;
     }
 
@@ -98,7 +99,9 @@ public class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemAttribu
 
     @Override
     public JvmEcosystemAttributesDetails asJar() {
-        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
+        attributes.attribute(
+                LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         return this;
     }
 
@@ -110,14 +113,18 @@ public class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemAttribu
 
     @Override
     public JvmEcosystemAttributesDetails preferStandardJVM() {
-        attributes.attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, objectFactory.named(TargetJvmEnvironment.class, TargetJvmEnvironment.STANDARD_JVM));
+        attributes.attribute(
+                TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE,
+                objectFactory.named(TargetJvmEnvironment.class, TargetJvmEnvironment.STANDARD_JVM));
         return this;
     }
 
     @Override
     public JvmEcosystemAttributesDetails asSources() {
         attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.VERIFICATION));
-        attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objectFactory.named(VerificationType.class, VerificationType.MAIN_SOURCES));
+        attributes.attribute(
+                VerificationType.VERIFICATION_TYPE_ATTRIBUTE,
+                objectFactory.named(VerificationType.class, VerificationType.MAIN_SOURCES));
         return this;
     }
 }

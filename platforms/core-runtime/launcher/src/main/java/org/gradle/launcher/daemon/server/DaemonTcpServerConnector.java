@@ -15,6 +15,9 @@
  */
 package org.gradle.launcher.daemon.server;
 
+import java.io.UncheckedIOException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.api.Action;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -30,15 +33,11 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.Serializers;
 import org.gradle.launcher.daemon.protocol.Message;
 
-import java.io.UncheckedIOException;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * Opens a TCP connection for clients to connect to communicate with a daemon.
  */
 public class DaemonTcpServerConnector implements DaemonServerConnector {
-    final private IncomingConnector incomingConnector;
+    private final IncomingConnector incomingConnector;
     private final Serializer<Message> serializer;
 
     private boolean started;
@@ -46,14 +45,10 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
     private final Lock lifecycleLock = new ReentrantLock();
     private ConnectionAcceptor acceptor;
 
-    public DaemonTcpServerConnector(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory, Serializer<Message> serializer) {
+    public DaemonTcpServerConnector(
+            ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory, Serializer<Message> serializer) {
         this.serializer = serializer;
-        this.incomingConnector = new TcpIncomingConnector(
-                executorFactory,
-                inetAddressFactory,
-                new UUIDGenerator(),
-                10
-        );
+        this.incomingConnector = new TcpIncomingConnector(executorFactory, inetAddressFactory, new UUIDGenerator(), 10);
     }
 
     @Override
@@ -61,7 +56,8 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
         lifecycleLock.lock();
         try {
             if (stopped) {
-                throw new IllegalStateException("server connector cannot be started as it is either stopping or has been stopped");
+                throw new IllegalStateException(
+                        "server connector cannot be started as it is either stopping or has been stopped");
             }
             if (started) {
                 throw new IllegalStateException("server connector cannot be started as it has already been started");
@@ -103,5 +99,4 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
 
         CompositeStoppable.stoppable(acceptor, incomingConnector).stop();
     }
-
 }

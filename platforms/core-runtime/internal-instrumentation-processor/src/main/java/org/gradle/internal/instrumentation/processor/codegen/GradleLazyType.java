@@ -73,7 +73,8 @@ public enum GradleLazyType {
 
     public static GradleLazyType from(String name) {
         for (GradleLazyType gradleType : values()) {
-            if (gradleType.className != null && gradleType.className.reflectionName().equals(name)) {
+            if (gradleType.className != null
+                    && gradleType.className.reflectionName().equals(name)) {
                 return gradleType;
             }
         }

@@ -18,6 +18,8 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import java.util.Collections;
+import java.util.Set;
 import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.InstanceModelView;
@@ -37,9 +39,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.Set;
-
 /**
  * A model node that is a reference to some other node.
  */
@@ -49,21 +48,27 @@ public class ModelReferenceNode extends ModelNodeInternal {
     private final MutableModelNode parent;
     private ModelNodeInternal target;
 
-    public ModelReferenceNode(ModelRegistryInternal modelRegistry, ModelRegistration registration, MutableModelNode parent) {
+    public ModelReferenceNode(
+            ModelRegistryInternal modelRegistry, ModelRegistration registration, MutableModelNode parent) {
         super(modelRegistry, registration);
         this.parent = parent;
     }
 
     @Override
     public void setTarget(ModelNode target) {
-        // Once the node has been discovered, changing the target is not allowed, as it changes the promise of the node as well
+        // Once the node has been discovered, changing the target is not allowed, as it changes the promise of the node
+        // as well
         if (getState() != State.Registered) {
-            throw new IllegalStateException(String.format("Cannot set target for model element '%s' as this element is not mutable.", getPath()));
+            throw new IllegalStateException(String.format(
+                    "Cannot set target for model element '%s' as this element is not mutable.", getPath()));
         }
         if (LOGGER.isDebugEnabled()) {
             String targetPath = target == null ? null : "'" + target.getPath() + "'";
-            LOGGER.debug("Project {} - Setting the target of model element '{}' to point at {}.",
-                modelRegistry.getProjectPath(), getPath(), targetPath);
+            LOGGER.debug(
+                    "Project {} - Setting the target of model element '{}' to point at {}.",
+                    modelRegistry.getProjectPath(),
+                    getPath(),
+                    targetPath);
         }
         this.target = (ModelNodeInternal) target;
     }

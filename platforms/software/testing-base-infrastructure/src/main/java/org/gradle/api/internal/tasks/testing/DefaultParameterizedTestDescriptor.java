@@ -27,7 +27,12 @@ public class DefaultParameterizedTestDescriptor extends DefaultTestSuiteDescript
     private final String className;
     private final String displayName;
 
-    public DefaultParameterizedTestDescriptor(Object id, String methodName, @Nullable String className, String displayName, CompositeIdGenerator.CompositeId parentId) {
+    public DefaultParameterizedTestDescriptor(
+            Object id,
+            String methodName,
+            @Nullable String className,
+            String displayName,
+            CompositeIdGenerator.CompositeId parentId) {
         super(id, methodName);
         this.className = className;
         this.displayName = displayName;

@@ -17,6 +17,8 @@
 package org.gradle.internal.vfs.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -28,12 +30,10 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.UnknownFileSystemNode;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
-import java.util.Optional;
-import java.util.stream.Stream;
-
 public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     private final CaseSensitivity caseSensitivity;
+
     @VisibleForTesting
     final FileSystemNode rootNode;
 
@@ -68,8 +68,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @Override
     public boolean hasDescendantsUnder(String absolutePath) {
-        return getNode(absolutePath).map(FileSystemNode::hasDescendants)
-            .orElse(false);
+        return getNode(absolutePath).map(FileSystemNode::hasDescendants).orElse(false);
     }
 
     @Override
@@ -79,9 +78,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
             return new DefaultSnapshotHierarchy(snapshot.asFileSystemNode(), caseSensitivity);
         }
         return new DefaultSnapshotHierarchy(
-            rootNode.store(relativePath, caseSensitivity, snapshot, diffListener),
-            caseSensitivity
-        );
+                rootNode.store(relativePath, caseSensitivity, snapshot, diffListener), caseSensitivity);
     }
 
     @Override
@@ -92,10 +89,8 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
             return empty();
         }
         return rootNode.invalidate(relativePath, caseSensitivity, diffListener)
-            .<SnapshotHierarchy>map(it -> it == rootNode
-                ? this
-                : new DefaultSnapshotHierarchy(it, caseSensitivity))
-            .orElseGet(() -> empty(caseSensitivity));
+                .<SnapshotHierarchy>map(it -> it == rootNode ? this : new DefaultSnapshotHierarchy(it, caseSensitivity))
+                .orElseGet(() -> empty(caseSensitivity));
     }
 
     @Override
@@ -110,16 +105,12 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @Override
     public Stream<FileSystemLocationSnapshot> rootSnapshotsUnder(String absolutePath) {
-        return getNode(absolutePath)
-            .map(FileSystemNode::rootSnapshots)
-            .orElseGet(Stream::empty);
+        return getNode(absolutePath).map(FileSystemNode::rootSnapshots).orElseGet(Stream::empty);
     }
 
     private Optional<FileSystemNode> getNode(String absolutePath) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-        return relativePath.isEmpty()
-            ? Optional.of(rootNode)
-            : rootNode.getNode(relativePath, caseSensitivity);
+        return relativePath.isEmpty() ? Optional.of(rootNode) : rootNode.getNode(relativePath, caseSensitivity);
     }
 
     @Override
@@ -151,10 +142,11 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, NodeDiffListener diffListener) {
             VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
             String childPath = relativePath.getAsString();
-            SingletonChildMap<FileSystemNode> children = new SingletonChildMap<>(childPath, snapshot.asFileSystemNode());
+            SingletonChildMap<FileSystemNode> children =
+                    new SingletonChildMap<>(childPath, snapshot.asFileSystemNode());
             FileSystemNode rootNode = snapshot.getType() == FileType.Missing
-                ? new UnknownFileSystemNode(children)
-                : new PartialDirectoryNode(children);
+                    ? new UnknownFileSystemNode(children)
+                    : new PartialDirectoryNode(children);
             diffListener.nodeAdded(rootNode);
             return from(rootNode, caseSensitivity);
         }

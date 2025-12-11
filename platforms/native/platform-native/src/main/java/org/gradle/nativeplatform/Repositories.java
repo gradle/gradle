@@ -24,5 +24,4 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
  * The repositories that Gradle will search for prebuilt libraries.
  */
 @Incubating
-public interface Repositories extends PolymorphicDomainObjectContainer<ArtifactRepository> {
-}
+public interface Repositories extends PolymorphicDomainObjectContainer<ArtifactRepository> {}

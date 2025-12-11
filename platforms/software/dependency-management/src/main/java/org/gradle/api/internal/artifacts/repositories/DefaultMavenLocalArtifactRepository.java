@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import java.net.URI;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
@@ -45,27 +46,45 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
-
-public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
+public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository
+        implements MavenArtifactRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
     private final ChecksumService checksumService;
 
-    public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
-                                               LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, InstantiatorFactory instantiatorFactory,
-                                               FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                               MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                                               GradleModuleMetadataParser metadataParser,
-                                               AuthenticationContainer authenticationContainer,
-                                               FileResourceRepository fileResourceRepository,
-                                               MavenMutableModuleMetadataFactory metadataFactory,
-                                               IsolatableFactory isolatableFactory,
-                                               ObjectFactory objectFactory,
-                                               DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-                                               ChecksumService checksumService,
-                                               VersionParser versionParser
-    ) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, null, versionParser);
+    public DefaultMavenLocalArtifactRepository(
+            FileResolver fileResolver,
+            RepositoryTransportFactory transportFactory,
+            LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+            InstantiatorFactory instantiatorFactory,
+            FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+            MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+            GradleModuleMetadataParser metadataParser,
+            AuthenticationContainer authenticationContainer,
+            FileResourceRepository fileResourceRepository,
+            MavenMutableModuleMetadataFactory metadataFactory,
+            IsolatableFactory isolatableFactory,
+            ObjectFactory objectFactory,
+            DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
+            ChecksumService checksumService,
+            VersionParser versionParser) {
+        super(
+                fileResolver,
+                transportFactory,
+                locallyAvailableResourceFinder,
+                instantiatorFactory,
+                artifactFileStore,
+                pomParser,
+                metadataParser,
+                authenticationContainer,
+                null,
+                fileResourceRepository,
+                metadataFactory,
+                isolatableFactory,
+                objectFactory,
+                urlArtifactRepositoryFactory,
+                checksumService,
+                null,
+                versionParser);
         this.checksumService = checksumService;
     }
 
@@ -74,26 +93,35 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         URI rootUri = validateUrl();
 
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), getResourcesFileStore());
-        Instantiator injector = createInjectorForMetadataSuppliers(transport, getInstantiatorFactory(), rootUri, getResourcesFileStore());
+        MavenMetadataLoader mavenMetadataLoader =
+                new MavenMetadataLoader(transport.getResourceAccessor(), getResourcesFileStore());
+        Instantiator injector = createInjectorForMetadataSuppliers(
+                transport, getInstantiatorFactory(), rootUri, getResourcesFileStore());
         return new MavenResolver(
-            getDescriptor(),
-            rootUri,
-            transport,
-            getLocallyAvailableResourceFinder(),
-            getArtifactFileStore(),
-            createMetadataSources(mavenMetadataLoader),
-            MavenMetadataArtifactProvider.INSTANCE,
-            mavenMetadataLoader,
-            null,
-            null,
-            injector,
-            checksumService);
+                getDescriptor(),
+                rootUri,
+                transport,
+                getLocallyAvailableResourceFinder(),
+                getArtifactFileStore(),
+                createMetadataSources(mavenMetadataLoader),
+                MavenMetadataArtifactProvider.INSTANCE,
+                mavenMetadataLoader,
+                null,
+                null,
+                injector,
+                checksumService);
     }
 
     @Override
-    protected DefaultMavenPomMetadataSource createPomMetadataSource(MavenMetadataLoader mavenMetadataLoader, FileResourceRepository fileResourceRepository) {
-        return new MavenLocalPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices(), mavenMetadataLoader, checksumService);
+    protected DefaultMavenPomMetadataSource createPomMetadataSource(
+            MavenMetadataLoader mavenMetadataLoader, FileResourceRepository fileResourceRepository) {
+        return new MavenLocalPomMetadataSource(
+                MavenMetadataArtifactProvider.INSTANCE,
+                getPomParser(),
+                fileResourceRepository,
+                getMetadataValidationServices(),
+                mavenMetadataLoader,
+                checksumService);
     }
 
     @Override
@@ -106,7 +134,10 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
      */
     private static class MavenLocalMetadataValidator implements DefaultMavenPomMetadataSource.MavenMetadataValidator {
         @Override
-        public boolean isUsableModule(String repoName, MutableMavenModuleResolveMetadata metaData, ExternalResourceArtifactResolver artifactResolver) {
+        public boolean isUsableModule(
+                String repoName,
+                MutableMavenModuleResolveMetadata metaData,
+                ExternalResourceArtifactResolver artifactResolver) {
 
             if (metaData.isPomPackaging()) {
                 return true;
@@ -124,9 +155,11 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                 return true;
             }
 
-            LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", metaData.getModuleVersionId(), repoName);
+            LOGGER.debug(
+                    "POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.",
+                    metaData.getModuleVersionId(),
+                    repoName);
             return false;
-
         }
     }
 }

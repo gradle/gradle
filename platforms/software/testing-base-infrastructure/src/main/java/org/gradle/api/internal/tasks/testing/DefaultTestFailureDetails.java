@@ -88,9 +88,6 @@ public class DefaultTestFailureDetails implements TestFailureDetails {
 
     @Override
     public String toString() {
-        return "{" +
-            "className='" + className + '\'' +
-            ", message='" + message + '\'' +
-            '}';
+        return "{" + "className='" + className + '\'' + ", message='" + message + '\'' + '}';
     }
 }

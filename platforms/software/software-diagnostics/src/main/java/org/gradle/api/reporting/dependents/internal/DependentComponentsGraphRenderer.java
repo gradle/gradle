@@ -16,17 +16,16 @@
 
 package org.gradle.api.reporting.dependents.internal;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
+import java.util.Set;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
 public class DependentComponentsGraphRenderer {
 

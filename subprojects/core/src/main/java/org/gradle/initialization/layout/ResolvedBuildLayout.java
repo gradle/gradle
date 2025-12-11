@@ -16,12 +16,11 @@
 
 package org.gradle.initialization.layout;
 
+import java.io.File;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 /**
  * Contains information about the build layout, resolved after running the settings script and selecting the default project.
@@ -32,7 +31,8 @@ public class ResolvedBuildLayout {
     private final BuildLayout buildLayout;
     private final BuildScopedCacheBuilderFactory cacheBuilderFactory;
 
-    public ResolvedBuildLayout(GradleInternal gradle, BuildLayout buildLayout, BuildScopedCacheBuilderFactory cacheBuilderFactory) {
+    public ResolvedBuildLayout(
+            GradleInternal gradle, BuildLayout buildLayout, BuildScopedCacheBuilderFactory cacheBuilderFactory) {
         this.gradle = gradle;
         this.buildLayout = buildLayout;
         this.cacheBuilderFactory = cacheBuilderFactory;
@@ -62,7 +62,12 @@ public class ResolvedBuildLayout {
      */
     public boolean isBuildDefinitionMissing() {
         boolean isNoBuildDefinitionFound = buildLayout.isBuildDefinitionMissing();
-        boolean isCurrentDirNotPartOfContainingBuild = gradle.getSettings().getSettingsScript().getResource().getLocation().getFile() == null;
+        boolean isCurrentDirNotPartOfContainingBuild = gradle.getSettings()
+                        .getSettingsScript()
+                        .getResource()
+                        .getLocation()
+                        .getFile()
+                == null;
         return isNoBuildDefinitionFound || isCurrentDirNotPartOfContainingBuild;
     }
 }

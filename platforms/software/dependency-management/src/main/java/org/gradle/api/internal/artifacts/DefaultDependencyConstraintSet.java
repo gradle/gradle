@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import java.util.Collection;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.GradleException;
@@ -25,13 +26,15 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 
-import java.util.Collection;
-
-public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<DependencyConstraint> implements DependencyConstraintSet {
+public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<DependencyConstraint>
+        implements DependencyConstraintSet {
     private final Describable displayName;
     private final ConfigurationInternal clientConfiguration;
 
-    public DefaultDependencyConstraintSet(Describable displayName, ConfigurationInternal clientConfiguration, DomainObjectSet<DependencyConstraint> backingSet) {
+    public DefaultDependencyConstraintSet(
+            Describable displayName,
+            ConfigurationInternal clientConfiguration,
+            DomainObjectSet<DependencyConstraint> backingSet) {
         super(backingSet);
         this.displayName = displayName;
         this.clientConfiguration = clientConfiguration;
@@ -47,9 +50,9 @@ public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<De
         assertConfigurationIsDeclarable();
         clientConfiguration.maybeEmitDeclarationDeprecation();
         if (dependencyConstraint instanceof DependencyConstraintInternal) {
-            ((DependencyConstraintInternal) dependencyConstraint).addMutationValidator(constraint ->
-                ((MutationValidator) clientConfiguration).validateMutation(MutationValidator.MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES)
-            );
+            ((DependencyConstraintInternal) dependencyConstraint)
+                    .addMutationValidator(constraint -> ((MutationValidator) clientConfiguration)
+                            .validateMutation(MutationValidator.MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES));
         }
         return addInternalDependencyConstraint(dependencyConstraint);
     }
@@ -61,7 +64,8 @@ public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<De
 
     private void assertConfigurationIsDeclarable() {
         if (!clientConfiguration.isCanBeDeclared()) {
-            throw new GradleException("Dependency constraints can not be declared against the `" + clientConfiguration.getName() + "` configuration.");
+            throw new GradleException("Dependency constraints can not be declared against the `"
+                    + clientConfiguration.getName() + "` configuration.");
         }
     }
 

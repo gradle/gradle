@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.verification.signatures;
 
+import java.io.ByteArrayInputStream;
 import org.bouncycastle.openpgp.PGPObjectFactory;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
@@ -24,15 +25,13 @@ import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
-import java.io.ByteArrayInputStream;
-
 class PublicKeySerializer extends AbstractSerializer<PGPPublicKey> {
 
     @Override
     public PGPPublicKey read(Decoder decoder) throws Exception {
         byte[] encoded = decoder.readBinary();
         PGPObjectFactory objectFactory = new PGPObjectFactory(
-            PGPUtil.getDecoderStream(new ByteArrayInputStream(encoded)), new BcKeyFingerprintCalculator());
+                PGPUtil.getDecoderStream(new ByteArrayInputStream(encoded)), new BcKeyFingerprintCalculator());
         Object object = objectFactory.nextObject();
         if (object instanceof PGPPublicKey) {
             return (PGPPublicKey) object;

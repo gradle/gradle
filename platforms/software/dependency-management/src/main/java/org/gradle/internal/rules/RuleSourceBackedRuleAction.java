@@ -16,6 +16,13 @@
 
 package org.gradle.internal.rules;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.model.Mutate;
@@ -24,14 +31,6 @@ import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
 import org.gradle.model.internal.inspect.RuleSourceValidationProblemCollector;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 
 public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
     private final R instance;
@@ -46,9 +45,12 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
 
     public static <R, T> RuleSourceBackedRuleAction<R, T> create(ModelType<T> subjectType, R ruleSourceInstance) {
         ModelType<R> ruleSourceType = ModelType.typeOf(ruleSourceInstance);
-        List<Method> mutateMethods = findAllMethods(ruleSourceType.getConcreteClass(), element -> element.isAnnotationPresent(Mutate.class));
-        FormattingValidationProblemCollector problemsFormatter = new FormattingValidationProblemCollector("rule source", ruleSourceType);
-        RuleSourceValidationProblemCollector problems = new DefaultRuleSourceValidationProblemCollector(problemsFormatter);
+        List<Method> mutateMethods =
+                findAllMethods(ruleSourceType.getConcreteClass(), element -> element.isAnnotationPresent(Mutate.class));
+        FormattingValidationProblemCollector problemsFormatter =
+                new FormattingValidationProblemCollector("rule source", ruleSourceType);
+        RuleSourceValidationProblemCollector problems =
+                new DefaultRuleSourceValidationProblemCollector(problemsFormatter);
 
         if (mutateMethods.size() == 0) {
             problems.add("Must have at exactly one method annotated with @" + Mutate.class.getName());
@@ -63,7 +65,9 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
                 }
                 Type[] parameterTypes = ruleMethod.getGenericParameterTypes();
                 if (parameterTypes.length == 0 || !subjectType.isAssignableFrom(ModelType.of(parameterTypes[0]))) {
-                    problems.add(ruleMethod, String.format("First parameter of a rule method must be of type %s", subjectType));
+                    problems.add(
+                            ruleMethod,
+                            String.format("First parameter of a rule method must be of type %s", subjectType));
                 }
             }
         }
@@ -72,7 +76,8 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
             throw new RuleActionValidationException(problemsFormatter.format());
         }
 
-        return new RuleSourceBackedRuleAction<>(ruleSourceInstance, new JavaMethod<>(subjectType.getConcreteClass(), mutateMethods.get(0)));
+        return new RuleSourceBackedRuleAction<>(
+                ruleSourceInstance, new JavaMethod<>(subjectType.getConcreteClass(), mutateMethods.get(0)));
     }
 
     public static List<Class<?>> determineInputTypes(Class<?>[] parameterTypes) {
@@ -89,8 +94,8 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         Object[] args = new Object[inputs.size() + 1];
         args[0] = subject;
         for (int i = 0; i < inputs.size(); i++) {
-            Object input =  inputs.get(i);
-            args[i+1] = input;
+            Object input = inputs.get(i);
+            args[i + 1] = input;
         }
         ruleMethod.invoke(instance, args);
     }
@@ -103,7 +108,8 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         @Override
         public List<V> get(Object key) {
             if (!containsKey(key)) {
-                @SuppressWarnings("unchecked") K keyCast = (K) key;
+                @SuppressWarnings("unchecked")
+                K keyCast = (K) key;
                 put(keyCast, new LinkedList<>());
             }
 
@@ -111,12 +117,18 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         }
     }
 
-    private static List<Method> findAllMethodsInternal(Class<?> target, Spec<Method> predicate, MultiMap<String, Method> seen, List<Method> collector, boolean stopAtFirst) {
+    private static List<Method> findAllMethodsInternal(
+            Class<?> target,
+            Spec<Method> predicate,
+            MultiMap<String, Method> seen,
+            List<Method> collector,
+            boolean stopAtFirst) {
         for (final Method method : target.getDeclaredMethods()) {
             List<Method> seenWithName = seen.get(method.getName());
-            Method override = CollectionUtils.findFirst(seenWithName, potentionOverride -> potentionOverride.getName().equals(method.getName())
-                && Arrays.equals(potentionOverride.getParameterTypes(), method.getParameterTypes()));
-
+            Method override = CollectionUtils.findFirst(
+                    seenWithName,
+                    potentionOverride -> potentionOverride.getName().equals(method.getName())
+                            && Arrays.equals(potentionOverride.getParameterTypes(), method.getParameterTypes()));
 
             if (override == null) {
                 seenWithName.add(method);

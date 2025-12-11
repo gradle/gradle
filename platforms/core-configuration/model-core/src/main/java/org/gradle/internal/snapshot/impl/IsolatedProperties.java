@@ -17,9 +17,8 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.isolation.Isolatable;
-
 import java.util.Properties;
+import org.gradle.internal.isolation.Isolatable;
 
 public class IsolatedProperties extends AbstractIsolatedMap<Properties> {
     public IsolatedProperties(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries) {

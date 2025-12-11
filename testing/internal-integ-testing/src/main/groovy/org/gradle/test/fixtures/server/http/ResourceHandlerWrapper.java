@@ -17,7 +17,6 @@
 package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-
 import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 
@@ -92,7 +91,8 @@ class ResourceHandlerWrapper implements ResourceHandler, WaitPrecondition {
         try {
             owner.assertCanWait();
             if (!autoRelease && !started) {
-                throw new IllegalStateException(String.format("Cannot wait as request %s has not been released yet.", getDisplayName()));
+                throw new IllegalStateException(
+                        String.format("Cannot wait as request %s has not been released yet.", getDisplayName()));
             }
         } finally {
             lock.unlock();

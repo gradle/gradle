@@ -16,6 +16,16 @@
 
 package org.gradle.jvm.toolchain.internal.install;
 
+import java.io.File;
+import java.net.URI;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
+import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
@@ -40,17 +50,6 @@ import org.gradle.platform.internal.CurrentBuildPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.net.URI;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
-import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
-
 public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultJavaToolchainProvisioningService.class);
@@ -65,17 +64,16 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     @Inject
     public DefaultJavaToolchainProvisioningService(
-        JavaToolchainResolverRegistry toolchainResolverRegistry,
-        SecureFileDownloader downloader,
-        JdkCacheDirectory cacheDirProvider,
-        ProviderFactory providerFactory,
-        ToolchainConfiguration toolchainConfiguration,
-        BuildOperationRunner executor,
-        CurrentBuildPlatform currentBuildPlatform
-    ) {
+            JavaToolchainResolverRegistry toolchainResolverRegistry,
+            SecureFileDownloader downloader,
+            JdkCacheDirectory cacheDirProvider,
+            ProviderFactory providerFactory,
+            ToolchainConfiguration toolchainConfiguration,
+            BuildOperationRunner executor,
+            CurrentBuildPlatform currentBuildPlatform) {
         this.toolchainResolverRegistry = (JavaToolchainResolverRegistryInternal) toolchainResolverRegistry;
         this.downloader = downloader;
-        this.cacheDirProvider = (DefaultJdkCacheDirectory)cacheDirProvider;
+        this.cacheDirProvider = (DefaultJdkCacheDirectory) cacheDirProvider;
         this.downloadEnabled = providerFactory.provider(toolchainConfiguration::isDownloadEnabled);
         this.buildOperationRunner = executor;
         this.currentBuildPlatform = currentBuildPlatform;
@@ -94,34 +92,44 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     @Override
     public File tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
-            throw new ToolchainProvisioningException(spec, "Toolchain auto-provisioning is not enabled.",
-                ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION);
+            throw new ToolchainProvisioningException(
+                    spec,
+                    "Toolchain auto-provisioning is not enabled.",
+                    ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION);
         }
 
-        List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
+        List<? extends RealizedJavaToolchainRepository> repositories =
+                toolchainResolverRegistry.requestedRepositories();
         if (repositories.isEmpty()) {
-            throw new ToolchainProvisioningException(spec, "Toolchain download repositories have not been configured.",
-                ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION,
-                ToolchainProvisioningException.DOWNLOAD_REPOSITORIES_RESOLUTION);
+            throw new ToolchainProvisioningException(
+                    spec,
+                    "Toolchain download repositories have not been configured.",
+                    ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION,
+                    ToolchainProvisioningException.DOWNLOAD_REPOSITORIES_RESOLUTION);
         }
 
-        // TODO: This should be refactored to leverage the new JavaToolchainResolverService but the current error handling makes it hard
-        // However, this exception handling is wrong as it may cause unreproducible behaviors since we can query a later resolver when a previous one fails.
+        // TODO: This should be refactored to leverage the new JavaToolchainResolverService but the current error
+        // handling makes it hard
+        // However, this exception handling is wrong as it may cause unreproducible behaviors since we can query a later
+        // resolver when a previous one fails.
         ToolchainDownloadFailureTracker downloadFailureTracker = new ToolchainDownloadFailureTracker();
         File successfulProvisioning = null;
         for (RealizedJavaToolchainRepository repository : repositories) {
             JavaToolchainResolver resolver = repository.getResolver();
             Optional<JavaToolchainDownload> download;
             try {
-                download = resolver.resolve(new DefaultJavaToolchainRequest(spec, currentBuildPlatform.toBuildPlatform()));
+                download =
+                        resolver.resolve(new DefaultJavaToolchainRequest(spec, currentBuildPlatform.toBuildPlatform()));
             } catch (Exception e) {
                 downloadFailureTracker.addResolveFailure(repository.getRepositoryName(), e);
                 continue;
             }
             try {
                 if (download.isPresent()) {
-                    Collection<Authentication> authentications = repository.getAuthentications(download.get().getUri());
-                    successfulProvisioning = provisionInstallation(spec, download.get().getUri(), authentications);
+                    Collection<Authentication> authentications =
+                            repository.getAuthentications(download.get().getUri());
+                    successfulProvisioning =
+                            provisionInstallation(spec, download.get().getUri(), authentications);
                     break;
                 }
             } catch (Exception e) {
@@ -142,7 +150,8 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         synchronized (PROVISIONING_PROCESS_LOCK) {
             try {
                 File downloadFolder = cacheDirProvider.getDownloadLocation();
-                ExternalResource resource = wrapInOperation("Examining toolchain URI " + uri, () -> downloader.getResourceFor(uri, authentications));
+                ExternalResource resource = wrapInOperation(
+                        "Examining toolchain URI " + uri, () -> downloader.getResourceFor(uri, authentications));
                 File archiveFile = new File(downloadFolder, buildFileNameWithDetails(uri, resource, spec));
                 final FileLock fileLock = cacheDirProvider.acquireWriteLock(archiveFile, "Downloading toolchain");
                 boolean archiveAlreadyExists = archiveFile.exists();
@@ -154,15 +163,23 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                         });
                     }
                     try {
-                        return wrapInOperation("Unpacking toolchain archive " + archiveFile.getName(), () -> cacheDirProvider.provisionFromArchive(spec, archiveFile, uri));
+                        return wrapInOperation(
+                                "Unpacking toolchain archive " + archiveFile.getName(),
+                                () -> cacheDirProvider.provisionFromArchive(spec, archiveFile, uri));
                     } catch (Exception e) {
                         if (archiveAlreadyExists) { // re-download and retry in case the archive is corrupted
-                            LOGGER.info("Re-downloading toolchain from URI {} because unpacking the existing archive {} failed with an exception", uri, archiveFile.getName(), e);
+                            LOGGER.info(
+                                    "Re-downloading toolchain from URI {} because unpacking the existing archive {} failed with an exception",
+                                    uri,
+                                    archiveFile.getName(),
+                                    e);
                             wrapInOperation("Re-downloading toolchain from URI " + uri, () -> {
                                 downloader.download(uri, archiveFile, resource);
                                 return null;
                             });
-                            return wrapInOperation("Unpacking toolchain archive " + archiveFile.getName(), () -> cacheDirProvider.provisionFromArchive(spec, archiveFile, uri));
+                            return wrapInOperation(
+                                    "Unpacking toolchain archive " + archiveFile.getName(),
+                                    () -> cacheDirProvider.provisionFromArchive(spec, archiveFile, uri));
                         } else {
                             throw e;
                         }
@@ -196,9 +213,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor
-                .displayName(displayName)
-                .progressDisplayName(displayName);
+            return BuildOperationDescriptor.displayName(displayName).progressDisplayName(displayName);
         }
     }
 
@@ -260,20 +275,22 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             StringBuilder sb = new StringBuilder();
             if (!resolveFailures.isEmpty()) {
                 sb.append("Some toolchain resolvers had internal failures: ")
-                    .append(failureMessage(resolveFailures))
-                    .append(".");
+                        .append(failureMessage(resolveFailures))
+                        .append(".");
             }
             if (!provisioningFailures.isEmpty()) {
                 sb.append(resolveFailures.isEmpty() ? "" : " ");
                 sb.append("Some toolchain resolvers had provisioning failures: ")
-                    .append(failureMessage(provisioningFailures))
-                    .append(".");
+                        .append(failureMessage(provisioningFailures))
+                        .append(".");
             }
             return sb.toString();
         }
 
         private static String failureMessage(Map<String, Exception> failures) {
-            return failures.entrySet().stream().map(e -> e.getKey() + " (" + e.getValue().getMessage() + ")").collect(Collectors.joining(", "));
+            return failures.entrySet().stream()
+                    .map(e -> e.getKey() + " (" + e.getValue().getMessage() + ")")
+                    .collect(Collectors.joining(", "));
         }
     }
 }

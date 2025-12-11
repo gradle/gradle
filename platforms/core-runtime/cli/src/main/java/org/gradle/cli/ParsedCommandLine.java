@@ -34,7 +34,9 @@ public class ParsedCommandLine {
 
     @Override
     public String toString() {
-        return String.format("options: %s, extraArguments: %s, removedOptions: %s", quoteAndJoin(presentOptions), quoteAndJoin(extraArguments), quoteAndJoin(removedOptions));
+        return String.format(
+                "options: %s, extraArguments: %s, removedOptions: %s",
+                quoteAndJoin(presentOptions), quoteAndJoin(extraArguments), quoteAndJoin(removedOptions));
     }
 
     private String quoteAndJoin(Iterable<String> strings) {

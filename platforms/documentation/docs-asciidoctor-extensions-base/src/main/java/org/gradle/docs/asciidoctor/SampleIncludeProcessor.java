@@ -15,10 +15,8 @@
  */
 package org.gradle.docs.asciidoctor;
 
-import org.asciidoctor.ast.Document;
-import org.asciidoctor.extension.IncludeProcessor;
-import org.asciidoctor.extension.PreprocessorReader;
-import org.jspecify.annotations.Nullable;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.readAllBytes;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,9 +31,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.readAllBytes;
+import org.asciidoctor.ast.Document;
+import org.asciidoctor.extension.IncludeProcessor;
+import org.asciidoctor.extension.PreprocessorReader;
+import org.jspecify.annotations.Nullable;
 
 public class SampleIncludeProcessor extends IncludeProcessor {
 
@@ -72,7 +71,8 @@ public class SampleIncludeProcessor extends IncludeProcessor {
 
         final String sampleBaseDir = document.getAttribute("samples-dir", ".").toString();
         final String sampleDir = attributes.get("dir").toString();
-        final List<String> files = Arrays.asList(attributes.get("files").toString().split(";"));
+        final List<String> files =
+                Arrays.asList(attributes.get("files").toString().split(";"));
 
         final String sampleContent = getSampleContent(sampleBaseDir, sampleDir, files);
         reader.pushInclude(sampleContent, target, target, 1, attributes);
@@ -89,7 +89,8 @@ public class SampleIncludeProcessor extends IncludeProcessor {
     }
 
     private static String getSampleContent(String sampleBaseDir, String sampleDir, List<String> files) {
-        final StringBuilder builder = new StringBuilder(String.format("%n[.testable-sample.multi-language-sample,dir=\"%s\"]%n=====%n", sampleDir));
+        final StringBuilder builder = new StringBuilder(
+                String.format("%n[.testable-sample.multi-language-sample,dir=\"%s\"]%n=====%n", sampleDir));
         for (String fileDeclaration : files) {
             final String sourceRelativeLocation = parseSourceFilePath(fileDeclaration);
             final List<String> tags = parseTags(fileDeclaration);
@@ -98,7 +99,8 @@ public class SampleIncludeProcessor extends IncludeProcessor {
             String source = getContent(sourcePath);
             source = filterByTags(source, sourceSyntax, tags);
             source = trimIndent(source);
-            builder.append(String.format(".%s%n[source,%s]%n----%n%s%n----%n", sourceRelativeLocation, sourceSyntax, source));
+            builder.append(
+                    String.format(".%s%n[source,%s]%n----%n%s%n----%n", sourceRelativeLocation, sourceSyntax, source));
         }
 
         builder.append(String.format("=====%n"));
@@ -109,7 +111,8 @@ public class SampleIncludeProcessor extends IncludeProcessor {
         try {
             return new String(readAllBytes(Paths.get(filePath)), UTF_8);
         } catch (IOException e) {
-            throw new IllegalStateException("Unable to read source file " + Paths.get(filePath).toAbsolutePath().toFile().getAbsolutePath());
+            throw new IllegalStateException("Unable to read source file "
+                    + Paths.get(filePath).toAbsolutePath().toFile().getAbsolutePath());
         }
     }
 
@@ -133,7 +136,8 @@ public class SampleIncludeProcessor extends IncludeProcessor {
      * @see "https://docs.asciidoctor.org/asciidoc/latest/directives/include-tagged-regions/#tag-filtering"
      */
     private static String filterByTags(String source, String syntax, List<String> tags) {
-        Pattern sampleTagRegex = syntax.equals("html") || syntax.equals("xml") ? HTML_XML_SAMPLE_TAG : GENERAL_SAMPLE_TAG;
+        Pattern sampleTagRegex =
+                syntax.equals("html") || syntax.equals("xml") ? HTML_XML_SAMPLE_TAG : GENERAL_SAMPLE_TAG;
 
         StringBuilder result = new StringBuilder(source.length());
 
@@ -141,9 +145,10 @@ public class SampleIncludeProcessor extends IncludeProcessor {
 
         if (fullSample) {
             // filter out lines matching the tagging regex
-            String sampleWithoutTags = Pattern.compile("\\R").splitAsStream(source)
-                .filter(line -> !sampleTagRegex.matcher(line).matches())
-                .collect(Collectors.joining("\n"));
+            String sampleWithoutTags = Pattern.compile("\\R")
+                    .splitAsStream(source)
+                    .filter(line -> !sampleTagRegex.matcher(line).matches())
+                    .collect(Collectors.joining("\n"));
             result.append(sampleWithoutTags);
         } else {
             String activeTag = null;

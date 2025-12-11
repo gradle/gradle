@@ -16,13 +16,12 @@
 
 package org.gradle.internal.composite;
 
+import java.util.Set;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Set;
 
 @NullMarked
 @ServiceScope(Scope.BuildTree.class)

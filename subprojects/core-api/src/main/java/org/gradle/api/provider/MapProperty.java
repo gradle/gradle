@@ -16,13 +16,12 @@
 
 package org.gradle.api.provider;
 
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.model.ManagedType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Represents a property whose type is a {@link Map} of keys of type {@link K} and values of type {@link V}. Retains iteration order.

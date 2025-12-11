@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.util.internal.WrapUtil;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,11 +26,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.hamcrest.MatcherAssert.assertThat;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.util.internal.WrapUtil;
+import org.junit.Test;
 
 public class DefaultExcludeRuleContainerTest {
     @Test
@@ -55,7 +54,8 @@ public class DefaultExcludeRuleContainerTest {
         excludeRuleContainer.add(excludeRuleArgs1);
         excludeRuleContainer.add(excludeRuleArgs2);
         assertThat(excludeRuleContainer.getRules().size(), equalTo(2));
-        assertExcludeRuleContainerHasCorrectExcludeRules(excludeRuleContainer.getRules(), excludeRuleArgs1, excludeRuleArgs2);
+        assertExcludeRuleContainerHasCorrectExcludeRules(
+                excludeRuleContainer.getRules(), excludeRuleArgs1, excludeRuleArgs2);
     }
 
     @Test(expected = InvalidUserDataException.class)
@@ -67,7 +67,8 @@ public class DefaultExcludeRuleContainerTest {
         excludeRuleContainer.add(excludeRuleArgs2);
     }
 
-    private void assertExcludeRuleContainerHasCorrectExcludeRules(Set<ExcludeRule> excludeRules, Map... excludeRuleArgs) {
+    private void assertExcludeRuleContainerHasCorrectExcludeRules(
+            Set<ExcludeRule> excludeRules, Map... excludeRuleArgs) {
         List<Map> foundRules = new ArrayList<Map>();
         for (ExcludeRule excludeRule : excludeRules) {
             for (Map excludeRuleArg : excludeRuleArgs) {
@@ -81,7 +82,9 @@ public class DefaultExcludeRuleContainerTest {
     }
 
     private boolean matchingExcludeRule(ExcludeRule excludeRule, Map excludeRuleArg) {
-        final DefaultExcludeRule expectedExcludeRule = new DefaultExcludeRule((String) excludeRuleArg.get(ExcludeRule.GROUP_KEY), (String) excludeRuleArg.get(ExcludeRule.MODULE_KEY));
+        final DefaultExcludeRule expectedExcludeRule =
+                new DefaultExcludeRule((String) excludeRuleArg.get(ExcludeRule.GROUP_KEY), (String)
+                        excludeRuleArg.get(ExcludeRule.MODULE_KEY));
         return excludeRule.equals(expectedExcludeRule);
     }
 }

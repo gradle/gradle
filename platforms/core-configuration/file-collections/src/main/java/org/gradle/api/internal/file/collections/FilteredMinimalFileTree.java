@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.collections;
 
+import java.io.File;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
@@ -24,9 +25,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
-import java.io.File;
-
-public class FilteredMinimalFileTree implements MinimalFileTree, FileSystemMirroringFileTree, PatternFilterableFileTree {
+public class FilteredMinimalFileTree
+        implements MinimalFileTree, FileSystemMirroringFileTree, PatternFilterableFileTree {
     private final PatternSet patterns;
     private final FileSystemMirroringFileTree tree;
 
@@ -63,19 +63,22 @@ public class FilteredMinimalFileTree implements MinimalFileTree, FileSystemMirro
 
     @Override
     public void visitStructure(MinimalFileTreeStructureVisitor visitor, FileTreeInternal owner) {
-        tree.visitStructure(new MinimalFileTreeStructureVisitor() {
-            @Override
-            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                PatternSet intersect = patterns.intersect();
-                intersect.copyFrom(FilteredMinimalFileTree.this.patterns);
-                visitor.visitFileTree(root, intersect, owner);
-            }
+        tree.visitStructure(
+                new MinimalFileTreeStructureVisitor() {
+                    @Override
+                    public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                        PatternSet intersect = patterns.intersect();
+                        intersect.copyFrom(FilteredMinimalFileTree.this.patterns);
+                        visitor.visitFileTree(root, intersect, owner);
+                    }
 
-            @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                visitor.visitFileTreeBackedByFile(file, owner, FilteredMinimalFileTree.this);
-            }
-        }, owner);
+                    @Override
+                    public void visitFileTreeBackedByFile(
+                            File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                        visitor.visitFileTreeBackedByFile(file, owner, FilteredMinimalFileTree.this);
+                    }
+                },
+                owner);
     }
 
     @Override

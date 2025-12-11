@@ -16,10 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
+import java.io.File;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 @ServiceScope(Scope.BuildSession.class)
 public interface VswhereVersionLocator {

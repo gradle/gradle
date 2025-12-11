@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.tooling.r68;
 
+import java.util.Arrays;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-
-import java.util.Arrays;
 
 public class ActionRunsBrokenNestedActions implements BuildAction<String> {
     @Override

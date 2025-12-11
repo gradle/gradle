@@ -16,14 +16,13 @@
 
 package org.gradle.integtests.tooling.r112;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.Task;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.BuildInvocations;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class FetchTasksBuildAction implements BuildAction<List<Task>> {
     private final String projectPath;
@@ -41,6 +40,7 @@ public class FetchTasksBuildAction implements BuildAction<List<Task>> {
             }
         }
 
-        return new ArrayList<Task>(controller.getModel(project, BuildInvocations.class).getTasks());
+        return new ArrayList<Task>(
+                controller.getModel(project, BuildInvocations.class).getTasks());
     }
 }

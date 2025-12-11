@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import java.io.File;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-
-import java.io.File;
 
 public interface ResolvedFileVisitor {
     /**
@@ -44,6 +43,5 @@ public interface ResolvedFileVisitor {
     /**
      * Called after a set of artifacts has been visited.
      */
-    default void endVisitCollection(FileCollectionInternal.Source source) {
-    }
+    default void endVisitCollection(FileCollectionInternal.Source source) {}
 }

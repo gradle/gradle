@@ -16,6 +16,15 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import com.google.common.util.concurrent.MoreExecutors;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -26,16 +35,6 @@ import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Creates the actual executor implementation on demand.
@@ -54,7 +53,11 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     private final ConnectionParameters connectionParameters;
     private BuildCancellationToken cancellationToken;
 
-    public LazyConsumerActionExecutor(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, ConnectionParameters connectionParameters) {
+    public LazyConsumerActionExecutor(
+            Distribution distribution,
+            ToolingImplementationLoader implementationLoader,
+            LoggingProvider loggingProvider,
+            ConnectionParameters connectionParameters) {
         this.distribution = distribution;
         this.implementationLoader = implementationLoader;
         this.loggingProvider = loggingProvider;
@@ -113,10 +116,12 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
             }
 
             @Override
-            @SuppressWarnings("FutureReturnValueIgnored") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+            @SuppressWarnings("FutureReturnValueIgnored") // TODO: evaluate errorprone suppression
+            // (https://github.com/gradle/gradle/issues/35864)
             public Void run(final ConsumerConnection c) {
                 ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-                ExecutorService executorService = MoreExecutors.getExitingExecutorService(executor, 3, TimeUnit.SECONDS);
+                ExecutorService executorService =
+                        MoreExecutors.getExitingExecutorService(executor, 3, TimeUnit.SECONDS);
                 executorService.submit(new Runnable() {
                     @Override
                     public void run() {
@@ -147,7 +152,8 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
         }
     }
 
-    private ConsumerConnection onStartAction(BuildCancellationToken cancellationToken, InternalBuildProgressListener buildProgressListener) {
+    private ConsumerConnection onStartAction(
+            BuildCancellationToken cancellationToken, InternalBuildProgressListener buildProgressListener) {
         lock.lock();
         try {
             if (stopped) {
@@ -158,7 +164,12 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
                 // Hold the lock while creating the connection. Not generally good form.
                 // In this instance, blocks other threads from creating the connection at the same time
                 ProgressLoggerFactory progressLoggerFactory = loggingProvider.getProgressLoggerFactory();
-                connection = implementationLoader.create(distribution, progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken);
+                connection = implementationLoader.create(
+                        distribution,
+                        progressLoggerFactory,
+                        buildProgressListener,
+                        connectionParameters,
+                        cancellationToken);
             }
             return connection;
         } finally {

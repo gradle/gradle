@@ -16,10 +16,9 @@
 
 package org.gradle.internal.logging.progress;
 
+import java.io.IOException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.IOException;
 
 @ServiceScope(Scope.Project.class)
 public interface ProgressLoggingInputStreamListener {

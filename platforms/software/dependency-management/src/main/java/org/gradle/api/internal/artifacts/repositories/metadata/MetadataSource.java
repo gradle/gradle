@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
+import java.util.List;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -28,8 +29,6 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 /**
  * Represents a source of metadata for a repository. Each implementation is responsible for a different metadata
  * format: for discovering the metadata artifact, parsing the metadata and constructing a `MutableModuleComponentResolveMetadata`.
@@ -37,12 +36,14 @@ import java.util.List;
 public interface MetadataSource<S extends MutableModuleComponentResolveMetadata> {
 
     @Nullable
-    S create(String repositoryName,
-             ComponentResolvers componentResolvers,
-             ModuleComponentIdentifier moduleComponentIdentifier,
-             ComponentOverrideMetadata prescribedMetaData,
-             ExternalResourceArtifactResolver artifactResolver, // Required for MavenLocal to verify the presence of the artifact
-             BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result);
+    S create(
+            String repositoryName,
+            ComponentResolvers componentResolvers,
+            ModuleComponentIdentifier moduleComponentIdentifier,
+            ComponentOverrideMetadata prescribedMetaData,
+            ExternalResourceArtifactResolver
+                    artifactResolver, // Required for MavenLocal to verify the presence of the artifact
+            BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result);
 
     /**
      * Use the supplied patterns and version lister to list available versions for the supplied dependency/module.
@@ -52,6 +53,11 @@ public interface MetadataSource<S extends MutableModuleComponentResolveMetadata>
      *
      * Ideally, the ivyPatterns + artifactPatterns + versionLister would be encapsulated into a single 'module resource accessor'.
      */
-    void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result);
-
+    void listModuleVersions(
+            ModuleComponentSelector selector,
+            ComponentOverrideMetadata overrideMetadata,
+            List<ResourcePattern> ivyPatterns,
+            List<ResourcePattern> artifactPatterns,
+            VersionLister versionLister,
+            BuildableModuleVersionListingResolveResult result);
 }

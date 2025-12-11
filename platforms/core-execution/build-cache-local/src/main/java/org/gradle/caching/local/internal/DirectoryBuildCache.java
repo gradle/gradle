@@ -17,14 +17,6 @@
 package org.gradle.caching.local.internal;
 
 import com.google.common.io.Closer;
-import org.apache.commons.io.FileUtils;
-import org.gradle.cache.PersistentCache;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.file.FileAccessTracker;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.io.IoConsumer;
-import org.jspecify.annotations.NullMarked;
-
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,6 +32,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
+import org.apache.commons.io.FileUtils;
+import org.gradle.cache.PersistentCache;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.file.FileAccessTracker;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.io.IoConsumer;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, LocalBuildCache {
@@ -50,13 +49,15 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
     private final String failedFileSuffix;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public DirectoryBuildCache(PersistentCache persistentCache, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
+    public DirectoryBuildCache(
+            PersistentCache persistentCache, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
         this.persistentCache = persistentCache;
         // Create temporary files in the cache directory to ensure they are on the same file system,
         // and thus can always be moved into the cache proper atomically
         this.tempFileStore = new DefaultBuildCacheTempFileStore((prefix, suffix) -> {
             try {
-                return Files.createTempFile(persistentCache.getBaseDir().toPath(), prefix, suffix).toFile();
+                return Files.createTempFile(persistentCache.getBaseDir().toPath(), prefix, suffix)
+                        .toFile();
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
@@ -165,7 +166,8 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
             // is implementation specific: it can also happen that the target file gets overwritten, as if
             // `REPLACE_EXISTING` was specified. This seems to match the behavior exhibited by `File.renameTo()`.
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Couldn't move cache entry '%s' into local cache: %s", key, e), e);
+            throw new UncheckedIOException(
+                    String.format("Couldn't move cache entry '%s' into local cache: %s", key, e), e);
         }
         fileAccessTracker.markAccessed(targetFile);
     }

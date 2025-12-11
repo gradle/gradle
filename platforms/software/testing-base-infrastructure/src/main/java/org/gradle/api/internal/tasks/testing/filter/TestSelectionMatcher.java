@@ -15,10 +15,8 @@
  */
 package org.gradle.api.internal.tasks.testing.filter;
 
-
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.util.internal.TextUtil;
-import org.jspecify.annotations.NullMarked;
+import static org.apache.commons.lang3.StringUtils.splitPreserveAllTokens;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 
 import java.nio.file.Path;
 import java.util.Collection;
@@ -28,9 +26,9 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.StringUtils.splitPreserveAllTokens;
-import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * This class has two public APIs:
@@ -72,11 +70,9 @@ public class TestSelectionMatcher {
         return preparePatternList(includedTests, TestSelectionMatcher::isPathBasedPattern, FileTestPattern::new);
     }
 
-    private static <T> List<T> preparePatternList(Collection<String> includedTests, Predicate<String> patternFilter, Function<String, T> patternCreator) {
-        return includedTests.stream()
-            .filter(patternFilter)
-            .map(patternCreator)
-            .collect(Collectors.toList());
+    private static <T> List<T> preparePatternList(
+            Collection<String> includedTests, Predicate<String> patternFilter, Function<String, T> patternCreator) {
+        return includedTests.stream().filter(patternFilter).map(patternCreator).collect(Collectors.toList());
     }
 
     private static boolean isClassBasedPattern(String pattern) {
@@ -88,11 +84,15 @@ public class TestSelectionMatcher {
     }
 
     public boolean hasClassBasedFilters() {
-        return !buildScriptIncludePatterns.isEmpty() || !buildScriptExcludePatterns.isEmpty() || !commandLineIncludePatterns.isEmpty();
+        return !buildScriptIncludePatterns.isEmpty()
+                || !buildScriptExcludePatterns.isEmpty()
+                || !commandLineIncludePatterns.isEmpty();
     }
 
     public boolean hasPathBasedFilters() {
-        return !pathBuildScriptIncludePatterns.isEmpty() || !pathBuildScriptExcludePatterns.isEmpty() || !pathCommandLineIncludePatterns.isEmpty();
+        return !pathBuildScriptIncludePatterns.isEmpty()
+                || !pathBuildScriptExcludePatterns.isEmpty()
+                || !pathCommandLineIncludePatterns.isEmpty();
     }
 
     public boolean matchesPath(Path path) {
@@ -100,8 +100,11 @@ public class TestSelectionMatcher {
     }
 
     private boolean isIncludedPath(Path path) {
-        boolean isImplicitlyIncluded = pathBuildScriptIncludePatterns.isEmpty() && pathCommandLineIncludePatterns.isEmpty();
-        return isImplicitlyIncluded || matchesPattern(pathBuildScriptIncludePatterns, path) || matchesPattern(pathCommandLineIncludePatterns, path);
+        boolean isImplicitlyIncluded =
+                pathBuildScriptIncludePatterns.isEmpty() && pathCommandLineIncludePatterns.isEmpty();
+        return isImplicitlyIncluded
+                || matchesPattern(pathBuildScriptIncludePatterns, path)
+                || matchesPattern(pathCommandLineIncludePatterns, path);
     }
 
     private boolean isExcludedPath(Path path) {
@@ -114,7 +117,9 @@ public class TestSelectionMatcher {
     private boolean matchesPattern(List<FileTestPattern> patterns, Path path) {
         for (FileTestPattern pattern : patterns) {
             String normalizedPath = TextUtil.normaliseFileSeparators(path.toString());
-            if (pattern.matches("/" + normalizedPath)) { // Add leading slash in target path (will always be optionally present at the start of the regex)
+            if (pattern.matches("/"
+                    + normalizedPath)) { // Add leading slash in target path (will always be optionally present at the
+                // start of the regex)
                 return true;
             }
         }
@@ -123,14 +128,14 @@ public class TestSelectionMatcher {
 
     public boolean matchesTest(String className, String methodName) {
         return matchesPattern(buildScriptIncludePatterns, className, methodName)
-            && matchesPattern(commandLineIncludePatterns, className, methodName)
-            && !matchesExcludePattern(className, methodName);
+                && matchesPattern(commandLineIncludePatterns, className, methodName)
+                && !matchesExcludePattern(className, methodName);
     }
 
     public boolean mayIncludeClass(String fullQualifiedClassName) {
         return mayIncludeClass(buildScriptIncludePatterns, fullQualifiedClassName)
-            && mayIncludeClass(commandLineIncludePatterns, fullQualifiedClassName)
-            && !mayExcludeClass(fullQualifiedClassName);
+                && mayIncludeClass(commandLineIncludePatterns, fullQualifiedClassName)
+                && !mayExcludeClass(fullQualifiedClassName);
     }
 
     private boolean mayIncludeClass(List<ClassTestPattern> includePatterns, String fullQualifiedName) {
@@ -212,7 +217,8 @@ public class TestSelectionMatcher {
 
         private static Pattern preparePattern(String input) {
             try {
-                // Add optional leading slash to match both "absolute" and "relative" paths (all paths are treated as relative to project root)
+                // Add optional leading slash to match both "absolute" and "relative" paths (all paths are treated as
+                // relative to project root)
                 return Pattern.compile("/?(" + TextUtil.normaliseFileSeparators(input) + ")");
             } catch (PatternSyntaxException e) {
                 throw new IllegalArgumentException("Path filter pattern is not a valid regex: " + input, e);
@@ -228,18 +234,19 @@ public class TestSelectionMatcher {
 
         private ClassTestPattern(String pattern) {
             this.pattern = preparePattern(pattern);
-            this.classNameSelector = patternStartsWithUpperCase(pattern) ?
-                new SimpleClassNameSelector() : new FullQualifiedClassNameSelector();
+            this.classNameSelector = patternStartsWithUpperCase(pattern)
+                    ? new SimpleClassNameSelector()
+                    : new FullQualifiedClassNameSelector();
             int firstWildcardIndex = pattern.indexOf('*');
-            //https://github.com/gradle/gradle/issues/27572
+            // https://github.com/gradle/gradle/issues/27572
             int firstParametrizeIndex = pattern.indexOf('[');
             if (firstWildcardIndex == -1) {
                 segments = splitPreserveAllTokens(pattern, '.');
-                if(firstParametrizeIndex == -1){
+                if (firstParametrizeIndex == -1) {
                     lastElementMatcher = new NoWildcardMatcher();
-                }else{
+                } else {
                     segments = splitPreserveAllTokens(pattern.substring(0, firstParametrizeIndex), '.');
-                    segments[segments.length-1] += pattern.substring(firstParametrizeIndex);
+                    segments[segments.length - 1] += pattern.substring(firstParametrizeIndex);
                 }
             } else {
                 segments = splitPreserveAllTokens(pattern.substring(0, firstWildcardIndex), '.');
@@ -252,12 +259,12 @@ public class TestSelectionMatcher {
             String[] split = StringUtils.splitPreserveAllTokens(input, '*');
             for (String s : split) {
                 if (s.isEmpty()) {
-                    pattern.append(".*"); //replace wildcard '*' with '.*'
+                    pattern.append(".*"); // replace wildcard '*' with '.*'
                 } else {
                     if (pattern.length() > 0) {
-                        pattern.append(".*"); //replace wildcard '*' with '.*'
+                        pattern.append(".*"); // replace wildcard '*' with '.*'
                     }
-                    pattern.append(Pattern.quote(s)); //quote everything else
+                    pattern.append(Pattern.quote(s)); // quote everything else
                 }
             }
             return Pattern.compile(pattern.toString());
@@ -267,8 +274,9 @@ public class TestSelectionMatcher {
             if (patternStartsWithWildcard()) {
                 return true;
             }
-            String[] classNameArray =
-                classNameSelector.determineTargetClassName(fullQualifiedName).split("\\.");
+            String[] classNameArray = classNameSelector
+                    .determineTargetClassName(fullQualifiedName)
+                    .split("\\.");
             if (classNameIsShorterThanPattern(classNameArray)) {
                 return false;
             }
@@ -285,24 +293,26 @@ public class TestSelectionMatcher {
         }
 
         private boolean matchesClass(String fullQualifiedName) {
-            return pattern.matcher(classNameSelector.determineTargetClassName(fullQualifiedName)).matches();
+            return pattern.matcher(classNameSelector.determineTargetClassName(fullQualifiedName))
+                    .matches();
         }
 
         private boolean matchesClassAndMethod(String fullQualifiedName, String methodName) {
             if (methodName == null) {
                 return false;
             }
-            return pattern.matcher(classNameSelector.determineTargetClassName(fullQualifiedName) + "." + methodName).matches();
+            return pattern.matcher(classNameSelector.determineTargetClassName(fullQualifiedName) + "." + methodName)
+                    .matches();
         }
 
         private boolean lastClassNameElementMatchesPenultimatePatternElement(String[] className, int index) {
-            return index == segments.length - 2 && index == className.length - 1 && classNameMatch(className[index], segments[index]);
+            return index == segments.length - 2
+                    && index == className.length - 1
+                    && classNameMatch(className[index], segments[index]);
         }
 
-        private boolean lastClassNameElementMatchesLastPatternElement(String[] className,
-            int index) {
-            return index == segments.length - 1 && lastElementMatcher.match(className[index],
-                segments[index]);
+        private boolean lastClassNameElementMatchesLastPatternElement(String[] className, int index) {
+            return index == segments.length - 1 && lastElementMatcher.match(className[index], segments[index]);
         }
 
         private boolean patternStartsWithWildcard() {

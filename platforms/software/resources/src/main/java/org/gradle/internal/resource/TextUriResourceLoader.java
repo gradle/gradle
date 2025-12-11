@@ -16,11 +16,10 @@
 
 package org.gradle.internal.resource;
 
+import java.net.URI;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
-
-import java.net.URI;
 
 public interface TextUriResourceLoader {
     TextResource loadUri(String description, URI sourceUri);

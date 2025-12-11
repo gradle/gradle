@@ -25,7 +25,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-
 public class S3ResourcesServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -47,9 +46,9 @@ public class S3ResourcesServices extends AbstractGradleModuleServices {
     private static class AuthenticationSchemeAction implements ServiceRegistrationProvider {
         @SuppressWarnings("UnusedVariable")
         @Provides
-        public void configure(ServiceRegistration registration, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
+        public void configure(
+                ServiceRegistration registration, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
             authenticationSchemeRegistry.registerScheme(AwsImAuthentication.class, DefaultAwsImAuthentication.class);
         }
     }
-
 }

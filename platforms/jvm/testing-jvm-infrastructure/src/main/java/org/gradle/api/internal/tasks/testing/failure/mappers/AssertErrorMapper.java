@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.failure.mappers;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.internal.tasks.testing.failure.TestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.ThrowableToTestFailureMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Maps {@link AssertionError} to {@link TestFailure}.
@@ -33,9 +32,7 @@ import java.util.List;
 public class AssertErrorMapper extends TestFailureMapper {
     @Override
     protected List<String> getSupportedClassNames() {
-        return Collections.singletonList(
-            AssertionError.class.getName()
-        );
+        return Collections.singletonList(AssertionError.class.getName());
     }
 
     @Override

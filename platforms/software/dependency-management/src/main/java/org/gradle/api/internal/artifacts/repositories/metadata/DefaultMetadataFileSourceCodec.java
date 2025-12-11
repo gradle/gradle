@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
+import java.io.File;
+import java.io.IOException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
@@ -25,9 +27,6 @@ import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * A codec for {@link MetadataFileSource}. This codec is particular because of the persistent cache
@@ -41,7 +40,8 @@ public class DefaultMetadataFileSourceCodec implements PersistentModuleSource.Co
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ArtifactIdentifierFileStore fileStore;
 
-    public DefaultMetadataFileSourceCodec(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ArtifactIdentifierFileStore fileStore) {
+    public DefaultMetadataFileSourceCodec(
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory, ArtifactIdentifierFileStore fileStore) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.fileStore = fileStore;
     }
@@ -68,24 +68,18 @@ public class DefaultMetadataFileSourceCodec implements PersistentModuleSource.Co
         return source;
     }
 
-    private DefaultMetadataFileSource createSource(byte[] sha1, String group, String module, String version, String name) {
+    private DefaultMetadataFileSource createSource(
+            byte[] sha1, String group, String module, String version, String name) {
         ModuleComponentArtifactIdentifier artifactId = createArtifactId(group, module, version, name);
         HashCode hashCode = HashCode.fromBytes(sha1);
         File metadataFile = fileStore.whereIs(artifactId, hashCode.toString());
-        return new DefaultMetadataFileSource(
-            artifactId,
-            metadataFile,
-            hashCode);
+        return new DefaultMetadataFileSource(artifactId, metadataFile, hashCode);
     }
 
-    private ModuleComponentFileArtifactIdentifier createArtifactId(String group, String module, String version, String name) {
+    private ModuleComponentFileArtifactIdentifier createArtifactId(
+            String group, String module, String version, String name) {
         return new ModuleComponentFileArtifactIdentifier(
-            DefaultModuleComponentIdentifier.newId(
-                moduleIdentifierFactory.module(group, module),
-                version
-            ),
-            name
-        );
+                DefaultModuleComponentIdentifier.newId(moduleIdentifierFactory.module(group, module), version), name);
     }
 
     @Override

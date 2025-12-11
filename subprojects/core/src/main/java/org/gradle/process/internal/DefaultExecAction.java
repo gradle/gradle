@@ -16,16 +16,15 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.process.BaseExecSpec;
-import org.gradle.process.CommandLineArgumentProvider;
-import org.gradle.process.ExecResult;
-import org.gradle.process.ProcessForkOptions;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import org.gradle.process.BaseExecSpec;
+import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ExecResult;
+import org.gradle.process.ProcessForkOptions;
 
 /**
  * Use {@link ExecActionFactory} (for core code) or {@link org.gradle.process.ExecOperations} (for plugin code) instead.

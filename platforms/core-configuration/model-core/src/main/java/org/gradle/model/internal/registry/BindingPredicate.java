@@ -41,7 +41,8 @@ public class BindingPredicate extends ModelPredicate {
     @Override
     public String toString() {
         ModelType<?> type = reference.getType();
-        return "{type: " + (type == null ? null : type.getDisplayName()) + ", path: " + getPath() + ", scope: " + getScope() + ", state: " + getState() + "}";
+        return "{type: " + (type == null ? null : type.getDisplayName()) + ", path: " + getPath() + ", scope: "
+                + getScope() + ", state: " + getState() + "}";
     }
 
     @Nullable

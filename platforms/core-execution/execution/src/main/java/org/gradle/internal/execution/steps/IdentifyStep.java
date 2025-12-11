@@ -35,17 +35,17 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> extends BuildOperationStep<C, R> implements DeferredExecutionAwareStep<C, R> {
+public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> extends BuildOperationStep<C, R>
+        implements DeferredExecutionAwareStep<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentifyStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;
 
     public IdentifyStep(
-        BuildOperationRunner buildOperationRunner,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        DeferredExecutionAwareStep<? super IdentityContext, R> delegate
-    ) {
+            BuildOperationRunner buildOperationRunner,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            DeferredExecutionAwareStep<? super IdentityContext, R> delegate) {
         super(buildOperationRunner);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.delegate = delegate;
@@ -57,7 +57,8 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
     }
 
     @Override
-    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, DeferredResult<T>> cache) {
+    public <T> Deferrable<Try<T>> executeDeferred(
+            UnitOfWork work, C context, Cache<Identity, DeferredResult<T>> cache) {
         return delegate.executeDeferred(work, createIdentityContext(work, context), cache);
     }
 
@@ -65,39 +66,42 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
         ImplementationsBuilder implementationsBuilder = new ImplementationsBuilder(classLoaderHierarchyHasher);
         work.visitImplementations(implementationsBuilder);
         ImplementationSnapshot implementation = implementationsBuilder.getImplementation();
-        ImmutableList<ImplementationSnapshot> additionalImplementations = implementationsBuilder.getAdditionalImplementations();
+        ImmutableList<ImplementationSnapshot> additionalImplementations =
+                implementationsBuilder.getAdditionalImplementations();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Implementation for {}: {}", work.getDisplayName(), implementation);
             LOGGER.debug("Additional implementations for {}: {}", work.getDisplayName(), additionalImplementations);
         }
 
-        InputFingerprinter.Result inputs = work.getInputFingerprinter().fingerprintInputProperties(
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            work::visitImmutableInputs,
-            work.getInputDependencyChecker(context.getValidationContext())
-        );
+        InputFingerprinter.Result inputs = work.getInputFingerprinter()
+                .fingerprintInputProperties(
+                        ImmutableSortedMap.of(),
+                        ImmutableSortedMap.of(),
+                        ImmutableSortedMap.of(),
+                        ImmutableSortedMap.of(),
+                        work::visitImmutableInputs,
+                        work.getInputDependencyChecker(context.getValidationContext()));
 
         ImmutableSortedMap<String, ValueSnapshot> scalarInputProperties = inputs.getValueSnapshots();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileInputProperties = inputs.getFileFingerprints();
         Identity identity = work.identify(scalarInputProperties, fileInputProperties);
 
         return new IdentityContext(
-            context,
-            implementation,
-            additionalImplementations,
-            scalarInputProperties,
-            fileInputProperties,
-            identity);
+                context,
+                implementation,
+                additionalImplementations,
+                scalarInputProperties,
+                fileInputProperties,
+                identity);
     }
 
     private static class ImplementationsBuilder implements ImplementationVisitor {
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+
         @Nullable
         private ImplementationSnapshot implementation;
+
         private final ImmutableList.Builder<ImplementationSnapshot> additionalImplementations = ImmutableList.builder();
 
         public ImplementationsBuilder(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {

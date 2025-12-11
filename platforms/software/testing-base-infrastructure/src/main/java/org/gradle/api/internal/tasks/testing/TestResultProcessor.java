@@ -53,5 +53,4 @@ public interface TestResultProcessor {
      * Notifies this processor that metadata has been published for the given test.
      */
     default void published(Object testId, TestMetadataEvent keyValueEvent) {}
-
 }

@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import com.google.common.base.CaseFormat;
+import java.io.File;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -30,8 +31,6 @@ import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
-
-import java.io.File;
 
 class PrecompiledGroovyScript {
     private static final String SCRIPT_PLUGIN_EXTENSION = ".gradle";
@@ -75,8 +74,10 @@ class PrecompiledGroovyScript {
         String fileName = scriptFile.getName();
         this.type = Type.getType(fileName);
         this.pluginId = type.toPluginId(fileName);
-        this.precompiledScriptClassName = toJavaIdentifier(kebabCaseToPascalCase(pluginId.getId().replace('.', '-')));
-        this.firstPassSource = new PrecompiledScriptPluginFirstPassSource(scriptFile, precompiledScriptClassName, resourceLoader);
+        this.precompiledScriptClassName =
+                toJavaIdentifier(kebabCaseToPascalCase(pluginId.getId().replace('.', '-')));
+        this.firstPassSource =
+                new PrecompiledScriptPluginFirstPassSource(scriptFile, precompiledScriptClassName, resourceLoader);
         this.scriptSource = new PrecompiledScriptPluginSource(scriptFile, precompiledScriptClassName, resourceLoader);
         this.scriptTarget = new PrecompiledScriptTarget(type != Type.INIT, type == Type.SETTINGS);
     }
@@ -173,7 +174,8 @@ class PrecompiledGroovyScript {
 
     private static class PrecompiledScriptPluginFirstPassSource extends PrecompiledScriptPluginSource {
 
-        public PrecompiledScriptPluginFirstPassSource(File scriptFile, String className, TextFileResourceLoader resourceLoader) {
+        public PrecompiledScriptPluginFirstPassSource(
+                File scriptFile, String className, TextFileResourceLoader resourceLoader) {
             super(scriptFile, className, resourceLoader);
         }
 

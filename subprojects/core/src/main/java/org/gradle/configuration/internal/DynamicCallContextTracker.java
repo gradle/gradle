@@ -16,10 +16,9 @@
 
 package org.gradle.configuration.internal;
 
+import java.util.function.Consumer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.function.Consumer;
 
 /**
  * <p>

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file;
 
 import com.google.common.base.Objects;
+import java.io.File;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
@@ -24,8 +25,6 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.state.ManagedFactory;
-
-import java.io.File;
 
 public class ManagedFactories {
 
@@ -67,7 +66,9 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            return type.cast(filePropertyFactory.newFileProperty().value(Cast.<Provider<RegularFile>>uncheckedNonnullCast(state)));
+            return type.cast(filePropertyFactory
+                    .newFileProperty()
+                    .value(Cast.<Provider<RegularFile>>uncheckedNonnullCast(state)));
         }
 
         @Override
@@ -115,7 +116,9 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            return type.cast(filePropertyFactory.newDirectoryProperty().value(Cast.<Provider<Directory>>uncheckedNonnullCast(state)));
+            return type.cast(filePropertyFactory
+                    .newDirectoryProperty()
+                    .value(Cast.<Provider<Directory>>uncheckedNonnullCast(state)));
         }
 
         @Override

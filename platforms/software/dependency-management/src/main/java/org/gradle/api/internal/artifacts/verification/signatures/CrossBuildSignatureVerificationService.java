@@ -15,6 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.verification.signatures;
 
+import static org.gradle.api.internal.artifacts.verification.signatures.CrossBuildCachingKeyService.MISSING_KEY_TIMEOUT;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.FileLockManager;
@@ -34,13 +40,6 @@ import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import static org.gradle.api.internal.artifacts.verification.signatures.CrossBuildCachingKeyService.MISSING_KEY_TIMEOUT;
-
 public class CrossBuildSignatureVerificationService implements SignatureVerificationService {
     private final SignatureVerificationService delegate;
     private final FileHasher fileHasher;
@@ -51,36 +50,48 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
     private final boolean useKeyServers;
     private final HashCode keyringFileHash;
 
-    public CrossBuildSignatureVerificationService(SignatureVerificationService delegate,
-                                                  FileHasher fileHasher,
-                                                  BuildScopedCacheBuilderFactory cacheBuilderFactory,
-                                                  InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-                                                  BuildCommencedTimeProvider timeProvider,
-                                                  boolean refreshKeys,
-                                                  boolean useKeyServers,
-                                                  HashCode keyringFileHash) {
+    public CrossBuildSignatureVerificationService(
+            SignatureVerificationService delegate,
+            FileHasher fileHasher,
+            BuildScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+            BuildCommencedTimeProvider timeProvider,
+            boolean refreshKeys,
+            boolean useKeyServers,
+            HashCode keyringFileHash) {
         this.delegate = delegate;
         this.fileHasher = fileHasher;
         this.timeProvider = timeProvider;
         this.refreshKeys = refreshKeys;
         this.useKeyServers = useKeyServers;
         this.keyringFileHash = keyringFileHash;
-        store = cacheBuilderFactory.createCacheBuilder("signature-verification")
-            .withDisplayName("Signature verification cache")
-            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-            .open();
+        store = cacheBuilderFactory
+                .createCacheBuilder("signature-verification")
+                .withDisplayName("Signature verification cache")
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+                .open();
         InterningStringSerializer stringSerializer = new InterningStringSerializer(new StringInterner());
-        cache = store.createIndexedCache(
-            IndexedCacheParameters.of(
-                "signature-verification",
-                new CacheKeySerializer(stringSerializer, new SetSerializer<>(stringSerializer)),
-                new CacheEntrySerializer(stringSerializer)
-            ).withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(500, true)));
+        cache = store.createIndexedCache(IndexedCacheParameters.of(
+                        "signature-verification",
+                        new CacheKeySerializer(stringSerializer, new SetSerializer<>(stringSerializer)),
+                        new CacheEntrySerializer(stringSerializer))
+                .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(500, true)));
     }
 
     @Override
-    public void verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, SignatureVerificationResultBuilder builder) {
-        CacheKey cacheKey = new CacheKey(origin.getAbsolutePath(), signature.getAbsolutePath(), trustedKeys, ignoredKeys, useKeyServers, keyringFileHash);
+    public void verify(
+            File origin,
+            File signature,
+            Set<String> trustedKeys,
+            Set<String> ignoredKeys,
+            SignatureVerificationResultBuilder builder) {
+        CacheKey cacheKey = new CacheKey(
+                origin.getAbsolutePath(),
+                signature.getAbsolutePath(),
+                trustedKeys,
+                ignoredKeys,
+                useKeyServers,
+                keyringFileHash);
         HashCode originHash = fileHasher.hash(origin);
         HashCode signatureHash = fileHasher.hash(signature);
         CacheEntry entry = cache.getIfPresent(cacheKey);
@@ -105,7 +116,13 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         return delegate.getPublicKeyService();
     }
 
-    private CacheEntry performActualVerification(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, HashCode originHash, HashCode signatureHash) {
+    private CacheEntry performActualVerification(
+            File origin,
+            File signature,
+            Set<String> trustedKeys,
+            Set<String> ignoredKeys,
+            HashCode originHash,
+            HashCode signatureHash) {
         CacheEntryBuilder result = new CacheEntryBuilder(timeProvider.getCurrentTime(), originHash, signatureHash);
         delegate.verify(origin, signature, trustedKeys, ignoredKeys, result);
         return result.build();
@@ -125,7 +142,13 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         private final boolean useKeyServers;
         private final HashCode keyringFileHash;
 
-        private CacheKey(String filePath, String signaturePath, Set<String> trustedKeys, Set<String> ignoredKeys, boolean useKeyServers, HashCode keyringFileHash) {
+        private CacheKey(
+                String filePath,
+                String signaturePath,
+                Set<String> trustedKeys,
+                Set<String> ignoredKeys,
+                boolean useKeyServers,
+                HashCode keyringFileHash) {
             this.filePath = filePath;
             this.signaturePath = signaturePath;
             this.trustedKeys = trustedKeys;
@@ -188,7 +211,13 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
 
         @Override
         public CacheKey read(Decoder decoder) throws Exception {
-            return new CacheKey(delegate.read(decoder), delegate.read(decoder), setSerializer.read(decoder), setSerializer.read(decoder), decoder.readBoolean(), hashCodeSerializer.read(decoder));
+            return new CacheKey(
+                    delegate.read(decoder),
+                    delegate.read(decoder),
+                    setSerializer.read(decoder),
+                    setSerializer.read(decoder),
+                    decoder.readBoolean(),
+                    hashCodeSerializer.read(decoder));
         }
 
         @Override
@@ -265,7 +294,16 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         }
 
         CacheEntry build() {
-            return new CacheEntry(timestamp, originHash, signatureHash, missingKeys, trustedKeys, validKeys, failedKeys, ignoredKeys, hasNoSignatures);
+            return new CacheEntry(
+                    timestamp,
+                    originHash,
+                    signatureHash,
+                    missingKeys,
+                    trustedKeys,
+                    validKeys,
+                    failedKeys,
+                    ignoredKeys,
+                    hasNoSignatures);
         }
     }
 
@@ -280,7 +318,16 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         private final List<String> ignoredKeys;
         private final boolean hasNoSignatures;
 
-        public CacheEntry(long timestamp, HashCode originHash, HashCode signatureHash, List<String> missingKeys, List<PGPPublicKey> trustedKeys, List<PGPPublicKey> validKeys, List<PGPPublicKey> failedKeys, List<String> ignoredKeys, boolean hasNoSignatures) {
+        public CacheEntry(
+                long timestamp,
+                HashCode originHash,
+                HashCode signatureHash,
+                List<String> missingKeys,
+                List<PGPPublicKey> trustedKeys,
+                List<PGPPublicKey> validKeys,
+                List<PGPPublicKey> failedKeys,
+                List<String> ignoredKeys,
+                boolean hasNoSignatures) {
             this.timestamp = timestamp;
             this.originHash = originHash;
             this.signatureHash = signatureHash;
@@ -324,8 +371,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         }
 
         public boolean updated(HashCode originHash, HashCode signatureHash) {
-            return !this.originHash.equals(originHash) ||
-                !this.signatureHash.equals(signatureHash);
+            return !this.originHash.equals(originHash) || !this.signatureHash.equals(signatureHash);
         }
     }
 
@@ -348,7 +394,16 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             List<PGPPublicKey> failedKeys = readKeys(decoder);
             List<String> ignoredKeys = readStringKeys(decoder);
             boolean hasNoSignatures = decoder.readBoolean();
-            return new CacheEntry(timestamp, originHash, signatureHash, missingKeys, trustedKeys, validKeys, failedKeys, ignoredKeys, hasNoSignatures);
+            return new CacheEntry(
+                    timestamp,
+                    originHash,
+                    signatureHash,
+                    missingKeys,
+                    trustedKeys,
+                    validKeys,
+                    failedKeys,
+                    ignoredKeys,
+                    hasNoSignatures);
         }
 
         private List<String> readStringKeys(Decoder decoder) throws Exception {
@@ -410,5 +465,4 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             }
         }
     }
-
 }

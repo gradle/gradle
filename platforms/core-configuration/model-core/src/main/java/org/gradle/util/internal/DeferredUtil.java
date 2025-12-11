@@ -16,14 +16,13 @@
 
 package org.gradle.util.internal;
 
+import static org.gradle.internal.UncheckedException.uncheckedCall;
+
+import java.util.concurrent.Callable;
 import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
 import org.jspecify.annotations.Nullable;
-
-import java.util.concurrent.Callable;
-
-import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 public class DeferredUtil {
 
@@ -65,14 +64,11 @@ public class DeferredUtil {
     }
 
     public static boolean isDeferred(Object value) {
-        return value instanceof Provider
-            || value instanceof Factory
-            || isNestableDeferred(value);
+        return value instanceof Provider || value instanceof Factory || isNestableDeferred(value);
     }
 
     public static boolean isNestableDeferred(@Nullable Object value) {
-        return value instanceof Callable
-            || isKotlinFunction0Deferrable(value);
+        return value instanceof Callable || isKotlinFunction0Deferrable(value);
     }
 
     @Nullable

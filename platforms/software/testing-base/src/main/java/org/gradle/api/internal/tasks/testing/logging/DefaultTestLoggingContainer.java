@@ -17,6 +17,10 @@
 package org.gradle.api.internal.tasks.testing.logging;
 
 import com.google.common.collect.Maps;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.model.ObjectFactory;
@@ -26,24 +30,24 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
 
-import javax.inject.Inject;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
-
 public class DefaultTestLoggingContainer implements TestLoggingContainer {
     private final Map<LogLevel, TestLogging> perLevelTestLogging = Maps.newEnumMap(LogLevel.class);
 
     @Inject
     public DefaultTestLoggingContainer(ObjectFactory objectFactory) {
-        for (LogLevel level: LogLevel.values()) {
+        for (LogLevel level : LogLevel.values()) {
             perLevelTestLogging.put(level, objectFactory.newInstance(DefaultTestLogging.class));
         }
 
         setEvents(EnumSet.of(TestLogEvent.FAILED));
         setExceptionFormat(TestExceptionFormat.SHORT);
 
-        getInfo().setEvents(EnumSet.of(TestLogEvent.FAILED, TestLogEvent.SKIPPED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
+        getInfo()
+                .setEvents(EnumSet.of(
+                        TestLogEvent.FAILED,
+                        TestLogEvent.SKIPPED,
+                        TestLogEvent.STANDARD_OUT,
+                        TestLogEvent.STANDARD_ERROR));
         getInfo().setStackTraceFilters(EnumSet.of(TestStackTraceFilter.TRUNCATE));
 
         getDebug().setEvents(EnumSet.allOf(TestLogEvent.class));

@@ -16,11 +16,10 @@
 
 package org.gradle.api.artifacts.ivy;
 
+import java.util.Map;
+import javax.xml.namespace.QName;
 import org.gradle.api.InvalidUserDataException;
 import org.jspecify.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.Map;
 
 /**
  * Represents the set of "extra" info elements in the Ivy descriptor.  These elements

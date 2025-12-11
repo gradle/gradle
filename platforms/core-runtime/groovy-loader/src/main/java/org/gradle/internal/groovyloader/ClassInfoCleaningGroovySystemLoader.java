@@ -16,22 +16,21 @@
 
 package org.gradle.internal.groovyloader;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.Cast;
-import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Objects;
+import org.gradle.api.GradleException;
+import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
 
-    private final static Logger LOG = LoggerFactory.getLogger(ClassInfoCleaningGroovySystemLoader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ClassInfoCleaningGroovySystemLoader.class);
 
     private final Method removeFromGlobalClassValue;
     private final Method globalClassSetIteratorMethod;
@@ -84,7 +83,8 @@ public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
                     if (clazz != null) {
                         removeFromGlobalClassValue.invoke(globalClassValue, clazz);
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("Removed ClassInfo from {} loaded by {}", clazz.getName(), clazz.getClassLoader());
+                            LOG.debug(
+                                    "Removed ClassInfo from {} loaded by {}", clazz.getName(), clazz.getClassLoader());
                         }
                     }
                 }
@@ -108,19 +108,24 @@ public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
                     if (clazz != null && clazz.getClassLoader() == classLoader) {
                         removeFromGlobalClassValue.invoke(globalClassValue, clazz);
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("Removed ClassInfo from {} loaded by {}", clazz.getName(), clazz.getClassLoader());
+                            LOG.debug(
+                                    "Removed ClassInfo from {} loaded by {}", clazz.getName(), clazz.getClassLoader());
                         }
                     }
                 }
             }
         } catch (Exception e) {
-            throw new GradleException("Could not remove types for ClassLoader " + classLoader + " from the Groovy system " + leakingLoader, e);
+            throw new GradleException(
+                    "Could not remove types for ClassLoader " + classLoader + " from the Groovy system "
+                            + leakingLoader,
+                    e);
         }
     }
 
     private @Nullable Class<?> getClazz(Object classInfo) throws IllegalAccessException {
         if (classRefField != null) {
-            return Cast.<WeakReference<Class<?>>>uncheckedNonnullCast(classRefField.get(classInfo)).get();
+            return Cast.<WeakReference<Class<?>>>uncheckedNonnullCast(classRefField.get(classInfo))
+                    .get();
         } else {
             return (Class<?>) Objects.requireNonNull(clazzField).get(classInfo);
         }

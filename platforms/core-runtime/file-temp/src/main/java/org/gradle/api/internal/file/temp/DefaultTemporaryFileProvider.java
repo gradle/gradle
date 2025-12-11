@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.file.temp;
 
+import java.io.File;
+import java.io.IOException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
 
 public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
     private final Factory<File> baseDirFactory;
@@ -40,7 +39,10 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
             }
             pathBuilder.append(path[i]);
         }
-        return new File(baseDirFactory.create(), pathBuilder.toString()).toPath().normalize().toFile();
+        return new File(baseDirFactory.create(), pathBuilder.toString())
+                .toPath()
+                .normalize()
+                .toFile();
     }
 
     @Override
@@ -77,7 +79,8 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
         forceMkdir(dir);
         try {
             // TODO: This is not a great paradigm for creating a temporary directory.
-            // See http://guava-libraries.googlecode.com/svn/tags/release08/javadoc/com/google/common/io/Files.html#createTempDir%28%29 for an alternative.
+            // See
+            // http://guava-libraries.googlecode.com/svn/tags/release08/javadoc/com/google/common/io/Files.html#createTempDir%28%29 for an alternative.
             File tmpDir = TempFiles.createTempFile(prefix, suffix, dir);
             if (!tmpDir.delete()) {
                 throw new IOException("Failed to delete file: " + tmpDir);
@@ -93,7 +96,8 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
 
     private static File forceMkdir(File directory) {
         if (!directory.mkdirs() && !directory.isDirectory()) {
-            throw UncheckedException.throwAsUncheckedException(new IOException("Cannot create directory '" + directory + "'."), true);
+            throw UncheckedException.throwAsUncheckedException(
+                    new IOException("Cannot create directory '" + directory + "'."), true);
         } else {
             return directory;
         }

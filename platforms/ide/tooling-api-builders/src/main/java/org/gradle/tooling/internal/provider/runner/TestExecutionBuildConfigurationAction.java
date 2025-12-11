@@ -16,6 +16,12 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -47,13 +53,6 @@ import org.gradle.tooling.internal.protocol.test.source.InternalMethodSource;
 import org.gradle.tooling.internal.protocol.test.source.InternalTestSource;
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
 
 @NullMarked
 class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
@@ -141,7 +140,8 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                     for (String cls : testSpec.getClasses()) {
                         filter.includeCommandLineTest(cls, null);
                     }
-                    for (Map.Entry<String, List<String>> entry : testSpec.getMethods().entrySet()) {
+                    for (Map.Entry<String, List<String>> entry :
+                            testSpec.getMethods().entrySet()) {
                         String cls = entry.getKey();
                         for (String method : entry.getValue()) {
                             filter.includeCommandLineTest(cls, method);
@@ -158,7 +158,8 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     }
 
     private void configureTestTasksForInternalJvmTestRequest(QueryableExecutionPlan plan) {
-        final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests();
+        final Collection<InternalJvmTestRequest> internalJvmTestRequests =
+                testExecutionRequest.getInternalJvmTestRequests();
         if (internalJvmTestRequests.isEmpty()) {
             return;
         }
@@ -191,15 +192,18 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         }
     }
 
-    private static void warnIfUnsupportedTestRerunningForResourceBasedTests(Collection<InternalTestDescriptor> testDescriptors) {
+    private static void warnIfUnsupportedTestRerunningForResourceBasedTests(
+            Collection<InternalTestDescriptor> testDescriptors) {
         Set<String> seenTasks = new LinkedHashSet<>();
         for (InternalTestDescriptor descriptor : testDescriptors) {
             if (descriptor instanceof InternalSourceAwareTestDescriptor) {
-                InternalSourceAwareTestDescriptor sd  = (InternalSourceAwareTestDescriptor) descriptor;
+                InternalSourceAwareTestDescriptor sd = (InternalSourceAwareTestDescriptor) descriptor;
                 if (sd.getSource() instanceof InternalFilesystemSource) {
                     String taskPath = taskPathOf(descriptor);
                     if (!seenTasks.contains(taskPath)) {
-                        LOG.warn("Re-running resource-based tests is not supported via TestLauncher API. The '{}' task will be scheduled without further filtering.", taskPath);
+                        LOG.warn(
+                                "Re-running resource-based tests is not supported via TestLauncher API. The '{}' task will be scheduled without further filtering.",
+                                taskPath);
                         seenTasks.add(taskPath);
                     }
                 }
@@ -258,12 +262,14 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         try {
             taskSelection = context.getSelection(testTaskPath);
         } catch (TaskSelectionException e) {
-            throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
+            throw new TestExecutionException(
+                    String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
         }
 
         Set<Task> tasks = taskSelection.getTasks();
         if (tasks.isEmpty()) {
-            throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
+            throw new TestExecutionException(
+                    String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
         }
 
         return tasks;
@@ -273,7 +279,9 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         Set<AbstractTestTask> result = new LinkedHashSet<>();
         for (Task task : queryTasks(context, testTaskPath)) {
             if (!(task instanceof AbstractTestTask)) {
-                throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
+                throw new TestExecutionException(String.format(
+                        "Task '%s' of type '%s' not supported for executing tests via TestLauncher API.",
+                        testTaskPath, task.getClass().getName()));
             }
             result.add((AbstractTestTask) task);
         }
@@ -281,7 +289,8 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     }
 
     private void collectTasksForInternalJvmTestRequest(GradleInternal gradle, Collection<Task> tasksToExecute) {
-        final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests();
+        final Collection<InternalJvmTestRequest> internalJvmTestRequests =
+                testExecutionRequest.getInternalJvmTestRequests();
         if (internalJvmTestRequests.isEmpty()) {
             return;
         }
@@ -290,7 +299,8 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         for (ProjectState projectState : gradle.getOwner().getProjects().getAllProjects()) {
             projectState.ensureConfigured();
             projectState.applyToMutableState(project -> {
-                final Collection<AbstractTestTask> testTasks = project.getTasks().withType(AbstractTestTask.class);
+                final Collection<AbstractTestTask> testTasks =
+                        project.getTasks().withType(AbstractTestTask.class);
                 tasksToExecute.addAll(testTasks);
             });
         }

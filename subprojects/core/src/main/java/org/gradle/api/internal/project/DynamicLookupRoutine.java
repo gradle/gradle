@@ -17,25 +17,33 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.MissingPropertyException;
+import java.util.Map;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-
 /**
  * Encapsulates the implementations of the common ways to interact with a {@link DynamicObject}.
  */
 @ServiceScope(Scope.Build.class)
 public interface DynamicLookupRoutine {
-    @Nullable Object property(DynamicObject receiver, String propertyName) throws MissingPropertyException;
-    @Nullable Object findProperty(DynamicObject receiver, String propertyName);
+    @Nullable
+    Object property(DynamicObject receiver, String propertyName) throws MissingPropertyException;
+
+    @Nullable
+    Object findProperty(DynamicObject receiver, String propertyName);
+
     void setProperty(DynamicObject receiver, String name, @Nullable Object value);
+
     boolean hasProperty(DynamicObject receiver, String propertyName);
-    @Nullable Map<String, ? extends @Nullable Object> getProperties(DynamicObject receiver);
-    @Nullable Object invokeMethod(DynamicObject receiver, String name, Object... args);
+
+    @Nullable
+    Map<String, ? extends @Nullable Object> getProperties(DynamicObject receiver);
+
+    @Nullable
+    Object invokeMethod(DynamicObject receiver, String name, Object... args);
 
     DynamicInvokeResult tryGetProperty(DynamicObject receiver, String name);
 }

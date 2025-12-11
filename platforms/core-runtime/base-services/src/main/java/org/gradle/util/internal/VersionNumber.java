@@ -18,9 +18,8 @@ package org.gradle.util.internal;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Ordering;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Locale;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents, parses, and compares version numbers. Supports a couple of different schemes: <ul> <li>MAJOR.MINOR.MICRO-QUALIFIER (the default).</li> <li>MAJOR.MINOR.MICRO.PATCH-QUALIFIER.</li> </ul>
@@ -54,7 +53,8 @@ public class VersionNumber implements Comparable<VersionNumber> {
         this(major, minor, micro, patch, qualifier, PATCH_SCHEME);
     }
 
-    private VersionNumber(int major, int minor, int micro, int patch, @Nullable String qualifier, AbstractScheme scheme) {
+    private VersionNumber(
+            int major, int minor, int micro, int patch, @Nullable String qualifier, AbstractScheme scheme) {
         this.major = major;
         this.minor = minor;
         this.micro = micro;
@@ -176,7 +176,6 @@ public class VersionNumber implements Comparable<VersionNumber> {
             }
             Scanner scanner = new Scanner(versionString);
 
-
             if (!scanner.hasDigit()) {
                 return UNKNOWN;
             }
@@ -269,7 +268,12 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
         @Override
         public String format(VersionNumber versionNumber) {
-            return String.format("%d.%d.%d%s", versionNumber.major, versionNumber.minor, versionNumber.micro, versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
+            return String.format(
+                    "%d.%d.%d%s",
+                    versionNumber.major,
+                    versionNumber.minor,
+                    versionNumber.micro,
+                    versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
         }
     }
 
@@ -280,9 +284,13 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
         @Override
         public String format(VersionNumber versionNumber) {
-            return String.format("%d.%d.%d.%d%s", versionNumber.major, versionNumber.minor, versionNumber.micro, versionNumber.patch, versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
+            return String.format(
+                    "%d.%d.%d.%d%s",
+                    versionNumber.major,
+                    versionNumber.minor,
+                    versionNumber.micro,
+                    versionNumber.patch,
+                    versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
         }
     }
-
 }
-

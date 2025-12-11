@@ -15,10 +15,9 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.tooling.internal.consumer.ConnectorServices;
-
 import java.io.File;
 import java.net.URI;
+import org.gradle.tooling.internal.consumer.ConnectorServices;
 
 /**
  * <p>A {@code GradleConnector} is the main entry point to the Gradle tooling API. You use this API as follows:</p>

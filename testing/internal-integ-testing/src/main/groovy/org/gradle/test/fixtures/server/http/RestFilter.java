@@ -15,9 +15,9 @@
  */
 package org.gradle.test.fixtures.server.http;
 
-import org.eclipse.jetty.util.IO;
-import org.eclipse.jetty.util.URIUtil;
-
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -27,9 +27,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.UnavailableException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import org.eclipse.jetty.util.IO;
+import org.eclipse.jetty.util.URIUtil;
 
 /**
  * <p>
@@ -72,14 +71,17 @@ public class RestFilter implements Filter {
      *
      */
     private File locateFile(HttpServletRequest request) {
-        return new File(filterConfig.getServletContext().getRealPath(URIUtil.addPaths(request.getServletPath(), request.getPathInfo())));
+        return new File(filterConfig
+                .getServletContext()
+                .getRealPath(URIUtil.addPaths(request.getServletPath(), request.getPathInfo())));
     }
 
     /* ------------------------------------------------------------ */
     /* (non-Javadoc)
      * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
      */
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
         if (!(request instanceof HttpServletRequest && response instanceof HttpServletResponse)) {
             chain.doFilter(request, response);
             return;
@@ -103,7 +105,8 @@ public class RestFilter implements Filter {
     /**
      *
      */
-    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         File file = locateFile(request);
 
         if (file.exists()) {
@@ -138,7 +141,8 @@ public class RestFilter implements Filter {
     /**
      *
      */
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         File file = locateFile(request);
 
         if (!file.exists()) {

@@ -15,11 +15,10 @@
  */
 package org.gradle.nativeplatform.toolchain;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
 /**
  * A ToolChain that can handle additional platforms simply by configuring the NativeBinary.

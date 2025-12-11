@@ -17,14 +17,13 @@
 package org.gradle.caching.internal.controller.service;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
-import org.jspecify.annotations.Nullable;
-
 import java.io.Closeable;
 import java.io.File;
 import java.util.Optional;
 import java.util.function.Function;
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.BuildCacheService;
+import org.jspecify.annotations.Nullable;
 
 public interface RemoteBuildCacheServiceHandle extends Closeable {
 
@@ -39,7 +38,8 @@ public interface RemoteBuildCacheServiceHandle extends Closeable {
      *
      * If canLoad() returns false, then this method will do nothing and will return empty result.
      */
-    Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, File toFile, Function<File, BuildCacheLoadResult> unpackFunction);
+    Optional<BuildCacheLoadResult> maybeLoad(
+            BuildCacheKey key, File toFile, Function<File, BuildCacheLoadResult> unpackFunction);
 
     boolean canStore();
 

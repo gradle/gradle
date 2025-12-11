@@ -52,5 +52,4 @@ public abstract class Message {
         ObjectInputStream ois = new ExceptionReplacingObjectInputStream(inputSteam, classLoader);
         return ois.readObject();
     }
-
 }

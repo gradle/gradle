@@ -16,14 +16,13 @@
 
 package org.gradle.process.internal.streams;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.process.internal.StreamsHandler;
-import org.gradle.util.internal.DisconnectableInputStream;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import org.gradle.internal.UncheckedException;
+import org.gradle.process.internal.StreamsHandler;
+import org.gradle.util.internal.DisconnectableInputStream;
 
 /**
  * Forwards the contents of an {@link InputStream} to the process' stdin
@@ -43,12 +42,13 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
         this.executor = executor;
 
         /*
-            There's a potential problem here in that DisconnectableInputStream reads from input in the background.
-            This won't automatically stop when the process is over. Therefore, if input is not closed then this thread
-            will run forever. It would be better to ensure that this thread stops when the process does.
-         */
+           There's a potential problem here in that DisconnectableInputStream reads from input in the background.
+           This won't automatically stop when the process is over. Therefore, if input is not closed then this thread
+           will run forever. It would be better to ensure that this thread stops when the process does.
+        */
         InputStream instr = new DisconnectableInputStream(input);
-        standardInputWriter = new ExecOutputHandleRunner("write standard input to " + processName, instr, process.getOutputStream(), completed);
+        standardInputWriter = new ExecOutputHandleRunner(
+                "write standard input to " + processName, instr, process.getOutputStream(), completed);
     }
 
     @Override
@@ -57,8 +57,7 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
     }
 
     @Override
-    public void removeStartupContext() {
-    }
+    public void removeStartupContext() {}
 
     @Override
     public void stop() {

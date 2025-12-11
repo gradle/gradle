@@ -40,6 +40,6 @@ public interface WorkerProcessFactory {
      *
      * @param workerImplementation The implementation class to run in the worker process.
      */
-    <IN, OUT> MultiRequestWorkerProcessBuilder<IN, OUT> multiRequestWorker(Class<? extends RequestHandler<? super IN, ? extends OUT>> workerImplementation);
-
+    <IN, OUT> MultiRequestWorkerProcessBuilder<IN, OUT> multiRequestWorker(
+            Class<? extends RequestHandler<? super IN, ? extends OUT>> workerImplementation);
 }

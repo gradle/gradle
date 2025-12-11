@@ -16,13 +16,11 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.spockframework.runtime.extension.ExtensionAnnotation;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
+import org.spockframework.runtime.extension.ExtensionAnnotation;
 
 /**
  * Assert that this test fails when run with configuration cache enabled.

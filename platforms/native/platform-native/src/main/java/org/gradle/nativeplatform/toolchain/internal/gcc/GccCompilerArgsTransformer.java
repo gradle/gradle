@@ -16,15 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
-import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
+import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 /**
  * Maps common options for C/C++ compiling with GCC
@@ -87,5 +86,4 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
     }
 
     protected abstract String getLanguage();
-
 }

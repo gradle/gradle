@@ -16,6 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.apache.commons.io.FileUtils;
@@ -24,18 +27,11 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.VersionNumber;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
 public class DefaultVisualCppMetadataProvider implements VisualCppMetadataProvider {
     private static final String VS2017_METADATA_FILE_PATH = "VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt";
     private static final String VS2017_COMPILER_PATH_PREFIX = "VC/Tools/MSVC";
 
-    private static final String[] REGISTRY_BASEPATHS = {
-        "SOFTWARE\\",
-        "SOFTWARE\\Wow6432Node\\"
-    };
+    private static final String[] REGISTRY_BASEPATHS = {"SOFTWARE\\", "SOFTWARE\\Wow6432Node\\"};
     private static final String REGISTRY_ROOTPATH_VC = "Microsoft\\VisualStudio\\SxS\\VC7";
 
     private static final Logger LOGGER = Logging.getLogger(DefaultVisualCppMetadataProvider.class);
@@ -50,7 +46,8 @@ public class DefaultVisualCppMetadataProvider implements VisualCppMetadataProvid
     public VisualCppInstallCandidate getVisualCppFromRegistry(String version) {
         for (String baseKey : REGISTRY_BASEPATHS) {
             try {
-                File visualCppDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC, version));
+                File visualCppDir = new File(windowsRegistry.getStringValue(
+                        WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC, version));
                 return new DefaultVisualCppMetadata(visualCppDir, VersionNumber.parse(version));
             } catch (MissingRegistryEntryException e) {
                 // Version not found at this base path
@@ -65,11 +62,14 @@ public class DefaultVisualCppMetadataProvider implements VisualCppMetadataProvid
     public VisualCppInstallCandidate getVisualCppFromMetadataFile(File installDir) {
         File msvcVersionFile = new File(installDir, VS2017_METADATA_FILE_PATH);
         if (!msvcVersionFile.exists() || !msvcVersionFile.isFile()) {
-            LOGGER.debug("The MSVC version file at {} either does not exist or is not a file.  Cannot determine the MSVC version for this installation.", msvcVersionFile.getAbsolutePath());
+            LOGGER.debug(
+                    "The MSVC version file at {} either does not exist or is not a file.  Cannot determine the MSVC version for this installation.",
+                    msvcVersionFile.getAbsolutePath());
             return null;
         }
         try {
-            String versionString = FileUtils.readFileToString(msvcVersionFile, StandardCharsets.UTF_8).trim();
+            String versionString = FileUtils.readFileToString(msvcVersionFile, StandardCharsets.UTF_8)
+                    .trim();
             File visualCppDir = new File(installDir, VS2017_COMPILER_PATH_PREFIX + "/" + versionString);
             return new DefaultVisualCppMetadata(visualCppDir, VersionNumber.parse(versionString));
         } catch (IOException e) {

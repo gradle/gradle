@@ -16,10 +16,9 @@
 
 package org.gradle.api.problems;
 
+import java.util.Collection;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-
-import java.util.Collection;
 
 /**
  * Defines different ways to report problems.

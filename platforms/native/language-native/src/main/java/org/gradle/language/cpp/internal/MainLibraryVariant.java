@@ -17,6 +17,8 @@
 package org.gradle.language.cpp.internal;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.ConsumableConfiguration;
@@ -29,9 +31,6 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.internal.component.ConfigurationSoftwareComponentVariant;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public class MainLibraryVariant implements ComponentWithVariants, SoftwareComponentInternal {
     private final String name;
     private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
@@ -39,7 +38,11 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
     private final DomainObjectSet<SoftwareComponent> variants;
     private final AttributeContainer attributeContainer;
 
-    public MainLibraryVariant(String name, NamedDomainObjectProvider<ConsumableConfiguration> variant, AttributeContainer attributeContainer, ObjectFactory objectFactory) {
+    public MainLibraryVariant(
+            String name,
+            NamedDomainObjectProvider<ConsumableConfiguration> variant,
+            AttributeContainer attributeContainer,
+            ObjectFactory objectFactory) {
         this.name = name;
         this.variant = variant;
         this.attributeContainer = attributeContainer;
@@ -53,7 +56,8 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
 
     @Override
     public Set<? extends UsageContext> getUsages() {
-        return ImmutableSet.of(new ConfigurationSoftwareComponentVariant(name, attributeContainer, artifacts, variant.get()));
+        return ImmutableSet.of(
+                new ConfigurationSoftwareComponentVariant(name, attributeContainer, artifacts, variant.get()));
     }
 
     @Override
@@ -71,6 +75,4 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
     public void addVariant(SoftwareComponent variant) {
         variants.add(variant);
     }
-
-
 }

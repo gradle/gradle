@@ -24,5 +24,4 @@ public interface SimpleManagedType {
     String getName();
 
     void setName(String name);
-
 }

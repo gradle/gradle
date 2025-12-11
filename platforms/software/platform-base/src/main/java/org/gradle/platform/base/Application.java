@@ -23,5 +23,4 @@ import org.gradle.api.component.Component;
  * A software application.
  */
 @Incubating
-public interface Application extends Component {
-}
+public interface Application extends Component {}

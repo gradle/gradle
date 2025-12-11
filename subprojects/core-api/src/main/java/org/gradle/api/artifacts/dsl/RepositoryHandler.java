@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SimpleType;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
@@ -30,8 +31,6 @@ import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Map;
 
 /**
  * A {@code RepositoryHandler} manages a set of repositories, allowing repositories to be defined and queried.
@@ -81,7 +80,8 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param configureClosure The closure to execute to configure the repository.
      * @return The repository.
      */
-    FlatDirectoryArtifactRepository flatDir(@DelegatesTo(FlatDirectoryArtifactRepository.class) Closure configureClosure);
+    FlatDirectoryArtifactRepository flatDir(
+            @DelegatesTo(FlatDirectoryArtifactRepository.class) Closure configureClosure);
 
     /**
      * Adds and configures a repository which will look for dependencies in a number of local directories.
@@ -271,9 +271,12 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param closure The closure to use to configure the repository.
      * @return The added repository.
      */
-    MavenArtifactRepository maven(@DelegatesTo(MavenArtifactRepository.class)
-                                  @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.repositories.MavenArtifactRepository")
-                                  Closure closure);
+    MavenArtifactRepository maven(
+            @DelegatesTo(MavenArtifactRepository.class)
+                    @ClosureParams(
+                            value = SimpleType.class,
+                            options = "org.gradle.api.artifacts.repositories.MavenArtifactRepository")
+                    Closure closure);
 
     /**
      * Adds and configures a Maven repository.

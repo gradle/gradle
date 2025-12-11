@@ -16,9 +16,6 @@
 
 package org.gradle.internal.instantiation.managed;
 
-import org.gradle.internal.UncheckedException;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -32,6 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Default implementation of {@link ManagedObjectRegistry}.
@@ -51,10 +50,7 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
         this(null, new ReflectionCache());
     }
 
-    private DefaultManagedObjectRegistry(
-        @Nullable ManagedObjectRegistry parent,
-        ReflectionCache reflectionCache
-    ) {
+    private DefaultManagedObjectRegistry(@Nullable ManagedObjectRegistry parent, ReflectionCache reflectionCache) {
         this.parent = parent;
         this.reflectionCache = reflectionCache;
     }
@@ -94,7 +90,9 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
                     }
                 }
                 if (!registeredCreator) {
-                    throw new IllegalArgumentException("Service " + declaredType + " annotated with @ManagedObjectProvider must have at least one method annotated with @ManagedObjectCreator.");
+                    throw new IllegalArgumentException(
+                            "Service " + declaredType
+                                    + " annotated with @ManagedObjectProvider must have at least one method annotated with @ManagedObjectCreator.");
                 }
             }
         }
@@ -127,18 +125,17 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
      */
     private MethodHandle getHandleForInstance(Method declaredMethod, Object instance) {
         Method instanceMethod = reflectionCache.getMethod(
-            instance.getClass(),
-            declaredMethod.getName(),
-            declaredMethod.getParameterTypes()
-        );
+                instance.getClass(), declaredMethod.getName(), declaredMethod.getParameterTypes());
 
         if (Modifier.isStatic(instanceMethod.getModifiers())) {
-            throw new IllegalArgumentException("Method " + instanceMethod + " annotated with @ManagedObjectCreator must not be static.");
+            throw new IllegalArgumentException(
+                    "Method " + instanceMethod + " annotated with @ManagedObjectCreator must not be static.");
         }
 
         Class<?> returnType = declaredMethod.getReturnType();
         if (returnType == void.class) {
-            throw new IllegalArgumentException("Method " + declaredMethod + " annotated with @ManagedObjectCreator must return a value.");
+            throw new IllegalArgumentException(
+                    "Method " + declaredMethod + " annotated with @ManagedObjectCreator must return a value.");
         }
 
         MethodHandle handle = reflectionCache.unreflect(instanceMethod).bindTo(instance);
@@ -151,12 +148,15 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
 
         if (type.parameterCount() > 2) {
             // We only support max 2 arg factories.
-            throw new IllegalArgumentException("Method " + method + " annotated with @ManagedObjectCreator has too many parameters.");
+            throw new IllegalArgumentException(
+                    "Method " + method + " annotated with @ManagedObjectCreator has too many parameters.");
         }
 
         for (Class<?> parameterType : type.parameterArray()) {
             if (parameterType != Class.class) {
-                throw new IllegalArgumentException("Method " + method + " annotated with @ManagedObjectCreator must have parameters of type Class, but has parameter of type " + parameterType + ".");
+                throw new IllegalArgumentException("Method " + method
+                        + " annotated with @ManagedObjectCreator must have parameters of type Class, but has parameter of type "
+                        + parameterType + ".");
             }
         }
     }
@@ -168,11 +168,12 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
             // Class#getMethods does not have a consistent order.
             // For consistency in tests, we sort the method handles in the error message.
             List<String> sortedMethods = Stream.of(existing, handle)
-                .map(MethodHandle::toString)
-                .sorted()
-                .collect(Collectors.toList());
+                    .map(MethodHandle::toString)
+                    .sorted()
+                    .collect(Collectors.toList());
 
-            throw new IllegalArgumentException("Method " + sortedMethods.get(0) + " for type " + publicType + "conflicts with existing factory method " + sortedMethods.get(1) + ".");
+            throw new IllegalArgumentException("Method " + sortedMethods.get(0) + " for type " + publicType
+                    + "conflicts with existing factory method " + sortedMethods.get(1) + ".");
         }
     }
 
@@ -268,13 +269,15 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
             if (!Modifier.isPublic(method.getModifiers())) {
                 throw new IllegalArgumentException("Method " + method + " is not public.");
             } else if (!Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
-                throw new IllegalArgumentException("Declaring class '" + method.getDeclaringClass().getName() + "' of method " + method + " is not public.");
+                throw new IllegalArgumentException("Declaring class '"
+                        + method.getDeclaringClass().getName() + "' of method " + method + " is not public.");
             }
 
             return unreflectionCache.computeIfAbsent(method, m -> {
                 try {
                     MethodHandle handle = LOOKUP.unreflect(m);
-                    return handle.asType(MethodType.methodType(Object.class, handle.type().parameterArray())); // Allows invokeExact
+                    return handle.asType(
+                            MethodType.methodType(Object.class, handle.type().parameterArray())); // Allows invokeExact
                 } catch (IllegalAccessException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
@@ -324,9 +327,9 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
                 }
 
                 GetMethodKey that = (GetMethodKey) o;
-                return targetClass.equals(that.targetClass) &&
-                    methodName.equals(that.methodName) &&
-                    Arrays.equals(parameterTypes, that.parameterTypes);
+                return targetClass.equals(that.targetClass)
+                        && methodName.equals(that.methodName)
+                        && Arrays.equals(parameterTypes, that.parameterTypes);
             }
 
             @Override
@@ -334,19 +337,12 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
                 return hashCode;
             }
 
-            private static int computeHashCode(
-                Class<?> declaringClass,
-                String methodName,
-                Class<?>[] parameterTypes
-            ) {
+            private static int computeHashCode(Class<?> declaringClass, String methodName, Class<?>[] parameterTypes) {
                 int result = declaringClass.hashCode();
                 result = 31 * result + methodName.hashCode();
                 result = 31 * result + Arrays.hashCode(parameterTypes);
                 return result;
             }
-
         }
-
     }
-
 }

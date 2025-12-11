@@ -16,10 +16,6 @@
 
 package org.gradle.internal.dispatch;
 
-import org.gradle.internal.concurrent.AsyncStoppable;
-import org.gradle.internal.concurrent.InterruptibleRunnable;
-import org.gradle.internal.operations.CurrentBuildOperationPreservingRunnable;
-
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -27,6 +23,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.gradle.internal.concurrent.AsyncStoppable;
+import org.gradle.internal.concurrent.InterruptibleRunnable;
+import org.gradle.internal.operations.CurrentBuildOperationPreservingRunnable;
 
 /**
  * <p>A {@link Dispatch} implementation which delivers messages asynchronously. Calls to
@@ -35,7 +34,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
     private enum State {
-        Init, Stopped
+        Init,
+        Stopped
     }
 
     private static final int MAX_QUEUE_SIZE = 200;
@@ -44,7 +44,8 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
     private final LinkedList<T> queue = new LinkedList<T>();
     private final Executor executor;
     private final int maxQueueSize;
-    private final Map<Dispatch<?>, InterruptibleRunnable> dispatchers = new HashMap<Dispatch<?>, InterruptibleRunnable>();
+    private final Map<Dispatch<?>, InterruptibleRunnable> dispatchers =
+            new HashMap<Dispatch<?>, InterruptibleRunnable>();
     private State state;
 
     public AsyncDispatch(Executor executor) {
@@ -156,7 +157,8 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
                 Thread.currentThread().interrupt();
             }
             if (state == State.Stopped) {
-                throw new IllegalStateException("Cannot dispatch message, as this message dispatch has been stopped. Message: " + message);
+                throw new IllegalStateException(
+                        "Cannot dispatch message, as this message dispatch has been stopped. Message: " + message);
             }
             queue.add(message);
             condition.signalAll();
@@ -213,7 +215,7 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
         }
         if (!queue.isEmpty()) {
             throw new IllegalStateException(
-                "Cannot wait for messages to be dispatched, as there are no dispatch threads running.");
+                    "Cannot wait for messages to be dispatched, as there are no dispatch threads running.");
         }
     }
 }

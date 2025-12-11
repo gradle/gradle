@@ -30,7 +30,8 @@ public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecuto
     private final BuildWorkExecutor delegate;
     private final BuildOperationRunner buildOperationRunner;
 
-    public BuildOperationFiringBuildWorkerExecutor(BuildWorkExecutor delegate, BuildOperationRunner buildOperationRunner) {
+    public BuildOperationFiringBuildWorkerExecutor(
+            BuildWorkExecutor delegate, BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
         this.buildOperationRunner = buildOperationRunner;
     }
@@ -60,9 +61,11 @@ public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecuto
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName(gradle.contextualize("Run tasks"));
+            BuildOperationDescriptor.Builder builder =
+                    BuildOperationDescriptor.displayName(gradle.contextualize("Run tasks"));
             if (gradle.isRootBuild()) {
-                long buildStartTime = gradle.getServices().get(BuildRequestMetaData.class).getStartTime();
+                long buildStartTime =
+                        gradle.getServices().get(BuildRequestMetaData.class).getStartTime();
                 builder.details(new RunRootBuildWorkBuildOperationType.Details(buildStartTime));
             }
             builder.metadata(BuildOperationCategory.RUN_WORK);

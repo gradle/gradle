@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.result;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ComponentResult;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class DefaultArtifactResolutionResult implements ArtifactResolutionResult {
     private final Set<ComponentResult> componentResults;

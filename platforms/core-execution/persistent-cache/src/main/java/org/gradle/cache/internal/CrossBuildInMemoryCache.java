@@ -16,10 +16,9 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.cache.Cache;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.Function;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.cache.Cache;
 
 /**
  * An in-memory cache of calculated values that are used across builds. The implementation takes care of cleaning up state that is no longer required.

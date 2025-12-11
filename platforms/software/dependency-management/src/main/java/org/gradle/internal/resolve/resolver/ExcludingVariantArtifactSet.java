@@ -16,8 +16,8 @@
 
 package org.gradle.internal.resolve.resolver;
 
+import java.util.Objects;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -26,10 +26,9 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Objects;
 
 /**
  * A {@link ResolvedVariant} that applies artifact exclusions to a delegate {@link ResolvedVariant}.
@@ -91,10 +90,9 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
         private final ExcludeSpec exclusions;
 
         public ExcludingIdentifier(
-            VariantResolveMetadata.@Nullable Identifier identifier,
-            ModuleIdentifier moduleId,
-            ExcludeSpec exclusions
-        ) {
+                VariantResolveMetadata.@Nullable Identifier identifier,
+                ModuleIdentifier moduleId,
+                ExcludeSpec exclusions) {
             this.identifier = identifier;
             this.moduleId = moduleId;
             this.exclusions = exclusions;
@@ -117,15 +115,13 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
                 return false;
             }
             ExcludingIdentifier other = (ExcludingIdentifier) obj;
-            return areIdsEqual(identifier, other.identifier) &&
-                moduleId.equals(other.moduleId) &&
-                exclusions.equals(other.exclusions);
+            return areIdsEqual(identifier, other.identifier)
+                    && moduleId.equals(other.moduleId)
+                    && exclusions.equals(other.exclusions);
         }
 
         private static boolean areIdsEqual(
-            VariantResolveMetadata.@Nullable Identifier id1,
-            VariantResolveMetadata.@Nullable Identifier id2
-        ) {
+                VariantResolveMetadata.@Nullable Identifier id1, VariantResolveMetadata.@Nullable Identifier id2) {
             // Artifact sets without ID are adhoc.
             // We cannot compare them by ID so assume they are not equal.
             if (id1 == null || id2 == null) {

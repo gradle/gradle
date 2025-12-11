@@ -24,7 +24,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -112,7 +111,8 @@ public class HierarchicalElementDeduplicator<T> {
                 Set<String> reservedNames = ImmutableSet.copyOf(elementsByName.keySet());
                 Set<T> notYetRenamed = getNotYetRenamedElements(duplicatedElements);
                 boolean deduplicationSuccessful = false;
-                Set<T> elementsToRename = notYetRenamed.isEmpty() ? ImmutableSet.copyOf(duplicatedElements) : notYetRenamed;
+                Set<T> elementsToRename =
+                        notYetRenamed.isEmpty() ? ImmutableSet.copyOf(duplicatedElements) : notYetRenamed;
                 for (T element : elementsToRename) {
                     boolean elementRenamed = true;
                     while (elementRenamed && reservedNames.contains(getCurrentlyAssignedName(element))) {
@@ -141,8 +141,12 @@ public class HierarchicalElementDeduplicator<T> {
             String currentlyAssignedName = getCurrentlyAssignedName(element);
             String originalName = getOriginalName(element);
             String identityName = getIdentityName(element);
-            if (!originalName.equals(identityName) && (currentlyAssignedName.equals(originalName) || currentlyAssignedName.endsWith("-" + originalName))) {
-                String newName = currentlyAssignedName.substring(0, currentlyAssignedName.length() - originalName.length()) + identityName;
+            if (!originalName.equals(identityName)
+                    && (currentlyAssignedName.equals(originalName)
+                            || currentlyAssignedName.endsWith("-" + originalName))) {
+                String newName =
+                        currentlyAssignedName.substring(0, currentlyAssignedName.length() - originalName.length())
+                                + identityName;
                 renameTo(element, newName);
                 originalNames.put(element, identityName);
                 return true;
@@ -169,7 +173,8 @@ public class HierarchicalElementDeduplicator<T> {
         private void simplifyNames() {
             Set<String> deduplicatedNames = elementsByName.keySet();
             for (T element : elements) {
-                String simplifiedName = removeDuplicateWordsFromPrefix(getCurrentlyAssignedName(element), getOriginalName(element));
+                String simplifiedName =
+                        removeDuplicateWordsFromPrefix(getCurrentlyAssignedName(element), getOriginalName(element));
                 if (!deduplicatedNames.contains(simplifiedName)) {
                     renameTo(element, simplifiedName);
                 }
@@ -271,5 +276,4 @@ public class HierarchicalElementDeduplicator<T> {
             });
         }
     }
-
 }

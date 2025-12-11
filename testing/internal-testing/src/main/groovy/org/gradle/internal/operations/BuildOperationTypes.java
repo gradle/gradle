@@ -16,16 +16,14 @@
 
 package org.gradle.internal.operations;
 
+import static org.gradle.internal.Cast.uncheckedCast;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-import static org.gradle.internal.Cast.uncheckedCast;
-
 public final class BuildOperationTypes {
 
-    private BuildOperationTypes() {
-    }
+    private BuildOperationTypes() {}
 
     public static <D, R, T extends BuildOperationType<D, R>> Class<D> detailsType(Class<T> type) {
         return uncheckedCast(extract(type, 0));
@@ -36,10 +34,12 @@ public final class BuildOperationTypes {
     }
 
     private static <T extends BuildOperationType<?, ?>> Class<?> extract(Class<T> type, int index) {
-        assert BuildOperationType.class.isAssignableFrom(type) : type.getName() + " is not a " + BuildOperationType.class.getName();
+        assert BuildOperationType.class.isAssignableFrom(type)
+                : type.getName() + " is not a " + BuildOperationType.class.getName();
 
         for (Type superType : type.getGenericInterfaces()) {
-            if (superType instanceof ParameterizedType && ((ParameterizedType) superType).getRawType().equals(BuildOperationType.class)) {
+            if (superType instanceof ParameterizedType
+                    && ((ParameterizedType) superType).getRawType().equals(BuildOperationType.class)) {
 
                 ParameterizedType parameterizedSuperType = (ParameterizedType) superType;
 
@@ -52,5 +52,4 @@ public final class BuildOperationTypes {
 
         throw new IllegalStateException("Failed to extract type from " + type);
     }
-
 }

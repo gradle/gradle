@@ -21,5 +21,4 @@ import org.gradle.internal.logging.config.LoggingSourceSystem;
 /**
  * A {@link LoggingSourceSystem} that generates log events from System.err
  */
-public interface StdErrLoggingSystem extends LoggingSourceSystem {
-}
+public interface StdErrLoggingSystem extends LoggingSourceSystem {}

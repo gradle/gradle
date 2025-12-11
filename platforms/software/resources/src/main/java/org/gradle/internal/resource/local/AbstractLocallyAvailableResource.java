@@ -66,5 +66,4 @@ public abstract class AbstractLocallyAvailableResource implements LocallyAvailab
         }
         return lastModified;
     }
-
 }

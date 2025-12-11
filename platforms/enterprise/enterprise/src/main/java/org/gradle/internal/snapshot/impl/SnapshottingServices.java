@@ -26,5 +26,4 @@ public class SnapshottingServices extends AbstractGradleModuleServices {
     public void registerProjectServices(ServiceRegistration registration) {
         registration.add(SnapshottingService.class, DefaultSnapshottingService.class);
     }
-
 }

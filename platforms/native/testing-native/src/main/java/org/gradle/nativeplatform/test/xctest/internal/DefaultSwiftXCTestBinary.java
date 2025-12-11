@@ -47,8 +47,34 @@ public abstract class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implem
     private final RegularFileProperty runScriptFile;
     private final Property<XCTest> runTaskProperty;
 
-    public DefaultSwiftXCTestBinary(Names names, ObjectFactory objectFactory, NativeDependencyCache nativeDependencyCache, TaskDependencyFactory taskDependencyFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objectFactory, nativeDependencyCache, taskDependencyFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultSwiftXCTestBinary(
+            Names names,
+            ObjectFactory objectFactory,
+            NativeDependencyCache nativeDependencyCache,
+            TaskDependencyFactory taskDependencyFactory,
+            Provider<String> module,
+            boolean testable,
+            FileCollection source,
+            ConfigurationContainer configurations,
+            Configuration implementation,
+            SwiftPlatform targetPlatform,
+            NativeToolChainInternal toolChain,
+            PlatformToolProvider platformToolProvider,
+            NativeVariantIdentity identity) {
+        super(
+                names,
+                objectFactory,
+                nativeDependencyCache,
+                taskDependencyFactory,
+                module,
+                testable,
+                source,
+                configurations,
+                implementation,
+                targetPlatform,
+                toolChain,
+                platformToolProvider,
+                identity);
         this.executableFile = objectFactory.fileProperty();
         this.installDirectory = objectFactory.directoryProperty();
         this.runScriptFile = objectFactory.fileProperty();

@@ -17,6 +17,7 @@
 package org.gradle.api.publish.internal.mapping;
 
 import com.google.common.annotations.VisibleForTesting;
+import javax.inject.Inject;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -43,8 +44,6 @@ import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInte
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-
 /**
  * Default implementation of {@link DependencyCoordinateResolverFactory} that
  * resolves dependencies using version mapping.
@@ -68,17 +67,17 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
 
     @Inject
     public DefaultDependencyCoordinateResolverFactory(
-        ProjectDependencyPublicationResolver projectDependencyResolver,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        AttributeDesugaring attributeDesugaring
-    ) {
+            ProjectDependencyPublicationResolver projectDependencyResolver,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            AttributeDesugaring attributeDesugaring) {
         this.projectDependencyResolver = projectDependencyResolver;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributeDesugaring = attributeDesugaring;
     }
 
     @Override
-    public Provider<DependencyResolvers> createCoordinateResolvers(SoftwareComponentVariant variant, VersionMappingStrategyInternal versionMappingStrategy) {
+    public Provider<DependencyResolvers> createCoordinateResolvers(
+            SoftwareComponentVariant variant, VersionMappingStrategyInternal versionMappingStrategy) {
         Configuration configuration = null;
         if (variant instanceof ResolutionBackedVariant) {
             ResolutionBackedVariant resolutionBackedVariant = (ResolutionBackedVariant) variant;
@@ -86,7 +85,8 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
 
             if (resolutionBackedVariant.getPublishResolvedCoordinates()) {
                 if (configuration == null) {
-                    throw new InvalidUserDataException("Cannot enable dependency mapping without configuring a resolution configuration.");
+                    throw new InvalidUserDataException(
+                            "Cannot enable dependency mapping without configuring a resolution configuration.");
                 } else {
                     return getDependencyMappingResolver(configuration);
                 }
@@ -94,7 +94,8 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
         }
 
         ImmutableAttributes attributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
-        VariantVersionMappingStrategyInternal versionMapping = versionMappingStrategy.findStrategyForVariant(attributes);
+        VariantVersionMappingStrategyInternal versionMapping =
+                versionMappingStrategy.findStrategyForVariant(attributes);
 
         // Fallback to component coordinate mapping if variant mapping is not enabled
         Provider<? extends ComponentDependencyResolver> componentResolver = null;
@@ -113,7 +114,8 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
                 if (USE_LEGACY_VERSION_MAPPING) {
                     componentResolver = getLegacyResolver(configuration);
                 } else {
-                    componentResolver = getDependencyMappingResolver(configuration).map(DependencyResolvers::getComponentResolver);
+                    componentResolver =
+                            getDependencyMappingResolver(configuration).map(DependencyResolvers::getComponentResolver);
                 }
             }
         }
@@ -128,24 +130,25 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
 
     private Provider<DependencyResolvers> getDependencyMappingResolver(Configuration configuration) {
         ResolutionResult resolutionResult = configuration.getIncoming().getResolutionResult();
-        return resolutionResult.getRootComponent().zip(resolutionResult.getRootVariant(), this::getVariantMappingResolvers);
+        return resolutionResult
+                .getRootComponent()
+                .zip(resolutionResult.getRootVariant(), this::getVariantMappingResolvers);
     }
 
-    private DependencyResolvers getVariantMappingResolvers(ResolvedComponentResult rootComponent, ResolvedVariantResult rootVariant) {
+    private DependencyResolvers getVariantMappingResolvers(
+            ResolvedComponentResult rootComponent, ResolvedVariantResult rootVariant) {
         ResolutionBackedPublicationDependencyResolver resolver = new ResolutionBackedPublicationDependencyResolver(
-            projectDependencyResolver,
-            moduleIdentifierFactory,
-            rootComponent,
-            rootVariant,
-            attributeDesugaring
-        );
+                projectDependencyResolver, moduleIdentifierFactory, rootComponent, rootVariant, attributeDesugaring);
 
         return new DependencyResolvers(resolver, resolver);
     }
 
     private Provider<ComponentDependencyResolver> getLegacyResolver(Configuration configuration) {
-        return configuration.getIncoming().getResolutionResult().getRootComponent()
-            .map(root -> new VersionMappingComponentDependencyResolver(projectDependencyResolver, root));
+        return configuration
+                .getIncoming()
+                .getResolutionResult()
+                .getRootComponent()
+                .map(root -> new VersionMappingComponentDependencyResolver(projectDependencyResolver, root));
     }
 
     /**
@@ -162,12 +165,14 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
 
         @Nullable
         @Override
-        public ResolvedCoordinates resolveVariantCoordinates(ExternalDependency dependency, VariantWarningCollector warnings) {
+        public ResolvedCoordinates resolveVariantCoordinates(
+                ExternalDependency dependency, VariantWarningCollector warnings) {
             return delegate.resolveComponentCoordinates(dependency);
         }
 
         @Override
-        public ResolvedCoordinates resolveVariantCoordinates(ProjectDependency dependency, VariantWarningCollector warnings) {
+        public ResolvedCoordinates resolveVariantCoordinates(
+                ProjectDependency dependency, VariantWarningCollector warnings) {
             return delegate.resolveComponentCoordinates(dependency);
         }
     }
@@ -192,8 +197,11 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
 
         @Override
         public ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
-            Path identityPath = ((ProjectDependencyInternal) dependency).getTargetProjectIdentity().getBuildTreePath();
-            return ResolvedCoordinates.create(projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath));
+            Path identityPath = ((ProjectDependencyInternal) dependency)
+                    .getTargetProjectIdentity()
+                    .getBuildTreePath();
+            return ResolvedCoordinates.create(
+                    projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath));
         }
 
         @Nullable

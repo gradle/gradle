@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
+import java.util.function.Function;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
@@ -23,8 +24,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.Function;
 
 @UsedByScanPlugin("test-retry")
 @ServiceScope(Scope.UserHome.class)
@@ -39,7 +38,11 @@ public interface ClassLoaderCache {
      * @param filterSpec the filtering to use on the classpath.
      * @return the classloader.
      */
-    ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, FilteringClassLoader.@Nullable Spec filterSpec);
+    ClassLoader get(
+            ClassLoaderId id,
+            ClassPath classPath,
+            @Nullable ClassLoader parent,
+            FilteringClassLoader.@Nullable Spec filterSpec);
 
     /**
      * Returns an existing classloader from the cache, or creates it if it cannot be found.
@@ -51,7 +54,12 @@ public interface ClassLoaderCache {
      * @param implementationHash a hash that represents the contents of the classpath. Can be {@code null}, in which case the hash is calculated from the provided classpath
      * @return the classloader.
      */
-    ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, FilteringClassLoader.@Nullable Spec filterSpec, @Nullable HashCode implementationHash);
+    ClassLoader get(
+            ClassLoaderId id,
+            ClassPath classPath,
+            @Nullable ClassLoader parent,
+            FilteringClassLoader.@Nullable Spec filterSpec,
+            @Nullable HashCode implementationHash);
 
     /**
      * Adds or replaces a classloader. This should be called to register specialized classloaders that belong to the hierarchy, so they can be cleaned up as required.
@@ -59,7 +67,12 @@ public interface ClassLoaderCache {
      * @param id the ID of the classloader.
      * @return the classloader.
      */
-    ClassLoader createIfAbsent(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, Function<ClassLoader, ClassLoader> factoryFunction, @Nullable HashCode implementationHash);
+    ClassLoader createIfAbsent(
+            ClassLoaderId id,
+            ClassPath classPath,
+            @Nullable ClassLoader parent,
+            Function<ClassLoader, ClassLoader> factoryFunction,
+            @Nullable HashCode implementationHash);
 
     /**
      * Discards the given classloader.

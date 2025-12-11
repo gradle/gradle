@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.lang.annotation.Annotation;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
@@ -49,8 +50,6 @@ import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.service.ServiceLookup;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
-
 public class DefaultTransformRegistrationFactory implements TransformRegistrationFactory {
 
     private final BuildOperationRunner buildOperationRunner;
@@ -68,19 +67,18 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
     private final InstantiationScheme actionInstantiationScheme;
 
     public DefaultTransformRegistrationFactory(
-        BuildOperationRunner buildOperationRunner,
-        IsolatableFactory isolatableFactory,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        TransformInvocationFactory transformInvocationFactory,
-        FileCollectionFactory fileCollectionFactory,
-        FileLookup fileLookup,
-        InputFingerprinter inputFingerprinter,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        DomainObjectContext owner,
-        TransformParameterScheme parameterScheme,
-        TransformActionScheme actionScheme,
-        ServiceLookup internalServices
-    ) {
+            BuildOperationRunner buildOperationRunner,
+            IsolatableFactory isolatableFactory,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            TransformInvocationFactory transformInvocationFactory,
+            FileCollectionFactory fileCollectionFactory,
+            FileLookup fileLookup,
+            InputFingerprinter inputFingerprinter,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
+            DomainObjectContext owner,
+            TransformParameterScheme parameterScheme,
+            TransformActionScheme actionScheme,
+            ServiceLookup internalServices) {
         this.buildOperationRunner = buildOperationRunner;
         this.isolatableFactory = isolatableFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -97,11 +95,16 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
     }
 
     @Override
-    public TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
+    public TransformRegistration create(
+            ImmutableAttributes from,
+            ImmutableAttributes to,
+            Class<? extends TransformAction<?>> implementation,
+            @Nullable TransformParameters parameterObject) {
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
         InternalProblems problems = (InternalProblems) internalServices.get(InternalProblems.class);
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable, problems);
+        DefaultTypeValidationContext validationContext =
+                DefaultTypeValidationContext.withoutRootType(cacheable, problems);
         actionMetadata.visitValidationFailures(null, validationContext);
 
         // Should retain this on the metadata rather than calculate on each invocation
@@ -116,45 +119,53 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
             Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
             NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
             if (propertyType.equals(InputArtifact.class)) {
-                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor);
+                actionMetadata
+                        .getAnnotationHandlerFor(propertyMetadata)
+                        .visitPropertyValue(
+                                propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor);
                 inputArtifactNormalizer = visitor.normalizer;
                 artifactDirectorySensitivity = visitor.directorySensitivity;
                 artifactLineEndingSensitivity = visitor.lineEndingSensitivity;
-                DefaultTransform.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, validationContext);
+                DefaultTransform.validateInputFileNormalizer(
+                        propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, validationContext);
             } else if (propertyType.equals(InputArtifactDependencies.class)) {
-                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor);
+                actionMetadata
+                        .getAnnotationHandlerFor(propertyMetadata)
+                        .visitPropertyValue(
+                                propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor);
                 dependenciesNormalizer = visitor.normalizer;
                 dependenciesDirectorySensitivity = visitor.directorySensitivity;
                 dependenciesLineEndingSensitivity = visitor.lineEndingSensitivity;
-                DefaultTransform.validateInputFileNormalizer(propertyMetadata.getPropertyName(), dependenciesNormalizer, cacheable, validationContext);
+                DefaultTransform.validateInputFileNormalizer(
+                        propertyMetadata.getPropertyName(), dependenciesNormalizer, cacheable, validationContext);
             }
         }
         DefaultTypeValidationContext.throwOnProblemsOf(implementation, validationContext.getProblems());
         Transform transform = new DefaultTransform(
-            implementation,
-            parameterObject,
-            from,
-            to,
-            FileParameterUtils.normalizerOrDefault(inputArtifactNormalizer),
-            FileParameterUtils.normalizerOrDefault(dependenciesNormalizer),
-            cacheable,
-            artifactDirectorySensitivity,
-            dependenciesDirectorySensitivity,
-            artifactLineEndingSensitivity,
-            dependenciesLineEndingSensitivity,
-            buildOperationRunner,
-            classLoaderHierarchyHasher,
-            isolatableFactory,
-            fileCollectionFactory,
-            fileLookup,
-            parametersPropertyWalker,
-            actionInstantiationScheme,
-            owner,
-            calculatedValueContainerFactory,
-            internalServices
-        );
+                implementation,
+                parameterObject,
+                from,
+                to,
+                FileParameterUtils.normalizerOrDefault(inputArtifactNormalizer),
+                FileParameterUtils.normalizerOrDefault(dependenciesNormalizer),
+                cacheable,
+                artifactDirectorySensitivity,
+                dependenciesDirectorySensitivity,
+                artifactLineEndingSensitivity,
+                dependenciesLineEndingSensitivity,
+                buildOperationRunner,
+                classLoaderHierarchyHasher,
+                isolatableFactory,
+                fileCollectionFactory,
+                fileLookup,
+                parametersPropertyWalker,
+                actionInstantiationScheme,
+                owner,
+                calculatedValueContainerFactory,
+                internalServices);
 
-        return new DefaultTransformRegistration(from, to, new TransformStep(transform, transformInvocationFactory, owner, inputFingerprinter));
+        return new DefaultTransformRegistration(
+                from, to, new TransformStep(transform, transformInvocationFactory, owner, inputFingerprinter));
     }
 
     private static class DefaultTransformRegistration implements TransformRegistration {
@@ -162,7 +173,8 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
         private final ImmutableAttributes to;
         private final TransformStep transformStep;
 
-        public DefaultTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformStep transformStep) {
+        public DefaultTransformRegistration(
+                ImmutableAttributes from, ImmutableAttributes to, TransformStep transformStep) {
             this.from = from;
             this.to = to;
             this.transformStep = transformStep;
@@ -196,15 +208,14 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
 
         @Override
         public void visitInputFileProperty(
-            String propertyName,
-            boolean optional,
-            InputBehavior behavior,
-            DirectorySensitivity directorySensitivity,
-            LineEndingSensitivity lineEndingSensitivity,
-            @Nullable FileNormalizer fileNormalizer,
-            PropertyValue value,
-            InputFilePropertyType filePropertyType
-        ) {
+                String propertyName,
+                boolean optional,
+                InputBehavior behavior,
+                DirectorySensitivity directorySensitivity,
+                LineEndingSensitivity lineEndingSensitivity,
+                @Nullable FileNormalizer fileNormalizer,
+                PropertyValue value,
+                InputFilePropertyType filePropertyType) {
             this.normalizer = fileNormalizer;
             this.directorySensitivity = directorySensitivity;
             this.lineEndingSensitivity = lineEndingSensitivity;

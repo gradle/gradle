@@ -16,6 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import org.gradle.api.internal.tasks.testing.GroupTestEventReporterInternal;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -29,13 +35,6 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.jspecify.annotations.NullMarked;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
 /**
  * Converts from events received via the {@link TestListenerInternal} interface to calls on {@link TestEventReporter}s,
  * in the proper hierarchy. This class manages the lifecycle of the reporters, creating them when tests start and
@@ -46,7 +45,8 @@ public final class TestEventReporterAsListener implements TestListenerInternal, 
     private final Function<TestDescriptorInternal, GroupTestEventReporterInternal> rootTestReporterCreator;
     private final Map<Object, TestEventReporter> reportersById = new HashMap<>();
 
-    public TestEventReporterAsListener(Function<TestDescriptorInternal, GroupTestEventReporterInternal> rootTestReporterCreator) {
+    public TestEventReporterAsListener(
+            Function<TestDescriptorInternal, GroupTestEventReporterInternal> rootTestReporterCreator) {
         this.rootTestReporterCreator = rootTestReporterCreator;
     }
 
@@ -54,8 +54,8 @@ public final class TestEventReporterAsListener implements TestListenerInternal, 
     public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
         TestEventReporter reporter;
         if (testDescriptor.getParent() != null) {
-            GroupTestEventReporterInternal parentReporter =
-                (GroupTestEventReporterInternal) reportersById.get(testDescriptor.getParent().getId());
+            GroupTestEventReporterInternal parentReporter = (GroupTestEventReporterInternal)
+                    reportersById.get(testDescriptor.getParent().getId());
 
             if (testDescriptor.isComposite()) {
                 reporter = parentReporter.reportTestGroupDirectly(testDescriptor);
@@ -70,7 +70,8 @@ public final class TestEventReporterAsListener implements TestListenerInternal, 
     }
 
     @Override
-    public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
+    public void completed(
+            TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
         TestEventReporterInternal reporter = (TestEventReporterInternal) reportersById.remove(testDescriptor.getId());
         if (reporter == null) {
             throw new IllegalStateException("No reporter found for test descriptor: " + testDescriptor);
@@ -87,7 +88,8 @@ public final class TestEventReporterAsListener implements TestListenerInternal, 
                     reporter.failed(Instant.ofEpochMilli(completeEvent.getEndTime()), testResult.getFailures());
                     break;
                 case SKIPPED:
-                    reporter.skipped(Instant.ofEpochMilli(completeEvent.getEndTime()), testResult.getAssumptionFailure());
+                    reporter.skipped(
+                            Instant.ofEpochMilli(completeEvent.getEndTime()), testResult.getAssumptionFailure());
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown result type: " + testResult.getResultType());
@@ -121,7 +123,7 @@ public final class TestEventReporterAsListener implements TestListenerInternal, 
         if (reporter == null) {
             throw new IllegalStateException("No reporter found for test descriptor: " + testDescriptor);
         }
-        ((TestEventReporterInternal)reporter).metadata(event);
+        ((TestEventReporterInternal) reporter).metadata(event);
     }
 
     @Override

@@ -16,11 +16,10 @@
 
 package org.gradle.plugins.ide.internal.resolver;
 
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-
 import java.io.File;
 import java.util.Set;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 
 /**
  * Used in conjunction with {@link IdeDependencySet} to adapt Gradle's dependency resolution API to the
@@ -53,7 +52,12 @@ public interface IdeDependencyVisitor {
      * The component identifier is guaranteed to be a {@link org.gradle.api.artifacts.component.ModuleComponentIdentifier}.
      * The source and javadoc locations maybe be empty, but never null.
      */
-    void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, boolean testDependency, boolean asJavaModule);
+    void visitModuleDependency(
+            ResolvedArtifactResult artifact,
+            Set<ResolvedArtifactResult> sources,
+            Set<ResolvedArtifactResult> javaDoc,
+            boolean testDependency,
+            boolean asJavaModule);
 
     /**
      * The dependency points neither to a project, nor an external module, so this method should treat it as an opaque file.

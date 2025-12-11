@@ -39,13 +39,18 @@ public class PathAssembler {
         String baseName = getDistName(configuration.getDistribution());
         String distName = removeExtension(baseName);
         String rootDirName = rootDirName(distName, configuration);
-        File distDir = new File(getBaseDir(configuration.getDistributionBase()), configuration.getDistributionPath() + "/" + rootDirName);
-        File distZip = new File(getBaseDir(configuration.getZipBase()), configuration.getZipPath() + "/" + rootDirName + "/" + baseName);
+        File distDir = new File(
+                getBaseDir(configuration.getDistributionBase()),
+                configuration.getDistributionPath() + "/" + rootDirName);
+        File distZip = new File(
+                getBaseDir(configuration.getZipBase()),
+                configuration.getZipPath() + "/" + rootDirName + "/" + baseName);
         return new LocalDistribution(distDir, distZip);
     }
 
     private String rootDirName(String distName, WrapperConfiguration configuration) {
-        String urlHash = getHash(Download.safeUri(configuration.getDistribution()).toASCIIString());
+        String urlHash =
+                getHash(Download.safeUri(configuration.getDistribution()).toASCIIString());
         return distName + "/" + urlHash;
     }
 

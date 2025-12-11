@@ -68,52 +68,31 @@ public final class ProjectIdentity implements DisplayName {
      * Given the path of a build and the path of a project within that build,
      * compute the identity path of the project within the build tree.
      */
-    public static Path computeProjectIdentityPath(
-        Path buildPath,
-        Path projectPath
-    ) {
+    public static Path computeProjectIdentityPath(Path buildPath, Path projectPath) {
         return buildPath.append(projectPath);
     }
 
     /**
      * Create a project identity for the root project of a build.
      */
-    public static ProjectIdentity forRootProject(
-        Path buildPath,
-        String projectName
-    ) {
-        return new ProjectIdentity(
-            buildPath,
-            Path.ROOT,
-            projectName
-        );
+    public static ProjectIdentity forRootProject(Path buildPath, String projectName) {
+        return new ProjectIdentity(buildPath, Path.ROOT, projectName);
     }
 
     /**
      * Create a project identity for a non-root project of a build.
      */
-    public static ProjectIdentity forSubproject(
-        Path buildPath,
-        Path projectPath
-    ) {
+    public static ProjectIdentity forSubproject(Path buildPath, Path projectPath) {
         if (projectPath.equals(Path.ROOT)) {
             throw new IllegalStateException("Use ProjectIdentity.forRootProject() for the root project.");
         } else if (!projectPath.isAbsolute()) {
             throw new IllegalArgumentException("Project path must be absolute: " + projectPath);
         }
 
-        return new ProjectIdentity(
-            buildPath,
-            projectPath,
-            projectPath.getName()
-        );
+        return new ProjectIdentity(buildPath, projectPath, projectPath.getName());
     }
 
-    private ProjectIdentity(
-        Path buildPath,
-        Path projectPath,
-        String projectName
-    ) {
+    private ProjectIdentity(Path buildPath, Path projectPath, String projectName) {
         this.buildPath = buildPath;
         this.projectPath = projectPath;
         this.projectName = projectName;
@@ -187,5 +166,4 @@ public final class ProjectIdentity implements DisplayName {
     public int hashCode() {
         return buildTreePath.hashCode();
     }
-
 }

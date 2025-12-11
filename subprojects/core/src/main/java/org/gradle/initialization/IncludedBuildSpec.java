@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import java.io.File;
 import org.gradle.api.Action;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
@@ -28,8 +29,6 @@ import org.gradle.internal.composite.DefaultConfigurableIncludedPluginBuild;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.management.internal.PluginRequests;
 
-import java.io.File;
-
 public abstract class IncludedBuildSpec {
 
     public final File rootDir;
@@ -38,9 +37,11 @@ public abstract class IncludedBuildSpec {
         this.rootDir = rootDir;
     }
 
-    public abstract BuildDefinition toBuildDefinition(StartParameterInternal startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator);
+    public abstract BuildDefinition toBuildDefinition(
+            StartParameterInternal startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator);
 
-    public static IncludedBuildSpec includedPluginBuild(File rootDir, Action<? super ConfigurableIncludedPluginBuild> configurer) {
+    public static IncludedBuildSpec includedPluginBuild(
+            File rootDir, Action<? super ConfigurableIncludedPluginBuild> configurer) {
         return new IncludedPluginBuildSpec(rootDir, configurer);
     }
 
@@ -58,19 +59,20 @@ public abstract class IncludedBuildSpec {
         }
 
         @Override
-        public BuildDefinition toBuildDefinition(StartParameterInternal startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator) {
-            DefaultConfigurableIncludedBuild configurable = instantiator.newInstance(DefaultConfigurableIncludedBuild.class, rootDir);
+        public BuildDefinition toBuildDefinition(
+                StartParameterInternal startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator) {
+            DefaultConfigurableIncludedBuild configurable =
+                    instantiator.newInstance(DefaultConfigurableIncludedBuild.class, rootDir);
             configurer.execute(configurable);
 
             return BuildDefinition.fromStartParameterForBuild(
-                startParameter,
-                configurable.getName(),
-                rootDir,
-                PluginRequests.EMPTY,
-                configurable.getDependencySubstitutionAction(),
-                publicBuildPath,
-                false
-            );
+                    startParameter,
+                    configurable.getName(),
+                    rootDir,
+                    PluginRequests.EMPTY,
+                    configurable.getDependencySubstitutionAction(),
+                    publicBuildPath,
+                    false);
         }
     }
 
@@ -84,20 +86,20 @@ public abstract class IncludedBuildSpec {
         }
 
         @Override
-        public BuildDefinition toBuildDefinition(StartParameterInternal startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator) {
-            DefaultConfigurableIncludedPluginBuild configurable = instantiator.newInstance(DefaultConfigurableIncludedPluginBuild.class, rootDir);
+        public BuildDefinition toBuildDefinition(
+                StartParameterInternal startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator) {
+            DefaultConfigurableIncludedPluginBuild configurable =
+                    instantiator.newInstance(DefaultConfigurableIncludedPluginBuild.class, rootDir);
             configurer.execute(configurable);
 
             return BuildDefinition.fromStartParameterForBuild(
-                startParameter,
-                configurable.getName(),
-                rootDir,
-                PluginRequests.EMPTY,
-                ImmutableActionSet.empty(),
-                publicBuildPath,
-                true
-            );
+                    startParameter,
+                    configurable.getName(),
+                    rootDir,
+                    PluginRequests.EMPTY,
+                    ImmutableActionSet.empty(),
+                    publicBuildPath,
+                    true);
         }
     }
 }
-

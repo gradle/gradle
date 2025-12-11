@@ -16,16 +16,17 @@
 
 package org.gradle.internal.concurrent;
 
-import org.gradle.internal.UncheckedException;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.gradle.internal.UncheckedException;
 
-public abstract class AbstractManagedExecutor<S extends ExecutorService> extends AbstractDelegatingExecutorService<S> implements ManagedExecutor {
+public abstract class AbstractManagedExecutor<S extends ExecutorService> extends AbstractDelegatingExecutorService<S>
+        implements ManagedExecutor {
     @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<Object> executing = new ThreadLocal<Object>();
+
     private final ExecutorPolicy executorPolicy;
 
     public AbstractManagedExecutor(S delegate, ExecutorPolicy executorPolicy) {

@@ -19,14 +19,13 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
-import org.gradle.internal.hash.HashCode;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
+import org.gradle.internal.hash.HashCode;
 
 public class ClassDependentsAccumulator {
 
@@ -38,10 +37,22 @@ public class ClassDependentsAccumulator {
     private String fullRebuildCause;
 
     public void addClass(ClassAnalysis classAnalysis, HashCode hashCode) {
-        addClass(classAnalysis.getClassName(), hashCode, classAnalysis.getDependencyToAllReason(), classAnalysis.getPrivateClassDependencies(), classAnalysis.getAccessibleClassDependencies(), classAnalysis.getConstants());
+        addClass(
+                classAnalysis.getClassName(),
+                hashCode,
+                classAnalysis.getDependencyToAllReason(),
+                classAnalysis.getPrivateClassDependencies(),
+                classAnalysis.getAccessibleClassDependencies(),
+                classAnalysis.getConstants());
     }
 
-    public void addClass(String className, HashCode hash, String dependencyToAllReason, Iterable<String> privateClassDependencies, Iterable<String> accessibleClassDependencies, IntSet constants) {
+    public void addClass(
+            String className,
+            HashCode hash,
+            String dependencyToAllReason,
+            Iterable<String> privateClassDependencies,
+            Iterable<String> accessibleClassDependencies,
+            IntSet constants) {
         if (seenClasses.containsKey(className)) {
             // same classes may be found in different classpath trees/jars
             // and we keep only the first one
@@ -89,12 +100,20 @@ public class ClassDependentsAccumulator {
         Set<String> collected = new HashSet<>();
         for (Map.Entry<String, Set<String>> entry : accessibleDependents.entrySet()) {
             if (collected.add(entry.getKey())) {
-                builder.put(entry.getKey(), DependentsSet.dependentClasses(privateDependents.getOrDefault(entry.getKey(), Collections.emptySet()), entry.getValue()));
+                builder.put(
+                        entry.getKey(),
+                        DependentsSet.dependentClasses(
+                                privateDependents.getOrDefault(entry.getKey(), Collections.emptySet()),
+                                entry.getValue()));
             }
         }
         for (Map.Entry<String, Set<String>> entry : privateDependents.entrySet()) {
             if (collected.add(entry.getKey())) {
-                builder.put(entry.getKey(), DependentsSet.dependentClasses(entry.getValue(), accessibleDependents.getOrDefault(entry.getKey(), Collections.emptySet())));
+                builder.put(
+                        entry.getKey(),
+                        DependentsSet.dependentClasses(
+                                entry.getValue(),
+                                accessibleDependents.getOrDefault(entry.getKey(), Collections.emptySet())));
             }
         }
         return builder.build();
@@ -116,10 +135,10 @@ public class ClassDependentsAccumulator {
 
     public ClassSetAnalysisData getAnalysis() {
         if (fullRebuildCause == null) {
-            return new ClassSetAnalysisData(ImmutableMap.copyOf(seenClasses), getDependentsMap(), getClassesToConstants(), null);
+            return new ClassSetAnalysisData(
+                    ImmutableMap.copyOf(seenClasses), getDependentsMap(), getClassesToConstants(), null);
         } else {
             return new ClassSetAnalysisData(ImmutableMap.of(), ImmutableMap.of(), ImmutableMap.of(), fullRebuildCause);
         }
     }
-
 }

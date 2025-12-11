@@ -16,12 +16,11 @@
 
 package org.gradle.nativeplatform.internal.modulemap;
 
+import java.io.Serializable;
+import java.util.List;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-
-import java.io.Serializable;
-import java.util.List;
 
 /**
  * Represents a mapping between a module and the header files associated with the module.

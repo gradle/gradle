@@ -16,18 +16,17 @@
 
 package org.gradle.integtests.fixtures.compatibility;
 
-import com.google.common.collect.Lists;
-import org.gradle.integtests.fixtures.VersionedTool;
-import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
+import static com.google.common.collect.Iterators.getLast;
 
+import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.google.common.collect.Iterators.getLast;
+import org.gradle.integtests.fixtures.VersionedTool;
+import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
 
 /**
  * Tests using this runner and its subtypes will run by default the first version specified.
@@ -44,7 +43,8 @@ import static com.google.common.collect.Iterators.getLast;
  *     </li>
  * </ul>
  */
-public abstract class AbstractContextualMultiVersionTestInterceptor<T extends VersionedTool> extends AbstractMultiTestInterceptor {
+public abstract class AbstractContextualMultiVersionTestInterceptor<T extends VersionedTool>
+        extends AbstractMultiTestInterceptor {
     public static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
 
     protected abstract Collection<T> getAllVersions();
@@ -119,7 +119,7 @@ public abstract class AbstractContextualMultiVersionTestInterceptor<T extends Ve
 
     protected void createExecutionsForContext(CoverageContext coverageContext) {
         Set<T> versionsUnderTest = new HashSet<>();
-        switch(coverageContext) {
+        switch (coverageContext) {
             case DEFAULT:
             case LATEST:
                 versionsUnderTest.addAll(getQuickVersions());

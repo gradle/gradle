@@ -16,20 +16,24 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import java.util.List;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 public interface ResolvedComponentVisitor {
 
     /**
      * Starts visiting a component.
      */
-    void startVisitComponent(Long id, ComponentSelectionReason selectionReason, @Nullable String repoName, ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion);
+    void startVisitComponent(
+            Long id,
+            ComponentSelectionReason selectionReason,
+            @Nullable String repoName,
+            ComponentIdentifier componentId,
+            ModuleVersionIdentifier moduleVersion);
 
     /**
      * Visit a selected variant of the component.
@@ -45,5 +49,4 @@ public interface ResolvedComponentVisitor {
      * Finishes visiting a component.
      */
     void endVisitComponent();
-
 }

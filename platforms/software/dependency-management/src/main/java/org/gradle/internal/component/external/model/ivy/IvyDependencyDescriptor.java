@@ -22,6 +22,12 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
@@ -32,13 +38,6 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Represents a dependency as represented in an Ivy module descriptor file.
@@ -53,7 +52,15 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
     private final List<Exclude> excludes;
     private final List<Artifact> dependencyArtifacts;
 
-    public IvyDependencyDescriptor(ModuleComponentSelector selector, String dynamicConstraintVersion, boolean changing, boolean transitive, boolean optional, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
+    public IvyDependencyDescriptor(
+            ModuleComponentSelector selector,
+            String dynamicConstraintVersion,
+            boolean changing,
+            boolean transitive,
+            boolean optional,
+            Multimap<String, String> confMappings,
+            List<Artifact> artifacts,
+            List<Exclude> excludes) {
         this.selector = selector;
         this.dynamicConstraintVersion = dynamicConstraintVersion;
         this.changing = changing;
@@ -65,7 +72,15 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
     }
 
     public IvyDependencyDescriptor(ModuleComponentSelector requested, ListMultimap<String, String> confMappings) {
-        this(requested, requested.getVersion(), false, true, false, confMappings, Collections.emptyList(), Collections.emptyList());
+        this(
+                requested,
+                requested.getVersion(),
+                false,
+                true,
+                false,
+                confMappings,
+                Collections.emptyList(),
+                Collections.emptyList());
     }
 
     @Override
@@ -108,7 +123,15 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
 
     @Override
     protected IvyDependencyDescriptor withRequested(ModuleComponentSelector newRequested) {
-        return new IvyDependencyDescriptor(newRequested, dynamicConstraintVersion, changing, transitive, isOptional(), confs, getDependencyArtifacts(), excludes);
+        return new IvyDependencyDescriptor(
+                newRequested,
+                dynamicConstraintVersion,
+                changing,
+                transitive,
+                isOptional(),
+                confs,
+                getDependencyArtifacts(),
+                excludes);
     }
 
     /**
@@ -122,10 +145,9 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      *   - '@' and '#' are special values for matching target configurations. See <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html">the Ivy docs</a> for details.
      */
     public List<? extends VariantGraphResolveState> selectLegacyConfigurations(
-        ConfigurationMetadata fromConfiguration,
-        IvyComponentGraphResolveState ivyComponent,
-        ResolutionFailureHandler resolutionFailureHandler
-    ) {
+            ConfigurationMetadata fromConfiguration,
+            IvyComponentGraphResolveState ivyComponent,
+            ResolutionFailureHandler resolutionFailureHandler) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         List<ConfigurationGraphResolveState> targets = new LinkedList<>();
         boolean matched = false;
@@ -143,11 +165,13 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         }
         if (!matched && confs.containsKey("%")) {
             for (String targetPattern : confs.get("%")) {
-                findMatches(ivyComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
+                findMatches(
+                        ivyComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
             }
         }
 
-        // TODO - this is not quite right, eg given *,!A->A;*,!B->B the result should be B->A and A->B but will in fact be B-> and A->
+        // TODO - this is not quite right, eg given *,!A->A;*,!B->B the result should be B->A and A->B but will in fact
+        // be B-> and A->
         Set<String> wildcardPatterns = confs.get("*");
         if (!wildcardPatterns.isEmpty()) {
             boolean excludeWildcards = false;
@@ -159,7 +183,13 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             }
             if (!excludeWildcards) {
                 for (String targetPattern : wildcardPatterns) {
-                    findMatches(ivyComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
+                    findMatches(
+                            ivyComponent,
+                            fromConfigName,
+                            fromConfigName,
+                            targetPattern,
+                            targets,
+                            resolutionFailureHandler);
                 }
             }
         }
@@ -172,7 +202,13 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         return builder.build();
     }
 
-    private void findMatches(IvyComponentGraphResolveState targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationGraphResolveState> targetConfigurations, ResolutionFailureHandler resolutionFailureHandler) {
+    private void findMatches(
+            IvyComponentGraphResolveState targetComponent,
+            String fromConfiguration,
+            String patternConfiguration,
+            String targetPattern,
+            List<ConfigurationGraphResolveState> targetConfigurations,
+            ResolutionFailureHandler resolutionFailureHandler) {
         int startFallback = targetPattern.indexOf('(');
         if (startFallback >= 0) {
             if (targetPattern.endsWith(")")) {
@@ -209,7 +245,8 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         maybeAddConfiguration(targetConfigurations, configuration);
     }
 
-    private void maybeAddConfiguration(List<ConfigurationGraphResolveState> configurations, ConfigurationGraphResolveState toAdd) {
+    private void maybeAddConfiguration(
+            List<ConfigurationGraphResolveState> configurations, ConfigurationGraphResolveState toAdd) {
         Iterator<ConfigurationGraphResolveState> iter = configurations.iterator();
         while (iter.hasNext()) {
             ConfigurationGraphResolveState configuration = iter.next();
@@ -287,24 +324,25 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
 
         IvyDependencyDescriptor that = (IvyDependencyDescriptor) o;
         return changing == that.changing
-            && transitive == that.transitive
-            && optional == that.optional
-            && Objects.equal(selector, that.selector)
-            && Objects.equal(dynamicConstraintVersion, that.dynamicConstraintVersion)
-            && Objects.equal(confs, that.confs)
-            && Objects.equal(excludes, that.excludes)
-            && Objects.equal(dependencyArtifacts, that.dependencyArtifacts);
+                && transitive == that.transitive
+                && optional == that.optional
+                && Objects.equal(selector, that.selector)
+                && Objects.equal(dynamicConstraintVersion, that.dynamicConstraintVersion)
+                && Objects.equal(confs, that.confs)
+                && Objects.equal(excludes, that.excludes)
+                && Objects.equal(dependencyArtifacts, that.dependencyArtifacts);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(selector,
-            dynamicConstraintVersion,
-            changing,
-            transitive,
-            optional,
-            confs,
-            excludes,
-            dependencyArtifacts);
+        return Objects.hashCode(
+                selector,
+                dynamicConstraintVersion,
+                changing,
+                transitive,
+                optional,
+                confs,
+                excludes,
+                dependencyArtifacts);
     }
 }

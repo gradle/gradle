@@ -24,8 +24,6 @@ public class OutputDirSelectorUtil {
 
     public static String fileSafeNameFor(String name) {
         String fileSafeName = name.trim().replaceAll("[^a-zA-Z0-9.-]", "-").replaceAll("-+", "-");
-        return (fileSafeName.endsWith("-"))
-            ? fileSafeName.substring(0, fileSafeName.length() - 1)
-            : fileSafeName;
+        return (fileSafeName.endsWith("-")) ? fileSafeName.substring(0, fileSafeName.length() - 1) : fileSafeName;
     }
 }

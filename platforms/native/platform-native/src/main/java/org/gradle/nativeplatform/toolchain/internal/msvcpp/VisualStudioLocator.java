@@ -19,5 +19,4 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.BuildSession.class)
-public interface VisualStudioLocator extends WindowsComponentLocator<VisualStudioInstall> {
-}
+public interface VisualStudioLocator extends WindowsComponentLocator<VisualStudioInstall> {}

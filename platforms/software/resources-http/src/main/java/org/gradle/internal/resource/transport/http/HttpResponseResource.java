@@ -15,6 +15,10 @@
  */
 package org.gradle.internal.resource.transport.http;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Date;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.utils.DateUtils;
 import org.gradle.internal.hash.HashCode;
@@ -23,11 +27,6 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.Date;
 
 public class HttpResponseResource implements ExternalResourceReadResponse {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResponseResource.class);
@@ -44,7 +43,15 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         this.response = response;
 
         String etag = getEtag(response);
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag), getFilename(), response.wasMissing());
+        this.metaData = new DefaultExternalResourceMetaData(
+                source,
+                getLastModified(),
+                getContentLength(),
+                getContentType(),
+                etag,
+                getSha1(response, etag),
+                getFilename(),
+                response.wasMissing());
     }
 
     public URI getURI() {
@@ -84,7 +91,9 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
             int beginIndex = disposition.indexOf("filename=\"");
             if (beginIndex > 0) {
                 int endIndex = disposition.indexOf(';', beginIndex + 11); // find the next semicolon
-                endIndex = endIndex < 0 ? disposition.length() : endIndex; // if no semicolon is found, then there is nothing else in the disposition
+                endIndex = endIndex < 0
+                        ? disposition.length()
+                        : endIndex; // if no semicolon is found, then there is nothing else in the disposition
                 endIndex -= 1; // ignore the closing quotes
                 return disposition.substring(beginIndex + 10, endIndex);
             }
@@ -92,7 +101,9 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
             beginIndex = disposition.indexOf("filename=");
             if (beginIndex > 0) {
                 int endIndex = disposition.indexOf(';', beginIndex + 10); // find the next semicolon
-                endIndex = endIndex < 0 ? disposition.length() : endIndex; // if no semicolon is found, then there is nothing else in the disposition
+                endIndex = endIndex < 0
+                        ? disposition.length()
+                        : endIndex; // if no semicolon is found, then there is nothing else in the disposition
                 return disposition.substring(beginIndex + 9, endIndex);
             }
         } else {

@@ -124,5 +124,4 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * @param action the action
      */
     void withId(String pluginId, Action<? super Plugin> action);
-
 }

@@ -51,5 +51,4 @@ public interface ImplicitInputsProvidingService<IN, OUT, SERVICE> {
     SERVICE withImplicitInputRecorder(ImplicitInputRecorder registrar);
 
     boolean isUpToDate(IN in, @Nullable OUT oldValue);
-
 }

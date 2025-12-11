@@ -16,7 +16,13 @@
 
 package org.gradle.api.internal.tasks;
 
+import static java.lang.String.format;
+
 import com.google.common.base.Preconditions;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.Set;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.internal.UncheckedException;
@@ -24,13 +30,6 @@ import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.Set;
-
-import static java.lang.String.format;
 
 /**
  * <p>A {@link TaskDependencyResolveContext} which caches the dependencies for each {@link
@@ -67,7 +66,8 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
             return walker.findValues();
         } catch (Exception e) {
             if (task != null) {
-                throw new TaskDependencyResolveException(format("Could not determine the dependencies of %s.", task), e);
+                throw new TaskDependencyResolveException(
+                        format("Could not determine the dependencies of %s.", task), e);
             } else {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
@@ -101,7 +101,8 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
         }
 
         @Override
-        public void getNodeValues(Object node, final Collection<? super T> values, Collection<? super Object> connectedNodes) {
+        public void getNodeValues(
+                Object node, final Collection<? super T> values, Collection<? super Object> connectedNodes) {
             if (node instanceof TaskDependencyContainer) {
                 TaskDependencyContainer taskDependency = (TaskDependencyContainer) node;
                 queue.clear();
@@ -119,12 +120,9 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
                     return;
                 }
             }
-            throw new IllegalArgumentException(
-                format(
+            throw new IllegalArgumentException(format(
                     "Cannot resolve object of unknown type %s to a Task.",
-                    node.getClass().getSimpleName()
-                )
-            );
+                    node.getClass().getSimpleName()));
         }
     }
 }

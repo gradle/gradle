@@ -16,13 +16,13 @@
 
 package org.gradle.internal.snapshot;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 import static org.gradle.internal.snapshot.PathUtil.compareChars;
 import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase;
 import static org.gradle.internal.snapshot.PathUtil.equalChars;
 import static org.gradle.internal.snapshot.PathUtil.isFileSeparator;
+
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * A relative path represented by a path suffix of an absolute path.
@@ -63,8 +63,8 @@ public class VfsRelativePath {
             return absolutePath;
         }
         return isFileSeparator(absolutePath.charAt(absolutePath.length() - 1))
-            ? absolutePath.substring(0, absolutePath.length() - 1)
-            : absolutePath;
+                ? absolutePath.substring(0, absolutePath.length() - 1)
+                : absolutePath;
     }
 
     private static int determineOffset(String absolutePath) {
@@ -91,8 +91,8 @@ public class VfsRelativePath {
      */
     public VfsRelativePath pathFromChild(String relativeChildPath) {
         return relativeChildPath.isEmpty()
-            ? this
-            : new VfsRelativePath(absolutePath, offset + relativeChildPath.length() + 1);
+                ? this
+                : new VfsRelativePath(absolutePath, offset + relativeChildPath.length() + 1);
     }
 
     /**
@@ -104,9 +104,7 @@ public class VfsRelativePath {
      *   (C:, '') -&gt; C:
      */
     public String pathToChild(String relativeChildPath) {
-        return isEmpty()
-            ? relativeChildPath
-            : relativeChildPath.substring(length() + 1);
+        return isEmpty() ? relativeChildPath : relativeChildPath.substring(length() + 1);
     }
 
     /**
@@ -201,7 +199,8 @@ public class VfsRelativePath {
             if (comparedChars != 0) {
                 return comparedChars;
             }
-            accumulatedValue = computeCombinedCompare(accumulatedValue, charInPath1, charInPath2, caseSensitivity == CASE_SENSITIVE);
+            accumulatedValue = computeCombinedCompare(
+                    accumulatedValue, charInPath1, charInPath2, caseSensitivity == CASE_SENSITIVE);
             if (isFileSeparator(charInPath1)) {
                 if (pos > 0) {
                     return accumulatedValue;
@@ -231,7 +230,12 @@ public class VfsRelativePath {
         return isPrefix(absolutePath, offset, otherPath, 0, caseSensitivity);
     }
 
-    private static boolean isPrefix(String stringEndingInPrefix, int offsetInPrefix, String stringToCheck, int offsetInStringToCheck, CaseSensitivity caseSensitivity) {
+    private static boolean isPrefix(
+            String stringEndingInPrefix,
+            int offsetInPrefix,
+            String stringToCheck,
+            int offsetInStringToCheck,
+            CaseSensitivity caseSensitivity) {
         int prefixLength = stringEndingInPrefix.length() - offsetInPrefix;
         if (prefixLength == 0) {
             return true;
@@ -240,21 +244,23 @@ public class VfsRelativePath {
         if (stringToCheck.length() < endOfPrefixInStringToCheck) {
             return false;
         }
-        for (int i = stringEndingInPrefix.length() - 1, j = endOfPrefixInStringToCheck - 1; i >= offsetInPrefix; i--, j--) {
+        for (int i = stringEndingInPrefix.length() - 1, j = endOfPrefixInStringToCheck - 1;
+                i >= offsetInPrefix;
+                i--, j--) {
             if (!equalChars(stringEndingInPrefix.charAt(i), stringToCheck.charAt(j), caseSensitivity)) {
                 return false;
             }
         }
-        return stringToCheck.length() == endOfPrefixInStringToCheck || isFileSeparator(stringToCheck.charAt(endOfPrefixInStringToCheck));
+        return stringToCheck.length() == endOfPrefixInStringToCheck
+                || isFileSeparator(stringToCheck.charAt(endOfPrefixInStringToCheck));
     }
 
-    private static int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2, boolean caseSensitive) {
+    private static int computeCombinedCompare(
+            int previousCombinedValue, char charInPath1, char charInPath2, boolean caseSensitive) {
         if (!caseSensitive) {
             return 0;
         }
-        return previousCombinedValue == 0
-            ? compareChars(charInPath1, charInPath2)
-            : previousCombinedValue;
+        return previousCombinedValue == 0 ? compareChars(charInPath1, charInPath2) : previousCombinedValue;
     }
 
     @Override

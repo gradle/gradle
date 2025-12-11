@@ -28,9 +28,8 @@ public class OsMemoryStatusSnapshot implements OsMemoryStatus {
      */
     public OsMemoryStatusSnapshot(long totalPhysicalMemory, long freePhysicalMemory) {
         this(
-            new DefaultAvailableOsMemoryStatusAspect("physical", totalPhysicalMemory, freePhysicalMemory),
-            new DefaultUnavailableOsMemoryStatusAspect("virtual")
-        );
+                new DefaultAvailableOsMemoryStatusAspect("physical", totalPhysicalMemory, freePhysicalMemory),
+                new DefaultUnavailableOsMemoryStatusAspect("virtual"));
     }
 
     /**
@@ -42,12 +41,10 @@ public class OsMemoryStatusSnapshot implements OsMemoryStatus {
      * @param freeVirtualMemory free virtual memory in bytes
      */
     public OsMemoryStatusSnapshot(
-        long totalPhysicalMemory, long freePhysicalMemory, long totalVirtualMemory, long freeVirtualMemory
-    ) {
+            long totalPhysicalMemory, long freePhysicalMemory, long totalVirtualMemory, long freeVirtualMemory) {
         this(
-            new DefaultAvailableOsMemoryStatusAspect("physical", totalPhysicalMemory, freePhysicalMemory),
-            new DefaultAvailableOsMemoryStatusAspect("virtual", totalVirtualMemory, freeVirtualMemory)
-        );
+                new DefaultAvailableOsMemoryStatusAspect("physical", totalPhysicalMemory, freePhysicalMemory),
+                new DefaultAvailableOsMemoryStatusAspect("virtual", totalVirtualMemory, freeVirtualMemory));
     }
 
     private OsMemoryStatusSnapshot(OsMemoryStatusAspect.Available physicalMemory, OsMemoryStatusAspect virtualMemory) {

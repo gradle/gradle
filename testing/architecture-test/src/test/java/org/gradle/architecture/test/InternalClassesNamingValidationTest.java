@@ -16,6 +16,10 @@
 
 package org.gradle.architecture.test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static org.gradle.architecture.test.ArchUnitFixture.freeze;
+
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -23,30 +27,32 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import org.jspecify.annotations.NullMarked;
 
-import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static org.gradle.architecture.test.ArchUnitFixture.freeze;
-
 @AnalyzeClasses(packages = "org.gradle")
 @NullMarked
 public class InternalClassesNamingValidationTest {
     @ArchTest
-    public static final ArchRule internal_classes_should_use_internal_as_suffix_not_prefix =
-        freeze(classes()
-            .that().resideInAPackage("..internal..")
-            .and().haveSimpleNameContaining("Internal")
-            .and().resideOutsideOfPackage("org.gradle.tooling.internal.protocol..")
-            .and(not(assignableToInterfaceInPackage("org.gradle.tooling.internal.protocol..")))
-            .should().haveSimpleNameEndingWith("Internal")
-            .andShould().haveSimpleNameNotStartingWith("Internal")
-            .as("classes that are in 'internal' packages with 'Internal' in their name should use it as a suffix not as a prefix"));
+    public static final ArchRule internal_classes_should_use_internal_as_suffix_not_prefix = freeze(
+            classes()
+                    .that()
+                    .resideInAPackage("..internal..")
+                    .and()
+                    .haveSimpleNameContaining("Internal")
+                    .and()
+                    .resideOutsideOfPackage("org.gradle.tooling.internal.protocol..")
+                    .and(not(assignableToInterfaceInPackage("org.gradle.tooling.internal.protocol..")))
+                    .should()
+                    .haveSimpleNameEndingWith("Internal")
+                    .andShould()
+                    .haveSimpleNameNotStartingWith("Internal")
+                    .as(
+                            "classes that are in 'internal' packages with 'Internal' in their name should use it as a suffix not as a prefix"));
 
     private static DescribedPredicate<JavaClass> assignableToInterfaceInPackage(String packagePattern) {
         return new DescribedPredicate<>("assignable to interface in " + packagePattern) {
             @Override
             public boolean test(JavaClass javaClass) {
                 return javaClass.getAllRawInterfaces().stream()
-                    .anyMatch(iface -> iface.getPackageName().matches(packagePattern.replace("..", ".*")));
+                        .anyMatch(iface -> iface.getPackageName().matches(packagePattern.replace("..", ".*")));
             }
         };
     }

@@ -15,25 +15,24 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
+import static org.gradle.util.internal.ConfigureUtil.configure;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
-import org.gradle.util.internal.ClosureBackedAction;
-
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
+import javax.inject.Inject;
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
+import org.gradle.util.internal.ClosureBackedAction;
 
 /**
  * Enables fine-tuning project details (.project file) of the Eclipse plugin
@@ -132,7 +131,8 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  */
 public abstract class EclipseProject {
 
-    public static final ImmutableSet<String> VALID_LINKED_RESOURCE_ARGS = ImmutableSet.of("name", "type", "location", "locationUri");
+    public static final ImmutableSet<String> VALID_LINKED_RESOURCE_ARGS =
+            ImmutableSet.of("name", "type", "location", "locationUri");
     private String name;
 
     private String comment;
@@ -194,7 +194,6 @@ public abstract class EclipseProject {
     public void setComment(String comment) {
         this.comment = comment;
     }
-
 
     public Set<String> getReferencedProjects() {
         return referencedProjects;
@@ -303,10 +302,12 @@ public abstract class EclipseProject {
     public void linkedResource(Map<String, String> args) {
         Set<String> illegalArgs = Sets.difference(args.keySet(), VALID_LINKED_RESOURCE_ARGS);
         if (!illegalArgs.isEmpty()) {
-            throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs + ". Valid link args are: " + VALID_LINKED_RESOURCE_ARGS);
+            throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs
+                    + ". Valid link args are: " + VALID_LINKED_RESOURCE_ARGS);
         }
 
-        linkedResources.add(new Link(args.get("name"), args.get("type"), args.get("location"), args.get("locationUri")));
+        linkedResources.add(
+                new Link(args.get("name"), args.get("type"), args.get("location"), args.get("locationUri")));
     }
 
     /**
@@ -325,7 +326,8 @@ public abstract class EclipseProject {
      * @param configureClosure The closure to use to configure the resource filter.
      * @since 3.5
      */
-    public ResourceFilter resourceFilter(@DelegatesTo(value=ResourceFilter.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
+    public ResourceFilter resourceFilter(
+            @DelegatesTo(value = ResourceFilter.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
         return resourceFilter(new ClosureBackedAction<ResourceFilter>(configureClosure));
     }
 

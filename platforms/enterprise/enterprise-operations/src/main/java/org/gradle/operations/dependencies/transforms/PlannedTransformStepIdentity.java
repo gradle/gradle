@@ -16,14 +16,13 @@
 
 package org.gradle.operations.dependencies.transforms;
 
+import java.util.List;
+import java.util.Map;
 import org.gradle.internal.taskgraph.NodeIdentity;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.operations.dependencies.variants.Capability;
 import org.gradle.operations.dependencies.variants.ComponentIdentifier;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Identity of a transform step node in an execution plan.
@@ -86,5 +85,4 @@ public interface PlannedTransformStepIdentity extends NodeIdentity {
      * An opaque identifier distinguishes between different transform step nodes in case other identity properties are the same.
      */
     long getTransformStepNodeId();
-
 }

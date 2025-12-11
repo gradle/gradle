@@ -27,5 +27,4 @@ public interface DependencyGraphSelector {
      * Returns the requested dependency.
      */
     ComponentSelector getRequested();
-
 }

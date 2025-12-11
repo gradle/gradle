@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
+import java.util.function.Function;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.initialization.ClassLoaderScopeOrigin;
@@ -24,20 +25,24 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.jspecify.annotations.Nullable;
 
-import java.util.function.Function;
-
 /**
  * Provides common {@link #getPath} and {@link #createChild} behaviour for {@link ClassLoaderScope} implementations.
  */
 public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
 
     protected final ClassLoaderScopeIdentifier id;
+
     @Nullable
     protected final ClassLoaderScopeOrigin origin;
+
     protected final ClassLoaderCache classLoaderCache;
     protected final ClassLoaderScopeRegistryListener listener;
 
-    protected AbstractClassLoaderScope(ClassLoaderScopeIdentifier id, @Nullable ClassLoaderScopeOrigin origin, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
+    protected AbstractClassLoaderScope(
+            ClassLoaderScopeIdentifier id,
+            @Nullable ClassLoaderScopeOrigin origin,
+            ClassLoaderCache classLoaderCache,
+            ClassLoaderScopeRegistryListener listener) {
         this.id = id;
         this.origin = origin;
         this.classLoaderCache = classLoaderCache;
@@ -90,7 +95,20 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
     }
 
     @Override
-    public ClassLoaderScope createLockedChild(String name, @Nullable ClassLoaderScopeOrigin origin, ClassPath localClasspath, @Nullable HashCode classpathImplementationHash, @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory) {
-        return new ImmutableClassLoaderScope(id.child(name), this, origin, localClasspath, classpathImplementationHash, localClassLoaderFactory, classLoaderCache, listener);
+    public ClassLoaderScope createLockedChild(
+            String name,
+            @Nullable ClassLoaderScopeOrigin origin,
+            ClassPath localClasspath,
+            @Nullable HashCode classpathImplementationHash,
+            @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory) {
+        return new ImmutableClassLoaderScope(
+                id.child(name),
+                this,
+                origin,
+                localClasspath,
+                classpathImplementationHash,
+                localClassLoaderFactory,
+                classLoaderCache,
+                listener);
     }
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.internal.operations.trace;
 
+import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
+
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
-
-import java.util.Map;
-
-import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
 
 class SerializedOperationFinish implements SerializedOperation {
 
@@ -39,8 +38,11 @@ class SerializedOperationFinish implements SerializedOperation {
         this.id = descriptor.getId().getId();
         this.endTime = finishEvent.getEndTime();
         this.result = toSerializableModel(finishEvent.getResult());
-        this.resultClassName = result == null ? null : finishEvent.getResult().getClass().getName();
-        this.failureMsg = finishEvent.getFailure() == null ? null : finishEvent.getFailure().toString();
+        this.resultClassName =
+                result == null ? null : finishEvent.getResult().getClass().getName();
+        this.failureMsg = finishEvent.getFailure() == null
+                ? null
+                : finishEvent.getFailure().toString();
     }
 
     SerializedOperationFinish(Map<String, ?> map) {
@@ -72,5 +74,4 @@ class SerializedOperationFinish implements SerializedOperation {
 
         return map.build();
     }
-
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.tooling.r68;
 
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.gradle.GradleBuild;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.gradle.GradleBuild;
 
 public class LoadCompositeModel<T> implements BuildAction<Collection<T>>, Serializable {
 

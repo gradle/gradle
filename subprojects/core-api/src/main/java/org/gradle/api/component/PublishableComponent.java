@@ -21,5 +21,4 @@ package org.gradle.api.component;
  *
  * @since 4.7
  */
-public interface PublishableComponent extends SoftwareComponent, ComponentWithCoordinates {
-}
+public interface PublishableComponent extends SoftwareComponent, ComponentWithCoordinates {}

@@ -20,17 +20,15 @@ import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
+import java.io.EOFException;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-import java.io.EOFException;
-
 public class IntSetSerializer implements Serializer<IntSet> {
     public static final IntSetSerializer INSTANCE = new IntSetSerializer();
 
-    private IntSetSerializer() {
-    }
+    private IntSetSerializer() {}
 
     @Override
     public IntSet read(Decoder decoder) throws EOFException, Exception {
@@ -49,7 +47,7 @@ public class IntSetSerializer implements Serializer<IntSet> {
     public void write(Encoder encoder, IntSet value) throws Exception {
         encoder.writeInt(value.size());
         IntIterator iterator = value.iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             encoder.writeInt(iterator.nextInt());
         }
     }

@@ -23,5 +23,4 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
-public @interface InterceptGroovyCalls {
-}
+public @interface InterceptGroovyCalls {}

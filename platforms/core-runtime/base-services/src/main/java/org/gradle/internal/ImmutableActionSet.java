@@ -15,7 +15,6 @@
  */
 package org.gradle.internal;
 
-
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 
@@ -167,12 +166,10 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
         }
 
         @Override
-        protected void unpackInto(ImmutableSet.Builder<Action<? super T>> builder) {
-        }
+        protected void unpackInto(ImmutableSet.Builder<Action<? super T>> builder) {}
 
         @Override
-        public void execute(Object o) {
-        }
+        public void execute(Object o) {}
 
         @Override
         public boolean isEmpty() {
@@ -192,7 +189,8 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
             if (action.equals(singleAction)) {
                 return this;
             }
-            return new SetWithFewActions<T>(Cast.<Action<? super T>[]>uncheckedNonnullCast(new Action<?>[]{singleAction, action}));
+            return new SetWithFewActions<T>(
+                    Cast.<Action<? super T>[]>uncheckedNonnullCast(new Action<?>[] {singleAction, action}));
         }
 
         @Override

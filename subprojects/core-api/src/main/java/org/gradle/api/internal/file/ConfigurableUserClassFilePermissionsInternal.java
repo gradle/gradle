@@ -32,5 +32,4 @@ public interface ConfigurableUserClassFilePermissionsInternal extends Configurab
      * (i.e. a number between 0 and 7; see {@link ConfigurableFilePermissions#unix(String)} for details).
      */
     void unix(int unixNumeric);
-
 }

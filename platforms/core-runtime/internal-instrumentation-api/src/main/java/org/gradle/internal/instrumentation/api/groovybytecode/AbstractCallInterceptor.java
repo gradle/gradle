@@ -16,17 +16,16 @@
 
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import org.codehaus.groovy.vmplugin.v8.IndyInterface;
-import org.gradle.api.GradleException;
-import org.gradle.util.internal.CollectionUtils;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.codehaus.groovy.vmplugin.v8.IndyInterface;
+import org.gradle.api.GradleException;
+import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractCallInterceptor implements CallInterceptor {
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
@@ -35,7 +34,10 @@ public abstract class AbstractCallInterceptor implements CallInterceptor {
 
     static {
         try {
-            INTERCEPTOR = LOOKUP.findVirtual(AbstractCallInterceptor.class, "interceptMethodHandle", MethodType.methodType(Object.class, MethodHandle.class, int.class, String.class, Object[].class));
+            INTERCEPTOR = LOOKUP.findVirtual(
+                    AbstractCallInterceptor.class,
+                    "interceptMethodHandle",
+                    MethodType.methodType(Object.class, MethodHandle.class, int.class, String.class, Object[].class));
         } catch (NoSuchMethodException | IllegalAccessException e) {
             throw new GradleException("Failed to set up an interceptor method", e);
         }
@@ -44,19 +46,25 @@ public abstract class AbstractCallInterceptor implements CallInterceptor {
     private final Set<InterceptScope> interceptScopes;
 
     protected AbstractCallInterceptor(InterceptScope... interceptScopes) {
-        this.interceptScopes = Collections.unmodifiableSet(CollectionUtils.addAll(new LinkedHashSet<>(), interceptScopes));
+        this.interceptScopes =
+                Collections.unmodifiableSet(CollectionUtils.addAll(new LinkedHashSet<>(), interceptScopes));
     }
 
     @Override
     public MethodHandle decorateMethodHandle(MethodHandle original, MethodHandles.Lookup caller, int flags) {
-        MethodHandle spreader = original.asSpreader(Object[].class, original.type().parameterCount());
-        MethodHandle decorated = MethodHandles.insertArguments(INTERCEPTOR, 0, this, spreader, flags, caller.lookupClass().getName());
-        return decorated.asCollector(Object[].class, original.type().parameterCount()).asType(original.type());
+        MethodHandle spreader =
+                original.asSpreader(Object[].class, original.type().parameterCount());
+        MethodHandle decorated = MethodHandles.insertArguments(
+                INTERCEPTOR, 0, this, spreader, flags, caller.lookupClass().getName());
+        return decorated
+                .asCollector(Object[].class, original.type().parameterCount())
+                .asType(original.type());
     }
 
     @Nullable
     @SuppressWarnings("unused")
-    private Object interceptMethodHandle(MethodHandle original, int flags, String consumer, Object[] args) throws Throwable {
+    private Object interceptMethodHandle(MethodHandle original, int flags, String consumer, Object[] args)
+            throws Throwable {
         boolean isSafeNavigation = (flags & IndyInterface.SAFE_NAVIGATION) != 0;
         if (isSafeNavigation && InvocationUtils.unwrap(args[0]) == null) {
             // Skip interception for safe navigation calls on null receiver

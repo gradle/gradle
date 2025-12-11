@@ -15,17 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.util.List;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.List;
-
 public class ReadOnlyModuleArtifactCache extends DefaultModuleArtifactCache {
-    public ReadOnlyModuleArtifactCache(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, FileAccessTracker fileAccessTracker, Path commonRootPath) {
+    public ReadOnlyModuleArtifactCache(
+            String persistentCacheFile,
+            BuildCommencedTimeProvider timeProvider,
+            ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
+            FileAccessTracker fileAccessTracker,
+            Path commonRootPath) {
         super(persistentCacheFile, timeProvider, cacheAccessCoordinator, fileAccessTracker, commonRootPath);
     }
 

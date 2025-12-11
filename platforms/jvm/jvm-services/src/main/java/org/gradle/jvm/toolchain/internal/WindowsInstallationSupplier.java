@@ -16,17 +16,16 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import net.rubygrapefruit.platform.MissingRegistryEntryException;
-import net.rubygrapefruit.platform.WindowsRegistry;
-import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
-import org.gradle.internal.os.OperatingSystem;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import net.rubygrapefruit.platform.MissingRegistryEntryException;
+import net.rubygrapefruit.platform.WindowsRegistry;
+import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
+import org.gradle.internal.os.OperatingSystem;
 
 public class WindowsInstallationSupplier implements InstallationSupplier {
 
@@ -54,21 +53,24 @@ public class WindowsInstallationSupplier implements InstallationSupplier {
     private Set<InstallationLocation> findInstallationsInRegistry() {
         final Stream<String> openJdkInstallations = findOpenJDKs();
         final Stream<String> jvms = Stream.of(
-            "SOFTWARE\\JavaSoft\\JDK",
-            "SOFTWARE\\JavaSoft\\Java Development Kit",
-            "SOFTWARE\\JavaSoft\\Java Runtime Environment",
-            "SOFTWARE\\Wow6432Node\\JavaSoft\\Java Development Kit",
-            "SOFTWARE\\Wow6432Node\\JavaSoft\\Java Runtime Environment"
-        ).map(this::findJvms).flatMap(List::stream);
+                        "SOFTWARE\\JavaSoft\\JDK",
+                        "SOFTWARE\\JavaSoft\\Java Development Kit",
+                        "SOFTWARE\\JavaSoft\\Java Runtime Environment",
+                        "SOFTWARE\\Wow6432Node\\JavaSoft\\Java Development Kit",
+                        "SOFTWARE\\Wow6432Node\\JavaSoft\\Java Runtime Environment")
+                .map(this::findJvms)
+                .flatMap(List::stream);
         return Stream.concat(openJdkInstallations, jvms)
-            .map(javaHome -> InstallationLocation.autoDetected(new File(javaHome), getSourceName()))
-            .collect(Collectors.toSet());
+                .map(javaHome -> InstallationLocation.autoDetected(new File(javaHome), getSourceName()))
+                .collect(Collectors.toSet());
     }
 
     private List<String> find(String sdkSubkey, String path, String value) {
         try {
             List<String> versions = getVersions(sdkSubkey);
-            return versions.stream().map(version -> getValue(sdkSubkey, path, value, version)).collect(Collectors.toList());
+            return versions.stream()
+                    .map(version -> getValue(sdkSubkey, path, value, version))
+                    .collect(Collectors.toList());
         } catch (MissingRegistryEntryException | NativeIntegrationUnavailableException e) {
             // Ignore
             return Collections.emptyList();
@@ -80,19 +82,19 @@ public class WindowsInstallationSupplier implements InstallationSupplier {
     }
 
     private String getValue(String sdkSubkey, String path, String value, String version) {
-        return windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, sdkSubkey + '\\' + version + path, value);
+        return windowsRegistry.getStringValue(
+                WindowsRegistry.Key.HKEY_LOCAL_MACHINE, sdkSubkey + '\\' + version + path, value);
     }
 
     private Stream<String> findOpenJDKs() {
         return Stream.of(
-            "SOFTWARE\\AdoptOpenJDK\\JDK",
-            "SOFTWARE\\Eclipse Adoptium\\JDK",
-            "SOFTWARE\\Eclipse Foundation\\JDK"
-        ).flatMap(key -> find(key, "\\hotspot\\MSI", "Path").stream());
+                        "SOFTWARE\\AdoptOpenJDK\\JDK",
+                        "SOFTWARE\\Eclipse Adoptium\\JDK",
+                        "SOFTWARE\\Eclipse Foundation\\JDK")
+                .flatMap(key -> find(key, "\\hotspot\\MSI", "Path").stream());
     }
 
     private List<String> findJvms(String sdkSubkey) {
         return find(sdkSubkey, "", "JavaHome");
     }
-
 }

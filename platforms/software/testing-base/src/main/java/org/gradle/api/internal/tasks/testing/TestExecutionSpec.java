@@ -16,6 +16,4 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-public interface TestExecutionSpec {
-
-}
+public interface TestExecutionSpec {}

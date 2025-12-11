@@ -41,5 +41,4 @@ public interface ComponentArtifactResolveState {
      * Metadata for this component's artifacts.
      */
     ComponentArtifactResolveMetadata getArtifactMetadata();
-
 }

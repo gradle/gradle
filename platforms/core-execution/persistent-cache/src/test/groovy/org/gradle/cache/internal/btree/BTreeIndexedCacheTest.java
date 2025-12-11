@@ -15,13 +15,10 @@
  */
 package org.gradle.cache.internal.btree;
 
-import org.gradle.internal.serialize.DefaultSerializer;
-import org.gradle.internal.serialize.Serializer;
-import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,15 +31,18 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertNull;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertTrue;
+import org.gradle.internal.serialize.DefaultSerializer;
+import org.gradle.internal.serialize.Serializer;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class BTreeIndexedCacheTest {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
+
     private final Serializer<String> stringSerializer = new DefaultSerializer<String>();
     private final Serializer<Integer> integerSerializer = new DefaultSerializer<Integer>();
     private BTreePersistentIndexedCache<String, Integer> cache;
@@ -54,7 +54,8 @@ public class BTreeIndexedCacheTest {
     }
 
     private void createCache() {
-        cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, stringSerializer, integerSerializer, (short) 4, 100);
+        cache = new BTreePersistentIndexedCache<String, Integer>(
+                cacheFile, stringSerializer, integerSerializer, (short) 4, 100);
     }
 
     private void verifyAndCloseCache() {
@@ -99,7 +100,9 @@ public class BTreeIndexedCacheTest {
 
     @Test
     public void handlesUpdatesWhenBlockSizeDecreases() {
-        BTreePersistentIndexedCache<String, List<Integer>> cache = new BTreePersistentIndexedCache<String, List<Integer>>(tmpDir.file("listcache.bin"), stringSerializer, new DefaultSerializer<List<Integer>>(), (short) 4, 100);
+        BTreePersistentIndexedCache<String, List<Integer>> cache = new BTreePersistentIndexedCache<
+                String, List<Integer>>(
+                tmpDir.file("listcache.bin"), stringSerializer, new DefaultSerializer<List<Integer>>(), (short) 4, 100);
 
         List<Integer> values = Arrays.asList(3, 2, 11, 5, 7, 1, 10, 8, 9, 4, 6, 0);
         Map<Integer, List<Integer>> updated = new LinkedHashMap<Integer, List<Integer>>();
@@ -126,7 +129,8 @@ public class BTreeIndexedCacheTest {
         cache.close();
     }
 
-    private void checkListEntries(BTreePersistentIndexedCache<String, List<Integer>> cache, Map<Integer, List<Integer>> updated) {
+    private void checkListEntries(
+            BTreePersistentIndexedCache<String, List<Integer>> cache, Map<Integer, List<Integer>> updated) {
         for (Map.Entry<Integer, List<Integer>> entry : updated.entrySet()) {
             String key = String.format("key_%d", entry.getKey());
             assertThat(cache.get(key), equalTo(entry.getValue()));
@@ -135,7 +139,9 @@ public class BTreeIndexedCacheTest {
 
     @Test
     public void handlesUpdatesWhenBlockSizeIncreases() {
-        BTreePersistentIndexedCache<String, List<Integer>> cache = new BTreePersistentIndexedCache<String, List<Integer>>(tmpDir.file("listcache.bin"), stringSerializer, new DefaultSerializer<List<Integer>>(), (short) 4, 100);
+        BTreePersistentIndexedCache<String, List<Integer>> cache = new BTreePersistentIndexedCache<
+                String, List<Integer>>(
+                tmpDir.file("listcache.bin"), stringSerializer, new DefaultSerializer<List<Integer>>(), (short) 4, 100);
 
         List<Integer> values = Arrays.asList(3, 2, 11, 5, 7, 1, 10, 8, 9, 4, 6, 0);
         Map<Integer, List<Integer>> updated = new LinkedHashMap<Integer, List<Integer>>();
@@ -206,7 +212,8 @@ public class BTreeIndexedCacheTest {
 
     @Test
     public void reusesEmptySpaceWhenPuttingEntries() {
-        BTreePersistentIndexedCache<String, String> cache = new BTreePersistentIndexedCache<String, String>(cacheFile, stringSerializer, stringSerializer, (short) 4, 100);
+        BTreePersistentIndexedCache<String, String> cache = new BTreePersistentIndexedCache<String, String>(
+                cacheFile, stringSerializer, stringSerializer, (short) 4, 100);
 
         cache.put("key_1", "abcd");
         cache.put("key_2", "abcd");
@@ -250,7 +257,7 @@ public class BTreeIndexedCacheTest {
         checkAddsAndRemoves(Collections.reverseOrder(), values);
 
         // need to make this better
-        assertTrue(cacheFile.length() < (long)(1.4 * len));
+        assertTrue(cacheFile.length() < (long) (1.4 * len));
 
         checkAdds(values);
 
@@ -326,7 +333,8 @@ public class BTreeIndexedCacheTest {
         cacheFile.createNewFile();
         cacheFile.write("some junk");
 
-        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, stringSerializer, integerSerializer);
+        BTreePersistentIndexedCache<String, Integer> cache =
+                new BTreePersistentIndexedCache<String, Integer>(cacheFile, stringSerializer, integerSerializer);
 
         assertNull(cache.get("key_1"));
         cache.put("key_1", 99);
@@ -341,7 +349,8 @@ public class BTreeIndexedCacheTest {
 
     @Test
     public void handlesOpeningATruncatedCacheFile() throws IOException {
-        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, stringSerializer, integerSerializer);
+        BTreePersistentIndexedCache<String, Integer> cache =
+                new BTreePersistentIndexedCache<String, Integer>(cacheFile, stringSerializer, integerSerializer);
 
         assertNull(cache.get("key_1"));
         cache.put("key_1", 99);
@@ -360,7 +369,8 @@ public class BTreeIndexedCacheTest {
 
     @Test
     public void canUseFileAsKey() {
-        BTreePersistentIndexedCache<File, Integer> cache = new BTreePersistentIndexedCache<File, Integer>(cacheFile, new DefaultSerializer<File>(), integerSerializer);
+        BTreePersistentIndexedCache<File, Integer> cache = new BTreePersistentIndexedCache<File, Integer>(
+                cacheFile, new DefaultSerializer<File>(), integerSerializer);
 
         cache.put(new File("file"), 1);
         cache.put(new File("dir/file"), 2);
@@ -377,8 +387,8 @@ public class BTreeIndexedCacheTest {
     public void handlesKeysWithSameHashCode() {
         createCache();
 
-        String key1 = new String(new byte[]{2, 31});
-        String key2 = new String(new byte[]{1, 62});
+        String key1 = new String(new byte[] {2, 31});
+        String key2 = new String(new byte[] {1, 62});
         cache.put(key1, 1);
         cache.put(key2, 2);
 
@@ -473,5 +483,4 @@ public class BTreeIndexedCacheTest {
             assertThat(cache.get(key), nullValue());
         }
     }
-
 }

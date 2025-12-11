@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
+import java.io.File;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.hash.HashCode;
-
-import java.io.File;
 
 /**
  * This module source stores information about the original
@@ -76,10 +75,9 @@ public class DefaultMetadataFileSource implements MetadataFileSource {
 
     @Override
     public String toString() {
-        return "MetadataFileSource{" +
-            "artifactId=" + artifactId +
-            ", artifactFile=" + artifactFile +
-            ", sha1=" + sha1 +
-            '}';
+        return "MetadataFileSource{" + "artifactId="
+                + artifactId + ", artifactFile="
+                + artifactFile + ", sha1="
+                + sha1 + '}';
     }
 }

@@ -16,6 +16,10 @@
 
 package org.gradle.internal.execution;
 
+import java.io.File;
+import java.time.Duration;
+import java.util.Map;
+import java.util.Optional;
 import org.gradle.api.Describable;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -26,18 +30,14 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.time.Duration;
-import java.util.Map;
-import java.util.Optional;
-
 public interface UnitOfWork extends Describable {
 
     /**
      * Determine the identity of the work unit that uniquely identifies it
      * among the other work units of the same type in the current build.
      */
-    Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs);
+    Identity identify(
+            Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs);
 
     /**
      * Executes the work synchronously.
@@ -94,7 +94,8 @@ public interface UnitOfWork extends Describable {
      * When returning {@link Optional#empty()} if caching can still be disabled further down the pipeline.
      */
     // TODO Split this between mutable and immutable work, only keep overlapping outputs for mutable
-    default Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+    default Optional<CachingDisabledReason> shouldDisableCaching(
+            @Nullable OverlappingOutputs detectedOverlappingOutputs) {
         return Optional.empty();
     }
 
@@ -151,5 +152,6 @@ public interface UnitOfWork extends Describable {
         return Optional.empty();
     }
 
-    CachingDisabledReason NOT_WORTH_CACHING = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Not worth caching.");
+    CachingDisabledReason NOT_WORTH_CACHING =
+            new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Not worth caching.");
 }

@@ -63,5 +63,4 @@ public abstract class AbstractMacroFunction implements MacroFunction {
     public int hashCode() {
         return name.hashCode();
     }
-
 }

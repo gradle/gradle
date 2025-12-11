@@ -18,6 +18,12 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.net.URI;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.Repository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
@@ -25,14 +31,8 @@ import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.net.URI;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConfigurationDependenciesBuildOperationType.Details, CustomOperationTraceSerialization {
+class ResolveConfigurationResolutionBuildOperationDetails
+        implements ResolveConfigurationDependenciesBuildOperationType.Details, CustomOperationTraceSerialization {
 
     private final String configurationName;
     private final boolean isScriptConfiguration;
@@ -44,15 +44,14 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
     private final List<Repository> repositories;
 
     ResolveConfigurationResolutionBuildOperationDetails(
-        String configurationName,
-        boolean isScriptConfiguration,
-        @Nullable String configurationDescription,
-        String buildPath,
-        @Nullable String projectPath,
-        boolean isConfigurationVisible,
-        boolean isConfigurationTransitive,
-        List<ResolutionAwareRepository> repositories
-    ) {
+            String configurationName,
+            boolean isScriptConfiguration,
+            @Nullable String configurationDescription,
+            String buildPath,
+            @Nullable String projectPath,
+            boolean isConfigurationVisible,
+            boolean isConfigurationTransitive,
+            List<ResolutionAwareRepository> repositories) {
         this.configurationName = configurationName;
         this.isScriptConfiguration = isScriptConfiguration;
         this.configurationDescription = configurationDescription;
@@ -188,5 +187,4 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
             return descriptor.getProperties();
         }
     }
-
 }

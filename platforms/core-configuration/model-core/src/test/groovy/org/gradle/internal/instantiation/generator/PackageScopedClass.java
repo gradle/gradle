@@ -16,5 +16,4 @@
 
 package org.gradle.internal.instantiation.generator;
 
-class PackageScopedClass {
-}
+class PackageScopedClass {}

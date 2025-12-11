@@ -15,6 +15,9 @@
  */
 package org.gradle.integtests.tooling.r55;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import org.gradle.api.Action;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
@@ -23,11 +26,8 @@ import org.gradle.tooling.model.eclipse.EclipseRuntime;
 import org.gradle.tooling.model.eclipse.EclipseWorkspace;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-
-public class SupplyRuntimeAndLoadCompositeEclipseModels implements BuildAction<Collection<EclipseProject>>, Serializable {
+public class SupplyRuntimeAndLoadCompositeEclipseModels
+        implements BuildAction<Collection<EclipseProject>>, Serializable {
 
     private final EclipseWorkspace workspace;
 
@@ -44,7 +44,11 @@ public class SupplyRuntimeAndLoadCompositeEclipseModels implements BuildAction<C
     }
 
     private void collectRootModels(BuildController controller, GradleBuild build, Collection<EclipseProject> models) {
-        models.add(controller.getModel(build.getRootProject(), EclipseProject.class, EclipseRuntime.class, new EclipseRuntimeAction(workspace)));
+        models.add(controller.getModel(
+                build.getRootProject(),
+                EclipseProject.class,
+                EclipseRuntime.class,
+                new EclipseRuntimeAction(workspace)));
 
         for (GradleBuild includedBuild : build.getIncludedBuilds()) {
             collectRootModels(controller, includedBuild, models);
@@ -63,5 +67,4 @@ public class SupplyRuntimeAndLoadCompositeEclipseModels implements BuildAction<C
             eclipseRuntime.setWorkspace(eclipseWorkspace);
         }
     }
-
 }

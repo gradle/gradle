@@ -26,7 +26,8 @@ import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 /**
  * Implementation of the {@code TestOperationDescriptor} interface.
  */
-public class DefaultTestOperationDescriptor extends DefaultOperationDescriptor implements TestOperationDescriptor, OperationDescriptorWrapper {
+public class DefaultTestOperationDescriptor extends DefaultOperationDescriptor
+        implements TestOperationDescriptor, OperationDescriptorWrapper {
     private final InternalTestDescriptor internalTestDescriptor;
 
     public DefaultTestOperationDescriptor(InternalTestDescriptor internalTestDescriptor, OperationDescriptor parent) {

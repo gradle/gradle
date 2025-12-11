@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import java.net.URI;
+import java.util.Map;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.PatternHelper;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
-
-import java.net.URI;
-import java.util.Map;
 
 public class M2ResourcePattern extends AbstractResourcePattern {
     public M2ResourcePattern(String pattern) {
@@ -49,9 +48,9 @@ public class M2ResourcePattern extends AbstractResourcePattern {
 
     private String maybeSubstituteTimestamp(ModuleComponentArtifactMetadata artifact, String pattern) {
         if (artifact.getComponentId() instanceof MavenUniqueSnapshotComponentIdentifier) {
-            MavenUniqueSnapshotComponentIdentifier snapshotId = (MavenUniqueSnapshotComponentIdentifier) artifact.getComponentId();
-            pattern = pattern
-                    .replaceFirst("-\\[revision]", "-" + snapshotId.getTimestampedVersion())
+            MavenUniqueSnapshotComponentIdentifier snapshotId =
+                    (MavenUniqueSnapshotComponentIdentifier) artifact.getComponentId();
+            pattern = pattern.replaceFirst("-\\[revision]", "-" + snapshotId.getTimestampedVersion())
                     .replace("[revision]", snapshotId.getSnapshotVersion());
         }
         return pattern;
@@ -69,7 +68,8 @@ public class M2ResourcePattern extends AbstractResourcePattern {
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
             throw new UnsupportedOperationException("Cannot locate module for non-maven layout.");
         }
-        String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_PATTERN.length() - 1);
+        String metaDataPattern =
+                pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_PATTERN.length() - 1);
         return getBase().getRoot().resolve(substituteTokens(metaDataPattern, toAttributes(module)));
     }
 
@@ -79,7 +79,8 @@ public class M2ResourcePattern extends AbstractResourcePattern {
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
             throw new UnsupportedOperationException("Cannot locate module version for non-maven layout.");
         }
-        String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_VERSION_PATTERN.length() - 1);
+        String metaDataPattern =
+                pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_VERSION_PATTERN.length() - 1);
         return getBase().getRoot().resolve(substituteTokens(metaDataPattern, toAttributes(componentIdentifier)));
     }
 

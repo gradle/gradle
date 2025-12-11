@@ -16,13 +16,12 @@
 
 package org.gradle.internal.authentication;
 
-import org.gradle.api.credentials.Credentials;
-import org.gradle.authentication.Authentication;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import org.gradle.api.credentials.Credentials;
+import org.gradle.authentication.Authentication;
 
 public abstract class AbstractAuthentication implements AuthenticationInternal {
     private final String name;
@@ -37,7 +36,8 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
         this(name, type, null);
     }
 
-    public AbstractAuthentication(String name, Class<? extends Authentication> type, Class<? extends Credentials> supportedCredential) {
+    public AbstractAuthentication(
+            String name, Class<? extends Authentication> type, Class<? extends Credentials> supportedCredential) {
         this.name = name;
         this.supportedCredentialType = supportedCredential;
         this.type = type;
@@ -74,12 +74,10 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
         return String.format("'%s'(%s)", getName(), getType().getSimpleName());
     }
 
-
     @Override
     public Collection<HostAndPort> getHostsForAuthentication() {
         return hosts;
     }
-
 
     @Override
     public void addHost(String host, int port) {
@@ -114,8 +112,7 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
                 return false;
             }
             DefaultHostAndPort that = (DefaultHostAndPort) o;
-            return getPort() == that.getPort() &&
-                    Objects.equals(getHost(), that.getHost());
+            return getPort() == that.getPort() && Objects.equals(getHost(), that.getHost());
         }
 
         @Override

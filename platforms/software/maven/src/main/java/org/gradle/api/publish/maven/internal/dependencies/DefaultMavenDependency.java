@@ -15,10 +15,9 @@
  */
 package org.gradle.api.publish.maven.internal.dependencies;
 
+import java.util.Set;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 /**
  * Default implementation of {@link MavenDependency}.
@@ -34,15 +33,14 @@ public class DefaultMavenDependency implements MavenDependency {
     private final boolean optional;
 
     public DefaultMavenDependency(
-        String groupId,
-        String artifactId,
-        @Nullable String version,
-        @Nullable String type,
-        @Nullable String classifier,
-        @Nullable String scope,
-        Set<ExcludeRule> excludeRules,
-        boolean optional
-    ) {
+            String groupId,
+            String artifactId,
+            @Nullable String version,
+            @Nullable String type,
+            @Nullable String classifier,
+            @Nullable String scope,
+            Set<ExcludeRule> excludeRules,
+            boolean optional) {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.version = version;

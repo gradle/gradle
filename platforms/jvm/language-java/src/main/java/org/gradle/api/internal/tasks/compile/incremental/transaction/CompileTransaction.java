@@ -16,23 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.transaction;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.CLASS_OUTPUT;
+import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.NATIVE_HEADER_OUTPUT;
+import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.SOURCE_OUTPUT;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
-import org.gradle.api.internal.tasks.compile.CompilationFailedException;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
-import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.WorkResults;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.file.Deleter;
-import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
-import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -49,11 +39,20 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.CLASS_OUTPUT;
-import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.NATIVE_HEADER_OUTPUT;
-import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.SOURCE_OUTPUT;
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
+import org.gradle.api.internal.tasks.compile.CompilationFailedException;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
+import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.file.Deleter;
+import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A helper class to handle incremental compilation after a failure: it makes moving files around easier and reverting state easier.
@@ -72,12 +71,11 @@ public class CompileTransaction {
     private final File backupDirectory;
 
     public CompileTransaction(
-        JavaCompileSpec spec,
-        PatternSet classesToDelete,
-        Map<GeneratedResource.Location, PatternSet> resourcesToDelete,
-        FileOperations fileOperations,
-        Deleter deleter
-    ) {
+            JavaCompileSpec spec,
+            PatternSet classesToDelete,
+            Map<GeneratedResource.Location, PatternSet> resourcesToDelete,
+            FileOperations fileOperations,
+            Deleter deleter) {
         this.spec = spec;
         this.tempDir = new File(spec.getTempDir(), "compileTransaction");
         this.stashDirectory = new File(tempDir, "stash-dir");
@@ -133,9 +131,10 @@ public class CompileTransaction {
 
             // Delete any other file or directory
             try (Stream<Path> dirStream = Files.list(tempDir.toPath())) {
-                dirStream.map(Path::toFile)
-                    .filter(file -> !ensureEmptyDirectories.contains(file))
-                    .forEach(this::deleteRecursively);
+                dirStream
+                        .map(Path::toFile)
+                        .filter(file -> !ensureEmptyDirectories.contains(file))
+                        .forEach(this::deleteRecursively);
             }
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -161,12 +160,13 @@ public class CompileTransaction {
         return stashedFiles;
     }
 
-    @SuppressWarnings("CheckReturnValue") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "CheckReturnValue") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private void deleteEmptyDirectoriesAfterCompilation(List<StashedFile> stashedFiles) {
         ImmutableSet<File> outputDirectories = getOutputDirectories();
         Set<File> potentiallyEmptyFolders = stashedFiles.stream()
-            .map(file -> file.sourceFile.getParentFile())
-            .collect(Collectors.toSet());
+                .map(file -> file.sourceFile.getParentFile())
+                .collect(Collectors.toSet());
         StaleOutputCleaner.cleanEmptyOutputDirectories(deleter, potentiallyEmptyFolders, outputDirectories);
     }
 
@@ -178,29 +178,33 @@ public class CompileTransaction {
         rollbackStashedFiles(stashResult);
     }
 
-    @SuppressWarnings("CheckReturnValue") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "CheckReturnValue") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private void deleteGeneratedFiles(ApiCompilerResult compilerResult) {
         PatternSet classesToDelete = getNewGeneratedClasses(compilerResult);
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = getNewGeneratedResources(compilerResult);
         Set<File> filesToDelete = collectFilesToDelete(classesToDelete, resourcesToDelete);
         StaleOutputCleaner.cleanOutputs(deleter, filesToDelete, getOutputDirectories());
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Deleting generated files: {}", filesToDelete.stream().sorted().collect(Collectors.toList()));
+            LOG.debug(
+                    "Deleting generated files: {}",
+                    filesToDelete.stream().sorted().collect(Collectors.toList()));
         }
     }
 
     private PatternSet getNewGeneratedClasses(ApiCompilerResult result) {
         PatternSet filesToDelete = fileOperations.patternSet();
         result.getSourceClassesMapping().values().stream()
-            .flatMap(Collection::stream)
-            .forEach(className -> {
-                filesToDelete.include(className.replace(".", "/").concat(".class"));
-                filesToDelete.include(className.replaceAll("[.$]", "_").concat(".h"));
-            });
-        Set<String> annotationProcessorTypes = new HashSet<>(result.getAnnotationProcessingResult().getGeneratedAggregatingTypes());
+                .flatMap(Collection::stream)
+                .forEach(className -> {
+                    filesToDelete.include(className.replace(".", "/").concat(".class"));
+                    filesToDelete.include(className.replaceAll("[.$]", "_").concat(".h"));
+                });
+        Set<String> annotationProcessorTypes =
+                new HashSet<>(result.getAnnotationProcessingResult().getGeneratedAggregatingTypes());
         result.getAnnotationProcessingResult().getGeneratedTypesWithIsolatedOrigin().values().stream()
-            .flatMap(Collection::stream)
-            .forEach(annotationProcessorTypes::add);
+                .flatMap(Collection::stream)
+                .forEach(annotationProcessorTypes::add);
         annotationProcessorTypes.forEach(className -> {
             filesToDelete.include(className.replace(".", "/").concat(".class"));
             filesToDelete.include(className.replaceAll("[.$]", "_").concat(".h"));
@@ -210,18 +214,23 @@ public class CompileTransaction {
     }
 
     private Map<GeneratedResource.Location, PatternSet> getNewGeneratedResources(ApiCompilerResult result) {
-        Map<GeneratedResource.Location, PatternSet> resourcesByLocation = new EnumMap<>(GeneratedResource.Location.class);
-        Stream.of(GeneratedResource.Location.values()).forEach(location -> resourcesByLocation.put(location, fileOperations.patternSet()));
+        Map<GeneratedResource.Location, PatternSet> resourcesByLocation =
+                new EnumMap<>(GeneratedResource.Location.class);
+        Stream.of(GeneratedResource.Location.values())
+                .forEach(location -> resourcesByLocation.put(location, fileOperations.patternSet()));
         result.getAnnotationProcessingResult()
-            .getGeneratedAggregatingResources()
-            .forEach(resource -> resourcesByLocation.get(resource.getLocation()).include(resource.getPath()));
+                .getGeneratedAggregatingResources()
+                .forEach(resource ->
+                        resourcesByLocation.get(resource.getLocation()).include(resource.getPath()));
         result.getAnnotationProcessingResult().getGeneratedResourcesWithIsolatedOrigin().values().stream()
-            .flatMap(Collection::stream)
-            .forEach(resource -> resourcesByLocation.get(resource.getLocation()).include(resource.getPath()));
+                .flatMap(Collection::stream)
+                .forEach(resource ->
+                        resourcesByLocation.get(resource.getLocation()).include(resource.getPath()));
         return resourcesByLocation;
     }
 
-    private Set<File> collectFilesToDelete(PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete) {
+    private Set<File> collectFilesToDelete(
+            PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete) {
         File compileOutput = spec.getDestinationDir();
         File annotationProcessorOutput = spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory();
         File headerOutput = spec.getCompileOptions().getHeaderOutputDirectory();
@@ -230,8 +239,11 @@ public class CompileTransaction {
         filesToDelete.addAll(collectFilesToDelete(classesToDelete, annotationProcessorOutput));
         filesToDelete.addAll(collectFilesToDelete(classesToDelete, headerOutput));
         filesToDelete.addAll(collectFilesToDelete(resourcesToDelete.get(CLASS_OUTPUT), compileOutput));
-        // If the client has not set a location for SOURCE_OUTPUT, javac outputs those files to the CLASS_OUTPUT directory, so delete that instead.
-        filesToDelete.addAll(collectFilesToDelete(resourcesToDelete.get(SOURCE_OUTPUT), MoreObjects.firstNonNull(annotationProcessorOutput, compileOutput)));
+        // If the client has not set a location for SOURCE_OUTPUT, javac outputs those files to the CLASS_OUTPUT
+        // directory, so delete that instead.
+        filesToDelete.addAll(collectFilesToDelete(
+                resourcesToDelete.get(SOURCE_OUTPUT),
+                MoreObjects.firstNonNull(annotationProcessorOutput, compileOutput)));
         // In the same situation with NATIVE_HEADER_OUTPUT, javac just NPEs.  Don't bother.
         filesToDelete.addAll(collectFilesToDelete(resourcesToDelete.get(NATIVE_HEADER_OUTPUT), headerOutput));
         return filesToDelete;
@@ -245,22 +257,32 @@ public class CompileTransaction {
     }
 
     private ImmutableSet<File> getOutputDirectories() {
-        return Stream.of(spec.getDestinationDir(), spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), spec.getCompileOptions().getHeaderOutputDirectory())
-            .filter(Objects::nonNull)
-            .collect(ImmutableSet.toImmutableSet());
+        return Stream.of(
+                        spec.getDestinationDir(),
+                        spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(),
+                        spec.getCompileOptions().getHeaderOutputDirectory())
+                .filter(Objects::nonNull)
+                .collect(ImmutableSet.toImmutableSet());
     }
 
     private static void rollbackOverwrittenFiles(ApiCompilerResult result) {
         result.getBackupClassFiles().forEach((original, backup) -> moveFile(new File(backup), new File(original)));
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Restoring overwritten files: {}", result.getBackupClassFiles().keySet().stream().sorted().collect(Collectors.toList()));
+            LOG.debug(
+                    "Restoring overwritten files: {}",
+                    result.getBackupClassFiles().keySet().stream().sorted().collect(Collectors.toList()));
         }
     }
 
     private static void rollbackStashedFiles(List<StashedFile> stashedFiles) {
         stashedFiles.forEach(StashedFile::unstash);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Restoring stashed files: {}", stashedFiles.stream().map(f -> f.sourceFile.getAbsolutePath()).sorted().collect(Collectors.toList()));
+            LOG.debug(
+                    "Restoring stashed files: {}",
+                    stashedFiles.stream()
+                            .map(f -> f.sourceFile.getAbsolutePath())
+                            .sorted()
+                            .collect(Collectors.toList()));
         }
     }
 

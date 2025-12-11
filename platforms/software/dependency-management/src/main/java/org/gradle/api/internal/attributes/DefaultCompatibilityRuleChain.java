@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.attributes;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
@@ -27,10 +30,6 @@ import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.type.ModelType;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 
 public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<T> {
 
@@ -45,19 +44,24 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
 
     @Override
     public void ordered(Comparator<? super T> comparator) {
-        Action<? super CompatibilityCheckDetails<T>> rule = AttributeMatchingRules.orderedCompatibility(comparator, false);
+        Action<? super CompatibilityCheckDetails<T>> rule =
+                AttributeMatchingRules.orderedCompatibility(comparator, false);
         rules.add(rule);
     }
 
     @Override
     public void reverseOrdered(Comparator<? super T> comparator) {
-        Action<? super CompatibilityCheckDetails<T>> rule = AttributeMatchingRules.orderedCompatibility(comparator, true);
+        Action<? super CompatibilityCheckDetails<T>> rule =
+                AttributeMatchingRules.orderedCompatibility(comparator, true);
         rules.add(rule);
     }
 
     @Override
-    public void add(Class<? extends AttributeCompatibilityRule<T>> ruleClass, Action<? super ActionConfiguration> configureAction) {
-        ConfigurableRule<CompatibilityCheckDetails<T>> rule = DefaultConfigurableRule.of(ruleClass, configureAction, isolatableFactory);
+    public void add(
+            Class<? extends AttributeCompatibilityRule<T>> ruleClass,
+            Action<? super ActionConfiguration> configureAction) {
+        ConfigurableRule<CompatibilityCheckDetails<T>> rule =
+                DefaultConfigurableRule.of(ruleClass, configureAction, isolatableFactory);
         rules.add(createAction(rule, instantiator));
     }
 
@@ -72,13 +76,13 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
     }
 
     public static <T> Action<CompatibilityCheckDetails<T>> createAction(
-        ConfigurableRule<CompatibilityCheckDetails<T>> rule,
-        Instantiator instantiator
-    ) {
-        return new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(rule.getRuleClass()));
+            ConfigurableRule<CompatibilityCheckDetails<T>> rule, Instantiator instantiator) {
+        return new InstantiatingAction<>(
+                DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(rule.getRuleClass()));
     }
 
-    private static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<CompatibilityCheckDetails<T>> {
+    private static class ExceptionHandler<T>
+            implements InstantiatingAction.ExceptionHandler<CompatibilityCheckDetails<T>> {
 
         private final Class<?> rule;
 
@@ -88,8 +92,13 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
 
         @Override
         public void handleException(CompatibilityCheckDetails<T> details, Throwable throwable) {
-            throw new AttributeMatchException(String.format("Could not determine whether value %s is compatible with value %s using %s.", details.getProducerValue(), details.getConsumerValue(), ModelType.of(rule).getDisplayName()), throwable);
+            throw new AttributeMatchException(
+                    String.format(
+                            "Could not determine whether value %s is compatible with value %s using %s.",
+                            details.getProducerValue(),
+                            details.getConsumerValue(),
+                            ModelType.of(rule).getDisplayName()),
+                    throwable);
         }
     }
-
 }

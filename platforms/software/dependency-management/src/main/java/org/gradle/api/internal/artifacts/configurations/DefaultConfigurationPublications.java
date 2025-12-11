@@ -17,6 +17,12 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Supplier;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserCodeException;
@@ -39,13 +45,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.typeconversion.NotationParser;
-
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Supplier;
 
 public class DefaultConfigurationPublications implements ConfigurationPublications {
 
@@ -72,18 +71,17 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
     @Inject
     public DefaultConfigurationPublications(
-        DisplayName displayName,
-        PublishArtifactSet artifacts,
-        PublishArtifactSetProvider allArtifacts,
-        AttributeContainerInternal parentAttributes,
-        ObjectFactory objectFactory,
-        NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
-        NotationParser<Object, Capability> capabilityNotationParser,
-        FileCollectionFactory fileCollectionFactory,
-        AttributesFactory attributesFactory,
-        DomainObjectCollectionFactory domainObjectCollectionFactory,
-        TaskDependencyFactory taskDependencyFactory
-    ) {
+            DisplayName displayName,
+            PublishArtifactSet artifacts,
+            PublishArtifactSetProvider allArtifacts,
+            AttributeContainerInternal parentAttributes,
+            ObjectFactory objectFactory,
+            NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+            NotationParser<Object, Capability> capabilityNotationParser,
+            FileCollectionFactory fileCollectionFactory,
+            AttributesFactory attributesFactory,
+            DomainObjectCollectionFactory domainObjectCollectionFactory,
+            TaskDependencyFactory taskDependencyFactory) {
         this.displayName = displayName;
         this.artifacts = artifacts;
         this.allArtifacts = allArtifacts;
@@ -105,7 +103,11 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         }
         if (variants != null) {
             for (ConfigurationVariantInternal variant : variants.withType(ConfigurationVariantInternal.class)) {
-                visitor.visitChildVariant(variant.getName(), variant.getDisplayName(), variant.getAttributes().asImmutable(), variant.getArtifacts());
+                visitor.visitChildVariant(
+                        variant.getName(),
+                        variant.getDisplayName(),
+                        variant.getAttributes().asImmutable(),
+                        variant.getArtifacts());
             }
         }
     }
@@ -148,7 +150,9 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     }
 
     @Override
-    public void artifacts(Provider<? extends Iterable<? extends Object>> provider, Action<? super ConfigurablePublishArtifact> configureAction) {
+    public void artifacts(
+            Provider<? extends Iterable<? extends Object>> provider,
+            Action<? super ConfigurablePublishArtifact> configureAction) {
         artifacts.addAllLater(provider.map(iterable -> {
             List<PublishArtifact> results = new ArrayList<>();
             iterable.forEach(notation -> {
@@ -164,10 +168,12 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     public NamedDomainObjectContainer<ConfigurationVariant> getVariants() {
         if (variants == null) {
             // Create variants container only as required
-            variants = domainObjectCollectionFactory.newNamedDomainObjectContainer(ConfigurationVariant.class, this::createVariant);
+            variants = domainObjectCollectionFactory.newNamedDomainObjectContainer(
+                    ConfigurationVariant.class, this::createVariant);
             ((DomainObjectCollectionInternal<?>) variants).beforeCollectionChanges(variantName -> {
                 if (isObserved()) {
-                    throw new InvalidUserCodeException("Cannot add secondary artifact set to " + displayName + " after " + observationReason.get() + ".");
+                    throw new InvalidUserCodeException("Cannot add secondary artifact set to " + displayName + " after "
+                            + observationReason.get() + ".");
                 }
             });
         }
@@ -182,7 +188,8 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     @Override
     public void capability(Object notation) {
         if (isObserved()) {
-            throw new InvalidUserCodeException("Cannot declare capability '" + notation + "' on " + displayName + " after " + observationReason.get() + ".");
+            throw new InvalidUserCodeException("Cannot declare capability '" + notation + "' on " + displayName
+                    + " after " + observationReason.get() + ".");
         }
 
         if (capabilities == null) {
@@ -216,15 +223,14 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
     private DefaultVariant createVariant(String name) {
         return objectFactory.newInstance(
-            DefaultVariant.class,
-            displayName,
-            name,
-            parentAttributes,
-            artifactNotationParser,
-            fileCollectionFactory,
-            attributesFactory,
-            domainObjectCollectionFactory,
-            taskDependencyFactory
-        );
+                DefaultVariant.class,
+                displayName,
+                name,
+                parentAttributes,
+                artifactNotationParser,
+                fileCollectionFactory,
+                attributesFactory,
+                domainObjectCollectionFactory,
+                taskDependencyFactory);
     }
 }

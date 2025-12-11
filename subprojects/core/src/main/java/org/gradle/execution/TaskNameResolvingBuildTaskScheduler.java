@@ -15,6 +15,10 @@
  */
 package org.gradle.execution;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
@@ -33,11 +37,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 /**
  * A {@link BuildTaskScheduler} which selects tasks which match the provided names. For each name, selects all tasks in all
  * projects whose name is the given name.
@@ -49,7 +48,11 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
     private final List<BuiltInCommand> builtInCommands;
     private final InternalProblems problemsService;
 
-    public TaskNameResolvingBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, BuildTaskSelector.BuildSpecificSelector taskSelector, List<BuiltInCommand> builtInCommands, InternalProblems problemsService) {
+    public TaskNameResolvingBuildTaskScheduler(
+            CommandLineTaskParser commandLineTaskParser,
+            BuildTaskSelector.BuildSpecificSelector taskSelector,
+            List<BuiltInCommand> builtInCommands,
+            InternalProblems problemsService) {
         this.commandLineTaskParser = commandLineTaskParser;
         this.taskSelector = taskSelector;
         this.builtInCommands = builtInCommands;
@@ -57,7 +60,8 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
     }
 
     @Override
-    public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
+    public void scheduleRequestedTasks(
+            GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
         if (selector != null) {
             selector.applyTasksTo(new EntryTaskSelectorContext(gradle), plan);
         }
@@ -65,7 +69,10 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
         for (TaskExecutionRequest taskParameter : taskParameters) {
             List<TaskSelection> taskSelections = commandLineTaskParser.parseTasks(taskParameter);
             for (TaskSelection taskSelection : taskSelections) {
-                LOGGER.info("Selected primary task '{}' from project {}", taskSelection.getTaskName(), taskSelection.getProjectPath());
+                LOGGER.info(
+                        "Selected primary task '{}' from project {}",
+                        taskSelection.getTaskName(),
+                        taskSelection.getProjectPath());
                 plan.addEntryTasks(taskSelection.getTasks());
             }
         }
@@ -80,17 +87,22 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
     private void validateCompatibleTasksRequested(ExecutionPlan plan) {
         //noinspection ConstantValue support mocking in tests
         if (null != plan.getContents()) {
-            List<String> requestedTaskNames = plan.getContents().getRequestedTasks().stream().map(Task::getName).collect(Collectors.toList());
+            List<String> requestedTaskNames = plan.getContents().getRequestedTasks().stream()
+                    .map(Task::getName)
+                    .collect(Collectors.toList());
             if (requestedTaskNames.size() > 1) {
                 Optional<BuiltInCommand> exclusiveTaskInvoked = builtInCommands.stream()
-                    .filter(BuiltInCommand::isExclusive)
-                    .filter(c -> c.commandLineMatches(requestedTaskNames))
-                    .findFirst();
+                        .filter(BuiltInCommand::isExclusive)
+                        .filter(c -> c.commandLineMatches(requestedTaskNames))
+                        .findFirst();
                 exclusiveTaskInvoked.ifPresent(builtInCommand -> {
-                    GradleException ex = new InitExecutionException(
-                            "Executing other tasks along with the '" + builtInCommand.getDisplayName() + "' task is not allowed. " +
-                            "The '" + builtInCommand.getDisplayName() + "' task must be run by itself.");
-                    ProblemId id = ProblemId.create("init invocation problem", "Init invocation problem", GradleCoreProblemGroup.taskSelection());
+                    GradleException ex = new InitExecutionException("Executing other tasks along with the '"
+                            + builtInCommand.getDisplayName() + "' task is not allowed. " + "The '"
+                            + builtInCommand.getDisplayName() + "' task must be run by itself.");
+                    ProblemId id = ProblemId.create(
+                            "init invocation problem",
+                            "Init invocation problem",
+                            GradleCoreProblemGroup.taskSelection());
                     throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
                         spec.contextualLabel(ex.getMessage());
                         spec.severity(Severity.ERROR);

@@ -16,17 +16,23 @@
 
 package org.gradle.test.fixtures.server.http;
 
-import org.gradle.internal.UncheckedException;
-
 import java.time.Duration;
 import java.util.Collection;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
+import org.gradle.internal.UncheckedException;
 
 public abstract class ExpectMaxNConcurrentRequestsThenRelease extends ExpectMaxNConcurrentRequests {
     private final Executor executor;
 
-    public ExpectMaxNConcurrentRequestsThenRelease(Lock lock, int testId, Duration timeout, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests, Executor executor) {
+    public ExpectMaxNConcurrentRequestsThenRelease(
+            Lock lock,
+            int testId,
+            Duration timeout,
+            int maxConcurrent,
+            WaitPrecondition previous,
+            Collection<? extends ResourceExpectation> expectedRequests,
+            Executor executor) {
         super(lock, testId, timeout, maxConcurrent, previous, expectedRequests);
         this.executor = executor;
     }

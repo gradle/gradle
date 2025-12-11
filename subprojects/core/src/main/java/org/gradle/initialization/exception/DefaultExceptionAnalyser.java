@@ -15,6 +15,13 @@
  */
 package org.gradle.initialization.exception;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.tasks.TaskExecutionException;
@@ -24,14 +31,6 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.problems.Location;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
 
 public class DefaultExceptionAnalyser implements ExceptionCollector {
     private final ProblemDiagnosticsFactory diagnosticsFactory;
@@ -76,17 +75,19 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
         // TODO: remove these special cases
         if (actualException instanceof ScriptCompilationException) {
             ScriptCompilationException scriptCompilationException = (ScriptCompilationException) actualException;
-            source = scriptCompilationException.getScriptSource().getLongDisplayName().getCapitalizedDisplayName();
+            source = scriptCompilationException
+                    .getScriptSource()
+                    .getLongDisplayName()
+                    .getCapitalizedDisplayName();
             lineNumber = scriptCompilationException.getLineNumber();
         }
 
         if (source == null) {
-            for (
-                Throwable currentException = actualException;
-                currentException != null;
-                currentException = currentException.getCause()
-            ) {
-                Location location = diagnosticsFactory.forException(currentException).getLocation();
+            for (Throwable currentException = actualException;
+                    currentException != null;
+                    currentException = currentException.getCause()) {
+                Location location =
+                        diagnosticsFactory.forException(currentException).getLocation();
                 if (location != null) {
                     source = location.getSourceLongDisplayName().getCapitalizedDisplayName();
                     lineNumber = location.getLineNumber();
@@ -98,14 +99,17 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
     }
 
     private static Throwable findDeepestRootException(Throwable exception) {
-        // TODO: fix the way we work out which exception is important: TaskExecutionException is not always the most helpful
+        // TODO: fix the way we work out which exception is important: TaskExecutionException is not always the most
+        // helpful
         Throwable locationAware = null;
         Throwable result = null;
         Throwable contextMatch = null;
         // Guard against malicious overrides of Throwable.equals by
         // using a Set with identity equality semantics.
         Set<Throwable> dejaVu = Collections.newSetFromMap(new IdentityHashMap<>());
-        for (Throwable current = exception, parent = null; current != null; parent = current, current = current.getCause()) {
+        for (Throwable current = exception, parent = null;
+                current != null;
+                parent = current, current = current.getCause()) {
             if (!dejaVu.add(current)) {
                 if (parent != null) {
                     current = patchCircularCause(current, parent);

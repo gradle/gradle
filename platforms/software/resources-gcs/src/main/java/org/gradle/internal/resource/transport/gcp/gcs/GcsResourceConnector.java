@@ -16,7 +16,12 @@
 
 package org.gradle.internal.resource.transport.gcp.gcs;
 
+import static org.gradle.internal.resource.transport.gcp.gcs.ResourceMapper.toExternalResourceMetaData;
+
 import com.google.api.services.storage.model.StorageObject;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ReadableContent;
@@ -27,12 +32,6 @@ import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
-import static org.gradle.internal.resource.transport.gcp.gcs.ResourceMapper.toExternalResourceMetaData;
 
 public class GcsResourceConnector extends AbstractExternalResourceAccessor implements ExternalResourceConnector {
 
@@ -53,7 +52,8 @@ public class GcsResourceConnector extends AbstractExternalResourceAccessor imple
 
     @Nullable
     @Override
-    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate) throws ResourceException {
+    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate)
+            throws ResourceException {
         LOGGER.debug("Attempting to get resource: {}", location);
         StorageObject gcsObject = gcsClient.getResource(location.getUri());
         if (gcsObject == null) {
@@ -64,7 +64,8 @@ public class GcsResourceConnector extends AbstractExternalResourceAccessor imple
 
     @Nullable
     @Override
-    public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) throws ResourceException {
+    public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate)
+            throws ResourceException {
         LOGGER.debug("Attempting to get resource metadata: {}", location);
         StorageObject gcsObject = gcsClient.getResource(location.getUri());
         if (gcsObject == null) {

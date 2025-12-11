@@ -54,6 +54,6 @@ public interface PluginRequest {
      *
      * @since 9.2.0
      */
-    @Nullable ComponentSelector getSelector();
-
+    @Nullable
+    ComponentSelector getSelector();
 }

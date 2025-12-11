@@ -17,10 +17,9 @@
 package org.gradle.ide.xcode.internal.xcodeproj;
 
 import com.google.common.collect.Sets;
+import java.util.Set;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Set;
 
 /**
  * Generator for Global ID (GID) which are present on every xcode project object.

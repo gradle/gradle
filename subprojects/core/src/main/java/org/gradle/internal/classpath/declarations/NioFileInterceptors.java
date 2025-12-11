@@ -16,17 +16,12 @@
 
 package org.gradle.internal.classpath.declarations;
 
-import org.gradle.internal.Cast;
-import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.instrumentation.api.annotations.CallableKind.InstanceMethod;
-import org.gradle.internal.instrumentation.api.annotations.CallableKind.StaticMethod;
-import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
-import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
-import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receiver;
-import org.gradle.internal.instrumentation.api.annotations.ParameterKind.VarargParameter;
-import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
-import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.newBufferedReader;
+import static org.gradle.internal.classpath.FileUtils.optionsAllowReading;
+import static org.gradle.internal.classpath.FileUtils.tryReportDirectoryContentObserved;
+import static org.gradle.internal.classpath.FileUtils.tryReportFileOpened;
+import static org.gradle.internal.classpath.FileUtils.tryReportFileSystemEntryObserved;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -45,25 +40,28 @@ import java.nio.file.spi.FileTypeDetector;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.newBufferedReader;
-import static org.gradle.internal.classpath.FileUtils.optionsAllowReading;
-import static org.gradle.internal.classpath.FileUtils.tryReportDirectoryContentObserved;
-import static org.gradle.internal.classpath.FileUtils.tryReportFileOpened;
-import static org.gradle.internal.classpath.FileUtils.tryReportFileSystemEntryObserved;
+import org.gradle.internal.Cast;
+import org.gradle.internal.classpath.Instrumented;
+import org.gradle.internal.instrumentation.api.annotations.CallableKind.InstanceMethod;
+import org.gradle.internal.instrumentation.api.annotations.CallableKind.StaticMethod;
+import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
+import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
+import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receiver;
+import org.gradle.internal.instrumentation.api.annotations.ParameterKind.VarargParameter;
+import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
+import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
+import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 
 @SuppressWarnings("NewMethodNamingConvention")
-@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
-@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificJvmCallInterceptors(
+        generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificGroovyCallInterceptors(
+        generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
 public class NioFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
     public static boolean intercept_isRegularFile(
-        Path path,
-        @VarargParameter LinkOption[] options,
-        @CallerClassName String consumer
-    ) {
+            Path path, @VarargParameter LinkOption[] options, @CallerClassName String consumer) {
         tryReportFileSystemEntryObserved(path, consumer);
         return Files.isRegularFile(path, options);
     }
@@ -71,10 +69,7 @@ public class NioFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
     public static boolean intercept_isDirectory(
-        Path path,
-        @VarargParameter LinkOption[] options,
-        @CallerClassName String consumer
-    ) {
+            Path path, @VarargParameter LinkOption[] options, @CallerClassName String consumer) {
         tryReportFileSystemEntryObserved(path, consumer);
         return Files.isDirectory(path, options);
     }
@@ -82,10 +77,7 @@ public class NioFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
     public static boolean intercept_exists(
-        Path path,
-        @VarargParameter LinkOption[] options,
-        @CallerClassName String consumer
-    ) {
+            Path path, @VarargParameter LinkOption[] options, @CallerClassName String consumer) {
         tryReportFileSystemEntryObserved(path, consumer);
         return Files.exists(path, options);
     }
@@ -93,10 +85,7 @@ public class NioFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
     public static boolean intercept_notExists(
-        Path path,
-        @VarargParameter LinkOption[] options,
-        @CallerClassName String consumer
-    ) {
+            Path path, @VarargParameter LinkOption[] options, @CallerClassName String consumer) {
         tryReportFileSystemEntryObserved(path, consumer);
         return Files.notExists(path, options);
     }
@@ -105,10 +94,7 @@ public class NioFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
     public static SeekableByteChannel intercept_newByteChannel(
-        Path path,
-        @VarargParameter OpenOption[] options,
-        @CallerClassName String consumer
-    ) throws IOException {
+            Path path, @VarargParameter OpenOption[] options, @CallerClassName String consumer) throws IOException {
         if (optionsAllowReading(options)) {
             tryReportFileOpened(path, consumer);
         }
@@ -118,11 +104,11 @@ public class NioFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
     public static SeekableByteChannel intercept_newByteChannel(
-        Path path,
-        Set<?> options, // todo: use a proper type argument here once the tool supports it
-        @VarargParameter FileAttribute<?>[] attrs,
-        @CallerClassName String consumer
-    ) throws IOException {
+            Path path,
+            Set<?> options, // todo: use a proper type argument here once the tool supports it
+            @VarargParameter FileAttribute<?>[] attrs,
+            @CallerClassName String consumer)
+            throws IOException {
         if (optionsAllowReading(options)) {
             tryReportFileOpened(path, consumer);
         }
@@ -131,10 +117,8 @@ public class NioFileInterceptors {
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
-    public static BufferedReader intercept_newBufferedReader(
-        Path path,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static BufferedReader intercept_newBufferedReader(Path path, @CallerClassName String consumer)
+            throws IOException {
         tryReportFileOpened(path, consumer);
         return newBufferedReader(path, UTF_8);
     }
@@ -142,10 +126,7 @@ public class NioFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
     public static BufferedReader intercept_newBufferedReader(
-        Path path,
-        Charset charset,
-        @CallerClassName String consumer
-    ) throws IOException {
+            Path path, Charset charset, @CallerClassName String consumer) throws IOException {
         tryReportFileOpened(path, consumer);
         return newBufferedReader(path, charset);
     }
@@ -153,10 +134,7 @@ public class NioFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
     public static InputStream intercept_newInputStream(
-        Path path,
-        @VarargParameter OpenOption[] options,
-        @CallerClassName String consumer
-    ) throws IOException {
+            Path path, @VarargParameter OpenOption[] options, @CallerClassName String consumer) throws IOException {
         if (optionsAllowReading(options)) {
             tryReportFileOpened(path, consumer);
         }
@@ -165,129 +143,100 @@ public class NioFileInterceptors {
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
-    public static String intercept_readString(
-        Path path,
-        @CallerClassName String consumer
-    ) throws Throwable {
+    public static String intercept_readString(Path path, @CallerClassName String consumer) throws Throwable {
         return Instrumented.filesReadString(path, consumer);
     }
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
-    public static String intercept_readString(
-        Path path,
-        Charset charset,
-        @CallerClassName String consumer
-    ) throws Throwable {
+    public static String intercept_readString(Path path, Charset charset, @CallerClassName String consumer)
+            throws Throwable {
         return Instrumented.filesReadString(path, charset, consumer);
     }
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
-    public static byte[] intercept_readAllBytes(
-        Path path,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static byte[] intercept_readAllBytes(Path path, @CallerClassName String consumer) throws IOException {
         tryReportFileOpened(path, consumer);
         return Files.readAllBytes(path);
     }
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
-    public static List<String> intercept_readAllLines(
-        Path path,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static List<String> intercept_readAllLines(Path path, @CallerClassName String consumer) throws IOException {
         tryReportFileOpened(path, consumer);
         return Files.readAllLines(path);
     }
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
-    public static List<String> intercept_readAllLines(
-        Path path,
-        Charset charset,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static List<String> intercept_readAllLines(Path path, Charset charset, @CallerClassName String consumer)
+            throws IOException {
         tryReportFileOpened(path, consumer);
         return Files.readAllLines(path, charset);
     }
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
-    @SuppressWarnings("StreamResourceLeak") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public static Stream<String> intercept_lines(
-        Path path,
-        @CallerClassName String consumer
-    ) throws IOException {
+    @SuppressWarnings("StreamResourceLeak") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
+    public static Stream<String> intercept_lines(Path path, @CallerClassName String consumer) throws IOException {
         tryReportFileOpened(path, consumer);
         return Files.lines(path);
     }
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
-    @SuppressWarnings("StreamResourceLeak") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public static Stream<String> intercept_lines(
-        Path path,
-        Charset charset,
-        @CallerClassName String consumer
-    ) throws IOException {
+    @SuppressWarnings("StreamResourceLeak") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
+    public static Stream<String> intercept_lines(Path path, Charset charset, @CallerClassName String consumer)
+            throws IOException {
         tryReportFileOpened(path, consumer);
         return Files.lines(path, charset);
     }
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
-    @SuppressWarnings("StreamResourceLeak") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public static DirectoryStream<Path> intercept_newDirectoryStream(
-        Path path,
-        @CallerClassName String consumer
-    ) throws IOException {
+    @SuppressWarnings("StreamResourceLeak") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
+    public static DirectoryStream<Path> intercept_newDirectoryStream(Path path, @CallerClassName String consumer)
+            throws IOException {
         tryReportDirectoryContentObserved(path, consumer);
         return Files.newDirectoryStream(path);
     }
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
-    @SuppressWarnings("StreamResourceLeak") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("StreamResourceLeak") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     public static DirectoryStream<Path> intercept_newDirectoryStream(
-        Path path,
-        String glob,
-        @CallerClassName String consumer
-    ) throws IOException {
+            Path path, String glob, @CallerClassName String consumer) throws IOException {
         tryReportDirectoryContentObserved(path, consumer);
         return Files.newDirectoryStream(path, glob);
     }
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
-    @SuppressWarnings("StreamResourceLeak") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("StreamResourceLeak") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     public static DirectoryStream<Path> intercept_newDirectoryStream(
-        Path path,
-        DirectoryStream.Filter<?> filter,
-        @CallerClassName String consumer
-    ) throws IOException {
+            Path path, DirectoryStream.Filter<?> filter, @CallerClassName String consumer) throws IOException {
         tryReportDirectoryContentObserved(path, consumer);
         return Files.newDirectoryStream(path, Cast.<DirectoryStream.Filter<? super Path>>uncheckedNonnullCast(filter));
     }
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
-    @SuppressWarnings("StreamResourceLeak") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public static Stream<Path> intercept_list(
-        Path path,
-        @CallerClassName String consumer
-    ) throws IOException {
+    @SuppressWarnings("StreamResourceLeak") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
+    public static Stream<Path> intercept_list(Path path, @CallerClassName String consumer) throws IOException {
         tryReportDirectoryContentObserved(path, consumer);
         return Files.list(path);
     }
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
-    public static String intercept_probeContentType(
-        Path path,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static String intercept_probeContentType(Path path, @CallerClassName String consumer) throws IOException {
         tryReportFileOpened(path, consumer);
         return Files.probeContentType(path);
     }
@@ -295,10 +244,7 @@ public class NioFileInterceptors {
     @InterceptCalls
     @InstanceMethod
     public static String intercept_probeContentType(
-        @Receiver FileTypeDetector self,
-        Path path,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver FileTypeDetector self, Path path, @CallerClassName String consumer) throws IOException {
         tryReportFileOpened(path, consumer);
         return self.probeContentType(path);
     }
@@ -306,12 +252,12 @@ public class NioFileInterceptors {
     @InterceptCalls
     @InstanceMethod
     public static SeekableByteChannel intercept_newByteChannel(
-        @Receiver FileSystemProvider self,
-        Path path,
-        Set<?> options,
-        @VarargParameter FileAttribute<?>[] attrs,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver FileSystemProvider self,
+            Path path,
+            Set<?> options,
+            @VarargParameter FileAttribute<?>[] attrs,
+            @CallerClassName String consumer)
+            throws IOException {
         if (optionsAllowReading(options)) {
             tryReportFileOpened(path, consumer);
         }
@@ -321,11 +267,11 @@ public class NioFileInterceptors {
     @InterceptCalls
     @InstanceMethod
     public static InputStream intercept_newInputStream(
-        @Receiver FileSystemProvider self,
-        Path path,
-        @VarargParameter OpenOption[] options,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver FileSystemProvider self,
+            Path path,
+            @VarargParameter OpenOption[] options,
+            @CallerClassName String consumer)
+            throws IOException {
         if (optionsAllowReading(options)) {
             tryReportFileOpened(path, consumer);
         }
@@ -334,11 +280,12 @@ public class NioFileInterceptors {
 
     @InterceptCalls
     @InstanceMethod
-    public static DirectoryStream<Path> intercept_newDirectoryStream(@Receiver FileSystemProvider self,
-        Path path,
-        DirectoryStream.Filter<?> filter,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static DirectoryStream<Path> intercept_newDirectoryStream(
+            @Receiver FileSystemProvider self,
+            Path path,
+            DirectoryStream.Filter<?> filter,
+            @CallerClassName String consumer)
+            throws IOException {
         tryReportDirectoryContentObserved(path, consumer);
         return self.newDirectoryStream(path, Cast.uncheckedCast(filter));
     }
@@ -346,10 +293,7 @@ public class NioFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = FileChannel.class)
     public static FileChannel intercept_open(
-        Path path,
-        @VarargParameter OpenOption[] options,
-        @CallerClassName String consumer
-    ) throws IOException {
+            Path path, @VarargParameter OpenOption[] options, @CallerClassName String consumer) throws IOException {
         if (optionsAllowReading(options)) {
             tryReportFileOpened(path, consumer);
         }
@@ -359,11 +303,8 @@ public class NioFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = FileChannel.class)
     public static FileChannel intercept_open(
-        Path path,
-        Set<?> options,
-        @VarargParameter FileAttribute<?>[] attrs,
-        @CallerClassName String consumer
-    ) throws IOException {
+            Path path, Set<?> options, @VarargParameter FileAttribute<?>[] attrs, @CallerClassName String consumer)
+            throws IOException {
         if (optionsAllowReading(options)) {
             tryReportFileOpened(path, consumer);
         }

@@ -15,13 +15,12 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+import java.net.URI;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import java.net.URI;
 
 /**
  * An artifact repository which uses an Ivy format to store artifacts and meta-data.
@@ -36,7 +35,8 @@ import java.net.URI;
  * <p>
  * Repositories of this type are created by the {@link org.gradle.api.artifacts.dsl.RepositoryHandler#ivy(org.gradle.api.Action)} group of methods.
  */
-public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRepository, AuthenticationSupported, MetadataSupplierAware {
+public interface IvyArtifactRepository
+        extends ArtifactRepository, UrlArtifactRepository, AuthenticationSupported, MetadataSupplierAware {
 
     String IVY_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact](.[ext])";
 
@@ -189,7 +189,8 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * @since 4.0
      */
     @Override
-    void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction);
+    void setMetadataSupplier(
+            Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction);
 
     /**
      * Configures the metadata sources for this repository. This method will replace any previously configured sources
@@ -271,5 +272,4 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
          */
         boolean isIgnoreGradleMetadataRedirectionEnabled();
     }
-
 }

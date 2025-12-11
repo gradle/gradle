@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
+import java.nio.file.Path;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.logging.text.TreeFormatter;
-
-import java.nio.file.Path;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  * A text report renderer, which is <i>not</i> cumulative and is used to report failures in
@@ -33,7 +32,8 @@ class SimpleTextDependencyVerificationReportRenderer extends AbstractTextDepende
 
     private ModuleComponentArtifactIdentifier artifact;
 
-    public SimpleTextDependencyVerificationReportRenderer(Path gradleUserHome, DocumentationRegistry documentationRegistry) {
+    public SimpleTextDependencyVerificationReportRenderer(
+            Path gradleUserHome, DocumentationRegistry documentationRegistry) {
         super(gradleUserHome, documentationRegistry);
     }
 
@@ -63,7 +63,8 @@ class SimpleTextDependencyVerificationReportRenderer extends AbstractTextDepende
     public void finish(VerificationHighLevelErrors highLevelErrors) {
         int size = artifacts.size();
         if (size == 1) {
-            formatter.node("One artifact failed verification: " + artifacts.iterator().next());
+            formatter.node(
+                    "One artifact failed verification: " + artifacts.iterator().next());
         } else {
             formatter.node(artifacts.size() + " artifacts failed verification");
             formatter.startChildren();
@@ -79,5 +80,4 @@ class SimpleTextDependencyVerificationReportRenderer extends AbstractTextDepende
     public void reportAsMultipleErrors(Runnable action) {
         action.run();
     }
-
 }

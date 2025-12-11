@@ -42,5 +42,4 @@ public class DefaultCUnitTestSuiteSpec extends AbstractNativeComponentSpec imple
     public void testing(ComponentSpec testedComponent) {
         this.testedComponent = (NativeComponentSpec) testedComponent;
     }
-
 }

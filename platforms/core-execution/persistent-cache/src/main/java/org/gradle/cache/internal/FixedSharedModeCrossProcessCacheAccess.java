@@ -16,19 +16,18 @@
 
 package org.gradle.cache.internal;
 
+import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.FileLockManager.LockMode.Shared;
+
+import java.io.File;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CrossProcessCacheAccess;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.internal.UncheckedException;
-
-import java.io.File;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
-import static org.gradle.cache.FileLockManager.LockMode.Shared;
 
 /**
  * A {@link CrossProcessCacheAccess} implementation used when a cache is opened with a shared lock that is held until the cache is closed. The contract for {@link CrossProcessCacheAccess} requires an
@@ -44,7 +43,14 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
     private final Consumer<FileLock> onCloseAction;
     private FileLock fileLock;
 
-    public FixedSharedModeCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, CacheInitializationAction initializationAction, Consumer<FileLock> onOpenAction, Consumer<FileLock> onCloseAction) {
+    public FixedSharedModeCrossProcessCacheAccess(
+            String cacheDisplayName,
+            File lockTarget,
+            LockOptions lockOptions,
+            FileLockManager lockManager,
+            CacheInitializationAction initializationAction,
+            Consumer<FileLock> onOpenAction,
+            Consumer<FileLock> onCloseAction) {
         assert lockOptions.getMode() == Shared;
         this.cacheDisplayName = cacheDisplayName;
         this.lockTarget = lockTarget;
@@ -70,9 +76,11 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
                     fileLock = null;
                     FileLock exclusiveLock = null;
                     try {
-                        exclusiveLock = lockManager.lock(lockTarget, lockOptions.copyWithMode(Exclusive), cacheDisplayName);
+                        exclusiveLock =
+                                lockManager.lock(lockTarget, lockOptions.copyWithMode(Exclusive), cacheDisplayName);
                     } catch (Exception e) {
-                        // acquiring the exclusive lock can fail in the rare case where another process is just doing or has just done the cache initialization
+                        // acquiring the exclusive lock can fail in the rare case where another process is just doing or
+                        // has just done the cache initialization
                         latestException = e;
                     }
                     try {
@@ -97,7 +105,8 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
                     rebuild = initializationAction.requiresInitialization(fileLock);
                 }
                 if (rebuild) {
-                    throw new CacheOpenException(String.format("Failed to initialize %s", cacheDisplayName), latestException);
+                    throw new CacheOpenException(
+                            String.format("Failed to initialize %s", cacheDisplayName), latestException);
                 }
             }
             onOpenAction.accept(fileLock);
@@ -133,6 +142,7 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
     }
 
     protected UnsupportedOperationException failure() {
-        return new UnsupportedOperationException("Cannot escalate a shared lock to an exclusive lock. This is not yet supported.");
+        return new UnsupportedOperationException(
+                "Cannot escalate a shared lock to an exclusive lock. This is not yet supported.");
     }
 }

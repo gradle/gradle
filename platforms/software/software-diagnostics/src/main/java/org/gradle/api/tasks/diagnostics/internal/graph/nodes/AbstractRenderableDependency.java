@@ -15,15 +15,14 @@
  */
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
 public abstract class AbstractRenderableDependency implements RenderableDependency {
 

@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -27,9 +29,6 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProg
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Maps build operations of a particular type into progress events to forward to the tooling API client.
@@ -55,12 +54,14 @@ public interface BuildOperationMapper<DETAILS, TO extends InternalOperationDescr
     /**
      * Maps the start event for the given build operation.
      */
-    InternalOperationStartedProgressEvent createStartedEvent(TO descriptor, DETAILS details, OperationStartEvent startEvent);
+    InternalOperationStartedProgressEvent createStartedEvent(
+            TO descriptor, DETAILS details, OperationStartEvent startEvent);
 
     /**
      * Maps the finish event for the given build operation.
      */
-    InternalOperationFinishedProgressEvent createFinishedEvent(TO descriptor, DETAILS details, OperationFinishEvent finishEvent);
+    InternalOperationFinishedProgressEvent createFinishedEvent(
+            TO descriptor, DETAILS details, OperationFinishEvent finishEvent);
 
     /**
      * Maps the given progress event. Returns {@code null} of the event should be discarded and not forwarded to the client.

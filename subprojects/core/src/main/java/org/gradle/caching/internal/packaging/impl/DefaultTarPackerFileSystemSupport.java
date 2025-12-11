@@ -16,12 +16,11 @@
 
 package org.gradle.caching.internal.packaging.impl;
 
+import java.io.File;
+import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
-
-import java.io.File;
-import java.io.IOException;
 
 public class DefaultTarPackerFileSystemSupport implements TarPackerFileSystemSupport {
     private final Deleter deleter;

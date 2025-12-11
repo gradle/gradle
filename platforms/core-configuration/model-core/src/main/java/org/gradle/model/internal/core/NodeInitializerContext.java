@@ -28,22 +28,33 @@ public class NodeInitializerContext<T> {
     private final Spec<ModelType<?>> constraints;
     private final Optional<PropertyContext> propertyContextOptional;
 
-    private NodeInitializerContext(ModelType<T> modelType, Spec<ModelType<?>> constraints, Optional<PropertyContext> propertyContextOptional) {
+    private NodeInitializerContext(
+            ModelType<T> modelType, Spec<ModelType<?>> constraints, Optional<PropertyContext> propertyContextOptional) {
         this.modelType = modelType;
         this.constraints = constraints;
         this.propertyContextOptional = propertyContextOptional;
     }
 
     public static <T> NodeInitializerContext<T> forType(ModelType<T> type) {
-        return new NodeInitializerContext<T>(type, Specs.<ModelType<?>>satisfyAll(), Optional.<PropertyContext>absent());
+        return new NodeInitializerContext<T>(
+                type, Specs.<ModelType<?>>satisfyAll(), Optional.<PropertyContext>absent());
     }
 
     public static <T> NodeInitializerContext<T> forExtensibleType(ModelType<T> type, Spec<ModelType<?>> constraints) {
         return new NodeInitializerContext<T>(type, constraints, Optional.<PropertyContext>absent());
     }
 
-    public static <T> NodeInitializerContext<T> forProperty(ModelType<T> type, ManagedProperty<?> property, ModelType<?> containingType) {
-        return new NodeInitializerContext<T>(type, Specs.<ModelType<?>>satisfyAll(), Optional.of(new PropertyContext(property.getName(), property.getType(), property.isWritable(), property.isDeclaredAsHavingUnmanagedType(), containingType)));
+    public static <T> NodeInitializerContext<T> forProperty(
+            ModelType<T> type, ManagedProperty<?> property, ModelType<?> containingType) {
+        return new NodeInitializerContext<T>(
+                type,
+                Specs.<ModelType<?>>satisfyAll(),
+                Optional.of(new PropertyContext(
+                        property.getName(),
+                        property.getType(),
+                        property.isWritable(),
+                        property.isDeclaredAsHavingUnmanagedType(),
+                        containingType)));
     }
 
     public ModelType<T> getModelType() {
@@ -82,7 +93,12 @@ public class NodeInitializerContext<T> {
         private final boolean declaredAsHavingUnmanagedType;
         private final ModelType<?> declaringType;
 
-        private PropertyContext(String name, ModelType<?> type, boolean writable, boolean declaredAsHavingUnmanagedType, ModelType<?> declaringType) {
+        private PropertyContext(
+                String name,
+                ModelType<?> type,
+                boolean writable,
+                boolean declaredAsHavingUnmanagedType,
+                ModelType<?> declaringType) {
             this.name = name;
             this.type = type;
             this.writable = writable;

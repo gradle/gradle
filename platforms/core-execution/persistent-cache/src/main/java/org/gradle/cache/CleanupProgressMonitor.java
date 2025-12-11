@@ -26,16 +26,12 @@ public interface CleanupProgressMonitor {
 
     CleanupProgressMonitor NO_OP = new CleanupProgressMonitor() {
         @Override
-        public void incrementDeleted() {
-        }
+        public void incrementDeleted() {}
 
         @Override
-        public void incrementSkipped() {
-        }
+        public void incrementSkipped() {}
 
         @Override
-        public void incrementSkipped(long amount) {
-        }
+        public void incrementSkipped(long amount) {}
     };
-
 }

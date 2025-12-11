@@ -30,7 +30,13 @@ public class DefaultVariantMetadata implements VariantResolveMetadata {
     private final ImmutableList<? extends ComponentArtifactMetadata> artifacts;
     private final ImmutableCapabilities capabilitiesMetadata;
 
-    public DefaultVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, ImmutableCapabilities capabilitiesMetadata) {
+    public DefaultVariantMetadata(
+            String name,
+            @Nullable Identifier identifier,
+            DisplayName displayName,
+            ImmutableAttributes attributes,
+            ImmutableList<? extends ComponentArtifactMetadata> artifacts,
+            ImmutableCapabilities capabilitiesMetadata) {
         this.name = name;
         this.identifier = identifier;
         this.displayName = displayName;

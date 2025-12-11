@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Transformer;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.UncheckedException;
-
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.regex.Pattern;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
+import org.gradle.internal.FileUtils;
+import org.gradle.internal.UncheckedException;
 
 /**
  * A minimal resolver, which does not use any native services. Used during bootstrap only. You should generally use {@link FileResolver} instead.

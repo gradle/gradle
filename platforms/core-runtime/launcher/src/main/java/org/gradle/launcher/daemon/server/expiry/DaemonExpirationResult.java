@@ -19,7 +19,8 @@ package org.gradle.launcher.daemon.server.expiry;
 import org.jspecify.annotations.Nullable;
 
 public class DaemonExpirationResult {
-    public static final DaemonExpirationResult NOT_TRIGGERED = new DaemonExpirationResult(DaemonExpirationStatus.DO_NOT_EXPIRE, null);
+    public static final DaemonExpirationResult NOT_TRIGGERED =
+            new DaemonExpirationResult(DaemonExpirationStatus.DO_NOT_EXPIRE, null);
 
     private final DaemonExpirationStatus status;
     private final String reason;

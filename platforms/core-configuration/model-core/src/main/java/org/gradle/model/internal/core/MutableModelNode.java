@@ -17,13 +17,12 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Predicate;
+import java.util.Set;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 public interface MutableModelNode extends ModelNode {
     boolean canBeViewedAs(ModelType<?> type);

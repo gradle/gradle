@@ -17,6 +17,11 @@
 package org.gradle.jvm.application.tasks;
 
 import com.google.common.collect.Lists;
+import java.io.File;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
@@ -46,12 +51,6 @@ import org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator;
 import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.stream.Collectors;
 
 /**
  * Creates start scripts for launching JVM applications.
@@ -354,19 +353,23 @@ public abstract class CreateStartScripts extends ConventionTask {
 
     @TaskAction
     public void generate() {
-        StartScriptGenerator generator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator);
+        StartScriptGenerator generator =
+                new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator);
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         generator.setApplicationName(getApplicationName());
         generator.setEntryPoint(getEntryPoint());
         generator.setDefaultJvmOpts(getDefaultJvmOpts());
         generator.setOptsEnvironmentVar(getOptsEnvironmentVar());
         generator.setExitEnvironmentVar(getExitEnvironmentVar());
-        generator.setClasspath(getRelativePath(javaModuleDetector.inferClasspath(mainModule.isPresent(), getClasspath())));
-        generator.setModulePath(getRelativePath(javaModuleDetector.inferModulePath(mainModule.isPresent(), getClasspath())));
+        generator.setClasspath(
+                getRelativePath(javaModuleDetector.inferClasspath(mainModule.isPresent(), getClasspath())));
+        generator.setModulePath(
+                getRelativePath(javaModuleDetector.inferModulePath(mainModule.isPresent(), getClasspath())));
         if (StringUtils.isEmpty(getExecutableDir())) {
             generator.setScriptRelPath(getUnixScript().getName());
         } else {
-            generator.setScriptRelPath(getExecutableDir() + "/" + getUnixScript().getName());
+            generator.setScriptRelPath(
+                    getExecutableDir() + "/" + getUnixScript().getName());
         }
         generator.generateUnixScript(getUnixScript());
         generator.generateWindowsScript(getWindowsScript());
@@ -382,8 +385,9 @@ public abstract class CreateStartScripts extends ConventionTask {
     @Input
     @ToBeReplacedByLazyProperty(unreported = true, comment = "Skipped for report since method is protected")
     protected Iterable<String> getRelativeClasspath() {
-        //a list instance is needed here, as org.gradle.internal.snapshot.ValueSnapshotter.processValue() does not support
-        //serializing Iterators directly
+        // a list instance is needed here, as org.gradle.internal.snapshot.ValueSnapshotter.processValue() does not
+        // support
+        // serializing Iterators directly
         final FileCollection classpathNullable = getClasspath();
         if (classpathNullable == null) {
             return Collections.emptyList();
@@ -392,7 +396,8 @@ public abstract class CreateStartScripts extends ConventionTask {
     }
 
     private Iterable<String> getRelativePath(FileCollection path) {
-        return path.getFiles().stream().map(input -> "lib/" + input.getName()).collect(Collectors.toCollection(Lists::newArrayList));
+        return path.getFiles().stream()
+                .map(input -> "lib/" + input.getName())
+                .collect(Collectors.toCollection(Lists::newArrayList));
     }
-
 }

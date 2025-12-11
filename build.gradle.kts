@@ -8,6 +8,7 @@ plugins {
 
     id("gradlebuild.update-versions")            // Local development: Convenience tasks to update versions in this build: 'released-versions.json', 'agp-versions.properties', ...
     id("gradlebuild.wrapper")                    // Local development: Convenience tasks to update the wrapper (like 'nightlyWrapper')
+    id("com.diffplug.spotless") version ("8.1.0") apply false
 }
 
 description = "Adaptable, fast automation for all"

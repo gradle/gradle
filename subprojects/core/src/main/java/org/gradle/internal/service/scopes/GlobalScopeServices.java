@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.Iterables;
+import java.util.List;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
@@ -128,8 +129,6 @@ import org.gradle.process.internal.health.memory.JvmMemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
 
-import java.util.List;
-
 /**
  * Defines the extended global services of a given process. This includes the CLI, daemon and tooling API provider. The CLI
  * only needs these services if it is running in --no-daemon mode.
@@ -141,7 +140,11 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     private final GradleBuildEnvironment environment;
     private final AgentStatus agentStatus;
 
-    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus, ClassPath additionalModuleClassPath, CurrentGradleInstallation currentGradleInstallation) {
+    public GlobalScopeServices(
+            final boolean longLiving,
+            AgentStatus agentStatus,
+            ClassPath additionalModuleClassPath,
+            CurrentGradleInstallation currentGradleInstallation) {
         super(additionalModuleClassPath, currentGradleInstallation);
         this.agentStatus = agentStatus;
         this.environment = () -> longLiving;
@@ -150,9 +153,15 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     @Override
     void configure(ServiceRegistration registration) {
         super.configure(registration);
-        registration.add(ScriptFileResolvedListener.class, ScriptFileResolverListeners.class, DefaultScriptFileResolverListeners.class);
+        registration.add(
+                ScriptFileResolvedListener.class,
+                ScriptFileResolverListeners.class,
+                DefaultScriptFileResolverListeners.class);
         registration.add(BuildLayoutFactory.class);
-        registration.add(ValidateStep.ValidationWarningRecorder.class, WorkValidationWarningReporter.class, DefaultWorkValidationWarningRecorder.class);
+        registration.add(
+                ValidateStep.ValidationWarningRecorder.class,
+                WorkValidationWarningReporter.class,
+                DefaultWorkValidationWarningRecorder.class);
     }
 
     @Provides
@@ -162,15 +171,11 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     @Provides
     protected BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
-        Clock clock,
-        CurrentBuildOperationRef currentBuildOperationRef,
-        BuildOperationListenerManager listenerManager
-    ) {
+            Clock clock,
+            CurrentBuildOperationRef currentBuildOperationRef,
+            BuildOperationListenerManager listenerManager) {
         return new DefaultBuildOperationProgressEventEmitter(
-            clock,
-            currentBuildOperationRef,
-            listenerManager.getBroadcaster()
-        );
+                clock, currentBuildOperationRef, listenerManager.getBroadcaster());
     }
 
     @Provides
@@ -180,9 +185,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     @Provides
     CachingServiceLocator createPluginsServiceLocator(ClassLoaderRegistry registry) {
-        return CachingServiceLocator.of(
-            new DefaultServiceLocator(registry.getPluginsClassLoader())
-        );
+        return CachingServiceLocator.of(new DefaultServiceLocator(registry.getPluginsClassLoader()));
     }
 
     @Provides
@@ -206,13 +209,22 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     @Provides
-    ModelRuleExtractor createModelRuleInspector(List<MethodModelRuleExtractor> extractors, ModelSchemaStore modelSchemaStore, StructBindingsStore structBindingsStore, ManagedProxyFactory managedProxyFactory) {
+    ModelRuleExtractor createModelRuleInspector(
+            List<MethodModelRuleExtractor> extractors,
+            ModelSchemaStore modelSchemaStore,
+            StructBindingsStore structBindingsStore,
+            ManagedProxyFactory managedProxyFactory) {
         List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(modelSchemaStore);
-        return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors), managedProxyFactory, modelSchemaStore, structBindingsStore);
+        return new ModelRuleExtractor(
+                Iterables.concat(coreExtractors, extractors),
+                managedProxyFactory,
+                modelSchemaStore,
+                structBindingsStore);
     }
 
     @Provides
-    protected ModelSchemaAspectExtractor createModelSchemaAspectExtractor(List<ModelSchemaAspectExtractionStrategy> strategies) {
+    protected ModelSchemaAspectExtractor createModelSchemaAspectExtractor(
+            List<ModelSchemaAspectExtractionStrategy> strategies) {
         return new ModelSchemaAspectExtractor(strategies);
     }
 
@@ -222,7 +234,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     @Provides
-    protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, List<ModelSchemaExtractionStrategy> strategies) {
+    protected ModelSchemaExtractor createModelSchemaExtractor(
+            ModelSchemaAspectExtractor aspectExtractor, List<ModelSchemaExtractionStrategy> strategies) {
         return DefaultModelSchemaExtractor.withDefaultStrategies(strategies, aspectExtractor);
     }
 
@@ -243,7 +256,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     @Provides
     protected RuntimeApiInfo createRuntimeApiInfo(ModuleRegistry moduleRegistry) {
-        ClassPath apiInfoClasspath = moduleRegistry.getModule("gradle-runtime-api-info").getImplementationClasspath();
+        ClassPath apiInfoClasspath =
+                moduleRegistry.getModule("gradle-runtime-api-info").getImplementationClasspath();
         return RuntimeApiInfo.create(apiInfoClasspath);
     }
 
@@ -258,13 +272,18 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     @Provides
-    InstantiatorFactory createInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> injectHandlers, List<AbstractOutputPropertyAnnotationHandler> outputHandlers) {
-        return new DefaultInstantiatorFactory(cacheFactory, injectHandlers, new OutputPropertyRoleAnnotationHandler(outputHandlers));
+    InstantiatorFactory createInstantiatorFactory(
+            CrossBuildInMemoryCacheFactory cacheFactory,
+            List<InjectAnnotationHandler> injectHandlers,
+            List<AbstractOutputPropertyAnnotationHandler> outputHandlers) {
+        return new DefaultInstantiatorFactory(
+                cacheFactory, injectHandlers, new OutputPropertyRoleAnnotationHandler(outputHandlers));
     }
 
     @Provides
     GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {
-        return new DefaultGradleUserHomeScopeServiceRegistry(globalServices, new GradleUserHomeScopeServices(globalServices));
+        return new DefaultGradleUserHomeScopeServiceRegistry(
+                globalServices, new GradleUserHomeScopeServices(globalServices));
     }
 
     @Provides
@@ -278,52 +297,62 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     @Provides
-    MemoryManager createMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
+    MemoryManager createMemoryManager(
+            OsMemoryInfo osMemoryInfo,
+            JvmMemoryInfo jvmMemoryInfo,
+            ListenerManager listenerManager,
+            ExecutorFactory executorFactory) {
         return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
     }
 
     @Provides
     ObjectFactory createObjectFactory(
-        InstantiatorFactory instantiatorFactory, ServiceRegistry services, DirectoryFileTreeFactory directoryFileTreeFactory, PatternSetFactory patternSetFactory,
-        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
-        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
-    ) {
+            InstantiatorFactory instantiatorFactory,
+            ServiceRegistry services,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            PatternSetFactory patternSetFactory,
+            PropertyFactory propertyFactory,
+            FilePropertyFactory filePropertyFactory,
+            TaskDependencyFactory taskDependencyFactory,
+            FileCollectionFactory fileCollectionFactory,
+            DomainObjectCollectionFactory domainObjectCollectionFactory,
+            NamedObjectInstantiator instantiator) {
         return new DefaultObjectFactory(
-            instantiatorFactory.decorate(services),
-            instantiator,
-            directoryFileTreeFactory,
-            patternSetFactory,
-            propertyFactory,
-            filePropertyFactory,
-            taskDependencyFactory,
-            fileCollectionFactory,
-            domainObjectCollectionFactory);
+                instantiatorFactory.decorate(services),
+                instantiator,
+                directoryFileTreeFactory,
+                patternSetFactory,
+                propertyFactory,
+                filePropertyFactory,
+                taskDependencyFactory,
+                fileCollectionFactory,
+                domainObjectCollectionFactory);
     }
 
     @Provides
     ExecFactory createExecFactory(
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
-        Instantiator instantiator,
-        ObjectFactory objectFactory,
-        ExecutorFactory executorFactory,
-        TemporaryFileProvider temporaryFileProvider,
-        BuildCancellationToken buildCancellationToken
-    ) {
+            FileResolver fileResolver,
+            FileCollectionFactory fileCollectionFactory,
+            Instantiator instantiator,
+            ObjectFactory objectFactory,
+            ExecutorFactory executorFactory,
+            TemporaryFileProvider temporaryFileProvider,
+            BuildCancellationToken buildCancellationToken) {
         return DefaultExecActionFactory.of(
-            fileResolver,
-            fileCollectionFactory,
-            instantiator,
-            executorFactory,
-            temporaryFileProvider,
-            buildCancellationToken,
-            objectFactory
-        );
+                fileResolver,
+                fileCollectionFactory,
+                instantiator,
+                executorFactory,
+                temporaryFileProvider,
+                buildCancellationToken,
+                objectFactory);
     }
 
     @Provides
-    DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
-        return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
+    DomainObjectCollectionFactory createDomainObjectCollectionFactory(
+            InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
+        return new DefaultDomainObjectCollectionFactory(
+                instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
     }
 
     @Provides
@@ -345,11 +374,11 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     @Provides
-    ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {
+    ClassPathRegistry createClassPathRegistry(
+            ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {
         return new DefaultClassPathRegistry(
-            new DefaultClassPathProvider(moduleRegistry),
-            new DynamicModulesClassPathProvider(moduleRegistry,
-                pluginModuleRegistry));
+                new DefaultClassPathProvider(moduleRegistry),
+                new DynamicModulesClassPathProvider(moduleRegistry, pluginModuleRegistry));
     }
 
     @Provides
@@ -358,7 +387,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     @Provides
-    ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport) {
+    ClassLoaderRegistry createClassLoaderRegistry(
+            ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport) {
         if (GradleRuntimeShadedJarDetector.isLoadedFrom(getClass())) {
             return new FlatClassLoaderRegistry(getClass().getClassLoader());
         }

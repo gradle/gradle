@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.initialization.transform;
 
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.getInputType;
+
+import java.io.File;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.InstrumentationInputType;
@@ -25,21 +28,20 @@ import org.gradle.internal.classpath.types.PropertiesBackedInstrumentationTypeRe
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.work.DisableCachingByDefault;
 
-import java.io.File;
-
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.getInputType;
-
 /**
  * Artifact transform that instruments external artifacts with Gradle instrumentation.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache")
-public abstract class ExternalDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform<BaseInstrumentingArtifactTransform.Parameters> {
+public abstract class ExternalDependencyInstrumentingArtifactTransform
+        extends BaseInstrumentingArtifactTransform<BaseInstrumentingArtifactTransform.Parameters> {
 
     @Override
     public void transform(TransformOutputs outputs) {
         // We simulate fan-in behaviour:
-        // We expect that a transform before this one outputs three artifacts: 1. analysis metadata, 2. the original file and 3. instrumentation marker file.
-        // So if the input is analysis metadata we use it and create instrumented artifact, otherwise it's original artifact and we output that.
+        // We expect that a transform before this one outputs three artifacts: 1. analysis metadata, 2. the original
+        // file and 3. instrumentation marker file.
+        // So if the input is analysis metadata we use it and create instrumented artifact, otherwise it's original
+        // artifact and we output that.
         File input = getInput().get().getAsFile();
         InstrumentationInputType inputType = getInputType(input);
         switch (inputType) {
@@ -55,7 +57,7 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
                 // We don't need to do anything with the marker file
                 return;
             case TYPE_HIERARCHY_ANALYSIS_DATA:
-                // Type hierarchy analysis should never be an input to this transform
+            // Type hierarchy analysis should never be an input to this transform
             default:
                 throw new IllegalStateException("Unexpected input type: " + inputType);
         }
@@ -69,7 +71,8 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
     }
 
     private InstrumentationArtifactMetadata readArtifactMetadata(File input) {
-        InstrumentationAnalysisSerializer serializer = getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
+        InstrumentationAnalysisSerializer serializer =
+                getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
         return serializer.readMetadataOnly(input);
     }
 
@@ -80,15 +83,16 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
             public InstrumentingClassTransform getClassTransform() {
                 InstrumentationTypeRegistry typeRegistry = PropertiesBackedInstrumentationTypeRegistry.of(() -> {
                     File analysisFile = getInput().get().getAsFile();
-                    InstrumentationAnalysisSerializer serializer = getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
+                    InstrumentationAnalysisSerializer serializer =
+                            getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
                     return serializer.readDependencyAnalysis(analysisFile).getDependencies();
                 });
-                return new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE, typeRegistry);
+                return new InstrumentingClassTransform(
+                        BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE, typeRegistry);
             }
 
             @Override
-            public void close() {
-            }
+            public void close() {}
         };
     }
 }

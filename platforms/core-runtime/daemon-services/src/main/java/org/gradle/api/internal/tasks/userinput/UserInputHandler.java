@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
+import java.util.function.Function;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.Function;
 
 @ServiceScope(Scope.BuildSession.class)
 public interface UserInputHandler {

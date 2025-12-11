@@ -16,6 +16,13 @@
 
 package org.gradle.execution.selection;
 
+import java.io.File;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Pattern;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectState;
@@ -43,14 +50,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.regex.Pattern;
-
 public class DefaultBuildTaskSelector implements BuildTaskSelector {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildTaskSelector.class);
     private final BuildStateRegistry buildRegistry;
@@ -59,7 +58,11 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
     private final InternalProblems problemsService;
 
     @Inject
-    public DefaultBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, InternalProblems problemsService) {
+    public DefaultBuildTaskSelector(
+            BuildStateRegistry buildRegistry,
+            TaskSelector taskSelector,
+            List<BuiltInCommand> commands,
+            InternalProblems problemsService) {
         this.buildRegistry = buildRegistry;
         this.taskSelector = taskSelector;
         this.commands = commands;
@@ -78,12 +81,14 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
     }
 
     @Override
-    public TaskSelection resolveTaskName(@Nullable File rootDir, @Nullable String projectPath, BuildState targetBuild, String taskName) {
+    public TaskSelection resolveTaskName(
+            @Nullable File rootDir, @Nullable String projectPath, BuildState targetBuild, String taskName) {
         TaskSelector.SelectionContext selection = sanityCheckPath(taskName, "tasks");
 
         BuildState defaultBuild = targetBuild;
         if (rootDir != null) {
-            // When a root dir is specified, the project path and task name have come from a `Launchable` request from the tooling API client
+            // When a root dir is specified, the project path and task name have come from a `Launchable` request from
+            // the tooling API client
             // Use exact lookup rather than pattern matching
             RootBuildState rootBuild = buildRegistry.getRootBuild();
             if (rootDir.equals(rootBuild.getBuildRootDir())) {
@@ -91,22 +96,32 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
             } else {
                 BuildState build = findIncludedBuild(rootDir);
                 if (build == null) {
-                    throw new TaskSelectionException(String.format("Could not find included build with root directory '%s'.", rootDir));
+                    throw new TaskSelectionException(
+                            String.format("Could not find included build with root directory '%s'.", rootDir));
                 }
                 defaultBuild = build;
             }
             if (projectPath != null) {
                 ProjectState project = defaultBuild.getProjects().getProject(Path.path(projectPath));
-                return getSelectorForBuild(defaultBuild).getSelection(selection, project, selection.getOriginalPath().getName(), true);
+                return getSelectorForBuild(defaultBuild)
+                        .getSelection(
+                                selection, project, selection.getOriginalPath().getName(), true);
             } else {
                 Path projectPrefix = selection.getOriginalPath().getParent();
                 ProjectState project = defaultBuild.getProjects().getProject(projectPrefix);
-                return getSelectorForBuild(defaultBuild).getSelection(selection, project, selection.getOriginalPath().getName(), false);
+                return getSelectorForBuild(defaultBuild)
+                        .getSelection(
+                                selection, project, selection.getOriginalPath().getName(), false);
             }
         }
 
         ProjectResolutionResult resolutionResult = resolveProject(selection, selection.getOriginalPath(), defaultBuild);
-        return getSelectorForBuild(resolutionResult.build).getSelection(selection, resolutionResult.project, resolutionResult.taskName, resolutionResult.includeSubprojects);
+        return getSelectorForBuild(resolutionResult.build)
+                .getSelection(
+                        selection,
+                        resolutionResult.project,
+                        resolutionResult.taskName,
+                        resolutionResult.includeSubprojects);
     }
 
     @Override
@@ -114,10 +129,15 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         return taskName -> DefaultBuildTaskSelector.this.resolveTaskName(null, null, target, taskName);
     }
 
-    private ProjectResolutionResult resolveProject(TaskSelector.SelectionContext context, Path path, BuildState targetBuild) {
+    private ProjectResolutionResult resolveProject(
+            TaskSelector.SelectionContext context, Path path, BuildState targetBuild) {
         // Just a name -> use default project + select tasks with matching name in default project and subprojects
         if (!path.isAbsolute() && path.segmentCount() == 1) {
-            return new ProjectResolutionResult(targetBuild, targetBuild.getMutableModel().getDefaultProject().getOwner(), true, path.getName());
+            return new ProjectResolutionResult(
+                    targetBuild,
+                    targetBuild.getMutableModel().getDefaultProject().getOwner(),
+                    true,
+                    path.getName());
         }
 
         // <path>:name -> resolve <path> to a project + select task with matching name in that project
@@ -140,7 +160,8 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
                 projectPath = projectPath.removeFirstSegments(1);
             }
         }
-        LOGGER.info("Task path '{}' matched project '{}'", context.getOriginalPath(), matchingProject.getIdentityPath());
+        LOGGER.info(
+                "Task path '{}' matched project '{}'", context.getOriginalPath(), matchingProject.getIdentityPath());
         return new ProjectResolutionResult(matchingProject.getOwner(), matchingProject, false, path.getName());
     }
 
@@ -175,16 +196,25 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
             return child;
         }
 
-        String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(), nameMatcher.formatErrorMessage("project", project.getDisplayName()));
-        throw problemsService.getInternalReporter().throwing(new ProjectSelectionException(message), nameMatcher.problemId(), spec -> {
-            configureProblem(spec, message, context.getOriginalPath().asString());
-        });
+        String message = String.format(
+                "Cannot locate %s that match '%s' as %s",
+                context.getType(),
+                context.getOriginalPath(),
+                nameMatcher.formatErrorMessage("project", project.getDisplayName()));
+        throw problemsService
+                .getInternalReporter()
+                .throwing(new ProjectSelectionException(message), nameMatcher.problemId(), spec -> {
+                    configureProblem(spec, message, context.getOriginalPath().asString());
+                });
     }
 
     private static void configureProblem(ProblemSpec spec, String message, String requestedPath) {
         spec.contextualLabel(message);
         spec.severity(Severity.ERROR);
-        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(requestedPath)));
+        ((InternalProblemSpec) spec)
+                .additionalDataInternal(
+                        GeneralDataSpec.class,
+                        data -> data.put("requestedPath", Objects.requireNonNull(requestedPath)));
     }
 
     private TaskSelector.SelectionContext sanityCheckPath(String name, String type) {
@@ -194,7 +224,9 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         // - have empty or blank segments (eg `::a`, `a::b`, `a:  :b`, etc)
 
         if (name.isEmpty() || StringUtils.isBlank(name)) {
-            String message = String.format("Cannot locate matching %s for an empty path. The path should include a task name (for example %s).", type, examplePaths());
+            String message = String.format(
+                    "Cannot locate matching %s for an empty path. The path should include a task name (for example %s).",
+                    type, examplePaths());
             ProblemId id = ProblemId.create("empty-path", "Empty path", GradleCoreProblemGroup.taskSelection());
             throw problemsService.getInternalReporter().throwing(new TaskSelectionException(message), id, spec -> {
                 configureProblem(spec, message, name);
@@ -203,8 +235,11 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         Path path = Path.path(name);
         Pattern root = Pattern.compile("\\s*:(\\s*:)*\\s*");
         if (root.matcher(name).matches()) {
-            String message = String.format("Cannot locate %s that match '%s'. The path should include a task name (for example %s).", type, name, examplePaths());
-            ProblemId id = ProblemId.create("missing-task-name", "Missing task name", GradleCoreProblemGroup.taskSelection());
+            String message = String.format(
+                    "Cannot locate %s that match '%s'. The path should include a task name (for example %s).",
+                    type, name, examplePaths());
+            ProblemId id =
+                    ProblemId.create("missing-task-name", "Missing task name", GradleCoreProblemGroup.taskSelection());
             throw problemsService.getInternalReporter().throwing(new TaskSelectionException(message), id, spec -> {
                 configureProblem(spec, message, name);
             });
@@ -223,7 +258,9 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
                 }
             }
 
-            String message = String.format("Cannot locate %s that match '%s'. The path should not include an empty segment (try '%s' instead).", type, name, normalized);
+            String message = String.format(
+                    "Cannot locate %s that match '%s'. The path should not include an empty segment (try '%s' instead).",
+                    type, name, normalized);
             ProblemId id = ProblemId.create("empty-segments", "Empty segments", GradleCoreProblemGroup.taskSelection());
             throw problemsService.getInternalReporter().throwing(new TaskSelectionException(message), id, spec -> {
                 configureProblem(spec, message, name);
@@ -265,7 +302,8 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         final boolean includeSubprojects;
         final String taskName;
 
-        public ProjectResolutionResult(BuildState build, ProjectState project, boolean includeSubprojects, String taskName) {
+        public ProjectResolutionResult(
+                BuildState build, ProjectState project, boolean includeSubprojects, String taskName) {
             this.build = build;
             this.project = project;
             this.includeSubprojects = includeSubprojects;
@@ -286,7 +324,12 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         @Override
         public boolean isSatisfiedBy(Task element) {
             if (spec == null) {
-                spec = getSelectorForBuild(resolutionResult.build).getFilter(selection, resolutionResult.project, resolutionResult.taskName, resolutionResult.includeSubprojects);
+                spec = getSelectorForBuild(resolutionResult.build)
+                        .getFilter(
+                                selection,
+                                resolutionResult.project,
+                                resolutionResult.taskName,
+                                resolutionResult.includeSubprojects);
             }
             return spec.isSatisfiedBy(element);
         }

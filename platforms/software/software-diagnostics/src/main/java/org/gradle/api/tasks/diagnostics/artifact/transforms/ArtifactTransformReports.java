@@ -27,5 +27,4 @@ import org.gradle.api.tasks.diagnostics.ArtifactTransformsReportTask;
  * @since 8.13
  */
 @Incubating
-public interface ArtifactTransformReports extends ReportContainer<ConfigurableReport> {
-}
+public interface ArtifactTransformReports extends ReportContainer<ConfigurableReport> {}

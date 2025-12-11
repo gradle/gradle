@@ -18,6 +18,11 @@ package org.gradle.api.internal.file.copy;
 
 import com.google.common.annotations.VisibleForTesting;
 import groovy.lang.Closure;
+import java.io.FilterReader;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
@@ -33,12 +38,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.util.internal.ClosureBackedAction;
-
-import javax.inject.Inject;
-import java.io.FilterReader;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * Wraps another CopySpec impl, only exposing the CopySpec API.

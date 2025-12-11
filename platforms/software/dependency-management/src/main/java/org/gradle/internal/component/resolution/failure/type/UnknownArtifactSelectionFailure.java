@@ -27,8 +27,16 @@ import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelec
 public final class UnknownArtifactSelectionFailure extends AbstractArtifactSelectionFailure {
     private final Exception cause;
 
-    public UnknownArtifactSelectionFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, Exception cause) {
-        super(ResolutionFailureProblemId.UNKNOWN_ARTIFACT_SELECTION_FAILURE, targetComponent, targetVariant, requestedAttributes);
+    public UnknownArtifactSelectionFailure(
+            ComponentIdentifier targetComponent,
+            String targetVariant,
+            AttributeContainerInternal requestedAttributes,
+            Exception cause) {
+        super(
+                ResolutionFailureProblemId.UNKNOWN_ARTIFACT_SELECTION_FAILURE,
+                targetComponent,
+                targetVariant,
+                requestedAttributes);
         this.cause = cause;
     }
 

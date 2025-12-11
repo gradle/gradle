@@ -21,14 +21,13 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
-import org.gradle.api.artifacts.component.LibraryComponentSelector;
-import org.gradle.platform.base.Binary;
-import org.gradle.platform.base.VariantComponent;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.api.artifacts.component.LibraryComponentSelector;
+import org.gradle.platform.base.Binary;
+import org.gradle.platform.base.VariantComponent;
 
 /**
  * Intermediate data structure used to store the result of a resolution and help at building an understandable error message in case resolution fails.
@@ -95,8 +94,7 @@ public class LibraryResolutionResult {
         return Lists.newArrayList(libsMatchingRequirements.keySet());
     }
 
-    public String toResolutionErrorMessage(
-            LibraryComponentSelector selector) {
+    public String toResolutionErrorMessage(LibraryComponentSelector selector) {
         List<String> candidateLibraries = formatLibraryNames(getCandidateLibraries());
         String projectPath = selector.getProjectPath();
         String libraryName = selector.getLibraryName();
@@ -114,9 +112,10 @@ public class LibraryResolutionResult {
         } else {
             VariantComponent notMatchingRequirements = getNonMatchingLibrary();
             if (notMatchingRequirements != null) {
-                sb.append(" contains a library named '").append(libraryName)
-                    .append("' but it doesn't have any binary of type ")
-                    .append(binaryType.getSimpleName());
+                sb.append(" contains a library named '")
+                        .append(libraryName)
+                        .append("' but it doesn't have any binary of type ")
+                        .append(binaryType.getSimpleName());
             } else {
                 sb.append(" does not contain library '").append(libraryName).append("'. Did you want to use ");
                 if (candidateLibraries.size() == 1) {
@@ -131,7 +130,11 @@ public class LibraryResolutionResult {
         return sb.toString();
     }
 
-    public static LibraryResolutionResult of(Class<? extends Binary> binaryType, Collection<? extends VariantComponent> libraries, String libraryName, Predicate<? super VariantComponent> libraryFilter) {
+    public static LibraryResolutionResult of(
+            Class<? extends Binary> binaryType,
+            Collection<? extends VariantComponent> libraries,
+            String libraryName,
+            Predicate<? super VariantComponent> libraryFilter) {
         LibraryResolutionResult result = new LibraryResolutionResult(binaryType);
         for (VariantComponent librarySpec : libraries) {
             if (libraryFilter.apply(librarySpec)) {

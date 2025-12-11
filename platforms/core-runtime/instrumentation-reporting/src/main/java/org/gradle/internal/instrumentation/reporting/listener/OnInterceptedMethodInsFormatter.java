@@ -16,25 +16,33 @@
 
 package org.gradle.internal.instrumentation.reporting.listener;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
+import org.jspecify.annotations.Nullable;
 
 public class OnInterceptedMethodInsFormatter {
 
     @SuppressWarnings("unused")
-    public String format(@Nullable File source, String sourceFileName, String className, String methodCallOwner, String methodName, String methodDescriptor, int lineNumber) {
+    public String format(
+            @Nullable File source,
+            String sourceFileName,
+            String className,
+            String methodCallOwner,
+            String methodName,
+            String methodDescriptor,
+            int lineNumber) {
         String methodCallOwnerClassName = methodCallOwner.replace("/", ".");
         // Gradle Kotlin scripts have a weird class name so IntelliJ stacktrace parser doesn't parse them well
         className = sourceFileName.endsWith("gradle.kts")
-            ? sourceFileName.replace(".kts", "")
-            : className.replace("/", ".");
-        // Build scripts are all named the same, so IntelliJ jump-to-source functionality is not that useful, so let's use the path.
+                ? sourceFileName.replace(".kts", "")
+                : className.replace("/", ".");
+        // Build scripts are all named the same, so IntelliJ jump-to-source functionality is not that useful, so let's
+        // use the path.
         // Note: For other dependencies a source could be a jar, so using absolute path directly might not be useful.
         sourceFileName = source != null && isAnyBuildScript(sourceFileName)
-            ? "file://" + source.getAbsolutePath()
-            : sourceFileName;
-        return String.format("%s.%s(): at %s(%s:%d)", methodCallOwnerClassName, methodName, className, sourceFileName, lineNumber);
+                ? "file://" + source.getAbsolutePath()
+                : sourceFileName;
+        return String.format(
+                "%s.%s(): at %s(%s:%d)", methodCallOwnerClassName, methodName, className, sourceFileName, lineNumber);
     }
 
     private static boolean isAnyBuildScript(String sourceFileName) {

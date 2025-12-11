@@ -31,7 +31,8 @@ public final class OperationFinishEvent {
      * @param failure operation failure
      * @param result operation result
      */
-    public OperationFinishEvent(long startTime, long currentTime, @Nullable Throwable failure, @Nullable Object result) {
+    public OperationFinishEvent(
+            long startTime, long currentTime, @Nullable Throwable failure, @Nullable Object result) {
         this.startTime = startTime;
         this.endTime = currentTime;
         this.failure = failure;
@@ -58,11 +59,10 @@ public final class OperationFinishEvent {
 
     @Override
     public String toString() {
-        return "OperationFinishEvent{" +
-            "startTime=" + startTime +
-            ", endTime=" + endTime +
-            ", failure=" + failure +
-            ", result=" + result +
-            '}';
+        return "OperationFinishEvent{" + "startTime="
+                + startTime + ", endTime="
+                + endTime + ", failure="
+                + failure + ", result="
+                + result + '}';
     }
 }

@@ -16,12 +16,11 @@
 
 package gradlebuild.docs;
 
+import java.net.URI;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
-
-import java.net.URI;
 
 /**
  * Configuration for generating Javadocs

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -36,9 +38,6 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import javax.inject.Inject;
-import java.util.List;
-
 public abstract class DefaultVariant implements ConfigurationVariantInternal {
 
     private final String name;
@@ -52,21 +51,24 @@ public abstract class DefaultVariant implements ConfigurationVariantInternal {
 
     @Inject
     public DefaultVariant(
-        Describable parentDisplayName,
-        String name,
-        AttributeContainerInternal parentAttributes,
-        NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
-        FileCollectionFactory fileCollectionFactory,
-        AttributesFactory attributesFactory,
-        DomainObjectCollectionFactory domainObjectCollectionFactory,
-        TaskDependencyFactory taskDependencyFactory
-    ) {
+            Describable parentDisplayName,
+            String name,
+            AttributeContainerInternal parentAttributes,
+            NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+            FileCollectionFactory fileCollectionFactory,
+            AttributesFactory attributesFactory,
+            DomainObjectCollectionFactory domainObjectCollectionFactory,
+            TaskDependencyFactory taskDependencyFactory) {
         this.name = name;
         this.artifactNotationParser = artifactNotationParser;
 
         this.displayName = Describables.of(parentDisplayName, "variant", name);
         this.attributes = new FreezableAttributeContainer(attributesFactory.mutable(parentAttributes), displayName);
-        this.artifacts = new DefaultPublishArtifactSet(displayName, domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory, taskDependencyFactory);
+        this.artifacts = new DefaultPublishArtifactSet(
+                displayName,
+                domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class),
+                fileCollectionFactory,
+                taskDependencyFactory);
     }
 
     @Override

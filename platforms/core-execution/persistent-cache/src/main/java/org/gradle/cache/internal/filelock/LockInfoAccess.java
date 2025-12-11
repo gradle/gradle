@@ -16,9 +16,6 @@
 
 package org.gradle.cache.internal.filelock;
 
-import org.gradle.internal.file.RandomAccessFileInputStream;
-import org.gradle.internal.file.RandomAccessFileOutputStream;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -27,6 +24,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
+import org.gradle.internal.file.RandomAccessFileInputStream;
+import org.gradle.internal.file.RandomAccessFileOutputStream;
 
 public class LockInfoAccess {
     public static final int INFORMATION_REGION_SIZE = 2052;
@@ -43,10 +42,13 @@ public class LockInfoAccess {
         } else {
             lockFileAccess.seek(infoRegionPos);
 
-            DataInputStream inputStream = new DataInputStream(new BufferedInputStream(new RandomAccessFileInputStream(lockFileAccess)));
+            DataInputStream inputStream =
+                    new DataInputStream(new BufferedInputStream(new RandomAccessFileInputStream(lockFileAccess)));
             byte protocolVersion = inputStream.readByte();
             if (protocolVersion != lockInfoSerializer.getVersion()) {
-                throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file. Expected %s, found %s.", lockInfoSerializer.getVersion(), protocolVersion));
+                throw new IllegalStateException(String.format(
+                        "Unexpected lock protocol found in lock file. Expected %s, found %s.",
+                        lockInfoSerializer.getVersion(), protocolVersion));
             }
 
             return lockInfoSerializer.read(inputStream);
@@ -56,7 +58,8 @@ public class LockInfoAccess {
     public void writeLockInfo(RandomAccessFile lockFileAccess, LockInfo lockInfo) throws IOException {
         lockFileAccess.seek(infoRegionPos);
 
-        DataOutputStream outstr = new DataOutputStream(new BufferedOutputStream(new RandomAccessFileOutputStream(lockFileAccess)));
+        DataOutputStream outstr =
+                new DataOutputStream(new BufferedOutputStream(new RandomAccessFileOutputStream(lockFileAccess)));
         outstr.writeByte(lockInfoSerializer.getVersion());
         lockInfoSerializer.write(outstr, lockInfo);
         outstr.flush();
@@ -70,7 +73,8 @@ public class LockInfoAccess {
 
     public FileLockOutcome tryLock(RandomAccessFile lockFileAccess, boolean shared) throws IOException {
         try {
-            FileLock fileLock = lockFileAccess.getChannel().tryLock(infoRegionPos, INFORMATION_REGION_SIZE - infoRegionPos, shared);
+            FileLock fileLock =
+                    lockFileAccess.getChannel().tryLock(infoRegionPos, INFORMATION_REGION_SIZE - infoRegionPos, shared);
             if (fileLock == null) {
                 return FileLockOutcome.LOCKED_BY_ANOTHER_PROCESS;
             } else {
@@ -81,5 +85,4 @@ public class LockInfoAccess {
             return FileLockOutcome.LOCKED_BY_THIS_PROCESS;
         }
     }
-
 }

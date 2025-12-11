@@ -16,6 +16,9 @@
 
 package org.gradle.internal.instantiation.generator;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Set;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.cache.Cache;
 import org.gradle.cache.internal.ClassCacheFactory;
@@ -26,10 +29,6 @@ import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.generator.ClassGenerator.SerializationConstructor;
 import org.gradle.internal.service.ServiceLookup;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Set;
-
 class DefaultInstantiationScheme implements InstantiationScheme {
     private final DependencyInjectingInstantiator instantiator;
     private final ConstructorSelector constructorSelector;
@@ -39,28 +38,27 @@ class DefaultInstantiationScheme implements InstantiationScheme {
     private final ClassGenerator classGenerator;
 
     public DefaultInstantiationScheme(
-        ConstructorSelector constructorSelector,
-        ClassGenerator classGenerator,
-        ServiceLookup defaultServices,
-        Set<Class<? extends Annotation>> injectionAnnotations,
-        ClassCacheFactory cacheFactory
-    ) {
+            ConstructorSelector constructorSelector,
+            ClassGenerator classGenerator,
+            ServiceLookup defaultServices,
+            Set<Class<? extends Annotation>> injectionAnnotations,
+            ClassCacheFactory cacheFactory) {
         this(constructorSelector, classGenerator, defaultServices, injectionAnnotations, cacheFactory.newClassCache());
     }
 
     public DefaultInstantiationScheme(
-        ConstructorSelector constructorSelector,
-        ClassGenerator classGenerator,
-        ServiceLookup defaultServices,
-        Set<Class<? extends Annotation>> injectionAnnotations,
-        Cache<Class<?>, SerializationConstructor<?>> deserializationConstructorCache
-    ) {
+            ConstructorSelector constructorSelector,
+            ClassGenerator classGenerator,
+            ServiceLookup defaultServices,
+            Set<Class<? extends Annotation>> injectionAnnotations,
+            Cache<Class<?>, SerializationConstructor<?>> deserializationConstructorCache) {
         this.classGenerator = classGenerator;
         this.instantiator = new DependencyInjectingInstantiator(constructorSelector, defaultServices);
         this.constructorSelector = constructorSelector;
         this.injectionAnnotations = injectionAnnotations;
         this.deserializationConstructorCache = deserializationConstructorCache;
-        this.deserializationInstantiator = new DefaultDeserializationInstantiator(classGenerator, defaultServices, instantiator, deserializationConstructorCache);
+        this.deserializationInstantiator = new DefaultDeserializationInstantiator(
+                classGenerator, defaultServices, instantiator, deserializationConstructorCache);
     }
 
     @Override
@@ -75,7 +73,8 @@ class DefaultInstantiationScheme implements InstantiationScheme {
 
     @Override
     public InstantiationScheme withServices(ServiceLookup services) {
-        return new DefaultInstantiationScheme(constructorSelector, classGenerator, services, injectionAnnotations, deserializationConstructorCache);
+        return new DefaultInstantiationScheme(
+                constructorSelector, classGenerator, services, injectionAnnotations, deserializationConstructorCache);
     }
 
     @Override
@@ -94,7 +93,11 @@ class DefaultInstantiationScheme implements InstantiationScheme {
         private final InstanceGenerator nestedGenerator;
         private final Cache<Class<?>, SerializationConstructor<?>> constructorCache;
 
-        public DefaultDeserializationInstantiator(ClassGenerator classGenerator, ServiceLookup services, InstanceGenerator nestedGenerator, Cache<Class<?>, SerializationConstructor<?>> constructorCache) {
+        public DefaultDeserializationInstantiator(
+                ClassGenerator classGenerator,
+                ServiceLookup services,
+                InstanceGenerator nestedGenerator,
+                Cache<Class<?>, SerializationConstructor<?>> constructorCache) {
             this.classGenerator = classGenerator;
             this.services = services;
             this.nestedGenerator = nestedGenerator;
@@ -108,7 +111,8 @@ class DefaultInstantiationScheme implements InstantiationScheme {
 
         @Override
         public <T> T newInstance(Class<T> implType, Class<? super T> baseClass) {
-            // TODO - The baseClass can be inferred from the implType, so attach the serialization constructor onto the GeneratedClass rather than parameterizing and caching here
+            // TODO - The baseClass can be inferred from the implType, so attach the serialization constructor onto the
+            // GeneratedClass rather than parameterizing and caching here
             try {
                 SerializationConstructor<?> constructor = serializationConstructorFor(implType, baseClass);
                 return implType.cast(constructor.newInstance(services, nestedGenerator));
@@ -119,11 +123,10 @@ class DefaultInstantiationScheme implements InstantiationScheme {
             }
         }
 
-        private <T> SerializationConstructor<?> serializationConstructorFor(Class<T> implType, Class<? super T> baseClass) {
+        private <T> SerializationConstructor<?> serializationConstructorFor(
+                Class<T> implType, Class<? super T> baseClass) {
             return constructorCache.get(
-                implType,
-                () -> classGenerator.generate(implType).getSerializationConstructor(baseClass)
-            );
+                    implType, () -> classGenerator.generate(implType).getSerializationConstructor(baseClass));
         }
     }
 }

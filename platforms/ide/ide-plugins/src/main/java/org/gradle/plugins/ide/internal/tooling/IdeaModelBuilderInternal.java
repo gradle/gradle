@@ -31,5 +31,4 @@ public interface IdeaModelBuilderInternal extends ToolingModelBuilder {
      * @param project used to discover the root project to build the model for
      */
     DefaultIdeaProject buildForRoot(Project project, boolean offlineDependencyResolution);
-
 }

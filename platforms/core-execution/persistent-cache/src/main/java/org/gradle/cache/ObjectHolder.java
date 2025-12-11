@@ -52,5 +52,4 @@ public interface ObjectHolder<T> {
      * The result of the update is returned, which may not be the object returned by the update action.
      */
     T maybeUpdate(UpdateAction<T> updateAction);
-
 }

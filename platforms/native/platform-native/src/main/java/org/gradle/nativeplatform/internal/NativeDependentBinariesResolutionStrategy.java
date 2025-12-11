@@ -16,9 +16,26 @@
 
 package org.gradle.nativeplatform.internal;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Ordering;
+import java.io.StringWriter;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -41,24 +58,6 @@ import org.gradle.platform.base.internal.dependents.AbstractDependentBinariesRes
 import org.gradle.platform.base.internal.dependents.DefaultDependentBinariesResolvedResult;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
 import org.jspecify.annotations.Nullable;
-
-import java.io.StringWriter;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NativeDependentBinariesResolutionStrategy extends AbstractDependentBinariesResolutionStrategy {
 
@@ -98,17 +97,19 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     private final BuildProjectRegistry projectRegistry;
     private final ProjectModelResolver projectModelResolver;
     private final Cache<String, State> stateCache = CacheBuilder.newBuilder()
-        .maximumSize(1)
-        .expireAfterAccess(10, TimeUnit.SECONDS)
-        .build();
-    private final Cache<NativeBinarySpecInternal, List<DependentBinariesResolvedResult>> resultsCache = CacheBuilder.newBuilder()
-        .maximumSize(3000)
-        .expireAfterAccess(10, TimeUnit.SECONDS)
-        .build();
+            .maximumSize(1)
+            .expireAfterAccess(10, TimeUnit.SECONDS)
+            .build();
+    private final Cache<NativeBinarySpecInternal, List<DependentBinariesResolvedResult>> resultsCache =
+            CacheBuilder.newBuilder()
+                    .maximumSize(3000)
+                    .expireAfterAccess(10, TimeUnit.SECONDS)
+                    .build();
 
     private TestSupport testSupport;
 
-    public NativeDependentBinariesResolutionStrategy(BuildProjectRegistry projectRegistry, ProjectModelResolver projectModelResolver) {
+    public NativeDependentBinariesResolutionStrategy(
+            BuildProjectRegistry projectRegistry, ProjectModelResolver projectModelResolver) {
         super();
         checkNotNull(projectRegistry, "ProjectRegistry must not be null");
         checkNotNull(projectModelResolver, "ProjectModelResolver must not be null");
@@ -155,17 +156,22 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     private State buildState() {
         State state = new State();
 
-        List<ProjectInternal> orderedProjects = Ordering.usingToString().sortedCopy(projectRegistry.getAllProjects().stream().map(ProjectState::getMutableModel).collect(Collectors.toList()));
+        List<ProjectInternal> orderedProjects = Ordering.usingToString()
+                .sortedCopy(projectRegistry.getAllProjects().stream()
+                        .map(ProjectState::getMutableModel)
+                        .collect(Collectors.toList()));
         for (ProjectInternal project : orderedProjects) {
             if (project.getPlugins().hasPlugin(ComponentModelBasePlugin.class)) {
                 ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(project.getPath());
-                ModelMap<NativeComponentSpec> components = modelRegistry.realize("components", ModelTypes.modelMap(NativeComponentSpec.class));
+                ModelMap<NativeComponentSpec> components =
+                        modelRegistry.realize("components", ModelTypes.modelMap(NativeComponentSpec.class));
                 for (NativeBinarySpecInternal binary : allBinariesOf(components.withType(VariantComponentSpec.class))) {
                     state.registerBinary(binary);
                 }
                 ModelMap<Object> testSuites = modelRegistry.find("testSuites", ModelTypes.modelMap(Object.class));
                 if (testSuites != null) {
-                    for (NativeBinarySpecInternal binary : allBinariesOf(testSuites.withType(NativeComponentSpec.class).withType(VariantComponentSpec.class))) {
+                    for (NativeBinarySpecInternal binary : allBinariesOf(
+                            testSuites.withType(NativeComponentSpec.class).withType(VariantComponentSpec.class))) {
                         state.registerBinary(binary);
                     }
                 }
@@ -196,19 +202,22 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     private List<NativeBinarySpecInternal> allBinariesOf(ModelMap<VariantComponentSpec> components) {
         List<NativeBinarySpecInternal> binaries = new ArrayList<>();
         for (VariantComponentSpec nativeComponent : components) {
-            for (NativeBinarySpecInternal nativeBinary : nativeComponent.getBinaries().withType(NativeBinarySpecInternal.class)) {
+            for (NativeBinarySpecInternal nativeBinary :
+                    nativeComponent.getBinaries().withType(NativeBinarySpecInternal.class)) {
                 binaries.add(nativeBinary);
             }
         }
         return binaries;
     }
 
-    private List<DependentBinariesResolvedResult> buildResolvedResult(final NativeBinarySpecInternal target, State state) {
+    private List<DependentBinariesResolvedResult> buildResolvedResult(
+            final NativeBinarySpecInternal target, State state) {
         Deque<NativeBinarySpecInternal> stack = new ArrayDeque<NativeBinarySpecInternal>();
         return doBuildResolvedResult(target, state, stack);
     }
 
-    private List<DependentBinariesResolvedResult> doBuildResolvedResult(final NativeBinarySpecInternal target, State state, Deque<NativeBinarySpecInternal> stack) {
+    private List<DependentBinariesResolvedResult> doBuildResolvedResult(
+            final NativeBinarySpecInternal target, State state, Deque<NativeBinarySpecInternal> stack) {
         if (stack.contains(target)) {
             onCircularDependencies(state, stack, target);
         }
@@ -221,14 +230,20 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         List<NativeBinarySpecInternal> dependents = state.getDependents(target);
         for (NativeBinarySpecInternal dependent : dependents) {
             List<DependentBinariesResolvedResult> children = doBuildResolvedResult(dependent, state, stack);
-            result.add(new DefaultDependentBinariesResolvedResult(dependent.getId(), dependent.getProjectScopedName(), dependent.isBuildable(), isTestSuite(dependent), children));
+            result.add(new DefaultDependentBinariesResolvedResult(
+                    dependent.getId(),
+                    dependent.getProjectScopedName(),
+                    dependent.isBuildable(),
+                    isTestSuite(dependent),
+                    children));
         }
         stack.pop();
         resultsCache.put(target, result);
         return result;
     }
 
-    private void onCircularDependencies(final State state, final Deque<NativeBinarySpecInternal> stack, NativeBinarySpecInternal target) {
+    private void onCircularDependencies(
+            final State state, final Deque<NativeBinarySpecInternal> stack, NativeBinarySpecInternal target) {
         GraphNodeRenderer<NativeBinarySpecInternal> nodeRenderer = new GraphNodeRenderer<NativeBinarySpecInternal>() {
             @Override
             public void renderTo(NativeBinarySpecInternal node, StyledTextOutput output, boolean alreadySeen) {
@@ -236,19 +251,25 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
                 output.withStyle(StyledTextOutput.Style.Identifier).text(name);
             }
         };
-        DirectedGraph<NativeBinarySpecInternal, Object> directedGraph = new DirectedGraph<NativeBinarySpecInternal, Object>() {
-            @Override
-            public void getNodeValues(NativeBinarySpecInternal node, Collection<? super Object> values, Collection<? super NativeBinarySpecInternal> connectedNodes) {
-                for (NativeBinarySpecInternal binary : stack) {
-                    if (state.getDependents(node).contains(binary)) {
-                        connectedNodes.add(binary);
+        DirectedGraph<NativeBinarySpecInternal, Object> directedGraph =
+                new DirectedGraph<NativeBinarySpecInternal, Object>() {
+                    @Override
+                    public void getNodeValues(
+                            NativeBinarySpecInternal node,
+                            Collection<? super Object> values,
+                            Collection<? super NativeBinarySpecInternal> connectedNodes) {
+                        for (NativeBinarySpecInternal binary : stack) {
+                            if (state.getDependents(node).contains(binary)) {
+                                connectedNodes.add(binary);
+                            }
+                        }
                     }
-                }
-            }
-        };
-        DirectedGraphRenderer<NativeBinarySpecInternal> graphRenderer = new DirectedGraphRenderer<NativeBinarySpecInternal>(nodeRenderer, directedGraph);
+                };
+        DirectedGraphRenderer<NativeBinarySpecInternal> graphRenderer =
+                new DirectedGraphRenderer<NativeBinarySpecInternal>(nodeRenderer, directedGraph);
         StringWriter writer = new StringWriter();
         graphRenderer.renderTo(target, writer);
-        throw new CircularReferenceException(String.format("Circular dependency between the following binaries:%n%s", writer.toString()));
+        throw new CircularReferenceException(
+                String.format("Circular dependency between the following binaries:%n%s", writer.toString()));
     }
 }

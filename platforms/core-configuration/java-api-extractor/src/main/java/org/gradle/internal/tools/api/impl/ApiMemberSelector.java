@@ -16,6 +16,15 @@
 
 package org.gradle.internal.tools.api.impl;
 
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_PROTECTED;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.objectweb.asm.Opcodes.ACC_SUPER;
+
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.gradle.internal.tools.api.ApiMemberWriter;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
@@ -25,16 +34,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.TypePath;
-
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import static org.objectweb.asm.Opcodes.ACC_FINAL;
-import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
-import static org.objectweb.asm.Opcodes.ACC_PROTECTED;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
-import static org.objectweb.asm.Opcodes.ACC_SUPER;
 
 /**
  * Visits each {@link Member} of a given class and selects only those members that
@@ -57,7 +56,8 @@ public class ApiMemberSelector extends ClassVisitor {
     private ClassMember classMember;
     private boolean thisClassIsPrivateInnerClass;
 
-    public ApiMemberSelector(String className, ApiMemberWriter apiMemberWriter, boolean apiIncludesPackagePrivateMembers) {
+    public ApiMemberSelector(
+            String className, ApiMemberWriter apiMemberWriter, boolean apiIncludesPackagePrivateMembers) {
         super(Opcodes.ASM9);
         this.className = className;
         this.apiMemberWriter = apiMemberWriter;
@@ -69,7 +69,13 @@ public class ApiMemberSelector extends ClassVisitor {
     }
 
     @Override
-    public void visit(int version, int access, String name, @Nullable String signature, @Nullable String superName, @Nullable String[] interfaces) {
+    public void visit(
+            int version,
+            int access,
+            String name,
+            @Nullable String signature,
+            @Nullable String superName,
+            @Nullable String[] interfaces) {
         super.visit(version, access, name, signature, superName, interfaces);
         classMember = new ClassMember(version, access, name, signature, superName, interfaces);
         isInnerClass = (access & ACC_SUPER) == ACC_SUPER;
@@ -96,7 +102,8 @@ public class ApiMemberSelector extends ClassVisitor {
 
     @Nullable
     @Override
-    public MethodVisitor visitMethod(int access, String name, String desc, @Nullable String signature, @Nullable String[] exceptions) {
+    public MethodVisitor visitMethod(
+            int access, String name, String desc, @Nullable String signature, @Nullable String[] exceptions) {
         if ("<clinit>".equals(name)) {
             // discard static initializers
             return null;
@@ -113,10 +120,12 @@ public class ApiMemberSelector extends ClassVisitor {
                 }
 
                 @Override
-                public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
+                public AnnotationVisitor visitTypeAnnotation(
+                        int typeRef, TypePath typePath, String desc, boolean visible) {
                     TypeAnnotationMember ann = new TypeAnnotationMember(desc, visible, typeRef, typePath);
                     methodMember.addTypeAnnotation(ann);
-                    return new SortingAnnotationVisitor(ann, super.visitTypeAnnotation(typeRef, typePath, desc, visible));
+                    return new SortingAnnotationVisitor(
+                            ann, super.visitTypeAnnotation(typeRef, typePath, desc, visible));
                 }
 
                 @Override
@@ -137,9 +146,11 @@ public class ApiMemberSelector extends ClassVisitor {
 
     @Nullable
     @Override
-    public FieldVisitor visitField(int access, String name, String desc, @Nullable String signature, @Nullable Object value) {
+    public FieldVisitor visitField(
+            int access, String name, String desc, @Nullable String signature, @Nullable Object value) {
         if (isCandidateApiMember(access, apiIncludesPackagePrivateMembers)) {
-            Object keepValue = (access & ACC_STATIC) == ACC_STATIC && ((access & ACC_FINAL) == ACC_FINAL) ? value : null;
+            Object keepValue =
+                    (access & ACC_STATIC) == ACC_STATIC && ((access & ACC_FINAL) == ACC_FINAL) ? value : null;
             final FieldMember fieldMember = new FieldMember(access, name, signature, desc, keepValue);
             fields.add(fieldMember);
             return new FieldVisitor(Opcodes.ASM9) {
@@ -181,8 +192,8 @@ public class ApiMemberSelector extends ClassVisitor {
 
     public static boolean isCandidateApiMember(int access, boolean apiIncludesPackagePrivateMembers) {
         return isPublicMember(access)
-            || isProtectedMember(access)
-            || (apiIncludesPackagePrivateMembers && isPackagePrivateMember(access));
+                || isProtectedMember(access)
+                || (apiIncludesPackagePrivateMembers && isPackagePrivateMember(access));
     }
 
     private static boolean isPublicMember(int access) {
@@ -224,9 +235,7 @@ public class ApiMemberSelector extends ClassVisitor {
         @Override
         public AnnotationVisitor visitAnnotation(String name, String descriptor) {
             AnnotationMember annotation = new AnnotationMember(descriptor, true);
-            methodMember.setAnnotationDefaultValue(
-                new AnnotationAnnotationValue(nameOrValue(name), annotation)
-            );
+            methodMember.setAnnotationDefaultValue(new AnnotationAnnotationValue(nameOrValue(name), annotation));
             return new SortingAnnotationVisitor(annotation, super.visitAnnotation(name, descriptor));
         }
 

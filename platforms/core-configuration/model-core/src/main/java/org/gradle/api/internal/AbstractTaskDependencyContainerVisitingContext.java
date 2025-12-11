@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.jspecify.annotations.Nullable;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * A {@link TaskDependencyResolveContext} which visits incoming dependencies if they are {@link TaskDependencyContainer} instances.

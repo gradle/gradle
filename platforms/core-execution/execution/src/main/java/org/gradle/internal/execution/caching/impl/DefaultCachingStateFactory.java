@@ -35,13 +35,17 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
     }
 
     @Override
-    public final CachingState createCachingState(BeforeExecutionState beforeExecutionState, HashCode cacheKey, ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
+    public final CachingState createCachingState(
+            BeforeExecutionState beforeExecutionState,
+            HashCode cacheKey,
+            ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
         if (cachingDisabledReasons.isEmpty()) {
             return CachingState.enabled(new SimpleBuildCacheKey(cacheKey), beforeExecutionState);
         } else {
-            cachingDisabledReasons.forEach(reason ->
-                logger.warn("Non-cacheable because {} [{}]", reason.getMessage(), reason.getCategory()));
-            return CachingState.disabled(cachingDisabledReasons, new SimpleBuildCacheKey(cacheKey), beforeExecutionState);
+            cachingDisabledReasons.forEach(
+                    reason -> logger.warn("Non-cacheable because {} [{}]", reason.getMessage(), reason.getCategory()));
+            return CachingState.disabled(
+                    cachingDisabledReasons, new SimpleBuildCacheKey(cacheKey), beforeExecutionState);
         }
     }
 
@@ -49,28 +53,31 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
     public HashCode calculateCacheKey(BeforeExecutionState beforeExecutionState) {
         final Hasher cacheKeyHasher = Hashing.newHasher();
 
-        logger.warn("Appending implementation to build cache key: {}",
-            beforeExecutionState.getImplementation());
+        logger.warn("Appending implementation to build cache key: {}", beforeExecutionState.getImplementation());
         beforeExecutionState.getImplementation().appendToHasher(cacheKeyHasher);
 
         beforeExecutionState.getAdditionalImplementations().forEach(additionalImplementation -> {
-            logger.warn("Appending additional implementation to build cache key: {}",
-                additionalImplementation);
+            logger.warn("Appending additional implementation to build cache key: {}", additionalImplementation);
             additionalImplementation.appendToHasher(cacheKeyHasher);
         });
 
         beforeExecutionState.getInputProperties().forEach((propertyName, valueSnapshot) -> {
             if (logger.isWarnEnabled()) {
-                logger.warn("Appending input value fingerprint for '{}' to build cache key: {}",
-                    propertyName, Hashing.hashHashable(valueSnapshot));
+                logger.warn(
+                        "Appending input value fingerprint for '{}' to build cache key: {}",
+                        propertyName,
+                        Hashing.hashHashable(valueSnapshot));
             }
             cacheKeyHasher.putString(propertyName);
             valueSnapshot.appendToHasher(cacheKeyHasher);
         });
 
         beforeExecutionState.getInputFileProperties().forEach((propertyName, fingerprint) -> {
-            logger.warn("Appending input file fingerprints for '{}' to build cache key: {} - {}",
-                propertyName, fingerprint.getHash(), fingerprint);
+            logger.warn(
+                    "Appending input file fingerprints for '{}' to build cache key: {} - {}",
+                    propertyName,
+                    fingerprint.getHash(),
+                    fingerprint);
             cacheKeyHasher.putString(propertyName);
             cacheKeyHasher.putHash(fingerprint.getHash());
         });

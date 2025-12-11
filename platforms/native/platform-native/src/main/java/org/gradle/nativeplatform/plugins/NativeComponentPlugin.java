@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.plugins;
 
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -22,8 +23,6 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
-
-import javax.inject.Inject;
 
 /**
  * A plugin that creates tasks used for constructing native binaries.
@@ -49,5 +48,4 @@ public abstract class NativeComponentPlugin implements Plugin<Project> {
 
     @Inject
     protected abstract NativeToolChainRegistry getToolChains();
-
 }

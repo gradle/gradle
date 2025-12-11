@@ -38,5 +38,4 @@ public abstract class WindowsResourcesPlugin implements Plugin<Project> {
         project.getPluginManager().apply(NativeComponentModelPlugin.class);
         project.getPluginManager().apply(WindowsResourceScriptPlugin.class);
     }
-
 }

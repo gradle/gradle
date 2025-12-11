@@ -30,7 +30,8 @@ public class DefaultSwiftPlatform implements SwiftPlatform {
         this(targetMachine, sourceCompatibility, null);
     }
 
-    public DefaultSwiftPlatform(TargetMachine targetMachine, SwiftVersion sourceCompatibility, NativePlatform nativePlatform) {
+    public DefaultSwiftPlatform(
+            TargetMachine targetMachine, SwiftVersion sourceCompatibility, NativePlatform nativePlatform) {
         this.targetMachine = targetMachine;
         this.nativePlatform = nativePlatform;
         this.sourceCompatibility = sourceCompatibility;

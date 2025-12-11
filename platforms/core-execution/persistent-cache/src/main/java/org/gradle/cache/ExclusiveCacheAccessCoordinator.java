@@ -52,5 +52,4 @@ public interface ExclusiveCacheAccessCoordinator {
      * <p>This method is re-entrant, so that an action can call back into this method.</p>
      */
     void withFileLock(Runnable action);
-
 }

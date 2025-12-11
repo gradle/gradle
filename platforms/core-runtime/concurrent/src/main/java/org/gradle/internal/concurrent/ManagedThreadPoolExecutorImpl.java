@@ -22,7 +22,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class ManagedThreadPoolExecutorImpl extends AbstractManagedExecutor<ThreadPoolExecutor> implements ManagedThreadPoolExecutor {
+public class ManagedThreadPoolExecutorImpl extends AbstractManagedExecutor<ThreadPoolExecutor>
+        implements ManagedThreadPoolExecutor {
     public ManagedThreadPoolExecutorImpl(ThreadPoolExecutor delegate, ExecutorPolicy executorPolicy) {
         super(delegate, executorPolicy);
     }

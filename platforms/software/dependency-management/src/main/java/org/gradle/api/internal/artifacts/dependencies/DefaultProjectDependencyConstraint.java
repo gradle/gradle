@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import java.util.Collections;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -25,8 +26,6 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collections;
 
 /**
  * A limited use, project dependency constraint mostly aimed at publishing
@@ -77,12 +76,7 @@ public class DefaultProjectDependencyConstraint extends AbstractDependencyConstr
     @Override
     public VersionConstraint getVersionConstraint() {
         return new DefaultImmutableVersionConstraint(
-                "",
-                projectDependency.getVersion(),
-                "",
-                Collections.emptyList(),
-                ""
-        );
+                "", projectDependency.getVersion(), "", Collections.emptyList(), "");
     }
 
     @Override
@@ -103,7 +97,8 @@ public class DefaultProjectDependencyConstraint extends AbstractDependencyConstr
 
     @Override
     public boolean matchesStrictly(ModuleVersionIdentifier identifier) {
-        return identifier.getModule().equals(getModule()) && identifier.getVersion().equals(projectDependency.getVersion());
+        return identifier.getModule().equals(getModule())
+                && identifier.getVersion().equals(projectDependency.getVersion());
     }
 
     @Override

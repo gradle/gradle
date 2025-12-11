@@ -16,15 +16,14 @@
 
 package org.gradle.internal.remote.internal.inet;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides some information about the network addresses of the local machine.
@@ -74,10 +73,15 @@ class InetAddresses {
                 }
             }
         } catch (SocketException e) {
-            // Log the error but analyze the remaining interfaces. We could for example run into https://bugs.openjdk.java.net/browse/JDK-7032558
+            // Log the error but analyze the remaining interfaces. We could for example run into
+            // https://bugs.openjdk.java.net/browse/JDK-7032558
             logger.debug("Error while querying interface {} for IP addresses", networkInterface, e);
         } catch (Throwable e) {
-            throw new RuntimeException(String.format("Could not determine the IP addresses for network interface %s", networkInterface.getName()), e);
+            throw new RuntimeException(
+                    String.format(
+                            "Could not determine the IP addresses for network interface %s",
+                            networkInterface.getName()),
+                    e);
         }
     }
 

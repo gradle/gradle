@@ -20,5 +20,4 @@ package org.gradle.api.component;
  *
  * @since 2.0
  */
-public interface Component {
-}
+public interface Component {}

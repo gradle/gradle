@@ -17,6 +17,13 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import com.google.common.base.Throwables;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.internal.tasks.testing.AssertionFailureDetails;
 import org.gradle.api.internal.tasks.testing.AssumptionFailureDetails;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
@@ -69,14 +76,6 @@ import org.gradle.internal.serialize.SerializerRegistry;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 @NullMarked
 public class TestEventSerializer {
     public static SerializerRegistry create() {
@@ -88,7 +87,9 @@ public class TestEventSerializer {
         registry.register(DefaultNestedTestSuiteDescriptor.class, new DefaultNestedTestSuiteDescriptorSerializer());
         registry.register(DefaultParameterizedTestDescriptor.class, new DefaultParameterizedTestDescriptorSerializer());
         registry.register(DefaultTestSuiteDescriptor.class, new DefaultTestSuiteDescriptorSerializer());
-        registry.register(WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor.class, new WorkerTestSuiteDescriptorSerializer());
+        registry.register(
+                WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor.class,
+                new WorkerTestSuiteDescriptorSerializer());
         registry.register(DefaultTestClassDescriptor.class, new DefaultTestClassDescriptorSerializer());
         registry.register(DefaultTestMethodDescriptor.class, new DefaultTestMethodDescriptorSerializer());
         registry.register(DefaultTestDescriptor.class, new DefaultTestDescriptorSerializer());
@@ -169,7 +170,8 @@ public class TestEventSerializer {
     }
 
     private static class TestStartEventSerializer implements Serializer<TestStartEvent> {
-        final NullableSerializer<CompositeIdGenerator.CompositeId> idSerializer = new NullableSerializer<>(new IdSerializer());
+        final NullableSerializer<CompositeIdGenerator.CompositeId> idSerializer =
+                new NullableSerializer<>(new IdSerializer());
 
         @Override
         public TestStartEvent read(Decoder decoder) throws Exception {
@@ -187,7 +189,8 @@ public class TestEventSerializer {
 
     @NullMarked
     private static class TestMetadataEventSerializer implements Serializer<TestMetadataEvent> {
-        private final MapSerializer<String, String> mapSerializer = new MapSerializer<>(BaseSerializerFactory.STRING_SERIALIZER, BaseSerializerFactory.STRING_SERIALIZER);
+        private final MapSerializer<String, String> mapSerializer =
+                new MapSerializer<>(BaseSerializerFactory.STRING_SERIALIZER, BaseSerializerFactory.STRING_SERIALIZER);
         private final Serializer<Path> pathSerializer = BaseSerializerFactory.PATH_SERIALIZER;
 
         private static final int MAP_TYPE = 0;
@@ -202,7 +205,8 @@ public class TestEventSerializer {
                     Map<String, String> keyValues = mapSerializer.read(decoder);
                     return new DefaultTestKeyValueDataEvent(logTime, keyValues);
                 case FILE_ATTACHMENT_TYPE:
-                    return new DefaultTestFileAttachmentDataEvent(logTime, pathSerializer.read(decoder), decoder.readNullableString());
+                    return new DefaultTestFileAttachmentDataEvent(
+                            logTime, pathSerializer.read(decoder), decoder.readNullableString());
             }
             throw new IllegalStateException("Unknown type of test metadata: " + type);
         }
@@ -323,13 +327,17 @@ public class TestEventSerializer {
             // Order is important here because a file comparison is _also_ an assertion failure
             final TestFailureDetails details;
             if (isFileComparisonFailure) {
-                details = new FileComparisonFailureDetails(message, className, stacktrace, expected, actual, expectedContent, actualContent);
+                details = new FileComparisonFailureDetails(
+                        message, className, stacktrace, expected, actual, expectedContent, actualContent);
             } else if (isAssertionFailure) {
                 details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
             } else if (isAssumptionFailure) {
                 details = new AssumptionFailureDetails(message, className, stacktrace);
             } else if (rawFailure instanceof TestFailureSerializationException) {
-                details = new DefaultTestFailureDetails(rawFailure.getMessage(), rawFailure.getClass().getName(), Throwables.getStackTraceAsString(rawFailure));
+                details = new DefaultTestFailureDetails(
+                        rawFailure.getMessage(),
+                        rawFailure.getClass().getName(),
+                        Throwables.getStackTraceAsString(rawFailure));
             } else {
                 details = new DefaultTestFailureDetails(message, className, stacktrace);
             }
@@ -345,9 +353,12 @@ public class TestEventSerializer {
             String rawFailureName = decoder.readString();
             Throwable rawFailure;
             try {
-               rawFailure = throwableSerializer.read(decoder);
-            } catch(Exception e) {
-                rawFailure = new TestFailureSerializationException("An exception of type " + rawFailureName + " was thrown by the test, but Gradle was unable to recreate the exception in the build process", e);
+                rawFailure = throwableSerializer.read(decoder);
+            } catch (Exception e) {
+                rawFailure = new TestFailureSerializationException(
+                        "An exception of type " + rawFailureName
+                                + " was thrown by the test, but Gradle was unable to recreate the exception in the build process",
+                        e);
             }
             return rawFailure;
         }
@@ -425,7 +436,8 @@ public class TestEventSerializer {
         }
     }
 
-    private static class DefaultNestedTestSuiteDescriptorSerializer implements Serializer<DefaultNestedTestSuiteDescriptor> {
+    private static class DefaultNestedTestSuiteDescriptorSerializer
+            implements Serializer<DefaultNestedTestSuiteDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
         @Override
@@ -447,7 +459,8 @@ public class TestEventSerializer {
     }
 
     @NullMarked
-    private static class DefaultParameterizedTestDescriptorSerializer implements Serializer<DefaultParameterizedTestDescriptor> {
+    private static class DefaultParameterizedTestDescriptorSerializer
+            implements Serializer<DefaultParameterizedTestDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
         @Override
@@ -470,7 +483,8 @@ public class TestEventSerializer {
         }
     }
 
-    private static class WorkerTestSuiteDescriptorSerializer implements Serializer<WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor> {
+    private static class WorkerTestSuiteDescriptorSerializer
+            implements Serializer<WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
         @Override
@@ -481,7 +495,8 @@ public class TestEventSerializer {
         }
 
         @Override
-        public void write(Encoder encoder, WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor value) throws Exception {
+        public void write(Encoder encoder, WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor value)
+                throws Exception {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getName());
         }
@@ -551,7 +566,8 @@ public class TestEventSerializer {
                 encoder.writeString(methodSource.getClassName());
                 encoder.writeString(methodSource.getMethodName());
             } else {
-                throw new IllegalArgumentException("Unknown TestSource type: " + value.getClass().getName());
+                throw new IllegalArgumentException(
+                        "Unknown TestSource type: " + value.getClass().getName());
             }
         }
     }

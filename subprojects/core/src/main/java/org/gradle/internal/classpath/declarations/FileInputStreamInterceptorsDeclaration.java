@@ -16,40 +16,34 @@
 
 package org.gradle.internal.classpath.declarations;
 
+import java.io.File;
+import java.io.FileInputStream;
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind.AfterConstructor;
 import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receiver;
+import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
+import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
-@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificJvmCallInterceptors(
+        generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificGroovyCallInterceptors(
+        generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
 public class FileInputStreamInterceptorsDeclaration {
 
     @InterceptCalls
     @AfterConstructor
     public static void interceptFileInputStreamConstructor(
-        @Receiver FileInputStream receiver,
-        File file,
-        @CallerClassName String consumer
-    ) {
+            @Receiver FileInputStream receiver, File file, @CallerClassName String consumer) {
         Instrumented.fileOpened(file, consumer);
     }
 
     @InterceptCalls
     @AfterConstructor
     public static void interceptFileInputStreamConstructor(
-        @Receiver FileInputStream receiver,
-        String path,
-        @CallerClassName String consumer
-    ) {
+            @Receiver FileInputStream receiver, String path, @CallerClassName String consumer) {
         Instrumented.fileOpened(path, consumer);
     }
 }
-

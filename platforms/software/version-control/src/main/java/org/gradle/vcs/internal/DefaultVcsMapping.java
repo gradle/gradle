@@ -17,11 +17,10 @@
 package org.gradle.vcs.internal;
 
 import com.google.common.base.Preconditions;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.vcs.VersionControlSpec;
-
-import javax.inject.Inject;
 
 public class DefaultVcsMapping implements VcsMappingInternal {
     private final ComponentSelector requested;

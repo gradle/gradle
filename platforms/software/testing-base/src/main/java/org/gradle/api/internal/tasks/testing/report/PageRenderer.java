@@ -15,16 +15,15 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabbedPageRenderer;
 import org.gradle.reporting.TabsRenderer;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.Set;
 
 /**
  * @deprecated Only present for compatibility with cashapp/paparazzi. No replacement.
@@ -81,15 +80,18 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
         htmlWriter.startElement("ul").attribute("class", "linkList");
         for (TestResult test : failures) {
             htmlWriter.startElement("li");
-            htmlWriter.startElement("a")
-                .attribute("href", asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults())))
-                .characters(test.getClassResults().getReportName())
-                .endElement();
+            htmlWriter
+                    .startElement("a")
+                    .attribute("href", asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults())))
+                    .characters(test.getClassResults().getReportName())
+                    .endElement();
             htmlWriter.characters(".");
             String link = asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults())) + "#" + test.getName();
-            htmlWriter.startElement("a")
-                .attribute("href", link)
-                .characters(test.getDisplayName()).endElement();
+            htmlWriter
+                    .startElement("a")
+                    .attribute("href", link)
+                    .characters(test.getDisplayName())
+                    .endElement();
             htmlWriter.endElement();
         }
         htmlWriter.endElement();
@@ -138,25 +140,41 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
                 htmlWriter.startElement("tr");
                 htmlWriter.startElement("td");
                 htmlWriter.startElement("div").attribute("class", "infoBox").attribute("id", "tests");
-                htmlWriter.startElement("div").attribute("class", "counter").characters(Integer.toString(results.getTestCount())).endElement();
+                htmlWriter
+                        .startElement("div")
+                        .attribute("class", "counter")
+                        .characters(Integer.toString(results.getTestCount()))
+                        .endElement();
                 htmlWriter.startElement("p").characters("tests").endElement();
                 htmlWriter.endElement();
                 htmlWriter.endElement();
                 htmlWriter.startElement("td");
                 htmlWriter.startElement("div").attribute("class", "infoBox").attribute("id", "failures");
-                htmlWriter.startElement("div").attribute("class", "counter").characters(Integer.toString(results.getFailureCount())).endElement();
+                htmlWriter
+                        .startElement("div")
+                        .attribute("class", "counter")
+                        .characters(Integer.toString(results.getFailureCount()))
+                        .endElement();
                 htmlWriter.startElement("p").characters("failures").endElement();
                 htmlWriter.endElement();
                 htmlWriter.endElement();
                 htmlWriter.startElement("td");
                 htmlWriter.startElement("div").attribute("class", "infoBox").attribute("id", "ignored");
-                htmlWriter.startElement("div").attribute("class", "counter").characters(Integer.toString(results.getIgnoredCount())).endElement();
+                htmlWriter
+                        .startElement("div")
+                        .attribute("class", "counter")
+                        .characters(Integer.toString(results.getIgnoredCount()))
+                        .endElement();
                 htmlWriter.startElement("p").characters("ignored").endElement();
                 htmlWriter.endElement();
                 htmlWriter.endElement();
                 htmlWriter.startElement("td");
                 htmlWriter.startElement("div").attribute("class", "infoBox").attribute("id", "duration");
-                htmlWriter.startElement("div").attribute("class", "counter").characters(results.getFormattedDuration()).endElement();
+                htmlWriter
+                        .startElement("div")
+                        .attribute("class", "counter")
+                        .characters(results.getFormattedDuration())
+                        .endElement();
                 htmlWriter.startElement("p").characters("duration").endElement();
                 htmlWriter.endElement();
                 htmlWriter.endElement();
@@ -165,8 +183,15 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
                 htmlWriter.endElement();
                 htmlWriter.endElement();
                 htmlWriter.startElement("td");
-                htmlWriter.startElement("div").attribute("class", "infoBox " + results.getStatusClass()).attribute("id", "successRate");
-                htmlWriter.startElement("div").attribute("class", "percent").characters(results.getFormattedSuccessRate()).endElement();
+                htmlWriter
+                        .startElement("div")
+                        .attribute("class", "infoBox " + results.getStatusClass())
+                        .attribute("id", "successRate");
+                htmlWriter
+                        .startElement("div")
+                        .attribute("class", "percent")
+                        .characters(results.getFormattedSuccessRate())
+                        .endElement();
                 htmlWriter.startElement("p").characters("successful").endElement();
                 htmlWriter.endElement();
                 htmlWriter.endElement();

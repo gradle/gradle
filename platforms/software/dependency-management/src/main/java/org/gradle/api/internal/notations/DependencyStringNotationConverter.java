@@ -36,7 +36,8 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
     private final Interner<String> stringInterner;
     private final StrictVersionParser strictVersionParser;
 
-    public DependencyStringNotationConverter(Instantiator instantiator, Class<T> wantedType, Interner<String> stringInterner) {
+    public DependencyStringNotationConverter(
+            Instantiator instantiator, Class<T> wantedType, Interner<String> stringInterner) {
         this.instantiator = instantiator;
         this.wantedType = wantedType;
         this.stringInterner = stringInterner;
@@ -57,11 +58,17 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
 
         ParsedModuleStringNotation parsedNotation = splitModuleFromExtension(notation);
         StrictVersionParser.RichVersion version = strictVersionParser.parse(parsedNotation.getVersion());
-        T moduleDependency = instantiator.newInstance(wantedType,
-            stringInterner.intern(parsedNotation.getGroup()), stringInterner.intern(parsedNotation.getName()), stringInterner.intern(version.require));
+        T moduleDependency = instantiator.newInstance(
+                wantedType,
+                stringInterner.intern(parsedNotation.getGroup()),
+                stringInterner.intern(parsedNotation.getName()),
+                stringInterner.intern(version.require));
         maybeEnrichVersion(version, moduleDependency);
         if (moduleDependency instanceof ExternalDependency) {
-            ModuleFactoryHelper.addExplicitArtifactsIfDefined((ExternalDependency) moduleDependency, parsedNotation.getArtifactType(), parsedNotation.getClassifier());
+            ModuleFactoryHelper.addExplicitArtifactsIfDefined(
+                    (ExternalDependency) moduleDependency,
+                    parsedNotation.getArtifactType(),
+                    parsedNotation.getClassifier());
         }
 
         return moduleDependency;

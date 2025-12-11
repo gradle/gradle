@@ -16,7 +16,6 @@
 
 package org.gradle.api.file;
 
-
 /**
  * Describes file and directory access permissions for all classes of system users.
  * <p>
@@ -69,5 +68,4 @@ public interface FilePermissions {
      * See {@link ConfigurableFilePermissions#unix(int)} for details.
      */
     int toUnixNumeric();
-
 }

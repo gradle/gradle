@@ -29,12 +29,6 @@ public class UnderDevelopmentGradleDistribution extends DefaultGradleDistributio
     }
 
     public UnderDevelopmentGradleDistribution(IntegrationTestBuildContext buildContext, TestFile gradleHomeDir) {
-        super(
-            buildContext.getVersion(),
-            gradleHomeDir,
-            buildContext.getNormalizedBinDistribution()
-        );
+        super(buildContext.getVersion(), gradleHomeDir, buildContext.getNormalizedBinDistribution());
     }
-
 }
-

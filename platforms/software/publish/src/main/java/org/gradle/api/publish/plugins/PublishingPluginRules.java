@@ -41,12 +41,13 @@ class PublishingPluginRules extends RuleSource {
     }
 
     @Mutate
-    void addConfiguredPublicationsToProjectPublicationRegistry(ProjectPublicationRegistry projectPublicationRegistry, PublishingExtension extension) {
-        //this rule is just here to ensure backwards compatibility for builds that create publications with model rules
+    void addConfiguredPublicationsToProjectPublicationRegistry(
+            ProjectPublicationRegistry projectPublicationRegistry, PublishingExtension extension) {
+        // this rule is just here to ensure backwards compatibility for builds that create publications with model rules
     }
 
     @Mutate
     void tasksDependOnProjectPublicationRegistry(ModelMap<Task> tasks, PublishingExtension extension) {
-        //this rule is just here to ensure backwards compatibility for builds that create publications with model rules
+        // this rule is just here to ensure backwards compatibility for builds that create publications with model rules
     }
 }

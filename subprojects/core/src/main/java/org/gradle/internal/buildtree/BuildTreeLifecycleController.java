@@ -16,12 +16,11 @@
 
 package org.gradle.internal.buildtree;
 
+import java.util.function.Consumer;
+import java.util.function.Function;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.EntryTaskSelector;
-
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Controls the lifecycle of the build tree, allowing a single action to be run against the build tree.

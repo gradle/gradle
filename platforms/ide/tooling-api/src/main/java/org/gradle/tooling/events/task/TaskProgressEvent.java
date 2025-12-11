@@ -30,5 +30,4 @@ public interface TaskProgressEvent extends ProgressEvent {
      */
     @Override
     TaskOperationDescriptor getDescriptor();
-
 }

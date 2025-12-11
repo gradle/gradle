@@ -62,7 +62,6 @@ public class DefaultPluginId {
         DefaultPluginId pluginId = (DefaultPluginId) o;
 
         return value.equals(pluginId.value);
-
     }
 
     @Override

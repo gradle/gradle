@@ -40,16 +40,25 @@ public abstract class BuildDashboardPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
 
-        final TaskProvider<GenerateBuildDashboard> buildDashboard = project.getTasks().register(BUILD_DASHBOARD_TASK_NAME, GenerateBuildDashboard.class, new Action<GenerateBuildDashboard>() {
-            @Override
-            public void execute(final GenerateBuildDashboard buildDashboardTask) {
-                buildDashboardTask.setDescription("Generates a dashboard of all the reports produced by this build.");
-                buildDashboardTask.setGroup("reporting");
+        final TaskProvider<GenerateBuildDashboard> buildDashboard = project.getTasks()
+                .register(
+                        BUILD_DASHBOARD_TASK_NAME, GenerateBuildDashboard.class, new Action<GenerateBuildDashboard>() {
+                            @Override
+                            public void execute(final GenerateBuildDashboard buildDashboardTask) {
+                                buildDashboardTask.setDescription(
+                                        "Generates a dashboard of all the reports produced by this build.");
+                                buildDashboardTask.setGroup("reporting");
 
-                DirectoryReport htmlReport = buildDashboardTask.getReports().getHtml();
-                htmlReport.getOutputLocation().convention(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir("buildDashboard"));
-            }
-        });
+                                DirectoryReport htmlReport =
+                                        buildDashboardTask.getReports().getHtml();
+                                htmlReport
+                                        .getOutputLocation()
+                                        .convention(project.getExtensions()
+                                                .getByType(ReportingExtension.class)
+                                                .getBaseDirectory()
+                                                .dir("buildDashboard"));
+                            }
+                        });
 
         for (Project aProject : project.getAllprojects()) {
             aProject.getTasks().configureEach(new Action<Task>() {

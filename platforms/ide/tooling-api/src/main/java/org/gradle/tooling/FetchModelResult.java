@@ -16,11 +16,10 @@
 
 package org.gradle.tooling;
 
+import java.util.Collection;
 import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
 
 /**
  * Carries the result of a single model fetch operation.

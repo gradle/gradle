@@ -27,5 +27,4 @@ public final class DefaultTestSuccessResult extends DefaultOperationSuccessResul
     public DefaultTestSuccessResult(long startTime, long endTime) {
         super(startTime, endTime);
     }
-
 }

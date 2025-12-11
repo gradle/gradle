@@ -16,13 +16,12 @@
 
 package org.gradle.api.publish;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.jspecify.annotations.NullMarked;
-
-import javax.inject.Inject;
 
 /**
  * The configuration of how to "publish" the different components of a project.
@@ -124,6 +123,6 @@ public interface PublishingExtension {
      * @since 9.2.0
      */
     @Inject
-    @NullMarked SoftwareComponentFactory getSoftwareComponentFactory();
-
+    @NullMarked
+    SoftwareComponentFactory getSoftwareComponentFactory();
 }

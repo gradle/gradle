@@ -23,5 +23,9 @@ import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.jspecify.annotations.Nullable;
 
 public interface ComponentStateFactory<T extends ComponentResolutionState> {
-    T getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, @Nullable ComponentGraphResolveState state, @Nullable ComponentGraphSpecificResolveState graphState);
+    T getRevision(
+            ComponentIdentifier componentIdentifier,
+            ModuleVersionIdentifier id,
+            @Nullable ComponentGraphResolveState state,
+            @Nullable ComponentGraphSpecificResolveState graphState);
 }

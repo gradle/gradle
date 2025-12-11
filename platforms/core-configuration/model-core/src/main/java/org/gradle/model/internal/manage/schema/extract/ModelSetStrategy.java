@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.model.ModelSet;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
@@ -23,15 +24,12 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSetSchema;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
-
 public class ModelSetStrategy implements ModelSchemaExtractionStrategy {
 
     private final ModelType<?> modelType;
 
     public ModelSetStrategy() {
-        modelType = new ModelType<ModelSet<?>>() {
-        };
+        modelType = new ModelType<ModelSet<?>>() {};
     }
 
     @Override
@@ -43,13 +41,15 @@ public class ModelSetStrategy implements ModelSchemaExtractionStrategy {
                 return;
             }
             if (type.isHasWildcardTypeVariables()) {
-                extractionContext.add(String.format("type parameter of %s cannot be a wildcard", ModelSet.class.getName()));
+                extractionContext.add(
+                        String.format("type parameter of %s cannot be a wildcard", ModelSet.class.getName()));
                 return;
             }
 
             List<ModelType<?>> typeVariables = type.getTypeVariables();
             if (typeVariables.isEmpty()) {
-                extractionContext.add(String.format("type parameter of %s has to be specified", ModelSet.class.getName()));
+                extractionContext.add(
+                        String.format("type parameter of %s has to be specified", ModelSet.class.getName()));
                 return;
             }
 
@@ -58,7 +58,8 @@ public class ModelSetStrategy implements ModelSchemaExtractionStrategy {
         }
     }
 
-    private <T, E> ModelSchema<T> getModelSchema(final ModelSchemaExtractionContext<T> extractionContext, final ModelType<E> elementType) {
+    private <T, E> ModelSchema<T> getModelSchema(
+            final ModelSchemaExtractionContext<T> extractionContext, final ModelType<E> elementType) {
         final CollectionSchema<T, E> schema = new ModelSetSchema<T, E>(extractionContext.getType(), elementType);
         extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
             @Override

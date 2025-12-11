@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.fixtures.versions;
 
-import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Properties;
+import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 
 public class ClasspathVersionSource implements Factory<Properties> {
 
@@ -42,11 +41,9 @@ public class ClasspathVersionSource implements Factory<Properties> {
     public Properties create() {
         URL resource = classLoader.getResource(resourceName);
         if (resource == null) {
-            throw new RuntimeException(
-                    "Unable to find the released versions information.\n"
-                            + "The resource '" + resourceName + "' was not found.\n"
-                            + "Most likely, you haven't run the 'prepareVersionsInfo' task.\n"
-            );
+            throw new RuntimeException("Unable to find the released versions information.\n"
+                    + "The resource '" + resourceName + "' was not found.\n"
+                    + "Most likely, you haven't run the 'prepareVersionsInfo' task.\n");
         }
 
         try {

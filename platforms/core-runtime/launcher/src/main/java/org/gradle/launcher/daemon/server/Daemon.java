@@ -15,6 +15,17 @@
  */
 package org.gradle.launcher.daemon.server;
 
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.IMMEDIATE_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE;
+
+import java.security.SecureRandom;
+import java.util.Date;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -34,18 +45,6 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
-
-import java.security.SecureRandom;
-import java.util.Date;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE;
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.IMMEDIATE_EXPIRE;
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE;
 
 /**
  * A long-lived build server that accepts commands via a communication channel.
@@ -80,7 +79,13 @@ public class Daemon implements Stoppable {
      * @param connector The provider of server connections for this daemon
      * @param daemonRegistry The registry that this daemon should advertise itself in
      */
-    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory, ListenerManager listenerManager) {
+    public Daemon(
+            DaemonServerConnector connector,
+            DaemonRegistry daemonRegistry,
+            DaemonContext daemonContext,
+            DaemonCommandExecuter commandExecuter,
+            ExecutorFactory executorFactory,
+            ListenerManager listenerManager) {
         this.connector = connector;
         this.daemonRegistry = daemonRegistry;
         this.daemonContext = daemonContext;
@@ -132,7 +137,9 @@ public class Daemon implements Stoppable {
                     try {
                         daemonRegistry.remove(connectorAddress);
                     } catch (Exception e) {
-                        LOGGER.debug("VM shutdown hook was unable to remove the daemon address from the registry. It will be cleaned up later.", e);
+                        LOGGER.debug(
+                                "VM shutdown hook was unable to remove the daemon address from the registry. It will be cleaned up later.",
+                                e);
                     }
                 }
             });
@@ -164,8 +171,10 @@ public class Daemon implements Stoppable {
             // 3. start accepting incoming connections
             // 4. advertise presence in registry
 
-            stateCoordinator = new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand, onCancelCommand);
-            connectionHandler = new DefaultIncomingConnectionHandler(commandExecuter, daemonContext, stateCoordinator, executorFactory, token);
+            stateCoordinator =
+                    new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand, onCancelCommand);
+            connectionHandler = new DefaultIncomingConnectionHandler(
+                    commandExecuter, daemonContext, stateCoordinator, executorFactory, token);
             Runnable connectionErrorHandler = new Runnable() {
                 @Override
                 public void run() {
@@ -213,9 +222,11 @@ public class Daemon implements Stoppable {
             // 1. mark daemon as stopped, so that any incoming requests will be rejected with 'daemon unavailable'
             // 2. remove presence from registry
             // 3. stop accepting new connections
-            // 4. wait for commands in progress to finish (except for abandoned long running commands, like running a build)
+            // 4. wait for commands in progress to finish (except for abandoned long running commands, like running a
+            // build)
 
-            CompositeStoppable.stoppable(stateCoordinator, registryUpdater, connector, connectionHandler).stop();
+            CompositeStoppable.stoppable(stateCoordinator, registryUpdater, connector, connectionHandler)
+                    .stop();
         } finally {
             lifecycleLock.unlock();
         }
@@ -228,9 +239,11 @@ public class Daemon implements Stoppable {
     }
 
     private void scheduleExpirationChecks(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
-        DaemonExpirationPeriodicCheck periodicCheck = new DaemonExpirationPeriodicCheck(expirationStrategy, listenerManager);
+        DaemonExpirationPeriodicCheck periodicCheck =
+                new DaemonExpirationPeriodicCheck(expirationStrategy, listenerManager);
         listenerManager.addListener(new DefaultDaemonExpirationListener(stateCoordinator, registryUpdater));
-        ScheduledFuture<?> ignored = scheduledExecutorService.scheduleAtFixedRate(periodicCheck, checkIntervalMills, checkIntervalMills, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> ignored = scheduledExecutorService.scheduleAtFixedRate(
+                periodicCheck, checkIntervalMills, checkIntervalMills, TimeUnit.MILLISECONDS);
     }
 
     /**

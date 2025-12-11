@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.file;
 
+import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.file.Stat;
-
-import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultFileVisitDetails extends DefaultFileTreeElement implements FileVisitDetails {
     private final AtomicBoolean stop;

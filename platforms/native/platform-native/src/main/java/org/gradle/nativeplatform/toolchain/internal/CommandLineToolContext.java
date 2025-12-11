@@ -16,12 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.api.Action;
-import org.gradle.internal.operations.logging.BuildOperationLogger;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import org.gradle.api.Action;
+import org.gradle.internal.operations.logging.BuildOperationLogger;
 
 public interface CommandLineToolContext {
     List<File> getPath();
@@ -30,7 +29,9 @@ public interface CommandLineToolContext {
 
     Action<List<String>> getArgAction();
 
-    CommandLineToolInvocation createInvocation(String description, File workingDirectory, Iterable<String> args, BuildOperationLogger oplogger);
-    CommandLineToolInvocation createInvocation(String description, Iterable<String> args, BuildOperationLogger oplogger);
+    CommandLineToolInvocation createInvocation(
+            String description, File workingDirectory, Iterable<String> args, BuildOperationLogger oplogger);
 
+    CommandLineToolInvocation createInvocation(
+            String description, Iterable<String> args, BuildOperationLogger oplogger);
 }

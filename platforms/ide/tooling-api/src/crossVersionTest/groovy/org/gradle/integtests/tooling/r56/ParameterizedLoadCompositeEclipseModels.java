@@ -15,16 +15,15 @@
  */
 package org.gradle.integtests.tooling.r56;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import org.gradle.api.Action;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.eclipse.EclipseRuntime;
 import org.gradle.tooling.model.eclipse.EclipseWorkspace;
 import org.gradle.tooling.model.gradle.GradleBuild;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
 
 public class ParameterizedLoadCompositeEclipseModels<T> implements BuildAction<Collection<T>>, Serializable {
 
@@ -45,7 +44,8 @@ public class ParameterizedLoadCompositeEclipseModels<T> implements BuildAction<C
 
     private void collectRootModels(BuildController controller, GradleBuild build, Collection<T> models) {
         if (workspace != null) {
-            models.add(controller.getModel(build.getRootProject(), modelClass, EclipseRuntime.class, new EclipseRuntimeAction(workspace)));
+            models.add(controller.getModel(
+                    build.getRootProject(), modelClass, EclipseRuntime.class, new EclipseRuntimeAction(workspace)));
         } else {
             models.add(controller.getModel(build.getRootProject(), modelClass));
         }

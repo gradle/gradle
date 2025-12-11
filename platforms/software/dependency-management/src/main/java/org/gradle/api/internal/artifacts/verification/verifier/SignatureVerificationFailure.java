@@ -15,6 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.verification.verifier;
 
+import java.io.File;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -23,17 +27,13 @@ import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 public class SignatureVerificationFailure extends AbstractVerificationFailure {
     private final Map<String, SignatureError> errors;
     private final PublicKeyService keyService;
     private final File signatureFile;
 
-    public SignatureVerificationFailure(File affectedFile, File signatureFile, Map<String, SignatureError> errors, PublicKeyService keyService) {
+    public SignatureVerificationFailure(
+            File affectedFile, File signatureFile, Map<String, SignatureError> errors, PublicKeyService keyService) {
         super(affectedFile);
         this.errors = errors;
         this.keyService = keyService;
@@ -52,16 +52,16 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
     @Override
     public void explainTo(TreeFormatter formatter) {
         if (errors.size() == 1) {
-            Map.Entry<String, SignatureError> entry = errors.entrySet().iterator().next();
+            Map.Entry<String, SignatureError> entry =
+                    errors.entrySet().iterator().next();
             formatter.append(toMessage(entry.getKey(), entry.getValue()));
             return;
         }
         formatter.append("Multiple signature verification errors found");
         formatter.startChildren();
-        errors.entrySet()
-            .stream()
-            .sorted(Map.Entry.comparingByKey())
-            .forEachOrdered(entry -> formatter.node(toMessage(entry.getKey(), entry.getValue())));
+        errors.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEachOrdered(entry -> formatter.node(toMessage(entry.getKey(), entry.getValue())));
         formatter.endChildren();
     }
 
@@ -115,9 +115,7 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
             }
 
             @Override
-            public void publicKey(PGPPublicKey publicKey) {
-
-            }
+            public void publicKey(PGPPublicKey publicKey) {}
         });
     }
 

@@ -16,23 +16,23 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import static org.gradle.buildinit.plugins.internal.NamespaceBuilder.toNamespace;
+
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.gradle.buildinit.plugins.internal.NamespaceBuilder.toNamespace;
-
 public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
     private final TemplateOperationFactory templateOperationFactory;
     private final DocumentationRegistry documentationRegistry;
 
-    public CppProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
+    public CppProjectInitDescriptor(
+            TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
         this.templateOperationFactory = templateOperationFactory;
         this.documentationRegistry = documentationRegistry;
     }
@@ -43,16 +43,18 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generateProjectBuildScript(
+            String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
-            .fileComment("This generated file contains a sample C++ project to get you started.")
-            .fileComment(documentationRegistry.getDocumentationRecommendationFor("details on building C++ applications and libraries", "building_cpp_projects"));
+                .fileComment("This generated file contains a sample C++ project to get you started.")
+                .fileComment(documentationRegistry.getDocumentationRecommendationFor(
+                        "details on building C++ applications and libraries", "building_cpp_projects"));
         configureBuildScript(settings, buildScriptBuilder);
     }
 
     @Override
-    public void generateConventionPluginBuildScript(String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-    }
+    public void generateConventionPluginBuildScript(
+            String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {}
 
     @Override
     public void generateSources(InitSettings settings, TemplateFactory templateFactory) {
@@ -60,7 +62,9 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
         TemplateOperation headerTemplate = headerTemplateOperation(settings);
         TemplateOperation testSourceTemplate = testTemplateOperation(settings);
 
-        templateFactory.whenNoSourcesAvailable(sourceTemplate, headerTemplate, testSourceTemplate).generate();
+        templateFactory
+                .whenNoSourcesAvailable(sourceTemplate, headerTemplate, testSourceTemplate)
+                .generate();
     }
 
     @Override
@@ -75,7 +79,8 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
 
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
-        return Optional.of(documentationRegistry.getSampleForMessage("building_cpp_" + getComponentType().pluralName()));
+        return Optional.of(documentationRegistry.getSampleForMessage(
+                "building_cpp_" + getComponentType().pluralName()));
     }
 
     protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);
@@ -84,8 +89,7 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
 
     protected abstract TemplateOperation testTemplateOperation(InitSettings settings);
 
-    protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-    }
+    protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {}
 
     @Override
     public boolean supportsPackage() {
@@ -124,23 +128,31 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     TemplateOperation fromCppTemplate(String template, InitSettings settings, String sourceSetName, String sourceDir) {
-        String targetFileName = template.substring(template.lastIndexOf("/") + 1).replace(".template", "");
+        String targetFileName =
+                template.substring(template.lastIndexOf("/") + 1).replace(".template", "");
         return fromCppTemplate(template, targetFileName, settings, sourceSetName, sourceDir);
     }
 
-    TemplateOperation fromCppTemplate(String template, String targetFileName, InitSettings settings, String sourceSetName, String sourceDir) {
+    TemplateOperation fromCppTemplate(
+            String template, String targetFileName, InitSettings settings, String sourceSetName, String sourceDir) {
         if (settings == null || settings.getProjectName().isEmpty()) {
             throw new IllegalArgumentException("Project name cannot be empty for a C++ project");
         }
 
         String namespace = toNamespace(settings.getProjectName());
 
-        return templateOperationFactory.newTemplateOperation()
-            .withTemplate(template)
-            .withTarget(settings.getTarget().file(settings.getSubprojects().get(0) + "/src/" + sourceSetName + "/" + sourceDir + "/" + targetFileName).getAsFile())
-            .withBinding("projectName", settings.getProjectName())
-            .withBinding("namespace", namespace)
-            .withBinding("fileComment", settings.isWithComments() ? "This source file was generated by the Gradle 'init' task" : "")
-            .create();
+        return templateOperationFactory
+                .newTemplateOperation()
+                .withTemplate(template)
+                .withTarget(settings.getTarget()
+                        .file(settings.getSubprojects().get(0) + "/src/" + sourceSetName + "/" + sourceDir + "/"
+                                + targetFileName)
+                        .getAsFile())
+                .withBinding("projectName", settings.getProjectName())
+                .withBinding("namespace", namespace)
+                .withBinding(
+                        "fileComment",
+                        settings.isWithComments() ? "This source file was generated by the Gradle 'init' task" : "")
+                .create();
     }
 }

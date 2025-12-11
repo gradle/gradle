@@ -18,6 +18,12 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Resources;
 import com.google.common.net.UrlEscapers;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
@@ -30,27 +36,20 @@ import org.gradle.reporting.TabbedPageRenderer;
 import org.gradle.reporting.TabsRenderer;
 import org.gradle.util.Path;
 
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
-
 final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     private static final URL STYLE_URL = Resources.getResource(GenericPageRenderer.class, "style.css");
 
     public static String getUrlTo(
-        Path originatingPath, boolean isOriginatingPathLeaf,
-        Path targetPath, boolean isTargetPathLeaf
-    ) {
+            Path originatingPath, boolean isOriginatingPathLeaf, Path targetPath, boolean isTargetPathLeaf) {
         if (originatingPath.equals(targetPath) && isOriginatingPathLeaf == isTargetPathLeaf) {
             return "#";
         }
         // We know we're emitting to the file system, so let's just use NIO Path to do the path manipulation.
         // We need the `.` for relative resolution to work properly
-        java.nio.file.Path relativePath = Paths.get("./" + GenericHtmlTestReportGenerator.getFilePath(originatingPath, isOriginatingPathLeaf)).getParent()
-            .relativize(Paths.get("./" + GenericHtmlTestReportGenerator.getFilePath(targetPath, isTargetPathLeaf)));
+        java.nio.file.Path relativePath = Paths.get(
+                        "./" + GenericHtmlTestReportGenerator.getFilePath(originatingPath, isOriginatingPathLeaf))
+                .getParent()
+                .relativize(Paths.get("./" + GenericHtmlTestReportGenerator.getFilePath(targetPath, isTargetPathLeaf)));
         // Escape things that aren't `/` for the URL
         StringBuilder url = new StringBuilder();
         for (java.nio.file.Path segment : relativePath) {
@@ -64,10 +63,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     private final List<TestOutputReader> outputReaders;
     private final List<String> rootDisplayNames;
 
-    GenericPageRenderer(
-        List<TestOutputReader> outputReaders,
-        List<String> rootDisplayNames
-    ) {
+    GenericPageRenderer(List<TestOutputReader> outputReaders, List<String> rootDisplayNames) {
         this.outputReaders = outputReaders;
         this.rootDisplayNames = rootDisplayNames;
     }
@@ -80,20 +76,19 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
         htmlWriter.startElement("div").attribute("class", "breadcrumbs");
         for (Path ancestorPath : path.ancestors()) {
             String title = ancestorPath.equals(Path.ROOT) ? "all" : ancestorPath.getName();
-            htmlWriter.startElement("a")
-                .attribute("class", "breadcrumb")
-                .attribute("href", getUrlTo(
-                    path, getModel().getChildren().isEmpty(),
-                    ancestorPath, false
-                ))
-                .characters(title)
-                .endElement();
+            htmlWriter
+                    .startElement("a")
+                    .attribute("class", "breadcrumb")
+                    .attribute("href", getUrlTo(path, getModel().getChildren().isEmpty(), ancestorPath, false))
+                    .characters(title)
+                    .endElement();
             htmlWriter.characters(" > ");
         }
-        htmlWriter.startElement("span")
-            .attribute("class", "breadcrumb")
-            .characters(path.getName())
-            .endElement();
+        htmlWriter
+                .startElement("span")
+                .attribute("class", "breadcrumb")
+                .characters(path.getName())
+                .endElement();
         htmlWriter.endElement();
     }
 
@@ -163,17 +158,26 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                     }
                 }
                 if (hasStdout) {
-                    perRootInfoTabsRenderer.add("standard output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdOut));
+                    perRootInfoTabsRenderer.add(
+                            "standard output",
+                            new PerRootTabRenderer.ForOutput(
+                                    rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdOut));
                 }
                 if (hasStderr) {
-                    perRootInfoTabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdErr));
+                    perRootInfoTabsRenderer.add(
+                            "error output",
+                            new PerRootTabRenderer.ForOutput(
+                                    rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdErr));
                 }
-                // TODO: This should be handled differently so that the renders know what to expect vs the GenericPageRenderer doing something special
+                // TODO: This should be handled differently so that the renders know what to expect vs the
+                // GenericPageRenderer doing something special
                 if (Iterables.any(info.getMetadatas(), event -> event instanceof DefaultTestKeyValueDataEvent)) {
-                    perRootInfoTabsRenderer.add("data", new PerRootTabRenderer.ForKeyValues(rootIndex, perRootInfoIndex));
+                    perRootInfoTabsRenderer.add(
+                            "data", new PerRootTabRenderer.ForKeyValues(rootIndex, perRootInfoIndex));
                 }
                 if (Iterables.any(info.getMetadatas(), event -> event instanceof DefaultTestFileAttachmentDataEvent)) {
-                    perRootInfoTabsRenderer.add("attachments", new PerRootTabRenderer.ForFileAttachments(rootIndex, perRootInfoIndex));
+                    perRootInfoTabsRenderer.add(
+                            "attachments", new PerRootTabRenderer.ForFileAttachments(rootIndex, perRootInfoIndex));
                 }
 
                 perRootInfoTabsRenderers.add(perRootInfoTabsRenderer);
@@ -189,14 +193,16 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                     directlyBelowRootTabsRenderer.add("run " + (i + 1), perRootInfoTabsRenderers.get(i));
                 }
             }
-            rootTabsRenderer.add(rootDisplayNames.get(rootIndex), new ReportRenderer<TestTreeModel, SimpleHtmlWriter>() {
-                @Override
-                public void render(TestTreeModel model, SimpleHtmlWriter output) throws IOException {
-                    String displayName = SerializableTestResult.getCombinedDisplayName(infos.get(0).getResults());
-                    output.startElement("h1").characters(displayName).endElement();
-                    directlyBelowRootTabsRenderer.render(model, output);
-                }
-            });
+            rootTabsRenderer.add(
+                    rootDisplayNames.get(rootIndex), new ReportRenderer<TestTreeModel, SimpleHtmlWriter>() {
+                        @Override
+                        public void render(TestTreeModel model, SimpleHtmlWriter output) throws IOException {
+                            String displayName = SerializableTestResult.getCombinedDisplayName(
+                                    infos.get(0).getResults());
+                            output.startElement("h1").characters(displayName).endElement();
+                            directlyBelowRootTabsRenderer.render(model, output);
+                        }
+                    });
         }
         return rootTabsRenderer;
     }

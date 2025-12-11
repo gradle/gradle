@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
@@ -32,8 +33,6 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import java.util.List;
-
 public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails {
     private final MutableModuleComponentResolveMetadata metadata;
     private final Instantiator instantiator;
@@ -42,11 +41,13 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     private final NotationParser<Object, ComponentIdentifier> componentIdentifierParser;
     private final PlatformSupport platformSupport;
 
-    public ComponentMetadataDetailsAdapter(MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
-                                           NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
-                                           NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser,
-                                           NotationParser<Object, ComponentIdentifier> dependencyNotationParser,
-                                           PlatformSupport platformSupport) {
+    public ComponentMetadataDetailsAdapter(
+            MutableModuleComponentResolveMetadata metadata,
+            Instantiator instantiator,
+            NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
+            NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser,
+            NotationParser<Object, ComponentIdentifier> dependencyNotationParser,
+            PlatformSupport platformSupport) {
         this.metadata = metadata;
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
@@ -92,12 +93,24 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
 
     @Override
     public void withVariant(String name, Action<? super VariantMetadata> action) {
-        action.execute(instantiator.newInstance(VariantMetadataAdapter.class, name, metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
+        action.execute(instantiator.newInstance(
+                VariantMetadataAdapter.class,
+                name,
+                metadata,
+                instantiator,
+                dependencyMetadataNotationParser,
+                dependencyConstraintMetadataNotationParser));
     }
 
     @Override
     public void allVariants(Action<? super VariantMetadata> action) {
-        action.execute(instantiator.newInstance(VariantMetadataAdapter.class, null, metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
+        action.execute(instantiator.newInstance(
+                VariantMetadataAdapter.class,
+                null,
+                metadata,
+                instantiator,
+                dependencyMetadataNotationParser,
+                dependencyConstraintMetadataNotationParser));
     }
 
     @Override
@@ -137,18 +150,19 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
 
     private void addPlatformDependencyToAllVariants(ModuleComponentIdentifier platformId) {
         allVariants(v -> v.withDependencies(dependencies -> {
-            String dependencyNotation = platformId.getGroup() + ":" + platformId.getModule() + ":" + platformId.getVersion();
-            dependencies.add(dependencyNotation, platformDependency ->
-                platformDependency.attributes(attributes ->
-                    attributes.attribute(Category.CATEGORY_ATTRIBUTE, platformSupport.getRegularPlatformCategory())
-                )
-            );
+            String dependencyNotation =
+                    platformId.getGroup() + ":" + platformId.getModule() + ":" + platformId.getVersion();
+            dependencies.add(
+                    dependencyNotation,
+                    platformDependency -> platformDependency.attributes(attributes -> attributes.attribute(
+                            Category.CATEGORY_ATTRIBUTE, platformSupport.getRegularPlatformCategory())));
         }));
     }
 
     @Override
     public ComponentMetadataDetails attributes(Action<? super AttributeContainer> action) {
-        AttributeContainer attributes = metadata.getAttributesFactory().mutable((AttributeContainerInternal) metadata.getAttributes());
+        AttributeContainer attributes =
+                metadata.getAttributesFactory().mutable((AttributeContainerInternal) metadata.getAttributes());
         action.execute(attributes);
         metadata.setAttributes(attributes);
         return this;
@@ -163,5 +177,4 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     public String toString() {
         return metadata.getModuleVersionId().toString();
     }
-
 }

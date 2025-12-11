@@ -39,8 +39,8 @@ public abstract class Cast {
             return outputType.cast(object);
         } catch (ClassCastException e) {
             throw new ClassCastException(String.format(
-                    "Failed to cast object %s of type %s to target type %s", object, object.getClass().getName(), outputType.getName()
-            ));
+                    "Failed to cast object %s of type %s to target type %s",
+                    object, object.getClass().getName(), outputType.getName()));
         }
     }
 

@@ -18,13 +18,12 @@ package org.gradle.internal.configuration.inputs;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ForwardingMap;
-import org.jspecify.annotations.Nullable;
-
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A wrapper for the {@link System#getenv()} result that notifies a listener about accesses.
@@ -73,7 +72,8 @@ public class AccessTrackingEnvMap extends ForwardingMap<String, String> implemen
     @SuppressWarnings("SuspiciousMethodCalls")
     private String getAndReport(@Nullable Object key) {
         String result = delegate.get(key);
-        // The delegate will throw if something that isn't a string is used there. Do call delegate.get() first so the exception is thrown form the JDK code to avoid extra blame.
+        // The delegate will throw if something that isn't a string is used there. Do call delegate.get() first so the
+        // exception is thrown form the JDK code to avoid extra blame.
         onAccess.accept((String) key, result);
         return result;
     }
@@ -182,7 +182,8 @@ public class AccessTrackingEnvMap extends ForwardingMap<String, String> implemen
     private Object writeReplace() {
         // When we serialize the whole map, it is likely used as a task input.
         // We don't know how it is going to be used afterward, and we cannot affect the fingerprint during execution.
-        // Let's be pessimistic and consider everything an input. On a bright side, we don't need access tracking for the deserialized thing.
+        // Let's be pessimistic and consider everything an input. On a bright side, we don't need access tracking for
+        // the deserialized thing.
         reportAggregatingAccess();
         return delegate;
     }

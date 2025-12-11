@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import java.util.Collections;
+import java.util.Map;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
-
-import java.util.Collections;
-import java.util.Map;
 
 public class RootPomParent implements PomParent {
     private final Map<String, String> properties = Collections.emptyMap();

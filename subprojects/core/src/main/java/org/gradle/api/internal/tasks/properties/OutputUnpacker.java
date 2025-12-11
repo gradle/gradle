@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import java.io.File;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -33,11 +37,6 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.util.internal.DeferredUtil;
 
-import java.io.File;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-
 public class OutputUnpacker implements PropertyVisitor {
 
     private final String ownerDisplayName;
@@ -47,7 +46,12 @@ public class OutputUnpacker implements PropertyVisitor {
     private final boolean finalizeBeforeUnpacking;
     private boolean hasDeclaredOutputs;
 
-    public OutputUnpacker(String ownerDisplayName, FileCollectionFactory fileCollectionFactory, boolean locationOnly, boolean finalizeBeforeUnpacking, UnpackedOutputConsumer unpackedOutputConsumer) {
+    public OutputUnpacker(
+            String ownerDisplayName,
+            FileCollectionFactory fileCollectionFactory,
+            boolean locationOnly,
+            boolean finalizeBeforeUnpacking,
+            UnpackedOutputConsumer unpackedOutputConsumer) {
         this.ownerDisplayName = ownerDisplayName;
         this.fileCollectionFactory = fileCollectionFactory;
         this.locationOnly = locationOnly;
@@ -56,13 +60,16 @@ public class OutputUnpacker implements PropertyVisitor {
     }
 
     public interface UnpackedOutputConsumer {
-        void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec);
+        void visitUnpackedOutputFileProperty(
+                String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec);
+
         void visitEmptyOutputFileProperty(String propertyName, boolean optional, PropertyValue value);
 
         static UnpackedOutputConsumer composite(UnpackedOutputConsumer consumer1, UnpackedOutputConsumer consumer2) {
             return new UnpackedOutputConsumer() {
                 @Override
-                public void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec) {
+                public void visitUnpackedOutputFileProperty(
+                        String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec) {
                     consumer1.visitUnpackedOutputFileProperty(propertyName, optional, value, spec);
                     consumer2.visitUnpackedOutputFileProperty(propertyName, optional, value, spec);
                 }
@@ -77,16 +84,18 @@ public class OutputUnpacker implements PropertyVisitor {
     }
 
     @Override
-    public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+    public void visitOutputFileProperty(
+            String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         hasDeclaredOutputs = true;
         MutableBoolean hasSpecs = new MutableBoolean();
         if (finalizeBeforeUnpacking) {
             value.maybeFinalizeValue();
         }
-        resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, fileCollectionFactory, locationOnly, spec -> {
-            hasSpecs.set(true);
-            unpackedOutputConsumer.visitUnpackedOutputFileProperty(propertyName, optional, value, spec);
-        });
+        resolveOutputFilePropertySpecs(
+                ownerDisplayName, propertyName, value, filePropertyType, fileCollectionFactory, locationOnly, spec -> {
+                    hasSpecs.set(true);
+                    unpackedOutputConsumer.visitUnpackedOutputFileProperty(propertyName, optional, value, spec);
+                });
         if (!hasSpecs.get()) {
             unpackedOutputConsumer.visitEmptyOutputFileProperty(propertyName, optional, value);
         }
@@ -102,14 +111,13 @@ public class OutputUnpacker implements PropertyVisitor {
      * Especially, values of type {@link Map} are resolved.
      */
     private static void resolveOutputFilePropertySpecs(
-        String ownerDisplayName,
-        String propertyName,
-        PropertyValue value,
-        OutputFilePropertyType filePropertyType,
-        FileCollectionFactory fileCollectionFactory,
-        boolean locationOnly,
-        Consumer<OutputFilePropertySpec> consumer
-    ) {
+            String ownerDisplayName,
+            String propertyName,
+            PropertyValue value,
+            OutputFilePropertyType filePropertyType,
+            FileCollectionFactory fileCollectionFactory,
+            boolean locationOnly,
+            Consumer<OutputFilePropertySpec> consumer) {
         Object unpackedValue = value.call();
         unpackedValue = DeferredUtil.unpackNestableDeferred(unpackedValue);
         if (locationOnly && unpackedValue instanceof FileSystemLocationProperty) {
@@ -121,26 +129,43 @@ public class OutputUnpacker implements PropertyVisitor {
         if (unpackedValue == null) {
             return;
         }
-        // From here on, we already unpacked providers, so we can fail if any of the file collections contains a provider which is not present.
-        if (filePropertyType == OutputFilePropertyType.DIRECTORIES || filePropertyType == OutputFilePropertyType.FILES) {
-            resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), fileCollectionFactory, consumer);
+        // From here on, we already unpacked providers, so we can fail if any of the file collections contains a
+        // provider which is not present.
+        if (filePropertyType == OutputFilePropertyType.DIRECTORIES
+                || filePropertyType == OutputFilePropertyType.FILES) {
+            resolveCompositeOutputFilePropertySpecs(
+                    ownerDisplayName,
+                    propertyName,
+                    unpackedValue,
+                    filePropertyType.getOutputType(),
+                    fileCollectionFactory,
+                    consumer);
         } else {
             FileCollectionInternal outputFiles = fileCollectionFactory.resolving(unpackedValue);
-            DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFiles, filePropertyType.getOutputType());
+            DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(
+                    propertyName, null, outputFiles, filePropertyType.getOutputType());
             consumer.accept(filePropertySpec);
         }
     }
 
-    private static void resolveCompositeOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, Object unpackedValue, final TreeType outputType, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {
+    private static void resolveCompositeOutputFilePropertySpecs(
+            final String ownerDisplayName,
+            final String propertyName,
+            Object unpackedValue,
+            final TreeType outputType,
+            FileCollectionFactory fileCollectionFactory,
+            Consumer<OutputFilePropertySpec> consumer) {
         if (unpackedValue instanceof Map) {
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) unpackedValue).entrySet()) {
                 Object key = entry.getKey();
                 if (key == null) {
-                    throw new IllegalArgumentException(String.format("Mapped output property '%s' has null key", propertyName));
+                    throw new IllegalArgumentException(
+                            String.format("Mapped output property '%s' has null key", propertyName));
                 }
                 String id = key.toString();
                 FileCollectionInternal outputFiles = fileCollectionFactory.resolving(entry.getValue());
-                consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "." + id, outputFiles, outputType));
+                consumer.accept(
+                        new DefaultCacheableOutputFilePropertySpec(propertyName, "." + id, outputFiles, outputType));
             }
         } else {
             FileCollectionInternal outputFileCollection = fileCollectionFactory.resolving(unpackedValue);
@@ -150,12 +175,14 @@ public class OutputUnpacker implements PropertyVisitor {
                 public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
                     for (File content : contents) {
                         FileCollectionInternal outputFiles = fileCollectionFactory.fixed(content);
-                        consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + index.incrementAndGet(), outputFiles, outputType));
+                        consumer.accept(new DefaultCacheableOutputFilePropertySpec(
+                                propertyName, "$" + index.incrementAndGet(), outputFiles, outputType));
                     }
                 }
 
                 @Override
-                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                public void visitFileTreeBackedByFile(
+                        File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                     failOnInvalidOutputType(fileTree);
                 }
 
@@ -164,19 +191,16 @@ public class OutputUnpacker implements PropertyVisitor {
                     // We could support an unfiltered DirectoryFileTree here as a cacheable root,
                     // but because @OutputDirectory also doesn't support it we choose not to.
                     consumer.accept(new DirectoryTreeOutputFilePropertySpec(
-                        propertyName + "$" + index.incrementAndGet(),
-                        new PropertyFileCollection(ownerDisplayName, propertyName, "output", fileTree),
-                        root
-                    ));
+                            propertyName + "$" + index.incrementAndGet(),
+                            new PropertyFileCollection(ownerDisplayName, propertyName, "output", fileTree),
+                            root));
                 }
             });
         }
     }
 
     private static void failOnInvalidOutputType(FileTreeInternal fileTree) {
-        throw new InvalidUserDataException(String.format(
-            "Only files and directories can be registered as outputs (was: %s)",
-            fileTree
-        ));
+        throw new InvalidUserDataException(
+                String.format("Only files and directories can be registered as outputs (was: %s)", fileTree));
     }
 }

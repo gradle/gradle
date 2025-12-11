@@ -25,7 +25,12 @@ public class DefaultCppBinaryModel implements Serializable {
     private final DefaultCompilationDetails compilationDetails;
     private final DefaultLinkageDetails linkageDetails;
 
-    public DefaultCppBinaryModel(String name, String variantName, String baseName, DefaultCompilationDetails compilationDetails, DefaultLinkageDetails linkageDetails) {
+    public DefaultCppBinaryModel(
+            String name,
+            String variantName,
+            String baseName,
+            DefaultCompilationDetails compilationDetails,
+            DefaultLinkageDetails linkageDetails) {
         this.name = name;
         this.variantName = variantName;
         this.baseName = baseName;

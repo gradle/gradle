@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.fixtures.codegen;
 import java.util.Map;
 import java.util.function.Consumer;
 
-
 public interface GroovyNamedArguments {
 
     @SuppressWarnings("rawtypes")

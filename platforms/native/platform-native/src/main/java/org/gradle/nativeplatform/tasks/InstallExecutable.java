@@ -15,6 +15,9 @@
  */
 package org.gradle.nativeplatform.tasks;
 
+import java.io.File;
+import java.util.Collection;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -48,10 +51,6 @@ import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Collection;
-
 /**
  * Installs an executable with it's dependent libraries so it can be easily executed.
  */
@@ -78,8 +77,10 @@ public abstract class InstallExecutable extends DefaultTask {
         this.installDirectory = objectFactory.directoryProperty();
         this.installedExecutable = objectFactory.fileProperty();
         this.executable = objectFactory.fileProperty();
-        this.installedExecutable.set(getLibDirectory().map(directory -> directory.file(executable.getAsFile().get().getName())));
-        // A further work around for missing ability to skip task when input file is missing (see #getInputFileIfExists below)
+        this.installedExecutable.set(getLibDirectory()
+                .map(directory -> directory.file(executable.getAsFile().get().getName())));
+        // A further work around for missing ability to skip task when input file is missing (see #getInputFileIfExists
+        // below)
         getInputs().file(executable);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
@@ -182,7 +183,9 @@ public abstract class InstallExecutable extends DefaultTask {
      */
     @Internal("covered by getInstallDirectory")
     public Provider<RegularFile> getRunScriptFile() {
-        return installDirectory.file(executable.getLocationOnly().map(executableFile -> OperatingSystem.forName(targetPlatform.get().getOperatingSystem().getName()).getScriptName(executableFile.getAsFile().getName())));
+        return installDirectory.file(executable.getLocationOnly().map(executableFile -> OperatingSystem.forName(
+                        targetPlatform.get().getOperatingSystem().getName())
+                .getScriptName(executableFile.getAsFile().getName())));
     }
 
     @Inject
@@ -228,8 +231,7 @@ public abstract class InstallExecutable extends DefaultTask {
             toolChainPath.append("%PATH%");
         }
 
-        String runScriptText =
-            "\n@echo off"
+        String runScriptText = "\n@echo off"
                 + "\nSETLOCAL"
                 + "\n" + toolChainPath
                 + "\nCALL \"%~dp0lib\\" + executable.getName() + "\" %*"
@@ -240,8 +242,7 @@ public abstract class InstallExecutable extends DefaultTask {
     }
 
     private void installUnix(File executable, File runScript) {
-        String runScriptText =
-            "#!/bin/sh"
+        String runScriptText = "#!/bin/sh"
                 + "\nAPP_BASE_NAME=`dirname \"$0\"`"
                 + "\nDYLD_LIBRARY_PATH=\"$APP_BASE_NAME/lib\""
                 + "\nexport DYLD_LIBRARY_PATH"

@@ -16,13 +16,12 @@
 
 package org.gradle.internal.locking;
 
+import static java.util.Collections.emptySet;
+
+import java.util.Set;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.dsl.dependencies.LockEntryFilter;
-
-import java.util.Set;
-
-import static java.util.Collections.emptySet;
 
 public class DefaultDependencyLockingState implements DependencyLockingState {
 
@@ -37,7 +36,9 @@ public class DefaultDependencyLockingState implements DependencyLockingState {
         constraints = emptySet();
         ignoredEntryFilter = LockEntryFilterFactory.FILTERS_NONE;
     }
-    public DefaultDependencyLockingState(boolean strictlyValidate, Set<ModuleComponentIdentifier> constraints, LockEntryFilter ignoredEntryFilter) {
+
+    public DefaultDependencyLockingState(
+            boolean strictlyValidate, Set<ModuleComponentIdentifier> constraints, LockEntryFilter ignoredEntryFilter) {
         this.strictlyValidate = strictlyValidate;
         this.constraints = constraints;
         this.ignoredEntryFilter = ignoredEntryFilter;

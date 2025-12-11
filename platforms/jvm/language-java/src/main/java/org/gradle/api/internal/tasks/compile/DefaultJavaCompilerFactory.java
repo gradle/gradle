@@ -42,16 +42,15 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final ProjectCacheDir projectCacheDir;
 
     public DefaultJavaCompilerFactory(
-        WorkerDirectoryProvider workingDirProvider,
-        WorkerDaemonFactory workerDaemonFactory,
-        JavaForkOptionsFactory forkOptionsFactory,
-        ClientExecHandleBuilderFactory execHandleFactory,
-        AnnotationProcessorDetector processorDetector,
-        ClassPathRegistry classPathRegistry,
-        ActionExecutionSpecFactory actionExecutionSpecFactory,
-        InternalProblems problems,
-        ProjectCacheDir projectCacheDir
-    ) {
+            WorkerDirectoryProvider workingDirProvider,
+            WorkerDaemonFactory workerDaemonFactory,
+            JavaForkOptionsFactory forkOptionsFactory,
+            ClientExecHandleBuilderFactory execHandleFactory,
+            AnnotationProcessorDetector processorDetector,
+            ClassPathRegistry classPathRegistry,
+            ActionExecutionSpecFactory actionExecutionSpecFactory,
+            InternalProblems problems,
+            ProjectCacheDir projectCacheDir) {
         this.workingDirProvider = workingDirProvider;
         this.workerDaemonFactory = workerDaemonFactory;
         this.forkOptionsFactory = forkOptionsFactory;
@@ -65,7 +64,8 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
 
     private JavaHomeBasedJavaCompilerFactory getJavaHomeBasedJavaCompilerFactory() {
         if (javaHomeBasedJavaCompilerFactory == null) {
-            javaHomeBasedJavaCompilerFactory = new JavaHomeBasedJavaCompilerFactory(classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles());
+            javaHomeBasedJavaCompilerFactory = new JavaHomeBasedJavaCompilerFactory(
+                    classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles());
         }
         return javaHomeBasedJavaCompilerFactory;
     }
@@ -74,13 +74,15 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     @SuppressWarnings("unchecked")
     public <T extends CompileSpec> Compiler<T> create(Class<T> type) {
         Compiler<T> result = createTargetCompiler(type);
-        return (Compiler<T>) new ModuleApplicationNameWritingCompiler<>(new AnnotationProcessorDiscoveringCompiler<>(new NormalizingJavaCompiler((Compiler<JavaCompileSpec>) result), processorDetector));
+        return (Compiler<T>) new ModuleApplicationNameWritingCompiler<>(new AnnotationProcessorDiscoveringCompiler<>(
+                new NormalizingJavaCompiler((Compiler<JavaCompileSpec>) result), processorDetector));
     }
 
     @SuppressWarnings("unchecked")
     private <T extends CompileSpec> Compiler<T> createTargetCompiler(Class<T> type) {
         if (!JavaCompileSpec.class.isAssignableFrom(type)) {
-            throw new IllegalArgumentException(String.format("Cannot create a compiler for a spec with type %s", type.getSimpleName()));
+            throw new IllegalArgumentException(
+                    String.format("Cannot create a compiler for a spec with type %s", type.getSimpleName()));
         }
 
         if (CommandLineJavaCompileSpec.class.isAssignableFrom(type)) {
@@ -88,7 +90,13 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         }
 
         if (ForkingJavaCompileSpec.class.isAssignableFrom(type)) {
-            return (Compiler<T>) new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), getJavaHomeBasedJavaCompilerFactory(), new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, projectCacheDir), forkOptionsFactory, classPathRegistry);
+            return (Compiler<T>) new DaemonJavaCompiler(
+                    workingDirProvider.getWorkingDirectory(),
+                    getJavaHomeBasedJavaCompilerFactory(),
+                    new ProcessIsolatedCompilerWorkerExecutor(
+                            workerDaemonFactory, actionExecutionSpecFactory, projectCacheDir),
+                    forkOptionsFactory,
+                    classPathRegistry);
         } else {
             return (Compiler<T>) new JdkJavaCompiler(getJavaHomeBasedJavaCompilerFactory(), problems);
         }

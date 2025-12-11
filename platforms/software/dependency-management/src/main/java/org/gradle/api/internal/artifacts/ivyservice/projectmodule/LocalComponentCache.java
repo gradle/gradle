@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import java.util.function.Function;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
-
-import java.util.function.Function;
 
 /**
  * A cache for {@link LocalComponentGraphResolveState} instances.
@@ -37,5 +36,6 @@ public interface LocalComponentCache {
      * Loads cached dependency resolution metadata for the given project, if available,
      * or else runs the given function to create it and then writes the result to the cache.
      */
-    LocalComponentGraphResolveState computeIfAbsent(Path projectIdentityPath, Function<Path, LocalComponentGraphResolveState> factory);
+    LocalComponentGraphResolveState computeIfAbsent(
+            Path projectIdentityPath, Function<Path, LocalComponentGraphResolveState> factory);
 }

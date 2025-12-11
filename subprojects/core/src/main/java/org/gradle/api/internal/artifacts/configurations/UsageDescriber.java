@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 /**
  * This static util class can be used to build a human-readable description of the usage a role or configuration allows.
@@ -27,14 +26,19 @@ import java.util.List;
 public abstract class UsageDescriber {
     public static final String DEFAULT_CUSTOM_ROLE_NAME = "Custom Role";
 
-    private static final String CONSUMABLE = "Consumable - this configuration can be selected by another project as a dependency";
-    private static final String RESOLVABLE = "Resolvable - this configuration can be resolved by this project to a set of files";
-    private static final String DECLARABLE_AGAINST = "Declarable - this configuration can have dependencies added to it";
+    private static final String CONSUMABLE =
+            "Consumable - this configuration can be selected by another project as a dependency";
+    private static final String RESOLVABLE =
+            "Resolvable - this configuration can be resolved by this project to a set of files";
+    private static final String DECLARABLE_AGAINST =
+            "Declarable - this configuration can have dependencies added to it";
     private static final String UNUSABLE = "This configuration does not allow any usage";
 
     private static final String IS_DEPRECATED = "(but this behavior is marked deprecated)";
 
-    private UsageDescriber() { /* not instantiable */ }
+    private UsageDescriber() {
+        /* not instantiable */
+    }
 
     /**
      * Builds a human-readable description of the usage allowed by the given role.
@@ -43,8 +47,13 @@ public abstract class UsageDescriber {
      * @return a human-readable description of the role's allowed usage
      */
     public static String describeRole(ConfigurationRole role) {
-        return describeUsage(role.isConsumable(), role.isResolvable(), role.isDeclarable(),
-            role.isConsumptionDeprecated(), role.isResolutionDeprecated(), role.isDeclarationAgainstDeprecated());
+        return describeUsage(
+                role.isConsumable(),
+                role.isResolvable(),
+                role.isDeclarable(),
+                role.isConsumptionDeprecated(),
+                role.isResolutionDeprecated(),
+                role.isDeclarationAgainstDeprecated());
     }
 
     /**
@@ -54,8 +63,13 @@ public abstract class UsageDescriber {
      * @return a human-readable description of the role's allowed usage
      */
     public static String describeCurrentUsage(DeprecatableConfiguration configuration) {
-        return describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclared(),
-            configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
+        return describeUsage(
+                configuration.isCanBeConsumed(),
+                configuration.isCanBeResolved(),
+                configuration.isCanBeDeclared(),
+                configuration.isDeprecatedForConsumption(),
+                configuration.isDeprecatedForResolution(),
+                configuration.isDeprecatedForDeclarationAgainst());
     }
 
     /**
@@ -69,8 +83,13 @@ public abstract class UsageDescriber {
      * @param isDeclarationAgainstDeprecated whether the configuration's declarable behavior is deprecated
      * @return description of the given usage
      */
-    public static String describeUsage(boolean isConsumable, boolean isResolvable, boolean isDeclarable,
-                                       boolean isConsumptionDeprecated, boolean isResolutionDeprecated, boolean isDeclarationAgainstDeprecated) {
+    public static String describeUsage(
+            boolean isConsumable,
+            boolean isResolvable,
+            boolean isDeclarable,
+            boolean isConsumptionDeprecated,
+            boolean isResolutionDeprecated,
+            boolean isDeclarationAgainstDeprecated) {
         List<String> descriptions = new ArrayList<>();
         if (isConsumable) {
             descriptions.add("\t" + CONSUMABLE + describeDeprecation(isConsumptionDeprecated));

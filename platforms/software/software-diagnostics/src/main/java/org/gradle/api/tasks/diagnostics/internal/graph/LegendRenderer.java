@@ -15,9 +15,9 @@
  */
 package org.gradle.api.tasks.diagnostics.internal.graph;
 
-import org.gradle.internal.logging.text.StyledTextOutput;
-
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 public class LegendRenderer {
     private final StyledTextOutput output;
@@ -33,11 +33,15 @@ public class LegendRenderer {
     public void printLegend() {
         if (hasConstraints) {
             output.println();
-            output.withStyle(Info).text("(c) - A dependency constraint, not a dependency. The dependency affected by the constraint occurs elsewhere in the tree.");
+            output.withStyle(Info)
+                    .text(
+                            "(c) - A dependency constraint, not a dependency. The dependency affected by the constraint occurs elsewhere in the tree.");
         }
         if (hasCyclicDependencies) {
             output.println();
-            output.withStyle(Info).println("(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.");
+            output.withStyle(Info)
+                    .println(
+                            "(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.");
         }
         if (hasUnresolvableConfigurations) {
             output.println();

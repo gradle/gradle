@@ -16,21 +16,24 @@
 
 package org.gradle.api.reporting.dependents.internal;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+
+import java.util.Set;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
-
 public class TextDependentComponentsReportRenderer extends TextReportRenderer {
 
     private final DependentComponentsRenderer dependentComponentsRenderer;
 
-    public TextDependentComponentsReportRenderer(@Nullable DependentBinariesResolver dependentBinariesResolver, boolean showNonBuildable, boolean showTestSuites) {
-        this.dependentComponentsRenderer = new DependentComponentsRenderer(dependentBinariesResolver, showNonBuildable, showTestSuites);
+    public TextDependentComponentsReportRenderer(
+            @Nullable DependentBinariesResolver dependentBinariesResolver,
+            boolean showNonBuildable,
+            boolean showTestSuites) {
+        this.dependentComponentsRenderer =
+                new DependentComponentsRenderer(dependentBinariesResolver, showNonBuildable, showTestSuites);
     }
 
     public void renderComponents(Set<ComponentSpec> components) {

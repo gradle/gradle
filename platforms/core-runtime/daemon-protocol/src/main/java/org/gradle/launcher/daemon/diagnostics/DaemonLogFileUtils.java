@@ -17,7 +17,6 @@
 package org.gradle.launcher.daemon.diagnostics;
 
 import com.google.common.collect.EvictingQueue;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -40,7 +39,8 @@ final class DaemonLogFileUtils {
      */
     static String tail(File file, int tailSize) throws IOException {
         try (Stream<String> lines = Files.lines(file.toPath(), StandardCharsets.UTF_8)) {
-            EvictingQueue<String> tailLines = lines.collect(Collectors.toCollection(() -> EvictingQueue.create(tailSize)));
+            EvictingQueue<String> tailLines =
+                    lines.collect(Collectors.toCollection(() -> EvictingQueue.create(tailSize)));
             return tailLines.isEmpty() ? "<<empty>>" : String.join("\n", tailLines);
         }
     }

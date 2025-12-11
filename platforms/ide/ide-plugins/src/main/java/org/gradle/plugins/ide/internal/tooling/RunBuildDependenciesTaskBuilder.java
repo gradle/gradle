@@ -16,6 +16,10 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -32,11 +36,6 @@ import org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 @NullMarked
 public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
     private Map<String, Boolean> projectOpenStatus;
@@ -47,9 +46,11 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
     }
 
     @Override
-    public RunClosedProjectBuildDependencies buildAll(String modelName, EclipseRuntime eclipseRuntime, Project project) {
+    public RunClosedProjectBuildDependencies buildAll(
+            String modelName, EclipseRuntime eclipseRuntime, Project project) {
         this.projectOpenStatus = eclipseRuntime.getWorkspace().getProjects().stream()
-            .collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a || b));
+                .collect(Collectors.toMap(
+                        EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a || b));
 
         ProjectState rootProjectState = ((ProjectInternal) project.getRootProject()).getOwner();
         List<TaskDependency> buildDependencies = populate(rootProjectState);
@@ -59,7 +60,9 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
             StartParameter startParameter = rootGradle.getStartParameter();
             List<String> taskPaths = new ArrayList<>(startParameter.getTaskNames());
             String parentTaskName = parentTaskName(rootProject, "eclipseClosedDependencies");
-            rootProject.getTasks().register(parentTaskName, task -> task.dependsOn(buildDependencies.toArray(new Object[0])));
+            rootProject
+                    .getTasks()
+                    .register(parentTaskName, task -> task.dependsOn(buildDependencies.toArray(new Object[0])));
             taskPaths.add(parentTaskName);
             startParameter.setTaskNames(taskPaths);
         }
@@ -80,7 +83,8 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
             EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
             EclipseClasspath eclipseClasspath = eclipseModel.getClasspath();
 
-            EclipseModelBuilder.ClasspathElements elements = EclipseModelBuilder.gatherClasspathElements(projectOpenStatus, eclipseClasspath, false);
+            EclipseModelBuilder.ClasspathElements elements =
+                    EclipseModelBuilder.gatherClasspathElements(projectOpenStatus, eclipseClasspath, false);
             return elements.getBuildDependencies();
         });
 
@@ -109,5 +113,4 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
             return parentTaskName(project, baseName + "_");
         }
     }
-
 }

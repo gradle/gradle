@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicLong;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 public interface FileHasherStatistics {
     /**
@@ -59,9 +58,10 @@ public interface FileHasherStatistics {
 
                 @Override
                 public String toString() {
-                    return MessageFormat.format("Hashed {0,number,integer} files ({1,number,integer} bytes)",
-                        hashedFileCount, hashedContentLength
-                    );
+                    return MessageFormat.format(
+                            "Hashed {0,number,integer} files ({1,number,integer} bytes)",
+                            hashedFileCount,
+                            hashedContentLength);
                 }
             };
         }

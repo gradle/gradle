@@ -16,8 +16,16 @@
 
 package org.gradle.api.plugins.quality.internal;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
@@ -32,15 +40,6 @@ import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 class PmdInvoker implements Action<AntBuilderDelegate> {
 
@@ -65,10 +64,11 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
         // To hide this from PMD, we override the java.class.path to just the PMD classpath from Gradle's POV.
         if (parameters.getIncrementalAnalysis().get()) {
             // TODO: Can we get rid of this now that we're running in a worker?
-            SystemProperties.getInstance().withSystemProperty("java.class.path", GUtil.asPath(pmdClasspath), (Factory<Void>) () -> {
-                runPmd(ant, parameters);
-                return null;
-            });
+            SystemProperties.getInstance()
+                    .withSystemProperty("java.class.path", GUtil.asPath(pmdClasspath), (Factory<Void>) () -> {
+                        runPmd(ant, parameters);
+                        return null;
+                    });
         } else {
             runPmd(ant, parameters);
         }
@@ -78,11 +78,10 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
         VersionNumber version = determinePmdVersion(Thread.currentThread().getContextClassLoader());
 
         Map<String, Object> antPmdArgs = new HashMap<>(ImmutableMap.<String, Object>builder()
-            .put("failOnRuleViolation", false)
-            .put("failuresPropertyName", "pmdFailureCount")
-            .put("minimumPriority", parameters.getRulesMinimumPriority().get())
-            .build()
-        );
+                .put("failOnRuleViolation", false)
+                .put("failuresPropertyName", "pmdFailureCount")
+                .put("minimumPriority", parameters.getRulesMinimumPriority().get())
+                .build());
 
         List<String> ruleSets = parameters.getRuleSets().get();
         String htmlFormat = "html";
@@ -114,7 +113,9 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
         } else {
             // 6.+
             if (parameters.getIncrementalAnalysis().get()) {
-                antPmdArgs.put("cacheLocation", parameters.getIncrementalCacheFile().get().getAsFile());
+                antPmdArgs.put(
+                        "cacheLocation",
+                        parameters.getIncrementalCacheFile().get().getAsFile());
             } else {
                 if (version.compareTo(VersionNumber.parse("6.2.0")) >= 0) {
                     antPmdArgs.put("noCache", true);
@@ -130,7 +131,8 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
 
         String finalHtmlFormat = htmlFormat;
         List<String> finalRuleSets = ruleSets;
-        List<PmdActionParameters.EnabledReport> reports = parameters.getEnabledReports().get();
+        List<PmdActionParameters.EnabledReport> reports =
+                parameters.getEnabledReports().get();
         ant.taskdef(ImmutableMap.of("name", "pmd", "classname", "net.sourceforge.pmd.ant.PMDTask"));
         ant.invokeMethod("pmd", antPmdArgs, () -> {
             parameters.getSource().addToAntBuilder(ant, "fileset", FileCollection.AntType.FileSet);
@@ -144,8 +146,12 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
 
             reports.forEach(report -> {
                 File file = report.getOutputLocation().getAsFile().get();
-                checkArgument(file.getParentFile().exists(), "Parent directory of report file '" + file + "' does not exist.");
-                String type = report.getName().get().equals("html") ? finalHtmlFormat : report.getName().get();
+                checkArgument(
+                        file.getParentFile().exists(),
+                        "Parent directory of report file '" + file + "' does not exist.");
+                String type = report.getName().get().equals("html")
+                        ? finalHtmlFormat
+                        : report.getName().get();
                 ant.invokeMethod("formatter", ImmutableMap.of("type", type, "toFile", file));
             });
 
@@ -163,7 +169,9 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
             String message = String.format("%s PMD rule violations were found.", failureCount);
             PmdActionParameters.EnabledReport report = reports.isEmpty() ? null : reports.get(0);
             if (report != null) {
-                String reportUrl = new ConsoleRenderer().asClickableFileUrl(report.getOutputLocation().getAsFile().get());
+                String reportUrl = new ConsoleRenderer()
+                        .asClickableFileUrl(
+                                report.getOutputLocation().getAsFile().get());
                 message += " See the report at: " + reportUrl;
             }
             if (parameters.getIgnoreFailures().get() || Integer.parseInt(failureCount) <= maxFailures) {
@@ -176,7 +184,10 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
 
     private static void disableSaveStreams(AntBuilderDelegate ant) {
         try {
-            ant.getBuilder().getClass().getMethod("setSaveStreams", boolean.class).invoke(ant.getBuilder(), false);
+            ant.getBuilder()
+                    .getClass()
+                    .getMethod("setSaveStreams", boolean.class)
+                    .invoke(ant.getBuilder(), false);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
@@ -202,7 +213,8 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
     }
 
     private static void assertUnsupportedIncrementalAnalysis(VersionNumber version) {
-        throw new GradleException("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD " + version + " or disable incremental analysis.");
+        throw new GradleException("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD "
+                + version + " or disable incremental analysis.");
     }
 
     private static class FileExistFilter implements Spec<File> {

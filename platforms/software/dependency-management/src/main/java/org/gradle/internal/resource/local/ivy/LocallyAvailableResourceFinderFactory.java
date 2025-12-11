@@ -16,6 +16,9 @@
 package org.gradle.internal.resource.local.ivy;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.mvnsettings.CannotLocateLocalMavenRepositoryException;
@@ -37,11 +40,8 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinderSearchab
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
-
-public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> {
+public class LocallyAvailableResourceFinderFactory
+        implements Factory<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(LocallyAvailableResourceFinderFactory.class);
 
     private final List<File> rootCachesDirectories;
@@ -50,7 +50,10 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
     private final ChecksumService checksumService;
 
     public LocallyAvailableResourceFinderFactory(
-        ArtifactCachesProvider artifactCaches, LocalMavenRepositoryLocator localMavenRepositoryLocator, FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore, ChecksumService checksumService) {
+            ArtifactCachesProvider artifactCaches,
+            LocalMavenRepositoryLocator localMavenRepositoryLocator,
+            FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore,
+            ChecksumService checksumService) {
         this.rootCachesDirectories = buildRootCachesDirectories(artifactCaches);
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileStore = fileStore;
@@ -59,8 +62,9 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
 
     private List<File> buildRootCachesDirectories(ArtifactCachesProvider artifactCaches) {
         File writableRootDir = buildRootDir(artifactCaches.getWritableCacheMetadata());
-        return artifactCaches.withReadOnlyCache((md, manager) -> ImmutableList.of(buildRootDir(md), writableRootDir))
-            .orElse(ImmutableList.of(writableRootDir));
+        return artifactCaches
+                .withReadOnlyCache((md, manager) -> ImmutableList.of(buildRootDir(md), writableRootDir))
+                .orElse(ImmutableList.of(writableRootDir));
     }
 
     private File buildRootDir(ArtifactCacheMetadata md) {
@@ -74,44 +78,71 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         // Order is important here, because they will be searched in that order
 
         // The current filestore
-        finders.add(new LocallyAvailableResourceFinderSearchableFileStoreAdapter<>(key -> fileStore.search(key.getId()), checksumService));
+        finders.add(new LocallyAvailableResourceFinderSearchableFileStoreAdapter<>(
+                key -> fileStore.search(key.getId()), checksumService));
 
         // 1.8
-        addForPattern(finders, "artifacts-26/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(
+                finders,
+                "artifacts-26/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // 1.5
-        addForPattern(finders, "artifacts-24/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(
+                finders,
+                "artifacts-24/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // 1.4
-        addForPattern(finders, "artifacts-23/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(
+                finders,
+                "artifacts-23/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // 1.3
-        addForPattern(finders, "artifacts-15/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(
+                finders,
+                "artifacts-15/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // 1.1, 1.2
-        addForPattern(finders, "artifacts-14/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(
+                finders,
+                "artifacts-14/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // rc-1, 1.0
-        addForPattern(finders, "artifacts-13/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(
+                finders,
+                "artifacts-13/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // Milestone 8 and 9
-        addForPattern(finders, "artifacts-8/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(
+                finders,
+                "artifacts-8/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // Milestone 7
-        addForPattern(finders, "artifacts-7/artifacts/*/[organisation]/[module](/[branch])/[revision]/[type]/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(
+                finders,
+                "artifacts-7/artifacts/*/[organisation]/[module](/[branch])/[revision]/[type]/[artifact]-[revision](-[classifier])(.[ext])");
 
         // Milestone 6
-        addForPattern(finders, "artifacts-4/[organisation]/[module](/[branch])/*/[type]s/[artifact]-[revision](-[classifier])(.[ext])");
-        addForPattern(finders, "artifacts-4/[organisation]/[module](/[branch])/*/pom.originals/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(
+                finders,
+                "artifacts-4/[organisation]/[module](/[branch])/*/[type]s/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(
+                finders,
+                "artifacts-4/[organisation]/[module](/[branch])/*/pom.originals/[artifact]-[revision](-[classifier])(.[ext])");
 
         // Milestone 3
-        addForPattern(finders, "../cache/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(
+                finders,
+                "../cache/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])");
 
         // Maven local
         try {
             File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
             if (localMavenRepository.exists()) {
-                addForPattern(finders, localMavenRepository, new M2ResourcePattern("[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"));
+                addForPattern(
+                        finders,
+                        localMavenRepository,
+                        new M2ResourcePattern(
+                                "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"));
             }
         } catch (CannotLocateLocalMavenRepositoryException ex) {
             finders.add(new NoMavenLocalRepositoryResourceFinder(ex));
@@ -119,7 +150,8 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         return new CompositeLocallyAvailableResourceFinder<>(finders);
     }
 
-    private void addForPattern(List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders, String pattern) {
+    private void addForPattern(
+            List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders, String pattern) {
         int wildcardPos = pattern.indexOf("/*/");
         int patternPos = pattern.indexOf("/[");
         if (wildcardPos < 0 && patternPos < 0) {
@@ -140,13 +172,17 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         }
     }
 
-    private void addForPattern(List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders, File baseDir, ResourcePattern pattern) {
+    private void addForPattern(
+            List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders,
+            File baseDir,
+            ResourcePattern pattern) {
         if (baseDir.exists()) {
             finders.add(new PatternBasedLocallyAvailableResourceFinder(baseDir, pattern, checksumService));
         }
     }
 
-    private static class NoMavenLocalRepositoryResourceFinder implements LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> {
+    private static class NoMavenLocalRepositoryResourceFinder
+            implements LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> {
         private final CannotLocateLocalMavenRepositoryException ex;
         private boolean logged;
 
@@ -156,7 +192,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
 
         @Override
         public LocallyAvailableResourceCandidates findCandidates(ModuleComponentArtifactMetadata criterion) {
-            if(!logged){
+            if (!logged) {
                 LOGGER.warn("Unable to locate local Maven repository.");
                 LOGGER.debug("Problems while locating local Maven repository.", ex);
                 logged = true;

@@ -16,9 +16,8 @@
 
 package org.gradle.api.java.archives.internal;
 
-import org.gradle.api.java.archives.Manifest;
-
 import java.io.OutputStream;
+import org.gradle.api.java.archives.Manifest;
 
 /**
  * Internal protocol for Manifest.
@@ -46,5 +45,4 @@ public interface ManifestInternal extends Manifest {
      * @return this
      */
     Manifest writeTo(OutputStream outputStream);
-
 }

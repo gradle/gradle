@@ -17,6 +17,14 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
@@ -49,16 +57,9 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArtifactRepository<FlatDirRepositoryDescriptor> implements FlatDirectoryArtifactRepository, ResolutionAwareRepository {
+public class DefaultFlatDirArtifactRepository
+        extends AbstractResolutionAwareArtifactRepository<FlatDirRepositoryDescriptor>
+        implements FlatDirectoryArtifactRepository, ResolutionAwareRepository {
     private final FileCollectionFactory fileCollectionFactory;
     private final List<Object> dirs = new ArrayList<>();
     private final RepositoryTransportFactory transportFactory;
@@ -68,16 +69,16 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
     private final InstantiatorFactory instantiatorFactory;
     private final ChecksumService checksumService;
 
-    public DefaultFlatDirArtifactRepository(FileCollectionFactory fileCollectionFactory,
-                                            RepositoryTransportFactory transportFactory,
-                                            LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                            FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                            IvyMutableModuleMetadataFactory metadataFactory,
-                                            InstantiatorFactory instantiatorFactory,
-                                            ObjectFactory objectFactory,
-                                            ChecksumService checksumService,
-                                            VersionParser versionParser
-    ) {
+    public DefaultFlatDirArtifactRepository(
+            FileCollectionFactory fileCollectionFactory,
+            RepositoryTransportFactory transportFactory,
+            LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+            FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+            IvyMutableModuleMetadataFactory metadataFactory,
+            InstantiatorFactory instantiatorFactory,
+            ObjectFactory objectFactory,
+            ChecksumService checksumService,
+            VersionParser versionParser) {
         super(objectFactory, versionParser);
         this.fileCollectionFactory = fileCollectionFactory;
         this.transportFactory = transportFactory;
@@ -147,7 +148,8 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
     }
 
     @Override
-    protected RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, @Nullable URI rootUri, FileStore<String> externalResourcesFileStore) {
+    protected RepositoryResourceAccessor createRepositoryAccessor(
+            RepositoryTransport transport, @Nullable URI rootUri, FileStore<String> externalResourcesFileStore) {
         return new NoOpRepositoryResourceAccessor();
     }
 
@@ -155,20 +157,35 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
         FlatDirRepositoryDescriptor descriptor = getDescriptor();
         List<File> dirs = descriptor.getDirs();
         if (dirs.isEmpty()) {
-            throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
+            throw new InvalidUserDataException(
+                    "You must specify at least one directory for a flat directory repository.");
         }
 
         RepositoryTransport transport = transportFactory.createFileTransport(getName());
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, null, null);
-        return new IvyResolver(descriptor.getBackingDescriptor(), transport, locallyAvailableResourceFinder, false, artifactFileStore, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService);
+        return new IvyResolver(
+                descriptor.getBackingDescriptor(),
+                transport,
+                locallyAvailableResourceFinder,
+                false,
+                artifactFileStore,
+                null,
+                null,
+                createMetadataSources(),
+                IvyMetadataArtifactProvider.INSTANCE,
+                injector,
+                checksumService);
     }
 
     private ImmutableMetadataSources createMetadataSources() {
-        MetadataSource<MutableModuleComponentResolveMetadata> artifactMetadataSource = new DefaultArtifactMetadataSource(metadataFactory);
+        MetadataSource<MutableModuleComponentResolveMetadata> artifactMetadataSource =
+                new DefaultArtifactMetadataSource(metadataFactory);
         return new DefaultImmutableMetadataSources(Collections.singletonList(artifactMetadataSource));
     }
 
-    private static class NoOpRepositoryResourceAccessor implements RepositoryResourceAccessor, ImplicitInputsProvidingService<String, Long, RepositoryResourceAccessor> {
+    private static class NoOpRepositoryResourceAccessor
+            implements RepositoryResourceAccessor,
+                    ImplicitInputsProvidingService<String, Long, RepositoryResourceAccessor> {
         @Override
         public void withResource(String relativePath, Action<? super InputStream> action) {
             // No-op

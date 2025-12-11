@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins;
 
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -36,9 +38,6 @@ import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.deprecation.DeprecationLogger;
-
-import javax.inject.Inject;
-import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link Plugin} which extends the {@link JavaPlugin} to add tasks which assemble a web application into a WAR
@@ -70,52 +69,68 @@ public abstract class WarPlugin implements Plugin<Project> {
         this.mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
 
         project.getTasks().withType(War.class).configureEach(task -> {
-            task.getWebAppDirectory().convention(project.getLayout().getProjectDirectory().dir("src/main/webapp"));
+            task.getWebAppDirectory()
+                    .convention(project.getLayout().getProjectDirectory().dir("src/main/webapp"));
             task.from(task.getWebAppDirectory());
-            task.dependsOn((Callable<FileCollection>) () -> mainFeature.getSourceSet().getRuntimeClasspath());
+            task.dependsOn(
+                    (Callable<FileCollection>) () -> mainFeature.getSourceSet().getRuntimeClasspath());
             task.classpath((Callable<FileCollection>) () -> {
-                Configuration providedRuntime = project.getConfigurations().getByName(PROVIDED_RUNTIME_CONFIGURATION_NAME);
+                Configuration providedRuntime =
+                        project.getConfigurations().getByName(PROVIDED_RUNTIME_CONFIGURATION_NAME);
                 return mainFeature.getSourceSet().getRuntimeClasspath().minus(providedRuntime);
             });
         });
 
         TaskProvider<War> war = project.getTasks().register(WAR_TASK_NAME, War.class, warTask -> {
-            warTask.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
+            warTask.setDescription(
+                    "Generates a war archive with all the compiled classes, the web-app content and the libraries.");
             warTask.setGroup(BasePlugin.BUILD_GROUP);
         });
 
-        PublishArtifact warArtifact = new LazyPublishArtifact(war, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
+        PublishArtifact warArtifact = new LazyPublishArtifact(
+                war,
+                ((ProjectInternal) project).getFileResolver(),
+                ((ProjectInternal) project).getTaskDependencyFactory());
         DeprecationLogger.whileDisabled(() -> {
-            project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(warArtifact);
+            project.getConfigurations()
+                    .getByName(Dependency.ARCHIVES_CONFIGURATION)
+                    .getArtifacts()
+                    .add(warArtifact);
         });
         configureConfigurations(((ProjectInternal) project).getConfigurations(), mainFeature);
         configureComponent(project, warArtifact);
     }
 
     @SuppressWarnings("deprecation")
-    private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, JvmFeatureInternal mainFeature) {
-        Configuration providedCompileConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_COMPILE_CONFIGURATION_NAME, conf -> {
-            conf.setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
-        });
+    private void configureConfigurations(
+            RoleBasedConfigurationContainerInternal configurationContainer, JvmFeatureInternal mainFeature) {
+        Configuration providedCompileConfiguration =
+                configurationContainer.resolvableDependencyScopeLocked(PROVIDED_COMPILE_CONFIGURATION_NAME, conf -> {
+                    conf.setDescription(
+                            "Additional compile classpath for libraries that should not be part of the WAR archive.");
+                });
 
-        Configuration providedRuntimeConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_RUNTIME_CONFIGURATION_NAME, conf -> {
-            conf.extendsFrom(providedCompileConfiguration);
-            conf.setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
-        });
+        Configuration providedRuntimeConfiguration =
+                configurationContainer.resolvableDependencyScopeLocked(PROVIDED_RUNTIME_CONFIGURATION_NAME, conf -> {
+                    conf.extendsFrom(providedCompileConfiguration);
+                    conf.setDescription(
+                            "Additional runtime classpath for libraries that should not be part of the WAR archive.");
+                });
 
         mainFeature.getImplementationConfiguration().extendsFrom(providedCompileConfiguration);
         mainFeature.getRuntimeClasspathConfiguration().extendsFrom(providedRuntimeConfiguration);
-        mainFeature.getRuntimeElementsConfiguration().configure(conf ->
-            conf.extendsFrom(providedRuntimeConfiguration)
-        );
+        mainFeature.getRuntimeElementsConfiguration().configure(conf -> conf.extendsFrom(providedRuntimeConfiguration));
 
         JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
-        configurationContainer.getByName(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName()).extendsFrom(providedRuntimeConfiguration);
+        configurationContainer
+                .getByName(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName())
+                .extendsFrom(providedRuntimeConfiguration);
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {
-        AttributeContainer attributes = attributesFactory.mutable()
-            .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+        AttributeContainer attributes = attributesFactory
+                .mutable()
+                .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
         project.getComponents().add(objectFactory.newInstance(WebApplication.class, warArtifact, "master", attributes));
     }
 }

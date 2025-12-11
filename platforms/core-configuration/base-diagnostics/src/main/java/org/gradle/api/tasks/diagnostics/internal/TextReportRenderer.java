@@ -15,6 +15,10 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder;
@@ -23,11 +27,6 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 
 /**
  * <p>A basic {@link ReportRenderer} which writes out a text report.
@@ -50,7 +49,8 @@ public class TextReportRenderer implements ReportRenderer {
     @Override
     public void setOutputFile(File file) throws IOException {
         cleanupWriter();
-        setWriter(new StreamingStyledTextOutput(Files.newBufferedWriter(file.toPath(), Charset.defaultCharset())), true);
+        setWriter(
+                new StreamingStyledTextOutput(Files.newBufferedWriter(file.toPath(), Charset.defaultCharset())), true);
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -65,8 +65,7 @@ public class TextReportRenderer implements ReportRenderer {
     }
 
     @Override
-    public void completeProject(ProjectDetails project) {
-    }
+    public void completeProject(ProjectDetails project) {}
 
     @Override
     public void complete() {

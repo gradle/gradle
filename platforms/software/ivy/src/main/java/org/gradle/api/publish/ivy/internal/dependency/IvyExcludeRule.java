@@ -18,6 +18,8 @@ package org.gradle.api.publish.ivy.internal.dependency;
 
 public interface IvyExcludeRule {
     String getOrg();
+
     String getModule();
+
     String getConf();
 }

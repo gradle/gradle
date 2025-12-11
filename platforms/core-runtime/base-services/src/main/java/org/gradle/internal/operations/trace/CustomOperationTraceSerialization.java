@@ -25,5 +25,4 @@ package org.gradle.internal.operations.trace;
 public interface CustomOperationTraceSerialization {
 
     Object getCustomOperationTraceSerializableModel();
-
 }

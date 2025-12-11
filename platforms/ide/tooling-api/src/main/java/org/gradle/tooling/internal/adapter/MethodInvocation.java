@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.internal.adapter;
 
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.Type;
+import org.jspecify.annotations.Nullable;
 
 class MethodInvocation {
     private final Object[] parameters;
@@ -33,7 +32,15 @@ class MethodInvocation {
     private Object result;
     private boolean found;
 
-    MethodInvocation(String name, Class returnType, Type genericReturnType, Class<?>[] parameterTypes, Object view, Class<?> viewType, Object delegate, Object[] parameters) {
+    MethodInvocation(
+            String name,
+            Class returnType,
+            Type genericReturnType,
+            Class<?>[] parameterTypes,
+            Object view,
+            Class<?> viewType,
+            Object delegate,
+            Object[] parameters) {
         this.name = name;
         this.returnType = returnType;
         this.genericReturnType = genericReturnType;
@@ -58,7 +65,6 @@ class MethodInvocation {
         }
         sb.append(')');
         return sb.toString();
-
     }
 
     public boolean isGetter() {

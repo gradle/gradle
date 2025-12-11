@@ -16,24 +16,26 @@
 
 package org.gradle.api.testing.toolchains.internal;
 
-import org.gradle.api.artifacts.Dependency;
-
 import java.util.Collections;
+import org.gradle.api.artifacts.Dependency;
 
 /**
  * A {@link JUnitPlatformTestToolchain} that uses the KotlinTest test engine.
  *
  * @since 8.5
  */
-abstract public class KotlinTestTestToolchain extends JUnitPlatformTestToolchain<KotlinTestToolchainParameters> {
+public abstract class KotlinTestTestToolchain extends JUnitPlatformTestToolchain<KotlinTestToolchainParameters> {
     /**
      * The default version of KotlinTest to use for compiling and executing tests.
      */
     public static final String DEFAULT_VERSION = "2.2.21";
+
     private static final String GROUP_NAME = "org.jetbrains.kotlin:kotlin-test-junit5";
 
     @Override
     public Iterable<Dependency> getImplementationDependencies() {
-        return Collections.singletonList(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getKotlinTestVersion().get()));
+        return Collections.singletonList(getDependencyFactory()
+                .create(GROUP_NAME + ":"
+                        + getParameters().getKotlinTestVersion().get()));
     }
 }

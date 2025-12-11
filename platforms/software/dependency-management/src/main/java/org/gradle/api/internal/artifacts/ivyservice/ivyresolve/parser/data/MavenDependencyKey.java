@@ -58,9 +58,9 @@ public class MavenDependencyKey {
 
         MavenDependencyKey that = (MavenDependencyKey) o;
         return Objects.equal(groupId, that.groupId)
-            && Objects.equal(artifactId, that.artifactId)
-            && Objects.equal(classifier, that.classifier)
-            && Objects.equal(type, that.type);
+                && Objects.equal(artifactId, that.artifactId)
+                && Objects.equal(classifier, that.classifier)
+                && Objects.equal(type, that.type);
     }
 
     @Override
@@ -71,9 +71,13 @@ public class MavenDependencyKey {
     @Override
     public String toString() {
         StringBuilder key = new StringBuilder();
-        key.append(groupId).append(KEY_SEPARATOR).append(artifactId).append(KEY_SEPARATOR).append(type);
+        key.append(groupId)
+                .append(KEY_SEPARATOR)
+                .append(artifactId)
+                .append(KEY_SEPARATOR)
+                .append(type);
 
-        if(classifier != null) {
+        if (classifier != null) {
             key.append(KEY_SEPARATOR).append(classifier);
         }
 

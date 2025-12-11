@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.provider;
 
+import java.io.Serializable;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectProvider;
@@ -26,20 +29,21 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Serializable;
-import java.util.concurrent.Callable;
-import java.util.function.Supplier;
-
 public class Providers {
     private static final NoValueProvider<Object> NULL_PROVIDER = new NoValueProvider<>(ValueSupplier.Value.MISSING);
 
     public static final Provider<Boolean> TRUE = of(true);
     public static final Provider<Boolean> FALSE = of(false);
 
-    public static <T> ProviderInternal<T> fixedValue(DisplayName owner, T value, Class<T> targetType, ValueSanitizer<T> sanitizer) {
+    public static <T> ProviderInternal<T> fixedValue(
+            DisplayName owner, T value, Class<T> targetType, ValueSanitizer<T> sanitizer) {
         value = sanitizer.sanitize(value);
         if (!targetType.isInstance(value)) {
-            throw new IllegalArgumentException(String.format("Cannot set the value of %s of type %s using an instance of type %s.", owner.getDisplayName(), targetType.getName(), value.getClass().getName()));
+            throw new IllegalArgumentException(String.format(
+                    "Cannot set the value of %s of type %s using an instance of type %s.",
+                    owner.getDisplayName(),
+                    targetType.getName(),
+                    value.getClass().getName()));
         }
         return new FixedValueProvider<>(value);
     }
@@ -88,8 +92,7 @@ public class Providers {
         }
     }
 
-    public interface SerializableCallable<V> extends Callable<V>, Serializable {
-    }
+    public interface SerializableCallable<V> extends Callable<V>, Serializable {}
 
     public static <T> ProviderInternal<T> changing(SerializableCallable<T> value) {
         return new ChangingProvider<>(value);
@@ -99,18 +102,22 @@ public class Providers {
         return memoizing(provider, null);
     }
 
-    public static <T> ProviderInternal<T> memoizing(ProviderInternal<T> provider, @Nullable SerializableSupplier<DisplayName> displayName) {
+    public static <T> ProviderInternal<T> memoizing(
+            ProviderInternal<T> provider, @Nullable SerializableSupplier<DisplayName> displayName) {
         return new MemoizingProvider<>(provider, displayName);
     }
 
     private static class MemoizingProvider<T> extends AbstractMinimalProvider<T> {
         private final ProviderInternal<T> provider;
+
         @Nullable
         private Value<? extends T> value;
+
         @Nullable
         private final Supplier<DisplayName> displayName;
 
-        public MemoizingProvider(ProviderInternal<T> provider, @Nullable SerializableSupplier<DisplayName> displayName) {
+        public MemoizingProvider(
+                ProviderInternal<T> provider, @Nullable SerializableSupplier<DisplayName> displayName) {
             this.provider = provider;
             this.displayName = displayName;
         }
@@ -192,7 +199,8 @@ public class Providers {
         }
     }
 
-    public static class NamedFixedValueProvider<T extends Named> extends FixedValueProvider<T> implements NamedDomainObjectProvider<T> {
+    public static class NamedFixedValueProvider<T extends Named> extends FixedValueProvider<T>
+            implements NamedDomainObjectProvider<T> {
         NamedFixedValueProvider(T value) {
             super(value);
         }
@@ -269,7 +277,8 @@ public class Providers {
         }
 
         @Override
-        public ProviderInternal<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
+        public ProviderInternal<T> asSupplier(
+                DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
             return this;
         }
 

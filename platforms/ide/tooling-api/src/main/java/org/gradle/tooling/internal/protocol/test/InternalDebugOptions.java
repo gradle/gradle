@@ -25,5 +25,6 @@ package org.gradle.tooling.internal.protocol.test;
  */
 public interface InternalDebugOptions {
     boolean isDebugMode();
+
     int getPort();
 }

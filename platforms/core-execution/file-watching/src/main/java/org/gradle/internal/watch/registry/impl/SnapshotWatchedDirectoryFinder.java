@@ -16,9 +16,8 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-
 import java.io.File;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 public class SnapshotWatchedDirectoryFinder {
 

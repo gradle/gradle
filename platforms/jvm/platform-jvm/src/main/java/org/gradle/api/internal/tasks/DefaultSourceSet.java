@@ -15,7 +15,11 @@
  */
 package org.gradle.api.internal.tasks;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+import static org.gradle.util.internal.ConfigureUtil.configure;
+
 import groovy.lang.Closure;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
@@ -24,14 +28,9 @@ import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
-import org.gradle.util.internal.TextUtil;
 import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 public abstract class DefaultSourceSet implements SourceSet {
     private final String name;
@@ -68,15 +67,12 @@ public abstract class DefaultSourceSet implements SourceSet {
 
         // Explicitly capture only a FileCollection in the lambda below for compatibility with configuration-cache.
         FileCollection javaSourceFiles = javaSource;
-        resources.getFilter().exclude(
-            spec(element -> javaSourceFiles.contains(element.getFile()))
-        );
+        resources.getFilter().exclude(spec(element -> javaSourceFiles.contains(element.getFile())));
 
         String allSourceDisplayName = displayName + " source";
         allSource = objectFactory.sourceDirectorySet("allsource", allSourceDisplayName);
         allSource.source(resources);
         allSource.source(javaSource);
-
     }
 
     @Override

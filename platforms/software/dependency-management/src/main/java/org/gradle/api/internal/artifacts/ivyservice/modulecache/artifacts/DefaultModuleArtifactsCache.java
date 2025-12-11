@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import com.google.common.base.Objects;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
@@ -30,14 +31,13 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.util.Set;
-
 public class DefaultModuleArtifactsCache extends AbstractArtifactsCache {
     private final ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator;
 
     private IndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> cache;
 
-    public DefaultModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator) {
+    public DefaultModuleArtifactsCache(
+            BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator) {
         super(timeProvider);
         this.cacheAccessCoordinator = cacheAccessCoordinator;
     }
@@ -50,7 +50,8 @@ public class DefaultModuleArtifactsCache extends AbstractArtifactsCache {
     }
 
     private IndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> initCache() {
-        return cacheAccessCoordinator.createCache("module-artifacts", new ModuleArtifactsKeySerializer(), new ModuleArtifactsCacheEntrySerializer());
+        return cacheAccessCoordinator.createCache(
+                "module-artifacts", new ModuleArtifactsKeySerializer(), new ModuleArtifactsCacheEntrySerializer());
     }
 
     @Override
@@ -99,7 +100,8 @@ public class DefaultModuleArtifactsCache extends AbstractArtifactsCache {
 
     private static class ModuleArtifactsCacheEntrySerializer extends AbstractSerializer<ModuleArtifactsCacheEntry> {
         private final Serializer<Set<ComponentArtifactMetadata>> artifactsSerializer =
-            new SetSerializer<>(new ComponentArtifactMetadataSerializer());
+                new SetSerializer<>(new ComponentArtifactMetadataSerializer());
+
         @Override
         public void write(Encoder encoder, ModuleArtifactsCacheEntry value) throws Exception {
             encoder.writeLong(value.createTimestamp);

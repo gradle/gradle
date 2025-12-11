@@ -15,15 +15,14 @@
  */
 package org.gradle.internal.service;
 
-import org.gradle.internal.UncheckedException;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 class MethodHandleBasedServiceMethod extends AbstractServiceMethod {
-    private final static MethodHandles.Lookup LOOKUP = MethodHandles.publicLookup();
+    private static final MethodHandles.Lookup LOOKUP = MethodHandles.publicLookup();
     private final MethodHandle method;
 
     MethodHandleBasedServiceMethod(Method target) throws IllegalAccessException {

@@ -17,10 +17,9 @@
 package org.gradle.api.internal.file.archive.impl;
 
 import com.google.common.io.ByteStreams;
-import org.gradle.api.internal.file.archive.ZipEntry;
-
 import java.io.IOException;
 import java.io.InputStream;
+import org.gradle.api.internal.file.archive.ZipEntry;
 
 abstract class AbstractZipEntry implements ZipEntry {
     private final java.util.zip.ZipEntry entry;

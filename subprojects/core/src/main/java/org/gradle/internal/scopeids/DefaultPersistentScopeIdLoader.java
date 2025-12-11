@@ -16,6 +16,7 @@
 
 package org.gradle.internal.scopeids;
 
+import java.io.File;
 import org.gradle.cache.ObjectHolder;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
@@ -24,8 +25,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
-
-import java.io.File;
 
 class DefaultPersistentScopeIdLoader implements PersistentScopeIdLoader {
 
@@ -40,7 +39,11 @@ class DefaultPersistentScopeIdLoader implements PersistentScopeIdLoader {
     private final GlobalScopedCacheBuilderFactory globalScopedcacheBuilderFactory;
     private final BuildTreeScopedCacheBuilderFactory buildTreeScopedCacheBuilderFactory;
 
-    DefaultPersistentScopeIdLoader(GlobalScopedCacheBuilderFactory globalScopedcacheBuilderFactory, BuildTreeScopedCacheBuilderFactory buildTreeScopedCacheBuilderFactory, PersistentScopeIdStoreFactory storeFactory, Factory<UniqueId> generator) {
+    DefaultPersistentScopeIdLoader(
+            GlobalScopedCacheBuilderFactory globalScopedcacheBuilderFactory,
+            BuildTreeScopedCacheBuilderFactory buildTreeScopedCacheBuilderFactory,
+            PersistentScopeIdStoreFactory storeFactory,
+            Factory<UniqueId> generator) {
         this.globalScopedcacheBuilderFactory = globalScopedcacheBuilderFactory;
         this.buildTreeScopedCacheBuilderFactory = buildTreeScopedCacheBuilderFactory;
         this.generator = generator;
@@ -55,7 +58,8 @@ class DefaultPersistentScopeIdLoader implements PersistentScopeIdLoader {
 
     @Override
     public WorkspaceScopeId getWorkspace() {
-        UniqueId uniqueId = get(new ScopeParams(workspaceScopeCacheScopeMarker(), WORKSPACE_ID_FILENAME, "Workspace ID"));
+        UniqueId uniqueId =
+                get(new ScopeParams(workspaceScopeCacheScopeMarker(), WORKSPACE_ID_FILENAME, "Workspace ID"));
         return new WorkspaceScopeId(uniqueId);
     }
 

@@ -23,7 +23,8 @@ import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 
 public class NameOnlyFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public NameOnlyFileCollectionFingerprinter(DirectorySensitivity directorySensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
+    public NameOnlyFileCollectionFingerprinter(
+            DirectorySensitivity directorySensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
         super(new NameOnlyFingerprintingStrategy(directorySensitivity, normalizedContentHasher));
     }
 

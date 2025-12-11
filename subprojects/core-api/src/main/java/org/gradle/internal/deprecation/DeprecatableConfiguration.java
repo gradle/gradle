@@ -16,9 +16,8 @@
 
 package org.gradle.internal.deprecation;
 
-import org.gradle.api.artifacts.Configuration;
-
 import java.util.List;
+import org.gradle.api.artifacts.Configuration;
 
 /**
  * This internal interface extends {@link Configuration} adding functionality to allow plugins to deprecate
@@ -72,10 +71,10 @@ public interface DeprecatableConfiguration extends Configuration {
     default void maybeEmitConsumptionDeprecation() {
         if (isDeprecatedForConsumption()) {
             DeprecationLogger.deprecateConfiguration(getName())
-                .forConsumption()
-                .willBecomeAnErrorInNextMajorGradleVersion()
-                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
-                .nagUser();
+                    .forConsumption()
+                    .willBecomeAnErrorInNextMajorGradleVersion()
+                    .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
+                    .nagUser();
         }
     }
 
@@ -85,11 +84,11 @@ public interface DeprecatableConfiguration extends Configuration {
     default void maybeEmitDeclarationDeprecation() {
         if (isDeprecatedForDeclarationAgainst()) {
             DeprecationLogger.deprecateConfiguration(getName())
-                .forDependencyDeclaration()
-                .replaceWith(getDeclarationAlternatives())
-                .willBecomeAnErrorInNextMajorGradleVersion()
-                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
-                .nagUser();
+                    .forDependencyDeclaration()
+                    .replaceWith(getDeclarationAlternatives())
+                    .willBecomeAnErrorInNextMajorGradleVersion()
+                    .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
+                    .nagUser();
         }
     }
 
@@ -99,16 +98,18 @@ public interface DeprecatableConfiguration extends Configuration {
     default void maybeEmitResolutionDeprecation() {
         if (isDeprecatedForResolution()) {
             DeprecationLogger.deprecateConfiguration(getName())
-                .forResolution()
-                .replaceWith(getResolutionAlternatives())
-                .willBecomeAnErrorInNextMajorGradleVersion()
-                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
-                .nagUser();
+                    .forResolution()
+                    .replaceWith(getResolutionAlternatives())
+                    .willBecomeAnErrorInNextMajorGradleVersion()
+                    .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
+                    .nagUser();
         }
     }
 
     boolean isDeprecatedForConsumption();
+
     boolean isDeprecatedForResolution();
+
     boolean isDeprecatedForDeclarationAgainst();
 
     default boolean canSafelyBeResolved() {

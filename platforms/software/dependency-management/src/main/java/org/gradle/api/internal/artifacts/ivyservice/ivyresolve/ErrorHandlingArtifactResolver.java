@@ -31,7 +31,10 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
     }
 
     @Override
-    public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifactsWithType(
+            ComponentArtifactResolveMetadata component,
+            ArtifactType artifactType,
+            BuildableArtifactSetResolveResult result) {
         try {
             resolver.resolveArtifactsWithType(component, artifactType, result);
         } catch (Exception t) {
@@ -40,7 +43,10 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(
+            ComponentArtifactResolveMetadata component,
+            ComponentArtifactMetadata artifact,
+            BuildableArtifactResolveResult result) {
         try {
             resolver.resolveArtifact(component, artifact, result);
         } catch (Exception t) {

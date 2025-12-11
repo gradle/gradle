@@ -15,13 +15,12 @@
  */
 package org.gradle.internal.logging.format;
 
-import org.gradle.internal.logging.events.StyledTextOutputEvent;
-import org.gradle.internal.logging.text.StyledTextOutput;
+import static org.gradle.internal.logging.events.StyledTextOutputEvent.EOL;
 
 import java.util.Arrays;
 import java.util.List;
-
-import static org.gradle.internal.logging.events.StyledTextOutputEvent.EOL;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
     @Override
@@ -34,7 +33,8 @@ public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
     }
 
     private StyledTextOutputEvent.Span header(String message, boolean failed) {
-        StyledTextOutput.Style messageStyle = failed ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.Header;
+        StyledTextOutput.Style messageStyle =
+                failed ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.Header;
         return new StyledTextOutputEvent.Span(messageStyle, "> " + message);
     }
 

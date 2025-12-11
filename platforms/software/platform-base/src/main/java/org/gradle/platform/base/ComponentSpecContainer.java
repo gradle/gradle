@@ -23,5 +23,4 @@ import org.gradle.model.ModelMap;
  * A container of software components.
  */
 @Incubating
-public interface ComponentSpecContainer extends ModelMap<ComponentSpec> {
-}
+public interface ComponentSpecContainer extends ModelMap<ComponentSpec> {}

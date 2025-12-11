@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.io.File;
+import java.util.Map;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -26,32 +28,32 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
-import java.io.File;
-import java.util.Map;
-
 class ImmutableTransformExecution extends AbstractTransformExecution implements ImmutableUnitOfWork {
     private final ImmutableWorkspaceProvider workspaceProvider;
 
     public ImmutableTransformExecution(
-        Transform transform,
-        File inputArtifact,
-        TransformDependencies dependencies,
-        TransformStepSubject subject,
-
-        TransformExecutionListener transformExecutionListener,
-        BuildOperationRunner buildOperationRunner,
-        BuildOperationProgressEventEmitter progressEventEmitter,
-        FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter,
-        ImmutableWorkspaceProvider workspaceProvider,
-
-        boolean disableCachingByProperty
-    ) {
+            Transform transform,
+            File inputArtifact,
+            TransformDependencies dependencies,
+            TransformStepSubject subject,
+            TransformExecutionListener transformExecutionListener,
+            BuildOperationRunner buildOperationRunner,
+            BuildOperationProgressEventEmitter progressEventEmitter,
+            FileCollectionFactory fileCollectionFactory,
+            InputFingerprinter inputFingerprinter,
+            ImmutableWorkspaceProvider workspaceProvider,
+            boolean disableCachingByProperty) {
         super(
-            transform, inputArtifact, dependencies, subject,
-            transformExecutionListener, buildOperationRunner, progressEventEmitter, fileCollectionFactory, inputFingerprinter,
-            disableCachingByProperty
-        );
+                transform,
+                inputArtifact,
+                dependencies,
+                subject,
+                transformExecutionListener,
+                buildOperationRunner,
+                progressEventEmitter,
+                fileCollectionFactory,
+                inputFingerprinter,
+                disableCachingByProperty);
         this.workspaceProvider = workspaceProvider;
     }
 
@@ -61,13 +63,13 @@ class ImmutableTransformExecution extends AbstractTransformExecution implements 
     }
 
     @Override
-    protected TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
+    protected TransformWorkspaceIdentity createIdentity(
+            Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
         return TransformWorkspaceIdentity.createNormalizedImmutable(
-            scalarInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
-            fileInputs.get(INPUT_ARTIFACT_PROPERTY_NAME),
-            scalarInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
-            fileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
-        );
+                scalarInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
+                fileInputs.get(INPUT_ARTIFACT_PROPERTY_NAME),
+                scalarInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
+                fileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash());
     }
 
     @Override

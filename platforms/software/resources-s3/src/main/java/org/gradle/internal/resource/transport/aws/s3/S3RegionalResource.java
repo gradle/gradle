@@ -20,16 +20,16 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.regions.Regions;
 import com.google.common.base.Optional;
-
 import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class S3RegionalResource {
-    //https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-bucket-intro.html#virtual-host-style-url-ex
-    private static final Pattern REGIONAL_ENDPOINT_PATTERN = Pattern.compile("^s3:\\/\\/(.+)?\\.s3[.-]([a-z0-9-]+)\\.amazonaws\\.com(\\.[a-z]+)?\\/(.+)");
+    // https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-bucket-intro.html#virtual-host-style-url-ex
+    private static final Pattern REGIONAL_ENDPOINT_PATTERN =
+            Pattern.compile("^s3:\\/\\/(.+)?\\.s3[.-]([a-z0-9-]+)\\.amazonaws\\.com(\\.[a-z]+)?\\/(.+)");
 
-    //https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-bucket-intro.html#accessing-a-bucket-using-S3-format
+    // https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-bucket-intro.html#accessing-a-bucket-using-S3-format
     private static final Pattern FALLBACK_ENDPOINT_PATTERN = Pattern.compile("^[a-z0-9]+:\\/\\/([^\\/]+)\\/(.+)");
 
     private final URI uri;
@@ -53,7 +53,6 @@ public class S3RegionalResource {
     public String getKey() {
         return key;
     }
-
 
     private void configure() {
         Matcher matcher = REGIONAL_ENDPOINT_PATTERN.matcher(uri.toString());

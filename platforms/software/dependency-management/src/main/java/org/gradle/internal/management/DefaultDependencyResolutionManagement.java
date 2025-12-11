@@ -17,6 +17,9 @@ package org.gradle.internal.management;
 
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.InvalidUserCodeException;
@@ -47,10 +50,6 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.lazy.Lazy;
 import org.jspecify.annotations.NullMarked;
 
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-
 @NullMarked
 public class DefaultDependencyResolutionManagement implements DependencyResolutionManagementInternal {
     private static final DisplayName UNKNOWN_CODE = Describables.of("unknown code");
@@ -70,18 +69,23 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     @Inject
     public DefaultDependencyResolutionManagement(
-        UserCodeApplicationContext context,
-        DependencyManagementServices dependencyManagementServices,
-        ObjectFactory objects,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator
-    ) {
+            UserCodeApplicationContext context,
+            DependencyManagementServices dependencyManagementServices,
+            ObjectFactory objects,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.context = context;
         this.repositoryMode = objects.property(RepositoriesMode.class).convention(RepositoriesMode.PREFER_PROJECT);
         this.rulesMode = objects.property(RulesMode.class).convention(RulesMode.PREFER_PROJECT);
-        this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.ANONYMOUS));
+        this.dependencyResolutionServices = Lazy.locking()
+                .of(() -> dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.ANONYMOUS));
         this.librariesExtensionName = objects.property(String.class).convention("libs");
         this.projectsExtensionName = objects.property(String.class).convention("projects");
-        this.versionCatalogs = objects.newInstance(DefaultVersionCatalogBuilderContainer.class, collectionCallbackActionDecorator, objects, context, dependencyResolutionServices);
+        this.versionCatalogs = objects.newInstance(
+                DefaultVersionCatalogBuilderContainer.class,
+                collectionCallbackActionDecorator,
+                objects,
+                context,
+                dependencyResolutionServices);
     }
 
     @Override
@@ -158,7 +162,8 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
             project.getRepositories().whenObjectAdded(this::repoMutationDisallowedOnProject);
         }
         if (!getConfiguredRulesMode().useProjectRules()) {
-            ComponentMetadataHandlerInternal components = (ComponentMetadataHandlerInternal) project.getDependencies().getComponents();
+            ComponentMetadataHandlerInternal components =
+                    (ComponentMetadataHandlerInternal) project.getDependencies().getComponents();
             components.onAddRule(this::ruleMutationDisallowedOnProject);
         }
     }
@@ -173,12 +178,14 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private void assertMutable() {
         if (!mutable) {
-            throw new InvalidUserCodeException("Mutation of dependency resolution management in settings is only allowed during settings evaluation");
+            throw new InvalidUserCodeException(
+                    "Mutation of dependency resolution management in settings is only allowed during settings evaluation");
         }
     }
 
     private void mutationDisallowed(ArtifactRepository artifactRepository) {
-        throw new InvalidUserCodeException("Mutation of repositories declared in settings is only allowed during settings evaluation");
+        throw new InvalidUserCodeException(
+                "Mutation of repositories declared in settings is only allowed during settings evaluation");
     }
 
     private void repoMutationDisallowedOnProject(ArtifactRepository artifactRepository) {
@@ -187,7 +194,9 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         if (displayName == null) {
             displayName = UNKNOWN_CODE;
         }
-        String message = "Build was configured to prefer settings repositories over project repositories but repository '" + artifactRepository.getName() + "' was added by " + displayName;
+        String message =
+                "Build was configured to prefer settings repositories over project repositories but repository '"
+                        + artifactRepository.getName() + "' was added by " + displayName;
         switch (getConfiguredRepositoriesMode()) {
             case FAIL_ON_PROJECT_REPOS:
                 throw new InvalidUserCodeException(message);
@@ -205,7 +214,9 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         if (displayName == null) {
             displayName = UNKNOWN_CODE;
         }
-        String message = "Build was configured to prefer settings component metadata rules over project rules but rule '" + ruleName + "' was added by " + displayName;
+        String message =
+                "Build was configured to prefer settings component metadata rules over project rules but rule '"
+                        + ruleName + "' was added by " + displayName;
         switch (getConfiguredRulesMode()) {
             case FAIL_ON_PROJECT_RULES:
                 throw new InvalidUserCodeException(message);
@@ -251,7 +262,8 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         }
 
         @Override
-        public ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
+        public ComponentMetadataHandler all(
+                Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
             components(h -> h.all(rule, configureAction));
             return this;
         }
@@ -282,7 +294,10 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         }
 
         @Override
-        public ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
+        public ComponentMetadataHandler withModule(
+                Object id,
+                Class<? extends ComponentMetadataRule> rule,
+                Action<? super ActionConfiguration> configureAction) {
             components(h -> h.withModule(id, rule, configureAction));
             return this;
         }

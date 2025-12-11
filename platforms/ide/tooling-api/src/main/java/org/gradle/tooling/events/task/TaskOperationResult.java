@@ -23,5 +23,4 @@ import org.gradle.tooling.events.OperationResult;
  *
  * @since 2.5
  */
-public interface TaskOperationResult extends OperationResult {
-}
+public interface TaskOperationResult extends OperationResult {}

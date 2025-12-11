@@ -15,6 +15,12 @@
  */
 package org.gradle.nativeplatform.internal;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.nativeplatform.BuildType;
@@ -22,14 +28,8 @@ import org.gradle.nativeplatform.Flavor;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
-public abstract class AbstractTargetedNativeComponentSpec extends AbstractNativeComponentSpec implements TargetedNativeComponentInternal {
+public abstract class AbstractTargetedNativeComponentSpec extends AbstractNativeComponentSpec
+        implements TargetedNativeComponentInternal {
 
     private final List<PlatformRequirement> targetPlatforms = new ArrayList<>();
     private final Set<String> buildTypes = new HashSet<String>();
@@ -79,7 +79,9 @@ public abstract class AbstractTargetedNativeComponentSpec extends AbstractNative
         }
 
         if (!unusedNames.isEmpty()) {
-            throw new InvalidUserDataException(String.format("Invalid %s: '%s'", type.getSimpleName(), unusedNames.iterator().next()));
+            throw new InvalidUserDataException(String.format(
+                    "Invalid %s: '%s'",
+                    type.getSimpleName(), unusedNames.iterator().next()));
         }
 
         return chosen;

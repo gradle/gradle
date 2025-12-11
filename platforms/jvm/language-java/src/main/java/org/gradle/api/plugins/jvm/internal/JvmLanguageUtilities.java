@@ -40,7 +40,8 @@ public interface JvmLanguageUtilities {
      * @param configuration the configuration to configure
      * @param compileTask the compile task which serves as reference for inference
      */
-    <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<COMPILE> compileTask);
+    <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(
+            Configuration configuration, TaskProvider<COMPILE> compileTask);
 
     /**
      * Registers a new source directory for a source set, assuming that it will be compiled by
@@ -49,5 +50,6 @@ public interface JvmLanguageUtilities {
      * @param name the name of the directory
      * @param configuration the configuration of the source directory
      */
-    void registerJvmLanguageSourceDirectory(SourceSet sourceSet, String name, Action<? super JvmLanguageSourceDirectoryBuilder> configuration);
+    void registerJvmLanguageSourceDirectory(
+            SourceSet sourceSet, String name, Action<? super JvmLanguageSourceDirectoryBuilder> configuration);
 }

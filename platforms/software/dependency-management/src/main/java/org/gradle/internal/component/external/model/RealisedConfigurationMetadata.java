@@ -18,50 +18,72 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.VariantIdentifier;
-
-import java.util.List;
 
 public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata {
 
     private final boolean addedByRule;
 
     public RealisedConfigurationMetadata(
-        String name,
-        VariantIdentifier id,
-        ModuleComponentIdentifier componentId,
-        boolean transitive,
-        boolean visible,
-        ImmutableSet<String> hierarchy,
-        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-        ImmutableList<ExcludeMetadata> excludes,
-        ImmutableAttributes componentLevelAttributes,
-        ImmutableCapabilities capabilities,
-        boolean addedByRule,
-        boolean externalVariant
-    ) {
-        this(name, id, componentId, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, null, addedByRule, externalVariant);
+            String name,
+            VariantIdentifier id,
+            ModuleComponentIdentifier componentId,
+            boolean transitive,
+            boolean visible,
+            ImmutableSet<String> hierarchy,
+            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+            ImmutableList<ExcludeMetadata> excludes,
+            ImmutableAttributes componentLevelAttributes,
+            ImmutableCapabilities capabilities,
+            boolean addedByRule,
+            boolean externalVariant) {
+        this(
+                name,
+                id,
+                componentId,
+                transitive,
+                visible,
+                hierarchy,
+                artifacts,
+                excludes,
+                componentLevelAttributes,
+                capabilities,
+                null,
+                addedByRule,
+                externalVariant);
     }
 
     public RealisedConfigurationMetadata(
-        String name,
-        VariantIdentifier id,
-        ModuleComponentIdentifier componentId,
-        boolean transitive,
-        boolean visible,
-        ImmutableSet<String> hierarchy,
-        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-        ImmutableList<ExcludeMetadata> excludes,
-        ImmutableAttributes attributes,
-        ImmutableCapabilities capabilities,
-        ImmutableList<ModuleDependencyMetadata> configDependencies,
-        boolean addedByRule,
-        boolean externalVariant
-    ) {
-        super(name, id, componentId, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependencies, capabilities, externalVariant);
+            String name,
+            VariantIdentifier id,
+            ModuleComponentIdentifier componentId,
+            boolean transitive,
+            boolean visible,
+            ImmutableSet<String> hierarchy,
+            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+            ImmutableList<ExcludeMetadata> excludes,
+            ImmutableAttributes attributes,
+            ImmutableCapabilities capabilities,
+            ImmutableList<ModuleDependencyMetadata> configDependencies,
+            boolean addedByRule,
+            boolean externalVariant) {
+        super(
+                name,
+                id,
+                componentId,
+                transitive,
+                visible,
+                artifacts,
+                hierarchy,
+                excludes,
+                attributes,
+                configDependencies,
+                capabilities,
+                externalVariant);
         this.addedByRule = addedByRule;
     }
 
@@ -72,20 +94,19 @@ public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata
 
     public RealisedConfigurationMetadata withDependencies(ImmutableList<ModuleDependencyMetadata> dependencies) {
         return new RealisedConfigurationMetadata(
-            getName(),
-            getId(),
-            getComponentId(),
-            isTransitive(),
-            isVisible(),
-            getHierarchy(),
-            getArtifacts(),
-            getExcludes(),
-            getAttributes(),
-            getCapabilities(),
-            dependencies,
-            addedByRule,
-            isExternalVariant()
-        );
+                getName(),
+                getId(),
+                getComponentId(),
+                isTransitive(),
+                isVisible(),
+                getHierarchy(),
+                getArtifacts(),
+                getExcludes(),
+                getAttributes(),
+                getCapabilities(),
+                dependencies,
+                addedByRule,
+                isExternalVariant());
     }
 
     public boolean isAddedByRule() {

@@ -20,7 +20,6 @@ import com.google.common.base.Equivalence;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.*;
-
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
@@ -93,7 +92,8 @@ public class CandidateMethods {
      * @return Overloaded candidate methods named {@literal methodName} indexed by signature equivalence except thoses
      * matching any of the signature equivalence provided in {@literal excludes} or {@literal null} if none
      */
-    public Map<Equivalence.Wrapper<Method>, Collection<Method>> overloadedMethodsNamed(String methodName, Collection<Equivalence.Wrapper<Method>> excludes) {
+    public Map<Equivalence.Wrapper<Method>, Collection<Method>> overloadedMethodsNamed(
+            String methodName, Collection<Equivalence.Wrapper<Method>> excludes) {
         return Maps.filterKeys(overloadedMethodsNamed(methodName), Predicates.not(Predicates.in(excludes)));
     }
 

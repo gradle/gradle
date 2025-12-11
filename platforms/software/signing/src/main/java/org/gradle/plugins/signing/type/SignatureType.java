@@ -15,12 +15,11 @@
  */
 package org.gradle.plugins.signing.type;
 
-import org.gradle.api.tasks.Input;
-import org.gradle.plugins.signing.signatory.Signatory;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.gradle.api.tasks.Input;
+import org.gradle.plugins.signing.signatory.Signatory;
 
 /**
  * The type of signature.

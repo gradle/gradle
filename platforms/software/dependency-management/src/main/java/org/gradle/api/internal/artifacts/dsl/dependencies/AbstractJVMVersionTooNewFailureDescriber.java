@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -24,20 +29,15 @@ import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.describer.AbstractResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
-import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 
 /**
  * Abstract base class for building {@link ResolutionFailureDescriber}s that describe {@link ResolutionFailure}s caused by
  * incompatibilities related to a dependency requiring a higher JVM version.
  */
-public abstract class AbstractJVMVersionTooNewFailureDescriber extends AbstractResolutionFailureDescriber<NoCompatibleVariantsFailure> {
+public abstract class AbstractJVMVersionTooNewFailureDescriber
+        extends AbstractResolutionFailureDescriber<NoCompatibleVariantsFailure> {
     /**
      * Returns the JVM version used in the comparison against the library that is causing the failure.
      *
@@ -48,7 +48,8 @@ public abstract class AbstractJVMVersionTooNewFailureDescriber extends AbstractR
 
     protected final boolean isDueToJVMVersionTooNew(NoCompatibleVariantsFailure failure) {
         if (allLibraryCandidatesIncompatibleDueToJVMVersionTooLow(failure)) {
-            JavaVersion minJVMVersionSupported = findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
+            JavaVersion minJVMVersionSupported =
+                    findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
             return minJVMVersionSupported.compareTo(getJVMVersion(failure)) > 0;
         } else {
             return false;
@@ -57,35 +58,40 @@ public abstract class AbstractJVMVersionTooNewFailureDescriber extends AbstractR
 
     private boolean allLibraryCandidatesIncompatibleDueToJVMVersionTooLow(NoCompatibleVariantsFailure failure) {
         List<ResolutionCandidateAssessor.AssessedCandidate> libraryCandidates = failure.getCandidates().stream()
-            .filter(this::isLibraryCandidate)
-            .collect(Collectors.toList());
+                .filter(this::isLibraryCandidate)
+                .collect(Collectors.toList());
         if (!libraryCandidates.isEmpty()) {
-            boolean requestingJDKVersion = failure.getRequestedAttributes().contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
-            boolean allIncompatibleDueToJDKVersion = libraryCandidates.stream().allMatch(this::isJVMVersionAttributeIncompatible);
+            boolean requestingJDKVersion =
+                    failure.getRequestedAttributes().contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
+            boolean allIncompatibleDueToJDKVersion =
+                    libraryCandidates.stream().allMatch(this::isJVMVersionAttributeIncompatible);
             return requestingJDKVersion && allIncompatibleDueToJDKVersion;
         } else {
             return false;
         }
     }
 
-    protected final Optional<JavaVersion> findMinJVMSupported(List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+    protected final Optional<JavaVersion> findMinJVMSupported(
+            List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
         return candidates.stream()
-            .filter(this::isLibraryCandidate)
-            .map(this::findMinJVMSupported)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .min(Comparator.comparing(JavaVersion::getMajorVersion));
+                .filter(this::isLibraryCandidate)
+                .map(this::findMinJVMSupported)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .min(Comparator.comparing(JavaVersion::getMajorVersion));
     }
 
     private Optional<JavaVersion> findMinJVMSupported(ResolutionCandidateAssessor.AssessedCandidate candidate) {
         return candidate.getIncompatibleAttributes().stream()
-            .filter(this::isJVMVersionAttribute)
-            .map(jvmVersionAttribute -> JavaVersion.toVersion(Objects.requireNonNull(jvmVersionAttribute.getProvided())))
-            .min(Comparator.comparing(JavaVersion::getMajorVersion));
+                .filter(this::isJVMVersionAttribute)
+                .map(jvmVersionAttribute ->
+                        JavaVersion.toVersion(Objects.requireNonNull(jvmVersionAttribute.getProvided())))
+                .min(Comparator.comparing(JavaVersion::getMajorVersion));
     }
 
     private boolean isLibraryCandidate(ResolutionCandidateAssessor.AssessedCandidate candidate) {
-        AttributeContainer candidateAttributes = candidate.getAllCandidateAttributes().getAttributes();
+        AttributeContainer candidateAttributes =
+                candidate.getAllCandidateAttributes().getAttributes();
         for (Attribute<?> attribute : candidateAttributes.keySet()) {
             if (Objects.equals(attribute.getName(), Category.CATEGORY_ATTRIBUTE.getName())) {
                 String category = String.valueOf(candidateAttributes.getAttribute(attribute));

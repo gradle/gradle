@@ -73,8 +73,7 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
         }
 
         DefaultModuleVersionSelector that = (DefaultModuleVersionSelector) o;
-        return Objects.equal(module, that.module)
-            && Objects.equal(version, that.version);
+        return Objects.equal(module, that.module) && Objects.equal(version, that.version);
     }
 
     @Override
@@ -93,17 +92,12 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
     }
 
     public static ModuleVersionSelector newSelector(ModuleVersionIdentifier moduleVersionId) {
-        return new DefaultModuleVersionSelector(
-            moduleVersionId.getModule(),
-            moduleVersionId.getVersion()
-        );
+        return new DefaultModuleVersionSelector(moduleVersionId.getModule(), moduleVersionId.getVersion());
     }
 
     public static ModuleVersionSelector newSelector(ModuleComponentIdentifier moduleComponentId) {
         return new DefaultModuleVersionSelector(
-            moduleComponentId.getModuleIdentifier(),
-            moduleComponentId.getVersion()
-        );
+                moduleComponentId.getModuleIdentifier(), moduleComponentId.getVersion());
     }
 
     public static ModuleVersionSelector newSelector(ModuleComponentSelector selector) {

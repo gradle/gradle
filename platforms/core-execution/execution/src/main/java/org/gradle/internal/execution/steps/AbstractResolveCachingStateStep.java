@@ -17,6 +17,8 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Formatter;
+import java.util.List;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.internal.execution.UnitOfWork;
@@ -31,23 +33,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.NOPLogger;
 
-import java.util.Formatter;
-import java.util.List;
-
-public abstract class AbstractResolveCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
+public abstract class AbstractResolveCachingStateStep<C extends ValidationFinishedContext>
+        implements Step<C, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractResolveCachingStateStep.class);
-    private static final CachingDisabledReason BUILD_CACHE_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.BUILD_CACHE_DISABLED, "Build cache is disabled");
-    private static final CachingState BUILD_CACHE_DISABLED_STATE = CachingState.disabledWithoutInputs(BUILD_CACHE_DISABLED_REASON);
-    private static final CachingDisabledReason VALIDATION_FAILED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.VALIDATION_FAILURE, "Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.");
-    private static final CachingState VALIDATION_FAILED_STATE = CachingState.disabledWithoutInputs(VALIDATION_FAILED_REASON);
+    private static final CachingDisabledReason BUILD_CACHE_DISABLED_REASON =
+            new CachingDisabledReason(CachingDisabledReasonCategory.BUILD_CACHE_DISABLED, "Build cache is disabled");
+    private static final CachingState BUILD_CACHE_DISABLED_STATE =
+            CachingState.disabledWithoutInputs(BUILD_CACHE_DISABLED_REASON);
+    private static final CachingDisabledReason VALIDATION_FAILED_REASON = new CachingDisabledReason(
+            CachingDisabledReasonCategory.VALIDATION_FAILURE,
+            "Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.");
+    private static final CachingState VALIDATION_FAILED_STATE =
+            CachingState.disabledWithoutInputs(VALIDATION_FAILED_REASON);
 
     private final BuildCacheController buildCache;
     private final boolean emitDebugLogging;
 
-    public AbstractResolveCachingStateStep(
-        BuildCacheController buildCache,
-        boolean emitDebugLogging
-    ) {
+    public AbstractResolveCachingStateStep(BuildCacheController buildCache, boolean emitDebugLogging) {
         this.buildCache = buildCache;
         this.emitDebugLogging = emitDebugLogging;
     }
@@ -56,24 +58,21 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
     public CachingResult execute(UnitOfWork work, C context) {
         CachingState cachingState;
         cachingState = context.getBeforeExecutionState()
-            .map(beforeExecutionState -> calculateCachingState(work, context, beforeExecutionState))
-            .orElseGet(() -> !context.getValidationProblems().isEmpty()
-                ? VALIDATION_FAILED_STATE
-                : calculateCachingStateWithNoCapturedInputs(work));
+                .map(beforeExecutionState -> calculateCachingState(work, context, beforeExecutionState))
+                .orElseGet(() -> !context.getValidationProblems().isEmpty()
+                        ? VALIDATION_FAILED_STATE
+                        : calculateCachingStateWithNoCapturedInputs(work));
 
         cachingState.apply(
-            enabled -> logCacheKey(enabled.getCacheKeyCalculatedState().getKey(), work),
-            disabled -> logDisabledReasons(disabled.getDisabledReasons(), work)
-        );
+                enabled -> logCacheKey(enabled.getCacheKeyCalculatedState().getKey(), work),
+                disabled -> logDisabledReasons(disabled.getDisabledReasons(), work));
 
         UpToDateResult result = executeDelegate(work, context, cachingState);
         return new CachingResult(result, cachingState);
     }
 
     private CachingState calculateCachingState(UnitOfWork work, C context, BeforeExecutionState beforeExecutionState) {
-        Logger logger = emitDebugLogging
-            ? LOGGER
-            : NOPLogger.NOP_LOGGER;
+        Logger logger = emitDebugLogging ? LOGGER : NOPLogger.NOP_LOGGER;
         CachingStateFactory cachingStateFactory = new DefaultCachingStateFactory(logger);
         HashCode cacheKey = calculateCacheKey(context, beforeExecutionState, cachingStateFactory);
 
@@ -86,14 +85,17 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
         }
         checkIfWorkIsCacheable(work, context, cachingDisabledReasonsBuilder);
 
-        return cachingStateFactory.createCachingState(beforeExecutionState, cacheKey, cachingDisabledReasonsBuilder.build());
+        return cachingStateFactory.createCachingState(
+                beforeExecutionState, cacheKey, cachingDisabledReasonsBuilder.build());
     }
 
-    protected HashCode calculateCacheKey(C context, BeforeExecutionState beforeExecutionState, CachingStateFactory cachingStateFactory) {
+    protected HashCode calculateCacheKey(
+            C context, BeforeExecutionState beforeExecutionState, CachingStateFactory cachingStateFactory) {
         return cachingStateFactory.calculateCacheKey(beforeExecutionState);
     }
 
-    protected abstract void checkIfWorkIsCacheable(UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder);
+    protected abstract void checkIfWorkIsCacheable(
+            UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder);
 
     protected abstract UpToDateResult executeDelegate(UnitOfWork work, C context, CachingState cachingState);
 
@@ -102,8 +104,8 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
             return BUILD_CACHE_DISABLED_STATE;
         }
         return work.shouldDisableCaching(null)
-            .map(CachingState::disabledWithoutInputs)
-            .orElse(CachingState.NOT_DETERMINED);
+                .map(CachingState::disabledWithoutInputs)
+                .orElse(CachingState.NOT_DETERMINED);
     }
 
     private void logCacheKey(BuildCacheKey cacheKey, UnitOfWork work) {

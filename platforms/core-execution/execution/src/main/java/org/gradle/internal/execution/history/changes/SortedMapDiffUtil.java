@@ -25,9 +25,14 @@ public class SortedMapDiffUtil {
 
     private SortedMapDiffUtil() {}
 
-    public static <K, VP, VC> boolean diff(SortedMap<K, ? extends VP> previous, SortedMap<K, ? extends VC> current, PropertyDiffListener<K, VP, VC> diffListener) {
-        Iterator<? extends Map.Entry<K, ? extends VC>> currentEntries = current.entrySet().iterator();
-        Iterator<? extends Map.Entry<K, ? extends VP>> previousEntries = previous.entrySet().iterator();
+    public static <K, VP, VC> boolean diff(
+            SortedMap<K, ? extends VP> previous,
+            SortedMap<K, ? extends VC> current,
+            PropertyDiffListener<K, VP, VC> diffListener) {
+        Iterator<? extends Map.Entry<K, ? extends VC>> currentEntries =
+                current.entrySet().iterator();
+        Iterator<? extends Map.Entry<K, ? extends VP>> previousEntries =
+                previous.entrySet().iterator();
         Comparator<? super K> comparator = previous.comparator();
 
         if (currentEntries.hasNext() && previousEntries.hasNext()) {

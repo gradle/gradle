@@ -16,6 +16,8 @@
 
 package org.gradle.model.internal.inspect;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.model.RuleSource;
 import org.gradle.model.Rules;
 import org.gradle.model.internal.core.ModelActionRole;
@@ -26,15 +28,13 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-
 public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Rules> {
     private static final ModelType<RuleSource> RULE_SOURCE_MODEL_TYPE = ModelType.of(RuleSource.class);
 
     @Nullable
     @Override
-    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
+    public <R, S> ExtractedModelRule registration(
+            MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
         validateIsVoidMethod(ruleDefinition, context);
         if (ruleDefinition.getReferences().size() < 2) {
             context.add(ruleDefinition, "A method " + getDescription() + " must have at least two parameters");
@@ -43,7 +43,10 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
 
         ModelType<?> ruleType = ruleDefinition.getReferences().get(0).getType();
         if (!RULE_SOURCE_MODEL_TYPE.isAssignableFrom(ruleType)) {
-            context.add(ruleDefinition, "The first parameter of a method " + getDescription() + " must be a subtype of " + RuleSource.class.getName());
+            context.add(
+                    ruleDefinition,
+                    "The first parameter of a method " + getDescription() + " must be a subtype of "
+                            + RuleSource.class.getName());
         }
         if (context.hasProblems()) {
             return null;
@@ -51,15 +54,20 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
 
         ModelType<? extends RuleSource> ruleSourceType = ruleType.asSubtype(RULE_SOURCE_MODEL_TYPE);
         RuleApplicationScope ruleApplicationScope = RuleApplicationScope.fromRuleDefinition(context, ruleDefinition, 1);
-        return new ExtractedRuleSourceDefinitionRule(ruleDefinition, ruleSourceType, context.getRuleExtractor(), ruleApplicationScope);
+        return new ExtractedRuleSourceDefinitionRule(
+                ruleDefinition, ruleSourceType, context.getRuleExtractor(), ruleApplicationScope);
     }
 
-    private static class ExtractedRuleSourceDefinitionRule  extends AbstractExtractedModelRule {
+    private static class ExtractedRuleSourceDefinitionRule extends AbstractExtractedModelRule {
         private final ModelType<? extends RuleSource> ruleSourceType;
         private final ModelRuleExtractor ruleExtractor;
         private final RuleApplicationScope ruleApplicationScope;
 
-        public ExtractedRuleSourceDefinitionRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor, RuleApplicationScope ruleApplicationScope) {
+        public ExtractedRuleSourceDefinitionRule(
+                MethodRuleDefinition<?, ?> ruleDefinition,
+                ModelType<? extends RuleSource> ruleSourceType,
+                ModelRuleExtractor ruleExtractor,
+                RuleApplicationScope ruleApplicationScope) {
             super(ruleDefinition);
             this.ruleSourceType = ruleSourceType;
             this.ruleExtractor = ruleExtractor;
@@ -70,8 +78,11 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         public void apply(final MethodModelRuleApplicationContext context, MutableModelNode target) {
             MethodRuleDefinition<?, ?> ruleDefinition = getRuleDefinition();
             ModelReference<?> targetReference = ruleDefinition.getReferences().get(1);
-            List<ModelReference<?>> inputs = ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size());
-            RuleSourceApplicationAction ruleAction = new RuleSourceApplicationAction(targetReference, ruleDefinition.getDescriptor(), inputs, ruleSourceType, ruleExtractor);
+            List<ModelReference<?>> inputs = ruleDefinition
+                    .getReferences()
+                    .subList(2, ruleDefinition.getReferences().size());
+            RuleSourceApplicationAction ruleAction = new RuleSourceApplicationAction(
+                    targetReference, ruleDefinition.getDescriptor(), inputs, ruleSourceType, ruleExtractor);
             RuleExtractorUtils.configureRuleAction(context, ruleApplicationScope, ModelActionRole.Defaults, ruleAction);
         }
 
@@ -88,7 +99,12 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         private final ModelType<? extends RuleSource> ruleSourceType;
         private final ModelRuleExtractor ruleExtractor;
 
-        public RuleSourceApplicationAction(ModelReference<?> targetReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor) {
+        public RuleSourceApplicationAction(
+                ModelReference<?> targetReference,
+                ModelRuleDescriptor descriptor,
+                List<ModelReference<?>> inputs,
+                ModelType<? extends RuleSource> ruleSourceType,
+                ModelRuleExtractor ruleExtractor) {
             this.targetReference = targetReference;
             this.descriptor = descriptor;
             this.inputs = inputs;
@@ -111,7 +127,9 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
             ExtractedRuleSource<?> ruleSource = ruleExtractor.extract(ruleSourceType.getConcreteClass());
             Object[] parameters = new Object[2 + inputs.size()];
             parameters[0] = ruleSource.getFactory().create();
-            parameters[1] = subjectNode.asImmutable(targetReference.getType(), descriptor).getInstance();
+            parameters[1] = subjectNode
+                    .asImmutable(targetReference.getType(), descriptor)
+                    .getInstance();
             for (int i = 0; i < inputs.size(); i++) {
                 parameters[i + 2] = inputs.get(i).getInstance();
             }

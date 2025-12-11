@@ -17,6 +17,11 @@
 package org.gradle.api.internal.cache;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.time.Instant;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.cache.CacheResourceConfiguration;
 import org.gradle.api.cache.Cleanup;
@@ -36,22 +41,18 @@ import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.time.Instant;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-
-abstract public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
+public abstract class DefaultCacheConfigurations implements CacheConfigurationsInternal {
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     private static final String RELEASED_WRAPPERS = "releasedWrappers";
     private static final String SNAPSHOT_WRAPPERS = "snapshotWrappers";
     private static final String DOWNLOADED_RESOURCES = "downloadedResources";
     private static final String CREATED_RESOURCES = "createdResources";
     private static final String BUILD_CACHE = "buildCache";
-    static final String UNSAFE_MODIFICATION_ERROR = "The property '%s' was modified from an unsafe location (for instance a settings script or plugin).  " +
-        "This property can only be changed in an init script, preferably stored in the init.d directory inside the Gradle user home directory. " +
-        DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information on this", "directory_layout", "dir:gradle_user_home:configure_cache_cleanup");
+    static final String UNSAFE_MODIFICATION_ERROR =
+            "The property '%s' was modified from an unsafe location (for instance a settings script or plugin).  "
+                    + "This property can only be changed in an init script, preferably stored in the init.d directory inside the Gradle user home directory. "
+                    + DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor(
+                            "information on this", "directory_layout", "dir:gradle_user_home:configure_cache_cleanup");
 
     private final CacheResourceConfigurationInternal releasedWrappersConfiguration;
     private final CacheResourceConfigurationInternal snapshotWrappersConfiguration;
@@ -65,18 +66,31 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     @Inject
     public DefaultCacheConfigurations(ObjectFactory objectFactory, PropertyHost propertyHost, Clock clock) {
-        this.releasedWrappersConfiguration = createResourceConfiguration(objectFactory, RELEASED_WRAPPERS, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
-        this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, SNAPSHOT_WRAPPERS, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
-        this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DOWNLOADED_RESOURCES, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
-        this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, CREATED_RESOURCES, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
-        this.buildCacheConfiguration = createResourceConfiguration(objectFactory, BUILD_CACHE, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES);
-        this.cleanup = new ContextualErrorMessageProperty<>(propertyHost, Cleanup.class, "cleanup").convention(Cleanup.DEFAULT);
-        this.markingStrategy = new ContextualErrorMessageProperty<>(propertyHost, MarkingStrategy.class, "markingStrategy").convention(MarkingStrategy.CACHEDIR_TAG);
+        this.releasedWrappersConfiguration = createResourceConfiguration(
+                objectFactory, RELEASED_WRAPPERS, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
+        this.snapshotWrappersConfiguration = createResourceConfiguration(
+                objectFactory, SNAPSHOT_WRAPPERS, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
+        this.downloadedResourcesConfiguration = createResourceConfiguration(
+                objectFactory, DOWNLOADED_RESOURCES, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
+        this.createdResourcesConfiguration = createResourceConfiguration(
+                objectFactory, CREATED_RESOURCES, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
+        this.buildCacheConfiguration = createResourceConfiguration(
+                objectFactory, BUILD_CACHE, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES);
+        this.cleanup = new ContextualErrorMessageProperty<>(propertyHost, Cleanup.class, "cleanup")
+                .convention(Cleanup.DEFAULT);
+        this.markingStrategy = new ContextualErrorMessageProperty<>(
+                        propertyHost, MarkingStrategy.class, "markingStrategy")
+                .convention(MarkingStrategy.CACHEDIR_TAG);
     }
 
-    private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, String name, Clock clock, int defaultDays) {
-        CacheResourceConfigurationInternal resourceConfiguration = objectFactory.newInstance(DefaultCacheResourceConfiguration.class, name, clock);
-        resourceConfiguration.getEntryRetention().convention(CacheResourceConfigurationInternal.EntryRetention.relative(TimeUnit.DAYS.toMillis(defaultDays)));
+    private static CacheResourceConfigurationInternal createResourceConfiguration(
+            ObjectFactory objectFactory, String name, Clock clock, int defaultDays) {
+        CacheResourceConfigurationInternal resourceConfiguration =
+                objectFactory.newInstance(DefaultCacheResourceConfiguration.class, name, clock);
+        resourceConfiguration
+                .getEntryRetention()
+                .convention(CacheResourceConfigurationInternal.EntryRetention.relative(
+                        TimeUnit.DAYS.toMillis(defaultDays)));
         return resourceConfiguration;
     }
 
@@ -142,18 +156,33 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     @Override
     public Provider<CleanupFrequency> getCleanupFrequency() {
-        return getCleanup().map(cleanup ->
-            new MustBeConfiguredCleanupFrequency(((CleanupInternal) cleanup).getCleanupFrequency())
-        );
+        return getCleanup()
+                .map(cleanup ->
+                        new MustBeConfiguredCleanupFrequency(((CleanupInternal) cleanup).getCleanupFrequency()));
     }
 
     @Override
     public void synchronize(CacheConfigurationsInternal persistentCacheConfigurations) {
-        persistentCacheConfigurations.getReleasedWrappers().getEntryRetention().value(getReleasedWrappers().getEntryRetention());
-        persistentCacheConfigurations.getSnapshotWrappers().getEntryRetention().value(getSnapshotWrappers().getEntryRetention());
-        persistentCacheConfigurations.getDownloadedResources().getEntryRetention().value(getDownloadedResources().getEntryRetention());
-        persistentCacheConfigurations.getCreatedResources().getEntryRetention().value(getCreatedResources().getEntryRetention());
-        persistentCacheConfigurations.getBuildCache().getEntryRetention().value(getBuildCache().getEntryRetention());
+        persistentCacheConfigurations
+                .getReleasedWrappers()
+                .getEntryRetention()
+                .value(getReleasedWrappers().getEntryRetention());
+        persistentCacheConfigurations
+                .getSnapshotWrappers()
+                .getEntryRetention()
+                .value(getSnapshotWrappers().getEntryRetention());
+        persistentCacheConfigurations
+                .getDownloadedResources()
+                .getEntryRetention()
+                .value(getDownloadedResources().getEntryRetention());
+        persistentCacheConfigurations
+                .getCreatedResources()
+                .getEntryRetention()
+                .value(getCreatedResources().getEntryRetention());
+        persistentCacheConfigurations
+                .getBuildCache()
+                .getEntryRetention()
+                .value(getBuildCache().getEntryRetention());
         persistentCacheConfigurations.getCleanup().value(getCleanup());
         persistentCacheConfigurations.getMarkingStrategy().value(getMarkingStrategy());
     }
@@ -178,21 +207,10 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private void markCacheDirectories(Gradle gradle) {
         MarkingStrategy strategy = getMarkingStrategy().get();
         strategy.tryMarkCacheDirectory(new File(
-            gradle.getGradleUserHomeDir(),
-            WrapperDistributionCleanupAction.WRAPPER_DISTRIBUTION_FILE_PATH
-        ));
-        strategy.tryMarkCacheDirectory(new File(
-            gradle.getGradleUserHomeDir(),
-            "daemon"
-        ));
-        strategy.tryMarkCacheDirectory(new File(
-            gradle.getGradleUserHomeDir(),
-            "caches"
-        ));
-        strategy.tryMarkCacheDirectory(new File(
-            gradle.getGradleUserHomeDir(),
-            "jdks"
-        ));
+                gradle.getGradleUserHomeDir(), WrapperDistributionCleanupAction.WRAPPER_DISTRIBUTION_FILE_PATH));
+        strategy.tryMarkCacheDirectory(new File(gradle.getGradleUserHomeDir(), "daemon"));
+        strategy.tryMarkCacheDirectory(new File(gradle.getGradleUserHomeDir(), "caches"));
+        strategy.tryMarkCacheDirectory(new File(gradle.getGradleUserHomeDir(), "jdks"));
     }
 
     @Override
@@ -200,7 +218,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         this.cleanupHasBeenConfigured = hasBeenConfigured;
     }
 
-    static abstract class DefaultCacheResourceConfiguration implements CacheResourceConfigurationInternal {
+    abstract static class DefaultCacheResourceConfiguration implements CacheResourceConfigurationInternal {
         private final String name;
         private final Clock clock;
         private final Property<EntryRetention> entryRetention;
@@ -209,7 +227,8 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         public DefaultCacheResourceConfiguration(PropertyHost propertyHost, String name, Clock clock) {
             this.name = name;
             this.clock = clock;
-            this.entryRetention = new ContextualErrorMessageProperty<>(propertyHost, EntryRetention.class, "entryRetention");
+            this.entryRetention =
+                    new ContextualErrorMessageProperty<>(propertyHost, EntryRetention.class, "entryRetention");
         }
 
         @Override
@@ -236,7 +255,9 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         @Override
         public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
             if (removeUnusedEntriesAfterDays < 1) {
-                throw new IllegalArgumentException("Cache '" + name + "' cannot be set to retain entries for " + removeUnusedEntriesAfterDays + " days. For time frames shorter than one day, use the 'removeUnusedEntriesOlderThan' property.");
+                throw new IllegalArgumentException(
+                        "Cache '" + name + "' cannot be set to retain entries for " + removeUnusedEntriesAfterDays
+                                + " days. For time frames shorter than one day, use the 'removeUnusedEntriesOlderThan' property.");
             }
             long daysInMillis = TimeUnit.DAYS.toMillis(removeUnusedEntriesAfterDays);
             getEntryRetention().set(EntryRetention.relative(daysInMillis));

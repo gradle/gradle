@@ -16,6 +16,15 @@
 
 package org.gradle.internal.scripts;
 
+import static java.util.Objects.requireNonNull;
+import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT;
+import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
+import static org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector.INTERCEPTED_METHODS_REPORT_FILE;
+
+import java.io.File;
+import java.util.Map;
+import java.util.Optional;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
@@ -43,23 +52,15 @@ import org.gradle.internal.instrumentation.reporting.listener.BytecodeUpgradeRep
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.jspecify.annotations.Nullable;
 
-import javax.annotation.OverridingMethodsMustInvokeSuper;
-import java.io.File;
-import java.util.Map;
-import java.util.Optional;
-
-import static java.util.Objects.requireNonNull;
-import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT;
-import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
-import static org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector.INTERCEPTED_METHODS_REPORT_FILE;
-
 /**
  * A base class that represents a work for compilation for Kotlin and Groovy build scripts.
  * This work unit first compiles the build script to a directory, and then instruments the directory for configuration cache and returns instrumented output.
  */
 public abstract class BuildScriptCompilationAndInstrumentation implements ImmutableUnitOfWork {
 
-    private static final CachingDisabledReason CACHING_DISABLED_FOR_PROPERTY_REPORT = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of buildscript compilation disabled due for property upgrade report");
+    private static final CachingDisabledReason CACHING_DISABLED_FOR_PROPERTY_REPORT = new CachingDisabledReason(
+            CachingDisabledReasonCategory.NOT_CACHEABLE,
+            "Caching of buildscript compilation disabled due for property upgrade report");
 
     private final ScriptSource source;
     private final ImmutableWorkspaceProvider workspaceProvider;
@@ -70,14 +71,13 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
 
     public BuildScriptCompilationAndInstrumentation(
-        ScriptSource source,
-        ImmutableWorkspaceProvider workspaceProvider,
-        FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter,
-        ClasspathElementTransformFactoryForLegacy transformFactory,
-        GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
-        PropertyUpgradeReportConfig propertyUpgradeReportConfig
-    ) {
+            ScriptSource source,
+            ImmutableWorkspaceProvider workspaceProvider,
+            FileCollectionFactory fileCollectionFactory,
+            InputFingerprinter inputFingerprinter,
+            ClasspathElementTransformFactoryForLegacy transformFactory,
+            GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
+            PropertyUpgradeReportConfig propertyUpgradeReportConfig) {
         this.source = source;
         this.workspaceProvider = workspaceProvider;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -88,10 +88,13 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     }
 
     @Override
-    public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+    public Optional<CachingDisabledReason> shouldDisableCaching(
+            @Nullable OverlappingOutputs detectedOverlappingOutputs) {
         // Disable caching always for property upgrade report,
         // since there is not much use to cache report remotely, also report can contain absolute paths
-        return propertyUpgradeReportConfig.isEnabled() ? Optional.of(CACHING_DISABLED_FOR_PROPERTY_REPORT) : Optional.empty();
+        return propertyUpgradeReportConfig.isEnabled()
+                ? Optional.of(CACHING_DISABLED_FOR_PROPERTY_REPORT)
+                : Optional.empty();
     }
 
     @Override
@@ -115,7 +118,8 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     }
 
     @Override
-    public Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
+    public Identity identify(
+            Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
         Hasher hasher = Hashing.newHasher();
         scalarInputs.values().forEach(value -> requireNonNull(value).appendToHasher(hasher));
         String identity = hasher.hash().toString();
@@ -126,11 +130,15 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     @OverridingMethodsMustInvokeSuper
     public void visitOutputs(File workspace, OutputVisitor visitor) {
         File instrumentedOutput = instrumentedOutput(workspace);
-        OutputVisitor.OutputFileValueSupplier instrumentedOutputValue = OutputVisitor.OutputFileValueSupplier.fromStatic(instrumentedOutput, fileCollectionFactory.fixed(instrumentedOutput));
+        OutputVisitor.OutputFileValueSupplier instrumentedOutputValue =
+                OutputVisitor.OutputFileValueSupplier.fromStatic(
+                        instrumentedOutput, fileCollectionFactory.fixed(instrumentedOutput));
         visitor.visitOutputProperty("instrumentedOutput", TreeType.DIRECTORY, instrumentedOutputValue);
 
         File propertyUpgradeReport = propertyUpgradeReport(workspace);
-        OutputVisitor.OutputFileValueSupplier propertyUpgradeReportOutputValue = OutputVisitor.OutputFileValueSupplier.fromStatic(propertyUpgradeReport, fileCollectionFactory.fixed(propertyUpgradeReport));
+        OutputVisitor.OutputFileValueSupplier propertyUpgradeReportOutputValue =
+                OutputVisitor.OutputFileValueSupplier.fromStatic(
+                        propertyUpgradeReport, fileCollectionFactory.fixed(propertyUpgradeReport));
         visitor.visitOutputProperty("propertyUpgradeReportOutput", TreeType.FILE, propertyUpgradeReportOutputValue);
     }
 
@@ -155,14 +163,18 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     private void instrument(File sourceDir, File destination, File propertyUpgradeReport) {
         if (propertyUpgradeReportConfig.isEnabled()) {
             File source = this.source.getResource().getFile();
-            try (BytecodeUpgradeReportMethodInterceptionListener methodInterceptionListener = new BytecodeUpgradeReportMethodInterceptionListener(source, propertyUpgradeReport)) {
-                // TODO: Using gradleCoreTypeRegistry means we won't detect user types that extend from Gradle types, fix that
-                InstrumentingClassTransform classTransform = new InstrumentingClassTransform(INSTRUMENTATION_AND_BYTECODE_REPORT, gradleCoreTypeRegistry, methodInterceptionListener);
+            try (BytecodeUpgradeReportMethodInterceptionListener methodInterceptionListener =
+                    new BytecodeUpgradeReportMethodInterceptionListener(source, propertyUpgradeReport)) {
+                // TODO: Using gradleCoreTypeRegistry means we won't detect user types that extend from Gradle types,
+                // fix that
+                InstrumentingClassTransform classTransform = new InstrumentingClassTransform(
+                        INSTRUMENTATION_AND_BYTECODE_REPORT, gradleCoreTypeRegistry, methodInterceptionListener);
                 ClasspathElementTransform transform = transformFactory.createTransformer(sourceDir, classTransform);
                 transform.transform(destination);
             }
         } else {
-            InstrumentingClassTransform classTransform = new InstrumentingClassTransform(INSTRUMENTATION_ONLY, InstrumentationTypeRegistry.EMPTY);
+            InstrumentingClassTransform classTransform =
+                    new InstrumentingClassTransform(INSTRUMENTATION_ONLY, InstrumentationTypeRegistry.EMPTY);
             ClasspathElementTransform transform = transformFactory.createTransformer(sourceDir, classTransform);
             transform.transform(destination);
         }

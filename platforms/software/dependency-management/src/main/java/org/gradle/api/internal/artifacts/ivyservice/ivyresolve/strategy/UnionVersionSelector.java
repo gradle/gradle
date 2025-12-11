@@ -16,9 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.ComponentMetadata;
-
 import java.util.List;
+import org.gradle.api.artifacts.ComponentMetadata;
 
 /**
  * A version selector which is the union of other selectors. This is used by the
@@ -112,7 +111,8 @@ public class UnionVersionSelector implements CompositeVersionSelector {
 
     @Override
     public String getSelector() {
-        throw new UnsupportedOperationException("Union selectors should only be used internally and don't provide a public string representation");
+        throw new UnsupportedOperationException(
+                "Union selectors should only be used internally and don't provide a public string representation");
     }
 
     @Override

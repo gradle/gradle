@@ -84,11 +84,11 @@ public class Jdk {
     @Override
     public String toString() {
         return "Jdk{"
-            + "assertKeyword=" + assertKeyword
-            + ", jdk15=" + jdk15
-            + ", languageLevel='" + languageLevel
-            + "', projectJdkName='" + projectJdkName
-            + "\'" + "}";
+                + "assertKeyword=" + assertKeyword
+                + ", jdk15=" + jdk15
+                + ", languageLevel='" + languageLevel
+                + "', projectJdkName='" + projectJdkName
+                + "\'" + "}";
     }
 
     @Override
@@ -106,8 +106,7 @@ public class Jdk {
         if (jdk15 != jdk.jdk15) {
             return false;
         }
-        return Objects.equal(languageLevel, jdk.languageLevel)
-            && Objects.equal(projectJdkName, jdk.projectJdkName);
+        return Objects.equal(languageLevel, jdk.languageLevel) && Objects.equal(projectJdkName, jdk.projectJdkName);
     }
 
     @Override

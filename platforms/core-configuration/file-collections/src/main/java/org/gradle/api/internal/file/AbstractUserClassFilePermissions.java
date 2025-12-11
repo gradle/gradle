@@ -41,7 +41,8 @@ public abstract class AbstractUserClassFilePermissions implements UserClassFileP
         } else if (symbol == '-') {
             return false;
         } else {
-            throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission READ flag, must be 'r' or '-'.");
+            throw new IllegalArgumentException(
+                    "'" + symbol + "' is not a valid Unix permission READ flag, must be 'r' or '-'.");
         }
     }
 
@@ -56,7 +57,8 @@ public abstract class AbstractUserClassFilePermissions implements UserClassFileP
         } else if (symbol == '-') {
             return false;
         } else {
-            throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
+            throw new IllegalArgumentException(
+                    "'" + symbol + "' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
         }
     }
 
@@ -71,8 +73,8 @@ public abstract class AbstractUserClassFilePermissions implements UserClassFileP
         } else if (symbol == '-') {
             return false;
         } else {
-            throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
+            throw new IllegalArgumentException(
+                    "'" + symbol + "' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
         }
     }
-
 }

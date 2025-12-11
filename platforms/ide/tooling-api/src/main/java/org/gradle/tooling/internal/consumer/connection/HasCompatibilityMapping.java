@@ -37,14 +37,19 @@ import org.gradle.tooling.model.idea.IdeaProject;
 
 public class HasCompatibilityMapping {
 
-    public <T> ViewBuilder<T> applyCompatibilityMapping(ViewBuilder<T> viewBuilder, ConsumerOperationParameters parameters) {
+    public <T> ViewBuilder<T> applyCompatibilityMapping(
+            ViewBuilder<T> viewBuilder, ConsumerOperationParameters parameters) {
         DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(parameters.getProjectDir(), ":");
         return applyCompatibilityMapping(viewBuilder, projectIdentifier);
     }
 
-    public <T> ViewBuilder<T> applyCompatibilityMapping(ViewBuilder<T> viewBuilder, DefaultProjectIdentifier projectIdentifier) {
-        viewBuilder.mixInTo(GradleProject.class, new GradleProjectIdentifierMixin(projectIdentifier.getBuildIdentifier()));
-        viewBuilder.mixInTo(BasicGradleProject.class, new BasicGradleProjectIdentifierMixin(projectIdentifier.getBuildIdentifier()));
+    public <T> ViewBuilder<T> applyCompatibilityMapping(
+            ViewBuilder<T> viewBuilder, DefaultProjectIdentifier projectIdentifier) {
+        viewBuilder.mixInTo(
+                GradleProject.class, new GradleProjectIdentifierMixin(projectIdentifier.getBuildIdentifier()));
+        viewBuilder.mixInTo(
+                BasicGradleProject.class,
+                new BasicGradleProjectIdentifierMixin(projectIdentifier.getBuildIdentifier()));
         FixedBuildIdentifierProvider identifierProvider = new FixedBuildIdentifierProvider(projectIdentifier);
         identifierProvider.applyTo(viewBuilder);
         viewBuilder.mixInTo(IdeaProject.class, IdeaProjectJavaLanguageSettingsMixin.class);

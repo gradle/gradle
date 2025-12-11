@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.antlr.internal.antlr2;
 
 import antlr.preprocessor.Hierarchy;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -48,12 +47,13 @@ public class XRef {
         filesByPath.put(grammarFileMetadata.getFilePath().getPath(), grammarFileMetadata);
         for (GrammarMetadata grammarMetadata : grammarFileMetadata.getGrammars()) {
             filesByClassName.put(grammarMetadata.getClassName(), grammarFileMetadata);
-            String exportVocabName = grammarMetadata.getExportVocab() != null ? grammarMetadata.getExportVocab() : grammarMetadata.getClassName();
+            String exportVocabName = grammarMetadata.getExportVocab() != null
+                    ? grammarMetadata.getExportVocab()
+                    : grammarMetadata.getClassName();
             GrammarFileMetadata old = filesByExportVocab.put(exportVocabName, grammarFileMetadata);
             if (old != null && old != grammarFileMetadata) {
                 System.out.println("[WARNING] : multiple grammars defined the same exportVocab : " + exportVocabName);
             }
-
         }
     }
 

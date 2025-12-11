@@ -16,21 +16,21 @@
 package org.gradle.api.internal.filestore;
 
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.resource.local.FileStoreException;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 
-import java.io.File;
-import java.util.Set;
-
 public class TwoStageArtifactIdentifierFileStore implements ArtifactIdentifierFileStore {
     private final ArtifactIdentifierFileStore readOnlyStore;
     private final ArtifactIdentifierFileStore writableStore;
     private final FileAccessTracker fileAccessTracker;
 
-    public TwoStageArtifactIdentifierFileStore(ArtifactIdentifierFileStore readOnlyStore, ArtifactIdentifierFileStore writableStore) {
+    public TwoStageArtifactIdentifierFileStore(
+            ArtifactIdentifierFileStore readOnlyStore, ArtifactIdentifierFileStore writableStore) {
         this.readOnlyStore = readOnlyStore;
         this.writableStore = writableStore;
         this.fileAccessTracker = new DelegatingFileAccessTracker();
@@ -56,7 +56,8 @@ public class TwoStageArtifactIdentifierFileStore implements ArtifactIdentifierFi
     }
 
     @Override
-    public LocallyAvailableResource add(ModuleComponentArtifactIdentifier key, Action<File> addAction) throws FileStoreException {
+    public LocallyAvailableResource add(ModuleComponentArtifactIdentifier key, Action<File> addAction)
+            throws FileStoreException {
         return writableStore.add(key, addAction);
     }
 

@@ -16,12 +16,11 @@
 
 package org.gradle.api.testing.toolchains.internal;
 
+import java.util.Collections;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.tasks.testing.Test;
-
-import javax.inject.Inject;
-import java.util.Collections;
 
 /**
  * A toolchain for testing JVM projects.  Toolchains provide the dependencies and test framework for a given JVM testing ecosystem.
@@ -39,14 +38,16 @@ public interface JvmTestToolchain<T extends JvmTestToolchainParameters> {
      */
     default Iterable<Dependency> getCompileOnlyDependencies() {
         return Collections.emptyList();
-    };
+    }
+    ;
 
     /**
      * Returns the dependencies required only when executing the tests associated with this toolchain.
      */
     default Iterable<Dependency> getRuntimeOnlyDependencies() {
         return Collections.emptyList();
-    };
+    }
+    ;
 
     /**
      * Returns the dependencies required to compile and execute the tests associated with this toolchain.

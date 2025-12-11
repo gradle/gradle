@@ -16,6 +16,9 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -77,10 +80,6 @@ import org.gradle.platform.internal.CurrentBuildPlatform;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 /**
  * Those services are only useful when daemon toolchain is active and there is no compatible running daemon.
  */
@@ -90,7 +89,10 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
     private final ToolchainDownloadUrlProvider toolchainDownloadUrlProvider;
     private final Optional<InternalBuildProgressListener> buildProgressListener;
 
-    public DaemonClientToolchainServices(ToolchainConfiguration toolchainConfiguration, ToolchainDownloadUrlProvider toolchainDownloadUrlProvider, Optional<InternalBuildProgressListener> buildProgressListener) {
+    public DaemonClientToolchainServices(
+            ToolchainConfiguration toolchainConfiguration,
+            ToolchainDownloadUrlProvider toolchainDownloadUrlProvider,
+            Optional<InternalBuildProgressListener> buildProgressListener) {
         this.toolchainConfiguration = toolchainConfiguration;
         this.toolchainDownloadUrlProvider = toolchainDownloadUrlProvider;
         // TODO passing an optional down is fishy
@@ -99,28 +101,27 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
 
     @Provides
     protected JavaToolchainQueryService createJavaToolchainQueryService(
-        JvmMetadataDetector jvmMetadataDetector,
-        FileSystem fileSystem,
-        ListenerManager listenerManager,
-        ProgressLoggerFactory progressLoggerFactory,
-        Clock clock,
-        BuildOperationIdFactory operationIdFactory,
-        GradleUserHomeDirProvider gradleUserHomeDirProvider,
-        TemporaryFileProvider temporaryFileProvider,
-        FileLockManager fileLockManager,
-        ClientExecHandleBuilderFactory execHandleFactory,
-        GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider,
-        FileResolver fileResolver,
-        PropertyHost propertyHost,
-        FileCollectionFactory fileCollectionFactory,
-        DirectoryFileTreeFactory directoryFileTreeFactory,
-        PropertyFactory propertyFactory,
-        DocumentationRegistry documentationRegistry,
-        WindowsRegistry windowsRegistry,
-        OperatingSystem os,
-        SystemInfo systemInfo,
-        ScopedCacheBuilderFactory scopedCacheBuilderFactory
-    ) {
+            JvmMetadataDetector jvmMetadataDetector,
+            FileSystem fileSystem,
+            ListenerManager listenerManager,
+            ProgressLoggerFactory progressLoggerFactory,
+            Clock clock,
+            BuildOperationIdFactory operationIdFactory,
+            GradleUserHomeDirProvider gradleUserHomeDirProvider,
+            TemporaryFileProvider temporaryFileProvider,
+            FileLockManager fileLockManager,
+            ClientExecHandleBuilderFactory execHandleFactory,
+            GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider,
+            FileResolver fileResolver,
+            PropertyHost propertyHost,
+            FileCollectionFactory fileCollectionFactory,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            PropertyFactory propertyFactory,
+            DocumentationRegistry documentationRegistry,
+            WindowsRegistry windowsRegistry,
+            OperatingSystem os,
+            SystemInfo systemInfo,
+            ScopedCacheBuilderFactory scopedCacheBuilderFactory) {
         // NOTE: These need to be kept in sync with ToolchainsJvmServices
         List<InstallationSupplier> installationSuppliers = new ArrayList<>(8);
         installationSuppliers.add(new AsdfInstallationSupplier(toolchainConfiguration));
@@ -131,19 +132,73 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
         installationSuppliers.add(new OsXInstallationSupplier(os, new DefaultOsXJavaHomeCommand(execHandleFactory)));
         installationSuppliers.add(new WindowsInstallationSupplier(windowsRegistry, os));
 
-        // Caveat: when adding new manually created services ensure to close them if required, since the service registry does not manage them
+        // Caveat: when adding new manually created services ensure to close them if required, since the service
+        // registry does not manage them
         CurrentBuildPlatform currentBuildPlatform = new CurrentBuildPlatform(systemInfo, os);
-        DefaultFilePropertyFactory filePropertyFactory = new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);
-        DecompressionCoordinator decompressionCoordinator = new DefaultDecompressionCoordinator(scopedCacheBuilderFactory);
+        DefaultFilePropertyFactory filePropertyFactory =
+                new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);
+        DecompressionCoordinator decompressionCoordinator =
+                new DefaultDecompressionCoordinator(scopedCacheBuilderFactory);
         Deleter deleter = new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
-        FileOperations fileOperations = new DefaultFileOperations(fileResolver, DirectInstantiator.INSTANCE, directoryFileTreeFactory, new DefaultFileHasher(new DefaultStreamHasher()), DefaultResourceHandler.Factory.from(fileResolver, null, fileSystem, temporaryFileProvider, null), fileCollectionFactory, propertyFactory, fileSystem, PatternSet::new, deleter, documentationRegistry, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultProviderFactory(), decompressionCoordinator, temporaryFileProvider);
-        JdkCacheDirectory jdkCacheDirectory = new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, fileOperations, fileLockManager, new DefaultJvmMetadataDetector(execHandleFactory, gradleUserHomeTemporaryFileProvider), gradleUserHomeTemporaryFileProvider);
-        JavaInstallationRegistry javaInstallationRegistry = new DefaultJavaInstallationRegistry(toolchainConfiguration, installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory, fileResolver, jdkCacheDirectory, new JvmInstallationProblemReporter());
-        JavaToolchainHttpRedirectVerifierFactory redirectVerifierFactory = new JavaToolchainHttpRedirectVerifierFactory();
-        HttpClientHelper.Factory httpClientHelperFactory = HttpClientHelper.Factory.createFactory(new DocumentationRegistry());
-        ExternalResourceFactory externalResourceFactory = new DaemonToolchainExternalResourceFactory(fileSystem, listenerManager, redirectVerifierFactory, httpClientHelperFactory, progressLoggerFactory, clock, operationIdFactory, buildProgressListener);
+        FileOperations fileOperations = new DefaultFileOperations(
+                fileResolver,
+                DirectInstantiator.INSTANCE,
+                directoryFileTreeFactory,
+                new DefaultFileHasher(new DefaultStreamHasher()),
+                DefaultResourceHandler.Factory.from(fileResolver, null, fileSystem, temporaryFileProvider, null),
+                fileCollectionFactory,
+                propertyFactory,
+                fileSystem,
+                PatternSet::new,
+                deleter,
+                documentationRegistry,
+                DefaultTaskDependencyFactory.withNoAssociatedProject(),
+                new DefaultProviderFactory(),
+                decompressionCoordinator,
+                temporaryFileProvider);
+        JdkCacheDirectory jdkCacheDirectory = new DefaultJdkCacheDirectory(
+                gradleUserHomeDirProvider,
+                fileOperations,
+                fileLockManager,
+                new DefaultJvmMetadataDetector(execHandleFactory, gradleUserHomeTemporaryFileProvider),
+                gradleUserHomeTemporaryFileProvider);
+        JavaInstallationRegistry javaInstallationRegistry = new DefaultJavaInstallationRegistry(
+                toolchainConfiguration,
+                installationSuppliers,
+                jvmMetadataDetector,
+                null,
+                OperatingSystem.current(),
+                progressLoggerFactory,
+                fileResolver,
+                jdkCacheDirectory,
+                new JvmInstallationProblemReporter());
+        JavaToolchainHttpRedirectVerifierFactory redirectVerifierFactory =
+                new JavaToolchainHttpRedirectVerifierFactory();
+        HttpClientHelper.Factory httpClientHelperFactory =
+                HttpClientHelper.Factory.createFactory(new DocumentationRegistry());
+        ExternalResourceFactory externalResourceFactory = new DaemonToolchainExternalResourceFactory(
+                fileSystem,
+                listenerManager,
+                redirectVerifierFactory,
+                httpClientHelperFactory,
+                progressLoggerFactory,
+                clock,
+                operationIdFactory,
+                buildProgressListener);
         SecureFileDownloader secureFileDownloader = new SecureFileDownloader(externalResourceFactory);
-        DaemonJavaToolchainProvisioningService javaToolchainProvisioningService = new DaemonJavaToolchainProvisioningService(secureFileDownloader, jdkCacheDirectory, currentBuildPlatform, toolchainDownloadUrlProvider, toolchainConfiguration.isDownloadEnabled(), progressLoggerFactory);
-        return new JavaToolchainQueryService(jvmMetadataDetector, filePropertyFactory, javaToolchainProvisioningService, javaInstallationRegistry, null);
+        DaemonJavaToolchainProvisioningService javaToolchainProvisioningService =
+                new DaemonJavaToolchainProvisioningService(
+                        secureFileDownloader,
+                        jdkCacheDirectory,
+                        currentBuildPlatform,
+                        toolchainDownloadUrlProvider,
+                        toolchainConfiguration.isDownloadEnabled(),
+                        progressLoggerFactory);
+        return new JavaToolchainQueryService(
+                jvmMetadataDetector,
+                filePropertyFactory,
+                javaToolchainProvisioningService,
+                javaInstallationRegistry,
+                null);
     }
 }

@@ -15,10 +15,9 @@
  */
 package org.gradle.process;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
 import java.io.File;
 import java.util.Map;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * <p>Specifies the options to use to fork a process.</p>

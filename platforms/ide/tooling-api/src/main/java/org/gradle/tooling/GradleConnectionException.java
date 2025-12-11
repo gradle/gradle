@@ -15,10 +15,9 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 import java.util.Collections;
 import java.util.List;
+import org.gradle.api.Incubating;
 
 /**
  * Thrown when there is some problem using a Gradle connection.

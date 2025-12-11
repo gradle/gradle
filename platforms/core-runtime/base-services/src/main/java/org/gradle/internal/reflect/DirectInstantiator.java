@@ -19,13 +19,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import org.gradle.api.reflect.ObjectInstantiationException;
-import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
+import org.jspecify.annotations.Nullable;
 
 /**
  * You should use the methods of {@link org.gradle.api.internal.InstantiatorFactory} instead of this type, as it will give better error reporting, more consistent behaviour and better performance.
@@ -47,8 +46,7 @@ public class DirectInstantiator implements Instantiator {
         return INSTANCE.newInstance(type, params);
     }
 
-    private DirectInstantiator() {
-    }
+    private DirectInstantiator() {}
 
     @Override
     public <T> T newInstance(Class<? extends T> type, @Nullable Object... params) {
@@ -97,28 +95,33 @@ public class DirectInstantiator implements Instantiator {
                 if (parameterTypes.length == argumentTypes.length) {
                     if (isMatch(argumentTypes, parameterTypes)) {
                         if (match != null) {
-                            throw new IllegalArgumentException(String.format("Found multiple public constructors for %s which accept parameters [%s].", receiver, prettify(argumentTypes)));
+                            throw new IllegalArgumentException(String.format(
+                                    "Found multiple public constructors for %s which accept parameters [%s].",
+                                    receiver, prettify(argumentTypes)));
                         }
                         match = constructor;
                     }
                 }
             }
             if (match == null) {
-                throw new IllegalArgumentException(String.format("Could not find any public constructor for %s which accepts parameters [%s].", receiver, prettify(argumentTypes)));
+                throw new IllegalArgumentException(String.format(
+                        "Could not find any public constructor for %s which accepts parameters [%s].",
+                        receiver, prettify(argumentTypes)));
             }
             return new CachedConstructor(match);
         }
 
         private String prettify(Class<?>[] argumentTypes) {
-            return Joiner.on(", ").join(Iterables.transform(Arrays.asList(argumentTypes), new Function<Class<?>, String>() {
-                @Override
-                public String apply(Class<?> input) {
-                    if (input == null) {
-                        return "null";
-                    }
-                    return input.getName();
-                }
-            }));
+            return Joiner.on(", ")
+                    .join(Iterables.transform(Arrays.asList(argumentTypes), new Function<Class<?>, String>() {
+                        @Override
+                        public String apply(Class<?> input) {
+                            if (input == null) {
+                                return "null";
+                            }
+                            return input.getName();
+                        }
+                    }));
         }
 
         private boolean isMatch(Class<?>[] argumentTypes, Class<?>[] parameterTypes) {
@@ -145,5 +148,4 @@ public class DirectInstantiator implements Instantiator {
             super(ctor);
         }
     }
-
 }

@@ -16,18 +16,7 @@
 
 package org.gradle.internal.remote.internal.inet;
 
-import org.gradle.api.Action;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.remote.Address;
-import org.gradle.internal.remote.ConnectionAcceptor;
-import org.gradle.internal.remote.internal.ConnectCompletion;
-import org.gradle.internal.remote.internal.IncomingConnector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.gradle.internal.remote.internal.inet.TcpOutgoingConnector.CONNECTION_PREAMBLE;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -41,8 +30,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-
-import static org.gradle.internal.remote.internal.inet.TcpOutgoingConnector.CONNECTION_PREAMBLE;
+import org.gradle.api.Action;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.remote.Address;
+import org.gradle.internal.remote.ConnectionAcceptor;
+import org.gradle.internal.remote.internal.ConnectCompletion;
+import org.gradle.internal.remote.internal.IncomingConnector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TcpIncomingConnector implements IncomingConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpIncomingConnector.class);
@@ -51,7 +50,11 @@ public class TcpIncomingConnector implements IncomingConnector {
     private final IdGenerator<UUID> idGenerator;
     private final int acceptTimeoutSeconds;
 
-    public TcpIncomingConnector(ExecutorFactory executorFactory, InetAddressFactory addressFactory, IdGenerator<UUID> idGenerator, int acceptTimeoutSeconds) {
+    public TcpIncomingConnector(
+            ExecutorFactory executorFactory,
+            InetAddressFactory addressFactory,
+            IdGenerator<UUID> idGenerator,
+            int acceptTimeoutSeconds) {
         this.executorFactory = executorFactory;
         this.addressFactory = addressFactory;
         this.idGenerator = idGenerator;
@@ -75,7 +78,8 @@ public class TcpIncomingConnector implements IncomingConnector {
         final Address address = new MultiChoiceAddress(id, localPort, addresses);
         LOGGER.debug("Listening on {}.", address);
 
-        final ManagedExecutor executor = executorFactory.create("Incoming " + (allowRemote ? "remote" : "local")+ " TCP Connector on port " + localPort);
+        final ManagedExecutor executor = executorFactory.create(
+                "Incoming " + (allowRemote ? "remote" : "local") + " TCP Connector on port " + localPort);
         executor.execute(new Receiver(serverSocket, action, allowRemote));
 
         return new ConnectionAcceptor() {
@@ -114,7 +118,8 @@ public class TcpIncomingConnector implements IncomingConnector {
                 try {
                     while (true) {
                         final SocketChannel socket = serverSocket.accept();
-                        InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
+                        InetSocketAddress remoteSocketAddress =
+                                (InetSocketAddress) socket.socket().getRemoteSocketAddress();
                         InetAddress remoteInetAddress = remoteSocketAddress.getAddress();
                         if (!allowRemote && !addressFactory.isCommunicationAddress(remoteInetAddress)) {
                             LOGGER.error("Cannot accept connection from remote address {}.", remoteSocketAddress);
@@ -130,7 +135,10 @@ public class TcpIncomingConnector implements IncomingConnector {
                             continue;
                         }
 
-                        LOGGER.debug("Accepted connection from {} to {}.", socket.socket().getRemoteSocketAddress(), socket.socket().getLocalSocketAddress());
+                        LOGGER.debug(
+                                "Accepted connection from {} to {}.",
+                                socket.socket().getRemoteSocketAddress(),
+                                socket.socket().getLocalSocketAddress());
                         try {
                             action.execute(new SocketConnectCompletion(socket));
                         } catch (Throwable t) {
@@ -164,7 +172,5 @@ public class TcpIncomingConnector implements IncomingConnector {
                 throw new IOException("Did not receive connection preamble within " + acceptTimeoutSeconds + "s");
             }
         }
-
     }
-
 }

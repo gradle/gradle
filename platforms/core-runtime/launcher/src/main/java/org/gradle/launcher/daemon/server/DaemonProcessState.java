@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.server;
 
+import java.io.Closeable;
+import java.util.concurrent.atomic.AtomicReference;
 import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -27,9 +29,6 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 
-import java.io.Closeable;
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Encapsulates the state of the daemon process.
  */
@@ -37,24 +36,29 @@ public class DaemonProcessState implements Closeable {
     private final BuildProcessState buildProcessState;
     private final AtomicReference<DaemonStopState> stopState = new AtomicReference<>();
 
-    public DaemonProcessState(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath) {
+    public DaemonProcessState(
+            DaemonServerConfiguration configuration,
+            ServiceRegistry loggingServices,
+            LoggingManagerInternal loggingManager,
+            ClassPath additionalModuleClassPath) {
         // Merge the daemon services into the build process services
-        // It would be better to separate these into different scopes, but many things still assume that daemon services are available in the global scope,
+        // It would be better to separate these into different scopes, but many things still assume that daemon services
+        // are available in the global scope,
         // so keep them merged as a migration step
-        buildProcessState = new BuildProcessState(
-            !configuration.isSingleUse(),
-            AgentStatus.of(configuration.isInstrumentationAgentAllowed()),
-            additionalModuleClassPath,
-            CurrentGradleInstallation.locate(),
-            loggingServices,
-            NativeServices.getInstance()
-        ) {
-            @Override
-            protected void addProviders(ServiceRegistryBuilder builder) {
-                builder.provider(new DaemonServices(configuration, loggingManager));
-                builder.provider(new DaemonRegistryServices(configuration.getBaseDir()));
-            }
-        };
+        buildProcessState =
+                new BuildProcessState(
+                        !configuration.isSingleUse(),
+                        AgentStatus.of(configuration.isInstrumentationAgentAllowed()),
+                        additionalModuleClassPath,
+                        CurrentGradleInstallation.locate(),
+                        loggingServices,
+                        NativeServices.getInstance()) {
+                    @Override
+                    protected void addProviders(ServiceRegistryBuilder builder) {
+                        builder.provider(new DaemonServices(configuration, loggingManager));
+                        builder.provider(new DaemonRegistryServices(configuration.getBaseDir()));
+                    }
+                };
     }
 
     public ServiceRegistry getServices() {

@@ -15,18 +15,17 @@
  */
 package org.gradle.internal.file.nio;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.file.FileMetadata;
-import org.gradle.internal.file.FileMetadata.AccessType;
-import org.gradle.internal.file.FileMetadataAccessor;
-import org.gradle.internal.file.impl.DefaultFileMetadata;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.FileMetadata.AccessType;
+import org.gradle.internal.file.FileMetadataAccessor;
+import org.gradle.internal.file.impl.DefaultFileMetadata;
 
 @SuppressWarnings("Since15")
 public class NioFileMetadataAccessor implements FileMetadataAccessor {
@@ -51,7 +50,8 @@ public class NioFileMetadataAccessor implements FileMetadataAccessor {
             return DefaultFileMetadata.directory(accessType);
         }
         if (attributes.isOther()) {
-            throw UncheckedException.throwAsUncheckedException(new IOException("Unsupported file type for " + file.getAbsolutePath()), true);
+            throw UncheckedException.throwAsUncheckedException(
+                    new IOException("Unsupported file type for " + file.getAbsolutePath()), true);
         }
         return DefaultFileMetadata.file(attributes.lastModifiedTime().toMillis(), attributes.size(), accessType);
     }

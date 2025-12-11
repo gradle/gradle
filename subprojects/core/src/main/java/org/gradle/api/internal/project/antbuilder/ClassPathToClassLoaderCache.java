@@ -15,6 +15,12 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -24,13 +30,6 @@ import org.gradle.internal.groovyloader.GroovySystemLoader;
 import org.gradle.internal.groovyloader.GroovySystemLoaderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A cache which caches classloaders based on their classpath. This cache provides bridging with the classloader cleanup mechanism which makes it more complex than it should: - class loaders can be
@@ -42,7 +41,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * the cache.
  */
 class ClassPathToClassLoaderCache implements Stoppable {
-    private final static Logger LOG = LoggerFactory.getLogger(ClassPathToClassLoaderCache.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ClassPathToClassLoaderCache.class);
 
     private final FinalizerThread finalizerThread;
 
@@ -95,11 +94,12 @@ class ClassPathToClassLoaderCache implements Stoppable {
      * @param factory the factory to create a new class loader on cache miss
      * @param action the action to execute with the cached class loader
      */
-    public void withCachedClassLoader(ClassPath libClasspath,
-                                      GroovySystemLoader gradleApiGroovy,
-                                      GroovySystemLoader antBuilderAdapterGroovy,
-                                      Factory<? extends ClassLoader> factory,
-                                      Action<? super CachedClassLoader> action) {
+    public void withCachedClassLoader(
+            ClassPath libClasspath,
+            GroovySystemLoader gradleApiGroovy,
+            GroovySystemLoader antBuilderAdapterGroovy,
+            Factory<? extends ClassLoader> factory,
+            Action<? super CachedClassLoader> action) {
         CachedClassLoader cachedClassLoader;
         lock.lock();
         try {
@@ -107,14 +107,23 @@ class ClassPathToClassLoaderCache implements Stoppable {
             cachedClassLoader = maybeGet(cacheEntry);
             if (cachedClassLoader == null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Classloader cache miss for classpath : {}. Creating classloader.", libClasspath.getAsURIs());
+                    LOG.debug(
+                            "Classloader cache miss for classpath : {}. Creating classloader.",
+                            libClasspath.getAsURIs());
                 }
                 // Lock is held while creating ClassLoader - nothing else can happen while this is running
                 ClassLoader classLoader = factory.create();
                 cachedClassLoader = new CachedClassLoader(libClasspath, classLoader);
                 cacheEntry = new CacheEntry(libClasspath, cachedClassLoader);
                 GroovySystemLoader groovySystemForLoader = groovySystemLoaderFactory.forClassLoader(classLoader);
-                Cleanup cleanup = new Cleanup(libClasspath, cachedClassLoader, finalizerThread.getReferenceQueue(), classLoader, groovySystemForLoader, gradleApiGroovy, antBuilderAdapterGroovy);
+                Cleanup cleanup = new Cleanup(
+                        libClasspath,
+                        cachedClassLoader,
+                        finalizerThread.getReferenceQueue(),
+                        classLoader,
+                        groovySystemForLoader,
+                        gradleApiGroovy,
+                        antBuilderAdapterGroovy);
                 finalizerThread.putCleanup(libClasspath, cleanup);
                 cacheEntries.put(libClasspath, cacheEntry);
             } else {
@@ -146,5 +155,4 @@ class ClassPathToClassLoaderCache implements Stoppable {
     private CachedClassLoader maybeGet(CacheEntry cacheEntry) {
         return cacheEntry != null ? cacheEntry.get() : null;
     }
-
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import java.io.File;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class FileValueSnapshot extends AbstractScalarValueSnapshot<String> implements Isolatable<File> {
     public FileValueSnapshot(File value) {

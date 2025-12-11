@@ -16,6 +16,8 @@
 
 package org.gradle.unexported.buildinit.plugins.internal.maven;
 
+import java.io.File;
+import java.util.Set;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.gradle.api.file.DirectoryProperty;
@@ -25,16 +27,17 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
-import java.io.File;
-import java.util.Set;
-
-abstract public class Maven2GradleWorkAction implements WorkAction<Maven2GradleWorkAction.Maven2GradleWorkParameters> {
+public abstract class Maven2GradleWorkAction implements WorkAction<Maven2GradleWorkAction.Maven2GradleWorkParameters> {
 
     public interface Maven2GradleWorkParameters extends WorkParameters {
         DirectoryProperty getWorkingDir();
+
         Property<BuildInitDsl> getDsl();
+
         Property<Boolean> getUseIncubatingAPIs();
+
         Property<Settings> getMavenSettings();
+
         Property<InsecureProtocolOption> getInsecureProtocolOption();
     }
 
@@ -43,10 +46,18 @@ abstract public class Maven2GradleWorkAction implements WorkAction<Maven2GradleW
         Maven2GradleWorkParameters params = getParameters();
         File pom = params.getWorkingDir().file("pom.xml").get().getAsFile();
         try {
-            Set<MavenProject> mavenProjects = new MavenProjectsCreator().create(params.getMavenSettings().get(), pom);
-            new Maven2Gradle(mavenProjects, params.getWorkingDir().get(), params.getDsl().get(), params.getUseIncubatingAPIs().get(), params.getInsecureProtocolOption().get()).convert();
+            Set<MavenProject> mavenProjects =
+                    new MavenProjectsCreator().create(params.getMavenSettings().get(), pom);
+            new Maven2Gradle(
+                            mavenProjects,
+                            params.getWorkingDir().get(),
+                            params.getDsl().get(),
+                            params.getUseIncubatingAPIs().get(),
+                            params.getInsecureProtocolOption().get())
+                    .convert();
         } catch (Exception exception) {
-            throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", pom), exception);
+            throw new MavenConversionException(
+                    String.format("Could not convert Maven POM %s to a Gradle build.", pom), exception);
         }
     }
 }

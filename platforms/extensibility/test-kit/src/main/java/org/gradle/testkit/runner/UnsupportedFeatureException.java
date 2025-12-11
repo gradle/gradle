@@ -27,9 +27,11 @@ import org.gradle.util.GradleVersion;
  * @see GradleRunner#withGradleDistribution(java.net.URI)
  */
 public class UnsupportedFeatureException extends RuntimeException {
-    public UnsupportedFeatureException(String feature, GradleVersion targetGradleVersion, GradleVersion minSupportedGradleVersion) {
-        super(String.format("The version of Gradle you are using (%s) does not %s. Support for this is available in Gradle %s and all later versions.",
-              targetGradleVersion.getVersion(), feature, minSupportedGradleVersion.getVersion()));
+    public UnsupportedFeatureException(
+            String feature, GradleVersion targetGradleVersion, GradleVersion minSupportedGradleVersion) {
+        super(String.format(
+                "The version of Gradle you are using (%s) does not %s. Support for this is available in Gradle %s and all later versions.",
+                targetGradleVersion.getVersion(), feature, minSupportedGradleVersion.getVersion()));
     }
 
     public UnsupportedFeatureException(String message) {

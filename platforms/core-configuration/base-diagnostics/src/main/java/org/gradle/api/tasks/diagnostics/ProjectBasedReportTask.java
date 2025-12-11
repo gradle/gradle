@@ -15,13 +15,12 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import java.io.IOException;
+import java.util.TreeSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.io.IOException;
-import java.util.TreeSet;
 
 /**
  * The base class for all Project based project report tasks.
@@ -38,12 +37,9 @@ public abstract class ProjectBasedReportTask extends ConventionReportTask {
 
     @TaskAction
     public void generate() {
-        reportGenerator().generateReport(
-            new TreeSet<>(getProjects()),
-            project -> {
-                generate(project);
-                logClickableOutputFileUrl();
-            }
-        );
+        reportGenerator().generateReport(new TreeSet<>(getProjects()), project -> {
+            generate(project);
+            logClickableOutputFileUrl();
+        });
     }
 }

@@ -16,6 +16,15 @@
 
 package org.gradle.api.tasks;
 
+import static java.util.Collections.emptyList;
+
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import javax.inject.Inject;
 import org.apache.tools.ant.types.Commandline;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
@@ -47,16 +56,6 @@ import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Collections.emptyList;
 
 /**
  * Executes a Java application in a child process.
@@ -143,16 +142,20 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         PropertyFactory propertyFactory = getPropertyFactory();
         Provider<JavaLauncher> javaLauncherConvention = getProviderFactory()
-            .provider(() -> JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(this, propertyFactory))
-            .flatMap(javaToolchainService::launcherFor)
-            .orElse(javaToolchainService.launcherFor(it -> {}));
+                .provider(() -> JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(this, propertyFactory))
+                .flatMap(javaToolchainService::launcherFor)
+                .orElse(javaToolchainService.launcherFor(it -> {}));
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaLauncherConvention);
         javaLauncher.finalizeValueOnRead();
 
         // The task will only be up-to-date if it has outputs, those outputs are up-to-date,
         // and the Java launcher can be probed (i.e. javaLanguageVersion is not UNKNOWN)
-        doNotTrackStateIf("Java launcher cannot be probed",
-            task -> javaLauncher.map(launcher -> launcher.getMetadata().getLanguageVersion()).get() == DefaultJavaLanguageVersion.UNKNOWN);
+        doNotTrackStateIf(
+                "Java launcher cannot be probed",
+                task -> javaLauncher
+                                .map(launcher -> launcher.getMetadata().getLanguageVersion())
+                                .get()
+                        == DefaultJavaLanguageVersion.UNKNOWN);
     }
 
     @TaskAction
@@ -176,8 +179,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         File toolchainExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
         String customExecutable = getExecutable();
         JavaExecutableUtils.validateExecutable(
-            customExecutable, "Toolchain from `executable` property",
-            toolchainExecutable, "toolchain from `javaLauncher` property");
+                customExecutable, "Toolchain from `executable` property",
+                toolchainExecutable, "toolchain from `javaLauncher` property");
     }
 
     /**
@@ -402,7 +405,10 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    @Option(option = "debug-jvm", description = "Enable debugging for the process. The process is started suspended and listening on port 5005.")
+    @Option(
+            option = "debug-jvm",
+            description =
+                    "Enable debugging for the process. The process is started suspended and listening on port 5005.")
     public void setDebug(boolean enabled) {
         javaExecSpec.setDebug(enabled);
     }
@@ -430,7 +436,6 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     public Property<String> getMainModule() {
         return mainModule;
     }
-
 
     /**
      * {@inheritDoc}
@@ -568,7 +573,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Internal("covered by getJavaLauncher().getMetadata().getLanguageVersion()")
     @ToBeReplacedByLazyProperty
     public JavaVersion getJavaVersion() {
-        return JavaVersion.toVersion(getJavaLauncher().get().getMetadata().getLanguageVersion().asInt());
+        return JavaVersion.toVersion(
+                getJavaLauncher().get().getMetadata().getLanguageVersion().asInt());
     }
 
     /**

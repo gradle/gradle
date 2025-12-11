@@ -31,22 +31,20 @@ public class ResolvedVariantTransformer {
     private final TransformUpstreamDependenciesResolver dependenciesResolver;
 
     public ResolvedVariantTransformer(
-        TransformedVariantFactory transformedVariantFactory,
-        TransformUpstreamDependenciesResolver dependenciesResolver
-    ) {
+            TransformedVariantFactory transformedVariantFactory,
+            TransformUpstreamDependenciesResolver dependenciesResolver) {
         this.transformedVariantFactory = transformedVariantFactory;
         this.dependenciesResolver = dependenciesResolver;
     }
 
     public ResolvedArtifactSet transform(
-        ComponentIdentifier componentId,
-        ResolvedVariant sourceVariant,
-        VariantDefinition variantDefinition
-    ) {
+            ComponentIdentifier componentId, ResolvedVariant sourceVariant, VariantDefinition variantDefinition) {
         if (componentId instanceof ProjectComponentIdentifier) {
-            return transformedVariantFactory.transformedProjectArtifacts(componentId, sourceVariant, variantDefinition, dependenciesResolver);
+            return transformedVariantFactory.transformedProjectArtifacts(
+                    componentId, sourceVariant, variantDefinition, dependenciesResolver);
         } else {
-            return transformedVariantFactory.transformedExternalArtifacts(componentId, sourceVariant, variantDefinition, dependenciesResolver);
+            return transformedVariantFactory.transformedExternalArtifacts(
+                    componentId, sourceVariant, variantDefinition, dependenciesResolver);
         }
     }
 }

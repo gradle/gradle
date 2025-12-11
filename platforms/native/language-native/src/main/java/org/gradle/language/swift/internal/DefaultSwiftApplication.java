@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Property;
@@ -31,15 +32,14 @@ import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-import javax.inject.Inject;
-
 public abstract class DefaultSwiftApplication extends DefaultSwiftComponent<SwiftBinary> implements SwiftApplication {
     private final DefaultComponentDependencies dependencies;
 
     @Inject
     public DefaultSwiftApplication(String name) {
         super(name);
-        this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
+        this.dependencies = getObjectFactory()
+                .newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
     }
 
     @Override
@@ -61,8 +61,24 @@ public abstract class DefaultSwiftApplication extends DefaultSwiftComponent<Swif
         action.execute(dependencies);
     }
 
-    public SwiftExecutable addExecutable(NativeVariantIdentity identity, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        SwiftExecutable result = getObjectFactory().newInstance(DefaultSwiftExecutable.class, getNames().append(identity.getName()), getModule(), testable, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+    public SwiftExecutable addExecutable(
+            NativeVariantIdentity identity,
+            boolean testable,
+            SwiftPlatform targetPlatform,
+            NativeToolChainInternal toolChain,
+            PlatformToolProvider platformToolProvider) {
+        SwiftExecutable result = getObjectFactory()
+                .newInstance(
+                        DefaultSwiftExecutable.class,
+                        getNames().append(identity.getName()),
+                        getModule(),
+                        testable,
+                        getSwiftSource(),
+                        getImplementationDependencies(),
+                        targetPlatform,
+                        toolChain,
+                        platformToolProvider,
+                        identity);
         getBinaries().add(result);
         return result;
     }

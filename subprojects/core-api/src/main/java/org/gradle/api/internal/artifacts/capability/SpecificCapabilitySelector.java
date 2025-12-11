@@ -35,5 +35,4 @@ public interface SpecificCapabilitySelector extends CapabilitySelector {
      * The name of the capability to select.
      */
     String getName();
-
 }

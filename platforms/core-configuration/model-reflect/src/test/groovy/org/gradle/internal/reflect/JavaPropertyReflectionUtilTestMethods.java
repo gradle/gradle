@@ -29,7 +29,8 @@ public interface JavaPropertyReflectionUtilTestMethods<T> {
 
     List<Collection<? extends List<? super T>>[]> complexTypeWithTypeVariable();
 
-    List<BiConsumer<Collection<? super Class<Integer>>, ? extends List<? extends T>>[]> anotherComplexTypeWithTypeVariable();
+    List<BiConsumer<Collection<? super Class<Integer>>, ? extends List<? extends T>>[]>
+            anotherComplexTypeWithTypeVariable();
 
     List<BiConsumer<Collection<? super Class<Integer>>, ? extends List<T[]>>> complexTypeWithArrayTypeVariable();
 
@@ -53,6 +54,5 @@ public interface JavaPropertyReflectionUtilTestMethods<T> {
 
     <V extends String> V nonResolvedTypeVariable();
 
-    interface InterfaceRealizingTypeParameter extends JavaPropertyReflectionUtilTestMethods<List<Integer>> {
-    }
+    interface InterfaceRealizingTypeParameter extends JavaPropertyReflectionUtilTestMethods<List<Integer>> {}
 }

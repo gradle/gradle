@@ -28,5 +28,4 @@ public interface BuildableTypedResolveResult<T, E extends Throwable> extends Err
      * Marks the resolution as completed with the given value.
      */
     void resolved(T result);
-
 }

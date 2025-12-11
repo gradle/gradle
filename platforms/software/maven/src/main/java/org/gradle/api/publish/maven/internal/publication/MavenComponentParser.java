@@ -19,6 +19,20 @@ package org.gradle.api.publish.maven.internal.publication;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.inject.Inject;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.DependencyArtifact;
@@ -60,35 +74,24 @@ import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChe
 import org.gradle.internal.typeconversion.NotationParser;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 /**
  * Encapsulates all logic required to extract data from a {@link SoftwareComponentInternal} in order to
  * transform it to a representation compatible with Maven.
  */
 public class MavenComponentParser {
     @VisibleForTesting
-    public static final String INCOMPATIBLE_FEATURE = " contains dependencies that will produce a pom file that cannot be consumed by a Maven client.";
+    public static final String INCOMPATIBLE_FEATURE =
+            " contains dependencies that will produce a pom file that cannot be consumed by a Maven client.";
+
     @VisibleForTesting
-    public static final String UNSUPPORTED_FEATURE = " contains dependencies that cannot be represented in a published pom file.";
+    public static final String UNSUPPORTED_FEATURE =
+            " contains dependencies that cannot be represented in a published pom file.";
+
     @VisibleForTesting
     public static final String PUBLICATION_WARNING_FOOTER =
-        "These issues indicate information that is lost in the published 'pom' metadata file, " +
-        "which may be an issue if the published library is consumed by an old Gradle version or Apache Maven.\n" +
-        "The 'module' metadata file, which is used by Gradle 6+ is not affected.";
+            "These issues indicate information that is lost in the published 'pom' metadata file, "
+                    + "which may be an issue if the published library is consumed by an old Gradle version or Apache Maven.\n"
+                    + "The 'module' metadata file, which is used by Gradle 6+ is not affected.";
 
     /*
      * Maven supports wildcards in exclusion rules according to:
@@ -108,12 +111,11 @@ public class MavenComponentParser {
 
     @Inject
     public MavenComponentParser(
-        PlatformSupport platformSupport,
-        VersionRangeMapper versionRangeMapper,
-        DocumentationRegistry documentationRegistry,
-        NotationParser<Object, MavenArtifact> mavenArtifactParser,
-        DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory
-    ) {
+            PlatformSupport platformSupport,
+            VersionRangeMapper versionRangeMapper,
+            DocumentationRegistry documentationRegistry,
+            NotationParser<Object, MavenArtifact> mavenArtifactParser,
+            DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory) {
         this.platformSupport = platformSupport;
         this.versionRangeMapper = versionRangeMapper;
         this.documentationRegistry = documentationRegistry;
@@ -126,27 +128,27 @@ public class MavenComponentParser {
         //      blindly "pass-through" the artifact file name.
         Set<ArtifactKey> seenArtifacts = new HashSet<>();
         return createSortedVariantsStream(component)
-            .flatMap(variant -> variant.getArtifacts().stream())
-            .filter(artifact -> {
-                ArtifactKey key = new ArtifactKey(artifact.getFile(), artifact.getClassifier(), artifact.getExtension());
-                return seenArtifacts.add(key);
-            })
-            .map(mavenArtifactParser::parseNotation)
-            .collect(Collectors.toSet());
+                .flatMap(variant -> variant.getArtifacts().stream())
+                .filter(artifact -> {
+                    ArtifactKey key =
+                            new ArtifactKey(artifact.getFile(), artifact.getClassifier(), artifact.getExtension());
+                    return seenArtifacts.add(key);
+                })
+                .map(mavenArtifactParser::parseNotation)
+                .collect(Collectors.toSet());
     }
 
     public Provider<ParsedDependencyResult> parseDependencies(
-        SoftwareComponentInternal component,
-        VersionMappingStrategyInternal versionMappingStrategy,
-        ModuleVersionIdentifier coordinates
-    ) {
+            SoftwareComponentInternal component,
+            VersionMappingStrategyInternal versionMappingStrategy,
+            ModuleVersionIdentifier coordinates) {
         MavenPublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
 
         List<Provider<ParsedVariantDependencyResult>> parsedVariants = createSortedVariantsStream(component)
-            .map(variant -> dependencyCoordinateResolverFactory
-                .createCoordinateResolvers(variant, versionMappingStrategy)
-                .map(resolvers -> getDependenciesForVariant(variant, resolvers, coordinates))
-            ).collect(Collectors.toList());
+                .map(variant -> dependencyCoordinateResolverFactory
+                        .createCoordinateResolvers(variant, versionMappingStrategy)
+                        .map(resolvers -> getDependenciesForVariant(variant, resolvers, coordinates)))
+                .collect(Collectors.toList());
 
         return new MergeProvider<>(parsedVariants).map(variants -> {
             List<MavenDependency> dependencies = new ArrayList<>();
@@ -180,20 +182,26 @@ public class MavenComponentParser {
             }
 
             return new ParsedDependencyResult(
-                new DefaultMavenPomDependencies(
-                    ImmutableList.copyOf(dependencies),
-                    ImmutableList.<MavenDependency>builder().addAll(constraints).addAll(platforms).build()
-                ),
-                new PublicationWarningsCollector(warnings, LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor")
-            );
+                    new DefaultMavenPomDependencies(
+                            ImmutableList.copyOf(dependencies),
+                            ImmutableList.<MavenDependency>builder()
+                                    .addAll(constraints)
+                                    .addAll(platforms)
+                                    .build()),
+                    new PublicationWarningsCollector(
+                            warnings,
+                            LOG,
+                            UNSUPPORTED_FEATURE,
+                            INCOMPATIBLE_FEATURE,
+                            PUBLICATION_WARNING_FOOTER,
+                            "suppressPomMetadataWarningsFor"));
         });
     }
 
     private ParsedVariantDependencyResult getDependenciesForVariant(
-        SoftwareComponentVariant variant,
-        DependencyCoordinateResolverFactory.DependencyResolvers resolvers,
-        ModuleVersionIdentifier coordinates
-    ) {
+            SoftwareComponentVariant variant,
+            DependencyCoordinateResolverFactory.DependencyResolvers resolvers,
+            ModuleVersionIdentifier coordinates) {
         VariantWarningCollector warnings = new VariantWarningCollector();
 
         List<MavenDependency> dependencies = new ArrayList<>();
@@ -206,14 +214,13 @@ public class MavenComponentParser {
         Set<ExcludeRule> globalExcludes = variant.getGlobalExcludes();
 
         MavenDependencyFactory dependencyFactory = new MavenDependencyFactory(
-            warnings,
-            resolvers.getVariantResolver(),
-            resolvers.getComponentResolver(),
-            versionRangeMapper,
-            scope,
-            optional,
-            globalExcludes
-        );
+                warnings,
+                resolvers.getVariantResolver(),
+                resolvers.getComponentResolver(),
+                versionRangeMapper,
+                scope,
+                optional,
+                globalExcludes);
 
         for (ModuleDependency dependency : variant.getDependencies()) {
             if (platformSupport.isTargetingPlatform(dependency)) {
@@ -232,14 +239,18 @@ public class MavenComponentParser {
                 dependencyFactory.convertDependencyConstraint(dependency, constraints::add);
             } else {
                 // Some dependency constraints, like those with rejectAll() have no version and do not map to Maven.
-                warnings.addIncompatible(String.format("constraint %s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName()));
+                warnings.addIncompatible(String.format(
+                        "constraint %s:%s declared with a Maven incompatible version notation",
+                        dependency.getGroup(), dependency.getName()));
             }
         }
 
         if (!variant.getCapabilities().isEmpty()) {
             for (Capability capability : variant.getCapabilities()) {
                 if (isNotDefaultCapability(capability, coordinates)) {
-                    warnings.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Maven", capability.getGroup(), capability.getName(), capability.getVersion()));
+                    warnings.addVariantUnsupported(String.format(
+                            "Declares capability %s:%s:%s which cannot be mapped to Maven",
+                            capability.getGroup(), capability.getName(), capability.getVersion()));
                 }
             }
         }
@@ -249,8 +260,8 @@ public class MavenComponentParser {
 
     private static boolean isNotDefaultCapability(Capability capability, ModuleVersionIdentifier coordinates) {
         return !coordinates.getGroup().equals(capability.getGroup())
-            || !coordinates.getName().equals(capability.getName())
-            || !coordinates.getVersion().equals(capability.getVersion());
+                || !coordinates.getName().equals(capability.getName())
+                || !coordinates.getVersion().equals(capability.getVersion());
     }
 
     private static boolean isDependencyWithDefaultArtifact(MavenDependency dependency) {
@@ -258,12 +269,15 @@ public class MavenComponentParser {
     }
 
     private static boolean dependencyMatchesProject(MavenDependency dependency, ModuleVersionIdentifier coordinates) {
-        return coordinates.getModule().equals(DefaultModuleIdentifier.newId(dependency.getGroupId(), dependency.getArtifactId()));
+        return coordinates
+                .getModule()
+                .equals(DefaultModuleIdentifier.newId(dependency.getGroupId(), dependency.getArtifactId()));
     }
 
-    private static Stream<? extends SoftwareComponentVariant> createSortedVariantsStream(SoftwareComponentInternal component) {
+    private static Stream<? extends SoftwareComponentVariant> createSortedVariantsStream(
+            SoftwareComponentInternal component) {
         return component.getUsages().stream()
-            .sorted(Comparator.comparing(MavenPublishingAwareVariant::scopeForVariant));
+                .sorted(Comparator.comparing(MavenPublishingAwareVariant::scopeForVariant));
     }
 
     /**
@@ -283,14 +297,13 @@ public class MavenComponentParser {
         private final Set<ExcludeRule> globalExcludes;
 
         public MavenDependencyFactory(
-            VariantWarningCollector warnings,
-            VariantDependencyResolver variantDependencyResolver,
-            ComponentDependencyResolver componentDependencyResolver,
-            VersionRangeMapper versionRangeMapper,
-            String scope,
-            boolean optional,
-            Set<ExcludeRule> globalExcludes
-        ) {
+                VariantWarningCollector warnings,
+                VariantDependencyResolver variantDependencyResolver,
+                ComponentDependencyResolver componentDependencyResolver,
+                VersionRangeMapper versionRangeMapper,
+                String scope,
+                boolean optional,
+                Set<ExcludeRule> globalExcludes) {
             this.warnings = warnings;
             this.variantDependencyResolver = variantDependencyResolver;
             this.componentDependencyResolver = componentDependencyResolver;
@@ -310,7 +323,8 @@ public class MavenComponentParser {
                 warnings.addUnsupported(String.format("dependency on %s declared with Gradle attributes", dependency));
             }
             if (!dependency.getCapabilitySelectors().isEmpty()) {
-                warnings.addUnsupported(String.format("dependency on %s declared with Gradle capabilities", dependency));
+                warnings.addUnsupported(
+                        String.format("dependency on %s declared with Gradle capabilities", dependency));
             }
 
             Set<ExcludeRule> allExcludeRules = getExcludeRules(globalExcludes, dependency);
@@ -328,13 +342,15 @@ public class MavenComponentParser {
             for (DependencyArtifact artifact : dependency.getArtifacts()) {
                 if (!artifact.getName().equals(dependency.getName())) {
                     throw new InvalidUserCodeException(
-                        "Cannot publish a dependency with an artifact name different from the dependency's artifactId. " +
-                            "This functionality is only supported by Ivy repositories. " +
-                            String.format("Declare a dependency with artifactId '%s' instead of '%s'.", artifact.getName(), dependency.getName())
-                    );
+                            "Cannot publish a dependency with an artifact name different from the dependency's artifactId. "
+                                    + "This functionality is only supported by Ivy repositories. "
+                                    + String.format(
+                                            "Declare a dependency with artifactId '%s' instead of '%s'.",
+                                            artifact.getName(), dependency.getName()));
                 }
 
-                collector.accept(newDependency(coordinates, artifact.getType(), artifact.getClassifier(), scope, allExcludeRules, optional));
+                collector.accept(newDependency(
+                        coordinates, artifact.getType(), artifact.getClassifier(), scope, allExcludeRules, optional));
             }
         }
 
@@ -346,11 +362,13 @@ public class MavenComponentParser {
 
             ResolvedCoordinates identifier;
             if (dependency instanceof DefaultProjectDependencyConstraint) {
-                identifier = componentDependencyResolver.resolveComponentCoordinates((DefaultProjectDependencyConstraint) dependency);
+                identifier = componentDependencyResolver.resolveComponentCoordinates(
+                        (DefaultProjectDependencyConstraint) dependency);
             } else {
                 identifier = componentDependencyResolver.resolveComponentCoordinates(dependency);
                 if (identifier == null) {
-                    identifier = convertDeclaredCoordinates(dependency.getGroup(), dependency.getName(), dependency.getVersion());
+                    identifier = convertDeclaredCoordinates(
+                            dependency.getGroup(), dependency.getName(), dependency.getVersion());
                 }
             }
 
@@ -362,7 +380,8 @@ public class MavenComponentParser {
             collector.accept(newDependency(identifier, null, null, null, Collections.emptySet(), false));
         }
 
-        private void convertImportDependencyConstraint(ModuleDependency dependency, Consumer<MavenDependency> collector) {
+        private void convertImportDependencyConstraint(
+                ModuleDependency dependency, Consumer<MavenDependency> collector) {
             ResolvedCoordinates identifier = resolveDependency(dependency, true);
             collector.accept(newDependency(identifier, "pom", null, "import", Collections.emptySet(), false));
         }
@@ -374,9 +393,11 @@ public class MavenComponentParser {
 
                 ResolvedCoordinates identifier;
                 if (variantPrecision) {
-                    identifier = variantDependencyResolver.resolveVariantCoordinates((ExternalDependency) dependency, warnings);
+                    identifier = variantDependencyResolver.resolveVariantCoordinates(
+                            (ExternalDependency) dependency, warnings);
                 } else {
-                    identifier = componentDependencyResolver.resolveComponentCoordinates((ExternalDependency) dependency);
+                    identifier =
+                            componentDependencyResolver.resolveComponentCoordinates((ExternalDependency) dependency);
                 }
 
                 if (identifier != null) {
@@ -385,39 +406,44 @@ public class MavenComponentParser {
 
                 return convertDeclaredCoordinates(dependency.getGroup(), dependency.getName(), dependency.getVersion());
             } else {
-                throw new GradleException("Unsupported dependency type: " + dependency.getClass().getName());
+                throw new GradleException(
+                        "Unsupported dependency type: " + dependency.getClass().getName());
             }
         }
 
-        private ResolvedCoordinates convertDeclaredCoordinates(String groupId, String artifactId, @Nullable String version) {
+        private ResolvedCoordinates convertDeclaredCoordinates(
+                String groupId, String artifactId, @Nullable String version) {
             if (version == null) {
                 return ResolvedCoordinates.create(groupId, artifactId, null);
             }
 
             // Attempt to convert Gradle's rich version notation to Maven's.
-            if (DefaultVersionSelectorScheme.isSubVersion(version) ||
-                (DefaultVersionSelectorScheme.isLatestVersion(version) && !MavenVersionSelectorScheme.isSubstituableLatest(version))
-            ) {
-                warnings.addIncompatible(String.format("%s:%s:%s declared with a Maven incompatible version notation", groupId, artifactId, version));
+            if (DefaultVersionSelectorScheme.isSubVersion(version)
+                    || (DefaultVersionSelectorScheme.isLatestVersion(version)
+                            && !MavenVersionSelectorScheme.isSubstituableLatest(version))) {
+                warnings.addIncompatible(String.format(
+                        "%s:%s:%s declared with a Maven incompatible version notation", groupId, artifactId, version));
             }
 
-            return ResolvedCoordinates.create(
-                groupId, artifactId, versionRangeMapper.map(version)
-            );
+            return ResolvedCoordinates.create(groupId, artifactId, versionRangeMapper.map(version));
         }
 
         private static MavenDependency newDependency(
-            ResolvedCoordinates coordinates,
-            @Nullable String type,
-            @Nullable String classifier,
-            @Nullable String scope,
-            Set<ExcludeRule> excludeRules,
-            boolean optional
-        ) {
+                ResolvedCoordinates coordinates,
+                @Nullable String type,
+                @Nullable String classifier,
+                @Nullable String scope,
+                Set<ExcludeRule> excludeRules,
+                boolean optional) {
             return new DefaultMavenDependency(
-                coordinates.getGroup(), coordinates.getName(), coordinates.getVersion(),
-                type, classifier, scope, excludeRules, optional
-            );
+                    coordinates.getGroup(),
+                    coordinates.getName(),
+                    coordinates.getVersion(),
+                    type,
+                    classifier,
+                    scope,
+                    excludeRules,
+                    optional);
         }
 
         private static Set<ExcludeRule> getExcludeRules(Set<ExcludeRule> globalExcludes, ModuleDependency dependency) {
@@ -445,10 +471,7 @@ public class MavenComponentParser {
         private final MavenPomDependencies dependencies;
         private final PublicationWarningsCollector warnings;
 
-        public ParsedDependencyResult(
-            MavenPomDependencies dependencies,
-            PublicationWarningsCollector warnings
-        ) {
+        public ParsedDependencyResult(MavenPomDependencies dependencies, PublicationWarningsCollector warnings) {
             this.warnings = warnings;
             this.dependencies = dependencies;
         }
@@ -473,12 +496,11 @@ public class MavenComponentParser {
         private final VariantWarningCollector warnings;
 
         public ParsedVariantDependencyResult(
-            String name,
-            List<MavenDependency> dependencies,
-            List<MavenDependency> platforms,
-            List<MavenDependency> constraints,
-            VariantWarningCollector warnings
-        ) {
+                String name,
+                List<MavenDependency> dependencies,
+                List<MavenDependency> platforms,
+                List<MavenDependency> constraints,
+                VariantWarningCollector warnings) {
             this.name = name;
             this.dependencies = dependencies;
             this.platforms = platforms;
@@ -504,7 +526,9 @@ public class MavenComponentParser {
                 return false;
             }
             ArtifactKey other = (ArtifactKey) obj;
-            return file.equals(other.file) && Objects.equals(classifier, other.classifier) && Objects.equals(extension, other.extension);
+            return file.equals(other.file)
+                    && Objects.equals(classifier, other.classifier)
+                    && Objects.equals(extension, other.extension);
         }
 
         @Override
@@ -523,12 +547,7 @@ public class MavenComponentParser {
         private final String type;
         private final String classifier;
 
-        private MavenDependencyKey(
-            String group,
-            String name,
-            @Nullable String type,
-            @Nullable String classifier
-        ) {
+        private MavenDependencyKey(String group, String name, @Nullable String type, @Nullable String classifier) {
             this.group = group;
             this.name = name;
             this.type = type;
@@ -536,12 +555,7 @@ public class MavenComponentParser {
         }
 
         static MavenDependencyKey of(MavenDependency dep) {
-            return new MavenDependencyKey(
-                dep.getGroupId(),
-                dep.getArtifactId(),
-                dep.getType(),
-                dep.getClassifier()
-            );
+            return new MavenDependencyKey(dep.getGroupId(), dep.getArtifactId(), dep.getType(), dep.getClassifier());
         }
 
         @Override
@@ -553,10 +567,10 @@ public class MavenComponentParser {
                 return false;
             }
             MavenDependencyKey that = (MavenDependencyKey) o;
-            return Objects.equals(group, that.group) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(type, that.type) &&
-                Objects.equals(classifier, that.classifier);
+            return Objects.equals(group, that.group)
+                    && Objects.equals(name, that.name)
+                    && Objects.equals(type, that.type)
+                    && Objects.equals(classifier, that.classifier);
         }
 
         @Override

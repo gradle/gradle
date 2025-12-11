@@ -37,11 +37,19 @@ import org.gradle.internal.time.Clock;
  * Adapts various events to build a {@link BuildProfile} model.
  */
 @ListenerService
-public class ProfileEventAdapter implements ProfileService, InternalBuildListener, ProjectEvaluationListener, TaskListenerInternal, DependencyResolutionListener, TransformExecutionListener {
+public class ProfileEventAdapter
+        implements ProfileService,
+                InternalBuildListener,
+                ProjectEvaluationListener,
+                TaskListenerInternal,
+                DependencyResolutionListener,
+                TransformExecutionListener {
     private final BuildStartedTime buildStartedTime;
     private final Clock clock;
+
     @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<ContinuousOperation> currentTransform = new ThreadLocal<>();
+
     private final BuildProfile buildProfile;
 
     public ProfileEventAdapter(BuildProfile buildProfile, BuildStartedTime buildStartedTime, Clock clock) {
@@ -83,7 +91,10 @@ public class ProfileEventAdapter implements ProfileService, InternalBuildListene
     @Override
     public void beforeEvaluate(Project project) {
         long now = clock.getCurrentTime();
-        buildProfile.getProjectProfile(project.getPath()).getConfigurationOperation().setStart(now);
+        buildProfile
+                .getProjectProfile(project.getPath())
+                .getConfigurationOperation()
+                .setStart(now);
     }
 
     @Override
@@ -107,7 +118,8 @@ public class ProfileEventAdapter implements ProfileService, InternalBuildListene
         long now = clock.getCurrentTime();
         String projectPath = taskIdentity.getProjectIdentity().getProjectPath().asString();
         ProjectProfile projectProfile = buildProfile.getProjectProfile(projectPath);
-        TaskExecution taskExecution = projectProfile.getTaskProfile(taskIdentity.getPath().asString());
+        TaskExecution taskExecution =
+                projectProfile.getTaskProfile(taskIdentity.getPath().asString());
         taskExecution.setFinish(now);
         taskExecution.completed(state);
     }

@@ -16,11 +16,10 @@
 
 package org.gradle.internal.resource.transfer;
 
+import java.io.IOException;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ReadableContent;
-
-import java.io.IOException;
 
 /**
  * You should use {@link ExternalResource} instead of this type.

@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
-import org.gradle.util.internal.BuildCommencedTimeProvider;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 public class InMemoryModuleArtifactsCache extends AbstractArtifactsCache {
     private final Map<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> inMemoryCache = new ConcurrentHashMap<>();
@@ -45,7 +44,7 @@ public class InMemoryModuleArtifactsCache extends AbstractArtifactsCache {
     @Override
     protected ModuleArtifactsCacheEntry get(ArtifactsAtRepositoryKey key) {
         ModuleArtifactsCacheEntry entry = inMemoryCache.get(key);
-        if (entry == null && delegate!=null) {
+        if (entry == null && delegate != null) {
             entry = delegate.get(key);
             if (entry != null) {
                 inMemoryCache.put(key, entry);
@@ -53,5 +52,4 @@ public class InMemoryModuleArtifactsCache extends AbstractArtifactsCache {
         }
         return entry;
     }
-
 }

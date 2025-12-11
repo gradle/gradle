@@ -21,7 +21,8 @@ public class DefaultNestedTestSuiteDescriptor extends DefaultTestSuiteDescriptor
     private final CompositeIdGenerator.CompositeId parentId;
     private final String displayName;
 
-    public DefaultNestedTestSuiteDescriptor(Object id, String name, String displayName, CompositeIdGenerator.CompositeId parentId) {
+    public DefaultNestedTestSuiteDescriptor(
+            Object id, String name, String displayName, CompositeIdGenerator.CompositeId parentId) {
         super(id, name);
         this.displayName = displayName;
         this.parentId = parentId;

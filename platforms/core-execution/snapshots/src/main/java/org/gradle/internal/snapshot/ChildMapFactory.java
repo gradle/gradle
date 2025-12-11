@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -47,16 +46,16 @@ public class ChildMapFactory {
                 return new SingletonChildMap<>(sortedEntries.get(0));
             default:
                 return (size < MINIMUM_CHILD_COUNT_FOR_BINARY_SEARCH)
-                    ? new MediumChildMap<>(sortedEntries)
-                    : new LargeChildMap<>(sortedEntries);
+                        ? new MediumChildMap<>(sortedEntries)
+                        : new LargeChildMap<>(sortedEntries);
         }
     }
 
-    static <T> ChildMap<T> childMap(CaseSensitivity caseSensitivity, ChildMap.Entry<T> entry1, ChildMap.Entry<T> entry2) {
+    static <T> ChildMap<T> childMap(
+            CaseSensitivity caseSensitivity, ChildMap.Entry<T> entry1, ChildMap.Entry<T> entry2) {
         int compared = PathUtil.getPathComparator(caseSensitivity).compare(entry1.getPath(), entry2.getPath());
-        List<ChildMap.Entry<T>> sortedEntries = compared < 0
-            ? ImmutableList.of(entry1, entry2)
-            : ImmutableList.of(entry2, entry1);
+        List<ChildMap.Entry<T>> sortedEntries =
+                compared < 0 ? ImmutableList.of(entry1, entry2) : ImmutableList.of(entry2, entry1);
         return childMapFromSorted(sortedEntries);
     }
 }

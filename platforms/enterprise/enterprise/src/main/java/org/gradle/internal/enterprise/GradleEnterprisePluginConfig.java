@@ -41,5 +41,4 @@ public interface GradleEnterprisePluginConfig {
      * @since 8.0
      */
     boolean isAutoApplied();
-
 }

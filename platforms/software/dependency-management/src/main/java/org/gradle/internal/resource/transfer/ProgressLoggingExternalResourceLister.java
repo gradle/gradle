@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resource.transfer;
 
+import java.net.URI;
+import java.util.List;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -25,14 +27,13 @@ import org.gradle.internal.resource.ExternalResourceListBuildOperationType;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.jspecify.annotations.Nullable;
 
-import java.net.URI;
-import java.util.List;
-
-public class ProgressLoggingExternalResourceLister extends AbstractProgressLoggingHandler implements ExternalResourceLister {
+public class ProgressLoggingExternalResourceLister extends AbstractProgressLoggingHandler
+        implements ExternalResourceLister {
     private final ExternalResourceLister delegate;
     private final BuildOperationRunner buildOperationExecutor;
 
-    public ProgressLoggingExternalResourceLister(ExternalResourceLister delegate, BuildOperationRunner buildOperationRunner) {
+    public ProgressLoggingExternalResourceLister(
+            ExternalResourceLister delegate, BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationRunner;
     }
@@ -43,7 +44,8 @@ public class ProgressLoggingExternalResourceLister extends AbstractProgressLoggi
         return buildOperationExecutor.call(new ListOperation(parent));
     }
 
-    private static class ListOperationDetails extends LocationDetails implements ExternalResourceListBuildOperationType.Details {
+    private static class ListOperationDetails extends LocationDetails
+            implements ExternalResourceListBuildOperationType.Details {
         private ListOperationDetails(URI location) {
             super(location);
         }
@@ -54,8 +56,8 @@ public class ProgressLoggingExternalResourceLister extends AbstractProgressLoggi
         }
     }
 
-    private final static ExternalResourceListBuildOperationType.Result LIST_RESULT = new ExternalResourceListBuildOperationType.Result() {
-    };
+    private static final ExternalResourceListBuildOperationType.Result LIST_RESULT =
+            new ExternalResourceListBuildOperationType.Result() {};
 
     private class ListOperation implements CallableBuildOperation<List<String>> {
         private final ExternalResourceName parent;
@@ -75,9 +77,8 @@ public class ProgressLoggingExternalResourceLister extends AbstractProgressLoggi
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor
-                .displayName("List " + parent.getUri())
-                .details(new ListOperationDetails(parent.getUri()));
+            return BuildOperationDescriptor.displayName("List " + parent.getUri())
+                    .details(new ListOperationDetails(parent.getUri()));
         }
     }
 }

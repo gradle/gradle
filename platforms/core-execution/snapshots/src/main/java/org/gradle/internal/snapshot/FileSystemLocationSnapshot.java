@@ -17,11 +17,10 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.collect.Interner;
-import org.gradle.internal.file.FileMetadata;
-import org.gradle.internal.hash.HashCode;
-
 import java.util.Comparator;
 import java.util.Optional;
+import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.hash.HashCode;
 
 /**
  * A snapshot of a single location on the file system.
@@ -38,7 +37,8 @@ public interface FileSystemLocationSnapshot extends FileSystemSnapshot, FileSyst
      *
      * The comparison is stable with respect to case sensitivity, so the order of the children is stable across operating systems.
      */
-    Comparator<FileSystemLocationSnapshot> BY_NAME = Comparator.comparing(FileSystemLocationSnapshot::getName, PathUtil::compareFileNames);
+    Comparator<FileSystemLocationSnapshot> BY_NAME =
+            Comparator.comparing(FileSystemLocationSnapshot::getName, PathUtil::compareFileNames);
 
     /**
      * The file name.
@@ -95,17 +95,25 @@ public interface FileSystemLocationSnapshot extends FileSystemSnapshot, FileSyst
     FileMetadata.AccessType getAccessType();
 
     void accept(FileSystemLocationSnapshotVisitor visitor);
+
     <T> T accept(FileSystemLocationSnapshotTransformer<T> transformer);
 
     interface FileSystemLocationSnapshotVisitor {
-        default void visitDirectory(DirectorySnapshot directorySnapshot) {};
-        default void visitRegularFile(RegularFileSnapshot fileSnapshot) {};
-        default void visitMissing(MissingFileSnapshot missingSnapshot) {};
+        default void visitDirectory(DirectorySnapshot directorySnapshot) {}
+        ;
+
+        default void visitRegularFile(RegularFileSnapshot fileSnapshot) {}
+        ;
+
+        default void visitMissing(MissingFileSnapshot missingSnapshot) {}
+        ;
     }
 
     interface FileSystemLocationSnapshotTransformer<T> {
         T visitDirectory(DirectorySnapshot directorySnapshot);
+
         T visitRegularFile(RegularFileSnapshot fileSnapshot);
+
         T visitMissing(MissingFileSnapshot missingSnapshot);
     }
 }

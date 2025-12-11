@@ -15,6 +15,8 @@
  */
 package org.gradle.nativeplatform.tasks;
 
+import java.io.File;
+import java.util.concurrent.Callable;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
@@ -29,9 +31,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.work.DisableCachingByDefault;
 
-import java.io.File;
-import java.util.concurrent.Callable;
-
 /**
  * Links a binary shared library from object files and imported libraries.
  */
@@ -41,25 +40,31 @@ public abstract class LinkSharedLibrary extends AbstractLinkTask {
     private final RegularFileProperty importLibrary = getProject().getObjects().fileProperty();
 
     public LinkSharedLibrary() {
-        importLibrary.set(getProject().getLayout().getProjectDirectory().file(getProject().getProviders().provider(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                RegularFile binaryFile = getLinkedFile().getOrNull();
-                if (binaryFile == null) {
-                    return null;
-                }
-                NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain().getOrNull();
-                NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform().getOrNull();
-                if (toolChain == null || targetPlatform == null) {
-                    return null;
-                }
-                PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
-                if (!toolProvider.producesImportLibrary()) {
-                    return null;
-                }
-                return toolProvider.getImportLibraryName(binaryFile.getAsFile().getAbsolutePath());
-            }
-        })));
+        importLibrary.set(getProject()
+                .getLayout()
+                .getProjectDirectory()
+                .file(getProject().getProviders().provider(new Callable<String>() {
+                    @Override
+                    public String call() throws Exception {
+                        RegularFile binaryFile = getLinkedFile().getOrNull();
+                        if (binaryFile == null) {
+                            return null;
+                        }
+                        NativeToolChainInternal toolChain =
+                                (NativeToolChainInternal) getToolChain().getOrNull();
+                        NativePlatformInternal targetPlatform =
+                                (NativePlatformInternal) getTargetPlatform().getOrNull();
+                        if (toolChain == null || targetPlatform == null) {
+                            return null;
+                        }
+                        PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
+                        if (!toolProvider.producesImportLibrary()) {
+                            return null;
+                        }
+                        return toolProvider.getImportLibraryName(
+                                binaryFile.getAsFile().getAbsolutePath());
+                    }
+                })));
     }
 
     /**
@@ -67,7 +72,8 @@ public abstract class LinkSharedLibrary extends AbstractLinkTask {
      *
      * @since 4.4
      */
-    @Optional @OutputFile
+    @Optional
+    @OutputFile
     public RegularFileProperty getImportLibrary() {
         return importLibrary;
     }

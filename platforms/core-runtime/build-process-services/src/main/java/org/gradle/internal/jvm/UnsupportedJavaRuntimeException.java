@@ -38,10 +38,8 @@ public class UnsupportedJavaRuntimeException extends RuntimeException {
         int currentVersion = JavaVersionParser.parseCurrentMajorVersion();
         if (currentVersion < SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION) {
             String message = String.format(
-                "Gradle requires JVM %d or later to run. You are currently using JVM %d.",
-                SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
-                currentVersion
-            );
+                    "Gradle requires JVM %d or later to run. You are currently using JVM %d.",
+                    SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION, currentVersion);
             throw new UnsupportedJavaRuntimeException(message);
         }
     }
@@ -52,11 +50,8 @@ public class UnsupportedJavaRuntimeException extends RuntimeException {
     public static void assertIsSupportedDaemonJvmVersion(int majorVersion) {
         if (majorVersion < SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION) {
             throw new UnsupportedJavaRuntimeException(String.format(
-                "Gradle requires JVM %d or later to run. Your build is currently configured to use JVM %d.",
-                SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
-                majorVersion
-            ));
+                    "Gradle requires JVM %d or later to run. Your build is currently configured to use JVM %d.",
+                    SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION, majorVersion));
         }
     }
-
 }

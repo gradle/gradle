@@ -35,7 +35,8 @@ import org.gradle.work.DisableCachingByDefault;
  * @since 7.5
  */
 @Incubating
-@DisableCachingByDefault(because = "Produces only non-cacheable console output by examining configurations at execution time")
+@DisableCachingByDefault(
+        because = "Produces only non-cacheable console output by examining configurations at execution time")
 public abstract class ResolvableConfigurationsReportTask extends AbstractConfigurationReportTask {
     /**
      * Limits the report to a single configuration.
@@ -54,7 +55,9 @@ public abstract class ResolvableConfigurationsReportTask extends AbstractConfigu
      */
     @Input
     @Optional
-    @Option(option = "all", description = "Shows all resolvable configurations, including legacy and deprecated configurations")
+    @Option(
+            option = "all",
+            description = "Shows all resolvable configurations, including legacy and deprecated configurations")
     public abstract Property<Boolean> getShowAll();
 
     /**
@@ -64,11 +67,18 @@ public abstract class ResolvableConfigurationsReportTask extends AbstractConfigu
      */
     @Input
     @Optional
-    @Option(option = "recursive", description = "Lists all extended configurations of the reported configurations, including any which are extended transitively")
+    @Option(
+            option = "recursive",
+            description =
+                    "Lists all extended configurations of the reported configurations, including any which are extended transitively")
     public abstract Property<Boolean> getRecursive();
 
     @Override
     protected AbstractConfigurationReportSpec buildReportSpec() {
-        return new ResolvableConfigurationsSpec(getConfigurationName().getOrNull(), getShowAll().get(), getRecursive().get(), true);
+        return new ResolvableConfigurationsSpec(
+                getConfigurationName().getOrNull(),
+                getShowAll().get(),
+                getRecursive().get(),
+                true);
     }
 }

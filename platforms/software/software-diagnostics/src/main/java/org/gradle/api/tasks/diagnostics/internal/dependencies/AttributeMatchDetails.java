@@ -21,12 +21,15 @@ import org.jspecify.annotations.Nullable;
 
 public class AttributeMatchDetails {
     private final MatchType matchType;
+
     @Nullable
     private final Attribute<?> requested;
+
     @Nullable
     private final Object requestedValue;
 
-    public AttributeMatchDetails(MatchType matchType, @Nullable Attribute<?> requested, @Nullable Object requestedValue) {
+    public AttributeMatchDetails(
+            MatchType matchType, @Nullable Attribute<?> requested, @Nullable Object requestedValue) {
         this.matchType = matchType;
         this.requested = requested;
         this.requestedValue = requestedValue;

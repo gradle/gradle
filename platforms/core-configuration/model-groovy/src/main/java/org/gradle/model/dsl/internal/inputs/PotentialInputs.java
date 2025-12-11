@@ -16,10 +16,9 @@
 
 package org.gradle.model.dsl.internal.inputs;
 
-import org.gradle.model.internal.core.ModelView;
-
 import java.util.List;
 import java.util.Map;
+import org.gradle.model.internal.core.ModelView;
 
 public class PotentialInputs {
 
@@ -38,5 +37,4 @@ public class PotentialInputs {
         }
         return potentialInput.get(modelViews);
     }
-
 }

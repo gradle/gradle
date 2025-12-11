@@ -17,6 +17,7 @@
 package org.gradle.api.reporting.dependencies.internal;
 
 import com.google.common.collect.ImmutableList;
+import javax.inject.Inject;
 import org.gradle.api.Describable;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.DirectoryReport;
@@ -26,15 +27,16 @@ import org.gradle.api.reporting.internal.DefaultReportContainer;
 import org.gradle.api.reporting.internal.DelegatingReportContainer;
 import org.gradle.api.reporting.internal.SingleDirectoryReport;
 
-import javax.inject.Inject;
-
-public class DefaultDependencyReportContainer extends DelegatingReportContainer<Report> implements DependencyReportContainer {
+public class DefaultDependencyReportContainer extends DelegatingReportContainer<Report>
+        implements DependencyReportContainer {
 
     @Inject
     public DefaultDependencyReportContainer(Describable owner, ObjectFactory objectFactory) {
-        super(DefaultReportContainer.create(objectFactory, Report.class, factory -> ImmutableList.of(
-            factory.instantiateReport(SingleDirectoryReport.class, "html", owner, "index.html")
-        )));
+        super(DefaultReportContainer.create(
+                objectFactory,
+                Report.class,
+                factory -> ImmutableList.of(
+                        factory.instantiateReport(SingleDirectoryReport.class, "html", owner, "index.html"))));
     }
 
     @Override

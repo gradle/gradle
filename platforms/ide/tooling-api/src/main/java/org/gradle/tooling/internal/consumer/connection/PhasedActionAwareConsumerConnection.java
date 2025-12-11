@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import java.io.File;
 import org.gradle.tooling.BuildActionFailureException;
 import org.gradle.tooling.IntermediateResultHandler;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -33,8 +34,6 @@ import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection;
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-
 /**
  * An adapter for {@link InternalPhasedActionConnection}.
  *
@@ -42,35 +41,46 @@ import java.io.File;
  */
 public class PhasedActionAwareConsumerConnection extends ParameterAcceptingConsumerConnection {
 
-    public PhasedActionAwareConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
+    public PhasedActionAwareConsumerConnection(
+            ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, modelMapping, adapter);
     }
 
     @Override
     public void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
         InternalPhasedActionConnection connection = (InternalPhasedActionConnection) getDelegate();
-        PhasedActionResultListener listener = new DefaultPhasedActionResultListener(getHandler(phasedBuildAction.getProjectsLoadedAction()),
-            getHandler(phasedBuildAction.getBuildFinishedAction()));
-        InternalPhasedAction internalPhasedAction = getPhasedAction(phasedBuildAction, operationParameters.getProjectDir(), getVersionDetails());
+        PhasedActionResultListener listener = new DefaultPhasedActionResultListener(
+                getHandler(phasedBuildAction.getProjectsLoadedAction()),
+                getHandler(phasedBuildAction.getBuildFinishedAction()));
+        InternalPhasedAction internalPhasedAction =
+                getPhasedAction(phasedBuildAction, operationParameters.getProjectDir(), getVersionDetails());
         try {
-            connection.run(internalPhasedAction, listener, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
+            connection.run(
+                    internalPhasedAction,
+                    listener,
+                    new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()),
+                    operationParameters);
         } catch (InternalBuildActionFailureException e) {
             throw new BuildActionFailureException("The supplied phased action failed with an exception.", e.getCause());
         }
     }
 
     @Nullable
-    private static <T> IntermediateResultHandler<? super T> getHandler(PhasedBuildAction.@Nullable BuildActionWrapper<T> wrapper) {
+    private static <T> IntermediateResultHandler<? super T> getHandler(
+            PhasedBuildAction.@Nullable BuildActionWrapper<T> wrapper) {
         return wrapper == null ? null : wrapper.getHandler();
     }
 
-    private static InternalPhasedAction getPhasedAction(PhasedBuildAction phasedBuildAction, File rootDir, VersionDetails versionDetails) {
-        return new InternalPhasedActionAdapter(getAction(phasedBuildAction.getProjectsLoadedAction(), rootDir, versionDetails),
-            getAction(phasedBuildAction.getBuildFinishedAction(), rootDir, versionDetails));
+    private static InternalPhasedAction getPhasedAction(
+            PhasedBuildAction phasedBuildAction, File rootDir, VersionDetails versionDetails) {
+        return new InternalPhasedActionAdapter(
+                getAction(phasedBuildAction.getProjectsLoadedAction(), rootDir, versionDetails),
+                getAction(phasedBuildAction.getBuildFinishedAction(), rootDir, versionDetails));
     }
 
     @Nullable
-    private static <T> InternalBuildActionVersion2<T> getAction(PhasedBuildAction.@Nullable BuildActionWrapper<T> wrapper, File rootDir, VersionDetails versionDetails) {
+    private static <T> InternalBuildActionVersion2<T> getAction(
+            PhasedBuildAction.@Nullable BuildActionWrapper<T> wrapper, File rootDir, VersionDetails versionDetails) {
         return wrapper == null ? null : new InternalBuildActionAdapter<T>(wrapper.getAction(), rootDir, versionDetails);
     }
 }

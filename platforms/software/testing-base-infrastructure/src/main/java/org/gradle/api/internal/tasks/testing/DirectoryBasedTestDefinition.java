@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import java.io.File;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.File;
 
 /**
  * A test definition which denotes a directory containing non-class-based tests.

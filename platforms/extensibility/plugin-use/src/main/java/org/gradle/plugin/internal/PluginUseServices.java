@@ -17,6 +17,9 @@
 package org.gradle.plugin.internal;
 
 import com.google.common.collect.ImmutableSet;
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -69,10 +72,6 @@ import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumen
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 import org.jspecify.annotations.NullMarked;
 
-import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.List;
-
 public class PluginUseServices extends AbstractGradleModuleServices {
 
     @Override
@@ -93,13 +92,17 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     private static class SettingsScopeServices implements ServiceRegistrationProvider {
         @Provides
         protected PluginManagementSpec createPluginManagementSpec(
-            Instantiator instantiator,
-            PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider,
-            PluginResolutionStrategyInternal internalPluginResolutionStrategy,
-            FileResolver fileResolver,
-            BuildIncluder buildIncluder
-        ) {
-            return instantiator.newInstance(DefaultPluginManagementSpec.class, pluginRepositoryHandlerProvider, internalPluginResolutionStrategy, fileResolver, buildIncluder);
+                Instantiator instantiator,
+                PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider,
+                PluginResolutionStrategyInternal internalPluginResolutionStrategy,
+                FileResolver fileResolver,
+                BuildIncluder buildIncluder) {
+            return instantiator.newInstance(
+                    DefaultPluginManagementSpec.class,
+                    pluginRepositoryHandlerProvider,
+                    internalPluginResolutionStrategy,
+                    fileResolver,
+                    buildIncluder);
         }
     }
 
@@ -112,8 +115,11 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        void configure(ServiceRegistration registration, PluginScheme pluginScheme, InstantiatorFactory instantiatorFactory) {
-            DefaultProjectFeatureDeclarations projectFeatureRegistry = new DefaultProjectFeatureDeclarations(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator());
+        void configure(
+                ServiceRegistration registration, PluginScheme pluginScheme, InstantiatorFactory instantiatorFactory) {
+            DefaultProjectFeatureDeclarations projectFeatureRegistry = new DefaultProjectFeatureDeclarations(
+                    pluginScheme.getInspectionScheme(),
+                    instantiatorFactory.injectScheme().instantiator());
             registration.add(ProjectFeatureDeclarations.class, projectFeatureRegistry);
         }
 
@@ -128,79 +134,73 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        PluginScheme createPluginScheme(InstantiatorFactory instantiatorFactory, InspectionSchemeFactory inspectionSchemeFactory) {
+        PluginScheme createPluginScheme(
+                InstantiatorFactory instantiatorFactory, InspectionSchemeFactory inspectionSchemeFactory) {
             InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
             ImmutableSet.Builder<Class<? extends Annotation>> allPropertyTypes = ImmutableSet.builder();
             InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
-                allPropertyTypes.build(),
-                Collections.emptySet(),
-                Collections.emptyList(),
-                instantiationScheme,
-                MissingPropertyAnnotationHandler.DO_NOTHING
-            );
+                    allPropertyTypes.build(),
+                    Collections.emptySet(),
+                    Collections.emptyList(),
+                    instantiationScheme,
+                    MissingPropertyAnnotationHandler.DO_NOTHING);
             return new PluginScheme(instantiationScheme, inspectionScheme);
         }
 
         @Provides
         ClientInjectedClasspathPluginResolver createInjectedClassPathPluginResolver(
-            DependencyManagementServices dependencyManagementServices,
-            ClassLoaderScopeRegistry classLoaderScopeRegistry,
-            PluginInspector pluginInspector,
-            InjectedPluginClasspath injectedPluginClasspath,
-            ScriptClassPathResolver scriptClassPathResolver,
-            FileCollectionFactory fileCollectionFactory,
-            InjectedClasspathInstrumentationStrategy instrumentationStrategy
-        ) {
+                DependencyManagementServices dependencyManagementServices,
+                ClassLoaderScopeRegistry classLoaderScopeRegistry,
+                PluginInspector pluginInspector,
+                InjectedPluginClasspath injectedPluginClasspath,
+                ScriptClassPathResolver scriptClassPathResolver,
+                FileCollectionFactory fileCollectionFactory,
+                InjectedClasspathInstrumentationStrategy instrumentationStrategy) {
             if (injectedPluginClasspath.getClasspath().isEmpty()) {
                 return ClientInjectedClasspathPluginResolver.EMPTY;
             }
 
             Factory<DependencyResolutionServices> dependencyResolutionServicesFactory =
-                () -> dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.PLUGINS);
+                    () -> dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.PLUGINS);
 
             return new DefaultInjectedClasspathPluginResolver(
-                classLoaderScopeRegistry.getCoreAndPluginsScope(),
-                scriptClassPathResolver,
-                fileCollectionFactory,
-                pluginInspector,
-                injectedPluginClasspath.getClasspath(),
-                instrumentationStrategy,
-                dependencyResolutionServicesFactory
-            );
+                    classLoaderScopeRegistry.getCoreAndPluginsScope(),
+                    scriptClassPathResolver,
+                    fileCollectionFactory,
+                    pluginInspector,
+                    injectedPluginClasspath.getClasspath(),
+                    instrumentationStrategy,
+                    dependencyResolutionServicesFactory);
         }
 
         @Provides
-        PluginResolutionStrategyInternal createPluginResolutionStrategy(Instantiator instantiator, ListenerManager listenerManager) {
+        PluginResolutionStrategyInternal createPluginResolutionStrategy(
+                Instantiator instantiator, ListenerManager listenerManager) {
             return instantiator.newInstance(DefaultPluginResolutionStrategy.class, listenerManager);
         }
 
         @Provides
         PluginDependencyResolutionServices createPluginDependencyResolutionServices(
-            DependencyManagementServices dependencyManagementServices
-        ) {
-            return new PluginDependencyResolutionServices(() ->
-                dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.PLUGINS)
-            );
+                DependencyManagementServices dependencyManagementServices) {
+            return new PluginDependencyResolutionServices(
+                    () -> dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.PLUGINS));
         }
-
     }
 
     @NullMarked
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
         ProjectFeatureApplicator createProjectFeatureApplicator(
-            ProjectFeatureDeclarations projectFeatureDeclarations,
-            ModelDefaultsApplicator modelDefaultsApplicator,
-            PluginManagerInternal pluginManager,
-            ProjectInternal project
-        ) {
+                ProjectFeatureDeclarations projectFeatureDeclarations,
+                ModelDefaultsApplicator modelDefaultsApplicator,
+                PluginManagerInternal pluginManager,
+                ProjectInternal project) {
             return new DefaultProjectFeatureApplicator(
-                projectFeatureDeclarations,
-                modelDefaultsApplicator,
-                pluginManager,
-                project.getClassLoaderScope(),
-                project.getObjects()
-            );
+                    projectFeatureDeclarations,
+                    modelDefaultsApplicator,
+                    pluginManager,
+                    project.getClassLoaderScope(),
+                    project.getObjects());
         }
 
         @Provides

@@ -16,6 +16,9 @@
 
 package org.gradle.testing.jacoco.tasks;
 
+import java.io.File;
+import java.io.IOException;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
@@ -27,10 +30,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
 
 /**
  * Task for verifying code coverage metrics. Fails the task if violations are detected based on specified rules.

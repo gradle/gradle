@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.net.URI;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NamedDomainObjectCollection;
@@ -48,13 +53,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.UnknownServiceException;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.net.URI;
-import java.util.Map;
-import java.util.Set;
-
-public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, ContentFilteringRepository, MetadataSupplierAware {
+public abstract class AbstractArtifactRepository
+        implements ArtifactRepositoryInternal, ContentFilteringRepository, MetadataSupplierAware {
     private String name;
     private boolean isPartOfContainer;
     private Class<? extends ComponentMetadataSupplier> componentMetadataSupplierRuleClass;
@@ -82,7 +82,8 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     @Override
     public void setName(String name) {
         if (isPartOfContainer) {
-            throw new IllegalStateException("The name of an ArtifactRepository cannot be changed after it has been added to a repository container. You should set the name when creating the repository.");
+            throw new IllegalStateException(
+                    "The name of an ArtifactRepository cannot be changed after it has been added to a repository container. You should set the name when creating the repository.");
         }
         this.name = name;
     }
@@ -99,7 +100,8 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
     @Override
-    public void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction) {
+    public void setMetadataSupplier(
+            Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction) {
         this.componentMetadataSupplierRuleClass = rule;
         this.componentMetadataSupplierRuleConfiguration = configureAction;
     }
@@ -111,7 +113,9 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
     @Override
-    public void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister, Action<? super ActionConfiguration> configureAction) {
+    public void setComponentVersionsLister(
+            Class<? extends ComponentMetadataVersionLister> lister,
+            Action<? super ActionConfiguration> configureAction) {
         this.componentMetadataListerRuleClass = lister;
         this.componentMetadataListerRuleConfiguration = configureAction;
     }
@@ -152,18 +156,30 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
     @Nullable
-    InstantiatingAction<ComponentMetadataSupplierDetails> createComponentMetadataSupplierFactory(Instantiator instantiator, IsolatableFactory isolatableFactory) {
+    InstantiatingAction<ComponentMetadataSupplierDetails> createComponentMetadataSupplierFactory(
+            Instantiator instantiator, IsolatableFactory isolatableFactory) {
         if (componentMetadataSupplierRuleClass != null) {
-            return createRuleAction(instantiator, DefaultConfigurableRule.of(componentMetadataSupplierRuleClass, componentMetadataSupplierRuleConfiguration, isolatableFactory));
+            return createRuleAction(
+                    instantiator,
+                    DefaultConfigurableRule.of(
+                            componentMetadataSupplierRuleClass,
+                            componentMetadataSupplierRuleConfiguration,
+                            isolatableFactory));
         } else {
             return null;
         }
     }
 
     @Nullable
-    InstantiatingAction<ComponentMetadataListerDetails> createComponentMetadataVersionLister(Instantiator instantiator, IsolatableFactory isolatableFactory) {
+    InstantiatingAction<ComponentMetadataListerDetails> createComponentMetadataVersionLister(
+            Instantiator instantiator, IsolatableFactory isolatableFactory) {
         if (componentMetadataListerRuleClass != null) {
-            return createRuleAction(instantiator, DefaultConfigurableRule.of(componentMetadataListerRuleClass, componentMetadataListerRuleConfiguration, isolatableFactory));
+            return createRuleAction(
+                    instantiator,
+                    DefaultConfigurableRule.of(
+                            componentMetadataListerRuleClass,
+                            componentMetadataListerRuleConfiguration,
+                            isolatableFactory));
         } else {
             return null;
         }
@@ -176,25 +192,23 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
      * @return a dependency injecting instantiator, aware of services we want to expose
      */
     ImplicitInputsCapturingInstantiator createInjectorForMetadataSuppliers(
-        RepositoryTransport transport,
-        InstantiatorFactory instantiatorFactory,
-        @Nullable URI rootUri,
-        FileStore<String> externalResourcesFileStore
-    ) {
-        RepositoryResourceAccessor repositoryResourceAccessor = createRepositoryAccessor(transport, rootUri, externalResourcesFileStore);
+            RepositoryTransport transport,
+            InstantiatorFactory instantiatorFactory,
+            @Nullable URI rootUri,
+            FileStore<String> externalResourcesFileStore) {
+        RepositoryResourceAccessor repositoryResourceAccessor =
+                createRepositoryAccessor(transport, rootUri, externalResourcesFileStore);
         ServiceLookup services = new RepositoryRuleServiceLookup(objectFactory, repositoryResourceAccessor);
         return new ImplicitInputsCapturingInstantiator(services, instantiatorFactory);
     }
 
     protected @Nullable RepositoryResourceAccessor createRepositoryAccessor(
-        RepositoryTransport transport,
-        @Nullable URI rootUri,
-        FileStore<String> externalResourcesFileStore
-    ) {
+            RepositoryTransport transport, @Nullable URI rootUri, FileStore<String> externalResourcesFileStore) {
         if (rootUri == null) {
             return null;
         }
-        return new ExternalRepositoryResourceAccessor(rootUri, transport.getResourceAccessor(), externalResourcesFileStore);
+        return new ExternalRepositoryResourceAccessor(
+                rootUri, transport.getResourceAccessor(), externalResourcesFileStore);
     }
 
     private static class RepositoryRuleServiceLookup implements ServiceLookup {
@@ -203,9 +217,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         private final @Nullable RepositoryResourceAccessor repositoryResourceAccessor;
 
         public RepositoryRuleServiceLookup(
-            ObjectFactory objectFactory,
-            @Nullable RepositoryResourceAccessor repositoryResourceAccessor
-        ) {
+                ObjectFactory objectFactory, @Nullable RepositoryResourceAccessor repositoryResourceAccessor) {
             this.objectFactory = objectFactory;
             this.repositoryResourceAccessor = repositoryResourceAccessor;
         }
@@ -214,7 +226,8 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         public @Nullable Object find(Type serviceType) throws ServiceLookupException {
             if (serviceType == RepositoryResourceAccessor.class) {
                 if (repositoryResourceAccessor == null) {
-                    throw new ServiceLookupException("Can not inject RepositoryResourceAccessor since repository has no URL.");
+                    throw new ServiceLookupException(
+                            "Can not inject RepositoryResourceAccessor since repository has no URL.");
                 } else {
                     return repositoryResourceAccessor;
                 }
@@ -235,12 +248,14 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         }
 
         @Override
-        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith)
+                throws UnknownServiceException, ServiceLookupException {
             return ServiceRegistry.EMPTY.get(serviceType, annotatedWith);
         }
     }
 
-    private static <T> InstantiatingAction<T> createRuleAction(final Instantiator instantiator, final ConfigurableRule<T> rule) {
+    private static <T> InstantiatingAction<T> createRuleAction(
+            final Instantiator instantiator, final ConfigurableRule<T> rule) {
         return new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, (target, throwable) -> {
             throw UncheckedException.throwAsUncheckedException(throwable);
         });

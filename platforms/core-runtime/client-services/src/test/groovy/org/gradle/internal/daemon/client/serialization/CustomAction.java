@@ -16,11 +16,10 @@
 
 package org.gradle.internal.daemon.client.serialization;
 
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.GradleConnectionException;
-
-import java.util.List;
 
 public class CustomAction implements BuildAction<Object> {
     // Some interesting type references

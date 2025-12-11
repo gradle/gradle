@@ -16,9 +16,11 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import com.google.common.collect.Sets;
-import org.gradle.internal.UncheckedException;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
 
+import com.google.common.collect.Sets;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -32,10 +34,7 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE;
+import org.gradle.internal.UncheckedException;
 
 public class GitIgnoreGenerator implements BuildContentGenerator {
 
@@ -51,7 +50,8 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
                 }
                 Spliterator<String> it = gitignoresToAppend.spliterator();
                 if (it.tryAdvance(e -> withComment(e).forEach(writer::println))) {
-                    StreamSupport.stream(it, false).forEach(e -> withSeparator(withComment(e)).forEach(writer::println));
+                    StreamSupport.stream(it, false)
+                            .forEach(e -> withSeparator(withComment(e)).forEach(writer::println));
                 }
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -59,12 +59,14 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
         }
     }
 
-    @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "DefaultCharset") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private static Set<String> getGitignoresToAppend(File gitignoreFile) {
         Set<String> result = Sets.newLinkedHashSet(Arrays.asList(".gradle", "build", ".kotlin"));
         if (gitignoreFile.exists()) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(gitignoreFile))){
-                result.removeAll(reader.lines().filter(it -> result.contains(it)).collect(Collectors.toSet()));
+            try (BufferedReader reader = new BufferedReader(new FileReader(gitignoreFile))) {
+                result.removeAll(
+                        reader.lines().filter(it -> result.contains(it)).collect(Collectors.toSet()));
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }

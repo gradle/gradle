@@ -40,5 +40,4 @@ public interface TestFinishEvent extends TestProgressEvent, FinishEvent {
      */
     @Override
     TestOperationResult getResult();
-
 }

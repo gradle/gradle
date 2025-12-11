@@ -16,10 +16,9 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import java.util.List;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
-
-import java.util.List;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link UnknownArtifactSelectionFailure}.
@@ -28,7 +27,8 @@ import java.util.List;
  * {@link ArtifactSelectionException} is already the cause of the failure, it will be returned directly, with resolution
  * information added as necessary.
  */
-public abstract class UnknownArtifactSelectionFailureDescriber extends AbstractResolutionFailureDescriber<UnknownArtifactSelectionFailure> {
+public abstract class UnknownArtifactSelectionFailureDescriber
+        extends AbstractResolutionFailureDescriber<UnknownArtifactSelectionFailure> {
     @Override
     public ArtifactSelectionException describeFailure(UnknownArtifactSelectionFailure failure) {
         final ArtifactSelectionException result;
@@ -43,6 +43,8 @@ public abstract class UnknownArtifactSelectionFailureDescriber extends AbstractR
     }
 
     private String buildFailureMsg(UnknownArtifactSelectionFailure failure) {
-        return String.format("Could not select a variant of %s that matches the consumer attributes.", failure.describeRequestTarget());
+        return String.format(
+                "Could not select a variant of %s that matches the consumer attributes.",
+                failure.describeRequestTarget());
     }
 }

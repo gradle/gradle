@@ -17,6 +17,8 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileTree;
@@ -29,9 +31,6 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.util.Set;
 
 /**
  * A {@code SourceTask} performs some operation on source files.

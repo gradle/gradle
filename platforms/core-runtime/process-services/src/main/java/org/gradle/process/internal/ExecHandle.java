@@ -16,13 +16,12 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.Describable;
-import org.gradle.process.ExecResult;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import org.gradle.api.Describable;
+import org.gradle.process.ExecResult;
+import org.jspecify.annotations.Nullable;
 
 public interface ExecHandle extends Describable {
 

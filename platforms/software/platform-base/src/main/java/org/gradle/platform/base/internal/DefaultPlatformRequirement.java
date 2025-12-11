@@ -43,7 +43,6 @@ public class DefaultPlatformRequirement implements PlatformRequirement {
 
         DefaultPlatformRequirement that = (DefaultPlatformRequirement) o;
         return platformName.equals(that.platformName);
-
     }
 
     @Override

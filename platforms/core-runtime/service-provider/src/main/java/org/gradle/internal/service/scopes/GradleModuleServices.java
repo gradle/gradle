@@ -92,5 +92,4 @@ public interface GradleModuleServices extends ServiceRegistrationProvider {
      * @see Scope.Project
      */
     void registerProjectServices(ServiceRegistration registration);
-
 }

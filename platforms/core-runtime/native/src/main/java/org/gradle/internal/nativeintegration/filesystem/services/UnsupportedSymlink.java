@@ -16,10 +16,9 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import org.gradle.internal.nativeintegration.filesystem.Symlink;
-
 import java.io.File;
 import java.io.IOException;
+import org.gradle.internal.nativeintegration.filesystem.Symlink;
 
 class UnsupportedSymlink implements Symlink {
     @Override
@@ -29,7 +28,8 @@ class UnsupportedSymlink implements Symlink {
 
     @Override
     public void symlink(File link, File target) throws IOException {
-        throw new IOException("Support for the creation of symlinks is only available on this platform using Java 7 or later.");
+        throw new IOException(
+                "Support for the creation of symlinks is only available on this platform using Java 7 or later.");
     }
 
     @Override

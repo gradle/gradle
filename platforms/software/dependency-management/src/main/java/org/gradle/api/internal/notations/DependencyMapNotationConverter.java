@@ -40,18 +40,19 @@ public class DependencyMapNotationConverter<T> extends MapNotationConverter<T> {
         visitor.candidate("Maps").example("[group: 'org.gradle', name: 'gradle-core', version: '1.0']");
     }
 
-    protected T parseMap(@MapKey("group") @Nullable String group,
-                         @MapKey("name") @Nullable String name,
-                         @MapKey("version") @Nullable String version,
-                         @MapKey("configuration") @Nullable String configuration,
-                         @MapKey("ext") @Nullable String ext,
-                         @MapKey("classifier") @Nullable String classifier
-    ) {
+    protected T parseMap(
+            @MapKey("group") @Nullable String group,
+            @MapKey("name") @Nullable String name,
+            @MapKey("version") @Nullable String version,
+            @MapKey("configuration") @Nullable String configuration,
+            @MapKey("ext") @Nullable String ext,
+            @MapKey("classifier") @Nullable String classifier) {
         DeprecationMessageBuilder.DeprecateAction deprecation =
-            DeprecationLogger.deprecateAction("Declaring dependencies using multi-string notation");
+                DeprecationLogger.deprecateAction("Declaring dependencies using multi-string notation");
 
         if (configuration == null) { // TODO #33919: We have no nice shorthand for configuration dependencies
-            String suggestedNotation = (group == null ? "" : group)  + ":" + name + (version == null ? "" : ":" + version);
+            String suggestedNotation =
+                    (group == null ? "" : group) + ":" + name + (version == null ? "" : ":" + version);
             if (classifier != null) {
                 if (version == null) {
                     suggestedNotation += ":";
@@ -63,13 +64,14 @@ public class DependencyMapNotationConverter<T> extends MapNotationConverter<T> {
                 suggestedNotation += "@" + ext;
             }
 
-            deprecation = deprecation
-                .withAdvice("Please use single-string notation instead: \"" + suggestedNotation + "\".");
+            deprecation =
+                    deprecation.withAdvice("Please use single-string notation instead: \"" + suggestedNotation + "\".");
         }
 
-        deprecation.willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "dependency_multi_string_notation")
-            .nagUser();
+        deprecation
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "dependency_multi_string_notation")
+                .nagUser();
 
         T dependency;
         if (configuration == null) {
@@ -82,5 +84,4 @@ public class DependencyMapNotationConverter<T> extends MapNotationConverter<T> {
         }
         return dependency;
     }
-
 }

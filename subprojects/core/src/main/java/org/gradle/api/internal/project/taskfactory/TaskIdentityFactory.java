@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Task identity factory that ensures that unique ids are used correctly
@@ -51,9 +50,9 @@ public class TaskIdentityFactory {
      * <p>
      * Should only be used when loading from the configuration cache to preserve task ids.
      */
-    public <T extends Task> TaskIdentity<T> recreate(String name, Class<T> type, ProjectInternal project, long uniqueId) {
+    public <T extends Task> TaskIdentity<T> recreate(
+            String name, Class<T> type, ProjectInternal project, long uniqueId) {
         idFactory.idRecreated();
         return new TaskIdentity<>(type, name, project.getProjectIdentity(), uniqueId);
     }
-
 }

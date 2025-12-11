@@ -24,13 +24,15 @@ import java.util.function.Predicate;
 public class CleaningInMemoryCacheDecoratorFactory extends DefaultInMemoryCacheDecoratorFactory {
     private final List<WeakReference<InMemoryCacheController>> inMemoryCaches = new ArrayList<>();
 
-    public CleaningInMemoryCacheDecoratorFactory(boolean longLivingProcess, CrossBuildInMemoryCacheFactory cacheFactory) {
+    public CleaningInMemoryCacheDecoratorFactory(
+            boolean longLivingProcess, CrossBuildInMemoryCacheFactory cacheFactory) {
         super(longLivingProcess, cacheFactory);
     }
 
     public void clearCaches(Predicate<InMemoryCacheController> predicate) {
         synchronized (inMemoryCaches) {
-            for (Iterator<WeakReference<InMemoryCacheController>> iterator = inMemoryCaches.iterator(); iterator.hasNext();) {
+            for (Iterator<WeakReference<InMemoryCacheController>> iterator = inMemoryCaches.iterator();
+                    iterator.hasNext(); ) {
                 WeakReference<InMemoryCacheController> ref = iterator.next();
                 InMemoryCacheController cache = ref.get();
                 if (cache == null) {
@@ -43,8 +45,13 @@ public class CleaningInMemoryCacheDecoratorFactory extends DefaultInMemoryCacheD
     }
 
     @Override
-    protected <K, V> MultiProcessSafeAsyncPersistentIndexedCache<K, V> applyInMemoryCaching(String cacheId, MultiProcessSafeAsyncPersistentIndexedCache<K, V> backingCache, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
-        MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate = super.applyInMemoryCaching(cacheId, backingCache, maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses);
+    protected <K, V> MultiProcessSafeAsyncPersistentIndexedCache<K, V> applyInMemoryCaching(
+            String cacheId,
+            MultiProcessSafeAsyncPersistentIndexedCache<K, V> backingCache,
+            int maxEntriesToKeepInMemory,
+            boolean cacheInMemoryForShortLivedProcesses) {
+        MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate = super.applyInMemoryCaching(
+                cacheId, backingCache, maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses);
         if (delegate instanceof InMemoryCacheController) {
             InMemoryCacheController cimc = (InMemoryCacheController) delegate;
             WeakReference<InMemoryCacheController> ref = new WeakReference<>(cimc);

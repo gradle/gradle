@@ -35,5 +35,4 @@ public interface IvyModuleDescriptorDescription {
      * The homepage of the publication of this description.
      */
     Property<String> getHomepage();
-
 }

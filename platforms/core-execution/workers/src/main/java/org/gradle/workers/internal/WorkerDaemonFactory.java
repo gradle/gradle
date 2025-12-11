@@ -16,13 +16,12 @@
 
 package org.gradle.workers.internal;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Controls the lifecycle of the worker daemon and provides access to it.
@@ -34,7 +33,10 @@ public class WorkerDaemonFactory implements WorkerFactory {
     private final BuildOperationRunner buildOperationRunner;
     private final WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler;
 
-    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler) {
+    public WorkerDaemonFactory(
+            WorkerDaemonClientsManager clientsManager,
+            BuildOperationRunner buildOperationRunner,
+            WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler) {
         this.clientsManager = clientsManager;
         this.buildOperationRunner = buildOperationRunner;
         this.workerDaemonClientCancellationHandler = workerDaemonClientCancellationHandler;
@@ -44,16 +46,22 @@ public class WorkerDaemonFactory implements WorkerFactory {
     public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
         return new AbstractWorker(buildOperationRunner) {
             @Override
-            public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
-                // This notifies the cancellation handler that a worker daemon has been in use during this build session.  If the
-                // build session is cancelled, we can't guarantee that all worker daemons are in a safe state, so the cancellation
-                // handler will stop any long-lived worker daemons.  If a worker is not used during this session (i.e. this method
-                // is never called) the cancellation handler will not stop daemons on a cancellation (as there is no danger of
+            public DefaultWorkResult execute(
+                    IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
+                // This notifies the cancellation handler that a worker daemon has been in use during this build
+                // session.  If the
+                // build session is cancelled, we can't guarantee that all worker daemons are in a safe state, so the
+                // cancellation
+                // handler will stop any long-lived worker daemons.  If a worker is not used during this session (i.e.
+                // this method
+                // is never called) the cancellation handler will not stop daemons on a cancellation (as there is no
+                // danger of
                 // leaving one in an unsafe state).
                 workerDaemonClientCancellationHandler.start();
 
                 // wrap in build operation for logging startup failures
-                final WorkerDaemonClient client = CurrentBuildOperationRef.instance().with(parentBuildOperation, this::reserveClient);
+                final WorkerDaemonClient client =
+                        CurrentBuildOperationRef.instance().with(parentBuildOperation, this::reserveClient);
                 try {
                     return executeWrappedInBuildOperation(spec, parentBuildOperation, client::execute);
                 } finally {

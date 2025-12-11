@@ -16,6 +16,13 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
+import java.io.File;
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.tooling.BuildAction;
@@ -39,14 +46,6 @@ import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static org.gradle.internal.Cast.uncheckedNonnullCast;
-
 abstract class UnparameterizedBuildController extends HasCompatibilityMapping implements BuildController {
     private final ProtocolToModelAdapter adapter;
     private final ObjectGraphAdapter resultAdapter;
@@ -54,7 +53,8 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     protected final VersionDetails gradleVersion;
     private final File rootDir;
 
-    public UnparameterizedBuildController(ProtocolToModelAdapter adapter, ModelMapping modelMapping, VersionDetails gradleVersion, File rootDir) {
+    public UnparameterizedBuildController(
+            ProtocolToModelAdapter adapter, ModelMapping modelMapping, VersionDetails gradleVersion, File rootDir) {
         this.adapter = adapter;
         // Treat all models returned to the action as part of the same object graph
         this.resultAdapter = adapter.newGraph();
@@ -89,7 +89,8 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     }
 
     @Override
-    public <T, P> T getModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException {
+    public <T, P> T getModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer)
+            throws UnsupportedVersionException {
         return getModel(null, modelType, parameterType, parameterInitializer);
     }
 
@@ -99,7 +100,8 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     }
 
     @Override
-    public <T, P> T findModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) {
+    public <T, P> T findModel(
+            Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) {
         try {
             return getModel(target, modelType, parameterType, parameterInitializer);
         } catch (UnknownModelException e) {
@@ -109,7 +111,9 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     }
 
     @Override
-    public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException {
+    public <T, P> T getModel(
+            Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer)
+            throws UnsupportedVersionException, UnknownModelException {
         Object originalTarget = unpackModelTarget(target);
         ModelIdentifier modelIdentifier = getModelIdentifierFromModelType(modelType);
         P parameter = initializeParameter(parameterType, parameterInitializer);
@@ -139,11 +143,13 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
         return target == null ? null : adapter.unpack(target);
     }
 
-    protected static <P> P initializeParameter(@Nullable Class<P> parameterType, Action<? super P> parameterInitializer) {
+    protected static <P> P initializeParameter(
+            @Nullable Class<P> parameterType, Action<? super P> parameterInitializer) {
         validateParameters(parameterType, parameterInitializer);
         if (parameterType != null) {
             // TODO: move this to ObjectFactory
-            P parameter = parameterType.cast(Proxy.newProxyInstance(parameterType.getClassLoader(), new Class<?>[]{parameterType}, new ToolingParameterProxy()));
+            P parameter = parameterType.cast(Proxy.newProxyInstance(
+                    parameterType.getClassLoader(), new Class<?>[] {parameterType}, new ToolingParameterProxy()));
             parameterInitializer.execute(parameter);
             return parameter;
         } else {
@@ -151,9 +157,12 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
         }
     }
 
-    private static <P> void validateParameters(@Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
-        if ((parameterType == null && parameterInitializer != null) || (parameterType != null && parameterInitializer == null)) {
-            throw new NullPointerException("parameterType and parameterInitializer both need to be set for a parameterized model request.");
+    private static <P> void validateParameters(
+            @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
+        if ((parameterType == null && parameterInitializer != null)
+                || (parameterType != null && parameterInitializer == null)) {
+            throw new NullPointerException(
+                    "parameterType and parameterInitializer both need to be set for a parameterized model request.");
         }
 
         if (parameterType != null) {
@@ -169,7 +178,9 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
         }
     }
 
-    protected abstract BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException;
+    protected abstract BuildResult<?> getModel(
+            @Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
+            throws InternalUnsupportedModelException;
 
     @Override
     public boolean getCanQueryProjectModelInParallel(Class<?> modelType) {
@@ -196,7 +207,8 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
 
     @Override
     public void send(Object value) {
-        throw new UnsupportedVersionException(String.format("Gradle version %s does not support streaming values to the client.", gradleVersion.getVersion()));
+        throw new UnsupportedVersionException(String.format(
+                "Gradle version %s does not support streaming values to the client.", gradleVersion.getVersion()));
     }
 
     @Override
@@ -210,7 +222,8 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     }
 
     @Override
-    public <M, P> FetchModelResult<M> fetch(Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
+    public <M, P> FetchModelResult<M> fetch(
+            Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
         return fetch(null, modelType, parameterType, parameterInitializer);
     }
 
@@ -219,7 +232,11 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
      * Actual implementation for newer Gradle versions is {@link FetchAwareBuildControllerAdapter#fetch(Model, Class, Class, Action)}
      */
     @Override
-    public <M, P> FetchModelResult<M> fetch(@Nullable Model target, Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
+    public <M, P> FetchModelResult<M> fetch(
+            @Nullable Model target,
+            Class<M> modelType,
+            @Nullable Class<P> parameterType,
+            @Nullable Action<? super P> parameterInitializer) {
         try {
             Object model = getModel(target, modelType, parameterType, parameterInitializer);
             return DefaultFetchModelResult.success(uncheckedNonnullCast(model));

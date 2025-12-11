@@ -19,13 +19,12 @@ import gradlebuild.docs.dsl.source.model.EnumConstantMetaData;
 import gradlebuild.docs.dsl.source.model.MethodMetaData;
 import gradlebuild.docs.dsl.source.model.TypeMetaData;
 import groovy.lang.GroovySystem;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class LinkRenderer {
     private final Document document;
@@ -91,8 +90,11 @@ public class LinkRenderer {
 
         if (className.startsWith("java.")) {
             Element linkElement = document.createElement("ulink");
-            linkElement.setAttribute("url", String.format("https://docs.oracle.com/javase/%s/docs/api/%s.html", javaVersion,
-                    className.replace(".", "/")));
+            linkElement.setAttribute(
+                    "url",
+                    String.format(
+                            "https://docs.oracle.com/javase/%s/docs/api/%s.html",
+                            javaVersion, className.replace(".", "/")));
             Element classNameElement = document.createElement("classname");
             classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".")));
             linkElement.appendChild(classNameElement);
@@ -101,15 +103,18 @@ public class LinkRenderer {
 
         if (className.startsWith("groovy.")) {
             Element linkElement = document.createElement("ulink");
-            linkElement.setAttribute("url", String.format("https://docs.groovy-lang.org/%s/html/gapi/%s.html", groovyVersion, className.replace(
-                    ".", "/")));
+            linkElement.setAttribute(
+                    "url",
+                    String.format(
+                            "https://docs.groovy-lang.org/%s/html/gapi/%s.html",
+                            groovyVersion, className.replace(".", "/")));
             Element classNameElement = document.createElement("classname");
             classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".")));
             linkElement.appendChild(classNameElement);
             return linkElement;
         }
 
-        //this if is a bit cheesy but 1-letter classname surely means a generic type and the warning will be useless
+        // this if is a bit cheesy but 1-letter classname surely means a generic type and the warning will be useless
         if (className.length() > 1) {
             listener.warning(String.format("Could not generate link for unknown class '%s'", className));
         }
@@ -127,8 +132,8 @@ public class LinkRenderer {
         } else {
             listener.warning(String.format("Could not generate link for method %s", method));
             Element element = document.createElement("UNKNOWN-METHOD");
-            element.appendChild(document.createTextNode(String.format("%s.%s()", method.getOwnerClass().getClassName(),
-                    method.getName())));
+            element.appendChild(document.createTextNode(
+                    String.format("%s.%s()", method.getOwnerClass().getClassName(), method.getName())));
             return element;
         }
     }

@@ -35,21 +35,21 @@ public class UrlBackedArtifactMetadata implements ModuleComponentArtifactMetadat
 
     private IvyArtifactName ivyArtifactName;
 
-    public UrlBackedArtifactMetadata(ModuleComponentIdentifier componentIdentifier, String fileName, String relativeUrl) {
+    public UrlBackedArtifactMetadata(
+            ModuleComponentIdentifier componentIdentifier, String fileName, String relativeUrl) {
         this.componentIdentifier = componentIdentifier;
         this.fileName = fileName;
         this.relativeUrl = relativeUrl;
         id = createArtifactId(componentIdentifier, fileName);
     }
 
-    private ModuleComponentArtifactIdentifier createArtifactId(ModuleComponentIdentifier componentIdentifier, String fileName) {
+    private ModuleComponentArtifactIdentifier createArtifactId(
+            ModuleComponentIdentifier componentIdentifier, String fileName) {
         if (componentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {
-            // This special case is for Maven snapshots with Gradle Module Metadata when we need to remap the file name, which
+            // This special case is for Maven snapshots with Gradle Module Metadata when we need to remap the file name,
+            // which
             // corresponds to the unique timestamp, to the SNAPSHOT version, for backwards compatibility
-            return new DefaultModuleComponentArtifactIdentifier(
-                componentIdentifier,
-                getName()
-            );
+            return new DefaultModuleComponentArtifactIdentifier(componentIdentifier, getName());
         }
         return new ModuleComponentFileArtifactIdentifier(componentIdentifier, fileName);
     }
@@ -76,7 +76,8 @@ public class UrlBackedArtifactMetadata implements ModuleComponentArtifactMetadat
     public IvyArtifactName getName() {
         if (ivyArtifactName == null) {
             ArtifactFile names = new ArtifactFile(relativeUrl, uniqueVersion());
-            ivyArtifactName = new DefaultIvyArtifactName(names.getName(), names.getExtension(), names.getExtension(), names.getClassifier());
+            ivyArtifactName = new DefaultIvyArtifactName(
+                    names.getName(), names.getExtension(), names.getExtension(), names.getClassifier());
         }
         return ivyArtifactName;
     }

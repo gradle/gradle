@@ -16,11 +16,10 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.tooling.model.idea.IdeaLanguageLevel;
-
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedList;
+import org.gradle.tooling.model.idea.IdeaLanguageLevel;
 
 public class DefaultIdeaProject implements Serializable {
     private String name;

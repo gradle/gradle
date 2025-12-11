@@ -16,14 +16,13 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
 
 /**
  * A deeply immutable implementation of {@link CapabilitiesMetadata}.

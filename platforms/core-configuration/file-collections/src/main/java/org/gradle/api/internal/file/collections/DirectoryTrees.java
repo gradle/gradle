@@ -16,16 +16,14 @@
 
 package org.gradle.api.internal.file.collections;
 
+import java.io.File;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileTreeElement;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
-import java.io.File;
-
 public abstract class DirectoryTrees {
-    private DirectoryTrees() {
-    }
+    private DirectoryTrees() {}
 
     public static boolean contains(FileSystem fileSystem, DirectoryTree tree, File file) {
         String prefix = tree.getDir().getAbsolutePath() + File.separator;
@@ -34,7 +32,8 @@ public abstract class DirectoryTrees {
         }
 
         RelativePath path = RelativePath.parse(true, file.getAbsolutePath().substring(prefix.length()));
-        return tree.getPatterns().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(file, path, fileSystem, fileSystem));
+        return tree.getPatterns()
+                .getAsSpec()
+                .isSatisfiedBy(new DefaultFileTreeElement(file, path, fileSystem, fileSystem));
     }
-
 }

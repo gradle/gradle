@@ -15,11 +15,9 @@
  */
 package gradlebuild.docs.model;
 
-import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.GradleException;
-import org.gradle.api.UnknownDomainObjectException;
+import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
 
+import groovy.lang.Closure;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -32,8 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
+import org.gradle.api.Action;
+import org.gradle.api.GradleException;
+import org.gradle.api.UnknownDomainObjectException;
 
 public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements ClassMetaDataRepository<T> {
     private final Map<String, T> classes = new TreeMap<>();
@@ -73,7 +72,9 @@ public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements C
     public T get(String fullyQualifiedClassName) {
         T t = find(fullyQualifiedClassName);
         if (t == null) {
-            throw new UnknownDomainObjectException(String.format("No meta-data is available for class '%s'. Did you mean? %s", fullyQualifiedClassName, findPossibleMatches(fullyQualifiedClassName)));
+            throw new UnknownDomainObjectException(String.format(
+                    "No meta-data is available for class '%s'. Did you mean? %s",
+                    fullyQualifiedClassName, findPossibleMatches(fullyQualifiedClassName)));
         }
         return t;
     }
@@ -105,7 +106,7 @@ public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements C
     @Override
     public void each(Closure cl) {
         for (Map.Entry<String, T> entry : classes.entrySet()) {
-            cl.call(new Object[]{entry.getKey(), entry.getValue()});
+            cl.call(new Object[] {entry.getKey(), entry.getValue()});
         }
     }
 

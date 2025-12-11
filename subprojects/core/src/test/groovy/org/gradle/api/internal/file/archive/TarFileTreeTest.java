@@ -15,21 +15,6 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.EmptyFileVisitor;
-import org.gradle.api.internal.file.MaybeCompressedFileResource;
-import org.gradle.api.internal.file.TestFiles;
-import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.resources.internal.LocalResourceAdapter;
-import org.gradle.cache.internal.TestDecompressionCoordinators;
-import org.gradle.test.fixtures.file.TestFile;
-import org.junit.Test;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.gradle.api.file.FileVisitorUtil.assertVisits;
 import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
 import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
@@ -41,19 +26,35 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.api.internal.file.MaybeCompressedFileResource;
+import org.gradle.api.internal.file.TestFiles;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.resources.internal.LocalResourceAdapter;
+import org.gradle.cache.internal.TestDecompressionCoordinators;
+import org.gradle.test.fixtures.file.TestFile;
+import org.junit.Test;
+
 public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
     private final TestFile archiveFile = tempDirProvider.getTestDirectory().file("test.tar");
     private final TarFileTree tree = tarTree(archiveFile);
 
     private TarFileTree tarTree(File archiveFile) {
         return new TarFileTree(
-            Providers.of(archiveFile),
-            Providers.of(new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(archiveFile)))),
-            fileSystem(),
-            directoryFileTreeFactory(),
-            fileHasher(),
-            TestDecompressionCoordinators.decompressionCoordinator(tempDirProvider.getTestDirectory().createDir("cache-dir")),
-            TestFiles.tmpDirTemporaryFileProvider(tempDirProvider.getTestDirectory()));
+                Providers.of(archiveFile),
+                Providers.of(new MaybeCompressedFileResource(
+                        new LocalResourceAdapter(TestFiles.fileRepository().localResource(archiveFile)))),
+                fileSystem(),
+                directoryFileTreeFactory(),
+                fileHasher(),
+                TestDecompressionCoordinators.decompressionCoordinator(
+                        tempDirProvider.getTestDirectory().createDir("cache-dir")),
+                TestFiles.tmpDirTemporaryFileProvider(tempDirProvider.getTestDirectory()));
     }
 
     @Override
@@ -132,7 +133,6 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
             assertThat(e.getMessage(), containsString("Unable to expand TAR '" + archiveFile + "'"));
         }
     }
-
 
     @Test
     public void expectedFilePermissionsAreFound() {

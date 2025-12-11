@@ -16,16 +16,15 @@
 
 package org.gradle.internal.resource.transport.gcp.gcs;
 
+import static java.lang.System.getProperty;
+
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.Set;
-
-import static java.lang.System.getProperty;
+import org.apache.commons.lang3.StringUtils;
 
 @SuppressWarnings("Duplicates") // re-use not possible across modules currently
 public final class GcsConnectionProperties {
@@ -42,15 +41,17 @@ public final class GcsConnectionProperties {
     private final boolean disableAuthentication;
 
     GcsConnectionProperties() {
-        this(getProperty(GCS_ENDPOINT_PROPERTY),
-            getProperty(GCS_SERVICE_PATH_PROPERTY),
-            getProperty(GCS_DISABLE_AUTH_PROPERTY));
+        this(
+                getProperty(GCS_ENDPOINT_PROPERTY),
+                getProperty(GCS_SERVICE_PATH_PROPERTY),
+                getProperty(GCS_DISABLE_AUTH_PROPERTY));
     }
 
     GcsConnectionProperties(String endpoint, String servicePath, String disableAuthentication) {
-        this(configureEndpoint(endpoint),
-            configureServicePath(servicePath),
-            configureDisableAuthentication(disableAuthentication));
+        this(
+                configureEndpoint(endpoint),
+                configureServicePath(servicePath),
+                configureDisableAuthentication(disableAuthentication));
     }
 
     private GcsConnectionProperties(URI endpoint, String servicePath, boolean disableAuthentication) {
@@ -76,11 +77,14 @@ public final class GcsConnectionProperties {
         if (StringUtils.isNotBlank(property)) {
             try {
                 uri = new URI(property);
-                if (StringUtils.isBlank(uri.getScheme()) || !SUPPORTED_SCHEMES.contains(uri.getScheme().toUpperCase(Locale.ROOT))) {
-                    throw new IllegalArgumentException("System property [" + GCS_ENDPOINT_PROPERTY + "=" + property + "] must have a scheme of 'http' or 'https'");
+                if (StringUtils.isBlank(uri.getScheme())
+                        || !SUPPORTED_SCHEMES.contains(uri.getScheme().toUpperCase(Locale.ROOT))) {
+                    throw new IllegalArgumentException("System property [" + GCS_ENDPOINT_PROPERTY + "=" + property
+                            + "] must have a scheme of 'http' or 'https'");
                 }
             } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("System property [" + GCS_ENDPOINT_PROPERTY + "=" + property + "]  must be a valid URI");
+                throw new IllegalArgumentException(
+                        "System property [" + GCS_ENDPOINT_PROPERTY + "=" + property + "]  must be a valid URI");
             }
         }
         return uri;
@@ -88,7 +92,7 @@ public final class GcsConnectionProperties {
 
     private static String configureServicePath(String property) {
         if (StringUtils.isNotBlank(property)) {
-           return property;
+            return property;
         } else {
             return null;
         }

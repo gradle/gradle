@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 @NullMarked
 public class DefaultTaskLocalState implements TaskLocalStateInternal {

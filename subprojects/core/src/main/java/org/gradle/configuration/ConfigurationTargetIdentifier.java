@@ -16,6 +16,7 @@
 
 package org.gradle.configuration;
 
+import java.util.Locale;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
@@ -24,8 +25,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Locale;
 
 /**
  * Uniquely identifies the target of some configuration.
@@ -36,8 +35,7 @@ import java.util.Locale;
 @ServiceScope({Scope.Build.class, Scope.Settings.class, Scope.Project.class})
 public abstract class ConfigurationTargetIdentifier {
 
-    private ConfigurationTargetIdentifier() {
-    }
+    private ConfigurationTargetIdentifier() {}
 
     public enum Type {
         GRADLE,
@@ -132,5 +130,4 @@ public abstract class ConfigurationTargetIdentifier {
             }
         };
     }
-
 }

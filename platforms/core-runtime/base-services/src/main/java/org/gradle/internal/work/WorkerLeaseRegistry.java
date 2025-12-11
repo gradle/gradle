@@ -40,8 +40,7 @@ public interface WorkerLeaseRegistry {
      */
     WorkerLease newWorkerLease();
 
-    interface WorkerLease extends ResourceLock {
-    }
+    interface WorkerLease extends ResourceLock {}
 
     interface WorkerLeaseCompletion {
         /**

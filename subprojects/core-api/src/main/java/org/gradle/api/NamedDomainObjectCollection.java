@@ -16,16 +16,15 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import java.util.Collection;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.SortedSet;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.SortedMap;
-import java.util.SortedSet;
 
 /**
  * <p>A {@code NamedDomainObjectCollection} represents a collection of objects that have an inherent, constant, name.</p>
@@ -240,8 +239,10 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      */
     @Incubating
     default NamedDomainObjectCollection<T> named(Spec<String> nameFilter) {
-        // default implementation is a workaround for plugins having their own custom collection implementation, based on an older interface (i.e. missing an implementation for this method)
-        throw new UnsupportedOperationException("Method not implemented by " + GeneratedSubclasses.unpack(this.getClass()).getName());
+        // default implementation is a workaround for plugins having their own custom collection implementation, based
+        // on an older interface (i.e. missing an implementation for this method)
+        throw new UnsupportedOperationException("Method not implemented by "
+                + GeneratedSubclasses.unpack(this.getClass()).getName());
     }
 
     /**
@@ -279,7 +280,8 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If an object with the given name is not defined.
      * @since 5.0
      */
-    NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException;
+    NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction)
+            throws UnknownDomainObjectException;
 
     /**
      * Locates a object by name and type, failing if there is no such object.
@@ -307,7 +309,8 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If an object with the given name is not defined.
      * @since 5.0
      */
-    <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException;
+    <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction)
+            throws UnknownDomainObjectException;
 
     /**
      * Provides access to the schema of all created or registered named domain objects in this collection.

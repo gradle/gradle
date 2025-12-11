@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.plugins;
 
+import java.net.URI;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.Plugin;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.file.FileResolver;
@@ -37,10 +40,6 @@ import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 import org.gradle.util.internal.GUtil;
 
-import java.net.URI;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public class DefaultObjectConfigurationAction implements ObjectConfigurationAction {
 
     private final FileResolver resolver;
@@ -52,9 +51,13 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final TextUriResourceLoader.Factory textUriFileResourceLoaderFactory;
     private final Object defaultTarget;
 
-    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory,
-                                            ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope,
-                                            TextUriResourceLoader.Factory textUriFileResourceLoaderFactory, Object defaultTarget) {
+    public DefaultObjectConfigurationAction(
+            FileResolver resolver,
+            ScriptPluginFactory configurerFactory,
+            ScriptHandlerFactory scriptHandlerFactory,
+            ClassLoaderScope classLoaderScope,
+            TextUriResourceLoader.Factory textUriFileResourceLoaderFactory,
+            Object defaultTarget) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;
@@ -115,23 +118,28 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     private HttpRedirectVerifier createHttpRedirectVerifier(URI scriptUri) {
         return HttpRedirectVerifierFactory.create(
-            scriptUri,
-            false,
-            () -> {
-                throw new InsecureProtocolException(
-                    String.format("Applying script plugins from insecure URIs, without explicit opt-in, is unsupported. The provided URI '%s' uses an insecure protocol (HTTP). ", scriptUri),
-                    String.format("Use '%s' instead or try 'apply from: resources.text.fromInsecureUri(\"%s\")'. ", GUtil.toSecureUrl(scriptUri), scriptUri),
-                    Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
-                );
-            },
-            redirect -> {
-                throw new InsecureProtocolException(
-                    String.format("Applying script plugins from an insecure redirect, without explicit opt-in, is unsupported. '%s' redirects to insecure '%s'. ", scriptUri, redirect),
-                    "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object).",
-                    Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
-                );
-            }
-        );
+                scriptUri,
+                false,
+                () -> {
+                    throw new InsecureProtocolException(
+                            String.format(
+                                    "Applying script plugins from insecure URIs, without explicit opt-in, is unsupported. The provided URI '%s' uses an insecure protocol (HTTP). ",
+                                    scriptUri),
+                            String.format(
+                                    "Use '%s' instead or try 'apply from: resources.text.fromInsecureUri(\"%s\")'. ",
+                                    GUtil.toSecureUrl(scriptUri), scriptUri),
+                            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)")
+                                    .getConsultDocumentationMessage());
+                },
+                redirect -> {
+                    throw new InsecureProtocolException(
+                            String.format(
+                                    "Applying script plugins from an insecure redirect, without explicit opt-in, is unsupported. '%s' redirects to insecure '%s'. ",
+                                    scriptUri, redirect),
+                            "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object).",
+                            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)")
+                                    .getConsultDocumentationMessage());
+                });
     }
 
     private void applyScript(Object script) {
@@ -145,8 +153,10 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         }
         ScriptSource scriptSource = new TextResourceScriptSource(resource);
         ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild("script-" + scriptUri, null);
-        ScriptHandler scriptHandler = scriptHandlerFactory.create(scriptSource, classLoaderScopeChild, StandaloneDomainObjectContext.forScript(scriptSource));
-        ScriptPlugin configurer = configurerFactory.create(scriptSource, scriptHandler, classLoaderScopeChild, classLoaderScope, false);
+        ScriptHandler scriptHandler = scriptHandlerFactory.create(
+                scriptSource, classLoaderScopeChild, StandaloneDomainObjectContext.forScript(scriptSource));
+        ScriptPlugin configurer =
+                configurerFactory.create(scriptSource, scriptHandler, classLoaderScopeChild, classLoaderScope, false);
         for (Object target : targets) {
             configurer.apply(target);
         }
@@ -161,7 +171,9 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
             if (target instanceof PluginAware) {
                 ((PluginAware) target).getPluginManager().apply(pluginId);
             } else {
-                throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginId, target.toString(), target.getClass().getName()));
+                throw new UnsupportedOperationException(String.format(
+                        "Cannot apply plugin with id '%s' to '%s' (class: %s) as it does not implement PluginAware",
+                        pluginId, target.toString(), target.getClass().getName()));
             }
         }
     }
@@ -171,7 +183,11 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
             if (target instanceof PluginAware) {
                 ((PluginAware) target).getPluginManager().apply(pluginClass);
             } else {
-                throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target.toString(), target.getClass().getName()));
+                throw new UnsupportedOperationException(String.format(
+                        "Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware",
+                        pluginClass.getName(),
+                        target.toString(),
+                        target.getClass().getName()));
             }
         }
     }

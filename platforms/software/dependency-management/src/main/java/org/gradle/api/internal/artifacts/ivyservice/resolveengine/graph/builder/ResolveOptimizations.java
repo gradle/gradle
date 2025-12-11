@@ -37,7 +37,6 @@ public class ResolveOptimizations {
         return hasForcedPlatforms;
     }
 
-
     public boolean mayHaveVirtualPlatforms() {
         return hasVirtualPlatforms;
     }

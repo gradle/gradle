@@ -17,6 +17,11 @@
 package org.gradle.model.dsl.internal.transform;
 
 import groovy.lang.Closure;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.Transformer;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.file.RelativeFilePathResolver;
@@ -34,12 +39,6 @@ import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.jspecify.annotations.Nullable;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 public class ClosureBackedRuleFactory {
     private static final ModelType<ManagedInstance> MANAGED_INSTANCE_TYPE = ModelType.of(ManagedInstance.class);
@@ -72,7 +71,8 @@ public class ClosureBackedRuleFactory {
             public void execute(MutableModelNode node, ModelActionRole role) {
                 final boolean supportsNestedRules = node.canBeViewedAs(MANAGED_INSTANCE_TYPE);
                 InputReferences inputs = transformedClosure.inputReferences();
-                List<InputReference> inputReferences = supportsNestedRules ? inputs.getOwnReferences() : inputs.getAllReferences();
+                List<InputReference> inputReferences =
+                        supportsNestedRules ? inputs.getOwnReferences() : inputs.getAllReferences();
                 final Map<String, PotentialInput> inputValues = new LinkedHashMap<>();
                 List<ModelReference<?>> inputModelReferences = new ArrayList<>();
 
@@ -85,20 +85,31 @@ public class ClosureBackedRuleFactory {
                     }
                 }
 
-                node.applyToSelf(role, InputUsingModelAction.of(ModelReference.of(node.getPath(), subjectType), descriptor, inputModelReferences, new BiAction<T, List<ModelView<?>>>() {
-                    @Override
-                    public void execute(T t, List<ModelView<?>> modelViews) {
-                        // Make a copy of the closure, attach inputs and execute
-                        Closure<?> cloned = closure.rehydrate(null, closure.getThisObject(), closure.getThisObject());
-                        ((TransformedClosure) cloned).makeRule(new PotentialInputs(modelViews, inputValues), supportsNestedRules ? ClosureBackedRuleFactory.this : null);
-                        ClosureBackedAction.execute(t, cloned);
-                    }
-                }));
+                node.applyToSelf(
+                        role,
+                        InputUsingModelAction.of(
+                                ModelReference.of(node.getPath(), subjectType),
+                                descriptor,
+                                inputModelReferences,
+                                new BiAction<T, List<ModelView<?>>>() {
+                                    @Override
+                                    public void execute(T t, List<ModelView<?>> modelViews) {
+                                        // Make a copy of the closure, attach inputs and execute
+                                        Closure<?> cloned = closure.rehydrate(
+                                                null, closure.getThisObject(), closure.getThisObject());
+                                        ((TransformedClosure) cloned)
+                                                .makeRule(
+                                                        new PotentialInputs(modelViews, inputValues),
+                                                        supportsNestedRules ? ClosureBackedRuleFactory.this : null);
+                                        ClosureBackedAction.execute(t, cloned);
+                                    }
+                                }));
             }
         };
     }
 
-    private static class RelativePathSourceLocationTransformer implements Transformer<SourceLocation, TransformedClosure> {
+    private static class RelativePathSourceLocationTransformer
+            implements Transformer<SourceLocation, TransformedClosure> {
         private final RelativeFilePathResolver relativeFilePathResolver;
 
         public RelativePathSourceLocationTransformer(RelativeFilePathResolver relativeFilePathResolver) {
@@ -120,7 +131,12 @@ public class ClosureBackedRuleFactory {
                 description = uri.toString();
             }
 
-            return new SourceLocation(uri, description, sourceLocation.getExpression(), sourceLocation.getLineNumber(), sourceLocation.getColumnNumber());
+            return new SourceLocation(
+                    uri,
+                    description,
+                    sourceLocation.getExpression(),
+                    sourceLocation.getLineNumber(),
+                    sourceLocation.getColumnNumber());
         }
     }
 }

@@ -17,13 +17,6 @@
 package org.gradle.internal.instantiation.generator;
 
 import com.google.common.collect.Ordering;
-import org.gradle.api.Describable;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instantiation.ClassGenerationException;
-import org.gradle.internal.instantiation.InstanceGenerator;
-import org.gradle.internal.service.ServiceLookup;
-
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -31,6 +24,12 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
+import org.gradle.api.Describable;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instantiation.ClassGenerationException;
+import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.service.ServiceLookup;
 
 class IdentityClassGenerator implements ClassGenerator {
     @Override
@@ -62,7 +61,12 @@ class IdentityClassGenerator implements ClassGenerator {
                 for (final Constructor<?> constructor : type.getDeclaredConstructors()) {
                     constructors.add(new GeneratedConstructor<T>() {
                         @Override
-                        public T newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+                        public T newInstance(
+                                ServiceLookup services,
+                                InstanceGenerator nested,
+                                @Nullable Describable displayName,
+                                Object[] params)
+                                throws InvocationTargetException, IllegalAccessException, InstantiationException {
                             return DeprecationLogger.whileDisabledThrowing(() -> {
                                 constructor.setAccessible(true);
                                 return type.cast(constructor.newInstance(params));
@@ -75,7 +79,8 @@ class IdentityClassGenerator implements ClassGenerator {
                         }
 
                         @Override
-                        public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation) {
+                        public boolean serviceInjectionTriggeredByAnnotation(
+                                Class<? extends Annotation> serviceAnnotation) {
                             return false;
                         }
 

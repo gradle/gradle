@@ -69,5 +69,4 @@ public interface DaemonConnector {
      * Starts a new daemon for single use and returns a connection to it.
      */
     DaemonClientConnection startSingleUseDaemon();
-
 }

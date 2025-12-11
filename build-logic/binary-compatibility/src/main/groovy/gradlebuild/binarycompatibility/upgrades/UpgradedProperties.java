@@ -16,6 +16,13 @@
 
 package gradlebuild.binarycompatibility.upgrades;
 
+import static gradlebuild.binarycompatibility.rules.SinceAnnotationRule.SINCE_ERROR_MESSAGE;
+import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_INTERFACE;
+import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_PUBLIC_CLASS;
+import static japicmp.model.JApiCompatibilityChange.METHOD_NEW_DEFAULT;
+import static japicmp.model.JApiCompatibilityChange.METHOD_REMOVED;
+import static japicmp.model.JApiCompatibilityChange.METHOD_RETURN_TYPE_CHANGED;
+
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -23,10 +30,6 @@ import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.AccessorKey;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.ReplacedAccessor;
 import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiMethod;
-import me.champeau.gradle.japicmp.report.Violation;
-import me.champeau.gradle.japicmp.report.ViolationCheckContext;
-import org.gradle.internal.UncheckedException;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -35,13 +38,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
-
-import static gradlebuild.binarycompatibility.rules.SinceAnnotationRule.SINCE_ERROR_MESSAGE;
-import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_INTERFACE;
-import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_PUBLIC_CLASS;
-import static japicmp.model.JApiCompatibilityChange.METHOD_NEW_DEFAULT;
-import static japicmp.model.JApiCompatibilityChange.METHOD_REMOVED;
-import static japicmp.model.JApiCompatibilityChange.METHOD_RETURN_TYPE_CHANGED;
+import me.champeau.gradle.japicmp.report.Violation;
+import me.champeau.gradle.japicmp.report.ViolationCheckContext;
+import org.gradle.internal.UncheckedException;
 
 public class UpgradedProperties {
 
@@ -49,7 +48,8 @@ public class UpgradedProperties {
     private static final Pattern GETTER_REGEX = Pattern.compile("get[A-Z].*");
     private static final Pattern BOOLEAN_GETTER_REGEX = Pattern.compile("is[A-Z].*");
     public static final String OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES = "oldRemovedAccessorsOfUpgradedProperties";
-    public static final String SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES = "seenOldRemovedAccessorsOfUpgradedProperties";
+    public static final String SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES =
+            "seenOldRemovedAccessorsOfUpgradedProperties";
     public static final String CURRENT_ACCESSORS_OF_UPGRADED_PROPERTIES = "currentAccessorsOfUpgradedProperties";
 
     public static List<UpgradedProperty> parse(String path) {
@@ -58,11 +58,10 @@ public class UpgradedProperties {
             return Collections.emptyList();
         }
         try (FileReader reader = new FileReader(file)) {
-            List<UpgradedProperty> upgradedProperties = new Gson().fromJson(reader, new TypeToken<List<UpgradedProperty>>() {}.getType());
+            List<UpgradedProperty> upgradedProperties =
+                    new Gson().fromJson(reader, new TypeToken<List<UpgradedProperty>>() {}.getType());
             // FIXME There should be no duplicates, yet there are some
-            return upgradedProperties.stream()
-                .distinct()
-                .collect(ImmutableList.toImmutableList());
+            return upgradedProperties.stream().distinct().collect(ImmutableList.toImmutableList());
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -79,44 +78,60 @@ public class UpgradedProperties {
      *
      * We don't automatically accept changes when the @since annotation is missing, because we want to keep this information on the API.
      */
-    public static boolean shouldAcceptForUpgradedProperty(JApiMethod jApiMethod, Violation violation, ViolationCheckContext context) {
-        Map<AccessorKey, UpgradedProperty> currentAccessors = context.getUserData(CURRENT_ACCESSORS_OF_UPGRADED_PROPERTIES);
-        Map<AccessorKey, ReplacedAccessor> oldRemovedAccessors = context.getUserData(OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES);
+    public static boolean shouldAcceptForUpgradedProperty(
+            JApiMethod jApiMethod, Violation violation, ViolationCheckContext context) {
+        Map<AccessorKey, UpgradedProperty> currentAccessors =
+                context.getUserData(CURRENT_ACCESSORS_OF_UPGRADED_PROPERTIES);
+        Map<AccessorKey, ReplacedAccessor> oldRemovedAccessors =
+                context.getUserData(OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES);
 
         if (violation.getHumanExplanation().startsWith(SINCE_ERROR_MESSAGE)) {
-            // We want to keep @since nagging for new methods, unless it's `getX` or `getIsX` method that replaces `isX` boolean method.
-            return isCurrentGetterThatReplacesBooleanIsGetter(jApiMethod, currentAccessors) || isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors);
+            // We want to keep @since nagging for new methods, unless it's `getX` or `getIsX` method that replaces `isX`
+            // boolean method.
+            return isCurrentGetterThatReplacesBooleanIsGetter(jApiMethod, currentAccessors)
+                    || isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors);
         }
 
-        if (jApiMethod.getCompatibilityChanges().contains(METHOD_NEW_DEFAULT) && isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors)) {
+        if (jApiMethod.getCompatibilityChanges().contains(METHOD_NEW_DEFAULT)
+                && isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors)) {
             // Accept also default `getIsX` methods added to interface that are added for Kotlin source compatibility
             return true;
         }
 
         if (jApiMethod.getCompatibilityChanges().contains(METHOD_REMOVED)) {
-            return isOldSetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors) || isOldGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors) || isOldBooleanGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors);
-        } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_PUBLIC_CLASS) || jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_INTERFACE)) {
-            return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors) || isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors);
+            return isOldSetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors)
+                    || isOldGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors)
+                    || isOldBooleanGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors);
+        } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_PUBLIC_CLASS)
+                || jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_INTERFACE)) {
+            return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors)
+                    || isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors);
         } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_RETURN_TYPE_CHANGED)) {
-            return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors) && isOldGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors);
+            return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors)
+                    && isOldGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors);
         }
 
         return false;
     }
 
-    private static boolean isOldSetterOfUpgradedProperty(JApiMethod jApiMethod, Map<AccessorKey, ReplacedAccessor> upgradedMethods) {
+    private static boolean isOldSetterOfUpgradedProperty(
+            JApiMethod jApiMethod, Map<AccessorKey, ReplacedAccessor> upgradedMethods) {
         return isOldMethod(jApiMethod, upgradedMethods, SETTER_REGEX);
     }
 
-    private static boolean isOldGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<AccessorKey, ReplacedAccessor> upgradedMethods) {
+    private static boolean isOldGetterOfUpgradedProperty(
+            JApiMethod jApiMethod, Map<AccessorKey, ReplacedAccessor> upgradedMethods) {
         return isOldMethod(jApiMethod, upgradedMethods, GETTER_REGEX);
     }
 
-    private static boolean isOldBooleanGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<AccessorKey, ReplacedAccessor> upgradedMethods) {
-        return isOldMethod(jApiMethod, upgradedMethods, BOOLEAN_GETTER_REGEX) && jApiMethod.getReturnType().getOldReturnType().equals("boolean");
+    private static boolean isOldBooleanGetterOfUpgradedProperty(
+            JApiMethod jApiMethod, Map<AccessorKey, ReplacedAccessor> upgradedMethods) {
+        return isOldMethod(jApiMethod, upgradedMethods, BOOLEAN_GETTER_REGEX)
+                && jApiMethod.getReturnType().getOldReturnType().equals("boolean");
     }
 
-    private static boolean isKotlinBooleanSourceCompatibilityMethod(JApiMethod jApiMethod, Map<AccessorKey, UpgradedProperty> currentMethods) {
+    private static boolean isKotlinBooleanSourceCompatibilityMethod(
+            JApiMethod jApiMethod, Map<AccessorKey, UpgradedProperty> currentMethods) {
         if (!jApiMethod.getName().startsWith("getIs")) {
             return false;
         }
@@ -124,7 +139,8 @@ public class UpgradedProperties {
         return currentMethods.containsKey(AccessorKey.ofMethodWithSameSignatureButNewName(methodName, jApiMethod));
     }
 
-    private static boolean isCurrentGetterThatReplacesBooleanIsGetter(JApiMethod jApiMethod, Map<AccessorKey, UpgradedProperty> currentMethods) {
+    private static boolean isCurrentGetterThatReplacesBooleanIsGetter(
+            JApiMethod jApiMethod, Map<AccessorKey, UpgradedProperty> currentMethods) {
         if (!isCurrentGetterOfUpgradedProperty(jApiMethod, currentMethods)) {
             return false;
         }
@@ -134,12 +150,14 @@ public class UpgradedProperties {
             String propertyName = method.getPropertyName();
             String isGetterName = "is" + Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
             return method.getReplacedAccessors().stream()
-                .anyMatch(replacedAccessor -> replacedAccessor.getName().equals(isGetterName) && replacedAccessor.getDescriptor().equals("()Z"));
+                    .anyMatch(replacedAccessor -> replacedAccessor.getName().equals(isGetterName)
+                            && replacedAccessor.getDescriptor().equals("()Z"));
         }
         return false;
     }
 
-    private static boolean isOldMethod(JApiMethod jApiMethod, Map<AccessorKey, ReplacedAccessor> upgradedMethods, Pattern pattern) {
+    private static boolean isOldMethod(
+            JApiMethod jApiMethod, Map<AccessorKey, ReplacedAccessor> upgradedMethods, Pattern pattern) {
         String name = jApiMethod.getName();
         if (!pattern.matcher(name).matches()) {
             return false;
@@ -147,11 +165,13 @@ public class UpgradedProperties {
         return upgradedMethods.containsKey(AccessorKey.ofOldMethod(jApiMethod));
     }
 
-    private static boolean isCurrentGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<AccessorKey, UpgradedProperty> currentMethods) {
+    private static boolean isCurrentGetterOfUpgradedProperty(
+            JApiMethod jApiMethod, Map<AccessorKey, UpgradedProperty> currentMethods) {
         return isCurrentMethod(jApiMethod, currentMethods, GETTER_REGEX);
     }
 
-    private static boolean isCurrentMethod(JApiMethod jApiMethod, Map<AccessorKey, UpgradedProperty> currentMethods, Pattern pattern) {
+    private static boolean isCurrentMethod(
+            JApiMethod jApiMethod, Map<AccessorKey, UpgradedProperty> currentMethods, Pattern pattern) {
         String name = jApiMethod.getName();
         if (!pattern.matcher(name).matches()) {
             return false;
@@ -159,12 +179,15 @@ public class UpgradedProperties {
         return currentMethods.containsKey(AccessorKey.ofNewMethod(jApiMethod));
     }
 
-    public static Optional<AccessorKey> maybeGetKeyOfOldAccessorOfUpgradedProperty(JApiCompatibility jApiCompatibility, ViolationCheckContext context) {
-        if (!(jApiCompatibility instanceof JApiMethod) || !((JApiMethod) jApiCompatibility).getOldMethod().isPresent()) {
+    public static Optional<AccessorKey> maybeGetKeyOfOldAccessorOfUpgradedProperty(
+            JApiCompatibility jApiCompatibility, ViolationCheckContext context) {
+        if (!(jApiCompatibility instanceof JApiMethod)
+                || !((JApiMethod) jApiCompatibility).getOldMethod().isPresent()) {
             return Optional.empty();
         }
         JApiMethod jApiMethod = (JApiMethod) jApiCompatibility;
-        Map<AccessorKey, ReplacedAccessor> oldMethods = context.getUserData(OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES);
+        Map<AccessorKey, ReplacedAccessor> oldMethods =
+                context.getUserData(OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES);
         AccessorKey key = AccessorKey.ofOldMethod(jApiMethod);
         return oldMethods.containsKey(key) ? Optional.of(key) : Optional.empty();
     }

@@ -22,5 +22,4 @@ public class ScalarCollectionSchema<T, E> extends CollectionSchema<T, E> {
     public ScalarCollectionSchema(ModelType<T> type, ModelType<E> elementType) {
         super(type, elementType);
     }
-
 }

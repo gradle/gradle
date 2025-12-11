@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import java.io.OutputStream;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
@@ -30,24 +31,29 @@ import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
-import java.io.OutputStream;
-
 /**
  * A {@link BuildActionExecutor} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build request.
  */
-public class LoggingBridgingBuildActionExecuter implements BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> {
+public class LoggingBridgingBuildActionExecuter
+        implements BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> {
     private final LoggingManagerInternal loggingManager;
     private final Stoppable stoppable;
     private final BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> delegate;
 
-    public LoggingBridgingBuildActionExecuter(BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> delegate, LoggingManagerInternal loggingManager, Stoppable stoppable) {
+    public LoggingBridgingBuildActionExecuter(
+            BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> delegate,
+            LoggingManagerInternal loggingManager,
+            Stoppable stoppable) {
         this.delegate = delegate;
         this.loggingManager = loggingManager;
         this.stoppable = stoppable;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, ConnectionOperationParameters parameters, ClientBuildRequestContext buildRequestContext) {
+    public BuildActionResult execute(
+            BuildAction action,
+            ConnectionOperationParameters parameters,
+            ClientBuildRequestContext buildRequestContext) {
         ProviderOperationParameters actionParameters = parameters.getOperationParameters();
         attachConsole(actionParameters);
         ProgressListenerVersion1 progressListener = actionParameters.getProgressListener();

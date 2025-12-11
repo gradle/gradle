@@ -17,13 +17,12 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.plugin.use.PluginId;
-
-import java.util.List;
-import java.util.Optional;
 
 public interface WorkValidationContext {
     TypeValidationContext forType(Class<?> type, boolean cacheable);

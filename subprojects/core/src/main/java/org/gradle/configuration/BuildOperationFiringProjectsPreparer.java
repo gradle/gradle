@@ -25,8 +25,8 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 public class BuildOperationFiringProjectsPreparer implements ProjectsPreparer {
-    private static final ConfigureBuildBuildOperationType.Result CONFIGURE_BUILD_RESULT = new ConfigureBuildBuildOperationType.Result() {
-    };
+    private static final ConfigureBuildBuildOperationType.Result CONFIGURE_BUILD_RESULT =
+            new ConfigureBuildBuildOperationType.Result() {};
     private final ProjectsPreparer delegate;
     private final BuildOperationRunner buildOperationRunner;
 
@@ -55,7 +55,8 @@ public class BuildOperationFiringProjectsPreparer implements ProjectsPreparer {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName(gradle.contextualize("Configure build"));
+            BuildOperationDescriptor.Builder builder =
+                    BuildOperationDescriptor.displayName(gradle.contextualize("Configure build"));
             if (gradle.isRootBuild()) {
                 builder.metadata(BuildOperationCategory.CONFIGURE_ROOT_BUILD);
             } else {

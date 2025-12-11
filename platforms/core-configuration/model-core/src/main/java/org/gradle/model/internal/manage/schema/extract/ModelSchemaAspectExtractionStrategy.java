@@ -16,14 +16,14 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import java.util.List;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 @ServiceScope(Scope.Global.class)
 public interface ModelSchemaAspectExtractionStrategy {
     @Nullable
-    ModelSchemaAspectExtractionResult extract(ModelSchemaExtractionContext<?> extractionContext, List<ModelPropertyExtractionResult<?>> propertyResults);
+    ModelSchemaAspectExtractionResult extract(
+            ModelSchemaExtractionContext<?> extractionContext, List<ModelPropertyExtractionResult<?>> propertyResults);
 }

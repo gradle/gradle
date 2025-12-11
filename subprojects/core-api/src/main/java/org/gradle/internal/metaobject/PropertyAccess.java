@@ -16,9 +16,8 @@
 
 package org.gradle.internal.metaobject;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides dynamic access to properties of some object.
@@ -54,5 +53,4 @@ public interface PropertyAccess {
      * Returns the properties known for this object.
      */
     Map<String, ? extends @Nullable Object> getProperties();
-
 }

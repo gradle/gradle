@@ -16,10 +16,9 @@
 
 package org.gradle.internal.io;
 
-import org.gradle.internal.UncheckedException;
-
 import java.io.IOException;
 import java.util.function.Predicate;
+import org.gradle.internal.UncheckedException;
 
 public interface IoPredicate<T> {
     boolean test(T t) throws IOException;

@@ -16,6 +16,10 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
@@ -29,11 +33,6 @@ import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 @NullMarked
 public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
     private final Logger logger = LoggerFactory.getLogger(IncrementalNativeCompiler.class);
@@ -45,12 +44,11 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     private final IncrementalCompilation incrementalCompilation;
 
     public IncrementalNativeCompiler(
-        TaskOutputsInternal outputs,
-        Compiler<T> delegateCompiler,
-        Deleter deleter,
-        ObjectHolder<CompilationState> compileStateCache,
-        IncrementalCompilation incrementalCompilation
-    ) {
+            TaskOutputsInternal outputs,
+            Compiler<T> delegateCompiler,
+            Deleter deleter,
+            ObjectHolder<CompilationState> compileStateCache,
+            IncrementalCompilation incrementalCompilation) {
         this.outputs = outputs;
         this.delegateCompiler = delegateCompiler;
         this.deleter = deleter;
@@ -73,7 +71,8 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     }
 
     private List<File> getSourceFilesForPch(T spec) {
-        // When the component defines a precompiled header, we need to check if the precompiled header is the _first_ header in the source file.
+        // When the component defines a precompiled header, we need to check if the precompiled header is the _first_
+        // header in the source file.
         // For source files that do not include the precompiled header as the first file, we emit a warning
         // For source files that do include the precompiled header, we mark them as a "source file for pch"
         // The native compiler then adds the appropriate compiler arguments for those source files that can use PCH
@@ -107,10 +106,10 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
 
     private static String getCantUsePCHMessage(String pchHeader, File sourceFile) {
         return "The source file "
-            .concat(sourceFile.getName())
-            .concat(" includes the header ")
-            .concat(pchHeader)
-            .concat(" but it is not the first declared header, so the pre-compiled header will not be used.");
+                .concat(sourceFile.getName())
+                .concat(" includes the header ")
+                .concat(pchHeader)
+                .concat(" but it is not the first declared header, so the pre-compiled header will not be used.");
     }
 
     protected WorkResult doIncrementalCompile(IncrementalCompilation compilation, T spec) {

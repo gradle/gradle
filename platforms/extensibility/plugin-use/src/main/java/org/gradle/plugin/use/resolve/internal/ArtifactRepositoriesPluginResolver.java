@@ -15,8 +15,11 @@
  */
 package org.gradle.plugin.use.resolve.internal;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import java.util.Iterator;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -36,10 +39,6 @@ import org.gradle.plugin.management.internal.PluginCoordinates;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 
-import java.util.Iterator;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
@@ -58,16 +57,19 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         ModuleDependency markerDependency = getMarkerDependency(pluginRequest);
         String markerVersion = markerDependency.getVersion();
         if (isNullOrEmpty(markerVersion)) {
-            return PluginResolutionResult.notFound(SOURCE_NAME, "plugin dependency must include a version number for this source");
+            return PluginResolutionResult.notFound(
+                    SOURCE_NAME, "plugin dependency must include a version number for this source");
         }
 
         boolean autoApplied = pluginRequest.getOrigin() == PluginRequestInternal.Origin.AUTO_APPLIED;
         if (exists(markerDependency) || autoApplied) {
-            // Even if we don't find the auto-applied plugin version, continue trying to resolve it with a preferred version,
+            // Even if we don't find the auto-applied plugin version, continue trying to resolve it with a preferred
+            // version,
             // in case the user provides an explicit or transitive required version.
             // The resolution will fail if there is no user-provided required version, however it avoids us failing here
             // if the weak version is not present but never selected.
-            return PluginResolutionResult.found(new ExternalPluginResolution(getDependencyFactory(), pluginRequest, autoApplied));
+            return PluginResolutionResult.found(
+                    new ExternalPluginResolution(getDependencyFactory(), pluginRequest, autoApplied));
         } else {
             return handleNotFound("could not resolve plugin artifact '" + getNotation(markerDependency) + "'");
         }
@@ -83,7 +85,8 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
          * @param pluginRequest The original plugin request.
          * @param useWeakVersion Whether a preferred version should be used for the plugin dependency.
          */
-        public ExternalPluginResolution(DependencyFactory dependencyFactory, PluginRequestInternal pluginRequest, boolean useWeakVersion) {
+        public ExternalPluginResolution(
+                DependencyFactory dependencyFactory, PluginRequestInternal pluginRequest, boolean useWeakVersion) {
             this.dependencyFactory = dependencyFactory;
             this.pluginRequest = pluginRequest;
             this.useWeakVersion = useWeakVersion;
@@ -110,13 +113,13 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
             ComponentSelector selector = pluginRequest.getSelector();
             ModuleIdentifier module = selector instanceof ModuleComponentSelector
-                ? ((ModuleComponentSelector) selector).getModuleIdentifier()
-                : DefaultModuleIdentifier.newId(id, id + PLUGIN_MARKER_SUFFIX);
+                    ? ((ModuleComponentSelector) selector).getModuleIdentifier()
+                    : DefaultModuleIdentifier.newId(id, id + PLUGIN_MARKER_SUFFIX);
 
             visitDependency(visitor, module);
-            pluginRequest.getAlternativeCoordinates().ifPresent(altCoords ->
-                visitModuleReplacements(visitor, altCoords, id, module)
-            );
+            pluginRequest
+                    .getAlternativeCoordinates()
+                    .ifPresent(altCoords -> visitModuleReplacements(visitor, altCoords, id, module));
         }
 
         private void visitDependency(PluginResolutionVisitor visitor, ModuleIdentifier module) {
@@ -131,12 +134,12 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
             visitor.visitDependency(dependency);
         }
 
-        private static void visitModuleReplacements(PluginResolutionVisitor visitor, PluginCoordinates altCoords, String id, ModuleIdentifier module) {
+        private static void visitModuleReplacements(
+                PluginResolutionVisitor visitor, PluginCoordinates altCoords, String id, ModuleIdentifier module) {
             String altId = altCoords.getId().getId();
             visitor.visitReplacement(
-                DefaultModuleIdentifier.newId(id, id + PLUGIN_MARKER_SUFFIX),
-                DefaultModuleIdentifier.newId(altId, altId + PLUGIN_MARKER_SUFFIX)
-            );
+                    DefaultModuleIdentifier.newId(id, id + PLUGIN_MARKER_SUFFIX),
+                    DefaultModuleIdentifier.newId(altId, altId + PLUGIN_MARKER_SUFFIX));
 
             ComponentSelector selector = altCoords.getSelector();
             if (selector instanceof ModuleComponentSelector) {
@@ -147,7 +150,8 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
         @Override
         public void applyTo(PluginManagerInternal pluginManager) {
-            PluginCoordinates altCoords = pluginRequest.getAlternativeCoordinates().orElse(null);
+            PluginCoordinates altCoords =
+                    pluginRequest.getAlternativeCoordinates().orElse(null);
             if (altCoords != null && pluginManager.hasPlugin(altCoords.getId().getId())) {
                 return;
             }
@@ -158,7 +162,9 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     private PluginResolutionResult handleNotFound(String message) {
         StringBuilder detail = new StringBuilder("Searched in the following repositories:\n");
-        for (Iterator<ArtifactRepository> it = resolutionServices.getResolveRepositoryHandler().iterator(); it.hasNext();) {
+        for (Iterator<ArtifactRepository> it =
+                        resolutionServices.getResolveRepositoryHandler().iterator();
+                it.hasNext(); ) {
             detail.append("  ").append(((ArtifactRepositoryInternal) it.next()).getDisplayName());
             if (it.hasNext()) {
                 detail.append("\n");
@@ -193,7 +199,8 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
             return getDependencyFactory().create(id, id + PLUGIN_MARKER_SUFFIX, pluginRequest.getVersion());
         } else {
             ModuleComponentSelector moduleSelector = (ModuleComponentSelector) selector;
-            return getDependencyFactory().create(moduleSelector.getGroup(), moduleSelector.getModule(), moduleSelector.getVersion());
+            return getDependencyFactory()
+                    .create(moduleSelector.getGroup(), moduleSelector.getModule(), moduleSelector.getVersion());
         }
     }
 

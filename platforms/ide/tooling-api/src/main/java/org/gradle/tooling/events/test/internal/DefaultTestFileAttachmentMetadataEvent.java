@@ -16,23 +16,25 @@
 
 package org.gradle.tooling.events.test.internal;
 
+import java.io.File;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.TestFileAttachmentMetadataEvent;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-
 /**
  * Consumer implementation of file attachment event
  */
 @NullMarked
-public class DefaultTestFileAttachmentMetadataEvent extends AbstractTestMetadataEvent implements TestFileAttachmentMetadataEvent {
+public class DefaultTestFileAttachmentMetadataEvent extends AbstractTestMetadataEvent
+        implements TestFileAttachmentMetadataEvent {
     private final File file;
+
     @Nullable
     private final String mediaType;
 
-    public DefaultTestFileAttachmentMetadataEvent(long eventTime, OperationDescriptor descriptor, File file, @Nullable String mediaType) {
+    public DefaultTestFileAttachmentMetadataEvent(
+            long eventTime, OperationDescriptor descriptor, File file, @Nullable String mediaType) {
         super(eventTime, descriptor);
         this.file = file;
         this.mediaType = mediaType;

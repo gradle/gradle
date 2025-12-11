@@ -16,9 +16,8 @@
 
 package org.gradle.api.services;
 
-import org.gradle.api.Action;
-
 import javax.inject.Inject;
+import org.gradle.api.Action;
 
 /**
  * Represents a user provided "service" that is used by a Gradle build. Often these services are shared by multiple tasks and hold

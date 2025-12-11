@@ -17,6 +17,9 @@
 package org.gradle.workers.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.EffectiveJavaForkOptions;
@@ -25,28 +28,27 @@ import org.gradle.process.internal.JavaForkOptionsInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
 public class DaemonForkOptionsBuilder {
     // This isn't exhaustive because there are more ways that extra files can be provided
     // to the worker through diagnostic options, @files or JAVA_TOOL_OPTIONS.
     private static final List<String> UNRELIABLE_OPTIONS = Arrays.asList(
-        // Classpath options
-        "-cp", "-classpath", "--class-path",
-        // Module related options
-        "-p", "--module-path", "--upgrade-module-path", "--patch-module"
-    );
+            // Classpath options
+            "-cp",
+            "-classpath",
+            "--class-path",
+            // Module related options
+            "-p",
+            "--module-path",
+            "--upgrade-module-path",
+            "--patch-module");
     // These options allow you to use : instead of a space to separate the
     // option from the value
     private static final List<String> UNRELIABLE_OPTION_PREFIXES = Arrays.asList(
-        // bootclasspath can also end with /a or /p
-        "-Xbootclasspath",
-        // Defining a java agent
-        "-javaagent",
-        "-agentpath"
-    );
+            // bootclasspath can also end with /a or /p
+            "-Xbootclasspath",
+            // Defining a java agent
+            "-javaagent",
+            "-agentpath");
     private static final Logger LOGGER = LoggerFactory.getLogger(DaemonForkOptionsBuilder.class);
 
     private final JavaForkOptionsInternal javaForkOptions;
@@ -80,7 +82,9 @@ public class DaemonForkOptionsBuilder {
             List<String> jvmArgs = forkOptions.getJvmOptions().getAllJvmArgs();
             Optional<String> unreliableArgument = findUnreliableArgument(jvmArgs);
             if (unreliableArgument.isPresent()) {
-                LOGGER.info("Worker requested to be persistent, but the JVM argument '{}' may make the worker unreliable when reused across multiple builds. Worker will expire at the end of the build session.", unreliableArgument.get());
+                LOGGER.info(
+                        "Worker requested to be persistent, but the JVM argument '{}' may make the worker unreliable when reused across multiple builds. Worker will expire at the end of the build session.",
+                        unreliableArgument.get());
                 return new DaemonForkOptions(forkOptions, KeepAliveMode.SESSION, classLoaderStructure);
             }
         }

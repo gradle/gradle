@@ -16,6 +16,10 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.ImportNode;
 import org.codehaus.groovy.ast.InnerClassNode;
@@ -25,11 +29,6 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.internal.UncheckedException;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Excludes everything from a script except statements that are satisfied by a given predicate, and imports for accessible classes.
@@ -50,7 +49,8 @@ public class SubsetScriptTransformer extends AbstractScriptTransformer {
     }
 
     @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     public void call(SourceUnit source) throws CompilationFailedException {
         AstUtils.filterAndTransformStatements(source, transformer);
 
@@ -63,7 +63,8 @@ public class SubsetScriptTransformer extends AbstractScriptTransformer {
                 try {
                     Field field = ModuleNode.class.getDeclaredField("imports");
                     field.setAccessible(true);
-                    @SuppressWarnings("unchecked") List<ImportNode> value = (List<ImportNode>) field.get(source.getAST());
+                    @SuppressWarnings("unchecked")
+                    List<ImportNode> value = (List<ImportNode>) field.get(source.getAST());
                     value.removeIf(i -> i.getAlias().equals(importedClass.getAlias()));
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
@@ -109,5 +110,4 @@ public class SubsetScriptTransformer extends AbstractScriptTransformer {
 
         source.getAST().getMethods().clear();
     }
-
 }

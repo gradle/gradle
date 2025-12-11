@@ -40,5 +40,4 @@ public interface TestTaskPropertiesService {
      * cache key executed all tests.
      */
     void doNotStoreInCache(Test task);
-
 }

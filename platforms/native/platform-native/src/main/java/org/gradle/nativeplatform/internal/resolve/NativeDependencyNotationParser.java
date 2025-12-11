@@ -29,8 +29,7 @@ import org.jspecify.annotations.Nullable;
 
 class NativeDependencyNotationParser {
     public static NotationParser<Object, NativeLibraryRequirement> parser() {
-        return NotationParserBuilder
-                .toType(NativeLibraryRequirement.class)
+        return NotationParserBuilder.toType(NativeLibraryRequirement.class)
                 .converter(new LibraryConverter())
                 .converter(new NativeLibraryRequirementMapNotationConverter())
                 .toComposite();
@@ -47,21 +46,21 @@ class NativeDependencyNotationParser {
         }
     }
 
-    private static class NativeLibraryRequirementMapNotationConverter extends MapNotationConverter<NativeLibraryRequirement> {
+    private static class NativeLibraryRequirementMapNotationConverter
+            extends MapNotationConverter<NativeLibraryRequirement> {
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Map with mandatory 'library' and optional 'project' and 'linkage' keys").example("[project: ':someProj', library: 'mylib', linkage: 'static']");
+            visitor.candidate("Map with mandatory 'library' and optional 'project' and 'linkage' keys")
+                    .example("[project: ':someProj', library: 'mylib', linkage: 'static']");
         }
 
         @SuppressWarnings("unused")
         protected NativeLibraryRequirement parseMap(
-            @MapKey("library") String libraryName,
-            @MapKey("project") @Nullable String projectPath,
-            @MapKey("linkage") @Nullable String linkage
-        ) {
+                @MapKey("library") String libraryName,
+                @MapKey("project") @Nullable String projectPath,
+                @MapKey("linkage") @Nullable String linkage) {
             return new ProjectNativeLibraryRequirement(projectPath, libraryName, linkage);
         }
     }
-
 }

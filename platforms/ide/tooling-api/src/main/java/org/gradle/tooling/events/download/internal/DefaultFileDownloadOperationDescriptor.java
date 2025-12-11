@@ -16,17 +16,18 @@
 
 package org.gradle.tooling.events.download.internal;
 
+import java.net.URI;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.download.FileDownloadOperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescriptor;
 
-import java.net.URI;
-
-public class DefaultFileDownloadOperationDescriptor extends DefaultOperationDescriptor implements FileDownloadOperationDescriptor {
+public class DefaultFileDownloadOperationDescriptor extends DefaultOperationDescriptor
+        implements FileDownloadOperationDescriptor {
     private final URI uri;
 
-    public DefaultFileDownloadOperationDescriptor(InternalFileDownloadDescriptor descriptor, OperationDescriptor parent) {
+    public DefaultFileDownloadOperationDescriptor(
+            InternalFileDownloadDescriptor descriptor, OperationDescriptor parent) {
         super(descriptor, parent);
         this.uri = descriptor.getUri();
     }

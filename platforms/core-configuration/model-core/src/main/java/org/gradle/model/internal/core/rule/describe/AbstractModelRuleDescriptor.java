@@ -16,16 +16,15 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import com.google.errorprone.annotations.FormatMethod;
 import com.google.errorprone.annotations.FormatString;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.internal.cache.StringInterner;
 
 @ThreadSafe
 abstract class AbstractModelRuleDescriptor implements ModelRuleDescriptor {
 
-    protected final static StringInterner STRING_INTERNER = new StringInterner();
+    protected static final StringInterner STRING_INTERNER = new StringInterner();
 
     @Override
     public ModelRuleDescriptor append(ModelRuleDescriptor child) {

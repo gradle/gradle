@@ -118,6 +118,7 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
 
     @Override
     public String toString() {
-        return String.format("%s %s:%s:%s:%s", getClass().getSimpleName(), getName(), getType(), getExtension(), getClassifier());
+        return String.format(
+                "%s %s:%s:%s:%s", getClass().getSimpleName(), getName(), getType(), getExtension(), getClassifier());
     }
 }

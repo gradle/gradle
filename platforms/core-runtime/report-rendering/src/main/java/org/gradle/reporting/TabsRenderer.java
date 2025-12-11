@@ -15,11 +15,10 @@
  */
 package org.gradle.reporting;
 
-import org.gradle.internal.html.SimpleHtmlWriter;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.internal.html.SimpleHtmlWriter;
 
 public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
     private final List<TabDefinition> tabs = new ArrayList<TabDefinition>();
@@ -35,20 +34,24 @@ public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
     @Override
     public void render(T model, SimpleHtmlWriter htmlWriterWriter) throws IOException {
         htmlWriterWriter.startElement("div").attribute("class", "tab-container");
-            htmlWriterWriter.startElement("ul").attribute("class", "tabLinks");
-                for (TabDefinition tab : this.tabs) {
-                    htmlWriterWriter.startElement("li");
-                    htmlWriterWriter.startElement("a").attribute("href", "#").characters(tab.title).endElement();
-                    htmlWriterWriter.endElement();
-                }
+        htmlWriterWriter.startElement("ul").attribute("class", "tabLinks");
+        for (TabDefinition tab : this.tabs) {
+            htmlWriterWriter.startElement("li");
+            htmlWriterWriter
+                    .startElement("a")
+                    .attribute("href", "#")
+                    .characters(tab.title)
+                    .endElement();
             htmlWriterWriter.endElement();
+        }
+        htmlWriterWriter.endElement();
 
-            for (TabDefinition tab : this.tabs) {
-                htmlWriterWriter.startElement("div").attribute("class", "tab");
-                htmlWriterWriter.startElement("h2").characters(tab.title).endElement();
-                tab.renderer.render(model, htmlWriterWriter);
-                htmlWriterWriter.endElement();
-            }
+        for (TabDefinition tab : this.tabs) {
+            htmlWriterWriter.startElement("div").attribute("class", "tab");
+            htmlWriterWriter.startElement("h2").characters(tab.title).endElement();
+            tab.renderer.render(model, htmlWriterWriter);
+            htmlWriterWriter.endElement();
+        }
         htmlWriterWriter.endElement();
     }
 

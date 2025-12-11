@@ -17,12 +17,11 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.jspecify.annotations.Nullable;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class IsolatedSet extends AbstractSetSnapshot<Isolatable<?>> implements Isolatable<Set<Object>> {
     public IsolatedSet(ImmutableSet<Isolatable<?>> elements) {

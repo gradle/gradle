@@ -18,16 +18,16 @@ package org.gradle.integtests.fixtures.logging.comparison;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.ComparisonFailure;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.ComparisonFailure;
 
 public class PotentialMatch {
     @VisibleForTesting
     static final String HEADER = "Potential Match (actual lines):";
+
     private static final String BEGIN_MATCH_INDICATOR = "[";
     private static final String END_MATCH_INDICATOR = "]";
     private static final String MISMATCHED_LINE_INDICATOR = "X";
@@ -37,12 +37,15 @@ public class PotentialMatch {
     private final int matchBeginsActualIdx;
     private final List<Boolean> expectedMatches;
 
-    public static boolean isPossibleMatchIndex(List<String> expectedLines, List<String> actualLines, int matchBeginsActualIdx) {
+    public static boolean isPossibleMatchIndex(
+            List<String> expectedLines, List<String> actualLines, int matchBeginsActualIdx) {
         return matchBeginsActualIdx >= 0 && matchBeginsActualIdx + expectedLines.size() - 1 < actualLines.size();
     }
 
     public PotentialMatch(List<String> expectedLines, List<String> actualLines, int matchBeginsActualIdx) {
-        Preconditions.checkArgument(isPossibleMatchIndex(expectedLines, actualLines, matchBeginsActualIdx), "match would extend beyond actual lines");
+        Preconditions.checkArgument(
+                isPossibleMatchIndex(expectedLines, actualLines, matchBeginsActualIdx),
+                "match would extend beyond actual lines");
 
         this.expectedLines = expectedLines;
         this.actualLines = actualLines;
@@ -50,7 +53,8 @@ public class PotentialMatch {
         this.expectedMatches = calcExpectedMatches(expectedLines, actualLines, matchBeginsActualIdx);
     }
 
-    private List<Boolean> calcExpectedMatches(List<String> expectedLines, List<String> actualLines, int matchBeginsActualIdx) {
+    private List<Boolean> calcExpectedMatches(
+            List<String> expectedLines, List<String> actualLines, int matchBeginsActualIdx) {
         List<Boolean> result = new ArrayList<>(expectedLines.size());
         for (int expectedIdx = 0; expectedIdx < expectedLines.size(); expectedIdx++) {
             int actualIdx = matchBeginsActualIdx + expectedIdx;
@@ -67,7 +71,8 @@ public class PotentialMatch {
 
     public String buildContext(int maxContextLines) {
         int contextStartActualIdx = Math.max(matchBeginsActualIdx - maxContextLines, 0);
-        int contextEndActualIdx = Math.min(matchBeginsActualIdx + expectedLines.size() + maxContextLines - 1, actualLines.size() - 1);
+        int contextEndActualIdx =
+                Math.min(matchBeginsActualIdx + expectedLines.size() + maxContextLines - 1, actualLines.size() - 1);
         int padding = calcLineNumberPadding(toLineNumber(contextStartActualIdx), toLineNumber(contextEndActualIdx));
 
         StringBuilder context = new StringBuilder(HEADER).append('\n');
@@ -75,14 +80,12 @@ public class PotentialMatch {
             int expectedIdx = actualIdx - matchBeginsActualIdx;
 
             String prefix = buildPrefix(expectedIdx, actualIdx, padding);
-            context.append(prefix)
-                    .append(actualLines.get(actualIdx))
-                    .append('\n');
+            context.append(prefix).append(actualLines.get(actualIdx)).append('\n');
 
             if (isMismatch(expectedIdx)) {
-                String comparison = buildComparison(expectedLines.get(expectedIdx), actualLines.get(actualIdx), padding);
-                context.append(comparison)
-                        .append('\n');
+                String comparison =
+                        buildComparison(expectedLines.get(expectedIdx), actualLines.get(actualIdx), padding);
+                context.append(comparison).append('\n');
             }
         }
         return context.toString();
@@ -120,13 +123,20 @@ public class PotentialMatch {
 
     @VisibleForTesting
     static String buildComparison(String expectedLine, String actualLine, int padding) {
-        int comparisonPadding = BEGIN_MATCH_INDICATOR.length() + MISMATCHED_LINE_INDICATOR.length() + END_MATCH_INDICATOR.length() + 4 + padding;
+        int comparisonPadding = BEGIN_MATCH_INDICATOR.length()
+                + MISMATCHED_LINE_INDICATOR.length()
+                + END_MATCH_INDICATOR.length()
+                + 4
+                + padding;
 
-        return StringUtils.leftPad(new ComparisonFailure("", expectedLine, actualLine).getMessage(), comparisonPadding, ' ');
+        return StringUtils.leftPad(
+                new ComparisonFailure("", expectedLine, actualLine).getMessage(), comparisonPadding, ' ');
     }
 
     private int calcLineNumberPadding(int startLineNum, int endLineNum) {
-        return Math.max(String.valueOf(startLineNum).length(), String.valueOf(endLineNum).length());
+        return Math.max(
+                String.valueOf(startLineNum).length(),
+                String.valueOf(endLineNum).length());
     }
 
     private int toLineNumber(int index) {
@@ -155,6 +165,8 @@ public class PotentialMatch {
             return false;
         }
         PotentialMatch that = (PotentialMatch) o;
-        return matchBeginsActualIdx == that.matchBeginsActualIdx && expectedLines.equals(that.expectedLines) && actualLines.equals(that.actualLines);
+        return matchBeginsActualIdx == that.matchBeginsActualIdx
+                && expectedLines.equals(that.expectedLines)
+                && actualLines.equals(that.actualLines);
     }
 }

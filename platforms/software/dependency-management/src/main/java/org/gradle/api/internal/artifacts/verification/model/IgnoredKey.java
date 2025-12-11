@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.verification.model;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Locale;
+import org.jspecify.annotations.Nullable;
 
 public class IgnoredKey implements Comparable<IgnoredKey> {
     private final String keyId;

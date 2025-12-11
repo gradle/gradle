@@ -16,7 +16,10 @@
 
 package org.gradle.internal.reflect;
 
+import static java.util.stream.Collectors.toList;
+
 import com.google.common.collect.ImmutableList;
+import java.util.Optional;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -27,34 +30,35 @@ import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Optional;
-
-import static java.util.stream.Collectors.toList;
-
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
     public static final String MISSING_NORMALIZATION_ANNOTATION = "MISSING_NORMALIZATION_ANNOTATION";
     private final boolean reportCacheabilityProblems;
     private final ImmutableList.Builder<InternalProblem> problems = ImmutableList.builder();
 
-    public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable, InternalProblems problems) {
+    public static DefaultTypeValidationContext withRootType(
+            Class<?> rootType, boolean cacheable, InternalProblems problems) {
         return new DefaultTypeValidationContext(rootType, cacheable, problems);
     }
 
-    public static DefaultTypeValidationContext withoutRootType(boolean reportCacheabilityProblems, InternalProblems problems) {
+    public static DefaultTypeValidationContext withoutRootType(
+            boolean reportCacheabilityProblems, InternalProblems problems) {
         return new DefaultTypeValidationContext(null, reportCacheabilityProblems, problems);
     }
 
-    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean reportCacheabilityProblems, InternalProblems problems) {
+    private DefaultTypeValidationContext(
+            @Nullable Class<?> rootType, boolean reportCacheabilityProblems, InternalProblems problems) {
         super(rootType, Optional::empty, problems);
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
-    public static final ProblemId MISSING_NORMALIZATION_ID = ProblemId.create("missing-normalization-annotation", "Missing normalization", GradleCoreProblemGroup.validation().property());
+    public static final ProblemId MISSING_NORMALIZATION_ID = ProblemId.create(
+            "missing-normalization-annotation",
+            "Missing normalization",
+            GradleCoreProblemGroup.validation().property());
 
     public static boolean onlyAffectsCacheableWork(ProblemId id) {
         return MISSING_NORMALIZATION_ID.equals(id);
     }
-
 
     @Override
     protected void recordProblem(InternalProblem problem) {
@@ -71,17 +75,15 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
     public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<InternalProblem> validationMessages) {
         if (!validationMessages.isEmpty()) {
             String formatString = validationMessages.size() == 1
-                ? "A problem was found with the configuration of %s."
-                : "Some problems were found with the configuration of %s.";
+                    ? "A problem was found with the configuration of %s."
+                    : "Some problems were found with the configuration of %s.";
             throw new DefaultMultiCauseException(
-                String.format(formatString, ModelType.of(implementation).getDisplayName()),
-                validationMessages.stream()
-                    .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-                    .sorted()
-                    .map(InvalidUserDataException::new)
-                    .collect(toList())
-            );
+                    String.format(formatString, ModelType.of(implementation).getDisplayName()),
+                    validationMessages.stream()
+                            .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+                            .sorted()
+                            .map(InvalidUserDataException::new)
+                            .collect(toList()));
         }
     }
-
 }

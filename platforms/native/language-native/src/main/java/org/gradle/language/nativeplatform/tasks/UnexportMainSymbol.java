@@ -16,6 +16,9 @@
 
 package org.gradle.language.nativeplatform.tasks;
 
+import java.io.File;
+import java.io.IOException;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -38,10 +41,6 @@ import org.gradle.process.ExecSpec;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
 
 /**
  * Unexports the <code>main</code> entry point symbol in an object file, so the object file can be linked with an executable.
@@ -105,10 +104,10 @@ public abstract class UnexportMainSymbol extends DefaultTask {
         if (OperatingSystem.current().isWindows()) {
             try {
                 final SymbolHider symbolHider = new SymbolHider(object);
-                symbolHider.hideSymbol("main");     // 64 bit
-                symbolHider.hideSymbol("_main");    // 32 bit
-                symbolHider.hideSymbol("wmain");    // 64 bit
-                symbolHider.hideSymbol("_wmain");   // 32 bit
+                symbolHider.hideSymbol("main"); // 64 bit
+                symbolHider.hideSymbol("_main"); // 32 bit
+                symbolHider.hideSymbol("wmain"); // 64 bit
+                symbolHider.hideSymbol("_wmain"); // 32 bit
                 symbolHider.saveTo(relocatedObject);
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -130,7 +129,8 @@ public abstract class UnexportMainSymbol extends DefaultTask {
                         execSpec.args(object);
                         execSpec.args(relocatedObject);
                     } else {
-                        throw new IllegalStateException("Do not know how to unexport a main symbol on " + OperatingSystem.current());
+                        throw new IllegalStateException(
+                                "Do not know how to unexport a main symbol on " + OperatingSystem.current());
                     }
                 }
             });

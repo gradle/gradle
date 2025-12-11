@@ -17,17 +17,17 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
-import java.util.Set;
-
 public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjectInitDescriptor {
     private final TemplateLibraryVersionProvider libraryVersionProvider;
 
-    public JavaGradlePluginProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+    public JavaGradlePluginProjectInitDescriptor(
+            TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
         super(documentationRegistry, libraryVersionProvider);
         this.libraryVersionProvider = libraryVersionProvider;
     }
@@ -53,18 +53,22 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
     }
 
     @Override
-    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generateProjectBuildScript(
+            String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
         if (!settings.isUseTestSuites()) {
             buildScriptBuilder.testImplementationDependency(
-                "Use JUnit Jupiter for testing.",
-                BuildInitDependency.of("org.junit.jupiter:junit-jupiter", libraryVersionProvider.getVersion("junit-jupiter")));
-            buildScriptBuilder.testRuntimeOnlyDependency(null, BuildInitDependency.of("org.junit.platform:junit-platform-launcher"));
+                    "Use JUnit Jupiter for testing.",
+                    BuildInitDependency.of(
+                            "org.junit.jupiter:junit-jupiter", libraryVersionProvider.getVersion("junit-jupiter")));
+            buildScriptBuilder.testRuntimeOnlyDependency(
+                    null, BuildInitDependency.of("org.junit.platform:junit-platform-launcher"));
         }
     }
 
     @Override
-    protected TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName) {
+    protected TemplateOperation sourceTemplate(
+            InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName) {
         return templateFactory.fromSourceTemplate("plugin/java/Plugin.java.template", t -> {
             t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("main");
@@ -74,7 +78,8 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
     }
 
     @Override
-    protected TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+    protected TemplateOperation testTemplate(
+            InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
         return templateFactory.fromSourceTemplate("plugin/java/junit/PluginTest.java.template", t -> {
             t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("test");
@@ -84,7 +89,8 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
     }
 
     @Override
-    protected TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+    protected TemplateOperation functionalTestTemplate(
+            InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
         return templateFactory.fromSourceTemplate("plugin/java/junit/PluginFunctionalTest.java.template", t -> {
             t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("functionalTest");

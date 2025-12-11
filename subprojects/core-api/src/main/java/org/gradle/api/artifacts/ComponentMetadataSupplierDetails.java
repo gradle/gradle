@@ -35,5 +35,4 @@ public interface ComponentMetadataSupplierDetails {
      * @return the metadata builder
      */
     ComponentMetadataBuilder getResult();
-
 }

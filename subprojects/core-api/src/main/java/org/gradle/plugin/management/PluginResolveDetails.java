@@ -49,5 +49,4 @@ public interface PluginResolveDetails {
      * The target plugin request to use.
      */
     PluginRequest getTarget();
-
 }

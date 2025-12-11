@@ -19,6 +19,5 @@ package org.gradle.internal.daemon.client.serialization;
 import java.io.Serializable;
 
 public class CustomModel implements Serializable {
-    public CustomModel(CustomAction customAction) {
-    }
+    public CustomModel(CustomAction customAction) {}
 }

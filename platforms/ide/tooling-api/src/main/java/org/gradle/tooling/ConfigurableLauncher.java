@@ -16,13 +16,12 @@
 
 package org.gradle.tooling;
 
-import org.gradle.tooling.events.OperationType;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.tooling.events.OperationType;
 
 /**
  * A {@code ConfigurableLauncher} allows you to configure a long running operation.

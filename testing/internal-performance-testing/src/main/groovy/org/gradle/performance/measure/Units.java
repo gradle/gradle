@@ -122,7 +122,8 @@ public abstract class Units<Q> implements Comparable<Units<Q>> {
                 return 0;
             }
             if (o.getType() != getType()) {
-                throw new IllegalArgumentException(String.format("Cannot compare units of %s with units of %s.", getType(), o.getType()));
+                throw new IllegalArgumentException(
+                        String.format("Cannot compare units of %s with units of %s.", getType(), o.getType()));
             }
             return -1;
         }
@@ -147,7 +148,8 @@ public abstract class Units<Q> implements Comparable<Units<Q>> {
 
         @Override
         public Units<Q> times(long value, String displaySingular, String displayPlural) {
-            return new ScaledUnits<>(baseUnits, displaySingular, displayPlural, factor.multiply(BigDecimal.valueOf(value)));
+            return new ScaledUnits<>(
+                    baseUnits, displaySingular, displayPlural, factor.multiply(BigDecimal.valueOf(value)));
         }
 
         @Override
@@ -159,7 +161,9 @@ public abstract class Units<Q> implements Comparable<Units<Q>> {
                 return value.multiply(factor);
             }
             ScaledUnits<Q> other = (ScaledUnits<Q>) units;
-            return value.multiply(factor).divide(other.factor, 6, RoundingMode.HALF_UP).stripTrailingZeros();
+            return value.multiply(factor)
+                    .divide(other.factor, 6, RoundingMode.HALF_UP)
+                    .stripTrailingZeros();
         }
 
         @Override
@@ -180,7 +184,8 @@ public abstract class Units<Q> implements Comparable<Units<Q>> {
         @Override
         public int compareTo(Units<Q> o) {
             if (o.getType() != getType()) {
-                throw new IllegalArgumentException(String.format("Cannot compare units of %s with units of %s.", getType(), o.getType()));
+                throw new IllegalArgumentException(
+                        String.format("Cannot compare units of %s with units of %s.", getType(), o.getType()));
             }
             if (o.equals(baseUnits)) {
                 return 1;

@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
+import org.jspecify.annotations.Nullable;
 
 public interface JavaCompileSpec extends JvmLanguageCompileSpec {
 
@@ -68,7 +67,7 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     void setModulePath(List<File> modulePath);
 
     default boolean annotationProcessingConfigured() {
-        return !getAnnotationProcessorPath().isEmpty() && !getCompileOptions().getCompilerArgs().contains("-proc:none");
+        return !getAnnotationProcessorPath().isEmpty()
+                && !getCompileOptions().getCompilerArgs().contains("-proc:none");
     }
-
 }

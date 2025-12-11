@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
+import java.util.Set;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
@@ -25,28 +26,40 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 
-import java.util.Set;
-
 public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorphicDomainObjectContainer<T>
-    implements ExtensiblePolymorphicDomainObjectContainer<T> {
+        implements ExtensiblePolymorphicDomainObjectContainer<T> {
     protected final DefaultPolymorphicNamedEntityInstantiator<T> namedEntityInstantiator;
     private final Instantiator elementInstantiator;
 
     // NOTE: This constructor exists for backwards compatibility
-    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
+    public DefaultPolymorphicDomainObjectContainer(
+            Class<T> type,
+            Instantiator instantiator,
+            Namer<? super T> namer,
+            CollectionCallbackActionDecorator callbackDecorator) {
         this(type, instantiator, instantiator, namer, callbackDecorator);
     }
 
     // NOTE: This constructor exists for backwards compatibility
-    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {
+    public DefaultPolymorphicDomainObjectContainer(
+            Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {
         this(type, instantiator, instantiator, Named.Namer.forType(type), callbackDecorator);
     }
 
-    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Instantiator elementInstantiator, CollectionCallbackActionDecorator callbackDecorator) {
+    public DefaultPolymorphicDomainObjectContainer(
+            Class<T> type,
+            Instantiator instantiator,
+            Instantiator elementInstantiator,
+            CollectionCallbackActionDecorator callbackDecorator) {
         this(type, instantiator, elementInstantiator, Named.Namer.forType(type), callbackDecorator);
     }
 
-    private DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Instantiator elementInstantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
+    private DefaultPolymorphicDomainObjectContainer(
+            Class<T> type,
+            Instantiator instantiator,
+            Instantiator elementInstantiator,
+            Namer<? super T> namer,
+            CollectionCallbackActionDecorator callbackDecorator) {
         super(type, instantiator, namer, callbackDecorator);
         this.namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<T>(type, "this container");
         this.elementInstantiator = elementInstantiator;
@@ -63,9 +76,14 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
             return namedEntityInstantiator.create(name, getType());
         } catch (InvalidUserDataException e) {
             if (e.getCause() instanceof NoFactoryRegisteredForTypeException) {
-                throw new InvalidUserDataException(String.format("Cannot create a %s named '%s' because this container "
-                    + "does not support creating elements by name alone. Please specify which subtype of %s to create. "
-                    + "Known subtypes are: %s", getTypeDisplayName(), name, getTypeDisplayName(), namedEntityInstantiator.getSupportedTypeNames()));
+                throw new InvalidUserDataException(String.format(
+                        "Cannot create a %s named '%s' because this container "
+                                + "does not support creating elements by name alone. Please specify which subtype of %s to create. "
+                                + "Known subtypes are: %s",
+                        getTypeDisplayName(),
+                        name,
+                        getTypeDisplayName(),
+                        namedEntityInstantiator.getSupportedTypeNames()));
             } else {
                 throw e;
             }
@@ -104,8 +122,9 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
 
             @Override
             public U create(String name) {
-                return named ? elementInstantiator.newInstance(implementationType, name)
-                    : elementInstantiator.newInstance(implementationType);
+                return named
+                        ? elementInstantiator.newInstance(implementationType, name)
+                        : elementInstantiator.newInstance(implementationType);
             }
         });
     }

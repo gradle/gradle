@@ -16,6 +16,10 @@
 
 package org.gradle.tooling.internal.provider;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.types.DefaultInternalPayloadSerializedAdditionalData;
 import org.gradle.internal.build.event.types.DefaultInternalProxiedAdditionalData;
@@ -32,18 +36,16 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.jspecify.annotations.NonNull;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
 
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer delegate;
     private final IsolatableSerializerRegistry isolatableSerializerRegistry;
 
-    public ProblemAdditionalDataRemapper(PayloadSerializer payloadSerializer, BuildEventConsumer delegate, IsolatableSerializerRegistry isolatableSerializerRegistry) {
+    public ProblemAdditionalDataRemapper(
+            PayloadSerializer payloadSerializer,
+            BuildEventConsumer delegate,
+            IsolatableSerializerRegistry isolatableSerializerRegistry) {
         this.payloadSerializer = payloadSerializer;
         this.delegate = delegate;
         this.isolatableSerializerRegistry = isolatableSerializerRegistry;
@@ -68,7 +70,8 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
         if (!(additionalData instanceof DefaultInternalPayloadSerializedAdditionalData)) {
             return;
         }
-        DefaultInternalPayloadSerializedAdditionalData serializedAdditionalData = (DefaultInternalPayloadSerializedAdditionalData) additionalData;
+        DefaultInternalPayloadSerializedAdditionalData serializedAdditionalData =
+                (DefaultInternalPayloadSerializedAdditionalData) additionalData;
         SerializedPayload serializedType = (SerializedPayload) serializedAdditionalData.getSerializedType();
 
         Class<?> type = (Class<?>) payloadSerializer.deserialize(serializedType);
@@ -80,12 +83,14 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
 
         List<URL> classPath = getClassPath(type);
 
-        VisitableURLClassLoader visitableURLClassLoader = new VisitableURLClassLoader("name", getClass().getClassLoader(), classPath);
+        VisitableURLClassLoader visitableURLClassLoader =
+                new VisitableURLClassLoader("name", getClass().getClassLoader(), classPath);
         Object o = ClassLoaderUtils.executeInClassloader(visitableURLClassLoader, () -> {
             Isolatable<?> isolatable = isolatableSerializerRegistry.deserialize(isolatableBytes);
             return isolatable.isolate();
         });
-        ((DefaultProblemDetails) details).setAdditionalData(new DefaultInternalProxiedAdditionalData(o, serializedType));
+        ((DefaultProblemDetails) details)
+                .setAdditionalData(new DefaultInternalProxiedAdditionalData(o, serializedType));
     }
 
     @NonNull

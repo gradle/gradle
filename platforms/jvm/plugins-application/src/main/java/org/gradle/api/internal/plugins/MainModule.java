@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.jspecify.annotations.Nullable;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 public final class MainModule implements AppEntryPoint {
     private final String mainModuleName;
+
     @Nullable
     private final String mainClassName;
 

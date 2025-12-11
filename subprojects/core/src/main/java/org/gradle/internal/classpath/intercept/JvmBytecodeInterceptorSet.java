@@ -16,11 +16,10 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import java.util.List;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
-
-import java.util.List;
 
 public interface JvmBytecodeInterceptorSet {
 

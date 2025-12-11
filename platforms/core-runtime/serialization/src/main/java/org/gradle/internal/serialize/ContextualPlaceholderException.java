@@ -21,7 +21,13 @@ import org.jspecify.annotations.Nullable;
 
 @Contextual
 public class ContextualPlaceholderException extends PlaceholderException {
-    public ContextualPlaceholderException(String exceptionClassName, @Nullable String message, @Nullable Throwable getMessageException, @Nullable String toString, @Nullable Throwable toStringException, @Nullable Throwable cause) {
+    public ContextualPlaceholderException(
+            String exceptionClassName,
+            @Nullable String message,
+            @Nullable Throwable getMessageException,
+            @Nullable String toString,
+            @Nullable Throwable toStringException,
+            @Nullable Throwable cause) {
         super(exceptionClassName, message, getMessageException, toString, toStringException, cause);
     }
 }

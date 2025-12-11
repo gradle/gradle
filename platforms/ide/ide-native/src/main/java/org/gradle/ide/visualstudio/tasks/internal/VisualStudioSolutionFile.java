@@ -16,15 +16,11 @@
 
 package org.gradle.ide.visualstudio.tasks.internal;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.Action;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Nested;
-import org.gradle.ide.visualstudio.TextProvider;
-import org.gradle.internal.UncheckedException;
-import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject;
-import org.gradle.util.internal.TextUtil;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
+import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.getUUID;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,10 +37,13 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
-
-import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
-import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.getUUID;
+import org.gradle.api.Action;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
+import org.gradle.ide.visualstudio.TextProvider;
+import org.gradle.internal.UncheckedException;
+import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject;
+import org.gradle.util.internal.TextUtil;
 
 public class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
 
@@ -66,7 +65,8 @@ public class VisualStudioSolutionFile extends AbstractPersistableConfigurationOb
     public void setProjects(List<ProjectSpec> projects) {
         for (ProjectSpec project : projects) {
             this.projects.put(project.projectFile, project.name);
-            Set<ConfigurationSpec> configs = projectConfigurations.computeIfAbsent(project.projectFile, f -> new HashSet<>());
+            Set<ConfigurationSpec> configs =
+                    projectConfigurations.computeIfAbsent(project.projectFile, f -> new HashSet<>());
             configs.addAll(project.configurations);
         }
     }
@@ -100,64 +100,56 @@ public class VisualStudioSolutionFile extends AbstractPersistableConfigurationOb
         for (Map.Entry<File, String> project : projects.entrySet()) {
             File projectFile = project.getKey();
             String projectName = project.getValue();
-            builder.append(
-                "\n" +
-                    "Project(\"{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}\") = \"" + projectName + "\", \"" + projectFile.getAbsolutePath() + "\", \"" + getUUID(projectFile) + "\"\n" +
-                    "EndProject"
-            );
+            builder.append("\n" + "Project(\"{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}\") = \""
+                    + projectName + "\", \"" + projectFile.getAbsolutePath() + "\", \"" + getUUID(projectFile) + "\"\n"
+                    + "EndProject");
         }
-        builder.append(
-            "\n" +
-                "Global\n" +
-                "\tGlobalSection(SolutionConfigurationPlatforms) = preSolution"
-        );
+        builder.append("\n" + "Global\n" + "\tGlobalSection(SolutionConfigurationPlatforms) = preSolution");
 
         Set<String> configurationNames = projectConfigurations.values().stream()
-            .flatMap(set -> set.stream().map(spec -> spec.name))
-            .collect(toCollection(TreeSet::new));
+                .flatMap(set -> set.stream().map(spec -> spec.name))
+                .collect(toCollection(TreeSet::new));
         for (String configurationName : configurationNames) {
             builder.append("\n\t\t").append(configurationName).append(" = ").append(configurationName);
         }
-        builder.append(
-            "\n" +
-                "\tEndGlobalSection\n" +
-                "\tGlobalSection(ProjectConfigurationPlatforms) = postSolution"
-        );
+        builder.append("\n" + "\tEndGlobalSection\n" + "\tGlobalSection(ProjectConfigurationPlatforms) = postSolution");
         for (File projectFile : projects.keySet()) {
             List<String> configurations = configurationNames.stream()
-                .flatMap(configurationName -> {
-                    List<String> result = new ArrayList<>();
-                    ConfigurationSpec configuration = projectConfigurations.get(projectFile).stream()
-                        .filter(spec -> spec.name.equals(configurationName))
-                        .findFirst().orElse(null);
-                    ConfigurationSpec lastConfiguration = projectConfigurations.get(projectFile).stream()
-                        .sorted(Comparator.comparing(ConfigurationSpec::getName))
-                        .reduce((first, second) -> second).orElse(null);
-                    if (configuration == null) {
-                        result.add(configurationName + ".ActiveCfg = " + lastConfiguration.name);
-                    } else {
-                        result.add(configurationName + ".ActiveCfg = " + configuration.name);
-                        if (configuration.buildable) {
-                            result.add(configurationName + ".Build.0 = " + configuration.name);
+                    .flatMap(configurationName -> {
+                        List<String> result = new ArrayList<>();
+                        ConfigurationSpec configuration = projectConfigurations.get(projectFile).stream()
+                                .filter(spec -> spec.name.equals(configurationName))
+                                .findFirst()
+                                .orElse(null);
+                        ConfigurationSpec lastConfiguration = projectConfigurations.get(projectFile).stream()
+                                .sorted(Comparator.comparing(ConfigurationSpec::getName))
+                                .reduce((first, second) -> second)
+                                .orElse(null);
+                        if (configuration == null) {
+                            result.add(configurationName + ".ActiveCfg = " + lastConfiguration.name);
+                        } else {
+                            result.add(configurationName + ".ActiveCfg = " + configuration.name);
+                            if (configuration.buildable) {
+                                result.add(configurationName + ".Build.0 = " + configuration.name);
+                            }
                         }
-                    }
-                    return result.stream();
-                })
-                .collect(toList());
+                        return result.stream();
+                    })
+                    .collect(toList());
 
             for (String configuration : configurations) {
-                builder.append("\n\t\t").append(getUUID(projectFile)).append(".").append(configuration);
+                builder.append("\n\t\t")
+                        .append(getUUID(projectFile))
+                        .append(".")
+                        .append(configuration);
             }
         }
 
-        builder.append(
-            "\n" +
-                "\tEndGlobalSection\n" +
-                "\tGlobalSection(SolutionProperties) = preSolution\n" +
-                "\t\tHideSolutionNode = FALSE\n" +
-                "\tEndGlobalSection\n" +
-                "EndGlobal\n"
-        );
+        builder.append("\n" + "\tEndGlobalSection\n"
+                + "\tGlobalSection(SolutionProperties) = preSolution\n"
+                + "\t\tHideSolutionNode = FALSE\n"
+                + "\tEndGlobalSection\n"
+                + "EndGlobal\n");
     }
 
     private static class SimpleTextProvider implements TextProvider {
@@ -202,8 +194,10 @@ public class VisualStudioSolutionFile extends AbstractPersistableConfigurationOb
 
     public static class ProjectSpec {
         private final String name;
+
         @VisibleForTesting
         final File projectFile;
+
         private final List<ConfigurationSpec> configurations;
 
         public ProjectSpec(String name, File projectFile, List<ConfigurationSpec> configurations) {

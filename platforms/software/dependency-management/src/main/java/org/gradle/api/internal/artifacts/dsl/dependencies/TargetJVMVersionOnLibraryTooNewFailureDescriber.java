@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import java.util.List;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
@@ -25,8 +26,6 @@ import org.gradle.internal.component.resolution.failure.exception.AbstractResolu
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
-
-import java.util.List;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link ResolutionFailure} caused by a requested library
@@ -41,35 +40,47 @@ import java.util.List;
  */
 public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends AbstractJVMVersionTooNewFailureDescriber {
     @SuppressWarnings("InlineFormatString")
-    private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "Dependency resolution is looking for a library compatible with JVM runtime version %s, but '%s' is only compatible with JVM runtime version %s or newer.";
+    private static final String JVM_VERSION_TOO_HIGH_TEMPLATE =
+            "Dependency resolution is looking for a library compatible with JVM runtime version %s, but '%s' is only compatible with JVM runtime version %s or newer.";
 
     @Override
     protected JavaVersion getJVMVersion(NoCompatibleVariantsFailure failure) {
-        ImmutableAttributesEntry<Integer> jvmVersionEntry = failure.getRequestedAttributes().findEntry(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
+        ImmutableAttributesEntry<Integer> jvmVersionEntry =
+                failure.getRequestedAttributes().findEntry(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
         return JavaVersion.toVersion(jvmVersionEntry.getIsolatedValue());
     }
 
     @Override
     public boolean canDescribeFailure(NoCompatibleVariantsFailure failure) {
-        boolean isPluginRequest = failure.getRequestedAttributes().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
+        boolean isPluginRequest =
+                failure.getRequestedAttributes().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
         return !isPluginRequest && isDueToJVMVersionTooNew(failure);
     }
 
     @Override
     public AbstractResolutionFailureException describeFailure(NoCompatibleVariantsFailure failure) {
-        JavaVersion minJVMVersionSupported = findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
+        JavaVersion minJVMVersionSupported =
+                findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
         JavaVersion requestedJVMVersion = getJVMVersion(failure);
 
         String message = buildNeedsNewerJDKFailureMsg(failure.describeRequestTarget(), minJVMVersionSupported, failure);
-        List<String> resolutions = buildResolutions(suggestChangeLibraryVersion(failure.describeRequestTarget(), requestedJVMVersion));
+        List<String> resolutions =
+                buildResolutions(suggestChangeLibraryVersion(failure.describeRequestTarget(), requestedJVMVersion));
         return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
 
-    private String buildNeedsNewerJDKFailureMsg(String requestedName, JavaVersion minRequiredJVMVersion, NoCompatibleVariantsFailure failure) {
-        return String.format(JVM_VERSION_TOO_HIGH_TEMPLATE, getJVMVersion(failure).getMajorVersion(), requestedName, minRequiredJVMVersion.getMajorVersion());
+    private String buildNeedsNewerJDKFailureMsg(
+            String requestedName, JavaVersion minRequiredJVMVersion, NoCompatibleVariantsFailure failure) {
+        return String.format(
+                JVM_VERSION_TOO_HIGH_TEMPLATE,
+                getJVMVersion(failure).getMajorVersion(),
+                requestedName,
+                minRequiredJVMVersion.getMajorVersion());
     }
 
     private String suggestChangeLibraryVersion(String requestedName, JavaVersion minRequiredJVMVersion) {
-        return "Change the dependency on '" + requestedName + "' to an earlier version that supports JVM runtime version " + minRequiredJVMVersion.getMajorVersion() + ".";
+        return "Change the dependency on '" + requestedName
+                + "' to an earlier version that supports JVM runtime version " + minRequiredJVMVersion.getMajorVersion()
+                + ".";
     }
 }

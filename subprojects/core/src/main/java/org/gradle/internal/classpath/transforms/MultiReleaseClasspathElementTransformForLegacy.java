@@ -16,14 +16,13 @@
 
 package org.gradle.internal.classpath.transforms;
 
-import org.gradle.internal.classpath.ClasspathBuilder;
-import org.gradle.internal.classpath.ClasspathEntryVisitor;
-import org.gradle.internal.classpath.ClasspathWalker;
+import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
 import java.io.File;
 import java.io.IOException;
-
-import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
+import org.gradle.internal.classpath.ClasspathBuilder;
+import org.gradle.internal.classpath.ClasspathEntryVisitor;
+import org.gradle.internal.classpath.ClasspathWalker;
 
 /**
  * Transformation for legacy instrumentation when transformed JARs are part of the classpath.
@@ -32,23 +31,28 @@ import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupporte
  * This transformation filters out not yet supported versioned directories of the multi-release JARs.
  */
 class MultiReleaseClasspathElementTransformForLegacy extends BaseClasspathElementTransform {
-    MultiReleaseClasspathElementTransformForLegacy(File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, ClassTransform transform) {
+    MultiReleaseClasspathElementTransformForLegacy(
+            File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, ClassTransform transform) {
         super(source, classpathBuilder, classpathWalker, transform);
     }
 
     @Override
-    protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry) throws IOException {
+    protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry)
+            throws IOException {
         if (!isInUnsupportedMrJarVersionedDirectory(classEntry)) {
             super.processClassFile(builder, classEntry);
         }
     }
 
     @Override
-    protected void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry resourceEntry) throws IOException {
+    protected void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry resourceEntry)
+            throws IOException {
         // The entries should only be filtered out if we're transforming the proper multi-release JAR.
-        // Otherwise, even if the entry path looks like it is inside the versioned directory, it may still be accessed as a
+        // Otherwise, even if the entry path looks like it is inside the versioned directory, it may still be accessed
+        // as a
         // resource.
-        // Of course, user code can try to access resources inside versioned directories with full paths anyway, but that's
+        // Of course, user code can try to access resources inside versioned directories with full paths anyway, but
+        // that's
         // a tradeoff we're making.
         if (!isInUnsupportedMrJarVersionedDirectory(resourceEntry)) {
             super.processResource(builder, resourceEntry);

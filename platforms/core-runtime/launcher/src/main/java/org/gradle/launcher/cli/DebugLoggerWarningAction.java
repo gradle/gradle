@@ -17,6 +17,7 @@
 package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
@@ -25,36 +26,29 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 
-import java.util.Objects;
-
 final class DebugLoggerWarningAction implements Action<ExecutionListener> {
 
-    static final String WARNING_MESSAGE_BODY = "\n" +
-        "#############################################################################\n" +
-        "   WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n" +
-        "\n" +
-        "   Debug level logging will leak security sensitive information!\n" +
-        "\n" +
-        "   " + new DocumentationRegistry().getDocumentationRecommendationFor("details", "logging", "sec:debug_security") + "\n" +
-        "#############################################################################\n";
+    static final String WARNING_MESSAGE_BODY = "\n"
+            + "#############################################################################\n"
+            + "   WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n"
+            + "\n"
+            + "   Debug level logging will leak security sensitive information!\n"
+            + "\n"
+            + "   "
+            + new DocumentationRegistry().getDocumentationRecommendationFor("details", "logging", "sec:debug_security")
+            + "\n" + "#############################################################################\n";
 
     private final Logger logger;
     private final LoggingConfiguration loggingConfiguration;
     private final Action<ExecutionListener> action;
 
-    DebugLoggerWarningAction(
-        LoggingConfiguration loggingConfiguration,
-        Action<ExecutionListener> action
-    ) {
+    DebugLoggerWarningAction(LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action) {
         this(Logging.getLogger(DebugLoggerWarningAction.class), loggingConfiguration, action);
     }
 
     @VisibleForTesting
     DebugLoggerWarningAction(
-        Logger logger,
-        LoggingConfiguration loggingConfiguration,
-        Action<ExecutionListener> action
-    ) {
+            Logger logger, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action) {
         this.logger = Objects.requireNonNull(logger, "logger");
         this.loggingConfiguration = Objects.requireNonNull(loggingConfiguration, "loggingConfiguration");
         this.action = Objects.requireNonNull(action, "action");

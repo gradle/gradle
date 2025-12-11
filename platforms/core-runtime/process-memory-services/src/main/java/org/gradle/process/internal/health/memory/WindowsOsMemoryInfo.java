@@ -45,15 +45,15 @@ public class WindowsOsMemoryInfo implements OsMemoryInfo {
         if (memoryInfo instanceof WindowsMemoryInfo) {
             WindowsMemoryInfo windowsMemoryInfo = (WindowsMemoryInfo) memoryInfo;
             return new OsMemoryStatusSnapshot(
-                memoryInfo.getTotalPhysicalMemory(), memoryInfo.getAvailablePhysicalMemory(),
-                // Note: the commit limit is usually less than the hard limit of the commit peak, but I think it would be prudent
-                // for us to not force the user's OS to allocate more page file space, so we'll use the commit limit here.
-                windowsMemoryInfo.getCommitLimit(), availableCommitMemory(windowsMemoryInfo)
-            );
+                    memoryInfo.getTotalPhysicalMemory(), memoryInfo.getAvailablePhysicalMemory(),
+                    // Note: the commit limit is usually less than the hard limit of the commit peak, but I think it
+                    // would be prudent
+                    // for us to not force the user's OS to allocate more page file space, so we'll use the commit limit
+                    // here.
+                    windowsMemoryInfo.getCommitLimit(), availableCommitMemory(windowsMemoryInfo));
         } else {
             return new OsMemoryStatusSnapshot(
-                memoryInfo.getTotalPhysicalMemory(), memoryInfo.getAvailablePhysicalMemory()
-            );
+                    memoryInfo.getTotalPhysicalMemory(), memoryInfo.getAvailablePhysicalMemory());
         }
     }
 

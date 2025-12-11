@@ -16,13 +16,12 @@
 
 package org.gradle.api.model;
 
-import org.gradle.api.tasks.Internal;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.tasks.Internal;
 
 /**
  * <p>Attached to a task property to indicate that the property has been replaced by another. Like {@link Internal}, the property is ignored during up-to-date checks.</p>

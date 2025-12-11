@@ -16,6 +16,11 @@
 
 package org.gradle.nativeplatform.test.internal;
 
+import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.executableFileFor;
+import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.installationDirFor;
+
+import java.io.File;
+import java.util.Collection;
 import org.gradle.api.Action;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.ModelMap;
@@ -35,38 +40,39 @@ import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.testing.base.TestSuiteContainer;
 
-import java.io.File;
-import java.util.Collection;
-
-import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.executableFileFor;
-import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.installationDirFor;
-
 /**
  * Functions for creation and configuration of native test suites.
  */
 public class NativeTestSuites {
 
-    public static <S extends NativeTestSuiteBinarySpec> void createNativeTestSuiteBinaries(ModelMap<S> binaries,
-                                                     NativeTestSuiteSpec testSuite,
-                                                     final Class<S> testSuiteBinaryClass,
-                                                     final String typeString, final File buildDir, final ServiceRegistry serviceRegistry) {
+    public static <S extends NativeTestSuiteBinarySpec> void createNativeTestSuiteBinaries(
+            ModelMap<S> binaries,
+            NativeTestSuiteSpec testSuite,
+            final Class<S> testSuiteBinaryClass,
+            final String typeString,
+            final File buildDir,
+            final ServiceRegistry serviceRegistry) {
         for (final NativeBinarySpec testedBinary : testedBinariesOf(testSuite)) {
             if (testedBinary instanceof SharedLibraryBinary) {
                 // For now, we only create test suites for static library variants
                 continue;
             }
-            createNativeTestSuiteBinary(binaries, testSuite, testSuiteBinaryClass, typeString, testedBinary, buildDir, serviceRegistry);
+            createNativeTestSuiteBinary(
+                    binaries, testSuite, testSuiteBinaryClass, typeString, testedBinary, buildDir, serviceRegistry);
         }
     }
 
-    private static <S extends NativeTestSuiteBinarySpec> void createNativeTestSuiteBinary(ModelMap<S> binaries,
-                                                    NativeTestSuiteSpec testSuite,
-                                                    Class<S> testSuiteBinaryClass,
-                                                    String typeString,
-                                                    final NativeBinarySpec testedBinary,
-                                                    final File buildDir, ServiceRegistry serviceRegistry) {
+    private static <S extends NativeTestSuiteBinarySpec> void createNativeTestSuiteBinary(
+            ModelMap<S> binaries,
+            NativeTestSuiteSpec testSuite,
+            Class<S> testSuiteBinaryClass,
+            String typeString,
+            final NativeBinarySpec testedBinary,
+            final File buildDir,
+            ServiceRegistry serviceRegistry) {
 
-        final BinaryNamingScheme namingScheme = namingSchemeFor(testSuite, (NativeBinarySpecInternal) testedBinary, typeString);
+        final BinaryNamingScheme namingScheme =
+                namingSchemeFor(testSuite, (NativeBinarySpecInternal) testedBinary, typeString);
         final NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
 
         binaries.create(namingScheme.getBinaryName(), testSuiteBinaryClass, new Action<S>() {
@@ -98,6 +104,7 @@ public class NativeTestSuites {
             }
         });
     }
+
     public static Collection<NativeBinarySpec> testedBinariesOf(NativeTestSuiteSpec testSuite) {
         return testedBinariesWithType(NativeBinarySpec.class, testSuite);
     }
@@ -105,19 +112,24 @@ public class NativeTestSuites {
     public static <S> Collection<S> testedBinariesWithType(Class<S> type, NativeTestSuiteSpec testSuite) {
         VariantComponentSpec spec = (VariantComponentSpec) testSuite.getTestedComponent();
         if (spec == null) {
-            throw new InvalidModelException(String.format("Test suite '%s' doesn't declare component under test. Please specify it with `testing $.components.myComponent`.", testSuite.getName()));
+            throw new InvalidModelException(String.format(
+                    "Test suite '%s' doesn't declare component under test. Please specify it with `testing $.components.myComponent`.",
+                    testSuite.getName()));
         }
         return spec.getBinaries().withType(type).values();
     }
 
-    private static BinaryNamingScheme namingSchemeFor(NativeTestSuiteSpec testSuite, NativeBinarySpecInternal testedBinary, String typeString) {
-        return testedBinary.getNamingScheme()
-            .withComponentName(testSuite.getBaseName())
-            .withBinaryType(typeString)
-            .withRole("executable", true);
+    private static BinaryNamingScheme namingSchemeFor(
+            NativeTestSuiteSpec testSuite, NativeBinarySpecInternal testedBinary, String typeString) {
+        return testedBinary
+                .getNamingScheme()
+                .withComponentName(testSuite.getBaseName())
+                .withBinaryType(typeString)
+                .withRole("executable", true);
     }
 
-    public static <S extends NativeTestSuiteSpec> void createConventionalTestSuites(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components, Class<S> testSuiteSpecClass) {
+    public static <S extends NativeTestSuiteSpec> void createConventionalTestSuites(
+            TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components, Class<S> testSuiteSpecClass) {
         for (final NativeComponentSpec component : components.values()) {
             final String suiteName = component.getName() + "Test";
             testSuites.create(suiteName, testSuiteSpecClass, new Action<S>() {

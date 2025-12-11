@@ -17,5 +17,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations;
 
 public class UsesAnnotationInField {
-    @SomeRuntimeAnnotation int x;
+    @SomeRuntimeAnnotation
+    int x;
 }

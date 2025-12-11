@@ -16,14 +16,13 @@
 
 package org.gradle.api.attributes;
 
+import java.util.Set;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 /**
  * An attribute container is a container of {@link Attribute attributes}, which are

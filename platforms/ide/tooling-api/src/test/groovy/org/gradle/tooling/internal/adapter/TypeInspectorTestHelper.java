@@ -21,20 +21,15 @@ import java.util.Map;
 import java.util.Set;
 
 public class TypeInspectorTestHelper {
-    interface Item1 {
-    }
+    interface Item1 {}
 
-    interface Item2 {
-    }
+    interface Item2 {}
 
-    interface Item3 {
-    }
+    interface Item3 {}
 
-    interface Item4 {
-    }
+    interface Item4 {}
 
-    interface Item5 {
-    }
+    interface Item5 {}
 
     interface SuperThing {
         Runnable method1();
@@ -46,6 +41,7 @@ public class TypeInspectorTestHelper {
 
     interface GenericThing {
         Item3[] method1(String p);
+
         List<Item5>[] method2(String p);
     }
 
@@ -59,16 +55,15 @@ public class TypeInspectorTestHelper {
 
     interface Child {
         Parent getParent();
+
         Child getNextSibling();
     }
 
-    interface GenericItem1<T> {
-    }
+    interface GenericItem1<T> {}
 
-    interface GenericItem2<T> {
-    }
+    interface GenericItem2<T> {}
 
-    interface  GenericChild<T extends GenericItem1<? extends T>> extends GenericItem1<T> {
+    interface GenericChild<T extends GenericItem1<? extends T>> extends GenericItem1<T> {
         <U extends GenericItem2<? super U>> void method(GenericItem2<U> p);
     }
 }

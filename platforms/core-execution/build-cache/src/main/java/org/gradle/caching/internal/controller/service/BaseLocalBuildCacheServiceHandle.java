@@ -16,15 +16,14 @@
 
 package org.gradle.caching.internal.controller.service;
 
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.local.internal.LocalBuildCacheService;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.local.internal.LocalBuildCacheService;
+import org.jspecify.annotations.Nullable;
 
 public class BaseLocalBuildCacheServiceHandle implements LocalBuildCacheServiceHandle {
 
@@ -43,7 +42,8 @@ public class BaseLocalBuildCacheServiceHandle implements LocalBuildCacheServiceH
     }
 
     @Override
-    public Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheLoadResult> unpackFunction) {
+    public Optional<BuildCacheLoadResult> maybeLoad(
+            BuildCacheKey key, Function<File, BuildCacheLoadResult> unpackFunction) {
         AtomicReference<Optional<BuildCacheLoadResult>> result = new AtomicReference<>(Optional.empty());
         service.loadLocally(key, file -> result.set(Optional.ofNullable(unpackFunction.apply(file))));
         return result.get();

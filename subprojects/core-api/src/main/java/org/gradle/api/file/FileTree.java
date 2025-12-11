@@ -17,12 +17,11 @@ package org.gradle.api.file;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
-
-import java.io.File;
-import java.util.Set;
 
 /**
  * <p>A {@code FileTree} represents a hierarchy of files. It extends {@link FileCollection} to add hierarchy query and

@@ -24,14 +24,13 @@ public interface DataReporter<T extends PerformanceTestResult> extends Closeable
     void report(T results);
 
     default String insertStatement(String table, String... columns) {
-        return "insert into " +
-            table +
-            "(" +
-            String.join(", ", columns) +
-            ")" +
-            "values(" +
-            Arrays.stream(columns).map(s -> "?").collect(Collectors.joining(", ")) +
-            ")";
+        return "insert into " + table
+                + "("
+                + String.join(", ", columns)
+                + ")"
+                + "values("
+                + Arrays.stream(columns).map(s -> "?").collect(Collectors.joining(", "))
+                + ")";
     }
 
     default DataReporter<T> reportAlso(DataReporter<PerformanceTestResult> otherReporter) {

@@ -16,12 +16,11 @@
 
 package org.gradle.model;
 
+import java.util.Collection;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Set;
 
 /**
  * Model backed map like structure allowing adding of items where instantiation is managed.

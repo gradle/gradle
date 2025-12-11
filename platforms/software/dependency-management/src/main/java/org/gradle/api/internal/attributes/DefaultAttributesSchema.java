@@ -16,14 +16,6 @@
 
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.Action;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.isolation.IsolatableFactory;
-import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,6 +23,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.inject.Inject;
+import org.gradle.api.Action;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolation.IsolatableFactory;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final InstantiatorFactory instantiatorFactory;
@@ -63,7 +62,8 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, @Nullable Action<? super AttributeMatchingStrategy<T>> configureAction) {
+    public <T> AttributeMatchingStrategy<T> attribute(
+            Attribute<T> attribute, @Nullable Action<? super AttributeMatchingStrategy<T>> configureAction) {
         AttributeMatchingStrategy<T> strategy = getStrategy(attribute);
         if (configureAction != null) {
             configureAction.execute(strategy);
@@ -75,7 +75,9 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private <T> AttributeMatchingStrategy<T> getStrategy(Attribute<T> attribute) {
         DefaultAttributeMatchingStrategy<T> strategy = (DefaultAttributeMatchingStrategy<T>) strategies.get(attribute);
         if (strategy == null) {
-            strategy = instantiatorFactory.decorateLenient().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory, isolatableFactory);
+            strategy = instantiatorFactory
+                    .decorateLenient()
+                    .newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory, isolatableFactory);
             strategies.put(attribute, strategy);
         }
         return strategy;
@@ -95,7 +97,8 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     public void attributeDisambiguationPrecedence(Attribute<?>... attributes) {
         for (Attribute<?> attribute : attributes) {
             if (!precedence.add(attribute)) {
-                throw new IllegalArgumentException(String.format("Attribute '%s' precedence has already been set.", attribute.getName()));
+                throw new IllegalArgumentException(
+                        String.format("Attribute '%s' precedence has already been set.", attribute.getName()));
             }
         }
     }
@@ -118,10 +121,8 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
         return Collections.unmodifiableMap(strategies);
     }
 
-
     @Override
     public Set<Attribute<?>> getAttributePrecedence() {
         return Collections.unmodifiableSet(precedence);
     }
-
 }

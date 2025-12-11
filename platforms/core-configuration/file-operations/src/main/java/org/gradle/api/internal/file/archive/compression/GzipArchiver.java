@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.gradle.api.resources.internal.ReadableResourceInternal;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.resource.ResourceExceptions;
-
 import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import org.gradle.api.resources.internal.ReadableResourceInternal;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.resource.ResourceExceptions;
 
 public class GzipArchiver extends AbstractArchiver {
     public GzipArchiver(ReadableResourceInternal resource) {

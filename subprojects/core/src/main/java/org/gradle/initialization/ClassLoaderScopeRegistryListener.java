@@ -24,7 +24,6 @@ import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.jspecify.annotations.Nullable;
 
-
 /**
  * Listens to changes to the ClassLoaderScope tree.
  *
@@ -34,8 +33,13 @@ import org.jspecify.annotations.Nullable;
 @EventScope(Scope.UserHome.class)
 public interface ClassLoaderScopeRegistryListener {
 
-    void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @Nullable ClassLoaderScopeOrigin origin);
+    void childScopeCreated(
+            ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @Nullable ClassLoaderScopeOrigin origin);
 
-    void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @Nullable HashCode implementationHash);
-
+    void classloaderCreated(
+            ClassLoaderScopeId scopeId,
+            ClassLoaderId classLoaderId,
+            ClassLoader classLoader,
+            ClassPath classPath,
+            @Nullable HashCode implementationHash);
 }

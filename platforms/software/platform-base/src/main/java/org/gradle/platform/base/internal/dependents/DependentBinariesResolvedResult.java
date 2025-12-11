@@ -16,9 +16,8 @@
 
 package org.gradle.platform.base.internal.dependents;
 
-import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-
 import java.util.List;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 
 /**
  * A dependent binary and its dependents, node of a dependent binaries resolution result.
@@ -34,5 +33,4 @@ public interface DependentBinariesResolvedResult {
     boolean isTestSuite();
 
     List<DependentBinariesResolvedResult> getChildren();
-
 }

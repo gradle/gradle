@@ -16,6 +16,18 @@
 
 package org.gradle.api.internal.initialization.transform;
 
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCY_ANALYSIS_FILE_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.getInputType;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.outputOriginalArtifact;
+
+import java.io.File;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
@@ -35,19 +47,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCY_ANALYSIS_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.getInputType;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.outputOriginalArtifact;
-
 /**
  * A transform that merges all instrumentation related metadata for a single artifact.<br><br>
  *
@@ -64,11 +63,13 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
  * ...
  */
 @DisableCachingByDefault(because = "Not worth caching.")
-public abstract class MergeInstrumentationAnalysisTransform implements TransformAction<MergeInstrumentationAnalysisTransform.Parameters> {
+public abstract class MergeInstrumentationAnalysisTransform
+        implements TransformAction<MergeInstrumentationAnalysisTransform.Parameters> {
 
     public interface Parameters extends TransformParameters {
         @Internal
         Property<CacheInstrumentationDataBuildService> getBuildService();
+
         @Internal
         Property<Long> getContextId();
 
@@ -90,8 +91,10 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
     @Override
     public void transform(TransformOutputs outputs) {
         // We simulate fan-in behaviour:
-        // We expect that a transform before this one outputs three artifacts: 1. analysis metadata, 2. the original file and 3. instrumentation marker file.
-        // So if the input is analysis metadata we merge it and output it, otherwise it's original artifact, and we output that.
+        // We expect that a transform before this one outputs three artifacts: 1. analysis metadata, 2. the original
+        // file and 3. instrumentation marker file.
+        // So if the input is analysis metadata we merge it and output it, otherwise it's original artifact, and we
+        // output that.
         File input = getInput().get().getAsFile();
         InstrumentationInputType inputType = getInputType(input);
         switch (inputType) {
@@ -111,7 +114,8 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
     }
 
     private void doMergeAndOutputAnalysis(File input, TransformOutputs outputs) {
-        InstrumentationAnalysisSerializer serializer = getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
+        InstrumentationAnalysisSerializer serializer =
+                getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
         InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry();
 
         InstrumentationDependencyAnalysis data = serializer.readDependencyAnalysis(input);
@@ -125,12 +129,14 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
 
         createInstrumentationClasspathMarker(outputs);
         File output = outputs.file(MERGE_OUTPUT_DIR + "/" + DEPENDENCY_ANALYSIS_FILE_NAME);
-        serializer.writeDependencyAnalysis(output, new InstrumentationDependencyAnalysis(data.getMetadata(), dependenciesSuperTypes));
+        serializer.writeDependencyAnalysis(
+                output, new InstrumentationDependencyAnalysis(data.getMetadata(), dependenciesSuperTypes));
     }
 
     private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
         long contextId = getParameters().getContextId().get();
-        CacheInstrumentationDataBuildService buildService = getParameters().getBuildService().get();
+        CacheInstrumentationDataBuildService buildService =
+                getParameters().getBuildService().get();
         return buildService.getInstrumentationTypeRegistry(contextId);
     }
 }

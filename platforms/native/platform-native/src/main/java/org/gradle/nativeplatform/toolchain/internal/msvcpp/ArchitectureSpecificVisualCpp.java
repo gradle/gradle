@@ -16,12 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.util.internal.VersionNumber;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.gradle.util.internal.VersionNumber;
 
 public class ArchitectureSpecificVisualCpp implements VisualCpp {
     private static final String COMPILER_FILENAME = "cl.exe";
@@ -37,7 +36,15 @@ public class ArchitectureSpecificVisualCpp implements VisualCpp {
     private final Map<String, String> definitions;
     private final File compilerPath;
 
-    ArchitectureSpecificVisualCpp(VersionNumber version, List<File> paths, File binDir, File libDir, File compilerPath, File includeDir, String assemblerFilename, Map<String, String> definitions) {
+    ArchitectureSpecificVisualCpp(
+            VersionNumber version,
+            List<File> paths,
+            File binDir,
+            File libDir,
+            File compilerPath,
+            File includeDir,
+            String assemblerFilename,
+            Map<String, String> definitions) {
         this.version = version;
         this.paths = paths;
         this.binDir = binDir;

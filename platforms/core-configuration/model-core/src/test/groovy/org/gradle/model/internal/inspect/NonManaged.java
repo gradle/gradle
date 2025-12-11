@@ -16,5 +16,4 @@
 
 package org.gradle.model.internal.inspect;
 
-public interface NonManaged {
-}
+public interface NonManaged {}

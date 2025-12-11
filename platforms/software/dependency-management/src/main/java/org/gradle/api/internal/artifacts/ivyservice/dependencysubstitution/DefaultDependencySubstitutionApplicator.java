@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyArtifactSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -35,8 +36,6 @@ import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 /**
  * Default implementation of {@link DependencySubstitutionApplicator}, which caches results of
  * executing substitution rules.
@@ -46,46 +45,36 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
     private final InMemoryLoadingCache<SubstitutionCacheKey, Try<SubstitutionResult>> cache;
 
     public DefaultDependencySubstitutionApplicator(
-        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        Action<? super DependencySubstitutionInternal> rule,
-        InstantiatorFactory instantiatorFactory,
-        InMemoryCacheFactory cacheFactory
-    ) {
+            ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+            Action<? super DependencySubstitutionInternal> rule,
+            InstantiatorFactory instantiatorFactory,
+            InMemoryCacheFactory cacheFactory) {
         InstanceFactory<DefaultDependencySubstitution> substitutionFactory =
-            instantiatorFactory.decorateScheme().forType(DefaultDependencySubstitution.class);
+                instantiatorFactory.decorateScheme().forType(DefaultDependencySubstitution.class);
 
-        this.cache = cacheFactory.create(key -> Try.ofFailable(() -> executeSubstitutionRule(
-            substitutionFactory,
-            componentSelectionDescriptorFactory,
-            key,
-            rule
-        )));
+        this.cache = cacheFactory.create(key -> Try.ofFailable(
+                () -> executeSubstitutionRule(substitutionFactory, componentSelectionDescriptorFactory, key, rule)));
     }
 
     @Override
     public DependencyState applySubstitutions(DependencyMetadata metadata) {
         SubstitutionCacheKey key = new SubstitutionCacheKey(
-            metadata.getSelector(),
-            // TODO: Ideally DependencyMetadata would already provide an ImmutableList of artifacts
-            ImmutableList.copyOf(metadata.getArtifacts())
-        );
+                metadata.getSelector(),
+                // TODO: Ideally DependencyMetadata would already provide an ImmutableList of artifacts
+                ImmutableList.copyOf(metadata.getArtifacts()));
 
         return cache.get(key)
-            .map(result -> createDependencyStateFromSubstitution(metadata, result))
-            .getOrMapFailure(failure -> createDependencyStateFromFailure(metadata, failure));
+                .map(result -> createDependencyStateFromSubstitution(metadata, result))
+                .getOrMapFailure(failure -> createDependencyStateFromFailure(metadata, failure));
     }
 
     private static SubstitutionResult executeSubstitutionRule(
-        InstanceFactory<DefaultDependencySubstitution> substitutionFactory,
-        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        SubstitutionCacheKey requested,
-        Action<? super DependencySubstitutionInternal> rule
-    ) {
+            InstanceFactory<DefaultDependencySubstitution> substitutionFactory,
+            ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+            SubstitutionCacheKey requested,
+            Action<? super DependencySubstitutionInternal> rule) {
         DependencySubstitutionInternal details = substitutionFactory.newInstance(
-            componentSelectionDescriptorFactory,
-            requested.target,
-            requested.artifacts
-        );
+                componentSelectionDescriptorFactory, requested.target, requested.artifacts);
         rule.execute(details);
         return SubstitutionResult.of(requested, details);
     }
@@ -94,7 +83,8 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
      * Applies the given substitution result to the given dependency metadata, producing a dependency state
      * that incorporates the original request and the result of substitution.
      */
-    private static DependencyState createDependencyStateFromSubstitution(DependencyMetadata metadata, SubstitutionResult result) {
+    private static DependencyState createDependencyStateFromSubstitution(
+            DependencyMetadata metadata, SubstitutionResult result) {
         ComponentSelector target = result.target;
         ImmutableList<IvyArtifactName> artifacts = result.artifacts;
 
@@ -102,8 +92,8 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
         if (target != null || artifacts != null) {
             ComponentSelector actualTarget = target != null ? target : metadata.getSelector();
             updatedMetadata = artifacts == null
-                ? metadata.withTarget(actualTarget)
-                : metadata.withTargetAndArtifacts(actualTarget, artifacts);
+                    ? metadata.withTarget(actualTarget)
+                    : metadata.withTargetAndArtifacts(actualTarget, artifacts);
         }
 
         return new DependencyState(updatedMetadata, metadata.getSelector(), result.ruleDescriptors, null);
@@ -113,7 +103,8 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
      * Creates a dependency state representing a failed application of substitution rules to the given dependency metadata.
      */
     private static DependencyState createDependencyStateFromFailure(DependencyMetadata metadata, Throwable failure) {
-        ModuleVersionResolveException resolveFailure = new ModuleVersionResolveException(metadata.getSelector(), failure);
+        ModuleVersionResolveException resolveFailure =
+                new ModuleVersionResolveException(metadata.getSelector(), failure);
         return new DependencyState(metadata, metadata.getSelector(), ImmutableList.of(), resolveFailure);
     }
 
@@ -139,8 +130,7 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
             }
 
             SubstitutionCacheKey that = (SubstitutionCacheKey) o;
-            return target.equals(that.target) &&
-                artifacts.equals(that.artifacts);
+            return target.equals(that.target) && artifacts.equals(that.artifacts);
         }
 
         @Override
@@ -153,7 +143,6 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
             result = 31 * result + artifacts.hashCode();
             return result;
         }
-
     }
 
     /**
@@ -168,10 +157,9 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
         private final ImmutableList<ComponentSelectionDescriptorInternal> ruleDescriptors;
 
         public SubstitutionResult(
-            @Nullable ComponentSelector target,
-            @Nullable ImmutableList<IvyArtifactName> artifacts,
-            ImmutableList<ComponentSelectionDescriptorInternal> ruleDescriptors
-        ) {
+                @Nullable ComponentSelector target,
+                @Nullable ImmutableList<IvyArtifactName> artifacts,
+                ImmutableList<ComponentSelectionDescriptorInternal> ruleDescriptors) {
             this.target = target;
             this.artifacts = artifacts;
             this.ruleDescriptors = ruleDescriptors;
@@ -201,35 +189,33 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
         }
 
         private static ImmutableList<IvyArtifactName> toIvyArtifactNames(
-            @Nullable ComponentSelector configuredTarget,
-            ComponentSelector requestedTarget,
-            ImmutableList<DependencyArtifactSelector> artifacts
-        ) {
+                @Nullable ComponentSelector configuredTarget,
+                ComponentSelector requestedTarget,
+                ImmutableList<DependencyArtifactSelector> artifacts) {
             if (artifacts.isEmpty()) {
                 return ImmutableList.of();
             }
 
             ComponentSelector actualTarget = configuredTarget != null ? configuredTarget : requestedTarget;
             String targetModuleName = getModuleName(actualTarget);
-            ImmutableList.Builder<IvyArtifactName> artifactsBuilder = ImmutableList.builderWithExpectedSize(artifacts.size());
+            ImmutableList.Builder<IvyArtifactName> artifactsBuilder =
+                    ImmutableList.builderWithExpectedSize(artifacts.size());
             for (DependencyArtifactSelector das : artifacts) {
                 artifactsBuilder.add(new DefaultIvyArtifactName(
-                    targetModuleName,
-                    das.getType(),
-                    das.getExtension() != null ? das.getExtension() : das.getType(),
-                    das.getClassifier()
-                ));
+                        targetModuleName,
+                        das.getType(),
+                        das.getExtension() != null ? das.getExtension() : das.getType(),
+                        das.getClassifier()));
             }
             return artifactsBuilder.build();
         }
 
         private static String getModuleName(ComponentSelector target) {
             if (!(target instanceof ModuleComponentSelector)) {
-                throw new IllegalStateException("Substitution with artifacts for something else than a module is not supported");
+                throw new IllegalStateException(
+                        "Substitution with artifacts for something else than a module is not supported");
             }
             return ((ModuleComponentSelector) target).getModule();
         }
-
     }
-
 }

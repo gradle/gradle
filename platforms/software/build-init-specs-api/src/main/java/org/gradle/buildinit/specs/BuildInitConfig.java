@@ -16,9 +16,8 @@
 
 package org.gradle.buildinit.specs;
 
-import org.gradle.api.Incubating;
-
 import java.util.Map;
+import org.gradle.api.Incubating;
 
 /**
  * Represents a {@link BuildInitSpec} that has been configured by the user, and can provide arguments

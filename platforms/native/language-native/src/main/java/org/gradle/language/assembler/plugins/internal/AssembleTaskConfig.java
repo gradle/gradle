@@ -15,6 +15,9 @@
  */
 package org.gradle.language.assembler.plugins.internal;
 
+import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -35,10 +38,6 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.BinarySpec;
 
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public class AssembleTaskConfig implements SourceTransformTaskConfig {
     @Override
     public String getTaskPrefix() {
@@ -51,11 +50,14 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
     }
 
     @Override
-    public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
-        configureAssembleTask((Assemble) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
+    public void configureTask(
+            Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+        configureAssembleTask(
+                (Assemble) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
     }
 
-    private void configureAssembleTask(Assemble task, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet) {
+    private void configureAssembleTask(
+            Assemble task, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet) {
         task.setDescription("Assembles the " + sourceSet + " of " + binary);
 
         task.getToolChain().set(binary.getToolChain());
@@ -63,12 +65,16 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
 
         task.source(sourceSet.getSource());
 
-        FileCollectionFactory fileCollectionFactory = ((ProjectInternal) task.getProject()).getServices().get(FileCollectionFactory.class);
+        FileCollectionFactory fileCollectionFactory =
+                ((ProjectInternal) task.getProject()).getServices().get(FileCollectionFactory.class);
         task.includes(fileCollectionFactory.create(new MinimalFileSet() {
             @Override
             public Set<File> getFiles() {
-                PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
-                return new LinkedHashSet<>(platformToolProvider.getSystemLibraries(ToolType.ASSEMBLER).getIncludeDirs());
+                PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain())
+                        .select((NativePlatformInternal) binary.getTargetPlatform());
+                return new LinkedHashSet<>(platformToolProvider
+                        .getSystemLibraries(ToolType.ASSEMBLER)
+                        .getIncludeDirs());
             }
 
             @Override
@@ -78,11 +84,17 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
         }));
 
         final Project project = task.getProject();
-        task.setObjectFileDir(project.getLayout().getBuildDirectory().getAsFile().map(it -> new File(binary.getNamingScheme().getOutputDirectory(it, "objs"), sourceSet.getProjectScopedName())).get());
+        task.setObjectFileDir(project.getLayout()
+                .getBuildDirectory()
+                .getAsFile()
+                .map(it -> new File(
+                        binary.getNamingScheme().getOutputDirectory(it, "objs"), sourceSet.getProjectScopedName()))
+                .get());
 
         Tool assemblerTool = binary.getToolByName("assembler");
         task.setAssemblerArgs(assemblerTool.getArgs());
 
-        binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+        binary.binaryInputs(
+                task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
     }
 }

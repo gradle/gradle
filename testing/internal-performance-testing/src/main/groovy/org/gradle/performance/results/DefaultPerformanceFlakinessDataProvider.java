@@ -16,18 +16,19 @@
 
 package org.gradle.performance.results;
 
-import java.math.BigDecimal;
-import java.util.Map;
-
 import static org.gradle.performance.results.PerformanceFlakinessDataProvider.ScenarioRegressionResult.BIG_FLAKY_REGRESSION;
 import static org.gradle.performance.results.PerformanceFlakinessDataProvider.ScenarioRegressionResult.SMALL_FLAKY_REGRESSION;
 import static org.gradle.performance.results.PerformanceFlakinessDataProvider.ScenarioRegressionResult.STABLE_REGRESSION;
+
+import java.math.BigDecimal;
+import java.util.Map;
 
 public class DefaultPerformanceFlakinessDataProvider implements PerformanceFlakinessDataProvider {
     private final Map<PerformanceExperiment, BigDecimal> flakinessRates;
     private final Map<PerformanceExperiment, BigDecimal> failureThresholds;
 
-    public DefaultPerformanceFlakinessDataProvider(CrossVersionResultsStore crossVersionResultsStore, OperatingSystem os) {
+    public DefaultPerformanceFlakinessDataProvider(
+            CrossVersionResultsStore crossVersionResultsStore, OperatingSystem os) {
         flakinessRates = crossVersionResultsStore.getFlakinessRates(os);
         failureThresholds = crossVersionResultsStore.getFailureThresholds(os);
     }
@@ -43,11 +44,13 @@ public class DefaultPerformanceFlakinessDataProvider implements PerformanceFlaki
     }
 
     @Override
-    public ScenarioRegressionResult getScenarioRegressionResult(PerformanceExperiment experiment, PerformanceReportScenarioHistoryExecution execution) {
+    public ScenarioRegressionResult getScenarioRegressionResult(
+            PerformanceExperiment experiment, PerformanceReportScenarioHistoryExecution execution) {
         return getScenarioRegressionResult(experiment, execution.getDifferencePercentage());
     }
 
-    private ScenarioRegressionResult getScenarioRegressionResult(PerformanceExperiment experiment, double regressionPercentage) {
+    private ScenarioRegressionResult getScenarioRegressionResult(
+            PerformanceExperiment experiment, double regressionPercentage) {
         if (isStableScenario(experiment)) {
             return STABLE_REGRESSION;
         }

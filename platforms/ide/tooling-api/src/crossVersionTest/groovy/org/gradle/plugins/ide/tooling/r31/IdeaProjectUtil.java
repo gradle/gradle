@@ -15,16 +15,15 @@
  */
 package org.gradle.plugins.ide.tooling.r31;
 
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.gradle.GradleBuild;
-import org.gradle.tooling.model.idea.IdeaProject;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.gradle.GradleBuild;
+import org.gradle.tooling.model.idea.IdeaProject;
 
 public class IdeaProjectUtil {
 
@@ -40,7 +39,8 @@ public class IdeaProjectUtil {
             collectAllNestedBuilds(buildModel, controller, result);
 
             result.allIdeaProjects.add(result.rootIdeaProject);
-            LinkedHashMap<GradleBuild, IdeaProject> includedWithoutRoot = new LinkedHashMap<>(result.includedBuildIdeaProjects);
+            LinkedHashMap<GradleBuild, IdeaProject> includedWithoutRoot =
+                    new LinkedHashMap<>(result.includedBuildIdeaProjects);
             includedWithoutRoot.remove(buildModel);
             result.allIdeaProjects.addAll(includedWithoutRoot.values());
 

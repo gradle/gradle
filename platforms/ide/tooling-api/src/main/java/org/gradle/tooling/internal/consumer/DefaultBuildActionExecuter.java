@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import java.util.Arrays;
 import org.gradle.internal.Cast;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionExecuter;
@@ -30,13 +31,13 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Arrays;
-
-class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<DefaultBuildActionExecuter<T>> implements BuildActionExecuter<T> {
+class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<DefaultBuildActionExecuter<T>>
+        implements BuildActionExecuter<T> {
     private final BuildAction<T> buildAction;
     private final AsyncConsumerActionExecutor connection;
 
-    public DefaultBuildActionExecuter(BuildAction<T> buildAction, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
+    public DefaultBuildActionExecuter(
+            BuildAction<T> buildAction, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
         operationParamsBuilder.setEntryPoint("BuildActionExecuter API");
         this.buildAction = buildAction;
@@ -75,23 +76,29 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
     @Override
     public void run(ResultHandler<? super T> handler) throws IllegalStateException {
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
-        connection.run(new ConsumerAction<T>() {
-            @Override
-            public ConsumerOperationParameters getParameters() {
-                return operationParameters;
-            }
+        connection.run(
+                new ConsumerAction<T>() {
+                    @Override
+                    public ConsumerOperationParameters getParameters() {
+                        return operationParameters;
+                    }
 
-            @Override
-            public T run(ConsumerConnection connection) {
-                T result = connection.run(buildAction, operationParameters);
-                return result;
-            }
-        }, new ResultHandlerAdapter<T>(handler, createExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
-            @Override
-            public String getConnectionFailureMessage(Throwable throwable) {
-                return String.format("Could not run build action using %s.", connection.getDisplayName());
-            }
-        })));
+                    @Override
+                    public T run(ConsumerConnection connection) {
+                        T result = connection.run(buildAction, operationParameters);
+                        return result;
+                    }
+                },
+                new ResultHandlerAdapter<T>(
+                        handler,
+                        createExceptionTransformer(
+                                new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
+                                    @Override
+                                    public String getConnectionFailureMessage(Throwable throwable) {
+                                        return String.format(
+                                                "Could not run build action using %s.", connection.getDisplayName());
+                                    }
+                                })));
     }
 
     static class Builder implements BuildActionExecuter.Builder {
@@ -107,7 +114,8 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
         }
 
         @Override
-        public <T> Builder projectsLoaded(BuildAction<T> action, IntermediateResultHandler<? super T> handler) throws IllegalArgumentException {
+        public <T> Builder projectsLoaded(BuildAction<T> action, IntermediateResultHandler<? super T> handler)
+                throws IllegalArgumentException {
             if (projectsLoadedAction != null) {
                 throw getException("ProjectsLoadedAction");
             }
@@ -116,7 +124,8 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
         }
 
         @Override
-        public <T> Builder buildFinished(BuildAction<T> action, IntermediateResultHandler<? super T> handler) throws IllegalArgumentException {
+        public <T> Builder buildFinished(BuildAction<T> action, IntermediateResultHandler<? super T> handler)
+                throws IllegalArgumentException {
             if (buildFinishedAction != null) {
                 throw getException("BuildFinishedAction");
             }
@@ -126,11 +135,13 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
 
         @Override
         public BuildActionExecuter<Void> build() {
-            return new DefaultPhasedBuildActionExecuter(new DefaultPhasedBuildAction(projectsLoadedAction, buildFinishedAction), connection, parameters);
+            return new DefaultPhasedBuildActionExecuter(
+                    new DefaultPhasedBuildAction(projectsLoadedAction, buildFinishedAction), connection, parameters);
         }
 
         private static IllegalArgumentException getException(String phase) {
-            return new IllegalArgumentException(String.format("%s has already been added. Only one action per phase is allowed.", phase));
+            return new IllegalArgumentException(
+                    String.format("%s has already been added. Only one action per phase is allowed.", phase));
         }
     }
 }

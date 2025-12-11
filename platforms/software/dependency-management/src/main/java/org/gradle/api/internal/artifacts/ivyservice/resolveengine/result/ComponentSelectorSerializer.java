@@ -17,6 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
+import java.util.Set;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
@@ -32,10 +35,6 @@ import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
-import javax.annotation.concurrent.NotThreadSafe;
-import java.io.IOException;
-import java.util.Set;
-
 /**
  * A thread-safe and reusable serializer for {@link ComponentSelector}s.
  */
@@ -48,12 +47,15 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
     private final ProjectIdentitySerializer projectIdentitySerializer;
     private final ModuleComponentSelectorSerializer moduleComponentSelectorSerializer;
 
-    public ComponentSelectorSerializer(AttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer) {
+    public ComponentSelectorSerializer(
+            AttributeContainerSerializer attributeContainerSerializer,
+            CapabilitySelectorSerializer capabilitySelectorSerializer) {
         this.attributeContainerSerializer = attributeContainerSerializer;
         this.capabilitySelectorSerializer = capabilitySelectorSerializer;
 
         this.projectIdentitySerializer = new ProjectIdentitySerializer(new PathSerializer());
-        this.moduleComponentSelectorSerializer = new ModuleComponentSelectorSerializer(attributeContainerSerializer, capabilitySelectorSerializer);
+        this.moduleComponentSelectorSerializer =
+                new ModuleComponentSelectorSerializer(attributeContainerSerializer, capabilitySelectorSerializer);
     }
 
     @Override
@@ -68,7 +70,8 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         } else if (Implementation.MODULE.getId() == id) {
             return moduleComponentSelectorSerializer.read(decoder);
         } else if (Implementation.LIBRARY.getId() == id) {
-            return new DefaultLibraryComponentSelector(decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
+            return new DefaultLibraryComponentSelector(
+                    decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
         }
 
         throw new IllegalArgumentException("Unable to find component selector with id: " + id);
@@ -90,7 +93,8 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         return builder.build();
     }
 
-    private void writeCapabilitySelectors(Encoder encoder, Set<CapabilitySelector> capabilitySelectors) throws IOException {
+    private void writeCapabilitySelectors(Encoder encoder, Set<CapabilitySelector> capabilitySelectors)
+            throws IOException {
         encoder.writeSmallInt(capabilitySelectors.size());
         for (CapabilitySelector capabilitySelector : capabilitySelectors) {
             capabilitySelectorSerializer.write(encoder, capabilitySelector);
@@ -141,7 +145,9 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
     }
 
     private enum Implementation {
-        MODULE(1), PROJECT(2), LIBRARY(6);
+        MODULE(1),
+        PROJECT(2),
+        LIBRARY(6);
 
         private final byte id;
 
@@ -153,5 +159,4 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
             return id;
         }
     }
-
 }

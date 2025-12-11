@@ -16,9 +16,8 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
+import org.gradle.api.Incubating;
 
 /**
  * A shared library that exists at a known location on the filesystem.

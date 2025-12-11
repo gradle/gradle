@@ -18,7 +18,6 @@ package org.gradle.ide.xcode.internal.xcodeproj;
 
 import org.jspecify.annotations.Nullable;
 
-
 public abstract class PBXObject {
     @Nullable
     private String globalID;
@@ -40,8 +39,7 @@ public abstract class PBXObject {
     /**
      * Populates the serializer with the fields of this object.
      */
-    public void serializeInto(XcodeprojSerializer ignored) {
-    }
+    public void serializeInto(XcodeprojSerializer ignored) {}
 
     /**
      * This method is used to generate stable GIDs and must be stable for identical contents.

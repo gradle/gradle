@@ -16,16 +16,15 @@
 
 package org.gradle.internal.buildevents;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.util.internal.TreeVisitor;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Handles visiting {@link org.gradle.internal.exceptions.ContextAwareException}s.
@@ -41,7 +40,6 @@ public class ContextAwareExceptionHandler {
             for (Failure cause : causes) {
                 visitor.visitCause(cause);
                 visitCauses(cause, visitor);
-
             }
         }
         visitor.endVisiting();
@@ -100,7 +98,8 @@ public class ContextAwareExceptionHandler {
         if (t == null) {
             return null;
         }
-        if (t.getOriginal().getClass().getAnnotation(Contextual.class) != null || MultiCauseException.class.isAssignableFrom(t.getExceptionType())) {
+        if (t.getOriginal().getClass().getAnnotation(Contextual.class) != null
+                || MultiCauseException.class.isAssignableFrom(t.getExceptionType())) {
             return t;
         }
         // Not multicause, so at most one cause.

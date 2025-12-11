@@ -16,23 +16,22 @@
 
 package org.gradle.model.internal.manage.schema;
 
+import static org.gradle.internal.reflect.PropertyAccessorType.hasSetter;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.lang.annotation.Annotation;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
-import static org.gradle.internal.reflect.PropertyAccessorType.hasSetter;
 
 @ThreadSafe
 public class ModelProperty<T> {
@@ -43,8 +42,11 @@ public class ModelProperty<T> {
     private final ImmutableMap<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors;
     private ModelSchema<T> schema;
 
-    public ModelProperty(ModelType<T> type, String name, Set<ModelType<?>> declaredBy,
-                         Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors) {
+    public ModelProperty(
+            ModelType<T> type,
+            String name,
+            Set<ModelType<?>> declaredBy,
+            Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors) {
         this.name = name;
         this.type = type;
         this.declaredBy = ImmutableSet.copyOf(declaredBy);
@@ -86,15 +88,17 @@ public class ModelProperty<T> {
 
     public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
         return isAnnotationPresent(annotationType, getAccessor(PropertyAccessorType.GET_GETTER))
-            || isAnnotationPresent(annotationType, getAccessor(PropertyAccessorType.IS_GETTER));
+                || isAnnotationPresent(annotationType, getAccessor(PropertyAccessorType.IS_GETTER));
     }
 
-    private boolean isAnnotationPresent(Class<? extends Annotation> annotationType, WeaklyTypeReferencingMethod<?, ?> getter) {
+    private boolean isAnnotationPresent(
+            Class<? extends Annotation> annotationType, WeaklyTypeReferencingMethod<?, ?> getter) {
         return getter != null && getter.getMethod().isAnnotationPresent(annotationType);
     }
 
     public <I> T getPropertyValue(I instance) {
-        return Cast.<WeaklyTypeReferencingMethod<I, T>>uncheckedCast(getGetter()).invoke(instance);
+        return Cast.<WeaklyTypeReferencingMethod<I, T>>uncheckedCast(getGetter())
+                .invoke(instance);
     }
 
     public WeaklyTypeReferencingMethod<?, ?> getGetter() {
@@ -120,8 +124,8 @@ public class ModelProperty<T> {
         ModelProperty<?> that = (ModelProperty<?>) o;
 
         return Objects.equal(this.name, that.name)
-            && Objects.equal(this.type, that.type)
-            && isWritable() == that.isWritable();
+                && Objects.equal(this.type, that.type)
+                && isWritable() == that.isWritable();
     }
 
     @Override

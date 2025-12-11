@@ -16,6 +16,8 @@
 
 package org.gradle.vcs.internal.resolver;
 
+import java.io.File;
+import java.util.Set;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
@@ -28,9 +30,6 @@ import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.gradle.vcs.internal.VersionRef;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.Set;
-
 public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDirResolver {
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
@@ -38,7 +37,12 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
     private final VcsVersionSelectionCache inMemoryCache;
     private final PersistentVcsMetadataCache persistentCache;
 
-    public DefaultVcsVersionWorkingDirResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser, VcsVersionSelectionCache inMemoryCache, PersistentVcsMetadataCache persistentCache) {
+    public DefaultVcsVersionWorkingDirResolver(
+            VersionSelectorScheme versionSelectorScheme,
+            VersionComparator versionComparator,
+            VersionParser versionParser,
+            VcsVersionSelectionCache inMemoryCache,
+            PersistentVcsMetadataCache persistentCache) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
@@ -69,7 +73,8 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
         return workingDir;
     }
 
-    private VersionRef selectVersionFromRepository(VersionControlRepositoryConnection repository, VersionConstraint constraint) {
+    private VersionRef selectVersionFromRepository(
+            VersionControlRepositoryConnection repository, VersionConstraint constraint) {
         // TODO: match with status, order versions correctly
 
         if (constraint.getBranch() != null) {
@@ -78,7 +83,8 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
 
         String version = constraint.getRequiredVersion();
         VersionSelector versionSelector = versionSelectorScheme.parseSelector(version);
-        if (versionSelector instanceof LatestVersionSelector && ((LatestVersionSelector) versionSelector).getSelectorStatus().equals("integration")) {
+        if (versionSelector instanceof LatestVersionSelector
+                && ((LatestVersionSelector) versionSelector).getSelectorStatus().equals("integration")) {
             return repository.getDefaultBranch();
         }
 
@@ -97,7 +103,8 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
         for (VersionRef candidate : versions) {
             Version candidateVersion = versionParser.transform(candidate.getVersion());
             if (versionSelector.accept(candidateVersion)) {
-                if (bestCandidate == null || versionComparator.asVersionComparator().compare(candidateVersion, bestVersion) > 0) {
+                if (bestCandidate == null
+                        || versionComparator.asVersionComparator().compare(candidateVersion, bestVersion) > 0) {
                     bestVersion = candidateVersion;
                     bestCandidate = candidate;
                 }

@@ -66,9 +66,7 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
             return false;
         }
         DefaultModuleIdentifier that = (DefaultModuleIdentifier) o;
-        return hashCode == that.hashCode &&
-            Objects.equal(group, that.group) &&
-            Objects.equal(name, that.name);
+        return hashCode == that.hashCode && Objects.equal(group, that.group) && Objects.equal(name, that.name);
     }
 
     @Override

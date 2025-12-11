@@ -17,6 +17,18 @@
 package org.gradle.internal.remote.internal.inet;
 
 import com.google.common.base.Objects;
+import java.io.Closeable;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectStreamException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.ClosedSelectorException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.io.BufferCaster;
@@ -31,19 +43,6 @@ import org.gradle.internal.serialize.StatefulSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectStreamException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.ClosedSelectorException;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
-
 public class SocketConnection<T> implements RemoteConnection<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SocketConnection.class);
     private final SocketChannel socket;
@@ -55,7 +54,8 @@ public class SocketConnection<T> implements RemoteConnection<T> {
     private final OutputStream outstr;
     private final FlushableEncoder encoder;
 
-    public SocketConnection(SocketChannel socket, MessageSerializer streamSerializer, StatefulSerializer<T> messageSerializer) {
+    public SocketConnection(
+            SocketChannel socket, MessageSerializer streamSerializer, StatefulSerializer<T> messageSerializer) {
         this.socket = socket;
         try {
             outstr = new SocketOutputStream(socket);
@@ -63,9 +63,11 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        InetSocketAddress localSocketAddress = (InetSocketAddress) socket.socket().getLocalSocketAddress();
+        InetSocketAddress localSocketAddress =
+                (InetSocketAddress) socket.socket().getLocalSocketAddress();
         localAddress = new SocketInetAddress(localSocketAddress.getAddress(), localSocketAddress.getPort());
-        InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
+        InetSocketAddress remoteSocketAddress =
+                (InetSocketAddress) socket.socket().getRemoteSocketAddress();
         remoteAddress = new SocketInetAddress(remoteSocketAddress.getAddress(), remoteSocketAddress.getPort());
         objectReader = messageSerializer.newReader(streamSerializer.newDecoder(instr));
         encoder = streamSerializer.newEncoder(outstr);
@@ -87,11 +89,14 @@ public class SocketConnection<T> implements RemoteConnection<T> {
             }
             return null;
         } catch (ObjectStreamException e) {
-            throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
+            throw new RecoverableMessageIOException(
+                    String.format("Could not read message from '%s'.", remoteAddress), e);
         } catch (ClassNotFoundException e) {
-            throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
+            throw new RecoverableMessageIOException(
+                    String.format("Could not read message from '%s'.", remoteAddress), e);
         } catch (IOException e) {
-            throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
+            throw new RecoverableMessageIOException(
+                    String.format("Could not read message from '%s'.", remoteAddress), e);
         } catch (Throwable e) {
             throw new MessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         }
@@ -105,7 +110,8 @@ public class SocketConnection<T> implements RemoteConnection<T> {
             if (Objects.equal(e.getMessage(), "An existing connection was forcibly closed by the remote host")) {
                 return true;
             }
-            if (Objects.equal(e.getMessage(), "An established connection was aborted by the software in your host machine")) {
+            if (Objects.equal(
+                    e.getMessage(), "An established connection was aborted by the software in your host machine")) {
                 return true;
             }
             if (Objects.equal(e.getMessage(), "Connection reset by peer")) {
@@ -123,13 +129,17 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         try {
             objectWriter.write(message);
         } catch (ObjectStreamException e) {
-            throw new RecoverableMessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
+            throw new RecoverableMessageIOException(
+                    String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
         } catch (ClassNotFoundException e) {
-            throw new RecoverableMessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
+            throw new RecoverableMessageIOException(
+                    String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
         } catch (IOException e) {
-            throw new RecoverableMessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
+            throw new RecoverableMessageIOException(
+                    String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
         } catch (Throwable e) {
-            throw new MessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
+            throw new MessageIOException(
+                    String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
         }
     }
 
@@ -145,12 +155,17 @@ public class SocketConnection<T> implements RemoteConnection<T> {
 
     @Override
     public void stop() {
-        CompositeStoppable.stoppable(new Closeable() {
-            @Override
-            public void close() throws IOException {
-                flush();
-            }
-        }, instr, outstr, socket).stop();
+        CompositeStoppable.stoppable(
+                        new Closeable() {
+                            @Override
+                            public void close() throws IOException {
+                                flush();
+                            }
+                        },
+                        instr,
+                        outstr,
+                        socket)
+                .stop();
     }
 
     private static class SocketInputStream extends InputStream {

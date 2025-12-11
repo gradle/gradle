@@ -16,6 +16,10 @@
 
 package org.gradle.composite.internal.plugins;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
@@ -34,11 +38,6 @@ import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class CompositeBuildPluginResolverContributor implements PluginResolverContributor, HoldsProjectState {
 
     private static final String SOURCE_DESCRIPTION = "Included Builds";
@@ -47,15 +46,10 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
 
     @Inject
     public CompositeBuildPluginResolverContributor(
-        BuildIncluder buildIncluder,
-        ProjectPublicationRegistry publicationRegistry,
-        DefaultProjectDependencyFactory projectDependencyFactory
-    ) {
-        this.resolver = new CompositeBuildPluginResolver(
-            buildIncluder,
-            publicationRegistry,
-            projectDependencyFactory
-        );
+            BuildIncluder buildIncluder,
+            ProjectPublicationRegistry publicationRegistry,
+            DefaultProjectDependencyFactory projectDependencyFactory) {
+        this.resolver = new CompositeBuildPluginResolver(buildIncluder, publicationRegistry, projectDependencyFactory);
     }
 
     @Override
@@ -90,10 +84,9 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         private final Map<PluginId, PluginResult> results = new ConcurrentHashMap<>();
 
         private CompositeBuildPluginResolver(
-            BuildIncluder buildIncluder,
-            ProjectPublicationRegistry publicationRegistry,
-            DefaultProjectDependencyFactory projectDependencyFactory
-        ) {
+                BuildIncluder buildIncluder,
+                ProjectPublicationRegistry publicationRegistry,
+                DefaultProjectDependencyFactory projectDependencyFactory) {
             this.buildIncluder = buildIncluder;
             this.publicationRegistry = publicationRegistry;
             this.projectDependencyFactory = projectDependencyFactory;
@@ -103,7 +96,8 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
             PluginResult resolutionResult = results.computeIfAbsent(pluginRequest.getId(), this::doResolve);
             if (resolutionResult == PluginResult.NOT_FOUND_IN_ANY_BUILD) {
-                return PluginResolutionResult.notFound(SOURCE_DESCRIPTION, "None of the included builds contain this plugin");
+                return PluginResolutionResult.notFound(
+                        SOURCE_DESCRIPTION, "None of the included builds contain this plugin");
             } else if (resolutionResult instanceof ResolvedPlugin) {
                 return PluginResolutionResult.found(((ResolvedPlugin) resolutionResult).resolution);
             }
@@ -147,12 +141,14 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         @Nullable
         private PluginResolution resolvePlugin(PluginId requestedPluginId, BuildIdentifier buildIdentity) {
             Collection<ProjectPublicationRegistry.PublicationForProject<PluginPublication>> publicationsForBuild =
-                publicationRegistry.getPublicationsForBuild(PluginPublication.class, buildIdentity);
+                    publicationRegistry.getPublicationsForBuild(PluginPublication.class, buildIdentity);
 
-            for (ProjectPublicationRegistry.PublicationForProject<PluginPublication> publication : publicationsForBuild) {
+            for (ProjectPublicationRegistry.PublicationForProject<PluginPublication> publication :
+                    publicationsForBuild) {
                 PluginId pluginId = publication.getPublication().getPluginId();
                 if (pluginId.equals(requestedPluginId)) {
-                    return new LocalPluginResolution(pluginId, publication.getProducingProjectId().getBuildTreePath(), projectDependencyFactory);
+                    return new LocalPluginResolution(
+                            pluginId, publication.getProducingProjectId().getBuildTreePath(), projectDependencyFactory);
                 }
             }
 
@@ -171,10 +167,9 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         private final DefaultProjectDependencyFactory projectDependencyFactory;
 
         public LocalPluginResolution(
-            PluginId pluginId,
-            Path producingProjectIdentityPath,
-            DefaultProjectDependencyFactory projectDependencyFactory
-        ) {
+                PluginId pluginId,
+                Path producingProjectIdentityPath,
+                DefaultProjectDependencyFactory projectDependencyFactory) {
             this.pluginId = pluginId;
             this.producingProjectIdentityPath = producingProjectIdentityPath;
             this.projectDependencyFactory = projectDependencyFactory;
@@ -195,5 +190,4 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
             pluginManager.apply(pluginId.getId());
         }
     }
-
 }

@@ -19,12 +19,6 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import org.bouncycastle.openpgp.PGPPublicKey;
-import org.bouncycastle.openpgp.PGPPublicKeyRing;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.internal.UncheckedException;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -32,9 +26,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPPublicKeyRing;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 
 public class KeyringFilePublicKeyService implements PublicKeyService {
-    private final static Logger LOGGER = Logging.getLogger(KeyringFilePublicKeyService.class);
+    private static final Logger LOGGER = Logging.getLogger(KeyringFilePublicKeyService.class);
     private final File keyRingFile;
     private LoadedKeys keys;
 
@@ -48,7 +47,8 @@ public class KeyringFilePublicKeyService implements PublicKeyService {
                 try {
                     List<PGPPublicKeyRing> keyrings = SecuritySupport.loadKeyRingFile(keyRingFile);
                     Map<Fingerprint, PGPPublicKeyRing> keyToKeyringBuilder = new HashMap<>();
-                    ImmutableMultimap.Builder<Long, PGPPublicKeyRing> longIdLongPGPPublicKeyBuilder = ImmutableListMultimap.builder();
+                    ImmutableMultimap.Builder<Long, PGPPublicKeyRing> longIdLongPGPPublicKeyBuilder =
+                            ImmutableListMultimap.builder();
 
                     for (PGPPublicKeyRing keyring : keyrings) {
                         Iterator<PGPPublicKey> it = keyring.getPublicKeys();
@@ -59,7 +59,8 @@ public class KeyringFilePublicKeyService implements PublicKeyService {
                             longIdLongPGPPublicKeyBuilder.put(key.getKeyID(), keyring);
                         }
                     }
-                    keys = new LoadedKeys(ImmutableMap.copyOf(keyToKeyringBuilder), longIdLongPGPPublicKeyBuilder.build());
+                    keys = new LoadedKeys(
+                            ImmutableMap.copyOf(keyToKeyringBuilder), longIdLongPGPPublicKeyBuilder.build());
                     LOGGER.info("Loaded {} keys from {}", keys.keyToKeyring.size(), keyRingFile);
                 } catch (IOException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
@@ -70,9 +71,7 @@ public class KeyringFilePublicKeyService implements PublicKeyService {
     }
 
     @Override
-    public void close() {
-
-    }
+    public void close() {}
 
     @Override
     public void findByLongId(long keyId, PublicKeyResultBuilder builder) {
@@ -108,7 +107,8 @@ public class KeyringFilePublicKeyService implements PublicKeyService {
         private final Map<Fingerprint, PGPPublicKeyRing> keyToKeyring;
         private final Multimap<Long, PGPPublicKeyRing> longIdToPublicKeys;
 
-        public LoadedKeys(Map<Fingerprint, PGPPublicKeyRing> keyToKeyring, Multimap<Long, PGPPublicKeyRing> longIdToPublicKeys) {
+        public LoadedKeys(
+                Map<Fingerprint, PGPPublicKeyRing> keyToKeyring, Multimap<Long, PGPPublicKeyRing> longIdToPublicKeys) {
             this.keyToKeyring = keyToKeyring;
             this.longIdToPublicKeys = longIdToPublicKeys;
         }

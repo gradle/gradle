@@ -16,6 +16,9 @@
 
 package org.gradle.internal.classpath.declarations;
 
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsHelper.withEntryPoint;
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.SET_PROPERTY;
+
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.codehaus.groovy.runtime.InvokerHelper;
@@ -36,24 +39,22 @@ import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static org.gradle.internal.classpath.InstrumentedGroovyCallsHelper.withEntryPoint;
-import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.SET_PROPERTY;
-
 @SuppressWarnings("NewMethodNamingConvention")
 @NullMarked
-@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificJvmCallInterceptors(
+        generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
 public class GroovyDynamicDispatchInterceptors {
     @InterceptJvmCalls
     @CallableKind.StaticMethod(ofClass = ScriptBytecodeAdapter.class)
     public static void intercept_setGroovyObjectProperty(
-        Object messageArgument,
-        /* Sometimes it's null, we can't rely on it, so we still use @CallerClassName */
-        Class<?> senderClass,
-        GroovyObject receiver,
-        String messageName,
-        @CallerClassName String consumer,
-        @InjectVisitorContext BytecodeInterceptorFilter interceptorFilter
-    ) throws Throwable {
+            Object messageArgument,
+            /* Sometimes it's null, we can't rely on it, so we still use @CallerClassName */
+            Class<?> senderClass,
+            GroovyObject receiver,
+            String messageName,
+            @CallerClassName String consumer,
+            @InjectVisitorContext BytecodeInterceptorFilter interceptorFilter)
+            throws Throwable {
         if (!ClosureCallInterceptorResolver.of(interceptorFilter).isAwareOfCallSiteName(messageName)) {
             ScriptBytecodeAdapter.setGroovyObjectProperty(messageArgument, senderClass, receiver, messageName);
             return;
@@ -68,35 +69,40 @@ public class GroovyDynamicDispatchInterceptors {
     @InterceptJvmCalls
     @CallableKind.StaticMethod(ofClass = ScriptBytecodeAdapter.class)
     public static void intercept_setProperty(
-        Object messageArgument,
-        /* Sometimes it's null, we can't rely on it, so we still use @CallerClassName */
-        Class<?> senderClass,
-        Object receiver,
-        String messageName,
-        @CallerClassName String consumer,
-        @InjectVisitorContext BytecodeInterceptorFilter interceptorFilter
-    ) throws Throwable {
+            Object messageArgument,
+            /* Sometimes it's null, we can't rely on it, so we still use @CallerClassName */
+            Class<?> senderClass,
+            Object receiver,
+            String messageName,
+            @CallerClassName String consumer,
+            @InjectVisitorContext BytecodeInterceptorFilter interceptorFilter)
+            throws Throwable {
         CallInterceptorResolver interceptorResolver = ClosureCallInterceptorResolver.of(interceptorFilter);
-        CallInterceptor interceptor = interceptorResolver.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
+        CallInterceptor interceptor =
+                interceptorResolver.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
         if (interceptor != null) {
-            Object[] args = new Object[]{messageArgument};
-            interceptor.intercept(new InvocationImpl<>(receiver, args, () -> {
-                callInstrumentedSetProperty(messageArgument, senderClass, receiver, messageName, consumer, interceptorFilter);
-                return null;
-            }), consumer);
+            Object[] args = new Object[] {messageArgument};
+            interceptor.intercept(
+                    new InvocationImpl<>(receiver, args, () -> {
+                        callInstrumentedSetProperty(
+                                messageArgument, senderClass, receiver, messageName, consumer, interceptorFilter);
+                        return null;
+                    }),
+                    consumer);
         } else {
-            callInstrumentedSetProperty(messageArgument, senderClass, receiver, messageName, consumer, interceptorFilter);
+            callInstrumentedSetProperty(
+                    messageArgument, senderClass, receiver, messageName, consumer, interceptorFilter);
         }
     }
 
     private static void callInstrumentedSetProperty(
-        Object messageArgument,
-        Class<?> senderClass,
-        Object receiver,
-        String messageName,
-        String consumer,
-        BytecodeInterceptorFilter interceptorFilter
-    ) throws Throwable {
+            Object messageArgument,
+            Class<?> senderClass,
+            Object receiver,
+            String messageName,
+            String consumer,
+            BytecodeInterceptorFilter interceptorFilter)
+            throws Throwable {
         if (!ClosureCallInterceptorResolver.of(interceptorFilter).isAwareOfCallSiteName(messageName)) {
             ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
             return;
@@ -111,22 +117,22 @@ public class GroovyDynamicDispatchInterceptors {
     @InterceptJvmCalls
     @CallableKind.StaticMethod(ofClass = ScriptBytecodeAdapter.class)
     public static Closure<?> intercept_getMethodPointer(
-        Object owner,
-        @Nullable String methodName,
-        @CallerClassName String consumer,
-        @InjectVisitorContext BytecodeInterceptorFilter interceptorFilter
-    ) {
+            Object owner,
+            @Nullable String methodName,
+            @CallerClassName String consumer,
+            @InjectVisitorContext BytecodeInterceptorFilter interceptorFilter) {
         Closure<?> originalPointer = ScriptBytecodeAdapter.getMethodPointer(owner, methodName);
 
         if (methodName == null) {
             // It isn't clear if "null" is an allowed method name, but we cannot intercept it anyway.
             return originalPointer;
         }
-        // TODO(mlopatkin): ClosureCallInterceptorResolver is a strange name for a general interceptor-providing routine.
+        // TODO(mlopatkin): ClosureCallInterceptorResolver is a strange name for a general interceptor-providing
+        // routine.
         CallInterceptorResolver resolver = ClosureCallInterceptorResolver.of(interceptorFilter);
         InterceptScope scope = isConstructorMethodRef(owner, methodName)
-            ? InterceptScope.constructorsOf((Class<?>) owner)
-            : InterceptScope.methodsNamed(methodName);
+                ? InterceptScope.constructorsOf((Class<?>) owner)
+                : InterceptScope.methodsNamed(methodName);
         CallInterceptor interceptor = resolver.resolveCallInterceptor(scope);
         if (interceptor == null) {
             return originalPointer;
@@ -137,34 +143,38 @@ public class GroovyDynamicDispatchInterceptors {
                 super(owner);
             }
 
-            @SuppressWarnings("unused")  // Called by Groovy runtime
+            @SuppressWarnings("unused") // Called by Groovy runtime
             @Nullable
             public Object doCall(Object... arguments) throws Throwable {
                 Object owner = getOwner();
                 // Method pointers and method references may be bound (foo::getBar) or unbound (Foo::getBar).
                 // The bound pointer has the receiver as the owner.
                 // The unbound one has a class as an owner and gets the receiver as a first argument when invoked.
-                // The latter is therefore indistinguishable from a static method that receives an instance of owner as a first argument.
-                // However, the instance method interceptor won't match the arguments of the static-like invocation, and some adaptation is needed.
+                // The latter is therefore indistinguishable from a static method that receives an instance of owner as
+                // a first argument.
+                // However, the instance method interceptor won't match the arguments of the static-like invocation, and
+                // some adaptation is needed.
                 // Let's try to intercept without any preparation first, to avoid extra work on a happy path.
                 // This covers static methods and bound instance invocations.
                 return interceptor.intercept(
-                    new InvocationImpl<>(owner, arguments, () -> {
-                        // If we're here, a static method or bound instance method invocation weren't intercepted.
-                        // We can still try to intercept an unbound invocation.
-                        if (canBeUnboundInstanceMethodInvocation(owner, arguments)) {
-                            Object maybeInstanceReceiver = arguments[0];
-                            Object[] boundCallArguments = subArray(arguments, 1);
-                            // Let's try to intercept instance method and fall back to the original call if it also fails.
-                            return interceptor.intercept(
-                                new InvocationImpl<>(maybeInstanceReceiver, boundCallArguments, () -> InvokerHelper.invokeClosure(originalPointer, arguments)),
-                                consumer
-                            );
-                        }
-                        return InvokerHelper.invokeClosure(originalPointer, arguments);
-                    }),
-                    consumer
-                );
+                        new InvocationImpl<>(owner, arguments, () -> {
+                            // If we're here, a static method or bound instance method invocation weren't intercepted.
+                            // We can still try to intercept an unbound invocation.
+                            if (canBeUnboundInstanceMethodInvocation(owner, arguments)) {
+                                Object maybeInstanceReceiver = arguments[0];
+                                Object[] boundCallArguments = subArray(arguments, 1);
+                                // Let's try to intercept instance method and fall back to the original call if it also
+                                // fails.
+                                return interceptor.intercept(
+                                        new InvocationImpl<>(
+                                                maybeInstanceReceiver,
+                                                boundCallArguments,
+                                                () -> InvokerHelper.invokeClosure(originalPointer, arguments)),
+                                        consumer);
+                            }
+                            return InvokerHelper.invokeClosure(originalPointer, arguments);
+                        }),
+                        consumer);
             }
 
             private boolean canBeUnboundInstanceMethodInvocation(Object owner, Object[] arguments) {

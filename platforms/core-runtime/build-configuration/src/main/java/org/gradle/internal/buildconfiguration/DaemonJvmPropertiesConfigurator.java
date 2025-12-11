@@ -16,6 +16,13 @@
 
 package org.gradle.internal.buildconfiguration;
 
+import static java.util.Collections.emptyMap;
+
+import java.net.URI;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
@@ -27,24 +34,16 @@ import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
-import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
-import org.gradle.jvm.toolchain.internal.JavaToolchainResolverService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
+import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaToolchainResolverService;
 import org.gradle.platform.Architecture;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.BuildPlatformFactory;
 import org.gradle.platform.OperatingSystem;
-
-import java.net.URI;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.Collections.emptyMap;
 
 public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
 
@@ -58,55 +57,98 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
             project.getTasks().register(TASK_NAME, UpdateDaemonJvm.class, task -> {
                 task.setGroup("Build Setup");
                 task.setDescription("Generates or updates the Gradle Daemon JVM criteria.");
-                task.getPropertiesFile().convention(project.getLayout().getProjectDirectory().file(DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE));
-                task.getLanguageVersion().convention(JavaLanguageVersion.of(Jvm.current().getJavaVersionMajor()));
+                task.getPropertiesFile()
+                        .convention(project.getLayout()
+                                .getProjectDirectory()
+                                .file(DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE));
+                task.getLanguageVersion()
+                        .convention(JavaLanguageVersion.of(Jvm.current().getJavaVersionMajor()));
                 task.getNativeImageCapable().convention(false);
-                task.getToolchainPlatforms().convention(
-                    Stream.of(Architecture.X86_64, Architecture.AARCH64).flatMap(arch ->
-                            Stream.of(OperatingSystem.values()).map(os -> BuildPlatformFactory.of(arch, os)))
-                        .collect(Collectors.toSet()));
-                task.getToolchainDownloadUrls().convention(task.getToolchainPlatforms()
-                    .zip(task.getLanguageVersion()
-                            .zip(task.getVendor().orElse(DefaultJvmVendorSpec.any()), Pair::of)
-                            .zip(task.getNativeImageCapable(), Pair::of),
-                        (platforms, versionVendorNative) -> {
-                            JvmVendorSpec vendor = versionVendorNative.getLeft().getRight();
-                            JavaToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
-                            toolchainSpec.getLanguageVersion().set(versionVendorNative.getLeft().getLeft());
-                            if (!vendor.equals(DefaultJvmVendorSpec.any())) {
-                                toolchainSpec.getVendor().set(vendor);
-                            }
-                            if (versionVendorNative.getRight()) {
-                                toolchainSpec.getNativeImageCapable().set(true);
-                            }
-                            if (platforms.isEmpty()) {
-                                return emptyMap();
-                            }
+                task.getToolchainPlatforms()
+                        .convention(Stream.of(Architecture.X86_64, Architecture.AARCH64)
+                                .flatMap(arch -> Stream.of(OperatingSystem.values())
+                                        .map(os -> BuildPlatformFactory.of(arch, os)))
+                                .collect(Collectors.toSet()));
+                task.getToolchainDownloadUrls()
+                        .convention(task.getToolchainPlatforms()
+                                .zip(
+                                        task.getLanguageVersion()
+                                                .zip(task.getVendor().orElse(DefaultJvmVendorSpec.any()), Pair::of)
+                                                .zip(task.getNativeImageCapable(), Pair::of),
+                                        (platforms, versionVendorNative) -> {
+                                            JvmVendorSpec vendor = versionVendorNative
+                                                    .getLeft()
+                                                    .getRight();
+                                            JavaToolchainSpec toolchainSpec =
+                                                    project.getObjects().newInstance(DefaultToolchainSpec.class);
+                                            toolchainSpec
+                                                    .getLanguageVersion()
+                                                    .set(versionVendorNative
+                                                            .getLeft()
+                                                            .getLeft());
+                                            if (!vendor.equals(DefaultJvmVendorSpec.any())) {
+                                                toolchainSpec.getVendor().set(vendor);
+                                            }
+                                            if (versionVendorNative.getRight()) {
+                                                toolchainSpec
+                                                        .getNativeImageCapable()
+                                                        .set(true);
+                                            }
+                                            if (platforms.isEmpty()) {
+                                                return emptyMap();
+                                            }
 
-                            JavaToolchainResolverService resolverService = project.getServices().get(JavaToolchainResolverService.class);
-                            if (!resolverService.hasConfiguredToolchainRepositories()) {
-                                UnconfiguredToolchainRepositoriesResolver exception = new UnconfiguredToolchainRepositoriesResolver();
-                                throw reporter.throwing(exception, UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
-                                    problemSpec -> {
-                                        problemSpec.solution("Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
-                                    });
-                            }
-                            Map<BuildPlatform, Optional<URI>> buildPlatformOptionalUriMap = platforms.stream()
-                                .collect(Collectors.toMap(platform -> platform,
-                                    platform -> resolverService.tryResolve(new DefaultJavaToolchainRequest(toolchainSpec, platform)).map(JavaToolchainDownload::getUri)));
-                            Map<BuildPlatform, URI> platformToDownloadUri = buildPlatformOptionalUriMap.entrySet().stream()
-                                .filter(e -> e.getValue().isPresent())
-                                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
-                            if (platformToDownloadUri.isEmpty()) {
-                                throw reporter.throwing(new IllegalStateException("Toolchain resolvers did not return download URLs providing a JDK matching " + toolchainSpec + " for any of the requested platforms " + platforms),
-                                    UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
-                                    problemSpec -> {
-                                        problemSpec.solution("Use a toolchain download repository capable of resolving the toolchain spec for the given platforms");
-                                        problemSpec.documentedAt(Documentation.userManual("gradle_daemon", "sec:daemon_jvm_provisioning").getUrl());
-                                    });
-                            }
-                            return platformToDownloadUri;
-                        }));
+                                            JavaToolchainResolverService resolverService =
+                                                    project.getServices().get(JavaToolchainResolverService.class);
+                                            if (!resolverService.hasConfiguredToolchainRepositories()) {
+                                                UnconfiguredToolchainRepositoriesResolver exception =
+                                                        new UnconfiguredToolchainRepositoriesResolver();
+                                                throw reporter.throwing(
+                                                        exception,
+                                                        UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
+                                                        problemSpec -> {
+                                                            problemSpec.solution(
+                                                                    "Learn more about toolchain repositories at "
+                                                                            + Documentation.userManual(
+                                                                                            "toolchains",
+                                                                                            "sub:download_repositories")
+                                                                                    .getUrl()
+                                                                            + ".");
+                                                        });
+                                            }
+                                            Map<BuildPlatform, Optional<URI>> buildPlatformOptionalUriMap =
+                                                    platforms.stream()
+                                                            .collect(Collectors.toMap(
+                                                                    platform -> platform, platform -> resolverService
+                                                                            .tryResolve(new DefaultJavaToolchainRequest(
+                                                                                    toolchainSpec, platform))
+                                                                            .map(JavaToolchainDownload::getUri)));
+                                            Map<BuildPlatform, URI> platformToDownloadUri =
+                                                    buildPlatformOptionalUriMap.entrySet().stream()
+                                                            .filter(e ->
+                                                                    e.getValue().isPresent())
+                                                            .collect(Collectors.toMap(
+                                                                    Map.Entry::getKey, e -> e.getValue()
+                                                                            .get()));
+                                            if (platformToDownloadUri.isEmpty()) {
+                                                throw reporter.throwing(
+                                                        new IllegalStateException(
+                                                                "Toolchain resolvers did not return download URLs providing a JDK matching "
+                                                                        + toolchainSpec
+                                                                        + " for any of the requested platforms "
+                                                                        + platforms),
+                                                        UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
+                                                        problemSpec -> {
+                                                            problemSpec.solution(
+                                                                    "Use a toolchain download repository capable of resolving the toolchain spec for the given platforms");
+                                                            problemSpec.documentedAt(Documentation.userManual(
+                                                                            "gradle_daemon",
+                                                                            "sec:daemon_jvm_provisioning")
+                                                                    .getUrl());
+                                                        });
+                                            }
+                                            return platformToDownloadUri;
+                                        }));
             });
         }
     }

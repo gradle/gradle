@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.scopes.Scope;
@@ -23,8 +24,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.work.ConditionalExecutionQueue;
 import org.gradle.internal.work.ConditionalExecutionQueueFactory;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 @ServiceScope(Scope.BuildSession.class)

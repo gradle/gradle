@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.tasks.properties;
 
-import org.jspecify.annotations.NonNull;
-
 import java.util.function.Supplier;
+import org.jspecify.annotations.NonNull;
 
 /**
  * An action that validates property values.

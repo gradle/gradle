@@ -16,10 +16,9 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import java.util.List;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
-
-import java.util.List;
 
 /**
  * A macro function whose body cannot be resolved.

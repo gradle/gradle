@@ -15,16 +15,12 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
+import static org.gradle.util.internal.ConfigureUtil.configure;
+
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import org.gradle.api.Action;
-import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.util.internal.ConfigureUtil;
-
-import javax.inject.Inject;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,8 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
+import javax.inject.Inject;
+import org.gradle.api.Action;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.util.internal.ConfigureUtil;
 
 /**
  * Enables fine-tuning wtp facet details of the Eclipse plugin
@@ -156,10 +154,11 @@ public abstract class EclipseWtpFacet {
             newFacets = Collections.singletonList(newFacet);
         }
         facets = Lists.newArrayList(Iterables.concat(
-            getFacets().stream()
-                       .filter(f -> f.getType() != newFacet.getType() || !Objects.equals(f.getName(), newFacet.getName()))
-                       .collect(Collectors.toList()),
-            newFacets));
+                getFacets().stream()
+                        .filter(f ->
+                                f.getType() != newFacet.getType() || !Objects.equals(f.getName(), newFacet.getName()))
+                        .collect(Collectors.toList()),
+                newFacets));
     }
 
     /**
@@ -172,7 +171,9 @@ public abstract class EclipseWtpFacet {
      */
     List<Facet> replaceInconsistentFacets(List<Facet> facets) {
         if (facets.stream().anyMatch(f -> "jst.ejb".equals(f.getName()))) {
-            return facets.stream().filter(f -> !"jst.utility".equals(f.getName())).collect(Collectors.toList());
+            return facets.stream()
+                    .filter(f -> !"jst.utility".equals(f.getName()))
+                    .collect(Collectors.toList());
         }
         return facets;
     }

@@ -16,14 +16,13 @@
 
 package org.gradle.integtests.tooling.r68;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class ActionRunsMultipleLevelsOfNestedActions implements BuildAction<List<Models>> {
     @Override
@@ -46,12 +45,11 @@ public class ActionRunsMultipleLevelsOfNestedActions implements BuildAction<List
         @Override
         public Models execute(BuildController controller) {
             List<CustomModel> models = controller.run(Arrays.asList(
-                new ActionRunsNestedActions.GetProjectModel(project),
-                new ActionRunsNestedActions.GetProjectModel(project),
-                new ActionRunsNestedActions.GetProjectModel(project),
-                new ActionRunsNestedActions.GetProjectModel(project),
-                new ActionRunsNestedActions.GetProjectModel(project)
-            ));
+                    new ActionRunsNestedActions.GetProjectModel(project),
+                    new ActionRunsNestedActions.GetProjectModel(project),
+                    new ActionRunsNestedActions.GetProjectModel(project),
+                    new ActionRunsNestedActions.GetProjectModel(project),
+                    new ActionRunsNestedActions.GetProjectModel(project)));
             return new Models(controller.getCanQueryProjectModelInParallel(CustomModel.class), models);
         }
     }

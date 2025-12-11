@@ -34,7 +34,8 @@ import org.jspecify.annotations.Nullable;
  * @see ExternalModuleComponentGraphResolveMetadata
  * @see ComponentArtifactResolveMetadata
  */
-public interface ModuleComponentResolveMetadata extends ExternalComponentResolveMetadata, ExternalModuleComponentGraphResolveMetadata {
+public interface ModuleComponentResolveMetadata
+        extends ExternalComponentResolveMetadata, ExternalModuleComponentGraphResolveMetadata {
     /**
      * {@inheritDoc}
      */
@@ -67,7 +68,8 @@ public interface ModuleComponentResolveMetadata extends ExternalComponentResolve
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 
-    ModuleComponentArtifactMetadata optionalArtifact(String type, @Nullable String extension, @Nullable String classifier);
+    ModuleComponentArtifactMetadata optionalArtifact(
+            String type, @Nullable String extension, @Nullable String classifier);
 
     /**
      * Returns the variants of this component
@@ -90,5 +92,4 @@ public interface ModuleComponentResolveMetadata extends ExternalComponentResolve
      * Default value is true.
      */
     boolean isComponentMetadataRuleCachingEnabled();
-
 }

@@ -15,10 +15,9 @@
  */
 package org.gradle.internal.service;
 
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import org.jspecify.annotations.Nullable;
 
 interface ServiceMethod {
     Class<?> getOwner();

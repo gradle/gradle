@@ -19,13 +19,12 @@ package org.gradle.internal.file;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-
-import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import javax.annotation.CheckReturnValue;
 
 /**
  * An immutable set of directory trees. Intended to be use to efficiently determine whether a particular file is contained in a set of directories or not.
@@ -108,8 +107,7 @@ public abstract class FileHierarchySet {
         }
 
         @Override
-        public void visitRoots(RootVisitor visitor) {
-        }
+        public void visitRoots(RootVisitor visitor) {}
 
         @Override
         public String toString() {
@@ -145,7 +143,6 @@ public abstract class FileHierarchySet {
                     } else {
                         prefixes.add(depth + ":" + node.prefix.replace(File.separatorChar, '/'));
                     }
-
                 }
             });
             return prefixes;

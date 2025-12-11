@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.util.function.Supplier;
 import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
 import org.gradle.internal.hash.Hasher;
-
-import java.util.function.Supplier;
 
 public interface ResourceFilter extends ConfigurableNormalizer {
     ResourceFilter FILTER_NOTHING = new ResourceFilter() {

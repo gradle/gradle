@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import java.util.List;
 import org.gradle.api.file.BuildLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
@@ -52,17 +53,15 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.plugin.internal.PluginScheme;
 import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
 
-import java.util.List;
-
 public class SettingsScopeServices implements ServiceRegistrationProvider {
 
     public static CloseableServiceRegistry create(ServiceRegistry parent, SettingsInternal settings) {
         return ServiceRegistryBuilder.builder()
-            .scopeStrictly(Scope.Settings.class)
-            .displayName("settings services")
-            .parent(parent)
-            .provider(new SettingsScopeServices(settings))
-            .build();
+                .scopeStrictly(Scope.Settings.class)
+                .displayName("settings services")
+                .parent(parent)
+                .provider(new SettingsScopeServices(settings))
+                .build();
     }
 
     private final SettingsInternal settings;
@@ -72,7 +71,8 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected void configure(ServiceRegistration registration, List<GradleModuleServices> gradleModuleServiceProviders) {
+    protected void configure(
+            ServiceRegistration registration, List<GradleModuleServices> gradleModuleServiceProviders) {
         for (GradleModuleServices services : gradleModuleServiceProviders) {
             services.registerSettingsServices(registration);
         }
@@ -96,25 +96,31 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected PluginManagerInternal createPluginManager(
-        Instantiator instantiator,
-        ServiceRegistry settingsScopeServiceRegistry,
-        PluginRegistry pluginRegistry,
-        InstantiatorFactory instantiatorFactory,
-        BuildOperationRunner buildOperationRunner,
-        UserCodeApplicationContext userCodeApplicationContext,
-        CollectionCallbackActionDecorator decorator,
-        DomainObjectCollectionFactory domainObjectCollectionFactory,
-        PluginScheme pluginScheme,
-        ProjectFeatureDeclarations projectFeatureDeclarations,
-        InternalProblems problems
-    ) {
+            Instantiator instantiator,
+            ServiceRegistry settingsScopeServiceRegistry,
+            PluginRegistry pluginRegistry,
+            InstantiatorFactory instantiatorFactory,
+            BuildOperationRunner buildOperationRunner,
+            UserCodeApplicationContext userCodeApplicationContext,
+            CollectionCallbackActionDecorator decorator,
+            DomainObjectCollectionFactory domainObjectCollectionFactory,
+            PluginScheme pluginScheme,
+            ProjectFeatureDeclarations projectFeatureDeclarations,
+            InternalProblems problems) {
         PluginTarget target = new ProjectFeatureDeclarationPluginTarget(
-            new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
-            projectFeatureDeclarations,
-            pluginScheme.getInspectionScheme(),
-            problems
-        );
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(settingsScopeServiceRegistry), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
+                new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
+                projectFeatureDeclarations,
+                pluginScheme.getInspectionScheme(),
+                problems);
+        return instantiator.newInstance(
+                DefaultPluginManager.class,
+                pluginRegistry,
+                instantiatorFactory.inject(settingsScopeServiceRegistry),
+                target,
+                buildOperationRunner,
+                userCodeApplicationContext,
+                decorator,
+                domainObjectCollectionFactory);
     }
 
     @Provides
@@ -123,7 +129,10 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected CacheConfigurationsInternal createCacheConfigurations(ObjectFactory objectFactory, CacheConfigurationsInternal persistentCacheConfigurations, GradleInternal gradleInternal) {
+    protected CacheConfigurationsInternal createCacheConfigurations(
+            ObjectFactory objectFactory,
+            CacheConfigurationsInternal persistentCacheConfigurations,
+            GradleInternal gradleInternal) {
         CacheConfigurationsInternal cacheConfigurations = objectFactory.newInstance(DefaultCacheConfigurations.class);
         if (gradleInternal.isRootBuild()) {
             cacheConfigurations.synchronize(persistentCacheConfigurations);

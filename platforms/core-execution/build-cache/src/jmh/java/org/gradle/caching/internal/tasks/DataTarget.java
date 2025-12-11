@@ -21,5 +21,6 @@ import java.io.OutputStream;
 
 public interface DataTarget extends DataItem {
     OutputStream openOutput() throws IOException;
+
     DataSource toSource() throws IOException;
 }

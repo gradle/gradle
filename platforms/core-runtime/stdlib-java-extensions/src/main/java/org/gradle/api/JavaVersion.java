@@ -24,9 +24,16 @@ import org.jspecify.annotations.Nullable;
  * 9+: http://openjdk.java.net/jeps/223
  */
 public enum JavaVersion {
-    VERSION_1_1, VERSION_1_2, VERSION_1_3, VERSION_1_4,
-    VERSION_1_5, VERSION_1_6, VERSION_1_7, VERSION_1_8,
-    VERSION_1_9, VERSION_1_10,
+    VERSION_1_1,
+    VERSION_1_2,
+    VERSION_1_3,
+    VERSION_1_4,
+    VERSION_1_5,
+    VERSION_1_6,
+    VERSION_1_7,
+    VERSION_1_8,
+    VERSION_1_9,
+    VERSION_1_10,
     /**
      * Java 11 major version.
      *
@@ -191,7 +198,8 @@ public enum JavaVersion {
      * @return The version, or null if the provided value is null.
      * @throws IllegalArgumentException when the provided value cannot be converted.
      */
-    @SuppressWarnings("NullAway") // We cannot annotate it as nullable as it would be a breaking change for Kotlin clients.
+    @SuppressWarnings(
+            "NullAway") // We cannot annotate it as nullable as it would be a breaking change for Kotlin clients.
     public static JavaVersion toVersion(Object value) throws IllegalArgumentException {
         //noinspection ConstantValue
         if (value == null) {
@@ -235,7 +243,6 @@ public enum JavaVersion {
         }
         return forClassVersion(classData[7] & 0xFF);
     }
-
 
     public boolean isJava5() {
         return this == VERSION_1_5;

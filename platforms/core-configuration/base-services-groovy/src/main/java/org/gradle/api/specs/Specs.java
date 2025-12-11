@@ -16,13 +16,12 @@
 package org.gradle.api.specs;
 
 import groovy.lang.Closure;
-import org.gradle.api.specs.internal.ClosureSpec;
-import org.gradle.internal.Cast;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import org.gradle.api.specs.internal.ClosureSpec;
+import org.gradle.internal.Cast;
 
 /**
  * Provides a number of {@link org.gradle.api.specs.Spec} implementations.
@@ -160,5 +159,4 @@ public class Specs {
         }
         return new NotSpec<>(spec);
     }
-
 }

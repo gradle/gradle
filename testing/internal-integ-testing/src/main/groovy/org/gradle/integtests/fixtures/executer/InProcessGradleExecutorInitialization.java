@@ -31,7 +31,8 @@ import spock.lang.Issue;
 public class InProcessGradleExecutorInitialization implements IGlobalExtension {
     @Override
     public void start() {
-        // Check the property without referencing GradleContextualExecuter to avoid loading InProcessGradleExecuter class.
+        // Check the property without referencing GradleContextualExecuter to avoid loading InProcessGradleExecuter
+        // class.
         // Loading InProcessGradleExecuter causes some initialization to happen that fails in some test JVMs
         if (System.getProperty("org.gradle.integtest.executer") != null && IntegrationTestBuildContext.isEmbedded()) {
             // We obtain ObjectFactory, since that initializes AsmBackedClassGenerator.GENERATED_CLASSES_CACHES

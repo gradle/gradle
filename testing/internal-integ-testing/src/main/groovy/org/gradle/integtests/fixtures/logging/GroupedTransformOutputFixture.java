@@ -41,10 +41,9 @@ public class GroupedTransformOutputFixture extends GroupedWorkOutputFixture {
 
     @Override
     public String toString() {
-        return "GroupedTransformOutputFixture{" +
-            "initialSubjectType='" + initialSubjectType + '\'' +
-            ", subject='" + subject + '\'' +
-            ", transformer='" + transformer + '\'' +
-            '}';
+        return "GroupedTransformOutputFixture{" + "initialSubjectType='"
+                + initialSubjectType + '\'' + ", subject='"
+                + subject + '\'' + ", transformer='"
+                + transformer + '\'' + '}';
     }
 }

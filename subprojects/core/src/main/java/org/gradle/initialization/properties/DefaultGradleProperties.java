@@ -17,10 +17,9 @@
 package org.gradle.initialization.properties;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 public class DefaultGradleProperties implements GradleProperties {
 
@@ -48,7 +47,7 @@ public class DefaultGradleProperties implements GradleProperties {
     @Override
     public Map<String, String> getPropertiesWithPrefix(String prefix) {
         return properties.entrySet().stream()
-            .filter(entry -> entry.getKey().startsWith(prefix))
-            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+                .filter(entry -> entry.getKey().startsWith(prefix))
+                .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

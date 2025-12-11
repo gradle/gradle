@@ -16,6 +16,11 @@
 
 package org.gradle.internal.operations;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.internal.SystemProperties;
@@ -26,12 +31,6 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.work.WorkerLimits;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
@@ -41,17 +40,20 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final CurrentBuildOperationRef currentBuildOperationRef;
 
     public DefaultBuildOperationExecutor(
-        BuildOperationRunner buildOperationRunner,
-        CurrentBuildOperationRef currentBuildOperationRef,
-        BuildOperationQueueFactory buildOperationQueueFactory,
-        ExecutorFactory executorFactory,
-        WorkerLimits workerLimits
-    ) {
+            BuildOperationRunner buildOperationRunner,
+            CurrentBuildOperationRef currentBuildOperationRef,
+            BuildOperationQueueFactory buildOperationQueueFactory,
+            ExecutorFactory executorFactory,
+            WorkerLimits workerLimits) {
         this.runner = buildOperationRunner;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
-        managedExecutors.put(BuildOperationConstraint.MAX_WORKERS, executorFactory.create("Build operations", workerLimits.getMaxWorkerCount()));
-        managedExecutors.put(BuildOperationConstraint.UNCONSTRAINED, executorFactory.create("Unconstrained build operations", workerLimits.getMaxWorkerCount() * 10));
+        managedExecutors.put(
+                BuildOperationConstraint.MAX_WORKERS,
+                executorFactory.create("Build operations", workerLimits.getMaxWorkerCount()));
+        managedExecutors.put(
+                BuildOperationConstraint.UNCONSTRAINED,
+                executorFactory.create("Unconstrained build operations", workerLimits.getMaxWorkerCount() * 10));
     }
 
     @Override
@@ -60,27 +62,34 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     @Override
-    public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
+    public <O extends RunnableBuildOperation> void runAll(
+            Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
         executeInParallel(false, RunnableBuildOperation::run, schedulingAction, buildOperationConstraint);
     }
 
     @Override
-    public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction) {
+    public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(
+            Action<BuildOperationQueue<O>> schedulingAction) {
         runAllWithAccessToProjectState(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
     }
 
     @Override
-    public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
+    public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(
+            Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
         executeInParallel(true, RunnableBuildOperation::run, schedulingAction, buildOperationConstraint);
     }
 
     @Override
-    public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
+    public <O extends BuildOperation> void runAll(
+            BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
         runAll(worker, schedulingAction, BuildOperationConstraint.MAX_WORKERS);
     }
 
     @Override
-    public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
+    public <O extends BuildOperation> void runAll(
+            BuildOperationWorker<O> worker,
+            Action<BuildOperationQueue<O>> schedulingAction,
+            BuildOperationConstraint buildOperationConstraint) {
         executeInParallel(false, worker, schedulingAction, buildOperationConstraint);
     }
 
@@ -90,24 +99,23 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     private <O extends BuildOperation> void executeInParallel(
-        boolean allowAccessToProjectState,
-        BuildOperationWorker<O> worker,
-        Action<BuildOperationQueue<O>> queueAction,
-        BuildOperationConstraint buildOperationConstraint
-    ) {
+            boolean allowAccessToProjectState,
+            BuildOperationWorker<O> worker,
+            Action<BuildOperationQueue<O>> queueAction,
+            BuildOperationConstraint buildOperationConstraint) {
         ManagedExecutor executor = managedExecutors.get(buildOperationConstraint);
         BuildOperationQueue<O> queue = buildOperationQueueFactory.create(
-            executor,
-            allowAccessToProjectState,
-            operation -> runner.execute(operation, worker),
-            getCurrentBuildOperation()
-        );
+                executor,
+                allowAccessToProjectState,
+                operation -> runner.execute(operation, worker),
+                getCurrentBuildOperation());
 
         List<GradleException> failures = new ArrayList<>();
         try {
             queueAction.execute(queue);
         } catch (Exception e) {
-            failures.add(new BuildOperationQueueFailure("There was a failure while populating the build operation queue: " + e.getMessage(), e));
+            failures.add(new BuildOperationQueueFailure(
+                    "There was a failure while populating the build operation queue: " + e.getMessage(), e));
             queue.cancel();
         }
 
@@ -126,8 +134,8 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     private static String formatMultipleFailureMessage(List<GradleException> failures) {
         return failures.stream()
-            .map(Throwable::getMessage)
-            .collect(Collectors.joining(LINE_SEPARATOR + "AND" + LINE_SEPARATOR));
+                .map(Throwable::getMessage)
+                .collect(Collectors.joining(LINE_SEPARATOR + "AND" + LINE_SEPARATOR));
     }
 
     @Override
@@ -136,5 +144,4 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             pool.stop();
         }
     }
-
 }

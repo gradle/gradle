@@ -16,11 +16,7 @@
 
 package org.gradle.util;
 
-import org.gradle.internal.SystemProperties;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -28,8 +24,11 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.StringReader;
 import java.util.regex.Pattern;
-
-import static org.hamcrest.CoreMatchers.equalTo;
+import org.gradle.internal.SystemProperties;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 
 public class Matchers {
 
@@ -37,7 +36,9 @@ public class Matchers {
         return new BaseMatcher<T>() {
             @Override
             public boolean matches(Object o) {
-                return Pattern.compile(pattern, Pattern.DOTALL).matcher((CharSequence) o).matches();
+                return Pattern.compile(pattern, Pattern.DOTALL)
+                        .matcher((CharSequence) o)
+                        .matches();
             }
 
             @Override
@@ -67,6 +68,7 @@ public class Matchers {
             public boolean matches(Object o) {
                 return ((String) o).contains(pattern);
             }
+
             @Override
             public void describeTo(Description description) {
                 description.appendText("a CharSequence that contains text ").appendValue(pattern);
@@ -193,7 +195,8 @@ public class Matchers {
             @Override
             public boolean matches(Object o) {
                 String string = (String) o;
-                return matcher.matches(string.replace(SystemProperties.getInstance().getLineSeparator(), "\n"));
+                return matcher.matches(
+                        string.replace(SystemProperties.getInstance().getLineSeparator(), "\n"));
             }
 
             @Override
@@ -207,5 +210,4 @@ public class Matchers {
     public static Matcher<String> containsNormalizedString(String substring) {
         return normalizedLineSeparators(CoreMatchers.containsString(substring));
     }
-
 }

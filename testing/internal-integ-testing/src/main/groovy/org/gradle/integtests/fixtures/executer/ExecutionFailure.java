@@ -15,11 +15,10 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import org.hamcrest.Matcher;
+import static org.hamcrest.CoreMatchers.startsWith;
 
 import java.util.function.Consumer;
-
-import static org.hamcrest.CoreMatchers.startsWith;
+import org.hamcrest.Matcher;
 
 public interface ExecutionFailure extends ExecutionResult {
     /**

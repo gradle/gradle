@@ -17,6 +17,9 @@ package org.gradle.plugins.ide.eclipse.internal;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -26,21 +29,25 @@ import org.gradle.plugins.ide.eclipse.model.Link;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.plugins.ide.eclipse.model.internal.SourceFoldersCreator;
 
-import java.io.File;
-import java.util.List;
-import java.util.Set;
-
 public class LinkedResourcesCreator {
     public Set<Link> links(final Project project) {
-        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-        EclipseClasspath classpath = project.getExtensions().getByType(EclipseModel.class).getClasspath();
-        File defaultOutputDir = classpath == null ? project.file(EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH) : classpath.getDefaultOutputDir();
-        List<SourceFolder> sourceFolders = new SourceFoldersCreator().getBasicExternalSourceFolders(sourceSets, new Function<File, String>() {
-            @Override
-            public String apply(File dir) {
-                return project.relativePath(dir);
-            }
-        }, defaultOutputDir);
+        SourceSetContainer sourceSets =
+                project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+        EclipseClasspath classpath =
+                project.getExtensions().getByType(EclipseModel.class).getClasspath();
+        File defaultOutputDir = classpath == null
+                ? project.file(EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH)
+                : classpath.getDefaultOutputDir();
+        List<SourceFolder> sourceFolders = new SourceFoldersCreator()
+                .getBasicExternalSourceFolders(
+                        sourceSets,
+                        new Function<File, String>() {
+                            @Override
+                            public String apply(File dir) {
+                                return project.relativePath(dir);
+                            }
+                        },
+                        defaultOutputDir);
         Set<Link> links = Sets.newLinkedHashSetWithExpectedSize(sourceFolders.size());
         for (SourceFolder sourceFolder : sourceFolders) {
             links.add(new Link(sourceFolder.getName(), "2", sourceFolder.getAbsolutePath(), null));

@@ -52,18 +52,19 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     private final AttributeDesugaring attributeDesugaring;
     private final ResolveExceptionMapper exceptionMapper;
 
-    public DefaultConfigurationServicesBundle(BuildOperationRunner buildOperationRunner,
-                                              ProjectStateRegistry projectStateRegistry,
-                                              CalculatedValueContainerFactory calculatedValueContainerFactory,
-                                              ObjectFactory objectFactory,
-                                              FileCollectionFactory fileCollectionFactory,
-                                              TaskDependencyFactory taskDependencyFactory,
-                                              AttributesFactory attributesFactory,
-                                              DomainObjectCollectionFactory domainObjectCollectionFactory,
-                                              CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-                                              InternalProblems problems,
-                                              AttributeDesugaring attributeDesugaring,
-                                              ResolveExceptionMapper exceptionMapper) {
+    public DefaultConfigurationServicesBundle(
+            BuildOperationRunner buildOperationRunner,
+            ProjectStateRegistry projectStateRegistry,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
+            ObjectFactory objectFactory,
+            FileCollectionFactory fileCollectionFactory,
+            TaskDependencyFactory taskDependencyFactory,
+            AttributesFactory attributesFactory,
+            DomainObjectCollectionFactory domainObjectCollectionFactory,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+            InternalProblems problems,
+            AttributeDesugaring attributeDesugaring,
+            ResolveExceptionMapper exceptionMapper) {
         this.buildOperationRunner = buildOperationRunner;
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;

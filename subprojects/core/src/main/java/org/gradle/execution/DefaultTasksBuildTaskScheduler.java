@@ -15,6 +15,8 @@
  */
 package org.gradle.execution;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -26,9 +28,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * A {@link BuildTaskScheduler} that selects the default tasks for a project, or if none are defined, the 'help' task.
  */
@@ -38,21 +37,24 @@ public class DefaultTasksBuildTaskScheduler implements BuildTaskScheduler {
     private final List<BuiltInCommand> builtInCommands;
     private final BuildTaskScheduler delegate;
 
-    public DefaultTasksBuildTaskScheduler(ProjectConfigurer projectConfigurer, List<BuiltInCommand> builtInCommands, BuildTaskScheduler delegate) {
+    public DefaultTasksBuildTaskScheduler(
+            ProjectConfigurer projectConfigurer, List<BuiltInCommand> builtInCommands, BuildTaskScheduler delegate) {
         this.projectConfigurer = projectConfigurer;
         this.builtInCommands = builtInCommands;
         this.delegate = delegate;
     }
 
     @Override
-    public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
+    public void scheduleRequestedTasks(
+            GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
         StartParameter startParameter = gradle.getStartParameter();
 
-        if (startParameter.getTaskRequests().size() == 1 && startParameter.getTaskRequests().get(0) instanceof RunDefaultTasksExecutionRequest) {
+        if (startParameter.getTaskRequests().size() == 1
+                && startParameter.getTaskRequests().get(0) instanceof RunDefaultTasksExecutionRequest) {
             // Gather the default tasks from this first group project
             ProjectInternal project = gradle.getDefaultProject();
 
-            //so that we don't miss out default tasks
+            // so that we don't miss out default tasks
             projectConfigurer.configure(project);
 
             List<String> defaultTasks = project.getDefaultTasks();

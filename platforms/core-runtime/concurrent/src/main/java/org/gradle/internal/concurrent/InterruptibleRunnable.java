@@ -16,10 +16,9 @@
 
 package org.gradle.internal.concurrent;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Wraps a runnable so that it can be interrupted. Useful when {@link java.util.concurrent.Future} is not available or its behavior is not desired.

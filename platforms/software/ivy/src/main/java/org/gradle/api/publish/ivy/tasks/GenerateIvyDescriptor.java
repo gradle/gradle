@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.ivy.tasks;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -31,9 +33,6 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 
-import javax.inject.Inject;
-import java.io.File;
-
 /**
  * Generates an Ivy XML Module Descriptor file.
  *
@@ -43,7 +42,8 @@ import java.io.File;
 public abstract class GenerateIvyDescriptor extends DefaultTask {
 
     private Transient.Var<IvyModuleDescriptorSpec> descriptor = Transient.varOf();
-    private final Cached<IvyDescriptorFileGenerator.DescriptorFileSpec> ivyDescriptorSpec = Cached.of(this::computeIvyDescriptorFileSpec);
+    private final Cached<IvyDescriptorFileGenerator.DescriptorFileSpec> ivyDescriptorSpec =
+            Cached.of(this::computeIvyDescriptorFileSpec);
 
     private Object destination;
 
@@ -107,20 +107,17 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
         return IvyDescriptorFileGenerator.generateSpec(descriptorInternal);
     }
 
-    private static IvyModuleDescriptorSpecInternal toIvyModuleDescriptorInternal(IvyModuleDescriptorSpec ivyModuleDescriptorSpec) {
+    private static IvyModuleDescriptorSpecInternal toIvyModuleDescriptorInternal(
+            IvyModuleDescriptorSpec ivyModuleDescriptorSpec) {
         if (ivyModuleDescriptorSpec == null) {
             return null;
         } else if (ivyModuleDescriptorSpec instanceof IvyModuleDescriptorSpecInternal) {
             return (IvyModuleDescriptorSpecInternal) ivyModuleDescriptorSpec;
         } else {
-            throw new InvalidUserDataException(
-                String.format(
+            throw new InvalidUserDataException(String.format(
                     "ivyModuleDescriptor implementations must implement the '%s' interface, implementation '%s' does not",
                     IvyModuleDescriptorSpecInternal.class.getName(),
-                    ivyModuleDescriptorSpec.getClass().getName()
-                )
-            );
+                    ivyModuleDescriptorSpec.getClass().getName()));
         }
     }
-
 }

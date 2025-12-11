@@ -16,10 +16,9 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.api.Named;
-
 import java.util.Arrays;
 import java.util.Collection;
+import org.gradle.api.Named;
 
 public final class BuildType implements Named {
     public static final BuildType DEBUG = new BuildType("debug", true, false);

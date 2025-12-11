@@ -26,5 +26,4 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD})
-public @interface BytecodeUpgrade {
-}
+public @interface BytecodeUpgrade {}

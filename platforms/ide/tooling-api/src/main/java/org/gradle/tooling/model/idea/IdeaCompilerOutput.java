@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.model.idea;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
+import org.jspecify.annotations.Nullable;
 
 /**
  * IDEA compiler output settings.

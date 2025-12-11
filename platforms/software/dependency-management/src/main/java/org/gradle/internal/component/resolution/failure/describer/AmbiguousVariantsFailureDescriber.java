@@ -16,6 +16,12 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import static org.gradle.internal.exceptions.StyledException.style;
+
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import javax.inject.Inject;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
@@ -26,40 +32,36 @@ import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFa
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import javax.inject.Inject;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import static org.gradle.internal.exceptions.StyledException.style;
-
 /**
  * A {@link ResolutionFailureDescriber} that describes a generic {@link AmbiguousVariantsFailure}.
  */
-public abstract class AmbiguousVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousVariantsFailure> {
+public abstract class AmbiguousVariantsFailureDescriber
+        extends AbstractResolutionFailureDescriber<AmbiguousVariantsFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
     private final AttributeDescriberRegistry attributeDescribers;
 
     @Inject
-    public AmbiguousVariantsFailureDescriber(
-        AttributeDescriberRegistry attributeDescribers
-    ) {
+    public AmbiguousVariantsFailureDescriber(AttributeDescriberRegistry attributeDescribers) {
         this.attributeDescribers = attributeDescribers;
     }
 
     @Override
     public VariantSelectionByAttributesException describeFailure(AmbiguousVariantsFailure failure) {
         String message = buildFailureMsg(failure, attributeDescribers.getDescribers());
-        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
+        List<String> resolutions = buildResolutions(
+                suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION),
+                suggestReviewAlgorithm());
         return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
 
     protected String buildFailureMsg(AmbiguousVariantsFailure failure, List<AttributeDescriber> attributeDescribers) {
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), attributeDescribers);
+        AttributeDescriber describer =
+                AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), attributeDescribers);
         TreeFormatter formatter = new TreeFormatter();
-        Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = summarizeAmbiguousVariants(failure, describer, formatter, true);
+        Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants =
+                summarizeAmbiguousVariants(failure, describer, formatter, true);
 
         // We're sorting the names of the variants and later attributes
         // to make sure the output is consistently the same between invocations
@@ -72,7 +74,11 @@ public abstract class AmbiguousVariantsFailureDescriber extends AbstractResoluti
         return formatter.toString();
     }
 
-    protected Map<String, ResolutionCandidateAssessor.AssessedCandidate> summarizeAmbiguousVariants(AmbiguousVariantsFailure failure, AttributeDescriber describer, TreeFormatter formatter, boolean listAvailableVariants) {
+    protected Map<String, ResolutionCandidateAssessor.AssessedCandidate> summarizeAmbiguousVariants(
+            AmbiguousVariantsFailure failure,
+            AttributeDescriber describer,
+            TreeFormatter formatter,
+            boolean listAvailableVariants) {
         Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = new TreeMap<>();
         for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
             ambiguousVariants.put(candidate.getDisplayName(), candidate);
@@ -80,7 +86,9 @@ public abstract class AmbiguousVariantsFailureDescriber extends AbstractResoluti
         if (failure.getRequestedAttributes().isEmpty()) {
             formatter.node("Cannot choose between the available variants of ");
         } else {
-            String node = "The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap());
+            String node = "The consumer was configured to find "
+                    + describer.describeAttributeSet(
+                            failure.getRequestedAttributes().asMap());
             if (listAvailableVariants) {
                 node = node + ". However we cannot choose between the following variants of ";
             } else {
@@ -101,14 +109,15 @@ public abstract class AmbiguousVariantsFailureDescriber extends AbstractResoluti
     }
 
     private void formatUnselectable(
-        ResolutionCandidateAssessor.AssessedCandidate assessedCandidate,
-        TreeFormatter formatter,
-        AttributeDescriber describer
-    ) {
+            ResolutionCandidateAssessor.AssessedCandidate assessedCandidate,
+            TreeFormatter formatter,
+            AttributeDescriber describer) {
         formatter.node("Variant '");
         formatter.append(assessedCandidate.getDisplayName());
         formatter.append("'");
-        formatter.append(" " + CapabilitiesDescriber.describeCapabilitiesWithTitle(assessedCandidate.getCandidateCapabilities().asSet()));
+        formatter.append(" "
+                + CapabilitiesDescriber.describeCapabilitiesWithTitle(
+                        assessedCandidate.getCandidateCapabilities().asSet()));
 
         formatAttributeMatchesForAmbiguity(assessedCandidate, formatter, describer);
     }

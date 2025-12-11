@@ -17,22 +17,22 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
+import java.lang.annotation.Annotation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-
-import java.lang.annotation.Annotation;
 
 public class NoOpPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public NoOpPropertyAnnotationHandler(Class<? extends Annotation> annotationType) {
         super(annotationType, Kind.OTHER, ImmutableSet.of(ReplacesEagerProperty.class));
     }
+
     @Override
     public boolean isPropertyRelevant() {
         return false;
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
-    }
+    public void visitPropertyValue(
+            String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {}
 }

@@ -69,12 +69,11 @@ final class DefaultExcludeAllOf extends DefaultCompositeExclude implements Exclu
         }
         mayExcludeArtifacts = true;
         for (ExcludeSpec component : getComponents()) {
-           if (!component.mayExcludeArtifacts()) {
-               mayExcludeArtifacts = false;
-               break;
-           }
+            if (!component.mayExcludeArtifacts()) {
+                mayExcludeArtifacts = false;
+                break;
+            }
         }
         return mayExcludeArtifacts;
     }
-
 }

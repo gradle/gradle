@@ -27,5 +27,4 @@ import org.gradle.internal.typeconversion.NotationParser;
  * This concrete type is necessary so that it can be injected into version catalog generated sources.
  */
 @ServiceScope(Scope.Build.class)
-public interface CapabilityNotationParser extends NotationParser<Object, Capability> {
-}
+public interface CapabilityNotationParser extends NotationParser<Object, Capability> {}

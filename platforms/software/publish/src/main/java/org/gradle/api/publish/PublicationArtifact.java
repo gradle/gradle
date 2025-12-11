@@ -16,9 +16,8 @@
 
 package org.gradle.api.publish;
 
-import org.gradle.api.Buildable;
-
 import java.io.File;
+import org.gradle.api.Buildable;
 
 /**
  * An artifact published as part of a {@link Publication}.

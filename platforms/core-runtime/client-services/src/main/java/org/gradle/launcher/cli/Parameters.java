@@ -25,7 +25,8 @@ public class Parameters {
     private final DaemonParameters daemonParameters;
     private final AllProperties properties;
 
-    public Parameters(StartParameterInternal startParameter, DaemonParameters daemonParameters, AllProperties properties) {
+    public Parameters(
+            StartParameterInternal startParameter, DaemonParameters daemonParameters, AllProperties properties) {
         this.startParameter = startParameter;
         this.daemonParameters = daemonParameters;
         this.properties = properties;

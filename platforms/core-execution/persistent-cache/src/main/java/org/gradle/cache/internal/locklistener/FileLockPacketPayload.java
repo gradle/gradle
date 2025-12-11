@@ -16,9 +16,9 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.UncheckedException;
+import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNKNOWN;
 
+import com.google.common.collect.ImmutableList;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -26,8 +26,7 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-
-import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNKNOWN;
+import org.gradle.internal.UncheckedException;
 
 public class FileLockPacketPayload {
 
@@ -70,7 +69,8 @@ public class FileLockPacketPayload {
             DataInputStream dataInput = new DataInputStream(new ByteArrayInputStream(bytes));
             byte version = dataInput.readByte();
             if (version != PROTOCOL_VERSION) {
-                throw new IllegalArgumentException(String.format("Unexpected protocol version %s received in lock contention notification message", version));
+                throw new IllegalArgumentException(String.format(
+                        "Unexpected protocol version %s received in lock contention notification message", version));
             }
             long lockId = dataInput.readLong();
             FileLockPacketType type = readType(dataInput, length);
@@ -95,5 +95,4 @@ public class FileLockPacketPayload {
         }
         return UNKNOWN;
     }
-
 }

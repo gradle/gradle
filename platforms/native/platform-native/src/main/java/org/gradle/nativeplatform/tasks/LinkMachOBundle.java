@@ -33,6 +33,5 @@ public abstract class LinkMachOBundle extends AbstractLinkTask {
         return new LinkMachOBundle.Spec();
     }
 
-    private static class Spec extends DefaultLinkerSpec implements BundleLinkerSpec {
-    }
+    private static class Spec extends DefaultLinkerSpec implements BundleLinkerSpec {}
 }

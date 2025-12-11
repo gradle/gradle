@@ -17,6 +17,9 @@
 package org.gradle.internal.reflect.annotations.impl;
 
 import com.google.common.collect.ImmutableMap;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
@@ -24,14 +27,12 @@ import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-public class DefaultPropertyAnnotationMetadata extends AbstractHasAnnotationMetadata implements PropertyAnnotationMetadata {
+public class DefaultPropertyAnnotationMetadata extends AbstractHasAnnotationMetadata
+        implements PropertyAnnotationMetadata {
     private final String propertyName;
 
-    public DefaultPropertyAnnotationMetadata(String propertyName, Method getter, ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory) {
+    public DefaultPropertyAnnotationMetadata(
+            String propertyName, Method getter, ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory) {
         super(getter, annotationsByCategory);
         this.propertyName = propertyName;
     }
@@ -54,7 +55,13 @@ public class DefaultPropertyAnnotationMetadata extends AbstractHasAnnotationMeta
         } catch (InvocationTargetException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not call %s.%s() on %s", getMethod().getDeclaringClass().getSimpleName(), getMethod().getName(), object), e);
+            throw new GradleException(
+                    String.format(
+                            "Could not call %s.%s() on %s",
+                            getMethod().getDeclaringClass().getSimpleName(),
+                            getMethod().getName(),
+                            object),
+                    e);
         }
     }
 

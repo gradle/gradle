@@ -17,10 +17,9 @@
 package org.gradle.language.objectivec;
 
 import org.gradle.api.Incubating;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
-
 
 /**
  * A set of Objective-C source files.
@@ -52,6 +51,4 @@ import org.gradle.language.base.LanguageSourceSet;
  * </pre>
  */
 @Incubating
-public interface ObjectiveCSourceSet extends HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
-
-}
+public interface ObjectiveCSourceSet extends HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {}

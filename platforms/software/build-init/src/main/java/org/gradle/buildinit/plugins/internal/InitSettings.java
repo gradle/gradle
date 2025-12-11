@@ -16,6 +16,10 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import static java.util.Collections.singletonList;
+
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.buildinit.InsecureProtocolOption;
@@ -24,11 +28,6 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Optional;
-
-import static java.util.Collections.singletonList;
 
 public class InitSettings {
 
@@ -43,22 +42,47 @@ public class InitSettings {
     private final ModularizationOption modularizationOption;
     private final Directory target;
     private final InsecureProtocolOption insecureProtocolOption;
+
     @Nullable
     private final JavaLanguageVersion javaLanguageVersion;
+
     private final boolean comments;
 
     public InitSettings(
-        String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
-        BuildInitDsl dsl, @Nullable String packageName, BuildInitTestFramework testFramework, Directory target
-    ) {
-        this(projectName, useIncubatingAPIs, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, null, true);
+            String projectName,
+            boolean useIncubatingAPIs,
+            List<String> subprojects,
+            ModularizationOption modularizationOption,
+            BuildInitDsl dsl,
+            @Nullable String packageName,
+            BuildInitTestFramework testFramework,
+            Directory target) {
+        this(
+                projectName,
+                useIncubatingAPIs,
+                subprojects,
+                modularizationOption,
+                dsl,
+                packageName,
+                testFramework,
+                InsecureProtocolOption.WARN,
+                target,
+                null,
+                true);
     }
 
     public InitSettings(
-        String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
-        BuildInitDsl dsl, @Nullable String packageName, BuildInitTestFramework testFramework, InsecureProtocolOption insecureProtocolOption, Directory target,
-        @Nullable JavaLanguageVersion javaLanguageVersion, boolean comments
-    ) {
+            String projectName,
+            boolean useIncubatingAPIs,
+            List<String> subprojects,
+            ModularizationOption modularizationOption,
+            BuildInitDsl dsl,
+            @Nullable String packageName,
+            BuildInitTestFramework testFramework,
+            InsecureProtocolOption insecureProtocolOption,
+            Directory target,
+            @Nullable JavaLanguageVersion javaLanguageVersion,
+            boolean comments) {
         this.projectName = projectName;
         this.useIncubatingAPIs = useIncubatingAPIs;
         this.subprojects = getSubprojects(subprojects, modularizationOption);

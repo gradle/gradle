@@ -30,5 +30,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
-public @interface ListenerService {
-}
+public @interface ListenerService {}

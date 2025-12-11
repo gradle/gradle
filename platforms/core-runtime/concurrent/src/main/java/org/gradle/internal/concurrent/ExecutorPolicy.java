@@ -16,13 +16,12 @@
 
 package org.gradle.internal.concurrent;
 
-import org.gradle.internal.UncheckedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
+import org.gradle.internal.UncheckedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Controls the behavior of an executor when a task is executed and an executor is stopped.
@@ -74,7 +73,7 @@ public interface ExecutorPolicy {
             } catch (Exception exception) {
                 onFailure(String.format("Failed to execute %s.", command), exception);
                 throw exception;
-            } catch(Throwable throwable) {
+            } catch (Throwable throwable) {
                 onFailure(String.format("Failed to execute %s.", command), throwable);
                 throw new UndeclaredThrowableException(throwable);
             }

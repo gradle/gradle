@@ -16,16 +16,14 @@
 
 package org.gradle.problems.buildtree;
 
+import java.io.File;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 /**
  * A service that collects problems of some type during the execution of Gradle for a build tree and reports them to the user
  * in some form.
  */
-
 @ServiceScope({Scope.Global.class, Scope.BuildTree.class})
 public interface ProblemReporter {
     interface ProblemConsumer {

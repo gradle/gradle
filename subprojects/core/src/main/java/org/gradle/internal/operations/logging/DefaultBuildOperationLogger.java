@@ -16,19 +16,18 @@
 
 package org.gradle.internal.operations.logging;
 
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.logging.ConsoleRenderer;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.newOutputStream;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.newOutputStream;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.logging.ConsoleRenderer;
 
 class DefaultBuildOperationLogger implements BuildOperationLogger {
     private final BuildOperationLogInfo configuration;
@@ -52,7 +51,9 @@ class DefaultBuildOperationLogger implements BuildOperationLogger {
     public void start() {
         assert !started;
         logWriter = createWriter(outputFile);
-        logInBoth(LogLevel.INFO, String.format("See %s for all output for %s.", getLogLocation(), configuration.getTaskName()));
+        logInBoth(
+                LogLevel.INFO,
+                String.format("See %s for all output for %s.", getLogLocation(), configuration.getTaskName()));
         started = true;
     }
 
@@ -86,9 +87,15 @@ class DefaultBuildOperationLogger implements BuildOperationLogger {
         try {
             int suppressedCount = numberOfFailedOperationsSeen - configuration.getMaximumFailedOperationsShown();
             if (suppressedCount > 0) {
-                logger.log(LogLevel.ERROR, String.format("...output for %d more failed operation(s) continued in %s.", suppressedCount, getLogLocation()));
+                logger.log(
+                        LogLevel.ERROR,
+                        String.format(
+                                "...output for %d more failed operation(s) continued in %s.",
+                                suppressedCount, getLogLocation()));
             }
-            logInBoth(LogLevel.INFO, String.format("Finished %s, see full log %s.", configuration.getTaskName(), getLogLocation()));
+            logInBoth(
+                    LogLevel.INFO,
+                    String.format("Finished %s, see full log %s.", configuration.getTaskName(), getLogLocation()));
         } finally {
             IoActions.closeQuietly(logWriter);
             started = false;

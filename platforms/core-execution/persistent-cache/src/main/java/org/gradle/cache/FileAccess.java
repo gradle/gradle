@@ -30,7 +30,8 @@ public interface FileAccess {
      * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (i.e. {@link #writeFile(Runnable)} has never been called)
      * @throws InsufficientLockModeException If the held lock is not at least a shared lock (e.g. LockMode.NONE)
      */
-    <T> T readFile(Callable<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException;
+    <T> T readFile(Callable<? extends T> action)
+            throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException;
 
     /**
      * Runs the given action under a shared or exclusive lock on the target file.
@@ -40,7 +41,8 @@ public interface FileAccess {
      * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (i.e. {@link #writeFile(Runnable)} has never been called)
      * @throws InsufficientLockModeException If the held lock is not at least a shared lock (e.g. LockMode.NONE)
      */
-    <T> T readFile(Supplier<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException;
+    <T> T readFile(Supplier<? extends T> action)
+            throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException;
 
     /**
      * Runs the given action under an exclusive lock on the target file. If the given action fails, the lock is marked as uncleanly unlocked.
@@ -50,7 +52,8 @@ public interface FileAccess {
      * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (i.e. {@link #writeFile(Runnable)} has never been called)
      * @throws InsufficientLockModeException If the held lock is not an exclusive lock.
      */
-    void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException;
+    void updateFile(Runnable action)
+            throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException;
 
     /**
      * Runs the given action under an exclusive lock on the target file, without checking its integrity. If the given action fails, the lock is marked as uncleanly unlocked.
@@ -64,5 +67,4 @@ public interface FileAccess {
      * @throws InsufficientLockModeException If the held lock is not an exclusive lock.
      */
     void writeFile(Runnable action) throws LockTimeoutException, InsufficientLockModeException;
-
 }

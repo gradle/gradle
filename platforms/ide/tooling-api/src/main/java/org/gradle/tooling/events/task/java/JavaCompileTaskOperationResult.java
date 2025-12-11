@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.events.task.java;
 
-import org.gradle.tooling.events.task.TaskOperationResult;
-import org.jspecify.annotations.Nullable;
-
 import java.time.Duration;
 import java.util.List;
+import org.gradle.tooling.events.task.TaskOperationResult;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Describes the result of a {@code JavaCompile} task.
@@ -76,5 +75,4 @@ public interface JavaCompileTaskOperationResult extends TaskOperationResult {
             UNKNOWN
         }
     }
-
 }

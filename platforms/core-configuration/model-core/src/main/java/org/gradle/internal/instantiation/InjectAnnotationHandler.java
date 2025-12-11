@@ -16,10 +16,9 @@
 
 package org.gradle.internal.instantiation;
 
+import java.lang.annotation.Annotation;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.lang.annotation.Annotation;
 
 /**
  * Responsible for defining the behaviour of a particular annotation used for injection.

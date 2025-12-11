@@ -16,5 +16,4 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-public class ScalaCompilerInterfaceSpec {
-}
+public class ScalaCompilerInterfaceSpec {}

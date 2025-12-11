@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.artifacts;
 
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Set;
 
 /**
  * A registry for artifact transforms.
@@ -38,7 +37,8 @@ public interface VariantTransformRegistry {
      *
      * @see TransformAction
      */
-    <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
+    <T extends TransformParameters> void registerTransform(
+            Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
     /**
      * Returns a set of all the registered transforms.

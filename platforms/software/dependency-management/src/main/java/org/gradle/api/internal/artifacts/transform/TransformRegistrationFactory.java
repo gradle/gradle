@@ -26,5 +26,9 @@ import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Project.class)
 public interface TransformRegistrationFactory {
-    TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject);
+    TransformRegistration create(
+            ImmutableAttributes from,
+            ImmutableAttributes to,
+            Class<? extends TransformAction<?>> implementation,
+            @Nullable TransformParameters parameterObject);
 }

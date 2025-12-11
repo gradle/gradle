@@ -16,10 +16,9 @@
 
 package org.gradle.internal.enterprise;
 
+import java.util.List;
 import org.gradle.operations.problems.Failure;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Used to signal the end of build to the plugin.
@@ -67,5 +66,4 @@ public interface GradleEnterprisePluginEndOfBuildListener {
     }
 
     void buildFinished(BuildResult buildResult);
-
 }

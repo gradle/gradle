@@ -16,11 +16,10 @@
 
 package org.gradle.initialization;
 
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 public class DefaultBuildCancellationToken implements BuildCancellationToken {
 

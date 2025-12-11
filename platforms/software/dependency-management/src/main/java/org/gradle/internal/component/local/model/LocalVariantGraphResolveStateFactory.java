@@ -32,5 +32,4 @@ public interface LocalVariantGraphResolveStateFactory {
      * by this method may not be suitable for selection via attribute matching.</p>
      */
     void visitConsumableVariants(Consumer<LocalVariantGraphResolveState> visitor);
-
 }

@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple;
 
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
 import org.gradle.internal.component.model.IvyArtifactName;
-
-import java.util.Set;
 
 final class DefaultModuleSetExclude implements ModuleSetExclude {
     private final Set<String> modules;
@@ -42,7 +41,6 @@ final class DefaultModuleSetExclude implements ModuleSetExclude {
         DefaultModuleSetExclude that = (DefaultModuleSetExclude) o;
 
         return modules.equals(that.modules);
-
     }
 
     @Override

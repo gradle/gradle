@@ -210,7 +210,7 @@ public interface JavaPluginExtension {
     Object sourceSets(@SuppressWarnings("rawtypes") Closure closure);
 
     /**
-     Configures the source sets of this project.
+     * Configures the source sets of this project.
      *
      * <p>The given action is executed to configure the {@link SourceSetContainer}.
      * <p>

@@ -16,12 +16,12 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.internal.operations.BuildOperationType;
-
 import java.io.File;
 import java.time.Instant;
+import org.gradle.internal.operations.BuildOperationType;
 
-public final class CacheCleanupBuildOperationType implements BuildOperationType<CacheCleanupBuildOperationType.Details, CacheCleanupBuildOperationType.Result> {
+public final class CacheCleanupBuildOperationType
+        implements BuildOperationType<CacheCleanupBuildOperationType.Details, CacheCleanupBuildOperationType.Result> {
 
     /**
      * Sent when the cache is cleaned up.
@@ -49,5 +49,4 @@ public final class CacheCleanupBuildOperationType implements BuildOperationType<
          */
         Instant getPreviousCleanupTime();
     }
-
 }

@@ -40,7 +40,8 @@ public class LogAndCheckHealth implements DaemonCommandAction {
     }
 
     @VisibleForTesting
-    LogAndCheckHealth(DaemonHealthStats stats, DaemonHealthCheck healthCheck, DaemonRunningStats runningStats, Logger logger) {
+    LogAndCheckHealth(
+            DaemonHealthStats stats, DaemonHealthCheck healthCheck, DaemonRunningStats runningStats, Logger logger) {
         this.stats = stats;
         this.healthCheck = healthCheck;
         this.runningStats = runningStats;
@@ -71,9 +72,12 @@ public class LogAndCheckHealth implements DaemonCommandAction {
     private String getStartBuildMessage() {
         int nextBuildNum = runningStats.getBuildCount() + 1;
         if (nextBuildNum == 1) {
-            return String.format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(Runtime.getRuntime().maxMemory()));
+            return String.format(
+                    "Starting build in new daemon [memory: %s]",
+                    NumberUtil.formatBytes(Runtime.getRuntime().maxMemory()));
         } else {
-            return String.format("Starting %s build in daemon %s", NumberUtil.ordinal(nextBuildNum), stats.getHealthInfo());
+            return String.format(
+                    "Starting %s build in daemon %s", NumberUtil.ordinal(nextBuildNum), stats.getHealthInfo());
         }
     }
 }

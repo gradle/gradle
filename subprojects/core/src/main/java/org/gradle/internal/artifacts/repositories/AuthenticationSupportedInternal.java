@@ -16,13 +16,12 @@
 
 package org.gradle.internal.artifacts.repositories;
 
+import java.util.Collection;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.authentication.Authentication;
-
-import java.util.Collection;
 
 public interface AuthenticationSupportedInternal extends AuthenticationSupported {
     /**

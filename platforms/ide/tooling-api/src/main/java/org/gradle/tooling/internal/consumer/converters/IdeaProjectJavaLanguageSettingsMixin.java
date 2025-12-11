@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
+import java.io.Serializable;
 import org.gradle.api.JavaVersion;
 import org.gradle.tooling.model.idea.IdeaProject;
-
-import java.io.Serializable;
 
 public class IdeaProjectJavaLanguageSettingsMixin {
     private final IdeaProject ideaProject;

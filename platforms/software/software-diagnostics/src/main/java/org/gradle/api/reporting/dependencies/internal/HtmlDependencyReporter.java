@@ -16,6 +16,9 @@
 
 package org.gradle.api.reporting.dependencies.internal;
 
+import java.io.File;
+import java.io.Writer;
+import java.util.Set;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -28,10 +31,6 @@ import org.gradle.internal.IoActions;
 import org.gradle.reporting.HtmlReportBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
-
-import java.io.File;
-import java.io.Writer;
-import java.util.Set;
 
 /**
  * Class responsible for the generation of an HTML dependency report.
@@ -46,39 +45,48 @@ import java.util.Set;
  *
  * @see JsonProjectDependencyRenderer
  */
-public class HtmlDependencyReporter extends ReportRenderer<ProjectsWithConfigurations<ProjectNameAndPath, ConfigurationDetails>, File> {
+public class HtmlDependencyReporter
+        extends ReportRenderer<ProjectsWithConfigurations<ProjectNameAndPath, ConfigurationDetails>, File> {
     private File outputDirectory;
     private final JsonProjectDependencyRenderer renderer;
 
-    public HtmlDependencyReporter(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
+    public HtmlDependencyReporter(
+            VersionSelectorScheme versionSelectorScheme,
+            VersionComparator versionComparator,
+            VersionParser versionParser) {
         renderer = new JsonProjectDependencyRenderer(versionSelectorScheme, versionComparator, versionParser);
     }
 
     @Override
-    public void render(final ProjectsWithConfigurations<ProjectNameAndPath, ConfigurationDetails> projectsWithConfigurations, File outputDirectory) {
+    public void render(
+            final ProjectsWithConfigurations<ProjectNameAndPath, ConfigurationDetails> projectsWithConfigurations,
+            File outputDirectory) {
         this.outputDirectory = outputDirectory;
 
         HtmlReportRenderer renderer = new HtmlReportRenderer();
-        renderer.render(projectsWithConfigurations.getProjects(), new ReportRenderer<Set<ProjectNameAndPath>, HtmlReportBuilder>() {
-            @Override
-            public void render(Set<ProjectNameAndPath> model, HtmlReportBuilder builder) {
-                Transformer<String, ProjectNameAndPath> htmlPageScheme = projectNamingScheme("html");
-                Transformer<String, ProjectNameAndPath> jsScheme = projectNamingScheme("js");
-                ProjectPageRenderer projectPageRenderer = new ProjectPageRenderer(jsScheme);
-                builder.renderRawHtmlPage("index.html", model, new ProjectsPageRenderer(htmlPageScheme));
-                for (ProjectNameAndPath project : model) {
-                    String jsFileName = jsScheme.transform(project);
-                    generateJsFile(project, projectsWithConfigurations.getConfigurationsFor(project), jsFileName);
-                    String htmlFileName = htmlPageScheme.transform(project);
-                    builder.renderRawHtmlPage(htmlFileName, project, projectPageRenderer);
-                }
-
-            }
-
-        }, outputDirectory);
+        renderer.render(
+                projectsWithConfigurations.getProjects(),
+                new ReportRenderer<Set<ProjectNameAndPath>, HtmlReportBuilder>() {
+                    @Override
+                    public void render(Set<ProjectNameAndPath> model, HtmlReportBuilder builder) {
+                        Transformer<String, ProjectNameAndPath> htmlPageScheme = projectNamingScheme("html");
+                        Transformer<String, ProjectNameAndPath> jsScheme = projectNamingScheme("js");
+                        ProjectPageRenderer projectPageRenderer = new ProjectPageRenderer(jsScheme);
+                        builder.renderRawHtmlPage("index.html", model, new ProjectsPageRenderer(htmlPageScheme));
+                        for (ProjectNameAndPath project : model) {
+                            String jsFileName = jsScheme.transform(project);
+                            generateJsFile(
+                                    project, projectsWithConfigurations.getConfigurationsFor(project), jsFileName);
+                            String htmlFileName = htmlPageScheme.transform(project);
+                            builder.renderRawHtmlPage(htmlFileName, project, projectPageRenderer);
+                        }
+                    }
+                },
+                outputDirectory);
     }
 
-    private void generateJsFile(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, String fileName) {
+    private void generateJsFile(
+            ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, String fileName) {
         String prefix = "var projectDependencyReport = ";
         File file = new File(outputDirectory, fileName);
         IoActions.writeTextFile(file, "utf-8", new ErroringAction<Writer>() {

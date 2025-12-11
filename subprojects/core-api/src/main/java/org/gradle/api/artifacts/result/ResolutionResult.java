@@ -18,14 +18,13 @@ package org.gradle.api.artifacts.result;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
-
-import java.util.Set;
 
 /**
  * Contains the information about the result of dependency resolution. You can use this type to determine all the component instances that are included

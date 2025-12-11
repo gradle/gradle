@@ -30,12 +30,35 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 public class ReadOnlyModuleMetadataCache extends PersistentModuleMetadataCache {
-    public ReadOnlyModuleMetadataCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ArtifactCacheMetadata artifactCacheMetadata, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, Interner<String> stringInterner, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
-        super(timeProvider, cacheAccessCoordinator, artifactCacheMetadata, moduleIdentifierFactory, attributeContainerSerializer, capabilitySelectorSerializer, mavenMetadataFactory, ivyMetadataFactory, stringInterner, moduleSourcesSerializer, checksumService);
+    public ReadOnlyModuleMetadataCache(
+            BuildCommencedTimeProvider timeProvider,
+            ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
+            ArtifactCacheMetadata artifactCacheMetadata,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            AttributeContainerSerializer attributeContainerSerializer,
+            CapabilitySelectorSerializer capabilitySelectorSerializer,
+            MavenMutableModuleMetadataFactory mavenMetadataFactory,
+            IvyMutableModuleMetadataFactory ivyMetadataFactory,
+            Interner<String> stringInterner,
+            ModuleSourcesSerializer moduleSourcesSerializer,
+            ChecksumService checksumService) {
+        super(
+                timeProvider,
+                cacheAccessCoordinator,
+                artifactCacheMetadata,
+                moduleIdentifierFactory,
+                attributeContainerSerializer,
+                capabilitySelectorSerializer,
+                mavenMetadataFactory,
+                ivyMetadataFactory,
+                stringInterner,
+                moduleSourcesSerializer,
+                checksumService);
     }
 
     @Override
-    protected CachedMetadata store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetadata) {
+    protected CachedMetadata store(
+            ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetadata) {
         operationShouldNotHaveBeenCalled();
         return cachedMetadata;
     }
@@ -46,11 +69,15 @@ public class ReadOnlyModuleMetadataCache extends PersistentModuleMetadataCache {
     }
 
     @Override
-    public CachedMetadata cacheMetaData(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id, ModuleComponentResolveMetadata metadata) {
+    public CachedMetadata cacheMetaData(
+            ModuleComponentRepository<?> repository,
+            ModuleComponentIdentifier id,
+            ModuleComponentResolveMetadata metadata) {
         return operationShouldNotHaveBeenCalled();
     }
 
-    @SuppressWarnings("TypeParameterUnusedInFormals") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("TypeParameterUnusedInFormals") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     private static <T> T operationShouldNotHaveBeenCalled() {
         throw new UnsupportedOperationException("A write operation shouldn't have been called in a read-only cache");
     }

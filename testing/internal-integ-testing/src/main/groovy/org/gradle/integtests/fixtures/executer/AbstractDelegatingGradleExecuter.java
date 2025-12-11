@@ -20,7 +20,10 @@ import org.gradle.util.GradleVersion;
 
 public abstract class AbstractDelegatingGradleExecuter extends AbstractGradleExecuter {
 
-    protected AbstractDelegatingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
+    protected AbstractDelegatingGradleExecuter(
+            GradleDistribution distribution,
+            TestDirectoryProvider testDirectoryProvider,
+            IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, GradleVersion.current(), buildContext);
     }
 
@@ -45,5 +48,4 @@ public abstract class AbstractDelegatingGradleExecuter extends AbstractGradleExe
     }
 
     protected abstract GradleExecuter configureExecuter();
-
 }

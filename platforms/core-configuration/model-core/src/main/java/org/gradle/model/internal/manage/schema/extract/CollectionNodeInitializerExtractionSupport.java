@@ -30,5 +30,6 @@ public abstract class CollectionNodeInitializerExtractionSupport implements Node
         return extractNodeInitializer((CollectionSchema<T, ?>) schema, context);
     }
 
-    protected abstract <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema, NodeInitializerContext<T> context);
+    protected abstract <T, E> NodeInitializer extractNodeInitializer(
+            CollectionSchema<T, E> schema, NodeInitializerContext<T> context);
 }

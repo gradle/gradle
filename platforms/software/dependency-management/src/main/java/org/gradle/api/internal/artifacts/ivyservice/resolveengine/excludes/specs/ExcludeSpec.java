@@ -33,5 +33,4 @@ public interface ExcludeSpec {
      * Tells if this rule may exclude some artifacts. This is used to optimize artifact resolution.
      */
     boolean mayExcludeArtifacts();
-
 }

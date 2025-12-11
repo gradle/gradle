@@ -15,6 +15,10 @@
  */
 package org.gradle.nativeplatform.internal;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
@@ -40,11 +44,6 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
 
 public class NativeComponents {
 
@@ -73,39 +72,47 @@ public class NativeComponents {
         });
     }
 
-    public static void createInstallTask(final NativeBinarySpecInternal binary, final NativeInstallationSpec installation, final NativeExecutableFileSpec executable, final BinaryNamingScheme namingScheme) {
-        binary.getTasks().create(namingScheme.getTaskName("install"), InstallExecutable.class, new Action<InstallExecutable>() {
-            @Override
-            public void execute(InstallExecutable installTask) {
-                installTask.setDescription("Installs a development image of " + binary.getDisplayName());
-                installTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-                installTask.getToolChain().set(executable.getToolChain());
-                installTask.getTargetPlatform().set(binary.getTargetPlatform());
-                installTask.getExecutableFile().set(executable.getFile());
-                installTask.getInstallDirectory().set(installation.getDirectory());
-                //TODO:HH wire binary libs via executable
-                installTask.lib(new BinaryLibs(binary) {
+    public static void createInstallTask(
+            final NativeBinarySpecInternal binary,
+            final NativeInstallationSpec installation,
+            final NativeExecutableFileSpec executable,
+            final BinaryNamingScheme namingScheme) {
+        binary.getTasks()
+                .create(namingScheme.getTaskName("install"), InstallExecutable.class, new Action<InstallExecutable>() {
                     @Override
-                    protected FileCollection getFiles(NativeDependencySet nativeDependencySet) {
-                        return nativeDependencySet.getRuntimeFiles();
+                    public void execute(InstallExecutable installTask) {
+                        installTask.setDescription("Installs a development image of " + binary.getDisplayName());
+                        installTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                        installTask.getToolChain().set(executable.getToolChain());
+                        installTask.getTargetPlatform().set(binary.getTargetPlatform());
+                        installTask.getExecutableFile().set(executable.getFile());
+                        installTask.getInstallDirectory().set(installation.getDirectory());
+                        // TODO:HH wire binary libs via executable
+                        installTask.lib(new BinaryLibs(binary) {
+                            @Override
+                            protected FileCollection getFiles(NativeDependencySet nativeDependencySet) {
+                                return nativeDependencySet.getRuntimeFiles();
+                            }
+                        });
+
+                        // TODO:HH installTask.dependsOn(executable)
+                        installTask.dependsOn(binary);
                     }
                 });
-
-                //TODO:HH installTask.dependsOn(executable)
-                installTask.dependsOn(binary);
-            }
-        });
     }
 
     public static void createBuildDependentComponentsTasks(ModelMap<Task> tasks, ComponentSpecContainer components) {
-        for (final VariantComponentSpec component : components.withType(NativeComponentSpec.class).withType(VariantComponentSpec.class)) {
-            tasks.create(getAssembleDependentComponentsTaskName(component), DefaultTask.class, new Action<DefaultTask>() {
-                @Override
-                public void execute(DefaultTask assembleDependents) {
-                    assembleDependents.setGroup("Build Dependents");
-                    assembleDependents.setDescription("Assemble dependents of " + component.getDisplayName() + ".");
-                }
-            });
+        for (final VariantComponentSpec component :
+                components.withType(NativeComponentSpec.class).withType(VariantComponentSpec.class)) {
+            tasks.create(
+                    getAssembleDependentComponentsTaskName(component), DefaultTask.class, new Action<DefaultTask>() {
+                        @Override
+                        public void execute(DefaultTask assembleDependents) {
+                            assembleDependents.setGroup("Build Dependents");
+                            assembleDependents.setDescription(
+                                    "Assemble dependents of " + component.getDisplayName() + ".");
+                        }
+                    });
             tasks.create(getBuildDependentComponentsTaskName(component), DefaultTask.class, new Action<DefaultTask>() {
                 @Override
                 public void execute(DefaultTask buildDependents) {
@@ -116,26 +123,41 @@ public class NativeComponents {
         }
     }
 
-    public static void createBuildDependentBinariesTasks(final NativeBinarySpecInternal binary, BinaryNamingScheme namingScheme) {
-        binary.getTasks().create(namingScheme.getTaskName(ASSEMBLE_DEPENDENTS_TASK_NAME), DefaultTask.class, new Action<DefaultTask>() {
-            @Override
-            public void execute(DefaultTask buildDependentsTask) {
-                buildDependentsTask.setGroup("Build Dependents");
-                buildDependentsTask.setDescription("Assemble dependents of " + binary.getDisplayName() + ".");
-                buildDependentsTask.dependsOn(binary);
-            }
-        });
-        binary.getTasks().create(namingScheme.getTaskName(BUILD_DEPENDENTS_TASK_NAME), DefaultTask.class, new Action<DefaultTask>() {
-            @Override
-            public void execute(DefaultTask buildDependentsTask) {
-                buildDependentsTask.setGroup("Build Dependents");
-                buildDependentsTask.setDescription("Build dependents of " + binary.getDisplayName() + ".");
-                buildDependentsTask.dependsOn(binary);
-            }
-        });
+    public static void createBuildDependentBinariesTasks(
+            final NativeBinarySpecInternal binary, BinaryNamingScheme namingScheme) {
+        binary.getTasks()
+                .create(
+                        namingScheme.getTaskName(ASSEMBLE_DEPENDENTS_TASK_NAME),
+                        DefaultTask.class,
+                        new Action<DefaultTask>() {
+                            @Override
+                            public void execute(DefaultTask buildDependentsTask) {
+                                buildDependentsTask.setGroup("Build Dependents");
+                                buildDependentsTask.setDescription(
+                                        "Assemble dependents of " + binary.getDisplayName() + ".");
+                                buildDependentsTask.dependsOn(binary);
+                            }
+                        });
+        binary.getTasks()
+                .create(
+                        namingScheme.getTaskName(BUILD_DEPENDENTS_TASK_NAME),
+                        DefaultTask.class,
+                        new Action<DefaultTask>() {
+                            @Override
+                            public void execute(DefaultTask buildDependentsTask) {
+                                buildDependentsTask.setGroup("Build Dependents");
+                                buildDependentsTask.setDescription(
+                                        "Build dependents of " + binary.getDisplayName() + ".");
+                                buildDependentsTask.dependsOn(binary);
+                            }
+                        });
     }
 
-    public static void wireBuildDependentTasks(final ModelMap<Task> tasks, BinaryContainer binaries, final DependentBinariesResolver dependentsResolver, final ProjectModelResolver projectModelResolver) {
+    public static void wireBuildDependentTasks(
+            final ModelMap<Task> tasks,
+            BinaryContainer binaries,
+            final DependentBinariesResolver dependentsResolver,
+            final ProjectModelResolver projectModelResolver) {
         final ModelMap<NativeBinarySpecInternal> nativeBinaries = binaries.withType(NativeBinarySpecInternal.class);
         for (final BinarySpecInternal binary : nativeBinaries) {
             Task assembleDependents = tasks.get(binary.getNamingScheme().getTaskName(ASSEMBLE_DEPENDENTS_TASK_NAME));
@@ -154,28 +176,38 @@ public class NativeComponents {
             assembleDependents.dependsOn(new Callable<Iterable<Task>>() {
                 @Override
                 public Iterable<Task> call() {
-                    return getDependentTaskDependencies(ASSEMBLE_DEPENDENTS_TASK_NAME, binary, dependentsResolver, projectModelResolver);
+                    return getDependentTaskDependencies(
+                            ASSEMBLE_DEPENDENTS_TASK_NAME, binary, dependentsResolver, projectModelResolver);
                 }
             });
             buildDependents.dependsOn(new Callable<Iterable<Task>>() {
                 @Override
                 public Iterable<Task> call() {
-                    return getDependentTaskDependencies(BUILD_DEPENDENTS_TASK_NAME, binary, dependentsResolver, projectModelResolver);
+                    return getDependentTaskDependencies(
+                            BUILD_DEPENDENTS_TASK_NAME, binary, dependentsResolver, projectModelResolver);
                 }
             });
         }
     }
 
-    private static List<Task> getDependentTaskDependencies(String dependedOnBinaryTaskName, BinarySpecInternal binary, DependentBinariesResolver dependentsResolver, ProjectModelResolver projectModelResolver) {
+    private static List<Task> getDependentTaskDependencies(
+            String dependedOnBinaryTaskName,
+            BinarySpecInternal binary,
+            DependentBinariesResolver dependentsResolver,
+            ProjectModelResolver projectModelResolver) {
         List<Task> dependencies = new ArrayList<>();
-        DependentBinariesResolvedResult result = dependentsResolver.resolve(binary).getRoot();
+        DependentBinariesResolvedResult result =
+                dependentsResolver.resolve(binary).getRoot();
         for (DependentBinariesResolvedResult dependent : result.getChildren()) {
             if (dependent.isBuildable()) {
-                ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(dependent.getId().getProjectPath());
-                ModelMap<NativeBinarySpecInternal> projectBinaries = modelRegistry.realize("binaries", ModelTypes.modelMap(NativeBinarySpecInternal.class));
+                ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(
+                        dependent.getId().getProjectPath());
+                ModelMap<NativeBinarySpecInternal> projectBinaries =
+                        modelRegistry.realize("binaries", ModelTypes.modelMap(NativeBinarySpecInternal.class));
                 ModelMap<Task> projectTasks = modelRegistry.realize("tasks", ModelTypes.modelMap(Task.class));
                 NativeBinarySpecInternal dependentBinary = projectBinaries.get(dependent.getProjectScopedName());
-                dependencies.add(projectTasks.get(dependentBinary.getNamingScheme().getTaskName(dependedOnBinaryTaskName)));
+                dependencies.add(
+                        projectTasks.get(dependentBinary.getNamingScheme().getTaskName(dependedOnBinaryTaskName)));
             }
         }
         return dependencies;

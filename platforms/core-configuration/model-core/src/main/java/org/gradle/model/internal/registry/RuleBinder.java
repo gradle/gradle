@@ -17,13 +17,12 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Collection;
+import java.util.List;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
-import javax.annotation.concurrent.NotThreadSafe;
-import java.util.Collection;
-import java.util.List;
 
 @NotThreadSafe
 public class RuleBinder {
@@ -36,7 +35,11 @@ public class RuleBinder {
     private int inputsBound;
     private final List<ModelBinding> inputBindings;
 
-    public RuleBinder(BindingPredicate subjectReference, List<BindingPredicate> inputReferences, ModelAction action, Collection<RuleBinder> binders) {
+    public RuleBinder(
+            BindingPredicate subjectReference,
+            List<BindingPredicate> inputReferences,
+            ModelAction action,
+            Collection<RuleBinder> binders) {
         this.action = action;
         this.inputReferences = inputReferences;
         this.binders = binders;
@@ -46,12 +49,12 @@ public class RuleBinder {
                 ModelNodeInternal node = modelBinding.getNode();
                 BindingPredicate predicate = modelBinding.getPredicate();
                 if (node.isAtLeast(predicate.getState())) {
-                    throw new IllegalStateException(String.format("Cannot add rule %s for model element '%s' at state %s as this element is already at state %s.",
-                        modelBinding.referrer,
-                        node.getPath(),
-                        predicate.getState().previous(),
-                        node.getState()
-                    ));
+                    throw new IllegalStateException(String.format(
+                            "Cannot add rule %s for model element '%s' at state %s as this element is already at state %s.",
+                            modelBinding.referrer,
+                            node.getPath(),
+                            predicate.getState().previous(),
+                            node.getState()));
                 }
                 maybeFire();
             }
@@ -62,12 +65,9 @@ public class RuleBinder {
                 ModelNodeInternal node = modelBinding.getNode();
                 BindingPredicate reference = modelBinding.getPredicate();
                 if (node.getState().compareTo(reference.getState()) > 0) {
-                    throw new IllegalStateException(String.format("Cannot add rule %s with input model element '%s' at state %s as this element is already at state %s.",
-                        modelBinding.referrer,
-                        node.getPath(),
-                        reference.getState(),
-                        node.getState()
-                    ));
+                    throw new IllegalStateException(String.format(
+                            "Cannot add rule %s with input model element '%s' at state %s as this element is already at state %s.",
+                            modelBinding.referrer, node.getPath(), reference.getState(), node.getState()));
                 }
                 ++inputsBound;
                 maybeFire();
@@ -78,7 +78,10 @@ public class RuleBinder {
         }
     }
 
-    private static List<ModelBinding> inputBindings(List<BindingPredicate> inputReferences, ModelRuleDescriptor descriptor, Action<ModelBinding> inputBindAction) {
+    private static List<ModelBinding> inputBindings(
+            List<BindingPredicate> inputReferences,
+            ModelRuleDescriptor descriptor,
+            Action<ModelBinding> inputBindAction) {
         if (inputReferences.isEmpty()) {
             return ImmutableList.of();
         }
@@ -89,7 +92,11 @@ public class RuleBinder {
         return bindings.build();
     }
 
-    private static ModelBinding binding(BindingPredicate reference, ModelRuleDescriptor descriptor, boolean writable, Action<ModelBinding> bindAction) {
+    private static ModelBinding binding(
+            BindingPredicate reference,
+            ModelRuleDescriptor descriptor,
+            boolean writable,
+            Action<ModelBinding> bindAction) {
         if (reference.getPath() != null) {
             return new PathBinderCreationListener(descriptor, reference, writable, bindAction);
         }
@@ -125,8 +132,7 @@ public class RuleBinder {
     }
 
     public boolean isBound() {
-        return subjectBinding.isBound()
-            && inputsBound == inputReferences.size();
+        return subjectBinding.isBound() && inputsBound == inputReferences.size();
     }
 
     @Override

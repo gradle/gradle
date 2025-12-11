@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.adapter;
 
-import org.gradle.tooling.model.DomainObjectSet;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -25,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import org.gradle.tooling.model.DomainObjectSet;
 
 class CollectionMapper {
     Collection<Object> createEmptyCollection(Class<?> collectionType) {
@@ -40,7 +39,8 @@ class CollectionMapper {
         if (collectionType.isAssignableFrom(TreeSet.class)) {
             return new TreeSet<Object>();
         }
-        throw new UnsupportedOperationException(String.format("Cannot convert a Collection to type %s.", collectionType.getName()));
+        throw new UnsupportedOperationException(
+                String.format("Cannot convert a Collection to type %s.", collectionType.getName()));
     }
 
     Map<Object, Object> createEmptyMap(Class<?> mapType) {

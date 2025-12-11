@@ -16,14 +16,13 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.gradle.internal.classpath.ClassPath;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import org.gradle.internal.classpath.ClassPath;
+import org.jspecify.annotations.Nullable;
 
 public class GradleExecutionParameters {
 
@@ -40,17 +39,17 @@ public class GradleExecutionParameters {
     private final Map<String, String> environment;
 
     public GradleExecutionParameters(
-        GradleProvider gradleProvider,
-        File gradleUserHome,
-        File projectDir,
-        List<String> buildArgs,
-        List<String> jvmArgs,
-        ClassPath injectedClassPath,
-        boolean embedded,
-        OutputStream standardOutput,
-        OutputStream standardError,
-        InputStream standardInput,
-        Map<String, String> environment) {
+            GradleProvider gradleProvider,
+            File gradleUserHome,
+            File projectDir,
+            List<String> buildArgs,
+            List<String> jvmArgs,
+            ClassPath injectedClassPath,
+            boolean embedded,
+            OutputStream standardOutput,
+            OutputStream standardError,
+            InputStream standardInput,
+            Map<String, String> environment) {
         this.gradleProvider = gradleProvider;
         this.gradleUserHome = gradleUserHome;
         this.projectDir = projectDir;

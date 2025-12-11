@@ -23,5 +23,4 @@ import org.gradle.tooling.events.SuccessResult;
  *
  * @since 2.4
  */
-public interface TestSuccessResult extends TestOperationResult, SuccessResult {
-}
+public interface TestSuccessResult extends TestOperationResult, SuccessResult {}

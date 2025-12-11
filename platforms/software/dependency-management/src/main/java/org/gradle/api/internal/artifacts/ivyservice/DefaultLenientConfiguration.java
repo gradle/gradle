@@ -16,10 +16,17 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -35,16 +42,8 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
 
 public class DefaultLenientConfiguration implements LenientConfigurationInternal {
 
@@ -59,13 +58,12 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     private @Nullable SelectedArtifactResults artifactsForThisConfiguration;
 
     public DefaultLenientConfiguration(
-        ResolutionHost resolutionHost,
-        VisitedGraphResults graphResults,
-        VisitedArtifactSet artifactResults,
-        Function<SelectedArtifactResults, TransientConfigurationResults> legacyArtifactResultsLoader,
-        ResolvedArtifactSetResolver artifactSetResolver,
-        ArtifactSelectionSpec implicitSelectionSpec
-    ) {
+            ResolutionHost resolutionHost,
+            VisitedGraphResults graphResults,
+            VisitedArtifactSet artifactResults,
+            Function<SelectedArtifactResults, TransientConfigurationResults> legacyArtifactResultsLoader,
+            ResolvedArtifactSetResolver artifactSetResolver,
+            ArtifactSelectionSpec implicitSelectionSpec) {
         this.resolutionHost = resolutionHost;
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
@@ -103,7 +101,8 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     @Override
     public Set<ResolvedDependency> getAllModuleDependencies() {
         Set<ResolvedDependency> resolvedElements = new LinkedHashSet<>();
-        Deque<ResolvedDependency> workQueue = new LinkedList<>(loadTransientGraphResults().getRootNode().getChildren());
+        Deque<ResolvedDependency> workQueue =
+                new LinkedList<>(loadTransientGraphResults().getRootNode().getChildren());
         while (!workQueue.isEmpty()) {
             ResolvedDependency item = workQueue.removeFirst();
             if (resolvedElements.add(item)) {
@@ -128,7 +127,12 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         private @Nullable List<Throwable> failures;
 
         @Override
-        public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+        public void visitArtifact(
+                DisplayName artifactSetName,
+                VariantIdentifier sourceVariantId,
+                ImmutableAttributes attributes,
+                ImmutableCapabilities capabilities,
+                ResolvableArtifact artifact) {
             try {
                 ResolvedArtifact resolvedArtifact = artifact.toPublicView();
 
@@ -170,7 +174,5 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         public List<Throwable> getFailures() {
             return failures != null ? failures : Collections.emptyList();
         }
-
     }
-
 }

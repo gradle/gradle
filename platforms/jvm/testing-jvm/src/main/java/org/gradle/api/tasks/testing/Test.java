@@ -16,8 +16,20 @@
 
 package org.gradle.api.tasks.testing;
 
+import static org.gradle.util.internal.ConfigureUtil.configureUsing;
+
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -93,19 +105,6 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
-
-import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
 /**
  * Executes JUnit (3.8.x, 4.x or 5.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
@@ -194,7 +193,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         patternSet = getPatternSetFactory().createPatternSet();
         testClassesDirs = objectFactory.fileCollection();
         classpath = objectFactory.fileCollection();
-        // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
+        // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to
+        // the property
         stableClasspath = objectFactory.fileCollection();
         stableClasspath.from((Callable<Object>) this::getClasspath);
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
@@ -204,17 +204,21 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
-        testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
+        testFramework = objectFactory
+                .property(TestFramework.class)
+                .convention(objectFactory.newInstance(
+                        JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
         final JavaToolchainService javaToolchainService = getJavaToolchainService();
         PropertyFactory propertyFactory = getPropertyFactory();
-        Provider<JavaToolchainSpec> executableOverrideToolchainSpec = getProviderFactory().provider(() -> TestExecutableUtils.getExecutableToolchainSpec(Test.this, propertyFactory));
+        Provider<JavaToolchainSpec> executableOverrideToolchainSpec = getProviderFactory()
+                .provider(() -> TestExecutableUtils.getExecutableToolchainSpec(Test.this, propertyFactory));
 
         return executableOverrideToolchainSpec
-            .flatMap((Transformer<Provider<JavaLauncher>, JavaToolchainSpec>) javaToolchainService::launcherFor)
-            .orElse(javaToolchainService.launcherFor(javaToolchainSpec -> {}));
+                .flatMap((Transformer<Provider<JavaLauncher>, JavaToolchainSpec>) javaToolchainService::launcherFor)
+                .orElse(javaToolchainService.launcherFor(javaToolchainSpec -> {}));
     }
 
     /**
@@ -261,7 +265,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Input
     @ToBeReplacedByLazyProperty
     public JavaVersion getJavaVersion() {
-        return JavaVersion.toVersion(getJavaLauncher().get().getMetadata().getLanguageVersion().asInt());
+        return JavaVersion.toVersion(
+                getJavaLauncher().get().getMetadata().getLanguageVersion().asInt());
     }
 
     /**
@@ -496,11 +501,13 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    @Option(option = "debug-jvm", description = "Enable debugging for the test process. The process is started suspended and listening on port 5005.")
+    @Option(
+            option = "debug-jvm",
+            description =
+                    "Enable debugging for the test process. The process is started suspended and listening on port 5005.")
     public void setDebug(boolean enabled) {
         forkOptions.setDebug(enabled);
     }
-
 
     /**
      * {@inheritDoc}
@@ -661,8 +668,10 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
-        if (!getTestFramework().supportsNonClassBasedTesting() && !getTestDefinitionDirs().isEmpty()) {
-            throw new GradleException("The " + getTestFramework().getDisplayName() + " test framework does not support resource-based testing.");
+        if (!getTestFramework().supportsNonClassBasedTesting()
+                && !getTestDefinitionDirs().isEmpty()) {
+            throw new GradleException("The " + getTestFramework().getDisplayName()
+                    + " test framework does not support resource-based testing.");
         }
 
         validateExecutableMatchesToolchain();
@@ -670,20 +679,33 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         copyTo(javaForkOptions);
         javaForkOptions.systemProperty(TestWorker.WORKER_TMPDIR_SYS_PROPERTY, new File(getTemporaryDir(), "work"));
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
-        boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
+        boolean testIsModule =
+                javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
         Set<File> candidateTestDefinitionDirs = determineCandidateTestDefinitionDirs();
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
-            getCandidateClassFiles(), isScanForTestClasses(), candidateTestDefinitionDirs,
-            getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
+        return new JvmTestExecutionSpec(
+                getTestFramework(),
+                classpath,
+                modulePath,
+                getCandidateClassFiles(),
+                isScanForTestClasses(),
+                candidateTestDefinitionDirs,
+                getTestClassesDirs(),
+                getPath(),
+                getIdentityPath(),
+                getForkEvery(),
+                javaForkOptions,
+                getMaxParallelForks(),
+                getPreviousFailedTestClasses(),
+                testIsModule);
     }
 
     private Set<File> determineCandidateTestDefinitionDirs() {
         return getTestDefinitionDirs().getFiles().stream()
-            .filter(this::isValidDefinitionDir)
-            .filter(this::matchesPatternSet)
-            .collect(Collectors.toSet());
+                .filter(this::isValidDefinitionDir)
+                .filter(this::matchesPatternSet)
+                .collect(Collectors.toSet());
     }
 
     private boolean isValidDefinitionDir(File dir) {
@@ -710,12 +732,13 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         File toolchainExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
         String customExecutable = getExecutable();
         JavaExecutableUtils.validateExecutable(
-            customExecutable, "Toolchain from `executable` property",
-            toolchainExecutable, "toolchain from `javaLauncher` property");
+                customExecutable, "Toolchain from `executable` property",
+                toolchainExecutable, "toolchain from `javaLauncher` property");
     }
 
     private Set<String> getPreviousFailedTestClasses() {
-        SerializableTestResultStore store = new SerializableTestResultStore(getBinaryResultsDirectory().getAsFile().get().toPath());
+        SerializableTestResultStore store = new SerializableTestResultStore(
+                getBinaryResultsDirectory().getAsFile().get().toPath());
         if (store.hasResults()) {
             final Set<String> previousFailedTestClasses = new HashSet<>();
             try {
@@ -742,9 +765,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         JavaVersion javaVersion = getJavaVersion();
         if (!javaVersion.isCompatibleWith(JavaVersion.toVersion(SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION))) {
             throw new UnsupportedJavaRuntimeException(String.format(
-                "Gradle does not support executing tests using JVM %s or earlier.",
-                SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION - 1
-            ));
+                    "Gradle does not support executing tests using JVM %s or earlier.",
+                    SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION - 1));
         }
 
         if (getDebug()) {
@@ -761,11 +783,14 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     protected TestExecuter<JvmTestExecutionSpec> createTestExecuter() {
         if (testExecuter == null) {
-            return new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
-                getServices().get(WorkerLeaseService.class),
-                getServices().get(StartParameter.class).getMaxWorkerCount(),
-                getServices().get(Clock.class),
-                (DefaultTestFilter) getFilter());
+            return new DefaultTestExecuter(
+                    getProcessBuilderFactory(),
+                    getActorFactory(),
+                    getModuleRegistry(),
+                    getServices().get(WorkerLeaseService.class),
+                    getServices().get(StartParameter.class).getMaxWorkerCount(),
+                    getServices().get(Clock.class),
+                    (DefaultTestFilter) getFilter());
         } else {
             return testExecuter;
         }
@@ -1046,7 +1071,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @see #useJUnit(Action) Configure JUnit4 specific options.
      */
     public void useJUnit() {
-        useTestFramework(getObjectFactory().newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
+        useTestFramework(getObjectFactory()
+                .newInstance(
+                        JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
     }
 
     /**
@@ -1112,8 +1139,13 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @see #useTestNG(Action) Configure TestNG specific options.
      */
     public void useTestNG() {
-        useTestFramework(getObjectFactory().newInstance(TestNGTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun(), this.getReports().getHtml()));
-
+        useTestFramework(getObjectFactory()
+                .newInstance(
+                        TestNGTestFramework.class,
+                        this.getFilter(),
+                        this.getTemporaryDirFactory(),
+                        this.getDryRun(),
+                        this.getReports().getHtml()));
     }
 
     /**
@@ -1315,8 +1347,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     @Override
     boolean testsAreNotFiltered() {
-        return super.testsAreNotFiltered()
-            && noCategoryOrTagOrGroupSpecified();
+        return super.testsAreNotFiltered() && noCategoryOrTagOrGroupSpecified();
     }
 
     private boolean noCategoryOrTagOrGroupSpecified() {
@@ -1328,17 +1359,18 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         if (JUnitOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
             JUnitOptions junitOptions = (JUnitOptions) frameworkOptions;
             return junitOptions.getIncludeCategories().isEmpty()
-                && junitOptions.getExcludeCategories().isEmpty();
+                    && junitOptions.getExcludeCategories().isEmpty();
         } else if (JUnitPlatformOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
             JUnitPlatformOptions junitPlatformOptions = (JUnitPlatformOptions) frameworkOptions;
             return junitPlatformOptions.getIncludeTags().isEmpty()
-                && junitPlatformOptions.getExcludeTags().isEmpty();
+                    && junitPlatformOptions.getExcludeTags().isEmpty();
         } else if (TestNGOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
             TestNGOptions testNGOptions = (TestNGOptions) frameworkOptions;
             return testNGOptions.getIncludeGroups().isEmpty()
-                && testNGOptions.getExcludeGroups().isEmpty();
+                    && testNGOptions.getExcludeGroups().isEmpty();
         } else {
-            throw new IllegalArgumentException("Unknown test framework: " + frameworkOptions.getClass().getName());
+            throw new IllegalArgumentException(
+                    "Unknown test framework: " + frameworkOptions.getClass().getName());
         }
     }
 

@@ -16,13 +16,12 @@
 
 package gradlebuild.docs;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-
-import javax.inject.Inject;
 
 /**
  * Common root for all Gradle documentation configuration.

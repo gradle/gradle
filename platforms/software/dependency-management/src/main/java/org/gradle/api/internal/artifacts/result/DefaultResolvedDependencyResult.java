@@ -25,11 +25,12 @@ public class DefaultResolvedDependencyResult extends AbstractDependencyResult im
     private final ResolvedComponentResult selectedComponent;
     private final ResolvedVariantResult selectedVariant;
 
-    public DefaultResolvedDependencyResult(ComponentSelector requested,
-                                           boolean constraint,
-                                           ResolvedComponentResult selectedComponent,
-                                           ResolvedVariantResult selectedVariant,
-                                           ResolvedComponentResult from) {
+    public DefaultResolvedDependencyResult(
+            ComponentSelector requested,
+            boolean constraint,
+            ResolvedComponentResult selectedComponent,
+            ResolvedVariantResult selectedVariant,
+            ResolvedComponentResult from) {
         super(requested, from, constraint);
         this.selectedComponent = selectedComponent;
         this.selectedVariant = selectedVariant;

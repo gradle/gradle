@@ -16,14 +16,6 @@
 
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.internal.remote.Address;
-import org.gradle.internal.remote.internal.inet.InetEndpoint;
-import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
-import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
-import org.gradle.internal.remote.internal.inet.SocketInetAddress;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -33,12 +25,20 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.gradle.internal.remote.Address;
+import org.gradle.internal.remote.internal.inet.InetEndpoint;
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
+import org.gradle.internal.remote.internal.inet.SocketInetAddress;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
 
 public class DaemonRegistryContent implements Serializable {
 
     public static final org.gradle.internal.serialize.Serializer<DaemonRegistryContent> SERIALIZER = new Serializer();
 
-    private static final MultiChoiceAddressSerializer MULTI_CHOICE_ADDRESS_SERIALIZER = new MultiChoiceAddressSerializer();
+    private static final MultiChoiceAddressSerializer MULTI_CHOICE_ADDRESS_SERIALIZER =
+            new MultiChoiceAddressSerializer();
 
     private final Map<Address, DaemonInfo> infosMap;
     private final List<DaemonStopEvent> stopEvents;
@@ -165,7 +165,8 @@ public class DaemonRegistryContent implements Serializable {
             }
         }
 
-        private void writeDaemonInfos(Encoder encoder, Map<Address, DaemonInfo> infosMap, List<Address> addresses) throws Exception {
+        private void writeDaemonInfos(Encoder encoder, Map<Address, DaemonInfo> infosMap, List<Address> addresses)
+                throws Exception {
             DaemonInfo.Serializer daemonInfoSerializer = new DaemonInfo.Serializer(addresses);
             for (Address address : addresses) {
                 DaemonInfo info = infosMap.get(address);
@@ -173,13 +174,11 @@ public class DaemonRegistryContent implements Serializable {
             }
         }
 
-
         private void writeAddresses(Encoder encoder, int infosSize, List<Address> addresses) throws Exception {
             encoder.writeInt(infosSize);
             for (Address address : addresses) {
-                byte type = (byte) (address instanceof SocketInetAddress ? 0
-                    : address instanceof MultiChoiceAddress ? 1
-                    : 2);
+                byte type = (byte)
+                        (address instanceof SocketInetAddress ? 0 : address instanceof MultiChoiceAddress ? 1 : 2);
                 encoder.writeByte(type);
                 switch (type) {
                     case 0:

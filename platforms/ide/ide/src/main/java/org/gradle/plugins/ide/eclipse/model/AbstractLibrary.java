@@ -18,12 +18,11 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
 import groovy.util.Node;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.jspecify.annotations.Nullable;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Common superclass for the library elements.
@@ -107,22 +106,28 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
         }
         AbstractLibrary that = (AbstractLibrary) o;
         return isExported() == that.isExported()
-            && Objects.equal(getAccessRules(), that.getAccessRules())
-            && Objects.equal(getJavadocPath(), that.getJavadocPath())
-            && Objects.equal(getNativeLibraryLocation(), that.getNativeLibraryLocation())
-            && Objects.equal(getPath(), that.getPath())
-            && Objects.equal(getSourcePath(), that.getSourcePath());
+                && Objects.equal(getAccessRules(), that.getAccessRules())
+                && Objects.equal(getJavadocPath(), that.getJavadocPath())
+                && Objects.equal(getNativeLibraryLocation(), that.getNativeLibraryLocation())
+                && Objects.equal(getPath(), that.getPath())
+                && Objects.equal(getSourcePath(), that.getSourcePath());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getPath(), getNativeLibraryLocation(), isExported(), getAccessRules(), getSourcePath(), getJavadocPath());
+        return Objects.hashCode(
+                getPath(),
+                getNativeLibraryLocation(),
+                isExported(),
+                getAccessRules(),
+                getSourcePath(),
+                getJavadocPath());
     }
 
     @Override
     public String toString() {
-        return "{path='" + getPath() + "', nativeLibraryLocation='" + getNativeLibraryLocation() + "', exported=" + isExported()
-            + ", accessRules=" + getAccessRules() + ", sourcePath='" + sourcePath + "', javadocPath='" + javadocPath + "', id='" + moduleVersion + "'}";
+        return "{path='" + getPath() + "', nativeLibraryLocation='" + getNativeLibraryLocation() + "', exported="
+                + isExported() + ", accessRules=" + getAccessRules() + ", sourcePath='" + sourcePath
+                + "', javadocPath='" + javadocPath + "', id='" + moduleVersion + "'}";
     }
-
 }

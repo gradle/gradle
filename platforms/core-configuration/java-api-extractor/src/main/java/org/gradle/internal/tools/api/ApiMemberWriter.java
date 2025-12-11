@@ -16,6 +16,7 @@
 
 package org.gradle.internal.tools.api;
 
+import java.util.Set;
 import org.gradle.internal.tools.api.impl.AnnotationMember;
 import org.gradle.internal.tools.api.impl.AnnotationValue;
 import org.gradle.internal.tools.api.impl.ClassMember;
@@ -28,8 +29,6 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
 
-import java.util.Set;
-
 /**
  * A writer for class API members. API members are delegated to an instance of this class.
  *
@@ -39,7 +38,11 @@ import java.util.Set;
 public interface ApiMemberWriter {
     ModuleVisitor writeModule(String name, int access, @Nullable String version);
 
-    void writeClass(ClassMember classMember, Set<MethodMember> methods, Set<FieldMember> fields, Set<InnerClassMember> innerClasses);
+    void writeClass(
+            ClassMember classMember,
+            Set<MethodMember> methods,
+            Set<FieldMember> fields,
+            Set<InnerClassMember> innerClasses);
 
     void writeMethod(ClassMember classMember, @Nullable InnerClassMember declaringInnerClass, MethodMember method);
 

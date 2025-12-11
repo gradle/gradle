@@ -16,6 +16,12 @@
 
 package org.gradle.internal.logging.console;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.InteractiveEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -24,13 +30,6 @@ import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Queue output events to be forwarded and schedule flush when time passed or if end of build is signalled.
@@ -48,10 +47,15 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
 
     public ThrottlingOutputEventListener(OutputEventListener listener, Clock clock) {
-        this(listener, Integer.getInteger("org.gradle.internal.console.throttle", 100), Executors.newSingleThreadScheduledExecutor(), clock);
+        this(
+                listener,
+                Integer.getInteger("org.gradle.internal.console.throttle", 100),
+                Executors.newSingleThreadScheduledExecutor(),
+                clock);
     }
 
-    ThrottlingOutputEventListener(OutputEventListener listener, int throttleMs, ScheduledExecutorService executor, Clock clock) {
+    ThrottlingOutputEventListener(
+            OutputEventListener listener, int throttleMs, ScheduledExecutorService executor, Clock clock) {
         this.throttleMs = throttleMs;
         this.listener = listener;
         this.executor = executor;
@@ -60,15 +64,20 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     }
 
     private void scheduleUpdateNow() {
-        ScheduledFuture<?> ignored = executor.scheduleAtFixedRate(() -> {
-            try {
-                onOutput(new UpdateNowEvent(clock.getCurrentTime()));
-            } catch (Throwable t) {
-                // this class is used as task in a scheduled executor service, so it must not throw any throwable,
-                // otherwise the further invocations of this task get automatically and silently cancelled
-                LOGGER.debug("Exception while displaying output", t);
-            }
-        }, throttleMs, throttleMs, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> ignored = executor.scheduleAtFixedRate(
+                () -> {
+                    try {
+                        onOutput(new UpdateNowEvent(clock.getCurrentTime()));
+                    } catch (Throwable t) {
+                        // this class is used as task in a scheduled executor service, so it must not throw any
+                        // throwable,
+                        // otherwise the further invocations of this task get automatically and silently cancelled
+                        LOGGER.debug("Exception while displaying output", t);
+                    }
+                },
+                throttleMs,
+                throttleMs,
+                TimeUnit.MILLISECONDS);
     }
 
     @Override

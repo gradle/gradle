@@ -15,15 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.publish;
 
+import java.io.File;
+import java.util.Date;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.util.internal.GUtil;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Date;
 
 public class DecoratingPublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
     private String name;

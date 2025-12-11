@@ -36,9 +36,8 @@ public class RepositoryAwareVerificationFailure {
 
     @Override
     public String toString() {
-        return "RepositoryAwareVerificationFailure{" +
-            "failure=" + failure +
-            ", repositoryName='" + repositoryName + '\'' +
-            '}';
+        return "RepositoryAwareVerificationFailure{" + "failure="
+                + failure + ", repositoryName='"
+                + repositoryName + '\'' + '}';
     }
 }

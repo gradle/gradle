@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableList;
-
 import java.util.List;
 
 /**

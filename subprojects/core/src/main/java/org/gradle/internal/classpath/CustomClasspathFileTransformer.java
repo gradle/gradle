@@ -16,6 +16,12 @@
 
 package org.gradle.internal.classpath;
 
+import static java.lang.String.format;
+import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.internal.classpath.transforms.ClassTransform;
@@ -27,13 +33,6 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.model.internal.asm.AsmConstants;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
-import static java.lang.String.format;
-import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
-
 public class CustomClasspathFileTransformer implements ClasspathFileTransformer {
     private static final int CACHE_FORMAT = 6;
 
@@ -43,21 +42,20 @@ public class CustomClasspathFileTransformer implements ClasspathFileTransformer 
     private final ClassTransform transform;
 
     public CustomClasspathFileTransformer(
-        FileLockManager fileLockManager,
-        ClasspathFileHasher classpathFileHasher,
-        ClasspathElementTransformFactory classpathElementTransformFactory,
-        ClassTransform transform
-    ) {
+            FileLockManager fileLockManager,
+            ClasspathFileHasher classpathFileHasher,
+            ClasspathElementTransformFactory classpathElementTransformFactory,
+            ClassTransform transform) {
         this.fileLockManager = fileLockManager;
 
         this.fileHasher = createFileHasherWithConfig(
-            configHashFor(classpathElementTransformFactory, transform),
-            classpathFileHasher);
+                configHashFor(classpathElementTransformFactory, transform), classpathFileHasher);
         this.classpathElementTransformFactory = classpathElementTransformFactory;
         this.transform = transform;
     }
 
-    private static HashCode configHashFor(ClasspathElementTransformFactory classpathElementTransformFactory, ClassTransform transform) {
+    private static HashCode configHashFor(
+            ClasspathElementTransformFactory classpathElementTransformFactory, ClassTransform transform) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
         hasher.putInt(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
@@ -105,7 +103,11 @@ public class CustomClasspathFileTransformer implements ClasspathFileTransformer 
             try {
                 receipt.createNewFile();
             } catch (IOException e) {
-                throw new UncheckedIOException(format("Failed to create receipt for instrumented classpath file '%s/%s'.", destDirName, destFileName), e);
+                throw new UncheckedIOException(
+                        format(
+                                "Failed to create receipt for instrumented classpath file '%s/%s'.",
+                                destDirName, destFileName),
+                        e);
             }
             return transformed;
         } finally {
@@ -120,10 +122,9 @@ public class CustomClasspathFileTransformer implements ClasspathFileTransformer 
 
     private FileLock exclusiveLockFor(File file) {
         return fileLockManager.lock(
-            file,
-            mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation(),
-            "transformed jar cache"
-        );
+                file,
+                mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation(),
+                "transformed jar cache");
     }
 
     private String hashOf(FileSystemLocationSnapshot sourceSnapshot) {
@@ -131,6 +132,8 @@ public class CustomClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     private void transform(File source, File dest) {
-        classpathElementTransformFactory.createTransformer(source, this.transform).transform(dest);
+        classpathElementTransformFactory
+                .createTransformer(source, this.transform)
+                .transform(dest);
     }
 }

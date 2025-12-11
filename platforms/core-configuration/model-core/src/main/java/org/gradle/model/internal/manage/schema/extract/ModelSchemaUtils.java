@@ -16,6 +16,9 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
+import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
+
 import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -25,11 +28,6 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Ordering;
 import groovy.lang.GroovyObject;
-import org.gradle.internal.reflect.GroovyMethods;
-import org.gradle.internal.reflect.Types.TypeVisitResult;
-import org.gradle.internal.reflect.Types.TypeVisitor;
-import org.gradle.model.Managed;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
@@ -37,9 +35,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
-import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
+import org.gradle.internal.reflect.GroovyMethods;
+import org.gradle.internal.reflect.Types.TypeVisitResult;
+import org.gradle.internal.reflect.Types.TypeVisitor;
+import org.gradle.model.Managed;
 
 public class ModelSchemaUtils {
     public static final List<Class<?>> IGNORED_OBJECT_TYPES = ImmutableList.of(Object.class, GroovyObject.class);
@@ -78,15 +77,17 @@ public class ModelSchemaUtils {
             }
         });
         ImmutableListMultimap<String, Method> methodsByName = methodsByNameBuilder.build();
-        ImmutableSortedMap.Builder<String, Map<Equivalence.Wrapper<Method>, Collection<Method>>> candidatesBuilder = ImmutableSortedMap.naturalOrder();
+        ImmutableSortedMap.Builder<String, Map<Equivalence.Wrapper<Method>, Collection<Method>>> candidatesBuilder =
+                ImmutableSortedMap.naturalOrder();
         for (String methodName : methodsByName.keySet()) {
             ImmutableList<Method> methodsWithSameName = methodsByName.get(methodName);
-            ListMultimap<Equivalence.Wrapper<Method>, Method> equivalenceIndex = Multimaps.index(methodsWithSameName, new Function<Method, Equivalence.Wrapper<Method>>() {
-                @Override
-                public Equivalence.Wrapper<Method> apply(Method method) {
-                    return SIGNATURE_EQUIVALENCE.wrap(method);
-                }
-            });
+            ListMultimap<Equivalence.Wrapper<Method>, Method> equivalenceIndex =
+                    Multimaps.index(methodsWithSameName, new Function<Method, Equivalence.Wrapper<Method>>() {
+                        @Override
+                        public Equivalence.Wrapper<Method> apply(Method method) {
+                            return SIGNATURE_EQUIVALENCE.wrap(method);
+                        }
+                    });
             candidatesBuilder.put(methodName, equivalenceIndex.asMap());
         }
         return new CandidateMethods(candidatesBuilder.build());
@@ -120,7 +121,8 @@ public class ModelSchemaUtils {
             }
             return method;
         }
-        throw new IllegalArgumentException("Cannot find most-specific declaration of method. Declarations checked: " + declaringMethods);
+        throw new IllegalArgumentException(
+                "Cannot find most-specific declaration of method. Declarations checked: " + declaringMethods);
     }
 
     /**

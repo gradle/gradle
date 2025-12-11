@@ -15,12 +15,12 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
+
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.DebugUtil;
 import org.gradle.util.GradleVersion;
-
-import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
 
 public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
 
@@ -31,7 +31,11 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
         super.requireDaemon();
     }
 
-    public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
+    public DaemonGradleExecuter(
+            GradleDistribution distribution,
+            TestDirectoryProvider testDirectoryProvider,
+            GradleVersion gradleVersion,
+            IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
         super.requireDaemon();
     }
@@ -63,7 +67,9 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
         super.transformInvocation(invocation);
 
         if (!noExplicitNativeServicesDir) {
-            invocation.environmentVars.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
+            invocation.environmentVars.put(
+                    NativeServices.NATIVE_DIR_OVERRIDE,
+                    buildContext.getNativeServicesDir().getAbsolutePath());
         }
     }
 

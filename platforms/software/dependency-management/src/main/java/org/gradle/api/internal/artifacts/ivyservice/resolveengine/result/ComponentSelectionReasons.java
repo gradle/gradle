@@ -19,26 +19,34 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
 public class ComponentSelectionReasons {
-    public static final ComponentSelectionDescriptorInternal REQUESTED = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REQUESTED);
-    public static final ComponentSelectionDescriptorInternal ROOT = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.ROOT);
-    public static final ComponentSelectionDescriptorInternal FORCED = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.FORCED);
-    public static final ComponentSelectionDescriptorInternal CONFLICT_RESOLUTION = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONFLICT_RESOLUTION);
-    public static final ComponentSelectionDescriptorInternal SELECTED_BY_RULE = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.SELECTED_BY_RULE);
-    public static final ComponentSelectionDescriptorInternal COMPOSITE_BUILD = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.COMPOSITE_BUILD);
-    public static final ComponentSelectionDescriptorInternal CONSTRAINT = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT);
-    public static final ComponentSelectionDescriptorInternal REJECTION = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REJECTION);
-    public static final ComponentSelectionDescriptorInternal BY_ANCESTOR = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.BY_ANCESTOR);
+    public static final ComponentSelectionDescriptorInternal REQUESTED =
+            new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REQUESTED);
+    public static final ComponentSelectionDescriptorInternal ROOT =
+            new DefaultComponentSelectionDescriptor(ComponentSelectionCause.ROOT);
+    public static final ComponentSelectionDescriptorInternal FORCED =
+            new DefaultComponentSelectionDescriptor(ComponentSelectionCause.FORCED);
+    public static final ComponentSelectionDescriptorInternal CONFLICT_RESOLUTION =
+            new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONFLICT_RESOLUTION);
+    public static final ComponentSelectionDescriptorInternal SELECTED_BY_RULE =
+            new DefaultComponentSelectionDescriptor(ComponentSelectionCause.SELECTED_BY_RULE);
+    public static final ComponentSelectionDescriptorInternal COMPOSITE_BUILD =
+            new DefaultComponentSelectionDescriptor(ComponentSelectionCause.COMPOSITE_BUILD);
+    public static final ComponentSelectionDescriptorInternal CONSTRAINT =
+            new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT);
+    public static final ComponentSelectionDescriptorInternal REJECTION =
+            new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REJECTION);
+    public static final ComponentSelectionDescriptorInternal BY_ANCESTOR =
+            new DefaultComponentSelectionDescriptor(ComponentSelectionCause.BY_ANCESTOR);
 
     public static ComponentSelectionReason requested() {
         return new DefaultComponentSelectionReason(REQUESTED);
@@ -52,7 +60,8 @@ public class ComponentSelectionReasons {
         return new DefaultComponentSelectionReason(descriptions);
     }
 
-    public static ComponentSelectionReasonInternal of(Collection<ComponentSelectionDescriptorInternal> dependencyReasons) {
+    public static ComponentSelectionReasonInternal of(
+            Collection<ComponentSelectionDescriptorInternal> dependencyReasons) {
         return new DefaultComponentSelectionReason(dependencyReasons.toArray(new ComponentSelectionDescriptor[0]));
     }
 
@@ -61,7 +70,8 @@ public class ComponentSelectionReasons {
     }
 
     public static boolean isCauseExpected(ComponentSelectionDescriptor descriptor) {
-        return descriptor.getCause() == ComponentSelectionCause.REQUESTED || descriptor.getCause() == ComponentSelectionCause.ROOT;
+        return descriptor.getCause() == ComponentSelectionCause.REQUESTED
+                || descriptor.getCause() == ComponentSelectionCause.ROOT;
     }
 
     private static class DefaultComponentSelectionReason implements ComponentSelectionReasonInternal {
@@ -119,7 +129,6 @@ public class ComponentSelectionReasons {
             addCause(new DefaultComponentSelectionDescriptor(cause, description));
             return this;
         }
-
 
         @Override
         public ComponentSelectionReasonInternal setCause(ComponentSelectionDescriptor description) {

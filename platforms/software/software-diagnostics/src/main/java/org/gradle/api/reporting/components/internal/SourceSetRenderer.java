@@ -16,6 +16,9 @@
 
 package org.gradle.api.reporting.components.internal;
 
+import java.io.File;
+import java.util.Comparator;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
@@ -26,12 +29,9 @@ import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.ProjectDependencySpec;
 import org.gradle.reporting.ReportRenderer;
 
-import java.io.File;
-import java.util.Comparator;
-import java.util.Set;
-
 class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuilder> {
-    static final Comparator<LanguageSourceSet> SORT_ORDER = (o1, o2) -> o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName());
+    static final Comparator<LanguageSourceSet> SORT_ORDER =
+            (o1, o2) -> o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName());
 
     @Override
     public void render(LanguageSourceSet sourceSet, TextReportBuilder builder) {
@@ -68,14 +68,18 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
         if (sourceSet instanceof DependentSourceSet) {
             DependencySpecContainer dependencies = ((DependentSourceSet) sourceSet).getDependencies();
             if (!dependencies.isEmpty()) {
-                builder.collection("dependencies", dependencies.getDependencies(), new ReportRenderer<DependencySpec, TextReportBuilder>() {
-                    @Override
-                    public void render(DependencySpec model, TextReportBuilder output) {
-                        if (model instanceof ProjectDependencySpec) {
-                            output.item(model.getDisplayName());
-                        }
-                    }
-                }, "dependencies");
+                builder.collection(
+                        "dependencies",
+                        dependencies.getDependencies(),
+                        new ReportRenderer<DependencySpec, TextReportBuilder>() {
+                            @Override
+                            public void render(DependencySpec model, TextReportBuilder output) {
+                                if (model instanceof ProjectDependencySpec) {
+                                    output.item(model.getDisplayName());
+                                }
+                            }
+                        },
+                        "dependencies");
             }
         }
     }

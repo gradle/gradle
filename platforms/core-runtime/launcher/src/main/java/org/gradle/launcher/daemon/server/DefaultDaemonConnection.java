@@ -16,11 +16,19 @@
 
 package org.gradle.launcher.daemon.server;
 
+import java.util.LinkedList;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.daemon.clientinput.StdinHandler;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.launcher.daemon.protocol.BuildEvent;
 import org.gradle.launcher.daemon.protocol.BuildStarted;
@@ -34,17 +42,8 @@ import org.gradle.launcher.daemon.protocol.OutputMessage;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.UserResponse;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
-import org.gradle.internal.daemon.clientinput.StdinHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.LinkedList;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultDaemonConnection implements DaemonConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDaemonConnection.class);
@@ -56,7 +55,8 @@ public class DefaultDaemonConnection implements DaemonConnection {
     private final ReceiveQueue receiveQueue;
     private volatile boolean stopping;
 
-    public DefaultDaemonConnection(final SynchronizedDispatchConnection<Message> connection, ExecutorFactory executorFactory) {
+    public DefaultDaemonConnection(
+            final SynchronizedDispatchConnection<Message> connection, ExecutorFactory executorFactory) {
         this.connection = connection;
         stdinQueue = new StdinQueue(executorFactory);
         disconnectQueue = new DisconnectQueue();
@@ -74,24 +74,39 @@ public class DefaultDaemonConnection implements DaemonConnection {
                             message = connection.receive();
                         } catch (Exception e) {
                             if (!stopping && LOGGER.isDebugEnabled()) {
-                                LOGGER.debug(String.format("thread %s: Could not receive message from client.", Thread.currentThread().getId()), e);
+                                LOGGER.debug(
+                                        String.format(
+                                                "thread %s: Could not receive message from client.",
+                                                Thread.currentThread().getId()),
+                                        e);
                             }
                             failure = e;
                             return;
                         }
                         if (message == null) {
-                            LOGGER.debug("thread {}: Received end-of-input from client.", Thread.currentThread().getId());
+                            LOGGER.debug(
+                                    "thread {}: Received end-of-input from client.",
+                                    Thread.currentThread().getId());
                             return;
                         }
 
                         if (message instanceof InputMessage) {
-                            LOGGER.debug("thread {}: Received IO message from client: {}", Thread.currentThread().getId(), message);
+                            LOGGER.debug(
+                                    "thread {}: Received IO message from client: {}",
+                                    Thread.currentThread().getId(),
+                                    message);
                             stdinQueue.add((InputMessage) message);
                         } else if (message instanceof Cancel) {
-                            LOGGER.debug("thread {}: Received cancel message from client: {}", Thread.currentThread().getId(), message);
+                            LOGGER.debug(
+                                    "thread {}: Received cancel message from client: {}",
+                                    Thread.currentThread().getId(),
+                                    message);
                             cancelQueue.add((Cancel) message);
                         } else {
-                            LOGGER.debug("thread {}: Received non-IO message from client: {}", Thread.currentThread().getId(), message);
+                            LOGGER.debug(
+                                    "thread {}: Received non-IO message from client: {}",
+                                    Thread.currentThread().getId(),
+                                    message);
                             receiveQueue.add(message);
                         }
                     }
@@ -155,11 +170,14 @@ public class DefaultDaemonConnection implements DaemonConnection {
         stopping = true;
 
         // 1. Stop handling disconnects. Blocks until the handler has finished.
-        // 2. Stop the connection. This means that the thread receiving from the connection will receive a null and finish up.
-        // 3. Stop receiving incoming messages. Blocks until the receive thread has finished. This will notify the stdin and receive queues to signal end of input.
+        // 2. Stop the connection. This means that the thread receiving from the connection will receive a null and
+        // finish up.
+        // 3. Stop receiving incoming messages. Blocks until the receive thread has finished. This will notify the stdin
+        // and receive queues to signal end of input.
         // 4. Stop the receive queue, to unblock any threads blocked in receive().
         // 5. Stop handling stdin. Blocks until the handler has finished. Discards any queued input.
-        CompositeStoppable.stoppable(disconnectQueue, connection, executor, receiveQueue, stdinQueue, cancelQueue).stop();
+        CompositeStoppable.stoppable(disconnectQueue, connection, executor, receiveQueue, stdinQueue, cancelQueue)
+                .stop();
     }
 
     @Override
@@ -167,7 +185,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
         return "DefaultDaemonConnection: " + connection;
     }
 
-    private static abstract class CommandQueue<C extends Message, H> implements Stoppable {
+    private abstract static class CommandQueue<C extends Message, H> implements Stoppable {
         private final Lock lock = new ReentrantLock();
         private final Condition condition = lock.newCondition();
         protected final LinkedList<C> queue = new LinkedList<C>();
@@ -435,8 +453,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
         private final BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
 
         @Override
-        public void stop() {
-        }
+        public void stop() {}
 
         public void disconnect(Throwable failure) {
             queue.clear();

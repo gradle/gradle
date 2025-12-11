@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
-import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
-
 import java.util.Set;
 import java.util.function.Consumer;
+import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 
 /**
  * Models the result of resolving dependency graph. Provides access to the root

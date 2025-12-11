@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import java.util.ConcurrentModificationException;
 import org.gradle.api.Task;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Describables;
@@ -27,8 +28,6 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ConcurrentModificationException;
 
 /**
  * The base implementation for all properties in Gradle.
@@ -44,7 +43,8 @@ import java.util.ConcurrentModificationException;
  * @param <T> the type of the value this property provides
  * @param <S> the type of value supplier that actually provides the value for this property
  */
-public abstract class AbstractProperty<T, S extends ValueSupplier> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
+public abstract class AbstractProperty<T, S extends ValueSupplier> extends AbstractMinimalProvider<T>
+        implements PropertyInternal<T> {
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
     private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");
 
@@ -191,13 +191,13 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      */
     protected ConcurrentModificationException failWithCorruptedStateException(@Nullable Throwable reason) {
         throw new ConcurrentModificationException(
-            "State of " + getDisplayName().getDisplayName() + " is corrupted. " +
-                "This may be caused by unsafe concurrent modifications with parallel configuration or execution enabled.",
-            reason
-        );
+                "State of " + getDisplayName().getDisplayName() + " is corrupted. "
+                        + "This may be caused by unsafe concurrent modifications with parallel configuration or execution enabled.",
+                reason);
     }
 
-    protected abstract Value<? extends T> calculateValueFrom(EvaluationScopeContext context, S value, ValueConsumer consumer);
+    protected abstract Value<? extends T> calculateValueFrom(
+            EvaluationScopeContext context, S value, ValueConsumer consumer);
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
@@ -211,7 +211,8 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
-    protected abstract ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(EvaluationScopeContext context, S value);
+    protected abstract ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(
+            EvaluationScopeContext context, S value);
 
     /**
      * Returns a diagnostic string describing the current source of value of this property. Should not realize the value.
@@ -303,8 +304,13 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         beforeRead(context, null, consumer);
     }
 
-    private void beforeRead(EvaluationScopeContext context, @Nullable ModelObject effectiveProducer, ValueConsumer consumer) {
-        state.finalizeOnReadIfNeeded(this.getDisplayName(), effectiveProducer, consumer, effectiveConsumer -> finalizeNow(context, effectiveConsumer));
+    private void beforeRead(
+            EvaluationScopeContext context, @Nullable ModelObject effectiveProducer, ValueConsumer consumer) {
+        state.finalizeOnReadIfNeeded(
+                this.getDisplayName(),
+                effectiveProducer,
+                consumer,
+                effectiveConsumer -> finalizeNow(context, effectiveConsumer));
     }
 
     private void finalizeNow(EvaluationScopeContext context, ValueConsumer consumer) {

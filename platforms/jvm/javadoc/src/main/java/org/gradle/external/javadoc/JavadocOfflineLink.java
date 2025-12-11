@@ -17,7 +17,6 @@
 package org.gradle.external.javadoc;
 
 import com.google.common.base.Objects;
-
 import java.io.Serializable;
 
 /**
@@ -50,8 +49,7 @@ public class JavadocOfflineLink implements Serializable {
             return false;
         }
         JavadocOfflineLink that = (JavadocOfflineLink) o;
-        return Objects.equal(extDocUrl, that.extDocUrl)
-            && Objects.equal(packagelistLoc, that.packagelistLoc);
+        return Objects.equal(extDocUrl, that.extDocUrl) && Objects.equal(packagelistLoc, that.packagelistLoc);
     }
 
     @Override

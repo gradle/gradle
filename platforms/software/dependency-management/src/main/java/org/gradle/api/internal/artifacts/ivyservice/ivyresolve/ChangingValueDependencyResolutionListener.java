@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
-
-import java.util.Set;
 
 /**
  * Notified of the use of changing values during dependency resolution, so this can be noted in the configuration cache inputs
@@ -32,18 +31,22 @@ import java.util.Set;
 public interface ChangingValueDependencyResolutionListener {
     ChangingValueDependencyResolutionListener NO_OP = new ChangingValueDependencyResolutionListener() {
         @Override
-        public void onDynamicVersionSelection(ModuleComponentSelector requested, CacheExpirationControl.Expiry expiry, Set<ModuleVersionIdentifier> versions) {
-        }
+        public void onDynamicVersionSelection(
+                ModuleComponentSelector requested,
+                CacheExpirationControl.Expiry expiry,
+                Set<ModuleVersionIdentifier> versions) {}
 
         @Override
-        public void onChangingModuleResolve(ModuleComponentIdentifier moduleId, CacheExpirationControl.Expiry expiry) {
-        }
+        public void onChangingModuleResolve(ModuleComponentIdentifier moduleId, CacheExpirationControl.Expiry expiry) {}
     };
 
     /**
      * Called when a dynamic version is selected using the set of candidate versions queried from a repository.
      */
-    void onDynamicVersionSelection(ModuleComponentSelector requested, CacheExpirationControl.Expiry expiry, Set<ModuleVersionIdentifier> versions);
+    void onDynamicVersionSelection(
+            ModuleComponentSelector requested,
+            CacheExpirationControl.Expiry expiry,
+            Set<ModuleVersionIdentifier> versions);
 
     /**
      * Called when a changing artifact is resolved using the artifact state queried from a repository.

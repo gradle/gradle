@@ -18,6 +18,7 @@ package org.gradle.tooling.events.task.internal;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import java.util.Set;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.PluginIdentifier;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
@@ -26,29 +27,41 @@ import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
-
 /**
  * Implementation of the {@code TaskOperationDescriptor} interface.
  */
-public final class DefaultTaskOperationDescriptor extends DefaultOperationDescriptor implements TaskOperationDescriptor {
+public final class DefaultTaskOperationDescriptor extends DefaultOperationDescriptor
+        implements TaskOperationDescriptor {
 
-    private static final String DEPENDENCIES_METHOD = TaskOperationDescriptor.class.getSimpleName() + ".getDependencies()";
-    private static final String ORIGIN_PLUGIN_METHOD = TaskOperationDescriptor.class.getSimpleName() + ".getOriginPlugin()";
+    private static final String DEPENDENCIES_METHOD =
+            TaskOperationDescriptor.class.getSimpleName() + ".getDependencies()";
+    private static final String ORIGIN_PLUGIN_METHOD =
+            TaskOperationDescriptor.class.getSimpleName() + ".getOriginPlugin()";
 
     private final String taskPath;
     private final Supplier<Set<OperationDescriptor>> dependencies;
     private final Supplier<PluginIdentifier> originPlugin;
 
-    public DefaultTaskOperationDescriptor(InternalTaskDescriptor descriptor, OperationDescriptor parent, String taskPath) {
+    public DefaultTaskOperationDescriptor(
+            InternalTaskDescriptor descriptor, OperationDescriptor parent, String taskPath) {
         this(descriptor, parent, taskPath, unsupportedDependencies(), unsupportedOriginPlugin());
     }
 
-    public DefaultTaskOperationDescriptor(InternalTaskDescriptor descriptor, OperationDescriptor parent, String taskPath, Set<OperationDescriptor> dependencies, @Nullable PluginIdentifier originPlugin) {
+    public DefaultTaskOperationDescriptor(
+            InternalTaskDescriptor descriptor,
+            OperationDescriptor parent,
+            String taskPath,
+            Set<OperationDescriptor> dependencies,
+            @Nullable PluginIdentifier originPlugin) {
         this(descriptor, parent, taskPath, Suppliers.ofInstance(dependencies), Suppliers.ofInstance(originPlugin));
     }
 
-    private DefaultTaskOperationDescriptor(InternalTaskDescriptor descriptor, OperationDescriptor parent, String taskPath, Supplier<Set<OperationDescriptor>> dependencies, Supplier<PluginIdentifier> originPlugin) {
+    private DefaultTaskOperationDescriptor(
+            InternalTaskDescriptor descriptor,
+            OperationDescriptor parent,
+            String taskPath,
+            Supplier<Set<OperationDescriptor>> dependencies,
+            Supplier<PluginIdentifier> originPlugin) {
         super(descriptor, parent);
         this.taskPath = taskPath;
         this.dependencies = dependencies;
@@ -87,5 +100,4 @@ public final class DefaultTaskOperationDescriptor extends DefaultOperationDescri
             }
         };
     }
-
 }

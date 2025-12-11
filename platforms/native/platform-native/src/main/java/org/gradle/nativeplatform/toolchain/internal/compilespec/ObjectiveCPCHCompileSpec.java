@@ -18,5 +18,4 @@ package org.gradle.nativeplatform.toolchain.internal.compilespec;
 
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
-public interface ObjectiveCPCHCompileSpec extends NativeCompileSpec {
-}
+public interface ObjectiveCPCHCompileSpec extends NativeCompileSpec {}

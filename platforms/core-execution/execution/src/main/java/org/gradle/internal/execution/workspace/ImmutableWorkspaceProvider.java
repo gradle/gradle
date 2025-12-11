@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 
 public interface ImmutableWorkspaceProvider {
     AtomicMoveImmutableWorkspace getAtomicMoveWorkspace(String path);
+
     LockingImmutableWorkspace getLockingWorkspace(String path);
 
     interface ImmutableWorkspace {

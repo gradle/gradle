@@ -16,21 +16,19 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import java.util.Map;
 import org.gradle.api.Named;
 import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-
 public class VisualCppInstall implements Named {
     private final Map<Architecture, ? extends VisualCpp> platforms;
     private final String name;
     private final VersionNumber version;
 
-    public VisualCppInstall(String name, VersionNumber version,
-                            Map<Architecture, ? extends VisualCpp> platforms) {
+    public VisualCppInstall(String name, VersionNumber version, Map<Architecture, ? extends VisualCpp> platforms) {
         this.name = name;
         this.version = version;
         this.platforms = platforms;

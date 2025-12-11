@@ -18,10 +18,9 @@ package org.gradle.internal.component.resolution.failure.transform;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 /**
  * Represents a variant which is produced as the result of applying an artifact transform chain
@@ -34,7 +33,10 @@ public final class TransformationChainData {
     private final ImmutableList<TransformData> steps;
     private final ImmutableAttributes finalAttributes;
 
-    public TransformationChainData(SourceVariantData startingVariant, ImmutableList<TransformData> steps, ImmutableAttributes finalAttributes) {
+    public TransformationChainData(
+            SourceVariantData startingVariant,
+            ImmutableList<TransformData> steps,
+            ImmutableAttributes finalAttributes) {
         this.startingVariant = startingVariant;
         this.steps = steps;
         this.finalAttributes = finalAttributes;
@@ -50,9 +52,7 @@ public final class TransformationChainData {
     }
 
     public String summarizeTransformations() {
-        return steps.stream()
-            .map(t -> "'" + t.getTransformName() + "'")
-            .collect(Collectors.joining(" -> "));
+        return steps.stream().map(t -> "'" + t.getTransformName() + "'").collect(Collectors.joining(" -> "));
     }
 
     public ImmutableList<TransformData> getSteps() {

@@ -16,6 +16,9 @@
 
 package org.gradle.internal.resolve.resolver;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.internal.component.model.VariantResolveMetadata;
@@ -23,17 +26,13 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-
 /**
  * Cache for {@link ResolvedVariant} instances.
  *
  * This cache contains ResolvedVariants for the entire build tree.
  */
 @ServiceScope(Scope.BuildTree.class)
-public class ResolvedVariantCache  {
+public class ResolvedVariantCache {
 
     private final Map<CacheKey, ResolvedVariant> cache = new ConcurrentHashMap<>();
 
@@ -71,16 +70,17 @@ public class ResolvedVariantCache  {
         final ImmutableArtifactTypeRegistry artifactTypeRegistry;
         private final int hashCode;
 
-        public CacheKey(VariantResolveMetadata.Identifier variantIdentifier, ImmutableArtifactTypeRegistry artifactTypeRegistry) {
+        public CacheKey(
+                VariantResolveMetadata.Identifier variantIdentifier,
+                ImmutableArtifactTypeRegistry artifactTypeRegistry) {
             this.variantIdentifier = variantIdentifier;
             this.artifactTypeRegistry = artifactTypeRegistry;
             this.hashCode = computeHashCode(variantIdentifier, artifactTypeRegistry);
         }
 
         private static int computeHashCode(
-            VariantResolveMetadata.Identifier variantIdentifier,
-            ImmutableArtifactTypeRegistry artifactTypeRegistry
-        ) {
+                VariantResolveMetadata.Identifier variantIdentifier,
+                ImmutableArtifactTypeRegistry artifactTypeRegistry) {
             return 31 * variantIdentifier.hashCode() + artifactTypeRegistry.hashCode();
         }
 
@@ -90,7 +90,8 @@ public class ResolvedVariantCache  {
         }
 
         @Override
-        @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+        @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+        // (https://github.com/gradle/gradle/issues/35864)
         public boolean equals(Object obj) {
             if (obj == this) {
                 return true;
@@ -99,10 +100,10 @@ public class ResolvedVariantCache  {
                 return false;
             }
             CacheKey other = (CacheKey) obj;
-            return variantIdentifier.equals(other.variantIdentifier) &&
-                // Artifact type registries are interned
-                artifactTypeRegistry == other.artifactTypeRegistry;
+            return variantIdentifier.equals(other.variantIdentifier)
+                    &&
+                    // Artifact type registries are interned
+                    artifactTypeRegistry == other.artifactTypeRegistry;
         }
     }
-
 }

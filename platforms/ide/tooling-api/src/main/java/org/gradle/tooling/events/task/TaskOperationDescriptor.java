@@ -15,12 +15,11 @@
  */
 package org.gradle.tooling.events.task;
 
+import java.util.Set;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.PluginIdentifier;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 /**
  * Describes a task operation for which an event has occurred.
@@ -51,5 +50,4 @@ public interface TaskOperationDescriptor extends OperationDescriptor {
      */
     @Nullable
     PluginIdentifier getOriginPlugin();
-
 }

@@ -16,6 +16,9 @@
 
 package org.gradle.composite.internal;
 
+import java.io.File;
+import java.util.List;
+import java.util.function.Function;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.UncheckedException;
@@ -35,10 +38,6 @@ import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.List;
-import java.util.function.Function;
-
 class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild {
 
     private final Path identityPath;
@@ -46,12 +45,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     private final BuildDefinition buildDefinition;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
 
-    DefaultNestedBuild(
-        Path identityPath,
-        BuildDefinition buildDefinition,
-        BuildState owner,
-        BuildTreeState buildTree
-    ) {
+    DefaultNestedBuild(Path identityPath, BuildDefinition buildDefinition, BuildState owner, BuildTreeState buildTree) {
         super(buildTree, buildDefinition, owner);
         this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
@@ -61,11 +55,14 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         try {
             ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
             BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor();
-            BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
+            BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory =
+                    buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
 
-            // On completion of the action, do not finish this build. The root build will take care of finishing this build later
+            // On completion of the action, do not finish this build. The root build will take care of finishing this
+            // build later
             BuildTreeFinishExecutor finishExecutor = new DoNothingBuildFinishExecutor(exceptionAnalyser);
-            buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(getBuildController(), workExecutor, finishExecutor);
+            buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(
+                    getBuildController(), workExecutor, finishExecutor);
         } catch (Throwable t) {
             CompositeStoppable.stoppable().addFailure(t).add(buildScopeServices).stop();
             throw UncheckedException.throwAsUncheckedException(t);
@@ -108,8 +105,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     }
 
     @Override
-    public void assertCanAdd(IncludedBuildSpec includedBuildSpec) {
-    }
+    public void assertCanAdd(IncludedBuildSpec includedBuildSpec) {}
 
     private static class DoNothingBuildFinishExecutor implements BuildTreeFinishExecutor {
         private final ExceptionAnalyser exceptionAnalyser;

@@ -56,6 +56,8 @@ class DeprecationTimeline {
 
     @Override
     public String toString() {
-        return message == null ? String.format(messagePattern, targetVersion.getMajorVersion()) : String.format(messagePattern, targetVersion.getMajorVersion(), message);
+        return message == null
+                ? String.format(messagePattern, targetVersion.getMajorVersion())
+                : String.format(messagePattern, targetVersion.getMajorVersion(), message);
     }
 }

@@ -16,11 +16,10 @@
 
 package org.gradle.internal.fingerprint;
 
+import java.util.Map;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-
-import java.util.Map;
 
 /**
  * Strategy for converting a sequence of {@link FileSystemLocationSnapshot}s into a {@link FileCollectionFingerprint}.

@@ -16,16 +16,15 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import net.rubygrapefruit.platform.SystemInfo;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.util.internal.VersionNumber;
-import org.jspecify.annotations.NullMarked;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import net.rubygrapefruit.platform.SystemInfo;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class WindowsKitSdkInstall extends WindowsKitInstall implements WindowsSdkInstall {
@@ -67,7 +66,8 @@ public class WindowsKitSdkInstall extends WindowsKitInstall implements WindowsSd
         if (platform.getArchitecture().isI386()) {
             return new WindowsKitBackedSdk("x86", host);
         }
-        throw new UnsupportedOperationException(String.format("Unsupported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
+        throw new UnsupportedOperationException(String.format(
+                "Unsupported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
     }
 
     private class WindowsKitBackedSdk implements WindowsSdk {
@@ -92,14 +92,18 @@ public class WindowsKitSdkInstall extends WindowsKitInstall implements WindowsSd
         @Override
         public List<File> getIncludeDirs() {
             return Arrays.asList(
-                new File(getBaseDir(), "Include/" + getImplementationVersion().toString() + "/um"),
-                new File(getBaseDir(), "Include/" + getImplementationVersion().toString() + "/shared")
-            );
+                    new File(
+                            getBaseDir(),
+                            "Include/" + getImplementationVersion().toString() + "/um"),
+                    new File(
+                            getBaseDir(),
+                            "Include/" + getImplementationVersion().toString() + "/shared"));
         }
 
         @Override
         public List<File> getLibDirs() {
-            return Collections.singletonList(new File(getBaseDir(), "Lib/" + getImplementationVersion().toString() + "/um/" + platformDirName));
+            return Collections.singletonList(
+                    new File(getBaseDir(), "Lib/" + getImplementationVersion().toString() + "/um/" + platformDirName));
         }
 
         @Override

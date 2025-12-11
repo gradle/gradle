@@ -18,10 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ResolutionStrategy;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.api.artifacts.ResolutionStrategy;
 
 public class DefaultVisitedArtifactResults implements VisitedArtifactResults {
 
@@ -34,10 +33,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactResults {
 
     @Override
     public SelectedArtifactResults select(
-        ArtifactSelectionServices consumerServices,
-        ArtifactSelectionSpec spec,
-        boolean lenient
-    ) {
+            ArtifactSelectionServices consumerServices, ArtifactSelectionSpec spec, boolean lenient) {
         List<ResolvedArtifactSet> resolvedArtifactSets = new ArrayList<>(artifactsById.size());
         for (ArtifactSet artifactSet : artifactsById) {
             ResolvedArtifactSet resolvedArtifacts = artifactSet.select(consumerServices, spec);
@@ -56,7 +52,8 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactResults {
         // Index of the artifact set == the id of the artifact set
         private final List<ResolvedArtifactSet> resolvedArtifactsById;
 
-        DefaultSelectedArtifactResults(ResolutionStrategy.SortOrder sortOrder, List<ResolvedArtifactSet> resolvedArtifactsById) {
+        DefaultSelectedArtifactResults(
+                ResolutionStrategy.SortOrder sortOrder, List<ResolvedArtifactSet> resolvedArtifactsById) {
             this.resolvedArtifactsById = resolvedArtifactsById;
             if (sortOrder == ResolutionStrategy.SortOrder.DEPENDENCY_FIRST) {
                 this.allArtifacts = CompositeResolvedArtifactSet.of(Lists.reverse(resolvedArtifactsById));

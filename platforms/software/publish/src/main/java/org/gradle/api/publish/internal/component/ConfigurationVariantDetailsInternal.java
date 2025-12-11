@@ -58,5 +58,4 @@ public interface ConfigurationVariantDetailsInternal extends ConfigurationVarian
          */
         void fromResolutionOf(Configuration configuration);
     }
-
 }

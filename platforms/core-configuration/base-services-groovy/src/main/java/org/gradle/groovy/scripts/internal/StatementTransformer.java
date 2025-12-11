@@ -25,5 +25,4 @@ public interface StatementTransformer {
 
     // Return null to remove the statement
     Statement transform(SourceUnit sourceUnit, Statement statement);
-
 }

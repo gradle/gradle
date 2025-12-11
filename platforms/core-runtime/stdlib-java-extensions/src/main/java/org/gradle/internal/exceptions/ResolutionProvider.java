@@ -16,15 +16,13 @@
 
 package org.gradle.internal.exceptions;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.util.List;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * A provider of resolutions for an exception.
  * Exceptions can be derived from this interface to provide a list of resolutions that are then displayed in the suggestion section of the error message.
  */
-
 @NullMarked
 public interface ResolutionProvider {
     List<String> getResolutions();

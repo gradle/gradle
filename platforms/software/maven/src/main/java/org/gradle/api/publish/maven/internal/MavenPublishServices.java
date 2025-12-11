@@ -49,8 +49,9 @@ public class MavenPublishServices extends AbstractGradleModuleServices {
         @Provides
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             // TODO There should be a more explicit way to execute an action against existing services
-            componentTypeRegistry.maybeRegisterComponentType(MavenModule.class)
-                .registerArtifactType(MavenPomArtifact.class, ArtifactType.MAVEN_POM);
+            componentTypeRegistry
+                    .maybeRegisterComponentType(MavenModule.class)
+                    .registerArtifactType(MavenPomArtifact.class, ArtifactType.MAVEN_POM);
         }
 
         @Provides
@@ -59,7 +60,10 @@ public class MavenPublishServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        public MavenPublishers createMavenPublishers(BuildCommencedTimeProvider timeProvider, RepositoryTransportFactory repositoryTransportFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+        public MavenPublishers createMavenPublishers(
+                BuildCommencedTimeProvider timeProvider,
+                RepositoryTransportFactory repositoryTransportFactory,
+                LocalMavenRepositoryLocator mavenRepositoryLocator) {
             return new MavenPublishers(timeProvider, repositoryTransportFactory, mavenRepositoryLocator);
         }
     }

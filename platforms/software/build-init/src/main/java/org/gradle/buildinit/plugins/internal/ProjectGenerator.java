@@ -16,14 +16,13 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import java.util.Optional;
+import java.util.Set;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
-
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * Creates a new Gradle project

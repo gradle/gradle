@@ -15,13 +15,13 @@
  */
 package org.gradle.configuration;
 
+import static org.gradle.configuration.DeferredProjectEvaluationCondition.skipEvaluationDuringProjectPreparation;
+
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.ProjectsEvaluatedNotifier;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.operations.BuildOperationRunner;
-
-import static org.gradle.configuration.DeferredProjectEvaluationCondition.skipEvaluationDuringProjectPreparation;
 
 public class DefaultProjectsPreparer implements ProjectsPreparer {
     private final BuildOperationRunner buildOperationRunner;
@@ -29,10 +29,9 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
     private final BuildModelParameters buildModelParameters;
 
     public DefaultProjectsPreparer(
-        ProjectConfigurer projectConfigurer,
-        BuildModelParameters buildModelParameters,
-        BuildOperationRunner buildOperationRunner
-    ) {
+            ProjectConfigurer projectConfigurer,
+            BuildModelParameters buildModelParameters,
+            BuildOperationRunner buildOperationRunner) {
         this.projectConfigurer = projectConfigurer;
         this.buildModelParameters = buildModelParameters;
         this.buildOperationRunner = buildOperationRunner;
@@ -51,5 +50,4 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
         }
         new ProjectsEvaluatedNotifier(buildOperationRunner).notify(gradle);
     }
-
 }

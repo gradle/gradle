@@ -16,14 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
-import org.gradle.internal.fingerprint.hashing.ResourceHasher;
-import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.Hashing;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.lang.String.join;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -37,8 +30,14 @@ import java.util.TreeSet;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
-
-import static java.lang.String.join;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
+import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MetaInfAwareClasspathResourceHasher.class);
@@ -64,33 +63,40 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
 
     @Override
     boolean filter(ZipEntryContext context) {
-        return !context.getEntry().isDirectory() && isManifestFile(context.getEntry().getName());
+        return !context.getEntry().isDirectory()
+                && isManifestFile(context.getEntry().getName());
     }
 
     @Override
     Optional<HashCode> tryHash(RegularFileSnapshotContext snapshotContext) {
-        return Optional.of(snapshotContext)
-            .map(context -> {
-                try (FileInputStream manifestFileInputStream = new FileInputStream(context.getSnapshot().getAbsolutePath())) {
-                    return hashManifest(manifestFileInputStream);
-                } catch (IOException e) {
-                    LOGGER.debug("Could not load fingerprint for " + context.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);
-                    return null;
-                }
-            });
+        return Optional.of(snapshotContext).map(context -> {
+            try (FileInputStream manifestFileInputStream =
+                    new FileInputStream(context.getSnapshot().getAbsolutePath())) {
+                return hashManifest(manifestFileInputStream);
+            } catch (IOException e) {
+                LOGGER.debug(
+                        "Could not load fingerprint for "
+                                + context.getSnapshot().getAbsolutePath()
+                                + ". Falling back to full entry fingerprinting",
+                        e);
+                return null;
+            }
+        });
     }
 
     @Override
     Optional<HashCode> tryHash(ZipEntryContext zipEntryContext) {
-        return Optional.of(zipEntryContext)
-            .map(context -> {
-                try {
-                    return zipEntryContext.getEntry().withInputStream(this::hashManifest);
-                } catch (IOException e) {
-                    LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
-                    return null;
-                }
-            });
+        return Optional.of(zipEntryContext).map(context -> {
+            try {
+                return zipEntryContext.getEntry().withInputStream(this::hashManifest);
+            } catch (IOException e) {
+                LOGGER.debug(
+                        "Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!"
+                                + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting",
+                        e);
+                return null;
+            }
+        });
     }
 
     private static boolean isManifestFile(final String name) {
@@ -111,19 +117,13 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
     }
 
     private void hashManifestAttributes(Attributes attributes, String name, Hasher hasher) {
-        Map<String, String> entries = attributes
-            .entrySet()
-            .stream()
-            .collect(Collectors.toMap(
-                entry -> entry.getKey().toString().toLowerCase(Locale.ROOT),
-                entry -> (String) entry.getValue()
-            ));
-        List<Map.Entry<String, String>> normalizedEntries = entries.
-            entrySet()
-            .stream()
-            .filter(entry -> !attributeResourceFilter.shouldBeIgnored(entry.getKey()))
-            .sorted(Map.Entry.comparingByKey())
-            .collect(Collectors.toList());
+        Map<String, String> entries = attributes.entrySet().stream()
+                .collect(Collectors.toMap(entry -> entry.getKey().toString().toLowerCase(Locale.ROOT), entry ->
+                        (String) entry.getValue()));
+        List<Map.Entry<String, String>> normalizedEntries = entries.entrySet().stream()
+                .filter(entry -> !attributeResourceFilter.shouldBeIgnored(entry.getKey()))
+                .sorted(Map.Entry.comparingByKey())
+                .collect(Collectors.toList());
 
         // Short-circuiting when there's no matching entries allows empty manifest sections to be ignored
         // that allows an manifest without those sections to hash identically to the one with effectively empty sections

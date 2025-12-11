@@ -16,10 +16,10 @@
 
 package org.gradle.internal.service;
 
-import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import javax.inject.Inject;
 
 final class InjectUtil {
 
@@ -34,11 +34,7 @@ final class InjectUtil {
         if (isInnerClass(type)) {
             // The DI system doesn't support injecting non-static inner classes.
             throw new ServiceValidationException(
-                String.format(
-                    "Unable to select constructor for non-static inner class %s.",
-                    format(type)
-                )
-            );
+                    String.format("Unable to select constructor for non-static inner class %s.", format(type)));
         }
 
         final Constructor<?>[] constructors = type.getDeclaredConstructors();
@@ -49,7 +45,8 @@ final class InjectUtil {
                 return constructor;
             }
             if (constructor.getAnnotation(Inject.class) != null) {
-                // Otherwise, if there is a single constructor that is annotated with `@Inject`, we select it (short-circuit).
+                // Otherwise, if there is a single constructor that is annotated with `@Inject`, we select it
+                // (short-circuit).
                 return constructor;
             }
         }
@@ -59,13 +56,10 @@ final class InjectUtil {
         for (Constructor<?> constructor : constructors) {
             if (constructor.getAnnotation(Inject.class) != null) {
                 if (match != null) {
-                    // There was a previously found a match. This means a second constructor with `@Inject` has been found.
+                    // There was a previously found a match. This means a second constructor with `@Inject` has been
+                    // found.
                     throw new ServiceValidationException(
-                        String.format(
-                            "Multiple constructor annotated with @Inject for %s.",
-                            format(type)
-                        )
-                    );
+                            String.format("Multiple constructor annotated with @Inject for %s.", format(type)));
                 }
                 // A valid match was found.
                 match = constructor;
@@ -73,12 +67,9 @@ final class InjectUtil {
         }
         if (match == null) {
             // No constructor annotated with `@Inject` was found.
-            throw new ServiceValidationException(
-                String.format(
+            throw new ServiceValidationException(String.format(
                     "Expected a single non-private constructor, or one constructor annotated with @Inject for %s.",
-                    format(type)
-                )
-            );
+                    format(type)));
         }
 
         return match;

@@ -20,5 +20,6 @@ import org.gradle.api.services.BuildService;
 
 public interface ServiceReferenceSpec extends PropertySpec {
     Class<? extends BuildService<?>> getBuildServiceType();
+
     String getBuildServiceName();
 }

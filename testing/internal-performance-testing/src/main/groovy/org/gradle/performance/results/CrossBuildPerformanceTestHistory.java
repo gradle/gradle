@@ -17,10 +17,9 @@
 package org.gradle.performance.results;
 
 import com.google.common.collect.Lists;
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 
 public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory {
     private final List<BuildDisplayInfo> builds;
@@ -28,7 +27,10 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
     private final List<CrossBuildPerformanceResults> newestFirst;
     private final PerformanceExperiment experiment;
 
-    public CrossBuildPerformanceTestHistory(PerformanceExperiment experiment, List<BuildDisplayInfo> builds, List<CrossBuildPerformanceResults> newestFirst) {
+    public CrossBuildPerformanceTestHistory(
+            PerformanceExperiment experiment,
+            List<BuildDisplayInfo> builds,
+            List<CrossBuildPerformanceResults> newestFirst) {
         this.experiment = experiment;
         this.builds = builds;
         this.newestFirst = newestFirst;
@@ -49,7 +51,9 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
 
     @Override
     public List<PerformanceTestExecution> getExecutions() {
-        return newestFirst.stream().map(KnownBuildSpecificationsPerformanceTestExecution::new).collect(Collectors.toList());
+        return newestFirst.stream()
+                .map(KnownBuildSpecificationsPerformanceTestExecution::new)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -65,45 +69,45 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
     @Override
     public List<? extends ScenarioDefinition> getScenarios() {
         return builds.stream()
-            .map(input -> new ScenarioDefinition() {
-                @Override
-                public String getDisplayName() {
-                    return input.getDisplayName();
-                }
+                .map(input -> new ScenarioDefinition() {
+                    @Override
+                    public String getDisplayName() {
+                        return input.getDisplayName();
+                    }
 
-                @Override
-                public String getTestProject() {
-                    return input.getProjectName();
-                }
+                    @Override
+                    public String getTestProject() {
+                        return input.getProjectName();
+                    }
 
-                @Override
-                public List<String> getTasks() {
-                    return input.getTasksToRun();
-                }
+                    @Override
+                    public List<String> getTasks() {
+                        return input.getTasksToRun();
+                    }
 
-                @Override
-                public List<String> getCleanTasks() {
-                    return input.getCleanTasks();
-                }
+                    @Override
+                    public List<String> getCleanTasks() {
+                        return input.getCleanTasks();
+                    }
 
-                @Override
-                public List<String> getArgs() {
-                    return input.getArgs();
-                }
+                    @Override
+                    public List<String> getArgs() {
+                        return input.getArgs();
+                    }
 
-                @Nullable
-                @Override
-                public List<String> getGradleOpts() {
-                    return input.getGradleOpts();
-                }
+                    @Nullable
+                    @Override
+                    public List<String> getGradleOpts() {
+                        return input.getGradleOpts();
+                    }
 
-                @Nullable
-                @Override
-                public Boolean getDaemon() {
-                    return input.getDaemon();
-                }
-            })
-            .collect(Collectors.toList());
+                    @Nullable
+                    @Override
+                    public Boolean getDaemon() {
+                        return input.getDaemon();
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
     private class KnownBuildSpecificationsPerformanceTestExecution implements PerformanceTestExecution {
@@ -115,7 +119,8 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
 
         @Override
         public String getExecutionId() {
-            return String.valueOf(Math.abs(getVcsCommits() != null ? getVcsCommits().hashCode() : hashCode()));
+            return String.valueOf(
+                    Math.abs(getVcsCommits() != null ? getVcsCommits().hashCode() : hashCode()));
         }
 
         @Override
@@ -150,7 +155,9 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
 
         @Override
         public List<MeasuredOperationList> getScenarios() {
-            return builds.stream().map(specification -> results.buildResult(specification.getDisplayName())).collect(Collectors.toList());
+            return builds.stream()
+                    .map(specification -> results.buildResult(specification.getDisplayName()))
+                    .collect(Collectors.toList());
         }
 
         @Override

@@ -17,13 +17,12 @@
 package org.gradle.ide.visualstudio.tasks.internal;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.Transformer;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import org.gradle.api.Transformer;
 
 public class RelativeFileNameTransformer implements Transformer<String, File> {
     private final File rootDir;

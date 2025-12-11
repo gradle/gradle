@@ -16,12 +16,6 @@
 
 package org.gradle.model.internal.asm;
 
-import org.jspecify.annotations.Nullable;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
-
 import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_ABSTRACT;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
@@ -30,6 +24,12 @@ import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Type.getDescriptor;
 import static org.objectweb.asm.Type.getType;
+
+import org.jspecify.annotations.Nullable;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 
 /**
  * Simplifies the usage of {@link ClassVisitor}.
@@ -41,10 +41,7 @@ public class ClassVisitorScope extends ClassVisitor {
     }
 
     protected AnnotationVisitor visitAnnotation(Class<?> clazz) {
-        return visitAnnotation(
-            getType(clazz).getDescriptor(),
-            true
-        );
+        return visitAnnotation(getType(clazz).getDescriptor(), true);
     }
     /**
      * Adds a field to the generated type.
@@ -112,7 +109,8 @@ public class ClassVisitorScope extends ClassVisitor {
     /**
      * Adds a method to the generated type.
      */
-    private void addMethod(int access, String name, String descriptor, @Nullable String signature, BytecodeFragment body) {
+    private void addMethod(
+            int access, String name, String descriptor, @Nullable String signature, BytecodeFragment body) {
         MethodVisitor methodVisitor = visitMethod(access, name, descriptor, signature, null);
         body.emit(methodVisitor);
         methodVisitor.visitMaxs(0, 0);
@@ -129,14 +127,21 @@ public class ClassVisitorScope extends ClassVisitor {
     /**
      * Adds a getter that returns the value that the given code leaves on the top of the stack.
      */
-    protected void addGetter(final String methodName, final Type returnType, final String methodDescriptor, @Nullable final String signature, final BytecodeFragment body) {
+    protected void addGetter(
+            final String methodName,
+            final Type returnType,
+            final String methodDescriptor,
+            @Nullable final String signature,
+            final BytecodeFragment body) {
         publicMethod(methodName, methodDescriptor, signature, new BytecodeFragment() {
             @Override
             public void emit(MethodVisitor methodVisitor) {
-                new MethodVisitorScope(methodVisitor) {{
-                    emit(body);
-                    _IRETURN_OF(returnType);
-                }};
+                new MethodVisitorScope(methodVisitor) {
+                    {
+                        emit(body);
+                        _IRETURN_OF(returnType);
+                    }
+                };
             }
         });
     }

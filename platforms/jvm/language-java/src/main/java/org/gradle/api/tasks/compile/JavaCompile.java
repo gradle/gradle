@@ -18,6 +18,10 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -73,11 +77,6 @@ import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 import org.gradle.work.NormalizeLineEndings;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
-import java.util.concurrent.Callable;
-
 /**
  * Compiles Java source files.
  *
@@ -106,9 +105,10 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
 
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavaCompiler> javaCompilerConvention = getProviderFactory()
-            .provider(() -> JavaCompileExecutableUtils.getExecutableOverrideToolchainSpec(this, getPropertyFactory()))
-            .flatMap(javaToolchainService::compilerFor)
-            .orElse(javaToolchainService.compilerFor(it -> {}));
+                .provider(
+                        () -> JavaCompileExecutableUtils.getExecutableOverrideToolchainSpec(this, getPropertyFactory()))
+                .flatMap(javaToolchainService::compilerFor)
+                .orElse(javaToolchainService.compilerFor(it -> {}));
 
         getJavaCompiler().convention(javaCompilerConvention);
         getJavaCompiler().finalizeValueOnRead();
@@ -165,23 +165,20 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         performCompilation(spec, compiler);
     }
 
-    private Compiler<JavaCompileSpec> makeIncremental(InputChanges inputs, CleaningJavaCompiler<JavaCompileSpec> compiler, FileCollection stableSources) {
+    private Compiler<JavaCompileSpec> makeIncremental(
+            InputChanges inputs, CleaningJavaCompiler<JavaCompileSpec> compiler, FileCollection stableSources) {
         FileTree sources = stableSources.getAsFileTree();
-        return getIncrementalCompilerFactory().makeIncremental(
-            compiler,
-            sources,
-            createRecompilationSpec(inputs, sources)
-        );
+        return getIncrementalCompilerFactory()
+                .makeIncremental(compiler, sources, createRecompilationSpec(inputs, sources));
     }
 
     private JavaRecompilationSpecProvider createRecompilationSpec(InputChanges inputs, FileTree sources) {
         return new JavaRecompilationSpecProvider(
-            getDeleter(),
-            getServices().get(FileOperations.class),
-            sources,
-            inputs.isIncremental(),
-            () -> inputs.getFileChanges(getStableSources()).iterator()
-        );
+                getDeleter(),
+                getServices().get(FileOperations.class),
+                sources,
+                inputs.isIncremental(),
+                () -> inputs.getFileChanges(getStableSources()).iterator());
     }
 
     private boolean isUsingCliCompiler(DefaultJavaCompileSpec spec) {
@@ -202,7 +199,8 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
 
     private <T extends CompileSpec> Compiler<T> createToolchainCompiler() {
         return spec -> {
-            DefaultToolchainJavaCompiler compiler = (DefaultToolchainJavaCompiler) getJavaCompiler().get();
+            DefaultToolchainJavaCompiler compiler =
+                    (DefaultToolchainJavaCompiler) getJavaCompiler().get();
             return compiler.execute(spec);
         };
     }
@@ -221,17 +219,22 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     }
 
     private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
-        WorkResult result = new CompileJavaBuildOperationReportingCompiler(this, compiler, getServices().get(BuildOperationRunner.class)).execute(spec);
+        WorkResult result = new CompileJavaBuildOperationReportingCompiler(
+                        this, compiler, getServices().get(BuildOperationRunner.class))
+                .execute(spec);
         setDidWork(result.getDidWork());
     }
 
     @VisibleForTesting
     DefaultJavaCompileSpec createSpec() {
         validateForkOptionsMatchToolchain();
-        List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
+        List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots(
+                (FileTreeInternal) getStableSources().getAsFileTree());
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
-        boolean isModule = JavaModuleDetector.isModuleSource(getModularity().getInferModulePath().get(), sourcesRoots);
-        boolean isSourcepathUserDefined = getOptions().getSourcepath() != null && !getOptions().getSourcepath().isEmpty();
+        boolean isModule = JavaModuleDetector.isModuleSource(
+                getModularity().getInferModulePath().get(), sourcesRoots);
+        boolean isSourcepathUserDefined = getOptions().getSourcepath() != null
+                && !getOptions().getSourcepath().isEmpty();
 
         DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(getOptions(), getToolchain()).create();
 
@@ -244,7 +247,10 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         if (isModule && !isSourcepathUserDefined) {
             getOptions().setSourcepath(getProjectLayout().files(sourcesRoots));
         }
-        spec.setAnnotationProcessorPath(getOptions().getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(getOptions().getAnnotationProcessorPath()));
+        spec.setAnnotationProcessorPath(
+                getOptions().getAnnotationProcessorPath() == null
+                        ? ImmutableList.of()
+                        : ImmutableList.copyOf(getOptions().getAnnotationProcessorPath()));
         configureCompileOptions(spec);
         spec.setSourcesRoots(sourcesRoots);
 
@@ -260,27 +266,27 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         }
 
         JavaCompiler javaCompilerTool = getJavaCompiler().get();
-        File toolchainJavaHome = javaCompilerTool.getMetadata().getInstallationPath().getAsFile();
+        File toolchainJavaHome =
+                javaCompilerTool.getMetadata().getInstallationPath().getAsFile();
 
         ForkOptions forkOptions = getOptions().getForkOptions();
         @SuppressWarnings("deprecation")
         File customJavaHome = forkOptions.getJavaHome();
         if (customJavaHome != null) {
             JavaExecutableUtils.validateMatchingFiles(
-                customJavaHome, "Toolchain from `javaHome` property on `ForkOptions`",
-                toolchainJavaHome, "toolchain from `javaCompiler` property"
-            );
+                    customJavaHome, "Toolchain from `javaHome` property on `ForkOptions`",
+                    toolchainJavaHome, "toolchain from `javaCompiler` property");
         }
 
         String customExecutablePath = forkOptions.getExecutable();
         if (customExecutablePath != null) {
             // We do not match the custom executable against the compiler executable from the toolchain (javac),
-            // because the custom executable can be set to the path of another tool in the toolchain such as a launcher (java).
+            // because the custom executable can be set to the path of another tool in the toolchain such as a launcher
+            // (java).
             File customExecutableJavaHome = JavaExecutableUtils.resolveJavaHomeOfExecutable(customExecutablePath);
             JavaExecutableUtils.validateMatchingFiles(
-                customExecutableJavaHome, "Toolchain from `executable` property on `ForkOptions`",
-                toolchainJavaHome, "toolchain from `javaCompiler` property"
-            );
+                    customExecutableJavaHome, "Toolchain from `executable` property on `ForkOptions`",
+                    toolchainJavaHome, "toolchain from `javaCompiler` property");
         }
     }
 
@@ -297,7 +303,9 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         if (getOptions().getRelease().isPresent()) {
             spec.setRelease(getOptions().getRelease().get());
         } else {
-            String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
+            String toolchainVersion = JavaVersion.toVersion(
+                            getToolchain().getLanguageVersion().asInt())
+                    .toString();
             String sourceCompatibility = getSourceCompatibility();
             // Compatibility can be null if no convention was configured, e.g. when JavaBasePlugin is not applied
             if (sourceCompatibility == null) {

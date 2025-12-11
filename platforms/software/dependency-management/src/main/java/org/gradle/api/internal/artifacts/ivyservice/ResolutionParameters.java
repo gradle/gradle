@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
@@ -29,8 +30,6 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Thread safe description of what and how to resolve. This type is almost entirely deeply immutable,
@@ -66,24 +65,23 @@ public class ResolutionParameters {
     private final CacheExpirationControl cacheExpirationControl;
 
     public ResolutionParameters(
-        ResolutionHost resolutionHost,
-        LocalComponentGraphResolveState rootComponent,
-        LocalVariantGraphResolveState rootVariant,
-        ImmutableList<ModuleVersionLock> moduleVersionLocks,
-        ResolutionStrategy.SortOrder defaultSortOrder,
-        @Nullable ConfigurationIdentity configurationIdentity,
-        ImmutableArtifactTypeRegistry artifactTypeRegistry,
-        ImmutableModuleReplacements moduleReplacements,
-        ConflictResolution moduleConflictResolutionStrategy,
-        String dependencyLockingId,
-        boolean dependencyLockingEnabled,
-        boolean includeAllSelectableVariantResults,
-        boolean dependencyVerificationEnabled,
-        boolean failingOnDynamicVersions,
-        boolean failingOnChangingVersions,
-        FailureResolutions failureResolutions,
-        CacheExpirationControl cacheExpirationControl
-    ) {
+            ResolutionHost resolutionHost,
+            LocalComponentGraphResolveState rootComponent,
+            LocalVariantGraphResolveState rootVariant,
+            ImmutableList<ModuleVersionLock> moduleVersionLocks,
+            ResolutionStrategy.SortOrder defaultSortOrder,
+            @Nullable ConfigurationIdentity configurationIdentity,
+            ImmutableArtifactTypeRegistry artifactTypeRegistry,
+            ImmutableModuleReplacements moduleReplacements,
+            ConflictResolution moduleConflictResolutionStrategy,
+            String dependencyLockingId,
+            boolean dependencyLockingEnabled,
+            boolean includeAllSelectableVariantResults,
+            boolean dependencyVerificationEnabled,
+            boolean failingOnDynamicVersions,
+            boolean failingOnChangingVersions,
+            FailureResolutions failureResolutions,
+            CacheExpirationControl cacheExpirationControl) {
         this.resolutionHost = resolutionHost;
         this.rootComponent = rootComponent;
         this.rootVariant = rootVariant;
@@ -134,14 +132,15 @@ public class ResolutionParameters {
         return moduleVersionLocks;
     }
 
-    public static class ModuleVersionLock  {
+    public static class ModuleVersionLock {
 
         private final ModuleIdentifier module;
         private final String version;
         private final String reason;
         private final boolean strict;
 
-        public ModuleVersionLock(ModuleIdentifier module, String version, String consistentResolutionReason, boolean strict) {
+        public ModuleVersionLock(
+                ModuleIdentifier module, String version, String consistentResolutionReason, boolean strict) {
             this.module = module;
             this.version = version;
             this.reason = consistentResolutionReason;
@@ -175,7 +174,6 @@ public class ResolutionParameters {
         public boolean isStrict() {
             return strict;
         }
-
     }
 
     /**
@@ -287,7 +285,6 @@ public class ResolutionParameters {
          * version conflict.
          */
         List<String> forVersionConflict(Conflict conflict);
-
     }
 
     /**
@@ -296,5 +293,4 @@ public class ResolutionParameters {
     public CacheExpirationControl getCacheExpirationControl() {
         return cacheExpirationControl;
     }
-
 }

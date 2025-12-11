@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging.source;
 
+import java.io.PrintStream;
+import java.util.concurrent.atomic.AtomicReference;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.io.LinePerThreadBufferingOutputStream;
@@ -28,9 +30,6 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.Nullable;
-
-import java.io.PrintStream;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A {@link LoggingSourceSystem} which routes content written to a {@code PrintStream} to a {@link OutputEventListener}.
@@ -46,8 +45,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
         }
 
         @Override
-        public void endOfStream(@Nullable Throwable failure) {
-        }
+        public void endOfStream(@Nullable Throwable failure) {}
     });
     private PrintStreamDestination original;
     private boolean enabled;
@@ -168,8 +166,10 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
 
         @Override
         public void onOutput(CharSequence output) {
-            OperationIdentifier buildOperationId = CurrentBuildOperationRef.instance().getId();
-            StyledTextOutputEvent event = new StyledTextOutputEvent(clock.getCurrentTime(), category, null, buildOperationId, output.toString());
+            OperationIdentifier buildOperationId =
+                    CurrentBuildOperationRef.instance().getId();
+            StyledTextOutputEvent event = new StyledTextOutputEvent(
+                    clock.getCurrentTime(), category, null, buildOperationId, output.toString());
             listener.onOutput(event);
         }
     }

@@ -35,5 +35,4 @@ public interface EclipseRuntime {
      * The eclipse workspace
      */
     void setWorkspace(EclipseWorkspace eclipseWorkspace);
-
 }

@@ -17,8 +17,6 @@
 package org.gradle.internal.configuration.inputs;
 
 import com.google.common.primitives.Primitives;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,6 +33,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A wrapper for {@link Properties} that notifies a listener about accesses.
@@ -197,7 +196,6 @@ public class AccessTrackingProperties extends Properties {
             reportChange(key, value);
         }
         return oldValue;
-
     }
 
     @Override
@@ -212,11 +210,11 @@ public class AccessTrackingProperties extends Properties {
         if (hadValue) {
             // The configuration cache uses onRemove callback to remember that the property has to be removed.
             // Of course, the property has to be removed in the cached run only if it was removed in the
-            // non-cached run first. Changing the value of the property would invalidate the cache and recalculate the removal.
+            // non-cached run first. Changing the value of the property would invalidate the cache and recalculate the
+            // removal.
             reportRemoval(key);
         }
         return hadValue;
-
     }
 
     @Override
@@ -231,11 +229,11 @@ public class AccessTrackingProperties extends Properties {
         if (changed) {
             // The configuration cache uses onChange callback to remember that the property has to be changed.
             // Of course, the property has to be changed in the cached run only if it was changed in the
-            // non-cached run first. Changing the value of the property externally would invalidate the cache and recalculate the replacement.
+            // non-cached run first. Changing the value of the property externally would invalidate the cache and
+            // recalculate the replacement.
             reportChange(key, newValue);
         }
         return changed;
-
     }
 
     @Override
@@ -250,7 +248,6 @@ public class AccessTrackingProperties extends Properties {
             reportChange(key, value);
         }
         return oldValue;
-
     }
 
     @Override
@@ -294,7 +291,6 @@ public class AccessTrackingProperties extends Properties {
         return computedValue;
     }
 
-
     @Override
     @Nullable
     public Object compute(Object key, BiFunction<? super Object, ? super Object, ?> remappingFunction) {
@@ -313,7 +309,6 @@ public class AccessTrackingProperties extends Properties {
         return newValue;
     }
 
-
     @Override
     @Nullable
     public Object merge(Object key, Object value, BiFunction<? super Object, ? super Object, ?> remappingFunction) {
@@ -330,7 +325,6 @@ public class AccessTrackingProperties extends Properties {
             reportRemoval(key);
         }
         return newValue;
-
     }
 
     @Override
@@ -358,7 +352,6 @@ public class AccessTrackingProperties extends Properties {
         reportAccess(key, oldValue);
         reportChange(key, value);
         return oldValue;
-
     }
 
     @Override
@@ -377,7 +370,6 @@ public class AccessTrackingProperties extends Properties {
         reportAccess(key, result);
         reportRemoval(key);
         return result;
-
     }
 
     @Override
@@ -404,7 +396,8 @@ public class AccessTrackingProperties extends Properties {
     }
 
     @Override
-    @Nullable  // The contract here is trickier - the return value is only null if the default value is null, but this method is not really part of any public API.
+    @Nullable // The contract here is trickier - the return value is only null if the default value is null, but this
+    // method is not really part of any public API.
     public String getProperty(String key, @Nullable String defaultValue) {
         Object oValue = getAndReportAccess(key);
         String value = oValue instanceof String ? (String) oValue : null;
@@ -632,7 +625,8 @@ public class AccessTrackingProperties extends Properties {
                 return false;
             }
             Map.Entry<?, ?> that = (Map.Entry<?, ?>) o;
-            return Objects.equals(delegate.getKey(), that.getKey()) && Objects.equals(delegate.getValue(), that.getValue());
+            return Objects.equals(delegate.getKey(), that.getKey())
+                    && Objects.equals(delegate.getValue(), that.getValue());
         }
 
         @Override

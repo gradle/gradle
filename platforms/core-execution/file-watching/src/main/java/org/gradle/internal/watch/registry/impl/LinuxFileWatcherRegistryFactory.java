@@ -16,6 +16,11 @@
 
 package org.gradle.internal.watch.registry.impl;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.concurrent.BlockingQueue;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import org.gradle.fileevents.FileWatchEvent;
 import org.gradle.fileevents.internal.LinuxFileEventFunctions;
@@ -25,27 +30,30 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.concurrent.BlockingQueue;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+public class LinuxFileWatcherRegistryFactory
+        extends AbstractFileWatcherRegistryFactory<LinuxFileEventFunctions, LinuxFileWatcher> {
 
-public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<LinuxFileEventFunctions, LinuxFileWatcher> {
-
-    public LinuxFileWatcherRegistryFactory(FileEventFunctionsLookup fileEvents, Predicate<String> immutableLocationsFilter) throws NativeIntegrationUnavailableException {
+    public LinuxFileWatcherRegistryFactory(
+            FileEventFunctionsLookup fileEvents, Predicate<String> immutableLocationsFilter)
+            throws NativeIntegrationUnavailableException {
         super(fileEvents.getFileEventFunctions(LinuxFileEventFunctions.class), immutableLocationsFilter);
     }
 
     @Override
     protected LinuxFileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
-        return fileEventFunctions.newWatcher(fileEvents)
-            .start();
+        return fileEventFunctions.newWatcher(fileEvents).start();
     }
 
     @Override
-    protected FileWatcherUpdater createFileWatcherUpdater(LinuxFileWatcher watcher, FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies) {
-        return new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies, new LinuxMovedDirectoryHandler(watcher, watchableHierarchies));
+    protected FileWatcherUpdater createFileWatcherUpdater(
+            LinuxFileWatcher watcher,
+            FileWatcherProbeRegistry probeRegistry,
+            WatchableHierarchies watchableHierarchies) {
+        return new NonHierarchicalFileWatcherUpdater(
+                watcher,
+                probeRegistry,
+                watchableHierarchies,
+                new LinuxMovedDirectoryHandler(watcher, watchableHierarchies));
     }
 
     private static class LinuxMovedDirectoryHandler implements AbstractFileWatcherUpdater.MovedDirectoryHandler {
@@ -60,19 +68,19 @@ public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistry
         @Override
         public Collection<File> stopWatchingMovedDirectories(SnapshotHierarchy vfsRoot) {
             Collection<File> directoriesToCheck = vfsRoot.rootSnapshots()
-                .filter(snapshot -> snapshot.getType() != FileType.Missing)
-                .filter(watchableHierarchies::shouldWatch)
-                .map(snapshot -> {
-                    switch (snapshot.getType()) {
-                        case RegularFile:
-                            return new File(snapshot.getAbsolutePath()).getParentFile();
-                        case Directory:
-                            return new File(snapshot.getAbsolutePath());
-                        default:
-                            throw new IllegalArgumentException("Unexpected file type:" + snapshot.getType());
-                    }
-                })
-                .collect(Collectors.toList());
+                    .filter(snapshot -> snapshot.getType() != FileType.Missing)
+                    .filter(watchableHierarchies::shouldWatch)
+                    .map(snapshot -> {
+                        switch (snapshot.getType()) {
+                            case RegularFile:
+                                return new File(snapshot.getAbsolutePath()).getParentFile();
+                            case Directory:
+                                return new File(snapshot.getAbsolutePath());
+                            default:
+                                throw new IllegalArgumentException("Unexpected file type:" + snapshot.getType());
+                        }
+                    })
+                    .collect(Collectors.toList());
             return watcher.stopWatchingMovedPaths(directoriesToCheck);
         }
     }

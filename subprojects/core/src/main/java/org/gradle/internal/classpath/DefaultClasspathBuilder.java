@@ -16,18 +16,17 @@
 
 package org.gradle.internal.classpath;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import javax.inject.Inject;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.NullMarked;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
 /**
  * Default implementation of {@link ClasspathBuilder} that is registered also as a service.

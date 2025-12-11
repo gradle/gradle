@@ -22,15 +22,14 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
-import org.gradle.api.Incubating;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.Incubating;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Holds references to exceptions reported via {@link org.gradle.problems.buildtree.ProblemReporter} and their associated problem reports.
@@ -41,7 +40,8 @@ import java.util.Set;
 @ServiceScope(Scope.BuildSession.class)
 public class ExceptionProblemRegistry {
 
-    private final Multimap<Throwable, InternalProblem> problemsForThrowables = Multimaps.synchronizedMultimap(MultimapBuilder.linkedHashKeys().linkedHashSetValues().<Throwable, InternalProblem>build());
+    private final Multimap<Throwable, InternalProblem> problemsForThrowables = Multimaps.synchronizedMultimap(
+            MultimapBuilder.linkedHashKeys().linkedHashSetValues().<Throwable, InternalProblem>build());
 
     public void onProblem(Throwable exception, InternalProblem problem) {
         problemsForThrowables.put(exception, problem);
@@ -97,7 +97,9 @@ public class ExceptionProblemRegistry {
         @Override
         public Collection<InternalProblem> findAll(Throwable t) {
             Throwable throwable = find(t);
-            return throwable == null ? ImmutableList.<InternalProblem>of() : ImmutableList.copyOf(problemsForThrowables.get(throwable));
+            return throwable == null
+                    ? ImmutableList.<InternalProblem>of()
+                    : ImmutableList.copyOf(problemsForThrowables.get(throwable));
         }
 
         @Nullable
@@ -160,6 +162,5 @@ public class ExceptionProblemRegistry {
 
             return true;
         }
-
     }
 }

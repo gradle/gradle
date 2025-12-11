@@ -20,10 +20,10 @@ import com.squareup.javapoet.AnnotationSpec;
 
 public class CodeGenUtils {
     public static final AnnotationSpec SUPPRESS_UNCHECKED_AND_RAWTYPES = AnnotationSpec.builder(SuppressWarnings.class)
-        .addMember("value", "$L", "{\"unchecked\", \"rawtypes\"}")
-        .build();
+            .addMember("value", "$L", "{\"unchecked\", \"rawtypes\"}")
+            .build();
 
     public static final AnnotationSpec SUPPRESS_DEPRECATIONS = AnnotationSpec.builder(SuppressWarnings.class)
-        .addMember("value", "$S", "deprecation")
-        .build();
+            .addMember("value", "$S", "deprecation")
+            .build();
 }

@@ -16,12 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal.xcode;
 
-import org.gradle.process.internal.ExecAction;
-import org.gradle.process.internal.ExecActionFactory;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.List;
+import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.ExecActionFactory;
 
 public abstract class AbstractLocator {
     private final ExecActionFactory execActionFactory;
@@ -33,7 +32,8 @@ public abstract class AbstractLocator {
 
     protected abstract List<String> getXcrunFlags();
 
-    @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "DefaultCharset") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public File find() {
         synchronized (this) {
             if (cachedLocation == null) {

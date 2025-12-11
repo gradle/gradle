@@ -31,5 +31,4 @@ public interface ProblemLocation {
      * @since 8.14
      */
     String getDisplayName();
-
 }

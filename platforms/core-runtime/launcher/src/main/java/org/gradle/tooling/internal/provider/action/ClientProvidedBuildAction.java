@@ -25,7 +25,11 @@ public class ClientProvidedBuildAction extends SubscribableBuildAction {
     private final SerializedPayload action;
     private final boolean runTasks;
 
-    public ClientProvidedBuildAction(StartParameterInternal startParameter, SerializedPayload action, boolean runTasks, BuildEventSubscriptions clientSubscriptions) {
+    public ClientProvidedBuildAction(
+            StartParameterInternal startParameter,
+            SerializedPayload action,
+            boolean runTasks,
+            BuildEventSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.action = action;

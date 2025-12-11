@@ -31,12 +31,10 @@ public class XcodeWorkspaceSettingsFile extends PropertyListPersistableConfigura
     }
 
     @Override
-    protected void store(NSDictionary rootObject) {
-    }
+    protected void store(NSDictionary rootObject) {}
 
     @Override
-    protected void load(NSDictionary rootObject) {
-    }
+    protected void load(NSDictionary rootObject) {}
 
     @Override
     protected String getDefaultResourceName() {

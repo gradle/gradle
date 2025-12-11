@@ -21,5 +21,4 @@ package org.gradle.tooling.model.cpp;
  *
  * @since 4.10
  */
-public interface CppTestSuite extends CppComponent {
-}
+public interface CppTestSuite extends CppComponent {}

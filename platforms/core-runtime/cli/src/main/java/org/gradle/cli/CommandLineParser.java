@@ -92,7 +92,8 @@ public class CommandLineParser {
      *          On parse failure.
      */
     public ParsedCommandLine parse(Iterable<String> commandLine) throws CommandLineArgumentException {
-        ParsedCommandLine parsedCommandLine = new ParsedCommandLine(new HashSet<CommandLineOption>(optionsByString.values()));
+        ParsedCommandLine parsedCommandLine =
+                new ParsedCommandLine(new HashSet<CommandLineOption>(optionsByString.values()));
         ParserState parseState = new BeforeFirstSubCommand(parsedCommandLine);
         for (String arg : commandLine) {
             if (parseState.maybeStartOption(arg)) {
@@ -208,7 +209,9 @@ public class CommandLineParser {
             lines.put(key, value);
         }
         // The "--" delimiter isn't an option, but it's useful to print it in the usage message anyway.
-        lines.put("--", "Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.");
+        lines.put(
+                "--",
+                "Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.");
 
         int max = 0;
         for (String optionStr : lines.keySet()) {
@@ -254,10 +257,13 @@ public class CommandLineParser {
                 throw new IllegalArgumentException(String.format("Option '%s' is already defined.", option));
             }
             if (option.startsWith("-")) {
-                throw new IllegalArgumentException(String.format("Cannot add option '%s' as an option cannot start with '-'.", option));
+                throw new IllegalArgumentException(
+                        String.format("Cannot add option '%s' as an option cannot start with '-'.", option));
             }
             if (!OPTION_NAME_PATTERN.matcher(option).matches()) {
-                throw new IllegalArgumentException(String.format("Cannot add option '%s' as an option can only contain alphanumeric characters or '-' or '_'.", option));
+                throw new IllegalArgumentException(String.format(
+                        "Cannot add option '%s' as an option can only contain alphanumeric characters or '-' or '_'.",
+                        option));
             }
         }
         CommandLineOption option = new CommandLineOption(Arrays.asList(options));
@@ -286,7 +292,7 @@ public class CommandLineParser {
         }
     }
 
-    private static abstract class ParserState {
+    private abstract static class ParserState {
         public abstract boolean maybeStartOption(String arg);
 
         boolean isOption(String arg) {
@@ -297,8 +303,7 @@ public class CommandLineParser {
 
         public abstract ParserState onNonOption(String arg);
 
-        public void onCommandLineEnd() {
-        }
+        public void onCommandLineEnd() {}
     }
 
     private abstract class OptionAwareParserState extends ParserState {
@@ -333,7 +338,8 @@ public class CommandLineParser {
                 if (allowUnknownOptions) {
                     return new UnknownOptionParserState(arg, commandLine, this);
                 } else {
-                    throw new CommandLineArgumentException(String.format("Unknown command-line option '%s'.", optionString));
+                    throw new CommandLineArgumentException(
+                            String.format("Unknown command-line option '%s'.", optionString));
                 }
             }
             return new KnownOptionParserState(optionString, commandLineOption, commandLine, this);
@@ -407,7 +413,7 @@ public class CommandLineParser {
         }
     }
 
-    private static abstract class OptionParserState {
+    private abstract static class OptionParserState {
         public abstract ParserState onStartNextArg();
 
         public abstract ParserState onArgument(String argument);
@@ -424,7 +430,8 @@ public class CommandLineParser {
         private final ParserState state;
         private final List<String> values = new ArrayList<String>();
 
-        private KnownOptionParserState(OptionString optionString, CommandLineOption option, ParsedCommandLine commandLine, ParserState state) {
+        private KnownOptionParserState(
+                OptionString optionString, CommandLineOption option, ParsedCommandLine commandLine, ParserState state) {
             this.optionString = optionString;
             this.option = option;
             this.commandLine = commandLine;
@@ -434,10 +441,12 @@ public class CommandLineParser {
         @Override
         public ParserState onArgument(String argument) {
             if (!getHasArgument()) {
-                throw new CommandLineArgumentException(String.format("Command-line option '%s' does not take an argument.", optionString));
+                throw new CommandLineArgumentException(
+                        String.format("Command-line option '%s' does not take an argument.", optionString));
             }
             if (argument.length() == 0) {
-                throw new CommandLineArgumentException(String.format("An empty argument was provided for command-line option '%s'.", optionString));
+                throw new CommandLineArgumentException(
+                        String.format("An empty argument was provided for command-line option '%s'.", optionString));
             }
             values.add(argument);
             return onComplete();
@@ -459,12 +468,15 @@ public class CommandLineParser {
         @Override
         public ParserState onComplete() {
             if (getHasArgument() && values.isEmpty()) {
-                throw new CommandLineArgumentException(String.format("No argument was provided for command-line option '%s' with description: '%s'", optionString, option.getDescription()));
+                throw new CommandLineArgumentException(String.format(
+                        "No argument was provided for command-line option '%s' with description: '%s'",
+                        optionString, option.getDescription()));
             }
 
             ParsedCommandLineOption parsedOption = commandLine.addOption(optionString.option, option);
             if (values.size() + parsedOption.getValues().size() > 1 && !option.getAllowsMultipleArguments()) {
-                throw new CommandLineArgumentException(String.format("Multiple arguments were provided for command-line option '%s'.", optionString));
+                throw new CommandLineArgumentException(
+                        String.format("Multiple arguments were provided for command-line option '%s'.", optionString));
             }
             for (String value : values) {
                 parsedOption.addArgument(value);

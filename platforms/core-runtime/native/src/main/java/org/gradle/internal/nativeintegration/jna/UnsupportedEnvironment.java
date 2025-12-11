@@ -15,17 +15,16 @@
  */
 package org.gradle.internal.nativeintegration.jna;
 
-import org.gradle.internal.nativeintegration.NativeIntegrationException;
-import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
-import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
-import org.gradle.internal.os.OperatingSystem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
+import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
+import org.gradle.internal.nativeintegration.NativeIntegrationException;
+import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.os.OperatingSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UnsupportedEnvironment implements ProcessEnvironment {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnsupportedEnvironment.class);
@@ -50,7 +49,8 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
             try {
                 pid = Long.parseLong(runtimeMXBeanName.substring(0, separatorPos));
             } catch (NumberFormatException e) {
-                LOGGER.debug("Native-platform process: failed to parse PID from Runtime MX bean name: " + runtimeMXBeanName);
+                LOGGER.debug(
+                        "Native-platform process: failed to parse PID from Runtime MX bean name: " + runtimeMXBeanName);
             }
         } else {
             LOGGER.debug("Native-platform process: failed to parse PID from Runtime MX bean name");
@@ -122,6 +122,7 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
     }
 
     private NativeIntegrationException notSupported() {
-        return new NativeIntegrationUnavailableException("We don't support this operating system: " + OperatingSystem.current());
+        return new NativeIntegrationUnavailableException(
+                "We don't support this operating system: " + OperatingSystem.current());
     }
 }

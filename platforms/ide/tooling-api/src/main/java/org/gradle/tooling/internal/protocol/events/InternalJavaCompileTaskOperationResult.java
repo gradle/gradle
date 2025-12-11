@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
-import org.jspecify.annotations.Nullable;
-
 import java.time.Duration;
 import java.util.List;
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+import org.jspecify.annotations.Nullable;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
@@ -43,7 +42,5 @@ public interface InternalJavaCompileTaskOperationResult extends InternalTaskResu
         String getType();
 
         Duration getDuration();
-
     }
-
 }

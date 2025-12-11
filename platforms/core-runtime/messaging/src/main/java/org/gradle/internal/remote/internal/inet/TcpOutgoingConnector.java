@@ -16,14 +16,6 @@
 
 package org.gradle.internal.remote.internal.inet;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.remote.Address;
-import org.gradle.internal.remote.internal.ConnectCompletion;
-import org.gradle.internal.remote.internal.ConnectException;
-import org.gradle.internal.remote.internal.OutgoingConnector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -35,6 +27,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.remote.Address;
+import org.gradle.internal.remote.internal.ConnectCompletion;
+import org.gradle.internal.remote.internal.ConnectException;
+import org.gradle.internal.remote.internal.OutgoingConnector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TcpOutgoingConnector implements OutgoingConnector {
     static final byte[] CONNECTION_PREAMBLE = "Gradle Magic".getBytes(StandardCharsets.UTF_8);
@@ -44,7 +43,8 @@ public class TcpOutgoingConnector implements OutgoingConnector {
     @Override
     public ConnectCompletion connect(Address destinationAddress) throws ConnectException {
         if (!(destinationAddress instanceof InetEndpoint)) {
-            throw new IllegalArgumentException(String.format("Cannot create a connection to address of unknown type: %s.", destinationAddress));
+            throw new IllegalArgumentException(
+                    String.format("Cannot create a connection to address of unknown type: %s.", destinationAddress));
         }
         InetEndpoint address = (InetEndpoint) destinationAddress;
         LOGGER.debug("Attempting to connect to {}.", address);
@@ -73,13 +73,19 @@ public class TcpOutgoingConnector implements OutgoingConnector {
                 LOGGER.debug("Connected to address {}.", socketChannel.socket().getRemoteSocketAddress());
                 return new SocketConnectCompletion(socketChannel);
             }
-            throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",
-                    destinationAddress, candidateAddresses), lastFailure);
+            throw new ConnectException(
+                    String.format(
+                            "Could not connect to server %s. Tried addresses: %s.",
+                            destinationAddress, candidateAddresses),
+                    lastFailure);
         } catch (ConnectException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not connect to server %s. Tried addresses: %s.",
-                    destinationAddress, candidateAddresses), e);
+            throw new RuntimeException(
+                    String.format(
+                            "Could not connect to server %s. Tried addresses: %s.",
+                            destinationAddress, candidateAddresses),
+                    e);
         }
     }
 
@@ -101,7 +107,8 @@ public class TcpOutgoingConnector implements OutgoingConnector {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
-        throw new java.net.ConnectException(String.format("Socket connected to itself on %s port %s.", candidate, address.getPort()));
+        throw new java.net.ConnectException(
+                String.format("Socket connected to itself on %s port %s.", candidate, address.getPort()));
     }
 
     boolean detectSelfConnect(SocketChannel socketChannel) {
@@ -109,8 +116,10 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         SocketAddress localAddress = socket.getLocalSocketAddress();
         SocketAddress remoteAddress = socket.getRemoteSocketAddress();
         if (localAddress.equals(remoteAddress)) {
-            LOGGER.debug("Detected that socket was bound to {} while connecting to {}. This looks like the socket connected to itself.",
-                localAddress, remoteAddress);
+            LOGGER.debug(
+                    "Detected that socket was bound to {} while connecting to {}. This looks like the socket connected to itself.",
+                    localAddress,
+                    remoteAddress);
             return true;
         }
         return false;

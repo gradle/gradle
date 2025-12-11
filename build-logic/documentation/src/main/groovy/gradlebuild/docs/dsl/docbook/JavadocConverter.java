@@ -15,26 +15,26 @@
  */
 package gradlebuild.docs.dsl.docbook;
 
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.GradleException;
 import gradlebuild.docs.dsl.source.model.ClassMetaData;
 import gradlebuild.docs.dsl.source.model.MethodMetaData;
 import gradlebuild.docs.dsl.source.model.PropertyMetaData;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.GradleException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Converts raw javadoc comments into docbook.
  */
 public class JavadocConverter {
     private static final Pattern HEADER_PATTERN = Pattern.compile("h(\\d)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern ACCESSOR_COMMENT_PATTERN = Pattern.compile("(?:returns|sets)\\s+(the|whether)\\s+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern ACCESSOR_COMMENT_PATTERN =
+            Pattern.compile("(?:returns|sets)\\s+(the|whether)\\s+", Pattern.CASE_INSENSITIVE);
     private final Document document;
     private final JavadocLinkConverter linkConverter;
 
@@ -50,7 +50,11 @@ public class JavadocConverter {
             try {
                 return parse(rawCommentText, classMetaData, new NoOpCommentSource(), listener);
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nComment: %s", classMetaData, rawCommentText), e);
+                throw new GradleException(
+                        String.format(
+                                "Could not convert javadoc comment to docbook.%nClass: %s%nComment: %s",
+                                classMetaData, rawCommentText),
+                        e);
             }
         } finally {
             listener.finish();
@@ -68,7 +72,11 @@ public class JavadocConverter {
                 adjustAccessorComment(docComment);
                 return docComment;
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nProperty: %s%nComment: %s", ownerClass.getClassName(), propertyMetaData.getName(), rawCommentText), e);
+                throw new GradleException(
+                        String.format(
+                                "Could not convert javadoc comment to docbook.%nClass: %s%nProperty: %s%nComment: %s",
+                                ownerClass.getClassName(), propertyMetaData.getName(), rawCommentText),
+                        e);
             }
         } finally {
             listener.finish();
@@ -84,9 +92,11 @@ public class JavadocConverter {
                 CommentSource commentSource = new InheritedMethodCommentSource(listener, methodMetaData);
                 return parse(rawCommentText, ownerClass, commentSource, listener);
             } catch (Exception e) {
-                throw new GradleException(String.format(
-                        "Could not convert javadoc comment to docbook.%nClass: %s%nMethod: %s%nComment: %s",
-                        ownerClass.getClassName(), methodMetaData.getSignature(), rawCommentText), e);
+                throw new GradleException(
+                        String.format(
+                                "Could not convert javadoc comment to docbook.%nClass: %s%nMethod: %s%nComment: %s",
+                                ownerClass.getClassName(), methodMetaData.getSignature(), rawCommentText),
+                        e);
             }
         } finally {
             listener.finish();
@@ -109,12 +119,16 @@ public class JavadocConverter {
         Matcher matcher = ACCESSOR_COMMENT_PATTERN.matcher(comment.getData());
         if (matcher.lookingAt()) {
             String theOrWhether = matcher.group(1).toLowerCase(Locale.US);
-            comment.setData(StringUtils.capitalize(theOrWhether) + " " + comment.getData().substring(matcher.end()));
+            comment.setData(StringUtils.capitalize(theOrWhether) + " "
+                    + comment.getData().substring(matcher.end()));
         }
     }
 
-    private DocCommentImpl parse(String rawCommentText, ClassMetaData classMetaData,
-                                 CommentSource inheritedCommentSource, GenerationListener listener) {
+    private DocCommentImpl parse(
+            String rawCommentText,
+            ClassMetaData classMetaData,
+            CommentSource inheritedCommentSource,
+            GenerationListener listener) {
         JavadocLexer lexer = new HtmlToXmlJavadocLexer(new BasicJavadocLexer(new JavadocScanner(rawCommentText)));
         DocBookBuilder nodes = new DocBookBuilder(document);
         final HtmlGeneratingTokenHandler handler = new HtmlGeneratingTokenHandler(nodes, document);
@@ -382,9 +396,9 @@ public class JavadocConverter {
                 return false;
             }
             Element newElement = document.createElement("programlisting");
-            //we're making an assumption that all <pre> elements contain java code
-            //this should mostly be true :)
-            //if it isn't true then the syntax highlighting won't spoil the view too much anyway
+            // we're making an assumption that all <pre> elements contain java code
+            // this should mostly be true :)
+            // if it isn't true then the syntax highlighting won't spoil the view too much anyway
             newElement.setAttribute("language", "java");
             nodes.push(newElement);
             return true;
@@ -531,12 +545,10 @@ public class JavadocConverter {
         }
 
         @Override
-        public void onEndElement(String element) {
-        }
+        public void onEndElement(String element) {}
 
         @Override
-        public void onText(String text) {
-        }
+        public void onText(String text) {}
     }
 
     private static class AToLinkTranslatingHandler implements HtmlElementHandler {
@@ -683,8 +695,11 @@ public class JavadocConverter {
         private final DocBookBuilder nodes;
         private final GenerationListener listener;
 
-        public ValueTagHandler(DocBookBuilder nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
-                               GenerationListener listener) {
+        public ValueTagHandler(
+                DocBookBuilder nodes,
+                JavadocLinkConverter linkConverter,
+                ClassMetaData classMetaData,
+                GenerationListener listener) {
             this.nodes = nodes;
             this.linkConverter = linkConverter;
             this.classMetaData = classMetaData;
@@ -724,8 +739,11 @@ public class JavadocConverter {
         private final ClassMetaData classMetaData;
         private final GenerationListener listener;
 
-        private LinkHandler(DocBookBuilder nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
-                            GenerationListener listener) {
+        private LinkHandler(
+                DocBookBuilder nodes,
+                JavadocLinkConverter linkConverter,
+                ClassMetaData classMetaData,
+                GenerationListener listener) {
             this.nodes = nodes;
             this.linkConverter = linkConverter;
             this.classMetaData = classMetaData;

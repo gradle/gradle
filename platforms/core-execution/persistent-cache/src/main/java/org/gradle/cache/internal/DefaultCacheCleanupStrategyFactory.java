@@ -16,13 +16,12 @@
 
 package org.gradle.cache.internal;
 
+import java.util.function.Supplier;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupFrequency;
 import org.gradle.internal.operations.BuildOperationRunner;
-
-import java.util.function.Supplier;
 
 public class DefaultCacheCleanupStrategyFactory implements CacheCleanupStrategyFactory {
     private final BuildOperationRunner buildOperationRunner;

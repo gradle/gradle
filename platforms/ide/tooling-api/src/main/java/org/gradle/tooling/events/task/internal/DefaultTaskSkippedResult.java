@@ -47,5 +47,4 @@ public final class DefaultTaskSkippedResult implements TaskSkippedResult {
     public String getSkipMessage() {
         return this.skipMessage;
     }
-
 }

@@ -16,6 +16,10 @@
 
 package org.gradle.launcher.daemon.server;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
@@ -32,11 +36,6 @@ import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
 import org.jspecify.annotations.Nullable;
-
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A tool for synchronising the state amongst different threads.
@@ -66,11 +65,20 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private final Runnable onFinishCommand;
     private final Runnable onCancelCommand;
 
-    public DaemonStateCoordinator(ExecutorFactory executorFactory, Runnable onStartCommand, Runnable onFinishCommand, Runnable onCancelCommand) {
+    public DaemonStateCoordinator(
+            ExecutorFactory executorFactory,
+            Runnable onStartCommand,
+            Runnable onFinishCommand,
+            Runnable onCancelCommand) {
         this(executorFactory, onStartCommand, onFinishCommand, onCancelCommand, 10 * 1000L);
     }
 
-    DaemonStateCoordinator(ExecutorFactory executorFactory, Runnable onStartCommand, Runnable onFinishCommand, Runnable onCancelCommand, long cancelTimeoutMs) {
+    DaemonStateCoordinator(
+            ExecutorFactory executorFactory,
+            Runnable onStartCommand,
+            Runnable onFinishCommand,
+            Runnable onCancelCommand,
+            long cancelTimeoutMs) {
         executor = executorFactory.create("Daemon worker");
         this.onStartCommand = onStartCommand;
         this.onFinishCommand = onFinishCommand;
@@ -131,7 +139,9 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     public void requestStop(String reason) {
         lock.lock();
         try {
-            if (state != DaemonState.StopRequested && state != DaemonState.Stopped && state != DaemonState.ForceStopped) {
+            if (state != DaemonState.StopRequested
+                    && state != DaemonState.Stopped
+                    && state != DaemonState.ForceStopped) {
                 LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + reason);
                 if (state == DaemonState.Busy) {
                     LOGGER.debug("Stop as soon as idle requested. The daemon is busy");
@@ -333,14 +343,19 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private void waitForCommandCompletion() {
         lock.lock();
         try {
-            while ((state == DaemonState.Busy || state == DaemonState.Canceled || state == DaemonState.StopRequested) && result == null) {
+            while ((state == DaemonState.Busy || state == DaemonState.Canceled || state == DaemonState.StopRequested)
+                    && result == null) {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
-            LOGGER.debug("Command execution: finished waiting for {}. Result {} with state {}", currentCommandExecution, result, state);
+            LOGGER.debug(
+                    "Command execution: finished waiting for {}. Result {} with state {}",
+                    currentCommandExecution,
+                    result,
+                    state);
             if (result instanceof Throwable) {
                 throw UncheckedException.throwAsUncheckedException((Throwable) result);
             }
@@ -394,12 +409,14 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                     throw new DaemonUnavailableException("This daemon has stopped.");
                 case Busy:
                 case Canceled:
-                    throw new DaemonUnavailableException(String.format("This daemon is currently executing: %s", currentCommandExecution));
+                    throw new DaemonUnavailableException(
+                            String.format("This daemon is currently executing: %s", currentCommandExecution));
                 case Idle:
                     break;
             }
 
-            LOGGER.debug("Command execution: started {} after {} minutes of idle", commandDisplayName, getIdleMinutes());
+            LOGGER.debug(
+                    "Command execution: started {} after {} minutes of idle", commandDisplayName, getIdleMinutes());
             try {
                 setState(DaemonState.Busy);
                 onStartCommand.run();

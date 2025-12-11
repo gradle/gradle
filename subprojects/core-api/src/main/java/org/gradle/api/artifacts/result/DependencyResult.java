@@ -53,5 +53,4 @@ public interface DependencyResult {
      * @since 5.1
      */
     boolean isConstraint();
-
 }

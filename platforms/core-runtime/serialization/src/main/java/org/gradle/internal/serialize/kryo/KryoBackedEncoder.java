@@ -17,15 +17,14 @@
 package org.gradle.internal.serialize.kryo;
 
 import com.esotericsoftware.kryo.io.Output;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.OutputStream;
 import org.gradle.internal.serialize.AbstractEncoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.PositionAwareEncoder;
 import org.jspecify.annotations.Nullable;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.OutputStream;
 
 public class KryoBackedEncoder extends AbstractEncoder implements PositionAwareEncoder, FlushableEncoder, Closeable {
     private final Output output;

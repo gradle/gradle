@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.events.problems.internal;
 
+import java.util.Map;
 import org.gradle.tooling.events.problems.CustomAdditionalData;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-
-import java.util.Map;
 
 public class DefaultCustomAdditionalData extends DefaultAdditionalData implements CustomAdditionalData {
     private final Object data;

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
+import java.io.File;
+import java.util.Date;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
@@ -30,22 +32,26 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.Date;
-
 public class LazyPublishArtifact implements PublishArtifactInternal {
     private final ProviderInternal<?> provider;
+
     @Nullable
     private final String version;
+
     private final FileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
     private PublishArtifactInternal delegate;
 
-    public LazyPublishArtifact(Provider<?> archiveTask, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
+    public LazyPublishArtifact(
+            Provider<?> archiveTask, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
         this(archiveTask, null, fileResolver, taskDependencyFactory);
     }
 
-    public LazyPublishArtifact(Provider<?> provider, @Nullable String version, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
+    public LazyPublishArtifact(
+            Provider<?> provider,
+            @Nullable String version,
+            FileResolver fileResolver,
+            TaskDependencyFactory taskDependencyFactory) {
         this.provider = Providers.internal(provider);
         this.version = version;
         this.fileResolver = fileResolver;
@@ -103,7 +109,14 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
 
     private PublishArtifactInternal fromFile(File file) {
         ArtifactFile artifactFile = new ArtifactFile(file, version);
-        return new DefaultPublishArtifact(taskDependencyFactory, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file);
+        return new DefaultPublishArtifact(
+                taskDependencyFactory,
+                artifactFile.getName(),
+                artifactFile.getExtension(),
+                artifactFile.getExtension(),
+                artifactFile.getClassifier(),
+                null,
+                file);
     }
 
     @Override

@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.events.problems;
 
+import java.util.Map;
 import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Map;
 
 /**
  * Additional data attached to the problem.

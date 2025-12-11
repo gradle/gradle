@@ -36,5 +36,4 @@ public final class BuildInvocationScopeId extends ScopeId {
     public BuildInvocationScopeId(UniqueId id) {
         super(id);
     }
-
 }

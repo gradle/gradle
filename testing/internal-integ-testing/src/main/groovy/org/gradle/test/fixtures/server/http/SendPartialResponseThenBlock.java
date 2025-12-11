@@ -16,18 +16,17 @@
 
 package org.gradle.test.fixtures.server.http;
 
-import com.sun.net.httpserver.HttpExchange;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.Time;
+import static org.gradle.test.fixtures.server.http.BlockingHttpServer.getCurrentTimestamp;
 
+import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-
-import static org.gradle.test.fixtures.server.http.BlockingHttpServer.getCurrentTimestamp;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Time;
 
 class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest, ResponseProducer {
     private final byte[] content;
@@ -66,7 +65,9 @@ class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest
             while (!released && failure == null) {
                 long waitMs = mostRecentEvent + timeout.toMillis() - clock.getCurrentTime();
                 if (waitMs < 0) {
-                    System.out.printf("[%s][%d] timeout waiting to be released after sending some content%n", getCurrentTimestamp(), requestId);
+                    System.out.printf(
+                            "[%s][%d] timeout waiting to be released after sending some content%n",
+                            getCurrentTimestamp(), requestId);
                     failure = new AssertionError("Timeout waiting to be released after sending some content.");
                     condition.signalAll();
                     throw failure;

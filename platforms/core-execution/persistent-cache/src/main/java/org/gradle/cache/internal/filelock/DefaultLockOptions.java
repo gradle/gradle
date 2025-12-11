@@ -54,10 +54,7 @@ public class DefaultLockOptions implements LockOptions {
 
     @Override
     public String toString() {
-        return "DefaultLockOptions{" +
-            "mode=" + mode +
-            ", crossVersion=" + crossVersion +
-            '}';
+        return "DefaultLockOptions{" + "mode=" + mode + ", crossVersion=" + crossVersion + '}';
     }
 
     @Override

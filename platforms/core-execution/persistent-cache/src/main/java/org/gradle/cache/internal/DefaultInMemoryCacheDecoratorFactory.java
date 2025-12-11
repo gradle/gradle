@@ -18,6 +18,7 @@ package org.gradle.cache.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.util.concurrent.atomic.AtomicReference;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.CacheDecorator;
 import org.gradle.cache.CrossProcessCacheAccess;
@@ -26,8 +27,6 @@ import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * A {@link CacheDecorator} that wraps each cache with an in-memory cache that is used to short-circuit reads from the backing cache.
  * The in-memory cache is invalidated when the backing cache is changed by another process.
@@ -35,22 +34,28 @@ import java.util.concurrent.atomic.AtomicReference;
  * Also decorates each cache so that updates to the backing cache are made asynchronously.
  */
 public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecoratorFactory {
-    private final static Logger LOG = LoggerFactory.getLogger(DefaultInMemoryCacheDecoratorFactory.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultInMemoryCacheDecoratorFactory.class);
     private final boolean longLivingProcess;
     private final HeapProportionalCacheSizer cacheSizer = new HeapProportionalCacheSizer();
     private final CrossBuildInMemoryCache<String, CacheDetails> caches;
 
-    public DefaultInMemoryCacheDecoratorFactory(boolean longLivingProcess, CrossBuildInMemoryCacheFactory cacheFactory) {
+    public DefaultInMemoryCacheDecoratorFactory(
+            boolean longLivingProcess, CrossBuildInMemoryCacheFactory cacheFactory) {
         this.longLivingProcess = longLivingProcess;
         caches = cacheFactory.newCache();
     }
 
     @Override
-    public CacheDecorator decorator(final int maxEntriesToKeepInMemory, final boolean cacheInMemoryForShortLivedProcesses) {
+    public CacheDecorator decorator(
+            final int maxEntriesToKeepInMemory, final boolean cacheInMemoryForShortLivedProcesses) {
         return new InMemoryCacheDecorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses);
     }
 
-    protected <K, V> MultiProcessSafeAsyncPersistentIndexedCache<K, V> applyInMemoryCaching(String cacheId, MultiProcessSafeAsyncPersistentIndexedCache<K, V> backingCache, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
+    protected <K, V> MultiProcessSafeAsyncPersistentIndexedCache<K, V> applyInMemoryCaching(
+            String cacheId,
+            MultiProcessSafeAsyncPersistentIndexedCache<K, V> backingCache,
+            int maxEntriesToKeepInMemory,
+            boolean cacheInMemoryForShortLivedProcesses) {
         if (!longLivingProcess && !cacheInMemoryForShortLivedProcesses) {
             // Short-lived process, don't cache in memory
             LOG.debug("Creating cache {} without in-memory store.", cacheId);
@@ -69,14 +74,16 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
             return details;
         });
         if (cacheDetails.maxEntries != maxSize) {
-            throw new IllegalStateException("Mismatched in-memory store size for cache " + cacheId + ", expected: " + maxSize + ", found: " + cacheDetails.maxEntries);
+            throw new IllegalStateException("Mismatched in-memory store size for cache " + cacheId + ", expected: "
+                    + maxSize + ", found: " + cacheDetails.maxEntries);
         }
         return cacheDetails;
     }
 
     private static Cache<Object, Object> createInMemoryCache(String cacheId, int maxSize) {
         LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize, LOG);
-        final CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener);
+        final CacheBuilder<Object, Object> cacheBuilder =
+                CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener);
         Cache<Object, Object> inMemoryCache = cacheBuilder.build();
         evictionListener.setCache(inMemoryCache);
         return inMemoryCache;
@@ -100,7 +107,8 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
                 return false;
             }
             InMemoryCacheDecorator other = (InMemoryCacheDecorator) obj;
-            return maxEntriesToKeepInMemory == other.maxEntriesToKeepInMemory && cacheInMemoryForShortLivedProcesses == other.cacheInMemoryForShortLivedProcesses;
+            return maxEntriesToKeepInMemory == other.maxEntriesToKeepInMemory
+                    && cacheInMemoryForShortLivedProcesses == other.cacheInMemoryForShortLivedProcesses;
         }
 
         @Override
@@ -109,9 +117,16 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
         }
 
         @Override
-        public <K, V> MultiProcessSafeIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafeIndexedCache<K, V> indexedCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
-            MultiProcessSafeAsyncPersistentIndexedCache<K, V> asyncCache = new AsyncCacheAccessDecoratedCache<>(asyncCacheAccess, indexedCache);
-            MultiProcessSafeAsyncPersistentIndexedCache<K, V> memCache = applyInMemoryCaching(cacheId, asyncCache, maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses);
+        public <K, V> MultiProcessSafeIndexedCache<K, V> decorate(
+                String cacheId,
+                String cacheName,
+                MultiProcessSafeIndexedCache<K, V> indexedCache,
+                CrossProcessCacheAccess crossProcessCacheAccess,
+                AsyncCacheAccess asyncCacheAccess) {
+            MultiProcessSafeAsyncPersistentIndexedCache<K, V> asyncCache =
+                    new AsyncCacheAccessDecoratedCache<>(asyncCacheAccess, indexedCache);
+            MultiProcessSafeAsyncPersistentIndexedCache<K, V> memCache = applyInMemoryCaching(
+                    cacheId, asyncCache, maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses);
             return new CrossProcessSynchronizingIndexedCache<>(memCache, crossProcessCacheAccess);
         }
     }

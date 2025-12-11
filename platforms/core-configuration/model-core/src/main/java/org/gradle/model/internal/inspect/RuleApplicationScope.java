@@ -16,11 +16,10 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.Each;
-import org.gradle.model.Path;
-
 import java.lang.annotation.Annotation;
 import java.util.List;
+import org.gradle.model.Each;
+import org.gradle.model.Path;
 
 public enum RuleApplicationScope {
     /**
@@ -38,10 +37,14 @@ public enum RuleApplicationScope {
      *
      * @throws IndexOutOfBoundsException If the rule definition has too few parameters.
      */
-    public static RuleApplicationScope fromRuleDefinition(RuleSourceValidationProblemCollector problems, MethodRuleDefinition<?, ?> ruleDefinition, int subjectParamIndex) {
+    public static RuleApplicationScope fromRuleDefinition(
+            RuleSourceValidationProblemCollector problems,
+            MethodRuleDefinition<?, ?> ruleDefinition,
+            int subjectParamIndex) {
         List<List<Annotation>> parameterAnnotations = ruleDefinition.getParameterAnnotations();
         if (subjectParamIndex >= parameterAnnotations.size()) {
-            throw new IndexOutOfBoundsException("Rule definition should have at least " + (subjectParamIndex + 1) + " parameters");
+            throw new IndexOutOfBoundsException(
+                    "Rule definition should have at least " + (subjectParamIndex + 1) + " parameters");
         }
         RuleApplicationScope result = null;
         for (int paramIndex = 0; paramIndex < parameterAnnotations.size(); paramIndex++) {
@@ -53,7 +56,9 @@ public enum RuleApplicationScope {
                 }
                 result = annotatedWithEach ? DESCENDANTS : SELF;
             } else if (annotatedWithEach) {
-                problems.add(ruleDefinition, String.format("Rule parameter #%d should not be annotated with @Each.", paramIndex + 1));
+                problems.add(
+                        ruleDefinition,
+                        String.format("Rule parameter #%d should not be annotated with @Each.", paramIndex + 1));
             }
         }
         assert result != null;

@@ -39,13 +39,15 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
     @Override
     public TaskExecutionMode getExecutionMode(TaskInternal task, TaskProperties properties) {
         if (task.getReasonNotToTrackState().isPresent()) {
-            return DefaultTaskExecutionMode.untracked(task.getReasonNotToTrackState().get());
+            return DefaultTaskExecutionMode.untracked(
+                    task.getReasonNotToTrackState().get());
         }
         // Only false if no declared outputs AND no Task.upToDateWhen spec. We force to true for incremental tasks.
         AndSpec<? super TaskInternal> upToDateSpec = task.getOutputs().getUpToDateSpec();
         if (!properties.hasDeclaredOutputs() && upToDateSpec.isEmpty()) {
             if (requiresInputChanges(task)) {
-                throw new InvalidUserCodeException("You must declare outputs or use `TaskOutputs.upToDateWhen()` when using the incremental task API");
+                throw new InvalidUserCodeException(
+                        "You must declare outputs or use `TaskOutputs.upToDateWhen()` when using the incremental task API");
             } else {
                 return DefaultTaskExecutionMode.noOutputs();
             }

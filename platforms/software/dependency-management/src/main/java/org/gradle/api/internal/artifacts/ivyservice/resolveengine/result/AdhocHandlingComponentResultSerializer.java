@@ -33,15 +33,16 @@ public class AdhocHandlingComponentResultSerializer implements ComponentResultSe
     private final CompleteComponentResultSerializer completeComponentResultSerializer;
 
     public AdhocHandlingComponentResultSerializer(
-        ThisBuildTreeOnlyComponentResultSerializer thisBuildTreeOnlyComponentResultSerializer,
-        CompleteComponentResultSerializer completeComponentResultSerializer
-    ) {
+            ThisBuildTreeOnlyComponentResultSerializer thisBuildTreeOnlyComponentResultSerializer,
+            CompleteComponentResultSerializer completeComponentResultSerializer) {
         this.thisBuildTreeOnlyComponentResultSerializer = thisBuildTreeOnlyComponentResultSerializer;
         this.completeComponentResultSerializer = completeComponentResultSerializer;
     }
 
     @Override
-    public void writeComponentResult(Encoder encoder, ResolvedGraphComponent component, boolean includeAllSelectableVariantResults) throws Exception {
+    public void writeComponentResult(
+            Encoder encoder, ResolvedGraphComponent component, boolean includeAllSelectableVariantResults)
+            throws Exception {
         boolean adHoc = component.getResolveState().isAdHoc();
         encoder.writeBoolean(adHoc);
         getSerializer(adHoc).writeComponentResult(encoder, component, includeAllSelectableVariantResults);

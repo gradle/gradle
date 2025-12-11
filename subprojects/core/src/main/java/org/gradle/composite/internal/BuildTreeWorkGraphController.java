@@ -16,12 +16,11 @@
 
 package org.gradle.composite.internal;
 
+import java.util.function.Function;
 import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.Function;
 
 /**
  * A service that allows work graphs to be created, populated and executed.

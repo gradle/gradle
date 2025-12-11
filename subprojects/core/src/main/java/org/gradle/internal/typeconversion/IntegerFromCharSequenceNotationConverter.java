@@ -21,11 +21,13 @@ import org.gradle.internal.exceptions.DiagnosticsVisitor;
 public class IntegerFromCharSequenceNotationConverter implements NotationConverter<CharSequence, Integer> {
 
     @Override
-    public void convert(CharSequence notation, NotationConvertResult<? super Integer> result) throws TypeConversionException {
+    public void convert(CharSequence notation, NotationConvertResult<? super Integer> result)
+            throws TypeConversionException {
         try {
             result.converted(Integer.valueOf(notation.toString()));
         } catch (NumberFormatException ex) {
-            throw new TypeConversionException(String.format("Cannot convert string value '%s' to an integer.", notation), ex);
+            throw new TypeConversionException(
+                    String.format("Cannot convert string value '%s' to an integer.", notation), ex);
         }
     }
 

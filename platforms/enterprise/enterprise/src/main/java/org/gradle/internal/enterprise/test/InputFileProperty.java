@@ -16,5 +16,4 @@
 
 package org.gradle.internal.enterprise.test;
 
-public interface InputFileProperty extends FileProperty {
-}
+public interface InputFileProperty extends FileProperty {}

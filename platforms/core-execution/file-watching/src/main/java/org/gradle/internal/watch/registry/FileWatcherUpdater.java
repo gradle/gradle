@@ -16,14 +16,13 @@
 
 package org.gradle.internal.watch.registry;
 
-import org.gradle.internal.file.FileHierarchySet;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.SnapshotHierarchy;
-
-import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.CheckReturnValue;
+import org.gradle.internal.file.FileHierarchySet;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 
 /**
  * <p>
@@ -83,7 +82,10 @@ public interface FileWatcherUpdater {
      *
      * @see FileWatcherRegistry#virtualFileSystemContentsChanged(Collection, Collection, SnapshotHierarchy)
      */
-    void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
+    void virtualFileSystemContentsChanged(
+            Collection<FileSystemLocationSnapshot> removedSnapshots,
+            Collection<FileSystemLocationSnapshot> addedSnapshots,
+            SnapshotHierarchy root);
 
     /**
      * Trigger armed watch probe at given path.
@@ -96,7 +98,8 @@ public interface FileWatcherUpdater {
      * @see FileWatcherRegistry#updateVfsOnBuildStarted(SnapshotHierarchy, WatchMode, java.util.List)
      */
     @CheckReturnValue
-    SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
+    SnapshotHierarchy updateVfsOnBuildStarted(
+            SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
 
     /**
      * Remove everything from the root which can't be kept after the current build finished.
@@ -104,7 +107,8 @@ public interface FileWatcherUpdater {
      * @see FileWatcherRegistry#updateVfsBeforeBuildFinished(SnapshotHierarchy, int, List)
      */
     @CheckReturnValue
-    SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
+    SnapshotHierarchy updateVfsBeforeBuildFinished(
+            SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
 
     /**
      * Remove everything from the root which can't be kept after the current build finished.

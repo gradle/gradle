@@ -16,6 +16,39 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.flattenTaskPaths;
+import static org.gradle.internal.hash.Hashing.hashString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
@@ -84,40 +117,6 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.IncubationLogger;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
-import java.util.stream.Collectors;
-
-import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.flattenTaskPaths;
-import static org.gradle.internal.hash.Hashing.hashString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
 /**
  * Runs Gradle within the current process.
  * <p>
@@ -127,21 +126,22 @@ import static org.junit.Assert.assertNull;
 public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
     protected static final ServiceRegistry GLOBAL_SERVICES = new BuildProcessState(
-        true,
-        AgentStatus.of(isAgentInstrumentationEnabled()),
-        ClassPath.EMPTY,
-        getCurrentInstallation(),
-        newCommandLineProcessLogging(),
-        NativeServicesTestFixture.getInstance(),
-        ValidationServicesFixture.getServices()
-    ).getServices();
+                    true,
+                    AgentStatus.of(isAgentInstrumentationEnabled()),
+                    ClassPath.EMPTY,
+                    getCurrentInstallation(),
+                    newCommandLineProcessLogging(),
+                    NativeServicesTestFixture.getInstance(),
+                    ValidationServicesFixture.getServices())
+            .getServices();
 
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
 
     public static final TestFile COMMON_TMP = new TestFile(new File("build/tmp"));
 
     static {
-        LoggingManagerInternal loggingManager = GLOBAL_SERVICES.get(LoggingManagerFactory.class).createLoggingManager();
+        LoggingManagerInternal loggingManager =
+                GLOBAL_SERVICES.get(LoggingManagerFactory.class).createLoggingManager();
         loggingManager.start();
 
         GLOBAL_SERVICES.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
@@ -151,7 +151,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         super(distribution, testDirectoryProvider);
     }
 
-    public InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
+    public InProcessGradleExecuter(
+            GradleDistribution distribution,
+            TestDirectoryProvider testDirectoryProvider,
+            GradleVersion gradleVersion,
+            IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
         waitForChangesToBePickedUpBeforeExecution();
     }
@@ -166,13 +170,15 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
     private static ServiceRegistry newCommandLineProcessLogging() {
         ServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-        LoggingManagerInternal rootLoggingManager = loggingServices.get(LoggingManagerFactory.class).getRoot();
+        LoggingManagerInternal rootLoggingManager =
+                loggingServices.get(LoggingManagerFactory.class).getRoot();
         rootLoggingManager.attachSystemOutAndErr();
         return loggingServices;
     }
 
     private void waitForChangesToBePickedUpBeforeExecution() {
-        // File system watching is now on by default, so we need to wait for changes to be picked up before each execution.
+        // File system watching is now on by default, so we need to wait for changes to be picked up before each
+        // execution.
         beforeExecute(executer -> {
             try {
                 FileSystemWatchingHelper.waitForChangesToBePickedUp();
@@ -203,13 +209,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             throw new UnexpectedBuildFailure(result.getFailure());
         }
 
-        return assertResult(
-            new InProcessExecutionResult(
+        return assertResult(new InProcessExecutionResult(
                 OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString()),
                 buildListener.executedTasks,
-                buildListener.skippedTasks
-            )
-        );
+                buildListener.skippedTasks));
     }
 
     @Override
@@ -226,20 +229,17 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             throw new AssertionError("expected build to fail but it did not.");
         }
 
-        return assertResult(
-            new ExecutionFailureWithThrowable(
+        return assertResult(new ExecutionFailureWithThrowable(
                 new InProcessExecutionFailure(
-                    buildListener.executedTasks,
-                    buildListener.skippedTasks,
-                    OutputScrapingExecutionFailure.from(outputStream.toString(), errorStream.toString())
-                ),
-                result.getFailure()
-            )
-        );
+                        buildListener.executedTasks,
+                        buildListener.skippedTasks,
+                        OutputScrapingExecutionFailure.from(outputStream.toString(), errorStream.toString())),
+                result.getFailure()));
     }
 
     private boolean isForkRequired() {
-        if (isDaemonExplicitlyRequired() || !getJavaHomeLocation().equals(Jvm.current().getJavaHome())) {
+        if (isDaemonExplicitlyRequired()
+                || !getJavaHomeLocation().equals(Jvm.current().getJavaHome())) {
             return true;
         }
         File daemonJvmProperties = new File(getWorkingDir(), "gradle/gradle-daemon-jvm.properties");
@@ -260,12 +260,14 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         File gradleProperties = new File(getWorkingDir(), "gradle.properties");
         if (gradleProperties.isFile()) {
             Properties properties = GUtil.loadProperties(gradleProperties);
-            return properties.getProperty("org.gradle.java.home") != null || properties.getProperty("org.gradle.jvmargs") != null;
+            return properties.getProperty("org.gradle.java.home") != null
+                    || properties.getProperty("org.gradle.jvmargs") != null;
         }
 
         boolean isInstrumentationEnabledForProcess = isAgentInstrumentationEnabled();
-        boolean differentInstrumentationRequested = getAllArgs().stream().anyMatch(
-            ("-D" + DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY + "=" + !isInstrumentationEnabledForProcess)::equals);
+        boolean differentInstrumentationRequested = getAllArgs().stream()
+                .anyMatch(("-D" + DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY + "="
+                        + !isInstrumentationEnabledForProcess)::equals);
         return differentInstrumentationRequested;
     }
 
@@ -291,7 +293,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             builder.classpath(getExecHandleFactoryClasspath());
             builder.jvmArgs(invocation.launcherJvmArgs);
             // Apply the agent to the newly created daemon. The feature flag decides if it is going to be used.
-            for (File agent : GLOBAL_SERVICES.get(ModuleRegistry.class).getModule(AgentUtils.AGENT_MODULE_NAME).getClasspath().getAsFiles()) {
+            for (File agent : GLOBAL_SERVICES
+                    .get(ModuleRegistry.class)
+                    .getModule(AgentUtils.AGENT_MODULE_NAME)
+                    .getClasspath()
+                    .getAsFiles()) {
                 builder.jvmArgs("-javaagent:" + agent.getAbsolutePath());
             }
             builder.environment(invocation.environmentVars);
@@ -306,7 +312,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
     private Collection<File> getExecHandleFactoryClasspath() {
         ModuleRegistry moduleRegistry = GLOBAL_SERVICES.get(ModuleRegistry.class);
-        Collection<File> classpath = moduleRegistry.getModule("gradle-gradle-cli").getAllRequiredModulesClasspath().getAsFiles();
+        Collection<File> classpath = moduleRegistry
+                .getModule("gradle-gradle-cli")
+                .getAllRequiredModulesClasspath()
+                .getAsFiles();
         if (!OperatingSystem.current().isWindows()) {
             return classpath;
         }
@@ -316,11 +325,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     private File getClasspathManifestJarFor(Collection<File> classpath) {
-        String cpString = classpath.stream()
-            .map(File::toURI)
-            .map(Object::toString)
-            .collect(Collectors.joining(" "));
-        File cpJar = new File(getDefaultTmpDir(), "daemon-classpath-manifest-" + hashString(cpString).toCompactString() + ".jar");
+        String cpString =
+                classpath.stream().map(File::toURI).map(Object::toString).collect(Collectors.joining(" "));
+        File cpJar = new File(
+                getDefaultTmpDir(),
+                "daemon-classpath-manifest-" + hashString(cpString).toCompactString() + ".jar");
         if (!cpJar.isFile()) {
             // Make sure the parent exists or the jar creation might fail
             cpJar.getParentFile().mkdirs();
@@ -371,17 +380,27 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
     }
 
-    private LoggingManagerInternal createLoggingManager(StartParameter startParameter, OutputStream outputStream, OutputStream errorStream) {
-        LoggingManagerInternal loggingManager = GLOBAL_SERVICES.get(LoggingManagerFactory.class).createLoggingManager();
+    private LoggingManagerInternal createLoggingManager(
+            StartParameter startParameter, OutputStream outputStream, OutputStream errorStream) {
+        LoggingManagerInternal loggingManager =
+                GLOBAL_SERVICES.get(LoggingManagerFactory.class).createLoggingManager();
         loggingManager.captureSystemSources();
 
         ConsoleOutput consoleOutput = startParameter.getConsoleOutput();
-        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput, consoleAttachment.getConsoleMetaData());
+        loggingManager.attachConsole(
+                new TeeOutputStream(System.out, outputStream),
+                new TeeOutputStream(System.err, errorStream),
+                consoleOutput,
+                consoleAttachment.getConsoleMetaData());
 
         return loggingManager;
     }
 
-    private BuildResult executeBuild(GradleInvocation invocation, OutputStream outputStream, OutputStream errorStream, BuildListenerImpl listener) {
+    private BuildResult executeBuild(
+            GradleInvocation invocation,
+            OutputStream outputStream,
+            OutputStream errorStream,
+            BuildListenerImpl listener) {
         // Augment the environment for the execution
         System.setIn(connectStdIn());
         processEnvironment.maybeSetProcessDir(getWorkingDir());
@@ -394,11 +413,14 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
         FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory();
-        BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(new BuildLayoutFactory(), fileCollectionFactory);
+        BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter =
+                new BuildEnvironmentConfigurationConverter(new BuildLayoutFactory(), fileCollectionFactory);
         buildEnvironmentConfigurationConverter.configure(parser);
-        Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(parser.parse(getAllArgs()), getWorkingDir());
+        Parameters parameters =
+                buildEnvironmentConfigurationConverter.convertParameters(parser.parse(getAllArgs()), getWorkingDir());
 
-        BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecutor.class);
+        BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter =
+                GLOBAL_SERVICES.get(BuildActionExecutor.class);
 
         ListenerManager listenerManager = GLOBAL_SERVICES.get(ListenerManager.class);
         listenerManager.addListener(listener);
@@ -416,13 +438,15 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             try {
                 startMeasurement();
                 try {
-                    BuildActionResult result = actionExecuter.execute(action, buildActionParameters, buildRequestContext);
+                    BuildActionResult result =
+                            actionExecuter.execute(action, buildActionParameters, buildRequestContext);
                     if (result.getException() != null) {
                         return new BuildResult(null, result.getException());
                     }
                     if (result.getFailure() != null) {
                         PayloadSerializer payloadSerializer = new PayloadSerializer(new TestClassLoaderRegistry());
-                        return new BuildResult(null, (RuntimeException) payloadSerializer.deserialize(result.getFailure()));
+                        return new BuildResult(
+                                null, (RuntimeException) payloadSerializer.deserialize(result.getFailure()));
                     }
                     return new BuildResult(null, null);
                 } finally {
@@ -438,20 +462,19 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
     private BuildActionParameters createBuildActionParameters(StartParameter startParameter) {
         return new DefaultBuildActionParameters(
-            System.getProperties(),
-            System.getenv(),
-            SystemProperties.getInstance().getCurrentDir(),
-            startParameter.getLogLevel(),
-            false,
-            ClassPath.EMPTY
-        );
+                System.getProperties(),
+                System.getenv(),
+                SystemProperties.getInstance().getCurrentDir(),
+                startParameter.getLogLevel(),
+                false,
+                ClassPath.EMPTY);
     }
 
     private BuildRequestContext createBuildRequestContext() {
         return new DefaultBuildRequestContext(
-            new DefaultBuildRequestMetaData(Time.currentTimeMillis(), interactive),
-            new DefaultBuildCancellationToken(),
-            new NoOpBuildEventConsumer());
+                new DefaultBuildRequestMetaData(Time.currentTimeMillis(), interactive),
+                new DefaultBuildCancellationToken(),
+                new NoOpBuildEventConsumer());
     }
 
     @Override
@@ -461,10 +484,14 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
     @Override
     protected TestFile getDefaultTmpDir() {
-        // File.createTempFile sets the location of the temp directory to a static variable on the first call.  This prevents future
-        // changes to java.io.tmpdir from having any effect in the same process.  We set this to use a common tmp directory for all
-        // tests running in the same process so that we don't have a situation where one process initializes with a tmp directory
-        // that it then removes, causing an IOException for any future tests that run in the same process and call File.createTempFile.
+        // File.createTempFile sets the location of the temp directory to a static variable on the first call.  This
+        // prevents future
+        // changes to java.io.tmpdir from having any effect in the same process.  We set this to use a common tmp
+        // directory for all
+        // tests running in the same process so that we don't have a situation where one process initializes with a tmp
+        // directory
+        // that it then removes, causing an IOException for any future tests that run in the same process and call
+        // File.createTempFile.
         return COMMON_TMP;
     }
 
@@ -509,8 +536,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         protected final List<String> executedTasks;
         protected final Set<String> skippedTasks;
 
-
-        public InProcessExecutionResult(ExecutionResult delegate, List<String> executedTasks, Set<String> skippedTasks) {
+        public InProcessExecutionResult(
+                ExecutionResult delegate, List<String> executedTasks, Set<String> skippedTasks) {
             this.delegate = delegate;
             this.executedTasks = executedTasks;
             this.skippedTasks = skippedTasks;
@@ -590,9 +617,9 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
         @Override
         public ExecutionResult assertNoTasksScheduled() {
-           assertThat(executedTasks, is(empty()));
-           delegate.assertNoTasksScheduled();
-           return this;
+            assertThat(executedTasks, is(empty()));
+            delegate.assertNoTasksScheduled();
+            return this;
         }
 
         @Override
@@ -632,7 +659,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
     }
 
-    public static class InProcessExecutionFailure extends InProcessExecutionResult implements DelegatingExecutionFailure {
+    public static class InProcessExecutionFailure extends InProcessExecutionResult
+            implements DelegatingExecutionFailure {
 
         private final ExecutionFailure delegate;
 

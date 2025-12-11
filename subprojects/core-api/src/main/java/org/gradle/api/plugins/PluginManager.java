@@ -100,5 +100,4 @@ public interface PluginManager {
      * @since 2.3
      */
     void withPlugin(String id, Action<? super AppliedPlugin> action);
-
 }

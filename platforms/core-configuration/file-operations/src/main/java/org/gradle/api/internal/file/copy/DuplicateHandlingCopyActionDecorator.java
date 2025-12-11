@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.file.copy;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.file.DuplicateFileCopyingException;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -26,18 +29,15 @@ import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
 public class DuplicateHandlingCopyActionDecorator implements CopyAction {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(DuplicateHandlingCopyActionDecorator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DuplicateHandlingCopyActionDecorator.class);
     private final CopyAction delegate;
     private final CopySpecInternal spec;
     private final DocumentationRegistry documentationRegistry;
 
-    public DuplicateHandlingCopyActionDecorator(CopyAction delegate, CopySpecInternal spec, DocumentationRegistry documentationRegistry) {
+    public DuplicateHandlingCopyActionDecorator(
+            CopyAction delegate, CopySpecInternal spec, DocumentationRegistry documentationRegistry) {
         this.delegate = delegate;
         this.spec = spec;
         this.documentationRegistry = documentationRegistry;
@@ -58,9 +58,17 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
                     if (strategy == DuplicatesStrategy.EXCLUDE) {
                         return;
                     } else if (strategy == DuplicatesStrategy.FAIL) {
-                        throw new DuplicateFileCopyingException(String.format("Cannot copy %s to '%s' because %s has already been copied there.", details.getDisplayName(), buildFormattedOutputPath(relativePath), visitedFiles.get(relativePath)));
+                        throw new DuplicateFileCopyingException(String.format(
+                                "Cannot copy %s to '%s' because %s has already been copied there.",
+                                details.getDisplayName(),
+                                buildFormattedOutputPath(relativePath),
+                                visitedFiles.get(relativePath)));
                     } else if (strategy == DuplicatesStrategy.WARN) {
-                        LOGGER.warn("{} will be copied to '{}', overwriting {}, which has already been copied there.", details.getDisplayName(), buildFormattedOutputPath(relativePath), visitedFiles.get(relativePath));
+                        LOGGER.warn(
+                                "{} will be copied to '{}', overwriting {}, which has already been copied there.",
+                                details.getDisplayName(),
+                                buildFormattedOutputPath(relativePath),
+                                visitedFiles.get(relativePath));
                     }
                 } else {
                     visitedFiles.put(relativePath, details.getDisplayName());
@@ -72,13 +80,16 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
     }
 
     private String buildFormattedOutputPath(RelativePath relativePath) {
-        return TextUtil.toPlatformLineSeparators(spec.getDestinationDir() == null ? relativePath.getPathString() : new File(spec.getDestinationDir(), relativePath.getPathString()).getPath());
+        return TextUtil.toPlatformLineSeparators(
+                spec.getDestinationDir() == null
+                        ? relativePath.getPathString()
+                        : new File(spec.getDestinationDir(), relativePath.getPathString()).getPath());
     }
 
     private void failWithIncorrectDuplicatesStrategySetup(RelativePath relativePath) {
-        throw new InvalidUserCodeException(
-            "Entry " + relativePath.getPathString() + " is a duplicate but no duplicate handling strategy has been set. " +
-            "Please refer to " + documentationRegistry.getDslRefForProperty("org.gradle.api.tasks.Copy", "duplicatesStrategy") + " for details."
-        );
+        throw new InvalidUserCodeException("Entry " + relativePath.getPathString()
+                + " is a duplicate but no duplicate handling strategy has been set. " + "Please refer to "
+                + documentationRegistry.getDslRefForProperty("org.gradle.api.tasks.Copy", "duplicatesStrategy")
+                + " for details.");
     }
 }

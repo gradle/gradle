@@ -95,6 +95,5 @@ public interface BuildCacheServiceFactory<T extends BuildCache> {
          * Subsequent calls to this method with different {@code name} arguments will append values.
          */
         Describer config(String name, String value);
-
     }
 }

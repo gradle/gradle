@@ -43,10 +43,7 @@ public interface TestEventReporterFactory {
      * @since 8.13
      */
     default GroupTestEventReporter createTestEventReporter(
-        String rootName,
-        Directory binaryResultsDirectory,
-        Directory htmlReportDirectory
-    ) {
+            String rootName, Directory binaryResultsDirectory, Directory htmlReportDirectory) {
         return createTestEventReporter(rootName, binaryResultsDirectory, htmlReportDirectory, true);
     }
 
@@ -63,9 +60,8 @@ public interface TestEventReporterFactory {
      * @since 9.3.0
      */
     GroupTestEventReporter createTestEventReporter(
-        String rootName,
-        Directory binaryResultsDirectory,
-        Directory htmlReportDirectory,
-        boolean closeThrowsOnTestFailures
-    );
+            String rootName,
+            Directory binaryResultsDirectory,
+            Directory htmlReportDirectory,
+            boolean closeThrowsOnTestFailures);
 }

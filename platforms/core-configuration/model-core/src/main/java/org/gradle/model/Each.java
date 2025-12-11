@@ -16,12 +16,11 @@
 
 package org.gradle.model;
 
-import org.gradle.api.Incubating;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.Incubating;
 
 /**
  * Signals that a {@link RuleSource} rule should be applied to all matching descendant elements of the scope instead of the scope itself.
@@ -29,5 +28,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 @Incubating
-public @interface Each {
-}
+public @interface Each {}

@@ -16,13 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
+import java.io.Serializable;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.model.BuildModel;
 import org.gradle.tooling.model.ProjectModel;
-
-import java.io.Serializable;
 
 public class FixedBuildIdentifierProvider implements Serializable {
     private final DefaultBuildIdentifier buildIdentifier;

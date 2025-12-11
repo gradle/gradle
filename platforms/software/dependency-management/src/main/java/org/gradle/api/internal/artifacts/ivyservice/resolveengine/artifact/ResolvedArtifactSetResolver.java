@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import javax.inject.Inject;
 import org.gradle.api.internal.artifacts.ResolveArtifactsBuildOperationType;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
@@ -27,8 +28,6 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.work.WorkerLeaseService;
-
-import javax.inject.Inject;
 
 /**
  * Resolves a {@link ResolvedArtifactSet} in a build operation, visiting the results.
@@ -43,18 +42,18 @@ public class ResolvedArtifactSetResolver {
 
     @Inject
     public ResolvedArtifactSetResolver(
-        WorkerLeaseService workerLeaseService,
-        BuildOperationRunner buildOperationRunner,
-        BuildOperationExecutor buildOperationExecutor,
-        DependencyVerificationOverride dependencyVerificationOverride
-    ) {
+            WorkerLeaseService workerLeaseService,
+            BuildOperationRunner buildOperationRunner,
+            BuildOperationExecutor buildOperationExecutor,
+            DependencyVerificationOverride dependencyVerificationOverride) {
         this.workerLeaseService = workerLeaseService;
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
     }
 
-    public void visitInUnmanagedWorkerThread(ResolvedArtifactSet artifacts, ArtifactVisitor visitor, ResolutionHost resolutionHost) {
+    public void visitInUnmanagedWorkerThread(
+            ResolvedArtifactSet artifacts, ArtifactVisitor visitor, ResolutionHost resolutionHost) {
         // This may be called from an unmanaged thread, so temporarily enlist the current thread
         // as a worker if it is not already so that it can visit the results. It would be better
         // to instead to memoize the results on the first visit so that this is not required.
@@ -65,7 +64,8 @@ public class ResolvedArtifactSetResolver {
         buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(visitor);
+                ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor)
+                        .visit(visitor);
                 dependencyVerificationOverride.artifactsAccessed(resolutionHost.getDisplayName());
                 context.setResult(new ResolveArtifactsBuildOperationType.Result() {});
             }
@@ -73,10 +73,9 @@ public class ResolvedArtifactSetResolver {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 String displayName = "Resolve files of " + resolutionHost.getDisplayName();
-                return BuildOperationDescriptor
-                    .displayName(displayName)
-                    .progressDisplayName(displayName)
-                    .details(new ResolveArtifactsBuildOperationType.Details() {});
+                return BuildOperationDescriptor.displayName(displayName)
+                        .progressDisplayName(displayName)
+                        .details(new ResolveArtifactsBuildOperationType.Details() {});
             }
         });
     }

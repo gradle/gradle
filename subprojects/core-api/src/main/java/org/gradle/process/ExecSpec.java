@@ -15,9 +15,8 @@
  */
 package org.gradle.process;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
 import java.util.List;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * Specified the options for executing some command.

@@ -20,5 +20,6 @@ import org.jspecify.annotations.Nullable;
 
 public interface DeploymentInternal extends Deployment {
     void outOfDate();
+
     void upToDate(@Nullable Throwable failure);
 }

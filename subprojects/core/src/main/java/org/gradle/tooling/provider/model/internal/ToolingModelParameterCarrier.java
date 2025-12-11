@@ -40,6 +40,5 @@ public interface ToolingModelParameterCarrier {
     interface Factory {
 
         ToolingModelParameterCarrier createCarrier(Object parameter);
-
     }
 }

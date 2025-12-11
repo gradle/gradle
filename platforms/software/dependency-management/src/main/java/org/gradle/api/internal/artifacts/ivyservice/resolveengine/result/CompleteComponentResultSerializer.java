@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -41,9 +43,6 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.inject.Inject;
-import java.util.List;
-
 /**
  * A {@link ComponentResultSerializer} that serializes the complete component result
  * without relying on any external state to be held between serialization and deserialization.
@@ -59,20 +58,22 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
 
     @Inject
     public CompleteComponentResultSerializer(
-        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        AttributesFactory attributesFactory,
-        NamedObjectInstantiator namedObjectInstantiator
-    ) {
+            ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            AttributesFactory attributesFactory,
+            NamedObjectInstantiator namedObjectInstantiator) {
         this.reasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
         this.moduleVersionIdSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
-        this.attributeContainerSerializer = new DesugaringAttributeContainerSerializer(attributesFactory, namedObjectInstantiator);
+        this.attributeContainerSerializer =
+                new DesugaringAttributeContainerSerializer(attributesFactory, namedObjectInstantiator);
         this.componentIdSerializer = new ComponentIdentifierSerializer();
         this.capabilitySerializer = new ListSerializer<>(new CapabilitySerializer());
     }
 
     @Override
-    public void writeComponentResult(Encoder encoder, ResolvedGraphComponent component, boolean includeAllSelectableVariantResults) throws Exception {
+    public void writeComponentResult(
+            Encoder encoder, ResolvedGraphComponent component, boolean includeAllSelectableVariantResults)
+            throws Exception {
         encoder.writeSmallLong(component.getResultId());
         reasonSerializer.write(encoder, component.getSelectionReason());
         encoder.writeNullableString(component.getRepositoryName());
@@ -90,7 +91,8 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
         }
     }
 
-    private void writeVariantResult(ResolvedGraphVariant variant, ComponentGraphResolveState component, Encoder encoder) throws Exception {
+    private void writeVariantResult(ResolvedGraphVariant variant, ComponentGraphResolveState component, Encoder encoder)
+            throws Exception {
         encoder.writeSmallLong(variant.getNodeId());
 
         ResolvedVariantResult variantResult = component.getPublicViewFor(variant.getResolveState(), null);
@@ -133,7 +135,13 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
 
         // TODO: Read the external variant, like we do with the variant reference.
 
-        visitor.visitSelectedVariant(nodeId, new DefaultResolvedVariantResult(ownerId, Describables.of(displayName), attributes, ImmutableCapabilities.of(capabilities), null));
+        visitor.visitSelectedVariant(
+                nodeId,
+                new DefaultResolvedVariantResult(
+                        ownerId,
+                        Describables.of(displayName),
+                        attributes,
+                        ImmutableCapabilities.of(capabilities),
+                        null));
     }
-
 }

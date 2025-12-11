@@ -17,11 +17,10 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.execution.history.changes.InputChangesInternal;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
-
 import java.io.File;
 import java.util.Optional;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 /**
  * Context for {@link UnitOfWork#execute(ExecutionContext)}.

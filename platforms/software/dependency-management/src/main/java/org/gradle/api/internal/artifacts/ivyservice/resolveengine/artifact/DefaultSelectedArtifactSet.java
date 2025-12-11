@@ -30,11 +30,10 @@ public class DefaultSelectedArtifactSet implements SelectedArtifactSet {
     private final ResolutionHost resolutionHost;
 
     public DefaultSelectedArtifactSet(
-        ResolvedArtifactSetResolver artifactResolver,
-        VisitedGraphResults graphResults,
-        ResolvedArtifactSet resolvedArtifacts,
-        ResolutionHost resolutionHost
-    ) {
+            ResolvedArtifactSetResolver artifactResolver,
+            VisitedGraphResults graphResults,
+            ResolvedArtifactSet resolvedArtifacts,
+            ResolutionHost resolutionHost) {
         this.artifactResolver = artifactResolver;
         this.graphResults = graphResults;
         this.resolvedArtifacts = resolvedArtifacts;

@@ -44,15 +44,12 @@ public class DaemonCommandExecuter {
      * <p>
      * The {@code command} param may be {@code null}, which means the client disconnected before sending a command.
      */
-    public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl) {
-        new DaemonCommandExecution(
-            configuration,
-            connection,
-            command,
-            daemonContext,
-            daemonStateControl,
-            actions
-        ).proceed();
+    public void executeCommand(
+            DaemonConnection connection,
+            Command command,
+            DaemonContext daemonContext,
+            DaemonStateControl daemonStateControl) {
+        new DaemonCommandExecution(configuration, connection, command, daemonContext, daemonStateControl, actions)
+                .proceed();
     }
-
 }

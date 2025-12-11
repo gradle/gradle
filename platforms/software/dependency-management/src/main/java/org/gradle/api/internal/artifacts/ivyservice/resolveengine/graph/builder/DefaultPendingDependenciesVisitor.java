@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.api.artifacts.ModuleIdentifier;
 
 class DefaultPendingDependenciesVisitor implements PendingDependenciesVisitor {
 

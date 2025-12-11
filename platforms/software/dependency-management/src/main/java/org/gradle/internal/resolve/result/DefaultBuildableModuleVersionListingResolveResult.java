@@ -16,12 +16,12 @@
 package org.gradle.internal.resolve.result;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
-
 import java.util.Collection;
 import java.util.Set;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-public class DefaultBuildableModuleVersionListingResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleVersionListingResolveResult {
+public class DefaultBuildableModuleVersionListingResolveResult extends DefaultResourceAwareResolveResult
+        implements BuildableModuleVersionListingResolveResult {
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
     private Set<String> versions;

@@ -17,12 +17,11 @@
 package org.gradle.external.javadoc.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.util.internal.CollectionUtils;
-
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.util.internal.CollectionUtils;
 
 /**
  * A {@link org.gradle.external.javadoc.JavadocOptionFileOption} which represents the -groups command line
@@ -40,11 +39,11 @@ public class GroupsJavadocOptionFileOption extends AbstractJavadocOptionFileOpti
                 final List<String> groupPackages = value.get(group);
 
                 writerContext
-                    .writeOptionHeader(option)
-                    .write("\"" + group + "\"")
-                    .write(" ")
-                    .write("\"" + CollectionUtils.join(":", groupPackages) + "\"")
-                    .newLine();
+                        .writeOptionHeader(option)
+                        .write("\"" + group + "\"")
+                        .write(" ")
+                        .write("\"" + CollectionUtils.join(":", groupPackages) + "\"")
+                        .newLine();
             }
         }
     }

@@ -16,6 +16,9 @@
 
 package org.gradle.language.swift.plugins;
 
+import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildOnHost;
+
+import javax.inject.Inject;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -33,10 +36,6 @@ import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.util.internal.TextUtil;
-
-import javax.inject.Inject;
-
-import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildOnHost;
 
 /**
  * <p>A plugin that produces an executable from Swift source.</p>
@@ -59,7 +58,11 @@ public abstract class SwiftApplicationPlugin implements Plugin<Project> {
      * @since 4.2
      */
     @Inject
-    public SwiftApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, AttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
+    public SwiftApplicationPlugin(
+            NativeComponentFactory componentFactory,
+            ToolChainSelector toolChainSelector,
+            AttributesFactory attributesFactory,
+            TargetMachineFactory targetMachineFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
         this.attributesFactory = attributesFactory;
@@ -74,7 +77,8 @@ public abstract class SwiftApplicationPlugin implements Plugin<Project> {
         final ProviderFactory providers = project.getProviders();
 
         // Add the application and extension
-        final DefaultSwiftApplication application = componentFactory.newInstance(SwiftApplication.class, DefaultSwiftApplication.class, "main");
+        final DefaultSwiftApplication application =
+                componentFactory.newInstance(SwiftApplication.class, DefaultSwiftApplication.class, "main");
         project.getExtensions().add(SwiftApplication.class, "application", application);
         project.getComponents().add(application);
 
@@ -86,7 +90,11 @@ public abstract class SwiftApplicationPlugin implements Plugin<Project> {
             return application.getBinaries().get().stream()
                     .filter(SwiftExecutable.class::isInstance)
                     .map(SwiftExecutable.class::cast)
-                    .filter(binary -> !binary.isOptimized() && Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()))
+                    .filter(binary -> !binary.isOptimized()
+                            && Architectures.forInput(binary.getTargetMachine()
+                                            .getArchitecture()
+                                            .getName())
+                                    .equals(DefaultNativePlatform.host().getArchitecture()))
                     .findFirst()
                     .orElseGet(() -> application.getBinaries().get().stream()
                             .filter(SwiftExecutable.class::isInstance)
@@ -98,13 +106,27 @@ public abstract class SwiftApplicationPlugin implements Plugin<Project> {
 
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
-            Dimensions.applicationVariants(application.getModule(), application.getTargetMachines(), objectFactory, attributesFactory,
-                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+            Dimensions.applicationVariants(
+                    application.getModule(),
+                    application.getTargetMachines(),
+                    objectFactory,
+                    attributesFactory,
+                    providers.provider(() -> project.getGroup().toString()),
+                    providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
                             application.getSourceCompatibility().finalizeValue();
-                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, new DefaultSwiftPlatform(variantIdentity.getTargetMachine(), application.getSourceCompatibility().getOrNull()));
-                            application.addExecutable(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(
+                                    SwiftPlatform.class,
+                                    new DefaultSwiftPlatform(
+                                            variantIdentity.getTargetMachine(),
+                                            application.getSourceCompatibility().getOrNull()));
+                            application.addExecutable(
+                                    variantIdentity,
+                                    variantIdentity.isDebuggable() && !variantIdentity.isOptimized(),
+                                    result.getTargetPlatform(),
+                                    result.getToolChain(),
+                                    result.getPlatformToolProvider());
                         }
                     });
 

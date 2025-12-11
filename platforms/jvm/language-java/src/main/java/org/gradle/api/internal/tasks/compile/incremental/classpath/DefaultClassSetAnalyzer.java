@@ -15,7 +15,13 @@
  */
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileOperations;
@@ -30,13 +36,6 @@ import org.gradle.internal.hash.StreamHasher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-
-import static org.gradle.internal.FileUtils.hasExtension;
-
 public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultClassSetAnalyzer.class);
 
@@ -45,7 +44,11 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
     private final ClassDependenciesAnalyzer analyzer;
     private final FileOperations fileOperations;
 
-    public DefaultClassSetAnalyzer(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer analyzer, FileOperations fileOperations) {
+    public DefaultClassSetAnalyzer(
+            FileHasher fileHasher,
+            StreamHasher streamHasher,
+            ClassDependenciesAnalyzer analyzer,
+            FileOperations fileOperations) {
         this.fileHasher = fileHasher;
         this.hasher = streamHasher;
         this.analyzer = analyzer;
@@ -67,7 +70,8 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
         try {
             visit(classSet, accumulator, abiOnly);
         } catch (Exception e) {
-            accumulator.fullRebuildNeeded(classSet + " could not be analyzed for incremental compilation. See the debug log for more details");
+            accumulator.fullRebuildNeeded(classSet
+                    + " could not be analyzed for incremental compilation. See the debug log for more details");
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Could not analyze " + classSet + " for incremental compilation", e);
             }
@@ -95,8 +99,7 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
         }
 
         @Override
-        public void visitDir(FileVisitDetails dirDetails) {
-        }
+        public void visitDir(FileVisitDetails dirDetails) {}
 
         @Override
         public void visitFile(FileVisitDetails fileDetails) {
@@ -110,7 +113,8 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
                 ClassAnalysis analysis = maybeStripToAbi(analyzer.getClassAnalysis(classFileHash, fileDetails));
                 accumulator.addClass(analysis, classFileHash);
             } catch (Exception e) {
-                accumulator.fullRebuildNeeded(fileDetails.getName() + " could not be analyzed for incremental compilation. See the debug log for more details");
+                accumulator.fullRebuildNeeded(fileDetails.getName()
+                        + " could not be analyzed for incremental compilation. See the debug log for more details");
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Could not analyze " + fileDetails.getName() + " for incremental compilation", e);
                 }
@@ -119,7 +123,12 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
 
         private ClassAnalysis maybeStripToAbi(ClassAnalysis analysis) {
             if (abiOnly) {
-                return new ClassAnalysis(analysis.getClassName(), ImmutableSet.of(), analysis.getAccessibleClassDependencies(), analysis.getDependencyToAllReason(), analysis.getConstants());
+                return new ClassAnalysis(
+                        analysis.getClassName(),
+                        ImmutableSet.of(),
+                        analysis.getAccessibleClassDependencies(),
+                        analysis.getDependencyToAllReason(),
+                        analysis.getConstants());
             } else {
                 return analysis;
             }
@@ -158,5 +167,4 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
             return fileHasher.hash(fileDetails.getFile(), fileDetails.getSize(), fileDetails.getLastModified());
         }
     }
-
 }

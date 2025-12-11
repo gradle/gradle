@@ -16,6 +16,10 @@
 
 package org.gradle.internal.watch.registry.impl;
 
+import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.function.Predicate;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import org.gradle.fileevents.FileWatchEvent;
 import org.gradle.fileevents.internal.WindowsFileEventFunctions;
@@ -23,37 +27,35 @@ import org.gradle.fileevents.internal.WindowsFileEventFunctions.WindowsFileWatch
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.function.Predicate;
-
-import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION;
-
-public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<WindowsFileEventFunctions, WindowsFileWatcher> {
+public class WindowsFileWatcherRegistryFactory
+        extends AbstractFileWatcherRegistryFactory<WindowsFileEventFunctions, WindowsFileWatcher> {
 
     // 64 kB is the limit for SMB drives
-    // See https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-readdirectorychangesw#remarks:~:text=ERROR_INVALID_PARAMETER
+    // See
+    // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-readdirectorychangesw#remarks:~:text=ERROR_INVALID_PARAMETER
     private static final int BUFFER_SIZE = 64 * 1024;
 
     public WindowsFileWatcherRegistryFactory(
-        FileEventFunctionsLookup fileEvents,
-        Predicate<String> immutableLocationsFilter
-    ) throws NativeIntegrationUnavailableException {
+            FileEventFunctionsLookup fileEvents, Predicate<String> immutableLocationsFilter)
+            throws NativeIntegrationUnavailableException {
         super(fileEvents.getFileEventFunctions(WindowsFileEventFunctions.class), immutableLocationsFilter);
     }
 
     @Override
-    protected WindowsFileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
-        return fileEventFunctions.newWatcher(fileEvents)
-            .withBufferSize(BUFFER_SIZE)
-            .start();
+    protected WindowsFileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents)
+            throws InterruptedException {
+        return fileEventFunctions
+                .newWatcher(fileEvents)
+                .withBufferSize(BUFFER_SIZE)
+                .start();
     }
 
     @Override
     protected FileWatcherUpdater createFileWatcherUpdater(
-        WindowsFileWatcher watcher,
-        FileWatcherProbeRegistry probeRegistry,
-        WatchableHierarchies watchableHierarchies
-    ) {
-        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, root -> watcher.stopWatchingMovedPaths());
+            WindowsFileWatcher watcher,
+            FileWatcherProbeRegistry probeRegistry,
+            WatchableHierarchies watchableHierarchies) {
+        return new HierarchicalFileWatcherUpdater(
+                watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, root -> watcher.stopWatchingMovedPaths());
     }
 }

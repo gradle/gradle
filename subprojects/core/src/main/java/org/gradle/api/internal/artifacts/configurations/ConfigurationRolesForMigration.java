@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-
 import java.util.Set;
 
 /**
@@ -38,33 +37,39 @@ import java.util.Set;
  * migrations from any usage pattern to any other.</p>
  */
 public final class ConfigurationRolesForMigration {
-    private ConfigurationRolesForMigration() { /* Private to prevent instantiation. */ }
+    private ConfigurationRolesForMigration() {
+        /* Private to prevent instantiation. */
+    }
 
     /**
      * A configuration that is retired and not meant to be used for any purpose.  This is primarily useful in creating a migrating configuration role in {@link ConfigurationRolesForMigration}.
      */
-    public static final ConfigurationRole NONE = new DefaultConfigurationRole("Deprecated", false, false, false, false, false, false);
+    public static final ConfigurationRole NONE =
+            new DefaultConfigurationRole("Deprecated", false, false, false, false, false, false);
 
     /**
      * A resolvable dependency scope that will become a resolvable configuration in the next major version.
      */
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
-    public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE = difference(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, ConfigurationRoles.RESOLVABLE);
+    public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE =
+            difference(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, ConfigurationRoles.RESOLVABLE);
 
     /**
      * A resolvable dependency scope that will become a resolvable configuration in the next major version.
      */
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
-    public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE = difference(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, ConfigurationRoles.DEPENDENCY_SCOPE);
+    public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE =
+            difference(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, ConfigurationRoles.DEPENDENCY_SCOPE);
 
     /**
      * A legacy configuration that will become a resolvable dependency scope configuration in the next major version.
      */
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
-    public static final ConfigurationRole LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE = difference(ConfigurationRoles.ALL, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
+    public static final ConfigurationRole LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE =
+            difference(ConfigurationRoles.ALL, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
 
     /**
      * A consumable configuration that has been deprecated and will be removed in the next major version.
@@ -75,11 +80,10 @@ public final class ConfigurationRolesForMigration {
      * All known migration roles.
      */
     public static final Set<ConfigurationRole> ALL = ImmutableSet.of(
-        RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
-        RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE,
-        LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
-        CONSUMABLE_TO_RETIRED
-    );
+            RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
+            RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE,
+            LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
+            CONSUMABLE_TO_RETIRED);
 
     /**
      * Computes the difference between two roles, such that any usage that is allowed in the
@@ -87,13 +91,15 @@ public final class ConfigurationRolesForMigration {
      */
     private static ConfigurationRole difference(ConfigurationRole initialRole, ConfigurationRole eventualRole) {
         Preconditions.checkArgument(
-            !initialRole.isConsumptionDeprecated() && !initialRole.isResolutionDeprecated() && !initialRole.isDeclarationAgainstDeprecated(),
-            "The initial role must not contain deprecated usages."
-        );
+                !initialRole.isConsumptionDeprecated()
+                        && !initialRole.isResolutionDeprecated()
+                        && !initialRole.isDeclarationAgainstDeprecated(),
+                "The initial role must not contain deprecated usages.");
         Preconditions.checkArgument(
-            !eventualRole.isConsumptionDeprecated() && !eventualRole.isResolutionDeprecated() && !eventualRole.isDeclarationAgainstDeprecated(),
-            "The eventual role must not contain deprecated usages."
-        );
+                !eventualRole.isConsumptionDeprecated()
+                        && !eventualRole.isResolutionDeprecated()
+                        && !eventualRole.isDeclarationAgainstDeprecated(),
+                "The eventual role must not contain deprecated usages.");
 
         /*
          * Since we're assuming strictly narrowing usage from a non-deprecated initial role, for each usage we want this migration
@@ -105,13 +111,12 @@ public final class ConfigurationRolesForMigration {
         boolean declarationAgainstDeprecated = initialRole.isDeclarable() && !eventualRole.isDeclarable();
 
         return new DefaultConfigurationRole(
-            initialRole.getName(),
-            initialRole.isConsumable(),
-            initialRole.isResolvable(),
-            initialRole.isDeclarable(),
-            consumptionDeprecated,
-            resolutionDeprecated,
-            declarationAgainstDeprecated
-        );
+                initialRole.getName(),
+                initialRole.isConsumable(),
+                initialRole.isResolvable(),
+                initialRole.isDeclarable(),
+                consumptionDeprecated,
+                resolutionDeprecated,
+                declarationAgainstDeprecated);
     }
 }

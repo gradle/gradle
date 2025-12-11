@@ -23,5 +23,4 @@ import org.gradle.tooling.events.StartEvent;
  *
  * @since 5.1
  */
-public interface ProjectConfigurationStartEvent extends ProjectConfigurationProgressEvent, StartEvent {
-}
+public interface ProjectConfigurationStartEvent extends ProjectConfigurationProgressEvent, StartEvent {}

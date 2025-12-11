@@ -16,8 +16,9 @@
 
 package org.gradle.internal.component.model;
 
-
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
@@ -35,9 +36,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * A set of rules provided by the build script author
  * (as {@link Action<DirectDependenciesMetadata>} or {@link Action<DependencyConstraintsMetadata>})
@@ -51,16 +49,17 @@ public class DependencyMetadataRules {
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser;
-    private final List<VariantMetadataRules.VariantAction<? super DirectDependenciesMetadata>> dependencyActions = new ArrayList<>();
-    private final List<VariantMetadataRules.VariantAction<? super DependencyConstraintsMetadata>> dependencyConstraintActions = new ArrayList<>();
+    private final List<VariantMetadataRules.VariantAction<? super DirectDependenciesMetadata>> dependencyActions =
+            new ArrayList<>();
+    private final List<VariantMetadataRules.VariantAction<? super DependencyConstraintsMetadata>>
+            dependencyConstraintActions = new ArrayList<>();
     private final AttributesFactory attributesFactory;
 
     public DependencyMetadataRules(
-        Instantiator instantiator,
-        NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
-        NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser,
-        AttributesFactory attributesFactory
-    ) {
+            Instantiator instantiator,
+            NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
+            NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser,
+            AttributesFactory attributesFactory) {
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;
@@ -71,42 +70,52 @@ public class DependencyMetadataRules {
         dependencyActions.add(action);
     }
 
-    public void addDependencyConstraintAction(VariantMetadataRules.VariantAction<? super DependencyConstraintsMetadata> action) {
+    public void addDependencyConstraintAction(
+            VariantMetadataRules.VariantAction<? super DependencyConstraintsMetadata> action) {
         dependencyConstraintActions.add(action);
     }
 
-    public <T extends ModuleDependencyMetadata> List<? extends ModuleDependencyMetadata> execute(VariantResolveMetadata variant, List<T> dependencies) {
+    public <T extends ModuleDependencyMetadata> List<? extends ModuleDependencyMetadata> execute(
+            VariantResolveMetadata variant, List<T> dependencies) {
         ImmutableList.Builder<ModuleDependencyMetadata> calculatedDependencies = new ImmutableList.Builder<>();
         calculatedDependencies.addAll(executeDependencyRules(variant, dependencies));
         calculatedDependencies.addAll(executeDependencyConstraintRules(variant, dependencies));
         return calculatedDependencies.build();
     }
 
-    private <T extends ModuleDependencyMetadata> List<? extends ModuleDependencyMetadata> executeDependencyRules(VariantResolveMetadata variant, List<T> dependencies) {
+    private <T extends ModuleDependencyMetadata> List<? extends ModuleDependencyMetadata> executeDependencyRules(
+            VariantResolveMetadata variant, List<T> dependencies) {
         if (dependencyActions.isEmpty()) {
             return CollectionUtils.filter(dependencies, DEPENDENCY_FILTER);
         }
 
         DirectDependenciesMetadataAdapter adapter = instantiator.newInstance(
-            DirectDependenciesMetadataAdapter.class, attributesFactory, instantiator, dependencyNotationParser);
-        CollectionUtils.filter(dependencies, DEPENDENCY_FILTER).forEach(dep ->
-            adapter.add(instantiator.newInstance(DirectDependencyMetadataAdapter.class, attributesFactory, dep)));
+                DirectDependenciesMetadataAdapter.class, attributesFactory, instantiator, dependencyNotationParser);
+        CollectionUtils.filter(dependencies, DEPENDENCY_FILTER)
+                .forEach(dep -> adapter.add(
+                        instantiator.newInstance(DirectDependencyMetadataAdapter.class, attributesFactory, dep)));
 
         dependencyActions.forEach(action -> action.maybeExecute(variant, adapter));
 
         return adapter.getMetadatas();
     }
 
-    private <T extends ModuleDependencyMetadata> List<? extends ModuleDependencyMetadata> executeDependencyConstraintRules(VariantResolveMetadata variant, List<T> dependencies) {
+    private <T extends ModuleDependencyMetadata>
+            List<? extends ModuleDependencyMetadata> executeDependencyConstraintRules(
+                    VariantResolveMetadata variant, List<T> dependencies) {
         if (dependencyConstraintActions.isEmpty()) {
             return CollectionUtils.filter(dependencies, DEPENDENCY_CONSTRAINT_FILTER);
         }
 
         DependencyConstraintsMetadataAdapter adapter = instantiator.newInstance(
-            DependencyConstraintsMetadataAdapter.class, attributesFactory, instantiator, dependencyConstraintNotationParser);
+                DependencyConstraintsMetadataAdapter.class,
+                attributesFactory,
+                instantiator,
+                dependencyConstraintNotationParser);
 
-        CollectionUtils.filter(dependencies, DEPENDENCY_CONSTRAINT_FILTER).forEach(dep ->
-            adapter.add(instantiator.newInstance(DependencyConstraintMetadataAdapter.class, attributesFactory, dep)));
+        CollectionUtils.filter(dependencies, DEPENDENCY_CONSTRAINT_FILTER)
+                .forEach(dep -> adapter.add(
+                        instantiator.newInstance(DependencyConstraintMetadataAdapter.class, attributesFactory, dep)));
 
         dependencyConstraintActions.forEach(action -> action.maybeExecute(variant, adapter));
 

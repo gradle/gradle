@@ -16,6 +16,8 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
+import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
+
 import net.rubygrapefruit.platform.file.PosixFiles;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -35,8 +37,6 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
-
 public class FileSystemServices implements ServiceRegistrationProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemServices.class);
 
@@ -47,7 +47,10 @@ public class FileSystemServices implements ServiceRegistrationProvider {
 
     @Provides
     FileCanonicalizer createFileCanonicalizer() {
-        return newInstanceOrFallback("org.gradle.internal.file.nio.Jdk7FileCanonicalizer", FileSystemServices.class.getClassLoader(), FallbackFileCanonicalizer.class);
+        return newInstanceOrFallback(
+                "org.gradle.internal.file.nio.Jdk7FileCanonicalizer",
+                FileSystemServices.class.getClassLoader(),
+                FallbackFileCanonicalizer.class);
     }
 
     @Provides
@@ -70,12 +73,11 @@ public class FileSystemServices implements ServiceRegistrationProvider {
 
     @Provides
     FileSystem createFileSystem(
-        GenericFileSystem.Factory genericFileSystemFactory,
-        OperatingSystem operatingSystem,
-        PosixFiles posixFiles,
-        FileMetadataAccessor metadataAccessor,
-        TemporaryFileProvider temporaryFileProvider
-    ) {
+            GenericFileSystem.Factory genericFileSystemFactory,
+            OperatingSystem operatingSystem,
+            PosixFiles posixFiles,
+            FileMetadataAccessor metadataAccessor,
+            TemporaryFileProvider temporaryFileProvider) {
         if (operatingSystem.isWindows()) {
             final Symlink symlink = createWindowsJdkSymlink();
             return genericFileSystemFactory.create(new EmptyChmod(), new FallbackStat(), symlink);
@@ -94,8 +96,10 @@ public class FileSystemServices implements ServiceRegistrationProvider {
         LOGGER.debug("Using {} implementation as symlink.", symlink.getClass().getSimpleName());
 
         // Use java 7 APIs, if available, otherwise fallback to no-op
-        Object handler = newInstanceOrFallback("org.gradle.internal.file.nio.PosixJdk7FilePermissionHandler", FileSystemServices.class.getClassLoader(), UnsupportedFilePermissions.class);
+        Object handler = newInstanceOrFallback(
+                "org.gradle.internal.file.nio.PosixJdk7FilePermissionHandler",
+                FileSystemServices.class.getClassLoader(),
+                UnsupportedFilePermissions.class);
         return genericFileSystemFactory.create((FileModeMutator) handler, (FileModeAccessor) handler, symlink);
     }
-
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderUtils;
@@ -30,18 +32,16 @@ import org.gradle.workers.internal.IsolatedClassLoaderWorkerRequirement;
 import org.gradle.workers.internal.ProvidesWorkResult;
 import org.gradle.workers.internal.WorkerFactory;
 
-import javax.inject.Inject;
-import java.util.Set;
-
 /**
  * Base implementation of {@link CompilerWorkerExecutor} which handles submitting a compile work item to execute.
  * Inheritors need to provide an appropriate isolated worker requirement depending on what isolation mode is being used.
  */
-abstract public class AbstractIsolatedCompilerWorkerExecutor implements CompilerWorkerExecutor {
+public abstract class AbstractIsolatedCompilerWorkerExecutor implements CompilerWorkerExecutor {
     private final WorkerFactory workerFactory;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
-    public AbstractIsolatedCompilerWorkerExecutor(WorkerFactory workerFactory, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public AbstractIsolatedCompilerWorkerExecutor(
+            WorkerFactory workerFactory, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.workerFactory = workerFactory;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
@@ -49,11 +49,19 @@ abstract public class AbstractIsolatedCompilerWorkerExecutor implements Compiler
     abstract IsolatedClassLoaderWorkerRequirement getIsolatedWorkerRequirement(DaemonForkOptions daemonForkOptions);
 
     @Override
-    public DefaultWorkResult execute(CompilerParameters parameters, DaemonForkOptions daemonForkOptions, Set<Class<?>> additionalWhitelistedClasses) {
+    public DefaultWorkResult execute(
+            CompilerParameters parameters,
+            DaemonForkOptions daemonForkOptions,
+            Set<Class<?>> additionalWhitelistedClasses) {
         IsolatedClassLoaderWorkerRequirement workerRequirement = getIsolatedWorkerRequirement(daemonForkOptions);
         BuildOperationAwareWorker worker = workerFactory.getWorker(workerRequirement);
 
-        return worker.execute(actionExecutionSpecFactory.newIsolatedSpec("compiler daemon", CompilerWorkAction.class, parameters, workerRequirement, additionalWhitelistedClasses));
+        return worker.execute(actionExecutionSpecFactory.newIsolatedSpec(
+                "compiler daemon",
+                CompilerWorkAction.class,
+                parameters,
+                workerRequirement,
+                additionalWhitelistedClasses));
     }
 
     public static class CompilerWorkAction implements WorkAction<CompilerParameters>, ProvidesWorkResult {
@@ -68,15 +76,18 @@ abstract public class AbstractIsolatedCompilerWorkerExecutor implements Compiler
         }
 
         @Override
-        @SuppressWarnings("OverridesJavaxInjectableMethod") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+        @SuppressWarnings("OverridesJavaxInjectableMethod") // TODO: evaluate errorprone suppression
+        // (https://github.com/gradle/gradle/issues/35864)
         public CompilerParameters getParameters() {
             return parameters;
         }
 
         @Override
         public void execute() {
-            Class<? extends Compiler<?>> compilerClass = Cast.uncheckedCast(ClassLoaderUtils.classFromContextLoader(getParameters().getCompilerClassName()));
-            Compiler<?> compiler = instantiator.newInstance(compilerClass, getParameters().getCompilerInstanceParameters());
+            Class<? extends Compiler<?>> compilerClass = Cast.uncheckedCast(
+                    ClassLoaderUtils.classFromContextLoader(getParameters().getCompilerClassName()));
+            Compiler<?> compiler =
+                    instantiator.newInstance(compilerClass, getParameters().getCompilerInstanceParameters());
             setWorkResult(compiler.execute(Cast.uncheckedCast(getParameters().getCompileSpec())));
         }
 

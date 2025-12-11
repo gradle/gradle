@@ -16,16 +16,15 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.wrapper.GradleUserHomeLookup;
-import org.gradle.wrapper.PropertiesFileHandler;
-import org.jspecify.annotations.NullMarked;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.wrapper.GradleUserHomeLookup;
+import org.gradle.wrapper.PropertiesFileHandler;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Contains convenience methods to read some Gradle configuration without launching a daemon.
@@ -36,25 +35,32 @@ public class ConnectionConfigurationUtil {
     public static Map<String, String> determineSystemProperties(ConnectionParameters connectionParameters) {
         Map<String, String> systemProperties = new HashMap<>();
         for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
-            systemProperties.put(entry.getKey().toString(), entry.getValue() == null ? null : entry.getValue().toString());
+            systemProperties.put(
+                    entry.getKey().toString(),
+                    entry.getValue() == null ? null : entry.getValue().toString());
         }
-        systemProperties.putAll(PropertiesFileHandler.getSystemProperties(new File(determineRootDir(connectionParameters), "gradle.properties")));
-        systemProperties.putAll(PropertiesFileHandler.getSystemProperties(new File(determineRealUserHomeDir(connectionParameters), "gradle.properties")));
+        systemProperties.putAll(PropertiesFileHandler.getSystemProperties(
+                new File(determineRootDir(connectionParameters), "gradle.properties")));
+        systemProperties.putAll(PropertiesFileHandler.getSystemProperties(
+                new File(determineRealUserHomeDir(connectionParameters), "gradle.properties")));
         return systemProperties;
     }
 
     public static List<String> determineJvmArguments(ConnectionParameters connectionParameters) {
         List<String> jvmArgs = new ArrayList<>();
-        jvmArgs.addAll(PropertiesFileHandler.getJvmArgs(new File(determineRootDir(connectionParameters), "gradle.properties")));
-        jvmArgs.addAll(PropertiesFileHandler.getJvmArgs(new File(determineRealUserHomeDir(connectionParameters), "gradle.properties")));
+        jvmArgs.addAll(PropertiesFileHandler.getJvmArgs(
+                new File(determineRootDir(connectionParameters), "gradle.properties")));
+        jvmArgs.addAll(PropertiesFileHandler.getJvmArgs(
+                new File(determineRealUserHomeDir(connectionParameters), "gradle.properties")));
         return jvmArgs;
     }
 
     public static File determineRootDir(ConnectionParameters connectionParameters) {
-        return new BuildLayoutFactory().getLayoutFor(
-            connectionParameters.getProjectDir(),
-            connectionParameters.isSearchUpwards() != null ? connectionParameters.isSearchUpwards() : true
-        ).getRootDirectory();
+        return new BuildLayoutFactory()
+                .getLayoutFor(
+                        connectionParameters.getProjectDir(),
+                        connectionParameters.isSearchUpwards() != null ? connectionParameters.isSearchUpwards() : true)
+                .getRootDirectory();
     }
 
     public static File determineRealUserHomeDir(ConnectionParameters connectionParameters) {

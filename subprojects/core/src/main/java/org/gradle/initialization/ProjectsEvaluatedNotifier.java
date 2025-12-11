@@ -23,8 +23,8 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 public class ProjectsEvaluatedNotifier {
-    private static final NotifyProjectsEvaluatedBuildOperationType.Result PROJECTS_EVALUATED_RESULT = new NotifyProjectsEvaluatedBuildOperationType.Result() {
-    };
+    private static final NotifyProjectsEvaluatedBuildOperationType.Result PROJECTS_EVALUATED_RESULT =
+            new NotifyProjectsEvaluatedBuildOperationType.Result() {};
     private final BuildOperationRunner buildOperationRunner;
 
     public ProjectsEvaluatedNotifier(BuildOperationRunner buildOperationRunner) {
@@ -51,12 +51,12 @@ public class ProjectsEvaluatedNotifier {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(gradle.contextualize("Notify projectsEvaluated listeners"))
-                .details(new NotifyProjectsEvaluatedBuildOperationType.Details() {
-                    @Override
-                    public String getBuildPath() {
-                        return gradle.getIdentityPath().toString();
-                    }
-                });
+                    .details(new NotifyProjectsEvaluatedBuildOperationType.Details() {
+                        @Override
+                        public String getBuildPath() {
+                            return gradle.getIdentityPath().toString();
+                        }
+                    });
         }
     }
 }

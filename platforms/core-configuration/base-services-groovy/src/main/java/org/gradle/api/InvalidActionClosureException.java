@@ -17,10 +17,9 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import java.util.List;
 import org.gradle.internal.Cast;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.util.List;
 
 /**
  * Thrown when a {@link Closure} is given as an {@link Action} implementation, but has the wrong signature.
@@ -37,11 +36,11 @@ public class InvalidActionClosureException extends GradleException {
     }
 
     private static String toMessage(Closure<?> closure, Object argument) {
-        List<Object> classNames = CollectionUtils.collect(Cast.<Class<?>[]>uncheckedNonnullCast(closure.getParameterTypes()), Class::getName);
+        List<Object> classNames = CollectionUtils.collect(
+                Cast.<Class<?>[]>uncheckedNonnullCast(closure.getParameterTypes()), Class::getName);
         return String.format(
                 "The closure '%s' is not valid as an action for argument '%s'. It should accept no parameters, or one compatible with type '%s'. It accepts (%s).",
-                closure, argument, argument.getClass().getName(), CollectionUtils.join(", ", classNames)
-        );
+                closure, argument, argument.getClass().getName(), CollectionUtils.join(", ", classNames));
     }
 
     /**

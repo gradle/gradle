@@ -16,15 +16,15 @@
 package org.gradle.api.internal.artifacts.verification.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-
 import java.util.List;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 public class ImmutableComponentVerificationMetadata implements ComponentVerificationMetadata {
     private final ModuleComponentIdentifier component;
     private final List<ArtifactVerificationMetadata> verifications;
 
-    public ImmutableComponentVerificationMetadata(ModuleComponentIdentifier component, List<ArtifactVerificationMetadata> verifications) {
+    public ImmutableComponentVerificationMetadata(
+            ModuleComponentIdentifier component, List<ArtifactVerificationMetadata> verifications) {
         this.component = component;
         this.verifications = ImmutableList.copyOf(verifications);
     }

@@ -24,7 +24,11 @@ import org.jspecify.annotations.NullMarked;
 class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements GroupTestEventReporterInternal {
     private final IdGenerator<?> idGenerator;
 
-    DefaultGroupTestEventReporter(TestListenerInternal listener, IdGenerator<?> idGenerator, TestDescriptorInternal testDescriptor, TestResultState testResultState) {
+    DefaultGroupTestEventReporter(
+            TestListenerInternal listener,
+            IdGenerator<?> idGenerator,
+            TestDescriptorInternal testDescriptor,
+            TestResultState testResultState) {
         super(listener, testDescriptor, testResultState);
         this.idGenerator = idGenerator;
     }
@@ -36,46 +40,38 @@ class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements 
 
     @Override
     public DefaultTestEventReporter reportTest(String name, String displayName) {
-        return reportTestDirectly(
-            new DecoratingTestDescriptor(
-                new DefaultTestDescriptor(idGenerator.generateId(), testDescriptor.getClassName(), name, testDescriptor.getClassDisplayName(), displayName),
-                this.testDescriptor
-            )
-        );
+        return reportTestDirectly(new DecoratingTestDescriptor(
+                new DefaultTestDescriptor(
+                        idGenerator.generateId(),
+                        testDescriptor.getClassName(),
+                        name,
+                        testDescriptor.getClassDisplayName(),
+                        displayName),
+                this.testDescriptor));
     }
 
     @Override
     public DefaultTestEventReporter reportTestDirectly(TestDescriptorInternal testDescriptor) {
         if (testDescriptor.getParent() != this.testDescriptor) {
-            throw new IllegalArgumentException("Test descriptor " + testDescriptor + " must have this as a parent: " + this.testDescriptor);
+            throw new IllegalArgumentException(
+                    "Test descriptor " + testDescriptor + " must have this as a parent: " + this.testDescriptor);
         }
-        return new DefaultTestEventReporter(
-            listener,
-            testDescriptor,
-            new TestResultState(testResultState)
-        );
+        return new DefaultTestEventReporter(listener, testDescriptor, new TestResultState(testResultState));
     }
 
     @Override
     public DefaultGroupTestEventReporter reportTestGroup(String name) {
-        return reportTestGroupDirectly(
-            new DecoratingTestDescriptor(
-                new DefaultTestClassDescriptor(idGenerator.generateId(), name),
-                this.testDescriptor
-            )
-        );
+        return reportTestGroupDirectly(new DecoratingTestDescriptor(
+                new DefaultTestClassDescriptor(idGenerator.generateId(), name), this.testDescriptor));
     }
 
     @Override
     public DefaultGroupTestEventReporter reportTestGroupDirectly(TestDescriptorInternal testDescriptor) {
         if (testDescriptor.getParent() != this.testDescriptor) {
-            throw new IllegalArgumentException("Test descriptor " + testDescriptor + " must have this as a parent: " + this.testDescriptor);
+            throw new IllegalArgumentException(
+                    "Test descriptor " + testDescriptor + " must have this as a parent: " + this.testDescriptor);
         }
         return new DefaultGroupTestEventReporter(
-            listener,
-            idGenerator,
-            testDescriptor,
-            new TestResultState(testResultState)
-        );
+                listener, idGenerator, testDescriptor, new TestResultState(testResultState));
     }
 }

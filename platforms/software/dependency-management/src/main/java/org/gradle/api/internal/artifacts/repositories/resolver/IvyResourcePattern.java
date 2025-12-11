@@ -17,14 +17,13 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.ImmutableMap;
+import java.net.URI;
+import java.util.Map;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
-
-import java.net.URI;
-import java.util.Map;
 
 public class IvyResourcePattern extends AbstractResourcePattern implements ResourcePattern {
 
@@ -61,22 +60,22 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
     @Override
     public ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
         ImmutableMap<String, String> attributes = ImmutableMap.of(
-            "organisation", componentIdentifier.getGroup(),
-            "module", componentIdentifier.getModule(),
-            "artifact", componentIdentifier.getModule(),
-            "revision", componentIdentifier.getVersion()
-        );
-        ExternalResourceName resolve = getBase().getRoot().resolve(substituteTokens(getPathWithoutArtifactPart(), attributes));
+                "organisation", componentIdentifier.getGroup(),
+                "module", componentIdentifier.getModule(),
+                "artifact", componentIdentifier.getModule(),
+                "revision", componentIdentifier.getVersion());
+        ExternalResourceName resolve =
+                getBase().getRoot().resolve(substituteTokens(getPathWithoutArtifactPart(), attributes));
         return resolve;
     }
 
     protected String getPathWithoutArtifactPart() {
         String path = getBase().getPath();
         int i = path.lastIndexOf('/');
-        if (i>0) {
+        if (i > 0) {
             i = path.indexOf("/[artifact]", i);
         }
-        if (i<0) {
+        if (i < 0) {
             throw new UnsupportedOperationException("Cannot locate module version for non standard Ivy layout.");
         }
         return path.substring(0, i);

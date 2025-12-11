@@ -16,6 +16,8 @@
 
 package org.gradle.model.internal.inspect;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.internal.Cast;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
@@ -25,14 +27,14 @@ import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-
 public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Model> {
 
-    private ModelPath determineModelName(MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
+    private ModelPath determineModelName(
+            MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         String annotationValue = ruleDefinition.getAnnotation(Model.class).value();
-        String modelName = (annotationValue == null || annotationValue.isEmpty()) ? ruleDefinition.getMethodName() : annotationValue;
+        String modelName = (annotationValue == null || annotationValue.isEmpty())
+                ? ruleDefinition.getMethodName()
+                : annotationValue;
 
         try {
             ModelPath.validatePath(modelName);
@@ -44,7 +46,8 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
 
     @Nullable
     @Override
-    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
+    public <R, S> ExtractedModelRule registration(
+            MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
         ModelPath modelPath = determineModelName(ruleDefinition, context);
 
         validateMethod(ruleDefinition, context);
@@ -55,12 +58,13 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
         return buildRule(modelPath, ruleDefinition);
     }
 
-    protected <R, S> void validateMethod(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
-    }
+    protected <R, S> void validateMethod(
+            MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {}
 
-    protected abstract <R, S> ExtractedModelRule buildRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition);
+    protected abstract <R, S> ExtractedModelRule buildRule(
+            ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition);
 
-    protected static abstract class ExtractedCreationRule<R, S>  extends AbstractExtractedModelRule {
+    protected abstract static class ExtractedCreationRule<R, S> extends AbstractExtractedModelRule {
         protected final ModelPath modelPath;
         private final boolean hidden;
 
@@ -70,14 +74,18 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
             this.hidden = ruleDefinition.isAnnotationPresent(Hidden.class);
         }
 
-        protected abstract void buildRegistration(MethodModelRuleApplicationContext context, ModelRegistrations.Builder registration);
+        protected abstract void buildRegistration(
+                MethodModelRuleApplicationContext context, ModelRegistrations.Builder registration);
 
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             if (!target.getPath().equals(ModelPath.ROOT)) {
-                throw new InvalidModelRuleDeclarationException(String.format("Rule %s cannot be applied at the scope of model element %s as creation rules cannot be used when applying rule sources to particular elements", getRuleDefinition().getDescriptor(), target.getPath()));
+                throw new InvalidModelRuleDeclarationException(String.format(
+                        "Rule %s cannot be applied at the scope of model element %s as creation rules cannot be used when applying rule sources to particular elements",
+                        getRuleDefinition().getDescriptor(), target.getPath()));
             }
-            ModelRegistrations.Builder registration = ModelRegistrations.of(modelPath).descriptor(getRuleDefinition().getDescriptor());
+            ModelRegistrations.Builder registration = ModelRegistrations.of(modelPath)
+                    .descriptor(getRuleDefinition().getDescriptor());
             buildRegistration(context, registration);
             registration.hidden(hidden);
 

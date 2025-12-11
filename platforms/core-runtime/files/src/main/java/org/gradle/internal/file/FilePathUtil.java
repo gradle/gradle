@@ -25,10 +25,10 @@ import java.util.StringTokenizer;
 public class FilePathUtil {
     private static final String[] EMPTY_STRING_ARRAY = {};
     // On Windows, / and \ are separators, on Unix only / is a separator.
-    private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
+    private static final String FILE_PATH_SEPARATORS =
+            File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
 
-    private FilePathUtil() {
-    }
+    private FilePathUtil() {}
 
     public static String[] getPathSegments(String path) {
         StringTokenizer tokenizer = new StringTokenizer(path, FILE_PATH_SEPARATORS);
@@ -84,9 +84,8 @@ public class FilePathUtil {
         int potentialRemovalIndex = pathSegments.length - removalSegments.length;
         // Check if the path ends with the removal path.
         if (potentialRemovalIndex > 0) {
-            String[] lastSegments = Arrays.stream(pathSegments)
-                .skip(potentialRemovalIndex)
-                .toArray(String[]::new);
+            String[] lastSegments =
+                    Arrays.stream(pathSegments).skip(potentialRemovalIndex).toArray(String[]::new);
 
             if (Arrays.equals(lastSegments, removalSegments)) {
                 // If it does, we remove the segments from the path

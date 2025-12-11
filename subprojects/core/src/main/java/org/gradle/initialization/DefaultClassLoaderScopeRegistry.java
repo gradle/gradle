@@ -25,9 +25,22 @@ public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry
     private final ClassLoaderScope coreAndPluginsScope;
     private final ClassLoaderScope coreScope;
 
-    public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
-        this.coreScope = new RootClassLoaderScope("core", loaderRegistry.getRuntimeClassLoader(), loaderRegistry.getGradleCoreApiClassLoader(), classLoaderCache, listener);
-        this.coreAndPluginsScope = new RootClassLoaderScope("coreAndPlugins", loaderRegistry.getPluginsClassLoader(), loaderRegistry.getGradleApiClassLoader(), classLoaderCache, listener);
+    public DefaultClassLoaderScopeRegistry(
+            ClassLoaderRegistry loaderRegistry,
+            ClassLoaderCache classLoaderCache,
+            ClassLoaderScopeRegistryListener listener) {
+        this.coreScope = new RootClassLoaderScope(
+                "core",
+                loaderRegistry.getRuntimeClassLoader(),
+                loaderRegistry.getGradleCoreApiClassLoader(),
+                classLoaderCache,
+                listener);
+        this.coreAndPluginsScope = new RootClassLoaderScope(
+                "coreAndPlugins",
+                loaderRegistry.getPluginsClassLoader(),
+                loaderRegistry.getGradleApiClassLoader(),
+                classLoaderCache,
+                listener);
     }
 
     @Override
@@ -39,5 +52,4 @@ public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry
     public ClassLoaderScope getCoreScope() {
         return coreScope;
     }
-
 }

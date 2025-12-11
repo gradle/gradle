@@ -15,14 +15,13 @@
  */
 package org.gradle.platform.base.internal;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DefaultPlatformResolvers implements PlatformResolvers {
     private final List<PlatformResolver<?>> platformResolvers = new ArrayList<>();
@@ -41,7 +40,8 @@ public class DefaultPlatformResolvers implements PlatformResolvers {
     public <T extends Platform> T resolve(Class<T> type, PlatformRequirement platformRequirement) {
         for (PlatformResolver<?> platformResolver : platformResolvers) {
             if (platformResolver.getType().equals(type)) {
-                @SuppressWarnings("unchecked") PlatformResolver<T> pr = (PlatformResolver<T>) platformResolver;
+                @SuppressWarnings("unchecked")
+                PlatformResolver<T> pr = (PlatformResolver<T>) platformResolver;
                 T resolved = pr.resolve(platformRequirement);
                 if (resolved != null) {
                     return resolved;
@@ -55,7 +55,8 @@ public class DefaultPlatformResolvers implements PlatformResolvers {
         final String target = platformRequirement.getPlatformName();
 
         NamedDomainObjectSet<T> allWithType = platforms.withType(type);
-        T matching = CollectionUtils.findFirst(allWithType, element -> element.getName().equals(target));
+        T matching = CollectionUtils.findFirst(
+                allWithType, element -> element.getName().equals(target));
 
         if (matching == null) {
             throw new InvalidUserDataException(String.format("Invalid %s: %s", type.getSimpleName(), target));

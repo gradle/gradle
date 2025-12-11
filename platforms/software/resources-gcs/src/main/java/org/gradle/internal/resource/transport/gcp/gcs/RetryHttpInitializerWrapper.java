@@ -28,11 +28,10 @@ import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.client.util.Sleeper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 /**
  * RetryHttpInitializerWrapper will automatically retry upon RPC failures, preserving the
@@ -69,13 +68,13 @@ final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
 
         request.setReadTimeout((int) DEFAULT_READ_TIMEOUT_MILLIS);
         final HttpUnsuccessfulResponseHandler backoffHandler =
-            new HttpBackOffUnsuccessfulResponseHandler(
-                new ExponentialBackOff()).setSleeper(sleeper);
+                new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()).setSleeper(sleeper);
         final Credential credential = credentialSupplier.get();
         request.setInterceptor(credential);
         request.setUnsuccessfulResponseHandler(new HttpUnsuccessfulResponseHandler() {
             @Override
-            public boolean handleResponse(HttpRequest request, HttpResponse response, boolean supportsRetry) throws IOException {
+            public boolean handleResponse(HttpRequest request, HttpResponse response, boolean supportsRetry)
+                    throws IOException {
                 // Turn off request logging unless debug mode is enabled
                 request.setLoggingEnabled(loggingEnabled);
                 request.setCurlLoggingEnabled(loggingEnabled);
@@ -92,8 +91,7 @@ final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
                 }
             }
         });
-        request.setIOExceptionHandler(new HttpBackOffIOExceptionHandler(new ExponentialBackOff())
-            .setSleeper(sleeper));
+        request.setIOExceptionHandler(new HttpBackOffIOExceptionHandler(new ExponentialBackOff()).setSleeper(sleeper));
     }
 
     private static void disableHttpTransportLogging() {

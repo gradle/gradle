@@ -16,13 +16,12 @@
 
 package org.gradle.internal.component.model;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * A dependency that can participate in dependency resolution.
@@ -41,11 +40,10 @@ public interface DependencyMetadata {
      * mechanism that that is not variant-aware.
      */
     default @Nullable List<? extends VariantGraphResolveState> overrideVariantSelection(
-        GraphVariantSelector variantSelector,
-        ImmutableAttributes consumerAttributes,
-        ComponentGraphResolveState targetComponentState,
-        ImmutableAttributesSchema consumerSchema
-    ) {
+            GraphVariantSelector variantSelector,
+            ImmutableAttributes consumerAttributes,
+            ComponentGraphResolveState targetComponentState,
+            ImmutableAttributesSchema consumerSchema) {
         return null;
     }
 
@@ -53,12 +51,12 @@ public interface DependencyMetadata {
      * Select variants from a target component if that component does not support variant selection.
      */
     default List<? extends VariantGraphResolveState> selectLegacyVariants(
-        GraphVariantSelector variantSelector,
-        ImmutableAttributes consumerAttributes,
-        ComponentGraphResolveState targetComponentState,
-        ImmutableAttributesSchema consumerSchema
-    ) {
-        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
+            GraphVariantSelector variantSelector,
+            ImmutableAttributes consumerAttributes,
+            ComponentGraphResolveState targetComponentState,
+            ImmutableAttributesSchema consumerSchema) {
+        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(
+                consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
         return Collections.singletonList(selected);
     }
 

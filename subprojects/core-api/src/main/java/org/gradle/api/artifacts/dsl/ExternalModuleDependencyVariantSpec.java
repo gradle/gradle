@@ -42,5 +42,4 @@ public interface ExternalModuleDependencyVariantSpec {
      * Configures the artifact type of this dependency
      */
     void artifactType(String artifactType);
-
 }

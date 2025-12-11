@@ -18,7 +18,6 @@ package org.gradle.performance.results.report;
 
 import com.google.common.collect.ImmutableMap;
 import groovy.json.JsonOutput;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,8 +41,8 @@ public class ExecutionGraph {
 
     String getTicks() {
         List<List<Object>> ticks = IntStream.range(0, data.get(0).data.size())
-            .mapToObj(index -> Arrays.<Object>asList(index, index))
-            .collect(Collectors.toList());
+                .mapToObj(index -> Arrays.<Object>asList(index, index))
+                .collect(Collectors.toList());
         return JsonOutput.toJson(ImmutableMap.of("ticks", ticks));
     }
 
@@ -52,6 +51,10 @@ public class ExecutionGraph {
         html.h3().text(title).end();
         html.div().id(id).classAttr("chart").end();
         html.dir().id(id + "Legend").end();
-        html.script().raw(String.format("performanceTests.renderGraph(%s, %s, 'execution %d', 'ms', '%s', [])", getData(), getTicks(), index, id)).end();
+        html.script()
+                .raw(String.format(
+                        "performanceTests.renderGraph(%s, %s, 'execution %d', 'ms', '%s', [])",
+                        getData(), getTicks(), index, id))
+                .end();
     }
 }

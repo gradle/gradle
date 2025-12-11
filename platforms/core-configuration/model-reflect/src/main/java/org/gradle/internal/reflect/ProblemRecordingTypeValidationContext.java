@@ -16,6 +16,8 @@
 
 package org.gradle.internal.reflect;
 
+import java.util.Optional;
+import java.util.function.Supplier;
 import org.gradle.api.Action;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -27,19 +29,13 @@ import org.gradle.plugin.use.PluginId;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
-abstract public class ProblemRecordingTypeValidationContext implements TypeValidationContext {
+public abstract class ProblemRecordingTypeValidationContext implements TypeValidationContext {
     private final Class<?> rootType;
     private final Supplier<Optional<PluginId>> pluginId;
     private final InternalProblems problems;
 
     public ProblemRecordingTypeValidationContext(
-        @Nullable Class<?> rootType,
-        Supplier<Optional<PluginId>> pluginId,
-        InternalProblems problems
-    ) {
+            @Nullable Class<?> rootType, Supplier<Optional<PluginId>> pluginId, InternalProblems problems) {
         this.rootType = rootType;
         this.pluginId = pluginId;
         this.problems = problems;
@@ -59,16 +55,19 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
         DefaultTypeAwareProblemBuilder problemBuilder = getDefaultTypeAwareProblemBuilder(problemSpec);
         problemBuilder.withAnnotationType(rootType);
         pluginId()
-            .map(PluginId::getId)
-            .ifPresent(id -> problemBuilder.additionalDataInternal(TypeValidationDataSpec.class, data -> data.pluginId(id)));
+                .map(PluginId::getId)
+                .ifPresent(id ->
+                        problemBuilder.additionalDataInternal(TypeValidationDataSpec.class, data -> data.pluginId(id)));
         recordProblem(problemBuilder.build());
     }
 
-    private @NonNull DefaultTypeAwareProblemBuilder getDefaultTypeAwareProblemBuilder(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(problems.getProblemBuilder());
+    private @NonNull DefaultTypeAwareProblemBuilder getDefaultTypeAwareProblemBuilder(
+            Action<? super TypeAwareProblemBuilder> problemSpec) {
+        DefaultTypeAwareProblemBuilder problemBuilder =
+                new DefaultTypeAwareProblemBuilder(problems.getProblemBuilder());
         problemSpec.execute(problemBuilder);
         return problemBuilder;
     }
 
-    abstract protected void recordProblem(InternalProblem problem);
+    protected abstract void recordProblem(InternalProblem problem);
 }

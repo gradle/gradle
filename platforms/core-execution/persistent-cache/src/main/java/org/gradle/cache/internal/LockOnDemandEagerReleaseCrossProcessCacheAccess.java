@@ -16,6 +16,11 @@
 
 package org.gradle.cache.internal;
 
+import java.io.File;
+import java.util.concurrent.locks.Lock;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import javax.annotation.concurrent.GuardedBy;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
@@ -23,12 +28,6 @@ import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.concurrent.GuardedBy;
-import java.io.File;
-import java.util.concurrent.locks.Lock;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class LockOnDemandEagerReleaseCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(LockOnDemandEagerReleaseCrossProcessCacheAccess.class);
@@ -40,10 +39,13 @@ public class LockOnDemandEagerReleaseCrossProcessCacheAccess extends AbstractCro
     private final Consumer<FileLock> onOpen;
     private final Consumer<FileLock> onClose;
     private final Runnable unlocker;
+
     @GuardedBy("stateLock")
     private int lockCount;
+
     @GuardedBy("stateLock")
     private @Nullable FileLock fileLock;
+
     private final CacheInitializationAction initAction;
 
     /**
@@ -54,15 +56,14 @@ public class LockOnDemandEagerReleaseCrossProcessCacheAccess extends AbstractCro
      * @param onClose Action to run when the lock is closed. Action is called while holding state lock
      */
     public LockOnDemandEagerReleaseCrossProcessCacheAccess(
-        String cacheDisplayName,
-        File lockTarget,
-        LockOptions lockOptions,
-        FileLockManager lockManager,
-        Lock stateLock,
-        CacheInitializationAction initAction,
-        Consumer<FileLock> onOpen,
-        Consumer<FileLock> onClose
-    ) {
+            String cacheDisplayName,
+            File lockTarget,
+            LockOptions lockOptions,
+            FileLockManager lockManager,
+            Lock stateLock,
+            CacheInitializationAction initAction,
+            Consumer<FileLock> onOpen,
+            Consumer<FileLock> onClose) {
         this.cacheDisplayName = cacheDisplayName;
         this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;
@@ -84,7 +85,9 @@ public class LockOnDemandEagerReleaseCrossProcessCacheAccess extends AbstractCro
         stateLock.lock();
         try {
             if (lockCount != 0) {
-                throw new IllegalStateException(String.format("Cannot close cache access for %s as it is currently in use for %s operations.", cacheDisplayName, lockCount));
+                throw new IllegalStateException(String.format(
+                        "Cannot close cache access for %s as it is currently in use for %s operations.",
+                        cacheDisplayName, lockCount));
             }
             releaseLockIfHeld();
         } finally {
@@ -115,7 +118,8 @@ public class LockOnDemandEagerReleaseCrossProcessCacheAccess extends AbstractCro
                 fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "");
                 try {
                     if (initAction.requiresInitialization(fileLock)) {
-                        FileLock theLock = fileLock; // To pass the GuardedBy check, because the lambda below is called synchronously.
+                        FileLock theLock = fileLock; // To pass the GuardedBy check, because the lambda below is called
+                        // synchronously.
                         fileLock.writeFile(() -> initAction.initialize(theLock));
                     }
                     onOpen.accept(fileLock);

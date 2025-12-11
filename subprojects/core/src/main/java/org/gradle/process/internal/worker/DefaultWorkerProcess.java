@@ -16,6 +16,14 @@
 
 package org.gradle.process.internal.worker;
 
+import static java.lang.String.format;
+
+import java.util.Date;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
@@ -24,24 +32,15 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.ObjectConnection;
-import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleListener;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Date;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import static java.lang.String.format;
-
 public class DefaultWorkerProcess implements WorkerProcess {
-    private final static Logger LOGGER = Logging.getLogger(DefaultWorkerProcess.class);
+    private static final Logger LOGGER = Logging.getLogger(DefaultWorkerProcess.class);
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private ObjectConnection connection;
@@ -53,7 +52,8 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private final long connectTimeout;
     private final JvmMemoryStatus jvmMemoryStatus;
 
-    public DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits, @Nullable JvmMemoryStatus jvmMemoryStatus) {
+    public DefaultWorkerProcess(
+            int connectTimeoutValue, TimeUnit connectTimeoutUnits, @Nullable JvmMemoryStatus jvmMemoryStatus) {
         connectTimeout = connectTimeoutUnits.toMillis(connectTimeoutValue);
         this.jvmMemoryStatus = jvmMemoryStatus;
     }
@@ -63,7 +63,8 @@ public class DefaultWorkerProcess implements WorkerProcess {
         if (jvmMemoryStatus != null) {
             return jvmMemoryStatus;
         } else {
-            throw new UnsupportedOperationException("This worker process does not support reporting JVM memory status.");
+            throw new UnsupportedOperationException(
+                    "This worker process does not support reporting JVM memory status.");
         }
     }
 
@@ -87,12 +88,10 @@ public class DefaultWorkerProcess implements WorkerProcess {
         this.execHandle = execHandle;
         execHandle.addListener(new ExecHandleListener() {
             @Override
-            public void beforeExecutionStarted(ExecHandle execHandle) {
-            }
+            public void beforeExecutionStarted(ExecHandle execHandle) {}
 
             @Override
-            public void executionStarted(ExecHandle execHandle) {
-            }
+            public void executionStarted(ExecHandle execHandle) {}
 
             @Override
             public void executionFinished(ExecHandle execHandle, ExecResult execResult) {
@@ -161,10 +160,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
 
     @Override
     public String toString() {
-        return "DefaultWorkerProcess{"
-                + "running=" + running
-                + ", execHandle=" + execHandle
-                + '}';
+        return "DefaultWorkerProcess{" + "running=" + running + ", execHandle=" + execHandle + '}';
     }
 
     @Override
@@ -199,10 +195,12 @@ public class DefaultWorkerProcess implements WorkerProcess {
             while (connection == null && running) {
                 try {
                     if (!condition.awaitUntil(connectExpiry)) {
-                        throw new ProcessExecutionException(format("Unable to connect to the child process '%s'.\n"
-                                + "It is likely that the child process have crashed - please find the stack trace in the build log.\n"
-                                + "This exception might occur when the build machine is extremely loaded.\n"
-                                + "The connection attempt hit a timeout after %.1f seconds (last known process state: %s, running: %s).", execHandle, ((double) connectTimeout) / 1000, execHandle.getState(), running));
+                        throw new ProcessExecutionException(format(
+                                "Unable to connect to the child process '%s'.\n"
+                                        + "It is likely that the child process have crashed - please find the stack trace in the build log.\n"
+                                        + "This exception might occur when the build machine is extremely loaded.\n"
+                                        + "The connection attempt hit a timeout after %.1f seconds (last known process state: %s, running: %s).",
+                                execHandle, ((double) connectTimeout) / 1000, execHandle.getState(), running));
                     }
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
@@ -242,12 +240,15 @@ public class DefaultWorkerProcess implements WorkerProcess {
         CompositeStoppable stoppable;
         lock.lock();
         try {
-            stoppable = CompositeStoppable.stoppable(connection, new Stoppable() {
-                @Override
-                public void stop() {
-                    execHandle.abort();
-                }
-            }, acceptor);
+            stoppable = CompositeStoppable.stoppable(
+                    connection,
+                    new Stoppable() {
+                        @Override
+                        public void stop() {
+                            execHandle.abort();
+                        }
+                    },
+                    acceptor);
         } finally {
             this.connection = null;
             this.acceptor = null;

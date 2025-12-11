@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import java.net.URI;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.local.FileStore;
@@ -26,8 +27,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
-
 public class DefaultExternalResourceAccessor implements ExternalResourceAccessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExternalResourceAccessor.class);
@@ -35,7 +34,8 @@ public class DefaultExternalResourceAccessor implements ExternalResourceAccessor
     private final FileStore<String> fileStore;
     private final CacheAwareExternalResourceAccessor resourceAccessor;
 
-    public DefaultExternalResourceAccessor(FileStore<String> fileStore, CacheAwareExternalResourceAccessor resourceAccessor) {
+    public DefaultExternalResourceAccessor(
+            FileStore<String> fileStore, CacheAwareExternalResourceAccessor resourceAccessor) {
         this.fileStore = fileStore;
         this.resourceAccessor = resourceAccessor;
     }
@@ -57,12 +57,16 @@ public class DefaultExternalResourceAccessor implements ExternalResourceAccessor
         LOGGER.debug("Loading {}", resource);
 
         try {
-            return resourceAccessor.getResource(resource, null, new DefaultResourceFileStore<String>(fileStore) {
-                @Override
-                protected String computeKey() {
-                    return resource.toString();
-                }
-            }, null);
+            return resourceAccessor.getResource(
+                    resource,
+                    null,
+                    new DefaultResourceFileStore<String>(fileStore) {
+                        @Override
+                        protected String computeKey() {
+                            return resource.toString();
+                        }
+                    },
+                    null);
         } catch (Exception e) {
             throw ResourceExceptions.getFailed(resource.getUri(), e);
         }

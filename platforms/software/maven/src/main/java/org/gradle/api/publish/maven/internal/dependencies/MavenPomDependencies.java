@@ -26,5 +26,4 @@ public interface MavenPomDependencies {
     List<MavenDependency> getDependencies();
 
     List<MavenDependency> getDependencyManagement();
-
 }

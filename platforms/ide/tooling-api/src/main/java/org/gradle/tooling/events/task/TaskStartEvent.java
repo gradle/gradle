@@ -23,5 +23,4 @@ import org.gradle.tooling.events.StartEvent;
  *
  * @since 2.5
  */
-public interface TaskStartEvent extends TaskProgressEvent, StartEvent {
-}
+public interface TaskStartEvent extends TaskProgressEvent, StartEvent {}

@@ -15,11 +15,10 @@
  */
 package org.gradle.api.tasks;
 
+import java.util.Set;
 import org.gradle.api.Task;
 import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 /**
  * <p>A <code>TaskDependency</code> represents an <em>unordered</em> set of tasks which a {@link Task} depends on.

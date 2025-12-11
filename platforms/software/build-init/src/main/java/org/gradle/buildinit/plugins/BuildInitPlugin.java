@@ -44,8 +44,13 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
                 ProjectInternal projectInternal = (ProjectInternal) project;
 
                 ProjectInternal.DetachedResolver detachedResolver = projectInternal.newDetachedResolver();
-                initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(
-                    detachedResolver, project.getObjects(), projectInternal.getServices().get(JvmPluginServices.class));
+                initBuild
+                        .getProjectLayoutRegistry()
+                        .getBuildConverter()
+                        .configureClasspath(
+                                detachedResolver,
+                                project.getObjects(),
+                                projectInternal.getServices().get(JvmPluginServices.class));
 
                 initBuild.getUseDefaults().convention(false);
                 initBuild.getInsecureProtocol().convention(InsecureProtocolOption.WARN);
@@ -56,6 +61,8 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
     }
 
     private static Provider<Boolean> getCommentsProperty(Project project) {
-        return project.getProviders().gradleProperty(COMMENTS_PROPERTY).map(SerializableLambdas.transformer(Boolean::parseBoolean));
+        return project.getProviders()
+                .gradleProperty(COMMENTS_PROPERTY)
+                .map(SerializableLambdas.transformer(Boolean::parseBoolean));
     }
 }

@@ -25,7 +25,9 @@ import org.jspecify.annotations.Nullable;
  * @since 9.4.0
  */
 @NullMarked
-public interface InternalFilePosition  {
+public interface InternalFilePosition {
     int getLine();
-    @Nullable Integer getColumn();
+
+    @Nullable
+    Integer getColumn();
 }

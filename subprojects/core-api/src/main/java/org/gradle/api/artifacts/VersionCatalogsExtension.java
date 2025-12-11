@@ -15,10 +15,9 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.InvalidUserDataException;
-
 import java.util.Optional;
 import java.util.Set;
+import org.gradle.api.InvalidUserDataException;
 
 /**
  * Gives access to all version catalogs available.

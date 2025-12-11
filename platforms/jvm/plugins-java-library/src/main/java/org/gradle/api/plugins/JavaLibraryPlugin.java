@@ -15,13 +15,12 @@
  */
 package org.gradle.api.plugins;
 
+import javax.inject.Inject;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
-
-import javax.inject.Inject;
 
 /**
  * <p>A {@link Plugin} which extends the capabilities of the {@link JavaPlugin Java plugin} by cleanly separating
@@ -33,7 +32,7 @@ import javax.inject.Inject;
 public abstract class JavaLibraryPlugin implements Plugin<Project> {
 
     @Inject
-    public JavaLibraryPlugin() { }
+    public JavaLibraryPlugin() {}
 
     @Override
     public void apply(Project project) {
@@ -45,7 +44,7 @@ public abstract class JavaLibraryPlugin implements Plugin<Project> {
         // Make compileOnlyApi visible to tests.
         JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
         project.getConfigurations()
-            .getByName(defaultTestSuite.getSources().getCompileOnlyConfigurationName())
-            .extendsFrom(component.getMainFeature().getCompileOnlyApiConfiguration());
+                .getByName(defaultTestSuite.getSources().getCompileOnlyConfigurationName())
+                .extendsFrom(component.getMainFeature().getCompileOnlyApiConfiguration());
     }
 }

@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import java.io.Closeable;
 import org.gradle.tooling.GradleConnector;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.Closeable;
 
 /**
  * Internal API that is used for cross-version TAPI client testing.

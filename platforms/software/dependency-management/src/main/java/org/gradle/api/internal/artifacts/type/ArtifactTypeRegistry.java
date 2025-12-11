@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.type;
 
 import com.google.common.collect.ImmutableMap;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -26,8 +27,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.inject.Inject;
 
 @ServiceScope(Scope.Project.class)
 public class ArtifactTypeRegistry {
@@ -39,7 +38,10 @@ public class ArtifactTypeRegistry {
     private ArtifactTypeContainer artifactTypeDefinitions;
 
     @Inject
-    public ArtifactTypeRegistry(Instantiator instantiator, AttributesFactory attributesFactory, CollectionCallbackActionDecorator callbackActionDecorator) {
+    public ArtifactTypeRegistry(
+            Instantiator instantiator,
+            AttributesFactory attributesFactory,
+            CollectionCallbackActionDecorator callbackActionDecorator) {
         this.instantiator = instantiator;
         this.attributesFactory = attributesFactory;
         this.callbackActionDecorator = callbackActionDecorator;
@@ -55,7 +57,8 @@ public class ArtifactTypeRegistry {
 
     public ArtifactTypeContainer getArtifactTypeContainer() {
         if (artifactTypeDefinitions == null) {
-            artifactTypeDefinitions = instantiator.newInstance(DefaultArtifactTypeContainer.class, instantiator, attributesFactory, callbackActionDecorator);
+            artifactTypeDefinitions = instantiator.newInstance(
+                    DefaultArtifactTypeContainer.class, instantiator, attributesFactory, callbackActionDecorator);
         }
         return artifactTypeDefinitions;
     }
@@ -67,7 +70,8 @@ public class ArtifactTypeRegistry {
 
         ImmutableMap.Builder<String, ImmutableAttributes> builder = ImmutableMap.builder();
         for (ArtifactTypeDefinition artifactTypeDefinition : artifactTypeDefinitions) {
-            ImmutableAttributes attributes = ((AttributeContainerInternal) artifactTypeDefinition.getAttributes()).asImmutable();
+            ImmutableAttributes attributes =
+                    ((AttributeContainerInternal) artifactTypeDefinition.getAttributes()).asImmutable();
             builder.put(artifactTypeDefinition.getName(), attributes);
         }
 

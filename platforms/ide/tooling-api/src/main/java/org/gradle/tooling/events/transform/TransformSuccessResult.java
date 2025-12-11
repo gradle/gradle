@@ -23,5 +23,4 @@ import org.gradle.tooling.events.SuccessResult;
  *
  * @since 5.1
  */
-public interface TransformSuccessResult extends TransformOperationResult, SuccessResult {
-}
+public interface TransformSuccessResult extends TransformOperationResult, SuccessResult {}

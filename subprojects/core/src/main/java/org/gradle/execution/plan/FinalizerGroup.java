@@ -20,9 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
-import kotlin.collections.ArrayDeque;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -30,6 +27,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import kotlin.collections.ArrayDeque;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The set of nodes reachable from a particular finalizer node.
@@ -39,10 +38,13 @@ public class FinalizerGroup extends HasFinalizers {
     private final TaskNode node;
     private final NodeGroup delegate;
     private final Set<Node> members = new LinkedHashSet<>();
+
     @Nullable
     private OrdinalGroup ordinal;
+
     @Nullable
     private ElementSuccessors successors;
+
     private boolean finalizedNodeHasStarted;
     private boolean hasBeenScheduled;
 
@@ -159,7 +161,9 @@ public class FinalizerGroup extends HasFinalizers {
 
     @Override
     public void onNodeStart(Node finalizer, Node node) {
-        if (isFinalizerNode(finalizer) && !finalizedNodeHasStarted && getFinalizedNodes().contains(node)) {
+        if (isFinalizerNode(finalizer)
+                && !finalizedNodeHasStarted
+                && getFinalizedNodes().contains(node)) {
             finalizedNodeHasStarted = true;
         }
     }
@@ -174,13 +178,15 @@ public class FinalizerGroup extends HasFinalizers {
         Set<Node> finalizedNodesToBlockOn = findFinalizedNodesThatDoNotIntroduceACycle(reachableGroups);
         WaitForNodesToComplete waitForFinalizers = new WaitForNodesToComplete(finalizedNodesToBlockOn);
 
-        // Determine the finalized nodes that are also members. These may need to block waiting for other finalized nodes to complete
+        // Determine the finalized nodes that are also members. These may need to block waiting for other finalized
+        // nodes to complete
         Set<Node> blockedFinalizedMembers = new HashSet<>(getFinalizedNodes());
         blockedFinalizedMembers.removeAll(finalizedNodesToBlockOn);
         blockedFinalizedMembers.retainAll(members);
 
         if (blockedFinalizedMembers.isEmpty()) {
-            // When there are no members that are also finalized, then all members are blocked by the finalizer nodes that don't introduce a cycle
+            // When there are no members that are also finalized, then all members are blocked by the finalizer nodes
+            // that don't introduce a cycle
             successors = node -> waitForFinalizers;
             return;
         }
@@ -199,11 +205,13 @@ public class FinalizerGroup extends HasFinalizers {
             }
             if (blockedFinalizedMembers.contains(member)) {
                 if (!finalizedNodesToBlockOn.isEmpty()) {
-                    // This member is finalized and there are some finalized nodes that are not members. Wait for those nodes
+                    // This member is finalized and there are some finalized nodes that are not members. Wait for those
+                    // nodes
                     blockingNodesBuilder.put(member, waitForFinalizers);
                 } else {
                     // All finalized nodes are also members. Block until some other finalized node is started
-                    blockingNodesBuilder.put(member, new WaitForFinalizedNodesToBecomeActive(Collections.singleton(member)));
+                    blockingNodesBuilder.put(
+                            member, new WaitForFinalizedNodesToBecomeActive(Collections.singleton(member)));
                 }
             } else {
                 if (dependenciesThatAreMembers.contains(member)) {
@@ -221,10 +229,13 @@ public class FinalizerGroup extends HasFinalizers {
         successors = blockingNodes::get;
     }
 
-    private Set<Node> findFinalizedNodesThatDoNotIntroduceACycle(SetMultimap<FinalizerGroup, FinalizerGroup> reachableGroups) {
+    private Set<Node> findFinalizedNodesThatDoNotIntroduceACycle(
+            SetMultimap<FinalizerGroup, FinalizerGroup> reachableGroups) {
         // The members of this group have an implicit dependency on each finalized node of this group.
-        // When a finalizer node is a member of some other group, then it in turn has an implicit dependency on the finalized nodes of that group.
-        // This can introduce a cycle. So, determine all the groups reachable from the finalizers of this group via these relationships
+        // When a finalizer node is a member of some other group, then it in turn has an implicit dependency on the
+        // finalized nodes of that group.
+        // This can introduce a cycle. So, determine all the groups reachable from the finalizers of this group via
+        // these relationships
         // and check for cycles
         Set<Node> nodesWithNoCycle = new HashSet<>(getFinalizedNodes().size());
         for (Node finalizedNode : getFinalizedNodes()) {
@@ -292,7 +303,8 @@ public class FinalizerGroup extends HasFinalizers {
     }
 
     private boolean hasACycle(Node finalized, SetMultimap<FinalizerGroup, FinalizerGroup> reachableGroups) {
-        if (!(finalized.getGroup() instanceof HasFinalizers) || finalized.getGroup().isReachableFromEntryPoint()) {
+        if (!(finalized.getGroup() instanceof HasFinalizers)
+                || finalized.getGroup().isReachableFromEntryPoint()) {
             // Is not a member of a finalizer group or will not be blocked
             return false;
         }
@@ -305,7 +317,8 @@ public class FinalizerGroup extends HasFinalizers {
         return false;
     }
 
-    private Set<FinalizerGroup> reachableGroups(FinalizerGroup fromGroup, SetMultimap<FinalizerGroup, FinalizerGroup> reachableGroups) {
+    private Set<FinalizerGroup> reachableGroups(
+            FinalizerGroup fromGroup, SetMultimap<FinalizerGroup, FinalizerGroup> reachableGroups) {
         if (!reachableGroups.containsKey(fromGroup)) {
             Set<Node> seen = new HashSet<>();
             List<Node> queue = new ArrayList<>(fromGroup.getFinalizedNodes());

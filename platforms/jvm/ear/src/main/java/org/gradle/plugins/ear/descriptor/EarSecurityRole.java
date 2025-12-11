@@ -37,5 +37,4 @@ public interface EarSecurityRole {
     String getRoleName();
 
     void setRoleName(String roleName);
-
 }

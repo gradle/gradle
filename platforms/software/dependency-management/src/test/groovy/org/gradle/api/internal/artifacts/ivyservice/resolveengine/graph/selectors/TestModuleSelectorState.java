@@ -36,7 +36,8 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
 
     private static final VersionParser VERSION_PARSER = new VersionParser();
     private static final DefaultVersionComparator VERSION_COMPARATOR = new DefaultVersionComparator();
-    private static final VersionSelectorScheme VERSION_SELECTOR_SCHEME = new DefaultVersionSelectorScheme(VERSION_COMPARATOR, VERSION_PARSER);
+    private static final VersionSelectorScheme VERSION_SELECTOR_SCHEME =
+            new DefaultVersionSelectorScheme(VERSION_COMPARATOR, VERSION_PARSER);
 
     private final DependencyToComponentIdResolver resolver;
     private final DefaultResolvedVersionConstraint resolvedVersionConstraint;
@@ -46,7 +47,8 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
 
     public TestModuleSelectorState(DependencyToComponentIdResolver resolver, VersionConstraint versionConstraint) {
         this.resolver = resolver;
-        this.resolvedVersionConstraint = new DefaultResolvedVersionConstraint(versionConstraint, VERSION_SELECTOR_SCHEME);
+        this.resolvedVersionConstraint =
+                new DefaultResolvedVersionConstraint(versionConstraint, VERSION_SELECTOR_SCHEME);
         this.versionConstraint = versionConstraint;
     }
 
@@ -81,19 +83,20 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
         return preferResult;
     }
 
-    private ComponentIdResolveResult doResolve(VersionSelector acceptor, VersionSelector rejector, ComponentIdResolveResult previousResult) {
+    private ComponentIdResolveResult doResolve(
+            VersionSelector acceptor, VersionSelector rejector, ComponentIdResolveResult previousResult) {
         if (previousResult != null) {
             return previousResult;
         }
 
         BuildableComponentIdResolveResult result = new DefaultBuildableComponentIdResolveResult();
-        resolver.resolve(null, DefaultComponentOverrideMetadata.EMPTY, acceptor, rejector, result, ImmutableAttributes.EMPTY);
+        resolver.resolve(
+                null, DefaultComponentOverrideMetadata.EMPTY, acceptor, rejector, result, ImmutableAttributes.EMPTY);
         return result;
     }
 
     @Override
-    public void markResolved() {
-    }
+    public void markResolved() {}
 
     @Override
     public boolean isForce() {

@@ -16,10 +16,9 @@
 
 package org.gradle.api.tasks.testing.logging;
 
+import java.util.Set;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import java.util.Set;
 
 /**
  * Options that determine which test events get logged, and at which detail.
@@ -126,7 +125,6 @@ public interface TestLogging {
      *
      * @param granularity the display granularity of the events to be logged
      */
-
     void setDisplayGranularity(int granularity);
 
     /**

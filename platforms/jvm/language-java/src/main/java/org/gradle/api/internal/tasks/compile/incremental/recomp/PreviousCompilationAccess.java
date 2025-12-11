@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
-import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
 public class PreviousCompilationAccess {
 

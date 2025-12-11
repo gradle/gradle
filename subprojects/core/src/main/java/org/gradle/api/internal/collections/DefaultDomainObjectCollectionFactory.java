@@ -46,7 +46,11 @@ public class DefaultDomainObjectCollectionFactory implements DomainObjectCollect
     private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
     private final MutationGuard mutationGuard;
 
-    public DefaultDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry servicesToInject, CollectionCallbackActionDecorator collectionCallbackActionDecorator, MutationGuard mutationGuard) {
+    public DefaultDomainObjectCollectionFactory(
+            InstantiatorFactory instantiatorFactory,
+            ServiceRegistry servicesToInject,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+            MutationGuard mutationGuard) {
         this.instantiatorFactory = instantiatorFactory;
         this.servicesToInject = servicesToInject;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
@@ -65,50 +69,90 @@ public class DefaultDomainObjectCollectionFactory implements DomainObjectCollect
     }
 
     private <T> NamedDomainObjectContainer<T> container(Class<T> elementType, InstanceGenerator elementInstantiator) {
-        ReflectiveNamedDomainObjectFactory<T> objectFactory = new ReflectiveNamedDomainObjectFactory<T>(elementType, elementInstantiator);
+        ReflectiveNamedDomainObjectFactory<T> objectFactory =
+                new ReflectiveNamedDomainObjectFactory<T>(elementType, elementInstantiator);
         Instantiator instantiator = instantiatorFactory.decorateLenient();
-        return Cast.uncheckedCast(instantiator.newInstance(FactoryNamedDomainObjectContainer.class, elementType, instantiator, new DynamicPropertyNamer(), objectFactory, mutationGuard, collectionCallbackActionDecorator));
+        return Cast.uncheckedCast(instantiator.newInstance(
+                FactoryNamedDomainObjectContainer.class,
+                elementType,
+                instantiator,
+                new DynamicPropertyNamer(),
+                objectFactory,
+                mutationGuard,
+                collectionCallbackActionDecorator));
     }
 
     @Override
-    public <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory) {
+    public <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(
+            Class<T> elementType, NamedDomainObjectFactory<T> factory) {
         Instantiator instantiator = instantiatorFactory.decorateLenient();
-        return Cast.uncheckedCast(instantiator.newInstance(FactoryNamedDomainObjectContainer.class, elementType, instantiator, new DynamicPropertyNamer(), factory, mutationGuard, collectionCallbackActionDecorator));
+        return Cast.uncheckedCast(instantiator.newInstance(
+                FactoryNamedDomainObjectContainer.class,
+                elementType,
+                instantiator,
+                new DynamicPropertyNamer(),
+                factory,
+                mutationGuard,
+                collectionCallbackActionDecorator));
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(Class<T> type, Closure factoryClosure) {
         Instantiator instantiator = instantiatorFactory.decorateLenient();
-        return Cast.uncheckedCast(instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure, mutationGuard, collectionCallbackActionDecorator));
+        return Cast.uncheckedCast(instantiator.newInstance(
+                FactoryNamedDomainObjectContainer.class,
+                type,
+                instantiator,
+                new DynamicPropertyNamer(),
+                factoryClosure,
+                mutationGuard,
+                collectionCallbackActionDecorator));
     }
 
     @Override
     public <T> ExtensiblePolymorphicDomainObjectContainer<T> newPolymorphicDomainObjectContainer(Class<T> elementType) {
         Instantiator instantiator = instantiatorFactory.decorateLenient();
         Instantiator elementInstantiator = instantiatorFactory.decorateLenient(servicesToInject);
-        return Cast.uncheckedCast(instantiator.newInstance(DefaultPolymorphicDomainObjectContainer.class, elementType, instantiator, elementInstantiator, collectionCallbackActionDecorator));
+        return Cast.uncheckedCast(instantiator.newInstance(
+                DefaultPolymorphicDomainObjectContainer.class,
+                elementType,
+                instantiator,
+                elementInstantiator,
+                collectionCallbackActionDecorator));
     }
 
     @Override
     public <T> DomainObjectSet<T> newDomainObjectSet(Class<T> elementType) {
         Instantiator instantiator = instantiatorFactory.decorateLenient();
-        return Cast.uncheckedCast(instantiator.newInstance(DefaultDomainObjectSet.class, elementType, collectionCallbackActionDecorator));
+        return Cast.uncheckedCast(
+                instantiator.newInstance(DefaultDomainObjectSet.class, elementType, collectionCallbackActionDecorator));
     }
 
     @Override
     public <T> NamedDomainObjectSet<T> newNamedDomainObjectSet(Class<T> elementType) {
         Instantiator instantiator = instantiatorFactory.decorateLenient();
-        return Cast.uncheckedCast(instantiator.newInstance(DefaultNamedDomainObjectSet.class, elementType, instantiator, new DynamicPropertyNamer(), collectionCallbackActionDecorator));
+        return Cast.uncheckedCast(instantiator.newInstance(
+                DefaultNamedDomainObjectSet.class,
+                elementType,
+                instantiator,
+                new DynamicPropertyNamer(),
+                collectionCallbackActionDecorator));
     }
 
     @Override
     public <T> NamedDomainObjectList<T> newNamedDomainObjectList(Class<T> elementType) {
         Instantiator instantiator = instantiatorFactory.decorateLenient();
-        return Cast.uncheckedCast(instantiator.newInstance(DefaultNamedDomainObjectList.class, elementType, instantiator, new DynamicPropertyNamer(), collectionCallbackActionDecorator));
+        return Cast.uncheckedCast(instantiator.newInstance(
+                DefaultNamedDomainObjectList.class,
+                elementType,
+                instantiator,
+                new DynamicPropertyNamer(),
+                collectionCallbackActionDecorator));
     }
 
     @Override
-    public <T> CompositeDomainObjectSet<T> newDomainObjectSet(Class<T> elementType, DomainObjectCollection<? extends T> collection) {
+    public <T> CompositeDomainObjectSet<T> newDomainObjectSet(
+            Class<T> elementType, DomainObjectCollection<? extends T> collection) {
         return CompositeDomainObjectSet.create(elementType, collectionCallbackActionDecorator, collection);
     }
 }

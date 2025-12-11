@@ -35,5 +35,4 @@ public interface IvyModuleDescriptorLicense {
      * The URL of this license.
      */
     Property<String> getUrl();
-
 }

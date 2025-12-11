@@ -17,7 +17,6 @@
 /**
  * new Problems API
  */
-
 @NullMarked
 package org.gradle.api.problems;
 

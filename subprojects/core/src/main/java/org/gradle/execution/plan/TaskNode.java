@@ -16,14 +16,13 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.Iterables;
-import org.gradle.api.GradleException;
-import org.gradle.api.internal.TaskInternal;
+import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
 
+import com.google.common.collect.Iterables;
 import java.util.Set;
 import java.util.function.Consumer;
-
-import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
+import org.gradle.api.GradleException;
+import org.gradle.api.internal.TaskInternal;
 
 public abstract class TaskNode extends Node {
     private final Set<Node> shouldSuccessors = newSortedNodeSet();
@@ -75,21 +74,12 @@ public abstract class TaskNode extends Node {
 
     @Override
     public Iterable<Node> getAllSuccessors() {
-        return Iterables.concat(
-            shouldSuccessors,
-            finalizingSuccessors,
-            getMustSuccessors(),
-            super.getAllSuccessors()
-        );
+        return Iterables.concat(shouldSuccessors, finalizingSuccessors, getMustSuccessors(), super.getAllSuccessors());
     }
 
     @Override
     public Iterable<Node> getHardSuccessors() {
-        return Iterables.concat(
-            finalizingSuccessors,
-            getMustSuccessors(),
-            super.getHardSuccessors()
-        );
+        return Iterables.concat(finalizingSuccessors, getMustSuccessors(), super.getHardSuccessors());
     }
 
     @Override

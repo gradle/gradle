@@ -16,20 +16,21 @@
 package org.gradle.internal.resolve;
 
 import com.google.common.base.Objects;
+import java.util.Comparator;
+import java.util.List;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Comparator;
-import java.util.List;
-
 public class RejectedByAttributesVersion extends RejectedVersion {
-    private static final Comparator<AttributeMatcher.MatchingDescription<?>> DESCRIPTION_COMPARATOR = Comparator.comparing(o -> o.getRequested().getKey().getName());
+    private static final Comparator<AttributeMatcher.MatchingDescription<?>> DESCRIPTION_COMPARATOR =
+            Comparator.comparing(o -> o.getRequested().getKey().getName());
     private final List<AttributeMatcher.MatchingDescription<?>> matchingDescription;
 
-    public RejectedByAttributesVersion(ModuleComponentIdentifier id, List<AttributeMatcher.MatchingDescription<?>> matchingDescription) {
+    public RejectedByAttributesVersion(
+            ModuleComponentIdentifier id, List<AttributeMatcher.MatchingDescription<?>> matchingDescription) {
         super(id);
         this.matchingDescription = matchingDescription;
     }
@@ -46,7 +47,8 @@ public class RejectedByAttributesVersion extends RejectedVersion {
             } else {
                 builder.append(" didn't match. ");
             }
-            builder.append("Requested " + prettify(description.getRequested()) + ", was: " + prettify(description.getFound()));
+            builder.append(
+                    "Requested " + prettify(description.getRequested()) + ", was: " + prettify(description.getFound()));
         }
         builder.endChildren();
     }

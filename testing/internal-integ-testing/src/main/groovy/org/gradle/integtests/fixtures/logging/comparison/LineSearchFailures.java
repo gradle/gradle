@@ -17,11 +17,10 @@
 package org.gradle.integtests.fixtures.logging.comparison;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.spockframework.runtime.SpockException;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.spockframework.runtime.SpockException;
 
 public final class LineSearchFailures {
 
@@ -29,7 +28,11 @@ public final class LineSearchFailures {
         throw new InsufficientSizeLineListComparisonFailure(expected, actual);
     }
 
-    public static void potentialMatchesExist(List<String> expected, List<String> actual, Collection<PotentialMatch> potentialMatches, boolean useUnifiedDiff) {
+    public static void potentialMatchesExist(
+            List<String> expected,
+            List<String> actual,
+            Collection<PotentialMatch> potentialMatches,
+            boolean useUnifiedDiff) {
         throw new PotentialMatchesExistComparisonFailure(expected, actual, potentialMatches, useUnifiedDiff);
     }
 
@@ -37,9 +40,11 @@ public final class LineSearchFailures {
         throw new NoMatchingLinesExistComparisonFailure(expected, actual);
     }
 
-    private LineSearchFailures() { /* empty */ }
+    private LineSearchFailures() {
+        /* empty */
+    }
 
-    /* package */ static abstract class AbstractLineListComparisonFailure extends SpockException {
+    /* package */ abstract static class AbstractLineListComparisonFailure extends SpockException {
         protected final List<String> expectedLines;
         protected final List<String> actualLines;
 
@@ -68,7 +73,8 @@ public final class LineSearchFailures {
 
     public static final class InsufficientSizeLineListComparisonFailure extends AbstractLineListComparisonFailure {
         @VisibleForTesting
-        /* package */ static final String HEADER_TEMPLATE = "Expected content is too long to be contained in actual content.  Expected: %d lines, found: %d lines.";
+        /* package */ static final String HEADER_TEMPLATE =
+                "Expected content is too long to be contained in actual content.  Expected: %d lines, found: %d lines.";
 
         public InsufficientSizeLineListComparisonFailure(List<String> expectedLines, List<String> actualLines) {
             super(expectedLines, actualLines);
@@ -87,16 +93,26 @@ public final class LineSearchFailures {
     public static final class PotentialMatchesExistComparisonFailure extends AbstractLineListComparisonFailure {
         @VisibleForTesting
         /* package */ static final String HEADER = "Lines not found.  Similar sections:";
+
         private static final int DEFAULT_LEADING_CONTEXT_LINES = 3;
         private final Collection<PotentialMatch> potentialMatches;
         private final int maxLeadingContextLines;
         private final boolean useUnifiedDiff;
 
-        public PotentialMatchesExistComparisonFailure(List<String> expectedLines, List<String> actualLines, Collection<PotentialMatch> potentialMatches, boolean useUnifiedDiff) {
+        public PotentialMatchesExistComparisonFailure(
+                List<String> expectedLines,
+                List<String> actualLines,
+                Collection<PotentialMatch> potentialMatches,
+                boolean useUnifiedDiff) {
             this(expectedLines, actualLines, potentialMatches, DEFAULT_LEADING_CONTEXT_LINES, useUnifiedDiff);
         }
 
-        public PotentialMatchesExistComparisonFailure(List<String> expectedLines, List<String> actualLines, Collection<PotentialMatch> potentialMatches, int maxLeadingContextLines, boolean useUnifiedDiff) {
+        public PotentialMatchesExistComparisonFailure(
+                List<String> expectedLines,
+                List<String> actualLines,
+                Collection<PotentialMatch> potentialMatches,
+                int maxLeadingContextLines,
+                boolean useUnifiedDiff) {
             super(expectedLines, actualLines);
             this.potentialMatches = potentialMatches;
             this.maxLeadingContextLines = maxLeadingContextLines;
@@ -106,9 +122,15 @@ public final class LineSearchFailures {
         @Override
         public String getMessage() {
             if (useUnifiedDiff) {
-                return HEADER + "\n\n" + String.join("\n", DiffUtils.generateUnifiedDiff(expectedLines, actualLines, maxLeadingContextLines));
+                return HEADER + "\n\n"
+                        + String.join(
+                                "\n",
+                                DiffUtils.generateUnifiedDiff(expectedLines, actualLines, maxLeadingContextLines));
             } else {
-                return HEADER + "\n\n" + potentialMatches.stream().map(pm -> pm.buildContext(maxLeadingContextLines)).collect(Collectors.joining("\n"));
+                return HEADER + "\n\n"
+                        + potentialMatches.stream()
+                                .map(pm -> pm.buildContext(maxLeadingContextLines))
+                                .collect(Collectors.joining("\n"));
             }
         }
 
@@ -119,7 +141,7 @@ public final class LineSearchFailures {
 
     public static final class NoMatchingLinesExistComparisonFailure extends AbstractLineListComparisonFailure {
         @VisibleForTesting
-        /* package */  static final String HEADER = "Not a single matching line was found.";
+        /* package */ static final String HEADER = "Not a single matching line was found.";
 
         public NoMatchingLinesExistComparisonFailure(List<String> expectedLines, List<String> actualLines) {
             super(expectedLines, actualLines);

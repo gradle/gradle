@@ -16,9 +16,8 @@
 
 package org.gradle.internal.component.resolution.failure.exception;
 
-import org.gradle.internal.component.resolution.failure.interfaces.GraphValidationFailure;
-
 import java.util.List;
+import org.gradle.internal.component.resolution.failure.interfaces.GraphValidationFailure;
 
 /**
  * Exception that occurs while validating a graph after the graph has been constructed.

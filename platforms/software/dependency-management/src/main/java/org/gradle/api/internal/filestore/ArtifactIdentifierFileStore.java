@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.filestore;
 
+import java.io.File;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.FileStoreSearcher;
 
-import java.io.File;
-
-public interface ArtifactIdentifierFileStore extends FileStore<ModuleComponentArtifactIdentifier>, FileStoreSearcher<ModuleComponentArtifactIdentifier> {
+public interface ArtifactIdentifierFileStore
+        extends FileStore<ModuleComponentArtifactIdentifier>, FileStoreSearcher<ModuleComponentArtifactIdentifier> {
     File whereIs(ModuleComponentArtifactIdentifier artifactId, String checksum);
 
     FileAccessTracker getFileAccessTracker();

@@ -16,6 +16,10 @@
 
 package org.gradle.api.reporting.dependents.internal;
 
+import static org.gradle.model.internal.type.ModelTypes.modelMap;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.model.ModelMap;
@@ -25,11 +29,6 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.jspecify.annotations.Nullable;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import static org.gradle.model.internal.type.ModelTypes.modelMap;
 
 public class DependentComponentsUtils {
 
@@ -47,7 +46,6 @@ public class DependentComponentsUtils {
         }
         return projectPath + Project.PATH_SEPARATOR;
     }
-
 
     public static Set<ComponentSpec> getAllComponents(ModelRegistry registry) {
         Set<ComponentSpec> components = new LinkedHashSet<>();
@@ -76,5 +74,4 @@ public class DependentComponentsUtils {
     private static <T> T modelElement(ModelRegistry registry, String path, ModelType<T> modelType) {
         return registry.find(path, modelType);
     }
-
 }

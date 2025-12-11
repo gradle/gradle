@@ -17,6 +17,12 @@ package org.gradle.api.internal;
 
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import java.util.AbstractCollection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.CollectionEventRegister;
@@ -37,14 +43,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.util.internal.ConfigureUtil;
 
-import java.util.AbstractCollection;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
-public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollectionInternal<T> {
+public class DefaultDomainObjectCollection<T> extends AbstractCollection<T>
+        implements DomainObjectCollectionInternal<T> {
 
     private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
@@ -59,11 +59,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
      */
     private ImmutableActionSet<String> beforeContainerChange = ImmutableActionSet.empty();
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionCallbackActionDecorator callbackActionDecorator) {
+    protected DefaultDomainObjectCollection(
+            Class<? extends T> type,
+            ElementSource<T> store,
+            CollectionCallbackActionDecorator callbackActionDecorator) {
         this(type, store, new DefaultCollectionEventRegister<T>(type, callbackActionDecorator));
     }
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister) {
+    protected DefaultDomainObjectCollection(
+            Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister) {
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
@@ -74,7 +78,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.store.setSubscriptionVerifier(eventRegister);
     }
 
-    protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter) {
+    protected DefaultDomainObjectCollection(
+            DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter) {
         this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter));
     }
 
@@ -303,15 +308,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             providerInternal = Cast.uncheckedCast(provider);
         } else {
             // We don't know the type of element in the provider, so we assume it's the type of the collection
-            DefaultListProperty<T> defaultListProperty = new DefaultListProperty<T>(PropertyHost.NO_OP, Cast.uncheckedCast(getType()));
+            DefaultListProperty<T> defaultListProperty =
+                    new DefaultListProperty<T>(PropertyHost.NO_OP, Cast.uncheckedCast(getType()));
             defaultListProperty.convention(provider);
             providerInternal = defaultListProperty;
         }
         store.addPendingCollection(providerInternal);
     }
 
-    protected void didAdd(T toAdd) {
-    }
+    protected void didAdd(T toAdd) {}
 
     @Override
     public boolean addAll(Collection<? extends T> c) {
@@ -363,18 +368,22 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         if (o instanceof ProviderInternal) {
             ProviderInternal<? extends T> providerInternal = Cast.uncheckedCast(o);
             if (getStore().removePending(providerInternal)) {
-                // NOTE: When removing provider, we don't need to fireObjectRemoved as they were never added in the first place.
+                // NOTE: When removing provider, we don't need to fireObjectRemoved as they were never added in the
+                // first place.
                 didRemove(providerInternal);
                 return true;
             } else if (getType().isAssignableFrom(providerInternal.getType()) && providerInternal.isPresent()) {
-                // The provider is of compatible type and the element was either already realized or we are removing a provider to the element
+                // The provider is of compatible type and the element was either already realized or we are removing a
+                // provider to the element
                 o = providerInternal.get();
             }
-            // Else, the provider is of incompatible type, maybe we have a domain object collection of Provider, fallthrough
+            // Else, the provider is of incompatible type, maybe we have a domain object collection of Provider,
+            // fallthrough
         }
 
         if (getStore().remove(o)) {
-            @SuppressWarnings("unchecked") T cast = (T) o;
+            @SuppressWarnings("unchecked")
+            T cast = (T) o;
             didRemove(cast);
             eventRegister.fireObjectRemoved(cast);
             return true;
@@ -383,11 +392,9 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
-    protected void didRemove(T t) {
-    }
+    protected void didRemove(T t) {}
 
-    protected void didRemove(ProviderInternal<? extends T> t) {
-    }
+    protected void didRemove(ProviderInternal<? extends T> t) {}
 
     @Override
     public boolean removeAll(Collection<?> c) {
@@ -504,6 +511,4 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             currentElement = null;
         }
     }
-
-
 }

@@ -15,6 +15,9 @@
  */
 package org.gradle.api.tasks.scala;
 
+import java.io.File;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -45,10 +48,6 @@ import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
-
 /**
  * Generates HTML API documentation for Scala source files.
  */
@@ -69,7 +68,8 @@ public abstract class ScalaDoc extends SourceTask {
         ObjectFactory objectFactory = getObjectFactory();
         this.maxMemory = objectFactory.property(String.class);
         JavaToolchainService javaToolchainService = getJavaToolchainService();
-        this.javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaToolchainService.launcherFor(it -> {}));
+        this.javaLauncher =
+                objectFactory.property(JavaLauncher.class).convention(javaToolchainService.launcherFor(it -> {}));
         this.compilationOutputs = objectFactory.fileCollection();
         this.scalaDocOptions = objectFactory.newInstance(ScalaDocOptions.class);
     }
@@ -115,7 +115,10 @@ public abstract class ScalaDoc extends SourceTask {
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     protected FileTree getFilteredCompilationOutputs() {
-        return getCompilationOutputs().getAsFileTree().matching(getPatternSet()).matching(pattern -> pattern.include("**/*.tasty"));
+        return getCompilationOutputs()
+                .getAsFileTree()
+                .matching(getPatternSet())
+                .matching(pattern -> pattern.include("**/*.tasty"));
     }
 
     /**
@@ -223,11 +226,11 @@ public abstract class ScalaDoc extends SourceTask {
                 forkOptions.setMaxHeapSize(getMaxMemory().get());
             }
 
-            forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+            forkOptions.setExecutable(
+                    javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
         });
         queue.submit(GenerateScaladoc.class, parameters -> {
-            @Nullable
-            File optionsFile = createOptionsFile();
+            @Nullable File optionsFile = createOptionsFile();
             parameters.getOptionsFile().set(optionsFile);
             parameters.getClasspath().from(getClasspath());
             parameters.getOutputDirectory().set(getDestinationDir());

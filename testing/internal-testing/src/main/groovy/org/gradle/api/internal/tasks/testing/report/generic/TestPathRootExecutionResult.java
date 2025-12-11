@@ -17,12 +17,11 @@
 package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.tasks.testing.TestResult;
-import org.hamcrest.Matcher;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.api.tasks.testing.TestResult;
+import org.hamcrest.Matcher;
 
 /**
  * Represents the result of executing a test path in a specific root.
@@ -69,7 +68,6 @@ public interface TestPathRootExecutionResult {
      * @return the number of skipped child tests
      */
     int getSkippedChildCount();
-
 
     TestPathRootExecutionResult assertChildrenFailed(String... testNames);
 
@@ -130,7 +128,9 @@ public interface TestPathRootExecutionResult {
      * Flags to indicate how a file attachment should be rendered
      */
     enum ShowAs {
-        LINK, IMAGE, VIDEO;
+        LINK,
+        IMAGE,
+        VIDEO;
     }
 
     /**

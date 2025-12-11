@@ -18,14 +18,6 @@ package org.gradle.util.internal;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteStreams;
-import org.jspecify.annotations.NullMarked;
-
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.IvParameterSpec;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,6 +25,13 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Set;
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Encryption algorithms required/used in Gradle.
@@ -43,9 +42,9 @@ public class SupportedEncryptionAlgorithm {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private static final EncryptionAlgorithm AES_GCM_NO_PADDING =
-        new DefaultEncryptionAlgorithm<>("AES/GCM/NoPadding", RANDOM, new GcmAlgorithmParameters(128));
+            new DefaultEncryptionAlgorithm<>("AES/GCM/NoPadding", RANDOM, new GcmAlgorithmParameters(128));
     private static final EncryptionAlgorithm AES_CTR_NO_PADDING =
-        new DefaultEncryptionAlgorithm<>("AES/CTR/NoPadding", RANDOM, new IvOnlyAlgorithmParameters());
+            new DefaultEncryptionAlgorithm<>("AES/CTR/NoPadding", RANDOM, new IvOnlyAlgorithmParameters());
 
     /**
      * Get the default cipher.
@@ -72,14 +71,16 @@ public class SupportedEncryptionAlgorithm {
         private final SecureRandom random;
         private final AlgorithmParameters<P> parameters;
 
-        public DefaultEncryptionAlgorithm(String transformation, SecureRandom random, AlgorithmParameters<P> parameters) {
+        public DefaultEncryptionAlgorithm(
+                String transformation, SecureRandom random, AlgorithmParameters<P> parameters) {
             this.transformation = transformation;
             this.random = random;
             this.parameters = parameters;
         }
 
         @Override
-        public final InputStream decryptedStream(InputStream inputStream, SecretKey key) throws GeneralSecurityException, IOException {
+        public final InputStream decryptedStream(InputStream inputStream, SecretKey key)
+                throws GeneralSecurityException, IOException {
             Cipher cipher = Cipher.getInstance(transformation);
             int blockSize = cipher.getBlockSize();
             P params = parameters.read(inputStream, blockSize);
@@ -88,7 +89,8 @@ public class SupportedEncryptionAlgorithm {
         }
 
         @Override
-        public final OutputStream encryptedStream(OutputStream outputStream, SecretKey key) throws GeneralSecurityException, IOException {
+        public final OutputStream encryptedStream(OutputStream outputStream, SecretKey key)
+                throws GeneralSecurityException, IOException {
             Cipher cipher = Cipher.getInstance(transformation);
             int blockSize = cipher.getBlockSize();
             P params = parameters.write(outputStream, random, blockSize);
@@ -152,7 +154,8 @@ public class SupportedEncryptionAlgorithm {
         }
 
         @Override
-        public GCMParameterSpec write(OutputStream outputStream, SecureRandom random, int blockSize) throws IOException {
+        public GCMParameterSpec write(OutputStream outputStream, SecureRandom random, int blockSize)
+                throws IOException {
             byte[] iv = generateIv(IV_LENGTH_BYTES, random);
             outputStream.write(iv);
             return new GCMParameterSpec(tagLengthBits, iv);
@@ -186,7 +189,7 @@ public class SupportedEncryptionAlgorithm {
     /**
      * Generate an initialization vector of the given size for an encryption algorithm.
      */
-    private static byte[] generateIv(int size, SecureRandom random){
+    private static byte[] generateIv(int size, SecureRandom random) {
         byte[] iv = new byte[size];
         random.nextBytes(iv);
         return iv;

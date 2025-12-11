@@ -17,6 +17,10 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.collect.Iterables;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.tasks.WorkResult;
@@ -28,19 +32,29 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 public abstract class NativeCompiler<T extends NativeCompileSpec> extends AbstractCompiler<T> {
     private final Transformer<T, T> specTransformer;
     private final String objectFileExtension;
 
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
 
-    public NativeCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileExtension, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, argsTransformer, useCommandFile, workerLeaseService);
+    public NativeCompiler(
+            BuildOperationExecutor buildOperationExecutor,
+            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+            CommandLineToolInvocationWorker commandLineToolInvocationWorker,
+            CommandLineToolContext invocationContext,
+            ArgsTransformer<T> argsTransformer,
+            Transformer<T, T> specTransformer,
+            String objectFileExtension,
+            boolean useCommandFile,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                buildOperationExecutor,
+                commandLineToolInvocationWorker,
+                invocationContext,
+                argsTransformer,
+                useCommandFile,
+                workerLeaseService);
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.objectFileExtension = objectFileExtension;
         this.specTransformer = specTransformer;
@@ -57,14 +71,16 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
 
     // TODO(daniel): Should support in a better way multi file invocation.
     @Override
-    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final T spec, final List<String> genericArgs) {
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(
+            final T spec, final List<String> genericArgs) {
         final File objectDir = spec.getObjectFileDir();
         return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override
             public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
                 buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
                 for (File sourceFile : spec.getSourceFiles()) {
-                    CommandLineToolInvocation perFileInvocation = createPerFileInvocation(genericArgs, sourceFile, objectDir, spec);
+                    CommandLineToolInvocation perFileInvocation =
+                            createPerFileInvocation(genericArgs, sourceFile, objectDir, spec);
                     buildQueue.add(perFileInvocation);
                 }
             }
@@ -85,7 +101,8 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
     protected File getOutputFileDir(File sourceFile, File objectFileDir, String fileSuffix) {
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
 
-        File outputFile = compilerOutputFileNamingSchemeFactory.create()
+        File outputFile = compilerOutputFileNamingSchemeFactory
+                .create()
                 .withObjectFileNameSuffix(fileSuffix)
                 .withOutputBaseFolder(objectFileDir)
                 .map(sourceFile);
@@ -93,7 +110,9 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
         if (!outputDirectory.exists()) {
             outputDirectory.mkdirs();
         }
-        return windowsPathLimitation ? SafeFileLocationUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
+        return windowsPathLimitation
+                ? SafeFileLocationUtils.assertInWindowsPathLengthLimitation(outputFile)
+                : outputFile;
     }
 
     protected List<String> maybeGetPCHArgs(final T spec, File sourceFile) {
@@ -104,15 +123,21 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
         return getPCHArgs(spec);
     }
 
-    protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir, T spec) {
+    protected CommandLineToolInvocation createPerFileInvocation(
+            List<String> genericArgs, File sourceFile, File objectDir, T spec) {
         List<String> sourceArgs = getSourceArgs(sourceFile);
         List<String> outputArgs = getOutputArgs(spec, getOutputFileDir(sourceFile, objectDir, objectFileExtension));
         List<String> pchArgs = maybeGetPCHArgs(spec, sourceFile);
 
-        return newInvocation("compiling ".concat(sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs), spec.getOperationLogger());
+        return newInvocation(
+                "compiling ".concat(sourceFile.getName()),
+                objectDir,
+                buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs),
+                spec.getOperationLogger());
     }
 
-    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
+    protected Iterable<String> buildPerFileArgs(
+            List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
         return Iterables.concat(genericArgs, pchArgs, sourceArgs, outputArgs);
     }
 }

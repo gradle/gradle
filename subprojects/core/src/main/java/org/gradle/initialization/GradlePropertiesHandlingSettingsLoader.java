@@ -26,7 +26,10 @@ public class GradlePropertiesHandlingSettingsLoader implements SettingsLoader {
     private final BuildLayoutFactory buildLayoutFactory;
     private final GradlePropertiesController gradlePropertiesController;
 
-    public GradlePropertiesHandlingSettingsLoader(SettingsLoader delegate, BuildLayoutFactory buildLayoutFactory, GradlePropertiesController gradlePropertiesController) {
+    public GradlePropertiesHandlingSettingsLoader(
+            SettingsLoader delegate,
+            BuildLayoutFactory buildLayoutFactory,
+            GradlePropertiesController gradlePropertiesController) {
         this.delegate = delegate;
         this.buildLayoutFactory = buildLayoutFactory;
         this.gradlePropertiesController = gradlePropertiesController;
@@ -34,7 +37,8 @@ public class GradlePropertiesHandlingSettingsLoader implements SettingsLoader {
 
     @Override
     public SettingsState findAndLoadSettings(GradleInternal gradle) {
-        SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(gradle.getStartParameter().toBuildLayoutConfiguration());
+        SettingsLocation settingsLocation =
+                buildLayoutFactory.getLayoutFor(gradle.getStartParameter().toBuildLayoutConfiguration());
         BuildIdentifier buildId = gradle.getOwner().getBuildIdentifier();
         gradlePropertiesController.loadGradleProperties(buildId, settingsLocation.getSettingsDir(), true);
         return delegate.findAndLoadSettings(gradle);

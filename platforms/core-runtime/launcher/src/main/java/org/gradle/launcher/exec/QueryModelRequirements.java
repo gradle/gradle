@@ -16,18 +16,14 @@
 
 package org.gradle.launcher.exec;
 
+import java.util.function.Supplier;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.hash.HashCode;
-
-import java.util.function.Supplier;
 
 public class QueryModelRequirements extends AbstractToolingModelRequirements {
 
     public QueryModelRequirements(
-        StartParameterInternal startParameter,
-        boolean runsTasks,
-        Supplier<HashCode> payloadHashProvider
-    ) {
+            StartParameterInternal startParameter, boolean runsTasks, Supplier<HashCode> payloadHashProvider) {
         super(startParameter, runsTasks, payloadHashProvider);
     }
 

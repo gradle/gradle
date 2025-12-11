@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.api.internal.tasks.TaskOptionsGenerator;
-import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.typeconversion.TypeConversionException;
-
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.internal.tasks.TaskOptionsGenerator;
+import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.typeconversion.TypeConversionException;
 
 /**
  * A flag, does not take an argument.
@@ -46,7 +45,8 @@ public class BooleanOptionElement extends AbstractOptionElement {
         this.newOptionValue = true;
     }
 
-    private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter, boolean newOptionValue) {
+    private BooleanOptionElement(
+            String optionName, String optionDescription, PropertySetter setter, boolean newOptionValue) {
         super(optionDescription, optionName, Void.TYPE);
         this.setter = setter;
         this.newOptionValue = newOptionValue;
@@ -55,8 +55,16 @@ public class BooleanOptionElement extends AbstractOptionElement {
     public static BooleanOptionElement oppositeOf(BooleanOptionElement optionElement) {
         String optionName = optionElement.getOptionName();
         return optionElement.isDisableOption()
-            ? new BooleanOptionElement(removeDisablePrefix(optionName), OPPOSITE_DESC_PREFIX + optionName + ".", optionElement.setter, false)
-            : new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, DISABLE_DESC_PREFIX + optionName + ".", optionElement.setter, false);
+                ? new BooleanOptionElement(
+                        removeDisablePrefix(optionName),
+                        OPPOSITE_DESC_PREFIX + optionName + ".",
+                        optionElement.setter,
+                        false)
+                : new BooleanOptionElement(
+                        DISABLE_NAME_PREFIX + optionName,
+                        DISABLE_DESC_PREFIX + optionName + ".",
+                        optionElement.setter,
+                        false);
     }
 
     /**
@@ -74,7 +82,8 @@ public class BooleanOptionElement extends AbstractOptionElement {
             if (optionDescriptor instanceof InstanceOptionDescriptor) {
                 InstanceOptionDescriptor instanceOptionDescriptor = (InstanceOptionDescriptor) optionDescriptor;
                 if (instanceOptionDescriptor.getOptionElement() instanceof BooleanOptionElement) {
-                    BooleanOptionElement optionElement = (BooleanOptionElement) instanceOptionDescriptor.getOptionElement();
+                    BooleanOptionElement optionElement =
+                            (BooleanOptionElement) instanceOptionDescriptor.getOptionElement();
                     if (optionElement.isDisableOption()) {
                         return removeDisablePrefix(optionElement.getOptionName()) + "-";
                     }

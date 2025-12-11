@@ -17,11 +17,10 @@
 package org.gradle.model.internal.report.unbound;
 
 import com.google.common.collect.ImmutableList;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
-
 import java.io.File;
 import java.util.List;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 public class UnboundRule {
@@ -31,7 +30,10 @@ public class UnboundRule {
     private final ImmutableList<UnboundRuleInput> immutableInputs;
     private final ImmutableList<UnboundRuleInput> mutableInputs;
 
-    private UnboundRule(String descriptor, ImmutableList<UnboundRuleInput> immutableInputs, ImmutableList<UnboundRuleInput> mutableInputs) {
+    private UnboundRule(
+            String descriptor,
+            ImmutableList<UnboundRuleInput> immutableInputs,
+            ImmutableList<UnboundRuleInput> mutableInputs) {
         this.descriptor = descriptor;
         this.immutableInputs = immutableInputs;
         this.mutableInputs = mutableInputs;
@@ -54,7 +56,8 @@ public class UnboundRule {
     }
 
     public static Builder descriptor(String descriptor, File location, int line, int column) {
-        return new Builder(String.format("%s @ build file '%s' line %d, column %d", descriptor, location.getAbsolutePath(), line, column));
+        return new Builder(String.format(
+                "%s @ build file '%s' line %d, column %d", descriptor, location.getAbsolutePath(), line, column));
     }
 
     @NotThreadSafe

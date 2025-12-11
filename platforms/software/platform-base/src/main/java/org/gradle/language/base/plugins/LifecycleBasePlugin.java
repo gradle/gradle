@@ -52,7 +52,8 @@ public abstract class LifecycleBasePlugin implements Plugin<Project> {
         Provider<Directory> buildDir = project.getLayout().getBuildDirectory();
 
         // Register at least the project buildDir as a directory to be deleted.
-        final BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
+        final BuildOutputCleanupRegistry buildOutputCleanupRegistry =
+                project.getServices().get(BuildOutputCleanupRegistry.class);
         buildOutputCleanupRegistry.registerOutputs(buildDir);
 
         final Provider<Delete> clean = project.getTasks().register(CLEAN_TASK_NAME, Delete.class, cleanTask -> {

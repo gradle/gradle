@@ -18,7 +18,6 @@ package org.gradle.process.internal.health.memory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -34,15 +33,10 @@ public class CGroupMemoryInfo implements OsMemoryInfo {
         File cg2Usage = new File(CG2_MEM_USAGE_FILE);
         File cg2Total = new File(CG2_MEM_TOTAL_FILE);
         if (cg2Usage.exists() && cg2Total.exists()) {
-            return getOsSnapshotFromCgroup(
-                readStringFromFile(cg2Usage),
-                readStringFromFile(cg2Total)
-            );
+            return getOsSnapshotFromCgroup(readStringFromFile(cg2Usage), readStringFromFile(cg2Total));
         }
         return getOsSnapshotFromCgroup(
-            readStringFromFile(new File(CG1_MEM_USAGE_FILE)),
-            readStringFromFile(new File(CG1_MEM_TOTAL_FILE))
-        );
+                readStringFromFile(new File(CG1_MEM_USAGE_FILE)), readStringFromFile(new File(CG1_MEM_TOTAL_FILE)));
     }
 
     private static String readStringFromFile(File file) {

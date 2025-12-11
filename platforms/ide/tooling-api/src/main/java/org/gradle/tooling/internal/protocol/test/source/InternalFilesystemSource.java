@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.protocol.test.source;
 
-
 import java.io.File;
 
 /**

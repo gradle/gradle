@@ -19,6 +19,13 @@ package org.gradle.api.internal.project;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
+import java.io.File;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.InvalidUserDataException;
@@ -83,14 +90,6 @@ import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.function.Supplier;
-
 /**
  * Wrapper for {@link ProjectInternal}, that declares some API methods as access to a mutable state of the project.
  * <p>
@@ -107,10 +106,7 @@ import java.util.function.Supplier;
 public abstract class MutableStateAccessAwareProject implements ProjectInternal, DynamicObjectAware {
 
     public static <T extends MutableStateAccessAwareProject> ProjectInternal wrap(
-        ProjectInternal target,
-        ProjectInternal referrer,
-        Supplier<T> wrapperSupplier
-    ) {
+            ProjectInternal target, ProjectInternal referrer, Supplier<T> wrapperSupplier) {
         return target == referrer ? target : wrapperSupplier.get();
     }
 
@@ -961,7 +957,8 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Nullable
     @Override
-    public ProjectEvaluationListener stepEvaluationListener(ProjectEvaluationListener listener, Action<ProjectEvaluationListener> action) {
+    public ProjectEvaluationListener stepEvaluationListener(
+            ProjectEvaluationListener listener, Action<ProjectEvaluationListener> action) {
         return delegate.stepEvaluationListener(listener, action);
     }
 

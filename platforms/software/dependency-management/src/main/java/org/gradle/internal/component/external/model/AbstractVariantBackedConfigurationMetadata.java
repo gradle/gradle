@@ -18,6 +18,10 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
@@ -34,11 +38,6 @@ import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 /**
  * An immutable {@link ConfigurationMetadata} wrapper around a {@link ComponentVariant}.
  */
@@ -53,32 +52,52 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
         this.id = new NamedVariantIdentifier(componentId, variant.getName());
         this.componentId = componentId;
         this.variant = variant;
-        List<GradleDependencyMetadata> dependencies = new ArrayList<>(variant.getDependencies().size());
+        List<GradleDependencyMetadata> dependencies =
+                new ArrayList<>(variant.getDependencies().size());
         // Forced dependencies are only supported for enforced platforms, so it is currently hardcoded.
-        // Should we want to add this as a first class concept to Gradle metadata, then it should be available on the component variant
+        // Should we want to add this as a first class concept to Gradle metadata, then it should be available on the
+        // component variant
         // metadata as well.
         boolean forcedDependencies = PlatformSupport.hasForcedDependencies(variant);
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
-            ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getCapabilitySelectors());
+            ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
+                    DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()),
+                    dependency.getVersionConstraint(),
+                    dependency.getAttributes(),
+                    dependency.getCapabilitySelectors());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
             IvyArtifactName dependencyArtifact = dependency.getDependencyArtifact();
-            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isEndorsingStrictVersions(), dependency.getReason(), forcedDependencies, dependencyArtifact));
+            dependencies.add(new GradleDependencyMetadata(
+                    selector,
+                    excludes,
+                    false,
+                    dependency.isEndorsingStrictVersions(),
+                    dependency.getReason(),
+                    forcedDependencies,
+                    dependencyArtifact));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
             dependencies.add(new GradleDependencyMetadata(
-                DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependencyConstraint.getGroup(), dependencyConstraint.getModule()), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableSet.of()),
-                Collections.emptyList(),
-                true,
-                false,
-                dependencyConstraint.getReason(),
-                forcedDependencies,
-                null
-            ));
+                    DefaultModuleComponentSelector.newSelector(
+                            DefaultModuleIdentifier.newId(
+                                    dependencyConstraint.getGroup(), dependencyConstraint.getModule()),
+                            dependencyConstraint.getVersionConstraint(),
+                            dependencyConstraint.getAttributes(),
+                            ImmutableSet.of()),
+                    Collections.emptyList(),
+                    true,
+                    false,
+                    dependencyConstraint.getReason(),
+                    forcedDependencies,
+                    null));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);
     }
 
-    AbstractVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, List<? extends ModuleDependencyMetadata> dependencies) {
+    AbstractVariantBackedConfigurationMetadata(
+            ModuleComponentIdentifier componentId,
+            ComponentVariant variant,
+            List<? extends ModuleDependencyMetadata> dependencies) {
         this.id = new NamedVariantIdentifier(componentId, variant.getName());
         this.componentId = componentId;
         this.variant = variant;

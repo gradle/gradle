@@ -17,6 +17,10 @@
 package org.gradle.nativeplatform.test.xctest.tasks;
 
 import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import javax.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
@@ -40,11 +44,6 @@ import org.gradle.process.ExecOperations;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
 
 /**
  * Creates a XCTest bundle with a run script so it can be easily executed.
@@ -76,12 +75,12 @@ public abstract class InstallXCTestBundle extends DefaultTask {
     @TaskAction
     protected void install() throws IOException {
         File bundleFile = bundleBinaryFile.get().getAsFile();
-        File bundleDir = installDirectory.get().file(bundleFile.getName() + ".xctest").getAsFile();
+        File bundleDir =
+                installDirectory.get().file(bundleFile.getName() + ".xctest").getAsFile();
         installToDir(bundleDir, bundleFile);
 
         File runScript = getRunScriptFile().get().getAsFile();
-        String runScriptText =
-            "#!/bin/sh"
+        String runScriptText = "#!/bin/sh"
                 + "\nAPP_BASE_NAME=`dirname \"$0\"`"
                 + "\nXCTEST_LOCATION=`xcrun --find xctest`"
                 + "\nexec \"$XCTEST_LOCATION\" \"$@\" \"$APP_BASE_NAME/" + bundleDir.getName() + "\""
@@ -99,24 +98,31 @@ public abstract class InstallXCTestBundle extends DefaultTask {
 
         File outputFile = new File(bundleDir, "Contents/Info.plist");
 
-        Files.asCharSink(outputFile, Charset.forName("UTF-8")).write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
-            + "<plist version=\"1.0\">\n"
-            + "<dict/>\n"
-            + "</plist>");
+        Files.asCharSink(outputFile, Charset.forName("UTF-8"))
+                .write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+                        + "<plist version=\"1.0\">\n"
+                        + "<dict/>\n"
+                        + "</plist>");
 
-        getExecOperations().exec(SerializableLambdas.action(execSpec -> {
-            execSpec.setWorkingDir(bundleDir);
-            execSpec.executable(getSwiftStdlibToolLocator().find());
-            execSpec.args(
-                "--copy",
-                "--scan-executable", bundleFile.getAbsolutePath(),
-                "--destination", new File(bundleDir, "Contents/Frameworks").getAbsolutePath(),
-                "--platform", "macosx",
-                "--resource-destination", new File(bundleDir, "Contents/Resources").getAbsolutePath(),
-                "--scan-folder", new File(bundleDir, "Contents/Frameworks").getAbsolutePath()
-            );
-        })).assertNormalExitValue();
+        getExecOperations()
+                .exec(SerializableLambdas.action(execSpec -> {
+                    execSpec.setWorkingDir(bundleDir);
+                    execSpec.executable(getSwiftStdlibToolLocator().find());
+                    execSpec.args(
+                            "--copy",
+                            "--scan-executable",
+                            bundleFile.getAbsolutePath(),
+                            "--destination",
+                            new File(bundleDir, "Contents/Frameworks").getAbsolutePath(),
+                            "--platform",
+                            "macosx",
+                            "--resource-destination",
+                            new File(bundleDir, "Contents/Resources").getAbsolutePath(),
+                            "--scan-folder",
+                            new File(bundleDir, "Contents/Frameworks").getAbsolutePath());
+                }))
+                .assertNormalExitValue();
     }
 
     /**
@@ -124,7 +130,10 @@ public abstract class InstallXCTestBundle extends DefaultTask {
      */
     @Internal
     public Provider<RegularFile> getRunScriptFile() {
-        return installDirectory.file(bundleBinaryFile.getLocationOnly().map(SerializableLambdas.transformer(file -> FilenameUtils.removeExtension(file.getAsFile().getName()))));
+        return installDirectory.file(bundleBinaryFile
+                .getLocationOnly()
+                .map(SerializableLambdas.transformer(
+                        file -> FilenameUtils.removeExtension(file.getAsFile().getName()))));
     }
 
     /**

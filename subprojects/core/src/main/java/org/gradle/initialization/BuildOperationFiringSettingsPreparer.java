@@ -26,16 +26,20 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.jspecify.annotations.Nullable;
 
 public class BuildOperationFiringSettingsPreparer implements SettingsPreparer {
-    private static final LoadBuildBuildOperationType.Result RESULT = new LoadBuildBuildOperationType.Result() {
-    };
+    private static final LoadBuildBuildOperationType.Result RESULT = new LoadBuildBuildOperationType.Result() {};
 
     private final SettingsPreparer delegate;
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationProgressEventEmitter emitter;
+
     @Nullable
     private final PublicBuildPath fromBuild;
 
-    public BuildOperationFiringSettingsPreparer(SettingsPreparer delegate, BuildOperationRunner buildOperationRunner, BuildOperationProgressEventEmitter emitter, @Nullable PublicBuildPath fromBuild) {
+    public BuildOperationFiringSettingsPreparer(
+            SettingsPreparer delegate,
+            BuildOperationRunner buildOperationRunner,
+            BuildOperationProgressEventEmitter emitter,
+            @Nullable PublicBuildPath fromBuild) {
         this.delegate = delegate;
         this.buildOperationRunner = buildOperationRunner;
         this.emitter = emitter;
@@ -73,18 +77,19 @@ public class BuildOperationFiringSettingsPreparer implements SettingsPreparer {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(gradle.contextualize("Load build"))
-                .details(new LoadBuildBuildOperationType.Details() {
-                    @Override
-                    public String getBuildPath() {
-                        return gradle.getIdentityPath().toString();
-                    }
+                    .details(new LoadBuildBuildOperationType.Details() {
+                        @Override
+                        public String getBuildPath() {
+                            return gradle.getIdentityPath().toString();
+                        }
 
-                    @Override
-                    public String getIncludedBy() {
-                        return fromBuild == null ? null : fromBuild.getBuildPath().toString();
-                    }
-                });
+                        @Override
+                        public String getIncludedBy() {
+                            return fromBuild == null
+                                    ? null
+                                    : fromBuild.getBuildPath().toString();
+                        }
+                    });
         }
     }
-
 }

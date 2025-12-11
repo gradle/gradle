@@ -18,6 +18,17 @@ package org.gradle.api.publish.ivy.internal.tasks;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Streams;
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.xml.namespace.QName;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -39,18 +50,6 @@ import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
 
 public final class IvyDescriptorFileGenerator {
 
@@ -109,7 +108,8 @@ public final class IvyDescriptorFileGenerator {
         XmlTransformer xmlTransformer = new XmlTransformer();
         xmlTransformer.addAction(descriptor.getXmlAction());
         if (descriptor.getWriteGradleMetadataMarker().get()) {
-            xmlTransformer.addFinalizer(SerializableLambdas.action(IvyDescriptorFileGenerator::insertGradleMetadataMarker));
+            xmlTransformer.addFinalizer(
+                    SerializableLambdas.action(IvyDescriptorFileGenerator::insertGradleMetadataMarker));
         }
 
         return new DescriptorFileSpec(model, xmlTransformer);
@@ -130,42 +130,47 @@ public final class IvyDescriptorFileGenerator {
                 xmlWriter.attribute("xmlns:m", "http://ant.apache.org/ivy/maven");
             }
 
-            xmlWriter.startElement("info")
-                .attribute("organisation", model.organisation)
-                .attribute("module", model.module)
-                .attribute("branch", model.branch)
-                .attribute("revision", model.revision)
-                .attribute("status", model.status)
-                .attribute("publication", ivyDateFormat.format(new Date()));
+            xmlWriter
+                    .startElement("info")
+                    .attribute("organisation", model.organisation)
+                    .attribute("module", model.module)
+                    .attribute("branch", model.branch)
+                    .attribute("revision", model.revision)
+                    .attribute("status", model.status)
+                    .attribute("publication", ivyDateFormat.format(new Date()));
 
             for (IvyModuleDescriptorLicense license : model.licenses) {
-                xmlWriter.startElement("license")
-                    .attribute("name", license.getName().getOrNull())
-                    .attribute("url", license.getUrl().getOrNull())
-                    .endElement();
+                xmlWriter
+                        .startElement("license")
+                        .attribute("name", license.getName().getOrNull())
+                        .attribute("url", license.getUrl().getOrNull())
+                        .endElement();
             }
 
             for (IvyModuleDescriptorAuthor author : model.authors) {
-                xmlWriter.startElement("ivyauthor")
-                    .attribute("name", author.getName().getOrNull())
-                    .attribute("url", author.getUrl().getOrNull())
-                    .endElement();
+                xmlWriter
+                        .startElement("ivyauthor")
+                        .attribute("name", author.getName().getOrNull())
+                        .attribute("url", author.getUrl().getOrNull())
+                        .endElement();
             }
 
             if (model.description != null) {
-                xmlWriter.startElement("description")
-                    .attribute("homepage", model.description.getHomepage().getOrNull())
-                    .characters(model.description.getText().getOrElse(""))
-                    .endElement();
+                xmlWriter
+                        .startElement("description")
+                        .attribute("homepage", model.description.getHomepage().getOrNull())
+                        .characters(model.description.getText().getOrElse(""))
+                        .endElement();
             }
 
             if (model.extraInfo != null) {
                 for (Map.Entry<QName, String> entry : model.extraInfo.entrySet()) {
                     if (entry.getKey() != null) {
-                        xmlWriter.startElement("ns:" + entry.getKey().getLocalPart())
-                            .attribute("xmlns:ns", entry.getKey().getNamespaceURI())
-                            .characters(entry.getValue())
-                            .endElement();
+                        xmlWriter
+                                .startElement("ns:" + entry.getKey().getLocalPart())
+                                .attribute("xmlns:ns", entry.getKey().getNamespaceURI())
+                                .characters(entry.getValue())
+                                .endElement();
                     }
                 }
             }
@@ -181,9 +186,10 @@ public final class IvyDescriptorFileGenerator {
         private void writeConfigurations(OptionalAttributeXmlWriter xmlWriter) throws IOException {
             xmlWriter.startElement("configurations");
             for (IvyConfiguration configuration : model.configurations) {
-                xmlWriter.startElement("conf")
-                    .attribute("name", configuration.getName())
-                    .attribute("visibility", "public");
+                xmlWriter
+                        .startElement("conf")
+                        .attribute("name", configuration.getName())
+                        .attribute("visibility", "public");
                 if (configuration.getExtends().size() > 0) {
                     xmlWriter.attribute("extends", CollectionUtils.join(",", configuration.getExtends()));
                 }
@@ -195,13 +201,14 @@ public final class IvyDescriptorFileGenerator {
         private void writePublications(OptionalAttributeXmlWriter xmlWriter) throws IOException {
             xmlWriter.startElement("publications");
             for (IvyArtifact artifact : model.artifacts) {
-                xmlWriter.startElement("artifact")
-                    .attribute("name", artifact.getName())
-                    .attribute("type", artifact.getType())
-                    .attribute("ext", artifact.getExtension())
-                    .attribute("conf", artifact.getConf())
-                    .attribute("m:classifier", artifact.getClassifier())
-                    .endElement();
+                xmlWriter
+                        .startElement("artifact")
+                        .attribute("name", artifact.getName())
+                        .attribute("type", artifact.getType())
+                        .attribute("ext", artifact.getExtension())
+                        .attribute("conf", artifact.getConf())
+                        .attribute("m:classifier", artifact.getClassifier())
+                        .endElement();
             }
             xmlWriter.endElement();
         }
@@ -212,12 +219,13 @@ public final class IvyDescriptorFileGenerator {
                 String org = dependency.getOrganisation();
                 String module = dependency.getModule();
 
-                xmlWriter.startElement("dependency")
-                    .attribute("org", org)
-                    .attribute("name", module)
-                    .attribute("rev", dependency.getRevision())
-                    .attribute("conf", dependency.getConfMapping())
-                    .attribute("revConstraint", dependency.getRevConstraint());
+                xmlWriter
+                        .startElement("dependency")
+                        .attribute("org", org)
+                        .attribute("name", module)
+                        .attribute("rev", dependency.getRevision())
+                        .attribute("conf", dependency.getConfMapping())
+                        .attribute("revConstraint", dependency.getRevConstraint());
 
                 if (!dependency.isTransitive()) {
                     xmlWriter.attribute("transitive", "false");
@@ -237,29 +245,35 @@ public final class IvyDescriptorFileGenerator {
             xmlWriter.endElement();
         }
 
-        private static void writeDependencyExclude(ExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
-            xmlWriter.startElement("exclude")
-                .attribute("org", excludeRule.getGroup())
-                .attribute("module", excludeRule.getModule())
-                .endElement();
+        private static void writeDependencyExclude(ExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter)
+                throws IOException {
+            xmlWriter
+                    .startElement("exclude")
+                    .attribute("org", excludeRule.getGroup())
+                    .attribute("module", excludeRule.getModule())
+                    .endElement();
         }
 
-        private static void writeDependencyArtifact(DependencyArtifact dependencyArtifact, OptionalAttributeXmlWriter xmlWriter) throws IOException {
+        private static void writeDependencyArtifact(
+                DependencyArtifact dependencyArtifact, OptionalAttributeXmlWriter xmlWriter) throws IOException {
             // TODO Use IvyArtifact here
-            xmlWriter.startElement("artifact")
-                .attribute("name", dependencyArtifact.getName())
-                .attribute("type", dependencyArtifact.getType())
-                .attribute("ext", dependencyArtifact.getExtension())
-                .attribute("m:classifier", dependencyArtifact.getClassifier())
-                .endElement();
+            xmlWriter
+                    .startElement("artifact")
+                    .attribute("name", dependencyArtifact.getName())
+                    .attribute("type", dependencyArtifact.getType())
+                    .attribute("ext", dependencyArtifact.getExtension())
+                    .attribute("m:classifier", dependencyArtifact.getClassifier())
+                    .endElement();
         }
 
-        private static void writeGlobalExclude(IvyExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
-            xmlWriter.startElement("exclude")
-                .attribute("org", excludeRule.getOrg())
-                .attribute("module", excludeRule.getModule())
-                .attribute("conf", excludeRule.getConf())
-                .endElement();
+        private static void writeGlobalExclude(IvyExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter)
+                throws IOException {
+            xmlWriter
+                    .startElement("exclude")
+                    .attribute("org", excludeRule.getOrg())
+                    .attribute("module", excludeRule.getModule())
+                    .attribute("conf", excludeRule.getConf())
+                    .endElement();
         }
 
         private static boolean usesClassifier(Model model) {
@@ -306,14 +320,12 @@ public final class IvyDescriptorFileGenerator {
     }
 
     public static void insertGradleMetadataMarker(XmlProvider xmlProvider) {
-        String comment = Joiner.on("").join(
-            Streams.concat(
-                    MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES.stream(),
-                    Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER)
-                )
-                .map(content -> "<!-- " + content + " -->\n  ")
-                .iterator()
-        );
+        String comment = Joiner.on("")
+                .join(Streams.concat(
+                                MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES.stream(),
+                                Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER))
+                        .map(content -> "<!-- " + content + " -->\n  ")
+                        .iterator());
 
         StringBuilder builder = xmlProvider.asString();
         int idx = builder.indexOf("<info");

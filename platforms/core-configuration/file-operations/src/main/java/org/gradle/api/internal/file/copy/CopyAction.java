@@ -20,5 +20,4 @@ import org.gradle.api.tasks.WorkResult;
 public interface CopyAction {
 
     WorkResult execute(CopyActionProcessingStream stream);
-
 }

@@ -16,6 +16,9 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.StartParameter;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
@@ -28,45 +31,40 @@ import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-
 public class ToolchainBuildOptions {
     public static BuildOptionSet<ToolchainConfiguration> forToolChainConfiguration() {
         return new BuildOptionSet<ToolchainConfiguration>() {
             private final List<? extends BuildOption<? super ToolchainConfiguration>> options = Arrays.asList(
-                new JavaInstallationPathsOption<ToolchainConfiguration>() {
-                    @Override
-                    public void applyTo(String value, ToolchainConfiguration settings, Origin origin) {
-                        settings.setInstallationsFromPaths(Arrays.asList(value.split(",")));
-                    }
-                },
-                new JavaInstallationEnvironmentPathsOption<ToolchainConfiguration>() {
-                    @Override
-                    public void applyTo(String value, ToolchainConfiguration settings, Origin origin) {
-                        settings.setJavaInstallationsFromEnvironment(Arrays.asList(value.split(",")));
-                    }
-                },
-                new AutoDetectionOption<ToolchainConfiguration>() {
-                    @Override
-                    public void applyTo(boolean value, ToolchainConfiguration settings, Origin origin) {
-                        settings.setAutoDetectEnabled(value);
-                    }
-                },
-                new AutoDownloadOption<ToolchainConfiguration>() {
-                    @Override
-                    public void applyTo(boolean value, ToolchainConfiguration settings, Origin origin) {
-                        settings.setDownloadEnabled(value);
-                    }
-                },
-                new IntellijJdkBuildOption<ToolchainConfiguration>() {
-                    @Override
-                    public void applyTo(String value, ToolchainConfiguration settings, Origin origin) {
-                        settings.setIntelliJdkDirectory(new File(value));
-                    }
-                }
-            );
+                    new JavaInstallationPathsOption<ToolchainConfiguration>() {
+                        @Override
+                        public void applyTo(String value, ToolchainConfiguration settings, Origin origin) {
+                            settings.setInstallationsFromPaths(Arrays.asList(value.split(",")));
+                        }
+                    },
+                    new JavaInstallationEnvironmentPathsOption<ToolchainConfiguration>() {
+                        @Override
+                        public void applyTo(String value, ToolchainConfiguration settings, Origin origin) {
+                            settings.setJavaInstallationsFromEnvironment(Arrays.asList(value.split(",")));
+                        }
+                    },
+                    new AutoDetectionOption<ToolchainConfiguration>() {
+                        @Override
+                        public void applyTo(boolean value, ToolchainConfiguration settings, Origin origin) {
+                            settings.setAutoDetectEnabled(value);
+                        }
+                    },
+                    new AutoDownloadOption<ToolchainConfiguration>() {
+                        @Override
+                        public void applyTo(boolean value, ToolchainConfiguration settings, Origin origin) {
+                            settings.setDownloadEnabled(value);
+                        }
+                    },
+                    new IntellijJdkBuildOption<ToolchainConfiguration>() {
+                        @Override
+                        public void applyTo(String value, ToolchainConfiguration settings, Origin origin) {
+                            settings.setIntelliJdkDirectory(new File(value));
+                        }
+                    });
 
             @Override
             public List<? extends BuildOption<? super ToolchainConfiguration>> getAllOptions() {
@@ -78,37 +76,36 @@ public class ToolchainBuildOptions {
     public static BuildOptionSet<StartParameter> forStartParameter() {
         return new BuildOptionSet<StartParameter>() {
             private final List<? extends BuildOption<? super StartParameter>> options = Arrays.asList(
-                new JavaInstallationPathsOption<StartParameter>() {
-                    @Override
-                    public void applyTo(String value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), value);
-                    }
-                },
-                new JavaInstallationEnvironmentPathsOption<StartParameter>() {
-                    @Override
-                    public void applyTo(String value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), value);
-                    }
-                },
-                new AutoDetectionOption<StartParameter>() {
-                    @Override
-                    public void applyTo(boolean value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), Boolean.toString(value));
-                    }
-                },
-                new AutoDownloadOption<StartParameter>() {
-                    @Override
-                    public void applyTo(boolean value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), Boolean.toString(value));
-                    }
-                },
-                new IntellijJdkBuildOption<StartParameter>() {
-                    @Override
-                    public void applyTo(String value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), value);
-                    }
-                }
-            );
+                    new JavaInstallationPathsOption<StartParameter>() {
+                        @Override
+                        public void applyTo(String value, StartParameter settings, Origin origin) {
+                            settings.getProjectProperties().putIfAbsent(getProperty(), value);
+                        }
+                    },
+                    new JavaInstallationEnvironmentPathsOption<StartParameter>() {
+                        @Override
+                        public void applyTo(String value, StartParameter settings, Origin origin) {
+                            settings.getProjectProperties().putIfAbsent(getProperty(), value);
+                        }
+                    },
+                    new AutoDetectionOption<StartParameter>() {
+                        @Override
+                        public void applyTo(boolean value, StartParameter settings, Origin origin) {
+                            settings.getProjectProperties().putIfAbsent(getProperty(), Boolean.toString(value));
+                        }
+                    },
+                    new AutoDownloadOption<StartParameter>() {
+                        @Override
+                        public void applyTo(boolean value, StartParameter settings, Origin origin) {
+                            settings.getProjectProperties().putIfAbsent(getProperty(), Boolean.toString(value));
+                        }
+                    },
+                    new IntellijJdkBuildOption<StartParameter>() {
+                        @Override
+                        public void applyTo(String value, StartParameter settings, Origin origin) {
+                            settings.getProjectProperties().putIfAbsent(getProperty(), value);
+                        }
+                    });
 
             @Override
             public List<? extends BuildOption<? super StartParameter>> getAllOptions() {
@@ -118,7 +115,8 @@ public class ToolchainBuildOptions {
     }
 
     private abstract static class JavaInstallationPathsOption<T> extends StringBuildOption<T> {
-        private static final String GRADLE_PROPERTY = LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY;
+        private static final String GRADLE_PROPERTY =
+                LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY;
 
         public JavaInstallationPathsOption() {
             super(GRADLE_PROPERTY);
@@ -126,7 +124,8 @@ public class ToolchainBuildOptions {
     }
 
     private abstract static class JavaInstallationEnvironmentPathsOption<T> extends StringBuildOption<T> {
-        private static final String GRADLE_PROPERTY = EnvironmentVariableListInstallationSupplier.JAVA_INSTALLATIONS_FROM_ENV_PROPERTY;
+        private static final String GRADLE_PROPERTY =
+                EnvironmentVariableListInstallationSupplier.JAVA_INSTALLATIONS_FROM_ENV_PROPERTY;
 
         public JavaInstallationEnvironmentPathsOption() {
             super(GRADLE_PROPERTY);
@@ -140,6 +139,7 @@ public class ToolchainBuildOptions {
             super(GRADLE_PROPERTY);
         }
     }
+
     private abstract static class AutoDownloadOption<T> extends BooleanBuildOption<T> {
         private static final String GRADLE_PROPERTY = AutoInstalledInstallationSupplier.AUTO_DOWNLOAD;
 

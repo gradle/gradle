@@ -16,11 +16,10 @@
 
 package org.gradle.internal.watch.vfs;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.io.File;
 import java.util.stream.Stream;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.UserHome.class)
 public interface WatchableFileSystemDetector {

@@ -16,17 +16,17 @@
 
 package org.gradle.api.publish.maven.internal.artifact;
 
+import java.io.File;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.TaskDependency;
 
-import java.io.File;
-
 public class PublishArtifactBasedMavenArtifact extends AbstractMavenArtifact {
     private final PublishArtifact publishArtifact;
 
-    public PublishArtifactBasedMavenArtifact(PublishArtifact publishArtifact, TaskDependencyFactory taskDependencyFactory) {
+    public PublishArtifactBasedMavenArtifact(
+            PublishArtifact publishArtifact, TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         this.publishArtifact = publishArtifact;
     }

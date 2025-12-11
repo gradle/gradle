@@ -24,23 +24,27 @@ import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInt
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 
 @SuppressWarnings("NewMethodNamingConvention")
-@SpecificJvmCallInterceptors(generatedClassName = CompositeCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS)
-@SpecificGroovyCallInterceptors(generatedClassName = CompositeCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS)
+@SpecificJvmCallInterceptors(
+        generatedClassName = CompositeCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS)
+@SpecificGroovyCallInterceptors(
+        generatedClassName = CompositeCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS)
 public class CompositeCallInterceptionTestInterceptorsDeclaration {
 
     /**
      * The generated class name has to be different from the one used in {@link BasicCallInterceptionTestInterceptorsDeclaration}
      * so that the generated class is different and we can test {@link CompositeInterceptorTestReceiver}.
      */
-    public static final String JVM_BYTECODE_GENERATED_CLASS = BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS + "_composite";
-    public static final String GROOVY_GENERATED_CLASS = BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS + "_composite";
+    public static final String JVM_BYTECODE_GENERATED_CLASS =
+            BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS + "_composite";
+
+    public static final String GROOVY_GENERATED_CLASS =
+            BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS + "_composite";
 
     @InterceptCalls
     @CallableKind.InstanceMethod
     public static void intercept_test(
-        @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
+            @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "composite.test()";
         self.test();
     }
@@ -48,10 +52,9 @@ public class CompositeCallInterceptionTestInterceptorsDeclaration {
     @InterceptCalls
     @CallableKind.InstanceMethod
     public static void intercept_test(
-        @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
-        CompositeInterceptorTestReceiver arg0,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
+            CompositeInterceptorTestReceiver arg0,
+            @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "composite.test(InterceptorTestReceiver)";
         self.test(arg0);
     }
@@ -59,10 +62,9 @@ public class CompositeCallInterceptionTestInterceptorsDeclaration {
     @InterceptCalls
     @CallableKind.InstanceMethod
     public static void intercept_testVararg(
-        @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
-        @ParameterKind.VarargParameter Object[] arg,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
+            @ParameterKind.VarargParameter Object[] arg,
+            @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "composite.testVararg(Object...)";
         self.testVararg(arg);
     }
@@ -70,19 +72,17 @@ public class CompositeCallInterceptionTestInterceptorsDeclaration {
     @InterceptCalls
     @CallableKind.InstanceMethod
     public static void intercept_nonExistent(
-        @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
-        String parameter,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
+            String parameter,
+            @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "composite.nonExistent(String)-non-existent";
     }
 
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertyGetter
     public static String intercept_testString(
-        @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
+            @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "composite.getTestString()";
         return self.getTestString() + "-intercepted";
     }
@@ -90,10 +90,9 @@ public class CompositeCallInterceptionTestInterceptorsDeclaration {
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertySetter
     public static void intercept_testString(
-        @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
-        String newValue,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
+            String newValue,
+            @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "composite.setTestString(String)";
         self.setTestString(newValue);
     }
@@ -101,9 +100,8 @@ public class CompositeCallInterceptionTestInterceptorsDeclaration {
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertyGetter
     public static boolean intercept_testFlag(
-        @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
+            @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "composite.isTestFlag()";
         return self.isTestFlag();
     }
@@ -111,19 +109,16 @@ public class CompositeCallInterceptionTestInterceptorsDeclaration {
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertySetter
     public static void intercept_testFlag(
-        @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
-        boolean newValue,
-        @ParameterKind.CallerClassName String consumer
-    ) {
+            @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
+            boolean newValue,
+            @ParameterKind.CallerClassName String consumer) {
         self.intercepted = "composite.setTestFlag(boolean)";
         self.setTestFlag(newValue);
     }
 
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertyGetter
-    public static String intercept_nonExistentProperty(
-        @ParameterKind.Receiver CompositeInterceptorTestReceiver self
-    ) {
+    public static String intercept_nonExistentProperty(@ParameterKind.Receiver CompositeInterceptorTestReceiver self) {
         self.intercepted = "composite.getNonExistentProperty()-non-existent";
         return "nonExistent";
     }
@@ -131,9 +126,7 @@ public class CompositeCallInterceptionTestInterceptorsDeclaration {
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertySetter
     public static void intercept_nonExistentProperty(
-        @ParameterKind.Receiver CompositeInterceptorTestReceiver self,
-        String value
-    ) {
+            @ParameterKind.Receiver CompositeInterceptorTestReceiver self, String value) {
         self.intercepted = "composite.setNonExistentProperty(String)-non-existent";
     }
 }

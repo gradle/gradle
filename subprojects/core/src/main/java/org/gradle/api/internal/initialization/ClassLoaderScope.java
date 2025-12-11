@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.initialization;
 
+import java.util.function.Function;
 import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.initialization.ClassLoaderScopeOrigin;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.Function;
 
 /**
  * Represents a particular node in the ClassLoader graph.
@@ -104,7 +103,12 @@ public interface ClassLoaderScope {
     /**
      * Creates a child scope that is immutable and ready to use. Uses the given factory to create the local ClassLoader if not already cached. The factory takes a parent ClassLoader and produces a ClassLoader
      */
-    ClassLoaderScope createLockedChild(String id, @Nullable ClassLoaderScopeOrigin origin, ClassPath localClasspath, @Nullable HashCode classpathImplementationHash, @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory);
+    ClassLoaderScope createLockedChild(
+            String id,
+            @Nullable ClassLoaderScopeOrigin origin,
+            ClassPath localClasspath,
+            @Nullable HashCode classpathImplementationHash,
+            @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory);
 
     /**
      * Signal that no more modifications are to come, allowing the structure to be optimised if possible.
@@ -120,5 +124,4 @@ public interface ClassLoaderScope {
      * otherwise prepare its classloaders for this, as certain state may have been discarded to reduce memory pressure.
      */
     void onReuse();
-
 }

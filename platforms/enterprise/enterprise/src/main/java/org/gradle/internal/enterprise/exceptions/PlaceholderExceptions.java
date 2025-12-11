@@ -36,25 +36,25 @@ public class PlaceholderExceptions {
 
     @UsedByScanPlugin
     public static Throwable createException(
-        String originalClassName,
-        @Nullable String message,
-        @Nullable Throwable getMessageException,
-        @Nullable String toString,
-        @Nullable Throwable toStringException,
-        @Nullable Throwable cause
-    ) {
-        return new PlaceholderException(originalClassName, message, getMessageException, toString, toStringException, cause);
+            String originalClassName,
+            @Nullable String message,
+            @Nullable Throwable getMessageException,
+            @Nullable String toString,
+            @Nullable Throwable toStringException,
+            @Nullable Throwable cause) {
+        return new PlaceholderException(
+                originalClassName, message, getMessageException, toString, toStringException, cause);
     }
 
     @UsedByScanPlugin
     public static Throwable createAssertionError(
-        String originalClassName,
-        @Nullable String message,
-        @Nullable Throwable getMessageException,
-        @Nullable String toString,
-        @Nullable Throwable toStringException,
-        @Nullable Throwable cause
-    ) {
-        return new PlaceholderAssertionError(originalClassName, message, getMessageException, toString, toStringException, cause);
+            String originalClassName,
+            @Nullable String message,
+            @Nullable Throwable getMessageException,
+            @Nullable String toString,
+            @Nullable Throwable toStringException,
+            @Nullable Throwable cause) {
+        return new PlaceholderAssertionError(
+                originalClassName, message, getMessageException, toString, toStringException, cause);
     }
 }

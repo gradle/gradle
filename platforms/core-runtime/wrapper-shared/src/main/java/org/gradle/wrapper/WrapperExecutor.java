@@ -15,14 +15,13 @@
  */
 package org.gradle.wrapper;
 
-import org.gradle.util.internal.WrapperDistributionUrlConverter;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Properties;
+import org.gradle.util.internal.WrapperDistributionUrlConverter;
 
 public class WrapperExecutor {
     public static final String DISTRIBUTION_URL_PROPERTY = "distributionUrl";
@@ -54,16 +53,20 @@ public class WrapperExecutor {
         if (propertiesFile.exists()) {
             try {
                 loadProperties(propertiesFile, properties);
-                config.setDistribution(WrapperDistributionUrlConverter.convertDistributionUrl(readDistroUrl(), propertiesFile.getParentFile()));
+                config.setDistribution(WrapperDistributionUrlConverter.convertDistributionUrl(
+                        readDistroUrl(), propertiesFile.getParentFile()));
                 config.setDistributionBase(getProperty(DISTRIBUTION_BASE_PROPERTY, config.getDistributionBase()));
                 config.setDistributionPath(getProperty(DISTRIBUTION_PATH_PROPERTY, config.getDistributionPath()));
-                config.setDistributionSha256Sum(getProperty(DISTRIBUTION_SHA_256_SUM, config.getDistributionSha256Sum(), false));
+                config.setDistributionSha256Sum(
+                        getProperty(DISTRIBUTION_SHA_256_SUM, config.getDistributionSha256Sum(), false));
                 config.setZipBase(getProperty(ZIP_STORE_BASE_PROPERTY, config.getZipBase()));
                 config.setZipPath(getProperty(ZIP_STORE_PATH_PROPERTY, config.getZipPath()));
                 config.setNetworkTimeout(getProperty(NETWORK_TIMEOUT_PROPERTY, config.getNetworkTimeout()));
-                config.setValidateDistributionUrl(getProperty(VALIDATE_DISTRIBUTION_URL, config.getValidateDistributionUrl()));
+                config.setValidateDistributionUrl(
+                        getProperty(VALIDATE_DISTRIBUTION_URL, config.getValidateDistributionUrl()));
             } catch (Exception e) {
-                throw new RuntimeException(String.format("Could not load wrapper properties from '%s'.", propertiesFile), e);
+                throw new RuntimeException(
+                        String.format("Could not load wrapper properties from '%s'.", propertiesFile), e);
             }
         }
     }

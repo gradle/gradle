@@ -19,6 +19,17 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.verification.exceptions.ComponentVerificationException;
 import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
@@ -33,22 +44,11 @@ import org.gradle.api.internal.artifacts.verification.model.ImmutableComponentVe
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.jspecify.annotations.Nullable;
 
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 public class DependencyVerifierBuilder {
-    private static final Comparator<ModuleComponentIdentifier> MODULE_COMPONENT_IDENTIFIER_COMPARATOR = Comparator.comparing(ModuleComponentIdentifier::getGroup)
-        .thenComparing(ModuleComponentIdentifier::getModule)
-        .thenComparing(ModuleComponentIdentifier::getVersion);
+    private static final Comparator<ModuleComponentIdentifier> MODULE_COMPONENT_IDENTIFIER_COMPARATOR =
+            Comparator.comparing(ModuleComponentIdentifier::getGroup)
+                    .thenComparing(ModuleComponentIdentifier::getModule)
+                    .thenComparing(ModuleComponentIdentifier::getVersion);
     private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = new HashMap<>();
     private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = new ArrayList<>();
     private final Set<DependencyVerificationConfiguration.TrustedKey> trustedKeys = new LinkedHashSet<>();
@@ -71,7 +71,9 @@ public class DependencyVerifierBuilder {
         try {
             return DependencyVerificationConfiguration.KeyringFormat.valueOf(keyringFormat.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            throw new DependencyVerificationException("Invalid keyring format: " + keyringFormat + ". The keyring format should be either 'armored' or 'binary', which determines how keys are stored. Please choose a valid format or leave it unset to generate both.");
+            throw new DependencyVerificationException(
+                    "Invalid keyring format: " + keyringFormat
+                            + ". The keyring format should be either 'armored' or 'binary', which determines how keys are stored. Please choose a valid format or leave it unset to generate both.");
         }
     }
 
@@ -83,22 +85,30 @@ public class DependencyVerifierBuilder {
         topLevelComments.add(comment);
     }
 
-    public void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin, @Nullable String reason) {
+    public void addChecksum(
+            ModuleComponentArtifactIdentifier artifact,
+            ChecksumKind kind,
+            String value,
+            @Nullable String origin,
+            @Nullable String reason) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
-        byComponent.computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
-            .addChecksum(artifact, kind, value, origin, reason);
+        byComponent
+                .computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
+                .addChecksum(artifact, kind, value, origin, reason);
     }
 
     public void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
-        byComponent.computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
-            .addTrustedKey(artifact, key);
+        byComponent
+                .computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
+                .addTrustedKey(artifact, key);
     }
 
     public void addIgnoredKey(ModuleComponentArtifactIdentifier artifact, IgnoredKey key) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
-        byComponent.computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
-            .addIgnoredKey(artifact, key);
+        byComponent
+                .computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
+                .addIgnoredKey(artifact, key);
     }
 
     public void setVerifyMetadata(boolean verifyMetadata) {
@@ -133,37 +143,71 @@ public class DependencyVerifierBuilder {
         return trustedKeys;
     }
 
-    public void addTrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+    public void addTrustedArtifact(
+            @Nullable String group,
+            @Nullable String name,
+            @Nullable String version,
+            @Nullable String fileName,
+            boolean regex) {
         addTrustedArtifact(group, name, version, fileName, regex, null);
     }
 
-    public void addTrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String reason) {
+    public void addTrustedArtifact(
+            @Nullable String group,
+            @Nullable String name,
+            @Nullable String version,
+            @Nullable String fileName,
+            boolean regex,
+            @Nullable String reason) {
         validateUserInput(group, name, version, fileName);
-        trustedArtifacts.add(new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex, reason));
+        trustedArtifacts.add(
+                new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex, reason));
     }
 
     public void addIgnoredKey(IgnoredKey keyId) {
         ignoredKeys.add(keyId);
     }
 
-    public void addTrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+    public void addTrustedKey(
+            String keyId,
+            @Nullable String group,
+            @Nullable String name,
+            @Nullable String version,
+            @Nullable String fileName,
+            boolean regex) {
         validateUserInput(group, name, version, fileName);
-        trustedKeys.add(new DependencyVerificationConfiguration.TrustedKey(keyId, group, name, version, fileName, regex));
+        trustedKeys.add(
+                new DependencyVerificationConfiguration.TrustedKey(keyId, group, name, version, fileName, regex));
     }
 
-    private void validateUserInput(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName) {
+    private void validateUserInput(
+            @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName) {
         // because this can be called from parsing XML, we need to perform additional verification
         if (group == null && name == null && version == null && fileName == null) {
-            throw new DependencyVerificationException("A trusted artifact must have at least one of group, name, version or file name not null");
+            throw new DependencyVerificationException(
+                    "A trusted artifact must have at least one of group, name, version or file name not null");
         }
     }
 
     public DependencyVerifier build() {
-        ImmutableMap.Builder<ModuleComponentIdentifier, ComponentVerificationMetadata> builder = ImmutableMap.builderWithExpectedSize(byComponent.size());
+        ImmutableMap.Builder<ModuleComponentIdentifier, ComponentVerificationMetadata> builder =
+                ImmutableMap.builderWithExpectedSize(byComponent.size());
         byComponent.entrySet().stream()
-            .sorted(Map.Entry.comparingByKey(MODULE_COMPONENT_IDENTIFIER_COMPARATOR))
-            .forEachOrdered(entry -> builder.put(entry.getKey(), entry.getValue().build()));
-        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, useKeyServers, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys), keyringFormat), topLevelComments);
+                .sorted(Map.Entry.comparingByKey(MODULE_COMPONENT_IDENTIFIER_COMPARATOR))
+                .forEachOrdered(
+                        entry -> builder.put(entry.getKey(), entry.getValue().build()));
+        return new DependencyVerifier(
+                builder.build(),
+                new DependencyVerificationConfiguration(
+                        isVerifyMetadata,
+                        isVerifySignatures,
+                        trustedArtifacts,
+                        useKeyServers,
+                        ImmutableList.copyOf(keyServers),
+                        ImmutableSet.copyOf(ignoredKeys),
+                        ImmutableList.copyOf(trustedKeys),
+                        keyringFormat),
+                topLevelComments);
     }
 
     public List<DependencyVerificationConfiguration.TrustedArtifact> getTrustedArtifacts() {
@@ -182,37 +226,45 @@ public class DependencyVerifierBuilder {
             this.component = component;
         }
 
-        void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin, @Nullable String reason) {
-            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addChecksum(kind, value, origin, reason);
+        void addChecksum(
+                ModuleComponentArtifactIdentifier artifact,
+                ChecksumKind kind,
+                String value,
+                @Nullable String origin,
+                @Nullable String reason) {
+            byArtifact
+                    .computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder())
+                    .addChecksum(kind, value, origin, reason);
         }
 
         void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key) {
-            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addTrustedKey(key);
+            byArtifact
+                    .computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder())
+                    .addTrustedKey(key);
         }
 
         void addIgnoredKey(ModuleComponentArtifactIdentifier artifact, IgnoredKey key) {
-            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addIgnoredKey(key);
+            byArtifact
+                    .computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder())
+                    .addIgnoredKey(key);
         }
 
-        private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, ArtifactVerificationBuilder> entry) throws InvalidGpgKeyIdsException {
+        private static ArtifactVerificationMetadata toArtifactVerification(
+                Map.Entry<String, ArtifactVerificationBuilder> entry) throws InvalidGpgKeyIdsException {
             String key = entry.getKey();
             ArtifactVerificationBuilder value = entry.getValue();
             return new ImmutableArtifactVerificationMetadata(
-                key,
-                value.buildChecksums(),
-                value.buildTrustedPgpKeys(),
-                value.buildIgnoredPgpKeys());
+                    key, value.buildChecksums(), value.buildTrustedPgpKeys(), value.buildIgnoredPgpKeys());
         }
 
         ComponentVerificationMetadata build() {
             try {
-                return new ImmutableComponentVerificationMetadata(component,
-                    byArtifact.entrySet()
-                        .stream()
-                        .map(ComponentVerificationsBuilder::toArtifactVerification)
-                        .sorted(Comparator.comparing(ArtifactVerificationMetadata::getArtifactName))
-                        .collect(Collectors.toList())
-                );
+                return new ImmutableComponentVerificationMetadata(
+                        component,
+                        byArtifact.entrySet().stream()
+                                .map(ComponentVerificationsBuilder::toArtifactVerification)
+                                .sorted(Comparator.comparing(ArtifactVerificationMetadata::getArtifactName))
+                                .collect(Collectors.toList()));
             } catch (InvalidGpgKeyIdsException ex) {
                 throw new ComponentVerificationException(component, ex::formatMessage);
             }
@@ -236,11 +288,10 @@ public class DependencyVerifierBuilder {
         }
 
         List<Checksum> buildChecksums() {
-            return builder.values()
-                .stream()
-                .map(ChecksumBuilder::build)
-                .sorted(Comparator.comparing(Checksum::getKind))
-                .collect(Collectors.toList());
+            return builder.values().stream()
+                    .map(ChecksumBuilder::build)
+                    .sorted(Comparator.comparing(Checksum::getKind))
+                    .collect(Collectors.toList());
         }
 
         public void addTrustedKey(String key) {
@@ -265,17 +316,16 @@ public class DependencyVerifierBuilder {
          * @throws InvalidGpgKeyIdsException if keys not fitting the requirements were found
          */
         public Set<String> buildTrustedPgpKeys() throws InvalidGpgKeyIdsException {
-            final List<String> wrongPgpKeys = pgpKeys
-                .stream()
-                // The key is 160 bits long, encoded in base32 (case-insensitive characters).
-                //
-                // Base32 gives us 4 bits per character, so the whole fingerprint will be:
-                // (160 bits) / (4 bits / character) = 40 characters
-                //
-                // By getting ASCII bytes (aka. strictly 1 byte per character, no variable-length magic)
-                // we can safely check if the fingerprint is of the correct length.
-                .filter(key -> key.getBytes(StandardCharsets.US_ASCII).length < 40)
-                .collect(Collectors.toList());
+            final List<String> wrongPgpKeys = pgpKeys.stream()
+                    // The key is 160 bits long, encoded in base32 (case-insensitive characters).
+                    //
+                    // Base32 gives us 4 bits per character, so the whole fingerprint will be:
+                    // (160 bits) / (4 bits / character) = 40 characters
+                    //
+                    // By getting ASCII bytes (aka. strictly 1 byte per character, no variable-length magic)
+                    // we can safely check if the fingerprint is of the correct length.
+                    .filter(key -> key.getBytes(StandardCharsets.US_ASCII).length < 40)
+                    .collect(Collectors.toList());
 
             if (wrongPgpKeys.isEmpty()) {
                 return pgpKeys;
@@ -331,13 +381,7 @@ public class DependencyVerifierBuilder {
         }
 
         Checksum build() {
-            return new Checksum(
-                kind,
-                value,
-                alternatives,
-                origin,
-                reason
-            );
+            return new Checksum(kind, value, alternatives, origin, reason);
         }
     }
 }

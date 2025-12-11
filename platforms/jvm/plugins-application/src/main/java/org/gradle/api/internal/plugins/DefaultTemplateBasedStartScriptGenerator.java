@@ -19,14 +19,6 @@ package org.gradle.api.internal.plugins;
 import com.google.common.io.CharSource;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
-import org.gradle.api.Transformer;
-import org.gradle.api.internal.resources.CharSourceBackedTextResource;
-import org.gradle.api.resources.TextResource;
-import org.gradle.internal.UncheckedException;
-import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
-import org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator;
-import org.gradle.util.internal.TextUtil;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +27,13 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.resources.CharSourceBackedTextResource;
+import org.gradle.api.resources.TextResource;
+import org.gradle.internal.UncheckedException;
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
+import org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator;
+import org.gradle.util.internal.TextUtil;
 
 public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedScriptGenerator {
 
@@ -43,7 +42,10 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
 
     private TextResource template;
 
-    public DefaultTemplateBasedStartScriptGenerator(String lineSeparator, Transformer<Map<String, String>, JavaAppStartScriptGenerationDetails> bindingFactory, TextResource template) {
+    public DefaultTemplateBasedStartScriptGenerator(
+            String lineSeparator,
+            Transformer<Map<String, String>, JavaAppStartScriptGenerationDetails> bindingFactory,
+            TextResource template) {
         this.lineSeparator = lineSeparator;
         this.bindingFactory = bindingFactory;
         this.template = template;
@@ -87,11 +89,11 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
             public Reader openStream() throws IOException {
                 InputStream stream = clazz.getResourceAsStream(filename);
                 if (stream == null) {
-                    throw new IllegalStateException("Could not find class path resource " + filename + " relative to " + clazz.getName());
+                    throw new IllegalStateException(
+                            "Could not find class path resource " + filename + " relative to " + clazz.getName());
                 }
                 return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
             }
         });
     }
-
 }

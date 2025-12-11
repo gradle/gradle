@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.provider;
 
+import java.util.Map;
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
-
-import java.util.Map;
 
 public interface MapPropertyInternal<K, V> {
     /**

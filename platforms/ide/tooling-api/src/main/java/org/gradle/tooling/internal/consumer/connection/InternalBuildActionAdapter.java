@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import java.io.File;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -25,10 +26,8 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
-import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
 import org.gradle.tooling.internal.protocol.InternalFetchAwareBuildController;
-
-import java.io.File;
+import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
 
 /**
  * Adapter to create {@link org.gradle.tooling.internal.protocol.InternalBuildAction}
@@ -36,7 +35,8 @@ import java.io.File;
  * Used by consumer connections 1.8+.
  */
 @SuppressWarnings("deprecation")
-public class InternalBuildActionAdapter<T> implements org.gradle.tooling.internal.protocol.InternalBuildAction<T>, InternalBuildActionVersion2<T> {
+public class InternalBuildActionAdapter<T>
+        implements org.gradle.tooling.internal.protocol.InternalBuildAction<T>, InternalBuildActionVersion2<T> {
     private final BuildAction<? extends T> action;
     private final File rootDir;
     private final VersionDetails versionDetails;
@@ -53,7 +53,8 @@ public class InternalBuildActionAdapter<T> implements org.gradle.tooling.interna
     @Override
     public T execute(final org.gradle.tooling.internal.protocol.InternalBuildController buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
-        BuildController buildControllerAdapter = new BuildControllerWithoutParameterSupport(buildController, protocolToModelAdapter, new ModelMapping(), rootDir, versionDetails);
+        BuildController buildControllerAdapter = new BuildControllerWithoutParameterSupport(
+                buildController, protocolToModelAdapter, new ModelMapping(), rootDir, versionDetails);
         return action.execute(buildControllerAdapter);
     }
 
@@ -74,13 +75,17 @@ public class InternalBuildActionAdapter<T> implements org.gradle.tooling.interna
     private BuildController wrapBuildController(final InternalBuildControllerVersion2 buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
         if (buildController instanceof InternalFetchAwareBuildController) {
-            return new FetchAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
+            return new FetchAwareBuildControllerAdapter(
+                    buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
         } else if (buildController instanceof InternalStreamedValueRelay) {
-            return new StreamingAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
+            return new StreamingAwareBuildControllerAdapter(
+                    buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
         } else if (buildController instanceof InternalActionAwareBuildController) {
-            return new NestedActionAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
+            return new NestedActionAwareBuildControllerAdapter(
+                    buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
         } else {
-            return new ParameterAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
+            return new ParameterAwareBuildControllerAdapter(
+                    buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
         }
     }
 }

@@ -16,16 +16,16 @@
 
 package org.gradle.internal.resource;
 
-import org.gradle.api.resources.MissingResourceException;
-import org.gradle.api.resources.ResourceException;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
+import org.gradle.api.resources.MissingResourceException;
+import org.gradle.api.resources.ResourceException;
 
 public class ResourceExceptions {
     public static ResourceIsAFolderException readFolder(File location) {
-        return new ResourceIsAFolderException(location.toURI(), String.format("Cannot read '%s' because it is a folder.", location));
+        return new ResourceIsAFolderException(
+                location.toURI(), String.format("Cannot read '%s' because it is a folder.", location));
     }
 
     public static ResourceException readFailed(File location, Throwable failure) {
@@ -37,20 +37,22 @@ public class ResourceExceptions {
     }
 
     public static MissingResourceException readMissing(File location, Throwable failure) {
-        return new MissingResourceException(location.toURI(),
+        return new MissingResourceException(
+                location.toURI(),
                 String.format("Could not read '%s' as it does not exist.", location),
                 failure instanceof FileNotFoundException ? null : failure);
     }
 
     public static MissingResourceException getMissing(URI location, Throwable failure) {
-        return new MissingResourceException(location,
+        return new MissingResourceException(
+                location,
                 String.format("Could not read '%s' as it does not exist.", location),
                 failure instanceof FileNotFoundException ? null : failure);
     }
 
     public static MissingResourceException getMissing(URI location) {
-        return new MissingResourceException(location,
-                String.format("Could not read '%s' as it does not exist.", location));
+        return new MissingResourceException(
+                location, String.format("Could not read '%s' as it does not exist.", location));
     }
 
     public static ResourceException getFailed(URI location, Throwable failure) {

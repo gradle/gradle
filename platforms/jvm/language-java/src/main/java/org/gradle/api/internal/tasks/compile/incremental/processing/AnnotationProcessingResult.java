@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -26,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
 
 /**
  * Contains all the data necessary to make annotation processing incremental.

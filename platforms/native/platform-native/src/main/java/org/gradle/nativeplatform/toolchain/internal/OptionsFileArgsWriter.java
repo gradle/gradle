@@ -17,10 +17,9 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.api.Action;
 
 public class OptionsFileArgsWriter implements Action<List<String>> {
     private final File tempDir;

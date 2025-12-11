@@ -15,6 +15,12 @@
  */
 package org.gradle.api.internal.catalog.problems;
 
+import static org.apache.commons.lang3.StringUtils.capitalize;
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderSolutions;
+import static org.gradle.util.internal.TextUtil.endLineWithDot;
+
+import java.util.Collection;
+import java.util.List;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -25,25 +31,20 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.NonNull;
 
-import java.util.Collection;
-import java.util.List;
-
-import static org.apache.commons.lang3.StringUtils.capitalize;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderSolutions;
-import static org.gradle.util.internal.TextUtil.endLineWithDot;
-
 public class DefaultCatalogProblemBuilder {
 
-    private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
+    private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     public static final String VERSION_CATALOG_PROBLEMS = "version_catalog_problems";
 
-    public static void maybeThrowError(InternalProblems problemsService, String error, Collection<InternalProblem> problems) {
+    public static void maybeThrowError(
+            InternalProblems problemsService, String error, Collection<InternalProblem> problems) {
         if (!problems.isEmpty()) {
             throw throwError(problemsService, error, problems);
         }
     }
 
-    public static RuntimeException throwError(InternalProblems problemsService, String error, Collection<InternalProblem> problems) {
+    public static RuntimeException throwError(
+            InternalProblems problemsService, String error, Collection<InternalProblem> problems) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(error);
         formatter.startChildren();
@@ -59,10 +60,12 @@ public class DefaultCatalogProblemBuilder {
         ProblemDefinition definition = problem.getDefinition();
         String contextualLabel = problem.getContextualLabel();
         String renderedLabel = contextualLabel == null ? definition.getId().getDisplayName() : contextualLabel;
-        return getProblemString(renderedLabel, problem.getDetails(), problem.getSolutions(), definition.getDocumentationLink());
+        return getProblemString(
+                renderedLabel, problem.getDetails(), problem.getSolutions(), definition.getDocumentationLink());
     }
 
-    public static String getProblemString(String label, String details, List<String> solutions, DocLink documentationLink) {
+    public static String getProblemString(
+            String label, String details, List<String> solutions, DocLink documentationLink) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(label);
         if (details != null) {

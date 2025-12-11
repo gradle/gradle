@@ -16,10 +16,9 @@
 
 package org.gradle.workers.internal;
 
+import java.io.Serializable;
 import org.gradle.api.tasks.WorkResult;
 import org.jspecify.annotations.Nullable;
-
-import java.io.Serializable;
 
 public class DefaultWorkResult implements WorkResult, Serializable {
     public static final DefaultWorkResult SUCCESS = new DefaultWorkResult(true, null);

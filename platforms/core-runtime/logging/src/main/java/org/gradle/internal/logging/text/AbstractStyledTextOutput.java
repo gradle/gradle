@@ -17,13 +17,12 @@
 package org.gradle.internal.logging.text;
 
 import com.google.errorprone.annotations.FormatMethod;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailurePrinter;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 /**
  * Subclasses need to implement {@link #doAppend(String)}, and optionally {@link #doStyleChange(StyledTextOutput.Style)}.
@@ -128,8 +127,7 @@ public abstract class AbstractStyledTextOutput implements StyledTextOutput, Stan
 
     protected abstract void doAppend(String text);
 
-    protected void doStyleChange(Style style) {
-    }
+    protected void doStyleChange(Style style) {}
 
     private static class StyleOverrideTextOutput implements StyledTextOutput {
         private final Style style;

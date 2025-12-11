@@ -17,25 +17,25 @@
 package org.gradle.plugin.software.internal;
 
 import groovy.lang.Closure;
+import javax.inject.Inject;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-
 /**
  * Provides a dynamic object that allows project features to be queried and applied to a target object as dynamic
  * methods.  The project features are looked up by name and if a matching feature is found, the feature is applied
  * to the target object and the configuration block applied to its public model object.
  */
-abstract public class ProjectFeaturesDynamicObject extends AbstractDynamicObject {
+public abstract class ProjectFeaturesDynamicObject extends AbstractDynamicObject {
     private final DynamicObjectAware target;
     private final ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext context;
 
     @Inject
-    public ProjectFeaturesDynamicObject(DynamicObjectAware target, ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext context) {
+    public ProjectFeaturesDynamicObject(
+            DynamicObjectAware target, ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext context) {
         this.target = target;
         this.context = context;
     }
@@ -55,7 +55,8 @@ abstract public class ProjectFeaturesDynamicObject extends AbstractDynamicObject
             return false;
         }
 
-        ProjectFeatureImplementation<?, ?> feature = getProjectFeatureRegistry().getProjectFeatureImplementations().get(name);
+        ProjectFeatureImplementation<?, ?> feature =
+                getProjectFeatureRegistry().getProjectFeatureImplementations().get(name);
         if (feature == null) {
             return false;
         }
@@ -69,17 +70,23 @@ abstract public class ProjectFeaturesDynamicObject extends AbstractDynamicObject
             return DynamicInvokeResult.found(context);
         }
         if (isFeatureConfigureMethod(name, arguments)) {
-            Object projectFeatureConfigurationModel = getProjectFeatureApplicator().applyFeatureTo(target, getProjectFeatureRegistry().getProjectFeatureImplementations().get(name));
-            return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], projectFeatureConfigurationModel));
+            Object projectFeatureConfigurationModel = getProjectFeatureApplicator()
+                    .applyFeatureTo(
+                            target,
+                            getProjectFeatureRegistry()
+                                    .getProjectFeatureImplementations()
+                                    .get(name));
+            return DynamicInvokeResult.found(
+                    ConfigureUtil.configure((Closure) arguments[0], projectFeatureConfigurationModel));
         }
         return DynamicInvokeResult.notFound();
     }
 
     @Inject
-    abstract protected ProjectFeatureDeclarations getProjectFeatureRegistry();
+    protected abstract ProjectFeatureDeclarations getProjectFeatureRegistry();
 
     @Inject
-    abstract protected ProjectFeatureApplicator getProjectFeatureApplicator();
+    protected abstract ProjectFeatureApplicator getProjectFeatureApplicator();
 
     public static final String CONTEXT_METHOD_NAME = "$.projectFeatureContext";
 }

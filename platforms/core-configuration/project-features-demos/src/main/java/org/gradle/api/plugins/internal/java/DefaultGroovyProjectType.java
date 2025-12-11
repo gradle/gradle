@@ -16,21 +16,21 @@
 
 package org.gradle.api.plugins.internal.java;
 
+import javax.inject.Inject;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.java.GroovyProjectType;
 import org.jspecify.annotations.NullMarked;
 
-import javax.inject.Inject;
-
 @NullMarked
-abstract public class DefaultGroovyProjectType implements GroovyProjectType {
+public abstract class DefaultGroovyProjectType implements GroovyProjectType {
     private final NamedDomainObjectContainer<GroovySources> sourcesContainer;
 
     @Inject
     public DefaultGroovyProjectType(ObjectFactory objectFactory) {
-        this.sourcesContainer = objectFactory.domainObjectContainer(GroovySources.class, name -> objectFactory.newInstance(DefaultGroovySources.class, name));
+        this.sourcesContainer = objectFactory.domainObjectContainer(
+                GroovySources.class, name -> objectFactory.newInstance(DefaultGroovySources.class, name));
     }
 
     @Override
@@ -46,8 +46,10 @@ abstract public class DefaultGroovyProjectType implements GroovyProjectType {
         @Inject
         public DefaultGroovySources(String name, ObjectFactory objectFactory) {
             this.name = name;
-            this.javaSources = objectFactory.sourceDirectorySet(name, name + " java sources"); // Initialize with actual SourceDirectorySet
-            this.resources = objectFactory.sourceDirectorySet(name, name + " resources"); // Initialize with actual SourceDirectorySet
+            this.javaSources = objectFactory.sourceDirectorySet(
+                    name, name + " java sources"); // Initialize with actual SourceDirectorySet
+            this.resources = objectFactory.sourceDirectorySet(
+                    name, name + " resources"); // Initialize with actual SourceDirectorySet
         }
 
         @Override

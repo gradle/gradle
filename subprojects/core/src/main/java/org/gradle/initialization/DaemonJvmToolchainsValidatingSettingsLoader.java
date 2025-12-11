@@ -23,7 +23,8 @@ public class DaemonJvmToolchainsValidatingSettingsLoader implements SettingsLoad
     private final SettingsLoader delegate;
     private final JvmToolchainsConfigurationValidator validator;
 
-    public DaemonJvmToolchainsValidatingSettingsLoader(SettingsLoader delegate, JvmToolchainsConfigurationValidator validator) {
+    public DaemonJvmToolchainsValidatingSettingsLoader(
+            SettingsLoader delegate, JvmToolchainsConfigurationValidator validator) {
         this.delegate = delegate;
         this.validator = validator;
     }

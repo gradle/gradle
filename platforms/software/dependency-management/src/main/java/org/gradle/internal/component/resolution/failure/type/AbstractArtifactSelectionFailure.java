@@ -26,12 +26,17 @@ import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelec
  * An abstract {@link ArtifactSelectionFailure} that represents the situation when an artifact is requested
  * for a variant and this request fails.
  */
-public abstract class AbstractArtifactSelectionFailure extends AbstractResolutionFailure implements ArtifactSelectionFailure {
+public abstract class AbstractArtifactSelectionFailure extends AbstractResolutionFailure
+        implements ArtifactSelectionFailure {
     private final ComponentIdentifier targetComponent;
     private final String targetVariant;
     private final ImmutableAttributes requestedAttributes;
 
-    public AbstractArtifactSelectionFailure(ResolutionFailureProblemId problemId, ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes) {
+    public AbstractArtifactSelectionFailure(
+            ResolutionFailureProblemId problemId,
+            ComponentIdentifier targetComponent,
+            String targetVariant,
+            AttributeContainerInternal requestedAttributes) {
         super(problemId);
         this.targetComponent = targetComponent;
         this.targetVariant = targetVariant;

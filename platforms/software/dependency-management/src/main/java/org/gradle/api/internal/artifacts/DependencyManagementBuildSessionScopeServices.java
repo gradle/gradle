@@ -23,8 +23,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenVariantAttributesFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributeValueIsolator;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -68,25 +68,24 @@ public class DependencyManagementBuildSessionScopeServices implements ServiceReg
 
     @Provides
     ValueSnapshotterSerializerRegistry createDependencyManagementValueSnapshotterSerializerRegistry(
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        AttributesFactory attributesFactory,
-        NamedObjectInstantiator namedObjectInstantiator,
-        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory
-    ) {
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            AttributesFactory attributesFactory,
+            NamedObjectInstantiator namedObjectInstantiator,
+            ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
         return new DependencyManagementValueSnapshotterSerializerRegistry(
-            moduleIdentifierFactory,
-            attributesFactory,
-            namedObjectInstantiator,
-            componentSelectionDescriptorFactory
-        );
+                moduleIdentifierFactory,
+                attributesFactory,
+                namedObjectInstantiator,
+                componentSelectionDescriptorFactory);
     }
 
     @Provides
-    ComponentSelectorNotationConverter createComponentSelectorFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, InMemoryCacheFactory cacheFactory) {
-        NotationParser<Object, ComponentSelector> delegate = NotationParserBuilder
-            .toType(ComponentSelector.class)
-            .converter(new CachingNotationConverter<>(new ModuleSelectorStringNotationConverter(moduleIdentifierFactory), cacheFactory))
-            .toComposite();
+    ComponentSelectorNotationConverter createComponentSelectorFactory(
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory, InMemoryCacheFactory cacheFactory) {
+        NotationParser<Object, ComponentSelector> delegate = NotationParserBuilder.toType(ComponentSelector.class)
+                .converter(new CachingNotationConverter<>(
+                        new ModuleSelectorStringNotationConverter(moduleIdentifierFactory), cacheFactory))
+                .toComposite();
 
         return new ComponentSelectorNotationConverter() {
             @Override

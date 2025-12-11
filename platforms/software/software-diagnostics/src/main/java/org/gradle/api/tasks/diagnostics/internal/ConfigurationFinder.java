@@ -22,8 +22,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.util.internal.NameMatcher;
 
 public class ConfigurationFinder {
-    private ConfigurationFinder() {
-    }
+    private ConfigurationFinder() {}
 
     public static Configuration find(ConfigurationContainer configurations, String configurationName) {
         NameMatcher matcher = new NameMatcher();

@@ -16,14 +16,13 @@
 
 package org.gradle.internal.buildtree;
 
+import java.io.Closeable;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.Closeable;
 
 /**
  * Encapsulates the state for a particular build tree.
@@ -33,17 +32,17 @@ public class BuildTreeState implements Closeable {
     private final ServiceRegistry services;
 
     public BuildTreeState(
-        ServiceRegistry buildSessionServices,
-        BuildActionModelRequirements buildActionRequirements,
-        BuildModelParameters buildModelParameters,
-        BuildInvocationScopeId buildInvocationScopeId
-    ) {
+            ServiceRegistry buildSessionServices,
+            BuildActionModelRequirements buildActionRequirements,
+            BuildModelParameters buildModelParameters,
+            BuildInvocationScopeId buildInvocationScopeId) {
         services = ServiceRegistryBuilder.builder()
-            .scopeStrictly(Scope.BuildTree.class)
-            .displayName("build tree services")
-            .parent(buildSessionServices)
-            .provider(new BuildTreeScopeServices(buildActionRequirements, buildModelParameters, buildInvocationScopeId, this))
-            .build();
+                .scopeStrictly(Scope.BuildTree.class)
+                .displayName("build tree services")
+                .parent(buildSessionServices)
+                .provider(new BuildTreeScopeServices(
+                        buildActionRequirements, buildModelParameters, buildInvocationScopeId, this))
+                .build();
     }
 
     public ServiceRegistry getServices() {

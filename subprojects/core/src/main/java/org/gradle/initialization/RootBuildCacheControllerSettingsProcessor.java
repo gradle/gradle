@@ -43,7 +43,11 @@ public class RootBuildCacheControllerSettingsProcessor implements SettingsProces
     }
 
     @Override
-    public SettingsState process(GradleInternal gradle, SettingsLocation settingsLocation, ClassLoaderScope buildRootClassLoaderScope, StartParameter startParameter) {
+    public SettingsState process(
+            GradleInternal gradle,
+            SettingsLocation settingsLocation,
+            ClassLoaderScope buildRootClassLoaderScope,
+            StartParameter startParameter) {
         SettingsState state = delegate.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
         process(gradle);
         return state;

@@ -31,5 +31,4 @@ public interface SelfResolvingDependencyInternal extends Dependency {
      */
     @Nullable
     ComponentIdentifier getTargetComponentId();
-
 }

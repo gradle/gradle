@@ -15,8 +15,32 @@
  */
 package org.gradle.api.internal.catalog;
 
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.getProblemInVersionCatalog;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwError;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ACCESSOR_NAME_CLASH;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
+import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.internal.RenderingUtils.oxfordJoin;
+import static org.gradle.internal.deprecation.Documentation.userManual;
+
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
@@ -40,31 +64,6 @@ import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.getProblemInVersionCatalog;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwError;
-import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ACCESSOR_NAME_CLASH;
-import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
-import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.RenderingUtils.oxfordJoin;
-import static org.gradle.internal.deprecation.Documentation.userManual;
-
 public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private static final int MAX_ENTRIES = 30000;
@@ -75,23 +74,18 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private final Map<String, Integer> classNameCounter = new HashMap<>();
     private final Map<ClassNode, String> classNameCache = new HashMap<>();
 
-    public LibrariesSourceGenerator(
-        Writer writer,
-        DefaultVersionCatalog config,
-        Problems problemsService
-    ) {
+    public LibrariesSourceGenerator(Writer writer, DefaultVersionCatalog config, Problems problemsService) {
         super(writer);
         this.config = config;
         this.problemsService = (InternalProblems) problemsService;
     }
 
     public static void generateSource(
-        Writer writer,
-        DefaultVersionCatalog config,
-        String packageName,
-        String className,
-        Problems problemsService
-    ) {
+            Writer writer,
+            DefaultVersionCatalog config,
+            String packageName,
+            String className,
+            Problems problemsService) {
         LibrariesSourceGenerator generator = new LibrariesSourceGenerator(writer, config, problemsService);
         try {
             generator.generateProjectExtensionFactoryClass(packageName, className);
@@ -103,12 +97,11 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     public static void generatePluginsBlockSource(
-        Writer writer,
-        DefaultVersionCatalog config,
-        String packageName,
-        String className,
-        Problems problemsService
-    ) {
+            Writer writer,
+            DefaultVersionCatalog config,
+            String packageName,
+            String className,
+            Problems problemsService) {
         LibrariesSourceGenerator generator = new LibrariesSourceGenerator(writer, config, problemsService);
         try {
             generator.generatePluginsBlockFactoryClass(packageName, className);
@@ -120,15 +113,11 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void generateProjectExtensionFactoryClass(String packageName, String className) throws IOException {
-        generateFactoryClass(packageName, entryPoints ->
-            writeEntryPoints(className, entryPoints, false)
-        );
+        generateFactoryClass(packageName, entryPoints -> writeEntryPoints(className, entryPoints, false));
     }
 
     private void generatePluginsBlockFactoryClass(String packageName, String className) throws IOException {
-        generateFactoryClass(packageName, entryPoints ->
-            writeEntryPoints(className, entryPoints, true)
-        );
+        generateFactoryClass(packageName, entryPoints -> writeEntryPoints(className, entryPoints, true));
     }
 
     private static class EntryPoints {
@@ -139,11 +128,10 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         private final ClassNode pluginsEntryPoint;
 
         private EntryPoints(
-            ClassNode librariesEntryPoint,
-            ClassNode versionsEntryPoint,
-            ClassNode bundlesEntryPoint,
-            ClassNode pluginsEntryPoint
-        ) {
+                ClassNode librariesEntryPoint,
+                ClassNode versionsEntryPoint,
+                ClassNode bundlesEntryPoint,
+                ClassNode pluginsEntryPoint) {
             this.librariesEntryPoint = librariesEntryPoint;
             this.versionsEntryPoint = versionsEntryPoint;
             this.bundlesEntryPoint = bundlesEntryPoint;
@@ -155,7 +143,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         void accept(T t) throws IOException;
     }
 
-    private void generateFactoryClass(String packageName, ThrowingConsumer<EntryPoints> entryPointsConsumer) throws IOException {
+    private void generateFactoryClass(String packageName, ThrowingConsumer<EntryPoints> entryPointsConsumer)
+            throws IOException {
         writeLn("package " + packageName + ";");
         writeLn();
         addImports();
@@ -171,14 +160,14 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         List<String> plugins = config.getPluginAliases();
         performValidation(libraries, bundles, versions, plugins);
         entryPointsConsumer.accept(new EntryPoints(
-            toClassNode(libraries, rootNode(AccessorKind.library)),
-            toClassNode(versions, rootNode(AccessorKind.version, "versions")).parent,
-            toClassNode(bundles, rootNode(AccessorKind.bundle, "bundles")).parent,
-            toClassNode(plugins, rootNode(AccessorKind.plugin, "plugins")).parent
-        ));
+                toClassNode(libraries, rootNode(AccessorKind.library)),
+                toClassNode(versions, rootNode(AccessorKind.version, "versions")).parent,
+                toClassNode(bundles, rootNode(AccessorKind.bundle, "bundles")).parent,
+                toClassNode(plugins, rootNode(AccessorKind.plugin, "plugins")).parent));
     }
 
-    private void writeEntryPoints(String className, EntryPoints entryPoints, boolean inPluginsBlock) throws IOException {
+    private void writeEntryPoints(String className, EntryPoints entryPoints, boolean inPluginsBlock)
+            throws IOException {
         writeLn(" */");
         writeLn("@NullMarked");
         writeLn("public class " + className + " extends AbstractExternalDependencyFactory {");
@@ -191,7 +180,9 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeSubAccessorFieldsOf(entryPoints.pluginsEntryPoint, AccessorKind.plugin);
             writeLn();
             writeLn("@Inject");
-            writeLn("public " + className + "(DefaultVersionCatalog config, ProviderFactory providers, ObjectFactory objects, AttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) {");
+            writeLn(
+                    "public " + className
+                            + "(DefaultVersionCatalog config, ProviderFactory providers, ObjectFactory objects, AttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) {");
             writeLn("    super(config, providers, objects, attributesFactory, capabilityNotationParser);");
             writeLn("}");
             writeLn();
@@ -257,23 +248,22 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         boolean isProvider = classNode.isAlsoProvider();
         String interfaces = isProvider ? " implements BundleNotationSupplier" : "";
         String bundleClassName = getClassName(classNode);
-        List<String> aliases = classNode.aliases
-            .stream()
-            .sorted()
-            .collect(toList());
+        List<String> aliases = classNode.aliases.stream().sorted().collect(toList());
         writeLn("public static class " + bundleClassName + " extends BundleFactory " + interfaces + "{");
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.bundle);
             writeLn();
-            writeLn("public " + bundleClassName + "(ObjectFactory objects, ProviderFactory providers, DefaultVersionCatalog config, AttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) { super(objects, providers, config, attributesFactory, capabilityNotationParser); }");
+            writeLn(
+                    "public " + bundleClassName
+                            + "(ObjectFactory objects, ProviderFactory providers, DefaultVersionCatalog config, AttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) { super(objects, providers, config, attributesFactory, capabilityNotationParser); }");
             writeLn();
             if (isProvider) {
                 String path = classNode.getFullAlias();
                 BundleModel bundle = config.getBundle(path);
                 List<String> coordinates = bundle.getComponents().stream()
-                    .map(config::getDependencyData)
-                    .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
-                    .collect(toList());
+                        .map(config::getDependencyData)
+                        .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
+                        .collect(toList());
                 writeBundle(path, coordinates, bundle.getContext(), true, inPluginsBlock);
             }
             for (String alias : aliases) {
@@ -281,9 +271,9 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                 if (!classNode.hasChild(childName)) {
                     BundleModel bundle = config.getBundle(alias);
                     List<String> coordinates = bundle.getComponents().stream()
-                        .map(config::getDependencyData)
-                        .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
-                        .collect(toList());
+                            .map(config::getDependencyData)
+                            .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
+                            .collect(toList());
                     writeBundle(alias, coordinates, bundle.getContext(), false, inPluginsBlock);
                 }
             }
@@ -316,15 +306,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         boolean isProvider = classNode.isAlsoProvider();
         String interfaces = isProvider ? " implements PluginNotationSupplier" : "";
         String pluginClassName = getClassName(classNode);
-        List<String> aliases = classNode.aliases
-            .stream()
-            .sorted()
-            .collect(toList());
+        List<String> aliases = classNode.aliases.stream().sorted().collect(toList());
         writeLn("public static class " + pluginClassName + " extends PluginFactory " + interfaces + "{");
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.plugin);
             writeLn();
-            writeLn("public " + pluginClassName + "(ProviderFactory providers, DefaultVersionCatalog config) { super(providers, config); }");
+            writeLn("public " + pluginClassName
+                    + "(ProviderFactory providers, DefaultVersionCatalog config) { super(providers, config); }");
             writeLn();
             if (isProvider) {
                 String path = classNode.getFullAlias();
@@ -366,7 +354,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             String childName = leafNodeForAlias(alias);
             if (!classNode.hasChild(childName)) {
                 VersionModel model = config.getVersion(alias);
-                writeSingleVersionAccessor(alias, model.getContext(), model.getVersion().getDisplayName(), false);
+                writeSingleVersionAccessor(
+                        alias, model.getContext(), model.getVersion().getDisplayName(), false);
             }
         }
         for (ClassNode child : classNode.getChildren()) {
@@ -381,9 +370,9 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             if (!classNode.hasChild(childName)) {
                 BundleModel model = config.getBundle(alias);
                 List<String> coordinates = model.getComponents().stream()
-                    .map(config::getDependencyData)
-                    .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
-                    .collect(toList());
+                        .map(config::getDependencyData)
+                        .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
+                        .collect(toList());
                 writeBundle(alias, coordinates, model.getContext(), false, inPluginsBlock);
             }
         }
@@ -408,7 +397,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writeSubAccessorFieldFor(ClassNode classNode, AccessorKind kind) throws IOException {
         String className = getClassName(classNode);
-        writeLn("private final " + className + " " + kind.accessorVariableNameFor(className) + " = new " + className + "(" + kind.getConstructorParams() + ");");
+        writeLn("private final " + className + " " + kind.accessorVariableNameFor(className) + " = new " + className
+                + "(" + kind.getConstructorParams() + ");");
     }
 
     private void writeSubAccessorFieldsOf(ClassNode classNode, AccessorKind kind) throws IOException {
@@ -424,7 +414,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.library);
             writeLn();
-            writeLn("public " + getClassName(classNode) + "(AbstractExternalDependencyFactory owner) { super(owner); }");
+            writeLn("public " + getClassName(classNode)
+                    + "(AbstractExternalDependencyFactory owner) { super(owner); }");
             writeLn();
             if (isProvider) {
                 String path = classNode.getFullAlias();
@@ -455,7 +446,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.version);
-            writeLn("public " + versionsClassName + "(ProviderFactory providers, DefaultVersionCatalog config) { super(providers, config); }");
+            writeLn("public " + versionsClassName
+                    + "(ProviderFactory providers, DefaultVersionCatalog config) { super(providers, config); }");
             writeLn();
             if (isProvider) {
                 String path = classNode.getFullAlias();
@@ -479,7 +471,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
     }
 
-    private void writeSingleVersionAccessor(String versionAlias, @Nullable String context, String version, boolean asProvider) throws IOException {
+    private void writeSingleVersionAccessor(
+            String versionAlias, @Nullable String context, String version, boolean asProvider) throws IOException {
         writeLn("/**");
         writeLn(" * Version alias <b>" + versionAlias + "</b> with value <b>" + version + "</b>");
         writeLn(" * <p>");
@@ -495,18 +488,23 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
     }
 
-    private void performValidation(List<String> libraries, List<String> bundles, List<String> versions, List<String> plugins) {
+    private void performValidation(
+            List<String> libraries, List<String> bundles, List<String> versions, List<String> plugins) {
         assertUnique(libraries, "library aliases", "");
         assertUnique(bundles, "dependency bundles", "Bundle");
         assertUnique(versions, "dependency versions", "Version");
         assertUnique(plugins, "plugins", "Plugin");
         int size = libraries.size() + bundles.size() + versions.size() + plugins.size();
         if (size > MAX_ENTRIES) {
-            throw throwVersionCatalogProblemException(problemsService.getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemPrefix() + "version catalog model contains too many entries (" + size + ").", TOO_MANY_ENTRIES)
-                    .details("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
-                    .solution("Reduce the number of aliases defined in this catalog")
-                    .solution("Split the catalog into multiple catalogs")));
+            throw throwVersionCatalogProblemException(
+                    problemsService.getInternalReporter().internalCreate(builder -> configureVersionCatalogError(
+                                    builder,
+                                    getProblemPrefix() + "version catalog model contains too many entries (" + size
+                                            + ").",
+                                    TOO_MANY_ENTRIES)
+                            .details("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
+                            .solution("Reduce the number of aliases defined in this catalog")
+                            .solution("Split the catalog into multiple catalogs")));
         }
     }
 
@@ -514,27 +512,35 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         throw throwError(problemsService, ERROR_HEADER, ImmutableList.of(problem));
     }
 
-    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
-        return spec
-            .id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), message, GradleCoreProblemGroup.versionCatalog()) // TODO is message stable?
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
-            .severity(ERROR);
+    private static InternalProblemSpec configureVersionCatalogError(
+            InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
+        return spec.id(
+                        TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()),
+                        message,
+                        GradleCoreProblemGroup.versionCatalog()) // TODO is message stable?
+                .documentedAt(userManual(
+                        VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
+                .severity(ERROR);
     }
 
     private void assertUnique(List<String> names, String prefix, String suffix) {
-        List<InternalProblem> errors = names.stream()
-            .collect(groupingBy(AbstractSourceGenerator::toJavaName))
-            .entrySet()
-            .stream()
-            .filter(e -> e.getValue().size() > 1)
-            .map(e -> {
-                String errorValues = e.getValue().stream().sorted().collect(oxfordJoin("and"));
-                return this.problemsService.getInternalReporter().internalCreate(builder ->
-                    configureVersionCatalogError(builder, getProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "().", ACCESSOR_NAME_CLASH)
-                        .details("A name clash was detected")
-                        .solution("Use a different alias for " + errorValues));
-            })
-            .collect(toList());
+        List<InternalProblem> errors =
+                names.stream().collect(groupingBy(AbstractSourceGenerator::toJavaName)).entrySet().stream()
+                        .filter(e -> e.getValue().size() > 1)
+                        .map(e -> {
+                            String errorValues = e.getValue().stream().sorted().collect(oxfordJoin("and"));
+                            return this.problemsService
+                                    .getInternalReporter()
+                                    .internalCreate(builder -> configureVersionCatalogError(
+                                                    builder,
+                                                    getProblemPrefix() + prefix + " " + errorValues
+                                                            + " are mapped to the same accessor name get" + e.getKey()
+                                                            + suffix + "().",
+                                                    ACCESSOR_NAME_CLASH)
+                                            .details("A name clash was detected")
+                                            .solution("Use a different alias for " + errorValues));
+                        })
+                        .collect(toList());
         maybeThrowError(this.problemsService, ERROR_HEADER, errors);
     }
 
@@ -546,10 +552,12 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         return dependencyData.getGroup() + ":" + dependencyData.getName();
     }
 
-    private void writeDependencyAccessor(String alias, DependencyModel dependency, boolean asProvider, boolean inPluginsBlock) throws IOException {
+    private void writeDependencyAccessor(
+            String alias, DependencyModel dependency, boolean asProvider, boolean inPluginsBlock) throws IOException {
         String name = leafNodeForAlias(alias);
         writeLn("/**");
-        writeLn(" * Dependency provider for <b>" + name + "</b> with <b>" + coordinatesDescriptorFor(dependency) + "</b> coordinates and");
+        writeLn(" * Dependency provider for <b>" + name + "</b> with <b>" + coordinatesDescriptorFor(dependency)
+                + "</b> coordinates and");
         writeVersionInformation(dependency.getVersionRef(), dependency.getVersion());
         String context = dependency.getContext();
         if (context != null) {
@@ -564,7 +572,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
     }
 
-    private void writeVersionInformation(@Nullable String versionRef, ImmutableVersionConstraint version) throws IOException {
+    private void writeVersionInformation(@Nullable String versionRef, ImmutableVersionConstraint version)
+            throws IOException {
         if (versionRef != null) {
             writeLn(" * with version reference <b>" + versionRef + "</b>");
         } else {
@@ -593,17 +602,25 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn(" * Group of " + kind.getDescription() + " at <b>" + classNode.getPath() + "</b>");
         writeLn(" */");
         writeLn("public " + className + " get" + toJavaName(getter) + "() {");
-        writeLn(throwForUnsupportedFeatureInPluginsBlockOr(inPluginsBlock, "    return " + kind.accessorVariableNameFor(className) + ";"));
+        writeLn(throwForUnsupportedFeatureInPluginsBlockOr(
+                inPluginsBlock, "    return " + kind.accessorVariableNameFor(className) + ";"));
         writeLn("}");
         writeLn();
     }
 
-    private void writeBundle(String alias, List<String> coordinates, @Nullable String context, boolean asProvider, boolean inPluginsBlock) throws IOException {
+    private void writeBundle(
+            String alias,
+            List<String> coordinates,
+            @Nullable String context,
+            boolean asProvider,
+            boolean inPluginsBlock)
+            throws IOException {
         writeLn("/**");
         if (coordinates.isEmpty()) {
             writeLn(" * Dependency bundle provider for <b>" + alias + "</b> which contains no dependencies");
         } else {
-            writeLn(" * Dependency bundle provider for <b>" + alias + "</b> which contains the following dependencies:");
+            writeLn(" * Dependency bundle provider for <b>" + alias
+                    + "</b> which contains the following dependencies:");
             writeLn(" * <ul>");
             for (String coordinate : coordinates) {
                 writeLn(" *    <li>" + coordinate + "</li>");
@@ -617,7 +634,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn(" */");
         String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
         writeLn("public Provider<ExternalModuleDependencyBundle> " + methodName + "() {");
-        writeLn(throwForUnsupportedFeatureInPluginsBlockOr(inPluginsBlock, "    return createBundle(\"" + alias + "\");"));
+        writeLn(throwForUnsupportedFeatureInPluginsBlockOr(
+                inPluginsBlock, "    return createBundle(\"" + alias + "\");"));
         writeLn("}");
         writeLn();
     }
@@ -638,10 +656,11 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private static String throwForUnsupportedFeatureInPluginsBlockOr(boolean inPluginsBlock, String or) {
-        return inPluginsBlock ? "    throw new GradleException(" +
-            "\"Accessing libraries or bundles from version catalogs in the plugins block is not allowed. " +
-            "Only use versions or plugins from catalogs in the plugins block.\");"
-            : or;
+        return inPluginsBlock
+                ? "    throw new GradleException("
+                        + "\"Accessing libraries or bundles from version catalogs in the plugins block is not allowed. "
+                        + "Only use versions or plugins from catalogs in the plugins block.\");"
+                : or;
     }
 
     /**
@@ -744,17 +763,12 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
 
         public boolean isAlsoProvider() {
-            return parent != null &&
-                parent.leafAliases.contains(name) &&
-                parent.children.containsKey(name);
+            return parent != null && parent.leafAliases.contains(name) && parent.children.containsKey(name);
         }
 
         @Override
         public String toString() {
-            return "ClassNode{" +
-                "name='" + name + '\'' +
-                ", aliases=" + aliases +
-                '}';
+            return "ClassNode{" + "name='" + name + '\'' + ", aliases=" + aliases + '}';
         }
     }
 

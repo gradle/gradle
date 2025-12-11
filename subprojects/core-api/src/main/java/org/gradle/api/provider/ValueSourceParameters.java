@@ -37,7 +37,6 @@ public interface ValueSourceParameters {
      * @since 6.1
      */
     final class None implements ValueSourceParameters {
-        private None() {
-        }
+        private None() {}
     }
 }

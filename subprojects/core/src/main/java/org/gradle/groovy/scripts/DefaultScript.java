@@ -17,6 +17,10 @@
 package org.gradle.groovy.scripts;
 
 import groovy.lang.Closure;
+import java.io.File;
+import java.net.URI;
+import java.util.Map;
+import java.util.concurrent.Callable;
 import org.gradle.api.Action;
 import org.gradle.api.PathValidation;
 import org.gradle.api.Script;
@@ -48,11 +52,6 @@ import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.internal.ConfigureUtil;
 
-import java.io.File;
-import java.net.URI;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
 public abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class);
 
@@ -79,7 +78,8 @@ public abstract class DefaultScript extends BasicScript {
                 FileCollectionFactory fileCollectionFactoryWithBase = fileCollectionFactory.withResolver(resolver);
                 fileOperations = DefaultFileOperations.createSimple(resolver, fileCollectionFactoryWithBase, services);
             } else {
-                fileOperations = DefaultFileOperations.createSimple(fileLookup.getFileResolver(), fileCollectionFactory, services);
+                fileOperations = DefaultFileOperations.createSimple(
+                        fileLookup.getFileResolver(), fileCollectionFactory, services);
             }
         }
 
@@ -93,13 +93,12 @@ public abstract class DefaultScript extends BasicScript {
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {
         ClassLoaderScope classLoaderScope = scriptServices.get(ClassLoaderScope.class);
         return new DefaultObjectConfigurationAction(
-            getFileResolver(),
-            scriptServices.get(ScriptPluginFactory.class),
-            scriptServices.get(ScriptHandlerFactory.class),
-            classLoaderScope,
-            scriptServices.get(TextUriResourceLoader.Factory.class),
-            getScriptTarget()
-        );
+                getFileResolver(),
+                scriptServices.get(ScriptPluginFactory.class),
+                scriptServices.get(ScriptHandlerFactory.class),
+                classLoaderScope,
+                scriptServices.get(TextUriResourceLoader.Factory.class),
+                getScriptTarget());
     }
 
     @Override
@@ -241,6 +240,4 @@ public abstract class DefaultScript extends BasicScript {
     public String toString() {
         return "script";
     }
-
-
 }

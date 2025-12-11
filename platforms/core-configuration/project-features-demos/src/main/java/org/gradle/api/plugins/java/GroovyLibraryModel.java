@@ -26,6 +26,7 @@ public interface GroovyLibraryModel extends HasJarFile, HasGroovyClasses, BuildM
 
     interface TestReports {
         DirectoryProperty getHtmlReportDir();
+
         DirectoryProperty getJunitXmlReportDir();
     }
 }

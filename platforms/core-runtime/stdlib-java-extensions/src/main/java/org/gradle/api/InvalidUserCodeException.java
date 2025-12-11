@@ -23,8 +23,7 @@ import org.gradle.internal.exceptions.Contextual;
  */
 @Contextual
 public class InvalidUserCodeException extends GradleException {
-    public InvalidUserCodeException() {
-    }
+    public InvalidUserCodeException() {}
 
     public InvalidUserCodeException(String message) {
         super(message);

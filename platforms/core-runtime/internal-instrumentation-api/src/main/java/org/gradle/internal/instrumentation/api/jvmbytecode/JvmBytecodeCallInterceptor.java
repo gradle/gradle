@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instrumentation.api.jvmbytecode;
 
+import java.util.function.Supplier;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.instrumentation.api.types.FilterableBytecodeInterceptor;
@@ -23,8 +24,6 @@ import org.gradle.internal.instrumentation.api.types.FilterableBytecodeIntercept
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.tree.MethodNode;
-
-import java.util.function.Supplier;
 
 public interface JvmBytecodeCallInterceptor extends FilterableBytecodeInterceptor {
     boolean visitMethodInsn(
@@ -35,13 +34,14 @@ public interface JvmBytecodeCallInterceptor extends FilterableBytecodeIntercepto
             String name,
             String descriptor,
             boolean isInterface,
-            Supplier<MethodNode> readMethodNode
-    );
+            Supplier<MethodNode> readMethodNode);
 
     @Nullable
-    BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor);
+    BridgeMethodBuilder findBridgeMethodBuilder(
+            String className, int tag, String owner, String name, String descriptor);
 
     interface Factory extends FilterableBytecodeInterceptorFactory {
-        JvmBytecodeCallInterceptor create(InstrumentationMetadata metadata, BytecodeInterceptorFilter interceptorFilter);
+        JvmBytecodeCallInterceptor create(
+                InstrumentationMetadata metadata, BytecodeInterceptorFilter interceptorFilter);
     }
 }

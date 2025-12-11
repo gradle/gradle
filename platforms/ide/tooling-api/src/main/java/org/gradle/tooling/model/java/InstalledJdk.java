@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.model.java;
 
-import org.gradle.api.JavaVersion;
-
 import java.io.File;
+import org.gradle.api.JavaVersion;
 
 /**
  * Represents a Java Development Kit machine installation.

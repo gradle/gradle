@@ -16,14 +16,13 @@
 
 package org.gradle.internal.component.local.model;
 
+import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.util.List;
 
 /**
  * A specialized {@link ComponentGraphResolveState} for local components (ie project dependencies).
@@ -57,7 +56,5 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
          */
         @Nullable
         VariantGraphResolveState getVariantByConfigurationName(String name);
-
     }
-
 }

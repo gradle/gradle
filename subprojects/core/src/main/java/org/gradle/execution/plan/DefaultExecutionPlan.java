@@ -16,14 +16,10 @@
 
 package org.gradle.execution.plan;
 
+import static com.google.common.collect.Sets.newIdentityHashSet;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.jspecify.annotations.NullMarked;
-
 import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,8 +34,11 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
-
-import static com.google.common.collect.Sets.newIdentityHashSet;
+import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * The mutation methods on this implementation are NOT threadsafe, and callers must synchronize access to these methods.
@@ -61,22 +60,20 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     private final Set<Node> filteredNodes = newIdentityHashSet();
     private final Set<Node> finalizers = new LinkedHashSet<>();
     private final OrdinalNodeAccess ordinalNodeAccess;
-    private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
-    };
+    private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {};
 
     private DefaultFinalizedExecutionPlan finalizedPlan;
     // An immutable copy of the final plan
     private ImmutableList<Node> scheduledNodes;
 
     public DefaultExecutionPlan(
-        String displayName,
-        TaskNodeFactory taskNodeFactory,
-        OrdinalGroupFactory ordinalGroupFactory,
-        TaskDependencyResolver dependencyResolver,
-        ExecutionNodeAccessHierarchy outputHierarchy,
-        ExecutionNodeAccessHierarchy destroyableHierarchy,
-        ResourceLockCoordinationService lockCoordinator
-    ) {
+            String displayName,
+            TaskNodeFactory taskNodeFactory,
+            OrdinalGroupFactory ordinalGroupFactory,
+            TaskDependencyResolver dependencyResolver,
+            ExecutionNodeAccessHierarchy outputHierarchy,
+            ExecutionNodeAccessHierarchy destroyableHierarchy,
+            ResourceLockCoordinationService lockCoordinator) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
@@ -154,7 +151,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         discoverNodeRelationships(queue);
     }
 
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "NonApiType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private void discoverNodeRelationships(LinkedList<Node> queue) {
         Set<Node> visiting = new HashSet<>();
         while (!queue.isEmpty()) {
@@ -216,12 +214,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     @Override
     public void determineExecutionPlan() {
         if (scheduledNodes == null) {
-            scheduledNodes = new DetermineExecutionPlanAction(
-                nodeMapping,
-                ordinalNodeAccess,
-                entryNodes,
-                finalizers
-            ).run();
+            scheduledNodes =
+                    new DetermineExecutionPlanAction(nodeMapping, ordinalNodeAccess, entryNodes, finalizers).run();
             finalizers.clear();
         }
     }
@@ -233,8 +227,18 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         }
         if (finalizedPlan == null) {
             dependencyResolver.clear();
-            // Should make an immutable copy of the contents to pass to the finalized plan and also to use in this instance
-            finalizedPlan = new DefaultFinalizedExecutionPlan(displayName, ordinalNodeAccess, outputHierarchy, destroyableHierarchy, lockCoordinator, scheduledNodes, continueOnFailure, this, completionHandler);
+            // Should make an immutable copy of the contents to pass to the finalized plan and also to use in this
+            // instance
+            finalizedPlan = new DefaultFinalizedExecutionPlan(
+                    displayName,
+                    ordinalNodeAccess,
+                    outputHierarchy,
+                    destroyableHierarchy,
+                    lockCoordinator,
+                    scheduledNodes,
+                    continueOnFailure,
+                    this,
+                    completionHandler);
         }
         return finalizedPlan;
     }
@@ -250,8 +254,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         for (Node node : filteredNodes) {
             node.reset();
         }
-        completionHandler = localTaskNode -> {
-        };
+        completionHandler = localTaskNode -> {};
         entryNodes.clear();
         nodeMapping.clear();
         filteredNodes.clear();
@@ -295,11 +298,13 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
             if (node instanceof TaskNode) {
                 // The task for a node can be attached lazily
                 // Ensure the task is available if the caller happens to need it.
-                // It would be better for callers to not touch nodes directly, but instead take some immutable snapshot here
+                // It would be better for callers to not touch nodes directly, but instead take some immutable snapshot
+                // here
                 ((TaskNode) node).getTask();
             }
         }
-        // We're not filtering entryNodes to only contain scheduled nodes here to avoid performance penalty for clients that
+        // We're not filtering entryNodes to only contain scheduled nodes here to avoid performance penalty for clients
+        // that
         // don't care about the entry nodes at all.
         return new ScheduledWork(scheduledNodes, entryNodes);
     }
@@ -354,7 +359,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         public LocalTaskNode get(Task task) {
             LocalTaskNode taskNode = taskMapping.get(task);
             if (taskNode == null) {
-                throw new IllegalStateException("Task is not part of the execution plan, no dependency information is available.");
+                throw new IllegalStateException(
+                        "Task is not part of the execution plan, no dependency information is available.");
             }
             return taskNode;
         }

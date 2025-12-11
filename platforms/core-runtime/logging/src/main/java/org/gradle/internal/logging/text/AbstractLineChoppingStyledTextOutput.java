@@ -16,10 +16,9 @@
 
 package org.gradle.internal.logging.text;
 
+import java.util.Arrays;
 import org.gradle.api.Action;
 import org.gradle.internal.SystemProperties;
-
-import java.util.Arrays;
 
 /**
  * A {@link StyledTextOutput} that breaks text up into lines.
@@ -54,8 +53,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
     /**
      * Called before text is about to be appended to the start of a line.
      */
-    protected void doStartLine() {
-    }
+    protected void doStartLine() {}
 
     /**
      * Called when text is to be appended. Does not include any end-of-line separators.
@@ -98,7 +96,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         boolean isCurrentCharEquals(char value) {
             char ch;
             if (seenFromEol.size() + pos < 0) {
-                ch = eolChars[pos+AbstractLineChoppingStyledTextOutput.this.seenFromEol.size()];
+                ch = eolChars[pos + AbstractLineChoppingStyledTextOutput.this.seenFromEol.size()];
             } else {
                 ch = text.charAt(pos + seenFromEol.size());
             }
@@ -126,7 +124,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
                 // Flushing data split across previous and current appending
                 if (start < 0 && pos >= 0) {
                     data = seenFromEol.string(Math.abs(start)) + text.substring(0, pos);
-                // Flushing data coming only from current appending
+                    // Flushing data coming only from current appending
                 } else if (start >= 0) {
                     data = text.substring(start, pos);
                 }
@@ -150,7 +148,8 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         @Override
         public void execute(StateContext context) {
             if (!context.seenFromEol.all()) {
-                if (!context.eol.equals("\r\n") && context.isCurrentCharEquals(context.eolChars[context.seenFromEol.size()])) {
+                if (!context.eol.equals("\r\n")
+                        && context.isCurrentCharEquals(context.eolChars[context.seenFromEol.size()])) {
                     context.seenFromEol.add();
                     if (context.seenFromEol.all()) {
                         context.flushLineText();

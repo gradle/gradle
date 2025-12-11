@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import java.util.Collection;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -65,16 +67,13 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.Collection;
-
 /**
  * Creates resolvers that can resolve module components from repositories.
  */
 @ServiceScope(Scope.Build.class)
 public class ExternalModuleComponentResolverFactory {
 
-    private final static Logger LOGGER = Logging.getLogger(ExternalModuleComponentResolverFactory.class);
+    private static final Logger LOGGER = Logging.getLogger(ExternalModuleComponentResolverFactory.class);
 
     private final ModuleRepositoryCacheProvider cacheProvider;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
@@ -94,21 +93,20 @@ public class ExternalModuleComponentResolverFactory {
 
     @Inject
     public ExternalModuleComponentResolverFactory(
-        ModuleRepositoryCacheProvider cacheProvider,
-        StartParameterResolutionOverride startParameterResolutionOverride,
-        DependencyVerificationOverride dependencyVerificationOverride,
-        BuildCommencedTimeProvider timeProvider,
-        VersionComparator versionComparator,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        RepositoryDisabler repositoryBlacklister,
-        VersionParser versionParser,
-        ListenerManager listenerManager,
-        ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
-        CalculatedValueFactory calculatedValueFactory,
-        AttributesFactory attributesFactory,
-        AttributeSchemaServices attributeSchemaServices,
-        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor
-    ) {
+            ModuleRepositoryCacheProvider cacheProvider,
+            StartParameterResolutionOverride startParameterResolutionOverride,
+            DependencyVerificationOverride dependencyVerificationOverride,
+            BuildCommencedTimeProvider timeProvider,
+            VersionComparator versionComparator,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            RepositoryDisabler repositoryBlacklister,
+            VersionParser versionParser,
+            ListenerManager listenerManager,
+            ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
+            CalculatedValueFactory calculatedValueFactory,
+            AttributesFactory attributesFactory,
+            AttributeSchemaServices attributeSchemaServices,
+            ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor) {
         this.cacheProvider = cacheProvider;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.timeProvider = timeProvider;
@@ -129,45 +127,86 @@ public class ExternalModuleComponentResolverFactory {
      * Creates component resolvers for the given repositories.
      */
     public ComponentResolvers createResolvers(
-        Collection<? extends ResolutionAwareRepository> repositories,
-        ComponentMetadataProcessorFactory metadataProcessor,
-        ComponentSelectionRulesInternal componentSelectionRules,
-        boolean dependencyVerificationEnabled,
-        CacheExpirationControl cacheExpirationControl,
-        ImmutableAttributesSchema consumerSchema
-    ) {
+            Collection<? extends ResolutionAwareRepository> repositories,
+            ComponentMetadataProcessorFactory metadataProcessor,
+            ComponentSelectionRulesInternal componentSelectionRules,
+            boolean dependencyVerificationEnabled,
+            CacheExpirationControl cacheExpirationControl,
+            ImmutableAttributesSchema consumerSchema) {
         if (repositories.isEmpty()) {
             return new NoRepositoriesResolver();
         }
 
-        UserResolverChain moduleResolver = new UserResolverChain(versionComparator, componentSelectionRules, versionParser, consumerSchema, attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl);
-        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerSchema, attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl);
+        UserResolverChain moduleResolver = new UserResolverChain(
+                versionComparator,
+                componentSelectionRules,
+                versionParser,
+                consumerSchema,
+                attributesFactory,
+                attributeSchemaServices,
+                metadataProcessor,
+                componentMetadataSupplierRuleExecutor,
+                calculatedValueFactory,
+                cacheExpirationControl);
+        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(
+                versionComparator,
+                moduleIdentifierFactory,
+                versionParser,
+                consumerSchema,
+                attributesFactory,
+                attributeSchemaServices,
+                metadataProcessor,
+                componentMetadataSupplierRuleExecutor,
+                calculatedValueFactory,
+                cacheExpirationControl);
 
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
 
             baseRepository.setComponentResolvers(parentModuleResolver);
             Instantiator instantiator = baseRepository.getComponentMetadataInstantiator();
-            MetadataResolutionContext metadataResolutionContext = new DefaultMetadataResolutionContext(cacheExpirationControl, instantiator);
-            ComponentMetadataProcessor componentMetadataProcessor = metadataProcessor.createComponentMetadataProcessor(metadataResolutionContext);
+            MetadataResolutionContext metadataResolutionContext =
+                    new DefaultMetadataResolutionContext(cacheExpirationControl, instantiator);
+            ComponentMetadataProcessor componentMetadataProcessor =
+                    metadataProcessor.createComponentMetadataProcessor(metadataResolutionContext);
 
             ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository;
             if (baseRepository.isLocal()) {
-                moduleComponentRepository = new CachingModuleComponentRepository(baseRepository, cacheProvider.getInMemoryOnlyCaches(), moduleResolveStateFactory, cacheExpirationControl, timeProvider, componentMetadataProcessor, ChangingValueDependencyResolutionListener.NO_OP);
+                moduleComponentRepository = new CachingModuleComponentRepository(
+                        baseRepository,
+                        cacheProvider.getInMemoryOnlyCaches(),
+                        moduleResolveStateFactory,
+                        cacheExpirationControl,
+                        timeProvider,
+                        componentMetadataProcessor,
+                        ChangingValueDependencyResolutionListener.NO_OP);
                 moduleComponentRepository = new LocalModuleComponentRepository<>(moduleComponentRepository);
             } else {
-                ModuleComponentRepository<ModuleComponentResolveMetadata> overrideRepository = startParameterResolutionOverride.overrideModuleVersionRepository(baseRepository);
-                moduleComponentRepository = new CachingModuleComponentRepository(overrideRepository, cacheProvider.getPersistentCaches(), moduleResolveStateFactory, cacheExpirationControl, timeProvider, componentMetadataProcessor, listener);
+                ModuleComponentRepository<ModuleComponentResolveMetadata> overrideRepository =
+                        startParameterResolutionOverride.overrideModuleVersionRepository(baseRepository);
+                moduleComponentRepository = new CachingModuleComponentRepository(
+                        overrideRepository,
+                        cacheProvider.getPersistentCaches(),
+                        moduleResolveStateFactory,
+                        cacheExpirationControl,
+                        timeProvider,
+                        componentMetadataProcessor,
+                        listener);
             }
-            moduleComponentRepository = cacheProvider.getResolvedArtifactCaches().provideResolvedArtifactCache(moduleComponentRepository, dependencyVerificationEnabled);
+            moduleComponentRepository = cacheProvider
+                    .getResolvedArtifactCaches()
+                    .provideResolvedArtifactCache(moduleComponentRepository, dependencyVerificationEnabled);
 
             if (baseRepository.isDynamicResolveMode()) {
-                moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(moduleComponentRepository, moduleResolveStateFactory);
+                moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(
+                        moduleComponentRepository, moduleResolveStateFactory);
             }
 
-            moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
+            moduleComponentRepository =
+                    new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
             moduleComponentRepository = filterRepository(repository, moduleComponentRepository);
-            moduleComponentRepository = maybeApplyDependencyVerification(moduleComponentRepository, dependencyVerificationEnabled);
+            moduleComponentRepository =
+                    maybeApplyDependencyVerification(moduleComponentRepository, dependencyVerificationEnabled);
 
             moduleResolver.add(moduleComponentRepository);
             parentModuleResolver.add(moduleComponentRepository);
@@ -177,9 +216,8 @@ public class ExternalModuleComponentResolverFactory {
     }
 
     private static ModuleComponentRepository<ExternalModuleComponentGraphResolveState> filterRepository(
-        ResolutionAwareRepository repository,
-        ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository
-    ) {
+            ResolutionAwareRepository repository,
+            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository) {
         Action<? super ArtifactResolutionDetails> filter = Actions.doNothing();
         if (repository instanceof ContentFilteringRepository) {
             filter = ((ContentFilteringRepository) repository).getContentFilter();
@@ -193,9 +231,8 @@ public class ExternalModuleComponentResolverFactory {
     }
 
     private ModuleComponentRepository<ExternalModuleComponentGraphResolveState> maybeApplyDependencyVerification(
-        ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository,
-        boolean dependencyVerificationEnabled
-    ) {
+            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository,
+            boolean dependencyVerificationEnabled) {
         if (!dependencyVerificationEnabled) {
             LOGGER.warn("Dependency verification has been disabled.");
             return moduleComponentRepository;
@@ -211,22 +248,35 @@ public class ExternalModuleComponentResolverFactory {
     /**
      * Provides access to the top-level resolver chain for looking up parent modules when parsing module descriptor files.
      */
-    private static class ParentModuleLookupResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+    private static class ParentModuleLookupResolver
+            implements ComponentResolvers,
+                    DependencyToComponentIdResolver,
+                    ComponentMetaDataResolver,
+                    ArtifactResolver {
         private final UserResolverChain delegate;
 
         public ParentModuleLookupResolver(
-            VersionComparator versionComparator,
-            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-            VersionParser versionParser,
-            ImmutableAttributesSchema attributesSchema,
-            AttributesFactory attributesFactory,
-            AttributeSchemaServices attributeSchemaServices,
-            ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
-            ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-            CalculatedValueFactory calculatedValueFactory,
-            CacheExpirationControl cacheExpirationControl
-        ) {
-            this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, attributesSchema, attributesFactory, attributeSchemaServices, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl);
+                VersionComparator versionComparator,
+                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                VersionParser versionParser,
+                ImmutableAttributesSchema attributesSchema,
+                AttributesFactory attributesFactory,
+                AttributeSchemaServices attributeSchemaServices,
+                ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
+                ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+                CalculatedValueFactory calculatedValueFactory,
+                CacheExpirationControl cacheExpirationControl) {
+            this.delegate = new UserResolverChain(
+                    versionComparator,
+                    new DefaultComponentSelectionRules(moduleIdentifierFactory),
+                    versionParser,
+                    attributesSchema,
+                    attributesFactory,
+                    attributeSchemaServices,
+                    componentMetadataProcessorFactory,
+                    componentMetadataSupplierRuleExecutor,
+                    calculatedValueFactory,
+                    cacheExpirationControl);
         }
 
         public void add(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository) {
@@ -249,12 +299,22 @@ public class ExternalModuleComponentResolverFactory {
         }
 
         @Override
-        public void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes) {
-            delegate.getComponentIdResolver().resolve(selector, overrideMetadata, acceptor, rejector, result, consumerAttributes);
+        public void resolve(
+                ComponentSelector selector,
+                ComponentOverrideMetadata overrideMetadata,
+                VersionSelector acceptor,
+                @Nullable VersionSelector rejector,
+                BuildableComponentIdResolveResult result,
+                ImmutableAttributes consumerAttributes) {
+            delegate.getComponentIdResolver()
+                    .resolve(selector, overrideMetadata, acceptor, rejector, result, consumerAttributes);
         }
 
         @Override
-        public void resolve(final ComponentIdentifier identifier, final ComponentOverrideMetadata componentOverrideMetadata, final BuildableComponentResolveResult result) {
+        public void resolve(
+                final ComponentIdentifier identifier,
+                final ComponentOverrideMetadata componentOverrideMetadata,
+                final BuildableComponentResolveResult result) {
             delegate.getComponentResolver().resolve(identifier, componentOverrideMetadata, result);
         }
 
@@ -264,12 +324,18 @@ public class ExternalModuleComponentResolverFactory {
         }
 
         @Override
-        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveArtifactsWithType(
+                ComponentArtifactResolveMetadata component,
+                ArtifactType artifactType,
+                BuildableArtifactSetResolveResult result) {
             delegate.getArtifactResolver().resolveArtifactsWithType(component, artifactType, result);
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(
+                ComponentArtifactResolveMetadata component,
+                ComponentArtifactMetadata artifact,
+                BuildableArtifactResolveResult result) {
             delegate.getArtifactResolver().resolveArtifact(component, artifact, result);
         }
     }
@@ -279,7 +345,8 @@ public class ExternalModuleComponentResolverFactory {
         private final CacheExpirationControl cacheExpirationControl;
         private final Instantiator instantiator;
 
-        private DefaultMetadataResolutionContext(CacheExpirationControl cacheExpirationControl, Instantiator instantiator) {
+        private DefaultMetadataResolutionContext(
+                CacheExpirationControl cacheExpirationControl, Instantiator instantiator) {
             this.cacheExpirationControl = cacheExpirationControl;
             this.instantiator = instantiator;
         }

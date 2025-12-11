@@ -23,7 +23,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * Provides a combined hash for a hierarchy of classloaders.
  */
-@ServiceScope({Scope.UserHome.class, Scope.Global.class}) //Global scope is needed for the usage in process isolated worker actions
+@ServiceScope({Scope.UserHome.class, Scope.Global.class
+}) // Global scope is needed for the usage in process isolated worker actions
 public interface ClassLoaderHierarchyHasher {
     /**
      * Returns a hash for the given classloader hierarchy, or {@code null}

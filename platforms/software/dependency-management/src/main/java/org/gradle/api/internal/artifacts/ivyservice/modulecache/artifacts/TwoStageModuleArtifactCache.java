@@ -15,19 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
-import org.gradle.internal.hash.HashCode;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import org.gradle.internal.hash.HashCode;
+import org.jspecify.annotations.Nullable;
 
 public class TwoStageModuleArtifactCache implements ModuleArtifactCache {
     private final ModuleArtifactCache readOnlyCache;
     private final ModuleArtifactCache writableCache;
     private final Path readOnlyCachePath;
 
-    public TwoStageModuleArtifactCache(Path readOnlyCachePath, ModuleArtifactCache readOnlyCache, ModuleArtifactCache writableCache) {
+    public TwoStageModuleArtifactCache(
+            Path readOnlyCachePath, ModuleArtifactCache readOnlyCache, ModuleArtifactCache writableCache) {
         this.readOnlyCachePath = readOnlyCachePath;
         this.readOnlyCache = readOnlyCache;
         this.writableCache = writableCache;
@@ -39,7 +39,7 @@ public class TwoStageModuleArtifactCache implements ModuleArtifactCache {
             // skip writing because the file comes from the RO cache
             return;
         }
-        writableCache.store(key, artifactFile,  moduleDescriptorHash);
+        writableCache.store(key, artifactFile, moduleDescriptorHash);
     }
 
     @Override

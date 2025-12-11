@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.cache;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for dealing with cache directories.
@@ -55,14 +54,11 @@ class CacheDirUtil {
         }
         try {
             try {
-                stream.write(
-                    (
-                        "Signature: 8a477f597d28d172789f06886806bc55\n" +
-                            "# This file is a cache directory tag created by Gradle.\n" +
-                            "# For information about cache directory tags, see:\n" +
-                            "#\thttps://bford.info/cachedir/"
-                    ).getBytes(StandardCharsets.UTF_8)
-                );
+                stream.write(("Signature: 8a477f597d28d172789f06886806bc55\n"
+                                + "# This file is a cache directory tag created by Gradle.\n"
+                                + "# For information about cache directory tags, see:\n"
+                                + "#\thttps://bford.info/cachedir/")
+                        .getBytes(StandardCharsets.UTF_8));
             } finally {
                 // stream close is done here so if it throws, we can re-use the outer catch block
                 stream.close();

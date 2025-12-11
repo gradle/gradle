@@ -1,5 +1,9 @@
 package com.example.sample;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -9,11 +13,6 @@ import org.gradle.tooling.events.test.TestFailureResult;
 import org.gradle.tooling.events.test.TestFinishEvent;
 import org.gradle.tooling.events.test.TestSkippedResult;
 import org.gradle.tooling.events.test.TestSuccessResult;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -30,16 +29,23 @@ public class Main {
             launcher.forTasks("test");
             launcher.setStandardOutput(System.out);
             launcher.setStandardError(System.err);
-            launcher.addProgressListener(progressEvent -> {
-                if (progressEvent instanceof TestFinishEvent testFinishEvent) {
-                    switch(testFinishEvent.getResult()) {
-                        case TestFailureResult r -> System.out.println(toEventPath(testFinishEvent.getDescriptor()) + " failed");
-                        case TestSkippedResult r -> System.out.println(toEventPath(testFinishEvent.getDescriptor()) + " skipped");
-                        case TestSuccessResult r -> System.out.println(toEventPath(testFinishEvent.getDescriptor()) + " succeeded");
-                        default -> System.out.println(toEventPath(testFinishEvent.getDescriptor()) + " finished with unknown result");
-                    }
-                }
-            }, Collections.singleton(OperationType.TEST));
+            launcher.addProgressListener(
+                    progressEvent -> {
+                        if (progressEvent instanceof TestFinishEvent testFinishEvent) {
+                            switch (testFinishEvent.getResult()) {
+                                case TestFailureResult r ->
+                                    System.out.println(toEventPath(testFinishEvent.getDescriptor()) + " failed");
+                                case TestSkippedResult r ->
+                                    System.out.println(toEventPath(testFinishEvent.getDescriptor()) + " skipped");
+                                case TestSuccessResult r ->
+                                    System.out.println(toEventPath(testFinishEvent.getDescriptor()) + " succeeded");
+                                default ->
+                                    System.out.println(toEventPath(testFinishEvent.getDescriptor())
+                                            + " finished with unknown result");
+                            }
+                        }
+                    },
+                    Collections.singleton(OperationType.TEST));
 
             // Run the build
             launcher.run();

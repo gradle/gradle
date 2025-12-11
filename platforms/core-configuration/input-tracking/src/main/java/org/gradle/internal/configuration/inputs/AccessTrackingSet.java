@@ -18,9 +18,6 @@ package org.gradle.internal.configuration.inputs;
 
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.Iterators;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,6 +27,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The special-cased implementation of {@link Set} that tracks all accesses to its elements.
@@ -79,7 +78,8 @@ class AccessTrackingSet<E> extends ForwardingSet<E> implements Serializable {
 
     @Override
     public boolean remove(@Nullable Object o) {
-        // We cannot perform modification before notifying because the listener may want to query the state of the delegate prior to that.
+        // We cannot perform modification before notifying because the listener may want to query the state of the
+        // delegate prior to that.
         listener.onAccess(o);
         listener.onRemove(o);
         return delegate.remove(o);
@@ -87,7 +87,8 @@ class AccessTrackingSet<E> extends ForwardingSet<E> implements Serializable {
 
     @Override
     public boolean removeAll(Collection<?> collection) {
-        // We cannot perform modification before notifying because the listener may want to query the state of the delegate prior to that.
+        // We cannot perform modification before notifying because the listener may want to query the state of the
+        // delegate prior to that.
         for (Object o : collection) {
             listener.onAccess(o);
             listener.onRemove(o);
@@ -171,7 +172,8 @@ class AccessTrackingSet<E> extends ForwardingSet<E> implements Serializable {
         // Let's be pessimistic and consider everything an input.
         reportAggregatingAccess();
         // We cannot just return a LinkedHashSet here, because of a CC bug.
-        // When handling the writeReplace result, CC always serializes it as a Bean, not adhering to any custom protocol.
+        // When handling the writeReplace result, CC always serializes it as a Bean, not adhering to any custom
+        // protocol.
         // The LinkedHashSet cannot be serialized correctly as a bean, so we have to wrap it.
         return new SerializedForm(new ArrayList<>(delegate));
     }

@@ -15,10 +15,9 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.util.GradleVersion;
-
 import java.io.File;
 import java.util.concurrent.TimeUnit;
+import org.gradle.util.GradleVersion;
 
 public class DefaultConnectionParameters implements ConnectionParameters {
 
@@ -47,8 +46,7 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         private Boolean searchUpwards;
         private File distributionBaseDir;
 
-        protected Builder() {
-        }
+        protected Builder() {}
 
         public Builder setProjectDir(File projectDir) {
             this.projectDir = projectDir;
@@ -95,13 +93,29 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         }
 
         public DefaultConnectionParameters build() {
-            return new DefaultConnectionParameters(projectDir, gradleUserHomeDir, embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging, searchUpwards, distributionBaseDir);
+            return new DefaultConnectionParameters(
+                    projectDir,
+                    gradleUserHomeDir,
+                    embedded,
+                    daemonMaxIdleTimeValue,
+                    daemonMaxIdleTimeUnits,
+                    daemonBaseDir,
+                    verboseLogging,
+                    searchUpwards,
+                    distributionBaseDir);
         }
     }
 
-    private DefaultConnectionParameters(File projectDir, File gradleUserHomeDir, Boolean embedded,
-                                        Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, File daemonBaseDir,
-                                        boolean verboseLogging, Boolean searchUpwards, File distributionBaseDir) {
+    private DefaultConnectionParameters(
+            File projectDir,
+            File gradleUserHomeDir,
+            Boolean embedded,
+            Integer daemonMaxIdleTimeValue,
+            TimeUnit daemonMaxIdleTimeUnits,
+            File daemonBaseDir,
+            boolean verboseLogging,
+            Boolean searchUpwards,
+            File distributionBaseDir) {
         this.projectDir = projectDir;
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.embedded = embedded;

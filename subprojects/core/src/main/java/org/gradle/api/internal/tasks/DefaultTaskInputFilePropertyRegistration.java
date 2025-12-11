@@ -30,7 +30,8 @@ import org.gradle.internal.properties.StaticValue;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePropertyRegistration implements TaskInputFilePropertyRegistration {
+public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePropertyRegistration
+        implements TaskInputFilePropertyRegistration {
 
     private final InputFilePropertyType filePropertyType;
     private boolean skipWhenEmpty;
@@ -87,16 +88,19 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     }
 
     @Override
-    public TaskInputFilePropertyBuilderInternal withNormalizer(Class<? extends org.gradle.api.tasks.FileNormalizer> normalizer) {
+    public TaskInputFilePropertyBuilderInternal withNormalizer(
+            Class<? extends org.gradle.api.tasks.FileNormalizer> normalizer) {
         if (normalizer == ClasspathNormalizer.class) {
             return withInternalNormalizer(InputNormalizer.RUNTIME_CLASSPATH);
         } else if (normalizer == CompileClasspathNormalizer.class) {
             return withInternalNormalizer(InputNormalizer.COMPILE_CLASSPATH);
         } else {
-            DeprecationLogger.deprecateBehaviour(String.format("Setting normalizer of type '%s' on property '%s'.", normalizer.getCanonicalName(), getPropertyName()))
-                .willBecomeAnErrorInGradle10()
-                .undocumented() // TODO: We don't seem to have any user manual documentation for this API
-                .nagUser();
+            DeprecationLogger.deprecateBehaviour(String.format(
+                            "Setting normalizer of type '%s' on property '%s'.",
+                            normalizer.getCanonicalName(), getPropertyName()))
+                    .willBecomeAnErrorInGradle10()
+                    .undocumented() // TODO: We don't seem to have any user manual documentation for this API
+                    .nagUser();
             return this;
         }
     }
@@ -125,7 +129,8 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
 
     @Override
     public TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ignoreDirectories) {
-        this.directorySensitivity = ignoreDirectories ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.DEFAULT;
+        this.directorySensitivity =
+                ignoreDirectories ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.DEFAULT;
         return this;
     }
 
@@ -142,7 +147,8 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
 
     @Override
     public TaskInputFilePropertyBuilder normalizeLineEndings(boolean normalizeLineEndings) {
-        this.lineEndingSensitivity = normalizeLineEndings ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS : LineEndingSensitivity.DEFAULT;
+        this.lineEndingSensitivity =
+                normalizeLineEndings ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS : LineEndingSensitivity.DEFAULT;
         return this;
     }
 

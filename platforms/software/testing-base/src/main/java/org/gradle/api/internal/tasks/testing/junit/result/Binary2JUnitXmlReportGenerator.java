@@ -17,6 +17,10 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import javax.inject.Inject;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -34,11 +38,6 @@ import org.gradle.internal.time.Timer;
 import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.NullMarked;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-
 @NullMarked
 public class Binary2JUnitXmlReportGenerator {
     private static final String REPORT_FILE_PREFIX = "TEST-";
@@ -52,16 +51,20 @@ public class Binary2JUnitXmlReportGenerator {
 
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
+    private static final Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
 
     @Inject
     public Binary2JUnitXmlReportGenerator(
-        BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor, HostnameLookup hostnameLookup,
-        File testResultsDir, TestResultsProvider testResultsProvider, JUnitXmlResultOptions options
-    ) {
+            BuildOperationRunner buildOperationRunner,
+            BuildOperationExecutor buildOperationExecutor,
+            HostnameLookup hostnameLookup,
+            File testResultsDir,
+            TestResultsProvider testResultsProvider,
+            JUnitXmlResultOptions options) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
-        this.xmlWriter = new JUnitXmlResultWriter(testResultsDir.toPath(), hostnameLookup.getHostname(), testResultsProvider, options);
+        this.xmlWriter = new JUnitXmlResultWriter(
+                testResultsDir.toPath(), hostnameLookup.getHostname(), testResultsProvider, options);
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -90,18 +93,18 @@ public class Binary2JUnitXmlReportGenerator {
             }
         });
 
-        buildOperationExecutor.runAll((BuildOperationQueue<JUnitXmlReportFileGenerator> queue) ->
-            testResultsProvider.visitClasses(result -> {
-                final File reportFile = new File(testResultsDir, getReportFileName(result));
-                queue.add(new JUnitXmlReportFileGenerator(result, reportFile, xmlWriter));
-            })
-        );
+        buildOperationExecutor.runAll(
+                (BuildOperationQueue<JUnitXmlReportFileGenerator> queue) -> testResultsProvider.visitClasses(result -> {
+                    final File reportFile = new File(testResultsDir, getReportFileName(result));
+                    queue.add(new JUnitXmlReportFileGenerator(result, reportFile, xmlWriter));
+                }));
 
         LOG.info("Finished generating test XML results ({}) into: {}", clock.getElapsed(), testResultsDir);
     }
 
     private static String getReportFileName(TestClassResult result) {
-        return SafeFileLocationUtils.toSafeFileName(REPORT_FILE_PREFIX + result.getClassName() + REPORT_FILE_EXTENSION, false);
+        return SafeFileLocationUtils.toSafeFileName(
+                REPORT_FILE_PREFIX + result.getClassName() + REPORT_FILE_EXTENSION, false);
     }
 
     private static class JUnitXmlReportFileGenerator implements RunnableBuildOperation {
@@ -117,7 +120,8 @@ public class Binary2JUnitXmlReportGenerator {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Generate junit XML test report for ".concat(result.getClassName()));
+            return BuildOperationDescriptor.displayName(
+                    "Generate junit XML test report for ".concat(result.getClassName()));
         }
 
         @Override
@@ -128,7 +132,11 @@ public class Binary2JUnitXmlReportGenerator {
                 xmlWriter.write(result, output);
                 output.close();
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not write XML test results for %s to file %s.", result.getClassName(), reportFile), e);
+                throw new GradleException(
+                        String.format(
+                                "Could not write XML test results for %s to file %s.",
+                                result.getClassName(), reportFile),
+                        e);
             } finally {
                 IoActions.closeQuietly(output);
             }

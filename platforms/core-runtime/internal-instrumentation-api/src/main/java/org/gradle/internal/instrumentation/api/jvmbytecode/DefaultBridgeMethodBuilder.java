@@ -16,23 +16,22 @@
 
 package org.gradle.internal.instrumentation.api.jvmbytecode;
 
+import static org.objectweb.asm.Opcodes.H_INVOKEINTERFACE;
+import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.H_INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.H_NEWINVOKESPECIAL;
+import static org.objectweb.asm.Type.getObjectType;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import javax.annotation.CheckReturnValue;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-
-import javax.annotation.CheckReturnValue;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.objectweb.asm.Opcodes.H_INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.H_INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.H_NEWINVOKESPECIAL;
-import static org.objectweb.asm.Type.getObjectType;
 
 /**
  * The implementation of the bridge method builder that handles typical invocation cases and can compute the bridge method signature.
@@ -45,8 +44,10 @@ public abstract class DefaultBridgeMethodBuilder implements BridgeMethodBuilder 
     private final String interceptorDesc;
 
     private final boolean hasKotlinDefaultMask;
+
     @Nullable
     private final String binaryClassName;
+
     @Nullable
     private final BytecodeInterceptorFilter context;
 
@@ -68,34 +69,37 @@ public abstract class DefaultBridgeMethodBuilder implements BridgeMethodBuilder 
      * @see #withClassName(String)
      */
     public static DefaultBridgeMethodBuilder create(
-        int originalTag,
-        String originalOwner,
-        String originalDesc,
-        String interceptorOwner,
-        String interceptorName,
-        String interceptorDesc
-    ) {
+            int originalTag,
+            String originalOwner,
+            String originalDesc,
+            String interceptorOwner,
+            String interceptorName,
+            String interceptorDesc) {
         switch (originalTag) {
             case H_INVOKESTATIC: {
                 return new StaticBridgeMethodBuilder(originalDesc, interceptorOwner, interceptorName, interceptorDesc);
             }
             case H_NEWINVOKESPECIAL: {
                 if (Type.getMethodType(interceptorDesc).getReturnType().getSort() != Type.VOID) {
-                    throw new IllegalArgumentException(String.format("Cannot intercept constructor %s of %s with a non-void returning method %s.%s(%s)!",
-                        originalDesc, originalOwner, interceptorOwner, interceptorName, interceptorDesc));
+                    throw new IllegalArgumentException(String.format(
+                            "Cannot intercept constructor %s of %s with a non-void returning method %s.%s(%s)!",
+                            originalDesc, originalOwner, interceptorOwner, interceptorName, interceptorDesc));
                 }
-                return new ConstructorBridgeMethodBuilder(originalOwner, originalDesc, interceptorOwner, interceptorName, interceptorDesc);
+                return new ConstructorBridgeMethodBuilder(
+                        originalOwner, originalDesc, interceptorOwner, interceptorName, interceptorDesc);
             }
             case H_INVOKEINTERFACE:
             case H_INVOKEVIRTUAL: {
-                return new InstanceBridgeMethodBuilder(originalTag, originalOwner, originalDesc, interceptorOwner, interceptorName, interceptorDesc);
+                return new InstanceBridgeMethodBuilder(
+                        originalTag, originalOwner, originalDesc, interceptorOwner, interceptorName, interceptorDesc);
             }
             default:
                 throw new IllegalArgumentException("Unsupported tag " + originalTag);
         }
     }
 
-    private DefaultBridgeMethodBuilder(String bridgeDesc, String interceptorOwner, String interceptorName, String interceptorDesc) {
+    private DefaultBridgeMethodBuilder(
+            String bridgeDesc, String interceptorOwner, String interceptorName, String interceptorDesc) {
         this(bridgeDesc, interceptorOwner, interceptorName, interceptorDesc, false, null, null);
     }
 
@@ -107,7 +111,14 @@ public abstract class DefaultBridgeMethodBuilder implements BridgeMethodBuilder 
      * @param bridgeDesc the new bridge method descriptor
      */
     protected DefaultBridgeMethodBuilder(DefaultBridgeMethodBuilder builder, String bridgeDesc) {
-        this(bridgeDesc, builder.interceptorOwner, builder.interceptorName, builder.interceptorDesc, builder.hasKotlinDefaultMask, builder.binaryClassName, builder.context);
+        this(
+                bridgeDesc,
+                builder.interceptorOwner,
+                builder.interceptorName,
+                builder.interceptorDesc,
+                builder.hasKotlinDefaultMask,
+                builder.binaryClassName,
+                builder.context);
     }
 
     /**
@@ -121,23 +132,28 @@ public abstract class DefaultBridgeMethodBuilder implements BridgeMethodBuilder 
      * @see #copy(boolean, String, BytecodeInterceptorFilter)
      */
     protected DefaultBridgeMethodBuilder(
-        DefaultBridgeMethodBuilder builder,
-        boolean hasKotlinDefaultMask,
-        @Nullable String binaryClassName,
-        @Nullable BytecodeInterceptorFilter context
-    ) {
-        this(builder.bridgeDesc, builder.interceptorOwner, builder.interceptorName, builder.interceptorDesc, hasKotlinDefaultMask, binaryClassName, context);
+            DefaultBridgeMethodBuilder builder,
+            boolean hasKotlinDefaultMask,
+            @Nullable String binaryClassName,
+            @Nullable BytecodeInterceptorFilter context) {
+        this(
+                builder.bridgeDesc,
+                builder.interceptorOwner,
+                builder.interceptorName,
+                builder.interceptorDesc,
+                hasKotlinDefaultMask,
+                binaryClassName,
+                context);
     }
 
     private DefaultBridgeMethodBuilder(
-        String bridgeDesc,
-        String interceptorOwner,
-        String interceptorName,
-        String interceptorDesc,
-        boolean hasKotlinDefaultMask,
-        @Nullable String binaryClassName,
-        @Nullable BytecodeInterceptorFilter context
-    ) {
+            String bridgeDesc,
+            String interceptorOwner,
+            String interceptorName,
+            String interceptorDesc,
+            boolean hasKotlinDefaultMask,
+            @Nullable String binaryClassName,
+            @Nullable BytecodeInterceptorFilter context) {
         this.bridgeDesc = bridgeDesc;
         this.interceptorOwner = interceptorOwner;
         this.interceptorName = interceptorName;
@@ -149,7 +165,8 @@ public abstract class DefaultBridgeMethodBuilder implements BridgeMethodBuilder 
 
     @Override
     public BridgeMethodBuilder withReceiverType(String targetType) {
-        throw new UnsupportedOperationException("Receiver type refinement isn't supported for " + getClass().getSimpleName());
+        throw new UnsupportedOperationException(
+                "Receiver type refinement isn't supported for " + getClass().getSimpleName());
     }
 
     /**
@@ -184,7 +201,10 @@ public abstract class DefaultBridgeMethodBuilder implements BridgeMethodBuilder 
         return copy(hasKotlinDefaultMask, binaryClassName, context);
     }
 
-    protected abstract DefaultBridgeMethodBuilder copy(boolean hasKotlinDefaultMask, @Nullable String binaryClassName, @Nullable BytecodeInterceptorFilter context);
+    protected abstract DefaultBridgeMethodBuilder copy(
+            boolean hasKotlinDefaultMask,
+            @Nullable String binaryClassName,
+            @Nullable BytecodeInterceptorFilter context);
 
     @Override
     public final String getBridgeMethodDescriptor() {
@@ -212,8 +232,10 @@ public abstract class DefaultBridgeMethodBuilder implements BridgeMethodBuilder 
 
         if (hasKotlinDefaultMask) {
             // Note that we cannot reasonably get a method reference to a Kotlin method that accepts the default mask.
-            // A proxy method generated by the Kotlin compiler calls this method normally, and we instrument that method call.
-            // However, in theory, we can see a reference to the method that accepts all arguments, though currently the compiler generates a proxy method too.
+            // A proxy method generated by the Kotlin compiler calls this method normally, and we instrument that method
+            // call.
+            // However, in theory, we can see a reference to the method that accepts all arguments, though currently the
+            // compiler generates a proxy method too.
             // Either way, we just signal the interceptor that all arguments are provided.
             mv._LDC(0);
         }
@@ -245,17 +267,25 @@ public abstract class DefaultBridgeMethodBuilder implements BridgeMethodBuilder 
     }
 
     private static class StaticBridgeMethodBuilder extends DefaultBridgeMethodBuilder {
-        private StaticBridgeMethodBuilder(String bridgeDesc, String interceptorOwner, String interceptorName, String interceptorDesc) {
+        private StaticBridgeMethodBuilder(
+                String bridgeDesc, String interceptorOwner, String interceptorName, String interceptorDesc) {
             // When intercepting a static method, the interceptor signature matches the original one.
             super(bridgeDesc, interceptorOwner, interceptorName, interceptorDesc);
         }
 
-        private StaticBridgeMethodBuilder(StaticBridgeMethodBuilder builder, boolean hasKotlinDefaultMask, @Nullable String binaryClassName, @Nullable BytecodeInterceptorFilter context) {
+        private StaticBridgeMethodBuilder(
+                StaticBridgeMethodBuilder builder,
+                boolean hasKotlinDefaultMask,
+                @Nullable String binaryClassName,
+                @Nullable BytecodeInterceptorFilter context) {
             super(builder, hasKotlinDefaultMask, binaryClassName, context);
         }
 
         @Override
-        protected StaticBridgeMethodBuilder copy(boolean hasKotlinDefaultMask, @Nullable String binaryClassName, @Nullable BytecodeInterceptorFilter context) {
+        protected StaticBridgeMethodBuilder copy(
+                boolean hasKotlinDefaultMask,
+                @Nullable String binaryClassName,
+                @Nullable BytecodeInterceptorFilter context) {
             return new StaticBridgeMethodBuilder(this, hasKotlinDefaultMask, binaryClassName, context);
         }
     }
@@ -265,31 +295,42 @@ public abstract class DefaultBridgeMethodBuilder implements BridgeMethodBuilder 
         private final String originalConstructorDesc;
 
         ConstructorBridgeMethodBuilder(
-            String originalOwner,
-            String originalConstructorDesc,
-            String interceptorOwner,
-            String interceptorName,
-            String interceptorDesc
-        ) {
-            super(buildConstructorBridgeDesc(originalOwner, originalConstructorDesc), interceptorOwner, interceptorName, interceptorDesc);
+                String originalOwner,
+                String originalConstructorDesc,
+                String interceptorOwner,
+                String interceptorName,
+                String interceptorDesc) {
+            super(
+                    buildConstructorBridgeDesc(originalOwner, originalConstructorDesc),
+                    interceptorOwner,
+                    interceptorName,
+                    interceptorDesc);
             this.originalOwner = originalOwner;
             this.originalConstructorDesc = originalConstructorDesc;
         }
 
-        private ConstructorBridgeMethodBuilder(ConstructorBridgeMethodBuilder builder, boolean hasKotlinDefaultMask, @Nullable String binaryClassName, @Nullable BytecodeInterceptorFilter context) {
+        private ConstructorBridgeMethodBuilder(
+                ConstructorBridgeMethodBuilder builder,
+                boolean hasKotlinDefaultMask,
+                @Nullable String binaryClassName,
+                @Nullable BytecodeInterceptorFilter context) {
             super(builder, hasKotlinDefaultMask, binaryClassName, context);
             this.originalOwner = builder.originalOwner;
             this.originalConstructorDesc = builder.originalConstructorDesc;
         }
 
         @Override
-        protected ConstructorBridgeMethodBuilder copy(boolean hasKotlinDefaultMask, @Nullable String binaryClassName, @Nullable BytecodeInterceptorFilter context) {
+        protected ConstructorBridgeMethodBuilder copy(
+                boolean hasKotlinDefaultMask,
+                @Nullable String binaryClassName,
+                @Nullable BytecodeInterceptorFilter context) {
             return new ConstructorBridgeMethodBuilder(this, hasKotlinDefaultMask, binaryClassName, context);
         }
 
         @Override
         protected void buildBridgeMethodImpl(MethodVisitorScope mv) {
-            // Unlike the INVOKESPECIAL opcode, a method reference with NEWINVOKESPECIAL tag cannot represent super constructor call.
+            // Unlike the INVOKESPECIAL opcode, a method reference with NEWINVOKESPECIAL tag cannot represent super
+            // constructor call.
             // Thus, we can simply call the constructor ourselves.
             Type ownerType = getObjectType(originalOwner);
             mv._NEW(ownerType);
@@ -316,8 +357,18 @@ public abstract class DefaultBridgeMethodBuilder implements BridgeMethodBuilder 
         private final int tag;
         private final String originalDesc;
 
-        InstanceBridgeMethodBuilder(int tag, String originalOwner, String originalDesc, String interceptorOwner, String interceptorName, String interceptorDesc) {
-            super(buildInstanceBridgeDesc(tag, originalOwner, originalDesc), interceptorOwner, interceptorName, interceptorDesc);
+        InstanceBridgeMethodBuilder(
+                int tag,
+                String originalOwner,
+                String originalDesc,
+                String interceptorOwner,
+                String interceptorName,
+                String interceptorDesc) {
+            super(
+                    buildInstanceBridgeDesc(tag, originalOwner, originalDesc),
+                    interceptorOwner,
+                    interceptorName,
+                    interceptorDesc);
             this.tag = tag;
             this.originalDesc = originalDesc;
         }
@@ -328,14 +379,21 @@ public abstract class DefaultBridgeMethodBuilder implements BridgeMethodBuilder 
             this.originalDesc = builder.originalDesc;
         }
 
-        private InstanceBridgeMethodBuilder(InstanceBridgeMethodBuilder builder, boolean hasKotlinDefaultMask, @Nullable String binaryClassName, @Nullable BytecodeInterceptorFilter context) {
+        private InstanceBridgeMethodBuilder(
+                InstanceBridgeMethodBuilder builder,
+                boolean hasKotlinDefaultMask,
+                @Nullable String binaryClassName,
+                @Nullable BytecodeInterceptorFilter context) {
             super(builder, hasKotlinDefaultMask, binaryClassName, context);
             this.tag = builder.tag;
             this.originalDesc = builder.originalDesc;
         }
 
         @Override
-        protected InstanceBridgeMethodBuilder copy(boolean hasKotlinDefaultMask, @Nullable String binaryClassName, @Nullable BytecodeInterceptorFilter context) {
+        protected InstanceBridgeMethodBuilder copy(
+                boolean hasKotlinDefaultMask,
+                @Nullable String binaryClassName,
+                @Nullable BytecodeInterceptorFilter context) {
             return new InstanceBridgeMethodBuilder(this, hasKotlinDefaultMask, binaryClassName, context);
         }
 
@@ -354,7 +412,8 @@ public abstract class DefaultBridgeMethodBuilder implements BridgeMethodBuilder 
             interceptorArguments.add(originalOwner);
             interceptorArguments.addAll(Arrays.asList(originalMethodType.getArgumentTypes()));
 
-            return Type.getMethodDescriptor(originalMethodType.getReturnType(), interceptorArguments.toArray(new Type[0]));
+            return Type.getMethodDescriptor(
+                    originalMethodType.getReturnType(), interceptorArguments.toArray(new Type[0]));
         }
     }
 }

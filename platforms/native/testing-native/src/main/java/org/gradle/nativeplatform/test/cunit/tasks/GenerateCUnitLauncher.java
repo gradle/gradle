@@ -16,13 +16,12 @@
 
 package org.gradle.nativeplatform.test.cunit.tasks;
 
+import java.io.File;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.io.File;
 
 /**
  * Generated the Gradle CUnit launcher: main method and header.

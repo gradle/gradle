@@ -17,10 +17,6 @@
 package org.gradle.internal.watch.registry.impl;
 
 import com.google.common.primitives.Longs;
-import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,6 +24,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileWatcherProbeRegistry.class);
@@ -57,8 +56,8 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
     @Override
     public Stream<File> unprovenHierarchies() {
         return watchProbesByHierarchy.values().stream()
-            .filter(WatchProbe::leftArmed)
-            .map(WatchProbe::getWatchableHierarchy);
+                .filter(WatchProbe::leftArmed)
+                .map(WatchProbe::getWatchableHierarchy);
     }
 
     @Override

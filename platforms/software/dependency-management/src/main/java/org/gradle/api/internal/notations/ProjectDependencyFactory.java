@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.notations;
 
+import java.util.Map;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -23,8 +24,6 @@ import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 public class ProjectDependencyFactory {
     private final DefaultProjectDependencyFactory factory;
@@ -35,7 +34,9 @@ public class ProjectDependencyFactory {
 
     public ProjectDependency createFromMap(ProjectFinder projectFinder, Map<? extends String, ?> map) {
         return NotationParserBuilder.toType(ProjectDependency.class)
-                .converter(new ProjectDependencyMapNotationConverter(projectFinder, factory)).toComposite().parseNotation(map);
+                .converter(new ProjectDependencyMapNotationConverter(projectFinder, factory))
+                .toComposite()
+                .parseNotation(map);
     }
 
     static class ProjectDependencyMapNotationConverter extends MapNotationConverter<ProjectDependency> {
@@ -43,15 +44,14 @@ public class ProjectDependencyFactory {
         private final ProjectFinder projectFinder;
         private final DefaultProjectDependencyFactory factory;
 
-        public ProjectDependencyMapNotationConverter(ProjectFinder projectFinder, DefaultProjectDependencyFactory factory) {
+        public ProjectDependencyMapNotationConverter(
+                ProjectFinder projectFinder, DefaultProjectDependencyFactory factory) {
             this.projectFinder = projectFinder;
             this.factory = factory;
         }
 
         protected ProjectDependency parseMap(
-            @MapKey("path") String path,
-            @MapKey("configuration") @Nullable String configuration
-        ) {
+                @MapKey("path") String path, @MapKey("configuration") @Nullable String configuration) {
             ProjectDependency defaultProjectDependency = factory.create(projectFinder.resolveIdentityPath(path));
             if (configuration != null) {
                 defaultProjectDependency.setTargetConfiguration(configuration);
@@ -61,7 +61,8 @@ public class ProjectDependencyFactory {
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Map with mandatory 'path' and optional 'configuration' key").example("[path: ':someProj', configuration: 'someConf']");
+            visitor.candidate("Map with mandatory 'path' and optional 'configuration' key")
+                    .example("[path: ':someProj', configuration: 'someConf']");
         }
     }
 }

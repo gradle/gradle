@@ -35,7 +35,13 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final InstantiatorFactory instantiatorFactory;
 
-    public IsolatedClassloaderWorkerFactory(BuildOperationRunner buildOperationRunner, ServiceRegistry internalServices, ClassLoaderRegistry classLoaderRegistry, LegacyTypesSupport legacyTypesSupport, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
+    public IsolatedClassloaderWorkerFactory(
+            BuildOperationRunner buildOperationRunner,
+            ServiceRegistry internalServices,
+            ClassLoaderRegistry classLoaderRegistry,
+            LegacyTypesSupport legacyTypesSupport,
+            ActionExecutionSpecFactory actionExecutionSpecFactory,
+            InstantiatorFactory instantiatorFactory) {
         this.buildOperationRunner = buildOperationRunner;
         this.internalServices = internalServices;
         this.classLoaderRegistry = classLoaderRegistry;
@@ -48,15 +54,24 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
         return new AbstractWorker(buildOperationRunner) {
             @Override
-            public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
+            public DefaultWorkResult execute(
+                    IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
                 return executeWrappedInBuildOperation(spec, parentBuildOperation, workSpec -> {
                     // Serialize the incoming class and parameters
-                    TransportableActionExecutionSpec transportableSpec = actionExecutionSpecFactory.newTransportableSpec(spec);
+                    TransportableActionExecutionSpec transportableSpec =
+                            actionExecutionSpecFactory.newTransportableSpec(spec);
 
                     ClassLoader workerInfrastructureClassloader = classLoaderRegistry.getPluginsClassLoader();
-                    ClassLoaderStructure classLoaderStructure = ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure();
-                    ClassLoader workerClassLoader = IsolatedClassloaderWorker.createIsolatedWorkerClassloader(classLoaderStructure, workerInfrastructureClassloader, legacyTypesSupport);
-                    RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> worker = new IsolatedClassloaderWorker(workerClassLoader, internalServices, actionExecutionSpecFactory, instantiatorFactory);
+                    ClassLoaderStructure classLoaderStructure =
+                            ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure();
+                    ClassLoader workerClassLoader = IsolatedClassloaderWorker.createIsolatedWorkerClassloader(
+                            classLoaderStructure, workerInfrastructureClassloader, legacyTypesSupport);
+                    RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> worker =
+                            new IsolatedClassloaderWorker(
+                                    workerClassLoader,
+                                    internalServices,
+                                    actionExecutionSpecFactory,
+                                    instantiatorFactory);
                     return worker.run(transportableSpec);
                 });
             }

@@ -17,6 +17,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import java.io.File;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
@@ -30,8 +31,6 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.InterningStringSerializer;
 
-import java.io.File;
-
 public class CachingFileHasher implements FileHasher {
     private final IndexedCache<String, FileInfo> cache;
     private final FileHasher delegate;
@@ -41,21 +40,21 @@ public class CachingFileHasher implements FileHasher {
     private final FileHasherStatistics.Collector statisticsCollector;
 
     public CachingFileHasher(
-        FileHasher delegate,
-        CrossBuildFileHashCache store,
-        StringInterner stringInterner,
-        FileTimeStampInspector timestampInspector,
-        String cacheName,
-        FileSystem fileSystem,
-        int inMemorySize,
-        FileHasherStatistics.Collector statisticsCollector
-    ) {
+            FileHasher delegate,
+            CrossBuildFileHashCache store,
+            StringInterner stringInterner,
+            FileTimeStampInspector timestampInspector,
+            String cacheName,
+            FileSystem fileSystem,
+            int inMemorySize,
+            FileHasherStatistics.Collector statisticsCollector) {
         this.delegate = delegate;
         this.fileSystem = fileSystem;
         this.cache = store.createIndexedCache(
-            IndexedCacheParameters.of(cacheName, new InterningStringSerializer(stringInterner), new FileInfoSerializer()),
-            inMemorySize,
-            true);
+                IndexedCacheParameters.of(
+                        cacheName, new InterningStringSerializer(stringInterner), new FileInfoSerializer()),
+                inMemorySize,
+                true);
         this.stringInterner = stringInterner;
         this.timestampInspector = timestampInspector;
         this.statisticsCollector = statisticsCollector;

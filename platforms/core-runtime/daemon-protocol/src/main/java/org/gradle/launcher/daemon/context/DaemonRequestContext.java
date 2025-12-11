@@ -16,11 +16,10 @@
 
 package org.gradle.launcher.daemon.context;
 
+import java.util.Collection;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.launcher.daemon.configuration.DaemonPriority;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
-
-import java.util.Collection;
 
 /**
  * Represents the request context a client has made.
@@ -34,7 +33,12 @@ public class DaemonRequestContext {
     private final NativeServices.NativeServicesMode nativeServicesMode;
     private final DaemonPriority priority;
 
-    public DaemonRequestContext(DaemonJvmCriteria jvmCriteria, Collection<String> daemonOpts, boolean applyInstrumentationAgent, NativeServices.NativeServicesMode nativeServicesMode, DaemonPriority priority) {
+    public DaemonRequestContext(
+            DaemonJvmCriteria jvmCriteria,
+            Collection<String> daemonOpts,
+            boolean applyInstrumentationAgent,
+            NativeServices.NativeServicesMode nativeServicesMode,
+            DaemonPriority priority) {
         this.jvmCriteria = jvmCriteria;
         this.daemonOpts = daemonOpts;
         this.applyInstrumentationAgent = applyInstrumentationAgent;
@@ -64,12 +68,11 @@ public class DaemonRequestContext {
 
     @Override
     public String toString() {
-        return "DaemonRequestContext{" +
-            "jvmCriteria=" + jvmCriteria +
-            ", daemonOpts=" + daemonOpts +
-            ", applyInstrumentationAgent=" + applyInstrumentationAgent +
-            ", nativeServicesMode=" + nativeServicesMode +
-            ", priority=" + priority +
-            '}';
+        return "DaemonRequestContext{" + "jvmCriteria="
+                + jvmCriteria + ", daemonOpts="
+                + daemonOpts + ", applyInstrumentationAgent="
+                + applyInstrumentationAgent + ", nativeServicesMode="
+                + nativeServicesMode + ", priority="
+                + priority + '}';
     }
 }

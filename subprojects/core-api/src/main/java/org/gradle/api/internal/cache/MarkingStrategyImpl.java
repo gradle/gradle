@@ -16,15 +16,13 @@
 
 package org.gradle.api.internal.cache;
 
-import org.gradle.api.cache.MarkingStrategy;
-
 import java.io.File;
+import org.gradle.api.cache.MarkingStrategy;
 
 public enum MarkingStrategyImpl implements MarkingStrategy {
     NONE {
         @Override
-        public void tryMarkCacheDirectory(File file) {
-        }
+        public void tryMarkCacheDirectory(File file) {}
     },
     CACHEDIR_TAG {
         @Override

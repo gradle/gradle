@@ -39,8 +39,13 @@ public class RunBuildAction implements Runnable {
     private final Stoppable stoppable;
 
     public RunBuildAction(
-        BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> executor, StartParameterInternal startParameter, GradleLauncherMetaData clientMetaData, long startTime,
-        BuildActionParameters buildActionParameters, ServiceRegistry sharedServices, Stoppable stoppable) {
+            BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> executor,
+            StartParameterInternal startParameter,
+            GradleLauncherMetaData clientMetaData,
+            long startTime,
+            BuildActionParameters buildActionParameters,
+            ServiceRegistry sharedServices,
+            Stoppable stoppable) {
         this.executor = executor;
         this.startParameter = startParameter;
         this.clientMetaData = clientMetaData;
@@ -54,12 +59,17 @@ public class RunBuildAction implements Runnable {
     public void run() {
         try {
             BuildActionResult result = executor.execute(
-                new ExecuteBuildAction(startParameter),
-                buildActionParameters,
-                new ClientBuildRequestContext(clientMetaData, startTime, sharedServices.get(ConsoleDetector.class).isConsoleInput(), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer())
-            );
+                    new ExecuteBuildAction(startParameter),
+                    buildActionParameters,
+                    new ClientBuildRequestContext(
+                            clientMetaData,
+                            startTime,
+                            sharedServices.get(ConsoleDetector.class).isConsoleInput(),
+                            new DefaultBuildCancellationToken(),
+                            new NoOpBuildEventConsumer()));
             if (result.hasFailure()) {
-                // Don't need to unpack the serialized failure. It will already have been reported and is not used by anything downstream of this action.
+                // Don't need to unpack the serialized failure. It will already have been reported and is not used by
+                // anything downstream of this action.
                 throw new ReportedException();
             }
         } finally {

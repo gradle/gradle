@@ -16,6 +16,13 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.io.IOUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -23,14 +30,6 @@ import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 @ThreadSafe
 @ServiceScope(Scope.UserHome.class)
@@ -49,7 +48,8 @@ public class PayloadSerializer {
         final SerializeMap map = classLoaderRegistry.newSerializeSession();
         try {
             StreamByteBuffer buffer = new StreamByteBuffer();
-            final ObjectOutputStream objectStream = new PayloadSerializerObjectOutputStream(buffer.getOutputStream(), map);
+            final ObjectOutputStream objectStream =
+                    new PayloadSerializerObjectOutputStream(buffer.getOutputStream(), map);
 
             try {
                 objectStream.writeObject(payload);
@@ -74,7 +74,8 @@ public class PayloadSerializer {
         try {
             final Map<Short, ClassLoaderDetails> classLoaderDetails = Cast.uncheckedNonnullCast(payload.getHeader());
             StreamByteBuffer buffer = StreamByteBuffer.of(payload.getSerializedModel());
-            final ObjectInputStream objectStream = new PayloadSerializerObjectInputStream(buffer.getInputStream(), getClass().getClassLoader(), classLoaderDetails, map);
+            final ObjectInputStream objectStream = new PayloadSerializerObjectInputStream(
+                    buffer.getInputStream(), getClass().getClassLoader(), classLoaderDetails, map);
             return objectStream.readObject();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);

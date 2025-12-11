@@ -27,7 +27,12 @@ public class SingleParentCopySpec extends DefaultCopySpec {
 
     private final PropertyFactory propertyFactory;
 
-    public SingleParentCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, PatternSetFactory patternSetFactory, CopySpecResolver parentResolver) {
+    public SingleParentCopySpec(
+            FileCollectionFactory fileCollectionFactory,
+            PropertyFactory propertyFactory,
+            Instantiator instantiator,
+            PatternSetFactory patternSetFactory,
+            CopySpecResolver parentResolver) {
         super(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory);
         this.parentResolver = parentResolver;
         this.propertyFactory = propertyFactory;
@@ -37,14 +42,26 @@ public class SingleParentCopySpec extends DefaultCopySpec {
 
     @Override
     public CopySpecInternal addChild() {
-        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, buildResolverRelativeToParent(parentResolver));
+        DefaultCopySpec child = instantiator.newInstance(
+                SingleParentCopySpec.class,
+                fileCollectionFactory,
+                propertyFactory,
+                instantiator,
+                patternSetFactory,
+                buildResolverRelativeToParent(parentResolver));
         addChildSpec(child);
         return child;
     }
 
     @Override
     protected CopySpecInternal addChildAtPosition(int position) {
-        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, buildResolverRelativeToParent(parentResolver));
+        DefaultCopySpec child = instantiator.newInstance(
+                SingleParentCopySpec.class,
+                fileCollectionFactory,
+                propertyFactory,
+                instantiator,
+                patternSetFactory,
+                buildResolverRelativeToParent(parentResolver));
         addChildSpec(position, child);
         return child;
     }

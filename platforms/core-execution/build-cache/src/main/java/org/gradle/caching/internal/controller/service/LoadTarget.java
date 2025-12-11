@@ -18,11 +18,10 @@ package org.gradle.caching.internal.controller.service;
 
 import com.google.common.io.Closer;
 import com.google.common.io.Files;
-import org.gradle.caching.BuildCacheEntryReader;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import org.gradle.caching.BuildCacheEntryReader;
 
 public class LoadTarget implements BuildCacheEntryReader {
 
@@ -65,5 +64,4 @@ public class LoadTarget implements BuildCacheEntryReader {
             return -1;
         }
     }
-
 }

@@ -15,10 +15,9 @@
  */
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.internal.UncheckedException;
-
 import java.io.IOException;
 import java.util.Properties;
+import org.gradle.internal.UncheckedException;
 
 public class DefaultTemplateLibraryVersionProvider implements TemplateLibraryVersionProvider {
 
@@ -26,7 +25,8 @@ public class DefaultTemplateLibraryVersionProvider implements TemplateLibraryVer
 
     public DefaultTemplateLibraryVersionProvider() {
         try {
-            this.libraryVersions.load(getClass().getResourceAsStream("/org/gradle/buildinit/tasks/templates/library-versions.properties"));
+            this.libraryVersions.load(getClass()
+                    .getResourceAsStream("/org/gradle/buildinit/tasks/templates/library-versions.properties"));
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

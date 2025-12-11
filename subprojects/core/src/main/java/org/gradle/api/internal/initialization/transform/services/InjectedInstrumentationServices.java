@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.transform.services;
 
+import javax.inject.Inject;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.classpath.ClasspathWalker;
@@ -27,15 +28,13 @@ import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.vfs.FileSystemAccess;
 
-import javax.inject.Inject;
-
 public abstract class InjectedInstrumentationServices {
-    private final Lazy<ClasspathElementTransformFactoryForAgent> transformFactory = Lazy.locking().of(
-        () -> new ClasspathElementTransformFactoryForAgent(new InPlaceClasspathBuilder(), getClasspathWalker())
-    );
-    private final Lazy<ClasspathElementTransformFactoryForLegacy> legacyTransformFactory = Lazy.locking().of(
-        () -> new ClasspathElementTransformFactoryForLegacy(new InPlaceClasspathBuilder(), getClasspathWalker())
-    );
+    private final Lazy<ClasspathElementTransformFactoryForAgent> transformFactory = Lazy.locking()
+            .of(() ->
+                    new ClasspathElementTransformFactoryForAgent(new InPlaceClasspathBuilder(), getClasspathWalker()));
+    private final Lazy<ClasspathElementTransformFactoryForLegacy> legacyTransformFactory = Lazy.locking()
+            .of(() ->
+                    new ClasspathElementTransformFactoryForLegacy(new InPlaceClasspathBuilder(), getClasspathWalker()));
 
     public InjectedInstrumentationServices() {
         // Needed to generate a class

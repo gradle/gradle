@@ -16,6 +16,10 @@
 
 package org.gradle.api.model;
 
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Named;
@@ -35,11 +39,6 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * A factory for creating various kinds of model objects.

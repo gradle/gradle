@@ -16,9 +16,10 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import org.jspecify.annotations.NullMarked;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_RELEASE_CONFIRMATION;
+import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNLOCK_REQUEST;
+import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNLOCK_REQUEST_CONFIRMATION;
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -28,11 +29,9 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.Optional;
 import java.util.Set;
-
-import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_RELEASE_CONFIRMATION;
-import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNLOCK_REQUEST;
-import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNLOCK_REQUEST_CONFIRMATION;
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+import org.jspecify.annotations.NullMarked;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @NullMarked
 public class DefaultFileLockCommunicator implements FileLockCommunicator {
@@ -56,7 +55,12 @@ public class DefaultFileLockCommunicator implements FileLockCommunicator {
             socket.send(new DatagramPacket(bytesToSend, bytesToSend.length, address, ownerPort));
             pingSentSuccessfully = true;
         } catch (IOException e) {
-            LOGGER.debug("Failed attempt to ping owner of lock for {} (lock id: {}, port: {}, address: {})", displayName, lockId, ownerPort, address);
+            LOGGER.debug(
+                    "Failed attempt to ping owner of lock for {} (lock id: {}, port: {}, address: {})",
+                    displayName,
+                    lockId,
+                    ownerPort,
+                    address);
         }
         return pingSentSuccessfully;
     }
@@ -91,7 +95,10 @@ public class DefaultFileLockCommunicator implements FileLockCommunicator {
         try {
             socket.send(packet);
         } catch (IOException e) {
-            LOGGER.debug("Failed to confirm unlock request to process at port {} for lock with id {}.", packet.getPort(), lockId);
+            LOGGER.debug(
+                    "Failed to confirm unlock request to process at port {} for lock with id {}.",
+                    packet.getPort(),
+                    lockId);
         }
     }
 
@@ -101,11 +108,15 @@ public class DefaultFileLockCommunicator implements FileLockCommunicator {
         for (SocketAddress requesterAddress : requesterAddresses) {
             DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
             packet.setSocketAddress(requesterAddress);
-            LOGGER.debug("Confirming lock release to process at port {} for lock with id {}.", packet.getPort(), lockId);
+            LOGGER.debug(
+                    "Confirming lock release to process at port {} for lock with id {}.", packet.getPort(), lockId);
             try {
                 socket.send(packet);
             } catch (IOException e) {
-                LOGGER.debug("Failed to confirm lock release to process at port {} for lock with id {}.", packet.getPort(), lockId);
+                LOGGER.debug(
+                        "Failed to confirm lock release to process at port {} for lock with id {}.",
+                        packet.getPort(),
+                        lockId);
             }
         }
     }

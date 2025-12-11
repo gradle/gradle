@@ -16,13 +16,12 @@
 package org.gradle.api.plugins.quality;
 
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.util.Set;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.resources.TextResource;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import java.io.File;
-import java.util.Set;
 
 /**
  * Configuration options for the CodeNarc plugin.

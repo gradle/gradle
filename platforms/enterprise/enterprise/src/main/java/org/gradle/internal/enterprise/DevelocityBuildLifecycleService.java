@@ -40,5 +40,4 @@ public interface DevelocityBuildLifecycleService {
      * @param action The action to execute.
      */
     void beforeProject(Action<? super Project> action);
-
 }

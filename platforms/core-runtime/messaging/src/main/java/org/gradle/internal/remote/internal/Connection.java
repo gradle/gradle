@@ -32,5 +32,4 @@ import org.gradle.internal.dispatch.Receive;
  * <li>don't guarantee allowing multiple threads dispatching</li>
  * </ul>
  */
-public interface Connection<T> extends Dispatch<T>, Receive<T>, Stoppable {
-}
+public interface Connection<T> extends Dispatch<T>, Receive<T>, Stoppable {}

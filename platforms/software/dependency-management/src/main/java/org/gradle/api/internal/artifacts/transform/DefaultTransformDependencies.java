@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.file.FileCollection;
-
 import java.util.Optional;
+import org.gradle.api.file.FileCollection;
 
 public class DefaultTransformDependencies implements TransformDependencies {
     private final FileCollection files;

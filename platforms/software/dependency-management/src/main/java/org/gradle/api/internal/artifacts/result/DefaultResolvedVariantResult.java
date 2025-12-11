@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.result;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
@@ -24,9 +26,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Optional;
 
 public class DefaultResolvedVariantResult implements ResolvedVariantResult {
 
@@ -37,11 +36,12 @@ public class DefaultResolvedVariantResult implements ResolvedVariantResult {
     private final ResolvedVariantResult externalVariant;
     private final int hashCode;
 
-    public DefaultResolvedVariantResult(ComponentIdentifier owner,
-                                        DisplayName displayName,
-                                        AttributeContainer attributes,
-                                        ImmutableCapabilities capabilities,
-                                        @Nullable ResolvedVariantResult externalVariant) {
+    public DefaultResolvedVariantResult(
+            ComponentIdentifier owner,
+            DisplayName displayName,
+            AttributeContainer attributes,
+            ImmutableCapabilities capabilities,
+            @Nullable ResolvedVariantResult externalVariant) {
         this.owner = owner;
         this.displayName = displayName;
         this.attributes = attributes;

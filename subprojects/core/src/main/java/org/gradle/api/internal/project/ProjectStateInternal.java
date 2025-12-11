@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.project;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectState;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Represents the lifecycle state of a project, with regard to configuration.

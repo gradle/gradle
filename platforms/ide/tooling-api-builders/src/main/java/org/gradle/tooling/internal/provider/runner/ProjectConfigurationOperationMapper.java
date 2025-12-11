@@ -16,7 +16,10 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import static java.util.Collections.singletonList;
+
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractProjectConfigurationResult;
@@ -36,11 +39,9 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgr
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
-import static java.util.Collections.singletonList;
-
-class ProjectConfigurationOperationMapper implements BuildOperationMapper<ConfigureProjectBuildOperationType.Details, DefaultProjectConfigurationDescriptor> {
+class ProjectConfigurationOperationMapper
+        implements BuildOperationMapper<
+                ConfigureProjectBuildOperationType.Details, DefaultProjectConfigurationDescriptor> {
     private final ProjectConfigurationTracker projectConfigurationTracker;
 
     ProjectConfigurationOperationMapper(ProjectConfigurationTracker projectConfigurationTracker) {
@@ -63,29 +64,42 @@ class ProjectConfigurationOperationMapper implements BuildOperationMapper<Config
     }
 
     @Override
-    public DefaultProjectConfigurationDescriptor createDescriptor(ConfigureProjectBuildOperationType.Details details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
+    public DefaultProjectConfigurationDescriptor createDescriptor(
+            ConfigureProjectBuildOperationType.Details details,
+            BuildOperationDescriptor buildOperation,
+            @Nullable OperationIdentifier parent) {
         OperationIdentifier id = buildOperation.getId();
         String displayName = buildOperation.getDisplayName();
-        return new DefaultProjectConfigurationDescriptor(id, displayName, parent, details.getRootDir(), details.getProjectPath());
+        return new DefaultProjectConfigurationDescriptor(
+                id, displayName, parent, details.getRootDir(), details.getProjectPath());
     }
 
     @Override
-    public InternalOperationStartedProgressEvent createStartedEvent(DefaultProjectConfigurationDescriptor descriptor, ConfigureProjectBuildOperationType.Details details, OperationStartEvent startEvent) {
+    public InternalOperationStartedProgressEvent createStartedEvent(
+            DefaultProjectConfigurationDescriptor descriptor,
+            ConfigureProjectBuildOperationType.Details details,
+            OperationStartEvent startEvent) {
         return new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), descriptor);
     }
 
     @Override
-    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultProjectConfigurationDescriptor descriptor, ConfigureProjectBuildOperationType.Details details, OperationFinishEvent finishEvent) {
-        AbstractProjectConfigurationResult result = toProjectConfigurationOperationResult(finishEvent, projectConfigurationTracker.resultsFor(descriptor.getId()));
+    public InternalOperationFinishedProgressEvent createFinishedEvent(
+            DefaultProjectConfigurationDescriptor descriptor,
+            ConfigureProjectBuildOperationType.Details details,
+            OperationFinishEvent finishEvent) {
+        AbstractProjectConfigurationResult result = toProjectConfigurationOperationResult(
+                finishEvent, projectConfigurationTracker.resultsFor(descriptor.getId()));
         return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, result);
     }
 
-    private AbstractProjectConfigurationResult toProjectConfigurationOperationResult(OperationFinishEvent finishEvent, List<InternalPluginApplicationResult> pluginApplicationResults) {
+    private AbstractProjectConfigurationResult toProjectConfigurationOperationResult(
+            OperationFinishEvent finishEvent, List<InternalPluginApplicationResult> pluginApplicationResults) {
         long startTime = finishEvent.getStartTime();
         long endTime = finishEvent.getEndTime();
         Throwable failure = finishEvent.getFailure();
         if (failure != null) {
-            return new DefaultProjectConfigurationFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), pluginApplicationResults);
+            return new DefaultProjectConfigurationFailureResult(
+                    startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), pluginApplicationResults);
         }
         return new DefaultProjectConfigurationSuccessResult(startTime, endTime, pluginApplicationResults);
     }

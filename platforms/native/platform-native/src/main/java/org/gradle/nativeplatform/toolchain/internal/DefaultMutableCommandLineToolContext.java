@@ -16,15 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.api.Action;
-import org.gradle.internal.Actions;
-import org.gradle.internal.operations.logging.BuildOperationLogger;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.api.Action;
+import org.gradle.internal.Actions;
+import org.gradle.internal.operations.logging.BuildOperationLogger;
 
 public class DefaultMutableCommandLineToolContext implements MutableCommandLineToolContext {
     private Action<List<String>> postArgsAction = Actions.doNothing();
@@ -67,12 +66,14 @@ public class DefaultMutableCommandLineToolContext implements MutableCommandLineT
     }
 
     @Override
-    public CommandLineToolInvocation createInvocation(String description, File workDirectory, Iterable<String> args, BuildOperationLogger oplogger) {
+    public CommandLineToolInvocation createInvocation(
+            String description, File workDirectory, Iterable<String> args, BuildOperationLogger oplogger) {
         return new DefaultCommandLineToolInvocation(description, workDirectory, args, this, oplogger);
     }
 
     @Override
-    public CommandLineToolInvocation createInvocation(String description, Iterable<String> args, BuildOperationLogger oplogger) {
+    public CommandLineToolInvocation createInvocation(
+            String description, Iterable<String> args, BuildOperationLogger oplogger) {
         File currentWorkingDirectory = null;
         return createInvocation(description, currentWorkingDirectory, args, oplogger);
     }

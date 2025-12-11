@@ -16,12 +16,11 @@
 
 package org.gradle.internal.operations;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Executes build operations via a {@link BuildOperationQueue}.
@@ -42,7 +41,8 @@ public interface BuildOperationExecutor {
      *
      * @see BuildOperationExecutor#runAllWithAccessToProjectState(Action)
      */
-    <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint);
+    <O extends RunnableBuildOperation> void runAll(
+            Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint);
 
     /**
      * Same as {@link #runAll(Action)}. However, the actions are allowed to access mutable project state. In general, this is more likely to
@@ -50,14 +50,16 @@ public interface BuildOperationExecutor {
      *
      * <p>See {@link org.gradle.internal.resources.ProjectLeaseRegistry#whileDisallowingProjectLockChanges(Factory)} for more details.
      */
-    <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction);
+    <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(
+            Action<BuildOperationQueue<O>> schedulingAction);
 
     /**
      * Overload allowing {@link BuildOperationConstraint} to be specified.
      *
      * @see BuildOperationExecutor#runAllWithAccessToProjectState(Action)
      */
-    <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint);
+    <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(
+            Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint);
 
     /**
      * Submits an arbitrary number of operations, created synchronously by the scheduling action, to be executed by the supplied
@@ -66,12 +68,16 @@ public interface BuildOperationExecutor {
      *
      * <p>Actions are not permitted to access any mutable project state. Generally, this is preferred.</p>
      */
-    <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction);
+    <O extends BuildOperation> void runAll(
+            BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction);
 
     /**
      * Overload allowing {@link BuildOperationConstraint} to be specified.
      *
      * @see BuildOperationExecutor#runAll(BuildOperationWorker, Action)
      */
-    <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint);
+    <O extends BuildOperation> void runAll(
+            BuildOperationWorker<O> worker,
+            Action<BuildOperationQueue<O>> schedulingAction,
+            BuildOperationConstraint buildOperationConstraint);
 }

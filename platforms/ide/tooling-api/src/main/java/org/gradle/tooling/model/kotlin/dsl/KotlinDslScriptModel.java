@@ -19,7 +19,6 @@ package org.gradle.tooling.model.kotlin.dsl;
 import java.io.File;
 import java.util.List;
 
-
 /**
  * Model for a Kotlin DSL script.
  *

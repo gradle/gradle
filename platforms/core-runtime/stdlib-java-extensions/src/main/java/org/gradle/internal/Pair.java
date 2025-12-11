@@ -82,7 +82,8 @@ public final class Pair<L, R> {
 
         Pair<?, ?> pair = (Pair<?, ?>) o;
 
-        return !(left != null ? !left.equals(pair.left) : pair.left != null) && !(right != null ? !right.equals(pair.right) : pair.right != null);
+        return !(left != null ? !left.equals(pair.left) : pair.left != null)
+                && !(right != null ? !right.equals(pair.right) : pair.right != null);
     }
 
     @Override
@@ -96,5 +97,4 @@ public final class Pair<L, R> {
     public String toString() {
         return "Pair[" + left + "," + right + ']';
     }
-
 }

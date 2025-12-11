@@ -17,6 +17,11 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import com.google.common.collect.Ordering;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
@@ -25,49 +30,50 @@ import org.gradle.internal.component.resolution.failure.transform.Transformation
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link AmbiguousArtifactTransformsFailure}.
  */
-public abstract class AmbiguousArtifactTransformsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactTransformsFailure> {
-    private static final String ARTIFACT_TRANSFORMS_REPORT_SUGGESTION = "Run the :artifactTransforms report to see the available artifact transforms.";
-    private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
+public abstract class AmbiguousArtifactTransformsFailureDescriber
+        extends AbstractResolutionFailureDescriber<AmbiguousArtifactTransformsFailure> {
+    private static final String ARTIFACT_TRANSFORMS_REPORT_SUGGESTION =
+            "Run the :artifactTransforms report to see the available artifact transforms.";
+    private static final String AMBIGUOUS_TRANSFORMATION_PREFIX =
+            "Transformation failures are explained in more detail at ";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
-    private static final String REMOVE_TRANSFORMATIONS_SUGGESTION =  "Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.";
+    private static final String REMOVE_TRANSFORMATIONS_SUGGESTION =
+            "Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.";
 
     @Override
     public ArtifactSelectionException describeFailure(AmbiguousArtifactTransformsFailure failure) {
         String message = buildFailureMsg(failure);
         List<String> resolutions = buildResolutions(
-            REMOVE_TRANSFORMATIONS_SUGGESTION,
-            ARTIFACT_TRANSFORMS_REPORT_SUGGESTION,
-            suggestSpecificDocumentation(AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION),
-            suggestReviewAlgorithm()
-        );
+                REMOVE_TRANSFORMATIONS_SUGGESTION,
+                ARTIFACT_TRANSFORMS_REPORT_SUGGESTION,
+                suggestSpecificDocumentation(AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION),
+                suggestReviewAlgorithm());
         return new ArtifactSelectionException(message, failure, resolutions);
     }
 
     private String buildFailureMsg(AmbiguousArtifactTransformsFailure failure) {
         TreeFormatter formatter = new TreeFormatter(true);
 
-        formatter.node("Found multiple transformation chains that produce a variant of '" + failure.describeRequestTarget() + "' with requested attributes");
+        formatter.node("Found multiple transformation chains that produce a variant of '"
+                + failure.describeRequestTarget() + "' with requested attributes");
         formatSortedAttributes(formatter, failure.getRequestedAttributes());
         formatter.node("Found the following transformation chains");
 
-        Comparator<TransformationChainData> variantDataComparator =
-            Comparator.comparing(TransformationChainData::summarizeTransformations)
+        Comparator<TransformationChainData> variantDataComparator = Comparator.comparing(
+                        TransformationChainData::summarizeTransformations)
                 .thenComparing(x -> x.getFinalAttributes().toString());
 
-        Map<SourceVariantData, List<TransformationChainData>> transformationPaths = failure.getPotentialVariants().stream()
-            .collect(Collectors.groupingBy(
-                TransformationChainData::getInitialVariant,
-                () -> new TreeMap<>(Comparator.comparing(SourceVariantData::getVariantName)),
-                Collectors.collectingAndThen(Collectors.toList(), list -> list.stream().sorted(variantDataComparator).collect(Collectors.toList()))));
+        Map<SourceVariantData, List<TransformationChainData>> transformationPaths =
+                failure.getPotentialVariants().stream()
+                        .collect(Collectors.groupingBy(
+                                TransformationChainData::getInitialVariant,
+                                () -> new TreeMap<>(Comparator.comparing(SourceVariantData::getVariantName)),
+                                Collectors.collectingAndThen(Collectors.toList(), list -> list.stream()
+                                        .sorted(variantDataComparator)
+                                        .collect(Collectors.toList()))));
 
         formatter.startChildren();
         transformationPaths.forEach((root, transformations) -> {

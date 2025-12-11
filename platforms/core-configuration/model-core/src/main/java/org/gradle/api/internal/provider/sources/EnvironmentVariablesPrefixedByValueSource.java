@@ -18,9 +18,9 @@ package org.gradle.api.internal.provider.sources;
 
 import java.util.Map;
 
-public abstract class EnvironmentVariablesPrefixedByValueSource extends MapWithPrefixedKeysValueSource<EnvironmentVariablesPrefixedByValueSource.Parameters> {
-    public interface Parameters extends MapWithPrefixedKeysValueSource.Parameters {
-    }
+public abstract class EnvironmentVariablesPrefixedByValueSource
+        extends MapWithPrefixedKeysValueSource<EnvironmentVariablesPrefixedByValueSource.Parameters> {
+    public interface Parameters extends MapWithPrefixedKeysValueSource.Parameters {}
 
     @Override
     protected Map<String, String> collectItems(String prefix) {

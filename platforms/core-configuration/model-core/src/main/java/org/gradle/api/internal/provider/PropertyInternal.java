@@ -21,7 +21,8 @@ import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
 
-public interface PropertyInternal<T> extends ProviderInternal<T>, HasConfigurableValueInternal, OwnerAware, LazyGroovySupport, SupportsConvention {
+public interface PropertyInternal<T>
+        extends ProviderInternal<T>, HasConfigurableValueInternal, OwnerAware, LazyGroovySupport, SupportsConvention {
     /**
      * Associates this property with the task that produces its value.
      */

@@ -53,5 +53,4 @@ public abstract class BaseProgressEvent implements ProgressEvent {
     public String toString() {
         return getDisplayName();
     }
-
 }

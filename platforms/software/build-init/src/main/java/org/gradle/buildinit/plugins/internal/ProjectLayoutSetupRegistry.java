@@ -15,16 +15,15 @@
  */
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.GradleException;
-import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
-import org.gradle.buildinit.plugins.internal.modifiers.Language;
-import org.gradle.internal.logging.text.TreeFormatter;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import org.gradle.api.GradleException;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 public class ProjectLayoutSetupRegistry {
     private final Map<String, BuildInitializer> registeredProjectDescriptors = new TreeMap<>();
@@ -32,7 +31,8 @@ public class ProjectLayoutSetupRegistry {
     private final BuildConverter converter;
     private final TemplateOperationFactory templateOperationFactory;
 
-    public ProjectLayoutSetupRegistry(BuildGenerator defaultType, BuildConverter converter, TemplateOperationFactory templateOperationFactory) {
+    public ProjectLayoutSetupRegistry(
+            BuildGenerator defaultType, BuildConverter converter, TemplateOperationFactory templateOperationFactory) {
         this.defaultType = defaultType;
         this.converter = converter;
         this.templateOperationFactory = templateOperationFactory;
@@ -42,7 +42,8 @@ public class ProjectLayoutSetupRegistry {
 
     public void add(BuildInitializer descriptor) {
         if (registeredProjectDescriptors.containsKey(descriptor.getId())) {
-            throw new GradleException(String.format("ProjectDescriptor with ID '%s' already registered.", descriptor.getId()));
+            throw new GradleException(
+                    String.format("ProjectDescriptor with ID '%s' already registered.", descriptor.getId()));
         }
 
         registeredProjectDescriptors.put(descriptor.getId(), descriptor);

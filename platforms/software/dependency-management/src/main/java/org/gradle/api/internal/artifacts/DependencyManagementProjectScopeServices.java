@@ -50,35 +50,32 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
 
     @Provides
     DependencyFactoryInternal createDependencyFactory(
-        Instantiator instantiator,
-        DefaultProjectDependencyFactory factory,
-        ClassPathRegistry classPathRegistry,
-        FileCollectionFactory fileCollectionFactory,
-        RuntimeShadedJarFactory runtimeShadedJarFactory,
-        AttributesFactory attributesFactory,
-        SimpleMapInterner stringInterner,
-        CapabilityNotationParser capabilityNotationParser,
-        ObjectFactory objectFactory
-    ) {
+            Instantiator instantiator,
+            DefaultProjectDependencyFactory factory,
+            ClassPathRegistry classPathRegistry,
+            FileCollectionFactory fileCollectionFactory,
+            RuntimeShadedJarFactory runtimeShadedJarFactory,
+            AttributesFactory attributesFactory,
+            SimpleMapInterner stringInterner,
+            CapabilityNotationParser capabilityNotationParser,
+            ObjectFactory objectFactory) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         DependencyNotationParser dependencyNotationParser = DependencyNotationParser.create(
-            instantiator,
-            factory,
-            classPathRegistry,
-            fileCollectionFactory,
-            runtimeShadedJarFactory,
-            stringInterner
-        );
+                instantiator,
+                factory,
+                classPathRegistry,
+                fileCollectionFactory,
+                runtimeShadedJarFactory,
+                stringInterner);
 
         return new DefaultDependencyFactory(
-            instantiator,
-            dependencyNotationParser,
-            capabilityNotationParser,
-            objectFactory,
-            projectDependencyFactory,
-            attributesFactory
-        );
+                instantiator,
+                dependencyNotationParser,
+                capabilityNotationParser,
+                objectFactory,
+                projectDependencyFactory,
+                attributesFactory);
     }
 
     @Provides
@@ -99,5 +96,4 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
             return new ProjectBackedModule(project);
         }
     }
-
 }

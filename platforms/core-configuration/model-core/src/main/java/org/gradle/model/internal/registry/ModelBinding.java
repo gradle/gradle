@@ -71,9 +71,15 @@ abstract class ModelBinding {
         if (boundTo != null) {
             ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
             ModelPath path = node.getPath();
-            throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
-                new AmbiguousBindingReporter(predicate.getReference(), boundTo.getPath(), boundTo.getDescriptor(), path, creatorDescriptor).asString()
-            ));
+            throw new InvalidModelRuleException(
+                    referrer,
+                    new ModelRuleBindingException(new AmbiguousBindingReporter(
+                                    predicate.getReference(),
+                                    boundTo.getPath(),
+                                    boundTo.getDescriptor(),
+                                    path,
+                                    creatorDescriptor)
+                            .asString()));
         }
 
         doOnBind(node);

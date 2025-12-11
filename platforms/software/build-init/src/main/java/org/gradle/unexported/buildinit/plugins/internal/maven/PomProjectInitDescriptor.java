@@ -15,6 +15,12 @@
  */
 package org.gradle.unexported.buildinit.plugins.internal.maven;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.building.SettingsBuildingException;
 import org.gradle.api.artifacts.Configuration;
@@ -35,17 +41,10 @@ import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.workers.WorkerExecutor;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
-
 public class PomProjectInitDescriptor implements BuildConverter {
-    private final static String MAVEN_VERSION = "3.9.5";
-    private final static String MAVEN_WAGON_VERSION = "3.5.3";
-    private final static String MAVEN_RESOLVER_VERSION = "1.9.16";
+    private static final String MAVEN_VERSION = "3.9.5";
+    private static final String MAVEN_WAGON_VERSION = "3.5.3";
+    private static final String MAVEN_RESOLVER_VERSION = "1.9.16";
 
     private final MavenSettingsProvider settingsProvider;
     private final DocumentationRegistry documentationRegistry;
@@ -53,7 +52,10 @@ public class PomProjectInitDescriptor implements BuildConverter {
 
     private FileCollection mavenClasspath;
 
-    public PomProjectInitDescriptor(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, WorkerExecutor executor) {
+    public PomProjectInitDescriptor(
+            MavenSettingsProvider mavenSettingsProvider,
+            DocumentationRegistry documentationRegistry,
+            WorkerExecutor executor) {
         this.settingsProvider = mavenSettingsProvider;
         this.documentationRegistry = documentationRegistry;
         this.executor = executor;
@@ -85,17 +87,23 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects, JvmPluginServices jvmPluginServices) {
+    public void configureClasspath(
+            ProjectInternal.DetachedResolver detachedResolver,
+            ObjectFactory objects,
+            JvmPluginServices jvmPluginServices) {
         DependencyHandler dependencies = detachedResolver.getDependencies();
-        Configuration config = detachedResolver.getConfigurations().detachedConfiguration(
-            dependencies.create("org.apache.maven:maven-core:" + MAVEN_VERSION),
-            dependencies.create("org.apache.maven:maven-plugin-api:" + MAVEN_VERSION),
-            dependencies.create("org.apache.maven:maven-compat:" + MAVEN_VERSION),
-            dependencies.create("org.apache.maven.wagon:wagon-http:" + MAVEN_WAGON_VERSION),
-            dependencies.create("org.apache.maven.wagon:wagon-provider-api:" + MAVEN_WAGON_VERSION),
-            dependencies.create("org.apache.maven.resolver:maven-resolver-connector-basic:" + MAVEN_RESOLVER_VERSION),
-            dependencies.create("org.apache.maven.resolver:maven-resolver-transport-wagon:" + MAVEN_RESOLVER_VERSION)
-        );
+        Configuration config = detachedResolver
+                .getConfigurations()
+                .detachedConfiguration(
+                        dependencies.create("org.apache.maven:maven-core:" + MAVEN_VERSION),
+                        dependencies.create("org.apache.maven:maven-plugin-api:" + MAVEN_VERSION),
+                        dependencies.create("org.apache.maven:maven-compat:" + MAVEN_VERSION),
+                        dependencies.create("org.apache.maven.wagon:wagon-http:" + MAVEN_WAGON_VERSION),
+                        dependencies.create("org.apache.maven.wagon:wagon-provider-api:" + MAVEN_WAGON_VERSION),
+                        dependencies.create(
+                                "org.apache.maven.resolver:maven-resolver-connector-basic:" + MAVEN_RESOLVER_VERSION),
+                        dependencies.create(
+                                "org.apache.maven.resolver:maven-resolver-transport-wagon:" + MAVEN_RESOLVER_VERSION));
         jvmPluginServices.configureAsRuntimeClasspath(config);
         detachedResolver.getRepositories().mavenCentral();
         mavenClasspath = config;
@@ -116,7 +124,11 @@ public class PomProjectInitDescriptor implements BuildConverter {
                     });
             GradlePropertiesGenerator.generate(initSettings);
         } catch (SettingsBuildingException exception) {
-            throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", initSettings.getTarget().file("pom.xml").getAsFile()), exception);
+            throw new MavenConversionException(
+                    String.format(
+                            "Could not convert Maven POM %s to a Gradle build.",
+                            initSettings.getTarget().file("pom.xml").getAsFile()),
+                    exception);
         }
     }
 
@@ -157,6 +169,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
 
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
-        return Optional.of(documentationRegistry.getDocumentationRecommendationFor("information", "migrating_from_maven"));
+        return Optional.of(
+                documentationRegistry.getDocumentationRecommendationFor("information", "migrating_from_maven"));
     }
 }

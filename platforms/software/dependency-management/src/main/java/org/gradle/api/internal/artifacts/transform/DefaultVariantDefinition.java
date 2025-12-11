@@ -28,7 +28,8 @@ public class DefaultVariantDefinition implements VariantDefinition {
     private final TransformChain transformChain;
     private final TransformStep transformStep;
 
-    public DefaultVariantDefinition(@Nullable DefaultVariantDefinition previous, ImmutableAttributes attributes, TransformStep transformStep) {
+    public DefaultVariantDefinition(
+            @Nullable DefaultVariantDefinition previous, ImmutableAttributes attributes, TransformStep transformStep) {
         this.previous = previous;
         this.attributes = attributes;
         this.transformChain = new TransformChain(previous == null ? null : previous.getTransformChain(), transformStep);

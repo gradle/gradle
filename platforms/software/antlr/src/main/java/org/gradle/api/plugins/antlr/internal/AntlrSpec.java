@@ -17,14 +17,13 @@
 package org.gradle.api.plugins.antlr.internal;
 
 import com.google.common.collect.Lists;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
 public class AntlrSpec implements Serializable {
-    public final static String PACKAGE_ARG = "-package";
+    public static final String PACKAGE_ARG = "-package";
 
     private List<String> arguments;
     private Set<File> inputDirectories;
@@ -32,7 +31,12 @@ public class AntlrSpec implements Serializable {
     private String maxHeapSize;
     private File outputDirectory;
 
-    public AntlrSpec(List<String> arguments, Set<File> grammarFiles, Set<File> inputDirectories, File outputDirectory, String maxHeapSize) {
+    public AntlrSpec(
+            List<String> arguments,
+            Set<File> grammarFiles,
+            Set<File> inputDirectories,
+            File outputDirectory,
+            String maxHeapSize) {
         this.arguments = arguments;
         this.inputDirectories = inputDirectories;
         this.grammarFiles = grammarFiles;

@@ -16,23 +16,22 @@
 
 package org.gradle.internal.instrumentation.processor;
 
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
-import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
-import org.gradle.internal.instrumentation.model.RequestExtra;
-import org.gradle.internal.instrumentation.model.RequestExtra.OriginatingElement;
-import org.gradle.internal.instrumentation.processor.extensibility.RequestPostProcessorExtension;
-import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
-
-import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.util.Elements;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
+import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.model.RequestExtra;
+import org.gradle.internal.instrumentation.model.RequestExtra.OriginatingElement;
+import org.gradle.internal.instrumentation.processor.extensibility.RequestPostProcessorExtension;
+import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
 
 public class AddGeneratedClassNameFlagFromClassLevelAnnotation implements RequestPostProcessorExtension {
 
@@ -42,22 +41,22 @@ public class AddGeneratedClassNameFlagFromClassLevelAnnotation implements Reques
     private final BiFunction<String, BytecodeInterceptorType, RequestExtra> produceFlagForGeneratedClassName;
 
     public AddGeneratedClassNameFlagFromClassLevelAnnotation(
-        Elements elements,
-        Predicate<? super CallInterceptionRequest> shouldAddExtraToRequestPredicate,
-        Class<? extends Annotation> generatedClassNameProvidingAnnotation,
-        BiFunction<String, BytecodeInterceptorType, RequestExtra> produceFlagForGeneratedClassName
-    ) {
+            Elements elements,
+            Predicate<? super CallInterceptionRequest> shouldAddExtraToRequestPredicate,
+            Class<? extends Annotation> generatedClassNameProvidingAnnotation,
+            BiFunction<String, BytecodeInterceptorType, RequestExtra> produceFlagForGeneratedClassName) {
         this.elements = elements;
         this.shouldAddExtraToRequestPredicate = shouldAddExtraToRequestPredicate;
         this.generatedClassNameProvidingAnnotation = generatedClassNameProvidingAnnotation;
         this.produceFlagForGeneratedClassName = produceFlagForGeneratedClassName;
     }
 
-
     @Override
     public Collection<CallInterceptionRequest> postProcessRequest(CallInterceptionRequest originalRequest) {
-        Optional<ExecutableElement> maybeOriginatingElement = originalRequest.getRequestExtras().getByType(OriginatingElement.class)
-            .map(OriginatingElement::getElement);
+        Optional<ExecutableElement> maybeOriginatingElement = originalRequest
+                .getRequestExtras()
+                .getByType(OriginatingElement.class)
+                .map(OriginatingElement::getElement);
 
         if (!maybeOriginatingElement.isPresent()) {
             return Collections.singletonList(originalRequest);
@@ -69,13 +68,24 @@ public class AddGeneratedClassNameFlagFromClassLevelAnnotation implements Reques
         }
 
         Element enclosingElement = maybeOriginatingElement.get().getEnclosingElement();
-        AnnotationUtils.findAnnotationMirror(enclosingElement, generatedClassNameProvidingAnnotation).ifPresent(annotationMirror -> {
-            AnnotationValue generatedClassName = AnnotationUtils.findAnnotationValue(annotationMirror, "generatedClassName")
-                .orElseThrow(() -> new IllegalStateException("Annotation " + generatedClassNameProvidingAnnotation + " does not have a generatedClassName attribute"));
-            AnnotationValue interceptionType = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "type")
-                .orElseThrow(() -> new IllegalStateException("Annotation " + generatedClassNameProvidingAnnotation + " does not have a type attribute"));
-            originalRequest.getRequestExtras().add(produceFlagForGeneratedClassName.apply((String) generatedClassName.getValue(), BytecodeInterceptorType.valueOf(interceptionType.getValue().toString())));
-        });
+        AnnotationUtils.findAnnotationMirror(enclosingElement, generatedClassNameProvidingAnnotation)
+                .ifPresent(annotationMirror -> {
+                    AnnotationValue generatedClassName = AnnotationUtils.findAnnotationValue(
+                                    annotationMirror, "generatedClassName")
+                            .orElseThrow(() ->
+                                    new IllegalStateException("Annotation " + generatedClassNameProvidingAnnotation
+                                            + " does not have a generatedClassName attribute"));
+                    AnnotationValue interceptionType = AnnotationUtils.findAnnotationValueWithDefaults(
+                                    elements, annotationMirror, "type")
+                            .orElseThrow(() -> new IllegalStateException("Annotation "
+                                    + generatedClassNameProvidingAnnotation + " does not have a type attribute"));
+                    originalRequest
+                            .getRequestExtras()
+                            .add(produceFlagForGeneratedClassName.apply(
+                                    (String) generatedClassName.getValue(),
+                                    BytecodeInterceptorType.valueOf(
+                                            interceptionType.getValue().toString())));
+                });
 
         return Collections.singletonList(originalRequest);
     }
@@ -83,15 +93,16 @@ public class AddGeneratedClassNameFlagFromClassLevelAnnotation implements Reques
     public static Predicate<CallInterceptionRequest> ifHasAnnotation(Class<? extends Annotation> annotationType) {
         return request -> {
             Optional<ExecutableElement> maybeOriginatingElement = request.getRequestExtras()
-                .getByType(OriginatingElement.class)
-                .map(OriginatingElement::getElement);
+                    .getByType(OriginatingElement.class)
+                    .map(OriginatingElement::getElement);
 
             if (!maybeOriginatingElement.isPresent()) {
                 return false;
             }
 
             ExecutableElement originatingElement = maybeOriginatingElement.get();
-            return AnnotationUtils.findMetaAnnotationMirror(originatingElement, annotationType).isPresent();
+            return AnnotationUtils.findMetaAnnotationMirror(originatingElement, annotationType)
+                    .isPresent();
         };
     }
 

@@ -37,14 +37,13 @@ public class DefaultGradleEnterprisePluginBuildState implements GradleEnterprise
     private final ServiceRegistry serviceRegistry;
 
     public DefaultGradleEnterprisePluginBuildState(
-        Clock clock,
-        BuildStartedTime buildStartedTime,
-        BuildInvocationScopeId buildInvocationId,
-        WorkspaceScopeId workspaceId,
-        UserScopeId userId,
-        StartParameter startParameter,
-        ServiceRegistry serviceRegistry
-    ) {
+            Clock clock,
+            BuildStartedTime buildStartedTime,
+            BuildInvocationScopeId buildInvocationId,
+            WorkspaceScopeId workspaceId,
+            UserScopeId userId,
+            StartParameter startParameter,
+            ServiceRegistry serviceRegistry) {
         this.clock = clock;
         this.buildStartedTime = buildStartedTime;
         this.buildInvocationId = buildInvocationId;

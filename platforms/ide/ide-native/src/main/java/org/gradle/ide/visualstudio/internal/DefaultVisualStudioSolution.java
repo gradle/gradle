@@ -16,6 +16,11 @@
 
 package org.gradle.ide.visualstudio.internal;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
@@ -32,12 +37,6 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.util.internal.CollectionUtils;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-
 public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal {
     private final String name;
     private final SolutionFile solutionFile;
@@ -46,7 +45,12 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
     private final Provider<RegularFile> location;
 
     @Inject
-    public DefaultVisualStudioSolution(String name, ObjectFactory objectFactory, IdeArtifactRegistry ideArtifactRegistry, ProviderFactory providers, ProjectLayout projectLayout) {
+    public DefaultVisualStudioSolution(
+            String name,
+            ObjectFactory objectFactory,
+            IdeArtifactRegistry ideArtifactRegistry,
+            ProviderFactory providers,
+            ProjectLayout projectLayout) {
         this.name = name;
         this.solutionFile = objectFactory.newInstance(SolutionFile.class, getName() + ".sln");
         this.location = projectLayout.file(providers.provider(new Callable<File>() {
@@ -82,9 +86,8 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
     @Override
     public List<VisualStudioProjectMetadata> getProjects() {
         return CollectionUtils.collect(
-            ideArtifactRegistry.getIdeProjects(VisualStudioProjectMetadata.class),
-            IdeArtifactRegistry.Reference::get
-        );
+                ideArtifactRegistry.getIdeProjects(VisualStudioProjectMetadata.class),
+                IdeArtifactRegistry.Reference::get);
     }
 
     @Override

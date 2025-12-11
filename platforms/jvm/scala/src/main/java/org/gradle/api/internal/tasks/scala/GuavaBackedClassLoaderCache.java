@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
-
 import java.util.concurrent.Callable;
 
 /**
@@ -33,25 +31,23 @@ import java.util.concurrent.Callable;
 public class GuavaBackedClassLoaderCache<K> implements AutoCloseable {
     private final Cache<K, ClassLoader> cache;
 
-
     public GuavaBackedClassLoaderCache(int maxSize) {
-        cache = CacheBuilder
-            .newBuilder()
-            .maximumSize(maxSize)
-            .removalListener(new RemovalListener<K, ClassLoader>() {
-                @Override
-                public void onRemoval(RemovalNotification<K, ClassLoader> notification) {
-                    ClassLoader value = notification.getValue();
-                    if (value instanceof AutoCloseable) {
-                        try {
-                            ((AutoCloseable) value).close();
-                        } catch(Exception ex) {
-                            throw new RuntimeException("Failed to close classloader", ex);
+        cache = CacheBuilder.newBuilder()
+                .maximumSize(maxSize)
+                .removalListener(new RemovalListener<K, ClassLoader>() {
+                    @Override
+                    public void onRemoval(RemovalNotification<K, ClassLoader> notification) {
+                        ClassLoader value = notification.getValue();
+                        if (value instanceof AutoCloseable) {
+                            try {
+                                ((AutoCloseable) value).close();
+                            } catch (Exception ex) {
+                                throw new RuntimeException("Failed to close classloader", ex);
+                            }
                         }
                     }
-                }
-            })
-            .build();
+                })
+                .build();
     }
 
     public ClassLoader get(K key, Callable<ClassLoader> loader) throws Exception {

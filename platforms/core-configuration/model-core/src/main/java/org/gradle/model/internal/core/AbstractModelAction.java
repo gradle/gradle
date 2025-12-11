@@ -17,11 +17,10 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Preconditions;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 public abstract class AbstractModelAction<T> implements ModelAction {
     public static final List<ModelReference<?>> EMPTY_MODEL_REF_LIST = Collections.emptyList();
@@ -30,11 +29,13 @@ public abstract class AbstractModelAction<T> implements ModelAction {
     protected final ModelRuleDescriptor descriptor;
     protected final List<? extends ModelReference<?>> inputs;
 
-    protected AbstractModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, ModelReference<?>... inputs) {
+    protected AbstractModelAction(
+            ModelReference<T> subject, ModelRuleDescriptor descriptor, ModelReference<?>... inputs) {
         this(subject, descriptor, inputs == null ? EMPTY_MODEL_REF_LIST : Arrays.asList(inputs));
     }
 
-    protected AbstractModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs) {
+    protected AbstractModelAction(
+            ModelReference<T> subject, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs) {
         this.subject = Preconditions.checkNotNull(subject, "subject");
         this.descriptor = Preconditions.checkNotNull(descriptor, "descriptor");
         Preconditions.checkNotNull(inputs, "inputs");
@@ -42,17 +43,17 @@ public abstract class AbstractModelAction<T> implements ModelAction {
     }
 
     @Override
-    final public ModelReference<T> getSubject() {
+    public final ModelReference<T> getSubject() {
         return subject;
     }
 
     @Override
-    final public ModelRuleDescriptor getDescriptor() {
+    public final ModelRuleDescriptor getDescriptor() {
         return descriptor;
     }
 
     @Override
-    final public List<? extends ModelReference<?>> getInputs() {
+    public final List<? extends ModelReference<?>> getInputs() {
         return inputs;
     }
 }

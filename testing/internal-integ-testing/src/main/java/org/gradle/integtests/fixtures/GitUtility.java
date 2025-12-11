@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
+import java.io.IOException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
@@ -27,8 +28,6 @@ import org.eclipse.jgit.storage.file.WindowCacheConfig;
 import org.eclipse.jgit.util.FS;
 import org.eclipse.jgit.util.SystemReader;
 import org.gradle.test.fixtures.file.TestFile;
-
-import java.io.IOException;
 
 public class GitUtility {
     /**

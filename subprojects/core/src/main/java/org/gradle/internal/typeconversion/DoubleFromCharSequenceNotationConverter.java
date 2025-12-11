@@ -23,11 +23,13 @@ import org.jspecify.annotations.NullMarked;
 public class DoubleFromCharSequenceNotationConverter implements NotationConverter<CharSequence, Double> {
 
     @Override
-    public void convert(CharSequence notation, NotationConvertResult<? super Double> result) throws TypeConversionException {
+    public void convert(CharSequence notation, NotationConvertResult<? super Double> result)
+            throws TypeConversionException {
         try {
             result.converted(Double.valueOf(notation.toString()));
         } catch (NumberFormatException ex) {
-            throw new TypeConversionException(String.format("Cannot convert string value '%s' to a double.", notation), ex);
+            throw new TypeConversionException(
+                    String.format("Cannot convert string value '%s' to a double.", notation), ex);
         }
     }
 

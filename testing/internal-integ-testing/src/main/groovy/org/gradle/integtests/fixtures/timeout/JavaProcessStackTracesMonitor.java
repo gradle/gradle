@@ -39,7 +39,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-
 /**
  * NOTICE: This class is called directly via CLI in PrintStackTracesOnTimeoutBuildService so you must:
  * 1. NOT DEPENDS ON ANY 3RD-PARTY LIBRARIES except JDK 17.
@@ -54,7 +53,8 @@ import java.util.stream.Stream;
  */
 public class JavaProcessStackTracesMonitor {
     private static final Pattern UNIX_JAVA_COMMAND_PATTERN = Pattern.compile("(?i)([^\\s]+/bin/java)");
-    private static final Pattern WINDOWS_JAVA_COMMAND_PATTERN = Pattern.compile("(?i)(?m)^\"?(.*[/\\\\]bin[/\\\\]java\\.exe)");
+    private static final Pattern WINDOWS_JAVA_COMMAND_PATTERN =
+            Pattern.compile("(?i)(?m)^\"?(.*[/\\\\]bin[/\\\\]java\\.exe)");
     private static final Pattern WINDOWS_PID_PATTERN = Pattern.compile("([0-9]+)\\s*$");
     private static final Pattern UNIX_PID_PATTERN = Pattern.compile("([0-9]+)");
     private static final Pattern VERSION_PATTERN = Pattern.compile("^(?:1\\.)?(\\d+)");
@@ -104,8 +104,7 @@ public class JavaProcessStackTracesMonitor {
                 return false;
             }
             JavaProcessInfo that = (JavaProcessInfo) o;
-            return Objects.equals(pid, that.pid) &&
-                Objects.equals(javaCommand, that.javaCommand);
+            return Objects.equals(pid, that.pid) && Objects.equals(javaCommand, that.javaCommand);
         }
 
         @Override
@@ -115,17 +114,17 @@ public class JavaProcessStackTracesMonitor {
 
         @Override
         public String toString() {
-            return "JavaProcessInfo{" +
-                "pid='" + pid + '\'' +
-                ", javaCommand='" + javaCommand + '\'' +
-                '}';
+            return "JavaProcessInfo{" + "pid='" + pid + '\'' + ", javaCommand='" + javaCommand + '\'' + '}';
         }
 
         String getJstackCommand() {
-            assertTrue(javaCommand.endsWith("java") || javaCommand.endsWith("java.exe"), "Unknown java command：" + javaCommand);
+            assertTrue(
+                    javaCommand.endsWith("java") || javaCommand.endsWith("java.exe"),
+                    "Unknown java command：" + javaCommand);
 
             Path javaPath = Paths.get(javaCommand);
-            if (javaPath.getParent().getFileName().toString().equals("bin") && javaPath.getParent().getParent().getFileName().toString().equals("jre")) {
+            if (javaPath.getParent().getFileName().toString().equals("bin")
+                    && javaPath.getParent().getParent().getFileName().toString().equals("jre")) {
                 return javaPath.resolve("../../../bin/jstack").normalize().toString();
             } else {
                 return javaPath.resolve("../../bin/jstack").normalize().toString();
@@ -136,7 +135,8 @@ public class JavaProcessStackTracesMonitor {
             try {
                 ExecResult result = run(getJstackCommand(), pid);
 
-                StringBuilder sb = new StringBuilder(String.format("Run %s %s return %s", getJstackCommand(), pid, result));
+                StringBuilder sb =
+                        new StringBuilder(String.format("Run %s %s return %s", getJstackCommand(), pid, result));
                 if (result.code != 0) {
                     result = run(getJstackCommand(), "-F", pid);
                     sb.append(String.format("Run %s -F %s return %s", getJstackCommand(), pid, result.toString()));
@@ -171,9 +171,9 @@ public class JavaProcessStackTracesMonitor {
 
         List<JavaProcessInfo> getSuspiciousDaemons() {
             return Stream.of(stdout.split("\\n"))
-                .filter(this::isSuspiciousDaemon)
-                .map(this::extractProcessInfo)
-                .collect(Collectors.toList());
+                    .filter(this::isSuspiciousDaemon)
+                    .map(this::extractProcessInfo)
+                    .collect(Collectors.toList());
         }
 
         private JavaProcessInfo extractProcessInfo(String line) {
@@ -186,7 +186,9 @@ public class JavaProcessStackTracesMonitor {
         }
 
         private boolean isSuspiciousDaemon(String line) {
-            return !isTeamCityAgent(line) && javaCommandPattern.matcher(line).find() && pidPattern.matcher(line).find();
+            return !isTeamCityAgent(line)
+                    && javaCommandPattern.matcher(line).find()
+                    && pidPattern.matcher(line).find();
         }
 
         private boolean isTeamCityAgent(String line) {
@@ -195,7 +197,9 @@ public class JavaProcessStackTracesMonitor {
     }
 
     private StdoutAndPatterns ps() {
-        String[] command = isWindows() ? new String[]{"wmic", "process", "get", "processid,commandline"} : new String[]{"ps", "x"};
+        String[] command = isWindows()
+                ? new String[] {"wmic", "process", "get", "processid,commandline"}
+                : new String[] {"ps", "x"};
         ExecResult result = run(command);
         output.printf("Run: %s", Arrays.toString(command));
         output.printf("Stdout: %s", result.stdout);
@@ -220,11 +224,7 @@ public class JavaProcessStackTracesMonitor {
 
         @Override
         public String toString() {
-            return "ExecResult{" +
-                "code=" + code +
-                "\n stdout='" + stdout + '\'' +
-                "\n stderr='" + stderr + '\'' +
-                '}';
+            return "ExecResult{" + "code=" + code + "\n stdout='" + stdout + '\'' + "\n stderr='" + stderr + '\'' + '}';
         }
 
         ExecResult assertZeroExit() {
@@ -279,7 +279,9 @@ public class JavaProcessStackTracesMonitor {
             output.println("Java 25+ has issues with jstack, avoiding printing stack traces.");
             return outputFile;
         }
-        output.println(ps().getSuspiciousDaemons().stream().map(JavaProcessInfo::jstack).collect(Collectors.joining("\n")));
+        output.println(ps().getSuspiciousDaemons().stream()
+                .map(JavaProcessInfo::jstack)
+                .collect(Collectors.joining("\n")));
         return outputFile;
     }
 }

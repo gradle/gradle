@@ -16,11 +16,10 @@
 
 package org.gradle.internal.buildoption;
 
+import java.util.Map;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 public abstract class IntegerBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
@@ -36,7 +35,6 @@ public abstract class IntegerBuildOption<T> extends AbstractBuildOption<T, Comma
         super(property, commandLineOptionConfigurations);
     }
 
-
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
         OptionValue<String> propertyValue = getFromProperties(properties);
@@ -49,7 +47,13 @@ public abstract class IntegerBuildOption<T> extends AbstractBuildOption<T, Comma
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.isDeprecated(), config.isIncubating()).hasArgument();
+            configureCommandLineOption(
+                            parser,
+                            config.getAllOptions(),
+                            config.getDescription(),
+                            config.isDeprecated(),
+                            config.isIncubating())
+                    .hasArgument();
         }
     }
 

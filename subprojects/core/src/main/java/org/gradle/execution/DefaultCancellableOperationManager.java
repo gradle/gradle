@@ -16,15 +16,14 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.Action;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.UncheckedException;
-import org.gradle.util.internal.DisconnectableInputStream;
-
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.gradle.api.Action;
+import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.UncheckedException;
+import org.gradle.util.internal.DisconnectableInputStream;
 
 public class DefaultCancellableOperationManager implements CancellableOperationManager {
 
@@ -35,7 +34,10 @@ public class DefaultCancellableOperationManager implements CancellableOperationM
     private final DisconnectableInputStream input;
     private final BuildCancellationToken cancellationToken;
 
-    public DefaultCancellableOperationManager(ExecutorService executorService, DisconnectableInputStream input, BuildCancellationToken cancellationToken) {
+    public DefaultCancellableOperationManager(
+            ExecutorService executorService,
+            DisconnectableInputStream input,
+            BuildCancellationToken cancellationToken) {
         this.executorService = executorService;
         this.input = input;
         this.cancellationToken = cancellationToken;

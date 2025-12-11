@@ -15,25 +15,26 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer;
 
+import java.io.File;
+import java.util.Comparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
-import java.io.File;
-import java.util.Comparator;
-
 abstract class VerificationEntry implements Comparable<VerificationEntry> {
-    private static final Comparator<VerificationEntry> ENTRY_COMPARATOR = Comparator.comparing(VerificationEntry::getGroup)
-        .thenComparing(VerificationEntry::getModule)
-        .thenComparing(VerificationEntry::getVersion)
-        .thenComparing(VerificationEntry::getFile)
-        .thenComparing(VerificationEntry::getArtifactKind)
-        .thenComparing(VerificationEntry::getOrder);
+    private static final Comparator<VerificationEntry> ENTRY_COMPARATOR = Comparator.comparing(
+                    VerificationEntry::getGroup)
+            .thenComparing(VerificationEntry::getModule)
+            .thenComparing(VerificationEntry::getVersion)
+            .thenComparing(VerificationEntry::getFile)
+            .thenComparing(VerificationEntry::getArtifactKind)
+            .thenComparing(VerificationEntry::getOrder);
 
     protected final ModuleComponentArtifactIdentifier id;
     protected final ArtifactVerificationOperation.ArtifactKind artifactKind;
     protected final File file;
 
-    protected VerificationEntry(ModuleComponentArtifactIdentifier id, ArtifactVerificationOperation.ArtifactKind artifactKind, File file) {
+    protected VerificationEntry(
+            ModuleComponentArtifactIdentifier id, ArtifactVerificationOperation.ArtifactKind artifactKind, File file) {
         this.id = id;
         this.artifactKind = artifactKind;
         this.file = file;

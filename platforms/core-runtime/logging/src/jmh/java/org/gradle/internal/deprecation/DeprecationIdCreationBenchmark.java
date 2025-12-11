@@ -16,6 +16,8 @@
 
 package org.gradle.internal.deprecation;
 
+import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationId;
+
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Scope;
@@ -23,8 +25,6 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
-
-import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationId;
 
 @SuppressWarnings("Since15")
 @Threads(2)
@@ -35,6 +35,7 @@ public class DeprecationIdCreationBenchmark {
 
     @Benchmark
     public void idCreation(Blackhole bh) {
-        bh.consume(createDefaultDeprecationId("The detachedConfiguration1 configuration has been deprecated for consumption."));
+        bh.consume(createDefaultDeprecationId(
+                "The detachedConfiguration1 configuration has been deprecated for consumption."));
     }
 }

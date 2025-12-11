@@ -16,14 +16,13 @@
 
 package org.gradle.tooling.model.gradle;
 
+import java.io.File;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.ProjectModel;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Provides some basic details about a Gradle project.

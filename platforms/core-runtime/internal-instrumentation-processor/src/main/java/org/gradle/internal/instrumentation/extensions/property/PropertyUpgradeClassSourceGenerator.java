@@ -16,35 +16,6 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
-import com.squareup.javapoet.AnnotationSpec;
-import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.TypeVariableName;
-import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
-import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.BridgedMethodInfo;
-import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
-import org.gradle.internal.instrumentation.model.CallableInfo;
-import org.gradle.internal.instrumentation.model.CallableReturnTypeInfo;
-import org.gradle.internal.instrumentation.model.ImplementationInfo;
-import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
-import org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType;
-import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
-import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
-import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
-
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.type.TypeVariable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn.GRADLE9;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn.UNSPECIFIED;
 import static org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.BridgedMethodInfo.BridgeType.INSTANCE_METHOD_BRIDGE;
@@ -58,41 +29,72 @@ import static org.gradle.internal.instrumentation.processor.codegen.GradleRefere
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.SET_PROPERTY_SET_VIEW;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 
+import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.type.TypeVariable;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.BridgedMethodInfo;
+import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.model.CallableInfo;
+import org.gradle.internal.instrumentation.model.CallableReturnTypeInfo;
+import org.gradle.internal.instrumentation.model.ImplementationInfo;
+import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
+import org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType;
+import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
+import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
+import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
+
 public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
 
     private static final String SELF_PARAMETER_NAME = "self";
 
     @Override
     protected String classNameForRequest(CallInterceptionRequest request) {
-        return request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class)
-            .map(PropertyUpgradeRequestExtra::getImplementationClassName)
-            .orElse(null);
+        return request.getRequestExtras()
+                .getByType(PropertyUpgradeRequestExtra.class)
+                .map(PropertyUpgradeRequestExtra::getImplementationClassName)
+                .orElse(null);
     }
 
     @Override
     protected Consumer<TypeSpec.Builder> classContentForClass(
-        String className,
-        List<CallInterceptionRequest> requestsClassGroup,
-        Consumer<? super CallInterceptionRequest> onProcessedRequest,
-        Consumer<? super HasFailures.FailureInfo> onFailure
-    ) {
+            String className,
+            List<CallInterceptionRequest> requestsClassGroup,
+            Consumer<? super CallInterceptionRequest> onProcessedRequest,
+            Consumer<? super HasFailures.FailureInfo> onFailure) {
 
         List<MethodSpec> methods = requestsClassGroup.stream()
-            .map(request -> mapToMethodSpec(request, onProcessedRequest, onFailure))
-            .collect(Collectors.toList());
+                .map(request -> mapToMethodSpec(request, onProcessedRequest, onFailure))
+                .collect(Collectors.toList());
 
-        return builder -> builder
-            .addAnnotation(GENERATED_ANNOTATION.asClassName())
-            .addAnnotation(SUPPRESS_DEPRECATIONS)
-            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-            .addJavadoc("Auto generated class. Should not be used directly.")
-            .addMethods(methods);
+        return builder -> builder.addAnnotation(GENERATED_ANNOTATION.asClassName())
+                .addAnnotation(SUPPRESS_DEPRECATIONS)
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addJavadoc("Auto generated class. Should not be used directly.")
+                .addMethods(methods);
     }
 
-    private static MethodSpec mapToMethodSpec(CallInterceptionRequest request, Consumer<? super CallInterceptionRequest> onProcessedRequest, Consumer<? super HasFailures.FailureInfo> onFailure) {
+    private static MethodSpec mapToMethodSpec(
+            CallInterceptionRequest request,
+            Consumer<? super CallInterceptionRequest> onProcessedRequest,
+            Consumer<? super HasFailures.FailureInfo> onFailure) {
         PropertyUpgradeRequestExtra implementationExtra = request.getRequestExtras()
-            .getByType(PropertyUpgradeRequestExtra.class)
-            .orElseThrow(() -> new RuntimeException(PropertyUpgradeRequestExtra.class.getSimpleName() + " should be present at this stage!"));
+                .getByType(PropertyUpgradeRequestExtra.class)
+                .orElseThrow(() -> new RuntimeException(
+                        PropertyUpgradeRequestExtra.class.getSimpleName() + " should be present at this stage!"));
 
         try {
             ImplementationInfo implementation = request.getImplementationInfo();
@@ -103,16 +105,18 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
                 spec = mapToBridgedMethod(implementation.getName(), implementationExtra, callable);
             } else {
                 List<ParameterSpec> parameters = callable.getParameters().stream()
-                    .map(parameter -> ParameterSpec.builder(typeName(parameter.getParameterType()), parameter.getName()).build())
-                    .collect(Collectors.toList());
+                        .map(parameter -> ParameterSpec.builder(
+                                        typeName(parameter.getParameterType()), parameter.getName())
+                                .build())
+                        .collect(Collectors.toList());
                 spec = MethodSpec.methodBuilder(implementation.getName())
-                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                    .addParameter(typeName(callable.getOwner().getType()), SELF_PARAMETER_NAME)
-                    .addParameters(parameters)
-                    .addCode(generateMethodBody(implementation, callable, implementationExtra))
-                    .returns(typeName(callable.getReturnType().getType()))
-                    .addAnnotations(getAnnotations(implementationExtra))
-                    .build();
+                        .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                        .addParameter(typeName(callable.getOwner().getType()), SELF_PARAMETER_NAME)
+                        .addParameters(parameters)
+                        .addCode(generateMethodBody(implementation, callable, implementationExtra))
+                        .returns(typeName(callable.getReturnType().getType()))
+                        .addAnnotations(getAnnotations(implementationExtra))
+                        .build();
             }
 
             onProcessedRequest.accept(request);
@@ -123,21 +127,19 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         }
     }
 
-    private static MethodSpec mapToBridgedMethod(String methodName, PropertyUpgradeRequestExtra implementationExtra, CallableInfo callable) {
+    private static MethodSpec mapToBridgedMethod(
+            String methodName, PropertyUpgradeRequestExtra implementationExtra, CallableInfo callable) {
         BridgedMethodInfo bridgedMethodInfo = implementationExtra.getBridgedMethodInfo();
         ExecutableElement bridgedMethod = bridgedMethodInfo.getBridgedMethod();
         List<TypeVariableName> typeVariables = bridgedMethod.getTypeParameters().stream()
-            .map(element -> TypeVariableName.get((TypeVariable) element.asType()))
-            .collect(Collectors.toList());
-        List<ParameterSpec> parameters = bridgedMethod.getParameters().stream()
-            .map(ParameterSpec::get)
-            .collect(Collectors.toList());
-        List<TypeName> exceptions = bridgedMethod.getThrownTypes().stream()
-            .map(TypeName::get)
-            .collect(Collectors.toList());
-        String passedParameters = parameters.stream()
-            .map(parameterSpec -> parameterSpec.name)
-            .collect(Collectors.joining(", "));
+                .map(element -> TypeVariableName.get((TypeVariable) element.asType()))
+                .collect(Collectors.toList());
+        List<ParameterSpec> parameters =
+                bridgedMethod.getParameters().stream().map(ParameterSpec::get).collect(Collectors.toList());
+        List<TypeName> exceptions =
+                bridgedMethod.getThrownTypes().stream().map(TypeName::get).collect(Collectors.toList());
+        String passedParameters =
+                parameters.stream().map(parameterSpec -> parameterSpec.name).collect(Collectors.joining(", "));
 
         CodeBlock.Builder bodyBuilder = CodeBlock.builder();
         if (implementationExtra.getDeprecationSpec().isEnabled()) {
@@ -156,25 +158,34 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             }
             parameters.add(0, ParameterSpec.builder(type, SELF_PARAMETER_NAME).build());
             bridgeCall = TypeName.get(bridgedMethod.getReturnType()).equals(TypeName.VOID)
-                ? CodeBlock.of("$L.$N($L)", SELF_PARAMETER_NAME, bridgedMethod.getSimpleName(), passedParameters)
-                : CodeBlock.of("return $L.$N($L)", SELF_PARAMETER_NAME, bridgedMethod.getSimpleName(), passedParameters);
+                    ? CodeBlock.of("$L.$N($L)", SELF_PARAMETER_NAME, bridgedMethod.getSimpleName(), passedParameters)
+                    : CodeBlock.of(
+                            "return $L.$N($L)", SELF_PARAMETER_NAME, bridgedMethod.getSimpleName(), passedParameters);
         } else {
             bridgeCall = TypeName.get(bridgedMethod.getReturnType()).equals(TypeName.VOID)
-                ? CodeBlock.of("$T.$N($L)", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters)
-                : CodeBlock.of("return $T.$N($L)", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters);
+                    ? CodeBlock.of(
+                            "$T.$N($L)",
+                            TypeName.get(bridgedMethod.getEnclosingElement().asType()),
+                            bridgedMethod.getSimpleName(),
+                            passedParameters)
+                    : CodeBlock.of(
+                            "return $T.$N($L)",
+                            TypeName.get(bridgedMethod.getEnclosingElement().asType()),
+                            bridgedMethod.getSimpleName(),
+                            passedParameters);
         }
         bodyBuilder.addStatement(bridgeCall);
 
         return MethodSpec.methodBuilder(methodName)
-            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .addAnnotations(annotationSpecs)
-            .addTypeVariables(typeVariables)
-            .addParameters(parameters)
-            .returns(TypeName.get(bridgedMethod.getReturnType()))
-            .varargs(bridgedMethod.isVarArgs())
-            .addExceptions(exceptions)
-            .addCode(bodyBuilder.build())
-            .build();
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .addAnnotations(annotationSpecs)
+                .addTypeVariables(typeVariables)
+                .addParameters(parameters)
+                .returns(TypeName.get(bridgedMethod.getReturnType()))
+                .varargs(bridgedMethod.isVarArgs())
+                .addExceptions(exceptions)
+                .addCode(bodyBuilder.build())
+                .build();
     }
 
     private static List<AnnotationSpec> getAnnotations(PropertyUpgradeRequestExtra implementationExtra) {
@@ -186,14 +197,17 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
                 return Collections.singletonList(SUPPRESS_UNCHECKED_AND_RAWTYPES);
             case PROVIDER:
                 return implementationExtra.getReturnType() instanceof ParameterizedTypeName
-                    ? Collections.singletonList(SUPPRESS_UNCHECKED_AND_RAWTYPES)
-                    : Collections.emptyList();
+                        ? Collections.singletonList(SUPPRESS_UNCHECKED_AND_RAWTYPES)
+                        : Collections.emptyList();
             default:
                 return Collections.emptyList();
         }
     }
 
-    private static CodeBlock generateMethodBody(ImplementationInfo implementation, CallableInfo callableInfo, PropertyUpgradeRequestExtra implementationExtra) {
+    private static CodeBlock generateMethodBody(
+            ImplementationInfo implementation,
+            CallableInfo callableInfo,
+            PropertyUpgradeRequestExtra implementationExtra) {
         String propertyGetterName = implementationExtra.getMethodName();
         boolean isSetter = implementation.getName().startsWith("access_set_");
         CallableReturnTypeInfo returnType = callableInfo.getReturnType();
@@ -205,13 +219,14 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         }
 
         CodeBlock logic = isSetter
-            ? generateSetCall(propertyGetterName, implementationExtra, upgradedPropertyType)
-            : generateGetCall(propertyGetterName, implementationExtra, returnType, upgradedPropertyType);
+                ? generateSetCall(propertyGetterName, implementationExtra, upgradedPropertyType)
+                : generateGetCall(propertyGetterName, implementationExtra, returnType, upgradedPropertyType);
 
         return codeBlockBuilder.addStatement(logic).build();
     }
 
-    private static CodeBlock getDeprecationCodeBlock(PropertyUpgradeRequestExtra requestExtra, CallableInfo callableInfo) {
+    private static CodeBlock getDeprecationCodeBlock(
+            PropertyUpgradeRequestExtra requestExtra, CallableInfo callableInfo) {
         String newPropertyName = requestExtra.getPropertyName();
         String deprecatedPropertyName = requestExtra.getInterceptedPropertyName();
         DeprecationSpec deprecationSpec = requestExtra.getDeprecationSpec();
@@ -222,36 +237,54 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
                 String className = callableInfo.getOwner().getType().getClassName();
                 String simpleClassName = className.substring(className.lastIndexOf(".") + 1);
                 deprecationBuilder = CodeBlock.builder()
-                    .add("$T.deprecate($S)\n", DEPRECATION_LOGGER.asClassName(), String.format("The usage of %s.%s", simpleClassName, deprecatedPropertyName))
-                    .add(".withContext($S)\n", String.format("Property '%s' was removed and this compatibility shim will be removed in Gradle 10. Please use '%s' property instead.", deprecatedPropertyName, newPropertyName))
-                    .add(".willBecomeAnErrorInGradle10()\n");
+                        .add(
+                                "$T.deprecate($S)\n",
+                                DEPRECATION_LOGGER.asClassName(),
+                                String.format("The usage of %s.%s", simpleClassName, deprecatedPropertyName))
+                        .add(
+                                ".withContext($S)\n",
+                                String.format(
+                                        "Property '%s' was removed and this compatibility shim will be removed in Gradle 10. Please use '%s' property instead.",
+                                        deprecatedPropertyName, newPropertyName))
+                        .add(".willBecomeAnErrorInGradle10()\n");
                 break;
             case UNSPECIFIED:
                 deprecationBuilder = CodeBlock.builder()
-                    .add("$T.deprecateProperty($T.class, $S)\n", DEPRECATION_LOGGER.asClassName(), TypeUtils.typeName(callableInfo.getOwner().getType()), deprecatedPropertyName)
-                    .add(".withContext($S)\n", "Property was automatically upgraded to the lazy version.");
+                        .add(
+                                "$T.deprecateProperty($T.class, $S)\n",
+                                DEPRECATION_LOGGER.asClassName(),
+                                TypeUtils.typeName(callableInfo.getOwner().getType()),
+                                deprecatedPropertyName)
+                        .add(".withContext($S)\n", "Property was automatically upgraded to the lazy version.");
                 if (!newPropertyName.equals(deprecatedPropertyName)) {
                     deprecationBuilder.add(".replaceWith($S)\n", newPropertyName);
                 }
                 deprecationBuilder.add(".startingWithGradle10($S)\n", "this property is replaced with a lazy version");
                 break;
             default:
-                throw new UnsupportedOperationException("Only " + UNSPECIFIED + " and " + GRADLE9 + " are currently supported for removedIn, but was: " + deprecationSpec.getRemovedIn());
+                throw new UnsupportedOperationException("Only " + UNSPECIFIED + " and " + GRADLE9
+                        + " are currently supported for removedIn, but was: " + deprecationSpec.getRemovedIn());
         }
 
         if (deprecationSpec.getWithUpgradeGuideVersion() != -1) {
-            deprecationBuilder.add(".withUpgradeGuideSection($L, $S)\n", deprecationSpec.getWithUpgradeGuideVersion(), deprecationSpec.getWithUpgradeGuideSection());
+            deprecationBuilder.add(
+                    ".withUpgradeGuideSection($L, $S)\n",
+                    deprecationSpec.getWithUpgradeGuideVersion(),
+                    deprecationSpec.getWithUpgradeGuideSection());
         } else if (deprecationSpec.isWithDslReference()) {
             deprecationBuilder.add(".withDslReference()\n");
         } else {
             deprecationBuilder.add(".undocumented()\n");
         }
 
-        return deprecationBuilder.add(".nagUser()")
-            .build();
+        return deprecationBuilder.add(".nagUser()").build();
     }
 
-    private static CodeBlock generateGetCall(String propertyGetterName, PropertyUpgradeRequestExtra implementationExtra, CallableReturnTypeInfo returnType, GradleLazyType upgradedPropertyType) {
+    private static CodeBlock generateGetCall(
+            String propertyGetterName,
+            PropertyUpgradeRequestExtra implementationExtra,
+            CallableReturnTypeInfo returnType,
+            GradleLazyType upgradedPropertyType) {
         switch (upgradedPropertyType) {
             case REGULAR_FILE_PROPERTY:
             case DIRECTORY_PROPERTY:
@@ -260,25 +293,56 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             case FILE_COLLECTION:
                 return CodeBlock.of("return $N.$N()", SELF_PARAMETER_NAME, propertyGetterName);
             case LIST_PROPERTY:
-                return CodeBlock.of("return new $T<>($N.$N())", LIST_PROPERTY_LIST_VIEW.asClassName(), SELF_PARAMETER_NAME, propertyGetterName);
+                return CodeBlock.of(
+                        "return new $T<>($N.$N())",
+                        LIST_PROPERTY_LIST_VIEW.asClassName(),
+                        SELF_PARAMETER_NAME,
+                        propertyGetterName);
             case SET_PROPERTY:
-                return CodeBlock.of("return new $T<>($N.$N())", SET_PROPERTY_SET_VIEW.asClassName(), SELF_PARAMETER_NAME, propertyGetterName);
+                return CodeBlock.of(
+                        "return new $T<>($N.$N())",
+                        SET_PROPERTY_SET_VIEW.asClassName(),
+                        SELF_PARAMETER_NAME,
+                        propertyGetterName);
             case MAP_PROPERTY:
-                return CodeBlock.of("return new $T<>($N.$N())", MAP_PROPERTY_MAP_VIEW.asClassName(), SELF_PARAMETER_NAME, propertyGetterName);
+                return CodeBlock.of(
+                        "return new $T<>($N.$N())",
+                        MAP_PROPERTY_MAP_VIEW.asClassName(),
+                        SELF_PARAMETER_NAME,
+                        propertyGetterName);
             case PROPERTY:
-                return CodeBlock.of("return $N.$N().getOrElse($L)", SELF_PARAMETER_NAME, propertyGetterName, TypeUtils.getDefaultValue(returnType.getType()));
+                return CodeBlock.of(
+                        "return $N.$N().getOrElse($L)",
+                        SELF_PARAMETER_NAME,
+                        propertyGetterName,
+                        TypeUtils.getDefaultValue(returnType.getType()));
             case PROVIDER: {
-                Optional<TypeName> providerParameter = TypeUtils.getTypeParameter(implementationExtra.getNewPropertyType(), 0);
-                return providerParameter.map(GradleReferencedType::isAssignableToFileSystemLocation).orElse(false)
-                    ? CodeBlock.of("return $N.$N().map($T::getAsFile).getOrNull()", SELF_PARAMETER_NAME, propertyGetterName, FILE_SYSTEM_LOCATION.asClassName())
-                    : CodeBlock.of("return $N.$N().getOrElse($L)", SELF_PARAMETER_NAME, propertyGetterName, TypeUtils.getDefaultValue(returnType.getType()));
+                Optional<TypeName> providerParameter =
+                        TypeUtils.getTypeParameter(implementationExtra.getNewPropertyType(), 0);
+                return providerParameter
+                                .map(GradleReferencedType::isAssignableToFileSystemLocation)
+                                .orElse(false)
+                        ? CodeBlock.of(
+                                "return $N.$N().map($T::getAsFile).getOrNull()",
+                                SELF_PARAMETER_NAME,
+                                propertyGetterName,
+                                FILE_SYSTEM_LOCATION.asClassName())
+                        : CodeBlock.of(
+                                "return $N.$N().getOrElse($L)",
+                                SELF_PARAMETER_NAME,
+                                propertyGetterName,
+                                TypeUtils.getDefaultValue(returnType.getType()));
             }
             default:
-                throw new UnsupportedOperationException("Generating get call for type: " + upgradedPropertyType.asClassName().reflectionName() + " is not supported");
+                throw new UnsupportedOperationException("Generating get call for type: "
+                        + upgradedPropertyType.asClassName().reflectionName() + " is not supported");
         }
     }
 
-    private static CodeBlock generateSetCall(String propertyGetterName, PropertyUpgradeRequestExtra implementationExtra, GradleLazyType upgradedPropertyType) {
+    private static CodeBlock generateSetCall(
+            String propertyGetterName,
+            PropertyUpgradeRequestExtra implementationExtra,
+            GradleLazyType upgradedPropertyType) {
         String assignment;
         switch (upgradedPropertyType) {
             case REGULAR_FILE_PROPERTY:
@@ -296,12 +360,14 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
                 break;
             case PROVIDER:
             default:
-                throw new UnsupportedOperationException("Generating set call for type: " + upgradedPropertyType.asClassName().reflectionName() + " is not supported");
+                throw new UnsupportedOperationException("Generating set call for type: "
+                        + upgradedPropertyType.asClassName().reflectionName() + " is not supported");
         }
         if (implementationExtra.getReturnType().equals(TypeName.VOID)) {
             return CodeBlock.of("$N.$N()$N", SELF_PARAMETER_NAME, propertyGetterName, assignment);
         } else {
-            return CodeBlock.of("$N.$N()$N;\nreturn $N", SELF_PARAMETER_NAME, propertyGetterName, assignment, SELF_PARAMETER_NAME);
+            return CodeBlock.of(
+                    "$N.$N()$N;\nreturn $N", SELF_PARAMETER_NAME, propertyGetterName, assignment, SELF_PARAMETER_NAME);
         }
     }
 }

@@ -25,7 +25,7 @@ public interface ExcludeRule {
 
     /**
      * The exact name of the organization or group that should be excluded.
-      */
+     */
     String getGroup();
 
     /**

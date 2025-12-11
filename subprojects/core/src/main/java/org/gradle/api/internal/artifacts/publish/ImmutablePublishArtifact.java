@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.artifacts.publish;
 
+import java.io.File;
+import java.util.Date;
+import java.util.Objects;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.Date;
-import java.util.Objects;
 
 /**
  * An immutable implementation of {@link PublishArtifact}.
@@ -38,7 +37,8 @@ public class ImmutablePublishArtifact implements PublishArtifact {
     private final String classifier;
     private final File file;
 
-    public ImmutablePublishArtifact(String name, String extension, String type, @Nullable String classifier, File file) {
+    public ImmutablePublishArtifact(
+            String name, String extension, String type, @Nullable String classifier, File file) {
         this.name = name;
         this.extension = extension;
         this.type = type;
@@ -92,7 +92,11 @@ public class ImmutablePublishArtifact implements PublishArtifact {
             return false;
         }
         ImmutablePublishArtifact that = (ImmutablePublishArtifact) o;
-        return name.equals(that.name) && extension.equals(that.extension) && type.equals(that.type) && Objects.equals(classifier, that.classifier) && file.equals(that.file);
+        return name.equals(that.name)
+                && extension.equals(that.extension)
+                && type.equals(that.type)
+                && Objects.equals(classifier, that.classifier)
+                && file.equals(that.file);
     }
 
     @Override

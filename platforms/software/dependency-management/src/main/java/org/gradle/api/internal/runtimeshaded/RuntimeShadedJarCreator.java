@@ -16,8 +16,22 @@
 
 package org.gradle.api.internal.runtimeshaded;
 
+import static java.util.Arrays.asList;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import org.gradle.api.GradleException;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
@@ -37,21 +51,6 @@ import org.objectweb.asm.commons.ClassRemapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
-import static java.util.Arrays.asList;
-
 class RuntimeShadedJarCreator {
     private static final int ADDITIONAL_PROGRESS_STEPS = 2;
     private static final String SERVICES_DIR_PREFIX = "META-INF/services/";
@@ -64,7 +63,11 @@ class RuntimeShadedJarCreator {
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
 
-    public RuntimeShadedJarCreator(ProgressLoggerFactory progressLoggerFactory, ImplementationDependencyRelocator remapper, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder) {
+    public RuntimeShadedJarCreator(
+            ProgressLoggerFactory progressLoggerFactory,
+            ImplementationDependencyRelocator remapper,
+            ClasspathWalker classpathWalker,
+            ClasspathBuilder classpathBuilder) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.remapper = remapper;
         this.classpathWalker = classpathWalker;
@@ -83,15 +86,19 @@ class RuntimeShadedJarCreator {
         }
     }
 
-    private void createFatJar(final File outputJar, final Iterable<? extends File> files, final ProgressLogger progressLogger) {
+    private void createFatJar(
+            final File outputJar, final Iterable<? extends File> files, final ProgressLogger progressLogger) {
         classpathBuilder.jar(outputJar, builder -> processFiles(builder, files, progressLogger));
     }
 
-    private void processFiles(ClasspathBuilder.EntryBuilder builder, Iterable<? extends File> files, ProgressLogger progressLogger) throws IOException {
+    private void processFiles(
+            ClasspathBuilder.EntryBuilder builder, Iterable<? extends File> files, ProgressLogger progressLogger)
+            throws IOException {
         Set<String> seenPaths = new HashSet<>();
         Map<String, List<String>> services = new LinkedHashMap<>();
 
-        PercentageProgressFormatter progressFormatter = new PercentageProgressFormatter("Generating", Iterables.size(files) + ADDITIONAL_PROGRESS_STEPS);
+        PercentageProgressFormatter progressFormatter =
+                new PercentageProgressFormatter("Generating", Iterables.size(files) + ADDITIONAL_PROGRESS_STEPS);
         for (File file : files) {
             progressLogger.progress(progressFormatter.getProgress());
             classpathWalker.visit(file, entry -> processEntry(builder, entry, seenPaths, services));
@@ -105,7 +112,8 @@ class RuntimeShadedJarCreator {
         progressLogger.progress(progressFormatter.incrementAndGetProgress());
     }
 
-    private void writeServiceFiles(ClasspathBuilder.EntryBuilder builder, Map<String, List<String>> services) throws IOException {
+    private void writeServiceFiles(ClasspathBuilder.EntryBuilder builder, Map<String, List<String>> services)
+            throws IOException {
         for (Map.Entry<String, List<String>> service : services.entrySet()) {
             String allProviders = Joiner.on("\n").join(service.getValue());
             builder.put(SERVICES_DIR_PREFIX + service.getKey(), allProviders.getBytes(StandardCharsets.UTF_8));
@@ -116,7 +124,12 @@ class RuntimeShadedJarCreator {
         builder.put(GradleRuntimeShadedJarDetector.MARKER_FILENAME, new byte[0]);
     }
 
-    private void processEntry(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry, final Set<String> seenPaths, Map<String, List<String>> services) throws IOException {
+    private void processEntry(
+            ClasspathBuilder.EntryBuilder builder,
+            ClasspathEntryVisitor.Entry entry,
+            final Set<String> seenPaths,
+            Map<String, List<String>> services)
+            throws IOException {
         String name = entry.getName();
         if (name.equals("META-INF/MANIFEST.MF")) {
             return;
@@ -142,7 +155,8 @@ class RuntimeShadedJarCreator {
         return "module-info".equals(name);
     }
 
-    private void processServiceDescriptor(ClasspathEntryVisitor.Entry entry, Map<String, List<String>> services) throws IOException {
+    private void processServiceDescriptor(ClasspathEntryVisitor.Entry entry, Map<String, List<String>> services)
+            throws IOException {
         String name = entry.getName();
         String descriptorName = name.substring(SERVICES_DIR_PREFIX.length());
         String descriptorApiClass = periodsToSlashes(descriptorName)[0];
@@ -152,7 +166,9 @@ class RuntimeShadedJarCreator {
         }
 
         byte[] bytes = entry.getContent();
-        String content = new String(bytes, StandardCharsets.UTF_8).replaceAll("(?m)^#.*", "").trim(); // clean up comments and new lines
+        String content = new String(bytes, StandardCharsets.UTF_8)
+                .replaceAll("(?m)^#.*", "")
+                .trim(); // clean up comments and new lines
 
         String[] descriptorImplClasses = periodsToSlashes(separateLines(content));
         String[] relocatedImplClassNames = maybeRelocateResources(descriptorImplClasses);
@@ -163,18 +179,22 @@ class RuntimeShadedJarCreator {
     }
 
     private String[] slashesToPeriods(String... slashClassNames) {
-        return Arrays.stream(slashClassNames).filter(Objects::nonNull)
-            .map(clsName -> clsName.replace('/', '.')).map(String::trim)
-            .toArray(String[]::new);
+        return Arrays.stream(slashClassNames)
+                .filter(Objects::nonNull)
+                .map(clsName -> clsName.replace('/', '.'))
+                .map(String::trim)
+                .toArray(String[]::new);
     }
 
     private String[] periodsToSlashes(String... periodClassNames) {
-        return Arrays.stream(periodClassNames).filter(Objects::nonNull)
-            .map(clsName -> clsName.replace('.', '/'))
-            .toArray(String[]::new);
+        return Arrays.stream(periodClassNames)
+                .filter(Objects::nonNull)
+                .map(clsName -> clsName.replace('.', '/'))
+                .toArray(String[]::new);
     }
 
-    private void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry) throws IOException {
+    private void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry)
+            throws IOException {
         String name = entry.getName();
         byte[] resource = entry.getContent();
 
@@ -182,7 +202,8 @@ class RuntimeShadedJarCreator {
         String path = i == -1 ? null : name.substring(0, i);
 
         if (remapper.keepOriginalResource(path)) {
-            // we're writing 2 copies of the resource: one relocated, the other not, in order to support `getResource/getResourceAsStream` with
+            // we're writing 2 copies of the resource: one relocated, the other not, in order to support
+            // `getResource/getResourceAsStream` with
             // both absolute and relative paths
             builder.put(name, resource);
         }
@@ -194,11 +215,13 @@ class RuntimeShadedJarCreator {
         }
     }
 
-    private void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry) throws IOException {
+    private void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry)
+            throws IOException {
         String name = entry.getName();
         String className = name.substring(0, name.length() - ".class".length());
         if (isModuleInfoClass(className)) {
-            // do not include module-info files, as they would represent a bundled dependency module, instead of Gradle itself
+            // do not include module-info files, as they would represent a bundled dependency module, instead of Gradle
+            // itself
             return;
         }
         byte[] bytes = entry.getContent();
@@ -240,15 +263,20 @@ class RuntimeShadedJarCreator {
             if (CLASS_DESC.equals(desc)) {
                 remapping = dependencyRelocator.maybeRemap(name);
                 if (remapping != null) {
-                    remappedClassLiterals.put(remapping.getLiteral(), remapping.getLiteralReplacement().replace("/", "."));
+                    remappedClassLiterals.put(
+                            remapping.getLiteral(),
+                            remapping.getLiteralReplacement().replace("/", "."));
                 }
             }
-            return super.visitField(access, remapping != null ? remapping.getFieldNameReplacement() : name, desc, signature, value);
+            return super.visitField(
+                    access, remapping != null ? remapping.getFieldNameReplacement() : name, desc, signature, value);
         }
 
         @Override
-        public MethodVisitor visitMethod(int access, final String name, final String desc, String signature, String[] exceptions) {
-            return new MethodVisitor(AsmConstants.ASM_LEVEL, super.visitMethod(access, name, desc, signature, exceptions)) {
+        public MethodVisitor visitMethod(
+                int access, final String name, final String desc, String signature, String[] exceptions) {
+            return new MethodVisitor(
+                    AsmConstants.ASM_LEVEL, super.visitMethod(access, name, desc, signature, exceptions)) {
                 @Override
                 public void visitLdcInsn(Object cst) {
                     if (cst instanceof String) {
@@ -273,7 +301,8 @@ class RuntimeShadedJarCreator {
                 @Override
                 public void visitFieldInsn(int opcode, String owner, String name, String desc) {
                     if ((opcode == Opcodes.GETSTATIC || opcode == Opcodes.PUTSTATIC) && CLASS_DESC.equals(desc)) {
-                        ImplementationDependencyRelocator.ClassLiteralRemapping remapping = dependencyRelocator.maybeRemap(name);
+                        ImplementationDependencyRelocator.ClassLiteralRemapping remapping =
+                                dependencyRelocator.maybeRemap(name);
                         if (remapping != null) {
                             super.visitFieldInsn(opcode, owner, remapping.getFieldNameReplacement(), desc);
                             return;
@@ -287,15 +316,15 @@ class RuntimeShadedJarCreator {
 
     private String[] maybeRelocateResources(String... resources) {
         return Arrays.stream(resources)
-            .filter(Objects::nonNull)
-            .map(resource -> {
-                String remapped = remapper.maybeRelocateResource(resource);
-                if (remapped == null) {
-                    return resource; // This resource was not relocated. Use the original name.
-                }
-                return remapped;
-            })
-            .toArray(String[]::new);
+                .filter(Objects::nonNull)
+                .map(resource -> {
+                    String remapped = remapper.maybeRelocateResource(resource);
+                    if (remapped == null) {
+                        return resource; // This resource was not relocated. Use the original name.
+                    }
+                    return remapped;
+                })
+                .toArray(String[]::new);
     }
 
     private String[] separateLines(String entry) {

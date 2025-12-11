@@ -16,13 +16,12 @@
 
 package org.gradle.internal.remote.internal;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public class KryoBackedMessageSerializer implements MessageSerializer {
     @Override

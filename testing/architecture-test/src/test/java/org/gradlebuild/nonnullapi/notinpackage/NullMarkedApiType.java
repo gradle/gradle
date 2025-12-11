@@ -19,5 +19,4 @@ package org.gradlebuild.nonnullapi.notinpackage;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public interface NullMarkedApiType {
-}
+public interface NullMarkedApiType {}

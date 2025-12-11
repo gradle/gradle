@@ -15,15 +15,14 @@
  */
 package org.gradle.plugins.ide.idea;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.idea.model.IdeaProject;
 import org.gradle.plugins.ide.idea.model.Project;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
-import java.io.File;
 
 /**
  * Generates an IDEA project file for root project *only*. If you want to fine tune the idea configuration <p> At this moment nearly all configuration is done via {@link IdeaProject}.
@@ -86,5 +85,4 @@ public abstract class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     public void setIdeaProject(IdeaProject ideaProject) {
         this.ideaProject = ideaProject;
     }
-
 }

@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Optional;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
@@ -24,10 +27,6 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.io.IoSupplier;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Optional;
 
 /**
  * A {@link FileSystemLocationSnapshotHasher} that normalizes line endings while hashing the file.  It detects whether a file is text or binary and only
@@ -44,7 +43,8 @@ public class LineEndingNormalizingFileSystemLocationSnapshotHasher implements Fi
         this.hasher = new LineEndingNormalizingInputStreamHasher();
     }
 
-    public static FileSystemLocationSnapshotHasher wrap(FileSystemLocationSnapshotHasher delegate, LineEndingSensitivity lineEndingSensitivity) {
+    public static FileSystemLocationSnapshotHasher wrap(
+            FileSystemLocationSnapshotHasher delegate, LineEndingSensitivity lineEndingSensitivity) {
         switch (lineEndingSensitivity) {
             case DEFAULT:
                 return delegate;
@@ -64,11 +64,12 @@ public class LineEndingNormalizingFileSystemLocationSnapshotHasher implements Fi
     @Nullable
     @Override
     public HashCode hash(FileSystemLocationSnapshot snapshot) throws IOException {
-        return hashContent(snapshot)
-            .orElseGet(IoSupplier.wrap(() -> delegate.hash(snapshot)));
+        return hashContent(snapshot).orElseGet(IoSupplier.wrap(() -> delegate.hash(snapshot)));
     }
 
     private Optional<HashCode> hashContent(FileSystemLocationSnapshot snapshot) throws IOException {
-        return snapshot.getType() == FileType.RegularFile ? hasher.hashContent(new File(snapshot.getAbsolutePath())) : Optional.empty();
+        return snapshot.getType() == FileType.RegularFile
+                ? hasher.hashContent(new File(snapshot.getAbsolutePath()))
+                : Optional.empty();
     }
 }

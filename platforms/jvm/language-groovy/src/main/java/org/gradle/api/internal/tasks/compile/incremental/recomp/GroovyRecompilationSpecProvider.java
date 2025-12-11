@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
@@ -24,20 +26,16 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
 
     private static final Set<String> SUPPORTED_FILE_EXTENSIONS = ImmutableSet.of(".java", ".groovy");
 
     public GroovyRecompilationSpecProvider(
-        Deleter deleter,
-        FileOperations fileOperations,
-        FileTree sources,
-        boolean incremental,
-        Iterable<FileChange> sourceChanges
-    ) {
+            Deleter deleter,
+            FileOperations fileOperations,
+            FileTree sources,
+            boolean incremental,
+            Iterable<FileChange> sourceChanges) {
         super(deleter, fileOperations, sources, sourceChanges, incremental);
     }
 
@@ -50,19 +48,18 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
      */
     @Override
     protected void processCompilerSpecificDependencies(
-        JavaCompileSpec spec,
-        RecompilationSpec recompilationSpec,
-        SourceFileChangeProcessor sourceFileChangeProcessor,
-        SourceFileClassNameConverter sourceFileClassNameConverter
-    ) {
+            JavaCompileSpec spec,
+            RecompilationSpec recompilationSpec,
+            SourceFileChangeProcessor sourceFileChangeProcessor,
+            SourceFileClassNameConverter sourceFileClassNameConverter) {
         if (!supportsGroovyJavaJointCompilation(spec)) {
             return;
         }
         Set<String> classesWithJavaSource = recompilationSpec.getClassesToCompile().stream()
-            .flatMap(classToCompile -> sourceFileClassNameConverter.getRelativeSourcePaths(classToCompile).stream())
-            .filter(sourcePath -> sourcePath.endsWith(".java"))
-            .flatMap(sourcePath -> sourceFileClassNameConverter.getClassNames(sourcePath).stream())
-            .collect(Collectors.toSet());
+                .flatMap(classToCompile -> sourceFileClassNameConverter.getRelativeSourcePaths(classToCompile).stream())
+                .filter(sourcePath -> sourcePath.endsWith(".java"))
+                .flatMap(sourcePath -> sourceFileClassNameConverter.getClassNames(sourcePath).stream())
+                .collect(Collectors.toSet());
         if (!classesWithJavaSource.isEmpty()) {
             // We need to collect just accessible dependents, since it seems
             // private references to classes are not problematic when Groovy compiler loads a class
@@ -71,7 +68,11 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     }
 
     private boolean supportsGroovyJavaJointCompilation(JavaCompileSpec spec) {
-        return spec instanceof GroovyJavaJointCompileSpec && ((GroovyJavaJointCompileSpec) spec).getGroovyCompileOptions().getFileExtensions().contains("java");
+        return spec instanceof GroovyJavaJointCompileSpec
+                && ((GroovyJavaJointCompileSpec) spec)
+                        .getGroovyCompileOptions()
+                        .getFileExtensions()
+                        .contains("java");
     }
 
     @Override

@@ -31,7 +31,8 @@ public class DefaultMultiCauseExceptionNoStackTrace extends DefaultMultiCauseExc
         super(messageFactory, causes);
     }
 
-    public DefaultMultiCauseExceptionNoStackTrace(Factory<String> messageFactory, Iterable<? extends Throwable> causes) {
+    public DefaultMultiCauseExceptionNoStackTrace(
+            Factory<String> messageFactory, Iterable<? extends Throwable> causes) {
         super(messageFactory, causes);
     }
 

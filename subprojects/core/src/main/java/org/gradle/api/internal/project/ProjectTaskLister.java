@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.project;
 
+import java.util.Collection;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Collection;
 
 /**
  * Service to provide all tasks in a project including both regular tasks,

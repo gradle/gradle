@@ -23,7 +23,8 @@ public interface ScriptBlockBuilder {
     /**
      * Adds a property assignment statement to this block
      */
-    void propertyAssignment(@Nullable String comment, String propertyName, Object propertyValue, boolean assignOperator);
+    void propertyAssignment(
+            @Nullable String comment, String propertyName, Object propertyValue, boolean assignOperator);
 
     /**
      * Adds a method invocation statement to this block
@@ -33,7 +34,8 @@ public interface ScriptBlockBuilder {
     /**
      * Adds a method invocation statement to this block
      */
-    void methodInvocation(@Nullable String comment, BuildScriptBuilder.Expression target, String methodName, Object... methodArgs);
+    void methodInvocation(
+            @Nullable String comment, BuildScriptBuilder.Expression target, String methodName, Object... methodArgs);
 
     /**
      * Adds a statement to this block.
@@ -57,7 +59,12 @@ public interface ScriptBlockBuilder {
      *
      * @return an expression that can be used to refer to the element. Note: currently this expression can only be used within this current block.
      */
-    BuildScriptBuilder.Expression containerElement(@Nullable String comment, String container, String elementName, @Nullable String elementType, Action<? super ScriptBlockBuilder> blockContentsBuilder);
+    BuildScriptBuilder.Expression containerElement(
+            @Nullable String comment,
+            String container,
+            String elementName,
+            @Nullable String elementType,
+            Action<? super ScriptBlockBuilder> blockContentsBuilder);
 
     /**
      * Returns a property expression that can be used as a method argument or property assignment value

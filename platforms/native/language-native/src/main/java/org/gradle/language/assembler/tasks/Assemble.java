@@ -15,6 +15,10 @@
  */
 package org.gradle.language.assembler.tasks;
 
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -45,11 +49,6 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * Translates Assembly language source files into object files.
@@ -89,13 +88,11 @@ public abstract class Assemble extends DefaultTask {
 
     @TaskAction
     public void assemble() {
-        BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
+        BuildOperationLogger operationLogger =
+                getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
 
         boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(
-            getDeleter(),
-            getOutputs().getPreviousOutputFiles(),
-            getObjectFileDir()
-        );
+                getDeleter(), getOutputs().getPreviousOutputFiles(), getObjectFileDir());
 
         DefaultAssembleSpec spec = new DefaultAssembleSpec();
         spec.setTempDir(getTemporaryDir());
@@ -109,7 +106,8 @@ public abstract class Assemble extends DefaultTask {
         NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
         NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
         Compiler<AssembleSpec> compiler = nativeToolChain.select(nativePlatform).newCompiler(AssembleSpec.class);
-        WorkResult result = BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
+        WorkResult result =
+                BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
         setDidWork(result.getDidWork() || cleanedOutputs);
     }
 

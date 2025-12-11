@@ -16,13 +16,13 @@
 
 package org.gradle.internal.tools.api.impl;
 
-
 import org.jspecify.annotations.Nullable;
 
 public class InnerClassMember extends AccessibleMember implements Comparable<InnerClassMember> {
 
     @Nullable
     private final String outerName;
+
     @Nullable
     private final String innerName;
 
@@ -45,8 +45,8 @@ public class InnerClassMember extends AccessibleMember implements Comparable<Inn
     @Override
     public int compareTo(InnerClassMember o) {
         return super.compare(o)
-            .compare(outerName == null ? "" : outerName, o.outerName == null ? "" : o.outerName)
-            .compare(innerName == null ? "" : innerName, o.innerName == null ? "" : o.innerName)
-            .result();
+                .compare(outerName == null ? "" : outerName, o.outerName == null ? "" : o.outerName)
+                .compare(innerName == null ? "" : innerName, o.innerName == null ? "" : o.innerName)
+                .result();
     }
 }

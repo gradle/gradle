@@ -17,6 +17,10 @@
 package org.gradle.groovy.scripts.internal;
 
 import com.google.common.base.Predicate;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
 import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.GroovyCodeVisitor;
@@ -40,21 +44,16 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.internal.Pair;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.ListIterator;
-
 /**
  * Self contained utility functions for dealing with AST.
  */
 public abstract class AstUtils {
 
-    private AstUtils() {
-    }
+    private AstUtils() {}
 
     public static boolean isMethodOnThis(MethodCallExpression call, String name) {
-        boolean hasName = call.getMethod() instanceof ConstantExpression && call.getMethod().getText().equals(name);
+        boolean hasName = call.getMethod() instanceof ConstantExpression
+                && call.getMethod().getText().equals(name);
         return hasName && targetIsThis(call);
     }
 
@@ -73,7 +72,8 @@ public abstract class AstUtils {
 
     @Nullable
     public static ClassNode getScriptClass(SourceUnit source) {
-        if (source.getAST().getStatementBlock().getStatements().isEmpty() && source.getAST().getMethods().isEmpty()) {
+        if (source.getAST().getStatementBlock().getStatements().isEmpty()
+                && source.getAST().getMethods().isEmpty()) {
             // There is no script class when there are no statements or methods declared in the script
             return null;
         }
@@ -86,7 +86,8 @@ public abstract class AstUtils {
     }
 
     public static void filterAndTransformStatements(SourceUnit source, StatementTransformer transformer) {
-        ListIterator<Statement> statementIterator = source.getAST().getStatementBlock().getStatements().listIterator();
+        ListIterator<Statement> statementIterator =
+                source.getAST().getStatementBlock().getStatements().listIterator();
         while (statementIterator.hasNext()) {
             Statement originalStatement = statementIterator.next();
             Statement transformedStatement = transformer.transform(source, originalStatement);
@@ -157,7 +158,9 @@ public abstract class AstUtils {
         }
 
         ArgumentListExpression args = (ArgumentListExpression) methodCall.getArguments();
-        if (args.getExpressions().size() == 2 && args.getExpression(0) instanceof ClassExpression && args.getExpression(1) instanceof ClosureExpression) {
+        if (args.getExpressions().size() == 2
+                && args.getExpression(0) instanceof ClassExpression
+                && args.getExpression(1) instanceof ClosureExpression) {
             return Pair.of((ClassExpression) args.getExpression(0), (ClosureExpression) args.getExpression(1));
         } else {
             return null;
@@ -284,8 +287,10 @@ public abstract class AstUtils {
                 return false;
             }
             if (expressionStatement.getExpression() instanceof DeclarationExpression) {
-                DeclarationExpression declarationExpression = (DeclarationExpression) expressionStatement.getExpression();
-                if (declarationExpression.getRightExpression() instanceof EmptyExpression || declarationExpression.getRightExpression() instanceof ConstantExpression) {
+                DeclarationExpression declarationExpression =
+                        (DeclarationExpression) expressionStatement.getExpression();
+                if (declarationExpression.getRightExpression() instanceof EmptyExpression
+                        || declarationExpression.getRightExpression() instanceof ConstantExpression) {
                     return false;
                 }
             }

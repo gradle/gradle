@@ -31,5 +31,4 @@ public class DefaultGradleEnterprisePluginServiceRef implements GradleEnterprise
     public GradleEnterprisePluginService get() {
         return service;
     }
-
 }

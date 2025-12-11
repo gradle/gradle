@@ -44,11 +44,10 @@ public class CurrentGradleInstallation {
         return locate().getInstallation();
     }
 
-    public synchronized static CurrentGradleInstallation locate() {
+    public static synchronized CurrentGradleInstallation locate() {
         if (instance == null) {
             instance = CurrentGradleInstallationLocator.locate();
         }
         return instance;
     }
-
 }

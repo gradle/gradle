@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.internal.prebuilt;
 
+import java.io.File;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.nativeplatform.BuildType;
@@ -24,12 +25,17 @@ import org.gradle.nativeplatform.PrebuiltLibrary;
 import org.gradle.nativeplatform.PrebuiltStaticLibraryBinary;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
-import java.io.File;
-
-public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryBinary implements PrebuiltStaticLibraryBinary {
+public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryBinary
+        implements PrebuiltStaticLibraryBinary {
     private File staticLibraryFile;
 
-    public DefaultPrebuiltStaticLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+    public DefaultPrebuiltStaticLibraryBinary(
+            String name,
+            PrebuiltLibrary library,
+            BuildType buildType,
+            NativePlatform targetPlatform,
+            Flavor flavor,
+            FileCollectionFactory fileCollectionFactory) {
         super(name, library, buildType, targetPlatform, flavor, fileCollectionFactory);
     }
 

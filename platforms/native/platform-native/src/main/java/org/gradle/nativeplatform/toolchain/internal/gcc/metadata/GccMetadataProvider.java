@@ -16,8 +16,22 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc.metadata;
 
+import static org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccCompilerType.CLANG;
+import static org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccCompilerType.GCC;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.file.NoSuchFileException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.gradle.api.GradleException;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.UncheckedException;
@@ -32,21 +46,6 @@ import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.internal.VersionNumber;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.nio.file.NoSuchFileException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccCompilerType.CLANG;
-import static org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccCompilerType.GCC;
 
 /**
  * Given a File pointing to an (existing) gcc/g++/clang/clang++ binary, extracts the version number and default architecture by running with -dM -E -v and scraping the output.
@@ -98,11 +97,12 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         String line;
         try {
             while ((line = reader.readLine()) != null) {
-                // allowing win32 to bypass the check is due to the mingw compiler on linux not including major.minor in the version string.
+                // allowing win32 to bypass the check is due to the mingw compiler on linux not including major.minor in
+                // the version string.
                 if ((line.contains(majorMinorOnly) || line.contains("win32"))
-                    && line.contains(" version ")
-                    && line.contains(compilerType.getIdentifier())
-                    && !line.contains(" default target ")) {
+                        && line.contains(" version ")
+                        && line.contains(compilerType.getIdentifier())
+                        && !line.contains(" default target ")) {
                     return line;
                 }
             }
@@ -110,7 +110,9 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
             // Should not happen reading from a StringReader
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        throw new BrokenResultException(String.format("Could not determine %s metadata: could not find vendor in output of %s.", compilerType.getDescription(), gccBinary));
+        throw new BrokenResultException(String.format(
+                "Could not determine %s metadata: could not find vendor in output of %s.",
+                compilerType.getDescription(), gccBinary));
     }
 
     private ImmutableList<File> determineSystemIncludes(Map<String, String> defines, List<File> path, String error) {
@@ -138,7 +140,8 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
                     if (compilerType == CLANG && line.contains(FRAMEWORK_INCLUDE)) {
                         continue;
                     }
-                    // Exclude framework directories for GCC - they are added as system search paths but they are actually not
+                    // Exclude framework directories for GCC - they are added as system search paths but they are
+                    // actually not
                     if (compilerType == GCC && line.endsWith("/Library/Frameworks")) {
                         continue;
                     }
@@ -173,7 +176,8 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         if (exe != null) {
             return exe;
         }
-        throw new IllegalStateException("Could not find 'cygpath' executable in path: " + Joiner.on(File.pathSeparator).join(path));
+        throw new IllegalStateException("Could not find 'cygpath' executable in path: "
+                + Joiner.on(File.pathSeparator).join(path));
     }
 
     private String mapCygwinPath(File cygpathExe, String cygwinPath) {
@@ -196,7 +200,9 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
             while ((line = reader.readLine()) != null) {
                 Matcher matcher = DEFINE_PATTERN.matcher(line);
                 if (!matcher.matches()) {
-                    throw new BrokenResultException(String.format("Could not determine %s metadata: %s produced unexpected output.", compilerType.getDescription(), gccBinary.getName()));
+                    throw new BrokenResultException(String.format(
+                            "Could not determine %s metadata: %s produced unexpected output.",
+                            compilerType.getDescription(), gccBinary.getName()));
                 }
                 defines.put(matcher.group(1), matcher.group(2));
             }
@@ -205,7 +211,9 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
             throw UncheckedException.throwAsUncheckedException(e);
         }
         if (!defines.containsKey("__GNUC__") && !defines.containsKey("__clang__")) {
-            throw new BrokenResultException(String.format("Could not determine %s metadata: %s produced unexpected output.", compilerType.getDescription(), gccBinary.getName()));
+            throw new BrokenResultException(String.format(
+                    "Could not determine %s metadata: %s produced unexpected output.",
+                    compilerType.getDescription(), gccBinary.getName()));
         }
         return defines;
     }
@@ -217,7 +225,8 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         switch (compilerType) {
             case CLANG:
                 if (!defines.containsKey("__clang__")) {
-                    throw new BrokenResultException(String.format("%s appears to be GCC rather than Clang. Treating it as GCC.", gccBinary.getName()));
+                    throw new BrokenResultException(String.format(
+                            "%s appears to be GCC rather than Clang. Treating it as GCC.", gccBinary.getName()));
                 }
                 major = toInt(defines.get("__clang_major__"));
                 minor = toInt(defines.get("__clang_minor__"));
@@ -225,7 +234,9 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
                 break;
             case GCC:
                 if (defines.containsKey("__clang__")) {
-                    throw new BrokenResultException(String.format("XCode %s is a wrapper around Clang. Treating it as Clang and not GCC.", gccBinary.getName()));
+                    throw new BrokenResultException(String.format(
+                            "XCode %s is a wrapper around Clang. Treating it as Clang and not GCC.",
+                            gccBinary.getName()));
                 }
                 major = toInt(defines.get("__GNUC__"));
                 minor = toInt(defines.get("__GNUC_MINOR__"));
@@ -268,7 +279,11 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         private final ArchitectureInternal architecture;
         private final ImmutableList<File> systemIncludes;
 
-        DefaultGccMetadata(VersionNumber scrapedVersion, String scrapedVendor, ArchitectureInternal architecture, ImmutableList<File> systemIncludes) {
+        DefaultGccMetadata(
+                VersionNumber scrapedVersion,
+                String scrapedVendor,
+                ArchitectureInternal architecture,
+                ImmutableList<File> systemIncludes) {
             this.scrapedVersion = scrapedVersion;
             this.scrapedVendor = scrapedVendor;
             this.architecture = architecture;

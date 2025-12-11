@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import org.gradle.tooling.model.BuildIdentifier;
-
 import java.io.File;
 import java.io.Serializable;
+import org.gradle.tooling.model.BuildIdentifier;
 
 public class DefaultBuildIdentifier implements Serializable, GradleBuildIdentity, BuildIdentifier {
     private final File rootDir;
@@ -37,5 +36,4 @@ public class DefaultBuildIdentifier implements Serializable, GradleBuildIdentity
     public String toString() {
         return "build=" + rootDir.getPath();
     }
-
 }

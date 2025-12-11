@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resolve.caching;
 
+import java.time.Duration;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataContext;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -31,10 +32,10 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.time.Duration;
-
 @ServiceScope(Scope.Build.class)
-public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor<ModuleComponentResolveMetadata, ComponentMetadataContext, ModuleComponentResolveMetadata> {
+public class ComponentMetadataRuleExecutor
+        extends CrossBuildCachingRuleExecutor<
+                ModuleComponentResolveMetadata, ComponentMetadataContext, ModuleComponentResolveMetadata> {
 
     private static final String CACHE_ID = "md-rule";
 
@@ -43,10 +44,17 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
     }
 
     private static Transformer<Object, ModuleComponentResolveMetadata> getKeyToSnapshotableTransformer() {
-        return moduleMetadata -> moduleMetadata.getSources().withSource(ModuleDescriptorHashModuleSource.class, source -> {
-            return source.map(metadataFileSource -> metadataFileSource.getDescriptorHash().toString() + moduleMetadata.getVariantDerivationStrategy().getClass().getName())
-                .orElseThrow(() -> new RuntimeException("Cannot find original content hash"));
-        });
+        return moduleMetadata -> moduleMetadata
+                .getSources()
+                .withSource(ModuleDescriptorHashModuleSource.class, source -> {
+                    return source.map(metadataFileSource ->
+                                    metadataFileSource.getDescriptorHash().toString()
+                                            + moduleMetadata
+                                                    .getVariantDerivationStrategy()
+                                                    .getClass()
+                                                    .getName())
+                            .orElseThrow(() -> new RuntimeException("Cannot find original content hash"));
+                });
     }
 
     private final Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer;
@@ -57,7 +65,15 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
             ValueSnapshotter snapshotter,
             BuildCommencedTimeProvider timeProvider,
             Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer) {
-        super(CACHE_ID, cacheBuilderFactory, cacheDecoratorFactory, snapshotter, timeProvider, createValidator(timeProvider), getKeyToSnapshotableTransformer(), componentMetadataContextSerializer);
+        super(
+                CACHE_ID,
+                cacheBuilderFactory,
+                cacheDecoratorFactory,
+                snapshotter,
+                timeProvider,
+                createValidator(timeProvider),
+                getKeyToSnapshotableTransformer(),
+                componentMetadataContextSerializer);
         this.componentMetadataContextSerializer = componentMetadataContextSerializer;
     }
 
@@ -65,11 +81,14 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
         return componentMetadataContextSerializer;
     }
 
-    private static EntryValidator<ModuleComponentResolveMetadata> createValidator(final BuildCommencedTimeProvider timeProvider) {
+    private static EntryValidator<ModuleComponentResolveMetadata> createValidator(
+            final BuildCommencedTimeProvider timeProvider) {
         return (policy, entry) -> {
             Duration age = Duration.ofMillis(timeProvider.getCurrentTime() - entry.getTimestamp());
             final ModuleComponentResolveMetadata result = entry.getResult();
-            return !policy.moduleExpiry(new SimpleResolvedModuleVersion(result.getModuleVersionId()), age, result.isChanging()).isMustCheck();
+            return !policy.moduleExpiry(
+                            new SimpleResolvedModuleVersion(result.getModuleVersionId()), age, result.isChanging())
+                    .isMustCheck();
         };
     }
 
@@ -86,5 +105,4 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
             return identifier;
         }
     }
-
 }

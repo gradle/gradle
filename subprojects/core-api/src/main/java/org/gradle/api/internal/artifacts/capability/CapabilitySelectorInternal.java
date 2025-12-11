@@ -34,5 +34,4 @@ public interface CapabilitySelectorInternal extends CapabilitySelector {
      * @return {@code true} iff the capability satisfies this selector.
      */
     boolean matches(String capabilityGroup, String capabilityName, ImmutableCapability implicitCapability);
-
 }

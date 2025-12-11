@@ -51,5 +51,4 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
     public boolean isChanging() {
         return changing;
     }
-
 }

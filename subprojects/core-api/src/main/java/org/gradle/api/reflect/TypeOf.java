@@ -16,19 +16,18 @@
 
 package org.gradle.api.reflect;
 
+import static com.google.common.collect.Iterables.transform;
+import static java.util.Arrays.asList;
+
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Cast;
-import org.gradle.model.internal.type.ModelType;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
-
-import static com.google.common.collect.Iterables.transform;
-import static java.util.Arrays.asList;
+import org.gradle.internal.Cast;
+import org.gradle.model.internal.type.ModelType;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides a way to preserve high-fidelity {@link Type} information on generic types.
@@ -49,9 +48,7 @@ public abstract class TypeOf<T> {
      * @return the {@literal TypeOf} that captures the generic type of the given {@literal Class}
      */
     public static <T> TypeOf<T> typeOf(Class<T> type) {
-        return new TypeOf<T>(
-            ModelType.of(typeWhichCannotBeNull(type))) {
-        };
+        return new TypeOf<T>(ModelType.of(typeWhichCannotBeNull(type))) {};
     }
 
     /**
@@ -62,10 +59,7 @@ public abstract class TypeOf<T> {
      * @return the {@literal TypeOf} that captures the generic type of the given {@literal Type}
      */
     public static <T> TypeOf<T> typeOf(Type type) {
-        return new TypeOf<T>(
-            Cast.<ModelType<T>>uncheckedCast(
-                ModelType.of(typeWhichCannotBeNull(type)))) {
-        };
+        return new TypeOf<T>(Cast.<ModelType<T>>uncheckedCast(ModelType.of(typeWhichCannotBeNull(type)))) {};
     }
 
     /**
@@ -102,8 +96,7 @@ public abstract class TypeOf<T> {
      * @return true if this object represents a simple type.
      */
     public boolean isSimple() {
-        return type.isClass()
-            && !rawClass().isArray();
+        return type.isClass() && !rawClass().isArray();
     }
 
     /**
@@ -136,8 +129,7 @@ public abstract class TypeOf<T> {
      * @see #getComponentType()
      */
     public boolean isArray() {
-        return type.isGenericArray()
-            || (type.isClass() && rawClass().isArray());
+        return type.isGenericArray() || (type.isClass() && rawClass().isArray());
     }
 
     /**
@@ -149,8 +141,8 @@ public abstract class TypeOf<T> {
     @Nullable
     public TypeOf<?> getComponentType() {
         return type.isGenericArray()
-            ? typeOf(type.getComponentType())
-            : nullableTypeOf(rawClass().getComponentType());
+                ? typeOf(type.getComponentType())
+                : nullableTypeOf(rawClass().getComponentType());
     }
 
     /**
@@ -298,8 +290,8 @@ public abstract class TypeOf<T> {
     private ModelType<T> captureTypeArgument() {
         Type genericSuperclass = getClass().getGenericSuperclass();
         Type type = genericSuperclass instanceof ParameterizedType
-            ? ((ParameterizedType) genericSuperclass).getActualTypeArguments()[0]
-            : Object.class;
+                ? ((ParameterizedType) genericSuperclass).getActualTypeArguments()[0]
+                : Object.class;
         return Cast.uncheckedCast(ModelType.of(type));
     }
 
@@ -333,20 +325,15 @@ public abstract class TypeOf<T> {
     }
 
     private static <U> TypeOf<U> typeOf(ModelType<U> componentType) {
-        return new TypeOf<U>(componentType) {
-        };
+        return new TypeOf<U>(componentType) {};
     }
 
     private TypeOf<?> nullableTypeOf(Class<?> type) {
-        return type != null
-            ? typeOf(type)
-            : null;
+        return type != null ? typeOf(type) : null;
     }
 
     private TypeOf<?> nullableTypeOf(ModelType<?> type) {
-        return type != null
-            ? typeOf(type)
-            : null;
+        return type != null ? typeOf(type) : null;
     }
 
     private static <T, U> List<U> map(Iterable<T> iterable, Function<T, U> function) {

@@ -36,26 +36,24 @@ public class CompositePropertyVisitor implements PropertyVisitor {
 
     @Override
     public void visitInputFileProperty(
-        String propertyName,
-        boolean optional,
-        InputBehavior behavior,
-        DirectorySensitivity directorySensitivity,
-        LineEndingSensitivity lineEndingSensitivity,
-        @Nullable FileNormalizer fileNormalizer,
-        PropertyValue value,
-        InputFilePropertyType filePropertyType
-    ) {
+            String propertyName,
+            boolean optional,
+            InputBehavior behavior,
+            DirectorySensitivity directorySensitivity,
+            LineEndingSensitivity lineEndingSensitivity,
+            @Nullable FileNormalizer fileNormalizer,
+            PropertyValue value,
+            InputFilePropertyType filePropertyType) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitInputFileProperty(
-                propertyName,
-                optional,
-                behavior,
-                directorySensitivity,
-                lineEndingSensitivity,
-                fileNormalizer,
-                value,
-                filePropertyType
-            );
+                    propertyName,
+                    optional,
+                    behavior,
+                    directorySensitivity,
+                    lineEndingSensitivity,
+                    fileNormalizer,
+                    value,
+                    filePropertyType);
         }
     }
 
@@ -67,7 +65,8 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+    public void visitOutputFileProperty(
+            String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitOutputFileProperty(propertyName, optional, value, filePropertyType);
         }
@@ -88,7 +87,12 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName, Class<? extends BuildService<?>> buildServiceType) {
+    public void visitServiceReference(
+            String propertyName,
+            boolean optional,
+            PropertyValue value,
+            @Nullable String serviceName,
+            Class<? extends BuildService<?>> buildServiceType) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitServiceReference(propertyName, optional, value, serviceName, buildServiceType);
         }

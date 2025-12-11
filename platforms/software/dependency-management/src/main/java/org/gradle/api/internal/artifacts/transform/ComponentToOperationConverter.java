@@ -23,7 +23,8 @@ import org.gradle.operations.dependencies.variants.OpaqueComponentIdentifier;
 
 public class ComponentToOperationConverter {
 
-    public static ComponentIdentifier convertComponentIdentifier(org.gradle.api.artifacts.component.ComponentIdentifier componentId) {
+    public static ComponentIdentifier convertComponentIdentifier(
+            org.gradle.api.artifacts.component.ComponentIdentifier componentId) {
         if (componentId instanceof ProjectComponentIdentifier) {
             ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) componentId;
             return new org.gradle.operations.dependencies.variants.ProjectComponentIdentifier() {

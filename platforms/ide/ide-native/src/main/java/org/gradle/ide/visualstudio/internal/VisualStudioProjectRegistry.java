@@ -31,7 +31,13 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     private final ObjectFactory objectFactory;
     private final ProviderFactory providerFactory;
 
-    public VisualStudioProjectRegistry(FileResolver fileResolver, Instantiator instantiator, IdeArtifactRegistry ideArtifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator, ObjectFactory objectFactory, ProviderFactory providerFactory) {
+    public VisualStudioProjectRegistry(
+            FileResolver fileResolver,
+            Instantiator instantiator,
+            IdeArtifactRegistry ideArtifactRegistry,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+            ObjectFactory objectFactory,
+            ProviderFactory providerFactory) {
         super(DefaultVisualStudioProject.class, instantiator, collectionCallbackActionDecorator);
         this.fileResolver = fileResolver;
         this.ideArtifactRegistry = ideArtifactRegistry;
@@ -45,21 +51,32 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     }
 
     public VisualStudioProjectConfiguration addProjectConfiguration(VisualStudioTargetBinary nativeBinary) {
-        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getVisualStudioProjectName(), nativeBinary.getComponentName());
+        DefaultVisualStudioProject project =
+                getOrCreateProject(nativeBinary.getVisualStudioProjectName(), nativeBinary.getComponentName());
         project.getSdkVersion().set(nativeBinary.getSdkVersion());
         project.getVisualStudioVersion().set(nativeBinary.getVisualStudioVersion());
-        VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(project, nativeBinary, nativeBinary.getVisualStudioConfigurationName());
+        VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(
+                project, nativeBinary, nativeBinary.getVisualStudioConfigurationName());
         project.addConfiguration(nativeBinary, configuration);
         return configuration;
     }
 
-    private VisualStudioProjectConfiguration createVisualStudioProjectConfiguration(VisualStudioProject project, VisualStudioTargetBinary nativeBinary, String configuration) {
-        return getInstantiator().newInstance(VisualStudioProjectConfiguration.class, project, configuration, nativeBinary);
+    private VisualStudioProjectConfiguration createVisualStudioProjectConfiguration(
+            VisualStudioProject project, VisualStudioTargetBinary nativeBinary, String configuration) {
+        return getInstantiator()
+                .newInstance(VisualStudioProjectConfiguration.class, project, configuration, nativeBinary);
     }
 
     public DefaultVisualStudioProject createProject(String vsProjectName, String componentName) {
         assert findByName(vsProjectName) == null;
-        DefaultVisualStudioProject vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, vsProjectName, componentName, fileResolver, objectFactory, providerFactory);
+        DefaultVisualStudioProject vsProject = getInstantiator()
+                .newInstance(
+                        DefaultVisualStudioProject.class,
+                        vsProjectName,
+                        componentName,
+                        fileResolver,
+                        objectFactory,
+                        providerFactory);
         add(vsProject);
         ideArtifactRegistry.registerIdeProject(vsProject.getPublishArtifact());
         return vsProject;

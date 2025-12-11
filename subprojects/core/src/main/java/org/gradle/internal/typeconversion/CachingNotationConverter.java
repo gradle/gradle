@@ -42,5 +42,4 @@ public class CachingNotationConverter<T> implements NotationConverter<Object, T>
     public void describe(DiagnosticsVisitor visitor) {
         delegate.describe(visitor);
     }
-
 }

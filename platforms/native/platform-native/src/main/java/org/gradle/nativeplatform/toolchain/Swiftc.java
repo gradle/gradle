@@ -16,10 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.api.Incubating;
 
 /**
  * The <a href="https://swift.org/">Swift Compiler</a> tool chain.

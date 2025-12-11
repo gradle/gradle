@@ -34,17 +34,18 @@ public class PlatformJvmServices extends AbstractGradleModuleServices {
     private void registerInvalidJavaInstallationsCacheInvalidator(ServiceRegistration registration) {
         registration.addProvider(new ServiceRegistrationProvider() {
             @Provides
-            public void configure(ServiceRegistration serviceRegistration, JvmMetadataDetector globalJvmMetadataDetector) {
+            public void configure(
+                    ServiceRegistration serviceRegistration, JvmMetadataDetector globalJvmMetadataDetector) {
                 if (globalJvmMetadataDetector instanceof ConditionalInvalidation) {
-                    // Avoiding generic-unchecked cast with this intermediate implementation that checks the types of the items:
+                    // Avoiding generic-unchecked cast with this intermediate implementation that checks the types of
+                    // the items:
                     ConditionalInvalidation<JvmInstallationMetadata> checkedInvalidationFromDetector =
-                        predicate -> ((ConditionalInvalidation<?>) globalJvmMetadataDetector).invalidateItemsMatching(item ->
-                            item instanceof JvmInstallationMetadata && predicate.test((JvmInstallationMetadata) item)
-                        );
+                            predicate -> ((ConditionalInvalidation<?>) globalJvmMetadataDetector)
+                                    .invalidateItemsMatching(item -> item instanceof JvmInstallationMetadata
+                                            && predicate.test((JvmInstallationMetadata) item));
                     serviceRegistration.add(
-                        InvalidJvmInstallationCacheInvalidator.class,
-                        new InvalidJvmInstallationCacheInvalidator(checkedInvalidationFromDetector)
-                    );
+                            InvalidJvmInstallationCacheInvalidator.class,
+                            new InvalidJvmInstallationCacheInvalidator(checkedInvalidationFromDetector));
                 }
             }
         });

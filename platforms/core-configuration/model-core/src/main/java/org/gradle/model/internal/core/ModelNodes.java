@@ -37,7 +37,8 @@ public class ModelNodes {
         return withType(ModelType.of(type), predicate);
     }
 
-    public static Predicate<MutableModelNode> withType(final ModelType<?> type, final Predicate<? super MutableModelNode> predicate) {
+    public static Predicate<MutableModelNode> withType(
+            final ModelType<?> type, final Predicate<? super MutableModelNode> predicate) {
         return new Predicate<MutableModelNode>() {
             @Override
             public boolean apply(MutableModelNode node) {

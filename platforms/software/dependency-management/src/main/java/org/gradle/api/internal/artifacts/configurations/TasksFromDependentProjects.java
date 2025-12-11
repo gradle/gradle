@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import java.util.Set;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -28,19 +29,22 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
-
 class TasksFromDependentProjects implements TaskDependencyContainerInternal {
 
     private final String taskName;
     private final String configurationName;
     private final TaskDependencyContainerInternal taskDependencyDelegate;
 
-    public TasksFromDependentProjects(String taskName, String configurationName, TaskDependencyFactory taskDependencyFactory) {
+    public TasksFromDependentProjects(
+            String taskName, String configurationName, TaskDependencyFactory taskDependencyFactory) {
         this(taskName, configurationName, new TaskDependencyChecker(), taskDependencyFactory);
     }
 
-    public TasksFromDependentProjects(String taskName, String configurationName, TaskDependencyChecker checker, TaskDependencyFactory taskDependencyFactory) {
+    public TasksFromDependentProjects(
+            String taskName,
+            String configurationName,
+            TaskDependencyChecker checker,
+            TaskDependencyFactory taskDependencyFactory) {
         this.taskName = taskName;
         this.configurationName = configurationName;
         this.taskDependencyDelegate = taskDependencyFactory.visitingDependencies(context -> {
@@ -73,7 +77,7 @@ class TasksFromDependentProjects implements TaskDependencyContainerInternal {
     }
 
     static class TaskDependencyChecker {
-        //checks if candidate project is dependent of the origin project with given configuration
+        // checks if candidate project is dependent of the origin project with given configuration
         boolean isDependent(Project originProject, String configurationName, Project candidateProject) {
             Configuration configuration = candidateProject.getConfigurations().findByName(configurationName);
             if (configuration == null) {
@@ -85,9 +89,12 @@ class TasksFromDependentProjects implements TaskDependencyContainerInternal {
         }
 
         private static boolean doesConfigurationDependOnProject(Configuration configuration, Path identityPath) {
-            Set<ProjectDependency> projectDependencies = configuration.getAllDependencies().withType(ProjectDependency.class);
+            Set<ProjectDependency> projectDependencies =
+                    configuration.getAllDependencies().withType(ProjectDependency.class);
             for (ProjectDependency projectDependency : projectDependencies) {
-                Path dependencyIdentityPath = ((ProjectDependencyInternal) projectDependency).getTargetProjectIdentity().getBuildTreePath();
+                Path dependencyIdentityPath = ((ProjectDependencyInternal) projectDependency)
+                        .getTargetProjectIdentity()
+                        .getBuildTreePath();
                 if (dependencyIdentityPath.equals(identityPath)) {
                     return true;
                 }

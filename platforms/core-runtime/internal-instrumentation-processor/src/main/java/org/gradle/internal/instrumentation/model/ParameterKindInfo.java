@@ -16,12 +16,16 @@
 
 package org.gradle.internal.instrumentation.model;
 
+import java.lang.annotation.Annotation;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 
-import java.lang.annotation.Annotation;
-
 public enum ParameterKindInfo {
-    RECEIVER, METHOD_PARAMETER, VARARG_METHOD_PARAMETER, CALLER_CLASS_NAME, KOTLIN_DEFAULT_MASK, INJECT_VISITOR_CONTEXT;
+    RECEIVER,
+    METHOD_PARAMETER,
+    VARARG_METHOD_PARAMETER,
+    CALLER_CLASS_NAME,
+    KOTLIN_DEFAULT_MASK,
+    INJECT_VISITOR_CONTEXT;
 
     public boolean isSourceParameter() {
         return this == METHOD_PARAMETER || this == VARARG_METHOD_PARAMETER;

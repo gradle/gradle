@@ -15,7 +15,16 @@
  */
 package org.gradle.api.tasks;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
 import groovy.lang.Closure;
+import java.io.FilterReader;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.regex.Pattern;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
@@ -54,16 +63,6 @@ import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.FilterReader;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
-import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
-
 /**
  * {@code AbstractCopyTask} is the base class for all copy tasks.
  */
@@ -78,7 +77,8 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         this.rootSpec = createRootSpec();
         rootSpec.addChildSpecListener((path, spec) -> {
             if (getState().getExecuting()) {
-                throw new GradleException("You cannot add child specs at execution time. Consider configuring this task during configuration time or using a separate task to do the configuration.");
+                throw new GradleException(
+                        "You cannot add child specs at execution time. Consider configuring this task during configuration time or using a separate task to do the configuration.");
             }
 
             StringBuilder specPropertyNameBuilder = new StringBuilder("rootSpec");
@@ -86,26 +86,32 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             CopySpecResolver resolver = spec.buildResolverRelativeToParent(parentResolver);
             String specPropertyName = specPropertyNameBuilder.toString();
 
-            getInputs().files((Callable<FileTree>) resolver::getSource)
-                .withPropertyName(specPropertyName)
-                .withPathSensitivity(PathSensitivity.RELATIVE)
-                .ignoreEmptyDirectories(false)
-                .skipWhenEmpty();
+            getInputs()
+                    .files((Callable<FileTree>) resolver::getSource)
+                    .withPropertyName(specPropertyName)
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
+                    .ignoreEmptyDirectories(false)
+                    .skipWhenEmpty();
 
-            getInputs().property(specPropertyName + ".destPath", (Callable<String>) () -> resolver.getDestPath().getPathString());
+            getInputs().property(specPropertyName + ".destPath", (Callable<String>)
+                    () -> resolver.getDestPath().getPathString());
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
             getInputs().property(specPropertyName + ".includeEmptyDirs", (Callable<Boolean>) spec::getIncludeEmptyDirs);
-            getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>) spec::getDuplicatesStrategy);
-            getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().map(transformer(FilePermissions::toUnixNumeric)))
-                .optional(true);
-            getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(transformer(FilePermissions::toUnixNumeric)))
-                .optional(true);
+            getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>)
+                    spec::getDuplicatesStrategy);
+            getInputs()
+                    .property(
+                            specPropertyName + ".dirPermissions",
+                            spec.getDirPermissions().map(transformer(FilePermissions::toUnixNumeric)))
+                    .optional(true);
+            getInputs()
+                    .property(
+                            specPropertyName + ".filePermissions",
+                            spec.getFilePermissions().map(transformer(FilePermissions::toUnixNumeric)))
+                    .optional(true);
             getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
         });
-        this.getOutputs().doNotCacheIf(
-            "Has custom actions",
-            spec(task -> rootSpec.hasCustomActions())
-        );
+        this.getOutputs().doNotCacheIf("Has custom actions", spec(task -> rootSpec.hasCustomActions()));
         this.mainSpec = rootSpec.addChild();
     }
 
@@ -151,7 +157,8 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         Instantiator instantiator = getInstantiator();
         FileSystem fileSystem = getFileSystem();
 
-        return new CopyActionExecuter(instantiator, getPropertyFactory(), fileSystem, false, getDocumentationRegistry());
+        return new CopyActionExecuter(
+                instantiator, getPropertyFactory(), fileSystem, false, getDocumentationRegistry());
     }
 
     /**

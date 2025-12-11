@@ -23,7 +23,8 @@ public class ProjectOrderingUtil {
     }
 
     public static int compare(ProjectState left, ProjectState right) {
-        int buildCompare = left.getOwner().getIdentityPath().compareTo(right.getOwner().getIdentityPath());
+        int buildCompare =
+                left.getOwner().getIdentityPath().compareTo(right.getOwner().getIdentityPath());
         if (buildCompare != 0) {
             return buildCompare;
         }

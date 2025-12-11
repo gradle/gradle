@@ -16,10 +16,9 @@
 
 package org.gradle.internal.operations;
 
+import java.util.Collection;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
 
 public class MultipleBuildOperationFailures extends DefaultMultiCauseException {
     private static final int MAX_CAUSES = 10;

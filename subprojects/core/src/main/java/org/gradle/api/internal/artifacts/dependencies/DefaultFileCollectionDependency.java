@@ -78,5 +78,4 @@ public class DefaultFileCollectionDependency implements SelfResolvingDependencyI
     public FileCollection getFiles() {
         return source;
     }
-
 }

@@ -22,5 +22,4 @@ import org.jspecify.annotations.NullMarked;
 public interface PluginApplyingParameter {
 
     Class<?> getPluginType();
-
 }

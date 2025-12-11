@@ -40,5 +40,4 @@ public interface ProgressListener {
      * @see OperationType
      */
     void statusChanged(ProgressEvent event);
-
 }

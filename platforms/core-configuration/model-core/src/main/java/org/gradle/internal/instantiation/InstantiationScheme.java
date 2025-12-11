@@ -16,10 +16,9 @@
 
 package org.gradle.internal.instantiation;
 
-import org.gradle.internal.service.ServiceLookup;
-
 import java.lang.annotation.Annotation;
 import java.util.Set;
+import org.gradle.internal.service.ServiceLookup;
 
 /**
  * A scheme, or strategy, for creating objects.

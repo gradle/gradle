@@ -15,23 +15,19 @@
  */
 package org.gradle.internal;
 
+import static java.lang.String.join;
+
 import java.util.Collection;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import static java.lang.String.join;
-
 public abstract class RenderingUtils {
     public static String quotedOxfordListOf(Collection<String> values, String conjunction) {
-        return values.stream()
-            .sorted()
-            .map(s -> "'" + s + "'")
-            .collect(oxfordJoin(conjunction));
+        return values.stream().sorted().map(s -> "'" + s + "'").collect(oxfordJoin(conjunction));
     }
 
     public static String oxfordListOf(Collection<String> values, String conjunction) {
-        return values.stream()
-            .collect(oxfordJoin(conjunction));
+        return values.stream().collect(oxfordJoin(conjunction));
     }
 
     public static Collector<? super String, ?, String> oxfordJoin(String conjunction) {

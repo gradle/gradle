@@ -45,12 +45,18 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new CompositeBuildTreeScopeServices());
-        registration.add(BuildTreeLocalComponentProvider.class, HoldsProjectState.class, DefaultBuildTreeLocalComponentProvider.class);
+        registration.add(
+                BuildTreeLocalComponentProvider.class,
+                HoldsProjectState.class,
+                DefaultBuildTreeLocalComponentProvider.class);
     }
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.add(PluginResolverContributor.class, HoldsProjectState.class, CompositeBuildPluginResolverContributor.class);
+        registration.add(
+                PluginResolverContributor.class,
+                HoldsProjectState.class,
+                CompositeBuildPluginResolverContributor.class);
     }
 
     private static class CompositeBuildTreeScopeServices implements ServiceRegistrationProvider {
@@ -68,11 +74,10 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
 
         @Provides
         public BuildStateRegistry createBuildStateRegistry(
-            BuildModelParameters buildModelParameters,
-            IncludedBuildFactory includedBuildFactory,
-            ListenerManager listenerManager,
-            BuildStateFactory buildStateFactory
-        ) {
+                BuildModelParameters buildModelParameters,
+                IncludedBuildFactory includedBuildFactory,
+                ListenerManager listenerManager,
+                BuildStateFactory buildStateFactory) {
             if (buildModelParameters.isIsolatedProjects()) {
                 // IP mode prohibits cycles in included plugin builds graph
                 return new AcyclicIncludedBuildRegistry(includedBuildFactory, listenerManager, buildStateFactory);
@@ -83,19 +88,25 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
 
         @Provides
         public GlobalDependencySubstitutionRegistry createGlobalDependencySubstitutionRegistry(
-            CompositeBuildContext context,
-            Instantiator instantiator,
-            ObjectFactory objectFactory,
-            ComponentSelectorNotationConverter componentSelectorNotationParser,
-            AttributesFactory attributesFactory
-        ) {
-            NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-            return new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, componentSelectorNotationParser, capabilityNotationParser);
+                CompositeBuildContext context,
+                Instantiator instantiator,
+                ObjectFactory objectFactory,
+                ComponentSelectorNotationConverter componentSelectorNotationParser,
+                AttributesFactory attributesFactory) {
+            NotationParser<Object, Capability> capabilityNotationParser =
+                    new CapabilityNotationParserFactory(false).create();
+            return new IncludedBuildDependencySubstitutionsBuilder(
+                    context,
+                    instantiator,
+                    objectFactory,
+                    attributesFactory,
+                    componentSelectorNotationParser,
+                    capabilityNotationParser);
         }
 
         @Provides
         public CompositeBuildContext createCompositeBuildContext() {
             return new DefaultBuildableCompositeBuildContext();
         }
-        }
+    }
 }

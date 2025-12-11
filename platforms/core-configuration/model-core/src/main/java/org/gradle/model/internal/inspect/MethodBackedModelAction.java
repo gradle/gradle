@@ -16,16 +16,16 @@
 
 package org.gradle.model.internal.inspect;
 
+import java.util.List;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-import java.util.List;
-
 class MethodBackedModelAction<T> extends AbstractMethodRuleAction<T> {
     private final List<ModelReference<?>> inputs;
 
-    public MethodBackedModelAction(ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
+    public MethodBackedModelAction(
+            ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
         super(subject, descriptor);
         this.inputs = inputs;
     }

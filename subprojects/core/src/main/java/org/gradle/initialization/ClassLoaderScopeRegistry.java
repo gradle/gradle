@@ -26,5 +26,4 @@ public interface ClassLoaderScopeRegistry {
     ClassLoaderScope getCoreAndPluginsScope();
 
     ClassLoaderScope getCoreScope();
-
 }

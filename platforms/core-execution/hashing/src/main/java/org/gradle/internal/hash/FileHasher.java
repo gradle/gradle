@@ -15,10 +15,9 @@
  */
 package org.gradle.internal.hash;
 
+import java.io.File;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 @ServiceScope({Scope.UserHome.class, Scope.BuildSession.class})
 public interface FileHasher {

@@ -16,11 +16,10 @@
 
 package org.gradle.internal.model;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Encapsulates some mutable model, and provides synchronized access to the model.

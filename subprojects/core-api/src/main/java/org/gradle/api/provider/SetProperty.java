@@ -16,10 +16,9 @@
 
 package org.gradle.api.provider;
 
+import java.util.Set;
 import org.gradle.api.model.ManagedType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 /**
  * Represents a property whose type is a {@link Set} of elements of type {@link T}. Retains iteration order.

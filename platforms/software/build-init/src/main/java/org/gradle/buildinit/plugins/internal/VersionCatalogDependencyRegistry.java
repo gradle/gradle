@@ -17,10 +17,6 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
@@ -28,14 +24,24 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Tracks plugins, libraries and their versions used during build generation.
  */
 @NullMarked
 public class VersionCatalogDependencyRegistry {
-    private static final Pattern RESERVED_LIBRARY_PREFIX = Pattern.compile("^(" + String.join("|", DefaultVersionCatalogBuilder.FORBIDDEN_LIBRARY_ALIAS_PREFIX) + ")[- ]");
-    private static final Pattern RESERVED_ALIAS_COMPONENT = Pattern.compile("(^|-)(" + String.join("|", Sets.union(DefaultVersionCatalogBuilder.RESERVED_ALIAS_NAMES, DefaultVersionCatalogBuilder.RESERVED_JAVA_NAMES)) + ")($|[- ])");
+    private static final Pattern RESERVED_LIBRARY_PREFIX = Pattern.compile(
+            "^(" + String.join("|", DefaultVersionCatalogBuilder.FORBIDDEN_LIBRARY_ALIAS_PREFIX) + ")[- ]");
+    private static final Pattern RESERVED_ALIAS_COMPONENT = Pattern.compile("(^|-)("
+            + String.join(
+                    "|",
+                    Sets.union(
+                            DefaultVersionCatalogBuilder.RESERVED_ALIAS_NAMES,
+                            DefaultVersionCatalogBuilder.RESERVED_JAVA_NAMES))
+            + ")($|[- ])");
     private final Map<String, VersionEntry> versions = new TreeMap<>();
     private final Map<String, LibraryEntry> libraries = new TreeMap<>();
     private final Map<String, PluginEntry> plugins = new TreeMap<>();
@@ -136,12 +142,17 @@ public class VersionCatalogDependencyRegistry {
     }
 
     private static String coordinatesToAlias(String coordinates) {
-        // not required but Groovy and Kotlin slightly differ in the handling of uppercase letters of alias parts so make everything lowercase to avoid lookup failures
-        String alias = coordinates.replaceAll("[.:_]", "-").replaceAll("-(\\d)", "-v$1").toLowerCase(Locale.ENGLISH);
+        // not required but Groovy and Kotlin slightly differ in the handling of uppercase letters of alias parts so
+        // make everything lowercase to avoid lookup failures
+        String alias = coordinates
+                .replaceAll("[.:_]", "-")
+                .replaceAll("-(\\d)", "-v$1")
+                .toLowerCase(Locale.ENGLISH);
         StringBuffer resultingAlias = new StringBuffer();
         Matcher reservedComponentsMatcher = RESERVED_ALIAS_COMPONENT.matcher(alias);
         while (reservedComponentsMatcher.find()) {
-            reservedComponentsMatcher.appendReplacement(resultingAlias, "$1my" + reservedComponentsMatcher.group(2) + "$3");
+            reservedComponentsMatcher.appendReplacement(
+                    resultingAlias, "$1my" + reservedComponentsMatcher.group(2) + "$3");
         }
         reservedComponentsMatcher.appendTail(resultingAlias);
         return resultingAlias.toString();

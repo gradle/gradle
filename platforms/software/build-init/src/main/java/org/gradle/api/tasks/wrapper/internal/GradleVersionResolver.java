@@ -18,15 +18,6 @@ package org.gradle.api.tasks.wrapper.internal;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.gradle.api.GradleException;
-import org.gradle.api.resources.MissingResourceException;
-import org.gradle.api.resources.TextResourceFactory;
-import org.gradle.internal.exceptions.ResolutionProvider;
-import org.gradle.util.GradleVersion;
-import org.gradle.util.internal.DistributionLocator;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
@@ -36,13 +27,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
+import org.gradle.api.GradleException;
+import org.gradle.api.resources.MissingResourceException;
+import org.gradle.api.resources.TextResourceFactory;
+import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.DistributionLocator;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 public class GradleVersionResolver {
 
     private final TextResourceFactory textResourceFactory;
+
     @Nullable
     private GradleVersion gradleVersion;
+
     private GradleVersionRequest gradleVersionRequest = new GradleVersionRequest(GradleVersion.current());
 
     public GradleVersionResolver(TextResourceFactory textResourceFactory) {
@@ -81,28 +81,30 @@ public class GradleVersionResolver {
     }
 
     private GradleVersion resolveSemanticVersion(Integer majorVersion, @Nullable Integer minorVersion) {
-        Stream<GradleVersion> versions = getVersionsList(majorVersion.toString())
-            .stream()
-            .map(v -> {
-                try {
-                    return GradleVersion.version(v);
-                } catch (Exception e) {
-                    return null;
-                }
-            })
-            .filter(Objects::nonNull)
-            .filter(v -> v.isFinal() && v.getMajorVersion() == majorVersion);
+        Stream<GradleVersion> versions = getVersionsList(majorVersion.toString()).stream()
+                .map(v -> {
+                    try {
+                        return GradleVersion.version(v);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .filter(v -> v.isFinal() && v.getMajorVersion() == majorVersion);
 
         if (minorVersion == null) {
-            return versions.max(GradleVersion::compareTo).orElseThrow(() ->
-                new WrapperVersionException("Invalid version specified for argument '--gradle-version': no final version found for major version " + majorVersion, null)
-            );
+            return versions.max(GradleVersion::compareTo)
+                    .orElseThrow(() -> new WrapperVersionException(
+                            "Invalid version specified for argument '--gradle-version': no final version found for major version "
+                                    + majorVersion,
+                            null));
         } else {
-            return versions
-                .filter(v -> getMinorVersion(v) == minorVersion)
-                .max(GradleVersion::compareTo).orElseThrow(() ->
-                    new WrapperVersionException("Invalid version specified for argument '--gradle-version': no final version found for version " + majorVersion + "." + minorVersion, null)
-                );
+            return versions.filter(v -> getMinorVersion(v) == minorVersion)
+                    .max(GradleVersion::compareTo)
+                    .orElseThrow(() -> new WrapperVersionException(
+                            "Invalid version specified for argument '--gradle-version': no final version found for version "
+                                    + majorVersion + "." + minorVersion,
+                            null));
         }
     }
 
@@ -121,19 +123,26 @@ public class GradleVersionResolver {
 
     private String getSingleVersion(DynamicVersion dynamicVersion) {
         try {
-            return getVersion(textResourceFactory.fromUri(getApiEndpoint(dynamicVersion.urlSuffix)).asString(), dynamicVersion.name);
+            return getVersion(
+                    textResourceFactory
+                            .fromUri(getApiEndpoint(dynamicVersion.urlSuffix))
+                            .asString(),
+                    dynamicVersion.name);
         } catch (MissingResourceException e) {
             // swallowing the original exception to provide a more user-friendly message
-            throw new WrapperVersionException("Unable to resolve Gradle version for '" + dynamicVersion.name + "'.", null);
+            throw new WrapperVersionException(
+                    "Unable to resolve Gradle version for '" + dynamicVersion.name + "'.", null);
         }
     }
 
     private List<String> getVersionsList(String majorVersion) {
         try {
-            return getVersions(textResourceFactory.fromUri(getApiEndpoint(majorVersion)).asString());
+            return getVersions(
+                    textResourceFactory.fromUri(getApiEndpoint(majorVersion)).asString());
         } catch (MissingResourceException e) {
             // swallowing the original exception to provide a more user-friendly message
-            throw new WrapperVersionException("Unable to resolve list of Gradle versions for '" + majorVersion + "'.", null);
+            throw new WrapperVersionException(
+                    "Unable to resolve list of Gradle versions for '" + majorVersion + "'.", null);
         }
     }
 
@@ -150,10 +159,7 @@ public class GradleVersionResolver {
     static List<String> getVersions(String json) {
         Type type = new TypeToken<List<Map<String, String>>>() {}.getType();
         List<Map<String, String>> map = new Gson().fromJson(json, type);
-        return map.stream()
-            .map(m -> m.get("version"))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+        return map.stream().map(m -> m.get("version")).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     private static GradleVersion parseVersionString(String gradleVersionString) {
@@ -184,9 +190,9 @@ public class GradleVersionResolver {
 
         private static String suggestDynamicVersions() {
             String validStrings = Arrays.stream(DynamicVersion.values())
-                .map(dv -> dv.name)
-                .map(s -> String.format("'%s'", s))
-                .collect(Collectors.joining(", "));
+                    .map(dv -> dv.name)
+                    .map(s -> String.format("'%s'", s))
+                    .collect(Collectors.joining(", "));
             return String.format("Use one of the following dynamic version specifications: %s.", validStrings);
         }
     }
@@ -209,7 +215,10 @@ public class GradleVersionResolver {
 
         @Nullable
         public static DynamicVersion findMatch(String version) {
-            return Arrays.stream(values()).filter(dv -> dv.name.equals(version)).findFirst().orElse(null);
+            return Arrays.stream(values())
+                    .filter(dv -> dv.name.equals(version))
+                    .findFirst()
+                    .orElse(null);
         }
     }
 
@@ -224,12 +233,16 @@ public class GradleVersionResolver {
     private static class GradleVersionRequest {
         final String request;
         final RequestType requestType;
+
         @Nullable
         DynamicVersion dynamicVersion = null;
+
         @Nullable
         Integer majorVersion;
+
         @Nullable
         Integer minorVersion;
+
         private static final Pattern SEMVER_REQUEST = Pattern.compile("([0-9]+)(\\.([0-9]+))?");
 
         GradleVersionRequest(String request) {

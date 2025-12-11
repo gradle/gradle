@@ -36,24 +36,31 @@ public class OptionValueNotationParserFactory {
         if (targetType.isAssignableFrom(String.class) || targetType.isAssignableFrom(FileSystemLocation.class)) {
             return Cast.uncheckedCast(new NoDescriptionValuesJustReturningParser());
         } else if (targetType.isAssignableFrom(JavaLanguageVersion.class)) {
-            NotationConverter<CharSequence, JavaLanguageVersion> converter = new JavaVersionFromCharSequenceNotationConverter();
+            NotationConverter<CharSequence, JavaLanguageVersion> converter =
+                    new JavaVersionFromCharSequenceNotationConverter();
             return Cast.uncheckedCast(new NotationConverterToNotationParserAdapter<>(converter));
         } else if (targetType.isAssignableFrom(JvmVendorSpec.class)) {
-            NotationConverter<CharSequence, JvmVendorSpec> converter = new JvmVendorSpecFromCharSequenceNotationConverter();
+            NotationConverter<CharSequence, JvmVendorSpec> converter =
+                    new JvmVendorSpecFromCharSequenceNotationConverter();
             return Cast.uncheckedCast(new NotationConverterToNotationParserAdapter<>(converter));
         } else if (targetType.isEnum()) {
             @SuppressWarnings({"rawtypes", "unchecked"})
-            NotationConverter<CharSequence, T> converter = new EnumFromCharSequenceNotationParser(targetType.asSubclass(Enum.class));
+            NotationConverter<CharSequence, T> converter =
+                    new EnumFromCharSequenceNotationParser(targetType.asSubclass(Enum.class));
             return new NotationConverterToNotationParserAdapter<>(converter);
         } else if (targetType.isAssignableFrom(Double.class)) {
-            return new NotationConverterToNotationParserAdapter<>(Cast.uncheckedCast(new DoubleFromCharSequenceNotationConverter()));
+            return new NotationConverterToNotationParserAdapter<>(
+                    Cast.uncheckedCast(new DoubleFromCharSequenceNotationConverter()));
         } else if (targetType.isAssignableFrom(Integer.class)) {
-            return new NotationConverterToNotationParserAdapter<>(Cast.uncheckedCast(new IntegerFromCharSequenceNotationConverter()));
+            return new NotationConverterToNotationParserAdapter<>(
+                    Cast.uncheckedCast(new IntegerFromCharSequenceNotationConverter()));
         } else if (targetType.isAssignableFrom(Long.class)) {
-            return new NotationConverterToNotationParserAdapter<>(Cast.uncheckedCast(new LongFromCharSequenceNotationConverter()));
+            return new NotationConverterToNotationParserAdapter<>(
+                    Cast.uncheckedCast(new LongFromCharSequenceNotationConverter()));
         }
 
-        throw new OptionValidationException(String.format("Don't know how to convert strings to type '%s'.", targetType.getName()));
+        throw new OptionValidationException(
+                String.format("Don't know how to convert strings to type '%s'.", targetType.getName()));
     }
 
     private static class NoDescriptionValuesJustReturningParser implements NotationParser<CharSequence, String> {

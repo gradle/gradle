@@ -30,8 +30,8 @@ import org.gradle.internal.typeconversion.TypedNotationConverter;
 import org.jspecify.annotations.Nullable;
 
 public class CapabilityNotationParserFactory implements Factory<NotationParser<Object, Capability>> {
-    private final static CapabilityNotationParser STRICT_CONVERTER = createSingletonConverter(true);
-    private final static CapabilityNotationParser LENIENT_CONVERTER = createSingletonConverter(false);
+    private static final CapabilityNotationParser STRICT_CONVERTER = createSingletonConverter(true);
+    private static final CapabilityNotationParser LENIENT_CONVERTER = createSingletonConverter(false);
 
     private final boolean versionIsRequired;
 
@@ -41,9 +41,9 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
 
     private static CapabilityNotationParser createSingletonConverter(boolean strict) {
         NotationParser<Object, Capability> parser = NotationParserBuilder.toType(Capability.class)
-            .converter(new StringNotationParser(strict))
-            .converter(strict ? new StrictCapabilityMapNotationParser() : new LenientCapabilityMapNotationParser())
-            .toComposite();
+                .converter(new StringNotationParser(strict))
+                .converter(strict ? new StrictCapabilityMapNotationParser() : new LenientCapabilityMapNotationParser())
+                .toComposite();
         return new CapabilityNotationParser() {
             @Override
             public Capability parseNotation(Object notation) throws TypeConversionException {
@@ -59,7 +59,8 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
 
     @Override
     public CapabilityNotationParser create() {
-        // Currently the converter is stateless, doesn't need any external context, so for performance we return a singleton
+        // Currently the converter is stateless, doesn't need any external context, so for performance we return a
+        // singleton
         return versionIsRequired ? STRICT_CONVERTER : LENIENT_CONVERTER;
     }
 
@@ -90,8 +91,8 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         }
 
         private static void reportInvalidNotation(String notation) {
-            throw new InvalidUserDataException(
-                "Invalid format for capability: '" + notation + "'. The correct notation is a 3-part group:name:version notation, "
+            throw new InvalidUserDataException("Invalid format for capability: '" + notation
+                    + "'. The correct notation is a 3-part group:name:version notation, "
                     + "e.g: 'org.group:capability:1.0'");
         }
     }
@@ -103,9 +104,8 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         }
 
         @SuppressWarnings("unused") // reflection
-        protected Capability parseMap(@MapKey("group") String group,
-                                      @MapKey("name") String name,
-                                      @MapKey("version") String version) {
+        protected Capability parseMap(
+                @MapKey("group") String group, @MapKey("name") String name, @MapKey("version") String version) {
             return new DefaultImmutableCapability(group, name, version);
         }
     }
@@ -117,9 +117,10 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         }
 
         @SuppressWarnings("unused") // reflection
-        protected Capability parseMap(@MapKey("group") String group,
-                                      @MapKey("name") String name,
-                                      @MapKey("version") @Nullable String version) {
+        protected Capability parseMap(
+                @MapKey("group") String group,
+                @MapKey("name") String name,
+                @MapKey("version") @Nullable String version) {
             return new DefaultImmutableCapability(group, name, version);
         }
     }

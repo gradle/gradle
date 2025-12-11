@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
+import java.io.File;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 @ServiceScope(Scope.Build.class)
 public interface DependencyVerificationOverride {
@@ -33,19 +32,17 @@ public interface DependencyVerificationOverride {
         return new File(gradleDirectory, VERIFICATION_METADATA_XML);
     }
 
-    ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original);
+    ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(
+            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original);
 
-    default void buildFinished(GradleInternal model) {
-    }
+    default void buildFinished(GradleInternal model) {}
 
     /**
      * This method is called after we know artifacts have been resolved
      * and that something is actually trying to get the files of an artifact set
      * @param displayName the name of what accessed the artifact
      */
-    default void artifactsAccessed(String displayName) {
-
-    }
+    default void artifactsAccessed(String displayName) {}
 
     default ResolvedArtifactResult verifiedArtifact(ResolvedArtifactResult artifact) {
         return artifact;

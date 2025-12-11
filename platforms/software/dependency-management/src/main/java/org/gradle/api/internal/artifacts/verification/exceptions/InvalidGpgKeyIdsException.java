@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.artifacts.verification.exceptions;
 
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
-
-import java.util.List;
 
 /**
  * Exception class used when a GPG IDs were not correct.
@@ -48,14 +47,13 @@ public class InvalidGpgKeyIdsException extends GradleException {
      */
     public void formatMessage(TreeFormatter formatter) {
         final String documentLink = new DocumentationRegistry()
-            .getDocumentationRecommendationFor("on this", "dependency_verification", "sec:understanding-signature-verification");
+                .getDocumentationRecommendationFor(
+                        "on this", "dependency_verification", "sec:understanding-signature-verification");
 
-        formatter.node(String.format("The following trusted GPG IDs are not in a minimum 160-bit fingerprint format (%s):", documentLink));
+        formatter.node(String.format(
+                "The following trusted GPG IDs are not in a minimum 160-bit fingerprint format (%s):", documentLink));
         formatter.startChildren();
-        wrongKeys
-            .stream()
-            .map(key -> String.format("'%s'", key))
-            .forEach(formatter::node);
+        wrongKeys.stream().map(key -> String.format("'%s'", key)).forEach(formatter::node);
         formatter.endChildren();
     }
 

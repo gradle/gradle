@@ -18,12 +18,11 @@ package org.gradle.internal;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import org.gradle.TaskExecutionRequest;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
+import org.gradle.TaskExecutionRequest;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serializable {
     private final List<String> args;
@@ -99,9 +98,9 @@ public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serial
     @Override
     public String toString() {
         return "DefaultTaskExecutionRequest{"
-            + "args=" + args
-            + ",projectPath='" + projectPath + '\''
-            + ",rootDir='" + rootDir + '\''
-            + '}';
+                + "args=" + args
+                + ",projectPath='" + projectPath + '\''
+                + ",rootDir='" + rootDir + '\''
+                + '}';
     }
 }

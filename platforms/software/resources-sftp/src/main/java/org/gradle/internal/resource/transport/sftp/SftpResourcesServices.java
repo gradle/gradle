@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transport.sftp;
 
-
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;

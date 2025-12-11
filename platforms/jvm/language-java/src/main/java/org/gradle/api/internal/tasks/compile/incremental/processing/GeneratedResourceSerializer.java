@@ -24,7 +24,8 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 public class GeneratedResourceSerializer extends AbstractSerializer<GeneratedResource> {
-    private static final Serializer<GeneratedResource.Location> LOCATION_SERIALIZER = new BaseSerializerFactory().getSerializerFor(GeneratedResource.Location.class);
+    private static final Serializer<GeneratedResource.Location> LOCATION_SERIALIZER =
+            new BaseSerializerFactory().getSerializerFor(GeneratedResource.Location.class);
     private final Serializer<String> stringSerializer;
 
     public GeneratedResourceSerializer(Serializer<String> stringSerializer) {

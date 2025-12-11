@@ -17,8 +17,6 @@
 package org.gradle.internal;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.io.FilenameUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,6 +25,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import org.apache.commons.io.FilenameUtils;
 
 public class FileUtils {
     private static final Comparator<File> FILE_SEGMENT_COMPARATOR = new Comparator<File>() {
@@ -98,8 +97,7 @@ public class FileUtils {
             return false;
         }
 
-        return path.length() == startsWithPath.length()
-            || path.charAt(startsWithPath.length()) == File.separatorChar;
+        return path.length() == startsWithPath.length() || path.charAt(startsWithPath.length()) == File.separatorChar;
     }
 
     /**
@@ -209,5 +207,4 @@ public class FileUtils {
             return filename + suffix;
         }
     }
-
 }

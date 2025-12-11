@@ -27,7 +27,10 @@ public class StreamedValueConsumer implements BuildEventConsumer {
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer delegate;
 
-    public StreamedValueConsumer(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
+    public StreamedValueConsumer(
+            ProviderOperationParameters providerParameters,
+            PayloadSerializer payloadSerializer,
+            BuildEventConsumer delegate) {
         this.providerParameters = providerParameters;
         this.payloadSerializer = payloadSerializer;
         this.delegate = delegate;

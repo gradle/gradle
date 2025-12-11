@@ -75,7 +75,12 @@ public interface DependencyFactory {
      * @param extension the extension (optional)
      * @return the new dependency
      */
-    ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension);
+    ExternalModuleDependency create(
+            @Nullable String group,
+            String name,
+            @Nullable String version,
+            @Nullable String classifier,
+            @Nullable String extension);
 
     /**
      * Create a {@link FileCollectionDependency} from a {@link FileCollection}.

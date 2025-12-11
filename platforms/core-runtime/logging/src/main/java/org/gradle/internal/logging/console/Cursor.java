@@ -64,9 +64,9 @@ public class Cursor {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this.getClass())
-            .add("row", row)
-            .add("col", col)
-            .toString();
+                .add("row", row)
+                .add("col", col)
+                .toString();
     }
 
     public static Cursor at(int row, int col) {

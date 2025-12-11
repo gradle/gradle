@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import java.util.List;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.initialization.CacheConfigurationsHandlingSettingsLoader;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -28,8 +29,6 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.composite.ChildBuildRegisteringSettingsLoader;
 import org.gradle.internal.composite.CommandLineIncludedBuildSettingsLoader;
 import org.gradle.internal.composite.CompositeBuildSettingsLoader;
-
-import java.util.List;
 
 public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final SettingsProcessor settingsProcessor;
@@ -45,18 +44,17 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator;
 
     public DefaultSettingsLoaderFactory(
-        SettingsProcessor settingsProcessor,
-        BuildStateRegistry buildRegistry,
-        ProjectStateRegistry projectRegistry,
-        BuildLayoutFactory buildLayoutFactory,
-        GradlePropertiesController gradlePropertiesController,
-        BuildIncluder buildIncluder,
-        InitScriptHandler initScriptHandler,
-        List<BuiltInCommand> builtInCommands,
-        CacheConfigurationsInternal cacheConfigurations,
-        InternalProblems problems,
-        JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator
-    ) {
+            SettingsProcessor settingsProcessor,
+            BuildStateRegistry buildRegistry,
+            ProjectStateRegistry projectRegistry,
+            BuildLayoutFactory buildLayoutFactory,
+            GradlePropertiesController gradlePropertiesController,
+            BuildIncluder buildIncluder,
+            InitScriptHandler initScriptHandler,
+            List<BuiltInCommand> builtInCommands,
+            CacheConfigurationsInternal cacheConfigurations,
+            InternalProblems problems,
+            JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator) {
         this.settingsProcessor = settingsProcessor;
         this.buildRegistry = buildRegistry;
         this.projectRegistry = projectRegistry;
@@ -73,51 +71,35 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     @Override
     public SettingsLoader forTopLevelBuild() {
         return new GradlePropertiesHandlingSettingsLoader(
-            new DaemonJvmToolchainsValidatingSettingsLoader(
-                new CacheConfigurationsHandlingSettingsLoader(
-                    new InitScriptHandlingSettingsLoader(
-                        new CompositeBuildSettingsLoader(
-                            new ChildBuildRegisteringSettingsLoader(
-                                new CommandLineIncludedBuildSettingsLoader(
-                                    defaultSettingsLoader()
-                                ),
-                                buildIncluder
-                            ),
-                            buildRegistry
-                        ),
-                        initScriptHandler
-                    ),
-                    cacheConfigurations
-                ),
-                jvmToolchainsConfigurationValidator
-            ),
-            buildLayoutFactory,
-            gradlePropertiesController
-        );
+                new DaemonJvmToolchainsValidatingSettingsLoader(
+                        new CacheConfigurationsHandlingSettingsLoader(
+                                new InitScriptHandlingSettingsLoader(
+                                        new CompositeBuildSettingsLoader(
+                                                new ChildBuildRegisteringSettingsLoader(
+                                                        new CommandLineIncludedBuildSettingsLoader(
+                                                                defaultSettingsLoader()),
+                                                        buildIncluder),
+                                                buildRegistry),
+                                        initScriptHandler),
+                                cacheConfigurations),
+                        jvmToolchainsConfigurationValidator),
+                buildLayoutFactory,
+                gradlePropertiesController);
     }
 
     @Override
     public SettingsLoader forNestedBuild() {
         return new GradlePropertiesHandlingSettingsLoader(
-            new InitScriptHandlingSettingsLoader(
-                new ChildBuildRegisteringSettingsLoader(
-                    defaultSettingsLoader(),
-                    buildIncluder),
-                initScriptHandler),
-            buildLayoutFactory,
-            gradlePropertiesController
-        );
+                new InitScriptHandlingSettingsLoader(
+                        new ChildBuildRegisteringSettingsLoader(defaultSettingsLoader(), buildIncluder),
+                        initScriptHandler),
+                buildLayoutFactory,
+                gradlePropertiesController);
     }
 
     private SettingsLoader defaultSettingsLoader() {
         return new SettingsAttachingSettingsLoader(
-            new DefaultSettingsLoader(
-                settingsProcessor,
-                buildLayoutFactory,
-                builtInCommands,
-                problems
-            ),
-            projectRegistry
-        );
+                new DefaultSettingsLoader(settingsProcessor, buildLayoutFactory, builtInCommands, problems),
+                projectRegistry);
     }
 }

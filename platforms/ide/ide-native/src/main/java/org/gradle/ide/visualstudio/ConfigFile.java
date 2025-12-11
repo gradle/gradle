@@ -16,9 +16,8 @@
 
 package org.gradle.ide.visualstudio;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
+import org.gradle.api.Incubating;
 
 /**
  * A configuration file generated for Visual Studio.

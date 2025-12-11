@@ -16,10 +16,9 @@
 
 package org.gradle.internal.rules;
 
-import org.gradle.api.Action;
-
 import java.util.Collections;
 import java.util.List;
+import org.gradle.api.Action;
 
 public class NoInputsRuleAction<T> implements RuleAction<T> {
     private final Action<? super T> action;

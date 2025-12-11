@@ -32,7 +32,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  *     public void apply(Project project) {
  *     }
-  * }
+ * }
  * </pre>
  * @since 5.0
  */

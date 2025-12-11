@@ -96,7 +96,10 @@ public interface ArtifactHandler {
      * @param configureClosure The closure to execute to configure the artifact.
      * @return The artifact.
      */
-    PublishArtifact add(String configurationName, Object artifactNotation, @DelegatesTo(ConfigurablePublishArtifact.class) Closure configureClosure);
+    PublishArtifact add(
+            String configurationName,
+            Object artifactNotation,
+            @DelegatesTo(ConfigurablePublishArtifact.class) Closure configureClosure);
 
     /**
      * Adds an artifact to the given configuration.
@@ -108,5 +111,8 @@ public interface ArtifactHandler {
      *
      * @since 3.3.
      */
-    PublishArtifact add(String configurationName, Object artifactNotation, Action<? super ConfigurablePublishArtifact> configureAction);
+    PublishArtifact add(
+            String configurationName,
+            Object artifactNotation,
+            Action<? super ConfigurablePublishArtifact> configureAction);
 }

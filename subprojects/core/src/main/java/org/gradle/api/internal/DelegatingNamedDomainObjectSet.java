@@ -17,6 +17,9 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.SortedSet;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.NamedDomainObjectProvider;
@@ -31,14 +34,11 @@ import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.internal.metaobject.PropertyAccess;
 import org.gradle.internal.metaobject.PropertyMixIn;
 
-import java.util.List;
-import java.util.SortedMap;
-import java.util.SortedSet;
-
 /**
  * A {@link NamedDomainObjectSet} which delegates all methods to a provided delegate.
  */
-public class DelegatingNamedDomainObjectSet<T> extends DelegatingDomainObjectSet<T> implements NamedDomainObjectSet<T>, MethodMixIn, PropertyMixIn {
+public class DelegatingNamedDomainObjectSet<T> extends DelegatingDomainObjectSet<T>
+        implements NamedDomainObjectSet<T>, MethodMixIn, PropertyMixIn {
 
     public DelegatingNamedDomainObjectSet(NamedDomainObjectSet<T> backingSet) {
         super(backingSet);
@@ -75,17 +75,20 @@ public class DelegatingNamedDomainObjectSet<T> extends DelegatingDomainObjectSet
     }
 
     @Override
-    public NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException {
+    public NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction)
+            throws UnknownDomainObjectException {
         return getDelegate().named(name, configurationAction);
     }
 
     @Override
-    public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException {
+    public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type)
+            throws UnknownDomainObjectException {
         return getDelegate().named(name, type);
     }
 
     @Override
-    public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException {
+    public <S extends T> NamedDomainObjectProvider<S> named(
+            String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException {
         return getDelegate().named(name, type, configurationAction);
     }
 

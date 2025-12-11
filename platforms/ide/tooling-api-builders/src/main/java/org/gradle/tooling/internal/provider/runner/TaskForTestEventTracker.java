@@ -15,6 +15,8 @@
  */
 package org.gradle.tooling.internal.provider.runner;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
@@ -22,9 +24,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationStartEvent;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Test listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
@@ -41,7 +40,9 @@ class TaskForTestEventTracker implements BuildOperationTracker {
      * Returns the path for the test task that is an ancestor of the given build operation.
      */
     public String getTaskPath(OperationIdentifier buildOperationId) {
-        return ancestryTracker.findClosestExistingAncestor(buildOperationId, runningTasks::get).get();
+        return ancestryTracker
+                .findClosestExistingAncestor(buildOperationId, runningTasks::get)
+                .get();
     }
 
     @Override
@@ -49,7 +50,8 @@ class TaskForTestEventTracker implements BuildOperationTracker {
         Object details = buildOperation.getDetails();
         if (details instanceof ExecuteTaskBuildOperationDetails) {
             TaskInternal task = ((ExecuteTaskBuildOperationDetails) details).getTask();
-            String previous = runningTasks.put(buildOperation.getId(), task.getIdentityPath().asString());
+            String previous = runningTasks.put(
+                    buildOperation.getId(), task.getIdentityPath().asString());
             if (previous != null) {
                 throw new IllegalStateException("Build operation " + buildOperation.getId() + " already started.");
             }

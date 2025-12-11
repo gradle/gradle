@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import java.util.List;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -33,8 +34,6 @@ import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor.
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-
 class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifactResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExternalResourceArtifactResolver.class);
 
@@ -45,7 +44,13 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
     private final FileStore<ModuleComponentArtifactIdentifier> fileStore;
     private final CacheAwareExternalResourceAccessor resourceAccessor;
 
-    public DefaultExternalResourceArtifactResolver(ExternalResourceRepository repository, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, FileStore<ModuleComponentArtifactIdentifier> fileStore, CacheAwareExternalResourceAccessor resourceAccessor) {
+    public DefaultExternalResourceArtifactResolver(
+            ExternalResourceRepository repository,
+            LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+            List<ResourcePattern> ivyPatterns,
+            List<ResourcePattern> artifactPatterns,
+            FileStore<ModuleComponentArtifactIdentifier> fileStore,
+            CacheAwareExternalResourceAccessor resourceAccessor) {
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.ivyPatterns = ivyPatterns;
@@ -55,7 +60,8 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
     }
 
     @Override
-    public LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
+    public LocallyAvailableExternalResource resolveArtifact(
+            ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
         if (artifact instanceof ModuleDescriptorArtifactMetadata) {
             return downloadStaticResource(ivyPatterns, artifact, result);
         }
@@ -67,7 +73,10 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         return staticResourceExists(artifactPatterns, artifact, result);
     }
 
-    private boolean staticResourceExists(List<ResourcePattern> patternList, ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
+    private boolean staticResourceExists(
+            List<ResourcePattern> patternList,
+            ModuleComponentArtifactMetadata artifact,
+            ResourceAwareResolveResult result) {
         for (ResourcePattern resourcePattern : patternList) {
             if (isIncomplete(resourcePattern, artifact)) {
                 continue;
@@ -86,7 +95,10 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         return false;
     }
 
-    private LocallyAvailableExternalResource downloadStaticResource(List<ResourcePattern> patternList, final ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
+    private LocallyAvailableExternalResource downloadStaticResource(
+            List<ResourcePattern> patternList,
+            final ModuleComponentArtifactMetadata artifact,
+            ResourceAwareResolveResult result) {
         if (artifact instanceof UrlBackedArtifactMetadata) {
             UrlBackedArtifactMetadata urlArtifact = (UrlBackedArtifactMetadata) artifact;
             return downloadByUrl(patternList, urlArtifact, result);
@@ -95,7 +107,10 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         }
     }
 
-    private LocallyAvailableExternalResource downloadByUrl(List<ResourcePattern> patternList, final UrlBackedArtifactMetadata artifact, ResourceAwareResolveResult result) {
+    private LocallyAvailableExternalResource downloadByUrl(
+            List<ResourcePattern> patternList,
+            final UrlBackedArtifactMetadata artifact,
+            ResourceAwareResolveResult result) {
         for (ResourcePattern resourcePattern : patternList) {
             if (isIncomplete(resourcePattern, artifact)) {
                 continue;
@@ -104,9 +119,11 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             ExternalResourceName location = moduleDir.resolve(normalizeRelativeUrl(artifact));
             result.attempted(location);
             LOGGER.debug("Loading {}", location);
-            LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
+            LocallyAvailableResourceCandidates localCandidates =
+                    locallyAvailableResourceFinder.findCandidates(artifact);
             try {
-                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location, artifact.getId().getFileName(), getFileStore(artifact), localCandidates);
+                LocallyAvailableExternalResource resource = resourceAccessor.getResource(
+                        location, artifact.getId().getFileName(), getFileStore(artifact), localCandidates);
                 if (resource != null) {
                     return resource;
                 }
@@ -121,8 +138,12 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         ModuleComponentIdentifier componentId = artifact.getComponentId();
         if (componentId instanceof MavenUniqueSnapshotComponentIdentifier) {
             // We need to replace the `-SNAPSHOT` in the relative URL but only for the version part
-            MavenUniqueSnapshotComponentIdentifier snapshotComponentId = (MavenUniqueSnapshotComponentIdentifier) componentId;
-            return artifact.getRelativeUrl().replace("-" + snapshotComponentId.getSnapshotVersion(), "-" + snapshotComponentId.getTimestampedVersion());
+            MavenUniqueSnapshotComponentIdentifier snapshotComponentId =
+                    (MavenUniqueSnapshotComponentIdentifier) componentId;
+            return artifact.getRelativeUrl()
+                    .replace(
+                            "-" + snapshotComponentId.getSnapshotVersion(),
+                            "-" + snapshotComponentId.getTimestampedVersion());
         }
         return artifact.getRelativeUrl();
     }
@@ -136,7 +157,10 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         return rawId;
     }
 
-    private LocallyAvailableExternalResource downloadByCoords(List<ResourcePattern> patternList, final ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
+    private LocallyAvailableExternalResource downloadByCoords(
+            List<ResourcePattern> patternList,
+            final ModuleComponentArtifactMetadata artifact,
+            ResourceAwareResolveResult result) {
         for (ResourcePattern resourcePattern : patternList) {
             if (isIncomplete(resourcePattern, artifact)) {
                 continue;
@@ -144,9 +168,11 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             ExternalResourceName location = resourcePattern.getLocation(artifact);
             result.attempted(location);
             LOGGER.debug("Loading {}", location);
-            LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
+            LocallyAvailableResourceCandidates localCandidates =
+                    locallyAvailableResourceFinder.findCandidates(artifact);
             try {
-                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location, null, getFileStore(artifact), localCandidates);
+                LocallyAvailableExternalResource resource =
+                        resourceAccessor.getResource(location, null, getFileStore(artifact), localCandidates);
                 if (resource != null) {
                     return resource;
                 }
@@ -157,7 +183,8 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         return null;
     }
 
-    private CacheAwareExternalResourceAccessor.ResourceFileStore getFileStore(final ModuleComponentArtifactMetadata artifact) {
+    private CacheAwareExternalResourceAccessor.ResourceFileStore getFileStore(
+            final ModuleComponentArtifactMetadata artifact) {
         return new DefaultResourceFileStore<ModuleComponentArtifactIdentifier>(fileStore) {
             @Override
             protected ModuleComponentArtifactIdentifier computeKey() {

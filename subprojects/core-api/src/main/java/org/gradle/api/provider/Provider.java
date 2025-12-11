@@ -16,6 +16,8 @@
 
 package org.gradle.api.provider;
 
+import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Project;
@@ -25,9 +27,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.HasInternalProtocol;
 import org.jspecify.annotations.Nullable;
-
-import java.util.concurrent.Callable;
-import java.util.function.BiFunction;
 
 /**
  * A container object that provides a value of a specific type. The value can be retrieved using one of the query methods

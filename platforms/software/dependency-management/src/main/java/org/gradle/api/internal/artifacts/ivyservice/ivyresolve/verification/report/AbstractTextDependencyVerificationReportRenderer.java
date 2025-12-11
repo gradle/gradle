@@ -15,17 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
+import java.nio.file.Path;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
-
-import java.nio.file.Path;
 
 abstract class AbstractTextDependencyVerificationReportRenderer implements DependencyVerificationReportRenderer {
     protected final Path gradleUserHome;
     protected final DocumentationRegistry documentationRegistry;
     protected TreeFormatter formatter;
 
-    public AbstractTextDependencyVerificationReportRenderer(Path gradleUserHome, DocumentationRegistry documentationRegistry) {
+    public AbstractTextDependencyVerificationReportRenderer(
+            Path gradleUserHome, DocumentationRegistry documentationRegistry) {
         this.gradleUserHome = gradleUserHome;
         this.documentationRegistry = documentationRegistry;
     }
@@ -44,13 +44,20 @@ abstract class AbstractTextDependencyVerificationReportRenderer implements Depen
             }
             sb.append("checksums.");
             if (highLevelErrors.hasFailedSignatures() && highLevelErrors.isKeyServersDisabled()) {
-                sb.append(" Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys.");
+                sb.append(
+                        " Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys.");
             }
             legend(sb.toString());
         }
         if (highLevelErrors.canSuggestWriteMetadata()) {
-            // the else is just to avoid telling people to use `--write-verification-metadata` if we suspect compromised dependencies
-            legend("If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. " +  documentationRegistry.getDocumentationRecommendationFor("on how to do this", "dependency_verification", "sec:troubleshooting-verification"));
+            // the else is just to avoid telling people to use `--write-verification-metadata` if we suspect compromised
+            // dependencies
+            legend(
+                    "If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. "
+                            + documentationRegistry.getDocumentationRecommendationFor(
+                                    "on how to do this",
+                                    "dependency_verification",
+                                    "sec:troubleshooting-verification"));
         }
     }
 

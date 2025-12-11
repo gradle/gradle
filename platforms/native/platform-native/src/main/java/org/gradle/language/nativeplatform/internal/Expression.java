@@ -16,9 +16,8 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A preprocessor expression whose value may be resolved to an include file path.

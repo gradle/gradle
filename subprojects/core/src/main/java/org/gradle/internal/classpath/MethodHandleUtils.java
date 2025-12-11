@@ -16,13 +16,12 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.internal.Cast;
-import org.gradle.internal.lazy.Lazy;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Arrays;
+import org.gradle.internal.Cast;
+import org.gradle.internal.lazy.Lazy;
 
 public class MethodHandleUtils {
     public static MethodHandle findStaticOrThrowError(Class<?> refc, String name, MethodType methodType) {
@@ -35,8 +34,10 @@ public class MethodHandleUtils {
         }
     }
 
-    @SuppressWarnings("TypeParameterUnusedInFormals") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public static <T> T invokeKotlinStaticDefault(Lazy<MethodHandle> handle, int mask, Object... args) throws Throwable {
+    @SuppressWarnings("TypeParameterUnusedInFormals") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
+    public static <T> T invokeKotlinStaticDefault(Lazy<MethodHandle> handle, int mask, Object... args)
+            throws Throwable {
         Object[] argsWithDefaultMaskAndFlag = Arrays.copyOf(args, args.length + 2);
         argsWithDefaultMaskAndFlag[args.length] = mask;
         argsWithDefaultMaskAndFlag[args.length + 1] = null; // it's already there, but let's be clear
@@ -44,9 +45,10 @@ public class MethodHandleUtils {
     }
 
     public static Lazy<MethodHandle> lazyKotlinStaticDefaultHandle(
-        Class<?> owner, String name, Class<?> returnType, Class<?>... parameterTypes
-    ) {
-        return Lazy.locking().of(() -> findStaticOrThrowError(owner, name + "$default", kotlinDefaultMethodType(returnType, parameterTypes)));
+            Class<?> owner, String name, Class<?> returnType, Class<?>... parameterTypes) {
+        return Lazy.locking()
+                .of(() -> findStaticOrThrowError(
+                        owner, name + "$default", kotlinDefaultMethodType(returnType, parameterTypes)));
     }
 
     private static MethodType kotlinDefaultMethodType(Class<?> returnType, Class<?>... parameterTypes) {

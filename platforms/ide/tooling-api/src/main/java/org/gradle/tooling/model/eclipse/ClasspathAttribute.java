@@ -38,5 +38,4 @@ public interface ClasspathAttribute {
      * @return The value of this classpath attribute.
      */
     String getValue();
-
 }

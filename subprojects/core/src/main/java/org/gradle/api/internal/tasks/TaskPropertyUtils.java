@@ -41,7 +41,11 @@ public class TaskPropertyUtils {
      *
      * Reports errors and warnings to the given validation context.
      */
-    public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {
+    public static void visitProperties(
+            PropertyWalker propertyWalker,
+            TaskInternal task,
+            TypeValidationContext validationContext,
+            PropertyVisitor visitor) {
         visitAnnotatedProperties(propertyWalker, task, validationContext, visitor);
         visitRegisteredProperties(task, visitor);
     }
@@ -54,7 +58,11 @@ public class TaskPropertyUtils {
         // build services declared via Task#usesService are not visited as there is no use case for that
     }
 
-    static void visitAnnotatedProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {
+    static void visitAnnotatedProperties(
+            PropertyWalker propertyWalker,
+            TaskInternal task,
+            TypeValidationContext validationContext,
+            PropertyVisitor visitor) {
         propertyWalker.visitProperties(task, validationContext, visitor);
     }
 }

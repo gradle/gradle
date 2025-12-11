@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.plugin.use.resolve.internal;
+
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 

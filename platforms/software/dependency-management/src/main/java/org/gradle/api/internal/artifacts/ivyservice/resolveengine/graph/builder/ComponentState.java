@@ -17,6 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -41,16 +50,6 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * Resolution state for a given component
@@ -77,7 +76,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private boolean root;
     private Pair<Capability, Collection<NodeState>> capabilityReject;
 
-    ComponentState(long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
+    ComponentState(
+            long resultId,
+            ModuleResolveState module,
+            ModuleVersionIdentifier id,
+            ComponentIdentifier componentIdentifier,
+            ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
         this.module = module;
         this.id = id;
@@ -205,11 +209,13 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
         ComponentOverrideMetadata componentOverrideMetadata;
         if (selectors != null && selectors.size() > 0) {
-            // Taking the first selector here to determine the 'changing' status is our best bet to get the selector that will most likely be chosen in the end.
+            // Taking the first selector here to determine the 'changing' status is our best bet to get the selector
+            // that will most likely be chosen in the end.
             // As selectors are sorted accordingly (see ModuleSelectors.SELECTOR_COMPARATOR).
             SelectorState firstSelector = selectors.first();
 
-            componentOverrideMetadata = DefaultComponentOverrideMetadata.forDependency(firstSelector.isChanging(), selectors.getFirstDependencyArtifact());
+            componentOverrideMetadata = DefaultComponentOverrideMetadata.forDependency(
+                    firstSelector.isChanging(), selectors.getFirstDependencyArtifact());
         } else {
             componentOverrideMetadata = DefaultComponentOverrideMetadata.EMPTY;
         }
@@ -227,7 +233,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         graphResolveState = result.getGraphState();
     }
 
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     private boolean tryResolveVirtualPlatform() {
         if (module.isVirtualPlatform()) {
             for (ComponentState version : module.getAllVersions()) {
@@ -235,7 +242,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                     ComponentGraphResolveState versionState = version.getResolveStateOrNull();
                     if (versionState instanceof LenientPlatformGraphResolveState) {
                         LenientPlatformGraphResolveState lenientState = (LenientPlatformGraphResolveState) versionState;
-                        ComponentGraphResolveState withIds = lenientState.copyWithIds((ModuleComponentIdentifier) componentIdentifier, id);
+                        ComponentGraphResolveState withIds =
+                                lenientState.copyWithIds((ModuleComponentIdentifier) componentIdentifier, id);
                         setState(withIds, ComponentGraphSpecificResolveState.EMPTY_STATE);
                         return true;
                     }
@@ -271,7 +279,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                 selectorState.addReasonsForSelector(reason);
             }
         }
-        for (ComponentSelectionDescriptorInternal selectionCause : VersionConflictResolutionDetails.mergeCauses(selectionCauses)) {
+        for (ComponentSelectionDescriptorInternal selectionCause :
+                VersionConflictResolutionDetails.mergeCauses(selectionCauses)) {
             reason.addCause(selectionCause);
         }
         cachedReason = reason;
@@ -280,8 +289,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     boolean hasStrongOpinion() {
         return StreamSupport.stream(module.getSelectors().spliterator(), false)
-            .filter(s -> s.getFailure() == null)
-            .anyMatch(SelectorState::hasStrongOpinion);
+                .filter(s -> s.getFailure() == null)
+                .anyMatch(SelectorState::hasStrongOpinion);
     }
 
     @Override
@@ -379,10 +388,14 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    private static String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
-        return "Module '" + id + "' has been rejected:\n" +
-            "   Cannot select module with conflict on capability '" + formatCapability(capabilityConflict.left) + "' also provided by " +
-            capabilityConflict.getRight().stream().map(NodeState::getDisplayName).sorted().collect(Collectors.toList());
+    private static String formatCapabilityRejectMessage(
+            ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
+        return "Module '" + id + "' has been rejected:\n" + "   Cannot select module with conflict on capability '"
+                + formatCapability(capabilityConflict.left) + "' also provided by "
+                + capabilityConflict.getRight().stream()
+                        .map(NodeState::getDisplayName)
+                        .sorted()
+                        .collect(Collectors.toList());
     }
 
     private static String formatCapability(Capability capability) {
@@ -468,7 +481,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         ComponentState that = (ComponentState) o;
 
         return that.resultId.equals(resultId);
-
     }
 
     @Override

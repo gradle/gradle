@@ -16,15 +16,8 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.cache.ManualEvictionInMemoryCache;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.VisitableURLClassLoader;
-import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.lazy.Lazy;
-import org.gradle.internal.session.BuildSessionLifecycleListener;
-import org.jspecify.annotations.Nullable;
+import static java.util.Collections.synchronizedMap;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.SoftReference;
 import java.util.HashSet;
 import java.util.Map;
@@ -36,8 +29,14 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import static java.util.Collections.synchronizedMap;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.cache.ManualEvictionInMemoryCache;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.session.BuildSessionLifecycleListener;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A factory for {@link CrossBuildInMemoryCache} instances.
@@ -64,35 +63,39 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     @Override
     public <K, V> CrossBuildInMemoryCache<K, V> newCache(Consumer<V> onReuse) {
-        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<K, V>(KeyRetentionPolicy.STRONG) {
-            @Nullable
-            @Override
-            protected V maybeGetRetainedValue(K key) {
-                V v = super.maybeGetRetainedValue(key);
-                if (v != null) {
-                    // This callback better be swift as it runs under the cache lock.
-                    onReuse.accept(v);
-                }
-                return v;
-            }
-        };
+        DefaultCrossBuildInMemoryCache<K, V> cache =
+                new DefaultCrossBuildInMemoryCache<K, V>(KeyRetentionPolicy.STRONG) {
+                    @Nullable
+                    @Override
+                    protected V maybeGetRetainedValue(K key) {
+                        V v = super.maybeGetRetainedValue(key);
+                        if (v != null) {
+                            // This callback better be swift as it runs under the cache lock.
+                            onReuse.accept(v);
+                        }
+                        return v;
+                    }
+                };
         listenerManager.addListener(cache);
         return cache;
     }
 
-
     @Override
     public <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild(Predicate<V> retentionFilter) {
-        CrossBuildCacheRetainingDataFromPreviousBuild<K, V> cache = new CrossBuildCacheRetainingDataFromPreviousBuild<>(retentionFilter);
+        CrossBuildCacheRetainingDataFromPreviousBuild<K, V> cache =
+                new CrossBuildCacheRetainingDataFromPreviousBuild<>(retentionFilter);
         listenerManager.addListener(cache);
         return cache;
     }
 
     @Override
     public <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
-        // TODO: Should use some variation of DefaultClassMap below to associate values with classes, as currently we retain a strong reference to each value for one session after the ClassLoader
-        //       for the entry's key is discarded, which is unnecessary because we won't attempt to locate the entry again once the ClassLoader has been discarded
-        DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<>(KeyRetentionPolicy.WEAK);
+        // TODO: Should use some variation of DefaultClassMap below to associate values with classes, as currently we
+        // retain a strong reference to each value for one session after the ClassLoader
+        //       for the entry's key is discarded, which is unnecessary because we won't attempt to locate the entry
+        // again once the ClassLoader has been discarded
+        DefaultCrossBuildInMemoryCache<Class<?>, V> cache =
+                new DefaultCrossBuildInMemoryCache<>(KeyRetentionPolicy.WEAK);
         listenerManager.addListener(cache);
         return cache;
     }
@@ -104,12 +107,14 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         return map;
     }
 
-    private abstract static class AbstractCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, BuildSessionLifecycleListener {
+    private abstract static class AbstractCrossBuildInMemoryCache<K, V>
+            implements CrossBuildInMemoryCache<K, V>, BuildSessionLifecycleListener {
         private final ConcurrentHashMap<K, Lazy<V>> valuesForThisSession = new ConcurrentHashMap<>();
 
         @Override
         public void beforeComplete() {
-            retainValuesFromCurrentSession(valuesForThisSession.values().stream().map(Lazy::get));
+            retainValuesFromCurrentSession(
+                    valuesForThisSession.values().stream().map(Lazy::get));
             valuesForThisSession.clear();
         }
 
@@ -137,16 +142,11 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         @Nullable
         @Override
         public V getIfPresent(K key) {
-            Lazy<V> present = valuesForThisSession
-                .computeIfAbsent(key, k -> {
-                    V retained = maybeGetRetainedValue(k);
-                    return retained != null
-                        ? Lazy.fixed(retained)
-                        : null;
-                });
-            return present != null
-                ? present.get()
-                : null;
+            Lazy<V> present = valuesForThisSession.computeIfAbsent(key, k -> {
+                V retained = maybeGetRetainedValue(k);
+                return retained != null ? Lazy.fixed(retained) : null;
+            });
+            return present != null ? present.get() : null;
         }
 
         /**
@@ -155,12 +155,14 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
          */
         @Override
         public V get(K key, Function<? super K, ? extends V> factory) {
-            return valuesForThisSession.computeIfAbsent(key, k -> {
-                V retained = maybeGetRetainedValue(k);
-                return retained != null
-                    ? Lazy.fixed(retained)
-                    : Lazy.locking().of(() -> produceAndRetain(factory, k));
-            }).get();
+            return valuesForThisSession
+                    .computeIfAbsent(key, k -> {
+                        V retained = maybeGetRetainedValue(k);
+                        return retained != null
+                                ? Lazy.fixed(retained)
+                                : Lazy.locking().of(() -> produceAndRetain(factory, k));
+                    })
+                    .get();
         }
 
         @Override
@@ -182,7 +184,8 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
                 newValue = factory.apply(k);
                 if (newValue == null) {
                     // Factory should never produce null
-                    throw new IllegalStateException("Factory '" + factory + "' failed to produce a value for key '" + k + "'!");
+                    throw new IllegalStateException(
+                            "Factory '" + factory + "' failed to produce a value for key '" + k + "'!");
                 }
             } catch (Throwable e) {
                 valuesForThisSession.remove(k);
@@ -255,7 +258,8 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
      */
     private static class DefaultClassMap<V> extends AbstractCrossBuildInMemoryCache<Class<?>, V> {
         // Currently retains strong references to types that are not loaded using a VisitableURLClassLoader
-        // This is fine for JVM types, but a problem when a custom ClassLoader is used (which should probably be deprecated instead of supported)
+        // This is fine for JVM types, but a problem when a custom ClassLoader is used (which should probably be
+        // deprecated instead of supported)
         private final Map<Class<?>, V> leakyValues = new ConcurrentHashMap<>();
 
         @Override
@@ -288,7 +292,8 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
     }
 
-    private static class CrossBuildCacheRetainingDataFromPreviousBuild<K, V> implements CrossBuildInMemoryCache<K, V>, BuildSessionLifecycleListener {
+    private static class CrossBuildCacheRetainingDataFromPreviousBuild<K, V>
+            implements CrossBuildInMemoryCache<K, V>, BuildSessionLifecycleListener {
         private final ManualEvictionInMemoryCache<K, V> delegate = new ManualEvictionInMemoryCache<>();
         private final ConcurrentMap<K, Boolean> keysFromPreviousBuild = new ConcurrentHashMap<>();
         private final ConcurrentMap<K, Boolean> keysFromCurrentBuild = new ConcurrentHashMap<>();

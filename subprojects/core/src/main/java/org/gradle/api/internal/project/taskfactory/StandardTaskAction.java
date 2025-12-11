@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import java.lang.reflect.Method;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
@@ -23,8 +24,6 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-
-import java.lang.reflect.Method;
 
 class StandardTaskAction implements InputChangesAwareTaskAction, Describable {
     private final Class<? extends Task> type;
@@ -36,12 +35,10 @@ class StandardTaskAction implements InputChangesAwareTaskAction, Describable {
     }
 
     @Override
-    public void setInputChanges(InputChangesInternal inputChanges) {
-    }
+    public void setInputChanges(InputChangesInternal inputChanges) {}
 
     @Override
-    public void clearInputChanges() {
-    }
+    public void clearInputChanges() {}
 
     @Override
     public void execute(Task task) {
@@ -60,7 +57,9 @@ class StandardTaskAction implements InputChangesAwareTaskAction, Describable {
 
     @Override
     public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
-        return ImplementationSnapshot.of(type.getName(), hasher.getClassLoaderHash(method.getDeclaringClass().getClassLoader()));
+        return ImplementationSnapshot.of(
+                type.getName(),
+                hasher.getClassLoaderHash(method.getDeclaringClass().getClassLoader()));
     }
 
     @Override

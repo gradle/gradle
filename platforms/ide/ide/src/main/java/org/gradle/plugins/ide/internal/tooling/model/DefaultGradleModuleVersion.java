@@ -16,10 +16,9 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
+import java.io.Serializable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.tooling.model.GradleModuleVersion;
-
-import java.io.Serializable;
 
 public class DefaultGradleModuleVersion implements GradleModuleVersion, Serializable {
 
@@ -51,9 +50,9 @@ public class DefaultGradleModuleVersion implements GradleModuleVersion, Serializ
     @Override
     public String toString() {
         return "GradleModuleVersion{"
-                 + "group='" + group + '\''
-                 + ", name='" + name + '\''
-                 + ", version='" + version + '\''
-                 + '}';
+                + "group='" + group + '\''
+                + ", name='" + name + '\''
+                + ", version='" + version + '\''
+                + '}';
     }
 }

@@ -17,10 +17,9 @@
 package org.gradle.ide.xcode.internal.xcodeproj;
 
 import com.google.common.base.Preconditions;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Information for building a specific artifact (a library, binary, or test).
@@ -30,10 +29,13 @@ public abstract class PBXTarget extends PBXProjectItem {
     private final ProductType productType;
     private final List<PBXBuildPhase> buildPhases;
     private final XCConfigurationList buildConfigurationList;
+
     @Nullable
     private String productName;
+
     @Nullable
     private PBXFileReference productReference;
+
     public PBXTarget(String name, ProductType productType) {
         this.name = Preconditions.checkNotNull(name);
         this.productType = Preconditions.checkNotNull(productType);

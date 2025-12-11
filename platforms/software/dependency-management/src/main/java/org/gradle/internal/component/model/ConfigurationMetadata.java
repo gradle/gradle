@@ -18,13 +18,12 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * <p>Note that this type is being replaced by several other interfaces that separate out the data and state required at various stages of dependency resolution.

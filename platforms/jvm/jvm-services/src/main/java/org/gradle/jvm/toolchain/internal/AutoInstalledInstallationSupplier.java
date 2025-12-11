@@ -16,11 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 
 public class AutoInstalledInstallationSupplier implements InstallationSupplier {
 
@@ -44,8 +44,8 @@ public class AutoInstalledInstallationSupplier implements InstallationSupplier {
     public Set<InstallationLocation> get() {
         if (configuration.isAutoDetectEnabled() || configuration.isDownloadEnabled()) {
             return cacheDirProvider.listJavaHomes().stream()
-                .map(this::asInstallation)
-                .collect(Collectors.toSet());
+                    .map(this::asInstallation)
+                    .collect(Collectors.toSet());
         } else {
             return Collections.emptySet();
         }

@@ -28,12 +28,14 @@ import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
  */
 public class DisconnectedDescriptorParseContext implements DescriptorParseContext {
     @Override
-    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ArtifactType artifactType) {
+    public LocallyAvailableExternalResource getMetaDataArtifact(
+            ModuleComponentIdentifier moduleComponentIdentifier, ArtifactType artifactType) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleComponentSelector selector, VersionSelector acceptor, ArtifactType artifactType) {
+    public LocallyAvailableExternalResource getMetaDataArtifact(
+            ModuleComponentSelector selector, VersionSelector acceptor, ArtifactType artifactType) {
         throw new UnsupportedOperationException();
     }
 }

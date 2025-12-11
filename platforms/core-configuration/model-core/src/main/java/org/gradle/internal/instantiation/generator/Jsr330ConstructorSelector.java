@@ -16,17 +16,17 @@
 
 package org.gradle.internal.instantiation.generator;
 
+import java.lang.reflect.Modifier;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
-
-import java.lang.reflect.Modifier;
 
 class Jsr330ConstructorSelector implements ConstructorSelector {
     private final Cache<Class<?>, CachedConstructor> constructorCache;
     private final ClassGenerator classGenerator;
 
-    public Jsr330ConstructorSelector(ClassGenerator classGenerator, Cache<Class<?>, CachedConstructor> constructorCache) {
+    public Jsr330ConstructorSelector(
+            ClassGenerator classGenerator, Cache<Class<?>, CachedConstructor> constructorCache) {
         this.constructorCache = constructorCache;
         this.classGenerator = classGenerator;
     }
@@ -49,12 +49,14 @@ class Jsr330ConstructorSelector implements ConstructorSelector {
     }
 
     @Override
-    public <T> ClassGenerator.GeneratedConstructor<? extends T> forType(final Class<T> type) throws UnsupportedOperationException {
+    public <T> ClassGenerator.GeneratedConstructor<? extends T> forType(final Class<T> type)
+            throws UnsupportedOperationException {
         CachedConstructor constructor = constructorCache.get(type, () -> {
             try {
                 validateType(type);
                 ClassGenerator.GeneratedClass<?> implClass = classGenerator.generate(type);
-                ClassGenerator.GeneratedConstructor<?> generatedConstructor = InjectUtil.selectConstructor(implClass, type);
+                ClassGenerator.GeneratedConstructor<?> generatedConstructor =
+                        InjectUtil.selectConstructor(implClass, type);
                 return CachedConstructor.of(generatedConstructor);
             } catch (RuntimeException e) {
                 return CachedConstructor.of(e);

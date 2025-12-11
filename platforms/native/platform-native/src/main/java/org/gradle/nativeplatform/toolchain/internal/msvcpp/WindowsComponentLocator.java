@@ -15,11 +15,10 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.platform.base.internal.toolchain.SearchResult;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
+import org.jspecify.annotations.Nullable;
 
 public interface WindowsComponentLocator<T> {
     /**

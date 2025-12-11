@@ -31,5 +31,4 @@ public interface FinalizableValue {
      * Subsequent calls to methods that mutate the value in any way will fail by throwing an {@code IllegalStateException}.
      */
     void preventFromFurtherMutation();
-
 }

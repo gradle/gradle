@@ -61,11 +61,10 @@ class TransformWorkspaceIdentity implements Identity {
     }
 
     public static TransformWorkspaceIdentity createMutable(
-        String normalizedInputArtifactPath,
-        String producerBuildTreePath,
-        ValueSnapshot secondaryInputsSnapshot,
-        HashCode dependenciesHash
-    ) {
+            String normalizedInputArtifactPath,
+            String producerBuildTreePath,
+            ValueSnapshot secondaryInputsSnapshot,
+            HashCode dependenciesHash) {
         Hasher hasher = Hashing.newHasher();
         hasher.putString(normalizedInputArtifactPath);
         hasher.putString(producerBuildTreePath);
@@ -75,11 +74,10 @@ class TransformWorkspaceIdentity implements Identity {
     }
 
     public static TransformWorkspaceIdentity createNonNormalizedImmutable(
-        ValueSnapshot inputArtifactPath,
-        HashCode inputArtifactSnapshot,
-        ValueSnapshot secondaryInputsSnapshot,
-        HashCode dependenciesHash
-    ) {
+            ValueSnapshot inputArtifactPath,
+            HashCode inputArtifactSnapshot,
+            ValueSnapshot secondaryInputsSnapshot,
+            HashCode dependenciesHash) {
         Hasher hasher = Hashing.newHasher();
         hasher.put(inputArtifactPath);
         hasher.putHash(inputArtifactSnapshot);
@@ -89,11 +87,10 @@ class TransformWorkspaceIdentity implements Identity {
     }
 
     public static TransformWorkspaceIdentity createNormalizedImmutable(
-        ValueSnapshot inputArtifactPath,
-        CurrentFileCollectionFingerprint inputArtifactFingerprint,
-        ValueSnapshot secondaryInputsSnapshot,
-        HashCode dependenciesHash
-    ) {
+            ValueSnapshot inputArtifactPath,
+            CurrentFileCollectionFingerprint inputArtifactFingerprint,
+            ValueSnapshot secondaryInputsSnapshot,
+            HashCode dependenciesHash) {
         Hasher hasher = Hashing.newHasher();
         hasher.put(inputArtifactPath);
         hasher.putHash(inputArtifactFingerprint.getHash());

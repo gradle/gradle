@@ -16,6 +16,9 @@
 
 package org.gradle.launcher.cli.converter;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
@@ -25,12 +28,9 @@ import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.process.internal.JvmOptions;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 public class InitialPropertiesConverter {
-    private final CommandLineConverter<Map<String, String>> systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
+    private final CommandLineConverter<Map<String, String>> systemPropertiesCommandLineConverter =
+            new SystemPropertiesCommandLineConverter();
 
     public void configure(CommandLineParser parser) {
         systemPropertiesCommandLineConverter.configure(parser);
@@ -38,8 +38,10 @@ public class InitialPropertiesConverter {
 
     public InitialProperties convert(ParsedCommandLine commandLine) {
         final JvmOptions currentProcessJvmOptions = new CurrentProcess(null).getJvmOptions();
-        Map<String, String> target = Cast.uncheckedCast(new HashMap<>(currentProcessJvmOptions.getImmutableSystemProperties()));
-        Map<String, String> requestedSystemProperties = systemPropertiesCommandLineConverter.convert(commandLine, target);
+        Map<String, String> target =
+                Cast.uncheckedCast(new HashMap<>(currentProcessJvmOptions.getImmutableSystemProperties()));
+        Map<String, String> requestedSystemProperties =
+                systemPropertiesCommandLineConverter.convert(commandLine, target);
 
         return new InitialProperties() {
             @Override

@@ -20,7 +20,6 @@ import org.gradle.api.file.BuildLayout;
 import org.gradle.api.file.Directory;
 import org.gradle.api.initialization.Settings;
 
-
 public class DefaultBuildLayout implements BuildLayout {
     protected final FileFactory fileFactory;
     private final Settings settings;

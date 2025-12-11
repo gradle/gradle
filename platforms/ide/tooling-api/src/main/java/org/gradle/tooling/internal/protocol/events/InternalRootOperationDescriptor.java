@@ -24,5 +24,4 @@ import org.gradle.api.Incubating;
  * @since 8.12
  */
 @Incubating
-public interface InternalRootOperationDescriptor extends InternalOperationDescriptor {
-}
+public interface InternalRootOperationDescriptor extends InternalOperationDescriptor {}

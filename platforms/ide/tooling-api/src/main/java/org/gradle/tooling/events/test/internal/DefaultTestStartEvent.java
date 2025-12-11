@@ -33,5 +33,4 @@ public final class DefaultTestStartEvent extends DefaultStartEvent implements Te
     public TestOperationDescriptor getDescriptor() {
         return (TestOperationDescriptor) super.getDescriptor();
     }
-
 }

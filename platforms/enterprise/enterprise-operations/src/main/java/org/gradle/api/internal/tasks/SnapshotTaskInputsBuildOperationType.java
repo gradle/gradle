@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.operations.execution.FilePropertyVisitor;
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.operations.execution.FilePropertyVisitor;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents the computation of the task artifact state and the task output caching state.
@@ -32,10 +31,11 @@ import java.util.Set;
  *
  * @since 4.0
  */
-public final class SnapshotTaskInputsBuildOperationType implements BuildOperationType<SnapshotTaskInputsBuildOperationType.Details, SnapshotTaskInputsBuildOperationType.Result> {
+public final class SnapshotTaskInputsBuildOperationType
+        implements BuildOperationType<
+                SnapshotTaskInputsBuildOperationType.Details, SnapshotTaskInputsBuildOperationType.Result> {
 
-    public interface Details {
-    }
+    public interface Details {}
 
     /**
      * The hashes of the inputs.
@@ -58,7 +58,6 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * Null if the classloader is not managed by Gradle.
          */
         byte @Nullable [] getClassLoaderHashBytes();
-
 
         /**
          * The hashes of the classloader that loaded each of the task's actions.
@@ -209,10 +208,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          */
         @Nullable
         List<String> getOutputPropertyNames();
-
     }
 
-    private SnapshotTaskInputsBuildOperationType() {
-    }
-
+    private SnapshotTaskInputsBuildOperationType() {}
 }

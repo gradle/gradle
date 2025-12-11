@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.component.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConsumableConfiguration;
@@ -27,8 +28,6 @@ import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.publish.internal.component.DefaultAdhocSoftwareComponent;
 
-import javax.inject.Inject;
-
 /**
  * A component with a set of features. Each feature is responsible for compiling, executing, packaging, etc a software
  * product such as a library or application. This component owns all features it contains and therefore transitively owns their
@@ -38,15 +37,13 @@ import javax.inject.Inject;
  * TODO: We should strip almost all logic from this class. It should be a simple container for features and should provide
  * a means of querying all variants of all features.
  */
-public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements JvmSoftwareComponentInternal {
+public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent
+        implements JvmSoftwareComponentInternal {
     private final ConfigurationContainer configurations;
 
     @Inject
     public DefaultJvmSoftwareComponent(
-        String componentName,
-        ObjectFactory objectFactory,
-        ConfigurationContainer configurations
-    ) {
+            String componentName, ObjectFactory objectFactory, ConfigurationContainer configurations) {
         super(componentName, objectFactory);
         this.configurations = configurations;
     }
@@ -63,7 +60,8 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
         // The original implementation only applied to the main feature.
         getFeatures().all(feature -> {
             if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
-                NamedDomainObjectProvider<ConsumableConfiguration> javadocElements = feature.maybeRegisterJavadocElements();
+                NamedDomainObjectProvider<ConsumableConfiguration> javadocElements =
+                        feature.maybeRegisterJavadocElements();
                 addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
             }
         });
@@ -76,7 +74,8 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
         // The original implementation only applied to the main feature.
         getFeatures().all(feature -> {
             if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
-                NamedDomainObjectProvider<ConsumableConfiguration> sourcesElements = feature.maybeRegisterSourcesElements();
+                NamedDomainObjectProvider<ConsumableConfiguration> sourcesElements =
+                        feature.maybeRegisterSourcesElements();
                 addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
             }
         });
@@ -86,7 +85,8 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
     public JvmFeatureInternal getMainFeature() {
         JvmFeatureInternal mainFeature = getFeatures().findByName(JvmConstants.JAVA_MAIN_FEATURE_NAME);
         if (mainFeature == null) {
-            throw new IllegalStateException("Expected to find a feature named '" + JvmConstants.JAVA_MAIN_FEATURE_NAME + "' but found none.");
+            throw new IllegalStateException(
+                    "Expected to find a feature named '" + JvmConstants.JAVA_MAIN_FEATURE_NAME + "' but found none.");
         }
 
         return mainFeature;
@@ -95,16 +95,18 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
     @Override
     public void useCompileClasspathConsistency() {
         getTestSuites().withType(JvmTestSuite.class).configureEach(testSuite -> {
-            configurations.getByName(testSuite.getSources().getCompileClasspathConfigurationName())
-                .shouldResolveConsistentlyWith(getMainFeature().getCompileClasspathConfiguration());
+            configurations
+                    .getByName(testSuite.getSources().getCompileClasspathConfigurationName())
+                    .shouldResolveConsistentlyWith(getMainFeature().getCompileClasspathConfiguration());
         });
     }
 
     @Override
     public void useRuntimeClasspathConsistency() {
         getTestSuites().withType(JvmTestSuite.class).configureEach(testSuite -> {
-            configurations.getByName(testSuite.getSources().getRuntimeClasspathConfigurationName())
-                .shouldResolveConsistentlyWith(getMainFeature().getRuntimeClasspathConfiguration());
+            configurations
+                    .getByName(testSuite.getSources().getRuntimeClasspathConfigurationName())
+                    .shouldResolveConsistentlyWith(getMainFeature().getRuntimeClasspathConfiguration());
         });
     }
 }

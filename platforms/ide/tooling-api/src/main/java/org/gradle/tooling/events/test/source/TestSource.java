@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.test.source;
 
-
 import org.gradle.api.Incubating;
 
 /**
@@ -28,5 +27,4 @@ import org.gradle.api.Incubating;
  * @since 9.4.0
  */
 @Incubating
-public interface TestSource {
-}
+public interface TestSource {}

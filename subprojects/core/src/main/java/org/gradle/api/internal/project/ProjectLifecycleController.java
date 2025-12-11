@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import java.io.Closeable;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.internal.DisplayName;
@@ -30,8 +31,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.Closeable;
-
 /**
  * Controls the lifecycle of the mutable {@link ProjectInternal} instance for a project, plus its services.
  */
@@ -43,10 +42,13 @@ public class ProjectLifecycleController implements Closeable {
     private CloseableServiceRegistry projectScopeServices;
 
     private enum State implements StateTransitionController.State {
-        NotCreated, Created, Configured
+        NotCreated,
+        Created,
+        Configured
     }
 
-    public ProjectLifecycleController(DisplayName displayName, StateTransitionControllerFactory factory, ServiceRegistry buildServices) {
+    public ProjectLifecycleController(
+            DisplayName displayName, StateTransitionControllerFactory factory, ServiceRegistry buildServices) {
         this.buildServices = buildServices;
         controller = factory.newController(displayName, State.NotCreated);
     }
@@ -60,22 +62,29 @@ public class ProjectLifecycleController implements Closeable {
     }
 
     public void createMutableModel(
-        ProjectDescriptorInternal descriptor,
-        BuildState build,
-        ProjectState owner,
-        ClassLoaderScope selfClassLoaderScope,
-        ClassLoaderScope baseClassLoaderScope,
-        IProjectFactory projectFactory
-    ) {
+            ProjectDescriptorInternal descriptor,
+            BuildState build,
+            ProjectState owner,
+            ClassLoaderScope selfClassLoaderScope,
+            ClassLoaderScope baseClassLoaderScope,
+            IProjectFactory projectFactory) {
         controller.transition(State.NotCreated, State.Created, () -> {
             ProjectState parent = owner.getParent();
             ProjectInternal parentModel = parent == null ? null : parent.getMutableModel();
             ServiceRegistryFactory serviceRegistryFactory = domainObject -> {
                 LoggingManagerFactory loggingManagerFactory = buildServices.get(LoggingManagerFactory.class);
-                projectScopeServices = ProjectScopeServices.create(buildServices, (ProjectInternal) domainObject, loggingManagerFactory);
+                projectScopeServices = ProjectScopeServices.create(
+                        buildServices, (ProjectInternal) domainObject, loggingManagerFactory);
                 return projectScopeServices;
             };
-            project = projectFactory.createProject(build.getMutableModel(), descriptor, owner, parentModel, serviceRegistryFactory, selfClassLoaderScope, baseClassLoaderScope);
+            project = projectFactory.createProject(
+                    build.getMutableModel(),
+                    descriptor,
+                    owner,
+                    parentModel,
+                    serviceRegistryFactory,
+                    selfClassLoaderScope,
+                    baseClassLoaderScope);
         });
     }
 
@@ -90,7 +99,8 @@ public class ProjectLifecycleController implements Closeable {
     }
 
     public void ensureSelfConfigured() {
-        controller.maybeTransitionIfNotCurrentlyTransitioning(State.Created, State.Configured, () -> project.evaluateUnchecked());
+        controller.maybeTransitionIfNotCurrentlyTransitioning(
+                State.Created, State.Configured, () -> project.evaluateUnchecked());
     }
 
     public void ensureTasksDiscovered() {

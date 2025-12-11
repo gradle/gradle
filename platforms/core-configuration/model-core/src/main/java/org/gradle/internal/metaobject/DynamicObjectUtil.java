@@ -26,7 +26,7 @@ public abstract class DynamicObjectUtil {
 
     public static DynamicObject asDynamicObject(Object object) {
         if (object instanceof DynamicObject) {
-            return (DynamicObject)object;
+            return (DynamicObject) object;
         } else if (object instanceof DynamicObjectAware) {
             return ((DynamicObjectAware) object).getAsDynamicObject();
         } else {

@@ -16,21 +16,20 @@
 
 package org.gradle.internal.instrumentation.processor.codegen.groovy;
 
-import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.TypeName;
-import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
-import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
-import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
-
-import java.lang.reflect.Array;
-import java.util.Map;
-import java.util.Objects;
-
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator.SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.PARAMETER;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER_AS_CLASS;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.VARARG;
+
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.TypeName;
+import java.lang.reflect.Array;
+import java.util.Map;
+import java.util.Objects;
+import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
+import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 
 /**
  * Based on the {@link SignatureTree}, generates a method body that checks the
@@ -76,18 +75,22 @@ class MatchesSignatureGeneratingSignatureTreeVisitor {
         }
     }
 
-    private void generateNormalCallChecksAndVisitSubtree(ParameterMatchEntry entry, SignatureTree child, int paramIndex) {
+    private void generateNormalCallChecksAndVisitSubtree(
+            ParameterMatchEntry entry, SignatureTree child, int paramIndex) {
         CodeBlock argExpr = entry.kind == RECEIVER || entry.kind == RECEIVER_AS_CLASS
-            ? CodeBlock.of("receiverClass")
-            : CodeBlock.of("arg$L", paramIndex);
+                ? CodeBlock.of("receiverClass")
+                : CodeBlock.of("arg$L", paramIndex);
 
         int childArgCount = paramIndex + 1;
         TypeName entryChildType = TypeUtils.typeName(entry.type);
-        CodeBlock matchExpr = entry.kind == RECEIVER_AS_CLASS ?
-            CodeBlock.of("isStatic && $T.class.isAssignableFrom($L)", entryChildType.box(), argExpr) :
-            entry.kind == RECEIVER ?
-                CodeBlock.of("!isStatic && ($2L == null || $1T.class.isAssignableFrom($2L))", entryChildType.box(), argExpr) :
-                CodeBlock.of("$2L == null || $1T.class.isAssignableFrom($2L)", entryChildType.box(), argExpr);
+        CodeBlock matchExpr = entry.kind == RECEIVER_AS_CLASS
+                ? CodeBlock.of("isStatic && $T.class.isAssignableFrom($L)", entryChildType.box(), argExpr)
+                : entry.kind == RECEIVER
+                        ? CodeBlock.of(
+                                "!isStatic && ($2L == null || $1T.class.isAssignableFrom($2L))",
+                                entryChildType.box(),
+                                argExpr)
+                        : CodeBlock.of("$2L == null || $1T.class.isAssignableFrom($2L)", entryChildType.box(), argExpr);
         // Vararg fits here, too:
         result.beginControlFlow("if ($L)", matchExpr);
         visit(child, childArgCount);
@@ -104,9 +107,12 @@ class MatchesSignatureGeneratingSignatureTreeVisitor {
 
         CodeBlock matchArgs = argClassesExpression(childRequest);
 
-        result.beginControlFlow("if (argumentClasses.length == $1L && argumentClasses[$2L] != null && $3T[].class.isAssignableFrom($4T.newInstance(argumentClasses[$2L], 0).getClass()))",
-            paramIndex + 1, paramIndex, entryParamType, Array.class
-        );
+        result.beginControlFlow(
+                "if (argumentClasses.length == $1L && argumentClasses[$2L] != null && $3T[].class.isAssignableFrom($4T.newInstance(argumentClasses[$2L], 0).getClass()))",
+                paramIndex + 1,
+                paramIndex,
+                entryParamType,
+                Array.class);
         result.add("/** Matched $L */\n", JavadocUtils.interceptedCallableLink(childRequest));
         result.addStatement("return new $T(true, $L)", SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH, matchArgs);
         result.endControlFlow();
@@ -136,10 +142,9 @@ class MatchesSignatureGeneratingSignatureTreeVisitor {
     }
 
     private static CodeBlock argClassesExpression(CallInterceptionRequest leafInCurrent) {
-        return leafInCurrent.getInterceptedCallable().getParameters()
-            .stream()
-            .filter(it -> it.getKind().isSourceParameter())
-            .map(it -> CodeBlock.of("$T.class", TypeUtils.typeName(it.getParameterType())))
-            .collect(CodeBlock.joining(", ", "new Class<?>[] {", "}"));
+        return leafInCurrent.getInterceptedCallable().getParameters().stream()
+                .filter(it -> it.getKind().isSourceParameter())
+                .map(it -> CodeBlock.of("$T.class", TypeUtils.typeName(it.getParameterType())))
+                .collect(CodeBlock.joining(", ", "new Class<?>[] {", "}"));
     }
 }

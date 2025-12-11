@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.continuous;
 
+import java.util.function.Supplier;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.deployment.internal.ContinuousExecutionGate;
 import org.gradle.deployment.internal.DefaultContinuousExecutionGate;
@@ -47,8 +48,6 @@ import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.util.internal.DisconnectableInputStream;
 
-import java.util.function.Supplier;
-
 public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor {
     private final BuildSessionActionExecutor delegate;
     private final WorkInputListeners inputsListeners;
@@ -67,21 +66,20 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     private final StyledTextOutput logger;
 
     public ContinuousBuildActionExecutor(
-        WorkInputListeners inputListeners,
-        FileChangeListeners fileChangeListeners,
-        StyledTextOutputFactory styledTextOutputFactory,
-        ExecutorFactory executorFactory,
-        BuildRequestMetaData requestMetaData,
-        BuildCancellationToken cancellationToken,
-        DeploymentRegistryInternal deploymentRegistry,
-        ListenerManager listenerManager,
-        BuildStartedTime buildStartedTime,
-        Clock clock,
-        Stat stat,
-        CaseSensitivity caseSensitivity,
-        BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-        BuildSessionActionExecutor delegate
-    ) {
+            WorkInputListeners inputListeners,
+            FileChangeListeners fileChangeListeners,
+            StyledTextOutputFactory styledTextOutputFactory,
+            ExecutorFactory executorFactory,
+            BuildRequestMetaData requestMetaData,
+            BuildCancellationToken cancellationToken,
+            DeploymentRegistryInternal deploymentRegistry,
+            ListenerManager listenerManager,
+            BuildStartedTime buildStartedTime,
+            Clock clock,
+            Stat stat,
+            CaseSensitivity caseSensitivity,
+            BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+            BuildSessionActionExecutor delegate) {
         this.inputsListeners = inputListeners;
         this.fileChangeListeners = fileChangeListeners;
         this.requestMetaData = requestMetaData;
@@ -103,26 +101,37 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     public BuildActionRunner.Result execute(BuildAction action, BuildSessionContext buildSession) {
         if (action.getStartParameter().isContinuous()) {
             DefaultContinuousExecutionGate alwaysOpenExecutionGate = new DefaultContinuousExecutionGate();
-            final CancellableOperationManager cancellableOperationManager = createCancellableOperationManager(requestMetaData, cancellationToken);
-            return executeMultipleBuilds(action, requestMetaData, buildSession, cancellationToken, cancellableOperationManager, alwaysOpenExecutionGate);
+            final CancellableOperationManager cancellableOperationManager =
+                    createCancellableOperationManager(requestMetaData, cancellationToken);
+            return executeMultipleBuilds(
+                    action,
+                    requestMetaData,
+                    buildSession,
+                    cancellationToken,
+                    cancellableOperationManager,
+                    alwaysOpenExecutionGate);
         } else {
             try {
                 return delegate.execute(action, buildSession);
             } finally {
-                final CancellableOperationManager cancellableOperationManager = createCancellableOperationManager(requestMetaData, cancellationToken);
-                waitForDeployments(action, requestMetaData, buildSession, cancellationToken, cancellableOperationManager);
+                final CancellableOperationManager cancellableOperationManager =
+                        createCancellableOperationManager(requestMetaData, cancellationToken);
+                waitForDeployments(
+                        action, requestMetaData, buildSession, cancellationToken, cancellableOperationManager);
             }
         }
     }
 
-    private CancellableOperationManager createCancellableOperationManager(BuildRequestMetaData requestContext, BuildCancellationToken cancellationToken) {
+    private CancellableOperationManager createCancellableOperationManager(
+            BuildRequestMetaData requestContext, BuildCancellationToken cancellationToken) {
         final CancellableOperationManager cancellableOperationManager;
         if (requestContext.isInteractive()) {
             if (!(System.in instanceof DisconnectableInputStream)) {
                 System.setIn(new DisconnectableInputStream(System.in));
             }
             DisconnectableInputStream inputStream = (DisconnectableInputStream) System.in;
-            cancellableOperationManager = new DefaultCancellableOperationManager(executorFactory.create("Cancel signal monitor"), inputStream, cancellationToken);
+            cancellableOperationManager = new DefaultCancellableOperationManager(
+                    executorFactory.create("Cancel signal monitor"), inputStream, cancellationToken);
         } else {
             cancellableOperationManager = new PassThruCancellableOperationManager(cancellationToken);
         }
@@ -130,12 +139,11 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     }
 
     private void waitForDeployments(
-        BuildAction action,
-        BuildRequestMetaData requestContext,
-        BuildSessionContext buildSession,
-        BuildCancellationToken cancellationToken,
-        CancellableOperationManager cancellableOperationManager
-    ) {
+            BuildAction action,
+            BuildRequestMetaData requestContext,
+            BuildSessionContext buildSession,
+            BuildCancellationToken cancellationToken,
+            CancellableOperationManager cancellableOperationManager) {
         if (!deploymentRegistry.getRunningDeployments().isEmpty()) {
             // Deployments are considered outOfDate until initial execution with file watching
             for (Deployment deployment : deploymentRegistry.getRunningDeployments()) {
@@ -144,51 +152,61 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
             logger.println().println("Reloadable deployment detected. Entering continuous build.");
             resetBuildStartedTime();
             ContinuousExecutionGate deploymentRequestExecutionGate = deploymentRegistry.getExecutionGate();
-            executeMultipleBuilds(action, requestContext, buildSession, cancellationToken, cancellableOperationManager, deploymentRequestExecutionGate);
+            executeMultipleBuilds(
+                    action,
+                    requestContext,
+                    buildSession,
+                    cancellationToken,
+                    cancellableOperationManager,
+                    deploymentRequestExecutionGate);
         }
         cancellableOperationManager.closeInput();
     }
 
     private BuildActionRunner.Result executeMultipleBuilds(
-        BuildAction action,
-        BuildRequestMetaData requestContext,
-        BuildSessionContext buildSession,
-        BuildCancellationToken cancellationToken,
-        CancellableOperationManager cancellableOperationManager,
-        ContinuousExecutionGate continuousExecutionGate
-    ) {
+            BuildAction action,
+            BuildRequestMetaData requestContext,
+            BuildSessionContext buildSession,
+            BuildCancellationToken cancellationToken,
+            CancellableOperationManager cancellableOperationManager,
+            ContinuousExecutionGate continuousExecutionGate) {
         BuildActionRunner.Result lastResult;
         PendingChangesListener pendingChangesListener = listenerManager.getBroadcaster(PendingChangesListener.class);
         while (true) {
             BuildInputHierarchy buildInputs = new BuildInputHierarchy(caseSensitivity, stat);
             ContinuousBuildTriggerHandler continuousBuildTriggerHandler = new ContinuousBuildTriggerHandler(
-                cancellationToken,
-                continuousExecutionGate,
-                action.getStartParameter().getContinuousBuildQuietPeriod()
-            );
-            SingleFirePendingChangesListener singleFirePendingChangesListener = new SingleFirePendingChangesListener(pendingChangesListener);
+                    cancellationToken,
+                    continuousExecutionGate,
+                    action.getStartParameter().getContinuousBuildQuietPeriod());
+            SingleFirePendingChangesListener singleFirePendingChangesListener =
+                    new SingleFirePendingChangesListener(pendingChangesListener);
             FileEventCollector fileEventCollector = new FileEventCollector(buildInputs, () -> {
                 continuousBuildTriggerHandler.notifyFileChangeArrived();
                 singleFirePendingChangesListener.onPendingChanges();
             });
             try {
                 fileChangeListeners.addListener(fileEventCollector);
-                lastResult = executeBuildAndAccumulateInputs(action, new AccumulateBuildInputsListener(buildInputs), buildSession);
+                lastResult = executeBuildAndAccumulateInputs(
+                        action, new AccumulateBuildInputsListener(buildInputs), buildSession);
 
                 // Let the VFS clean itself up after the build
                 virtualFileSystem.afterBuildFinished();
 
                 if (buildInputs.isEmpty()) {
-                    logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as Gradle did not detect any file system inputs.");
+                    logger.println()
+                            .withStyle(StyledTextOutput.Style.Failure)
+                            .println("Exiting continuous build as Gradle did not detect any file system inputs.");
                     return lastResult;
-                } else if (!continuousBuildTriggerHandler.hasBeenTriggered() && !virtualFileSystem.isWatchingAnyLocations()) {
-                    logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as Gradle does not watch any file system locations.");
+                } else if (!continuousBuildTriggerHandler.hasBeenTriggered()
+                        && !virtualFileSystem.isWatchingAnyLocations()) {
+                    logger.println()
+                            .withStyle(StyledTextOutput.Style.Failure)
+                            .println("Exiting continuous build as Gradle does not watch any file system locations.");
                     return lastResult;
                 } else {
                     cancellableOperationManager.monitorInput(operationToken -> {
-                        continuousBuildTriggerHandler.wait(
-                            () -> logger.println().println("Waiting for changes to input files..." + determineExitHint(requestContext))
-                        );
+                        continuousBuildTriggerHandler.wait(() -> logger.println()
+                                .println("Waiting for changes to input files..." + determineExitHint(requestContext)));
                         if (!operationToken.isCancellationRequested()) {
                             fileEventCollector.reportChanges(logger);
                         }
@@ -227,14 +245,8 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     }
 
     private BuildActionRunner.Result executeBuildAndAccumulateInputs(
-        BuildAction action,
-        WorkInputListener inputListener,
-        BuildSessionContext buildSession
-    ) {
-        return withInputListener(
-            inputListener,
-            () -> delegate.execute(action, buildSession)
-        );
+            BuildAction action, WorkInputListener inputListener, BuildSessionContext buildSession) {
+        return withInputListener(inputListener, () -> delegate.execute(action, buildSession));
     }
 
     private <T> T withInputListener(WorkInputListener listener, Supplier<T> supplier) {

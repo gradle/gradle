@@ -16,10 +16,9 @@
 
 package org.gradle.execution.plan;
 
+import java.util.List;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.taskgraph.NodeIdentity;
-
-import java.util.List;
 
 public interface PlannedNodeInternal extends CalculateTaskGraphBuildOperationType.PlannedNode {
 
@@ -27,5 +26,4 @@ public interface PlannedNodeInternal extends CalculateTaskGraphBuildOperationTyp
      * Creates a copy of this node with the given dependencies.
      */
     PlannedNodeInternal withNodeDependencies(List<? extends NodeIdentity> nodeDependencies);
-
 }

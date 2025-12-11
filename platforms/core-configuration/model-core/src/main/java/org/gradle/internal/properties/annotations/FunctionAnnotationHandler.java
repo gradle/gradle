@@ -31,5 +31,4 @@ public interface FunctionAnnotationHandler extends AnnotationHandler {
      * Visits problems associated with the given function, if any.
      */
     default void validateFunctionMetadata(FunctionMetadata functionMetadata, TypeValidationContext validationContext) {}
-
 }

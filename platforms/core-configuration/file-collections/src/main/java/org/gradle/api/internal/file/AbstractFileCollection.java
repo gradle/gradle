@@ -17,6 +17,15 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
@@ -43,16 +52,6 @@ import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.GUtil;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected final TaskDependencyFactory taskDependencyFactory;
@@ -82,27 +81,31 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
      */
     @Override
     public final TreeFormatter describeContents(TreeFormatter formatter) {
-        formatter.node("collection type: ").appendType(getClass()).append(" (id: ").append(String.valueOf(System.identityHashCode(this))).append(")");
+        formatter
+                .node("collection type: ")
+                .appendType(getClass())
+                .append(" (id: ")
+                .append(String.valueOf(System.identityHashCode(this)))
+                .append(")");
         formatter.startChildren();
         appendContents(formatter);
         formatter.endChildren();
         return formatter;
     }
 
-    protected void appendContents(TreeFormatter formatter) {
-    }
+    protected void appendContents(TreeFormatter formatter) {}
 
     // This is final - override {@link TaskDependencyContainer#visitDependencies} to provide the dependencies instead.
     @Override
     public final TaskDependency getBuildDependencies() {
         assertCanCarryBuildDependencies();
-        DefaultTaskDependency result = taskDependencyFactory.visitingDependencies(context -> context.add(AbstractFileCollection.this));
+        DefaultTaskDependency result =
+                taskDependencyFactory.visitingDependencies(context -> context.add(AbstractFileCollection.this));
         result.setToStringProvider(() -> "Dependencies of " + getDisplayName());
         return result;
     }
 
-    protected void assertCanCarryBuildDependencies() {
-    }
+    protected void assertCanCarryBuildDependencies() {}
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
@@ -119,7 +122,8 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public Set<File> getFiles() {
-        // Use a JVM type here, rather than a Guava type, as some plugins serialize this return value and cannot deserialize the result
+        // Use a JVM type here, rather than a Guava type, as some plugins serialize this return value and cannot
+        // deserialize the result
         Set<File> files = new LinkedHashSet<>();
         visitContents(new FileCollectionStructureVisitor() {
             @Override
@@ -140,7 +144,8 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+            public void visitFileTreeBackedByFile(
+                    File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                 addTreeContents(fileTree);
             }
         });
@@ -151,11 +156,14 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     public File getSingleFile() throws IllegalStateException {
         Iterator<File> iterator = iterator();
         if (!iterator.hasNext()) {
-            throw new IllegalStateException(String.format("Expected %s to contain exactly one file, however, it contains no files.", getDisplayName()));
+            throw new IllegalStateException(String.format(
+                    "Expected %s to contain exactly one file, however, it contains no files.", getDisplayName()));
         }
         File singleFile = iterator.next();
         if (iterator.hasNext()) {
-            throw new IllegalStateException(String.format("Expected %s to contain exactly one file, however, it contains more than one file.", getDisplayName()));
+            throw new IllegalStateException(String.format(
+                    "Expected %s to contain exactly one file, however, it contains more than one file.",
+                    getDisplayName()));
         }
         return singleFile;
     }
@@ -173,22 +181,22 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     private void showGetAsPathDeprecationWarning() {
         List<String> filesAsPaths = this.getFiles().stream()
-            .map(File::getPath)
-            .filter(path -> path.contains(File.pathSeparator))
-            .collect(Collectors.toList());
+                .map(File::getPath)
+                .filter(path -> path.contains(File.pathSeparator))
+                .collect(Collectors.toList());
         if (!filesAsPaths.isEmpty()) {
-            String displayedFilePaths = filesAsPaths.stream().map(path -> "'" + path + "'").collect(Collectors.joining(","));
+            String displayedFilePaths =
+                    filesAsPaths.stream().map(path -> "'" + path + "'").collect(Collectors.joining(","));
             throw DocumentedFailure.builder()
-                .withSummary(String.format(
-                    "Converting files to a classpath string when their paths contain the path separator '%s' is not supported. " +
-                        "The path separator is not a valid element of a file path.", File.pathSeparator))
-                .withContext(String.format("Problematic paths in '%s' are: %s.",
-                    getDisplayName(),
-                    displayedFilePaths
-                ))
-                .withAdvice("Add the individual files to the file collection instead.")
-                .withUpgradeGuideSection(7, "file_collection_to_classpath")
-                .build();
+                    .withSummary(String.format(
+                            "Converting files to a classpath string when their paths contain the path separator '%s' is not supported. "
+                                    + "The path separator is not a valid element of a file path.",
+                            File.pathSeparator))
+                    .withContext(
+                            String.format("Problematic paths in '%s' are: %s.", getDisplayName(), displayedFilePaths))
+                    .withAdvice("Add the individual files to the file collection instead.")
+                    .withUpgradeGuideSection(7, "file_collection_to_classpath")
+                    .build();
         }
     }
 
@@ -205,10 +213,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public Provider<Set<FileSystemLocation>> getElements() {
         return new BuildableBackedProvider<>(
-            this,
-            Cast.uncheckedCast(Set.class),
-            new FileCollectionElementsFactory(this)
-        );
+                this, Cast.uncheckedCast(Set.class), new FileCollectionElementsFactory(this));
     }
 
     private static class FileCollectionElementsFactory implements Factory<Set<FileSystemLocation>> {
@@ -295,7 +300,8 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+            public void visitFileTreeBackedByFile(
+                    File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                 // Visit the contents of the tree to generate the tree
                 if (visitAll(sourceTree)) {
                     fileTrees.add(sourceTree.getMirror());

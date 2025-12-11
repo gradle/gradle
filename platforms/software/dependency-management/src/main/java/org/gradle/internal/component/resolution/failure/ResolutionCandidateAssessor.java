@@ -18,6 +18,11 @@ package org.gradle.internal.component.resolution.failure;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -33,12 +38,6 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /**
  * A utility class used by {@link ResolutionFailureHandler} to assess and classify
  * how the attributes of candidate variants during a single attempt at dependency resolution
@@ -48,7 +47,8 @@ public final class ResolutionCandidateAssessor {
     private final ImmutableAttributes requestedAttributes;
     private final AttributeMatcher attributeMatcher;
 
-    public ResolutionCandidateAssessor(AttributeContainerInternal requestedAttributes, AttributeMatcher attributeMatcher) {
+    public ResolutionCandidateAssessor(
+            AttributeContainerInternal requestedAttributes, AttributeMatcher attributeMatcher) {
         this.requestedAttributes = requestedAttributes.asImmutable();
         this.attributeMatcher = attributeMatcher;
     }
@@ -59,60 +59,97 @@ public final class ResolutionCandidateAssessor {
 
     public List<AssessedCandidate> assessResolvedVariants(List<? extends ResolvedVariant> resolvedVariants) {
         return resolvedVariants.stream()
-            .map(variant -> assessCandidate(variant.asDescribable().getCapitalizedDisplayName(), variant.getCapabilities(), variant.getAttributes().asImmutable()))
-            .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
-            .collect(Collectors.toList());
+                .map(variant -> assessCandidate(
+                        variant.asDescribable().getCapitalizedDisplayName(),
+                        variant.getCapabilities(),
+                        variant.getAttributes().asImmutable()))
+                .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
+                .collect(Collectors.toList());
     }
 
-    public List<AssessedCandidate> assessResolvedVariantStates(List<? extends VariantGraphResolveState> variantStates, ImmutableCapability defaultCapabilityForComponent) {
+    public List<AssessedCandidate> assessResolvedVariantStates(
+            List<? extends VariantGraphResolveState> variantStates, ImmutableCapability defaultCapabilityForComponent) {
         return variantStates.stream()
-            .map(VariantGraphResolveState::getMetadata)
-            .map(variant -> {
-                ImmutableCapabilities capabilities = variant.getCapabilities().orElse(defaultCapabilityForComponent);
-                return assessCandidate(variant.getDisplayName(), capabilities, variant.getAttributes().asImmutable());
-            }).sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
-            .collect(Collectors.toList());
+                .map(VariantGraphResolveState::getMetadata)
+                .map(variant -> {
+                    ImmutableCapabilities capabilities =
+                            variant.getCapabilities().orElse(defaultCapabilityForComponent);
+                    return assessCandidate(
+                            variant.getDisplayName(),
+                            capabilities,
+                            variant.getAttributes().asImmutable());
+                })
+                .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
+                .collect(Collectors.toList());
     }
 
     public List<AssessedCandidate> assessNodeMetadatas(Set<VariantGraphResolveMetadata> nodes) {
         return nodes.stream()
-            .map(variant -> assessCandidate(variant.getDisplayName(), variant.getCapabilities(), variant.getAttributes().asImmutable()))
-            .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
-            .collect(Collectors.toList());
+                .map(variant -> assessCandidate(
+                        variant.getDisplayName(),
+                        variant.getCapabilities(),
+                        variant.getAttributes().asImmutable()))
+                .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
+                .collect(Collectors.toList());
     }
 
     public List<AssessedCandidate> assessGraphSelectionCandidates(GraphSelectionCandidates candidates) {
         return candidates.getVariantsForAttributeMatching().stream()
-            .map(VariantGraphResolveState::getMetadata)
-            .map(variantMetadata -> assessCandidate(variantMetadata.getDisplayName(), variantMetadata.getCapabilities(), variantMetadata.getAttributes()))
-            .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
-            .collect(Collectors.toList());
+                .map(VariantGraphResolveState::getMetadata)
+                .map(variantMetadata -> assessCandidate(
+                        variantMetadata.getDisplayName(),
+                        variantMetadata.getCapabilities(),
+                        variantMetadata.getAttributes()))
+                .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
+                .collect(Collectors.toList());
     }
 
     public AssessedCandidate assessCandidate(
-        String candidateDisplayName,
-        ImmutableCapabilities candidateCapabilities,
-        ImmutableAttributes candidateAttributes
-    ) {
+            String candidateDisplayName,
+            ImmutableCapabilities candidateCapabilities,
+            ImmutableAttributes candidateAttributes) {
         Set<String> alreadyAssessed = new HashSet<>(candidateAttributes.keySet().size());
         ImmutableList.Builder<AssessedAttribute<?>> compatible = ImmutableList.builder();
         ImmutableList.Builder<AssessedAttribute<?>> incompatible = ImmutableList.builder();
         ImmutableList.Builder<AssessedAttribute<?>> onlyOnConsumer = ImmutableList.builder();
         ImmutableList.Builder<AssessedAttribute<?>> onlyOnProducer = ImmutableList.builder();
 
-        Sets.union(requestedAttributes.getAttributes().keySet(), candidateAttributes.getAttributes().keySet()).stream()
-            .sorted(Comparator.comparing(Attribute::getName))
-            .forEach(attribute -> classifyAttribute(requestedAttributes, candidateAttributes, attributeMatcher, attribute, alreadyAssessed, compatible, incompatible, onlyOnConsumer, onlyOnProducer));
+        Sets.union(
+                        requestedAttributes.getAttributes().keySet(),
+                        candidateAttributes.getAttributes().keySet())
+                .stream()
+                .sorted(Comparator.comparing(Attribute::getName))
+                .forEach(attribute -> classifyAttribute(
+                        requestedAttributes,
+                        candidateAttributes,
+                        attributeMatcher,
+                        attribute,
+                        alreadyAssessed,
+                        compatible,
+                        incompatible,
+                        onlyOnConsumer,
+                        onlyOnProducer));
 
-        return new AssessedCandidate(candidateDisplayName, candidateAttributes, candidateCapabilities, compatible.build(), incompatible.build(), onlyOnConsumer.build(), onlyOnProducer.build());
+        return new AssessedCandidate(
+                candidateDisplayName,
+                candidateAttributes,
+                candidateCapabilities,
+                compatible.build(),
+                incompatible.build(),
+                onlyOnConsumer.build(),
+                onlyOnProducer.build());
     }
 
     private static <T> void classifyAttribute(
-        ImmutableAttributes requestedAttributes, ImmutableAttributes candidateAttributes, AttributeMatcher attributeMatcher,
-        Attribute<T> attribute, Set<String> alreadyAssessed,
-        ImmutableList.Builder<AssessedAttribute<?>> compatible, ImmutableList.Builder<AssessedAttribute<?>> incompatible,
-        ImmutableList.Builder<AssessedAttribute<?>> onlyOnConsumer, ImmutableList.Builder<AssessedAttribute<?>> onlyOnProducer
-    ) {
+            ImmutableAttributes requestedAttributes,
+            ImmutableAttributes candidateAttributes,
+            AttributeMatcher attributeMatcher,
+            Attribute<T> attribute,
+            Set<String> alreadyAssessed,
+            ImmutableList.Builder<AssessedAttribute<?>> compatible,
+            ImmutableList.Builder<AssessedAttribute<?>> incompatible,
+            ImmutableList.Builder<AssessedAttribute<?>> onlyOnConsumer,
+            ImmutableList.Builder<AssessedAttribute<?>> onlyOnProducer) {
         if (alreadyAssessed.add(attribute.getName())) {
             String attributeName = attribute.getName();
             ImmutableAttributesEntry<?> consumerEntry = requestedAttributes.findEntry(attributeName);
@@ -121,7 +158,8 @@ public final class ResolutionCandidateAssessor {
             if (consumerEntry != null && producerEntry != null) {
                 T coercedProducer = producerEntry.coerce(attribute);
                 T coercedConsumer = consumerEntry.coerce(attribute);
-                AssessedAttribute<T> assessedAttribute = new AssessedAttribute<>(attribute, coercedConsumer, coercedProducer);
+                AssessedAttribute<T> assessedAttribute =
+                        new AssessedAttribute<>(attribute, coercedConsumer, coercedProducer);
 
                 if (attributeMatcher.isMatchingValue(attribute, coercedProducer, coercedConsumer)) {
                     compatible.add(assessedAttribute);
@@ -129,9 +167,11 @@ public final class ResolutionCandidateAssessor {
                     incompatible.add(assessedAttribute);
                 }
             } else if (consumerEntry != null) {
-                onlyOnConsumer.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerEntry.getIsolatedValue()), null));
+                onlyOnConsumer.add(
+                        new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerEntry.getIsolatedValue()), null));
             } else if (producerEntry != null) {
-                onlyOnProducer.add(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerEntry.getIsolatedValue())));
+                onlyOnProducer.add(
+                        new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerEntry.getIsolatedValue())));
             }
         }
     }
@@ -154,14 +194,13 @@ public final class ResolutionCandidateAssessor {
         private final ImmutableList<AssessedAttribute<?>> onlyOnCandidate;
 
         private AssessedCandidate(
-            String displayName,
-            AttributeContainerInternal attributes,
-            ImmutableCapabilities candidateCapabilities,
-            ImmutableList<AssessedAttribute<?>> compatible,
-            ImmutableList<AssessedAttribute<?>> incompatible,
-            ImmutableList<AssessedAttribute<?>> onlyOnRequest,
-            ImmutableList<AssessedAttribute<?>> onlyOnCandidate
-        ) {
+                String displayName,
+                AttributeContainerInternal attributes,
+                ImmutableCapabilities candidateCapabilities,
+                ImmutableList<AssessedAttribute<?>> compatible,
+                ImmutableList<AssessedAttribute<?>> incompatible,
+                ImmutableList<AssessedAttribute<?>> onlyOnRequest,
+                ImmutableList<AssessedAttribute<?>> onlyOnCandidate) {
             this.displayName = displayName;
             this.candidateAttributes = attributes.asImmutable();
             this.candidateCapabilities = candidateCapabilities;
@@ -214,6 +253,7 @@ public final class ResolutionCandidateAssessor {
 
         @Nullable
         private final T requested;
+
         @Nullable
         private final T provided;
 
@@ -239,11 +279,10 @@ public final class ResolutionCandidateAssessor {
 
         @Override
         public String toString() {
-            return "{name=" + attribute.getName() +
-                ", type=" + attribute.getType() +
-                ", requested=" + requested +
-                ", provided=" + provided +
-                '}';
+            return "{name=" + attribute.getName() + ", type="
+                    + attribute.getType() + ", requested="
+                    + requested + ", provided="
+                    + provided + '}';
         }
     }
 }

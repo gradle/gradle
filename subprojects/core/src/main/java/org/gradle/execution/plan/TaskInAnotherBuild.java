@@ -16,6 +16,9 @@
 
 package org.gradle.execution.plan;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
@@ -29,15 +32,8 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
-    public static TaskInAnotherBuild of(
-        TaskInternal task,
-        BuildTreeWorkGraphController taskGraph
-    ) {
+    public static TaskInAnotherBuild of(TaskInternal task, BuildTreeWorkGraphController taskGraph) {
         BuildIdentifier targetBuild = buildIdentifierOf(task);
         TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, task);
         IncludedBuildTaskResource taskResource = taskGraph.locateTask(taskIdentifier);
@@ -61,10 +57,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
      * @return a lazy reference to the given task.
      */
     public static TaskInAnotherBuild lazy(
-        String taskPath,
-        BuildIdentifier targetBuild,
-        BuildTreeWorkGraphController taskGraph
-    ) {
+            String taskPath, BuildIdentifier targetBuild, BuildTreeWorkGraphController taskGraph) {
         TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, taskPath);
         Path taskIdentityPath = Path.path(targetBuild.getBuildPath()).append(Path.path(taskPath));
         Lazy<IncludedBuildTaskResource> target = Lazy.unsafe().of(() -> taskGraph.locateTask(taskIdentifier));
@@ -198,7 +191,10 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
     @Override
     protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
         super.nodeSpecificHealthDiagnostics(builder);
-        builder.append(", taskState=").append(taskState).append(", ").append(getTarget().healthDiagnostics());
+        builder.append(", taskState=")
+                .append(taskState)
+                .append(", ")
+                .append(getTarget().healthDiagnostics());
     }
 
     @Override

@@ -16,6 +16,8 @@
 
 package org.gradle.platform.base.binary;
 
+import java.io.File;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
@@ -50,17 +52,16 @@ import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 import org.gradle.platform.base.internal.FixedBuildAbility;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.Set;
-
 /**
  * Base class that may be used for custom {@link BinarySpec} implementations. However, it is generally better to use an
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
 @Incubating
 public class BaseBinarySpec extends AbstractBuildableComponentSpec implements BinarySpecInternal {
-    private static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION = ModelType.of(BinaryTasksCollection.class);
-    private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODELTYPE = ModelType.of(LanguageSourceSet.class);
+    private static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION =
+            ModelType.of(BinaryTasksCollection.class);
+    private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODELTYPE =
+            ModelType.of(LanguageSourceSet.class);
 
     private static final ThreadLocal<BinaryInfo> NEXT_BINARY_INFO = new ThreadLocal<BinaryInfo>();
     private final DomainObjectSet<LanguageSourceSet> inputSourceSets;
@@ -76,16 +77,31 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
      *
      * @since 5.6
      */
-    public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
-                                                      ComponentSpecIdentifier componentId, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
-                                                      Instantiator instantiator, NamedEntityInstantiator<Task> taskInstantiator,
-                                                      CollectionCallbackActionDecorator collectionCallbackActionDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
-        NEXT_BINARY_INFO.set(new BinaryInfo(componentId, publicType, modelNode, componentNode, taskInstantiator, instantiator, collectionCallbackActionDecorator, domainObjectCollectionFactory));
+    public static <T extends BaseBinarySpec> T create(
+            Class<? extends BinarySpec> publicType,
+            Class<T> implementationType,
+            ComponentSpecIdentifier componentId,
+            MutableModelNode modelNode,
+            @Nullable MutableModelNode componentNode,
+            Instantiator instantiator,
+            NamedEntityInstantiator<Task> taskInstantiator,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+            DomainObjectCollectionFactory domainObjectCollectionFactory) {
+        NEXT_BINARY_INFO.set(new BinaryInfo(
+                componentId,
+                publicType,
+                modelNode,
+                componentNode,
+                taskInstantiator,
+                instantiator,
+                collectionCallbackActionDecorator,
+                domainObjectCollectionFactory));
         try {
             try {
                 return instantiator.newInstance(implementationType);
             } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create binary of type %s", publicType.getSimpleName()), e.getCause());
+                throw new ModelInstantiationException(
+                        String.format("Could not create binary of type %s", publicType.getSimpleName()), e.getCause());
             }
         } finally {
             NEXT_BINARY_INFO.set(null);
@@ -100,32 +116,37 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         super(validate(info).componentId, info.publicType);
         this.publicType = info.publicType;
         this.componentNode = info.componentNode;
-        this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskInstantiator, info.collectionCallbackActionDecorator);
+        this.tasks = info.instantiator.newInstance(
+                DefaultBinaryTasksCollection.class,
+                this,
+                info.taskInstantiator,
+                info.collectionCallbackActionDecorator);
         this.inputSourceSets = info.domainObjectCollectionFactory.newDomainObjectSet(LanguageSourceSet.class);
 
         MutableModelNode modelNode = info.modelNode;
         sources = ModelMaps.addModelMapNode(modelNode, LANGUAGE_SOURCE_SET_MODELTYPE, "sources");
-        ModelRegistration itemRegistration = ModelRegistrations.of(modelNode.getPath().child("tasks"))
-            .action(ModelActionRole.Create, new Action<MutableModelNode>() {
-                @Override
-                public void execute(MutableModelNode modelNode) {
-                    modelNode.setPrivateData(BINARY_TASKS_COLLECTION, tasks);
-                }
-            })
-            .withProjection(new UnmanagedModelProjection<BinaryTasksCollection>(BINARY_TASKS_COLLECTION))
-            .descriptor(modelNode.getDescriptor())
-            .build();
+        ModelRegistration itemRegistration = ModelRegistrations.of(
+                        modelNode.getPath().child("tasks"))
+                .action(ModelActionRole.Create, new Action<MutableModelNode>() {
+                    @Override
+                    public void execute(MutableModelNode modelNode) {
+                        modelNode.setPrivateData(BINARY_TASKS_COLLECTION, tasks);
+                    }
+                })
+                .withProjection(new UnmanagedModelProjection<BinaryTasksCollection>(BINARY_TASKS_COLLECTION))
+                .descriptor(modelNode.getDescriptor())
+                .build();
         modelNode.addLink(itemRegistration);
 
-        namingScheme = DefaultBinaryNamingScheme
-            .component(parentComponentName())
-            .withBinaryName(getName())
-            .withBinaryType(getTypeName());
+        namingScheme = DefaultBinaryNamingScheme.component(parentComponentName())
+                .withBinaryName(getName())
+                .withBinaryType(getTypeName());
     }
 
     private static BinaryInfo validate(BinaryInfo info) {
         if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a @ComponentType rule instead.");
+            throw new ModelInstantiationException(
+                    "Direct instantiation of a BaseBinarySpec is not permitted. Use a @ComponentType rule instead.");
         }
         return info;
     }
@@ -161,8 +182,10 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         }
         ModelType<T> modelType = ModelType.of(componentType);
         return componentNode.canBeViewedAs(modelType)
-            ? componentNode.asImmutable(modelType, componentNode.getDescriptor()).getInstance()
-            : null;
+                ? componentNode
+                        .asImmutable(modelType, componentNode.getDescriptor())
+                        .getInstance()
+                : null;
     }
 
     @Override
@@ -225,7 +248,15 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
         private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-        private BinaryInfo(ComponentSpecIdentifier componentId, Class<? extends BinarySpec> publicType, MutableModelNode modelNode, MutableModelNode componentNode, NamedEntityInstantiator<Task> taskInstantiator, Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+        private BinaryInfo(
+                ComponentSpecIdentifier componentId,
+                Class<? extends BinarySpec> publicType,
+                MutableModelNode modelNode,
+                MutableModelNode componentNode,
+                NamedEntityInstantiator<Task> taskInstantiator,
+                Instantiator instantiator,
+                CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+                DomainObjectCollectionFactory domainObjectCollectionFactory) {
             this.componentId = componentId;
             this.publicType = publicType;
             this.modelNode = modelNode;
@@ -264,5 +295,4 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
                 throw new IllegalStateException("Can't replace multiple directories.");
         }
     }
-
 }

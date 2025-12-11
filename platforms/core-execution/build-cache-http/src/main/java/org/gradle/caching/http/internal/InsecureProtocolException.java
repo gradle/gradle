@@ -16,11 +16,10 @@
 
 package org.gradle.caching.http.internal;
 
-import org.gradle.api.InvalidUserCodeException;
-import org.gradle.internal.exceptions.ResolutionProvider;
-
 import java.util.Arrays;
 import java.util.List;
+import org.gradle.api.InvalidUserCodeException;
+import org.gradle.internal.exceptions.ResolutionProvider;
 
 public class InsecureProtocolException extends InvalidUserCodeException implements ResolutionProvider {
 

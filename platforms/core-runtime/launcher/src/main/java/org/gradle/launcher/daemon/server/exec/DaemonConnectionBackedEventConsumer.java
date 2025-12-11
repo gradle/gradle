@@ -16,12 +16,11 @@
 
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
-
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
 /**
  * An event consumer that asynchronously dispatches events to the client.

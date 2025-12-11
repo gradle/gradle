@@ -27,7 +27,8 @@ import org.gradle.internal.component.resolution.failure.SelectionReasonAssessor.
 public abstract class AbstractComponentSelectionFailure extends AbstractResolutionFailure {
     private final SelectionReasonAssessor.AssessedSelection assessedSelection;
 
-    public AbstractComponentSelectionFailure(ResolutionFailureProblemId problemId, AssessedSelection assessedSelection) {
+    public AbstractComponentSelectionFailure(
+            ResolutionFailureProblemId problemId, AssessedSelection assessedSelection) {
         super(problemId);
         this.assessedSelection = assessedSelection;
     }

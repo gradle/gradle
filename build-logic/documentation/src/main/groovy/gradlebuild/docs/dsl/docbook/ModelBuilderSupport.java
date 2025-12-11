@@ -16,12 +16,11 @@
 
 package gradlebuild.docs.dsl.docbook;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ModelBuilderSupport {
     protected List<Element> children(Element element, String childName) {

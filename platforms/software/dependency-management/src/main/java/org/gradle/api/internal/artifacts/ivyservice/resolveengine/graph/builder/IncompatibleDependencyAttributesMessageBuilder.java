@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import java.util.Set;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.logging.text.TreeFormatter;
-
-import java.util.Set;
 
 class IncompatibleDependencyAttributesMessageBuilder {
     static String buildMergeErrorMessage(ModuleResolveState module, AttributeMergingException e) {
@@ -50,7 +49,8 @@ class IncompatibleDependencyAttributesMessageBuilder {
         DependencyMetadata dependencyMetadata = state.getDependencyMetadata();
         ComponentSelector selector = dependencyMetadata.getSelector();
         if (selector instanceof ModuleComponentSelector) {
-            StringBuilder sb = new StringBuilder("wants '" + state.getRequested() + "' with attribute " + attribute.getName() + " = ");
+            StringBuilder sb = new StringBuilder(
+                    "wants '" + state.getRequested() + "' with attribute " + attribute.getName() + " = ");
             sb.append(selector.getAttributes().getAttribute(attribute));
             return sb.toString();
         } else {
@@ -59,5 +59,4 @@ class IncompatibleDependencyAttributesMessageBuilder {
             return "doesn't provide any value for attribute " + attribute.getName();
         }
     }
-
 }

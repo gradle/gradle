@@ -83,7 +83,8 @@ public interface DependencyConstraintHandler {
      * @param dependencyNotation The dependency constraint notation
      * @param configureAction The closure to use to configure the dependency constraint.
      */
-    DependencyConstraint add(String configurationName, Object dependencyNotation, Action<? super DependencyConstraint> configureAction);
+    DependencyConstraint add(
+            String configurationName, Object dependencyNotation, Action<? super DependencyConstraint> configureAction);
 
     /**
      * Adds a dependency constraint provider to the given configuration.
@@ -104,7 +105,10 @@ public interface DependencyConstraintHandler {
      *
      * @since 8.12
      */
-    <T> void addProvider(String configurationName, Provider<T> dependencyNotation, Action<? super DependencyConstraint> configureAction);
+    <T> void addProvider(
+            String configurationName,
+            Provider<T> dependencyNotation,
+            Action<? super DependencyConstraint> configureAction);
 
     /**
      * Adds a dependency constraint provider to the given configuration.
@@ -125,7 +129,10 @@ public interface DependencyConstraintHandler {
      *
      * @since 8.12
      */
-    <T> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation, Action<? super DependencyConstraint> configureAction);
+    <T> void addProviderConvertible(
+            String configurationName,
+            ProviderConvertible<T> dependencyNotation,
+            Action<? super DependencyConstraint> configureAction);
 
     /**
      * Creates a dependency constraint without adding it to a configuration.
@@ -141,7 +148,8 @@ public interface DependencyConstraintHandler {
      * @param dependencyConstraintNotation The dependency constraint notation.
      * @param configureAction The closure to use to configure the dependency.
      */
-    DependencyConstraint create(Object dependencyConstraintNotation, Action<? super DependencyConstraint> configureAction);
+    DependencyConstraint create(
+            Object dependencyConstraintNotation, Action<? super DependencyConstraint> configureAction);
 
     /**
      * Declares a constraint on an enforced platform. If the target coordinates represent multiple

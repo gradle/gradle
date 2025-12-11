@@ -40,32 +40,26 @@ public class ExternalModuleDependencyMetadataConverter extends AbstractDependenc
         boolean changing = externalModuleDependency.isChanging();
         boolean transitive = externalModuleDependency.isTransitive();
 
-        ModuleIdentifier moduleId = DefaultModuleIdentifier.newId(
-            nullToEmpty(dependency.getGroup()),
-            nullToEmpty(dependency.getName())
-        );
+        ModuleIdentifier moduleId =
+                DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()));
 
-        ImmutableVersionConstraint version = ((VersionConstraintInternal) externalModuleDependency.getVersionConstraint()).asImmutable();
+        ImmutableVersionConstraint version =
+                ((VersionConstraintInternal) externalModuleDependency.getVersionConstraint()).asImmutable();
 
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
-            moduleId,
-            version,
-            dependency.getAttributes(),
-            dependency.getCapabilitySelectors()
-        );
+                moduleId, version, dependency.getAttributes(), dependency.getCapabilitySelectors());
 
         return new LocalComponentDependencyMetadata(
-            selector,
-            dependency.getTargetConfiguration(),
-            convertArtifacts(dependency.getArtifacts()),
-            convertExcludeRules(dependency.getExcludeRules()),
-            force,
-            changing,
-            transitive,
-            false,
-            dependency.isEndorsingStrictVersions(),
-            dependency.getReason()
-        );
+                selector,
+                dependency.getTargetConfiguration(),
+                convertArtifacts(dependency.getArtifacts()),
+                convertExcludeRules(dependency.getExcludeRules()),
+                force,
+                changing,
+                transitive,
+                false,
+                dependency.isEndorsingStrictVersions(),
+                dependency.getReason());
     }
 
     private static String nullToEmpty(@Nullable String input) {
@@ -76,5 +70,4 @@ public class ExternalModuleDependencyMetadataConverter extends AbstractDependenc
     public boolean canConvert(ModuleDependency dependency) {
         return dependency instanceof ExternalModuleDependency;
     }
-
 }

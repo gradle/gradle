@@ -16,10 +16,9 @@
 
 package org.gradle.platform.base.internal.toolchain;
 
-import org.gradle.internal.logging.text.DiagnosticsVisitor;
-
 import java.util.Collection;
 import java.util.Collections;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 
 public class ComponentNotFound<T> implements SearchResult<T> {
     private final String message;

@@ -17,10 +17,9 @@
 package org.gradle.internal.component.external.descriptor;
 
 import com.google.common.base.Objects;
-import org.gradle.util.internal.CollectionUtils;
-
 import java.util.Collection;
 import java.util.List;
+import org.gradle.util.internal.CollectionUtils;
 
 public class Configuration {
     private final String name;
@@ -61,9 +60,9 @@ public class Configuration {
         }
         Configuration that = (Configuration) o;
         return transitive == that.transitive
-            && visible == that.visible
-            && Objects.equal(name, that.name)
-            && Objects.equal(extendsFrom, that.extendsFrom);
+                && visible == that.visible
+                && Objects.equal(name, that.name)
+                && Objects.equal(extendsFrom, that.extendsFrom);
     }
 
     @Override

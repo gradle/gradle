@@ -17,9 +17,8 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.plugin.management.internal.PluginRequestInternal;
-
 import java.util.List;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 
 public class CompositePluginResolver implements PluginResolver {
 
@@ -41,5 +40,4 @@ public class CompositePluginResolver implements PluginResolver {
         }
         return PluginResolutionResult.notFound(notFoundList.build());
     }
-
 }

@@ -17,6 +17,13 @@ package org.gradle.integtests.fixtures.executer;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.logging.configuration.ConsoleOutput;
@@ -28,14 +35,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.TextUtil;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 public interface GradleExecuter extends Stoppable {
 
@@ -601,5 +600,4 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withToolchainDetectionEnabled();
 
     GradleExecuter withToolchainDownloadEnabled();
-
 }

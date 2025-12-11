@@ -16,10 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.util.internal.VersionNumber;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.util.internal.VersionNumber;
 
 /**
  * A collection of tools.

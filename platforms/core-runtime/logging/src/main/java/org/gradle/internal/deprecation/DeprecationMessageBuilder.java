@@ -17,14 +17,13 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
+import java.util.List;
+import javax.annotation.CheckReturnValue;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DefaultGradleVersion;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.CheckReturnValue;
-import java.util.List;
 
 @SuppressWarnings("SameNameButDifferent")
 @CheckReturnValue
@@ -35,6 +34,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     @Nullable
     protected String summary;
+
     private DeprecationTimeline deprecationTimeline;
     private String context;
     private String advice;
@@ -44,11 +44,12 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     protected String problemIdDisplayName;
     protected String problemId;
 
-    public static WithDocumentation withDocumentation(InternalProblem warning, WithDeprecationTimeline withDeprecationTimeline) {
+    public static WithDocumentation withDocumentation(
+            InternalProblem warning, WithDeprecationTimeline withDeprecationTimeline) {
         DocLink docLink = warning.getDefinition().getDocumentationLink();
         if (docLink != null) {
-            return withDeprecationTimeline
-                .withDocumentation(warning.getDefinition().getDocumentationLink());
+            return withDeprecationTimeline.withDocumentation(
+                    warning.getDefinition().getDocumentationLink());
         }
         return withDeprecationTimeline.undocumented();
     }
@@ -162,7 +163,15 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             setProblemIdDisplayName(createDefaultDeprecationIdDisplayName());
         }
 
-        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemIdDisplayName, problemId);
+        return new DeprecationMessage(
+                summary,
+                deprecationTimeline.toString(),
+                advice,
+                context,
+                documentation,
+                usageType,
+                problemIdDisplayName,
+                problemId);
     }
 
     public void setProblemId(String problemId) {
@@ -198,7 +207,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
-    public static abstract class WithReplacement<T, SELF extends WithReplacement<T, SELF>> extends DeprecationMessageBuilder<SELF> {
+    public abstract static class WithReplacement<T, SELF extends WithReplacement<T, SELF>>
+            extends DeprecationMessageBuilder<SELF> {
         protected final String subject;
         private T replacement;
 
@@ -230,7 +240,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         abstract String formatAdvice(T replacement);
 
-
         @Override
         DeprecationMessage build() {
             setSummary(formatSummary(formatSubject()));
@@ -242,7 +251,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
                 setProblemIdDisplayName(summary);
             }
             if (problemId == null) {
-                setProblemId(DeprecationMessageBuilder.createDefaultDeprecationId(createDefaultDeprecationIdDisplayName()));
+                setProblemId(
+                        DeprecationMessageBuilder.createDefaultDeprecationId(createDefaultDeprecationIdDisplayName()));
             }
 
             return super.build();
@@ -410,7 +420,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         @Override
         String formatSummary(String configuration) {
-            return String.format("The %s configuration has been deprecated for %s.", configuration, deprecationType.displayName());
+            return String.format(
+                    "The %s configuration has been deprecated for %s.", configuration, deprecationType.displayName());
         }
 
         @Override
@@ -418,7 +429,9 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             if (replacements.isEmpty()) {
                 return "Please " + deprecationType.usage + " another configuration instead.";
             }
-            return String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements));
+            return String.format(
+                    "Please %s the %s configuration instead.",
+                    deprecationType.usage, Joiner.on(" or ").join(replacements));
         }
     }
 
@@ -579,7 +592,9 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         @Override
         String formatAdvice(String replacement) {
-            return externalReplacement ? String.format("Consider using the %s plugin instead.", replacement) : String.format("Please use the %s plugin instead.", replacement);
+            return externalReplacement
+                    ? String.format("Consider using the %s plugin instead.", replacement)
+                    : String.format("Please use the %s plugin instead.", replacement);
         }
 
         /**

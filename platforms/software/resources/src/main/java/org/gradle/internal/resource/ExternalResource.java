@@ -15,17 +15,16 @@
  */
 package org.gradle.internal.resource;
 
-import org.gradle.api.Action;
-import org.gradle.api.resources.ResourceException;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
+import org.gradle.api.Action;
+import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a binary resource and provides access to the content and meta-data of the resource. The resource may or may not exist, and may change over time.
@@ -86,7 +85,8 @@ public interface ExternalResource extends Resource {
      * @throws ResourceException on failure to read the content.
      */
     @Nullable
-    <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException;
+    <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction)
+            throws ResourceException;
 
     /**
      * Executes the given action against the binary contents and meta-data of this resource.
@@ -96,7 +96,8 @@ public interface ExternalResource extends Resource {
      * @throws ResourceException on failure to read the content.
      * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
-    <T> ExternalResourceReadResult<T> withContent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException;
+    <T> ExternalResourceReadResult<T> withContent(ContentAndMetadataAction<? extends T> readAction)
+            throws ResourceException;
 
     /**
      * Executes the given action against the binary contents and meta-data of this resource.
@@ -107,7 +108,8 @@ public interface ExternalResource extends Resource {
      * @throws ResourceException on failure to read the content.
      */
     @Nullable
-    <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException;
+    <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAndMetadataAction<? extends T> readAction)
+            throws ResourceException;
 
     /**
      * Copies the given content to this resource.

@@ -20,16 +20,15 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.LineProcessor;
 import com.google.common.io.Resources;
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.internal.classpath.RuntimeApiInfo;
-import org.gradle.internal.UncheckedException;
-
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.internal.classpath.RuntimeApiInfo;
+import org.gradle.internal.UncheckedException;
 
 public class DefaultImportsReader implements ImportsReader {
 
@@ -77,29 +76,31 @@ public class DefaultImportsReader implements ImportsReader {
     }
 
     private static Map<String, List<String>> generateSimpleNameToFQCN(URL url) throws IOException {
-        return Resources.asCharSource(url, StandardCharsets.UTF_8).readLines(new LineProcessor<Map<String, List<String>>>() {
-            private final ImmutableMap.Builder<String, List<String>> builder = ImmutableMap.builder();
+        return Resources.asCharSource(url, StandardCharsets.UTF_8)
+                .readLines(new LineProcessor<Map<String, List<String>>>() {
+                    private final ImmutableMap.Builder<String, List<String>> builder = ImmutableMap.builder();
 
-            @Override
-            public boolean processLine(String line) throws IOException {
-                boolean process = !StringUtils.isEmpty(line);
-                if (process) {
-                    String[] split = line.split(":");
-                    if (split.length == 2) {
-                        String simpleName = split[0];
-                        List<String> fqcns = Splitter.on(';').omitEmptyStrings().splitToList(split[1]);
-                        builder.put(simpleName, fqcns);
-                    } else {
-                        process = false;
+                    @Override
+                    public boolean processLine(String line) throws IOException {
+                        boolean process = !StringUtils.isEmpty(line);
+                        if (process) {
+                            String[] split = line.split(":");
+                            if (split.length == 2) {
+                                String simpleName = split[0];
+                                List<String> fqcns =
+                                        Splitter.on(';').omitEmptyStrings().splitToList(split[1]);
+                                builder.put(simpleName, fqcns);
+                            } else {
+                                process = false;
+                            }
+                        }
+                        return process;
                     }
-                }
-                return process;
-            }
 
-            @Override
-            public Map<String, List<String>> getResult() {
-                return builder.build();
-            }
-        });
+                    @Override
+                    public Map<String, List<String>> getResult() {
+                        return builder.build();
+                    }
+                });
     }
 }

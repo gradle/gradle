@@ -23,5 +23,4 @@ import org.gradle.platform.base.ToolChain;
  * A set of compilers and linkers that are used together to construct a native binary.
  */
 @HasInternalProtocol
-public interface NativeToolChain extends ToolChain {
-}
+public interface NativeToolChain extends ToolChain {}

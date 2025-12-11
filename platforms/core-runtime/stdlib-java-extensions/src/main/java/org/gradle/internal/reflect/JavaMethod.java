@@ -15,15 +15,14 @@
  */
 package org.gradle.internal.reflect;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.UncheckedException;
-import org.gradle.util.internal.CollectionUtils;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import org.gradle.api.GradleException;
+import org.gradle.internal.UncheckedException;
+import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
 public class JavaMethod<T, R> {
     private final Method method;
@@ -32,21 +31,24 @@ public class JavaMethod<T, R> {
     /**
      * Locates the given method. Searches all methods, including private methods.
      */
-    public static <T, R> JavaMethod<T, R> of(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) throws NoSuchMethodException {
+    public static <T, R> JavaMethod<T, R> of(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes)
+            throws NoSuchMethodException {
         return new JavaMethod<T, R>(target, returnType, name, paramTypes);
     }
 
     /**
      * Locates the given static method. Searches all methods, including private methods.
      */
-    public static <T, R> JavaMethod<T, R> ofStatic(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) throws NoSuchMethodException {
+    public static <T, R> JavaMethod<T, R> ofStatic(
+            Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) throws NoSuchMethodException {
         return new JavaMethod<T, R>(target, returnType, name, true, paramTypes);
     }
 
     /**
      * Locates the given method. Searches all methods, including private methods.
      */
-    public static <T, R> JavaMethod<T, R> of(T target, Class<R> returnType, String name, Class<?>... paramTypes) throws NoSuchMethodException {
+    public static <T, R> JavaMethod<T, R> of(T target, Class<R> returnType, String name, Class<?>... paramTypes)
+            throws NoSuchMethodException {
         @SuppressWarnings("unchecked")
         Class<T> targetClass = (Class<T>) target.getClass();
         return of(targetClass, returnType, name, paramTypes);
@@ -83,11 +85,14 @@ public class JavaMethod<T, R> {
         if (method != null) {
             return method;
         }
-        throw new NoSuchMethodException(String.format("Could not find method %s(%s) on %s.", name, CollectionUtils.join(", ", paramTypes), target.getSimpleName()));
+        throw new NoSuchMethodException(String.format(
+                "Could not find method %s(%s) on %s.",
+                name, CollectionUtils.join(", ", paramTypes), target.getSimpleName()));
     }
 
     @Nullable
-    private static Method findDeclaredMethod(Class<?> origTarget, String name, boolean allowStatic, Class<?>[] paramTypes) {
+    private static Method findDeclaredMethod(
+            Class<?> origTarget, String name, boolean allowStatic, Class<?>[] paramTypes) {
         Class<?> target = origTarget;
         while (target != null) {
             Method method = findMethodFrom(target.getDeclaredMethods(), name, allowStatic, paramTypes);
@@ -128,7 +133,11 @@ public class JavaMethod<T, R> {
             Throwable cause = e.getCause();
             throw UncheckedException.throwAsUncheckedException(cause != null ? cause : e);
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), target), e);
+            throw new GradleException(
+                    String.format(
+                            "Could not call %s.%s() on %s",
+                            method.getDeclaringClass().getSimpleName(), method.getName(), target),
+                    e);
         }
     }
 

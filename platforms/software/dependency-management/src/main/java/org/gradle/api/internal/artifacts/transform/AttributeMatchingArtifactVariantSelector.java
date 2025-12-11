@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -26,9 +28,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * A {@link ArtifactVariantSelector} that uses attribute matching to select a matching set of artifacts.
@@ -47,12 +46,11 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     private final TransformationChainSelector transformationChainSelector;
 
     public AttributeMatchingArtifactVariantSelector(
-        ImmutableAttributesSchema consumerSchema,
-        ConsumerProvidedVariantFinder transformationChainBuilder,
-        AttributesFactory attributesFactory,
-        AttributeSchemaServices attributeSchemaServices,
-        ResolutionFailureHandler failureHandler
-    ) {
+            ImmutableAttributesSchema consumerSchema,
+            ConsumerProvidedVariantFinder transformationChainBuilder,
+            AttributesFactory attributesFactory,
+            AttributeSchemaServices attributeSchemaServices,
+            ResolutionFailureHandler failureHandler) {
         this.consumerSchema = consumerSchema;
         this.attributesFactory = attributesFactory;
         this.attributeSchemaServices = attributeSchemaServices;
@@ -62,41 +60,43 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
     @Override
     public ResolvedArtifactSet select(
-        ResolvedVariantSet producer,
-        ImmutableAttributes requestAttributes,
-        boolean allowNoMatchingVariants
-    ) {
+            ResolvedVariantSet producer, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants) {
         try {
             return doSelect(producer, requestAttributes, allowNoMatchingVariants);
         } catch (Exception t) {
-            return new BrokenResolvedArtifactSet(failureHandler.unknownArtifactVariantSelectionFailure(producer, requestAttributes, t));
+            return new BrokenResolvedArtifactSet(
+                    failureHandler.unknownArtifactVariantSelectionFailure(producer, requestAttributes, t));
         }
     }
 
     private ResolvedArtifactSet doSelect(
-        ResolvedVariantSet producer,
-        ImmutableAttributes requestAttributes,
-        boolean allowNoMatchingVariants
-    ) {
+            ResolvedVariantSet producer, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants) {
         AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, producer.getProducerSchema());
-        ImmutableAttributes targetAttributes = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
+        ImmutableAttributes targetAttributes =
+                attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
 
         // Check for matching variant without using artifact transforms.  If we found only one match, return it.
         // If we found multiple matches, there is ambiguity.
-        List<ResolvedVariant> matchingVariants = matcher.matchMultipleCandidates(producer.getCandidates(), targetAttributes);
+        List<ResolvedVariant> matchingVariants =
+                matcher.matchMultipleCandidates(producer.getCandidates(), targetAttributes);
         if (matchingVariants.size() == 1) {
             return matchingVariants.get(0).getArtifacts();
         } else if (matchingVariants.size() > 1) {
             throw failureHandler.ambiguousArtifactsFailure(matcher, producer, targetAttributes, matchingVariants);
         }
 
-        // We found no matching variant.  Attempt to select a chain of transformations that produces a suitable virtual variant.
-        Optional<TransformedVariant> selectedTransformationChain = transformationChainSelector.selectTransformationChain(producer, targetAttributes, matcher);
+        // We found no matching variant.  Attempt to select a chain of transformations that produces a suitable virtual
+        // variant.
+        Optional<TransformedVariant> selectedTransformationChain =
+                transformationChainSelector.selectTransformationChain(producer, targetAttributes, matcher);
         if (selectedTransformationChain.isPresent()) {
-            return producer.transformCandidate(selectedTransformationChain.get().getRoot(), selectedTransformationChain.get().getTransformedVariantDefinition());
+            return producer.transformCandidate(
+                    selectedTransformationChain.get().getRoot(),
+                    selectedTransformationChain.get().getTransformedVariantDefinition());
         }
 
-        // At this point, there is no possibility of a match for the request.  That could be okay if allowed, else it's a failure.
+        // At this point, there is no possibility of a match for the request.  That could be okay if allowed, else it's
+        // a failure.
         if (allowNoMatchingVariants) {
             return ResolvedArtifactSet.EMPTY;
         } else {

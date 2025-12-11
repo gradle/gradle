@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.MutableVariantFilesMetadata;
 import org.gradle.api.artifacts.VariantFileMetadata;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DefaultMutableVariantFilesMetadata implements MutableVariantFilesMetadata {
 
@@ -43,7 +42,8 @@ public class DefaultMutableVariantFilesMetadata implements MutableVariantFilesMe
     public void addFile(String name, String url) {
         for (VariantFileMetadata file : files) {
             if (file.getName().equals(name)) {
-                throw new InvalidUserDataException("Cannot add file " + name + " (url: " + url + ") because it is already defined (url: " + file.getUrl() + ")");
+                throw new InvalidUserDataException("Cannot add file " + name + " (url: " + url
+                        + ") because it is already defined (url: " + file.getUrl() + ")");
             }
         }
         files.add(new DefaultVariantFileMetadata(name, url));

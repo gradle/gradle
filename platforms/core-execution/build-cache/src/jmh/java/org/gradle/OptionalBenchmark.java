@@ -15,6 +15,11 @@
  */
 package org.gradle;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Measurement;
@@ -22,12 +27,6 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Optional;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 /*
  * Benchmark                     Mode  Cnt          Score         Error  Units
@@ -65,8 +64,6 @@ public class OptionalBenchmark {
     }
 
     private static Object optional(Path path) {
-        return Optional.ofNullable(path.getFileName())
-            .map(Object::toString)
-            .orElse("");
+        return Optional.ofNullable(path.getFileName()).map(Object::toString).orElse("");
     }
 }

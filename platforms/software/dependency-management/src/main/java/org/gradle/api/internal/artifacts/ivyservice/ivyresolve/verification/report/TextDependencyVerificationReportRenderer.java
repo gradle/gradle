@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
+import java.nio.file.Path;
+import java.util.Set;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.logging.text.TreeFormatter;
-
-import java.nio.file.Path;
-import java.util.Set;
 
 /**
  * A text report renderer, which is <i>not</i> cumulative.
@@ -102,5 +101,4 @@ class TextDependencyVerificationReportRenderer extends AbstractTextDependencyVer
         formatter.blankLine();
         formatter.node("GRADLE_USER_HOME = " + gradleUserHome);
     }
-
 }

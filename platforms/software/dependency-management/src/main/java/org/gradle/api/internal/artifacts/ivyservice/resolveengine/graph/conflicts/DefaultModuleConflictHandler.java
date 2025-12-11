@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
@@ -31,18 +32,19 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.Describables;
 import org.gradle.internal.UncheckedException;
 
-import java.util.Set;
-
 public class DefaultModuleConflictHandler implements ModuleConflictHandler {
 
-    private final static Logger LOGGER = Logging.getLogger(DefaultModuleConflictHandler.class);
+    private static final Logger LOGGER = Logging.getLogger(DefaultModuleConflictHandler.class);
 
     private final ModuleConflictResolver<ComponentState> resolver;
     private final ConflictContainer<ModuleIdentifier, ComponentState> conflicts = new ConflictContainer<>();
     private final ImmutableModuleReplacements moduleReplacements;
     private final ResolveState resolveState;
 
-    public DefaultModuleConflictHandler(ModuleConflictResolver<ComponentState> resolver, ImmutableModuleReplacements moduleReplacements, ResolveState resolveState) {
+    public DefaultModuleConflictHandler(
+            ModuleConflictResolver<ComponentState> resolver,
+            ImmutableModuleReplacements moduleReplacements,
+            ResolveState resolveState) {
         this.resolver = resolver;
         this.moduleReplacements = moduleReplacements;
         this.resolveState = resolveState;
@@ -57,9 +59,11 @@ public class DefaultModuleConflictHandler implements ModuleConflictHandler {
     public boolean registerCandidate(CandidateModule candidate) {
         ImmutableModuleReplacements.Replacement replacement = moduleReplacements.getReplacementFor(candidate.getId());
         ModuleIdentifier replacedBy = replacement == null ? null : replacement.getTarget();
-        ConflictContainer<ModuleIdentifier, ComponentState>.Conflict conflict = conflicts.newElement(candidate.getId(), candidate.getVersions(), replacedBy);
+        ConflictContainer<ModuleIdentifier, ComponentState>.Conflict conflict =
+                conflicts.newElement(candidate.getId(), candidate.getVersions(), replacedBy);
         if (conflict != null) {
-            // For each module participating in the conflict, deselect the currently selection, and remove all outgoing edges from the version.
+            // For each module participating in the conflict, deselect the currently selection, and remove all outgoing
+            // edges from the version.
             // This will propagate through the graph and prune configurations that are no longer required.
             for (ModuleIdentifier participant : conflict.participants) {
                 resolveState.getModule(participant).clearSelection();
@@ -97,7 +101,8 @@ public class DefaultModuleConflictHandler implements ModuleConflictHandler {
 
         ComponentState selected = details.getSelected();
         if (selected == null) {
-            throw new IllegalArgumentException("Module conflict resolver " + resolver + " did not select any module from " + conflict.candidates);
+            throw new IllegalArgumentException(
+                    "Module conflict resolver " + resolver + " did not select any module from " + conflict.candidates);
         }
 
         // Visit the winning module first so that when we visit unattached dependencies of
@@ -120,7 +125,9 @@ public class DefaultModuleConflictHandler implements ModuleConflictHandler {
             ImmutableModuleReplacements.Replacement replacement = moduleReplacements.getReplacementFor(identifier);
             if (replacement != null) {
                 String reason = replacement.getReason();
-                ComponentSelectionDescriptorInternal moduleReplacement = ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(Describables.of(identifier, "replaced with", replacement.getTarget()));
+                ComponentSelectionDescriptorInternal moduleReplacement =
+                        ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(
+                                Describables.of(identifier, "replaced with", replacement.getTarget()));
                 if (reason != null) {
                     moduleReplacement = moduleReplacement.withDescription(Describables.of(reason));
                 }
@@ -128,5 +135,4 @@ public class DefaultModuleConflictHandler implements ModuleConflictHandler {
             }
         }
     }
-
 }

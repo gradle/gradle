@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 public class BuildInitDependency {
     final String module;
     final String version;
+
     private BuildInitDependency(String module, @Nullable String version) {
         this.module = module;
         this.version = version;

@@ -21,7 +21,8 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.jspecify.annotations.Nullable;
 
 public class ModuleFactoryHelper {
-    public static void addExplicitArtifactsIfDefined(ExternalDependency moduleDependency, @Nullable String artifactType, @Nullable String classifier) {
+    public static void addExplicitArtifactsIfDefined(
+            ExternalDependency moduleDependency, @Nullable String artifactType, @Nullable String classifier) {
         String actualArtifactType = artifactType;
         if (actualArtifactType == null) {
             if (classifier != null) {
@@ -31,8 +32,8 @@ public class ModuleFactoryHelper {
             moduleDependency.setTransitive(false);
         }
         if (actualArtifactType != null) {
-            moduleDependency.addArtifact(new DefaultDependencyArtifact(moduleDependency.getName(),
-                    actualArtifactType, actualArtifactType, classifier, null));
+            moduleDependency.addArtifact(new DefaultDependencyArtifact(
+                    moduleDependency.getName(), actualArtifactType, actualArtifactType, classifier, null));
         }
     }
 }

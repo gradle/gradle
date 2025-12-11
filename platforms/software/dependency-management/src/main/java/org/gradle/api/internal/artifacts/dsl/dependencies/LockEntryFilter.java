@@ -19,5 +19,4 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.specs.Spec;
 
-public interface LockEntryFilter extends Spec<ModuleComponentIdentifier> {
-}
+public interface LockEntryFilter extends Spec<ModuleComponentIdentifier> {}

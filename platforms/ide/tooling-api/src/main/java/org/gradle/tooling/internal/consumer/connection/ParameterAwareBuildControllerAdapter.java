@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import java.io.File;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -25,18 +26,23 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-
 class ParameterAwareBuildControllerAdapter extends UnparameterizedBuildController {
     private final InternalBuildControllerVersion2 buildController;
 
-    public ParameterAwareBuildControllerAdapter(InternalBuildControllerVersion2 buildController, ProtocolToModelAdapter adapter, ModelMapping modelMapping, VersionDetails gradleVersion, File rootDir) {
+    public ParameterAwareBuildControllerAdapter(
+            InternalBuildControllerVersion2 buildController,
+            ProtocolToModelAdapter adapter,
+            ModelMapping modelMapping,
+            VersionDetails gradleVersion,
+            File rootDir) {
         super(adapter, modelMapping, gradleVersion, rootDir);
         this.buildController = buildController;
     }
 
     @Override
-    protected BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException {
+    protected BuildResult<?> getModel(
+            @Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
+            throws InternalUnsupportedModelException {
         return buildController.getModel(target, modelIdentifier, parameter);
     }
 }

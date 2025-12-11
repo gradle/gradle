@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.properties;
 
+import java.io.File;
+import java.util.Map;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.Map;
 
 /**
  * Allows registering Gradle property access as build configuration inputs.
@@ -34,10 +33,7 @@ public interface GradlePropertiesListener {
     /**
      * Tracks property loading.
      */
-    void onGradlePropertiesLoaded(
-        GradlePropertyScope propertyScope,
-        File propertiesDir
-    );
+    void onGradlePropertiesLoaded(GradlePropertyScope propertyScope, File propertiesDir);
 
     /**
      * Tracks property access.
@@ -45,18 +41,10 @@ public interface GradlePropertiesListener {
      * Gradle property values cannot be null, so null {@code propertyValue} represents
      * a lookup of missing property, which can happen when checking for property presence.
      */
-    void onGradlePropertyAccess(
-        GradlePropertyScope propertyScope,
-        String propertyName,
-        @Nullable Object propertyValue
-    );
+    void onGradlePropertyAccess(GradlePropertyScope propertyScope, String propertyName, @Nullable Object propertyValue);
 
     /**
      * Tracks prefixed property access.
      */
-    void onGradlePropertiesByPrefix(
-        GradlePropertyScope propertyScope,
-        String prefix,
-        Map<String, String> snapshot
-    );
+    void onGradlePropertiesByPrefix(GradlePropertyScope propertyScope, String prefix, Map<String, String> snapshot);
 }

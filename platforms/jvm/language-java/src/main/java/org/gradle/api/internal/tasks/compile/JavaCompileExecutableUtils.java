@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import java.io.File;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -23,12 +24,11 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-
 public class JavaCompileExecutableUtils {
 
     @Nullable
-    public static JavaToolchainSpec getExecutableOverrideToolchainSpec(JavaCompile task, PropertyFactory propertyFactory) {
+    public static JavaToolchainSpec getExecutableOverrideToolchainSpec(
+            JavaCompile task, PropertyFactory propertyFactory) {
         if (!task.getOptions().isFork()) {
             return null;
         }

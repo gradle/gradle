@@ -19,5 +19,5 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 
-public interface TestFlatDirectoryArtifactRepository extends FlatDirectoryArtifactRepository, ArtifactRepositoryInternal {
-}
+public interface TestFlatDirectoryArtifactRepository
+        extends FlatDirectoryArtifactRepository, ArtifactRepositoryInternal {}

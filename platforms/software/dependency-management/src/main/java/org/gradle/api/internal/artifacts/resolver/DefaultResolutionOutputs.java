@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -44,8 +45,6 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.Actions;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
-import javax.inject.Inject;
-
 /**
  * Default implementation of {@link ResolutionOutputsInternal}. This class is in charge of
  * converting internal results in the form of {@link ResolverResults} into public facing types like:
@@ -68,13 +67,12 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     private final ObjectFactory objectFactory;
 
     public DefaultResolutionOutputs(
-        ResolutionAccess resolutionAccess,
-        TaskDependencyFactory taskDependencyFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        AttributesFactory attributesFactory,
-        AttributeDesugaring attributeDesugaring,
-        ObjectFactory objectFactory
-    ) {
+            ResolutionAccess resolutionAccess,
+            TaskDependencyFactory taskDependencyFactory,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
+            AttributesFactory attributesFactory,
+            AttributeDesugaring attributeDesugaring,
+            ObjectFactory objectFactory) {
         this.resolutionAccess = resolutionAccess;
         this.taskDependencyFactory = taskDependencyFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -85,12 +83,14 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
 
     @Override
     public Provider<ResolvedVariantResult> getRootVariant() {
-        return new DefaultProvider<>(() -> getResolutionResult().getGraphSource().get().getRootVariant());
+        return new DefaultProvider<>(
+                () -> getResolutionResult().getGraphSource().get().getRootVariant());
     }
 
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
-        return new DefaultProvider<>(() -> getResolutionResult().getGraphSource().get().getRootComponent());
+        return new DefaultProvider<>(
+                () -> getResolutionResult().getGraphSource().get().getRootComponent());
     }
 
     private MinimalResolutionResult getResolutionResult() {
@@ -114,21 +114,20 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
 
     private DefaultArtifactView doGetArtifactView(Action<? super ArtifactView.ViewConfiguration> action) {
         // We use the instantiator to generate closure-accepting methods.
-        DefaultArtifactViewConfiguration viewConfiguration = objectFactory.newInstance(DefaultArtifactViewConfiguration.class, attributesFactory);
+        DefaultArtifactViewConfiguration viewConfiguration =
+                objectFactory.newInstance(DefaultArtifactViewConfiguration.class, attributesFactory);
         action.execute(viewConfiguration);
 
         return new DefaultArtifactView(
-            viewConfiguration.lenient,
-            viewConfiguration.componentFilter,
-            viewConfiguration.reselectVariants,
-            viewConfiguration.viewAttributes,
-
-            resolutionAccess,
-            taskDependencyFactory,
-            calculatedValueContainerFactory,
-            attributesFactory,
-            attributeDesugaring
-        );
+                viewConfiguration.lenient,
+                viewConfiguration.componentFilter,
+                viewConfiguration.reselectVariants,
+                viewConfiguration.viewAttributes,
+                resolutionAccess,
+                taskDependencyFactory,
+                calculatedValueContainerFactory,
+                attributesFactory,
+                attributeDesugaring);
     }
 
     @VisibleForTesting
@@ -148,17 +147,15 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         private final AttributeDesugaring attributeDesugaring;
 
         public DefaultArtifactView(
-            boolean lenient,
-            Spec<? super ComponentIdentifier> componentFilter,
-            boolean reselectVariants,
-            AttributeContainerInternal viewAttributes,
-
-            ResolutionAccess resolutionAccess,
-            TaskDependencyFactory taskDependencyFactory,
-            CalculatedValueContainerFactory calculatedValueContainerFactory,
-            AttributesFactory attributesFactory,
-            AttributeDesugaring attributeDesugaring
-        ) {
+                boolean lenient,
+                Spec<? super ComponentIdentifier> componentFilter,
+                boolean reselectVariants,
+                AttributeContainerInternal viewAttributes,
+                ResolutionAccess resolutionAccess,
+                TaskDependencyFactory taskDependencyFactory,
+                CalculatedValueContainerFactory calculatedValueContainerFactory,
+                AttributesFactory attributesFactory,
+                AttributeDesugaring attributeDesugaring) {
             this.lenient = lenient;
             this.componentFilter = componentFilter;
             this.reselectVariants = reselectVariants;
@@ -174,17 +171,15 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         @Override
         public ArtifactCollectionInternal getArtifacts() {
             SelectedArtifactSet selectedArtifacts = new ResolutionResultProviderBackedSelectedArtifactSet(
-                resolutionAccess.getResults().map(this::selectArtifacts)
-            );
+                    resolutionAccess.getResults().map(this::selectArtifacts));
 
             return new DefaultArtifactCollection(
-                selectedArtifacts,
-                lenient,
-                resolutionAccess.getHost(),
-                taskDependencyFactory,
-                calculatedValueContainerFactory,
-                attributeDesugaring
-            );
+                    selectedArtifacts,
+                    lenient,
+                    resolutionAccess.getHost(),
+                    taskDependencyFactory,
+                    calculatedValueContainerFactory,
+                    attributeDesugaring);
         }
 
         @Override
@@ -195,19 +190,20 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         private SelectedArtifactSet selectArtifacts(ResolverResults results) {
             // If the user set the view attributes, we allow variant matching to fail for no matching variants.
             // If we are using the original request attributes, variant matching should not fail.
-            // TODO #27773: This is probably not desired behavior. It can be very confusing to request new attributes and
+            // TODO #27773: This is probably not desired behavior. It can be very confusing to request new attributes
+            // and
             // then have an ArtifactView silently return no results. We should add a switch specifying whether you
             // want 0 or 1 artifact result, 1 artifact result, or 1+ artifact results for each graph variant, and then
             // deprecate views that select no artifacts without the user specifying that switch.
             boolean allowNoMatchingVariants = !viewAttributes.isEmpty();
 
-            return results.getVisitedArtifacts().select(new ArtifactSelectionSpec(
-                getAttributes(),
-                componentFilter,
-                reselectVariants,
-                allowNoMatchingVariants,
-                resolutionAccess.getDefaultSortOrder()
-            ));
+            return results.getVisitedArtifacts()
+                    .select(new ArtifactSelectionSpec(
+                            getAttributes(),
+                            componentFilter,
+                            reselectVariants,
+                            allowNoMatchingVariants,
+                            resolutionAccess.getDefaultSortOrder()));
         }
 
         @Override
@@ -254,7 +250,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         @Override
         public ArtifactView.ViewConfiguration componentFilter(Spec<? super ComponentIdentifier> componentFilter) {
             if (this.componentFilter != Specs.SATISFIES_ALL) {
-                throw new IllegalStateException("The component filter can only be set once before the view was computed");
+                throw new IllegalStateException(
+                        "The component filter can only be set once before the view was computed");
             }
             this.componentFilter = componentFilter;
             return this;

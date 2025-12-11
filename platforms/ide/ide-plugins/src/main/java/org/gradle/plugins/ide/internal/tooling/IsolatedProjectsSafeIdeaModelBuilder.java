@@ -18,6 +18,12 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -43,25 +49,21 @@ import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvid
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 /**
  * Builds the {@link org.gradle.tooling.model.idea.IdeaProject} model in Isolated Projects-compatible way.
  */
 @NullMarked
-public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInternal, ParameterizedToolingModelBuilder<IdeaModelParameter> {
+public class IsolatedProjectsSafeIdeaModelBuilder
+        implements IdeaModelBuilderInternal, ParameterizedToolingModelBuilder<IdeaModelParameter> {
 
     private static final String MODEL_NAME = IdeaProject.class.getName();
 
     private final IntermediateToolingModelProvider intermediateToolingModelProvider;
     private final GradleProjectBuilderInternal gradleProjectBuilder;
 
-    public IsolatedProjectsSafeIdeaModelBuilder(IntermediateToolingModelProvider intermediateToolingModelProvider, GradleProjectBuilderInternal gradleProjectBuilder) {
+    public IsolatedProjectsSafeIdeaModelBuilder(
+            IntermediateToolingModelProvider intermediateToolingModelProvider,
+            GradleProjectBuilderInternal gradleProjectBuilder) {
         this.intermediateToolingModelProvider = intermediateToolingModelProvider;
         this.gradleProjectBuilder = gradleProjectBuilder;
     }
@@ -101,7 +103,8 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
 
     private static void requireRootProject(Project project) {
         if (!project.equals(project.getRootProject())) {
-            throw new IllegalArgumentException(String.format("%s can only be requested on the root project, got %s", MODEL_NAME, project));
+            throw new IllegalArgumentException(
+                    String.format("%s can only be requested on the root project, got %s", MODEL_NAME, project));
         }
     }
 
@@ -128,12 +131,14 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         // Currently, applying the plugin here is redundant due to `applyIdeaPluginToBuildTree`.
         // However, the latter should go away in the future, while the application here is inherent to the builder
         rootProject.getPluginManager().apply(IdeaPlugin.class);
-        IdeaModel ideaModelExt = rootProject.getPlugins().getPlugin(IdeaPlugin.class).getModel();
+        IdeaModel ideaModelExt =
+                rootProject.getPlugins().getPlugin(IdeaPlugin.class).getModel();
         IdeaProjectInternal ideaProjectExt = (IdeaProjectInternal) ideaModelExt.getProject();
 
         ProjectState rootProjectState = ((ProjectInternal) rootProject).getOwner();
         List<ProjectState> projectsInBuild = getProjectsInBuild(rootProjectState.getOwner());
-        List<IsolatedIdeaModuleInternal> allIsolatedIdeaModules = getIsolatedIdeaModules(rootProjectState, projectsInBuild, parameter);
+        List<IsolatedIdeaModuleInternal> allIsolatedIdeaModules =
+                getIsolatedIdeaModules(rootProjectState, projectsInBuild, parameter);
 
         IdeaLanguageLevel languageLevel = resolveRootLanguageLevel(ideaProjectExt, allIsolatedIdeaModules);
         JavaVersion targetBytecodeVersion = resolveRootTargetBytecodeVersion(ideaProjectExt, allIsolatedIdeaModules);
@@ -143,13 +148,17 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         // Important to build GradleProject after the IsolatedIdeaModuleInternal requests,
         // to make sure IdeaPlugin is applied to each project and its tasks are registered
         DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildForRoot(rootProject);
-        IdeaModuleBuilder ideaModuleBuilder = new IdeaModuleBuilder(rootGradleProject, languageLevel, targetBytecodeVersion);
+        IdeaModuleBuilder ideaModuleBuilder =
+                new IdeaModuleBuilder(rootGradleProject, languageLevel, targetBytecodeVersion);
 
-        List<DefaultIdeaModule> ideaModules = Streams.zip(projectsInBuild.stream(), allIsolatedIdeaModules.stream(), (project, isolatedIdeaModule) -> {
-            DefaultIdeaModule ideaModuleForProject = ideaModuleBuilder.buildWithoutParent(project, isolatedIdeaModule);
-            ideaModuleForProject.setParent(out);
-            return ideaModuleForProject;
-        }).collect(Collectors.toList());
+        List<DefaultIdeaModule> ideaModules = Streams.zip(
+                        projectsInBuild.stream(), allIsolatedIdeaModules.stream(), (project, isolatedIdeaModule) -> {
+                            DefaultIdeaModule ideaModuleForProject =
+                                    ideaModuleBuilder.buildWithoutParent(project, isolatedIdeaModule);
+                            ideaModuleForProject.setParent(out);
+                            return ideaModuleForProject;
+                        })
+                .collect(Collectors.toList());
         out.setChildren(ideaModules);
 
         return out;
@@ -159,30 +168,34 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         return ImmutableList.copyOf(build.getProjects().getAllProjects());
     }
 
-    private static DefaultIdeaProject buildWithoutChildren(IdeaProjectInternal ideaProjectExt, IdeaLanguageLevel languageLevel, JavaVersion targetBytecodeVersion) {
+    private static DefaultIdeaProject buildWithoutChildren(
+            IdeaProjectInternal ideaProjectExt, IdeaLanguageLevel languageLevel, JavaVersion targetBytecodeVersion) {
         return new DefaultIdeaProject()
-            .setName(ideaProjectExt.getName())
-            .setJdkName(ideaProjectExt.getJdkName())
-            .setLanguageLevel(new DefaultIdeaLanguageLevel(languageLevel.getLevel()))
-            .setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
-                .setSourceLanguageLevel(IdeaModuleBuilderSupport.convertToJavaVersion(languageLevel))
-                .setTargetBytecodeVersion(targetBytecodeVersion)
-                .setJdk(DefaultInstalledJdk.current()));
+                .setName(ideaProjectExt.getName())
+                .setJdkName(ideaProjectExt.getJdkName())
+                .setLanguageLevel(new DefaultIdeaLanguageLevel(languageLevel.getLevel()))
+                .setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
+                        .setSourceLanguageLevel(IdeaModuleBuilderSupport.convertToJavaVersion(languageLevel))
+                        .setTargetBytecodeVersion(targetBytecodeVersion)
+                        .setJdk(DefaultInstalledJdk.current()));
     }
 
     // Simulates computation of the IdeaProject language level property in the IdeaPlugin
-    private static IdeaLanguageLevel resolveRootLanguageLevel(IdeaProjectInternal ideaProjectExt, List<IsolatedIdeaModuleInternal> isolatedModules) {
+    private static IdeaLanguageLevel resolveRootLanguageLevel(
+            IdeaProjectInternal ideaProjectExt, List<IsolatedIdeaModuleInternal> isolatedModules) {
         IdeaLanguageLevel explicitLanguageLevel = ideaProjectExt.getRawLanguageLevel();
         if (explicitLanguageLevel != null) {
             return explicitLanguageLevel;
         }
 
-        JavaVersion maxCompatibility = getMaxCompatibility(isolatedModules, IsolatedIdeaModuleInternal::getJavaSourceCompatibility);
+        JavaVersion maxCompatibility =
+                getMaxCompatibility(isolatedModules, IsolatedIdeaModuleInternal::getJavaSourceCompatibility);
         return new IdeaLanguageLevel(maxCompatibility);
     }
 
     // Simulates computation of the IdeaProject target bytecode version property in the IdeaPlugin
-    private static JavaVersion resolveRootTargetBytecodeVersion(IdeaProjectInternal ideaProjectExt, List<IsolatedIdeaModuleInternal> isolatedModules) {
+    private static JavaVersion resolveRootTargetBytecodeVersion(
+            IdeaProjectInternal ideaProjectExt, List<IsolatedIdeaModuleInternal> isolatedModules) {
         JavaVersion explicitTargetBytecodeVersion = ideaProjectExt.getRawTargetBytecodeVersion();
         if (explicitTargetBytecodeVersion != null) {
             return explicitTargetBytecodeVersion;
@@ -191,17 +204,20 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         return getMaxCompatibility(isolatedModules, IsolatedIdeaModuleInternal::getJavaTargetCompatibility);
     }
 
-    private List<IsolatedIdeaModuleInternal> getIsolatedIdeaModules(ProjectState rootProject, List<ProjectState> projectsInBuild, IdeaModelParameter parameter) {
-        return intermediateToolingModelProvider
-            .getModels(rootProject, projectsInBuild, IsolatedIdeaModuleInternal.class, parameter);
+    private List<IsolatedIdeaModuleInternal> getIsolatedIdeaModules(
+            ProjectState rootProject, List<ProjectState> projectsInBuild, IdeaModelParameter parameter) {
+        return intermediateToolingModelProvider.getModels(
+                rootProject, projectsInBuild, IsolatedIdeaModuleInternal.class, parameter);
     }
 
-    private static JavaVersion getMaxCompatibility(List<IsolatedIdeaModuleInternal> isolatedIdeaModules, Function<IsolatedIdeaModuleInternal, JavaVersion> getCompatibilty) {
+    private static JavaVersion getMaxCompatibility(
+            List<IsolatedIdeaModuleInternal> isolatedIdeaModules,
+            Function<IsolatedIdeaModuleInternal, JavaVersion> getCompatibilty) {
         return isolatedIdeaModules.stream()
-            .map(getCompatibilty)
-            .filter(Objects::nonNull)
-            .max(JavaVersion::compareTo)
-            .orElse(IdeaModuleSupport.FALLBACK_MODULE_JAVA_COMPATIBILITY_VERSION);
+                .map(getCompatibilty)
+                .filter(Objects::nonNull)
+                .max(JavaVersion::compareTo)
+                .orElse(IdeaModuleSupport.FALLBACK_MODULE_JAVA_COMPATIBILITY_VERSION);
     }
 
     private static IdeaModelParameter createParameter(boolean offlineDependencyResolution) {
@@ -216,33 +232,37 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         private final JavaVersion ideaProjectTargetBytecodeVersion;
 
         private IdeaModuleBuilder(
-            DefaultGradleProject rootGradleProject,
-            IdeaLanguageLevel ideaProjectLanguageLevel,
-            JavaVersion ideaProjectTargetBytecodeVersion
-        ) {
+                DefaultGradleProject rootGradleProject,
+                IdeaLanguageLevel ideaProjectLanguageLevel,
+                JavaVersion ideaProjectTargetBytecodeVersion) {
             this.rootGradleProject = rootGradleProject;
             this.ideaProjectLanguageLevel = ideaProjectLanguageLevel;
             this.ideaProjectTargetBytecodeVersion = ideaProjectTargetBytecodeVersion;
         }
 
-        private DefaultIdeaModule buildWithoutParent(ProjectState project, IsolatedIdeaModuleInternal isolatedIdeaModule) {
+        private DefaultIdeaModule buildWithoutParent(
+                ProjectState project, IsolatedIdeaModuleInternal isolatedIdeaModule) {
             DefaultIdeaModule model = new DefaultIdeaModule()
-                .setName(isolatedIdeaModule.getName())
-                .setGradleProject(rootGradleProject.findByPath(project.getIdentity().getProjectPath().asString()))
-                .setContentRoots(Collections.singletonList(isolatedIdeaModule.getContentRoot()))
-                .setJdkName(isolatedIdeaModule.getJdkName())
-                .setCompilerOutput(isolatedIdeaModule.getCompilerOutput());
+                    .setName(isolatedIdeaModule.getName())
+                    .setGradleProject(rootGradleProject.findByPath(
+                            project.getIdentity().getProjectPath().asString()))
+                    .setContentRoots(Collections.singletonList(isolatedIdeaModule.getContentRoot()))
+                    .setJdkName(isolatedIdeaModule.getJdkName())
+                    .setCompilerOutput(isolatedIdeaModule.getCompilerOutput());
 
             boolean javaExtensionAvailableOnModule = isolatedIdeaModule.getJavaSourceCompatibility() != null
-                || isolatedIdeaModule.getJavaTargetCompatibility() != null;
+                    || isolatedIdeaModule.getJavaTargetCompatibility() != null;
             if (javaExtensionAvailableOnModule) {
                 IdeaLanguageLevel languageLevel = resolveLanguageLevel(isolatedIdeaModule);
-                IdeaLanguageLevel moduleLanguageLevelOverride = takeIfDifferent(ideaProjectLanguageLevel, languageLevel);
+                IdeaLanguageLevel moduleLanguageLevelOverride =
+                        takeIfDifferent(ideaProjectLanguageLevel, languageLevel);
                 JavaVersion targetBytecodeVersion = resolveTargetBytecodeVersion(isolatedIdeaModule);
-                JavaVersion moduleTargetBytecodeVersionOverride = takeIfDifferent(ideaProjectTargetBytecodeVersion, targetBytecodeVersion);
+                JavaVersion moduleTargetBytecodeVersionOverride =
+                        takeIfDifferent(ideaProjectTargetBytecodeVersion, targetBytecodeVersion);
                 model.setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
-                    .setSourceLanguageLevel(IdeaModuleBuilderSupport.convertToJavaVersion(moduleLanguageLevelOverride))
-                    .setTargetBytecodeVersion(moduleTargetBytecodeVersionOverride));
+                        .setSourceLanguageLevel(
+                                IdeaModuleBuilderSupport.convertToJavaVersion(moduleLanguageLevelOverride))
+                        .setTargetBytecodeVersion(moduleTargetBytecodeVersionOverride));
             }
 
             model.setDependencies(isolatedIdeaModule.getDependencies());
@@ -273,5 +293,4 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
             return value != null ? value : convention;
         }
     }
-
 }

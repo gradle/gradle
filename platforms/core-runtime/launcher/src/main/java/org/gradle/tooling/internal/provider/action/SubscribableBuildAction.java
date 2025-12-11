@@ -29,5 +29,4 @@ public abstract class SubscribableBuildAction implements BuildAction {
     public BuildEventSubscriptions getClientSubscriptions() {
         return clientSubscriptions;
     }
-
 }

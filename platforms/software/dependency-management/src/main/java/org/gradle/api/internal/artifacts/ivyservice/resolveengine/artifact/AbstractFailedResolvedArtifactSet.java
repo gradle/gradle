@@ -53,8 +53,7 @@ public abstract class AbstractFailedResolvedArtifactSet implements ResolvedArtif
     }
 
     @Override
-    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
-    }
+    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {}
 
     @Override
     public void visit(ArtifactVisitor visitor) {

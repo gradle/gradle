@@ -37,5 +37,4 @@ public interface GradleApiClasspathProvider {
      * Returns the classpath for the Kotlin DSL API.
      */
     ClassPath getGradleKotlinDslApi();
-
 }

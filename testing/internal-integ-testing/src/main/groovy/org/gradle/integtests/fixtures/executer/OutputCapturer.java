@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.apache.commons.io.output.CloseShieldOutputStream;
-import org.apache.commons.io.output.TeeOutputStream;
-import org.gradle.internal.UncheckedException;
-
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import org.apache.commons.io.output.CloseShieldOutputStream;
+import org.apache.commons.io.output.TeeOutputStream;
+import org.gradle.internal.UncheckedException;
 
 class OutputCapturer {
     private final ByteArrayOutputStream buffer;

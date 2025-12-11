@@ -16,6 +16,10 @@
 
 package org.gradle.api.publish.maven.tasks;
 
+import static org.gradle.internal.serialization.Transient.varOf;
+
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
@@ -29,11 +33,6 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-import java.util.concurrent.Callable;
-
-import static org.gradle.internal.serialization.Transient.varOf;
-
 /**
  * Base class for tasks that publish a {@link MavenPublication}.
  *
@@ -46,12 +45,15 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
 
     public AbstractPublishToMaven() {
         // Allow the publication to participate in incremental build
-        getInputs().files((Callable<FileCollection>) () -> {
-                MavenPublicationInternal publicationInternal = getPublicationInternal();
-                return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
-            })
-            .withPropertyName("publication.publishableFiles")
-            .withPathSensitivity(PathSensitivity.NAME_ONLY);
+        getInputs()
+                .files((Callable<FileCollection>) () -> {
+                    MavenPublicationInternal publicationInternal = getPublicationInternal();
+                    return publicationInternal == null
+                            ? null
+                            : publicationInternal.getPublishableArtifacts().getFiles();
+                })
+                .withPropertyName("publication.publishableFiles")
+                .withPathSensitivity(PathSensitivity.NAME_ONLY);
 
         // Should repositories be able to participate in incremental?
         // At the least, they may be able to express themselves as output files
@@ -91,13 +93,10 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
         } else if (publication instanceof MavenPublicationInternal) {
             return (MavenPublicationInternal) publication;
         } else {
-            throw new InvalidUserDataException(
-                String.format(
+            throw new InvalidUserDataException(String.format(
                     "publication objects must implement the '%s' interface, implementation '%s' does not",
                     MavenPublicationInternal.class.getName(),
-                    publication.getClass().getName()
-                )
-            );
+                    publication.getClass().getName()));
         }
     }
 

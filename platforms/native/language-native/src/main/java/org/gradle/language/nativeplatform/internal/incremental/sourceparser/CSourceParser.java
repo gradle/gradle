@@ -16,11 +16,10 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import java.io.File;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
-
-import java.io.File;
 
 /**
  * A parser to extract information from C-compatible source files.
@@ -29,5 +28,4 @@ import java.io.File;
 public interface CSourceParser {
 
     IncludeDirectives parseSource(File sourceFile);
-
 }

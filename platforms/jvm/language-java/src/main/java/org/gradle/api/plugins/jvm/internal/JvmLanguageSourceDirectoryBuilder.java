@@ -15,13 +15,12 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
+import java.util.function.Function;
 import org.gradle.api.Action;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
-
-import java.util.function.Function;
 
 /**
  * A JVM language source directory builder, which allows the creation
@@ -40,7 +39,8 @@ public interface JvmLanguageSourceDirectoryBuilder {
      * Tells how to compile this source directory set.
      * @param taskBuilder the builder for the task which compiles sources
      */
-    JvmLanguageSourceDirectoryBuilder compiledBy(Function<DirectoryProperty, TaskProvider<? extends AbstractCompile>> taskBuilder);
+    JvmLanguageSourceDirectoryBuilder compiledBy(
+            Function<DirectoryProperty, TaskProvider<? extends AbstractCompile>> taskBuilder);
 
     /**
      * Assumes that this source set will contain Java sources and therefore creates a Java

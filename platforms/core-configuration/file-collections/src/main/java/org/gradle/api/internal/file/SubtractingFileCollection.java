@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
     private final AbstractFileCollection left;
@@ -61,8 +60,8 @@ public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
 
     @Override
     public Optional<FileCollectionExecutionTimeValue> calculateExecutionTimeValue() {
-        return left.calculateExecutionTimeValue()
-            .flatMap(leftEtv -> ((FileCollectionInternal) right).calculateExecutionTimeValue()
+        return left.calculateExecutionTimeValue().flatMap(leftEtv -> ((FileCollectionInternal) right)
+                .calculateExecutionTimeValue()
                 .map(rightEtv -> new SubtractingExecutionTimeValue(leftEtv, rightEtv)));
     }
 
@@ -75,15 +74,16 @@ public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
         private final FileCollectionExecutionTimeValue left;
         private final FileCollectionExecutionTimeValue right;
 
-        private SubtractingExecutionTimeValue(FileCollectionExecutionTimeValue left, FileCollectionExecutionTimeValue right) {
+        private SubtractingExecutionTimeValue(
+                FileCollectionExecutionTimeValue left, FileCollectionExecutionTimeValue right) {
             this.left = left;
             this.right = right;
         }
 
         @Override
         public FileCollectionInternal toFileCollection(FileCollectionFactory fileCollectionFactory) {
-            return (FileCollectionInternal) left.toFileCollection(fileCollectionFactory)
-                .minus(right.toFileCollection(fileCollectionFactory));
+            return (FileCollectionInternal)
+                    left.toFileCollection(fileCollectionFactory).minus(right.toFileCollection(fileCollectionFactory));
         }
     }
 }

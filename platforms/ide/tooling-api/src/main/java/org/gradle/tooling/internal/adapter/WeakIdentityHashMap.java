@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.internal.adapter;
 
-import org.jspecify.annotations.Nullable;
-
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A specialized map wrapper, that uses weak references for keys and stores

@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
-import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
-import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
-import org.jspecify.annotations.Nullable;
-
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
+import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A repository layout that uses user-supplied patterns. Each pattern will be appended to the base URI for the repository.

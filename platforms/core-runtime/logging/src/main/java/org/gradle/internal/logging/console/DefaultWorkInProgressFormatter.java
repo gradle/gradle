@@ -16,15 +16,15 @@
 
 package org.gradle.internal.logging.console;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
-import java.util.Collections;
-import java.util.List;
-
 public class DefaultWorkInProgressFormatter {
-    private final static List<StyledTextOutputEvent.Span> IDLE_SPANS = Collections.singletonList(new StyledTextOutputEvent.Span("> IDLE"));
+    private static final List<StyledTextOutputEvent.Span> IDLE_SPANS =
+            Collections.singletonList(new StyledTextOutputEvent.Span("> IDLE"));
     private final ConsoleMetaData consoleMetaData;
 
     public DefaultWorkInProgressFormatter(ConsoleMetaData consoleMetaData) {
@@ -58,7 +58,8 @@ public class DefaultWorkInProgressFormatter {
     }
 
     private String trim(StringBuilder formattedString) {
-        // Don't write to the right-most column, as on some consoles the cursor will wrap to the next line and currently wrapping causes
+        // Don't write to the right-most column, as on some consoles the cursor will wrap to the next line and currently
+        // wrapping causes
         // layout weirdness
         int maxWidth;
         int cols = consoleMetaData.getCols();

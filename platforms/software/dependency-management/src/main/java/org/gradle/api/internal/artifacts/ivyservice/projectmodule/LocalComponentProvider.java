@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A provider of dependency resolution metadata for locally produced components.

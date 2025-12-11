@@ -18,12 +18,11 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
 import org.gradle.util.internal.ConfigureUtil;
-
-import javax.inject.Inject;
 
 /**
  * Enables fine-tuning jdt details of the Eclipse plugin

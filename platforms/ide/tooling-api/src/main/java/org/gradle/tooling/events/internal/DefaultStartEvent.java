@@ -27,5 +27,4 @@ public class DefaultStartEvent extends BaseProgressEvent implements StartEvent {
     public DefaultStartEvent(long eventTime, String displayName, OperationDescriptor descriptor) {
         super(eventTime, displayName, descriptor);
     }
-
 }

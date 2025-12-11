@@ -48,5 +48,4 @@ public interface BuildFeatures {
      * @since 8.5
      */
     BuildFeature getIsolatedProjects();
-
 }

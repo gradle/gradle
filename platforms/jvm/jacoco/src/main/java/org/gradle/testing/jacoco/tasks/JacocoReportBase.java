@@ -18,6 +18,11 @@ package org.gradle.testing.jacoco.tasks;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
@@ -40,12 +45,6 @@ import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazy
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.concurrent.Callable;
 
 /**
  * Base class for Jacoco report tasks.

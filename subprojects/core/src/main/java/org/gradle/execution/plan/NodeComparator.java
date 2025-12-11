@@ -33,8 +33,7 @@ public class NodeComparator implements Comparator<Node> {
 
     public static final NodeComparator INSTANCE = new NodeComparator();
 
-    private NodeComparator() {
-    }
+    private NodeComparator() {}
 
     @Override
     public int compare(Node n1, Node n2) {
@@ -47,9 +46,7 @@ public class NodeComparator implements Comparator<Node> {
                 OrdinalNode o1 = (OrdinalNode) n1;
                 OrdinalNode o2 = (OrdinalNode) n2;
                 int ordinalDiff = Integer.compare(
-                    o1.getOrdinalGroup().getOrdinal(),
-                    o2.getOrdinalGroup().getOrdinal()
-                );
+                        o1.getOrdinalGroup().getOrdinal(), o2.getOrdinalGroup().getOrdinal());
                 if (ordinalDiff == 0) {
                     return o1.getType().compareTo(o2.getType());
                 }
@@ -63,10 +60,7 @@ public class NodeComparator implements Comparator<Node> {
 
         if (n1 instanceof ResolveMutationsNode) {
             if (n2 instanceof ResolveMutationsNode) {
-                return compareTaskNodes(
-                    ((ResolveMutationsNode) n1).getNode(),
-                    ((ResolveMutationsNode) n2).getNode()
-                );
+                return compareTaskNodes(((ResolveMutationsNode) n1).getNode(), ((ResolveMutationsNode) n2).getNode());
             }
             return -1;
         }
@@ -76,10 +70,7 @@ public class NodeComparator implements Comparator<Node> {
 
         if (n1 instanceof CreationOrderedNode) {
             if (n2 instanceof CreationOrderedNode) {
-                return Integer.compare(
-                    ((CreationOrderedNode) n1).getOrder(),
-                    ((CreationOrderedNode) n2).getOrder()
-                );
+                return Integer.compare(((CreationOrderedNode) n1).getOrder(), ((CreationOrderedNode) n2).getOrder());
             }
             return -1;
         }
@@ -99,10 +90,7 @@ public class NodeComparator implements Comparator<Node> {
 
         if (n1 instanceof ActionNode) {
             if (n2 instanceof ActionNode) {
-                return Integer.compare(
-                    System.identityHashCode(n1),
-                    System.identityHashCode(n2)
-                );
+                return Integer.compare(System.identityHashCode(n1), System.identityHashCode(n2));
             }
             return -1;
         }
@@ -111,9 +99,9 @@ public class NodeComparator implements Comparator<Node> {
         }
 
         if (n1 instanceof TaskInAnotherBuild && n2 instanceof TaskInAnotherBuild) {
-            return ((TaskInAnotherBuild) n1).getTaskIdentityPath().compareTo(
-                ((TaskInAnotherBuild) n2).getTaskIdentityPath()
-            );
+            return ((TaskInAnotherBuild) n1)
+                    .getTaskIdentityPath()
+                    .compareTo(((TaskInAnotherBuild) n2).getTaskIdentityPath());
         }
 
         // For testing only.
@@ -121,16 +109,16 @@ public class NodeComparator implements Comparator<Node> {
             return ((ComparableNode) n1).compareTo((ComparableNode) n2);
         }
 
-        throw new IllegalArgumentException(String.format("Cannot compare nodes of type %s and %s", n1.getClass(), n2.getClass()));
+        throw new IllegalArgumentException(
+                String.format("Cannot compare nodes of type %s and %s", n1.getClass(), n2.getClass()));
     }
 
     /**
      * For testing only.
      */
-    public static abstract class ComparableNode extends Node implements Comparable<ComparableNode> {}
+    public abstract static class ComparableNode extends Node implements Comparable<ComparableNode> {}
 
     private static int compareTaskNodes(LocalTaskNode n1, LocalTaskNode n2) {
         return n1.getTask().compareTo(n2.getTask());
     }
-
 }

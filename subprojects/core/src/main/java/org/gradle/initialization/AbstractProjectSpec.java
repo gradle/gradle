@@ -15,13 +15,14 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.InvalidUserDataException;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.api.InvalidUserDataException;
 
 public abstract class AbstractProjectSpec implements ProjectSpec {
-    private static final String UNRELATED_BUILD_HINT = " If this is an unrelated build, it must have its own settings file.";
+    private static final String UNRELATED_BUILD_HINT =
+            " If this is an unrelated build, it must have its own settings file.";
+
     @Override
     public boolean containsProject(ProjectDescriptorRegistry registry) {
         checkPreconditions(registry);
@@ -45,8 +46,7 @@ public abstract class AbstractProjectSpec implements ProjectSpec {
         return matches.get(0);
     }
 
-    protected void checkPreconditions(ProjectDescriptorRegistry registry) {
-    }
+    protected void checkPreconditions(ProjectDescriptorRegistry registry) {}
 
     protected abstract String formatMultipleMatchesMessage(Iterable<ProjectDescriptorInternal> matches);
 

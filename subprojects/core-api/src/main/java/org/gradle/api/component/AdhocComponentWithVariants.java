@@ -39,7 +39,8 @@ public interface AdhocComponentWithVariants extends SoftwareComponent {
      * @param outgoingConfiguration the configuration corresponding to the variant to use as source of dependencies and artifacts
      * @param action action executed to configure the variant prior to publishing
      */
-    void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action);
+    void addVariantsFromConfiguration(
+            Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action);
 
     /**
      * Declares an additional variant to publish, corresponding to an additional feature.
@@ -52,7 +53,9 @@ public interface AdhocComponentWithVariants extends SoftwareComponent {
      * @since 9.2.0
      */
     @Incubating
-    void addVariantsFromConfiguration(Provider<ConsumableConfiguration> outgoingConfiguration, Action<? super ConfigurationVariantDetails> action);
+    void addVariantsFromConfiguration(
+            Provider<ConsumableConfiguration> outgoingConfiguration,
+            Action<? super ConfigurationVariantDetails> action);
 
     /**
      * Further configure previously declared variants.
@@ -63,7 +66,8 @@ public interface AdhocComponentWithVariants extends SoftwareComponent {
      * @param outgoingConfiguration the configuration corresponding to the variant to configure with a given action
      * @param action an additional action to be executed to configure the variant prior to publishing
      */
-    void withVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action);
+    void withVariantsFromConfiguration(
+            Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action);
 
     /**
      * Further configure previously declared variants.
@@ -76,6 +80,7 @@ public interface AdhocComponentWithVariants extends SoftwareComponent {
      * @since 9.2.0
      */
     @Incubating
-    void withVariantsFromConfiguration(Provider<ConsumableConfiguration> outgoingConfiguration, Action<? super ConfigurationVariantDetails> action);
-
+    void withVariantsFromConfiguration(
+            Provider<ConsumableConfiguration> outgoingConfiguration,
+            Action<? super ConfigurationVariantDetails> action);
 }

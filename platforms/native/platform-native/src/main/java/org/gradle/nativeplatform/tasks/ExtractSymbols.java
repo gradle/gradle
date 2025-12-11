@@ -104,7 +104,8 @@ public abstract class ExtractSymbols extends DefaultTask {
 
     @TaskAction
     protected void extractSymbols() {
-        BuildOperationLogger operationLogger = getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());
+        BuildOperationLogger operationLogger =
+                getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());
 
         SymbolExtractorSpec spec = new DefaultSymbolExtractorSpec();
         spec.setBinaryFile(binaryFile.get().getAsFile());
@@ -119,7 +120,8 @@ public abstract class ExtractSymbols extends DefaultTask {
 
     private Compiler<SymbolExtractorSpec> createCompiler() {
         NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.targetPlatform.get());
-        NativeToolChainInternal toolChain = Cast.cast(NativeToolChainInternal.class, getToolChain().get());
+        NativeToolChainInternal toolChain =
+                Cast.cast(NativeToolChainInternal.class, getToolChain().get());
         PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
         return toolProvider.newCompiler(SymbolExtractorSpec.class);
     }

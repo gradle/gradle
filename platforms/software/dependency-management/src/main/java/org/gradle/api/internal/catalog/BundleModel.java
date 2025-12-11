@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.catalog;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 public class BundleModel extends AbstractContextAwareModel {
     private final List<String> components;

@@ -26,12 +26,14 @@ import org.gradle.internal.serialize.Serializer;
 /**
  * A thread-safe and reusable serializer for {@link ModuleComponentFileArtifactIdentifier}.
  */
-public class ModuleComponentFileArtifactIdentifierSerializer implements Serializer<ModuleComponentFileArtifactIdentifier> {
+public class ModuleComponentFileArtifactIdentifierSerializer
+        implements Serializer<ModuleComponentFileArtifactIdentifier> {
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 
     @Override
     public ModuleComponentFileArtifactIdentifier read(Decoder decoder) throws Exception {
-        ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
+        ModuleComponentIdentifier componentIdentifier =
+                (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
         String fileName = decoder.readString();
         return new ModuleComponentFileArtifactIdentifier(componentIdentifier, fileName);
     }

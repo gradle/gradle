@@ -15,15 +15,14 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-import org.gradle.tooling.events.OperationType;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.OperationType;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Offers ways to communicate both ways with a Gradle operation, be it building a model or running tasks.
@@ -303,7 +302,8 @@ public interface LongRunningOperation {
      * @return this
      * @since 2.5
      */
-    LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> operationTypes);
+    LongRunningOperation addProgressListener(
+            org.gradle.tooling.events.ProgressListener listener, Set<OperationType> operationTypes);
 
     /**
      * Adds a progress listener which will receive progress events as the operations of the requested type run.
@@ -319,7 +319,8 @@ public interface LongRunningOperation {
      * @return this
      * @since 2.6
      */
-    LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener, OperationType... operationTypes);
+    LongRunningOperation addProgressListener(
+            org.gradle.tooling.events.ProgressListener listener, OperationType... operationTypes);
 
     /**
      * Sets the cancellation token to use to cancel the operation if required.

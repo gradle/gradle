@@ -23,8 +23,7 @@ import org.gradle.api.JavaVersion;
  */
 public class EclipseJavaVersionMapper {
 
-    private EclipseJavaVersionMapper() {
-    }
+    private EclipseJavaVersionMapper() {}
 
     /**
      * Converts the target Java version to its Eclipse-specific representation.

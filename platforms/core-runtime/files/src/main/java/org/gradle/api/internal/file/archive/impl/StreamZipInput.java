@@ -17,15 +17,14 @@
 package org.gradle.api.internal.file.archive.impl;
 
 import com.google.common.collect.AbstractIterator;
-import org.gradle.api.internal.file.archive.ZipEntry;
-import org.gradle.api.internal.file.archive.ZipInput;
-import org.gradle.internal.file.FileException;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.zip.ZipInputStream;
+import org.gradle.api.internal.file.archive.ZipEntry;
+import org.gradle.api.internal.file.archive.ZipInput;
+import org.gradle.internal.file.FileException;
+import org.jspecify.annotations.Nullable;
 
 public class StreamZipInput implements ZipInput {
 
@@ -66,7 +65,8 @@ public class StreamZipInput implements ZipInput {
         @Override
         public <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
             if (opened) {
-                throw new IllegalStateException("The input stream for " + getName() + " has already been opened.  It cannot be reopened again.");
+                throw new IllegalStateException("The input stream for " + getName()
+                        + " has already been opened.  It cannot be reopened again.");
             }
 
             opened = true;

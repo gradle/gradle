@@ -31,7 +31,8 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 
-public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMetadata<T>> implements DependencyMetadata<T> {
+public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMetadata<T>>
+        implements DependencyMetadata<T> {
     private final AttributesFactory attributesFactory;
     private ModuleDependencyMetadata metadata;
 
@@ -65,7 +66,8 @@ public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMeta
 
     @Override
     public T version(Action<? super MutableVersionConstraint> configureAction) {
-        DefaultMutableVersionConstraint mutableVersionConstraint = new DefaultMutableVersionConstraint(getVersionConstraint());
+        DefaultMutableVersionConstraint mutableVersionConstraint =
+                new DefaultMutableVersionConstraint(getVersionConstraint());
         configureAction.execute(mutableVersionConstraint);
         updateMetadata(getMetadata().withRequestedVersion(mutableVersionConstraint));
         return Cast.uncheckedCast(this);
@@ -100,10 +102,16 @@ public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMeta
     @Override
     public T attributes(Action<? super AttributeContainer> configureAction) {
         ModuleComponentSelector selector = getMetadata().getSelector();
-        AttributeContainerInternal attributes = attributesFactory.mutable((AttributeContainerInternal) selector.getAttributes());
+        AttributeContainerInternal attributes =
+                attributesFactory.mutable((AttributeContainerInternal) selector.getAttributes());
         configureAction.execute(attributes);
-        ModuleComponentSelector target = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), selector.getVersionConstraint(), attributes.asImmutable(), selector.getCapabilitySelectors());
-        ModuleDependencyMetadata metadata = (ModuleDependencyMetadata) getMetadata().withTarget(target);
+        ModuleComponentSelector target = DefaultModuleComponentSelector.newSelector(
+                selector.getModuleIdentifier(),
+                selector.getVersionConstraint(),
+                attributes.asImmutable(),
+                selector.getCapabilitySelectors());
+        ModuleDependencyMetadata metadata =
+                (ModuleDependencyMetadata) getMetadata().withTarget(target);
         updateMetadata(metadata);
         return Cast.uncheckedCast(this);
     }

@@ -18,9 +18,8 @@ package org.gradle.process.internal.health.memory;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Locale;
+import org.jspecify.annotations.Nullable;
 
 public class MemoryAmount {
     private static final long KILO_FACTOR = 1024;

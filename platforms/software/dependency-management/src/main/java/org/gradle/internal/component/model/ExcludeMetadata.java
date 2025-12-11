@@ -47,5 +47,4 @@ public interface ExcludeMetadata {
      */
     @Nullable
     String getMatcher();
-
 }

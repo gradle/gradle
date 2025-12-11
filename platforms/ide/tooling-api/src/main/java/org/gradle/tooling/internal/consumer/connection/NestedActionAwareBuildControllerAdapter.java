@@ -16,6 +16,11 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -23,16 +28,15 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Supplier;
-
 public class NestedActionAwareBuildControllerAdapter extends ParameterAwareBuildControllerAdapter {
     private final InternalActionAwareBuildController controller;
 
-    public NestedActionAwareBuildControllerAdapter(InternalBuildControllerVersion2 buildController, ProtocolToModelAdapter adapter, ModelMapping modelMapping, VersionDetails gradleVersion, File rootDir) {
+    public NestedActionAwareBuildControllerAdapter(
+            InternalBuildControllerVersion2 buildController,
+            ProtocolToModelAdapter adapter,
+            ModelMapping modelMapping,
+            VersionDetails gradleVersion,
+            File rootDir) {
         super(buildController, adapter, modelMapping, gradleVersion, rootDir);
         this.controller = (InternalActionAwareBuildController) buildController;
     }

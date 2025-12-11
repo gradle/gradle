@@ -51,11 +51,12 @@ public class DaemonStartupInfo {
 
     @Override
     public String toString() {
-        return String.format("DaemonStartupInfo{pid=%s, uid=%s, address=%s, diagnostics=%s}", diagnostics.getPid(), uid, address, diagnostics);
+        return String.format(
+                "DaemonStartupInfo{pid=%s, uid=%s, address=%s, diagnostics=%s}",
+                diagnostics.getPid(), uid, address, diagnostics);
     }
 
     public String describe() {
-        return "Daemon uid: " + uid + " with diagnostics:\n"
-            + diagnostics.describe();
+        return "Daemon uid: " + uid + " with diagnostics:\n" + diagnostics.describe();
     }
 }

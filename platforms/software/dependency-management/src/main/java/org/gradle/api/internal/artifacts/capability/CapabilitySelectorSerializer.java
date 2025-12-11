@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.capability;
 
+import java.io.IOException;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.serialize.Decoder;
@@ -23,8 +24,6 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.IOException;
 
 @ServiceScope(Scope.BuildTree.class)
 public class CapabilitySelectorSerializer implements Serializer<CapabilitySelector> {
@@ -36,9 +35,12 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
     public CapabilitySelector read(Decoder decoder) throws IOException {
         int type = decoder.readSmallInt();
         switch (type) {
-            case SPECIFIC_CAPABILITY_SELECTOR: return readSpecificCapabilitySelector(decoder);
-            case FEATURE_CAPABILITY_SELECTOR: return readFeatureCapabilitySelector(decoder);
-            default: throw new IllegalArgumentException("Unknown capability selector type: " + type);
+            case SPECIFIC_CAPABILITY_SELECTOR:
+                return readSpecificCapabilitySelector(decoder);
+            case FEATURE_CAPABILITY_SELECTOR:
+                return readFeatureCapabilitySelector(decoder);
+            default:
+                throw new IllegalArgumentException("Unknown capability selector type: " + type);
         }
     }
 
@@ -68,13 +70,15 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
     }
 
     @SuppressWarnings("deprecation")
-    private static void writeSpecificCapabilitySelector(Encoder encoder, DefaultSpecificCapabilitySelector value) throws IOException {
+    private static void writeSpecificCapabilitySelector(Encoder encoder, DefaultSpecificCapabilitySelector value)
+            throws IOException {
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getName());
         encoder.writeNullableString(value.getBackingCapability().getVersion());
     }
 
-    private static void writeFeatureCapabilitySelector(Encoder encoder, FeatureCapabilitySelector value) throws IOException {
+    private static void writeFeatureCapabilitySelector(Encoder encoder, FeatureCapabilitySelector value)
+            throws IOException {
         encoder.writeString(value.getFeatureName());
     }
 }

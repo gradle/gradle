@@ -16,12 +16,24 @@
 
 package org.gradle.api.internal.model;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
+import static org.objectweb.asm.Opcodes.V1_5;
+import static org.objectweb.asm.Type.BOOLEAN_TYPE;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getType;
+
 import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import groovy.lang.GroovyObject;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.function.Function;
 import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.reflect.ObjectInstantiationException;
@@ -40,19 +52,6 @@ import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
 import org.gradle.model.internal.inspect.ValidationProblemCollector;
 import org.gradle.model.internal.type.ModelType;
 import org.objectweb.asm.Type;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.function.Function;
-
-import static org.gradle.internal.Cast.uncheckedCast;
-import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
-import static org.objectweb.asm.Opcodes.V1_5;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
 
 @ServiceScope(Scope.Global.class)
 public class NamedObjectInstantiator implements ManagedFactory {
@@ -91,9 +90,7 @@ public class NamedObjectInstantiator implements ManagedFactory {
 
     @Override
     public <T> T fromState(Class<T> type, Object state) {
-        return Named.class.isAssignableFrom(type)
-            ? uncheckedCast(named(uncheckedCast(type), (String) state))
-            : null;
+        return Named.class.isAssignableFrom(type) ? uncheckedCast(named(uncheckedCast(type), (String) state)) : null;
     }
 
     public <T extends Named> T named(final Class<T> type, final String name) throws ObjectInstantiationException {
@@ -127,7 +124,8 @@ public class NamedObjectInstantiator implements ManagedFactory {
     }
 
     private void validate(Class<?> publicClass) {
-        FormattingValidationProblemCollector problemCollector = new FormattingValidationProblemCollector("Named implementation class", ModelType.of(publicClass));
+        FormattingValidationProblemCollector problemCollector =
+                new FormattingValidationProblemCollector("Named implementation class", ModelType.of(publicClass));
         visitFields(publicClass, problemCollector);
         if (problemCollector.hasProblems()) {
             throw new GradleException(problemCollector.format());
@@ -140,93 +138,117 @@ public class NamedObjectInstantiator implements ManagedFactory {
         String[] interfaces;
         if (publicClass.isInterface()) {
             superClass = OBJECT;
-            interfaces = new String[]{publicType.getInternalName(), MANAGED.getInternalName()};
+            interfaces = new String[] {publicType.getInternalName(), MANAGED.getInternalName()};
         } else {
             superClass = publicType;
             interfaces = INTERFACES_FOR_ABSTRACT_CLASS;
         }
 
         AsmClassGenerator generator = new AsmClassGenerator(publicClass, implSuffix);
-        new ClassVisitorScope(generator.getVisitor()) {{
+        new ClassVisitorScope(generator.getVisitor()) {
+            {
+                String generatedTypeName = generator.getGeneratedType().getInternalName();
 
-            String generatedTypeName = generator.getGeneratedType().getInternalName();
+                visit(
+                        V1_5,
+                        ACC_PUBLIC | ACC_SYNTHETIC,
+                        generatedTypeName,
+                        null,
+                        superClass.getInternalName(),
+                        interfaces);
 
-            visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, generatedTypeName, null, superClass.getInternalName(), interfaces);
+                //
+                // Add `name` field
+                //
+                addField(ACC_PRIVATE, NAME_FIELD, STRING);
 
-            //
-            // Add `name` field
-            //
-            addField(ACC_PRIVATE, NAME_FIELD, STRING);
+                //
+                // Add constructor
+                //
+                publicMethod(
+                        CONSTRUCTOR_NAME,
+                        RETURN_VOID_FROM_STRING,
+                        methodVisitor -> new MethodVisitorScope(methodVisitor) {
+                            {
+                                // Call this.super()
+                                _ALOAD(0);
+                                _INVOKESPECIAL(superClass, CONSTRUCTOR_NAME, RETURN_VOID);
+                                // Set this.name = param1
+                                _ALOAD(0);
+                                _ALOAD(1);
+                                _PUTFIELD(generatedTypeName, NAME_FIELD, STRING);
+                                // Done
+                                _RETURN();
+                            }
+                        });
 
-            //
-            // Add constructor
-            //
-            publicMethod(CONSTRUCTOR_NAME, RETURN_VOID_FROM_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                // Call this.super()
-                _ALOAD(0);
-                _INVOKESPECIAL(superClass, CONSTRUCTOR_NAME, RETURN_VOID);
-                // Set this.name = param1
-                _ALOAD(0);
-                _ALOAD(1);
-                _PUTFIELD(generatedTypeName, NAME_FIELD, STRING);
-                // Done
-                _RETURN();
-            }});
+                //
+                // Add `getName()`
+                //
+                publicMethod("getName", RETURN_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {
+                    {
+                        // return this.name
+                        _ALOAD(0);
+                        _GETFIELD(generatedTypeName, NAME_FIELD, STRING);
+                        _ARETURN();
+                    }
+                });
 
-            //
-            // Add `getName()`
-            //
-            publicMethod("getName", RETURN_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                // return this.name
-                _ALOAD(0);
-                _GETFIELD(generatedTypeName, NAME_FIELD, STRING);
-                _ARETURN();
-            }});
+                //
+                // Add `toString()`
+                //
+                publicMethod("toString", RETURN_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {
+                    {
+                        // return this.name
+                        _ALOAD(0);
+                        _GETFIELD(generatedTypeName, NAME_FIELD, STRING);
+                        _ARETURN();
+                    }
+                });
 
-            //
-            // Add `toString()`
-            //
-            publicMethod("toString", RETURN_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                // return this.name
-                _ALOAD(0);
-                _GETFIELD(generatedTypeName, NAME_FIELD, STRING);
-                _ARETURN();
-            }});
+                //
+                // Add `Object unpackState() { return name }`
+                //
+                publicMethod("unpackState", RETURN_OBJECT, methodVisitor -> new MethodVisitorScope(methodVisitor) {
+                    {
+                        _ALOAD(0);
+                        _GETFIELD(generatedTypeName, NAME_FIELD, STRING);
+                        _ARETURN();
+                    }
+                });
 
-            //
-            // Add `Object unpackState() { return name }`
-            //
-            publicMethod("unpackState", RETURN_OBJECT, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                _ALOAD(0);
-                _GETFIELD(generatedTypeName, NAME_FIELD, STRING);
-                _ARETURN();
-            }});
+                //
+                // Add `publicType`
+                //
+                publicMethod("publicType", RETURN_CLASS, methodVisitor -> new MethodVisitorScope(methodVisitor) {
+                    {
+                        _LDC(publicType);
+                        _ARETURN();
+                    }
+                });
 
-            //
-            // Add `publicType`
-            //
-            publicMethod("publicType", RETURN_CLASS, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                _LDC(publicType);
-                _ARETURN();
-            }});
+                //
+                // Add `boolean isImmutable() { return true }`
+                //
+                publicMethod("isImmutable", RETURN_BOOLEAN, methodVisitor -> new MethodVisitorScope(methodVisitor) {
+                    {
+                        _LDC(true);
+                        _IRETURN_OF(BOOLEAN_TYPE);
+                    }
+                });
+                //
+                // Add `getFactoryId()`
+                //
+                publicMethod("getFactoryId", RETURN_INT, methodVisitor -> new MethodVisitorScope(methodVisitor) {
+                    {
+                        _LDC(FACTORY_ID);
+                        _IRETURN();
+                    }
+                });
 
-            //
-            // Add `boolean isImmutable() { return true }`
-            //
-            publicMethod("isImmutable", RETURN_BOOLEAN, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                _LDC(true);
-                _IRETURN_OF(BOOLEAN_TYPE);
-            }});
-            //
-            // Add `getFactoryId()`
-            //
-            publicMethod("getFactoryId", RETURN_INT, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                _LDC(FACTORY_ID);
-                _IRETURN();
-            }});
-
-            visitEnd();
-        }};
+                visitEnd();
+            }
+        };
 
         generator.define();
         return generator.getGeneratedType();
@@ -234,33 +256,45 @@ public class NamedObjectInstantiator implements ManagedFactory {
 
     private Class<Object> generateFactoryClassFor(Class<?> publicClass, Type implementationType) {
         AsmClassGenerator generator = new AsmClassGenerator(publicClass, factorySuffix);
-        new ClassVisitorScope(generator.getVisitor()) {{
-            visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, generator.getGeneratedType().getInternalName(), null, CLASS_GENERATING_LOADER.getInternalName(), null);
+        new ClassVisitorScope(generator.getVisitor()) {
+            {
+                visit(
+                        V1_5,
+                        ACC_PUBLIC | ACC_SYNTHETIC,
+                        generator.getGeneratedType().getInternalName(),
+                        null,
+                        CLASS_GENERATING_LOADER.getInternalName(),
+                        null);
 
-            //
-            // Add constructor
-            //
-            publicMethod(CONSTRUCTOR_NAME, RETURN_VOID, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                // super();
-                _ALOAD(0);
-                _INVOKESPECIAL(CLASS_GENERATING_LOADER, CONSTRUCTOR_NAME, RETURN_VOID);
-                _RETURN();
-            }});
+                //
+                // Add constructor
+                //
+                publicMethod(CONSTRUCTOR_NAME, RETURN_VOID, methodVisitor -> new MethodVisitorScope(methodVisitor) {
+                    {
+                        // super();
+                        _ALOAD(0);
+                        _INVOKESPECIAL(CLASS_GENERATING_LOADER, CONSTRUCTOR_NAME, RETURN_VOID);
+                        _RETURN();
+                    }
+                });
 
-            //
-            // Add factory method
-            //
-            publicMethod("load", RETURN_OBJECT_FROM_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                // Call return new <implClass>(param1)
-                _NEW(implementationType);
-                _DUP();
-                _ALOAD(1);
-                _INVOKESPECIAL(implementationType, CONSTRUCTOR_NAME, RETURN_VOID_FROM_STRING);
-                _ARETURN();
-            }});
+                //
+                // Add factory method
+                //
+                publicMethod("load", RETURN_OBJECT_FROM_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {
+                    {
+                        // Call return new <implClass>(param1)
+                        _NEW(implementationType);
+                        _DUP();
+                        _ALOAD(1);
+                        _INVOKESPECIAL(implementationType, CONSTRUCTOR_NAME, RETURN_VOID_FROM_STRING);
+                        _ARETURN();
+                    }
+                });
 
-            visitEnd();
-        }};
+                visitEnd();
+            }
+        };
         return generator.define();
     }
 
@@ -273,9 +307,12 @@ public class NamedObjectInstantiator implements ManagedFactory {
         }
 
         // Disallow instance fields. This doesn't guarantee that the object is immutable, just makes it less likely
-        // We might tighten this constraint to also disallow any _code_ on immutable types that reaches out to static state
+        // We might tighten this constraint to also disallow any _code_ on immutable types that reaches out to static
+        // state
         for (Field field : type.getDeclaredFields()) {
-            if (Modifier.isStatic(field.getModifiers()) || (GroovyObject.class.isAssignableFrom(type) && field.getName().equals("metaClass"))) {
+            if (Modifier.isStatic(field.getModifiers())
+                    || (GroovyObject.class.isAssignableFrom(type)
+                            && field.getName().equals("metaClass"))) {
                 continue;
             }
             collector.add(field, "A Named implementation class must not define any instance fields.");

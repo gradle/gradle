@@ -31,7 +31,7 @@ public class JavaClassNameFormatter {
         int endIdx = qualifiedClassName.lastIndexOf(PACKAGE_SEPARATOR);
         int iterations = 0;
 
-        while(beginIdx + (qualifiedClassName.length() - endIdx) <= maxLengthWithoutEllipsis) {
+        while (beginIdx + (qualifiedClassName.length() - endIdx) <= maxLengthWithoutEllipsis) {
             // Alternate appending packages at beginning and end until we reach max length
             if (iterations % 2 == 0) {
                 int tmp = qualifiedClassName.indexOf(PACKAGE_SEPARATOR, beginIdx + 1);

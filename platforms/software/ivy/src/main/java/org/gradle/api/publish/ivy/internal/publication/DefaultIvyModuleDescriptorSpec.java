@@ -16,6 +16,9 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.XmlProvider;
@@ -35,10 +38,6 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.internal.MutableActionSet;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-
 public abstract class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecInternal {
 
     private final MutableActionSet<XmlProvider> xmlActions = new MutableActionSet<>();
@@ -52,7 +51,8 @@ public abstract class DefaultIvyModuleDescriptorSpec implements IvyModuleDescrip
     private IvyModuleDescriptorDescription description;
 
     @Inject
-    public DefaultIvyModuleDescriptorSpec(ObjectFactory objectFactory, IvyPublicationCoordinates ivyPublicationCoordinates) {
+    public DefaultIvyModuleDescriptorSpec(
+            ObjectFactory objectFactory, IvyPublicationCoordinates ivyPublicationCoordinates) {
         this.objectFactory = objectFactory;
         this.ivyPublicationCoordinates = ivyPublicationCoordinates;
     }

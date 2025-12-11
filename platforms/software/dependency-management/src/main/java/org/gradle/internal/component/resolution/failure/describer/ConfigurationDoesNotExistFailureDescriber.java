@@ -26,7 +26,8 @@ import org.gradle.util.Path;
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link ConfigurationDoesNotExistFailure}.
  */
-public abstract class ConfigurationDoesNotExistFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationDoesNotExistFailure> {
+public abstract class ConfigurationDoesNotExistFailureDescriber
+        extends AbstractResolutionFailureDescriber<ConfigurationDoesNotExistFailure> {
     @Override
     public VariantSelectionByNameException describeFailure(ConfigurationDoesNotExistFailure failure) {
         String message = buildFailureMsg(failure);
@@ -36,7 +37,8 @@ public abstract class ConfigurationDoesNotExistFailureDescriber extends Abstract
         if (isLocalComponent) {
             ProjectComponentIdentifierInternal id = (ProjectComponentIdentifierInternal) failure.getTargetComponent();
             Path outgoingVariantsPath = id.getIdentityPath().append(Path.path("outgoingVariants"));
-            resolutions.add("To determine which configurations are available in the target " + failure.getTargetComponent().getDisplayName() + ", run " + outgoingVariantsPath.asString() + ".");
+            resolutions.add("To determine which configurations are available in the target "
+                    + failure.getTargetComponent().getDisplayName() + ", run " + outgoingVariantsPath.asString() + ".");
         }
 
         resolutions.addAll(buildResolutions(suggestReviewAlgorithm()));
@@ -45,9 +47,8 @@ public abstract class ConfigurationDoesNotExistFailureDescriber extends Abstract
 
     private String buildFailureMsg(ConfigurationDoesNotExistFailure failure) {
         return String.format(
-            "A dependency was declared on configuration '%s' of '%s' but no variant with that configuration name exists.",
-            failure.getRequestedConfigurationName(),
-            failure.getTargetComponent().getDisplayName()
-        );
+                "A dependency was declared on configuration '%s' of '%s' but no variant with that configuration name exists.",
+                failure.getRequestedConfigurationName(),
+                failure.getTargetComponent().getDisplayName());
     }
 }

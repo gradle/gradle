@@ -16,13 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.failure.mappers;
 
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.api.internal.tasks.testing.failure.TestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.ThrowableToTestFailureMapper;
 import org.gradle.api.tasks.testing.TestFailure;
-
-import java.util.Arrays;
-import java.util.List;
-
 
 /**
  * Maps {@code junit.framework.ComparisonFailure} or {@code org.junit.ComparisonFailure} to {@link TestFailure}.
@@ -32,10 +30,7 @@ import java.util.List;
 public class JUnitComparisonTestFailureMapper extends TestFailureMapper {
     @Override
     protected List<String> getSupportedClassNames() {
-        return Arrays.asList(
-            "junit.framework.ComparisonFailure",
-            "org.junit.ComparisonFailure"
-        );
+        return Arrays.asList("junit.framework.ComparisonFailure", "org.junit.ComparisonFailure");
     }
 
     @Override

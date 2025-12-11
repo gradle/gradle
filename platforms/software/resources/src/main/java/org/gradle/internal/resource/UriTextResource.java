@@ -17,6 +17,16 @@
 package org.gradle.internal.resource;
 
 import com.google.common.io.Files;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.JarURLConnection;
+import java.net.URI;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ResourceException;
@@ -31,17 +41,6 @@ import org.gradle.internal.hash.PrimitiveHasher;
 import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.JarURLConnection;
-import java.net.URI;
-import java.net.URLConnection;
-import java.nio.charset.Charset;
 
 /**
  * A {@link TextResource} implementation backed by a URI. Defaults content encoding to UTF-8.
@@ -58,14 +57,15 @@ public class UriTextResource implements TextResource {
         String javaVendor = System.getProperty("java.vendor");
         String javaVersion = SystemProperties.getInstance().getJavaVersion();
         String javaVendorVersion = System.getProperty("java.vm.version");
-        USER_AGENT = String.format("Gradle/%s (%s;%s;%s) (%s;%s;%s)",
-            GradleVersion.current().getVersion(),
-            osName,
-            osVersion,
-            osArch,
-            javaVendor,
-            javaVersion,
-            javaVendorVersion);
+        USER_AGENT = String.format(
+                "Gradle/%s (%s;%s;%s) (%s;%s;%s)",
+                GradleVersion.current().getVersion(),
+                osName,
+                osVersion,
+                osArch,
+                javaVendor,
+                javaVersion,
+                javaVendorVersion);
     }
 
     private final String description;
@@ -82,15 +82,16 @@ public class UriTextResource implements TextResource {
 
     public UriTextResource(String description, @NonNull URI sourceUri, RelativeFilePathResolver resolver) {
         this.description = description;
-        this.sourceFile = sourceUri.getScheme().equals("file") ? FileUtils.normalize(new File(sourceUri.getPath())) : null;
+        this.sourceFile =
+                sourceUri.getScheme().equals("file") ? FileUtils.normalize(new File(sourceUri.getPath())) : null;
         this.sourceUri = sourceUri;
         this.resolver = resolver;
     }
 
     public static UriTextResource from(String description, File sourceFile, RelativeFilePathResolver resolver) {
-        return sourceFile.exists() ?
-            new UriTextResource(description, sourceFile, resolver) :
-            new EmptyFileTextResource(description, sourceFile, resolver);
+        return sourceFile.exists()
+                ? new UriTextResource(description, sourceFile, resolver)
+                : new EmptyFileTextResource(description, sourceFile, resolver);
     }
 
     @Override
@@ -127,7 +128,8 @@ public class UriTextResource implements TextResource {
         if (file != null) {
             assertNoDirectory();
             if (!file.exists()) {
-                throw new MissingResourceException(sourceUri, String.format("Could not read %s as it does not exist.", getDisplayName()));
+                throw new MissingResourceException(
+                        sourceUri, String.format("Could not read %s as it does not exist.", getDisplayName()));
             }
             return file.length() == 0;
         }
@@ -151,7 +153,8 @@ public class UriTextResource implements TextResource {
             try {
                 return Files.asCharSource(file, getCharset()).read();
             } catch (FileNotFoundException e) {
-                throw new MissingResourceException(sourceUri, String.format("Could not read %s as it does not exist.", getDisplayName()));
+                throw new MissingResourceException(
+                        sourceUri, String.format("Could not read %s as it does not exist.", getDisplayName()));
             } catch (Exception e) {
                 throw ResourceExceptions.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
             }
@@ -182,7 +185,8 @@ public class UriTextResource implements TextResource {
         try {
             return openReader();
         } catch (FileNotFoundException e) {
-            throw new MissingResourceException(sourceUri, String.format("Could not read %s as it does not exist.", getDisplayName()));
+            throw new MissingResourceException(
+                    sourceUri, String.format("Could not read %s as it does not exist.", getDisplayName()));
         } catch (Exception e) {
             throw ResourceExceptions.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
         }
@@ -190,7 +194,8 @@ public class UriTextResource implements TextResource {
 
     private void assertNoDirectory() {
         if (sourceFile != null && sourceFile.isDirectory()) {
-            throw new ResourceIsAFolderException(sourceUri, String.format("Could not read %s as it is a directory.", getDisplayName()));
+            throw new ResourceIsAFolderException(
+                    sourceUri, String.format("Could not read %s as it is a directory.", getDisplayName()));
         }
     }
 
@@ -210,7 +215,8 @@ public class UriTextResource implements TextResource {
         } catch (FileNotFoundException e) {
             return false;
         } catch (Exception e) {
-            throw ResourceExceptions.failure(sourceUri, String.format("Could not determine if %s exists.", getDisplayName()), e);
+            throw ResourceExceptions.failure(
+                    sourceUri, String.format("Could not determine if %s exists.", getDisplayName()), e);
         }
     }
 
@@ -279,7 +285,8 @@ public class UriTextResource implements TextResource {
         return index + 1;
     }
 
-    private static int findNextParameter(int pos, String contentType, StringBuilder paramName, StringBuilder paramValue) {
+    private static int findNextParameter(
+            int pos, String contentType, StringBuilder paramName, StringBuilder paramValue) {
         if (pos >= contentType.length()) {
             return -1;
         }

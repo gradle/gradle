@@ -15,8 +15,15 @@
  */
 package org.gradle.api.plugins.quality;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
@@ -33,14 +40,6 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.util.internal.VersionNumber;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * A plugin for the <a href="https://pmd.github.io/">PMD</a> source code analyzer.
@@ -88,9 +87,13 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension.getMaxFailures().convention(0);
         extension.getThreads().convention(1);
         extension.setRuleSetFiles(project.getLayout().files());
-        extension.getRuleSetsProperty().convention(project.getProviders().provider(() -> ruleSetsConvention(extension)));
-        conventionMappingOf(extension).map("targetJdk", () ->
-            getDefaultTargetJdk(getJavaPluginExtension().getSourceCompatibility()));
+        extension
+                .getRuleSetsProperty()
+                .convention(project.getProviders().provider(() -> ruleSetsConvention(extension)));
+        conventionMappingOf(extension)
+                .map(
+                        "targetJdk",
+                        () -> getDefaultTargetJdk(getJavaPluginExtension().getSourceCompatibility()));
         return extension;
     }
 
@@ -108,10 +111,12 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     protected void createConfigurations() {
         super.createConfigurations();
 
-        project.getConfigurations().dependencyScopeLocked(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, additionalAuxDepsConfiguration -> {
-            additionalAuxDepsConfiguration.setDescription("The additional libraries that are available for type resolution during analysis");
-            getJvmPluginServices().configureAsRuntimeClasspath(additionalAuxDepsConfiguration);
-        });
+        project.getConfigurations()
+                .dependencyScopeLocked(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, additionalAuxDepsConfiguration -> {
+                    additionalAuxDepsConfiguration.setDescription(
+                            "The additional libraries that are available for type resolution during analysis");
+                    getJvmPluginServices().configureAsRuntimeClasspath(additionalAuxDepsConfiguration);
+                });
     }
 
     @Override
@@ -136,12 +141,10 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
-        configuration.defaultDependencies(dependencies ->
-            calculateDefaultDependencyNotation(extension.getToolVersion())
-                .stream()
-                .map(project.getDependencies()::create)
-                .forEach(dependencies::add)
-        );
+        configuration.defaultDependencies(
+                dependencies -> calculateDefaultDependencyNotation(extension.getToolVersion()).stream()
+                        .map(project.getDependencies()::create)
+                        .forEach(dependencies::add));
     }
 
     private void configureTaskConventionMapping(Configuration configuration, final Pmd task) {
@@ -166,21 +169,21 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
         task.getReports().all(action(report -> {
             report.getRequired().convention(true);
-            report.getOutputLocation().convention(
-                layout.getProjectDirectory().file(providers.provider(() -> {
-                    String reportFileName = baseName + "." + report.getName();
-                    return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
-                }))
-            );
+            report.getOutputLocation().convention(layout.getProjectDirectory().file(providers.provider(() -> {
+                String reportFileName = baseName + "." + report.getName();
+                return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
+            })));
         }));
     }
 
     private void configureToolchains(Pmd task) {
-        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(project.getObjects().newInstance(CurrentJvmToolchainSpec.class));
+        Provider<JavaLauncher> javaLauncherProvider =
+                getToolchainService().launcherFor(project.getObjects().newInstance(CurrentJvmToolchainSpec.class));
         task.getJavaLauncher().convention(javaLauncherProvider);
         project.getPluginManager().withPlugin("java-base", p -> {
             JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
-            task.getJavaLauncher().convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
+            task.getJavaLauncher()
+                    .convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
         });
     }
 
@@ -197,9 +200,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
         // starting from version 7, PMD is split into multiple modules
         return ImmutableSet.of(
-            "net.sourceforge.pmd:pmd-java:" + versionString,
-            "net.sourceforge.pmd:pmd-ant:" + versionString
-        );
+                "net.sourceforge.pmd:pmd-java:" + versionString, "net.sourceforge.pmd:pmd-ant:" + versionString);
     }
 
     @Override
@@ -210,21 +211,28 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
 
         Configuration compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
-        Configuration pmdAdditionalAuxDepsConfiguration = configurations.getByName(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION);
+        Configuration pmdAdditionalAuxDepsConfiguration =
+                configurations.getByName(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION);
 
         // TODO: Consider checking if the resolution consistency is enabled for compile/runtime.
-        Configuration pmdAuxClasspath = configurations.resolvableLocked(sourceSet.getName() + "PmdAuxClasspath", conf -> {
-            conf.extendsFrom(compileClasspath, pmdAdditionalAuxDepsConfiguration);
-            // This is important to get transitive implementation dependencies. PMD may load referenced classes for analysis so it expects the classpath to be "closed" world.
-            getJvmPluginServices().configureAsRuntimeClasspath(conf);
-        });
+        Configuration pmdAuxClasspath =
+                configurations.resolvableLocked(sourceSet.getName() + "PmdAuxClasspath", conf -> {
+                    conf.extendsFrom(compileClasspath, pmdAdditionalAuxDepsConfiguration);
+                    // This is important to get transitive implementation dependencies. PMD may load referenced classes
+                    // for analysis so it expects the classpath to be "closed" world.
+                    getJvmPluginServices().configureAsRuntimeClasspath(conf);
+                });
 
-        // We have to explicitly add compileClasspath here because it may contain classes that aren't part of the compileClasspathConfiguration. In particular, compile
+        // We have to explicitly add compileClasspath here because it may contain classes that aren't part of the
+        // compileClasspathConfiguration. In particular, compile
         // classpath of the test sourceSet contains output of the main sourceSet.
         taskMapping.map("classpath", () -> {
-            // It is important to subtract compileClasspath and not pmdAuxClasspath here because these configurations are resolved differently (as a compile and as a
-            // runtime classpath). Compile and runtime entries for the same dependency may resolve to different files (e.g. compiled classes directory vs. jar).
-            FileCollection nonConfigurationClasspathEntries = sourceSet.getCompileClasspath().minus(compileClasspath);
+            // It is important to subtract compileClasspath and not pmdAuxClasspath here because these configurations
+            // are resolved differently (as a compile and as a
+            // runtime classpath). Compile and runtime entries for the same dependency may resolve to different files
+            // (e.g. compiled classes directory vs. jar).
+            FileCollection nonConfigurationClasspathEntries =
+                    sourceSet.getCompileClasspath().minus(compileClasspath);
             return sourceSet.getOutput().plus(nonConfigurationClasspathEntries).plus(pmdAuxClasspath);
         });
     }

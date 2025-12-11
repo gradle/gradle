@@ -16,11 +16,10 @@
 
 package org.gradle.buildinit.specs;
 
-import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
-
 import java.util.Collections;
 import java.util.List;
+import org.gradle.api.Describable;
+import org.gradle.api.Incubating;
 
 /**
  * Represents a specification for a new type of project that the {@code init} task can generate.
@@ -44,7 +43,7 @@ public interface BuildInitSpec extends Describable {
     default String getDisplayName() {
         String spaced = getType().replace("-", " ");
         @SuppressWarnings("deprecation")
-        String capitalized =  org.apache.commons.lang3.text.WordUtils.capitalizeFully(spaced);
+        String capitalized = org.apache.commons.lang3.text.WordUtils.capitalizeFully(spaced);
         return capitalized;
     }
 

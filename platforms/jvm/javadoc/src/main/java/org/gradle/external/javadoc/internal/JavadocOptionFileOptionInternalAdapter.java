@@ -16,9 +16,8 @@
 
 package org.gradle.external.javadoc.internal;
 
-import org.gradle.external.javadoc.JavadocOptionFileOption;
-
 import java.io.IOException;
+import org.gradle.external.javadoc.JavadocOptionFileOption;
 
 public class JavadocOptionFileOptionInternalAdapter<T> implements JavadocOptionFileOptionInternal<T> {
     private final JavadocOptionFileOption<T> option;

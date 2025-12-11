@@ -18,13 +18,12 @@ package org.gradle.api.tasks.util.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
-import org.gradle.api.Action;
-import org.gradle.api.tasks.AntBuilderAware;
-import org.gradle.util.internal.AntUtil;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.Action;
+import org.gradle.api.tasks.AntBuilderAware;
+import org.gradle.util.internal.AntUtil;
 
 /**
  * Externalised from PatternSet to isolate the Groovy usage.
@@ -105,5 +104,4 @@ public class PatternSetAntBuilderDelegate implements AntBuilderAware {
             }
         });
     }
-
 }

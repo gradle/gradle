@@ -26,10 +26,9 @@ public class ScriptClassPathResolutionContext {
     private final DependencyHandler dependencyHandler;
 
     public ScriptClassPathResolutionContext(
-        long contextId,
-        Provider<CacheInstrumentationDataBuildService> buildService,
-        DependencyHandler dependencyHandler
-    ) {
+            long contextId,
+            Provider<CacheInstrumentationDataBuildService> buildService,
+            DependencyHandler dependencyHandler) {
         this.contextId = contextId;
         this.buildService = buildService;
         this.dependencyHandler = dependencyHandler;

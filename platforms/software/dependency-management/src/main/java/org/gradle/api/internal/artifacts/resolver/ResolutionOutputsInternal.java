@@ -43,5 +43,4 @@ public interface ResolutionOutputsInternal extends ResolutionOutputs {
 
     @Override
     ArtifactCollectionInternal getArtifacts();
-
 }

@@ -19,5 +19,4 @@ package org.gradle.model.internal.registry;
 public interface ModelRegistryScope {
 
     ModelRegistry getModelRegistry();
-
 }

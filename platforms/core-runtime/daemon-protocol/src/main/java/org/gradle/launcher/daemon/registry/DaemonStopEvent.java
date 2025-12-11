@@ -16,15 +16,14 @@
 
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
-import org.jspecify.annotations.Nullable;
-
 import java.io.EOFException;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Information regarding when and why a daemon was stopped.
@@ -33,14 +32,18 @@ public class DaemonStopEvent implements Serializable {
     public static final org.gradle.internal.serialize.Serializer<DaemonStopEvent> SERIALIZER = new Serializer();
 
     private final Date timestamp;
+
     @Nullable
     private final Long pid;
+
     @Nullable
     private final DaemonExpirationStatus status;
+
     @Nullable
     private final String reason;
 
-    public DaemonStopEvent(Date timestamp, @Nullable Long pid, @Nullable DaemonExpirationStatus status, @Nullable String reason) {
+    public DaemonStopEvent(
+            Date timestamp, @Nullable Long pid, @Nullable DaemonExpirationStatus status, @Nullable String reason) {
         this.timestamp = timestamp;
         this.status = status;
         this.reason = reason;
@@ -80,7 +83,7 @@ public class DaemonStopEvent implements Serializable {
 
         DaemonStopEvent stopEvent = (DaemonStopEvent) o;
         return timestamp.getTime() == stopEvent.timestamp.getTime()
-            && (reason != null ? reason.equals(stopEvent.reason) : stopEvent.reason == null);
+                && (reason != null ? reason.equals(stopEvent.reason) : stopEvent.reason == null);
     }
 
     @Override
@@ -92,11 +95,7 @@ public class DaemonStopEvent implements Serializable {
 
     @Override
     public String toString() {
-        return "DaemonStopEvent{"
-            + "timestamp=" + timestamp
-            + ", pid=" + pid
-            + ", status=" + status
-            + "}";
+        return "DaemonStopEvent{" + "timestamp=" + timestamp + ", pid=" + pid + ", status=" + status + "}";
     }
 
     boolean occurredInLastHours(final int numHours) {
@@ -112,7 +111,8 @@ public class DaemonStopEvent implements Serializable {
         public DaemonStopEvent read(Decoder decoder) throws EOFException, Exception {
             long timestamp = decoder.readLong();
             long pid = decoder.readLong();
-            DaemonExpirationStatus status = decoder.readBoolean() ? DaemonExpirationStatus.values()[decoder.readByte()] : null;
+            DaemonExpirationStatus status =
+                    decoder.readBoolean() ? DaemonExpirationStatus.values()[decoder.readByte()] : null;
             String reason = decoder.readNullableString();
             return new DaemonStopEvent(new Date(timestamp), pid, status, reason);
         }

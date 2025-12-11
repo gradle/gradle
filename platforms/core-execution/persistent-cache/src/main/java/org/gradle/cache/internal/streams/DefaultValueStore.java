@@ -16,12 +16,6 @@
 
 package org.gradle.cache.internal.streams;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
-import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,6 +32,11 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
 public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
     private final File dir;
@@ -49,12 +48,7 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
     private final BlockingQueue<Sink<T>> availableSinks = new LinkedBlockingDeque<>();
     private final ConcurrentMap<Integer, Source<T>> availableSources = new ConcurrentHashMap<>();
 
-    public DefaultValueStore(
-        File dir,
-        String baseName,
-        Writer<T> writer,
-        Reader<T> reader
-    ) {
+    public DefaultValueStore(File dir, String baseName, Writer<T> writer, Reader<T> reader) {
         this.dir = dir;
         this.baseName = baseName;
         this.writer = writer;
@@ -66,16 +60,8 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
         }
     }
 
-    public static <T> DefaultValueStore<T> encoding(
-        File dir,
-        String baseName,
-        Serializer<T> serializer
-    ) {
-        return new DefaultValueStore<>(dir,
-            baseName,
-            serializer::write,
-            serializer::read
-        );
+    public static <T> DefaultValueStore<T> encoding(File dir, String baseName, Serializer<T> serializer) {
+        return new DefaultValueStore<>(dir, baseName, serializer::write, serializer::read);
     }
 
     @Override
@@ -111,7 +97,10 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
     @Override
     public void close() throws IOException {
         try {
-            CompositeStoppable.stoppable().add(sinks).add(availableSources.values()).stop();
+            CompositeStoppable.stoppable()
+                    .add(sinks)
+                    .add(availableSources.values())
+                    .stop();
         } finally {
             sinks.clear();
             availableSinks.clear();
@@ -236,7 +225,8 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
-            // Flush in case a read of this block needs to happen. Ideally, should either defer flush until the read or read directly from the write buffer
+            // Flush in case a read of this block needs to happen. Ideally, should either defer flush until the read or
+            // read directly from the write buffer
             encoder.flush();
             long length = encoder.getWritePosition() - startPos;
             return new BlockAddress(id, startPos + startOffset, length);

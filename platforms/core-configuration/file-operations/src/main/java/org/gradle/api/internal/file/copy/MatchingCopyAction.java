@@ -38,5 +38,4 @@ public class MatchingCopyAction implements Action<FileCopyDetails> {
             toApply.execute(details);
         }
     }
-
 }

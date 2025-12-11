@@ -16,12 +16,11 @@
 
 package org.gradle.api.tasks;
 
+import java.io.File;
+import java.util.Map;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.Map;
 
 /**
  * A collection of all output directories (compiled classes, processed resources, etc.) - notice that {@link SourceSetOutput} extends {@link FileCollection}.

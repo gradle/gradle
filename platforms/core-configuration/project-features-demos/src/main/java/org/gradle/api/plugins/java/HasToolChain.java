@@ -16,7 +16,4 @@
 
 package org.gradle.api.plugins.java;
 
-
-public interface HasToolChain {
-
-}
+public interface HasToolChain {}

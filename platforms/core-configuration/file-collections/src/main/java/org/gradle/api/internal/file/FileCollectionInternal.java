@@ -16,15 +16,13 @@
 
 package org.gradle.api.internal.file;
 
-
+import java.io.File;
+import java.util.Optional;
+import java.util.function.Supplier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.logging.text.TreeFormatter;
-
-import java.io.File;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 public interface FileCollectionInternal extends FileCollection, TaskDependencyContainer {
     String DEFAULT_COLLECTION_DISPLAY_NAME = "file collection";
@@ -72,12 +70,10 @@ public interface FileCollectionInternal extends FileCollection, TaskDependencyCo
     /**
      * Some representation of a source of files.
      */
-    interface Source {
-    }
+    interface Source {}
 
     /**
      * An opaque source of files.
      */
-    Source OTHER = new Source() {
-    };
+    Source OTHER = new Source() {};
 }

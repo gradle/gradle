@@ -18,7 +18,8 @@ package org.gradle.external.javadoc.internal;
 
 import org.gradle.external.javadoc.JavadocOptionFileOption;
 
-public interface JavadocOptionFileOptionInternal<T> extends JavadocOptionFileOption<T>, OptionLessJavadocOptionFileOptionInternal<T> {
+public interface JavadocOptionFileOptionInternal<T>
+        extends JavadocOptionFileOption<T>, OptionLessJavadocOptionFileOptionInternal<T> {
     @Override
     JavadocOptionFileOptionInternal<T> duplicate();
 }

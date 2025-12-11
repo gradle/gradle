@@ -15,10 +15,50 @@
  */
 package org.gradle.internal.instantiation.generator;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
+import static org.gradle.internal.instantiation.generator.AbstractClassGeneratorTestGroovy.BeanWithGroovyBoolean;
+import static org.gradle.util.Matchers.isEmpty;
+import static org.gradle.util.TestUtil.TEST_CLOSURE;
+import static org.gradle.util.TestUtil.call;
+import static org.gradle.util.internal.WrapUtil.toList;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import com.google.common.base.Joiner;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingMethodException;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Named;
@@ -70,50 +110,10 @@ import org.junit.Test;
 import org.junit.function.ThrowingRunnable;
 import spock.lang.Issue;
 
-import javax.inject.Inject;
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Callable;
-
-import static org.gradle.api.reflect.TypeOf.typeOf;
-import static org.gradle.internal.instantiation.generator.AbstractClassGeneratorTestGroovy.BeanWithGroovyBoolean;
-import static org.gradle.util.Matchers.isEmpty;
-import static org.gradle.util.TestUtil.TEST_CLOSURE;
-import static org.gradle.util.TestUtil.call;
-import static org.gradle.util.internal.WrapUtil.toList;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 public class AsmBackedClassGeneratorTest {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
+
     final PropertyRoleAnnotationHandler roleHandler = new PropertyRoleAnnotationHandler() {
         @Override
         public Set<Class<? extends Annotation>> getAnnotationTypes() {
@@ -121,10 +121,10 @@ public class AsmBackedClassGeneratorTest {
         }
 
         @Override
-        public void applyRoleTo(ModelObject owner, Object target) {
-        }
+        public void applyRoleTo(ModelObject owner, Object target) {}
     };
-    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.emptyList(), roleHandler, Collections.emptyList(), new TestCrossBuildInMemoryCacheFactory(), 0);
+    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(
+            Collections.emptyList(), roleHandler, Collections.emptyList(), new TestCrossBuildInMemoryCacheFactory(), 0);
 
     private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
@@ -248,12 +248,14 @@ public class AsmBackedClassGeneratorTest {
         groovyObject.setProperty("prop", "value");
         assertThat(bean.getProp(), equalTo("value"));
         assertThat(groovyObject.getProperty("prop"), equalTo((Object) "value"));
-        assertThat(groovyObject.invokeMethod("doStuff", new Object[]{"some value"}), equalTo((Object) "{some value}"));
+        assertThat(groovyObject.invokeMethod("doStuff", new Object[] {"some value"}), equalTo((Object) "{some value}"));
     }
 
     @Test
     public void cachesGeneratedSubclass() {
-        assertSame(generator.generate(Bean.class).getGeneratedClass(), generator.generate(Bean.class).getGeneratedClass());
+        assertSame(
+                generator.generate(Bean.class).getGeneratedClass(),
+                generator.generate(Bean.class).getGeneratedClass());
     }
 
     @Test
@@ -284,7 +286,8 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void includesGenericTypeInformationForOverriddenConstructor() {
-        Class<?> generatedClass = generator.generate(BeanWithComplexConstructor.class).getGeneratedClass();
+        Class<?> generatedClass =
+                generator.generate(BeanWithComplexConstructor.class).getGeneratedClass();
         Constructor<?> constructor = generatedClass.getDeclaredConstructors()[0];
 
         assertThat(constructor.getTypeParameters().length, equalTo(3));
@@ -422,7 +425,8 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void includesAnnotationInformationForOverriddenConstructor() {
-        Class<?> generatedClass = generator.generate(BeanWithAnnotatedConstructor.class).getGeneratedClass();
+        Class<?> generatedClass =
+                generator.generate(BeanWithAnnotatedConstructor.class).getGeneratedClass();
         Constructor<?> constructor = generatedClass.getDeclaredConstructors()[0];
 
         assertThat(constructor.getAnnotation(Inject.class), notNullValue());
@@ -430,7 +434,8 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void includesAnnotationInformationForOverriddenConstructorWithName() {
-        Class<?> generatedClass = generator.generate(NamedBeanWithAnnotatedConstructor.class).getGeneratedClass();
+        Class<?> generatedClass =
+                generator.generate(NamedBeanWithAnnotatedConstructor.class).getGeneratedClass();
         Constructor<?> constructor = generatedClass.getDeclaredConstructors()[0];
 
         assertThat(constructor.getAnnotation(Inject.class), notNullValue());
@@ -440,7 +445,8 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void canConstructInstance() throws Exception {
         Bean bean = newInstance(BeanWithConstructor.class, "value");
-        assertThat(bean.getClass(), sameInstance((Object) generator.generate(BeanWithConstructor.class).getGeneratedClass()));
+        assertThat(bean.getClass(), sameInstance((Object)
+                generator.generate(BeanWithConstructor.class).getGeneratedClass()));
         assertThat(bean.getProp(), equalTo("value"));
 
         bean = newInstance(BeanWithConstructor.class);
@@ -492,8 +498,13 @@ public class AsmBackedClassGeneratorTest {
             newInstance(AbstractMethodBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractMethodBean."));
-            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractMethodBean.implementMe()."));
+            assertThat(
+                    e.getMessage(),
+                    equalTo(
+                            "Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractMethodBean."));
+            assertThat(
+                    e.getCause().getMessage(),
+                    equalTo("Cannot have abstract method AbstractMethodBean.implementMe()."));
         }
     }
 
@@ -503,8 +514,13 @@ public class AsmBackedClassGeneratorTest {
             newInstance(AbstractGetterBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractGetterBean."));
-            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractGetterBean.getThing(): String."));
+            assertThat(
+                    e.getMessage(),
+                    equalTo(
+                            "Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractGetterBean."));
+            assertThat(
+                    e.getCause().getMessage(),
+                    equalTo("Cannot have abstract method AbstractGetterBean.getThing(): String."));
         }
     }
 
@@ -514,8 +530,13 @@ public class AsmBackedClassGeneratorTest {
             newInstance(AbstractSetterBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractSetterBean."));
-            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetterBean.setThing(String)."));
+            assertThat(
+                    e.getMessage(),
+                    equalTo(
+                            "Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractSetterBean."));
+            assertThat(
+                    e.getCause().getMessage(),
+                    equalTo("Cannot have abstract method AbstractSetterBean.setThing(String)."));
         }
     }
 
@@ -525,11 +546,15 @@ public class AsmBackedClassGeneratorTest {
             newInstance(AbstractSetMethodBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractSetMethodBean."));
-            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetMethodBean.thing(String)."));
+            assertThat(
+                    e.getMessage(),
+                    equalTo(
+                            "Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractSetMethodBean."));
+            assertThat(
+                    e.getCause().getMessage(),
+                    equalTo("Cannot have abstract method AbstractSetMethodBean.thing(String)."));
         }
     }
-
 
     @Test
     public void cannotCreateInstanceOfInterfaceWithAbstractGetterAndNoSetter() throws Exception {
@@ -537,8 +562,13 @@ public class AsmBackedClassGeneratorTest {
             newInstance(GetterBeanInterface.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.GetterBeanInterface."));
-            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method GetterBeanInterface.getThing(): String."));
+            assertThat(
+                    e.getMessage(),
+                    equalTo(
+                            "Could not generate a decorated class for type AsmBackedClassGeneratorTest.GetterBeanInterface."));
+            assertThat(
+                    e.getCause().getMessage(),
+                    equalTo("Cannot have abstract method GetterBeanInterface.getThing(): String."));
         }
     }
 
@@ -548,8 +578,13 @@ public class AsmBackedClassGeneratorTest {
             newInstance(GetterBeanGenericInterface.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.GetterBeanGenericInterface."));
-            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method GetterBeanGenericInterface.getThing(): Provider<String>."));
+            assertThat(
+                    e.getMessage(),
+                    equalTo(
+                            "Could not generate a decorated class for type AsmBackedClassGeneratorTest.GetterBeanGenericInterface."));
+            assertThat(
+                    e.getCause().getMessage(),
+                    equalTo("Cannot have abstract method GetterBeanGenericInterface.getThing(): Provider<String>."));
         }
     }
 
@@ -559,8 +594,13 @@ public class AsmBackedClassGeneratorTest {
             newInstance(SetterBeanInterface.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.SetterBeanInterface."));
-            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method SetterBeanInterface.setThing(String)."));
+            assertThat(
+                    e.getMessage(),
+                    equalTo(
+                            "Could not generate a decorated class for type AsmBackedClassGeneratorTest.SetterBeanInterface."));
+            assertThat(
+                    e.getCause().getMessage(),
+                    equalTo("Cannot have abstract method SetterBeanInterface.setThing(String)."));
         }
     }
 
@@ -864,7 +904,9 @@ public class AsmBackedClassGeneratorTest {
     public void doesNotOverrideMethodsFromDynamicObjectAwareInterface() throws Exception {
         DynamicObjectAwareBean bean = newInstance(DynamicObjectAwareBean.class);
         assertThat(bean.getExtensions(), sameInstance(bean.conv));
-        assertThat(bean.getAsDynamicObject(), sameInstance(((DefaultExtensionContainer)bean.getExtensions()).getExtensionsAsDynamicObject()));
+        assertThat(
+                bean.getAsDynamicObject(),
+                sameInstance(((DefaultExtensionContainer) bean.getExtensions()).getExtensionsAsDynamicObject()));
     }
 
     @Test
@@ -1004,15 +1046,15 @@ public class AsmBackedClassGeneratorTest {
         assertThat(bean.getProp(), equalTo("<1>"));
 
         // failing, seems to be that set method override doesn't work for iterables - GRADLE-2097
-        //assertThat(call("{ bean, list -> bean.things(list) }", bean, new LinkedList<Object>()), nullValue());
-        //assertThat(bean.getThings().size(), equalTo(0));
+        // assertThat(call("{ bean, list -> bean.things(list) }", bean, new LinkedList<Object>()), nullValue());
+        // assertThat(bean.getThings().size(), equalTo(0));
 
-        //assertThat(call("{ bean -> bean.things([1,2,3]) }", bean), nullValue());
-        //assertThat(bean.getThings().size(), equalTo(3));
+        // assertThat(call("{ bean -> bean.things([1,2,3]) }", bean), nullValue());
+        // assertThat(bean.getThings().size(), equalTo(3));
 
-        //FileCollection files = ProjectBuilder.builder().build().files();
-        //assertThat(call("{ bean, fc -> bean.files fc}", bean, files), nullValue());
-        //assertThat(bean.getFiles(), sameInstance(files));
+        // FileCollection files = ProjectBuilder.builder().build().files();
+        // assertThat(call("{ bean, fc -> bean.files fc}", bean, files), nullValue());
+        // assertThat(bean.getFiles(), sameInstance(files));
     }
 
     @Test
@@ -1027,7 +1069,8 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void doesNotOverrideSetValueMethodForPropertyThatIsNotConventionMappingAware() throws Exception {
-        BeanWithMultiArgDslMethodsAndNoConventionMapping bean = newInstance(BeanWithMultiArgDslMethodsAndNoConventionMapping.class);
+        BeanWithMultiArgDslMethodsAndNoConventionMapping bean =
+                newInstance(BeanWithMultiArgDslMethodsAndNoConventionMapping.class);
         call("{ it.prop 'value'}", bean);
         assertThat(bean.getProp(), equalTo("(value)"));
     }
@@ -1071,18 +1114,19 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void includesNotInheritedTypeAnnotations() {
-        Class<? extends AnnotatedBean> generatedClass = generator.generate(AnnotatedBean.class).getGeneratedClass();
+        Class<? extends AnnotatedBean> generatedClass =
+                generator.generate(AnnotatedBean.class).getGeneratedClass();
 
         BeanAnnotation annotation = generatedClass.getAnnotation(BeanAnnotation.class);
         assertThat(annotation, notNullValue());
         assertThat(annotation.value(), equalTo("test"));
-        assertThat(annotation.values(), equalTo(new String[]{"1", "2"}));
+        assertThat(annotation.values(), equalTo(new String[] {"1", "2"}));
         assertThat(annotation.enumValue(), equalTo(AnnotationEnum.A));
-        assertThat(annotation.enumValues(), equalTo(new AnnotationEnum[]{AnnotationEnum.A, AnnotationEnum.B}));
+        assertThat(annotation.enumValues(), equalTo(new AnnotationEnum[] {AnnotationEnum.A, AnnotationEnum.B}));
         assertThat(annotation.number(), equalTo(1));
-        assertThat(annotation.numbers(), equalTo(new int[]{1, 2}));
+        assertThat(annotation.numbers(), equalTo(new int[] {1, 2}));
         assertThat(annotation.clazz().equals(Integer.class), equalTo(true));
-        assertThat(annotation.classes(), equalTo(new Class<?>[]{Integer.class}));
+        assertThat(annotation.classes(), equalTo(new Class<?>[] {Integer.class}));
         assertThat(annotation.annotation().value(), equalTo("nested"));
         assertThat(annotation.annotations()[0].value(), equalTo("nested array"));
     }
@@ -1137,7 +1181,8 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void doesNotAddSetterMethodsForPropertyWhoseTypeIsPropertyWhenTheSetterMethodsAlreadyExist() throws Exception {
+    public void doesNotAddSetterMethodsForPropertyWhoseTypeIsPropertyWhenTheSetterMethodsAlreadyExist()
+            throws Exception {
         DefaultProviderFactory providerFactory = new DefaultProviderFactory();
         BeanWithProperty bean = newInstance(BeanWithProperty.class, TestUtil.objectFactory());
 
@@ -1300,7 +1345,7 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static abstract class NamedBeanWithConstructor extends BeanWithConstructor implements Named {
+    public abstract static class NamedBeanWithConstructor extends BeanWithConstructor implements Named {
         public NamedBeanWithConstructor() {
             super();
         }
@@ -1318,36 +1363,33 @@ public class AsmBackedClassGeneratorTest {
         private String prop;
 
         public <T extends IOException, S extends Callable<String>, V> BeanWithComplexConstructor(
-            Callable rawValue,
-            Callable<String> value,
-            Callable<? extends String> subType,
-            Callable<? super String> superType,
-            Callable<?> wildcard,
-            Callable<? extends Callable<?>> nested,
-            Callable<S> typeVar,
-            Callable<? extends T> typeVarWithBounds,
-            V genericVar,
-            String[] array,
-            List<? extends String>[] genericArray,
-            boolean primitive
-        ) throws Exception, T {
-        }
+                Callable rawValue,
+                Callable<String> value,
+                Callable<? extends String> subType,
+                Callable<? super String> superType,
+                Callable<?> wildcard,
+                Callable<? extends Callable<?>> nested,
+                Callable<S> typeVar,
+                Callable<? extends T> typeVarWithBounds,
+                V genericVar,
+                String[] array,
+                List<? extends String>[] genericArray,
+                boolean primitive)
+                throws Exception, T {}
     }
 
     public static class BeanWithAnnotatedConstructor {
         private String prop;
 
         @Inject
-        public BeanWithAnnotatedConstructor() {
-        }
+        public BeanWithAnnotatedConstructor() {}
     }
 
-    public static abstract class NamedBeanWithAnnotatedConstructor implements Named {
+    public abstract static class NamedBeanWithAnnotatedConstructor implements Named {
         private String prop;
 
         @Inject
-        public NamedBeanWithAnnotatedConstructor() {
-        }
+        public NamedBeanWithAnnotatedConstructor() {}
     }
 
     public static class BeanWithDslMethods extends Bean {
@@ -1413,6 +1455,7 @@ public class AsmBackedClassGeneratorTest {
             this.prop = String.format("<%s%s>", part1, part2);
             return this;
         }
+
         public BeanWithMultiArgDslMethods prop(String part1, String part2, String part3) {
             this.prop = String.format("[%s%s%s]", part1, part2, part3);
             return this;
@@ -1455,9 +1498,7 @@ public class AsmBackedClassGeneratorTest {
         }
 
         @Override
-        public void ineligible(String propertyName) {
-
-        }
+        public void ineligible(String propertyName) {}
 
         public <T> T getConventionValue(T actualValue, String propertyName) {
             if (actualValue instanceof String) {
@@ -1482,7 +1523,11 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class DynamicObjectAwareBean extends Bean implements DynamicObjectAware {
-        ExtensionContainer conv = new ExtensibleDynamicObject(this, DynamicObjectAwareBean.class, TestUtil.instantiatorFactory().decorateLenient()).getExtensions();
+        ExtensionContainer conv = new ExtensibleDynamicObject(
+                        this,
+                        DynamicObjectAwareBean.class,
+                        TestUtil.instantiatorFactory().decorateLenient())
+                .getExtensions();
 
         public ExtensionContainer getExtensions() {
             return conv;
@@ -1597,13 +1642,10 @@ public class AsmBackedClassGeneratorTest {
         String getInterfaceProperty();
     }
 
-    public interface SomeNamedType extends SomeType, Named {
-    }
+    public interface SomeNamedType extends SomeType, Named {}
 
     @NonExtensible
-    public static class NotExtensibleBean {
-
-    }
+    public static class NotExtensibleBean {}
 
     @NoConventionMapping
     public static class NoMappingBean implements SomeType {
@@ -1659,14 +1701,11 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static abstract class AbstractExtensibleBean implements ExtensionAware {
-    }
+    public abstract static class AbstractExtensibleBean implements ExtensionAware {}
 
-    public static final class FinalBean {
-    }
+    public static final class FinalBean {}
 
-    private static class PrivateBean {
-    }
+    private static class PrivateBean {}
 
     public static class FinalInjectBean {
         @Inject
@@ -1689,15 +1728,15 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static abstract class AbstractMethodBean {
+    public abstract static class AbstractMethodBean {
         abstract void implementMe();
     }
 
-    public static abstract class AbstractGetterBean {
+    public abstract static class AbstractGetterBean {
         abstract String getThing();
     }
 
-    public static abstract class AbstractSetterBean {
+    public abstract static class AbstractSetterBean {
         String getThing() {
             return "";
         }
@@ -1705,13 +1744,12 @@ public class AsmBackedClassGeneratorTest {
         abstract void setThing(String value);
     }
 
-    public static abstract class AbstractSetMethodBean {
+    public abstract static class AbstractSetMethodBean {
         String getThing() {
             return "";
         }
 
-        void setThing(String value) {
-        }
+        void setThing(String value) {}
 
         abstract void thing(String value);
     }
@@ -1729,7 +1767,8 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public enum AnnotationEnum {
-        A, B
+        A,
+        B
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -1763,19 +1802,17 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @BeanAnnotation(
-        value = "test",
-        values = {"1", "2"},
-        enumValue = AnnotationEnum.A,
-        enumValues = {AnnotationEnum.A, AnnotationEnum.B},
-        number = 1,
-        numbers = {1, 2},
-        clazz = Integer.class,
-        classes = {Integer.class},
-        annotation = @NestedBeanAnnotation("nested"),
-        annotations = {@NestedBeanAnnotation("nested array")}
-    )
-    public static class AnnotatedBean {
-    }
+            value = "test",
+            values = {"1", "2"},
+            enumValue = AnnotationEnum.A,
+            enumValues = {AnnotationEnum.A, AnnotationEnum.B},
+            number = 1,
+            numbers = {1, 2},
+            clazz = Integer.class,
+            classes = {Integer.class},
+            annotation = @NestedBeanAnnotation("nested"),
+            annotations = {@NestedBeanAnnotation("nested array")})
+    public static class AnnotatedBean {}
 
     public static class BeanWithProperty {
         private final Property<String> prop;
@@ -1813,16 +1850,15 @@ public class AsmBackedClassGeneratorTest {
         Number getNumber();
     }
 
-    public static abstract class AbstractWithProperties<T> {
+    public abstract static class AbstractWithProperties<T> {
         abstract Object getProp();
 
         abstract T getTypedProp();
 
-        final void setTypedProp(T t) {
-        }
+        final void setTypedProp(T t) {}
     }
 
-    public static abstract class AbstractBean {
+    public abstract static class AbstractBean {
         String a;
 
         public AbstractBean(String a) {
@@ -1830,7 +1866,7 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static abstract class AbstractBeanWithInheritedFields extends AbstractBean {
+    public abstract static class AbstractBeanWithInheritedFields extends AbstractBean {
         public AbstractBeanWithInheritedFields(String a) {
             super(a);
         }
@@ -1929,7 +1965,7 @@ public class AsmBackedClassGeneratorTest {
         InterfacePropertyBean getPropBean();
     }
 
-    public static abstract class NestedBeanClassWithToString {
+    public abstract static class NestedBeanClassWithToString {
         @Override
         public String toString() {
             return "<some bean>";
@@ -1942,7 +1978,7 @@ public class AsmBackedClassGeneratorTest {
         abstract InterfacePropertyBean getPropBean();
     }
 
-    public static abstract class NestedBeanClass {
+    public abstract static class NestedBeanClass {
         private final InterfaceFileCollectionBean filesBean;
         private final InterfacePropertyBean propBean;
         private InterfacePropertyBean mutableProperty;
@@ -1973,7 +2009,7 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static abstract class UsesToStringInConstructor {
+    public abstract static class UsesToStringInConstructor {
         public final String name = toString();
     }
 
@@ -2057,12 +2093,11 @@ public class AsmBackedClassGeneratorTest {
         Property<Long> getProp();
     }
 
-    public abstract static class AbstractCovariantReadOnlyPropertyBean extends AbstractProviderBean implements InterfaceCovariantReadOnlyPropertyBean {
-    }
+    public abstract static class AbstractCovariantReadOnlyPropertyBean extends AbstractProviderBean
+            implements InterfaceCovariantReadOnlyPropertyBean {}
 
-    public static abstract class NamedBean {
-        public NamedBean(String name) {
-        }
+    public abstract static class NamedBean {
+        public NamedBean(String name) {}
     }
 
     public interface InterfaceContainerPropertyBean {
@@ -2078,11 +2113,10 @@ public class AsmBackedClassGeneratorTest {
             return "name";
         }
 
-        default void thing() {
-        }
+        default void thing() {}
     }
 
-    public static abstract class BeanWithAbstractProperty {
+    public abstract static class BeanWithAbstractProperty {
         abstract String getName();
 
         abstract void setName(String value);
@@ -2097,26 +2131,28 @@ public class AsmBackedClassGeneratorTest {
         T getThing();
     }
 
-    public static abstract class AbstractClassWithConcreteTypeParameter implements InterfaceWithTypeParameter<Number> {
+    public abstract static class AbstractClassWithConcreteTypeParameter implements InterfaceWithTypeParameter<Number> {
         public String doSomething() {
             Number thing = getThing();
             return String.valueOf(thing);
         }
     }
 
-    public static abstract class AbstractClassWithParameterizedTypeParameter implements InterfaceWithTypeParameter<List<Number>> {
+    public abstract static class AbstractClassWithParameterizedTypeParameter
+            implements InterfaceWithTypeParameter<List<Number>> {
         public String doSomething() {
             List<Number> thing = getThing();
             return thing.toString();
         }
     }
 
-    public static abstract class AbstractClassWithTwoTypeParameters<T, V> implements InterfaceWithTypeParameter<V> {
+    public abstract static class AbstractClassWithTwoTypeParameters<T, V> implements InterfaceWithTypeParameter<V> {
         @Inject
         public abstract List<T> getOtherThing();
     }
 
-    public static abstract class AbstractClassRealizingTwoTypeParameters extends AbstractClassWithTwoTypeParameters<String, Number> {
+    public abstract static class AbstractClassRealizingTwoTypeParameters
+            extends AbstractClassWithTwoTypeParameters<String, Number> {
         public String doSomething() {
             Number thing = getThing();
             List<String> otherThing = getOtherThing();
@@ -2124,10 +2160,10 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static abstract class AbstractClassWithTypeParamProperty implements InterfacePropertyWithTypeParamBean<Param<String>> {
-    }
+    public abstract static class AbstractClassWithTypeParamProperty
+            implements InterfacePropertyWithTypeParamBean<Param<String>> {}
 
-    public static abstract class BrokenConstructor {
+    public abstract static class BrokenConstructor {
         public BrokenConstructor() {
             throw new RuntimeException("broken");
         }
@@ -2141,8 +2177,6 @@ public class AsmBackedClassGeneratorTest {
     // Note: @ExpectDeprecation is not used here because it's a groovy extension
     private static void withDeprecationLoggerSuppressed(ThrowingRunnable testBody) throws Throwable {
         ExpectDeprecationExtension.intercept(
-            "Properties should be assigned using the 'propName = value' syntax.",
-            testBody
-        );
+                "Properties should be assigned using the 'propName = value' syntax.", testBody);
     }
 }

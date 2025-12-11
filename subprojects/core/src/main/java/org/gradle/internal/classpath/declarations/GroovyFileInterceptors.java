@@ -18,6 +18,14 @@ package org.gradle.internal.classpath.declarations;
 
 import groovy.io.FileType;
 import groovy.lang.Closure;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.util.List;
+import java.util.regex.Pattern;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind.GroovyPropertyGetter;
@@ -30,48 +38,32 @@ import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterc
 import org.gradle.internal.instrumentation.api.annotations.features.withstaticreference.WithExtensionReferences;
 import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.util.List;
-import java.util.regex.Pattern;
-
 @SuppressWarnings("NewMethodNamingConvention")
-@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
-@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificJvmCallInterceptors(
+        generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificGroovyCallInterceptors(
+        generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
 public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @GroovyPropertyGetter
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static String intercept_text(
-        @Receiver File self,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static String intercept_text(@Receiver File self, @CallerClassName String consumer) throws IOException {
         return Instrumented.groovyFileGetText(self, consumer);
     }
 
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static String intercept_getText(
-        @Receiver File self,
-        String charset,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static String intercept_getText(@Receiver File self, String charset, @CallerClassName String consumer)
+            throws IOException {
         return Instrumented.groovyFileGetText(self, charset, consumer);
     }
 
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static void intercept_eachByte(
-        @Receiver File self,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static void intercept_eachByte(@Receiver File self, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         ResourceGroovyMethods.eachByte(self, closure);
     }
@@ -80,11 +72,8 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static void intercept_eachByte(
-        @Receiver File self,
-        int bufferLen,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, int bufferLen, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         ResourceGroovyMethods.eachByte(self, bufferLen, closure);
     }
@@ -92,11 +81,8 @@ public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static void intercept_eachDir(
-        @Receiver File self,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static void intercept_eachDir(@Receiver File self, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.directoryContentObserved(self, consumer);
         ResourceGroovyMethods.eachDir(self, closure);
     }
@@ -105,11 +91,8 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static void intercept_eachDirMatch(
-        @Receiver File self,
-        Object nameFilter,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, Object nameFilter, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.directoryContentObserved(self, consumer);
         ResourceGroovyMethods.eachDirMatch(self, nameFilter, closure);
     }
@@ -117,11 +100,8 @@ public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static void intercept_eachFile(
-        @Receiver File self,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static void intercept_eachFile(@Receiver File self, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.directoryContentObserved(self, consumer);
         ResourceGroovyMethods.eachFile(self, closure);
     }
@@ -130,11 +110,8 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static void intercept_eachFile(
-        @Receiver File self,
-        FileType fileType,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, FileType fileType, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.directoryContentObserved(self, consumer);
         ResourceGroovyMethods.eachFile(self, fileType, closure);
     }
@@ -143,11 +120,8 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static void intercept_eachFileMatch(
-        @Receiver File self,
-        Object nameFilter,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, Object nameFilter, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.directoryContentObserved(self, consumer);
         ResourceGroovyMethods.eachFileMatch(self, nameFilter, closure);
     }
@@ -156,12 +130,12 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static void intercept_eachFileMatch(
-        @Receiver File self,
-        FileType fileType,
-        Object nameFilter,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self,
+            FileType fileType,
+            Object nameFilter,
+            Closure<?> closure,
+            @CallerClassName String consumer)
+            throws IOException {
         Instrumented.directoryContentObserved(self, consumer);
         ResourceGroovyMethods.eachFileMatch(self, fileType, nameFilter, closure);
     }
@@ -169,11 +143,8 @@ public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static void intercept_eachLine(
-        @Receiver File self,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static void intercept_eachLine(@Receiver File self, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         ResourceGroovyMethods.eachLine(self, closure);
     }
@@ -182,11 +153,8 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static void intercept_eachLine(
-        @Receiver File self,
-        String charset,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, String charset, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         ResourceGroovyMethods.eachLine(self, charset, closure);
     }
@@ -195,11 +163,8 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static void intercept_eachLine(
-        @Receiver File self,
-        int firstLine,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, int firstLine, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         ResourceGroovyMethods.eachLine(self, firstLine, closure);
     }
@@ -208,12 +173,8 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static void intercept_eachLine(
-        @Receiver File self,
-        String charset,
-        int firstLine,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, String charset, int firstLine, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         ResourceGroovyMethods.eachLine(self, charset, firstLine, closure);
     }
@@ -221,11 +182,8 @@ public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static void intercept_eachObject(
-        @Receiver File self,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException, ClassNotFoundException {
+    public static void intercept_eachObject(@Receiver File self, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException, ClassNotFoundException {
         Instrumented.fileOpened(self, consumer);
         ResourceGroovyMethods.eachObject(self, closure);
     }
@@ -233,10 +191,7 @@ public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @GroovyPropertyGetter
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static byte[] intercept_bytes(
-        @Receiver File self,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static byte[] intercept_bytes(@Receiver File self, @CallerClassName String consumer) throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.getBytes(self);
     }
@@ -244,10 +199,8 @@ public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static InputStream intercept_newInputStream(
-        @Receiver File self,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static InputStream intercept_newInputStream(@Receiver File self, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.newInputStream(self);
     }
@@ -255,10 +208,8 @@ public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static DataInputStream intercept_newDataInputStream(
-        @Receiver File self,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static DataInputStream intercept_newDataInputStream(@Receiver File self, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.newDataInputStream(self);
     }
@@ -267,9 +218,7 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static ObjectInputStream intercept_newObjectInputStream(
-        @Receiver File self,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, @CallerClassName String consumer) throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.newObjectInputStream(self);
     }
@@ -278,10 +227,7 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static ObjectInputStream intercept_newObjectInputStream(
-        @Receiver File self,
-        ClassLoader classLoader,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, ClassLoader classLoader, @CallerClassName String consumer) throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.newObjectInputStream(self, classLoader);
     }
@@ -289,10 +235,8 @@ public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static BufferedReader intercept_newReader(
-        @Receiver File self,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static BufferedReader intercept_newReader(@Receiver File self, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.newReader(self);
     }
@@ -301,10 +245,7 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static BufferedReader intercept_newReader(
-        @Receiver File self,
-        String charset,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, String charset, @CallerClassName String consumer) throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.newReader(self, charset);
     }
@@ -312,10 +253,7 @@ public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static byte[] intercept_readBytes(
-        @Receiver File self,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static byte[] intercept_readBytes(@Receiver File self, @CallerClassName String consumer) throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.readBytes(self);
     }
@@ -323,10 +261,8 @@ public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static List<String> intercept_readLines(
-        @Receiver File self,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static List<String> intercept_readLines(@Receiver File self, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.readLines(self);
     }
@@ -335,10 +271,7 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static List<String> intercept_readLines(
-        @Receiver File self,
-        String charset,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, String charset, @CallerClassName String consumer) throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.readLines(self, charset);
     }
@@ -346,10 +279,7 @@ public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @GroovyPropertyGetter
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static long intercept_size(
-        @Receiver File self,
-        @CallerClassName String consumer
-    ) {
+    public static long intercept_size(@Receiver File self, @CallerClassName String consumer) {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.size(self);
     }
@@ -358,11 +288,8 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static Object intercept_splitEachLine(
-        @Receiver File self,
-        Pattern pattern,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, Pattern pattern, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.splitEachLine(self, pattern, closure);
     }
@@ -371,12 +298,8 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static Object intercept_splitEachLine(
-        @Receiver File self,
-        Pattern pattern,
-        String charset,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, Pattern pattern, String charset, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.splitEachLine(self, pattern, charset, closure);
     }
@@ -385,11 +308,8 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static Object intercept_splitEachLine(
-        @Receiver File self,
-        String regex,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, String regex, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.splitEachLine(self, regex, closure);
     }
@@ -398,25 +318,17 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static Object intercept_splitEachLine(
-        @Receiver File self,
-        String regex,
-        String charset,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, String regex, String charset, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.splitEachLine(self, regex, charset, closure);
     }
-
 
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static Object intercept_withInputStream(
-        @Receiver File self,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, Closure<?> closure, @CallerClassName String consumer) throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.withInputStream(self, closure);
     }
@@ -425,10 +337,7 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static Object intercept_withDataInputStream(
-        @Receiver File self,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, Closure<?> closure, @CallerClassName String consumer) throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.withDataInputStream(self, closure);
     }
@@ -437,10 +346,7 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static Object intercept_withObjectInputStream(
-        @Receiver File self,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, Closure<?> closure, @CallerClassName String consumer) throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.withObjectInputStream(self, closure);
     }
@@ -449,11 +355,8 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static Object intercept_withObjectInputStream(
-        @Receiver File self,
-        ClassLoader classLoader,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, ClassLoader classLoader, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.withObjectInputStream(self, classLoader, closure);
     }
@@ -461,11 +364,8 @@ public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
-    public static Object intercept_withReader(
-        @Receiver File self,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+    public static Object intercept_withReader(@Receiver File self, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.withReader(self, closure);
     }
@@ -474,11 +374,8 @@ public class GroovyFileInterceptors {
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static Object intercept_withReader(
-        @Receiver File self,
-        String charset,
-        Closure<?> closure,
-        @CallerClassName String consumer
-    ) throws IOException {
+            @Receiver File self, String charset, Closure<?> closure, @CallerClassName String consumer)
+            throws IOException {
         Instrumented.fileOpened(self, consumer);
         return ResourceGroovyMethods.withReader(self, charset, closure);
     }

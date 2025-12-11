@@ -26,7 +26,7 @@ public class GradlewRunner {
         Process process = null;
 
         String[] combinedArgs;
-        
+
         if (System.getProperty("os.name").startsWith("Windows")) {
             combinedArgs = new String[4 + args.length];
             combinedArgs[0] = "cmd.exe";
@@ -65,26 +65,26 @@ public class GradlewRunner {
             process.destroy();
         }
     }
-    
+
     private static void forwardAsync(final InputStream input, final OutputStream output) {
         new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int bufferSize = 4096;
-                byte[] buffer = new byte[bufferSize];
+                    @Override
+                    public void run() {
+                        int bufferSize = 4096;
+                        byte[] buffer = new byte[bufferSize];
 
-                int read = 0;
-                try {
-                    read = input.read(buffer);
-                    while(read != -1) {
-                        output.write(buffer, 0, read);
-                        read = input.read(buffer);
+                        int read = 0;
+                        try {
+                            read = input.read(buffer);
+                            while (read != -1) {
+                                output.write(buffer, 0, read);
+                                read = input.read(buffer);
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace(new PrintWriter(output));
+                        }
                     }
-                } catch (IOException e) {
-                    e.printStackTrace(new PrintWriter(output));
-                }
-            }
-        }).start();
+                })
+                .start();
     }
-
 }

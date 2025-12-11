@@ -35,5 +35,4 @@ public interface IvyModuleDescriptorAuthor {
      * The URL of this author.
      */
     Property<String> getUrl();
-
 }

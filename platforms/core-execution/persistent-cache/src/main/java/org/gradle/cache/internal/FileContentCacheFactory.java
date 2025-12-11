@@ -16,11 +16,10 @@
 
 package org.gradle.cache.internal;
 
+import java.io.File;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 /**
  * A factory for caches that contain some calculated value for a particular file. Maintains a cross-build in-memory and persistent cache of computed values. The value for a given file is updated when the content of the file changes.
@@ -35,7 +34,8 @@ public interface FileContentCacheFactory {
      * @param calculator The calculator to use to compute the value for a given file.
      * @param serializer The serializer to use to write values to persistent cache.
      */
-    <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, Calculator<? extends V> calculator, Serializer<V> serializer);
+    <V> FileContentCache<V> newCache(
+            String name, int normalizedCacheSize, Calculator<? extends V> calculator, Serializer<V> serializer);
 
     interface Calculator<V> {
         V calculate(File file, boolean isRegularFile);

@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.events.task.internal;
 
+import java.util.List;
 import org.gradle.tooling.events.task.TaskExecutionResult;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 public abstract class TaskExecutionDetails {
 
@@ -58,5 +57,4 @@ public abstract class TaskExecutionDetails {
     public static TaskExecutionDetails unsupported() {
         return UNSUPPORTED;
     }
-
 }

@@ -95,7 +95,8 @@ public class NativeBinaryServices extends AbstractGradleModuleServices {
 
     private static final class BuildSessionScopeServices implements ServiceRegistrationProvider {
         @Provides
-        WindowsSdkLocator createWindowsSdkLocator(OperatingSystem os, WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
+        WindowsSdkLocator createWindowsSdkLocator(
+                OperatingSystem os, WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
             return new DefaultWindowsSdkLocator(os, windowsRegistry, systemInfo);
         }
 
@@ -110,7 +111,10 @@ public class NativeBinaryServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        CommandLineToolVersionLocator createCommandLineVersionLocator(ExecActionFactory execActionFactory, VisualCppMetadataProvider visualCppMetadataProvider, VswhereVersionLocator vswhereLocator) {
+        CommandLineToolVersionLocator createCommandLineVersionLocator(
+                ExecActionFactory execActionFactory,
+                VisualCppMetadataProvider visualCppMetadataProvider,
+                VswhereVersionLocator vswhereLocator) {
             return new CommandLineToolVersionLocator(execActionFactory, visualCppMetadataProvider, vswhereLocator);
         }
 
@@ -120,33 +124,47 @@ public class NativeBinaryServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        SystemPathVersionLocator createSystemPathVersionLocator(OperatingSystem os, VisualStudioMetaDataProvider versionDeterminer) {
+        SystemPathVersionLocator createSystemPathVersionLocator(
+                OperatingSystem os, VisualStudioMetaDataProvider versionDeterminer) {
             return new SystemPathVersionLocator(os, versionDeterminer);
         }
 
         @Provides
-        VisualStudioMetaDataProvider createVisualStudioMetadataProvider(CommandLineToolVersionLocator commandLineToolVersionLocator, WindowsRegistryVersionLocator windowsRegistryVersionLocator, VisualCppMetadataProvider visualCppMetadataProvider) {
-            return new VisualStudioVersionDeterminer(commandLineToolVersionLocator, windowsRegistryVersionLocator, visualCppMetadataProvider);
+        VisualStudioMetaDataProvider createVisualStudioMetadataProvider(
+                CommandLineToolVersionLocator commandLineToolVersionLocator,
+                WindowsRegistryVersionLocator windowsRegistryVersionLocator,
+                VisualCppMetadataProvider visualCppMetadataProvider) {
+            return new VisualStudioVersionDeterminer(
+                    commandLineToolVersionLocator, windowsRegistryVersionLocator, visualCppMetadataProvider);
         }
 
         @Provides
-        VisualStudioLocator createVisualStudioLocator(CommandLineToolVersionLocator commandLineLocator, WindowsRegistryVersionLocator windowsRegistryLocator, SystemPathVersionLocator systemPathLocator, VisualStudioMetaDataProvider versionDeterminer, SystemInfo systemInfo) {
-            return new DefaultVisualStudioLocator(commandLineLocator, windowsRegistryLocator, systemPathLocator, versionDeterminer, systemInfo);
+        VisualStudioLocator createVisualStudioLocator(
+                CommandLineToolVersionLocator commandLineLocator,
+                WindowsRegistryVersionLocator windowsRegistryLocator,
+                SystemPathVersionLocator systemPathLocator,
+                VisualStudioMetaDataProvider versionDeterminer,
+                SystemInfo systemInfo) {
+            return new DefaultVisualStudioLocator(
+                    commandLineLocator, windowsRegistryLocator, systemPathLocator, versionDeterminer, systemInfo);
         }
     }
 
     private static final class ProjectCompilerServices implements ServiceRegistrationProvider {
         @Provides
-        CompilerOutputFileNamingSchemeFactory createCompilerOutputFileNamingSchemeFactory(RelativeFilePathResolver fileResolver) {
+        CompilerOutputFileNamingSchemeFactory createCompilerOutputFileNamingSchemeFactory(
+                RelativeFilePathResolver fileResolver) {
             return new CompilerOutputFileNamingSchemeFactory(fileResolver);
         }
 
         @Provides
-        NativeToolChainRegistry createNativeToolChainRegistry(ObjectFactory objectFactory,
-                                                              InstantiatorFactory instantiatorFactory,
-                                                              ServiceRegistry projectScopeServiceRegistry) {
-            return objectFactory.newInstance(DefaultNativeToolChainRegistry.class, instantiatorFactory.decorateLenient(projectScopeServiceRegistry));
+        NativeToolChainRegistry createNativeToolChainRegistry(
+                ObjectFactory objectFactory,
+                InstantiatorFactory instantiatorFactory,
+                ServiceRegistry projectScopeServiceRegistry) {
+            return objectFactory.newInstance(
+                    DefaultNativeToolChainRegistry.class,
+                    instantiatorFactory.decorateLenient(projectScopeServiceRegistry));
         }
     }
-
 }

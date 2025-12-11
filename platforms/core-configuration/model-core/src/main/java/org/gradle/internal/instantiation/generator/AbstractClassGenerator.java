@@ -16,6 +16,9 @@
 
 package org.gradle.internal.instantiation.generator;
 
+import static java.util.Optional.ofNullable;
+import static org.gradle.api.internal.GeneratedSubclasses.unpack;
+
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
@@ -30,6 +33,23 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.MetaClass;
 import groovy.transform.Generated;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.IsolatedAction;
@@ -67,27 +87,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import static java.util.Optional.ofNullable;
-import static org.gradle.api.internal.GeneratedSubclasses.unpack;
-
 /**
  * Generates a subclass of the target class to mix-in some DSL behaviour.
  *
@@ -104,9 +103,8 @@ import static org.gradle.api.internal.GeneratedSubclasses.unpack;
  */
 abstract class AbstractClassGenerator implements ClassGenerator {
 
-    private static final ImmutableSet<Class<? extends Annotation>> NESTED_ANNOTATION_TYPES = ImmutableSet.of(
-        Nested.class
-    );
+    private static final ImmutableSet<Class<? extends Annotation>> NESTED_ANNOTATION_TYPES =
+            ImmutableSet.of(Nested.class);
 
     private static final Object[] NO_PARAMS = new Object[0];
 
@@ -117,21 +115,22 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private final PropertyRoleAnnotationHandler roleHandler;
 
     protected AbstractClassGenerator(
-        Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
-        Collection<Class<? extends Annotation>> enabledAnnotations,
-        PropertyRoleAnnotationHandler roleHandler,
-        Cache<Class<?>, GeneratedClassImpl> generatedClassesCache
-    ) {
+            Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
+            Collection<Class<? extends Annotation>> enabledAnnotations,
+            PropertyRoleAnnotationHandler roleHandler,
+            Cache<Class<?>, GeneratedClassImpl> generatedClassesCache) {
         this.generatedClasses = generatedClassesCache;
         this.enabledAnnotations = ImmutableSet.copyOf(enabledAnnotations);
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
-        ImmutableListMultimap.Builder<Class<? extends Annotation>, TypeToken<?>> allowedTypesBuilder = ImmutableListMultimap.builder();
+        ImmutableListMultimap.Builder<Class<? extends Annotation>, TypeToken<?>> allowedTypesBuilder =
+                ImmutableListMultimap.builder();
         for (InjectAnnotationHandler handler : allKnownAnnotations) {
             Class<? extends Annotation> annotationType = handler.getAnnotationType();
             if (!enabledAnnotations.contains(annotationType)) {
                 builder.add(annotationType);
             } else {
-                InjectionPointQualifier injectionPointQualifier = annotationType.getAnnotation(InjectionPointQualifier.class);
+                InjectionPointQualifier injectionPointQualifier =
+                        annotationType.getAnnotation(InjectionPointQualifier.class);
                 if (injectionPointQualifier != null) {
                     for (Class<?> supportedType : injectionPointQualifier.supportedTypes()) {
                         allowedTypesBuilder.put(annotationType, TypeToken.of(supportedType));
@@ -152,9 +151,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static <T> TypeToken<Provider<T>> providerOf(Class<T> providerType) {
-        return new TypeToken<Provider<T>>() {
-        }.where(new TypeParameter<T>() {
-        }, providerType);
+        return new TypeToken<Provider<T>>() {}.where(new TypeParameter<T>() {}, providerType);
     }
 
     @Override
@@ -163,7 +160,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private GeneratedClassImpl generateUnderLock(Class<?> type) {
-        List<CustomInjectAnnotationPropertyHandler> customAnnotationPropertyHandlers = new ArrayList<>(enabledAnnotations.size());
+        List<CustomInjectAnnotationPropertyHandler> customAnnotationPropertyHandlers =
+                new ArrayList<>(enabledAnnotations.size());
 
         ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
         InjectAnnotationPropertyHandler injectionHandler = new InjectAnnotationPropertyHandler();
@@ -174,7 +172,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         DslMixInPropertyType dslMixInHandler = new DslMixInPropertyType(extensibleTypeHandler);
 
         // Order is significant. Injection handler should be at the end
-        List<ClassGenerationHandler> handlers = new ArrayList<>(5 + enabledAnnotations.size() + disabledAnnotations.size());
+        List<ClassGenerationHandler> handlers =
+                new ArrayList<>(5 + enabledAnnotations.size() + disabledAnnotations.size());
         handlers.add(extensibleTypeHandler);
         handlers.add(dslMixInHandler);
         handlers.add(lazyGroovySupportTypedHandler);
@@ -233,7 +232,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             throw new ClassGenerationException(formatter.toString(), e);
         }
 
-        ImmutableList.Builder<Class<? extends Annotation>> annotationsTriggeringServiceInjection = ImmutableList.builder();
+        ImmutableList.Builder<Class<? extends Annotation>> annotationsTriggeringServiceInjection =
+                ImmutableList.builder();
         for (CustomInjectAnnotationPropertyHandler handler : customAnnotationPropertyHandlers) {
             if (handler.isUsed()) {
                 annotationsTriggeringServiceInjection.add(handler.getAnnotation());
@@ -249,7 +249,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             outerType = null;
         }
 
-        return new GeneratedClassImpl(generatedClass, outerType, injectionHandler.getInjectedServices(), annotationsTriggeringServiceInjection.build());
+        return new GeneratedClassImpl(
+                generatedClass,
+                outerType,
+                injectionHandler.getInjectedServices(),
+                annotationsTriggeringServiceInjection.build());
     }
 
     protected abstract ClassInspectionVisitor start(Class<?> type);
@@ -258,7 +262,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     protected abstract InstantiationStrategy createForSerialization(Class<?> generatedType, Class<?> baseClass);
 
-    private void inspectType(Class<?> type, List<ClassValidator> validators, List<ClassGenerationHandler> generationHandlers, UnclaimedPropertyHandler unclaimedHandler) {
+    private void inspectType(
+            Class<?> type,
+            List<ClassValidator> validators,
+            List<ClassGenerationHandler> generationHandlers,
+            UnclaimedPropertyHandler unclaimedHandler) {
         ClassDetails classDetails = ClassInspector.inspect(type);
         ClassMetadata classMetaData = new ClassMetadata(type);
         assembleProperties(classDetails, classMetaData);
@@ -335,8 +343,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return false;
         }
         // Ignore irrelevant synthetic metaClass field injected by the Groovy compiler
-        return instanceFields.size() != 1
-            || !isSyntheticMetaClassField(instanceFields.get(0));
+        return instanceFields.size() != 1 || !isSyntheticMetaClassField(instanceFields.get(0));
     }
 
     private boolean isSyntheticMetaClassField(Field field) {
@@ -375,12 +382,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             formatter.append(".");
             throw new IllegalArgumentException(formatter.toString());
         }
-        // Else, ignore abstract methods on non-abstract classes as some other tooling (e.g. the Groovy compiler) has decided this is ok
+        // Else, ignore abstract methods on non-abstract classes as some other tooling (e.g. the Groovy compiler) has
+        // decided this is ok
     }
 
     private static boolean isManagedProperty(PropertyMetadata property) {
         // Property is readable and without a setter of property type and the type can be created
-        return property.isReadableWithoutSetterOfPropertyType() && (property.getType().isAnnotationPresent(ManagedType.class) || hasNestedAnnotation(property::hasAnnotation));
+        return property.isReadableWithoutSetterOfPropertyType()
+                && (property.getType().isAnnotationPresent(ManagedType.class)
+                        || hasNestedAnnotation(property::hasAnnotation));
     }
 
     private static boolean hasNestedAnnotation(Predicate<Class<? extends Annotation>> hasAnnotation) {
@@ -388,9 +398,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static boolean isIneligibleForConventionMapping(PropertyMetadata property) {
-        // Provider API types and convention-supporting types in general should have conventions set through convention() instead of
+        // Provider API types and convention-supporting types in general should have conventions set through
+        // convention() instead of
         // using convention mapping.
-        return Provider.class.isAssignableFrom(property.getType()) || SupportsConvention.class.isAssignableFrom(property.getType());
+        return Provider.class.isAssignableFrom(property.getType())
+                || SupportsConvention.class.isAssignableFrom(property.getType());
     }
 
     /**
@@ -411,7 +423,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
             // In theory, we should eagerly attach all overridable properties just in case,
             // but that would break existing code that relies on lazy attachment of properties.
-            return property.getBackingField() == null || !property.getMainGetter().method.isAnnotationPresent(Generated.class);
+            return property.getBackingField() == null
+                    || !property.getMainGetter().method.isAnnotationPresent(Generated.class);
         }
         // Other Property should be eagerly attached, as they are not overridable.
         // Other non-Property properties cannot be eagerly attached for backwards compatibility reasons.
@@ -419,16 +432,21 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static boolean isAttachProperty(PropertyMetadata property) {
-        return property.isReadableWithoutSetterOfPropertyType() && isAttachableType(property.getType(), property::hasAnnotation);
+        return property.isReadableWithoutSetterOfPropertyType()
+                && isAttachableType(property.getType(), property::hasAnnotation);
     }
 
     private static boolean isAttachableMethod(MethodMetadata metadata) {
         return isAttachableType(metadata.getReturnType(), metadata.method::isAnnotationPresent);
     }
 
-    private static boolean isAttachableType(Class<?> type, Predicate<Class<? extends Annotation>> propertyHasAnnotation) {
-        // This should apply to all 'managed' types however only the ConfigurableFileCollection and Provider types and @Nested value current implement OwnerAware
-        return Provider.class.isAssignableFrom(type) || isConfigurableFileCollectionType(type) || hasNestedAnnotation(propertyHasAnnotation);
+    private static boolean isAttachableType(
+            Class<?> type, Predicate<Class<? extends Annotation>> propertyHasAnnotation) {
+        // This should apply to all 'managed' types however only the ConfigurableFileCollection and Provider types and
+        // @Nested value current implement OwnerAware
+        return Provider.class.isAssignableFrom(type)
+                || isConfigurableFileCollectionType(type)
+                || hasNestedAnnotation(propertyHasAnnotation);
     }
 
     private static boolean isReattachProperty(PropertyMetadata property) {
@@ -438,7 +456,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static boolean isNameProperty(PropertyMetadata property) {
         // Property is read only, called "name", has type String and getter is abstract
-        return property.isReadOnly() && "name".equals(property.getName()) && property.getType() == String.class && property.getMainGetter().isAbstract();
+        return property.isReadOnly()
+                && "name".equals(property.getName())
+                && property.getType() == String.class
+                && property.getMainGetter().isAbstract();
     }
 
     private static boolean hasPropertyType(PropertyMetadata property) {
@@ -446,9 +467,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static boolean isPropertyType(Class<?> type) {
-        return Property.class.isAssignableFrom(type) ||
-            HasMultipleValues.class.isAssignableFrom(type) ||
-            MapProperty.class.isAssignableFrom(type);
+        return Property.class.isAssignableFrom(type)
+                || HasMultipleValues.class.isAssignableFrom(type)
+                || MapProperty.class.isAssignableFrom(type);
     }
 
     private static boolean isConfigurableFileCollectionType(Class<?> type) {
@@ -471,13 +492,18 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final List<Class<? extends Annotation>> annotationsTriggeringServiceInjection;
         private final List<GeneratedConstructor<Object>> constructors;
 
-        public GeneratedClassImpl(Class<?> generatedClass, @Nullable Class<?> outerType, List<Class<?>> injectedServices, List<Class<? extends Annotation>> annotationsTriggeringServiceInjection) {
+        public GeneratedClassImpl(
+                Class<?> generatedClass,
+                @Nullable Class<?> outerType,
+                List<Class<?>> injectedServices,
+                List<Class<? extends Annotation>> annotationsTriggeringServiceInjection) {
             this.generatedClass = generatedClass;
             this.outerType = outerType;
             this.injectedServices = injectedServices;
             this.annotationsTriggeringServiceInjection = annotationsTriggeringServiceInjection;
 
-            ImmutableList.Builder<GeneratedConstructor<Object>> builder = ImmutableList.builderWithExpectedSize(generatedClass.getDeclaredConstructors().length);
+            ImmutableList.Builder<GeneratedConstructor<Object>> builder =
+                    ImmutableList.builderWithExpectedSize(generatedClass.getDeclaredConstructors().length);
             for (final Constructor<?> constructor : generatedClass.getDeclaredConstructors()) {
                 if (!constructor.isSynthetic()) {
                     constructor.setAccessible(true);
@@ -516,7 +542,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             @Override
-            public Object newInstance(ServiceLookup services, InstanceGenerator nested) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+            public Object newInstance(ServiceLookup services, InstanceGenerator nested)
+                    throws InvocationTargetException, IllegalAccessException, InstantiationException {
                 return strategy.newInstance(services, nested, null, NO_PARAMS);
             }
         }
@@ -531,7 +558,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             @Override
-            public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+            public Object newInstance(
+                    ServiceLookup services,
+                    InstanceGenerator nested,
+                    @Nullable Describable displayName,
+                    Object[] params)
+                    throws InvocationTargetException, IllegalAccessException, InstantiationException {
                 return strategy.newInstance(services, nested, displayName, params);
             }
 
@@ -671,7 +703,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         public boolean isReadableWithoutSetterOfPropertyType() {
-            return isReadable() && setters.stream().noneMatch(method -> method.getParameterTypes()[0].equals(getType()));
+            return isReadable()
+                    && setters.stream().noneMatch(method -> method.getParameterTypes()[0].equals(getType()));
         }
 
         public boolean isReadable() {
@@ -740,7 +773,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             } else if (!mainGetter.shouldImplement() && metadata.shouldImplement()) {
                 // Prefer a real method over synthetic
                 mainGetter = metadata;
-            } else if (mainGetter.getReturnType().equals(Boolean.TYPE) && !metadata.getReturnType().equals(Boolean.TYPE)) {
+            } else if (mainGetter.getReturnType().equals(Boolean.TYPE)
+                    && !metadata.getReturnType().equals(Boolean.TYPE)) {
                 // Prefer non-boolean over boolean
                 mainGetter = metadata;
             } else if (mainGetter.getReturnType().isAssignableFrom(metadata.getReturnType())) {
@@ -778,9 +812,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
          * @param method the method to check
          * @param accessorType the type of property this method would represent
          */
-        default void validateMethod(Method method, PropertyAccessorType accessorType) {
-
-        }
+        default void validateMethod(Method method, PropertyAccessorType accessorType) {}
 
         /**
          * Validate the property is declared properly.
@@ -789,33 +821,27 @@ abstract class AbstractClassGenerator implements ClassGenerator {
          *
          * @param property the property to check
          */
-        default void validateProperty(PropertyDetails property) {
-
-        }
+        default void validateProperty(PropertyDetails property) {}
     }
 
     private static class ClassGenerationHandler {
         // used in subclasses
-        void startType(Class<?> type) {
-        }
+        void startType(Class<?> type) {}
 
         /**
          * Collect information about an instance method. This is called for all instance methods that are not property getter or setter methods.
          */
-        void visitInstanceMethod(Method method) {
-        }
+        void visitInstanceMethod(Method method) {}
 
         /**
          * Collect information about a property. This is called for all properties of a type.
          */
-        void visitProperty(PropertyMetadata property) {
-        }
+        void visitProperty(PropertyMetadata property) {}
 
         /**
          * Called when the type has any non-static fields.
          */
-        public void hasFields() {
-        }
+        public void hasFields() {}
 
         /**
          * Handler can claim the property, taking responsibility for generating whatever is required to make the property work.
@@ -833,11 +859,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             throw new UnsupportedOperationException("Multiple matches for " + property.getName());
         }
 
-        void applyTo(ClassInspectionVisitor visitor) {
-        }
+        void applyTo(ClassInspectionVisitor visitor) {}
 
-        void applyTo(ClassGenerationVisitor visitor) {
-        }
+        void applyTo(ClassGenerationVisitor visitor) {}
     }
 
     private interface UnclaimedPropertyHandler {
@@ -1014,7 +1038,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     return true;
                 }
                 return property.getName().equals("conventionMapping")
-                    || property.getName().equals("convention");
+                        || property.getName().equals("convention");
             }
 
             return false;
@@ -1039,7 +1063,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 visitor.mixInConventionAware();
             }
             for (PropertyMetadata property : conventionProperties) {
-                boolean applyRole = isAttachProperty(property) && isLazyAttachPropertyIfNeeded(property) && isRoleType(property);
+                boolean applyRole =
+                        isAttachProperty(property) && isLazyAttachPropertyIfNeeded(property) && isRoleType(property);
                 if (applyRole) {
                     visitor.instantiatesNestedObjects();
                 }
@@ -1209,10 +1234,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         @Override
         void visitProperty(PropertyMetadata property) {
             // For ConfigurableFileCollection we generate setters just for readonly properties,
-            // since we want to support += for mutable FileCollection properties, but we don't support += for ConfigurableFileCollection (yet).
-            // And if we generate setter override for ConfigurableFileCollection, it's difficult to distinguish between these two cases in setFromAnyValue method.
-            if ((property.isReadable() && hasPropertyType(property)) ||
-                (property.isReadOnly() && isConfigurableFileCollectionType(property.getType()))) {
+            // since we want to support += for mutable FileCollection properties, but we don't support += for
+            // ConfigurableFileCollection (yet).
+            // And if we generate setter override for ConfigurableFileCollection, it's difficult to distinguish between
+            // these two cases in setFromAnyValue method.
+            if ((property.isReadable() && hasPropertyType(property))
+                    || (property.isReadOnly() && isConfigurableFileCollectionType(property.getType()))) {
                 lazyGroovySupportTyped.add(property);
             }
         }
@@ -1229,7 +1256,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final Set<Class<? extends Annotation>> annotationTypes;
         private final ImmutableMultimap<Class<? extends Annotation>, TypeToken<?>> allowedTypesForAnnotation;
 
-        InjectionAnnotationValidator(Set<Class<? extends Annotation>> annotationTypes, ImmutableMultimap<Class<? extends Annotation>, TypeToken<?>> allowedTypesForAnnotation) {
+        InjectionAnnotationValidator(
+                Set<Class<? extends Annotation>> annotationTypes,
+                ImmutableMultimap<Class<? extends Annotation>, TypeToken<?>> allowedTypesForAnnotation) {
             this.annotationTypes = annotationTypes;
             this.allowedTypesForAnnotation = allowedTypesForAnnotation;
         }
@@ -1254,7 +1283,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
         }
 
-        private void validateMethod(Method method, PropertyAccessorType accessorType, Class<? extends Annotation> annotationType, List<Class<? extends Annotation>> matches) {
+        private void validateMethod(
+                Method method,
+                PropertyAccessorType accessorType,
+                Class<? extends Annotation> annotationType,
+                List<Class<? extends Annotation>> matches) {
             if (method.getAnnotation(annotationType) == null) {
                 return;
             }
@@ -1311,11 +1344,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 formatter.append("' of type ");
                 formatter.append(TypeToken.of(returnType).toString());
                 formatter.append(". Allowed property types: ");
-                formatter.append(allowedTypes.stream()
-                    .map(TypeToken::toString)
-                    .sorted()
-                    .collect(Collectors.joining(", "))
-                );
+                formatter.append(
+                        allowedTypes.stream().map(TypeToken::toString).sorted().collect(Collectors.joining(", ")));
                 formatter.append(".");
                 throw new IllegalArgumentException(formatter.toString());
             }
@@ -1327,7 +1357,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         public boolean claimPropertyImplementation(PropertyMetadata property) {
-            if (property.getName().equals("services") && property.isReadable() && ServiceRegistry.class.isAssignableFrom(property.getType())) {
+            if (property.getName().equals("services")
+                    && property.isReadable()
+                    && ServiceRegistry.class.isAssignableFrom(property.getType())) {
                 hasServicesProperty = true;
                 return true;
             }
@@ -1342,7 +1374,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    private static abstract class AbstractInjectedPropertyHandler extends ClassGenerationHandler {
+    private abstract static class AbstractInjectedPropertyHandler extends ClassGenerationHandler {
         final Class<? extends Annotation> annotation;
         final List<PropertyMetadata> serviceInjectionProperties = new ArrayList<>();
 
@@ -1385,7 +1417,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         public List<Class<?>> getInjectedServices() {
-            ImmutableList.Builder<Class<?>> services = ImmutableList.builderWithExpectedSize(serviceInjectionProperties.size());
+            ImmutableList.Builder<Class<?>> services =
+                    ImmutableList.builderWithExpectedSize(serviceInjectionProperties.size());
             for (PropertyMetadata property : serviceInjectionProperties) {
                 services.add(property.getType());
             }
@@ -1488,7 +1521,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     protected interface InstantiationStrategy {
-        Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
+        Object newInstance(
+                ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params)
+                throws InvocationTargetException, IllegalAccessException, InstantiationException;
     }
 
     protected interface ClassGenerationVisitor {
@@ -1518,9 +1553,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void applyServiceInjectionToSetter(PropertyMetadata property, Method setter);
 
-        void applyServiceInjectionToGetter(PropertyMetadata property, Class<? extends Annotation> annotation, MethodMetadata getter);
+        void applyServiceInjectionToGetter(
+                PropertyMetadata property, Class<? extends Annotation> annotation, MethodMetadata getter);
 
-        void applyServiceInjectionToSetter(PropertyMetadata property, Class<? extends Annotation> annotation, Method setter);
+        void applyServiceInjectionToSetter(
+                PropertyMetadata property, Class<? extends Annotation> annotation, Method setter);
 
         void applyManagedStateToProperty(PropertyMetadata property);
 
@@ -1534,7 +1571,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void applyConventionMappingToProperty(PropertyMetadata property);
 
-        void applyConventionMappingToGetter(PropertyMetadata property, MethodMetadata getter, boolean attachOwner, boolean applyRole);
+        void applyConventionMappingToGetter(
+                PropertyMetadata property, MethodMetadata getter, boolean attachOwner, boolean applyRole);
 
         void applyConventionMappingToSetter(PropertyMetadata property, Method setter);
 
@@ -1561,7 +1599,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         @Override
         public void validateProperty(PropertyDetails property) {
             // If a property only has a single getter, we need to check if its getXXX or isXXX when it's a Boolean.
-            // In a future version of Groovy, the Groovy compiler will not consider a Boolean is-getter as defining a property.
+            // In a future version of Groovy, the Groovy compiler will not consider a Boolean is-getter as defining a
+            // property.
             //
             // However, in Groovy 3, the compiler will still generate getters for a field-like declaration:
             // class GroovyClass {
@@ -1575,21 +1614,27 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (property.getGetters().size() == 1) {
                 Method method = property.getGetters().iterator().next();
                 PropertyAccessorType accessorType = PropertyAccessorType.of(method);
-                if (accessorType == PropertyAccessorType.IS_GETTER && method.getReturnType().isAssignableFrom(Boolean.class)) {
+                if (accessorType == PropertyAccessorType.IS_GETTER
+                        && method.getReturnType().isAssignableFrom(Boolean.class)) {
                     // To remove this deprecation, we need to do a few things:
-                    // 1. We should no longer recognize isXXX for anything that is not explicitly boolean (primitive type)
+                    // 1. We should no longer recognize isXXX for anything that is not explicitly boolean (primitive
+                    // type)
                     // 2. We should be able to remove this validator completely. We do not need to make this an error.
-                    // See PropertyAccessorType, BeanDynamicObject and DefaultTypeAnnotationMetadataStore for similar special handling
-                    DeprecationLogger.deprecateAction("Declaring '" + property.getName() + "' as a property using an 'is-' method with a Boolean type on " + method.getDeclaringClass().getCanonicalName())
-                        .withContext("The combination of method name and return type is not consistent with Java Bean property rules.")
-                        .withAdvice(String.format(
-                            "Add a method named '%s' with the same behavior and mark the old one with @Deprecated, or change the type of '%s.%s' (and the setter) to 'boolean'.",
-                            method.getName().replace("is", "get"),
-                            method.getDeclaringClass().getCanonicalName(), method.getName()
-                        ))
-                        .startingWithGradle10("this property will no longer be treated like a property")
-                        .withUpgradeGuideSection(8, "groovy_boolean_properties")
-                        .nagUser();
+                    // See PropertyAccessorType, BeanDynamicObject and DefaultTypeAnnotationMetadataStore for similar
+                    // special handling
+                    DeprecationLogger.deprecateAction("Declaring '" + property.getName()
+                                    + "' as a property using an 'is-' method with a Boolean type on "
+                                    + method.getDeclaringClass().getCanonicalName())
+                            .withContext(
+                                    "The combination of method name and return type is not consistent with Java Bean property rules.")
+                            .withAdvice(String.format(
+                                    "Add a method named '%s' with the same behavior and mark the old one with @Deprecated, or change the type of '%s.%s' (and the setter) to 'boolean'.",
+                                    method.getName().replace("is", "get"),
+                                    method.getDeclaringClass().getCanonicalName(),
+                                    method.getName()))
+                            .startingWithGradle10("this property will no longer be treated like a property")
+                            .withUpgradeGuideSection(8, "groovy_boolean_properties")
+                            .nagUser();
                 }
             }
         }

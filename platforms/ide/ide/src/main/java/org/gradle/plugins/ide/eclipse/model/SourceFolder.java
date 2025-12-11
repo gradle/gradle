@@ -20,7 +20,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import groovy.util.Node;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -34,7 +33,7 @@ public class SourceFolder extends AbstractClasspathEntry {
     private String output;
     private List<String> includes;
     private List<String> excludes;
-    //optional
+    // optional
     private File dir;
     private String name;
 
@@ -50,7 +49,7 @@ public class SourceFolder extends AbstractClasspathEntry {
         if (attribute == null) {
             return ImmutableList.of();
         } else {
-            return Arrays.asList(((String)attribute).split("\\|"));
+            return Arrays.asList(((String) attribute).split("\\|"));
         }
     }
 
@@ -115,7 +114,7 @@ public class SourceFolder extends AbstractClasspathEntry {
     }
 
     public void trim(String prefix) {
-        if(prefix != null) {
+        if (prefix != null) {
             name = prefix + "-" + name;
         }
         path = name;
@@ -145,12 +144,12 @@ public class SourceFolder extends AbstractClasspathEntry {
         }
         SourceFolder that = (SourceFolder) o;
         return exported == that.exported
-            && Objects.equal(accessRules, that.accessRules)
-            && Objects.equal(excludes, that.excludes)
-            && Objects.equal(includes, that.includes)
-            && Objects.equal(getNativeLibraryLocation(), that.getNativeLibraryLocation())
-            && Objects.equal(output, that.output)
-            && Objects.equal(path, that.path);
+                && Objects.equal(accessRules, that.accessRules)
+                && Objects.equal(excludes, that.excludes)
+                && Objects.equal(includes, that.includes)
+                && Objects.equal(getNativeLibraryLocation(), that.getNativeLibraryLocation())
+                && Objects.equal(output, that.output)
+                && Objects.equal(path, that.path);
     }
 
     @Override
@@ -160,7 +159,8 @@ public class SourceFolder extends AbstractClasspathEntry {
 
     @Override
     public String toString() {
-        return "SourceFolder{path='" + path + "', dir='" + dir + "', nativeLibraryLocation='" + getNativeLibraryLocation() + "', exported=" + exported
-            + ", accessRules=" + accessRules + ", output='" + output + "', excludes=" + excludes + ", includes=" + includes + "}";
+        return "SourceFolder{path='" + path + "', dir='" + dir + "', nativeLibraryLocation='"
+                + getNativeLibraryLocation() + "', exported=" + exported + ", accessRules=" + accessRules + ", output='"
+                + output + "', excludes=" + excludes + ", includes=" + includes + "}";
     }
 }

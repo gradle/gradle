@@ -22,7 +22,8 @@ import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 
 public abstract class ToolingModelBuilderSupport {
-    public static <T extends LaunchableGradleTask> T buildFromTask(T target, DefaultProjectIdentifier projectIdentifier, Task task) {
+    public static <T extends LaunchableGradleTask> T buildFromTask(
+            T target, DefaultProjectIdentifier projectIdentifier, Task task) {
         target.setPath(task.getPath())
                 .setName(task.getName())
                 .setGroup(task.getGroup())

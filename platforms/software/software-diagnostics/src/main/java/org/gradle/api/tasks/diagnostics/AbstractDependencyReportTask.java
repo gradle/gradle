@@ -15,6 +15,15 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -31,21 +40,12 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 /**
  * Displays the dependency tree for a configuration.
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
-public abstract class AbstractDependencyReportTask extends AbstractProjectBasedReportTask<AbstractDependencyReportTask.DependencyReportModel> {
+public abstract class AbstractDependencyReportTask
+        extends AbstractProjectBasedReportTask<AbstractDependencyReportTask.DependencyReportModel> {
 
     private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
 
@@ -131,13 +131,14 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     @ToBeReplacedByLazyProperty
     @Option(option = "configuration", description = "The configuration to generate the report for.")
     public void setConfiguration(String configurationName) {
-        this.configurations = Collections.singleton(ConfigurationFinder.find(getTaskConfigurations(), configurationName));
+        this.configurations =
+                Collections.singleton(ConfigurationFinder.find(getTaskConfigurations(), configurationName));
     }
 
     private Set<Configuration> getConfigurationsWithDependencies() {
         Set<Configuration> filteredConfigurations = new HashSet<>();
         for (Configuration configuration : Objects.requireNonNull(getTaskConfigurations())) {
-            if (((ConfigurationInternal)configuration).isDeclarableByExtension()) {
+            if (((ConfigurationInternal) configuration).isDeclarableByExtension()) {
                 filteredConfigurations.add(configuration);
             }
         }

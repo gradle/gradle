@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
+import static org.gradle.api.internal.notations.ModuleNotationValidation.*;
+
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
@@ -24,8 +26,6 @@ import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.internal.GUtil;
-
-import static org.gradle.api.internal.notations.ModuleNotationValidation.*;
 
 public class ModuleSelectorStringNotationConverter extends TypedNotationConverter<String, ComponentSelector> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -56,12 +56,14 @@ public class ModuleSelectorStringNotationConverter extends TypedNotationConverte
         if (!GUtil.isTrue(version)) {
             throw new UnsupportedNotationException(notation);
         }
-        return DefaultModuleComponentSelector.newSelector(moduleIdentifierFactory.module(group, name), DefaultImmutableVersionConstraint.of(version));
+        return DefaultModuleComponentSelector.newSelector(
+                moduleIdentifierFactory.module(group, name), DefaultImmutableVersionConstraint.of(version));
     }
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
         visitor.candidate("String describing the module in 'group:name' format").example("'org.gradle:gradle-core'.");
-        visitor.candidate("String describing the selector in 'group:name:version' format").example("'org.gradle:gradle-core:1.+'.");
+        visitor.candidate("String describing the selector in 'group:name:version' format")
+                .example("'org.gradle:gradle-core:1.+'.");
     }
 }

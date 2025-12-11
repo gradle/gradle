@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
+import java.io.File;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.hash.HashCode;
-
-import java.io.File;
 
 /**
  * This module source stores information about the metadata file

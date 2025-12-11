@@ -15,19 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
-import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.jspecify.annotations.Nullable;
 
 public class LatestModuleConflictResolver<T extends ComponentResolutionState> implements ModuleConflictResolver<T> {
     private final Comparator<Version> versionComparator;
@@ -59,7 +58,8 @@ public class LatestModuleConflictResolver<T extends ComponentResolutionState> im
             return;
         }
 
-        // Work backwards from the highest version, return the first candidate with qualified version and release status, or candidate with unqualified version
+        // Work backwards from the highest version, return the first candidate with qualified version and release
+        // status, or candidate with unqualified version
         List<Version> sorted = new ArrayList<>(matches.keySet());
         sorted.sort(Collections.reverseOrder(versionComparator));
         T bestComponent = null;
@@ -108,7 +108,8 @@ public class LatestModuleConflictResolver<T extends ComponentResolutionState> im
 
     private boolean isMavenSnapshot(@Nullable ComponentGraphResolveMetadata metadata) {
         if (metadata instanceof MavenModuleResolveMetadata) {
-            return ((MavenModuleResolveMetadata) metadata).getSnapshotTimestamp() != null || metadata.getModuleVersionId().getVersion().endsWith("-SNAPSHOT");
+            return ((MavenModuleResolveMetadata) metadata).getSnapshotTimestamp() != null
+                    || metadata.getModuleVersionId().getVersion().endsWith("-SNAPSHOT");
         }
         return false;
     }

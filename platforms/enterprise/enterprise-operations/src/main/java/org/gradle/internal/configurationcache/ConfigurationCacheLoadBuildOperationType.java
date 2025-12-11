@@ -24,10 +24,11 @@ import org.jspecify.annotations.Nullable;
  *
  * @since 7.5
  */
-public class ConfigurationCacheLoadBuildOperationType implements BuildOperationType<ConfigurationCacheLoadBuildOperationType.Details, ConfigurationCacheLoadBuildOperationType.Result> {
+public class ConfigurationCacheLoadBuildOperationType
+        implements BuildOperationType<
+                ConfigurationCacheLoadBuildOperationType.Details, ConfigurationCacheLoadBuildOperationType.Result> {
 
-    public interface Details {
-    }
+    public interface Details {}
 
     public interface Result {
         /**
@@ -47,5 +48,4 @@ public class ConfigurationCacheLoadBuildOperationType implements BuildOperationT
         @Nullable
         String getOriginBuildInvocationId();
     }
-
 }

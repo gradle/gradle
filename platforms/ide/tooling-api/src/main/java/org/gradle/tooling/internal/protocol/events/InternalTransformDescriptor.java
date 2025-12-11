@@ -25,6 +25,8 @@ import java.util.Set;
  */
 public interface InternalTransformDescriptor extends InternalOperationDescriptor {
     String getTransformerName();
+
     String getSubjectName();
+
     Set<? extends InternalOperationDescriptor> getDependencies();
 }

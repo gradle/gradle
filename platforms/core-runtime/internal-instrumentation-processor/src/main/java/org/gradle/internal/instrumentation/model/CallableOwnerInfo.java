@@ -16,9 +16,8 @@
 
 package org.gradle.internal.instrumentation.model;
 
-import org.objectweb.asm.Type;
-
 import java.util.Objects;
+import org.objectweb.asm.Type;
 
 public class CallableOwnerInfo {
     private final Type type;

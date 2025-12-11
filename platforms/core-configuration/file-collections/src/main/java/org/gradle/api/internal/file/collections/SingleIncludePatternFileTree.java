@@ -15,6 +15,12 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import java.io.File;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileTreeElement;
@@ -30,13 +36,6 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
-
-import java.io.File;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Directory walker that supports a single Ant-style include pattern
@@ -85,7 +84,8 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
         doVisit(visitor, baseDir, new ArrayDeque<>(), 0, new AtomicBoolean());
     }
 
-    private void doVisit(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag) {
+    private void doVisit(
+            FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag) {
         if (stopFlag.get()) {
             return;
         }
@@ -97,13 +97,15 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
             patternSet.include(includePattern);
             patternSet.exclude(excludeSpec);
             DirectoryFileTree fileTree = new DirectoryFileTree(baseDir, patternSet, fileSystem);
-            fileTree.visitFrom(visitor, file, new RelativePath(file.isFile(), pathSegments.toArray(new String[0])), stopFlag);
+            fileTree.visitFrom(
+                    visitor, file, new RelativePath(file.isFile(), pathSegments.toArray(new String[0])), stopFlag);
         } else if (segment.contains("*") || segment.contains("?")) {
             PatternStep step = PatternStepFactory.getStep(segment, false);
             File[] children = file.listFiles();
             if (children == null) {
                 if (!file.canRead()) {
-                    throw new GradleException(String.format("Could not list contents of directory '%s' as it is not readable.", file));
+                    throw new GradleException(
+                            String.format("Could not list contents of directory '%s' as it is not readable.", file));
                 }
                 // else, might be a link which points to nothing, or has been removed while we're visiting, or ...
                 throw new GradleException(String.format("Could not list contents of '%s'.", file));
@@ -126,18 +128,21 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
         }
     }
 
-    private void doVisitDirOrFile(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag) {
+    private void doVisitDirOrFile(
+            FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag) {
         if (file.isFile()) {
             if (segmentIndex == patternSegments.size()) {
                 RelativePath path = new RelativePath(true, pathSegments.toArray(new String[0]));
-                FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem);
+                FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(
+                        file.toPath(), path, stopFlag, fileSystem);
                 if (!excludeSpec.isSatisfiedBy(details)) {
                     visitor.visitFile(details);
                 }
             }
         } else if (file.isDirectory()) {
             RelativePath path = new RelativePath(false, pathSegments.toArray(new String[0]));
-            FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem);
+            FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(
+                    file.toPath(), path, stopFlag, fileSystem);
             if (!excludeSpec.isSatisfiedBy(details)) {
                 visitor.visitDir(details);
             }

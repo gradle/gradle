@@ -16,10 +16,10 @@
 
 package org.gradle.internal.snapshot;
 
-import javax.annotation.CheckReturnValue;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Stream;
+import javax.annotation.CheckReturnValue;
 
 /**
  * An immutable hierarchy of snapshots of the file system.
@@ -38,8 +38,8 @@ public interface SnapshotHierarchy {
      */
     default Optional<FileSystemLocationSnapshot> findSnapshot(String absolutePath) {
         return findMetadata(absolutePath)
-            .filter(FileSystemLocationSnapshot.class::isInstance)
-            .map(FileSystemLocationSnapshot.class::cast);
+                .filter(FileSystemLocationSnapshot.class::isInstance)
+                .map(FileSystemLocationSnapshot.class::cast);
     }
 
     boolean hasDescendantsUnder(String absolutePath);
@@ -82,12 +82,10 @@ public interface SnapshotHierarchy {
     interface NodeDiffListener {
         NodeDiffListener NOOP = new NodeDiffListener() {
             @Override
-            public void nodeRemoved(FileSystemNode node) {
-            }
+            public void nodeRemoved(FileSystemNode node) {}
 
             @Override
-            public void nodeAdded(FileSystemNode node) {
-            }
+            public void nodeAdded(FileSystemNode node) {}
         };
 
         /**
@@ -120,6 +118,8 @@ public interface SnapshotHierarchy {
          *
          * Only the roots of added/removed hierarchies are reported.
          */
-        void changed(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots);
+        void changed(
+                Collection<FileSystemLocationSnapshot> removedSnapshots,
+                Collection<FileSystemLocationSnapshot> addedSnapshots);
     }
 }

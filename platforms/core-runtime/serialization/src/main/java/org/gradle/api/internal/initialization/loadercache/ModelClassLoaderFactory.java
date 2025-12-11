@@ -17,6 +17,10 @@
 package org.gradle.api.internal.initialization.loadercache;
 
 import com.google.common.collect.ImmutableList;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.util.List;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -25,11 +29,6 @@ import org.gradle.internal.classloader.SystemClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.tooling.internal.provider.serialization.ClientOwnedClassLoaderSpec;
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
-
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.util.List;
 
 public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
     private final ClassLoader rootClassLoader;

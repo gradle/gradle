@@ -16,20 +16,20 @@
 package org.gradle.internal.resource.cached;
 
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.resource.local.FileStoreException;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
-
-import java.io.File;
-import java.util.Set;
 
 public class TwoStageExternalResourceFileStore implements ExternalResourceFileStore {
     private final ExternalResourceFileStore readOnlyStore;
     private final ExternalResourceFileStore writableStore;
     private final DelegatingFileAccessTracker delegatingFileAccessTracker;
 
-    public TwoStageExternalResourceFileStore(ExternalResourceFileStore readOnlyStore, ExternalResourceFileStore writableStore) {
+    public TwoStageExternalResourceFileStore(
+            ExternalResourceFileStore readOnlyStore, ExternalResourceFileStore writableStore) {
         this.readOnlyStore = readOnlyStore;
         this.writableStore = writableStore;
         this.delegatingFileAccessTracker = new DelegatingFileAccessTracker();

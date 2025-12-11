@@ -17,17 +17,16 @@
 package org.gradle.internal.versionedcache;
 
 import com.google.common.collect.ImmutableSortedSet;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.gradle.util.GradleVersion;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.SortedSet;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.Nullable;
 
 public class VersionSpecificCacheDirectoryScanner {
 
@@ -57,7 +56,8 @@ public class VersionSpecificCacheDirectoryScanner {
     }
 
     private Collection<File> listVersionSpecificCacheDirs() {
-        FileFilter combinedFilter = FileFilterUtils.and(FileFilterUtils.directoryFileFilter(), new RegexFileFilter("^\\d.*"));
+        FileFilter combinedFilter =
+                FileFilterUtils.and(FileFilterUtils.directoryFileFilter(), new RegexFileFilter("^\\d.*"));
         File[] result = baseDir.listFiles(combinedFilter);
         return result == null ? Collections.<File>emptySet() : Arrays.asList(result);
     }

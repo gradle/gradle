@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Collection;
+import java.util.Set;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -27,9 +29,6 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Set;
 
 public interface ConfigurationInternal extends DeprecatableConfiguration, Configuration {
 
@@ -125,7 +124,8 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      *
      * @return {@code true} if so; {@code false} otherwise
      */
-    @SuppressWarnings("AmbiguousMethodReference") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("AmbiguousMethodReference") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     default boolean isDeclarableByExtension() {
         return isDeclarableByExtension(this);
     }
@@ -143,7 +143,8 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      * @param configuration the configuration to test
      * @return {@code true} if so; {@code false} otherwise
      */
-    @SuppressWarnings("AmbiguousMethodReference") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("AmbiguousMethodReference") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     static boolean isDeclarableByExtension(ConfigurationInternal configuration) {
         if (configuration.isCanBeDeclared()) {
             return true;
@@ -156,9 +157,16 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
 
     interface VariantVisitor {
         // This configuration as a variant. May not always be present
-        void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts);
+        void visitOwnVariant(
+                DisplayName displayName,
+                ImmutableAttributes attributes,
+                Collection<? extends PublishArtifact> artifacts);
 
         // A child variant. May not always be present
-        void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts);
+        void visitChildVariant(
+                String name,
+                DisplayName displayName,
+                ImmutableAttributes attributes,
+                Collection<? extends PublishArtifact> artifacts);
     }
 }

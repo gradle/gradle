@@ -36,5 +36,4 @@ public interface TestTaskForkOptions {
     List<String> getJvmArgs();
 
     Map<String, String> getEnvironment();
-
 }

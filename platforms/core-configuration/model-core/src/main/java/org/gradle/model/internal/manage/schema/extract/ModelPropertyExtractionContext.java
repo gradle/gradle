@@ -16,20 +16,19 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import static org.gradle.internal.reflect.PropertyAccessorType.hasGetter;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasSetter;
+
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import org.gradle.internal.reflect.PropertyAccessorType;
-import org.gradle.model.internal.type.ModelType;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-
-import static org.gradle.internal.reflect.PropertyAccessorType.hasGetter;
-import static org.gradle.internal.reflect.PropertyAccessorType.hasSetter;
+import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.model.internal.type.ModelType;
+import org.jspecify.annotations.Nullable;
 
 public class ModelPropertyExtractionContext {
 
@@ -72,7 +71,8 @@ public class ModelPropertyExtractionContext {
     }
 
     public Set<ModelType<?>> getDeclaredBy() {
-        ImmutableSortedSet.Builder<ModelType<?>> declaredBy = new ImmutableSortedSet.Builder<ModelType<?>>(Ordering.usingToString());
+        ImmutableSortedSet.Builder<ModelType<?>> declaredBy =
+                new ImmutableSortedSet.Builder<ModelType<?>>(Ordering.usingToString());
         for (PropertyAccessorExtractionContext accessor : accessors.values()) {
             for (Method method : accessor.getDeclaringMethods()) {
                 declaredBy.add(ModelType.declaringType(method));
@@ -80,5 +80,4 @@ public class ModelPropertyExtractionContext {
         }
         return declaredBy.build();
     }
-
 }

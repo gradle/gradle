@@ -18,5 +18,6 @@ package org.gradle.api.plugins.antlr;
 
 public interface HasAntlrGrammars {
     AntlrSourceDirectorySet getGrammarSources();
+
     void setGrammarSources(AntlrSourceDirectorySet sources);
 }

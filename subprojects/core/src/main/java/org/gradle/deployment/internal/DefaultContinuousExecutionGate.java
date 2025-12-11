@@ -16,13 +16,12 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.internal.UncheckedException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.gradle.internal.UncheckedException;
 
 public class DefaultContinuousExecutionGate implements ContinuousExecutionGate {
     private final Lock lock = new ReentrantLock();

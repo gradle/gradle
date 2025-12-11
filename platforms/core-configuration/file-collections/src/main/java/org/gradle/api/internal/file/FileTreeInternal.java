@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.file;
 
+import java.util.function.Consumer;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.util.PatternFilterable;
-
-import java.util.function.Consumer;
 
 public interface FileTreeInternal extends FileTree, FileCollectionInternal {
     String DEFAULT_TREE_DISPLAY_NAME = "file tree";

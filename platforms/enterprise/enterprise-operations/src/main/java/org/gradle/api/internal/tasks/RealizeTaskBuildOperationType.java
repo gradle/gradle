@@ -23,7 +23,8 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 4.9
  */
-public final class RealizeTaskBuildOperationType implements BuildOperationType<RealizeTaskBuildOperationType.Details, RealizeTaskBuildOperationType.Result> {
+public final class RealizeTaskBuildOperationType
+        implements BuildOperationType<RealizeTaskBuildOperationType.Details, RealizeTaskBuildOperationType.Result> {
 
     public interface Details {
 
@@ -45,13 +46,9 @@ public final class RealizeTaskBuildOperationType implements BuildOperationType<R
         boolean isReplacement();
 
         boolean isEager();
-
     }
 
-    public interface Result {
-    }
+    public interface Result {}
 
-    private RealizeTaskBuildOperationType() {
-    }
-
+    private RealizeTaskBuildOperationType() {}
 }

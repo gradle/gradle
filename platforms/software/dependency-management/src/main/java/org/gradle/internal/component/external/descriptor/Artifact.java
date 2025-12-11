@@ -16,10 +16,9 @@
 
 package org.gradle.internal.component.external.descriptor;
 
-import org.gradle.internal.component.model.IvyArtifactName;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 public class Artifact {
     private final IvyArtifactName artifactName;

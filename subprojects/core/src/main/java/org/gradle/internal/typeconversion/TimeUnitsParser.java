@@ -16,18 +16,17 @@
 
 package org.gradle.internal.typeconversion;
 
-import org.gradle.api.InvalidUserDataException;
+import static org.gradle.internal.typeconversion.NormalizedTimeUnit.millis;
 
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-
-import static org.gradle.internal.typeconversion.NormalizedTimeUnit.millis;
+import org.gradle.api.InvalidUserDataException;
 
 public class TimeUnitsParser {
 
     public NormalizedTimeUnit parseNotation(CharSequence notation, int value) {
         String candidate = notation.toString().toUpperCase(Locale.ROOT);
-        //jdk5 does not have days, hours or minutes, normalizing to millis
+        // jdk5 does not have days, hours or minutes, normalizing to millis
         switch (candidate) {
             case "DAYS":
                 return millis(value * 24 * 60 * 60 * 1000);

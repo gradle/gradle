@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file;
 
+import java.io.File;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
@@ -33,8 +34,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 
-import java.io.File;
-
 public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     private final Directory settingsDir;
@@ -48,16 +47,15 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     private final FileFactory fileFactory;
 
     public DefaultProjectLayout(
-        File settingsDir,
-        File projectDir,
-        FileResolver fileResolver,
-        TaskDependencyFactory taskDependencyFactory,
-        PatternSetFactory patternSetFactory,
-        PropertyHost propertyHost,
-        FileCollectionFactory fileCollectionFactory,
-        FilePropertyFactory filePropertyFactory,
-        FileFactory fileFactory
-    ) {
+            File settingsDir,
+            File projectDir,
+            FileResolver fileResolver,
+            TaskDependencyFactory taskDependencyFactory,
+            PatternSetFactory patternSetFactory,
+            PropertyHost propertyHost,
+            FileCollectionFactory fileCollectionFactory,
+            FilePropertyFactory filePropertyFactory,
+            FileFactory fileFactory) {
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
         this.patternSetFactory = patternSetFactory;
@@ -66,7 +64,9 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         this.fileFactory = fileFactory;
         this.settingsDir = fileFactory.dir(settingsDir);
         this.projectDir = fileFactory.dir(projectDir);
-        this.buildDir = filePropertyFactory.newDirectoryProperty().convention(fileFactory.dir(fileResolver.resolve(Project.DEFAULT_BUILD_DIR_NAME)));
+        this.buildDir = filePropertyFactory
+                .newDirectoryProperty()
+                .convention(fileFactory.dir(fileResolver.resolve(Project.DEFAULT_BUILD_DIR_NAME)));
     }
 
     @Override
@@ -90,18 +90,21 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     }
 
     @Override
-    public FileCollection newCalculatedInputFileCollection(Task consumer, MinimalFileSet calculatedFiles, FileCollection... inputs) {
-        return new CalculatedTaskInputFileCollection(taskDependencyFactory, consumer.getPath(), calculatedFiles, inputs);
+    public FileCollection newCalculatedInputFileCollection(
+            Task consumer, MinimalFileSet calculatedFiles, FileCollection... inputs) {
+        return new CalculatedTaskInputFileCollection(
+                taskDependencyFactory, consumer.getPath(), calculatedFiles, inputs);
     }
 
     @Override
     public Provider<RegularFile> file(Provider<File> provider) {
-        return new MappingProvider<>(RegularFile.class, Providers.internal(provider), new Transformer<RegularFile, File>() {
-            @Override
-            public RegularFile transform(File file) {
-                return fileFactory.file(fileResolver.resolve(file));
-            }
-        });
+        return new MappingProvider<>(
+                RegularFile.class, Providers.internal(provider), new Transformer<RegularFile, File>() {
+                    @Override
+                    public RegularFile transform(File file) {
+                        return fileFactory.file(fileResolver.resolve(file));
+                    }
+                });
     }
 
     @Override

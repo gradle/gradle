@@ -16,9 +16,8 @@
 
 package org.gradle.caching.internal.packaging.impl;
 
-import org.gradle.internal.file.FileException;
-
 import java.io.File;
+import org.gradle.internal.file.FileException;
 
 public interface FilePermissionAccess {
 

@@ -35,5 +35,4 @@ public @interface NotUsedByScanPlugin {
      * Any clarifying comments about why it isn't used by the Develocity plugin or how it is used instead.
      */
     String value() default "";
-
 }

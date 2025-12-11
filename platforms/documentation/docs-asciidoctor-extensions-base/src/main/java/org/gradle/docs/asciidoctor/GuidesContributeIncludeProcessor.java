@@ -15,13 +15,12 @@
  */
 package org.gradle.docs.asciidoctor;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.asciidoctor.ast.Document;
 import org.asciidoctor.extension.IncludeProcessor;
 import org.asciidoctor.extension.PreprocessorReader;
 import org.jspecify.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class GuidesContributeIncludeProcessor extends IncludeProcessor {
     private static final String CONTRIBUTE = "contribute";
@@ -46,7 +45,8 @@ public class GuidesContributeIncludeProcessor extends IncludeProcessor {
     // This method adheres the asciidoctorj 1.6.0 API
     @Override
     public void process(Document document, PreprocessorReader reader, String target, Map<String, Object> attributes) {
-        final String contributeMessage = getContributeMessage((String) attributes.getOrDefault("guide-name", document.getAttributes().get("guide-name")));
+        final String contributeMessage = getContributeMessage((String)
+                attributes.getOrDefault("guide-name", document.getAttributes().get("guide-name")));
         reader.pushInclude(contributeMessage, target, target, 1, attributes);
     }
 
@@ -65,6 +65,8 @@ public class GuidesContributeIncludeProcessor extends IncludeProcessor {
     }
 
     private String getContributeMessage(@Nullable String guideName) {
-        return String.format("%n[.contribute]%n== Help improve this guide%n%nHave feedback or a question? Found a typo? Like all Gradle guides, help is just a GitHub issue away. Please %s[add an issue] or pull request to %s[gradle/guides] and we'll get back to you.", issueUrl(guideName), repositoryUrl(guideName));
+        return String.format(
+                "%n[.contribute]%n== Help improve this guide%n%nHave feedback or a question? Found a typo? Like all Gradle guides, help is just a GitHub issue away. Please %s[add an issue] or pull request to %s[gradle/guides] and we'll get back to you.",
+                issueUrl(guideName), repositoryUrl(guideName));
     }
 }

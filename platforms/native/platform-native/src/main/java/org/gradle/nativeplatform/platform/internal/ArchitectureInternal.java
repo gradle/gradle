@@ -19,7 +19,13 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.nativeplatform.platform.Architecture;
 
 public interface ArchitectureInternal extends Architecture {
-    enum InstructionSet { X86, ITANIUM, PPC, SPARC, ARM }
+    enum InstructionSet {
+        X86,
+        ITANIUM,
+        PPC,
+        SPARC,
+        ARM
+    }
 
     @Internal
     boolean isI386();

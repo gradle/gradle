@@ -36,6 +36,5 @@ public class ComponentFound<T> implements SearchResult<T> {
     }
 
     @Override
-    public void explain(DiagnosticsVisitor visitor) {
-    }
+    public void explain(DiagnosticsVisitor visitor) {}
 }

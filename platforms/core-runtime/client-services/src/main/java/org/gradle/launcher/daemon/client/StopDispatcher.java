@@ -18,9 +18,9 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.remote.internal.Connection;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.*;
-import org.gradle.internal.remote.internal.Connection;
 
 public class StopDispatcher {
     private static final Logger LOGGER = Logging.getLogger(StopDispatcher.class);

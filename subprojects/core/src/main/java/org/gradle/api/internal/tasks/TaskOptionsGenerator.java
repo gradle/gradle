@@ -17,6 +17,13 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.options.BooleanOptionElement;
 import org.gradle.api.internal.tasks.options.BuiltInOptionElement;
@@ -31,14 +38,6 @@ import org.gradle.util.internal.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 /**
  * This class is responsible for generating the built-in options and
  * the {@link BooleanOptionElement mutually exclusive options} of a task,
@@ -48,13 +47,9 @@ public class TaskOptionsGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskOptionsGenerator.class);
 
     @VisibleForTesting
-    static final List<BuiltInOptionElement> BUILT_IN_OPTIONS = Collections.singletonList(
-        new BuiltInOptionElement(
-            "Causes the task to be re-run even if up-to-date.",
-            "rerun",
-            task -> task.getOutputs().upToDateWhen(Specs.satisfyNone())
-        )
-    );
+    static final List<BuiltInOptionElement> BUILT_IN_OPTIONS = Collections.singletonList(new BuiltInOptionElement(
+            "Causes the task to be re-run even if up-to-date.", "rerun", task -> task.getOutputs()
+                    .upToDateWhen(Specs.satisfyNone())));
 
     /**
      * Builds a list of implicit built-in options available for every task.
@@ -62,9 +57,13 @@ public class TaskOptionsGenerator {
     private static List<OptionDescriptor> generateBuiltInOptions(Object target, Collection<String> reserved) {
         List<OptionDescriptor> validBuiltInOptions = new ArrayList<>();
         for (BuiltInOptionElement builtInOption : BUILT_IN_OPTIONS) {
-            OptionDescriptor optionDescriptor = new InstanceOptionDescriptor(target, builtInOption, null, reserved.contains(builtInOption.getOptionName()));
+            OptionDescriptor optionDescriptor = new InstanceOptionDescriptor(
+                    target, builtInOption, null, reserved.contains(builtInOption.getOptionName()));
             if (optionDescriptor.isClashing()) {
-                LOGGER.warn("Built-in option '{}' in task {} was disabled for clashing with another option of same name", optionDescriptor.getName(), target);
+                LOGGER.warn(
+                        "Built-in option '{}' in task {} was disabled for clashing with another option of same name",
+                        optionDescriptor.getName(),
+                        target);
             } else {
                 validBuiltInOptions.add(optionDescriptor);
             }
@@ -76,7 +75,8 @@ public class TaskOptionsGenerator {
      * Generates a map of opposite options and, based on these, adds {@link Pair pairs}
      * of mutually exclusive options to the {@link TaskOptions#mutuallyExclusiveOptions taskOptions} argument.
      */
-    private static Map<String, OptionDescriptor> generateOppositeOptions(Object target, Map<String, OptionDescriptor> options, TaskOptions taskOptions) {
+    private static Map<String, OptionDescriptor> generateOppositeOptions(
+            Object target, Map<String, OptionDescriptor> options, TaskOptions taskOptions) {
         Map<String, OptionDescriptor> oppositeOptions = new HashMap<>();
         List<Pair<OptionDescriptor, OptionDescriptor>> mutuallyExclusiveOptions = new LinkedList<>();
 
@@ -84,12 +84,17 @@ public class TaskOptionsGenerator {
             if (option instanceof InstanceOptionDescriptor) {
                 OptionElement optionElement = ((InstanceOptionDescriptor) option).getOptionElement();
                 if (optionElement instanceof BooleanOptionElement) {
-                    BooleanOptionElement oppositeOptionElement = BooleanOptionElement.oppositeOf((BooleanOptionElement) optionElement);
+                    BooleanOptionElement oppositeOptionElement =
+                            BooleanOptionElement.oppositeOf((BooleanOptionElement) optionElement);
                     String oppositeOptionName = oppositeOptionElement.getOptionName();
                     if (options.containsKey(oppositeOptionName)) {
-                        LOGGER.warn("Opposite option '{}' in task {} was disabled for clashing with another option of same name", oppositeOptionName, target);
+                        LOGGER.warn(
+                                "Opposite option '{}' in task {} was disabled for clashing with another option of same name",
+                                oppositeOptionName,
+                                target);
                     } else {
-                        OptionDescriptor oppositeOption = new InstanceOptionDescriptor(target, oppositeOptionElement, null);
+                        OptionDescriptor oppositeOption =
+                                new InstanceOptionDescriptor(target, oppositeOptionElement, null);
                         oppositeOptions.put(oppositeOptionName, oppositeOption);
                         mutuallyExclusiveOptions.add(Pair.of(option, oppositeOption));
                     }
@@ -111,7 +116,8 @@ public class TaskOptionsGenerator {
         TaskOptions taskOptions = new TaskOptions();
         Map<String, OptionDescriptor> options = optionReader.getOptions(task);
         options.putAll(generateOppositeOptions(task, options, taskOptions));
-        List<OptionDescriptor> sortedOptions = CollectionUtils.sort(options.values(), BooleanOptionElement.groupOppositeOptions());
+        List<OptionDescriptor> sortedOptions =
+                CollectionUtils.sort(options.values(), BooleanOptionElement.groupOppositeOptions());
         sortedOptions.addAll(generateBuiltInOptions(task, options.keySet()));
         taskOptions.allTaskOptions = Collections.unmodifiableList(sortedOptions);
         return taskOptions;
@@ -120,6 +126,7 @@ public class TaskOptionsGenerator {
     public static class TaskOptions {
         private List<OptionDescriptor> allTaskOptions;
         private List<Pair<OptionDescriptor, OptionDescriptor>> mutuallyExclusiveOptions;
+
         private TaskOptions() {}
 
         public List<OptionDescriptor> getAll() {
@@ -127,7 +134,8 @@ public class TaskOptionsGenerator {
         }
 
         public void addMutualExclusions(CommandLineParser parser) {
-            mutuallyExclusiveOptions.forEach(pair -> parser.allowOneOf(pair.getLeft().getName(), pair.getRight().getName()));
+            mutuallyExclusiveOptions.forEach(pair ->
+                    parser.allowOneOf(pair.getLeft().getName(), pair.getRight().getName()));
         }
     }
 }

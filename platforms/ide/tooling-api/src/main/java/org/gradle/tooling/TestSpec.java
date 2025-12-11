@@ -16,9 +16,8 @@
 
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 import java.util.Collection;
+import org.gradle.api.Incubating;
 
 /**
  * Provides infrastructure to select which test classes, methods, and packages will be included in the test execution.
@@ -81,7 +80,7 @@ public interface TestSpec {
      * @param classes The fully-qualified name of the target classes.
      * @return this
      */
-    TestSpec includeClasses(Collection<String>  classes);
+    TestSpec includeClasses(Collection<String> classes);
 
     /**
      * Adds the target test method to the test execution.

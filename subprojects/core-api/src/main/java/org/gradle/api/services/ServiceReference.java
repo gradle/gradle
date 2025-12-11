@@ -16,14 +16,13 @@
 
 package org.gradle.api.services;
 
-import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Optional;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Optional;
 
 /**
  * <p>Marks a task property as being a holder to a {@link BuildService}.</p>

@@ -15,6 +15,10 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
@@ -30,11 +34,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
 public class SyncCopyActionDecorator implements CopyAction {
     private final File baseDestDir;
     private final CopyAction delegate;
@@ -43,21 +42,16 @@ public class SyncCopyActionDecorator implements CopyAction {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
     public SyncCopyActionDecorator(
-        File baseDestDir,
-        CopyAction delegate,
-        Deleter deleter,
-        DirectoryFileTreeFactory directoryFileTreeFactory
-    ) {
+            File baseDestDir, CopyAction delegate, Deleter deleter, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this(baseDestDir, delegate, null, deleter, directoryFileTreeFactory);
     }
 
     public SyncCopyActionDecorator(
-        File baseDestDir,
-        CopyAction delegate,
-        @Nullable PatternFilterable preserveSpec,
-        Deleter deleter,
-        DirectoryFileTreeFactory directoryFileTreeFactory
-    ) {
+            File baseDestDir,
+            CopyAction delegate,
+            @Nullable PatternFilterable preserveSpec,
+            Deleter deleter,
+            DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.baseDestDir = baseDestDir;
         this.delegate = delegate;
         this.preserveSpec = preserveSpec;
@@ -74,7 +68,8 @@ public class SyncCopyActionDecorator implements CopyAction {
             action.processFile(details);
         }));
 
-        SyncCopyActionDecoratorFileVisitor fileVisitor = new SyncCopyActionDecoratorFileVisitor(visited, preserveSpec, deleter);
+        SyncCopyActionDecoratorFileVisitor fileVisitor =
+                new SyncCopyActionDecoratorFileVisitor(visited, preserveSpec, deleter);
 
         MinimalFileTree walker = directoryFileTreeFactory.create(baseDestDir).postfix();
         walker.visit(fileVisitor);
@@ -90,7 +85,8 @@ public class SyncCopyActionDecorator implements CopyAction {
         private final Deleter deleter;
         private boolean didWork;
 
-        private SyncCopyActionDecoratorFileVisitor(Set<RelativePath> visited, @Nullable PatternFilterable preserveSpec, Deleter deleter) {
+        private SyncCopyActionDecoratorFileVisitor(
+                Set<RelativePath> visited, @Nullable PatternFilterable preserveSpec, Deleter deleter) {
             this.visited = visited;
             this.deleter = deleter;
             PatternSet preserveSet = new PatternSet();

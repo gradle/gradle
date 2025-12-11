@@ -17,6 +17,10 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedSet;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -28,13 +32,9 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.operations.execution.FilePropertyVisitor;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Map;
-import java.util.Set;
-
 @NullMarked
-public abstract class BaseFilePropertyVisitState implements FilePropertyVisitor.VisitState, FileSystemSnapshotHierarchyVisitor {
+public abstract class BaseFilePropertyVisitState
+        implements FilePropertyVisitor.VisitState, FileSystemSnapshotHierarchyVisitor {
     private final Map<String, InputFilePropertySpec> propertySpecsByName;
     private final Deque<DirectorySnapshot> unvisitedDirectories = new ArrayDeque<>();
 
@@ -51,10 +51,15 @@ public abstract class BaseFilePropertyVisitState implements FilePropertyVisitor.
     }
 
     protected abstract void preRoot();
+
     protected abstract void postRoot();
+
     protected abstract void preDirectory();
+
     protected abstract void preUnvisitedDirectory(DirectorySnapshot unvisited);
+
     protected abstract void postDirectory();
+
     protected abstract void file();
 
     @Override
@@ -71,10 +76,15 @@ public abstract class BaseFilePropertyVisitState implements FilePropertyVisitor.
     public Set<String> getPropertyAttributes() {
         InputFilePropertySpec propertySpec = propertySpec(propertyName);
         return ImmutableSortedSet.of(
-            SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.fromNormalizer(propertySpec.getNormalizer()).name(),
-            SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.from(propertySpec.getDirectorySensitivity()).name(),
-            SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.from(propertySpec.getLineEndingNormalization()).name()
-        );
+                SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.fromNormalizer(
+                                propertySpec.getNormalizer())
+                        .name(),
+                SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.from(
+                                propertySpec.getDirectorySensitivity())
+                        .name(),
+                SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.from(
+                                propertySpec.getLineEndingNormalization())
+                        .name());
     }
 
     @Override
@@ -165,12 +175,14 @@ public abstract class BaseFilePropertyVisitState implements FilePropertyVisitor.
     protected InputFilePropertySpec propertySpec(String propertyName) {
         InputFilePropertySpec propertySpec = propertySpecsByName.get(propertyName);
         if (propertySpec == null) {
-            throw new IllegalStateException("Unknown input property '" + propertyName + "' (known: " + propertySpecsByName.keySet() + ")");
+            throw new IllegalStateException(
+                    "Unknown input property '" + propertyName + "' (known: " + propertySpecsByName.keySet() + ")");
         }
         return propertySpec;
     }
 
-    protected static class DirectoryVisitState<T extends FilePropertyVisitor.VisitState> implements FilePropertyVisitor.VisitState {
+    protected static class DirectoryVisitState<T extends FilePropertyVisitor.VisitState>
+            implements FilePropertyVisitor.VisitState {
         protected final T delegate;
         private final DirectorySnapshot directorySnapshot;
 

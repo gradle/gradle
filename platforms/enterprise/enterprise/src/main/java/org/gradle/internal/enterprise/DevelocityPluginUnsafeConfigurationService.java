@@ -16,10 +16,9 @@
 
 package org.gradle.internal.enterprise;
 
+import java.util.function.Supplier;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.function.Supplier;
 
 /**
  * Service to allow the Develocity plugin to do things considered "Unsafe" during configuration.

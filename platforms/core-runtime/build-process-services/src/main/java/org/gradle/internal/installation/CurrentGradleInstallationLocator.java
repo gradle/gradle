@@ -16,18 +16,16 @@
 
 package org.gradle.internal.installation;
 
-import org.gradle.internal.classloader.ClasspathUtil;
-
 import java.io.File;
+import org.gradle.internal.classloader.ClasspathUtil;
 
 abstract class CurrentGradleInstallationLocator {
 
     private static final String BEACON_CLASS_NAME = "org.gradle.internal.installation.beacon.InstallationBeacon";
 
-    private CurrentGradleInstallationLocator() {
-    }
+    private CurrentGradleInstallationLocator() {}
 
-    public synchronized static CurrentGradleInstallation locate() {
+    public static synchronized CurrentGradleInstallation locate() {
         return locateViaClassLoader(CurrentGradleInstallationLocator.class.getClassLoader());
     }
 
@@ -78,15 +76,21 @@ abstract class CurrentGradleInstallationLocator {
 
         if (parentDir.getName().equals("lib")) {
             File pluginsDir = new File(parentDir, "plugins");
-            return parentDir.isDirectory() && pluginsDir.exists() && pluginsDir.isDirectory() ? parentDir.getParentFile() : null;
+            return parentDir.isDirectory() && pluginsDir.exists() && pluginsDir.isDirectory()
+                    ? parentDir.getParentFile()
+                    : null;
         }
 
         if (parentDir.getName().equals("plugins")) {
             File libDir = parentDir.getParentFile();
-            return parentDir.isDirectory() && libDir.exists() && libDir.isDirectory() && libDir.getName().equals("lib") ? libDir.getParentFile() : null;
+            return parentDir.isDirectory()
+                            && libDir.exists()
+                            && libDir.isDirectory()
+                            && libDir.getName().equals("lib")
+                    ? libDir.getParentFile()
+                    : null;
         }
 
         return null;
     }
-
 }

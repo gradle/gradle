@@ -16,9 +16,8 @@
 
 package org.gradle.test.fixtures.file;
 
-import org.junit.runners.model.FrameworkMethod;
-
 import java.io.File;
+import org.junit.runners.model.FrameworkMethod;
 
 public class TestDistributionDirectoryProvider extends AbstractTestDirectoryProvider {
     public TestDistributionDirectoryProvider(Class<?> klass) {
@@ -26,9 +25,9 @@ public class TestDistributionDirectoryProvider extends AbstractTestDirectoryProv
     }
 
     public static TestDistributionDirectoryProvider newInstance(FrameworkMethod method, Object target) {
-        TestDistributionDirectoryProvider testDirectoryProvider = new TestDistributionDirectoryProvider(target.getClass());
+        TestDistributionDirectoryProvider testDirectoryProvider =
+                new TestDistributionDirectoryProvider(target.getClass());
         testDirectoryProvider.init(method.getName());
         return testDirectoryProvider;
     }
-
 }

@@ -18,7 +18,6 @@ package org.gradle.tooling.model.kotlin.dsl;
 
 import org.jspecify.annotations.Nullable;
 
-
 /**
  * Report to the editor.
  *

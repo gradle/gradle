@@ -16,13 +16,6 @@
 
 package org.gradle.internal.classloader;
 
-import org.apache.commons.io.IOUtils;
-import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.TransformedClassPath;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -32,6 +25,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.io.IOUtils;
+import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.TransformedClassPath;
+import org.jspecify.annotations.Nullable;
 
 public class VisitableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
     static {
@@ -72,7 +71,8 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
     protected VisitableURLClassLoader(String name, ClassLoader parent, ClassPath classPath) {
         this(name, classPath.getAsURLArray(), parent);
         if (classPath instanceof TransformedClassPath && !(this instanceof InstrumentingClassLoader)) {
-            throw new IllegalArgumentException("Cannot build a non-instrumenting class loader " + name + " out of transformed class path");
+            throw new IllegalArgumentException(
+                    "Cannot build a non-instrumenting class loader " + name + " out of transformed class path");
         }
     }
 
@@ -151,7 +151,8 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         return new VisitableURLClassLoader(name, parent, classPath);
     }
 
-    private static class InstrumentingVisitableURLClassLoader extends VisitableURLClassLoader implements InstrumentingClassLoader {
+    private static class InstrumentingVisitableURLClassLoader extends VisitableURLClassLoader
+            implements InstrumentingClassLoader {
         static {
             try {
                 // Not supported on Java 6, hence the try-catch
@@ -172,7 +173,8 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         }
 
         @Override
-        public byte @Nullable [] instrumentClass(@Nullable String className, @Nullable ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+        public byte @Nullable [] instrumentClass(
+                @Nullable String className, @Nullable ProtectionDomain protectionDomain, byte[] classfileBuffer) {
             return replacer.getInstrumentedClass(className, protectionDomain);
         }
 

@@ -16,20 +16,20 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
 import org.gradle.internal.component.resolution.failure.formatting.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.type.NoVariantsWithMatchingCapabilitiesFailure;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link NoVariantsWithMatchingCapabilitiesFailure}.
  */
-public abstract class NoVariantsWithMatchingCapabilitiesFailureDescriber extends AbstractResolutionFailureDescriber<NoVariantsWithMatchingCapabilitiesFailure> {
+public abstract class NoVariantsWithMatchingCapabilitiesFailureDescriber
+        extends AbstractResolutionFailureDescriber<NoVariantsWithMatchingCapabilitiesFailure> {
     @Override
     public VariantSelectionByAttributesException describeFailure(NoVariantsWithMatchingCapabilitiesFailure failure) {
         String message = buildFailureMsg(failure);
@@ -46,13 +46,19 @@ public abstract class NoVariantsWithMatchingCapabilitiesFailureDescriber extends
             sb.append(capabilities.iterator().next().getDisplayName());
         } else {
             sb.append("Unable to find a variant with the requested capabilities: ");
-            sb.append("[").append(capabilities.stream().map(CapabilitySelector::getDisplayName).collect(Collectors.joining(", "))).append("]");
+            sb.append("[")
+                    .append(capabilities.stream()
+                            .map(CapabilitySelector::getDisplayName)
+                            .collect(Collectors.joining(", ")))
+                    .append("]");
         }
 
         sb.append(":\n");
         for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
             sb.append("   - Variant '").append(candidate.getDisplayName()).append("' provides ");
-            sb.append(CapabilitiesDescriber.describeCapabilities(candidate.getCandidateCapabilities().asSet())).append("\n");
+            sb.append(CapabilitiesDescriber.describeCapabilities(
+                            candidate.getCandidateCapabilities().asSet()))
+                    .append("\n");
         }
 
         return sb.toString();

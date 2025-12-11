@@ -16,9 +16,8 @@
 
 package org.gradle.internal.resolve.result;
 
-import org.gradle.internal.resource.ExternalResourceName;
-
 import java.util.List;
+import org.gradle.internal.resource.ExternalResourceName;
 
 public interface ResourceAwareResolveResult {
     List<String> getAttempted();

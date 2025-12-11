@@ -16,7 +16,11 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
+
 import com.google.common.collect.ImmutableList;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.gradle.internal.RelativePathSupplier;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
@@ -31,17 +35,12 @@ import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierar
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
-
 public class FileSystemSnapshotFilter {
 
-    private FileSystemSnapshotFilter() {
-    }
+    private FileSystemSnapshotFilter() {}
 
-    public static Optional<FileSystemLocationSnapshot> filterSnapshot(SnapshottingFilter filter, FileSystemLocationSnapshot unfiltered) {
+    public static Optional<FileSystemLocationSnapshot> filterSnapshot(
+            SnapshottingFilter filter, FileSystemLocationSnapshot unfiltered) {
         if (filter.isEmpty()) {
             return Optional.of(unfiltered);
         }
@@ -60,7 +59,10 @@ public class FileSystemSnapshotFilter {
         private final DirectorySnapshotBuilder builder;
         private final AtomicBoolean hasBeenFiltered;
 
-        public FilteringVisitor(SnapshottingFilter.FileSystemSnapshotPredicate predicate, DirectorySnapshotBuilder builder, AtomicBoolean hasBeenFiltered) {
+        public FilteringVisitor(
+                SnapshottingFilter.FileSystemSnapshotPredicate predicate,
+                DirectorySnapshotBuilder builder,
+                AtomicBoolean hasBeenFiltered) {
             this.predicate = predicate;
             this.builder = builder;
             this.hasBeenFiltered = hasBeenFiltered;
@@ -74,9 +76,8 @@ public class FileSystemSnapshotFilter {
         @Override
         public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
             boolean root = relativePath.isRoot();
-            Iterable<String> relativePathForFiltering = root
-                ? ImmutableList.of(snapshot.getName())
-                : relativePath.getSegments();
+            Iterable<String> relativePathForFiltering =
+                    root ? ImmutableList.of(snapshot.getName()) : relativePath.getSegments();
             SnapshotVisitResult result;
             boolean forceInclude = snapshot.accept(new FileSystemLocationSnapshotTransformer<Boolean>() {
                 @Override

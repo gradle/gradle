@@ -24,7 +24,8 @@ public class InstantiatingAction<DETAILS> implements Action<DETAILS> {
     private final Instantiator instantiator;
     private final ExceptionHandler<DETAILS> exceptionHandler;
 
-    public InstantiatingAction(ConfigurableRules<DETAILS> rules, Instantiator instantiator, ExceptionHandler<DETAILS> exceptionHandler) {
+    public InstantiatingAction(
+            ConfigurableRules<DETAILS> rules, Instantiator instantiator, ExceptionHandler<DETAILS> exceptionHandler) {
         this.rules = rules;
         this.instantiator = instantiator;
         this.exceptionHandler = exceptionHandler;
@@ -38,7 +39,8 @@ public class InstantiatingAction<DETAILS> implements Action<DETAILS> {
     public void execute(DETAILS target) {
         for (ConfigurableRule<DETAILS> rule : rules.getConfigurableRules()) {
             try {
-                Action<DETAILS> instance = instantiator.newInstance(rule.getRuleClass(), rule.getRuleParams().isolate());
+                Action<DETAILS> instance = instantiator.newInstance(
+                        rule.getRuleClass(), rule.getRuleParams().isolate());
                 instance.execute(target);
             } catch (Throwable t) {
                 exceptionHandler.handleException(target, t);

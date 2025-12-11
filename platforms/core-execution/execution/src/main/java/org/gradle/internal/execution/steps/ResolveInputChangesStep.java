@@ -16,14 +16,14 @@
 
 package org.gradle.internal.execution.steps;
 
+import static org.gradle.internal.execution.MutableUnitOfWork.ExecutionBehavior.NON_INCREMENTAL;
+
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.gradle.internal.execution.MutableUnitOfWork.ExecutionBehavior.NON_INCREMENTAL;
 
 public class ResolveInputChangesStep<C extends MutableCachingContext, R extends Result> extends MutableStep<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveInputChangesStep.class);
@@ -36,7 +36,9 @@ public class ResolveInputChangesStep<C extends MutableCachingContext, R extends 
 
     @Override
     protected R executeMutable(MutableUnitOfWork work, C context) {
-        return delegate.execute(work, new InputChangesContext(context, determineInputChanges(work, context), context.getCachingState()));
+        return delegate.execute(
+                work,
+                new InputChangesContext(context, determineInputChanges(work, context), context.getCachingState()));
     }
 
     @Nullable
@@ -45,7 +47,8 @@ public class ResolveInputChangesStep<C extends MutableCachingContext, R extends 
             return null;
         }
         ExecutionStateChanges changes = context.getChanges()
-            .orElseThrow(() -> new IllegalStateException("Changes are not tracked, unable determine incremental changes."));
+                .orElseThrow(() ->
+                        new IllegalStateException("Changes are not tracked, unable determine incremental changes."));
         InputChangesInternal inputChanges = changes.createInputChanges();
         if (!inputChanges.isIncremental()) {
             LOGGER.info("The input changes require a full rebuild for incremental {}.", work.getDisplayName());

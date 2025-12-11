@@ -16,14 +16,14 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.platform.base.PlatformAwareComponentSpec;
-
 import java.util.List;
+import org.gradle.platform.base.PlatformAwareComponentSpec;
 
 /**
  * Defines Platform specific operations for ComponentSpecs
  */
-public interface PlatformAwareComponentSpecInternal extends PlatformAwareComponentSpec, HasIntermediateOutputsComponentSpec {
+public interface PlatformAwareComponentSpecInternal
+        extends PlatformAwareComponentSpec, HasIntermediateOutputsComponentSpec {
     /**
      * Get the names of the targeted platforms that this component should be built for.
      *

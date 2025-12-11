@@ -18,16 +18,15 @@ package org.gradle.api.internal;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectFactory;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectFactory;
 
 public class DefaultPolymorphicNamedEntityInstantiator<T> implements PolymorphicNamedEntityInstantiator<T> {
     private final Map<Class<? extends T>, NamedDomainObjectFactory<? extends T>> factories = new HashMap<>();
@@ -45,7 +44,9 @@ public class DefaultPolymorphicNamedEntityInstantiator<T> implements Polymorphic
         NamedDomainObjectFactory<S> factory = (NamedDomainObjectFactory<S>) factories.get(type);
         if (factory == null) {
             throw new InvalidUserDataException(
-                    String.format("Cannot create a %s because this type is not known to %s. Known types are: %s", type.getSimpleName(), displayName, getSupportedTypeNames()),
+                    String.format(
+                            "Cannot create a %s because this type is not known to %s. Known types are: %s",
+                            type.getSimpleName(), displayName, getSupportedTypeNames()),
                     new NoFactoryRegisteredForTypeException());
         }
         return factory.create(name);
@@ -63,11 +64,15 @@ public class DefaultPolymorphicNamedEntityInstantiator<T> implements Polymorphic
     @Override
     public <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory) {
         if (!baseType.isAssignableFrom(type)) {
-            String message = String.format("Cannot register a factory for type %s because it is not a subtype of container element type %s.", type.getSimpleName(), baseType.getSimpleName());
+            String message = String.format(
+                    "Cannot register a factory for type %s because it is not a subtype of container element type %s.",
+                    type.getSimpleName(), baseType.getSimpleName());
             throw new IllegalArgumentException(message);
         }
         if (factories.containsKey(type)) {
-            throw new GradleException(String.format("Cannot register a factory for type %s because a factory for this type is already registered.", type.getSimpleName()));
+            throw new GradleException(String.format(
+                    "Cannot register a factory for type %s because a factory for this type is already registered.",
+                    type.getSimpleName()));
         }
         factories.put(type, factory);
     }

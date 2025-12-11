@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.events.task.internal;
 
+import java.util.List;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 import org.gradle.tooling.events.task.TaskFailureResult;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Implementation of the {@code TaskFailureResult} interface.
@@ -30,7 +29,8 @@ public final class DefaultTaskFailureResult extends DefaultOperationFailureResul
 
     private final TaskExecutionDetails taskExecutionDetails;
 
-    public DefaultTaskFailureResult(long startTime, long endTime, List<? extends Failure> failures, TaskExecutionDetails taskExecutionDetails) {
+    public DefaultTaskFailureResult(
+            long startTime, long endTime, List<? extends Failure> failures, TaskExecutionDetails taskExecutionDetails) {
         super(startTime, endTime, failures);
         this.taskExecutionDetails = taskExecutionDetails;
     }
@@ -45,5 +45,4 @@ public final class DefaultTaskFailureResult extends DefaultOperationFailureResul
     public List<String> getExecutionReasons() {
         return taskExecutionDetails.getExecutionReasons();
     }
-
 }

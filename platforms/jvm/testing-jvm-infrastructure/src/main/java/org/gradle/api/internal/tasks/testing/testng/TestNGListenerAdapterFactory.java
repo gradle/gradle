@@ -15,17 +15,16 @@
  */
 package org.gradle.api.internal.tasks.testing.testng;
 
-import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
-import org.testng.ISuiteListener;
-import org.testng.ITestListener;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
+import org.testng.ISuiteListener;
+import org.testng.ITestListener;
 
 class TestNGListenerAdapterFactory {
     private final ClassLoader classLoader;
@@ -50,7 +49,8 @@ class TestNGListenerAdapterFactory {
             return createProxy(testNG5Class, listener);
         }
 
-        throw new UnsupportedOperationException("Could not locate any of these interfaces: 'org.testng.IConfigurationListener', 'org.testng.IConfigurationListener2', 'org.testng.internal.IConfigurationListener'. Which version of TestNG are you using?");
+        throw new UnsupportedOperationException(
+                "Could not locate any of these interfaces: 'org.testng.IConfigurationListener', 'org.testng.IConfigurationListener2', 'org.testng.internal.IConfigurationListener'. Which version of TestNG are you using?");
     }
 
     private Class<?> tryLoadClass(String name) {
@@ -73,7 +73,8 @@ class TestNGListenerAdapterFactory {
             interfaces.add(iClassListenerClass);
         }
 
-        return (ITestListener) Proxy.newProxyInstance(classLoader, interfaces.toArray(new Class<?>[interfaces.size()]), new AdaptedListener(listener));
+        return (ITestListener) Proxy.newProxyInstance(
+                classLoader, interfaces.toArray(new Class<?>[interfaces.size()]), new AdaptedListener(listener));
     }
 
     private static class AdaptedListener implements InvocationHandler {
@@ -100,9 +101,11 @@ class TestNGListenerAdapterFactory {
             return invoke(delegate.getClass(), delegate, boxedReturnType, method, args);
         }
 
-        private <T, R> R invoke(Class<T> listenerType, Object listener, Class<R> returnType, Method method, Object[] args) {
+        private <T, R> R invoke(
+                Class<T> listenerType, Object listener, Class<R> returnType, Method method, Object[] args) {
             T listenerCast = listenerType.cast(listener);
-            JavaMethod<T, R> javaMethod = JavaMethod.of(listenerType, returnType, method.getName(), method.getParameterTypes());
+            JavaMethod<T, R> javaMethod =
+                    JavaMethod.of(listenerType, returnType, method.getName(), method.getParameterTypes());
             return javaMethod.invoke(listenerCast, args);
         }
 
@@ -123,7 +126,7 @@ class TestNGListenerAdapterFactory {
             AdaptedListener proxyAdapter = (AdaptedListener) Proxy.getInvocationHandler(proxy);
             AdaptedListener otherAdapter = (AdaptedListener) otherHandler;
             return proxyAdapter.getClass().equals(otherHandler.getClass())
-                && proxyAdapter.delegate.getClass().equals(otherAdapter.delegate.getClass());
+                    && proxyAdapter.delegate.getClass().equals(otherAdapter.delegate.getClass());
         }
 
         private int proxyHashCode(Object proxy) {

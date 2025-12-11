@@ -26,13 +26,16 @@ public class BootstrapMainStarter {
     public void start(String[] args, File gradleHome) throws Exception {
         File gradleJar = findLauncherJar(gradleHome);
         if (gradleJar == null) {
-            throw new RuntimeException(String.format("Could not locate the Gradle launcher JAR in Gradle distribution '%s'.", gradleHome));
+            throw new RuntimeException(
+                    String.format("Could not locate the Gradle launcher JAR in Gradle distribution '%s'.", gradleHome));
         }
-        URLClassLoader contextClassLoader = new URLClassLoader(new URL[]{gradleJar.toURI().toURL()}, ClassLoader.getSystemClassLoader().getParent());
+        URLClassLoader contextClassLoader = new URLClassLoader(
+                new URL[] {gradleJar.toURI().toURL()},
+                ClassLoader.getSystemClassLoader().getParent());
         Thread.currentThread().setContextClassLoader(contextClassLoader);
         Class<?> mainClass = contextClassLoader.loadClass("org.gradle.launcher.GradleMain");
         Method mainMethod = mainClass.getMethod("main", String[].class);
-        mainMethod.invoke(null, new Object[]{args});
+        mainMethod.invoke(null, new Object[] {args});
         ((Closeable) contextClassLoader).close();
     }
 
@@ -45,7 +48,7 @@ public class BootstrapMainStarter {
                     return name.matches("gradle-launcher-.*\\.jar");
                 }
             });
-            if (launcherJars!=null && launcherJars.length==1) {
+            if (launcherJars != null && launcherJars.length == 1) {
                 return launcherJars[0];
             }
         }

@@ -21,12 +21,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
-import org.gradle.model.internal.manage.schema.StructSchema;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.model.internal.manage.schema.StructSchema;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultStructBindings<T> implements StructBindings<T> {
     private final StructSchema<T> publicSchema;
@@ -38,14 +37,12 @@ public class DefaultStructBindings<T> implements StructBindings<T> {
     private final Collection<StructMethodBinding> methodBindings;
 
     protected DefaultStructBindings(
-        StructSchema<T> publicSchema,
-        Iterable<? extends StructSchema<?>> declaredViewSchemas,
-        Iterable<? extends StructSchema<?>> implementedViewSchemas,
-        @Nullable StructSchema<?> delegateSchema,
-
-        Map<String, ManagedProperty<?>> managedProperties,
-        Iterable<StructMethodBinding> methodBindings
-    ) {
+            StructSchema<T> publicSchema,
+            Iterable<? extends StructSchema<?>> declaredViewSchemas,
+            Iterable<? extends StructSchema<?>> implementedViewSchemas,
+            @Nullable StructSchema<?> delegateSchema,
+            Map<String, ManagedProperty<?>> managedProperties,
+            Iterable<StructMethodBinding> methodBindings) {
         this.publicSchema = publicSchema;
         this.declaredViewSchemas = ImmutableSet.copyOf(declaredViewSchemas);
         this.implementedViewSchemas = ImmutableSet.copyOf(implementedViewSchemas);
@@ -101,8 +98,8 @@ public class DefaultStructBindings<T> implements StructBindings<T> {
         }
         DefaultStructBindings<?> that = (DefaultStructBindings<?>) o;
         return Objects.equal(publicSchema, that.publicSchema)
-            && Objects.equal(declaredViewSchemas, that.declaredViewSchemas)
-            && Objects.equal(delegateSchema, that.delegateSchema);
+                && Objects.equal(declaredViewSchemas, that.declaredViewSchemas)
+                && Objects.equal(delegateSchema, that.delegateSchema);
     }
 
     @Override

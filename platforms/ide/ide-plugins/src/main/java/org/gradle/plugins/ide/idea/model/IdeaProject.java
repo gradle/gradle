@@ -15,8 +15,15 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
+import static org.gradle.util.internal.ConfigureUtil.configure;
+
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -31,14 +38,6 @@ import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning project details (*.ipr file) of the IDEA plugin.
@@ -344,14 +343,23 @@ public abstract class IdeaProject implements IdeWorkspace {
     @SuppressWarnings("unchecked")
     public void mergeXmlProject(Project xmlProject) {
         ipr.getBeforeMerged().execute(xmlProject);
-        xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getTargetBytecodeVersion(), getWildcards(), getProjectLibraries(), getVcs());
+        xmlProject.configure(
+                getModules(),
+                getJdkName(),
+                getLanguageLevel(),
+                getTargetBytecodeVersion(),
+                getWildcards(),
+                getProjectLibraries(),
+                getVcs());
         configureModulePaths(xmlProject);
         ipr.getWhenMerged().execute(xmlProject);
     }
 
     private void configureModulePaths(Project xmlProject) {
-        ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
-        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {
+        ProjectComponentIdentifier thisProjectId =
+                projectPathRegistry.stateFor(project).getComponentIdentifier();
+        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference :
+                artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {
             BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();
             if (thisProjectId.getBuild().equals(otherBuildId)) {
                 // IDEA Module for project in current build: handled via `modules` model elements.

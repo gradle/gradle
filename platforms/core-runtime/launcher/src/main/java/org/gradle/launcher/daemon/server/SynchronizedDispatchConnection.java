@@ -16,15 +16,14 @@
 
 package org.gradle.launcher.daemon.server;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.Receive;
 import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.launcher.daemon.protocol.OutputMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Connection decorator that synchronizes dispatching and always flushes after each message.
@@ -48,7 +47,8 @@ public class SynchronizedDispatchConnection<T> implements Receive<T>, Stoppable 
         lock.lock();
         try {
             if (dispatching) {
-                // Safety check: dispatching a message should not cause the thread to dispatch another message (eg should not do any logging)
+                // Safety check: dispatching a message should not cause the thread to dispatch another message (eg
+                // should not do any logging)
                 throw new IllegalStateException("This thread is already dispatching a message.");
             }
             dispatching = true;
@@ -65,10 +65,11 @@ public class SynchronizedDispatchConnection<T> implements Receive<T>, Stoppable 
 
     @Override
     public T receive() {
-        //in case one wants to synchronize this method,
-        //bear in mind that it is blocking so it cannot share the same lock as others
+        // in case one wants to synchronize this method,
+        // bear in mind that it is blocking so it cannot share the same lock as others
         T result = delegate.receive();
-        LOGGER.debug("thread {}: received {}", Thread.currentThread().getId(), result == null ? "null" : result.getClass());
+        LOGGER.debug(
+                "thread {}: received {}", Thread.currentThread().getId(), result == null ? "null" : result.getClass());
         return result;
     }
 

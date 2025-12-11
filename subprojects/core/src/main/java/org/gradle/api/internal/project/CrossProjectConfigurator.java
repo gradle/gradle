@@ -38,5 +38,4 @@ public interface CrossProjectConfigurator {
      * object within this project.
      */
     MutationGuard getLazyBehaviorGuard();
-
 }

@@ -40,5 +40,4 @@ public class SkipFirstTextStream implements TextStream {
     public void endOfStream(@Nullable Throwable failure) {
         delegate.endOfStream(failure);
     }
-
 }

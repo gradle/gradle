@@ -17,12 +17,12 @@
 package org.gradle.external.javadoc.internal;
 
 import com.google.common.collect.Lists;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MultilineMultiValueJavadocOptionFileOption extends AbstractListJavadocOptionFileOption<List<List<String>>> {
+public class MultilineMultiValueJavadocOptionFileOption
+        extends AbstractListJavadocOptionFileOption<List<List<String>>> {
     protected MultilineMultiValueJavadocOptionFileOption(String option, List<List<String>> value, String joinBy) {
         super(option, value, joinBy);
     }
@@ -46,6 +46,5 @@ public class MultilineMultiValueJavadocOptionFileOption extends AbstractListJava
             }
             writerContext.newLine();
         }
-
     }
 }

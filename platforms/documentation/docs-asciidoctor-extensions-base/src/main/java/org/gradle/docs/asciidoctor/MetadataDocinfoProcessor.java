@@ -15,11 +15,10 @@
  */
 package org.gradle.docs.asciidoctor;
 
-import org.asciidoctor.ast.Document;
-import org.asciidoctor.extension.DocinfoProcessor;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.asciidoctor.ast.Document;
+import org.asciidoctor.extension.DocinfoProcessor;
 
 /**
  * This processor injects arbitrary HTML &lt;meta&gt; tags from document

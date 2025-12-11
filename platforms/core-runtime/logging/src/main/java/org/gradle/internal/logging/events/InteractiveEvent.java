@@ -19,5 +19,4 @@ package org.gradle.internal.logging.events;
 /**
  * A marker interface to indicate that the event should be handled as quickly as possible, and not buffered or throttled.
  */
-public interface InteractiveEvent {
-}
+public interface InteractiveEvent {}

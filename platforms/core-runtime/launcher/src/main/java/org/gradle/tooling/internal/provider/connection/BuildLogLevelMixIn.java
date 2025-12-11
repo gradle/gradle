@@ -16,6 +16,13 @@
 
 package org.gradle.tooling.internal.provider.connection;
 
+import static java.util.Optional.empty;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineConverter;
@@ -25,14 +32,6 @@ import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption;
 import org.jspecify.annotations.NonNull;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static java.util.Optional.empty;
 
 public class BuildLogLevelMixIn {
     private final LogLevel logLevel;
@@ -49,7 +48,8 @@ public class BuildLogLevelMixIn {
         LoggingConfigurationBuildOptions loggingBuildOptions = new LoggingConfigurationBuildOptions();
         CommandLineConverter<LoggingConfiguration> converter = loggingBuildOptions.commandLineConverter();
 
-        SystemPropertiesCommandLineConverter propertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
+        SystemPropertiesCommandLineConverter propertiesCommandLineConverter =
+                new SystemPropertiesCommandLineConverter();
         CommandLineParser parser = new CommandLineParser().allowUnknownOptions().allowMixedSubcommandsAndOptions();
 
         converter.configure(parser);
@@ -58,27 +58,28 @@ public class BuildLogLevelMixIn {
         List<String> arguments = parameters.getArguments();
         ParsedCommandLine parsedCommandLine = parser.parse(arguments == null ? Collections.emptyList() : arguments);
 
-        //configure verbosely only if arguments do not specify any log level.
+        // configure verbosely only if arguments do not specify any log level.
         return getLogLevelFromCommandLineOptions(loggingBuildOptions, parsedCommandLine)
-            .orElseGet(() ->
-                getLogLevelFromCommandLineProperties(propertiesCommandLineConverter, parsedCommandLine).orElseGet(() -> {
-                    if (parameters.getVerboseLogging()) {
-                        return LogLevel.DEBUG;
-                    }
-                    return null;
-                })
-            );
+                .orElseGet(() -> getLogLevelFromCommandLineProperties(propertiesCommandLineConverter, parsedCommandLine)
+                        .orElseGet(() -> {
+                            if (parameters.getVerboseLogging()) {
+                                return LogLevel.DEBUG;
+                            }
+                            return null;
+                        }));
     }
 
     @NonNull
-    private static Optional<LogLevel> getLogLevelFromCommandLineOptions(LoggingConfigurationBuildOptions loggingBuildOptions, ParsedCommandLine parsedCommandLine) {
+    private static Optional<LogLevel> getLogLevelFromCommandLineOptions(
+            LoggingConfigurationBuildOptions loggingBuildOptions, ParsedCommandLine parsedCommandLine) {
         return loggingBuildOptions.getLongLogLevelOptions().stream()
-            .filter(parsedCommandLine::hasOption)
-            .map(LogLevelOption::parseLogLevel)
-            .findFirst();
+                .filter(parsedCommandLine::hasOption)
+                .map(LogLevelOption::parseLogLevel)
+                .findFirst();
     }
 
-    private static Optional<LogLevel> getLogLevelFromCommandLineProperties(SystemPropertiesCommandLineConverter propertiesCommandLineConverter, ParsedCommandLine parsedCommandLine) {
+    private static Optional<LogLevel> getLogLevelFromCommandLineProperties(
+            SystemPropertiesCommandLineConverter propertiesCommandLineConverter, ParsedCommandLine parsedCommandLine) {
         Map<String, String> properties = propertiesCommandLineConverter.convert(parsedCommandLine, new HashMap<>());
         String logLevelCommandLineProperty = properties.get(LogLevelOption.GRADLE_PROPERTY);
         if (logLevelCommandLineProperty != null) {
@@ -89,6 +90,5 @@ public class BuildLogLevelMixIn {
             }
         }
         return empty();
-
     }
 }

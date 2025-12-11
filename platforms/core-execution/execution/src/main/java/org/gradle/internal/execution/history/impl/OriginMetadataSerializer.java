@@ -16,15 +16,14 @@
 
 package org.gradle.internal.execution.history.impl;
 
+import java.io.IOException;
+import java.time.Duration;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
-
-import java.io.IOException;
-import java.time.Duration;
 
 public class OriginMetadataSerializer extends AbstractSerializer<OriginMetadata> {
 
@@ -35,11 +34,7 @@ public class OriginMetadataSerializer extends AbstractSerializer<OriginMetadata>
         String buildInvocationId = decoder.readString();
         HashCode buildCacheKey = hashCodeSerializer.read(decoder);
         Duration executionTime = Duration.ofMillis(decoder.readSmallLong());
-        return new OriginMetadata(
-            buildInvocationId,
-            buildCacheKey,
-            executionTime
-        );
+        return new OriginMetadata(buildInvocationId, buildCacheKey, executionTime);
     }
 
     @Override
@@ -48,5 +43,4 @@ public class OriginMetadataSerializer extends AbstractSerializer<OriginMetadata>
         hashCodeSerializer.write(encoder, originMetadata.getBuildCacheKey());
         encoder.writeSmallLong(originMetadata.getExecutionTime().toMillis());
     }
-
 }

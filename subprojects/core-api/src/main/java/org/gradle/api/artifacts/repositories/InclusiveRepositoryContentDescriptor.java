@@ -62,7 +62,6 @@ public interface InclusiveRepositoryContentDescriptor {
      */
     void includeGroupByRegex(String groupRegex);
 
-
     /**
      * Declares that an entire module should be searched for in this repository.
      *

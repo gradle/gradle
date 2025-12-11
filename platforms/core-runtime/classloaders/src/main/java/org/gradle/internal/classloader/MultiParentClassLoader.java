@@ -16,9 +16,6 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang3.StringUtils;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
@@ -29,6 +26,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@code ClassLoader} which delegates to multiple parent ClassLoaders.

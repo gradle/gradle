@@ -29,17 +29,17 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.jspecify.annotations.Nullable;
 
-public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
+public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuildActionRunner
+        implements BuildActionRunner {
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer buildEventConsumer;
     private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
 
     public ClientProvidedPhasedActionRunner(
-        BuildControllerFactory buildControllerFactory,
-        PayloadSerializer payloadSerializer,
-        BuildEventConsumer buildEventConsumer,
-        BuildTreeModelSideEffectExecutor sideEffectExecutor
-    ) {
+            BuildControllerFactory buildControllerFactory,
+            PayloadSerializer payloadSerializer,
+            BuildEventConsumer buildEventConsumer,
+            BuildTreeModelSideEffectExecutor sideEffectExecutor) {
         super(buildControllerFactory, payloadSerializer);
         this.payloadSerializer = payloadSerializer;
         this.buildEventConsumer = buildEventConsumer;
@@ -53,7 +53,8 @@ public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuil
         }
 
         ClientProvidedPhasedAction clientProvidedPhasedAction = (ClientProvidedPhasedAction) action;
-        InternalPhasedAction phasedAction = (InternalPhasedAction) payloadSerializer.deserialize(clientProvidedPhasedAction.getPhasedAction());
+        InternalPhasedAction phasedAction =
+                (InternalPhasedAction) payloadSerializer.deserialize(clientProvidedPhasedAction.getPhasedAction());
 
         return runClientAction(new ClientActionImpl(phasedAction, action), buildController);
     }

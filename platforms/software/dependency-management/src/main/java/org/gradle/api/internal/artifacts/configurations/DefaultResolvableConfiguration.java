@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import javax.inject.Inject;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.ResolvableConfiguration;
@@ -28,8 +29,6 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import javax.inject.Inject;
-
 /**
  * A concrete resolvable {@link DefaultConfiguration} that cannot change roles.
  */
@@ -37,32 +36,29 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
 
     @Inject
     public DefaultResolvableConfiguration(
-        ConfigurationServicesBundle configurationServices,
-        DomainObjectContext domainObjectContext,
-        String name,
-        ConfigurationResolver resolver,
-        ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
-        NotationParser<Object, Capability> capabilityNotationParser,
-        UserCodeApplicationContext userCodeApplicationContext,
-        DefaultConfigurationFactory defaultConfigurationFactory
-    ) {
+            ConfigurationServicesBundle configurationServices,
+            DomainObjectContext domainObjectContext,
+            String name,
+            ConfigurationResolver resolver,
+            ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
+            Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
+            NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+            NotationParser<Object, Capability> capabilityNotationParser,
+            UserCodeApplicationContext userCodeApplicationContext,
+            DefaultConfigurationFactory defaultConfigurationFactory) {
         super(
-            configurationServices,
-            domainObjectContext,
-            name,
-            false,
-            resolver,
-            dependencyResolutionListeners,
-            resolutionStrategyFactory,
-            artifactNotationParser,
-            capabilityNotationParser,
-            userCodeApplicationContext,
-            defaultConfigurationFactory,
-            ConfigurationRoles.RESOLVABLE,
-            true
-        );
+                configurationServices,
+                domainObjectContext,
+                name,
+                false,
+                resolver,
+                dependencyResolutionListeners,
+                resolutionStrategyFactory,
+                artifactNotationParser,
+                capabilityNotationParser,
+                userCodeApplicationContext,
+                defaultConfigurationFactory,
+                ConfigurationRoles.RESOLVABLE,
+                true);
     }
-
 }

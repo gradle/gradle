@@ -16,14 +16,13 @@
 
 package org.gradle.internal.tools.api;
 
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import org.gradle.internal.tools.api.impl.ApiMemberSelector;
 import org.gradle.internal.tools.api.impl.MethodStubbingApiMemberAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-
-import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 /**
  * Extracts an "API class" from an original "runtime class".
@@ -64,7 +63,10 @@ public class ApiClassExtractor {
         return new Builder(classWriter -> writerCreator.createWriter(new MethodStubbingApiMemberAdapter(classWriter)));
     }
 
-    private ApiClassExtractor(Predicate<String> packageNameFilter, boolean includePackagePrivateMembers, ApiMemberWriterFactory apiMemberWriterFactory) {
+    private ApiClassExtractor(
+            Predicate<String> packageNameFilter,
+            boolean includePackagePrivateMembers,
+            ApiMemberWriterFactory apiMemberWriterFactory) {
         this.packageNameFilter = packageNameFilter;
         this.apiIncludesPackagePrivateMembers = includePackagePrivateMembers;
         this.apiMemberWriterFactory = apiMemberWriterFactory;
@@ -86,8 +88,7 @@ public class ApiClassExtractor {
      */
     public Optional<byte[]> extractApiClassFrom(byte[] originalClassBytes) {
         ClassReader originalClassReader = new ClassReader(originalClassBytes);
-        return extractApiClassFromReader(originalClassReader)
-            .map(ClassWriter::toByteArray);
+        return extractApiClassFromReader(originalClassReader).map(ClassWriter::toByteArray);
     }
 
     protected Optional<ClassWriter> extractApiClassFromReader(ClassReader originalClassReader) {
@@ -97,7 +98,10 @@ public class ApiClassExtractor {
         ClassWriter apiClassWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         ApiMemberSelector visitor;
         try {
-            visitor = new ApiMemberSelector(originalClassReader.getClassName(), apiMemberWriterFactory.makeApiMemberWriter(apiClassWriter), apiIncludesPackagePrivateMembers);
+            visitor = new ApiMemberSelector(
+                    originalClassReader.getClassName(),
+                    apiMemberWriterFactory.makeApiMemberWriter(apiClassWriter),
+                    apiIncludesPackagePrivateMembers);
             originalClassReader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         } catch (ApiClassExtractionException e) {
             throw e.withClass(originalClassReader.getClassName());
@@ -109,7 +113,8 @@ public class ApiClassExtractor {
     }
 
     private boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
-        if (!ApiMemberSelector.isCandidateApiMember(originalClassReader.getAccess(), apiIncludesPackagePrivateMembers)) {
+        if (!ApiMemberSelector.isCandidateApiMember(
+                originalClassReader.getAccess(), apiIncludesPackagePrivateMembers)) {
             return false;
         }
         String originalClassName = originalClassReader.getClassName();
@@ -122,8 +127,8 @@ public class ApiClassExtractor {
     private static String packageNameOf(String internalClassName) {
         int packageSeparatorIndex = internalClassName.lastIndexOf('/');
         return packageSeparatorIndex > 0
-            ? internalClassName.substring(0, packageSeparatorIndex).replace('/', '.')
-            : "";
+                ? internalClassName.substring(0, packageSeparatorIndex).replace('/', '.')
+                : "";
     }
 
     // See JLS3 "Binary Compatibility" (13.1)

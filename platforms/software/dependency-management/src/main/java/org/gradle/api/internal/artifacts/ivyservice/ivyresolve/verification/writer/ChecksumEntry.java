@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer;
 
+import java.io.File;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-
-import java.io.File;
 
 class ChecksumEntry extends VerificationEntry {
 
@@ -31,7 +30,11 @@ class ChecksumEntry extends VerificationEntry {
     // participate in equals/hashcode
     private String checksum;
 
-    ChecksumEntry(ModuleComponentArtifactIdentifier id, ArtifactVerificationOperation.ArtifactKind artifactKind, File file, ChecksumKind checksumKind) {
+    ChecksumEntry(
+            ModuleComponentArtifactIdentifier id,
+            ArtifactVerificationOperation.ArtifactKind artifactKind,
+            File file,
+            ChecksumKind checksumKind) {
         super(id, artifactKind, file);
         this.checksumKind = checksumKind;
         this.hashCode = precomputeHashCode();

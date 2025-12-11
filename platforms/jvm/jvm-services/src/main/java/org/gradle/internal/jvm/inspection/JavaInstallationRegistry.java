@@ -16,16 +16,14 @@
 
 package org.gradle.internal.jvm.inspection;
 
+import java.util.List;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.List;
-
-
 @NullMarked
-@ServiceScope({ Scope.Build.class, Scope.Global.class })
+@ServiceScope({Scope.Build.class, Scope.Global.class})
 public interface JavaInstallationRegistry {
     List<JvmToolchainMetadata> toolchains();
 

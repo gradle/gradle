@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.catalog;
 
+import static org.gradle.api.internal.catalog.AliasNormalizer.normalize;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static org.gradle.api.internal.catalog.AliasNormalizer.normalize;
 
 public class DefaultVersionCatalog implements Serializable {
     private final String name;
@@ -32,12 +32,13 @@ public class DefaultVersionCatalog implements Serializable {
 
     private final int hashCode;
 
-    public DefaultVersionCatalog(String name,
-                                 String description,
-                                 Map<String, DependencyModel> libraries,
-                                 Map<String, BundleModel> bundles,
-                                 Map<String, VersionModel> versions,
-                                 Map<String, PluginModel> plugins) {
+    public DefaultVersionCatalog(
+            String name,
+            String description,
+            Map<String, DependencyModel> libraries,
+            Map<String, BundleModel> bundles,
+            Map<String, VersionModel> versions,
+            Map<String, PluginModel> plugins) {
         this.name = name;
         this.description = description;
         this.libraries = libraries;
@@ -57,17 +58,11 @@ public class DefaultVersionCatalog implements Serializable {
     }
 
     public List<String> getLibraryAliases() {
-        return libraries.keySet()
-            .stream()
-            .sorted()
-            .collect(Collectors.toList());
+        return libraries.keySet().stream().sorted().collect(Collectors.toList());
     }
 
     public List<String> getBundleAliases() {
-        return bundles.keySet()
-            .stream()
-            .sorted()
-            .collect(Collectors.toList());
+        return bundles.keySet().stream().sorted().collect(Collectors.toList());
     }
 
     public DependencyModel getDependencyData(String alias) {
@@ -75,17 +70,11 @@ public class DefaultVersionCatalog implements Serializable {
     }
 
     public List<String> getVersionAliases() {
-        return versions.keySet()
-            .stream()
-            .sorted()
-            .collect(Collectors.toList());
+        return versions.keySet().stream().sorted().collect(Collectors.toList());
     }
 
     public List<String> getPluginAliases() {
-        return plugins.keySet()
-            .stream()
-            .sorted()
-            .collect(Collectors.toList());
+        return plugins.keySet().stream().sorted().collect(Collectors.toList());
     }
 
     public BundleModel getBundle(String name) {

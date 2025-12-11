@@ -15,7 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.verification.signatures;
 
+import static org.gradle.security.internal.SecuritySupport.toLongIdHexString;
+
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
@@ -42,20 +51,11 @@ import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.SecuritySupport;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.gradle.security.internal.SecuritySupport.toLongIdHexString;
-
 @ServiceScope(Scope.Build.class)
 public class DefaultSignatureVerificationServiceFactory implements SignatureVerificationServiceFactory {
 
-    private static final HashCode NO_KEYRING_FILE_HASH = Hashing.signature(DefaultSignatureVerificationServiceFactory.class);
+    private static final HashCode NO_KEYRING_FILE_HASH =
+            Hashing.signature(DefaultSignatureVerificationServiceFactory.class);
 
     private final RepositoryTransportFactory transportFactory;
     private final GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory;
@@ -68,16 +68,15 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     private final FileResourceListener fileResourceListener;
 
     public DefaultSignatureVerificationServiceFactory(
-        RepositoryTransportFactory transportFactory,
-        GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory,
-        InMemoryCacheDecoratorFactory decoratorFactory,
-        BuildOperationRunner buildOperationRunner,
-        FileHasher fileHasher,
-        BuildScopedCacheBuilderFactory buildScopedCacheBuilderFactory,
-        BuildCommencedTimeProvider timeProvider,
-        boolean refreshKeys,
-        FileResourceListener fileResourceListener
-    ) {
+            RepositoryTransportFactory transportFactory,
+            GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory,
+            InMemoryCacheDecoratorFactory decoratorFactory,
+            BuildOperationRunner buildOperationRunner,
+            FileHasher fileHasher,
+            BuildScopedCacheBuilderFactory buildScopedCacheBuilderFactory,
+            BuildCommencedTimeProvider timeProvider,
+            boolean refreshKeys,
+            FileResourceListener fileResourceListener) {
         this.transportFactory = transportFactory;
         this.globalScopedCacheBuilderFactory = globalScopedCacheBuilderFactory;
         this.decoratorFactory = decoratorFactory;
@@ -90,32 +89,41 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     }
 
     @Override
-    public SignatureVerificationService create(BuildTreeDefinedKeys keyrings, List<URI> keyServers, boolean useKeyServers) {
+    public SignatureVerificationService create(
+            BuildTreeDefinedKeys keyrings, List<URI> keyServers, boolean useKeyServers) {
         boolean refreshKeys = this.refreshKeys || !useKeyServers;
-        ExternalResourceRepository repository = transportFactory.createTransport("https", "https", Collections.emptyList(), redirectLocations -> {}).getRepository();
+        ExternalResourceRepository repository = transportFactory
+                .createTransport("https", "https", Collections.emptyList(), redirectLocations -> {})
+                .getRepository();
         PublicKeyService keyService;
         if (useKeyServers) {
-            PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), repository);
-            keyService = new CrossBuildCachingKeyService(globalScopedCacheBuilderFactory, decoratorFactory, buildOperationRunner, keyDownloadService, timeProvider, refreshKeys);
+            PublicKeyDownloadService keyDownloadService =
+                    new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), repository);
+            keyService = new CrossBuildCachingKeyService(
+                    globalScopedCacheBuilderFactory,
+                    decoratorFactory,
+                    buildOperationRunner,
+                    keyDownloadService,
+                    timeProvider,
+                    refreshKeys);
         } else {
             keyService = EmptyPublicKeyService.getInstance();
         }
         keyService = keyrings.applyTo(keyService);
         File effectiveKeyringsFile = keyrings.getEffectiveKeyringsFile();
         HashCode keyringFileHash = observed(effectiveKeyringsFile).exists()
-            ? fileHasher.hash(effectiveKeyringsFile)
-            : NO_KEYRING_FILE_HASH;
+                ? fileHasher.hash(effectiveKeyringsFile)
+                : NO_KEYRING_FILE_HASH;
         DefaultSignatureVerificationService delegate = new DefaultSignatureVerificationService(keyService);
         return new CrossBuildSignatureVerificationService(
-            delegate,
-            fileHasher,
-            buildScopedCacheBuilderFactory,
-            decoratorFactory,
-            timeProvider,
-            refreshKeys,
-            useKeyServers,
-            keyringFileHash
-        );
+                delegate,
+                fileHasher,
+                buildScopedCacheBuilderFactory,
+                decoratorFactory,
+                timeProvider,
+                refreshKeys,
+                useKeyServers,
+                keyringFileHash);
     }
 
     private File observed(File file) {
@@ -131,7 +139,12 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         }
 
         @Override
-        public void verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, SignatureVerificationResultBuilder result) {
+        public void verify(
+                File origin,
+                File signature,
+                Set<String> trustedKeys,
+                Set<String> ignoredKeys,
+                SignatureVerificationResultBuilder result) {
             PGPSignatureList pgpSignatures = SecuritySupport.readSignatures(signature);
             if (pgpSignatures == null) {
                 result.noSignatures();
@@ -146,9 +159,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
                 AtomicBoolean missing = new AtomicBoolean(true);
                 keyService.findByLongId(pgpSignature.getKeyID(), new PublicKeyResultBuilder() {
                     @Override
-                    public void keyRing(PGPPublicKeyRing keyring) {
-
-                    }
+                    public void keyRing(PGPPublicKeyRing keyring) {}
 
                     @Override
                     public void publicKey(PGPPublicKey pgpPublicKey) {
@@ -163,7 +174,8 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
                             if (!verified) {
                                 result.failed(pgpPublicKey);
                             } else {
-                                boolean trusted = trustedKeys.contains(fingerprint) || trustedKeys.contains(toLongIdHexString(pgpPublicKey.getKeyID()));
+                                boolean trusted = trustedKeys.contains(fingerprint)
+                                        || trustedKeys.contains(toLongIdHexString(pgpPublicKey.getKeyID()));
                                 result.verified(pgpPublicKey, trusted);
                             }
                         } catch (PGPException e) {

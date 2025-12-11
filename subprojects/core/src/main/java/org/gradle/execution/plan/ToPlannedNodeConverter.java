@@ -16,13 +16,12 @@
 
 package org.gradle.execution.plan;
 
+import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.taskgraph.NodeIdentity;
 import org.jspecify.annotations.NullMarked;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.util.List;
 
 /**
  * Converts a node to a planned node.

@@ -19,6 +19,8 @@ package org.gradle.platform.base.internal.registry;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
@@ -27,35 +29,46 @@ import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.ModelRuleInvoker;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Arrays;
-import java.util.List;
-
 public abstract class ModelMapBasedRule<T, C> extends AbstractMethodRuleAction<C> {
     private final List<ModelReference<?>> inputs;
     protected final int baseTypeParameterIndex;
 
-    public ModelMapBasedRule(ModelReference<C> subject, final ModelType<? extends T> baseType, MethodRuleDefinition<?, ?> ruleDefinition, ModelReference<?>... additionalInputs) {
+    public ModelMapBasedRule(
+            ModelReference<C> subject,
+            final ModelType<? extends T> baseType,
+            MethodRuleDefinition<?, ?> ruleDefinition,
+            ModelReference<?>... additionalInputs) {
         super(subject, ruleDefinition.getDescriptor());
         this.inputs = calculateInputs(
                 baseType,
-                ruleDefinition.getReferences().subList(1, ruleDefinition.getReferences().size()),
-                Arrays.asList(additionalInputs)
-        );
-        this.baseTypeParameterIndex = 1 + Iterables.indexOf(ruleDefinition.getReferences().subList(1, ruleDefinition.getReferences().size()), new Predicate<ModelReference<?>>() {
-            @Override
-            public boolean apply(ModelReference<?> element) {
-                return element.getType().equals(baseType);
-            }
-        });
+                ruleDefinition
+                        .getReferences()
+                        .subList(1, ruleDefinition.getReferences().size()),
+                Arrays.asList(additionalInputs));
+        this.baseTypeParameterIndex = 1
+                + Iterables.indexOf(
+                        ruleDefinition
+                                .getReferences()
+                                .subList(1, ruleDefinition.getReferences().size()),
+                        new Predicate<ModelReference<?>>() {
+                            @Override
+                            public boolean apply(ModelReference<?> element) {
+                                return element.getType().equals(baseType);
+                            }
+                        });
     }
 
-    private static ImmutableList<ModelReference<?>> calculateInputs(final ModelType<?> baseType, final List<ModelReference<?>> references, List<ModelReference<?>> modelReferences) {
-        Iterable<ModelReference<?>> filteredReferences = Iterables.filter(references, new Predicate<ModelReference<?>>() {
-            @Override
-            public boolean apply(ModelReference<?> element) {
-                return !element.getType().equals(baseType);
-            }
-        });
+    private static ImmutableList<ModelReference<?>> calculateInputs(
+            final ModelType<?> baseType,
+            final List<ModelReference<?>> references,
+            List<ModelReference<?>> modelReferences) {
+        Iterable<ModelReference<?>> filteredReferences =
+                Iterables.filter(references, new Predicate<ModelReference<?>>() {
+                    @Override
+                    public boolean apply(ModelReference<?> element) {
+                        return !element.getType().equals(baseType);
+                    }
+                });
 
         ImmutableList.Builder<ModelReference<?>> allInputs = ImmutableList.builder();
         allInputs.addAll(modelReferences);
@@ -68,7 +81,12 @@ public abstract class ModelMapBasedRule<T, C> extends AbstractMethodRuleAction<C
         return inputs;
     }
 
-    protected void invoke(ModelRuleInvoker<?> ruleInvoker, List<ModelView<?>> inputs, ModelMap<?> modelMap, T baseTypeParameter, Object... ignoredInputs) {
+    protected void invoke(
+            ModelRuleInvoker<?> ruleInvoker,
+            List<ModelView<?>> inputs,
+            ModelMap<?> modelMap,
+            T baseTypeParameter,
+            Object... ignoredInputs) {
         List<Object> ignoredInputsList = Arrays.asList(ignoredInputs);
         Object[] args = new Object[inputs.size() + 2 - ignoredInputs.length];
         args[0] = modelMap;

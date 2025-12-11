@@ -27,12 +27,10 @@ public class AssignMutableWorkspaceStep<C extends IdentityContext> extends Mutab
 
     @Override
     protected WorkspaceResult executeMutable(MutableUnitOfWork work, C context) {
-        return work.getWorkspaceProvider().withWorkspace(
-            context.getIdentity().getUniqueId(),
-            workspace -> {
-                WorkspaceContext delegateContext = new WorkspaceContext(context, workspace);
-                CachingResult delegateResult = delegate.execute(work, delegateContext);
-                return new WorkspaceResult(delegateResult, workspace);
-            });
+        return work.getWorkspaceProvider().withWorkspace(context.getIdentity().getUniqueId(), workspace -> {
+            WorkspaceContext delegateContext = new WorkspaceContext(context, workspace);
+            CachingResult delegateResult = delegate.execute(work, delegateContext);
+            return new WorkspaceResult(delegateResult, workspace);
+        });
     }
 }

@@ -16,20 +16,21 @@
 
 package org.gradle.tooling.events.transform.internal;
 
+import java.util.Set;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.transform.TransformOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 
-import java.util.Set;
-
-public class DefaultTransformOperationDescriptor extends DefaultOperationDescriptor implements TransformOperationDescriptor {
+public class DefaultTransformOperationDescriptor extends DefaultOperationDescriptor
+        implements TransformOperationDescriptor {
 
     private final TransformerDescriptor transformer;
     private final SubjectDescriptor subject;
     private final Set<OperationDescriptor> dependencies;
 
-    public DefaultTransformOperationDescriptor(InternalTransformDescriptor descriptor, OperationDescriptor parent, Set<OperationDescriptor> dependencies) {
+    public DefaultTransformOperationDescriptor(
+            InternalTransformDescriptor descriptor, OperationDescriptor parent, Set<OperationDescriptor> dependencies) {
         super(descriptor, parent);
         this.transformer = new DefaultTransformerDescriptor(descriptor.getTransformerName());
         this.subject = new DefaultSubjectDescriptor(descriptor.getSubjectName());
@@ -63,7 +64,6 @@ public class DefaultTransformOperationDescriptor extends DefaultOperationDescrip
         public String getDisplayName() {
             return displayName;
         }
-
     }
 
     private static class DefaultSubjectDescriptor implements SubjectDescriptor {
@@ -78,7 +78,5 @@ public class DefaultTransformOperationDescriptor extends DefaultOperationDescrip
         public String getDisplayName() {
             return displayName;
         }
-
     }
-
 }

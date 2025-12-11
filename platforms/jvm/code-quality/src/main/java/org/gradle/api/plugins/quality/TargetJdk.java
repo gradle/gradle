@@ -16,9 +16,8 @@
 
 package org.gradle.api.plugins.quality;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Locale;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents the PMD targetjdk property available for PMD &lt; 5.0

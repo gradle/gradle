@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal.operations;
 
-
 /**
  * Details about the Java tool being used and the toolchain it belongs to.
  *
@@ -81,7 +80,5 @@ public interface JavaToolchainUsageProgressDetails {
          * Returns OS architecture such as {@code amd64}.
          */
         String getArchitecture();
-
     }
-
 }

@@ -24,14 +24,14 @@ import japicmp.model.JApiConstructor;
 import japicmp.model.JApiField;
 import japicmp.model.JApiHasAnnotations;
 import japicmp.model.JApiMethod;
-import me.champeau.gradle.japicmp.report.Violation;
-
 import java.util.Map;
+import me.champeau.gradle.japicmp.report.Violation;
 
 public class SinceAnnotationRule extends AbstractGradleViolationRule {
 
     public static final String SINCE_ERROR_MESSAGE = "Is not annotated with @since ";
-    public static final String SINCE_MISMATCH_ERROR_MESSAGE = "Has invalid @since: it should be %s, but currently is %s";
+    public static final String SINCE_MISMATCH_ERROR_MESSAGE =
+            "Has invalid @since: it should be %s, but currently is %s";
     public static final String SINCE_INCONSISTENT_ERROR_MESSAGE = "Has inconsistent @since: %s";
 
     public SinceAnnotationRule(Map<String, Object> params) {
@@ -47,13 +47,21 @@ public class SinceAnnotationRule extends AbstractGradleViolationRule {
 
         SinceTagStatus since = getRepository().getSince(member);
         if (since instanceof SinceTagStatus.Present present) {
-            if (present.getVersion().equals(getCurrentVersion())){
+            if (present.getVersion().equals(getCurrentVersion())) {
                 return null;
             } else {
-                return acceptOrReject(member, Violation.error(member, String.format(SINCE_MISMATCH_ERROR_MESSAGE, getCurrentVersion(), present.getVersion())));
+                return acceptOrReject(
+                        member,
+                        Violation.error(
+                                member,
+                                String.format(
+                                        SINCE_MISMATCH_ERROR_MESSAGE, getCurrentVersion(), present.getVersion())));
             }
         } else if (since instanceof SinceTagStatus.Inconsistent inconsistent) {
-            return acceptOrReject(member, Violation.error(member, String.format(SINCE_INCONSISTENT_ERROR_MESSAGE, inconsistent.getVersions())));
+            return acceptOrReject(
+                    member,
+                    Violation.error(
+                            member, String.format(SINCE_INCONSISTENT_ERROR_MESSAGE, inconsistent.getVersions())));
         } else if (since instanceof SinceTagStatus.NotNeeded) {
             return null;
         } else if (since instanceof SinceTagStatus.Missing) {
@@ -64,14 +72,17 @@ public class SinceAnnotationRule extends AbstractGradleViolationRule {
     }
 
     private boolean shouldSkipViolationCheckFor(JApiCompatibility member) {
-        return !isClassFieldConstructorOrMethod(member) ||
-            isInject(member) ||
-            isOverrideMethod(member) ||
-            isKotlinFileFacadeClass(member);
+        return !isClassFieldConstructorOrMethod(member)
+                || isInject(member)
+                || isOverrideMethod(member)
+                || isKotlinFileFacadeClass(member);
     }
 
     private boolean isClassFieldConstructorOrMethod(JApiCompatibility member) {
-        return member instanceof JApiClass || member instanceof JApiField || member instanceof JApiConstructor || member instanceof JApiMethod;
+        return member instanceof JApiClass
+                || member instanceof JApiField
+                || member instanceof JApiConstructor
+                || member instanceof JApiMethod;
     }
 
     private boolean isInject(JApiCompatibility member) {
@@ -86,6 +97,8 @@ public class SinceAnnotationRule extends AbstractGradleViolationRule {
      * Kotlin file-facade classes can't have kdoc comments.
      */
     private boolean isKotlinFileFacadeClass(JApiCompatibility member) {
-        return member instanceof JApiClass && KotlinMetadataQueries.INSTANCE.isKotlinFileFacadeClass(((JApiClass) member).getNewClass().get());
+        return member instanceof JApiClass
+                && KotlinMetadataQueries.INSTANCE.isKotlinFileFacadeClass(
+                        ((JApiClass) member).getNewClass().get());
     }
 }

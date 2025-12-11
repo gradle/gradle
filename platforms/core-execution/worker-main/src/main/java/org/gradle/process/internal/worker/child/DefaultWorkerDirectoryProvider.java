@@ -16,10 +16,9 @@
 
 package org.gradle.process.internal.worker.child;
 
+import java.io.File;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.util.internal.GFileUtils;
-
-import java.io.File;
 
 public class DefaultWorkerDirectoryProvider implements WorkerDirectoryProvider {
     private final File gradleUserHomeDir;

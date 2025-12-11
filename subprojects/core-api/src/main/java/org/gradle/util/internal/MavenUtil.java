@@ -16,10 +16,9 @@
 
 package org.gradle.util.internal;
 
+import java.io.File;
 import org.gradle.internal.SystemProperties;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class MavenUtil {
 
@@ -35,5 +34,4 @@ public class MavenUtil {
         }
         return new File(m2Home);
     }
-
 }

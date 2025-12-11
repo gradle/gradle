@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -24,10 +27,6 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     private final VisitedGraphResults graphResults;
@@ -36,11 +35,10 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     private final LenientConfigurationInternal configuration;
 
     public DefaultResolvedConfiguration(
-        VisitedGraphResults graphResults,
-        ResolutionHost resolutionHost,
-        VisitedArtifactSet visitedArtifacts,
-        LenientConfigurationInternal configuration
-    ) {
+            VisitedGraphResults graphResults,
+            ResolutionHost resolutionHost,
+            VisitedArtifactSet visitedArtifacts,
+            LenientConfigurationInternal configuration) {
         this.graphResults = graphResults;
         this.resolutionHost = resolutionHost;
         this.visitedArtifacts = visitedArtifacts;
@@ -81,5 +79,4 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
         resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         return visitor.getArtifacts();
     }
-
 }

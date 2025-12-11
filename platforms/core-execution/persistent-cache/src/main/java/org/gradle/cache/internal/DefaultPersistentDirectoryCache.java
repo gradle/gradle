@@ -15,6 +15,14 @@
  */
 package org.gradle.cache.internal;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.Properties;
+import java.util.function.Consumer;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.FileLock;
@@ -26,16 +34,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Properties;
-import java.util.function.Consumer;
-
-public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
+public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore
+        implements ReferencablePersistentCache {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
 
@@ -43,15 +43,14 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
     private final Consumer<? super PersistentCache> initAction;
 
     public DefaultPersistentDirectoryCache(
-        File dir,
-        String displayName,
-        Map<String, ?> properties,
-        LockOptions lockOptions,
-        Consumer<? super PersistentCache> initAction,
-        CacheCleanupStrategy cacheCleanupStrategy,
-        FileLockManager lockManager,
-        ExecutorFactory executorFactory
-    ) {
+            File dir,
+            String displayName,
+            Map<String, ?> properties,
+            LockOptions lockOptions,
+            Consumer<? super PersistentCache> initAction,
+            CacheCleanupStrategy cacheCleanupStrategy,
+            FileLockManager lockManager,
+            ExecutorFactory executorFactory) {
         super(dir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory);
         this.initAction = initAction;
         this.properties.putAll(properties);
@@ -78,7 +77,10 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
 
             if (!properties.isEmpty()) {
                 if (!propertiesFile.exists()) {
-                    LOGGER.debug("Invalidating {} as cache properties file {} is missing and cache properties are not empty.", DefaultPersistentDirectoryCache.this, propertiesFile.getAbsolutePath());
+                    LOGGER.debug(
+                            "Invalidating {} as cache properties file {} is missing and cache properties are not empty.",
+                            DefaultPersistentDirectoryCache.this,
+                            propertiesFile.getAbsolutePath());
                     return true;
                 }
                 Properties cachedProperties = new Properties();
@@ -88,10 +90,16 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
                 for (Map.Entry<?, ?> entry : properties.entrySet()) {
-                    String previousValue = cachedProperties.getProperty(entry.getKey().toString());
+                    String previousValue =
+                            cachedProperties.getProperty(entry.getKey().toString());
                     String currentValue = entry.getValue().toString();
                     if (!currentValue.equals(previousValue)) {
-                        LOGGER.debug("Invalidating {} as cache property {} has changed from {} to {}.", DefaultPersistentDirectoryCache.this, entry.getKey(), previousValue, currentValue);
+                        LOGGER.debug(
+                                "Invalidating {} as cache property {} has changed from {} to {}.",
+                                DefaultPersistentDirectoryCache.this,
+                                entry.getKey(),
+                                previousValue,
+                                currentValue);
                         return true;
                     }
                 }

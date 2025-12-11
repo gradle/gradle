@@ -16,6 +16,7 @@
 
 package org.gradle.configuration;
 
+import java.io.File;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -30,15 +31,17 @@ import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
 
-import java.io.File;
-
 public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
     private final ProjectsPreparer delegate;
     private final BuildInclusionCoordinator coordinator;
     private final BuildSourceBuilder buildSourceBuilder;
     private final BuildLoader buildLoader;
 
-    public BuildTreePreparingProjectsPreparer(ProjectsPreparer delegate, BuildLoader buildLoader, BuildInclusionCoordinator coordinator, BuildSourceBuilder buildSourceBuilder) {
+    public BuildTreePreparingProjectsPreparer(
+            ProjectsPreparer delegate,
+            BuildLoader buildLoader,
+            BuildInclusionCoordinator coordinator,
+            BuildSourceBuilder buildSourceBuilder) {
         this.delegate = delegate;
         this.buildLoader = buildLoader;
         this.coordinator = coordinator;
@@ -50,7 +53,8 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         // Setup classloader for root project, all other projects will be derived from this.
         SettingsInternal settings = gradle.getSettings();
         ClassLoaderScope settingsClassLoaderScope = settings.getClassLoaderScope();
-        ClassLoaderScope buildSrcClassLoaderScope = settingsClassLoaderScope.createChild("buildSrc[" + gradle.getIdentityPath() + "]", null);
+        ClassLoaderScope buildSrcClassLoaderScope =
+                settingsClassLoaderScope.createChild("buildSrc[" + gradle.getIdentityPath() + "]", null);
         gradle.setBaseProjectClassLoaderScope(buildSrcClassLoaderScope);
         generateDependenciesAccessorsAndAssignPluginVersions(gradle.getServices(), settings, buildSrcClassLoaderScope);
         // attaches root project
@@ -72,7 +76,8 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         baseProjectClassLoaderScope.export(buildSrcClassPath).lock();
     }
 
-    private void generateDependenciesAccessorsAndAssignPluginVersions(ServiceRegistry services, SettingsInternal settings, ClassLoaderScope classLoaderScope) {
+    private void generateDependenciesAccessorsAndAssignPluginVersions(
+            ServiceRegistry services, SettingsInternal settings, ClassLoaderScope classLoaderScope) {
         DependenciesAccessors accessors = services.get(DependenciesAccessors.class);
         DependencyResolutionManagementInternal dm = services.get(DependencyResolutionManagementInternal.class);
         dm.getDefaultLibrariesExtensionName().finalizeValue();

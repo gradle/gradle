@@ -16,17 +16,17 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import java.util.List;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.TestFrameworkFailure;
-
-import java.util.List;
 
 public class DefaultTestFrameworkFailure extends DefaultFailure implements TestFrameworkFailure {
 
     private final String className;
     private final String stacktrace;
 
-    public DefaultTestFrameworkFailure(String message, String description, List<? extends Failure> causes, String className, String stacktrace) {
+    public DefaultTestFrameworkFailure(
+            String message, String description, List<? extends Failure> causes, String className, String stacktrace) {
         super(message, description, causes);
         this.className = className;
         this.stacktrace = stacktrace;

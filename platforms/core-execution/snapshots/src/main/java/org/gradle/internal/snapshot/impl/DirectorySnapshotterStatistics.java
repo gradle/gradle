@@ -16,9 +16,6 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -26,6 +23,8 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicLong;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 public interface DirectorySnapshotterStatistics {
     /**
@@ -100,8 +99,12 @@ public interface DirectorySnapshotterStatistics {
 
                 @Override
                 public String toString() {
-                    return MessageFormat.format("Snapshot {0,number,integer} directory hierarchies (visited {1,number,integer} directories, {2,number,integer} files and {3,number,integer} failed files)",
-                        hierarchyCount, directoryCount, fileCount, failedFileCount);
+                    return MessageFormat.format(
+                            "Snapshot {0,number,integer} directory hierarchies (visited {1,number,integer} directories, {2,number,integer} files and {3,number,integer} failed files)",
+                            hierarchyCount,
+                            directoryCount,
+                            fileCount,
+                            failedFileCount);
                 }
             };
         }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import javax.inject.Inject;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.LegacyConfiguration;
@@ -28,8 +29,6 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import javax.inject.Inject;
-
 /**
  * A concrete {@link DefaultConfiguration} implementation which can change roles.
  */
@@ -37,34 +36,31 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
 
     @Inject
     public DefaultLegacyConfiguration(
-        ConfigurationServicesBundle configurationServices,
-        DomainObjectContext domainObjectContext,
-        String name,
-        boolean isDetached,
-        ConfigurationResolver resolver,
-        ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
-        NotationParser<Object, Capability> capabilityNotationParser,
-        UserCodeApplicationContext userCodeApplicationContext,
-        DefaultConfigurationFactory defaultConfigurationFactory,
-        ConfigurationRole roleAtCreation
-    ) {
+            ConfigurationServicesBundle configurationServices,
+            DomainObjectContext domainObjectContext,
+            String name,
+            boolean isDetached,
+            ConfigurationResolver resolver,
+            ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
+            Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
+            NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+            NotationParser<Object, Capability> capabilityNotationParser,
+            UserCodeApplicationContext userCodeApplicationContext,
+            DefaultConfigurationFactory defaultConfigurationFactory,
+            ConfigurationRole roleAtCreation) {
         super(
-            configurationServices,
-            domainObjectContext,
-            name,
-            isDetached,
-            resolver,
-            dependencyResolutionListeners,
-            resolutionStrategyFactory,
-            artifactNotationParser,
-            capabilityNotationParser,
-            userCodeApplicationContext,
-            defaultConfigurationFactory,
-            roleAtCreation,
-            false
-        );
+                configurationServices,
+                domainObjectContext,
+                name,
+                isDetached,
+                resolver,
+                dependencyResolutionListeners,
+                resolutionStrategyFactory,
+                artifactNotationParser,
+                capabilityNotationParser,
+                userCodeApplicationContext,
+                defaultConfigurationFactory,
+                roleAtCreation,
+                false);
     }
-
 }

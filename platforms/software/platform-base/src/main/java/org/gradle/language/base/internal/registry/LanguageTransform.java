@@ -16,12 +16,11 @@
 
 package org.gradle.language.base.internal.registry;
 
+import java.util.Map;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.TransformationFileType;
-
-import java.util.Map;
 
 /**
  * A registered language transformation.

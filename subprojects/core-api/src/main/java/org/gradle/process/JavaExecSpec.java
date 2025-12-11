@@ -15,6 +15,7 @@
  */
 package org.gradle.process;
 
+import java.util.List;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
@@ -32,8 +33,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.R
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Specifies the options for executing a Java application.
@@ -71,16 +70,16 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     @Optional
     @Input
     @ReplacesEagerProperty(
-        replacedAccessors = @ReplacedAccessor(value = AccessorType.SETTER, name = "setMain", fluentSetter = true),
-        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9)
-    )
+            replacedAccessors = @ReplacedAccessor(value = AccessorType.SETTER, name = "setMain", fluentSetter = true),
+            deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9))
     Property<String> getMainClass();
 
     /**
      * Returns the arguments passed to the main class to be executed.
      */
     @ToBeReplacedByLazyProperty
-    @Optional @Input
+    @Optional
+    @Input
     List<String> getArgs();
 
     /**

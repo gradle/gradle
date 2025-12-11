@@ -25,7 +25,8 @@ public class DefaultBuildOperationProgressEventEmitter implements BuildOperation
     private final CurrentBuildOperationRef current;
     private final BuildOperationListener listener;
 
-    public DefaultBuildOperationProgressEventEmitter(Clock clock, CurrentBuildOperationRef current, BuildOperationListener listener) {
+    public DefaultBuildOperationProgressEventEmitter(
+            Clock clock, CurrentBuildOperationRef current, BuildOperationListener listener) {
         this.clock = clock;
         this.current = current;
         this.listener = listener;

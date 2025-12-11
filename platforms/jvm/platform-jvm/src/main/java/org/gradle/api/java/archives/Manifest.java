@@ -17,11 +17,10 @@ package org.gradle.api.java.archives;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import java.util.Map;
 
 /**
  * Represents the manifest file of a JAR file.

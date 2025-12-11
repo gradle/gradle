@@ -26,8 +26,7 @@ class ProviderWithGenericTypes implements ServiceRegistrationProvider {
     @Provides
     GenericRunnable<String> createString() {
         return new GenericRunnable<String>() {
-            public void run() {
-            }
+            public void run() {}
         };
     }
 }

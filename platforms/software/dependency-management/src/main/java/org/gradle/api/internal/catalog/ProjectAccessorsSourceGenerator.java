@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.catalog;
 
-import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.internal.UncheckedException;
-
 import java.io.IOException;
 import java.io.Writer;
+import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.internal.UncheckedException;
 
 public class ProjectAccessorsSourceGenerator extends AbstractProjectAccessorsSourceGenerator {
 
@@ -27,9 +26,7 @@ public class ProjectAccessorsSourceGenerator extends AbstractProjectAccessorsSou
         super(writer);
     }
 
-    public static String generateSource(Writer writer,
-                                        ProjectDescriptor current,
-                                        String packageName) {
+    public static String generateSource(Writer writer, ProjectDescriptor current, String packageName) {
         ProjectAccessorsSourceGenerator generator = new ProjectAccessorsSourceGenerator(writer);
         try {
             String className = toClassName(current.getPath(), rootProjectName(current));
@@ -46,12 +43,12 @@ public class ProjectAccessorsSourceGenerator extends AbstractProjectAccessorsSou
         writeLn("public class " + className + " extends DelegatingProjectDependency {");
         writeLn();
         writeLn("    @Inject");
-        writeLn("    public " + className + "(TypeSafeProjectDependencyFactory factory, ProjectDependencyInternal delegate) {");
+        writeLn("    public " + className
+                + "(TypeSafeProjectDependencyFactory factory, ProjectDependencyInternal delegate) {");
         writeLn("        super(factory, delegate);");
         writeLn("    }");
         writeLn();
         processChildren(current);
         writeLn("}");
     }
-
 }

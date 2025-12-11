@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
@@ -27,14 +31,10 @@ import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-
 public class FieldOptionElement {
 
-    public static OptionElement create(Option option, Field field, OptionValueNotationParserFactory optionValueNotationParserFactory) {
+    public static OptionElement create(
+            Option option, Field field, OptionValueNotationParserFactory optionValueNotationParserFactory) {
         String optionName = calOptionName(option, field);
         Class<?> fieldType = field.getType();
 
@@ -45,7 +45,8 @@ public class FieldOptionElement {
         if (HasMultipleValues.class.isAssignableFrom(fieldType)) {
             PropertySetter setter = mutateUsingGetter(field);
             Class<?> elementType = setter.getRawType();
-            return new MultipleValueOptionElement(optionName, option, elementType, setter, optionValueNotationParserFactory);
+            return new MultipleValueOptionElement(
+                    optionName, option, elementType, setter, optionValueNotationParserFactory);
         }
 
         PropertySetter setter = mutateUsingSetter(field);
@@ -79,7 +80,8 @@ public class FieldOptionElement {
             String setterName = "set" + StringUtils.capitalize(field.getName());
             return field.getDeclaringClass().getMethod(setterName, field.getType());
         } catch (NoSuchMethodException e) {
-            throw new OptionValidationException(String.format("No setter for Option annotated field '%s' in class '%s'.",
+            throw new OptionValidationException(String.format(
+                    "No setter for Option annotated field '%s' in class '%s'.",
                     field.getName(), field.getDeclaringClass()));
         }
     }
@@ -89,7 +91,8 @@ public class FieldOptionElement {
             String getterName = "get" + StringUtils.capitalize(field.getName());
             return field.getDeclaringClass().getMethod(getterName);
         } catch (NoSuchMethodException e) {
-            throw new OptionValidationException(String.format("No getter for Option annotated field '%s' in class '%s'.",
+            throw new OptionValidationException(String.format(
+                    "No getter for Option annotated field '%s' in class '%s'.",
                     field.getName(), field.getDeclaringClass()));
         }
     }
@@ -130,7 +133,13 @@ public class FieldOptionElement {
         private final Class<?> elementType;
 
         public PropertyFieldSetter(Method getter, Field field) {
-            this(getter, field, ModelType.of(getter.getGenericReturnType()).getTypeVariables().get(0).getRawClass());
+            this(
+                    getter,
+                    field,
+                    ModelType.of(getter.getGenericReturnType())
+                            .getTypeVariables()
+                            .get(0)
+                            .getRawClass());
         }
 
         public PropertyFieldSetter(Method getter, Field field, Class<?> elementType) {
@@ -156,7 +165,8 @@ public class FieldOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            Property<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getter).invoke(target));
+            Property<Object> property = Cast.uncheckedNonnullCast(
+                    JavaMethod.of(Object.class, getter).invoke(target));
             property.set(value);
         }
 
@@ -173,7 +183,8 @@ public class FieldOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            HasMultipleValues<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getGetter()).invoke(target));
+            HasMultipleValues<Object> property = Cast.uncheckedNonnullCast(
+                    JavaMethod.of(Object.class, getGetter()).invoke(target));
             property.set((Iterable<?>) value);
         }
     }
@@ -186,9 +197,9 @@ public class FieldOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            FileSystemLocationProperty<FileSystemLocation> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getGetter()).invoke(target));
-            property.set(new File((String)value));
+            FileSystemLocationProperty<FileSystemLocation> property = Cast.uncheckedNonnullCast(
+                    JavaMethod.of(Object.class, getGetter()).invoke(target));
+            property.set(new File((String) value));
         }
     }
 }
-

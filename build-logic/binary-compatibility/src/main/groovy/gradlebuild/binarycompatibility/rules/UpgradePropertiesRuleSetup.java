@@ -16,13 +16,15 @@
 
 package gradlebuild.binarycompatibility.rules;
 
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.CURRENT_ACCESSORS_OF_UPGRADED_PROPERTIES;
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES;
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES;
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperty.BinaryCompatibility.ACCESSORS_REMOVED;
+
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperties;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty;
-import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.ReplacedAccessor;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.AccessorKey;
-import me.champeau.gradle.japicmp.report.SetupRule;
-import me.champeau.gradle.japicmp.report.ViolationCheckContext;
-
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.ReplacedAccessor;
 import java.util.AbstractMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,11 +32,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.CURRENT_ACCESSORS_OF_UPGRADED_PROPERTIES;
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES;
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES;
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperty.BinaryCompatibility.ACCESSORS_REMOVED;
+import me.champeau.gradle.japicmp.report.SetupRule;
+import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 
 public class UpgradePropertiesRuleSetup implements SetupRule {
 
@@ -49,41 +48,50 @@ public class UpgradePropertiesRuleSetup implements SetupRule {
 
     @Override
     public void execute(ViolationCheckContext context) {
-        List<UpgradedProperty> currentUpgradedProperties = UpgradedProperties.parse(params.get(CURRENT_UPGRADED_PROPERTIES_KEY));
-        List<UpgradedProperty> baselineUpgradedProperties = UpgradedProperties.parse(params.get(BASELINE_UPGRADED_PROPERTIES_KEY));
-        context.putUserData(CURRENT_ACCESSORS_OF_UPGRADED_PROPERTIES, diff(
-            currentAccessorsOfUpgradedProperties(currentUpgradedProperties),
-            currentAccessorsOfUpgradedProperties(baselineUpgradedProperties)
-        ));
-        context.putUserData(OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES, diff(
-            oldRemovedAccessorsOfUpgradedProperties(currentUpgradedProperties),
-            oldRemovedAccessorsOfUpgradedProperties(baselineUpgradedProperties)
-        ));
+        List<UpgradedProperty> currentUpgradedProperties =
+                UpgradedProperties.parse(params.get(CURRENT_UPGRADED_PROPERTIES_KEY));
+        List<UpgradedProperty> baselineUpgradedProperties =
+                UpgradedProperties.parse(params.get(BASELINE_UPGRADED_PROPERTIES_KEY));
+        context.putUserData(
+                CURRENT_ACCESSORS_OF_UPGRADED_PROPERTIES,
+                diff(
+                        currentAccessorsOfUpgradedProperties(currentUpgradedProperties),
+                        currentAccessorsOfUpgradedProperties(baselineUpgradedProperties)));
+        context.putUserData(
+                OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES,
+                diff(
+                        oldRemovedAccessorsOfUpgradedProperties(currentUpgradedProperties),
+                        oldRemovedAccessorsOfUpgradedProperties(baselineUpgradedProperties)));
         context.putUserData(SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES, new HashSet<>());
     }
 
-    private static Map<AccessorKey, UpgradedProperty> currentAccessorsOfUpgradedProperties(List<UpgradedProperty> upgradedProperties) {
-        return upgradedProperties.stream().collect(Collectors.toMap(AccessorKey::ofUpgradedProperty, Function.identity()));
-    }
-
-    private static Map<AccessorKey, ReplacedAccessor> oldRemovedAccessorsOfUpgradedProperties(List<UpgradedProperty> upgradedProperties) {
+    private static Map<AccessorKey, UpgradedProperty> currentAccessorsOfUpgradedProperties(
+            List<UpgradedProperty> upgradedProperties) {
         return upgradedProperties.stream()
-            .flatMap(UpgradePropertiesRuleSetup::oldRemovedAccessorsOfUpgradedProperty)
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(Collectors.toMap(AccessorKey::ofUpgradedProperty, Function.identity()));
     }
 
-    private static Stream<Map.Entry<AccessorKey, ReplacedAccessor>> oldRemovedAccessorsOfUpgradedProperty(UpgradedProperty upgradedProperty) {
+    private static Map<AccessorKey, ReplacedAccessor> oldRemovedAccessorsOfUpgradedProperties(
+            List<UpgradedProperty> upgradedProperties) {
+        return upgradedProperties.stream()
+                .flatMap(UpgradePropertiesRuleSetup::oldRemovedAccessorsOfUpgradedProperty)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private static Stream<Map.Entry<AccessorKey, ReplacedAccessor>> oldRemovedAccessorsOfUpgradedProperty(
+            UpgradedProperty upgradedProperty) {
         return upgradedProperty.getReplacedAccessors().stream()
-            .filter(replacedAccessor -> replacedAccessor.getBinaryCompatibility() == ACCESSORS_REMOVED)
-            .map(replacedAccessor -> {
-                AccessorKey key = AccessorKey.ofReplacedAccessor(upgradedProperty.getContainingType(), replacedAccessor);
-                return new AbstractMap.SimpleEntry<>(key, replacedAccessor);
-            });
+                .filter(replacedAccessor -> replacedAccessor.getBinaryCompatibility() == ACCESSORS_REMOVED)
+                .map(replacedAccessor -> {
+                    AccessorKey key =
+                            AccessorKey.ofReplacedAccessor(upgradedProperty.getContainingType(), replacedAccessor);
+                    return new AbstractMap.SimpleEntry<>(key, replacedAccessor);
+                });
     }
 
     private static <T> Map<AccessorKey, T> diff(Map<AccessorKey, T> first, Map<AccessorKey, T> second) {
         return first.entrySet().stream()
-            .filter(e -> !second.containsKey(e.getKey()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .filter(e -> !second.containsKey(e.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

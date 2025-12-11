@@ -16,13 +16,12 @@
 
 package org.gradle.platform.base.internal.dependents;
 
-import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.emptyToNull;
 
 import java.util.Collections;
 import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.emptyToNull;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 
 public class DefaultDependentBinariesResolvedResult implements DependentBinariesResolvedResult {
 
@@ -32,7 +31,12 @@ public class DefaultDependentBinariesResolvedResult implements DependentBinaries
     private final boolean testSuite;
     private final List<DependentBinariesResolvedResult> children;
 
-    public DefaultDependentBinariesResolvedResult(LibraryBinaryIdentifier identifier, String projectScopeName, boolean buildable, boolean testSuite, List<DependentBinariesResolvedResult> children) {
+    public DefaultDependentBinariesResolvedResult(
+            LibraryBinaryIdentifier identifier,
+            String projectScopeName,
+            boolean buildable,
+            boolean testSuite,
+            List<DependentBinariesResolvedResult> children) {
         checkNotNull(identifier, "Binary identifier must be non null");
         checkNotNull(emptyToNull(projectScopeName), "Name must be non empty");
         this.identifier = identifier;
@@ -66,5 +70,4 @@ public class DefaultDependentBinariesResolvedResult implements DependentBinaries
     public List<DependentBinariesResolvedResult> getChildren() {
         return children;
     }
-
 }

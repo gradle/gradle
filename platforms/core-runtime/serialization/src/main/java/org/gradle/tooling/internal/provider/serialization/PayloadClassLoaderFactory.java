@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
+import java.util.List;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.List;
 
 /**
  * Used to create ClassLoaders used to serialize objects between the tooling api provider and daemon.

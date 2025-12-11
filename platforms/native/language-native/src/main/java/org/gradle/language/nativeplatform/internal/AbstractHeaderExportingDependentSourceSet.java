@@ -15,14 +15,13 @@
  */
 package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
-import org.gradle.util.internal.CollectionUtils;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
+import org.gradle.util.internal.CollectionUtils;
 
 /**
  * A convenience base class for implementing language source sets with dependencies and exported headers.

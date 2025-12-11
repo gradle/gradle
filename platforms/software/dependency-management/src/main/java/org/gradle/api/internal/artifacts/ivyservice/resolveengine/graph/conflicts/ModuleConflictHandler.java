@@ -46,5 +46,4 @@ public interface ModuleConflictHandler {
     void resolveNextConflict();
 
     ModuleConflictResolver<ComponentState> getResolver();
-
 }

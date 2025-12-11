@@ -31,5 +31,4 @@ public interface ConfigurationIdentity {
     String getProjectPath();
 
     String getName();
-
 }

@@ -16,9 +16,8 @@
 
 package org.gradle.initialization;
 
-import org.gradle.internal.operations.BuildOperationType;
-
 import java.util.Set;
+import org.gradle.internal.operations.BuildOperationType;
 
 /**
  * An operation to load the project structure from the processed settings.
@@ -26,7 +25,8 @@ import java.util.Set;
  *
  * @since 4.2
  */
-public final class LoadProjectsBuildOperationType implements BuildOperationType<LoadProjectsBuildOperationType.Details, LoadProjectsBuildOperationType.Result> {
+public final class LoadProjectsBuildOperationType
+        implements BuildOperationType<LoadProjectsBuildOperationType.Details, LoadProjectsBuildOperationType.Result> {
 
     public interface Details {
         /**
@@ -97,7 +97,6 @@ public final class LoadProjectsBuildOperationType implements BuildOperationType<
              *
              * See {@code org.gradle.api.Project#getChildProjects()}.
              */
-
             Set<? extends Project> getChildren();
         }
     }

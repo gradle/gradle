@@ -18,6 +18,7 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -26,8 +27,6 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByAttributesFailure;
 
-import java.util.List;
-
 /**
  * A {@link VariantSelectionByAttributesFailure} that represents the situation when no variants can
  * be found in the list of candidates that have the requested capabilities.
@@ -35,8 +34,16 @@ import java.util.List;
 public final class NoVariantsWithMatchingCapabilitiesFailure extends AbstractVariantSelectionByAttributesFailure {
     private final ImmutableList<AssessedCandidate> candidates;
 
-    public NoVariantsWithMatchingCapabilitiesFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, ImmutableSet<CapabilitySelector> capabilitySelectors, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
-        super(ResolutionFailureProblemId.NO_VARIANTS_WITH_MATCHING_CAPABILITIES, targetComponent, requestedAttributes, capabilitySelectors);
+    public NoVariantsWithMatchingCapabilitiesFailure(
+            ComponentIdentifier targetComponent,
+            AttributeContainerInternal requestedAttributes,
+            ImmutableSet<CapabilitySelector> capabilitySelectors,
+            List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+        super(
+                ResolutionFailureProblemId.NO_VARIANTS_WITH_MATCHING_CAPABILITIES,
+                targetComponent,
+                requestedAttributes,
+                capabilitySelectors);
         this.candidates = ImmutableList.copyOf(candidates);
     }
 

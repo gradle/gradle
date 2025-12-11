@@ -22,5 +22,4 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Build.class)
-public interface ToolchainManagementInternal extends ToolchainManagement, FinalizableValue {
-}
+public interface ToolchainManagementInternal extends ToolchainManagement, FinalizableValue {}

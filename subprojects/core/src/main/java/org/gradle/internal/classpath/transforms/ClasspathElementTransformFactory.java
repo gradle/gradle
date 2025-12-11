@@ -16,9 +16,8 @@
 
 package org.gradle.internal.classpath.transforms;
 
-import org.gradle.internal.hash.Hasher;
-
 import java.io.File;
+import org.gradle.internal.hash.Hasher;
 
 /**
  * Classpath element transform factory. There are some differences when instrumenting classes to be loaded by the instrumenting agent, this interface encapsulates them.

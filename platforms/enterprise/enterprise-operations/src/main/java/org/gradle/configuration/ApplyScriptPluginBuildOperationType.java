@@ -24,7 +24,9 @@ import org.jspecify.annotations.Nullable;
  *
  * @since 4.0
  */
-public final class ApplyScriptPluginBuildOperationType implements BuildOperationType<ApplyScriptPluginBuildOperationType.Details, ApplyScriptPluginBuildOperationType.Result> {
+public final class ApplyScriptPluginBuildOperationType
+        implements BuildOperationType<
+                ApplyScriptPluginBuildOperationType.Details, ApplyScriptPluginBuildOperationType.Result> {
 
     public interface Details {
 
@@ -71,12 +73,9 @@ public final class ApplyScriptPluginBuildOperationType implements BuildOperation
          * @since 4.10
          */
         long getApplicationId();
-
     }
 
-    public interface Result {
-    }
+    public interface Result {}
 
-    private ApplyScriptPluginBuildOperationType() {
-    }
+    private ApplyScriptPluginBuildOperationType() {}
 }

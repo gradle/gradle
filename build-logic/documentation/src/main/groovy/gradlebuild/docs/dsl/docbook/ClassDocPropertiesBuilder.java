@@ -20,13 +20,12 @@ import gradlebuild.docs.dsl.docbook.model.ClassDoc;
 import gradlebuild.docs.dsl.docbook.model.ExtraAttributeDoc;
 import gradlebuild.docs.dsl.docbook.model.PropertyDoc;
 import gradlebuild.docs.dsl.source.model.PropertyMetaData;
+import java.util.*;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-
-import java.util.*;
 
 public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
     private final JavadocConverter javadocConverter;
@@ -68,7 +67,7 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
             valueTitles.add(element);
         }
 
-        //adding the properties from the super class onto the inheriting class
+        // adding the properties from the super class onto the inheriting class
         Map<String, PropertyDoc> props = new TreeMap<String, PropertyDoc>();
         List<ClassDoc> superTypes = classDoc.getSuperTypes();
         for (ClassDoc superType : superTypes) {
@@ -78,7 +77,8 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
                 for (ExtraAttributeDoc attributeDoc : propertyDoc.getAdditionalValues()) {
                     String key = attributeDoc.getKey();
                     if (inheritedValueTitleMapping.get(key) != null) {
-                        ExtraAttributeDoc newAttribute = new ExtraAttributeDoc(inheritedValueTitleMapping.get(key), attributeDoc.getValueCell());
+                        ExtraAttributeDoc newAttribute =
+                                new ExtraAttributeDoc(inheritedValueTitleMapping.get(key), attributeDoc.getValueCell());
                         additionalValues.put(newAttribute.getKey(), newAttribute);
                     } else {
                         additionalValues.put(key, attributeDoc);
@@ -92,12 +92,17 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
         for (Element row : children(classDoc.getPropertiesTable(), "tr")) {
             List<Element> cells = children(row, "td");
             if (cells.size() != header.size()) {
-                throw new RuntimeException(String.format("Expected %s <td> elements in <tr>, found: %s", header.size(), tr));
+                throw new RuntimeException(
+                        String.format("Expected %s <td> elements in <tr>, found: %s", header.size(), tr));
             }
             String propName = cells.get(0).getTextContent().trim();
             PropertyMetaData property = classDoc.getClassMetaData().findProperty(propName);
             if (property == null) {
-                throw new RuntimeException(String.format("No metadata for property '%s.%s'. Available properties: %s", classDoc.getName(), propName, classDoc.getClassMetaData().getPropertyNames()));
+                throw new RuntimeException(String.format(
+                        "No metadata for property '%s.%s'. Available properties: %s",
+                        classDoc.getName(),
+                        propName,
+                        classDoc.getClassMetaData().getPropertyNames()));
             }
 
             Map<String, ExtraAttributeDoc> additionalValues = new LinkedHashMap<String, ExtraAttributeDoc>();
@@ -118,9 +123,14 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
                 ExtraAttributeDoc attributeDoc = new ExtraAttributeDoc(valueTitles.get(i - 1), cells.get(i));
                 additionalValues.put(attributeDoc.getKey(), attributeDoc);
             }
-            PropertyDoc propertyDoc = new PropertyDoc(property, javadocConverter.parse(property, listener).getDocbook(), new ArrayList<ExtraAttributeDoc>(additionalValues.values()));
+            PropertyDoc propertyDoc = new PropertyDoc(
+                    property,
+                    javadocConverter.parse(property, listener).getDocbook(),
+                    new ArrayList<ExtraAttributeDoc>(additionalValues.values()));
             if (propertyDoc.getDescription() == null) {
-                throw new RuntimeException(String.format("Docbook content for '%s.%s' does not contain a description paragraph.", classDoc.getName(), propName));
+                throw new RuntimeException(String.format(
+                        "Docbook content for '%s.%s' does not contain a description paragraph.",
+                        classDoc.getName(), propName));
             }
 
             props.put(propName, propertyDoc);

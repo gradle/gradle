@@ -37,9 +37,7 @@ public abstract class AbstractInvalidateChildHandler<T, RESULT> implements Child
     @Override
     public ChildMap<RESULT> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
         Optional<RESULT> invalidatedChild = handler.handleAsDescendantOfChild(pathInChild, child);
-        return invalidatedChild
-            .map(this::withReplacedChild)
-            .orElseGet(this::withRemovedChild);
+        return invalidatedChild.map(this::withReplacedChild).orElseGet(this::withRemovedChild);
     }
 
     @Override

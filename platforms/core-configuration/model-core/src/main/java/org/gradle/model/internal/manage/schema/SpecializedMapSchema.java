@@ -16,9 +16,8 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import org.gradle.model.internal.type.ModelType;
-
 import java.lang.ref.WeakReference;
+import org.gradle.model.internal.type.ModelType;
 
 public class SpecializedMapSchema<T, E> extends ModelMapSchema<T, E> {
     private final WeakReference<Class<?>> implementationType;

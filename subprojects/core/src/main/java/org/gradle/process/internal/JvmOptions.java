@@ -16,6 +16,17 @@
 
 package org.gradle.process.internal;
 
+import java.io.File;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -28,18 +39,6 @@ import org.gradle.util.internal.ArgumentsSplitter;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 public class JvmOptions {
     private static final String XMS_PREFIX = "-Xms";
@@ -65,11 +64,22 @@ public class JvmOptions {
     private static final Logger LOGGER = LoggerFactory.getLogger(JvmOptions.class);
 
     public static final Collection<String> IMMUTABLE_SYSTEM_PROPERTIES = Arrays.asList(
-        FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY, JAVA_SECURITY_PROPERTIES_KEY, JDK_ENABLE_ADS_KEY,
-        SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY,
-        // Gradle specific
-        HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY
-    );
+            FILE_ENCODING_KEY,
+            USER_LANGUAGE_KEY,
+            USER_COUNTRY_KEY,
+            USER_VARIANT_KEY,
+            JMX_REMOTE_KEY,
+            JAVA_IO_TMPDIR_KEY,
+            JAVA_SECURITY_PROPERTIES_KEY,
+            JDK_ENABLE_ADS_KEY,
+            SSL_KEYSTORE_KEY,
+            SSL_KEYSTOREPASSWORD_KEY,
+            SSL_KEYSTORETYPE_KEY,
+            SSL_TRUSTPASSWORD_KEY,
+            SSL_TRUSTSTORE_KEY,
+            SSL_TRUSTSTORETYPE_KEY,
+            // Gradle specific
+            HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY);
 
     // Store this because Locale.default is mutable and we want the unchanged default
     // We are assuming this class will be initialized before any code has a chance to change the default
@@ -95,7 +105,8 @@ public class JvmOptions {
     public JvmOptions(FileCollectionFactory fileCollectionFactory, JvmDebugSpec debugSpec) {
         this.debugSpec = debugSpec;
         this.fileCollectionFactory = fileCollectionFactory;
-        immutableSystemProperties.put(FILE_ENCODING_KEY, Charset.defaultCharset().name());
+        immutableSystemProperties.put(
+                FILE_ENCODING_KEY, Charset.defaultCharset().name());
         immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());
         immutableSystemProperties.put(USER_COUNTRY_KEY, DEFAULT_LOCALE.getCountry());
         immutableSystemProperties.put(USER_VARIANT_KEY, DEFAULT_LOCALE.getVariant());
@@ -180,10 +191,10 @@ public class JvmOptions {
     }
 
     public static String getDebugArgument(boolean server, boolean suspend, String address) {
-        return "-agentlib:jdwp=transport=dt_socket," +
-            "server=" + (server ? 'y' : 'n') +
-            ",suspend=" + (suspend ? 'y' : 'n') +
-            ",address=" + address;
+        return "-agentlib:jdwp=transport=dt_socket," + "server="
+                + (server ? 'y' : 'n') + ",suspend="
+                + (suspend ? 'y' : 'n') + ",address="
+                + address;
     }
 
     public void setAllJvmArgs(Iterable<?> arguments) {
@@ -235,8 +246,8 @@ public class JvmOptions {
 
     private static boolean isDebugArg(String extraJvmArgString) {
         return extraJvmArgString.equals("-Xdebug")
-            || extraJvmArgString.startsWith("-Xrunjdwp")
-            || extraJvmArgString.startsWith("-agentlib:jdwp");
+                || extraJvmArgString.startsWith("-Xrunjdwp")
+                || extraJvmArgString.startsWith("-agentlib:jdwp");
     }
 
     /**
@@ -264,7 +275,8 @@ public class JvmOptions {
             } else if (argStr.startsWith(XMX_PREFIX)) {
                 maxHeapSize = argStr.substring(XMX_PREFIX.length());
             } else if (argStr.startsWith(BOOTCLASSPATH_PREFIX)) {
-                String[] bootClasspath = StringUtils.split(argStr.substring(BOOTCLASSPATH_PREFIX.length()), File.pathSeparatorChar);
+                String[] bootClasspath =
+                        StringUtils.split(argStr.substring(BOOTCLASSPATH_PREFIX.length()), File.pathSeparatorChar);
                 setBootstrapClasspath((Object[]) bootClasspath);
             } else if (argStr.startsWith("-D")) {
                 String keyValue = argStr.substring(2);
@@ -351,7 +363,11 @@ public class JvmOptions {
     }
 
     public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
-        immutableSystemProperties.put(FILE_ENCODING_KEY, GUtil.isTrue(defaultCharacterEncoding) ? defaultCharacterEncoding : Charset.defaultCharset().name());
+        immutableSystemProperties.put(
+                FILE_ENCODING_KEY,
+                GUtil.isTrue(defaultCharacterEncoding)
+                        ? defaultCharacterEncoding
+                        : Charset.defaultCharset().name());
     }
 
     public boolean getEnableAssertions() {

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.runtimeshaded;
 
 public enum RuntimeShadedJarType {
-
     API("api", "API"),
     TEST_KIT("test-kit", "TestKit");
 

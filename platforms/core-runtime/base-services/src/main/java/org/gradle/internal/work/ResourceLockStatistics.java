@@ -43,9 +43,7 @@ public interface ResourceLockStatistics {
         }
 
         @Override
-        public void complete() {
-
-        }
+        public void complete() {}
     };
 
     /**
@@ -69,5 +67,4 @@ public interface ResourceLockStatistics {
      * Called when the statistics collection is complete and any results should be reported.
      */
     void complete();
-
 }

@@ -16,11 +16,10 @@
 
 package org.gradle.caching.local.internal;
 
-import org.gradle.caching.BuildCacheKey;
-
 import java.io.Closeable;
 import java.io.File;
 import java.util.function.Consumer;
+import org.gradle.caching.BuildCacheKey;
 
 /**
  * A build cache service that is capable of handling local files directly. The direct access

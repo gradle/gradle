@@ -16,13 +16,12 @@
 
 package org.gradle.plugins.signing.internal;
 
+import java.io.File;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.plugins.signing.SignOperation;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
 
 public class SignOperationInternal extends SignOperation {
     private final ProjectLayout projectLayout;

@@ -47,7 +47,7 @@ public class Logger implements Appendable {
 
     @Override
     public Appendable append(char c) {
-        if(!quiet) {
+        if (!quiet) {
             System.out.append(c);
         }
         return this;

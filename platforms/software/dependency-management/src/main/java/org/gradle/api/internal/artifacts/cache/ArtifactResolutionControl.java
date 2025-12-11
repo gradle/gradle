@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.cache;
 
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-
 import java.io.File;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
 /**
  * Command methods for controlling artifact resolution via the DSL.

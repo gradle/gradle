@@ -16,15 +16,14 @@
 package org.gradle.security.internal;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import java.util.List;
-
 public class PublicKeyServiceChain implements PublicKeyService {
-    private final static Logger LOGGER = Logging.getLogger(PublicKeyServiceChain.class);
+    private static final Logger LOGGER = Logging.getLogger(PublicKeyServiceChain.class);
 
     private final List<PublicKeyService> services;
 

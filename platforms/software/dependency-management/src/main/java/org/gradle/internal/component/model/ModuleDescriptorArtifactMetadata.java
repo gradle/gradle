@@ -21,5 +21,4 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 /**
  * Represents a module descriptor artifact.
  */
-public interface ModuleDescriptorArtifactMetadata extends ModuleComponentArtifactMetadata {
-}
+public interface ModuleDescriptorArtifactMetadata extends ModuleComponentArtifactMetadata {}

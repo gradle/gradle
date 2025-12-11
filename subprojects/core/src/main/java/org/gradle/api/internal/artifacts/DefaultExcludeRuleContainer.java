@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.artifacts.ExcludeRuleContainer;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ExcludeRuleContainer;
 
 public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
     private Set<ExcludeRule> addedRules;

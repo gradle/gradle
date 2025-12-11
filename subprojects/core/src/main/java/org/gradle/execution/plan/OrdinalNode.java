@@ -16,10 +16,9 @@
 
 package org.gradle.execution.plan;
 
+import java.util.Locale;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Locale;
 
 /**
  * Represents a node in the graph that controls ordinality of destroyers and producers as they are
@@ -31,7 +30,10 @@ import java.util.Locale;
  */
 public class OrdinalNode extends Node implements SelfExecutingNode {
     // order matters - see NodeComparator
-    public enum Type {DESTROYER, PRODUCER}
+    public enum Type {
+        DESTROYER,
+        PRODUCER
+    }
 
     private final Type type;
     private final OrdinalGroup ordinal;
@@ -49,8 +51,7 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
-    }
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver) {}
 
     @Override
     public String toString() {
@@ -58,8 +59,7 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public void execute(NodeExecutionContext context) {
-    }
+    public void execute(NodeExecutionContext context) {}
 
     public Type getType() {
         return type;

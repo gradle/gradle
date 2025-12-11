@@ -54,7 +54,8 @@ public interface DelegatingExecutionResult extends ExecutionResult {
     }
 
     @Override
-    default ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
+    default ExecutionResult assertOutputEquals(
+            String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
         getDelegate().assertOutputEquals(expectedOutput, ignoreExtraLines, ignoreLineOrder);
         return this;
     }

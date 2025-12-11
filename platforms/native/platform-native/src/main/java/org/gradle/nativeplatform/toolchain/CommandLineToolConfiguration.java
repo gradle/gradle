@@ -16,10 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain;
 
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-
-import java.util.List;
 
 /**
  * An executable tool that forms part of a tool chain.

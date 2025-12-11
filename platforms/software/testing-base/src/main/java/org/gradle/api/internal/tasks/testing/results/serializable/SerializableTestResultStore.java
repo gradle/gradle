@@ -19,6 +19,20 @@ package org.gradle.api.internal.tasks.testing.results.serializable;
 import com.google.common.base.Throwables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import java.io.Closeable;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
@@ -35,21 +49,6 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.jspecify.annotations.Nullable;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * An object that can store test results and their outputs.
@@ -104,6 +103,7 @@ public final class SerializableTestResultStore {
          * Encoder storing the serialized test results.
          */
         private final KryoBackedEncoder resultsEncoder;
+
         private final TestOutputWriter outputWriter;
         private long nextId = 1;
 
@@ -118,9 +118,11 @@ public final class SerializableTestResultStore {
             extraFlattenedDescriptors = isDiskSkipEnabled() ? new ArrayList<>() : Collections.emptyList();
             extraFlattenedResults = isDiskSkipEnabled() ? new ArrayList<>() : Collections.emptyList();
             Files.createDirectories(serializedResultsFile.getParent());
-            temporaryResultsFile = Files.createTempFile(serializedResultsFile.getParent(), "in-progress-results-generic", ".bin");
+            temporaryResultsFile =
+                    Files.createTempFile(serializedResultsFile.getParent(), "in-progress-results-generic", ".bin");
             resultsEncoder = new KryoBackedEncoder(Files.newOutputStream(temporaryResultsFile));
-            Serializer<TestOutputEvent> testOutputEventSerializer = TestEventSerializer.create().build(TestOutputEvent.class);
+            Serializer<TestOutputEvent> testOutputEventSerializer =
+                    TestEventSerializer.create().build(TestOutputEvent.class);
             try {
                 resultsEncoder.writeSmallInt(STORE_VERSION);
                 outputWriter = new TestOutputWriter(outputEventsFile, testOutputEventSerializer);
@@ -148,14 +150,16 @@ public final class SerializableTestResultStore {
             // Sanity check, shouldn't happen in practice
             if (id == ROOT_ID) {
                 if (!isRoot(testDescriptor)) {
-                    throw new IllegalStateException("The first test descriptor must be the root, but got: " + testDescriptor);
+                    throw new IllegalStateException(
+                            "The first test descriptor must be the root, but got: " + testDescriptor);
                 }
             }
             assignedIds.put(testDescriptor.getId(), id);
         }
 
         @Override
-        public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
+        public void completed(
+                TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
             if (isDiskSkipEnabled()) {
                 // Attach flattened results to the root if this is a flattened node
                 if (flatteningIds.contains(testDescriptor.getId())) {
@@ -166,13 +170,13 @@ public final class SerializableTestResultStore {
             }
 
             SerializableTestResult.Builder testNodeBuilder = SerializableTestResult.builder()
-                .name(testDescriptor.getName())
-                .displayName(testDescriptor.getDisplayName())
-                .className(testDescriptor.getClassName())
-                .classDisplayName(testDescriptor.getClassDisplayName())
-                .startTime(testResult.getStartTime())
-                .endTime(testResult.getEndTime())
-                .resultType(testResult.getResultType());
+                    .name(testDescriptor.getName())
+                    .displayName(testDescriptor.getDisplayName())
+                    .className(testDescriptor.getClassName())
+                    .classDisplayName(testDescriptor.getClassDisplayName())
+                    .startTime(testResult.getStartTime())
+                    .endTime(testResult.getEndTime())
+                    .resultType(testResult.getResultType());
 
             if (testResult.getAssumptionFailure() != null) {
                 testNodeBuilder.assumptionFailure(convertToSerializableFailure(testResult.getAssumptionFailure()));
@@ -192,11 +196,14 @@ public final class SerializableTestResultStore {
                 for (TestResult flattenedResult : extraFlattenedResults) {
                     if (flattenedResult.getAssumptionFailure() != null) {
                         if (hasAssumptionFailure) {
-                            throw new IllegalStateException("Multiple assumption failures would need to be handled, but only one is supported: " + testDescriptor);
+                            throw new IllegalStateException(
+                                    "Multiple assumption failures would need to be handled, but only one is supported: "
+                                            + testDescriptor);
                         }
                         hasAssumptionFailure = true;
 
-                        testNodeBuilder.assumptionFailure(convertToSerializableFailure(flattenedResult.getAssumptionFailure()));
+                        testNodeBuilder.assumptionFailure(
+                                convertToSerializableFailure(flattenedResult.getAssumptionFailure()));
                     }
 
                     for (TestFailure failure : flattenedResult.getFailures()) {
@@ -213,7 +220,8 @@ public final class SerializableTestResultStore {
                 extraFlattenedDescriptors.clear();
             }
 
-            // We remove the id here since no further events should come for this test, and it won't be needed as a parent id anymore
+            // We remove the id here since no further events should come for this test, and it won't be needed as a
+            // parent id anymore
             long id = assignedIds.remove(testDescriptor.getId());
             resultsEncoder.writeSmallLong(id);
             try {
@@ -241,14 +249,15 @@ public final class SerializableTestResultStore {
                 return testDescriptor.getParent();
             }
             TestDescriptorInternal parent = testDescriptor.getParent();
-            assert parent != null : "Non-root test descriptor should always have a parent: " + testDescriptor.getDisplayName() + " (id: " + testDescriptor.getId() + ")";
+            assert parent != null
+                    : "Non-root test descriptor should always have a parent: " + testDescriptor.getDisplayName()
+                            + " (id: " + testDescriptor.getId() + ")";
             while (flatteningIds.contains(parent.getId())) {
                 parent = parent.getParent();
                 if (parent == null) {
                     // The root is always unflattened, so we should never reach here
-                    throw new AssertionError(
-                        "Parent of a flattened test descriptor should not be null: " + testDescriptor.getDisplayName() + " (id: " + testDescriptor.getId() + ")"
-                    );
+                    throw new AssertionError("Parent of a flattened test descriptor should not be null: "
+                            + testDescriptor.getDisplayName() + " (id: " + testDescriptor.getId() + ")");
                 }
             }
             return parent;
@@ -261,15 +270,14 @@ public final class SerializableTestResultStore {
                 message += ": " + failure.getDetails().getMessage();
             }
             List<String> convertedCauses = ExceptionSerializationUtil.extractCauses(failure.getRawFailure()).stream()
-                .map(Throwables::getStackTraceAsString)
-                .collect(Collectors.toList());
+                    .map(Throwables::getStackTraceAsString)
+                    .collect(Collectors.toList());
 
             return new SerializableFailure(
-                message,
-                failure.getDetails().getStacktrace(),
-                failure.getDetails().getClassName(),
-                convertedCauses
-            );
+                    message,
+                    failure.getDetails().getStacktrace(),
+                    failure.getDetails().getClassName(),
+                    convertedCauses);
         }
 
         @Override
@@ -329,7 +337,8 @@ public final class SerializableTestResultStore {
          * @param outputRanges the output ranges for the result
          * @throws IOException if an error occurs while processing the result
          */
-        void process(long id, @Nullable Long parentId, SerializableTestResult result, OutputRanges outputRanges) throws IOException;
+        void process(long id, @Nullable Long parentId, SerializableTestResult result, OutputRanges outputRanges)
+                throws IOException;
     }
 
     /**
@@ -355,9 +364,8 @@ public final class SerializableTestResultStore {
      */
     @SuppressWarnings("unused")
     public void forEachResult(Consumer<FacadeForOutputTrackedResult> consumer) throws Exception {
-        forEachResult((id, parentId, result, outputRanges) ->
-            consumer.accept(new FacadeForOutputTrackedResult(result))
-        );
+        forEachResult(
+                (id, parentId, result, outputRanges) -> consumer.accept(new FacadeForOutputTrackedResult(result)));
     }
 
     /**

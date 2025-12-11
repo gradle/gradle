@@ -22,10 +22,11 @@ import org.jspecify.annotations.Nullable;
 public class DefaultFilePosition implements FilePosition {
 
     private final int line;
+
     @Nullable
     private final Integer column;
 
-    public DefaultFilePosition(int  line, @Nullable Integer column) {
+    public DefaultFilePosition(int line, @Nullable Integer column) {
         this.line = line;
         this.column = column;
     }

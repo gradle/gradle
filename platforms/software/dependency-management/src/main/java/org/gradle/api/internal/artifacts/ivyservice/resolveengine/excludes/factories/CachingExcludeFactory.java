@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 
 /**
  * This factory is responsible for caching merging queries. It delegates computations
@@ -63,7 +62,7 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
      * A special key which recognizes the fact union and intersection
      * are commutative.
      */
-    private final static class ExcludePair {
+    private static final class ExcludePair {
         private final ExcludeSpec left;
         private final ExcludeSpec right;
         private final int hashCode;

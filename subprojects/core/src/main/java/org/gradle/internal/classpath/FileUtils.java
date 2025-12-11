@@ -16,9 +16,6 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.internal.Cast;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -27,6 +24,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Set;
+import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
 public class FileUtils {
     /**
@@ -49,7 +48,8 @@ public class FileUtils {
     }
 
     public static boolean optionsAllowReading(Set<?> options) {
-        return optionsAllowReading(Cast.<Set<OpenOption>>uncheckedNonnullCast(options).toArray(new OpenOption[0]));
+        return optionsAllowReading(
+                Cast.<Set<OpenOption>>uncheckedNonnullCast(options).toArray(new OpenOption[0]));
     }
 
     public static void tryReportFileOpened(Path path, String consumer) {

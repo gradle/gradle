@@ -37,7 +37,8 @@ class ProjectBackedPropertyHost implements PropertyHost {
         } else if (producer != null) {
             TaskInternal producerTask = (TaskInternal) producer.getTaskThatOwnsThisObject();
             if (producerTask != null && producerTask.getState().isConfigurable()) {
-                // Currently cannot tell the difference between access from the producing task and access from outside, so assume
+                // Currently cannot tell the difference between access from the producing task and access from outside,
+                // so assume
                 // all access after the task has started execution is ok
                 return producerTask + " has not completed yet";
             }

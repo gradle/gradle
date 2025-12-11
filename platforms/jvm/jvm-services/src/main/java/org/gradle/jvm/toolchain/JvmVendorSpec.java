@@ -133,5 +133,4 @@ public abstract class JvmVendorSpec {
     private static JvmVendorSpec matching(KnownJvmVendor vendor) {
         return DefaultJvmVendorSpec.of(vendor);
     }
-
 }

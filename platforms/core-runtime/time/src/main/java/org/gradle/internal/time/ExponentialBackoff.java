@@ -40,7 +40,10 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
     }
 
     public static ExponentialBackoff<Signal> of(int amount, TimeUnit unit, int slotTime, TimeUnit slotTimeUnit) {
-        return new ExponentialBackoff<Signal>((int) TimeUnit.MILLISECONDS.convert(amount, unit), Signal.SLEEP, TimeUnit.MILLISECONDS.convert(slotTime, slotTimeUnit));
+        return new ExponentialBackoff<Signal>(
+                (int) TimeUnit.MILLISECONDS.convert(amount, unit),
+                Signal.SLEEP,
+                TimeUnit.MILLISECONDS.convert(slotTime, slotTimeUnit));
     }
 
     private ExponentialBackoff(int timeoutMs, S signal, long slotTime) {

@@ -17,10 +17,9 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.collect.Interner;
-import org.gradle.internal.file.FileMetadata.AccessType;
-
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.gradle.internal.file.FileMetadata.AccessType;
 
 public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLocationSnapshot {
     private final String absolutePath;
@@ -54,13 +53,12 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
         }
         String internedTargetPath = interner.intern(targetPath);
         String targetName = PathUtil.getFileName(internedTargetPath);
-        String internedTargetName = targetName.equals(name)
-            ? name
-            : interner.intern(targetName);
+        String internedTargetName = targetName.equals(name) ? name : interner.intern(targetName);
         return relocateDirectAccess(internedTargetPath, internedTargetName, interner);
     }
 
-    protected abstract Optional<? extends FileSystemLocationSnapshot> relocateDirectAccess(String targetPath, String internedTargetName, Interner<String> interner);
+    protected abstract Optional<? extends FileSystemLocationSnapshot> relocateDirectAccess(
+            String targetPath, String internedTargetName, Interner<String> interner);
 
     @Override
     public AccessType getAccessType() {
@@ -72,7 +70,11 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     }
 
     @Override
-    public FileSystemLocationSnapshot store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
+    public FileSystemLocationSnapshot store(
+            VfsRelativePath targetPath,
+            CaseSensitivity caseSensitivity,
+            MetadataSnapshot snapshot,
+            SnapshotHierarchy.NodeDiffListener diffListener) {
         return this;
     }
 
@@ -101,7 +103,8 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
         return getChildSnapshot(relativePath, caseSensitivity);
     }
 
-    protected Optional<MetadataSnapshot> getChildSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    protected Optional<MetadataSnapshot> getChildSnapshot(
+            VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
         return Optional.of(missingSnapshotForAbsolutePath(relativePath.getAbsolutePath()));
     }
 

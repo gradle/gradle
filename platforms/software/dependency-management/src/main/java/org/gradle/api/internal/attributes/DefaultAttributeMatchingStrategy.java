@@ -15,20 +15,24 @@
  */
 package org.gradle.api.internal.attributes;
 
+import java.util.Comparator;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
-
-import java.util.Comparator;
 
 public class DefaultAttributeMatchingStrategy<T> implements AttributeMatchingStrategy<T> {
     private final DefaultCompatibilityRuleChain<T> compatibilityRules;
     private final DefaultDisambiguationRuleChain<T> disambiguationRules;
 
     @SuppressWarnings("unchecked")
-    public DefaultAttributeMatchingStrategy(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
-        compatibilityRules = instantiatorFactory.decorateLenient().newInstance(DefaultCompatibilityRuleChain.class, instantiatorFactory.inject(), isolatableFactory);
-        disambiguationRules = instantiatorFactory.decorateLenient().newInstance(DefaultDisambiguationRuleChain.class, instantiatorFactory.inject(), isolatableFactory);
+    public DefaultAttributeMatchingStrategy(
+            InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
+        compatibilityRules = instantiatorFactory
+                .decorateLenient()
+                .newInstance(DefaultCompatibilityRuleChain.class, instantiatorFactory.inject(), isolatableFactory);
+        disambiguationRules = instantiatorFactory
+                .decorateLenient()
+                .newInstance(DefaultDisambiguationRuleChain.class, instantiatorFactory.inject(), isolatableFactory);
     }
 
     @Override

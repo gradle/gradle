@@ -17,6 +17,9 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
@@ -24,27 +27,30 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
     private final WindowsSdkLocator legacyWindowsSdkLocator;
     private final WindowsComponentLocator<WindowsKitSdkInstall> windowsKitWindowsSdkLocator;
 
     @VisibleForTesting
-    DefaultWindowsSdkLocator(WindowsSdkLocator legacyWindowsSdkLocator, WindowsComponentLocator<WindowsKitSdkInstall> windowsKitWindowsSdkLocator) {
+    DefaultWindowsSdkLocator(
+            WindowsSdkLocator legacyWindowsSdkLocator,
+            WindowsComponentLocator<WindowsKitSdkInstall> windowsKitWindowsSdkLocator) {
         this.legacyWindowsSdkLocator = legacyWindowsSdkLocator;
         this.windowsKitWindowsSdkLocator = windowsKitWindowsSdkLocator;
     }
 
-    public DefaultWindowsSdkLocator(OperatingSystem operatingSystem, WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
-        this(new LegacyWindowsSdkLocator(operatingSystem, windowsRegistry), new WindowsKitWindowsSdkLocator(windowsRegistry, systemInfo));
+    public DefaultWindowsSdkLocator(
+            OperatingSystem operatingSystem, WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
+        this(
+                new LegacyWindowsSdkLocator(operatingSystem, windowsRegistry),
+                new WindowsKitWindowsSdkLocator(windowsRegistry, systemInfo));
     }
 
     @Override
     public SearchResult<WindowsSdkInstall> locateComponent(@Nullable File candidate) {
-        return new SdkSearchResult(legacyWindowsSdkLocator.locateComponent(candidate), windowsKitWindowsSdkLocator.locateComponent(candidate));
+        return new SdkSearchResult(
+                legacyWindowsSdkLocator.locateComponent(candidate),
+                windowsKitWindowsSdkLocator.locateComponent(candidate));
     }
 
     @Override
@@ -59,7 +65,9 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
         final SearchResult<WindowsSdkInstall> legacySearchResult;
         final SearchResult<WindowsKitSdkInstall> windowsKitSearchResult;
 
-        SdkSearchResult(SearchResult<WindowsSdkInstall> legacySearchResult, SearchResult<WindowsKitSdkInstall> windowsKitSearchResult) {
+        SdkSearchResult(
+                SearchResult<WindowsSdkInstall> legacySearchResult,
+                SearchResult<WindowsKitSdkInstall> windowsKitSearchResult) {
             this.legacySearchResult = legacySearchResult;
             this.windowsKitSearchResult = windowsKitSearchResult;
         }

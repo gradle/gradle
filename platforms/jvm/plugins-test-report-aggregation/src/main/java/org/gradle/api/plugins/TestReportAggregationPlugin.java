@@ -16,6 +16,10 @@
 
 package org.gradle.api.plugins;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -37,11 +41,6 @@ import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
 
-import javax.inject.Inject;
-import java.util.concurrent.Callable;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
-
 /**
  * Adds configurations to for resolving variants containing test execution results, which may span multiple subprojects.  Reacts to the presence of the jvm-test-suite plugin and creates
  * tasks to collect test results for each named test-suite.
@@ -62,23 +61,29 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         project.getPluginManager().apply("org.gradle.reporting-base");
 
         ConfigurationContainer configurations = project.getConfigurations();
-        final Configuration testAggregation = configurations.dependencyScope(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME, dependencyScope -> {
-            dependencyScope.setDescription("A configuration to collect test execution results.");
-        }).get();
+        final Configuration testAggregation = configurations
+                .dependencyScope(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME, dependencyScope -> {
+                    dependencyScope.setDescription("A configuration to collect test execution results.");
+                })
+                .get();
 
         // A resolvable configuration to collect test results
-        Configuration testResultsConf = configurations.resolvable("aggregateTestReportResults", resolvable -> {
-            resolvable.extendsFrom(testAggregation);
-            resolvable.setDescription("Graph needed for the aggregated test results report.");
-        }).get();
+        Configuration testResultsConf = configurations
+                .resolvable("aggregateTestReportResults", resolvable -> {
+                    resolvable.extendsFrom(testAggregation);
+                    resolvable.setDescription("Graph needed for the aggregated test results report.");
+                })
+                .get();
 
         ReportingExtension reporting = project.getExtensions().getByType(ReportingExtension.class);
         reporting.getReports().registerBinding(AggregateTestReport.class, DefaultAggregateTestReport.class);
 
         ObjectFactory objects = project.getObjects();
 
-        final DirectoryProperty testReportDirectory = objects.directoryProperty().convention(reporting.getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME));
-        // prepare testReportDirectory with a reasonable default, but override with JavaPluginExtension#testReportDirectory if available
+        final DirectoryProperty testReportDirectory = objects.directoryProperty()
+                .convention(reporting.getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME));
+        // prepare testReportDirectory with a reasonable default, but override with
+        // JavaPluginExtension#testReportDirectory if available
         project.getPlugins().withId("java-base", plugin -> {
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             testReportDirectory.convention(javaPluginExtension.getTestReportDir());
@@ -89,19 +94,29 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         // Iterate and configure each user-specified report.
         reporting.getReports().withType(AggregateTestReport.class).all(report -> {
             report.getReportTask().configure(task -> {
-                Callable<FileCollection> testResults = () ->
-                    testResultsConf.getIncoming().artifactView(view -> {
-                        view.withVariantReselection();
-                        view.componentFilter(spec(id -> id instanceof ProjectComponentIdentifier));
-                        view.attributes(attributes -> {
-                            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                            attributes.attributeProvider(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, report.getTestSuiteName().map(tt -> objects.named(TestSuiteName.class, tt)));
-                            attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
-                        });
-                    }).getFiles();
+                Callable<FileCollection> testResults = () -> testResultsConf
+                        .getIncoming()
+                        .artifactView(view -> {
+                            view.withVariantReselection();
+                            view.componentFilter(spec(id -> id instanceof ProjectComponentIdentifier));
+                            view.attributes(attributes -> {
+                                attributes.attribute(
+                                        Category.CATEGORY_ATTRIBUTE,
+                                        objects.named(Category.class, Category.VERIFICATION));
+                                attributes.attributeProvider(
+                                        TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE,
+                                        report.getTestSuiteName().map(tt -> objects.named(TestSuiteName.class, tt)));
+                                attributes.attribute(
+                                        VerificationType.VERIFICATION_TYPE_ATTRIBUTE,
+                                        objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
+                            });
+                        })
+                        .getFiles();
 
                 task.getTestResults().from(testResults);
-                task.getDestinationDirectory().convention(testReportDirectory.dir(report.getTestSuiteName().map(tt -> tt + "/aggregated-results")));
+                task.getDestinationDirectory()
+                        .convention(testReportDirectory.dir(
+                                report.getTestSuiteName().map(tt -> tt + "/aggregated-results")));
             });
         });
 
@@ -114,9 +129,11 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
             ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
 
             testSuites.withType(TestSuite.class).all(testSuite -> {
-                reporting.getReports().create(testSuite.getName() + "AggregateTestReport", AggregateTestReport.class, report -> {
-                    report.getTestSuiteName().convention(testSuite.getName());
-                });
+                reporting
+                        .getReports()
+                        .create(testSuite.getName() + "AggregateTestReport", AggregateTestReport.class, report -> {
+                            report.getTestSuiteName().convention(testSuite.getName());
+                        });
             });
         });
     }

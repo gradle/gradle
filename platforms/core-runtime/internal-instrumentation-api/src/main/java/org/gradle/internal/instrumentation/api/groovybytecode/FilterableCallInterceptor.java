@@ -16,11 +16,10 @@
 
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import org.gradle.internal.instrumentation.api.types.FilterableBytecodeInterceptor;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
+import org.gradle.internal.instrumentation.api.types.FilterableBytecodeInterceptor;
 
 /**
  * CallInterceptor that can be filtered by a {@link BytecodeInterceptorType} type.
  */
-public interface FilterableCallInterceptor extends CallInterceptor, FilterableBytecodeInterceptor {
-}
+public interface FilterableCallInterceptor extends CallInterceptor, FilterableBytecodeInterceptor {}

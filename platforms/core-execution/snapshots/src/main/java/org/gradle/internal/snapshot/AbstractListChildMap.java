@@ -44,13 +44,12 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
 
     protected int findChildIndexWithCommonPrefix(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
         return SearchUtil.binarySearch(
-            entries,
-            candidate -> targetPath.compareToFirstSegment(candidate.getPath(), caseSensitivity)
-        );
+                entries, candidate -> targetPath.compareToFirstSegment(candidate.getPath(), caseSensitivity));
     }
 
     @Override
-    public <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
+    public <RESULT> ChildMap<RESULT> invalidate(
+            VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
         int childIndex = findChildIndexWithCommonPrefix(targetPath, caseSensitivity);
         if (childIndex >= 0) {
             Entry<T> entry = entries.get(childIndex);
@@ -80,31 +79,39 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
             });
         } else {
             handler.handleUnrelatedToAnyChild();
-            @SuppressWarnings("unchecked") AbstractListChildMap<RESULT> castedThis = (AbstractListChildMap<RESULT>) this;
+            @SuppressWarnings("unchecked")
+            AbstractListChildMap<RESULT> castedThis = (AbstractListChildMap<RESULT>) this;
             return castedThis;
         }
     }
 
     @Override
-    public ChildMap<T> store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler) {
+    public ChildMap<T> store(
+            VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler) {
         int childIndex = findChildIndexWithCommonPrefix(targetPath, caseSensitivity);
         if (childIndex >= 0) {
-            return entries.get(childIndex).handlePath(targetPath, caseSensitivity, new AbstractStorePathRelationshipHandler<T>(caseSensitivity, storeHandler) {
-                @Override
-                public ChildMap<T> withReplacedChild(T newChild) {
-                    return withReplacedChild(entries.get(childIndex).getPath(), newChild);
-                }
+            return entries.get(childIndex)
+                    .handlePath(
+                            targetPath,
+                            caseSensitivity,
+                            new AbstractStorePathRelationshipHandler<T>(caseSensitivity, storeHandler) {
+                                @Override
+                                public ChildMap<T> withReplacedChild(T newChild) {
+                                    return withReplacedChild(
+                                            entries.get(childIndex).getPath(), newChild);
+                                }
 
-                @Override
-                public ChildMap<T> withReplacedChild(String newChildPath, T newChild) {
-                    return AbstractListChildMap.this.withReplacedChild(childIndex, newChildPath, newChild);
-                }
+                                @Override
+                                public ChildMap<T> withReplacedChild(String newChildPath, T newChild) {
+                                    return AbstractListChildMap.this.withReplacedChild(
+                                            childIndex, newChildPath, newChild);
+                                }
 
-                @Override
-                public ChildMap<T> withNewChild(String newChildPath, T newChild) {
-                    return AbstractListChildMap.this.withNewChild(childIndex, newChildPath, newChild);
-                }
-            });
+                                @Override
+                                public ChildMap<T> withNewChild(String newChildPath, T newChild) {
+                                    return AbstractListChildMap.this.withNewChild(childIndex, newChildPath, newChild);
+                                }
+                            });
         } else {
             T newChild = storeHandler.createChild();
             return withNewChild(-childIndex - 1, targetPath.toString(), newChild);

@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.internal.event.ListenerNotificationException;
 import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.BuildException;
@@ -31,9 +33,6 @@ import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 
-import java.util.Collections;
-import java.util.List;
-
 public class ConnectionExceptionTransformer {
     private final ConnectionFailureMessageProvider messageProvider;
     private final Supplier<List<Failure>> failures;
@@ -47,18 +46,19 @@ public class ConnectionExceptionTransformer {
         });
     }
 
-    public ConnectionExceptionTransformer(ConnectionFailureMessageProvider messageProvider, Supplier<List<Failure>> failures) {
+    public ConnectionExceptionTransformer(
+            ConnectionFailureMessageProvider messageProvider, Supplier<List<Failure>> failures) {
         this.messageProvider = messageProvider;
         this.failures = failures;
     }
 
     public GradleConnectionException transform(Throwable failure) {
         if (failure instanceof InternalUnsupportedBuildArgumentException) {
-            return new UnsupportedBuildArgumentException(connectionFailureMessage(failure)
-                + "\n" + failure.getMessage(), failure);
+            return new UnsupportedBuildArgumentException(
+                    connectionFailureMessage(failure) + "\n" + failure.getMessage(), failure);
         } else if (failure instanceof UnsupportedOperationConfigurationException) {
-            return new UnsupportedOperationConfigurationException(connectionFailureMessage(failure)
-                + "\n" + failure.getMessage(), failure.getCause());
+            return new UnsupportedOperationConfigurationException(
+                    connectionFailureMessage(failure) + "\n" + failure.getMessage(), failure.getCause());
         } else if (failure instanceof GradleConnectionException) {
             return (GradleConnectionException) failure;
         } else if (failure instanceof InternalBuildCancelledException) {
@@ -68,7 +68,8 @@ public class ConnectionExceptionTransformer {
         } else if (failure instanceof BuildExceptionVersion1) {
             return new BuildException(connectionFailureMessage(failure), failure.getCause(), failures);
         } else if (failure instanceof ListenerNotificationException) {
-            return new ListenerFailedException(connectionFailureMessage(failure), ((ListenerNotificationException) failure).getCauses());
+            return new ListenerFailedException(
+                    connectionFailureMessage(failure), ((ListenerNotificationException) failure).getCauses());
         } else {
             return new GradleConnectionException(connectionFailureMessage(failure), failure, failures);
         }

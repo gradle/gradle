@@ -20,17 +20,17 @@ import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import org.gradle.internal.instrumentation.util.NameUtil;
-import org.objectweb.asm.Type;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.gradle.internal.instrumentation.util.NameUtil;
+import org.objectweb.asm.Type;
 
 public class TypeUtils {
 
     private static final Map<Type, String> PRIMITIVE_TYPES_DEFAULT_VALUES_AS_STRING;
+
     static {
         Map<Type, String> map = new HashMap<>();
         map.put(Type.BYTE_TYPE, "0");
@@ -86,7 +86,8 @@ public class TypeUtils {
     }
 
     public static Optional<TypeName> getTypeParameter(TypeName typeName, int index) {
-        if (typeName instanceof ParameterizedTypeName && ((ParameterizedTypeName) typeName).typeArguments.size() > index) {
+        if (typeName instanceof ParameterizedTypeName
+                && ((ParameterizedTypeName) typeName).typeArguments.size() > index) {
             return Optional.of(((ParameterizedTypeName) typeName).typeArguments.get(index));
         }
         return Optional.empty();
@@ -95,10 +96,7 @@ public class TypeUtils {
     public static ClassName className(Type type) {
         // If type contains $$ as $$BridgeFor$$ we keep $$
         // in the name instead of translating it to an inner class name
-        return NameUtil.getClassName(type.getClassName()
-            .replace("$$", "#")
-            .replace("$", ".")
-            .replace("#", "$$")
-        );
+        return NameUtil.getClassName(
+                type.getClassName().replace("$$", "#").replace("$", ".").replace("#", "$$"));
     }
 }

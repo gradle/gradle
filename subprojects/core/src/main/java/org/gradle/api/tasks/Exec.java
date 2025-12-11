@@ -15,12 +15,11 @@
  */
 package org.gradle.api.tasks;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.gradle.work.DisableCachingByDefault;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Executes a command line process. Example:
@@ -74,7 +73,6 @@ public abstract class Exec extends AbstractExecTask<Exec> {
     public Exec setArgs(Iterable<?> arguments) {
         return super.setArgs(arguments);
     }
-
 
     /**
      * {@inheritDoc}

@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.verification.model;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-
 import java.util.List;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 public interface ComponentVerificationMetadata {
     ModuleComponentIdentifier getComponentId();

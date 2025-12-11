@@ -16,10 +16,9 @@
 
 package org.gradle.internal.component.model;
 
+import java.util.concurrent.atomic.AtomicLong;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A generator of ids for various model and result objects.

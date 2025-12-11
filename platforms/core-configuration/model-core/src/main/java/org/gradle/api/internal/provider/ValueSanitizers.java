@@ -56,9 +56,12 @@ public class ValueSanitizers {
         }
     };
 
-    private static final ValueCollector<Object> IDENTITY_VALUE_COLLECTOR = valueCollectorWithValueSanitizer(IDENTITY_SANITIZER);
-    private static final ValueCollector<Object> STRING_VALUE_COLLECTOR = valueCollectorWithValueSanitizer(STRING_VALUE_SANITIZER);
-    private static final ValueCollector<Object> LONG_VALUE_COLLECTOR = valueCollectorWithValueSanitizer(LONG_VALUE_SANITIZER);
+    private static final ValueCollector<Object> IDENTITY_VALUE_COLLECTOR =
+            valueCollectorWithValueSanitizer(IDENTITY_SANITIZER);
+    private static final ValueCollector<Object> STRING_VALUE_COLLECTOR =
+            valueCollectorWithValueSanitizer(STRING_VALUE_SANITIZER);
+    private static final ValueCollector<Object> LONG_VALUE_COLLECTOR =
+            valueCollectorWithValueSanitizer(LONG_VALUE_SANITIZER);
 
     private static <T extends Enum<T>> ValueSanitizer<Object> getEnumValueSanitizer(Class<T> enumType) {
         return new ValueSanitizer<Object>() {
@@ -66,10 +69,12 @@ public class ValueSanitizers {
             @Nullable
             public Object sanitize(@Nullable Object value) {
                 if (value instanceof CharSequence) {
-                    DeprecationLogger.deprecateBehaviour(String.format("Assigning String value '%s' to property of enum type '%s'.", value, enumType.getCanonicalName()))
-                        .willBecomeAnErrorInGradle10()
-                        .withUpgradeGuideSection(8, "deprecated_string_to_enum_coercion_for_rich_properties")
-                        .nagUser();
+                    DeprecationLogger.deprecateBehaviour(String.format(
+                                    "Assigning String value '%s' to property of enum type '%s'.",
+                                    value, enumType.getCanonicalName()))
+                            .willBecomeAnErrorInGradle10()
+                            .withUpgradeGuideSection(8, "deprecated_string_to_enum_coercion_for_rich_properties")
+                            .nagUser();
                 }
                 return GUtil.toEnum(enumType, value);
             }

@@ -16,13 +16,12 @@
 
 package org.gradle.docs.asciidoctor;
 
-import org.asciidoctor.ast.Document;
-import org.asciidoctor.ast.StructuralNode;
-import org.asciidoctor.extension.Treeprocessor;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.asciidoctor.ast.Document;
+import org.asciidoctor.ast.StructuralNode;
+import org.asciidoctor.extension.Treeprocessor;
 
 /**
  * Adds self-links to example block titles.
@@ -43,7 +42,8 @@ public class ExampleSelfLinkProcessor extends Treeprocessor {
         List<StructuralNode> examples = document.findBy(EXAMPLE_SELECTOR);
         for (StructuralNode example : examples) {
             if (example.hasAttribute("title")) {
-                // Using attribute value, since it contains Asciidoc markup, as opposed to getTitle() that returns rendered html
+                // Using attribute value, since it contains Asciidoc markup, as opposed to getTitle() that returns
+                // rendered html
                 String title = example.getAttribute("title").toString();
                 String exampleId = example.getId();
                 if (exampleId == null) {

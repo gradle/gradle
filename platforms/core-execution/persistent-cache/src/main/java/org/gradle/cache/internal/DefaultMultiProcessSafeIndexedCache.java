@@ -15,21 +15,21 @@
  */
 package org.gradle.cache.internal;
 
+import java.util.function.Function;
+import java.util.function.Supplier;
 import org.gradle.cache.FileAccess;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSafeIndexedCache<K, V> {
     private final FileAccess fileAccess;
     private final Supplier<BTreePersistentIndexedCache<K, V>> factory;
     private BTreePersistentIndexedCache<K, V> cache;
 
-    public DefaultMultiProcessSafeIndexedCache(Supplier<BTreePersistentIndexedCache<K, V>> factory, FileAccess fileAccess) {
+    public DefaultMultiProcessSafeIndexedCache(
+            Supplier<BTreePersistentIndexedCache<K, V>> factory, FileAccess fileAccess) {
         this.factory = factory;
         this.fileAccess = fileAccess;
     }
@@ -76,8 +76,7 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
     }
 
     @Override
-    public void afterLockAcquire(FileLock.State currentCacheState) {
-    }
+    public void afterLockAcquire(FileLock.State currentCacheState) {}
 
     @Override
     public void finishWork() {
@@ -91,8 +90,7 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
     }
 
     @Override
-    public void beforeLockRelease(FileLock.State currentCacheState) {
-    }
+    public void beforeLockRelease(FileLock.State currentCacheState) {}
 
     private BTreePersistentIndexedCache<K, V> getCache() {
         if (cache == null) {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
+import java.util.concurrent.Callable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository;
@@ -28,23 +29,25 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.concurrent.Callable;
-
 public class DependencyResolverIvyPublisher implements IvyPublisher {
-    private final NetworkOperationBackOffAndRetry<Void> networkOperationBackOffAndRetry = new NetworkOperationBackOffAndRetry<>();
+    private final NetworkOperationBackOffAndRetry<Void> networkOperationBackOffAndRetry =
+            new NetworkOperationBackOffAndRetry<>();
 
     @Override
     public void publish(IvyNormalizedPublication publication, IvyArtifactRepository repository) {
         IvyResolver publisher = ((DefaultIvyArtifactRepository) repository).createPublisher();
-        ModuleComponentIdentifier moduleVersionIdentifier = DefaultModuleComponentIdentifier.newId(publication.getCoordinates());
+        ModuleComponentIdentifier moduleVersionIdentifier =
+                DefaultModuleComponentIdentifier.newId(publication.getCoordinates());
 
         for (IvyArtifact artifact : publication.getAllArtifacts()) {
-            ModuleComponentArtifactMetadata artifactMetadata = new DefaultModuleComponentArtifactMetadata(moduleVersionIdentifier, createIvyArtifact(artifact));
+            ModuleComponentArtifactMetadata artifactMetadata =
+                    new DefaultModuleComponentArtifactMetadata(moduleVersionIdentifier, createIvyArtifact(artifact));
             publish(publisher, artifact, artifactMetadata);
         }
     }
 
-    private void publish(IvyResolver publisher, IvyArtifact artifact, ModuleComponentArtifactMetadata artifactMetadata) {
+    private void publish(
+            IvyResolver publisher, IvyArtifact artifact, ModuleComponentArtifactMetadata artifactMetadata) {
         networkOperationBackOffAndRetry.withBackoffAndRetry(new Callable<Void>() {
             @Override
             public Void call() {
@@ -56,11 +59,11 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
             public String toString() {
                 return "Publish " + artifactMetadata;
             }
-
         });
     }
 
     private IvyArtifactName createIvyArtifact(IvyArtifact artifact) {
-        return new DefaultIvyArtifactName(artifact.getName(), artifact.getType(), artifact.getExtension(), artifact.getClassifier());
+        return new DefaultIvyArtifactName(
+                artifact.getName(), artifact.getType(), artifact.getExtension(), artifact.getClassifier());
     }
 }

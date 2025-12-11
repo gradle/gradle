@@ -29,12 +29,11 @@ import org.jspecify.annotations.Nullable;
 @ServiceScope(Scope.Build.class)
 public interface IProjectFactory {
     ProjectInternal createProject(
-        GradleInternal gradle,
-        ProjectDescriptor projectDescriptor,
-        ProjectState owner,
-        @Nullable ProjectInternal parent,
-        ServiceRegistryFactory serviceRegistryFactory,
-        ClassLoaderScope selfClassLoaderScope,
-        ClassLoaderScope baseClassLoaderScope
-    );
+            GradleInternal gradle,
+            ProjectDescriptor projectDescriptor,
+            ProjectState owner,
+            @Nullable ProjectInternal parent,
+            ServiceRegistryFactory serviceRegistryFactory,
+            ClassLoaderScope selfClassLoaderScope,
+            ClassLoaderScope baseClassLoaderScope);
 }

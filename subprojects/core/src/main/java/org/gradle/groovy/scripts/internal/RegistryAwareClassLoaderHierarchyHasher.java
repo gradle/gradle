@@ -16,17 +16,17 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLoaderHierarchyHasher {
-    public RegistryAwareClassLoaderHierarchyHasher(ClassLoaderRegistry registry, HashingClassLoaderFactory classLoaderFactory) {
+    public RegistryAwareClassLoaderHierarchyHasher(
+            ClassLoaderRegistry registry, HashingClassLoaderFactory classLoaderFactory) {
         super(collectKnownClassLoaders(registry), classLoaderFactory);
     }
 
@@ -46,7 +46,8 @@ public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLo
         return knownClassLoaders;
     }
 
-    private static void addClassLoader(Map<ClassLoader, String> knownClassLoaders, @Nullable ClassLoader classLoader, String id) {
+    private static void addClassLoader(
+            Map<ClassLoader, String> knownClassLoaders, @Nullable ClassLoader classLoader, String id) {
         knownClassLoaders.put(classLoader, id);
     }
 }

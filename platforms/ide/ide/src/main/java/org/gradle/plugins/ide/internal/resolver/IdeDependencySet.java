@@ -15,11 +15,24 @@
  */
 package org.gradle.plugins.ide.internal.resolver;
 
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_API;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
+
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Table;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
@@ -43,20 +56,6 @@ import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.language.java.artifact.JavadocArtifact;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_API;
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT;
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
-
 /**
  * Adapts Gradle's dependency resolution engine to the special needs of the IDE plugins.
  * Allows adding and subtracting {@link Configuration}s, working in offline mode and downloading sources/javadoc.
@@ -70,11 +69,31 @@ public class IdeDependencySet {
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
     private final Collection<Configuration> testConfigurations;
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver) {
-        this(dependencyHandler, javaModuleDetector, plusConfigurations, minusConfigurations, inferModulePath, gradleApiSourcesResolver, Collections.emptySet());
+    public IdeDependencySet(
+            DependencyHandler dependencyHandler,
+            JavaModuleDetector javaModuleDetector,
+            Collection<Configuration> plusConfigurations,
+            Collection<Configuration> minusConfigurations,
+            boolean inferModulePath,
+            GradleApiSourcesResolver gradleApiSourcesResolver) {
+        this(
+                dependencyHandler,
+                javaModuleDetector,
+                plusConfigurations,
+                minusConfigurations,
+                inferModulePath,
+                gradleApiSourcesResolver,
+                Collections.emptySet());
     }
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver, Collection<Configuration> testConfigurations) {
+    public IdeDependencySet(
+            DependencyHandler dependencyHandler,
+            JavaModuleDetector javaModuleDetector,
+            Collection<Configuration> plusConfigurations,
+            Collection<Configuration> minusConfigurations,
+            boolean inferModulePath,
+            GradleApiSourcesResolver gradleApiSourcesResolver,
+            Collection<Configuration> testConfigurations) {
         this.dependencyHandler = dependencyHandler;
         this.javaModuleDetector = javaModuleDetector;
         this.plusConfigurations = plusConfigurations;
@@ -100,10 +119,13 @@ public class IdeDependencySet {
      * We should fix this, as other IDE vendors will face the same problem.
      */
     private class IdeDependencyResult {
-        private final Map<ComponentArtifactIdentifier, ResolvedArtifactResult> resolvedArtifacts = new LinkedHashMap<>();
-        private final SetMultimap<ComponentArtifactIdentifier, Configuration> configurations = MultimapBuilder.hashKeys().linkedHashSetValues().build();
+        private final Map<ComponentArtifactIdentifier, ResolvedArtifactResult> resolvedArtifacts =
+                new LinkedHashMap<>();
+        private final SetMultimap<ComponentArtifactIdentifier, Configuration> configurations =
+                MultimapBuilder.hashKeys().linkedHashSetValues().build();
         private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = new LinkedHashMap<>();
-        private final Table<ModuleComponentIdentifier, Class<? extends Artifact>, Set<ResolvedArtifactResult>> auxiliaryArtifacts = HashBasedTable.create();
+        private final Table<ModuleComponentIdentifier, Class<? extends Artifact>, Set<ResolvedArtifactResult>>
+                auxiliaryArtifacts = HashBasedTable.create();
 
         public void visit(IdeDependencyVisitor visitor) {
             resolvePlusConfigurations(visitor);
@@ -123,7 +145,8 @@ public class IdeDependencySet {
                 if (artifacts.getFailures().isEmpty()) {
                     continue;
                 }
-                for (UnresolvedDependencyResult unresolvedDependency : getUnresolvedDependencies(configuration, visitor)) {
+                for (UnresolvedDependencyResult unresolvedDependency :
+                        getUnresolvedDependencies(configuration, visitor)) {
                     unresolvedDependencies.put(unresolvedDependency.getAttempted(), unresolvedDependency);
                 }
             }
@@ -139,31 +162,39 @@ public class IdeDependencySet {
                 if (artifacts.getFailures().isEmpty()) {
                     continue;
                 }
-                for (UnresolvedDependencyResult unresolvedDependency : getUnresolvedDependencies(configuration, visitor)) {
+                for (UnresolvedDependencyResult unresolvedDependency :
+                        getUnresolvedDependencies(configuration, visitor)) {
                     unresolvedDependencies.remove(unresolvedDependency.getAttempted());
                 }
             }
         }
 
-        private ArtifactCollection getResolvedArtifacts(Configuration configuration, final IdeDependencyVisitor visitor) {
-            return configuration.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
-                @Override
-                public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
-                    viewConfiguration.lenient(true);
-                    viewConfiguration.componentFilter(getComponentFilter(visitor));
-                }
-            }).getArtifacts();
+        private ArtifactCollection getResolvedArtifacts(
+                Configuration configuration, final IdeDependencyVisitor visitor) {
+            return configuration
+                    .getIncoming()
+                    .artifactView(new Action<ArtifactView.ViewConfiguration>() {
+                        @Override
+                        public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
+                            viewConfiguration.lenient(true);
+                            viewConfiguration.componentFilter(getComponentFilter(visitor));
+                        }
+                    })
+                    .getArtifacts();
         }
 
         private Spec<ComponentIdentifier> getComponentFilter(IdeDependencyVisitor visitor) {
             return visitor.isOffline() ? NOT_A_MODULE : Specs.<ComponentIdentifier>satisfyAll();
         }
 
-        private Iterable<UnresolvedDependencyResult> getUnresolvedDependencies(Configuration configuration, IdeDependencyVisitor visitor) {
+        private Iterable<UnresolvedDependencyResult> getUnresolvedDependencies(
+                Configuration configuration, IdeDependencyVisitor visitor) {
             if (visitor.isOffline()) {
                 return Collections.emptySet();
             }
-            return Iterables.filter(configuration.getIncoming().getResolutionResult().getRoot().getDependencies(), UnresolvedDependencyResult.class);
+            return Iterables.filter(
+                    configuration.getIncoming().getResolutionResult().getRoot().getDependencies(),
+                    UnresolvedDependencyResult.class);
         }
 
         private void resolveAuxiliaryArtifacts(IdeDependencyVisitor visitor) {
@@ -181,10 +212,11 @@ public class IdeDependencySet {
                 return;
             }
 
-            ArtifactResolutionResult result = dependencyHandler.createArtifactResolutionQuery()
-                .forComponents(componentIdentifiers)
-                .withArtifacts(JvmLibrary.class, types)
-                .execute();
+            ArtifactResolutionResult result = dependencyHandler
+                    .createArtifactResolutionQuery()
+                    .forComponents(componentIdentifiers)
+                    .withArtifacts(JvmLibrary.class, types)
+                    .execute();
 
             for (ComponentArtifactsResult artifactsResult : result.getResolvedComponents()) {
                 for (Class<? extends Artifact> type : types) {
@@ -195,7 +227,8 @@ public class IdeDependencySet {
                             resolvedArtifactResults.add((ResolvedArtifactResult) artifactResult);
                         }
                     }
-                    auxiliaryArtifacts.put((ModuleComponentIdentifier) artifactsResult.getId(), type, resolvedArtifactResults);
+                    auxiliaryArtifacts.put(
+                            (ModuleComponentIdentifier) artifactsResult.getId(), type, resolvedArtifactResults);
                 }
             }
         }
@@ -231,13 +264,18 @@ public class IdeDependencySet {
                     visitor.visitProjectDependency(artifact, testOnly, asModule);
                 } else {
                     if (componentIdentifier instanceof ModuleComponentIdentifier) {
-                        Set<ResolvedArtifactResult> sources = auxiliaryArtifacts.get(componentIdentifier, SourcesArtifact.class);
+                        Set<ResolvedArtifactResult> sources =
+                                auxiliaryArtifacts.get(componentIdentifier, SourcesArtifact.class);
                         sources = sources != null ? sources : Collections.emptySet();
-                        Set<ResolvedArtifactResult> javaDoc = auxiliaryArtifacts.get(componentIdentifier, JavadocArtifact.class);
+                        Set<ResolvedArtifactResult> javaDoc =
+                                auxiliaryArtifacts.get(componentIdentifier, JavadocArtifact.class);
                         javaDoc = javaDoc != null ? javaDoc : Collections.emptySet();
                         visitor.visitModuleDependency(artifact, sources, javaDoc, testOnly, asModule);
                     } else if (isLocalGroovyDependency(artifact)) {
-                        File localGroovySources = shouldDownloadSources(visitor) ? gradleApiSourcesResolver.resolveLocalGroovySources(artifact.getFile().getName()) : null;
+                        File localGroovySources = shouldDownloadSources(visitor)
+                                ? gradleApiSourcesResolver.resolveLocalGroovySources(
+                                        artifact.getFile().getName())
+                                : null;
                         visitor.visitGradleApiDependency(artifact, localGroovySources, testOnly);
                     } else {
                         visitor.visitFileDependency(artifact, testOnly);
@@ -247,21 +285,25 @@ public class IdeDependencySet {
         }
 
         private boolean isModule(boolean testOnly, File artifact) {
-            // Test code is not treated as modules, as Eclipse does not support compiling two modules in one project anyway.
+            // Test code is not treated as modules, as Eclipse does not support compiling two modules in one project
+            // anyway.
             // See also: https://bugs.eclipse.org/bugs/show_bug.cgi?id=520667
             //
-            // We assume that a test-only dependency is not a module, which corresponds to how Eclipse does test running for modules:
-            // It patches the main module with the tests and expects test dependencies to be part of the unnamed module (classpath).
+            // We assume that a test-only dependency is not a module, which corresponds to how Eclipse does test running
+            // for modules:
+            // It patches the main module with the tests and expects test dependencies to be part of the unnamed module
+            // (classpath).
             return javaModuleDetector.isModule(inferModulePath && !testOnly, artifact);
         }
 
         private boolean isLocalGroovyDependency(ResolvedArtifactResult artifact) {
             String artifactFileName = artifact.getFile().getName();
-            String componentIdentifier = artifact.getId().getComponentIdentifier().getDisplayName();
+            String componentIdentifier =
+                    artifact.getId().getComponentIdentifier().getDisplayName();
             return (componentIdentifier.equals(GRADLE_API.displayName)
-                    || componentIdentifier.equals(GRADLE_TEST_KIT.displayName)
-                    || componentIdentifier.equals(LOCAL_GROOVY.displayName))
-                && artifactFileName.startsWith("groovy-");
+                            || componentIdentifier.equals(GRADLE_TEST_KIT.displayName)
+                            || componentIdentifier.equals(LOCAL_GROOVY.displayName))
+                    && artifactFileName.startsWith("groovy-");
         }
 
         private boolean shouldDownloadSources(IdeDependencyVisitor visitor) {
@@ -285,5 +327,4 @@ public class IdeDependencySet {
             return !(id instanceof ModuleComponentIdentifier);
         }
     };
-
 }

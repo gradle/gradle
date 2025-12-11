@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import java.io.File;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.GradleUserHomeDirProvider;
@@ -30,8 +31,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.versionedcache.UsedGradleVersions;
 
-import java.io.File;
-
 @ServiceScope(Scope.UserHome.class)
 public class GradleUserHomeCleanupService implements Stoppable {
     private final Deleter deleter;
@@ -43,13 +42,12 @@ public class GradleUserHomeCleanupService implements Stoppable {
     private boolean alreadyCleaned;
 
     public GradleUserHomeCleanupService(
-        Deleter deleter,
-        GradleUserHomeDirProvider userHomeDirProvider,
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        UsedGradleVersions usedGradleVersions,
-        BuildOperationRunner buildOperationRunner,
-        CacheConfigurationsInternal cacheConfigurations
-    ) {
+            Deleter deleter,
+            GradleUserHomeDirProvider userHomeDirProvider,
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            UsedGradleVersions usedGradleVersions,
+            BuildOperationRunner buildOperationRunner,
+            CacheConfigurationsInternal cacheConfigurations) {
         this.deleter = deleter;
         this.userHomeDirProvider = userHomeDirProvider;
         this.cacheBuilderFactory = cacheBuilderFactory;
@@ -60,17 +58,15 @@ public class GradleUserHomeCleanupService implements Stoppable {
 
     public void cleanup() {
         File cacheBaseDir = cacheBuilderFactory.getRootDir();
-        boolean wasCleanedUp = execute(
-            new VersionSpecificCacheCleanupAction(
+        boolean wasCleanedUp = execute(new VersionSpecificCacheCleanupAction(
                 cacheBaseDir,
                 cacheConfigurations.getReleasedWrappers().getEntryRetentionTimestampSupplier(),
                 cacheConfigurations.getSnapshotWrappers().getEntryRetentionTimestampSupplier(),
                 deleter,
-                cacheConfigurations.getCleanupFrequency().get()
-            )
-        );
+                cacheConfigurations.getCleanupFrequency().get()));
         if (wasCleanedUp) {
-            execute(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions));
+            execute(new WrapperDistributionCleanupAction(
+                    userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions));
         }
         alreadyCleaned = true;
     }

@@ -16,6 +16,14 @@
 
 package org.gradle.vcs.git.internal;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.ServiceLoader;
+import java.util.Set;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
@@ -42,15 +50,6 @@ import org.gradle.vcs.internal.VersionControlSystem;
 import org.gradle.vcs.internal.VersionRef;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.ServiceLoader;
-import java.util.Set;
-
 /**
  * A Git {@link VersionControlSystem} implementation.
  */
@@ -61,11 +60,15 @@ public class GitVersionControlSystem implements VersionControlSystem {
     @Override
     public void populate(File workingDir, VersionRef ref, VersionControlSpec spec) {
         GitVersionControlSpec gitSpec = cast(spec);
-        LOGGER.info("Populating VCS workingDir {}/{} with ref {}", workingDir.getParentFile().getName(), workingDir.getName(), ref);
+        LOGGER.info(
+                "Populating VCS workingDir {}/{} with ref {}",
+                workingDir.getParentFile().getName(),
+                workingDir.getName(),
+                ref);
         if (workingDir.isDirectory()) {
             // Directory has something in it already
             String[] contents = workingDir.list();
-            if (contents!=null && contents.length > 0) {
+            if (contents != null && contents.length > 0) {
                 resetRepo(workingDir, gitSpec, ref);
                 return;
             }
@@ -115,7 +118,11 @@ public class GitVersionControlSystem implements VersionControlSystem {
 
     private Collection<Ref> getRemoteRefs(GitVersionControlSpec gitSpec, boolean tags, boolean heads) {
         try {
-            return configureTransport(Git.lsRemoteRepository()).setRemote(normalizeUri(gitSpec.getUrl())).setTags(tags).setHeads(heads).call();
+            return configureTransport(Git.lsRemoteRepository())
+                    .setRemote(normalizeUri(gitSpec.getUrl()))
+                    .setTags(tags)
+                    .setHeads(heads)
+                    .call();
         } catch (URISyntaxException | GitAPIException e) {
             throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         }
@@ -124,12 +131,15 @@ public class GitVersionControlSystem implements VersionControlSystem {
     private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {
         Git git = null;
         try {
-            CloneCommand clone = configureTransport(Git.cloneRepository()).
-                    setURI(normalizeUri(gitSpec.getUrl())).
-                    setDirectory(workingDir).
-                    setCloneSubmodules(true);
+            CloneCommand clone = configureTransport(Git.cloneRepository())
+                    .setURI(normalizeUri(gitSpec.getUrl()))
+                    .setDirectory(workingDir)
+                    .setCloneSubmodules(true);
             git = clone.call();
-            git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
+            git.reset()
+                    .setMode(ResetCommand.ResetType.HARD)
+                    .setRef(ref.getCanonicalId())
+                    .call();
         } catch (GitAPIException | URISyntaxException | JGitInternalException e) {
             throw wrapGitCommandException("clone", gitSpec.getUrl(), workingDir, e);
         } finally {
@@ -141,7 +151,10 @@ public class GitVersionControlSystem implements VersionControlSystem {
         Git git = null;
         try {
             git = Git.open(workingDir);
-            git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
+            git.reset()
+                    .setMode(ResetCommand.ResetType.HARD)
+                    .setRef(ref.getCanonicalId())
+                    .call();
             updateSubModules(git);
         } catch (IOException | JGitInternalException | GitAPIException e) {
             throw wrapGitCommandException("reset", gitSpec.getUrl(), workingDir, e);
@@ -167,7 +180,10 @@ public class GitVersionControlSystem implements VersionControlSystem {
                         Git submoduleGit = Git.wrap(submodule);
                         configureTransport(submoduleGit.fetch()).call();
                         git.submoduleUpdate().addPath(walker.getPath()).call();
-                        submoduleGit.reset().setMode(ResetCommand.ResetType.HARD).call();
+                        submoduleGit
+                                .reset()
+                                .setMode(ResetCommand.ResetType.HARD)
+                                .call();
                         updateSubModules(submoduleGit);
                     }
                 }
@@ -183,12 +199,14 @@ public class GitVersionControlSystem implements VersionControlSystem {
 
     private static GitVersionControlSpec cast(VersionControlSpec spec) {
         if (!(spec instanceof GitVersionControlSpec)) {
-            throw new IllegalArgumentException("The GitVersionControlSystem can only handle GitVersionControlSpec instances.");
+            throw new IllegalArgumentException(
+                    "The GitVersionControlSystem can only handle GitVersionControlSpec instances.");
         }
         return (GitVersionControlSpec) spec;
     }
 
-    private static GradleException wrapGitCommandException(String commandName, URI repoUrl, File workingDir, Exception e) {
+    private static GradleException wrapGitCommandException(
+            String commandName, URI repoUrl, File workingDir, Exception e) {
         if (workingDir == null) {
             return new GradleException(String.format("Could not run %s for %s", commandName, repoUrl), e);
         }
@@ -214,7 +232,8 @@ public class GitVersionControlSystem implements VersionControlSystem {
             protected ConnectorFactory getConnectorFactory() {
                 ConnectorFactory cf = super.getConnectorFactory();
                 if (cf == null) {
-                    ServiceLoader<ConnectorFactory> loader = ServiceLoader.load(ConnectorFactory.class, ConnectorFactory.class.getClassLoader());
+                    ServiceLoader<ConnectorFactory> loader =
+                            ServiceLoader.load(ConnectorFactory.class, ConnectorFactory.class.getClassLoader());
                     for (ConnectorFactory candidate : loader) {
                         if (candidate.isSupported()) {
                             cf = candidate;

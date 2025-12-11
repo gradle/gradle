@@ -38,20 +38,26 @@ public class UserResolverChain implements ComponentResolvers {
     private final ComponentSelectionRulesInternal componentSelectionRules;
 
     public UserResolverChain(
-        VersionComparator versionComparator,
-        ComponentSelectionRulesInternal componentSelectionRules,
-        VersionParser versionParser,
-        ImmutableAttributesSchema consumerSchema,
-        AttributesFactory attributesFactory,
-        AttributeSchemaServices attributeSchemaServices,
-        ComponentMetadataProcessorFactory componentMetadataProcessor,
-        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-        CalculatedValueFactory calculatedValueFactory,
-        CacheExpirationControl cacheExpirationControl
-    ) {
+            VersionComparator versionComparator,
+            ComponentSelectionRulesInternal componentSelectionRules,
+            VersionParser versionParser,
+            ImmutableAttributesSchema consumerSchema,
+            AttributesFactory attributesFactory,
+            AttributeSchemaServices attributeSchemaServices,
+            ComponentMetadataProcessorFactory componentMetadataProcessor,
+            ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+            CalculatedValueFactory calculatedValueFactory,
+            CacheExpirationControl cacheExpirationControl) {
         this.componentSelectionRules = componentSelectionRules;
-        VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, attributeSchemaServices, componentSelectionRules, consumerSchema);
-        componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(componentChooser, versionParser, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cacheExpirationControl);
+        VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(
+                versionComparator, versionParser, attributeSchemaServices, componentSelectionRules, consumerSchema);
+        componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(
+                componentChooser,
+                versionParser,
+                attributesFactory,
+                componentMetadataProcessor,
+                componentMetadataSupplierRuleExecutor,
+                cacheExpirationControl);
         componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, calculatedValueFactory);
         artifactResolver = new RepositoryChainArtifactResolver(calculatedValueFactory);
     }

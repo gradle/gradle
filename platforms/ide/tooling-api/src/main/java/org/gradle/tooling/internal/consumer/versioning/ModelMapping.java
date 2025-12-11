@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.versioning;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.build.BuildEnvironment;
@@ -27,9 +29,6 @@ import org.gradle.tooling.model.gradle.ProjectPublications;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.jspecify.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class ModelMapping {
     private static final Map<Class<?>, String> MODEL_VERSIONS = new HashMap<Class<?>, String>();

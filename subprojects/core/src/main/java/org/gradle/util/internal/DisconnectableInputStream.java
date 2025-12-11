@@ -15,14 +15,13 @@
  */
 package org.gradle.util.internal;
 
-import org.gradle.api.Action;
-import org.gradle.internal.UncheckedException;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.gradle.api.Action;
+import org.gradle.internal.UncheckedException;
 
 /**
  * An {@code InputStream} which reads from the source {@code InputStream}. In addition, when the {@code InputStream} is
@@ -38,9 +37,9 @@ public class DisconnectableInputStream extends BulkReadInputStream {
     private boolean inputFinished;
 
     /*
-        The song and dance with Action<Runnable> is to ease testing.
-        See DisconnectableInputStreamTest
-     */
+       The song and dance with Action<Runnable> is to ease testing.
+       See DisconnectableInputStreamTest
+    */
 
     static class ThreadExecuter implements Action<Runnable> {
         @Override

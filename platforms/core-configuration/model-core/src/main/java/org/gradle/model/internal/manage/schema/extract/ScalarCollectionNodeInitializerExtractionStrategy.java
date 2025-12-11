@@ -18,6 +18,13 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelViewState;
@@ -33,38 +40,28 @@ import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
-
 public class ScalarCollectionNodeInitializerExtractionStrategy extends CollectionNodeInitializerExtractionSupport {
-    public final static List<ModelType<?>> TYPES = ImmutableList.<ModelType<?>>of(
-        ModelType.of(List.class),
-        ModelType.of(Set.class)
-    );
+    public static final List<ModelType<?>> TYPES =
+            ImmutableList.<ModelType<?>>of(ModelType.of(List.class), ModelType.of(Set.class));
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
+    protected <T, E> NodeInitializer extractNodeInitializer(
+            CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
         ModelType<T> type = schema.getType();
         Class<? super T> rawClass = type.getRawClass();
         ModelType<? super T> rawCollectionType = ModelType.of(rawClass);
         if (TYPES.contains(rawCollectionType) && (schema.getElementTypeSchema() instanceof ScalarValueSchema)) {
             Optional<NodeInitializerContext.PropertyContext> propertyContext = context.getPropertyContextOptional();
-            boolean writable = !propertyContext.isPresent() || propertyContext.get().isWritable();
+            boolean writable =
+                    !propertyContext.isPresent() || propertyContext.get().isWritable();
             if (schema.getType().getRawClass() == List.class) {
                 return new ProjectionOnlyNodeInitializer(
-                    ScalarCollectionModelProjection.forList(schema.getElementType(), !writable),
-                    new ModelElementProjection(schema.getType())
-                );
+                        ScalarCollectionModelProjection.forList(schema.getElementType(), !writable),
+                        new ModelElementProjection(schema.getType()));
             } else {
                 return new ProjectionOnlyNodeInitializer(
-                    ScalarCollectionModelProjection.forSet(schema.getElementType(), !writable),
-                    new ModelElementProjection(schema.getType())
-                );
+                        ScalarCollectionModelProjection.forSet(schema.getElementType(), !writable),
+                        new ModelElementProjection(schema.getType()));
             }
         }
         return null;
@@ -75,7 +72,8 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         return ImmutableList.copyOf(TYPES);
     }
 
-    private abstract static class ScalarCollectionModelProjection<E, C extends Collection<E>> extends TypeCompatibilityModelProjectionSupport<C> {
+    private abstract static class ScalarCollectionModelProjection<E, C extends Collection<E>>
+            extends TypeCompatibilityModelProjectionSupport<C> {
 
         public ScalarCollectionModelProjection(ModelType<C> type) {
             super(type);
@@ -83,7 +81,8 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
 
         @Override
         public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
-            Collection<?> values = modelNodeInternal.asImmutable(getType(), null).getInstance();
+            Collection<?> values =
+                    modelNodeInternal.asImmutable(getType(), null).getInstance();
             if (values == null) {
                 return Optional.of("null");
             }
@@ -91,22 +90,29 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         }
 
         @Override
-        protected abstract ScalarCollectionModelView<E, C> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean readOnly);
+        protected abstract ScalarCollectionModelView<E, C> toView(
+                MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean readOnly);
 
-        public static <E> ScalarCollectionModelProjection<E, List<E>> forList(final ModelType<E> elementType, final boolean readOnly) {
+        public static <E> ScalarCollectionModelProjection<E, List<E>> forList(
+                final ModelType<E> elementType, final boolean readOnly) {
             return new ScalarCollectionModelProjection<E, List<E>>(ModelTypes.list(elementType)) {
                 @Override
-                protected ScalarCollectionModelView<E, List<E>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
-                    return new ListModelView<E>(modelNode.getPath(), elementType, modelNode, ruleDescriptor, readOnly, mutable);
+                protected ScalarCollectionModelView<E, List<E>> toView(
+                        MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
+                    return new ListModelView<E>(
+                            modelNode.getPath(), elementType, modelNode, ruleDescriptor, readOnly, mutable);
                 }
             };
         }
 
-        public static <E> ScalarCollectionModelProjection<E, Set<E>> forSet(final ModelType<E> elementType, final boolean readOnly) {
+        public static <E> ScalarCollectionModelProjection<E, Set<E>> forSet(
+                final ModelType<E> elementType, final boolean readOnly) {
             return new ScalarCollectionModelProjection<E, Set<E>>(ModelTypes.set(elementType)) {
                 @Override
-                protected ScalarCollectionModelView<E, Set<E>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
-                    return new SetModelView<E>(modelNode.getPath(), elementType, modelNode, ruleDescriptor, readOnly, mutable);
+                protected ScalarCollectionModelView<E, Set<E>> toView(
+                        MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
+                    return new SetModelView<E>(
+                            modelNode.getPath(), elementType, modelNode, ruleDescriptor, readOnly, mutable);
                 }
             };
         }
@@ -114,7 +120,13 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
 
     private static class ListModelView<T> extends ScalarCollectionModelView<T, List<T>> {
 
-        public ListModelView(ModelPath path, ModelType<T> elementType, MutableModelNode modelNode, ModelRuleDescriptor descriptor, boolean overwritable, boolean mutable) {
+        public ListModelView(
+                ModelPath path,
+                ModelType<T> elementType,
+                MutableModelNode modelNode,
+                ModelRuleDescriptor descriptor,
+                boolean overwritable,
+                boolean mutable) {
             super(path, ModelTypes.list(elementType), elementType, modelNode, descriptor, overwritable, mutable);
         }
 
@@ -131,7 +143,13 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
 
     private static class SetModelView<T> extends ScalarCollectionModelView<T, Set<T>> {
 
-        public SetModelView(ModelPath path, ModelType<T> elementType, MutableModelNode modelNode, ModelRuleDescriptor descriptor, boolean overwritable, boolean mutable) {
+        public SetModelView(
+                ModelPath path,
+                ModelType<T> elementType,
+                MutableModelNode modelNode,
+                ModelRuleDescriptor descriptor,
+                boolean overwritable,
+                boolean mutable) {
             super(path, ModelTypes.set(elementType), elementType, modelNode, descriptor, overwritable, mutable);
         }
 
@@ -168,7 +186,8 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
             if (o != null) {
                 ModelType<?> obType = ModelType.of(o.getClass());
                 if (!obType.equals(elementType)) {
-                    throw new IllegalArgumentException(String.format("Cannot add an element of type %s to a collection of %s", obType, elementType));
+                    throw new IllegalArgumentException(String.format(
+                            "Cannot add an element of type %s to a collection of %s", obType, elementType));
                 }
             }
         }
@@ -292,7 +311,6 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
             validateElementType(element);
             getDelegate(true).add(index, element);
         }
-
 
         @Override
         public boolean addAll(int index, Collection<? extends T> c) {

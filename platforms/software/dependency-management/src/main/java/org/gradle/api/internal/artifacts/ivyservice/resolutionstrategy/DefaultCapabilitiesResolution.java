@@ -16,6 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.CapabilityResolutionDetails;
 import org.gradle.api.capabilities.Capability;
@@ -23,10 +26,6 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Default implementation of {@link CapabilitiesResolutionInternal}.
@@ -59,15 +58,14 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
     @Override
     public void withCapability(Object notation, Action<? super CapabilityResolutionDetails> action) {
         Supplier<Capability> capabilitySupplier = notation instanceof Provider
-            ? () -> ((Provider<?>) notation).map(capabilityNotationParser::parseNotation).get()
-            : () -> capabilityNotationParser.parseNotation(notation);
+                ? () -> ((Provider<?>) notation)
+                        .map(capabilityNotationParser::parseNotation)
+                        .get()
+                : () -> capabilityNotationParser.parseNotation(notation);
         doAddAction(capabilitySupplier, action);
     }
 
-    void doAddAction(
-        @Nullable Supplier<Capability> notation,
-        Action<? super CapabilityResolutionDetails> action
-    ) {
+    void doAddAction(@Nullable Supplier<Capability> notation, Action<? super CapabilityResolutionDetails> action) {
         if (actions == null) {
             actions = new ArrayList<>();
         }
@@ -96,10 +94,7 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
         private final @Nullable Supplier<Capability> notation;
         private final Action<? super CapabilityResolutionDetails> action;
 
-        RegisteredAction(
-            @Nullable Supplier<Capability> notation,
-            Action<? super CapabilityResolutionDetails> action
-        ) {
+        RegisteredAction(@Nullable Supplier<Capability> notation, Action<? super CapabilityResolutionDetails> action) {
             this.notation = notation;
             this.action = action;
         }
@@ -110,7 +105,5 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
             }
             return new CapabilityResolutionRule(DefaultImmutableCapability.of(notation.get()), action);
         }
-
     }
-
 }

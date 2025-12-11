@@ -15,12 +15,11 @@
  */
 package org.gradle.reporting;
 
-import org.gradle.internal.html.SimpleHtmlWriter;
-import org.jspecify.annotations.NullMarked;
+import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
 
 import java.io.IOException;
-
-import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
+import org.gradle.internal.html.SimpleHtmlWriter;
+import org.jspecify.annotations.NullMarked;
 
 public class CodePanelRenderer extends ReportRenderer<CodePanelRenderer.Data, SimpleHtmlWriter> {
     @NullMarked
@@ -37,8 +36,13 @@ public class CodePanelRenderer extends ReportRenderer<CodePanelRenderer.Data, Si
     @Override
     public void render(Data data, SimpleHtmlWriter htmlWriter) throws IOException {
         // Wrap in a <span>, to work around CSS problem in IE
-        htmlWriter.startElement("span").attribute("class", "code")
-            .startElement("pre").attribute("id", data.codePanelId).characters(data.text).endElement();
+        htmlWriter
+                .startElement("span")
+                .attribute("class", "code")
+                .startElement("pre")
+                .attribute("id", data.codePanelId)
+                .characters(data.text)
+                .endElement();
         addClipboardCopyButton(htmlWriter, data.codePanelId);
         htmlWriter.endElement();
     }

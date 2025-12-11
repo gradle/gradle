@@ -15,20 +15,20 @@
  */
 package org.gradle.plugins.signing.signatory.internal.gnupg;
 
+import java.util.Arrays;
 import org.gradle.api.Project;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
 import org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvider;
 import org.gradle.security.internal.gnupg.BaseGnupgSignatoryProvider;
 import org.gradle.security.internal.gnupg.GnupgSignatory;
 
-import java.util.Arrays;
-
 /**
  * A {@link SignatoryProvider} of {@link GnupgSignatory} instances.
  *
  * @since 4.5
  */
-public class GnupgSignatoryProvider extends BaseGnupgSignatoryProvider implements ConfigurableSignatoryProvider<GnupgSignatory> {
+public class GnupgSignatoryProvider extends BaseGnupgSignatoryProvider
+        implements ConfigurableSignatoryProvider<GnupgSignatory> {
 
     @Override
     public void createSignatoryFor(Project project, String name, Object[] args) {
@@ -42,5 +42,4 @@ public class GnupgSignatoryProvider extends BaseGnupgSignatoryProvider implement
     public GnupgSignatory propertyMissing(String signatoryName) {
         return getSignatory(signatoryName);
     }
-
 }

@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.tasks.testing.detection;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 import org.apache.commons.lang3.text.StrBuilder;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
@@ -23,10 +26,6 @@ import org.gradle.internal.Factory;
 import org.gradle.util.internal.JarUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
 
 /**
  * This class manages class file extraction from library jar files.
@@ -95,7 +94,8 @@ public class ClassFileExtractionManager {
         boolean classFileExtracted = false;
 
         final File extractedClassFile = tempFile();
-        final String classFileName = new StrBuilder().append(className).append(".class").toString();
+        final String classFileName =
+                new StrBuilder().append(className).append(".class").toString();
         final String classNamePackage = classNamePackage(className);
         final Set<File> packageJarFiles = packageJarFilesMappings.get(classNamePackage);
 

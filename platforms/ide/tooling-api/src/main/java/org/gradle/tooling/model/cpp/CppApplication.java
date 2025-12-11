@@ -21,5 +21,4 @@ package org.gradle.tooling.model.cpp;
  *
  * @since 4.10
  */
-public interface CppApplication extends CppComponent {
-}
+public interface CppApplication extends CppComponent {}

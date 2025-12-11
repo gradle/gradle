@@ -17,23 +17,25 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Map;
 import org.gradle.internal.Factory;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-
-abstract public class AbstractIsolatedMap<T extends Map<Object, Object>> extends AbstractMapSnapshot<Isolatable<?>> implements Isolatable<T>, Factory<T> {
+public abstract class AbstractIsolatedMap<T extends Map<Object, Object>> extends AbstractMapSnapshot<Isolatable<?>>
+        implements Isolatable<T>, Factory<T> {
     public AbstractIsolatedMap(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries) {
         super(entries);
     }
 
     @Override
     public ValueSnapshot asSnapshot() {
-        ImmutableList.Builder<MapEntrySnapshot<ValueSnapshot>> builder = ImmutableList.builderWithExpectedSize(entries.size());
+        ImmutableList.Builder<MapEntrySnapshot<ValueSnapshot>> builder =
+                ImmutableList.builderWithExpectedSize(entries.size());
         for (MapEntrySnapshot<Isolatable<?>> entry : entries) {
-            builder.add(new MapEntrySnapshot<ValueSnapshot>(entry.getKey().asSnapshot(), entry.getValue().asSnapshot()));
+            builder.add(new MapEntrySnapshot<ValueSnapshot>(
+                    entry.getKey().asSnapshot(), entry.getValue().asSnapshot()));
         }
         return new MapValueSnapshot(builder.build());
     }

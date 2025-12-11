@@ -37,5 +37,4 @@ public interface BuildScanConfigProvider {
      * Will only be called once per build.
      */
     BuildScanConfig collect(BuildScanPluginMetadata pluginMetadata);
-
 }

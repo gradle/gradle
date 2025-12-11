@@ -24,18 +24,17 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.0
  */
-public final class DownloadArtifactBuildOperationType implements BuildOperationType<DownloadArtifactBuildOperationType.Details, DownloadArtifactBuildOperationType.Result> {
+public final class DownloadArtifactBuildOperationType
+        implements BuildOperationType<
+                DownloadArtifactBuildOperationType.Details, DownloadArtifactBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
 
         String getArtifactIdentifier();
-
     }
 
-    public interface Result {
-
-    }
+    public interface Result {}
 
     public static class DetailsImpl implements Details {
 
@@ -49,13 +48,9 @@ public final class DownloadArtifactBuildOperationType implements BuildOperationT
         public String getArtifactIdentifier() {
             return artifactIdentifier;
         }
-
     }
 
-    public final static Result RESULT = new Result() {
-    };
+    public static final Result RESULT = new Result() {};
 
-    private DownloadArtifactBuildOperationType() {
-    }
-
+    private DownloadArtifactBuildOperationType() {}
 }

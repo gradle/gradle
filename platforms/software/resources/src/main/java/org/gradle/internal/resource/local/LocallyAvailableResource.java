@@ -15,10 +15,9 @@
  */
 package org.gradle.internal.resource.local;
 
+import java.io.File;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.Resource;
-
-import java.io.File;
 
 /**
  * Represents a file backed local resource.

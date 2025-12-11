@@ -17,6 +17,20 @@ package org.gradle.api.internal.catalog;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.VersionCatalog;
@@ -76,27 +90,13 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
-    private final static String SUPPORTED_PROJECT_NAMES = "[a-zA-Z]([A-Za-z0-9\\-_])*";
-    private final static Pattern SUPPORTED_PATTERN = Pattern.compile(SUPPORTED_PROJECT_NAMES);
-    private final static String ACCESSORS_PACKAGE = "org.gradle.accessors.dm";
-    private final static String ACCESSORS_CLASSNAME_PREFIX = "LibrariesFor";
-    private final static String ROOT_PROJECT_ACCESSOR_FQCN = ACCESSORS_PACKAGE + "." + RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
+    private static final String SUPPORTED_PROJECT_NAMES = "[a-zA-Z]([A-Za-z0-9\\-_])*";
+    private static final Pattern SUPPORTED_PATTERN = Pattern.compile(SUPPORTED_PROJECT_NAMES);
+    private static final String ACCESSORS_PACKAGE = "org.gradle.accessors.dm";
+    private static final String ACCESSORS_CLASSNAME_PREFIX = "LibrariesFor";
+    private static final String ROOT_PROJECT_ACCESSOR_FQCN =
+            ACCESSORS_PACKAGE + "." + RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDependenciesAccessors.class);
 
@@ -120,17 +120,16 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     @Inject
     public DefaultDependenciesAccessors(
-        ClassPathRegistry registry,
-        DependenciesAccessorsWorkspaceProvider workspace,
-        DefaultProjectDependencyFactory projectDependencyFactory,
-        FeatureFlags featureFlags,
-        ExecutionEngine engine,
-        FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter,
-        AttributesFactory attributesFactory,
-        CapabilityNotationParser capabilityNotationParser,
-        Problems problemsService
-    ) {
+            ClassPathRegistry registry,
+            DependenciesAccessorsWorkspaceProvider workspace,
+            DefaultProjectDependencyFactory projectDependencyFactory,
+            FeatureFlags featureFlags,
+            ExecutionEngine engine,
+            FileCollectionFactory fileCollectionFactory,
+            InputFingerprinter inputFingerprinter,
+            AttributesFactory attributesFactory,
+            CapabilityNotationParser capabilityNotationParser,
+            Problems problemsService) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
         this.projectDependencyFactory = projectDependencyFactory;
@@ -144,7 +143,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     @Override
-    public void generateAccessors(List<VersionCatalogBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings) {
+    public void generateAccessors(
+            List<VersionCatalogBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings) {
         try {
             this.classLoaderScope = classLoaderScope;
             this.models.clear(); // this is used in tests only, shouldn't happen in real context
@@ -182,14 +182,16 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     private static void warnIfRootProjectNameNotSetExplicitly(@Nullable ProjectDescriptorInternal project) {
         if (!project.isExplicitName()) {
-            LOGGER.warn("Project accessors enabled, but root project name not explicitly set for '" + project.getName() +
-                "'. Checking out the project in different folders will impact the generated code and implicitly the buildscript classpath, breaking caching.");
+            LOGGER.warn(
+                    "Project accessors enabled, but root project name not explicitly set for '" + project.getName()
+                            + "'. Checking out the project in different folders will impact the generated code and implicitly the buildscript classpath, breaking caching.");
         }
     }
 
     private void executeWork(UnitOfWork work) {
         ExecutionEngine.Result result = engine.createRequest(work).execute();
-        GeneratedAccessors accessors = result.getOutputAs(GeneratedAccessors.class).get();
+        GeneratedAccessors accessors =
+                result.getOutputAs(GeneratedAccessors.class).get();
         ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
         sources = sources.plus(DefaultClassPath.of(accessors.sourcesDir));
         classes = classes.plus(generatedClasses);
@@ -198,25 +200,24 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     private static boolean assertCanGenerateAccessors(ProjectDescriptorRegistry projectRegistry) {
         List<String> errors = new ArrayList<>();
-        projectRegistry.getAllProjects()
-            .stream()
-            .map(ProjectDescriptor::getName)
-            .filter(p -> !SUPPORTED_PATTERN.matcher(p).matches())
-            .map(name -> "project '" + name + "' doesn't follow the naming convention: " + SUPPORTED_PROJECT_NAMES)
-            .forEach(errors::add);
-        for (ProjectDescriptor project : projectRegistry.getAllProjects()) {
-            project.getChildren()
-                .stream()
+        projectRegistry.getAllProjects().stream()
                 .map(ProjectDescriptor::getName)
-                .collect(Collectors.groupingBy(AbstractSourceGenerator::toJavaName))
-                .entrySet()
-                .stream()
-                .filter(e -> e.getValue().size() > 1)
-                .forEachOrdered(e -> {
-                    String javaName = e.getKey();
-                    List<String> names = e.getValue();
-                    errors.add("subprojects " + names + " of project " + project.getPath() + " map to the same method name get" + javaName + "()");
-                });
+                .filter(p -> !SUPPORTED_PATTERN.matcher(p).matches())
+                .map(name -> "project '" + name + "' doesn't follow the naming convention: " + SUPPORTED_PROJECT_NAMES)
+                .forEach(errors::add);
+        for (ProjectDescriptor project : projectRegistry.getAllProjects()) {
+            project.getChildren().stream()
+                    .map(ProjectDescriptor::getName)
+                    .collect(Collectors.groupingBy(AbstractSourceGenerator::toJavaName))
+                    .entrySet()
+                    .stream()
+                    .filter(e -> e.getValue().size() > 1)
+                    .forEachOrdered(e -> {
+                        String javaName = e.getKey();
+                        List<String> names = e.getValue();
+                        errors.add("subprojects " + names + " of project " + project.getPath()
+                                + " map to the same method name get" + javaName + "()");
+                    });
         }
         if (!errors.isEmpty()) {
             TreeFormatter formatter = new TreeFormatter();
@@ -250,13 +251,22 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             if (models.isEmpty()) {
                 addVersionCatalogsProjectExtension(container, Collections.emptyMap());
             } else {
-                ImmutableMap.Builder<String, VersionCatalog> catalogs = ImmutableMap.builderWithExpectedSize(models.size());
+                ImmutableMap.Builder<String, VersionCatalog> catalogs =
+                        ImmutableMap.builderWithExpectedSize(models.size());
                 for (DefaultVersionCatalog model : models) {
                     if (model.isNotEmpty()) {
-                        Class<? extends ExternalModuleDependencyFactory> factory = loadVersionCatalogFactoryClass(accessorClassNameSuffix(model));
+                        Class<? extends ExternalModuleDependencyFactory> factory =
+                                loadVersionCatalogFactoryClass(accessorClassNameSuffix(model));
                         if (factory != null) {
                             container.create(model.getName(), factory, model);
-                            catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory, project.getObjects(), attributesFactory, capabilityNotationParser));
+                            catalogs.put(
+                                    model.getName(),
+                                    new VersionCatalogView(
+                                            model,
+                                            providerFactory,
+                                            project.getObjects(),
+                                            attributesFactory,
+                                            capabilityNotationParser));
                         }
                     }
                 }
@@ -272,8 +282,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
     }
 
-    private void addVersionCatalogsProjectExtension(ExtensionContainer container, Map<String, VersionCatalog> catalogs) {
-        container.create(VersionCatalogsExtension.class, "versionCatalogs", DefaultVersionCatalogsExtension.class, catalogs);
+    private void addVersionCatalogsProjectExtension(
+            ExtensionContainer container, Map<String, VersionCatalog> catalogs) {
+        container.create(
+                VersionCatalogsExtension.class, "versionCatalogs", DefaultVersionCatalogsExtension.class, catalogs);
     }
 
     private String accessorClassNameSuffix(DefaultVersionCatalog model) {
@@ -283,10 +295,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     @Override
     public Map<String, ExternalModuleDependencyFactory> createPluginsBlockFactories(ObjectFactory objects) {
         if (!models.isEmpty()) {
-            ImmutableMap.Builder<String, ExternalModuleDependencyFactory> catalogs = ImmutableMap.builderWithExpectedSize(models.size());
+            ImmutableMap.Builder<String, ExternalModuleDependencyFactory> catalogs =
+                    ImmutableMap.builderWithExpectedSize(models.size());
             for (DefaultVersionCatalog model : models) {
                 if (model.isNotEmpty()) {
-                    Class<? extends ExternalModuleDependencyFactory> factory = loadVersionCatalogFactoryClass(pluginsBlockAccessorClassNameSuffix(model));
+                    Class<? extends ExternalModuleDependencyFactory> factory =
+                            loadVersionCatalogFactoryClass(pluginsBlockAccessorClassNameSuffix(model));
                     if (factory != null) {
                         catalogs.put(model.getName(), objects.newInstance(factory, model));
                     }
@@ -302,17 +316,21 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     @Nullable
-    private Class<? extends ExternalModuleDependencyFactory> loadVersionCatalogFactoryClass(String accessorsClassnameSuffix) {
+    private Class<? extends ExternalModuleDependencyFactory> loadVersionCatalogFactoryClass(
+            String accessorsClassnameSuffix) {
         Class<? extends ExternalModuleDependencyFactory> factory;
         synchronized (this) {
-            factory = factories.computeIfAbsent(accessorsClassnameSuffix, n ->
-                loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME_PREFIX + accessorsClassnameSuffix)
-            );
+            factory = factories.computeIfAbsent(
+                    accessorsClassnameSuffix,
+                    n -> loadFactory(
+                            classLoaderScope,
+                            ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME_PREFIX + accessorsClassnameSuffix));
         }
         return factory;
     }
 
-    private void createProjectsExtension(ExtensionContainer container, DependencyResolutionManagementInternal drm, ProjectFinder projectFinder) {
+    private void createProjectsExtension(
+            ExtensionContainer container, DependencyResolutionManagementInternal drm, ProjectFinder projectFinder) {
         if (generatedProjectFactory == null) {
             synchronized (this) {
                 generatedProjectFactory = loadFactory(classLoaderScope, ROOT_PROJECT_ACCESSOR_FQCN);
@@ -321,7 +339,11 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         if (generatedProjectFactory != null) {
             Property<String> defaultProjectsExtensionName = drm.getDefaultProjectsExtensionName();
             defaultProjectsExtensionName.finalizeValue();
-            container.create(defaultProjectsExtensionName.get(), generatedProjectFactory, projectDependencyFactory, projectFinder);
+            container.create(
+                    defaultProjectsExtensionName.get(),
+                    generatedProjectFactory,
+                    projectDependencyFactory,
+                    projectFinder);
         }
     }
 
@@ -340,7 +362,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         private static final String OUT_CLASSES = "classes";
 
         @Override
-        public Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
+        public Identity identify(
+                Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
             Hasher hasher = Hashing.sha1().newHasher();
             scalarInputs.values().forEach(s -> s.appendToHasher(hasher));
             String identity = hasher.hash().toString();
@@ -394,7 +417,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         private void visitOutputDir(OutputVisitor visitor, File workspace, String propertyName) {
             File dir = new File(workspace, propertyName);
-            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, OutputVisitor.OutputFileValueSupplier.fromStatic(dir, fileCollectionFactory.fixed(dir)));
+            visitor.visitOutputProperty(
+                    propertyName,
+                    TreeType.DIRECTORY,
+                    OutputVisitor.OutputFileValueSupplier.fromStatic(dir, fileCollectionFactory.fixed(dir)));
         }
     }
 
@@ -413,17 +439,18 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
-            // This was a behaviour before 8.9, where we unified ExecutionEngine in https://github.com/gradle/gradle/pull/29534
+        public Optional<CachingDisabledReason> shouldDisableCaching(
+                @Nullable OverlappingOutputs detectedOverlappingOutputs) {
+            // This was a behaviour before 8.9, where we unified ExecutionEngine in
+            // https://github.com/gradle/gradle/pull/29534
             return Optional.of(NOT_WORTH_CACHING);
         }
 
         @Override
         protected List<ClassSource> getClassSources() {
             return Arrays.asList(
-                new DependenciesAccessorClassSource(model.getName(), model, problemsService),
-                new PluginsBlockDependenciesAccessorClassSource(model.getName(), model, problemsService)
-            );
+                    new DependenciesAccessorClassSource(model.getName(), model, problemsService),
+                    new PluginsBlockDependenciesAccessorClassSource(model.getName(), model, problemsService));
         }
 
         @Override
@@ -433,13 +460,15 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
             visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);
             visitor.visitInputProperty(IN_MODEL_NAME, model::getName);
-            visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
-                new InputVisitor.InputFileValueSupplier(
-                    classPath,
-                    InputNormalizer.RUNTIME_CLASSPATH,
-                    DirectorySensitivity.IGNORE_DIRECTORIES,
-                    LineEndingSensitivity.DEFAULT,
-                    () -> fileCollectionFactory.fixed(classPath.getAsFiles())));
+            visitor.visitInputFileProperty(
+                    IN_CLASSPATH,
+                    InputBehavior.NON_INCREMENTAL,
+                    new InputVisitor.InputFileValueSupplier(
+                            classPath,
+                            InputNormalizer.RUNTIME_CLASSPATH,
+                            DirectorySensitivity.IGNORE_DIRECTORIES,
+                            LineEndingSensitivity.DEFAULT,
+                            () -> fileCollectionFactory.fixed(classPath.getAsFiles())));
         }
 
         @Override
@@ -449,7 +478,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     private class ProjectAccessorUnitOfWork extends AbstractAccessorUnitOfWork {
-        private final static String IN_PROJECTS = "projects";
+        private static final String IN_PROJECTS = "projects";
         private final ProjectDescriptorRegistry projectRegistry;
 
         public ProjectAccessorUnitOfWork(ProjectDescriptorRegistry projectRegistry) {
@@ -457,8 +486,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
-            // This was a behaviour before 8.9, where we unified ExecutionEngine in https://github.com/gradle/gradle/pull/29534
+        public Optional<CachingDisabledReason> shouldDisableCaching(
+                @Nullable OverlappingOutputs detectedOverlappingOutputs) {
+            // This was a behaviour before 8.9, where we unified ExecutionEngine in
+            // https://github.com/gradle/gradle/pull/29534
             return Optional.of(NOT_WORTH_CACHING);
         }
 
@@ -479,17 +510,13 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         private String buildProjectTree() {
             Set<? extends ProjectDescriptor> allprojects = projectRegistry.getAllProjects();
-            return allprojects.stream()
-                .map(ProjectDescriptor::getPath)
-                .sorted()
-                .collect(Collectors.joining(","));
+            return allprojects.stream().map(ProjectDescriptor::getPath).sorted().collect(Collectors.joining(","));
         }
 
         @Override
         public String getDisplayName() {
             return "generation of project accessors";
         }
-
     }
 
     private static class GeneratedAccessors {
@@ -527,7 +554,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         public String getSource() {
             StringWriter writer = new StringWriter();
-            LibrariesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemsService);
+            LibrariesSourceGenerator.generateSource(
+                    writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemsService);
             return writer.toString();
         }
     }
@@ -537,7 +565,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         private final DefaultVersionCatalog model;
         private final Problems problemsService;
 
-        private PluginsBlockDependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemsService) {
+        private PluginsBlockDependenciesAccessorClassSource(
+                String name, DefaultVersionCatalog model, Problems problemsService) {
             this.name = name;
             this.model = model;
             this.problemsService = problemsService;
@@ -556,7 +585,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         public String getSource() {
             StringWriter writer = new StringWriter();
-            LibrariesSourceGenerator.generatePluginsBlockSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemsService);
+            LibrariesSourceGenerator.generatePluginsBlockSource(
+                    writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemsService);
             return writer.toString();
         }
     }
@@ -619,7 +649,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             RootProjectAccessorSourceGenerator.generateSource(writer, rootProject, ACCESSORS_PACKAGE);
             return writer.toString();
         }
-
     }
 
     // public for injection

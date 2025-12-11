@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resolve.result;
 
+import java.util.Collection;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -23,8 +24,6 @@ import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedVersion;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
 
 /**
  * The result of resolving a module version selector to a particular component id.
@@ -89,5 +88,4 @@ public interface ComponentIdResolveResult extends ResolveResult {
      * use of a hash set to collect the visited items.
      */
     boolean mark(Object o);
-
 }

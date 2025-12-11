@@ -37,7 +37,8 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
 
     private final Action<ArtifactRepository> addLastAction = DefaultArtifactRepositoryContainer.super::add;
 
-    public DefaultArtifactRepositoryContainer(Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
+    public DefaultArtifactRepositoryContainer(
+            Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(ArtifactRepository.class, instantiator, new RepositoryNamer(), callbackActionDecorator);
         whenObjectAdded((InternalAction<ArtifactRepository>) artifactRepository -> {
             if (artifactRepository instanceof ArtifactRepositoryInternal) {
@@ -84,12 +85,14 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         return addRepository(repository, defaultName, Actions.doNothing());
     }
 
-    public <T extends ArtifactRepository> T addRepository(T repository, String defaultName, Action<? super T> configureAction) {
+    public <T extends ArtifactRepository> T addRepository(
+            T repository, String defaultName, Action<? super T> configureAction) {
         configureAction.execute(repository);
         return addWithUniqueName(repository, defaultName, addLastAction);
     }
 
-    private <T extends ArtifactRepository> T addWithUniqueName(T repository, String defaultName, Action<? super T> insertion) {
+    private <T extends ArtifactRepository> T addWithUniqueName(
+            T repository, String defaultName, Action<? super T> insertion) {
         String repositoryName = repository.getName();
         if (!GUtil.isTrue(repositoryName)) {
             repository.setName(uniquifyName(defaultName));
@@ -113,5 +116,4 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
             }
         }
     }
-
 }

@@ -34,5 +34,4 @@ class CachedClassLoader {
     public ClassPath getKey() {
         return key;
     }
-
 }

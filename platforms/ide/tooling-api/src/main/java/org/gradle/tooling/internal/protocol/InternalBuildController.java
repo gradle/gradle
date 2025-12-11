@@ -58,6 +58,6 @@ public interface InternalBuildController {
      * @deprecated 4.4. Use {@link InternalBuildControllerVersion2#getModel(Object, ModelIdentifier, Object)} instead.
      */
     @Deprecated
-    BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier) throws BuildExceptionVersion1,
-            InternalUnsupportedModelException;
+    BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier)
+            throws BuildExceptionVersion1, InternalUnsupportedModelException;
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.cache.GlobalCacheLocations;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.serialize.Serializer;
-
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import org.gradle.cache.GlobalCacheLocations;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.serialize.Serializer;
 
 /**
  * A {@link FileContentCacheFactory} that delegates to the global cache for files that are known to be immutable and shared between different builds.
@@ -33,7 +32,10 @@ public class SplitFileContentCacheFactory implements FileContentCacheFactory, Cl
     private final FileContentCacheFactory localFactory;
     private final GlobalCacheLocations globalCacheLocations;
 
-    public SplitFileContentCacheFactory(FileContentCacheFactory globalFactory, FileContentCacheFactory localFactory, GlobalCacheLocations globalCacheLocations) {
+    public SplitFileContentCacheFactory(
+            FileContentCacheFactory globalFactory,
+            FileContentCacheFactory localFactory,
+            GlobalCacheLocations globalCacheLocations) {
         this.globalFactory = globalFactory;
         this.localFactory = localFactory;
         this.globalCacheLocations = globalCacheLocations;
@@ -45,7 +47,8 @@ public class SplitFileContentCacheFactory implements FileContentCacheFactory, Cl
     }
 
     @Override
-    public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, Calculator<? extends V> calculator, Serializer<V> serializer) {
+    public <V> FileContentCache<V> newCache(
+            String name, int normalizedCacheSize, Calculator<? extends V> calculator, Serializer<V> serializer) {
         FileContentCache<V> globalCache = globalFactory.newCache(name, normalizedCacheSize, calculator, serializer);
         FileContentCache<V> localCache = localFactory.newCache(name, normalizedCacheSize, calculator, serializer);
         return new SplitFileContentCache<>(globalCache, localCache, globalCacheLocations);
@@ -56,7 +59,10 @@ public class SplitFileContentCacheFactory implements FileContentCacheFactory, Cl
         private final FileContentCache<V> localCache;
         private final GlobalCacheLocations globalCacheLocations;
 
-        private SplitFileContentCache(FileContentCache<V> globalCache, FileContentCache<V> localCache, GlobalCacheLocations globalCacheLocations) {
+        private SplitFileContentCache(
+                FileContentCache<V> globalCache,
+                FileContentCache<V> localCache,
+                GlobalCacheLocations globalCacheLocations) {
             this.globalCache = globalCache;
             this.localCache = localCache;
             this.globalCacheLocations = globalCacheLocations;

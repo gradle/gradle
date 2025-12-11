@@ -15,6 +15,8 @@
  */
 package org.gradle.language.objectivec.plugins;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -37,9 +39,6 @@ import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Adds core Objective-C language support.
@@ -65,7 +64,8 @@ public abstract class ObjectiveCLangPlugin implements Plugin<Project> {
         }
     }
 
-    private static class ObjectiveC extends NativeLanguageTransform<ObjectiveCSourceSet> implements PchEnabledLanguageTransform<ObjectiveCSourceSet> {
+    private static class ObjectiveC extends NativeLanguageTransform<ObjectiveCSourceSet>
+            implements PchEnabledLanguageTransform<ObjectiveCSourceSet> {
         @Override
         public Class<ObjectiveCSourceSet> getSourceSetType() {
             return ObjectiveCSourceSet.class;

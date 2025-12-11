@@ -15,10 +15,6 @@
  */
 package org.gradle.util.internal;
 
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DefaultDomainObjectSet;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,6 +27,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 
 /**
  * Common methods to wrap objects in generic collections.
@@ -127,5 +126,4 @@ public class WrapUtil {
     public static <T> T[] toArray(T... items) {
         return items;
     }
-
 }

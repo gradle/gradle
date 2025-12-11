@@ -16,16 +16,14 @@
 
 package org.gradle.tooling.events.work.internal;
 
+import java.util.List;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 import org.gradle.tooling.events.work.WorkItemFailureResult;
-
-import java.util.List;
 
 public class DefaultWorkItemFailureResult extends DefaultOperationFailureResult implements WorkItemFailureResult {
 
     public DefaultWorkItemFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
         super(startTime, endTime, failures);
     }
-
 }

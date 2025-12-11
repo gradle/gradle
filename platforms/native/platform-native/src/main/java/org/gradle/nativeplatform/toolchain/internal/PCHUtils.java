@@ -16,6 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Transformer;
@@ -24,14 +29,9 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-
 public class PCHUtils {
-    public static File generatePCHObjectDirectory(File tempDir, File prefixHeaderFile, File preCompiledHeaderObjectFile) {
+    public static File generatePCHObjectDirectory(
+            File tempDir, File prefixHeaderFile, File preCompiledHeaderObjectFile) {
         File generatedDir = new File(tempDir, "preCompiledHeaders");
         generatedDir.mkdirs();
         File generatedHeader = new File(generatedDir, prefixHeaderFile.getName());
@@ -66,11 +66,17 @@ public class PCHUtils {
     public static <T extends NativeCompileSpec> File generatePCHSourceFile(T original, File sourceFile) {
         File generatedSourceDir = new File(original.getTempDir(), "pchGenerated");
         generatedSourceDir.mkdirs();
-        File generatedSource = new File(generatedSourceDir, FilenameUtils.removeExtension(sourceFile.getName()).concat(getSourceFileExtension(original.getClass())));
+        File generatedSource = new File(
+                generatedSourceDir,
+                FilenameUtils.removeExtension(sourceFile.getName())
+                        .concat(getSourceFileExtension(original.getClass())));
         File headerFileCopy = new File(generatedSourceDir, sourceFile.getName());
         try {
             FileUtils.copyFile(sourceFile, headerFileCopy);
-            FileUtils.writeStringToFile(generatedSource, "#include \"".concat(headerFileCopy.getName()).concat("\""), StandardCharsets.UTF_8);
+            FileUtils.writeStringToFile(
+                    generatedSource,
+                    "#include \"".concat(headerFileCopy.getName()).concat("\""),
+                    StandardCharsets.UTF_8);
             return generatedSource;
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -100,7 +106,7 @@ public class PCHUtils {
             return ".cpp";
         }
 
-        throw new IllegalArgumentException("Cannot determine source file extension for spec with type ".concat(specClass.getSimpleName()));
-
+        throw new IllegalArgumentException(
+                "Cannot determine source file extension for spec with type ".concat(specClass.getSimpleName()));
     }
 }

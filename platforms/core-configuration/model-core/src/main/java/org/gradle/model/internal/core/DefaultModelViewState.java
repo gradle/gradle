@@ -34,7 +34,12 @@ public class DefaultModelViewState implements ModelViewState {
     private final boolean mutable;
     private final boolean canReadChildren;
 
-    public DefaultModelViewState(ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor, boolean mutable, boolean canReadChildren) {
+    public DefaultModelViewState(
+            ModelPath path,
+            ModelType<?> type,
+            ModelRuleDescriptor ruleDescriptor,
+            boolean mutable,
+            boolean canReadChildren) {
         this.path = path;
         this.type = type;
         this.ruleDescriptor = ruleDescriptor;

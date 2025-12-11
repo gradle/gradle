@@ -16,14 +16,13 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.internal.UncheckedException;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
+import org.gradle.internal.UncheckedException;
 
 public class GitAttributesGenerator implements BuildContentGenerator {
 

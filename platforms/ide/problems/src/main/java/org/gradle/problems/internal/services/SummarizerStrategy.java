@@ -16,18 +16,18 @@
 
 package org.gradle.problems.internal.services;
 
-import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.ProblemSummaryData;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemSummaryData;
 
 public class SummarizerStrategy {
-    private final Map<ProblemId, ProblemSummaryInfo> seenProblemsWithCounts = new HashMap<ProblemId, ProblemSummaryInfo>();
+    private final Map<ProblemId, ProblemSummaryInfo> seenProblemsWithCounts =
+            new HashMap<ProblemId, ProblemSummaryInfo>();
     private final int threshold;
 
     public SummarizerStrategy(int threshold) {
@@ -36,16 +36,15 @@ public class SummarizerStrategy {
 
     synchronized List<ProblemSummaryData> getCutOffProblems() {
         return seenProblemsWithCounts.entrySet().stream()
-            .filter(entry -> entry.getValue().getCount() > threshold)
-            .map(entry -> new ProblemSummaryData(entry.getKey(), entry.getValue().getCount() - threshold))
-            .collect(toImmutableList());
+                .filter(entry -> entry.getValue().getCount() > threshold)
+                .map(entry ->
+                        new ProblemSummaryData(entry.getKey(), entry.getValue().getCount() - threshold))
+                .collect(toImmutableList());
     }
 
     synchronized boolean shouldEmit(InternalProblem problem) {
         ProblemSummaryInfo summaryInfo = seenProblemsWithCounts.computeIfAbsent(
-            problem.getDefinition().getId(),
-            key -> new ProblemSummaryInfo()
-        );
+                problem.getDefinition().getId(), key -> new ProblemSummaryInfo());
         return summaryInfo.shouldEmit(problem.hashCode(), threshold);
     }
 }

@@ -48,8 +48,7 @@ public interface ValueCalculator<T> extends TaskDependencyContainer {
     }
 
     @Override
-    default void visitDependencies(TaskDependencyResolveContext context) {
-    }
+    default void visitDependencies(TaskDependencyResolveContext context) {}
 
     T calculateValue(NodeExecutionContext context);
 }

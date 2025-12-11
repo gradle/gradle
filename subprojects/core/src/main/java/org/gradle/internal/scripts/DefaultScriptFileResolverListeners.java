@@ -16,10 +16,9 @@
 
 package org.gradle.internal.scripts;
 
+import java.io.File;
 import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-
-import java.io.File;
 
 public class DefaultScriptFileResolverListeners implements ScriptFileResolvedListener, ScriptFileResolverListeners {
 

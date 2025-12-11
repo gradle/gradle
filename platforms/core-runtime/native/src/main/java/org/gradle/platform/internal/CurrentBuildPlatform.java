@@ -18,6 +18,7 @@ package org.gradle.platform.internal;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import javax.inject.Inject;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.GradleException;
 import org.gradle.internal.service.scopes.Scope;
@@ -26,8 +27,6 @@ import org.gradle.platform.Architecture;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.BuildPlatformFactory;
 import org.gradle.platform.OperatingSystem;
-
-import javax.inject.Inject;
 
 /**
  * Information about the machine host Gradle is running on.
@@ -40,7 +39,8 @@ public class CurrentBuildPlatform {
     private final OperatingSystem operatingSystem;
 
     @Inject
-    public CurrentBuildPlatform(final SystemInfo systemInfo, final org.gradle.internal.os.OperatingSystem operatingSystem) {
+    public CurrentBuildPlatform(
+            final SystemInfo systemInfo, final org.gradle.internal.os.OperatingSystem operatingSystem) {
         this.architecture = Suppliers.memoize(new Supplier<Architecture>() {
             @Override
             public Architecture get() {

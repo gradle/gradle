@@ -16,9 +16,9 @@
 
 package org.gradle.internal.snapshot;
 
-import javax.annotation.CheckReturnValue;
 import java.util.Optional;
 import java.util.stream.Stream;
+import javax.annotation.CheckReturnValue;
 
 /**
  * Any snapshot in the tree of the virtual file system.
@@ -53,11 +53,18 @@ public interface FileSystemNode {
      * Complete information, like {@link FileSystemLocationSnapshot}s, are not touched nor replaced.
      */
     @CheckReturnValue
-    FileSystemNode store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener);
+    FileSystemNode store(
+            VfsRelativePath targetPath,
+            CaseSensitivity caseSensitivity,
+            MetadataSnapshot snapshot,
+            SnapshotHierarchy.NodeDiffListener diffListener);
 
     /**
      * Invalidates part of the node.
      */
     @CheckReturnValue
-    Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener);
+    Optional<FileSystemNode> invalidate(
+            VfsRelativePath targetPath,
+            CaseSensitivity caseSensitivity,
+            SnapshotHierarchy.NodeDiffListener diffListener);
 }

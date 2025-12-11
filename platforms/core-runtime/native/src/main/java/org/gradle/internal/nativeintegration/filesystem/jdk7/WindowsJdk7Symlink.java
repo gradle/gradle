@@ -43,9 +43,11 @@ public class WindowsJdk7Symlink extends Jdk7Symlink {
     @Override
     public boolean isSymlink(File suspect) {
         try {
-            BasicFileAttributes attrs = Files.readAttributes(suspect.toPath(), BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+            BasicFileAttributes attrs =
+                    Files.readAttributes(suspect.toPath(), BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
             boolean isJunction = attrs.isDirectory() && attrs.isOther();
-            // Handles both junctions and real symlinks (https://www.2brightsparks.com/resources/articles/NTFS-Hard-Links-Junctions-and-Symbolic-Links.pdf)
+            // Handles both junctions and real symlinks
+            // (https://www.2brightsparks.com/resources/articles/NTFS-Hard-Links-Junctions-and-Symbolic-Links.pdf)
             return isJunction || super.isSymlink(suspect);
         } catch (IOException e) {
             return super.isSymlink(suspect);

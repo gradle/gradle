@@ -16,17 +16,17 @@
 
 package org.gradle.architecture.test;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static org.gradle.architecture.test.ArchUnitFixture.beNullMarkedClass;
+
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static org.gradle.architecture.test.ArchUnitFixture.beNullMarkedClass;
 
 @AnalyzeClasses(packages = "org.gradle.operations")
 public class BuildOperationsApiTest {
 
     @ArchTest
     public static final ArchRule classes_in_operations_package_are_annotated_with_null_marked =
-        classes().should(beNullMarkedClass());
+            classes().should(beNullMarkedClass());
 }

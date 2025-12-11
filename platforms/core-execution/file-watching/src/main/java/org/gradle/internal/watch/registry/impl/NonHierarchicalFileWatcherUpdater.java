@@ -19,6 +19,13 @@ package org.gradle.internal.watch.registry.impl;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multiset;
+import java.io.File;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 import net.rubygrapefruit.platform.NativeException;
 import org.gradle.fileevents.FileWatcher;
 import org.gradle.internal.file.FileHierarchySet;
@@ -36,14 +43,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-
 public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonHierarchicalFileWatcherUpdater.class);
 
@@ -53,38 +52,36 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     private final Set<String> watchedWatchableHierarchies = new HashSet<>();
 
     public NonHierarchicalFileWatcherUpdater(
-        FileWatcher fileWatcher,
-        FileWatcherProbeRegistry probeRegistry,
-        WatchableHierarchies watchableHierarchies,
-        MovedDirectoryHandler movedDirectoryHandler
-    ) {
+            FileWatcher fileWatcher,
+            FileWatcherProbeRegistry probeRegistry,
+            WatchableHierarchies watchableHierarchies,
+            MovedDirectoryHandler movedDirectoryHandler) {
         super(probeRegistry, watchableHierarchies, movedDirectoryHandler);
         this.fileWatcher = fileWatcher;
     }
 
     @Override
-    protected boolean handleVirtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
+    protected boolean handleVirtualFileSystemContentsChanged(
+            Collection<FileSystemLocationSnapshot> removedSnapshots,
+            Collection<FileSystemLocationSnapshot> addedSnapshots,
+            SnapshotHierarchy root) {
         Map<String, Integer> changedWatchedDirectories = new HashMap<>();
 
-        removedSnapshots.stream()
-            .filter(watchableHierarchies::shouldWatch)
-            .forEach(snapshot -> {
-                String previousWatchedRoot = watchedDirectoryForSnapshot.remove(snapshot.getAbsolutePath());
-                decrement(previousWatchedRoot, changedWatchedDirectories);
-                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
-            });
-        addedSnapshots.stream()
-            .filter(watchableHierarchies::shouldWatch)
-            .forEach(snapshot -> {
-                File directoryToWatchForRoot = SnapshotWatchedDirectoryFinder.getDirectoryToWatch(snapshot);
-                String pathToWatchForRoot = directoryToWatchForRoot.getAbsolutePath();
-                if (!watchableHierarchies.isInWatchableHierarchy(pathToWatchForRoot)) {
-                    return;
-                }
-                watchedDirectoryForSnapshot.put(snapshot.getAbsolutePath(), pathToWatchForRoot);
-                increment(pathToWatchForRoot, changedWatchedDirectories);
-                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> increment(path, changedWatchedDirectories)));
-            });
+        removedSnapshots.stream().filter(watchableHierarchies::shouldWatch).forEach(snapshot -> {
+            String previousWatchedRoot = watchedDirectoryForSnapshot.remove(snapshot.getAbsolutePath());
+            decrement(previousWatchedRoot, changedWatchedDirectories);
+            snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
+        });
+        addedSnapshots.stream().filter(watchableHierarchies::shouldWatch).forEach(snapshot -> {
+            File directoryToWatchForRoot = SnapshotWatchedDirectoryFinder.getDirectoryToWatch(snapshot);
+            String pathToWatchForRoot = directoryToWatchForRoot.getAbsolutePath();
+            if (!watchableHierarchies.isInWatchableHierarchy(pathToWatchForRoot)) {
+                return;
+            }
+            watchedDirectoryForSnapshot.put(snapshot.getAbsolutePath(), pathToWatchForRoot);
+            increment(pathToWatchForRoot, changedWatchedDirectories);
+            snapshot.accept(new SubdirectoriesToWatchVisitor(path -> increment(path, changedWatchedDirectories)));
+        });
         if (changedWatchedDirectories.isEmpty()) {
             return false;
         }
@@ -113,7 +110,8 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         return (location, currentRoot) -> {
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
             SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);
-            diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
+            diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) ->
+                    virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
             return invalidatedRoot;
         };
     }
@@ -147,7 +145,9 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
             }
         });
 
-        LOGGER.debug("Watching {} directories to track changes", watchedDirectories.entrySet().size());
+        LOGGER.debug(
+                "Watching {} directories to track changes",
+                watchedDirectories.entrySet().size());
 
         try {
             if (!directoriesToStopWatching.isEmpty()) {
@@ -160,7 +160,8 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
             }
         } catch (NativeException e) {
             if (e.getMessage().contains("Already watching path: ")) {
-                throw new WatchingNotSupportedException("Unable to watch same file twice via different paths: " + e.getMessage(), e);
+                throw new WatchingNotSupportedException(
+                        "Unable to watch same file twice via different paths: " + e.getMessage(), e);
             }
             throw e;
         }

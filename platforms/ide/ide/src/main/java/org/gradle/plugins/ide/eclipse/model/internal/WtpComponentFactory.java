@@ -16,6 +16,11 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -37,17 +42,12 @@ import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 public class WtpComponentFactory {
     private final ProjectDependencyBuilder projectDependencyBuilder;
     private final ProjectComponentIdentifier currentProjectId;
 
-    public WtpComponentFactory(Project project, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectRegistry) {
+    public WtpComponentFactory(
+            Project project, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectRegistry) {
         projectDependencyBuilder = new ProjectDependencyBuilder(artifactRegistry);
         currentProjectId = projectRegistry.stateFor(project).getComponentIdentifier();
     }
@@ -62,8 +62,18 @@ public class WtpComponentFactory {
         }
         entries.addAll(wtp.getProperties());
         Project project = wtp.getProject();
-        entries.addAll(getEntriesFromConfigurations(project, configOrEmptySet(wtp.getRootConfigurations()), configOrEmptySet(wtp.getMinusConfigurations()), wtp, "/"));
-        entries.addAll(getEntriesFromConfigurations(project, configOrEmptySet(wtp.getLibConfigurations()), configOrEmptySet(wtp.getMinusConfigurations()), wtp, wtp.getLibDeployPath()));
+        entries.addAll(getEntriesFromConfigurations(
+                project,
+                configOrEmptySet(wtp.getRootConfigurations()),
+                configOrEmptySet(wtp.getMinusConfigurations()),
+                wtp,
+                "/"));
+        entries.addAll(getEntriesFromConfigurations(
+                project,
+                configOrEmptySet(wtp.getLibConfigurations()),
+                configOrEmptySet(wtp.getMinusConfigurations()),
+                wtp,
+                wtp.getLibDeployPath()));
         component.configure(wtp.getDeployName(), wtp.getContextPath(), entries);
     }
 
@@ -80,17 +90,29 @@ public class WtpComponentFactory {
         if (wtp.getSourceDirs() != null) {
             for (File dir : wtp.getSourceDirs()) {
                 if (dir.isDirectory()) {
-                    result.add(new WbResource(wtp.getClassesDeployPath(), wtp.getProject().relativePath(dir)));
+                    result.add(new WbResource(
+                            wtp.getClassesDeployPath(), wtp.getProject().relativePath(dir)));
                 }
             }
         }
         return result;
     }
 
-    private List<WbDependentModule> getEntriesFromConfigurations(Project project, Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
+    private List<WbDependentModule> getEntriesFromConfigurations(
+            Project project,
+            Set<Configuration> plusConfigurations,
+            Set<Configuration> minusConfigurations,
+            EclipseWtpComponent wtp,
+            String deployPath) {
         WtpDependenciesVisitor visitor = new WtpDependenciesVisitor(project, wtp, deployPath);
-        new IdeDependencySet(project.getDependencies(), ((ProjectInternal) project).getServices().get(JavaModuleDetector.class),
-            plusConfigurations, minusConfigurations, false, NullGradleApiSourcesResolver.INSTANCE).visit(visitor);
+        new IdeDependencySet(
+                        project.getDependencies(),
+                        ((ProjectInternal) project).getServices().get(JavaModuleDetector.class),
+                        plusConfigurations,
+                        minusConfigurations,
+                        false,
+                        NullGradleApiSourcesResolver.INSTANCE)
+                .visit(visitor);
         return visitor.getEntries();
     }
 
@@ -102,7 +124,8 @@ public class WtpComponentFactory {
         private final List<WbDependentModule> moduleEntries = new ArrayList<>();
         private final List<WbDependentModule> fileEntries = new ArrayList<>();
 
-        private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
+        private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler =
+                new UnresolvedIdeDependencyHandler();
 
         private WtpDependenciesVisitor(Project project, EclipseWtpComponent wtp, String deployPath) {
             this.project = project;
@@ -130,25 +153,37 @@ public class WtpComponentFactory {
         }
 
         @Override
-        public void visitProjectDependency(ResolvedArtifactResult artifact, boolean testDependency, boolean asJavaModule) {
-            ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
+        public void visitProjectDependency(
+                ResolvedArtifactResult artifact, boolean testDependency, boolean asJavaModule) {
+            ProjectComponentIdentifier projectId =
+                    (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
             if (!projectId.equals(currentProjectId)) {
                 String targetProjectPath = projectDependencyBuilder.determineTargetProjectName(projectId);
-                projectEntries.add(new WbDependentModule(artifact.getFile().getName(), deployPath, "module:/resource/" + targetProjectPath + "/" + targetProjectPath));
+                projectEntries.add(new WbDependentModule(
+                        artifact.getFile().getName(),
+                        deployPath,
+                        "module:/resource/" + targetProjectPath + "/" + targetProjectPath));
             }
         }
 
         @Override
-        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, boolean testDependency, boolean asJavaModule) {
+        public void visitModuleDependency(
+                ResolvedArtifactResult artifact,
+                Set<ResolvedArtifactResult> sources,
+                Set<ResolvedArtifactResult> javaDoc,
+                boolean testDependency,
+                boolean asJavaModule) {
             if (includeLibraries()) {
-                moduleEntries.add(createWbDependentModuleEntry(artifact.getFile(), wtp.getFileReferenceFactory(), deployPath));
+                moduleEntries.add(
+                        createWbDependentModuleEntry(artifact.getFile(), wtp.getFileReferenceFactory(), deployPath));
             }
         }
 
         @Override
         public void visitFileDependency(ResolvedArtifactResult artifact, boolean testDependency) {
             if (includeLibraries()) {
-                fileEntries.add(createWbDependentModuleEntry(artifact.getFile(), wtp.getFileReferenceFactory(), deployPath));
+                fileEntries.add(
+                        createWbDependentModuleEntry(artifact.getFile(), wtp.getFileReferenceFactory(), deployPath));
             }
         }
 
@@ -169,18 +204,19 @@ public class WtpComponentFactory {
          * that, so defer that until later.
          */
         public List<WbDependentModule> getEntries() {
-            List<WbDependentModule> entries = new ArrayList<>(projectEntries.size() + moduleEntries.size() + fileEntries.size());
+            List<WbDependentModule> entries =
+                    new ArrayList<>(projectEntries.size() + moduleEntries.size() + fileEntries.size());
             entries.addAll(projectEntries);
             entries.addAll(moduleEntries);
             entries.addAll(fileEntries);
             return entries;
         }
 
-        private WbDependentModule createWbDependentModuleEntry(File file, FileReferenceFactory fileReferenceFactory, String deployPath) {
+        private WbDependentModule createWbDependentModuleEntry(
+                File file, FileReferenceFactory fileReferenceFactory, String deployPath) {
             FileReference ref = fileReferenceFactory.fromFile(file);
             String handleSnippet = ref.isRelativeToPathVariable() ? "var/" + ref.getPath() : "lib/" + ref.getPath();
             return new WbDependentModule(ref.getFile().getName(), deployPath, "module:/classpath/" + handleSnippet);
         }
     }
-
 }

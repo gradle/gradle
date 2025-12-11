@@ -16,13 +16,12 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
+import java.net.URI;
 import org.gradle.api.Project;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.net.URI;
 
 @ServiceScope(Scope.Project.class)
 public class IvyDuplicatePublicationTracker {
@@ -34,7 +33,13 @@ public class IvyDuplicatePublicationTracker {
         this.duplicatePublicationTracker = duplicatePublicationTracker;
     }
 
-    public void checkCanPublish(IvyNormalizedPublication publication, @Nullable URI repositoryLocation, String repositoryName) {
-        duplicatePublicationTracker.checkCanPublish(project.getDisplayName(), publication.getName(), publication.getCoordinates(), repositoryLocation, repositoryName);
+    public void checkCanPublish(
+            IvyNormalizedPublication publication, @Nullable URI repositoryLocation, String repositoryName) {
+        duplicatePublicationTracker.checkCanPublish(
+                project.getDisplayName(),
+                publication.getName(),
+                publication.getCoordinates(),
+                repositoryLocation,
+                repositoryName);
     }
 }

@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
+import java.util.List;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.cached.CachedItem;
-
-import java.util.List;
 
 public interface CachedArtifact extends CachedItem {
     HashCode getDescriptorHash();

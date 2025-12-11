@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.redirector;
 
+import java.io.PrintStream;
 import org.gradle.internal.io.LinePerThreadBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.jspecify.annotations.Nullable;
-
-import java.io.PrintStream;
 
 public class DefaultStandardOutputRedirector implements StandardOutputRedirector {
     private PrintStream originalStdOut;
@@ -73,8 +72,7 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
 
     private static class DiscardAction implements OutputListener {
         @Override
-        public void onOutput(CharSequence output) {
-        }
+        public void onOutput(CharSequence output) {}
     }
 
     private static class WriteAction implements TextStream {
@@ -86,8 +84,7 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
         }
 
         @Override
-        public void endOfStream(@Nullable Throwable failure) {
-        }
+        public void endOfStream(@Nullable Throwable failure) {}
 
         public void setDestination(OutputListener destination) {
             this.destination = destination;

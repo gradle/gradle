@@ -20,7 +20,10 @@ import java.util.List;
 public abstract class DefaultEclipseDependency extends DefaultEclipseClasspathEntry {
     private final boolean isExported;
 
-    public DefaultEclipseDependency(boolean isExported, List<DefaultClasspathAttribute> classpathAttributes, List<DefaultAccessRule> accessRules) {
+    public DefaultEclipseDependency(
+            boolean isExported,
+            List<DefaultClasspathAttribute> classpathAttributes,
+            List<DefaultAccessRule> accessRules) {
         super(classpathAttributes, accessRules);
         this.isExported = isExported;
     }

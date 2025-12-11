@@ -15,9 +15,8 @@
  */
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
+import org.gradle.api.Incubating;
 
 /**
  * A {@link NativeLibrary} that has been compiled and linked as a shared library.

@@ -25,5 +25,4 @@ import org.gradle.api.Incubating;
  * @since 8.4
  */
 @Incubating
-public interface ResolvableConfiguration extends Configuration {
-}
+public interface ResolvableConfiguration extends Configuration {}

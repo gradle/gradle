@@ -16,16 +16,11 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import org.gradle.fileevents.FileWatchEvent;
-import org.gradle.fileevents.FileWatcher;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.watch.registry.FileWatcherRegistry;
-import org.gradle.internal.watch.registry.FileWatcherUpdater;
-import org.gradle.internal.watch.registry.WatchMode;
-import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.CREATED;
+import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.INVALIDATED;
+import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.MODIFIED;
+import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.OVERFLOW;
+import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.REMOVED;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,12 +32,16 @@ import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.CREATED;
-import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.INVALIDATED;
-import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.MODIFIED;
-import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.OVERFLOW;
-import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.REMOVED;
+import org.gradle.fileevents.FileWatchEvent;
+import org.gradle.fileevents.FileWatcher;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.watch.registry.FileWatcherRegistry;
+import org.gradle.internal.watch.registry.FileWatcherUpdater;
+import org.gradle.internal.watch.registry.WatchMode;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileWatcherRegistry.class);
@@ -57,11 +56,10 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private volatile boolean stopping = false;
 
     public DefaultFileWatcherRegistry(
-        FileWatcher watcher,
-        ChangeHandler handler,
-        FileWatcherUpdater fileWatcherUpdater,
-        BlockingQueue<FileWatchEvent> fileEvents
-    ) {
+            FileWatcher watcher,
+            ChangeHandler handler,
+            FileWatcherUpdater fileWatcherUpdater,
+            BlockingQueue<FileWatchEvent> fileEvents) {
         this.watcher = watcher;
         this.fileEvents = fileEvents;
         this.fileWatcherUpdater = fileWatcherUpdater;
@@ -91,13 +89,19 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             }
 
                             @Override
-                            public void handleOverflow(FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
+                            public void handleOverflow(
+                                    FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
                                 if (absolutePath == null) {
                                     LOGGER.info("Overflow detected (type: {}), invalidating all watched files", type);
-                                    fileWatcherUpdater.getWatchedFiles().visitRoots(watchedRoot ->
-                                        handler.handleChange(OVERFLOW, Paths.get(watchedRoot)));
+                                    fileWatcherUpdater
+                                            .getWatchedFiles()
+                                            .visitRoots(watchedRoot ->
+                                                    handler.handleChange(OVERFLOW, Paths.get(watchedRoot)));
                                 } else {
-                                    LOGGER.info("Overflow detected (type: {}) for watched path '{}', invalidating", type, absolutePath);
+                                    LOGGER.info(
+                                            "Overflow detected (type: {}) for watched path '{}', invalidating",
+                                            type,
+                                            absolutePath);
                                     handler.handleChange(OVERFLOW, Paths.get(absolutePath));
                                 }
                             }
@@ -143,18 +147,24 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
+    public void virtualFileSystemContentsChanged(
+            Collection<FileSystemLocationSnapshot> removedSnapshots,
+            Collection<FileSystemLocationSnapshot> addedSnapshots,
+            SnapshotHierarchy root) {
         fileWatcherUpdater.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, root);
     }
 
     @Override
-    public SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
+    public SnapshotHierarchy updateVfsOnBuildStarted(
+            SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
         return fileWatcherUpdater.updateVfsOnBuildStarted(root, watchMode, unsupportedFileSystems);
     }
 
     @Override
-    public SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
-        return fileWatcherUpdater.updateVfsBeforeBuildFinished(root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
+    public SnapshotHierarchy updateVfsBeforeBuildFinished(
+            SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
+        return fileWatcherUpdater.updateVfsBeforeBuildFinished(
+                root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
     }
 
     @Override

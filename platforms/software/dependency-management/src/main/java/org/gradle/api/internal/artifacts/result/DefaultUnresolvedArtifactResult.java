@@ -24,7 +24,8 @@ public class DefaultUnresolvedArtifactResult implements UnresolvedArtifactResult
     private final Class<? extends Artifact> type;
     private final Throwable failure;
 
-    public DefaultUnresolvedArtifactResult(ComponentArtifactIdentifier identifier, Class<? extends Artifact> type, Throwable failure) {
+    public DefaultUnresolvedArtifactResult(
+            ComponentArtifactIdentifier identifier, Class<? extends Artifact> type, Throwable failure) {
         this.identifier = identifier;
         this.type = type;
         this.failure = failure;

@@ -31,12 +31,11 @@ public class ClientBuildRequestContext {
     private final BuildEventConsumer eventConsumer;
 
     public ClientBuildRequestContext(
-        GradleLauncherMetaData client,
-        long startTime,
-        boolean interactive,
-        BuildCancellationToken cancellationToken,
-        BuildEventConsumer eventConsumer
-    ) {
+            GradleLauncherMetaData client,
+            long startTime,
+            boolean interactive,
+            BuildCancellationToken cancellationToken,
+            BuildEventConsumer eventConsumer) {
         this.client = client;
         this.startTime = startTime;
         this.interactive = interactive;

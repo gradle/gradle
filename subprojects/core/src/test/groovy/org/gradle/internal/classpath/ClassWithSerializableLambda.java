@@ -24,6 +24,5 @@ public class ClassWithSerializableLambda {
         return () -> String.valueOf(value);
     }
 
-    public interface SerializableThing extends Callable<String>, Serializable {
-    }
+    public interface SerializableThing extends Callable<String>, Serializable {}
 }

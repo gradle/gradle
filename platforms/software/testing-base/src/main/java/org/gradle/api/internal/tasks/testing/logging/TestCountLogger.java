@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.testing.TestWorkerFailureException;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestDefinitionProcessor;
@@ -28,11 +32,6 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Reports a live-updating total of tests run, failed and skipped.
@@ -67,8 +66,7 @@ public class TestCountLogger implements TestListener {
     }
 
     @Override
-    public void beforeTest(TestDescriptor testDescriptor) {
-    }
+    public void beforeTest(TestDescriptor testDescriptor) {}
 
     @Override
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
@@ -133,12 +131,14 @@ public class TestCountLogger implements TestListener {
             // Looks like a test worker suite
             // TODO: Instead of assuming all failures at this level are worker failures, we should
             // identify worker failures in the TestFailureDetails
-            if (suite.getParent().getParent() == null && suite.getDisplayName().startsWith(ForkingTestDefinitionProcessor.GRADLE_TEST_WORKER_NAME)) {
+            if (suite.getParent().getParent() == null
+                    && suite.getDisplayName().startsWith(ForkingTestDefinitionProcessor.GRADLE_TEST_WORKER_NAME)) {
                 if (result.getResultType() == TestResult.ResultType.FAILURE) {
                     workerFailures.addAll(result.getFailures());
                 }
             }
-            // Only count suites that can be attributed to a discovered class such as test class suites, explicit test suites,
+            // Only count suites that can be attributed to a discovered class such as test class suites, explicit test
+            // suites,
             // parameterized tests, test templates, dynamic tests, etc, and ignore the "test worker" and root suites.
             if (suite.getClassName() != null) {
                 totalDiscoveredItems++;
@@ -178,8 +178,12 @@ public class TestCountLogger implements TestListener {
         // We currently treat all of these as the same kind of failure.
         //
         // It would be better to emit these as problems instead of packing everything into the exception.
-        throw new TestWorkerFailureException("Test process encountered an unexpected problem.",
-            workerFailures.stream().map(TestFailure::getRawFailure).collect(Collectors.toList()),
-            Collections.singletonList("Check common problems " + new DocumentationRegistry().getDocumentationFor("java_testing", "sec:java_testing_troubleshooting") + "."));
+        throw new TestWorkerFailureException(
+                "Test process encountered an unexpected problem.",
+                workerFailures.stream().map(TestFailure::getRawFailure).collect(Collectors.toList()),
+                Collections.singletonList("Check common problems "
+                        + new DocumentationRegistry()
+                                .getDocumentationFor("java_testing", "sec:java_testing_troubleshooting")
+                        + "."));
     }
 }

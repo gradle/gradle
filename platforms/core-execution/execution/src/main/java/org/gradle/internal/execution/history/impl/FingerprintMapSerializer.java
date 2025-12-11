@@ -19,6 +19,8 @@ package org.gradle.internal.execution.history.impl;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
+import java.io.IOException;
+import java.util.Map;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
@@ -28,9 +30,6 @@ import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
-
-import java.io.IOException;
-import java.util.Map;
 
 public class FingerprintMapSerializer extends AbstractSerializer<Map<String, FileSystemLocationFingerprint>> {
     private static final byte DEFAULT_NORMALIZATION = 1;
@@ -50,7 +49,8 @@ public class FingerprintMapSerializer extends AbstractSerializer<Map<String, Fil
     @Override
     public Map<String, FileSystemLocationFingerprint> read(Decoder decoder) throws IOException {
         int fingerprintCount = decoder.readSmallInt();
-        ImmutableMap.Builder<String, FileSystemLocationFingerprint> fingerprints = ImmutableMap.builderWithExpectedSize(fingerprintCount);
+        ImmutableMap.Builder<String, FileSystemLocationFingerprint> fingerprints =
+                ImmutableMap.builderWithExpectedSize(fingerprintCount);
         for (int i = 0; i < fingerprintCount; i++) {
             String absolutePath = stringInterner.intern(decoder.readString());
             FileSystemLocationFingerprint fingerprint = readFingerprint(decoder);
@@ -67,11 +67,13 @@ public class FingerprintMapSerializer extends AbstractSerializer<Map<String, Fil
         switch (fingerprintKind) {
             case DEFAULT_NORMALIZATION:
                 String normalizedPath = decoder.readString();
-                return new DefaultFileSystemLocationFingerprint(stringInterner.intern(normalizedPath), fileType, contentHash);
+                return new DefaultFileSystemLocationFingerprint(
+                        stringInterner.intern(normalizedPath), fileType, contentHash);
             case IGNORED_PATH_NORMALIZATION:
                 return IgnoredPathFileSystemLocationFingerprint.create(fileType, contentHash);
             default:
-                throw new RuntimeException("Unable to read serialized file fingerprint. Unrecognized value found in the data stream.");
+                throw new RuntimeException(
+                        "Unable to read serialized file fingerprint. Unrecognized value found in the data stream.");
         }
     }
 
@@ -84,7 +86,8 @@ public class FingerprintMapSerializer extends AbstractSerializer<Map<String, Fil
             case RegularFile:
                 return hashCodeSerializer.read(decoder);
             default:
-                throw new RuntimeException("Unable to read serialized file fingerprint. Unrecognized value found in the data stream.");
+                throw new RuntimeException(
+                        "Unable to read serialized file fingerprint. Unrecognized value found in the data stream.");
         }
     }
 
@@ -98,7 +101,8 @@ public class FingerprintMapSerializer extends AbstractSerializer<Map<String, Fil
             case REGULAR_FILE_FINGERPRINT:
                 return FileType.RegularFile;
             default:
-                throw new RuntimeException("Unable to read serialized file fingerprint. Unrecognized value found in the data stream.");
+                throw new RuntimeException(
+                        "Unable to read serialized file fingerprint. Unrecognized value found in the data stream.");
         }
     }
 

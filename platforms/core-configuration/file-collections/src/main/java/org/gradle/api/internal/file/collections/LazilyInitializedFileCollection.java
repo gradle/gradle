@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import java.util.function.Consumer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-
-import java.util.function.Consumer;
 
 /**
  * A {@link FileCollection} whose contents is created lazily.

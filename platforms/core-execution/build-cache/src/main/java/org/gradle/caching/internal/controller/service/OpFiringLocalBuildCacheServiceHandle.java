@@ -16,6 +16,10 @@
 
 package org.gradle.caching.internal.controller.service;
 
+import java.io.File;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.operations.BuildCacheLocalLoadBuildOperationType;
 import org.gradle.caching.internal.operations.BuildCacheLocalStoreBuildOperationType;
@@ -26,44 +30,44 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import java.io.File;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-
 public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheServiceHandle {
-    private static final BuildCacheLocalStoreBuildOperationType.Result LOCAL_STORE_RESULT = new BuildCacheLocalStoreBuildOperationType.Result() {
-        @Override
-        public boolean isStored() {
-            return true;
-        }
-    };
+    private static final BuildCacheLocalStoreBuildOperationType.Result LOCAL_STORE_RESULT =
+            new BuildCacheLocalStoreBuildOperationType.Result() {
+                @Override
+                public boolean isStored() {
+                    return true;
+                }
+            };
 
     private final BuildOperationRunner buildOperationRunner;
 
-    public OpFiringLocalBuildCacheServiceHandle(LocalBuildCacheService service, boolean pushEnabled, BuildOperationRunner buildOperationRunner) {
+    public OpFiringLocalBuildCacheServiceHandle(
+            LocalBuildCacheService service, boolean pushEnabled, BuildOperationRunner buildOperationRunner) {
         super(service, pushEnabled);
         this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
-    public Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheLoadResult> unpackFunction) {
+    public Optional<BuildCacheLoadResult> maybeLoad(
+            BuildCacheKey key, Function<File, BuildCacheLoadResult> unpackFunction) {
         return buildOperationRunner.call(new CallableBuildOperation<Optional<BuildCacheLoadResult>>() {
             @Override
             public Optional<BuildCacheLoadResult> call(BuildOperationContext context) {
                 AtomicReference<Long> archiveSize = new AtomicReference<>();
-                Optional<BuildCacheLoadResult> result = OpFiringLocalBuildCacheServiceHandle.super.maybeLoad(key, file -> {
-                    archiveSize.set(file.length());
-                    return unpackFunction.apply(file);
-                });
+                Optional<BuildCacheLoadResult> result =
+                        OpFiringLocalBuildCacheServiceHandle.super.maybeLoad(key, file -> {
+                            archiveSize.set(file.length());
+                            return unpackFunction.apply(file);
+                        });
                 context.setResult(new LocalLoadResult(result, archiveSize));
                 return result;
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Load entry " + key.getHashCode() + " from local build cache")
-                    .details(new LocalLoadDetails(key));
+                return BuildOperationDescriptor.displayName(
+                                "Load entry " + key.getHashCode() + " from local build cache")
+                        .details(new LocalLoadDetails(key));
             }
         });
     }
@@ -79,8 +83,9 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Store entry " + key.getHashCode() + " in local build cache")
-                    .details(new LocalStoreDetails(key, file));
+                return BuildOperationDescriptor.displayName(
+                                "Store entry " + key.getHashCode() + " in local build cache")
+                        .details(new LocalStoreDetails(key, file));
             }
         });
     }

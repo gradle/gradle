@@ -16,14 +16,6 @@
 package org.gradle.cache.internal.btree;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.io.StreamByteBuffer;
-import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
-import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -33,6 +25,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.io.StreamByteBuffer;
+import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // todo - stream serialised value to file
 // todo - handle hash collisions (properly, this time)
@@ -60,19 +59,26 @@ public class BTreePersistentIndexedCache<K, V> {
         this(cacheFile, keySerializer, valueSerializer, (short) 512, 512);
     }
 
-    public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer,
-                                       short maxChildIndexEntries, int maxFreeListEntries) {
+    public BTreePersistentIndexedCache(
+            File cacheFile,
+            Serializer<K> keySerializer,
+            Serializer<V> valueSerializer,
+            short maxChildIndexEntries,
+            int maxFreeListEntries) {
         this.cacheFile = cacheFile;
         this.keyHasher = new KeyHasher<K>(keySerializer);
         this.serializer = valueSerializer;
         this.maxChildIndexEntries = maxChildIndexEntries;
         this.minIndexChildNodes = maxChildIndexEntries / 2;
-        BlockStore cachingStore = new CachingBlockStore(new FileBackedBlockStore(cacheFile), ImmutableSet.of(IndexBlock.class, FreeListBlockStore.FreeListBlock.class));
+        BlockStore cachingStore = new CachingBlockStore(
+                new FileBackedBlockStore(cacheFile),
+                ImmutableSet.of(IndexBlock.class, FreeListBlockStore.FreeListBlock.class));
         this.store = new StateCheckBlockStore(new FreeListBlockStore(cachingStore, maxFreeListEntries));
         try {
             open();
         } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not open %s.", this), e), true);
+            throw UncheckedException.throwAsUncheckedException(
+                    new IOException(String.format("Could not open %s.", this), e), true);
         }
     }
 
@@ -133,7 +139,8 @@ public class BTreePersistentIndexedCache<K, V> {
                 return null;
             }
         } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not read entry '%s' from %s.", key, this), e), true);
+            throw UncheckedException.throwAsUncheckedException(
+                    new IOException(String.format("Could not read entry '%s' from %s.", key, this), e), true);
         }
     }
 
@@ -158,7 +165,8 @@ public class BTreePersistentIndexedCache<K, V> {
             }
             store.flush();
         } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not add entry '%s' to %s.", key, this), e), true);
+            throw UncheckedException.throwAsUncheckedException(
+                    new IOException(String.format("Could not add entry '%s' to %s.", key, this), e), true);
         }
     }
 
@@ -173,7 +181,8 @@ public class BTreePersistentIndexedCache<K, V> {
             store.remove(block);
             store.flush();
         } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not remove entry '%s' from %s.", key, this), e), true);
+            throw UncheckedException.throwAsUncheckedException(
+                    new IOException(String.format("Could not remove entry '%s' from %s.", key, this), e), true);
         }
     }
 
@@ -221,7 +230,10 @@ public class BTreePersistentIndexedCache<K, V> {
         try {
             doVerify();
         } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Some problems were found when checking the integrity of %s.", this), e), true);
+            throw UncheckedException.throwAsUncheckedException(
+                    new IOException(
+                            String.format("Some problems were found when checking the integrity of %s.", this), e),
+                    true);
         }
     }
 
@@ -248,8 +260,9 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
-    private void verifyTree(IndexBlock current, String prefix, Collection<BlockPayload> blocks, long maxValue,
-                            boolean loadData) throws Exception {
+    private void verifyTree(
+            IndexBlock current, String prefix, Collection<BlockPayload> blocks, long maxValue, boolean loadData)
+            throws Exception {
         blocks.add(current);
 
         if (!prefix.equals("") && current.entries.size() < maxChildIndexEntries / 2) {
@@ -259,7 +272,8 @@ public class BTreePersistentIndexedCache<K, V> {
             throw new IOException(String.format("Too many entries found in %s", current));
         }
 
-        boolean isLeaf = current.entries.size() == 0 || current.entries.get(0).childIndexBlock.isNull();
+        boolean isLeaf = current.entries.size() == 0
+                || current.entries.get(0).childIndexBlock.isNull();
         if (isLeaf ^ current.tailPos.isNull()) {
             throw new IOException(String.format("Mismatched leaf/tail-node in %s", current));
         }
@@ -623,8 +637,7 @@ public class BTreePersistentIndexedCache<K, V> {
         BlockPointer dataBlock;
         BlockPointer childIndexBlock;
 
-        private IndexEntry() {
-        }
+        private IndexEntry() {}
 
         private IndexEntry(long hashCode) {
             this.hashCode = hashCode;
@@ -657,8 +670,7 @@ public class BTreePersistentIndexedCache<K, V> {
         private StreamByteBuffer buffer;
         private V value;
 
-        private DataBlock() {
-        }
+        private DataBlock() {}
 
         public DataBlock(V value) throws Exception {
             this.value = value;

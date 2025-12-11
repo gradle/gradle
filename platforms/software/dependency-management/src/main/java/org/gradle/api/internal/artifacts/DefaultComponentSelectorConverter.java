@@ -37,7 +37,8 @@ public class DefaultComponentSelectorConverter implements ComponentSelectorConve
     public ModuleVersionIdentifier getModuleVersionId(ComponentSelector selector) {
         if (selector instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleSelector = (ModuleComponentSelector) selector;
-            return DefaultModuleVersionIdentifier.newId(moduleSelector.getModuleIdentifier(), moduleSelector.getVersion());
+            return DefaultModuleVersionIdentifier.newId(
+                    moduleSelector.getModuleIdentifier(), moduleSelector.getVersion());
         }
         if (selector instanceof DefaultProjectComponentSelector) {
             DefaultProjectComponentSelector projectSelector = (DefaultProjectComponentSelector) selector;
@@ -49,9 +50,9 @@ public class DefaultComponentSelectorConverter implements ComponentSelectorConve
         if (selector instanceof LibraryComponentSelector) {
             LibraryComponentSelector libraryComponentSelector = (LibraryComponentSelector) selector;
             String libraryName = GUtil.elvis(libraryComponentSelector.getLibraryName(), "");
-            return DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(libraryComponentSelector.getProjectPath(), libraryName), "undefined");
+            return DefaultModuleVersionIdentifier.newId(
+                    DefaultModuleIdentifier.newId(libraryComponentSelector.getProjectPath(), libraryName), "undefined");
         }
         throw new IllegalArgumentException("Unrecognized component selector: " + selector);
     }
-
 }

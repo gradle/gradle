@@ -25,5 +25,6 @@ import java.util.List;
  */
 public interface RuleAction<T> {
     List<Class<?>> getInputTypes();
+
     void execute(T subject, List<?> inputs);
 }

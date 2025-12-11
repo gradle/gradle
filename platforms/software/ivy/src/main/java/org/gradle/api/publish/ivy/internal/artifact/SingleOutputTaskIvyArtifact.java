@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
+import java.io.File;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -24,8 +25,6 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
@@ -36,7 +35,13 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     private final String classifier;
     private final TaskDependencyInternal buildDependencies;
 
-    public SingleOutputTaskIvyArtifact(TaskProvider<? extends Task> generator, IvyPublicationCoordinates coordinates, String extension, String type, @Nullable String classifier, TaskDependencyFactory taskDependencyFactory) {
+    public SingleOutputTaskIvyArtifact(
+            TaskProvider<? extends Task> generator,
+            IvyPublicationCoordinates coordinates,
+            String extension,
+            String type,
+            @Nullable String classifier,
+            TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         this.generator = generator;
         this.coordinates = coordinates;

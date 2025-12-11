@@ -40,5 +40,4 @@ public class DefaultOperationSuccessResult implements SuccessResult {
     public long getEndTime() {
         return endTime;
     }
-
 }

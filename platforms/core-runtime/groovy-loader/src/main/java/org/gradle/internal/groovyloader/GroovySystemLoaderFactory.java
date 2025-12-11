@@ -16,12 +16,11 @@
 
 package org.gradle.internal.groovyloader;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import org.gradle.api.GradleException;
 import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.Nullable;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public class GroovySystemLoaderFactory {
     private static final NoOpGroovySystemLoader NO_OP = new NoOpGroovySystemLoader();
@@ -48,12 +47,14 @@ public class GroovySystemLoaderFactory {
         }
     }
 
-    private GroovySystemLoader createClassInfoCleaningLoader(Class<?> groovySystem, ClassLoader classLoader) throws Exception {
+    private GroovySystemLoader createClassInfoCleaningLoader(Class<?> groovySystem, ClassLoader classLoader)
+            throws Exception {
         VersionNumber groovyVersion = getGroovyVersion(groovySystem);
         return isGroovy24OrLater(groovyVersion) ? new ClassInfoCleaningGroovySystemLoader(classLoader) : NO_OP;
     }
 
-    private @Nullable VersionNumber getGroovyVersion(Class<?> groovySystem) throws IllegalAccessException, InvocationTargetException {
+    private @Nullable VersionNumber getGroovyVersion(Class<?> groovySystem)
+            throws IllegalAccessException, InvocationTargetException {
         try {
             Method getVersion = groovySystem.getDeclaredMethod("getVersion");
             String versionString = (String) getVersion.invoke(null);

@@ -15,10 +15,9 @@
  */
 package org.gradle.internal.metaobject;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Presents a {@link DynamicObject} view of multiple objects at once.

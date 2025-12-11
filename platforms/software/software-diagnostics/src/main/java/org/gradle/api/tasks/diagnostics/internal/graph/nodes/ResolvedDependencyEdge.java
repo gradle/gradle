@@ -16,16 +16,15 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
 public class ResolvedDependencyEdge implements DependencyEdge {
     private final ResolvedDependencyResult dependency;

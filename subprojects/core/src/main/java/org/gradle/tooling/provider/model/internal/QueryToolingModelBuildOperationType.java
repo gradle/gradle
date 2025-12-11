@@ -22,7 +22,9 @@ import org.jspecify.annotations.Nullable;
 /**
  * Not used by Develocity plugin.
  */
-public interface QueryToolingModelBuildOperationType extends BuildOperationType<QueryToolingModelBuildOperationType.Details, QueryToolingModelBuildOperationType.Result> {
+public interface QueryToolingModelBuildOperationType
+        extends BuildOperationType<
+                QueryToolingModelBuildOperationType.Details, QueryToolingModelBuildOperationType.Result> {
     interface Details {
         String getBuildPath();
 
@@ -33,6 +35,5 @@ public interface QueryToolingModelBuildOperationType extends BuildOperationType<
         String getProjectPath();
     }
 
-    interface Result {
-    }
+    interface Result {}
 }

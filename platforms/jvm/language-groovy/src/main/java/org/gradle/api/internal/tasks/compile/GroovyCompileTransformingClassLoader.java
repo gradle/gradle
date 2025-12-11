@@ -16,25 +16,25 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.codehaus.groovy.transform.GroovyASTTransformationClass;
-import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Transforms @GroovyASTTransformationClass(classes = {classLiterals}) into @GroovyASTTransformationClass([classNames]),
  * to work around GROOVY-5416.
  */
 class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
-    private static final String ANNOTATION_DESCRIPTOR = Type.getType(GroovyASTTransformationClass.class).getDescriptor();
+    private static final String ANNOTATION_DESCRIPTOR =
+            Type.getType(GroovyASTTransformationClass.class).getDescriptor();
 
     static {
         try {
@@ -104,7 +104,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
             @Override
             public AnnotationVisitor visitArray(String name) {
                 if (name.equals("classes")) {
-                    return new AnnotationVisitor(AsmConstants.ASM_LEVEL){
+                    return new AnnotationVisitor(AsmConstants.ASM_LEVEL) {
                         @Override
                         public void visit(String name, Object value) {
                             Type type = (Type) value;

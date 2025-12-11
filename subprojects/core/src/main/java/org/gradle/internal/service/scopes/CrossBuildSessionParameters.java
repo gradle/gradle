@@ -16,9 +16,8 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.StartParameterInternal;
-
 import java.io.File;
+import org.gradle.api.internal.StartParameterInternal;
 
 @ServiceScope(Scope.CrossBuildSession.class)
 public class CrossBuildSessionParameters {

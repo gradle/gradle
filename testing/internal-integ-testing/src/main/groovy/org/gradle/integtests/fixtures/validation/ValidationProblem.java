@@ -15,13 +15,11 @@
  */
 package org.gradle.integtests.fixtures.validation;
 
-
-import org.gradle.api.problems.Severity;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.problems.Severity;
 
 /**
  * A dummy annotation which is used to trigger validation problems during tests.

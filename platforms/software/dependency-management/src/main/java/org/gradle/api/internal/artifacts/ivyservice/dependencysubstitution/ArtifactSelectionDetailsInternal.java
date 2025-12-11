@@ -31,6 +31,6 @@ public interface ArtifactSelectionDetailsInternal extends ArtifactSelectionDetai
      * configure any artifact selectors, and the requested selectors should
      * be used. May be non-null but empty, indicating the user removed all requested selectors.
      */
-    @Nullable ImmutableList<DependencyArtifactSelector> getConfiguredSelectors();
-
+    @Nullable
+    ImmutableList<DependencyArtifactSelector> getConfiguredSelectors();
 }

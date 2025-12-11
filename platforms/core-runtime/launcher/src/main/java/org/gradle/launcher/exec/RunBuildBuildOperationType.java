@@ -20,9 +20,9 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.problems.failure.Failure;
 import org.jspecify.annotations.Nullable;
 
-public final class RunBuildBuildOperationType implements BuildOperationType<RunBuildBuildOperationType.Details, RunBuildBuildOperationType.Result> {
-    public interface Details {
-    }
+public final class RunBuildBuildOperationType
+        implements BuildOperationType<RunBuildBuildOperationType.Details, RunBuildBuildOperationType.Result> {
+    public interface Details {}
 
     public interface Result {
         /**
@@ -34,4 +34,3 @@ public final class RunBuildBuildOperationType implements BuildOperationType<RunB
         Failure getFailure();
     }
 }
-

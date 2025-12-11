@@ -16,10 +16,9 @@
 
 package org.gradle.internal.model;
 
-import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.Function;
+import javax.annotation.concurrent.ThreadSafe;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a value that is calculated from some mutable state managed by a {@link ModelContainer}, where the calculated value may

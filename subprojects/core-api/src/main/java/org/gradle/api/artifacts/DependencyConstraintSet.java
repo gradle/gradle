@@ -22,5 +22,4 @@ import org.gradle.api.DomainObjectSet;
  *
  * @since 4.6
  */
-public interface DependencyConstraintSet extends DomainObjectSet<DependencyConstraint> {
-}
+public interface DependencyConstraintSet extends DomainObjectSet<DependencyConstraint> {}

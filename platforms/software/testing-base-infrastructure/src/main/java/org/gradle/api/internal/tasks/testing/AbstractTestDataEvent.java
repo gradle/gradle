@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.time.Instant;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Base implementation of the {@code TestMetadataEvent} interface.

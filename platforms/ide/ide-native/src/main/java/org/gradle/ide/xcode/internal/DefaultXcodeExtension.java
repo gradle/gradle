@@ -16,10 +16,9 @@
 
 package org.gradle.ide.xcode.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.ide.xcode.XcodeExtension;
-
-import javax.inject.Inject;
 
 public class DefaultXcodeExtension implements XcodeExtension {
     private final DefaultXcodeProject project;

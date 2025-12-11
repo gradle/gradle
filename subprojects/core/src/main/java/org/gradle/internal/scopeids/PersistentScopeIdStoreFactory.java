@@ -16,6 +16,7 @@
 
 package org.gradle.internal.scopeids;
 
+import java.io.File;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.ObjectHolder;
 import org.gradle.cache.internal.FileBackedObjectHolder;
@@ -25,8 +26,6 @@ import org.gradle.internal.file.Chmod;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 @ServiceScope(Scope.BuildSession.class)
 class PersistentScopeIdStoreFactory {
@@ -40,13 +39,8 @@ class PersistentScopeIdStoreFactory {
     }
 
     ObjectHolder<UniqueId> create(File file, String description) {
-        return new FileIntegrityViolationSuppressingObjectHolderDecorator<UniqueId>(
-            new FileBackedObjectHolder<UniqueId>(
-                file,
-                new OnDemandFileAccess(file, description, fileLockManager),
-                UniqueIdSerializer.INSTANCE,
-                chmod
-            )
-        );
+        return new FileIntegrityViolationSuppressingObjectHolderDecorator<UniqueId>(new FileBackedObjectHolder<
+                UniqueId>(
+                file, new OnDemandFileAccess(file, description, fileLockManager), UniqueIdSerializer.INSTANCE, chmod));
     }
 }

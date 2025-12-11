@@ -15,12 +15,11 @@
  */
 package org.gradle.api.artifacts;
 
+import java.util.List;
 import org.gradle.api.Describable;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Represents a constraint that is used to match module versions to a dependency.
@@ -137,5 +136,4 @@ public interface VersionConstraint extends Describable {
      * @return the list of rejected versions
      */
     List<String> getRejectedVersions();
-
 }

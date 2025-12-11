@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.cache.IndexedCache;
@@ -23,9 +25,6 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public class DefaultModuleVersionsCache extends AbstractModuleVersionsCache {
 
     private final ArtifactCacheLockingAccessCoordinator artifactCacheLockingManager;
@@ -33,7 +32,10 @@ public class DefaultModuleVersionsCache extends AbstractModuleVersionsCache {
 
     private IndexedCache<ModuleAtRepositoryKey, ModuleVersionsCacheEntry> cache;
 
-    public DefaultModuleVersionsCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public DefaultModuleVersionsCache(
+            BuildCommencedTimeProvider timeProvider,
+            ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(timeProvider);
         this.artifactCacheLockingManager = cacheAccessCoordinator;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -47,7 +49,10 @@ public class DefaultModuleVersionsCache extends AbstractModuleVersionsCache {
     }
 
     private IndexedCache<ModuleAtRepositoryKey, ModuleVersionsCacheEntry> initCache() {
-        return artifactCacheLockingManager.createCache("module-versions", new ModuleKeySerializer(moduleIdentifierFactory), new ModuleVersionsCacheEntrySerializer());
+        return artifactCacheLockingManager.createCache(
+                "module-versions",
+                new ModuleKeySerializer(moduleIdentifierFactory),
+                new ModuleVersionsCacheEntrySerializer());
     }
 
     @Override
@@ -106,5 +111,4 @@ public class DefaultModuleVersionsCache extends AbstractModuleVersionsCache {
             return new ModuleVersionsCacheEntry(versions, createTimestamp);
         }
     }
-
 }

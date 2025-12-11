@@ -15,8 +15,13 @@
  */
 package org.gradle.internal.management;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
@@ -31,13 +36,8 @@ import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.reflect.Instantiator;
 
-import javax.inject.Inject;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
-
-import static org.gradle.api.reflect.TypeOf.typeOf;
-
-public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainObjectContainer<VersionCatalogBuilder> implements MutableVersionCatalogContainer {
+public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainObjectContainer<VersionCatalogBuilder>
+        implements MutableVersionCatalogContainer {
     private static final String VALID_EXTENSION_NAME = "[a-z]([a-zA-Z0-9])+";
     private static final Pattern VALID_EXTENSION_PATTERN = Pattern.compile(VALID_EXTENSION_NAME);
 
@@ -48,11 +48,12 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
     private final UserCodeApplicationContext context;
 
     @Inject
-    public DefaultVersionCatalogBuilderContainer(Instantiator instantiator,
-                                                 CollectionCallbackActionDecorator callbackActionDecorator,
-                                                 ObjectFactory objects,
-                                                 UserCodeApplicationContext context,
-                                                 Supplier<DependencyResolutionServices> dependencyResolutionServices) {
+    public DefaultVersionCatalogBuilderContainer(
+            Instantiator instantiator,
+            CollectionCallbackActionDecorator callbackActionDecorator,
+            ObjectFactory objects,
+            UserCodeApplicationContext context,
+            Supplier<DependencyResolutionServices> dependencyResolutionServices) {
         super(VersionCatalogBuilder.class, instantiator, callbackActionDecorator);
         this.objects = objects;
         this.context = context;
@@ -61,28 +62,34 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
 
     private static void validateName(String name) {
         if (!VALID_EXTENSION_PATTERN.matcher(name).matches()) {
-            throw new InvalidUserDataException("Invalid model name '" + name + "': it must match the following regular expression: " + VALID_EXTENSION_NAME);
+            throw new InvalidUserDataException("Invalid model name '" + name
+                    + "': it must match the following regular expression: " + VALID_EXTENSION_NAME);
         }
     }
 
     @Override
-    public VersionCatalogBuilder create(String name, Action<? super VersionCatalogBuilder> configureAction) throws InvalidUserDataException {
+    public VersionCatalogBuilder create(String name, Action<? super VersionCatalogBuilder> configureAction)
+            throws InvalidUserDataException {
         validateName(name);
         return super.create(name, model -> {
             UserCodeApplicationContext.Application current = context.current();
             DefaultVersionCatalogBuilder builder = (DefaultVersionCatalogBuilder) model;
-            builder.withContext(current == null ? "Settings" : current.getSource().getDisplayName().getDisplayName(), () -> configureAction.execute(model));
+            builder.withContext(
+                    current == null
+                            ? "Settings"
+                            : current.getSource().getDisplayName().getDisplayName(),
+                    () -> configureAction.execute(model));
         });
     }
 
     @Override
     protected VersionCatalogBuilder doCreate(String name) {
-        return objects.newInstance(DefaultVersionCatalogBuilder.class, name, strings, versions, objects, dependencyResolutionServices);
+        return objects.newInstance(
+                DefaultVersionCatalogBuilder.class, name, strings, versions, objects, dependencyResolutionServices);
     }
 
     @Override
     public TypeOf<?> getPublicType() {
         return typeOf(MutableVersionCatalogContainer.class);
     }
-
 }

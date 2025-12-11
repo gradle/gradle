@@ -19,10 +19,9 @@ package gradlebuild.docs.dsl.docbook;
 import gradlebuild.docs.dsl.docbook.model.BlockDoc;
 import gradlebuild.docs.dsl.docbook.model.ClassDoc;
 import gradlebuild.docs.dsl.docbook.model.ClassExtensionDoc;
+import java.util.Collection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import java.util.Collection;
 
 class BlocksRenderer implements ClassDocMemberRenderer {
     private final BlockTableRenderer blockTableRenderer = new BlockTableRenderer();
@@ -101,5 +100,4 @@ class BlocksRenderer implements ClassDocMemberRenderer {
         }
         return hasBlocks;
     }
-
 }

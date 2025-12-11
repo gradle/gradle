@@ -25,5 +25,4 @@ public class AnyWildcardPatternStep implements PatternStep {
     public boolean matches(String candidate) {
         return true;
     }
-
 }

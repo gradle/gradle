@@ -16,19 +16,19 @@
 
 package org.gradle.api.internal.file;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
+import java.io.File;
 import org.gradle.api.file.Directory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
-
-import java.io.File;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 public class DirectoryProviderPathToFileResolver implements PathToFileResolver {
     private final Provider<Directory> directoryProvider;
     private final PathToFileResolver parentResolver;
 
-    public DirectoryProviderPathToFileResolver(Provider<Directory> directoryProvider, PathToFileResolver parentResolver) {
+    public DirectoryProviderPathToFileResolver(
+            Provider<Directory> directoryProvider, PathToFileResolver parentResolver) {
         this.directoryProvider = directoryProvider;
         this.parentResolver = parentResolver;
     }
@@ -45,9 +45,7 @@ public class DirectoryProviderPathToFileResolver implements PathToFileResolver {
     @Override
     public PathToFileResolver newResolver(File baseDir) {
         return new DirectoryProviderPathToFileResolver(
-            directoryProvider.map(transformer(dir -> dir.dir(baseDir.getPath()))),
-            parentResolver
-        );
+                directoryProvider.map(transformer(dir -> dir.dir(baseDir.getPath()))), parentResolver);
     }
 
     @Override

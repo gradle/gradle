@@ -26,7 +26,7 @@ public abstract class Transient<T> implements java.io.Serializable {
     /**
      * A mutable variable that gets discarded during serialization.
      */
-    public static abstract class Var<T> extends Transient<T> {
+    public abstract static class Var<T> extends Transient<T> {
         public abstract void set(T value);
     }
 
@@ -95,7 +95,8 @@ public abstract class Transient<T> implements java.io.Serializable {
 
         @Override
         public void set(T value) {
-            throw new IllegalStateException("The value of this property cannot be set after it has been discarded during serialization.");
+            throw new IllegalStateException(
+                    "The value of this property cannot be set after it has been discarded during serialization.");
         }
 
         @Override

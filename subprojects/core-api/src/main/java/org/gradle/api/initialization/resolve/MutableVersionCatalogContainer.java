@@ -23,5 +23,4 @@ import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
  *
  * @since 7.0
  */
-public interface MutableVersionCatalogContainer extends NamedDomainObjectContainer<VersionCatalogBuilder> {
-}
+public interface MutableVersionCatalogContainer extends NamedDomainObjectContainer<VersionCatalogBuilder> {}

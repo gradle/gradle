@@ -16,10 +16,24 @@
 
 package org.gradle.internal.properties.annotations;
 
+import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
+import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.cache.Cache;
@@ -35,25 +49,12 @@ import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-
-import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.deprecation.Documentation.userManual;
-import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE;
-
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers;
-    private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> propertyAnnotationHandlers;
-    private final ImmutableMap<Class<? extends Annotation>, ? extends FunctionAnnotationHandler> functionAnnotationHandlers;
+    private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler>
+            propertyAnnotationHandlers;
+    private final ImmutableMap<Class<? extends Annotation>, ? extends FunctionAnnotationHandler>
+            functionAnnotationHandlers;
     private final ImmutableSet<Class<? extends Annotation>> allowedPropertyModifiers;
     private final ImmutableSet<Class<? extends Annotation>> allowedFunctionModifiers;
     private final Cache<Class<?>, TypeMetadata> cache;
@@ -63,20 +64,21 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final MissingPropertyAnnotationHandler missingPropertyAnnotationHandler;
 
     public DefaultTypeMetadataStore(
-        Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers,
-        Collection<? extends PropertyAnnotationHandler> propertyAnnotationHandlers,
-        Collection<Class<? extends Annotation>> allowedPropertyModifiers,
-        Collection<? extends FunctionAnnotationHandler> functionAnnotationHandlers,
-        Collection<Class<? extends Annotation>> allowedFunctionModifiers,
-        TypeAnnotationMetadataStore typeAnnotationMetadataStore,
-        PropertyTypeResolver propertyTypeResolver,
-        ClassCacheFactory cacheFactory,
-        MissingPropertyAnnotationHandler missingPropertyAnnotationHandler
-    ) {
+            Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers,
+            Collection<? extends PropertyAnnotationHandler> propertyAnnotationHandlers,
+            Collection<Class<? extends Annotation>> allowedPropertyModifiers,
+            Collection<? extends FunctionAnnotationHandler> functionAnnotationHandlers,
+            Collection<Class<? extends Annotation>> allowedFunctionModifiers,
+            TypeAnnotationMetadataStore typeAnnotationMetadataStore,
+            PropertyTypeResolver propertyTypeResolver,
+            ClassCacheFactory cacheFactory,
+            MissingPropertyAnnotationHandler missingPropertyAnnotationHandler) {
         this.typeAnnotationHandlers = ImmutableSet.copyOf(typeAnnotationHandlers);
-        this.propertyAnnotationHandlers = Maps.uniqueIndex(propertyAnnotationHandlers, PropertyAnnotationHandler::getAnnotationType);
+        this.propertyAnnotationHandlers =
+                Maps.uniqueIndex(propertyAnnotationHandlers, PropertyAnnotationHandler::getAnnotationType);
         this.allowedPropertyModifiers = ImmutableSet.copyOf(allowedPropertyModifiers);
-        this.functionAnnotationHandlers = Maps.uniqueIndex(functionAnnotationHandlers, FunctionAnnotationHandler::getAnnotationType);
+        this.functionAnnotationHandlers =
+                Maps.uniqueIndex(functionAnnotationHandlers, FunctionAnnotationHandler::getAnnotationType);
         this.allowedFunctionModifiers = ImmutableSet.copyOf(allowedFunctionModifiers);
         this.typeAnnotationMetadataStore = typeAnnotationMetadataStore;
         this.displayName = calculateDisplayName(propertyAnnotationHandlers);
@@ -87,17 +89,16 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
     private static String calculateDisplayName(Collection<? extends PropertyAnnotationHandler> annotationHandlers) {
         return annotationHandlers.stream()
-            .map(PropertyAnnotationHandler::getKind)
-            .anyMatch(Predicate.isEqual(PropertyAnnotationHandler.Kind.OUTPUT))
-            ? "an input or output annotation"
-            : "an input annotation";
+                        .map(PropertyAnnotationHandler::getKind)
+                        .anyMatch(Predicate.isEqual(PropertyAnnotationHandler.Kind.OUTPUT))
+                ? "an input or output annotation"
+                : "an input annotation";
     }
 
     @Override
     public <T> TypeMetadata getTypeMetadata(Class<T> type) {
         return cache.get(type, this::createTypeMetadata);
     }
-
 
     private static final String ANNOTATION_INVALID_IN_CONTEXT = "ANNOTATION_INVALID_IN_CONTEXT";
     private static final String INCOMPATIBLE_ANNOTATIONS = "INCOMPATIBLE_ANNOTATIONS";
@@ -114,39 +115,59 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             }
         }
 
-        ImmutableSet<PropertyMetadata> effectiveProperties = getEffectiveProperties(annotationMetadata, validationContext);
-        ImmutableSet<FunctionMetadata> effectiveFunctions = getEffectiveFunctions(annotationMetadata, validationContext);
-        return new DefaultTypeMetadata(publicType, effectiveProperties, effectiveFunctions, validationContext, propertyAnnotationHandlers, functionAnnotationHandlers, annotationMetadata);
+        ImmutableSet<PropertyMetadata> effectiveProperties =
+                getEffectiveProperties(annotationMetadata, validationContext);
+        ImmutableSet<FunctionMetadata> effectiveFunctions =
+                getEffectiveFunctions(annotationMetadata, validationContext);
+        return new DefaultTypeMetadata(
+                publicType,
+                effectiveProperties,
+                effectiveFunctions,
+                validationContext,
+                propertyAnnotationHandlers,
+                functionAnnotationHandlers,
+                annotationMetadata);
     }
 
     @NonNull
-    private ImmutableSet<PropertyMetadata> getEffectiveProperties(TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
-        ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(annotationMetadata.getPropertiesAnnotationMetadata().size());
-        for (PropertyAnnotationMetadata propertyAnnotationMetadata : annotationMetadata.getPropertiesAnnotationMetadata()) {
-            Map<AnnotationCategory, Annotation> propertyAnnotations = propertyAnnotationMetadata.getAnnotationsByCategory();
+    private ImmutableSet<PropertyMetadata> getEffectiveProperties(
+            TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
+        ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(
+                annotationMetadata.getPropertiesAnnotationMetadata().size());
+        for (PropertyAnnotationMetadata propertyAnnotationMetadata :
+                annotationMetadata.getPropertiesAnnotationMetadata()) {
+            Map<AnnotationCategory, Annotation> propertyAnnotations =
+                    propertyAnnotationMetadata.getAnnotationsByCategory();
             Class<? extends Annotation> propertyType = propertyTypeResolver.resolveAnnotationType(propertyAnnotations);
             if (propertyType == null) {
-                missingPropertyAnnotationHandler.handleMissingPropertyAnnotation(validationContext, propertyAnnotationMetadata, displayName);
+                missingPropertyAnnotationHandler.handleMissingPropertyAnnotation(
+                        validationContext, propertyAnnotationMetadata, displayName);
                 continue;
             }
 
             PropertyAnnotationHandler annotationHandler = propertyAnnotationHandlers.get(propertyType);
             if (annotationHandler == null) {
-                validationContext.visitPropertyProblem(problem ->
-                    problem
-                        .forProperty(propertyAnnotationMetadata.getPropertyName())
-                        .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().property())
-                        .contextualLabel(String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
-                        .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
-                        .severity(ERROR)
-                        .details("The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
-                        .solution("Remove the property")
-                        .solution("Use a different annotation, e.g one of " + toListOfAnnotations(propertyAnnotationHandlers.keySet()))
-                );
+                validationContext.visitPropertyProblem(
+                        problem -> problem.forProperty(propertyAnnotationMetadata.getPropertyName())
+                                .id(
+                                        TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT),
+                                        "Invalid annotation in context",
+                                        GradleCoreProblemGroup.validation().property())
+                                .contextualLabel(String.format(
+                                        "is annotated with invalid property type @%s", propertyType.getSimpleName()))
+                                .documentedAt(userManual(
+                                        "validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
+                                .severity(ERROR)
+                                .details("The '@" + propertyType.getSimpleName()
+                                        + "' annotation cannot be used in this context")
+                                .solution("Remove the property")
+                                .solution("Use a different annotation, e.g one of "
+                                        + toListOfAnnotations(propertyAnnotationHandlers.keySet())));
                 continue;
             }
 
-            ImmutableSet<Class<? extends Annotation>> allowedModifiersForPropertyType = annotationHandler.getAllowedModifiers();
+            ImmutableSet<Class<? extends Annotation>> allowedModifiersForPropertyType =
+                    annotationHandler.getAllowedModifiers();
             for (Map.Entry<AnnotationCategory, Annotation> entry : propertyAnnotations.entrySet()) {
                 AnnotationCategory annotationCategory = entry.getKey();
                 if (annotationCategory == TYPE) {
@@ -154,27 +175,37 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 }
                 Class<? extends Annotation> annotationType = entry.getValue().annotationType();
                 if (!allowedModifiersForPropertyType.contains(annotationType)) {
-                    validationContext.visitPropertyProblem(problem ->
-                        problem
-                            .forProperty(propertyAnnotationMetadata.getPropertyName())
-                            .id(TextUtil.screamingSnakeToKebabCase(INCOMPATIBLE_ANNOTATIONS), "Incompatible annotations", GradleCoreProblemGroup.validation().property())
-                            .contextualLabel("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
-                            .documentedAt(userManual("validation_problems", INCOMPATIBLE_ANNOTATIONS.toLowerCase(Locale.ROOT)))
+                    validationContext.visitPropertyProblem(problem -> problem.forProperty(
+                                    propertyAnnotationMetadata.getPropertyName())
+                            .id(
+                                    TextUtil.screamingSnakeToKebabCase(INCOMPATIBLE_ANNOTATIONS),
+                                    "Incompatible annotations",
+                                    GradleCoreProblemGroup.validation().property())
+                            .contextualLabel("is annotated with @" + annotationType.getSimpleName()
+                                    + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
+                            .documentedAt(userManual(
+                                    "validation_problems", INCOMPATIBLE_ANNOTATIONS.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
-                            .details("This modifier is used in conjunction with a property of type '" + propertyType.getSimpleName() + "' but this doesn't have semantics")
+                            .details("This modifier is used in conjunction with a property of type '"
+                                    + propertyType.getSimpleName() + "' but this doesn't have semantics")
                             .solution("Remove the '@" + annotationType.getSimpleName() + "' annotation"));
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
-                    validationContext.visitPropertyProblem(problem ->
-                        problem
-                            .forProperty(propertyAnnotationMetadata.getPropertyName())
-                            .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().property())
-                            .contextualLabel(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
-                            .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
+                    validationContext.visitPropertyProblem(problem -> problem.forProperty(
+                                    propertyAnnotationMetadata.getPropertyName())
+                            .id(
+                                    TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT),
+                                    "Invalid annotation in context",
+                                    GradleCoreProblemGroup.validation().property())
+                            .contextualLabel(String.format(
+                                    "is annotated with invalid modifier @%s", annotationType.getSimpleName()))
+                            .documentedAt(userManual(
+                                    "validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
-                            .details("The '@" + annotationType.getSimpleName() + "' annotation cannot be used in this context")
-                            .solution("Use a different annotation, e.g one of " + toListOfAnnotations(allowedPropertyModifiers))
-                            .solution("Remove the annotation")
-                    );
+                            .details("The '@" + annotationType.getSimpleName()
+                                    + "' annotation cannot be used in this context")
+                            .solution("Use a different annotation, e.g one of "
+                                    + toListOfAnnotations(allowedPropertyModifiers))
+                            .solution("Remove the annotation"));
                 }
             }
 
@@ -189,10 +220,14 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     }
 
     @NonNull
-    private ImmutableSet<FunctionMetadata> getEffectiveFunctions(TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
-        ImmutableSet.Builder<FunctionMetadata> effectiveFunctions = ImmutableSet.builderWithExpectedSize(annotationMetadata.getFunctionAnnotationMetadata().size());
-        for (FunctionAnnotationMetadata functionAnnotationMetadata : annotationMetadata.getFunctionAnnotationMetadata()) {
-            Map<AnnotationCategory, Annotation> functionAnnotations = functionAnnotationMetadata.getAnnotationsByCategory();
+    private ImmutableSet<FunctionMetadata> getEffectiveFunctions(
+            TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
+        ImmutableSet.Builder<FunctionMetadata> effectiveFunctions = ImmutableSet.builderWithExpectedSize(
+                annotationMetadata.getFunctionAnnotationMetadata().size());
+        for (FunctionAnnotationMetadata functionAnnotationMetadata :
+                annotationMetadata.getFunctionAnnotationMetadata()) {
+            Map<AnnotationCategory, Annotation> functionAnnotations =
+                    functionAnnotationMetadata.getAnnotationsByCategory();
             Annotation functionAnnotation = functionAnnotations.get(TYPE);
 
             if (functionAnnotation == null) {
@@ -203,21 +238,27 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
             FunctionAnnotationHandler annotationHandler = functionAnnotationHandlers.get(functionType);
             if (annotationHandler == null) {
-                validationContext.visitPropertyProblem(problem ->
-                    problem
-                        .forFunction(functionAnnotationMetadata.getMethod().getName())
-                        .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().type())
-                        .contextualLabel(String.format("is annotated with invalid function type @%s", functionType.getSimpleName()))
-                        .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
+                validationContext.visitPropertyProblem(problem -> problem.forFunction(
+                                functionAnnotationMetadata.getMethod().getName())
+                        .id(
+                                TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT),
+                                "Invalid annotation in context",
+                                GradleCoreProblemGroup.validation().type())
+                        .contextualLabel(String.format(
+                                "is annotated with invalid function type @%s", functionType.getSimpleName()))
+                        .documentedAt(userManual(
+                                "validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
                         .severity(ERROR)
-                        .details("The '@" + functionType.getSimpleName() + "' annotation cannot be used in this context")
+                        .details(
+                                "The '@" + functionType.getSimpleName() + "' annotation cannot be used in this context")
                         .solution("Remove the method")
-                        .solution("Use a different annotation, e.g one of " + toListOfAnnotations(functionAnnotationHandlers.keySet()))
-                );
+                        .solution("Use a different annotation, e.g one of "
+                                + toListOfAnnotations(functionAnnotationHandlers.keySet())));
                 continue;
             }
 
-            ImmutableSet<Class<? extends Annotation>> allowedModifiersForFunctionType = annotationHandler.getAllowedModifiers();
+            ImmutableSet<Class<? extends Annotation>> allowedModifiersForFunctionType =
+                    annotationHandler.getAllowedModifiers();
             for (Map.Entry<AnnotationCategory, Annotation> entry : functionAnnotations.entrySet()) {
                 AnnotationCategory annotationCategory = entry.getKey();
                 if (annotationCategory == TYPE) {
@@ -225,27 +266,37 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 }
                 Class<? extends Annotation> annotationType = entry.getValue().annotationType();
                 if (!allowedModifiersForFunctionType.contains(annotationType)) {
-                    validationContext.visitPropertyProblem(problem ->
-                        problem
-                            .forFunction(functionAnnotationMetadata.getMethod().getName())
-                            .id(TextUtil.screamingSnakeToKebabCase(INCOMPATIBLE_ANNOTATIONS), "Incompatible annotations", GradleCoreProblemGroup.validation().type())
-                            .contextualLabel("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + functionType.getSimpleName() + "' functions")
-                            .documentedAt(userManual("validation_problems", INCOMPATIBLE_ANNOTATIONS.toLowerCase(Locale.ROOT)))
+                    validationContext.visitPropertyProblem(problem -> problem.forFunction(
+                                    functionAnnotationMetadata.getMethod().getName())
+                            .id(
+                                    TextUtil.screamingSnakeToKebabCase(INCOMPATIBLE_ANNOTATIONS),
+                                    "Incompatible annotations",
+                                    GradleCoreProblemGroup.validation().type())
+                            .contextualLabel("is annotated with @" + annotationType.getSimpleName()
+                                    + " but that is not allowed for '" + functionType.getSimpleName() + "' functions")
+                            .documentedAt(userManual(
+                                    "validation_problems", INCOMPATIBLE_ANNOTATIONS.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
-                            .details("This modifier is used in conjunction with a property of type '" + functionType.getSimpleName() + "' but this doesn't have semantics")
+                            .details("This modifier is used in conjunction with a property of type '"
+                                    + functionType.getSimpleName() + "' but this doesn't have semantics")
                             .solution("Remove the '@" + annotationType.getSimpleName() + "' annotation"));
                 } else if (!allowedFunctionModifiers.contains(annotationType)) {
-                    validationContext.visitPropertyProblem(problem ->
-                        problem
-                            .forProperty(functionAnnotationMetadata.getMethod().getName())
-                            .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().property())
-                            .contextualLabel(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
-                            .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
+                    validationContext.visitPropertyProblem(problem -> problem.forProperty(
+                                    functionAnnotationMetadata.getMethod().getName())
+                            .id(
+                                    TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT),
+                                    "Invalid annotation in context",
+                                    GradleCoreProblemGroup.validation().property())
+                            .contextualLabel(String.format(
+                                    "is annotated with invalid modifier @%s", annotationType.getSimpleName()))
+                            .documentedAt(userManual(
+                                    "validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
-                            .details("The '@" + annotationType.getSimpleName() + "' annotation cannot be used in this context")
-                            .solution("Use a different annotation, e.g one of " + toListOfAnnotations(allowedPropertyModifiers))
-                            .solution("Remove the annotation")
-                    );
+                            .details("The '@" + annotationType.getSimpleName()
+                                    + "' annotation cannot be used in this context")
+                            .solution("Use a different annotation, e.g one of "
+                                    + toListOfAnnotations(allowedPropertyModifiers))
+                            .solution("Remove the annotation"));
                 }
             }
 
@@ -259,10 +310,10 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
     private static String toListOfAnnotations(ImmutableSet<Class<? extends Annotation>> classes) {
         return classes.stream()
-            .map(Class::getSimpleName)
-            .map(s -> "@" + s)
-            .sorted()
-            .collect(forDisplay());
+                .map(Class::getSimpleName)
+                .map(s -> "@" + s)
+                .sorted()
+                .collect(forDisplay());
     }
 
     private static class DefaultTypeMetadata implements TypeMetadata {
@@ -270,19 +321,22 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         private final ImmutableSet<PropertyMetadata> propertiesMetadata;
         private final ImmutableSet<FunctionMetadata> functionsMetadata;
         private final ReplayingTypeValidationContext validationProblems;
-        private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> propertyAnnotationHandlers;
-        private final ImmutableMap<Class<? extends Annotation>, ? extends FunctionAnnotationHandler> functionAnnotationHandlers;
+        private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler>
+                propertyAnnotationHandlers;
+        private final ImmutableMap<Class<? extends Annotation>, ? extends FunctionAnnotationHandler>
+                functionAnnotationHandlers;
         private final TypeAnnotationMetadata typeAnnotationMetadata;
 
         DefaultTypeMetadata(
-            Class<?> type,
-            ImmutableSet<PropertyMetadata> propertiesMetadata,
-            ImmutableSet<FunctionMetadata> functionsMetadata,
-            ReplayingTypeValidationContext validationProblems,
-            ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> propertyAnnotationHandlers,
-            ImmutableMap<Class<? extends Annotation>, ? extends FunctionAnnotationHandler> functionAnnotationHandlers,
-            TypeAnnotationMetadata typeAnnotationMetadata
-        ) {
+                Class<?> type,
+                ImmutableSet<PropertyMetadata> propertiesMetadata,
+                ImmutableSet<FunctionMetadata> functionsMetadata,
+                ReplayingTypeValidationContext validationProblems,
+                ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler>
+                        propertyAnnotationHandlers,
+                ImmutableMap<Class<? extends Annotation>, ? extends FunctionAnnotationHandler>
+                        functionAnnotationHandlers,
+                TypeAnnotationMetadata typeAnnotationMetadata) {
             this.type = type;
             this.propertiesMetadata = propertiesMetadata;
             this.functionsMetadata = functionsMetadata;
@@ -293,7 +347,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
-        public void visitValidationFailures(@Nullable String ownerPropertyPath, TypeValidationContext validationContext) {
+        public void visitValidationFailures(
+                @Nullable String ownerPropertyPath, TypeValidationContext validationContext) {
             validationProblems.replay(ownerPropertyPath, validationContext);
         }
 
@@ -338,7 +393,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         private final Class<? extends Annotation> propertyType;
         private final PropertyAnnotationMetadata annotationMetadata;
 
-        public DefaultPropertyMetadata(Class<? extends Annotation> propertyType, PropertyAnnotationMetadata annotationMetadata) {
+        public DefaultPropertyMetadata(
+                Class<? extends Annotation> propertyType, PropertyAnnotationMetadata annotationMetadata) {
             this.propertyType = propertyType;
             this.annotationMetadata = annotationMetadata;
         }
@@ -360,7 +416,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
         @Override
         public Optional<Annotation> getAnnotationForCategory(AnnotationCategory category) {
-            return Optional.ofNullable(annotationMetadata.getAnnotationsByCategory().get(category));
+            return Optional.ofNullable(
+                    annotationMetadata.getAnnotationsByCategory().get(category));
         }
 
         @Override
@@ -394,7 +451,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         private final Class<? extends Annotation> functionType;
         private final FunctionAnnotationMetadata annotationMetadata;
 
-        public DefaultFunctionMetadata(Class<? extends Annotation> functionType, FunctionAnnotationMetadata annotationMetadata) {
+        public DefaultFunctionMetadata(
+                Class<? extends Annotation> functionType, FunctionAnnotationMetadata annotationMetadata) {
             this.functionType = functionType;
             this.annotationMetadata = annotationMetadata;
         }
@@ -421,7 +479,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
         @Override
         public Optional<Annotation> getAnnotationForCategory(AnnotationCategory category) {
-            return Optional.ofNullable(annotationMetadata.getAnnotationsByCategory().get(category));
+            return Optional.ofNullable(
+                    annotationMetadata.getAnnotationsByCategory().get(category));
         }
 
         @Override

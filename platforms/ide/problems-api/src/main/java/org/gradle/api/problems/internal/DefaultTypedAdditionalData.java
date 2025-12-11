@@ -17,9 +17,8 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.base.Objects;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
-
 import java.util.Arrays;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 public class DefaultTypedAdditionalData implements TypedAdditionalData {
     private final SerializedPayload type;

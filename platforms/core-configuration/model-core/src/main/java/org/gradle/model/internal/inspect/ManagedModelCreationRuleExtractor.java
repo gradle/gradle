@@ -16,6 +16,11 @@
 
 package org.gradle.model.internal.inspect;
 
+import static org.gradle.model.internal.core.NodeInitializerContext.forType;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.gradle.internal.BiAction;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
@@ -27,14 +32,9 @@ import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElemen
 import org.gradle.model.internal.manage.schema.extract.SpecializedMapNodeInitializer;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static org.gradle.model.internal.core.NodeInitializerContext.forType;
-
 public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
-    private static final ModelType<NodeInitializerRegistry> NODE_INITIALIZER_REGISTRY = ModelType.of(NodeInitializerRegistry.class);
+    private static final ModelType<NodeInitializerRegistry> NODE_INITIALIZER_REGISTRY =
+            ModelType.of(NodeInitializerRegistry.class);
 
     private final ModelSchemaStore schemaStore;
 
@@ -53,9 +53,12 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     }
 
     @Override
-    protected <R, S> void validateMethod(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
+    protected <R, S> void validateMethod(
+            MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
         if (ruleDefinition.getReferences().isEmpty()) {
-            context.add(ruleDefinition, "A method annotated with @Model must either take at least one parameter or have a non-void return type");
+            context.add(
+                    ruleDefinition,
+                    "A method annotated with @Model must either take at least one parameter or have a non-void return type");
         }
     }
 
@@ -66,7 +69,10 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         return new ExtractedManagedCreationRule<R, S>(modelPath, ruleDefinition, modelSchema);
     }
 
-    private static NodeInitializer getNodeInitializer(ModelRuleDescriptor descriptor, ModelSchema<?> modelSchema, NodeInitializerRegistry nodeInitializerRegistry) {
+    private static NodeInitializer getNodeInitializer(
+            ModelRuleDescriptor descriptor,
+            ModelSchema<?> modelSchema,
+            NodeInitializerRegistry nodeInitializerRegistry) {
         try {
             return nodeInitializerRegistry.getNodeInitializer(forType(modelSchema.getType()));
         } catch (ModelTypeInitializationException e) {
@@ -85,38 +91,49 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     private static class ExtractedManagedCreationRule<R, S> extends ExtractedCreationRule<R, S> {
         private final ModelSchema<S> modelSchema;
 
-        public ExtractedManagedCreationRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition, ModelSchema<S> modelSchema) {
+        public ExtractedManagedCreationRule(
+                ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition, ModelSchema<S> modelSchema) {
             super(modelPath, ruleDefinition);
             this.modelSchema = modelSchema;
         }
 
         @Override
-        protected void buildRegistration(MethodModelRuleApplicationContext context, ModelRegistrations.Builder registration) {
+        protected void buildRegistration(
+                MethodModelRuleApplicationContext context, ModelRegistrations.Builder registration) {
             MethodRuleDefinition<R, S> ruleDefinition = getRuleDefinition();
             List<ModelReference<?>> bindings = ruleDefinition.getReferences();
             List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
             final ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
             if (modelSchema instanceof SpecializedMapSchema) {
-                registration.actions(SpecializedMapNodeInitializer.getActions(ModelReference.of(modelPath), descriptor, (SpecializedMapSchema<S, ?>) modelSchema));
+                registration.actions(SpecializedMapNodeInitializer.getActions(
+                        ModelReference.of(modelPath), descriptor, (SpecializedMapSchema<S, ?>) modelSchema));
             } else {
-                registration.action(ModelActionRole.Discover, Collections.singletonList(ModelReference.of(NODE_INITIALIZER_REGISTRY)), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                    @Override
-                    public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
-                        NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
-                        NodeInitializer initializer = getNodeInitializer(descriptor, modelSchema, nodeInitializerRegistry);
-                        for (Map.Entry<ModelActionRole, ModelAction> actionInRole : initializer.getActions(ModelReference.of(modelPath), descriptor).entries()) {
-                            ModelActionRole role = actionInRole.getKey();
-                            ModelAction action = actionInRole.getValue();
-                            node.applyToSelf(role, action);
-                        }
-                    }
-                });
+                registration.action(
+                        ModelActionRole.Discover,
+                        Collections.singletonList(ModelReference.of(NODE_INITIALIZER_REGISTRY)),
+                        new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                            @Override
+                            public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
+                                NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry)
+                                        modelViews.get(0).getInstance();
+                                NodeInitializer initializer =
+                                        getNodeInitializer(descriptor, modelSchema, nodeInitializerRegistry);
+                                for (Map.Entry<ModelActionRole, ModelAction> actionInRole : initializer
+                                        .getActions(ModelReference.of(modelPath), descriptor)
+                                        .entries()) {
+                                    ModelActionRole role = actionInRole.getKey();
+                                    ModelAction action = actionInRole.getValue();
+                                    node.applyToSelf(role, action);
+                                }
+                            }
+                        });
             }
 
-            registration.action(ModelActionRole.Initialize,
-                    context.contextualize(new MethodBackedModelAction<S>(descriptor, ModelReference.of(modelPath, modelSchema.getType()), inputs)));
+            registration.action(
+                    ModelActionRole.Initialize,
+                    context.contextualize(new MethodBackedModelAction<S>(
+                            descriptor, ModelReference.of(modelPath, modelSchema.getType()), inputs)));
         }
-
     }
 }

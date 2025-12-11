@@ -19,5 +19,4 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.BuildSession.class)
-public interface WindowsSdkLocator extends WindowsComponentLocator<WindowsSdkInstall> {
-}
+public interface WindowsSdkLocator extends WindowsComponentLocator<WindowsSdkInstall> {}

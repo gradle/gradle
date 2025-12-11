@@ -23,21 +23,19 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 4.9
  */
-public class NotifyTaskGraphWhenReadyBuildOperationType implements BuildOperationType<NotifyTaskGraphWhenReadyBuildOperationType.Details, NotifyTaskGraphWhenReadyBuildOperationType.Result> {
+public class NotifyTaskGraphWhenReadyBuildOperationType
+        implements BuildOperationType<
+                NotifyTaskGraphWhenReadyBuildOperationType.Details, NotifyTaskGraphWhenReadyBuildOperationType.Result> {
 
     public interface Details {
 
         String getBuildPath();
-
     }
 
-    public interface Result {
+    public interface Result {}
 
-    }
+    static final NotifyTaskGraphWhenReadyBuildOperationType.Result RESULT =
+            new NotifyTaskGraphWhenReadyBuildOperationType.Result() {};
 
-    final static NotifyTaskGraphWhenReadyBuildOperationType.Result RESULT = new NotifyTaskGraphWhenReadyBuildOperationType.Result() {
-    };
-
-    private NotifyTaskGraphWhenReadyBuildOperationType() {
-    }
+    private NotifyTaskGraphWhenReadyBuildOperationType() {}
 }

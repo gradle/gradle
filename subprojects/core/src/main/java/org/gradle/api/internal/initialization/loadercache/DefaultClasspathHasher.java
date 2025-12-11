@@ -31,7 +31,10 @@ public class DefaultClasspathHasher implements ClasspathHasher {
     private final FileCollectionFingerprinter fingerprinter;
     private final FileCollectionFactory fileCollectionFactory;
 
-    public DefaultClasspathHasher(FileCollectionSnapshotter snapshotter, FileCollectionFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
+    public DefaultClasspathHasher(
+            FileCollectionSnapshotter snapshotter,
+            FileCollectionFingerprinter fingerprinter,
+            FileCollectionFactory fileCollectionFactory) {
         this.snapshotter = snapshotter;
         this.fingerprinter = fingerprinter;
         this.fileCollectionFactory = fileCollectionFactory;

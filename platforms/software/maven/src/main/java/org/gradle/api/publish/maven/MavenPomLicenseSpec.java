@@ -31,5 +31,4 @@ public interface MavenPomLicenseSpec {
      * Creates, configures and adds a license to the publication.
      */
     void license(Action<? super MavenPomLicense> action);
-
 }

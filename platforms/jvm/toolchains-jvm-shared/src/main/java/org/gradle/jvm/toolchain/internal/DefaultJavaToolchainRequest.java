@@ -16,9 +16,9 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.platform.BuildPlatform;
 import org.gradle.jvm.toolchain.JavaToolchainRequest;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.platform.BuildPlatform;
 
 public class DefaultJavaToolchainRequest implements JavaToolchainRequest {
 

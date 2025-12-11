@@ -23,6 +23,7 @@ public class ConsoleAttachmentExtension extends MultiTestExtension<WithAttachedC
 
     @Override
     protected AbstractMultiTestInterceptor makeInterceptor(Class<?> testClass) {
-        return new ConsoleAttachmentTestInterceptor((Class<? extends AbstractConsoleGroupedTaskFunctionalTest>) testClass);
+        return new ConsoleAttachmentTestInterceptor(
+                (Class<? extends AbstractConsoleGroupedTaskFunctionalTest>) testClass);
     }
 }

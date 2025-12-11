@@ -16,14 +16,13 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.model.internal.manage.schema.ManagedImplSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class DefaultTypeBuilder<T> implements TypeBuilderInternal<T> {
     private final Class<?> markerAnnotation;
@@ -39,10 +38,14 @@ public class DefaultTypeBuilder<T> implements TypeBuilderInternal<T> {
     @Override
     public TypeBuilderInternal<T> defaultImplementation(Class<?> implementation) {
         if (this.schema instanceof ManagedImplSchema) {
-            throw new InvalidModelException(String.format("Method annotated with @%s cannot set default implementation for managed type %s.", markerAnnotation.getSimpleName(), schema.getType().getName()));
+            throw new InvalidModelException(String.format(
+                    "Method annotated with @%s cannot set default implementation for managed type %s.",
+                    markerAnnotation.getSimpleName(), schema.getType().getName()));
         }
         if (this.implementation != null) {
-            throw new InvalidModelException(String.format("Method annotated with @%s cannot set default implementation multiple times.", markerAnnotation.getSimpleName()));
+            throw new InvalidModelException(String.format(
+                    "Method annotated with @%s cannot set default implementation multiple times.",
+                    markerAnnotation.getSimpleName()));
         }
         this.implementation = implementation;
         return this;
@@ -56,7 +59,8 @@ public class DefaultTypeBuilder<T> implements TypeBuilderInternal<T> {
     @Override
     public TypeBuilder<T> internalView(Class<?> internalView) {
         if (internalViews.contains(internalView)) {
-            throw new InvalidModelException(String.format("Internal view '%s' must not be specified multiple times.", internalView.getName()));
+            throw new InvalidModelException(
+                    String.format("Internal view '%s' must not be specified multiple times.", internalView.getName()));
         }
         internalViews.add(internalView);
         return this;

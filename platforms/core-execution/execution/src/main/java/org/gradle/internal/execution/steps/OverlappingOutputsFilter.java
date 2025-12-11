@@ -16,26 +16,33 @@
 
 package org.gradle.internal.execution.steps;
 
+import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsAfterExecution;
+
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsAfterExecution;
-
 public class OverlappingOutputsFilter implements AfterExecutionOutputFilter<MutableBeforeExecutionContext> {
     @Override
-    public ImmutableSortedMap<String, FileSystemSnapshot> filterOutputs(MutableBeforeExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution) {
+    public ImmutableSortedMap<String, FileSystemSnapshot> filterOutputs(
+            MutableBeforeExecutionContext context,
+            ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution) {
         if (context.getDetectedOverlappingOutputs().isPresent()) {
-            ImmutableSortedMap<String, FileSystemSnapshot> previousExecutionOutputSnapshots = context.getPreviousExecutionState()
-                .map(PreviousExecutionState::getOutputFilesProducedByWork)
-                .orElse(ImmutableSortedMap.of());
+            ImmutableSortedMap<String, FileSystemSnapshot> previousExecutionOutputSnapshots =
+                    context.getPreviousExecutionState()
+                            .map(PreviousExecutionState::getOutputFilesProducedByWork)
+                            .orElse(ImmutableSortedMap.of());
 
-            ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsBeforeExecution = context.getBeforeExecutionState()
-                .map(BeforeExecutionState::getOutputFileLocationSnapshots)
-                .orElse(ImmutableSortedMap.of());
+            ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsBeforeExecution =
+                    context.getBeforeExecutionState()
+                            .map(BeforeExecutionState::getOutputFileLocationSnapshots)
+                            .orElse(ImmutableSortedMap.of());
 
-            return filterOutputsAfterExecution(previousExecutionOutputSnapshots, unfilteredOutputSnapshotsBeforeExecution, unfilteredOutputSnapshotsAfterExecution);
+            return filterOutputsAfterExecution(
+                    previousExecutionOutputSnapshots,
+                    unfilteredOutputSnapshotsBeforeExecution,
+                    unfilteredOutputSnapshotsAfterExecution);
         } else {
             return unfilteredOutputSnapshotsAfterExecution;
         }

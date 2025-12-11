@@ -16,13 +16,12 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Compares two {@link FileCollectionFingerprint}s representing classpaths.
@@ -37,13 +36,13 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
     }
 
     private static boolean visitChangesSince(
-        Map<String, FileSystemLocationFingerprint> previousFingerprints,
-        Map<String, FileSystemLocationFingerprint> currentFingerprints,
-        String propertyTitle,
-        ChangeVisitor visitor
-    ) {
+            Map<String, FileSystemLocationFingerprint> previousFingerprints,
+            Map<String, FileSystemLocationFingerprint> currentFingerprints,
+            String propertyTitle,
+            ChangeVisitor visitor) {
         TrackingVisitor trackingVisitor = new TrackingVisitor(visitor);
-        ChangeState changeState = new ChangeState(propertyTitle, trackingVisitor, currentFingerprints, previousFingerprints);
+        ChangeState changeState =
+                new ChangeState(propertyTitle, trackingVisitor, currentFingerprints, previousFingerprints);
 
         while (trackingVisitor.isConsumeMore() && changeState.hasMoreToProcess()) {
             changeState.processChange();
@@ -82,7 +81,11 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
         private final Map<String, FileSystemLocationFingerprint> previousSnapshots;
         private final String propertyTitle;
 
-        private ChangeState(String propertyTitle, ChangeVisitor changeConsumer, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots) {
+        private ChangeState(
+                String propertyTitle,
+                ChangeVisitor changeConsumer,
+                Map<String, FileSystemLocationFingerprint> currentSnapshots,
+                Map<String, FileSystemLocationFingerprint> previousSnapshots) {
             this.propertyTitle = propertyTitle;
             this.changeConsumer = changeConsumer;
             this.currentEntries = currentSnapshots.entrySet().iterator();
@@ -108,7 +111,9 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
                 if (!currentNormalizedPath.equals(previousNormalizedPath)) {
                     removed();
                     added();
-                } else if (currentFingerprint.getNormalizedContentHash().equals(previousFingerprint.getNormalizedContentHash())) {
+                } else if (currentFingerprint
+                        .getNormalizedContentHash()
+                        .equals(previousFingerprint.getNormalizedContentHash())) {
                     current = nextEntry(currentEntries);
                     previous = nextEntry(previousEntries);
                 } else if (currentNormalizedPath.isEmpty()) {
@@ -134,14 +139,22 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
 
         void added() {
             Objects.requireNonNull(current);
-            DefaultFileChange added = DefaultFileChange.added(current.getKey(), propertyTitle, current.getValue().getType(), current.getValue().getNormalizedPath());
+            DefaultFileChange added = DefaultFileChange.added(
+                    current.getKey(),
+                    propertyTitle,
+                    current.getValue().getType(),
+                    current.getValue().getNormalizedPath());
             changeConsumer.visitChange(added);
             current = nextEntry(currentEntries);
         }
 
         void removed() {
             Objects.requireNonNull(previous);
-            DefaultFileChange removed = DefaultFileChange.removed(previous.getKey(), propertyTitle, previous.getValue().getType(), previous.getValue().getNormalizedPath());
+            DefaultFileChange removed = DefaultFileChange.removed(
+                    previous.getKey(),
+                    propertyTitle,
+                    previous.getValue().getType(),
+                    previous.getValue().getNormalizedPath());
             changeConsumer.visitChange(removed);
             previous = nextEntry(previousEntries);
         }
@@ -149,7 +162,12 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
         void modified() {
             Objects.requireNonNull(current);
             Objects.requireNonNull(previous);
-            DefaultFileChange modified = DefaultFileChange.modified(current.getKey(), propertyTitle, previous.getValue().getType(), current.getValue().getType(), current.getValue().getNormalizedPath());
+            DefaultFileChange modified = DefaultFileChange.modified(
+                    current.getKey(),
+                    propertyTitle,
+                    previous.getValue().getType(),
+                    current.getValue().getType(),
+                    current.getValue().getNormalizedPath());
             changeConsumer.visitChange(modified);
             previous = nextEntry(previousEntries);
             current = nextEntry(currentEntries);

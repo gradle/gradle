@@ -16,12 +16,11 @@
 
 package org.gradle.internal.tools.api.impl;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Opcodes;
-
-import java.util.LinkedList;
-import java.util.List;
 
 public class SortingAnnotationVisitor extends AnnotationVisitor {
 
@@ -29,8 +28,10 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
     private final AnnotationMember annotation;
 
     private SortingAnnotationVisitor parentVisitor;
+
     @Nullable
     private String annotationValueName;
+
     @Nullable
     private String arrayValueName;
 
@@ -42,8 +43,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
     @Override
     public AnnotationVisitor visitAnnotation(String name, String desc) {
         AnnotationMember annotation = new AnnotationMember(desc, true);
-        SortingAnnotationVisitor visitor =
-            new SortingAnnotationVisitor(annotation, super.visitAnnotation(name, desc));
+        SortingAnnotationVisitor visitor = new SortingAnnotationVisitor(annotation, super.visitAnnotation(name, desc));
         visitor.parentVisitor = this;
         visitor.annotationValueName = nameOrValue(name);
         return visitor;
@@ -75,8 +75,8 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
             parentVisitor.annotationValues.add(value);
             annotationValueName = null;
         } else if (arrayValueName != null) {
-            ArrayAnnotationValue value = new ArrayAnnotationValue(
-                arrayValueName, annotationValues.toArray(new AnnotationValue<?>[0]));
+            ArrayAnnotationValue value =
+                    new ArrayAnnotationValue(arrayValueName, annotationValues.toArray(new AnnotationValue<?>[0]));
             annotation.addValue(value);
             arrayValueName = null;
         }

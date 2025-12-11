@@ -16,10 +16,15 @@
 
 package org.gradle.api.reporting.model.internal;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.model.internal.core.ModelNode;
@@ -29,17 +34,12 @@ import org.gradle.model.internal.registry.ModelReferenceNode;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.reporting.ReportRenderer;
 
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
-
 public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuilder> {
 
     private static final int LABEL_LENGTH = 7;
 
     private final boolean showHidden;
+
     @SuppressWarnings("deprecation")
     private final org.gradle.api.reporting.model.ModelReport.Format format;
 
@@ -85,7 +85,9 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         Optional<String> value = getNodeValue(model);
         boolean hasValue = value != null && value.isPresent();
         String intro = omitDetails() && model.getLinkCount() == 0 && hasValue ? "|" : "+";
-        styledTextoutput.withStyle(Identifier).format("%s %s", intro, model.getPath().getName());
+        styledTextoutput
+                .withStyle(Identifier)
+                .format("%s %s", intro, model.getPath().getName());
         if (omitDetails() && hasValue) {
             styledTextoutput.withStyle(Description).format(" = %s", value.get());
         }
@@ -127,7 +129,6 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         if (value != null && value.isPresent()) {
             printNodeAttribute(styledTextoutput, "Value:", value.get());
         }
-
     }
 
     private void maybePrintRules(ModelNode model, StyledTextOutput styledTextoutput) {
@@ -159,13 +160,14 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         styledTextoutput.println();
     }
 
-
     private String attributeLabel(String label) {
         return Strings.padEnd(label, LABEL_LENGTH, ' ');
     }
 
     static Iterable<ModelRuleDescriptor> uniqueExecutedRulesExcludingCreator(final ModelNode model) {
-        Iterable<ModelRuleDescriptor> filtered = model.getExecutedRules().stream().filter(input -> !input.equals(model.getDescriptor())).collect(Collectors.toList());
+        Iterable<ModelRuleDescriptor> filtered = model.getExecutedRules().stream()
+                .filter(input -> !input.equals(model.getDescriptor()))
+                .collect(Collectors.toList());
         return ImmutableSet.copyOf(filtered);
     }
 }

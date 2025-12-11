@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.catalog;
 
+import javax.inject.Inject;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -31,8 +32,6 @@ import org.gradle.api.plugins.catalog.internal.TomlFileGenerator;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
-
-import javax.inject.Inject;
 
 /**
  * <p>A {@link Plugin} makes it possible to generate a version catalog,  which is a set of versions and
@@ -61,14 +60,18 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
     }
 
     private void createPublication(ProjectInternal project, TaskProvider<TomlFileGenerator> generator) {
-        Provider<ConsumableConfiguration> exported = project.getConfigurations().consumable(VERSION_CATALOG_ELEMENTS, cnf -> {
-            cnf.setDescription("Artifacts for the version catalog");
-            cnf.getOutgoing().artifact(generator);
-            cnf.attributes(attrs -> {
-                attrs.attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.REGULAR_PLATFORM));
-                attrs.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.VERSION_CATALOG));
-            });
-        });
+        Provider<ConsumableConfiguration> exported = project.getConfigurations()
+                .consumable(VERSION_CATALOG_ELEMENTS, cnf -> {
+                    cnf.setDescription("Artifacts for the version catalog");
+                    cnf.getOutgoing().artifact(generator);
+                    cnf.attributes(attrs -> {
+                        attrs.attribute(
+                                Category.CATEGORY_ATTRIBUTE,
+                                project.getObjects().named(Category.class, Category.REGULAR_PLATFORM));
+                        attrs.attribute(
+                                Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.VERSION_CATALOG));
+                    });
+                });
 
         project.getPlugins().withType(BasePlugin.class, plugin -> {
             project.getTasks().named(BasePlugin.ASSEMBLE_TASK_NAME).configure(assemble -> {
@@ -82,20 +85,29 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
     }
 
     private TaskProvider<TomlFileGenerator> createGenerator(Project project, CatalogExtensionInternal extension) {
-        return project.getTasks().register(GENERATE_CATALOG_FILE_TASKNAME, TomlFileGenerator.class, t -> configureTask(project, extension, t));
+        return project.getTasks()
+                .register(
+                        GENERATE_CATALOG_FILE_TASKNAME,
+                        TomlFileGenerator.class,
+                        t -> configureTask(project, extension, t));
     }
 
     private void configureTask(Project project, CatalogExtensionInternal extension, TomlFileGenerator task) {
         task.setGroup(BasePlugin.BUILD_GROUP);
         task.setDescription("Generates a TOML file for a version catalog");
-        task.getOutputFile().convention(project.getLayout().getBuildDirectory().file("version-catalog/libs.versions.toml"));
+        task.getOutputFile()
+                .convention(project.getLayout().getBuildDirectory().file("version-catalog/libs.versions.toml"));
         task.getDependenciesModel().convention(extension.getVersionCatalog());
     }
 
     private CatalogExtensionInternal createExtension(ProjectInternal project) {
-        Configuration dependenciesConfiguration = project.getConfigurations().dependencyScopeLocked(GRADLE_PLATFORM_DEPENDENCIES);
+        Configuration dependenciesConfiguration =
+                project.getConfigurations().dependencyScopeLocked(GRADLE_PLATFORM_DEPENDENCIES);
         return (CatalogExtensionInternal) project.getExtensions()
-            .create(CatalogPluginExtension.class, "catalog", DefaultVersionCatalogPluginExtension.class, dependenciesConfiguration);
+                .create(
+                        CatalogPluginExtension.class,
+                        "catalog",
+                        DefaultVersionCatalogPluginExtension.class,
+                        dependenciesConfiguration);
     }
-
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.failure;
 
-import org.gradle.api.tasks.testing.TestFailure;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import org.gradle.api.tasks.testing.TestFailure;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A mapper that maps a {@link Throwable} thrown during test execution into a {@link TestFailure}.
@@ -82,7 +81,8 @@ public abstract class TestFailureMapper {
      * Utility method to invoke a method on an object by reflective means.
      */
     @Nullable
-    protected static <T> T invokeMethod(@Nullable Object obj, String methodName, Class<T> targetClass) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    protected static <T> T invokeMethod(@Nullable Object obj, String methodName, Class<T> targetClass)
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         if (obj == null) {
             return null;
         }
@@ -103,7 +103,8 @@ public abstract class TestFailureMapper {
      * @see #invokeMethod(Object, String, Class) for the generic version of this method
      */
     @Nullable
-    protected static Object invokeMethod(@Nullable Object obj, String methodName) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    protected static Object invokeMethod(@Nullable Object obj, String methodName)
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         return invokeMethod(obj, methodName, Object.class);
     }
 }

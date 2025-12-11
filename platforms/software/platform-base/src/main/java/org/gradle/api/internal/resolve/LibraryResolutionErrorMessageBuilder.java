@@ -22,5 +22,4 @@ public interface LibraryResolutionErrorMessageBuilder {
     String multipleCompatibleVariantsErrorMessage(String libraryName, Iterable<? extends Binary> binaries);
 
     String noCompatibleVariantErrorMessage(String libraryName, Iterable<? extends Binary> allBinaries);
-
 }

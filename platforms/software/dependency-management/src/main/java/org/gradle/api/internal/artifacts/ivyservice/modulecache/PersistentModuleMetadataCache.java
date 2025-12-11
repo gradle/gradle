@@ -43,20 +43,28 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
     private final ArtifactCacheLockingAccessCoordinator artifactCacheLockingManager;
 
     public PersistentModuleMetadataCache(
-        BuildCommencedTimeProvider timeProvider,
-        ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
-        ArtifactCacheMetadata artifactCacheMetadata,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        AttributeContainerSerializer attributeContainerSerializer,
-        CapabilitySelectorSerializer capabilitySelectorSerializer,
-        MavenMutableModuleMetadataFactory mavenMetadataFactory,
-        IvyMutableModuleMetadataFactory ivyMetadataFactory,
-        Interner<String> stringInterner,
-        ModuleSourcesSerializer moduleSourcesSerializer,
-        ChecksumService checksumService
-    ) {
+            BuildCommencedTimeProvider timeProvider,
+            ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
+            ArtifactCacheMetadata artifactCacheMetadata,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            AttributeContainerSerializer attributeContainerSerializer,
+            CapabilitySelectorSerializer capabilitySelectorSerializer,
+            MavenMutableModuleMetadataFactory mavenMetadataFactory,
+            IvyMutableModuleMetadataFactory ivyMetadataFactory,
+            Interner<String> stringInterner,
+            ModuleSourcesSerializer moduleSourcesSerializer,
+            ChecksumService checksumService) {
         super(timeProvider);
-        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(checksumService, artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, capabilitySelectorSerializer, mavenMetadataFactory, ivyMetadataFactory, moduleSourcesSerializer), moduleIdentifierFactory, stringInterner);
+        moduleMetadataStore = new ModuleMetadataStore(
+                new DefaultPathKeyFileStore(checksumService, artifactCacheMetadata.getMetaDataStoreDirectory()),
+                new ModuleMetadataSerializer(
+                        attributeContainerSerializer,
+                        capabilitySelectorSerializer,
+                        mavenMetadataFactory,
+                        ivyMetadataFactory,
+                        moduleSourcesSerializer),
+                moduleIdentifierFactory,
+                stringInterner);
         this.artifactCacheLockingManager = cacheAccessCoordinator;
     }
 
@@ -68,7 +76,8 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
     }
 
     private IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> initCache() {
-        return artifactCacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleMetadataCacheEntrySerializer());
+        return artifactCacheLockingManager.createCache(
+                "module-metadata", new RevisionKeySerializer(), new ModuleMetadataCacheEntrySerializer());
     }
 
     @Override
@@ -93,7 +102,10 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
     }
 
     @Override
-    protected CachedMetadata store(final ModuleComponentAtRepositoryKey key, final ModuleMetadataCacheEntry entry, final CachedMetadata cachedMetadata) {
+    protected CachedMetadata store(
+            final ModuleComponentAtRepositoryKey key,
+            final ModuleMetadataCacheEntry entry,
+            final CachedMetadata cachedMetadata) {
         if (entry.isMissing()) {
             getCache().put(key, entry);
         } else {

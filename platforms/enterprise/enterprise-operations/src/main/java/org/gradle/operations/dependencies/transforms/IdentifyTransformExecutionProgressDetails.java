@@ -16,10 +16,9 @@
 
 package org.gradle.operations.dependencies.transforms;
 
+import java.util.Map;
 import org.gradle.operations.dependencies.variants.ComponentIdentifier;
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
-
-import java.util.Map;
 
 /**
  * Fired each time a transform execution is identified by the execution engine.

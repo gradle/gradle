@@ -15,6 +15,22 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -33,23 +49,6 @@ import org.gradle.plugin.software.internal.ProjectFeatureImplementation;
 import org.gradle.plugin.software.internal.ProjectFeatureSupportInternal;
 import org.gradle.util.Path;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 /**
  * <p>Displays a list of projects in the build. An instance of this type is used when you execute the {@code projects}
@@ -87,14 +86,13 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         private final List<Path> includedBuildIdentityPaths;
 
         private ProjectReportModel(
-            ProjectDetails project,
-            List<ProjectReportModel> children,
-            List<ProjectFeatureImplementation<?, ?>> projectTypes,
-            boolean isRootProject,
-            String tasksTaskPath,
-            String rootProjectProjectsTaskPath,
-            List<Path> includedBuildIdentityPaths
-        ) {
+                ProjectDetails project,
+                List<ProjectReportModel> children,
+                List<ProjectFeatureImplementation<?, ?>> projectTypes,
+                boolean isRootProject,
+                String tasksTaskPath,
+                String rootProjectProjectsTaskPath,
+                List<Path> includedBuildIdentityPaths) {
             this.project = project;
             this.children = children;
             this.projectTypes = projectTypes;
@@ -118,31 +116,34 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     @Override
     protected ProjectReportModel calculateReportModelFor(Project project) {
         return new ProjectReportModel(
-            ProjectDetails.of(project),
-            calculateChildrenProjectsFor(project),
-            getProjectTypesFor(project),
-            project.getParent() == null,
-            project.absoluteProjectPath(ProjectInternal.TASKS_TASK),
-            project.getRootProject().absoluteProjectPath(ProjectInternal.PROJECTS_TASK),
-            calculateIncludedBuildIdentityPaths()
-        );
+                ProjectDetails.of(project),
+                calculateChildrenProjectsFor(project),
+                getProjectTypesFor(project),
+                project.getParent() == null,
+                project.absoluteProjectPath(ProjectInternal.TASKS_TASK),
+                project.getRootProject().absoluteProjectPath(ProjectInternal.PROJECTS_TASK),
+                calculateIncludedBuildIdentityPaths());
     }
 
     private static List<ProjectFeatureImplementation<?, ?>> getProjectTypesFor(Project project) {
         List<ProjectFeatureImplementation<?, ?>> results = new ArrayList<>(1);
-        results.addAll(ProjectFeatureSupportInternal.getContext((DefaultProject) project).childrenDefinitions().keySet());
+        results.addAll(ProjectFeatureSupportInternal.getContext((DefaultProject) project)
+                .childrenDefinitions()
+                .keySet());
         return results;
     }
 
     private List<ProjectReportModel> calculateChildrenProjectsFor(Project project) {
-        return ((ProjectInternal) project).getOwner().getChildProjects().stream()
-            .sorted(ProjectOrderingUtil::compare)
-            .map(state -> calculateReportModelFor(state.getMutableModel()))
-            .collect(Collectors.toList());
+        return ((ProjectInternal) project)
+                .getOwner().getChildProjects().stream()
+                        .sorted(ProjectOrderingUtil::compare)
+                        .map(state -> calculateReportModelFor(state.getMutableModel()))
+                        .collect(Collectors.toList());
     }
 
     private List<Path> calculateIncludedBuildIdentityPaths() {
-        Collection<? extends IncludedBuildState> includedBuilds = getBuildStateRegistry().getIncludedBuilds();
+        Collection<? extends IncludedBuildState> includedBuilds =
+                getBuildStateRegistry().getIncludedBuilds();
         List<Path> includedBuildIdentityPaths = new ArrayList<>(includedBuilds.size());
         for (IncludedBuildState includedBuild : includedBuilds) {
             includedBuildIdentityPaths.add(includedBuild.getIdentityPath());
@@ -164,9 +165,9 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     private void renderProjectTypeInfo(Map<ProjectDetails, ProjectReportModel> modelsByProjectDetails) {
         List<ProjectFeatureImplementation<?, ?>> projectFeatures = modelsByProjectDetails.values().stream()
-            .flatMap(model -> model.getAllProjectTypes().stream())
-            .sorted(Comparator.comparing(ProjectFeatureImplementation::getFeatureName))
-            .collect(Collectors.toList());
+                .flatMap(model -> model.getAllProjectTypes().stream())
+                .sorted(Comparator.comparing(ProjectFeatureImplementation::getFeatureName))
+                .collect(Collectors.toList());
 
         StyledTextOutput textOutput = getRenderer().getTextOutput();
         if (!projectFeatures.isEmpty()) {
@@ -175,9 +176,21 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
             projectFeatures.forEach(type -> {
                 textOutput.withStyle(Identifier).text(type.getFeatureName());
-                textOutput.append(" (").append(type.getDefinitionPublicType().getName()).append(")").println();
-                textOutput.append("        ").append("Defined in: ").append(type.getPluginClass().getName()).println();
-                textOutput.append("        ").append("Registered by: ").append(type.getRegisteringPluginClass().getName()).println();
+                textOutput
+                        .append(" (")
+                        .append(type.getDefinitionPublicType().getName())
+                        .append(")")
+                        .println();
+                textOutput
+                        .append("        ")
+                        .append("Defined in: ")
+                        .append(type.getPluginClass().getName())
+                        .println();
+                textOutput
+                        .append("        ")
+                        .append("Registered by: ")
+                        .append(type.getRegisteringPluginClass().getName())
+                        .println();
             });
         }
     }
@@ -222,18 +235,16 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         }
     }
 
-    private void renderProject(
-        ProjectReportModel model,
-        GraphRenderer renderer,
-        boolean lastChild
-    ) {
-        renderer.visit(textOutput -> {
-            textOutput.text(StringUtils.capitalize(model.project.getDisplayName()));
-            renderProjectType(model);
-            if (!model.isRootProject) {
-                renderProjectDescription(model, textOutput);
-            }
-        }, lastChild);
+    private void renderProject(ProjectReportModel model, GraphRenderer renderer, boolean lastChild) {
+        renderer.visit(
+                textOutput -> {
+                    textOutput.text(StringUtils.capitalize(model.project.getDisplayName()));
+                    renderProjectType(model);
+                    if (!model.isRootProject) {
+                        renderProjectDescription(model, textOutput);
+                    }
+                },
+                lastChild);
         renderer.startChildren();
         for (ProjectReportModel child : model.children) {
             renderProject(child, renderer, child == model.children.get(model.children.size() - 1));
@@ -258,7 +269,10 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         if (!model.projectTypes.isEmpty()) {
             StyledTextOutput textOutput = getRenderer().getTextOutput();
             assert model.projectTypes.size() == 1;
-            textOutput.append(" (").append(model.projectTypes.get(0).getFeatureName()).append(")");
+            textOutput
+                    .append(" (")
+                    .append(model.projectTypes.get(0).getFeatureName())
+                    .append(")");
         }
     }
 
@@ -273,7 +287,11 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
             projectLocations.sort(Comparator.comparing(ProjectDetails::getDisplayName));
             for (ProjectDetails project : projectLocations) {
                 textOutput.withStyle(Identifier).text(project.getDisplayName());
-                textOutput.withStyle(Description).text(" - ").text(File.separatorChar).text(project.getRelativeProjectDir());
+                textOutput
+                        .withStyle(Description)
+                        .text(" - ")
+                        .text(File.separatorChar)
+                        .text(project.getRelativeProjectDir());
                 textOutput.println();
             }
         }
@@ -299,9 +317,8 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
                 renderer.startChildren();
                 for (Path includedBuildIdentityPath : model.includedBuildIdentityPaths) {
                     renderer.visit(
-                        text -> textOutput.text("Included build '" + includedBuildIdentityPath + "'"),
-                        (index + 1) == model.includedBuildIdentityPaths.size()
-                    );
+                            text -> textOutput.text("Included build '" + includedBuildIdentityPath + "'"),
+                            (index + 1) == model.includedBuildIdentityPaths.size());
                     index++;
                 }
                 renderer.completeChildren();
@@ -314,29 +331,18 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
         textOutput.println();
         textOutput.text("To see a list of the tasks of a project, run ");
-        metaData.describeCommand(
-            textOutput.withStyle(UserInput),
-            "<project-path>:" + ProjectInternal.TASKS_TASK
-        );
+        metaData.describeCommand(textOutput.withStyle(UserInput), "<project-path>:" + ProjectInternal.TASKS_TASK);
         textOutput.println();
 
         textOutput.text("For example, try running ");
-        ProjectReportModel exampleProject = model.children.isEmpty()
-            ? model
-            : model.children.get(0);
-        metaData.describeCommand(
-            textOutput.withStyle(UserInput),
-            exampleProject.tasksTaskPath
-        );
+        ProjectReportModel exampleProject = model.children.isEmpty() ? model : model.children.get(0);
+        metaData.describeCommand(textOutput.withStyle(UserInput), exampleProject.tasksTaskPath);
         textOutput.println();
 
         if (!model.isRootProject) {
             textOutput.println();
             textOutput.text("To see a list of all the projects in this build, run ");
-            metaData.describeCommand(
-                textOutput.withStyle(UserInput),
-                model.rootProjectProjectsTaskPath
-            );
+            metaData.describeCommand(textOutput.withStyle(UserInput), model.rootProjectProjectsTaskPath);
             textOutput.println();
         }
     }

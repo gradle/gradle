@@ -17,10 +17,6 @@ package gradlebuild.docs.dsl.source.model;
 
 import gradlebuild.docs.model.Attachable;
 import gradlebuild.docs.model.ClassMetaDataRepository;
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.Action;
-import org.gradle.api.Transformer;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,11 +25,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 
 /**
  * Static meta-data about a class extracted from the source for the class.
  */
-public class ClassMetaData extends AbstractLanguageElement implements Serializable, Attachable<ClassMetaData>, TypeContainer {
+public class ClassMetaData extends AbstractLanguageElement
+        implements Serializable, Attachable<ClassMetaData>, TypeContainer {
     private final String className;
     private String superClassName;
     private final String packageName;
@@ -49,7 +49,8 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     public final HashMap<String, String> constants = new HashMap<String, String>();
     private final List<EnumConstantMetaData> enumConstants = new ArrayList<EnumConstantMetaData>();
 
-    public ClassMetaData(String className, String packageName, MetaType metaType, boolean isGroovy, String rawClassComment) {
+    public ClassMetaData(
+            String className, String packageName, MetaType metaType, boolean isGroovy, String rawClassComment) {
         super(rawClassComment);
         this.className = className;
         this.packageName = packageName;
@@ -145,7 +146,8 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
         imports.add(importName);
     }
 
-    public PropertyMetaData addReadableProperty(String name, TypeMetaData type, String rawCommentText, MethodMetaData getterMethod) {
+    public PropertyMetaData addReadableProperty(
+            String name, TypeMetaData type, String rawCommentText, MethodMetaData getterMethod) {
         PropertyMetaData property = getProperty(name);
         property.setType(type);
         property.setRawCommentText(rawCommentText);
@@ -153,7 +155,8 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
         return property;
     }
 
-    public PropertyMetaData addWriteableProperty(String name, TypeMetaData type, String rawCommentText, MethodMetaData setterMethod) {
+    public PropertyMetaData addWriteableProperty(
+            String name, TypeMetaData type, String rawCommentText, MethodMetaData setterMethod) {
         PropertyMetaData property = getProperty(name);
         if (property.getType() == null) {
             property.setType(type);
@@ -312,6 +315,9 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     }
 
     public static enum MetaType {
-        CLASS, INTERFACE, ENUM, ANNOTATION
+        CLASS,
+        INTERFACE,
+        ENUM,
+        ANNOTATION
     }
 }

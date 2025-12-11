@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
+import java.io.File;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -31,12 +32,11 @@ import org.gradle.internal.watch.vfs.VfsLogging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-
 /**
  * A {@link VirtualFileSystem} which is not able to register any watches.
  */
-public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSystem implements BuildLifecycleAwareVirtualFileSystem {
+public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSystem
+        implements BuildLifecycleAwareVirtualFileSystem {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingNotSupportedVirtualFileSystem.class);
 
@@ -51,10 +51,7 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
 
     @Override
     public boolean afterBuildStarted(
-        WatchMode watchMode,
-        VfsLogging vfsLogging,
-        BuildOperationRunner buildOperationRunner
-    ) {
+            WatchMode watchMode, VfsLogging vfsLogging, BuildOperationRunner buildOperationRunner) {
         if (watchMode == WatchMode.ENABLED) {
             LOGGER.warn("Watching the file system is not supported.");
         }
@@ -67,24 +64,23 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(BuildStartedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
-                    .details(BuildStartedFileSystemWatchingBuildOperationType.Details.INSTANCE);
+                return BuildOperationDescriptor.displayName(
+                                BuildStartedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
+                        .details(BuildStartedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
         }));
         return false;
     }
 
     @Override
-    public void registerWatchableHierarchy(File rootDirectoryForWatching) {
-    }
+    public void registerWatchableHierarchy(File rootDirectoryForWatching) {}
 
     @Override
     public void beforeBuildFinished(
-        WatchMode watchMode,
-        VfsLogging vfsLogging,
-        BuildOperationRunner buildOperationRunner,
-        int maximumNumberOfWatchedHierarchies
-    ) {
+            WatchMode watchMode,
+            VfsLogging vfsLogging,
+            BuildOperationRunner buildOperationRunner,
+            int maximumNumberOfWatchedHierarchies) {
         updateRootUnderLock(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
@@ -94,15 +90,15 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(BuildFinishedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
-                    .details(BuildFinishedFileSystemWatchingBuildOperationType.Details.INSTANCE);
+                return BuildOperationDescriptor.displayName(
+                                BuildFinishedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
+                        .details(BuildFinishedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
         }));
     }
 
     @Override
-    public void afterBuildFinished() {
-    }
+    public void afterBuildFinished() {}
 
     @Override
     public boolean isWatchingAnyLocations() {

@@ -22,6 +22,15 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult;
@@ -39,16 +48,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.Serializer;
 import org.jspecify.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-
 /**
  * A {@link TestResultsProvider} that provides results from a {@link TestTreeModel}. This handles condensing the multiple
  * levels of the tree model into test classes and test methods, so that the results can be consumed by existing report
@@ -65,10 +64,12 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
 
     public static void useResultsFrom(Path resultsDir, Consumer<TestTreeModelResultsProvider> resultsConsumer) {
         SerializableTestResultStore resultsStore = new SerializableTestResultStore(resultsDir);
-        Serializer<TestOutputEvent> testOutputEventSerializer = TestEventSerializer.create().build(TestOutputEvent.class);
-        try  {
+        Serializer<TestOutputEvent> testOutputEventSerializer =
+                TestEventSerializer.create().build(TestOutputEvent.class);
+        try {
             TestTreeModel root = TestTreeModel.loadModelFromStores(Collections.singletonList(resultsStore));
-            TestTreeModelResultsProvider resultsProvider = new TestTreeModelResultsProvider(root, resultsStore.createOutputReader(testOutputEventSerializer));
+            TestTreeModelResultsProvider resultsProvider =
+                    new TestTreeModelResultsProvider(root, resultsStore.createOutputReader(testOutputEventSerializer));
             resultsConsumer.accept(resultsProvider);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -81,9 +82,13 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
          * All output entries from this "class" and the intermediate nodes. Does not include output entries from "method"s.
          */
         final ImmutableList<OutputEntry> outputEntries;
+
         final ImmutableMap<Long, OutputEntry> methodOutputEntries;
 
-        ClassNode(TestClassResult result, ImmutableList<OutputEntry> outputEntries, ImmutableMap<Long, OutputEntry> methodOutputEntries) {
+        ClassNode(
+                TestClassResult result,
+                ImmutableList<OutputEntry> outputEntries,
+                ImmutableMap<Long, OutputEntry> methodOutputEntries) {
             this.result = result;
             this.outputEntries = outputEntries;
             this.methodOutputEntries = methodOutputEntries;
@@ -91,7 +96,7 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     }
 
     private static final Comparator<PerRootInfo> PER_ROOT_INFO_BY_START_TIME =
-        Comparator.comparing(leaf -> leaf.getResults().get(0).getStartTime());
+            Comparator.comparing(leaf -> leaf.getResults().get(0).getStartTime());
 
     private static Map<Long, ClassNode> createClasses(TestTreeModel root) {
         Map<org.gradle.util.Path, TestTreeModel> parentOfPath = buildParentOfPathMap(root);
@@ -100,21 +105,20 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
             for (PerRootInfo perRootInfo : leaf.getPerRootInfo().get(0)) {
                 if (perRootInfo.getResults().size() > 1) {
                     // Only one of these should be generated per leaf node, multiple results are not merged
-                    throw new IllegalStateException(
-                        "Expected exactly one result for leaf node " + leaf.getPath() +
-                            " but found: " + perRootInfo.getResults().size()
-                    );
+                    throw new IllegalStateException("Expected exactly one result for leaf node " + leaf.getPath()
+                            + " but found: " + perRootInfo.getResults().size());
                 }
-                TestTreeModel groupingNode = findGroupingNode(parentOfPath, leaf, perRootInfo.getResults().get(0).getClassName());
+                TestTreeModel groupingNode = findGroupingNode(
+                        parentOfPath, leaf, perRootInfo.getResults().get(0).getClassName());
                 leavesByGroupingNode.put(groupingNode, perRootInfo);
             }
         });
 
         ImmutableMap.Builder<Long, ClassNode> classesById = ImmutableMap.builderWithExpectedSize(
-            leavesByGroupingNode.keySet().size()
-        );
+                leavesByGroupingNode.keySet().size());
         long nextClassId = 1;
-        for (Map.Entry<TestTreeModel, List<PerRootInfo>> entry : Multimaps.asMap(leavesByGroupingNode).entrySet()) {
+        for (Map.Entry<TestTreeModel, List<PerRootInfo>> entry :
+                Multimaps.asMap(leavesByGroupingNode).entrySet()) {
             TestTreeModel groupingNode = entry.getKey();
             List<PerRootInfo> leaves = new ArrayList<>(entry.getValue());
 
@@ -140,7 +144,9 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
                 }
             });
 
-            classesById.put(classResult.getId(), new ClassNode(classResult, outputEntries.build(), methodOutputEntries.build()));
+            classesById.put(
+                    classResult.getId(),
+                    new ClassNode(classResult, outputEntries.build(), methodOutputEntries.build()));
         }
         return classesById.build();
     }
@@ -152,9 +158,7 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     }
 
     private static void addToParentOfPathMap(
-        TestTreeModel node,
-        ImmutableMap.Builder<org.gradle.util.Path, TestTreeModel> parentOfPath
-    ) {
+            TestTreeModel node, ImmutableMap.Builder<org.gradle.util.Path, TestTreeModel> parentOfPath) {
         for (TestTreeModel child : node.getChildren()) {
             parentOfPath.put(child.getPath(), node);
             addToParentOfPathMap(child, parentOfPath);
@@ -162,11 +166,10 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     }
 
     private static TestClassResult buildClassResult(
-        TestTreeModel groupingNode,
-        List<PerRootInfo> leaves,
-        long nextClassId,
-        ImmutableMap.Builder<Long, OutputEntry> methodOutputEntries
-    ) {
+            TestTreeModel groupingNode,
+            List<PerRootInfo> leaves,
+            long nextClassId,
+            ImmutableMap.Builder<Long, OutputEntry> methodOutputEntries) {
         TestClassResult classResult = createEmptyClassResult(groupingNode, nextClassId);
 
         for (PerRootInfo leaf : leaves) {
@@ -182,10 +185,8 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     private static TestClassResult createEmptyClassResult(TestTreeModel groupingNode, long nextClassId) {
         List<PerRootInfo> perRootInfos = groupingNode.getPerRootInfo().get(0);
         if (perRootInfos.size() != 1) {
-            throw new IllegalStateException(
-                "Expected exactly one run for grouping node " + groupingNode.getPath() +
-                    " but found: " + perRootInfos.size()
-            );
+            throw new IllegalStateException("Expected exactly one run for grouping node " + groupingNode.getPath()
+                    + " but found: " + perRootInfos.size());
         }
         PerRootInfo perRootInfo = perRootInfos.get(0);
         List<SerializableTestResult> results = perRootInfo.getResults();
@@ -197,56 +198,49 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
             SerializableTestResult result = results.get(i);
             // This should never happen, as merging is keyed by name.
             if (!result.getName().equals(name)) {
-                throw new IllegalStateException(
-                    "Expected all results for grouping node " + groupingNode.getPath() +
-                        " to have the same name, but found: " + name + " and " + result.getName()
-                );
+                throw new IllegalStateException("Expected all results for grouping node " + groupingNode.getPath()
+                        + " to have the same name, but found: " + name + " and " + result.getName());
             }
             // This can happen for a variety of cases, e.g. parameterized tests or multiple test frameworks.
             // Therefore, we shouldn't fail, as a slightly broken report is better than a task failure.
             if (!result.getDisplayName().equals(displayName)) {
                 LOGGER.warn(
-                    "Expected all results for grouping node {} to have the same display name, but found: {} and {}",
-                    groupingNode.getPath(), displayName, result.getDisplayName()
-                );
+                        "Expected all results for grouping node {} to have the same display name, but found: {} and {}",
+                        groupingNode.getPath(),
+                        displayName,
+                        result.getDisplayName());
             }
             if (result.getStartTime() < earliestStartTime) {
                 earliestStartTime = result.getStartTime();
             }
         }
         return new TestClassResult(
-            nextClassId,
-            name,
-            displayName,
-            earliestStartTime,
-            ImmutableList.copyOf(perRootInfo.getMetadatas())
-        );
+                nextClassId, name, displayName, earliestStartTime, ImmutableList.copyOf(perRootInfo.getMetadatas()));
     }
 
     private static TestMethodResult buildMethodResult(PerRootInfo leaf) {
         SerializableTestResult result = leaf.getResults().get(0);
         TestMethodResult methodResult = new TestMethodResult(
-            leaf.getId(),
-            result.getName(),
-            result.getDisplayName(),
-            result.getResultType(),
-            result.getDuration(),
-            result.getEndTime(),
-            ImmutableList.copyOf(leaf.getMetadatas())
-        );
+                leaf.getId(),
+                result.getName(),
+                result.getDisplayName(),
+                result.getResultType(),
+                result.getDuration(),
+                result.getEndTime(),
+                ImmutableList.copyOf(leaf.getMetadatas()));
         methodResult.getFailures().addAll(result.getFailures());
         if (result.getAssumptionFailure() != null) {
             SerializableFailure assumptionFailure = result.getAssumptionFailure();
             methodResult.setAssumptionFailure(
-                assumptionFailure.getMessage(), assumptionFailure.getStackTrace(), assumptionFailure.getExceptionType()
-            );
+                    assumptionFailure.getMessage(),
+                    assumptionFailure.getStackTrace(),
+                    assumptionFailure.getExceptionType());
         }
         return methodResult;
     }
 
     private static TestTreeModel findGroupingNode(
-        Map<org.gradle.util.Path, TestTreeModel> parentOfPath, TestTreeModel leaf, @Nullable String className
-    ) {
+            Map<org.gradle.util.Path, TestTreeModel> parentOfPath, TestTreeModel leaf, @Nullable String className) {
         TestTreeModel current = leaf;
         TestTreeModel parent;
         while ((parent = parentOfPath.get(current.getPath())) != null) {
@@ -268,10 +262,9 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     }
 
     private static void walkLeaves(
-        Map<org.gradle.util.Path, TestTreeModel> parentOfPath,
-        TestTreeModel base,
-        Consumer<TestTreeModel> leafConsumer
-    ) {
+            Map<org.gradle.util.Path, TestTreeModel> parentOfPath,
+            TestTreeModel base,
+            Consumer<TestTreeModel> leafConsumer) {
         base.walkDepthFirst(node -> {
             if (node.getChildren().isEmpty()) {
                 // Ignore the root node as a leaf, it is not a test
@@ -306,9 +299,9 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
         }
         try {
             outputReader.useTestOutputEvents(
-                Iterables.concat(classNode.outputEntries, classNode.methodOutputEntries.values()), destination,
-                event -> writer.write(event.getMessage())
-            );
+                    Iterables.concat(classNode.outputEntries, classNode.methodOutputEntries.values()),
+                    destination,
+                    event -> writer.write(event.getMessage()));
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -322,9 +315,7 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
         }
         try {
             outputReader.useTestOutputEvents(
-                classNode.outputEntries, destination,
-                event -> writer.write(event.getMessage())
-            );
+                    classNode.outputEntries, destination, event -> writer.write(event.getMessage()));
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -341,10 +332,7 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
             throw new IllegalArgumentException("No test with id " + testId + " in class with id " + classId);
         }
         try {
-            outputReader.useTestOutputEvents(
-                testEntry, destination,
-                event -> writer.write(event.getMessage())
-            );
+            outputReader.useTestOutputEvents(testEntry, destination, event -> writer.write(event.getMessage()));
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

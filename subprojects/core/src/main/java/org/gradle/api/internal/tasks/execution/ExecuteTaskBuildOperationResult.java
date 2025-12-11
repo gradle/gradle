@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.operations.execution.CachingDisabledReasonCategory;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Optional;
 
 public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperationType.Result {
 
@@ -34,7 +33,12 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     private final boolean incremental;
     private final List<String> executionReasons;
 
-    public ExecuteTaskBuildOperationResult(TaskStateInternal taskState, CachingState cachingState, @Nullable OriginMetadata originMetadata, boolean incremental, List<String> executionReasons) {
+    public ExecuteTaskBuildOperationResult(
+            TaskStateInternal taskState,
+            CachingState cachingState,
+            @Nullable OriginMetadata originMetadata,
+            boolean incremental,
+            List<String> executionReasons) {
         this.taskState = taskState;
         this.cachingState = cachingState;
         this.originMetadata = originMetadata;
@@ -67,9 +71,7 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
 
     @Override
     public byte @Nullable [] getOriginBuildCacheKeyBytes() {
-        return originMetadata == null
-            ? null
-            : originMetadata.getBuildCacheKey().toByteArray();
+        return originMetadata == null ? null : originMetadata.getBuildCacheKey().toByteArray();
     }
 
     @Nullable
@@ -81,29 +83,28 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Nullable
     @Override
     public String getCachingDisabledReasonMessage() {
-        return getCachingDisabledReason()
-            .map(CachingDisabledReason::getMessage)
-            .orElse(null);
+        return getCachingDisabledReason().map(CachingDisabledReason::getMessage).orElse(null);
     }
 
     @Nullable
     @Override
     public String getCachingDisabledReasonCategory() {
         return getCachingDisabledReason()
-            .map(CachingDisabledReason::getCategory)
-            .map(ExecuteTaskBuildOperationResult::convertNoCacheReasonCategory)
-            .map(Enum::name)
-            .orElse(null);
+                .map(CachingDisabledReason::getCategory)
+                .map(ExecuteTaskBuildOperationResult::convertNoCacheReasonCategory)
+                .map(Enum::name)
+                .orElse(null);
     }
 
     private Optional<CachingDisabledReason> getCachingDisabledReason() {
         return cachingState
-            .whenDisabled()
-            .map(CachingState.Disabled::getDisabledReasons)
-            .map(reasons -> reasons.get(0));
+                .whenDisabled()
+                .map(CachingState.Disabled::getDisabledReasons)
+                .map(reasons -> reasons.get(0));
     }
 
-    private static CachingDisabledReasonCategory convertNoCacheReasonCategory(org.gradle.internal.execution.caching.CachingDisabledReasonCategory category) {
+    private static CachingDisabledReasonCategory convertNoCacheReasonCategory(
+            org.gradle.internal.execution.caching.CachingDisabledReasonCategory category) {
         switch (category) {
             case UNKNOWN:
                 return CachingDisabledReasonCategory.UNKNOWN;
@@ -137,5 +138,4 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     public boolean isIncremental() {
         return incremental;
     }
-
 }

@@ -47,7 +47,6 @@ public class FileContentMerger {
         this.beforeMerged = beforeMerged;
     }
 
-
     /**
      * Adds an action to be called after content is loaded from existing file but before gradle build information is merged.
      * <p>

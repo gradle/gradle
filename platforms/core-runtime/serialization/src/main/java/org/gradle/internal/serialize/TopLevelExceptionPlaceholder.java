@@ -23,7 +23,10 @@ import java.util.function.Function;
 
 public class TopLevelExceptionPlaceholder extends ExceptionPlaceholder {
     private static final long serialVersionUID = 1L;
-    public TopLevelExceptionPlaceholder(Throwable throwable, Function<OutputStream, ExceptionReplacingObjectOutputStream> objectOutputStreamCreator) throws IOException {
+
+    public TopLevelExceptionPlaceholder(
+            Throwable throwable, Function<OutputStream, ExceptionReplacingObjectOutputStream> objectOutputStreamCreator)
+            throws IOException {
         super(throwable, objectOutputStreamCreator, new HashSet<Throwable>(10));
     }
 }

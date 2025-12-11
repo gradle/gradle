@@ -59,5 +59,4 @@ public class OutputEventListenerManager {
     public OutputEventListener getBroadcaster() {
         return broadcaster;
     }
-
 }

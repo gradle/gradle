@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.events.problems.internal;
 
+import java.util.Objects;
 import org.gradle.tooling.events.problems.ProblemGroup;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Objects;
 
 @NullMarked
 public class DefaultProblemGroup implements ProblemGroup {
@@ -60,7 +59,9 @@ public class DefaultProblemGroup implements ProblemGroup {
             return false;
         }
         DefaultProblemGroup that = (DefaultProblemGroup) o;
-        return Objects.equals(name, that.name) && Objects.equals(displayName, that.displayName) && Objects.equals(parent, that.parent);
+        return Objects.equals(name, that.name)
+                && Objects.equals(displayName, that.displayName)
+                && Objects.equals(parent, that.parent);
     }
 
     @Override

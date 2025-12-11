@@ -31,5 +31,4 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Documented
 @SuppressWarnings("unused")
-public @interface Generated {
-}
+public @interface Generated {}

@@ -16,6 +16,10 @@
 
 package org.gradle.plugins.ide.internal;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -28,11 +32,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-
 public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     private final IdeArtifactStore store;
     private final ProjectStateRegistry projectRegistry;
@@ -40,7 +39,11 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     private final ProjectComponentIdentifier currentProjectId;
 
     @Inject
-    public DefaultIdeArtifactRegistry(IdeArtifactStore store, ProjectStateRegistry projectRegistry, FileOperations fileOperations, ProjectInternal currentProject) {
+    public DefaultIdeArtifactRegistry(
+            IdeArtifactStore store,
+            ProjectStateRegistry projectRegistry,
+            FileOperations fileOperations,
+            ProjectInternal currentProject) {
         this.store = store;
         this.projectRegistry = projectRegistry;
         this.fileOperations = fileOperations;
@@ -91,14 +94,12 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
         return fileOperations.immutableFiles(new Callable<List<FileCollection>>() {
             @Override
             public List<FileCollection> call() {
-                return CollectionUtils.collect(
-                    getIdeProjects(type),
-                    result -> {
-                        ConfigurableFileCollection singleton = fileOperations.configurableFiles(result.get().getFile());
-                        singleton.builtBy(result.get().getGeneratorTasks());
-                        return singleton;
-                    }
-                );
+                return CollectionUtils.collect(getIdeProjects(type), result -> {
+                    ConfigurableFileCollection singleton =
+                            fileOperations.configurableFiles(result.get().getFile());
+                    singleton.builtBy(result.get().getGeneratorTasks());
+                    return singleton;
+                });
             }
         });
     }

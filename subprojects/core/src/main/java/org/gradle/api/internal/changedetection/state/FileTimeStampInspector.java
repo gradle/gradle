@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 
 /**
  * Attempts to detect certain kinds of changes to files that are not always visible using file timestamp and length:

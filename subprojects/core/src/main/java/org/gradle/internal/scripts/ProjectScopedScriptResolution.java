@@ -16,11 +16,10 @@
 
 package org.gradle.internal.scripts;
 
+import java.util.function.Supplier;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.function.Supplier;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface ProjectScopedScriptResolution {

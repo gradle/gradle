@@ -21,8 +21,7 @@ import org.gradle.plugin.management.PluginManagementSpec;
 
 class FirstPassPrecompiledScriptRunner extends FirstPassPrecompiledScript {
 
-    public void pluginManagement(Action<? super PluginManagementSpec> rule) {
-    }
+    public void pluginManagement(Action<? super PluginManagementSpec> rule) {}
 
     @Override
     public Object run() {

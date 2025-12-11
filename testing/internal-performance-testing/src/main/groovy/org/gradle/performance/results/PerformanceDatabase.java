@@ -18,12 +18,11 @@ package org.gradle.performance.results;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import javax.sql.DataSource;
 
 public class PerformanceDatabase {
     // This value specifies that a DB connection will stay at pool for at most 30 seconds
@@ -61,7 +60,8 @@ public class PerformanceDatabase {
                     initializer.execute(connection);
                 } catch (SQLException e) {
                     if (e.getErrorCode() == 90096) {
-                        System.out.println("Not enough permissions to migrate the performance database. This is okay if you are only trying to read.");
+                        System.out.println(
+                                "Not enough permissions to migrate the performance database. This is okay if you are only trying to read.");
                     } else {
                         throw e;
                     }

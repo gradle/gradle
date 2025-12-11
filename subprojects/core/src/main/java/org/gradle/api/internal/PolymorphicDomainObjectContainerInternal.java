@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal;
 
+import java.util.Set;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
-
-import java.util.Set;
 
 public interface PolymorphicDomainObjectContainerInternal<T> extends PolymorphicDomainObjectContainer<T> {
 

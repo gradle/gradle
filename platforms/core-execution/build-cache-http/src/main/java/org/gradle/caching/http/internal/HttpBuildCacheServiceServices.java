@@ -27,7 +27,13 @@ public class HttpBuildCacheServiceServices extends AbstractGradleModuleServices 
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.add(BuildCacheServiceRegistration.class, new DefaultBuildCacheServiceRegistration(HttpBuildCache.class, DefaultHttpBuildCacheServiceFactory.class));
-        registration.add(HttpBuildCacheRequestCustomizer.class, request -> request.addHeader("X-Gradle-Version", GradleVersion.current().getVersion()));
+        registration.add(
+                BuildCacheServiceRegistration.class,
+                new DefaultBuildCacheServiceRegistration(
+                        HttpBuildCache.class, DefaultHttpBuildCacheServiceFactory.class));
+        registration.add(
+                HttpBuildCacheRequestCustomizer.class,
+                request -> request.addHeader(
+                        "X-Gradle-Version", GradleVersion.current().getVersion()));
     }
 }

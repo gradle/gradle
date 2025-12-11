@@ -16,6 +16,14 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.java.TargetJvmVersion;
@@ -35,82 +43,78 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
 
     private final ProjectInternal project;
     private final InstanceGenerator instanceGenerator;
-    private final Map<ConfigurationInternal, Set<TaskProvider<?>>> configurationToCompileTasks; // The generic wildcard (`?`) == AbstractCompile & HasCompileOptions
+    private final Map<ConfigurationInternal, Set<TaskProvider<?>>>
+            configurationToCompileTasks; // The generic wildcard (`?`) == AbstractCompile & HasCompileOptions
 
     @Inject
-    public DefaultJvmLanguageUtilities(
-        InstanceGenerator instanceGenerator,
-        ProjectInternal project
-    ) {
+    public DefaultJvmLanguageUtilities(InstanceGenerator instanceGenerator, ProjectInternal project) {
         this.instanceGenerator = instanceGenerator;
         this.project = project;
         this.configurationToCompileTasks = new HashMap<>(5);
     }
 
     @Override
-    public <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<COMPILE> compileTask) {
+    public <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(
+            Configuration configuration, TaskProvider<COMPILE> compileTask) {
         ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
 
-        Set<TaskProvider<?>> untypedTasks = configurationToCompileTasks.computeIfAbsent(configurationInternal, key -> new HashSet<>());
+        Set<TaskProvider<?>> untypedTasks =
+                configurationToCompileTasks.computeIfAbsent(configurationInternal, key -> new HashSet<>());
         Set<TaskProvider<COMPILE>> compileTasks = Cast.uncheckedCast(untypedTasks);
         compileTasks.add(compileTask);
 
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
 
-        Provider<Integer> targetJvmVersion = ((JavaPluginExtensionInternal) java).getAutoTargetJvm().flatMap(autoTargetJvm -> {
-            if (!autoTargetJvm && !configuration.isCanBeConsumed()) {
-                return Providers.of(Integer.MAX_VALUE);
-            }
+        Provider<Integer> targetJvmVersion = ((JavaPluginExtensionInternal) java)
+                .getAutoTargetJvm()
+                .flatMap(autoTargetJvm -> {
+                    if (!autoTargetJvm && !configuration.isCanBeConsumed()) {
+                        return Providers.of(Integer.MAX_VALUE);
+                    }
 
-            return getMaxTargetJvmVersion(compileTasks);
-        });
+                    return getMaxTargetJvmVersion(compileTasks);
+                });
 
-        configurationInternal.getAttributes().attributeProvider(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, targetJvmVersion);
+        configurationInternal
+                .getAttributes()
+                .attributeProvider(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, targetJvmVersion);
     }
 
     @Override
-    public void registerJvmLanguageSourceDirectory(SourceSet sourceSet, String name, Action<? super JvmLanguageSourceDirectoryBuilder> configuration) {
-        DefaultJvmLanguageSourceDirectoryBuilder builder = instanceGenerator.newInstance(DefaultJvmLanguageSourceDirectoryBuilder.class,
-            name,
-            project,
-            sourceSet);
+    public void registerJvmLanguageSourceDirectory(
+            SourceSet sourceSet, String name, Action<? super JvmLanguageSourceDirectoryBuilder> configuration) {
+        DefaultJvmLanguageSourceDirectoryBuilder builder =
+                instanceGenerator.newInstance(DefaultJvmLanguageSourceDirectoryBuilder.class, name, project, sourceSet);
         configuration.execute(builder);
         builder.build();
     }
 
-    private static <COMPILE extends AbstractCompile & HasCompileOptions> ProviderInternal<Integer> getMaxTargetJvmVersion(Set<TaskProvider<COMPILE>> compileTasks) {
+    private static <COMPILE extends AbstractCompile & HasCompileOptions>
+            ProviderInternal<Integer> getMaxTargetJvmVersion(Set<TaskProvider<COMPILE>> compileTasks) {
         assert !compileTasks.isEmpty();
 
-        List<Provider<Integer>> allTargetJdkVersions = compileTasks.stream().map(taskProvider -> taskProvider.flatMap(compileTask -> {
-            if (compileTask.getOptions().getRelease().isPresent()) {
-                return compileTask.getOptions().getRelease();
-            }
+        List<Provider<Integer>> allTargetJdkVersions = compileTasks.stream()
+                .map(taskProvider -> taskProvider.flatMap(compileTask -> {
+                    if (compileTask.getOptions().getRelease().isPresent()) {
+                        return compileTask.getOptions().getRelease();
+                    }
 
-            List<String> compilerArgs = compileTask.getOptions().getCompilerArgs();
-            int flagIndex = compilerArgs.indexOf("--release");
+                    List<String> compilerArgs = compileTask.getOptions().getCompilerArgs();
+                    int flagIndex = compilerArgs.indexOf("--release");
 
-            if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
-                // String.valueOf() is required here since compilerArgs.get can mysteriously not return a String
-                return Providers.of(Integer.parseInt(String.valueOf(compilerArgs.get(flagIndex + 1))));
-            } else {
-                return Providers.of(JavaVersionParser.parseMajorVersion(compileTask.getTargetCompatibility()));
-            }
-        })).collect(Collectors.toList());
+                    if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
+                        // String.valueOf() is required here since compilerArgs.get can mysteriously not return a String
+                        return Providers.of(Integer.parseInt(String.valueOf(compilerArgs.get(flagIndex + 1))));
+                    } else {
+                        return Providers.of(JavaVersionParser.parseMajorVersion(compileTask.getTargetCompatibility()));
+                    }
+                }))
+                .collect(Collectors.toList());
 
         return new MergeProvider<>(allTargetJdkVersions).map(Collections::max);
     }
-
 }

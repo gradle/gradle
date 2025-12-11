@@ -16,12 +16,11 @@
 
 package org.gradle.api.file;
 
+import java.io.File;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Represents some element of the file system. A file system element has two parts: its location and its content. A file system element's content, may be the output of a task

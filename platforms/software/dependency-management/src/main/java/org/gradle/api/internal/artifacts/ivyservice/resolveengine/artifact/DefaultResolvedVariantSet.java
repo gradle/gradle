@@ -38,12 +38,11 @@ public class DefaultResolvedVariantSet implements ResolvedVariantSet {
     private final ResolvedVariantTransformer transformer;
 
     public DefaultResolvedVariantSet(
-        ComponentIdentifier componentIdentifier,
-        ImmutableAttributesSchema schema,
-        ImmutableAttributes selectionAttributes,
-        ImmutableList<ResolvedVariant> variants,
-        ResolvedVariantTransformer transformer
-    ) {
+            ComponentIdentifier componentIdentifier,
+            ImmutableAttributesSchema schema,
+            ImmutableAttributes selectionAttributes,
+            ImmutableList<ResolvedVariant> variants,
+            ResolvedVariantTransformer transformer) {
         this.componentIdentifier = componentIdentifier;
         this.schema = schema;
         this.selectionAttributes = selectionAttributes;
@@ -83,10 +82,7 @@ public class DefaultResolvedVariantSet implements ResolvedVariantSet {
     }
 
     @Override
-    public ResolvedArtifactSet transformCandidate(
-        ResolvedVariant candidate,
-        VariantDefinition variantDefinition
-    ) {
+    public ResolvedArtifactSet transformCandidate(ResolvedVariant candidate, VariantDefinition variantDefinition) {
         return transformer.transform(componentIdentifier, candidate, variantDefinition);
     }
 }

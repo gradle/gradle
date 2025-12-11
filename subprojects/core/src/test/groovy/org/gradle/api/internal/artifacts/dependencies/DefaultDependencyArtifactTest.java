@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import static org.junit.Assert.assertEquals;
+
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class DefaultDependencyArtifactTest {
     @Test
@@ -28,7 +28,8 @@ public class DefaultDependencyArtifactTest {
         String testExtension = "ext";
         String testClassifier = "classifier";
         String testUrl = "url";
-        DependencyArtifact artifact = new DefaultDependencyArtifact(testName, testType, testExtension, testClassifier, testUrl);
+        DependencyArtifact artifact =
+                new DefaultDependencyArtifact(testName, testType, testExtension, testClassifier, testUrl);
         assertEquals(testName, artifact.getName());
         assertEquals(testType, artifact.getType());
         assertEquals(testExtension, artifact.getExtension());

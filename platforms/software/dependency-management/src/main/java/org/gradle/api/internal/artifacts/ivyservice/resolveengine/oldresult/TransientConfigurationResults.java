@@ -24,5 +24,4 @@ public interface TransientConfigurationResults {
     ImmutableSet<ResolvedDependency> getFirstLevelDependencies();
 
     ResolvedDependency getRootNode();
-
 }

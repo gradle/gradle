@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildtree;
 
+import java.util.List;
 import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.StartParameterInternal;
@@ -91,8 +92,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
 
-import java.util.List;
-
 /**
  * Contains the singleton services for a single build tree which consists of one or more builds.
  */
@@ -104,11 +103,10 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     private final BuildTreeState buildTree;
 
     public BuildTreeScopeServices(
-        BuildActionModelRequirements buildActionRequirements,
-        BuildModelParameters buildModelParameters,
-        BuildInvocationScopeId buildInvocationScopeId,
-        BuildTreeState buildTree
-    ) {
+            BuildActionModelRequirements buildActionRequirements,
+            BuildModelParameters buildModelParameters,
+            BuildInvocationScopeId buildInvocationScopeId,
+            BuildTreeState buildTree) {
         this.buildActionRequirements = buildActionRequirements;
         this.buildModelParameters = buildModelParameters;
         this.buildInvocationScopeId = buildInvocationScopeId;
@@ -116,7 +114,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     protected void configure(ServiceRegistration registration, List<GradleModuleServices> servicesProviders) {
-        // It's important that these services are registered first, before build-tree GradleModuleServices providers are invoked,
+        // It's important that these services are registered first, before build-tree GradleModuleServices providers are
+        // invoked,
         // because some of them require these services for eager `configure` calls
         registration.add(BuildActionModelRequirements.class, buildActionRequirements);
         registration.add(BuildModelParameters.class, buildModelParameters);
@@ -158,25 +157,32 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     ObjectFactory createObjectFactory(
-        InstantiatorFactory instantiatorFactory, DirectoryFileTreeFactory directoryFileTreeFactory, PatternSetFactory patternSetFactory,
-        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
-        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
-    ) {
+            InstantiatorFactory instantiatorFactory,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            PatternSetFactory patternSetFactory,
+            PropertyFactory propertyFactory,
+            FilePropertyFactory filePropertyFactory,
+            TaskDependencyFactory taskDependencyFactory,
+            FileCollectionFactory fileCollectionFactory,
+            DomainObjectCollectionFactory domainObjectCollectionFactory,
+            NamedObjectInstantiator instantiator) {
         return new DefaultObjectFactory(
-            instantiatorFactory.decorate(buildTree.getServices()),
-            instantiator,
-            directoryFileTreeFactory,
-            patternSetFactory,
-            propertyFactory,
-            filePropertyFactory,
-            taskDependencyFactory,
-            fileCollectionFactory,
-            domainObjectCollectionFactory);
+                instantiatorFactory.decorate(buildTree.getServices()),
+                instantiator,
+                directoryFileTreeFactory,
+                patternSetFactory,
+                propertyFactory,
+                filePropertyFactory,
+                taskDependencyFactory,
+                fileCollectionFactory,
+                domainObjectCollectionFactory);
     }
 
     @Provides
-    protected InternalOptions createInternalOptions(StartParameterInternal startParameter, BuildTreeLocations buildTreeLocations) {
-        return InternalOptionsFactory.createInternalOptions(startParameter, buildTreeLocations.getBuildTreeRootDirectory());
+    protected InternalOptions createInternalOptions(
+            StartParameterInternal startParameter, BuildTreeLocations buildTreeLocations) {
+        return InternalOptionsFactory.createInternalOptions(
+                startParameter, buildTreeLocations.getBuildTreeRootDirectory());
     }
 
     @Provides
@@ -190,7 +196,11 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected BuildTaskSelector createBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, InternalProblems problemsService) {
+    protected BuildTaskSelector createBuildTaskSelector(
+            BuildStateRegistry buildRegistry,
+            TaskSelector taskSelector,
+            List<BuiltInCommand> commands,
+            InternalProblems problemsService) {
         return new DefaultBuildTaskSelector(buildRegistry, taskSelector, commands, problemsService);
     }
 
@@ -200,7 +210,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ExceptionAnalyser createExceptionAnalyser(LoggingConfiguration loggingConfiguration, ExceptionCollector exceptionCollector) {
+    protected ExceptionAnalyser createExceptionAnalyser(
+            LoggingConfiguration loggingConfiguration, ExceptionCollector exceptionCollector) {
         ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(exceptionCollector);
         if (loggingConfiguration.getShowStacktrace() != ShowStacktrace.ALWAYS_FULL) {
             exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
@@ -209,24 +220,24 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, ListenerManager listenerManager) {
+    protected FileCollectionFactory createFileCollectionFactory(
+            FileCollectionFactory parent, ListenerManager listenerManager) {
         return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
     }
 
     @Provides
     @PrivateService
-    protected MethodInterceptionReportCollector createMethodInterceptionReportCollector(StartParameterInternal startParameter) {
+    protected MethodInterceptionReportCollector createMethodInterceptionReportCollector(
+            StartParameterInternal startParameter) {
         return startParameter.isPropertyUpgradeReportEnabled()
-            ? new DefaultMethodInterceptionReportCollector()
-            : new ErrorReportingMethodInterceptionReportCollector();
+                ? new DefaultMethodInterceptionReportCollector()
+                : new ErrorReportingMethodInterceptionReportCollector();
     }
 
     @Provides
-    protected PropertyUpgradeReportConfig createPropertyUpgradeReportConfig(MethodInterceptionReportCollector reportCollector, StartParameterInternal startParameter) {
-        return new PropertyUpgradeReportConfig(
-            reportCollector,
-            startParameter.isPropertyUpgradeReportEnabled()
-        );
+    protected PropertyUpgradeReportConfig createPropertyUpgradeReportConfig(
+            MethodInterceptionReportCollector reportCollector, StartParameterInternal startParameter) {
+        return new PropertyUpgradeReportConfig(reportCollector, startParameter.isPropertyUpgradeReportEnabled());
     }
 
     @Provides
@@ -236,15 +247,13 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected GradlePropertiesController createGradlePropertiesController(
-        StartParameterInternal startParameter,
-        Environment environment,
-        SystemPropertiesInstaller systemPropertiesInstaller,
-        ListenerManager listenerManager
-    ) {
+            StartParameterInternal startParameter,
+            Environment environment,
+            SystemPropertiesInstaller systemPropertiesInstaller,
+            ListenerManager listenerManager) {
         return new DefaultGradlePropertiesController(
-            new DefaultGradlePropertiesLoader(startParameter, environment),
-            systemPropertiesInstaller,
-            listenerManager.getBroadcaster(GradlePropertiesListener.class)
-        );
+                new DefaultGradlePropertiesLoader(startParameter, environment),
+                systemPropertiesInstaller,
+                listenerManager.getBroadcaster(GradlePropertiesListener.class));
     }
 }

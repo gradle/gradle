@@ -26,8 +26,7 @@ final class DefaultExcludeEverything implements ExcludeEverything {
         return INSTANCE;
     }
 
-    private DefaultExcludeEverything() {
-    }
+    private DefaultExcludeEverything() {}
 
     @Override
     public boolean excludes(ModuleIdentifier module) {

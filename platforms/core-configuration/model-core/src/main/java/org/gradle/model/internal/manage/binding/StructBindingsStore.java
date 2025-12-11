@@ -24,5 +24,6 @@ import org.gradle.model.internal.type.ModelType;
 public interface StructBindingsStore {
     <T> StructBindings<T> getBindings(ModelType<T> publicType);
 
-    <T> StructBindings<T> getBindings(ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<?> delegateType);
+    <T> StructBindings<T> getBindings(
+            ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<?> delegateType);
 }

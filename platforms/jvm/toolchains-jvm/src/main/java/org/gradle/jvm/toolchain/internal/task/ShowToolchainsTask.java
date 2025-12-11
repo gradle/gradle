@@ -16,7 +16,17 @@
 
 package org.gradle.jvm.toolchain.internal.task;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
+
 import com.google.common.base.Strings;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.provider.ProviderFactory;
@@ -29,23 +39,12 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 
-import javax.inject.Inject;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
-
 @UntrackedTask(because = "Produces only non-cacheable console output")
 public abstract class ShowToolchainsTask extends DefaultTask {
 
-    private static final Comparator<JvmToolchainMetadata> TOOLCHAIN_COMPARATOR = Comparator
-        .<JvmToolchainMetadata, JavaVersion>comparing(t -> t.metadata.getLanguageVersion())
-        .thenComparing(t -> t.metadata.getDisplayName());
+    private static final Comparator<JvmToolchainMetadata> TOOLCHAIN_COMPARATOR =
+            Comparator.<JvmToolchainMetadata, JavaVersion>comparing(t -> t.metadata.getLanguageVersion())
+                    .thenComparing(t -> t.metadata.getDisplayName());
 
     private final ToolchainReportRenderer toolchainRenderer = new ToolchainReportRenderer();
 
@@ -82,7 +81,10 @@ public abstract class ShowToolchainsTask extends DefaultTask {
     }
 
     private static List<JvmToolchainMetadata> validToolchains(Collection<JvmToolchainMetadata> toolchains) {
-        return toolchains.stream().filter(ShowToolchainsTask::isValidToolchain).sorted(TOOLCHAIN_COMPARATOR).collect(Collectors.toList());
+        return toolchains.stream()
+                .filter(ShowToolchainsTask::isValidToolchain)
+                .sorted(TOOLCHAIN_COMPARATOR)
+                .collect(Collectors.toList());
     }
 
     private static boolean isValidToolchain(JvmToolchainMetadata t) {
@@ -90,8 +92,7 @@ public abstract class ShowToolchainsTask extends DefaultTask {
     }
 
     private List<JvmToolchainMetadata> allReportableToolchains() {
-        return getInstallationRegistry()
-            .toolchains();
+        return getInstallationRegistry().toolchains();
     }
 
     @Inject
@@ -105,5 +106,4 @@ public abstract class ShowToolchainsTask extends DefaultTask {
 
     @Inject
     protected abstract ToolchainConfiguration getToolchainConfiguration();
-
 }

@@ -68,5 +68,4 @@ public class JavaMethodTestSubject implements JavaMethodTestSubjectInterface {
     protected String overridden() {
         return "parent";
     }
-
 }

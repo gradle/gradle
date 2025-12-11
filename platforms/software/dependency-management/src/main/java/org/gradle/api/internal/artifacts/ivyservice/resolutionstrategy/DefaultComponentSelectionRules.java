@@ -16,7 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
+import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
+
 import groovy.lang.Closure;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentSelection;
@@ -39,13 +45,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
-
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
     @SuppressWarnings("InlineFormatString")
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
@@ -60,12 +59,12 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         this(moduleIdentifierFactory, createAdapter());
     }
 
-    protected DefaultComponentSelectionRules(ImmutableModuleIdentifierFactory moduleIdentifierFactory, RuleActionAdapter ruleActionAdapter) {
+    protected DefaultComponentSelectionRules(
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory, RuleActionAdapter ruleActionAdapter) {
         this.ruleActionAdapter = ruleActionAdapter;
-        this.moduleIdentifierNotationParser = NotationParserBuilder
-            .toType(ModuleIdentifier.class)
-            .fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
-            .toComposite();
+        this.moduleIdentifierNotationParser = NotationParserBuilder.toType(ModuleIdentifier.class)
+                .fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
+                .toComposite();
     }
 
     /**
@@ -92,17 +91,19 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
 
     @Override
     public ComponentSelectionRules all(Closure<?> closure) {
-        return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
+        return addRule(
+                createAllSpecRulesAction(ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
     }
 
     @Override
     @Deprecated
     public ComponentSelectionRules all(Object ruleSource) {
         DeprecationLogger.deprecateMethod(ComponentSelectionRules.class, "all(Object)")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "dependency_management_rules")
-            .nagUser();
-        return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(9, "dependency_management_rules")
+                .nagUser();
+        return addRule(
+                createAllSpecRulesAction(ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
     @Override
@@ -112,17 +113,19 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
 
     @Override
     public ComponentSelectionRules withModule(Object id, Closure<?> closure) {
-        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
+        return addRule(
+                createSpecRuleActionFromId(id, ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
     }
 
     @Override
     @Deprecated
     public ComponentSelectionRules withModule(Object id, Object ruleSource) {
         DeprecationLogger.deprecateMethod(ComponentSelectionRules.class, "withModule(Object,Object)")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "dependency_management_rules")
-            .nagUser();
-        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(9, "dependency_management_rules")
+                .nagUser();
+        return addRule(createSpecRuleActionFromId(
+                id, ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
     @Override
@@ -140,20 +143,23 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         return addRule(createAllSpecRulesAction(specRuleAction));
     }
 
-    private SpecRuleAction<? super ComponentSelection> createSpecRuleActionFromId(Object id, RuleAction<? super ComponentSelection> ruleAction) {
+    private SpecRuleAction<? super ComponentSelection> createSpecRuleActionFromId(
+            Object id, RuleAction<? super ComponentSelection> ruleAction) {
         final ModuleIdentifier moduleIdentifier;
 
         try {
             moduleIdentifier = moduleIdentifierNotationParser.parseNotation(id);
         } catch (UnsupportedNotationException e) {
-            throw new InvalidUserCodeException(String.format(INVALID_SPEC_ERROR, id == null ? "null" : id.toString()), e);
+            throw new InvalidUserCodeException(
+                    String.format(INVALID_SPEC_ERROR, id == null ? "null" : id.toString()), e);
         }
 
         Spec<ComponentSelection> spec = new ComponentSelectionMatchingSpec(moduleIdentifier);
         return new SpecRuleAction<>(ruleAction, spec);
     }
 
-    private SpecRuleAction<? super ComponentSelection> createAllSpecRulesAction(RuleAction<? super ComponentSelection> ruleAction) {
+    private SpecRuleAction<? super ComponentSelection> createAllSpecRulesAction(
+            RuleAction<? super ComponentSelection> ruleAction) {
         return new SpecRuleAction<>(ruleAction, Specs.satisfyAll());
     }
 
@@ -166,7 +172,8 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
 
         @Override
         public boolean isSatisfiedBy(ComponentSelection selection) {
-            return selection.getCandidate().getGroup().equals(target.getGroup()) && selection.getCandidate().getModule().equals(target.getName());
+            return selection.getCandidate().getGroup().equals(target.getGroup())
+                    && selection.getCandidate().getModule().equals(target.getName());
         }
     }
 }

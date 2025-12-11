@@ -24,10 +24,7 @@ public class CancelExecutionStep<C extends Context, R extends Result> implements
     private final BuildCancellationToken cancellationToken;
     private final Step<? super C, ? extends R> delegate;
 
-    public CancelExecutionStep(
-        BuildCancellationToken cancellationToken,
-        Step<? super C, ? extends R> delegate
-    ) {
+    public CancelExecutionStep(BuildCancellationToken cancellationToken, Step<? super C, ? extends R> delegate) {
         this.cancellationToken = cancellationToken;
         this.delegate = delegate;
     }

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import java.util.List;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
@@ -37,8 +38,6 @@ import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 public class IvyResolver extends ExternalResourceResolver {
 
     private final boolean dynamicResolve;
@@ -47,30 +46,30 @@ public class IvyResolver extends ExternalResourceResolver {
     private final IvyRemoteRepositoryAccess remoteRepositoryAccess;
 
     public IvyResolver(
-        IvyRepositoryDescriptor descriptor,
-        RepositoryTransport transport,
-        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-        boolean dynamicResolve,
-        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-        @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
-        @Nullable InstantiatingAction<ComponentMetadataListerDetails> componentMetadataVersionListerFactory,
-        ImmutableMetadataSources metadataSources,
-        MetadataArtifactProvider metadataArtifactProvider,
-        Instantiator injector, ChecksumService checksumService
-    ) {
+            IvyRepositoryDescriptor descriptor,
+            RepositoryTransport transport,
+            LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+            boolean dynamicResolve,
+            FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+            @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
+            @Nullable InstantiatingAction<ComponentMetadataListerDetails> componentMetadataVersionListerFactory,
+            ImmutableMetadataSources metadataSources,
+            MetadataArtifactProvider metadataArtifactProvider,
+            Instantiator injector,
+            ChecksumService checksumService) {
         super(
-            descriptor,
-            transport.isLocal(),
-            transport.getRepository(),
-            transport.getResourceAccessor(),
-            locallyAvailableResourceFinder,
-            artifactFileStore,
-            metadataSources,
-            metadataArtifactProvider,
-            componentMetadataSupplierFactory,
-            componentMetadataVersionListerFactory,
-            injector,
-            checksumService);
+                descriptor,
+                transport.isLocal(),
+                transport.getRepository(),
+                transport.getResourceAccessor(),
+                locallyAvailableResourceFinder,
+                artifactFileStore,
+                metadataSources,
+                metadataArtifactProvider,
+                componentMetadataSupplierFactory,
+                componentMetadataVersionListerFactory,
+                injector,
+                checksumService);
         this.dynamicResolve = dynamicResolve;
         this.m2Compatible = descriptor.isM2Compatible();
         this.localRepositoryAccess = new IvyLocalRepositoryAccess();
@@ -109,7 +108,8 @@ public class IvyResolver extends ExternalResourceResolver {
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
 
         @Override
-        protected void resolveJavadocArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
+        protected void resolveJavadocArtifacts(
+                ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
             IvyComponentArtifactResolveMetadata ivyModule = (IvyComponentArtifactResolveMetadata) module;
             List<? extends ComponentArtifactMetadata> artifacts = ivyModule.getConfigurationArtifacts("javadoc");
             if (artifacts != null) {
@@ -118,7 +118,8 @@ public class IvyResolver extends ExternalResourceResolver {
         }
 
         @Override
-        protected void resolveSourceArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
+        protected void resolveSourceArtifacts(
+                ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
             IvyComponentArtifactResolveMetadata ivyModule = (IvyComponentArtifactResolveMetadata) module;
             List<? extends ComponentArtifactMetadata> artifacts = ivyModule.getConfigurationArtifacts("sources");
             if (artifacts != null) {
@@ -127,7 +128,5 @@ public class IvyResolver extends ExternalResourceResolver {
         }
     }
 
-    private class IvyRemoteRepositoryAccess extends RemoteRepositoryAccess {
-
-    }
+    private class IvyRemoteRepositoryAccess extends RemoteRepositoryAccess {}
 }

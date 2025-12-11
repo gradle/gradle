@@ -16,11 +16,14 @@
 
 package org.gradle.initialization.buildsrc;
 
+import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesForInternalUse;
+
+import java.util.Collections;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolutionContext;
+import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
@@ -31,16 +34,13 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Collections;
-
-import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesForInternalUse;
-
 @ServiceScope(Scope.Build.class)
 public class BuildSrcBuildListenerFactory {
     private final Action<ProjectInternal> buildSrcRootProjectConfiguration;
     private ScriptClassPathResolver resolver;
 
-    public BuildSrcBuildListenerFactory(Action<ProjectInternal> buildSrcRootProjectConfiguration, ScriptClassPathResolver resolver) {
+    public BuildSrcBuildListenerFactory(
+            Action<ProjectInternal> buildSrcRootProjectConfiguration, ScriptClassPathResolver resolver) {
         this.buildSrcRootProjectConfiguration = buildSrcRootProjectConfiguration;
         this.resolver = resolver;
     }
@@ -80,15 +80,19 @@ public class BuildSrcBuildListenerFactory {
         public void applyTasksTo(Context context, ExecutionPlan plan) {
             rootProjectState.applyToMutableState(rootProject -> {
                 resolutionContext = resolver.prepareDependencyHandler(rootProject.getDependencies());
-                classpathConfiguration = rootProject.getConfigurations().resolvableDependencyScopeLocked("buildScriptClasspath");
+                classpathConfiguration =
+                        rootProject.getConfigurations().resolvableDependencyScopeLocked("buildScriptClasspath");
                 resolver.prepareClassPath(classpathConfiguration, resolutionContext);
-                classpathConfiguration.getDependencies().add(rootProject.getDependencies().create(rootProject));
+                classpathConfiguration
+                        .getDependencies()
+                        .add(rootProject.getDependencies().create(rootProject));
                 plan.addEntryTasks(getDependenciesForInternalUse(classpathConfiguration));
             });
         }
 
         public ClassPath getRuntimeClasspath() {
-            return rootProjectState.fromMutableState(project -> resolver.resolveClassPath(classpathConfiguration, resolutionContext));
+            return rootProjectState.fromMutableState(
+                    project -> resolver.resolveClassPath(classpathConfiguration, resolutionContext));
         }
     }
 }

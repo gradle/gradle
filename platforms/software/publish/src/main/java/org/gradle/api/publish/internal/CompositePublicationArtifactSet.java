@@ -24,13 +24,15 @@ import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.publish.PublicationArtifact;
 
-public class CompositePublicationArtifactSet<T extends PublicationArtifact> extends DelegatingDomainObjectSet<T> implements PublicationArtifactSet<T> {
+public class CompositePublicationArtifactSet<T extends PublicationArtifact> extends DelegatingDomainObjectSet<T>
+        implements PublicationArtifactSet<T> {
 
     private final FileCollection files;
 
     @SafeVarargs
     @SuppressWarnings("varargs")
-    public CompositePublicationArtifactSet(TaskDependencyFactory taskDependencyFactory, Class<T> type, PublicationArtifactSet<T>... artifactSets) {
+    public CompositePublicationArtifactSet(
+            TaskDependencyFactory taskDependencyFactory, Class<T> type, PublicationArtifactSet<T>... artifactSets) {
         super(CompositeDomainObjectSet.create(type, artifactSets));
         FileCollectionInternal[] fileCollections = new FileCollectionInternal[artifactSets.length];
         for (int i = 0; i < artifactSets.length; i++) {

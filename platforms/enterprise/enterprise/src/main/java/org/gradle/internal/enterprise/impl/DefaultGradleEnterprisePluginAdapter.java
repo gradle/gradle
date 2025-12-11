@@ -16,6 +16,14 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.api.problems.internal.BuildOperationProblem;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
@@ -32,15 +40,6 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationListenerR
 import org.gradle.operations.problems.Failure;
 import org.gradle.operations.problems.Problem;
 import org.jspecify.annotations.Nullable;
-
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Captures the state to recreate the {@link GradleEnterprisePluginService} instance.
@@ -68,14 +67,13 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     private transient GradleEnterprisePluginService pluginService;
 
     public DefaultGradleEnterprisePluginAdapter(
-        GradleEnterprisePluginServiceFactory pluginServiceFactory,
-        GradleEnterprisePluginConfig config,
-        GradleEnterprisePluginRequiredServices requiredServices,
-        GradleEnterprisePluginBuildState buildState,
-        GradleEnterprisePluginBackgroundJobExecutorsInternal backgroundJobExecutors,
-        GradleEnterprisePluginServiceRefInternal pluginServiceRef,
-        BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar
-    ) {
+            GradleEnterprisePluginServiceFactory pluginServiceFactory,
+            GradleEnterprisePluginConfig config,
+            GradleEnterprisePluginRequiredServices requiredServices,
+            GradleEnterprisePluginBuildState buildState,
+            GradleEnterprisePluginBackgroundJobExecutorsInternal backgroundJobExecutors,
+            GradleEnterprisePluginServiceRefInternal pluginServiceRef,
+            BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar) {
         this.pluginServiceFactory = pluginServiceFactory;
         this.config = config;
         this.requiredServices = requiredServices;
@@ -102,12 +100,15 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     }
 
     @Override
-    public void buildFinished(@Nullable Throwable buildFailure, List<org.gradle.internal.problems.failure.Failure> buildFailures) {
+    public void buildFinished(
+            @Nullable Throwable buildFailure, List<org.gradle.internal.problems.failure.Failure> buildFailures) {
         // Ensure that all tasks are complete prior to the buildFinished callback.
         backgroundJobExecutors.shutdown();
 
         if (pluginService != null) {
-            pluginService.getEndOfBuildListener().buildFinished(new DefaultDevelocityPluginResult(buildFailure, buildFailures));
+            pluginService
+                    .getEndOfBuildListener()
+                    .buildFinished(new DefaultDevelocityPluginResult(buildFailure, buildFailures));
         }
     }
 
@@ -120,14 +121,17 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     private static class DefaultDevelocityPluginResult implements GradleEnterprisePluginEndOfBuildListener.BuildResult {
         @Nullable
         private final Throwable buildFailure;
+
         @Nullable
         private final List<org.gradle.internal.problems.failure.Failure> buildFailures;
 
-        public DefaultDevelocityPluginResult(@Nullable Throwable buildFailure, @Nullable List<org.gradle.internal.problems.failure.Failure> buildFailures) {
+        public DefaultDevelocityPluginResult(
+                @Nullable Throwable buildFailure,
+                @Nullable List<org.gradle.internal.problems.failure.Failure> buildFailures) {
             // Validate the invariant, but avoid failing in production to allow Develocity to receive _a_ result
             // to provide a better user experience in the face of a bug on the Gradle side
-            assert (buildFailure == null && buildFailures == null) ||
-                (buildFailure != null && buildFailures != null && !buildFailures.isEmpty());
+            assert (buildFailure == null && buildFailures == null)
+                    || (buildFailure != null && buildFailures != null && !buildFailures.isEmpty());
             this.buildFailure = buildFailure;
             this.buildFailures = buildFailures;
         }
@@ -142,17 +146,14 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         @Nullable
         @Override
         public BuildFailure getBuildFailure() {
-            return buildFailures == null
-                ? null
-                : this::getBuildFailures;
+            return buildFailures == null ? null : this::getBuildFailures;
         }
 
         private List<Failure> getBuildFailures() {
             return Objects.requireNonNull(buildFailures).stream()
-                .map(DevelocityBuildFailure::new)
-                .collect(Collectors.toList());
+                    .map(DevelocityBuildFailure::new)
+                    .collect(Collectors.toList());
         }
-
     }
 
     private static class DevelocityBuildFailure implements Failure {
@@ -191,16 +192,14 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
 
         @Override
         public List<Failure> getCauses() {
-            return failure.getCauses().stream()
-                .map(DevelocityBuildFailure::new)
-                .collect(Collectors.toList());
+            return failure.getCauses().stream().map(DevelocityBuildFailure::new).collect(Collectors.toList());
         }
 
         @Override
         public List<Problem> getProblems() {
             return failure.getProblems().stream()
-                .map(BuildOperationProblem::new)
-                .collect(Collectors.toList());
+                    .map(BuildOperationProblem::new)
+                    .collect(Collectors.toList());
         }
 
         private static List<String> getClassLevelAnnotations(Class<?> cls) {
@@ -211,5 +210,4 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
             return new ArrayList<>(anns);
         }
     }
-
 }

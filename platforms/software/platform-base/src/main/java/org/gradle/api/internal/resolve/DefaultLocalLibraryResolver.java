@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.resolve;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -24,13 +28,9 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.VariantComponent;
 import org.gradle.platform.base.VariantComponentSpec;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 public class DefaultLocalLibraryResolver implements LocalLibraryResolver {
-    private static final ModelType<ModelMap<ComponentSpec>> COMPONENT_MAP_TYPE = ModelTypes.modelMap(ComponentSpec.class);
+    private static final ModelType<ModelMap<ComponentSpec>> COMPONENT_MAP_TYPE =
+            ModelTypes.modelMap(ComponentSpec.class);
 
     @Override
     @SuppressWarnings("MixedMutabilityReturnType")
@@ -44,12 +44,12 @@ public class DefaultLocalLibraryResolver implements LocalLibraryResolver {
         return librarySpecs;
     }
 
-    private void collectLocalComponents(ModelRegistry projectModel, String container, List<VariantComponent> librarySpecs) {
+    private void collectLocalComponents(
+            ModelRegistry projectModel, String container, List<VariantComponent> librarySpecs) {
         ModelMap<ComponentSpec> components = projectModel.find(container, COMPONENT_MAP_TYPE);
         if (components != null) {
             ModelMap<? extends VariantComponentSpec> libraries = components.withType(VariantComponentSpec.class);
             librarySpecs.addAll(libraries.values());
         }
     }
-
 }

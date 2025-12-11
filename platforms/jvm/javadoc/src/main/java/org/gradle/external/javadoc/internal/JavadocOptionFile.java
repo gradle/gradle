@@ -16,10 +16,6 @@
 
 package org.gradle.external.javadoc.internal;
 
-import org.gradle.external.javadoc.JavadocOptionFileOption;
-import org.gradle.external.javadoc.OptionLessJavadocOptionFileOption;
-import org.gradle.internal.Cast;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,6 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.gradle.external.javadoc.JavadocOptionFileOption;
+import org.gradle.external.javadoc.OptionLessJavadocOptionFileOption;
+import org.gradle.internal.Cast;
 
 public class JavadocOptionFile {
     private final Map<String, JavadocOptionFileOptionInternal<?>> options;
@@ -39,7 +38,9 @@ public class JavadocOptionFile {
         this(new LinkedHashMap<>(), new OptionLessStringsJavadocOptionFileOption(new ArrayList<>()));
     }
 
-    private JavadocOptionFile(Map<String, JavadocOptionFileOptionInternal<?>> options, OptionLessJavadocOptionFileOptionInternal<List<String>> sourceNames) {
+    private JavadocOptionFile(
+            Map<String, JavadocOptionFileOptionInternal<?>> options,
+            OptionLessJavadocOptionFileOptionInternal<List<String>> sourceNames) {
         this.options = options;
         this.sourceNames = sourceNames;
     }
@@ -48,7 +49,8 @@ public class JavadocOptionFile {
         this(duplicateOptions(original.options), original.sourceNames.duplicate());
     }
 
-    private static Map<String, JavadocOptionFileOptionInternal<?>> duplicateOptions(Map<String, JavadocOptionFileOptionInternal<?>> original) {
+    private static Map<String, JavadocOptionFileOptionInternal<?>> duplicateOptions(
+            Map<String, JavadocOptionFileOptionInternal<?>> original) {
         Map<String, JavadocOptionFileOptionInternal<?>> duplicateOptions = new LinkedHashMap<>();
         for (Map.Entry<String, JavadocOptionFileOptionInternal<?>> entry : original.entrySet()) {
             duplicateOptions.put(entry.getKey(), entry.getValue().duplicate());
@@ -152,11 +154,11 @@ public class JavadocOptionFile {
         return options.entrySet().stream()
                 .filter(entry -> !optionsToExclude.contains(entry.getKey()))
                 .collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    entry -> String.valueOf(entry.getValue().getValue()),
-                    (a, b) -> {
-                        throw new AssertionError();
-                    },
-                    LinkedHashMap::new));
+                        Map.Entry::getKey,
+                        entry -> String.valueOf(entry.getValue().getValue()),
+                        (a, b) -> {
+                            throw new AssertionError();
+                        },
+                        LinkedHashMap::new));
     }
 }

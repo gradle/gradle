@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.initialization;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.initialization.ClassLoaderScopeOrigin;
@@ -24,9 +26,6 @@ import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
@@ -49,20 +48,27 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     private ClassLoader effectiveLocalClassLoader;
     private ClassLoader effectiveExportClassLoader;
 
-    public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, @Nullable ClassLoaderScopeOrigin origin, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
+    public DefaultClassLoaderScope(
+            ClassLoaderScopeIdentifier id,
+            ClassLoaderScope parent,
+            @Nullable ClassLoaderScopeOrigin origin,
+            ClassLoaderCache classLoaderCache,
+            ClassLoaderScopeRegistryListener listener) {
         super(id, origin, classLoaderCache, listener);
         this.parent = parent;
         listener.childScopeCreated(parent.getId(), id, origin);
     }
 
-    private ClassLoader loader(ClassLoaderId id, ClassLoader parent, ClassPath classPath, @Nullable List<ClassLoader> additionalLoaders) {
+    private ClassLoader loader(
+            ClassLoaderId id, ClassLoader parent, ClassPath classPath, @Nullable List<ClassLoader> additionalLoaders) {
         if (additionalLoaders == null) {
             return loader(id, parent, classPath);
         }
         return new CachingClassLoader(multiLoader(id, parent, classPath, additionalLoaders));
     }
 
-    private MultiParentClassLoader multiLoader(ClassLoaderId id, ClassLoader parent, ClassPath classPath, @Nullable List<ClassLoader> additionalLoaders) {
+    private MultiParentClassLoader multiLoader(
+            ClassLoaderId id, ClassLoader parent, ClassPath classPath, @Nullable List<ClassLoader> additionalLoaders) {
         int numParents = 1;
         if (additionalLoaders != null) {
             numParents += additionalLoaders.size();
@@ -91,7 +97,8 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             boolean hasLocals = !local.isEmpty();
             if (locked) {
                 if (hasExports && hasLocals) {
-                    effectiveExportClassLoader = loader(id.exportId(), parent.getExportClassLoader(), export, exportLoaders);
+                    effectiveExportClassLoader =
+                            loader(id.exportId(), parent.getExportClassLoader(), export, exportLoaders);
                     effectiveLocalClassLoader = localLoader(id.localId(), effectiveExportClassLoader, local);
                 } else if (hasLocals) {
                     classLoaderCache.remove(id.exportId());
@@ -99,7 +106,8 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
                     effectiveLocalClassLoader = localLoader(id.localId(), effectiveExportClassLoader, local);
                 } else if (hasExports) {
                     classLoaderCache.remove(id.localId());
-                    effectiveExportClassLoader = loader(id.exportId(), parent.getExportClassLoader(), export, exportLoaders);
+                    effectiveExportClassLoader =
+                            loader(id.exportId(), parent.getExportClassLoader(), export, exportLoaders);
                     effectiveLocalClassLoader = effectiveExportClassLoader;
                 } else {
                     classLoaderCache.remove(id.localId());
@@ -109,7 +117,8 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
                 }
             } else { // creating before locking, have to create the most flexible setup
                 if (Boolean.getBoolean(STRICT_MODE_PROPERTY)) {
-                    throw new IllegalStateException("Attempt to define scope class loader before scope is locked, scope identifier is " + id);
+                    throw new IllegalStateException(
+                            "Attempt to define scope class loader before scope is locked, scope identifier is " + id);
                 }
 
                 exportingClassLoader = multiLoader(id.exportId(), parent.getExportClassLoader(), export, exportLoaders);

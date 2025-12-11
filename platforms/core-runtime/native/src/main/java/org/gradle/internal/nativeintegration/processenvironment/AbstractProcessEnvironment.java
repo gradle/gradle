@@ -17,28 +17,28 @@ package org.gradle.internal.nativeintegration.processenvironment;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.util.List;
+import java.util.Map;
 import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.ReflectiveEnvironment;
 
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-
 public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
-    //for updates to private JDK caches of the environment state
+    // for updates to private JDK caches of the environment state
     private final ReflectiveEnvironment reflectiveEnvironment = new ReflectiveEnvironment();
 
     @Override
     public EnvironmentModificationResult maybeSetEnvironment(Map<String, String> source) {
         // need to take copy to prevent ConcurrentModificationException
-        List<String> keysToRemove = Lists.newArrayList(Sets.difference(System.getenv().keySet(), source.keySet()));
+        List<String> keysToRemove =
+                Lists.newArrayList(Sets.difference(System.getenv().keySet(), source.keySet()));
         for (String key : keysToRemove) {
             removeEnvironmentVariable(key);
         }
         for (Map.Entry<String, String> entry : source.entrySet()) {
-           setEnvironmentVariable(entry.getKey(), entry.getValue());
+            setEnvironmentVariable(entry.getKey(), entry.getValue());
         }
         return EnvironmentModificationResult.SUCCESS;
     }

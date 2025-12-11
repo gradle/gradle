@@ -27,7 +27,10 @@ import org.gradle.internal.scan.NotUsedByScanPlugin;
  *
  * @since 8.1
  */
-public class ExecutePlannedTransformStepBuildOperationType implements BuildOperationType<ExecutePlannedTransformStepBuildOperationType.Details, ExecutePlannedTransformStepBuildOperationType.Result> {
+public class ExecutePlannedTransformStepBuildOperationType
+        implements BuildOperationType<
+                ExecutePlannedTransformStepBuildOperationType.Details,
+                ExecutePlannedTransformStepBuildOperationType.Result> {
 
     public interface Details {
 
@@ -56,9 +59,7 @@ public class ExecutePlannedTransformStepBuildOperationType implements BuildOpera
          */
         @NotUsedByScanPlugin
         String getSubjectName();
-
     }
 
-    public interface Result {
-    }
+    public interface Result {}
 }

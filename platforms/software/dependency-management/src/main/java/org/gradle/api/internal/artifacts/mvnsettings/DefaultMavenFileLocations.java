@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.artifacts.mvnsettings;
 
+import java.io.File;
 import org.gradle.util.internal.MavenUtil;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class DefaultMavenFileLocations implements MavenFileLocations {
     @Override

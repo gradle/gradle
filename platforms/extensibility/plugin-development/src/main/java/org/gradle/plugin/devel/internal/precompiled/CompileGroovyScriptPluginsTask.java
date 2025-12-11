@@ -16,6 +16,9 @@
 
 package org.gradle.plugin.devel.internal.precompiled;
 
+import java.io.File;
+import java.net.URLClassLoader;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
@@ -45,10 +48,6 @@ import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.net.URLClassLoader;
-
 @CacheableTask
 abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
     private final Provider<Directory> intermediatePluginClassesDirectory;
@@ -61,19 +60,19 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
     }
 
     @Inject
-    abstract protected FileSystemOperations getFileSystemOperations();
+    protected abstract FileSystemOperations getFileSystemOperations();
 
     @Inject
-    abstract protected ClassLoaderScopeRegistry getClassLoaderScopeRegistry();
+    protected abstract ClassLoaderScopeRegistry getClassLoaderScopeRegistry();
 
     @Inject
-    abstract protected ScriptCompilationHandler getScriptCompilationHandler();
+    protected abstract ScriptCompilationHandler getScriptCompilationHandler();
 
     @Inject
-    abstract protected CompileOperationFactory getCompileOperationFactory();
+    protected abstract CompileOperationFactory getCompileOperationFactory();
 
     @Inject
-    abstract protected ProjectLayout getProjectLayout();
+    protected abstract ProjectLayout getProjectLayout();
 
     @InputFiles
     @SkipWhenEmpty
@@ -93,9 +92,11 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
     @TaskAction
     void compileScripts() {
         ClassLoaderScope classLoaderScope = getClassLoaderScopeRegistry().getCoreAndPluginsScope();
-        ClassLoader compileClassLoader = new URLClassLoader(DefaultClassPath.of(getClasspath()).getAsURLArray(), classLoaderScope.getLocalClassLoader());
+        ClassLoader compileClassLoader = new URLClassLoader(
+                DefaultClassPath.of(getClasspath()).getAsURLArray(), classLoaderScope.getLocalClassLoader());
         FileSystemOperations fileSystemOperations = getFileSystemOperations();
-        fileSystemOperations.delete(spec -> spec.delete(intermediatePluginMetadataDirectory, intermediatePluginClassesDirectory));
+        fileSystemOperations.delete(
+                spec -> spec.delete(intermediatePluginMetadataDirectory, intermediatePluginClassesDirectory));
         intermediatePluginMetadataDirectory.get().getAsFile().mkdirs();
         intermediatePluginClassesDirectory.get().getAsFile().mkdirs();
 
@@ -105,7 +106,8 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
         }
 
         fileSystemOperations.sync(copySpec -> {
-            copySpec.from(intermediatePluginClassesDirectory.get().getAsFileTree().getFiles());
+            copySpec.from(
+                    intermediatePluginClassesDirectory.get().getAsFileTree().getFiles());
             copySpec.into(getPrecompiledGroovyScriptsOutputDirectory());
         });
         ClassLoaderUtils.tryClose(compileClassLoader);
@@ -113,17 +115,22 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
 
     private void compileBuildScript(PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
         ScriptTarget target = scriptPlugin.getScriptTarget();
-        CompileOperation<BuildScriptData> scriptCompileOperation = getCompileOperationFactory().getScriptCompileOperation(scriptPlugin.getBodySource(), target);
+        CompileOperation<BuildScriptData> scriptCompileOperation =
+                getCompileOperationFactory().getScriptCompileOperation(scriptPlugin.getBodySource(), target);
         File scriptMetadataDir = subdirectory(intermediatePluginMetadataDirectory, scriptPlugin.getId());
         File scriptClassesDir = subdirectory(intermediatePluginClassesDirectory, scriptPlugin.getId());
-        getScriptCompilationHandler().compileToDir(
-            scriptPlugin.getBodySource(), compileClassLoader, scriptClassesDir,
-            scriptMetadataDir, scriptCompileOperation, target.getScriptClass(),
-            ClosureCreationInterceptingVerifier.INSTANCE);
+        getScriptCompilationHandler()
+                .compileToDir(
+                        scriptPlugin.getBodySource(),
+                        compileClassLoader,
+                        scriptClassesDir,
+                        scriptMetadataDir,
+                        scriptCompileOperation,
+                        target.getScriptClass(),
+                        ClosureCreationInterceptingVerifier.INSTANCE);
     }
 
     private static File subdirectory(Provider<Directory> root, String subdirPath) {
         return root.get().dir(subdirPath).getAsFile();
     }
-
 }

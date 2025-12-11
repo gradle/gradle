@@ -16,9 +16,8 @@
 
 package org.gradle.cache.scopes;
 
-import org.gradle.cache.CacheBuilder;
-
 import java.io.File;
+import org.gradle.cache.CacheBuilder;
 
 /**
  * A factory for creating {@link CacheBuilder}s that are scoped to a particular context.

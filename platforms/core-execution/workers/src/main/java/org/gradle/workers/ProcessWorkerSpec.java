@@ -21,6 +21,4 @@ package org.gradle.workers;
  *
  * @since 5.6
  */
-public interface ProcessWorkerSpec extends ForkingWorkerSpec, ClassLoaderWorkerSpec {
-
-}
+public interface ProcessWorkerSpec extends ForkingWorkerSpec, ClassLoaderWorkerSpec {}

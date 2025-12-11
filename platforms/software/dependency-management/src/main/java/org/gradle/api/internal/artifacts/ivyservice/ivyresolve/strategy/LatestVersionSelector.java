@@ -46,7 +46,8 @@ public class LatestVersionSelector extends AbstractStringVersionSelector {
 
     @Override
     public boolean accept(String candidate) {
-        // the ONLY case where this is called for this selector is from InverseVersionSelector, used to reject candidates
+        // the ONLY case where this is called for this selector is from InverseVersionSelector, used to reject
+        // candidates
         return true;
     }
 
@@ -54,7 +55,7 @@ public class LatestVersionSelector extends AbstractStringVersionSelector {
     public boolean accept(ComponentMetadata candidate) {
         int selectorStatusIndex = candidate.getStatusScheme().indexOf(selectorStatus);
         int candidateStatusIndex = candidate.getStatusScheme().indexOf(candidate.getStatus());
-        return selectorStatusIndex >=0 && selectorStatusIndex <= candidateStatusIndex;
+        return selectorStatusIndex >= 0 && selectorStatusIndex <= candidateStatusIndex;
     }
 
     @Override

@@ -16,14 +16,15 @@
 
 package org.gradle.model.internal.asm;
 
-import org.jspecify.annotations.NonNull;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jspecify.annotations.NonNull;
 
 public class ClassGeneratorSuffixRegistry {
-    // Use Throwable to record the location where a suffix was registered, to allow diagnostics when a collision is found
-    // This may have performance implications, however the assumption is that class generators are global scoped objects that are created once and in very small numbers
+    // Use Throwable to record the location where a suffix was registered, to allow diagnostics when a collision is
+    // found
+    // This may have performance implications, however the assumption is that class generators are global scoped objects
+    // that are created once and in very small numbers
     private static final Map<String, Throwable> SUFFIXES = new ConcurrentHashMap<String, Throwable>();
 
     /**
@@ -32,7 +33,8 @@ public class ClassGeneratorSuffixRegistry {
     public static String register(String suffix) {
         Throwable previous = SUFFIXES.putIfAbsent(suffix, markerForSuffix(suffix));
         if (previous != null) {
-            throw new IllegalStateException("A class generator with suffix '" + suffix + "' is already registered.", previous);
+            throw new IllegalStateException(
+                    "A class generator with suffix '" + suffix + "' is already registered.", previous);
         }
         return suffix;
     }

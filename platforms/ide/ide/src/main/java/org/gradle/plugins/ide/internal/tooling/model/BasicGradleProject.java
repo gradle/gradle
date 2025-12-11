@@ -16,17 +16,15 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
-import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 
 public class BasicGradleProject extends PartialBasicGradleProject {
     private File projectDirectory;
     private Set<BasicGradleProject> children = new LinkedHashSet<BasicGradleProject>();
     private String buildTreePath;
-
 
     public File getProjectDirectory() {
         return projectDirectory;

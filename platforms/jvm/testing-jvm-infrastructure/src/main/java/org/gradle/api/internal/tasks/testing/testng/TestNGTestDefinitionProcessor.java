@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestDefinitionProcessor;
@@ -27,13 +31,9 @@ import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
 @NullMarked
-public class TestNGTestDefinitionProcessor implements RequiresTestFrameworkTestDefinitionProcessor<ClassTestDefinition> {
+public class TestNGTestDefinitionProcessor
+        implements RequiresTestFrameworkTestDefinitionProcessor<ClassTestDefinition> {
     private final List<Class<?>> testClasses = new ArrayList<>();
     private final File testReportDir;
     private final TestNGSpec spec;
@@ -41,15 +41,25 @@ public class TestNGTestDefinitionProcessor implements RequiresTestFrameworkTestD
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
     private final ActorFactory actorFactory;
+
     @Nullable
     private ClassLoader applicationClassLoader;
+
     @Nullable
     private Actor resultProcessorActor;
+
     @Nullable
     private TestResultProcessor resultProcessor;
+
     private boolean startedProcessing;
 
-    public TestNGTestDefinitionProcessor(File testReportDir, TestNGSpec spec, List<File> suiteFiles, IdGenerator<?> idGenerator, Clock clock, ActorFactory actorFactory) {
+    public TestNGTestDefinitionProcessor(
+            File testReportDir,
+            TestNGSpec spec,
+            List<File> suiteFiles,
+            IdGenerator<?> idGenerator,
+            Clock clock,
+            ActorFactory actorFactory) {
         this.testReportDir = testReportDir;
         this.spec = spec;
         this.suiteFiles = suiteFiles;
@@ -63,7 +73,8 @@ public class TestNGTestDefinitionProcessor implements RequiresTestFrameworkTestD
         try {
             Class.forName("org.testng.TestNG");
         } catch (ClassNotFoundException e) {
-            throw new TestFrameworkNotAvailableException("Failed to load TestNG.  Please ensure that the TestNG library is available on the test's runtime classpath.");
+            throw new TestFrameworkNotAvailableException(
+                    "Failed to load TestNG.  Please ensure that the TestNG library is available on the test's runtime classpath.");
         }
     }
 
@@ -85,9 +96,11 @@ public class TestNGTestDefinitionProcessor implements RequiresTestFrameworkTestD
     @Override
     public void processTestDefinition(ClassTestDefinition testDefinition) {
         if (startedProcessing) {
-            // TODO - do this inside some 'testng' suite, so that failures and logging are attached to 'testng' rather than some 'test worker'
+            // TODO - do this inside some 'testng' suite, so that failures and logging are attached to 'testng' rather
+            // than some 'test worker'
             try {
-                testClasses.add(Objects.requireNonNull(applicationClassLoader).loadClass(testDefinition.getTestClassName()));
+                testClasses.add(
+                        Objects.requireNonNull(applicationClassLoader).loadClass(testDefinition.getTestClassName()));
             } catch (Throwable e) {
                 throw new GradleException(String.format("Could not load %s.", testDefinition.getDisplayName()), e);
             }
@@ -99,15 +112,15 @@ public class TestNGTestDefinitionProcessor implements RequiresTestFrameworkTestD
         if (startedProcessing) {
             try {
                 new TestNGTestRunner(
-                    testReportDir,
-                    suiteFiles,
-                    idGenerator,
-                    clock,
-                    resultProcessor,
-                    applicationClassLoader,
-                    spec,
-                    testClasses
-                ).runTests();
+                                testReportDir,
+                                suiteFiles,
+                                idGenerator,
+                                clock,
+                                resultProcessor,
+                                applicationClassLoader,
+                                spec,
+                                testClasses)
+                        .runTests();
             } finally {
                 Actor actor = resultProcessorActor;
                 if (actor != null) {
@@ -119,6 +132,7 @@ public class TestNGTestDefinitionProcessor implements RequiresTestFrameworkTestD
 
     @Override
     public void stopNow() {
-        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestDefinitionProcessor");
+        throw new UnsupportedOperationException(
+                "stopNow() should not be invoked on remote worker TestDefinitionProcessor");
     }
 }

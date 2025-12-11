@@ -19,15 +19,15 @@ package org.gradle.api.internal.tasks.userinput;
 import java.util.Collection;
 import java.util.function.Function;
 
-public class NonInteractiveUserInputHandler extends AbstractUserInputHandler implements AbstractUserInputHandler.UserInteraction {
+public class NonInteractiveUserInputHandler extends AbstractUserInputHandler
+        implements AbstractUserInputHandler.UserInteraction {
     @Override
     protected UserInteraction newInteraction() {
         return this;
     }
 
     @Override
-    public void finish() {
-    }
+    public void finish() {}
 
     @Override
     public Boolean askYesNoQuestion(String question) {

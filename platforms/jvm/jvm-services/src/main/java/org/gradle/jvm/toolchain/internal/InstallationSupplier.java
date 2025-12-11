@@ -16,11 +16,10 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.util.Set;
 import java.util.function.Supplier;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Build.class)
 public interface InstallationSupplier extends Supplier<Set<InstallationLocation>> {

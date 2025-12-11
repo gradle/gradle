@@ -16,9 +16,8 @@
 
 package org.gradle.model.internal.manage.schema.cache;
 
-import org.gradle.model.internal.type.ModelType;
-
 import java.util.List;
+import org.gradle.model.internal.type.ModelType;
 
 abstract class WeakClassSet {
 
@@ -32,5 +31,4 @@ abstract class WeakClassSet {
     }
 
     abstract boolean isCollected();
-
 }

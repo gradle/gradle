@@ -105,10 +105,7 @@ public class DefaultFileSystemLocationFingerprint implements FileSystemLocationF
 
     @Override
     public String toString() {
-        return String.format("'%s' / %s",
-            getNormalizedPath(),
-            getHashOrTypeToDisplay()
-        );
+        return String.format("'%s' / %s", getNormalizedPath(), getHashOrTypeToDisplay());
     }
 
     private Object getHashOrTypeToDisplay() {

@@ -21,9 +21,11 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Project.class)
-public interface ConfigurationContainerInternal extends RoleBasedConfigurationContainerInternal, ConfigurationsProvider {
+public interface ConfigurationContainerInternal
+        extends RoleBasedConfigurationContainerInternal, ConfigurationsProvider {
     @Override
     ConfigurationInternal getByName(String name) throws UnknownConfigurationException;
+
     @Override
     ConfigurationInternal detachedConfiguration(Dependency... dependencies);
 }

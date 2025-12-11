@@ -17,5 +17,5 @@
 package org.gradle.api.internal.tasks.compile.incremental.test;
 
 public class HasPublicConstants {
-    public final static int X = 1;
+    public static final int X = 1;
 }

@@ -54,7 +54,8 @@ public class ElementWarningsRenderer {
             parent.appendChild(caution);
             Element para = document.createElement("para");
             caution.appendChild(para);
-            para.appendChild(document.createTextNode(String.format("Note: This %s has been replaced by %s.", type, elementDoc.getReplacement())));
+            para.appendChild(document.createTextNode(
+                    String.format("Note: This %s has been replaced by %s.", type, elementDoc.getReplacement())));
         }
     }
 }

@@ -60,7 +60,8 @@ public class Attribute<T> implements Named {
      */
     public static <T> Attribute<T> of(Class<T> type) {
         @SuppressWarnings("deprecation")
-        String uncapitalizedCanonicalName = org.apache.commons.lang3.text.WordUtils.uncapitalize(type.getCanonicalName());
+        String uncapitalizedCanonicalName =
+                org.apache.commons.lang3.text.WordUtils.uncapitalize(type.getCanonicalName());
         return of(uncapitalizedCanonicalName, type);
     }
 
@@ -104,7 +105,6 @@ public class Attribute<T> implements Named {
             return false;
         }
         return type.equals(attribute.type);
-
     }
 
     @Override
@@ -116,6 +116,4 @@ public class Attribute<T> implements Named {
     public String toString() {
         return name;
     }
-
-
 }

@@ -17,11 +17,10 @@
 package org.gradle.api.internal.tasks.testing.logging;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.specs.Spec;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.gradle.api.specs.Spec;
 
 public class StackTraceFilter {
     private final Spec<StackTraceElement> filterSpec;

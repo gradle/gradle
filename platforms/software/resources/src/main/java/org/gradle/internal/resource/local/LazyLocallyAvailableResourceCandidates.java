@@ -16,12 +16,11 @@
 
 package org.gradle.internal.resource.local;
 
+import java.io.File;
+import java.util.List;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.HashCode;
-
-import java.io.File;
-import java.util.List;
 
 public class LazyLocallyAvailableResourceCandidates implements LocallyAvailableResourceCandidates {
 
@@ -58,5 +57,4 @@ public class LazyLocallyAvailableResourceCandidates implements LocallyAvailableR
 
         return null;
     }
-
 }

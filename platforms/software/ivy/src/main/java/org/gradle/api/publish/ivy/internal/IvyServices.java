@@ -47,9 +47,14 @@ public class IvyServices extends AbstractGradleModuleServices {
 
     private static class BuildServices implements ServiceRegistrationProvider {
         @Provides
-        IvyPublisher createIvyPublisher(IvyContextManager ivyContextManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, IvyMutableModuleMetadataFactory metadataFactory) {
+        IvyPublisher createIvyPublisher(
+                IvyContextManager ivyContextManager,
+                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                FileResourceRepository fileResourceRepository,
+                IvyMutableModuleMetadataFactory metadataFactory) {
             IvyPublisher publisher = new DependencyResolverIvyPublisher();
-            publisher = new ValidatingIvyPublisher(publisher, moduleIdentifierFactory, fileResourceRepository, metadataFactory);
+            publisher = new ValidatingIvyPublisher(
+                    publisher, moduleIdentifierFactory, fileResourceRepository, metadataFactory);
             return new ContextualizingIvyPublisher(publisher, ivyContextManager);
         }
 
@@ -57,7 +62,8 @@ public class IvyServices extends AbstractGradleModuleServices {
         @Provides
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             // TODO There should be a more explicit way to execute an action against existing services
-            componentTypeRegistry.maybeRegisterComponentType(IvyModule.class)
+            componentTypeRegistry
+                    .maybeRegisterComponentType(IvyModule.class)
                     .registerArtifactType(IvyDescriptorArtifact.class, ArtifactType.IVY_DESCRIPTOR);
         }
     }

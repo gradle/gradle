@@ -16,10 +16,9 @@
 
 package org.gradle.initialization;
 
+import java.io.File;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 @ServiceScope(Scope.UserHome.class)
 public interface GradleUserHomeDirProvider {

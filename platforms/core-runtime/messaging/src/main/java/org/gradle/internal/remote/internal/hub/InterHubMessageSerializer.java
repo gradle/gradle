@@ -16,19 +16,18 @@
 
 package org.gradle.internal.remote.internal.hub;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import org.gradle.internal.remote.internal.hub.protocol.ChannelIdentifier;
 import org.gradle.internal.remote.internal.hub.protocol.ChannelMessage;
+import org.gradle.internal.remote.internal.hub.protocol.EndOfStream;
+import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ObjectReader;
 import org.gradle.internal.serialize.ObjectWriter;
 import org.gradle.internal.serialize.StatefulSerializer;
-import org.gradle.internal.remote.internal.hub.protocol.ChannelIdentifier;
-import org.gradle.internal.remote.internal.hub.protocol.EndOfStream;
-import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class InterHubMessageSerializer implements StatefulSerializer<InterHubMessage> {
     private static final byte CHANNEL_MESSAGE = 1;

@@ -16,7 +16,11 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.common.collect.ImmutableList;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.Container;
@@ -26,19 +30,19 @@ import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.GradleApiSourcesResolver;
 
-import java.util.Collections;
-import java.util.List;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
 public class ClasspathFactory {
 
     private final EclipseClasspath classpath;
     private final EclipseDependenciesCreator dependenciesCreator;
 
-    public ClasspathFactory(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, GradleApiSourcesResolver gradleApiSourcesResolver, boolean inferModulePath) {
+    public ClasspathFactory(
+            EclipseClasspath classpath,
+            IdeArtifactRegistry ideArtifactRegistry,
+            GradleApiSourcesResolver gradleApiSourcesResolver,
+            boolean inferModulePath) {
         this.classpath = classpath;
-        this.dependenciesCreator = new EclipseDependenciesCreator(classpath, ideArtifactRegistry, gradleApiSourcesResolver, inferModulePath);
+        this.dependenciesCreator = new EclipseDependenciesCreator(
+                classpath, ideArtifactRegistry, gradleApiSourcesResolver, inferModulePath);
     }
 
     public List<ClasspathEntry> createEntries() {
@@ -60,9 +64,7 @@ public class ClasspathFactory {
     }
 
     private List<ClasspathEntry> createContainers() {
-        return classpath.getContainers().stream()
-            .map(Container::new)
-            .collect(toImmutableList());
+        return classpath.getContainers().stream().map(Container::new).collect(toImmutableList());
     }
 
     private List<AbstractClasspathEntry> createDependencies() {
@@ -70,6 +72,8 @@ public class ClasspathFactory {
     }
 
     private List<? extends ClasspathEntry> createClassFolders() {
-        return classpath.isProjectDependenciesOnly() ? Collections.<ClasspathEntry>emptyList() : new ClassFoldersCreator().create(classpath);
+        return classpath.isProjectDependenciesOnly()
+                ? Collections.<ClasspathEntry>emptyList()
+                : new ClassFoldersCreator().create(classpath);
     }
 }

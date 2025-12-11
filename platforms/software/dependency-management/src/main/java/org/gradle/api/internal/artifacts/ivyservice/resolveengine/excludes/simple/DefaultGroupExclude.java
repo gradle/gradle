@@ -67,7 +67,6 @@ final class DefaultGroupExclude implements GroupExclude {
             return false;
         }
         return group.equals(that.group);
-
     }
 
     @Override

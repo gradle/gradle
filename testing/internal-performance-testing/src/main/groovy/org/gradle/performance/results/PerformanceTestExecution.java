@@ -16,9 +16,8 @@
 
 package org.gradle.performance.results;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The result of a single execution of a performance test.
@@ -32,8 +31,11 @@ public interface PerformanceTestExecution {
     String getTeamCityBuildId();
 
     String getVersionUnderTest();
+
     String getVcsBranch();
+
     long getStartTime();
+
     long getEndTime();
 
     List<String> getVcsCommits();
@@ -84,5 +86,4 @@ public interface PerformanceTestExecution {
      */
     @Nullable
     Boolean getDaemon();
-
 }

@@ -24,10 +24,13 @@ import org.gradle.declarative.dsl.model.annotations.Restricted;
 public interface AntlrConfiguration extends Named, HasAntlrGrammars {
     @Restricted
     Property<Boolean> getTrace();
+
     @Restricted
     Property<Boolean> getTraceLexer();
+
     @Restricted
     Property<Boolean> getTraceParser();
+
     @Restricted
     Property<Boolean> getTraceTreeWalker();
 }

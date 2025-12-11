@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins;
 
+import java.util.Collections;
+import javax.inject.Inject;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -51,10 +53,6 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.testing.base.TestingExtension;
-
-import javax.inject.Inject;
-import java.util.Collections;
-
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -197,14 +195,16 @@ public abstract class JavaPlugin implements Plugin<Project> {
      *
      * @since 4.6
      */
-    public static final String ANNOTATION_PROCESSOR_CONFIGURATION_NAME = JvmConstants.ANNOTATION_PROCESSOR_CONFIGURATION_NAME;
+    public static final String ANNOTATION_PROCESSOR_CONFIGURATION_NAME =
+            JvmConstants.ANNOTATION_PROCESSOR_CONFIGURATION_NAME;
 
     /**
      * The name of the test implementation dependencies configuration.
      *
      * @since 3.4
      */
-    public static final String TEST_IMPLEMENTATION_CONFIGURATION_NAME = JvmConstants.TEST_IMPLEMENTATION_CONFIGURATION_NAME;
+    public static final String TEST_IMPLEMENTATION_CONFIGURATION_NAME =
+            JvmConstants.TEST_IMPLEMENTATION_CONFIGURATION_NAME;
 
     /**
      * The name of the configuration that should be used to declare dependencies which are only required
@@ -224,21 +224,24 @@ public abstract class JavaPlugin implements Plugin<Project> {
      *
      * @since 3.4
      */
-    public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
+    public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME =
+            JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
 
     /**
      * The name of the test annotation processor configuration.
      *
      * @since 4.6
      */
-    public static final String TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME = JvmConstants.TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME;
+    public static final String TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME =
+            JvmConstants.TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME;
 
     /**
      * The name of the test runtime classpath configuration.
      *
      * @since 3.4
      */
-    public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
+    public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME =
+            JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 
     @Inject
     public JavaPlugin() {}
@@ -246,32 +249,50 @@ public abstract class JavaPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         if (project.getPluginManager().hasPlugin("java-platform")) {
-            throw new IllegalStateException("The \"java\" or \"java-library\" plugin cannot be applied together with the \"java-platform\" plugin. " +
-                "A project is either a platform or a library but cannot be both at the same time.");
+            throw new IllegalStateException(
+                    "The \"java\" or \"java-library\" plugin cannot be applied together with the \"java-platform\" plugin. "
+                            + "A project is either a platform or a library but cannot be both at the same time.");
         }
         final ProjectInternal projectInternal = (ProjectInternal) project;
 
         project.getPluginManager().apply(JavaBasePlugin.class);
-        project.getPluginManager().apply("org.gradle.jvm-test-suite"); // TODO: change to reference plugin class by name after project dependency cycles untangled; this will affect ApplyPluginBuildOperationIntegrationTest (will have to remove id)
+        project.getPluginManager()
+                .apply("org.gradle.jvm-test-suite"); // TODO: change to reference plugin class by name after project
+        // dependency cycles untangled; this will affect
+        // ApplyPluginBuildOperationIntegrationTest (will have to remove
+        // id)
 
-        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+        SourceSetContainer sourceSets =
+                project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
 
         project.getComponents().registerBinding(JvmSoftwareComponentInternal.class, DefaultJvmSoftwareComponent.class);
         JvmSoftwareComponentInternal javaComponent = createJavaComponent(projectInternal, sourceSets);
 
-        configurePublishing(project.getPlugins(), project.getExtensions(), javaComponent.getMainFeature().getSourceSet());
+        configurePublishing(
+                project.getPlugins(),
+                project.getExtensions(),
+                javaComponent.getMainFeature().getSourceSet());
 
         // Set the 'java' component as the project's default.
         project.getConfigurations().named(Dependency.DEFAULT_CONFIGURATION).configure(conf -> {
-            conf.extendsFrom(javaComponent.getMainFeature().getRuntimeElementsConfiguration().get());
+            conf.extendsFrom(javaComponent
+                    .getMainFeature()
+                    .getRuntimeElementsConfiguration()
+                    .get());
         });
-        ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(javaComponent);
+        ((SoftwareComponentContainerInternal) project.getComponents())
+                .getMainComponent()
+                .convention(javaComponent);
 
         // Build the main jar when running `assemble`.
         DeprecationLogger.whileDisabled(() -> {
-            project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts()
-                .addAllLater(javaComponent.getMainFeature().getRuntimeElementsConfiguration().map(conf -> conf.getArtifacts())
-            );
+            project.getConfigurations()
+                    .getByName(Dependency.ARCHIVES_CONFIGURATION)
+                    .getArtifacts()
+                    .addAllLater(javaComponent
+                            .getMainFeature()
+                            .getRuntimeElementsConfiguration()
+                            .map(conf -> conf.getArtifacts()));
         });
 
         configureTestTaskOrdering(project.getTasks());
@@ -283,12 +304,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         SourceSet sourceSet = sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
 
         JvmFeatureInternal feature = new DefaultJvmFeature(
-            JvmConstants.JAVA_MAIN_FEATURE_NAME,
-            sourceSet,
-            Collections.emptySet(),
-            project,
-            false
-        );
+                JvmConstants.JAVA_MAIN_FEATURE_NAME, sourceSet, Collections.emptySet(), project, false);
 
         // Create a source directories variant for the feature
         feature.withSourceElements();
@@ -296,38 +312,63 @@ public abstract class JavaPlugin implements Plugin<Project> {
         return feature;
     }
 
-    private static JvmSoftwareComponentInternal createJavaComponent(ProjectInternal project, SourceSetContainer sourceSets) {
-        return project.getComponents().register(JvmConstants.JAVA_MAIN_COMPONENT_NAME, JvmSoftwareComponentInternal.class, component -> {
-            // Create the main feature
-            JvmFeatureInternal mainFeature = createMainFeature(project, sourceSets);
-            component.getFeatures().add(mainFeature);
+    private static JvmSoftwareComponentInternal createJavaComponent(
+            ProjectInternal project, SourceSetContainer sourceSets) {
+        return project.getComponents()
+                .register(JvmConstants.JAVA_MAIN_COMPONENT_NAME, JvmSoftwareComponentInternal.class, component -> {
+                    // Create the main feature
+                    JvmFeatureInternal mainFeature = createMainFeature(project, sourceSets);
+                    component.getFeatures().add(mainFeature);
 
-            // TODO: This process of manually adding variants to the component should be handled automatically when adding the feature to the component.
-            ((DefaultJvmSoftwareComponent) component).addVariantsFromConfiguration(mainFeature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", false, mainFeature.getCompileClasspathConfiguration()));
-            ((DefaultJvmSoftwareComponent) component).addVariantsFromConfiguration(mainFeature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", false, mainFeature.getRuntimeClasspathConfiguration()));
+                    // TODO: This process of manually adding variants to the component should be handled automatically
+                    // when adding the feature to the component.
+                    ((DefaultJvmSoftwareComponent) component)
+                            .addVariantsFromConfiguration(
+                                    mainFeature.getApiElementsConfiguration(),
+                                    new JavaConfigurationVariantMapping(
+                                            "compile", false, mainFeature.getCompileClasspathConfiguration()));
+                    ((DefaultJvmSoftwareComponent) component)
+                            .addVariantsFromConfiguration(
+                                    mainFeature.getRuntimeElementsConfiguration(),
+                                    new JavaConfigurationVariantMapping(
+                                            "runtime", false, mainFeature.getRuntimeClasspathConfiguration()));
 
-            // Create the default test suite
-            JvmTestSuite defaultTestSuite = createDefaultTestSuite(mainFeature, project.getConfigurations(), project.getTasks(), project.getExtensions(), project.getObjects());
-            component.getTestSuites().add(defaultTestSuite);
-        }).get();
+                    // Create the default test suite
+                    JvmTestSuite defaultTestSuite = createDefaultTestSuite(
+                            mainFeature,
+                            project.getConfigurations(),
+                            project.getTasks(),
+                            project.getExtensions(),
+                            project.getObjects());
+                    component.getTestSuites().add(defaultTestSuite);
+                })
+                .get();
     }
 
-    // TODO: This approach is not necessarily correct for non-main features. All publications will attempt to use the main feature's
+    // TODO: This approach is not necessarily correct for non-main features. All publications will attempt to use the
+    // main feature's
     // compile and runtime classpaths for version mapping, even if a non-main feature is being published.
-    private static void configurePublishing(PluginContainer plugins, ExtensionContainer extensions, SourceSet sourceSet) {
+    private static void configurePublishing(
+            PluginContainer plugins, ExtensionContainer extensions, SourceSet sourceSet) {
         plugins.withType(PublishingPlugin.class, plugin -> {
             PublishingExtension publishing = extensions.getByType(PublishingExtension.class);
 
             // Set up the default configurations used when mapping to resolved versions
             publishing.getPublications().withType(IvyPublication.class, publication -> {
-                VersionMappingStrategyInternal strategy = ((PublicationInternal<?>) publication).getVersionMappingStrategy();
-                strategy.defaultResolutionConfiguration(Usage.JAVA_API, sourceSet.getCompileClasspathConfigurationName());
-                strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, sourceSet.getRuntimeClasspathConfigurationName());
+                VersionMappingStrategyInternal strategy =
+                        ((PublicationInternal<?>) publication).getVersionMappingStrategy();
+                strategy.defaultResolutionConfiguration(
+                        Usage.JAVA_API, sourceSet.getCompileClasspathConfigurationName());
+                strategy.defaultResolutionConfiguration(
+                        Usage.JAVA_RUNTIME, sourceSet.getRuntimeClasspathConfigurationName());
             });
             publishing.getPublications().withType(MavenPublication.class, publication -> {
-                VersionMappingStrategyInternal strategy = ((PublicationInternal<?>) publication).getVersionMappingStrategy();
-                strategy.defaultResolutionConfiguration(Usage.JAVA_API, sourceSet.getCompileClasspathConfigurationName());
-                strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, sourceSet.getRuntimeClasspathConfigurationName());
+                VersionMappingStrategyInternal strategy =
+                        ((PublicationInternal<?>) publication).getVersionMappingStrategy();
+                strategy.defaultResolutionConfiguration(
+                        Usage.JAVA_API, sourceSet.getCompileClasspathConfigurationName());
+                strategy.defaultResolutionConfiguration(
+                        Usage.JAVA_RUNTIME, sourceSet.getRuntimeClasspathConfigurationName());
             });
         });
     }
@@ -346,34 +387,46 @@ public abstract class JavaPlugin implements Plugin<Project> {
     }
 
     private static JvmTestSuite createDefaultTestSuite(
-        JvmFeatureInternal mainFeature,
-        ConfigurationContainer configurations,
-        TaskContainer tasks,
-        ExtensionContainer extensions,
-        ObjectFactory objectFactory
-    ) {
+            JvmFeatureInternal mainFeature,
+            ConfigurationContainer configurations,
+            TaskContainer tasks,
+            ExtensionContainer extensions,
+            ObjectFactory objectFactory) {
         TestingExtension testing = extensions.findByType(TestingExtension.class);
-        final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
-            final SourceSet testSourceSet = suite.getSources();
+        final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites()
+                .register(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
+                    final SourceSet testSourceSet = suite.getSources();
 
-            Configuration testImplementationConfiguration = configurations.getByName(testSourceSet.getImplementationConfigurationName());
-            Configuration testRuntimeOnlyConfiguration = configurations.getByName(testSourceSet.getRuntimeOnlyConfigurationName());
-            Configuration testCompileClasspathConfiguration = configurations.getByName(testSourceSet.getCompileClasspathConfigurationName());
-            Configuration testRuntimeClasspathConfiguration = configurations.getByName(testSourceSet.getRuntimeClasspathConfigurationName());
+                    Configuration testImplementationConfiguration =
+                            configurations.getByName(testSourceSet.getImplementationConfigurationName());
+                    Configuration testRuntimeOnlyConfiguration =
+                            configurations.getByName(testSourceSet.getRuntimeOnlyConfigurationName());
+                    Configuration testCompileClasspathConfiguration =
+                            configurations.getByName(testSourceSet.getCompileClasspathConfigurationName());
+                    Configuration testRuntimeClasspathConfiguration =
+                            configurations.getByName(testSourceSet.getRuntimeClasspathConfigurationName());
 
-            // We cannot reference the main source set lazily (via a callable) since the IntelliJ model builder
-            // relies on the main source set being created before the tests. So, this code here cannot live in the
-            // JvmTestSuitePlugin and must live here, so that we can ensure we register this test suite after we've
-            // created the main source set.
-            final SourceSet mainSourceSet = mainFeature.getSourceSet();
-            final FileCollection mainSourceSetOutput = mainSourceSet.getOutput();
-            final FileCollection testSourceSetOutput = testSourceSet.getOutput();
-            testSourceSet.setCompileClasspath(objectFactory.fileCollection().from(mainSourceSetOutput, testCompileClasspathConfiguration));
-            testSourceSet.setRuntimeClasspath(objectFactory.fileCollection().from(testSourceSetOutput, mainSourceSetOutput, testRuntimeClasspathConfiguration));
+                    // We cannot reference the main source set lazily (via a callable) since the IntelliJ model builder
+                    // relies on the main source set being created before the tests. So, this code here cannot live in
+                    // the
+                    // JvmTestSuitePlugin and must live here, so that we can ensure we register this test suite after
+                    // we've
+                    // created the main source set.
+                    final SourceSet mainSourceSet = mainFeature.getSourceSet();
+                    final FileCollection mainSourceSetOutput = mainSourceSet.getOutput();
+                    final FileCollection testSourceSetOutput = testSourceSet.getOutput();
+                    testSourceSet.setCompileClasspath(objectFactory
+                            .fileCollection()
+                            .from(mainSourceSetOutput, testCompileClasspathConfiguration));
+                    testSourceSet.setRuntimeClasspath(objectFactory
+                            .fileCollection()
+                            .from(testSourceSetOutput, mainSourceSetOutput, testRuntimeClasspathConfiguration));
 
-            testImplementationConfiguration.extendsFrom(configurations.getByName(mainSourceSet.getImplementationConfigurationName()));
-            testRuntimeOnlyConfiguration.extendsFrom(configurations.getByName(mainSourceSet.getRuntimeOnlyConfigurationName()));
-        });
+                    testImplementationConfiguration.extendsFrom(
+                            configurations.getByName(mainSourceSet.getImplementationConfigurationName()));
+                    testRuntimeOnlyConfiguration.extendsFrom(
+                            configurations.getByName(mainSourceSet.getRuntimeOnlyConfigurationName()));
+                });
 
         // Force the realization of this test suite, targets and task
         JvmTestSuite suite = testSuite.get();
@@ -385,15 +438,29 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
     private static void configureDiagnostics(Project project, JvmFeatureInternal mainFeature) {
         project.getTasks().withType(DependencyInsightReportTask.class).configureEach(task -> {
-            new DslObject(task).getConventionMapping().map("configuration", mainFeature::getCompileClasspathConfiguration);
+            new DslObject(task)
+                    .getConventionMapping()
+                    .map("configuration", mainFeature::getCompileClasspathConfiguration);
         });
     }
 
     private static void configureBuild(Project project) {
-        project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, true,
-            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
-        project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, false,
-            JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        project.getTasks()
+                .named(
+                        JavaBasePlugin.BUILD_NEEDED_TASK_NAME,
+                        task -> addDependsOnTaskInOtherProjects(
+                                task,
+                                true,
+                                JavaBasePlugin.BUILD_NEEDED_TASK_NAME,
+                                JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        project.getTasks()
+                .named(
+                        JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME,
+                        task -> addDependsOnTaskInOtherProjects(
+                                task,
+                                false,
+                                JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME,
+                                JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
     }
 
     /**
@@ -406,7 +473,8 @@ public abstract class JavaPlugin implements Plugin<Project> {
      * @param otherProjectTaskName name of task in other projects
      * @param configurationName name of configuration to use to find the other projects
      */
-    private static void addDependsOnTaskInOtherProjects(final Task task, boolean useDependedOn, String otherProjectTaskName, String configurationName) {
+    private static void addDependsOnTaskInOtherProjects(
+            final Task task, boolean useDependedOn, String otherProjectTaskName, String configurationName) {
         Project project = task.getProject();
         final Configuration configuration = project.getConfigurations().getByName(configurationName);
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));

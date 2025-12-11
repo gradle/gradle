@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
@@ -39,10 +41,8 @@ import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.io.File;
-
-public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToolChain> implements org.gradle.nativeplatform.toolchain.VisualCpp {
+public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToolChain>
+        implements org.gradle.nativeplatform.toolchain.VisualCpp {
 
     private final String name;
 
@@ -68,8 +68,18 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     private ToolChainAvailability availability;
 
     @Inject
-    public VisualCppToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
-                              CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, UcrtLocator ucrtLocator, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
+    public VisualCppToolChain(
+            String name,
+            BuildOperationExecutor buildOperationExecutor,
+            OperatingSystem operatingSystem,
+            FileResolver fileResolver,
+            ExecActionFactory execActionFactory,
+            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+            VisualStudioLocator visualStudioLocator,
+            WindowsSdkLocator windowsSdkLocator,
+            UcrtLocator ucrtLocator,
+            Instantiator instantiator,
+            WorkerLeaseService workerLeaseService) {
         super(name, buildOperationExecutor, operatingSystem, fileResolver);
         this.name = name;
         this.execActionFactory = execActionFactory;
@@ -124,15 +134,28 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
         VisualCpp platformVisualCpp = visualCpp == null ? null : visualCpp.forPlatform(targetPlatform);
         if (platformVisualCpp == null) {
-            return new UnsupportedPlatformToolProvider(targetPlatform.getOperatingSystem(), String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
+            return new UnsupportedPlatformToolProvider(
+                    targetPlatform.getOperatingSystem(),
+                    String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
         }
         WindowsSdk platformSdk = windowsSdk.forPlatform(targetPlatform);
         SystemLibraries cRuntime = ucrt == null ? new EmptySystemLibraries() : ucrt.getCRuntime(targetPlatform);
 
-        DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
+        DefaultVisualCppPlatformToolChain configurableToolChain =
+                instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
-        return new VisualCppPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualStudio, platformVisualCpp, platformSdk, cRuntime, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService);
+        return new VisualCppPlatformToolProvider(
+                buildOperationExecutor,
+                targetPlatform.getOperatingSystem(),
+                configurableToolChain.tools,
+                visualStudio,
+                platformVisualCpp,
+                platformSdk,
+                cRuntime,
+                execActionFactory,
+                compilerOutputFileNamingSchemeFactory,
+                workerLeaseService);
     }
 
     @Override
@@ -151,7 +174,9 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             case ANY:
                 return select(targetMachine);
             default:
-                return new UnsupportedPlatformToolProvider(targetMachine.getOperatingSystem(), String.format("Don't know how to compile language %s.", sourceLanguage));
+                return new UnsupportedPlatformToolProvider(
+                        targetMachine.getOperatingSystem(),
+                        String.format("Don't know how to compile language %s.", sourceLanguage));
         }
     }
 

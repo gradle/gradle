@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import java.net.URI;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -24,8 +25,6 @@ import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.URI;
 
 public class HttpResourceAccessor extends AbstractExternalResourceAccessor implements ExternalResourceAccessor {
 
@@ -78,5 +77,4 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
     private HttpResponseResource wrapResponse(URI uri, HttpClientResponse response) {
         return new HttpResponseResource("GET", uri, response);
     }
-
 }

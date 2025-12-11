@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
 import org.gradle.BuildListener;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -33,10 +36,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * An internal interface for Gradle that exposed objects and concepts that are not intended for public

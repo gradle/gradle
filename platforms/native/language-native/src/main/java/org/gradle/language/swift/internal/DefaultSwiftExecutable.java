@@ -16,6 +16,9 @@
 
 package org.gradle.language.swift.internal;
 
+import java.util.Collections;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -46,11 +49,11 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.Set;
-
-public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftExecutable, ConfigurableComponentWithExecutable, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
+public class DefaultSwiftExecutable extends DefaultSwiftBinary
+        implements SwiftExecutable,
+                ConfigurableComponentWithExecutable,
+                ConfigurableComponentWithRuntimeUsage,
+                SoftwareComponentInternal {
     private final RegularFileProperty executableFile;
     private final Property<Task> executableFileProducer;
     private final DirectoryProperty installDirectory;
@@ -61,8 +64,34 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultSwiftExecutable(Names names, ObjectFactory objectFactory, NativeDependencyCache nativeDependencyCache, TaskDependencyFactory taskDependencyFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objectFactory, nativeDependencyCache, taskDependencyFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultSwiftExecutable(
+            Names names,
+            ObjectFactory objectFactory,
+            NativeDependencyCache nativeDependencyCache,
+            TaskDependencyFactory taskDependencyFactory,
+            Provider<String> module,
+            boolean testable,
+            FileCollection source,
+            ConfigurationContainer configurations,
+            Configuration implementation,
+            SwiftPlatform targetPlatform,
+            NativeToolChainInternal toolChain,
+            PlatformToolProvider platformToolProvider,
+            NativeVariantIdentity identity) {
+        super(
+                names,
+                objectFactory,
+                nativeDependencyCache,
+                taskDependencyFactory,
+                module,
+                testable,
+                source,
+                configurations,
+                implementation,
+                targetPlatform,
+                toolChain,
+                platformToolProvider,
+                identity);
         this.executableFile = objectFactory.fileProperty();
         this.executableFileProducer = objectFactory.property(Task.class);
         this.installDirectory = objectFactory.directoryProperty();
@@ -132,7 +161,8 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     @Override
     public Set<? extends UsageContext> getUsages() {
         Configuration runtimeElements = runtimeElementsProperty.get();
-        return Collections.singleton(new ConfigurationSoftwareComponentVariant(getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements));
+        return Collections.singleton(new ConfigurationSoftwareComponentVariant(
+                getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements));
     }
 
     @Override

@@ -52,5 +52,4 @@ public interface CompileOperation<T> {
     T getExtractedData();
 
     Serializer<T> getDataSerializer();
-
 }

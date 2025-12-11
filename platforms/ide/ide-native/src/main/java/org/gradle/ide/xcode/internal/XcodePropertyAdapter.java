@@ -16,11 +16,10 @@
 
 package org.gradle.ide.xcode.internal;
 
-import org.gradle.api.Project;
-import org.gradle.util.internal.GUtil;
-
 import java.util.Arrays;
 import java.util.List;
+import org.gradle.api.Project;
+import org.gradle.util.internal.GUtil;
 
 public class XcodePropertyAdapter {
     private final Project project;
@@ -51,11 +50,10 @@ public class XcodePropertyAdapter {
 
     public static List<String> getAdapterCommandLine() {
         return Arrays.asList(
-            toGradleProperty("ACTION"),
-            toGradleProperty("PRODUCT_NAME"),
-            toGradleProperty("CONFIGURATION"),
-            toGradleProperty("BUILT_PRODUCTS_DIR")
-        );
+                toGradleProperty("ACTION"),
+                toGradleProperty("PRODUCT_NAME"),
+                toGradleProperty("CONFIGURATION"),
+                toGradleProperty("BUILT_PRODUCTS_DIR"));
     }
 
     private static String toGradleProperty(String source) {

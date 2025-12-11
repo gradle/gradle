@@ -35,5 +35,4 @@ public class ResolveException extends DefaultMultiCauseException {
     protected ResolveException(String message, Iterable<? extends Throwable> causes) {
         super(message, causes);
     }
-
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.process.internal.worker.child;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
-
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class WorkerLogEventListener implements OutputEventListener {
     private final AtomicReference<WorkerLoggingProtocol> workerLoggingProtocol;
@@ -35,7 +34,8 @@ public class WorkerLogEventListener implements OutputEventListener {
         this.workerLoggingProtocol.getAndSet(workerLoggingProtocol);
     }
 
-    public Object withWorkerLoggingProtocol(WorkerLoggingProtocol newLoggingProtocol, Callable<?> callable) throws Exception {
+    public Object withWorkerLoggingProtocol(WorkerLoggingProtocol newLoggingProtocol, Callable<?> callable)
+            throws Exception {
         WorkerLoggingProtocol defaultProtocol = workerLoggingProtocol.getAndSet(newLoggingProtocol);
         try {
             return callable.call();
@@ -49,7 +49,8 @@ public class WorkerLogEventListener implements OutputEventListener {
         WorkerLoggingProtocol loggingProtocol = workerLoggingProtocol.get();
 
         if (loggingProtocol == null) {
-            throw new IllegalStateException(getClass().getSimpleName() + " received an output event before the worker logging protocol object was set.");
+            throw new IllegalStateException(getClass().getSimpleName()
+                    + " received an output event before the worker logging protocol object was set.");
         }
 
         if (event instanceof LogEvent) {

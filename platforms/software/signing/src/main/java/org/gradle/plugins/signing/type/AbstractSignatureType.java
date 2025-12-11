@@ -15,9 +15,6 @@
  */
 package org.gradle.plugins.signing.type;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.plugins.signing.signatory.Signatory;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -26,6 +23,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.gradle.internal.UncheckedException;
+import org.gradle.plugins.signing.signatory.Signatory;
 
 /**
  * Convenience base class for {@link SignatureType} implementations.
@@ -36,7 +35,7 @@ public abstract class AbstractSignatureType implements SignatureType {
     public File sign(Signatory signatory, File toSign) {
         File signatureFile = fileFor(toSign);
         try (InputStream toSignStream = new BufferedInputStream(new FileInputStream(toSign));
-             OutputStream signatureFileStream = new BufferedOutputStream(new FileOutputStream(signatureFile))) {
+                OutputStream signatureFileStream = new BufferedOutputStream(new FileOutputStream(signatureFile))) {
             sign(signatory, toSignStream, signatureFileStream);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);

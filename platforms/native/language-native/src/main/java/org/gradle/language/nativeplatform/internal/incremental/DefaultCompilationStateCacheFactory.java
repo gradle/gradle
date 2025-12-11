@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import java.io.Closeable;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
@@ -26,22 +27,23 @@ import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.Closeable;
-
 @ServiceScope(Scope.Build.class)
 public class DefaultCompilationStateCacheFactory implements CompilationStateCacheFactory, Closeable {
 
     private final IndexedCache<String, CompilationState> compilationStateIndexedCache;
     private final PersistentCache cache;
 
-    public DefaultCompilationStateCacheFactory(BuildScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultCompilationStateCacheFactory(
+            BuildScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         cache = cacheBuilderFactory
                 .createCacheBuilder("nativeCompile")
                 .withDisplayName("native compile cache")
                 .withInitialLockMode(FileLockManager.LockMode.OnDemand)
                 .open();
-        IndexedCacheParameters<String, CompilationState> parameters = IndexedCacheParameters.of("nativeCompile", String.class, new CompilationStateSerializer())
-            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
+        IndexedCacheParameters<String, CompilationState> parameters = IndexedCacheParameters.of(
+                        "nativeCompile", String.class, new CompilationStateSerializer())
+                .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
 
         compilationStateIndexedCache = cache.createIndexedCache(parameters);
     }
@@ -60,7 +62,8 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
         private final String taskPath;
         private final IndexedCache<String, CompilationState> compilationStateIndexedCache;
 
-        SimplePersistentObjectHolder(String taskPath, IndexedCache<String, CompilationState> compilationStateIndexedCache) {
+        SimplePersistentObjectHolder(
+                String taskPath, IndexedCache<String, CompilationState> compilationStateIndexedCache) {
             this.taskPath = taskPath;
             this.compilationStateIndexedCache = compilationStateIndexedCache;
         }

@@ -19,15 +19,14 @@ package org.gradle.internal.work;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.util.internal.CollectionUtils;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.util.internal.CollectionUtils;
 
 public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     private final ListMultimap<BuildOperationRef, AsyncWorkCompletion> items = ArrayListMultimap.create();
@@ -44,7 +43,8 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         lock.lock();
         try {
             if (waiting.contains(operation)) {
-                throw new IllegalStateException("Another thread is currently waiting on the completion of work for the provided operation");
+                throw new IllegalStateException(
+                        "Another thread is currently waiting on the completion of work for the provided operation");
             }
             items.put(operation, workCompletion);
         } finally {
@@ -67,12 +67,14 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     }
 
     @Override
-    public void waitForCompletion(BuildOperationRef operation, List<AsyncWorkCompletion> workItems, ProjectLockRetention lockRetention) {
+    public void waitForCompletion(
+            BuildOperationRef operation, List<AsyncWorkCompletion> workItems, ProjectLockRetention lockRetention) {
         startWaiting(operation, workItems);
         waitForAll(operation, workItems, lockRetention);
     }
 
-    private void waitForAll(BuildOperationRef operation, List<AsyncWorkCompletion> workItems, ProjectLockRetention lockRetention) {
+    private void waitForAll(
+            BuildOperationRef operation, List<AsyncWorkCompletion> workItems, ProjectLockRetention lockRetention) {
         try {
             if (!workItems.isEmpty()) {
                 waitForItemsAndGatherFailures(workItems, lockRetention);
@@ -82,7 +84,8 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         }
     }
 
-    private void waitForItemsAndGatherFailures(List<AsyncWorkCompletion> workItems, AsyncWorkTracker.ProjectLockRetention lockRetention) {
+    private void waitForItemsAndGatherFailures(
+            List<AsyncWorkCompletion> workItems, AsyncWorkTracker.ProjectLockRetention lockRetention) {
         switch (lockRetention) {
             case RETAIN_PROJECT_LOCKS:
                 waitForItemsAndGatherFailures(workItems);
@@ -137,7 +140,8 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
             }
 
             if (failures.size() > 0) {
-                throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
+                throw new DefaultMultiCauseException(
+                        "There were failures while executing asynchronous work:", failures);
             }
         });
     }

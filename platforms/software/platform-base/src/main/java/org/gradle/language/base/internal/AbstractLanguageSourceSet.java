@@ -16,24 +16,27 @@
 
 package org.gradle.language.base.internal;
 
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import org.gradle.api.BuildableComponentSpec;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-public abstract class AbstractLanguageSourceSet extends AbstractBuildableComponentSpec implements LanguageSourceSetInternal {
-    private final static Map<String, String> LANGUAGES = new HashMap<>();
+public abstract class AbstractLanguageSourceSet extends AbstractBuildableComponentSpec
+        implements LanguageSourceSetInternal {
+    private static final Map<String, String> LANGUAGES = new HashMap<>();
 
     private final SourceDirectorySet source;
     private boolean generated;
     private Task generatorTask;
 
-    public AbstractLanguageSourceSet(ComponentSpecIdentifier identifier, Class<? extends BuildableComponentSpec> publicType, SourceDirectorySet source) {
+    public AbstractLanguageSourceSet(
+            ComponentSpecIdentifier identifier,
+            Class<? extends BuildableComponentSpec> publicType,
+            SourceDirectorySet source) {
         super(identifier, publicType);
         this.source = source;
         super.builtBy(source.getBuildDependencies());
@@ -48,7 +51,10 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableCompone
         if (language != null) {
             return language;
         }
-        language = typeName.replaceAll("LanguageSourceSet$", "").replaceAll("SourceSet$", "").replaceAll("Source$", "").replaceAll("Set$", "");
+        language = typeName.replaceAll("LanguageSourceSet$", "")
+                .replaceAll("SourceSet$", "")
+                .replaceAll("Source$", "")
+                .replaceAll("Set$", "");
         LANGUAGES.put(typeName, language);
         return language;
     }
@@ -77,7 +83,8 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableCompone
     @Override
     public boolean getMayHaveSources() {
         // This doesn't take into account build dependencies of the SourceDirectorySet.
-        // Should just ditch SourceDirectorySet from here since it's not really a great model, and drags in too much baggage.
+        // Should just ditch SourceDirectorySet from here since it's not really a great model, and drags in too much
+        // baggage.
         return generated || !source.isEmpty();
     }
 
@@ -97,6 +104,8 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableCompone
 
     @Override
     public String getParentName() {
-        return getIdentifier().getParent() == null ? null : getIdentifier().getParent().getName();
+        return getIdentifier().getParent() == null
+                ? null
+                : getIdentifier().getParent().getName();
     }
 }

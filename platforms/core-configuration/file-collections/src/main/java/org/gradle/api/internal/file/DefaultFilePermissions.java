@@ -21,9 +21,11 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 public class DefaultFilePermissions extends AbstractFilePermissions {
 
-    public static final DefaultFilePermissions DEFAULT_FILE_PERMISSIONS = new DefaultFilePermissions(FileSystem.DEFAULT_FILE_MODE);
+    public static final DefaultFilePermissions DEFAULT_FILE_PERMISSIONS =
+            new DefaultFilePermissions(FileSystem.DEFAULT_FILE_MODE);
 
-    public static final DefaultFilePermissions DEFAULT_DIR_PERMISSIONS = new DefaultFilePermissions(FileSystem.DEFAULT_DIR_MODE);
+    public static final DefaultFilePermissions DEFAULT_DIR_PERMISSIONS =
+            new DefaultFilePermissions(FileSystem.DEFAULT_DIR_MODE);
 
     private final UserClassFilePermissions user;
 

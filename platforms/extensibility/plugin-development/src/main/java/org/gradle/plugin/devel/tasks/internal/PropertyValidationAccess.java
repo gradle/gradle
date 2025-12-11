@@ -17,6 +17,8 @@
 package org.gradle.plugin.devel.tasks.internal;
 
 import com.google.common.reflect.TypeToken;
+import java.lang.reflect.Modifier;
+import java.util.List;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.TypeScheme;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
@@ -42,9 +44,6 @@ import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.reflect.Modifier;
-import java.util.List;
-
 /**
  * Class for easy access to property validation from the validator task.
  */
@@ -56,7 +55,8 @@ public class PropertyValidationAccess {
 
     private PropertyValidationAccess() {
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder().displayName("Global services");
-        // Should reuse `GlobalScopeServices` here, however this requires a bunch of stuff in order to discover the plugin service registries
+        // Should reuse `GlobalScopeServices` here, however this requires a bunch of stuff in order to discover the
+        // plugin service registries
         // For now, re-implement the discovery here
         builder.provider(new ServiceRegistrationProvider() {
             @SuppressWarnings("unused")
@@ -67,7 +67,9 @@ public class PropertyValidationAccess {
                 registration.add(DefaultManagedFactoryRegistry.class, new DefaultManagedFactoryRegistry());
                 registration.add(OutputPropertyRoleAnnotationHandler.class);
                 registration.add(DefaultInstantiatorFactory.class);
-                List<GradleModuleServices> servicesProviders = new DefaultServiceLocator(false, getClass().getClassLoader()).getAll(GradleModuleServices.class);
+                List<GradleModuleServices> servicesProviders = new DefaultServiceLocator(
+                                false, getClass().getClassLoader())
+                        .getAll(GradleModuleServices.class);
                 for (GradleModuleServices services : servicesProviders) {
                     services.registerGlobalServices(registration);
                 }
@@ -94,21 +96,27 @@ public class PropertyValidationAccess {
         }
 
         TypeToken<?> topLevelType = TypeToken.of(topLevelBean);
-        TypeMetadataWalker.typeWalker(metadataStore, Nested.class).walk(topLevelType, new TypeMetadataWalker.StaticMetadataVisitor() {
-            @Override
-            public void visitRoot(TypeMetadata typeMetadata, TypeToken<?> value) {
-                typeMetadata.visitValidationFailures(null, validationContext);
-            }
+        TypeMetadataWalker.typeWalker(metadataStore, Nested.class)
+                .walk(topLevelType, new TypeMetadataWalker.StaticMetadataVisitor() {
+                    @Override
+                    public void visitRoot(TypeMetadata typeMetadata, TypeToken<?> value) {
+                        typeMetadata.visitValidationFailures(null, validationContext);
+                    }
 
-            @Override
-            public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
-                typeMetadata.visitValidationFailures(qualifiedName, validationContext);
-                // Inspecting annotations of static types is only conclusive if type is final
-                if (Modifier.isFinal(value.getRawType().getModifiers())) {
-                    NestedValidationUtil.validateBeanType(validationContext, propertyMetadata.getPropertyName(), typeMetadata.getType());
-                }
-            }
-        });
+                    @Override
+                    public void visitNested(
+                            TypeMetadata typeMetadata,
+                            String qualifiedName,
+                            PropertyMetadata propertyMetadata,
+                            TypeToken<?> value) {
+                        typeMetadata.visitValidationFailures(qualifiedName, validationContext);
+                        // Inspecting annotations of static types is only conclusive if type is final
+                        if (Modifier.isFinal(value.getRawType().getModifiers())) {
+                            NestedValidationUtil.validateBeanType(
+                                    validationContext, propertyMetadata.getPropertyName(), typeMetadata.getType());
+                        }
+                    }
+                });
     }
 
     @Nullable

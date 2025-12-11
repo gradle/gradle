@@ -16,10 +16,9 @@
 
 package org.gradle;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A request to execute some tasks, along with an optional project path context to provide information necessary to select the tasks
@@ -39,7 +38,8 @@ public interface TaskExecutionRequest {
      *
      * @return project path or {@code null} to use the default project path.
      */
-    @Nullable String getProjectPath();
+    @Nullable
+    String getProjectPath();
 
     /**
      * The root folder of the build that this task was defined in.

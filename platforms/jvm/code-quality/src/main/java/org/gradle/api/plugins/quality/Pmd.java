@@ -17,6 +17,9 @@ package org.gradle.api.plugins.quality;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
@@ -47,10 +50,6 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Runs a set of static code analysis rules on Java source code files and generates a report of problems found.
@@ -114,12 +113,17 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
         parameters.getIncrementalCacheFile().set(getIncrementalCacheFile());
         parameters.getThreads().set(getThreads());
         parameters.getSource().setFrom(getSource());
-        parameters.getEnabledReports().set(getReports().getEnabled().stream().map(report -> {
-            PmdActionParameters.EnabledReport newReport = getObjectFactory().newInstance(PmdActionParameters.EnabledReport.class);
-            newReport.getName().set(report.getName());
-            newReport.getOutputLocation().set(report.getOutputLocation());
-            return newReport;
-        }).collect(Collectors.toList()));
+        parameters
+                .getEnabledReports()
+                .set(getReports().getEnabled().stream()
+                        .map(report -> {
+                            PmdActionParameters.EnabledReport newReport =
+                                    getObjectFactory().newInstance(PmdActionParameters.EnabledReport.class);
+                            newReport.getName().set(report.getName());
+                            newReport.getOutputLocation().set(report.getOutputLocation());
+                            return newReport;
+                        })
+                        .collect(Collectors.toList()));
     }
 
     public boolean stdOutIsAttachedToTerminal() {
@@ -137,7 +141,8 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      */
     @Override
     @SuppressWarnings("rawtypes")
-    public PmdReports reports(@DelegatesTo(value = PmdReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
+    public PmdReports reports(
+            @DelegatesTo(value = PmdReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
         return reports(new ClosureBackedAction<>(closure));
     }
 
@@ -159,7 +164,8 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      */
     public static void validate(int value) {
         if (value > 5 || value < 1) {
-            throw new InvalidUserDataException(String.format("Invalid rulesMinimumPriority '%d'.  Valid range 1 (highest) to 5 (lowest).", value));
+            throw new InvalidUserDataException(
+                    String.format("Invalid rulesMinimumPriority '%d'.  Valid range 1 (highest) to 5 (lowest).", value));
         }
     }
 
@@ -170,7 +176,8 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      */
     private static void validateThreads(int value) {
         if (value < 0) {
-            throw new InvalidUserDataException(String.format("Invalid number of threads '%d'.  Number should not be negative.", value));
+            throw new InvalidUserDataException(
+                    String.format("Invalid number of threads '%d'.  Number should not be negative.", value));
         }
     }
 

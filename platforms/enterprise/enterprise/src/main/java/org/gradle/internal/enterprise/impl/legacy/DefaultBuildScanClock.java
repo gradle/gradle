@@ -16,10 +16,9 @@
 
 package org.gradle.internal.enterprise.impl.legacy;
 
+import javax.inject.Inject;
 import org.gradle.internal.scan.time.BuildScanClock;
 import org.gradle.internal.time.Clock;
-
-import javax.inject.Inject;
 
 public class DefaultBuildScanClock implements BuildScanClock {
 
@@ -34,5 +33,4 @@ public class DefaultBuildScanClock implements BuildScanClock {
     public long getCurrentTime() {
         return clock.getCurrentTime();
     }
-
 }

@@ -17,17 +17,17 @@
 package org.gradle.internal.execution.caching;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.Either;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 public class CachingState {
-    public static final CachingState NOT_DETERMINED = disabledWithoutInputs(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined"));
+    public static final CachingState NOT_DETERMINED = disabledWithoutInputs(
+            new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined"));
 
     private final Either<Enabled, Disabled> delegate;
 
@@ -39,10 +39,13 @@ public class CachingState {
         return new CachingState(Either.left(new Enabled(key, beforeExecutionState)));
     }
 
-    public static CachingState disabled(ImmutableList<CachingDisabledReason> disabledReasons, @Nullable BuildCacheKey key, @Nullable BeforeExecutionState beforeExecutionState) {
+    public static CachingState disabled(
+            ImmutableList<CachingDisabledReason> disabledReasons,
+            @Nullable BuildCacheKey key,
+            @Nullable BeforeExecutionState beforeExecutionState) {
         CacheKeyCalculatedState cacheKeyCalculatedState = (key != null && beforeExecutionState != null)
-            ? new CacheKeyCalculatedState(key, beforeExecutionState)
-            : null;
+                ? new CacheKeyCalculatedState(key, beforeExecutionState)
+                : null;
         return new CachingState(Either.right(new Disabled(disabledReasons, cacheKeyCalculatedState)));
     }
 
@@ -67,7 +70,8 @@ public class CachingState {
     }
 
     public Optional<CacheKeyCalculatedState> getCacheKeyCalculatedState() {
-        return delegate.fold(enabled -> Optional.of(enabled.getCacheKeyCalculatedState()), Disabled::getCacheKeyCalculatedState);
+        return delegate.fold(
+                enabled -> Optional.of(enabled.getCacheKeyCalculatedState()), Disabled::getCacheKeyCalculatedState);
     }
 
     /**
@@ -120,10 +124,13 @@ public class CachingState {
      */
     public static class Disabled {
         private final ImmutableList<CachingDisabledReason> disabledReasons;
+
         @Nullable
         private final CacheKeyCalculatedState cacheKeyCalculatedState;
 
-        private Disabled(ImmutableList<CachingDisabledReason> disabledReasons, @Nullable CacheKeyCalculatedState cacheKeyCalculatedState) {
+        private Disabled(
+                ImmutableList<CachingDisabledReason> disabledReasons,
+                @Nullable CacheKeyCalculatedState cacheKeyCalculatedState) {
             this.disabledReasons = disabledReasons;
             this.cacheKeyCalculatedState = cacheKeyCalculatedState;
         }

@@ -19,12 +19,11 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.util.Map;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * An implementation of {@link ImmutableAttributes} that contains no entries.
@@ -91,5 +90,4 @@ public final class EmptyImmutableAttributes extends AbstractAttributeContainer i
     public int hashCode() {
         return EmptyImmutableAttributes.class.hashCode();
     }
-
 }

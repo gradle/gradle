@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
@@ -27,9 +29,6 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.time.Clock;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * A {@link org.gradle.api.internal.tasks.testing.TestResultProcessor} which redirect stdout and stderr during the
  * execution of a test suite.
@@ -40,7 +39,8 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
     private Object rootId;
     private Map<Object, Object> parents = new ConcurrentHashMap<Object, Object>();
 
-    public CaptureTestOutputTestResultProcessor(Clock clock, TestResultProcessor processor, StandardOutputRedirector outputRedirector) {
+    public CaptureTestOutputTestResultProcessor(
+            Clock clock, TestResultProcessor processor, StandardOutputRedirector outputRedirector) {
         this(processor, new TestOutputRedirector(clock, processor, outputRedirector));
     }
 
@@ -61,8 +61,8 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
         } else {
             Object parentId = event.getParentId();
             if (parentId == null) {
-                //if we don't know the parent we will use the top suite
-                //this way we always have and id to attach logging events for
+                // if we don't know the parent we will use the top suite
+                // this way we always have and id to attach logging events for
                 parentId = rootId;
             }
             parents.put(test.getId(), parentId);
@@ -72,15 +72,15 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
     @Override
     public void completed(Object testId, TestCompleteEvent event) {
         if (testId.equals(rootId)) {
-            //when root suite is completed we stop redirecting
+            // when root suite is completed we stop redirecting
             try {
                 outputRedirector.stopRedirecting();
             } finally {
                 rootId = null;
             }
         } else {
-            //when test is completed we should redirect output for the parent
-            //so that log events emitted during @AfterSuite, @AfterClass are processed
+            // when test is completed we should redirect output for the parent
+            // so that log events emitted during @AfterSuite, @AfterClass are processed
             Object newOwner = parents.remove(testId);
             outputRedirector.setOutputOwner(newOwner);
         }
@@ -101,5 +101,4 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
     public void published(Object testId, TestMetadataEvent keyValueEvent) {
         processor.published(testId, keyValueEvent);
     }
-
 }

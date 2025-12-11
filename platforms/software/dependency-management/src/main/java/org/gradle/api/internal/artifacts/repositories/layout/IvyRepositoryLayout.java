@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
+import java.net.URI;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 import org.jspecify.annotations.Nullable;
-
-import java.net.URI;
 
 /**
  * A Repository Layout that applies the following patterns:

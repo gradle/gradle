@@ -17,10 +17,9 @@
 package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
+import org.jspecify.annotations.Nullable;
 
 class ParameterizedTypeWrapper implements TypeWrapper {
 
@@ -29,7 +28,8 @@ class ParameterizedTypeWrapper implements TypeWrapper {
     private final TypeWrapper ownerType;
     private final int hashCode;
 
-    public ParameterizedTypeWrapper(TypeWrapper[] actualTypeArguments, ClassTypeWrapper rawType, @Nullable TypeWrapper ownerType) {
+    public ParameterizedTypeWrapper(
+            TypeWrapper[] actualTypeArguments, ClassTypeWrapper rawType, @Nullable TypeWrapper ownerType) {
         this.actualTypeArguments = actualTypeArguments;
         this.rawType = rawType;
         this.ownerType = ownerType;
@@ -79,7 +79,8 @@ class ParameterizedTypeWrapper implements TypeWrapper {
                     return false;
                 }
                 WildcardWrapper wildcard = (WildcardWrapper) typeArgument;
-                if (wildcard.getLowerBound() != null || !wildcard.getUpperBound().getRawClass().equals(Object.class)) {
+                if (wildcard.getLowerBound() != null
+                        || !wildcard.getUpperBound().getRawClass().equals(Object.class)) {
                     return false;
                 }
             }
@@ -201,7 +202,7 @@ class ParameterizedTypeWrapper implements TypeWrapper {
     ParameterizedTypeWrapper substituteAll(TypeWrapper[] newArguments) {
         if (actualTypeArguments.length != newArguments.length) {
             throw new IllegalArgumentException(
-                "Expecting " + actualTypeArguments.length + " type arguments but got " + newArguments.length + ".");
+                    "Expecting " + actualTypeArguments.length + " type arguments but got " + newArguments.length + ".");
         }
         return new ParameterizedTypeWrapper(newArguments, rawType, ownerType);
     }

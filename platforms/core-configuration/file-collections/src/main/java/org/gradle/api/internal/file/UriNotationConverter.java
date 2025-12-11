@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.file;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.os.OperatingSystem;
@@ -27,19 +30,14 @@ import org.gradle.internal.typeconversion.TypeConversionException;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-
 public class UriNotationConverter implements NotationConverter<Object, URI> {
 
     public static NotationParser<Object, URI> parser() {
-        return NotationParserBuilder
-            .toType(URI.class)
-            .typeDisplayName("a URI")
-            .noImplicitConverters()
-            .converter(new UriNotationConverter())
-            .toComposite();
+        return NotationParserBuilder.toType(URI.class)
+                .typeDisplayName("a URI")
+                .noImplicitConverters()
+                .converter(new UriNotationConverter())
+                .toComposite();
     }
 
     @Override
@@ -93,6 +91,9 @@ public class UriNotationConverter implements NotationConverter<Object, URI> {
     }
 
     private static boolean isWindowsRootDirectory(@Nullable String scheme) {
-        return scheme != null && scheme.length() == 1 && Character.isLetter(scheme.charAt(0)) && OperatingSystem.current().isWindows();
+        return scheme != null
+                && scheme.length() == 1
+                && Character.isLetter(scheme.charAt(0))
+                && OperatingSystem.current().isWindows();
     }
 }

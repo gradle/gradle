@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import java.io.File;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
@@ -32,8 +33,6 @@ import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.util.Path;
 
-import java.io.File;
-
 public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState implements IncludedBuildState {
 
     private final Path identityPath;
@@ -41,12 +40,11 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     private final boolean isImplicit;
 
     public DefaultIncludedBuild(
-        Path identityPath,
-        BuildDefinition buildDefinition,
-        boolean isImplicit,
-        BuildState owner,
-        BuildTreeState buildTree
-    ) {
+            Path identityPath,
+            BuildDefinition buildDefinition,
+            boolean isImplicit,
+            BuildState owner,
+            BuildTreeState buildTree) {
         // Use a defensive copy of the build definition, as it may be mutated during build execution
         super(buildTree, buildDefinition.newInstance(), owner);
         assert !identityPath.equals(Path.ROOT) : "An included build must not be located at the root path";

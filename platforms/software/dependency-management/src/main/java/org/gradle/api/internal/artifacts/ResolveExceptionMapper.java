@@ -17,6 +17,9 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
@@ -26,10 +29,6 @@ import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Adds additional context to exceptions thrown during resolution.
@@ -41,24 +40,26 @@ public class ResolveExceptionMapper {
     private final DocumentationRegistry documentationRegistry;
 
     public ResolveExceptionMapper(
-        DomainObjectContext domainObjectContext,
-        DocumentationRegistry documentationRegistry
-    ) {
+            DomainObjectContext domainObjectContext, DocumentationRegistry documentationRegistry) {
         this.domainObjectContext = domainObjectContext;
         this.documentationRegistry = documentationRegistry;
     }
 
     @Nullable
-    public TypedResolveException mapFailures(Collection<Throwable> failures, String type, DisplayName contextDisplayName) {
+    public TypedResolveException mapFailures(
+            Collection<Throwable> failures, String type, DisplayName contextDisplayName) {
         if (failures.isEmpty()) {
             return null;
         }
 
         String displayName = contextDisplayName.getDisplayName();
         if (failures.size() > 1) {
-            return new TypedResolveException(type, displayName, failures.stream().map(failure ->
-                mapRepositoryOverrideFailure(displayName, failure)
-            ).collect(ImmutableList.toImmutableList()));
+            return new TypedResolveException(
+                    type,
+                    displayName,
+                    failures.stream()
+                            .map(failure -> mapRepositoryOverrideFailure(displayName, failure))
+                            .collect(ImmutableList.toImmutableList()));
         }
 
         Throwable failure = failures.iterator().next();
@@ -68,17 +69,16 @@ public class ResolveExceptionMapper {
     public TypedResolveException mapFailure(Throwable failure, String type, String contextDisplayName) {
         if (!(failure instanceof TypedResolveException)) {
             return new TypedResolveException(
-                type,
-                contextDisplayName,
-                ImmutableList.of(mapRepositoryOverrideFailure(contextDisplayName, failure))
-            );
+                    type,
+                    contextDisplayName,
+                    ImmutableList.of(mapRepositoryOverrideFailure(contextDisplayName, failure)));
         }
 
         TypedResolveException resolveException = (TypedResolveException) failure;
 
         List<Throwable> mappedCauses = resolveException.getCauses().stream()
-            .map(cause -> mapRepositoryOverrideFailure(contextDisplayName, cause))
-            .collect(ImmutableList.toImmutableList());
+                .map(cause -> mapRepositoryOverrideFailure(contextDisplayName, cause))
+                .collect(ImmutableList.toImmutableList());
 
         // Keep the original exception if no changes were made to
         // the causes to avoid losing the original stack trace
@@ -86,7 +86,8 @@ public class ResolveExceptionMapper {
             return resolveException;
         }
 
-        return new TypedResolveException(resolveException.getType(), contextDisplayName, mappedCauses, resolveException.getResolutions());
+        return new TypedResolveException(
+                resolveException.getType(), contextDisplayName, mappedCauses, resolveException.getResolutions());
     }
 
     // TODO: We should handle this exception at the source instead of using instanceof to detect it after it is thrown.
@@ -97,17 +98,13 @@ public class ResolveExceptionMapper {
         }
 
         ImmutableList<String> resolutions = ImmutableList.of(
-            "The project declares repositories, effectively ignoring the repositories you have declared in the settings.\n" +
-                "To determine how project repositories are declared, configure your build to fail on project repositories.\n" +
-                documentationRegistry.getDocumentationRecommendationFor("information", "declaring_repositories", "sub:fail_build_on_project_repositories")
-        );
+                "The project declares repositories, effectively ignoring the repositories you have declared in the settings.\n"
+                        + "To determine how project repositories are declared, configure your build to fail on project repositories.\n"
+                        + documentationRegistry.getDocumentationRecommendationFor(
+                                "information", "declaring_repositories", "sub:fail_build_on_project_repositories"));
 
         return new TypedResolveException(
-            "dependencies",
-            contextDisplayName,
-            Collections.singleton(failure),
-            resolutions
-        );
+                "dependencies", contextDisplayName, Collections.singleton(failure), resolutions);
     }
 
     private boolean settingsRepositoriesIgnored() {
@@ -119,7 +116,11 @@ public class ResolveExceptionMapper {
 
         boolean hasSettingsRepos;
         try {
-            hasSettingsRepos = !project.getGradle().getSettings().getDependencyResolutionManagement().getRepositories().isEmpty();
+            hasSettingsRepos = !project.getGradle()
+                    .getSettings()
+                    .getDependencyResolutionManagement()
+                    .getRepositories()
+                    .isEmpty();
         } catch (Throwable e) {
             // To catch `The settings are not yet available for` error
             return false;
@@ -128,5 +129,4 @@ public class ResolveExceptionMapper {
         boolean hasProjectRepos = !project.getRepositories().isEmpty();
         return hasProjectRepos && hasSettingsRepos;
     }
-
 }

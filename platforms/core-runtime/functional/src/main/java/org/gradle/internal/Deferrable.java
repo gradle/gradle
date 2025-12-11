@@ -16,12 +16,11 @@
 
 package org.gradle.internal;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An invocation to be executed at most once, but one that can be deferred.
@@ -52,8 +51,7 @@ public interface Deferrable<T> {
         return new Deferrable<U>() {
             @Override
             public Optional<U> getCompleted() {
-                return Deferrable.this.getCompleted()
-                    .map(value -> applyAndRequireNonNull(value, mapper));
+                return Deferrable.this.getCompleted().map(value -> applyAndRequireNonNull(value, mapper));
             }
 
             @Override
@@ -76,10 +74,9 @@ public interface Deferrable<T> {
      */
     default <U> Deferrable<U> flatMap(Function<? super T, Deferrable<U>> mapper) {
         return getCompleted()
-            .map(mapper)
-            .orElseGet(() -> Deferrable.deferred(() -> mapper
-                .apply(Deferrable.this.completeAndGet())
-                .completeAndGet()));
+                .map(mapper)
+                .orElseGet(() -> Deferrable.deferred(
+                        () -> mapper.apply(Deferrable.this.completeAndGet()).completeAndGet()));
     }
 
     /**

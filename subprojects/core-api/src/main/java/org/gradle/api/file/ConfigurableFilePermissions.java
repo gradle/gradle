@@ -220,5 +220,4 @@ public interface ConfigurableFilePermissions extends FilePermissions {
      * </pre>
      */
     void unix(int unixNumeric);
-
 }

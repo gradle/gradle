@@ -16,10 +16,9 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import org.gradle.util.internal.VersionNumber;
-
 import java.io.File;
 import java.util.Comparator;
+import org.gradle.util.internal.VersionNumber;
 
 public class JvmInstallationMetadataComparator implements Comparator<JvmInstallationMetadata> {
 
@@ -31,20 +30,19 @@ public class JvmInstallationMetadataComparator implements Comparator<JvmInstalla
 
     @Override
     public int compare(JvmInstallationMetadata o1, JvmInstallationMetadata o2) {
-        return Comparator
-            .comparing(this::isCurrentJvm)
-            // Prefer installations with compiler, javadoc and jar
-            .thenComparing(this::hasCompiler)
-            .thenComparing(this::hasJavadoc)
-            .thenComparing(this::hasJar)
-            .thenComparing(this::extractVendor, Comparator.reverseOrder())
-            .thenComparing(this::getToolchainVersion)
-            // It is possible for different JDK builds to have exact same version. The input order
-            // may change so the installation path breaks ties to keep sorted output consistent
-            // between runs.
-            .thenComparing(JvmInstallationMetadata::getJavaHome)
-            .reversed()
-            .compare(o1, o2);
+        return Comparator.comparing(this::isCurrentJvm)
+                // Prefer installations with compiler, javadoc and jar
+                .thenComparing(this::hasCompiler)
+                .thenComparing(this::hasJavadoc)
+                .thenComparing(this::hasJar)
+                .thenComparing(this::extractVendor, Comparator.reverseOrder())
+                .thenComparing(this::getToolchainVersion)
+                // It is possible for different JDK builds to have exact same version. The input order
+                // may change so the installation path breaks ties to keep sorted output consistent
+                // between runs.
+                .thenComparing(JvmInstallationMetadata::getJavaHome)
+                .reversed()
+                .compare(o1, o2);
     }
 
     boolean isCurrentJvm(JvmInstallationMetadata metadata) {

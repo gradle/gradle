@@ -16,14 +16,13 @@
 
 package org.gradle.tooling;
 
+import java.util.Collection;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Provides a {@link BuildAction} various ways to control a Gradle build and access information about the build.
@@ -129,7 +128,8 @@ public interface BuildController {
      * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parameterized models.
      * @since 4.4
      */
-    <T, P> T getModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException;
+    <T, P> T getModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer)
+            throws UnsupportedVersionException, UnknownModelException;
 
     /**
      * Fetches a snapshot of the model of the given type using the given parameter, if available.
@@ -168,7 +168,8 @@ public interface BuildController {
      * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parameterized models.
      * @since 4.4
      */
-    <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException;
+    <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer)
+            throws UnsupportedVersionException, UnknownModelException;
 
     /**
      * Fetches a snapshot of the model of the given type for the given element using the given parameter, if available.
@@ -185,7 +186,8 @@ public interface BuildController {
      * @since 4.4
      */
     @Nullable
-    <T, P> T findModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer);
+    <T, P> T findModel(
+            Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer);
 
     /**
      * Runs the given actions and returns their results. Attempts to run the actions in parallel, when supported by the Gradle version.
@@ -264,11 +266,7 @@ public interface BuildController {
      */
     @Incubating
     <M, P> FetchModelResult<M> fetch(
-        Class<M> modelType,
-        @Nullable Class<P> parameterType,
-        @Nullable Action<? super P> parameterInitializer
-    );
-
+            Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer);
 
     /**
      * Fetches a snapshot of the model of the given type for the given element using the given parameter with resilient model fetching.
@@ -292,9 +290,8 @@ public interface BuildController {
      */
     @Incubating
     <M, P> FetchModelResult<M> fetch(
-        @Nullable Model target,
-        Class<M> modelType,
-        @Nullable Class<P> parameterType,
-        @Nullable Action<? super P> parameterInitializer
-    );
+            @Nullable Model target,
+            Class<M> modelType,
+            @Nullable Class<P> parameterType,
+            @Nullable Action<? super P> parameterInitializer);
 }

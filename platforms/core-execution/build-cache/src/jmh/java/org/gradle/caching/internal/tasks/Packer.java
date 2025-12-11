@@ -21,5 +21,6 @@ import java.util.List;
 
 interface Packer {
     void pack(List<DataSource> inputs, DataTarget output) throws IOException;
+
     void unpack(DataSource input, DataTargetFactory targetFactory) throws IOException;
 }

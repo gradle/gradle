@@ -16,10 +16,9 @@
 
 package org.gradle.api.artifacts;
 
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.AttributeContainer;
-
-import java.util.List;
 
 /**
  * A component metadata builder.

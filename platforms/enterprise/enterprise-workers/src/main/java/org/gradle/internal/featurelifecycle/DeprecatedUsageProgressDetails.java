@@ -16,9 +16,8 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A usage of some deprecated API or feature.
@@ -68,5 +67,4 @@ public interface DeprecatedUsageProgressDetails {
      * See {@code org.gradle.internal.deprecation.DeprecatedFeatureUsage#getStack()}
      */
     List<StackTraceElement> getStackTrace();
-
 }

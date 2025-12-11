@@ -16,6 +16,19 @@
 
 package org.gradle.testkit.runner.internal;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
@@ -37,20 +50,6 @@ import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
 import org.gradle.testkit.runner.UnexpectedBuildFailure;
 import org.gradle.testkit.runner.UnexpectedBuildSuccess;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class DefaultGradleRunner extends GradleRunner {
 
@@ -272,7 +271,9 @@ public class DefaultGradleRunner extends GradleRunner {
     public BuildResult build() {
         return run(gradleExecutionResult -> {
             if (!gradleExecutionResult.isSuccessful()) {
-                throw new UnexpectedBuildFailure(createDiagnosticsMessage("Unexpected build execution failure", gradleExecutionResult), createBuildResult(gradleExecutionResult));
+                throw new UnexpectedBuildFailure(
+                        createDiagnosticsMessage("Unexpected build execution failure", gradleExecutionResult),
+                        createBuildResult(gradleExecutionResult));
             }
         });
     }
@@ -281,15 +282,16 @@ public class DefaultGradleRunner extends GradleRunner {
     public BuildResult buildAndFail() {
         return run(gradleExecutionResult -> {
             if (gradleExecutionResult.isSuccessful()) {
-                throw new UnexpectedBuildSuccess(createDiagnosticsMessage("Unexpected build execution success", gradleExecutionResult), createBuildResult(gradleExecutionResult));
+                throw new UnexpectedBuildSuccess(
+                        createDiagnosticsMessage("Unexpected build execution success", gradleExecutionResult),
+                        createBuildResult(gradleExecutionResult));
             }
         });
     }
 
     @Override
     public BuildResult run() {
-        return run(gradleExecutionResult -> {
-        });
+        return run(gradleExecutionResult -> {});
     }
 
     String createDiagnosticsMessage(String trailingMessage, GradleExecutionResult gradleExecutionResult) {
@@ -303,7 +305,10 @@ public class DefaultGradleRunner extends GradleRunner {
 
         String output;
         try {
-            output = gradleExecutionResult.getOutputSource().asCharSource(Charset.defaultCharset()).read();
+            output = gradleExecutionResult
+                    .getOutputSource()
+                    .asCharSource(Charset.defaultCharset())
+                    .read();
         } catch (IOException e) {
             output = "<Error fetching output: " + e.getMessage() + ">";
         }
@@ -321,30 +326,36 @@ public class DefaultGradleRunner extends GradleRunner {
 
     private BuildResult run(Action<GradleExecutionResult> resultVerification) {
         if (projectDirectory == null) {
-            throw new InvalidRunnerConfigurationException("Please specify a project directory before executing the build");
+            throw new InvalidRunnerConfigurationException(
+                    "Please specify a project directory before executing the build");
         }
 
         if (environment != null && debug) {
-            throw new InvalidRunnerConfigurationException("Debug mode is not allowed when environment variables are specified. " +
-                "Debug mode runs 'in process' but we need to fork a separate process to pass environment variables. " +
-                "To run with debug mode, please remove environment variables.");
+            throw new InvalidRunnerConfigurationException(
+                    "Debug mode is not allowed when environment variables are specified. "
+                            + "Debug mode runs 'in process' but we need to fork a separate process to pass environment variables. "
+                            + "To run with debug mode, please remove environment variables.");
         }
 
         File testKitDir = createTestKitDir(testKitDirProvider);
 
-        GradleProvider effectiveDistribution = gradleProvider == null ? findGradleInstallFromGradleRunner() : gradleProvider;
+        GradleProvider effectiveDistribution =
+                gradleProvider == null ? findGradleInstallFromGradleRunner() : gradleProvider;
 
         List<String> effectiveArguments = new ArrayList<>();
         Map<String, String> effectiveEnvironment = new HashMap<>();
 
         if (OperatingSystem.current().isWindows()) {
             // When using file system watching in Windows tests it becomes harder to delete the project directory,
-            // since file system watching on Windows adds a lock on the watched directory, which is currently the project directory.
-            // After deleting the contents of the watched directory, Gradle will stop watching the directory and release the file lock.
+            // since file system watching on Windows adds a lock on the watched directory, which is currently the
+            // project directory.
+            // After deleting the contents of the watched directory, Gradle will stop watching the directory and release
+            // the file lock.
             // That may require a retry to delete the watched directory.
             // To avoid those problems for TestKit tests on Windows, we disable file system watching there.
             effectiveArguments.add("-D" + StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY + "=false");
-            // Without the SystemRoot environment variable been defined, Gradle Runner doesn't work on Windows when requiring network
+            // Without the SystemRoot environment variable been defined, Gradle Runner doesn't work on Windows when
+            // requiring network
             // connections.
             effectiveEnvironment.put("SystemRoot", System.getenv("SystemRoot"));
         }
@@ -358,18 +369,17 @@ public class DefaultGradleRunner extends GradleRunner {
         }
 
         GradleExecutionResult execResult = gradleExecutor.run(new GradleExecutionParameters(
-            effectiveDistribution,
-            testKitDir,
-            projectDirectory,
-            effectiveArguments,
-            jvmArguments,
-            classpath,
-            debug,
-            standardOutput,
-            standardError,
-            standardInput,
-            effectiveEnvironment
-        ));
+                effectiveDistribution,
+                testKitDir,
+                projectDirectory,
+                effectiveArguments,
+                jvmArguments,
+                classpath,
+                debug,
+                standardOutput,
+                standardError,
+                standardInput,
+                effectiveEnvironment));
 
         resultVerification.execute(execResult);
         return createBuildResult(execResult);
@@ -377,25 +387,25 @@ public class DefaultGradleRunner extends GradleRunner {
 
     private static BuildResult createBuildResult(GradleExecutionResult execResult) {
         return new FeatureCheckBuildResult(
-            execResult.getBuildOperationParameters(),
-            execResult.getOutputSource(),
-            execResult.getTasks()
-        );
+                execResult.getBuildOperationParameters(), execResult.getOutputSource(), execResult.getTasks());
     }
 
     private File createTestKitDir(TestKitDirProvider testKitDirProvider) {
         File dir = testKitDirProvider.getDir();
         if (dir.isDirectory()) {
             if (!dir.canWrite()) {
-                throw new InvalidRunnerConfigurationException("Unable to write to test kit directory: " + dir.getAbsolutePath());
+                throw new InvalidRunnerConfigurationException(
+                        "Unable to write to test kit directory: " + dir.getAbsolutePath());
             }
             return dir;
         } else if (dir.exists() && !dir.isDirectory()) {
-            throw new InvalidRunnerConfigurationException("Unable to use non-directory as test kit directory: " + dir.getAbsolutePath());
+            throw new InvalidRunnerConfigurationException(
+                    "Unable to use non-directory as test kit directory: " + dir.getAbsolutePath());
         } else if (dir.mkdirs() || dir.isDirectory()) {
             return dir;
         } else {
-            throw new InvalidRunnerConfigurationException("Unable to create test kit directory: " + dir.getAbsolutePath());
+            throw new InvalidRunnerConfigurationException(
+                    "Unable to create test kit directory: " + dir.getAbsolutePath());
         }
     }
 
@@ -405,17 +415,17 @@ public class DefaultGradleRunner extends GradleRunner {
             if ("embedded".equals(System.getProperty("org.gradle.integtest.executer"))) {
                 return GradleProvider.embedded();
             }
-            String messagePrefix = "Could not find a Gradle installation to use based on the location of the GradleRunner class";
+            String messagePrefix =
+                    "Could not find a Gradle installation to use based on the location of the GradleRunner class";
             try {
                 File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
                 messagePrefix += ": " + classpathForClass.getAbsolutePath();
             } catch (Exception ignore) {
                 // ignore
             }
-            throw new InvalidRunnerConfigurationException(messagePrefix + ". Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar.");
+            throw new InvalidRunnerConfigurationException(messagePrefix
+                    + ". Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar.");
         }
         return GradleProvider.installation(gradleInstallation.getGradleHome());
     }
-
-
 }

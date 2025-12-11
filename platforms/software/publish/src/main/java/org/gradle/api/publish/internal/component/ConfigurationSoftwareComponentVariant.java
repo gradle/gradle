@@ -16,6 +16,8 @@
 package org.gradle.api.publish.internal.component;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -30,9 +32,6 @@ import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.component.AbstractSoftwareComponentVariant;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * A {@link SoftwareComponentVariant} based on a consumable {@link Configuration}.
  */
@@ -44,11 +43,16 @@ public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareCompo
     private Set<? extends Capability> capabilities;
     private Set<ExcludeRule> excludeRules;
 
-    public ConfigurationSoftwareComponentVariant(SoftwareComponentVariant base, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
+    public ConfigurationSoftwareComponentVariant(
+            SoftwareComponentVariant base, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
         this(base.getName(), base.getAttributes(), artifacts, configuration);
     }
 
-    public ConfigurationSoftwareComponentVariant(String name, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
+    public ConfigurationSoftwareComponentVariant(
+            String name,
+            AttributeContainer attributes,
+            Set<? extends PublishArtifact> artifacts,
+            Configuration configuration) {
         super(((AttributeContainerInternal) attributes).asImmutable(), artifacts);
         this.configuration = configuration;
         this.name = name;
@@ -78,9 +82,8 @@ public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareCompo
     @Override
     public Set<? extends Capability> getCapabilities() {
         if (capabilities == null) {
-            this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configuration,
-                new HashSet<>(),
-                new HashSet<>()));
+            this.capabilities = ImmutableSet.copyOf(
+                    Configurations.collectCapabilities(configuration, new HashSet<>(), new HashSet<>()));
         }
         return capabilities;
     }

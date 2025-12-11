@@ -19,12 +19,11 @@ package org.gradle.internal.reflect;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import org.gradle.internal.Cast;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import org.gradle.internal.Cast;
 
 public class MethodDescription {
 
@@ -69,9 +68,7 @@ public class MethodDescription {
     }
 
     public static MethodDescription of(Constructor<?> constructor) {
-        return name("<init>")
-                .owner(constructor.getDeclaringClass())
-                .takes(constructor.getGenericParameterTypes());
+        return name("<init>").owner(constructor.getDeclaringClass()).takes(constructor.getGenericParameterTypes());
     }
 
     private String typeName(Type type) {
@@ -100,5 +97,4 @@ public class MethodDescription {
         });
         return this;
     }
-
 }

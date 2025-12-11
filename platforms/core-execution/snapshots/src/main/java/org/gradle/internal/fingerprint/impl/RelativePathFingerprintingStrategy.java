@@ -18,6 +18,8 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
+import java.util.HashSet;
+import java.util.Map;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -30,9 +32,6 @@ import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.Map;
-
 /**
  * Fingerprint file system snapshots normalizing the path to the relative path in a hierarchy.
  *
@@ -44,13 +43,17 @@ public class RelativePathFingerprintingStrategy extends AbstractDirectorySensiti
     private final Interner<String> stringInterner;
     private final FileSystemLocationSnapshotHasher normalizedContentHasher;
 
-    public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
+    public RelativePathFingerprintingStrategy(
+            Interner<String> stringInterner,
+            DirectorySensitivity directorySensitivity,
+            FileSystemLocationSnapshotHasher normalizedContentHasher) {
         super(IDENTIFIER, directorySensitivity, normalizedContentHasher);
         this.stringInterner = stringInterner;
         this.normalizedContentHasher = normalizedContentHasher;
     }
 
-    public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity) {
+    public RelativePathFingerprintingStrategy(
+            Interner<String> stringInterner, DirectorySensitivity directorySensitivity) {
         this(stringInterner, directorySensitivity, FileSystemLocationSnapshotHasher.DEFAULT);
     }
 
@@ -69,7 +72,8 @@ public class RelativePathFingerprintingStrategy extends AbstractDirectorySensiti
                         return SnapshotVisitResult.CONTINUE;
                     }
                 } else {
-                    fingerprint = fingerprint(stringInterner.intern(relativePath.toRelativePath()), snapshot.getType(), snapshot);
+                    fingerprint = fingerprint(
+                            stringInterner.intern(relativePath.toRelativePath()), snapshot.getType(), snapshot);
                 }
 
                 if (fingerprint != null) {
@@ -84,7 +88,9 @@ public class RelativePathFingerprintingStrategy extends AbstractDirectorySensiti
     @Nullable
     FileSystemLocationFingerprint fingerprint(String name, FileType type, FileSystemLocationSnapshot snapshot) {
         HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
-        return normalizedContentHash == null ? null : new DefaultFileSystemLocationFingerprint(name, type, normalizedContentHash);
+        return normalizedContentHash == null
+                ? null
+                : new DefaultFileSystemLocationFingerprint(name, type, normalizedContentHash);
     }
 
     @Override

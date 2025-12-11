@@ -16,11 +16,10 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.apache.commons.io.IOUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.apache.commons.io.IOUtils;
 
 public class PackerUtils {
     public static void packEntry(DataSource entry, OutputStream outputStream, byte[] buffer) throws IOException {
@@ -32,7 +31,8 @@ public class PackerUtils {
         }
     }
 
-    public static void unpackEntry(String name, InputStream inputStream, byte[] buffer, DataTargetFactory targetFactory) throws IOException {
+    public static void unpackEntry(String name, InputStream inputStream, byte[] buffer, DataTargetFactory targetFactory)
+            throws IOException {
         DataTarget target = targetFactory.createDataTarget(name);
         OutputStream outputStream = target.openOutput();
         try {

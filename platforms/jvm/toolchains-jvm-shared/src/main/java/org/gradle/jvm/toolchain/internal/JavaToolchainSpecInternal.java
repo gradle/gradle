@@ -50,7 +50,7 @@ public interface JavaToolchainSpecInternal extends JavaToolchainSpec {
     /**
      * Finalizes values of all spec properties, disallowing any further changes.
      */
-   default void finalizeProperties() {
+    default void finalizeProperties() {
         getLanguageVersion().finalizeValue();
         getVendor().finalizeValue();
         getImplementation().finalizeValue();

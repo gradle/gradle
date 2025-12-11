@@ -28,5 +28,4 @@ public class JvmToolchainMetadata {
         this.metadata = metadata;
         this.location = location;
     }
-
 }

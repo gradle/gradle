@@ -16,6 +16,7 @@
 
 package org.gradle.internal.enterprise.impl.legacy;
 
+import javax.inject.Inject;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
@@ -26,8 +27,6 @@ import org.gradle.internal.scan.config.BuildScanPluginMetadata;
 import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier;
 import org.gradle.util.internal.VersionNumber;
 
-import javax.inject.Inject;
-
 /**
  * A check-in service used by the Gradle Enterprise plugin versions until 3.4, none of which are supported anymore.
  * <p>
@@ -35,10 +34,12 @@ import javax.inject.Inject;
  * <p>
  * More modern versions of the plugin use {@link org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService}.
  */
-public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConfigProvider, BuildScanEndOfBuildNotifier {
+public class LegacyGradleEnterprisePluginCheckInService
+        implements BuildScanConfigProvider, BuildScanEndOfBuildNotifier {
 
     public static final String FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY = "3.0";
-    public static final VersionNumber FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION = VersionNumber.parse(FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY);
+    public static final VersionNumber FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION =
+            VersionNumber.parse(FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY);
 
     private static final VersionNumber FIRST_VERSION_AWARE_OF_UNSUPPORTED = VersionNumber.parse("1.11");
 
@@ -48,10 +49,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
 
     @Inject
     public LegacyGradleEnterprisePluginCheckInService(
-        GradleInternal gradle,
-        GradleEnterprisePluginManager manager,
-        BuildType buildType
-    ) {
+            GradleInternal gradle, GradleEnterprisePluginManager manager, BuildType buildType) {
         this.gradle = gradle;
         this.manager = manager;
         this.buildType = buildType;
@@ -66,7 +64,8 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         String pluginVersion = pluginMetadata.getVersion();
         VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
         if (pluginBaseVersion.compareTo(FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION) < 0) {
-            throw new UnsupportedBuildScanPluginVersionException(GradleEnterprisePluginManager.OLD_SCAN_PLUGIN_VERSION_MESSAGE);
+            throw new UnsupportedBuildScanPluginVersionException(
+                    GradleEnterprisePluginManager.OLD_SCAN_PLUGIN_VERSION_MESSAGE);
         }
 
         String unsupportedReason = DevelocityPluginCompatibility.getUnsupportedPluginMessage(pluginVersion);
@@ -75,11 +74,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
             throw new UnsupportedBuildScanPluginVersionException(unsupportedReason);
         }
 
-        return new Config(
-            Requestedness.from(gradle),
-            new AttributesImpl(buildType),
-            unsupportedReason
-        );
+        return new Config(Requestedness.from(gradle), new AttributesImpl(buildType), unsupportedReason);
     }
 
     @Override
@@ -124,7 +119,6 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
     }
 
     private enum Requestedness {
-
         DEFAULTED(false, false),
         ENABLED(true, false),
         DISABLED(false, true);
@@ -167,5 +161,4 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
             return forceTaskExecutingBuild || buildType == BuildType.TASKS;
         }
     }
-
 }

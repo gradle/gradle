@@ -24,9 +24,11 @@ import org.gradle.tooling.events.task.TaskOperationResult;
 /**
  * Implementation of the {@code TaskFinishEvent} interface.
  */
-public final class DefaultTaskFinishEvent extends DefaultFinishEvent<TaskOperationDescriptor, TaskOperationResult> implements TaskFinishEvent {
+public final class DefaultTaskFinishEvent extends DefaultFinishEvent<TaskOperationDescriptor, TaskOperationResult>
+        implements TaskFinishEvent {
 
-    public DefaultTaskFinishEvent(long eventTime, String displayName, TaskOperationDescriptor descriptor, TaskOperationResult result) {
+    public DefaultTaskFinishEvent(
+            long eventTime, String displayName, TaskOperationDescriptor descriptor, TaskOperationResult result) {
         super(eventTime, displayName, descriptor, result);
     }
 }

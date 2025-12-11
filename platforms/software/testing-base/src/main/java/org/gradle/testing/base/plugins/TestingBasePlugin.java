@@ -46,12 +46,13 @@ public abstract class TestingBasePlugin implements Plugin<Project> {
             public void execute(final AbstractTestTask test) {
                 test.getReports().getHtml().getOutputLocation().convention(getTestReportsDir(project, test));
                 test.getReports().getJunitXml().getOutputLocation().convention(getTestResultsDir(project, test));
-                test.getBinaryResultsDirectory().convention(getTestResultsDir(project, test).map(new Transformer<Directory, Directory>() {
-                    @Override
-                    public Directory transform(Directory directory) {
-                        return directory.dir("binary");
-                    }
-                }));
+                test.getBinaryResultsDirectory()
+                        .convention(getTestResultsDir(project, test).map(new Transformer<Directory, Directory>() {
+                            @Override
+                            public Directory transform(Directory directory) {
+                                return directory.dir("binary");
+                            }
+                        }));
             }
         });
     }
@@ -61,7 +62,8 @@ public abstract class TestingBasePlugin implements Plugin<Project> {
     }
 
     private Provider<Directory> getTestReportsDir(Project project, final AbstractTestTask test) {
-        DirectoryProperty baseDirectory = project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory();
+        DirectoryProperty baseDirectory =
+                project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory();
         return baseDirectory.dir(TESTS_DIR_NAME + "/" + test.getName());
     }
 }

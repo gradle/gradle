@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging.services;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
@@ -23,9 +25,6 @@ import org.gradle.internal.logging.text.AbstractLineChoppingStyledTextOutput;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.time.Clock;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A {@link org.gradle.internal.logging.text.StyledTextOutput} implementation which generates events of type {@link
@@ -40,7 +39,8 @@ public class LoggingBackedStyledTextOutput extends AbstractLineChoppingStyledTex
     private List<StyledTextOutputEvent.Span> spans = new ArrayList<StyledTextOutputEvent.Span>();
     private Style style = Style.Normal;
 
-    public LoggingBackedStyledTextOutput(OutputEventListener listener, String category, LogLevel logLevel, Clock clock) {
+    public LoggingBackedStyledTextOutput(
+            OutputEventListener listener, String category, LogLevel logLevel, Clock clock) {
         this.listener = listener;
         this.category = category;
         this.logLevel = logLevel;
@@ -66,8 +66,10 @@ public class LoggingBackedStyledTextOutput extends AbstractLineChoppingStyledTex
         buffer.append(endOfLine);
         spans.add(new StyledTextOutputEvent.Span(this.style, buffer.toString()));
         buffer.setLength(0);
-        OperationIdentifier buildOperationId = CurrentBuildOperationRef.instance().getId();
-        listener.onOutput(new StyledTextOutputEvent(clock.getCurrentTime(), category, logLevel, buildOperationId, spans));
+        OperationIdentifier buildOperationId =
+                CurrentBuildOperationRef.instance().getId();
+        listener.onOutput(
+                new StyledTextOutputEvent(clock.getCurrentTime(), category, logLevel, buildOperationId, spans));
         spans = new ArrayList<StyledTextOutputEvent.Span>();
     }
 }

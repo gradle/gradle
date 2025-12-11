@@ -17,21 +17,26 @@
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
 import com.google.common.collect.ImmutableList;
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Lightweight, immutable model of a secondary variant of a configuration for configuration reporting.
  */
 public final class ReportSecondaryVariant {
     private final String name;
+
     @Nullable
     private final String description;
+
     private final ImmutableList<ReportAttribute> attributes;
     private final ImmutableList<ReportArtifact> artifacts;
 
-    ReportSecondaryVariant(String name, @Nullable String description, List<ReportAttribute> attributes, List<ReportArtifact> artifacts) {
+    ReportSecondaryVariant(
+            String name,
+            @Nullable String description,
+            List<ReportAttribute> attributes,
+            List<ReportArtifact> artifacts) {
         this.name = name;
         this.description = description;
         this.attributes = ImmutableList.copyOf(attributes);

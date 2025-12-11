@@ -16,21 +16,17 @@
 
 package org.gradle.tooling.events.problems.internal;
 
+import java.util.List;
 import org.gradle.tooling.events.problems.ProblemAggregation;
 import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.ProblemDefinition;
-
-import java.util.List;
 
 public class DefaultProblemAggregation implements ProblemAggregation {
 
     ProblemDefinition problemDefinition;
     private final List<ProblemContext> problemContextDetails;
 
-    public DefaultProblemAggregation(
-        ProblemDefinition problemDefinition,
-        List<ProblemContext> problemContextDetails
-    ) {
+    public DefaultProblemAggregation(ProblemDefinition problemDefinition, List<ProblemContext> problemContextDetails) {
         this.problemDefinition = problemDefinition;
         this.problemContextDetails = problemContextDetails;
     }

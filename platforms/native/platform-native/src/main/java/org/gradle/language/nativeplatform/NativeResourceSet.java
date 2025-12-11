@@ -22,5 +22,4 @@ import org.gradle.language.base.LanguageSourceSet;
  * A source set that provides resources.
  */
 @Incubating
-public interface NativeResourceSet extends LanguageSourceSet {
-}
+public interface NativeResourceSet extends LanguageSourceSet {}

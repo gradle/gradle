@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.gradle.api.resources.internal.ReadableResourceInternal;
-
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
+import org.gradle.api.resources.internal.ReadableResourceInternal;
 
 abstract class AbstractArchiver implements CompressedReadableResource {
     protected final ReadableResourceInternal resource;
@@ -28,11 +27,13 @@ abstract class AbstractArchiver implements CompressedReadableResource {
 
     public AbstractArchiver(ReadableResourceInternal resource) {
         assert resource != null;
-        this.uri = new URIBuilder(resource.getURI()).schemePrefix(getSchemePrefix()).build();
+        this.uri = new URIBuilder(resource.getURI())
+                .schemePrefix(getSchemePrefix())
+                .build();
         this.resource = resource;
     }
 
-    abstract protected String getSchemePrefix();
+    protected abstract String getSchemePrefix();
 
     @Override
     public abstract InputStream read();

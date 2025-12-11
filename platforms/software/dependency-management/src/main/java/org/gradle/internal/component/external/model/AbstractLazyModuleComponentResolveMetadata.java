@@ -20,6 +20,14 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
@@ -29,15 +37,6 @@ import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantIdentifier;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Common base class for the lazy versions of {@link ModuleComponentResolveMetadata} implementations.
@@ -66,7 +65,10 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     /**
      * Creates a copy of the given metadata
      */
-    protected AbstractLazyModuleComponentResolveMetadata(AbstractLazyModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy variantDerivationStrategy) {
+    protected AbstractLazyModuleComponentResolveMetadata(
+            AbstractLazyModuleComponentResolveMetadata metadata,
+            ModuleSources sources,
+            VariantDerivationStrategy variantDerivationStrategy) {
         super(metadata, sources, variantDerivationStrategy);
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.variantMetadataRules = metadata.variantMetadataRules;
@@ -104,20 +106,22 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         }
         ImmutableList.Builder<ExternalModuleVariantGraphResolveMetadata> configurations = new ImmutableList.Builder<>();
         for (ComponentVariant variant : variants) {
-            configurations.add(new LazyVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory(), variantMetadataRules));
+            configurations.add(new LazyVariantBackedConfigurationMetadata(
+                    getId(), variant, getAttributes(), getAttributesFactory(), variantMetadataRules));
         }
         return addVariantsByRule(Optional.of(configurations.build()));
-
     }
 
-    private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> addVariantsByRule(Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> variants) {
+    private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> addVariantsByRule(
+            Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> variants) {
         if (variantMetadataRules.getAdditionalVariants().isEmpty()) {
             return variants;
         }
         Map<String, ExternalModuleVariantGraphResolveMetadata> variantsByName;
         ImmutableList.Builder<ExternalModuleVariantGraphResolveMetadata> builder = new ImmutableList.Builder<>();
         if (variants.isPresent()) {
-            variantsByName = variants.get().stream().collect(Collectors.toMap(VariantGraphResolveMetadata::getName, Function.identity()));
+            variantsByName = variants.get().stream()
+                    .collect(Collectors.toMap(VariantGraphResolveMetadata::getName, Function.identity()));
             builder.addAll(variants.get());
         } else {
             variantsByName = Collections.emptyMap();
@@ -129,18 +133,29 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
                 if (variants.isPresent()) {
                     base = variantsByName.get(baseName);
                     if (!additionalVariant.isLenient() && !(base instanceof ModuleConfigurationMetadata)) {
-                        throw new InvalidUserDataException("Variant '" + baseName + "' not defined in module " + getId().getDisplayName());
+                        throw new InvalidUserDataException(
+                                "Variant '" + baseName + "' not defined in module " + getId().getDisplayName());
                     }
                 } else {
                     base = getConfiguration(baseName);
                     if (!additionalVariant.isLenient() && !(base instanceof ModuleConfigurationMetadata)) {
-                        throw new InvalidUserDataException("Configuration '" + baseName + "' not defined in module " + getId().getDisplayName());
+                        throw new InvalidUserDataException(
+                                "Configuration '" + baseName + "' not defined in module " + getId().getDisplayName());
                     }
                 }
             }
             if (baseName == null || base instanceof ModuleConfigurationMetadata) {
                 VariantIdentifier id = new NamedVariantIdentifier(getId(), additionalVariant.getName());
-                ModuleConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(additionalVariant.getName(), id, getId(), (ModuleConfigurationMetadata) base, getAttributesFactory(), getAttributes(), variantMetadataRules, constructVariantExcludes(base), false);
+                ModuleConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(
+                        additionalVariant.getName(),
+                        id,
+                        getId(),
+                        (ModuleConfigurationMetadata) base,
+                        getAttributesFactory(),
+                        getAttributes(),
+                        variantMetadataRules,
+                        constructVariantExcludes(base),
+                        false);
                 builder.add(configurationMetadata);
             }
         }
@@ -171,7 +186,8 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         return md;
     }
 
-    protected ModuleConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions) {
+    protected ModuleConfigurationMetadata populateConfigurationFromDescriptor(
+            String name, Map<String, Configuration> configurationDefinitions) {
         Configuration descriptorConfiguration = configurationDefinitions.get(name);
         if (descriptorConfiguration == null) {
             return null;
@@ -210,7 +226,13 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     /**
      * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
-    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, VariantMetadataRules componentMetadataRules);
+    protected abstract DefaultConfigurationMetadata createConfiguration(
+            ModuleComponentIdentifier componentId,
+            String name,
+            boolean transitive,
+            boolean visible,
+            ImmutableSet<String> hierarchy,
+            VariantMetadataRules componentMetadataRules);
 
     @Override
     public boolean equals(Object o) {

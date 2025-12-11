@@ -16,13 +16,12 @@
 
 package org.gradle.operations.dependencies.transforms;
 
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.operations.execution.FilePropertyVisitor;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Represents the computation of capturing the before execution state and resolving the caching state for transforms.
@@ -31,9 +30,10 @@ import java.util.Map;
  *
  * @since 8.3
  */
-public final class SnapshotTransformInputsBuildOperationType implements BuildOperationType<SnapshotTransformInputsBuildOperationType.Details, SnapshotTransformInputsBuildOperationType.Result> {
-    public interface Details {
-    }
+public final class SnapshotTransformInputsBuildOperationType
+        implements BuildOperationType<
+                SnapshotTransformInputsBuildOperationType.Details, SnapshotTransformInputsBuildOperationType.Result> {
+    public interface Details {}
 
     /**
      * The hashes of the inputs.

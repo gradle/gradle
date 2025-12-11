@@ -15,6 +15,11 @@
  */
 package org.gradle.api.plugins.catalog.internal;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RegularFileProperty;
@@ -24,12 +29,6 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 
 @CacheableTask
 public abstract class TomlFileGenerator extends DefaultTask {
@@ -51,12 +50,11 @@ public abstract class TomlFileGenerator extends DefaultTask {
         }
     }
 
-    private void doGenerate(DefaultVersionCatalog model, File outputFile) throws FileNotFoundException, UnsupportedEncodingException {
+    private void doGenerate(DefaultVersionCatalog model, File outputFile)
+            throws FileNotFoundException, UnsupportedEncodingException {
         try (PrintWriter writer = new PrintWriter(outputFile, "UTF-8")) {
             TomlWriter ctx = new TomlWriter(writer);
             ctx.generate(model);
         }
     }
-
-
 }

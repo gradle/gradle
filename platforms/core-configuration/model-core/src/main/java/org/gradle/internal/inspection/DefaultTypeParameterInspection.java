@@ -16,12 +16,6 @@
 
 package org.gradle.internal.inspection;
 
-import org.gradle.internal.Cast;
-import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.internal.reflect.Types;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -30,13 +24,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReference;
+import org.gradle.internal.Cast;
+import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.reflect.Types;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultTypeParameterInspection<INTERFACE, PARAMS> implements TypeParameterInspection<INTERFACE, PARAMS> {
     private final Class<INTERFACE> interfaceType;
     private final Class<PARAMS> paramsType;
     private final Class<? extends PARAMS> noParamsType;
 
-    public DefaultTypeParameterInspection(Class<INTERFACE> interfaceType, Class<PARAMS> paramsType, Class<? extends PARAMS> noParamsType) {
+    public DefaultTypeParameterInspection(
+            Class<INTERFACE> interfaceType, Class<PARAMS> paramsType, Class<? extends PARAMS> noParamsType) {
         this.interfaceType = interfaceType;
         this.paramsType = paramsType;
         this.noParamsType = noParamsType;
@@ -60,7 +60,8 @@ public class DefaultTypeParameterInspection<INTERFACE, PARAMS> implements TypePa
      */
     @Override
     @Nullable
-    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType, int typeArgumentIndex) {
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(
+            Class<T> implementationType, int typeArgumentIndex) {
         if (implementationType == interfaceType) {
             return null;
         }
@@ -91,7 +92,8 @@ public class DefaultTypeParameterInspection<INTERFACE, PARAMS> implements TypePa
      * When we come to {@code Baz<T>}, we can then query the mapping for {@code T} and get {@code String}.
      */
     @NonNull
-    private <T extends INTERFACE, P extends PARAMS> Class<P> inferParameterType(Class<T> implementationType, int typeArgumentIndex) {
+    private <T extends INTERFACE, P extends PARAMS> Class<P> inferParameterType(
+            Class<T> implementationType, int typeArgumentIndex) {
         AtomicReference<Type> foundType = new AtomicReference<>();
         Map<Type, Type> collectedTypes = new HashMap<>();
         Types.walkTypeHierarchy(implementationType, type -> {
@@ -111,13 +113,17 @@ public class DefaultTypeParameterInspection<INTERFACE, PARAMS> implements TypePa
         // we don't support arrays as a type of a Parameter anywhere
         Type type = unwrapTypeVariable(foundType.get());
         return type instanceof Class
-            ? Cast.uncheckedNonnullCast(type)
-            : type instanceof ParameterizedType
-            ? Cast.uncheckedNonnullCast(((ParameterizedType) type).getRawType())
-            : Cast.uncheckedNonnullCast(paramsType);
+                ? Cast.uncheckedNonnullCast(type)
+                : type instanceof ParameterizedType
+                        ? Cast.uncheckedNonnullCast(((ParameterizedType) type).getRawType())
+                        : Cast.uncheckedNonnullCast(paramsType);
     }
 
-    private boolean collectTypeParameters(Type type, AtomicReference<Type> foundType, Map<Type, Type> collectedTypeParameters, int typeArgumentIndex) {
+    private boolean collectTypeParameters(
+            Type type,
+            AtomicReference<Type> foundType,
+            Map<Type, Type> collectedTypeParameters,
+            int typeArgumentIndex) {
         if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
             if (parameterizedType.getRawType().equals(interfaceType)) {
@@ -155,6 +161,7 @@ public class DefaultTypeParameterInspection<INTERFACE, PARAMS> implements TypePa
 
     private static boolean isAssignableFromType(Class<?> clazz, Type type) {
         return (type instanceof Class && clazz.isAssignableFrom((Class<?>) type))
-            || (type instanceof ParameterizedType && clazz.isAssignableFrom((Class<?>) ((ParameterizedType) type).getRawType()));
+                || (type instanceof ParameterizedType
+                        && clazz.isAssignableFrom((Class<?>) ((ParameterizedType) type).getRawType()));
     }
 }

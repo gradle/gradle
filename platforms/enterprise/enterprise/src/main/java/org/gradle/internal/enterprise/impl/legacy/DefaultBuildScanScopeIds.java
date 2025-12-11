@@ -27,7 +27,8 @@ public class DefaultBuildScanScopeIds implements BuildScanScopeIds {
     private final WorkspaceScopeId workspaceId;
     private final UserScopeId userId;
 
-    public DefaultBuildScanScopeIds(BuildInvocationScopeId buildInvocationId, WorkspaceScopeId workspaceId, UserScopeId userId) {
+    public DefaultBuildScanScopeIds(
+            BuildInvocationScopeId buildInvocationId, WorkspaceScopeId workspaceId, UserScopeId userId) {
         this.buildInvocationId = buildInvocationId;
         this.workspaceId = workspaceId;
         this.userId = userId;

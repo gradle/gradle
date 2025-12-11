@@ -16,9 +16,8 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.attributes.HasAttributes;
-
 import java.util.List;
+import org.gradle.api.attributes.HasAttributes;
 
 /**
  * Provides a read-only view of a resolved component's metadata, which typically originates from
@@ -62,5 +61,4 @@ public interface ComponentMetadata extends HasAttributes {
      * @return the status scheme of the component
      */
     List<String> getStatusScheme();
-
 }

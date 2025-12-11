@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
-
+import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;
-import java.util.Set;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 
 /**
  * An isolating processor must provide exactly one originating element
@@ -40,7 +39,8 @@ public class IsolatingProcessor extends DelegatingProcessor {
     @Override
     public final void init(ProcessingEnvironment processingEnv) {
         IncrementalFiler incrementalFiler = new IncrementalFiler(processingEnv.getFiler(), strategy);
-        IncrementalProcessingEnvironment incrementalProcessingEnvironment = new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
+        IncrementalProcessingEnvironment incrementalProcessingEnvironment =
+                new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
         super.init(incrementalProcessingEnvironment);
     }
 

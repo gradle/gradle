@@ -24,5 +24,4 @@ public interface ScriptPlugin extends Plugin<Object> {
 
     @Override
     void apply(Object target);
-
 }

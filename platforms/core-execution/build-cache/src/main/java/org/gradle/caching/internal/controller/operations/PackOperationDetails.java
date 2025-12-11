@@ -31,5 +31,4 @@ public class PackOperationDetails implements BuildCacheArchivePackBuildOperation
     public String getCacheKey() {
         return key.getHashCode();
     }
-
 }

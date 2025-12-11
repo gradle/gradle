@@ -16,14 +16,14 @@
 
 package org.gradle.problems.internal.rendering;
 
+import java.io.PrintWriter;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.InternalProblem;
 
-import java.io.PrintWriter;
-
 class DefaultProblemWriter implements SelectiveProblemWriter {
 
-    // The header and the body are rendered separately to simulate how to enforce unified headers for contributed renderers.
+    // The header and the body are rendered separately to simulate how to enforce unified headers for contributed
+    // renderers.
     private static final PartialProblemWriter HEADER_WRITER = new ProblemHeaderWriter();
     private static final PartialProblemWriter BODY_WRITER = new ProblemBodyWriter();
 

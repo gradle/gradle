@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.api.Action;
 
 public class ChangingValueHandler<T> implements ChangingValue<T> {
     private List<Action<T>> handlers;

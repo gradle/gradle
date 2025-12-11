@@ -16,11 +16,10 @@
 
 package org.gradle.composite.internal;
 
+import java.util.function.Consumer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
-
-import java.util.function.Consumer;
 
 /**
  * A resource produced by a task in an included build.
@@ -28,7 +27,10 @@ import java.util.function.Consumer;
 public interface IncludedBuildTaskResource {
 
     enum State {
-        NotScheduled(true), Scheduled(false), Success(true), Failed(true);
+        NotScheduled(true),
+        Scheduled(false),
+        Success(true),
+        Failed(true);
 
         private final boolean complete;
 

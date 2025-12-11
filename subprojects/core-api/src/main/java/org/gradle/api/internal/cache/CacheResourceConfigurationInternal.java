@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.cache;
 
+import java.util.function.Supplier;
 import org.gradle.api.cache.CacheResourceConfiguration;
 import org.gradle.api.provider.Property;
-
-import java.util.function.Supplier;
 
 public interface CacheResourceConfigurationInternal extends CacheResourceConfiguration {
     /**
@@ -70,5 +69,4 @@ public interface CacheResourceConfigurationInternal extends CacheResourceConfigu
             return timeInMillis;
         }
     }
-
 }

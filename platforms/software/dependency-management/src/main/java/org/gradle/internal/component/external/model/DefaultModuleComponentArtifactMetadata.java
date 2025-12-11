@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import java.util.Optional;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
@@ -24,17 +25,19 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Optional;
-
 public class DefaultModuleComponentArtifactMetadata implements ModuleComponentArtifactMetadata {
     private final DefaultModuleComponentArtifactIdentifier id;
     private final ComponentArtifactMetadata alternativeArtifact;
 
-    public DefaultModuleComponentArtifactMetadata(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
+    public DefaultModuleComponentArtifactMetadata(
+            ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
         this(componentIdentifier, artifact, null);
     }
 
-    public DefaultModuleComponentArtifactMetadata(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact, @Nullable ComponentArtifactMetadata alternativeArtifact) {
+    public DefaultModuleComponentArtifactMetadata(
+            ModuleComponentIdentifier componentIdentifier,
+            IvyArtifactName artifact,
+            @Nullable ComponentArtifactMetadata alternativeArtifact) {
         this(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifact), alternativeArtifact);
     }
 
@@ -42,7 +45,9 @@ public class DefaultModuleComponentArtifactMetadata implements ModuleComponentAr
         this(moduleComponentArtifactIdentifier, null);
     }
 
-    public DefaultModuleComponentArtifactMetadata(ModuleComponentArtifactIdentifier moduleComponentArtifactIdentifier, @Nullable ComponentArtifactMetadata alternativeArtifact) {
+    public DefaultModuleComponentArtifactMetadata(
+            ModuleComponentArtifactIdentifier moduleComponentArtifactIdentifier,
+            @Nullable ComponentArtifactMetadata alternativeArtifact) {
         this.id = (DefaultModuleComponentArtifactIdentifier) moduleComponentArtifactIdentifier;
         this.alternativeArtifact = alternativeArtifact;
     }

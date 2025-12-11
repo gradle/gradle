@@ -17,7 +17,6 @@
 package org.gradle.internal.operations;
 
 import com.google.common.collect.ImmutableList;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,7 +25,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DefaultBuildOperationListenerManager implements BuildOperationListenerManager {
 
     // Imitation of CopyOnWriteArrayList, which supports safe iteration in reverse
-    private final AtomicReference<ImmutableList<ProgressShieldingBuildOperationListener>> listeners = new AtomicReference<>(ImmutableList.of());
+    private final AtomicReference<ImmutableList<ProgressShieldingBuildOperationListener>> listeners =
+            new AtomicReference<>(ImmutableList.of());
 
     private final BuildOperationListener broadcaster = new BuildOperationListener() {
         @Override
@@ -56,7 +56,9 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
         }
     };
 
-    @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
+    @SuppressWarnings(
+            "NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds
+    // non-nullable type
     private ImmutableList<ProgressShieldingBuildOperationListener> getListeners() {
         return DefaultBuildOperationListenerManager.this.listeners.get();
     }
@@ -64,18 +66,16 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
     @Override
     public void addListener(BuildOperationListener listener) {
         listeners.updateAndGet(current ->
-            ImmutableList.<ProgressShieldingBuildOperationListener>builderWithExpectedSize(current.size() + 1)
-                .addAll(current)
-                .add(new ProgressShieldingBuildOperationListener(listener))
-                .build());
+                ImmutableList.<ProgressShieldingBuildOperationListener>builderWithExpectedSize(current.size() + 1)
+                        .addAll(current)
+                        .add(new ProgressShieldingBuildOperationListener(listener))
+                        .build());
     }
 
     @Override
     public void removeListener(BuildOperationListener listener) {
         listeners.updateAndGet(current ->
-            current.stream()
-                .filter(l -> !l.delegate.equals(listener))
-                .collect(ImmutableList.toImmutableList()));
+                current.stream().filter(l -> !l.delegate.equals(listener)).collect(ImmutableList.toImmutableList()));
     }
 
     @Override

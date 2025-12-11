@@ -36,7 +36,9 @@ public interface BuildCacheConfiguration {
      * @param configurationType Configuration type used to provide parameters to a {@link org.gradle.caching.BuildCacheService}
      * @param buildCacheServiceFactoryType Implementation type of {@link BuildCacheServiceFactory} that is used to create a {@code BuildCacheService}
      */
-    <T extends BuildCache> void registerBuildCacheService(Class<T> configurationType, Class<? extends BuildCacheServiceFactory<? super T>> buildCacheServiceFactoryType);
+    <T extends BuildCache> void registerBuildCacheService(
+            Class<T> configurationType,
+            Class<? extends BuildCacheServiceFactory<? super T>> buildCacheServiceFactoryType);
 
     /**
      * Returns the local directory cache configuration.

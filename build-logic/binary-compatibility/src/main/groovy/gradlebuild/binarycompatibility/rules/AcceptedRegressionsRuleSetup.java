@@ -18,19 +18,19 @@ package gradlebuild.binarycompatibility.rules;
 
 import gradlebuild.binarycompatibility.AcceptedApiChanges;
 import gradlebuild.binarycompatibility.ApiChange;
-import me.champeau.gradle.japicmp.report.SetupRule;
-import me.champeau.gradle.japicmp.report.ViolationCheckContext;
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import me.champeau.gradle.japicmp.report.SetupRule;
+import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 
 public class AcceptedRegressionsRuleSetup implements SetupRule {
 
     private final Set<ApiChange> acceptedApiChanges;
 
     public AcceptedRegressionsRuleSetup(Map<String, String> acceptedApiChanges) {
-        this.acceptedApiChanges = AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges).keySet();
+        this.acceptedApiChanges =
+                AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges).keySet();
     }
 
     @Override
@@ -40,5 +40,4 @@ public class AcceptedRegressionsRuleSetup implements SetupRule {
         userData.put("acceptedApiChanges", acceptedApiChanges);
         userData.put("seenApiChanges", new HashSet<ApiChange>());
     }
-
 }

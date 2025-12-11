@@ -16,18 +16,17 @@
 
 package org.gradle.cache.internal;
 
+import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
+
 import com.google.common.util.concurrent.Runnables;
+import java.io.File;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.gradle.cache.CrossProcessCacheAccess;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.internal.UncheckedException;
-
-import java.io.File;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 
 /**
  * A {@link CrossProcessCacheAccess} implementation used when a cache is opened with an exclusive lock that is held until the cache is closed. This implementation is simply a no-op for these methods.
@@ -42,7 +41,14 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
     private final Consumer<FileLock> onCloseAction;
     private FileLock fileLock;
 
-    public FixedExclusiveModeCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, CacheInitializationAction initializationAction, Consumer<FileLock> onOpenAction, Consumer<FileLock> onCloseAction) {
+    public FixedExclusiveModeCrossProcessCacheAccess(
+            String cacheDisplayName,
+            File lockTarget,
+            LockOptions lockOptions,
+            FileLockManager lockManager,
+            CacheInitializationAction initializationAction,
+            Consumer<FileLock> onOpenAction,
+            Consumer<FileLock> onCloseAction) {
         assert lockOptions.getMode() == Exclusive;
         this.initializationAction = initializationAction;
         this.onOpenAction = onOpenAction;
@@ -94,5 +100,4 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
     public <T> T withFileLock(Supplier<T> factory) {
         return factory.get();
     }
-
 }

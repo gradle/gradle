@@ -16,8 +16,16 @@
 
 package org.gradle.api.internal.attributes.immutable.artifact;
 
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
+import java.io.File;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.internal.artifacts.TransformRegistration;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -25,15 +33,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
 
 /**
  * Immutable counterpart to {@link ArtifactTypeRegistry}. Instances should
@@ -52,10 +51,9 @@ public class ImmutableArtifactTypeRegistry {
     private final int hashCode;
 
     public ImmutableArtifactTypeRegistry(
-        AttributesFactory attributesFactory,
-        ImmutableMap<String, ImmutableAttributes> mappings,
-        ImmutableAttributes defaultArtifactAttributes
-    ) {
+            AttributesFactory attributesFactory,
+            ImmutableMap<String, ImmutableAttributes> mappings,
+            ImmutableAttributes defaultArtifactAttributes) {
         this.attributesFactory = attributesFactory;
         this.mappings = mappings;
         this.defaultArtifactAttributes = defaultArtifactAttributes;
@@ -71,10 +69,12 @@ public class ImmutableArtifactTypeRegistry {
         return defaultArtifactAttributes;
     }
 
-    public void visitArtifactTypeAttributes(Collection<TransformRegistration> transformRegistrations, Consumer<? super ImmutableAttributes> action) {
+    public void visitArtifactTypeAttributes(
+            Collection<TransformRegistration> transformRegistrations, Consumer<? super ImmutableAttributes> action) {
         // Apply default attributes before visiting
         Consumer<? super ImmutableAttributes> visitor = attributes -> {
-            ImmutableAttributes attributesPlusDefaults = attributesFactory.concat(defaultArtifactAttributes.asImmutable(), attributes);
+            ImmutableAttributes attributesPlusDefaults =
+                    attributesFactory.concat(defaultArtifactAttributes.asImmutable(), attributes);
             action.accept(attributesPlusDefaults);
         };
 
@@ -82,7 +82,8 @@ public class ImmutableArtifactTypeRegistry {
         for (Map.Entry<String, ImmutableAttributes> artifactTypeDefinition : mappings.entrySet()) {
             if (seen.add(artifactTypeDefinition.getKey())) {
                 ImmutableAttributes attributes = artifactTypeDefinition.getValue();
-                attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, artifactTypeDefinition.getKey()), attributes);
+                attributes = attributesFactory.concat(
+                        attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, artifactTypeDefinition.getKey()), attributes);
                 visitor.accept(attributes);
             }
         }
@@ -98,7 +99,8 @@ public class ImmutableArtifactTypeRegistry {
         }
 
         if (seen.add(ArtifactTypeDefinition.DIRECTORY_TYPE)) {
-            ImmutableAttributes directory = attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+            ImmutableAttributes directory =
+                    attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
             visitor.accept(directory);
         }
     }
@@ -119,12 +121,14 @@ public class ImmutableArtifactTypeRegistry {
         }
     }
 
-    public ImmutableAttributes mapAttributesFor(ImmutableAttributes attributes, Iterable<? extends ComponentArtifactMetadata> artifacts) {
+    public ImmutableAttributes mapAttributesFor(
+            ImmutableAttributes attributes, Iterable<? extends ComponentArtifactMetadata> artifacts) {
         ImmutableAttributes withoutDefaultAttributes = mapWithoutDefaultAttributesFor(attributes, artifacts);
         return attributesFactory.concat(defaultArtifactAttributes.asImmutable(), withoutDefaultAttributes);
     }
 
-    private ImmutableAttributes mapWithoutDefaultAttributesFor(ImmutableAttributes attributes, Iterable<? extends ComponentArtifactMetadata> artifacts) {
+    private ImmutableAttributes mapWithoutDefaultAttributesFor(
+            ImmutableAttributes attributes, Iterable<? extends ComponentArtifactMetadata> artifacts) {
         // Add attributes to be applied given the extension
         if (!mappings.isEmpty()) {
             String extension = null;
@@ -180,14 +184,11 @@ public class ImmutableArtifactTypeRegistry {
         }
 
         ImmutableArtifactTypeRegistry that = (ImmutableArtifactTypeRegistry) o;
-        return mappings.equals(that.mappings) &&
-            defaultArtifactAttributes.equals(that.defaultArtifactAttributes);
+        return mappings.equals(that.mappings) && defaultArtifactAttributes.equals(that.defaultArtifactAttributes);
     }
 
     private static int computeHashCode(
-        ImmutableMap<String, ImmutableAttributes> mappings,
-        ImmutableAttributes defaultArtifactAttributes
-    ) {
+            ImmutableMap<String, ImmutableAttributes> mappings, ImmutableAttributes defaultArtifactAttributes) {
         int result = mappings.hashCode();
         result = 31 * result + defaultArtifactAttributes.hashCode();
         return result;

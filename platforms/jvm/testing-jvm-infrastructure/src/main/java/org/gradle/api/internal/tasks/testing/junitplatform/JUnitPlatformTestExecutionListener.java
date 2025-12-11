@@ -16,6 +16,25 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
+import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
+import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
+import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
@@ -69,26 +88,6 @@ import org.junit.platform.launcher.TestPlan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
-
-import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
-import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
-import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
-
 /**
  * A {@link TestExecutionListener} that maps JUnit5 events to Gradle test events.
  * Most importantly, it will map assertion and platform failures to Gradle's {@link TestFailure} class, which we can send through the TAPI.
@@ -97,15 +96,15 @@ import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
 public class JUnitPlatformTestExecutionListener implements TestExecutionListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitPlatformTestExecutionListener.class);
 
-    private final static List<TestFailureMapper> MAPPERS = Arrays.asList(
-        new OpenTestAssertionFailedMapper(),
-        new OpenTestMultipleFailuresErrorMapper(),
-        new JUnitComparisonTestFailureMapper(),
-        new AssertjMultipleAssertionsErrorMapper(),
-        new AssertErrorMapper()
-    );
+    private static final List<TestFailureMapper> MAPPERS = Arrays.asList(
+            new OpenTestAssertionFailedMapper(),
+            new OpenTestMultipleFailuresErrorMapper(),
+            new JUnitComparisonTestFailureMapper(),
+            new AssertjMultipleAssertionsErrorMapper(),
+            new AssertErrorMapper());
 
-    private static final DefaultThrowableToTestFailureMapper FAILURE_MAPPER = new DefaultThrowableToTestFailureMapper(MAPPERS);
+    private static final DefaultThrowableToTestFailureMapper FAILURE_MAPPER =
+            new DefaultThrowableToTestFailureMapper(MAPPERS);
 
     /**
      * Tracks if {@code getUniqueIdObject()} method exists in the current classloader.
@@ -114,12 +113,12 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
      * using at runtime here.
      */
     private static final boolean HAS_GET_UNIQUE_ID_OBJECT_METHOD = Arrays.stream(TestIdentifier.class.getMethods())
-        .anyMatch(method -> method.getName().equals("getUniqueIdObject"));
+            .anyMatch(method -> method.getName().equals("getUniqueIdObject"));
 
     private static UniqueId.Segment getLastUniqueIdSegment(TestIdentifier testIdentifier) {
         UniqueId uniqueIdObject = HAS_GET_UNIQUE_ID_OBJECT_METHOD
-            ? testIdentifier.getUniqueIdObject()
-            : UniqueId.parse(testIdentifier.getUniqueId());
+                ? testIdentifier.getUniqueIdObject()
+                : UniqueId.parse(testIdentifier.getUniqueId());
         List<UniqueId.Segment> segments = uniqueIdObject.getSegments();
         // No need to check, guaranteed to have at least one segment
         return segments.get(segments.size() - 1);
@@ -145,7 +144,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     @Nullable
     private TestPlan currentTestPlan;
 
-    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, File baseDefinitionsDir) {
+    public JUnitPlatformTestExecutionListener(
+            TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, File baseDefinitionsDir) {
         this.resultProcessor = resultProcessor;
         this.clock = clock;
         this.idGenerator = idGenerator;
@@ -154,14 +154,21 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @Override
     public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry) {
-        // JUnit Platform will emit ReportEntry before a test starts if the ReportEntry is published from the class constructor.
+        // JUnit Platform will emit ReportEntry before a test starts if the ReportEntry is published from the class
+        // constructor.
         if (wasStarted(testIdentifier)) {
-            resultProcessor.published(getId(testIdentifier), new DefaultTestKeyValueDataEvent(convertToInstant(entry.getTimestamp()), entry.getKeyValuePairs()));
+            resultProcessor.published(
+                    getId(testIdentifier),
+                    new DefaultTestKeyValueDataEvent(convertToInstant(entry.getTimestamp()), entry.getKeyValuePairs()));
         } else {
-            // The test has not started yet, so see if we can find a close ancestor and associate the ReportEntry with it
+            // The test has not started yet, so see if we can find a close ancestor and associate the ReportEntry with
+            // it
             Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
             if (closestStartedAncestor != null) {
-                resultProcessor.published(closestStartedAncestor, new DefaultTestKeyValueDataEvent(convertToInstant(entry.getTimestamp()), entry.getKeyValuePairs()));
+                resultProcessor.published(
+                        closestStartedAncestor,
+                        new DefaultTestKeyValueDataEvent(
+                                convertToInstant(entry.getTimestamp()), entry.getKeyValuePairs()));
             }
             // otherwise, we don't know what to associate this ReportEntry with
             LOGGER.debug("report entry published for unknown test identifier {}", testIdentifier);
@@ -177,14 +184,25 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         // media type can be null if the file is a directory
         String mediaType = entry.getMediaType().orElse(null);
 
-        // JUnit Platform will emit FileEntry before a test starts if the FileEntry is published from the class constructor.
+        // JUnit Platform will emit FileEntry before a test starts if the FileEntry is published from the class
+        // constructor.
         if (wasStarted(testIdentifier)) {
-            resultProcessor.published(getId(testIdentifier), new DefaultTestFileAttachmentDataEvent(convertToInstant(entry.getTimestamp()), entry.getPath().toAbsolutePath(), mediaType));
+            resultProcessor.published(
+                    getId(testIdentifier),
+                    new DefaultTestFileAttachmentDataEvent(
+                            convertToInstant(entry.getTimestamp()),
+                            entry.getPath().toAbsolutePath(),
+                            mediaType));
         } else {
             // The test has not started yet, so see if we can find a close ancestor and associate the FileEntry with it
             Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
             if (closestStartedAncestor != null) {
-                resultProcessor.published(closestStartedAncestor, new DefaultTestFileAttachmentDataEvent(convertToInstant(entry.getTimestamp()), entry.getPath().toAbsolutePath(), mediaType));
+                resultProcessor.published(
+                        closestStartedAncestor,
+                        new DefaultTestFileAttachmentDataEvent(
+                                convertToInstant(entry.getTimestamp()),
+                                entry.getPath().toAbsolutePath(),
+                                mediaType));
             }
             // otherwise, we don't know what to associate this FileEntry with
         }
@@ -226,17 +244,23 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
         if (testExecutionResult.getStatus() == ABORTED) {
-            testExecutionResult.getThrowable().ifPresent(throwable -> resultProcessor.failure(getId(testIdentifier), DefaultTestFailure.fromTestAssumptionFailure(throwable)));
+            testExecutionResult
+                    .getThrowable()
+                    .ifPresent(throwable -> resultProcessor.failure(
+                            getId(testIdentifier), DefaultTestFailure.fromTestAssumptionFailure(throwable)));
             reportSkipped(testIdentifier);
             return;
         }
         if (testExecutionResult.getStatus() == FAILED) {
             reportStartedUnlessAlreadyStarted(testIdentifier);
-            Throwable failure = testExecutionResult.getThrowable().orElseGet(() -> new AssertionError("test failed but did not report an exception"));
+            Throwable failure = testExecutionResult
+                    .getThrowable()
+                    .orElseGet(() -> new AssertionError("test failed but did not report an exception"));
             if (testIdentifier.isTest()) {
                 reportTestFailure(testIdentifier, failure);
             } else {
-                TestDescriptorInternal syntheticTestDescriptor = createSyntheticTestDescriptorForContainer(testIdentifier);
+                TestDescriptorInternal syntheticTestDescriptor =
+                        createSyntheticTestDescriptorForContainer(testIdentifier);
                 resultProcessor.started(syntheticTestDescriptor, startEvent(getId(testIdentifier)));
                 resultProcessor.failure(syntheticTestDescriptor.getId(), TestFailure.fromTestFrameworkFailure(failure));
                 resultProcessor.completed(syntheticTestDescriptor.getId(), completeEvent());
@@ -254,7 +278,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private void reportStartedUnlessAlreadyStarted(TestIdentifier testIdentifier) {
         boolean wasNotAlreadyStarted = createDescriptorIfAbsent(testIdentifier);
-        // guard against edge cases (e.g. JUnit 4 classes with custom runners that report the class as ignored after reporting it as started)
+        // guard against edge cases (e.g. JUnit 4 classes with custom runners that report the class as ignored after
+        // reporting it as started)
         if (wasNotAlreadyStarted) {
             TestDescriptorInternal descriptor = descriptorsByUniqueId.get(testIdentifier.getUniqueId());
             resultProcessor.started(descriptor, startEvent(testIdentifier));
@@ -264,8 +289,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private void reportSkipped(TestIdentifier testIdentifier) {
         Objects.requireNonNull(currentTestPlan);
         currentTestPlan.getChildren(testIdentifier).stream()
-            .filter(child -> !wasStarted(child))
-            .forEach(this::executionSkipped);
+                .filter(child -> !wasStarted(child))
+                .forEach(this::executionSkipped);
         if (testIdentifier.isTest()) {
             resultProcessor.completed(getId(testIdentifier), completeEvent(SKIPPED));
         } else if (hasClassSource(testIdentifier)) {
@@ -281,12 +306,12 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     @Nullable
     private Object getIdOfClosestStartedAncestor(TestIdentifier testIdentifier) {
         return getAncestors(testIdentifier).stream()
-            .map(TestIdentifier::getUniqueId)
-            .filter(descriptorsByUniqueId::containsKey)
-            .findFirst()
-            .map(descriptorsByUniqueId::get)
-            .map(TestDescriptorInternal::getId)
-            .orElse(null);
+                .map(TestIdentifier::getUniqueId)
+                .filter(descriptorsByUniqueId::containsKey)
+                .findFirst()
+                .map(descriptorsByUniqueId::get)
+                .map(TestDescriptorInternal::getId)
+                .orElse(null);
     }
 
     private TestStartEvent startEvent(@Nullable Object parentId) {
@@ -336,14 +361,17 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return wasCreated.get();
     }
 
-    private DefaultTestSuiteDescriptor createNestedTestSuite(TestIdentifier node, String displayName, CompositeIdGenerator.CompositeId candidateId) {
+    private DefaultTestSuiteDescriptor createNestedTestSuite(
+            TestIdentifier node, String displayName, CompositeIdGenerator.CompositeId candidateId) {
         Optional<MethodSource> methodSource = getMethodSource(node);
         if (methodSource.isPresent()) {
             TestDescriptorInternal parentDescriptor = findTestParentDescriptor(node);
             String className = determineClassName(node, parentDescriptor);
-            return new DefaultParameterizedTestDescriptor(idGenerator.generateId(), node.getLegacyReportingName(), className, displayName, candidateId);
+            return new DefaultParameterizedTestDescriptor(
+                    idGenerator.generateId(), node.getLegacyReportingName(), className, displayName, candidateId);
         } else {
-            return new DefaultNestedTestSuiteDescriptor(idGenerator.generateId(), node.getLegacyReportingName(), displayName, candidateId);
+            return new DefaultNestedTestSuiteDescriptor(
+                    idGenerator.generateId(), node.getLegacyReportingName(), displayName, candidateId);
         }
     }
 
@@ -361,7 +389,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     public static TestSource sourceOf(org.junit.platform.engine.TestSource source) {
         if (source instanceof FileSource) {
             FileSource fileSource = (FileSource) source;
-            FilePosition position = fileSource.getPosition().map(p -> new DefaultFilePosition(p.getLine(), p.getColumn().orElse(null))).orElse(null);
+            FilePosition position = fileSource
+                    .getPosition()
+                    .map(p -> new DefaultFilePosition(p.getLine(), p.getColumn().orElse(null)))
+                    .orElse(null);
             return new DefaultFileSource(fileSource.getFile(), position);
         } else if (source instanceof DirectorySource) {
             return new DefaultDirectorySource(((DirectorySource) source).getFile());
@@ -373,7 +404,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             return new DefaultMethodSource(methodSource.getClassName(), methodSource.getMethodName());
         } else if (source instanceof ClasspathResourceSource) {
             ClasspathResourceSource classpathResourceSource = (ClasspathResourceSource) source;
-            FilePosition position = classpathResourceSource.getPosition().map(p -> new DefaultFilePosition(p.getLine(), p.getColumn().orElse(null))).orElse(null);
+            FilePosition position = classpathResourceSource
+                    .getPosition()
+                    .map(p -> new DefaultFilePosition(p.getLine(), p.getColumn().orElse(null)))
+                    .orElse(null);
             return new DefaultClasspathResourceSource(classpathResourceSource.getClasspathResourceName(), position);
         } else {
             return DefaultOtherSource.getInstance();
@@ -391,7 +425,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         TestDescriptorInternal parentDescriptor = findTestParentDescriptor(test);
         String className = determineClassName(test, parentDescriptor);
         String classDisplayName = determineClassDisplayName(test, parentDescriptor);
-        return new DefaultTestDescriptor(idGenerator.generateId(), className, name, classDisplayName, displayName, sourceOf(test));
+        return new DefaultTestDescriptor(
+                idGenerator.generateId(), className, name, classDisplayName, displayName, sourceOf(test));
     }
 
     private String determineClassName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor) {
@@ -402,7 +437,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return determineName(node, parentDescriptor, TestDescriptorInternal::getClassDisplayName);
     }
 
-    private String determineName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor, Function<TestDescriptorInternal, @Nullable String> nameGetter) {
+    private String determineName(
+            TestIdentifier node,
+            @Nullable TestDescriptorInternal parentDescriptor,
+            Function<TestDescriptorInternal, @Nullable String> nameGetter) {
         org.junit.platform.engine.TestSource source = node.getSource().orElse(null);
         if (source instanceof ClassSource || source instanceof MethodSource) {
             if (parentDescriptor == null) {
@@ -435,10 +473,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         // For tests in default method of interface,
         // we might not be able to get the implementation class directly.
         // In this case, we need to retrieve test plan to get the real implementation class.
-        return findInAncestors(
-            testIdentifier,
-            identifier -> isTestClassIdentifier(identifier) ? identifier : null
-        );
+        return findInAncestors(testIdentifier, identifier -> isTestClassIdentifier(identifier) ? identifier : null);
     }
 
     @Nullable
@@ -449,10 +484,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             return descriptorsByUniqueId.get(classIdentifier.getUniqueId());
         }
         // Otherwise just return the first existing ancestor descriptor
-        return findInAncestors(
-            testIdentifier,
-            identifier -> descriptorsByUniqueId.get(identifier.getUniqueId())
-        );
+        return findInAncestors(testIdentifier, identifier -> descriptorsByUniqueId.get(identifier.getUniqueId()));
     }
 
     @Nullable
@@ -474,7 +506,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         Objects.requireNonNull(currentTestPlan);
         try {
             return testIdentifier.getParentIdObject().map(currentTestPlan::getTestIdentifier);
-        // Some versions of the JDK throw a BootstrapMethodError
+            // Some versions of the JDK throw a BootstrapMethodError
         } catch (NoSuchMethodError | BootstrapMethodError ignore) {
             // To support pre-1.10 versions of the JUnit Platform
             return testIdentifier.getParentId().map(currentTestPlan::getTestIdentifier);
@@ -524,7 +556,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         try {
             Path rootDirPath = baseDefinitionsDir.toPath().toRealPath();
             Path testDefPath = ((FileSource) source).getFile().toPath().toRealPath();
-            String relativePath = TextUtil.normaliseFileSeparators(rootDirPath.relativize(testDefPath).toString());
+            String relativePath = TextUtil.normaliseFileSeparators(
+                    rootDirPath.relativize(testDefPath).toString());
             return Optional.of(relativePath);
         } catch (IOException e) {
             LOGGER.warn("Could not compute relative path to source file for test identifier {}", node, e);
@@ -537,15 +570,17 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private static Optional<ClassSource> getClassSource(TestIdentifier testIdentifier) {
-        return testIdentifier.getSource()
-            .filter(source -> source instanceof ClassSource)
-            .map(source -> (ClassSource) source);
+        return testIdentifier
+                .getSource()
+                .filter(source -> source instanceof ClassSource)
+                .map(source -> (ClassSource) source);
     }
 
     private static Optional<MethodSource> getMethodSource(TestIdentifier testIdentifier) {
-        return testIdentifier.getSource()
-            .filter(source -> source instanceof MethodSource)
-            .map(source -> (MethodSource) source);
+        return testIdentifier
+                .getSource()
+                .filter(source -> source instanceof MethodSource)
+                .map(source -> (MethodSource) source);
     }
 
     private static boolean hasFileSource(TestIdentifier testIdentifier) {
@@ -553,9 +588,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private static Optional<FileSource> getFileSource(TestIdentifier testIdentifier) {
-        return testIdentifier.getSource()
-            .filter(source -> source instanceof FileSource)
-            .map(source -> (FileSource) source);
+        return testIdentifier
+                .getSource()
+                .filter(source -> source instanceof FileSource)
+                .map(source -> (FileSource) source);
     }
 
     private boolean hasDifferentSourceThanAncestor(TestIdentifier testIdentifier) {
@@ -570,5 +606,4 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         }
         return true;
     }
-
 }

@@ -16,9 +16,8 @@
 
 package org.gradle.api.publish.ivy;
 
-import org.gradle.api.Named;
-
 import java.util.Set;
+import org.gradle.api.Named;
 
 /**
  * A configuration included in an {@link IvyPublication}, which will be published in the ivy descriptor file generated.

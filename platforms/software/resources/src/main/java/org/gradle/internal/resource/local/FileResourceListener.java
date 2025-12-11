@@ -16,10 +16,9 @@
 
 package org.gradle.internal.resource.local;
 
+import java.io.File;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
-
-import java.io.File;
 
 @EventScope({Scope.BuildTree.class, Scope.Build.class})
 public interface FileResourceListener {

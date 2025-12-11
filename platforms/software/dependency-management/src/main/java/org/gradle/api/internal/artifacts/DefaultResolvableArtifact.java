@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import java.io.File;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -33,8 +34,6 @@ import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueFactory;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-
 public class DefaultResolvableArtifact implements ResolvableArtifact {
     private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
@@ -45,7 +44,13 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
     private final CalculatedValueFactory calculatedValueFactory;
     private final ResolvedArtifact publicView;
 
-    public DefaultResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, CalculatedValue<File> fileSource, CalculatedValueFactory calculatedValueFactory) {
+    public DefaultResolvableArtifact(
+            @Nullable ModuleVersionIdentifier owner,
+            IvyArtifactName artifact,
+            ComponentArtifactIdentifier artifactId,
+            TaskDependencyContainer builtBy,
+            CalculatedValue<File> fileSource,
+            CalculatedValueFactory calculatedValueFactory) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
@@ -113,8 +118,10 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
             originalFileName = fileSource.get().getName();
         }
 
-        ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), file.getName(), originalFileName);
-        return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, TaskDependencyContainer.EMPTY, calculatedValueFactory);
+        ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(
+                artifactId.getComponentIdentifier(), file.getName(), originalFileName);
+        return new PreResolvedResolvableArtifact(
+                owner, artifactName, newId, file, TaskDependencyContainer.EMPTY, calculatedValueFactory);
     }
 
     @Override

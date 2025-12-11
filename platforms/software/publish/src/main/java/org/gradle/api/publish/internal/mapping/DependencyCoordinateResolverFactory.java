@@ -32,7 +32,8 @@ public interface DependencyCoordinateResolverFactory {
     /**
      * Create coordinate resolvers for the given variant.
      */
-    Provider<DependencyResolvers> createCoordinateResolvers(SoftwareComponentVariant variant, VersionMappingStrategyInternal versionMappingStrategy);
+    Provider<DependencyResolvers> createCoordinateResolvers(
+            SoftwareComponentVariant variant, VersionMappingStrategyInternal versionMappingStrategy);
 
     /**
      * Contains the variant and component coordinate resolver for a given variant.
@@ -42,7 +43,8 @@ public interface DependencyCoordinateResolverFactory {
         private final VariantDependencyResolver variantResolver;
         private final ComponentDependencyResolver componentResolver;
 
-        public DependencyResolvers(VariantDependencyResolver variantResolver, ComponentDependencyResolver componentResolver) {
+        public DependencyResolvers(
+                VariantDependencyResolver variantResolver, ComponentDependencyResolver componentResolver) {
             this.variantResolver = variantResolver;
             this.componentResolver = componentResolver;
         }

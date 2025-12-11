@@ -17,16 +17,18 @@
 package org.gradle.tooling.events.lifecycle.internal;
 
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.lifecycle.BuildPhaseOperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
+import org.gradle.tooling.events.lifecycle.BuildPhaseOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalBuildPhaseDescriptor;
 
-public class DefaultBuildPhaseOperationDescriptor extends DefaultOperationDescriptor implements BuildPhaseOperationDescriptor {
+public class DefaultBuildPhaseOperationDescriptor extends DefaultOperationDescriptor
+        implements BuildPhaseOperationDescriptor {
 
     private final String buildPhase;
     private final int buildItemsCount;
 
-    public DefaultBuildPhaseOperationDescriptor(InternalBuildPhaseDescriptor internalDescriptor, OperationDescriptor parent) {
+    public DefaultBuildPhaseOperationDescriptor(
+            InternalBuildPhaseDescriptor internalDescriptor, OperationDescriptor parent) {
         super(internalDescriptor, parent);
         this.buildPhase = internalDescriptor.getBuildPhase();
         this.buildItemsCount = internalDescriptor.getBuildItemsCount();

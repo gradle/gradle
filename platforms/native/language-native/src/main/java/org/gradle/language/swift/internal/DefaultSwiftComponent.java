@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.internal;
 
+import java.util.Collections;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.Cast;
 import org.gradle.language.internal.DefaultBinaryCollection;
@@ -25,9 +26,8 @@ import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
 
-import java.util.Collections;
-
-public abstract class DefaultSwiftComponent<T extends SwiftBinary> extends DefaultNativeComponent implements SwiftComponent, ComponentWithNames {
+public abstract class DefaultSwiftComponent<T extends SwiftBinary> extends DefaultNativeComponent
+        implements SwiftComponent, ComponentWithNames {
     private final DefaultBinaryCollection<T> binaries;
     private final FileCollection swiftSource;
     private final String name;
@@ -39,7 +39,7 @@ public abstract class DefaultSwiftComponent<T extends SwiftBinary> extends Defau
 
     public DefaultSwiftComponent(String name, Class<? extends SwiftBinary> binaryType) {
         this.name = name;
-        this.swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
+        this.swiftSource = createSourceView("src/" + name + "/swift", Collections.singletonList("swift"));
         this.names = Names.of(name);
         this.binaries = Cast.uncheckedCast(getObjectFactory().newInstance(DefaultBinaryCollection.class, binaryType));
     }

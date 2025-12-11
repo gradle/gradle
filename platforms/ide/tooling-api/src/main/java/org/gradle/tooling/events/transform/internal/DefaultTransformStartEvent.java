@@ -30,5 +30,4 @@ public class DefaultTransformStartEvent extends DefaultStartEvent implements Tra
     public TransformOperationDescriptor getDescriptor() {
         return (TransformOperationDescriptor) super.getDescriptor();
     }
-
 }

@@ -16,9 +16,8 @@
 
 package org.gradle.internal.execution;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
+import org.jspecify.annotations.Nullable;
 
 public interface Execution {
     /**

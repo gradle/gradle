@@ -66,7 +66,10 @@ public class DefaultLineInFileLocation extends DefaultFileLocation implements Li
             return false;
         }
         DefaultLineInFileLocation that = (DefaultLineInFileLocation) o;
-        return line == that.line && column == that.column && length == that.length && Objects.equal(getPath(), that.getPath());
+        return line == that.line
+                && column == that.column
+                && length == that.length
+                && Objects.equal(getPath(), that.getPath());
     }
 
     @Override

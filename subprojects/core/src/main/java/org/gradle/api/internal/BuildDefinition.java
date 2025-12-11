@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import java.io.File;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
@@ -26,14 +27,14 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-
 @ServiceScope(Scope.Build.class)
 public class BuildDefinition {
     @Nullable
     private final String name;
+
     @Nullable
     private final File buildRootDir;
+
     private final StartParameterInternal startParameter;
     private final PluginRequests injectedSettingsPlugins;
     private final Action<? super DependencySubstitutions> dependencySubstitutions;
@@ -41,14 +42,13 @@ public class BuildDefinition {
     private final boolean pluginBuild;
 
     private BuildDefinition(
-        @Nullable String name,
-        @Nullable File buildRootDir,
-        StartParameterInternal startParameter,
-        PluginRequests injectedSettingsPlugins,
-        Action<? super DependencySubstitutions> dependencySubstitutions,
-        @Nullable
-        PublicBuildPath fromBuild,
-        boolean pluginBuild) {
+            @Nullable String name,
+            @Nullable File buildRootDir,
+            StartParameterInternal startParameter,
+            PluginRequests injectedSettingsPlugins,
+            Action<? super DependencySubstitutions> dependencySubstitutions,
+            @Nullable PublicBuildPath fromBuild,
+            boolean pluginBuild) {
         this.name = name;
         this.buildRootDir = buildRootDir;
         this.startParameter = startParameter;
@@ -103,36 +103,36 @@ public class BuildDefinition {
     }
 
     public static BuildDefinition fromStartParameterForBuild(
-        StartParameterInternal startParameter,
-        @Nullable
-        String name,
-        @Nullable
-        File buildRootDir,
-        PluginRequests pluginRequests,
-        Action<? super DependencySubstitutions> dependencySubstitutions,
-        @Nullable
-        PublicBuildPath fromBuild,
-        boolean pluginBuild
-    ) {
+            StartParameterInternal startParameter,
+            @Nullable String name,
+            @Nullable File buildRootDir,
+            PluginRequests pluginRequests,
+            Action<? super DependencySubstitutions> dependencySubstitutions,
+            @Nullable PublicBuildPath fromBuild,
+            boolean pluginBuild) {
         return new BuildDefinition(
-            name,
-            buildRootDir,
-            startParameterForIncludedBuildFrom(startParameter, buildRootDir),
-            pluginRequests,
-            dependencySubstitutions,
-            fromBuild,
-            pluginBuild);
+                name,
+                buildRootDir,
+                startParameterForIncludedBuildFrom(startParameter, buildRootDir),
+                pluginRequests,
+                dependencySubstitutions,
+                fromBuild,
+                pluginBuild);
     }
 
-    public static BuildDefinition fromStartParameter(StartParameterInternal startParameter, @Nullable PublicBuildPath fromBuild) {
+    public static BuildDefinition fromStartParameter(
+            StartParameterInternal startParameter, @Nullable PublicBuildPath fromBuild) {
         return fromStartParameter(startParameter, null, fromBuild);
     }
 
-    public static BuildDefinition fromStartParameter(StartParameterInternal startParameter, @Nullable File rootBuildDir, @Nullable PublicBuildPath fromBuild) {
-        return new BuildDefinition(null, rootBuildDir, startParameter, PluginRequests.EMPTY, Actions.doNothing(), fromBuild, false);
+    public static BuildDefinition fromStartParameter(
+            StartParameterInternal startParameter, @Nullable File rootBuildDir, @Nullable PublicBuildPath fromBuild) {
+        return new BuildDefinition(
+                null, rootBuildDir, startParameter, PluginRequests.EMPTY, Actions.doNothing(), fromBuild, false);
     }
 
-    private static StartParameterInternal startParameterForIncludedBuildFrom(StartParameterInternal startParameter, @Nullable File buildRootDir) {
+    private static StartParameterInternal startParameterForIncludedBuildFrom(
+            StartParameterInternal startParameter, @Nullable File buildRootDir) {
         StartParameterInternal includedBuildStartParam = startParameter.newBuild();
         includedBuildStartParam.setCurrentDir(buildRootDir);
         includedBuildStartParam.doNotSearchUpwards();
@@ -145,6 +145,13 @@ public class BuildDefinition {
      * Creates a defensive copy of this build definition, to isolate this instance from mutations made to the {@link StartParameter} during execution of the build.
      */
     public BuildDefinition newInstance() {
-        return new BuildDefinition(name, buildRootDir, startParameter.newInstance(), injectedSettingsPlugins, dependencySubstitutions, fromBuild, pluginBuild);
+        return new BuildDefinition(
+                name,
+                buildRootDir,
+                startParameter.newInstance(),
+                injectedSettingsPlugins,
+                dependencySubstitutions,
+                fromBuild,
+                pluginBuild);
     }
 }

@@ -16,11 +16,10 @@
 package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
-import org.gradle.internal.Cast;
-
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
+import org.gradle.internal.Cast;
 
 public class DefaultSerializer<T> extends AbstractSerializer<T> {
     private ClassLoader classLoader;
@@ -44,7 +43,8 @@ public class DefaultSerializer<T> extends AbstractSerializer<T> {
     @Override
     public T read(Decoder decoder) throws Exception {
         try {
-            return Cast.uncheckedNonnullCast(new ClassLoaderObjectInputStream(decoder.getInputStream(), classLoader).readObject());
+            return Cast.uncheckedNonnullCast(
+                    new ClassLoaderObjectInputStream(decoder.getInputStream(), classLoader).readObject());
         } catch (StreamCorruptedException e) {
             return null;
         }

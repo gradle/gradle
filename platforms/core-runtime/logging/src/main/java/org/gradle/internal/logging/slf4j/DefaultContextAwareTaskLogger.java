@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging.slf4j;
 
+import static org.gradle.internal.logging.slf4j.BuildOperationAwareLogger.toLogLevel;
+
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.internal.Cast;
@@ -24,8 +26,6 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.slf4j.Marker;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
-
-import static org.gradle.internal.logging.slf4j.BuildOperationAwareLogger.toLogLevel;
 
 @SuppressWarnings("OverridingMethodInconsistentArgumentNamesChecker")
 public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
@@ -39,8 +39,8 @@ public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
 
     public MessageRewriter getMessageRewriter() {
         return delegate instanceof MessageRewritingBuildOperationAwareLogger
-            ? ((MessageRewritingBuildOperationAwareLogger) delegate).getMessageRewriter()
-            : null;
+                ? ((MessageRewritingBuildOperationAwareLogger) delegate).getMessageRewriter()
+                : null;
     }
 
     @Override
@@ -124,60 +124,51 @@ public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
     }
 
     @Override
-    public void trace(String msg) {
-    }
+    public void trace(String msg) {}
 
     @Override
-    public void trace(String format, Object arg) {
-    }
+    public void trace(String format, Object arg) {}
 
     @Override
-    public void trace(String format, Object arg1, Object arg2) {
-    }
+    public void trace(String format, Object arg1, Object arg2) {}
 
     @Override
-    public void trace(String format, Object... arguments) {
-    }
+    public void trace(String format, Object... arguments) {}
 
     @Override
-    public void trace(String msg, Throwable t) {
-    }
+    public void trace(String msg, Throwable t) {}
 
     @Override
-    public void trace(Marker marker, String msg) {
-    }
+    public void trace(Marker marker, String msg) {}
 
     @Override
-    public void trace(Marker marker, String format, Object arg) {
-    }
+    public void trace(Marker marker, String format, Object arg) {}
 
     @Override
-    public void trace(Marker marker, String format, Object arg1, Object arg2) {
-    }
+    public void trace(Marker marker, String format, Object arg1, Object arg2) {}
 
     @Override
-    public void trace(Marker marker, String format, Object... argArray) {
-    }
+    public void trace(Marker marker, String format, Object... argArray) {}
 
     @Override
-    public void trace(Marker marker, String msg, Throwable t) {
-    }
+    public void trace(Marker marker, String msg, Throwable t) {}
 
     private void log(LogLevel logLevel, Throwable throwable, String message) {
         delegate.log(logLevel, throwable, message, currentBuildOperationId());
     }
 
     private OperationIdentifier currentBuildOperationId() {
-        OperationIdentifier buildOperationId = CurrentBuildOperationRef.instance().getId();
+        OperationIdentifier buildOperationId =
+                CurrentBuildOperationRef.instance().getId();
         return buildOperationId != null ? buildOperationId : fallbackOperationIdentifier;
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object arg) {
-        log(logLevel, throwable, format, new Object[]{arg});
+        log(logLevel, throwable, format, new Object[] {arg});
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object arg1, Object arg2) {
-        log(logLevel, throwable, format, new Object[]{arg1, arg2});
+        log(logLevel, throwable, format, new Object[] {arg1, arg2});
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object[] args) {
@@ -305,7 +296,6 @@ public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
             log(LogLevel.LIFECYCLE, throwable, message);
         }
     }
-
 
     @Override
     public void quiet(String message) {

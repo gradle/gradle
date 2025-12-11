@@ -17,14 +17,14 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.Iterables;
-import org.gradle.internal.process.ArgCollector;
-import org.gradle.internal.process.ArgWriter;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
+import org.gradle.internal.process.ArgCollector;
+import org.gradle.internal.process.ArgWriter;
 
-public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToArguments<JavaCompileSpec>, Serializable {
+public class CommandLineJavaCompilerArgumentsGenerator
+        implements CompileSpecToArguments<JavaCompileSpec>, Serializable {
     @Override
     public void collectArguments(JavaCompileSpec spec, ArgCollector collector) {
         for (String arg : generate(spec)) {
@@ -33,14 +33,21 @@ public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToA
     }
 
     public Iterable<String> generate(JavaCompileSpec spec) {
-        List<String> launcherOptions = new JavaCompilerArgumentsBuilder(spec).includeLauncherOptions(true).includeMainOptions(false).includeClasspath(false).build();
-        List<String> remainingArgs = new JavaCompilerArgumentsBuilder(spec).includeSourceFiles(true).build();
+        List<String> launcherOptions = new JavaCompilerArgumentsBuilder(spec)
+                .includeLauncherOptions(true)
+                .includeMainOptions(false)
+                .includeClasspath(false)
+                .build();
+        List<String> remainingArgs =
+                new JavaCompilerArgumentsBuilder(spec).includeSourceFiles(true).build();
         return Iterables.concat(launcherOptions, shortenArgs(spec.getTempDir(), remainingArgs));
     }
 
     private Iterable<String> shortenArgs(File tempDir, List<String> args) {
-        // for command file format, see http://docs.oracle.com/javase/6/docs/technotes/tools/windows/javac.html#commandlineargfile
+        // for command file format, see
+        // http://docs.oracle.com/javase/6/docs/technotes/tools/windows/javac.html#commandlineargfile
         // use platform character and line encoding
-        return ArgWriter.argsFileGenerator(new File(tempDir, "java-compiler-args.txt"), ArgWriter.unixStyleFactory()).apply(args);
+        return ArgWriter.argsFileGenerator(new File(tempDir, "java-compiler-args.txt"), ArgWriter.unixStyleFactory())
+                .apply(args);
     }
 }

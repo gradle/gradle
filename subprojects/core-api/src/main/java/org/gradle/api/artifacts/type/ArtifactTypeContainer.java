@@ -25,5 +25,4 @@ import org.gradle.api.NamedDomainObjectContainer;
  *
  * @since 4.0
  */
-public interface ArtifactTypeContainer extends NamedDomainObjectContainer<ArtifactTypeDefinition> {
-}
+public interface ArtifactTypeContainer extends NamedDomainObjectContainer<ArtifactTypeDefinition> {}

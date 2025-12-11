@@ -16,10 +16,6 @@
 
 package org.gradle.api.internal.provider.views;
 
-import org.gradle.api.provider.MapProperty;
-import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Iterator;
@@ -27,6 +23,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.gradle.api.provider.MapProperty;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Implementation of Map, that is used for Property upgrades
@@ -110,9 +109,12 @@ public class MapPropertyMapView<K, V> extends AbstractMap<K, V> {
 
         @Override
         public Iterator<Entry<K, V>> iterator() {
-            Iterator<Entry<K, V>> it = new LinkedHashMap<>(MapPropertyMapView.this.delegate.get()).entrySet().iterator();
+            Iterator<Entry<K, V>> it = new LinkedHashMap<>(MapPropertyMapView.this.delegate.get())
+                    .entrySet()
+                    .iterator();
             return new Iterator<Entry<K, V>>() {
                 Entry<K, V> previousValue = null;
+
                 @Override
                 public boolean hasNext() {
                     return it.hasNext();

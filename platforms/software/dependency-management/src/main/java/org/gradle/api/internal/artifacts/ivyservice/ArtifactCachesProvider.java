@@ -15,29 +15,35 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.cache.GlobalCache;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.io.Closeable;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import org.gradle.cache.GlobalCache;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.UserHome.class)
 public interface ArtifactCachesProvider extends Closeable, GlobalCache {
     String READONLY_CACHE_ENV_VAR = "GRADLE_RO_DEP_CACHE";
 
     ArtifactCacheMetadata getWritableCacheMetadata();
+
     Optional<ArtifactCacheMetadata> getReadOnlyCacheMetadata();
 
     ArtifactCacheLockingAccessCoordinator getWritableCacheAccessCoordinator();
+
     Optional<ArtifactCacheLockingAccessCoordinator> getReadOnlyCacheAccessCoordinator();
 
-    default <T> T withWritableCache(BiFunction<? super ArtifactCacheMetadata, ? super ArtifactCacheLockingAccessCoordinator, T> function) {
+    default <T> T withWritableCache(
+            BiFunction<? super ArtifactCacheMetadata, ? super ArtifactCacheLockingAccessCoordinator, T> function) {
         return function.apply(getWritableCacheMetadata(), getWritableCacheAccessCoordinator());
     }
 
-    default <T> Optional<T> withReadOnlyCache(BiFunction<? super ArtifactCacheMetadata, ? super ArtifactCacheLockingAccessCoordinator, T> function) {
-        return getReadOnlyCacheMetadata().map(artifactCacheMetadata -> function.apply(artifactCacheMetadata, getReadOnlyCacheAccessCoordinator().get()));
+    default <T> Optional<T> withReadOnlyCache(
+            BiFunction<? super ArtifactCacheMetadata, ? super ArtifactCacheLockingAccessCoordinator, T> function) {
+        return getReadOnlyCacheMetadata()
+                .map(artifactCacheMetadata -> function.apply(
+                        artifactCacheMetadata,
+                        getReadOnlyCacheAccessCoordinator().get()));
     }
 }

@@ -15,12 +15,11 @@
  */
 package org.gradle.tooling.model.eclipse;
 
+import java.io.File;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.UnsupportedMethodException;
-
-import java.io.File;
 
 /**
  * Represents the basic information about an Eclipse project.
@@ -73,5 +72,4 @@ public interface HierarchicalEclipseProject extends HierarchicalElement, HasGrad
      * @throws UnsupportedMethodException For Gradle versions older than 1.0-milestone-9, where this method is not supported.
      */
     File getProjectDirectory() throws UnsupportedMethodException;
-
 }

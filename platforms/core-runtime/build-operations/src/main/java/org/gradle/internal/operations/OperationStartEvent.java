@@ -33,8 +33,6 @@ public final class OperationStartEvent {
 
     @Override
     public String toString() {
-        return "OperationStartEvent{" +
-            "startTime=" + startTime +
-            '}';
+        return "OperationStartEvent{" + "startTime=" + startTime + '}';
     }
 }

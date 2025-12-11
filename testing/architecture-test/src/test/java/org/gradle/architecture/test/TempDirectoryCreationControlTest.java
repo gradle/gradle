@@ -16,19 +16,6 @@
 
 package org.gradle.architecture.test;
 
-import com.tngtech.archunit.core.domain.JavaCall;
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.properties.HasOwner;
-import com.tngtech.archunit.junit.AnalyzeClasses;
-import com.tngtech.archunit.junit.ArchTest;
-import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ArchRule;
-import org.gradle.test.fixtures.file.TestFile;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.attribute.FileAttribute;
-
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongToAnyOf;
@@ -38,63 +25,66 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWher
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
+import com.tngtech.archunit.core.domain.JavaCall;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.properties.HasOwner;
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.ArchRule;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileAttribute;
+import org.gradle.test.fixtures.file.TestFile;
+
 @AnalyzeClasses(packages = "org.gradle")
 public class TempDirectoryCreationControlTest {
 
     private static final String RATIONALE =
-        "for security reasons, all temporary file creation should through TemporaryFileProvider";
+            "for security reasons, all temporary file creation should through TemporaryFileProvider";
 
     @ArchTest
-    public static final ArchRule forbid_illegal_calls_to_File_createTempFile =
-        classes()
+    public static final ArchRule forbid_illegal_calls_to_File_createTempFile = classes()
             .that(doNot(belongToAnyOf(TestFile.class)))
             .should(not(callMethod(File.class, "createTempFile", String.class, String.class)))
             .because(RATIONALE);
 
     @ArchTest
-    public static final ArchRule forbid_calls_to_guava_Files_createTempDir =
-        classes()
+    public static final ArchRule forbid_calls_to_guava_Files_createTempDir = classes()
             .should(not(callMethod(com.google.common.io.Files.class, "createTempDir")))
             .because(RATIONALE);
 
     @ArchTest
-    public static final ArchRule forbid_illegal_calls_to_File_createTempFile_overload =
-        classes()
+    public static final ArchRule forbid_illegal_calls_to_File_createTempFile_overload = classes()
             .that(doNot(belongToAnyOf(org.gradle.api.internal.file.temp.TempFiles.class)))
             .should(not(callMethod(File.class, "createTempFile", String.class, String.class, File.class)))
             .because(String.format(
-                "for security reasons, all createTempFile calls taking a 'directory' argument must go through `%s`",
-                org.gradle.api.internal.file.temp.TempFiles.class
-            ));
+                    "for security reasons, all createTempFile calls taking a 'directory' argument must go through `%s`",
+                    org.gradle.api.internal.file.temp.TempFiles.class));
 
     @ArchTest
-    public static final ArchRule forbid_illegal_calls_to_Files_createTempFile =
-        classes()
+    public static final ArchRule forbid_illegal_calls_to_Files_createTempFile = classes()
             .should(not(callMethod(Files.class, "createTempFile", String.class, String.class, FileAttribute[].class)))
             .because(RATIONALE);
 
     @ArchTest
-    public static final ArchRule forbid_illegal_calls_to_Files_createTempDirectory =
-        classes()
+    public static final ArchRule forbid_illegal_calls_to_Files_createTempDirectory = classes()
             .should(not(callMethod(Files.class, "createTempDirectory", String.class, FileAttribute[].class)))
             .because(RATIONALE);
 
     @ArchTest
-    public static final ArchRule forbid_illegal_calls_to_kotlin_Files_createTempDir =
-        classes()
+    public static final ArchRule forbid_illegal_calls_to_kotlin_Files_createTempDir = classes()
             .should(not(callMethodWithName("kotlin.io.FilesKt", "createTempDir$default")))
             .because(RATIONALE);
 
     @ArchTest
-    public static final ArchRule forbid_illegal_calls_to_kotlin_Files_createTempFile =
-        classes()
+    public static final ArchRule forbid_illegal_calls_to_kotlin_Files_createTempFile = classes()
             .should(not(callMethodWithName("kotlin.io.FilesKt", "createTempFile$default")))
             .because(RATIONALE);
 
-
     public static ArchCondition<JavaClass> callMethodWithName(String ownerName, String methodName) {
         return callMethodWhere(JavaCall.Predicates.target(HasOwner.Predicates.With.<JavaClass>owner(name(ownerName)))
-            .and(JavaCall.Predicates.target(name(methodName))))
-            .as("call method %s.%s", ensureSimpleName(ownerName), methodName);
+                        .and(JavaCall.Predicates.target(name(methodName))))
+                .as("call method %s.%s", ensureSimpleName(ownerName), methodName);
     }
 }

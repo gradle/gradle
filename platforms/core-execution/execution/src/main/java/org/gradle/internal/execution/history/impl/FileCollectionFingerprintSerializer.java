@@ -18,6 +18,8 @@ package org.gradle.internal.execution.history.impl;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Interner;
+import java.io.IOException;
+import java.util.Map;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
@@ -25,9 +27,6 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
-
-import java.io.IOException;
-import java.util.Map;
 
 public class FileCollectionFingerprintSerializer implements Serializer<FileCollectionFingerprint> {
 
@@ -71,7 +70,8 @@ public class FileCollectionFingerprintSerializer implements Serializer<FileColle
         fingerprintMapSerializer.write(encoder, value.getFingerprints());
         if (!value.getFingerprints().isEmpty()) {
             writeRootHashes(encoder, value.getRootHashes());
-            hashCodeSerializer.write(encoder, ((SerializableFileCollectionFingerprint) value).getStrategyConfigurationHash());
+            hashCodeSerializer.write(
+                    encoder, ((SerializableFileCollectionFingerprint) value).getStrategyConfigurationHash());
         }
     }
 
@@ -93,7 +93,8 @@ public class FileCollectionFingerprintSerializer implements Serializer<FileColle
         }
 
         FileCollectionFingerprintSerializer that = (FileCollectionFingerprintSerializer) o;
-        return fingerprintMapSerializer.equals(that.fingerprintMapSerializer) && hashCodeSerializer.equals(that.hashCodeSerializer);
+        return fingerprintMapSerializer.equals(that.fingerprintMapSerializer)
+                && hashCodeSerializer.equals(that.hashCodeSerializer);
     }
 
     @Override

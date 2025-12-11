@@ -41,5 +41,4 @@ public interface DaemonServerConnector extends Stoppable {
      */
     @Override
     public void stop();
-
 }

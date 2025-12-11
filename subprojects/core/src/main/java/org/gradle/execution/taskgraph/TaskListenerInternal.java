@@ -39,5 +39,4 @@ public interface TaskListenerInternal {
      * state. Never null.
      */
     void afterExecute(TaskIdentity<?> taskIdentity, TaskState state);
-
 }

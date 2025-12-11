@@ -16,6 +16,16 @@
 
 package org.gradle.jvm.toolchain.internal.install;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.Collection;
+import java.util.Collections;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.resources.MissingResourceException;
@@ -28,17 +38,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.file.AtomicMoveNotSupportedException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.Collection;
-import java.util.Collections;
 
 @ServiceScope({Scope.Build.class})
 public class SecureFileDownloader {
@@ -63,7 +62,8 @@ public class SecureFileDownloader {
         try {
             downloadResource(source, destination, resource);
         } catch (MissingResourceException e) {
-            throw new MissingResourceException(source, String.format("Unable to download '%s' into file '%s'", source, destination), e);
+            throw new MissingResourceException(
+                    source, String.format("Unable to download '%s' into file '%s'", source, destination), e);
         }
     }
 
@@ -74,7 +74,10 @@ public class SecureFileDownloader {
                 return source.toString();
             }
         };
-        return externalResourceFactory.createExternalResource(source, authentications).withProgressLogging().resource(resourceName);
+        return externalResourceFactory
+                .createExternalResource(source, authentications)
+                .withProgressLogging()
+                .resource(resourceName);
     }
 
     private void downloadResource(URI source, File targetFile, ExternalResource resource) {

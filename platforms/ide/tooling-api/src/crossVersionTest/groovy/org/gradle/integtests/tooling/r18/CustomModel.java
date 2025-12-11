@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.tooling.r18;
 
+import java.io.Serializable;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.eclipse.EclipseProject;
-
-import java.io.Serializable;
 
 class CustomModel implements Serializable {
     EclipseProject eclipse;

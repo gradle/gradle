@@ -18,6 +18,11 @@ package gradlebuild.docs.dsl.source;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Collection;
+import java.util.Map;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.SetProperty;
@@ -29,12 +34,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.Map;
 
 @NullMarked
 @CacheableTask
@@ -55,9 +54,14 @@ public abstract class GenerateApiMapping extends DefaultTask {
     @TaskAction
     public void generate() throws IOException {
         final Multimap<String, String> simpleNames = LinkedHashMultimap.create();
-        ClassMetaDataUtil.extractFromMetadata(getMetaDataFile().getAsFile().get(), getExcludedPackages().get(), classMetaData -> simpleNames.put(classMetaData.getSimpleName(), classMetaData.getClassName()));
-        try (PrintWriter mappingFileWriter = new PrintWriter(new FileWriter(getMappingDestFile().getAsFile().get()))) {
-            for (Map.Entry<String, Collection<String>> entry : simpleNames.asMap().entrySet()) {
+        ClassMetaDataUtil.extractFromMetadata(
+                getMetaDataFile().getAsFile().get(),
+                getExcludedPackages().get(),
+                classMetaData -> simpleNames.put(classMetaData.getSimpleName(), classMetaData.getClassName()));
+        try (PrintWriter mappingFileWriter =
+                new PrintWriter(new FileWriter(getMappingDestFile().getAsFile().get()))) {
+            for (Map.Entry<String, Collection<String>> entry :
+                    simpleNames.asMap().entrySet()) {
                 if (entry.getValue().size() > 1) {
                     StringBuilder warning = new StringBuilder();
                     warning.append(String.format("Multiple DSL types have short name '%s':\n", entry.getKey()));

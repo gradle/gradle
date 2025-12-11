@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import java.io.File;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 
-import java.io.File;
-
-public class DefaultGroovyJavaJointCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultGroovyJavaJointCompileSpec> {
-    public DefaultGroovyJavaJointCompileSpecFactory(CompileOptions compileOptions, JavaInstallationMetadata javaInstallationMetadata) {
+public class DefaultGroovyJavaJointCompileSpecFactory
+        extends AbstractJavaCompileSpecFactory<DefaultGroovyJavaJointCompileSpec> {
+    public DefaultGroovyJavaJointCompileSpecFactory(
+            CompileOptions compileOptions, JavaInstallationMetadata javaInstallationMetadata) {
         super(compileOptions, javaInstallationMetadata);
     }
 
@@ -41,7 +42,8 @@ public class DefaultGroovyJavaJointCompileSpecFactory extends AbstractJavaCompil
         return new DefaultGroovyJavaJointCompileSpec();
     }
 
-    private static class DefaultCommandLineGroovyJavaJointCompileSpec extends DefaultGroovyJavaJointCompileSpec implements CommandLineJavaCompileSpec {
+    private static class DefaultCommandLineGroovyJavaJointCompileSpec extends DefaultGroovyJavaJointCompileSpec
+            implements CommandLineJavaCompileSpec {
         private final File executable;
 
         private DefaultCommandLineGroovyJavaJointCompileSpec(File executable) {
@@ -54,7 +56,8 @@ public class DefaultGroovyJavaJointCompileSpecFactory extends AbstractJavaCompil
         }
     }
 
-    private static class DefaultForkingGroovyJavaJointCompileSpec extends DefaultGroovyJavaJointCompileSpec implements ForkingJavaCompileSpec {
+    private static class DefaultForkingGroovyJavaJointCompileSpec extends DefaultGroovyJavaJointCompileSpec
+            implements ForkingJavaCompileSpec {
         private final File javaHome;
         private final int javaLanguageVersion;
 

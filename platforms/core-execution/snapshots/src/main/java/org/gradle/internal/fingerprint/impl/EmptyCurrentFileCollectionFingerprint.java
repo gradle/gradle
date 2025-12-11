@@ -17,6 +17,8 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMultimap;
+import java.util.Collections;
+import java.util.Map;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -24,9 +26,6 @@ import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-
-import java.util.Collections;
-import java.util.Map;
 
 public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
 

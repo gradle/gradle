@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution;
 
+import java.util.function.Supplier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
@@ -23,19 +24,10 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.properties.InputBehavior;
 import org.jspecify.annotations.Nullable;
 
-import java.util.function.Supplier;
-
 public interface InputVisitor {
-    default void visitInputProperty(
-        String propertyName,
-        ValueSupplier value
-    ) {}
+    default void visitInputProperty(String propertyName, ValueSupplier value) {}
 
-    default void visitInputFileProperty(
-        String propertyName,
-        InputBehavior behavior,
-        InputFileValueSupplier value
-    ) {}
+    default void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {}
 
     interface ValueSupplier {
         @Nullable
@@ -49,18 +41,18 @@ public interface InputVisitor {
     class InputFileValueSupplier implements FileValueSupplier {
         @Nullable
         private final Object value;
+
         private final FileNormalizer normalizer;
         private final DirectorySensitivity directorySensitivity;
         private final LineEndingSensitivity lineEndingSensitivity;
         private final Supplier<FileCollection> files;
 
         public InputFileValueSupplier(
-            @Nullable Object value,
-            FileNormalizer normalizer,
-            DirectorySensitivity directorySensitivity,
-            LineEndingSensitivity lineEndingSensitivity,
-            Supplier<FileCollection> files
-        ) {
+                @Nullable Object value,
+                FileNormalizer normalizer,
+                DirectorySensitivity directorySensitivity,
+                LineEndingSensitivity lineEndingSensitivity,
+                Supplier<FileCollection> files) {
             this.value = value;
             this.normalizer = normalizer;
             this.directorySensitivity = directorySensitivity;

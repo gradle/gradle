@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -23,18 +26,16 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 public class TestState {
     public final TestDescriptorInternal test;
     final TestStartEvent startEvent;
     private final Map<Object, TestState> executing;
     public boolean failedChild;
     public List<TestFailure> failures = new ArrayList<TestFailure>();
+
     @Nullable
     public TestFailure assumptionFailure = null;
+
     public long testCount;
     public long successfulCount;
     public long failedCount;
@@ -65,7 +66,8 @@ public class TestState {
 
     public void completed(TestCompleteEvent event) {
         this.completeEvent = event;
-        resultType = isFailed() ? TestResult.ResultType.FAILURE
+        resultType = isFailed()
+                ? TestResult.ResultType.FAILURE
                 : event.getResultType() != null ? event.getResultType() : TestResult.ResultType.SUCCESS;
 
         if (!test.isComposite()) {

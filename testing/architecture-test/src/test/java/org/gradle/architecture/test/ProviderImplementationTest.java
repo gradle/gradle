@@ -16,19 +16,19 @@
 
 package org.gradle.architecture.test;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.beAssignableTo;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.provider.Provider;
 
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.beAssignableTo;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-
 @AnalyzeClasses(packages = "org.gradle")
 public class ProviderImplementationTest {
     @ArchTest
-    public static final ArchRule provider_implementations_extend_abstract_minimal_provider = classes().that(implement(Provider.class))
-        .should(beAssignableTo(AbstractMinimalProvider.class));
+    public static final ArchRule provider_implementations_extend_abstract_minimal_provider =
+            classes().that(implement(Provider.class)).should(beAssignableTo(AbstractMinimalProvider.class));
 }

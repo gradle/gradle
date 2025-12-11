@@ -16,20 +16,11 @@
 
 package org.gradle.execution.plan;
 
+import static com.google.common.collect.Sets.newIdentityHashSet;
+import static java.lang.String.format;
+
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
-import org.gradle.api.Action;
-import org.gradle.api.BuildCancelledException;
-import org.gradle.internal.MutableBoolean;
-import org.gradle.internal.Pair;
-import org.gradle.internal.resources.ResourceLock;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.work.WorkerLeaseRegistry;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -42,9 +33,17 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-
-import static com.google.common.collect.Sets.newIdentityHashSet;
-import static java.lang.String.format;
+import org.gradle.api.Action;
+import org.gradle.api.BuildCancelledException;
+import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.Pair;
+import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @NullMarked
 public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, FinalizedExecutionPlan {
@@ -85,23 +84,23 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     private final OrdinalNodeAccess ordinalNodeAccess;
     private final Consumer<LocalTaskNode> completionHandler;
 
-    // When true, there may be nodes that are both ready and "selectable", which means their project and resources are able to be locked
+    // When true, there may be nodes that are both ready and "selectable", which means their project and resources are
+    // able to be locked
     // When false, there are definitely no nodes that are "selectable"
     private boolean maybeNodesSelectable;
 
     private boolean buildCancelled;
 
     public DefaultFinalizedExecutionPlan(
-        String displayName,
-        OrdinalNodeAccess ordinalNodeAccess,
-        ExecutionNodeAccessHierarchy outputHierarchy,
-        ExecutionNodeAccessHierarchy destroyableHierarchy,
-        ResourceLockCoordinationService lockCoordinator,
-        List<Node> scheduledNodes,
-        boolean continueOnFailure,
-        QueryableExecutionPlan contents,
-        Consumer<LocalTaskNode> completionHandler
-    ) {
+            String displayName,
+            OrdinalNodeAccess ordinalNodeAccess,
+            ExecutionNodeAccessHierarchy outputHierarchy,
+            ExecutionNodeAccessHierarchy destroyableHierarchy,
+            ResourceLockCoordinationService lockCoordinator,
+            List<Node> scheduledNodes,
+            boolean continueOnFailure,
+            QueryableExecutionPlan contents,
+            Consumer<LocalTaskNode> completionHandler) {
         this.displayName = displayName;
         this.outputHierarchy = outputHierarchy;
         this.destroyableHierarchy = destroyableHierarchy;
@@ -199,7 +198,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             eventItems.add(event.message());
         }
 
-        return new Diagnostics(displayName, ordinalGroups, waitingToStartItems, readyToStartItems, otherWaitingItems, eventItems);
+        return new Diagnostics(
+                displayName, ordinalGroups, waitingToStartItems, readyToStartItems, otherWaitingItems, eventItems);
     }
 
     /**
@@ -253,7 +253,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                     } else {
                         node.markFailedDueToDependencies(this::recordNodeCompleted);
                     }
-                    // Skipped some nodes, which may invalidate some earlier nodes (for example a shared dependency of multiple finalizers when all finalizers are skipped), so start again
+                    // Skipped some nodes, which may invalidate some earlier nodes (for example a shared dependency of
+                    // multiple finalizers when all finalizers are skipped), so start again
                     readyNodes.removeAndRestart(node);
                     continue;
                 }
@@ -415,7 +416,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             return false;
         }
 
-        BiFunction<Boolean, Node, Boolean> conflictsWithRunning = (current, candidate) -> current || candidate.isExecuting();
+        BiFunction<Boolean, Node, Boolean> conflictsWithRunning =
+                (current, candidate) -> current || candidate.isExecuting();
 
         OrdinalGroup nodeOrdinal = node.getOrdinal();
         BiFunction<Boolean, Node, Boolean> conflictsWithNodeInEarlierOrdinal = (current, candidate) -> {
@@ -552,7 +554,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                 node.setExecutionFailure(failure);
             }
             if (!node.isExecuting()) {
-                throw new IllegalStateException(format("Cannot finish executing %s as it is in an unexpected state %s.", node, node.getState()));
+                throw new IllegalStateException(format(
+                        "Cannot finish executing %s as it is in an unexpected state %s.", node, node.getState()));
             }
 
             if (!readyNodes.isEmpty()) {
@@ -742,7 +745,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         String message();
     }
 
-    private static abstract class AbstractNodeEvent implements DiagnosticEvent {
+    private abstract static class AbstractNodeEvent implements DiagnosticEvent {
         final Node node;
         final String whenAdded;
         final Node.ExecutionState state;
@@ -765,7 +768,9 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
 
         @Override
         public String message() {
-            return String.format("node added to plan: %s, when: %s, state: %s, dependencies: %s, is ready node? %s", node, whenAdded, state, dependencyCount, readyNode);
+            return String.format(
+                    "node added to plan: %s, when: %s, state: %s, dependencies: %s, is ready node? %s",
+                    node, whenAdded, state, dependencyCount, readyNode);
         }
     }
 
@@ -780,7 +785,9 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
 
         @Override
         public String message() {
-            return String.format("node added to waiting-for-set: %s, when: %s, due-to: %s, state: %s, dependencies: %s, is ready node? %s", node, whenAdded, waitingDueTo, state, dependencyCount, readyNode);
+            return String.format(
+                    "node added to waiting-for-set: %s, when: %s, due-to: %s, state: %s, dependencies: %s, is ready node? %s",
+                    node, whenAdded, waitingDueTo, state, dependencyCount, readyNode);
         }
     }
 }

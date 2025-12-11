@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import java.io.Closeable;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
@@ -28,8 +29,6 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
-
-import java.io.Closeable;
 
 @UsedByScanPlugin("test-retry")
 public interface TestFramework extends Closeable, Describable {

@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.events.test.source;
 
+import java.io.File;
 import org.gradle.api.Incubating;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * A test source defined by a single file.

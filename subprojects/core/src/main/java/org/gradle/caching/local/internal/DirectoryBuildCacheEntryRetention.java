@@ -16,16 +16,15 @@
 
 package org.gradle.caching.local.internal;
 
-import org.gradle.api.cache.Cleanup;
-import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.api.internal.cache.CacheResourceConfigurationInternal;
-import org.gradle.internal.time.TimeFormatting;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import org.gradle.api.cache.Cleanup;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.api.internal.cache.CacheResourceConfigurationInternal;
+import org.gradle.internal.time.TimeFormatting;
 
 public class DirectoryBuildCacheEntryRetention {
     private final Supplier<Long> entryRetentionTimestampSupplier;
@@ -36,7 +35,8 @@ public class DirectoryBuildCacheEntryRetention {
         this.cleanupDisabled = cacheConfigurations.getCleanup().get() == Cleanup.DISABLED;
         CacheResourceConfigurationInternal buildCacheConfig = cacheConfigurations.getBuildCache();
         this.entryRetentionTimestampSupplier = buildCacheConfig.getEntryRetentionTimestampSupplier();
-        this.retentionDescription = describeEntryRetention(buildCacheConfig.getEntryRetention().get());
+        this.retentionDescription =
+                describeEntryRetention(buildCacheConfig.getEntryRetention().get());
     }
 
     public Supplier<Long> getEntryRetentionTimestampSupplier() {
@@ -63,6 +63,9 @@ public class DirectoryBuildCacheEntryRetention {
         }
 
         // Always render the timestamp in UTC
-        return "older than " + Instant.ofEpochMilli(entryRetentionMillis).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
+        return "older than "
+                + Instant.ofEpochMilli(entryRetentionMillis)
+                        .atZone(ZoneId.of("UTC"))
+                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
     }
 }

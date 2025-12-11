@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
@@ -25,12 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
 
 public class ModuleSelectors<T extends ResolvableSelectorState> implements Iterable<T> {
 
@@ -63,7 +62,8 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
                         if (isDynamicSelector(right) == isDynamicSelector(left)) {
                             Version o1RequiredVersion = ModuleSelectors.this.requiredVersion(right);
                             Version o2RequiredVersion = ModuleSelectors.this.requiredVersion(left);
-                            int compareRequiredVersion = versionComparator.compare(o1RequiredVersion, o2RequiredVersion);
+                            int compareRequiredVersion =
+                                    versionComparator.compare(o1RequiredVersion, o2RequiredVersion);
                             if (compareRequiredVersion == 0) {
                                 Version o1Version = ModuleSelectors.this.preferredVersion(right);
                                 Version o2Version = ModuleSelectors.this.preferredVersion(left);
@@ -127,7 +127,9 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
     }
 
     private int advanceToPreserveOrder(List<T> selectors, T selector, int size, int insertionPoint) {
-        while (insertionPoint > 0 && insertionPoint < size && selectorComparator.compare(selectors.get(insertionPoint), selector) == 0) {
+        while (insertionPoint > 0
+                && insertionPoint < size
+                && selectorComparator.compare(selectors.get(insertionPoint), selector) == 0) {
             insertionPoint++;
         }
         return insertionPoint;
@@ -148,12 +150,12 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
     }
 
     private static boolean isDynamicSelector(ResolvableSelectorState selector) {
-        return selector.getVersionConstraint() != null && selector.getVersionConstraint().isDynamic();
+        return selector.getVersionConstraint() != null
+                && selector.getVersionConstraint().isDynamic();
     }
 
     private static boolean hasLatestSelector(ResolvableSelectorState selector) {
-        return selector.getVersionConstraint() != null
-            && hasLatestSelector(selector.getVersionConstraint());
+        return selector.getVersionConstraint() != null && hasLatestSelector(selector.getVersionConstraint());
     }
 
     private static boolean hasLatestSelector(ResolvedVersionConstraint vc) {
@@ -202,7 +204,7 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
 
     @Nullable
     public IvyArtifactName getFirstDependencyArtifact() {
-        for (T selector: selectors) {
+        for (T selector : selectors) {
             IvyArtifactName artifact = selector.getFirstDependencyArtifact();
             if (artifact != null) {
                 return artifact;

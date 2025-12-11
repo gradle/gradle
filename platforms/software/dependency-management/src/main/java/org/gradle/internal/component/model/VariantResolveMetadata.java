@@ -68,6 +68,5 @@ public interface VariantResolveMetadata {
      * <p>
      * Implementations must implement equals and hashCode.
      */
-    interface Identifier {
-    }
+    interface Identifier {}
 }

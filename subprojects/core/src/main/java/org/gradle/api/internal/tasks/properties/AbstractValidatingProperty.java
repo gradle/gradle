@@ -16,7 +16,11 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import static org.gradle.internal.deprecation.Documentation.userManual;
+
 import com.google.common.base.Suppliers;
+import java.util.Locale;
+import java.util.function.Supplier;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -28,18 +32,14 @@ import org.gradle.util.internal.DeferredUtil;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Locale;
-import java.util.function.Supplier;
-
-import static org.gradle.internal.deprecation.Documentation.userManual;
-
 public abstract class AbstractValidatingProperty implements ValidatingProperty {
     private final String propertyName;
     private final PropertyValue value;
     private final boolean optional;
     private final ValidationAction validationAction;
 
-    public AbstractValidatingProperty(String propertyName, PropertyValue value, boolean optional, ValidationAction validationAction) {
+    public AbstractValidatingProperty(
+            String propertyName, PropertyValue value, boolean optional, ValidationAction validationAction) {
         this.propertyName = propertyName;
         this.value = value;
         this.optional = optional;
@@ -48,18 +48,23 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
 
     private static final String VALUE_NOT_SET = "VALUE_NOT_SET";
 
-    public static void reportValueNotSet(String propertyName, TypeValidationContext context, boolean hasConfigurableValue) {
+    public static void reportValueNotSet(
+            String propertyName, TypeValidationContext context, boolean hasConfigurableValue) {
         context.visitPropertyProblem(problem -> {
             ProblemSpec problemSpec = problem.forProperty(propertyName)
-                .id(TextUtil.screamingSnakeToKebabCase(VALUE_NOT_SET), "Value not set", GradleCoreProblemGroup.validation().property())
-                .contextualLabel("doesn't have a configured value")
-                .documentedAt(userManual("validation_problems", VALUE_NOT_SET.toLowerCase(Locale.ROOT)))
-                .severity(Severity.ERROR)
-                .details("This property isn't marked as optional and no value has been configured");
+                    .id(
+                            TextUtil.screamingSnakeToKebabCase(VALUE_NOT_SET),
+                            "Value not set",
+                            GradleCoreProblemGroup.validation().property())
+                    .contextualLabel("doesn't have a configured value")
+                    .documentedAt(userManual("validation_problems", VALUE_NOT_SET.toLowerCase(Locale.ROOT)))
+                    .severity(Severity.ERROR)
+                    .details("This property isn't marked as optional and no value has been configured");
             if (hasConfigurableValue) {
                 problemSpec.solution("Assign a value to '" + propertyName + "'");
             } else {
-                problemSpec.solution("The value of '" + propertyName + "' is calculated, make sure a valid value can be calculated");
+                problemSpec.solution(
+                        "The value of '" + propertyName + "' is calculated, make sure a valid value can be calculated");
             }
             problemSpec.solution("Mark property '" + propertyName + "' as optional");
         });
@@ -102,6 +107,5 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
     }
 
     @Override
-    public void cleanupValue() {
-    }
+    public void cleanupValue() {}
 }

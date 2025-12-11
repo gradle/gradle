@@ -15,10 +15,9 @@
  */
 package org.gradle.docs.asciidoctor;
 
+import java.util.Map;
 import org.asciidoctor.ast.Document;
 import org.asciidoctor.extension.Postprocessor;
-
-import java.util.Map;
 
 /**
  * Injects static assets for docs

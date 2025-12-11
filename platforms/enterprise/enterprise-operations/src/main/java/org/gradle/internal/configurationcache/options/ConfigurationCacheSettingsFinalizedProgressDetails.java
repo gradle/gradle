@@ -19,5 +19,4 @@ package org.gradle.internal.configurationcache.options;
 public interface ConfigurationCacheSettingsFinalizedProgressDetails {
 
     boolean isEnabled();
-
 }

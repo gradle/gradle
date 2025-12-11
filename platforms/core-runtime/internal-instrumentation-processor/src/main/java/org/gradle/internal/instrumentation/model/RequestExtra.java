@@ -16,9 +16,8 @@
 
 package org.gradle.internal.instrumentation.model;
 
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
-
 import javax.lang.model.element.ExecutableElement;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 
 public interface RequestExtra {
     class InterceptJvmCalls implements RequestExtra {

@@ -69,5 +69,4 @@ public class RequestSerializer implements Serializer<Request> {
 
         return new Request(arg, buildOperation);
     }
-
 }

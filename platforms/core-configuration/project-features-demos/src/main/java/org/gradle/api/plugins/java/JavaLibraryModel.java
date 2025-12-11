@@ -26,6 +26,7 @@ public interface JavaLibraryModel extends HasJarFile, HasJavaClasses, BuildModel
 
     interface TestReports {
         DirectoryProperty getHtmlReportDir();
+
         DirectoryProperty getJunitXmlReportDir();
     }
 }

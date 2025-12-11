@@ -21,13 +21,15 @@ import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType;
 import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 
-public class ExecutePlannedTransformStepBuildOperationDetails implements ExecutePlannedTransformStepBuildOperationType.Details, CustomOperationTraceSerialization {
+public class ExecutePlannedTransformStepBuildOperationDetails
+        implements ExecutePlannedTransformStepBuildOperationType.Details, CustomOperationTraceSerialization {
 
     private final TransformStepNode transformStepNode;
     private final String transformerName;
     private final String subjectName;
 
-    public ExecutePlannedTransformStepBuildOperationDetails(TransformStepNode transformStepNode, String transformerName, String subjectName) {
+    public ExecutePlannedTransformStepBuildOperationDetails(
+            TransformStepNode transformStepNode, String transformerName, String subjectName) {
         this.transformStepNode = transformStepNode;
         this.transformerName = transformerName;
         this.subjectName = subjectName;
@@ -66,5 +68,4 @@ public class ExecutePlannedTransformStepBuildOperationDetails implements Execute
         builder.put("subjectName", subjectName);
         return builder.build();
     }
-
 }

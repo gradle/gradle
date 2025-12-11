@@ -16,18 +16,19 @@
 
 package org.gradle.execution.plan;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a set of nodes reachable from a particular entry point node (a "requested task")
  */
 public class OrdinalGroup extends NodeGroup {
     private final int ordinal;
+
     @Nullable
     private final OrdinalGroup previous;
+
     private final Set<Node> entryNodes = new LinkedHashSet<>();
     private OrdinalNode producerLocationsNode;
     private OrdinalNode destroyerLocationsNode;

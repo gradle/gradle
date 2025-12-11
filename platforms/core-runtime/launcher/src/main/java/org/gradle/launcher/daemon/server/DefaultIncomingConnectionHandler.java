@@ -16,6 +16,13 @@
 
 package org.gradle.launcher.daemon.server;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
@@ -31,14 +38,6 @@ import org.gradle.launcher.daemon.server.api.DaemonConnection;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 public class DefaultIncomingConnectionHandler implements IncomingConnectionHandler, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DefaultIncomingConnectionHandler.class);
     private final ManagedExecutor workers;
@@ -51,7 +50,12 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
     private final Condition condition = lock.newCondition();
     private final Set<SynchronizedDispatchConnection<Message>> inProgress = new HashSet<>();
 
-    public DefaultIncomingConnectionHandler(DaemonCommandExecuter commandExecuter, DaemonContext daemonContext, DaemonStateControl daemonStateControl, ExecutorFactory executorFactory, byte[] token) {
+    public DefaultIncomingConnectionHandler(
+            DaemonCommandExecuter commandExecuter,
+            DaemonContext daemonContext,
+            DaemonStateControl daemonStateControl,
+            ExecutorFactory executorFactory,
+            byte[] token) {
         this.commandExecuter = commandExecuter;
         this.daemonContext = daemonContext;
         this.daemonStateControl = daemonStateControl;
@@ -65,8 +69,8 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         // Mark the connection has being handled
         onStartHandling(connection);
 
-        //we're spinning a thread to do work to avoid blocking the connection
-        //This means that the Daemon potentially can do multiple things but we only allows a single build at a time
+        // we're spinning a thread to do work to avoid blocking the connection
+        // This means that the Daemon potentially can do multiple things but we only allows a single build at a time
 
         workers.execute(new ConnectionWorker(connection));
     }
@@ -147,7 +151,9 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
                 LOGGER.info("Received command: {}.", command);
                 return command;
             } catch (Throwable e) {
-                LOGGER.warn(String.format("Unable to receive command from client %s. Discarding connection.", connection), e);
+                LOGGER.warn(
+                        String.format("Unable to receive command from client %s. Discarding connection.", connection),
+                        e);
                 return null;
             }
         }
@@ -156,11 +162,16 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
             LOGGER.debug("{}{} with connection: {}.", DaemonMessages.STARTED_EXECUTING_COMMAND, command, connection);
             try {
                 if (!Arrays.equals(command.getToken(), token)) {
-                    throw new BadlyFormedRequestException(String.format("Unexpected authentication token in command %s received from %s", command, connection));
+                    throw new BadlyFormedRequestException(String.format(
+                            "Unexpected authentication token in command %s received from %s", command, connection));
                 }
                 commandExecuter.executeCommand(daemonConnection, command, daemonContext, daemonStateControl);
             } catch (Throwable e) {
-                LOGGER.warn(String.format("Unable to execute command %s from %s. Dispatching the failure to the daemon client", command, connection), e);
+                LOGGER.warn(
+                        String.format(
+                                "Unable to execute command %s from %s. Dispatching the failure to the daemon client",
+                                command, connection),
+                        e);
                 daemonConnection.completed(new Failure(e));
             } finally {
                 LOGGER.debug("{}{}", DaemonMessages.FINISHED_EXECUTING_COMMAND, command);
@@ -170,7 +181,8 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
             if (finished != null) {
                 LOGGER.debug("Received finished message: {}", finished);
             } else {
-                LOGGER.warn(String.format("Timed out waiting for finished message from client %s. Discarding connection.", connection));
+                LOGGER.warn(String.format(
+                        "Timed out waiting for finished message from client %s. Discarding connection.", connection));
             }
         }
     }

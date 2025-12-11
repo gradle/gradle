@@ -17,7 +17,6 @@
 /**
  * Problem specific interfaces and classes related to event notifications.
  */
-
 @NullMarked
 package org.gradle.tooling.events.problems;
 

@@ -17,10 +17,9 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
-
-import java.util.List;
 
 /**
  * An #include directive whose body is a macro function call.

@@ -16,9 +16,8 @@
 
 package org.gradle.swiftpm.internal;
 
-import org.jspecify.annotations.Nullable;
-
 import java.net.URI;
+import org.jspecify.annotations.Nullable;
 
 public class VersionDependency extends Dependency {
     private final String lowerBound;

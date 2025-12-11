@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
-import org.gradle.api.internal.file.FileResolver;
-
 import java.net.URI;
 import java.util.Locale;
+import org.gradle.api.internal.file.FileResolver;
 
 public class ResolvedPattern {
     public final String scheme;

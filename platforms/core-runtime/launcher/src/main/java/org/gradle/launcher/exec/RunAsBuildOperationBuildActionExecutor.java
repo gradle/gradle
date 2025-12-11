@@ -27,27 +27,25 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.session.BuildSessionContext;
-import org.jspecify.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An {@link BuildActionRunner} that wraps all work in a build operation.
  */
 @NullMarked
 public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActionExecutor {
-    private static final RunBuildBuildOperationType.Details DETAILS = new RunBuildBuildOperationType.Details() {
-    };
+    private static final RunBuildBuildOperationType.Details DETAILS = new RunBuildBuildOperationType.Details() {};
     private final BuildSessionActionExecutor delegate;
     private final BuildOperationRunner buildOperationRunner;
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
     private final BuildOperationNotificationValve buildOperationNotificationValve;
 
     public RunAsBuildOperationBuildActionExecutor(
-        BuildSessionActionExecutor delegate,
-        BuildOperationRunner buildOperationRunner,
-        LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
-        BuildOperationNotificationValve buildOperationNotificationValve
-    ) {
+            BuildSessionActionExecutor delegate,
+            BuildOperationRunner buildOperationRunner,
+            LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
+            BuildOperationNotificationValve buildOperationNotificationValve) {
         this.delegate = delegate;
         this.buildOperationRunner = buildOperationRunner;
         this.loggingBuildOperationProgressBroadcaster = loggingBuildOperationProgressBroadcaster;

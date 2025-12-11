@@ -38,7 +38,8 @@ public class ComponentArtifactIdentifierSerializer implements Serializer<Default
 
     @Override
     public DefaultModuleComponentArtifactIdentifier read(Decoder decoder) throws Exception {
-        ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
+        ModuleComponentIdentifier componentIdentifier =
+                (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
         IvyArtifactName name = IvyArtifactNameSerializer.INSTANCE.read(decoder);
         return new DefaultModuleComponentArtifactIdentifier(componentIdentifier, name);
     }

@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import xsbti.Position;
-
 import java.io.File;
 import java.util.Optional;
+import xsbti.Position;
 
 public class MappedPosition implements Position {
     private final Position delegate;

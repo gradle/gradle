@@ -18,15 +18,14 @@ package org.gradle.internal.component.external.model.maven;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Represents a dependency as represented in a Maven POM file.
@@ -41,8 +40,12 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
     @Nullable
     private final IvyArtifactName dependencyArtifact;
 
-    public MavenDependencyDescriptor(MavenScope scope, MavenDependencyType type, ModuleComponentSelector selector,
-                                     @Nullable IvyArtifactName dependencyArtifact, List<ExcludeMetadata> excludes) {
+    public MavenDependencyDescriptor(
+            MavenScope scope,
+            MavenDependencyType type,
+            ModuleComponentSelector selector,
+            @Nullable IvyArtifactName dependencyArtifact,
+            List<ExcludeMetadata> excludes) {
         this.scope = scope;
         this.selector = selector;
         this.type = type;
@@ -156,19 +159,14 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
 
         MavenDependencyDescriptor that = (MavenDependencyDescriptor) o;
         return type == that.type
-            && Objects.equal(selector, that.selector)
-            && scope == that.scope
-            && Objects.equal(excludes, that.excludes)
-            && Objects.equal(dependencyArtifact, that.dependencyArtifact);
+                && Objects.equal(selector, that.selector)
+                && scope == that.scope
+                && Objects.equal(excludes, that.excludes)
+                && Objects.equal(dependencyArtifact, that.dependencyArtifact);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(
-            selector,
-            scope,
-            type,
-            excludes,
-            dependencyArtifact);
+        return Objects.hashCode(selector, scope, type, excludes, dependencyArtifact);
     }
 }

@@ -16,22 +16,20 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import static java.util.Map.Entry.comparingByKey;
+
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
-import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-
-import static java.util.Map.Entry.comparingByKey;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 
 public enum NormalizedPathChangeDetector implements CompareStrategy.ChangeDetector<FileSystemLocationFingerprint> {
-
     INSTANCE;
 
     /**
@@ -46,11 +44,20 @@ public enum NormalizedPathChangeDetector implements CompareStrategy.ChangeDetect
      * </ul>
      */
     @Override
-    public boolean visitChangesSince(Map<String, FileSystemLocationFingerprint> previousFingerprints, Map<String, FileSystemLocationFingerprint> currentFingerprints, String propertyTitle, ChangeVisitor visitor) {
-        ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles = getUnaccountedForPreviousFingerprints(previousFingerprints, currentFingerprints.entrySet());
-        ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath = getAddedFilesByNormalizedPath(currentFingerprints, unaccountedForPreviousFiles, previousFingerprints.entrySet());
+    public boolean visitChangesSince(
+            Map<String, FileSystemLocationFingerprint> previousFingerprints,
+            Map<String, FileSystemLocationFingerprint> currentFingerprints,
+            String propertyTitle,
+            ChangeVisitor visitor) {
+        ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles =
+                getUnaccountedForPreviousFingerprints(previousFingerprints, currentFingerprints.entrySet());
+        ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath = getAddedFilesByNormalizedPath(
+                currentFingerprints, unaccountedForPreviousFiles, previousFingerprints.entrySet());
 
-        Iterator<Entry<FileSystemLocationFingerprint, FilePathWithType>> iterator = unaccountedForPreviousFiles.entries().stream().sorted(comparingByKey()).iterator();
+        Iterator<Entry<FileSystemLocationFingerprint, FilePathWithType>> iterator =
+                unaccountedForPreviousFiles.entries().stream()
+                        .sorted(comparingByKey())
+                        .iterator();
         while (iterator.hasNext()) {
             Entry<FileSystemLocationFingerprint, FilePathWithType> entry = iterator.next();
             FileSystemLocationFingerprint previousFingerprint = entry.getKey();
@@ -72,50 +79,44 @@ public enum NormalizedPathChangeDetector implements CompareStrategy.ChangeDetect
     }
 
     private static Change getChange(
-        String propertyTitle,
-        ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath,
-        FileSystemLocationFingerprint previousFingerprint,
-        FilePathWithType pathWithType
-    ) {
+            String propertyTitle,
+            ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath,
+            FileSystemLocationFingerprint previousFingerprint,
+            FilePathWithType pathWithType) {
         String normalizedPath = previousFingerprint.getNormalizedPath();
         FileType previousFingerprintType = previousFingerprint.getType();
         String absolutePath = pathWithType.getAbsolutePath();
 
         List<FilePathWithType> filePathWithTypes = addedFilesByNormalizedPath.get(normalizedPath);
-        Optional<FilePathWithType> match = filePathWithTypes.stream().filter(file -> absolutePath.equals(file.getAbsolutePath())).findFirst();
-        return match
-            .map(filePathWithType -> {
-                filePathWithTypes.remove(filePathWithType);
-                return modified(propertyTitle, previousFingerprintType, normalizedPath, filePathWithType);
-            })
-            .orElseGet(() -> removed(propertyTitle, normalizedPath, pathWithType));
+        Optional<FilePathWithType> match = filePathWithTypes.stream()
+                .filter(file -> absolutePath.equals(file.getAbsolutePath()))
+                .findFirst();
+        return match.map(filePathWithType -> {
+                    filePathWithTypes.remove(filePathWithType);
+                    return modified(propertyTitle, previousFingerprintType, normalizedPath, filePathWithType);
+                })
+                .orElseGet(() -> removed(propertyTitle, normalizedPath, pathWithType));
     }
 
     private static Change modified(
-        String propertyTitle,
-        FileType previousFingerprintType,
-        String normalizedPath,
-        FilePathWithType modifiedFile
-    ) {
+            String propertyTitle,
+            FileType previousFingerprintType,
+            String normalizedPath,
+            FilePathWithType modifiedFile) {
         String absolutePath = modifiedFile.getAbsolutePath();
         FileType fileType = modifiedFile.getFileType();
-        return DefaultFileChange.modified(absolutePath, propertyTitle, previousFingerprintType, fileType, normalizedPath);
+        return DefaultFileChange.modified(
+                absolutePath, propertyTitle, previousFingerprintType, fileType, normalizedPath);
     }
 
-    private static Change removed(
-        String propertyTitle,
-        String normalizedPath,
-        FilePathWithType removedFile
-    ) {
+    private static Change removed(String propertyTitle, String normalizedPath, FilePathWithType removedFile) {
         String absolutePath = removedFile.getAbsolutePath();
         FileType fileType = removedFile.getFileType();
         return DefaultFileChange.removed(absolutePath, propertyTitle, fileType, normalizedPath);
     }
 
     private static Change added(
-        String propertyTitle,
-        Entry<String, FilePathWithType> addedFilesByNormalizedPathEntries
-    ) {
+            String propertyTitle, Entry<String, FilePathWithType> addedFilesByNormalizedPathEntries) {
         FilePathWithType addedFile = addedFilesByNormalizedPathEntries.getValue();
         String absolutePath = addedFile.getAbsolutePath();
         FileType fileType = addedFile.getFileType();
@@ -124,13 +125,12 @@ public enum NormalizedPathChangeDetector implements CompareStrategy.ChangeDetect
     }
 
     private static ListMultimap<FileSystemLocationFingerprint, FilePathWithType> getUnaccountedForPreviousFingerprints(
-        Map<String, FileSystemLocationFingerprint> previousFingerprints,
-        Set<Entry<String, FileSystemLocationFingerprint>> currentEntries
-    ) {
-        ListMultimap<FileSystemLocationFingerprint, FilePathWithType> results = MultimapBuilder
-            .hashKeys(previousFingerprints.size())
-            .linkedListValues()
-            .build();
+            Map<String, FileSystemLocationFingerprint> previousFingerprints,
+            Set<Entry<String, FileSystemLocationFingerprint>> currentEntries) {
+        ListMultimap<FileSystemLocationFingerprint, FilePathWithType> results = MultimapBuilder.hashKeys(
+                        previousFingerprints.size())
+                .linkedListValues()
+                .build();
         for (Entry<String, FileSystemLocationFingerprint> previousEntry : previousFingerprints.entrySet()) {
             // skip exact matches
             if (currentEntries.contains(previousEntry)) {
@@ -147,14 +147,11 @@ public enum NormalizedPathChangeDetector implements CompareStrategy.ChangeDetect
     }
 
     private static ListMultimap<String, FilePathWithType> getAddedFilesByNormalizedPath(
-        Map<String, FileSystemLocationFingerprint> currentFingerprints,
-        ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles,
-        Set<Entry<String, FileSystemLocationFingerprint>> previousEntries
-    ) {
-        ListMultimap<String, FilePathWithType> results = MultimapBuilder
-            .linkedHashKeys()
-            .arrayListValues(1)
-            .build();
+            Map<String, FileSystemLocationFingerprint> currentFingerprints,
+            ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles,
+            Set<Entry<String, FileSystemLocationFingerprint>> previousEntries) {
+        ListMultimap<String, FilePathWithType> results =
+                MultimapBuilder.linkedHashKeys().arrayListValues(1).build();
         for (Entry<String, FileSystemLocationFingerprint> currentEntry : currentFingerprints.entrySet()) {
             // skip exact matches
             if (previousEntries.contains(currentEntry)) {
@@ -167,7 +164,8 @@ public enum NormalizedPathChangeDetector implements CompareStrategy.ChangeDetect
             FileType fingerprintType = currentFingerprint.getType();
 
             if (previousFilesForFingerprint.isEmpty()) {
-                results.put(currentFingerprint.getNormalizedPath(), new FilePathWithType(absolutePath, fingerprintType));
+                results.put(
+                        currentFingerprint.getNormalizedPath(), new FilePathWithType(absolutePath, fingerprintType));
             } else {
                 previousFilesForFingerprint.remove(0);
             }

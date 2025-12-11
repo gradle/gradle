@@ -16,11 +16,10 @@
 
 package org.gradle.problems;
 
+import java.util.List;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.problems.failure.Failure;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * An immutable set of diagnostic information for a problem.

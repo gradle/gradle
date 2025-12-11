@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.software.internal;
 
+import java.util.Map;
 import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -23,8 +24,6 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * @deprecated Kept for binary compatiblity as an alias for {@link ProjectFeatureDeclarations}, as it is exposed in protected members of some tasks
@@ -34,7 +33,12 @@ import java.util.Map;
 @ServiceScope(Scope.Build.class)
 @SuppressWarnings("DeprecatedIsStillUsed")
 public interface SoftwareTypeRegistry {
-    void register(@Nullable String pluginId, Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass);
+    void register(
+            @Nullable String pluginId,
+            Class<? extends Plugin<Project>> pluginClass,
+            Class<? extends Plugin<Settings>> registeringPluginClass);
+
     Map<String, ProjectFeatureImplementation<?, ?>> getProjectFeatureImplementations();
+
     NamedDomainObjectCollectionSchema getSchema();
 }

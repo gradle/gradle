@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions;
 
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Set;
 
 public abstract class AbstractModuleVersionsCache implements ModuleVersionsCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleVersionsCache.class);
@@ -32,7 +31,8 @@ public abstract class AbstractModuleVersionsCache implements ModuleVersionsCache
     }
 
     @Override
-    public void cacheModuleVersionList(ModuleComponentRepository<?> repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
+    public void cacheModuleVersionList(
+            ModuleComponentRepository<?> repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
         LOGGER.debug("Caching version list in module versions cache: Using '{}' for '{}'", listedVersions, moduleId);
         ModuleAtRepositoryKey key = createKey(repository, moduleId);
         ModuleVersionsCacheEntry entry = createEntry(listedVersions);
@@ -40,7 +40,8 @@ public abstract class AbstractModuleVersionsCache implements ModuleVersionsCache
     }
 
     @Override
-    public CachedModuleVersionList getCachedModuleResolution(ModuleComponentRepository<?> repository, ModuleIdentifier moduleId) {
+    public CachedModuleVersionList getCachedModuleResolution(
+            ModuleComponentRepository<?> repository, ModuleIdentifier moduleId) {
         ModuleAtRepositoryKey key = createKey(repository, moduleId);
         ModuleVersionsCacheEntry entry = get(key);
         return entry == null ? null : versionList(entry);
@@ -48,9 +49,7 @@ public abstract class AbstractModuleVersionsCache implements ModuleVersionsCache
 
     private CachedModuleVersionList versionList(ModuleVersionsCacheEntry entry) {
         return new DefaultCachedModuleVersionList(
-            entry.moduleVersionListing,
-            timeProvider.getCurrentTime() - entry.createTimestamp
-        );
+                entry.moduleVersionListing, timeProvider.getCurrentTime() - entry.createTimestamp);
     }
 
     private ModuleAtRepositoryKey createKey(ModuleComponentRepository<?> repository, ModuleIdentifier moduleId) {

@@ -16,13 +16,12 @@
 
 package org.gradle.internal.xml;
 
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.internal.SystemProperties;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.internal.SystemProperties;
 
 /**
  * <p>A streaming markup writer. Encodes characters and CDATA. Provides only basic state validation, and some simple indentation.</p>
@@ -35,7 +34,11 @@ public class SimpleMarkupWriter extends Writer {
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
     private enum Context {
-        Outside, Text, CData, StartTag, ElementContent
+        Outside,
+        Text,
+        CData,
+        StartTag,
+        ElementContent
     }
 
     private final Writer output;
@@ -162,7 +165,7 @@ public class SimpleMarkupWriter extends Writer {
 
     private void writeCDATA(char[] cdata, int offset, int count) throws IOException {
         int end = offset + count;
-        for (int i = offset; i < end;) {
+        for (int i = offset; i < end; ) {
             int codePoint = Character.codePointAt(cdata, i);
             i += Character.charCount(codePoint);
             writeCDATA(codePoint);
@@ -171,7 +174,7 @@ public class SimpleMarkupWriter extends Writer {
 
     private void writeCDATA(CharSequence cdata) throws IOException {
         int len = cdata.length();
-        for (int i = 0; i < len;) {
+        for (int i = 0; i < len; ) {
             int codePoint = Character.codePointAt(cdata, i);
             i += Character.charCount(codePoint);
             writeCDATA(codePoint);
@@ -274,7 +277,8 @@ public class SimpleMarkupWriter extends Writer {
             throw new IllegalArgumentException(String.format("Invalid attribute name: '%s'", name));
         }
         if (context != Context.StartTag) {
-            throw new IllegalStateException("Cannot write attribute [" + name + ":" + value + "]. You should write start element first.");
+            throw new IllegalStateException(
+                    "Cannot write attribute [" + name + ":" + value + "]. You should write start element first.");
         }
 
         writeRaw(" ");
@@ -295,7 +299,7 @@ public class SimpleMarkupWriter extends Writer {
 
     private void writeXmlEncoded(char[] message, int offset, int count) throws IOException {
         int end = offset + count;
-        for (int i = offset; i < end;) {
+        for (int i = offset; i < end; ) {
             int codePoint = Character.codePointAt(message, i);
             i += Character.charCount(codePoint);
             writeXmlEncoded(codePoint);
@@ -305,7 +309,7 @@ public class SimpleMarkupWriter extends Writer {
     private void writeXmlAttributeEncoded(CharSequence message) throws IOException {
         assert message != null;
         int len = message.length();
-        for (int i = 0; i < len;) {
+        for (int i = 0; i < len; ) {
             int codePoint = Character.codePointAt(message, i);
             i += Character.charCount(codePoint);
             writeXmlAttributeEncoded(codePoint);
@@ -327,7 +331,7 @@ public class SimpleMarkupWriter extends Writer {
     private void writeXmlEncoded(CharSequence message) throws IOException {
         assert message != null;
         int len = message.length();
-        for (int i = 0; i < len;) {
+        for (int i = 0; i < len; ) {
             int codePoint = Character.codePointAt(message, i);
             i += Character.charCount(codePoint);
             writeXmlEncoded(codePoint);
@@ -337,7 +341,7 @@ public class SimpleMarkupWriter extends Writer {
     private void writeSafeCharacters(CharSequence message) throws IOException {
         assert message != null;
         int len = message.length();
-        for (int i = 0; i < len;) {
+        for (int i = 0; i < len; ) {
             int codePoint = Character.codePointAt(message, i);
             i += Character.charCount(codePoint);
             writeSafeCharacter(codePoint);

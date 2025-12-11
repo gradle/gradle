@@ -16,10 +16,9 @@
 
 package org.gradle.internal.scripts;
 
+import java.util.List;
 import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.scripts.ScriptingLanguage;
-
-import java.util.List;
 
 public class ScriptFileUtil {
 

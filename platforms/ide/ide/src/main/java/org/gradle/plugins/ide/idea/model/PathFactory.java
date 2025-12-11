@@ -16,8 +16,6 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
-import org.gradle.internal.UncheckedException;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.gradle.internal.UncheckedException;
 
 /**
  * Path Factory.
@@ -127,7 +126,9 @@ public class PathFactory {
 
     private static String getRelativePath(File rootDir, String rootDirString, File file) {
         String relpath = matchPathLists(getPathList(rootDir), getPathList(file));
-        return relpath != null ? rootDirString + "/" + relpath : file.getAbsolutePath().replace(File.separatorChar, '/');
+        return relpath != null
+                ? rootDirString + "/" + relpath
+                : file.getAbsolutePath().replace(File.separatorChar, '/');
     }
 
     private static String relativePathToURI(String relpath) {

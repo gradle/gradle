@@ -27,7 +27,9 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 8.6
  */
-public final class BuildCacheLocalLoadBuildOperationType implements BuildOperationType<BuildCacheLocalLoadBuildOperationType.Details, BuildCacheLocalLoadBuildOperationType.Result> {
+public final class BuildCacheLocalLoadBuildOperationType
+        implements BuildOperationType<
+                BuildCacheLocalLoadBuildOperationType.Details, BuildCacheLocalLoadBuildOperationType.Result> {
 
     public interface Details {
 
@@ -37,7 +39,6 @@ public final class BuildCacheLocalLoadBuildOperationType implements BuildOperati
          * @since 8.6
          */
         String getCacheKey();
-
     }
 
     public interface Result {
@@ -56,9 +57,7 @@ public final class BuildCacheLocalLoadBuildOperationType implements BuildOperati
          * @since 8.6
          */
         long getArchiveSize();
-
     }
 
-    private BuildCacheLocalLoadBuildOperationType() {
-    }
+    private BuildCacheLocalLoadBuildOperationType() {}
 }

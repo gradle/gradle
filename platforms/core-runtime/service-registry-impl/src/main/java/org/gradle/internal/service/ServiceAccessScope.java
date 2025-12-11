@@ -31,5 +31,4 @@ interface ServiceAccessScope {
      * The null token value represents access without a token.
      */
     boolean contains(@Nullable ServiceAccessToken token);
-
 }

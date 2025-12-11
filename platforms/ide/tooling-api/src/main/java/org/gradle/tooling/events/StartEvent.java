@@ -21,5 +21,4 @@ package org.gradle.tooling.events;
  *
  * @since 2.4
  */
-public interface StartEvent extends ProgressEvent {
-}
+public interface StartEvent extends ProgressEvent {}

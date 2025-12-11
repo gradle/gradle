@@ -17,17 +17,17 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
-import java.util.Set;
-
 public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProjectInitDescriptor {
     private final TemplateLibraryVersionProvider libraryVersionProvider;
 
-    public GroovyGradlePluginProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+    public GroovyGradlePluginProjectInitDescriptor(
+            TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
         super(documentationRegistry, libraryVersionProvider);
         this.libraryVersionProvider = libraryVersionProvider;
     }
@@ -53,19 +53,23 @@ public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     }
 
     @Override
-    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generateProjectBuildScript(
+            String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
         buildScriptBuilder.plugin("Apply the Groovy plugin to add support for Groovy", "groovy");
         if (!settings.isUseTestSuites()) {
-            buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework",
-                BuildInitDependency.of("org.spockframework:spock-core", libraryVersionProvider.getVersion("spock")));
-            buildScriptBuilder.testRuntimeOnlyDependency(null,
-                BuildInitDependency.of("org.junit.platform:junit-platform-launcher"));
+            buildScriptBuilder.testImplementationDependency(
+                    "Use the awesome Spock testing and specification framework",
+                    BuildInitDependency.of(
+                            "org.spockframework:spock-core", libraryVersionProvider.getVersion("spock")));
+            buildScriptBuilder.testRuntimeOnlyDependency(
+                    null, BuildInitDependency.of("org.junit.platform:junit-platform-launcher"));
         }
     }
 
     @Override
-    protected TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName) {
+    protected TemplateOperation sourceTemplate(
+            InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName) {
         return templateFactory.fromSourceTemplate("plugin/groovy/Plugin.groovy.template", t -> {
             t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("main");
@@ -75,7 +79,8 @@ public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     }
 
     @Override
-    protected TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+    protected TemplateOperation testTemplate(
+            InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
         return templateFactory.fromSourceTemplate("plugin/groovy/spock/PluginTest.groovy.template", t -> {
             t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("test");
@@ -85,7 +90,8 @@ public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     }
 
     @Override
-    protected TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+    protected TemplateOperation functionalTestTemplate(
+            InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
         return templateFactory.fromSourceTemplate("plugin/groovy/spock/PluginFunctionalTest.groovy.template", t -> {
             t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("functionalTest");

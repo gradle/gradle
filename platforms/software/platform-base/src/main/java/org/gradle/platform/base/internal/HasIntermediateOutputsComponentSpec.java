@@ -16,10 +16,9 @@
 
 package org.gradle.platform.base.internal;
 
+import java.util.Set;
 import org.gradle.platform.base.SourceComponentSpec;
 import org.gradle.platform.base.TransformationFileType;
-
-import java.util.Set;
 
 public interface HasIntermediateOutputsComponentSpec extends SourceComponentSpec {
     /**

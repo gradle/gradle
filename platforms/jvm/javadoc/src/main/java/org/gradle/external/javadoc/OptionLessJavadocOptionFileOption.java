@@ -16,11 +16,10 @@
 
 package org.gradle.external.javadoc;
 
+import java.io.IOException;
 import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-
-import java.io.IOException;
 
 /**
  * Represents a Javadoc option.
@@ -29,7 +28,8 @@ import java.io.IOException;
  */
 @HasInternalProtocol
 public interface OptionLessJavadocOptionFileOption<T> {
-    @NotToBeReplacedByLazyProperty(because = "OptionLessJavadocOptionFileOption should be deprecated and replaced with a Property")
+    @NotToBeReplacedByLazyProperty(
+            because = "OptionLessJavadocOptionFileOption should be deprecated and replaced with a Property")
     T getValue();
 
     void setValue(T value);

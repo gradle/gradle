@@ -19,13 +19,6 @@ package org.gradle.performance.results.report;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import groovy.json.JsonGenerator;
-import org.gradle.performance.results.CrossVersionPerformanceTestHistory;
-import org.gradle.performance.results.FormatSupport;
-import org.gradle.performance.results.MeasuredOperationList;
-import org.gradle.performance.results.PerformanceTestExecution;
-import org.gradle.performance.results.PerformanceTestHistory;
-import org.gradle.reporting.ReportRenderer;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -39,6 +32,12 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.gradle.performance.results.CrossVersionPerformanceTestHistory;
+import org.gradle.performance.results.FormatSupport;
+import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.performance.results.PerformanceTestExecution;
+import org.gradle.performance.results.PerformanceTestHistory;
+import org.gradle.reporting.ReportRenderer;
 
 public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Writer> {
 
@@ -47,44 +46,62 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
         PrintWriter out = new PrintWriter(output);
         List<? extends PerformanceTestExecution> sortedResults = Lists.reverse(testHistory.getExecutions());
 
-        List<ExecutionLabel> executionLabels = sortedResults.stream().map(ExecutionLabel::new).collect(Collectors.toList());
-        List<ExecutionData> totalTimeData = testHistory.getScenarioLabels()
-            .stream()
-            .map(label -> executionDataForLabel(testHistory, label, FormatSupport::getTotalTimeSeconds, Function.identity()))
-            .collect(Collectors.toList());
+        List<ExecutionLabel> executionLabels =
+                sortedResults.stream().map(ExecutionLabel::new).collect(Collectors.toList());
+        List<ExecutionData> totalTimeData = testHistory.getScenarioLabels().stream()
+                .map(label -> executionDataForLabel(
+                        testHistory, label, FormatSupport::getTotalTimeSeconds, Function.identity()))
+                .collect(Collectors.toList());
         List<ExecutionData> confidenceData = extractBaselineData(testHistory, FormatSupport::getConfidencePercentage);
         List<ExecutionData> differenceData = extractBaselineData(testHistory, FormatSupport::getDifferencePercentage);
 
-        String json = new JsonGenerator.Options().excludeNulls().build().toJson(new AllExecutionData(executionLabels, totalTimeData, confidenceData, differenceData));
+        String json = new JsonGenerator.Options()
+                .excludeNulls()
+                .build()
+                .toJson(new AllExecutionData(executionLabels, totalTimeData, confidenceData, differenceData));
         out.print(json);
         out.flush();
     }
 
     private List<ExecutionData> extractBaselineData(PerformanceTestHistory testHistory, DataExtractor dataExtractor) {
         if (testHistory instanceof CrossVersionPerformanceTestHistory) {
-            return ((CrossVersionPerformanceTestHistory) testHistory).getBaselineVersions()
-                .stream()
-                .map(label -> executionDataForLabel(testHistory, label, dataExtractor, mainVsBaselineLabelFormatter(testHistory)))
-                .collect(Collectors.toList());
+            return ((CrossVersionPerformanceTestHistory) testHistory)
+                    .getBaselineVersions().stream()
+                            .map(label -> executionDataForLabel(
+                                    testHistory, label, dataExtractor, mainVsBaselineLabelFormatter(testHistory)))
+                            .collect(Collectors.toList());
         } else {
             return null;
         }
     }
 
-    private ExecutionData executionDataForLabel(PerformanceTestHistory testHistory, String label, DataExtractor dataExtractor, Function<String, String> labelFormatter) {
+    private ExecutionData executionDataForLabel(
+            PerformanceTestHistory testHistory,
+            String label,
+            DataExtractor dataExtractor,
+            Function<String, String> labelFormatter) {
         List<? extends PerformanceTestExecution> sortedExecutions = Lists.reverse(testHistory.getExecutions());
-        List<List<Number>> data = IntStream.range(0, sortedExecutions.size()).mapToObj(index -> {
-            PerformanceTestExecution results = sortedExecutions.get(index);
-            MeasuredOperationList baselineVersion = results.getScenarios().get(testHistory.getScenarioLabels().indexOf(label));
-            MeasuredOperationList currentVersion = results.getScenarios().get(testHistory.getScenarioLabels().size() - 1);
-            return baselineVersion.isEmpty() ? null : Arrays.asList(index, dataExtractor.apply(baselineVersion, currentVersion));
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+        List<List<Number>> data = IntStream.range(0, sortedExecutions.size())
+                .mapToObj(index -> {
+                    PerformanceTestExecution results = sortedExecutions.get(index);
+                    MeasuredOperationList baselineVersion = results.getScenarios()
+                            .get(testHistory.getScenarioLabels().indexOf(label));
+                    MeasuredOperationList currentVersion = results.getScenarios()
+                            .get(testHistory.getScenarioLabels().size() - 1);
+                    return baselineVersion.isEmpty()
+                            ? null
+                            : Arrays.asList(index, dataExtractor.apply(baselineVersion, currentVersion));
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
         return new ExecutionData(labelFormatter.apply(label), data);
     }
 
     private Function<String, String> mainVsBaselineLabelFormatter(PerformanceTestHistory testHistory) {
         return label -> {
-            String mainLabel = testHistory.getScenarioLabels().get(testHistory.getScenarioLabels().size() - 1);
+            String mainLabel = testHistory
+                    .getScenarioLabels()
+                    .get(testHistory.getScenarioLabels().size() - 1);
             return mainLabel + " vs " + label;
         };
     }
@@ -101,13 +118,21 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
         private List<ExecutionData> difference;
         private List<BackgroundColor> background;
 
-        AllExecutionData(List<ExecutionLabel> executionLabels, List<ExecutionData> totalTime, List<ExecutionData> confidence, List<ExecutionData> difference) {
+        AllExecutionData(
+                List<ExecutionLabel> executionLabels,
+                List<ExecutionData> totalTime,
+                List<ExecutionData> confidence,
+                List<ExecutionData> difference) {
             this.executionLabels = executionLabels;
             this.totalTime = totalTime;
             this.confidence = confidence;
             this.difference = difference;
             if (confidence != null) {
-                this.background = confidence.stream().flatMap(data -> data.data.stream()).map(BackgroundColor::ofConfidence).filter(Objects::nonNull).collect(Collectors.toList());
+                this.background = confidence.stream()
+                        .flatMap(data -> data.data.stream())
+                        .map(BackgroundColor::ofConfidence)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
             }
         }
 
@@ -190,7 +215,11 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
             double confidencePercentage = xy.get(1).doubleValue();
 
             if (Math.abs(confidencePercentage) >= THRESHOLD) {
-                return new BackgroundColor(index, redComponent(confidencePercentage), greenComponent(confidencePercentage), opacity(confidencePercentage));
+                return new BackgroundColor(
+                        index,
+                        redComponent(confidencePercentage),
+                        greenComponent(confidencePercentage),
+                        opacity(confidencePercentage));
             } else {
                 return null;
             }

@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.jspecify.annotations.Nullable;
-
-import javax.lang.model.element.Element;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import org.jspecify.annotations.Nullable;
 
 public class ElementUtils {
 
@@ -41,7 +40,8 @@ public class ElementUtils {
             return Collections.emptySet();
         }
         if (originatingElements.size() == 1) {
-            String topLevelTypeName = getTopLevelTypeName(originatingElements.iterator().next());
+            String topLevelTypeName =
+                    getTopLevelTypeName(originatingElements.iterator().next());
             return Collections.singleton(topLevelTypeName);
         }
         Set<String> typeNames = new LinkedHashSet<>();

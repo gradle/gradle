@@ -15,19 +15,18 @@
  */
 package org.gradle.api.internal;
 
+import static java.util.Collections.emptySet;
+
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.ClassPath;
-
-import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
-
-import static java.util.Collections.emptySet;
 
 public class DynamicModulesClassPathProvider implements ClassPathProvider {
     private final ModuleRegistry moduleRegistry;
@@ -39,7 +38,8 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
     }
 
     @VisibleForTesting
-    protected DynamicModulesClassPathProvider(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry, JavaVersion javaVersion) {
+    protected DynamicModulesClassPathProvider(
+            ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry, JavaVersion javaVersion) {
         this.moduleRegistry = moduleRegistry;
         this.pluginModuleRegistry = pluginModuleRegistry;
         this.javaVersion = javaVersion;
@@ -124,8 +124,6 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
     };
 
     private static final String[] GRADLE_OPTIONAL_EXTENSION_MODULES = {
-        "gradle-daemon-services",
-        "gradle-kotlin-dsl-provider-plugins",
-        "gradle-kotlin-dsl-tooling-builders"
+        "gradle-daemon-services", "gradle-kotlin-dsl-provider-plugins", "gradle-kotlin-dsl-tooling-builders"
     };
 }

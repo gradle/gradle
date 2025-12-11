@@ -16,9 +16,8 @@
 
 package org.gradle.api.initialization;
 
-import org.gradle.api.tasks.TaskReference;
-
 import java.io.File;
+import org.gradle.api.tasks.TaskReference;
 
 /**
  * A build that is included in the composite.

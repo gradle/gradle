@@ -23,8 +23,10 @@ public class ResourceDirsGenerator implements BuildContentGenerator {
     @Override
     public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         for (String subproject : settings.getSubprojects()) {
-            GFileUtils.mkdirs(settings.getTarget().dir(subproject + "/src/main/resources").getAsFile());
-            GFileUtils.mkdirs(settings.getTarget().dir(subproject + "/src/test/resources").getAsFile());
+            GFileUtils.mkdirs(
+                    settings.getTarget().dir(subproject + "/src/main/resources").getAsFile());
+            GFileUtils.mkdirs(
+                    settings.getTarget().dir(subproject + "/src/test/resources").getAsFile());
         }
     }
 }

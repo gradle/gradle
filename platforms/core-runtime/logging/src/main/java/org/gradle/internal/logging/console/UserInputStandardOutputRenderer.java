@@ -25,8 +25,7 @@ public class UserInputStandardOutputRenderer extends AbstractUserInputRenderer {
     }
 
     @Override
-    void startInput() {
-    }
+    void startInput() {}
 
     @Override
     void handlePrompt(RenderableOutputEvent event) {

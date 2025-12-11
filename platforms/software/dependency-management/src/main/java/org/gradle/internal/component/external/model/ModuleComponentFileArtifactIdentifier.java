@@ -19,7 +19,8 @@ package org.gradle.internal.component.external.model;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 
-public class ModuleComponentFileArtifactIdentifier extends ComponentFileArtifactIdentifier implements ModuleComponentArtifactIdentifier {
+public class ModuleComponentFileArtifactIdentifier extends ComponentFileArtifactIdentifier
+        implements ModuleComponentArtifactIdentifier {
     public ModuleComponentFileArtifactIdentifier(ModuleComponentIdentifier componentId, String fileName) {
         super(componentId, fileName);
     }

@@ -16,11 +16,10 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import com.google.common.io.CharSource;
-import org.gradle.api.Action;
-import org.gradle.internal.UncheckedException;
+import static java.util.stream.Collectors.joining;
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 
-import javax.annotation.Nullable;
+import com.google.common.io.CharSource;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +27,9 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.joining;
-import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
+import javax.annotation.Nullable;
+import org.gradle.api.Action;
+import org.gradle.internal.UncheckedException;
 
 /**
  * Detects Gradle deprecation warnings in build output.
@@ -53,13 +52,13 @@ public class ResultAssertion implements Action<ExecutionResult> {
     private ExpectedDeprecationWarning lastMatchedDeprecationWarning = null;
 
     public ResultAssertion(
-        List<ExpectedDeprecationWarning> expectedDeprecationWarnings,
-        List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings,
-        boolean expectStackTraces,
-        boolean checkDeprecations,
-        boolean checkJdkWarnings
-    ) {
-        assert checkDeprecations || expectedDeprecationWarnings.isEmpty() : "Should not expect deprecations when deprecations are not checked";
+            List<ExpectedDeprecationWarning> expectedDeprecationWarnings,
+            List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings,
+            boolean expectStackTraces,
+            boolean checkDeprecations,
+            boolean checkJdkWarnings) {
+        assert checkDeprecations || expectedDeprecationWarnings.isEmpty()
+                : "Should not expect deprecations when deprecations are not checked";
 
         this.expectedDeprecationWarnings = new ArrayList<>(expectedDeprecationWarnings);
         this.maybeExpectedDeprecationWarnings = new ArrayList<>(maybeExpectedDeprecationWarnings);
@@ -88,10 +87,11 @@ public class ResultAssertion implements Action<ExecutionResult> {
         validate(error, "Standard error");
 
         if (!expectedDeprecationWarnings.isEmpty()) {
-            throw new AssertionError(String.format("Expected the following deprecation warnings:%n%s",
-                expectedDeprecationWarnings.stream()
-                    .map(warning -> " - " + warning)
-                    .collect(joining("\n"))));
+            throw new AssertionError(String.format(
+                    "Expected the following deprecation warnings:%n%s",
+                    expectedDeprecationWarnings.stream()
+                            .map(warning -> " - " + warning)
+                            .collect(joining("\n"))));
         }
     }
 
@@ -118,7 +118,8 @@ public class ResultAssertion implements Action<ExecutionResult> {
             if (line.contains("Compilation with Kotlin compile daemon was not successful")) {
                 insideKotlinCompilerFlakyStacktrace = true;
                 i++;
-            } else if (line.contains("Trying to create VM plugin `org.codehaus.groovy.vmplugin.v9.Java9` by checking `java.lang.Module`")) {
+            } else if (line.contains(
+                    "Trying to create VM plugin `org.codehaus.groovy.vmplugin.v9.Java9` by checking `java.lang.Module`")) {
                 // a groovy warning when running on Java < 9
                 // https://issues.apache.org/jira/browse/GROOVY-9933
                 i++; // full stracktrace skipped in next branch
@@ -128,12 +129,12 @@ public class ResultAssertion implements Action<ExecutionResult> {
                 // https://issues.apache.org/jira/browse/GROOVY-9933
                 i++;
                 i = skipStackTrace(lines, i);
-            } else if (insideKotlinCompilerFlakyStacktrace &&
-                (line.contains("java.rmi.UnmarshalException") ||
-                    line.contains("java.io.EOFException")) ||
-                // Verbose logging by Jetty when connector is shutdown
-                // https://github.com/eclipse/jetty.project/issues/3529
-                line.contains("java.nio.channels.CancelledKeyException")) {
+            } else if (insideKotlinCompilerFlakyStacktrace
+                            && (line.contains("java.rmi.UnmarshalException") || line.contains("java.io.EOFException"))
+                    ||
+                    // Verbose logging by Jetty when connector is shutdown
+                    // https://github.com/eclipse/jetty.project/issues/3529
+                    line.contains("java.nio.channels.CancelledKeyException")) {
                 i++;
                 i = skipStackTrace(lines, i);
             } else if (line.contains("com.amazonaws.http.IdleConnectionReaper")) {
@@ -148,7 +149,9 @@ public class ResultAssertion implements Action<ExecutionResult> {
             } else if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                 // A javac warning, ignore
                 i++;
-            } else if (line.matches(".*w: .* is deprecated\\..*") || line.matches(".*w: .* This declaration overrides a deprecated member but is not marked as deprecated itself\\..*")) {
+            } else if (line.matches(".*w: .* is deprecated\\..*")
+                    || line.matches(
+                            ".*w: .* This declaration overrides a deprecated member but is not marked as deprecated itself\\..*")) {
                 // A kotlinc warning, ignore
                 i++;
             } else if (line.matches("\\[Warn] :.* is deprecated: .*")) {
@@ -168,18 +171,23 @@ public class ResultAssertion implements Action<ExecutionResult> {
             } else if (line.matches("\\s*WARNING:.*")) {
                 // A JDK warning, ignore unless checkJdkWarnings is enabled
                 if (checkJdkWarnings) {
-                    throw new AssertionError(String.format("%s line %d contains unexpected JDK warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
+                    throw new AssertionError(String.format(
+                            "%s line %d contains unexpected JDK warning: %s%n=====%n%s%n=====%n",
+                            displayName, i + 1, line, output));
                 }
                 i++;
             } else if (line.matches(".*\\s+deprecated.*")) {
                 if (checkDeprecations) {
-                    StringBuilder message = new StringBuilder(String.format("%s line %d contains an unexpected deprecation warning:%n - %s", displayName, i + 1, line));
+                    StringBuilder message = new StringBuilder(String.format(
+                            "%s line %d contains an unexpected deprecation warning:%n - %s", displayName, i + 1, line));
                     if (expectedDeprecationWarnings.isEmpty() && maybeExpectedDeprecationWarnings.isEmpty()) {
                         message.append(String.format("%nNo deprecation warnings were expected at this point."));
                     } else {
                         message.append(String.format("%nExpected deprecation warnings:"));
-                        expectedDeprecationWarnings.forEach(warning -> message.append(String.format("%n - %s", warning)));
-                        maybeExpectedDeprecationWarnings.forEach(warning -> message.append(String.format("%n - (optional) %s", warning)));
+                        expectedDeprecationWarnings.forEach(
+                                warning -> message.append(String.format("%n - %s", warning)));
+                        maybeExpectedDeprecationWarnings.forEach(
+                                warning -> message.append(String.format("%n - (optional) %s", warning)));
                     }
                     message.append(String.format("%n=====%n%s%n=====%n", output));
                     throw new AssertionError(message.toString());
@@ -187,16 +195,24 @@ public class ResultAssertion implements Action<ExecutionResult> {
                 // skip over stack trace
                 i++;
                 i = skipStackTrace(lines, i);
-            } else if (!expectStackTraces && !insideVariantDescriptionBlock && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
+            } else if (!expectStackTraces
+                    && !insideVariantDescriptionBlock
+                    && STACK_TRACE_ELEMENT.matcher(line).matches()
+                    && i < lines.size() - 1
+                    && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
                 // 2 or more lines that look like stack trace elements
-                throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
+                throw new AssertionError(String.format(
+                        "%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n",
+                        displayName, i + 1, line, output));
             } else {
                 i++;
             }
         }
     }
 
-    private static final Pattern DAEMON_LOG_HEADER_PATTERN = Pattern.compile("----- Last (\\d+) lines from daemon log file - .* -----");
+    private static final Pattern DAEMON_LOG_HEADER_PATTERN =
+            Pattern.compile("----- Last (\\d+) lines from daemon log file - .* -----");
+
     private static int getNumLinesFromDaemonLogOutput(String line) {
         Matcher m = DAEMON_LOG_HEADER_PATTERN.matcher(line);
         if (m.matches()) {
@@ -240,8 +256,8 @@ public class ResultAssertion implements Action<ExecutionResult> {
      * @return {@code true} if a matching deprecation warning was removed; {@code false} otherwise
      */
     private boolean removeFirstExpectedDeprecationWarning(List<String> lines, int startIdx) {
-        Optional<ExpectedDeprecationWarning> matchedWarning =
-            Stream.concat(expectedDeprecationWarnings.stream(), maybeExpectedDeprecationWarnings.stream())
+        Optional<ExpectedDeprecationWarning> matchedWarning = Stream.concat(
+                        expectedDeprecationWarnings.stream(), maybeExpectedDeprecationWarnings.stream())
                 .filter(warning -> warning.matchesNextLines(lines, startIdx))
                 .findFirst();
         if (matchedWarning.isPresent()) {

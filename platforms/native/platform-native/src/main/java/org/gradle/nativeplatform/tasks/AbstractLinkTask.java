@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.tasks;
 
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -52,8 +53,6 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
 
 /**
  * Base task for linking a native binary from object files and libraries.
@@ -202,10 +201,9 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     @TaskAction
     protected void link() {
         boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(
-            getDeleter(),
-            getOutputs().getPreviousOutputFiles(),
-            getDestinationDirectory().get().getAsFile()
-        );
+                getDeleter(),
+                getOutputs().getPreviousOutputFiles(),
+                getDestinationDirectory().get().getAsFile());
 
         if (getSource().isEmpty()) {
             setDidWork(cleanedOutputs);
@@ -222,7 +220,8 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         spec.args(getLinkerArgs().get());
         spec.setDebuggable(getDebuggable().get());
 
-        BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
+        BuildOperationLogger operationLogger =
+                getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         spec.setOperationLogger(operationLogger);
 
         Compiler<LinkerSpec> compiler = createCompiler();
@@ -233,13 +232,15 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
 
     @SuppressWarnings("unchecked")
     private Compiler<LinkerSpec> createCompiler() {
-        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.getTargetPlatform().get());
-        NativeToolChainInternal toolChain = Cast.cast(NativeToolChainInternal.class, getToolChain().get());
+        NativePlatformInternal targetPlatform =
+                Cast.cast(NativePlatformInternal.class, this.getTargetPlatform().get());
+        NativeToolChainInternal toolChain =
+                Cast.cast(NativeToolChainInternal.class, getToolChain().get());
         PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
-        Class<LinkerSpec> linkerSpecType = (Class<LinkerSpec>) createLinkerSpec().getClass();
+        Class<LinkerSpec> linkerSpecType =
+                (Class<LinkerSpec>) createLinkerSpec().getClass();
         return toolProvider.newCompiler(linkerSpecType);
     }
 
     protected abstract LinkerSpec createLinkerSpec();
-
 }

@@ -24,8 +24,6 @@ public class UnixStartScriptGenerator extends DefaultTemplateBasedStartScriptGen
         super(
                 TextUtil.getUnixLineSeparator(),
                 StartScriptTemplateBindingFactory.unix(),
-                utf8ClassPathResource(UnixStartScriptGenerator.class, "unixStartScript.txt")
-        );
+                utf8ClassPathResource(UnixStartScriptGenerator.class, "unixStartScript.txt"));
     }
-
 }

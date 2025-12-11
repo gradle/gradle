@@ -16,14 +16,13 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import java.util.Set;
 import org.gradle.model.internal.core.UnmanagedStruct;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
-
-import java.util.Set;
 
 public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategySupport {
 
@@ -38,8 +37,13 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
     }
 
     @Override
-    protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods, Iterable<ModelSchemaAspect> aspects) {
+    protected <R> ModelSchema<R> createSchema(
+            ModelSchemaExtractionContext<R> extractionContext,
+            Iterable<ModelProperty<?>> properties,
+            Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods,
+            Iterable<ModelSchemaAspect> aspects) {
         boolean annotated = extractionContext.getType().isAnnotationPresent(UnmanagedStruct.class);
-        return new UnmanagedImplStructSchema<R>(extractionContext.getType(), properties, nonPropertyMethods, aspects, annotated);
+        return new UnmanagedImplStructSchema<R>(
+                extractionContext.getType(), properties, nonPropertyMethods, aspects, annotated);
     }
 }

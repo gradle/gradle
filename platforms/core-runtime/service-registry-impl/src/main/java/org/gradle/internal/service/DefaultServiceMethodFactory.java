@@ -15,9 +15,9 @@
  */
 package org.gradle.internal.service;
 
-import java.lang.reflect.Method;
-
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
+import java.lang.reflect.Method;
 
 /**
  * A service method factory that will try to use method handles if available, otherwise fallback on reflection.
@@ -28,8 +28,9 @@ class DefaultServiceMethodFactory implements ServiceMethodFactory {
     private ServiceMethodFactory getOptimalServiceMethodFactory() {
         try {
             return uncheckedNonnullCast(
-                Class.forName("org.gradle.internal.service.MethodHandleBasedServiceMethodFactory").getConstructor().newInstance()
-            );
+                    Class.forName("org.gradle.internal.service.MethodHandleBasedServiceMethodFactory")
+                            .getConstructor()
+                            .newInstance());
         } catch (Exception e) {
             return new ReflectionBasedServiceMethodFactory();
         }

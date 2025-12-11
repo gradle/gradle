@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.artifacts;
 
+import java.io.IOException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
-
-import java.io.IOException;
 
 /**
  * A thread-safe and reusable serializer for {@link ModuleVersionIdentifier} if and only if the passed in

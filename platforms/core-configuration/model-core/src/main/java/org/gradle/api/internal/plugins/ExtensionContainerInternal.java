@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.plugins.ExtensionContainer;
-
 import java.util.Map;
+import org.gradle.api.plugins.ExtensionContainer;
 
 public interface ExtensionContainerInternal extends ExtensionContainer {
     /**

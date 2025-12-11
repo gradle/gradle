@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableSet;
-
 import java.util.Optional;
 import java.util.Set;
 
@@ -61,7 +60,8 @@ public final class ConfigurationRoles {
      */
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
-    public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE = createNonDeprecatedRole("Resolvable Dependency Scope", false, true, true);
+    public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE =
+            createNonDeprecatedRole("Resolvable Dependency Scope", false, true, true);
 
     /**
      * Meant as a temporary solution for situations where we need to declare dependencies against a consumable configuration.
@@ -70,25 +70,27 @@ public final class ConfigurationRoles {
      */
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
-    public static final ConfigurationRole CONSUMABLE_DEPENDENCY_SCOPE = createNonDeprecatedRole("Consumable Dependency Scope", true, false, true);
+    public static final ConfigurationRole CONSUMABLE_DEPENDENCY_SCOPE =
+            createNonDeprecatedRole("Consumable Dependency Scope", true, false, true);
 
     /**
      * Meant to be used only for declaring dependencies.
      *
      * AKA {@code DECLARABLE}.
      */
-    public static final ConfigurationRole DEPENDENCY_SCOPE = createNonDeprecatedRole("Dependency Scope", false, false, true);
+    public static final ConfigurationRole DEPENDENCY_SCOPE =
+            createNonDeprecatedRole("Dependency Scope", false, false, true);
 
     /**
      * Creates a new role which is not deprecated for any usage.
      */
-    private static ConfigurationRole createNonDeprecatedRole(String name, boolean consumable, boolean resolvable, boolean declarable) {
+    private static ConfigurationRole createNonDeprecatedRole(
+            String name, boolean consumable, boolean resolvable, boolean declarable) {
         return new DefaultConfigurationRole(name, consumable, resolvable, declarable, false, false, false);
     }
 
     private static final Set<ConfigurationRole> ALL_ROLES = ImmutableSet.of(
-        ALL, CONSUMABLE, RESOLVABLE, RESOLVABLE_DEPENDENCY_SCOPE, CONSUMABLE_DEPENDENCY_SCOPE, DEPENDENCY_SCOPE
-    );
+            ALL, CONSUMABLE, RESOLVABLE, RESOLVABLE_DEPENDENCY_SCOPE, CONSUMABLE_DEPENDENCY_SCOPE, DEPENDENCY_SCOPE);
 
     /**
      * Locates a pre-defined role allowing the given usage.
@@ -101,7 +103,9 @@ public final class ConfigurationRoles {
      */
     public static Optional<ConfigurationRole> byUsage(boolean consumable, boolean resolvable, boolean declarable) {
         for (ConfigurationRole role : ALL_ROLES) {
-            if (role.isConsumable() == consumable && role.isResolvable() == resolvable && role.isDeclarable() == declarable) {
+            if (role.isConsumable() == consumable
+                    && role.isResolvable() == resolvable
+                    && role.isDeclarable() == declarable) {
                 return Optional.of(role);
             }
         }

@@ -17,6 +17,15 @@
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
@@ -44,38 +53,32 @@ import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
 public class DependencyInsightReporter {
 
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
     private final VersionParser versionParser;
 
-    public DependencyInsightReporter(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
+    public DependencyInsightReporter(
+            VersionSelectorScheme versionSelectorScheme,
+            VersionComparator versionComparator,
+            VersionParser versionParser) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
     }
 
-    public Collection<RenderableDependency> convertToRenderableItems(Collection<DependencyResult> dependencies, boolean singlePathToDependency) {
+    public Collection<RenderableDependency> convertToRenderableItems(
+            Collection<DependencyResult> dependencies, boolean singlePathToDependency) {
         LinkedList<RenderableDependency> out = new LinkedList<>();
         Collection<DependencyEdge> sortedEdges = toDependencyEdges(dependencies);
 
-        //remember if module id was annotated
+        // remember if module id was annotated
         Set<ComponentIdentifier> annotated = new HashSet<>();
         Set<Throwable> alreadyReportedErrors = new HashSet<>();
         RequestedVersion current = null;
         for (DependencyEdge dependency : sortedEdges) {
-            //add description only to the first module
+            // add description only to the first module
             if (annotated.add(dependency.getActual())) {
                 DependencyReportHeader header = createHeaderForDependency(dependency, alreadyReportedErrors);
                 out.add(header);
@@ -91,7 +94,8 @@ public class DependencyInsightReporter {
         return out;
     }
 
-    private DependencyReportHeader createHeaderForDependency(DependencyEdge dependency, Set<Throwable> alreadyReportedErrors) {
+    private DependencyReportHeader createHeaderForDependency(
+            DependencyEdge dependency, Set<Throwable> alreadyReportedErrors) {
         ComponentSelectionReasonInternal reason = (ComponentSelectionReasonInternal) dependency.getReason();
         Section selectionReasonsSection = buildSelectionReasonSection(reason);
         List<Section> reasonSections = selectionReasonsSection.getChildren();
@@ -104,14 +108,17 @@ public class DependencyInsightReporter {
             reasonShortDescription = null;
             extraDetails.add(selectionReasonsSection);
         } else {
-            reasonShortDescription = reasonSections.isEmpty() ? null : reasonSections.get(0).getDescription().toLowerCase(Locale.ROOT);
+            reasonShortDescription = reasonSections.isEmpty()
+                    ? null
+                    : reasonSections.get(0).getDescription().toLowerCase(Locale.ROOT);
         }
 
         buildFailureSection(dependency, alreadyReportedErrors, extraDetails);
         return new DependencyReportHeader(dependency, reasonShortDescription, extraDetails);
     }
 
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "NonApiType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private RequestedVersion newRequestedVersion(LinkedList<RenderableDependency> out, DependencyEdge dependency) {
         RequestedVersion current;
         current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable());
@@ -132,7 +139,8 @@ public class DependencyInsightReporter {
         }
     }
 
-    private static void buildFailureSection(DependencyEdge edge, Set<Throwable> alreadyReportedErrors, List<Section> sections) {
+    private static void buildFailureSection(
+            DependencyEdge edge, Set<Throwable> alreadyReportedErrors, List<Section> sections) {
         if (edge instanceof UnresolvedDependencyEdge) {
             UnresolvedDependencyEdge unresolved = (UnresolvedDependencyEdge) edge;
             Throwable failure = unresolved.getFailure();
@@ -144,15 +152,22 @@ public class DependencyInsightReporter {
         }
     }
 
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private static String collectErrorMessages(Throwable failure, Set<Throwable> alreadyReportedErrors, LinkedHashSet<String> uniqueResolution) {
+    @SuppressWarnings(
+            "NonApiType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    private static String collectErrorMessages(
+            Throwable failure, Set<Throwable> alreadyReportedErrors, LinkedHashSet<String> uniqueResolution) {
         TreeFormatter formatter = new TreeFormatter();
         collectErrorMessages(failure, formatter, alreadyReportedErrors, uniqueResolution);
         return formatter.toString();
     }
 
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private static void collectErrorMessages(Throwable failure, TreeFormatter formatter, Set<Throwable> alreadyReportedErrors, LinkedHashSet<String> uniqueResolutions) {
+    @SuppressWarnings(
+            "NonApiType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    private static void collectErrorMessages(
+            Throwable failure,
+            TreeFormatter formatter,
+            Set<Throwable> alreadyReportedErrors,
+            LinkedHashSet<String> uniqueResolutions) {
         if (alreadyReportedErrors.add(failure)) {
             formatter.node(failure.getMessage());
 

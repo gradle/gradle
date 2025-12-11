@@ -17,10 +17,9 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.function.Consumer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.function.Consumer;
 
 @ServiceScope({Scope.Global.class, Scope.Build.class, Scope.Project.class})
 public interface TaskDependencyFactory {

@@ -55,5 +55,4 @@ class SingleWeakClassSet extends WeakClassSet {
         Class<?> referent = reference.get();
         return referent == null;
     }
-
 }

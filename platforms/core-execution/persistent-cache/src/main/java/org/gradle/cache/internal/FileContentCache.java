@@ -16,9 +16,8 @@
 
 package org.gradle.cache.internal;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import java.io.File;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A cache with keys that represent files, and whose values are computed from the contents of the file.

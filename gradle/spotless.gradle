@@ -1,0 +1,49 @@
+project.apply plugin: 'com.diffplug.spotless'
+repositories {
+    mavenCentral()
+}
+spotless {
+    java {
+        palantirJavaFormat() // might consider.
+        removeUnusedImports()
+        importOrder()
+        // forbidWildcardImports()
+        // expandWildcardImports()
+        trimTrailingWhitespace()
+        target '**/*.java'
+        targetExclude(
+            '**/AbstractBasicGroovyCompilerIntegrationSpec**',
+            '**/BadJavaCode**',
+            '**/BrokenClass**',
+            '**/CreateMD5**',
+            '**/CustomTest**',
+            '**/DownloadPlugin**',
+            '**/FileSizeDiffPlugin**',
+            '**/FileSizeDiffTask**',
+            '**/GreetingPlugin**',
+            '**/HttpClientWrapper**',
+            '**/Instrument**',
+            '**/JavaToolchainResolverImplementation**',
+            '**/MyClass**',
+            '**/MyMain**',
+            '**/Person**',
+            '**/ProblemReportingPlugin**',
+            '**/SampleClass**',
+            '**/SiteExtension**',
+            '**/UrlVerify**',
+            '**/build/**',
+            '**/documentation/docs/**',
+            '**/integTest/**',
+            '**/project-with-source/**',
+            '**/resources/**',
+            '**/snippets/**',
+            '**/software/build-init/src/integTest/resources/**',
+            '**/some-thing/**',
+            '**/src/integTest/resources/**',
+            '**/templates/**',
+            '**/test-engine-build/**',
+            '**/testFixtures/**',
+            '**/workerApi/md5/**',
+        )
+    }
+}

@@ -102,12 +102,11 @@ public interface JvmVendor {
             @Override
             public String getDisplayName() {
                 final KnownJvmVendor knownVendor = getKnownVendor();
-                if(knownVendor != KnownJvmVendor.UNKNOWN) {
+                if (knownVendor != KnownJvmVendor.UNKNOWN) {
                     return knownVendor.getDisplayName();
                 }
                 return getRawVendor();
             }
         };
     }
-
 }

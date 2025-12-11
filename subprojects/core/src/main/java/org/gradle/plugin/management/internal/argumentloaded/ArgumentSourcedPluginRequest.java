@@ -17,6 +17,7 @@
 package org.gradle.plugin.management.internal.argumentloaded;
 
 import com.google.common.base.Strings;
+import java.util.Optional;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.plugin.management.PluginRequest;
@@ -25,8 +26,6 @@ import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Optional;
 
 /**
  * A {@link PluginRequest} that represents a plugin request added outside any build script.
@@ -44,7 +43,8 @@ public final class ArgumentSourcedPluginRequest implements PluginRequestInternal
     public static ArgumentSourcedPluginRequest parsePluginRequest(String pluginCoords) {
         String[] parts = pluginCoords.split(":");
         if (parts.length != 2 || Strings.isNullOrEmpty(parts[0]) || Strings.isNullOrEmpty(parts[1])) {
-            throw new IllegalArgumentException(String.format("Invalid plugin format: '%s'. Expected format is 'id:version'.", pluginCoords));
+            throw new IllegalArgumentException(
+                    String.format("Invalid plugin format: '%s'. Expected format is 'id:version'.", pluginCoords));
         }
         return new ArgumentSourcedPluginRequest(parts[PLUGIN_ID_INDEX], parts[PLUGIN_VERSION_INDEX]);
     }

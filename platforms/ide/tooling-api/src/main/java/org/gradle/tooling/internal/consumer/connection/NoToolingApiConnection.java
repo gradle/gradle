@@ -16,14 +16,13 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.PhasedBuildAction;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.internal.Exceptions;
-
-import java.util.List;
 
 /**
  * A {@code ConsumerConnection} implementation for a Gradle version that does not support the tooling API.
@@ -38,8 +37,7 @@ public class NoToolingApiConnection implements ConsumerConnection {
     }
 
     @Override
-    public void stop() {
-    }
+    public void stop() {}
 
     @Override
     public String getDisplayName() {
@@ -47,12 +45,14 @@ public class NoToolingApiConnection implements ConsumerConnection {
     }
 
     @Override
-    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters)
+            throws UnsupportedOperationException, IllegalStateException {
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "1.2");
     }
 
     @Override
-    public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters)
+            throws UnsupportedOperationException, IllegalStateException {
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "1.8");
     }
 
@@ -67,7 +67,8 @@ public class NoToolingApiConnection implements ConsumerConnection {
     }
 
     @Override
-    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters) {
+    public void notifyDaemonsAboutChangedPaths(
+            List<String> changedPaths, ConsumerOperationParameters operationParameters) {
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "6.1");
     }
 

@@ -16,11 +16,25 @@
 
 package org.gradle.api.internal;
 
+import static org.gradle.internal.UncheckedException.uncheckedCall;
+
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
@@ -87,21 +101,6 @@ import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
-
-import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 /**
  * @deprecated This class will be removed in Gradle 10. Please use {@link org.gradle.api.DefaultTask} instead.
@@ -178,7 +177,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private AbstractTask(TaskInfo taskInfo) {
         if (taskInfo == null) {
-            throw new TaskInstantiationException(String.format("Task of type '%s' has been instantiated directly which is not supported. Tasks can only be created using the Gradle API or DSL.", getClass().getName()));
+            throw new TaskInstantiationException(String.format(
+                    "Task of type '%s' has been instantiated directly which is not supported. Tasks can only be created using the Gradle API or DSL.",
+                    getClass().getName()));
         }
 
         this.identity = taskInfo.identity;
@@ -198,11 +199,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         PropertyWalker propertyWalker = services.get(PropertyWalker.class);
         FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class);
         taskMutator = new TaskMutator(this);
-        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, project.getTaskDependencyFactory(), fileCollectionFactory);
-        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, project.getTaskDependencyFactory(), fileCollectionFactory);
+        taskInputs = new DefaultTaskInputs(
+                this, taskMutator, propertyWalker, project.getTaskDependencyFactory(), fileCollectionFactory);
+        taskOutputs = new DefaultTaskOutputs(
+                this, taskMutator, propertyWalker, project.getTaskDependencyFactory(), fileCollectionFactory);
         taskDestroyables = new DefaultTaskDestroyables(taskMutator, fileCollectionFactory);
         taskLocalState = new DefaultTaskLocalState(taskMutator, fileCollectionFactory);
-        this.dependencies = taskDependencyFactory.configurableDependency(ImmutableSet.of(taskInputs, lifecycleDependencies));
+        this.dependencies =
+                taskDependencyFactory.configurableDependency(ImmutableSet.of(taskInputs, lifecycleDependencies));
         taskRequiredServices = new DefaultTaskRequiredServices(this, taskMutator, propertyWalker);
         taskExecutionAccessChecker = services.get(TaskExecutionAccessChecker.class);
 
@@ -212,11 +216,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private void assertDynamicObject() {
         if (extensibleDynamicObject == null) {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.getTaskType(), services.get(InstantiatorFactory.class).decorateLenient(services));
+            extensibleDynamicObject = new ExtensibleDynamicObject(
+                    this,
+                    identity.getTaskType(),
+                    services.get(InstantiatorFactory.class).decorateLenient(services));
         }
     }
 
-    public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, TaskIdentity<T> identity, Callable<T> factory) {
+    public static <T extends Task> T injectIntoNewInstance(
+            ProjectInternal project, TaskIdentity<T> identity, Callable<T> factory) {
         NEXT_INSTANCE.set(new TaskInfo(identity, project));
         try {
             return uncheckedCall(factory);
@@ -387,12 +395,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private DescribingAndSpec<Task> createNewOnlyIfSpec() {
-        return new DescribingAndSpec<>(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return element == AbstractTask.this && enabled;
-            }
-        }, "Task is enabled");
+        return new DescribingAndSpec<>(
+                new Spec<Task>() {
+                    @Override
+                    public boolean isSatisfiedBy(Task element) {
+                        return element == AbstractTask.this && enabled;
+                    }
+                },
+                "Task is enabled");
     }
 
     @Override
@@ -405,16 +415,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (reasonNotToTrackState == null) {
             throw new InvalidUserDataException("notTrackingReason must not be null!");
         }
-        taskMutator.mutate("Task.doNotTrackState(String)",
-            () -> this.reasonsNotToTrackState.add(reasonNotToTrackState)
-        );
+        taskMutator.mutate(
+                "Task.doNotTrackState(String)", () -> this.reasonsNotToTrackState.add(reasonNotToTrackState));
     }
 
     @Override
     public Optional<String> getReasonNotToTrackState() {
-        return reasonsNotToTrackState.<Optional<String>>map(strings ->
-            strings.isEmpty() ? Optional.empty() : Optional.of(String.join("; ", strings))
-        ).getOrElse(Optional.empty());
+        return reasonsNotToTrackState
+                .<Optional<String>>map(
+                        strings -> strings.isEmpty() ? Optional.empty() : Optional.of(String.join("; ", strings)))
+                .getOrElse(Optional.empty());
     }
 
     @Override
@@ -424,12 +434,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public void doNotTrackStateIf(String reason, Spec<? super TaskInternal> spec) {
-        taskMutator.mutate("Task.doNotTrackStateIf(String, Spec)", () -> reasonsNotToTrackState.add(project.provider(() -> {
-            if (spec.isSatisfiedBy(AbstractTask.this)) {
-                return reason;
-            }
-            return null;
-        })));
+        taskMutator.mutate(
+                "Task.doNotTrackStateIf(String, Spec)",
+                () -> reasonsNotToTrackState.add(project.provider(() -> {
+                    if (spec.isSatisfiedBy(AbstractTask.this)) {
+                        return reason;
+                    }
+                    return null;
+                })));
     }
 
     @Override
@@ -721,7 +733,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private InputChangesAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {
-        return new ClosureTaskAction(actionClosure, actionName, getServices().get(UserCodeApplicationContext.class).current());
+        return new ClosureTaskAction(
+                actionClosure,
+                actionName,
+                getServices().get(UserCodeApplicationContext.class).current());
     }
 
     private InputChangesAwareTaskAction wrap(final Action<? super Task> action) {
@@ -754,19 +769,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         private final String actionName;
         private final UserCodeApplicationContext.@Nullable Application application;
 
-        private ClosureTaskAction(Closure<?> closure, String actionName, UserCodeApplicationContext.@Nullable Application application) {
+        private ClosureTaskAction(
+                Closure<?> closure, String actionName, UserCodeApplicationContext.@Nullable Application application) {
             this.closure = closure;
             this.actionName = actionName;
             this.application = application;
         }
 
         @Override
-        public void setInputChanges(InputChangesInternal inputChanges) {
-        }
+        public void setInputChanges(InputChangesInternal inputChanges) {}
 
         @Override
-        public void clearInputChanges() {
-        }
+        public void clearInputChanges() {}
 
         @Override
         public void execute(Task task) {
@@ -825,12 +839,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
-        public void setInputChanges(InputChangesInternal inputChanges) {
-        }
+        public void setInputChanges(InputChangesInternal inputChanges) {}
 
         @Override
-        public void clearInputChanges() {
-        }
+        public void clearInputChanges() {}
 
         @Override
         public void execute(Task task) {
@@ -1067,8 +1079,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (!taskRequiredServices.hasServiceReferences()) {
             BuildServiceRegistryInternal buildServiceRegistry = getBuildServiceRegistry();
             List<? extends BuildServiceProvider<?, ?>> asConsumedServices = serviceReferences.stream()
-                .map(it -> buildServiceRegistry.consume(it.getBuildServiceName(), it.getBuildServiceType()))
-                .collect(Collectors.toList());
+                    .map(it -> buildServiceRegistry.consume(it.getBuildServiceName(), it.getBuildServiceType()))
+                    .collect(Collectors.toList());
             taskRequiredServices.acceptServiceReferences(asConsumedServices);
         }
     }

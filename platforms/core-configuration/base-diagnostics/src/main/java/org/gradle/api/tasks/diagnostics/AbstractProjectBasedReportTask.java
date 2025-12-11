@@ -16,15 +16,14 @@
 
 package org.gradle.api.tasks.diagnostics;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * The base class for all Project based project report tasks.
@@ -41,10 +40,7 @@ public abstract class AbstractProjectBasedReportTask<T> extends ConventionReport
     private ProjectBasedReportModel<T> calculateReportModel() {
         Map<ProjectDetails, T> map = new LinkedHashMap<>();
         for (Project project : getProjects()) {
-            map.put(
-                ProjectDetails.of(project),
-                calculateReportModelFor(project)
-            );
+            map.put(ProjectDetails.of(project), calculateReportModelFor(project));
         }
         return new ProjectBasedReportModel<>(map);
     }
@@ -61,7 +57,10 @@ public abstract class AbstractProjectBasedReportTask<T> extends ConventionReport
      * @since 8.9
      */
     @Incubating
-    protected void generateReportHeaderFor(Map<ProjectDetails, T> modelsByProjectDetails) { /* default is no header */ };
+    protected void generateReportHeaderFor(Map<ProjectDetails, T> modelsByProjectDetails) {
+        /* default is no header */
+    }
+    ;
 
     protected abstract void generateReportFor(ProjectDetails project, T model);
 
@@ -75,22 +74,25 @@ public abstract class AbstractProjectBasedReportTask<T> extends ConventionReport
      * @since 8.9
      */
     @Incubating
-    protected void generateReportFooterFor(Map<ProjectDetails, T> modelsByProjectDetails) { /* default is no footer */ };
+    protected void generateReportFooterFor(Map<ProjectDetails, T> modelsByProjectDetails) {
+        /* default is no footer */
+    }
+    ;
 
     @TaskAction
     void action() {
         Map<ProjectDetails, T> modelsByProjectDetails = reportModels.get().modelsByProjectDetails;
 
-        reportGenerator().generateReport(
-            modelsByProjectDetails.entrySet(),
-            Map.Entry::getKey,
-            () -> generateReportHeaderFor(modelsByProjectDetails),
-            entry -> {
-                generateReportFor(entry.getKey(), entry.getValue());
-                logClickableOutputFileUrl();
-            },
-            () -> generateReportFooterFor(modelsByProjectDetails)
-        );
+        reportGenerator()
+                .generateReport(
+                        modelsByProjectDetails.entrySet(),
+                        Map.Entry::getKey,
+                        () -> generateReportHeaderFor(modelsByProjectDetails),
+                        entry -> {
+                            generateReportFor(entry.getKey(), entry.getValue());
+                            logClickableOutputFileUrl();
+                        },
+                        () -> generateReportFooterFor(modelsByProjectDetails));
     }
 
     private static class ProjectBasedReportModel<T> {

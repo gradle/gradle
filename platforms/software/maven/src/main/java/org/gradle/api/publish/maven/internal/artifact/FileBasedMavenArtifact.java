@@ -17,10 +17,9 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.io.Files;
+import java.io.File;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-
-import java.io.File;
 
 public class FileBasedMavenArtifact extends AbstractMavenArtifact {
     private final File file;

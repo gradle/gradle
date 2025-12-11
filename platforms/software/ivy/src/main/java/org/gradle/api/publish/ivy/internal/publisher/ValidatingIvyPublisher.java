@@ -16,6 +16,10 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
+import java.io.File;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
@@ -33,19 +37,22 @@ import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.resource.local.FileResourceRepository;
 
-import java.io.File;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-
 public class ValidatingIvyPublisher implements IvyPublisher {
     private final DescriptorParseContext parserSettings = new DisconnectedDescriptorParseContext();
     private final IvyPublisher delegate;
     private final DisconnectedIvyXmlModuleDescriptorParser moduleDescriptorParser;
 
-    public ValidatingIvyPublisher(IvyPublisher delegate, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, IvyMutableModuleMetadataFactory metadataFactory) {
+    public ValidatingIvyPublisher(
+            IvyPublisher delegate,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            FileResourceRepository fileResourceRepository,
+            IvyMutableModuleMetadataFactory metadataFactory) {
         this.delegate = delegate;
-        moduleDescriptorParser = new DisconnectedIvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository, metadataFactory);
+        moduleDescriptorParser = new DisconnectedIvyXmlModuleDescriptorParser(
+                new IvyModuleDescriptorConverter(moduleIdentifierFactory),
+                moduleIdentifierFactory,
+                fileResourceRepository,
+                metadataFactory);
     }
 
     @Override
@@ -62,12 +69,10 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         IvyFieldValidator organisation = field(publication, "organisation", identity.getGroup())
                 .notEmpty()
                 .validInFileName();
-        IvyFieldValidator moduleName = field(publication, "module name", identity.getName())
-                .notEmpty()
-                .validInFileName();
-        IvyFieldValidator revision = field(publication, "revision", identity.getVersion())
-                .notEmpty()
-                .validInFileName();
+        IvyFieldValidator moduleName =
+                field(publication, "module name", identity.getName()).notEmpty().validInFileName();
+        IvyFieldValidator revision =
+                field(publication, "revision", identity.getVersion()).notEmpty().validInFileName();
 
         MutableIvyModuleResolveMetadata metadata = parseIvyFile(publication);
         ModuleVersionIdentifier moduleId = metadata.getModuleVersionId();
@@ -75,18 +80,15 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         moduleName.matches(moduleId.getName());
         revision.matches(moduleId.getVersion());
 
-        field(publication, "branch", metadata.getBranch())
-                .optionalNotEmpty()
-                .doesNotContainSpecialCharacters(true);
+        field(publication, "branch", metadata.getBranch()).optionalNotEmpty().doesNotContainSpecialCharacters(true);
 
-        field(publication, "status", metadata.getStatus())
-                .optionalNotEmpty()
-                .validInFileName();
+        field(publication, "status", metadata.getStatus()).optionalNotEmpty().validInFileName();
     }
 
     private MutableIvyModuleResolveMetadata parseIvyFile(IvyNormalizedPublication publication) {
         try {
-            MetaDataParser.ParseResult<MutableIvyModuleResolveMetadata> parseResult = moduleDescriptorParser.parseMetaData(parserSettings, publication.getIvyDescriptorFile(), true);
+            MetaDataParser.ParseResult<MutableIvyModuleResolveMetadata> parseResult =
+                    moduleDescriptorParser.parseMetaData(parserSettings, publication.getIvyDescriptorFile(), true);
             return parseResult.getResult();
         } catch (MetaDataParseException pe) {
             throw new InvalidIvyPublicationException(publication.getName(), pe.getLocalizedMessage(), pe);
@@ -95,14 +97,14 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
     private void validateArtifacts(IvyNormalizedPublication publication) {
         for (final IvyArtifact artifact : publication.getAllArtifacts()) {
-            field(publication, "artifact name", artifact.getName())
-                    .notEmpty().validInFileName();
-            field(publication, "artifact type", artifact.getType())
-                    .notEmpty().validInFileName();
+            field(publication, "artifact name", artifact.getName()).notEmpty().validInFileName();
+            field(publication, "artifact type", artifact.getType()).notEmpty().validInFileName();
             field(publication, "artifact extension", artifact.getExtension())
-                    .notNull().validInFileName();
+                    .notNull()
+                    .validInFileName();
             field(publication, "artifact classifier", artifact.getClassifier())
-                    .optionalNotEmpty().validInFileName();
+                    .optionalNotEmpty()
+                    .validInFileName();
 
             checkCanPublish(publication.getName(), artifact);
         }
@@ -112,7 +114,13 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         Set<IvyArtifact> verified = new HashSet<IvyArtifact>();
 
         for (final IvyArtifact artifact : publication.getAllArtifacts()) {
-            checkNotDuplicate(publication, verified, artifact.getName(), artifact.getExtension(), artifact.getType(), artifact.getClassifier());
+            checkNotDuplicate(
+                    publication,
+                    verified,
+                    artifact.getName(),
+                    artifact.getExtension(),
+                    artifact.getType(),
+                    artifact.getClassifier());
             verified.add(artifact);
         }
 
@@ -120,13 +128,18 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         checkNotDuplicate(publication, verified, "ivy", "xml", "xml", null);
     }
 
-    private void checkNotDuplicate(IvyNormalizedPublication publication, Set<IvyArtifact> verified, String name, String extension, String type, String classifier) {
+    private void checkNotDuplicate(
+            IvyNormalizedPublication publication,
+            Set<IvyArtifact> verified,
+            String name,
+            String extension,
+            String type,
+            String classifier) {
         for (IvyArtifact alreadyVerified : verified) {
             if (hasCoordinates(alreadyVerified, name, extension, type, classifier)) {
                 String message = String.format(
                         "multiple artifacts with the identical name, extension, type and classifier ('%s', %s', '%s', '%s').",
-                        name, extension, type, classifier
-                );
+                        name, extension, type, classifier);
                 throw new InvalidIvyPublicationException(publication.getName(), message);
             }
         }
@@ -142,7 +155,8 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     private void checkCanPublish(String name, IvyArtifact artifact) {
         File artifactFile = artifact.getFile();
         if (artifactFile.isDirectory()) {
-            throw new InvalidIvyPublicationException(name, String.format("artifact file is a directory: '%s'", artifactFile));
+            throw new InvalidIvyPublicationException(
+                    name, String.format("artifact file is a directory: '%s'", artifactFile));
         }
     }
 
@@ -157,9 +171,11 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
         public IvyFieldValidator matches(String expectedValue) {
             if (!value.equals(expectedValue)) {
-                throw new InvalidIvyPublicationException(publicationName,
-                        String.format("supplied %s does not match ivy descriptor (cannot edit %1$s directly in the ivy descriptor file).", name)
-                );
+                throw new InvalidIvyPublicationException(
+                        publicationName,
+                        String.format(
+                                "supplied %s does not match ivy descriptor (cannot edit %1$s directly in the ivy descriptor file).",
+                                name));
             }
             return this;
         }

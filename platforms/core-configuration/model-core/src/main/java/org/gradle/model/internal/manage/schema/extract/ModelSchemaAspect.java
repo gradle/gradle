@@ -16,5 +16,4 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-public interface ModelSchemaAspect {
-}
+public interface ModelSchemaAspect {}

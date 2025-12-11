@@ -37,25 +37,23 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
-    }
+    public void visitPropertyValue(
+            String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {}
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
-        validationContext.visitPropertyProblem(problem ->
-            problem
-                .forProperty(propertyMetadata.getPropertyName())
+        validationContext.visitPropertyProblem(problem -> problem.forProperty(propertyMetadata.getPropertyName())
                 .id("test-problem", "test problem", ProblemGroup.create("root", "root"))
                 .documentedAt(Documentation.userManual("id", "section"))
                 .severity(annotationValue(propertyMetadata))
-                .details("this is a test")
-        );
+                .details("this is a test"));
     }
 
     private Severity annotationValue(PropertyMetadata propertyMetadata) {
-        return propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE)
-            .map(ValidationProblem.class::cast)
-            .map(ValidationProblem::value)
-            .orElse(Severity.WARNING);
+        return propertyMetadata
+                .getAnnotationForCategory(AnnotationCategory.TYPE)
+                .map(ValidationProblem.class::cast)
+                .map(ValidationProblem::value)
+                .orElse(Severity.WARNING);
     }
 }

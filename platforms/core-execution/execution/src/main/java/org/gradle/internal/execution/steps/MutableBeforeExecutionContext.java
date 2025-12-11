@@ -17,32 +17,34 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import java.util.Optional;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Optional;
-
 public class MutableBeforeExecutionContext extends PreviousExecutionContext implements BeforeExecutionContext {
     @Nullable
     private final BeforeExecutionState beforeExecutionState;
+
     @Nullable
     private final OverlappingOutputs detectedOverlappingOutputs;
 
     public MutableBeforeExecutionContext(
-        PreviousExecutionContext parent,
-        @Nullable BeforeExecutionState beforeExecutionState,
-        @Nullable OverlappingOutputs detectedOverlappingOutputs
-    ) {
+            PreviousExecutionContext parent,
+            @Nullable BeforeExecutionState beforeExecutionState,
+            @Nullable OverlappingOutputs detectedOverlappingOutputs) {
         super(parent);
         this.beforeExecutionState = beforeExecutionState;
         this.detectedOverlappingOutputs = detectedOverlappingOutputs;
     }
 
     protected MutableBeforeExecutionContext(MutableBeforeExecutionContext parent) {
-        this(parent, parent.getBeforeExecutionState().orElse(null), parent.getDetectedOverlappingOutputs().orElse(null));
+        this(
+                parent,
+                parent.getBeforeExecutionState().orElse(null),
+                parent.getDetectedOverlappingOutputs().orElse(null));
     }
 
     @Override
@@ -57,14 +59,14 @@ public class MutableBeforeExecutionContext extends PreviousExecutionContext impl
     @Override
     public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
         return getBeforeExecutionState()
-            .map(BeforeExecutionState::getInputProperties)
-            .orElseGet(super::getInputProperties);
+                .map(BeforeExecutionState::getInputProperties)
+                .orElseGet(super::getInputProperties);
     }
 
     @Override
     public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
         return getBeforeExecutionState()
-            .map(BeforeExecutionState::getInputFileProperties)
-            .orElseGet(super::getInputFileProperties);
+                .map(BeforeExecutionState::getInputFileProperties)
+                .orElseGet(super::getInputFileProperties);
     }
 }

@@ -72,5 +72,4 @@ public class OrSpec<T> extends CompositeSpec<T> {
     public static <T> OrSpec<T> empty() {
         return uncheckedCast(EMPTY);
     }
-
 }

@@ -16,15 +16,14 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.options.OptionReader;
-import org.gradle.execution.TaskSelectionException;
-import org.gradle.execution.selection.BuildTaskSelector;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.options.OptionReader;
+import org.gradle.execution.TaskSelectionException;
+import org.gradle.execution.selection.BuildTaskSelector;
 
 /**
  * A configuration-friendly view of a task selection.
@@ -58,11 +57,14 @@ class TaskDetailsModel {
         return taskPath;
     }
 
-    public static TaskDetailsModel from(String taskPath, BuildTaskSelector.BuildSpecificSelector taskSelector, OptionReader optionReader) {
+    public static TaskDetailsModel from(
+            String taskPath, BuildTaskSelector.BuildSpecificSelector taskSelector, OptionReader optionReader) {
         try {
             Stream<Task> selectedTasks = taskSelector.resolveTaskName(taskPath).getTasks().stream();
-            List<TaskDetails> tasks = selectedTasks.map(t -> TaskDetails.from(t, optionReader))
-                .sorted(TaskDetails.DEFAULT_COMPARATOR).collect(Collectors.toList());
+            List<TaskDetails> tasks = selectedTasks
+                    .map(t -> TaskDetails.from(t, optionReader))
+                    .sorted(TaskDetails.DEFAULT_COMPARATOR)
+                    .collect(Collectors.toList());
             return new TaskDetailsModel(taskPath, tasks);
         } catch (TaskSelectionException exception) {
             // collect exception so we can rethrow it during task execution

@@ -16,55 +16,67 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.type.ModelType;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
+import org.gradle.model.internal.type.ModelType;
+import org.junit.Test;
 
 /**
  * Tests that need full static typing.
  */
 public class ModelTypeJavaTest {
     static class Nested<T> {
-        class Child<S extends Number & Runnable> { }
+        class Child<S extends Number & Runnable> {}
     }
 
-    <T extends Number, S extends T, R> void m1(T t, S s, R r) { }
-    <T extends Number & Runnable, S extends T> void m1(S s) { }
-    void m2(List<String>... lists) { }
-    void m4(List<? super Number>... lists) { }
-    void m5(Collection<String>... collections) { }
+    <T extends Number, S extends T, R> void m1(T t, S s, R r) {}
+
+    <T extends Number & Runnable, S extends T> void m1(S s) {}
+
+    void m2(List<String>... lists) {}
+
+    void m4(List<? super Number>... lists) {}
+
+    void m5(Collection<String>... collections) {}
 
     @Test
     public void testNestedParameterizedType() {
-// Suppress - checkstyle gets confused with type params on the outer type
-//CHECKSTYLE:OFF
+        // Suppress - checkstyle gets confused with type params on the outer type
+        // CHECKSTYLE:OFF
         ModelType<?> type = new ModelType<Nested<? super Long>.Child<? extends Runnable>>() {};
         assertEquals(type.getDisplayName(), "ModelTypeJavaTest.Nested<? super Long>.Child<? extends Runnable>");
-        assertEquals(type.toString(), "org.gradle.model.internal.core.ModelTypeJavaTest.Nested<? super java.lang.Long>.Child<? extends java.lang.Runnable>");
+        assertEquals(
+                type.toString(),
+                "org.gradle.model.internal.core.ModelTypeJavaTest.Nested<? super java.lang.Long>.Child<? extends java.lang.Runnable>");
 
         ModelType<?> listType = new ModelType<List<? extends Nested<Number>.Child<? extends Runnable>>>() {};
 
-        assertEquals(listType.getDisplayName(), "List<? extends ModelTypeJavaTest.Nested<Number>.Child<? extends Runnable>>");
-        assertEquals(listType.toString(), "java.util.List<? extends org.gradle.model.internal.core.ModelTypeJavaTest.Nested<java.lang.Number>.Child<? extends java.lang.Runnable>>");
-//CHECKSTYLE:ON
+        assertEquals(
+                listType.getDisplayName(),
+                "List<? extends ModelTypeJavaTest.Nested<Number>.Child<? extends Runnable>>");
+        assertEquals(
+                listType.toString(),
+                "java.util.List<? extends org.gradle.model.internal.core.ModelTypeJavaTest.Nested<java.lang.Number>.Child<? extends java.lang.Runnable>>");
+        // CHECKSTYLE:ON
     }
 
     @Test
     public void testBuildType() throws Exception {
-        assertEquals(new ModelType<Map<String, Integer>>() {}, buildMap(ModelType.of(String.class), ModelType.of(Integer.class)));
-        assertEquals(new ModelType<Map<String, Integer>>() {}.hashCode(), buildMap(ModelType.of(String.class), ModelType.of(Integer.class)).hashCode());
+        assertEquals(
+                new ModelType<Map<String, Integer>>() {},
+                buildMap(ModelType.of(String.class), ModelType.of(Integer.class)));
+        assertEquals(
+                new ModelType<Map<String, Integer>>() {}.hashCode(),
+                buildMap(ModelType.of(String.class), ModelType.of(Integer.class))
+                        .hashCode());
     }
 
     static <K, V> ModelType<Map<K, V>> buildMap(ModelType<K> k, ModelType<V> v) {
-        return new ModelType.Builder<Map<K, V>>() {}
-                .where(new ModelType.Parameter<K>() {}, k)
+        return new ModelType.Builder<Map<K, V>>() {}.where(new ModelType.Parameter<K>() {}, k)
                 .where(new ModelType.Parameter<V>() {}, v)
                 .build();
     }
-
 }

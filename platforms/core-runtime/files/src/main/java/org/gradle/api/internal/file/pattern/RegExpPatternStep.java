@@ -24,7 +24,7 @@ public class RegExpPatternStep implements PatternStep {
     private final Pattern pattern;
 
     public RegExpPatternStep(String pattern, boolean caseSensitive) {
-        this.pattern = Pattern.compile(getRegExPattern(pattern), caseSensitive?0:Pattern.CASE_INSENSITIVE);
+        this.pattern = Pattern.compile(getRegExPattern(pattern), caseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class RegExpPatternStep implements PatternStep {
 
     protected static String getRegExPattern(String pattern) {
         StringBuilder result = new StringBuilder();
-        for (int i=0; i<pattern.length(); i++) {
+        for (int i = 0; i < pattern.length(); i++) {
             char next = pattern.charAt(i);
             if (next == '*') {
                 result.append(".*");
@@ -55,5 +55,4 @@ public class RegExpPatternStep implements PatternStep {
         Matcher matcher = pattern.matcher(testString);
         return matcher.matches();
     }
-
 }

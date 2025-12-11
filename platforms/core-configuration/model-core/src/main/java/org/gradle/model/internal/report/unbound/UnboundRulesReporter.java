@@ -17,16 +17,15 @@
 package org.gradle.model.internal.report.unbound;
 
 import com.google.common.base.Joiner;
-import javax.annotation.concurrent.NotThreadSafe;
-
 import java.io.PrintWriter;
+import javax.annotation.concurrent.NotThreadSafe;
 
 @NotThreadSafe
 public class UnboundRulesReporter {
 
     private final PrintWriter writer;
     private final String prefix;
-    private final static String INDENT = "  ";
+    private static final String INDENT = "  ";
 
     public UnboundRulesReporter(PrintWriter writer, String prefix) {
         this.writer = writer;

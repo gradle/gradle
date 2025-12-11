@@ -41,31 +41,29 @@ public class GroovyServices extends AbstractGradleModuleServices {
     private static class ProjectServices implements ServiceRegistrationProvider {
         @Provides
         public GroovyCompilerFactory createGroovyCompilerFactory(
-            WorkerDaemonFactory workerDaemonFactory,
-            IsolatedClassloaderWorkerFactory inProcessWorkerFactory,
-            JavaForkOptionsFactory forkOptionsFactory,
-            AnnotationProcessorDetector processorDetector,
-            JvmVersionDetector jvmVersionDetector,
-            WorkerDirectoryProvider workerDirectoryProvider,
-            ClassPathRegistry classPathRegistry,
-            ClassLoaderRegistry classLoaderRegistry,
-            ActionExecutionSpecFactory actionExecutionSpecFactory,
-            ProjectCacheDir projectCacheDir,
-            InternalProblems problems
-        ) {
+                WorkerDaemonFactory workerDaemonFactory,
+                IsolatedClassloaderWorkerFactory inProcessWorkerFactory,
+                JavaForkOptionsFactory forkOptionsFactory,
+                AnnotationProcessorDetector processorDetector,
+                JvmVersionDetector jvmVersionDetector,
+                WorkerDirectoryProvider workerDirectoryProvider,
+                ClassPathRegistry classPathRegistry,
+                ClassLoaderRegistry classLoaderRegistry,
+                ActionExecutionSpecFactory actionExecutionSpecFactory,
+                ProjectCacheDir projectCacheDir,
+                InternalProblems problems) {
             return new GroovyCompilerFactory(
-                workerDaemonFactory,
-                inProcessWorkerFactory,
-                forkOptionsFactory,
-                processorDetector,
-                jvmVersionDetector,
-                workerDirectoryProvider,
-                classPathRegistry,
-                classLoaderRegistry,
-                actionExecutionSpecFactory,
-                projectCacheDir,
-                problems
-            );
+                    workerDaemonFactory,
+                    inProcessWorkerFactory,
+                    forkOptionsFactory,
+                    processorDetector,
+                    jvmVersionDetector,
+                    workerDirectoryProvider,
+                    classPathRegistry,
+                    classLoaderRegistry,
+                    actionExecutionSpecFactory,
+                    projectCacheDir,
+                    problems);
         }
     }
 }

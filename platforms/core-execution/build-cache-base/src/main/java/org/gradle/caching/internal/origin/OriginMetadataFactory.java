@@ -16,10 +16,9 @@
 
 package org.gradle.caching.internal.origin;
 
-import org.gradle.internal.hash.HashCode;
-
 import java.time.Duration;
 import java.util.Properties;
+import org.gradle.internal.hash.HashCode;
 
 public class OriginMetadataFactory {
 
@@ -33,10 +32,7 @@ public class OriginMetadataFactory {
     private final String currentBuildInvocationId;
     private final PropertiesConfigurator additionalProperties;
 
-    public OriginMetadataFactory(
-        String currentBuildInvocationId,
-        PropertiesConfigurator additionalProperties
-    ) {
+    public OriginMetadataFactory(String currentBuildInvocationId, PropertiesConfigurator additionalProperties) {
         this.additionalProperties = additionalProperties;
         this.currentBuildInvocationId = currentBuildInvocationId;
     }
@@ -70,9 +66,7 @@ public class OriginMetadataFactory {
 
             Duration originalExecutionTime = Duration.ofMillis(Long.parseLong(executionTimeAsString));
             return new OriginMetadata(
-                originBuildInvocationId,
-                HashCode.fromString(originBuildCacheKey),
-                originalExecutionTime);
+                    originBuildInvocationId, HashCode.fromString(originBuildCacheKey), originalExecutionTime);
         };
     }
 

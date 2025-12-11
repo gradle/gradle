@@ -17,12 +17,11 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.collect.Interner;
+import java.util.Optional;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
-
-import java.util.Optional;
 
 /**
  * A snapshot of a missing file or a broken symbolic link or a named pipe.
@@ -39,7 +38,8 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot impl
     }
 
     @Override
-    protected Optional<MissingFileSnapshot> relocateDirectAccess(String targetPath, String name, Interner<String> interner) {
+    protected Optional<MissingFileSnapshot> relocateDirectAccess(
+            String targetPath, String name, Interner<String> interner) {
         return Optional.of(new MissingFileSnapshot(targetPath, name, getAccessType()));
     }
 
@@ -74,7 +74,10 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot impl
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
+    public Optional<FileSystemNode> invalidate(
+            VfsRelativePath targetPath,
+            CaseSensitivity caseSensitivity,
+            SnapshotHierarchy.NodeDiffListener diffListener) {
         diffListener.nodeRemoved(this);
         return Optional.empty();
     }

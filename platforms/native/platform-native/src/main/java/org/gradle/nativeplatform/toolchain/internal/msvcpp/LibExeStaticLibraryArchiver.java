@@ -16,6 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.tasks.WorkResult;
@@ -29,17 +34,22 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
-
 class LibExeStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiverSpec> {
     private final Transformer<StaticLibraryArchiverSpec, StaticLibraryArchiverSpec> specTransformer;
 
-    LibExeStaticLibraryArchiver(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<StaticLibraryArchiverSpec, StaticLibraryArchiverSpec> specTransformer, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new LibExeSpecToArguments(), true, workerLeaseService);
+    LibExeStaticLibraryArchiver(
+            BuildOperationExecutor buildOperationExecutor,
+            CommandLineToolInvocationWorker commandLineToolInvocationWorker,
+            CommandLineToolContext invocationContext,
+            Transformer<StaticLibraryArchiverSpec, StaticLibraryArchiverSpec> specTransformer,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                buildOperationExecutor,
+                commandLineToolInvocationWorker,
+                invocationContext,
+                new LibExeSpecToArguments(),
+                true,
+                workerLeaseService);
         this.specTransformer = specTransformer;
     }
 
@@ -51,9 +61,13 @@ class LibExeStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiver
     }
 
     @Override
-    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final StaticLibraryArchiverSpec spec, List<String> args) {
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(
+            final StaticLibraryArchiverSpec spec, List<String> args) {
         final CommandLineToolInvocation invocation = newInvocation(
-            "archiving " + spec.getOutputFile().getName(), spec.getOutputFile().getParentFile(), args, spec.getOperationLogger());
+                "archiving " + spec.getOutputFile().getName(),
+                spec.getOutputFile().getParentFile(),
+                args,
+                spec.getOperationLogger());
 
         return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override

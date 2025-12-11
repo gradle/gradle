@@ -16,25 +16,21 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import java.util.Objects;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Objects;
 
 public class UnknownImplementationSnapshot extends ImplementationSnapshot {
 
     public enum UnknownReason {
         UNKNOWN_CLASSLOADER(
-            "was loaded with an unknown classloader (class '%s').",
-            "Gradle cannot track the implementation for classes loaded with an unknown classloader.",
-            "Load your class by using one of Gradle's built-in ways."
-        ),
+                "was loaded with an unknown classloader (class '%s').",
+                "Gradle cannot track the implementation for classes loaded with an unknown classloader.",
+                "Load your class by using one of Gradle's built-in ways."),
         UNTRACKED_LAMBDA(
-            "was implemented by the Java lambda '%s'.",
-            "Using Java lambdas is not supported as task inputs.",
-            "Use an (anonymous inner) class instead."
-        );
+                "was implemented by the Java lambda '%s'.",
+                "Using Java lambdas is not supported as task inputs.", "Use an (anonymous inner) class instead.");
 
         private final String descriptionTemplate;
         private final String reason;

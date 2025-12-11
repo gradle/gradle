@@ -16,13 +16,12 @@
 
 package org.gradle.api.publish.internal.validation;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.internal.logging.text.TreeFormatter;
-
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.gradle.api.logging.Logger;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 @NotThreadSafe
 public class PublicationWarningsCollector {
@@ -35,13 +34,12 @@ public class PublicationWarningsCollector {
     private final Map<String, VariantWarningCollector> variantToWarnings;
 
     public PublicationWarningsCollector(
-        Map<String, VariantWarningCollector> variantToWarnings,
-        Logger logger,
-        String unsupportedFeature,
-        String incompatibleFeature,
-        String footer,
-        String disableMethod
-    ) {
+            Map<String, VariantWarningCollector> variantToWarnings,
+            Logger logger,
+            String unsupportedFeature,
+            String incompatibleFeature,
+            String footer,
+            String disableMethod) {
         this.footer = footer;
         this.disableMethod = disableMethod;
         this.variantToWarnings = new TreeMap<>(variantToWarnings);

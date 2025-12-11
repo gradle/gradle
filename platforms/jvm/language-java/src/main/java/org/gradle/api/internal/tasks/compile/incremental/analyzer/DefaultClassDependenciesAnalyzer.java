@@ -17,15 +17,14 @@
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import com.google.common.io.ByteStreams;
+import java.io.IOException;
+import java.io.InputStream;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.asm.ClassDependenciesVisitor;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.internal.hash.HashCode;
 import org.objectweb.asm.ClassReader;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyzer {
 

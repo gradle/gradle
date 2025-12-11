@@ -15,6 +15,12 @@
  */
 package org.gradle.api.tasks.diagnostics.internal.dependencies;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
+
+import java.util.Collections;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
@@ -30,13 +36,6 @@ import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Collections;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 /**
  * Simple dependency graph renderer that emits an ASCII tree.
@@ -58,7 +57,8 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
     void prepareVisit() {
         hasConfigs = false;
         renderer = new GraphRenderer(getTextOutput());
-        dependencyGraphRenderer = new DependencyGraphsRenderer(getTextOutput(), renderer, NodeRenderer.NO_OP, new SimpleNodeRenderer());
+        dependencyGraphRenderer =
+                new DependencyGraphsRenderer(getTextOutput(), renderer, NodeRenderer.NO_OP, new SimpleNodeRenderer());
     }
 
     @Override
@@ -80,13 +80,13 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
     }
 
     @Override
-    public void completeConfiguration(ConfigurationDetails configuration) {
-    }
+    public void completeConfiguration(ConfigurationDetails configuration) {}
 
     @Override
     public void render(ConfigurationDetails configuration) {
         if (configuration.isCanBeResolved()) {
-            ResolvedComponentResult result = configuration.getResolutionResultRoot().get();
+            ResolvedComponentResult result =
+                    configuration.getResolutionResultRoot().get();
             RenderableModuleResult root = new RenderableModuleResult(result);
             renderNow(root);
         } else {

@@ -16,12 +16,11 @@
 
 package org.gradle.platform.internal;
 
+import java.io.Serializable;
+import java.util.Objects;
 import org.gradle.platform.Architecture;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.OperatingSystem;
-
-import java.io.Serializable;
-import java.util.Objects;
 
 public class DefaultBuildPlatform implements BuildPlatform, Serializable {
 
@@ -52,7 +51,8 @@ public class DefaultBuildPlatform implements BuildPlatform, Serializable {
             return false;
         }
         DefaultBuildPlatform that = (DefaultBuildPlatform) o;
-        return Objects.equals(getArchitecture(), that.getArchitecture()) && Objects.equals(getOperatingSystem(), that.getOperatingSystem());
+        return Objects.equals(getArchitecture(), that.getArchitecture())
+                && Objects.equals(getOperatingSystem(), that.getOperatingSystem());
     }
 
     @Override
@@ -62,9 +62,6 @@ public class DefaultBuildPlatform implements BuildPlatform, Serializable {
 
     @Override
     public String toString() {
-        return "{" +
-            architecture +
-            ", " + operatingSystem +
-            '}';
+        return "{" + architecture + ", " + operatingSystem + '}';
     }
 }

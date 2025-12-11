@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import java.io.File;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -58,8 +59,6 @@ import org.gradle.process.ExecOperations;
 import org.gradle.process.internal.DefaultExecOperations;
 import org.gradle.process.internal.ExecFactory;
 
-import java.io.File;
-
 /**
  * These Project scoped services are shared between the main build process and worker processes.
  */
@@ -81,7 +80,11 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     }
 
     @Provides
-    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost) {
+    protected FileCollectionFactory createFileCollectionFactory(
+            FileCollectionFactory parent,
+            PathToFileResolver fileResolver,
+            TaskDependencyFactory taskDependencyFactory,
+            PropertyHost propertyHost) {
         return parent.forChildScope(fileResolver, taskDependencyFactory, propertyHost);
     }
 
@@ -92,43 +95,42 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
 
     @Provides
     protected FileOperations createFileOperations(
-        FileResolver fileResolver,
-        Instantiator instantiator,
-        DirectoryFileTreeFactory directoryFileTreeFactory,
-        FileHasher fileHasher,
-        DefaultResourceHandler.Factory resourceHandlerFactory,
-        FileCollectionFactory fileCollectionFactory,
-        PropertyFactory propertyFactory,
-        FileSystem fileSystem,
-        PatternSetFactory patternSetFactory,
-        Deleter deleter,
-        DocumentationRegistry documentationRegistry,
-        ProviderFactory providers,
-        TaskDependencyFactory taskDependencyFactory,
-        DecompressionCoordinator decompressionCoordinator,
-        TemporaryFileProvider temporaryFileProvider
-    ) {
+            FileResolver fileResolver,
+            Instantiator instantiator,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            FileHasher fileHasher,
+            DefaultResourceHandler.Factory resourceHandlerFactory,
+            FileCollectionFactory fileCollectionFactory,
+            PropertyFactory propertyFactory,
+            FileSystem fileSystem,
+            PatternSetFactory patternSetFactory,
+            Deleter deleter,
+            DocumentationRegistry documentationRegistry,
+            ProviderFactory providers,
+            TaskDependencyFactory taskDependencyFactory,
+            DecompressionCoordinator decompressionCoordinator,
+            TemporaryFileProvider temporaryFileProvider) {
         return new DefaultFileOperations(
-            fileResolver,
-            instantiator,
-            directoryFileTreeFactory,
-            fileHasher,
-            resourceHandlerFactory,
-            fileCollectionFactory,
-            propertyFactory,
-            fileSystem,
-            patternSetFactory,
-            deleter,
-            documentationRegistry,
-            taskDependencyFactory,
-            providers,
-            decompressionCoordinator,
-            temporaryFileProvider
-        );
+                fileResolver,
+                instantiator,
+                directoryFileTreeFactory,
+                fileHasher,
+                resourceHandlerFactory,
+                fileCollectionFactory,
+                propertyFactory,
+                fileSystem,
+                patternSetFactory,
+                deleter,
+                documentationRegistry,
+                taskDependencyFactory,
+                providers,
+                decompressionCoordinator,
+                temporaryFileProvider);
     }
 
     @Provides
-    protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
+    protected FileSystemOperations createFileSystemOperations(
+            Instantiator instantiator, FileOperations fileOperations) {
         return instantiator.newInstance(DefaultFileSystemOperations.class, instantiator, fileOperations);
     }
 
@@ -144,19 +146,25 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
 
     @Provides
     ObjectFactory createObjectFactory(
-        InstantiatorFactory instantiatorFactory, ServiceRegistry services, PatternSetFactory patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory,
-        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
-        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator
-    ) {
+            InstantiatorFactory instantiatorFactory,
+            ServiceRegistry services,
+            PatternSetFactory patternSetFactory,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            PropertyFactory propertyFactory,
+            FilePropertyFactory filePropertyFactory,
+            TaskDependencyFactory taskDependencyFactory,
+            FileCollectionFactory fileCollectionFactory,
+            DomainObjectCollectionFactory domainObjectCollectionFactory,
+            NamedObjectInstantiator namedObjectInstantiator) {
         return new DefaultObjectFactory(
-            instantiatorFactory.decorate(services),
-            namedObjectInstantiator,
-            directoryFileTreeFactory,
-            patternSetFactory,
-            propertyFactory,
-            filePropertyFactory,
-            taskDependencyFactory,
-            fileCollectionFactory,
-            domainObjectCollectionFactory);
+                instantiatorFactory.decorate(services),
+                namedObjectInstantiator,
+                directoryFileTreeFactory,
+                patternSetFactory,
+                propertyFactory,
+                filePropertyFactory,
+                taskDependencyFactory,
+                fileCollectionFactory,
+                domainObjectCollectionFactory);
     }
 }

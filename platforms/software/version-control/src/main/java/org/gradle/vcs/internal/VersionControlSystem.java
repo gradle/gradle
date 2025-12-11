@@ -15,11 +15,10 @@
  */
 package org.gradle.vcs.internal;
 
-import org.gradle.vcs.VersionControlSpec;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.Set;
+import org.gradle.vcs.VersionControlSpec;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Allows the user to perform generic version control operations in ways

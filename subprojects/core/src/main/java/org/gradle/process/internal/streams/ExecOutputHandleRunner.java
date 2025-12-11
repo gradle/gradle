@@ -16,19 +16,18 @@
 
 package org.gradle.process.internal.streams;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.concurrent.CountDownLatch;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.concurrent.CountDownLatch;
-
 public class ExecOutputHandleRunner implements Runnable {
-    private final static Logger LOGGER = Logging.getLogger(ExecOutputHandleRunner.class);
+    private static final Logger LOGGER = Logging.getLogger(ExecOutputHandleRunner.class);
 
     private final String displayName;
     private final InputStream inputStream;
@@ -38,11 +37,17 @@ public class ExecOutputHandleRunner implements Runnable {
     private volatile boolean closed;
     private volatile BuildOperationRef associatedBuildOperation;
 
-    public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, CountDownLatch completed) {
+    public ExecOutputHandleRunner(
+            String displayName, InputStream inputStream, OutputStream outputStream, CountDownLatch completed) {
         this(displayName, inputStream, outputStream, 8192, completed);
     }
 
-    ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, int bufferSize, CountDownLatch completed) {
+    ExecOutputHandleRunner(
+            String displayName,
+            InputStream inputStream,
+            OutputStream outputStream,
+            int bufferSize,
+            CountDownLatch completed) {
         this.displayName = displayName;
         this.inputStream = inputStream;
         this.outputStream = outputStream;

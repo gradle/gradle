@@ -52,7 +52,7 @@ public class DefaultCleanupProgressMonitor implements CleanupProgressMonitor {
 
     private void updateProgress() {
         buildOperationContext.progress(mandatoryNumber(deleted, " entry", " entries") + " deleted"
-            + optionalNumber(", ", skipped, " skipped"));
+                + optionalNumber(", ", skipped, " skipped"));
     }
 
     private static String mandatoryNumber(long value, String singular, String plural) {

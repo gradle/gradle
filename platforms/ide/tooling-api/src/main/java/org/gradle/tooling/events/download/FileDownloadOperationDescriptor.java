@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.events.download;
 
-import org.gradle.tooling.events.OperationDescriptor;
-
 import java.net.URI;
+import org.gradle.tooling.events.OperationDescriptor;
 
 /**
  * Describes the details of a file that is downloaded.

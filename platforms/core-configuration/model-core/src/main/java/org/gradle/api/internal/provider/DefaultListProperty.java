@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.provider;
 
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-
-import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T>> implements ListProperty<T> {
     private static final SerializableSupplier<ImmutableCollection.Builder<Object>> FACTORY = ImmutableList::builder;

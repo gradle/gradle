@@ -93,5 +93,4 @@ public interface PluginDependencySpec {
      */
     @Builder
     PluginDependencySpec apply(boolean apply);
-
 }

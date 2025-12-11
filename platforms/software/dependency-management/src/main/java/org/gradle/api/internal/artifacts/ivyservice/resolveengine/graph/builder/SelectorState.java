@@ -16,7 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import static org.gradle.util.internal.TextUtil.getPluralEnding;
+
 import com.google.common.base.Joiner;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -47,12 +52,6 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 /**
  * Resolution state for a given module version selector.
@@ -93,7 +92,12 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
     // evicted, but it can still be reintegrated later in a different path.
     private int outgoingEdgeCount;
 
-    SelectorState(DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId, boolean versionByAncestor) {
+    SelectorState(
+            DependencyState dependencyState,
+            DependencyToComponentIdResolver resolver,
+            ResolveState resolveState,
+            ModuleIdentifier targetModuleId,
+            boolean versionByAncestor) {
         this.resolver = resolver;
         this.resolveState = resolveState;
         this.targetModule = resolveState.getModule(targetModuleId);
@@ -102,9 +106,10 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
         }
         update(dependencyState);
         this.dependencyState = dependencyState;
-        this.versionConstraint = versionByAncestor ?
-            resolveState.resolveVersionConstraint(DefaultImmutableVersionConstraint.of()) :
-            resolveState.resolveVersionConstraint(dependencyState.getDependency().getSelector());
+        this.versionConstraint = versionByAncestor
+                ? resolveState.resolveVersionConstraint(DefaultImmutableVersionConstraint.of())
+                : resolveState.resolveVersionConstraint(
+                        dependencyState.getDependency().getSelector());
         this.isProjectSelector = getSelector() instanceof ProjectComponentSelector;
         this.attributeDesugaring = resolveState.getAttributeDesugaring();
     }
@@ -176,7 +181,8 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
         return preferResult;
     }
 
-    private ComponentIdResolveResult resolve(@Nullable VersionSelector selector, VersionSelector rejector, ComponentIdResolveResult previousResult) {
+    private ComponentIdResolveResult resolve(
+            @Nullable VersionSelector selector, VersionSelector rejector, ComponentIdResolveResult previousResult) {
         try {
             if (!requiresResolve(previousResult, rejector)) {
                 return previousResult;
@@ -187,9 +193,18 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
                 idResolveResult.failed(dependencyState.getSubstitutionFailure());
             } else {
                 IvyArtifactName firstArtifact = getFirstDependencyArtifact();
-                ComponentOverrideMetadata overrideMetadata = DefaultComponentOverrideMetadata.forDependency(changing, firstArtifact);
-                ImmutableAttributes requestAttributes = resolveState.getAttributesFactory().concat(resolveState.getConsumerAttributes(), targetModule.getMergedConstraintAttributes());
-                resolver.resolve(dependencyState.getDependency().getSelector(), overrideMetadata, selector, rejector, idResolveResult, requestAttributes);
+                ComponentOverrideMetadata overrideMetadata =
+                        DefaultComponentOverrideMetadata.forDependency(changing, firstArtifact);
+                ImmutableAttributes requestAttributes = resolveState
+                        .getAttributesFactory()
+                        .concat(resolveState.getConsumerAttributes(), targetModule.getMergedConstraintAttributes());
+                resolver.resolve(
+                        dependencyState.getDependency().getSelector(),
+                        overrideMetadata,
+                        selector,
+                        rejector,
+                        idResolveResult,
+                        requestAttributes);
             }
 
             if (idResolveResult.getFailure() != null) {
@@ -202,7 +217,8 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
         }
     }
 
-    private boolean requiresResolve(@Nullable ComponentIdResolveResult previousResult, @Nullable VersionSelector allRejects) {
+    private boolean requiresResolve(
+            @Nullable ComponentIdResolveResult previousResult, @Nullable VersionSelector allRejects) {
         this.reusable = false;
         // If we've never resolved, must resolve
         if (previousResult == null) {
@@ -214,13 +230,15 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
             return false;
         }
 
-        // If the previous result was rejected, do not need to re-resolve (new rejects will be a superset of previous rejects)
+        // If the previous result was rejected, do not need to re-resolve (new rejects will be a superset of previous
+        // rejects)
         if (previousResult.isRejected()) {
             return false;
         }
 
         // If the previous result is still not rejected, do not need to re-resolve. The previous result is still good.
-        return allRejects != null && allRejects.accept(previousResult.getModuleVersionId().getVersion());
+        return allRejects != null
+                && allRejects.accept(previousResult.getModuleVersionId().getVersion());
     }
 
     @Override
@@ -303,19 +321,24 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
                     rejectedBySelector.add(version);
                 } else if (rejectedVersion instanceof RejectedByRuleVersion) {
                     String reason = ((RejectedByRuleVersion) rejectedVersion).getReason();
-                    selectionReason.addCause(ComponentSelectionReasons.REJECTION.withDescription(new RejectedByRuleReason(version, reason)));
+                    selectionReason.addCause(ComponentSelectionReasons.REJECTION.withDescription(
+                            new RejectedByRuleReason(version, reason)));
                 } else if (rejectedVersion instanceof RejectedByAttributesVersion) {
-                    selectionReason.addCause(ComponentSelectionReasons.REJECTION.withDescription(new RejectedByAttributesReason((RejectedByAttributesVersion) rejectedVersion)));
+                    selectionReason.addCause(ComponentSelectionReasons.REJECTION.withDescription(
+                            new RejectedByAttributesReason((RejectedByAttributesVersion) rejectedVersion)));
                 }
             }
         }
 
         for (ComponentSelectionDescriptorInternal descriptor : dependencyReasons) {
-            if (descriptor.getCause() == ComponentSelectionCause.REQUESTED || descriptor.getCause() == ComponentSelectionCause.CONSTRAINT) {
+            if (descriptor.getCause() == ComponentSelectionCause.REQUESTED
+                    || descriptor.getCause() == ComponentSelectionCause.CONSTRAINT) {
                 if (rejectedBySelector != null) {
-                    descriptor = descriptor.withDescription(new RejectedBySelectorReason(rejectedBySelector, descriptor));
+                    descriptor =
+                            descriptor.withDescription(new RejectedBySelectorReason(rejectedBySelector, descriptor));
                 } else if (result != null && !result.getUnmatchedVersions().isEmpty()) {
-                    descriptor = descriptor.withDescription(new UnmatchedVersionsReason(result.getUnmatchedVersions(), descriptor));
+                    descriptor = descriptor.withDescription(
+                            new UnmatchedVersionsReason(result.getUnmatchedVersions(), descriptor));
                 }
             }
             selectionReason.addCause(descriptor);
@@ -392,7 +415,8 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
         private final Collection<String> rejectedVersions;
         private final ComponentSelectionDescriptorInternal descriptor;
 
-        private UnmatchedVersionsReason(Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
+        private UnmatchedVersionsReason(
+                Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
             this.rejectedVersions = rejectedVersions;
             this.descriptor = descriptor;
         }
@@ -401,7 +425,9 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
         public String getDisplayName() {
             boolean hasCustomDescription = descriptor.hasCustomDescription();
             StringBuilder sb = new StringBuilder(estimateSize(hasCustomDescription));
-            sb.append("didn't match version").append(getPluralEnding(rejectedVersions)).append(" ");
+            sb.append("didn't match version")
+                    .append(getPluralEnding(rejectedVersions))
+                    .append(" ");
             Joiner.on(", ").appendTo(sb, rejectedVersions);
             if (hasCustomDescription) {
                 sb.append(" because ").append(descriptor.getDescription());
@@ -436,7 +462,6 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
             this.version = version;
         }
 
-
         @Override
         public String getDisplayName() {
             TreeFormatter formatter = new TreeFormatter();
@@ -450,7 +475,8 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
         private final Collection<String> rejectedVersions;
         private final ComponentSelectionDescriptorInternal descriptor;
 
-        private RejectedBySelectorReason(Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
+        private RejectedBySelectorReason(
+                Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
             this.rejectedVersions = rejectedVersions;
             this.descriptor = descriptor;
         }
@@ -459,7 +485,9 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
         public String getDisplayName() {
             boolean hasCustomDescription = descriptor.hasCustomDescription();
             StringBuilder sb = new StringBuilder(estimateSize(hasCustomDescription));
-            sb.append("rejected version").append(getPluralEnding(rejectedVersions)).append(" ");
+            sb.append("rejected version")
+                    .append(getPluralEnding(rejectedVersions))
+                    .append(" ");
             Joiner.on(", ").appendTo(sb, rejectedVersions);
             if (hasCustomDescription) {
                 sb.append(" because ").append(descriptor.getDescription());
@@ -471,5 +499,4 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
             return 20 + rejectedVersions.size() * 8 + (hasCustomDescription ? 24 : 0);
         }
     }
-
 }

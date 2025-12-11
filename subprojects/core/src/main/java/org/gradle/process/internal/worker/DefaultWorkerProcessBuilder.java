@@ -16,6 +16,15 @@
 
 package org.gradle.process.internal.worker;
 
+import java.io.File;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.id.IdGenerator;
@@ -42,16 +51,6 @@ import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerProcessBuilder.class);
     private final MessagingServer server;
@@ -76,14 +75,13 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private boolean addJpmsCompatibilityFlags = true;
 
     DefaultWorkerProcessBuilder(
-        JavaExecHandleFactory execHandleFactory,
-        MessagingServer server,
-        IdGenerator<Long> idGenerator,
-        ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory,
-        OutputEventListener outputEventListener,
-        MemoryManager memoryManager,
-        JvmVersionDetector jvmVersionDetector
-    ) {
+            JavaExecHandleFactory execHandleFactory,
+            MessagingServer server,
+            IdGenerator<Long> idGenerator,
+            ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory,
+            OutputEventListener outputEventListener,
+            MemoryManager memoryManager,
+            JvmVersionDetector jvmVersionDetector) {
         this.javaCommand = execHandleFactory.newJavaExec();
         this.javaCommand.setExecutable(Jvm.current().getJavaExecutable());
         this.server = server;
@@ -127,7 +125,10 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     }
 
     private boolean isEntryValid(File file) {
-        return file.exists() || ("*".equals(file.getName()) && file.getParentFile() != null && file.getParentFile().exists());
+        return file.exists()
+                || ("*".equals(file.getName())
+                        && file.getParentFile() != null
+                        && file.getParentFile().exists());
     }
 
     @Override
@@ -223,18 +224,19 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     @Override
     public WorkerProcess build() {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
-        final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus);
-        ConnectionAcceptor acceptor = server.accept(connection ->
-            workerProcess.onConnect(connection, () -> {
-                DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
-                connection.useParameterSerializers(WorkerLoggingSerializer.create());
-                connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);
+        final DefaultWorkerProcess workerProcess =
+                new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus);
+        ConnectionAcceptor acceptor = server.accept(connection -> workerProcess.onConnect(connection, () -> {
+            DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol =
+                    new DefaultWorkerLoggingProtocol(outputEventListener);
+            connection.useParameterSerializers(WorkerLoggingSerializer.create());
+            connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);
 
-                if (shouldPublishJvmMemoryInfo) {
-                    connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
-                    connection.addIncoming(WorkerJvmMemoryInfoProtocol.class, memoryStatus);
-                }
-            }));
+            if (shouldPublishJvmMemoryInfo) {
+                connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
+                connection.addIncoming(WorkerJvmMemoryInfoProtocol.class, memoryStatus);
+            }
+        }));
         workerProcess.startAccepting(acceptor);
         Address localAddress = acceptor.getAddress();
 
@@ -254,10 +256,20 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         int javaVersionMajor = jvmVersionDetector.getJavaVersionMajor(javaCommand.getExecutable());
 
         boolean java9Compatible = javaVersionMajor >= 9;
-        workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, javaCommand, shouldPublishJvmMemoryInfo, java9Compatible);
+        workerImplementationFactory.prepareJavaCommand(
+                id,
+                displayName,
+                this,
+                implementationClassPath,
+                implementationModulePath,
+                localAddress,
+                javaCommand,
+                shouldPublishJvmMemoryInfo,
+                java9Compatible);
 
         if (addJpmsCompatibilityFlags) {
-            javaCommand.jvmArgs(JpmsConfiguration.forWorkerProcesses(javaVersionMajor, nativeServicesMode.isPotentiallyEnabled()));
+            javaCommand.jvmArgs(
+                    JpmsConfiguration.forWorkerProcesses(javaVersionMajor, nativeServicesMode.isPotentiallyEnabled()));
         }
 
         javaCommand.args("'" + displayName + "'");
@@ -268,7 +280,8 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
 
         workerProcess.setExecHandle(execHandle);
 
-        return new MemoryRequestingWorkerProcess(workerProcess, memoryManager, MemoryAmount.parseNotation(javaCommand.getMaxHeapSize()));
+        return new MemoryRequestingWorkerProcess(
+                workerProcess, memoryManager, MemoryAmount.parseNotation(javaCommand.getMaxHeapSize()));
     }
 
     private static class MemoryRequestingWorkerProcess implements WorkerProcess {
@@ -276,7 +289,8 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         private final MemoryManager memoryResourceManager;
         private final long memoryAmount;
 
-        private MemoryRequestingWorkerProcess(WorkerProcess delegate, MemoryManager memoryResourceManager, long memoryAmount) {
+        private MemoryRequestingWorkerProcess(
+                WorkerProcess delegate, MemoryManager memoryResourceManager, long memoryAmount) {
             this.delegate = delegate;
             this.memoryResourceManager = memoryResourceManager;
             this.memoryAmount = memoryAmount;

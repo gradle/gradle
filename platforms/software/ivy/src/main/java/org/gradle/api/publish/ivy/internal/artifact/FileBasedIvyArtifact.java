@@ -17,19 +17,19 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import com.google.common.io.Files;
+import java.io.File;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
-
-import java.io.File;
 
 public class FileBasedIvyArtifact extends AbstractIvyArtifact {
     private final File file;
     private final String extension;
     private final IvyPublicationCoordinates coordinates;
 
-    public FileBasedIvyArtifact(File file, IvyPublicationCoordinates coordinates, TaskDependencyFactory taskDependencyFactory) {
+    public FileBasedIvyArtifact(
+            File file, IvyPublicationCoordinates coordinates, TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         this.file = file;
         extension = Files.getFileExtension(file.getName());

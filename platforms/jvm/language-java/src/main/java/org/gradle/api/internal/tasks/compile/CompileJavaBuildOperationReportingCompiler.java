@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
@@ -28,16 +30,14 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.language.base.internal.compile.Compiler;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class CompileJavaBuildOperationReportingCompiler implements Compiler<JavaCompileSpec> {
 
     private final TaskInternal task;
     private final Compiler<JavaCompileSpec> delegate;
     private final BuildOperationRunner buildOperationRunner;
 
-    public CompileJavaBuildOperationReportingCompiler(TaskInternal task, Compiler<JavaCompileSpec> delegate, BuildOperationRunner buildOperationRunner) {
+    public CompileJavaBuildOperationReportingCompiler(
+            TaskInternal task, Compiler<JavaCompileSpec> delegate, BuildOperationRunner buildOperationRunner) {
         this.task = task;
         this.delegate = delegate;
         this.buildOperationRunner = buildOperationRunner;
@@ -49,14 +49,13 @@ public class CompileJavaBuildOperationReportingCompiler implements Compiler<Java
             @Override
             public BuildOperationDescriptor.Builder description() {
                 String taskIdentityPath = task.getIdentityPath().asString();
-                return BuildOperationDescriptor
-                    .displayName("Compile Java for " + taskIdentityPath)
-                    .details(new CompileJavaBuildOperationType.Details() {
-                    @Override
-                    public String getTaskIdentityPath() {
-                        return taskIdentityPath;
-                    }
-                });
+                return BuildOperationDescriptor.displayName("Compile Java for " + taskIdentityPath)
+                        .details(new CompileJavaBuildOperationType.Details() {
+                            @Override
+                            public String getTaskIdentityPath() {
+                                return taskIdentityPath;
+                            }
+                        });
             }
 
             @Override
@@ -68,9 +67,11 @@ public class CompileJavaBuildOperationReportingCompiler implements Compiler<Java
 
             private Result toBuildOperationResult(WorkResult result) {
                 if (result instanceof ApiCompilerResult) {
-                    AnnotationProcessingResult annotationProcessingResult = ((ApiCompilerResult) result).getAnnotationProcessingResult();
+                    AnnotationProcessingResult annotationProcessingResult =
+                            ((ApiCompilerResult) result).getAnnotationProcessingResult();
                     List<AnnotationProcessorDetails> details = new ArrayList<AnnotationProcessorDetails>();
-                    for (AnnotationProcessorResult processorResult : annotationProcessingResult.getAnnotationProcessorResults()) {
+                    for (AnnotationProcessorResult processorResult :
+                            annotationProcessingResult.getAnnotationProcessorResults()) {
                         details.add(toAnnotationProcessorDetails(processorResult));
                     }
                     return new Result(details);
@@ -79,7 +80,8 @@ public class CompileJavaBuildOperationReportingCompiler implements Compiler<Java
             }
 
             private DefaultAnnotationProcessorDetails toAnnotationProcessorDetails(AnnotationProcessorResult result) {
-                return new DefaultAnnotationProcessorDetails(result.getClassName(), toType(result.getType()), result.getExecutionTimeInMillis());
+                return new DefaultAnnotationProcessorDetails(
+                        result.getClassName(), toType(result.getType()), result.getExecutionTimeInMillis());
             }
 
             private AnnotationProcessorDetails.Type toType(IncrementalAnnotationProcessorType type) {
@@ -106,7 +108,6 @@ public class CompileJavaBuildOperationReportingCompiler implements Compiler<Java
         public List<AnnotationProcessorDetails> getAnnotationProcessorDetails() {
             return annotationProcessorDetails;
         }
-
     }
 
     private static class DefaultAnnotationProcessorDetails implements AnnotationProcessorDetails {
@@ -135,7 +136,5 @@ public class CompileJavaBuildOperationReportingCompiler implements Compiler<Java
         public long getExecutionTimeInMillis() {
             return executionTimeInMillis;
         }
-
     }
-
 }

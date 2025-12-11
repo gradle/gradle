@@ -20,14 +20,13 @@ import gradlebuild.docs.dsl.source.model.ClassMetaData;
 import gradlebuild.docs.dsl.source.model.MethodMetaData;
 import gradlebuild.docs.dsl.source.model.TypeMetaData;
 import gradlebuild.docs.model.ClassMetaDataRepository;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 /**
  * Converts a javadoc link into docbook.
@@ -41,8 +40,11 @@ public class JavadocLinkConverter {
     private final LinkRenderer linkRenderer;
     private final ClassMetaDataRepository<ClassMetaData> repository;
 
-    public JavadocLinkConverter(Document document, TypeNameResolver typeNameResolver, LinkRenderer linkRenderer,
-                                ClassMetaDataRepository<ClassMetaData> repository) {
+    public JavadocLinkConverter(
+            Document document,
+            TypeNameResolver typeNameResolver,
+            LinkRenderer linkRenderer,
+            ClassMetaDataRepository<ClassMetaData> repository) {
         this.document = document;
         this.typeNameResolver = typeNameResolver;
         this.linkRenderer = linkRenderer;
@@ -158,7 +160,8 @@ public class JavadocLinkConverter {
             String targetClassName = typeNameResolver.resolve(parts[0], classMetaData);
             targetClass = repository.find(targetClassName);
             if (targetClass == null) {
-                listener.warning(String.format("Could not locate target class '%s' for field value link '%s'", targetClass, fieldName));
+                listener.warning(String.format(
+                        "Could not locate target class '%s' for field value link '%s'", targetClass, fieldName));
                 Element element = document.createElement("UNHANDLED-VALUE");
                 element.appendChild(document.createTextNode(targetClassName + ":" + parts[1]));
                 return element;

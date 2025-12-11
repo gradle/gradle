@@ -16,10 +16,9 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import java.lang.invoke.MethodHandles;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.jspecify.annotations.NullMarked;
-
-import java.lang.invoke.MethodHandles;
 
 /**
  * A handler for Groovy call sites, including Indy ones, which is used to replace the call sites of some calls at runtime,
@@ -29,5 +28,10 @@ import java.lang.invoke.MethodHandles;
 public interface CallSiteDecorator {
     CallSite maybeDecorateGroovyCallSite(CallSite originalCallSite);
 
-    java.lang.invoke.CallSite maybeDecorateIndyCallSite(java.lang.invoke.CallSite originalCallSite, MethodHandles.Lookup caller, String callType, String name, int flags);
+    java.lang.invoke.CallSite maybeDecorateIndyCallSite(
+            java.lang.invoke.CallSite originalCallSite,
+            MethodHandles.Lookup caller,
+            String callType,
+            String name,
+            int flags);
 }

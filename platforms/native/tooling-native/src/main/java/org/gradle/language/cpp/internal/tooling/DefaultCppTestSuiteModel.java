@@ -16,9 +16,8 @@
 
 package org.gradle.language.cpp.internal.tooling;
 
-import org.gradle.tooling.internal.protocol.cpp.InternalCppTestSuite;
-
 import java.util.List;
+import org.gradle.tooling.internal.protocol.cpp.InternalCppTestSuite;
 
 public class DefaultCppTestSuiteModel extends DefaultCppComponentModel implements InternalCppTestSuite {
     public DefaultCppTestSuiteModel(String name, String baseName, List<DefaultCppBinaryModel> binaries) {

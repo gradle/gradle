@@ -141,7 +141,8 @@ public interface PluginDependenciesSpec {
         if (pluginDependency.getVersion().getRequiredVersion().isEmpty()) {
             return id(pluginDependency.getPluginId());
         } else {
-            return id(pluginDependency.getPluginId()).version(pluginDependency.getVersion().getRequiredVersion());
+            return id(pluginDependency.getPluginId())
+                    .version(pluginDependency.getVersion().getRequiredVersion());
         }
     }
 
@@ -157,5 +158,4 @@ public interface PluginDependenciesSpec {
     default PluginDependencySpec alias(ProviderConvertible<PluginDependency> notation) {
         return alias(notation.asProvider());
     }
-
 }

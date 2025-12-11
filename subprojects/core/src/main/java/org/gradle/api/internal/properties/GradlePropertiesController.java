@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.properties;
 
+import java.io.File;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 /**
  * Manages the lifecycle of {@link GradleProperties} for builds and projects within a build tree.
@@ -138,5 +137,4 @@ public interface GradlePropertiesController {
      * reload properties and re-evaluate system property assignments.
      */
     void unloadAll();
-
 }

@@ -16,9 +16,8 @@
 
 package org.gradle.api.flow;
 
-import org.gradle.api.Incubating;
-
 import java.util.Optional;
+import org.gradle.api.Incubating;
 
 /**
  * Summary result of the execution of the work scheduled for the current build.

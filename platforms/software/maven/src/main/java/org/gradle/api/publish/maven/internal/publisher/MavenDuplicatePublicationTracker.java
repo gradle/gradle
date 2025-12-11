@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import java.net.URI;
 import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
@@ -24,26 +25,33 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.net.URI;
-
 @ServiceScope(Scope.Project.class)
 public class MavenDuplicatePublicationTracker {
     private final String projectDisplayName;
     private final DuplicatePublicationTracker duplicatePublicationTracker;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
-    public MavenDuplicatePublicationTracker(Project project, DuplicatePublicationTracker duplicatePublicationTracker, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+    public MavenDuplicatePublicationTracker(
+            Project project,
+            DuplicatePublicationTracker duplicatePublicationTracker,
+            LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.projectDisplayName = project.getDisplayName();
         this.duplicatePublicationTracker = duplicatePublicationTracker;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
-    public void checkCanPublish(MavenNormalizedPublication publication, @Nullable URI repositoryLocation, String repositoryName) {
+    public void checkCanPublish(
+            MavenNormalizedPublication publication, @Nullable URI repositoryLocation, String repositoryName) {
         duplicatePublicationTracker.checkCanPublish(
-            projectDisplayName, publication.getName(), DefaultModuleVersionIdentifier.newId(publication.getProjectIdentity()), repositoryLocation, repositoryName);
+                projectDisplayName,
+                publication.getName(),
+                DefaultModuleVersionIdentifier.newId(publication.getProjectIdentity()),
+                repositoryLocation,
+                repositoryName);
     }
 
     public void checkCanPublishToMavenLocal(MavenNormalizedPublication publication) {
-        checkCanPublish(publication, mavenRepositoryLocator.getLocalMavenRepository().toURI(), "mavenLocal");
+        checkCanPublish(
+                publication, mavenRepositoryLocator.getLocalMavenRepository().toURI(), "mavenLocal");
     }
 }

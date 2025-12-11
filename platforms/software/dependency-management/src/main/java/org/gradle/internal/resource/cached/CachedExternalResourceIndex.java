@@ -15,10 +15,9 @@
  */
 package org.gradle.internal.resource.cached;
 
+import java.io.File;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Provides an indexed view into cached artifacts and a record of resolution attempts, successful or not.
@@ -66,5 +65,4 @@ public interface CachedExternalResourceIndex<K> {
      * @param key The key of the item to remove.
      */
     void clear(K key);
-
 }

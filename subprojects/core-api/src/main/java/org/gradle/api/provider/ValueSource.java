@@ -16,11 +16,10 @@
 
 package org.gradle.api.provider;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.file.RegularFile;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
 
 /**
  * Represents an external source of information used by a Gradle build.

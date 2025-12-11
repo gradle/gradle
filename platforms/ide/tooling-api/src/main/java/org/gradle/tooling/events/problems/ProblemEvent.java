@@ -27,6 +27,4 @@ import org.jspecify.annotations.NullMarked;
  */
 @NullMarked
 @Incubating
-public interface ProblemEvent extends ProgressEvent {
-
-}
+public interface ProblemEvent extends ProgressEvent {}

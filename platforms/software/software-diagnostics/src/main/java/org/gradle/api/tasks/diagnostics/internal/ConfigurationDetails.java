@@ -28,12 +28,13 @@ public class ConfigurationDetails {
     public static ConfigurationDetails of(Configuration configuration) {
         boolean canBeResolved = canBeResolved(configuration);
         return new ConfigurationDetails(
-            configuration.getName(),
-            configuration.getDescription(),
-            canBeResolved,
-            canBeResolved ? configuration.getIncoming().getResolutionResult().getRootComponent() : null,
-            canBeResolved ? null : UnresolvableConfigurationResult.of(configuration)
-        );
+                configuration.getName(),
+                configuration.getDescription(),
+                canBeResolved,
+                canBeResolved
+                        ? configuration.getIncoming().getResolutionResult().getRootComponent()
+                        : null,
+                canBeResolved ? null : UnresolvableConfigurationResult.of(configuration));
     }
 
     private static boolean canBeResolved(Configuration configuration) {
@@ -55,12 +56,11 @@ public class ConfigurationDetails {
     private final UnresolvableConfigurationResult unresolvableResult;
 
     private ConfigurationDetails(
-        String name,
-        @Nullable String description,
-        boolean canBeResolved,
-        @Nullable Provider<ResolvedComponentResult> resolutionResultRoot,
-        @Nullable UnresolvableConfigurationResult unresolvableResult
-    ) {
+            String name,
+            @Nullable String description,
+            boolean canBeResolved,
+            @Nullable Provider<ResolvedComponentResult> resolutionResultRoot,
+            @Nullable UnresolvableConfigurationResult unresolvableResult) {
         this.name = name;
         this.description = description;
         this.canBeResolved = canBeResolved;

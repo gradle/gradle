@@ -38,5 +38,4 @@ public abstract class AssemblerPlugin implements Plugin<Project> {
         project.getPluginManager().apply(NativeComponentModelPlugin.class);
         project.getPluginManager().apply(AssemblerLangPlugin.class);
     }
-
 }

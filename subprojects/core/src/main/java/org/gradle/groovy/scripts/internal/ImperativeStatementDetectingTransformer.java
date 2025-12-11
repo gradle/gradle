@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import java.util.List;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
@@ -23,8 +24,6 @@ import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
-
-import java.util.List;
 
 public class ImperativeStatementDetectingTransformer extends AbstractScriptTransformer {
     private boolean imperativeStatementDetected;

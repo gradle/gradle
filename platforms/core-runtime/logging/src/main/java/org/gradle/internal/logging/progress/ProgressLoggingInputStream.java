@@ -23,7 +23,8 @@ public class ProgressLoggingInputStream extends InputStream {
     private final InputStream inputStream;
     private final ProgressLoggingInputStreamListener progressLoggingInputStreamListener;
 
-    public ProgressLoggingInputStream(InputStream inputStream, ProgressLoggingInputStreamListener progressLoggingInputStreamListener) {
+    public ProgressLoggingInputStream(
+            InputStream inputStream, ProgressLoggingInputStreamListener progressLoggingInputStreamListener) {
         this.inputStream = inputStream;
         this.progressLoggingInputStreamListener = progressLoggingInputStreamListener;
     }

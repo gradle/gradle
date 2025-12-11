@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.catalog;
 
+import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
 
-import java.util.regex.Pattern;
-
 abstract class AliasNormalizer {
-    private final static Pattern SEPARATOR = Pattern.compile("[_.-]");
+    private static final Pattern SEPARATOR = Pattern.compile("[_.-]");
 
     @Nullable
     static String normalize(@Nullable String name) {

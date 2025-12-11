@@ -16,6 +16,16 @@
 
 package org.gradle.internal.classpath.transforms;
 
+import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getObjectType;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.function.Supplier;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
@@ -27,17 +37,6 @@ import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
-
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.function.Supplier;
-
-import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getObjectType;
 
 /**
  * Handwritten bytecode interceptors to be migrated to the annotation processor infrastructure.
@@ -51,26 +50,40 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
     private static final Type PROPERTIES_TYPE = Type.getType(Properties.class);
 
     private static final String RETURN_STRING_FROM_STRING = getMethodDescriptor(STRING_TYPE, STRING_TYPE);
-    private static final String RETURN_STRING_FROM_STRING_STRING = getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE);
-    private static final String RETURN_STRING_FROM_STRING_STRING_STRING = getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_STRING_FROM_STRING_STRING =
+            getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_STRING_FROM_STRING_STRING_STRING =
+            getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE, STRING_TYPE);
     private static final String RETURN_INTEGER_FROM_STRING = getMethodDescriptor(INTEGER_TYPE, STRING_TYPE);
-    private static final String RETURN_INTEGER_FROM_STRING_INT = getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, Type.INT_TYPE);
-    private static final String RETURN_INTEGER_FROM_STRING_INTEGER = getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, INTEGER_TYPE);
-    private static final String RETURN_INTEGER_FROM_STRING_STRING = getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, STRING_TYPE);
-    private static final String RETURN_INTEGER_FROM_STRING_INT_STRING = getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, Type.INT_TYPE, STRING_TYPE);
-    private static final String RETURN_INTEGER_FROM_STRING_INTEGER_STRING = getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, INTEGER_TYPE, STRING_TYPE);
+    private static final String RETURN_INTEGER_FROM_STRING_INT =
+            getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, Type.INT_TYPE);
+    private static final String RETURN_INTEGER_FROM_STRING_INTEGER =
+            getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, INTEGER_TYPE);
+    private static final String RETURN_INTEGER_FROM_STRING_STRING =
+            getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_INTEGER_FROM_STRING_INT_STRING =
+            getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, Type.INT_TYPE, STRING_TYPE);
+    private static final String RETURN_INTEGER_FROM_STRING_INTEGER_STRING =
+            getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, INTEGER_TYPE, STRING_TYPE);
     private static final String RETURN_LONG_FROM_STRING = getMethodDescriptor(LONG_TYPE, STRING_TYPE);
-    private static final String RETURN_LONG_FROM_STRING_PRIMITIVE_LONG = getMethodDescriptor(LONG_TYPE, STRING_TYPE, Type.LONG_TYPE);
+    private static final String RETURN_LONG_FROM_STRING_PRIMITIVE_LONG =
+            getMethodDescriptor(LONG_TYPE, STRING_TYPE, Type.LONG_TYPE);
     private static final String RETURN_LONG_FROM_STRING_LONG = getMethodDescriptor(LONG_TYPE, STRING_TYPE, LONG_TYPE);
-    private static final String RETURN_LONG_FROM_STRING_STRING = getMethodDescriptor(LONG_TYPE, STRING_TYPE, STRING_TYPE);
-    private static final String RETURN_LONG_FROM_STRING_PRIMITIVE_LONG_STRING = getMethodDescriptor(LONG_TYPE, STRING_TYPE, Type.LONG_TYPE, STRING_TYPE);
-    private static final String RETURN_LONG_FROM_STRING_LONG_STRING = getMethodDescriptor(LONG_TYPE, STRING_TYPE, LONG_TYPE, STRING_TYPE);
-    private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING = getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE);
-    private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING = getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_LONG_FROM_STRING_STRING =
+            getMethodDescriptor(LONG_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_LONG_FROM_STRING_PRIMITIVE_LONG_STRING =
+            getMethodDescriptor(LONG_TYPE, STRING_TYPE, Type.LONG_TYPE, STRING_TYPE);
+    private static final String RETURN_LONG_FROM_STRING_LONG_STRING =
+            getMethodDescriptor(LONG_TYPE, STRING_TYPE, LONG_TYPE, STRING_TYPE);
+    private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING =
+            getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE);
+    private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING =
+            getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE, STRING_TYPE);
     private static final String RETURN_PROPERTIES = getMethodDescriptor(PROPERTIES_TYPE);
     private static final String RETURN_PROPERTIES_FROM_STRING = getMethodDescriptor(PROPERTIES_TYPE, STRING_TYPE);
     private static final String RETURN_VOID_FROM_PROPERTIES = getMethodDescriptor(Type.VOID_TYPE, PROPERTIES_TYPE);
-    private static final String RETURN_VOID_FROM_PROPERTIES_STRING = getMethodDescriptor(Type.VOID_TYPE, PROPERTIES_TYPE, STRING_TYPE);
+    private static final String RETURN_VOID_FROM_PROPERTIES_STRING =
+            getMethodDescriptor(Type.VOID_TYPE, PROPERTIES_TYPE, STRING_TYPE);
     private static final String RETURN_MAP = getMethodDescriptor(Type.getType(Map.class));
     private static final String RETURN_MAP_FROM_STRING = getMethodDescriptor(Type.getType(Map.class), STRING_TYPE);
 
@@ -84,7 +97,8 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
 
     // ProcessBuilder().start() -> start(ProcessBuilder, String)
     private static final String RETURN_PROCESS = getMethodDescriptor(PROCESS_TYPE);
-    private static final String RETURN_PROCESS_FROM_PROCESS_BUILDER_STRING = getMethodDescriptor(PROCESS_TYPE, PROCESS_BUILDER_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_PROCESS_BUILDER_STRING =
+            getMethodDescriptor(PROCESS_TYPE, PROCESS_BUILDER_TYPE, STRING_TYPE);
     // ProcessBuilder.startPipeline(List) -> startPipeline(List, String)
     private static final String RETURN_LIST_FROM_LIST = getMethodDescriptor(LIST_TYPE, LIST_TYPE);
     private static final String RETURN_LIST_FROM_LIST_STRING = getMethodDescriptor(LIST_TYPE, LIST_TYPE, STRING_TYPE);
@@ -92,50 +106,82 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
     // Runtime().exec(String) -> exec(Runtime, String, String)
     // ProcessGroovyMethods.execute(String) -> execute(String, String)
     private static final String RETURN_PROCESS_FROM_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_TYPE, STRING_TYPE);
-    private static final String RETURN_PROCESS_FROM_STRING_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_STRING =
+            getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_STRING =
+            getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_TYPE);
     // Runtime().exec(String[]) -> exec(Runtime, String[], String)
     // ProcessGroovyMethods.execute(String[]) -> execute(String[], String)
     private static final String RETURN_PROCESS_FROM_STRING_ARRAY = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
-    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING =
+            getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING =
+            getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
     // ProcessGroovyMethods.execute(List) -> execute(List, String)
     private static final String RETURN_PROCESS_FROM_LIST = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE);
-    private static final String RETURN_PROCESS_FROM_LIST_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_LIST_STRING =
+            getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_TYPE);
     // Runtime().exec(String, String[]) -> exec(Runtume, String, String[], String)
-    private static final String RETURN_PROCESS_FROM_STRING_STRING_ARRAY = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_ARRAY_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_STRING_ARRAY_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_STRING_ARRAY =
+            getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_ARRAY_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_STRING_ARRAY_STRING =
+            getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
     // Runtime().exec(String[], String[]) -> exec(Runtume, String[], String[], String)
-    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY =
+            getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_STRING =
+            getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
     // Runtime().exec(String, String[], File) -> exec(Runtime, String, String[], File, String)
     // ProcessGroovyMethods.execute(String, String[], File) -> execute(String, String[], File, String)
-    private static final String RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
-    private static final String RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE =
+            getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_STRING_ARRAY_FILE_STRING =
+            getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE_STRING =
+            getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
     // Runtime().exec(String[], String[], File) -> exec(Runtime, String[], String[], File, String)
     // ProcessGroovyMethods.execute(String[], String[], File) -> execute(String[], String[], File, String)
-    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
-    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE =
+            getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_FILE_STRING = getMethodDescriptor(
+            PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE_STRING =
+            getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
     // ProcessGroovyMethods.execute(List, String[], File) -> execute(List, String[], File, String)
-    private static final String RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE =
+            getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
+    private static final String RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE_STRING =
+            getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
     // ProcessGroovyMethods.execute(String, List, File) -> execute(String, List, File, String)
-    private static final String RETURN_PROCESS_FROM_STRING_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, LIST_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_STRING_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_LIST_FILE =
+            getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, LIST_TYPE, FILE_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_LIST_FILE_STRING =
+            getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
     // ProcessGroovyMethods.execute(String[], List, File) -> execute(String[], List, File, String)
-    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, LIST_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_LIST_FILE =
+            getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, LIST_TYPE, FILE_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_LIST_FILE_STRING =
+            getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
     // ProcessGroovyMethods.execute(List, List, File) -> execute(List, List, File, String)
-    private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE =
+            getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE);
+    private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE_STRING =
+            getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
 
     private final ConventionInterceptors conventionInterceptors = new ConventionInterceptors();
 
     @Override
-    public boolean visitMethodInsn(MethodVisitorScope mv, String className, int opcode, String owner, String name, String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
-        if(conventionInterceptors.visitMethodInsn(mv, className, opcode, owner, name, descriptor, isInterface, readMethodNode)) {
+    public boolean visitMethodInsn(
+            MethodVisitorScope mv,
+            String className,
+            int opcode,
+            String owner,
+            String name,
+            String descriptor,
+            boolean isInterface,
+            Supplier<MethodNode> readMethodNode) {
+        if (conventionInterceptors.visitMethodInsn(
+                mv, className, opcode, owner, name, descriptor, isInterface, readMethodNode)) {
             return true;
         }
         switch (opcode) {
@@ -152,7 +198,8 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
         return BytecodeInterceptorType.INSTRUMENTATION;
     }
 
-    private boolean visitINVOKESTATIC(MethodVisitorScope mv, String className, String owner, String name, String descriptor) {
+    private boolean visitINVOKESTATIC(
+            MethodVisitorScope mv, String className, String owner, String name, String descriptor) {
         // TODO - load the class literal instead of class name to pass to the methods on Instrumented
         if (owner.equals(SYSTEM_TYPE.getInternalName())) {
             if (name.equals("getProperty")) {
@@ -227,12 +274,15 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
                 mv._INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_LONG_STRING);
                 return true;
             }
-        } else if (owner.equals(BOOLEAN_TYPE.getInternalName()) && name.equals("getBoolean") && descriptor.equals(RETURN_PRIMITIVE_BOOLEAN_FROM_STRING)) {
+        } else if (owner.equals(BOOLEAN_TYPE.getInternalName())
+                && name.equals("getBoolean")
+                && descriptor.equals(RETURN_PRIMITIVE_BOOLEAN_FROM_STRING)) {
             mv._LDC(binaryClassNameOf(className));
             mv._INVOKESTATIC(INSTRUMENTED_TYPE, "getBoolean", RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING);
             return true;
         } else if (owner.equals(PROCESS_GROOVY_METHODS_TYPE.getInternalName()) && name.equals("execute")) {
-            Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForProcessGroovyMethodsExecuteDescriptor(descriptor);
+            Optional<String> instrumentedDescriptor =
+                    getInstrumentedDescriptorForProcessGroovyMethodsExecuteDescriptor(descriptor);
             if (!instrumentedDescriptor.isPresent()) {
                 return false;
             }
@@ -240,7 +290,9 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
             mv._INVOKESTATIC(INSTRUMENTED_TYPE, "execute", instrumentedDescriptor.get());
             return true;
         }
-        if (owner.equals(PROCESS_BUILDER_TYPE.getInternalName()) && name.equals("startPipeline") && descriptor.equals(RETURN_LIST_FROM_LIST)) {
+        if (owner.equals(PROCESS_BUILDER_TYPE.getInternalName())
+                && name.equals("startPipeline")
+                && descriptor.equals(RETURN_LIST_FROM_LIST)) {
             mv._LDC(binaryClassNameOf(className));
             mv._INVOKESTATIC(INSTRUMENTED_TYPE, "startPipeline", RETURN_LIST_FROM_LIST_STRING);
             return true;
@@ -281,7 +333,8 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
         return Optional.empty();
     }
 
-    private boolean visitINVOKEVIRTUAL(MethodVisitorScope mv, String className, String owner, String name, String descriptor) {
+    private boolean visitINVOKEVIRTUAL(
+            MethodVisitorScope mv, String className, String owner, String name, String descriptor) {
         // Runtime.exec(...)
         if (owner.equals(RUNTIME_TYPE.getInternalName()) && name.equals("exec")) {
             Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForRuntimeExecDescriptor(descriptor);
@@ -326,9 +379,20 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
 
     @Nullable
     @Override
-    public BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor) {
-        if (tag == Opcodes.H_INVOKESTATIC && owner.equals(SYSTEM_TYPE.getInternalName()) && name.equals("getProperty") && descriptor.equals(RETURN_STRING_FROM_STRING)) {
-            return DefaultBridgeMethodBuilder.create(tag, owner, descriptor, INSTRUMENTED_TYPE.getInternalName(), "systemProperty", RETURN_STRING_FROM_STRING_STRING).withClassName(className);
+    public BridgeMethodBuilder findBridgeMethodBuilder(
+            String className, int tag, String owner, String name, String descriptor) {
+        if (tag == Opcodes.H_INVOKESTATIC
+                && owner.equals(SYSTEM_TYPE.getInternalName())
+                && name.equals("getProperty")
+                && descriptor.equals(RETURN_STRING_FROM_STRING)) {
+            return DefaultBridgeMethodBuilder.create(
+                            tag,
+                            owner,
+                            descriptor,
+                            INSTRUMENTED_TYPE.getInternalName(),
+                            "systemProperty",
+                            RETURN_STRING_FROM_STRING_STRING)
+                    .withClassName(className);
         }
         // TODO(mlopatkin): intercept the rest of the methods or migrate them to annotation processor.
         return null;

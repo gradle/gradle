@@ -29,7 +29,12 @@ public class CopySpecActionImpl implements Action<CopySpecResolver> {
     private final FileSystem fileSystem;
     private final boolean reproducibleFileOrder;
 
-    public CopySpecActionImpl(CopyActionProcessingStreamAction action, Instantiator instantiator, PropertyFactory propertyFactory, FileSystem fileSystem, boolean reproducibleFileOrder) {
+    public CopySpecActionImpl(
+            CopyActionProcessingStreamAction action,
+            Instantiator instantiator,
+            PropertyFactory propertyFactory,
+            FileSystem fileSystem,
+            boolean reproducibleFileOrder) {
         this.action = action;
         this.instantiator = instantiator;
         this.propertyFactory = propertyFactory;
@@ -40,6 +45,7 @@ public class CopySpecActionImpl implements Action<CopySpecResolver> {
     @Override
     public void execute(final CopySpecResolver specResolver) {
         FileTree source = specResolver.getSource();
-        source.visit(new CopyFileVisitorImpl(specResolver, action, instantiator, propertyFactory, fileSystem, reproducibleFileOrder));
+        source.visit(new CopyFileVisitorImpl(
+                specResolver, action, instantiator, propertyFactory, fileSystem, reproducibleFileOrder));
     }
 }

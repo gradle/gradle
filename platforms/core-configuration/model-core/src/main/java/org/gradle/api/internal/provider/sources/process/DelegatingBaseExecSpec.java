@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
-import org.gradle.process.BaseExecSpec;
-import org.gradle.process.ProcessForkOptions;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import org.gradle.process.BaseExecSpec;
+import org.gradle.process.ProcessForkOptions;
 
 /**
  * Just the wrapper that delegates all calls to what {@link #getDelegate()} returns.

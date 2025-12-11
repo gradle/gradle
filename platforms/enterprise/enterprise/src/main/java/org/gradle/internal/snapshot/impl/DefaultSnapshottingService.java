@@ -16,15 +16,14 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import static java.lang.String.format;
+
+import java.nio.file.Path;
+import javax.inject.Inject;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.Snapshot;
 import org.gradle.internal.snapshot.SnapshottingService;
 import org.gradle.internal.vfs.FileSystemAccess;
-
-import javax.inject.Inject;
-import java.nio.file.Path;
-
-import static java.lang.String.format;
 
 public class DefaultSnapshottingService implements SnapshottingService {
 

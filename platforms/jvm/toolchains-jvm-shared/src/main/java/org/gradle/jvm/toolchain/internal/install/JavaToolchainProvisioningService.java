@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal.install;
 
+import java.io.File;
+import java.net.URI;
 import org.gradle.api.GradleException;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SafeFileLocationUtils;
@@ -28,9 +30,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException;
-
-import java.io.File;
-import java.net.URI;
 
 @ServiceScope({Scope.Build.class})
 public interface JavaToolchainProvisioningService {
@@ -65,7 +64,8 @@ public interface JavaToolchainProvisioningService {
 
     default String buildFileNameWithDetails(URI uri, ExternalResource resource, JavaToolchainSpec spec) {
         String originalFileName = getFileName(uri, resource);
-        String id = "-" + spec.getVendor().get() + '-' + spec.getLanguageVersion().get().asInt();
+        String id = "-" + spec.getVendor().get() + '-'
+                + spec.getLanguageVersion().get().asInt();
         String nameWithIdUnsafe = FileUtils.addSuffixToName(originalFileName, id);
         return SafeFileLocationUtils.toSafeFileName(nameWithIdUnsafe, false);
     }

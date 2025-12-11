@@ -16,11 +16,10 @@
 
 package org.gradle.workers.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.workers.ClassLoaderWorkerSpec;
-
-import javax.inject.Inject;
 
 public class DefaultClassLoaderWorkerSpec extends DefaultWorkerSpec implements ClassLoaderWorkerSpec {
     private final ConfigurableFileCollection classpath;

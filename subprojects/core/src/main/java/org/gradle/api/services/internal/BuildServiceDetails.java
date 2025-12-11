@@ -31,7 +31,12 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
     private final int maxUsages;
     private final boolean resolved;
 
-    public BuildServiceDetails(BuildIdentifier buildIdentifier, String name, Class<T> implementationType, @Nullable P parameters, @Nullable Integer maxUsages) {
+    public BuildServiceDetails(
+            BuildIdentifier buildIdentifier,
+            String name,
+            Class<T> implementationType,
+            @Nullable P parameters,
+            @Nullable Integer maxUsages) {
         this.buildIdentifier = buildIdentifier;
         this.name = name;
         this.implementationType = implementationType;

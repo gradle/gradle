@@ -17,6 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
@@ -32,25 +37,32 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
-public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRepositoryKey, CachedArtifact> implements ModuleArtifactCache {
+public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRepositoryKey, CachedArtifact>
+        implements ModuleArtifactCache {
     private static final ArtifactAtRepositoryKeySerializer KEY_SERIALIZER = keySerializer();
     private final BuildCommencedTimeProvider timeProvider;
 
-    public DefaultModuleArtifactCache(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, FileAccessTracker fileAccessTracker, Path commonRootPath) {
-        super(persistentCacheFile, KEY_SERIALIZER, new CachedArtifactSerializer(commonRootPath), cacheAccessCoordinator, fileAccessTracker);
+    public DefaultModuleArtifactCache(
+            String persistentCacheFile,
+            BuildCommencedTimeProvider timeProvider,
+            ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
+            FileAccessTracker fileAccessTracker,
+            Path commonRootPath) {
+        super(
+                persistentCacheFile,
+                KEY_SERIALIZER,
+                new CachedArtifactSerializer(commonRootPath),
+                cacheAccessCoordinator,
+                fileAccessTracker);
         this.timeProvider = timeProvider;
     }
 
     protected static ArtifactAtRepositoryKeySerializer keySerializer() {
         DefaultSerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
-        serializerRegistry.register(DefaultModuleComponentArtifactIdentifier.class, new ComponentArtifactIdentifierSerializer());
-        serializerRegistry.register(ModuleComponentFileArtifactIdentifier.class, new ModuleComponentFileArtifactIdentifierSerializer());
+        serializerRegistry.register(
+                DefaultModuleComponentArtifactIdentifier.class, new ComponentArtifactIdentifierSerializer());
+        serializerRegistry.register(
+                ModuleComponentFileArtifactIdentifier.class, new ModuleComponentFileArtifactIdentifierSerializer());
         return new ArtifactAtRepositoryKeySerializer(serializerRegistry.build(ComponentArtifactIdentifier.class));
     }
 
@@ -151,7 +163,8 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
             byte[] encodedHash = decoder.readBinary();
             HashCode hash = HashCode.fromBytes(encodedHash);
             if (!isMissing) {
-                return new DefaultCachedArtifact(denormalizeAndResolveFilePath(decoder.readString()), createTimestamp, hash);
+                return new DefaultCachedArtifact(
+                        denormalizeAndResolveFilePath(decoder.readString()), createTimestamp, hash);
             } else {
                 int size = decoder.readSmallInt();
                 List<String> attempted = new ArrayList<>(size);
@@ -164,7 +177,8 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
 
         private String relativizeAndNormalizeFilePath(File cachedFile) {
             Path filePath = cachedFile.toPath();
-            assert filePath.startsWith(commonRootPath) : "Attempting to cache file " + filePath + " not in " + commonRootPath;
+            assert filePath.startsWith(commonRootPath)
+                    : "Attempting to cache file " + filePath + " not in " + commonRootPath;
             String systemDependentPath = commonRootPath.relativize(filePath).toString();
             if (!filePath.getFileSystem().getSeparator().equals("/")) {
                 return systemDependentPath.replace(filePath.getFileSystem().getSeparator(), "/");
@@ -174,10 +188,10 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
 
         private File denormalizeAndResolveFilePath(String relativePath) throws IOException {
             if (!commonRootPath.getFileSystem().getSeparator().equals("/")) {
-                relativePath = relativePath.replace("/", commonRootPath.getFileSystem().getSeparator());
+                relativePath =
+                        relativePath.replace("/", commonRootPath.getFileSystem().getSeparator());
             }
             return commonRootPath.resolve(relativePath).toFile();
         }
     }
-
 }

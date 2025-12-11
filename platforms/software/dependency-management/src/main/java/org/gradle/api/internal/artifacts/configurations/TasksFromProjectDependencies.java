@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import java.util.Set;
+import java.util.function.Supplier;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
@@ -27,21 +29,16 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
-import java.util.function.Supplier;
-
 class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
     private final TaskDependencyContainerInternal taskDependencyDelegate;
 
     public TasksFromProjectDependencies(
-        String taskName,
-        Supplier<Set<ProjectDependency>> projectDependencies,
-        TaskDependencyFactory taskDependencyFactory,
-        ProjectStateRegistry projectStateRegistry
-    ) {
-        this.taskDependencyDelegate = taskDependencyFactory.visitingDependencies(
-            context -> resolveProjectDependencies(context, projectDependencies.get(), projectStateRegistry, taskName)
-        );
+            String taskName,
+            Supplier<Set<ProjectDependency>> projectDependencies,
+            TaskDependencyFactory taskDependencyFactory,
+            ProjectStateRegistry projectStateRegistry) {
+        this.taskDependencyDelegate = taskDependencyFactory.visitingDependencies(context ->
+                resolveProjectDependencies(context, projectDependencies.get(), projectStateRegistry, taskName));
     }
 
     @Override
@@ -50,13 +47,14 @@ class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
     }
 
     private static void resolveProjectDependencies(
-        TaskDependencyResolveContext context,
-        Set<ProjectDependency> projectDependencies,
-        ProjectStateRegistry projectStateRegistry,
-        String taskName
-    ) {
+            TaskDependencyResolveContext context,
+            Set<ProjectDependency> projectDependencies,
+            ProjectStateRegistry projectStateRegistry,
+            String taskName) {
         for (ProjectDependency projectDependency : projectDependencies) {
-            Path identityPath = ((ProjectDependencyInternal) projectDependency).getTargetProjectIdentity().getBuildTreePath();
+            Path identityPath = ((ProjectDependencyInternal) projectDependency)
+                    .getTargetProjectIdentity()
+                    .getBuildTreePath();
             ProjectState projectState = projectStateRegistry.stateFor(identityPath);
             projectState.ensureTasksDiscovered();
 

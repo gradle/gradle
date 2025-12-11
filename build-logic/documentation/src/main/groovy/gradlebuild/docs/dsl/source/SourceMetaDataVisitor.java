@@ -43,7 +43,6 @@ import gradlebuild.docs.dsl.source.model.MethodMetaData;
 import gradlebuild.docs.dsl.source.model.PropertyMetaData;
 import gradlebuild.docs.dsl.source.model.TypeMetaData;
 import gradlebuild.docs.model.ClassMetaDataRepository;
-
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -63,9 +62,9 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
     public void visit(CompilationUnit compilationUnit, ClassMetaDataRepository<ClassMetaData> repository) {
         super.visit(compilationUnit, repository);
         compilationUnit.getImports().stream()
-            .filter(anImport -> !anImport.isStatic())
-            .map(anImport -> anImport.getNameAsString() + (anImport.isAsterisk() ? ".*" : ""))
-            .forEach(anImport -> allClasses.forEach(classMetaData -> classMetaData.addImport(anImport)));
+                .filter(anImport -> !anImport.isStatic())
+                .map(anImport -> anImport.getNameAsString() + (anImport.isAsterisk() ? ".*" : ""))
+                .forEach(anImport -> allClasses.forEach(classMetaData -> classMetaData.addImport(anImport)));
     }
 
     @Override
@@ -76,11 +75,15 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
 
     @Override
     public void visit(ClassOrInterfaceDeclaration classDeclaration, ClassMetaDataRepository<ClassMetaData> repository) {
-        visitTypeDeclaration(classDeclaration, repository, classDeclaration.isInterface() ? MetaType.INTERFACE : MetaType.CLASS, () -> {
-            visitExtendedTypes(classDeclaration);
-            visitImplementedTypes(classDeclaration);
-            super.visit(classDeclaration, repository);
-        });
+        visitTypeDeclaration(
+                classDeclaration,
+                repository,
+                classDeclaration.isInterface() ? MetaType.INTERFACE : MetaType.CLASS,
+                () -> {
+                    visitExtendedTypes(classDeclaration);
+                    visitImplementedTypes(classDeclaration);
+                    super.visit(classDeclaration, repository);
+                });
     }
 
     @Override
@@ -99,13 +102,18 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
         });
     }
 
-    private void visitTypeDeclaration(TypeDeclaration<?> typeDeclaration, ClassMetaDataRepository<ClassMetaData> repository, ClassMetaData.MetaType metaType, Runnable action) {
+    private void visitTypeDeclaration(
+            TypeDeclaration<?> typeDeclaration,
+            ClassMetaDataRepository<ClassMetaData> repository,
+            ClassMetaData.MetaType metaType,
+            Runnable action) {
         if (!typeDeclaration.isPublic()) {
             return;
         }
         ClassMetaData outerClass = classStack.isEmpty() ? null : getCurrentClass();
         String baseName = typeDeclaration.getNameAsString();
-        String className = outerClass == null ? packageName + '.' + baseName : outerClass.getClassName() + '.' + baseName;
+        String className =
+                outerClass == null ? packageName + '.' + baseName : outerClass.getClassName() + '.' + baseName;
         String comment = getJavadocComment(typeDeclaration);
         ClassMetaData currentClass = new ClassMetaData(className, packageName, metaType, false, comment);
         if (outerClass != null) {
@@ -158,8 +166,10 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
         Matcher matcher = GETTER_METHOD_NAME.matcher(name);
         if (matcher.matches()) {
             int startName = matcher.start(2);
-            String propName = name.substring(startName, startName + 1).toLowerCase(Locale.ROOT) + name.substring(startName + 1);
-            PropertyMetaData property = getCurrentClass().addReadableProperty(propName, returnType, rawCommentText, methodMetaData);
+            String propName =
+                    name.substring(startName, startName + 1).toLowerCase(Locale.ROOT) + name.substring(startName + 1);
+            PropertyMetaData property =
+                    getCurrentClass().addReadableProperty(propName, returnType, rawCommentText, methodMetaData);
             methodMetaData.getAnnotationTypeNames().forEach(property::addAnnotationTypeName);
             property.setReplacement(methodMetaData.getReplacement());
             return;
@@ -171,7 +181,8 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
         matcher = SETTER_METHOD_NAME.matcher(name);
         if (matcher.matches()) {
             int startName = matcher.start(1);
-            String propName = name.substring(startName, startName + 1).toLowerCase(Locale.ROOT) + name.substring(startName + 1);
+            String propName =
+                    name.substring(startName, startName + 1).toLowerCase(Locale.ROOT) + name.substring(startName + 1);
             TypeMetaData type = methodMetaData.getParameters().get(0).getType();
             getCurrentClass().addWriteableProperty(propName, type, rawCommentText, methodMetaData);
         }
@@ -189,15 +200,17 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
 
     @Override
     public void visit(FieldDeclaration fieldDeclaration, ClassMetaDataRepository<ClassMetaData> arg) {
-        boolean isConst = getCurrentClass().isInterface() || (fieldDeclaration.isStatic() && fieldDeclaration.isFinal());
+        boolean isConst =
+                getCurrentClass().isInterface() || (fieldDeclaration.isStatic() && fieldDeclaration.isFinal());
         if (isConst) {
             fieldDeclaration.getVariables().forEach(variableDeclarator -> {
                 String constName = variableDeclarator.getNameAsString();
-                String value = variableDeclarator.getInitializer()
-                    .filter(Expression::isLiteralStringValueExpr)
-                    .map(Expression::asLiteralStringValueExpr)
-                    .map(LiteralStringValueExpr::getValue)
-                    .orElse(null);
+                String value = variableDeclarator
+                        .getInitializer()
+                        .filter(Expression::isLiteralStringValueExpr)
+                        .map(Expression::asLiteralStringValueExpr)
+                        .map(LiteralStringValueExpr::getValue)
+                        .orElse(null);
                 getCurrentClass().getConstants().put(constName, value);
             });
         }
@@ -214,11 +227,16 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
         elementType.ifVoidType(voidType -> typeMetaData.setName("void"));
         elementType.ifPrimitiveType(primitiveType -> typeMetaData.setName(primitiveType.asString()));
         elementType.ifWildcardType(wildcardType -> {
-            if (!wildcardType.getExtendedType().isPresent() && !wildcardType.getSuperType().isPresent()) {
+            if (!wildcardType.getExtendedType().isPresent()
+                    && !wildcardType.getSuperType().isPresent()) {
                 typeMetaData.setWildcard();
             } else {
-                wildcardType.getExtendedType().ifPresent(referenceType -> typeMetaData.setUpperBounds(extractTypeName(referenceType)));
-                wildcardType.getSuperType().ifPresent(referenceType -> typeMetaData.setLowerBounds(extractTypeName(referenceType)));
+                wildcardType
+                        .getExtendedType()
+                        .ifPresent(referenceType -> typeMetaData.setUpperBounds(extractTypeName(referenceType)));
+                wildcardType
+                        .getSuperType()
+                        .ifPresent(referenceType -> typeMetaData.setLowerBounds(extractTypeName(referenceType)));
             }
         });
         elementType.ifClassOrInterfaceType(classOrInterfaceType -> {
@@ -231,8 +249,12 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
 
     private void findAnnotations(NodeWithAnnotations<?> node, AbstractLanguageElement currentElement) {
         for (AnnotationExpr child : node.getAnnotations()) {
-            if (child instanceof SingleMemberAnnotationExpr && child.getNameAsString().endsWith("ReplacedBy")) {
-                currentElement.setReplacement(((SingleMemberAnnotationExpr) child).getMemberValue().asLiteralStringValueExpr().getValue());
+            if (child instanceof SingleMemberAnnotationExpr
+                    && child.getNameAsString().endsWith("ReplacedBy")) {
+                currentElement.setReplacement(((SingleMemberAnnotationExpr) child)
+                        .getMemberValue()
+                        .asLiteralStringValueExpr()
+                        .getValue());
             }
             currentElement.addAnnotationTypeName(child.getNameAsString());
         }
@@ -248,5 +270,4 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
     private String getJavadocComment(NodeWithJavadoc<?> node) {
         return node.getJavadocComment().map(Comment::getContent).orElse("");
     }
-
 }

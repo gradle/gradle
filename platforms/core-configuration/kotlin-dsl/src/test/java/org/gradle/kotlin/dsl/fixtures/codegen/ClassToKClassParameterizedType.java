@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.fixtures.codegen;
 import java.io.Serializable;
 import java.util.List;
 
-
 public interface ClassToKClassParameterizedType<T extends Serializable> {
 
     T invariantClass(Class<T> type, List<T> list);

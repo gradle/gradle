@@ -15,13 +15,12 @@
  */
 package org.gradle.internal.remote.internal.inet;
 
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
 
 public class SocketInetAddress implements InetEndpoint {
     public static final org.gradle.internal.serialize.Serializer<SocketInetAddress> SERIALIZER = new Serializer();

@@ -15,6 +15,8 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.remote.internal.Connection;
@@ -24,16 +26,13 @@ import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.protocol.Message;
 import org.jspecify.annotations.Nullable;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * A simple wrapper for the connection to a daemon.
  *
  * <p>Currently, dispatch is thread safe, and receive is not.
  */
 public class DaemonClientConnection implements Connection<Message> {
-    private final static Logger LOG = Logging.getLogger(DaemonClientConnection.class);
+    private static final Logger LOG = Logging.getLogger(DaemonClientConnection.class);
     private final RemoteConnection<Message> connection;
     private final DaemonConnectDetails daemon;
     private final StaleAddressDetector staleAddressDetector;
@@ -41,7 +40,10 @@ public class DaemonClientConnection implements Connection<Message> {
     private final Lock dispatchLock = new ReentrantLock();
     private boolean suspect;
 
-    public DaemonClientConnection(RemoteConnection<Message> connection, DaemonConnectDetails daemon, StaleAddressDetector staleAddressDetector) {
+    public DaemonClientConnection(
+            RemoteConnection<Message> connection,
+            DaemonConnectDetails daemon,
+            StaleAddressDetector staleAddressDetector) {
         this.connection = connection;
         this.daemon = daemon;
         this.staleAddressDetector = staleAddressDetector;

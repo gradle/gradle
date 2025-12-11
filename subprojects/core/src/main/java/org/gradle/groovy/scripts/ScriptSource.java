@@ -15,11 +15,10 @@
  */
 package org.gradle.groovy.scripts;
 
+import java.io.Serializable;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.scan.UsedByScanPlugin;
-
-import java.io.Serializable;
 
 /**
  * The source for the text of a script, with some meta-info about the script.

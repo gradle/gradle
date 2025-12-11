@@ -26,7 +26,8 @@ public class RunAsWorkerThreadBuildActionExecutor implements BuildSessionActionE
     private final BuildSessionActionExecutor delegate;
     private final WorkerLeaseService workerLeaseService;
 
-    public RunAsWorkerThreadBuildActionExecutor(WorkerLeaseService workerLeaseService, BuildSessionActionExecutor delegate) {
+    public RunAsWorkerThreadBuildActionExecutor(
+            WorkerLeaseService workerLeaseService, BuildSessionActionExecutor delegate) {
         this.delegate = delegate;
         this.workerLeaseService = workerLeaseService;
     }

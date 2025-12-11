@@ -40,16 +40,15 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.transport.http.HttpProxySettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 @SuppressWarnings("deprecation")
 public class S3Client {
@@ -79,9 +78,10 @@ public class S3Client {
         AWSCredentials credentials = null;
         if (awsCredentials != null) {
             if (awsCredentials.getSessionToken() == null) {
-                credentials =  new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
+                credentials = new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
             } else {
-                credentials =  new BasicSessionCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey(), awsCredentials.getSessionToken());
+                credentials = new BasicSessionCredentials(
+                        awsCredentials.getAccessKey(), awsCredentials.getSecretKey(), awsCredentials.getSessionToken());
             }
         }
         amazonS3Client = new AmazonS3Client(credentials, createConnectionProperties());
@@ -102,7 +102,8 @@ public class S3Client {
         ClientConfiguration clientConfiguration = new ClientConfiguration();
         Optional<HttpProxySettings.HttpProxy> proxyOptional = s3ConnectionProperties.getProxy();
         if (proxyOptional.isPresent()) {
-            HttpProxySettings.HttpProxy proxy = s3ConnectionProperties.getProxy().get();
+            HttpProxySettings.HttpProxy proxy =
+                    s3ConnectionProperties.getProxy().get();
             clientConfiguration.setProxyHost(proxy.host);
             clientConfiguration.setProxyPort(proxy.port);
             HttpProxySettings.HttpProxyCredentials credentials = proxy.credentials;
@@ -136,8 +137,9 @@ public class S3Client {
             ObjectMetadata objectMetadata = new ObjectMetadata();
             objectMetadata.setContentLength(contentLength);
 
-            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, s3BucketKey, inputStream, objectMetadata)
-                .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl);
+            PutObjectRequest putObjectRequest = new PutObjectRequest(
+                            bucketName, s3BucketKey, inputStream, objectMetadata)
+                    .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl);
             LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]", s3BucketKey, bucketName);
 
             amazonS3Client.putObject(putObjectRequest);
@@ -154,7 +156,7 @@ public class S3Client {
             configureClient(s3RegionalResource);
             List<PartETag> partETags = new ArrayList<>();
             InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(bucketName, s3BucketKey)
-                .withCannedACL(CannedAccessControlList.BucketOwnerFullControl);
+                    .withCannedACL(CannedAccessControlList.BucketOwnerFullControl);
             InitiateMultipartUploadResult initResponse = amazonS3Client.initiateMultipartUpload(initRequest);
             try {
                 long filePosition = 0;
@@ -165,22 +167,22 @@ public class S3Client {
                 for (int partNumber = 1; filePosition < contentLength; partNumber++) {
                     partSize = Math.min(partSize, contentLength - filePosition);
                     UploadPartRequest uploadPartRequest = new UploadPartRequest()
-                        .withBucketName(bucketName)
-                        .withKey(s3BucketKey)
-                        .withUploadId(initResponse.getUploadId())
-                        .withPartNumber(partNumber)
-                        .withPartSize(partSize)
-                        .withInputStream(inputStream);
+                            .withBucketName(bucketName)
+                            .withKey(s3BucketKey)
+                            .withUploadId(initResponse.getUploadId())
+                            .withPartNumber(partNumber)
+                            .withPartSize(partSize)
+                            .withInputStream(inputStream);
                     partETags.add(amazonS3Client.uploadPart(uploadPartRequest).getPartETag());
                     filePosition += partSize;
                 }
 
                 CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(
-                    bucketName, s3BucketKey, initResponse.getUploadId(), partETags
-                );
+                        bucketName, s3BucketKey, initResponse.getUploadId(), partETags);
                 amazonS3Client.completeMultipartUpload(completeRequest);
             } catch (AmazonClientException e) {
-                amazonS3Client.abortMultipartUpload(new AbortMultipartUploadRequest(bucketName, s3BucketKey, initResponse.getUploadId()));
+                amazonS3Client.abortMultipartUpload(
+                        new AbortMultipartUploadRequest(bucketName, s3BucketKey, initResponse.getUploadId()));
                 throw e;
             }
         } catch (AmazonClientException e) {
@@ -190,7 +192,7 @@ public class S3Client {
 
     public S3Object getMetaData(URI uri) {
         LOGGER.debug("Attempting to get s3 meta-data: [{}]", uri.toString());
-        //Would typically use GetObjectMetadataRequest but it does not work with v4 signatures
+        // Would typically use GetObjectMetadataRequest but it does not work with v4 signatures
         return doGetS3Object(uri, true);
     }
 
@@ -206,10 +208,10 @@ public class S3Client {
         configureClient(s3RegionalResource);
 
         ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
-            .withBucketName(bucketName)
-            .withPrefix(s3BucketKey)
-            .withMaxKeys(1000)
-            .withDelimiter("/");
+                .withBucketName(bucketName)
+                .withPrefix(s3BucketKey)
+                .withMaxKeys(1000)
+                .withDelimiter("/");
         ObjectListing objectListing = amazonS3Client.listObjects(listObjectsRequest);
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         builder.addAll(resourceResolver.resolveResourceNames(objectListing));
@@ -229,7 +231,7 @@ public class S3Client {
 
         GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, s3BucketKey);
         if (isLightWeight) {
-            //Skip content download
+            // Skip content download
             getObjectRequest.setRange(0, 0);
         }
 

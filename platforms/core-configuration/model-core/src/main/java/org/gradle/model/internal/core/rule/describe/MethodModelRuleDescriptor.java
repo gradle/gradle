@@ -20,29 +20,29 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
-import org.gradle.internal.UncheckedException;
-import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
-import org.gradle.model.internal.type.ModelType;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.internal.UncheckedException;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
+import org.gradle.model.internal.type.ModelType;
 
 // TODO some kind of context of why the method was attached (e.g. which plugin declared the rule)
 // TODO some kind of instance state for the method (might be the same as context above)
 @ThreadSafe
 public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
-    private final static Cache DESCRIPTOR_CACHE = new Cache();
-    private final static Joiner PARAM_JOINER = Joiner.on(", ");
-    private static final Function<ModelType<?>, String> TYPE_DISPLAYNAME_FUNCTION = new Function<ModelType<?>, String>() {
-        @Override
-        public String apply(ModelType<?> input) {
-            return input.getDisplayName();
-        }
-    };
+    private static final Cache DESCRIPTOR_CACHE = new Cache();
+    private static final Joiner PARAM_JOINER = Joiner.on(", ");
+    private static final Function<ModelType<?>, String> TYPE_DISPLAYNAME_FUNCTION =
+            new Function<ModelType<?>, String>() {
+                @Override
+                public String apply(ModelType<?> input) {
+                    return input.getDisplayName();
+                }
+            };
 
     private final WeaklyTypeReferencingMethod<?, ?> method;
     private String description;
@@ -128,7 +128,8 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
             private final Map<WeaklyTypeReferencingMethod<?, ?>, MethodModelRuleDescriptor> descriptors;
 
             public CacheEntry(Class<?> clazz) {
-                this.descriptors = new HashMap<WeaklyTypeReferencingMethod<?, ?>, MethodModelRuleDescriptor>(clazz.getDeclaredMethods().length);
+                this.descriptors = new HashMap<WeaklyTypeReferencingMethod<?, ?>, MethodModelRuleDescriptor>(
+                        clazz.getDeclaredMethods().length);
             }
 
             public <T, R> MethodModelRuleDescriptor get(WeaklyTypeReferencingMethod<T, R> weakMethod) {

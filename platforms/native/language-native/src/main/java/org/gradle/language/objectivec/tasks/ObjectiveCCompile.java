@@ -31,5 +31,4 @@ public abstract class ObjectiveCCompile extends AbstractNativeSourceCompileTask 
     protected NativeCompileSpec createCompileSpec() {
         return new DefaultObjectiveCCompileSpec();
     }
-
 }

@@ -21,6 +21,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
@@ -43,15 +49,10 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
-    private static final DefaultComponentSelectionDescriptor DEPENDENCY_LOCKING = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT, Describables.of("Dependency locking"));
+    private static final DefaultComponentSelectionDescriptor DEPENDENCY_LOCKING =
+            new DefaultComponentSelectionDescriptor(
+                    ComponentSelectionCause.CONSTRAINT, Describables.of("Dependency locking"));
     private final Long2ObjectMap<DefaultResolvedComponentResult> components = new Long2ObjectOpenHashMap<>();
     private final CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
     private long id;
@@ -63,23 +64,21 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
     private final Map<Long, ResolvedVariantResult> selectedVariants = new LinkedHashMap<>();
 
     public static MinimalResolutionResult empty(
-        ModuleVersionIdentifier id,
-        ComponentIdentifier componentIdentifier,
-        ImmutableAttributes attributes,
-        ImmutableCapabilities capabilities,
-        String rootVariantName,
-        AttributeDesugaring attributeDesugaring
-    ) {
+            ModuleVersionIdentifier id,
+            ComponentIdentifier componentIdentifier,
+            ImmutableAttributes attributes,
+            ImmutableCapabilities capabilities,
+            String rootVariantName,
+            AttributeDesugaring attributeDesugaring) {
         ResolutionResultGraphBuilder builder = new ResolutionResultGraphBuilder();
         builder.startVisitComponent(0L, ComponentSelectionReasons.root(), null, componentIdentifier, id);
 
         ResolvedVariantResult rootVariant = new DefaultResolvedVariantResult(
-            componentIdentifier,
-            Describables.of(rootVariantName),
-            attributeDesugaring.desugar(attributes),
-            capabilities,
-            null
-        );
+                componentIdentifier,
+                Describables.of(rootVariantName),
+                attributeDesugaring.desugar(attributes),
+                capabilities,
+                null);
 
         builder.visitSelectedVariant(1L, rootVariant);
         builder.visitComponentVariants(Collections.emptyList());
@@ -92,15 +91,16 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
         for (DefaultResolvedComponentResult component : components.values()) {
             component.complete();
         }
-        return new ResolvedDependencyGraph(
-            rootComponentId,
-            rootVariantId,
-            ImmutableMap.copyOf(components)
-        );
+        return new ResolvedDependencyGraph(rootComponentId, rootVariantId, ImmutableMap.copyOf(components));
     }
 
     @Override
-    public void startVisitComponent(Long id, ComponentSelectionReason selectionReason, @Nullable String repoName, ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion) {
+    public void startVisitComponent(
+            Long id,
+            ComponentSelectionReason selectionReason,
+            @Nullable String repoName,
+            ComponentIdentifier componentId,
+            ModuleVersionIdentifier moduleVersion) {
         this.id = id;
         this.selectionReason = selectionReason;
         this.selectedVariants.clear();
@@ -122,40 +122,62 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
 
     @Override
     public void endVisitComponent() {
-        // The nodes in the graph represent variants (mostly) and multiple variants of a component may be included in the graph, so a given component may be visited multiple times
+        // The nodes in the graph represent variants (mostly) and multiple variants of a component may be included in
+        // the graph, so a given component may be visited multiple times
         if (!components.containsKey(id)) {
-            components.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, ImmutableMap.copyOf(selectedVariants), allVariants, repoName));
+            components.put(
+                    id,
+                    new DefaultResolvedComponentResult(
+                            moduleVersion,
+                            selectionReason,
+                            componentId,
+                            ImmutableMap.copyOf(selectedVariants),
+                            allVariants,
+                            repoName));
         }
         selectedVariants.clear();
         allVariants = null;
     }
 
-    public void visitOutgoingEdges(long fromComponentId, long fromVariantId, Collection<? extends ResolvedGraphDependency> dependencies) {
+    public void visitOutgoingEdges(
+            long fromComponentId, long fromVariantId, Collection<? extends ResolvedGraphDependency> dependencies) {
         DefaultResolvedComponentResult fromComponent = components.get(fromComponentId);
-        ImmutableSet.Builder<DependencyResult> variantDependencies = ImmutableSet.builderWithExpectedSize(dependencies.size());
+        ImmutableSet.Builder<DependencyResult> variantDependencies =
+                ImmutableSet.builderWithExpectedSize(dependencies.size());
         ResolvedVariantResult fromVariant = fromComponent.getVariant(fromVariantId);
         if (fromVariant == null) {
-            throw new IllegalStateException("Corrupt serialized resolution result. Cannot find variant (" + fromVariantId + ") for " + fromComponent);
+            throw new IllegalStateException("Corrupt serialized resolution result. Cannot find variant ("
+                    + fromVariantId + ") for " + fromComponent);
         }
         for (ResolvedGraphDependency d : dependencies) {
             DependencyResult dependencyResult;
             if (d.getFailure() != null) {
-                dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), fromComponent, d.isConstraint(), d.getReason(), d.getFailure());
+                dependencyResult = dependencyResultFactory.createUnresolvedDependency(
+                        d.getRequested(), fromComponent, d.isConstraint(), d.getReason(), d.getFailure());
             } else {
-                DefaultResolvedComponentResult selectedComponent = components.get(d.getSelected().longValue());
+                DefaultResolvedComponentResult selectedComponent =
+                        components.get(d.getSelected().longValue());
                 if (selectedComponent == null) {
-                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected component (" + d.getSelected() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
+                    throw new IllegalStateException(
+                            "Corrupt serialized resolution result. Cannot find selected component (" + d.getSelected()
+                                    + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> "
+                                    + d.getRequested().getDisplayName());
                 }
                 ResolvedVariantResult selectedVariant;
                 if (d.getSelectedVariant() != null) {
                     selectedVariant = selectedComponent.getVariant(d.getSelectedVariant());
                     if (selectedVariant == null) {
-                        throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected variant (" + d.getSelectedVariant() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
+                        throw new IllegalStateException(
+                                "Corrupt serialized resolution result. Cannot find selected variant ("
+                                        + d.getSelectedVariant() + ") for " + (d.isConstraint() ? "constraint " : "")
+                                        + fromVariant + " -> "
+                                        + d.getRequested().getDisplayName());
                     }
                 } else {
                     selectedVariant = null;
                 }
-                dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), fromComponent, selectedComponent, selectedVariant, d.isConstraint());
+                dependencyResult = dependencyResultFactory.createResolvedDependency(
+                        d.getRequested(), fromComponent, selectedComponent, selectedVariant, d.isConstraint());
                 selectedComponent.addDependent((ResolvedDependencyResult) dependencyResult);
             }
             variantDependencies.add(dependencyResult);
@@ -166,7 +188,8 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
     // TODO: It is quite odd that we attach these extra failures as edges from the root variant.
     //       These extra failures are _not_ edges, but are modeled as such since a ResolutionResult
     //       has no way to model failures that are not attached to an edge.
-    public void addDependencyLockingFailures(long rootComponentId, long rootVariantId, Set<UnresolvedDependency> extraFailures) {
+    public void addDependencyLockingFailures(
+            long rootComponentId, long rootVariantId, Set<UnresolvedDependency> extraFailures) {
         if (extraFailures.isEmpty()) {
             return;
         }
@@ -175,19 +198,24 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
         ResolvedVariantResult rootVariant = rootComponent.getVariant(rootVariantId);
         List<DependencyResult> existingDependencies = rootComponent.getDependenciesForVariant(rootVariant);
 
-        ImmutableSet.Builder<DependencyResult> rootDependencies = ImmutableSet.<DependencyResult>builderWithExpectedSize(existingDependencies.size() + extraFailures.size())
-            .addAll(existingDependencies);
+        ImmutableSet.Builder<DependencyResult> rootDependencies =
+                ImmutableSet.<DependencyResult>builderWithExpectedSize(
+                                existingDependencies.size() + extraFailures.size())
+                        .addAll(existingDependencies);
 
         for (UnresolvedDependency failure : extraFailures) {
             ModuleVersionSelector failureSelector = failure.getSelector();
-            ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(failureSelector.getModule(), failureSelector.getVersion());
+            ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(
+                    failureSelector.getModule(), failureSelector.getVersion());
             rootDependencies.add(dependencyResultFactory.createUnresolvedDependency(
-                failureComponentSelector,
-                rootComponent,
-                true,
-                ComponentSelectionReasons.of(DEPENDENCY_LOCKING),
-                new ModuleVersionResolveException(failureComponentSelector, () -> "Dependency lock state out of date", failure.getProblem())
-            ));
+                    failureComponentSelector,
+                    rootComponent,
+                    true,
+                    ComponentSelectionReasons.of(DEPENDENCY_LOCKING),
+                    new ModuleVersionResolveException(
+                            failureComponentSelector,
+                            () -> "Dependency lock state out of date",
+                            failure.getProblem())));
         }
 
         rootComponent.setVariantDependencies(rootVariant, rootDependencies.build());

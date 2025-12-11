@@ -15,6 +15,8 @@
  */
 package org.gradle.language.assembler.plugins;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -31,9 +33,6 @@ import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 /**
  * Adds core Assembler language support.
  */
@@ -48,8 +47,7 @@ public abstract class AssemblerLangPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @ComponentType
-        void registerLanguage(TypeBuilder<AssemblerSourceSet> builder) {
-        }
+        void registerLanguage(TypeBuilder<AssemblerSourceSet> builder) {}
 
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages) {

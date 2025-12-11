@@ -21,7 +21,8 @@ class RepositoryChainModuleResolution implements StringVersioned {
     public final ModuleComponentRepository<?> repository;
     public final ExternalModuleComponentGraphResolveState component;
 
-    public RepositoryChainModuleResolution(ModuleComponentRepository<?> repository, ExternalModuleComponentGraphResolveState component) {
+    public RepositoryChainModuleResolution(
+            ModuleComponentRepository<?> repository, ExternalModuleComponentGraphResolveState component) {
         this.repository = repository;
         this.component = component;
     }

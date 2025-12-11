@@ -21,7 +21,8 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.jspecify.annotations.Nullable;
 
-public class DefaultExternalModuleDependency extends AbstractExternalModuleDependency implements ExternalModuleDependency {
+public class DefaultExternalModuleDependency extends AbstractExternalModuleDependency
+        implements ExternalModuleDependency {
 
     public DefaultExternalModuleDependency(String group, String name, String version) {
         this(group, name, version, null);
@@ -31,15 +32,16 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
         super(assertModuleId(group, name), version, configuration);
     }
 
-    public DefaultExternalModuleDependency(ModuleIdentifier id, MutableVersionConstraint versionConstraint, @Nullable String configuration) {
+    public DefaultExternalModuleDependency(
+            ModuleIdentifier id, MutableVersionConstraint versionConstraint, @Nullable String configuration) {
         super(id, versionConstraint, configuration);
     }
 
     @Override
     public ExternalModuleDependency copy() {
-        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()), getTargetConfiguration());
+        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(
+                getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()), getTargetConfiguration());
         copyTo(copiedModuleDependency);
         return copiedModuleDependency;
     }
-
 }

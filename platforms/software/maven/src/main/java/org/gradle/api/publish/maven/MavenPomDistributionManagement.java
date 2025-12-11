@@ -16,8 +16,8 @@
 
 package org.gradle.api.publish.maven;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
 

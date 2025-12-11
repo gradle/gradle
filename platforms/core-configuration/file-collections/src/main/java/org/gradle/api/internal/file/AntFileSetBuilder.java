@@ -16,13 +16,12 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
+import java.util.Collections;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.util.internal.AntUtil;
-
-import java.util.Collections;
 
 public class AntFileSetBuilder implements AntBuilderAware {
 
@@ -40,12 +39,16 @@ public class AntFileSetBuilder implements AntBuilderAware {
                 continue;
             }
 
-            dynamicObject.invokeMethod(nodeName == null ? "fileset" : nodeName, Collections.singletonMap("dir", AntUtil.maskFilename(tree.getDir().getAbsolutePath())), new Closure<Void>(this) {
-                @SuppressWarnings("unused") // Magic Groovy method
-                public Object doCall(Object ignore) {
-                    return tree.getPatterns().addToAntBuilder(node, null);
-                }
-            });
+            dynamicObject.invokeMethod(
+                    nodeName == null ? "fileset" : nodeName,
+                    Collections.singletonMap(
+                            "dir", AntUtil.maskFilename(tree.getDir().getAbsolutePath())),
+                    new Closure<Void>(this) {
+                        @SuppressWarnings("unused") // Magic Groovy method
+                        public Object doCall(Object ignore) {
+                            return tree.getPatterns().addToAntBuilder(node, null);
+                        }
+                    });
         }
         return null;
     }

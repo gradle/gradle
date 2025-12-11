@@ -16,6 +16,12 @@
 
 package org.gradle.plugins.ide.internal.resolver;
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyGroupName;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.artifacts.result.ArtifactResult;
@@ -25,13 +31,6 @@ import org.gradle.api.internal.project.ProjectInternal.DetachedResolver;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.util.internal.VersionNumber;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.gradle.util.internal.GroovyDependencyUtil.groovyGroupName;
 
 public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver {
 
@@ -58,10 +57,11 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     }
 
     private File downloadLocalGroovySources(String artifact, VersionNumber version) {
-        ArtifactResolutionResult result = resolver.getDependencies().createArtifactResolutionQuery()
-            .forModule(groovyGroupName(version), artifact, version.toString())
-            .withArtifacts(JvmLibrary.class, Collections.singletonList(SourcesArtifact.class))
-            .execute();
+        ArtifactResolutionResult result = resolver.getDependencies()
+                .createArtifactResolutionQuery()
+                .forModule(groovyGroupName(version), artifact, version.toString())
+                .withArtifacts(JvmLibrary.class, Collections.singletonList(SourcesArtifact.class))
+                .execute();
 
         for (ComponentArtifactsResult artifactsResult : result.getResolvedComponents()) {
             for (ArtifactResult artifactResult : artifactsResult.getArtifacts(SourcesArtifact.class)) {

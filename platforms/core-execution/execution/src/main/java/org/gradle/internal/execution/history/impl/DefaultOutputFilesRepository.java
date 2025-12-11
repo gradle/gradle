@@ -16,6 +16,8 @@
 
 package org.gradle.internal.execution.history.impl;
 
+import java.io.Closeable;
+import java.io.File;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
@@ -28,19 +30,19 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
-import java.io.Closeable;
-import java.io.File;
-
 public class DefaultOutputFilesRepository implements OutputFilesRepository, Closeable {
 
     private final PersistentCache cacheAccess;
+
     enum OutputKind {
         OUTPUT,
         PARENT_OF_OUTPUT
     }
+
     private final IndexedCache<String, OutputKind> outputFiles;
 
-    public DefaultOutputFilesRepository(PersistentCache cacheAccess, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultOutputFilesRepository(
+            PersistentCache cacheAccess, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.cacheAccess = cacheAccess;
         this.outputFiles = cacheAccess.createIndexedCache(cacheParameters(inMemoryCacheDecoratorFactory));
     }
@@ -101,9 +103,10 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
         }
     }
 
-    private static IndexedCacheParameters<String, OutputKind> cacheParameters(InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    private static IndexedCacheParameters<String, OutputKind> cacheParameters(
+            InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         return IndexedCacheParameters.of("outputFiles", String.class, OutputKind.class)
-            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(100000, true));
+                .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(100000, true));
     }
 
     @Override

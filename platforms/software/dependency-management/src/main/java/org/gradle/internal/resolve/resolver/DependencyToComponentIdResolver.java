@@ -36,11 +36,10 @@ public interface DependencyToComponentIdResolver {
      * <p>At some point in the future, this should resolve to a set of candidates rather than a single instance.
      */
     void resolve(
-        ComponentSelector selector,
-        ComponentOverrideMetadata overrideMetadata,
-        VersionSelector acceptor,
-        @Nullable VersionSelector rejector,
-        BuildableComponentIdResolveResult result,
-        ImmutableAttributes consumerAttributes
-    );
+            ComponentSelector selector,
+            ComponentOverrideMetadata overrideMetadata,
+            VersionSelector acceptor,
+            @Nullable VersionSelector rejector,
+            BuildableComponentIdResolveResult result,
+            ImmutableAttributes consumerAttributes);
 }

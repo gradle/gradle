@@ -32,5 +32,8 @@ public interface BuildConverter extends BuildInitializer {
 
     String getSourceBuildDescription();
 
-    void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects, JvmPluginServices jvmPluginServices);
+    void configureClasspath(
+            ProjectInternal.DetachedResolver detachedResolver,
+            ObjectFactory objects,
+            JvmPluginServices jvmPluginServices);
 }

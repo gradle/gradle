@@ -16,14 +16,13 @@
 
 package org.gradle.internal.logging.text;
 
-import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.internal.UncheckedException;
-
 import java.io.Flushable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.internal.UncheckedException;
 
 public class StreamBackedStandardOutputListener implements StandardOutputListener {
     private final Appendable appendable;
@@ -36,8 +35,7 @@ public class StreamBackedStandardOutputListener implements StandardOutputListene
         } else {
             flushable = new Flushable() {
                 @Override
-                public void flush() {
-                }
+                public void flush() {}
             };
         }
     }

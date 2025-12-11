@@ -16,11 +16,10 @@
 
 package org.gradle.internal.enterprise.test.impl;
 
-import org.gradle.internal.enterprise.test.OutputFileProperty;
-
 import java.io.File;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import org.gradle.internal.enterprise.test.OutputFileProperty;
 
 class DefaultOutputFileProperty implements OutputFileProperty {
 

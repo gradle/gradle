@@ -16,11 +16,10 @@
 
 package org.gradle.cache.internal;
 
+import java.io.File;
 import org.gradle.api.Action;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
 
 /**
  * Cache for generated jars such as {@code gradle-api-${version}.jar} and {@code gradle-test-kit-${version}.jar}.

@@ -18,16 +18,15 @@ package org.gradle.internal.classpath.intercept;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
-import org.gradle.internal.lazy.Lazy;
-import org.jspecify.annotations.NullMarked;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.lazy.Lazy;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Provides a set of implementation classes for call interception in JVM bytecode, specified by the full class name as in {@link Class#getName()}.
@@ -37,7 +36,8 @@ import java.util.stream.Stream;
 public interface JvmBytecodeInterceptorFactoryProvider {
 
     @SuppressWarnings("ClassInitializationDeadlock")
-    JvmBytecodeInterceptorFactoryProvider DEFAULT = new ClassLoaderSourceJvmBytecodeInterceptorFactoryProvider(JvmBytecodeInterceptorFactoryProvider.class.getClassLoader());
+    JvmBytecodeInterceptorFactoryProvider DEFAULT = new ClassLoaderSourceJvmBytecodeInterceptorFactoryProvider(
+            JvmBytecodeInterceptorFactoryProvider.class.getClassLoader());
 
     List<JvmBytecodeCallInterceptor.Factory> getInterceptorFactories();
 
@@ -59,9 +59,11 @@ public interface JvmBytecodeInterceptorFactoryProvider {
             this.factories = Lazy.locking().of(() -> loadFactories(classLoader, forPackage));
         }
 
-        private static List<JvmBytecodeCallInterceptor.Factory> loadFactories(ClassLoader classLoader, String forPackage) {
+        private static List<JvmBytecodeCallInterceptor.Factory> loadFactories(
+                ClassLoader classLoader, String forPackage) {
             ImmutableList.Builder<JvmBytecodeCallInterceptor.Factory> factories = ImmutableList.builder();
-            for (JvmBytecodeCallInterceptor.Factory factory : ServiceLoader.load(JvmBytecodeCallInterceptor.Factory.class, classLoader)) {
+            for (JvmBytecodeCallInterceptor.Factory factory :
+                    ServiceLoader.load(JvmBytecodeCallInterceptor.Factory.class, classLoader)) {
                 if (factory.getClass().getPackage().getName().startsWith(forPackage)) {
                     factories.add(factory);
                 }
@@ -80,7 +82,8 @@ public interface JvmBytecodeInterceptorFactoryProvider {
         private final JvmBytecodeInterceptorFactoryProvider first;
         private final JvmBytecodeInterceptorFactoryProvider second;
 
-        public CompositeJvmBytecodeInterceptorFactoryProvider(JvmBytecodeInterceptorFactoryProvider first, JvmBytecodeInterceptorFactoryProvider second) {
+        public CompositeJvmBytecodeInterceptorFactoryProvider(
+                JvmBytecodeInterceptorFactoryProvider first, JvmBytecodeInterceptorFactoryProvider second) {
             this.first = first;
             this.second = second;
         }
@@ -88,10 +91,10 @@ public interface JvmBytecodeInterceptorFactoryProvider {
         @Override
         public List<JvmBytecodeCallInterceptor.Factory> getInterceptorFactories() {
             return ImmutableList.copyOf(Stream.of(first.getInterceptorFactories(), second.getInterceptorFactories())
-                .flatMap(Collection::stream)
-                .collect(Collectors.toMap(interceptor -> interceptor.getClass().getName(), p -> p, (p, q) -> p, LinkedHashMap::new))
-                .values());
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toMap(
+                            interceptor -> interceptor.getClass().getName(), p -> p, (p, q) -> p, LinkedHashMap::new))
+                    .values());
         }
     }
 }
-

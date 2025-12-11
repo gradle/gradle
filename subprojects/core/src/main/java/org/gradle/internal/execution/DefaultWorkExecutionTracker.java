@@ -16,6 +16,14 @@
 
 package org.gradle.internal.execution;
 
+import static java.lang.String.format;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType;
@@ -31,15 +39,6 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.operations.UncategorizedBuildOperations;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static java.lang.String.format;
-
 public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closeable {
 
     private final BuildOperationAncestryTracker buildOperationAncestryTracker;
@@ -48,9 +47,8 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
     private final OperationListener operationListener = new OperationListener();
 
     public DefaultWorkExecutionTracker(
-        BuildOperationAncestryTracker buildOperationAncestryTracker,
-        BuildOperationListenerManager buildOperationListenerManager
-    ) {
+            BuildOperationAncestryTracker buildOperationAncestryTracker,
+            BuildOperationListenerManager buildOperationListenerManager) {
         this.buildOperationAncestryTracker = buildOperationAncestryTracker;
         this.buildOperationListenerManager = buildOperationListenerManager;
         buildOperationListenerManager.addListener(operationListener);
@@ -67,11 +65,7 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
         if (runningTasks.isEmpty()) {
             return Optional.empty();
         }
-        return buildOperationAncestryTracker
-            .findClosestExistingAncestor(
-                id,
-                runningTasks::get
-            );
+        return buildOperationAncestryTracker.findClosestExistingAncestor(id, runningTasks::get);
     }
 
     @Override
@@ -79,10 +73,9 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
         if (!operationListener.hasRunningWork()) {
             return false;
         }
-        return buildOperationAncestryTracker.findClosestMatchingAncestor(
-            currentBuildOperationRef.getId(),
-            operationListener::containsWork
-        ).isPresent();
+        return buildOperationAncestryTracker
+                .findClosestMatchingAncestor(currentBuildOperationRef.getId(), operationListener::containsWork)
+                .isPresent();
     }
 
     @Override
@@ -103,7 +96,8 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
             } else {
                 Object details = buildOperation.getDetails();
                 if (details instanceof ExecuteTaskBuildOperationDetails) {
-                    runningTasks.put(mandatoryIdOf(buildOperation), ((ExecuteTaskBuildOperationDetails) details).getTask());
+                    runningTasks.put(
+                            mandatoryIdOf(buildOperation), ((ExecuteTaskBuildOperationDetails) details).getTask());
                 }
             }
         }
@@ -117,7 +111,8 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
                 if (details instanceof ExecuteTaskBuildOperationType.Details) {
                     Object removed = runningTasks.remove(mandatoryIdOf(buildOperation));
                     if (removed == null) {
-                        throw new IllegalStateException(format("Task build operation %s was finished without being started.", buildOperation));
+                        throw new IllegalStateException(
+                                format("Task build operation %s was finished without being started.", buildOperation));
                     }
                 }
             }
@@ -132,12 +127,10 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
         }
 
         @Override
-        public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-        }
+        public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {}
 
         public boolean hasRunningWork() {
-            return !runningTasks.isEmpty()
-                || !runningTransformActions.isEmpty();
+            return !runningTasks.isEmpty() || !runningTransformActions.isEmpty();
         }
 
         private static boolean isTransformAction(BuildOperationDescriptor buildOperation) {
@@ -145,8 +138,7 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
         }
 
         public boolean containsWork(OperationIdentifier o) {
-            return runningTasks.containsKey(o)
-                || runningTransformActions.contains(o);
+            return runningTasks.containsKey(o) || runningTransformActions.contains(o);
         }
     }
 }

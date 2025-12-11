@@ -22,6 +22,4 @@ package org.gradle.tooling.internal.protocol;
  *
  * @since 7.6
  */
-public interface InternalTestFrameworkFailure extends InternalTestFailure {
-
-}
+public interface InternalTestFrameworkFailure extends InternalTestFailure {}

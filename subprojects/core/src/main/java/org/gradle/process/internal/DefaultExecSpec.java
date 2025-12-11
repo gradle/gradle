@@ -16,16 +16,14 @@
 
 package org.gradle.process.internal;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecSpec;
-
-import javax.inject.Inject;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-
 
 public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec, ProcessArgumentsSpec.HasExecutable {
 

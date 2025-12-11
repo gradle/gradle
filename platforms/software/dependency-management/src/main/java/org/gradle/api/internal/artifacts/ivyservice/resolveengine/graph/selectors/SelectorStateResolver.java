@@ -16,6 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
@@ -34,14 +41,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
 public class SelectorStateResolver<T extends ComponentResolutionState> {
     private final ModuleConflictResolver<T> conflictResolver;
     private final ComponentStateFactory<T> componentFactory;
@@ -51,7 +50,13 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
 
-    public SelectorStateResolver(ModuleConflictResolver<T> conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent, ResolveOptimizations resolveOptimizations, Comparator<Version> versionComparator, VersionParser versionParser) {
+    public SelectorStateResolver(
+            ModuleConflictResolver<T> conflictResolver,
+            ComponentStateFactory<T> componentFactory,
+            T rootComponent,
+            ResolveOptimizations resolveOptimizations,
+            Comparator<Version> versionComparator,
+            VersionParser versionParser) {
         this.conflictResolver = conflictResolver;
         this.componentFactory = componentFactory;
         this.rootComponent = rootComponent;
@@ -78,8 +83,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         }
 
         if (resolveOptimizations.mayHaveForcedPlatforms()) {
-            List<T> allowed = candidates
-                    .stream()
+            List<T> allowed = candidates.stream()
                     .filter(SelectorStateResolverResults::isVersionAllowedByPlatform)
                     .collect(Collectors.toList());
             if (!allowed.isEmpty()) {
@@ -94,11 +98,13 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         return resolveConflicts(candidates);
     }
 
-    private List<T> resolveSelectors(ModuleSelectors<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
+    private List<T> resolveSelectors(
+            ModuleSelectors<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         if (selectors.size() == 1) {
             ResolvableSelectorState selectorState = selectors.first();
             // Short-circuit selector merging for single selector without 'prefer'
-            if (selectorState.getVersionConstraint() == null || selectorState.getVersionConstraint().getPreferredSelector() == null) {
+            if (selectorState.getVersionConstraint() == null
+                    || selectorState.getVersionConstraint().getPreferredSelector() == null) {
                 return resolveSingleSelector(selectorState, allRejects);
             }
         }
@@ -112,9 +118,11 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     }
 
     private List<T> resolveSingleSelector(ResolvableSelectorState selectorState, VersionSelector allRejects) {
-        assert selectorState.getVersionConstraint() == null || selectorState.getVersionConstraint().getPreferredSelector() == null;
+        assert selectorState.getVersionConstraint() == null
+                || selectorState.getVersionConstraint().getPreferredSelector() == null;
         ComponentIdResolveResult resolved = selectorState.resolve(allRejects);
-        T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved, selectorState);
+        T selected =
+                SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved, selectorState);
         return Collections.singletonList(selected);
     }
 
@@ -123,8 +131,10 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * If a single version can satisfy all of the selectors, the result will reflect this.
      * If not, a minimal set of versions will be provided in the result, and conflict resolution will be required to choose.
      */
-    private List<T> buildResolveResults(ModuleSelectors<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
-        SelectorStateResolverResults results = new SelectorStateResolverResults(versionComparator, versionParser, selectors.size());
+    private List<T> buildResolveResults(
+            ModuleSelectors<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
+        SelectorStateResolverResults results =
+                new SelectorStateResolverResults(versionComparator, versionParser, selectors.size());
         TreeSet<ComponentIdResolveResult> preferResults = null; // Created only on demand
 
         for (ResolvableSelectorState selector : selectors) {
@@ -140,8 +150,10 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * Resolve the 'require' constraint of the selector.
      * A version will be registered for this selector, and it will participate in conflict resolution.
      */
-    private void resolveRequireConstraint(SelectorStateResolverResults results, ResolvableSelectorState selector, VersionSelector allRejects) {
-        // Check already resolved results for a compatible version, and use it for this dependency rather than re-resolving.
+    private void resolveRequireConstraint(
+            SelectorStateResolverResults results, ResolvableSelectorState selector, VersionSelector allRejects) {
+        // Check already resolved results for a compatible version, and use it for this dependency rather than
+        // re-resolving.
         if (results.alreadyHaveResolutionForSelector(selector)) {
             return;
         }
@@ -162,14 +174,19 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * Collect the result of the 'prefer' constraint of the selector, if present and not failing.
      * These results are integrated with the 'require' results in the second phase.
      */
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private TreeSet<ComponentIdResolveResult> maybeResolvePreferConstraint(TreeSet<ComponentIdResolveResult> previousResults, ResolvableSelectorState selector, VersionSelector allRejects) {
+    @SuppressWarnings(
+            "NonApiType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    private TreeSet<ComponentIdResolveResult> maybeResolvePreferConstraint(
+            TreeSet<ComponentIdResolveResult> previousResults,
+            ResolvableSelectorState selector,
+            VersionSelector allRejects) {
 
         TreeSet<ComponentIdResolveResult> preferResults = previousResults;
         ComponentIdResolveResult resolvedPreference = selector.resolvePrefer(allRejects);
         if (resolvedPreference != null && resolvedPreference.getFailure() == null) {
             if (preferResults == null) {
-                preferResults = Sets.newTreeSet(new DescendingResolveResultComparator(versionComparator, versionParser));
+                preferResults =
+                        Sets.newTreeSet(new DescendingResolveResultComparator(versionComparator, versionParser));
             }
             preferResults.add(resolvedPreference);
         }
@@ -181,8 +198,12 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * Given the result of resolving any 'prefer' constraints, see if these can be used to further refine the results
      *  of resolving the 'require' constraints.
      */
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private void integratePreferResults(ModuleSelectors<? extends ResolvableSelectorState> selectors, SelectorStateResolverResults results, TreeSet<ComponentIdResolveResult> preferResults) {
+    @SuppressWarnings(
+            "NonApiType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    private void integratePreferResults(
+            ModuleSelectors<? extends ResolvableSelectorState> selectors,
+            SelectorStateResolverResults results,
+            TreeSet<ComponentIdResolveResult> preferResults) {
 
         if (preferResults == null) {
             return;
@@ -248,7 +269,9 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
         @Override
         public int compare(ComponentIdResolveResult o1, ComponentIdResolveResult o2) {
-            return versionComparator.compare(versionParser.transform(o2.getModuleVersionId().getVersion()), versionParser.transform(o1.getModuleVersionId().getVersion()));
+            return versionComparator.compare(
+                    versionParser.transform(o2.getModuleVersionId().getVersion()),
+                    versionParser.transform(o1.getModuleVersionId().getVersion()));
         }
     }
 }

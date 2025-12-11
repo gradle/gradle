@@ -20,5 +20,6 @@ import org.gradle.api.internal.catalog.DefaultVersionCatalog;
 
 public interface VersionCatalogBuilderInternal extends VersionCatalogBuilder {
     DefaultVersionCatalog build();
+
     void withContext(String context, Runnable action);
 }

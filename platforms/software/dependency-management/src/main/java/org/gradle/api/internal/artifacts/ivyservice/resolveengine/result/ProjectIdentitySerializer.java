@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import java.io.IOException;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.Path;
-
-import java.io.IOException;
 
 /**
  * A thread-safe, reusable serializer for {@link ProjectIdentity}.
@@ -63,5 +62,4 @@ public class ProjectIdentitySerializer extends AbstractSerializer<ProjectIdentit
             pathSerializer.write(encoder, value.getProjectPath());
         }
     }
-
 }

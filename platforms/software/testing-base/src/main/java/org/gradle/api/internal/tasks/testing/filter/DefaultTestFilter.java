@@ -15,15 +15,14 @@
  */
 package org.gradle.api.internal.tasks.testing.filter;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.testing.TestFilter;
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.testing.TestFilter;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 @UsedByScanPlugin("test-retry")
 public class DefaultTestFilter implements TestFilter {

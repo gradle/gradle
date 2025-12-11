@@ -16,21 +16,20 @@
 
 package org.gradle.integtests.tooling.r112;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.TaskSelector;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.BuildInvocations;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 public class FetchAllTaskSelectorsBuildAction implements BuildAction<Map<String, Set<String>>> {
     public Map<String, Set<String>> execute(BuildController controller) {
         Map<String, Set<String>> model = new HashMap<String, Set<String>>();
-        for (BasicGradleProject project: controller.getBuildModel().getProjects()) {
+        for (BasicGradleProject project : controller.getBuildModel().getProjects()) {
             BuildInvocations entryPointsForProject = controller.getModel(project, BuildInvocations.class);
             Set<String> selectorNames = new HashSet<String>();
             for (TaskSelector selector : entryPointsForProject.getTaskSelectors()) {

@@ -25,13 +25,14 @@ import org.jspecify.annotations.Nullable;
  */
 public abstract class InternalOption<T extends @Nullable Object> implements Option {
 
-    private final static String INTERNAL_PROPERTY_PREFIX = "org.gradle.internal.";
+    private static final String INTERNAL_PROPERTY_PREFIX = "org.gradle.internal.";
 
     private final String propertyName;
 
     public InternalOption(String propertyName) {
         if (!isInternalOption(propertyName)) {
-            throw new IllegalArgumentException("Internal property name must start with '" + INTERNAL_PROPERTY_PREFIX + "', got '" + propertyName + "'");
+            throw new IllegalArgumentException("Internal property name must start with '" + INTERNAL_PROPERTY_PREFIX
+                    + "', got '" + propertyName + "'");
         }
 
         this.propertyName = propertyName;
@@ -51,8 +52,10 @@ public abstract class InternalOption<T extends @Nullable Object> implements Opti
     }
 
     public static boolean isInternalOption(String name) {
-        return name.startsWith(INTERNAL_PROPERTY_PREFIX) ||
-            name.startsWith("org.gradle.unsafe.") || // TODO: avoid reading public 'unsafe' properties via internal options
-            name.startsWith("org.gradle.configuration-cache.internal."); // TODO:configuration-cache - https://github.com/gradle/gradle/issues/35489
+        return name.startsWith(INTERNAL_PROPERTY_PREFIX)
+                || name.startsWith("org.gradle.unsafe.")
+                || // TODO: avoid reading public 'unsafe' properties via internal options
+                name.startsWith("org.gradle.configuration-cache.internal."); // TODO:configuration-cache -
+        // https://github.com/gradle/gradle/issues/35489
     }
 }

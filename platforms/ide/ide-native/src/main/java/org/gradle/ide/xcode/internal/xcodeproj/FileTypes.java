@@ -48,11 +48,11 @@ public enum FileTypes {
 
     public final String fileExtension;
     public final String identifier;
+
     FileTypes(String fileExtension, String identifier) {
         this.fileExtension = fileExtension;
         this.identifier = identifier;
     }
-
 
     /**
      * Map of file extension to Apple UTI (Uniform Type Identifier).

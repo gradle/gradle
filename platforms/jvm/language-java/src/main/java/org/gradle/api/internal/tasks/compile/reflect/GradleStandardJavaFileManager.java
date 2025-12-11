@@ -16,24 +16,24 @@
 
 package org.gradle.api.internal.tasks.compile.reflect;
 
-import org.gradle.internal.classpath.ClassPath;
+import static org.gradle.api.internal.tasks.compile.filter.AnnotationProcessorFilter.getFilteredClassLoader;
 
+import java.io.IOException;
+import java.net.URLClassLoader;
+import java.util.Set;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
-import java.io.IOException;
-import java.net.URLClassLoader;
-import java.util.Set;
-
-import static org.gradle.api.internal.tasks.compile.filter.AnnotationProcessorFilter.getFilteredClassLoader;
+import org.gradle.internal.classpath.ClassPath;
 
 public class GradleStandardJavaFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
     private final ClassPath annotationProcessorPath;
     private final boolean hasEmptySourcePaths;
 
-    private GradleStandardJavaFileManager(StandardJavaFileManager fileManager, ClassPath annotationProcessorPath, boolean hasEmptySourcePaths) {
+    private GradleStandardJavaFileManager(
+            StandardJavaFileManager fileManager, ClassPath annotationProcessorPath, boolean hasEmptySourcePaths) {
         super(fileManager);
         this.annotationProcessorPath = annotationProcessorPath;
         this.hasEmptySourcePaths = hasEmptySourcePaths;
@@ -43,7 +43,8 @@ public class GradleStandardJavaFileManager extends ForwardingJavaFileManager<Sta
      * Overrides particular methods to prevent javac from accessing source files outside of Gradle's understanding or
      * classloaders outside of Gradle's control.
      */
-    public static JavaFileManager wrap(StandardJavaFileManager delegate, ClassPath annotationProcessorPath, boolean hasEmptySourcePaths) {
+    public static JavaFileManager wrap(
+            StandardJavaFileManager delegate, ClassPath annotationProcessorPath, boolean hasEmptySourcePaths) {
         return new GradleStandardJavaFileManager(delegate, annotationProcessorPath, hasEmptySourcePaths);
     }
 
@@ -68,7 +69,8 @@ public class GradleStandardJavaFileManager extends ForwardingJavaFileManager<Sta
     }
 
     @Override
-    public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds, boolean recurse) throws IOException {
+    public Iterable<JavaFileObject> list(
+            Location location, String packageName, Set<JavaFileObject.Kind> kinds, boolean recurse) throws IOException {
         if (hasEmptySourcePaths) {
             // If we are pretending that we don't have a sourcepath, the compiler will
             // look on the classpath for sources. Since we don't want to bring in any
@@ -86,7 +88,8 @@ public class GradleStandardJavaFileManager extends ForwardingJavaFileManager<Sta
         ClassLoader classLoader = super.getClassLoader(location);
         if (location.equals(StandardLocation.ANNOTATION_PROCESSOR_PATH)) {
             if (classLoader instanceof URLClassLoader) {
-                return new URLClassLoader(annotationProcessorPath.getAsURLArray(), getFilteredClassLoader(classLoader.getParent()));
+                return new URLClassLoader(
+                        annotationProcessorPath.getAsURLArray(), getFilteredClassLoader(classLoader.getParent()));
             }
         }
 

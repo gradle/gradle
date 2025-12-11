@@ -16,12 +16,11 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.RelativePathSupplier;
-
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
+import org.gradle.internal.RelativePathSupplier;
 
 /**
  * Tracks the relative path. Useful when visiting {@link FileSystemLocationSnapshot}s.

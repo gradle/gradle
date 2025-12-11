@@ -20,14 +20,13 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import groovy.lang.GroovyObject;
-import org.gradle.model.ModelMap;
-import org.gradle.model.ModelSet;
-
 import java.util.ArrayDeque;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import org.gradle.model.ModelMap;
+import org.gradle.model.ModelSet;
 
 public abstract class ModelTypes {
 
@@ -36,35 +35,23 @@ public abstract class ModelTypes {
     }
 
     public static <I> ModelType<ModelMap<I>> modelMap(ModelType<I> type) {
-        return new ModelType.Builder<ModelMap<I>>() {
-        }.where(
-            new ModelType.Parameter<I>() {
-            }, type
-        ).build();
+        return new ModelType.Builder<ModelMap<I>>() {}.where(new ModelType.Parameter<I>() {}, type)
+                .build();
     }
 
     public static <I> ModelType<ModelSet<I>> modelSet(ModelType<I> type) {
-        return new ModelType.Builder<ModelSet<I>>() {
-        }.where(
-            new ModelType.Parameter<I>() {
-            }, type
-        ).build();
+        return new ModelType.Builder<ModelSet<I>>() {}.where(new ModelType.Parameter<I>() {}, type)
+                .build();
     }
 
     public static <I> ModelType<List<I>> list(ModelType<I> type) {
-        return new ModelType.Builder<List<I>>() {
-        }.where(
-            new ModelType.Parameter<I>() {
-            }, type
-        ).build();
+        return new ModelType.Builder<List<I>>() {}.where(new ModelType.Parameter<I>() {}, type)
+                .build();
     }
 
     public static <I> ModelType<Set<I>> set(ModelType<I> type) {
-        return new ModelType.Builder<Set<I>>() {
-        }.where(
-            new ModelType.Parameter<I>() {
-            }, type
-        ).build();
+        return new ModelType.Builder<Set<I>>() {}.where(new ModelType.Parameter<I>() {}, type)
+                .build();
     }
 
     public static <T> Ordering<ModelType<? extends T>> displayOrder() {

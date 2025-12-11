@@ -26,6 +26,7 @@ public class AntlrResult implements Serializable {
     public AntlrResult(int errorCount) {
         this(errorCount, null);
     }
+
     public AntlrResult(int errorCount, Exception exception) {
         this.errorCount = errorCount;
         this.exception = exception;

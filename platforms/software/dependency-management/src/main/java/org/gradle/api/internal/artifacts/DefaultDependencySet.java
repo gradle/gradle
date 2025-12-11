@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import java.util.Collection;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
@@ -30,14 +31,15 @@ import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Actions;
 
-import java.util.Collection;
-
 public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> implements DependencySet {
     private final Describable displayName;
     private final ConfigurationInternal clientConfiguration;
     private final Action<? super ModuleDependency> mutationValidator;
 
-    public DefaultDependencySet(Describable displayName, final ConfigurationInternal clientConfiguration, DomainObjectSet<Dependency> backingSet) {
+    public DefaultDependencySet(
+            Describable displayName,
+            final ConfigurationInternal clientConfiguration,
+            DomainObjectSet<Dependency> backingSet) {
         super(backingSet);
         this.displayName = displayName;
         this.clientConfiguration = clientConfiguration;
@@ -45,7 +47,9 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
     }
 
     protected Action<ModuleDependency> toMutationValidator(final Configuration clientConfiguration) {
-        return clientConfiguration instanceof MutationValidator ? new MutationValidationAction(clientConfiguration) : Actions.doNothing();
+        return clientConfiguration instanceof MutationValidator
+                ? new MutationValidationAction(clientConfiguration)
+                : Actions.doNothing();
     }
 
     @Override
@@ -70,7 +74,8 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
 
     private void assertConfigurationIsDeclarable() {
         if (!clientConfiguration.isCanBeDeclared()) {
-            throw new InvalidUserCodeException("Dependencies can not be declared against the `" + clientConfiguration.getName() + "` configuration.");
+            throw new InvalidUserCodeException("Dependencies can not be declared against the `"
+                    + clientConfiguration.getName() + "` configuration.");
         }
     }
 
@@ -92,7 +97,8 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
 
         @Override
         public void execute(ModuleDependency moduleDependency) {
-            ((MutationValidator) clientConfiguration).validateMutation(MutationValidator.MutationType.DEPENDENCY_ATTRIBUTES);
+            ((MutationValidator) clientConfiguration)
+                    .validateMutation(MutationValidator.MutationType.DEPENDENCY_ATTRIBUTES);
         }
     }
 }

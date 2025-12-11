@@ -16,8 +16,14 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
+import static java.lang.String.format;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -26,13 +32,6 @@ import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.jspecify.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static java.lang.String.format;
 
 public class ComponentModuleMetadataContainer {
 
@@ -76,26 +75,30 @@ public class ComponentModuleMetadataContainer {
         return new ImmutableModuleReplacements(ImmutableMap.copyOf(replacements));
     }
 
-    private static void detectCycles(Map<ModuleIdentifier, ImmutableModuleReplacements.Replacement> replacements, ModuleIdentifier source, ModuleIdentifier target) {
+    private static void detectCycles(
+            Map<ModuleIdentifier, ImmutableModuleReplacements.Replacement> replacements,
+            ModuleIdentifier source,
+            ModuleIdentifier target) {
         if (source.equals(target)) {
-            throw new InvalidUserDataException(String.format("Cannot declare module replacement that replaces self: %s->%s", source, target));
+            throw new InvalidUserDataException(
+                    String.format("Cannot declare module replacement that replaces self: %s->%s", source, target));
         }
 
         ModuleIdentifier m = unwrap(replacements.get(target));
         if (m == null) {
-            //target does not exist in the map, there's no cycle for sure
+            // target does not exist in the map, there's no cycle for sure
             return;
         }
         Set<ModuleIdentifier> visited = new LinkedHashSet<>();
         visited.add(source);
         visited.add(target);
 
-        while(m != null) {
+        while (m != null) {
             if (!visited.add(m)) {
-                //module was already visited, there is a cycle
-                throw new InvalidUserDataException(
-                        format("Cannot declare module replacement %s->%s because it introduces a cycle: %s",
-                                source, target, Joiner.on("->").join(visited) + "->" + source));
+                // module was already visited, there is a cycle
+                throw new InvalidUserDataException(format(
+                        "Cannot declare module replacement %s->%s because it introduces a cycle: %s",
+                        source, target, Joiner.on("->").join(visited) + "->" + source));
             }
             m = unwrap(replacements.get(m));
         }
@@ -105,9 +108,9 @@ public class ComponentModuleMetadataContainer {
         return replacement == null ? null : replacement.getTarget();
     }
 
-    private static NotationParser<Object, ModuleIdentifier> parser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        return NotationParserBuilder
-                .toType(ModuleIdentifier.class)
+    private static NotationParser<Object, ModuleIdentifier> parser(
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        return NotationParserBuilder.toType(ModuleIdentifier.class)
                 .fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
                 .toComposite();
     }

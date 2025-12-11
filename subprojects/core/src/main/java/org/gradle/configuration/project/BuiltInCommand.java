@@ -16,12 +16,11 @@
 
 package org.gradle.configuration.project;
 
+import java.util.List;
 import org.gradle.StartParameter;
 import org.gradle.api.Describable;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.List;
 
 /**
  * Provides metadata about a build-in command, which is a task-like action (usually backed by an actual task)

@@ -16,13 +16,12 @@
 
 package org.gradle.api.testing.toolchains.internal;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.util.Path;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A {@link JvmTestToolchain} that caches the {@link TestFramework} instances it creates.  This prevents multiple calls
@@ -59,7 +58,8 @@ public class FrameworkCachingJvmTestToolchain<T extends JvmTestToolchainParamete
     }
 
     @Override
-    @SuppressWarnings("OverridesJavaxInjectableMethod") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("OverridesJavaxInjectableMethod") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     public T getParameters() {
         return delegate.getParameters();
     }

@@ -16,6 +16,9 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption;
+import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.AUTO_APPLIED;
+
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -34,9 +37,6 @@ import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
 
-import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption;
-import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.AUTO_APPLIED;
-
 @ServiceScope(Scope.BuildTree.class)
 public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPluginRegistry {
 
@@ -47,7 +47,8 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Settings target) {
-        if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettings() || !shouldApplyDevelocityPlugin(target)) {
+        if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettings()
+                || !shouldApplyDevelocityPlugin(target)) {
             return PluginRequests.EMPTY;
         } else {
             return PluginRequests.of(createDevelocityPluginRequest());
@@ -61,24 +62,27 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
     }
 
     private static PluginRequestInternal createDevelocityPluginRequest() {
-        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedDevelocityPlugin.GROUP, AutoAppliedDevelocityPlugin.NAME);
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(moduleIdentifier, AutoAppliedDevelocityPlugin.VERSION);
+        ModuleIdentifier moduleIdentifier =
+                DefaultModuleIdentifier.newId(AutoAppliedDevelocityPlugin.GROUP, AutoAppliedDevelocityPlugin.NAME);
+        ModuleComponentSelector selector =
+                DefaultModuleComponentSelector.newSelector(moduleIdentifier, AutoAppliedDevelocityPlugin.VERSION);
         return new DefaultPluginRequest(
-            AutoAppliedDevelocityPlugin.ID,
-            true,
-            AUTO_APPLIED,
-            getScriptDisplayName(),
-            null,
-            AutoAppliedDevelocityPlugin.VERSION,
-            selector,
-            null,
-            gradleEnterprisePluginCoordinates()
-        );
+                AutoAppliedDevelocityPlugin.ID,
+                true,
+                AUTO_APPLIED,
+                getScriptDisplayName(),
+                null,
+                AutoAppliedDevelocityPlugin.VERSION,
+                selector,
+                null,
+                gradleEnterprisePluginCoordinates());
     }
 
     private static PluginCoordinates gradleEnterprisePluginCoordinates() {
-        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedDevelocityPlugin.GROUP, AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME);
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(moduleIdentifier, AutoAppliedDevelocityPlugin.VERSION);
+        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(
+                AutoAppliedDevelocityPlugin.GROUP, AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME);
+        ModuleComponentSelector selector =
+                DefaultModuleComponentSelector.newSelector(moduleIdentifier, AutoAppliedDevelocityPlugin.VERSION);
         return new PluginCoordinates(AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ID, selector);
     }
 

@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.internal.protocol;
 
+import java.util.List;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.

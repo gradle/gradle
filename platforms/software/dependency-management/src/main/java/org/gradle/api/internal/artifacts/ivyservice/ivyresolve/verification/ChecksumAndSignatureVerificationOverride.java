@@ -20,6 +20,16 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.net.URI;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -41,8 +51,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -52,19 +62,9 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.local.FileResourceListener;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.net.URI;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-public class ChecksumAndSignatureVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation, Stoppable {
-    private final static Logger LOGGER = Logging.getLogger(ChecksumAndSignatureVerificationOverride.class);
+public class ChecksumAndSignatureVerificationOverride
+        implements DependencyVerificationOverride, ArtifactVerificationOperation, Stoppable {
+    private static final Logger LOGGER = Logging.getLogger(ChecksumAndSignatureVerificationOverride.class);
 
     private final DependencyVerifier verifier;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -79,37 +79,46 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
 
     // Must hold lock on `failuresLock` to access `failures` or `hasFatalFailure`
     private final Object failuresLock = new Object();
-    private final Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failures = LinkedHashMultimap.create();
+    private final Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failures =
+            LinkedHashMultimap.create();
     private boolean hasFatalFailure = false;
 
     public ChecksumAndSignatureVerificationOverride(
-        BuildOperationExecutor buildOperationExecutor,
-        File gradleUserHome,
-        File verificationsFile,
-        ChecksumService checksumService,
-        SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-        DependencyVerificationMode verificationMode,
-        DocumentationRegistry documentationRegistry,
-        File reportsDirectory,
-        Factory<GradleProperties> gradlePropertiesFactory,
-        FileResourceListener fileResourceListener
-    ) {
+            BuildOperationExecutor buildOperationExecutor,
+            File gradleUserHome,
+            File verificationsFile,
+            ChecksumService checksumService,
+            SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+            DependencyVerificationMode verificationMode,
+            DocumentationRegistry documentationRegistry,
+            File reportsDirectory,
+            Factory<GradleProperties> gradlePropertiesFactory,
+            FileResourceListener fileResourceListener) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksumService = checksumService;
         this.verificationMode = verificationMode;
         this.fileResourceListener = fileResourceListener;
         try {
-            this.verifier = DependencyVerificationsXmlReader.readFromXml(
-                new FileInputStream(observed(verificationsFile))
-            );
-            this.reportWriter = new DependencyVerificationReportWriter(gradleUserHome.toPath(), documentationRegistry, verificationsFile, verifier.getSuggestedWriteFlags(), reportsDirectory, gradlePropertiesFactory, verifier.getConfiguration().isUseKeyServers());
+            this.verifier =
+                    DependencyVerificationsXmlReader.readFromXml(new FileInputStream(observed(verificationsFile)));
+            this.reportWriter = new DependencyVerificationReportWriter(
+                    gradleUserHome.toPath(),
+                    documentationRegistry,
+                    verificationsFile,
+                    verifier.getSuggestedWriteFlags(),
+                    reportsDirectory,
+                    gradlePropertiesFactory,
+                    verifier.getConfiguration().isUseKeyServers());
         } catch (FileNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (DependencyVerificationException e) {
-            throw new DependencyVerificationException("Unable to read dependency verification metadata from " + verificationsFile, e.getCause());
+            throw new DependencyVerificationException(
+                    "Unable to read dependency verification metadata from " + verificationsFile, e.getCause());
         }
-        BuildTreeDefinedKeys localKeyring = new BuildTreeDefinedKeys(verificationsFile.getParentFile(), verifier.getConfiguration().getKeyringFormat());
-        this.signatureVerificationService = signatureVerificationServiceFactory.create(localKeyring, keyServers(), verifier.getConfiguration().isUseKeyServers());
+        BuildTreeDefinedKeys localKeyring = new BuildTreeDefinedKeys(
+                verificationsFile.getParentFile(), verifier.getConfiguration().getKeyringFormat());
+        this.signatureVerificationService = signatureVerificationServiceFactory.create(
+                localKeyring, keyServers(), verifier.getConfiguration().isUseKeyServers());
     }
 
     private List<URI> keyServers() {
@@ -117,7 +126,13 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     }
 
     @Override
-    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile, String repositoryName, String repositoryId) {
+    public void onArtifact(
+            ArtifactKind kind,
+            ModuleComponentArtifactIdentifier artifact,
+            File mainFile,
+            Factory<File> signatureFile,
+            String repositoryName,
+            String repositoryId) {
         if (verificationQueries.add(new VerificationQuery(artifact, repositoryId))) {
             VerificationEvent event = new VerificationEvent(kind, artifact, mainFile, signatureFile, repositoryName);
             synchronized (verificationEvents) {
@@ -133,7 +148,8 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
             }
         }
         if (closed.get()) {
-            LOGGER.debug("Cannot perform verification of all dependencies because the verification service has been shutdown. Under normal circumstances this shouldn't happen unless a user buildFinished was added in an unexpected way.");
+            LOGGER.debug(
+                    "Cannot perform verification of all dependencies because the verification service has been shutdown. Under normal circumstances this shouldn't happen unless a user buildFinished was added in an unexpected way.");
             return;
         }
         buildOperationExecutor.runAll(queue -> {
@@ -144,31 +160,41 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                     queue.add(new RunnableBuildOperation() {
                         @Override
                         public void run(BuildOperationContext context) {
-                            verifier.verify(checksumService, signatureVerificationService, ve.kind, ve.artifact, observed(ve.mainFile), observed(ve.signatureFile.create()), f -> {
-                                synchronized (failuresLock) {
-                                    failures.put(ve.artifact, new RepositoryAwareVerificationFailure(f, ve.repositoryName));
-                                    if (f.isFatal()) {
-                                        hasFatalFailure = true;
-                                    }
-                                }
-                            });
+                            verifier.verify(
+                                    checksumService,
+                                    signatureVerificationService,
+                                    ve.kind,
+                                    ve.artifact,
+                                    observed(ve.mainFile),
+                                    observed(ve.signatureFile.create()),
+                                    f -> {
+                                        synchronized (failuresLock) {
+                                            failures.put(
+                                                    ve.artifact,
+                                                    new RepositoryAwareVerificationFailure(f, ve.repositoryName));
+                                            if (f.isFatal()) {
+                                                hasFatalFailure = true;
+                                            }
+                                        }
+                                    });
                         }
 
                         @Override
                         public BuildOperationDescriptor.Builder description() {
                             return BuildOperationDescriptor.displayName("Dependency verification")
-                                .progressDisplayName("Verifying " + ve.artifact);
+                                    .progressDisplayName("Verifying " + ve.artifact);
                         }
                     });
                 }
             }
         });
-
     }
 
     @Override
-    public ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original) {
-        return new DependencyVerifyingModuleComponentRepository(original, this, verifier.getConfiguration().isVerifySignatures());
+    public ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(
+            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original) {
+        return new DependencyVerifyingModuleComponentRepository(
+                original, this, verifier.getConfiguration().isVerifySignatures());
     }
 
     @Override
@@ -179,11 +205,15 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                 // There are fatal failures, but not necessarily on all artifacts so we first filter out
                 // the artifacts which only have not fatal errors
                 Map<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>> filtered =
-                    failures.asMap().entrySet().stream().filter(entry -> {
-                        Collection<RepositoryAwareVerificationFailure> value = entry.getValue();
-                        return value.stream().anyMatch(wrapper -> wrapper.getFailure().isFatal());
-                    }).collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
-                VerificationReport report = reportWriter.generateReport(displayName, filtered, verifier.getConfiguration().isUseKeyServers());
+                        failures.asMap().entrySet().stream()
+                                .filter(entry -> {
+                                    Collection<RepositoryAwareVerificationFailure> value = entry.getValue();
+                                    return value.stream().anyMatch(wrapper -> wrapper.getFailure()
+                                            .isFatal());
+                                })
+                                .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+                VerificationReport report = reportWriter.generateReport(
+                        displayName, filtered, verifier.getConfiguration().isUseKeyServers());
                 String errorMessage = buildConsoleErrorMessage(report);
                 if (verificationMode == DependencyVerificationMode.LENIENT) {
                     LOGGER.error(errorMessage);
@@ -297,7 +327,12 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         private final Factory<File> signatureFile;
         private final String repositoryName;
 
-        private VerificationEvent(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile, String repositoryName) {
+        private VerificationEvent(
+                ArtifactKind kind,
+                ModuleComponentArtifactIdentifier artifact,
+                File mainFile,
+                Factory<File> signatureFile,
+                String repositoryName) {
             this.kind = kind;
             this.artifact = artifact;
             this.mainFile = mainFile;

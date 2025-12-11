@@ -33,10 +33,9 @@ public class DryRunBuildExecutionAction implements BuildWorkExecutor {
     private final ConfigurationTimeBarrier configurationTimeBarrier;
 
     public DryRunBuildExecutionAction(
-        BuildWorkExecutor delegate,
-        StyledTextOutputFactory textOutputFactory,
-        ConfigurationTimeBarrier configurationTimeBarrier
-    ) {
+            BuildWorkExecutor delegate,
+            StyledTextOutputFactory textOutputFactory,
+            ConfigurationTimeBarrier configurationTimeBarrier) {
         this.delegate = delegate;
         this.textOutputFactory = textOutputFactory;
         this.configurationTimeBarrier = configurationTimeBarrier;
@@ -48,12 +47,13 @@ public class DryRunBuildExecutionAction implements BuildWorkExecutor {
             return delegate.execute(gradle, plan);
         }
         for (Task task : plan.getContents().getTasks()) {
-            textOutputFactory.create(DryRunBuildExecutionAction.class)
-                .append(((TaskInternal) task).getIdentityPath().asString())
-                .append(" ")
-                .style(StyledTextOutput.Style.ProgressStatus)
-                .append("SKIPPED")
-                .println();
+            textOutputFactory
+                    .create(DryRunBuildExecutionAction.class)
+                    .append(((TaskInternal) task).getIdentityPath().asString())
+                    .append(" ")
+                    .style(StyledTextOutput.Style.ProgressStatus)
+                    .append("SKIPPED")
+                    .println();
         }
         return ExecutionResult.succeeded();
     }

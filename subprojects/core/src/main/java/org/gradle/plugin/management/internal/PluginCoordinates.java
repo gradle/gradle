@@ -51,5 +51,4 @@ public final class PluginCoordinates {
     public ComponentSelector getSelector() {
         return selector;
     }
-
 }

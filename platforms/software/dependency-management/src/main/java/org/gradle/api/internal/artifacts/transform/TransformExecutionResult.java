@@ -17,11 +17,10 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.RelativePath;
-
 import java.io.File;
 import java.util.function.Consumer;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.RelativePath;
 
 /**
  * The result of running a single transform action on a single input artifact.
@@ -94,8 +93,8 @@ public abstract class TransformExecutionResult {
         public TransformExecutionResult build() {
             ImmutableList<TransformExecutionOutput> transformOutputs = builder.build();
             return onlyProducedOutputs
-                ? new ProducedOutputOnlyResult(transformOutputs)
-                : new MixedInputAndProducedOutputResult(transformOutputs);
+                    ? new ProducedOutputOnlyResult(transformOutputs)
+                    : new MixedInputAndProducedOutputResult(transformOutputs);
         }
 
         /**
@@ -110,9 +109,9 @@ public abstract class TransformExecutionResult {
             @Override
             public TransformWorkspaceResult resolveForWorkspace(File workspaceDir) {
                 ImmutableList<File> resolvedOutputs = executionOutputs.stream()
-                    .map(ProducedExecutionOutput.class::cast)
-                    .map(output -> output.resolveForWorkspaceDirectly(workspaceDir))
-                    .collect(ImmutableList.toImmutableList());
+                        .map(ProducedExecutionOutput.class::cast)
+                        .map(output -> output.resolveForWorkspaceDirectly(workspaceDir))
+                        .collect(ImmutableList.toImmutableList());
                 return inputArtifact -> resolvedOutputs;
             }
         }
@@ -129,11 +128,11 @@ public abstract class TransformExecutionResult {
             @Override
             public TransformWorkspaceResult resolveForWorkspace(File workspaceDir) {
                 ImmutableList<TransformWorkspaceOutput> resolvedOutputs = executionOutputs.stream()
-                    .map(output -> output.resolveForWorkspace(workspaceDir))
-                    .collect(ImmutableList.toImmutableList());
+                        .map(output -> output.resolveForWorkspace(workspaceDir))
+                        .collect(ImmutableList.toImmutableList());
                 return inputArtifact -> resolvedOutputs.stream()
-                    .map(output -> output.resolveForInputArtifact(inputArtifact))
-                    .collect(ImmutableList.toImmutableList());
+                        .map(output -> output.resolveForInputArtifact(inputArtifact))
+                        .collect(ImmutableList.toImmutableList());
             }
         }
 
@@ -275,14 +274,17 @@ public abstract class TransformExecutionResult {
                 delegate.addProducedOutput("");
                 workspaceAction.accept(output);
             } else if (output.getPath().startsWith(outputDirPrefix)) {
-                String relativePath = RelativePath.parse(true, output.getPath().substring(outputDirPrefix.length())).getPathString();
+                String relativePath = RelativePath.parse(true, output.getPath().substring(outputDirPrefix.length()))
+                        .getPathString();
                 delegate.addProducedOutput(relativePath);
                 workspaceAction.accept(output);
             } else if (output.getPath().startsWith(inputArtifactPrefix)) {
-                String relativePath = RelativePath.parse(true, output.getPath().substring(inputArtifactPrefix.length())).getPathString();
+                String relativePath = RelativePath.parse(true, output.getPath().substring(inputArtifactPrefix.length()))
+                        .getPathString();
                 delegate.addPartOfInputArtifact(relativePath);
             } else {
-                throw new InvalidUserDataException("Transform output " + output.getPath() + " must be a part of the input artifact or refer to a relative path.");
+                throw new InvalidUserDataException("Transform output " + output.getPath()
+                        + " must be a part of the input artifact or refer to a relative path.");
             }
         }
 

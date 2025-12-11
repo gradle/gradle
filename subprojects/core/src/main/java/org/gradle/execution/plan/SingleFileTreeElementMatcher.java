@@ -16,6 +16,11 @@
 
 package org.gradle.execution.plan;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
@@ -23,12 +28,6 @@ import org.gradle.api.internal.file.DefaultFilePermissions;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Stat;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
 
 public class SingleFileTreeElementMatcher {
 
@@ -38,16 +37,21 @@ public class SingleFileTreeElementMatcher {
         this.stat = stat;
     }
 
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public boolean elementWithRelativePathMatches(Spec<FileTreeElement> filter, File element, String relativePathString) {
-        // A better solution for output files would be to record the type of the output file and then using this type here instead of looking at the disk.
-        // Though that is more involved and as soon as the file has been produced, the right file type will be detected here as well.
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
+    public boolean elementWithRelativePathMatches(
+            Spec<FileTreeElement> filter, File element, String relativePathString) {
+        // A better solution for output files would be to record the type of the output file and then using this type
+        // here instead of looking at the disk.
+        // Though that is more involved and as soon as the file has been produced, the right file type will be detected
+        // here as well.
         boolean elementIsFile = !element.isDirectory();
         RelativePath relativePath = RelativePath.parse(elementIsFile, relativePathString);
         if (!filter.isSatisfiedBy(new ReadOnlyFileTreeElement(element, relativePath, stat))) {
             return false;
         }
-        // All parent paths need to match the spec as well, since this is how we implement the file system walking for file tree.
+        // All parent paths need to match the spec as well, since this is how we implement the file system walking for
+        // file tree.
         RelativePath parentRelativePath = relativePath.getParent();
         File parentFile = element.getParentFile();
         while (parentRelativePath != null && parentRelativePath != RelativePath.EMPTY_ROOT) {

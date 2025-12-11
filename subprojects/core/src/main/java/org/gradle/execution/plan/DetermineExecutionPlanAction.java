@@ -16,10 +16,23 @@
 
 package org.gradle.execution.plan;
 
+import static java.lang.String.format;
+import static org.gradle.execution.plan.NodeSets.sortedListOf;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.io.StringWriter;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
@@ -34,20 +47,6 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-
-import java.io.StringWriter;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
-
-import static java.lang.String.format;
-import static org.gradle.execution.plan.NodeSets.sortedListOf;
 
 /**
  * Determines the execution plan, checking for cycles and making sure `finalizedBy` constraints are honored.
@@ -80,7 +79,11 @@ class DetermineExecutionPlanAction {
     /**
      * See {@link DetermineExecutionPlanAction}
      */
-    public DetermineExecutionPlanAction(DefaultExecutionPlan.NodeMapping nodeMapping, OrdinalNodeAccess ordinalNodeAccess, Set<Node> entryNodes, Set<Node> finalizers) {
+    public DetermineExecutionPlanAction(
+            DefaultExecutionPlan.NodeMapping nodeMapping,
+            OrdinalNodeAccess ordinalNodeAccess,
+            Set<Node> entryNodes,
+            Set<Node> finalizers) {
         this.entryNodes = entryNodes;
         this.nodeMapping = nodeMapping;
         this.ordinalNodeAccess = ordinalNodeAccess;
@@ -118,7 +121,8 @@ class DetermineExecutionPlanAction {
                     queue.addFirst(successor);
                 }
             } else {
-                // Have visited the dependencies of this node, add it to the start of the list (so that it is earlier in the list that
+                // Have visited the dependencies of this node, add it to the start of the list (so that it is earlier in
+                // the list that
                 // all of its dependencies)
                 visiting.remove(node);
                 visited.add(node);
@@ -173,7 +177,7 @@ class DetermineExecutionPlanAction {
                 for (Node successor : node.getAllSuccessors()) {
                     if (visitingNodes.containsEntry(successor, currentSegment)) {
                         if (!walkedShouldRunAfterEdges.isEmpty()) {
-                            //remove the last walked should run after edge and restore state from before walking it
+                            // remove the last walked should run after edge and restore state from before walking it
                             GraphEdge toBeRemoved = walkedShouldRunAfterEdges.pop();
                             // Should run after edges only exist between tasks, so this cast is safe
                             TaskNode sourceTask = (TaskNode) toBeRemoved.from;
@@ -261,10 +265,7 @@ class DetermineExecutionPlanAction {
     }
 
     private void removeShouldRunAfterSuccessorsIfTheyImposeACycle(TaskNode node, int visitingSegment) {
-        Iterables.removeIf(
-            node.getShouldSuccessors(),
-            input -> visitingNodes.containsEntry(input, visitingSegment)
-        );
+        Iterables.removeIf(node.getShouldSuccessors(), input -> visitingNodes.containsEntry(input, visitingSegment));
     }
 
     private void takePlanSnapshotIfCanBeRestoredToCurrentTask(Map<Node, Integer> planBeforeVisiting, TaskNode node) {
@@ -287,18 +288,22 @@ class DetermineExecutionPlanAction {
     private void onOrderingCycle(Node successor, Node currentNode) {
         List<Set<Node>> cycles = findCycles(successor);
         if (cycles.isEmpty()) {
-            // TODO: This isn't correct. This means that we've detected a cycle while determining the execution plan, but the graph walker did not find one.
+            // TODO: This isn't correct. This means that we've detected a cycle while determining the execution plan,
+            // but the graph walker did not find one.
             // https://github.com/gradle/gradle/issues/2293
-            throw new GradleException("Misdetected cycle between " + currentNode + " and " + successor + ". Help us by reporting this to https://github.com/gradle/gradle/issues/2293");
+            throw new GradleException("Misdetected cycle between " + currentNode + " and " + successor
+                    + ". Help us by reporting this to https://github.com/gradle/gradle/issues/2293");
         }
         StringWriter cycleString = renderOrderingCycle(cycles.get(0));
-        throw new CircularReferenceException(format("Circular dependency between the following tasks:%n%s", cycleString));
+        throw new CircularReferenceException(
+                format("Circular dependency between the following tasks:%n%s", cycleString));
     }
 
     private List<Set<Node>> findCycles(Node successor) {
-        CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> {
-            node.getHardSuccessors().forEach(connectedNodes::add);
-        });
+        CachingDirectedGraphWalker<Node, Void> graphWalker =
+                new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> {
+                    node.getHardSuccessors().forEach(connectedNodes::add);
+                });
         graphWalker.add(successor);
         return graphWalker.findCycles();
     }
@@ -307,15 +312,16 @@ class DetermineExecutionPlanAction {
         List<Node> cycle = sortedListOf(nodes);
 
         DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(
-            (it, output, alreadySeen) -> output.withStyle(StyledTextOutput.Style.Identifier).text(it),
-            (it, values, connectedNodes) -> {
-                for (Node dependency : cycle) {
-                    Set<Node> successors = Sets.newHashSet(it.getHardSuccessors());
-                    if (dependency instanceof TaskNode && successors.contains(dependency)) {
-                        connectedNodes.add(dependency);
+                (it, output, alreadySeen) ->
+                        output.withStyle(StyledTextOutput.Style.Identifier).text(it),
+                (it, values, connectedNodes) -> {
+                    for (Node dependency : cycle) {
+                        Set<Node> successors = Sets.newHashSet(it.getHardSuccessors());
+                        if (dependency instanceof TaskNode && successors.contains(dependency)) {
+                            connectedNodes.add(dependency);
+                        }
                     }
-                }
-            });
+                });
         StringWriter writer = new StringWriter();
         graphRenderer.renderTo(cycle.get(0), writer);
         return writer;
@@ -376,7 +382,8 @@ class DetermineExecutionPlanAction {
         private boolean isDestroyer;
 
         @Override
-        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+        public void visitOutputFileProperty(
+                String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
             isProducer = true;
         }
 
@@ -410,10 +417,7 @@ class DetermineExecutionPlanAction {
 
         @Override
         public String toString() {
-            return "NodeInVisitingSegment{" +
-                "node=" + node +
-                ", visitingSegment=" + visitingSegment +
-                '}';
+            return "NodeInVisitingSegment{" + "node=" + node + ", visitingSegment=" + visitingSegment + '}';
         }
     }
 
@@ -428,10 +432,7 @@ class DetermineExecutionPlanAction {
 
         @Override
         public String toString() {
-            return "GraphEdge{" +
-                "from=" + from +
-                ", to=" + to +
-                '}';
+            return "GraphEdge{" + "from=" + from + ", to=" + to + '}';
         }
     }
 }

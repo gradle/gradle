@@ -16,6 +16,8 @@
 
 package org.gradle.vcs.internal.services;
 
+import java.util.Collection;
+import javax.inject.Inject;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -57,9 +59,6 @@ import org.gradle.vcs.internal.resolver.VcsDependencyResolver;
 import org.gradle.vcs.internal.resolver.VcsVersionSelectionCache;
 import org.gradle.vcs.internal.resolver.VcsVersionWorkingDirResolver;
 
-import javax.inject.Inject;
-import java.util.Collection;
-
 public class VersionControlServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
@@ -83,12 +82,14 @@ public class VersionControlServices extends AbstractGradleModuleServices {
 
     private static class VersionControlBuildTreeServices implements ServiceRegistrationProvider {
         @Provides
-        VcsMappingFactory createVcsMappingFactory(ObjectFactory objectFactory, VersionControlSpecFactory versionControlSpecFactory) {
+        VcsMappingFactory createVcsMappingFactory(
+                ObjectFactory objectFactory, VersionControlSpecFactory versionControlSpecFactory) {
             return new DefaultVcsMappingFactory(objectFactory, versionControlSpecFactory);
         }
 
         @Provides
-        VersionControlSpecFactory createVersionControlSpecFactory(ObjectFactory objectFactory, NotationParser<String, ModuleIdentifier> notationParser) {
+        VersionControlSpecFactory createVersionControlSpecFactory(
+                ObjectFactory objectFactory, NotationParser<String, ModuleIdentifier> notationParser) {
             return new DefaultVersionControlSpecFactory(objectFactory, notationParser);
         }
 
@@ -110,17 +111,18 @@ public class VersionControlServices extends AbstractGradleModuleServices {
 
     private static class VersionControlBuildSessionServices implements ServiceRegistrationProvider {
         @Provides
-        NotationParser<String, ModuleIdentifier> createModuleIdParser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-            return NotationParserBuilder
-                .builder(String.class, ModuleIdentifier.class)
-                .typeDisplayName("a module identifier")
-                .fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
-                .toComposite();
+        NotationParser<String, ModuleIdentifier> createModuleIdParser(
+                ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return NotationParserBuilder.builder(String.class, ModuleIdentifier.class)
+                    .typeDisplayName("a module identifier")
+                    .fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
+                    .toComposite();
         }
 
         @Provides
         void configure(ServiceRegistration registration) {
-            registration.add(VersionControlRepositoryConnectionFactory.class, DefaultVersionControlRepositoryFactory.class);
+            registration.add(
+                    VersionControlRepositoryConnectionFactory.class, DefaultVersionControlRepositoryFactory.class);
             registration.add(VcsDirectoryLayout.class);
             registration.add(PersistentVcsMetadataCache.class);
         }
@@ -128,12 +130,20 @@ public class VersionControlServices extends AbstractGradleModuleServices {
 
     private static class VersionControlSettingsServices implements ServiceRegistrationProvider {
         @Provides
-        VcsMappings createVcsMappings(ObjectFactory objectFactory, VcsMappingsStore vcsMappingsStore, Gradle gradle, NotationParser<String, ModuleIdentifier> notationParser) {
+        VcsMappings createVcsMappings(
+                ObjectFactory objectFactory,
+                VcsMappingsStore vcsMappingsStore,
+                Gradle gradle,
+                NotationParser<String, ModuleIdentifier> notationParser) {
             return objectFactory.newInstance(DefaultVcsMappings.class, vcsMappingsStore, gradle, notationParser);
         }
 
         @Provides
-        SourceControl createSourceControl(ObjectFactory objectFactory, FileResolver fileResolver, VcsMappings vcsMappings, VersionControlSpecFactory specFactory) {
+        SourceControl createSourceControl(
+                ObjectFactory objectFactory,
+                FileResolver fileResolver,
+                VcsMappings vcsMappings,
+                VersionControlSpecFactory specFactory) {
             return objectFactory.newInstance(DefaultSourceControl.class, fileResolver, vcsMappings, specFactory);
         }
     }
@@ -146,12 +156,23 @@ public class VersionControlServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        VcsVersionWorkingDirResolver createVcsVersionWorkingDirResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache, PersistentVcsMetadataCache persistentCache, StartParameter startParameter) {
+        VcsVersionWorkingDirResolver createVcsVersionWorkingDirResolver(
+                VersionSelectorScheme versionSelectorScheme,
+                VersionComparator versionComparator,
+                VersionParser versionParser,
+                VcsVersionSelectionCache versionSelectionCache,
+                PersistentVcsMetadataCache persistentCache,
+                StartParameter startParameter) {
             VcsVersionWorkingDirResolver workingDirResolver;
             if (startParameter.isOffline()) {
                 workingDirResolver = new OfflineVcsVersionWorkingDirResolver(persistentCache);
             } else {
-                workingDirResolver = new DefaultVcsVersionWorkingDirResolver(versionSelectorScheme, versionComparator, versionParser, versionSelectionCache, persistentCache);
+                workingDirResolver = new DefaultVcsVersionWorkingDirResolver(
+                        versionSelectorScheme,
+                        versionComparator,
+                        versionParser,
+                        versionSelectionCache,
+                        persistentCache);
             }
             return new OncePerBuildInvocationVcsVersionWorkingDirResolver(versionSelectionCache, workingDirResolver);
         }
@@ -167,12 +188,11 @@ public class VersionControlServices extends AbstractGradleModuleServices {
 
         @Inject
         public VcsResolverFactory(
-            VcsResolver vcsResolver,
-            BuildStateRegistry buildRegistry,
-            PublicBuildPath publicBuildPath,
-            VersionControlRepositoryConnectionFactory versionControlSystemFactory,
-            VcsVersionWorkingDirResolver workingDirResolver
-        ) {
+                VcsResolver vcsResolver,
+                BuildStateRegistry buildRegistry,
+                PublicBuildPath publicBuildPath,
+                VersionControlRepositoryConnectionFactory versionControlSystemFactory,
+                VcsVersionWorkingDirResolver workingDirResolver) {
             this.vcsResolver = vcsResolver;
             this.buildRegistry = buildRegistry;
             this.publicBuildPath = publicBuildPath;
@@ -184,9 +204,12 @@ public class VersionControlServices extends AbstractGradleModuleServices {
         public void create(Collection<ComponentResolvers> resolvers, LocalComponentRegistry localComponentRegistry) {
             if (vcsResolver.hasRules()) {
                 resolvers.add(new VcsDependencyResolver(
-                    localComponentRegistry, vcsResolver, versionControlSystemFactory,
-                    buildRegistry, workingDirResolver, publicBuildPath
-                ));
+                        localComponentRegistry,
+                        vcsResolver,
+                        versionControlSystemFactory,
+                        buildRegistry,
+                        workingDirResolver,
+                        publicBuildPath));
             }
         }
     }

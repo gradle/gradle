@@ -16,9 +16,8 @@
 
 package org.gradle.internal.instrumentation.processor.codegen.groovy;
 
-import org.objectweb.asm.Type;
-
 import java.util.Objects;
+import org.objectweb.asm.Type;
 
 class ParameterMatchEntry {
     final Type type;
@@ -30,7 +29,10 @@ class ParameterMatchEntry {
     }
 
     enum Kind {
-        RECEIVER_AS_CLASS, RECEIVER, PARAMETER, VARARG
+        RECEIVER_AS_CLASS,
+        RECEIVER,
+        PARAMETER,
+        VARARG
     }
 
     @Override

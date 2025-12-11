@@ -16,12 +16,11 @@
 
 package org.gradle.internal.io;
 
-import org.gradle.internal.UncheckedException;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.function.Supplier;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A variant of {@link Supplier} that is allowed to throw {@link IOException}.

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.catalog;
 
+import java.io.Closeable;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
@@ -25,28 +26,24 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.Closeable;
-
 @ServiceScope(Scope.BuildSession.class)
 public class DependenciesAccessorsWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
     private final CacheBasedImmutableWorkspaceProvider delegate;
 
     public DependenciesAccessorsWorkspaceProvider(
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
-    ) {
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            FileAccessTimeJournal fileAccessTimeJournal,
+            CacheConfigurationsInternal cacheConfigurations,
+            CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         this.delegate = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(
-            cacheBuilderFactory
-                .createCacheBuilder("dependencies-accessors")
-                .withDisplayName("dependencies-accessors"),
-            fileAccessTimeJournal,
-            cacheConfigurations,
-            cacheCleanupStrategyFactory,
-            unscopedCacheBuilderFactory
-        );
+                cacheBuilderFactory
+                        .createCacheBuilder("dependencies-accessors")
+                        .withDisplayName("dependencies-accessors"),
+                fileAccessTimeJournal,
+                cacheConfigurations,
+                cacheCleanupStrategyFactory,
+                unscopedCacheBuilderFactory);
     }
 
     @Override

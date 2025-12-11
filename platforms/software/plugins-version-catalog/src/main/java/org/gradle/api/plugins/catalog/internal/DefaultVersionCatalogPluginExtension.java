@@ -16,6 +16,8 @@
 package org.gradle.api.plugins.catalog.internal;
 
 import com.google.common.collect.Interners;
+import java.util.function.Supplier;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
@@ -26,23 +28,24 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
-import javax.inject.Inject;
-import java.util.function.Supplier;
-
 public class DefaultVersionCatalogPluginExtension implements CatalogExtensionInternal {
     private final DependenciesAwareVersionCatalogBuilder builder;
     private final Provider<DefaultVersionCatalog> model;
 
     @Inject
-    public DefaultVersionCatalogPluginExtension(ObjectFactory objects, ProviderFactory providers, DependencyResolutionServices drs, Configuration dependenciesConfiguration) {
-        this.builder = objects.newInstance(DependenciesAwareVersionCatalogBuilder.class,
-            "versionCatalog",
-            Interners.newStrongInterner(),
-            Interners.newStrongInterner(),
-            objects,
-            (Supplier<DependencyResolutionServices>) () -> drs,
-            dependenciesConfiguration
-        );
+    public DefaultVersionCatalogPluginExtension(
+            ObjectFactory objects,
+            ProviderFactory providers,
+            DependencyResolutionServices drs,
+            Configuration dependenciesConfiguration) {
+        this.builder = objects.newInstance(
+                DependenciesAwareVersionCatalogBuilder.class,
+                "versionCatalog",
+                Interners.newStrongInterner(),
+                Interners.newStrongInterner(),
+                objects,
+                (Supplier<DependencyResolutionServices>) () -> drs,
+                dependenciesConfiguration);
         this.model = providers.provider(builder::build);
     }
 
@@ -60,5 +63,4 @@ public class DefaultVersionCatalogPluginExtension implements CatalogExtensionInt
     public Provider<DefaultVersionCatalog> getVersionCatalog() {
         return model;
     }
-
 }

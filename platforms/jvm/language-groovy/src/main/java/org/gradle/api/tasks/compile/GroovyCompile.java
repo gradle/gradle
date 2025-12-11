@@ -16,8 +16,14 @@
 
 package org.gradle.api.tasks.compile;
 
+import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION_AVOIDANCE;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -68,13 +74,6 @@ import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
-import java.util.concurrent.Callable;
-
-import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION_AVOIDANCE;
-
 /**
  * Compiles Groovy source files, and optionally, Java source files.
  */
@@ -105,7 +104,8 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     @Incremental
     @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
-        // Note that @CompileClasspath here is an approximation and must be fixed before de-incubating getAstTransformationClasspath()
+        // Note that @CompileClasspath here is an approximation and must be fixed before de-incubating
+        // getAstTransformationClasspath()
         // See https://github.com/gradle/gradle/pull/9513
         return super.getClasspath();
     }
@@ -157,17 +157,18 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         }
     }
 
-    private Compiler<GroovyJavaJointCompileSpec> createCompiler(GroovyJavaJointCompileSpec spec, InputChanges inputChanges) {
+    private Compiler<GroovyJavaJointCompileSpec> createCompiler(
+            GroovyJavaJointCompileSpec spec, InputChanges inputChanges) {
         GroovyCompilerFactory groovyCompilerFactory = getGroovyCompilerFactory();
         Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
-        CleaningJavaCompiler<GroovyJavaJointCompileSpec> cleaningGroovyCompiler = new CleaningJavaCompiler<>(delegatingCompiler, getOutputs(), getDeleter());
+        CleaningJavaCompiler<GroovyJavaJointCompileSpec> cleaningGroovyCompiler =
+                new CleaningJavaCompiler<>(delegatingCompiler, getOutputs(), getDeleter());
         if (spec.incrementalCompilationEnabled()) {
             IncrementalCompilerFactory factory = getIncrementalCompilerFactory();
             return factory.makeIncremental(
-                cleaningGroovyCompiler,
-                getStableSources().getAsFileTree(),
-                createRecompilationSpecProvider(inputChanges)
-            );
+                    cleaningGroovyCompiler,
+                    getStableSources().getAsFileTree(),
+                    createRecompilationSpecProvider(inputChanges));
         } else {
             return cleaningGroovyCompiler;
         }
@@ -176,12 +177,11 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     private RecompilationSpecProvider createRecompilationSpecProvider(InputChanges inputChanges) {
         FileCollection stableSources = getStableSources();
         return new GroovyRecompilationSpecProvider(
-            getDeleter(),
-            getServices().get(FileOperations.class),
-            stableSources.getAsFileTree(),
-            inputChanges.isIncremental(),
-            () -> inputChanges.getFileChanges(stableSources).iterator()
-        );
+                getDeleter(),
+                getServices().get(FileOperations.class),
+                stableSources.getAsFileTree(),
+                inputChanges.isIncremental(),
+                () -> inputChanges.getFileChanges(stableSources).iterator());
     }
 
     /**
@@ -206,21 +206,26 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         }
     }
 
-    private static void validateIncrementalCompilationOptions(List<File> sourceRoots, boolean annotationProcessingConfigured) {
+    private static void validateIncrementalCompilationOptions(
+            List<File> sourceRoots, boolean annotationProcessingConfigured) {
         if (sourceRoots.isEmpty()) {
-            throw new InvalidUserDataException("Unable to infer source roots. Incremental Groovy compilation requires the source roots. Change the configuration of your sources or disable incremental Groovy compilation.");
+            throw new InvalidUserDataException(
+                    "Unable to infer source roots. Incremental Groovy compilation requires the source roots. Change the configuration of your sources or disable incremental Groovy compilation.");
         }
 
         if (annotationProcessingConfigured) {
-            throw new InvalidUserDataException("Enabling incremental compilation and configuring Java annotation processors for Groovy compilation is not allowed. Disable incremental Groovy compilation or remove the Java annotation processor configuration.");
+            throw new InvalidUserDataException(
+                    "Enabling incremental compilation and configuring Java annotation processors for Groovy compilation is not allowed. Disable incremental Groovy compilation or remove the Java annotation processor configuration.");
         }
     }
 
     private GroovyJavaJointCompileSpec createSpec() {
-        DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpecFactory(getOptions(), getToolchain()).create();
+        DefaultGroovyJavaJointCompileSpec spec =
+                new DefaultGroovyJavaJointCompileSpecFactory(getOptions(), getToolchain()).create();
         assert spec != null;
 
-        FileTreeInternal stableSourcesAsFileTree = (FileTreeInternal) getStableSources().getAsFileTree();
+        FileTreeInternal stableSourcesAsFileTree =
+                (FileTreeInternal) getStableSources().getAsFileTree();
         List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots(stableSourcesAsFileTree);
 
         spec.setSourcesRoots(sourceRoots);
@@ -230,7 +235,10 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(determineGroovyCompileClasspath()));
         configureCompatibilityOptions(spec);
-        spec.setAnnotationProcessorPath(Lists.newArrayList(getOptions().getAnnotationProcessorPath() == null ? getProjectLayout().files() : getOptions().getAnnotationProcessorPath()));
+        spec.setAnnotationProcessorPath(Lists.newArrayList(
+                getOptions().getAnnotationProcessorPath() == null
+                        ? getProjectLayout().files()
+                        : getOptions().getAnnotationProcessorPath()));
         spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
         spec.setCompileOptions(getOptions());
         spec.setGroovyCompileOptions(new MinimalGroovyCompileOptions(getGroovyOptions()));
@@ -245,14 +253,17 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
             spec.getGroovyCompileOptions().setStubDir(dir);
         }
 
-        String executable = getJavaLauncher().get().getExecutablePath().getAsFile().getAbsolutePath();
+        String executable =
+                getJavaLauncher().get().getExecutablePath().getAsFile().getAbsolutePath();
         spec.getCompileOptions().getForkOptions().setExecutable(executable);
 
         return spec;
     }
 
     private void configureCompatibilityOptions(DefaultGroovyJavaJointCompileSpec spec) {
-        String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
+        String toolchainVersion = JavaVersion.toVersion(
+                        getToolchain().getLanguageVersion().asInt())
+                .toString();
         String sourceCompatibility = getSourceCompatibility();
         // Compatibility can be null if no convention was configured, e.g. when JavaBasePlugin is not applied
         if (sourceCompatibility == null) {
@@ -273,8 +284,10 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
 
     private void checkGroovyClasspathIsNonEmpty() {
         if (getGroovyClasspath().isEmpty()) {
-            throw new InvalidUserDataException("'" + getName() + ".groovyClasspath' must not be empty. If a Groovy compile dependency is provided, "
-                + "the 'groovy-base' plugin will attempt to configure 'groovyClasspath' automatically. Alternatively, you may configure 'groovyClasspath' explicitly.");
+            throw new InvalidUserDataException(
+                    "'" + getName()
+                            + ".groovyClasspath' must not be empty. If a Groovy compile dependency is provided, "
+                            + "the 'groovy-base' plugin will attempt to configure 'groovyClasspath' automatically. Alternatively, you may configure 'groovyClasspath' explicitly.");
         }
     }
 
@@ -372,5 +385,4 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         // Do not create the temporary folder, since that causes problems.
         return getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
     }
-
 }

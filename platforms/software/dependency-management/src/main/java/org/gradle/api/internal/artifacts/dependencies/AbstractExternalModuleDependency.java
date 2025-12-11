@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -33,9 +34,8 @@ import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
-public abstract class AbstractExternalModuleDependency extends AbstractModuleDependency implements ExternalModuleDependency {
+public abstract class AbstractExternalModuleDependency extends AbstractModuleDependency
+        implements ExternalModuleDependency {
 
     private final ModuleIdentifier moduleIdentifier;
     private boolean changing;
@@ -49,7 +49,8 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         }
     }
 
-    public AbstractExternalModuleDependency(ModuleIdentifier module, MutableVersionConstraint version, @Nullable String configuration) {
+    public AbstractExternalModuleDependency(
+            ModuleIdentifier module, MutableVersionConstraint version, @Nullable String configuration) {
         this.moduleIdentifier = module;
         this.versionConstraint = version;
         if (configuration != null) {
@@ -86,7 +87,8 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
 
     @Override
     public boolean isForce() {
-        return false; // Enforced Platforms no longer mark force, so there is no way for a dependency to be forced (configurations and resolution strategies are used instead)
+        return false; // Enforced Platforms no longer mark force, so there is no way for a dependency to be forced
+        // (configurations and resolution strategies are used instead)
     }
 
     @Override
@@ -128,20 +130,20 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     @SuppressWarnings("deprecation")
     public List<Capability> getRequestedCapabilities() {
         return getCapabilitySelectors().stream()
-            .map(c -> {
-                if (c instanceof SpecificCapabilitySelector) {
-                    return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
-                } else if (c instanceof FeatureCapabilitySelector) {
-                    return new DefaultImmutableCapability(
-                        getGroup(),
-                        getName() + "-" + ((FeatureCapabilitySelector) c).getFeatureName(),
-                        getVersion()
-                    );
-                } else {
-                    throw new UnsupportedOperationException("Unsupported capability selector type: " + c.getClass().getName());
-                }
-            })
-            .collect(ImmutableList.toImmutableList());
+                .map(c -> {
+                    if (c instanceof SpecificCapabilitySelector) {
+                        return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
+                    } else if (c instanceof FeatureCapabilitySelector) {
+                        return new DefaultImmutableCapability(
+                                getGroup(),
+                                getName() + "-" + ((FeatureCapabilitySelector) c).getFeatureName(),
+                                getVersion());
+                    } else {
+                        throw new UnsupportedOperationException("Unsupported capability selector type: "
+                                + c.getClass().getName());
+                    }
+                })
+                .collect(ImmutableList.toImmutableList());
     }
 
     @Override
@@ -160,10 +162,10 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
 
         AbstractExternalModuleDependency that = (AbstractExternalModuleDependency) o;
 
-        return moduleIdentifier.equals(that.moduleIdentifier) &&
-            versionConstraint.equals(that.versionConstraint) &&
-            changing == that.changing &&
-            isCommonContentEquals(that);
+        return moduleIdentifier.equals(that.moduleIdentifier)
+                && versionConstraint.equals(that.versionConstraint)
+                && changing == that.changing
+                && isCommonContentEquals(that);
     }
 
     @Override

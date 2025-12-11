@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.TypeConversionException;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.TypeConversionException;
 
 /**
  * An option with one or more values.
@@ -32,10 +31,16 @@ public class MultipleValueOptionElement extends AbstractOptionElement {
     private final PropertySetter setter;
     private final NotationParser<CharSequence, ?> notationParser;
 
-    public MultipleValueOptionElement(String optionName, Option option, Class<?> elementType, PropertySetter setter, OptionValueNotationParserFactory notationParserFactory) {
+    public MultipleValueOptionElement(
+            String optionName,
+            Option option,
+            Class<?> elementType,
+            PropertySetter setter,
+            OptionValueNotationParserFactory notationParserFactory) {
         super(optionName, option, List.class, setter.getDeclaringClass());
         this.setter = setter;
-        this.notationParser = createNotationParserOrFail(notationParserFactory, optionName, elementType, setter.getDeclaringClass());
+        this.notationParser =
+                createNotationParserOrFail(notationParserFactory, optionName, elementType, setter.getDeclaringClass());
     }
 
     @Override

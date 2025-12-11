@@ -45,5 +45,4 @@ public interface SyncSpec extends CopySpec {
      * @return this
      */
     SyncSpec preserve(Action<? super PatternFilterable> action);
-
 }

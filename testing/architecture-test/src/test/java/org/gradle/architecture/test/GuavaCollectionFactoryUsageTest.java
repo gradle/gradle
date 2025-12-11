@@ -16,11 +16,11 @@
 
 package org.gradle.architecture.test;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
  * Tests that various Guava collection factory methods are not used.
@@ -34,8 +34,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 @AnalyzeClasses(packages = "org.gradle")
 public class GuavaCollectionFactoryUsageTest {
     @ArchTest
-    public static final ArchRule guava_new_list_factories_are_deprecated =
-        noClasses()
+    public static final ArchRule guava_new_list_factories_are_deprecated = noClasses()
             .should()
             .callMethod(com.google.common.collect.Lists.class, "newArrayList")
             .orShould()
@@ -50,11 +49,11 @@ public class GuavaCollectionFactoryUsageTest {
             .callMethod(com.google.common.collect.Lists.class, "newCopyOnWriteArrayList")
             .orShould()
             .callMethod(com.google.common.collect.Lists.class, "newLinkedList")
-            .because("The no-argument versions of these List creation factory methods are deprecated, see the notes on their Javadoc");
+            .because(
+                    "The no-argument versions of these List creation factory methods are deprecated, see the notes on their Javadoc");
 
     @ArchTest
-    public static final ArchRule guava_new_map_factories_are_deprecated =
-        noClasses()
+    public static final ArchRule guava_new_map_factories_are_deprecated = noClasses()
             .should()
             .callMethod(com.google.common.collect.Maps.class, "newConcurrentMap")
             .orShould()
@@ -65,11 +64,11 @@ public class GuavaCollectionFactoryUsageTest {
             .callMethod(com.google.common.collect.Maps.class, "newIdentityHashMap")
             .orShould()
             .callMethod(com.google.common.collect.Maps.class, "newTreeMap")
-            .because("The no-argument versions of these Map creation factory methods are deprecated, see the notes on their Javadoc");
+            .because(
+                    "The no-argument versions of these Map creation factory methods are deprecated, see the notes on their Javadoc");
 
     @ArchTest
-    public static final ArchRule guava_new_set_factories_are_deprecated =
-        noClasses()
+    public static final ArchRule guava_new_set_factories_are_deprecated = noClasses()
             .should()
             .callMethod(com.google.common.collect.Sets.class, "newCopyOnWriteArraySet")
             .orShould()
@@ -78,5 +77,6 @@ public class GuavaCollectionFactoryUsageTest {
             .callMethod(com.google.common.collect.Sets.class, "newLinkedHashSet")
             .orShould()
             .callMethod(com.google.common.collect.Sets.class, "newTreeSet")
-            .because("The no-argument versions of these Set creation factory methods are deprecated, see the notes on their Javadoc");
+            .because(
+                    "The no-argument versions of these Set creation factory methods are deprecated, see the notes on their Javadoc");
 }

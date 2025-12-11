@@ -37,11 +37,10 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     private final boolean isFallbackToolchain;
 
     public JavaToolchain(
-        JvmInstallationMetadata metadata,
-        FileFactory fileFactory,
-        JavaToolchainInput input,
-        boolean isFallbackToolchain
-    ) {
+            JvmInstallationMetadata metadata,
+            FileFactory fileFactory,
+            JavaToolchainInput input,
+            boolean isFallbackToolchain) {
         this.javaHome = fileFactory.dir(metadata.getJavaHome().toFile());
         this.javaVersion = deriveJavaLanguageVersion(metadata);
         this.metadata = metadata;
@@ -50,7 +49,9 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     }
 
     private static JavaLanguageVersion deriveJavaLanguageVersion(JvmInstallationMetadata metadata) {
-        return metadata.isValidInstallation() ? JavaLanguageVersion.of(metadata.getJavaMajorVersion()) : DefaultJavaLanguageVersion.UNKNOWN;
+        return metadata.isValidInstallation()
+                ? JavaLanguageVersion.of(metadata.getJavaMajorVersion())
+                : DefaultJavaLanguageVersion.UNKNOWN;
     }
 
     @Nested

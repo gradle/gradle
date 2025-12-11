@@ -25,10 +25,16 @@ public interface ArtifactResolver {
     /**
      * Discovers the set of artifacts belonging to the given component, with the type specified. Does not download the artifacts. Any failures are packaged up in the result.
      */
-    void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result);
+    void resolveArtifactsWithType(
+            ComponentArtifactResolveMetadata component,
+            ArtifactType artifactType,
+            BuildableArtifactSetResolveResult result);
 
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result);
+    void resolveArtifact(
+            ComponentArtifactResolveMetadata component,
+            ComponentArtifactMetadata artifact,
+            BuildableArtifactResolveResult result);
 }

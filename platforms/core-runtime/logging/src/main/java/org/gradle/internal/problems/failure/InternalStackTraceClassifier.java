@@ -31,18 +31,18 @@ public class InternalStackTraceClassifier implements StackTraceClassifier {
 
     private static boolean isInternal(String className) {
         // JDK calls
-        return className.startsWith("java.") ||
-            className.startsWith("jdk.") ||
-            className.startsWith("sun.") ||
-            className.startsWith("com.sun.") ||
-            // Groovy calls
-            className.startsWith("groovy.lang") ||
-            className.startsWith("org.codehaus.groovy.") ||
-            isGradleCall(className);
+        return className.startsWith("java.")
+                || className.startsWith("jdk.")
+                || className.startsWith("sun.")
+                || className.startsWith("com.sun.")
+                ||
+                // Groovy calls
+                className.startsWith("groovy.lang")
+                || className.startsWith("org.codehaus.groovy.")
+                || isGradleCall(className);
     }
 
     public static boolean isGradleCall(String className) {
-        return className.startsWith("org.gradle.") ||
-            className.startsWith("worker.org.gradle.");
+        return className.startsWith("org.gradle.") || className.startsWith("worker.org.gradle.");
     }
 }

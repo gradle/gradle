@@ -16,12 +16,11 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import java.lang.invoke.SerializedLambda;
+import java.util.Objects;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.jspecify.annotations.Nullable;
-
-import java.lang.invoke.SerializedLambda;
-import java.util.Objects;
 
 public class LambdaImplementationSnapshot extends ImplementationSnapshot {
 
@@ -35,25 +34,23 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
 
     public LambdaImplementationSnapshot(HashCode classLoaderHash, SerializedLambda lambda) {
         this(
-            lambda.getCapturingClass(),
-            classLoaderHash,
-            lambda.getFunctionalInterfaceClass(),
-            lambda.getImplClass(),
-            lambda.getImplMethodName(),
-            lambda.getImplMethodSignature(),
-            lambda.getImplMethodKind()
-        );
+                lambda.getCapturingClass(),
+                classLoaderHash,
+                lambda.getFunctionalInterfaceClass(),
+                lambda.getImplClass(),
+                lambda.getImplMethodName(),
+                lambda.getImplMethodSignature(),
+                lambda.getImplMethodKind());
     }
 
     public LambdaImplementationSnapshot(
-        String capturingClass,
-        HashCode classLoaderHash,
-        String functionalInterfaceClass,
-        String implClass,
-        String implMethodName,
-        String implMethodSignature,
-        int implMethodKind
-    ) {
+            String capturingClass,
+            HashCode classLoaderHash,
+            String functionalInterfaceClass,
+            String implClass,
+            String implMethodName,
+            String implMethodSignature,
+            int implMethodKind) {
         super(capturingClass);
         this.classLoaderHash = classLoaderHash;
         this.functionalInterfaceClass = functionalInterfaceClass;
@@ -116,18 +113,25 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
         }
 
         LambdaImplementationSnapshot that = (LambdaImplementationSnapshot) o;
-        return classIdentifier.equals(that.classIdentifier) &&
-            classLoaderHash.equals(that.classLoaderHash) &&
-            functionalInterfaceClass.equals(that.functionalInterfaceClass) &&
-            implClass.equals(that.implClass) &&
-            implMethodName.equals(that.implMethodName) &&
-            implMethodSignature.equals(that.implMethodSignature) &&
-            implMethodKind == that.implMethodKind;
+        return classIdentifier.equals(that.classIdentifier)
+                && classLoaderHash.equals(that.classLoaderHash)
+                && functionalInterfaceClass.equals(that.functionalInterfaceClass)
+                && implClass.equals(that.implClass)
+                && implMethodName.equals(that.implMethodName)
+                && implMethodSignature.equals(that.implMethodSignature)
+                && implMethodKind == that.implMethodKind;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(classIdentifier, classLoaderHash, functionalInterfaceClass, implClass, implMethodName, implMethodSignature, implMethodKind);
+        return Objects.hash(
+                classIdentifier,
+                classLoaderHash,
+                functionalInterfaceClass,
+                implClass,
+                implMethodName,
+                implMethodSignature,
+                implMethodKind);
     }
 
     @Override

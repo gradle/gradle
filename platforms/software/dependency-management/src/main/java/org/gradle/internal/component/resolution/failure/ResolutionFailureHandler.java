@@ -18,6 +18,12 @@ package org.gradle.internal.component.resolution.failure;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
@@ -63,13 +69,6 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Stream;
-
 /**
  * Provides a central location for handling failures encountered during
  * each stage of the variant selection process during dependency resolution.
@@ -98,7 +97,10 @@ public class ResolutionFailureHandler {
     private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
     private final ResolutionFailureDescriberRegistry customFailureDescribers;
 
-    public ResolutionFailureHandler(InstanceGenerator instanceGenerator, InternalProblems problemsService, TransformedVariantConverter transformedVariantConverter) {
+    public ResolutionFailureHandler(
+            InstanceGenerator instanceGenerator,
+            InternalProblems problemsService,
+            TransformedVariantConverter transformedVariantConverter) {
         this.transformedVariantConverter = transformedVariantConverter;
 
         this.defaultFailureDescribers = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
@@ -110,149 +112,187 @@ public class ResolutionFailureHandler {
     private static void configureAdditionalDataBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
         if (!additionalDataBuilderFactory.hasProviderForSpec(ResolutionFailureDataSpec.class)) {
             additionalDataBuilderFactory.registerAdditionalDataProvider(
-                ResolutionFailureDataSpec.class,
-                data -> DefaultResolutionFailureData.builder((ResolutionFailureData) data)
-            );
+                    ResolutionFailureDataSpec.class,
+                    data -> DefaultResolutionFailureData.builder((ResolutionFailureData) data));
         }
     }
 
     // region Component Selection failures
     // TODO: Route more of these failures through this handler in order to standardize their description logic
 
-    public AbstractResolutionFailureException moduleRejected(ModuleResolveState moduleResolveState, List<String> conflictResolutions) {
+    public AbstractResolutionFailureException moduleRejected(
+            ModuleResolveState moduleResolveState, List<String> conflictResolutions) {
         AssessedSelection assessedSelection = SelectionReasonAssessor.assessSelection(moduleResolveState);
-        String legacyErrorMsg = Objects.requireNonNull(moduleResolveState.getSelected()).getRejectedErrorMessage();
-        ModuleRejectedFailure failure = new ModuleRejectedFailure(ResolutionFailureProblemId.NO_VERSION_SATISFIES, assessedSelection, conflictResolutions, legacyErrorMsg);
+        String legacyErrorMsg =
+                Objects.requireNonNull(moduleResolveState.getSelected()).getRejectedErrorMessage();
+        ModuleRejectedFailure failure = new ModuleRejectedFailure(
+                ResolutionFailureProblemId.NO_VERSION_SATISFIES,
+                assessedSelection,
+                conflictResolutions,
+                legacyErrorMsg);
         return describeFailure(failure);
     }
     // endregion Component Selection failures
 
     // region Variant Selection failures
     public AbstractResolutionFailureException configurationNotCompatibleFailure(
-        AttributeMatcher matcher,
-        ComponentGraphResolveState targetComponent,
-        VariantGraphResolveState targetConfiguration,
-        AttributeContainerInternal requestedAttributes,
-        ImmutableCapabilities targetConfigurationCapabilities
-    ) {
-        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        List<AssessedCandidate> assessedCandidates = Collections.singletonList(resolutionCandidateAssessor.assessCandidate(targetConfiguration.getName(), targetConfigurationCapabilities, targetConfiguration.getAttributes()));
-        ConfigurationNotCompatibleFailure failure = new ConfigurationNotCompatibleFailure(targetComponent.getId(), targetConfiguration.getName(), requestedAttributes, assessedCandidates);
+            AttributeMatcher matcher,
+            ComponentGraphResolveState targetComponent,
+            VariantGraphResolveState targetConfiguration,
+            AttributeContainerInternal requestedAttributes,
+            ImmutableCapabilities targetConfigurationCapabilities) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor =
+                new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates =
+                Collections.singletonList(resolutionCandidateAssessor.assessCandidate(
+                        targetConfiguration.getName(),
+                        targetConfigurationCapabilities,
+                        targetConfiguration.getAttributes()));
+        ConfigurationNotCompatibleFailure failure = new ConfigurationNotCompatibleFailure(
+                targetComponent.getId(), targetConfiguration.getName(), requestedAttributes, assessedCandidates);
         return describeFailure(failure);
     }
 
     public AbstractResolutionFailureException configurationDoesNotExistFailure(
-        ComponentGraphResolveState targetComponent,
-        String targetConfigurationName
-    ) {
-        ConfigurationDoesNotExistFailure failure = new ConfigurationDoesNotExistFailure(targetComponent.getId(), targetConfigurationName);
+            ComponentGraphResolveState targetComponent, String targetConfigurationName) {
+        ConfigurationDoesNotExistFailure failure =
+                new ConfigurationDoesNotExistFailure(targetComponent.getId(), targetConfigurationName);
         return describeFailure(failure);
     }
 
     public AbstractResolutionFailureException ambiguousVariantsFailure(
-        AttributeMatcher matcher,
-        ComponentGraphResolveState targetComponent,
-        AttributeContainerInternal requestedAttributes,
-        Set<CapabilitySelector> requestedCapabilities,
-        List<? extends VariantGraphResolveState> matchingVariants
-    ) {
-        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(matchingVariants, targetComponent.getDefaultCapability());
-        AmbiguousVariantsFailure failure = new AmbiguousVariantsFailure(targetComponent.getId(), requestedAttributes, ImmutableSet.copyOf(requestedCapabilities), assessedCandidates);
+            AttributeMatcher matcher,
+            ComponentGraphResolveState targetComponent,
+            AttributeContainerInternal requestedAttributes,
+            Set<CapabilitySelector> requestedCapabilities,
+            List<? extends VariantGraphResolveState> matchingVariants) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor =
+                new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(
+                matchingVariants, targetComponent.getDefaultCapability());
+        AmbiguousVariantsFailure failure = new AmbiguousVariantsFailure(
+                targetComponent.getId(),
+                requestedAttributes,
+                ImmutableSet.copyOf(requestedCapabilities),
+                assessedCandidates);
         return describeFailure(failure);
     }
 
-    // TODO: This is the same logic as the noCompatibleVariantsFailure case for now.  We want to split the NoCompatibleVariantsFailureDescriber into
+    // TODO: This is the same logic as the noCompatibleVariantsFailure case for now.  We want to split the
+    // NoCompatibleVariantsFailureDescriber into
     // separate describers, with separate failures, for these different types.
     public AbstractResolutionFailureException noVariantsFailure(
-        ComponentGraphResolveState targetComponent,
-        AttributeContainerInternal requestedAttributes
-    ) {
+            ComponentGraphResolveState targetComponent, AttributeContainerInternal requestedAttributes) {
         List<AssessedCandidate> assessedCandidates = Collections.emptyList();
-        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, ImmutableSet.of(), assessedCandidates);
+        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(
+                targetComponent.getId(), requestedAttributes, ImmutableSet.of(), assessedCandidates);
         return describeFailure(failure);
     }
 
     public AbstractResolutionFailureException noCompatibleVariantsFailure(
-        AttributeMatcher matcher,
-        ComponentGraphResolveState targetComponent,
-        AttributeContainerInternal requestedAttributes,
-        Set<CapabilitySelector> requestedCapabilities,
-        GraphSelectionCandidates candidates
-    ) {
-        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessGraphSelectionCandidates(candidates);
-        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, ImmutableSet.copyOf(requestedCapabilities), assessedCandidates);
+            AttributeMatcher matcher,
+            ComponentGraphResolveState targetComponent,
+            AttributeContainerInternal requestedAttributes,
+            Set<CapabilitySelector> requestedCapabilities,
+            GraphSelectionCandidates candidates) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor =
+                new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates =
+                resolutionCandidateAssessor.assessGraphSelectionCandidates(candidates);
+        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(
+                targetComponent.getId(),
+                requestedAttributes,
+                ImmutableSet.copyOf(requestedCapabilities),
+                assessedCandidates);
         return describeFailure(failure);
     }
 
     public AbstractResolutionFailureException noVariantsWithMatchingCapabilitiesFailure(
-        AttributeMatcher matcher,
-        ComponentGraphResolveState targetComponent,
-        ImmutableAttributes requestedAttributes,
-        Set<CapabilitySelector> requestedCapabilities,
-        List<? extends VariantGraphResolveState> candidates
-    ) {
-        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(candidates, targetComponent.getDefaultCapability());
-        NoVariantsWithMatchingCapabilitiesFailure failure = new NoVariantsWithMatchingCapabilitiesFailure(targetComponent.getId(), requestedAttributes, ImmutableSet.copyOf(requestedCapabilities), assessedCandidates);
+            AttributeMatcher matcher,
+            ComponentGraphResolveState targetComponent,
+            ImmutableAttributes requestedAttributes,
+            Set<CapabilitySelector> requestedCapabilities,
+            List<? extends VariantGraphResolveState> candidates) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor =
+                new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(
+                candidates, targetComponent.getDefaultCapability());
+        NoVariantsWithMatchingCapabilitiesFailure failure = new NoVariantsWithMatchingCapabilitiesFailure(
+                targetComponent.getId(),
+                requestedAttributes,
+                ImmutableSet.copyOf(requestedCapabilities),
+                assessedCandidates);
         return describeFailure(failure);
     }
     // endregion Variant Selection failures
 
     // region Graph Validation failures
     public AbstractResolutionFailureException incompatibleMultipleNodesValidationFailure(
-        AttributeMatcher matcher,
-        ComponentGraphResolveMetadata selectedComponent,
-        Set<VariantGraphResolveMetadata> incompatibleNodes
-    ) {
-        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(ImmutableAttributes.EMPTY, matcher);
+            AttributeMatcher matcher,
+            ComponentGraphResolveMetadata selectedComponent,
+            Set<VariantGraphResolveMetadata> incompatibleNodes) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor =
+                new ResolutionCandidateAssessor(ImmutableAttributes.EMPTY, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessNodeMetadatas(incompatibleNodes);
-        IncompatibleMultipleNodesValidationFailure failure = new IncompatibleMultipleNodesValidationFailure(selectedComponent, incompatibleNodes, assessedCandidates);
+        IncompatibleMultipleNodesValidationFailure failure = new IncompatibleMultipleNodesValidationFailure(
+                selectedComponent, incompatibleNodes, assessedCandidates);
         return describeFailure(failure);
     }
     // endregion Graph Validation failures
 
     // region Artifact Selection failures
     public AbstractResolutionFailureException ambiguousArtifactTransformsFailure(
-        ResolvedVariantSet targetVariantSet,
-        ImmutableAttributes requestedAttributes,
-        Collection<TransformedVariant> transformedVariants
-    ) {
-        ImmutableList<TransformationChainData> transformationChainDatas = transformedVariantConverter.convert(transformedVariants);
-        AmbiguousArtifactTransformsFailure failure = new AmbiguousArtifactTransformsFailure(targetVariantSet.getComponentIdentifier(), targetVariantSet.asDescribable().getDisplayName(), requestedAttributes, transformationChainDatas);
+            ResolvedVariantSet targetVariantSet,
+            ImmutableAttributes requestedAttributes,
+            Collection<TransformedVariant> transformedVariants) {
+        ImmutableList<TransformationChainData> transformationChainDatas =
+                transformedVariantConverter.convert(transformedVariants);
+        AmbiguousArtifactTransformsFailure failure = new AmbiguousArtifactTransformsFailure(
+                targetVariantSet.getComponentIdentifier(),
+                targetVariantSet.asDescribable().getDisplayName(),
+                requestedAttributes,
+                transformationChainDatas);
         return describeFailure(failure);
     }
 
     public AbstractResolutionFailureException noCompatibleArtifactFailure(
-        AttributeMatcher matcher,
-        ResolvedVariantSet targetVariantSet,
-        ImmutableAttributes requestedAttributes
-    ) {
-        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(targetVariantSet.getCandidates());
-        NoCompatibleArtifactFailure failure = new NoCompatibleArtifactFailure(targetVariantSet.getComponentIdentifier(), targetVariantSet.asDescribable().getDisplayName(), requestedAttributes, assessedCandidates);
+            AttributeMatcher matcher, ResolvedVariantSet targetVariantSet, ImmutableAttributes requestedAttributes) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor =
+                new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates =
+                resolutionCandidateAssessor.assessResolvedVariants(targetVariantSet.getCandidates());
+        NoCompatibleArtifactFailure failure = new NoCompatibleArtifactFailure(
+                targetVariantSet.getComponentIdentifier(),
+                targetVariantSet.asDescribable().getDisplayName(),
+                requestedAttributes,
+                assessedCandidates);
         return describeFailure(failure);
     }
 
     public AbstractResolutionFailureException ambiguousArtifactsFailure(
-        AttributeMatcher matcher,
-        ResolvedVariantSet targetVariantSet,
-        ImmutableAttributes requestedAttributes,
-        List<? extends ResolvedVariant> matchingVariants
-    ) {
-        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(matchingVariants);
-        AmbiguousArtifactsFailure failure = new AmbiguousArtifactsFailure(targetVariantSet.getComponentIdentifier(), targetVariantSet.asDescribable().getDisplayName(), requestedAttributes, assessedCandidates);
+            AttributeMatcher matcher,
+            ResolvedVariantSet targetVariantSet,
+            ImmutableAttributes requestedAttributes,
+            List<? extends ResolvedVariant> matchingVariants) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor =
+                new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates =
+                resolutionCandidateAssessor.assessResolvedVariants(matchingVariants);
+        AmbiguousArtifactsFailure failure = new AmbiguousArtifactsFailure(
+                targetVariantSet.getComponentIdentifier(),
+                targetVariantSet.asDescribable().getDisplayName(),
+                requestedAttributes,
+                assessedCandidates);
         return describeFailure(failure);
     }
 
     public AbstractResolutionFailureException unknownArtifactVariantSelectionFailure(
-        ResolvedVariantSet targetVariantSet,
-        ImmutableAttributes requestAttributes,
-        Exception cause
-    ) {
-        UnknownArtifactSelectionFailure failure = new UnknownArtifactSelectionFailure(targetVariantSet.getComponentIdentifier(), targetVariantSet.asDescribable().getDisplayName(), requestAttributes, cause);
+            ResolvedVariantSet targetVariantSet, ImmutableAttributes requestAttributes, Exception cause) {
+        UnknownArtifactSelectionFailure failure = new UnknownArtifactSelectionFailure(
+                targetVariantSet.getComponentIdentifier(),
+                targetVariantSet.asDescribable().getDisplayName(),
+                requestAttributes,
+                cause);
         return describeFailure(failure);
     }
 
@@ -269,7 +309,8 @@ public class ResolutionFailureHandler {
      *
      * @param <FAILURE> The type of failure to describe
      */
-    public <FAILURE extends ResolutionFailure> void addFailureDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<FAILURE>> describerType) {
+    public <FAILURE extends ResolutionFailure> void addFailureDescriber(
+            Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<FAILURE>> describerType) {
         customFailureDescribers.registerDescriber(failureType, describerType);
     }
 
@@ -277,12 +318,13 @@ public class ResolutionFailureHandler {
         @SuppressWarnings("unchecked")
         Class<FAILURE> failureType = (Class<FAILURE>) failure.getClass();
         return Stream.concat(
-                customFailureDescribers.getDescribers(failureType).stream(),
-                defaultFailureDescribers.getDescribers(failureType).stream()
-            )
-            .filter(describer -> describer.canDescribeFailure(failure))
-            .findFirst()
-            .map(describer -> describer.describeFailure(failure))
-            .orElseThrow(() -> new IllegalStateException("No describer found for failure: " + failure)); // TODO: a default describer at the end of the list that catches everything instead?
+                        customFailureDescribers.getDescribers(failureType).stream(),
+                        defaultFailureDescribers.getDescribers(failureType).stream())
+                .filter(describer -> describer.canDescribeFailure(failure))
+                .findFirst()
+                .map(describer -> describer.describeFailure(failure))
+                .orElseThrow(() -> new IllegalStateException("No describer found for failure: "
+                        + failure)); // TODO: a default describer at the end of the list that catches everything
+        // instead?
     }
 }

@@ -15,9 +15,31 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer;
 
+import static com.google.common.io.Files.getFileExtension;
+import static com.google.common.io.Files.getNameWithoutExtension;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
@@ -66,29 +88,6 @@ import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.SecuritySupport;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
-
-import static com.google.common.io.Files.getFileExtension;
-import static com.google.common.io.Files.getNameWithoutExtension;
-
 public class WriteDependencyVerificationFile implements DependencyVerificationOverride, ArtifactVerificationOperation {
     private static final Logger LOGGER = Logging.getLogger(WriteDependencyVerificationFile.class);
     private static final Action<ArtifactView.ViewConfiguration> MODULE_COMPONENT_FILES = conf -> {
@@ -121,14 +120,13 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private boolean hasFailedVerification = false;
 
     public WriteDependencyVerificationFile(
-        File verificationFile,
-        BuildOperationExecutor buildOperationExecutor,
-        List<String> checksums,
-        ChecksumService checksumService,
-        SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-        boolean isDryRun,
-        boolean exportKeyRing
-    ) {
+            File verificationFile,
+            BuildOperationExecutor buildOperationExecutor,
+            List<String> checksums,
+            ChecksumService checksumService,
+            SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+            boolean isDryRun,
+            boolean exportKeyRing) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksums = checksums;
         this.checksumService = checksumService;
@@ -156,7 +154,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             if (!SUPPORTED_CHECKSUMS.contains(checksum)) {
                 // we cannot throw an exception at this stage because this happens too early
                 // in the build and the user feedback isn't great ("cannot create service blah!")
-                LOGGER.warn("Invalid checksum type: '" + checksum + "'. You must choose one or more in " + SUPPORTED_CHECKSUMS);
+                LOGGER.warn("Invalid checksum type: '" + checksum + "'. You must choose one or more in "
+                        + SUPPORTED_CHECKSUMS);
             }
         }
         assertPgpHasChecksumFallback(checksums);
@@ -164,18 +163,22 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
     private void assertPgpHasChecksumFallback(List<String> kinds) {
         if (kinds.size() == 1 && PGP.equals(kinds.get(0))) {
-            throw new DependencyVerificationException("Generating a file with signature verification requires at least one checksum type (sha256 or sha512) as fallback.");
+            throw new DependencyVerificationException(
+                    "Generating a file with signature verification requires at least one checksum type (sha256 or sha512) as fallback.");
         }
     }
 
     private void warnAboutInsecureChecksums() {
         if (checksums.stream().noneMatch(SECURE_CHECKSUMS::contains)) {
-            LOGGER.warn("You chose to generate " + String.join(" and ", checksums) + " checksums but they are all considered insecure. You should consider adding at least one of " + String.join(" or ", SECURE_CHECKSUMS) + ".");
+            LOGGER.warn("You chose to generate " + String.join(" and ", checksums)
+                    + " checksums but they are all considered insecure. You should consider adding at least one of "
+                    + String.join(" or ", SECURE_CHECKSUMS) + ".");
         }
     }
 
     @Override
-    public ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original) {
+    public ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(
+            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original) {
         return new DependencyVerifyingModuleComponentRepository(original, this, generatePgpInfo);
     }
 
@@ -184,9 +187,12 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             boolean removed = false;
             removed |= mayBeDryRunFile(verificationFile).delete() || removed;
             if (isExportKeyring) {
-                BuildTreeDefinedKeys existingKeyring = new BuildTreeDefinedKeys(verificationFile.getParentFile(), verificationsBuilder.getKeyringFormat());
-                removed |= mayBeDryRunFile(existingKeyring.getAsciiKeyringsFile()).delete();
-                removed |= mayBeDryRunFile(existingKeyring.getBinaryKeyringsFile()).delete();
+                BuildTreeDefinedKeys existingKeyring = new BuildTreeDefinedKeys(
+                        verificationFile.getParentFile(), verificationsBuilder.getKeyringFormat());
+                removed |=
+                        mayBeDryRunFile(existingKeyring.getAsciiKeyringsFile()).delete();
+                removed |=
+                        mayBeDryRunFile(existingKeyring.getBinaryKeyringsFile()).delete();
             }
             if (removed) {
                 LOGGER.lifecycle("Removed dry-run verification files from the previous run");
@@ -201,14 +207,13 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         // when we generate the verification file, we intentionally ignore if the "use key servers" flag is false
         // because otherwise it forces the user to remove the option in the XML file, generate, then switch it back.
         boolean offline = gradle.getStartParameter().isOffline();
-        BuildTreeDefinedKeys existingKeyring = new BuildTreeDefinedKeys(verificationFile.getParentFile(), verificationsBuilder.getKeyringFormat());
+        BuildTreeDefinedKeys existingKeyring =
+                new BuildTreeDefinedKeys(verificationFile.getParentFile(), verificationsBuilder.getKeyringFormat());
         SignatureVerificationService signatureVerificationService = signatureVerificationServiceFactory.create(
-            existingKeyring,
-            DefaultKeyServers.getOrDefaults(verificationsBuilder.getKeyServers()),
-            !offline
-        );
+                existingKeyring, DefaultKeyServers.getOrDefaults(verificationsBuilder.getKeyServers()), !offline);
         if (!verificationsBuilder.isUseKeyServers() && !offline) {
-            LOGGER.lifecycle("Will use key servers to download missing keys. If you really want to ignore key servers when generating the verification file, you can use the --offline flag in addition");
+            LOGGER.lifecycle(
+                    "Will use key servers to download missing keys. If you really want to ignore key servers when generating the verification file, you can use the --offline flag in addition");
         }
         try {
             validateChecksums();
@@ -227,17 +232,16 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         return verificationFile.getParentFile().mkdirs();
     }
 
-    private void serializeResult(SignatureVerificationService signatureVerificationService, BuildTreeDefinedKeys existingKeyring) throws IOException {
+    private void serializeResult(
+            SignatureVerificationService signatureVerificationService, BuildTreeDefinedKeys existingKeyring)
+            throws IOException {
         File out = mayBeDryRunFile(verificationFile);
         if (generatePgpInfo) {
             verificationsBuilder.setVerifySignatures(true);
         }
         DependencyVerifier verifier = verificationsBuilder.build();
         if (isWriteVerificationFile()) {
-            DependencyVerificationsXmlWriter.serialize(
-                verifier,
-                new FileOutputStream(out)
-            );
+            DependencyVerificationsXmlWriter.serialize(verifier, new FileOutputStream(out));
         }
         if (isExportKeyring) {
             exportKeys(signatureVerificationService, verifier, existingKeyring);
@@ -248,34 +252,37 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         if (!isDryRun) {
             return originalFile;
         } else {
-            return new File(originalFile.getParent(), getNameWithoutExtension(originalFile.getName()) + ".dryrun." + getFileExtension(originalFile.getName()));
+            return new File(
+                    originalFile.getParent(),
+                    getNameWithoutExtension(originalFile.getName()) + ".dryrun."
+                            + getFileExtension(originalFile.getName()));
         }
     }
 
-    private void exportKeys(SignatureVerificationService signatureVerificationService, DependencyVerifier verifier, BuildTreeDefinedKeys existingKeyring) throws IOException {
+    private void exportKeys(
+            SignatureVerificationService signatureVerificationService,
+            DependencyVerifier verifier,
+            BuildTreeDefinedKeys existingKeyring)
+            throws IOException {
         Set<String> keysToExport = new HashSet<>();
-        verifier.getConfiguration()
-            .getTrustedKeys()
-            .stream()
-            .map(DependencyVerificationConfiguration.TrustedKey::getKeyId)
-            .forEach(keysToExport::add);
-        verifier.getConfiguration()
-            .getIgnoredKeys()
-            .stream()
-            .map(IgnoredKey::getKeyId)
-            .forEach(keysToExport::add);
-        verifier.getVerificationMetadata()
-            .stream()
-            .flatMap(md -> md.getArtifactVerifications().stream())
-            .flatMap(avm -> Stream.concat(avm.getTrustedPgpKeys().stream(), avm.getIgnoredPgpKeys().stream().map(IgnoredKey::getKeyId)))
-            .forEach(keysToExport::add);
+        verifier.getConfiguration().getTrustedKeys().stream()
+                .map(DependencyVerificationConfiguration.TrustedKey::getKeyId)
+                .forEach(keysToExport::add);
+        verifier.getConfiguration().getIgnoredKeys().stream()
+                .map(IgnoredKey::getKeyId)
+                .forEach(keysToExport::add);
+        verifier.getVerificationMetadata().stream()
+                .flatMap(md -> md.getArtifactVerifications().stream())
+                .flatMap(avm -> Stream.concat(
+                        avm.getTrustedPgpKeys().stream(),
+                        avm.getIgnoredPgpKeys().stream().map(IgnoredKey::getKeyId)))
+                .forEach(keysToExport::add);
 
         exportKeyRingCollection(
-            signatureVerificationService.getPublicKeyService(),
-            existingKeyring,
-            keysToExport,
-            verifier.getConfiguration().getKeyringFormat()
-        );
+                signatureVerificationService.getPublicKeyService(),
+                existingKeyring,
+                keysToExport,
+                verifier.getConfiguration().getKeyringFormat());
     }
 
     private void maybeReadExistingFile() {
@@ -294,7 +301,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         if (verificationFile.exists()) {
             LOGGER.info("Found dependency verification metadata file, updating");
             try {
-                DependencyVerificationsXmlReader.readFromXml(new FileInputStream(verificationFile), verificationsBuilder);
+                DependencyVerificationsXmlReader.readFromXml(
+                        new FileInputStream(verificationFile), verificationsBuilder);
             } catch (FileNotFoundException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
@@ -304,26 +312,29 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private void writeEntriesSerially() {
         AtomicReference<PgpEntry> previousEntry = new AtomicReference<>();
         entriesToBeWritten.stream()
-            .sorted()
-            .filter(this::shouldWriteEntry)
-            .forEachOrdered(e -> registerEntryToBuilder(e, previousEntry));
+                .sorted()
+                .filter(this::shouldWriteEntry)
+                .forEachOrdered(e -> registerEntryToBuilder(e, previousEntry));
         printWarnings();
     }
 
     private void printWarnings() {
         if (hasMissingKeys || hasFailedVerification) {
-            StringBuilder sb = new StringBuilder("A verification file was generated but some problems were discovered:\n");
+            StringBuilder sb =
+                    new StringBuilder("A verification file was generated but some problems were discovered:\n");
             if (hasMissingSignatures) {
                 sb.append("   - some artifacts aren't signed or the signature couldn't be retrieved.");
                 sb.append("\n");
             }
             if (hasMissingKeys) {
-                sb.append("   - some keys couldn't be downloaded. They were automatically added as ignored keys but you should review if this is acceptable. Look for entries with the following comment: ");
+                sb.append(
+                        "   - some keys couldn't be downloaded. They were automatically added as ignored keys but you should review if this is acceptable. Look for entries with the following comment: ");
                 sb.append(KEY_NOT_DOWNLOADED);
                 sb.append("\n");
             }
             if (hasFailedVerification) {
-                sb.append("   - some signature verification failed. Checksums were generated for those artifacts but you MUST check if there's an actual problem. Look for entries with the following comment: ");
+                sb.append(
+                        "   - some signature verification failed. Checksums were generated for those artifacts but you MUST check if there's an actual problem. Look for entries with the following comment: ");
                 sb.append(PGP_VERIFICATION_FAILED);
                 sb.append("\n");
             }
@@ -359,7 +370,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                         }
                     }
                 }
-                verificationsBuilder.addChecksum(entry.id, checksum.getChecksumKind(), checksum.getChecksum(), origin, reason);
+                verificationsBuilder.addChecksum(
+                        entry.id, checksum.getChecksumKind(), checksum.getChecksum(), origin, reason);
             }
         } else {
             PgpEntry pgp = (PgpEntry) entry;
@@ -398,8 +410,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                     @Override
                     public BuildOperationDescriptor.Builder description() {
                         String displayName = "Resolving configurations of " + project.getDisplayName();
-                        return BuildOperationDescriptor.displayName(displayName)
-                            .progressDisplayName(displayName);
+                        return BuildOperationDescriptor.displayName(displayName).progressDisplayName(displayName);
                     }
                 });
             }
@@ -414,13 +425,15 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                     continue;
                 }
                 if (!entry.getFile().exists()) {
-                    LOGGER.warn("Cannot compute checksum for " + entry.getFile() + " because it doesn't exist. It may indicate a corrupt or tampered cache.");
+                    LOGGER.warn("Cannot compute checksum for " + entry.getFile()
+                            + " because it doesn't exist. It may indicate a corrupt or tampered cache.");
                     continue;
                 }
                 if (entry instanceof ChecksumEntry) {
                     queueChecksumVerification(queue, (ChecksumEntry) entry);
                 } else {
-                    queueSignatureVerification(queue, signatureVerificationService, (PgpEntry) entry, collectedIgnoredKeys);
+                    queueSignatureVerification(
+                            queue, signatureVerificationService, (PgpEntry) entry, collectedIgnoredKeys);
                 }
             }
         });
@@ -437,21 +450,27 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         grouper.performPgpKeyGrouping();
     }
 
-    private void queueSignatureVerification(BuildOperationQueue<RunnableBuildOperation> queue, SignatureVerificationService signatureVerificationService, PgpEntry entry, Set<String> ignoredKeys) {
+    private void queueSignatureVerification(
+            BuildOperationQueue<RunnableBuildOperation> queue,
+            SignatureVerificationService signatureVerificationService,
+            PgpEntry entry,
+            Set<String> ignoredKeys) {
         queue.add(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
                 File signature = entry.getSignatureFile().create();
                 if (signature != null) {
-                    SignatureVerificationResultBuilder builder = new WriterSignatureVerificationResult(ignoredKeys, entry);
-                    signatureVerificationService.verify(entry.file, signature, Collections.emptySet(), Collections.emptySet(), builder);
+                    SignatureVerificationResultBuilder builder =
+                            new WriterSignatureVerificationResult(ignoredKeys, entry);
+                    signatureVerificationService.verify(
+                            entry.file, signature, Collections.emptySet(), Collections.emptySet(), builder);
                 }
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Verifying dependency signature")
-                    .progressDisplayName("Verifying signature of " + entry.id);
+                        .progressDisplayName("Verifying signature of " + entry.id);
             }
         });
     }
@@ -466,13 +485,19 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Computing checksums")
-                    .progressDisplayName("Computing checksum of " + entry.id);
+                        .progressDisplayName("Computing checksum of " + entry.id);
             }
         });
     }
 
     @Override
-    public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier id, File mainFile, Factory<File> signatureFile, String repositoryName, String repositoryId) {
+    public void onArtifact(
+            ArtifactKind kind,
+            ModuleComponentArtifactIdentifier id,
+            File mainFile,
+            Factory<File> signatureFile,
+            String repositoryName,
+            String repositoryId) {
         for (String checksum : checksums) {
             if (PGP.equals(checksum)) {
                 addPgp(id, kind, mainFile, signatureFile);
@@ -482,7 +507,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
     }
 
-    private void addPgp(ModuleComponentArtifactIdentifier id, ArtifactKind kind, File mainFile, Factory<File> signatureFile) {
+    private void addPgp(
+            ModuleComponentArtifactIdentifier id, ArtifactKind kind, File mainFile, Factory<File> signatureFile) {
         PgpEntry entry = new PgpEntry(id, kind, mainFile, signatureFile);
         synchronized (entriesToBeWritten) {
             entriesToBeWritten.add(entry);
@@ -493,7 +519,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         return kind == ArtifactKind.METADATA && !verificationsBuilder.isVerifyMetadata();
     }
 
-    private void addChecksum(ModuleComponentArtifactIdentifier id, ArtifactKind artifactKind, File file, ChecksumKind kind) {
+    private void addChecksum(
+            ModuleComponentArtifactIdentifier id, ArtifactKind artifactKind, File file, ChecksumKind kind) {
         ChecksumEntry e = new ChecksumEntry(id, artifactKind, file, kind);
         synchronized (entriesToBeWritten) {
             entriesToBeWritten.add(e);
@@ -514,17 +541,16 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private static void resolveAllConfigurationsAndForceDownload(Project project) {
-        ((ProjectInternal) project).getOwner().applyToMutableState(p ->
-            p.getConfigurations().all(cnf -> {
-                if (((DeprecatableConfiguration) cnf).canSafelyBeResolved()) {
-                    try {
-                        resolveAndDownloadExternalFiles(cnf);
-                    } catch (Exception e) {
-                        LOGGER.debug("Cannot resolve configuration {}: {}", cnf.getName(), e.getMessage());
+        ((ProjectInternal) project).getOwner().applyToMutableState(p -> p.getConfigurations()
+                .all(cnf -> {
+                    if (((DeprecatableConfiguration) cnf).canSafelyBeResolved()) {
+                        try {
+                            resolveAndDownloadExternalFiles(cnf);
+                        } catch (Exception e) {
+                            LOGGER.debug("Cannot resolve configuration {}: {}", cnf.getName(), e.getMessage());
+                        }
                     }
-                }
-            })
-        );
+                }));
     }
 
     private static void resolveAndDownloadExternalFiles(Configuration cnf) {
@@ -532,26 +558,27 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private void exportKeyRingCollection(
-        PublicKeyService publicKeyService,
-        BuildTreeDefinedKeys existingKeyring,
-        Set<String> publicKeys,
-        DependencyVerificationConfiguration.@Nullable KeyringFormat keyringFormat
-    ) throws IOException {
+            PublicKeyService publicKeyService,
+            BuildTreeDefinedKeys existingKeyring,
+            Set<String> publicKeys,
+            DependencyVerificationConfiguration.@Nullable KeyringFormat keyringFormat)
+            throws IOException {
         List<PGPPublicKeyRing> existingRings = loadExistingKeyRing(existingKeyring);
         PGPPublicKeyRingListBuilder builder = new PGPPublicKeyRingListBuilder();
         for (String publicKey : publicKeys) {
             if (publicKey.length() <= 16) {
                 publicKeyService.findByLongId(new BigInteger(publicKey, 16).longValue(), builder);
             } else {
-                publicKeyService.findByFingerprint(Fingerprint.fromString(publicKey).getBytes(), builder);
+                publicKeyService.findByFingerprint(
+                        Fingerprint.fromString(publicKey).getBytes(), builder);
             }
         }
 
-        Stream<PGPPublicKeyRing> keysSeenInVerifier = builder.build()
-            .stream()
-            .filter(keyring -> PGPUtils.getSize(keyring) != 0);
+        Stream<PGPPublicKeyRing> keysSeenInVerifier =
+                builder.build().stream().filter(keyring -> PGPUtils.getSize(keyring) != 0);
 
-        Collection<PGPPublicKeyRing> allKeyRings = uniqueKeyRings(Stream.concat(keysSeenInVerifier, existingRings.stream()));
+        Collection<PGPPublicKeyRing> allKeyRings =
+                uniqueKeyRings(Stream.concat(keysSeenInVerifier, existingRings.stream()));
 
         File asciiArmoredFile = mayBeDryRunFile(existingKeyring.getAsciiKeyringsFile());
         File keyringFile = mayBeDryRunFile(existingKeyring.getBinaryKeyringsFile());
@@ -599,9 +626,12 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                     boolean hasUid = false;
                     PGPPublicKey pk = pks.next();
                     String keyType = pk.isMasterKey() ? "pub" : "sub";
-                    out.write((keyType + "    " + SecuritySupport.toLongIdHexString(pk.getKeyID()).toUpperCase(Locale.ROOT) + "\n").getBytes(StandardCharsets.US_ASCII));
+                    out.write((keyType + "    "
+                                    + SecuritySupport.toLongIdHexString(pk.getKeyID())
+                                            .toUpperCase(Locale.ROOT) + "\n")
+                            .getBytes(StandardCharsets.US_ASCII));
                     List<String> userIDs = PGPUtils.getUserIDs(pk);
-                    for(String uid : userIDs) {
+                    for (String uid : userIDs) {
                         hasUid = true;
                         out.write(("uid    " + uid + "\n").getBytes(StandardCharsets.US_ASCII));
                     }
@@ -612,7 +642,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             }
             // Then write the ascii armored keyring
             try (FileOutputStream fos = new FileOutputStream(ascii, true);
-                 ArmoredOutputStream out = ArmoredOutputStream.builder().build(fos)) {
+                    ArmoredOutputStream out = ArmoredOutputStream.builder().build(fos)) {
                 keyRing.encode(out, true);
             }
             hasKey = true;
@@ -636,9 +666,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
 
         @Override
-        public void publicKey(PGPPublicKey publicKey) {
-
-        }
+        public void publicKey(PGPPublicKey publicKey) {}
 
         public List<PGPPublicKeyRing> build() {
             return builder.build();

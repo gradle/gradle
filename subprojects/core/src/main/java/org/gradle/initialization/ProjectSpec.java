@@ -29,5 +29,6 @@ public interface ProjectSpec {
      * @throws InvalidUserDataException When project cannot be selected due to some user input mismatch, or when there are no matching projects
      * or multiple matching projects.
      */
-    ProjectDescriptorInternal selectProject(String settingsDescription, ProjectDescriptorRegistry registry) throws InvalidUserDataException;
+    ProjectDescriptorInternal selectProject(String settingsDescription, ProjectDescriptorRegistry registry)
+            throws InvalidUserDataException;
 }

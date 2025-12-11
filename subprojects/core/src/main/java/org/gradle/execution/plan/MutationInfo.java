@@ -20,7 +20,8 @@ import com.google.common.collect.ImmutableSet;
 
 public class MutationInfo {
 
-    public static final MutationInfo EMPTY = new MutationInfo(ImmutableSet.of(), ImmutableSet.of(), false, false, false, false);
+    public static final MutationInfo EMPTY =
+            new MutationInfo(ImmutableSet.of(), ImmutableSet.of(), false, false, false, false);
 
     private final ImmutableSet<String> outputPaths;
     private final ImmutableSet<String> destroyablePaths;
@@ -30,13 +31,12 @@ public class MutationInfo {
     private final boolean hasValidationProblem;
 
     public MutationInfo(
-        ImmutableSet<String> outputPaths,
-        ImmutableSet<String> destroyablePaths,
-        boolean hasFileInputs,
-        boolean hasOutputs,
-        boolean hasLocalState,
-        boolean hasValidationProblem
-    ) {
+            ImmutableSet<String> outputPaths,
+            ImmutableSet<String> destroyablePaths,
+            boolean hasFileInputs,
+            boolean hasOutputs,
+            boolean hasLocalState,
+            boolean hasValidationProblem) {
         this.outputPaths = outputPaths;
         this.destroyablePaths = destroyablePaths;
         this.hasFileInputs = hasFileInputs;
@@ -68,5 +68,4 @@ public class MutationInfo {
     public boolean hasFileInputs() {
         return hasFileInputs;
     }
-
 }

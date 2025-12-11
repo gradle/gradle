@@ -60,8 +60,10 @@ public interface StatStatistics {
 
                 @Override
                 public String toString() {
-                    return MessageFormat.format("Executed stat() x {0,number,integer}. getUnixMode() x {1,number,integer}",
-                        statCount, unixModeCount);
+                    return MessageFormat.format(
+                            "Executed stat() x {0,number,integer}. getUnixMode() x {1,number,integer}",
+                            statCount,
+                            unixModeCount);
                 }
             };
         }

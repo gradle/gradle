@@ -22,9 +22,7 @@ public class InheritedMethodTestReceiver {
         return "Hello";
     }
 
-    public static class A extends InheritedMethodTestReceiver {
-    }
+    public static class A extends InheritedMethodTestReceiver {}
 
-    public static class B extends A {
-    }
+    public static class B extends A {}
 }

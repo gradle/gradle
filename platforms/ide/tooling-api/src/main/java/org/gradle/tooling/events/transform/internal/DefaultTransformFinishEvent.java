@@ -21,9 +21,15 @@ import org.gradle.tooling.events.transform.TransformFinishEvent;
 import org.gradle.tooling.events.transform.TransformOperationDescriptor;
 import org.gradle.tooling.events.transform.TransformOperationResult;
 
-public class DefaultTransformFinishEvent extends DefaultFinishEvent<TransformOperationDescriptor, TransformOperationResult> implements TransformFinishEvent {
+public class DefaultTransformFinishEvent
+        extends DefaultFinishEvent<TransformOperationDescriptor, TransformOperationResult>
+        implements TransformFinishEvent {
 
-    public DefaultTransformFinishEvent(long eventTime, String displayName, TransformOperationDescriptor descriptor, TransformOperationResult result) {
+    public DefaultTransformFinishEvent(
+            long eventTime,
+            String displayName,
+            TransformOperationDescriptor descriptor,
+            TransformOperationResult result) {
         super(eventTime, displayName, descriptor, result);
     }
 }

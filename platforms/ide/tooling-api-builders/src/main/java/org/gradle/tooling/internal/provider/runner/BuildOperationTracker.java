@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationStartEvent;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Tracks some state for build operations of a given type.
@@ -42,6 +41,5 @@ public interface BuildOperationTracker {
     /**
      * Signals that the state for the given build operation is no longer required.
      */
-    default void discardState(BuildOperationDescriptor buildOperation) {
-    }
+    default void discardState(BuildOperationDescriptor buildOperation) {}
 }

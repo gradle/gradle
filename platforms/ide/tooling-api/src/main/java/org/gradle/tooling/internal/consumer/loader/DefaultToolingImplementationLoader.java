@@ -69,9 +69,15 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
     }
 
     @Override
-    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
+    public ConsumerConnection create(
+            Distribution distribution,
+            ProgressLoggerFactory progressLoggerFactory,
+            InternalBuildProgressListener progressListener,
+            ConnectionParameters connectionParameters,
+            BuildCancellationToken cancellationToken) {
         LOGGER.debug("Using tooling provider from {}", distribution.getDisplayName());
-        ClassLoader serviceClassLoader = createImplementationClassLoader(distribution, progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
+        ClassLoader serviceClassLoader = createImplementationClassLoader(
+                distribution, progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
         ServiceLocator serviceLocator = new DefaultServiceLocator(serviceClassLoader);
         try {
             Factory<ConnectionVersion4> factory = serviceLocator.findFactory(ConnectionVersion4.class);
@@ -83,38 +89,58 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             ProtocolToModelAdapter adapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
             ModelMapping modelMapping = new ModelMapping();
             if (connection instanceof InternalStopWhenIdleConnection) {
-                return createConnection(new StopWhenIdleConsumerConnection(connection, modelMapping, adapter), connectionParameters);
+                return createConnection(
+                        new StopWhenIdleConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof InternalInvalidatableVirtualFileSystemConnection) {
-                return createConnection(new NotifyDaemonsAboutChangedPathsConsumerConnection(connection, modelMapping, adapter), connectionParameters);
+                return createConnection(
+                        new NotifyDaemonsAboutChangedPathsConsumerConnection(connection, modelMapping, adapter),
+                        connectionParameters);
             } else if (connection instanceof InternalPhasedActionConnection) {
-                return createConnection(new PhasedActionAwareConsumerConnection(connection, modelMapping, adapter), connectionParameters);
+                return createConnection(
+                        new PhasedActionAwareConsumerConnection(connection, modelMapping, adapter),
+                        connectionParameters);
             } else if (connection instanceof InternalParameterAcceptingConnection) {
-                return createConnection(new ParameterAcceptingConsumerConnection(connection, modelMapping, adapter), connectionParameters);
+                return createConnection(
+                        new ParameterAcceptingConsumerConnection(connection, modelMapping, adapter),
+                        connectionParameters);
             } else if (connection instanceof InternalTestExecutionConnection) {
-                return createConnection(new TestExecutionConsumerConnection(connection, modelMapping, adapter), connectionParameters);
+                return createConnection(
+                        new TestExecutionConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else {
                 return new UnsupportedOlderVersionConnection(connection, adapter);
             }
         } catch (UnsupportedVersionException e) {
             throw e;
         } catch (Throwable t) {
-            throw new GradleConnectionException(String.format("Could not create an instance of Tooling API implementation using the specified %s.", distribution.getDisplayName()), t);
+            throw new GradleConnectionException(
+                    String.format(
+                            "Could not create an instance of Tooling API implementation using the specified %s.",
+                            distribution.getDisplayName()),
+                    t);
         }
     }
 
-    private ConsumerConnection createConnection(AbstractConsumerConnection adaptedConnection, ConnectionParameters connectionParameters) {
+    private ConsumerConnection createConnection(
+            AbstractConsumerConnection adaptedConnection, ConnectionParameters connectionParameters) {
         adaptedConnection.configure(connectionParameters);
         VersionDetails versionDetails = adaptedConnection.getVersionDetails();
         return new ParameterValidatingConsumerConnection(versionDetails, adaptedConnection);
     }
 
-    private ClassLoader createImplementationClassLoader(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
-        ClassPath implementationClasspath = distribution.getToolingImplementationClasspath(progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
+    private ClassLoader createImplementationClassLoader(
+            Distribution distribution,
+            ProgressLoggerFactory progressLoggerFactory,
+            InternalBuildProgressListener progressListener,
+            ConnectionParameters connectionParameters,
+            BuildCancellationToken cancellationToken) {
+        ClassPath implementationClasspath = distribution.getToolingImplementationClasspath(
+                progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
         LOGGER.debug("Using tooling provider classpath: {}", implementationClasspath);
         FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
         filterSpec.allowPackage("org.gradle.tooling.internal.protocol");
         filterSpec.allowClass(JavaVersion.class);
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(classLoader, filterSpec);
-        return VisitableURLClassLoader.fromClassPath("tooling-implementation-loader", filteringClassLoader, implementationClasspath);
+        return VisitableURLClassLoader.fromClassPath(
+                "tooling-implementation-loader", filteringClassLoader, implementationClasspath);
     }
 }

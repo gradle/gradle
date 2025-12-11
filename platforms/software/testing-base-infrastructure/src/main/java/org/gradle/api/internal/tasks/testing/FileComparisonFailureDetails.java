@@ -23,7 +23,14 @@ public class FileComparisonFailureDetails extends AssertionFailureDetails {
     private final byte @Nullable [] expectedContent;
     private final byte @Nullable [] actualContent;
 
-    public FileComparisonFailureDetails(@Nullable String message, String className, String stacktrace, @Nullable String expected, @Nullable String actual, byte @Nullable [] expectedContent, byte @Nullable [] actualContent) {
+    public FileComparisonFailureDetails(
+            @Nullable String message,
+            String className,
+            String stacktrace,
+            @Nullable String expected,
+            @Nullable String actual,
+            byte @Nullable [] expectedContent,
+            byte @Nullable [] actualContent) {
         super(message, className, stacktrace, expected, actual);
         this.expectedContent = expectedContent;
         this.actualContent = actualContent;

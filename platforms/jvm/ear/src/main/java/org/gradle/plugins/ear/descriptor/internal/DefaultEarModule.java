@@ -26,8 +26,7 @@ public class DefaultEarModule implements EarModule {
     private String path;
     private String altDeployDescriptor;
 
-    public DefaultEarModule() {
-    }
+    public DefaultEarModule() {}
 
     public DefaultEarModule(String path) {
         this.path = path;

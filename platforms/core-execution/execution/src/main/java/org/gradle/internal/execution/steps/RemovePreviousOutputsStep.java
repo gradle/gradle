@@ -16,6 +16,11 @@
 
 package org.gradle.internal.execution.steps;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -27,12 +32,6 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.SnapshotUtil;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * When executed non-incrementally remove previous outputs owned by the work unit.
  */
@@ -43,10 +42,7 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
     private final Step<? super C, ? extends R> delegate;
 
     public RemovePreviousOutputsStep(
-        Deleter deleter,
-        OutputChangeListener outputChangeListener,
-        Step<? super C, ? extends R> delegate
-    ) {
+            Deleter deleter, OutputChangeListener outputChangeListener, Step<? super C, ? extends R> delegate) {
         this.deleter = deleter;
         this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;
@@ -56,7 +52,8 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
     protected R executeMutable(MutableUnitOfWork work, C context) {
         if (!context.isIncrementalExecution()) {
             if (work.shouldCleanupOutputsOnNonIncrementalExecution()) {
-                boolean hasOverlappingOutputs = context.getDetectedOverlappingOutputs().isPresent();
+                boolean hasOverlappingOutputs =
+                        context.getDetectedOverlappingOutputs().isPresent();
                 if (hasOverlappingOutputs) {
                     cleanupOverlappingOutputs(context, work);
                 } else {
@@ -89,15 +86,14 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
                     }
                 }
             });
-            OutputsCleaner cleaner = new OutputsCleaner(
-                deleter,
-                file -> true,
-                dir -> !outputDirectoriesToPreserve.contains(dir)
-            );
-            for (FileSystemSnapshot snapshot : previousOutputs.getOutputFilesProducedByWork().values()) {
+            OutputsCleaner cleaner =
+                    new OutputsCleaner(deleter, file -> true, dir -> !outputDirectoriesToPreserve.contains(dir));
+            for (FileSystemSnapshot snapshot :
+                    previousOutputs.getOutputFilesProducedByWork().values()) {
                 try {
                     // Previous outputs can be in a different place than the current outputs
-                    outputChangeListener.invalidateCachesFor(SnapshotUtil.rootIndex(snapshot).keySet());
+                    outputChangeListener.invalidateCachesFor(
+                            SnapshotUtil.rootIndex(snapshot).keySet());
                     cleaner.cleanupOutputs(snapshot);
                 } catch (IOException e) {
                     throw new UncheckedIOException("Failed to clean up output files for " + work.getDisplayName(), e);

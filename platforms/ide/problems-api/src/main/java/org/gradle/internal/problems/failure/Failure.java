@@ -16,10 +16,9 @@
 
 package org.gradle.internal.problems.failure;
 
+import java.util.List;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Content of a thrown exception with classified stack frames.

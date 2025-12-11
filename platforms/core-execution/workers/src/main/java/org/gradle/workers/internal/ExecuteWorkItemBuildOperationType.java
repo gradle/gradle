@@ -21,7 +21,9 @@ import org.gradle.internal.operations.BuildOperationType;
 /**
  * @since 5.1
  */
-public interface ExecuteWorkItemBuildOperationType extends BuildOperationType<ExecuteWorkItemBuildOperationType.Details, ExecuteWorkItemBuildOperationType.Result> {
+public interface ExecuteWorkItemBuildOperationType
+        extends BuildOperationType<
+                ExecuteWorkItemBuildOperationType.Details, ExecuteWorkItemBuildOperationType.Result> {
 
     interface Details {
         /**
@@ -35,7 +37,5 @@ public interface ExecuteWorkItemBuildOperationType extends BuildOperationType<Ex
         String getDisplayName();
     }
 
-    interface Result {
-    }
-
+    interface Result {}
 }

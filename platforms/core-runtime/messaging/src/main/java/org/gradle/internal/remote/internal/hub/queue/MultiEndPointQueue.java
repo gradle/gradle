@@ -16,10 +16,6 @@
 
 package org.gradle.internal.remote.internal.hub.queue;
 
-import org.gradle.internal.dispatch.Dispatch;
-import org.gradle.internal.remote.internal.hub.protocol.EndOfStream;
-import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +24,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.remote.internal.hub.protocol.EndOfStream;
+import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
 
 // TODO - use circular buffers to avoid copying
 // TODO - share a single initializer with MultiChannelQueue
@@ -65,7 +64,8 @@ public class MultiEndPointQueue implements Dispatch<InterHubMessage> {
     }
 
     private void flush() {
-        // TODO - need to do a better job of routing messages when there are multiple endpoints. This is just going to forward all queued messages to the first
+        // TODO - need to do a better job of routing messages when there are multiple endpoints. This is just going to
+        // forward all queued messages to the first
         // waiting endpoint, even if there are multiple waiting to do work
         EndPointQueue selected = waiting.isEmpty() ? null : waiting.get(0);
         while (!queue.isEmpty()) {

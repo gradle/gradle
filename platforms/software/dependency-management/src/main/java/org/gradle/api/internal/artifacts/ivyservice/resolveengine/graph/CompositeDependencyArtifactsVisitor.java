@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
+import java.util.List;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-
-import java.util.List;
 
 public class CompositeDependencyArtifactsVisitor implements DependencyArtifactsVisitor {
     private final List<DependencyArtifactsVisitor> visitors;
@@ -37,14 +36,19 @@ public class CompositeDependencyArtifactsVisitor implements DependencyArtifactsV
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {
+    public void visitArtifacts(
+            DependencyGraphNode from,
+            LocalFileDependencyMetadata fileDependency,
+            int artifactSetId,
+            ArtifactSet artifactSet) {
         for (DependencyArtifactsVisitor visitor : visitors) {
             visitor.visitArtifacts(from, fileDependency, artifactSetId, artifactSet);
         }
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
+    public void visitArtifacts(
+            DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
         for (DependencyArtifactsVisitor visitor : visitors) {
             visitor.visitArtifacts(from, to, artifactSetId, artifacts);
         }

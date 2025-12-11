@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.file.copy;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.file.CopySpec;
 import org.gradle.internal.file.PathToFileResolver;
-
-import javax.inject.Inject;
-import java.io.File;
 
 public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
 

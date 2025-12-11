@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.scala;
 
+import java.util.function.Supplier;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-
-import java.util.function.Supplier;
 
 class SbtLoggerAdapter implements xsbti.Logger {
     private static final Logger LOGGER = Logging.getLogger(ZincScalaCompilerFactory.class);

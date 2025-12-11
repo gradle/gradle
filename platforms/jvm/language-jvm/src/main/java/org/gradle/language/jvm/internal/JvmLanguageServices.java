@@ -54,8 +54,8 @@ public class JvmLanguageServices extends AbstractGradleModuleServices {
         @Provides
         public void configure(ComponentTypeRegistry componentTypeRegistry) {
             componentTypeRegistry
-                .maybeRegisterComponentType(JvmLibrary.class)
-                .registerArtifactType(SourcesArtifact.class, ArtifactType.SOURCES);
+                    .maybeRegisterComponentType(JvmLibrary.class)
+                    .registerArtifactType(SourcesArtifact.class, ArtifactType.SOURCES);
         }
     }
 }

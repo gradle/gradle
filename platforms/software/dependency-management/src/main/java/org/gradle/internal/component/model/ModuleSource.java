@@ -30,5 +30,4 @@ package org.gradle.internal.component.model;
  * The 2d kind, sources which must be stored into the metadata cache, have to implement the {@link PersistentModuleSource}
  * interface instead.
  */
-public interface ModuleSource {
-}
+public interface ModuleSource {}

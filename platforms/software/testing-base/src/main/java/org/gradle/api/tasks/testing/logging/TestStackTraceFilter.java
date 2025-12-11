@@ -21,5 +21,7 @@ package org.gradle.api.tasks.testing.logging;
  */
 public enum TestStackTraceFilter {
     // ordered by how much they filter
-    ENTRY_POINT, TRUNCATE, GROOVY
+    ENTRY_POINT,
+    TRUNCATE,
+    GROOVY
 }

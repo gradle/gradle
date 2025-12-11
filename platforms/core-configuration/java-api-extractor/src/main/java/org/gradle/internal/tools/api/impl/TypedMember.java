@@ -33,7 +33,6 @@ public abstract class TypedMember extends AnnotatableMember {
     }
 
     protected ComparisonChain compare(TypedMember o) {
-        return super.compare(o)
-            .compare(typeDesc, o.typeDesc);
+        return super.compare(o).compare(typeDesc, o.typeDesc);
     }
 }

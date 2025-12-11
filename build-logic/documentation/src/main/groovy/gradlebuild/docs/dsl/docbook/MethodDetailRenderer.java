@@ -18,10 +18,9 @@ package gradlebuild.docs.dsl.docbook;
 
 import gradlebuild.docs.dsl.docbook.model.MethodDoc;
 import gradlebuild.docs.dsl.source.model.ParameterMetaData;
+import java.util.List;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import java.util.List;
 
 public class MethodDetailRenderer {
     private final GenerationListener listener;

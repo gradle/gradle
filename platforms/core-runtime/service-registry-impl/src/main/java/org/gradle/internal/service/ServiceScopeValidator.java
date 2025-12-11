@@ -16,9 +16,8 @@
 
 package org.gradle.internal.service;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
+import static org.gradle.util.internal.ArrayUtils.contains;
+import static org.gradle.util.internal.CollectionUtils.join;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayDeque;
@@ -28,9 +27,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-
-import static org.gradle.util.internal.ArrayUtils.contains;
-import static org.gradle.util.internal.CollectionUtils.join;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Checks that services are being declared in the correct scope.
@@ -40,7 +39,8 @@ import static org.gradle.util.internal.CollectionUtils.join;
  */
 class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
 
-    private static final List<Class<? extends Annotation>> SCOPE_ANNOTATIONS = Collections.<Class<? extends Annotation>>singletonList(ServiceScope.class);
+    private static final List<Class<? extends Annotation>> SCOPE_ANNOTATIONS =
+            Collections.<Class<? extends Annotation>>singletonList(ServiceScope.class);
 
     private final Class<? extends Scope> scope;
     private final boolean strict;
@@ -86,7 +86,8 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
         }
 
         if (serviceScopes.length == 0) {
-            throw new IllegalArgumentException(String.format("Service '%s' is declared with empty scope list", serviceType.getName()));
+            throw new IllegalArgumentException(
+                    String.format("Service '%s' is declared with empty scope list", serviceType.getName()));
         }
 
         if (!contains(serviceScopes, scope)) {
@@ -137,35 +138,32 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
 
     private String invalidScopeMessage(Class<?> serviceType, Class<? extends Scope>[] actualScopes) {
         return String.format(
-            "The service '%s' declares %s but is registered in the '%s' scope. " +
-                "Either update the '@ServiceScope()' annotation on '%s' to include the '%s' scope " +
-                "or move the service registration to one of the declared scopes.",
-            serviceType.getName(),
-            displayScopes(actualScopes),
-            scope.getSimpleName(),
-            serviceType.getSimpleName(),
-            scope.getSimpleName()
-        );
+                "The service '%s' declares %s but is registered in the '%s' scope. "
+                        + "Either update the '@ServiceScope()' annotation on '%s' to include the '%s' scope "
+                        + "or move the service registration to one of the declared scopes.",
+                serviceType.getName(),
+                displayScopes(actualScopes),
+                scope.getSimpleName(),
+                serviceType.getSimpleName(),
+                scope.getSimpleName());
     }
 
     private String missingScopeMessage(Class<?> serviceType) {
         return String.format(
-            "The service '%s' is registered in the '%s' scope but does not declare it. " +
-                "Add the '@ServiceScope()' annotation on '%s' with the '%s' scope.",
-            serviceType.getName(), scope.getSimpleName(), serviceType.getSimpleName(), scope.getSimpleName()
-        );
+                "The service '%s' is registered in the '%s' scope but does not declare it. "
+                        + "Add the '@ServiceScope()' annotation on '%s' with the '%s' scope.",
+                serviceType.getName(), scope.getSimpleName(), serviceType.getSimpleName(), scope.getSimpleName());
     }
 
     private String implementationWithMissingScopeMessage(Class<?> serviceType, Class<?> implementationType) {
         return String.format(
-            "The service implementation '%s' is registered in the '%s' scope but does not declare it explicitly.\n" +
-                "The implementation appears to serve %s.\n" +
-                "Try the following:\n" +
-                "- If registered via an instance or implementation type then use an overload providing an explicit service type, e.g. 'ServiceRegistration.add(serviceType, implementationType)'\n" +
-                "- If registered via a creator-method in a service provider class then change the return type of the method to the service type\n" +
-                "- Alternatively, add the '@ServiceScope()' to the implementation type",
-            implementationType.getName(), scope.getSimpleName(), displayServiceTypes(serviceType)
-        );
+                "The service implementation '%s' is registered in the '%s' scope but does not declare it explicitly.\n"
+                        + "The implementation appears to serve %s.\n"
+                        + "Try the following:\n"
+                        + "- If registered via an instance or implementation type then use an overload providing an explicit service type, e.g. 'ServiceRegistration.add(serviceType, implementationType)'\n"
+                        + "- If registered via a creator-method in a service provider class then change the return type of the method to the service type\n"
+                        + "- Alternatively, add the '@ServiceScope()' to the implementation type",
+                implementationType.getName(), scope.getSimpleName(), displayServiceTypes(serviceType));
     }
 
     private static String displayServiceTypes(Class<?> serviceType) {

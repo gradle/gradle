@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import java.util.LinkedList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.settings.IvySettings;
@@ -24,10 +27,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.Transformers;
-
-import java.util.LinkedList;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultIvyContextManager implements IvyContextManager {
     private static final int MAX_CACHED_IVY_INSTANCES = 4;

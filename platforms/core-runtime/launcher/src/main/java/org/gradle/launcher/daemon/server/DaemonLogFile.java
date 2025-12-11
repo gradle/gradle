@@ -16,12 +16,11 @@
 
 package org.gradle.launcher.daemon.server;
 
+import java.io.File;
+import java.util.UUID;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.UUID;
 
 /**
  * Carries the location of the log file for the current daemon.

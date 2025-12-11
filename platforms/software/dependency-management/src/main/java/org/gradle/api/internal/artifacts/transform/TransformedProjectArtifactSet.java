@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.io.File;
+import java.util.Collection;
 import org.gradle.api.Action;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EndCollection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -28,26 +29,24 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-
-import java.io.File;
-import java.util.Collection;
 
 /**
  * An artifact set containing transformed project artifacts.
  */
-public class TransformedProjectArtifactSet implements TransformedArtifactSet, FileCollectionInternal.Source, ResolvedArtifactSet.Artifacts {
+public class TransformedProjectArtifactSet
+        implements TransformedArtifactSet, FileCollectionInternal.Source, ResolvedArtifactSet.Artifacts {
 
     private final VariantIdentifier sourceVariantId;
     private final ComponentVariantIdentifier targetVariant;
     private final Collection<TransformStepNode> transformedArtifacts;
 
     public TransformedProjectArtifactSet(
-        VariantIdentifier sourceVariantId,
-        ComponentVariantIdentifier targetVariant,
-        Collection<TransformStepNode> transformedArtifacts
-    ) {
+            VariantIdentifier sourceVariantId,
+            ComponentVariantIdentifier targetVariant,
+            Collection<TransformStepNode> transformedArtifacts) {
         this.sourceVariantId = sourceVariantId;
         this.targetVariant = targetVariant;
         this.transformedArtifacts = transformedArtifacts;
@@ -88,11 +87,20 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
             Try<TransformStepSubject> transformedSubject = node.getTransformedSubject();
             if (transformedSubject.isSuccessful()) {
                 for (File file : transformedSubject.get().getFiles()) {
-                    visitor.visitArtifact(artifactSetName, sourceVariantId, targetVariant.getAttributes(), targetVariant.getCapabilities(), node.getInputArtifact().transformedTo(file));
+                    visitor.visitArtifact(
+                            artifactSetName,
+                            sourceVariantId,
+                            targetVariant.getAttributes(),
+                            targetVariant.getCapabilities(),
+                            node.getInputArtifact().transformedTo(file));
                 }
             } else {
                 Throwable failure = transformedSubject.getFailure().get();
-                visitor.visitFailure(new TransformException(String.format("Failed to transform %s to match attributes %s.", node.getInputArtifact().getId().getDisplayName(), targetVariant.getAttributes()), failure));
+                visitor.visitFailure(new TransformException(
+                        String.format(
+                                "Failed to transform %s to match attributes %s.",
+                                node.getInputArtifact().getId().getDisplayName(), targetVariant.getAttributes()),
+                        failure));
             }
         }
         visitor.endVisitCollection(this);

@@ -15,11 +15,10 @@
  */
 package org.gradle.internal.lazy;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A wrapper around a value computed lazily. Multiple implementations
@@ -99,5 +98,4 @@ public interface Lazy<T extends @Nullable Object> extends Supplier<T> {
     interface Factory {
         <T extends @Nullable Object> Lazy<T> of(Supplier<T> supplier);
     }
-
 }

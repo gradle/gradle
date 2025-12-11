@@ -16,11 +16,10 @@
 
 package org.gradle.internal.nativeintegration.console;
 
-import org.fusesource.jansi.io.WindowsAnsiProcessor;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import org.fusesource.jansi.io.WindowsAnsiProcessor;
 
 public class WindowsConsoleDetector implements ConsoleDetector {
     @Override

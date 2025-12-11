@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import javax.annotation.concurrent.ThreadSafe;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
@@ -32,9 +34,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import javax.annotation.concurrent.ThreadSafe;
-import javax.inject.Inject;
-
 /**
  * Factory for creating {@link org.gradle.api.artifacts.Configuration} instances.
  */
@@ -50,12 +49,11 @@ public class DefaultConfigurationFactory {
 
     @Inject
     public DefaultConfigurationFactory(
-        ConfigurationServicesBundle configurationServices,
-        ListenerManager listenerManager,
-        DomainObjectContext domainObjectContext,
-        PublishArtifactNotationParserFactory artifactNotationParserFactory,
-        UserCodeApplicationContext userCodeApplicationContext
-    ) {
+            ConfigurationServicesBundle configurationServices,
+            ListenerManager listenerManager,
+            DomainObjectContext domainObjectContext,
+            PublishArtifactNotationParserFactory artifactNotationParserFactory,
+            UserCodeApplicationContext userCodeApplicationContext) {
         this.configurationServices = configurationServices;
         this.listenerManager = listenerManager;
         this.domainObjectContext = domainObjectContext;
@@ -68,103 +66,103 @@ public class DefaultConfigurationFactory {
      * Creates a new unlocked configuration instance.
      */
     DefaultLegacyConfiguration create(
-        String name,
-        boolean isDetached,
-        ConfigurationResolver resolver,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        ConfigurationRole role
-    ) {
+            String name,
+            boolean isDetached,
+            ConfigurationResolver resolver,
+            Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
+            ConfigurationRole role) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
-            listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        return configurationServices.getObjectFactory().newInstance(
-            DefaultLegacyConfiguration.class,
-            configurationServices,
-            domainObjectContext,
-            name,
-            isDetached,
-            resolver,
-            dependencyResolutionListeners,
-            resolutionStrategyFactory,
-            artifactNotationParser,
-            capabilityNotationParser,
-            userCodeApplicationContext,
-            this,
-            role
-        );
+                listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+        return configurationServices
+                .getObjectFactory()
+                .newInstance(
+                        DefaultLegacyConfiguration.class,
+                        configurationServices,
+                        domainObjectContext,
+                        name,
+                        isDetached,
+                        resolver,
+                        dependencyResolutionListeners,
+                        resolutionStrategyFactory,
+                        artifactNotationParser,
+                        capabilityNotationParser,
+                        userCodeApplicationContext,
+                        this,
+                        role);
     }
 
     /**
      * Creates a new locked resolvable configuration instance.
      */
     DefaultResolvableConfiguration createResolvable(
-        String name,
-        ConfigurationResolver resolver,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory
-    ) {
+            String name,
+            ConfigurationResolver resolver,
+            Factory<ResolutionStrategyInternal> resolutionStrategyFactory) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
-            listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        return configurationServices.getObjectFactory().newInstance(
-            DefaultResolvableConfiguration.class,
-            configurationServices,
-            domainObjectContext,
-            name,
-            resolver,
-            dependencyResolutionListeners,
-            resolutionStrategyFactory,
-            artifactNotationParser,
-            capabilityNotationParser,
-            userCodeApplicationContext,
-            this
-        );
+                listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+        return configurationServices
+                .getObjectFactory()
+                .newInstance(
+                        DefaultResolvableConfiguration.class,
+                        configurationServices,
+                        domainObjectContext,
+                        name,
+                        resolver,
+                        dependencyResolutionListeners,
+                        resolutionStrategyFactory,
+                        artifactNotationParser,
+                        capabilityNotationParser,
+                        userCodeApplicationContext,
+                        this);
     }
 
     /**
      * Creates a new locked consumable configuration instance.
      */
     DefaultConsumableConfiguration createConsumable(
-        String name,
-        ConfigurationResolver resolver,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory
-    ) {
+            String name,
+            ConfigurationResolver resolver,
+            Factory<ResolutionStrategyInternal> resolutionStrategyFactory) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
-            listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        return configurationServices.getObjectFactory().newInstance(
-            DefaultConsumableConfiguration.class,
-            configurationServices,
-            domainObjectContext,
-            name,
-            resolver,
-            dependencyResolutionListeners,
-            resolutionStrategyFactory,
-            artifactNotationParser,
-            capabilityNotationParser,
-            userCodeApplicationContext,
-            this
-        );
+                listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+        return configurationServices
+                .getObjectFactory()
+                .newInstance(
+                        DefaultConsumableConfiguration.class,
+                        configurationServices,
+                        domainObjectContext,
+                        name,
+                        resolver,
+                        dependencyResolutionListeners,
+                        resolutionStrategyFactory,
+                        artifactNotationParser,
+                        capabilityNotationParser,
+                        userCodeApplicationContext,
+                        this);
     }
 
     /**
      * Creates a new locked dependency scope configuration instance.
      */
     DefaultDependencyScopeConfiguration createDependencyScope(
-        String name,
-        ConfigurationResolver resolver,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory
-    ) {
+            String name,
+            ConfigurationResolver resolver,
+            Factory<ResolutionStrategyInternal> resolutionStrategyFactory) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
-            listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        return configurationServices.getObjectFactory().newInstance(
-            DefaultDependencyScopeConfiguration.class,
-            configurationServices,
-            domainObjectContext,
-            name,
-            resolver,
-            dependencyResolutionListeners,
-            resolutionStrategyFactory,
-            artifactNotationParser,
-            capabilityNotationParser,
-            userCodeApplicationContext,
-            this
-        );
+                listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+        return configurationServices
+                .getObjectFactory()
+                .newInstance(
+                        DefaultDependencyScopeConfiguration.class,
+                        configurationServices,
+                        domainObjectContext,
+                        name,
+                        resolver,
+                        dependencyResolutionListeners,
+                        resolutionStrategyFactory,
+                        artifactNotationParser,
+                        capabilityNotationParser,
+                        userCodeApplicationContext,
+                        this);
     }
 }

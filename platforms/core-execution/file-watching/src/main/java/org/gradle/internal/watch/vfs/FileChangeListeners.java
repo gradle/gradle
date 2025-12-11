@@ -16,11 +16,10 @@
 
 package org.gradle.internal.watch.vfs;
 
+import java.nio.file.Path;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
-
-import java.nio.file.Path;
 
 /**
  * Allows the registration of {@link FileChangeListener}s.

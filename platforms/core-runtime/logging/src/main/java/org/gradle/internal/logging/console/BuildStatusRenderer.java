@@ -17,6 +17,9 @@
 package org.gradle.internal.logging.console;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.FlushOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -27,10 +30,6 @@ import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
-
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
 
 /**
  * <p>This listener displays nothing unless it receives periodic {@link UpdateNowEvent} clock events.</p>
@@ -43,7 +42,9 @@ public class BuildStatusRenderer implements OutputEventListener {
     public static final String PROGRESS_BAR_SUFFIX = ">";
 
     private enum Phase {
-        Initializing, Configuring, Executing
+        Initializing,
+        Configuring,
+        Executing
     }
 
     private final OutputEventListener listener;
@@ -62,7 +63,11 @@ public class BuildStatusRenderer implements OutputEventListener {
     private long buildStartTimestamp;
     private boolean timerEnabled;
 
-    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
+    public BuildStatusRenderer(
+            OutputEventListener listener,
+            StyledLabel buildStatusLabel,
+            Console console,
+            ConsoleMetaData consoleMetaData) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
         this.console = console;
@@ -83,19 +88,27 @@ public class BuildStatusRenderer implements OutputEventListener {
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_ROOT_BUILD) {
                     // Once the root build starts configuring, we are in Configuring phase
                     phaseStarted(startEvent, Phase.Configuring);
-                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_BUILD && currentPhase == Phase.Configuring) {
-                    // Any configuring event received from nested or buildSrc builds before the root build starts configuring is ignored
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_BUILD
+                        && currentPhase == Phase.Configuring) {
+                    // Any configuring event received from nested or buildSrc builds before the root build starts
+                    // configuring is ignored
                     phaseHasMoreProgress(startEvent);
-                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_PROJECT && currentPhase == Phase.Configuring) {
-                    // Any configuring event received from nested or buildSrc builds before the root build starts configuring is ignored
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_PROJECT
+                        && currentPhase == Phase.Configuring) {
+                    // Any configuring event received from nested or buildSrc builds before the root build starts
+                    // configuring is ignored
                     currentPhaseChildren.add(startEvent.getProgressOperationId());
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_MAIN_TASKS) {
                     phaseStarted(startEvent, Phase.Executing);
-                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_WORK && currentPhase == Phase.Executing) {
-                    // Any work execution happening in nested or buildSrc builds before the root build has started executing work is ignored
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_WORK
+                        && currentPhase == Phase.Executing) {
+                    // Any work execution happening in nested or buildSrc builds before the root build has started
+                    // executing work is ignored
                     phaseHasMoreProgress(startEvent);
-                } else if (startEvent.getBuildOperationCategory().isTopLevelWorkItem() && currentPhase == Phase.Executing) {
-                    // Any work execution happening in nested or buildSrc builds before the root build has started executing work is ignored
+                } else if (startEvent.getBuildOperationCategory().isTopLevelWorkItem()
+                        && currentPhase == Phase.Executing) {
+                    // Any work execution happening in nested or buildSrc builds before the root build has started
+                    // executing work is ignored
                     currentPhaseChildren.add(startEvent.getProgressOperationId());
                 }
             }
@@ -152,12 +165,15 @@ public class BuildStatusRenderer implements OutputEventListener {
 
     @VisibleForTesting
     public ProgressBar newProgressBar(String initialSuffix, int initialProgress, int totalProgress) {
-        return new ProgressBar(consoleMetaData,
-            PROGRESS_BAR_PREFIX,
-            PROGRESS_BAR_WIDTH,
-            PROGRESS_BAR_SUFFIX,
-            PROGRESS_BAR_COMPLETE_CHAR,
-            PROGRESS_BAR_INCOMPLETE_CHAR,
-            initialSuffix, initialProgress, totalProgress);
+        return new ProgressBar(
+                consoleMetaData,
+                PROGRESS_BAR_PREFIX,
+                PROGRESS_BAR_WIDTH,
+                PROGRESS_BAR_SUFFIX,
+                PROGRESS_BAR_COMPLETE_CHAR,
+                PROGRESS_BAR_INCOMPLETE_CHAR,
+                initialSuffix,
+                initialProgress,
+                totalProgress);
     }
 }

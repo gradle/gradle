@@ -16,4 +16,12 @@
 
 package org.gradle.launcher.daemon.server.api;
 
-public enum DaemonState {Idle, Busy, Canceled, StopRequested, Stopped, ForceStopped, Broken}
+public enum DaemonState {
+    Idle,
+    Busy,
+    Canceled,
+    StopRequested,
+    Stopped,
+    ForceStopped,
+    Broken
+}

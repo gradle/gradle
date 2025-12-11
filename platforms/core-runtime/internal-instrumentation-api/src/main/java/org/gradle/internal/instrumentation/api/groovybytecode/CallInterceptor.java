@@ -16,12 +16,11 @@
 
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import org.codehaus.groovy.runtime.callsite.CallSite;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.util.Set;
+import org.codehaus.groovy.runtime.callsite.CallSite;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Intercepts method and constructor calls as well as property reads in dynamic Groovy bytecode.

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactSelectionDetails;
 import org.gradle.api.artifacts.DependencyResolveDetails;
@@ -35,11 +36,10 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.typeconversion.NotationParser;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-
 public class DefaultDependencyResolveDetails implements DependencyResolveDetails {
 
-    private static final NotationParser<Object, ModuleComponentSelector> USE_TARGET_NOTATION_PARSER = ModuleComponentSelectorParsers.parser("useTarget()");
+    private static final NotationParser<Object, ModuleComponentSelector> USE_TARGET_NOTATION_PARSER =
+            ModuleComponentSelectorParsers.parser("useTarget()");
 
     private final DependencySubstitution delegate;
     private final ModuleVersionIdentifier requested;
@@ -55,7 +55,9 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     public DefaultDependencyResolveDetails(DependencySubstitutionInternal delegate, ModuleVersionIdentifier requested) {
         this.delegate = delegate;
         this.requested = requested;
-        this.target = delegate.getConfiguredTargetSelector() != null ? delegate.getConfiguredTargetSelector() : delegate.getRequested();
+        this.target = delegate.getConfiguredTargetSelector() != null
+                ? delegate.getConfiguredTargetSelector()
+                : delegate.getRequested();
     }
 
     @Override
@@ -66,12 +68,13 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     @Override
     public void useVersion(String version) {
         if (version == null) {
-            throw new IllegalArgumentException("Configuring the dependency resolve details with 'null' version is not allowed.");
+            throw new IllegalArgumentException(
+                    "Configuring the dependency resolve details with 'null' version is not allowed.");
         }
         useSelector = null;
         useVersion = new DefaultMutableVersionConstraint(version);
         dirty = true;
-   }
+    }
 
     @Override
     public void useTarget(Object notation) {
@@ -120,14 +123,19 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
             if (target instanceof ModuleComponentSelector) {
                 ModuleComponentSelector moduleSelector = (ModuleComponentSelector) target;
                 if (!useVersion.equals(moduleSelector.getVersionConstraint())) {
-                    useTarget(DefaultModuleComponentSelector.newSelector(moduleSelector.getModuleIdentifier(), useVersion, moduleSelector.getAttributes(), moduleSelector.getCapabilitySelectors()));
+                    useTarget(DefaultModuleComponentSelector.newSelector(
+                            moduleSelector.getModuleIdentifier(),
+                            useVersion,
+                            moduleSelector.getAttributes(),
+                            moduleSelector.getCapabilitySelectors()));
                 } else {
                     // Still 'updated' with reason when version remains the same.
                     useTarget(target);
                 }
             } else {
                 // If the current target is a project component, it must be unmodified from the requested
-                ModuleComponentSelector newTarget = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(requested.getGroup(), requested.getName()), useVersion);
+                ModuleComponentSelector newTarget = DefaultModuleComponentSelector.newSelector(
+                        DefaultModuleIdentifier.newId(requested.getGroup(), requested.getName()), useVersion);
                 useTarget(newTarget);
             }
         }

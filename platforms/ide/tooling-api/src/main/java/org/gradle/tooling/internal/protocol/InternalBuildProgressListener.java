@@ -108,5 +108,4 @@ public interface InternalBuildProgressListener {
      * @return the type of operations to be notified about
      */
     List<String> getSubscribedOperations();
-
 }

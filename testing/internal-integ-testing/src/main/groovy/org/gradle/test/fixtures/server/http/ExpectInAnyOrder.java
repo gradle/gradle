@@ -17,12 +17,11 @@
 package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
+import javax.annotation.Nullable;
 
 class ExpectInAnyOrder implements TrackingHttpHandler {
     private final Lock lock;

@@ -15,13 +15,6 @@
  */
 package org.gradle.security.internal.gnupg;
 
-import org.gradle.api.Project;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.plugins.signing.signatory.SignatorySupport;
-import org.gradle.process.ExecOperations;
-
-import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -29,6 +22,12 @@ import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
+import org.gradle.api.Project;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.plugins.signing.signatory.SignatorySupport;
+import org.gradle.process.ExecOperations;
 
 /**
  * Signatory that uses the gnupg cli program.
@@ -75,12 +74,11 @@ public class GnupgSignatory extends SignatorySupport {
         final List<String> arguments = buildArgumentList();
         LOG.info("Invoking {} with arguments: {}", executable, arguments);
         execOperations.exec(spec -> {
-                spec.setExecutable(executable);
-                spec.setArgs(arguments);
-                spec.setStandardInput(prepareStdin(input));
-                spec.setStandardOutput(output);
-            }
-        );
+            spec.setExecutable(executable);
+            spec.setArgs(arguments);
+            spec.setStandardInput(prepareStdin(input));
+            spec.setStandardOutput(output);
+        });
     }
 
     @SuppressWarnings("DefaultCharset")
@@ -129,5 +127,4 @@ public class GnupgSignatory extends SignatorySupport {
     public String getKeyId() {
         return keyName;
     }
-
 }

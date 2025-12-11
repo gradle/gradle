@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
@@ -30,19 +30,28 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
  */
 public class TransformedExternalArtifactSet extends AbstractTransformedArtifactSet {
     public TransformedExternalArtifactSet(
-        ComponentIdentifier componentIdentifier,
-        VariantIdentifier sourceVariantId,
-        ResolvedArtifactSet delegate,
-        ImmutableAttributes target,
-        ImmutableCapabilities capabilities,
-        TransformChain transformChain,
-        TransformUpstreamDependenciesResolver dependenciesResolver,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
-        super(componentIdentifier, sourceVariantId, delegate, target, capabilities, transformChain, dependenciesResolver, calculatedValueContainerFactory);
+            ComponentIdentifier componentIdentifier,
+            VariantIdentifier sourceVariantId,
+            ResolvedArtifactSet delegate,
+            ImmutableAttributes target,
+            ImmutableCapabilities capabilities,
+            TransformChain transformChain,
+            TransformUpstreamDependenciesResolver dependenciesResolver,
+            CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        super(
+                componentIdentifier,
+                sourceVariantId,
+                delegate,
+                target,
+                capabilities,
+                transformChain,
+                dependenciesResolver,
+                calculatedValueContainerFactory);
     }
 
-    public TransformedExternalArtifactSet(CalculatedValueContainer<ImmutableList<Artifacts>, AbstractTransformedArtifactSet.CalculateArtifacts> result) {
+    public TransformedExternalArtifactSet(
+            CalculatedValueContainer<ImmutableList<Artifacts>, AbstractTransformedArtifactSet.CalculateArtifacts>
+                    result) {
         super(result);
     }
 }

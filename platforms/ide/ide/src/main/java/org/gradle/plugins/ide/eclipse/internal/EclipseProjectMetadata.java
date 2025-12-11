@@ -16,6 +16,9 @@
 
 package org.gradle.plugins.ide.eclipse.internal;
 
+import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Describables;
@@ -23,16 +26,13 @@ import org.gradle.internal.DisplayName;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.Set;
-
 public class EclipseProjectMetadata implements IdeProjectMetadata {
     private final EclipseModel eclipseModel;
     private final File projectDir;
     private final TaskProvider<? extends Task> generatorTask;
 
-    public EclipseProjectMetadata(EclipseModel eclipseModel, File projectDir, TaskProvider<? extends Task> generatorTask) {
+    public EclipseProjectMetadata(
+            EclipseModel eclipseModel, File projectDir, TaskProvider<? extends Task> generatorTask) {
         this.eclipseModel = eclipseModel;
         this.projectDir = projectDir;
         this.generatorTask = generatorTask;
@@ -40,7 +40,8 @@ public class EclipseProjectMetadata implements IdeProjectMetadata {
 
     @Override
     public DisplayName getDisplayName() {
-        return Describables.withTypeAndName("Eclipse project", eclipseModel.getProject().getName());
+        return Describables.withTypeAndName(
+                "Eclipse project", eclipseModel.getProject().getName());
     }
 
     public String getName() {

@@ -17,6 +17,13 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
+import java.io.File;
+import java.io.FilterReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Map;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFilePermissions;
@@ -36,31 +43,32 @@ import org.gradle.internal.file.Chmod;
 import org.gradle.internal.reflect.Instantiator;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.FilterReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Map;
-
-public class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetailsInternal {
+public class DefaultFileCopyDetails extends AbstractFileTreeElement
+        implements FileVisitDetails, FileCopyDetailsInternal {
     private final FileVisitDetails fileDetails;
     private final CopySpecResolver specResolver;
     private final Instantiator instantiator;
     private final FilterChain filterChain;
     private final PropertyFactory propertyFactory;
     private boolean defaultDuplicatesStrategy;
+
     @Nullable
     private RelativePath relativePath;
+
     private boolean excluded;
 
     @Nullable
     private DefaultConfigurableFilePermissions permissions;
+
     private DuplicatesStrategy duplicatesStrategy;
 
     @Inject
-    public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecResolver specResolver, Instantiator instantiator, PropertyFactory propertyFactory, Chmod chmod) {
+    public DefaultFileCopyDetails(
+            FileVisitDetails fileDetails,
+            CopySpecResolver specResolver,
+            Instantiator instantiator,
+            PropertyFactory propertyFactory,
+            Chmod chmod) {
         super(chmod);
         this.filterChain = new FilterChain(specResolver.getFilteringCharset());
         this.fileDetails = fileDetails;
@@ -174,7 +182,9 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     private Provider<FilePermissions> getSpecMode() {
-        return fileDetails.isDirectory() ? specResolver.getImmutableDirPermissions() : specResolver.getImmutableFilePermissions();
+        return fileDetails.isDirectory()
+                ? specResolver.getImmutableDirPermissions()
+                : specResolver.getImmutableFilePermissions();
     }
 
     @Override
@@ -213,7 +223,9 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     private DefaultConfigurableFilePermissions getPermissionsHolder() {
         if (permissions == null) {
-            permissions = instantiator.newInstance(DefaultConfigurableFilePermissions.class, DefaultConfigurableFilePermissions.getDefaultUnixNumeric(fileDetails.isDirectory()));
+            permissions = instantiator.newInstance(
+                    DefaultConfigurableFilePermissions.class,
+                    DefaultConfigurableFilePermissions.getDefaultUnixNumeric(fileDetails.isDirectory()));
         }
         return permissions;
     }

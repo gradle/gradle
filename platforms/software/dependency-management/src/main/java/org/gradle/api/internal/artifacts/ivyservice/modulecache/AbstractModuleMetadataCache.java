@@ -31,7 +31,8 @@ public abstract class AbstractModuleMetadataCache implements ModuleMetadataCache
     }
 
     @Override
-    public CachedMetadata getCachedModuleDescriptor(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id) {
+    public CachedMetadata getCachedModuleDescriptor(
+            ModuleComponentRepository<?> repository, ModuleComponentIdentifier id) {
         final ModuleComponentAtRepositoryKey key = createKey(repository, id);
         return get(key);
     }
@@ -47,15 +48,20 @@ public abstract class AbstractModuleMetadataCache implements ModuleMetadataCache
     }
 
     @Override
-    public CachedMetadata cacheMetaData(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id, ModuleComponentResolveMetadata metadata) {
-        LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", metadata.getId(), metadata.isChanging());
+    public CachedMetadata cacheMetaData(
+            ModuleComponentRepository<?> repository,
+            ModuleComponentIdentifier id,
+            ModuleComponentResolveMetadata metadata) {
+        LOGGER.debug(
+                "Recording module descriptor in cache: {} [changing = {}]", metadata.getId(), metadata.isChanging());
         final ModuleComponentAtRepositoryKey key = createKey(repository, id);
         ModuleMetadataCacheEntry entry = createEntry(metadata);
         DefaultCachedMetadata cachedMetaData = new DefaultCachedMetadata(entry, metadata, timeProvider);
         return store(key, entry, cachedMetaData);
     }
 
-    protected ModuleComponentAtRepositoryKey createKey(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id) {
+    protected ModuleComponentAtRepositoryKey createKey(
+            ModuleComponentRepository<?> repository, ModuleComponentIdentifier id) {
         return new ModuleComponentAtRepositoryKey(repository.getId(), id);
     }
 
@@ -63,7 +69,8 @@ public abstract class AbstractModuleMetadataCache implements ModuleMetadataCache
         return ModuleMetadataCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime());
     }
 
-    protected abstract CachedMetadata store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData);
+    protected abstract CachedMetadata store(
+            ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData);
 
     protected abstract CachedMetadata get(ModuleComponentAtRepositoryKey key);
 }

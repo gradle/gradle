@@ -16,15 +16,14 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
-import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
-import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
-import org.gradle.tooling.model.BuildIdentifier;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
+import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
+import org.gradle.tooling.model.BuildIdentifier;
 
 public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
     private PartialBasicGradleProject rootProject;

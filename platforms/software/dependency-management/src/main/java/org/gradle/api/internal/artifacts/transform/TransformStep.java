@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
 import org.gradle.api.Describable;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -29,8 +30,6 @@ import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * A single transform step in a transform chain.
@@ -45,7 +44,11 @@ public class TransformStep implements TaskDependencyContainer, Describable {
     private final ProjectInternal owningProject;
     private final InputFingerprinter globalInputFingerprinter;
 
-    public TransformStep(Transform transform, TransformInvocationFactory transformInvocationFactory, DomainObjectContext owner, InputFingerprinter globalInputFingerprinter) {
+    public TransformStep(
+            Transform transform,
+            TransformInvocationFactory transformInvocationFactory,
+            DomainObjectContext owner,
+            InputFingerprinter globalInputFingerprinter) {
         this.transform = transform;
         this.transformInvocationFactory = transformInvocationFactory;
         this.globalInputFingerprinter = globalInputFingerprinter;
@@ -61,34 +64,44 @@ public class TransformStep implements TaskDependencyContainer, Describable {
         return owningProject;
     }
 
-    public Deferrable<Try<TransformStepSubject>> createInvocation(TransformStepSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
-        InputFingerprinter inputFingerprinter = context != null ? context.getService(InputFingerprinter.class) : globalInputFingerprinter;
+    public Deferrable<Try<TransformStepSubject>> createInvocation(
+            TransformStepSubject subjectToTransform,
+            TransformUpstreamDependencies upstreamDependencies,
+            @Nullable NodeExecutionContext context) {
+        InputFingerprinter inputFingerprinter =
+                context != null ? context.getService(InputFingerprinter.class) : globalInputFingerprinter;
 
         Try<TransformDependencies> resolvedDependencies = upstreamDependencies.computeArtifacts();
         return resolvedDependencies
-            .map(dependencies -> {
-                ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
-                if (inputArtifacts.isEmpty()) {
-                    return Deferrable.completed(Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of())));
-                } else if (inputArtifacts.size() > 1) {
-                    return Deferrable.deferred(() ->
-                        doTransform(subjectToTransform, inputFingerprinter, dependencies, inputArtifacts)
-                    );
-                } else {
-                    File inputArtifact = inputArtifacts.get(0);
-                    return transformInvocationFactory.createInvocation(transform, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
-                        .map(result -> result.map(subjectToTransform::createSubjectFromResult));
-                }
-            })
-            .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure)));
+                .map(dependencies -> {
+                    ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
+                    if (inputArtifacts.isEmpty()) {
+                        return Deferrable.completed(
+                                Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of())));
+                    } else if (inputArtifacts.size() > 1) {
+                        return Deferrable.deferred(() ->
+                                doTransform(subjectToTransform, inputFingerprinter, dependencies, inputArtifacts));
+                    } else {
+                        File inputArtifact = inputArtifacts.get(0);
+                        return transformInvocationFactory
+                                .createInvocation(
+                                        transform, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
+                                .map(result -> result.map(subjectToTransform::createSubjectFromResult));
+                    }
+                })
+                .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure)));
     }
 
-    private Try<TransformStepSubject> doTransform(TransformStepSubject subjectToTransform, InputFingerprinter inputFingerprinter, TransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
+    private Try<TransformStepSubject> doTransform(
+            TransformStepSubject subjectToTransform,
+            InputFingerprinter inputFingerprinter,
+            TransformDependencies dependencies,
+            ImmutableList<File> inputArtifacts) {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File inputArtifact : inputArtifacts) {
             Try<ImmutableList<File>> result = transformInvocationFactory
-                .createInvocation(transform, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
-                .completeAndGet();
+                    .createInvocation(transform, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
+                    .completeAndGet();
 
             if (result.getFailure().isPresent()) {
                 return Cast.uncheckedCast(result);

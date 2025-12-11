@@ -18,6 +18,15 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.Array;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
@@ -28,16 +37,6 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
 import org.gradle.internal.state.Managed;
 import org.jspecify.annotations.Nullable;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.lang.reflect.Array;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 
 abstract class AbstractValueProcessor {
 
@@ -105,7 +104,8 @@ abstract class AbstractValueProcessor {
         }
         if (value instanceof ImplementationValue) {
             ImplementationValue implementationValue = (ImplementationValue) value;
-            return visitor.implementationValue(implementationValue.getImplementationClassIdentifier(), implementationValue.getValue());
+            return visitor.implementationValue(
+                    implementationValue.getImplementationClassIdentifier(), implementationValue.getValue());
         }
 
         // Pluggable serialization
@@ -132,7 +132,8 @@ abstract class AbstractValueProcessor {
     private <T> T processMap(Map<?, ?> map, ValueVisitor<T> visitor) {
         ImmutableList.Builder<MapEntrySnapshot<T>> builder = ImmutableList.builderWithExpectedSize(map.size());
         for (Map.Entry<?, ?> entry : map.entrySet()) {
-            builder.add(new MapEntrySnapshot<>(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
+            builder.add(new MapEntrySnapshot<>(
+                    processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
         }
         if (map instanceof Properties) {
             return visitor.properties(builder.build());

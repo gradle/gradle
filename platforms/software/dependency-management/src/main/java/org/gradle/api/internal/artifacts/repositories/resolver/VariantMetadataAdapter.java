@@ -47,10 +47,12 @@ public class VariantMetadataAdapter implements VariantMetadata {
     /**
      * If {@code variantName} is null, this adapter applies to all variants within a component.
      */
-    public VariantMetadataAdapter(@Nullable String variantName,
-                                  MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
-                                  NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
-                                  NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser) {
+    public VariantMetadataAdapter(
+            @Nullable String variantName,
+            MutableModuleComponentResolveMetadata metadata,
+            Instantiator instantiator,
+            NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
+            NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser) {
         this.variantName = variantName;
         this.metadata = metadata;
         this.instantiator = instantiator;
@@ -60,27 +62,41 @@ public class VariantMetadataAdapter implements VariantMetadata {
 
     @Override
     public void withDependencies(Action<? super DirectDependenciesMetadata> action) {
-        metadata.getVariantMetadataRules().addDependencyAction(instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, new VariantMetadataRules.VariantAction<>(variantName, action));
+        metadata.getVariantMetadataRules()
+                .addDependencyAction(
+                        instantiator,
+                        dependencyMetadataNotationParser,
+                        dependencyConstraintMetadataNotationParser,
+                        new VariantMetadataRules.VariantAction<>(variantName, action));
     }
 
     @Override
     public void withDependencyConstraints(Action<? super DependencyConstraintsMetadata> action) {
-        metadata.getVariantMetadataRules().addDependencyConstraintAction(instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, new VariantMetadataRules.VariantAction<>(variantName, action));
+        metadata.getVariantMetadataRules()
+                .addDependencyConstraintAction(
+                        instantiator,
+                        dependencyMetadataNotationParser,
+                        dependencyConstraintMetadataNotationParser,
+                        new VariantMetadataRules.VariantAction<>(variantName, action));
     }
 
     @Override
     public void withCapabilities(Action<? super MutableCapabilitiesMetadata> action) {
-        metadata.getVariantMetadataRules().addCapabilitiesAction(new VariantMetadataRules.VariantAction<>(variantName, action));
+        metadata.getVariantMetadataRules()
+                .addCapabilitiesAction(new VariantMetadataRules.VariantAction<>(variantName, action));
     }
 
     @Override
     public void withFiles(Action<? super MutableVariantFilesMetadata> action) {
-        metadata.getVariantMetadataRules().addVariantFilesAction(new VariantMetadataRules.VariantAction<>(variantName, action));
+        metadata.getVariantMetadataRules()
+                .addVariantFilesAction(new VariantMetadataRules.VariantAction<>(variantName, action));
     }
 
     @Override
     public VariantMetadata attributes(Action<? super AttributeContainer> action) {
-        metadata.getVariantMetadataRules().addAttributesAction(metadata.getAttributesFactory(), new VariantMetadataRules.VariantAction<>(variantName, action));
+        metadata.getVariantMetadataRules()
+                .addAttributesAction(
+                        metadata.getAttributesFactory(), new VariantMetadataRules.VariantAction<>(variantName, action));
         return this;
     }
 
@@ -88,5 +104,4 @@ public class VariantMetadataAdapter implements VariantMetadata {
     public AttributeContainer getAttributes() {
         return metadata.getVariantMetadataRules().getAttributes(variantName);
     }
-
 }

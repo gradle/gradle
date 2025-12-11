@@ -17,16 +17,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.util.concurrent.ExecutionException;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.internal.Describables;
 
-import java.util.concurrent.ExecutionException;
-
 public class CachingComponentSelectionDescriptorFactory implements ComponentSelectionDescriptorFactory {
-    private final Cache<Key, ComponentSelectionDescriptor> descriptors = CacheBuilder.newBuilder()
-        .maximumSize(10000)
-        .build();
+    private final Cache<Key, ComponentSelectionDescriptor> descriptors =
+            CacheBuilder.newBuilder().maximumSize(10000).build();
 
     @Override
     public ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause, String reason) {
@@ -36,7 +34,8 @@ public class CachingComponentSelectionDescriptorFactory implements ComponentSele
     @Override
     public ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause) {
         try {
-            return descriptors.get(new Key(cause, cause.getDefaultReason()), () -> new DefaultComponentSelectionDescriptor(cause));
+            return descriptors.get(
+                    new Key(cause, cause.getDefaultReason()), () -> new DefaultComponentSelectionDescriptor(cause));
         } catch (ExecutionException e) {
             return new DefaultComponentSelectionDescriptor(cause);
         }

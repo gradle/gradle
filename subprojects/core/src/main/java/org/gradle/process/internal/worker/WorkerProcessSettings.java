@@ -16,11 +16,10 @@
 
 package org.gradle.process.internal.worker;
 
-import org.gradle.api.logging.LogLevel;
-import org.gradle.process.internal.JavaExecHandleBuilder;
-
 import java.io.File;
 import java.util.Set;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.process.internal.JavaExecHandleBuilder;
 
 /**
  * <p>Settings common to all worker processes.</p>

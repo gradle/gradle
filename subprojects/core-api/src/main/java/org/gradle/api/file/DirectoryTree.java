@@ -15,9 +15,8 @@
  */
 package org.gradle.api.file;
 
-import org.gradle.api.tasks.util.PatternSet;
-
 import java.io.File;
+import org.gradle.api.tasks.util.PatternSet;
 
 /**
  * <p>A directory with some associated include and exclude patterns.</p>

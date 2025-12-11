@@ -16,6 +16,12 @@
 
 package org.gradle.process.internal.worker.request;
 
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import org.gradle.api.Action;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.cache.Cache;
@@ -38,17 +44,16 @@ import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.child.WorkerLogEventListener;
 
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-
 /**
  * Worker-side implementation of {@link RequestProtocol} executing actions.
  */
-public class WorkerAction implements Action<WorkerProcessContext>, Serializable, RequestProtocol, StreamFailureHandler, Stoppable, StreamCompletion {
+public class WorkerAction
+        implements Action<WorkerProcessContext>,
+                Serializable,
+                RequestProtocol,
+                StreamFailureHandler,
+                Stoppable,
+                StreamCompletion {
     private final String workerImplementationName;
     private transient CountDownLatch completed;
     private transient ResponseProtocol responder;
@@ -74,27 +79,33 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
         try {
             if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new BasicClassCacheFactory(), Collections.emptyList(), new BasicPropertyRoleAnnotationHandler());
+                instantiatorFactory = new DefaultInstantiatorFactory(
+                        new BasicClassCacheFactory(),
+                        Collections.emptyList(),
+                        new BasicPropertyRoleAnnotationHandler());
             }
             ServiceRegistry serviceRegistry = ServiceRegistryBuilder.builder()
-                .displayName("worker action services")
-                .parent(parentServices)
-                .provider(registration -> {
-                    // Make the argument serializers available so work implementations can register their own serializers
-                    registration.add(RequestArgumentSerializers.class, argumentSerializers);
-                    registration.add(InstantiatorFactory.class, instantiatorFactory);
-                    registration.add(ResponseProtocol.class, responder);
-                })
-                .build();
+                    .displayName("worker action services")
+                    .parent(parentServices)
+                    .provider(registration -> {
+                        // Make the argument serializers available so work implementations can register their own
+                        // serializers
+                        registration.add(RequestArgumentSerializers.class, argumentSerializers);
+                        registration.add(InstantiatorFactory.class, instantiatorFactory);
+                        registration.add(ResponseProtocol.class, responder);
+                    })
+                    .build();
 
             Class<?> workerImplementation = Class.forName(workerImplementationName);
-            implementation = Cast.uncheckedNonnullCast(instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation));
+            implementation = Cast.uncheckedNonnullCast(
+                    instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation));
         } catch (Exception e) {
             failure = e;
         }
 
         if (failure == null) {
-            connection.useParameterSerializers(RequestSerializerRegistry.create(this.getClass().getClassLoader(), argumentSerializers));
+            connection.useParameterSerializers(
+                    RequestSerializerRegistry.create(this.getClass().getClassLoader(), argumentSerializers));
         } else {
             // Discard incoming requests, as the serializers may not have been configured
             connection.useParameterSerializers(RequestSerializerRegistry.createDiscardRequestArg());
@@ -145,9 +156,11 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
                 try {
                     // We want to use the responder as the logging protocol object here because log messages from the
                     // action will have the build operation associated.  By using the responder, we ensure that all
-                    // messages arrive on the same incoming queue in the build process and the completed message will only
+                    // messages arrive on the same incoming queue in the build process and the completed message will
+                    // only
                     // arrive after all log messages have been processed.
-                    result = workerLogEventListener.withWorkerLoggingProtocol(responder, () -> implementation.run(request.getArg()));
+                    result = workerLogEventListener.withWorkerLoggingProtocol(
+                            responder, () -> implementation.run(request.getArg()));
                 } catch (Throwable failure) {
                     if (failure instanceof NoClassDefFoundError) {
                         // Assume an infrastructure problem
@@ -185,7 +198,6 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         public <V> Cache<Class<?>, V> newClassMap() {
             return new MapBackedCache<>(new ConcurrentHashMap<>());
         }
-
     }
 
     private static class BasicPropertyRoleAnnotationHandler implements PropertyRoleAnnotationHandler {
@@ -201,5 +213,4 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             }
         }
     }
-
 }

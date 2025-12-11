@@ -16,20 +16,19 @@
 
 package org.gradle.problems.internal.rendering;
 
-import org.gradle.api.problems.ProblemId;
-
 import java.util.Arrays;
 import java.util.List;
+import org.gradle.api.problems.ProblemId;
 
 class ProblemWriterRegistry {
 
     public static final ProblemWriterRegistry INSTANCE = new ProblemWriterRegistry();
 
     // ordered by priority
-    private static final List<SelectiveProblemWriter> WRITERS = Arrays.asList(new JavaCompilationWriter(), new DefaultProblemWriter());
+    private static final List<SelectiveProblemWriter> WRITERS =
+            Arrays.asList(new JavaCompilationWriter(), new DefaultProblemWriter());
 
-    private ProblemWriterRegistry() {
-    }
+    private ProblemWriterRegistry() {}
 
     public SelectiveProblemWriter problemWriterFor(ProblemId problemId) {
         for (SelectiveProblemWriter writer : WRITERS) {

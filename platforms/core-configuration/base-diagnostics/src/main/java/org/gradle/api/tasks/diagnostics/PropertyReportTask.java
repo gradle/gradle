@@ -15,6 +15,10 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Property;
@@ -31,18 +35,14 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 /**
  * Displays the properties of a project. An instance of this type is used when you execute the {@code properties} task
  * from the command-line.
  */
 @UsedByScanPlugin("We use the class name to filter the console log to avoid showing secrets")
 @DisableCachingByDefault(because = "Not worth caching")
-public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyReportTask.PropertyReportModel> {
+public abstract class PropertyReportTask
+        extends AbstractProjectBasedReportTask<PropertyReportTask.PropertyReportModel> {
 
     private PropertyReportRenderer renderer = new PropertyReportRenderer();
     private final Property<String> property = getProject().getObjects().property(String.class);
@@ -101,10 +101,12 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
     @Override
     protected void generateReportFor(ProjectDetails project, PropertyReportModel model) {
         for (PropertyWarning warning : model.warnings) {
-            getLogger().warn(
-                "Rendering of the property '{}' with value type '{}' failed with exception",
-                warning.name, warning.valueClass, warning.exception
-            );
+            getLogger()
+                    .warn(
+                            "Rendering of the property '{}' with value type '{}' failed with exception",
+                            warning.name,
+                            warning.valueClass,
+                            warning.exception);
         }
         for (Pair<String, String> entry : model.properties) {
             renderer.addProperty(entry.getLeft(), entry.getRight());
@@ -119,8 +121,7 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
     @Incubating
     public static final class PropertyReportModel {
 
-        private PropertyReportModel() {
-        }
+        private PropertyReportModel() {}
 
         private final List<PropertyWarning> warnings = new ArrayList<>();
         private final List<Pair<String, String>> properties = new ArrayList<>();

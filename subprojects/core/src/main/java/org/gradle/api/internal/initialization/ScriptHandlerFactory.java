@@ -30,21 +30,16 @@ public interface ScriptHandlerFactory {
      * Create a script handler tied to the given domain object context.
      */
     ScriptHandlerInternal create(
-        ScriptSource scriptSource,
-        ClassLoaderScope classLoaderScope,
-        DomainObjectContext context
-    );
+            ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context);
 
     /**
      * Create a script handler that resolves files using the given
      * file resolver and file collection factory.
      */
     ScriptHandlerInternal create(
-        ScriptSource scriptSource,
-        ClassLoaderScope classLoaderScope,
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
-        DomainObjectContext owner
-    );
-
+            ScriptSource scriptSource,
+            ClassLoaderScope classLoaderScope,
+            FileResolver fileResolver,
+            FileCollectionFactory fileCollectionFactory,
+            DomainObjectContext owner);
 }

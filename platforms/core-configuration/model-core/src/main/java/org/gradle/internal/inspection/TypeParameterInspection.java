@@ -38,5 +38,6 @@ public interface TypeParameterInspection<INTERFACE, PARAMS> {
      * @return The parameters type, or {@code null} when the implementation takes no parameters.
      */
     @Nullable
-    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType, int typeArgumentIndex);
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(
+            Class<T> implementationType, int typeArgumentIndex);
 }

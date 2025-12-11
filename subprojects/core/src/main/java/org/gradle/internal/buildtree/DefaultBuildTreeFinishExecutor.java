@@ -16,6 +16,8 @@
 
 package org.gradle.internal.buildtree;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.ExecutionResult;
@@ -23,19 +25,15 @@ import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
     private final BuildStateRegistry buildStateRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildLifecycleController buildLifecycleController;
 
     public DefaultBuildTreeFinishExecutor(
-        BuildStateRegistry buildStateRegistry,
-        ExceptionAnalyser exceptionAnalyser,
-        BuildLifecycleController buildLifecycleController
-    ) {
+            BuildStateRegistry buildStateRegistry,
+            ExceptionAnalyser exceptionAnalyser,
+            BuildLifecycleController buildLifecycleController) {
         this.buildStateRegistry = buildStateRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildLifecycleController = buildLifecycleController;

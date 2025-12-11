@@ -16,17 +16,11 @@
 
 package org.gradle.performance.results.report;
 
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.gradle.internal.UncheckedException;
-import org.gradle.performance.results.MeasuredOperationList;
-import org.gradle.performance.results.PerformanceReportScenario;
-import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
-import org.gradle.performance.results.PerformanceTestExecution;
-import org.gradle.performance.results.PerformanceTestExecutionResult;
-import org.gradle.performance.results.ResultsStore;
-import org.gradle.performance.util.Git;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
@@ -36,9 +30,14 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
+import org.gradle.internal.UncheckedException;
+import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.performance.results.PerformanceReportScenario;
+import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
+import org.gradle.performance.results.PerformanceTestExecution;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
+import org.gradle.performance.results.ResultsStore;
+import org.gradle.performance.util.Git;
 
 public abstract class PerformanceExecutionDataProvider {
     protected static final int PERFORMANCE_DATE_RETRIEVE_DAYS = 7;
@@ -48,7 +47,8 @@ public abstract class PerformanceExecutionDataProvider {
     private final List<File> resultJsons;
     protected final String commitId = Git.current().getCommitId();
 
-    public PerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons, Set<String> performanceTestBuildIds) {
+    public PerformanceExecutionDataProvider(
+            ResultsStore resultsStore, List<File> resultJsons, Set<String> performanceTestBuildIds) {
         this.resultJsons = resultJsons;
         this.resultsStore = resultsStore;
         this.performanceTestBuildIds = performanceTestBuildIds;
@@ -66,19 +66,20 @@ public abstract class PerformanceExecutionDataProvider {
         return commitId;
     }
 
-    protected abstract TreeSet<PerformanceReportScenario> queryExecutionData(List<PerformanceTestExecutionResult> scenarioExecutions);
+    protected abstract TreeSet<PerformanceReportScenario> queryExecutionData(
+            List<PerformanceTestExecutionResult> scenarioExecutions);
 
     private TreeSet<PerformanceReportScenario> readResultJsonAndQueryFromDatabase() {
         List<PerformanceTestExecutionResult> buildResultData = resultJsons.stream()
-            .flatMap(PerformanceExecutionDataProvider::parseResultsJson)
-            .collect(toList());
+                .flatMap(PerformanceExecutionDataProvider::parseResultsJson)
+                .collect(toList());
         return queryExecutionData(buildResultData);
     }
 
     private static Stream<PerformanceTestExecutionResult> parseResultsJson(File resultsJson) {
         try {
-            return new ObjectMapper().readValue(resultsJson, new TypeReference<List<PerformanceTestExecutionResult>>() {
-            }).stream();
+            return new ObjectMapper()
+                    .readValue(resultsJson, new TypeReference<List<PerformanceTestExecutionResult>>() {}).stream();
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -88,25 +89,27 @@ public abstract class PerformanceExecutionDataProvider {
         return toCollection(() -> new TreeSet<>(scenarioComparator));
     }
 
-    protected List<PerformanceReportScenarioHistoryExecution> removeEmptyExecution(List<? extends PerformanceTestExecution> executions) {
-        return executions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList());
+    protected List<PerformanceReportScenarioHistoryExecution> removeEmptyExecution(
+            List<? extends PerformanceTestExecution> executions) {
+        return executions.stream()
+                .map(this::extractExecutionData)
+                .filter(Objects::nonNull)
+                .collect(toList());
     }
 
-    private PerformanceReportScenarioHistoryExecution extractExecutionData(PerformanceTestExecution performanceTestExecution) {
-        List<MeasuredOperationList> nonEmptyExecutions = performanceTestExecution
-            .getScenarios()
-            .stream()
-            .filter(testExecution -> !testExecution.getTotalTime().isEmpty())
-            .collect(toList());
+    private PerformanceReportScenarioHistoryExecution extractExecutionData(
+            PerformanceTestExecution performanceTestExecution) {
+        List<MeasuredOperationList> nonEmptyExecutions = performanceTestExecution.getScenarios().stream()
+                .filter(testExecution -> !testExecution.getTotalTime().isEmpty())
+                .collect(toList());
         if (nonEmptyExecutions.size() > 1) {
             int size = nonEmptyExecutions.size();
             return new PerformanceReportScenarioHistoryExecution(
-                performanceTestExecution.getStartTime(),
-                performanceTestExecution.getTeamCityBuildId(),
-                getCommit(performanceTestExecution),
-                nonEmptyExecutions.get(size - 2),
-                nonEmptyExecutions.get(size - 1)
-            );
+                    performanceTestExecution.getStartTime(),
+                    performanceTestExecution.getTeamCityBuildId(),
+                    getCommit(performanceTestExecution),
+                    nonEmptyExecutions.get(size - 2),
+                    nonEmptyExecutions.get(size - 1));
         } else {
             return null;
         }

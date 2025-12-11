@@ -28,5 +28,4 @@ package org.gradle.tooling.model.eclipse;
  *
  * @since 5.6
  */
-public interface RunClosedProjectBuildDependencies {
-}
+public interface RunClosedProjectBuildDependencies {}

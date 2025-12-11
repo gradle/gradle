@@ -15,11 +15,10 @@
  */
 package org.gradle.cache.internal.filelock;
 
-import org.gradle.cache.FileLock;
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import org.gradle.cache.FileLock;
 
 /**
  * An older, cross-version state info format.
@@ -85,7 +84,8 @@ public class Version1LockStateSerializer implements LockStateSerializer {
 
         @Override
         public boolean hasBeenUpdatedSince(FileLock.State state) {
-            throw new UnsupportedOperationException("This protocol version does not support detecting changes by other processes.");
+            throw new UnsupportedOperationException(
+                    "This protocol version does not support detecting changes by other processes.");
         }
     }
 }

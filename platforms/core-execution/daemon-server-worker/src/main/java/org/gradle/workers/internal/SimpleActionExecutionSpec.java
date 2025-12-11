@@ -16,17 +16,17 @@
 
 package org.gradle.workers.internal;
 
+import java.util.Set;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
-
-import java.util.Set;
 
 public class SimpleActionExecutionSpec<T extends WorkParameters> {
     private final Class<? extends WorkAction<T>> implementationClass;
     private final T params;
     private final Set<Class<?>> additionalWhitelistedServices;
 
-    public SimpleActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, T params, Set<Class<?>> additionalWhitelistedServices) {
+    public SimpleActionExecutionSpec(
+            Class<? extends WorkAction<T>> implementationClass, T params, Set<Class<?>> additionalWhitelistedServices) {
         this.implementationClass = implementationClass;
         this.params = params;
         this.additionalWhitelistedServices = additionalWhitelistedServices;

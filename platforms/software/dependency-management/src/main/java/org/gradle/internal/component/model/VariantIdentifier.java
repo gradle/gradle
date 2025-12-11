@@ -31,5 +31,4 @@ public interface VariantIdentifier {
      * Returns a human-readable display name for this identifier.
      */
     String getDisplayName();
-
 }

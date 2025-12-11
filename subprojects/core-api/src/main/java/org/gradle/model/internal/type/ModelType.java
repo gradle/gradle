@@ -18,10 +18,6 @@ package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import org.gradle.internal.Cast;
-import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
@@ -31,6 +27,9 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A type token, representing a resolved type.
@@ -54,8 +53,7 @@ public abstract class ModelType<T> {
     }
 
     protected ModelType() {
-        this.wrapper = wrap(new TypeToken<T>(getClass()) {
-        }.getType());
+        this.wrapper = wrap(new TypeToken<T>(getClass()) {}.getType());
     }
 
     public static <T> ModelType<T> of(Class<T> clazz) {
@@ -82,7 +80,8 @@ public abstract class ModelType<T> {
 
     public static <T> ModelType<T> typeOf(T instance) {
         // TODO: should validate that clazz is of a non parameterized type
-        @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) instance.getClass();
+        @SuppressWarnings("unchecked")
+        Class<T> clazz = (Class<T>) instance.getClass();
         return of(clazz);
     }
 
@@ -106,7 +105,8 @@ public abstract class ModelType<T> {
     }
 
     public boolean isRawClassOfParameterizedType() {
-        return wrapper instanceof ClassTypeWrapper && ((ClassTypeWrapper) wrapper).unwrap().getTypeParameters().length > 0;
+        return wrapper instanceof ClassTypeWrapper
+                && ((ClassTypeWrapper) wrapper).unwrap().getTypeParameters().length > 0;
     }
 
     public static ModelType<Object> untyped() {
@@ -171,7 +171,8 @@ public abstract class ModelType<T> {
         }
     }
 
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     public boolean isAssignableFrom(ModelType<?> modelType) {
         return modelType == this || wrapper.isAssignableFrom(modelType.wrapper);
     }
@@ -278,8 +279,7 @@ public abstract class ModelType<T> {
         private ParameterizedTypeWrapper wrapper;
 
         public Builder() {
-            wrapper = (ParameterizedTypeWrapper) wrap(new TypeToken<T>(getClass()) {
-            }.getType());
+            wrapper = (ParameterizedTypeWrapper) wrap(new TypeToken<T>(getClass()) {}.getType());
         }
 
         @SuppressWarnings("unchecked")
@@ -298,8 +298,7 @@ public abstract class ModelType<T> {
         private final TypeVariable<?> typeVariable;
 
         public Parameter() {
-            Type type = new TypeToken<T>(getClass()) {
-            }.getType();
+            Type type = new TypeToken<T>(getClass()) {}.getType();
             if (type instanceof TypeVariable<?>) {
                 this.typeVariable = (TypeVariable<?>) type;
             } else {
@@ -321,22 +320,17 @@ public abstract class ModelType<T> {
             return new ParameterizedTypeWrapper(
                     toWrappers(parameterizedType.getActualTypeArguments()),
                     (ClassTypeWrapper) wrap(parameterizedType.getRawType()),
-                    wrap(parameterizedType.getOwnerType())
-            );
+                    wrap(parameterizedType.getOwnerType()));
         } else if (type instanceof WildcardType) {
             WildcardType wildcardType = (WildcardType) type;
             return new WildcardTypeWrapper(
                     toWrappers(wildcardType.getUpperBounds()),
                     toWrappers(wildcardType.getLowerBounds()),
-                    type.hashCode()
-            );
+                    type.hashCode());
         } else if (type instanceof TypeVariable) {
             TypeVariable<?> typeVariable = (TypeVariable<?>) type;
             return new TypeVariableTypeWrapper(
-                typeVariable.getName(),
-                toWrappers(typeVariable.getBounds()),
-                type.hashCode()
-            );
+                    typeVariable.getName(), toWrappers(typeVariable.getBounds()), type.hashCode());
         } else if (type instanceof GenericArrayType) {
             GenericArrayType genericArrayType = (GenericArrayType) type;
             return new GenericArrayTypeWrapper(wrap(genericArrayType.getGenericComponentType()), type.hashCode());
@@ -388,5 +382,4 @@ public abstract class ModelType<T> {
             super(type);
         }
     }
-
 }

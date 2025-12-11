@@ -39,9 +39,6 @@ class DefaultDeploymentStatus implements Deployment.Status {
 
     @Override
     public String toString() {
-        return "DefaultDeploymentStatus{"
-            + "changed=" + changed
-            + ", failure=" + failure
-            + '}';
+        return "DefaultDeploymentStatus{" + "changed=" + changed + ", failure=" + failure + '}';
     }
 }

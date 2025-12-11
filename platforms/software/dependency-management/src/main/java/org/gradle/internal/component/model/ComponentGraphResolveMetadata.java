@@ -16,13 +16,12 @@
 
 package org.gradle.internal.component.model;
 
+import java.util.List;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Immutable metadata for a component instance (ie version of a component) that is used to perform dependency graph resolution.

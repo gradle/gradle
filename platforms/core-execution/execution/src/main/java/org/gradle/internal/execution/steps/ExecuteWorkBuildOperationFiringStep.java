@@ -17,6 +17,8 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.Optional;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.Execution;
@@ -30,13 +32,11 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-import java.util.Optional;
-
 /**
  * A step that executes a unit of work and wraps it into a {@link ExecuteWorkBuildOperationType} build operation.
  */
-public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R extends CachingResult> extends BuildOperationStep<C, R> implements Step<C, R> {
+public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R extends CachingResult>
+        extends BuildOperationStep<C, R> implements Step<C, R> {
 
     private final Step<? super C, R> delegate;
 
@@ -48,23 +48,22 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
     @Override
     public R execute(UnitOfWork work, C context) {
         return work.getBuildOperationWorkType()
-            .map(workType -> operation(
-                operationContext -> {
-                    R result = delegate.execute(work, context);
-                    ExecuteWorkBuildOperationType.Result operationResult = new ExecuteWorkResult(
-                        result.getExecution(),
-                        result.getCachingState(),
-                        result.getReusedOutputOriginMetadata(),
-                        result.getExecutionReasons()
-                    );
-                    operationContext.setResult(operationResult);
-                    result.getExecution().getFailure().ifPresent(operationContext::failed);
-                    return result;
-                },
-                BuildOperationDescriptor
-                    .displayName("Execute unit of work")
-                    .details(new ExecuteWorkDetails(workType, context.getIdentity().getUniqueId()))))
-            .orElseGet(() -> delegate.execute(work, context));
+                .map(workType -> operation(
+                        operationContext -> {
+                            R result = delegate.execute(work, context);
+                            ExecuteWorkBuildOperationType.Result operationResult = new ExecuteWorkResult(
+                                    result.getExecution(),
+                                    result.getCachingState(),
+                                    result.getReusedOutputOriginMetadata(),
+                                    result.getExecutionReasons());
+                            operationContext.setResult(operationResult);
+                            result.getExecution().getFailure().ifPresent(operationContext::failed);
+                            return result;
+                        },
+                        BuildOperationDescriptor.displayName("Execute unit of work")
+                                .details(new ExecuteWorkDetails(
+                                        workType, context.getIdentity().getUniqueId()))))
+                .orElseGet(() -> delegate.execute(work, context));
     }
 
     private static class ExecuteWorkDetails implements ExecuteWorkBuildOperationType.Details {
@@ -87,7 +86,6 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
         public String getIdentity() {
             return identity;
         }
-
     }
 
     private static class ExecuteWorkResult implements ExecuteWorkBuildOperationType.Result {
@@ -98,11 +96,10 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
         private final ImmutableList<String> executionReasons;
 
         public ExecuteWorkResult(
-            Try<Execution> execution,
-            CachingState cachingState,
-            Optional<OriginMetadata> originMetadata,
-            ImmutableList<String> executionReasons
-        ) {
+                Try<Execution> execution,
+                CachingState cachingState,
+                Optional<OriginMetadata> originMetadata,
+                ImmutableList<String> executionReasons) {
             this.execution = execution;
             this.cachingState = cachingState;
             this.originMetadata = originMetadata;
@@ -124,15 +121,17 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
         @Override
         public byte @Nullable [] getOriginBuildCacheKeyBytes() {
             return originMetadata
-                .map(OriginMetadata::getBuildCacheKey)
-                .map(HashCode::toByteArray)
-                .orElse(null);
+                    .map(OriginMetadata::getBuildCacheKey)
+                    .map(HashCode::toByteArray)
+                    .orElse(null);
         }
 
         @Nullable
         @Override
         public Long getOriginExecutionTime() {
-            return originMetadata.map(metadata -> metadata.getExecutionTime().toMillis()).orElse(null);
+            return originMetadata
+                    .map(metadata -> metadata.getExecutionTime().toMillis())
+                    .orElse(null);
         }
 
         @Nullable
@@ -161,21 +160,22 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
         @Override
         public String getCachingDisabledReasonMessage() {
             return getCachingDisabledReason()
-                .map(CachingDisabledReason::getMessage)
-                .orElse(null);
+                    .map(CachingDisabledReason::getMessage)
+                    .orElse(null);
         }
 
         @Nullable
         @Override
         public String getCachingDisabledReasonCategory() {
             return getCachingDisabledReason()
-                .map(CachingDisabledReason::getCategory)
-                .map(ExecuteWorkResult::convertNoCacheReasonCategory)
-                .map(Enum::name)
-                .orElse(null);
+                    .map(CachingDisabledReason::getCategory)
+                    .map(ExecuteWorkResult::convertNoCacheReasonCategory)
+                    .map(Enum::name)
+                    .orElse(null);
         }
 
-        private static org.gradle.operations.execution.CachingDisabledReasonCategory convertNoCacheReasonCategory(CachingDisabledReasonCategory category) {
+        private static org.gradle.operations.execution.CachingDisabledReasonCategory convertNoCacheReasonCategory(
+                CachingDisabledReasonCategory category) {
             switch (category) {
                 case UNKNOWN:
                     return org.gradle.operations.execution.CachingDisabledReasonCategory.UNKNOWN;
@@ -202,9 +202,9 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
 
         private Optional<CachingDisabledReason> getCachingDisabledReason() {
             return cachingState
-                .whenDisabled()
-                .map(CachingState.Disabled::getDisabledReasons)
-                .map(reasons -> reasons.get(0));
+                    .whenDisabled()
+                    .map(CachingState.Disabled::getDisabledReasons)
+                    .map(reasons -> reasons.get(0));
         }
     }
 }

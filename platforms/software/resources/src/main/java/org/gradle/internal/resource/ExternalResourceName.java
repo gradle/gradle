@@ -16,18 +16,17 @@
 
 package org.gradle.internal.resource;
 
-import com.google.common.base.Objects;
-import org.gradle.api.Describable;
-import org.gradle.internal.UncheckedException;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
+import static java.lang.String.format;
 
+import com.google.common.base.Objects;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.lang.String.format;
+import org.gradle.api.Describable;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An immutable resource name. Resources are arranged in a hierarchy. Names may be relative, or absolute with some opaque root resource.
@@ -36,6 +35,7 @@ import static java.lang.String.format;
 public class ExternalResourceName implements Describable {
     @Nullable
     private final String encodedRoot;
+
     private final String path;
     private final String encodedQuery;
 
@@ -188,9 +188,10 @@ public class ExternalResourceName implements Describable {
     }
 
     private static String encodeRoot(URI uri) {
-        //based on reversing the operations performed by URI.toString()
+        // based on reversing the operations performed by URI.toString()
         if (uri.getPath() == null) {
-            throw new IllegalArgumentException(format("Cannot create resource name from non-hierarchical URI '%s'.", uri));
+            throw new IllegalArgumentException(
+                    format("Cannot create resource name from non-hierarchical URI '%s'.", uri));
         }
 
         StringBuilder builder = new StringBuilder(uri.toString());
@@ -218,8 +219,8 @@ public class ExternalResourceName implements Describable {
         }
 
         String path = uri.getRawPath();
-        if (path != null && isFileOnHost(uri)) {  //if file URI
-            path = URI.create(path).getRawPath(); //remove hostname from path
+        if (path != null && isFileOnHost(uri)) { // if file URI
+            path = URI.create(path).getRawPath(); // remove hostname from path
         }
         if (path != null) {
             int index = builder.lastIndexOf(path);
@@ -236,13 +237,26 @@ public class ExternalResourceName implements Describable {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < path.length(); i++) {
             char ch = path.charAt(i);
-            if (isLowerCaseChar(ch) ||
-                isUpperCaseChar(ch) ||
-                isDigit(ch)) {
+            if (isLowerCaseChar(ch) || isUpperCaseChar(ch) || isDigit(ch)) {
                 builder.append(ch);
-            } else if (ch == '/' || ch == '@' || (isPathSeg && ch == ':') || ch == '.' || ch == '-' || ch == '_' || ch == '~'
-                || ch == '!' || ch == '$' || ch == '&' || ch == '\'' || ch == '(' || ch == ')' || ch == '*' || ch == '+'
-                || ch == ',' || ch == ';' || ch == '=') {
+            } else if (ch == '/'
+                    || ch == '@'
+                    || (isPathSeg && ch == ':')
+                    || ch == '.'
+                    || ch == '-'
+                    || ch == '_'
+                    || ch == '~'
+                    || ch == '!'
+                    || ch == '$'
+                    || ch == '&'
+                    || ch == '\''
+                    || ch == '('
+                    || ch == ')'
+                    || ch == '*'
+                    || ch == '+'
+                    || ch == ','
+                    || ch == ';'
+                    || ch == '=') {
                 builder.append(ch);
             } else {
                 if (ch <= 0x7F) {

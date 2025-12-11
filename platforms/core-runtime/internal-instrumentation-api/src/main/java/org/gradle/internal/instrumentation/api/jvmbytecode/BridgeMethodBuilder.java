@@ -16,9 +16,8 @@
 
 package org.gradle.internal.instrumentation.api.jvmbytecode;
 
-import org.objectweb.asm.MethodVisitor;
-
 import javax.annotation.CheckReturnValue;
+import org.objectweb.asm.MethodVisitor;
 
 /**
  * A generator for a static method that replaces an intercepted method reference.

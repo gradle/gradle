@@ -16,13 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.tools;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.logging.text.DiagnosticsVisitor;
-import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativeplatform.toolchain.internal.ToolType;
-
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -33,6 +26,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.api.GradleException;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
+import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
 
 public class ToolSearchPath {
     private final Map<String, File> executables = new HashMap<String, File>();
@@ -67,7 +66,9 @@ public class ToolSearchPath {
                 executables.put(exeName, executable);
             }
         }
-        return executable == null || !executable.isFile() ? new MissingTool(key, exeName, pathEntries) : new FoundTool(executable);
+        return executable == null || !executable.isFile()
+                ? new MissingTool(key, exeName, pathEntries)
+                : new FoundTool(executable);
     }
 
     private File findExecutable(OperatingSystem operatingSystem, String name) {
@@ -78,7 +79,8 @@ public class ToolSearchPath {
                 return maybeResolveFile(operatingSystem, new File(name), new File(exeName));
             }
             for (File pathEntry : path) {
-                File resolved = maybeResolveFile(operatingSystem, new File(pathEntry, name), new File(pathEntry, exeName));
+                File resolved =
+                        maybeResolveFile(operatingSystem, new File(pathEntry, name), new File(pathEntry, exeName));
                 if (resolved != null) {
                     return resolved;
                 }
@@ -90,7 +92,8 @@ public class ToolSearchPath {
         return null;
     }
 
-    private File maybeResolveFile(OperatingSystem operatingSystem, File symlinkCandidate, File exeCandidate) throws IOException {
+    private File maybeResolveFile(OperatingSystem operatingSystem, File symlinkCandidate, File exeCandidate)
+            throws IOException {
         if (exeCandidate.isFile()) {
             return exeCandidate;
         }
@@ -151,8 +154,7 @@ public class ToolSearchPath {
         }
 
         @Override
-        public void explain(DiagnosticsVisitor visitor) {
-        }
+        public void explain(DiagnosticsVisitor visitor) {}
     }
 
     private static class MissingTool implements CommandLineToolSearchResult {

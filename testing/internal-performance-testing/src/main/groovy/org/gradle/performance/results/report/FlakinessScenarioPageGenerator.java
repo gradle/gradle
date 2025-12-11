@@ -16,12 +16,12 @@
 
 package org.gradle.performance.results.report;
 
-import org.gradle.performance.results.PerformanceTestHistory;
-
 import java.io.IOException;
 import java.io.Writer;
+import org.gradle.performance.results.PerformanceTestHistory;
 
-public class FlakinessScenarioPageGenerator extends HtmlPageGenerator<PerformanceTestHistory> implements PerformanceExecutionGraphRenderer {
+public class FlakinessScenarioPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
+        implements PerformanceExecutionGraphRenderer {
     @Override
     public int getDepth() {
         return 1;
@@ -30,18 +30,19 @@ public class FlakinessScenarioPageGenerator extends HtmlPageGenerator<Performanc
     @Override
     public void render(PerformanceTestHistory history, Writer writer) throws IOException {
         // @formatter:off
-        new MetricsHtml(writer) {{
-            html();
+        new MetricsHtml(writer) {
+            {
+                html();
                 head();
-                    headSection(this);
-                    title().text("Flaky report for "+ history.getDisplayName()).end();
+                headSection(this);
+                title().text("Flaky report for " + history.getDisplayName()).end();
                 end();
                 body();
-                    h2().text("Flaky report for " + history.getDisplayName()).end();
-                    getGraphs(history).forEach(graph -> graph.render(this));
+                h2().text("Flaky report for " + history.getDisplayName()).end();
+                getGraphs(history).forEach(graph -> graph.render(this));
                 end();
-            end();
-        }
+                end();
+            }
         };
         // @formatter:on
     }

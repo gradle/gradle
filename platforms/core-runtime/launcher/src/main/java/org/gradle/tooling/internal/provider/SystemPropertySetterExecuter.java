@@ -16,13 +16,12 @@
 
 package org.gradle.tooling.internal.provider;
 
+import java.util.Properties;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
-
-import java.util.Properties;
 
 public class SystemPropertySetterExecuter implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
 
@@ -33,7 +32,8 @@ public class SystemPropertySetterExecuter implements BuildActionExecutor<BuildAc
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext buildRequestContext) {
+    public BuildActionResult execute(
+            BuildAction action, BuildActionParameters actionParameters, BuildRequestContext buildRequestContext) {
         Properties originalProperties = System.getProperties();
         Properties updatedProperties = new Properties();
         updatedProperties.putAll(originalProperties);

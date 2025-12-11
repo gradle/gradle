@@ -25,7 +25,9 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.UserHome.class)
 public interface ClasspathTransformerCacheFactory {
-    PersistentCache createCache(GlobalScopedCacheBuilderFactory cacheBuilderFactory, FileAccessTimeJournal fileAccessTimeJournal);
+    PersistentCache createCache(
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory, FileAccessTimeJournal fileAccessTimeJournal);
 
-    FileAccessTracker createFileAccessTracker(PersistentCache persistentCache, FileAccessTimeJournal fileAccessTimeJournal);
+    FileAccessTracker createFileAccessTracker(
+            PersistentCache persistentCache, FileAccessTimeJournal fileAccessTimeJournal);
 }

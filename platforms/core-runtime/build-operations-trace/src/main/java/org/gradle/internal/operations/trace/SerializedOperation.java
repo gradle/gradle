@@ -21,5 +21,4 @@ import java.util.Map;
 interface SerializedOperation {
 
     Map<String, ?> toMap();
-
 }

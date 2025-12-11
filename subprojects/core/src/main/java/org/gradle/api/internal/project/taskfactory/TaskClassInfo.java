@@ -17,9 +17,8 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.properties.annotations.TypeMetadata;
-
 import java.util.Optional;
+import org.gradle.internal.properties.annotations.TypeMetadata;
 
 public class TaskClassInfo {
     private final ImmutableList<TaskActionFactory> taskActionFactories;
@@ -27,7 +26,11 @@ public class TaskClassInfo {
     private final Optional<String> reasonNotToTrackState;
     private final TypeMetadata typeMetadata;
 
-    public TaskClassInfo(ImmutableList<TaskActionFactory> taskActionFactories, boolean cacheable, Optional<String> reasonNotToTrackState, TypeMetadata typeMetadata) {
+    public TaskClassInfo(
+            ImmutableList<TaskActionFactory> taskActionFactories,
+            boolean cacheable,
+            Optional<String> reasonNotToTrackState,
+            TypeMetadata typeMetadata) {
         this.taskActionFactories = taskActionFactories;
         this.cacheable = cacheable;
         this.reasonNotToTrackState = reasonNotToTrackState;

@@ -16,6 +16,10 @@
 
 package org.gradle.tooling.internal.provider;
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
+
+import java.util.List;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
@@ -84,11 +88,6 @@ import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.continuous.ContinuousBuildActionExecutor;
 
-import java.util.List;
-
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
-
 public class LauncherServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -109,78 +108,79 @@ public class LauncherServices extends AbstractGradleModuleServices {
     static class ToolingGlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
         BuildLoggerFactory createBuildLoggerFactory(
-            StyledTextOutputFactory styledTextOutputFactory,
-            WorkValidationWarningReporter workValidationWarningReporter,
-            FailureFactory failureFactory
-        ) {
+                StyledTextOutputFactory styledTextOutputFactory,
+                WorkValidationWarningReporter workValidationWarningReporter,
+                FailureFactory failureFactory) {
             return new BuildLoggerFactory(
-                styledTextOutputFactory,
-                workValidationWarningReporter,
-                Time.clock(),
-                null,
-                failureFactory
-            );
+                    styledTextOutputFactory, workValidationWarningReporter, Time.clock(), null, failureFactory);
         }
     }
 
     static class ToolingBuildSessionScopeServices implements ServiceRegistrationProvider {
         @Provides
         BuildSessionActionExecutor createActionExecutor(
-            BuildEventListenerFactory listenerFactory,
-            ExecutorFactory executorFactory,
-            ListenerManager listenerManager,
-            BuildOperationListenerManager buildOperationListenerManager,
-            BuildOperationRunner buildOperationRunner,
-            WorkInputListeners workListeners,
-            FileChangeListeners fileChangeListeners,
-            StyledTextOutputFactory styledTextOutputFactory,
-            BuildRequestMetaData requestMetaData,
-            BuildCancellationToken cancellationToken,
-            DeploymentRegistryInternal deploymentRegistry,
-            BuildEventConsumer eventConsumer,
-            BuildStartedTime buildStartedTime,
-            Clock clock,
-            LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
-            BuildOperationNotificationValve buildOperationNotificationValve,
-            BuildModelParametersFactory buildModelParametersFactory,
-            WorkerLeaseService workerLeaseService,
-            BuildLayoutValidator buildLayoutValidator,
-            FileSystem fileSystem,
-            BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-            ValueSnapshotter valueSnapshotter,
-            InternalOptions options
-        ) {
+                BuildEventListenerFactory listenerFactory,
+                ExecutorFactory executorFactory,
+                ListenerManager listenerManager,
+                BuildOperationListenerManager buildOperationListenerManager,
+                BuildOperationRunner buildOperationRunner,
+                WorkInputListeners workListeners,
+                FileChangeListeners fileChangeListeners,
+                StyledTextOutputFactory styledTextOutputFactory,
+                BuildRequestMetaData requestMetaData,
+                BuildCancellationToken cancellationToken,
+                DeploymentRegistryInternal deploymentRegistry,
+                BuildEventConsumer eventConsumer,
+                BuildStartedTime buildStartedTime,
+                Clock clock,
+                LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
+                BuildOperationNotificationValve buildOperationNotificationValve,
+                BuildModelParametersFactory buildModelParametersFactory,
+                WorkerLeaseService workerLeaseService,
+                BuildLayoutValidator buildLayoutValidator,
+                FileSystem fileSystem,
+                BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+                ValueSnapshotter valueSnapshotter,
+                InternalOptions options) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
-                listenerManager,
-                buildOperationListenerManager,
-                listenerFactory, eventConsumer,
-                new ContinuousBuildActionExecutor(
-                    workListeners,
-                    fileChangeListeners,
-                    styledTextOutputFactory,
-                    executorFactory,
-                    requestMetaData,
-                    cancellationToken,
-                    deploymentRegistry,
                     listenerManager,
-                    buildStartedTime,
-                    clock,
-                    fileSystem,
-                    caseSensitivity,
-                    virtualFileSystem,
-                    new RunAsWorkerThreadBuildActionExecutor(
-                        workerLeaseService,
-                        new RunAsBuildOperationBuildActionExecutor(
-                            new BuildTreeLifecycleBuildActionExecutor(buildModelParametersFactory, buildLayoutValidator, valueSnapshotter, options),
-                            buildOperationRunner,
-                            loggingBuildOperationProgressBroadcaster,
-                            buildOperationNotificationValve
-                        ))));
+                    buildOperationListenerManager,
+                    listenerFactory,
+                    eventConsumer,
+                    new ContinuousBuildActionExecutor(
+                            workListeners,
+                            fileChangeListeners,
+                            styledTextOutputFactory,
+                            executorFactory,
+                            requestMetaData,
+                            cancellationToken,
+                            deploymentRegistry,
+                            listenerManager,
+                            buildStartedTime,
+                            clock,
+                            fileSystem,
+                            caseSensitivity,
+                            virtualFileSystem,
+                            new RunAsWorkerThreadBuildActionExecutor(
+                                    workerLeaseService,
+                                    new RunAsBuildOperationBuildActionExecutor(
+                                            new BuildTreeLifecycleBuildActionExecutor(
+                                                    buildModelParametersFactory,
+                                                    buildLayoutValidator,
+                                                    valueSnapshotter,
+                                                    options),
+                                            buildOperationRunner,
+                                            loggingBuildOperationProgressBroadcaster,
+                                            buildOperationNotificationValve))));
         }
 
         @Provides
-        UserInputHandler createUserInputHandler(BuildRequestMetaData requestMetaData, OutputEventListenerManager outputEventListenerManager, Clock clock, UserInputReader inputReader) {
+        UserInputHandler createUserInputHandler(
+                BuildRequestMetaData requestMetaData,
+                OutputEventListenerManager outputEventListenerManager,
+                Clock clock,
+                UserInputReader inputReader) {
             if (!requestMetaData.isInteractive()) {
                 return new NonInteractiveUserInputHandler();
             }
@@ -192,99 +192,93 @@ public class LauncherServices extends AbstractGradleModuleServices {
         BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {
             return new DefaultBuildScanUserInputHandler(userInputHandler);
         }
-
     }
 
     static class ToolingBuildTreeScopeServices implements ServiceRegistrationProvider {
         @Provides
         ProblemStream createProblemStream(StartParameter parameter, ProblemDiagnosticsFactory diagnosticsFactory) {
-            return parameter.getWarningMode().shouldDisplayMessages() ? diagnosticsFactory.newUnlimitedStream() : diagnosticsFactory.newStream();
+            return parameter.getWarningMode().shouldDisplayMessages()
+                    ? diagnosticsFactory.newUnlimitedStream()
+                    : diagnosticsFactory.newStream();
         }
 
         @Provides
         RootBuildLifecycleBuildActionExecutor createActionExecutor(
-            BuildModelParameters buildModelParameters,
-            ProjectParallelExecutionController projectParallelExecutionController,
-            List<BuildActionRunner> buildActionRunners,
-            StyledTextOutputFactory styledTextOutputFactory,
-            BuildStateRegistry buildStateRegistry,
-            BuildOperationProgressEventEmitter eventEmitter,
-            ListenerManager listenerManager,
-            BuildStartedTime buildStartedTime,
-            BuildRequestMetaData buildRequestMetaData,
-            GradleEnterprisePluginManager gradleEnterprisePluginManager,
-            BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-            DeploymentRegistryInternal deploymentRegistry,
-            StatStatistics.Collector statStatisticsCollector,
-            FileHasherStatistics.Collector fileHasherStatisticsCollector,
-            DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
-            BuildOperationRunner buildOperationRunner,
-            BuildTreeLocations buildTreeLocations,
-            ExceptionAnalyser exceptionAnalyser,
-            List<ProblemReporter> problemReporters,
-            BuildLoggerFactory buildLoggerFactory,
-            InternalOptions options,
-            StartParameter startParameter,
-            FailureFactory failureFactory,
-            InternalProblems problemsService,
-            ProblemStream problemStream,
-            ExceptionProblemRegistry registry
-        ) {
+                BuildModelParameters buildModelParameters,
+                ProjectParallelExecutionController projectParallelExecutionController,
+                List<BuildActionRunner> buildActionRunners,
+                StyledTextOutputFactory styledTextOutputFactory,
+                BuildStateRegistry buildStateRegistry,
+                BuildOperationProgressEventEmitter eventEmitter,
+                ListenerManager listenerManager,
+                BuildStartedTime buildStartedTime,
+                BuildRequestMetaData buildRequestMetaData,
+                GradleEnterprisePluginManager gradleEnterprisePluginManager,
+                BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+                DeploymentRegistryInternal deploymentRegistry,
+                StatStatistics.Collector statStatisticsCollector,
+                FileHasherStatistics.Collector fileHasherStatisticsCollector,
+                DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
+                BuildOperationRunner buildOperationRunner,
+                BuildTreeLocations buildTreeLocations,
+                ExceptionAnalyser exceptionAnalyser,
+                List<ProblemReporter> problemReporters,
+                BuildLoggerFactory buildLoggerFactory,
+                InternalOptions options,
+                StartParameter startParameter,
+                FailureFactory failureFactory,
+                InternalProblems problemsService,
+                ProblemStream problemStream,
+                ExceptionProblemRegistry registry) {
             return new RootBuildLifecycleBuildActionExecutor(
-                buildModelParameters,
-                projectParallelExecutionController,
-                listenerManager.getBroadcaster(BuildTreeLifecycleListener.class),
-                problemsService,
-                eventEmitter,
-                startParameter,
-                problemStream,
-                buildStateRegistry,
-                new BuildCompletionNotifyingBuildActionRunner(
-                    gradleEnterprisePluginManager,
-                    failureFactory,
-                    new FileSystemWatchingBuildActionRunner(
-                        eventEmitter,
-                        virtualFileSystem,
-                        deploymentRegistry,
-                        statStatisticsCollector,
-                        fileHasherStatisticsCollector,
-                        directorySnapshotterStatisticsCollector,
-                        buildOperationRunner,
-                        options,
-                        new BuildOutcomeReportingBuildActionRunner(
-                            styledTextOutputFactory,
-                            listenerManager,
-                            buildStartedTime,
-                            buildRequestMetaData,
-                            buildLoggerFactory,
+                    buildModelParameters,
+                    projectParallelExecutionController,
+                    listenerManager.getBroadcaster(BuildTreeLifecycleListener.class),
+                    problemsService,
+                    eventEmitter,
+                    startParameter,
+                    problemStream,
+                    buildStateRegistry,
+                    new BuildCompletionNotifyingBuildActionRunner(
+                            gradleEnterprisePluginManager,
                             failureFactory,
-                            registry,
-                            new ProblemReportingBuildActionRunner(
-                                exceptionAnalyser,
-                                buildTreeLocations,
-                                problemReporters,
-                                new ChainingBuildActionRunner(buildActionRunners)
-                            )
-                        )
-                    )
-                ));
+                            new FileSystemWatchingBuildActionRunner(
+                                    eventEmitter,
+                                    virtualFileSystem,
+                                    deploymentRegistry,
+                                    statStatisticsCollector,
+                                    fileHasherStatisticsCollector,
+                                    directorySnapshotterStatisticsCollector,
+                                    buildOperationRunner,
+                                    options,
+                                    new BuildOutcomeReportingBuildActionRunner(
+                                            styledTextOutputFactory,
+                                            listenerManager,
+                                            buildStartedTime,
+                                            buildRequestMetaData,
+                                            buildLoggerFactory,
+                                            failureFactory,
+                                            registry,
+                                            new ProblemReportingBuildActionRunner(
+                                                    exceptionAnalyser,
+                                                    buildTreeLocations,
+                                                    problemReporters,
+                                                    new ChainingBuildActionRunner(buildActionRunners))))));
         }
 
         @Provides
         BuildLoggerFactory createBuildLoggerFactory(
-            StyledTextOutputFactory styledTextOutputFactory,
-            WorkValidationWarningReporter workValidationWarningReporter,
-            Clock clock,
-            GradleEnterprisePluginManager gradleEnterprisePluginManager,
-            FailureFactory failureFactory
-        ) {
+                StyledTextOutputFactory styledTextOutputFactory,
+                WorkValidationWarningReporter workValidationWarningReporter,
+                Clock clock,
+                GradleEnterprisePluginManager gradleEnterprisePluginManager,
+                FailureFactory failureFactory) {
             return new BuildLoggerFactory(
-                styledTextOutputFactory,
-                workValidationWarningReporter,
-                clock,
-                gradleEnterprisePluginManager,
-                failureFactory
-            );
+                    styledTextOutputFactory,
+                    workValidationWarningReporter,
+                    clock,
+                    gradleEnterprisePluginManager,
+                    failureFactory);
         }
     }
 }

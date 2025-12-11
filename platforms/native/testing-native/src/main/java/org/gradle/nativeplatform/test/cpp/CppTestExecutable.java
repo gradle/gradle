@@ -28,7 +28,8 @@ import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
  *
  * @since 4.5
  */
-public interface CppTestExecutable extends CppBinary, ComponentWithExecutable, ComponentWithInstallation, TestComponent {
+public interface CppTestExecutable
+        extends CppBinary, ComponentWithExecutable, ComponentWithInstallation, TestComponent {
     /**
      * {@inheritDoc}
      */

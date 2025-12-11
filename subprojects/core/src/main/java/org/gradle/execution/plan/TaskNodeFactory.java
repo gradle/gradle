@@ -16,7 +16,15 @@
 
 package org.gradle.execution.plan;
 
-
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -37,16 +45,6 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-
 @ServiceScope(Scope.Build.class)
 public class TaskNodeFactory {
     private final Map<Task, TaskNode> nodes = new ConcurrentHashMap<>();
@@ -57,18 +55,18 @@ public class TaskNodeFactory {
     private final Function<LocalTaskNode, ResolveMutationsNode> resolveMutationsNodeFactory;
 
     public TaskNodeFactory(
-        GradleInternal thisBuild,
-        BuildTreeWorkGraphController workGraphController,
-        NodeValidator nodeValidator,
-        BuildOperationRunner buildOperationRunner,
-        ExecutionNodeAccessHierarchies accessHierarchies,
-        InternalProblems problems
-    ) {
+            GradleInternal thisBuild,
+            BuildTreeWorkGraphController workGraphController,
+            NodeValidator nodeValidator,
+            BuildOperationRunner buildOperationRunner,
+            ExecutionNodeAccessHierarchies accessHierarchies,
+            InternalProblems problems) {
         this.thisBuild = thisBuild;
         this.workGraphController = workGraphController;
         this.problems = problems;
         this.typeOriginInspectorFactory = new DefaultTypeOriginInspectorFactory();
-        resolveMutationsNodeFactory = localTaskNode -> new ResolveMutationsNode(localTaskNode, nodeValidator, buildOperationRunner, accessHierarchies);
+        resolveMutationsNodeFactory = localTaskNode ->
+                new ResolveMutationsNode(localTaskNode, nodeValidator, buildOperationRunner, accessHierarchies);
     }
 
     public Set<Task> getTasks() {
@@ -85,9 +83,15 @@ public class TaskNodeFactory {
     }
 
     private TaskNode createTaskNode(TaskInternal task) {
-        boolean sameBuild = ((ProjectInternal) task.getProject()).getGradle().getIdentityPath().equals(thisBuild.getIdentityPath());
+        boolean sameBuild = ((ProjectInternal) task.getProject())
+                .getGradle()
+                .getIdentityPath()
+                .equals(thisBuild.getIdentityPath());
         if (sameBuild) {
-            return new LocalTaskNode(task, new DefaultWorkValidationContext(typeOriginInspectorFactory.forTask(task), problems), resolveMutationsNodeFactory);
+            return new LocalTaskNode(
+                    task,
+                    new DefaultWorkValidationContext(typeOriginInspectorFactory.forTask(task), problems),
+                    resolveMutationsNodeFactory);
         }
         return TaskInAnotherBuild.of(task, workGraphController);
     }
@@ -111,7 +115,10 @@ public class TaskNodeFactory {
 
         @Nullable
         private File jarFileFor(Class<?> pluginClass) {
-            return clazzToFile.computeIfAbsent(pluginClass, clazz -> toFile(pluginClass.getProtectionDomain().getCodeSource().getLocation()));
+            return clazzToFile.computeIfAbsent(
+                    pluginClass,
+                    clazz -> toFile(
+                            pluginClass.getProtectionDomain().getCodeSource().getLocation()));
         }
 
         @Nullable
@@ -141,11 +148,12 @@ public class TaskNodeFactory {
                 return classToPlugin.computeIfAbsent(type, clazz -> {
                     File taskJar = jarFileFor(type);
                     return plugins.stream()
-                        .map(plugin -> Cast.<Class<Plugin<?>>>uncheckedNonnullCast(plugin.getClass()))
-                        .filter(pluginType -> Objects.equals(jarFileFor(pluginType), taskJar))
-                        .map(pluginType -> pluginManager.findPluginIdForClass(pluginType)
-                            .orElseGet(() -> new DefaultPluginId(pluginType.getName())))
-                        .findFirst();
+                            .map(plugin -> Cast.<Class<Plugin<?>>>uncheckedNonnullCast(plugin.getClass()))
+                            .filter(pluginType -> Objects.equals(jarFileFor(pluginType), taskJar))
+                            .map(pluginType -> pluginManager
+                                    .findPluginIdForClass(pluginType)
+                                    .orElseGet(() -> new DefaultPluginId(pluginType.getName())))
+                            .findFirst();
                 });
             }
         }

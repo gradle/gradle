@@ -15,6 +15,8 @@
  */
 package org.gradle.initialization;
 
+import java.io.File;
+import java.util.List;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.configuration.InitScriptProcessor;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
@@ -27,9 +29,6 @@ import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.File;
-import java.util.List;
-
 /**
  * Finds and executes all init scripts for a given build.
  */
@@ -39,7 +38,10 @@ public class InitScriptHandler {
     private final BuildOperationRunner buildOperationRunner;
     private final TextFileResourceLoader resourceLoader;
 
-    public InitScriptHandler(InitScriptProcessor processor, BuildOperationRunner buildOperationRunner, TextFileResourceLoader resourceLoader) {
+    public InitScriptHandler(
+            InitScriptProcessor processor,
+            BuildOperationRunner buildOperationRunner,
+            TextFileResourceLoader resourceLoader) {
         this.processor = processor;
         this.buildOperationRunner = buildOperationRunner;
         this.resourceLoader = resourceLoader;
@@ -62,9 +64,9 @@ public class InitScriptHandler {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Run init scripts").progressDisplayName("Running init scripts");
+                return BuildOperationDescriptor.displayName("Run init scripts")
+                        .progressDisplayName("Running init scripts");
             }
         });
     }
 }
-

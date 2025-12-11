@@ -20,5 +20,4 @@ import org.gradle.api.NamedDomainObjectContainer;
 /**
  * A {@code DistributionContainer} manages a set of {@link Distribution} objects.
  */
-public interface DistributionContainer extends NamedDomainObjectContainer<Distribution> {
-}
+public interface DistributionContainer extends NamedDomainObjectContainer<Distribution> {}

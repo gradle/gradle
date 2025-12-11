@@ -16,12 +16,11 @@
 
 package org.gradle.api.tasks.compile;
 
+import java.io.Serializable;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
-
-import java.io.Serializable;
 
 /**
  * Debug options for Java compilation.

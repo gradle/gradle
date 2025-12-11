@@ -17,14 +17,13 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.Iterators;
-import org.gradle.language.nativeplatform.internal.IncludeDirectives;
-
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
 public class CollectingMacroLookup implements MacroLookup {
     private final Deque<MacroSource> uncollected = new ArrayDeque<>();

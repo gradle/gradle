@@ -16,6 +16,13 @@
 
 package org.gradle.plugin.devel.tasks;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
@@ -30,14 +37,6 @@ import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
 /**
  * Generates plugin descriptors from plugin declarations.
  */
@@ -47,8 +46,11 @@ public abstract class GeneratePluginDescriptors extends DefaultTask {
 
     public GeneratePluginDescriptors() {
         implementationClassById = getDeclarations().map(declarations -> declarations.stream()
-            .collect(Collectors.toMap(PluginDeclaration::getId, PluginDeclaration::getImplementationClass, (a, b) -> b, LinkedHashMap::new))
-        );
+                .collect(Collectors.toMap(
+                        PluginDeclaration::getId,
+                        PluginDeclaration::getImplementationClass,
+                        (a, b) -> b,
+                        LinkedHashMap::new)));
     }
 
     /**

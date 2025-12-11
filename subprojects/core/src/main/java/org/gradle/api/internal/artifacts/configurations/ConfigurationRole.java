@@ -31,10 +31,15 @@ public interface ConfigurationRole {
     String getName();
 
     boolean isConsumable();
+
     boolean isResolvable();
+
     boolean isDeclarable();
+
     boolean isConsumptionDeprecated();
+
     boolean isResolutionDeprecated();
+
     boolean isDeclarationAgainstDeprecated();
 
     /**
@@ -43,5 +48,4 @@ public interface ConfigurationRole {
     default String describeUsage() {
         return UsageDescriber.describeRole(this);
     }
-
 }

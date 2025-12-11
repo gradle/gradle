@@ -17,6 +17,11 @@
 package org.gradle.performance.results;
 
 import com.google.common.collect.ImmutableList;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.function.Consumer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.InvocationSettings;
@@ -25,12 +30,6 @@ import org.gradle.profiler.report.BenchmarkResult;
 import org.gradle.profiler.report.CsvGenerator;
 import org.gradle.profiler.report.Format;
 import org.gradle.profiler.report.HtmlGenerator;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.function.Consumer;
 
 public class GradleProfilerReporter implements DataReporter<PerformanceTestResult> {
     private final OutputDirSelector outputDirSelector;
@@ -49,17 +48,14 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
         File baseDir = outputDirSelector.outputDirFor(experiment.getScenario().getTestName());
         baseDir.mkdirs();
         compositeReportGenerator.setGenerators(ImmutableList.of(
-            new CsvGenerator(new File(baseDir, "benchmark.csv"), Format.LONG),
-            new HtmlGenerator(new File(baseDir, "benchmark.html"))
-        ));
+                new CsvGenerator(new File(baseDir, "benchmark.csv"), Format.LONG),
+                new HtmlGenerator(new File(baseDir, "benchmark.html"))));
 
-        resultCollector.summarizeResults(line ->
-            System.out.println("  " + line)
-        );
+        resultCollector.summarizeResults(line -> System.out.println("  " + line));
         try {
             InvocationSettings settings = new InvocationSettings.InvocationSettingsBuilder()
-                .setBenchmarkTitle(experiment.getDisplayName())
-                .build();
+                    .setBenchmarkTitle(experiment.getDisplayName())
+                    .build();
             resultCollector.write(settings);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -71,8 +67,7 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
     }
 
     @Override
-    public void close() {
-    }
+    public void close() {}
 
     private static class CompositeReportGenerator extends AbstractGenerator {
 

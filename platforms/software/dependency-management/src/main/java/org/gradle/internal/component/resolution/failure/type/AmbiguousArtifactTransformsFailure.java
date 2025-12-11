@@ -30,8 +30,16 @@ import org.gradle.internal.component.resolution.failure.transform.Transformation
 public final class AmbiguousArtifactTransformsFailure extends AbstractArtifactSelectionFailure {
     private final ImmutableList<TransformationChainData> potentialVariants;
 
-    public AmbiguousArtifactTransformsFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, ImmutableList<TransformationChainData> potentialVariants) {
-        super(ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM, targetComponent, targetVariant, requestedAttributes);
+    public AmbiguousArtifactTransformsFailure(
+            ComponentIdentifier targetComponent,
+            String targetVariant,
+            AttributeContainerInternal requestedAttributes,
+            ImmutableList<TransformationChainData> potentialVariants) {
+        super(
+                ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM,
+                targetComponent,
+                targetVariant,
+                requestedAttributes);
         this.potentialVariants = potentialVariants;
     }
 

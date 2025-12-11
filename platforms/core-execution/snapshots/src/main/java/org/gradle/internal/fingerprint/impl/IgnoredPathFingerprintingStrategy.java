@@ -17,6 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
@@ -24,8 +25,6 @@ import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-
-import java.util.Map;
 
 /**
  * Fingerprint files ignoring the path.
@@ -57,7 +56,10 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
                 if (snapshot.getType() != FileType.Directory) {
                     HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
                     if (normalizedContentHash != null) {
-                        builder.put(snapshot.getAbsolutePath(), IgnoredPathFileSystemLocationFingerprint.create(snapshot.getType(), normalizedContentHash));
+                        builder.put(
+                                snapshot.getAbsolutePath(),
+                                IgnoredPathFileSystemLocationFingerprint.create(
+                                        snapshot.getType(), normalizedContentHash));
                     }
                 }
             }

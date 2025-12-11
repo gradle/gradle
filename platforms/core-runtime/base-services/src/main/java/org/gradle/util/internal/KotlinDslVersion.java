@@ -16,10 +16,9 @@
 package org.gradle.util.internal;
 
 import com.google.common.base.Preconditions;
-import org.jspecify.annotations.NullMarked;
-
 import java.net.URL;
 import java.util.Properties;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public final class KotlinDslVersion {

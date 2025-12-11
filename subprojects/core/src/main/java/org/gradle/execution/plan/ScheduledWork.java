@@ -18,7 +18,6 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;

@@ -16,6 +16,17 @@
 package org.gradle.groovy.scripts.internal;
 
 import com.google.common.collect.ImmutableMap;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.inject.Inject;
 import org.codehaus.groovy.GroovyBugError;
 import org.codehaus.groovy.ast.ASTNode;
 import org.codehaus.groovy.ast.AnnotatedNode;
@@ -62,29 +73,20 @@ import org.codehaus.groovy.syntax.Types;
 import org.codehaus.groovy.transform.trait.Traits;
 import org.objectweb.asm.Opcodes;
 
-import javax.inject.Inject;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * A Gradle version of the Groovy {@link ResolveVisitor} that takes some shortcuts to make resolving faster. It tries to be as close as the original implementation, while having a significant impact
  * on performance, by taking advantage of knowledge of Gradle default imports, including a mapping from simple name to fully qualified class name. It also avoids unnecessary lookups of classnodes.
  *
  * @since 2.12
  */
-@SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+@SuppressWarnings(
+        "ReferenceEquality") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
 public class GradleResolveVisitor extends ResolveVisitor {
     // note: BigInteger and BigDecimal are also imported by default
     // TODO: sync with the documentation in writing_build_scripts_intermediate.adoc
-    private static final String[] DEFAULT_IMPORTS = {"java.lang.", "java.io.", "java.net.", "java.util.", "groovy.lang.", "groovy.util.", "java.time."};
+    private static final String[] DEFAULT_IMPORTS = {
+        "java.lang.", "java.io.", "java.net.", "java.util.", "groovy.lang.", "groovy.util.", "java.time."
+    };
     private static final String SCRIPTS_PACKAGE = "org.gradle.groovy.scripts";
 
     /**
@@ -92,10 +94,9 @@ public class GradleResolveVisitor extends ResolveVisitor {
      * See the import list in AnnotationGenerator.kt
      */
     private static final ImmutableMap<String, ClassNode> TYPE_REDIRECT_MAPPING = ImmutableMap.of(
-        "Inject", ClassHelper.makeCached(Inject.class),
-        "BigInteger", ClassHelper.BigInteger_TYPE,
-        "BigDecimal", ClassHelper.BigDecimal_TYPE
-    );
+            "Inject", ClassHelper.makeCached(Inject.class),
+            "BigInteger", ClassHelper.BigInteger_TYPE,
+            "BigDecimal", ClassHelper.BigDecimal_TYPE);
 
     private ClassNode currentClass;
     private final Map<String, List<String>> simpleNameToFQN;
@@ -362,7 +363,8 @@ public class GradleResolveVisitor extends ResolveVisitor {
     }
 
     @Override
-    protected boolean resolve(ClassNode type, boolean testModuleImports, boolean testDefaultImports, boolean testStaticInnerClasses) {
+    protected boolean resolve(
+            ClassNode type, boolean testModuleImports, boolean testDefaultImports, boolean testStaticInnerClasses) {
         resolveGenericsTypes(type.getGenericsTypes());
         if (type.isResolved() || type.isPrimaryClassNode()) {
             return true;
@@ -386,7 +388,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         if (genericParameterNames.get(name) != null) {
             GenericsType gt = genericParameterNames.get(name);
             type.setRedirect(gt.getType());
-            type.setGenericsTypes(new GenericsType[]{gt});
+            type.setGenericsTypes(new GenericsType[] {gt});
             type.setGenericsPlaceHolder(true);
             return true;
         }
@@ -403,11 +405,11 @@ public class GradleResolveVisitor extends ResolveVisitor {
         }
 
         return resolveNestedClass(type)
-            || resolveFromModule(type, testModuleImports)
-            || resolveFromCompileUnit(type)
-            || resolveFromDefaultImports(type, testDefaultImports)
-            || resolveFromStaticInnerClasses(type, testStaticInnerClasses)
-            || resolveToOuter(type);
+                || resolveFromModule(type, testModuleImports)
+                || resolveFromCompileUnit(type)
+                || resolveFromDefaultImports(type, testDefaultImports)
+                || resolveFromStaticInnerClasses(type, testStaticInnerClasses)
+                || resolveToOuter(type);
     }
 
     private boolean resolveFromResolver(ClassNode type, String name) {
@@ -432,12 +434,14 @@ public class GradleResolveVisitor extends ResolveVisitor {
         Map<String, ClassNode> classHierarchy = new LinkedHashMap<String, ClassNode>();
         ClassNode val;
         for (ClassNode classToCheck = currentClass;
-            /*
-             * We know that DefaultScript & friends don't have user-visible nested types,
-             * so don't try to look up nonsensical types like org.gradle.Script#sourceCompatibility
-             */
-             classToCheck != null && classToCheck != ClassHelper.OBJECT_TYPE && !SCRIPTS_PACKAGE.equals(classToCheck.getPackageName());
-             classToCheck = classToCheck.getSuperClass()) {
+                /*
+                 * We know that DefaultScript & friends don't have user-visible nested types,
+                 * so don't try to look up nonsensical types like org.gradle.Script#sourceCompatibility
+                 */
+                classToCheck != null
+                        && classToCheck != ClassHelper.OBJECT_TYPE
+                        && !SCRIPTS_PACKAGE.equals(classToCheck.getPackageName());
+                classToCheck = classToCheck.getSuperClass()) {
             if (classHierarchy.containsKey(classToCheck.getName())) {
                 break;
             }
@@ -514,9 +518,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
     private static String replaceLastPoint(String name) {
         int lastPoint = name.lastIndexOf('.');
         if (lastPoint > 0) {
-            name = name.substring(0, lastPoint)
-                + "$"
-                + name.substring(lastPoint + 1);
+            name = name.substring(0, lastPoint) + "$" + name.substring(lastPoint + 1);
         }
         return name;
     }
@@ -616,7 +618,10 @@ public class GradleResolveVisitor extends ResolveVisitor {
 
     private void ambiguousClass(ClassNode type, ClassNode iType, String name) {
         if (type.getName().equals(iType.getName())) {
-            addError("reference to " + name + " is ambiguous, both class " + type.getName() + " and " + iType.getName() + " match", type);
+            addError(
+                    "reference to " + name + " is ambiguous, both class " + type.getName() + " and " + iType.getName()
+                            + " match",
+                    type);
         } else {
             type.setRedirect(iType);
         }
@@ -676,7 +681,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
                     type.setRedirect(aliasedNode);
                     return true;
                 } else {
-                    //partial match
+                    // partial match
 
                     // At this point we know that we have a match for pname. This may
                     // mean, that name[pname.length()..<-1] is a static inner class.
@@ -684,9 +689,11 @@ public class GradleResolveVisitor extends ResolveVisitor {
                     // It is either completely a inner static class or it is not.
                     // Since we do not want to have useless lookups we create the name
                     // completely and use a ConstructedClassWithPackage to prevent lookups against the package.
-                    String className = aliasedNode.getNameWithoutPackage() + '$'
-                        + name.substring(pname.length() + 1).replace('.', '$');
-                    ConstructedClassWithPackage tmp = new ConstructedClassWithPackage(aliasedNode.getPackageName() + ".", className);
+                    String className = aliasedNode.getNameWithoutPackage()
+                            + '$'
+                            + name.substring(pname.length() + 1).replace('.', '$');
+                    ConstructedClassWithPackage tmp =
+                            new ConstructedClassWithPackage(aliasedNode.getPackageName() + ".", className);
                     if (resolve(tmp, true, true, false)) {
                         type.setRedirect(tmp.redirect());
                         return true;
@@ -804,20 +811,20 @@ public class GradleResolveVisitor extends ResolveVisitor {
                             return true;
                         }
                     }
-
                 }
             }
         }
         return false;
     }
 
-    private final static ClassNode NO_CLASS;
+    private static final ClassNode NO_CLASS;
 
     static {
         ClassNode cn = null;
         try {
             try {
-                cn = (ClassNode) ClassNodeResolver.class.getDeclaredField("NO_CLASS").get(null);
+                cn = (ClassNode)
+                        ClassNodeResolver.class.getDeclaredField("NO_CLASS").get(null);
             } catch (IllegalAccessException | NoSuchFieldException e) {
                 cn = null;
             }
@@ -858,7 +865,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
         }
         return false;
     }
-
 
     @Override
     public Expression transform(Expression exp) {
@@ -1078,10 +1084,16 @@ public class GradleResolveVisitor extends ResolveVisitor {
         ClassNode type = expression.getObjectExpression().getType();
         if (expression.getObjectExpression() instanceof ClassExpression) {
             if (!(currentClass instanceof InnerClassNode) && !Traits.isTrait(type)) {
-                addError("The usage of 'Class.this' and 'Class.super' is only allowed in nested/inner classes.", expression);
+                addError(
+                        "The usage of 'Class.this' and 'Class.super' is only allowed in nested/inner classes.",
+                        expression);
                 return;
             }
-            if (currentScope != null && !currentScope.isInStaticContext() && Traits.isTrait(type) && "super".equals(prop) && directlyImplementsTrait(type)) {
+            if (currentScope != null
+                    && !currentScope.isInStaticContext()
+                    && Traits.isTrait(type)
+                    && "super".equals(prop)
+                    && directlyImplementsTrait(type)) {
                 return;
             }
             ClassNode iterType = currentClass;
@@ -1092,8 +1104,10 @@ public class GradleResolveVisitor extends ResolveVisitor {
                 iterType = iterType.getOuterClass();
             }
             if (iterType == null) {
-                addError("The class '" + type.getName() + "' needs to be an outer class of '"
-                    + currentClass.getName() + "' when using '.this' or '.super'.", expression);
+                addError(
+                        "The class '" + type.getName() + "' needs to be an outer class of '" + currentClass.getName()
+                                + "' when using '.this' or '.super'.",
+                        expression);
             }
             if ((currentClass.getModifiers() & Opcodes.ACC_STATIC) == 0) {
                 return;
@@ -1101,8 +1115,10 @@ public class GradleResolveVisitor extends ResolveVisitor {
             if (currentScope != null && !currentScope.isInStaticContext()) {
                 return;
             }
-            addError("The usage of 'Class.this' and 'Class.super' within static nested class '"
-                + currentClass.getName() + "' is not allowed in a static context.", expression);
+            addError(
+                    "The usage of 'Class.this' and 'Class.super' within static nested class '" + currentClass.getName()
+                            + "' is not allowed in a static context.",
+                    expression);
         }
     }
 
@@ -1173,19 +1189,19 @@ public class GradleResolveVisitor extends ResolveVisitor {
 
     private boolean isLeftSquareBracket(int op) {
         return op == Types.ARRAY_EXPRESSION
-            || op == Types.LEFT_SQUARE_BRACKET
-            || op == Types.SYNTH_LIST
-            || op == Types.SYNTH_MAP;
+                || op == Types.LEFT_SQUARE_BRACKET
+                || op == Types.SYNTH_LIST
+                || op == Types.SYNTH_MAP;
     }
 
     @Override
     protected Expression transformBinaryExpression(BinaryExpression be) {
         Expression left = transform(be.getLeftExpression());
         int type = be.getOperation().getType();
-        if ((type == Types.ASSIGNMENT_OPERATOR || type == Types.EQUAL)
-            && left instanceof ClassExpression) {
+        if ((type == Types.ASSIGNMENT_OPERATOR || type == Types.EQUAL) && left instanceof ClassExpression) {
             ClassExpression ce = (ClassExpression) left;
-            String error = "you tried to assign a value to the class '" + ce.getType().getName() + "'";
+            String error =
+                    "you tried to assign a value to the class '" + ce.getType().getName() + "'";
             if (ce.getType().isScript()) {
                 error += ". Do you have a script with this name?";
             }
@@ -1197,7 +1213,8 @@ public class GradleResolveVisitor extends ResolveVisitor {
                 ListExpression list = (ListExpression) be.getRightExpression();
                 if (list.getExpressions().isEmpty()) {
                     // we have C[] if the list is empty -> should be an array then!
-                    final ClassExpression ce = new ClassExpression(left.getType().makeArray());
+                    final ClassExpression ce =
+                            new ClassExpression(left.getType().makeArray());
                     ce.setSourcePosition(be);
                     return ce;
                 } else {
@@ -1418,7 +1435,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
                 for (Map.Entry<String, Expression> member : an.getMembers().entrySet()) {
                     member.setValue(transformInlineConstants(member.getValue()));
                 }
-
             }
         }
         return exp;
@@ -1428,7 +1444,9 @@ public class GradleResolveVisitor extends ResolveVisitor {
         if (newValue instanceof PropertyExpression) {
             PropertyExpression pe = (PropertyExpression) newValue;
             if (!(pe.getObjectExpression() instanceof ClassExpression)) {
-                addError("unable to find class '" + pe.getText() + "' for annotation attribute constant", pe.getObjectExpression());
+                addError(
+                        "unable to find class '" + pe.getText() + "' for annotation attribute constant",
+                        pe.getObjectExpression());
             }
         } else if (newValue instanceof ListExpression) {
             ListExpression le = (ListExpression) newValue;
@@ -1515,19 +1533,25 @@ public class GradleResolveVisitor extends ResolveVisitor {
         currentClass = oldNode;
     }
 
-    private void checkCyclicInheritance(ClassNode originalNode, ClassNode parentToCompare, ClassNode[] interfacesToCompare) {
+    private void checkCyclicInheritance(
+            ClassNode originalNode, ClassNode parentToCompare, ClassNode[] interfacesToCompare) {
         if (!originalNode.isInterface()) {
             if (parentToCompare == null) {
                 return;
             }
             if (originalNode == parentToCompare.redirect()) {
-                addError("Cyclic inheritance involving " + parentToCompare.getName() + " in class " + originalNode.getName(), originalNode);
+                addError(
+                        "Cyclic inheritance involving " + parentToCompare.getName() + " in class "
+                                + originalNode.getName(),
+                        originalNode);
                 return;
             }
             if (interfacesToCompare != null && interfacesToCompare.length > 0) {
                 for (ClassNode intfToCompare : interfacesToCompare) {
                     if (originalNode == intfToCompare.redirect()) {
-                        addError("Cycle detected: the type " + originalNode.getName() + " cannot implement itself", originalNode);
+                        addError(
+                                "Cycle detected: the type " + originalNode.getName() + " cannot implement itself",
+                                originalNode);
                         return;
                     }
                 }
@@ -1541,7 +1565,10 @@ public class GradleResolveVisitor extends ResolveVisitor {
                 // check interfaces at this level first
                 for (ClassNode intfToCompare : interfacesToCompare) {
                     if (originalNode == intfToCompare.redirect()) {
-                        addError("Cyclic inheritance involving " + intfToCompare.getName() + " in interface " + originalNode.getName(), originalNode);
+                        addError(
+                                "Cyclic inheritance involving " + intfToCompare.getName() + " in interface "
+                                        + originalNode.getName(),
+                                originalNode);
                         return;
                     }
                 }
@@ -1659,7 +1686,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
             genericsType.setResolved(genericsType.getType().isResolved());
         }
         return genericsType.isResolved();
-
     }
 
     @Override

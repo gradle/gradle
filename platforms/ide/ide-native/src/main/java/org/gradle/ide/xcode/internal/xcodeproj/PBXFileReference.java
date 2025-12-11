@@ -63,9 +63,6 @@ public class PBXFileReference extends PBXReference {
 
     @Override
     public String toString() {
-        return String.format(
-            "%s explicitFileType=%s",
-            super.toString(),
-            getExplicitFileType());
+        return String.format("%s explicitFileType=%s", super.toString(), getExplicitFileType());
     }
 }

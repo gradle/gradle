@@ -15,6 +15,9 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -29,10 +32,6 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
-
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
 
 public class LogToClient extends BuildCommandOnly {
 
@@ -56,8 +55,13 @@ public class LogToClient extends BuildCommandOnly {
             return;
         }
 
-        dispatcher = new AsynchronousLogDispatcher(execution.getConnection(), build.getParameters().getLogLevel());
-        LOGGER.info("{}{}). The daemon log file: {}", DaemonMessages.STARTED_RELAYING_LOGS, diagnostics.getPid(), diagnostics.getDaemonLog());
+        dispatcher = new AsynchronousLogDispatcher(
+                execution.getConnection(), build.getParameters().getLogLevel());
+        LOGGER.info(
+                "{}{}). The daemon log file: {}",
+                DaemonMessages.STARTED_RELAYING_LOGS,
+                diagnostics.getPid(),
+                diagnostics.getDaemonLog());
         dispatcher.start();
         try {
             execution.proceed();
@@ -84,11 +88,17 @@ public class LogToClient extends BuildCommandOnly {
                         dispatcher.submit(event);
                     }
                 }
+
                 private boolean isProgressEvent(OutputEvent event) {
-                    return event instanceof ProgressStartEvent || event instanceof ProgressEvent || event instanceof ProgressCompleteEvent;
+                    return event instanceof ProgressStartEvent
+                            || event instanceof ProgressEvent
+                            || event instanceof ProgressCompleteEvent;
                 }
+
                 private boolean isMatchingBuildLogLevel(OutputEvent event) {
-                    return buildLogLevel != null && event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0;
+                    return buildLogLevel != null
+                            && event.getLogLevel() != null
+                            && event.getLogLevel().compareTo(buildLogLevel) >= 0;
                 }
             };
             LOGGER.debug(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
@@ -136,8 +146,8 @@ public class LogToClient extends BuildCommandOnly {
             } catch (Exception ex) {
                 shouldStop = true;
                 unableToSend = true;
-                //Ignore. It means the client has disconnected so no point sending him any log output.
-                //we should be checking if client still listens elsewhere anyway.
+                // Ignore. It means the client has disconnected so no point sending him any log output.
+                // we should be checking if client still listens elsewhere anyway.
             }
         }
 

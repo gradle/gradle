@@ -16,12 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal.tools;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DefaultCommandLineToolConfiguration implements CommandLineToolConfigurationInternal {
     private final ToolType toolType;
@@ -36,7 +35,7 @@ public class DefaultCommandLineToolConfiguration implements CommandLineToolConfi
     }
 
     @Override
-    public void withArguments(Action<? super List<String>>  action) {
+    public void withArguments(Action<? super List<String>> action) {
         argActions.add(action);
     }
 

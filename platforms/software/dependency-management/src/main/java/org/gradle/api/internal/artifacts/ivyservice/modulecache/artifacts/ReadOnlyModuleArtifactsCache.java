@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
+import java.util.Collection;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
@@ -22,10 +23,9 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.util.Collection;
-
 public class ReadOnlyModuleArtifactsCache extends DefaultModuleArtifactsCache {
-    public ReadOnlyModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator) {
+    public ReadOnlyModuleArtifactsCache(
+            BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator) {
         super(timeProvider, cacheAccessCoordinator);
     }
 
@@ -35,13 +35,18 @@ public class ReadOnlyModuleArtifactsCache extends DefaultModuleArtifactsCache {
     }
 
     @Override
-    public CachedArtifacts cacheArtifacts(ModuleComponentRepository<?> repository, ComponentIdentifier componentId, String context, HashCode descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts) {
+    public CachedArtifacts cacheArtifacts(
+            ModuleComponentRepository<?> repository,
+            ComponentIdentifier componentId,
+            String context,
+            HashCode descriptorHash,
+            Collection<? extends ComponentArtifactMetadata> artifacts) {
         return operationShouldNotHaveBeenCalled();
     }
 
-    @SuppressWarnings("TypeParameterUnusedInFormals") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("TypeParameterUnusedInFormals") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     private static <T> T operationShouldNotHaveBeenCalled() {
         throw new UnsupportedOperationException("A write operation shouldn't have been called in a read-only cache");
     }
-
 }

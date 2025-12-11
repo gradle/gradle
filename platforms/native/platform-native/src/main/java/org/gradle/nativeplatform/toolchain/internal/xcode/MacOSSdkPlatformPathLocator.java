@@ -17,12 +17,11 @@
 package org.gradle.nativeplatform.toolchain.internal.xcode;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.process.internal.ExecActionFactory;
-
-import javax.inject.Inject;
-import java.util.List;
 
 @ServiceScope(Scope.BuildSession.class)
 public class MacOSSdkPlatformPathLocator extends AbstractLocator {

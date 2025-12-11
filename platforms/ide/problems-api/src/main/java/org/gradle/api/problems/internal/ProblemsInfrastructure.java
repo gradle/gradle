@@ -24,22 +24,22 @@ import org.jspecify.annotations.Nullable;
 
 public class ProblemsInfrastructure {
     private final IsolatableToBytesSerializer isolatableSerializer;
+
     @Nullable
     private final ProblemStream problemStream;
+
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
     private final Instantiator instantiator;
     private final PayloadSerializer payloadSerializer;
     private final IsolatableFactory isolatableFactory;
 
     public ProblemsInfrastructure(
-        AdditionalDataBuilderFactory additionalDataBuilderFactory,
-        Instantiator instantiator,
-        PayloadSerializer payloadSerializer,
-        IsolatableFactory isolatableFactory,
-        IsolatableToBytesSerializer isolatableSerializer,
-        @Nullable
-        ProblemStream problemStream
-    ) {
+            AdditionalDataBuilderFactory additionalDataBuilderFactory,
+            Instantiator instantiator,
+            PayloadSerializer payloadSerializer,
+            IsolatableFactory isolatableFactory,
+            IsolatableToBytesSerializer isolatableSerializer,
+            @Nullable ProblemStream problemStream) {
         this.additionalDataBuilderFactory = additionalDataBuilderFactory;
         this.instantiator = instantiator;
         this.payloadSerializer = payloadSerializer;

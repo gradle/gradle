@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.notations;
 
+import static org.gradle.api.internal.notations.ModuleNotationValidation.validate;
+
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -27,28 +29,23 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 
-import static org.gradle.api.internal.notations.ModuleNotationValidation.validate;
-
 public class ComponentIdentifierParserFactory implements Factory<NotationParser<Object, ComponentIdentifier>> {
 
     @Override
     public NotationParser<Object, ComponentIdentifier> create() {
         return NotationParserBuilder.toType(ComponentIdentifier.class)
-            .fromCharSequence(new StringNotationConverter())
-            .converter(new ComponentIdentifierMapNotationConverter())
-            .toComposite();
+                .fromCharSequence(new StringNotationConverter())
+                .converter(new ComponentIdentifierMapNotationConverter())
+                .toComposite();
     }
 
     static class ComponentIdentifierMapNotationConverter extends MapNotationConverter<ModuleComponentIdentifier> {
         protected ModuleComponentIdentifier parseMap(
-            @MapKey("group") String group,
-            @MapKey("name") String name,
-            @MapKey("version") String version) {
+                @MapKey("group") String group, @MapKey("name") String name, @MapKey("version") String version) {
 
             return DefaultModuleComponentIdentifier.newId(
-                DefaultModuleIdentifier.newId(validate(group.trim()), validate(name.trim())),
-                validate(version.trim())
-            );
+                    DefaultModuleIdentifier.newId(validate(group.trim()), validate(name.trim())),
+                    validate(version.trim()));
         }
     }
 
@@ -62,12 +59,13 @@ public class ComponentIdentifierParserFactory implements Factory<NotationParser<
         protected ModuleComponentIdentifier parseType(String notation) {
             String[] parts = notation.split(":");
             if (parts.length != 3) {
-                throw new InvalidUserDataException("Invalid module component notation: " + notation + " : must be a valid 3 part identifier, eg.: org.gradle:gradle:1.0");
+                throw new InvalidUserDataException("Invalid module component notation: " + notation
+                        + " : must be a valid 3 part identifier, eg.: org.gradle:gradle:1.0");
             }
             return DefaultModuleComponentIdentifier.newId(
-                DefaultModuleIdentifier.newId(validate(parts[0].trim(), notation), validate(parts[1].trim(), notation)),
-                validate(parts[2].trim(), notation)
-            );
+                    DefaultModuleIdentifier.newId(
+                            validate(parts[0].trim(), notation), validate(parts[1].trim(), notation)),
+                    validate(parts[2].trim(), notation));
         }
     }
 }

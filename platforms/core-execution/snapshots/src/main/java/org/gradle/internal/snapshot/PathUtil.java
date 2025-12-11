@@ -16,13 +16,12 @@
 
 package org.gradle.internal.snapshot;
 
-import com.google.common.annotations.VisibleForTesting;
-
-import java.io.File;
-import java.util.Comparator;
-
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
+
+import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.util.Comparator;
 
 /**
  * Methods for dealing with paths on the file system.
@@ -69,8 +68,10 @@ public class PathUtil {
      */
     private static final char OTHER_SEPARATOR = IS_WINDOWS_SEPARATOR ? UNIX_SEPARATOR : WINDOWS_SEPARATOR;
 
-    private static final Comparator<String> CASE_SENSITIVE_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, CASE_SENSITIVE);
-    private static final Comparator<String> CASE_INSENSITIVE_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, CASE_INSENSITIVE);
+    private static final Comparator<String> CASE_SENSITIVE_COMPARATOR =
+            (path1, path2) -> comparePaths(path1, path2, CASE_SENSITIVE);
+    private static final Comparator<String> CASE_INSENSITIVE_COMPARATOR =
+            (path1, path2) -> comparePaths(path1, path2, CASE_INSENSITIVE);
 
     /**
      * Whether the given char is a file separator.
@@ -87,9 +88,7 @@ public class PathUtil {
      */
     public static int compareFileNames(String name1, String name2) {
         int caseInsensitiveComparison = name1.compareToIgnoreCase(name2);
-        return caseInsensitiveComparison != 0
-            ? caseInsensitiveComparison
-            : name1.compareTo(name2);
+        return caseInsensitiveComparison != 0 ? caseInsensitiveComparison : name1.compareTo(name2);
     }
 
     /**
@@ -114,12 +113,8 @@ public class PathUtil {
             return 0;
         }
         return isFileSeparator(char1)
-            ? isFileSeparator(char2)
-                ? 0
-                : -1
-            : isFileSeparator(char2)
-                ? 1
-                : compareDifferentCharsIgnoringCase(char1, char2);
+                ? isFileSeparator(char2) ? 0 : -1
+                : isFileSeparator(char2) ? 1 : compareDifferentCharsIgnoringCase(char1, char2);
     }
 
     private static int compareDifferentCharsIgnoringCase(char char1, char char2) {
@@ -141,12 +136,8 @@ public class PathUtil {
             return 0;
         }
         return isFileSeparator(char1)
-            ? isFileSeparator(char2)
-                ? 0
-                : -1
-            : isFileSeparator(char2)
-                ? 1
-                : Character.compare(char1, char2);
+                ? isFileSeparator(char2) ? 0 : -1
+                : isFileSeparator(char2) ? 1 : Character.compare(char1, char2);
     }
 
     @VisibleForTesting
@@ -160,8 +151,8 @@ public class PathUtil {
         if (caseSensitivity == CASE_SENSITIVE) {
             return false;
         } else {
-            return Character.toUpperCase(char1) == Character.toUpperCase(char2) ||
-                Character.toLowerCase(char1) == Character.toLowerCase(char2);
+            return Character.toUpperCase(char1) == Character.toUpperCase(char2)
+                    || Character.toLowerCase(char1) == Character.toLowerCase(char2);
         }
     }
 
@@ -175,31 +166,27 @@ public class PathUtil {
             if (comparedChars != 0) {
                 return comparedChars;
             }
-            accumulatedValue = computeCombinedCompare(accumulatedValue, charInPath1, charInPath2, caseSensitivity == CASE_SENSITIVE);
+            accumulatedValue = computeCombinedCompare(
+                    accumulatedValue, charInPath1, charInPath2, caseSensitivity == CASE_SENSITIVE);
             if (accumulatedValue != 0 && isFileSeparator(charInPath1)) {
                 return accumulatedValue;
             }
         }
         int lengthCompare = Integer.compare(relativePath1.length(), relativePath2.length());
-        return lengthCompare != 0
-            ? lengthCompare
-            : accumulatedValue;
+        return lengthCompare != 0 ? lengthCompare : accumulatedValue;
     }
 
-    private static int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2, boolean caseSensitive) {
+    private static int computeCombinedCompare(
+            int previousCombinedValue, char charInPath1, char charInPath2, boolean caseSensitive) {
         if (!caseSensitive) {
             return 0;
         }
-        return previousCombinedValue == 0
-            ? compareChars(charInPath1, charInPath2)
-            : previousCombinedValue;
+        return previousCombinedValue == 0 ? compareChars(charInPath1, charInPath2) : previousCombinedValue;
     }
 
     public static String getFileName(String absolutePath) {
         int lastSeparator = lastIndexOfSeparator(absolutePath);
-        return lastSeparator < 0
-            ? absolutePath
-            : absolutePath.substring(lastSeparator + 1);
+        return lastSeparator < 0 ? absolutePath : absolutePath.substring(lastSeparator + 1);
     }
 
     private static int lastIndexOfSeparator(String absolutePath) {

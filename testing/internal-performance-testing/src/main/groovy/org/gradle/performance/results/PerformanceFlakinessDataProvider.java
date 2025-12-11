@@ -54,7 +54,8 @@ public interface PerformanceFlakinessDataProvider {
      */
     BigDecimal getFailureThreshold(PerformanceExperiment experiment);
 
-    ScenarioRegressionResult getScenarioRegressionResult(PerformanceExperiment experiment, PerformanceReportScenarioHistoryExecution execution);
+    ScenarioRegressionResult getScenarioRegressionResult(
+            PerformanceExperiment experiment, PerformanceReportScenarioHistoryExecution execution);
 
     enum ScenarioRegressionResult {
         STABLE_REGRESSION(true),
@@ -86,7 +87,8 @@ public interface PerformanceFlakinessDataProvider {
         }
 
         @Override
-        public ScenarioRegressionResult getScenarioRegressionResult(PerformanceExperiment experiment, PerformanceReportScenarioHistoryExecution execution) {
+        public ScenarioRegressionResult getScenarioRegressionResult(
+                PerformanceExperiment experiment, PerformanceReportScenarioHistoryExecution execution) {
             return ScenarioRegressionResult.STABLE_REGRESSION;
         }
     }

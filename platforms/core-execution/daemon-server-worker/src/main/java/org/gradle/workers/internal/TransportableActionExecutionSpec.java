@@ -27,7 +27,13 @@ public class TransportableActionExecutionSpec {
     private final Set<String> additionalWhitelistedServicesClassNames;
     private final File projectCacheDir;
 
-    public TransportableActionExecutionSpec(String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure, File baseDir, File projectCacheDir, Set<String> additionalWhitelistedServicesClassNames) {
+    public TransportableActionExecutionSpec(
+            String implementationClassName,
+            byte[] serializedParameters,
+            ClassLoaderStructure classLoaderStructure,
+            File baseDir,
+            File projectCacheDir,
+            Set<String> additionalWhitelistedServicesClassNames) {
         this.implementationClassName = implementationClassName;
         this.serializedParameters = serializedParameters;
         this.classLoaderStructure = classLoaderStructure;

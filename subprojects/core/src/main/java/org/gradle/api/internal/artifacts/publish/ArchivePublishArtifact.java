@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.publish;
 
+import java.io.File;
+import java.util.Date;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.util.internal.GUtil;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Date;
 
 public class ArchivePublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
     private String name;
@@ -60,12 +59,13 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
 
     private String withAppendix(String baseName) {
         String appendix = archiveTask.getArchiveAppendix().getOrNull();
-        return baseName + (GUtil.isTrue(appendix)? "-" + appendix : "");
+        return baseName + (GUtil.isTrue(appendix) ? "-" + appendix : "");
     }
 
     @Override
     public String getExtension() {
-        return GUtil.getOrDefault(extension, () -> archiveTask.getArchiveExtension().getOrNull());
+        return GUtil.getOrDefault(
+                extension, () -> archiveTask.getArchiveExtension().getOrNull());
     }
 
     @Override
@@ -75,7 +75,8 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
 
     @Override
     public String getClassifier() {
-        return GUtil.getOrDefault(classifier, () -> archiveTask.getArchiveClassifier().getOrNull());
+        return GUtil.getOrDefault(
+                classifier, () -> archiveTask.getArchiveClassifier().getOrNull());
     }
 
     @Override
@@ -85,7 +86,9 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
 
     @Override
     public Date getDate() {
-        return GUtil.getOrDefault(date, () -> new Date(archiveTask.getArchiveFile().get().getAsFile().lastModified()));
+        return GUtil.getOrDefault(
+                date,
+                () -> new Date(archiveTask.getArchiveFile().get().getAsFile().lastModified()));
     }
 
     public AbstractArchiveTask getArchiveTask() {

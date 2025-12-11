@@ -23,5 +23,4 @@ import org.gradle.model.ModelMap;
  * (production code, test code, etc.).
  */
 @Incubating
-public interface FunctionalSourceSet extends ModelMap<LanguageSourceSet> {
-}
+public interface FunctionalSourceSet extends ModelMap<LanguageSourceSet> {}

@@ -17,6 +17,12 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
@@ -39,16 +45,10 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
 public class ZipHasher implements RegularFileSnapshotContextHasher, ConfigurableNormalizer {
 
-    private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar", "klib");
+    private static final Set<String> KNOWN_ZIP_EXTENSIONS =
+            ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar", "klib");
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipHasher.class);
     private static final HashCode EMPTY_HASH_MARKER = Hashing.signature(ZipHasher.class);
 
@@ -61,7 +61,8 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
 
     public ZipHasher(ResourceHasher resourceHasher) {
         this.resourceHasher = resourceHasher;
-        this.hashingExceptionReporter = (s, e) -> LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e);
+        this.hashingExceptionReporter = (s, e) -> LOGGER.debug(
+                "Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e);
     }
 
     @Nullable
@@ -100,7 +101,9 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
         }
     }
 
-    private void fingerprintZipEntries(String parentName, String rootParentName, List<FileSystemLocationFingerprint> fingerprints, ZipInput input) throws IOException {
+    private void fingerprintZipEntries(
+            String parentName, String rootParentName, List<FileSystemLocationFingerprint> fingerprints, ZipInput input)
+            throws IOException {
         fingerprints.add(newZipMarker(parentName));
         for (ZipEntry zipEntry : input) {
             if (zipEntry.isDirectory()) {
@@ -119,10 +122,12 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
         }
     }
 
-    private void fingerprintZipEntry(ZipEntryContext zipEntryContext, List<FileSystemLocationFingerprint> fingerprints) throws IOException {
+    private void fingerprintZipEntry(ZipEntryContext zipEntryContext, List<FileSystemLocationFingerprint> fingerprints)
+            throws IOException {
         HashCode hash = resourceHasher.hash(zipEntryContext);
         if (hash != null) {
-            fingerprints.add(new DefaultFileSystemLocationFingerprint(zipEntryContext.getFullName(), FileType.RegularFile, hash));
+            fingerprints.add(new DefaultFileSystemLocationFingerprint(
+                    zipEntryContext.getFullName(), FileType.RegularFile, hash));
         }
     }
 

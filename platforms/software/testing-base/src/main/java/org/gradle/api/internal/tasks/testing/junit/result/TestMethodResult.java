@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class TestMethodResult {
     private final long id;
@@ -36,7 +35,14 @@ public class TestMethodResult {
 
     private SerializableFailure assumptionFailure = null;
 
-    public TestMethodResult(long id, String name, String displayName, TestResult.ResultType resultType, long duration, long endTime, List<TestMetadataEvent> metadatas) {
+    public TestMethodResult(
+            long id,
+            String name,
+            String displayName,
+            TestResult.ResultType resultType,
+            long duration,
+            long endTime,
+            List<TestMetadataEvent> metadatas) {
         if (id < 1) {
             throw new IllegalArgumentException("id must be > 0");
         }
@@ -57,7 +63,8 @@ public class TestMethodResult {
     }
 
     public TestMethodResult setAssumptionFailure(@Nullable String message, String stackTrace, String exceptionType) {
-        this.assumptionFailure = new SerializableFailure(message == null ? "(no message)" : message, stackTrace, exceptionType);
+        this.assumptionFailure =
+                new SerializableFailure(message == null ? "(no message)" : message, stackTrace, exceptionType);
         return this;
     }
 

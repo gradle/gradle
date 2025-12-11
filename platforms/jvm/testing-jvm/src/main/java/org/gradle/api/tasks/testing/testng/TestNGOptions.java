@@ -19,6 +19,17 @@ package org.gradle.api.tasks.testing.testng;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.xml.MarkupBuilder;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestRunner;
@@ -36,18 +47,6 @@ import org.gradle.internal.IoActions;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Callable;
 
 /**
  * The TestNG specific test options.
@@ -533,5 +532,4 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     public void setSuiteXmlBuilder(MarkupBuilder suiteXmlBuilder) {
         this.suiteXmlBuilder = suiteXmlBuilder;
     }
-
 }

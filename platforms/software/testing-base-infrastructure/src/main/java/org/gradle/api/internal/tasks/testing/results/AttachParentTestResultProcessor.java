@@ -65,5 +65,4 @@ public class AttachParentTestResultProcessor implements TestResultProcessor {
     public void published(Object testId, TestMetadataEvent keyValueEvent) {
         processor.published(testId, keyValueEvent);
     }
-
 }

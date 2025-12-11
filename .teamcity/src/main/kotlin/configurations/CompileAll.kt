@@ -11,7 +11,7 @@ class CompileAll(
     stage: Stage,
 ) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage = stage, init = {
         id(buildTypeId(model))
-        name = "Compile All"
+        name = "Compile All" // todo: verify if icon violates: name: Compile All 📦️
         description = "Compiles all production/test source code and warms up the build cache"
 
         features {

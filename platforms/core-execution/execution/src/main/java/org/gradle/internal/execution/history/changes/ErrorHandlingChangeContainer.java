@@ -33,7 +33,8 @@ public class ErrorHandlingChangeContainer implements ChangeContainer {
         try {
             return delegate.accept(visitor);
         } catch (Exception ex) {
-            throw new GradleException(String.format("Cannot determine changes for %s", executable.getDisplayName()), ex);
+            throw new GradleException(
+                    String.format("Cannot determine changes for %s", executable.getDisplayName()), ex);
         }
     }
 }

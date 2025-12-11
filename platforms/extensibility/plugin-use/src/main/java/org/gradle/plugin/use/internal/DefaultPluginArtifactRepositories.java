@@ -32,16 +32,22 @@ class DefaultPluginArtifactRepositories implements PluginArtifactRepositories {
     private final DependencyResolutionServices dependencyResolutionServices;
     private final RepositoryHandlerInternal sharedRepositories;
 
-    public DefaultPluginArtifactRepositories(Factory<DependencyResolutionServices> factory, RepositoryHandlerInternal sharedRepositories) {
-        // Create a copy of the shared repository container, so that mutations (eg adding the portal repo) are not reflected in the shared container
+    public DefaultPluginArtifactRepositories(
+            Factory<DependencyResolutionServices> factory, RepositoryHandlerInternal sharedRepositories) {
+        // Create a copy of the shared repository container, so that mutations (eg adding the portal repo) are not
+        // reflected in the shared container
         dependencyResolutionServices = factory.create();
         this.sharedRepositories = sharedRepositories;
 
-        JavaEcosystemSupport.configureServices(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getAttributeDescribers(), dependencyResolutionServices.getObjectFactory());
+        JavaEcosystemSupport.configureServices(
+                dependencyResolutionServices.getAttributesSchema(),
+                dependencyResolutionServices.getAttributeDescribers(),
+                dependencyResolutionServices.getObjectFactory());
 
         RepositoryHandler repositoryHandler = dependencyResolutionServices.getResolveRepositoryHandler();
         for (ArtifactRepository repository : sharedRepositories) {
-            // Add a wrapper to the plugin, so that each scope (eg project) can define different exclusive content filters
+            // Add a wrapper to the plugin, so that each scope (eg project) can define different exclusive content
+            // filters
             repositoryHandler.add(new PluginArtifactRepository(repository));
         }
         if (repositoryHandler.isEmpty()) {
@@ -57,8 +63,13 @@ class DefaultPluginArtifactRepositories implements PluginArtifactRepositories {
     @Override
     public void applyRepositoriesTo(RepositoryHandler repositories) {
         if (isExclusiveContentInUse() && !repositories.isEmpty()) {
-            throw new InvalidUserCodeException("When using exclusive repository content in 'settings.pluginManagement.repositories', you cannot add repositories to 'buildscript.repositories'.\n" +
-                new DocumentationRegistry().getDocumentationRecommendationFor("information", "declaring_repositories", "declaring_content_exclusively_found_in_one_repository"));
+            throw new InvalidUserCodeException(
+                    "When using exclusive repository content in 'settings.pluginManagement.repositories', you cannot add repositories to 'buildscript.repositories'.\n"
+                            + new DocumentationRegistry()
+                                    .getDocumentationRecommendationFor(
+                                            "information",
+                                            "declaring_repositories",
+                                            "declaring_content_exclusively_found_in_one_repository"));
         }
         repositories.addAll(dependencyResolutionServices.getResolveRepositoryHandler());
     }

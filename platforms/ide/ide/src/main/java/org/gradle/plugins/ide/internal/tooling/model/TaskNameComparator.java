@@ -16,10 +16,9 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.Serializable;
 import java.util.Comparator;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Compares task names to create ordering for selector launching.
@@ -43,7 +42,9 @@ public class TaskNameComparator implements Comparator<String>, Serializable {
                 return diff;
             }
         }
-        return colon1 == -1 ? taskName1.compareTo(taskName2) : compareSegments(taskName1.substring(colon1 + 1), taskName2.substring(colon2 + 1));
+        return colon1 == -1
+                ? taskName1.compareTo(taskName2)
+                : compareSegments(taskName1.substring(colon1 + 1), taskName2.substring(colon2 + 1));
     }
 
     static int getDepth(String taskName) {

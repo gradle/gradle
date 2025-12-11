@@ -15,12 +15,11 @@
  */
 package gradlebuild.docs.dsl.source.model;
 
-import org.gradle.api.Action;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.gradle.api.Action;
 
 /**
  * Static meta-data about a type reference extracted from source.
@@ -41,8 +40,7 @@ public class TypeMetaData implements Serializable, TypeContainer {
         this.name = name;
     }
 
-    public TypeMetaData() {
-    }
+    public TypeMetaData() {}
 
     public String getName() {
         return name;
@@ -206,13 +204,13 @@ public class TypeMetaData implements Serializable, TypeContainer {
             return false;
         }
         TypeMetaData that = (TypeMetaData) o;
-        return arrayDimensions == that.arrayDimensions &&
-            varargs == that.varargs &&
-            wildcard == that.wildcard &&
-            Objects.equals(name, that.name) &&
-            Objects.equals(typeArgs, that.typeArgs) &&
-            Objects.equals(upperBounds, that.upperBounds) &&
-            Objects.equals(lowerBounds, that.lowerBounds);
+        return arrayDimensions == that.arrayDimensions
+                && varargs == that.varargs
+                && wildcard == that.wildcard
+                && Objects.equals(name, that.name)
+                && Objects.equals(typeArgs, that.typeArgs)
+                && Objects.equals(upperBounds, that.upperBounds)
+                && Objects.equals(lowerBounds, that.lowerBounds);
     }
 
     @Override

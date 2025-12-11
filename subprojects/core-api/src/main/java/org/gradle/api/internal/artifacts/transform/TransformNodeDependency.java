@@ -19,5 +19,4 @@ package org.gradle.api.internal.artifacts.transform;
 /**
  * Marker interface to signal a dependency on an artifact transform.
  */
-public interface TransformNodeDependency {
-}
+public interface TransformNodeDependency {}

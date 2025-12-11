@@ -16,13 +16,12 @@
 
 package org.gradle.api.problems.internal;
 
+import java.util.List;
 import org.gradle.operations.problems.ProblemDefinition;
 import org.gradle.operations.problems.ProblemLocation;
 import org.gradle.operations.problems.ProblemSeverity;
 import org.gradle.operations.problems.ProblemUsageProgressDetails;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 public class DefaultProblemProgressDetails implements ProblemProgressDetails, ProblemUsageProgressDetails {
     private final InternalProblem problem;

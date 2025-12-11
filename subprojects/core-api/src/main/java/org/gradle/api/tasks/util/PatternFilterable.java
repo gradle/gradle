@@ -16,11 +16,10 @@
 package org.gradle.api.tasks.util;
 
 import groovy.lang.Closure;
+import java.util.Set;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import java.util.Set;
 
 /**
  * <p>A {@code PatternFilterable} represents some file container which Ant-style include and exclude patterns or specs

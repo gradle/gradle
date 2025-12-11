@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse;
 
+import javax.inject.Inject;
 import org.gradle.api.internal.PropertiesTransformer;
 import org.gradle.api.tasks.Internal;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
@@ -22,8 +23,6 @@ import org.gradle.plugins.ide.api.PropertiesGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.Jdt;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
 
 /**
  * Generates the Eclipse JDT configuration file. If you want to fine tune the eclipse configuration
@@ -78,5 +77,4 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
     public void setJdt(EclipseJdt jdt) {
         this.jdt = jdt;
     }
-
 }

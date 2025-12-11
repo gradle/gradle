@@ -16,11 +16,10 @@
 
 package org.gradle.configuration.project;
 
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateInternal;
-
 import java.util.Arrays;
 import java.util.List;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateInternal;
 
 public class ConfigureActionsProjectEvaluator implements ProjectEvaluator {
     private final List<ProjectConfigureAction> configureActions;

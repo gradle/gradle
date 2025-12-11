@@ -25,11 +25,13 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType;
 
 public class BuildOperationFiringBuildTreeWorkExecutor implements BuildTreeWorkExecutor {
-    private static final RunRequestedWorkBuildOperationType.Details DETAILS = new RunRequestedWorkBuildOperationType.Details() {};
+    private static final RunRequestedWorkBuildOperationType.Details DETAILS =
+            new RunRequestedWorkBuildOperationType.Details() {};
     private final BuildTreeWorkExecutor delegate;
     private final BuildOperationRunner buildOperationRunner;
 
-    public BuildOperationFiringBuildTreeWorkExecutor(BuildTreeWorkExecutor delegate, BuildOperationRunner buildOperationRunner) {
+    public BuildOperationFiringBuildTreeWorkExecutor(
+            BuildTreeWorkExecutor delegate, BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
         this.buildOperationRunner = buildOperationRunner;
     }

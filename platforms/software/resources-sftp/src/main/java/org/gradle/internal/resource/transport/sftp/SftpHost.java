@@ -16,9 +16,8 @@
 
 package org.gradle.internal.resource.transport.sftp;
 
-import org.gradle.api.credentials.PasswordCredentials;
-
 import java.net.URI;
+import org.gradle.api.credentials.PasswordCredentials;
 
 public class SftpHost {
     private final String hostname;

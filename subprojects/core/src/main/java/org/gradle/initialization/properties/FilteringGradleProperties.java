@@ -16,15 +16,14 @@
 
 package org.gradle.initialization.properties;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
+import java.util.function.Predicate;
 import org.gradle.api.internal.lambdas.SerializableLambdas.SerializablePredicate;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-import java.util.function.Predicate;
-
-import static org.gradle.internal.Cast.uncheckedCast;
 
 public class FilteringGradleProperties implements GradleProperties {
 
@@ -61,7 +60,7 @@ public class FilteringGradleProperties implements GradleProperties {
 
     private ImmutableMap<String, String> collectProperties(Predicate<String> keyFilter) {
         return delegate.getProperties().entrySet().stream()
-            .filter(it -> keyFilter.test(it.getKey()))
-            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+                .filter(it -> keyFilter.test(it.getKey()))
+                .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

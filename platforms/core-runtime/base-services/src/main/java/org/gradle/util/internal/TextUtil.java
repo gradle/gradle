@@ -16,12 +16,6 @@
 
 package org.gradle.util.internal;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
-import org.gradle.internal.SystemProperties;
-import org.gradle.internal.UncheckedException;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -32,6 +26,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.gradle.internal.SystemProperties;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Utility methods for working with text.
@@ -193,11 +192,8 @@ public class TextUtil {
         }
     }
 
-
     private static void escapeJavaStyleString(
-        Writer out, String str, boolean escapeSingleQuote,
-        boolean escapeForwardSlash
-    ) throws IOException {
+            Writer out, String str, boolean escapeSingleQuote, boolean escapeForwardSlash) throws IOException {
         if (out == null) {
             throw new IllegalArgumentException("The Writer must not be null");
         }
@@ -373,8 +369,8 @@ public class TextUtil {
      */
     public static String camelToKebabCase(String camelCase) {
         return Stream.of(UPPER_CASE.split(camelCase))
-            .map(s -> s.toLowerCase(Locale.ROOT))
-            .collect(Collectors.joining("-"));
+                .map(s -> s.toLowerCase(Locale.ROOT))
+                .collect(Collectors.joining("-"));
     }
 
     /**

@@ -21,5 +21,4 @@ package org.gradle.tooling.events;
  *
  * @since 2.4
  */
-public interface SuccessResult extends OperationResult {
-}
+public interface SuccessResult extends OperationResult {}

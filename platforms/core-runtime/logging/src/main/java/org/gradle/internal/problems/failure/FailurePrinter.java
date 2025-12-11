@@ -16,12 +16,11 @@
 
 package org.gradle.internal.problems.failure;
 
+import java.io.IOException;
+import java.util.List;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  * Utility to print {@link Failure}s in the format matching that of {@link Throwable#printStackTrace()}.
@@ -62,11 +61,9 @@ public class FailurePrinter {
             }
         }
 
-        private void printRecursively(String caption, String prefix, @Nullable Failure parent, Failure failure) throws IOException {
-            builder.append(prefix)
-                .append(caption)
-                .append(failure.getHeader())
-                .append(lineSeparator);
+        private void printRecursively(String caption, String prefix, @Nullable Failure parent, Failure failure)
+                throws IOException {
+            builder.append(prefix).append(caption).append(failure.getHeader()).append(lineSeparator);
 
             listener.beforeFrames();
             appendFrames(prefix, parent, failure);
@@ -107,20 +104,18 @@ public class FailurePrinter {
 
             if (commonTailSize > 0) {
                 builder.append(prefix)
-                    .append("\t... ")
-                    .append(String.valueOf(commonTailSize))
-                    .append(" more")
-                    .append(lineSeparator);
+                        .append("\t... ")
+                        .append(String.valueOf(commonTailSize))
+                        .append(" more")
+                        .append(lineSeparator);
             }
         }
 
-        private void appendFrame(String prefix, StackTraceElement frame, StackTraceRelevance relevance) throws IOException {
+        private void appendFrame(String prefix, StackTraceElement frame, StackTraceRelevance relevance)
+                throws IOException {
             listener.beforeFrame(frame, relevance);
 
-            builder.append(prefix)
-                .append("\tat ")
-                .append(frame.toString())
-                .append(lineSeparator);
+            builder.append(prefix).append("\tat ").append(frame.toString()).append(lineSeparator);
         }
 
         private static int countCommonTailFrames(List<StackTraceElement> frames1, List<StackTraceElement> frames2) {

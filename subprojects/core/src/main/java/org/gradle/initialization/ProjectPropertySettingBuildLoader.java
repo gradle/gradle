@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
@@ -26,17 +27,13 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.initialization.properties.FilteringGradleProperties;
 
-import java.util.Set;
-
 public class ProjectPropertySettingBuildLoader implements BuildLoader {
 
     private final GradlePropertiesController gradlePropertiesController;
     private final BuildLoader buildLoader;
 
     public ProjectPropertySettingBuildLoader(
-        GradlePropertiesController gradlePropertiesController,
-        BuildLoader buildLoader
-    ) {
+            GradlePropertiesController gradlePropertiesController, BuildLoader buildLoader) {
         this.gradlePropertiesController = gradlePropertiesController;
         this.buildLoader = buildLoader;
     }
@@ -56,7 +53,8 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
 
     private void addPropertiesToProject(ProjectState project) {
         gradlePropertiesController.loadGradleProperties(project.getIdentity(), project.getProjectDir());
-        GradleProperties projectGradleProperties = gradlePropertiesController.getGradleProperties(project.getIdentity());
+        GradleProperties projectGradleProperties =
+                gradlePropertiesController.getGradleProperties(project.getIdentity());
 
         ProjectInternal mutableProject = project.getMutableModel();
 
@@ -71,9 +69,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
      */
     @SuppressWarnings({"deprecation"})
     private static Set<String> assignSelectedPropertiesDirectly(
-        ProjectInternal project,
-        GradleProperties projectGradleProperties
-    ) {
+            ProjectInternal project, GradleProperties projectGradleProperties) {
         ImmutableSet.Builder<String> consumedProperties = ImmutableSet.builder();
         // Historically, we filtered out properties with empty names here.
         // They could appear in case the properties file has lines containing only '=' or ':'
@@ -84,7 +80,8 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         // that allows passing non-String properties via `startParameter.projectProperties`.
         // As they make their way into `GradleProperties`, the `find` method can return non-String values
         // despite the declared String type
-        // TODO: Remove non-String project properties support in Gradle 10 - https://github.com/gradle/gradle/issues/34454
+        // TODO: Remove non-String project properties support in Gradle 10 -
+        // https://github.com/gradle/gradle/issues/34454
 
         String versionName = "version";
         Object versionValue = projectGradleProperties.findUnsafe(versionName);
@@ -127,15 +124,12 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         return consumedProperties.build();
     }
 
-    private static void installProjectExtraPropertiesDefaults(ProjectInternal project, GradleProperties projectGradleProperties, Set<String> consumedProperties) {
-        ExtraPropertiesExtensionInternal extraPropertiesContainer = (ExtraPropertiesExtensionInternal) project.getExtensions().getExtraProperties();
+    private static void installProjectExtraPropertiesDefaults(
+            ProjectInternal project, GradleProperties projectGradleProperties, Set<String> consumedProperties) {
+        ExtraPropertiesExtensionInternal extraPropertiesContainer =
+                (ExtraPropertiesExtensionInternal) project.getExtensions().getExtraProperties();
         // TODO:configuration-cache avoid the FilteringGradleProperties indirection when no properties are consumed
         extraPropertiesContainer.setGradleProperties(
-            new FilteringGradleProperties(
-                projectGradleProperties,
-                it -> !consumedProperties.contains(it)
-            )
-        );
+                new FilteringGradleProperties(projectGradleProperties, it -> !consumedProperties.contains(it)));
     }
-
 }

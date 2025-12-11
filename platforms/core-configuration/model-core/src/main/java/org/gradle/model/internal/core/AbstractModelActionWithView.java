@@ -16,20 +16,21 @@
 
 package org.gradle.model.internal.core;
 
+import java.util.List;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
-
 public abstract class AbstractModelActionWithView<T> extends AbstractModelAction<T> {
-    protected AbstractModelActionWithView(ModelReference<T> subject, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs) {
+    protected AbstractModelActionWithView(
+            ModelReference<T> subject, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs) {
         super(subject, descriptor, inputs);
     }
 
     @Override
-    final public void execute(MutableModelNode node, List<ModelView<?>> inputs) {
+    public final void execute(MutableModelNode node, List<ModelView<?>> inputs) {
         if (!node.isAtLeast(ModelNode.State.Created)) {
-            throw new IllegalStateException("Cannot get view for node " + node.getPath() + " in state " + node.getState());
+            throw new IllegalStateException(
+                    "Cannot get view for node " + node.getPath() + " in state " + node.getState());
         }
         ModelType<T> type = getSubject().getType();
         ModelView<? extends T> view = node.asMutable(type, getDescriptor());

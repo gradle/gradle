@@ -16,6 +16,7 @@
 
 package org.gradle.execution;
 
+import java.util.List;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
@@ -63,17 +64,15 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 
-import java.util.List;
-
 @SuppressWarnings("deprecation")
 public class ProjectExecutionServices implements ServiceRegistrationProvider {
 
     public static CloseableServiceRegistry create(ProjectInternal project) {
         return ServiceRegistryBuilder.builder()
-            .displayName("project execution services for '" + project.getPath() + "'")
-            .parent(project.getServices())
-            .provider(new ProjectExecutionServices())
-            .build();
+                .displayName("project execution services for '" + project.getPath() + "'")
+                .parent(project.getServices())
+                .provider(new ProjectExecutionServices())
+                .build();
     }
 
     @Provides
@@ -82,7 +81,8 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    ReservedFileSystemLocationRegistry createReservedFileLocationRegistry(List<ReservedFileSystemLocation> reservedFileSystemLocations) {
+    ReservedFileSystemLocationRegistry createReservedFileLocationRegistry(
+            List<ReservedFileSystemLocation> reservedFileSystemLocations) {
         return new DefaultReservedFileSystemLocationRegistry(reservedFileSystemLocations);
     }
 
@@ -93,39 +93,37 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
 
     @Provides
     TaskExecuter createTaskExecuter(
-        AsyncWorkTracker asyncWorkTracker,
-        BuildOperationRunner buildOperationRunner,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        ExecutionHistoryStore executionHistoryStore,
-        FileCollectionFactory fileCollectionFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        FileOperations fileOperations,
-        ListenerManager listenerManager,
-        ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        TaskCacheabilityResolver taskCacheabilityResolver,
-        TaskExecutionGraphInternal taskExecutionGraph,
-        TaskExecutionModeResolver repository,
-        ExecutionEngine executionEngine,
-        InputFingerprinter inputFingerprinter,
-        MissingTaskDependencyDetector missingTaskDependencyDetector
-    ) {
+            AsyncWorkTracker asyncWorkTracker,
+            BuildOperationRunner buildOperationRunner,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            ExecutionHistoryStore executionHistoryStore,
+            FileCollectionFactory fileCollectionFactory,
+            TaskDependencyFactory taskDependencyFactory,
+            FileOperations fileOperations,
+            ListenerManager listenerManager,
+            ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
+            TaskCacheabilityResolver taskCacheabilityResolver,
+            TaskExecutionGraphInternal taskExecutionGraph,
+            TaskExecutionModeResolver repository,
+            ExecutionEngine executionEngine,
+            InputFingerprinter inputFingerprinter,
+            MissingTaskDependencyDetector missingTaskDependencyDetector) {
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
-            executionHistoryStore,
-            buildOperationRunner,
-            asyncWorkTracker,
-            listenerManager.getBroadcaster(org.gradle.api.execution.TaskActionListener.class),
-            taskCacheabilityResolver,
-            classLoaderHierarchyHasher,
-            executionEngine,
-            inputFingerprinter,
-            listenerManager,
-            reservedFileSystemLocationRegistry,
-            fileCollectionFactory,
-            taskDependencyFactory,
-            // TODO Can we inject a PathToFileResolver here directly?
-            fileOperations.getFileResolver(),
-            missingTaskDependencyDetector
-        );
+                executionHistoryStore,
+                buildOperationRunner,
+                asyncWorkTracker,
+                listenerManager.getBroadcaster(org.gradle.api.execution.TaskActionListener.class),
+                taskCacheabilityResolver,
+                classLoaderHierarchyHasher,
+                executionEngine,
+                inputFingerprinter,
+                listenerManager,
+                reservedFileSystemLocationRegistry,
+                fileCollectionFactory,
+                taskDependencyFactory,
+                // TODO Can we inject a PathToFileResolver here directly?
+                fileOperations.getFileResolver(),
+                missingTaskDependencyDetector);
         executer = new ProblemsTaskPathTrackingTaskExecuter(executer);
         executer = new ResolveTaskExecutionModeExecuter(repository, executer);
         executer = new FinalizePropertiesTaskExecuter(executer);
@@ -133,43 +131,43 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);
         executer = new EventFiringTaskExecuter(
-            buildOperationRunner, taskExecutionGraph.getLegacyTaskListenerBroadcast(), listenerManager.getBroadcaster(TaskListenerInternal.class), executer);
+                buildOperationRunner,
+                taskExecutionGraph.getLegacyTaskListenerBroadcast(),
+                listenerManager.getBroadcaster(TaskListenerInternal.class),
+                executer);
         return executer;
     }
 
     @Provides
     FileCollectionFingerprinterRegistrations createFileCollectionFingerprinterRegistrations(
-        StringInterner stringInterner,
-        ResourceSnapshotterCacheService resourceSnapshotterCacheService,
-        InputNormalizationHandlerInternal inputNormalizationHandler
-    ) {
+            StringInterner stringInterner,
+            ResourceSnapshotterCacheService resourceSnapshotterCacheService,
+            InputNormalizationHandlerInternal inputNormalizationHandler) {
         return new FileCollectionFingerprinterRegistrations(
-            stringInterner,
-            resourceSnapshotterCacheService,
-            inputNormalizationHandler.getRuntimeClasspath().getClasspathResourceFilter(),
-            inputNormalizationHandler.getRuntimeClasspath().getManifestAttributeResourceEntryFilter(),
-            inputNormalizationHandler.getRuntimeClasspath().getPropertiesFileFilters()
-        );
+                stringInterner,
+                resourceSnapshotterCacheService,
+                inputNormalizationHandler.getRuntimeClasspath().getClasspathResourceFilter(),
+                inputNormalizationHandler.getRuntimeClasspath().getManifestAttributeResourceEntryFilter(),
+                inputNormalizationHandler.getRuntimeClasspath().getPropertiesFileFilters());
     }
 
     @Provides
-    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(FileCollectionFingerprinterRegistrations fileCollectionFingerprinterRegistrations) {
-        return new DefaultFileCollectionFingerprinterRegistry(fileCollectionFingerprinterRegistrations.getRegistrants());
+    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(
+            FileCollectionFingerprinterRegistrations fileCollectionFingerprinterRegistrations) {
+        return new DefaultFileCollectionFingerprinterRegistry(
+                fileCollectionFingerprinterRegistrations.getRegistrants());
     }
 
     @Provides
     InputFingerprinter createInputFingerprinter(
-        FileCollectionSnapshotter snapshotter,
-        FileCollectionFingerprinterRegistry fingerprinterRegistry,
-        ValueSnapshotter valueSnapshotter
-    ) {
+            FileCollectionSnapshotter snapshotter,
+            FileCollectionFingerprinterRegistry fingerprinterRegistry,
+            ValueSnapshotter valueSnapshotter) {
         return new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter);
     }
 
     @Provides
-    TaskExecutionModeResolver createExecutionModeResolver(
-        StartParameter startParameter
-    ) {
+    TaskExecutionModeResolver createExecutionModeResolver(StartParameter startParameter) {
         return new DefaultTaskExecutionModeResolver(startParameter);
     }
 }

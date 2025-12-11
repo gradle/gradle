@@ -17,15 +17,14 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Proxy;
 import org.codehaus.groovy.runtime.ConvertedClosure;
 import org.gradle.internal.properties.bean.ImplementationResolver;
 import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Proxy;
 
 public class ScriptSourceAwareImplementationResolver implements ImplementationResolver {
 
@@ -39,7 +38,8 @@ public class ScriptSourceAwareImplementationResolver implements ImplementationRe
     @VisibleForTesting
     static Object unwrapBean(Object bean) {
         // When Groovy coerces a Closure into an SAM type, then it creates a Proxy which is backed by the Closure.
-        // We want to track the implementation of the Closure, since the class name and classloader of the proxy will not change.
+        // We want to track the implementation of the Closure, since the class name and classloader of the proxy will
+        // not change.
         // Java and Kotlin Lambdas are coerced to SAM types at compile time, so no unpacking is necessary there.
         if (Proxy.isProxyClass(bean.getClass())) {
             InvocationHandler invocationHandler = Proxy.getInvocationHandler(bean);

@@ -26,7 +26,7 @@ import org.gradle.groovy.scripts.ScriptSource;
  * org.gradle.groovy.scripts.Script#setScriptSource(org.gradle.groovy.scripts.ScriptSource)}
  */
 public class RemappingScriptSource extends DelegatingScriptSource {
-    public final static String MAPPED_SCRIPT = "_BuildScript_";
+    public static final String MAPPED_SCRIPT = "_BuildScript_";
 
     public RemappingScriptSource(ScriptSource source) {
         super(source);
@@ -36,5 +36,4 @@ public class RemappingScriptSource extends DelegatingScriptSource {
     public String getClassName() {
         return MAPPED_SCRIPT;
     }
-
 }

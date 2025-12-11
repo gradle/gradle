@@ -16,8 +16,6 @@
 
 package org.gradle.internal.instrumentation.reporting;
 
-import org.gradle.internal.UncheckedException;
-
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.internal.UncheckedException;
 
 /**
  * Collects method interception reports and prints them to the console at the end of the build.
@@ -46,13 +45,16 @@ public class DefaultMethodInterceptionReportCollector implements MethodIntercept
     public void close() {
         if (reports.stream().mapToLong(File::length).sum() > 0) {
             System.out.println("\nIntercepted methods:");
-            reports.stream().flatMap(report -> {
-                try {
-                    return Files.readAllLines(report.toPath(), StandardCharsets.UTF_8).stream();
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }).distinct().forEach(System.out::println);
+            reports.stream()
+                    .flatMap(report -> {
+                        try {
+                            return Files.readAllLines(report.toPath(), StandardCharsets.UTF_8).stream();
+                        } catch (IOException e) {
+                            throw UncheckedException.throwAsUncheckedException(e);
+                        }
+                    })
+                    .distinct()
+                    .forEach(System.out::println);
         }
         reports.clear();
     }

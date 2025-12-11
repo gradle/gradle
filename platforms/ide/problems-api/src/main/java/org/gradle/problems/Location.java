@@ -27,7 +27,8 @@ public class Location {
     private final DisplayName sourceLongDisplayName;
     private final DisplayName sourceShortDisplayName;
 
-    public Location(DisplayName sourceLongDisplayName, DisplayName sourceShortDisplayName, String filePath, int lineNumber) {
+    public Location(
+            DisplayName sourceLongDisplayName, DisplayName sourceShortDisplayName, String filePath, int lineNumber) {
         this.sourceLongDisplayName = sourceLongDisplayName;
         this.sourceShortDisplayName = sourceShortDisplayName;
         this.filePath = filePath;

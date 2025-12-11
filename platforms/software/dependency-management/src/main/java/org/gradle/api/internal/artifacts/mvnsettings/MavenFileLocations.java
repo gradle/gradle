@@ -20,7 +20,10 @@ import java.io.File;
 
 public interface MavenFileLocations {
     File getUserMavenDir();
+
     File getGlobalMavenDir();
+
     File getUserSettingsFile();
+
     File getGlobalSettingsFile();
 }

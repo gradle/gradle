@@ -1,5 +1,11 @@
 package com.example;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.stream.Stream;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -14,13 +20,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.util.*;
-import java.util.stream.Stream;
 
 public abstract class GraphResolvedComponentsAndFiles extends DefaultTask {
 
@@ -50,12 +49,11 @@ public abstract class GraphResolvedComponentsAndFiles extends DefaultTask {
     }
 
     private void reportComponent(
-        ResolvedComponentResult component,
-        PrintWriter writer,
-        Set<ResolvedComponentResult> seen,
-        Map<ComponentIdentifier, File> filesByIdentifiers,
-        String indent
-    ) {
+            ResolvedComponentResult component,
+            PrintWriter writer,
+            Set<ResolvedComponentResult> seen,
+            Map<ComponentIdentifier, File> filesByIdentifiers,
+            String indent) {
         writer.print(component.getId().getDisplayName());
         File file = filesByIdentifiers.get(component.getId());
         if (file != null) {

@@ -16,12 +16,11 @@
 
 package org.gradle.internal.resource;
 
+import java.net.URI;
+import java.util.Collection;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.net.URI;
-import java.util.Collection;
 
 @ServiceScope(Scope.Build.class)
 public interface ExternalResourceFactory {

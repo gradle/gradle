@@ -23,7 +23,10 @@ import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
  * Method binding for bridge methods calling through to other view methods.
  */
 public class BridgeMethodBinding extends AbstractDelegationBinding {
-    public BridgeMethodBinding(WeaklyTypeReferencingMethod<?, ?> source, WeaklyTypeReferencingMethod<?, ?> target, PropertyAccessorType accessorType) {
+    public BridgeMethodBinding(
+            WeaklyTypeReferencingMethod<?, ?> source,
+            WeaklyTypeReferencingMethod<?, ?> target,
+            PropertyAccessorType accessorType) {
         super(source, target, accessorType);
     }
 }

@@ -73,21 +73,17 @@ public class JavaTestSubject {
         myStaticProperty = value;
     }
 
-    public void getVoidProperty() {
-    }
+    public void getVoidProperty() {}
 
     public String getParamProperty(String param) {
         return null;
     }
 
-    public void setParamProperty() {
-    }
+    public void setParamProperty() {}
 
-    public void setParamProperty(String param, String someOther) {
-    }
+    public void setParamProperty(String param, String someOther) {}
 
-    public void setWriteOnly(String param) {
-    }
+    public void setWriteOnly(String param) {}
 
     public void throwsException() {
         throw failure;
@@ -115,19 +111,17 @@ public class JavaTestSubject {
         return null;
     }
 
-    protected void setProtectedProperty(String value) {
-    }
+    protected void setProtectedProperty(String value) {}
 
     private String getPrivateProperty() {
         return null;
     }
 
-    private void setPrivateProperty(String value) {
-    }
+    private void setPrivateProperty(String value) {}
 
-    public void setMultiValue(Set<String> values) { }
+    public void setMultiValue(Set<String> values) {}
 
-    public void setMultiValue(Iterable<?> values) { }
+    public void setMultiValue(Iterable<?> values) {}
 
     public void setMyProperty2(String value) {
         myProp2 = value;
@@ -142,6 +136,8 @@ public class JavaTestSubject {
     }
 
     public void setMyProperty3(CharSequence value) {}
+
     public void setMyProperty3(Collection<?> value) {}
+
     public void setMyProperty3(Object value) {}
 }

@@ -19,5 +19,4 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.internal.FinalizableValue;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
 
-public interface JavaToolchainRepositoryHandlerInternal extends JavaToolchainRepositoryHandler, FinalizableValue {
-}
+public interface JavaToolchainRepositoryHandlerInternal extends JavaToolchainRepositoryHandler, FinalizableValue {}

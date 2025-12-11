@@ -23,24 +23,21 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 4.9
  */
-public final class NotifyProjectBeforeEvaluatedBuildOperationType implements BuildOperationType<NotifyProjectBeforeEvaluatedBuildOperationType.Details, NotifyProjectBeforeEvaluatedBuildOperationType.Result> {
+public final class NotifyProjectBeforeEvaluatedBuildOperationType
+        implements BuildOperationType<
+                NotifyProjectBeforeEvaluatedBuildOperationType.Details,
+                NotifyProjectBeforeEvaluatedBuildOperationType.Result> {
 
     public interface Details {
 
         String getProjectPath();
 
         String getBuildPath();
-
     }
 
-    public interface Result {
+    public interface Result {}
 
-    }
+    static final Result RESULT = new Result() {};
 
-    final static Result RESULT = new Result() {
-    };
-
-    private NotifyProjectBeforeEvaluatedBuildOperationType() {
-    }
-
+    private NotifyProjectBeforeEvaluatedBuildOperationType() {}
 }

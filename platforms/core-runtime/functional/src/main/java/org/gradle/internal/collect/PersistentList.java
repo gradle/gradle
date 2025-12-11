@@ -17,13 +17,12 @@
 package org.gradle.internal.collect;
 
 import com.google.common.collect.AbstractIterator;
-import org.jspecify.annotations.Nullable;
-
-import javax.annotation.CheckReturnValue;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
+import javax.annotation.CheckReturnValue;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A simple persistent List implementation.
@@ -67,8 +66,7 @@ public abstract class PersistentList<T> implements Iterable<T> {
 
     private static final PersistentList<Object> NIL = new PersistentList<Object>() {
         @Override
-        public void forEach(Consumer<? super Object> consumer) {
-        }
+        public void forEach(Consumer<? super Object> consumer) {}
 
         @Override
         public PersistentList<Object> plus(Object element) {

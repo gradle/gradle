@@ -35,7 +35,8 @@ import org.gradle.util.Configurable;
  * @see org.gradle.api.model.ObjectFactory#domainObjectContainer(Class) Create an instance of this manually.
  */
 @ManagedType
-public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, Configurable<NamedDomainObjectContainer<T>> {
+public interface NamedDomainObjectContainer<T>
+        extends NamedDomainObjectSet<T>, Configurable<NamedDomainObjectContainer<T>> {
 
     /**
      * Creates a new item with the given name, adding it to this container.
@@ -108,7 +109,8 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      * @throws InvalidUserDataException If a object with the given name already exists in this project.
      * @since 4.10
      */
-    NamedDomainObjectProvider<T> register(String name, Action<? super T> configurationAction) throws InvalidUserDataException;
+    NamedDomainObjectProvider<T> register(String name, Action<? super T> configurationAction)
+            throws InvalidUserDataException;
 
     /**
      * Defines a new object, which will be created when it is required. A object is 'required' when the object is located using query methods such as {@link NamedDomainObjectCollection#getByName(java.lang.String)} or when {@link Provider#get()} is called on the return value of this method.

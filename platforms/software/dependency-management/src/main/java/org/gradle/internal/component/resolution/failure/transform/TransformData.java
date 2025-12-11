@@ -34,7 +34,11 @@ public final class TransformData {
     private final ImmutableAttributes fromAttributes;
     private final ImmutableAttributes toAttributes;
 
-    public TransformData(Class<? extends TransformAction<?>> transformActionClass, String transformName, ImmutableAttributes fromAttributes, ImmutableAttributes toAttributes) {
+    public TransformData(
+            Class<? extends TransformAction<?>> transformActionClass,
+            String transformName,
+            ImmutableAttributes fromAttributes,
+            ImmutableAttributes toAttributes) {
         this.transformActionClass = transformActionClass;
         this.transformName = transformName;
         this.fromAttributes = fromAttributes;
@@ -77,7 +81,9 @@ public final class TransformData {
         }
 
         TransformData that = (TransformData) o;
-        return transformActionClass.equals(that.transformActionClass) && fromAttributes.equals(that.fromAttributes) && toAttributes.equals(that.toAttributes);
+        return transformActionClass.equals(that.transformActionClass)
+                && fromAttributes.equals(that.fromAttributes)
+                && toAttributes.equals(that.toAttributes);
     }
 
     @Override

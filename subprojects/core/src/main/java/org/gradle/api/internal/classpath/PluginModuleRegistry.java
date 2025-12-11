@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.classpath;
 
+import java.util.Set;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Set;
 
 /**
  * A registry of dynamically loaded plugin modules.

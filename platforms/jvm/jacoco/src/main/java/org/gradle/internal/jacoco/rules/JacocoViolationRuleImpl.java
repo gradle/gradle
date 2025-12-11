@@ -17,13 +17,12 @@
 package org.gradle.internal.jacoco.rules;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
-import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
-import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.api.Action;
+import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
+import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 
 public class JacocoViolationRuleImpl implements JacocoViolationRule {
 
@@ -87,7 +86,8 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
     }
 
     @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     public boolean equals(Object o) {
         if (this == o) {
             return true;

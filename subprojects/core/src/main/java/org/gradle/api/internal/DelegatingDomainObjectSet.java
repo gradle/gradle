@@ -16,6 +16,9 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
@@ -24,10 +27,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Internal;
 import org.gradle.util.internal.ConfigureUtil;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
 
 public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainObjectCollectionInternal<T> {
     private final DomainObjectSet<T> delegate;

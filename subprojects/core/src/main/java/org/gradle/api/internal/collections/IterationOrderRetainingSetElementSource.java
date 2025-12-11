@@ -17,18 +17,18 @@
 package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
-import org.gradle.api.internal.provider.CollectionProviderInternal;
-import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.specs.Spec;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.specs.Spec;
 
 public class IterationOrderRetainingSetElementSource<T> extends AbstractIterationOrderRetainingElementSource<T> {
-    private static final Spec<ValuePointer<?>> NO_DUPLICATES = pointer -> !pointer.getElement().isDuplicate(pointer.getIndex());
+    private static final Spec<ValuePointer<?>> NO_DUPLICATES =
+            pointer -> !pointer.getElement().isDuplicate(pointer.getIndex());
 
     /**
      * Tracks the subset of values added with add() (without a Provider), allowing us to filter out duplicates

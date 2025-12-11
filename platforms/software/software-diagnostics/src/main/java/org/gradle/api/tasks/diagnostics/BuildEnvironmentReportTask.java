@@ -15,27 +15,26 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import static java.util.Collections.singleton;
+
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
-import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.ToolchainReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
-
-import javax.inject.Inject;
-
-import static java.util.Collections.singleton;
 
 /**
  * Provides information about the build environment for the project that the task is associated with.
@@ -71,9 +70,7 @@ public abstract class BuildEnvironmentReportTask extends DefaultTask {
 
     private BuildEnvironmentReportModel calculateReportModel() {
         return new BuildEnvironmentReportModel(
-            ProjectDetails.of(getProject()),
-            ConfigurationDetails.of(classpathConfiguration())
-        );
+                ProjectDetails.of(getProject()), ConfigurationDetails.of(classpathConfiguration()));
     }
 
     private Configuration classpathConfiguration() {
@@ -96,17 +93,14 @@ public abstract class BuildEnvironmentReportTask extends DefaultTask {
         StyledTextOutput output = getTextOutputFactory().create(getClass());
         output.append("Daemon JVM: ");
         toolchainReportRenderer.setOutput(output);
-        toolchainReportRenderer.printToolchainMetadata(getMetadataDetector().getMetadata(new CurrentInstallationSupplier().getInstallation()));
+        toolchainReportRenderer.printToolchainMetadata(
+                getMetadataDetector().getMetadata(new CurrentInstallationSupplier().getInstallation()));
 
-        reportGenerator().generateReport(
-            singleton(reportModel.get()),
-            model -> model.project,
-            model -> {
-                renderer.startConfiguration(model.configuration);
-                renderer.render(model.configuration);
-                renderer.completeConfiguration(model.configuration);
-            }
-        );
+        reportGenerator().generateReport(singleton(reportModel.get()), model -> model.project, model -> {
+            renderer.startConfiguration(model.configuration);
+            renderer.render(model.configuration);
+            renderer.completeConfiguration(model.configuration);
+        });
     }
 
     private ReportGenerator reportGenerator() {

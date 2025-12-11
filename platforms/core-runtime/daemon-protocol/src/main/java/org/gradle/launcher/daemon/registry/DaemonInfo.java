@@ -16,8 +16,15 @@
 
 package org.gradle.launcher.daemon.registry;
 
+import static org.gradle.launcher.daemon.server.api.DaemonState.Busy;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -27,14 +34,6 @@ import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 import org.gradle.launcher.daemon.server.api.DaemonState;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-
-import static org.gradle.launcher.daemon.server.api.DaemonState.Busy;
-import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
 
 /**
  * Provides information about a daemon that is potentially available to do some work.
@@ -115,7 +114,9 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
 
     @Override
     public String toString() {
-        return String.format("DaemonInfo{pid=%s, address=%s, state=%s, lastBusy=%s, context=%s}", context.getPid(), address, state, lastBusy, context);
+        return String.format(
+                "DaemonInfo{pid=%s, address=%s, state=%s, lastBusy=%s, context=%s}",
+                context.getPid(), address, state, lastBusy, context);
     }
 
     public static class Serializer implements org.gradle.internal.serialize.Serializer<DaemonInfo> {
@@ -156,5 +157,4 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
             }
         }
     }
-
 }

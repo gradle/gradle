@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -30,18 +34,16 @@ import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveM
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 class IvyModuleResolveMetaDataBuilder {
     private final List<Artifact> artifacts = new ArrayList<>();
     private final DefaultModuleDescriptor ivyDescriptor;
     private final IvyModuleDescriptorConverter converter;
     private final IvyMutableModuleMetadataFactory metadataFactory;
 
-    public IvyModuleResolveMetaDataBuilder(DefaultModuleDescriptor module, IvyModuleDescriptorConverter converter, IvyMutableModuleMetadataFactory metadataFactory) {
+    public IvyModuleResolveMetaDataBuilder(
+            DefaultModuleDescriptor module,
+            IvyModuleDescriptorConverter converter,
+            IvyMutableModuleMetadataFactory metadataFactory) {
         this.ivyDescriptor = module;
         this.converter = converter;
         this.metadataFactory = metadataFactory;
@@ -72,12 +74,15 @@ class IvyModuleResolveMetaDataBuilder {
 
     public MutableIvyModuleResolveMetadata build() {
         ModuleRevisionId moduleRevisionId = ivyDescriptor.getModuleRevisionId();
-        ModuleComponentIdentifier cid = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName()), moduleRevisionId.getRevision());
+        ModuleComponentIdentifier cid = DefaultModuleComponentIdentifier.newId(
+                DefaultModuleIdentifier.newId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName()),
+                moduleRevisionId.getRevision());
         List<Configuration> configurations = converter.extractConfigurations(ivyDescriptor);
         List<IvyDependencyDescriptor> dependencies = converter.extractDependencies(ivyDescriptor);
         List<Exclude> excludes = converter.extractExcludes(ivyDescriptor);
         Map<NamespaceId, String> extraAttributes = converter.extractExtraAttributes(ivyDescriptor);
-        MutableIvyModuleResolveMetadata metadata = metadataFactory.create(cid, dependencies, configurations, artifacts, excludes);
+        MutableIvyModuleResolveMetadata metadata =
+                metadataFactory.create(cid, dependencies, configurations, artifacts, excludes);
         metadata.setStatus(ivyDescriptor.getStatus());
         metadata.setExtraAttributes(extraAttributes);
         metadata.setBranch(ivyDescriptor.getModuleRevisionId().getBranch());

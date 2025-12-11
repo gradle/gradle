@@ -16,6 +16,13 @@
 
 package org.gradle.process.internal.worker.child;
 
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.Callable;
 import org.gradle.api.Action;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -54,14 +61,6 @@ import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.messaging.WorkerConfig;
 import org.gradle.process.internal.worker.messaging.WorkerConfigSerializer;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.concurrent.Callable;
-
 /**
  * <p>Stage 2 of the start-up for a worker process with the application classes loaded in the system ClassLoader. Takes
  * care of deserializing and invoking the worker action.</p>
@@ -88,23 +87,27 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         // Read logging config and setup logging
         ServiceRegistry loggingServiceRegistry = LoggingServiceRegistry.newEmbeddableLogging();
-        LoggingManagerInternal loggingManager = createLoggingManager(loggingServiceRegistry).setLevelInternal(config.getLogLevel());
+        LoggingManagerInternal loggingManager =
+                createLoggingManager(loggingServiceRegistry).setLevelInternal(config.getLogLevel());
 
         // When not explicitly set, use the value from system properties
         NativeServicesMode nativeServicesMode = config.getNativeServicesMode() == NativeServicesMode.NOT_SET
-            ? NativeServicesMode.fromSystemProperties()
-            : config.getNativeServicesMode();
+                ? NativeServicesMode.fromSystemProperties()
+                : config.getNativeServicesMode();
 
         // Configure services
         File gradleUserHomeDir = new File(config.getGradleUserHomeDirPath());
         NativeServices.initializeOnWorker(gradleUserHomeDir, nativeServicesMode);
-        ServiceRegistry basicWorkerServices = createBasicWorkerServices(NativeServices.getInstance(), loggingServiceRegistry);
+        ServiceRegistry basicWorkerServices =
+                createBasicWorkerServices(NativeServices.getInstance(), loggingServiceRegistry);
         ServiceRegistry workerServices = WorkerServices.create(basicWorkerServices, gradleUserHomeDir);
         WorkerLogEventListener workerLogEventListener = workerServices.get(WorkerLogEventListener.class);
 
-        File workingDirectory = workerServices.get(WorkerDirectoryProvider.class).getWorkingDirectory();
+        File workingDirectory =
+                workerServices.get(WorkerDirectoryProvider.class).getWorkingDirectory();
         File errorLog = getLastResortErrorLogFile(workingDirectory);
-        PrintUnrecoverableErrorToFileHandler unrecoverableErrorHandler = new PrintUnrecoverableErrorToFileHandler(errorLog);
+        PrintUnrecoverableErrorToFileHandler unrecoverableErrorHandler =
+                new PrintUnrecoverableErrorToFileHandler(errorLog);
 
         ObjectConnection connection = null;
         try {
@@ -135,7 +138,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     }
 
     private File getLastResortErrorLogFile(File workingDirectory) {
-        return new File(workingDirectory, "worker-error-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".txt");
+        return new File(
+                workingDirectory, "worker-error-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".txt");
     }
 
     private static class PrintUnrecoverableErrorToFileHandler implements Action<Throwable> {
@@ -161,7 +165,10 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         }
     }
 
-    private void configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection, WorkerLogEventListener workerLogEventListener) {
+    private void configureLogging(
+            LoggingManagerInternal loggingManager,
+            ObjectConnection connection,
+            WorkerLogEventListener workerLogEventListener) {
         connection.useParameterSerializers(WorkerLoggingSerializer.create());
         WorkerLoggingProtocol workerLoggingProtocol = connection.addOutgoing(WorkerLoggingProtocol.class);
         workerLogEventListener.setWorkerLoggingProtocol(workerLoggingProtocol);
@@ -170,7 +177,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
     private void configureWorkerJvmMemoryInfoEvents(ServiceRegistry workerServices, ObjectConnection connection) {
         connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
-        final WorkerJvmMemoryInfoProtocol workerJvmMemoryInfoProtocol = connection.addOutgoing(WorkerJvmMemoryInfoProtocol.class);
+        final WorkerJvmMemoryInfoProtocol workerJvmMemoryInfoProtocol =
+                connection.addOutgoing(WorkerJvmMemoryInfoProtocol.class);
         workerServices.get(MemoryManager.class).addListener(new JvmMemoryStatusListener() {
             @Override
             public void onJvmMemoryStatus(JvmMemoryStatus jvmMemoryStatus) {
@@ -180,34 +188,36 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     }
 
     LoggingManagerInternal createLoggingManager(ServiceRegistry loggingServiceRegistry) {
-        LoggingManagerInternal loggingManagerInternal = loggingServiceRegistry.get(LoggingManagerFactory.class).createLoggingManager();
+        LoggingManagerInternal loggingManagerInternal =
+                loggingServiceRegistry.get(LoggingManagerFactory.class).createLoggingManager();
         loggingManagerInternal.captureSystemSources();
         return loggingManagerInternal;
     }
 
-    private static ServiceRegistry createBasicWorkerServices(ServiceRegistry nativeServices, ServiceRegistry loggingServiceRegistry) {
+    private static ServiceRegistry createBasicWorkerServices(
+            ServiceRegistry nativeServices, ServiceRegistry loggingServiceRegistry) {
         return ServiceRegistryBuilder.builder()
-            .displayName("basic worker services")
-            .parent(nativeServices)
-            .parent(loggingServiceRegistry)
-            .provider(new ServiceRegistrationProvider() {
-                @SuppressWarnings("unused")
-                void configure(ServiceRegistration registration) {
-                    registration.add(ExecutorFactory.class, new DefaultExecutorFactory());
-                }
-            })
-            .provider(new MessagingServices())
-            .build();
+                .displayName("basic worker services")
+                .parent(nativeServices)
+                .parent(loggingServiceRegistry)
+                .provider(new ServiceRegistrationProvider() {
+                    @SuppressWarnings("unused")
+                    void configure(ServiceRegistration registration) {
+                        registration.add(ExecutorFactory.class, new DefaultExecutorFactory());
+                    }
+                })
+                .provider(new MessagingServices())
+                .build();
     }
 
     private static class WorkerServices implements ServiceRegistrationProvider {
 
         public static CloseableServiceRegistry create(ServiceRegistry parent, File gradleUserHomeDir) {
             return ServiceRegistryBuilder.builder()
-                .displayName("worker services")
-                .parent(parent)
-                .provider(new WorkerServices(gradleUserHomeDir))
-                .build();
+                    .displayName("worker services")
+                    .parent(parent)
+                    .provider(new WorkerServices(gradleUserHomeDir))
+                    .build();
         }
 
         private final File gradleUserHomeDir;
@@ -242,7 +252,11 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         }
 
         @Provides
-        MemoryManager createMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
+        MemoryManager createMemoryManager(
+                OsMemoryInfo osMemoryInfo,
+                JvmMemoryInfo jvmMemoryInfo,
+                ListenerManager listenerManager,
+                ExecutorFactory executorFactory) {
             return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
         }
 
@@ -263,7 +277,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         private final ObjectConnection serverConnection;
         private final ServiceRegistry workerServices;
 
-        public ContextImpl(long workerId, String displayName, ObjectConnection serverConnection, ServiceRegistry workerServices) {
+        public ContextImpl(
+                long workerId, String displayName, ObjectConnection serverConnection, ServiceRegistry workerServices) {
             this.workerId = workerId;
             this.displayName = displayName;
             this.serverConnection = serverConnection;

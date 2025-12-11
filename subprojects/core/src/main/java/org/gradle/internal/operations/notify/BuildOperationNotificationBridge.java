@@ -16,6 +16,12 @@
 
 package org.gradle.internal.operations.notify;
 
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.gradle.BuildListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.InternalAction;
@@ -35,13 +41,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 @ServiceScope(Scope.CrossBuildSession.class)
 public class BuildOperationNotificationBridge implements BuildOperationNotificationListenerRegistrar {
 
@@ -57,7 +56,8 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
         private void assignSingleListener(BuildOperationNotificationListener notificationListener) {
             if (this.notificationListener != null) {
-                throw new IllegalStateException("listener is already registered (implementation class " + this.notificationListener.getClass().getName() + ")");
+                throw new IllegalStateException("listener is already registered (implementation class "
+                        + this.notificationListener.getClass().getName() + ")");
             }
             this.notificationListener = notificationListener;
         }
@@ -80,7 +80,6 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
             state = new State();
             buildOperationListenerManager.addListener(state.buildOperationListener);
         }
-
 
         @Override
         public void stop() {
@@ -107,7 +106,8 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         }
     };
 
-    public BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, ListenerManager listenerManager) {
+    public BuildOperationNotificationBridge(
+            BuildOperationListenerManager buildOperationListenerManager, ListenerManager listenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.listenerManager = listenerManager;
         listenerManager.addListener(buildListener);
@@ -134,12 +134,12 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
     }
 
     /*
-        Note: the intention here is to work towards not having to create new objects
-        to meet the notification object interfaces.
-        Instead, the base types like BuildOperationDescriptor should implement them natively.
-        However, this will require restructuring this type and associated things such as
-        OperationStartEvent. This will happen later.
-     */
+       Note: the intention here is to work towards not having to create new objects
+       to meet the notification object interfaces.
+       Instead, the base types like BuildOperationDescriptor should implement them natively.
+       However, this will require restructuring this type and associated things such as
+       OperationStartEvent. This will happen later.
+    */
     private static class Adapter implements BuildOperationListener {
 
         private final BuildOperationNotificationListener notificationListener;
@@ -221,7 +221,13 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
                 return;
             }
 
-            Finished notification = new Finished(finishEvent.getEndTime(), id, parentId, buildOperation.getDetails(), finishEvent.getResult(), finishEvent.getFailure());
+            Finished notification = new Finished(
+                    finishEvent.getEndTime(),
+                    id,
+                    parentId,
+                    buildOperation.getDetails(),
+                    finishEvent.getResult(),
+                    finishEvent.getFailure());
             try {
                 notificationListener.finished(notification);
             } catch (Throwable e) {
@@ -229,7 +235,6 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
                 maybeThrow(e);
             }
         }
-
     }
 
     private static class RecordingListener implements BuildOperationNotificationListener {
@@ -250,7 +255,6 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         public void finished(BuildOperationFinishedNotification notification) {
             storedEvents.add(notification);
         }
-
     }
 
     private static class ReplayAndAttachListener implements BuildOperationNotificationListener {
@@ -364,14 +368,12 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         @Override
         public String toString() {
             return "BuildOperationStartedNotification{"
-                + "id=" + id
-                + ", parentId=" + parentId
-                + ", timestamp=" + timestamp
-                + ", details=" + details
-                + '}';
+                    + "id=" + id
+                    + ", parentId=" + parentId
+                    + ", timestamp=" + timestamp
+                    + ", details=" + details
+                    + '}';
         }
-
-
     }
 
     private static class Progress implements BuildOperationProgressNotification {
@@ -401,7 +403,6 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         public Object getNotificationOperationProgressDetails() {
             return details;
         }
-
     }
 
     private static class Finished implements BuildOperationFinishedNotification {
@@ -414,7 +415,13 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         private final Object result;
         private final Throwable failure;
 
-        private Finished(long timestamp, OperationIdentifier id, OperationIdentifier parentId, Object details, Object result, Throwable failure) {
+        private Finished(
+                long timestamp,
+                OperationIdentifier id,
+                OperationIdentifier parentId,
+                Object details,
+                Object result,
+                Throwable failure) {
             this.timestamp = timestamp;
             this.id = id;
             this.parentId = parentId;
@@ -457,14 +464,13 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         @Override
         public String toString() {
             return "BuildOperationFinishedNotification{"
-                + "id=" + id
-                + ", parentId=" + parentId
-                + ", timestamp=" + timestamp
-                + ", details=" + details
-                + ", result=" + result
-                + ", failure=" + failure
-                + '}';
+                    + "id=" + id
+                    + ", parentId=" + parentId
+                    + ", timestamp=" + timestamp
+                    + ", details=" + details
+                    + ", result=" + result
+                    + ", failure=" + failure
+                    + '}';
         }
     }
-
 }

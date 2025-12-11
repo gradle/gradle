@@ -16,15 +16,14 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.util.GradleVersion;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.gradle.internal.UncheckedException;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.GradleVersion;
 
 public class GradleBackedArtifactBuilder implements ArtifactBuilder {
     private final GradleExecuter executer;
@@ -77,7 +76,9 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
                 if (shouldPreserveTimestamps != null) {
                     writer.println(String.format("preserveFileTimestamps = %s", shouldPreserveTimestamps));
                 }
-                writer.println(String.format("%s = file('%s')", destinationDir, jarFile.getParentFile().toURI()));
+                writer.println(String.format(
+                        "%s = file('%s')",
+                        destinationDir, jarFile.getParentFile().toURI()));
                 writer.println(String.format("%s = '%s'", archiveName, jarFile.getName()));
                 if (!manifestAttributes.isEmpty()) {
                     writer.println("def attrs = [:]");

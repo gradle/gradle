@@ -38,7 +38,9 @@ class ArtifactsAtRepositoryKey {
         }
 
         ArtifactsAtRepositoryKey that = (ArtifactsAtRepositoryKey) o;
-        return repositoryId.equals(that.repositoryId) && componentId.equals(that.componentId) && context.equals(that.context);
+        return repositoryId.equals(that.repositoryId)
+                && componentId.equals(that.componentId)
+                && context.equals(that.context);
     }
 
     @Override

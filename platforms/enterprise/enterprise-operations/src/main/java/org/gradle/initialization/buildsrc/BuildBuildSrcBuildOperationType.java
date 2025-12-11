@@ -23,7 +23,8 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 4.3
  */
-public final class BuildBuildSrcBuildOperationType implements BuildOperationType<BuildBuildSrcBuildOperationType.Details, BuildBuildSrcBuildOperationType.Result> {
+public final class BuildBuildSrcBuildOperationType
+        implements BuildOperationType<BuildBuildSrcBuildOperationType.Details, BuildBuildSrcBuildOperationType.Result> {
 
     public interface Details {
         /**
@@ -33,9 +34,7 @@ public final class BuildBuildSrcBuildOperationType implements BuildOperationType
         String getBuildPath();
     }
 
-    public interface Result {
-    }
+    public interface Result {}
 
-    private BuildBuildSrcBuildOperationType(){
-    }
+    private BuildBuildSrcBuildOperationType() {}
 }

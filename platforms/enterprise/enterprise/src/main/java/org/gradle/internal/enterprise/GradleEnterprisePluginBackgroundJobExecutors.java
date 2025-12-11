@@ -16,11 +16,10 @@
 
 package org.gradle.internal.enterprise;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Provides executors to run jobs in the background workers. The implementation is provided by Gradle.

@@ -23,6 +23,4 @@ package org.gradle.api.initialization.definition;
  *
  * @since 4.6
  */
-public interface InjectedPluginDependency {
-
-}
+public interface InjectedPluginDependency {}

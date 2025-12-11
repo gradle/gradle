@@ -16,35 +16,37 @@
 
 package org.gradle.internal.properties.annotations;
 
+import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
+
+import java.util.Locale;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.TextUtil;
 
-import java.util.Locale;
-
-import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.deprecation.Documentation.userManual;
-
 /**
  * A handler for properties discovered without a valid annotation.
  */
 public interface MissingPropertyAnnotationHandler {
-    void handleMissingPropertyAnnotation(TypeValidationContext context, PropertyAnnotationMetadata annotationMetadata, String displayName);
+    void handleMissingPropertyAnnotation(
+            TypeValidationContext context, PropertyAnnotationMetadata annotationMetadata, String displayName);
 
     MissingPropertyAnnotationHandler DO_NOTHING = (context, annotationMetadata, displayName) -> {};
 
-
-    MissingPropertyAnnotationHandler MISSING_INPUT_OUTPUT_HANDLER = (context, annotationMetadata, displayName) -> context.visitPropertyProblem(problem -> {
-        final String missingAnnotation = "MISSING_ANNOTATION";
-        problem
-            .forProperty(annotationMetadata.getPropertyName())
-            .id(TextUtil.screamingSnakeToKebabCase(missingAnnotation), "Missing annotation", GradleCoreProblemGroup.validation().property())
-            .contextualLabel("is missing " + displayName)
-            .documentedAt(userManual("validation_problems", missingAnnotation.toLowerCase(Locale.ROOT)))
-            .severity(ERROR)
-            .details("A property without annotation isn't considered during up-to-date checking")
-            .solution("Add " + displayName)
-            .solution("Mark it as @Internal");
-    });
+    MissingPropertyAnnotationHandler MISSING_INPUT_OUTPUT_HANDLER =
+            (context, annotationMetadata, displayName) -> context.visitPropertyProblem(problem -> {
+                final String missingAnnotation = "MISSING_ANNOTATION";
+                problem.forProperty(annotationMetadata.getPropertyName())
+                        .id(
+                                TextUtil.screamingSnakeToKebabCase(missingAnnotation),
+                                "Missing annotation",
+                                GradleCoreProblemGroup.validation().property())
+                        .contextualLabel("is missing " + displayName)
+                        .documentedAt(userManual("validation_problems", missingAnnotation.toLowerCase(Locale.ROOT)))
+                        .severity(ERROR)
+                        .details("A property without annotation isn't considered during up-to-date checking")
+                        .solution("Add " + displayName)
+                        .solution("Mark it as @Internal");
+            });
 }

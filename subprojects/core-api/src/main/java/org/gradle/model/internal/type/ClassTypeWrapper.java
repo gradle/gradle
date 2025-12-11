@@ -17,7 +17,6 @@
 package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
-
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
@@ -78,9 +77,7 @@ class ClassTypeWrapper implements TypeWrapper {
             Package pkg = clazz.getPackage();
             int pkgPrefixLength = pkg == null ? 0 : pkg.getName().length() + 1;
             String simpleName = clazz.getName().substring(pkgPrefixLength).replace('$', '.');
-            return full && pkg != null
-                ? pkg.getName() + "." + simpleName
-                : simpleName;
+            return full && pkg != null ? pkg.getName() + "." + simpleName : simpleName;
         }
     }
 
@@ -91,8 +88,7 @@ class ClassTypeWrapper implements TypeWrapper {
         Class<?> topLevelClass = classChain.get(topLevelIndex);
 
         StringBuilder representation = new StringBuilder();
-        representation.append(
-            full ? topLevelClass.getName() : topLevelClass.getSimpleName());
+        representation.append(full ? topLevelClass.getName() : topLevelClass.getSimpleName());
 
         for (int i = topLevelIndex - 1; i >= 0; i--) {
             representation.append('.');
@@ -101,7 +97,8 @@ class ClassTypeWrapper implements TypeWrapper {
         return representation.toString();
     }
 
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "NonApiType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private ArrayList<Class<?>> getEnclosingClassChain() {
         ArrayList<Class<?>> classChain = new ArrayList<Class<?>>();
         Class<?> clazz = unwrap();
@@ -120,9 +117,7 @@ class ClassTypeWrapper implements TypeWrapper {
         // And https://docs.oracle.com/javase/specs/jls/se7/html/jls-8.html#jls-8.9.1
         // "The optional class body of an enum constant implicitly defines an anonymous class declaration
         //  that extends the immediately enclosing enum type."
-        if (enclosingClass != null
-            && enclosingClass.isEnum()
-            && clazz.getSuperclass() == enclosingClass) {
+        if (enclosingClass != null && enclosingClass.isEnum() && clazz.getSuperclass() == enclosingClass) {
 
             return enclosingClass;
         }

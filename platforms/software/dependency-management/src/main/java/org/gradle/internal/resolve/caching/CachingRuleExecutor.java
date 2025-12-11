@@ -47,10 +47,9 @@ public interface CachingRuleExecutor<KEY, DETAILS, RESULT> {
      * @param cacheExpirationControl the cache policy
      */
     <D extends DETAILS> RESULT execute(
-        KEY key,
-        InstantiatingAction<DETAILS> rule,
-        Transformer<RESULT, D> detailsToResult,
-        Transformer<D, KEY> onCacheMiss,
-        CacheExpirationControl cacheExpirationControl
-    );
+            KEY key,
+            InstantiatingAction<DETAILS> rule,
+            Transformer<RESULT, D> detailsToResult,
+            Transformer<D, KEY> onCacheMiss,
+            CacheExpirationControl cacheExpirationControl);
 }

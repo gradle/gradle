@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.test.internal;
 
+import java.io.File;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeExecutableFileSpec;
 import org.gradle.nativeplatform.NativeInstallationSpec;
@@ -29,9 +30,8 @@ import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
-import java.io.File;
-
-public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec implements NativeTestSuiteBinarySpecInternal {
+public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec
+        implements NativeTestSuiteBinarySpecInternal {
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
     private NativeBinarySpecInternal testedBinary;
     private NativeInstallationSpec installation = new NativeInstallationSpec();
@@ -92,7 +92,8 @@ public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec i
         return tasks;
     }
 
-    private static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements NativeTestSuiteBinarySpec.TasksCollection {
+    private static class DefaultTasksCollection extends BinaryTasksCollectionWrapper
+            implements NativeTestSuiteBinarySpec.TasksCollection {
         public DefaultTasksCollection(BinaryTasksCollection delegate) {
             super(delegate);
         }

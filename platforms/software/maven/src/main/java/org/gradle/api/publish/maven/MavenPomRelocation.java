@@ -49,5 +49,4 @@ public interface MavenPomRelocation {
      * The message to show the user for this relocation.
      */
     Property<String> getMessage();
-
 }

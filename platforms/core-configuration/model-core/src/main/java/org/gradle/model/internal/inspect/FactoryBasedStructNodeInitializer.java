@@ -25,7 +25,8 @@ import org.gradle.model.internal.typeregistration.InstanceFactory;
 public class FactoryBasedStructNodeInitializer<T, S extends T> extends StructNodeInitializer<S> {
     private final InstanceFactory.ImplementationInfo implementationInfo;
 
-    public FactoryBasedStructNodeInitializer(StructBindings<S> bindings, InstanceFactory.ImplementationInfo implementationInfo) {
+    public FactoryBasedStructNodeInitializer(
+            StructBindings<S> bindings, InstanceFactory.ImplementationInfo implementationInfo) {
         super(bindings);
         this.implementationInfo = implementationInfo;
     }

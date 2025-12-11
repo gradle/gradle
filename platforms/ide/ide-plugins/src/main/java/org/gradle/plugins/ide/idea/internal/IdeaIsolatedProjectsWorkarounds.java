@@ -36,8 +36,11 @@ class IdeaIsolatedProjectsWorkarounds {
      * The check is done bypassing the Isolated Projects validations.
      */
     public static boolean hasPlugin(Project project, Class<? extends Plugin<?>> pluginClass) {
-        return ((ProjectInternal) project).getOwner().getMutableModel().getPluginManager().getPluginContainer()
-            .hasPlugin(pluginClass);
+        return ((ProjectInternal) project)
+                .getOwner()
+                .getMutableModel()
+                .getPluginManager()
+                .getPluginContainer()
+                .hasPlugin(pluginClass);
     }
-
 }

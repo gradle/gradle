@@ -44,16 +44,23 @@ public class DefaultCompileOperationFactory implements CompileOperationFactory {
 
     @Override
     public CompileOperation<?> getPluginsBlockCompileOperation(ScriptTarget initialPassScriptTarget) {
-        InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(initialPassScriptTarget, documentationRegistry);
+        InitialPassStatementTransformer initialPassStatementTransformer =
+                new InitialPassStatementTransformer(initialPassScriptTarget, documentationRegistry);
         SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
         String id = INTERNER.intern("cp_" + initialPassScriptTarget.getId());
         return new NoDataCompileOperation(id, CLASSPATH_COMPILE_STAGE, initialTransformer);
     }
 
     @Override
-    public CompileOperation<BuildScriptData> getScriptCompileOperation(ScriptSource scriptSource, ScriptTarget scriptTarget) {
+    public CompileOperation<BuildScriptData> getScriptCompileOperation(
+            ScriptSource scriptSource, ScriptTarget scriptTarget) {
         BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(scriptSource, scriptTarget);
         String templateId = scriptTarget.getId();
-        return new FactoryBackedCompileOperation<>(templateId, BODY_COMPILE_STAGE, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
+        return new FactoryBackedCompileOperation<>(
+                templateId,
+                BODY_COMPILE_STAGE,
+                buildScriptTransformer,
+                buildScriptTransformer,
+                buildScriptDataSerializer);
     }
 }

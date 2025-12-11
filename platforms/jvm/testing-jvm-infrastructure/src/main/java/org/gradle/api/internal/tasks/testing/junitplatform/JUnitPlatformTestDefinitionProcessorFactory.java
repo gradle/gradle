@@ -16,21 +16,21 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
+import java.io.Serializable;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 
-import java.io.Serializable;
-
 /**
  * Implementation of {@link WorkerTestDefinitionProcessorFactory} which instantiates a {@code JUnitPlatformTestDefinitionProcessor}.
  * This class is loaded on test workers themselves and acts as the entry-point to running JUnit Platform tests on a test worker.
  */
-class JUnitPlatformTestDefinitionProcessorFactory implements WorkerTestDefinitionProcessorFactory<TestDefinition>, Serializable {
+class JUnitPlatformTestDefinitionProcessorFactory
+        implements WorkerTestDefinitionProcessorFactory<TestDefinition>, Serializable {
     private final JUnitPlatformSpec spec;
 
     public JUnitPlatformTestDefinitionProcessorFactory(JUnitPlatformSpec spec) {
@@ -38,7 +38,8 @@ class JUnitPlatformTestDefinitionProcessorFactory implements WorkerTestDefinitio
     }
 
     @Override
-    public TestDefinitionProcessor<TestDefinition> create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
+    public TestDefinitionProcessor<TestDefinition> create(
+            IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         try {
             return new JUnitPlatformTestDefinitionProcessor(spec, idGenerator, actorFactory, clock);
         } catch (Exception e) {

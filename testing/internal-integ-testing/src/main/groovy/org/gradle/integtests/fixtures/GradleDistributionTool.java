@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.fixtures;
 
+import java.util.Objects;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.util.GradleVersion;
-
-import java.util.Objects;
 
 public class GradleDistributionTool implements VersionedTool {
     private final GradleDistribution distribution;

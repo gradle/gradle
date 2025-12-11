@@ -16,12 +16,11 @@
 
 package org.gradle.internal.groovyloader;
 
-import org.gradle.api.GradleException;
-
 import java.lang.reflect.Field;
 import java.util.prefs.AbstractPreferences;
 import java.util.prefs.PreferenceChangeListener;
 import java.util.prefs.Preferences;
+import org.gradle.api.GradleException;
 
 public class PreferenceCleaningGroovySystemLoader implements GroovySystemLoader {
 
@@ -54,7 +53,5 @@ public class PreferenceCleaningGroovySystemLoader implements GroovySystemLoader 
     }
 
     @Override
-    public void discardTypesFrom(ClassLoader classLoader) {
-
-    }
+    public void discardTypesFrom(ClassLoader classLoader) {}
 }

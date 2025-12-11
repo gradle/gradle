@@ -16,6 +16,8 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import java.util.Arrays;
+import java.util.List;
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.stmt.Statement;
@@ -25,9 +27,6 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataCompiler;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Removes all statements from the given script except the top-level script blocks such as
@@ -48,12 +47,12 @@ public class InitialPassStatementTransformer implements StatementTransformer {
     private boolean seenPluginManagementBlock;
     private boolean seenClasspathBlock;
 
-    public InitialPassStatementTransformer(ScriptTarget scriptTarget,
-                                           DocumentationRegistry documentationRegistry) {
+    public InitialPassStatementTransformer(ScriptTarget scriptTarget, DocumentationRegistry documentationRegistry) {
         this.scriptTarget = scriptTarget;
         this.scriptBlockNames = Arrays.asList(scriptTarget.getClasspathBlockName(), PLUGINS, PLUGIN_MANAGEMENT);
         this.documentationRegistry = documentationRegistry;
-        this.pluginBlockMetadataCompiler = new PluginUseScriptBlockMetadataCompiler(documentationRegistry, scriptTarget.getPluginsBlockPermits());
+        this.pluginBlockMetadataCompiler =
+                new PluginUseScriptBlockMetadataCompiler(documentationRegistry, scriptTarget.getPluginsBlockPermits());
     }
 
     @Override
@@ -74,9 +73,10 @@ public class InitialPassStatementTransformer implements StatementTransformer {
 
         if (seenPluginsBlock) {
             String message = String.format(
-                pluginBlockMetadataCompiler.formatErrorMessage("all %s {} blocks must appear before any %s {} blocks in the script"),
-                scriptTarget.getClasspathBlockName(), PLUGINS
-            );
+                    pluginBlockMetadataCompiler.formatErrorMessage(
+                            "all %s {} blocks must appear before any %s {} blocks in the script"),
+                    scriptTarget.getClasspathBlockName(),
+                    PLUGINS);
             addSyntaxError(message, sourceUnit, statement);
         }
         seenClasspathBlock = true;
@@ -87,7 +87,8 @@ public class InitialPassStatementTransformer implements StatementTransformer {
         String failMessage = null;
 
         if (!scriptTarget.getSupportsPluginsBlock()) {
-            failMessage = pluginBlockMetadataCompiler.formatErrorMessage("Only Project and Settings build scripts can contain plugins {} blocks");
+            failMessage = pluginBlockMetadataCompiler.formatErrorMessage(
+                    "Only Project and Settings build scripts can contain plugins {} blocks");
         } else {
             seenPluginsBlock = true;
 
@@ -95,9 +96,12 @@ public class InitialPassStatementTransformer implements StatementTransformer {
 
             if (seenNonClasspathStatement) {
                 failMessage = String.format(
-                    pluginBlockMetadataCompiler.formatErrorMessage("only %s {}, %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
-                    scriptTarget.getClasspathBlockName(), PLUGIN_MANAGEMENT, PLUGINS, PLUGINS
-                );
+                        pluginBlockMetadataCompiler.formatErrorMessage(
+                                "only %s {}, %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
+                        scriptTarget.getClasspathBlockName(),
+                        PLUGIN_MANAGEMENT,
+                        PLUGINS,
+                        PLUGINS);
             } else {
                 pluginBlockMetadataCompiler.compile(sourceUnit, scriptBlock);
             }
@@ -112,8 +116,11 @@ public class InitialPassStatementTransformer implements StatementTransformer {
 
     // Add the block line-number as an argument to call `plugins(int lineNumber, Closure pluginsBlock)`
     private void addLineNumberToMethodCall(ScriptBlock scriptBlock) {
-        ConstantExpression lineNumberExpression = new ConstantExpression(scriptBlock.getClosureExpression().getLineNumber(), true);
-        scriptBlock.getMethodCall().setArguments(new ArgumentListExpression(lineNumberExpression, scriptBlock.getClosureExpression()));
+        ConstantExpression lineNumberExpression =
+                new ConstantExpression(scriptBlock.getClosureExpression().getLineNumber(), true);
+        scriptBlock
+                .getMethodCall()
+                .setArguments(new ArgumentListExpression(lineNumberExpression, scriptBlock.getClosureExpression()));
     }
 
     private Statement transformPluginManagementBlock(SourceUnit sourceUnit, Statement statement) {
@@ -126,10 +133,11 @@ public class InitialPassStatementTransformer implements StatementTransformer {
     }
 
     private void addSyntaxError(String errorMessage, SourceUnit sourceUnit, Statement statement) {
-        sourceUnit.getErrorCollector().addError(
-            new SyntaxException(errorMessage, statement.getLineNumber(), statement.getColumnNumber()),
-            sourceUnit
-        );
+        sourceUnit
+                .getErrorCollector()
+                .addError(
+                        new SyntaxException(errorMessage, statement.getLineNumber(), statement.getColumnNumber()),
+                        sourceUnit);
     }
 
     @Nullable
@@ -138,7 +146,8 @@ public class InitialPassStatementTransformer implements StatementTransformer {
             return "Only Settings scripts can contain a pluginManagement {} block.";
         }
         if (seenClasspathBlock || seenNonClasspathStatement || seenPluginsBlock) {
-            return String.format("The %s {} block must appear before any other statements in the script.", PLUGIN_MANAGEMENT);
+            return String.format(
+                    "The %s {} block must appear before any other statements in the script.", PLUGIN_MANAGEMENT);
         }
         if (seenPluginManagementBlock) {
             return String.format("At most, one %s {} block may appear in the script.", PLUGIN_MANAGEMENT);
@@ -148,9 +157,9 @@ public class InitialPassStatementTransformer implements StatementTransformer {
 
     private String makePluginManagementError(String failureMessage) {
         return String.format(
-            "%s%n%n%s%n%n",
-            failureMessage,
-            documentationRegistry.getDocumentationRecommendationFor("information on the pluginManagement {} block", "plugins", "sec:plugin_management"));
+                "%s%n%n%s%n%n",
+                failureMessage,
+                documentationRegistry.getDocumentationRecommendationFor(
+                        "information on the pluginManagement {} block", "plugins", "sec:plugin_management"));
     }
-
 }

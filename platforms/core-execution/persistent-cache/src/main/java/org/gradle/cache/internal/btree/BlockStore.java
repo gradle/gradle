@@ -40,7 +40,7 @@ public interface BlockStore {
      * Reads the first block from this store.
      */
     <T extends BlockPayload> T readFirst(Class<T> payloadType);
-    
+
     /**
      * Reads a block from this store.
      */

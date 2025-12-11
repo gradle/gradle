@@ -17,10 +17,9 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
+import java.lang.annotation.Annotation;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
-
-import java.lang.annotation.Annotation;
 
 /**
  * A generalized type metadata walker for traversing annotated types and instances using their {@link TypeMetadata}.
@@ -46,7 +45,8 @@ public interface TypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMetadata
      *
      * Instance walker will throw {@link IllegalStateException} in case a nested property cycle is detected.
      */
-    static InstanceMetadataWalker instanceWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
+    static InstanceMetadataWalker instanceWalker(
+            TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
         return new AbstractTypeMetadataWalker.InstanceTypeMetadataWalker(typeMetadataStore, nestedAnnotation);
     }
 
@@ -55,7 +55,8 @@ public interface TypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMetadata
      *
      * Type walker can detect a nested property cycle and stop walking the path with a cycle, no exception is thrown.
      */
-    static StaticMetadataWalker typeWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
+    static StaticMetadataWalker typeWalker(
+            TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
         return new AbstractTypeMetadataWalker.StaticTypeMetadataWalker(typeMetadataStore, nestedAnnotation);
     }
 
@@ -67,6 +68,7 @@ public interface TypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMetadata
 
     interface TypeMetadataVisitor<T> {
         void visitRoot(TypeMetadata typeMetadata, T value);
+
         void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, T value);
     }
 
@@ -74,8 +76,14 @@ public interface TypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMetadata
 
     interface InstanceMetadataVisitor extends TypeMetadataVisitor<Object> {
         @Override
-        void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Object value);
+        void visitNested(
+                TypeMetadata typeMetadata,
+                String qualifiedName,
+                PropertyMetadata propertyMetadata,
+                @Nullable Object value);
+
         void visitNestedUnpackingError(String qualifiedName, Exception e);
+
         void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata);
     }
 }

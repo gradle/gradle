@@ -16,11 +16,10 @@
 
 package org.gradle.jvm.toolchain;
 
+import java.util.Optional;
 import org.gradle.api.Incubating;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
-
-import java.util.Optional;
 
 /**
  * Interface that needs to be implemented by Java toolchain provisioning plugins.
@@ -42,5 +41,4 @@ public interface JavaToolchainResolver extends BuildService<BuildServiceParamete
      *                  matched
      */
     Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request);
-
 }

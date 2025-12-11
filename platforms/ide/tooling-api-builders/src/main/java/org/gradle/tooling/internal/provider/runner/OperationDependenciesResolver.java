@@ -16,16 +16,15 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.execution.plan.Node;
-import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import static java.util.stream.Collectors.toCollection;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
-import static java.util.stream.Collectors.toCollection;
+import org.gradle.execution.plan.Node;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
 class OperationDependenciesResolver {
 
@@ -37,17 +36,16 @@ class OperationDependenciesResolver {
 
     Set<InternalOperationDescriptor> resolveDependencies(Node node) {
         return node.getDependencySuccessors().stream()
-            .map(this::lookupExistingOperationDescriptor)
-            .filter(Objects::nonNull)
-            .collect(toCollection(LinkedHashSet::new));
+                .map(this::lookupExistingOperationDescriptor)
+                .filter(Objects::nonNull)
+                .collect(toCollection(LinkedHashSet::new));
     }
 
     private InternalOperationDescriptor lookupExistingOperationDescriptor(Node node) {
         return lookups.stream()
-            .map(entry -> entry.lookupExistingOperationDescriptor(node))
-            .filter(Objects::nonNull)
-            .findFirst()
-            .orElse(null);
+                .map(entry -> entry.lookupExistingOperationDescriptor(node))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
-
 }

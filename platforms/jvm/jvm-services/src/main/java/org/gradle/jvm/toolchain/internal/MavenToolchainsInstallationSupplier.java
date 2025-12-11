@@ -16,6 +16,24 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -28,25 +46,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
-
-import javax.inject.Inject;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class MavenToolchainsInstallationSupplier implements InstallationSupplier {
 
@@ -63,7 +62,8 @@ public class MavenToolchainsInstallationSupplier implements InstallationSupplier
 
     @Inject
     public MavenToolchainsInstallationSupplier(ProviderFactory factory, FileResolver fileResolver) {
-        this.toolchainLocation = factory.gradleProperty(PROPERTY_NAME).orElse(defaultMavenToolchainsDefinitionsLocation());
+        this.toolchainLocation =
+                factory.gradleProperty(PROPERTY_NAME).orElse(defaultMavenToolchainsDefinitionsLocation());
         this.xPathFactory = XmlFactories.newXPathFactory();
         this.documentBuilderFactory = XmlFactories.newDocumentBuilderFactory();
         this.fileResolver = fileResolver;
@@ -85,7 +85,8 @@ public class MavenToolchainsInstallationSupplier implements InstallationSupplier
                 XPath xpath = xPathFactory.newXPath();
                 XPathExpression expression = xpath.compile(PARSE_EXPRESSION);
 
-                NodeList nodes = (NodeList) expression.evaluate(documentBuilder.parse(toolchain), XPathConstants.NODESET);
+                NodeList nodes =
+                        (NodeList) expression.evaluate(documentBuilder.parse(toolchain), XPathConstants.NODESET);
                 Set<String> locations = new HashSet<>();
                 for (int i = 0; i < nodes.getLength(); i++) {
                     Node item = nodes.item(i);
@@ -95,7 +96,9 @@ public class MavenToolchainsInstallationSupplier implements InstallationSupplier
                         StringBuffer resolvedValue = new StringBuffer();
                         while (matcher.find()) {
                             String envVariableName = matcher.group(1);
-                            String envVariableValue = providerFactory.environmentVariable(envVariableName).getOrNull();
+                            String envVariableValue = providerFactory
+                                    .environmentVariable(envVariableName)
+                                    .getOrNull();
                             if (envVariableValue == null) {
                                 matcher.appendReplacement(resolvedValue, "\\${env." + envVariableName + "}");
                                 continue;
@@ -108,13 +111,19 @@ public class MavenToolchainsInstallationSupplier implements InstallationSupplier
                     }
                 }
                 return locations.stream()
-                    .map(jdkHome -> InstallationLocation.autoDetected(new File(jdkHome), getSourceName()))
-                    .collect(Collectors.toSet());
+                        .map(jdkHome -> InstallationLocation.autoDetected(new File(jdkHome), getSourceName()))
+                        .collect(Collectors.toSet());
             } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Java Toolchain auto-detection failed to parse Maven Toolchains located at {}", toolchainFile, e);
+                    LOGGER.debug(
+                            "Java Toolchain auto-detection failed to parse Maven Toolchains located at {}",
+                            toolchainFile,
+                            e);
                 } else {
-                    LOGGER.info("Java Toolchain auto-detection failed to parse Maven Toolchains located at {}. {}", toolchainFile, e.getMessage());
+                    LOGGER.info(
+                            "Java Toolchain auto-detection failed to parse Maven Toolchains located at {}. {}",
+                            toolchainFile,
+                            e.getMessage());
                 }
             }
         }

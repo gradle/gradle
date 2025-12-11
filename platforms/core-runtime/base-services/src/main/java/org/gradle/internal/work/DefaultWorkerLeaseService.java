@@ -16,8 +16,18 @@
 
 package org.gradle.internal.work;
 
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock;
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock;
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
+
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
@@ -36,17 +46,6 @@ import org.gradle.util.internal.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock;
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock;
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
-
 public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectParallelExecutionController, Stoppable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerLeaseService.class);
@@ -58,10 +57,9 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     private final AtomicReference<Registries> registries = new AtomicReference<Registries>(new NoRegistries());
 
     public DefaultWorkerLeaseService(
-        ResourceLockCoordinationService coordinationService,
-        WorkerLimits workerLimits,
-        ResourceLockStatistics resourceLockStatistics
-    ) {
+            ResourceLockCoordinationService coordinationService,
+            WorkerLimits workerLimits,
+            ResourceLockStatistics resourceLockStatistics) {
         this.workerLimits = workerLimits;
         this.coordinationService = coordinationService;
         this.workerLeaseLockRegistry = new WorkerLeaseLockRegistry(coordinationService);
@@ -178,7 +176,10 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     @Override
     public ResourceLock getTaskExecutionLock(Path buildIdentityPath, Path projectIdentityPath) {
-        return registries.get().getTaskExecutionLockRegistry().getTaskExecutionLock(buildIdentityPath, projectIdentityPath);
+        return registries
+                .get()
+                .getTaskExecutionLockRegistry()
+                .getTaskExecutionLock(buildIdentityPath, projectIdentityPath);
     }
 
     @Override
@@ -201,8 +202,10 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     @Override
     public <T> T runAsIsolatedTask(Factory<T> factory) {
         Registries registries = this.registries.get();
-        Collection<? extends ResourceLock> projectLocks = registries.getProjectLockRegistry().getResourceLocksByCurrentThread();
-        Collection<? extends ResourceLock> taskLocks = registries.getTaskExecutionLockRegistry().getResourceLocksByCurrentThread();
+        Collection<? extends ResourceLock> projectLocks =
+                registries.getProjectLockRegistry().getResourceLocksByCurrentThread();
+        Collection<? extends ResourceLock> taskLocks =
+                registries.getTaskExecutionLockRegistry().getResourceLocksByCurrentThread();
         List<ResourceLock> locks = new ArrayList<ResourceLock>(projectLocks.size() + taskLocks.size());
         locks.addAll(projectLocks);
         locks.addAll(taskLocks);
@@ -213,7 +216,8 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     public void blocking(Runnable action) {
         Registries registries = this.registries.get();
         if (registries.getProjectLockRegistry().mayAttemptToChangeLocks()) {
-            final Collection<? extends ResourceLock> projectLocks = registries.getProjectLockRegistry().getResourceLocksByCurrentThread();
+            final Collection<? extends ResourceLock> projectLocks =
+                    registries.getProjectLockRegistry().getResourceLocksByCurrentThread();
             if (!projectLocks.isEmpty()) {
                 // Need to run the action without the project locks and the worker lease
                 List<ResourceLock> locks = new ArrayList<ResourceLock>(projectLocks.size() + 1);
@@ -279,9 +283,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     private void acquireLocks(final Iterable<? extends ResourceLock> locks) {
         if (containsNonWorkerLease(locks)) {
-            resourceLockStatistics.measureLockAcquisition(locks, () ->
-                coordinationService.withStateLock(lock(locks))
-            );
+            resourceLockStatistics.measureLockAcquisition(locks, () -> coordinationService.withStateLock(lock(locks)));
         } else {
             coordinationService.withStateLock(lock(locks));
         }
@@ -350,20 +352,20 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     private void assertAllLocked(Collection<? extends ResourceLock> locks) {
         if (!allLockedByCurrentThread(locks)) {
-            throw new IllegalStateException("Not all of the locks specified are currently held by the current thread.  This could lead to orphaned locks.");
+            throw new IllegalStateException(
+                    "Not all of the locks specified are currently held by the current thread.  This could lead to orphaned locks.");
         }
     }
 
     @Override
-    public <T> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, ResourceLock newLock, Factory<T> factory) {
+    public <T> T withReplacedLocks(
+            Collection<? extends ResourceLock> currentLocks, ResourceLock newLock, Factory<T> factory) {
         if (currentLocks.contains(newLock)) {
             // Already holds the lock
             return factory.create();
         }
 
-        return withoutLocks(currentLocks, () ->
-            withLocksAcquired(Collections.singletonList(newLock), factory)
-        );
+        return withoutLocks(currentLocks, () -> withLocksAcquired(Collections.singletonList(newLock), factory));
     }
 
     @Override
@@ -396,8 +398,10 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         List<ResourceLock> allLocks = new ArrayList<ResourceLock>(locks.size() + workerLeases.size());
         allLocks.addAll(workerLeases);
         allLocks.addAll(locks);
-        // We free the worker lease but keep shared resource leases. We don't want to free shared resources until a task completes,
-        // regardless of whether it is actually doing work just to make behavior more predictable. This might change in the future.
+        // We free the worker lease but keep shared resource leases. We don't want to free shared resources until a task
+        // completes,
+        // regardless of whether it is actually doing work just to make behavior more predictable. This might change in
+        // the future.
         withoutLocks(workerLeases, () -> acquireLocks(allLocks));
     }
 
@@ -415,7 +419,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         });
     }
 
-    private static abstract class Registries {
+    private abstract static class Registries {
         abstract ProjectLockRegistry getProjectLockRegistry();
 
         abstract TaskExecutionLockRegistry getTaskExecutionLockRegistry();
@@ -456,7 +460,10 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         private final ProjectLockRegistry projectLockRegistry;
         private final Registries finishState;
 
-        public ConfiguredRegistries(TaskExecutionLockRegistry taskLockRegistry, ProjectLockRegistry projectLockRegistry, Registries finishState) {
+        public ConfiguredRegistries(
+                TaskExecutionLockRegistry taskLockRegistry,
+                ProjectLockRegistry projectLockRegistry,
+                Registries finishState) {
             this.taskLockRegistry = taskLockRegistry;
             this.projectLockRegistry = projectLockRegistry;
             this.finishState = finishState;
@@ -511,7 +518,11 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     private class DefaultWorkerLease extends DefaultLease implements WorkerLeaseCompletion, WorkerLease {
-        public DefaultWorkerLease(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, LeaseHolder parent) {
+        public DefaultWorkerLease(
+                String displayName,
+                ResourceLockCoordinationService coordinationService,
+                ResourceLockContainer owner,
+                LeaseHolder parent) {
             super(displayName, coordinationService, owner, parent);
         }
 
@@ -520,5 +531,4 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
             coordinationService.withStateLock(DefaultResourceLockCoordinationService.unlock(this));
         }
     }
-
 }

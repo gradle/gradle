@@ -24,5 +24,6 @@ package org.gradle.tooling.internal.protocol.events;
 public interface InternalTestOutputResult extends InternalOperationResult {
 
     int getDestination();
+
     String getMessage();
 }

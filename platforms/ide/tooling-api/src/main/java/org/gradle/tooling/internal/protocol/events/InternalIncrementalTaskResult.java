@@ -36,5 +36,4 @@ public interface InternalIncrementalTaskResult extends InternalTaskResult {
      * @return the list of reasons; {@code null} if undetermined (e.g. if the task was skipped).
      */
     List<String> getExecutionReasons();
-
 }

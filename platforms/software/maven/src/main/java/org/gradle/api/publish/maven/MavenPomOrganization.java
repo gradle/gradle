@@ -35,5 +35,4 @@ public interface MavenPomOrganization {
      * The URL of this organization.
      */
     Property<String> getUrl();
-
 }

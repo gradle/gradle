@@ -23,5 +23,4 @@ import org.gradle.tooling.events.FailureResult;
  *
  * @since 5.1
  */
-public interface ProjectConfigurationFailureResult extends ProjectConfigurationOperationResult, FailureResult {
-}
+public interface ProjectConfigurationFailureResult extends ProjectConfigurationOperationResult, FailureResult {}

@@ -16,10 +16,9 @@
 
 package org.gradle.internal.service;
 
-import org.gradle.internal.service.scopes.Scope;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.internal.service.scopes.Scope;
 
 /**
  * A builder for a {@link ServiceRegistry}.
@@ -55,8 +54,7 @@ public class ServiceRegistryBuilder {
     private Class<? extends Scope> scope;
     private boolean strict;
 
-    private ServiceRegistryBuilder() {
-    }
+    private ServiceRegistryBuilder() {}
 
     /**
      * Creates a new builder.
@@ -167,8 +165,8 @@ public class ServiceRegistryBuilder {
         ServiceRegistry[] parents = this.parents.toArray(new ServiceRegistry[0]);
 
         DefaultServiceRegistry registry = scope != null
-            ? new ScopedServiceRegistry(scope, strict, displayName, parents)
-            : new DefaultServiceRegistry(displayName, parents);
+                ? new ScopedServiceRegistry(scope, strict, displayName, parents)
+                : new DefaultServiceRegistry(displayName, parents);
 
         for (ServiceRegistrationProvider provider : providers) {
             registry.addProvider(provider);

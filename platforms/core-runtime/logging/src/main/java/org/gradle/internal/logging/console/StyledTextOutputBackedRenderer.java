@@ -16,6 +16,11 @@
 
 package org.gradle.internal.logging.console;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Error;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -23,12 +28,6 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.text.AbstractLineChoppingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Error;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class StyledTextOutputBackedRenderer implements OutputEventListener {
     public static final String ISO_8601_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
@@ -55,7 +54,10 @@ public class StyledTextOutputBackedRenderer implements OutputEventListener {
         if (event instanceof RenderableOutputEvent) {
             RenderableOutputEvent outputEvent = (RenderableOutputEvent) event;
             textOutput.style(outputEvent.getLogLevel() == LogLevel.ERROR ? Error : Normal);
-            if (debugOutput && (textOutput.atEndOfLine || lastEvent == null || !lastEvent.getCategory().equals(outputEvent.getCategory()))) {
+            if (debugOutput
+                    && (textOutput.atEndOfLine
+                            || lastEvent == null
+                            || !lastEvent.getCategory().equals(outputEvent.getCategory()))) {
                 if (!textOutput.atEndOfLine) {
                     textOutput.println();
                 }

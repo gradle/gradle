@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -32,11 +36,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
 @UsedByScanPlugin("test-retry")
 public abstract class TestNGTestFramework implements TestFramework {
     private TestNGDetector detector;
@@ -46,7 +45,11 @@ public abstract class TestNGTestFramework implements TestFramework {
     private final DirectoryReport html;
 
     @Inject
-    public TestNGTestFramework(DefaultTestFilter filter, Factory<File> testTaskTemporaryDir, Provider<Boolean> dryRun, DirectoryReport html) {
+    public TestNGTestFramework(
+            DefaultTestFilter filter,
+            Factory<File> testTaskTemporaryDir,
+            Provider<Boolean> dryRun,
+            DirectoryReport html) {
         this.filter = filter;
         this.testTaskTemporaryDir = testTaskTemporaryDir;
         this.detector = new TestNGDetector(new ClassFileExtractionManager(testTaskTemporaryDir));
@@ -56,7 +59,9 @@ public abstract class TestNGTestFramework implements TestFramework {
     }
 
     private static void conventionMapOutputDirectory(TestNGOptions options, final DirectoryReport html) {
-        new DslObject(options).getConventionMapping().map("outputDirectory", () -> html.getOutputLocation().getAsFile().getOrNull());
+        new DslObject(options).getConventionMapping().map("outputDirectory", () -> html.getOutputLocation()
+                .getAsFile()
+                .getOrNull());
     }
 
     @Inject
@@ -65,7 +70,8 @@ public abstract class TestNGTestFramework implements TestFramework {
     @UsedByScanPlugin("test-retry")
     @Override
     public TestFramework copyWithFilters(TestFilter newTestFilters) {
-        TestNGTestFramework newTestFramework = getObjectFactory().newInstance(TestNGTestFramework.class, newTestFilters, testTaskTemporaryDir, dryRun, html);
+        TestNGTestFramework newTestFramework = getObjectFactory()
+                .newInstance(TestNGTestFramework.class, newTestFilters, testTaskTemporaryDir, dryRun, html);
         newTestFramework.getOptions().copyFrom(getOptions());
 
         return newTestFramework;
@@ -79,12 +85,22 @@ public abstract class TestNGTestFramework implements TestFramework {
     }
 
     private TestNGSpec toSpec(TestNGOptions options, DefaultTestFilter filter) {
-        return new TestNGSpec(filter.toSpec(),
-            options.getSuiteName(), options.getTestName(), options.getParallel(), options.getThreadCount(), options.getSuiteThreadPoolSize().get(),
-            options.getUseDefaultListeners(), options.getThreadPoolFactoryClass(),
-            options.getIncludeGroups(), options.getExcludeGroups(), options.getListeners(),
-            options.getConfigFailurePolicy(), options.getPreserveOrder(), options.getGroupByInstances(), dryRun.get()
-        );
+        return new TestNGSpec(
+                filter.toSpec(),
+                options.getSuiteName(),
+                options.getTestName(),
+                options.getParallel(),
+                options.getThreadCount(),
+                options.getSuiteThreadPoolSize().get(),
+                options.getUseDefaultListeners(),
+                options.getThreadPoolFactoryClass(),
+                options.getIncludeGroups(),
+                options.getExcludeGroups(),
+                options.getListeners(),
+                options.getConfigFailurePolicy(),
+                options.getPreserveOrder(),
+                options.getGroupByInstances(),
+                dryRun.get());
     }
 
     @Override

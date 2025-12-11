@@ -23,7 +23,10 @@ import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
  * Method binding for methods implemented by the delegate object.
  */
 public class DelegateMethodBinding extends AbstractDelegationBinding {
-    public DelegateMethodBinding(WeaklyTypeReferencingMethod<?, ?> source, WeaklyTypeReferencingMethod<?, ?> target, PropertyAccessorType accessorType) {
+    public DelegateMethodBinding(
+            WeaklyTypeReferencingMethod<?, ?> source,
+            WeaklyTypeReferencingMethod<?, ?> target,
+            PropertyAccessorType accessorType) {
         super(source, target, accessorType);
     }
 }

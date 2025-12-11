@@ -17,13 +17,12 @@
 package org.gradle.swiftpm.internal;
 
 import com.google.common.collect.ImmutableSet;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultTarget implements Serializable {
     private final String name;
@@ -67,7 +66,4 @@ public class DefaultTarget implements Serializable {
     public Collection<String> getRequiredProducts() {
         return requiredProducts;
     }
-
 }
-
-

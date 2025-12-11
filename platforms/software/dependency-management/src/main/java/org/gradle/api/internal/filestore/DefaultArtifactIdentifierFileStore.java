@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.filestore;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -26,29 +28,38 @@ import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.inject.Inject;
-import java.io.File;
-
-public class DefaultArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleComponentArtifactIdentifier> implements ArtifactIdentifierFileStore {
+public class DefaultArtifactIdentifierFileStore
+        extends GroupedAndNamedUniqueFileStore<ModuleComponentArtifactIdentifier>
+        implements ArtifactIdentifierFileStore {
 
     private static final int NUMBER_OF_GROUPING_DIRS = 3;
     public static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = NUMBER_OF_GROUPING_DIRS + NUMBER_OF_CHECKSUM_DIRS;
 
-    private static final Grouper<ModuleComponentArtifactIdentifier> GROUPER = new Grouper<ModuleComponentArtifactIdentifier>() {
-        @Override
-        public String determineGroup(ModuleComponentArtifactIdentifier artifactId) {
-            return artifactId.getComponentIdentifier().getGroup() + '/' + artifactId.getComponentIdentifier().getModule() + '/' + artifactId.getComponentIdentifier().getVersion();
-        }
+    private static final Grouper<ModuleComponentArtifactIdentifier> GROUPER =
+            new Grouper<ModuleComponentArtifactIdentifier>() {
+                @Override
+                public String determineGroup(ModuleComponentArtifactIdentifier artifactId) {
+                    return artifactId.getComponentIdentifier().getGroup()
+                            + '/'
+                            + artifactId.getComponentIdentifier().getModule()
+                            + '/'
+                            + artifactId.getComponentIdentifier().getVersion();
+                }
 
-        @Override
-        public int getNumberOfGroupingDirs() {
-            return NUMBER_OF_GROUPING_DIRS;
-        }
-    };
+                @Override
+                public int getNumberOfGroupingDirs() {
+                    return NUMBER_OF_GROUPING_DIRS;
+                }
+            };
 
-    private static final Namer<ModuleComponentArtifactIdentifier> NAMER = ModuleComponentArtifactIdentifier::getFileName;
+    private static final Namer<ModuleComponentArtifactIdentifier> NAMER =
+            ModuleComponentArtifactIdentifier::getFileName;
 
-    private DefaultArtifactIdentifierFileStore(File baseDir, TemporaryFileProvider temporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
+    private DefaultArtifactIdentifierFileStore(
+            File baseDir,
+            TemporaryFileProvider temporaryFileProvider,
+            FileAccessTimeJournal fileAccessTimeJournal,
+            ChecksumService checksumService) {
         super(baseDir, temporaryFileProvider, fileAccessTimeJournal, GROUPER, NAMER, checksumService);
     }
 
@@ -59,7 +70,10 @@ public class DefaultArtifactIdentifierFileStore extends GroupedAndNamedUniqueFil
         private final ChecksumService checksumService;
 
         @Inject
-        public Factory(TemporaryFileProvider temporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
+        public Factory(
+                TemporaryFileProvider temporaryFileProvider,
+                FileAccessTimeJournal fileAccessTimeJournal,
+                ChecksumService checksumService) {
             this.temporaryFileProvider = temporaryFileProvider;
             this.fileAccessTimeJournal = fileAccessTimeJournal;
             this.checksumService = checksumService;
@@ -67,11 +81,10 @@ public class DefaultArtifactIdentifierFileStore extends GroupedAndNamedUniqueFil
 
         public DefaultArtifactIdentifierFileStore create(ArtifactCacheMetadata artifactCacheMetadata) {
             return new DefaultArtifactIdentifierFileStore(
-                artifactCacheMetadata.getFileStoreDirectory(),
-                temporaryFileProvider,
-                fileAccessTimeJournal,
-                checksumService
-            );
+                    artifactCacheMetadata.getFileStoreDirectory(),
+                    temporaryFileProvider,
+                    fileAccessTimeJournal,
+                    checksumService);
         }
     }
 }

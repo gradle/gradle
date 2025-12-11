@@ -16,7 +16,11 @@
 
 package org.gradle.api.plugins;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+
 import com.google.common.collect.Sets;
+import java.util.function.Supplier;
+import javax.inject.Inject;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -44,11 +48,6 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.function.Supplier;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
-
 /**
  * Extends {@link org.gradle.api.plugins.JavaBasePlugin} to provide support for compiling and documenting Groovy
  * source files.
@@ -64,10 +63,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
 
     @Inject
     public GroovyBasePlugin(
-        ObjectFactory objectFactory,
-        ModuleRegistry moduleRegistry,
-        JvmLanguageUtilities jvmPluginServices
-    ) {
+            ObjectFactory objectFactory, ModuleRegistry moduleRegistry, JvmLanguageUtilities jvmPluginServices) {
         this.objectFactory = objectFactory;
         this.moduleRegistry = moduleRegistry;
         this.jvmLanguageUtils = jvmPluginServices;
@@ -77,7 +73,8 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
-        GroovyRuntime groovyRuntime = project.getExtensions().create(GROOVY_RUNTIME_EXTENSION_NAME, GroovyRuntime.class, project);
+        GroovyRuntime groovyRuntime =
+                project.getExtensions().create(GROOVY_RUNTIME_EXTENSION_NAME, GroovyRuntime.class, project);
 
         configureCompileDefaults(project, groovyRuntime);
         configureSourceSetDefaults(project);
@@ -86,33 +83,39 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
 
     private void configureCompileDefaults(Project project, GroovyRuntime groovyRuntime) {
         project.getTasks().withType(GroovyCompile.class).configureEach(compile -> {
-            compile.getConventionMapping().map(
-                "groovyClasspath",
-                () -> groovyRuntime.inferGroovyClasspath(compile.getClasspath())
-            );
+            compile.getConventionMapping()
+                    .map("groovyClasspath", () -> groovyRuntime.inferGroovyClasspath(compile.getClasspath()));
 
-            DefaultJavaPluginExtension javaExtension = (DefaultJavaPluginExtension) project.getExtensions().getByType(JavaPluginExtension.class);
-            JvmPluginsHelper.configureCompileDefaults(compile, javaExtension, (@Nullable JavaVersion rawConvention, Supplier<JavaVersion> javaVersionSupplier) -> {
-                if (rawConvention != null) {
-                    return rawConvention;
-                }
-                return JavaVersion.toVersion(compile.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
-            });
+            DefaultJavaPluginExtension javaExtension =
+                    (DefaultJavaPluginExtension) project.getExtensions().getByType(JavaPluginExtension.class);
+            JvmPluginsHelper.configureCompileDefaults(
+                    compile,
+                    javaExtension,
+                    (@Nullable JavaVersion rawConvention, Supplier<JavaVersion> javaVersionSupplier) -> {
+                        if (rawConvention != null) {
+                            return rawConvention;
+                        }
+                        return JavaVersion.toVersion(compile.getJavaLauncher()
+                                .get()
+                                .getMetadata()
+                                .getLanguageVersion()
+                                .toString());
+                    });
         });
     }
 
     private void configureSourceSetDefaults(Project project) {
         javaPluginExtension(project).getSourceSets().all(sourceSet -> {
-
             GroovySourceDirectorySet groovySource = getGroovySourceDirectorySet(sourceSet);
             sourceSet.getExtensions().add(GroovySourceDirectorySet.class, "groovy", groovySource);
             groovySource.srcDir("src/" + sourceSet.getName() + "/groovy");
 
             // Explicitly capture only a FileCollection in the lambda below for compatibility with configuration-cache.
             final FileCollection groovySourceFiles = groovySource;
-            sourceSet.getResources().getFilter().exclude(
-                spec(element -> groovySourceFiles.contains(element.getFile()))
-            );
+            sourceSet
+                    .getResources()
+                    .getFilter()
+                    .exclude(spec(element -> groovySourceFiles.contains(element.getFile())));
             sourceSet.getAllJava().source(groovySource);
             sourceSet.getAllSource().source(groovySource);
 
@@ -126,37 +129,49 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
 
     private GroovySourceDirectorySet getGroovySourceDirectorySet(SourceSet sourceSet) {
         String displayName = ((DefaultSourceSet) sourceSet).getDisplayName();
-        GroovySourceDirectorySet groovySourceDirectorySet = objectFactory.newInstance(DefaultGroovySourceDirectorySet.class, objectFactory.sourceDirectorySet("groovy", displayName + " Groovy source"));
+        GroovySourceDirectorySet groovySourceDirectorySet = objectFactory.newInstance(
+                DefaultGroovySourceDirectorySet.class,
+                objectFactory.sourceDirectorySet("groovy", displayName + " Groovy source"));
         groovySourceDirectorySet.getFilter().include("**/*.java", "**/*.groovy");
         return groovySourceDirectorySet;
     }
 
-    private static void configureLibraryElements(SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {
+    private static void configureLibraryElements(
+            SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {
         // Explain that Groovy, for compile, also needs the resources (#9872)
-        configurations.getByName(sourceSet.getCompileClasspathConfigurationName()).attributes(attrs ->
-            attrs.attribute(
-                LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                objectFactory.named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES)
-            )
-        );
+        configurations
+                .getByName(sourceSet.getCompileClasspathConfigurationName())
+                .attributes(attrs -> attrs.attribute(
+                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        objectFactory.named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES)));
     }
 
-    private void configureTargetPlatform(TaskProvider<GroovyCompile> compileTask, SourceSet sourceSet, ConfigurationContainer configurations) {
-        jvmLanguageUtils.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
-        jvmLanguageUtils.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
+    private void configureTargetPlatform(
+            TaskProvider<GroovyCompile> compileTask, SourceSet sourceSet, ConfigurationContainer configurations) {
+        jvmLanguageUtils.useDefaultTargetPlatformInference(
+                configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
+        jvmLanguageUtils.useDefaultTargetPlatformInference(
+                configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
     }
 
-    private TaskProvider<GroovyCompile> createGroovyCompileTask(Project project, SourceSet sourceSet, GroovySourceDirectorySet groovySource) {
-        final TaskProvider<GroovyCompile> compileTask = project.getTasks().register(sourceSet.getCompileTaskName("groovy"), GroovyCompile.class, groovyCompile -> {
-            JvmPluginsHelper.compileAgainstJavaOutputs(groovyCompile, sourceSet, objectFactory);
-            JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, groovySource, groovyCompile.getOptions(), project);
-            groovyCompile.setDescription("Compiles the " + groovySource + ".");
-            groovyCompile.setSource(groovySource);
-            groovyCompile.getJavaLauncher().convention(getJavaLauncher(project));
+    private TaskProvider<GroovyCompile> createGroovyCompileTask(
+            Project project, SourceSet sourceSet, GroovySourceDirectorySet groovySource) {
+        final TaskProvider<GroovyCompile> compileTask = project.getTasks()
+                .register(sourceSet.getCompileTaskName("groovy"), GroovyCompile.class, groovyCompile -> {
+                    JvmPluginsHelper.compileAgainstJavaOutputs(groovyCompile, sourceSet, objectFactory);
+                    JvmPluginsHelper.configureAnnotationProcessorPath(
+                            sourceSet, groovySource, groovyCompile.getOptions(), project);
+                    groovyCompile.setDescription("Compiles the " + groovySource + ".");
+                    groovyCompile.setSource(groovySource);
+                    groovyCompile.getJavaLauncher().convention(getJavaLauncher(project));
 
-            groovyCompile.getGroovyOptions().getDisabledGlobalASTTransformations().convention(Sets.newHashSet("groovy.grape.GrabAnnotationTransformation"));
-        });
-        JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, groovySource, project, compileTask, compileTask.map(GroovyCompile::getOptions));
+                    groovyCompile
+                            .getGroovyOptions()
+                            .getDisabledGlobalASTTransformations()
+                            .convention(Sets.newHashSet("groovy.grape.GrabAnnotationTransformation"));
+                });
+        JvmPluginsHelper.configureOutputDirectoryForSourceSet(
+                sourceSet, groovySource, project, compileTask, compileTask.map(GroovyCompile::getOptions));
 
         // TODO: `classes` should be a little more tied to the classesDirs for a SourceSet so every plugin
         // doesn't need to do this.
@@ -170,10 +185,19 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
             groovydoc.getConventionMapping().map("groovyClasspath", () -> {
                 FileCollection groovyClasspath = groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath());
                 // Jansi is required to log errors when generating Groovydoc
-                ConfigurableFileCollection jansi = project.getObjects().fileCollection().from(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
+                ConfigurableFileCollection jansi = project.getObjects()
+                        .fileCollection()
+                        .from(moduleRegistry
+                                .getExternalModule("jansi")
+                                .getImplementationClasspath()
+                                .getAsFiles());
                 return groovyClasspath.plus(jansi);
             });
-            groovydoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension(project).getDocsDir().dir("groovydoc").get().getAsFile());
+            groovydoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension(project)
+                    .getDocsDir()
+                    .dir("groovydoc")
+                    .get()
+                    .getAsFile());
             groovydoc.getConventionMapping().map("docTitle", () -> ReportUtilities.getApiDocTitleFor(project));
             groovydoc.getConventionMapping().map("windowTitle", () -> ReportUtilities.getApiDocTitleFor(project));
             groovydoc.getAccess().convention(GroovydocAccess.PROTECTED);

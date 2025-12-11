@@ -57,5 +57,4 @@ public interface PropertyFactory {
 
     @ManagedObjectCreator(publicType = MapProperty.class)
     <V, K> DefaultMapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType);
-
 }

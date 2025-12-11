@@ -17,10 +17,9 @@
 package org.gradle.platform.base.internal;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
-
-import java.util.Set;
 
 public class VariantAspect implements ModelSchemaAspect {
     private final Set<ModelProperty<?>> dimensions;

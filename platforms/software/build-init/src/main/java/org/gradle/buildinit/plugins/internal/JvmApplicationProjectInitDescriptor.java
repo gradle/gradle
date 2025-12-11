@@ -17,21 +17,23 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.model.Description;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
 public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescriptor {
 
-    public JvmApplicationProjectInitDescriptor(Description description, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+    public JvmApplicationProjectInitDescriptor(
+            Description description,
+            TemplateLibraryVersionProvider libraryVersionProvider,
+            DocumentationRegistry documentationRegistry) {
         super(description, libraryVersionProvider, documentationRegistry);
     }
 
@@ -42,11 +44,13 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
 
     @Override
     public Set<ModularizationOption> getModularizationOptions() {
-        return new TreeSet<>(Arrays.asList(ModularizationOption.SINGLE_PROJECT, ModularizationOption.WITH_LIBRARY_PROJECTS));
+        return new TreeSet<>(
+                Arrays.asList(ModularizationOption.SINGLE_PROJECT, ModularizationOption.WITH_LIBRARY_PROJECTS));
     }
 
     @Override
-    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generateProjectBuildScript(
+            String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
 
         if ("app".equals(projectName)) {
@@ -55,18 +59,25 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
                 if (!isSingleProject(settings)) {
                     mainClass = "app." + mainClass;
                 }
-                b.propertyAssignment("Define the main class for the application.", "mainClass", withPackage(settings, mainClass), true);
+                b.propertyAssignment(
+                        "Define the main class for the application.",
+                        "mainClass",
+                        withPackage(settings, mainClass),
+                        true);
             });
         }
 
         if (isSingleProject(settings)) {
             applyApplicationPlugin(buildScriptBuilder);
-            buildScriptBuilder.implementationDependency("This dependency is used by the application.",
-                BuildInitDependency.of("com.google.guava:guava", libraryVersionProvider.getVersion("guava")));
+            buildScriptBuilder.implementationDependency(
+                    "This dependency is used by the application.",
+                    BuildInitDependency.of("com.google.guava:guava", libraryVersionProvider.getVersion("guava")));
         } else {
             if ("app".equals(projectName)) {
                 buildScriptBuilder.plugin(null, applicationConventionPlugin());
-                buildScriptBuilder.dependencies().dependency("implementation", null, BuildInitDependency.of("org.apache.commons:commons-text"));
+                buildScriptBuilder
+                        .dependencies()
+                        .dependency("implementation", null, BuildInitDependency.of("org.apache.commons:commons-text"));
                 buildScriptBuilder.dependencies().projectDependency("implementation", null, ":utilities");
             } else {
                 buildScriptBuilder.plugin(null, libraryConventionPlugin());
@@ -78,7 +89,8 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
     }
 
     @Override
-    protected List<String> getSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
+    protected List<String> getSourceTemplates(
+            String subproject, InitSettings settings, TemplateFactory templateFactory) {
         if (isSingleProject(settings)) {
             return Collections.singletonList("App");
         }
@@ -88,14 +100,16 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
             case "list":
                 return ImmutableList.of("multi/list/LinkedList");
             case "utilities":
-                return ImmutableList.of("multi/utilities/JoinUtils", "multi/utilities/SplitUtils", "multi/utilities/StringUtils");
+                return ImmutableList.of(
+                        "multi/utilities/JoinUtils", "multi/utilities/SplitUtils", "multi/utilities/StringUtils");
             default:
                 return ImmutableList.of();
         }
     }
 
     @Override
-    protected List<String> getTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
+    protected List<String> getTestSourceTemplates(
+            String subproject, InitSettings settings, TemplateFactory templateFactory) {
         if (isSingleProject(settings)) {
             return Collections.singletonList(getTestFrameWorkName(settings));
         }

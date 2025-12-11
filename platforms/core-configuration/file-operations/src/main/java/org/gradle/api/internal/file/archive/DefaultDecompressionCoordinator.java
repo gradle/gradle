@@ -17,12 +17,11 @@
 package org.gradle.api.internal.file.archive;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
-
-import java.io.File;
 
 /**
  * The default implementation of {@link DecompressionCoordinator} that can be used to store decompressed data extracted from archive files like zip and tars.
@@ -36,7 +35,8 @@ public class DefaultDecompressionCoordinator implements DecompressionCoordinator
     private final ProducerGuard<File> guard = ProducerGuard.adaptive();
 
     public DefaultDecompressionCoordinator(ScopedCacheBuilderFactory cacheBuilderFactory) {
-        this.cache = cacheBuilderFactory.createCacheBuilder(EXPANSION_CACHE_KEY)
+        this.cache = cacheBuilderFactory
+                .createCacheBuilder(EXPANSION_CACHE_KEY)
                 .withDisplayName(EXPANSION_CACHE_NAME)
                 .withInitialLockMode(FileLockManager.LockMode.OnDemand)
                 .open();
@@ -52,7 +52,8 @@ public class DefaultDecompressionCoordinator implements DecompressionCoordinator
         // withFileLock prevents other processes from extracting into the expandedDir at the same time
         // but multiple threads in this process could still try to extract into the same directory.
         cache.withFileLock(() -> {
-            // guardByKey prevents multiple threads in this process from extracting into the same directory at the same time.
+            // guardByKey prevents multiple threads in this process from extracting into the same directory at the same
+            // time.
             guard.guardByKey(expandedDir, () -> {
                 action.run();
                 return null;

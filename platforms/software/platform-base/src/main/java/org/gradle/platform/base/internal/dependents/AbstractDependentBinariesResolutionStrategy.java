@@ -16,22 +16,20 @@
 
 package org.gradle.platform.base.internal.dependents;
 
+import java.util.List;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 public abstract class AbstractDependentBinariesResolutionStrategy implements DependentBinariesResolutionStrategy {
 
     @Override
     public DependentBinariesResolutionResult resolve(BinarySpecInternal target) {
         DependentBinariesResolvedResult root = new DefaultDependentBinariesResolvedResult(
-            target.getId(),
-            target.getProjectScopedName(),
-            target.isBuildable(),
-            isTestSuite(target),
-            resolveDependents(target)
-        );
+                target.getId(),
+                target.getProjectScopedName(),
+                target.isBuildable(),
+                isTestSuite(target),
+                resolveDependents(target));
         return new DefaultDependentBinariesResolutionResult(root);
     }
 
@@ -41,5 +39,4 @@ public abstract class AbstractDependentBinariesResolutionStrategy implements Dep
     protected boolean isTestSuite(BinarySpecInternal target) {
         return false;
     }
-
 }

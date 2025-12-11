@@ -17,14 +17,13 @@
 package org.gradle.plugins.ide.internal.tooling.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a Gradle project, isolated from the project hierarchy.

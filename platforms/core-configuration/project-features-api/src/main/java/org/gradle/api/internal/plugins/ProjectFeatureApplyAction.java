@@ -24,5 +24,9 @@ package org.gradle.api.internal.plugins;
  * @param <ParentDefinition> the type of the parent project feature definition
  */
 public interface ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, ParentDefinition> {
-    void transform(ProjectFeatureApplicationContext context, OwnDefinition definition, OwnBuildModel buildModel, ParentDefinition parentDefinition);
+    void transform(
+            ProjectFeatureApplicationContext context,
+            OwnDefinition definition,
+            OwnBuildModel buildModel,
+            ParentDefinition parentDefinition);
 }

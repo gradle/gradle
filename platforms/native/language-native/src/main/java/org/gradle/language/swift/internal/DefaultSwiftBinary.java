@@ -16,6 +16,15 @@
 
 package org.gradle.language.swift.internal;
 
+import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -49,16 +58,6 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
-import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
-
 public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBinary {
     private final NativeDependencyCache nativeDependencyCache;
     private final NativeVariantIdentity identity;
@@ -75,7 +74,20 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final PlatformToolProvider platformToolProvider;
     private final Configuration importPathConfiguration;
 
-    public DefaultSwiftBinary(Names names, final ObjectFactory objectFactory, NativeDependencyCache nativeDependencyCache, TaskDependencyFactory taskDependencyFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+    public DefaultSwiftBinary(
+            Names names,
+            final ObjectFactory objectFactory,
+            NativeDependencyCache nativeDependencyCache,
+            TaskDependencyFactory taskDependencyFactory,
+            Provider<String> module,
+            boolean testable,
+            FileCollection source,
+            ConfigurationContainer configurations,
+            Configuration componentImplementation,
+            SwiftPlatform targetPlatform,
+            NativeToolChainInternal toolChain,
+            PlatformToolProvider platformToolProvider,
+            NativeVariantIdentity identity) {
         super(names, objectFactory, componentImplementation);
         this.nativeDependencyCache = nativeDependencyCache;
         this.module = module;
@@ -88,7 +100,8 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         this.platformToolProvider = platformToolProvider;
 
         // TODO - reduce duplication with C++ binary
-        RoleBasedConfigurationContainerInternal rbConfigurations = (RoleBasedConfigurationContainerInternal) configurations;
+        RoleBasedConfigurationContainerInternal rbConfigurations =
+                (RoleBasedConfigurationContainerInternal) configurations;
 
         @SuppressWarnings("deprecation")
         Configuration ipc = rbConfigurations.resolvableDependencyScopeLocked(names.withPrefix("swiftCompile"), conf -> {
@@ -96,28 +109,49 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
             conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
             conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
             conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+            conf.getAttributes()
+                    .attribute(
+                            OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE,
+                            identity.getTargetMachine().getOperatingSystemFamily());
+            conf.getAttributes()
+                    .attribute(
+                            MachineArchitecture.ARCHITECTURE_ATTRIBUTE,
+                            identity.getTargetMachine().getArchitecture());
         });
         importPathConfiguration = ipc;
 
         @SuppressWarnings("deprecation")
-        Configuration nativeLink = rbConfigurations.resolvableDependencyScopeLocked(names.withPrefix("nativeLink"), conf -> {
-            conf.extendsFrom(getImplementationDependencies());
-            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-            conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
-            conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
-        });
+        Configuration nativeLink =
+                rbConfigurations.resolvableDependencyScopeLocked(names.withPrefix("nativeLink"), conf -> {
+                    conf.extendsFrom(getImplementationDependencies());
+                    conf.getAttributes()
+                            .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+                    conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+                    conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+                    conf.getAttributes()
+                            .attribute(
+                                    OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE,
+                                    identity.getTargetMachine().getOperatingSystemFamily());
+                    conf.getAttributes()
+                            .attribute(
+                                    MachineArchitecture.ARCHITECTURE_ATTRIBUTE,
+                                    identity.getTargetMachine().getArchitecture());
+                });
 
         Configuration nativeRuntime = rbConfigurations.resolvableLocked(names.withPrefix("nativeRuntime"), conf -> {
             conf.extendsFrom(getImplementationDependencies());
-            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+            conf.getAttributes()
+                    .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
             conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
             conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+            conf.getAttributes()
+                    .attribute(
+                            OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE,
+                            identity.getTargetMachine().getOperatingSystemFamily());
+            conf.getAttributes()
+                    .attribute(
+                            MachineArchitecture.ARCHITECTURE_ATTRIBUTE,
+                            identity.getTargetMachine().getArchitecture());
         });
 
         compileModules = new FileCollectionAdapter(new ModulePath(importPathConfiguration), taskDependencyFactory);
@@ -235,7 +269,8 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
             if (result == null) {
                 result = new LinkedHashSet<>();
                 Map<ComponentIdentifier, ModuleMap> moduleMaps = new LinkedHashMap<>();
-                for (ResolvedArtifactResult artifact : importPathConfig.getIncoming().getArtifacts()) {
+                for (ResolvedArtifactResult artifact :
+                        importPathConfig.getIncoming().getArtifacts()) {
                     Usage usage = artifact.getVariant().getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
                     if (usage != null && Usage.C_PLUS_PLUS_API.equals(usage.getName())) {
                         String moduleName;
@@ -246,7 +281,9 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
                         } else if (ProjectComponentIdentifier.class.isAssignableFrom(id.getClass())) {
                             moduleName = ((ProjectComponentIdentifier) id).getProjectName();
                         } else {
-                            throw new IllegalArgumentException("Could not determine the name of " + id.getDisplayName() + ": unknown component identifier type: " + id.getClass().getSimpleName());
+                            throw new IllegalArgumentException("Could not determine the name of " + id.getDisplayName()
+                                    + ": unknown component identifier type: "
+                                    + id.getClass().getSimpleName());
                         }
 
                         ModuleMap moduleMap;
@@ -258,7 +295,8 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
                         }
                         moduleMap.getPublicHeaderPaths().add(artifact.getFile().getAbsolutePath());
                     }
-                    // TODO Change this to only add SWIFT_API artifacts and instead parse modulemaps to discover compile task inputs
+                    // TODO Change this to only add SWIFT_API artifacts and instead parse modulemaps to discover compile
+                    // task inputs
                     result.add(artifact.getFile());
                 }
 

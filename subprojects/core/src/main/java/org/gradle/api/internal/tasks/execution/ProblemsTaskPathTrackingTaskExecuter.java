@@ -37,7 +37,8 @@ public class ProblemsTaskPathTrackingTaskExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         try {
-            ProblemTaskIdentityTracker.setTaskIdentity(new TaskIdentity(task.getTaskIdentity().getPath().asString()));
+            ProblemTaskIdentityTracker.setTaskIdentity(
+                    new TaskIdentity(task.getTaskIdentity().getPath().asString()));
             return taskExecuter.execute(task, state, context);
         } finally {
             ProblemTaskIdentityTracker.clear();

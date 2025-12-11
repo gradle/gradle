@@ -16,15 +16,14 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import java.util.Collections;
+import java.util.List;
 import org.codehaus.groovy.ast.CodeVisitorSupport;
 import org.codehaus.groovy.ast.DynamicVariable;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
-
-import java.util.Collections;
-import java.util.List;
 
 public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
     @Override
@@ -57,7 +56,8 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
             // Matches: task <arg>{1, 3}
 
             if (args.getExpressions().size() > 1) {
-                if (args.getExpression(0) instanceof MapExpression && args.getExpression(1) instanceof VariableExpression) {
+                if (args.getExpression(0) instanceof MapExpression
+                        && args.getExpression(1) instanceof VariableExpression) {
                     // Matches: task <name-value-pairs>, <identifier>, <arg>?
                     // Map to: task(<name-value-pairs>, '<identifier>', <arg>?)
                     transformVariableExpression(call, 1);
@@ -101,22 +101,27 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
 
             // Matches: task <expression> <operator> <expression>
 
-            if (expression.getLeftExpression() instanceof VariableExpression || expression.getLeftExpression() instanceof GStringExpression || expression
-                    .getLeftExpression() instanceof ConstantExpression) {
+            if (expression.getLeftExpression() instanceof VariableExpression
+                    || expression.getLeftExpression() instanceof GStringExpression
+                    || expression.getLeftExpression() instanceof ConstantExpression) {
                 // Matches: task <identifier> <operator> <expression> | task <string> <operator> <expression>
-                // Map to: passThrough(task('<identifier>') <operator> <expression>) | passThrough(task(<string>) <operator> <expression>)
+                // Map to: passThrough(task('<identifier>') <operator> <expression>) | passThrough(task(<string>)
+                // <operator> <expression>)
                 call.setMethod(new ConstantExpression("passThrough"));
                 Expression argument;
                 if (expression.getLeftExpression() instanceof VariableExpression) {
-                    argument = new ConstantExpression(expression.getLeftExpression().getText());
+                    argument = new ConstantExpression(
+                            expression.getLeftExpression().getText());
                 } else {
                     argument = expression.getLeftExpression();
                 }
                 expression.setLeftExpression(new MethodCallExpression(call.getObjectExpression(), "task", argument));
             } else if (expression.getLeftExpression() instanceof MethodCallExpression) {
                 // Matches: task <method-call> <operator> <expression>
-                MethodCallExpression transformedCall = new MethodCallExpression(call.getObjectExpression(), "task", new ArgumentListExpression());
-                boolean transformed = maybeTransformNestedMethodCall((MethodCallExpression) expression.getLeftExpression(), transformedCall);
+                MethodCallExpression transformedCall =
+                        new MethodCallExpression(call.getObjectExpression(), "task", new ArgumentListExpression());
+                boolean transformed = maybeTransformNestedMethodCall(
+                        (MethodCallExpression) expression.getLeftExpression(), transformedCall);
                 if (transformed) {
                     // Matches: task <identifier> <arg-list> <operator> <expression>
                     // Map to: passThrough(task('<identifier>', <arg-list>) <operator> <expression>)
@@ -140,14 +145,20 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
 
             if (nestedMethod.getArguments() instanceof TupleExpression) {
                 TupleExpression nestedArgs = (TupleExpression) nestedMethod.getArguments();
-                if (nestedArgs.getExpressions().size() == 2 && nestedArgs.getExpression(0) instanceof MapExpression && nestedArgs.getExpression(1) instanceof ClosureExpression) {
+                if (nestedArgs.getExpressions().size() == 2
+                        && nestedArgs.getExpression(0) instanceof MapExpression
+                        && nestedArgs.getExpression(1) instanceof ClosureExpression) {
                     // Matches: task <identifier>(<options-map>) <closure>
                     mapArg = nestedArgs.getExpression(0);
-                    extraArgs = nestedArgs.getExpressions().subList(1, nestedArgs.getExpressions().size());
-                } else if (nestedArgs.getExpressions().size() == 1 && nestedArgs.getExpression(0) instanceof ClosureExpression) {
+                    extraArgs = nestedArgs
+                            .getExpressions()
+                            .subList(1, nestedArgs.getExpressions().size());
+                } else if (nestedArgs.getExpressions().size() == 1
+                        && nestedArgs.getExpression(0) instanceof ClosureExpression) {
                     // Matches: task <identifier> <closure>
                     extraArgs = nestedArgs.getExpressions();
-                } else if (nestedArgs.getExpressions().size() == 1 && nestedArgs.getExpression(0) instanceof NamedArgumentListExpression) {
+                } else if (nestedArgs.getExpressions().size() == 1
+                        && nestedArgs.getExpression(0) instanceof NamedArgumentListExpression) {
                     // Matches: task <identifier>(<options-map>)
                     mapArg = nestedArgs.getExpression(0);
                 } else if (nestedArgs.getExpressions().size() != 0) {

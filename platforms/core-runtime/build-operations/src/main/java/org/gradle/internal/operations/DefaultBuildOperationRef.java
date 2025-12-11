@@ -36,5 +36,4 @@ public class DefaultBuildOperationRef implements BuildOperationRef {
     public @Nullable OperationIdentifier getParentId() {
         return parentId;
     }
-
 }

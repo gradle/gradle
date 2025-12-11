@@ -16,12 +16,11 @@
 
 package org.gradle.testfixtures.internal;
 
+import java.io.File;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.test.fixtures.file.TestFile;
-
-import java.io.File;
 
 public class NativeServicesTestFixture {
     // Collect this early, as the process' current directory can change during embedded test execution

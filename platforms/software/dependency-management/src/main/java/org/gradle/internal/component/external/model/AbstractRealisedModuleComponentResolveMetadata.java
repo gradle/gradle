@@ -19,6 +19,11 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
@@ -28,12 +33,6 @@ import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * Common base class for the realised versions of {@link ModuleComponentResolveMetadata} implementations.
@@ -49,18 +48,22 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
     private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> graphVariants;
     private final ImmutableMap<String, ModuleConfigurationMetadata> configurations;
 
-    public AbstractRealisedModuleComponentResolveMetadata(AbstractRealisedModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
+    public AbstractRealisedModuleComponentResolveMetadata(
+            AbstractRealisedModuleComponentResolveMetadata metadata,
+            ModuleSources sources,
+            VariantDerivationStrategy derivationStrategy) {
         super(metadata, sources, derivationStrategy);
         this.configurations = metadata.configurations;
     }
 
     public AbstractRealisedModuleComponentResolveMetadata(
-        AbstractModuleComponentResolveMetadata mutableMetadata,
-        ImmutableList<? extends ComponentVariant> variants,
-        Map<String, ModuleConfigurationMetadata> configurations
-    ) {
+            AbstractModuleComponentResolveMetadata mutableMetadata,
+            ImmutableList<? extends ComponentVariant> variants,
+            Map<String, ModuleConfigurationMetadata> configurations) {
         super(mutableMetadata, variants);
-        this.configurations = ImmutableMap.<String, ModuleConfigurationMetadata>builder().putAll(configurations).build();
+        this.configurations = ImmutableMap.<String, ModuleConfigurationMetadata>builder()
+                .putAll(configurations)
+                .build();
     }
 
     @Override
@@ -87,13 +90,15 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         return graphVariants.orElse(Collections.emptyList());
     }
 
-    private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
+    private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> buildVariantsForGraphTraversal(
+            List<? extends ComponentVariant> variants) {
         if (variants.isEmpty()) {
             return maybeDeriveVariants();
         }
         ImmutableList.Builder<ModuleConfigurationMetadata> configurations = new ImmutableList.Builder<>();
         for (ComponentVariant variant : variants) {
-            configurations.add(new RealisedVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory()));
+            configurations.add(new RealisedVariantBackedConfigurationMetadata(
+                    getId(), variant, getAttributes(), getAttributesFactory()));
         }
         return Optional.of(configurations.build());
     }
@@ -153,12 +158,15 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         private final boolean externalVariant;
 
         public ImmutableRealisedVariantImpl(
-            ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes,
-            ImmutableList<? extends Dependency> dependencies, ImmutableList<? extends DependencyConstraint> dependencyConstraints,
-            ImmutableList<? extends File> files, ImmutableCapabilities capabilities,
-            List<? extends ModuleDependencyMetadata> dependencyMetadata,
-            boolean externalVariant
-        ) {
+                ModuleComponentIdentifier componentId,
+                String name,
+                ImmutableAttributes attributes,
+                ImmutableList<? extends Dependency> dependencies,
+                ImmutableList<? extends DependencyConstraint> dependencyConstraints,
+                ImmutableList<? extends File> files,
+                ImmutableCapabilities capabilities,
+                List<? extends ModuleDependencyMetadata> dependencyMetadata,
+                boolean externalVariant) {
             this.componentId = componentId;
             this.name = name;
             this.attributes = attributes;
@@ -239,24 +247,18 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
 
             ImmutableRealisedVariantImpl that = (ImmutableRealisedVariantImpl) o;
             return Objects.equal(componentId, that.componentId)
-                && Objects.equal(name, that.name)
-                && Objects.equal(attributes, that.attributes)
-                && Objects.equal(dependencies, that.dependencies)
-                && Objects.equal(dependencyConstraints, that.dependencyConstraints)
-                && Objects.equal(files, that.files)
-                && externalVariant == that.externalVariant;
+                    && Objects.equal(name, that.name)
+                    && Objects.equal(attributes, that.attributes)
+                    && Objects.equal(dependencies, that.dependencies)
+                    && Objects.equal(dependencyConstraints, that.dependencyConstraints)
+                    && Objects.equal(files, that.files)
+                    && externalVariant == that.externalVariant;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(componentId,
-                name,
-                attributes,
-                dependencies,
-                dependencyConstraints,
-                files,
-                externalVariant);
+            return Objects.hashCode(
+                    componentId, name, attributes, dependencies, dependencyConstraints, files, externalVariant);
         }
     }
-
 }

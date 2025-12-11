@@ -56,7 +56,15 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
     private final WorkerLeaseService workerLeaseService;
     private final SwiftcMetadata swiftcMetaData;
 
-    SwiftPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, SwiftcPlatformToolChain toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, WorkerLeaseService workerLeaseService, SwiftcMetadata swiftcMetaData) {
+    SwiftPlatformToolProvider(
+            BuildOperationExecutor buildOperationExecutor,
+            OperatingSystemInternal targetOperatingSystem,
+            ToolSearchPath toolSearchPath,
+            SwiftcPlatformToolChain toolRegistry,
+            ExecActionFactory execActionFactory,
+            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+            WorkerLeaseService workerLeaseService,
+            SwiftcMetadata swiftcMetaData) {
         super(buildOperationExecutor, targetOperatingSystem);
         this.toolRegistry = toolRegistry;
         this.toolSearchPath = toolSearchPath;
@@ -75,7 +83,8 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
             return toolSearchPath.locate(compilerType, "ar");
         }
         if (compilerType == ToolType.SYMBOL_EXTRACTOR) {
-            return toolSearchPath.locate(compilerType, SymbolExtractorOsConfig.current().getExecutableName());
+            return toolSearchPath.locate(
+                    compilerType, SymbolExtractorOsConfig.current().getExecutableName());
         }
         if (compilerType == ToolType.STRIPPER) {
             return toolSearchPath.locate(compilerType, "strip");
@@ -93,37 +102,72 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
 
     @Override
     protected Compiler<LinkerSpec> createLinker() {
-        CommandLineToolConfigurationInternal linkerTool = (CommandLineToolConfigurationInternal) toolRegistry.getLinker();
-        SwiftLinker swiftLinker = new SwiftLinker(buildOperationExecutor, commandLineTool(ToolType.LINKER, "swiftc"), context(linkerTool), workerLeaseService);
-        return new VersionAwareCompiler<LinkerSpec>(swiftLinker, new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), swiftcMetaData.getVersion()));
+        CommandLineToolConfigurationInternal linkerTool =
+                (CommandLineToolConfigurationInternal) toolRegistry.getLinker();
+        SwiftLinker swiftLinker = new SwiftLinker(
+                buildOperationExecutor,
+                commandLineTool(ToolType.LINKER, "swiftc"),
+                context(linkerTool),
+                workerLeaseService);
+        return new VersionAwareCompiler<LinkerSpec>(
+                swiftLinker,
+                new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), swiftcMetaData.getVersion()));
     }
 
     protected Compiler<SwiftCompileSpec> createSwiftCompiler() {
-        CommandLineToolConfigurationInternal swiftCompilerTool = (CommandLineToolConfigurationInternal) toolRegistry.getSwiftCompiler();
-        SwiftCompiler swiftCompiler = new SwiftCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(ToolType.SWIFT_COMPILER, "swiftc"), context(swiftCompilerTool), getObjectFileExtension(), workerLeaseService, swiftcMetaData.getVersion());
-        return new VersionAwareCompiler<SwiftCompileSpec>(swiftCompiler, new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), swiftcMetaData.getVersion()));
+        CommandLineToolConfigurationInternal swiftCompilerTool =
+                (CommandLineToolConfigurationInternal) toolRegistry.getSwiftCompiler();
+        SwiftCompiler swiftCompiler = new SwiftCompiler(
+                buildOperationExecutor,
+                compilerOutputFileNamingSchemeFactory,
+                commandLineTool(ToolType.SWIFT_COMPILER, "swiftc"),
+                context(swiftCompilerTool),
+                getObjectFileExtension(),
+                workerLeaseService,
+                swiftcMetaData.getVersion());
+        return new VersionAwareCompiler<SwiftCompileSpec>(
+                swiftCompiler,
+                new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), swiftcMetaData.getVersion()));
     }
 
     @Override
     protected Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
-        CommandLineToolConfigurationInternal staticLibArchiverTool = (CommandLineToolConfigurationInternal) toolRegistry.getStaticLibArchiver();
-        return new ArStaticLibraryArchiver(buildOperationExecutor, commandLineTool(ToolType.STATIC_LIB_ARCHIVER, "ar"), context(staticLibArchiverTool), workerLeaseService);
+        CommandLineToolConfigurationInternal staticLibArchiverTool =
+                (CommandLineToolConfigurationInternal) toolRegistry.getStaticLibArchiver();
+        return new ArStaticLibraryArchiver(
+                buildOperationExecutor,
+                commandLineTool(ToolType.STATIC_LIB_ARCHIVER, "ar"),
+                context(staticLibArchiverTool),
+                workerLeaseService);
     }
 
     @Override
     protected Compiler<?> createSymbolExtractor() {
-        CommandLineToolConfigurationInternal symbolExtractor = (CommandLineToolConfigurationInternal) toolRegistry.getSymbolExtractor();
-        return new SymbolExtractor(buildOperationExecutor, commandLineTool(ToolType.SYMBOL_EXTRACTOR, SymbolExtractorOsConfig.current().getExecutableName()), context(symbolExtractor), workerLeaseService);
+        CommandLineToolConfigurationInternal symbolExtractor =
+                (CommandLineToolConfigurationInternal) toolRegistry.getSymbolExtractor();
+        return new SymbolExtractor(
+                buildOperationExecutor,
+                commandLineTool(
+                        ToolType.SYMBOL_EXTRACTOR,
+                        SymbolExtractorOsConfig.current().getExecutableName()),
+                context(symbolExtractor),
+                workerLeaseService);
     }
 
     @Override
     protected Compiler<?> createStripper() {
-        CommandLineToolConfigurationInternal stripper = (CommandLineToolConfigurationInternal) toolRegistry.getStripper();
-        return new Stripper(buildOperationExecutor, commandLineTool(ToolType.STRIPPER, "strip"), context(stripper), workerLeaseService);
+        CommandLineToolConfigurationInternal stripper =
+                (CommandLineToolConfigurationInternal) toolRegistry.getStripper();
+        return new Stripper(
+                buildOperationExecutor,
+                commandLineTool(ToolType.STRIPPER, "strip"),
+                context(stripper),
+                workerLeaseService);
     }
 
     private CommandLineToolInvocationWorker commandLineTool(ToolType key, String exeName) {
-        return new DefaultCommandLineToolInvocationWorker(key.getToolName(), toolSearchPath.locate(key, exeName).getTool(), execActionFactory);
+        return new DefaultCommandLineToolInvocationWorker(
+                key.getToolName(), toolSearchPath.locate(key, exeName).getTool(), execActionFactory);
     }
 
     private CommandLineToolContext context(CommandLineToolConfigurationInternal toolConfiguration) {

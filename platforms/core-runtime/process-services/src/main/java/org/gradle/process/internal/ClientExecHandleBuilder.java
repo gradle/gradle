@@ -16,16 +16,15 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.process.CommandLineArgumentProvider;
-import org.gradle.process.ProcessForkOptions;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ProcessForkOptions;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * TODO: Rename to ExecHandleBuilder and remove current ExecHandleBuilder in Gradle 10
@@ -95,7 +94,6 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
     void environment(Map<String, ?> environmentVariables);
 
     InputStream getStandardInput();
-
 
     void copyTo(ProcessForkOptions options);
 

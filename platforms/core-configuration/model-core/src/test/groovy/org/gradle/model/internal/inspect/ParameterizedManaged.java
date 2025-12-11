@@ -19,5 +19,4 @@ package org.gradle.model.internal.inspect;
 import org.gradle.model.Managed;
 
 @Managed
-public interface ParameterizedManaged<T> {
-}
+public interface ParameterizedManaged<T> {}

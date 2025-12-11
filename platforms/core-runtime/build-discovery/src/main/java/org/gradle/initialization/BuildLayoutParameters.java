@@ -16,21 +16,21 @@
 
 package org.gradle.initialization;
 
+import static org.gradle.internal.FileUtils.canonicalize;
+
+import java.io.File;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-
-import static org.gradle.internal.FileUtils.canonicalize;
 
 /**
  * Mutable build layout parameters
  */
 public class BuildLayoutParameters {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
-    private static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getInstance().getUserHome() + "/.gradle");
+    private static final File DEFAULT_GRADLE_USER_HOME =
+            new File(SystemProperties.getInstance().getUserHome() + "/.gradle");
 
     private File gradleInstallationHomeDir;
     private File gradleUserHomeDir;
@@ -39,26 +39,24 @@ public class BuildLayoutParameters {
 
     public BuildLayoutParameters() {
         this(
-            findGradleInstallationHomeDir(),
-            findGradleUserHomeDir(),
-            null,
-            canonicalize(SystemProperties.getInstance().getCurrentDir())
-        );
+                findGradleInstallationHomeDir(),
+                findGradleUserHomeDir(),
+                null,
+                canonicalize(SystemProperties.getInstance().getCurrentDir()));
     }
 
     public BuildLayoutParameters(
-        @Nullable File gradleInstallationHomeDir,
-        File gradleUserHomeDir,
-        @Nullable File projectDir,
-        File currentDir
-    ) {
+            @Nullable File gradleInstallationHomeDir,
+            File gradleUserHomeDir,
+            @Nullable File projectDir,
+            File currentDir) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.gradleInstallationHomeDir = gradleInstallationHomeDir;
         this.projectDir = projectDir;
         this.currentDir = currentDir;
     }
 
-    static private File findGradleUserHomeDir() {
+    private static File findGradleUserHomeDir() {
         String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
         if (gradleUserHome == null) {
             gradleUserHome = System.getenv("GRADLE_USER_HOME");
@@ -70,7 +68,7 @@ public class BuildLayoutParameters {
     }
 
     @Nullable
-    static private File findGradleInstallationHomeDir() {
+    private static File findGradleInstallationHomeDir() {
         GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
         if (gradleInstallation != null) {
             return gradleInstallation.getGradleHome();

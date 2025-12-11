@@ -17,10 +17,9 @@
 package org.gradle.internal.evaluation;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.GradleException;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import org.gradle.api.GradleException;
 
 /**
  * An exception caused by the circular evaluation.
@@ -51,8 +50,8 @@ public class CircularEvaluationException extends GradleException {
     private static String formatEvaluationChain(List<EvaluationOwner> evaluationCycle) {
         try (EvaluationScopeContext ignored = EvaluationContext.current().nested()) {
             return evaluationCycle.stream()
-                .map(CircularEvaluationException::safeToString)
-                .collect(Collectors.joining("\n -> "));
+                    .map(CircularEvaluationException::safeToString)
+                    .collect(Collectors.joining("\n -> "));
         }
     }
 
@@ -65,7 +64,8 @@ public class CircularEvaluationException extends GradleException {
         } catch (Throwable e) {
             // Calling e.getMessage() here can cause infinite recursion.
             // It happens if e is CircularEvaluationException itself, because getMessage calls formatEvaluationChain.
-            // It can also happen for some other custom exceptions that wrap CircularEvaluationException and call its getMessage inside their.
+            // It can also happen for some other custom exceptions that wrap CircularEvaluationException and call its
+            // getMessage inside their.
             // This is why we resort to losing the information and only providing exception class.
             // A well-behaved toString should not throw anyway.
             return owner.getClass().getName() + " (toString failed with " + e.getClass() + ")";

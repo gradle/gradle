@@ -57,5 +57,4 @@ public class DelegatingProviderWithValue<T> extends AbstractProviderWithValue<T>
     public Class<T> getType() {
         return delegate.getType();
     }
-
 }

@@ -15,21 +15,20 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import java.io.File;
+import java.util.List;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.io.File;
-import java.util.List;
-
-import static org.gradle.internal.FileUtils.hasExtension;
 
 /**
  * A Groovy {@link Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
@@ -52,7 +51,8 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
     }
 
     private void resolveAndFilterSourceFiles(final GroovyJavaJointCompileSpec spec) {
-        final List<String> fileExtensions = CollectionUtils.collect(spec.getGroovyCompileOptions().getFileExtensions(), extension -> '.' + extension);
+        final List<String> fileExtensions = CollectionUtils.collect(
+                spec.getGroovyCompileOptions().getFileExtensions(), extension -> '.' + extension);
         Iterable<File> filtered = Iterables.filter(spec.getSourceFiles(), new Predicate<File>() {
             @Override
             public boolean apply(File element) {
@@ -70,7 +70,9 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
 
     private void resolveNonStringsInCompilerArgs(GroovyJavaJointCompileSpec spec) {
         // in particular, this is about GStrings
-        spec.getCompileOptions().setCompilerArgs(CollectionUtils.toStringList(spec.getCompileOptions().getCompilerArgs()));
+        spec.getCompileOptions()
+                .setCompilerArgs(
+                        CollectionUtils.toStringList(spec.getCompileOptions().getCompilerArgs()));
     }
 
     private void logSourceFiles(GroovyJavaJointCompileSpec spec) {
@@ -93,7 +95,10 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
             return;
         }
 
-        List<String> compilerArgs = new JavaCompilerArgumentsBuilder(spec).includeLauncherOptions(true).includeSourceFiles(true).build();
+        List<String> compilerArgs = new JavaCompilerArgumentsBuilder(spec)
+                .includeLauncherOptions(true)
+                .includeSourceFiles(true)
+                .build();
         String joinedArgs = Joiner.on(' ').join(compilerArgs);
         LOGGER.debug("Java compiler arguments: {}", joinedArgs);
     }
@@ -102,10 +107,15 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
         try {
             return delegate.execute(spec);
         } catch (RuntimeException e) {
-            // in-process Groovy compilation throws a CompilationFailedException from another classloader, hence testing class name equality
-            // TODO:pm Prefer class over class name for equality check once using WorkerExecutor for in-process groovy compilation
-            if ((spec.getCompileOptions().isFailOnError() && spec.getGroovyCompileOptions().isFailOnError())
-                || !CompilationFailedException.class.getName().equals(e.getClass().getName())) {
+            // in-process Groovy compilation throws a CompilationFailedException from another classloader, hence testing
+            // class name equality
+            // TODO:pm Prefer class over class name for equality check once using WorkerExecutor for in-process groovy
+            // compilation
+            if ((spec.getCompileOptions().isFailOnError()
+                            && spec.getGroovyCompileOptions().isFailOnError())
+                    || !CompilationFailedException.class
+                            .getName()
+                            .equals(e.getClass().getName())) {
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");

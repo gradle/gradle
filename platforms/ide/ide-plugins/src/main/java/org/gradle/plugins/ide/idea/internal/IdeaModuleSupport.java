@@ -26,5 +26,4 @@ public class IdeaModuleSupport {
      * Java compatibility to use if there are no projects providing that information.
      */
     public static final JavaVersion FALLBACK_MODULE_JAVA_COMPATIBILITY_VERSION = JavaVersion.VERSION_1_6;
-
 }

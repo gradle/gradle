@@ -53,7 +53,8 @@ public class HttpResourcesServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        ResourceConnectorFactory createHttpConnectorFactory(SslContextFactory sslContextFactory, HttpClientHelper.Factory httpClientHelperFactory) {
+        ResourceConnectorFactory createHttpConnectorFactory(
+                SslContextFactory sslContextFactory, HttpClientHelper.Factory httpClientHelperFactory) {
             return new HttpConnectorFactory(sslContextFactory, httpClientHelperFactory);
         }
     }
@@ -61,10 +62,12 @@ public class HttpResourcesServices extends AbstractGradleModuleServices {
     private static class AuthenticationSchemeAction implements ServiceRegistrationProvider {
         @SuppressWarnings("UnusedVariable")
         @Provides
-        public void configure(ServiceRegistration registration, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
+        public void configure(
+                ServiceRegistration registration, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
             authenticationSchemeRegistry.registerScheme(BasicAuthentication.class, DefaultBasicAuthentication.class);
             authenticationSchemeRegistry.registerScheme(DigestAuthentication.class, DefaultDigestAuthentication.class);
-            authenticationSchemeRegistry.registerScheme(HttpHeaderAuthentication.class, DefaultHttpHeaderAuthentication.class);
+            authenticationSchemeRegistry.registerScheme(
+                    HttpHeaderAuthentication.class, DefaultHttpHeaderAuthentication.class);
         }
     }
 }

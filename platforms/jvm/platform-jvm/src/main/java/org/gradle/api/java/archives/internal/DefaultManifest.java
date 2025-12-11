@@ -16,19 +16,9 @@
 
 package org.gradle.api.java.archives.internal;
 
-import groovy.lang.Closure;
-import org.apache.commons.io.FileUtils;
-import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.java.archives.Attributes;
-import org.gradle.api.java.archives.ManifestMergeSpec;
-import org.gradle.api.provider.Provider;
-import org.gradle.internal.Actions;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.util.internal.ClosureBackedAction;
+import static org.gradle.internal.Cast.uncheckedCast;
 
+import groovy.lang.Closure;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -41,8 +31,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.Manifest;
-
-import static org.gradle.internal.Cast.uncheckedCast;
+import org.apache.commons.io.FileUtils;
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.java.archives.Attributes;
+import org.gradle.api.java.archives.ManifestMergeSpec;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.Actions;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.util.internal.ClosureBackedAction;
 
 public class DefaultManifest implements ManifestInternal {
     public static final String DEFAULT_CONTENT_CHARSET = "UTF-8";
@@ -92,7 +91,8 @@ public class DefaultManifest implements ManifestInternal {
             throw new InvalidUserDataException("contentCharset must not be null");
         }
         if (!Charset.isSupported(contentCharset)) {
-            throw new InvalidUserDataException(String.format("Charset for contentCharset '%s' is not supported by your JVM", contentCharset));
+            throw new InvalidUserDataException(
+                    String.format("Charset for contentCharset '%s' is not supported by your JVM", contentCharset));
         }
         this.contentCharset = contentCharset;
     }
@@ -141,11 +141,13 @@ public class DefaultManifest implements ManifestInternal {
         return javaManifest;
     }
 
-    private static void addMainAttributesToJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
+    private static void addMainAttributesToJavaManifest(
+            org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
         fillAttributes(gradleManifest.getAttributes(), javaManifest.getMainAttributes());
     }
 
-    private static void addSectionAttributesToJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
+    private static void addSectionAttributesToJavaManifest(
+            org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
         for (Map.Entry<String, Attributes> entry : gradleManifest.getSections().entrySet()) {
             String sectionName = entry.getKey();
             java.util.jar.Attributes targetAttributes = new java.util.jar.Attributes();
@@ -214,7 +216,8 @@ public class DefaultManifest implements ManifestInternal {
         return this;
     }
 
-    static void writeTo(org.gradle.api.java.archives.Manifest manifest, OutputStream outputStream, String contentCharset) {
+    static void writeTo(
+            org.gradle.api.java.archives.Manifest manifest, OutputStream outputStream, String contentCharset) {
         try {
             Manifest javaManifest = generateJavaManifest(manifest.getEffectiveManifest());
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -277,7 +280,8 @@ public class DefaultManifest implements ManifestInternal {
         return true;
     }
 
-    @SuppressWarnings("StringCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "StringCharset") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private void read(Object manifestPath) {
         File manifestFile = fileResolver.resolve(manifestPath);
         try {
@@ -322,10 +326,10 @@ public class DefaultManifest implements ManifestInternal {
                 // Eventually add blank line before section
                 output.write(current);
                 if ((original[idx + 1] == 'N' || original[idx + 1] == 'n')
-                    && (original[idx + 2] == 'A' || original[idx + 2] == 'a')
-                    && (original[idx + 3] == 'M' || original[idx + 3] == 'm')
-                    && (original[idx + 4] == 'E' || original[idx + 4] == 'e')
-                    && (original[idx + 5] == ':')) {
+                        && (original[idx + 2] == 'A' || original[idx + 2] == 'a')
+                        && (original[idx + 3] == 'M' || original[idx + 3] == 'm')
+                        && (original[idx + 4] == 'E' || original[idx + 4] == 'e')
+                        && (original[idx + 5] == ':')) {
                     if (useCarriageReturns) {
                         output.write(carriageReturn);
                     }
@@ -348,7 +352,8 @@ public class DefaultManifest implements ManifestInternal {
     }
 
     private void addJavaManifestToSections(Manifest javaManifest) {
-        for (Map.Entry<String, java.util.jar.Attributes> sectionEntry : javaManifest.getEntries().entrySet()) {
+        for (Map.Entry<String, java.util.jar.Attributes> sectionEntry :
+                javaManifest.getEntries().entrySet()) {
             String sectionName = sectionEntry.getKey();
             DefaultAttributes sectionAttributes = new DefaultAttributes();
             for (Object attributeKey : sectionEntry.getValue().keySet()) {

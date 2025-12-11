@@ -19,25 +19,26 @@ package org.gradle.model.internal.manage.schema.cache;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.gradle.internal.Cast;
-
 import java.lang.ref.WeakReference;
 import java.util.List;
+import org.gradle.internal.Cast;
 
 class MultiWeakClassSet extends WeakClassSet {
 
-    private static final Function<Class<?>, WeakReference<Class<?>>> TO_WEAK_REF = new Function<Class<?>, WeakReference<Class<?>>>() {
-        @Override
-        public WeakReference<Class<?>> apply(Class<?> input) {
-            return new WeakReference<Class<?>>(input);
-        }
-    };
-    private static final Function<WeakReference<Class<?>>, Object> UNPACK_REF = new Function<WeakReference<Class<?>>, Object>() {
-        @Override
-        public Object apply(WeakReference<Class<?>> input) {
-            return input.get();
-        }
-    };
+    private static final Function<Class<?>, WeakReference<Class<?>>> TO_WEAK_REF =
+            new Function<Class<?>, WeakReference<Class<?>>>() {
+                @Override
+                public WeakReference<Class<?>> apply(Class<?> input) {
+                    return new WeakReference<Class<?>>(input);
+                }
+            };
+    private static final Function<WeakReference<Class<?>>, Object> UNPACK_REF =
+            new Function<WeakReference<Class<?>>, Object>() {
+                @Override
+                public Object apply(WeakReference<Class<?>> input) {
+                    return input.get();
+                }
+            };
 
     private final List<WeakReference<Class<?>>> references;
     private final int hash;
@@ -58,9 +59,7 @@ class MultiWeakClassSet extends WeakClassSet {
             MultiWeakClassSet other = Cast.uncheckedCast(obj);
             if (other.references.size() == references.size()) {
                 return Iterables.elementsEqual(
-                        Iterables.transform(other.references, UNPACK_REF),
-                        Iterables.transform(references, UNPACK_REF)
-                );
+                        Iterables.transform(other.references, UNPACK_REF), Iterables.transform(references, UNPACK_REF));
             }
         }
 
@@ -77,5 +76,4 @@ class MultiWeakClassSet extends WeakClassSet {
 
         return false;
     }
-
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.actor.internal;
 
+import java.util.IdentityHashMap;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -33,13 +34,12 @@ import org.gradle.internal.dispatch.ProxyDispatchAdapter;
 import org.gradle.internal.dispatch.ReflectionDispatch;
 import org.slf4j.LoggerFactory;
 
-import java.util.IdentityHashMap;
-
 /**
  * A basic {@link ActorFactory} implementation. Currently cannot support creating both a blocking and non-blocking actor for the same target object.
  */
 public class DefaultActorFactory implements ActorFactory, Stoppable {
-    private final IdentityHashMap<Object, NonBlockingActor> nonBlockingActors = new IdentityHashMap<Object, NonBlockingActor>();
+    private final IdentityHashMap<Object, NonBlockingActor> nonBlockingActors =
+            new IdentityHashMap<Object, NonBlockingActor>();
     private final IdentityHashMap<Object, BlockingActor> blockingActors = new IdentityHashMap<Object, BlockingActor>();
     private final Object lock = new Object();
     private final ExecutorFactory executorFactory;
@@ -55,7 +55,9 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
     public void stop() {
         synchronized (lock) {
             try {
-                CompositeStoppable.stoppable(nonBlockingActors.values()).add(blockingActors.values()).stop();
+                CompositeStoppable.stoppable(nonBlockingActors.values())
+                        .add(blockingActors.values())
+                        .stop();
             } finally {
                 nonBlockingActors.clear();
             }
@@ -69,7 +71,8 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
         }
         synchronized (lock) {
             if (blockingActors.containsKey(target)) {
-                throw new UnsupportedOperationException("Cannot create a non-blocking and blocking actor for the same object. This is not implemented yet.");
+                throw new UnsupportedOperationException(
+                        "Cannot create a non-blocking and blocking actor for the same object. This is not implemented yet.");
             }
             NonBlockingActor actor = nonBlockingActors.get(target);
             if (actor == null) {
@@ -84,7 +87,8 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
     public Actor createBlockingActor(Object target) {
         synchronized (lock) {
             if (nonBlockingActors.containsKey(target)) {
-                throw new UnsupportedOperationException("Cannot create a non-blocking and blocking actor for the same object. This is not implemented yet.");
+                throw new UnsupportedOperationException(
+                        "Cannot create a non-blocking and blocking actor for the same object. This is not implemented yet.");
             }
             BlockingActor actor = blockingActors.get(target);
             if (actor == null) {
@@ -148,10 +152,10 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
         public NonBlockingActor(Object targetObject) {
             executor = executorFactory.create("Dispatch " + targetObject);
             failureHandler = new ExceptionTrackingFailureHandler(LoggerFactory.getLogger(NonBlockingActor.class));
-            dispatch = new AsyncDispatch<MethodInvocation>(executor,
-                    new FailureHandlingDispatch<MethodInvocation>(
-                            new ReflectionDispatch(targetObject),
-                            failureHandler), Integer.MAX_VALUE);
+            dispatch = new AsyncDispatch<MethodInvocation>(
+                    executor,
+                    new FailureHandlingDispatch<MethodInvocation>(new ReflectionDispatch(targetObject), failureHandler),
+                    Integer.MAX_VALUE);
         }
 
         @Override

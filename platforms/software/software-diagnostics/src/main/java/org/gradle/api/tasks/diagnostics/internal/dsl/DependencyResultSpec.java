@@ -33,8 +33,8 @@ class DependencyResultSpec implements Spec<DependencyResult> {
 
     @Override
     public boolean isSatisfiedBy(DependencyResult candidate) {
-        //The matching is very simple at the moment but it should solve majority of cases.
-        //It operates using String#contains and it tests either requested or selected module.
+        // The matching is very simple at the moment but it should solve majority of cases.
+        // It operates using String#contains and it tests either requested or selected module.
         if (candidate instanceof ResolvedDependencyResult) {
             return matchesRequested(candidate) || matchesSelected((ResolvedDependencyResult) candidate);
         } else {
@@ -46,13 +46,14 @@ class DependencyResultSpec implements Spec<DependencyResult> {
         ComponentSelector requested = candidate.getRequested();
 
         if (requested instanceof ModuleComponentSelector) {
-            ModuleComponentSelector requestedModule = (ModuleComponentSelector)requested;
-            String requestedCandidate = requestedModule.getGroup() + ":" + requestedModule.getModule() + ":" + requestedModule.getVersion();
+            ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
+            String requestedCandidate =
+                    requestedModule.getGroup() + ":" + requestedModule.getModule() + ":" + requestedModule.getVersion();
             return requestedCandidate.contains(stringNotation);
         }
 
         if (requested instanceof ProjectComponentSelector) {
-            ProjectComponentSelector project = (ProjectComponentSelector)requested;
+            ProjectComponentSelector project = (ProjectComponentSelector) requested;
             String requestedCandidate = project.getProjectPath();
             return requestedCandidate.contains(stringNotation);
         }

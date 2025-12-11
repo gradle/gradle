@@ -15,18 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 
 public class VirtualPlatformState {
     private final Comparator<String> vC;
@@ -38,7 +37,11 @@ public class VirtualPlatformState {
 
     private boolean hasForcedParticipatingModule;
 
-    public VirtualPlatformState(final Comparator<Version> versionComparator, final VersionParser versionParser, ModuleResolveState platformModule, ResolveOptimizations resolveOptimizations) {
+    public VirtualPlatformState(
+            final Comparator<Version> versionComparator,
+            final VersionParser versionParser,
+            ModuleResolveState platformModule,
+            ResolveOptimizations resolveOptimizations) {
         this.vC = (o1, o2) -> versionComparator.compare(versionParser.transform(o2), versionParser.transform(o1));
         this.platformModule = platformModule;
         this.resolveOptimizations = resolveOptimizations;

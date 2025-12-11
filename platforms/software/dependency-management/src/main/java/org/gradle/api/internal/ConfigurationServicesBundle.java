@@ -42,15 +42,26 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.Project.class)
 public interface ConfigurationServicesBundle {
     BuildOperationRunner getBuildOperationRunner();
+
     ProjectStateRegistry getProjectStateRegistry();
+
     AttributesFactory getAttributesFactory();
+
     ObjectFactory getObjectFactory();
+
     TaskDependencyFactory getTaskDependencyFactory();
+
     DomainObjectCollectionFactory getDomainObjectCollectionFactory();
+
     CalculatedValueContainerFactory getCalculatedValueContainerFactory();
+
     FileCollectionFactory getFileCollectionFactory();
+
     CollectionCallbackActionDecorator getCollectionCallbackActionDecorator();
+
     InternalProblems getProblems();
+
     AttributeDesugaring getAttributeDesugaring();
+
     ResolveExceptionMapper getExceptionMapper();
 }

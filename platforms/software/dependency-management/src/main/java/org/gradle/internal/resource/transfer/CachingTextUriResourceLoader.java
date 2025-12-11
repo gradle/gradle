@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resource.transfer;
 
+import java.net.URI;
+import java.util.Set;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.resource.DownloadedUriTextResource;
@@ -26,16 +28,16 @@ import org.gradle.internal.resource.UriTextResource;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
-import java.net.URI;
-import java.util.Set;
-
 public class CachingTextUriResourceLoader implements TextUriResourceLoader {
 
     private final ExternalResourceAccessor externalResourceAccessor;
     private final Set<String> cachedSchemes;
     private final RelativeFilePathResolver resolver;
 
-    public CachingTextUriResourceLoader(ExternalResourceAccessor externalResourceAccessor, Set<String> cachedSchemes, RelativeFilePathResolver resolver) {
+    public CachingTextUriResourceLoader(
+            ExternalResourceAccessor externalResourceAccessor,
+            Set<String> cachedSchemes,
+            RelativeFilePathResolver resolver) {
         this.externalResourceAccessor = externalResourceAccessor;
         this.cachedSchemes = cachedSchemes;
         this.resolver = resolver;

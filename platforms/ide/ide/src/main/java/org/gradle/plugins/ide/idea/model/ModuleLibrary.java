@@ -15,17 +15,16 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents an orderEntry of type module-library in the iml XML.
@@ -39,7 +38,12 @@ public class ModuleLibrary implements Dependency {
     private String scope;
     private boolean exported;
 
-    public ModuleLibrary(Collection<? extends Path> classes, Collection<? extends Path> javadoc, Collection<? extends Path> sources, Collection<JarDirectory> jarDirectories, String scope) {
+    public ModuleLibrary(
+            Collection<? extends Path> classes,
+            Collection<? extends Path> javadoc,
+            Collection<? extends Path> sources,
+            Collection<JarDirectory> jarDirectories,
+            String scope) {
         this.classes = Sets.newLinkedHashSet(classes);
         this.jarDirectories = Sets.newLinkedHashSet(jarDirectories);
         this.javadoc = Sets.newLinkedHashSet(javadoc);
@@ -121,7 +125,8 @@ public class ModuleLibrary implements Dependency {
         Map<String, Object> orderEntryAttributes = new LinkedHashMap<>();
         orderEntryAttributes.put("type", "module-library");
         orderEntryAttributes.putAll(getAttributeMapForScopeAndExported());
-        Node libraryNode = parentNode.appendNode("orderEntry", orderEntryAttributes).appendNode("library");
+        Node libraryNode =
+                parentNode.appendNode("orderEntry", orderEntryAttributes).appendNode("library");
         Node classesNode = libraryNode.appendNode("CLASSES");
         Node javadocNode = libraryNode.appendNode("JAVADOC");
         Node sourcesNode = libraryNode.appendNode("SOURCES");
@@ -169,10 +174,10 @@ public class ModuleLibrary implements Dependency {
         }
         ModuleLibrary that = (ModuleLibrary) o;
         return Objects.equal(classes, that.classes)
-            && Objects.equal(jarDirectories, that.jarDirectories)
-            && Objects.equal(javadoc, that.javadoc)
-            && scopeEquals(scope, that.scope)
-            && Objects.equal(sources, that.sources);
+                && Objects.equal(jarDirectories, that.jarDirectories)
+                && Objects.equal(javadoc, that.javadoc)
+                && scopeEquals(scope, that.scope)
+                && Objects.equal(sources, that.sources);
     }
 
     private static boolean scopeEquals(String lhs, String rhs) {
@@ -203,11 +208,11 @@ public class ModuleLibrary implements Dependency {
     @Override
     public String toString() {
         return "ModuleLibrary{"
-            + "classes=" + classes
-            + ", jarDirectories=" + jarDirectories
-            + ", javadoc=" + javadoc
-            + ", sources=" + sources
-            + ", scope='" + scope
-            + "\'" + "}";
+                + "classes=" + classes
+                + ", jarDirectories=" + jarDirectories
+                + ", javadoc=" + javadoc
+                + ", sources=" + sources
+                + ", scope='" + scope
+                + "\'" + "}";
     }
 }

@@ -16,11 +16,10 @@
 
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.jspecify.annotations.NullMarked;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * A test descriptor generated from scraping XCTest's output.

@@ -22,7 +22,6 @@ package org.gradle.api.internal.catalog.problems;
  * Always change version_catalog_problems.adoc accordingly when renaming an ID.
  */
 public enum VersionCatalogProblemId {
-
     ACCESSOR_NAME_CLASH("Accessor name clash"),
     CATALOG_FILE_DOES_NOT_EXIST("Import of external catalog file failed"),
     INVALID_ALIAS_NOTATION("The alias notation is invalid"),

@@ -16,9 +16,8 @@
 
 package org.gradle.internal.fingerprint.hashing;
 
-import org.gradle.internal.snapshot.RegularFileSnapshot;
-
 import java.util.function.Supplier;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 public interface RegularFileSnapshotContext {
     Supplier<String[]> getRelativePathSegments();

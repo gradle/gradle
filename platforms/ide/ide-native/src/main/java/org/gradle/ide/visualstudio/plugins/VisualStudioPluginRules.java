@@ -46,22 +46,28 @@ class VisualStudioPluginRules {
     static class VisualStudioPluginRootRules extends RuleSource {
         // This ensures that subprojects are realized and register their project and project configuration IDE artifacts
         @Mutate
-        public static void ensureSubprojectsAreRealized(TaskContainer tasks, ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
+        public static void ensureSubprojectsAreRealized(
+                TaskContainer tasks, ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
             ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
             ProjectRegistry projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
 
             for (ProjectInternal subproject : projectRegistry.getSubProjects(projectIdentifier.getPath())) {
-                projectModelResolver.resolveProjectModel(subproject.getPath()).find("visualStudio", VisualStudioExtension.class);
+                projectModelResolver
+                        .resolveProjectModel(subproject.getPath())
+                        .find("visualStudio", VisualStudioExtension.class);
             }
         }
     }
 
     static class VisualStudioPluginProjectRules extends RuleSource {
         @Mutate
-        public static void createVisualStudioModelForBinaries(VisualStudioExtensionInternal visualStudioExtension, BinaryContainer binaries) {
+        public static void createVisualStudioModelForBinaries(
+                VisualStudioExtensionInternal visualStudioExtension, BinaryContainer binaries) {
             for (NativeBinarySpec binary : binaries.withType(NativeBinarySpec.class)) {
                 if (binary.isBuildable()) {
-                    visualStudioExtension.getProjectRegistry().addProjectConfiguration(new NativeSpecVisualStudioTargetBinary(binary));
+                    visualStudioExtension
+                            .getProjectRegistry()
+                            .addProjectConfiguration(new NativeSpecVisualStudioTargetBinary(binary));
                 }
             }
         }

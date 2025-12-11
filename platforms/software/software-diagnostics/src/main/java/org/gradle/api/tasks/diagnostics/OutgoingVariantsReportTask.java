@@ -34,7 +34,8 @@ import org.gradle.work.DisableCachingByDefault;
  *
  * @since 6.0
  */
-@DisableCachingByDefault(because = "Produces only non-cacheable console output by examining configurations at execution time")
+@DisableCachingByDefault(
+        because = "Produces only non-cacheable console output by examining configurations at execution time")
 public abstract class OutgoingVariantsReportTask extends AbstractConfigurationReportTask {
     /**
      * Limits the report to a single variant.
@@ -58,6 +59,7 @@ public abstract class OutgoingVariantsReportTask extends AbstractConfigurationRe
 
     @Override
     protected AbstractConfigurationReportSpec buildReportSpec() {
-        return new OutgoingVariantsSpec(getVariantName().getOrNull(), getShowAll().get());
+        return new OutgoingVariantsSpec(
+                getVariantName().getOrNull(), getShowAll().get());
     }
 }

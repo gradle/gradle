@@ -16,12 +16,11 @@
 
 package org.gradle.api.artifacts;
 
+import java.util.Collection;
+import java.util.Set;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
-
-import java.util.Collection;
-import java.util.Set;
 
 /**
  * A collection of artifacts resolved for a configuration. The configuration is resolved on demand when

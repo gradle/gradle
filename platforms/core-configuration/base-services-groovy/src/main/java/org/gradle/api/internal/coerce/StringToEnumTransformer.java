@@ -69,14 +69,15 @@ public class StringToEnumTransformer implements MethodArgumentsTransformer, Prop
     @Override
     public Object transformValue(Class<?> type, Object value) {
         if (value instanceof CharSequence && type.isEnum()) {
-            @SuppressWarnings("unchecked") Class<? extends Enum<?>> enumType = (Class<? extends Enum<?>>) type;
+            @SuppressWarnings("unchecked")
+            Class<? extends Enum<?>> enumType = (Class<? extends Enum<?>>) type;
             return toEnumValue(Cast.uncheckedNonnullCast(enumType), value);
         }
 
         return value;
     }
 
-    static public <T extends Enum<T>> T toEnumValue(Class<T> enumType, Object value) {
+    public static <T extends Enum<T>> T toEnumValue(Class<T> enumType, Object value) {
         return GUtil.toEnum(enumType, value);
     }
 }

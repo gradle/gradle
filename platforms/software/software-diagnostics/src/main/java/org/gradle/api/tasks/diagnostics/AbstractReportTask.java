@@ -15,6 +15,12 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
+import javax.inject.Inject;
 import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Internal;
@@ -29,13 +35,6 @@ import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * The base class for all project report tasks.
@@ -66,22 +65,14 @@ public abstract class AbstractReportTask extends ConventionTask {
 
     @TaskAction
     public void generate() {
-        reportGenerator().generateReport(
-            new TreeSet<>(getProjects()),
-            ProjectDetails::of,
-            project -> {
-                generate(project);
-                logClickableOutputFileUrl();
-            }
-        );
+        reportGenerator().generateReport(new TreeSet<>(getProjects()), ProjectDetails::of, project -> {
+            generate(project);
+            logClickableOutputFileUrl();
+        });
     }
 
     ReportGenerator reportGenerator() {
-        return new ReportGenerator(
-            getRenderer(),
-            getOutputFile(),
-            getTextOutputFactory()
-        );
+        return new ReportGenerator(getRenderer(), getOutputFile(), getTextOutputFactory());
     }
 
     void logClickableOutputFileUrl() {

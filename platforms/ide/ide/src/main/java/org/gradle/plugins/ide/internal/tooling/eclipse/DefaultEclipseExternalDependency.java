@@ -15,13 +15,12 @@
  */
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
-import org.gradle.tooling.model.GradleModuleVersion;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
+import org.gradle.tooling.model.GradleModuleVersion;
 
 public class DefaultEclipseExternalDependency extends DefaultEclipseDependency implements Serializable {
     private final File file;
@@ -34,7 +33,16 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
     private final boolean resolved;
     private final DefaultEclipseComponentSelector attemptedSelector;
 
-    private DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules, boolean resolved, String attemptedSelector) {
+    private DefaultEclipseExternalDependency(
+            File file,
+            File javadoc,
+            File source,
+            ModuleVersionIdentifier identifier,
+            boolean exported,
+            List<DefaultClasspathAttribute> attributes,
+            List<DefaultAccessRule> accessRules,
+            boolean resolved,
+            String attemptedSelector) {
         super(exported, attributes, accessRules);
         this.file = file;
         this.javadoc = javadoc;
@@ -42,7 +50,8 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
         this.identifier = identifier;
         this.moduleVersion = (identifier == null) ? null : new DefaultGradleModuleVersion(identifier);
         this.resolved = resolved;
-        this.attemptedSelector = (attemptedSelector == null) ? null : new DefaultEclipseComponentSelector(attemptedSelector);
+        this.attemptedSelector =
+                (attemptedSelector == null) ? null : new DefaultEclipseComponentSelector(attemptedSelector);
     }
 
     public File getFile() {
@@ -73,12 +82,28 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
         return attemptedSelector;
     }
 
-    public static DefaultEclipseExternalDependency createResolved(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
-        return new DefaultEclipseExternalDependency(file, javadoc, source, identifier, exported, attributes, accessRules, true, null);
+    public static DefaultEclipseExternalDependency createResolved(
+            File file,
+            File javadoc,
+            File source,
+            ModuleVersionIdentifier identifier,
+            boolean exported,
+            List<DefaultClasspathAttribute> attributes,
+            List<DefaultAccessRule> accessRules) {
+        return new DefaultEclipseExternalDependency(
+                file, javadoc, source, identifier, exported, attributes, accessRules, true, null);
     }
 
-    public static DefaultEclipseExternalDependency createUnresolved(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules, String attemptedSelector) {
-        return new DefaultEclipseExternalDependency(file, javadoc, source, identifier, exported, attributes, accessRules, false, attemptedSelector);
+    public static DefaultEclipseExternalDependency createUnresolved(
+            File file,
+            File javadoc,
+            File source,
+            ModuleVersionIdentifier identifier,
+            boolean exported,
+            List<DefaultClasspathAttribute> attributes,
+            List<DefaultAccessRule> accessRules,
+            String attemptedSelector) {
+        return new DefaultEclipseExternalDependency(
+                file, javadoc, source, identifier, exported, attributes, accessRules, false, attemptedSelector);
     }
-
 }

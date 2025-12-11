@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Optional;
+import java.util.function.Supplier;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
@@ -27,15 +32,9 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Optional;
-import java.util.function.Supplier;
-
 abstract class FallbackHandlingResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(FallbackHandlingResourceHasher.class);
-    private static final int MAX_FALLBACK_CONTENT_SIZE = 1024*1024*10;
+    private static final int MAX_FALLBACK_CONTENT_SIZE = 1024 * 1024 * 10;
 
     private final ResourceHasher delegate;
 
@@ -53,9 +52,9 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
     @Override
     public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
         return Optional.of(snapshotContext)
-            .filter(this::filter)
-            .flatMap(path -> tryHash(snapshotContext))
-            .orElseGet(IoSupplier.wrap(() -> delegate.hash(snapshotContext)));
+                .filter(this::filter)
+                .flatMap(path -> tryHash(snapshotContext))
+                .orElseGet(IoSupplier.wrap(() -> delegate.hash(snapshotContext)));
     }
 
     @Nullable
@@ -67,11 +66,11 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
         // If we should not handle this resource, or we cannot fallback safely, hash with the delegate
         // using the original context.
         return Optional.of(zipEntryContext)
-            .filter(this::filter)
-            .flatMap(FallbackHandlingResourceHasher::withFallbackSafety)
-            .map(this::hashSafely)
-            .orElse(hashWithDelegate(zipEntryContext))
-            .get();
+                .filter(this::filter)
+                .flatMap(FallbackHandlingResourceHasher::withFallbackSafety)
+                .map(this::hashSafely)
+                .orElse(hashWithDelegate(zipEntryContext))
+                .get();
     }
 
     private Supplier<HashCode> hashSafely(ZipEntryContext safeContext) {
@@ -87,10 +86,12 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
         if (entry.canReopen()) {
             return Optional.of(zipEntryContext);
         } else if (entry.size() > MAX_FALLBACK_CONTENT_SIZE) {
-            LOGGER.debug(zipEntryContext.getFullName() + " is too large (" + entry.size() + ") for safe fallback - skipping.");
+            LOGGER.debug(zipEntryContext.getFullName() + " is too large (" + entry.size()
+                    + ") for safe fallback - skipping.");
             return Optional.empty();
         } else {
-            return Optional.of(new DefaultZipEntryContext(new CachingZipEntry(entry), zipEntryContext.getFullName(), zipEntryContext.getRootParentName()));
+            return Optional.of(new DefaultZipEntryContext(
+                    new CachingZipEntry(entry), zipEntryContext.getFullName(), zipEntryContext.getRootParentName()));
         }
     }
 

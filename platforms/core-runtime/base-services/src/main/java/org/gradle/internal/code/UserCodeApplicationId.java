@@ -27,5 +27,4 @@ public class UserCodeApplicationId {
     public long longValue() {
         return id;
     }
-
 }

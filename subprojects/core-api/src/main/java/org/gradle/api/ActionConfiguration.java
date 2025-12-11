@@ -60,5 +60,6 @@ public interface ActionConfiguration {
      *
      * @return the parameters to use during construction
      */
-    @Nullable Object[] getParams();
+    @Nullable
+    Object[] getParams();
 }

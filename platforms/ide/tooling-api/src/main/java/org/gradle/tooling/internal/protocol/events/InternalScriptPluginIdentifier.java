@@ -29,5 +29,4 @@ public interface InternalScriptPluginIdentifier extends InternalPluginIdentifier
      * Returns the URI of the script file of this plugin.
      */
     URI getUri();
-
 }

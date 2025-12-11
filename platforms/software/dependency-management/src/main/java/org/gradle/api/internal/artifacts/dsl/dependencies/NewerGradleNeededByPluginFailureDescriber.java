@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedAttribute;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
@@ -27,19 +30,18 @@ import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFai
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.util.GradleVersion;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link ResolutionFailure} caused by a plugin requiring
  * a newer Gradle version than the one currently running the build.
  *
  * This is determined by assessing the incompatibility of the {@link GradlePluginApiVersion#GRADLE_PLUGIN_API_VERSION_ATTRIBUTE} attribute.
  */
-public abstract class NewerGradleNeededByPluginFailureDescriber extends AbstractResolutionFailureDescriber<NoCompatibleVariantsFailure> {
+public abstract class NewerGradleNeededByPluginFailureDescriber
+        extends AbstractResolutionFailureDescriber<NoCompatibleVariantsFailure> {
     @SuppressWarnings("InlineFormatString")
-    private static final String GRADLE_VERSION_TOO_OLD_TEMPLATE = "Plugin %s requires at least Gradle %s. This build uses %s.";
+    private static final String GRADLE_VERSION_TOO_OLD_TEMPLATE =
+            "Plugin %s requires at least Gradle %s. This build uses %s.";
+
     private static final String NEEDS_NEWER_GRADLE_SECTION = "sub:updating-gradle";
 
     private final GradleVersion currentGradleVersion = GradleVersion.current();
@@ -51,46 +53,58 @@ public abstract class NewerGradleNeededByPluginFailureDescriber extends Abstract
 
     @Override
     public AbstractResolutionFailureException describeFailure(NoCompatibleVariantsFailure failure) {
-        GradleVersion minGradleApiVersionSupportedByPlugin = findMinGradleVersionSupportedByPlugin(failure.getCandidates());
-        String message = buildPluginNeedsNewerGradleVersionFailureMsg(failure.describeRequestTarget(), minGradleApiVersionSupportedByPlugin);
-        List<String> resolutions = buildResolutions(suggestUpdateGradle(minGradleApiVersionSupportedByPlugin), suggestDowngradePlugin(failure.describeRequestTarget()));
+        GradleVersion minGradleApiVersionSupportedByPlugin =
+                findMinGradleVersionSupportedByPlugin(failure.getCandidates());
+        String message = buildPluginNeedsNewerGradleVersionFailureMsg(
+                failure.describeRequestTarget(), minGradleApiVersionSupportedByPlugin);
+        List<String> resolutions = buildResolutions(
+                suggestUpdateGradle(minGradleApiVersionSupportedByPlugin),
+                suggestDowngradePlugin(failure.describeRequestTarget()));
         return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
 
     private boolean allCandidatesIncompatibleDueToGradleVersionTooLow(NoCompatibleVariantsFailure failure) {
-        boolean requestingPluginApi = failure.getRequestedAttributes().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
+        boolean requestingPluginApi =
+                failure.getRequestedAttributes().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
         boolean allIncompatibleDueToGradleVersion = failure.getCandidates().stream()
-            .allMatch(candidate -> candidate.getIncompatibleAttributes().stream()
-                .anyMatch(this::isGradlePluginApiAttribute));
+                .allMatch(candidate ->
+                        candidate.getIncompatibleAttributes().stream().anyMatch(this::isGradlePluginApiAttribute));
         return requestingPluginApi && allIncompatibleDueToGradleVersion;
     }
 
     private GradleVersion findMinGradleVersionSupportedByPlugin(List<AssessedCandidate> candidates) {
         return candidates.stream()
-            .map(this::findMinGradleVersionSupportedByPlugin)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .min(Comparator.comparing(GradleVersion::getVersion))
-            .orElseThrow(IllegalStateException::new);
+                .map(this::findMinGradleVersionSupportedByPlugin)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .min(Comparator.comparing(GradleVersion::getVersion))
+                .orElseThrow(IllegalStateException::new);
     }
 
     private Optional<GradleVersion> findMinGradleVersionSupportedByPlugin(AssessedCandidate candidate) {
         return candidate.getIncompatibleAttributes().stream()
-            .filter(this::isGradlePluginApiAttribute)
-            .map(apiVersionAttribute -> GradleVersion.version(String.valueOf(apiVersionAttribute.getProvided())))
-            .min(Comparator.comparing(GradleVersion::getVersion));
+                .filter(this::isGradlePluginApiAttribute)
+                .map(apiVersionAttribute -> GradleVersion.version(String.valueOf(apiVersionAttribute.getProvided())))
+                .min(Comparator.comparing(GradleVersion::getVersion));
     }
 
     private boolean isGradlePluginApiAttribute(AssessedAttribute<?> attribute) {
-        return attribute.getAttribute().getName().equals(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE.getName());
+        return attribute
+                .getAttribute()
+                .getName()
+                .equals(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE.getName());
     }
 
-    private String buildPluginNeedsNewerGradleVersionFailureMsg(String pluginId, GradleVersion minRequiredGradleVersion) {
-        return String.format(GRADLE_VERSION_TOO_OLD_TEMPLATE, pluginId, minRequiredGradleVersion.getVersion(), currentGradleVersion);
+    private String buildPluginNeedsNewerGradleVersionFailureMsg(
+            String pluginId, GradleVersion minRequiredGradleVersion) {
+        return String.format(
+                GRADLE_VERSION_TOO_OLD_TEMPLATE, pluginId, minRequiredGradleVersion.getVersion(), currentGradleVersion);
     }
 
     private String suggestUpdateGradle(GradleVersion minRequiredGradleVersion) {
-        return "Upgrade to at least Gradle " + minRequiredGradleVersion.getVersion() + ". See the instructions at " + getDocumentationRegistry().getDocumentationFor("upgrading_version_8", NEEDS_NEWER_GRADLE_SECTION + ".");
+        return "Upgrade to at least Gradle " + minRequiredGradleVersion.getVersion() + ". See the instructions at "
+                + getDocumentationRegistry()
+                        .getDocumentationFor("upgrading_version_8", NEEDS_NEWER_GRADLE_SECTION + ".");
     }
 
     private String suggestDowngradePlugin(String pluginId) {

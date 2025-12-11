@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import java.util.List;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.List;
 
 /**
  * Thrown when a test worker completely fails to start.

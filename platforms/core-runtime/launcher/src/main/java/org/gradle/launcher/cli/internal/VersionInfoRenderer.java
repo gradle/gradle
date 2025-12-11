@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.cli.internal;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import org.apache.tools.ant.Main;
 import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.internal.jvm.Jvm;
@@ -24,17 +26,13 @@ import org.gradle.util.internal.DefaultGradleVersion;
 import org.gradle.util.internal.KotlinDslVersion;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 /**
  * Renders the output of {@code --version}.
  */
 @NullMarked
 public class VersionInfoRenderer {
 
-    private VersionInfoRenderer() {
-    }
+    private VersionInfoRenderer() {}
 
     public static String render(String daemonJvm) {
         return render(daemonJvm, null);

@@ -18,14 +18,13 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
-
-import javax.annotation.CheckReturnValue;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
+import javax.annotation.CheckReturnValue;
 
 /**
  * A special append-only list used in collection properties implementations.
@@ -153,11 +152,12 @@ class AppendOnceList<E> implements Iterable<E> {
      */
     public static <E> Collector<E, ?, AppendOnceList<E>> toAppendOnceList() {
         return Collector.<E, ArrayList<E>, AppendOnceList<E>>of(
-            ArrayList::new,
-            ArrayList::add,
-            (l, r) -> {
-                l.addAll(r);
-                return l;
-            }, AppendOnceList::new);
+                ArrayList::new,
+                ArrayList::add,
+                (l, r) -> {
+                    l.addAll(r);
+                    return l;
+                },
+                AppendOnceList::new);
     }
 }

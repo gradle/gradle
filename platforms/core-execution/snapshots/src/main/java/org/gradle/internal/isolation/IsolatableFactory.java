@@ -31,7 +31,8 @@ import org.jspecify.annotations.Nullable;
  *
  * @see org.gradle.internal.snapshot.ValueSnapshotter
  */
-@ServiceScope({Scope.UserHome.class, Scope.Global.class})  //Global scope is needed for the usage in process isolated worker actions
+@ServiceScope({Scope.UserHome.class, Scope.Global.class
+}) // Global scope is needed for the usage in process isolated worker actions
 public interface IsolatableFactory {
     /**
      * Creates an {@link Isolatable} that reflects the <em>current</em> state of the given value. Any changes made to the value will not be visible to the {@link Isolatable} and vice versa.

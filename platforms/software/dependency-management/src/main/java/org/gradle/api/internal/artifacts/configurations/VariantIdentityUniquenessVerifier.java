@@ -18,6 +18,10 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -29,11 +33,6 @@ import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 /**
  * Static utility to verify a set of variants each have a unique identity in terms of attributes and capabilities.
  */
@@ -44,7 +43,7 @@ public class VariantIdentityUniquenessVerifier {
      */
     public static VerificationReport buildReport(ConfigurationsProvider configurations) {
         ListMultimap<VariantIdentity, ConfigurationInternal> byIdentity =
-            MultimapBuilder.linkedHashKeys().arrayListValues().build();
+                MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
         configurations.visitConsumable(configuration -> {
             if (!mustHaveUniqueAttributes(configuration)) {
@@ -61,9 +60,9 @@ public class VariantIdentityUniquenessVerifier {
      * Consumable, non-resolvable, non-default configurations with attributes must have unique attributes.
      */
     private static boolean mustHaveUniqueAttributes(Configuration configuration) {
-        return !configuration.isCanBeResolved() &&
-            !Dependency.DEFAULT_CONFIGURATION.equals(configuration.getName()) &&
-            !configuration.getAttributes().isEmpty();
+        return !configuration.isCanBeResolved()
+                && !Dependency.DEFAULT_CONFIGURATION.equals(configuration.getName())
+                && !configuration.getAttributes().isEmpty();
     }
 
     /**
@@ -82,8 +81,7 @@ public class VariantIdentityUniquenessVerifier {
          */
         @Nullable
         public GradleException failureFor(ConfigurationInternal configuration, boolean withTaskAdvice) {
-            List<ConfigurationInternal> collisions =
-                byIdentity.get(VariantIdentity.from(configuration)).stream()
+            List<ConfigurationInternal> collisions = byIdentity.get(VariantIdentity.from(configuration)).stream()
                     .filter(it -> !it.getName().equals(configuration.getName()))
                     .collect(Collectors.toList());
 
@@ -103,34 +101,33 @@ public class VariantIdentityUniquenessVerifier {
                 if (collisions.size() > 1) {
 
                     ConfigurationInternal configuration = collisions.get(0);
-                    List<ConfigurationInternal> filtered =
-                        byIdentity.get(identity).stream()
+                    List<ConfigurationInternal> filtered = byIdentity.get(identity).stream()
                             .filter(it -> !it.getName().equals(configuration.getName()))
                             .collect(Collectors.toList());
 
-                    throw  buildFailure(configuration, true, filtered);
+                    throw buildFailure(configuration, true, filtered);
                 }
             }
         }
 
         private static GradleException buildFailure(
-            ConfigurationInternal configuration,
-            boolean withTaskAdvice,
-            List<ConfigurationInternal> collisions
-        ) {
+                ConfigurationInternal configuration, boolean withTaskAdvice, List<ConfigurationInternal> collisions) {
             DocumentedFailure.Builder builder = DocumentedFailure.builder();
-            String advice = "Consider adding an additional attribute to one of the configurations to disambiguate them.";
+            String advice =
+                    "Consider adding an additional attribute to one of the configurations to disambiguate them.";
             if (withTaskAdvice) {
                 advice += "  Run the 'outgoingVariants' task for more details.";
             }
 
-            String message = "Consumable configurations with identical capabilities within a project (other than the default configuration) " +
-                "must have unique attributes, but " + configuration.getDisplayName() + " and " + collisions + " contain identical attribute sets.";
+            String message =
+                    "Consumable configurations with identical capabilities within a project (other than the default configuration) "
+                            + "must have unique attributes, but " + configuration.getDisplayName() + " and "
+                            + collisions + " contain identical attribute sets.";
 
             return builder.withSummary(message)
-                .withAdvice(advice)
-                .withUserManual("upgrading_version_7", "unique_attribute_sets")
-                .build();
+                    .withAdvice(advice)
+                    .withUserManual("upgrading_version_7", "unique_attribute_sets")
+                    .build();
         }
     }
 
@@ -148,13 +145,12 @@ public class VariantIdentityUniquenessVerifier {
 
         public static VariantIdentity from(ConfigurationInternal configuration) {
             return new VariantIdentity(
-                configuration.getAttributes().asImmutable(),
-                allCapabilitiesIncludingDefault(configuration)
-            );
+                    configuration.getAttributes().asImmutable(), allCapabilitiesIncludingDefault(configuration));
         }
 
         private static ImmutableCapabilities allCapabilitiesIncludingDefault(ConfigurationInternal conf) {
-            Collection<? extends Capability> declaredCapabilities = conf.getOutgoing().getCapabilities();
+            Collection<? extends Capability> declaredCapabilities =
+                    conf.getOutgoing().getCapabilities();
             if (!declaredCapabilities.isEmpty()) {
                 return ImmutableCapabilities.of(declaredCapabilities);
             }
@@ -176,8 +172,7 @@ public class VariantIdentityUniquenessVerifier {
                 return false;
             }
             VariantIdentity that = (VariantIdentity) o;
-            return Objects.equals(attributes, that.attributes) &&
-                   Objects.equals(capabilities, that.capabilities);
+            return Objects.equals(attributes, that.attributes) && Objects.equals(capabilities, that.capabilities);
         }
 
         @Override
@@ -185,5 +180,4 @@ public class VariantIdentityUniquenessVerifier {
             return attributes.hashCode() ^ capabilities.hashCode();
         }
     }
-
 }

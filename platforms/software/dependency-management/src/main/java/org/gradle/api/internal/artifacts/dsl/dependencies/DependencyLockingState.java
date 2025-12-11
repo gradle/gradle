@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-
 import java.util.Set;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 /**
  * Describes the lock state for a given configuration.

@@ -36,16 +36,16 @@ public class NoopPluginResolver implements PluginResolver {
     @Override
     public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
         if (pluginRequest.getId().equals(NOOP_PLUGIN_ID)) {
-            return PluginResolutionResult.found(new SimplePluginResolution(DefaultPotentialPluginWithId.of(NOOP_PLUGIN_ID, pluginRegistry.inspect(NoopPlugin.class))));
+            return PluginResolutionResult.found(new SimplePluginResolution(
+                    DefaultPotentialPluginWithId.of(NOOP_PLUGIN_ID, pluginRegistry.inspect(NoopPlugin.class))));
         }
         return PluginResolutionResult.notFound();
     }
 
-    public static abstract class NoopPlugin implements Plugin<Object> {
+    public abstract static class NoopPlugin implements Plugin<Object> {
         @Override
         public void apply(Object target) {
             // do nothing
         }
     }
-
 }

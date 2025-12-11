@@ -16,11 +16,10 @@
 
 package org.gradle.ide.xcode.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.ide.xcode.XcodeWorkspace;
-
-import javax.inject.Inject;
 
 public class DefaultXcodeWorkspace implements XcodeWorkspace {
     private final DirectoryProperty workspaceDir;

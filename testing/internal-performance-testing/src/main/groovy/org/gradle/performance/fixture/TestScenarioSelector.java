@@ -17,9 +17,8 @@
 package org.gradle.performance.fixture;
 
 import com.google.common.base.Splitter;
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Determines whether a specific scenario within a performance test should run.
@@ -34,7 +33,8 @@ public class TestScenarioSelector {
             throw new IllegalArgumentException("Test ID cannot contain ';', but was '" + testId + "'");
         }
         String scenarioProperty = System.getProperty("org.gradle.performance.scenarios", "");
-        List<String> scenarios = Splitter.on(";").omitEmptyStrings().trimResults().splitToList(scenarioProperty);
+        List<String> scenarios =
+                Splitter.on(";").omitEmptyStrings().trimResults().splitToList(scenarioProperty);
 
         return scenarios.isEmpty() || scenarios.contains(testId);
     }
@@ -42,6 +42,8 @@ public class TestScenarioSelector {
     @Nullable
     static String loadConfiguredTestProject() {
         String testProjectFromSystemProperty = System.getProperty(TEST_PROJECT_PROPERTY_NAME);
-        return (testProjectFromSystemProperty != null && !testProjectFromSystemProperty.isEmpty()) ? testProjectFromSystemProperty : null;
+        return (testProjectFromSystemProperty != null && !testProjectFromSystemProperty.isEmpty())
+                ? testProjectFromSystemProperty
+                : null;
     }
 }

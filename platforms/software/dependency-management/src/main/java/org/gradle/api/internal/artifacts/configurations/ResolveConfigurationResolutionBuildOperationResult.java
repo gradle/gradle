@@ -16,8 +16,16 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.function.Supplier;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
@@ -31,26 +39,18 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.function.Supplier;
-
-import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
-
-class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result, CustomOperationTraceSerialization {
+class ResolveConfigurationResolutionBuildOperationResult
+        implements ResolveConfigurationDependenciesBuildOperationType.Result, CustomOperationTraceSerialization {
     private final Supplier<ResolvedDependencyGraph> graphSource;
     private final Lazy<AttributeContainer> lazyDesugaredAttributes;
 
     public ResolveConfigurationResolutionBuildOperationResult(
-        Supplier<ResolvedDependencyGraph> graphSource,
-        ImmutableAttributes requestedAttributes,
-        AttributesFactory attributesFactory
-    ) {
+            Supplier<ResolvedDependencyGraph> graphSource,
+            ImmutableAttributes requestedAttributes,
+            AttributesFactory attributesFactory) {
         this.graphSource = graphSource;
-        this.lazyDesugaredAttributes = Lazy.unsafe().of(() -> desugarAttributes(attributesFactory, requestedAttributes));
+        this.lazyDesugaredAttributes =
+                Lazy.unsafe().of(() -> desugarAttributes(attributesFactory, requestedAttributes));
     }
 
     @Override
@@ -66,19 +66,25 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
     @Override
     public Object getCustomOperationTraceSerializableModel() {
         Map<String, Object> model = new HashMap<>();
-        model.put("resolvedDependenciesCount", getRootComponent().getDependencies().size());
+        model.put(
+                "resolvedDependenciesCount",
+                getRootComponent().getDependencies().size());
 
         final Map<String, Map<String, String>> components = new HashMap<>();
-        eachElement(getRootComponent(), component -> components.put(
-            component.getId().getDisplayName(),
-            Collections.singletonMap("repoId", getRepositoryId(component))
-        ), Actions.doNothing(), new HashSet<>());
+        eachElement(
+                getRootComponent(),
+                component -> components.put(
+                        component.getId().getDisplayName(),
+                        Collections.singletonMap("repoId", getRepositoryId(component))),
+                Actions.doNothing(),
+                new HashSet<>());
         model.put("components", components);
 
         ImmutableList.Builder<Object> requestedAttributesBuilder = new ImmutableList.Builder<>();
         AttributeContainer desugared = lazyDesugaredAttributes.get();
         for (Attribute<?> att : desugared.keySet()) {
-            requestedAttributesBuilder.add(ImmutableMap.of("name", att.getName(), "value", desugared.getAttribute(att).toString()));
+            requestedAttributesBuilder.add(ImmutableMap.of(
+                    "name", att.getName(), "value", desugared.getAttribute(att).toString()));
         }
         model.put("requestedAttributes", requestedAttributesBuilder.build());
 
@@ -90,13 +96,13 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         return lazyDesugaredAttributes.get();
     }
 
-    // This does almost the same thing as passing through DesugaredAttributeContainerSerializer / DesugaringAttributeContainerSerializer.
-    // Those make some assumptions about allowed attribute value types that we can't - we serialize everything else to a string instead.
+    // This does almost the same thing as passing through DesugaredAttributeContainerSerializer /
+    // DesugaringAttributeContainerSerializer.
+    // Those make some assumptions about allowed attribute value types that we can't - we serialize everything else to a
+    // string instead.
     @SuppressWarnings("unchecked")
     private static ImmutableAttributes desugarAttributes(
-        AttributesFactory attributesFactory,
-        AttributeContainer source
-    ) {
+            AttributesFactory attributesFactory, AttributeContainer source) {
         AttributeContainerInternal result = attributesFactory.mutable();
         for (Attribute<?> attribute : source.keySet()) {
             String name = attribute.getName();
@@ -114,7 +120,8 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
                 String stringValue;
                 if (attributeValue instanceof Named) {
                     stringValue = ((Named) attributeValue).getName();
-                } else if (attributeValue instanceof Object[]) { // don't bother trying to handle primitive arrays specially
+                } else if (attributeValue
+                        instanceof Object[]) { // don't bother trying to handle primitive arrays specially
                     stringValue = Arrays.toString((Object[]) attributeValue);
                 } else {
                     stringValue = attributeValue.toString();
@@ -125,5 +132,4 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
 
         return result.asImmutable();
     }
-
 }

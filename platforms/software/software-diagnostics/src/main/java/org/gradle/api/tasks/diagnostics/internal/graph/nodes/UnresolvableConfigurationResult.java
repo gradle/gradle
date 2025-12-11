@@ -16,26 +16,24 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.artifacts.ProjectDependency;
-
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.ProjectDependency;
 
 public class UnresolvableConfigurationResult extends AbstractRenderableDependency {
 
     public static UnresolvableConfigurationResult of(Configuration configuration) {
         return new UnresolvableConfigurationResult(
-            configuration.getClass().getName() + configuration.hashCode(),
-            configuration.getName(),
-            unresolvableChildren(configuration)
-        );
+                configuration.getClass().getName() + configuration.hashCode(),
+                configuration.getName(),
+                unresolvableChildren(configuration));
     }
 
     @SuppressWarnings({"deprecation", "MixedMutabilityReturnType"})
@@ -48,11 +46,10 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
         Set<UnresolvableRenderableDependency> children = new LinkedHashSet<>();
         for (final Dependency dependency : dependencies) {
             children.add(new UnresolvableRenderableDependency(
-                dependency.getClass().getName() + dependency.hashCode(),
-                (dependency instanceof ProjectDependency)
-                    ? projectDependencyLabel((ProjectDependency) dependency)
-                    : moduleDependencyLabel(dependency)
-            ));
+                    dependency.getClass().getName() + dependency.hashCode(),
+                    (dependency instanceof ProjectDependency)
+                            ? projectDependencyLabel((ProjectDependency) dependency)
+                            : moduleDependencyLabel(dependency)));
         }
         return children;
     }
@@ -62,22 +59,17 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
     }
 
     private static String moduleDependencyLabel(Dependency dependency) {
-        return Joiner.on(":").join(
-            Stream.of(dependency.getGroup(), dependency.getName(), dependency.getVersion())
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList())
-        );
+        return Joiner.on(":")
+                .join(Stream.of(dependency.getGroup(), dependency.getName(), dependency.getVersion())
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()));
     }
 
     private final Object id;
     private final String name;
     private final Set<? extends RenderableDependency> children;
 
-    private UnresolvableConfigurationResult(
-        Object id,
-        String name,
-        Set<? extends RenderableDependency> children
-    ) {
+    private UnresolvableConfigurationResult(Object id, String name, Set<? extends RenderableDependency> children) {
         this.id = id;
         this.name = name;
         this.children = children;

@@ -28,6 +28,7 @@ public class DefaultProblemDefinition implements ProblemDefinition {
 
     private final ProblemId id;
     private final Severity severity;
+
     @Nullable
     private final DocumentationLink documentationLink;
 

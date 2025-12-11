@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
     private final List<ResolvedArtifactSet> sets;

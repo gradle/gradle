@@ -37,5 +37,4 @@ public interface StackTraceClassifier {
      */
     @Nullable
     StackTraceRelevance classify(StackTraceElement frame);
-
 }

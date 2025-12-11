@@ -24,7 +24,11 @@ public class BuildModelAction extends SubscribableBuildAction {
     private final String modelName;
     private final boolean runTasks;
 
-    public BuildModelAction(StartParameterInternal startParameter, String modelName, boolean runTasks, BuildEventSubscriptions clientSubscriptions) {
+    public BuildModelAction(
+            StartParameterInternal startParameter,
+            String modelName,
+            boolean runTasks,
+            BuildEventSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.modelName = modelName;

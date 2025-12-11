@@ -16,10 +16,6 @@
 
 package org.gradle.util.internal;
 
-import org.apache.commons.io.IOUtils;
-import org.gradle.internal.IoActions;
-import org.jspecify.annotations.Nullable;
-
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -33,6 +29,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import org.apache.commons.io.IOUtils;
+import org.gradle.internal.IoActions;
+import org.jspecify.annotations.Nullable;
 
 public class JarUtil {
     // We cannot use Attributes.Name.MULTI_RELEASE as it is only available since Java 9;
@@ -124,7 +123,8 @@ public class JarUtil {
                 int version = Integer.parseInt(match.group(1));
                 return OptionalInt.of(version);
             } catch (NumberFormatException ignored) {
-                // Even though the pattern ensures that the version name is all digits, it fails to parse, probably because it is too big.
+                // Even though the pattern ensures that the version name is all digits, it fails to parse, probably
+                // because it is too big.
                 // Technically it may be a valid MR JAR for Java >Integer.MAX_VALUE, but we are too far away from this.
                 // We assume that JAR author didn't intend it to be a versioned directory.
             }

@@ -31,5 +31,4 @@ public interface FileLockReleasedSignal {
      * received by the lock requesters.
      */
     void trigger();
-
 }

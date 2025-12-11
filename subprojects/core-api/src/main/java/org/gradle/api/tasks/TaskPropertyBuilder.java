@@ -24,5 +24,4 @@ import org.gradle.internal.HasInternalProtocol;
  * @since 3.0
  */
 @HasInternalProtocol
-public interface TaskPropertyBuilder {
-}
+public interface TaskPropertyBuilder {}

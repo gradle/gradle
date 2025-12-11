@@ -16,6 +16,11 @@
 
 package org.gradle.internal.logging;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -31,21 +36,11 @@ import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.util.internal.TextUtil;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConfiguration> {
     // This can be removed once we've moved to compiling for Java 8+
     @SuppressWarnings("unchecked")
-    private final List<? extends BuildOption<? super LoggingConfiguration>> options = Arrays.asList(
-        new LogLevelOption(),
-        new StacktraceOption(),
-        new ConsoleOption(),
-        new WarningsOption()
-    );
+    private final List<? extends BuildOption<? super LoggingConfiguration>> options =
+            Arrays.asList(new LogLevelOption(), new StacktraceOption(), new ConsoleOption(), new WarningsOption());
 
     @Override
     public List<? extends BuildOption<? super LoggingConfiguration>> getAllOptions() {
@@ -54,13 +49,14 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
 
     public Collection<String> getLongLogLevelOptions() {
         return Arrays.asList(
-            LogLevelOption.DEBUG_LONG_OPTION,
-            LogLevelOption.WARN_LONG_OPTION,
-            LogLevelOption.INFO_LONG_OPTION,
-            LogLevelOption.QUIET_LONG_OPTION);
+                LogLevelOption.DEBUG_LONG_OPTION,
+                LogLevelOption.WARN_LONG_OPTION,
+                LogLevelOption.INFO_LONG_OPTION,
+                LogLevelOption.QUIET_LONG_OPTION);
     }
 
-    public static class LogLevelOption extends AbstractBuildOption<LoggingConfiguration, CommandLineOptionConfiguration> {
+    public static class LogLevelOption
+            extends AbstractBuildOption<LoggingConfiguration, CommandLineOptionConfiguration> {
         public static final String GRADLE_PROPERTY = "org.gradle.logging.level";
         public static final String QUIET_LONG_OPTION = "quiet";
         public static final String QUIET_SHORT_OPTION = "q";
@@ -70,16 +66,19 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         public static final String INFO_SHORT_OPTION = "i";
         public static final String DEBUG_LONG_OPTION = "debug";
         public static final String DEBUG_SHORT_OPTION = "d";
-        private static final String[] ALL_SHORT_OPTIONS = new String[]{QUIET_SHORT_OPTION, WARN_SHORT_OPTION, INFO_SHORT_OPTION, DEBUG_SHORT_OPTION};
+        private static final String[] ALL_SHORT_OPTIONS =
+                new String[] {QUIET_SHORT_OPTION, WARN_SHORT_OPTION, INFO_SHORT_OPTION, DEBUG_SHORT_OPTION};
 
         public LogLevelOption() {
             super(
-                GRADLE_PROPERTY,
-                CommandLineOptionConfiguration.create(QUIET_LONG_OPTION, QUIET_SHORT_OPTION, "Log errors only."),
-                CommandLineOptionConfiguration.create(WARN_LONG_OPTION, WARN_SHORT_OPTION, "Set log level to warn."),
-                CommandLineOptionConfiguration.create(INFO_LONG_OPTION, INFO_SHORT_OPTION, "Set log level to info."),
-                CommandLineOptionConfiguration.create(DEBUG_LONG_OPTION, DEBUG_SHORT_OPTION, "Log in debug mode (includes normal stacktrace).")
-            );
+                    GRADLE_PROPERTY,
+                    CommandLineOptionConfiguration.create(QUIET_LONG_OPTION, QUIET_SHORT_OPTION, "Log errors only."),
+                    CommandLineOptionConfiguration.create(
+                            WARN_LONG_OPTION, WARN_SHORT_OPTION, "Set log level to warn."),
+                    CommandLineOptionConfiguration.create(
+                            INFO_LONG_OPTION, INFO_SHORT_OPTION, "Set log level to info."),
+                    CommandLineOptionConfiguration.create(
+                            DEBUG_LONG_OPTION, DEBUG_SHORT_OPTION, "Log in debug mode (includes normal stacktrace)."));
         }
 
         @Override
@@ -95,7 +94,12 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         @Override
         public void configure(CommandLineParser parser) {
             for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-                configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.isDeprecated(), config.isIncubating());
+                configureCommandLineOption(
+                        parser,
+                        config.getAllOptions(),
+                        config.getDescription(),
+                        config.isDeprecated(),
+                        config.isIncubating());
             }
 
             parser.allowOneOf(ALL_SHORT_OPTIONS);
@@ -122,22 +126,34 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
                 }
                 return logLevel;
             } catch (IllegalArgumentException e) {
-                Origin.forGradleProperty(GRADLE_PROPERTY).handleInvalidValue(value, "must be one of quiet, warn, lifecycle, info, or debug)");
+                Origin.forGradleProperty(GRADLE_PROPERTY)
+                        .handleInvalidValue(value, "must be one of quiet, warn, lifecycle, info, or debug)");
             }
             return null;
         }
     }
 
-    public static class StacktraceOption extends AbstractBuildOption<LoggingConfiguration, CommandLineOptionConfiguration> {
+    public static class StacktraceOption
+            extends AbstractBuildOption<LoggingConfiguration, CommandLineOptionConfiguration> {
         public static final String GRADLE_PROPERTY = "org.gradle.logging.stacktrace";
         public static final String STACKTRACE_LONG_OPTION = "stacktrace";
         public static final String STACKTRACE_SHORT_OPTION = "s";
         public static final String FULL_STACKTRACE_LONG_OPTION = "full-stacktrace";
         public static final String FULL_STACKTRACE_SHORT_OPTION = "S";
-        private static final String[] ALL_SHORT_OPTIONS = new String[]{STACKTRACE_SHORT_OPTION, FULL_STACKTRACE_SHORT_OPTION};
+        private static final String[] ALL_SHORT_OPTIONS =
+                new String[] {STACKTRACE_SHORT_OPTION, FULL_STACKTRACE_SHORT_OPTION};
 
         public StacktraceOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(STACKTRACE_LONG_OPTION, STACKTRACE_SHORT_OPTION, "Print out the stacktrace for all exceptions."), CommandLineOptionConfiguration.create(FULL_STACKTRACE_LONG_OPTION, FULL_STACKTRACE_SHORT_OPTION, "Print out the full (very verbose) stacktrace for all exceptions."));
+            super(
+                    GRADLE_PROPERTY,
+                    CommandLineOptionConfiguration.create(
+                            STACKTRACE_LONG_OPTION,
+                            STACKTRACE_SHORT_OPTION,
+                            "Print out the stacktrace for all exceptions."),
+                    CommandLineOptionConfiguration.create(
+                            FULL_STACKTRACE_LONG_OPTION,
+                            FULL_STACKTRACE_SHORT_OPTION,
+                            "Print out the full (very verbose) stacktrace for all exceptions."));
         }
 
         @Override
@@ -152,7 +168,8 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
                 } else if (value.equalsIgnoreCase("full")) {
                     settings.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
                 } else {
-                    Origin.forGradleProperty(GRADLE_PROPERTY).handleInvalidValue(value, "must be one of internal, all, or full");
+                    Origin.forGradleProperty(GRADLE_PROPERTY)
+                            .handleInvalidValue(value, "must be one of internal, all, or full");
                 }
             }
         }
@@ -160,7 +177,12 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         @Override
         public void configure(CommandLineParser parser) {
             for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-                configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.isDeprecated(), config.isIncubating());
+                configureCommandLineOption(
+                        parser,
+                        config.getAllOptions(),
+                        config.getDescription(),
+                        config.isDeprecated(),
+                        config.isIncubating());
             }
 
             parser.allowOneOf(ALL_SHORT_OPTIONS);
@@ -181,7 +203,11 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         public static final String GRADLE_PROPERTY = "org.gradle.console";
 
         public ConsoleOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which type of console output to generate. Values are 'plain', 'colored', 'auto' (default), 'rich' or 'verbose'."));
+            super(
+                    GRADLE_PROPERTY,
+                    CommandLineOptionConfiguration.create(
+                            LONG_OPTION,
+                            "Specifies which type of console output to generate. Values are 'plain', 'colored', 'auto' (default), 'rich' or 'verbose'."));
         }
 
         @Override
@@ -202,7 +228,11 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         public static final String GRADLE_PROPERTY = "org.gradle.warning.mode";
 
         public WarningsOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which mode of warnings to generate. Values are 'all', 'fail', 'summary'(default) or 'none'"));
+            super(
+                    GRADLE_PROPERTY,
+                    CommandLineOptionConfiguration.create(
+                            LONG_OPTION,
+                            "Specifies which mode of warnings to generate. Values are 'all', 'fail', 'summary'(default) or 'none'"));
         }
 
         @Override

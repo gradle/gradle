@@ -29,7 +29,7 @@ public class FetchTaskSelectorsBuildAction implements BuildAction<BuildInvocatio
     }
 
     public BuildInvocations execute(BuildController controller) {
-        for (BasicGradleProject project: controller.getBuildModel().getProjects()) {
+        for (BasicGradleProject project : controller.getBuildModel().getProjects()) {
             if (project.getName().equals(projectName)) {
                 return controller.getModel(project, BuildInvocations.class);
             }

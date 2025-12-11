@@ -16,10 +16,9 @@
 
 package org.gradle.internal.service;
 
+import java.lang.reflect.Type;
 import org.gradle.internal.concurrent.Stoppable;
 import org.jspecify.annotations.Nullable;
-
-import java.lang.reflect.Type;
 
 /**
  * Provides a set of zero or more services. The get-methods may be called concurrently. {@link #stop()} is guaranteed to be only called once,

@@ -15,14 +15,13 @@
  */
 package org.gradle.plugins.ide.eclipse;
 
+import javax.inject.Inject;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
 
 /**
  * Generates an Eclipse <code>.classpath</code> file. If you want to fine tune the eclipse configuration

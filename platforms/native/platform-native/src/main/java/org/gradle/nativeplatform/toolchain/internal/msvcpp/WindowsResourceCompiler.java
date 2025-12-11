@@ -16,6 +16,8 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.collect.Iterables;
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.Transformer;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -24,30 +26,48 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 
-import java.util.List;
-import java.util.Optional;
-
 class WindowsResourceCompiler extends VisualCppNativeCompiler<WindowsResourceCompileSpec> {
 
-    WindowsResourceCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer, String objectFileExtension, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, new RcCompilerArgsTransformer(), specTransformer, objectFileExtension, useCommandFile, workerLeaseService);
+    WindowsResourceCompiler(
+            BuildOperationExecutor buildOperationExecutor,
+            CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+            CommandLineToolInvocationWorker commandLineTool,
+            CommandLineToolContext invocationContext,
+            Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer,
+            String objectFileExtension,
+            boolean useCommandFile,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                buildOperationExecutor,
+                compilerOutputFileNamingSchemeFactory,
+                commandLineTool,
+                invocationContext,
+                new RcCompilerArgsTransformer(),
+                specTransformer,
+                objectFileExtension,
+                useCommandFile,
+                workerLeaseService);
     }
 
     @Override
-    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
+    protected Iterable<String> buildPerFileArgs(
+            List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
         if (pchArgs != null && !pchArgs.isEmpty()) {
-            throw new UnsupportedOperationException("Precompiled header arguments cannot be specified for a Windows Resource compiler.");
+            throw new UnsupportedOperationException(
+                    "Precompiled header arguments cannot be specified for a Windows Resource compiler.");
         }
         // RC has position sensitive arguments, the output args need to appear before the source file
         return Iterables.concat(genericArgs, outputArgs, sourceArgs);
     }
 
-    private static class RcCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<WindowsResourceCompileSpec> {
+    private static class RcCompilerArgsTransformer
+            extends VisualCppCompilerArgsTransformer<WindowsResourceCompileSpec> {
         @Override
         protected void addToolSpecificArgs(WindowsResourceCompileSpec spec, List<String> args) {
             getLanguageOption().ifPresent(args::add);
             args.add("/nologo");
         }
+
         @Override
         protected Optional<String> getLanguageOption() {
             return Optional.of("/r");

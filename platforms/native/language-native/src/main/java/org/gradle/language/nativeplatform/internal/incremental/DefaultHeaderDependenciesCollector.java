@@ -17,17 +17,16 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSortedSet;
+import java.io.File;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @NullMarked
 public class DefaultHeaderDependenciesCollector implements HeaderDependenciesCollector {
@@ -39,10 +38,13 @@ public class DefaultHeaderDependenciesCollector implements HeaderDependenciesCol
     }
 
     @Override
-    public ImmutableSortedSet<File> collectExistingHeaderDependencies(String taskPath, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
+    public ImmutableSortedSet<File> collectExistingHeaderDependencies(
+            String taskPath, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
         final Set<File> headerDependencies = new HashSet<File>();
         if (incrementalCompilation.isUnresolvedHeaders()) {
-            logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for '{}'. Every file in the include search path will be considered a header dependency.", taskPath);
+            logger.info(
+                    "After parsing the source files, Gradle cannot calculate the exact set of include files for '{}'. Every file in the include search path will be considered a header dependency.",
+                    taskPath);
             addIncludeRoots(taskPath, includeRoots, headerDependencies);
         } else {
             logger.info("Found all include files for '{}'", taskPath);

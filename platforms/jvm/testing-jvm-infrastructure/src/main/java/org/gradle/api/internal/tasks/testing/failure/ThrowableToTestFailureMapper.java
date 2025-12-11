@@ -28,5 +28,4 @@ import org.jspecify.annotations.NullMarked;
 public interface ThrowableToTestFailureMapper {
 
     TestFailure createFailure(Throwable throwable);
-
 }

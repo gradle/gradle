@@ -16,12 +16,11 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import org.gradle.internal.file.FileModeAccessor;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import org.gradle.internal.file.FileModeAccessor;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 class FallbackStat implements FileModeAccessor {
     @Override

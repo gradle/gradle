@@ -27,7 +27,8 @@ public class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
     private final ResultHandler<? super T> handler;
     private final ConnectionExceptionTransformer connectionExceptionTransformer;
 
-    protected ResultHandlerAdapter(ResultHandler<? super T> handler, ConnectionExceptionTransformer connectionExceptionTransformer) {
+    protected ResultHandlerAdapter(
+            ResultHandler<? super T> handler, ConnectionExceptionTransformer connectionExceptionTransformer) {
         this.handler = handler;
         this.connectionExceptionTransformer = connectionExceptionTransformer;
     }

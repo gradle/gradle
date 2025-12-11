@@ -20,27 +20,20 @@ import org.gradle.model.RuleSource;
 
 @SuppressWarnings("UnusedDeclaration")
 public class OuterClass {
-    public static interface AnInterface {
-    }
+    public static interface AnInterface {}
 
-    public class InnerInstanceClass extends RuleSource {
-    }
+    public class InnerInstanceClass extends RuleSource {}
 
-    private class PrivateInnerStaticClass {
-    }
+    private class PrivateInnerStaticClass {}
 
-    public static class HasSuperclass extends InnerPublicStaticClass {
-    }
+    public static class HasSuperclass extends InnerPublicStaticClass {}
 
-    public static class DoesNotExtendRuleSource {
-    }
+    public static class DoesNotExtendRuleSource {}
 
     public static class HasTwoConstructors extends RuleSource {
-        public HasTwoConstructors() {
-        }
+        public HasTwoConstructors() {}
 
-        public HasTwoConstructors(String arg) {
-        }
+        public HasTwoConstructors(String arg) {}
     }
 
     public static class HasInstanceVar extends RuleSource {
@@ -55,12 +48,10 @@ public class OuterClass {
         private static String foo;
     }
 
-    public static class InnerPublicStaticClass extends RuleSource {
-    }
+    public static class InnerPublicStaticClass extends RuleSource {}
 
     public static class HasExplicitDefaultConstructor extends RuleSource {
-        public HasExplicitDefaultConstructor() {
-        }
+        public HasExplicitDefaultConstructor() {}
     }
 
     public static class HasStaticFinalField extends RuleSource {

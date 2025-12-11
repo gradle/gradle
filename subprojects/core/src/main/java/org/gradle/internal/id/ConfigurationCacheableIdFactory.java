@@ -16,12 +16,10 @@
 
 package org.gradle.internal.id;
 
-
+import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Creates unique ids for objects created during configuration.

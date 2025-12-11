@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Responsible for selecting a suitable transformation chain for a request.
@@ -41,7 +40,8 @@ import java.util.Optional;
     private final ConsumerProvidedVariantFinder transformationChainFinder;
     private final ResolutionFailureHandler failureHandler;
 
-    public TransformationChainSelector(ConsumerProvidedVariantFinder transformationChainFinder, ResolutionFailureHandler failureHandler) {
+    public TransformationChainSelector(
+            ConsumerProvidedVariantFinder transformationChainFinder, ResolutionFailureHandler failureHandler) {
         this.transformationChainFinder = transformationChainFinder;
         this.failureHandler = failureHandler;
     }
@@ -55,16 +55,20 @@ import java.util.Optional;
      *
      * @return result of selection, as described
      */
-    public Optional<TransformedVariant> selectTransformationChain(ResolvedVariantSet producer, ImmutableAttributes targetAttributes, AttributeMatcher attributeMatcher) {
+    public Optional<TransformedVariant> selectTransformationChain(
+            ResolvedVariantSet producer, ImmutableAttributes targetAttributes, AttributeMatcher attributeMatcher) {
         // It's important to note that this produces all COMPATIBLE chains, meaning it's MORE PERMISSIVE than it
         // needs to be.  For example, if libraryelements=classes is requested, and there are 2 chains available
         // that will result in variants that only differ in libraryelements=classes and libraryelements=jar, and
-        // these are compatible attribute values, both are returned at this point, despite the exact match being clearly preferable.
-        List<TransformedVariant> candidateChains = transformationChainFinder.findCandidateTransformationChains(producer.getCandidates(), targetAttributes);
+        // these are compatible attribute values, both are returned at this point, despite the exact match being clearly
+        // preferable.
+        List<TransformedVariant> candidateChains =
+                transformationChainFinder.findCandidateTransformationChains(producer.getCandidates(), targetAttributes);
         if (candidateChains.size() == 1) {
             return Optional.of(candidateChains.get(0));
         } else if (candidateChains.size() > 1) {
-            TransformationChainsDisambiguator transformationChainsDisambiguator = new TransformationChainsDisambiguator(failureHandler, producer, targetAttributes, attributeMatcher, candidateChains);
+            TransformationChainsDisambiguator transformationChainsDisambiguator = new TransformationChainsDisambiguator(
+                    failureHandler, producer, targetAttributes, attributeMatcher, candidateChains);
             return transformationChainsDisambiguator.disambiguate();
         } else {
             return Optional.empty();

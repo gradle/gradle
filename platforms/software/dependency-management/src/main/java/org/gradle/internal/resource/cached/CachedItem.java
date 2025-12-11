@@ -16,9 +16,8 @@
 
 package org.gradle.internal.resource.cached;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
+import org.jspecify.annotations.Nullable;
 
 public interface CachedItem {
     /**
@@ -44,6 +43,4 @@ public interface CachedItem {
      * @return The timestamp of when this cache entry was created.
      */
     long getCachedAt();
-
-
 }

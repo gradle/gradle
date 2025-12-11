@@ -72,5 +72,4 @@ public interface EclipseLinkedResource {
      * @return location uri
      */
     String getLocationUri();
-
 }

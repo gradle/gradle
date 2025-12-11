@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file;
 
-
 /**
  * Encapsulates the logic for serializing and deserializing a file collection to and from the configuration cache.
  */

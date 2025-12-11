@@ -29,10 +29,8 @@ public class CacheableTransformTypeAnnotationHandler extends AbstractTypeAnnotat
     @Override
     public void validateTypeMetadata(Class<?> classWithAnnotationAttached, TypeValidationContext visitor) {
         if (!TransformAction.class.isAssignableFrom(classWithAnnotationAttached)) {
-            reportInvalidUseOfTypeAnnotation(classWithAnnotationAttached,
-                visitor,
-                getAnnotationType(),
-                TransformAction.class);
+            reportInvalidUseOfTypeAnnotation(
+                    classWithAnnotationAttached, visitor, getAnnotationType(), TransformAction.class);
         }
     }
 }

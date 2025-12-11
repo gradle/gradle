@@ -16,6 +16,11 @@
 
 package org.gradle.api.reporting.dependents.internal;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.emptyToNull;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.AbstractRenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
@@ -26,20 +31,19 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.emptyToNull;
-
 public class DependentComponentsRenderableDependency extends AbstractRenderableDependency {
 
-    public static DependentComponentsRenderableDependency of(ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
+    public static DependentComponentsRenderableDependency of(
+            ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
         return of(componentSpec, internalProtocol, new LinkedHashSet<>());
     }
 
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public static DependentComponentsRenderableDependency of(ComponentSpec componentSpec, ComponentSpecInternal internalProtocol, LinkedHashSet<DependentComponentsRenderableDependency> children) {
+    @SuppressWarnings(
+            "NonApiType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    public static DependentComponentsRenderableDependency of(
+            ComponentSpec componentSpec,
+            ComponentSpecInternal internalProtocol,
+            LinkedHashSet<DependentComponentsRenderableDependency> children) {
         ComponentSpecIdentifier id = internalProtocol.getIdentifier();
         String name = DependentComponentsUtils.getBuildScopedTerseName(id);
         String description = componentSpec.getDisplayName();
@@ -72,8 +76,15 @@ public class DependentComponentsRenderableDependency extends AbstractRenderableD
     private final boolean testSuite;
     private final LinkedHashSet<? extends RenderableDependency> children;
 
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public DependentComponentsRenderableDependency(Object id, String name, String description, boolean buildable, boolean testSuite, LinkedHashSet<? extends RenderableDependency> children) {
+    @SuppressWarnings(
+            "NonApiType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    public DependentComponentsRenderableDependency(
+            Object id,
+            String name,
+            String description,
+            boolean buildable,
+            boolean testSuite,
+            LinkedHashSet<? extends RenderableDependency> children) {
         checkNotNull(id, "id must not be null");
         checkNotNull(emptyToNull(name), "name must not be null nor empty");
         this.id = id;

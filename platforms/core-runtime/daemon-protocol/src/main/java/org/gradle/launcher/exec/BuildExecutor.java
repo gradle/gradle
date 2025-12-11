@@ -24,6 +24,4 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * Marker interface that can be used to obtain the action executor responsible for actually running builds.
  */
 @ServiceScope(Scope.Global.class)
-public interface BuildExecutor extends BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
-
-}
+public interface BuildExecutor extends BuildActionExecutor<BuildActionParameters, BuildRequestContext> {}

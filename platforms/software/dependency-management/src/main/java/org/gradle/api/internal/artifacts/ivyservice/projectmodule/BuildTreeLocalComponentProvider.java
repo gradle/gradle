@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A provider of dependency resolution state for local components produced by any build in the build tree.
@@ -40,5 +39,4 @@ public interface BuildTreeLocalComponentProvider {
      * @param sourceBuild the build that is requesting the local component
      */
     LocalComponentGraphResolveState getComponent(ProjectIdentity targetProjectId, Path sourceBuild);
-
 }

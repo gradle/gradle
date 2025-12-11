@@ -16,15 +16,6 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
-import org.gradle.internal.component.model.AttributeDescriberSelector;
-import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
-import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
-import org.gradle.internal.logging.text.TreeFormatter;
-
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +25,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.attributes.AttributeDescriber;
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
+import org.gradle.internal.component.model.AttributeDescriberSelector;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link AmbiguousVariantsFailure} where
@@ -47,12 +46,11 @@ public abstract class MissingAttributeAmbiguousVariantsFailureDescriber extends 
      * This map exists to avoid re-discovering the unrequested attributes between the calls to `canDescribeFailure` and `describeFailure`.
      * Each failure will be added once (by identity), then removed during failure description.
      */
-    private final IdentityHashMap<AmbiguousVariantsFailure, String> suggestableDistinctAttributes = new IdentityHashMap<>();
+    private final IdentityHashMap<AmbiguousVariantsFailure, String> suggestableDistinctAttributes =
+            new IdentityHashMap<>();
 
     @Inject
-    public MissingAttributeAmbiguousVariantsFailureDescriber(
-        AttributeDescriberRegistry attributeDescribers
-    ) {
+    public MissingAttributeAmbiguousVariantsFailureDescriber(AttributeDescriberRegistry attributeDescribers) {
         super(attributeDescribers);
     }
 
@@ -64,18 +62,23 @@ public abstract class MissingAttributeAmbiguousVariantsFailureDescriber extends 
         failure.getCandidates().forEach(candidate -> {
             candidate.getOnlyOnCandidateAttributes().forEach(candidateAttribute -> {
                 Attribute<?> attribute = candidateAttribute.getAttribute();
-                Set<String> unrequestedValuesForAttribute = unrequestedAttributesWithValues.computeIfAbsent(attribute.getName(), name -> new HashSet<>());
-                unrequestedValuesForAttribute.add(Objects.requireNonNull(candidateAttribute.getProvided()).toString());
+                Set<String> unrequestedValuesForAttribute =
+                        unrequestedAttributesWithValues.computeIfAbsent(attribute.getName(), name -> new HashSet<>());
+                unrequestedValuesForAttribute.add(
+                        Objects.requireNonNull(candidateAttribute.getProvided()).toString());
             });
         });
 
         // List of map entries where there is a distinct attribute value for every available candidate
-        List<Map.Entry<String, Set<String>>> attributesDistinctlyIdentifyingCandidates = unrequestedAttributesWithValues.entrySet().stream()
-            .filter(entry -> entry.getValue().size() == failure.getCandidates().size())
-            .collect(Collectors.toList());
+        List<Map.Entry<String, Set<String>>> attributesDistinctlyIdentifyingCandidates =
+                unrequestedAttributesWithValues.entrySet().stream()
+                        .filter(entry -> entry.getValue().size()
+                                == failure.getCandidates().size())
+                        .collect(Collectors.toList());
 
         if (attributesDistinctlyIdentifyingCandidates.size() == 1) {
-            suggestableDistinctAttributes.put(failure, attributesDistinctlyIdentifyingCandidates.get(0).getKey());
+            suggestableDistinctAttributes.put(
+                    failure, attributesDistinctlyIdentifyingCandidates.get(0).getKey());
             return true;
         } else {
             return false;
@@ -87,7 +90,8 @@ public abstract class MissingAttributeAmbiguousVariantsFailureDescriber extends 
         String distinguishingAttribute = suggestableDistinctAttributes.remove(failure);
         assert distinguishingAttribute != null;
 
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), attributeDescribers);
+        AttributeDescriber describer =
+                AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), attributeDescribers);
         TreeFormatter formatter = new TreeFormatter();
         summarizeAmbiguousVariants(failure, describer, formatter, false);
         buildSpecificAttributeSuggestionMsg(failure, distinguishingAttribute, formatter);
@@ -101,21 +105,33 @@ public abstract class MissingAttributeAmbiguousVariantsFailureDescriber extends 
         return result;
     }
 
-    private void buildSpecificAttributeSuggestionMsg(AmbiguousVariantsFailure failure, String distinguishingAttribute, TreeFormatter formatter) {
-        formatter.node("The only attribute distinguishing these variants is '" + distinguishingAttribute + "'. Add this attribute to the consumer's configuration to resolve the ambiguity:");
+    private void buildSpecificAttributeSuggestionMsg(
+            AmbiguousVariantsFailure failure, String distinguishingAttribute, TreeFormatter formatter) {
+        formatter.node("The only attribute distinguishing these variants is '" + distinguishingAttribute
+                + "'. Add this attribute to the consumer's configuration to resolve the ambiguity:");
         formatter.startChildren();
-        failure.getCandidates().forEach(candidate -> formatter.node("Value: '" + attributeValueForCandidate(candidate, distinguishingAttribute) + "' selects variant: '" + candidate.getDisplayName() + "'"));
+        failure.getCandidates()
+                .forEach(candidate ->
+                        formatter.node("Value: '" + attributeValueForCandidate(candidate, distinguishingAttribute)
+                                + "' selects variant: '" + candidate.getDisplayName() + "'"));
         formatter.endChildren();
     }
 
-    private String attributeValueForCandidate(ResolutionCandidateAssessor.AssessedCandidate candidate, String distinguishingAttribute) {
+    private String attributeValueForCandidate(
+            ResolutionCandidateAssessor.AssessedCandidate candidate, String distinguishingAttribute) {
         return candidate.getOnlyOnCandidateAttributes().stream()
-            .filter(attribute -> Objects.equals(attribute.getAttribute().getName(), distinguishingAttribute))
-            .map(assessedAttribute -> Objects.requireNonNull(assessedAttribute.getProvided()).toString())
-            .findFirst().orElseThrow(IllegalStateException::new);
+                .filter(attribute -> Objects.equals(attribute.getAttribute().getName(), distinguishingAttribute))
+                .map(assessedAttribute ->
+                        Objects.requireNonNull(assessedAttribute.getProvided()).toString())
+                .findFirst()
+                .orElseThrow(IllegalStateException::new);
     }
 
     private String suggestDependencyInsight() {
-        return "Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency.  This report is described at " + getDocumentationRegistry().getDocumentationFor("viewing_debugging_dependencies", "sec:identifying_reason_dependency_selection") + ".";
+        return "Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency.  This report is described at "
+                + getDocumentationRegistry()
+                        .getDocumentationFor(
+                                "viewing_debugging_dependencies", "sec:identifying_reason_dependency_selection")
+                + ".";
     }
 }

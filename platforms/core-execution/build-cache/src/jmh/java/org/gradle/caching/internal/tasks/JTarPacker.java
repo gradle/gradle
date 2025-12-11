@@ -16,13 +16,12 @@
 
 package org.gradle.caching.internal.tasks;
 
+import java.io.IOException;
+import java.util.List;
 import org.kamranzafar.jtar.TarEntry;
 import org.kamranzafar.jtar.TarHeader;
 import org.kamranzafar.jtar.TarInputStream;
 import org.kamranzafar.jtar.TarOutputStream;
-
-import java.io.IOException;
-import java.util.List;
 
 public class JTarPacker implements Packer {
 

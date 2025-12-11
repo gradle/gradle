@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.fixtures.timeout;
 
-import spock.lang.Timeout;
-
 import java.lang.annotation.Annotation;
 import java.util.concurrent.TimeUnit;
+import spock.lang.Timeout;
 
 public class TimeoutAdapter implements Timeout {
 

@@ -25,5 +25,4 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @InterceptGroovyCalls
 @InterceptJvmCalls
-public @interface InterceptCalls {
-}
+public @interface InterceptCalls {}

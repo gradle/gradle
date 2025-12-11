@@ -16,21 +16,25 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
-import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
+import static org.gradle.tooling.internal.provider.serialization.PayloadSerializerObjectOutputStream.SAME_CLASSLOADER_TOKEN;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectStreamClass;
 import java.lang.reflect.Proxy;
 import java.util.Map;
-
-import static org.gradle.tooling.internal.provider.serialization.PayloadSerializerObjectOutputStream.SAME_CLASSLOADER_TOKEN;
+import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
 
 class PayloadSerializerObjectInputStream extends ExceptionReplacingObjectInputStream {
     private final Map<Short, ClassLoaderDetails> classLoaderDetails;
     private final DeserializeMap map;
 
-    public PayloadSerializerObjectInputStream(InputStream inputStream, ClassLoader classLoader, Map<Short, ClassLoaderDetails> classLoaderDetails, DeserializeMap map) throws IOException {
+    public PayloadSerializerObjectInputStream(
+            InputStream inputStream,
+            ClassLoader classLoader,
+            Map<Short, ClassLoaderDetails> classLoaderDetails,
+            DeserializeMap map)
+            throws IOException {
         super(inputStream, classLoader);
         this.classLoaderDetails = classLoaderDetails;
         this.map = map;

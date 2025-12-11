@@ -15,21 +15,25 @@
  */
 package org.gradle.api.internal.provider;
 
+import java.util.function.BiFunction;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.BiFunction;
 
 public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Nullable
     private final Class<R> type;
+
     private final BiFunction<? super A, ? super B, ? extends R> combiner;
     private final ProviderInternal<A> left;
     private final ProviderInternal<B> right;
 
-    public BiProvider(@Nullable Class<R> type, Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends @Nullable R> combiner) {
+    public BiProvider(
+            @Nullable Class<R> type,
+            Provider<A> left,
+            Provider<B> right,
+            BiFunction<? super A, ? super B, ? extends @Nullable R> combiner) {
         this.type = type;
         this.combiner = combiner;
         this.left = Providers.internal(left);
@@ -78,11 +82,12 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
                 return rightValue.asType();
             }
 
-            R combinedUnpackedValue = combiner.apply(leftValue.getWithoutSideEffect(), rightValue.getWithoutSideEffect());
+            R combinedUnpackedValue =
+                    combiner.apply(leftValue.getWithoutSideEffect(), rightValue.getWithoutSideEffect());
 
             return Value.ofNullable(combinedUnpackedValue)
-                .withSideEffect(SideEffect.fixedFrom(leftValue))
-                .withSideEffect(SideEffect.fixedFrom(rightValue));
+                    .withSideEffect(SideEffect.fixedFrom(leftValue))
+                    .withSideEffect(SideEffect.fixedFrom(rightValue));
         }
     }
 

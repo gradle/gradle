@@ -16,13 +16,13 @@
 
 package org.gradle.model.internal.inspect;
 
+import static org.gradle.model.internal.core.NodeInitializerContext.forType;
+
 import org.gradle.api.specs.Spec;
 import org.gradle.model.internal.core.ChildNodeInitializerStrategy;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.type.ModelType;
-
-import static org.gradle.model.internal.core.NodeInitializerContext.forType;
 
 public class ManagedChildNodeCreatorStrategy<T> implements ChildNodeInitializerStrategy<T> {
 

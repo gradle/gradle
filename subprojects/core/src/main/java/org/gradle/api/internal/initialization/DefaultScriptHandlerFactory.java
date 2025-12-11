@@ -28,50 +28,33 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final BuildLogicBuilder buildLogicBuilder;
 
     public DefaultScriptHandlerFactory(
-        DependencyManagementServices dependencyManagementServices,
-        BuildLogicBuilder buildLogicBuilder
-    ) {
+            DependencyManagementServices dependencyManagementServices, BuildLogicBuilder buildLogicBuilder) {
         this.dependencyManagementServices = dependencyManagementServices;
         this.buildLogicBuilder = buildLogicBuilder;
     }
 
     @Override
     public ScriptHandlerInternal create(
-        ScriptSource scriptSource,
-        ClassLoaderScope classLoaderScope,
-        DomainObjectContext owner
-    ) {
+            ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext owner) {
         DependencyResolutionServices services = dependencyManagementServices.newDetachedResolver(owner);
         return getDefaultScriptHandler(scriptSource, classLoaderScope, services);
     }
 
     @Override
     public ScriptHandlerInternal create(
-        ScriptSource scriptSource,
-        ClassLoaderScope classLoaderScope,
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
-        DomainObjectContext owner
-    ) {
-        DependencyResolutionServices services = dependencyManagementServices.newDetachedResolver(
-            fileResolver,
-            fileCollectionFactory,
-            owner
-        );
+            ScriptSource scriptSource,
+            ClassLoaderScope classLoaderScope,
+            FileResolver fileResolver,
+            FileCollectionFactory fileCollectionFactory,
+            DomainObjectContext owner) {
+        DependencyResolutionServices services =
+                dependencyManagementServices.newDetachedResolver(fileResolver, fileCollectionFactory, owner);
         return getDefaultScriptHandler(scriptSource, classLoaderScope, services);
     }
 
     private DefaultScriptHandler getDefaultScriptHandler(
-        ScriptSource scriptSource,
-        ClassLoaderScope classLoaderScope,
-        DependencyResolutionServices services
-    ) {
-        return services.getObjectFactory().newInstance(
-            DefaultScriptHandler.class,
-            scriptSource,
-            services,
-            classLoaderScope,
-            buildLogicBuilder
-        );
+            ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DependencyResolutionServices services) {
+        return services.getObjectFactory()
+                .newInstance(DefaultScriptHandler.class, scriptSource, services, classLoaderScope, buildLogicBuilder);
     }
 }

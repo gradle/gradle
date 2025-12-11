@@ -16,11 +16,10 @@
 
 package org.gradle.model.dsl.internal.transform;
 
+import java.net.URI;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.jspecify.annotations.Nullable;
-
-import java.net.URI;
 
 public class SourceLocation {
     private final @Nullable URI uri;
@@ -29,7 +28,8 @@ public class SourceLocation {
     private final int lineNumber;
     private final int columnNumber;
 
-    public SourceLocation(@Nullable URI uri, String scriptSourceDescription, String expression, int lineNumber, int columnNumber) {
+    public SourceLocation(
+            @Nullable URI uri, String scriptSourceDescription, String expression, int lineNumber, int columnNumber) {
         this.uri = uri;
         this.scriptSourceDescription = scriptSourceDescription;
         this.expression = expression;
@@ -41,7 +41,8 @@ public class SourceLocation {
      * Called from generated code. See {@link RuleVisitor#visitGeneratedClosure(org.codehaus.groovy.ast.ClassNode)}
      */
     @SuppressWarnings("unused")
-    public SourceLocation(@Nullable String uri, String scriptSourceDescription, String expression, int lineNumber, int columnNumber) {
+    public SourceLocation(
+            @Nullable String uri, String scriptSourceDescription, String expression, int lineNumber, int columnNumber) {
         this(uri == null ? null : URI.create(uri), scriptSourceDescription, expression, lineNumber, columnNumber);
     }
 

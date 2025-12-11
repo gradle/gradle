@@ -17,12 +17,11 @@
 package org.gradle.problems.buildtree;
 
 import com.google.common.base.Supplier;
+import java.util.List;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.ProblemDiagnostics;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface ProblemStream {

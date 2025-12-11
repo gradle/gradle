@@ -37,5 +37,4 @@ public interface VariantFileMetadata {
      * @return relative location of the file
      */
     String getUrl();
-
 }

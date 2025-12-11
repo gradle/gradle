@@ -16,9 +16,8 @@
 
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
-import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
-
 import java.io.File;
+import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 
 /**
  * Describes an XCTest execution run

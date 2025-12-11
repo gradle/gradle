@@ -17,22 +17,22 @@
 package org.gradle.internal.resource.transport.gcp.gcs;
 
 import com.google.api.services.storage.model.StorageObject;
+import java.net.URI;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-
-import java.net.URI;
 
 final class ResourceMapper {
 
     static ExternalResourceMetaData toExternalResourceMetaData(URI uri, StorageObject storageObject) {
         return new DefaultExternalResourceMetaData(
-            uri,
-            storageObject.getUpdated().getValue(),
-            storageObject.getSize().longValue(),
-            storageObject.getContentType(),
-            storageObject.getEtag(),
-            null // we cannot use md5 instead of sha1 here because cache will get corrupted due to its expectation of sha1 hashes
-        );
+                uri,
+                storageObject.getUpdated().getValue(),
+                storageObject.getSize().longValue(),
+                storageObject.getContentType(),
+                storageObject.getEtag(),
+                null // we cannot use md5 instead of sha1 here because cache will get corrupted due to its expectation
+                // of sha1 hashes
+                );
     }
 
     private ResourceMapper() {

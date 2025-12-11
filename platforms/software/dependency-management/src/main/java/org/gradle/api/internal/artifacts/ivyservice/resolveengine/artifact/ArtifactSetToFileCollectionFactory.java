@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -39,19 +44,14 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
 @ServiceScope(Scope.BuildTree.class)
 public class ArtifactSetToFileCollectionFactory {
 
     private final BuildOperationExecutor buildOperationExecutor;
     private final InternalProblems problemsService;
 
-    public ArtifactSetToFileCollectionFactory(BuildOperationExecutor buildOperationExecutor, InternalProblems problemsService) {
+    public ArtifactSetToFileCollectionFactory(
+            BuildOperationExecutor buildOperationExecutor, InternalProblems problemsService) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.problemsService = problemsService;
     }
@@ -75,65 +75,70 @@ public class ArtifactSetToFileCollectionFactory {
     }
 
     public ResolvedArtifactSet asResolvedArtifactSet(
-        ComponentArtifactIdentifier id,
-        VariantIdentifier sourceVariantId,
-        ImmutableAttributes variantAttributes,
-        ImmutableCapabilities capabilities,
-        DisplayName artifactSetName,
-        File file
-    ) {
+            ComponentArtifactIdentifier id,
+            VariantIdentifier sourceVariantId,
+            ImmutableAttributes variantAttributes,
+            ImmutableCapabilities capabilities,
+            DisplayName artifactSetName,
+            File file) {
         return new ResolvedArtifactSet() {
             @Override
             public void visit(Visitor visitor) {
                 visitor.visitArtifacts(new Artifacts() {
                     @Override
-                    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+                    public void startFinalization(
+                            BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
                         // Nothing to do
                     }
 
                     @Override
                     public void visit(ArtifactVisitor visitor) {
-                        if (visitor.prepareForVisit(FileCollectionInternal.OTHER) == FileCollectionStructureVisitor.VisitType.Visit) {
-                            visitor.visitArtifact(artifactSetName, sourceVariantId, variantAttributes, capabilities, new ResolvableArtifact() {
-                                @Override
-                                public ComponentArtifactIdentifier getId() {
-                                    return id;
-                                }
+                        if (visitor.prepareForVisit(FileCollectionInternal.OTHER)
+                                == FileCollectionStructureVisitor.VisitType.Visit) {
+                            visitor.visitArtifact(
+                                    artifactSetName,
+                                    sourceVariantId,
+                                    variantAttributes,
+                                    capabilities,
+                                    new ResolvableArtifact() {
+                                        @Override
+                                        public ComponentArtifactIdentifier getId() {
+                                            return id;
+                                        }
 
-                                @Override
-                                public boolean isResolveSynchronously() {
-                                    return true;
-                                }
+                                        @Override
+                                        public boolean isResolveSynchronously() {
+                                            return true;
+                                        }
 
-                                @Override
-                                public IvyArtifactName getArtifactName() {
-                                    return DefaultIvyArtifactName.forFile(file, null);
-                                }
+                                        @Override
+                                        public IvyArtifactName getArtifactName() {
+                                            return DefaultIvyArtifactName.forFile(file, null);
+                                        }
 
-                                @Override
-                                public File getFile() {
-                                    return file;
-                                }
+                                        @Override
+                                        public File getFile() {
+                                            return file;
+                                        }
 
-                                @Override
-                                public CalculatedValue<File> getFileSource() {
-                                    throw new UnsupportedOperationException();
-                                }
+                                        @Override
+                                        public CalculatedValue<File> getFileSource() {
+                                            throw new UnsupportedOperationException();
+                                        }
 
-                                @Override
-                                public ResolvableArtifact transformedTo(File file) {
-                                    throw new UnsupportedOperationException();
-                                }
+                                        @Override
+                                        public ResolvableArtifact transformedTo(File file) {
+                                            throw new UnsupportedOperationException();
+                                        }
 
-                                @Override
-                                public ResolvedArtifact toPublicView() {
-                                    throw new UnsupportedOperationException();
-                                }
+                                        @Override
+                                        public ResolvedArtifact toPublicView() {
+                                            throw new UnsupportedOperationException();
+                                        }
 
-                                @Override
-                                public void visitDependencies(TaskDependencyResolveContext context) {
-                                }
-                            });
+                                        @Override
+                                        public void visitDependencies(TaskDependencyResolveContext context) {}
+                                    });
                             visitor.endVisitCollection(FileCollectionInternal.OTHER);
                         }
                     }
@@ -156,6 +161,7 @@ public class ArtifactSetToFileCollectionFactory {
             }
         };
     }
+
     private static class NameBackedResolutionHost implements ResolutionHost, DisplayName {
         private final InternalProblems problemsService;
         private final String displayName;
@@ -186,7 +192,8 @@ public class ArtifactSetToFileCollectionFactory {
         }
 
         @Override
-        public Optional<TypedResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures) {
+        public Optional<TypedResolveException> consolidateFailures(
+                String resolutionType, Collection<Throwable> failures) {
             if (failures.isEmpty()) {
                 return Optional.empty();
             } else {
@@ -207,13 +214,15 @@ public class ArtifactSetToFileCollectionFactory {
         public void visit(Visitor visitor) {
             visitor.visitArtifacts(new Artifacts() {
                 @Override
-                public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+                public void startFinalization(
+                        BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
                     // Nothing to do
                 }
 
                 @Override
                 public void visit(ArtifactVisitor visitor) {
-                    if (visitor.prepareForVisit(FileCollectionInternal.OTHER) == FileCollectionStructureVisitor.VisitType.Visit) {
+                    if (visitor.prepareForVisit(FileCollectionInternal.OTHER)
+                            == FileCollectionStructureVisitor.VisitType.Visit) {
                         ((ArtifactVisitorToResolvedFileVisitorAdapter) visitor).visitFile(file);
                         visitor.endVisitCollection(FileCollectionInternal.OTHER);
                     }
@@ -258,7 +267,8 @@ public class ArtifactSetToFileCollectionFactory {
                     throw new UnsupportedOperationException();
                 }
             }
-            ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
+            ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor)
+                    .visit(visitor);
         }
 
         @Override
@@ -272,7 +282,8 @@ public class ArtifactSetToFileCollectionFactory {
                     artifactSets.add(new FileBackedArtifactSet(file));
                 }
             }
-            ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor).visit(new ArtifactVisitorToResolvedFileVisitorAdapter(visitor));
+            ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor)
+                    .visit(new ArtifactVisitorToResolvedFileVisitorAdapter(visitor));
         }
 
         @Override
@@ -280,5 +291,4 @@ public class ArtifactSetToFileCollectionFactory {
             // No dependencies
         }
     }
-
 }

@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.ActionConfiguration;
-import org.gradle.api.NonExtensible;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.api.ActionConfiguration;
+import org.gradle.api.NonExtensible;
 
 @NonExtensible
 public class DefaultActionConfiguration implements ActionConfiguration {

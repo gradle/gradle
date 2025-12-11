@@ -15,11 +15,10 @@
  */
 package org.gradle.cli;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 public class CommandLineOption {
     private final Set<String> options = new HashSet<String>();

@@ -16,6 +16,10 @@
 
 package org.gradle.process.internal;
 
+import static java.util.Objects.requireNonNull;
+
+import java.io.File;
+import java.util.concurrent.Executor;
 import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
@@ -27,11 +31,6 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.PathToFileResolver;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
-import java.util.concurrent.Executor;
-
-import static java.util.Objects.requireNonNull;
-
 @NullMarked
 public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBuilderFactory {
 
@@ -40,10 +39,7 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
     private final BuildCancellationToken buildCancellationToken;
 
     private DefaultClientExecHandleBuilderFactory(
-        PathToFileResolver fileResolver,
-        Executor executor,
-        BuildCancellationToken buildCancellationToken
-    ) {
+            PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
         this.fileResolver = fileResolver;
         this.executor = executor;
         this.buildCancellationToken = buildCancellationToken;
@@ -55,19 +51,15 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
     }
 
     public static DefaultClientExecHandleBuilderFactory of(
-        PathToFileResolver fileResolver,
-        ExecutorFactory executorFactory,
-        BuildCancellationToken buildCancellationToken
-    ) {
+            PathToFileResolver fileResolver,
+            ExecutorFactory executorFactory,
+            BuildCancellationToken buildCancellationToken) {
         ManagedExecutor executor = executorFactory.create("Exec process");
         return new DefaultClientExecHandleBuilderFactory(fileResolver, executor, buildCancellationToken);
     }
 
     public static DefaultClientExecHandleBuilderFactory of(
-        PathToFileResolver fileResolver,
-        Executor executor,
-        BuildCancellationToken buildCancellationToken
-    ) {
+            PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
         return new DefaultClientExecHandleBuilderFactory(fileResolver, executor, buildCancellationToken);
     }
 
@@ -101,7 +93,11 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
          */
         public static RootClientExecHandleBuilderFactory of(File gradleUserHome) {
             requireNonNull(gradleUserHome, "gradleUserHome");
-            DefaultClientExecHandleBuilderFactory clientExecHandleBuilderFactory = DefaultClientExecHandleBuilderFactory.of(new DefaultFileLookup().getFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
+            DefaultClientExecHandleBuilderFactory clientExecHandleBuilderFactory =
+                    DefaultClientExecHandleBuilderFactory.of(
+                            new DefaultFileLookup().getFileResolver(),
+                            new DefaultExecutorFactory(),
+                            new DefaultBuildCancellationToken());
             return new RootClientExecHandleBuilderFactory(clientExecHandleBuilderFactory);
         }
     }

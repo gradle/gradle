@@ -26,5 +26,4 @@ public interface ProjectComponentIdentifier extends ComponentIdentifier {
     String getBuildPath();
 
     String getProjectPath();
-
 }

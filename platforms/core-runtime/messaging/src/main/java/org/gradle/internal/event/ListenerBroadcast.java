@@ -16,14 +16,13 @@
 
 package org.gradle.internal.event;
 
+import java.util.Collection;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ProxyDispatchAdapter;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.util.Collection;
 
 /**
  * <p>Manages a set of listeners of type T. Provides an implementation of T which can be used to broadcast to all

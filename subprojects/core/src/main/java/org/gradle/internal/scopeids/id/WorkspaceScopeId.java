@@ -38,5 +38,4 @@ public final class WorkspaceScopeId extends ScopeId {
     public WorkspaceScopeId(UniqueId id) {
         super(id);
     }
-
 }

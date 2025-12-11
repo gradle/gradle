@@ -16,12 +16,11 @@
 
 package org.gradle.testing.jacoco.tasks.rules;
 
+import java.io.Serializable;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.Input;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import java.io.Serializable;
-import java.util.List;
 
 /**
  * Defines a Jacoco violation rule.

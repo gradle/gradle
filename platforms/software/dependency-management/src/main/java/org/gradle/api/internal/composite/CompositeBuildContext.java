@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.composite;
 
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -25,10 +26,9 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Set;
-
 @ServiceScope(Scope.BuildTree.class)
 public interface CompositeBuildContext extends DependencySubstitutionRules {
     void addAvailableModules(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules);
+
     void registerSubstitution(Action<DependencySubstitution> substitutions);
 }

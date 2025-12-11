@@ -15,12 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
@@ -28,9 +22,14 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LoggingExcludeFactory extends DelegatingExcludeFactory {
-    private final static Logger LOGGER = LoggerFactory.getLogger(LoggingExcludeFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LoggingExcludeFactory.class);
 
     private final Subject subject;
 
@@ -82,17 +81,24 @@ public class LoggingExcludeFactory extends DelegatingExcludeFactory {
                 PrintWriter printWriter = new PrintWriter(sw);
                 StackTraceElement[] stackTrace = e.getStackTrace();
                 printWriter.print(Arrays.stream(stackTrace)
-                    .limit(100)
-                    .map(d -> "\"" + d.toString() + "\"")
-                    .collect(Collectors.joining(", "))
-                );
+                        .limit(100)
+                        .map(d -> "\"" + d.toString() + "\"")
+                        .collect(Collectors.joining(", ")));
                 sw.append("]}");
-                LOGGER.debug("{\"operation\": { \"name\": \"{}\", \"operands\": {}, \"result\": {} } }", operationName, toList(operands), sw.toString());
+                LOGGER.debug(
+                        "{\"operation\": { \"name\": \"{}\", \"operands\": {}, \"result\": {} } }",
+                        operationName,
+                        toList(operands),
+                        sw.toString());
             }
             throw UncheckedException.throwAsUncheckedException(e);
         }
         if (subject.isTraceOperations()) {
-            LOGGER.debug("{\"operation\": { \"name\": \"{}\", \"operands\": {}, \"result\": {} } }", operationName, toList(operands), spec);
+            LOGGER.debug(
+                    "{\"operation\": { \"name\": \"{}\", \"operands\": {}, \"result\": {} } }",
+                    operationName,
+                    toList(operands),
+                    spec);
         }
         return spec;
     }
@@ -102,7 +108,7 @@ public class LoggingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     private static boolean singleCollection(Object[] operands) {
-        return operands.length== 1 && operands[0] instanceof Collection;
+        return operands.length == 1 && operands[0] instanceof Collection;
     }
 
     private enum Subject {

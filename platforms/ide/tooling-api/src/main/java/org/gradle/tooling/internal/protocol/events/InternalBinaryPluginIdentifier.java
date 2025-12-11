@@ -35,5 +35,4 @@ public interface InternalBinaryPluginIdentifier extends InternalPluginIdentifier
      */
     @Nullable
     String getPluginId();
-
 }

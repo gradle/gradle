@@ -23,5 +23,4 @@ import org.gradle.api.file.SourceDirectorySet;
  *
  * @since 7.1
  */
-public interface ScalaSourceDirectorySet extends SourceDirectorySet {
-}
+public interface ScalaSourceDirectorySet extends SourceDirectorySet {}

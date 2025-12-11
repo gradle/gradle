@@ -15,6 +15,12 @@
  */
 package org.gradle.internal.classloader;
 
+import java.io.IOException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.net.URL;
+import java.net.URLConnection;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -22,21 +28,17 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.reflect.JavaMethod;
 import org.jspecify.annotations.Nullable;
 
-import java.io.IOException;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.net.URL;
-import java.net.URLConnection;
-
 public abstract class ClassLoaderUtils {
     private static final ClassDefiner CLASS_DEFINER;
 
     private static final ClassLoaderPackagesFetcher CLASS_LOADER_PACKAGES_FETCHER;
 
     static {
-        CLASS_DEFINER = JavaVersion.current().isJava9Compatible() ? new LookupClassDefiner() : new ReflectionClassDefiner();
-        CLASS_LOADER_PACKAGES_FETCHER = JavaVersion.current().isJava9Compatible() ? new Java9PackagesFetcher() : new ReflectionPackagesFetcher();
+        CLASS_DEFINER =
+                JavaVersion.current().isJava9Compatible() ? new LookupClassDefiner() : new ReflectionClassDefiner();
+        CLASS_LOADER_PACKAGES_FETCHER = JavaVersion.current().isJava9Compatible()
+                ? new Java9PackagesFetcher()
+                : new ReflectionPackagesFetcher();
     }
 
     /**
@@ -57,9 +59,11 @@ public abstract class ClassLoaderUtils {
     // https://github.com/gradle/playframework/blob/master/src/main/java/org/gradle/playframework/tools/internal/run/PlayWorkerServer.java#L72
     public static void disableUrlConnectionCaching() {
         // fix problems in updating jar files by disabling default caching of URL connections.
-        // URLConnection default caching should be disabled since it causes jar file locking issues and JVM crashes in updating jar files.
+        // URLConnection default caching should be disabled since it causes jar file locking issues and JVM crashes in
+        // updating jar files.
         // Changes to jar files won't be noticed in all cases when caching is enabled.
-        // sun.net.www.protocol.jar.JarURLConnection leaves the JarFile instance open if URLConnection caching is enabled.
+        // sun.net.www.protocol.jar.JarURLConnection leaves the JarFile instance open if URLConnection caching is
+        // enabled.
         try {
             URL url = new URL("jar:file://valid_jar_url_syntax.jar!/");
             URLConnection urlConnection = url.openConnection();
@@ -82,7 +86,8 @@ public abstract class ClassLoaderUtils {
         return CLASS_DEFINER.defineClass(targetClassLoader, className, clazzBytes);
     }
 
-    public static <T> Class<T> defineDecorator(Class<?> decoratedClass, ClassLoader targetClassLoader, String className, byte[] clazzBytes) {
+    public static <T> Class<T> defineDecorator(
+            Class<?> decoratedClass, ClassLoader targetClassLoader, String className, byte[] clazzBytes) {
         return CLASS_DEFINER.defineDecoratorClass(decoratedClass, targetClassLoader, className, clazzBytes);
     }
 
@@ -119,7 +124,8 @@ public abstract class ClassLoaderUtils {
     private interface ClassDefiner {
         <T> Class<T> defineClass(ClassLoader classLoader, String className, byte[] classBytes);
 
-        <T> Class<T> defineDecoratorClass(Class<?> decoratedClass, ClassLoader classLoader, String className, byte[] classBytes);
+        <T> Class<T> defineDecoratorClass(
+                Class<?> decoratedClass, ClassLoader classLoader, String className, byte[] classBytes);
     }
 
     private interface ClassLoaderPackagesFetcher {
@@ -172,7 +178,8 @@ public abstract class ClassLoaderUtils {
         private final JavaMethod<ClassLoader, Class> defineClassMethod;
 
         private ReflectionClassDefiner() {
-            defineClassMethod = JavaMethod.of(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, int.class, int.class);
+            defineClassMethod = JavaMethod.of(
+                    ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, int.class, int.class);
         }
 
         @Override
@@ -182,20 +189,24 @@ public abstract class ClassLoaderUtils {
         }
 
         @Override
-        public <T> Class<T> defineDecoratorClass(Class<?> decoratedClass, ClassLoader classLoader, String className, byte[] classBytes) {
+        public <T> Class<T> defineDecoratorClass(
+                Class<?> decoratedClass, ClassLoader classLoader, String className, byte[] classBytes) {
             return defineClass(classLoader, className, classBytes);
         }
     }
 
     private static class LookupClassDefiner extends AbstractClassLoaderLookuper implements ClassDefiner {
-        private MethodType defineClassMethodType = MethodType.methodType(Class.class, new Class<?>[]{String.class, byte[].class, int.class, int.class});
+        private MethodType defineClassMethodType =
+                MethodType.methodType(Class.class, new Class<?>[] {String.class, byte[].class, int.class, int.class});
 
         @Override
         @SuppressWarnings("unchecked")
-        public <T> Class<T> defineDecoratorClass(Class<?> decoratedClass, ClassLoader classLoader, String className, byte[] classBytes) {
+        public <T> Class<T> defineDecoratorClass(
+                Class<?> decoratedClass, ClassLoader classLoader, String className, byte[] classBytes) {
             try {
                 // Lookup.defineClass can only define a class into same classloader as the lookup object.
-                // We have to use the fallback defineClass() if they're not same, which is the case of ManagedProxyClassGenerator
+                // We have to use the fallback defineClass() if they're not same, which is the case of
+                // ManagedProxyClassGenerator
                 if (decoratedClass.getClassLoader() == classLoader) {
                     MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(decoratedClass, baseLookup);
                     return (Class) lookup.defineClass(classBytes);
@@ -209,13 +220,16 @@ public abstract class ClassLoaderUtils {
 
         @Override
         public <T> Class<T> defineClass(ClassLoader classLoader, String className, byte[] classBytes) {
-            return invoke(classLoader, "defineClass", defineClassMethodType, className, classBytes, 0, classBytes.length);
+            return invoke(
+                    classLoader, "defineClass", defineClassMethodType, className, classBytes, 0, classBytes.length);
         }
     }
 
     private static class ReflectionPackagesFetcher implements ClassLoaderPackagesFetcher {
-        private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD = JavaMethod.of(ClassLoader.class, Package[].class, "getPackages");
-        private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD = JavaMethod.of(ClassLoader.class, Package.class, "getPackage", String.class);
+        private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD =
+                JavaMethod.of(ClassLoader.class, Package[].class, "getPackages");
+        private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD =
+                JavaMethod.of(ClassLoader.class, Package.class, "getPackage", String.class);
 
         @Override
         public Package[] getPackages(ClassLoader classLoader) {

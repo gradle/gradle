@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.protocol;
 
+import java.util.List;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.List;
 
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
@@ -32,5 +31,4 @@ public interface InternalBasicProblemDetailsVersion4 extends InternalBasicProble
     List<InternalLocation> getOriginLocations();
 
     List<InternalLocation> getContextualLocations();
-
 }

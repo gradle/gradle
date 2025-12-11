@@ -128,5 +128,6 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      * @since 5.0
      */
     @Override
-    <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownTaskException;
+    <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction)
+            throws UnknownTaskException;
 }

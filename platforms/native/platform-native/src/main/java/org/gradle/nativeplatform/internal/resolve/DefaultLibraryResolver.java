@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.internal.resolve;
 
+import java.util.Set;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
@@ -28,35 +29,40 @@ import org.gradle.nativeplatform.StaticLibraryBinary;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.util.internal.GUtil;
 
-import java.util.Set;
-
 class DefaultLibraryResolver {
     private final NativeLibraryRequirement requirement;
     private final NativeBinarySpec context;
     private final LibraryBinaryLocator libraryBinaryLocator;
 
-    public DefaultLibraryResolver(LibraryBinaryLocator libraryBinaryLocator, NativeLibraryRequirement requirement, NativeBinarySpec context) {
+    public DefaultLibraryResolver(
+            LibraryBinaryLocator libraryBinaryLocator, NativeLibraryRequirement requirement, NativeBinarySpec context) {
         this.requirement = requirement;
         this.context = context;
         this.libraryBinaryLocator = libraryBinaryLocator;
     }
 
     public NativeLibraryBinary resolveLibraryBinary() {
-        DomainObjectSet<NativeLibraryBinary> binaries = libraryBinaryLocator.getBinaries(new LibraryIdentifier(requirement.getProjectPath(), requirement.getLibraryName()));
+        DomainObjectSet<NativeLibraryBinary> binaries = libraryBinaryLocator.getBinaries(
+                new LibraryIdentifier(requirement.getProjectPath(), requirement.getLibraryName()));
         if (binaries == null) {
             throw new LibraryResolveException(getFailureMessage(requirement));
         }
         return new LibraryResolution()
-            .withFlavor(context.getFlavor())
-            .withPlatform(context.getTargetPlatform())
-            .withBuildType(context.getBuildType())
-            .resolveLibrary(binaries);
+                .withFlavor(context.getFlavor())
+                .withPlatform(context.getTargetPlatform())
+                .withBuildType(context.getBuildType())
+                .resolveLibrary(binaries);
     }
 
     private String getFailureMessage(NativeLibraryRequirement requirement) {
-        return requirement.getProjectPath() == null || requirement.getProjectPath().equals(context.getProjectPath())
-            ? String.format("Could not locate library '%s' required by %s.", requirement.getLibraryName(), getContextMessage())
-            : String.format("Could not locate library '%s' in project '%s' required by %s.", requirement.getLibraryName(), requirement.getProjectPath(), getContextMessage());
+        return requirement.getProjectPath() == null
+                        || requirement.getProjectPath().equals(context.getProjectPath())
+                ? String.format(
+                        "Could not locate library '%s' required by %s.",
+                        requirement.getLibraryName(), getContextMessage())
+                : String.format(
+                        "Could not locate library '%s' in project '%s' required by %s.",
+                        requirement.getLibraryName(), requirement.getProjectPath(), getContextMessage());
     }
 
     private String getContextMessage() {
@@ -101,13 +107,17 @@ class DefaultLibraryResolver {
 
         private NativeLibraryBinary resolve(Set<? extends NativeLibraryBinary> candidates) {
             for (NativeLibraryBinary candidate : candidates) {
-                if (flavor != null && !flavor.getName().equals(candidate.getFlavor().getName())) {
+                if (flavor != null
+                        && !flavor.getName().equals(candidate.getFlavor().getName())) {
                     continue;
                 }
-                if (platform != null && !platform.getName().equals(candidate.getTargetPlatform().getName())) {
+                if (platform != null
+                        && !platform.getName()
+                                .equals(candidate.getTargetPlatform().getName())) {
                     continue;
                 }
-                if (buildType != null && !buildType.getName().equals(candidate.getBuildType().getName())) {
+                if (buildType != null
+                        && !buildType.getName().equals(candidate.getBuildType().getName())) {
                     continue;
                 }
 
@@ -115,7 +125,8 @@ class DefaultLibraryResolver {
             }
 
             String typeName = GUtil.elvis(requirement.getLinkage(), "shared");
-            throw new LibraryResolveException(String.format("No %s library binary available for library '%s' with [flavor: '%s', platform: '%s', buildType: '%s']",
+            throw new LibraryResolveException(String.format(
+                    "No %s library binary available for library '%s' with [flavor: '%s', platform: '%s', buildType: '%s']",
                     typeName, requirement.getLibraryName(), flavor.getName(), platform.getName(), buildType.getName()));
         }
     }

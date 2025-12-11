@@ -18,6 +18,8 @@ package org.gradle.internal.instrumentation.model;
 
 public interface CallInterceptionRequest {
     CallableInfo getInterceptedCallable();
+
     ImplementationInfo getImplementationInfo();
+
     RequestExtrasContainer getRequestExtras();
 }

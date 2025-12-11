@@ -31,10 +31,7 @@ public class ResolvedDependencyGraph {
     private final ImmutableMap<Long, DefaultResolvedComponentResult> components;
 
     public ResolvedDependencyGraph(
-        long rootComponentId,
-        long rootVariantId,
-        ImmutableMap<Long, DefaultResolvedComponentResult> components
-    ) {
+            long rootComponentId, long rootVariantId, ImmutableMap<Long, DefaultResolvedComponentResult> components) {
         this.rootComponentId = rootComponentId;
         this.rootVariantId = rootVariantId;
         this.components = components;
@@ -53,5 +50,4 @@ public class ResolvedDependencyGraph {
     public ResolvedVariantResult getRootVariant() {
         return components.get(rootComponentId).getVariant(rootVariantId);
     }
-
 }

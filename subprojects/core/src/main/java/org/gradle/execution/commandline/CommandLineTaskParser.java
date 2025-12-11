@@ -16,6 +16,10 @@
 
 package org.gradle.execution.commandline;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.Task;
 import org.gradle.execution.TaskSelection;
@@ -24,18 +28,16 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 @ServiceScope(Scope.Build.class)
 public class CommandLineTaskParser {
     private final CommandLineTaskConfigurer taskConfigurer;
     private final BuildTaskSelector taskSelector;
     private final BuildState targetBuild;
 
-    public CommandLineTaskParser(CommandLineTaskConfigurer commandLineTaskConfigurer, BuildTaskSelector taskSelector, BuildState targetBuild) {
+    public CommandLineTaskParser(
+            CommandLineTaskConfigurer commandLineTaskConfigurer,
+            BuildTaskSelector taskSelector,
+            BuildState targetBuild) {
         this.taskConfigurer = commandLineTaskConfigurer;
         this.taskSelector = taskSelector;
         this.targetBuild = targetBuild;
@@ -46,7 +48,8 @@ public class CommandLineTaskParser {
         List<String> remainingPaths = new LinkedList<String>(taskExecutionRequest.getArgs());
         while (!remainingPaths.isEmpty()) {
             String path = remainingPaths.remove(0);
-            TaskSelection selection = taskSelector.resolveTaskName(taskExecutionRequest.getRootDir(), taskExecutionRequest.getProjectPath(), targetBuild, path);
+            TaskSelection selection = taskSelector.resolveTaskName(
+                    taskExecutionRequest.getRootDir(), taskExecutionRequest.getProjectPath(), targetBuild, path);
             Set<Task> tasks = selection.getTasks();
             remainingPaths = taskConfigurer.configureTasks(tasks, remainingPaths);
             out.add(selection);

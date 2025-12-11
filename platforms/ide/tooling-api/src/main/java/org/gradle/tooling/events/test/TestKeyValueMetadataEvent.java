@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.events.test;
 
+import java.util.Map;
 import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Map;
 
 /**
  * An event emitted by tests that contains additional data in the form of key-values.

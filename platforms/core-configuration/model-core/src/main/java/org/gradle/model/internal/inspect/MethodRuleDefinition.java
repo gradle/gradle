@@ -16,14 +16,13 @@
 
 package org.gradle.model.internal.inspect;
 
+import java.lang.annotation.Annotation;
+import java.util.List;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
-
-import java.lang.annotation.Annotation;
-import java.util.List;
 
 public interface MethodRuleDefinition<R, S> {
     WeaklyTypeReferencingMethod<?, R> getMethod();

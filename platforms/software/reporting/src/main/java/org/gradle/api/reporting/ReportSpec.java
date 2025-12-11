@@ -25,5 +25,4 @@ import org.gradle.api.Named;
  * @since 7.4
  */
 @Incubating
-public interface ReportSpec extends Named {
-}
+public interface ReportSpec extends Named {}

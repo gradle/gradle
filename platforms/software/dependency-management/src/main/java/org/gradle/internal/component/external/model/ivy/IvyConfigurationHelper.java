@@ -18,6 +18,10 @@ package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
@@ -27,11 +31,6 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 class IvyConfigurationHelper {
 
     private final ImmutableList<Artifact> artifactDefinitions;
@@ -40,7 +39,12 @@ class IvyConfigurationHelper {
     private final ImmutableList<IvyDependencyDescriptor> dependencies;
     private final ModuleComponentIdentifier componentId;
 
-    IvyConfigurationHelper(ImmutableList<Artifact> artifactDefinitions, Map<Artifact, ModuleComponentArtifactMetadata> artifacts, ImmutableList<Exclude> excludes, ImmutableList<IvyDependencyDescriptor> dependencies, ModuleComponentIdentifier componentId) {
+    IvyConfigurationHelper(
+            ImmutableList<Artifact> artifactDefinitions,
+            Map<Artifact, ModuleComponentArtifactMetadata> artifacts,
+            ImmutableList<Exclude> excludes,
+            ImmutableList<IvyDependencyDescriptor> dependencies,
+            ModuleComponentIdentifier componentId) {
 
         this.artifactDefinitions = artifactDefinitions;
         this.artifacts = artifacts;
@@ -63,7 +67,8 @@ class IvyConfigurationHelper {
             if (artifact.getConfigurations().contains(name)) {
                 ModuleComponentArtifactMetadata artifactMetadata = artifacts.get(artifact);
                 if (artifactMetadata == null) {
-                    artifactMetadata = new DefaultModuleComponentArtifactMetadata(componentId, artifact.getArtifactName());
+                    artifactMetadata =
+                            new DefaultModuleComponentArtifactMetadata(componentId, artifact.getArtifactName());
                     artifacts.put(artifact, artifactMetadata);
                 }
                 dest.add(artifactMetadata);

@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.internal.classpath.ClassPath;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.gradle.internal.classpath.ClassPath;
 
 public class DefaultClassPathRegistry implements ClassPathRegistry {
     private final List<ClassPathProvider> providers = new ArrayList<ClassPathProvider>();

@@ -17,6 +17,11 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.GetServiceReferencesVisitor;
 import org.gradle.api.provider.Provider;
@@ -28,12 +33,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 
 public class DefaultTaskRequiredServices implements TaskRequiredServices {
     private final TaskInternal task;
@@ -75,9 +74,9 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
         }
         if (consumedServices != null) {
             consumedServices.stream()
-                .map(it -> ((ConsumedBuildServiceProvider<?>) it).resolveIfPossible())
-                .filter(Objects::nonNull)
-                .forEach(allServicesUsed::add);
+                    .map(it -> ((ConsumedBuildServiceProvider<?>) it).resolveIfPossible())
+                    .filter(Objects::nonNull)
+                    .forEach(allServicesUsed::add);
         }
         ImmutableSet<BuildServiceProvider<?, ?>> build = allServicesUsed.build();
         return Cast.uncheckedCast(build);

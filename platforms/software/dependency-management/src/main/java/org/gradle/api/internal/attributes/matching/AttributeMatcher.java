@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.attributes.matching;
 
+import java.util.List;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 public interface AttributeMatcher {
 
@@ -50,9 +49,7 @@ public interface AttributeMatcher {
      * to reduce the set of matches to a more preferred subset.
      */
     <T extends AttributeMatchingCandidate> List<T> matchMultipleCandidates(
-        List<? extends T> candidates,
-        ImmutableAttributes requested
-    );
+            List<? extends T> candidates, ImmutableAttributes requested);
 
     // TODO: Merge this with ResolutionCandidateAssessor
     List<MatchingDescription<?>> describeMatching(ImmutableAttributes candidate, ImmutableAttributes requested);
@@ -63,7 +60,8 @@ public interface AttributeMatcher {
         private final @Nullable ImmutableAttributesEntry<T> found;
         private final boolean match;
 
-        public MatchingDescription(ImmutableAttributesEntry<T> requested, @Nullable ImmutableAttributesEntry<T> found, boolean match) {
+        public MatchingDescription(
+                ImmutableAttributesEntry<T> requested, @Nullable ImmutableAttributesEntry<T> found, boolean match) {
             this.requested = requested;
             this.found = found;
             this.match = match;
@@ -80,6 +78,5 @@ public interface AttributeMatcher {
         public boolean isMatch() {
             return match;
         }
-
     }
 }

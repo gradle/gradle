@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.classpath;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.util.internal.CollectionUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -29,6 +26,8 @@ import java.util.List;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipException;
+import org.gradle.internal.UncheckedException;
+import org.gradle.util.internal.CollectionUtils;
 
 public class ManifestUtil {
     private static final String[] EMPTY = new String[0];

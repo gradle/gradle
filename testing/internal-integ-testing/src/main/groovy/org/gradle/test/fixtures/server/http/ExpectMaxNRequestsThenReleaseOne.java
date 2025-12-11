@@ -22,7 +22,14 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 
 public class ExpectMaxNRequestsThenReleaseOne extends ExpectMaxNConcurrentRequestsThenRelease {
-    public ExpectMaxNRequestsThenReleaseOne(Lock lock, int testId, Duration timeout, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests, Executor executor) {
+    public ExpectMaxNRequestsThenReleaseOne(
+            Lock lock,
+            int testId,
+            Duration timeout,
+            int maxConcurrent,
+            WaitPrecondition previous,
+            Collection<? extends ResourceExpectation> expectedRequests,
+            Executor executor) {
         super(lock, testId, timeout, maxConcurrent, previous, expectedRequests, executor);
     }
 

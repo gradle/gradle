@@ -18,6 +18,8 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -31,9 +33,6 @@ import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * A configuration representing an additional variant of a published component added by a component metadata rule.
@@ -57,16 +56,15 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     private ImmutableList<? extends ComponentArtifactMetadata> computedArtifacts;
 
     LazyRuleAwareWithBaseConfigurationMetadata(
-        String name,
-        VariantIdentifier id,
-        ModuleComponentIdentifier componentId,
-        @Nullable ModuleConfigurationMetadata base,
-        AttributesFactory attributesFactory,
-        ImmutableAttributes componentLevelAttributes,
-        VariantMetadataRules variantMetadataRules,
-        ImmutableList<ExcludeMetadata> excludes,
-        boolean externalVariant
-    ) {
+            String name,
+            VariantIdentifier id,
+            ModuleComponentIdentifier componentId,
+            @Nullable ModuleConfigurationMetadata base,
+            AttributesFactory attributesFactory,
+            ImmutableAttributes componentLevelAttributes,
+            VariantMetadataRules variantMetadataRules,
+            ImmutableList<ExcludeMetadata> excludes,
+            boolean externalVariant) {
         this.name = name;
         this.id = id;
         this.componentId = componentId;
@@ -96,7 +94,8 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     @Override
     public List<? extends ModuleDependencyMetadata> getDependencies() {
         if (computedDependencies == null) {
-            computedDependencies = variantMetadataRules.applyDependencyMetadataRules(this, base == null ? ImmutableList.of() : base.getDependencies());
+            computedDependencies = variantMetadataRules.applyDependencyMetadataRules(
+                    this, base == null ? ImmutableList.of() : base.getDependencies());
         }
         return computedDependencies;
     }
@@ -104,8 +103,11 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     @Override
     public ImmutableAttributes getAttributes() {
         if (computedAttributes == null) {
-            computedAttributes = variantMetadataRules.applyVariantAttributeRules(this,
-                base != null ? attributesFactory.concat(base.getAttributes(), componentLevelAttributes) : componentLevelAttributes);
+            computedAttributes = variantMetadataRules.applyVariantAttributeRules(
+                    this,
+                    base != null
+                            ? attributesFactory.concat(base.getAttributes(), componentLevelAttributes)
+                            : componentLevelAttributes);
         }
         return computedAttributes;
     }
@@ -113,7 +115,8 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     @Override
     public ImmutableList<? extends ComponentArtifactMetadata> getArtifacts() {
         if (computedArtifacts == null) {
-            computedArtifacts = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(this, base == null ? ImmutableList.of() : base.getArtifacts(), componentId);
+            computedArtifacts = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(
+                    this, base == null ? ImmutableList.of() : base.getArtifacts(), componentId);
         }
         return computedArtifacts;
     }
@@ -121,14 +124,16 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     @Override
     public ImmutableCapabilities getCapabilities() {
         if (computedCapabilities == null) {
-            computedCapabilities = variantMetadataRules.applyCapabilitiesRules(this, base == null ? ImmutableCapabilities.EMPTY : base.getCapabilities());
+            computedCapabilities = variantMetadataRules.applyCapabilitiesRules(
+                    this, base == null ? ImmutableCapabilities.EMPTY : base.getCapabilities());
         }
         return computedCapabilities;
     }
 
     @Override
     public Set<? extends VariantResolveMetadata> getArtifactVariants() {
-        return ImmutableSet.of(new DefaultVariantMetadata(name, null, asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
+        return ImmutableSet.of(new DefaultVariantMetadata(
+                name, null, asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
     }
 
     @Override

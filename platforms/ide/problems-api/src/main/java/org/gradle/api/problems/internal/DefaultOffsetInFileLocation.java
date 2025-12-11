@@ -35,7 +35,6 @@ public class DefaultOffsetInFileLocation extends DefaultFileLocation implements 
         return new DefaultOffsetInFileLocation(path, offset, length);
     }
 
-
     @Override
     public int getOffset() {
         return offset;

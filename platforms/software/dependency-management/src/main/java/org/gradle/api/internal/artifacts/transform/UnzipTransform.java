@@ -16,7 +16,17 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import static org.apache.commons.io.FilenameUtils.removeExtension;
+import static org.gradle.internal.file.PathTraversalChecker.safePathName;
+
 import com.google.common.io.Files;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -28,17 +38,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.UncheckedException;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import static org.apache.commons.io.FilenameUtils.removeExtension;
-import static org.gradle.internal.file.PathTraversalChecker.safePathName;
 
 /**
  * Provides a generic transform from a zipped file to an extracted directory.  The extracted directory
@@ -65,7 +64,8 @@ public abstract class UnzipTransform implements TransformAction<TransformParamet
     }
 
     private static void unzipTo(File headersZip, File unzipDir) throws IOException {
-        try (ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(headersZip)))) {
+        try (ZipInputStream inputStream =
+                new ZipInputStream(new BufferedInputStream(new FileInputStream(headersZip)))) {
             ZipEntry entry;
             while ((entry = inputStream.getNextEntry()) != null) {
                 if (entry.isDirectory()) {

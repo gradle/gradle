@@ -18,6 +18,7 @@ package org.gradle.api.publish.internal.validation;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import java.net.URI;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -25,14 +26,17 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.net.URI;
-
 @ServiceScope(Scope.Build.class)
 public class DuplicatePublicationTracker {
-    private final static Logger LOG = Logging.getLogger(DuplicatePublicationTracker.class);
+    private static final Logger LOG = Logging.getLogger(DuplicatePublicationTracker.class);
     private final Multimap<String, PublicationWithProject> published = LinkedHashMultimap.create();
 
-    public synchronized void checkCanPublish(String projectDisplayName, String publicationName, ModuleVersionIdentifier projectIdentity, @Nullable URI repositoryLocation, String repositoryName) {
+    public synchronized void checkCanPublish(
+            String projectDisplayName,
+            String publicationName,
+            ModuleVersionIdentifier projectIdentity,
+            @Nullable URI repositoryLocation,
+            String repositoryName) {
         // Don't track publications to repositories configured without a base URL
         if (repositoryLocation == null) {
             return;
@@ -40,9 +44,12 @@ public class DuplicatePublicationTracker {
 
         String repositoryKey = normalizeLocation(repositoryLocation);
 
-        PublicationWithProject publicationWithProject = new PublicationWithProject(projectDisplayName, publicationName, projectIdentity);
+        PublicationWithProject publicationWithProject =
+                new PublicationWithProject(projectDisplayName, publicationName, projectIdentity);
         if (published.get(repositoryKey).contains(publicationWithProject)) {
-            LOG.warn("Publication '" + projectIdentity + "' is published multiple times to the same location. It is likely that repository '" + repositoryName + "' is duplicated.");
+            LOG.warn("Publication '" + projectIdentity
+                    + "' is published multiple times to the same location. It is likely that repository '"
+                    + repositoryName + "' is duplicated.");
             return;
         }
 
@@ -55,7 +62,9 @@ public class DuplicatePublicationTracker {
                     firstPublication = secondPublication;
                     secondPublication = temp;
                 }
-                LOG.warn("Multiple publications with coordinates '" + projectIdentity + "' are published to repository '" + repositoryName + "'. The publications " + firstPublication + " and " + secondPublication + " will overwrite each other!");
+                LOG.warn("Multiple publications with coordinates '" + projectIdentity
+                        + "' are published to repository '" + repositoryName + "'. The publications " + firstPublication
+                        + " and " + secondPublication + " will overwrite each other!");
             }
         }
 

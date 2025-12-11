@@ -16,6 +16,10 @@
 
 package org.gradle.ide.visualstudio.tasks;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
@@ -34,11 +38,6 @@ import org.gradle.plugins.ide.api.GeneratorTask;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Task for generating a Visual Studio solution file (e.g. {@code foo.sln}).
  */
@@ -46,7 +45,9 @@ import java.util.List;
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolutionFile> {
     private transient DefaultVisualStudioSolution solution;
-    private final Provider<File> outputFile = getProject().provider(SerializableLambdas.callable(() -> solution.getSolutionFile().getLocation()));
+    private final Provider<File> outputFile = getProject()
+            .provider(SerializableLambdas.callable(
+                    () -> solution.getSolutionFile().getLocation()));
     private final Cached<SolutionSpec> spec = Cached.of(this::calculateSpec);
 
     @Inject
@@ -98,14 +99,17 @@ public abstract class GenerateSolutionFileTask extends GeneratorTask<VisualStudi
         for (VisualStudioProjectMetadata project : solution.getProjects()) {
             List<VisualStudioSolutionFile.ConfigurationSpec> configurations = new ArrayList<>();
             for (VisualStudioProjectConfigurationMetadata configuration : project.getConfigurations()) {
-                configurations.add(new VisualStudioSolutionFile.ConfigurationSpec(configuration.getName(), configuration.isBuildable()));
+                configurations.add(new VisualStudioSolutionFile.ConfigurationSpec(
+                        configuration.getName(), configuration.isBuildable()));
             }
-            projects.add(new VisualStudioSolutionFile.ProjectSpec(project.getName(), project.getFile(), configurations));
+            projects.add(
+                    new VisualStudioSolutionFile.ProjectSpec(project.getName(), project.getFile(), configurations));
         }
         return new SolutionSpec(projects, solution.getSolutionFile().getTextActions());
     }
 
-    private class ConfigurationObjectGenerator extends PersistableConfigurationObjectGenerator<VisualStudioSolutionFile> {
+    private class ConfigurationObjectGenerator
+            extends PersistableConfigurationObjectGenerator<VisualStudioSolutionFile> {
         @Override
         public VisualStudioSolutionFile create() {
             return new VisualStudioSolutionFile();
@@ -133,7 +137,8 @@ public abstract class GenerateSolutionFileTask extends GeneratorTask<VisualStudi
         final List<VisualStudioSolutionFile.ProjectSpec> projects;
         final List<Action<? super TextProvider>> textActions;
 
-        private SolutionSpec(List<VisualStudioSolutionFile.ProjectSpec> projects, List<Action<? super TextProvider>> textActions) {
+        private SolutionSpec(
+                List<VisualStudioSolutionFile.ProjectSpec> projects, List<Action<? super TextProvider>> textActions) {
             this.projects = projects;
             this.textActions = textActions;
         }

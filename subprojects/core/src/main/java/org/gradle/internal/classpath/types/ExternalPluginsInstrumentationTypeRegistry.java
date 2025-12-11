@@ -17,7 +17,6 @@
 package org.gradle.internal.classpath.types;
 
 import com.google.common.collect.ImmutableMap;
-
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashSet;
@@ -39,7 +38,9 @@ public class ExternalPluginsInstrumentationTypeRegistry implements Instrumentati
     private final Map<String, Set<String>> directSuperTypes;
     private final Map<String, Set<String>> instrumentedSuperTypes = new ConcurrentHashMap<>();
 
-    public ExternalPluginsInstrumentationTypeRegistry(Map<String, Set<String>> directSuperTypes, InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
+    public ExternalPluginsInstrumentationTypeRegistry(
+            Map<String, Set<String>> directSuperTypes,
+            InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
         this.directSuperTypes = ImmutableMap.copyOf(directSuperTypes);
         this.gradleCoreInstrumentationTypeRegistry = gradleCoreInstrumentationTypeRegistry;
     }
@@ -55,15 +56,15 @@ public class ExternalPluginsInstrumentationTypeRegistry implements Instrumentati
             return superTypes;
         } else {
             superTypes = instrumentedSuperTypes.get(type);
-            return superTypes != null
-                ? superTypes
-                : computeAndCacheInstrumentedSuperTypes(type, new HashSet<>());
+            return superTypes != null ? superTypes : computeAndCacheInstrumentedSuperTypes(type, new HashSet<>());
         }
     }
 
     private Set<String> computeAndCacheInstrumentedSuperTypes(String type, Set<String> visited) {
-        // We intentionally avoid using computeIfAbsent, since ConcurrentHashMap doesn't allow map modifications in the computeIfAbsent map function.
-        // The result is, that multiple threads could recalculate the same key multiple times, but that is not a problem in our case.
+        // We intentionally avoid using computeIfAbsent, since ConcurrentHashMap doesn't allow map modifications in the
+        // computeIfAbsent map function.
+        // The result is, that multiple threads could recalculate the same key multiple times, but that is not a problem
+        // in our case.
         Set<String> computedInstrumentedSuperTypes = instrumentedSuperTypes.get(type);
         if (computedInstrumentedSuperTypes == null) {
             computedInstrumentedSuperTypes = computeInstrumentedSuperTypes(type, visited);
@@ -75,14 +76,15 @@ public class ExternalPluginsInstrumentationTypeRegistry implements Instrumentati
     private Set<String> computeInstrumentedSuperTypes(String type, Set<String> visited) {
         // In case of detected type cycle, calculate super types without recursive cache
         Set<String> superTypes = visited.add(type)
-            ? computeSuperTypesWithRecursiveCaching(type, visited)
-            : computeSuperTypesWithoutRecursiveCaching(type);
+                ? computeSuperTypesWithRecursiveCaching(type, visited)
+                : computeSuperTypesWithoutRecursiveCaching(type);
 
-        // Keep just classes in the `org.gradle.` package. If we ever allow 3rd party plugins to contribute instrumentation,
+        // Keep just classes in the `org.gradle.` package. If we ever allow 3rd party plugins to contribute
+        // instrumentation,
         // we would need to be more precise and actually check if types are instrumented.
         return superTypes.stream()
-            .filter(superType -> superType.startsWith(GRADLE_CORE_PACKAGE_PREFIX))
-            .collect(Collectors.toSet());
+                .filter(superType -> superType.startsWith(GRADLE_CORE_PACKAGE_PREFIX))
+                .collect(Collectors.toSet());
     }
 
     private Set<String> computeSuperTypesWithRecursiveCaching(String type, Set<String> visited) {

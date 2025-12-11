@@ -15,20 +15,19 @@
  */
 package org.gradle.api.tasks;
 
+import static org.gradle.internal.build.NestedRootBuildRunner.createStartParameterForNewBuild;
+import static org.gradle.internal.build.NestedRootBuildRunner.runNestedRootBuild;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import static org.gradle.internal.build.NestedRootBuildRunner.createStartParameterForNewBuild;
-import static org.gradle.internal.build.NestedRootBuildRunner.runNestedRootBuild;
 
 /**
  * Executes a Gradle build.
@@ -161,11 +160,14 @@ public abstract class GradleBuild extends ConventionTask {
             String propertyName = entry.getKey();
             Object propertyValue = entry.getValue();
             if (!(propertyValue instanceof String)) {
-                // TODO: Remove non-String project properties support in Gradle 10 - https://github.com/gradle/gradle/issues/34454
-                DeprecationLogger.deprecateBehaviour(String.format("Using non-String project properties: property '%s' has value of type %s.", propertyName, propertyValue.getClass().getName()))
-                    .willBecomeAnErrorInGradle10()
-                    .withUpgradeGuideSection(9, "deprecated-gradle-build-non-string-properties")
-                    .nagUser();
+                // TODO: Remove non-String project properties support in Gradle 10 -
+                // https://github.com/gradle/gradle/issues/34454
+                DeprecationLogger.deprecateBehaviour(String.format(
+                                "Using non-String project properties: property '%s' has value of type %s.",
+                                propertyName, propertyValue.getClass().getName()))
+                        .willBecomeAnErrorInGradle10()
+                        .withUpgradeGuideSection(9, "deprecated-gradle-build-non-string-properties")
+                        .nagUser();
                 return;
             }
         }

@@ -23,7 +23,8 @@ import org.gradle.internal.exceptions.Contextual;
 
 public class DefaultMutationGuard implements MutationGuard {
 
-    private final ThreadLocal<Boolean> mutationGuardState = ThreadLocal.withInitial(SerializableLambdas.supplier(() -> true));
+    private final ThreadLocal<Boolean> mutationGuardState =
+            ThreadLocal.withInitial(SerializableLambdas.supplier(() -> true));
 
     @Override
     public <T> Action<? super T> wrapLazyAction(Action<? super T> action) {
@@ -45,7 +46,8 @@ public class DefaultMutationGuard implements MutationGuard {
     @Override
     public void assertEagerContext(String methodName, Object target) {
         if (isLazyContext()) {
-            throw createIllegalStateException(new DslObject(target).getPublicType().getConcreteClass(), methodName, target);
+            throw createIllegalStateException(
+                    new DslObject(target).getPublicType().getConcreteClass(), methodName, target);
         }
     }
 
@@ -56,7 +58,8 @@ public class DefaultMutationGuard implements MutationGuard {
         }
     }
 
-    private <T> Action<? super T> newActionWithMutation(final Action<? super T> action, final boolean allowMutationMethods) {
+    private <T> Action<? super T> newActionWithMutation(
+            final Action<? super T> action, final boolean allowMutationMethods) {
         return new Action<T>() {
             @Override
             public void execute(T t) {
@@ -98,8 +101,11 @@ public class DefaultMutationGuard implements MutationGuard {
         }
     }
 
-    private static <T> IllegalStateException createIllegalStateException(Class<T> targetType, String methodName, T target) {
-        return new IllegalMutationException(String.format("%s#%s on %s cannot be executed in the current context.", targetType.getSimpleName(), methodName, target));
+    private static <T> IllegalStateException createIllegalStateException(
+            Class<T> targetType, String methodName, T target) {
+        return new IllegalMutationException(String.format(
+                "%s#%s on %s cannot be executed in the current context.",
+                targetType.getSimpleName(), methodName, target));
     }
 
     @Contextual

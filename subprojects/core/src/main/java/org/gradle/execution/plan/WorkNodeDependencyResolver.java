@@ -16,14 +16,13 @@
 
 package org.gradle.execution.plan;
 
+import java.util.IdentityHashMap;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.IdentityHashMap;
 
 @ServiceScope(Scope.Build.class)
 public class WorkNodeDependencyResolver implements DependencyResolver, HoldsProjectState {

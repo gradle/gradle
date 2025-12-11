@@ -25,8 +25,7 @@ class UniqueIdSerializer implements Serializer<UniqueId> {
 
     public static final Serializer<UniqueId> INSTANCE = new UniqueIdSerializer();
 
-    private UniqueIdSerializer() {
-    }
+    private UniqueIdSerializer() {}
 
     @Override
     public UniqueId read(Decoder decoder) throws Exception {
@@ -38,5 +37,4 @@ class UniqueIdSerializer implements Serializer<UniqueId> {
     public void write(Encoder encoder, UniqueId value) throws Exception {
         encoder.writeString(value.asString());
     }
-
 }

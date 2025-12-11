@@ -16,9 +16,8 @@
 
 package org.gradle.operations.problems;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A problem from the problem API reported via a progress event.
@@ -99,5 +98,4 @@ public interface ProblemUsageProgressDetails {
      */
     @Nullable
     Throwable getFailure();
-
 }

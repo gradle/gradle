@@ -16,15 +16,14 @@
 
 package org.gradle.internal.logging.source;
 
-import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.config.LoggingSourceSystem;
-import org.slf4j.bridge.SLF4JBridgeHandler;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.config.LoggingSourceSystem;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
  * A {@link LoggingSourceSystem} which configures JUL to route logging events to SLF4J.

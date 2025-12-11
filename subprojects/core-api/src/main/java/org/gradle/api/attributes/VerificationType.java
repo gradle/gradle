@@ -29,7 +29,8 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface VerificationType extends Named {
-    Attribute<VerificationType> VERIFICATION_TYPE_ATTRIBUTE = Attribute.of("org.gradle.verificationtype", VerificationType.class);
+    Attribute<VerificationType> VERIFICATION_TYPE_ATTRIBUTE =
+            Attribute.of("org.gradle.verificationtype", VerificationType.class);
 
     /**
      * A list of directories containing source code, includes code in transitive dependencies

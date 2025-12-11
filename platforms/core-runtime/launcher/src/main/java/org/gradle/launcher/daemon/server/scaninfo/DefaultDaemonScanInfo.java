@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.server.scaninfo;
 
+import java.util.concurrent.atomic.AtomicReference;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
@@ -27,8 +28,6 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 public class DefaultDaemonScanInfo implements DaemonScanInfo {
 
     private final DaemonRunningStats stats;
@@ -37,7 +36,12 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
     private final DaemonRegistry daemonRegistry;
     private final ListenerManager listenerManager;
 
-    public DefaultDaemonScanInfo(final DaemonRunningStats stats, final long idleTimeout, boolean singleRun, final DaemonRegistry daemonRegistry, final ListenerManager listenerManager) {
+    public DefaultDaemonScanInfo(
+            final DaemonRunningStats stats,
+            final long idleTimeout,
+            boolean singleRun,
+            final DaemonRegistry daemonRegistry,
+            final ListenerManager listenerManager) {
         this.stats = stats;
         this.idleTimeout = idleTimeout;
         this.singleRun = singleRun;
@@ -73,14 +77,15 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
     @Override
     public void notifyOnUnhealthy(final Action<? super String> listener) {
         /*
-            The semantics of this method are that the given action should be notified if the
-            Daemon is going to be terminated at the end of this build.
-            It is not a generic outlet for "expiry events".
+           The semantics of this method are that the given action should be notified if the
+           Daemon is going to be terminated at the end of this build.
+           It is not a generic outlet for "expiry events".
 
-            Ideally, the value given would describe the problem and not be phrased in terms of why we are shutting down,
-            but this is a practical compromise born out of piggy backing on the expiration listener mechanism to implement it.
-         */
-        final AtomicReference<DaemonExpirationListener> daemonExpirationListenerReference = new AtomicReference<DaemonExpirationListener>();
+           Ideally, the value given would describe the problem and not be phrased in terms of why we are shutting down,
+           but this is a practical compromise born out of piggy backing on the expiration listener mechanism to implement it.
+        */
+        final AtomicReference<DaemonExpirationListener> daemonExpirationListenerReference =
+                new AtomicReference<DaemonExpirationListener>();
         final DaemonExpirationListener daemonExpirationListener = new DaemonExpirationListener() {
             @Override
             public void onExpirationEvent(DaemonExpirationResult result) {
@@ -115,5 +120,4 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
         };
         listenerManager.addListener(buildListener);
     }
-
 }

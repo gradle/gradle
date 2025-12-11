@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import java.io.IOException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-
-import java.io.IOException;
 
 /**
  * A thread-safe and reusable serializer for {@link BuildIdentifier}.
@@ -40,5 +39,4 @@ public class BuildIdentifierSerializer extends AbstractSerializer<BuildIdentifie
     public void write(Encoder encoder, BuildIdentifier value) throws IOException {
         pathSerializer.write(encoder, ((DefaultBuildIdentifier) value).getIdentityPath());
     }
-
 }

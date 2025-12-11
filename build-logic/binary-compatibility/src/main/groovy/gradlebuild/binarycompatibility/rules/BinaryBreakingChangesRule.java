@@ -23,18 +23,17 @@ import japicmp.model.JApiCompatibilityChange;
 import japicmp.model.JApiConstructor;
 import japicmp.model.JApiHasAnnotations;
 import japicmp.model.JApiImplementedInterface;
-import me.champeau.gradle.japicmp.report.Violation;
-
 import java.util.List;
 import java.util.Map;
+import me.champeau.gradle.japicmp.report.Violation;
 
 public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
 
     private static final List<JApiCompatibilityChange> IGNORED_CHANGE_TYPES = ImmutableList.of(
-        JApiCompatibilityChange.METHOD_REMOVED_IN_SUPERCLASS, // the removal of the method will be reported
-        JApiCompatibilityChange.INTERFACE_REMOVED,            // the removed methods will be reported
-        JApiCompatibilityChange.INTERFACE_ADDED               // the added methods will be reported
-    );
+            JApiCompatibilityChange.METHOD_REMOVED_IN_SUPERCLASS, // the removal of the method will be reported
+            JApiCompatibilityChange.INTERFACE_REMOVED, // the removed methods will be reported
+            JApiCompatibilityChange.INTERFACE_ADDED // the added methods will be reported
+            );
 
     public BinaryBreakingChangesRule(Map<String, Object> params) {
         super(params);
@@ -44,7 +43,8 @@ public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
     @SuppressWarnings("unchecked")
     public Violation maybeViolation(final JApiCompatibility member) {
         if (!member.isBinaryCompatible()) {
-            if ((member instanceof JApiClass) && (member.getCompatibilityChanges().isEmpty())) {
+            if ((member instanceof JApiClass)
+                    && (member.getCompatibilityChanges().isEmpty())) {
                 // A member of the class breaks binary compatibility.
                 // That will be handled when the member is passed to `maybeViolation`.
                 return null;
@@ -73,5 +73,4 @@ public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
         }
         return null;
     }
-
 }

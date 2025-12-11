@@ -26,7 +26,11 @@ import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 class PathBinderCreationListener extends ModelBinding {
     private final Action<ModelBinding> bindAction;
 
-    public PathBinderCreationListener(ModelRuleDescriptor descriptor, BindingPredicate predicate, boolean writable, Action<ModelBinding> bindAction) {
+    public PathBinderCreationListener(
+            ModelRuleDescriptor descriptor,
+            BindingPredicate predicate,
+            boolean writable,
+            Action<ModelBinding> bindAction) {
         super(descriptor, predicate, writable);
         this.bindAction = bindAction;
     }
@@ -42,9 +46,14 @@ class PathBinderCreationListener extends ModelBinding {
             boundTo = node;
             bindAction.execute(this);
         } else {
-            throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
-                IncompatibleTypeReferenceReporter.of(node, predicate.getReference().getType(), predicate.getReference().getDescription(), writable).asString()
-            ));
+            throw new InvalidModelRuleException(
+                    referrer,
+                    new ModelRuleBindingException(IncompatibleTypeReferenceReporter.of(
+                                    node,
+                                    predicate.getReference().getType(),
+                                    predicate.getReference().getDescription(),
+                                    writable)
+                            .asString()));
         }
     }
 }

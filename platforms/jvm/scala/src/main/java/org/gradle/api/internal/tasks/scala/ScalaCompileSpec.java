@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
-
 import java.io.File;
 import java.util.Map;
+import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
 
 public interface ScalaCompileSpec extends JvmLanguageCompileSpec {
     MinimalScalaCompileOptions getScalaCompileOptions();

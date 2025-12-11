@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import org.gradle.api.internal.artifacts.TransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -30,12 +35,6 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 
 /**
  * Finds all the variants that can be created from a given set of producer variants using
@@ -53,11 +52,10 @@ public class ConsumerProvidedVariantFinder {
     private final TransformCache transformCache;
 
     public ConsumerProvidedVariantFinder(
-        VariantTransformRegistry variantTransforms,
-        AttributesSchemaInternal schema,
-        AttributesFactory attributesFactory,
-        AttributeSchemaServices attributeSchemaServices
-    ) {
+            VariantTransformRegistry variantTransforms,
+            AttributesSchemaInternal schema,
+            AttributesFactory attributesFactory,
+            AttributeSchemaServices attributeSchemaServices) {
         this.variantTransforms = variantTransforms;
         this.attributesFactory = attributesFactory;
         this.matcher = Lazy.locking().of(() -> {
@@ -65,7 +63,8 @@ public class ConsumerProvidedVariantFinder {
             // and therefore we miss producer rules when matching transforms.
             // Instead, this class should be refactored to accept a matcher as a parameter,
             // where the matcher has already been created with the consumer and producer schema.
-            ImmutableAttributesSchema immutable = attributeSchemaServices.getSchemaFactory().create(schema);
+            ImmutableAttributesSchema immutable =
+                    attributeSchemaServices.getSchemaFactory().create(schema);
             return attributeSchemaServices.getMatcher(immutable, ImmutableAttributesSchema.EMPTY);
         });
         this.transformCache = new TransformCache(this::doFindTransformedVariants);
@@ -82,7 +81,8 @@ public class ConsumerProvidedVariantFinder {
      * @return A collection of variant chains which, if applied to the corresponding source variant, will produce a
      *      variant compatible with the requested attributes.
      */
-    public List<TransformedVariant> findCandidateTransformationChains(List<ResolvedVariant> sources, ImmutableAttributes requested) {
+    public List<TransformedVariant> findCandidateTransformationChains(
+            List<ResolvedVariant> sources, ImmutableAttributes requested) {
         return transformCache.query(sources, requested);
     }
 
@@ -92,6 +92,7 @@ public class ConsumerProvidedVariantFinder {
     private static class ChainNode {
         final ChainNode next;
         final TransformRegistration transform;
+
         public ChainNode(@Nullable ChainNode next, TransformRegistration transform) {
             this.next = next;
             this.transform = transform;
@@ -113,7 +114,10 @@ public class ConsumerProvidedVariantFinder {
          *      original user-requested attribute set after {@code chain} is applied to that previous variant.
          * @param transforms The remaining transforms which may be prepended to {@code chain} to produce a solution.
          */
-        public ChainState(@Nullable ChainNode chain, ImmutableAttributes requested, ImmutableFilteredList<TransformRegistration> transforms) {
+        public ChainState(
+                @Nullable ChainNode chain,
+                ImmutableAttributes requested,
+                ImmutableFilteredList<TransformRegistration> transforms) {
             this.chain = chain;
             this.requested = requested;
             this.transforms = transforms;
@@ -128,6 +132,7 @@ public class ConsumerProvidedVariantFinder {
     private static class CachedVariant {
         private final int sourceIndex;
         private final VariantDefinition chain;
+
         public CachedVariant(int sourceIndex, VariantDefinition chain) {
             this.sourceIndex = sourceIndex;
             this.chain = chain;
@@ -141,19 +146,21 @@ public class ConsumerProvidedVariantFinder {
      * we have found a solution. Otherwise, if no solutions are found at this depth, we run the search at the next depth, with all
      * candidate transforms linked to the previous level's chains.
      */
-    private List<CachedVariant> doFindTransformedVariants(List<ImmutableAttributes> sources, ImmutableAttributes requested) {
+    private List<CachedVariant> doFindTransformedVariants(
+            List<ImmutableAttributes> sources, ImmutableAttributes requested) {
         AttributeMatcher attributeMatcher = matcher.get();
 
         List<ChainState> toProcess = new ArrayList<>();
         List<ChainState> nextDepth = new ArrayList<>();
-        toProcess.add(new ChainState(null, requested, ImmutableFilteredList.allOf(new ArrayList<>(variantTransforms.getRegistrations()))));
+        toProcess.add(new ChainState(
+                null, requested, ImmutableFilteredList.allOf(new ArrayList<>(variantTransforms.getRegistrations()))));
 
         List<CachedVariant> results = new ArrayList<>(1);
         while (results.isEmpty() && !toProcess.isEmpty()) {
             for (ChainState state : toProcess) {
                 // The set of transforms which could potentially produce a variant compatible with `requested`.
-                ImmutableFilteredList<TransformRegistration> candidates =
-                    state.transforms.matching(transform -> attributeMatcher.isMatchingCandidate(transform.getTo(), state.requested));
+                ImmutableFilteredList<TransformRegistration> candidates = state.transforms.matching(
+                        transform -> attributeMatcher.isMatchingCandidate(transform.getTo(), state.requested));
 
                 // For each candidate, attempt to find a source variant that the transform can use as its root.
                 for (TransformRegistration candidate : candidates) {
@@ -162,8 +169,10 @@ public class ConsumerProvidedVariantFinder {
                         if (attributeMatcher.isMatchingCandidate(sourceAttrs, candidate.getFrom())) {
                             ImmutableAttributes rootAttrs = attributesFactory.concat(sourceAttrs, candidate.getTo());
                             if (attributeMatcher.isMatchingCandidate(rootAttrs, state.requested)) {
-                                DefaultVariantDefinition rootTransformedVariant = new DefaultVariantDefinition(null, rootAttrs, candidate.getTransformStep());
-                                VariantDefinition variantChain = createVariantChain(state.chain, rootTransformedVariant);
+                                DefaultVariantDefinition rootTransformedVariant =
+                                        new DefaultVariantDefinition(null, rootAttrs, candidate.getTransformStep());
+                                VariantDefinition variantChain =
+                                        createVariantChain(state.chain, rootTransformedVariant);
                                 results.add(new CachedVariant(i, variantChain));
                             }
                         }
@@ -175,15 +184,16 @@ public class ConsumerProvidedVariantFinder {
                     continue;
                 }
 
-                // Construct new states for processing at the next depth in case we can't find any solutions at this depth.
+                // Construct new states for processing at the next depth in case we can't find any solutions at this
+                // depth.
                 for (int i = 0; i < candidates.size(); i++) {
                     TransformRegistration candidate = candidates.get(i);
-                    if (!Collections.disjoint(state.requested.keySet(), candidate.getTo().keySet())) {
+                    if (!Collections.disjoint(
+                            state.requested.keySet(), candidate.getTo().keySet())) {
                         nextDepth.add(new ChainState(
-                            new ChainNode(state.chain, candidate),
-                            attributesFactory.concat(state.requested, candidate.getFrom()),
-                            state.transforms.withoutIndexFrom(i, candidates)
-                        ));
+                                new ChainNode(state.chain, candidate),
+                                attributesFactory.concat(state.requested, candidate.getFrom()),
+                                state.transforms.withoutIndexFrom(i, candidates)));
                     }
                 }
             }
@@ -211,10 +221,9 @@ public class ConsumerProvidedVariantFinder {
         DefaultVariantDefinition last = root;
         while (node != null) {
             last = new DefaultVariantDefinition(
-                last,
-                attributesFactory.concat(last.getTargetAttributes(), node.transform.getTo()),
-                node.transform.getTransformStep()
-            );
+                    last,
+                    attributesFactory.concat(last.getTargetAttributes(), node.transform.getTo()),
+                    node.transform.getTransformStep());
             node = node.next;
         }
         return last;
@@ -234,14 +243,14 @@ public class ConsumerProvidedVariantFinder {
             this.action = action;
         }
 
-        private List<TransformedVariant> query(
-            List<ResolvedVariant> sources, ImmutableAttributes requested
-        ) {
+        private List<TransformedVariant> query(List<ResolvedVariant> sources, ImmutableAttributes requested) {
             List<ImmutableAttributes> variantAttributes = new ArrayList<>(sources.size());
             for (ResolvedVariant variant : sources) {
                 variantAttributes.add(variant.getAttributes());
             }
-            List<CachedVariant> cached = cache.computeIfAbsent(new CacheKey(variantAttributes, requested), key -> action.apply(key.variantAttributes, key.requested));
+            List<CachedVariant> cached = cache.computeIfAbsent(
+                    new CacheKey(variantAttributes, requested),
+                    key -> action.apply(key.variantAttributes, key.requested));
             List<TransformedVariant> output = new ArrayList<>(cached.size());
             for (CachedVariant variant : cached) {
                 output.add(new TransformedVariant(sources.get(variant.sourceIndex), variant.chain));

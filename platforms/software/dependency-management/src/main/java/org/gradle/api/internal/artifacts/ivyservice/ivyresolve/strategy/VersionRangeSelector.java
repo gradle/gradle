@@ -75,19 +75,20 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
     private static final String CLOSE_PATTERN = "[" + CLOSE_INC_PATTERN + CLOSE_EXC_PATTERN + "]";
 
     private static final String ANY_NON_SPECIAL_PATTERN = "[^\\s" + SEPARATOR + OPEN_INC_PATTERN
-        + OPEN_EXC_PATTERN + CLOSE_INC_PATTERN + CLOSE_EXC_PATTERN + LI_PATTERN + UI_PATTERN
-        + "]";
+            + OPEN_EXC_PATTERN + CLOSE_INC_PATTERN + CLOSE_EXC_PATTERN + LI_PATTERN + UI_PATTERN
+            + "]";
 
-    private static final String FINITE_PATTERN = OPEN_PATTERN + "\\s*(" + ANY_NON_SPECIAL_PATTERN
-        + "+)" + SEP_PATTERN + "(" + ANY_NON_SPECIAL_PATTERN + "+)\\s*" + CLOSE_PATTERN;
+    private static final String FINITE_PATTERN = OPEN_PATTERN + "\\s*(" + ANY_NON_SPECIAL_PATTERN + "+)" + SEP_PATTERN
+            + "(" + ANY_NON_SPECIAL_PATTERN + "+)\\s*" + CLOSE_PATTERN;
 
-    private static final String LOWER_INFINITE_PATTERN = LI_PATTERN + SEP_PATTERN + "("
-        + ANY_NON_SPECIAL_PATTERN + "+)\\s*" + CLOSE_PATTERN;
+    private static final String LOWER_INFINITE_PATTERN =
+            LI_PATTERN + SEP_PATTERN + "(" + ANY_NON_SPECIAL_PATTERN + "+)\\s*" + CLOSE_PATTERN;
 
-    private static final String UPPER_INFINITE_PATTERN = OPEN_PATTERN + "\\s*("
-        + ANY_NON_SPECIAL_PATTERN + "+)" + SEP_PATTERN + UI_PATTERN;
+    private static final String UPPER_INFINITE_PATTERN =
+            OPEN_PATTERN + "\\s*(" + ANY_NON_SPECIAL_PATTERN + "+)" + SEP_PATTERN + UI_PATTERN;
 
-    private static final String SINGLE_VALUE_PATTERN = OPEN_INC_PATTERN + "\\s*(" + ANY_NON_SPECIAL_PATTERN + "+)" + CLOSE_INC_PATTERN;
+    private static final String SINGLE_VALUE_PATTERN =
+            OPEN_INC_PATTERN + "\\s*(" + ANY_NON_SPECIAL_PATTERN + "+)" + CLOSE_INC_PATTERN;
 
     private static final Pattern FINITE_RANGE = Pattern.compile(FINITE_PATTERN);
 
@@ -97,8 +98,8 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
 
     private static final Pattern SINGLE_VALUE_RANGE = Pattern.compile(SINGLE_VALUE_PATTERN);
 
-    public static final Pattern ALL_RANGE = Pattern.compile(FINITE_PATTERN + "|"
-        + LOWER_INFINITE_PATTERN + "|" + UPPER_INFINITE_PATTERN + "|" + SINGLE_VALUE_RANGE);
+    public static final Pattern ALL_RANGE = Pattern.compile(
+            FINITE_PATTERN + "|" + LOWER_INFINITE_PATTERN + "|" + UPPER_INFINITE_PATTERN + "|" + SINGLE_VALUE_RANGE);
 
     private final String upperBound;
     private final Version upperBoundVersion;
@@ -270,5 +271,4 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
         result = 31 * result + comparator.hashCode();
         return result;
     }
-
 }

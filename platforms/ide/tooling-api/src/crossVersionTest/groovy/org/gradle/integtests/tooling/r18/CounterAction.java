@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.tooling.r18;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class CounterAction implements BuildAction<Integer> {
     static final AtomicInteger COUNTER = new AtomicInteger();

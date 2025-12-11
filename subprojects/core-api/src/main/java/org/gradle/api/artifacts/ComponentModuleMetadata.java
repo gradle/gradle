@@ -34,5 +34,6 @@ public interface ComponentModuleMetadata {
      * The identifier of module that replaces this module.
      * A real world example: 'com.google.collections:google-collections' is replaced by 'com.google.guava:guava'.
      */
-    @Nullable ModuleIdentifier getReplacedBy();
+    @Nullable
+    ModuleIdentifier getReplacedBy();
 }

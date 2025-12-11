@@ -24,5 +24,4 @@ import org.gradle.language.nativeplatform.ComponentWithInstallation;
  *
  * @since 4.5
  */
-public interface SwiftXCTestExecutable extends SwiftXCTestBinary, ComponentWithExecutable, ComponentWithInstallation {
-}
+public interface SwiftXCTestExecutable extends SwiftXCTestBinary, ComponentWithExecutable, ComponentWithInstallation {}

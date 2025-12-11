@@ -16,9 +16,8 @@
 
 package org.gradle.language.cpp.internal.tooling;
 
-import org.gradle.tooling.internal.protocol.cpp.InternalCppApplication;
-
 import java.util.List;
+import org.gradle.tooling.internal.protocol.cpp.InternalCppApplication;
 
 public class DefaultCppApplicationModel extends DefaultCppComponentModel implements InternalCppApplication {
     public DefaultCppApplicationModel(String name, String baseName, List<DefaultCppBinaryModel> binaries) {

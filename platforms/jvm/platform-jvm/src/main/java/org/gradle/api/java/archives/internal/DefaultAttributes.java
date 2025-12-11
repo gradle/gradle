@@ -15,13 +15,12 @@
  */
 package org.gradle.api.java.archives.internal;
 
-import org.gradle.api.java.archives.Attributes;
-import org.gradle.api.java.archives.ManifestException;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.java.archives.Attributes;
+import org.gradle.api.java.archives.ManifestException;
 
 public class DefaultAttributes implements Attributes {
     protected Map<String, Object> attributes = new LinkedHashMap<String, Object>();
@@ -57,7 +56,8 @@ public class DefaultAttributes implements Attributes {
             throw new ManifestException("The key of a manifest attribute must not be null.");
         }
         if (value == null) {
-            throw new ManifestException(String.format("The value of a manifest attribute must not be null (Key=%s).", key));
+            throw new ManifestException(
+                    String.format("The value of a manifest attribute must not be null (Key=%s).", key));
         }
         try {
             new java.util.jar.Attributes.Name(key);

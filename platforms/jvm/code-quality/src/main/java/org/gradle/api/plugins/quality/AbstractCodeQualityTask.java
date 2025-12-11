@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality;
 
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.model.ObjectFactory;
@@ -34,8 +35,6 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.workers.WorkerExecutor;
 
-import javax.inject.Inject;
-
 /**
  * Base class for code quality tasks.
  *
@@ -43,13 +42,15 @@ import javax.inject.Inject;
  */
 @Incubating
 @DisableCachingByDefault(because = "Super-class, not to be instantiated directly")
-abstract public class AbstractCodeQualityTask extends SourceTask implements VerificationTask {
+public abstract class AbstractCodeQualityTask extends SourceTask implements VerificationTask {
     private static final String OPEN_MODULES_ARG = "java.prefs/java.util.prefs=ALL-UNNAMED";
 
     @Inject
     public AbstractCodeQualityTask() {
         getIgnoreFailuresProperty().convention(false);
-        getJavaLauncher().convention(getToolchainService().launcherFor(getObjectFactory().newInstance(CurrentJvmToolchainSpec.class)));
+        getJavaLauncher()
+                .convention(getToolchainService()
+                        .launcherFor(getObjectFactory().newInstance(CurrentJvmToolchainSpec.class)));
     }
 
     /**
@@ -70,26 +71,28 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
     }
 
     @Internal
-    abstract protected Property<Boolean> getIgnoreFailuresProperty();
+    protected abstract Property<Boolean> getIgnoreFailuresProperty();
 
     @Inject
-    abstract protected ObjectFactory getObjectFactory();
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    abstract protected JavaToolchainService getToolchainService();
+    protected abstract JavaToolchainService getToolchainService();
 
     @Inject
-    abstract protected WorkerExecutor getWorkerExecutor();
+    protected abstract WorkerExecutor getWorkerExecutor();
 
     protected void configureForkOptions(JavaForkOptions forkOptions) {
         forkOptions.setMinHeapSize(getMinHeapSize().getOrNull());
         forkOptions.setMaxHeapSize(getMaxHeapSize().getOrNull());
-        forkOptions.setExecutable(getJavaLauncher().get().getExecutablePath().getAsFile().getAbsolutePath());
+        forkOptions.setExecutable(
+                getJavaLauncher().get().getExecutablePath().getAsFile().getAbsolutePath());
         maybeAddOpensJvmArgs(getJavaLauncher().get(), forkOptions);
     }
 
     private static void maybeAddOpensJvmArgs(JavaLauncher javaLauncher, JavaForkOptions forkOptions) {
-        if (JavaVersion.toVersion(javaLauncher.getMetadata().getJavaRuntimeVersion()).isJava9Compatible()) {
+        if (JavaVersion.toVersion(javaLauncher.getMetadata().getJavaRuntimeVersion())
+                .isJava9Compatible()) {
             forkOptions.jvmArgs("--add-opens", OPEN_MODULES_ARG);
         }
     }

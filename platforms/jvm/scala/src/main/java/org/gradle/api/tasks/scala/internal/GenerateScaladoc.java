@@ -16,31 +16,38 @@
 
 package org.gradle.api.tasks.scala.internal;
 
-import org.gradle.api.file.FileSystemOperations;
-import org.gradle.api.file.RegularFile;
-import org.gradle.internal.process.ArgWriter;
-import org.gradle.workers.WorkAction;
-
-import javax.inject.Inject;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
+import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.file.RegularFile;
+import org.gradle.internal.process.ArgWriter;
+import org.gradle.workers.WorkAction;
 
 public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters> {
     @Override
     public void execute() {
         ScaladocParameters parameters = getParameters();
-        Path optionsFile = parameters.getOptionsFile().map(RegularFile::getAsFile).map(File::toPath).getOrNull();
+        Path optionsFile = parameters
+                .getOptionsFile()
+                .map(RegularFile::getAsFile)
+                .map(File::toPath)
+                .getOrNull();
         try {
             getFileSystemOperations().delete(spec -> spec.delete(parameters.getOutputDirectory()));
             parameters.getOutputDirectory().get().getAsFile().mkdirs();
 
             List<String> args = generateArgList(parameters, optionsFile);
             invokeScalaDoc(args, parameters.getIsScala3().get());
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+        } catch (ClassNotFoundException
+                | InstantiationException
+                | IllegalAccessException
+                | NoSuchMethodException
+                | InvocationTargetException e) {
             throw new RuntimeException("Could not generate scaladoc", e);
         } finally {
             // Try to clean-up generated options file
@@ -67,13 +74,16 @@ public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters>
         args.addAll(sourceFiles);
 
         if (optionsFile != null) {
-            return ArgWriter.argsFileGenerator(optionsFile.toFile(), ArgWriter.javaStyleFactory()).apply(args);
+            return ArgWriter.argsFileGenerator(optionsFile.toFile(), ArgWriter.javaStyleFactory())
+                    .apply(args);
         }
 
         return args;
     }
 
-    private void invokeScalaDoc(List<String> args, Boolean isScala3) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+    private void invokeScalaDoc(List<String> args, Boolean isScala3)
+            throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException,
+                    InvocationTargetException {
         ClassLoader scalaClassLoader = Thread.currentThread().getContextClassLoader();
 
         String scaladocFqName = isScala3 ? "dotty.tools.scaladoc.Main" : "scala.tools.nsc.ScalaDoc";
@@ -82,7 +92,7 @@ public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters>
         Class<?> scaladocClass = scalaClassLoader.loadClass(scaladocFqName);
         Method process = scaladocClass.getMethod(scaladocEntryName, String[].class);
         Object scaladoc = scaladocClass.getDeclaredConstructor().newInstance();
-        process.invoke(scaladoc, new Object[]{args.toArray(new String[0])});
+        process.invoke(scaladoc, new Object[] {args.toArray(new String[0])});
     }
 
     @Inject

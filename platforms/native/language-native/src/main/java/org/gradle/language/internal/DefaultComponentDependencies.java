@@ -16,6 +16,7 @@
 
 package org.gradle.language.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -23,14 +24,15 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.language.ComponentDependencies;
 
-import javax.inject.Inject;
-
 public class DefaultComponentDependencies implements ComponentDependencies {
     private final Configuration implementation;
     private final DependencyHandler dependencyHandler;
 
     @Inject
-    public DefaultComponentDependencies(RoleBasedConfigurationContainerInternal configurations, String implementationName, DependencyHandler dependencyHandler) {
+    public DefaultComponentDependencies(
+            RoleBasedConfigurationContainerInternal configurations,
+            String implementationName,
+            DependencyHandler dependencyHandler) {
         implementation = configurations.dependencyScopeLocked(implementationName);
         this.dependencyHandler = dependencyHandler;
     }

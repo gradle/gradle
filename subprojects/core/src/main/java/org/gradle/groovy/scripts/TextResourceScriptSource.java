@@ -15,17 +15,16 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.internal.DisplayName;
-import org.gradle.internal.resource.ResourceLocation;
-import org.gradle.internal.resource.TextResource;
-
-import java.net.URI;
-
 import static java.lang.Character.isJavaIdentifierPart;
 import static java.lang.Character.isJavaIdentifierStart;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
 import static org.gradle.internal.hash.Hashing.hashString;
+
+import java.net.URI;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.resource.ResourceLocation;
+import org.gradle.internal.resource.TextResource;
 
 /**
  * A {@link ScriptSource} which loads the script from a URI.
@@ -98,8 +97,7 @@ public class TextResourceScriptSource implements ScriptSource {
         StringBuilder className = new StringBuilder(name.length());
         for (int i = 0; i < name.length(); i++) {
             char ch = name.charAt(i);
-            className.append(
-                isJavaIdentifierPart(ch) ? ch : '_');
+            className.append(isJavaIdentifierPart(ch) ? ch : '_');
         }
         if (className.length() > 0 && !isJavaIdentifierStart(className.charAt(0))) {
             className.insert(0, '_');
@@ -110,5 +108,4 @@ public class TextResourceScriptSource implements ScriptSource {
 
         return className.toString();
     }
-
 }

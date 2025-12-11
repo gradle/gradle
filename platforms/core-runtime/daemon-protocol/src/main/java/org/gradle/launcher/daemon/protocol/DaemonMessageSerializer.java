@@ -16,6 +16,14 @@
 
 package org.gradle.launcher.daemon.protocol;
 
+import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
+import static org.gradle.internal.serialize.BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.classpath.ClassPath;
@@ -66,15 +74,6 @@ import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayloadSerializer;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
-import static org.gradle.internal.serialize.BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER;
-
 public class DaemonMessageSerializer {
     public static Serializer<Message> create(Serializer<BuildAction> buildActionSerializer) {
         BaseSerializerFactory factory = new BaseSerializerFactory();
@@ -109,7 +108,12 @@ public class DaemonMessageSerializer {
         registry.register(SelectOptionPromptEvent.class, new SelectOptionPromptEventSerializer());
         registry.register(UserInputResumeEvent.class, new UserInputResumeEventSerializer());
         registry.register(ReadStdInEvent.class, new ReadStdInEventSerializer());
-        registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
+        registry.register(
+                StyledTextOutputEvent.class,
+                new StyledTextOutputEventSerializer(
+                        logLevelSerializer,
+                        new ListSerializer<>(
+                                new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
         registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
         registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
         registry.register(ProgressEvent.class, new ProgressEventSerializer());
@@ -134,9 +138,11 @@ public class DaemonMessageSerializer {
                 BuildActionResult result = (BuildActionResult) success.getValue();
                 if (result.getResult() != null) {
                     if (result.getException() != null || result.getFailure() != null || result.wasCancelled()) {
-                        throw new IllegalArgumentException("Result should not have both a result object and a failure associated with it.");
+                        throw new IllegalArgumentException(
+                                "Result should not have both a result object and a failure associated with it.");
                     }
-                    if (result.getResult().getHeader() == null && result.getResult().getSerializedModel().isEmpty()) {
+                    if (result.getResult().getHeader() == null
+                            && result.getResult().getSerializedModel().isEmpty()) {
                         // Special case "build successful" when there is no result object to send
                         encoder.writeByte((byte) 1);
                     } else {
@@ -245,8 +251,7 @@ public class DaemonMessageSerializer {
 
     private static class CloseInputSerializer implements Serializer<CloseInput> {
         @Override
-        public void write(Encoder encoder, CloseInput value) {
-        }
+        public void write(Encoder encoder, CloseInput value) {}
 
         @Override
         public CloseInput read(Decoder decoder) {
@@ -274,7 +279,8 @@ public class DaemonMessageSerializer {
 
     private static class BuildSerializer implements Serializer<Build> {
         private final Serializer<BuildAction> buildActionSerializer;
-        private final Serializer<BuildActionParameters> buildActionParametersSerializer = new BuildActionParametersSerializer();
+        private final Serializer<BuildActionParameters> buildActionParametersSerializer =
+                new BuildActionParametersSerializer();
 
         private BuildSerializer(Serializer<BuildAction> buildActionSerializer) {
             this.buildActionSerializer = buildActionSerializer;
@@ -322,7 +328,8 @@ public class DaemonMessageSerializer {
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, parameters.getEnvVariables());
             logLevelSerializer.write(encoder, parameters.getLogLevel());
             encoder.writeBoolean(parameters.isUseDaemon()); // Can probably skip this
-            classPathSerializer.write(encoder, parameters.getInjectedPluginClasspath().getAsFiles());
+            classPathSerializer.write(
+                    encoder, parameters.getInjectedPluginClasspath().getAsFiles());
         }
 
         @Override
@@ -333,7 +340,8 @@ public class DaemonMessageSerializer {
             LogLevel logLevel = logLevelSerializer.read(decoder);
             boolean useDaemon = decoder.readBoolean();
             ClassPath classPath = DefaultClassPath.of(classPathSerializer.read(decoder));
-            return new DefaultBuildActionParameters(sysProperties, envVariables, currentDir, logLevel, useDaemon, classPath);
+            return new DefaultBuildActionParameters(
+                    sysProperties, envVariables, currentDir, logLevel, useDaemon, classPath);
         }
     }
 
@@ -351,8 +359,7 @@ public class DaemonMessageSerializer {
 
     private static class CancelSerializer implements Serializer<Cancel> {
         @Override
-        public void write(Encoder encoder, Cancel value) {
-        }
+        public void write(Encoder encoder, Cancel value) {}
 
         @Override
         public Cancel read(Decoder decoder) {
@@ -391,7 +398,6 @@ public class DaemonMessageSerializer {
         }
 
         @Override
-        public void write(Encoder encoder, Finished value) {
-        }
+        public void write(Encoder encoder, Finished value) {}
     }
 }

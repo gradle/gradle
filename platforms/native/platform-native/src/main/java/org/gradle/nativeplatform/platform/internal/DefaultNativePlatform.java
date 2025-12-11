@@ -30,7 +30,8 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         this(name, getCurrentOperatingSystem(), getCurrentArchitecture());
     }
 
-    public DefaultNativePlatform(String name, OperatingSystemInternal operatingSystem, ArchitectureInternal architecture) {
+    public DefaultNativePlatform(
+            String name, OperatingSystemInternal operatingSystem, ArchitectureInternal architecture) {
         this.name = name;
         this.architecture = architecture;
         this.operatingSystem = operatingSystem;
@@ -43,7 +44,8 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     public static ArchitectureInternal getCurrentArchitecture() {
         String architectureName;
         try {
-            architectureName = NativeServices.getInstance().get(SystemInfo.class).getArchitectureName();
+            architectureName =
+                    NativeServices.getInstance().get(SystemInfo.class).getArchitectureName();
         } catch (NativeIntegrationUnavailableException e) {
             architectureName = System.getProperty("os.arch");
         }
@@ -95,7 +97,10 @@ public class DefaultNativePlatform implements NativePlatformInternal {
 
     private static class HostPlatform extends DefaultNativePlatform {
         HostPlatform() {
-            super("host:" + DefaultNativePlatform.getCurrentArchitecture().getName(), DefaultNativePlatform.getCurrentOperatingSystem(), DefaultNativePlatform.getCurrentArchitecture());
+            super(
+                    "host:" + DefaultNativePlatform.getCurrentArchitecture().getName(),
+                    DefaultNativePlatform.getCurrentOperatingSystem(),
+                    DefaultNativePlatform.getCurrentArchitecture());
         }
 
         HostPlatform(ArchitectureInternal architecture) {

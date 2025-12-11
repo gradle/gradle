@@ -16,16 +16,14 @@
 
 package org.gradle.tooling.events.transform.internal;
 
+import java.util.List;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 import org.gradle.tooling.events.transform.TransformFailureResult;
-
-import java.util.List;
 
 public class DefaultTransformFailureResult extends DefaultOperationFailureResult implements TransformFailureResult {
 
     public DefaultTransformFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
         super(startTime, endTime, failures);
     }
-
 }

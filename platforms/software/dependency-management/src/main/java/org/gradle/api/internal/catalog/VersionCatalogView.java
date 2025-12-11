@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.catalog;
 
+import static org.gradle.api.internal.catalog.AliasNormalizer.normalize;
+
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.VersionCatalog;
@@ -30,11 +34,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.plugin.use.PluginDependency;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.gradle.api.internal.catalog.AliasNormalizer.normalize;
-
 public class VersionCatalogView implements VersionCatalog {
 
     private final DefaultVersionCatalog config;
@@ -44,16 +43,17 @@ public class VersionCatalogView implements VersionCatalog {
     private final BundleFactory bundleFactory;
 
     public VersionCatalogView(
-        DefaultVersionCatalog config,
-        ProviderFactory providerFactory,
-        ObjectFactory objects,
-        AttributesFactory attributesFactory,
-        CapabilityNotationParser capabilityNotationParser
-    ) {
+            DefaultVersionCatalog config,
+            ProviderFactory providerFactory,
+            ObjectFactory objects,
+            AttributesFactory attributesFactory,
+            CapabilityNotationParser capabilityNotationParser) {
         this.config = config;
         this.providerFactory = providerFactory;
-        this.dependencyFactory = new DefaultExternalDependencyFactory(config, providerFactory, objects, attributesFactory, capabilityNotationParser);
-        this.bundleFactory = new BundleFactory(objects, providerFactory, config, attributesFactory, capabilityNotationParser);
+        this.dependencyFactory = new DefaultExternalDependencyFactory(
+                config, providerFactory, objects, attributesFactory, capabilityNotationParser);
+        this.bundleFactory =
+                new BundleFactory(objects, providerFactory, config, attributesFactory, capabilityNotationParser);
     }
 
     @Override

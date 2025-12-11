@@ -26,41 +26,39 @@ import com.tngtech.archunit.library.dependencies.SliceAssignment;
 import com.tngtech.archunit.library.dependencies.SliceIdentifier;
 import com.tngtech.archunit.library.dependencies.SlicesRuleDefinition;
 import com.tngtech.archunit.thirdparty.com.google.common.collect.ImmutableSet;
-
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@AnalyzeClasses(
-    packages = "org.gradle",
-    importOptions = ImportOption.DoNotIncludeJars.class
-)
+@AnalyzeClasses(packages = "org.gradle", importOptions = ImportOption.DoNotIncludeJars.class)
 public class PackageCycleTest {
     private static final PackageMatchers IGNORED_PACKAGES_FOR_CYCLES = PackageMatchers.of(ignoredPackagesForCycles());
-    private static final ImmutableSet<String> IGNORED_CLASSES_FOR_CYCLES = ImmutableSet.copyOf(ignoredClassesForCycles());
+    private static final ImmutableSet<String> IGNORED_CLASSES_FOR_CYCLES =
+            ImmutableSet.copyOf(ignoredClassesForCycles());
 
     private static boolean isInIgnoredPackage(JavaClass javaClass) {
         return IGNORED_PACKAGES_FOR_CYCLES.test(javaClass.getPackageName());
     }
 
     private static boolean isIgnoredClass(JavaClass javaClass) {
-        return javaClass.isAnnotation() || IGNORED_CLASSES_FOR_CYCLES.stream().anyMatch(prefix -> javaClass.getFullName().startsWith(prefix));
+        return javaClass.isAnnotation()
+                || IGNORED_CLASSES_FOR_CYCLES.stream()
+                        .anyMatch(prefix -> javaClass.getFullName().startsWith(prefix));
     }
 
     private static Stream<String> excludePatterns() {
         String patterns = System.getProperty("package.cycle.exclude.patterns");
-        return Arrays.stream(patterns.split(","))
-            .map(String::trim);
+        return Arrays.stream(patterns.split(",")).map(String::trim);
     }
 
     private static Set<String> ignoredPackagesForCycles() {
         return excludePatterns()
-            .filter(pattern -> !isClassNamePattern(pattern))
-            .map(pattern -> pattern.replace("/**", ".."))
-            .map(pattern -> pattern.replace("/*", ""))
-            .map(pattern -> pattern.replace("/", "."))
-            .collect(Collectors.toSet());
+                .filter(pattern -> !isClassNamePattern(pattern))
+                .map(pattern -> pattern.replace("/**", ".."))
+                .map(pattern -> pattern.replace("/*", ""))
+                .map(pattern -> pattern.replace("/", "."))
+                .collect(Collectors.toSet());
     }
 
     private static boolean isClassNamePattern(String pattern) {
@@ -69,10 +67,10 @@ public class PackageCycleTest {
 
     private static Set<String> ignoredClassesForCycles() {
         return excludePatterns()
-            .filter(PackageCycleTest::isClassNamePattern)
-            .map(pattern -> pattern.replace("/", "."))
-            .map(pattern -> pattern.replace("*", ""))
-            .collect(Collectors.toSet());
+                .filter(PackageCycleTest::isClassNamePattern)
+                .map(pattern -> pattern.replace("/", "."))
+                .map(pattern -> pattern.replace("*", ""))
+                .collect(Collectors.toSet());
     }
 
     private static final SliceAssignment GRADLE_SLICE_ASSIGNMENT = new SliceAssignment() {
@@ -91,8 +89,8 @@ public class PackageCycleTest {
     };
 
     @ArchTest
-    public static final ArchRule there_are_no_package_cycles =
-        SlicesRuleDefinition.slices().assignedFrom(GRADLE_SLICE_ASSIGNMENT)
+    public static final ArchRule there_are_no_package_cycles = SlicesRuleDefinition.slices()
+            .assignedFrom(GRADLE_SLICE_ASSIGNMENT)
             .should()
             .beFreeOfCycles()
             // Some projects exclude all classes, that is why we allow empty here

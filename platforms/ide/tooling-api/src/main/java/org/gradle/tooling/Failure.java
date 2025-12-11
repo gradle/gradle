@@ -15,11 +15,10 @@
  */
 package org.gradle.tooling;
 
+import java.util.List;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.problems.Problem;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Represents a failure. Failures are similar to exceptions but carry less information (only a message, a description and a cause) so

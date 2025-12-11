@@ -16,14 +16,13 @@
 
 package org.gradle.internal.nativeintegration.jansi;
 
-import org.apache.commons.io.IOUtils;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.nativeintegration.NativeIntegrationException;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import org.apache.commons.io.IOUtils;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.nativeintegration.NativeIntegrationException;
 
 public class JansiBootPathConfigurer {
     private static final String JANSI_LIBRARY_PATH_SYS_PROP = "library.jansi.path";
@@ -47,7 +46,8 @@ public class JansiBootPathConfigurer {
             libFile.getParentFile().mkdirs();
 
             if (!libFile.exists()) {
-                InputStream libraryInputStream = getClass().getResourceAsStream(jansiStorage.getJansiLibrary().getResourcePath());
+                InputStream libraryInputStream = getClass()
+                        .getResourceAsStream(jansiStorage.getJansiLibrary().getResourcePath());
                 try {
                     if (libraryInputStream != null) {
                         copyLibrary(libraryInputStream, libFile);
@@ -75,7 +75,8 @@ public class JansiBootPathConfigurer {
                 lib.close();
             }
         } catch (IOException e) {
-            throw new NativeIntegrationException(String.format("Could not create Jansi native library '%s'.", libFile), e);
+            throw new NativeIntegrationException(
+                    String.format("Could not create Jansi native library '%s'.", libFile), e);
         }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
+import javax.inject.Inject;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistryFactory;
@@ -27,8 +28,6 @@ import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.inject.Inject;
 
 /**
  * A collection of services for creating and working with immutable attribute schemas.
@@ -44,10 +43,9 @@ public class AttributeSchemaServices {
 
     @Inject
     public AttributeSchemaServices(
-        ImmutableAttributesSchemaFactory attributesSchemaFactory,
-        ImmutableArtifactTypeRegistryFactory artifactTypeRegistryFactory,
-        InMemoryCacheFactory cacheFactory
-    ) {
+            ImmutableAttributesSchemaFactory attributesSchemaFactory,
+            ImmutableArtifactTypeRegistryFactory artifactTypeRegistryFactory,
+            InMemoryCacheFactory cacheFactory) {
         this.attributesSchemaFactory = attributesSchemaFactory;
         this.artifactTypeRegistryFactory = artifactTypeRegistryFactory;
         this.cacheFactory = cacheFactory;
@@ -82,12 +80,7 @@ public class AttributeSchemaServices {
 
     private DefaultAttributeMatcher createMatcher(ImmutableAttributesSchema schema) {
         return new DefaultAttributeMatcher(
-            new CachingAttributeSelectionSchema(
-                new DefaultAttributeSelectionSchema(schema),
-                cacheFactory
-            ),
-            cacheFactory
-        );
+                new CachingAttributeSelectionSchema(new DefaultAttributeSelectionSchema(schema), cacheFactory),
+                cacheFactory);
     }
-
 }

@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
-import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
-
 import java.io.Serializable;
 import java.util.Set;
+import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 
 public class TestNGSpec implements Serializable {
     private static final long serialVersionUID = 1;
@@ -41,22 +40,21 @@ public class TestNGSpec implements Serializable {
     private final boolean isDryRun;
 
     public TestNGSpec(
-        TestFilterSpec filter,
-        String defaultSuiteName,
-        String defaultTestName,
-        String parallel,
-        int threadCount,
-        int suiteThreadPoolSize,
-        boolean useDefaultListener,
-        String threadPoolFactoryClass,
-        Set<String> includeGroups,
-        Set<String> excludeGroups,
-        Set<String> listeners,
-        String configFailurePolicy,
-        boolean preserveOrder,
-        boolean groupByInstances,
-        boolean isDryRun
-    ) {
+            TestFilterSpec filter,
+            String defaultSuiteName,
+            String defaultTestName,
+            String parallel,
+            int threadCount,
+            int suiteThreadPoolSize,
+            boolean useDefaultListener,
+            String threadPoolFactoryClass,
+            Set<String> includeGroups,
+            Set<String> excludeGroups,
+            Set<String> listeners,
+            String configFailurePolicy,
+            boolean preserveOrder,
+            boolean groupByInstances,
+            boolean isDryRun) {
         this.filter = filter;
         this.defaultSuiteName = defaultSuiteName;
         this.defaultTestName = defaultTestName;

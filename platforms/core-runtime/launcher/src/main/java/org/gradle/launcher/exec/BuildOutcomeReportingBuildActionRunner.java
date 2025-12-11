@@ -46,15 +46,14 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
     private final ExceptionProblemRegistry registry;
 
     public BuildOutcomeReportingBuildActionRunner(
-        StyledTextOutputFactory styledTextOutputFactory,
-        ListenerManager listenerManager,
-        BuildStartedTime buildStartedTime,
-        BuildRequestMetaData buildRequestMetaData,
-        BuildLoggerFactory buildLoggerFactory,
-        FailureFactory failureFactory,
-        ExceptionProblemRegistry registry,
-        BuildActionRunner delegate
-    ) {
+            StyledTextOutputFactory styledTextOutputFactory,
+            ListenerManager listenerManager,
+            BuildStartedTime buildStartedTime,
+            BuildRequestMetaData buildRequestMetaData,
+            BuildLoggerFactory buildLoggerFactory,
+            FailureFactory failureFactory,
+            ExceptionProblemRegistry registry,
+            BuildActionRunner delegate) {
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.listenerManager = listenerManager;
         this.delegate = delegate;
@@ -72,11 +71,7 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         listenerManager.addListener(taskStatisticsCollector);
 
         BuildLogger buildLogger = buildLoggerFactory.create(
-            Logging.getLogger(BuildLogger.class),
-            startParameter,
-            buildStartedTime,
-            buildRequestMetaData
-        );
+                Logging.getLogger(BuildLogger.class), startParameter, buildStartedTime, buildRequestMetaData);
         // Register as a 'logger' to support this being replaced by build logic.
         buildController.beforeBuild(gradle -> callUseLogger(gradle, buildLogger));
 
@@ -86,7 +81,8 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         Throwable buildFailure = result.getBuildFailure();
         Failure richBuildFailure = buildFailure == null ? null : failureFactory.create(buildFailure, problemLocator);
         buildLogger.logResult(richBuildFailure);
-        new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
+        new TaskExecutionStatisticsReporter(styledTextOutputFactory)
+                .buildFinished(taskStatisticsCollector.getStatistics());
         if (buildFailure != null) {
             return result.withFailure(richBuildFailure);
         } else {

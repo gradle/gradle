@@ -18,13 +18,12 @@ package org.gradle.internal.enterprise.test.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.enterprise.test.TestTaskForkOptions;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import org.gradle.internal.enterprise.test.TestTaskForkOptions;
 
 class DefaultTestTaskForkOptions implements TestTaskForkOptions {
 
@@ -37,14 +36,13 @@ class DefaultTestTaskForkOptions implements TestTaskForkOptions {
     private final Map<String, String> environment;
 
     DefaultTestTaskForkOptions(
-        File workingDir,
-        String executable,
-        int javaMajorVersion,
-        Iterable<File> classpath,
-        Iterable<File> modulePath,
-        List<String> jvmArgs,
-        Map<String, String> environment
-    ) {
+            File workingDir,
+            String executable,
+            int javaMajorVersion,
+            Iterable<File> classpath,
+            Iterable<File> modulePath,
+            List<String> jvmArgs,
+            Map<String, String> environment) {
         this.workingDir = workingDir;
         this.executable = executable;
         this.javaMajorVersion = javaMajorVersion;

@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
-import org.gradle.api.tasks.compile.CompileOptions;
-import org.jspecify.annotations.Nullable;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -26,8 +24,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
+import org.gradle.api.tasks.compile.CompileOptions;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implements JavaCompileSpec {
     private MinimalJavaCompileOptions compileOptions;
@@ -108,7 +107,8 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
             // Some arguments can also be a GString, that is why use Object.toString()
             for (Object argObj : compileOptions.getCompilerArgs()) {
                 String arg = argObj.toString();
-                if ((arg.equals("--module-path") || arg.equals("-p")) && (i + 1) < compileOptions.getCompilerArgs().size()) {
+                if ((arg.equals("--module-path") || arg.equals("-p"))
+                        && (i + 1) < compileOptions.getCompilerArgs().size()) {
                     Object argValue = compileOptions.getCompilerArgs().get(++i);
                     String[] modules = argValue.toString().split(File.pathSeparator);
                     modulePaths.addAll(Arrays.asList(modules));
@@ -118,9 +118,7 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
                 }
                 i++;
             }
-            modulePath = modulePaths.stream()
-                .map(File::new)
-                .collect(toImmutableList());
+            modulePath = modulePaths.stream().map(File::new).collect(toImmutableList());
         }
         return modulePath;
     }
@@ -139,5 +137,4 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     public void setSourcesRoots(List<File> sourcesRoots) {
         this.sourceRoots = sourcesRoots;
     }
-
 }

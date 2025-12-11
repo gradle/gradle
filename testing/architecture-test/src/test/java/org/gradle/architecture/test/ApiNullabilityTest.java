@@ -16,12 +16,6 @@
 
 package org.gradle.architecture.test;
 
-import com.tngtech.archunit.junit.AnalyzeClasses;
-import com.tngtech.archunit.junit.ArchTest;
-import com.tngtech.archunit.lang.ArchRule;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.NullUnmarked;
-
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -35,6 +29,12 @@ import static org.gradle.architecture.test.ArchUnitFixture.inGradlePublicApiPack
 import static org.gradle.architecture.test.ArchUnitFixture.not_anonymous_classes;
 import static org.gradle.architecture.test.ArchUnitFixture.not_synthetic_classes;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
+
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchRule;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.NullUnmarked;
 
 /**
  * This test validates that classes are annotated with {@link NullMarked} and not with {@link NullUnmarked}.
@@ -52,22 +52,21 @@ public class ApiNullabilityTest {
 
     @ArchTest
     public static final ArchRule internal_classes_are_annotated_with_non_null_api = freeze(classes()
-        .that(are(inGradleInternalApiPackages()))
-        .and(classes_not_written_in_kotlin)
-        .and(not_synthetic_classes)
-        .and(not_anonymous_classes)
-        .should(beNullMarkedClass()));
+            .that(are(inGradleInternalApiPackages()))
+            .and(classes_not_written_in_kotlin)
+            .and(not_synthetic_classes)
+            .and(not_anonymous_classes)
+            .should(beNullMarkedClass()));
 
     @ArchTest
     public static final ArchRule public_api_classes_are_annotated_with_non_null_api = freeze(classes()
-        .that(are(inGradlePublicApiPackages()))
-        .and(classes_not_written_in_kotlin)
-        .and(not_synthetic_classes)
-        .and(not_anonymous_classes)
-        .should(beNullMarkedClass()));
+            .that(are(inGradlePublicApiPackages()))
+            .and(classes_not_written_in_kotlin)
+            .and(not_synthetic_classes)
+            .and(not_anonymous_classes)
+            .should(beNullMarkedClass()));
 
     @ArchTest
-    public static final ArchRule public_api_methods_are_not_null_unmarked = freeze(methods()
-        .that(are(public_api_methods))
-        .should(not(beNullUnmarkedMethod())));
+    public static final ArchRule public_api_methods_are_not_null_unmarked =
+            freeze(methods().that(are(public_api_methods)).should(not(beNullUnmarkedMethod())));
 }

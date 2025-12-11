@@ -17,10 +17,9 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.base.Preconditions;
+import java.io.File;
 import org.gradle.api.Named;
 import org.gradle.util.internal.VersionNumber;
-
-import java.io.File;
 
 public class VisualStudioInstall implements Named {
     private final String name;

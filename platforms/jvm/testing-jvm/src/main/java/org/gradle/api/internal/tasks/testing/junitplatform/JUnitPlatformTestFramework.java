@@ -17,6 +17,10 @@
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -32,11 +36,6 @@ import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
-
-import javax.inject.Inject;
-import java.io.IOException;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @UsedByScanPlugin("test-retry")
 public abstract class JUnitPlatformTestFramework implements TestFramework {
@@ -56,10 +55,8 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
     @UsedByScanPlugin("test-retry")
     @Override
     public TestFramework copyWithFilters(TestFilter newTestFilters) {
-        JUnitPlatformTestFramework newTestFramework = getObjectFactory().newInstance(JUnitPlatformTestFramework.class,
-            newTestFilters,
-            dryRun,
-            projectLayout);
+        JUnitPlatformTestFramework newTestFramework =
+                getObjectFactory().newInstance(JUnitPlatformTestFramework.class, newTestFilters, dryRun, projectLayout);
 
         newTestFramework.getOptions().copyFrom(getOptions());
         return newTestFramework;
@@ -72,9 +69,13 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
     public WorkerTestDefinitionProcessorFactory<?> getProcessorFactory() {
         validateOptions();
         return new JUnitPlatformTestDefinitionProcessorFactory(new JUnitPlatformSpec(
-            filter.toSpec(), getOptions().getIncludeEngines(), getOptions().getExcludeEngines(),
-            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get(), projectLayout.getProjectDirectory().getAsFile()
-        ));
+                filter.toSpec(),
+                getOptions().getIncludeEngines(),
+                getOptions().getExcludeEngines(),
+                getOptions().getIncludeTags(),
+                getOptions().getExcludeTags(),
+                dryRun.get(),
+                projectLayout.getProjectDirectory().getAsFile()));
     }
 
     @Override
@@ -101,14 +102,15 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
         intersection.retainAll(getOptions().getExcludeTags());
         if (!intersection.isEmpty()) {
             if (intersection.size() == 1) {
-                LOGGER.warn("The tag '" + intersection.iterator().next() + "' is both included and excluded.  " +
-                    "This will result in the tag being excluded, which may not be what was intended.  " +
-                    "Please either include or exclude the tag but not both.");
+                LOGGER.warn("The tag '" + intersection.iterator().next() + "' is both included and excluded.  "
+                        + "This will result in the tag being excluded, which may not be what was intended.  "
+                        + "Please either include or exclude the tag but not both.");
             } else {
-                String allTags = intersection.stream().sorted().map(s -> "'" + s + "'").collect(Collectors.joining(", "));
-                LOGGER.warn("The tags " + allTags + " are both included and excluded.  " +
-                    "This will result in the tags being excluded, which may not be what was intended.  " +
-                    "Please either include or exclude the tags but not both.");
+                String allTags =
+                        intersection.stream().sorted().map(s -> "'" + s + "'").collect(Collectors.joining(", "));
+                LOGGER.warn("The tags " + allTags + " are both included and excluded.  "
+                        + "This will result in the tags being excluded, which may not be what was intended.  "
+                        + "Please either include or exclude the tags but not both.");
             }
         }
     }

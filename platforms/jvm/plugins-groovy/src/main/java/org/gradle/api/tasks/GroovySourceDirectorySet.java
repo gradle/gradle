@@ -23,5 +23,4 @@ import org.gradle.api.file.SourceDirectorySet;
  *
  * @since 7.1
  */
-public interface GroovySourceDirectorySet extends SourceDirectorySet {
-}
+public interface GroovySourceDirectorySet extends SourceDirectorySet {}

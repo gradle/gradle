@@ -22,7 +22,10 @@ public class TwoStageModuleVersionsCache extends AbstractModuleVersionsCache {
     private final AbstractModuleVersionsCache readOnlyCache;
     private final AbstractModuleVersionsCache writableCache;
 
-    public TwoStageModuleVersionsCache(BuildCommencedTimeProvider timeProvider, AbstractModuleVersionsCache readOnlyCache, AbstractModuleVersionsCache writableCache) {
+    public TwoStageModuleVersionsCache(
+            BuildCommencedTimeProvider timeProvider,
+            AbstractModuleVersionsCache readOnlyCache,
+            AbstractModuleVersionsCache writableCache) {
         super(timeProvider);
         this.readOnlyCache = readOnlyCache;
         this.writableCache = writableCache;
@@ -43,6 +46,8 @@ public class TwoStageModuleVersionsCache extends AbstractModuleVersionsCache {
         if (writableEntry == null) {
             return roEntry;
         }
-        return new ModuleVersionsCacheEntry(Sets.union(roEntry.moduleVersionListing, writableEntry.moduleVersionListing), writableEntry.createTimestamp);
+        return new ModuleVersionsCacheEntry(
+                Sets.union(roEntry.moduleVersionListing, writableEntry.moduleVersionListing),
+                writableEntry.createTimestamp);
     }
 }

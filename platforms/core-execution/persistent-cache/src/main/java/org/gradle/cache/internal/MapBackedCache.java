@@ -34,5 +34,4 @@ public class MapBackedCache<K, V> extends CacheSupport<K, V> {
     protected <T extends K, N extends V> void doCache(T key, N value) {
         map.put(key, value);
     }
-
 }

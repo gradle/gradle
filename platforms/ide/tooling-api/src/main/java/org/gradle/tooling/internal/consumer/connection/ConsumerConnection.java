@@ -16,13 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import java.util.List;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.internal.consumer.PhasedBuildAction;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-
-import java.util.List;
 
 /**
  * Implementations must be thread-safe.
@@ -43,7 +42,7 @@ public interface ConsumerConnection extends Stoppable {
             throws UnsupportedOperationException, IllegalStateException;
 
     void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters)
-        throws UnsupportedOperationException, IllegalStateException;
+            throws UnsupportedOperationException, IllegalStateException;
 
     void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters);
 

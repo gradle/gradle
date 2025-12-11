@@ -38,9 +38,7 @@ import org.jspecify.annotations.Nullable;
 public interface ValueSourceProviderFactory {
 
     <T, P extends ValueSourceParameters> Provider<T> createProviderOf(
-        Class<? extends ValueSource<T, P>> valueSourceType,
-        Action<? super ValueSourceSpec<P>> configureAction
-    );
+            Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configureAction);
 
     void addValueListener(ValueListener listener);
 
@@ -51,10 +49,9 @@ public interface ValueSourceProviderFactory {
     void removeComputationListener(ComputationListener listener);
 
     <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
-        Class<? extends ValueSource<T, P>> valueSourceType,
-        @Nullable Class<P> parametersType,
-        @Nullable P parameters
-    );
+            Class<? extends ValueSource<T, P>> valueSourceType,
+            @Nullable Class<P> parametersType,
+            @Nullable P parameters);
 
     /**
      * The listener that is notified when the value of the {@code ValueSource} is computed. There is no ordering guarantees with the
@@ -70,9 +67,7 @@ public interface ValueSourceProviderFactory {
     @EventScope(Scope.Build.class)
     interface ValueListener {
         <T, P extends ValueSourceParameters> void valueObtained(
-            ObtainedValue<T, P> obtainedValue,
-            ValueSource<T, P> source
-        );
+                ObtainedValue<T, P> obtainedValue, ValueSource<T, P> source);
 
         interface ObtainedValue<T, P extends ValueSourceParameters> {
 

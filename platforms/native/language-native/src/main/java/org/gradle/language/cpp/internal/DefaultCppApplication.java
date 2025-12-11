@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Property;
@@ -30,21 +31,36 @@ import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-import javax.inject.Inject;
-
-public abstract class DefaultCppApplication extends DefaultCppComponent implements CppApplication, PublicationAwareComponent {
+public abstract class DefaultCppApplication extends DefaultCppComponent
+        implements CppApplication, PublicationAwareComponent {
     private final MainExecutableVariant mainVariant;
     private final DefaultComponentDependencies dependencies;
 
     @Inject
     public DefaultCppApplication(String name) {
         super(name);
-        this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
+        this.dependencies = getObjectFactory()
+                .newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
         this.mainVariant = new MainExecutableVariant(getObjectFactory());
     }
 
-    public DefaultCppExecutable addExecutable(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        DefaultCppExecutable result = getObjectFactory().newInstance(DefaultCppExecutable.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultCppExecutable addExecutable(
+            NativeVariantIdentity identity,
+            CppPlatform targetPlatform,
+            NativeToolChainInternal toolChain,
+            PlatformToolProvider platformToolProvider) {
+        DefaultCppExecutable result = getObjectFactory()
+                .newInstance(
+                        DefaultCppExecutable.class,
+                        getNames().append(identity.getName()),
+                        getBaseName(),
+                        getCppSource(),
+                        getPrivateHeaderDirs(),
+                        getImplementationDependencies(),
+                        targetPlatform,
+                        toolChain,
+                        platformToolProvider,
+                        identity);
         getBinaries().add(result);
         return result;
     }

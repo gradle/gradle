@@ -47,5 +47,4 @@ public class BuildStartedTime {
     public void reset(long startTime) {
         this.startTime = startTime;
     }
-
 }

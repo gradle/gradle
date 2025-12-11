@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import java.util.Map;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
@@ -23,13 +24,12 @@ import org.gradle.api.tasks.TaskInputs;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-
 @NullMarked
 public class TaskInputsDeprecationSupport implements TaskInputs {
 
     private UnsupportedOperationException failWithUnsupportedMethod(String method) {
-        throw new UnsupportedOperationException(String.format("Chaining of the TaskInputs.%s method is not supported since Gradle 5.0.", method));
+        throw new UnsupportedOperationException(
+                String.format("Chaining of the TaskInputs.%s method is not supported since Gradle 5.0.", method));
     }
 
     @Override

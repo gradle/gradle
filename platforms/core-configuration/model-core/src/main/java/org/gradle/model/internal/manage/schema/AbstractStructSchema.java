@@ -20,15 +20,14 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
-import org.gradle.internal.Cast;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
-import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
-import org.gradle.model.internal.type.ModelType;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import org.gradle.internal.Cast;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
+import org.gradle.model.internal.type.ModelType;
 
 public abstract class AbstractStructSchema<T> extends AbstractModelSchema<T> implements StructSchema<T> {
     private final ImmutableSortedMap<String, ModelProperty<?>> properties;
@@ -36,11 +35,10 @@ public abstract class AbstractStructSchema<T> extends AbstractModelSchema<T> imp
     private final Map<Class<? extends ModelSchemaAspect>, ModelSchemaAspect> aspects;
 
     public AbstractStructSchema(
-        ModelType<T> type,
-        Iterable<ModelProperty<?>> properties,
-        Iterable<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods,
-        Iterable<ModelSchemaAspect> aspects
-    ) {
+            ModelType<T> type,
+            Iterable<ModelProperty<?>> properties,
+            Iterable<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods,
+            Iterable<ModelSchemaAspect> aspects) {
         super(type);
         ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
         for (ModelProperty<?> property : properties) {

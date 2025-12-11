@@ -16,12 +16,12 @@
 
 package org.gradle.execution.commandline;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
+
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.FailureResolutionAware;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 @Contextual
 public class TaskConfigurationException extends GradleException implements FailureResolutionAware {

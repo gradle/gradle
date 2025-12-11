@@ -50,5 +50,4 @@ public interface ProblemGroup {
      */
     @Nullable
     ProblemGroup getParent();
-
 }

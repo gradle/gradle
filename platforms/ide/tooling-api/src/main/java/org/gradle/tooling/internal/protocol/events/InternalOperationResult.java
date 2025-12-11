@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
+import java.util.List;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
-
-import java.util.List;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.

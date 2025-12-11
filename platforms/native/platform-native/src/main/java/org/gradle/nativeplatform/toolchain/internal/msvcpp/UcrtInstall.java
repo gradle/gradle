@@ -16,14 +16,13 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
-import org.gradle.util.internal.VersionNumber;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
+import org.gradle.util.internal.VersionNumber;
 
 public class UcrtInstall extends WindowsKitInstall {
 
@@ -47,7 +46,8 @@ public class UcrtInstall extends WindowsKitInstall {
         if (platform.getArchitecture().isI386()) {
             return new UcrtSystemLibraries("x86");
         }
-        throw new UnsupportedOperationException(String.format("Supported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
+        throw new UnsupportedOperationException(
+                String.format("Supported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
     }
 
     private class UcrtSystemLibraries implements SystemLibraries {
@@ -64,7 +64,8 @@ public class UcrtInstall extends WindowsKitInstall {
 
         @Override
         public List<File> getLibDirs() {
-            return Collections.singletonList(new File(getBaseDir(), "Lib/" + getVersion() + "/ucrt/" + platformDirName));
+            return Collections.singletonList(
+                    new File(getBaseDir(), "Lib/" + getVersion() + "/ucrt/" + platformDirName));
         }
 
         @Override

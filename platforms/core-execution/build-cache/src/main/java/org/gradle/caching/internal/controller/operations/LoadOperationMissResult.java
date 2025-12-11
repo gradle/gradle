@@ -22,8 +22,7 @@ public class LoadOperationMissResult implements BuildCacheRemoteLoadBuildOperati
 
     public static final BuildCacheRemoteLoadBuildOperationType.Result INSTANCE = new LoadOperationMissResult();
 
-    private LoadOperationMissResult() {
-    }
+    private LoadOperationMissResult() {}
 
     @Override
     public boolean isHit() {
@@ -34,5 +33,4 @@ public class LoadOperationMissResult implements BuildCacheRemoteLoadBuildOperati
     public long getArchiveSize() {
         return 0;
     }
-
 }

@@ -34,5 +34,4 @@ public interface JavaPluginExtensionInternal extends JavaPluginExtension {
      * @return True if auto-target JVM feature is enabled. False if it is disabled.
      */
     Property<Boolean> getAutoTargetJvm();
-
 }

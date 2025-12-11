@@ -34,27 +34,22 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
-public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<DirectoryBuildCacheService> {
+public class DefaultBuildCacheControllerFactory
+        extends AbstractBuildCacheControllerFactory<DirectoryBuildCacheService> {
 
     private final TemporaryFileProvider temporaryFileProvider;
     private final BuildCacheEntryPacker packer;
     private final BuildOperationProgressEventEmitter buildOperationProgressEmitter;
 
     public DefaultBuildCacheControllerFactory(
-        StartParameter startParameter,
-        BuildOperationRunner buildOperationRunner,
-        BuildOperationProgressEventEmitter buildOperationProgressEmitter,
-        OriginMetadataFactory originMetadataFactory,
-        StringInterner stringInterner,
-        TemporaryFileProvider temporaryFileProvider,
-        BuildCacheEntryPacker packer
-    ) {
-        super(
-            startParameter,
-            buildOperationRunner,
-            originMetadataFactory,
-            stringInterner
-        );
+            StartParameter startParameter,
+            BuildOperationRunner buildOperationRunner,
+            BuildOperationProgressEventEmitter buildOperationProgressEmitter,
+            OriginMetadataFactory originMetadataFactory,
+            StringInterner stringInterner,
+            TemporaryFileProvider temporaryFileProvider,
+            BuildCacheEntryPacker packer) {
+        super(startParameter, buildOperationRunner, originMetadataFactory, stringInterner);
         this.temporaryFileProvider = temporaryFileProvider;
         this.packer = packer;
         this.buildOperationProgressEmitter = buildOperationProgressEmitter;
@@ -62,41 +57,37 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
 
     @Override
     protected BuildCacheController doCreateController(
-        Path buildPath,
-        @Nullable DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> localDescribedService,
-        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
-    ) {
-        BuildCacheServicesConfiguration config = toConfiguration(
-            buildPath,
-            localDescribedService,
-            remoteDescribedService
-        );
+            Path buildPath,
+            @Nullable DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> localDescribedService,
+            @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService) {
+        BuildCacheServicesConfiguration config =
+                toConfiguration(buildPath, localDescribedService, remoteDescribedService);
 
         boolean logStackTraces = startParameter.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
 
         return new DefaultBuildCacheController(
-            config,
-            buildOperationRunner,
-            buildOperationProgressEmitter,
-            temporaryFileProvider::createTemporaryFile,
-            logStackTraces,
-            !Boolean.getBoolean(REMOTE_CONTINUE_ON_ERROR_PROPERTY),
-            packer,
-            originMetadataFactory,
-            stringInterner
-        );
+                config,
+                buildOperationRunner,
+                buildOperationProgressEmitter,
+                temporaryFileProvider::createTemporaryFile,
+                logStackTraces,
+                !Boolean.getBoolean(REMOTE_CONTINUE_ON_ERROR_PROPERTY),
+                packer,
+                originMetadataFactory,
+                stringInterner);
     }
 
     private static BuildCacheServicesConfiguration toConfiguration(
-        Path buildPath,
-        @Nullable DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> local,
-        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remote
-    ) {
+            Path buildPath,
+            @Nullable DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> local,
+            @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remote) {
         boolean localPush = local != null && local.config.isPush();
         boolean remotePush = remote != null && remote.config.isPush();
         return new BuildCacheServicesConfiguration(
-            buildPath.asString(),
-            local != null ? local.service : null, localPush,
-            remote != null ? remote.service : null, remotePush);
+                buildPath.asString(),
+                local != null ? local.service : null,
+                localPush,
+                remote != null ? remote.service : null,
+                remotePush);
     }
 }

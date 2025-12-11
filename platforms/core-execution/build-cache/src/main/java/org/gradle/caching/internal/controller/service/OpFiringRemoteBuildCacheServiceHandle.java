@@ -16,6 +16,8 @@
 
 package org.gradle.caching.internal.controller.service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
@@ -31,9 +33,6 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheServiceHandle {
 
     private final String buildPath;
@@ -41,15 +40,14 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
     private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
 
     public OpFiringRemoteBuildCacheServiceHandle(
-        String buildPath,
-        BuildCacheService service,
-        boolean push,
-        BuildCacheServiceRole role,
-        BuildOperationRunner buildOperationRunner,
-        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
-        boolean logStackTraces,
-        boolean disableOnError
-    ) {
+            String buildPath,
+            BuildCacheService service,
+            boolean push,
+            BuildCacheServiceRole role,
+            BuildOperationRunner buildOperationRunner,
+            BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+            boolean logStackTraces,
+            boolean disableOnError) {
         super(service, push, role, logStackTraces, disableOnError);
         this.buildPath = buildPath;
         this.buildOperationRunner = buildOperationRunner;
@@ -63,17 +61,16 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
             public void run(BuildOperationContext context) {
                 loadInner(key, new OpFiringEntryReader(loadTarget));
                 context.setResult(
-                    loadTarget.isLoaded()
-                        ? new LoadOperationHitResult(loadTarget.getLoadedSize())
-                        : LoadOperationMissResult.INSTANCE
-                );
+                        loadTarget.isLoaded()
+                                ? new LoadOperationHitResult(loadTarget.getLoadedSize())
+                                : LoadOperationMissResult.INSTANCE);
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName(description)
-                    .details(new LoadOperationDetails(key))
-                    .progressDisplayName("Requesting from remote build cache");
+                        .details(new LoadOperationDetails(key))
+                        .progressDisplayName("Requesting from remote build cache");
             }
         });
     }
@@ -84,25 +81,29 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
             @Override
             public void run(BuildOperationContext context) {
                 OpFiringRemoteBuildCacheServiceHandle.super.storeInner(description, key, storeTarget);
-                context.setResult(storeTarget.isStored() ? StoreOperationResult.STORED : StoreOperationResult.NOT_STORED);
+                context.setResult(
+                        storeTarget.isStored() ? StoreOperationResult.STORED : StoreOperationResult.NOT_STORED);
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName(description)
-                    .details(new StoreOperationDetails(key, storeTarget.getSize()))
-                    .progressDisplayName("Uploading to remote build cache");
+                        .details(new StoreOperationDetails(key, storeTarget.getSize()))
+                        .progressDisplayName("Uploading to remote build cache");
             }
         });
     }
 
     @Override
     protected void onCacheDisabledDueToFailure(BuildCacheKey key, Operation operation, Throwable failure) {
-        BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType operationType = convertToBuildOperationType(operation);
-        buildOperationProgressEventEmitter.emitNowIfCurrent(new RemoteDisabledDueToFailureProgressDetails(key, failure, operationType));
+        BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType operationType =
+                convertToBuildOperationType(operation);
+        buildOperationProgressEventEmitter.emitNowIfCurrent(
+                new RemoteDisabledDueToFailureProgressDetails(key, failure, operationType));
     }
 
-    private static BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType convertToBuildOperationType(Operation operation) {
+    private static BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType
+            convertToBuildOperationType(Operation operation) {
         switch (operation) {
             case LOAD:
                 return BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType.LOAD;
@@ -137,7 +138,7 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
                     @Override
                     public BuildOperationDescriptor.Builder description() {
                         return BuildOperationDescriptor.displayName("Download from remote build cache")
-                            .progressDisplayName("Downloading");
+                                .progressDisplayName("Downloading");
                     }
                 });
             } catch (UncheckedWrapper uncheckedWrapper) {
@@ -161,12 +162,14 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
         }
     }
 
-    private class RemoteDisabledDueToFailureProgressDetails implements BuildCacheRemoteDisabledDueToFailureProgressDetails {
+    private class RemoteDisabledDueToFailureProgressDetails
+            implements BuildCacheRemoteDisabledDueToFailureProgressDetails {
         private final BuildCacheKey key;
         private final Throwable e;
         private final BuildCacheOperationType operationType;
 
-        public RemoteDisabledDueToFailureProgressDetails(BuildCacheKey key, Throwable e, BuildCacheOperationType operationType) {
+        public RemoteDisabledDueToFailureProgressDetails(
+                BuildCacheKey key, Throwable e, BuildCacheOperationType operationType) {
             this.key = key;
             this.e = e;
             this.operationType = operationType;

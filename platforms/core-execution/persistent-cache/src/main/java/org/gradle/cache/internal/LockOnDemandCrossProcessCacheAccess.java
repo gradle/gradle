@@ -16,6 +16,10 @@
 
 package org.gradle.cache.internal;
 
+import java.io.File;
+import java.util.concurrent.locks.Lock;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.FileLockReleasedSignal;
@@ -23,11 +27,6 @@ import org.gradle.cache.LockOptions;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.concurrent.locks.Lock;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(LockOnDemandCrossProcessCacheAccess.class);
@@ -52,7 +51,15 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
      * @param onOpen Action to run when the lock is opened. Action is called while holding state lock
      * @param onClose Action to run when the lock is closed. Action is called while holding state lock
      */
-    public LockOnDemandCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, Lock stateLock, CacheInitializationAction initAction, Consumer<FileLock> onOpen, Consumer<FileLock> onClose) {
+    public LockOnDemandCrossProcessCacheAccess(
+            String cacheDisplayName,
+            File lockTarget,
+            LockOptions lockOptions,
+            FileLockManager lockManager,
+            Lock stateLock,
+            CacheInitializationAction initAction,
+            Consumer<FileLock> onOpen,
+            Consumer<FileLock> onClose) {
         this.cacheDisplayName = cacheDisplayName;
         this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;
@@ -75,7 +82,9 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
         stateLock.lock();
         try {
             if (lockCount != 0) {
-                throw new IllegalStateException(String.format("Cannot close cache access for %s as it is currently in use for %s operations.", cacheDisplayName, lockCount));
+                throw new IllegalStateException(String.format(
+                        "Cannot close cache access for %s as it is currently in use for %s operations.",
+                        cacheDisplayName, lockCount));
             }
             releaseLockIfHeld();
         } finally {
@@ -175,7 +184,9 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
                     signal.trigger();
                 } else {
                     // Lock is in use - mark as contended
-                    LOGGER.debug("Lock on {} requested by another process - lock is in use and will be released when operation completed.", cacheDisplayName);
+                    LOGGER.debug(
+                            "Lock on {} requested by another process - lock is in use and will be released when operation completed.",
+                            cacheDisplayName);
                     lockReleaseSignal = signal;
                 }
             } finally {

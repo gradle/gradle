@@ -15,7 +15,13 @@
  */
 package org.gradle.api.internal.file;
 
+import static org.gradle.api.internal.file.AbstractFileTree.fileVisitorFrom;
+import static org.gradle.util.internal.ConfigureUtil.configure;
+
 import groovy.lang.Closure;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
@@ -25,13 +31,6 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Cast;
-
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import static org.gradle.api.internal.file.AbstractFileTree.fileVisitorFrom;
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * A {@link FileTree} that contains the union of zero or more file trees.

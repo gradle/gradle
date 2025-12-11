@@ -57,7 +57,13 @@ public class PackageTestResults extends CompositeTestResults {
         return addTest(classId, className, className, testName, testName, duration);
     }
 
-    public TestResult addTest(long classId, String className, String classDisplayName, String testName, String testDisplayName, long duration) {
+    public TestResult addTest(
+            long classId,
+            String className,
+            String classDisplayName,
+            String testName,
+            String testDisplayName,
+            long duration) {
         ClassTestResults classResults = addClass(classId, className, classDisplayName);
         return addTest(classResults.addTest(testName, testDisplayName, duration));
     }

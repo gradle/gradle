@@ -15,15 +15,14 @@
  */
 package org.gradle.docs.asciidoctor;
 
-import org.apache.commons.io.IOUtils;
-import org.asciidoctor.ast.Document;
-import org.asciidoctor.extension.DocinfoProcessor;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.io.IOUtils;
+import org.asciidoctor.ast.Document;
+import org.asciidoctor.extension.DocinfoProcessor;
 
 class MultiLanguageSamplesDocinfoProcessor extends DocinfoProcessor {
     public MultiLanguageSamplesDocinfoProcessor() {
@@ -36,15 +35,16 @@ class MultiLanguageSamplesDocinfoProcessor extends DocinfoProcessor {
 
     @Override
     public String process(Document document) {
-        return "<style type=\"text/css\">" + readResourceContent("/multi-language-samples.css") + "</style>" +
-                "<script type=\"text/javascript\">" + readResourceContent("/multi-language-samples.js") + "</script>";
+        return "<style type=\"text/css\">" + readResourceContent("/multi-language-samples.css") + "</style>"
+                + "<script type=\"text/javascript\">" + readResourceContent("/multi-language-samples.js") + "</script>";
     }
 
     private String readResourceContent(String resourcePath) {
         try (InputStream inputStream = MultiLanguageSamplesDocinfoProcessor.class.getResourceAsStream(resourcePath)) {
             return IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new IllegalStateException("Unable to read source resource for MultiLanguageSamples: " + e.getMessage());
+            throw new IllegalStateException(
+                    "Unable to read source resource for MultiLanguageSamples: " + e.getMessage());
         }
     }
 }

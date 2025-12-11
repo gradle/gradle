@@ -16,15 +16,6 @@
 
 package org.gradle.buildinit.plugins.internal.model;
 
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
-import org.gradle.buildinit.plugins.internal.modifiers.Language;
-import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT;
@@ -34,53 +25,52 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFrame
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.TESTNG;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.jspecify.annotations.Nullable;
+
 public class Description {
-    public final static Description JAVA = new Description(
-        Language.JAVA,
-        JUNIT_JUPITER,
-        asList(JUNIT, JUNIT_JUPITER, TESTNG, SPOCK),
-        null, null, null
-    );
+    public static final Description JAVA = new Description(
+            Language.JAVA, JUNIT_JUPITER, asList(JUNIT, JUNIT_JUPITER, TESTNG, SPOCK), null, null, null);
 
-    public final static Description GROOVY = new Description(
-        Language.GROOVY,
-        SPOCK,
-        singletonList(SPOCK),
-        "groovy", null, null
-    );
+    public static final Description GROOVY =
+            new Description(Language.GROOVY, SPOCK, singletonList(SPOCK), "groovy", null, null);
 
-    public final static Description SCALA = new Description(
-        Language.SCALA,
-        SCALATEST,
-        singletonList(SCALATEST),
-        "scala", null, null
-    );
+    public static final Description SCALA =
+            new Description(Language.SCALA, SCALATEST, singletonList(SCALATEST), "scala", null, null);
 
-    public final static Description KOTLIN = new Description(
-        Language.KOTLIN,
-        KOTLINTEST,
-        asList(KOTLINTEST, JUNIT_JUPITER),
-        "org.jetbrains.kotlin.jvm", "kotlin", "kotlin-jvm"
-    );
+    public static final Description KOTLIN = new Description(
+            Language.KOTLIN,
+            KOTLINTEST,
+            asList(KOTLINTEST, JUNIT_JUPITER),
+            "org.jetbrains.kotlin.jvm",
+            "kotlin",
+            "kotlin-jvm");
 
     private final Language language;
     private final BuildInitTestFramework defaultTestFramework;
     private final Set<BuildInitTestFramework> supportedTestFrameworks;
+
     @Nullable
     private final String pluginName;
+
     @Nullable
     private final String pluginVersionProperty;
+
     @Nullable
     private final String explicitPluginAlias;
 
     private Description(
-        Language language,
-        BuildInitTestFramework defaultTestFramework,
-        List<BuildInitTestFramework> supportedTestFrameworks,
-        @Nullable String pluginName,
-        @Nullable String pluginVersionProperty,
-        @Nullable String explicitPluginAlias
-    ) {
+            Language language,
+            BuildInitTestFramework defaultTestFramework,
+            List<BuildInitTestFramework> supportedTestFrameworks,
+            @Nullable String pluginName,
+            @Nullable String pluginVersionProperty,
+            @Nullable String explicitPluginAlias) {
         this.language = language;
         this.defaultTestFramework = defaultTestFramework;
         this.supportedTestFrameworks = new TreeSet<>(supportedTestFrameworks);

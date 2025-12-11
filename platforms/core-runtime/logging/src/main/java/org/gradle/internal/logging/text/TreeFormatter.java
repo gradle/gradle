@@ -16,14 +16,13 @@
 
 package org.gradle.internal.logging.text;
 
-import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.util.internal.TextUtil;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Constructs a tree of diagnostic messages.
@@ -322,7 +321,9 @@ public class TreeFormatter implements DiagnosticsVisitor {
     }
 
     private enum State {
-        CollectValue, TraverseChildren, Done
+        CollectValue,
+        TraverseChildren,
+        Done
     }
 
     private enum Separator {
@@ -384,10 +385,9 @@ public class TreeFormatter implements DiagnosticsVisitor {
                 return Separator.NewLine;
             }
             if (firstChild.nextSibling == null
-                && firstChild.firstChild == null
-                && value.length() + firstChild.value.length() < 60
-                && !alwaysChildrenOnNewlines
-            ) {
+                    && firstChild.firstChild == null
+                    && value.length() + firstChild.value.length() < 60
+                    && !alwaysChildrenOnNewlines) {
                 // A single leaf node as child and total text is not too long, collapse
                 if (trailing == ':') {
                     return Separator.Empty;

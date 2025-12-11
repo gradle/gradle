@@ -18,6 +18,10 @@ package org.gradle.api.internal.attributes.matching;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
@@ -26,11 +30,6 @@ import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.InMemoryLoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * An {@link AttributeMatcher}, which optimizes for the case of only comparing 0 or 1 candidates
@@ -48,12 +47,10 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
      * disambiguation of attributes several times in a row (but with different candidates).
      */
     private final InMemoryLoadingCache<CachedQuery, int[]> cachedQueries;
+
     private final InMemoryLoadingCache<MatchingCandidateCacheKey, Boolean> matchingCandidatesCache;
 
-    public DefaultAttributeMatcher(
-        AttributeSelectionSchema schema,
-        InMemoryCacheFactory cacheFactory
-    ) {
+    public DefaultAttributeMatcher(AttributeSelectionSchema schema, InMemoryCacheFactory cacheFactory) {
         this.schema = schema;
         this.cachedQueries = cacheFactory.create(this::doMatchMultipleCandidates);
         this.matchingCandidatesCache = cacheFactory.create(this::doIsMatchingCandidate);
@@ -84,10 +81,7 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
      * attribute sets satisfy the given predicate.
      */
     private boolean allCommonAttributesSatisfy(
-        ImmutableAttributes candidate,
-        ImmutableAttributes requested,
-        CoercingAttributeValuePredicate predicate
-    ) {
+            ImmutableAttributes candidate, ImmutableAttributes requested, CoercingAttributeValuePredicate predicate) {
         if (requested.isEmpty() || candidate.isEmpty()) {
             return true;
         }
@@ -123,10 +117,7 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
          * and test that they match.
          */
         default <T> boolean test(
-            Attribute<T> attribute,
-            ImmutableAttributesEntry<?> requested,
-            ImmutableAttributesEntry<?> candidate
-        ) {
+                Attribute<T> attribute, ImmutableAttributesEntry<?> requested, ImmutableAttributesEntry<?> candidate) {
             T requestedValue = requested.coerce(attribute);
             T candidateValue = candidate.coerce(attribute);
             return test(attribute, requestedValue, candidateValue);
@@ -135,7 +126,8 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes", "MixedMutabilityReturnType"})
-    public List<AttributeMatcher.MatchingDescription<?>> describeMatching(ImmutableAttributes candidate, ImmutableAttributes requested) {
+    public List<AttributeMatcher.MatchingDescription<?>> describeMatching(
+            ImmutableAttributes candidate, ImmutableAttributes requested) {
         if (requested.isEmpty() || candidate.isEmpty()) {
             return Collections.emptyList();
         }
@@ -161,9 +153,7 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
 
     @Override
     public <T extends AttributeMatchingCandidate> List<T> matchMultipleCandidates(
-        List<? extends T> candidates,
-        ImmutableAttributes requested
-    ) {
+            List<? extends T> candidates, ImmutableAttributes requested) {
         AttributeMatchingExplanationBuilder explanationBuilder = AttributeMatchingExplanationBuilder.logging();
 
         if (candidates.isEmpty()) {
@@ -195,8 +185,14 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
 
     private int[] doMatchMultipleCandidates(CachedQuery key) {
         AttributeMatchingExplanationBuilder explanationBuilder = AttributeMatchingExplanationBuilder.logging();
-        int[] matches = new MultipleCandidateMatcher(schema, key.candidates, key.requestedAttributes, explanationBuilder).getMatches();
-        LOGGER.debug("Selected matches {} from candidates {} for {}", Ints.asList(matches), key.candidates, key.requestedAttributes);
+        int[] matches = new MultipleCandidateMatcher(
+                        schema, key.candidates, key.requestedAttributes, explanationBuilder)
+                .getMatches();
+        LOGGER.debug(
+                "Selected matches {} from candidates {} for {}",
+                Ints.asList(matches),
+                key.candidates,
+                key.requestedAttributes);
         return matches;
     }
 
@@ -219,7 +215,8 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
             return hash;
         }
 
-        public static <T extends AttributeMatchingCandidate> CachedQuery from(ImmutableAttributes requestedAttributes, List<T> candidates) {
+        public static <T extends AttributeMatchingCandidate> CachedQuery from(
+                ImmutableAttributes requestedAttributes, List<T> candidates) {
             int size = candidates.size();
             ImmutableAttributes[] attributes = new ImmutableAttributes[size];
             for (int i = 0; i < size; i++) {
@@ -229,7 +226,8 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
         }
 
         @SuppressWarnings("MixedMutabilityReturnType")
-        private static <T extends AttributeMatchingCandidate> List<T> getMatchesFromCandidateIndices(int[] indices, List<? extends T> candidates) {
+        private static <T extends AttributeMatchingCandidate> List<T> getMatchesFromCandidateIndices(
+                int[] indices, List<? extends T> candidates) {
             if (indices.length == 0) {
                 return Collections.emptyList();
             }
@@ -251,9 +249,9 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
                 return false;
             }
             CachedQuery that = (CachedQuery) o;
-            return hashCode == that.hashCode &&
-                requestedAttributes.equals(that.requestedAttributes) &&
-                Arrays.equals(candidates, that.candidates);
+            return hashCode == that.hashCode
+                    && requestedAttributes.equals(that.requestedAttributes)
+                    && Arrays.equals(candidates, that.candidates);
         }
 
         @Override
@@ -263,10 +261,9 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
 
         @Override
         public String toString() {
-            return "CachedQuery{" +
-                "requestedAttributes=" + requestedAttributes +
-                ", candidates=" + Arrays.toString(candidates) +
-                '}';
+            return "CachedQuery{" + "requestedAttributes="
+                    + requestedAttributes + ", candidates="
+                    + Arrays.toString(candidates) + '}';
         }
     }
 

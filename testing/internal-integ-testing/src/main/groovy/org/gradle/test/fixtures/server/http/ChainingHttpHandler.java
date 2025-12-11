@@ -16,17 +16,10 @@
 
 package org.gradle.test.fixtures.server.http;
 
+import static org.gradle.test.fixtures.server.http.BlockingHttpServer.getCurrentTimestamp;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.Time;
-import org.gradle.test.fixtures.ResettableExpectations;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -38,8 +31,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-
-import static org.gradle.test.fixtures.server.http.BlockingHttpServer.getCurrentTimestamp;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Time;
+import org.gradle.test.fixtures.ResettableExpectations;
 
 class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
     private final int timeoutMs;
@@ -136,7 +135,8 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
 
             try {
                 ResponseProducer responseProducer = selectProducer(id, httpExchange);
-                System.out.printf("[%s][%d] sending response for %s%n", getCurrentTimestamp(), id, outcome.getDisplayName());
+                System.out.printf(
+                        "[%s][%d] sending response for %s%n", getCurrentTimestamp(), id, outcome.getDisplayName());
                 if (!responseProducer.isFailure()) {
                     responseProducer.writeTo(id, httpExchange);
                 } else {
@@ -144,17 +144,21 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
                     requestFailed(outcome, failure);
                     String stacktrace = ExceptionUtils.getStackTrace(failure);
                     dumpThreadsUponTimeout(stacktrace);
-                    System.out.printf("[%s][%d] handling failed with exception %s%n", getCurrentTimestamp(), id, stacktrace);
+                    System.out.printf(
+                            "[%s][%d] handling failed with exception %s%n", getCurrentTimestamp(), id, stacktrace);
                     sendFailure(httpExchange, 400, outcome);
                 }
             } catch (Throwable t) {
-                System.out.printf("[%s][%d] handling %s failed with exception%n", getCurrentTimestamp(), id, outcome.getDisplayName());
+                System.out.printf(
+                        "[%s][%d] handling %s failed with exception%n",
+                        getCurrentTimestamp(), id, outcome.getDisplayName());
                 try {
                     sendFailure(httpExchange, 500, outcome);
                 } catch (IOException e) {
                     // Ignore
                 }
-                requestFailed(outcome, new AssertionError(String.format("Failed to handle %s", outcome.getDisplayName()), t));
+                requestFailed(
+                        outcome, new AssertionError(String.format("Failed to handle %s", outcome.getDisplayName()), t));
             } finally {
                 requestCompleted(outcome);
             }
@@ -166,7 +170,8 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
     // Dump all JVMs' threads on the machine to troubleshoot deadlock issues
     // We observed jstack hanging on windows, so for now we only enable it for Linux
     private void dumpThreadsUponTimeout(String stacktrace) {
-        if (stacktrace.contains("due to a timeout waiting for other requests") && OperatingSystem.current().isLinux()) {
+        if (stacktrace.contains("due to a timeout waiting for other requests")
+                && OperatingSystem.current().isLinux()) {
             new JavaProcessStackTracesMonitor(new File(".")).printAllStackTracesByJstack();
         }
     }
@@ -175,7 +180,8 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
         if (outcome.method.equals("HEAD")) {
             httpExchange.sendResponseHeaders(responseCode, -1);
         } else {
-            byte[] message = String.format("Failed request %s", outcome.getDisplayName()).getBytes(StandardCharsets.UTF_8);
+            byte[] message =
+                    String.format("Failed request %s", outcome.getDisplayName()).getBytes(StandardCharsets.UTF_8);
             httpExchange.sendResponseHeaders(responseCode, message.length);
             httpExchange.getResponseBody().write(message);
         }
@@ -185,7 +191,10 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
         lock.lock();
         RequestOutcome outcome;
         try {
-            outcome = new RequestOutcome(lock, httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath());
+            outcome = new RequestOutcome(
+                    lock,
+                    httpExchange.getRequestMethod(),
+                    httpExchange.getRequestURI().getPath());
             outcomes.add(outcome);
         } finally {
             lock.unlock();
@@ -214,8 +223,12 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
             requestsStarted++;
             condition.signalAll();
             if (completed) {
-                System.out.println(String.format("[%d] received request %s %s after HTTP server has stopped.", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI()));
-                return new UnexpectedRequestFailure(httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath());
+                System.out.println(String.format(
+                        "[%d] received request %s %s after HTTP server has stopped.",
+                        id, httpExchange.getRequestMethod(), httpExchange.getRequestURI()));
+                return new UnexpectedRequestFailure(
+                        httpExchange.getRequestMethod(),
+                        httpExchange.getRequestURI().getPath());
             }
             for (TrackingHttpHandler handler : handlers) {
                 ResponseProducer responseProducer = handler.selectResponseProducer(id, httpExchange);
@@ -223,7 +236,9 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
                     return responseProducer;
                 }
             }
-            return new UnexpectedRequestFailure(httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath());
+            return new UnexpectedRequestFailure(
+                    httpExchange.getRequestMethod(),
+                    httpExchange.getRequestURI().getPath());
         } finally {
             lock.unlock();
         }

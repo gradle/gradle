@@ -31,12 +31,13 @@ class VirtualComponentMetadataResolver implements ComponentMetaDataResolver {
 
     public static final ComponentMetaDataResolver INSTANCE = new VirtualComponentMetadataResolver();
 
-    private VirtualComponentMetadataResolver() {
-
-    }
+    private VirtualComponentMetadataResolver() {}
 
     @Override
-    public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
+    public void resolve(
+            ComponentIdentifier identifier,
+            ComponentOverrideMetadata componentOverrideMetadata,
+            BuildableComponentResolveResult result) {
         if (identifier instanceof VirtualComponentIdentifier && identifier instanceof ModuleComponentIdentifier) {
             result.notFound((ModuleComponentIdentifier) identifier);
         }

@@ -19,7 +19,6 @@ package org.gradle.process.internal;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-
 public class ProcessStreamsSpec {
 
     private InputStream standardInput;

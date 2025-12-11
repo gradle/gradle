@@ -16,17 +16,16 @@
 
 package org.gradle.api.plugins.antlr.internal;
 
-import com.google.common.collect.Lists;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.plugins.antlr.AntlrTask;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import static org.gradle.api.plugins.antlr.internal.AntlrSpec.PACKAGE_ARG;
 
+import com.google.common.collect.Lists;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
-import static org.gradle.api.plugins.antlr.internal.AntlrSpec.PACKAGE_ARG;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.plugins.antlr.AntlrTask;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 public class AntlrSpecFactory {
 
@@ -48,18 +47,23 @@ public class AntlrSpecFactory {
         }
         if (antlrTask.getArguments().contains(PACKAGE_ARG)) {
             DeprecationLogger.deprecateAction("Setting the '" + PACKAGE_ARG + "' argument directly on AntlrTask")
-                .withAdvice("Use the 'packageName' property of the AntlrTask to specify the package name instead of using the '" + PACKAGE_ARG + "' argument.")
-                .willBecomeAnErrorInGradle10()
-                .withDslReference(AntlrTask.class, "packageName")
-                .nagUser();
+                    .withAdvice(
+                            "Use the 'packageName' property of the AntlrTask to specify the package name instead of using the '"
+                                    + PACKAGE_ARG + "' argument.")
+                    .willBecomeAnErrorInGradle10()
+                    .withDslReference(AntlrTask.class, "packageName")
+                    .nagUser();
         }
         if (antlrTask.getPackageName().isPresent()) {
             if (!arguments.contains(PACKAGE_ARG)) {
                 arguments.add(PACKAGE_ARG);
                 arguments.add(antlrTask.getPackageName().get());
-                outputDirectory = new File(outputDirectory, antlrTask.getPackageName().get().replace('.', '/'));
+                outputDirectory = new File(
+                        outputDirectory, antlrTask.getPackageName().get().replace('.', '/'));
             } else {
-                throw new IllegalStateException("The package has been set both in the arguments (i.e. '" + PACKAGE_ARG + "') and via the 'packageName' property.  Please set the package only using the 'packageName' property.");
+                throw new IllegalStateException(
+                        "The package has been set both in the arguments (i.e. '" + PACKAGE_ARG
+                                + "') and via the 'packageName' property.  Please set the package only using the 'packageName' property.");
             }
         }
         Set<File> sourceSetDirectoriesFiles;
@@ -69,6 +73,7 @@ public class AntlrSpecFactory {
             sourceSetDirectoriesFiles = sourceSetDirectories.getFiles();
         }
 
-        return new AntlrSpec(arguments, grammarFiles, sourceSetDirectoriesFiles, outputDirectory, antlrTask.getMaxHeapSize());
+        return new AntlrSpec(
+                arguments, grammarFiles, sourceSetDirectoriesFiles, outputDirectory, antlrTask.getMaxHeapSize());
     }
 }

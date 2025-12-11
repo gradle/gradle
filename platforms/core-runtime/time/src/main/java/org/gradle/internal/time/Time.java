@@ -65,7 +65,5 @@ public abstract class Time {
         return new DefaultCountdownTimer(TimeSource.SYSTEM, timeout, unit);
     }
 
-    private Time() {
-    }
-
+    private Time() {}
 }

@@ -27,12 +27,10 @@ public final class PublicTaskSpecification implements Spec<Task> {
 
     public static final Spec<Task> INSTANCE = new PublicTaskSpecification();
 
-    private PublicTaskSpecification() {
-    }
+    private PublicTaskSpecification() {}
 
     @Override
     public boolean isSatisfiedBy(Task task) {
         return !Strings.isNullOrEmpty(task.getGroup());
     }
-
 }

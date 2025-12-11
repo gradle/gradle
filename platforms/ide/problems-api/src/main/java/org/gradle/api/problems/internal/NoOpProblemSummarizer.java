@@ -16,10 +16,9 @@
 
 package org.gradle.api.problems.internal;
 
+import java.io.File;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class NoOpProblemSummarizer implements ProblemSummarizer {
 
@@ -35,6 +34,6 @@ public class NoOpProblemSummarizer implements ProblemSummarizer {
 
     @Override
     public void report(File reportDir, ProblemConsumer validationFailures) {
-        //no op
+        // no op
     }
 }

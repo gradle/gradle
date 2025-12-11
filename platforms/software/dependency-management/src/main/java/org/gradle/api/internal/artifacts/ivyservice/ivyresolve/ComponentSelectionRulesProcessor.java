@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
@@ -27,30 +31,36 @@ import org.gradle.internal.rules.SpecRuleAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 public class ComponentSelectionRulesProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentSelectionRulesProcessor.class);
 
-    private final Spec<SpecRuleAction<? super ComponentSelection>> withNoInputs = element -> element.getAction().getInputTypes().isEmpty();
+    private final Spec<SpecRuleAction<? super ComponentSelection>> withNoInputs =
+            element -> element.getAction().getInputTypes().isEmpty();
     private final Spec<SpecRuleAction<? super ComponentSelection>> withInputs = Specs.negate(withNoInputs);
 
-    void apply(ComponentSelectionInternal selection, Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, MetadataProvider metadataProvider) {
+    void apply(
+            ComponentSelectionInternal selection,
+            Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions,
+            MetadataProvider metadataProvider) {
         if (processRules(specRuleActions, withNoInputs, selection, metadataProvider)) {
             processRules(specRuleActions, withInputs, selection, metadataProvider);
         }
     }
 
-    private boolean processRules(Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, Spec<SpecRuleAction<? super ComponentSelection>> filter, ComponentSelectionInternal selection, MetadataProvider metadataProvider) {
+    private boolean processRules(
+            Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions,
+            Spec<SpecRuleAction<? super ComponentSelection>> filter,
+            ComponentSelectionInternal selection,
+            MetadataProvider metadataProvider) {
         for (SpecRuleAction<? super ComponentSelection> rule : specRuleActions) {
             if (filter.isSatisfiedBy(rule)) {
                 processRule(rule, selection, metadataProvider);
 
                 if (selection.isRejected()) {
-                    LOGGER.info("Selection of {} rejected by component selection rule: {}", selection.getCandidate().getDisplayName(), selection.getRejectionReason());
+                    LOGGER.info(
+                            "Selection of {} rejected by component selection rule: {}",
+                            selection.getCandidate().getDisplayName(),
+                            selection.getRejectionReason());
                     return false;
                 }
             }
@@ -58,7 +68,10 @@ public class ComponentSelectionRulesProcessor {
         return true;
     }
 
-    private void processRule(SpecRuleAction<? super ComponentSelection> rule, ComponentSelection selection, MetadataProvider metadataProvider) {
+    private void processRule(
+            SpecRuleAction<? super ComponentSelection> rule,
+            ComponentSelection selection,
+            MetadataProvider metadataProvider) {
         if (!rule.getSpec().isSatisfiedBy(selection)) {
             return;
         }
@@ -78,7 +91,11 @@ public class ComponentSelectionRulesProcessor {
         try {
             rule.getAction().execute(selection, inputValues);
         } catch (Exception e) {
-            throw new InvalidUserCodeException(String.format("There was an error while evaluating a component selection rule for %s.", selection.getCandidate().getDisplayName()), e);
+            throw new InvalidUserCodeException(
+                    String.format(
+                            "There was an error while evaluating a component selection rule for %s.",
+                            selection.getCandidate().getDisplayName()),
+                    e);
         }
     }
 

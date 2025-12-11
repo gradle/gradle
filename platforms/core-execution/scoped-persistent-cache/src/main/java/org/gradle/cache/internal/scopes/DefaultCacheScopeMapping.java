@@ -17,18 +17,18 @@
 package org.gradle.cache.internal.scopes;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.util.regex.Pattern;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.regex.Pattern;
-
 public class DefaultCacheScopeMapping implements CacheScopeMapping {
 
     @VisibleForTesting
     public static final String GLOBAL_CACHE_DIR_NAME = "caches";
+
     private static final Pattern CACHE_KEY_NAME_PATTERN = Pattern.compile("\\p{Alpha}+[-/.\\w]*");
 
     private final File globalCacheDir;

@@ -43,8 +43,12 @@ public class GradleEnterprisePluginServices extends AbstractGradleModuleServices
         registration.add(GradleEnterprisePluginServiceRefInternal.class, DefaultGradleEnterprisePluginServiceRef.class);
         registration.add(GradleEnterprisePluginBuildState.class, DefaultGradleEnterprisePluginBuildState.class);
         registration.add(GradleEnterprisePluginConfig.class, DefaultGradleEnterprisePluginConfig.class);
-        registration.add(GradleEnterprisePluginBackgroundJobExecutorsInternal.class, DefaultGradleEnterprisePluginBackgroundJobExecutors.class);
-        registration.add(DevelocityPluginUnsafeConfigurationService.class, DefaultDevelocityPluginUnsafeConfigurationService.class);
+        registration.add(
+                GradleEnterprisePluginBackgroundJobExecutorsInternal.class,
+                DefaultGradleEnterprisePluginBackgroundJobExecutors.class);
+        registration.add(
+                DevelocityPluginUnsafeConfigurationService.class,
+                DefaultDevelocityPluginUnsafeConfigurationService.class);
 
         // legacy
         registration.add(BuildScanClock.class, DefaultBuildScanClock.class);
@@ -57,11 +61,14 @@ public class GradleEnterprisePluginServices extends AbstractGradleModuleServices
         registration.add(DefaultGradleEnterprisePluginAdapterFactory.class);
         registration.add(GradleEnterprisePluginCheckInService.class, DefaultGradleEnterprisePluginCheckInService.class);
         registration.add(DevelocityBuildLifecycleService.class, DefaultDevelocityBuildLifecycleService.class);
-        registration.add(GradleEnterprisePluginRequiredServices.class, DefaultGradleEnterprisePluginRequiredServices.class);
+        registration.add(
+                GradleEnterprisePluginRequiredServices.class, DefaultGradleEnterprisePluginRequiredServices.class);
 
         // legacy
         registration.add(BuildScanScopeIds.class, DefaultBuildScanScopeIds.class);
-        registration.add(BuildScanConfigProvider.class, BuildScanEndOfBuildNotifier.class, LegacyGradleEnterprisePluginCheckInService.class);
+        registration.add(
+                BuildScanConfigProvider.class,
+                BuildScanEndOfBuildNotifier.class,
+                LegacyGradleEnterprisePluginCheckInService.class);
     }
-
 }

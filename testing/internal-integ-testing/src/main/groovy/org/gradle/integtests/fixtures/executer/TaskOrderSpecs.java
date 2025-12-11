@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.util.internal.GUtil;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.gradle.util.internal.GUtil;
 
 /**
  * Provides common assertions for querying task order.
@@ -67,7 +66,7 @@ public class TaskOrderSpecs {
         return new ExactOrderSpec(flattenedConstraints);
     }
 
-    private static abstract class RecursiveOrderSpec implements TaskOrderSpec {
+    private abstract static class RecursiveOrderSpec implements TaskOrderSpec {
         protected final List<Object> constraints;
 
         public RecursiveOrderSpec(List<Object> constraints) {
@@ -79,11 +78,14 @@ public class TaskOrderSpecs {
             if (constraint instanceof String) {
                 index = executedTaskPaths.indexOf(constraint);
             } else if (constraint instanceof TaskOrderSpec) {
-                index = ((TaskOrderSpec)constraint).assertMatches(lastIndex, executedTaskPaths);
+                index = ((TaskOrderSpec) constraint).assertMatches(lastIndex, executedTaskPaths);
             } else {
                 throw new IllegalArgumentException();
             }
-            assert index > lastIndex : String.format("%s does not occur in expected order (expected: %s, actual %s)", constraint, this.toString(), executedTaskPaths);
+            assert index > lastIndex
+                    : String.format(
+                            "%s does not occur in expected order (expected: %s, actual %s)",
+                            constraint, this.toString(), executedTaskPaths);
             return index;
         }
 

@@ -15,18 +15,17 @@
  */
 package org.gradle.profile;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Root container for profile information about a build.  This includes summary
@@ -139,7 +138,8 @@ public class BuildProfile {
     }
 
     public CompositeOperation<ContinuousOperation> getDependencySets() {
-        final List<ContinuousOperation> profiles = CollectionUtils.sort(dependencySets.values(), Operation.slowestFirst());
+        final List<ContinuousOperation> profiles =
+                CollectionUtils.sort(dependencySets.values(), Operation.slowestFirst());
         return new CompositeOperation<>(profiles);
     }
 
@@ -200,7 +200,8 @@ public class BuildProfile {
      * Get the elapsed time (in mSec) between the start of profiling and the buildStarted event.
      */
     public long getElapsedStartup() {
-        return valueOrBuildStartedTimeIfNotInitialized(buildStarted) - valueOrBuildStartedTimeIfNotInitialized(profilingStarted);
+        return valueOrBuildStartedTimeIfNotInitialized(buildStarted)
+                - valueOrBuildStartedTimeIfNotInitialized(profilingStarted);
     }
 
     /**
@@ -215,14 +216,16 @@ public class BuildProfile {
      * Note that this will include processing of buildSrc as well as the settings file.
      */
     public long getElapsedSettings() {
-        return valueOrBuildStartedTimeIfNotInitialized(settingsEvaluated) - valueOrBuildStartedTimeIfNotInitialized(buildStarted);
+        return valueOrBuildStartedTimeIfNotInitialized(settingsEvaluated)
+                - valueOrBuildStartedTimeIfNotInitialized(buildStarted);
     }
 
     /**
      * Get the elapsed time (in mSec) between the settingsEvaluated event and the projectsLoaded event.
      */
     public long getElapsedProjectsLoading() {
-        return valueOrBuildStartedTimeIfNotInitialized(projectsLoaded) - valueOrBuildStartedTimeIfNotInitialized(settingsEvaluated);
+        return valueOrBuildStartedTimeIfNotInitialized(projectsLoaded)
+                - valueOrBuildStartedTimeIfNotInitialized(settingsEvaluated);
     }
 
     /**

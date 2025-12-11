@@ -56,8 +56,7 @@ public class IvyLoggingAdaper extends AbstractMessageLogger {
     }
 
     @Override
-    public void doProgress() {
-    }
+    public void doProgress() {}
 
     @Override
     public void doEndProgress(String msg) {

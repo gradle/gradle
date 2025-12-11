@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.api.provider.Provider;
-import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.util.internal.CollectionUtils;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.util.internal.CollectionUtils;
 
 public class InstanceOptionDescriptor implements OptionDescriptor {
 
@@ -36,11 +35,13 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         this(object, optionElement, null, false);
     }
 
-    public InstanceOptionDescriptor(Object object, OptionElement optionElement, JavaMethod<Object, ?> optionValueMethod) {
+    public InstanceOptionDescriptor(
+            Object object, OptionElement optionElement, JavaMethod<Object, ?> optionValueMethod) {
         this(object, optionElement, optionValueMethod, false);
     }
 
-    public InstanceOptionDescriptor(Object object, OptionElement optionElement, JavaMethod<Object, ?> optionValueMethod, boolean clashing) {
+    public InstanceOptionDescriptor(
+            Object object, OptionElement optionElement, JavaMethod<Object, ?> optionValueMethod, boolean clashing) {
         this.object = object;
         this.optionElement = optionElement;
         this.optionValueMethod = optionValueMethod;

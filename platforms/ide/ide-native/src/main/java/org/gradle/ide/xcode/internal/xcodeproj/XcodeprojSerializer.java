@@ -20,11 +20,10 @@ import com.dd.plist.NSArray;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
 import com.dd.plist.NSString;
+import java.util.List;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-
-import javax.annotation.concurrent.NotThreadSafe;
-import java.util.List;
 
 /**
  * Serializer that handles conversion of an in-memory object graph representation of an xcode

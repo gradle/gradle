@@ -15,10 +15,9 @@
  */
 package org.gradle.performance.fixture;
 
+import java.io.File;
 import org.gradle.test.fixtures.file.AbstractTestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
-
-import java.io.File;
 
 public class PerformanceTestDirectoryProvider extends AbstractTestDirectoryProvider {
     public PerformanceTestDirectoryProvider(Class<?> klass) {

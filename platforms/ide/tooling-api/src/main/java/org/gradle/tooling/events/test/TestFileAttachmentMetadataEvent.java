@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.events.test;
 
+import java.io.File;
 import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * An event emitted by tests that contains file attachment data.

@@ -22,6 +22,4 @@ import org.gradle.platform.base.Application;
  * An executable native component that is built by Gradle.
  */
 @Incubating
-public interface NativeExecutable extends Application {
-    
-}
+public interface NativeExecutable extends Application {}

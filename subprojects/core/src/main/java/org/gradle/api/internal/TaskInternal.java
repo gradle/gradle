@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal;
 
+import java.io.File;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
@@ -31,11 +35,6 @@ import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
-
-import java.io.File;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 public interface TaskInternal extends Task, Configurable<Task> {
 

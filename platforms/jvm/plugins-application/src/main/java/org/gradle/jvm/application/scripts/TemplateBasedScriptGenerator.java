@@ -38,5 +38,4 @@ public interface TemplateBasedScriptGenerator extends ScriptGenerator {
      */
     @Nested
     TextResource getTemplate();
-
 }

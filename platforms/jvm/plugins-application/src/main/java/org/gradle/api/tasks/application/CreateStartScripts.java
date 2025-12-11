@@ -23,5 +23,4 @@ import org.gradle.work.DisableCachingByDefault;
  * @see org.gradle.jvm.application.tasks.CreateStartScripts
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public abstract class CreateStartScripts extends org.gradle.jvm.application.tasks.CreateStartScripts {
-}
+public abstract class CreateStartScripts extends org.gradle.jvm.application.tasks.CreateStartScripts {}

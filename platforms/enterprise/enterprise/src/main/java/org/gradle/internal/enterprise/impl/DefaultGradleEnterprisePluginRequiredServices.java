@@ -30,11 +30,10 @@ public class DefaultGradleEnterprisePluginRequiredServices implements GradleEnte
     private final DevelocityPluginUnsafeConfigurationService unsafeConfigurationService;
 
     public DefaultGradleEnterprisePluginRequiredServices(
-        UserInputHandler userInputHandler,
-        StyledTextOutputFactory styledTextOutputFactory,
-        GradleEnterprisePluginBackgroundJobExecutors backgroundJobExecutors,
-        DevelocityPluginUnsafeConfigurationService unsafeConfigurationService
-    ) {
+            UserInputHandler userInputHandler,
+            StyledTextOutputFactory styledTextOutputFactory,
+            GradleEnterprisePluginBackgroundJobExecutors backgroundJobExecutors,
+            DevelocityPluginUnsafeConfigurationService unsafeConfigurationService) {
         this.userInputHandler = userInputHandler;
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.backgroundJobExecutors = backgroundJobExecutors;

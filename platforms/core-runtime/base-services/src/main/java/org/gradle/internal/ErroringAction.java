@@ -40,5 +40,4 @@ public abstract class ErroringAction<T> implements Action<T> {
     }
 
     protected abstract void doExecute(T thing) throws Exception;
-
 }

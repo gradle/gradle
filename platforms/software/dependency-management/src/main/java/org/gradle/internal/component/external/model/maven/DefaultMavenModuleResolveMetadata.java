@@ -19,6 +19,11 @@ package org.gradle.internal.component.external.model.maven;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -40,18 +45,13 @@ import org.gradle.internal.component.model.VariantIdentifier;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
 /**
  * {@link AbstractLazyModuleComponentResolveMetadata Lazy version} of a {@link MavenModuleResolveMetadata}.
  *
  * @see RealisedMavenModuleResolveMetadata
  */
-public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
+public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleComponentResolveMetadata
+        implements MavenModuleResolveMetadata {
 
     public static final String POM_PACKAGING = "pom";
     static final Set<String> JAR_PACKAGINGS = ImmutableSet.of("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
@@ -79,7 +79,10 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         dependencies = metadata.getDependencies();
     }
 
-    private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
+    private DefaultMavenModuleResolveMetadata(
+            DefaultMavenModuleResolveMetadata metadata,
+            ModuleSources sources,
+            VariantDerivationStrategy derivationStrategy) {
         super(metadata, sources, derivationStrategy);
         this.objectInstantiator = metadata.objectInstantiator;
         this.attributesFactory = metadata.attributesFactory;
@@ -92,10 +95,27 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     @Override
-    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> parents, VariantMetadataRules componentMetadataRules) {
+    protected DefaultConfigurationMetadata createConfiguration(
+            ModuleComponentIdentifier componentId,
+            String name,
+            boolean transitive,
+            boolean visible,
+            ImmutableSet<String> parents,
+            VariantMetadataRules componentMetadataRules) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration();
         VariantIdentifier id = new NamedVariantIdentifier(componentId, name);
-        final DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(name, id, componentId, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.of(), getAttributes(), false);
+        final DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(
+                name,
+                id,
+                componentId,
+                transitive,
+                visible,
+                parents,
+                artifacts,
+                componentMetadataRules,
+                ImmutableList.of(),
+                getAttributes(),
+                false);
         configuration.setConfigDependenciesFactory(() -> filterDependencies(configuration));
         return configuration;
     }
@@ -119,8 +139,10 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     @Override
-    protected ModuleConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions) {
-        DefaultConfigurationMetadata md = (DefaultConfigurationMetadata) super.populateConfigurationFromDescriptor(name, configurationDefinitions);
+    protected ModuleConfigurationMetadata populateConfigurationFromDescriptor(
+            String name, Map<String, Configuration> configurationDefinitions) {
+        DefaultConfigurationMetadata md = (DefaultConfigurationMetadata)
+                super.populateConfigurationFromDescriptor(name, configurationDefinitions);
         if (filterConstraints && md != null) {
             // if the first call to getConfiguration is done before getDerivedVariants() is called
             // then it means we're using the legacy matching, without attributes, and that the metadata
@@ -177,9 +199,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     private boolean includeInOptionalConfiguration(MavenDependencyDescriptor dependency) {
         MavenScope dependencyScope = dependency.getScope();
         // Include all 'optional' dependencies in "optional" configuration
-        return dependency.isOptional()
-            && dependencyScope != MavenScope.Test
-            && dependencyScope != MavenScope.System;
+        return dependency.isOptional() && dependencyScope != MavenScope.Test && dependencyScope != MavenScope.System;
     }
 
     private boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy) {
@@ -256,18 +276,14 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
         DefaultMavenModuleResolveMetadata that = (DefaultMavenModuleResolveMetadata) o;
         return relocated == that.relocated
-            && Objects.equal(dependencies, that.dependencies)
-            && Objects.equal(packaging, that.packaging)
-            && Objects.equal(snapshotTimestamp, that.snapshotTimestamp);
+                && Objects.equal(dependencies, that.dependencies)
+                && Objects.equal(packaging, that.packaging)
+                && Objects.equal(snapshotTimestamp, that.snapshotTimestamp);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(),
-            dependencies,
-            packaging,
-            relocated,
-            snapshotTimestamp);
+        return Objects.hashCode(super.hashCode(), dependencies, packaging, relocated, snapshotTimestamp);
     }
 
     /**

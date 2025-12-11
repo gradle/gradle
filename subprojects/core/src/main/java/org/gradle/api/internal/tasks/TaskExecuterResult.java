@@ -17,11 +17,10 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.caching.CachingState;
-
 import java.util.List;
 import java.util.Optional;
+import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.execution.caching.CachingState;
 
 public interface TaskExecuterResult {
     /**

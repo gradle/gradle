@@ -16,12 +16,11 @@
 
 package org.gradle.model.internal.inspect;
 
+import java.util.List;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
-
-import java.util.List;
 
 public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
 
@@ -46,7 +45,11 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
         private final ModelType<T> type;
         private final List<ModelReference<?>> inputs;
 
-        private UnmanagedElementCreationAction(ModelRuleDescriptor descriptor, ModelReference<?> subject, List<ModelReference<?>> inputs, ModelType<T> type) {
+        private UnmanagedElementCreationAction(
+                ModelRuleDescriptor descriptor,
+                ModelReference<?> subject,
+                List<ModelReference<?>> inputs,
+                ModelType<T> type) {
             this.subject = subject;
             this.inputs = inputs;
             this.descriptor = descriptor;
@@ -90,14 +93,17 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
         }
 
         @Override
-        protected void buildRegistration(MethodModelRuleApplicationContext context, ModelRegistrations.Builder registration) {
+        protected void buildRegistration(
+                MethodModelRuleApplicationContext context, ModelRegistrations.Builder registration) {
             MethodRuleDefinition<R, S> ruleDefinition = getRuleDefinition();
             ModelType<R> modelType = ruleDefinition.getReturnType();
             List<ModelReference<?>> inputs = ruleDefinition.getReferences();
             ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
             ModelReference<Object> subjectReference = ModelReference.of(modelPath);
-            registration.action(ModelActionRole.Create,
-                    context.contextualize(new UnmanagedElementCreationAction<R>(descriptor, subjectReference, inputs, modelType)));
+            registration.action(
+                    ModelActionRole.Create,
+                    context.contextualize(
+                            new UnmanagedElementCreationAction<R>(descriptor, subjectReference, inputs, modelType)));
             registration.withProjection(new UnmanagedModelProjection<R>(modelType));
             registration.withProjection(new ModelElementProjection(modelType));
         }

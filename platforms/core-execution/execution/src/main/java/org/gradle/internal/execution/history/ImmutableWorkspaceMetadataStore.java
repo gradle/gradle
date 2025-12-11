@@ -16,11 +16,10 @@
 
 package org.gradle.internal.execution.history;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.io.File;
 import java.util.Optional;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Global.class)
 public interface ImmutableWorkspaceMetadataStore {
@@ -28,5 +27,4 @@ public interface ImmutableWorkspaceMetadataStore {
     Optional<ImmutableWorkspaceMetadata> loadWorkspaceMetadata(File workspace);
 
     void storeWorkspaceMetadata(File workspace, ImmutableWorkspaceMetadata metadata);
-
 }

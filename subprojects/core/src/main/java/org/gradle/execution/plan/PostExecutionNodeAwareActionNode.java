@@ -16,9 +16,8 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.internal.tasks.WorkNodeAction;
-
 import java.util.List;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 
 public interface PostExecutionNodeAwareActionNode extends WorkNodeAction {
     List<? extends Node> getPostExecutionNodes();

@@ -16,6 +16,9 @@
 
 package org.gradle.internal.instantiation.generator;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
 import org.gradle.api.Describable;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.instantiation.InstanceFactory;
@@ -26,10 +29,6 @@ import org.gradle.internal.service.ServiceLookup;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Type;
 
 /**
  * An {@link Instantiator} that applies dependency injection, delegating to a {@link ConstructorSelector} to decide which constructor to use to create instances.
@@ -56,7 +55,8 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
     @NonNull
     private <T> T doCreate(Class<? extends T> type, @Nullable Describable displayName, Object[] parameters) {
         try {
-            ClassGenerator.GeneratedConstructor<? extends T> constructor = constructorSelector.forParams(type, parameters);
+            ClassGenerator.GeneratedConstructor<? extends T> constructor =
+                    constructorSelector.forParams(type, parameters);
             Object[] resolvedParameters = convertParameters(type, constructor, services, parameters);
             try {
                 return constructor.newInstance(services, this, displayName, resolvedParameters);
@@ -86,7 +86,8 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
                 try {
                     Object[] resolvedParameters = convertParameters(type, constructor, services, parameters);
                     try {
-                        return constructor.newInstance(services, DependencyInjectingInstantiator.this, null, resolvedParameters);
+                        return constructor.newInstance(
+                                services, DependencyInjectingInstantiator.this, null, resolvedParameters);
                     } catch (InvocationTargetException e) {
                         throw e.getCause();
                     }
@@ -102,7 +103,11 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
         };
     }
 
-    private Object[] convertParameters(Class<?> type, ClassGenerator.GeneratedConstructor<?> constructor, ServiceLookup services, Object[] parameters) {
+    private Object[] convertParameters(
+            Class<?> type,
+            ClassGenerator.GeneratedConstructor<?> constructor,
+            ServiceLookup services,
+            Object[] parameters) {
         constructorSelector.vetoParameters(constructor, parameters);
         Class<?>[] parameterTypes = constructor.getParameterTypes();
         if (parameterTypes.length < parameters.length) {
@@ -149,13 +154,18 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
 
     private void nullPrimitiveType(int index, Class<?> paramType) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Unable to determine constructor argument #" + (index + 1) + ": null value is not assignable to type ");
+        formatter.node(
+                "Unable to determine constructor argument #" + (index + 1) + ": null value is not assignable to type ");
         formatter.appendType(paramType);
         formatter.append(".");
         throw new IllegalArgumentException(formatter.toString());
     }
 
-    private Object[] addServicesToParameters(Class<?> type, ClassGenerator.GeneratedConstructor<?> constructor, ServiceLookup services, Object[] parameters) {
+    private Object[] addServicesToParameters(
+            Class<?> type,
+            ClassGenerator.GeneratedConstructor<?> constructor,
+            ServiceLookup services,
+            Object[] parameters) {
         Class<?>[] parameterTypes = constructor.getParameterTypes();
         Type[] genericTypes = constructor.getGenericParameterTypes();
         Object[] resolvedParameters = new Object[parameterTypes.length];

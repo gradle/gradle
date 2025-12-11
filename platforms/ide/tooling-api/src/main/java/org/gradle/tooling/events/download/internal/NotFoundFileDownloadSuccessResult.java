@@ -18,7 +18,8 @@ package org.gradle.tooling.events.download.internal;
 
 import org.gradle.tooling.events.download.FileDownloadNotFoundResult;
 
-public class NotFoundFileDownloadSuccessResult extends DefaultFileDownloadSuccessResult implements FileDownloadNotFoundResult {
+public class NotFoundFileDownloadSuccessResult extends DefaultFileDownloadSuccessResult
+        implements FileDownloadNotFoundResult {
     public NotFoundFileDownloadSuccessResult(long startTime, long endTime) {
         super(startTime, endTime, 0);
     }

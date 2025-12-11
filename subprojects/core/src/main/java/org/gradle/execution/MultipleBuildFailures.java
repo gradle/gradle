@@ -16,10 +16,9 @@
 
 package org.gradle.execution;
 
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
-
 import java.util.Collection;
 import java.util.List;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 public class MultipleBuildFailures extends DefaultMultiCauseException {
     public MultipleBuildFailures(Collection<? extends Throwable> causes) {

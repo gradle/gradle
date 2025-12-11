@@ -16,12 +16,6 @@
 
 package org.gradle.architecture.test;
 
-import com.tngtech.archunit.junit.AnalyzeClasses;
-import com.tngtech.archunit.junit.ArchTest;
-import com.tngtech.archunit.lang.ArchRule;
-import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
-import org.gradle.internal.accesscontrol.ForExternalUse;
-
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.beDeclaredInClassesThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.beProtected;
@@ -31,20 +25,27 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
 import static org.gradle.architecture.test.ArchUnitFixture.annotatedMaybeInSupertypeWith;
 import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchRule;
+import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
+import org.gradle.internal.accesscontrol.ForExternalUse;
+
 @AnalyzeClasses(packages = "org.gradle")
 public class ForExternalUseTest {
 
     @ArchTest
-    public static final ArchRule members_for_external_use_are_public_api =
-        codeUnits().that().areAnnotatedWith(ForExternalUse.class)
+    public static final ArchRule members_for_external_use_are_public_api = codeUnits()
+            .that()
+            .areAnnotatedWith(ForExternalUse.class)
             .should(beDeclaredInClassesThat(are(gradlePublicApi())))
             .andShould(bePublic().or(beProtected()));
 
     @ArchTest
-    public static final ArchRule members_for_external_use_are_not_used_internally =
-        codeUnits().that(are(annotatedMaybeInSupertypeWith(ForExternalUse.class)))
-            .should().onlyBeCalled().byCodeUnitsThat(are(
-                annotatedMaybeInSupertypeWith(ForExternalUse.class)
-                    .or(annotatedWith(AllowUsingApiForExternalUse.class))
-            ));
+    public static final ArchRule members_for_external_use_are_not_used_internally = codeUnits()
+            .that(are(annotatedMaybeInSupertypeWith(ForExternalUse.class)))
+            .should()
+            .onlyBeCalled()
+            .byCodeUnitsThat(are(annotatedMaybeInSupertypeWith(ForExternalUse.class)
+                    .or(annotatedWith(AllowUsingApiForExternalUse.class))));
 }

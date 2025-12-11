@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import java.net.InetAddress;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileLookup;
@@ -56,8 +57,6 @@ import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 
-import java.net.InetAddress;
-
 /**
  * Defines the basic global services of a given process. This includes the Gradle CLI, daemon and tooling API provider. These services
  * should be as few as possible to keep the CLI startup fast. Global services that are only needed for the process running the build should go in
@@ -75,28 +74,26 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    FileLockManager createFileLockManager(ProcessEnvironment processEnvironment, FileLockContentionHandler fileLockContentionHandler) {
+    FileLockManager createFileLockManager(
+            ProcessEnvironment processEnvironment, FileLockContentionHandler fileLockContentionHandler) {
         return new DefaultFileLockManager(
-            new DefaultProcessMetaDataProvider(
-                processEnvironment),
-            fileLockContentionHandler);
+                new DefaultProcessMetaDataProvider(processEnvironment), fileLockContentionHandler);
     }
 
     @Provides
-    FileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
-        return new DefaultFileLockContentionHandler(
-            executorFactory,
-            new InetAddressProvider() {
-                @Override
-                public InetAddress getWildcardBindingAddress() {
-                    return inetAddressFactory.getWildcardBindingAddress();
-                }
+    FileLockContentionHandler createFileLockContentionHandler(
+            ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
+        return new DefaultFileLockContentionHandler(executorFactory, new InetAddressProvider() {
+            @Override
+            public InetAddress getWildcardBindingAddress() {
+                return inetAddressFactory.getWildcardBindingAddress();
+            }
 
-                @Override
-                public InetAddress getCommunicationAddress() {
-                    return inetAddressFactory.getLocalBindingAddress();
-                }
-            });
+            @Override
+            public InetAddress getCommunicationAddress() {
+                return inetAddressFactory.getLocalBindingAddress();
+            }
+        });
     }
 
     @Provides
@@ -116,10 +113,7 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     ClientExecHandleBuilderFactory createExecHandleFactory(
-        FileResolver fileResolver,
-        ExecutorFactory executorFactory,
-        BuildCancellationToken buildCancellationToken
-    ) {
+            FileResolver fileResolver, ExecutorFactory executorFactory, BuildCancellationToken buildCancellationToken) {
         return DefaultClientExecHandleBuilderFactory.of(fileResolver, executorFactory, buildCancellationToken);
     }
 
@@ -129,7 +123,8 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    DirectoryFileTreeFactory createDirectoryFileTreeFactory(PatternSetFactory patternSetFactory, FileSystem fileSystem) {
+    DirectoryFileTreeFactory createDirectoryFileTreeFactory(
+            PatternSetFactory patternSetFactory, FileSystem fileSystem) {
         return new DefaultDirectoryFileTreeFactory(patternSetFactory, fileSystem);
     }
 
@@ -139,8 +134,19 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, PatternSetFactory patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory, PropertyHost propertyHost, FileSystem fileSystem) {
-        return new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem);
+    FileCollectionFactory createFileCollectionFactory(
+            PathToFileResolver fileResolver,
+            PatternSetFactory patternSetFactory,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            PropertyHost propertyHost,
+            FileSystem fileSystem) {
+        return new DefaultFileCollectionFactory(
+                fileResolver,
+                DefaultTaskDependencyFactory.withNoAssociatedProject(),
+                directoryFileTreeFactory,
+                patternSetFactory,
+                propertyHost,
+                fileSystem);
     }
 
     @Provides
@@ -160,4 +166,3 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
         return new DefaultListenerManager(Global.class);
     }
 }
-

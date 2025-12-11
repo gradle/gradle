@@ -15,8 +15,17 @@
  */
 package org.gradle.plugins.ear;
 
+import static java.util.Collections.singleton;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.callable;
+import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
+
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.io.OutputStreamWriter;
+import java.util.Locale;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
@@ -43,16 +52,6 @@ import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.OutputStreamWriter;
-import java.util.Locale;
-
-import static java.util.Collections.singleton;
-import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
-import static org.gradle.api.internal.lambdas.SerializableLambdas.callable;
-import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
-
 /**
  * Assembles an EAR archive.
  */
@@ -66,15 +65,16 @@ public abstract class Ear extends Jar {
     private CopySpec lib;
     private final DirectoryProperty appDir;
 
-    @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "DefaultCharset") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public Ear() {
         getArchiveExtension().set(EAR_EXTENSION);
         setMetadataCharset("UTF-8");
         generateDeploymentDescriptor = getObjectFactory().property(Boolean.class);
         generateDeploymentDescriptor.convention(true);
-        lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(
-            callable(() -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME))
-        );
+        lib = getRootSpec()
+                .addChildBeforeSpec(getMainSpec())
+                .into(callable(() -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME)));
         getMainSpec().appendCachingSafeCopyAction(action(details -> {
             if (generateDeploymentDescriptor.get()) {
                 checkIfShouldGenerateDeploymentDescriptor(details);
@@ -97,7 +97,8 @@ public abstract class Ear extends Jar {
 
                 String descriptorFileName = descriptor.getFileName();
                 if (descriptorFileName.contains("/") || descriptorFileName.contains(File.separator)) {
-                    throw new InvalidUserDataException("Deployment descriptor file name must be a simple name but was " + descriptorFileName);
+                    throw new InvalidUserDataException(
+                            "Deployment descriptor file name must be a simple name but was " + descriptorFileName);
                 }
 
                 // TODO: Consider capturing the `descriptor` as a spec
@@ -105,16 +106,16 @@ public abstract class Ear extends Jar {
                 //  on each run.
                 //  See https://github.com/gradle/configuration-cache/issues/168
                 final OutputChangeListener outputChangeListener = outputChangeListener();
-                return fileCollectionFactory().generated(
-                    getTemporaryDirFactory(),
-                    descriptorFileName,
-                    action(file -> outputChangeListener.invalidateCachesFor(singleton(file.getAbsolutePath()))),
-                    action(outputStream ->
-                        // delay obtaining contents to account for descriptor changes
-                        // (for instance, due to modules discovered)
-                        descriptor.writeTo(new OutputStreamWriter(outputStream))
-                    )
-                );
+                return fileCollectionFactory()
+                        .generated(
+                                getTemporaryDirFactory(),
+                                descriptorFileName,
+                                action(file ->
+                                        outputChangeListener.invalidateCachesFor(singleton(file.getAbsolutePath()))),
+                                action(outputStream ->
+                                        // delay obtaining contents to account for descriptor changes
+                                        // (for instance, due to modules discovered)
+                                        descriptor.writeTo(new OutputStreamWriter(outputStream))));
             }
 
             return null;
@@ -137,7 +138,9 @@ public abstract class Ear extends Jar {
         if (deploymentDescriptor != null && details.getPath().lastIndexOf("/") <= 0) {
             EarModule module;
             if (details.getPath().toLowerCase(Locale.ROOT).endsWith(".war")) {
-                module = new DefaultEarWebModule(details.getPath(), details.getPath().substring(0, details.getPath().lastIndexOf(".")));
+                module = new DefaultEarWebModule(
+                        details.getPath(),
+                        details.getPath().substring(0, details.getPath().lastIndexOf(".")));
             } else {
                 module = new DefaultEarModule(details.getPath());
             }
@@ -168,7 +171,9 @@ public abstract class Ear extends Jar {
      * @param configureClosure The closure.
      * @return This.
      */
-    public Ear deploymentDescriptor(@DelegatesTo(value = DeploymentDescriptor.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
+    public Ear deploymentDescriptor(
+            @DelegatesTo(value = DeploymentDescriptor.class, strategy = Closure.DELEGATE_FIRST)
+                    Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, forceDeploymentDescriptor());
         return this;
     }
@@ -211,7 +216,8 @@ public abstract class Ear extends Jar {
      * @param configureClosure The closure.
      * @return The created {@code CopySpec}
      */
-    public CopySpec lib(@DelegatesTo(value = CopySpec.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
+    public CopySpec lib(
+            @DelegatesTo(value = CopySpec.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getLib());
     }
 

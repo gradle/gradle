@@ -17,10 +17,9 @@
 package org.gradle.tooling.events.problems.internal;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.tooling.events.problems.AdditionalData;
-
 import java.io.Serializable;
 import java.util.Map;
+import org.gradle.tooling.events.problems.AdditionalData;
 
 public class DefaultAdditionalData implements AdditionalData, Serializable {
 

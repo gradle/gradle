@@ -16,6 +16,8 @@
 
 package org.gradle.api.services.internal;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.DefaultProperty;
@@ -31,13 +33,12 @@ import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.state.Managed;
 import org.jspecify.annotations.NonNull;
 
-import static org.gradle.internal.Cast.uncheckedCast;
-
 /**
  * A provider for build services that are registered or consumed.
  */
 @SuppressWarnings("rawtypes")
-public abstract class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements Managed {
+public abstract class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters>
+        extends AbstractMinimalProvider<T> implements Managed {
 
     static <T> Class<T> getProvidedType(Provider<T> provider) {
         return ((ProviderInternal<T>) provider).getType();
@@ -51,8 +52,7 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
     }
 
     public interface Listener {
-        Listener EMPTY = provider -> {
-        };
+        Listener EMPTY = provider -> {};
 
         void beforeGet(BuildServiceProvider<?, ?> provider);
     }
@@ -77,9 +77,12 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
     }
 
     @SuppressWarnings("unused") // Used via instrumentation
-    public static <P extends BuildServiceParameters, T extends BuildService<P>> void setBuildServiceAsConvention(@NonNull DefaultProperty<T> property, ServiceLookup serviceLookup, String buildServiceName) {
-        BuildServiceRegistryInternal buildServiceRegistry = (BuildServiceRegistryInternal) serviceLookup.get(BuildServiceRegistry.class);
-        BuildServiceProvider<T, P> consumer = Cast.uncheckedCast(buildServiceRegistry.consume(buildServiceName, property.getType()));
+    public static <P extends BuildServiceParameters, T extends BuildService<P>> void setBuildServiceAsConvention(
+            @NonNull DefaultProperty<T> property, ServiceLookup serviceLookup, String buildServiceName) {
+        BuildServiceRegistryInternal buildServiceRegistry =
+                (BuildServiceRegistryInternal) serviceLookup.get(BuildServiceRegistry.class);
+        BuildServiceProvider<T, P> consumer =
+                Cast.uncheckedCast(buildServiceRegistry.consume(buildServiceName, property.getType()));
         property.convention(consumer);
     }
 
@@ -101,7 +104,8 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
      *
      * This method does not distinguish between consumed/registered providers.
      */
-    public static boolean isSameService(Provider<? extends BuildService<?>> thisProvider, Provider<? extends BuildService<?>> anotherProvider) {
+    public static boolean isSameService(
+            Provider<? extends BuildService<?>> thisProvider, Provider<? extends BuildService<?>> anotherProvider) {
         if (thisProvider == anotherProvider) {
             return true;
         }
@@ -121,14 +125,16 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         return thisBuildServiceProvider.getBuildIdentifier().equals(otherBuildServiceProvider.getBuildIdentifier());
     }
 
-    private static boolean isCompatibleServiceType(BuildServiceProvider thisBuildServiceProvider, BuildServiceProvider otherBuildServiceProvider) {
+    private static boolean isCompatibleServiceType(
+            BuildServiceProvider thisBuildServiceProvider, BuildServiceProvider otherBuildServiceProvider) {
         Class<?> otherType = otherBuildServiceProvider.getType();
         Class<?> thisType = thisBuildServiceProvider.getType();
         return otherType.isAssignableFrom(Cast.uncheckedCast(thisType));
     }
 
     @Override
-    public ProviderInternal<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
+    public ProviderInternal<T> asSupplier(
+            DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
         Class<T> selfType = getType();
         if (selfType != null && !targetType.isAssignableFrom(selfType)) {
             String targetTypeName = targetType.getName();
@@ -138,11 +144,11 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
                 targetTypeName = targetTypeName + " loaded with " + targetType.getClassLoader();
                 selfTypeName = selfTypeName + " loaded with " + selfType.getClassLoader();
                 // TODO: use problems API to have fancier report
-                throw new IllegalArgumentException(String.format("Cannot set the value of %s of type %s using a provider of type %s.\n" +
-                        "This can be caused by a plugin being applied to two sibling projects and then using a shared build service. " +
-                        "To fix this, use `@ServiceReference` or add the problematic plugin with `apply false` to the root build script.",
-                    owner.getDisplayName(), targetTypeName, selfTypeName
-                ));
+                throw new IllegalArgumentException(String.format(
+                        "Cannot set the value of %s of type %s using a provider of type %s.\n"
+                                + "This can be caused by a plugin being applied to two sibling projects and then using a shared build service. "
+                                + "To fix this, use `@ServiceReference` or add the problematic plugin with `apply false` to the root build script.",
+                        owner.getDisplayName(), targetTypeName, selfTypeName));
             }
         }
         return super.asSupplier(owner, targetType, sanitizer);

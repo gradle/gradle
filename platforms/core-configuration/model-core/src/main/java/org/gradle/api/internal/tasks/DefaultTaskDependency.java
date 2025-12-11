@@ -16,19 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
+import static com.google.common.collect.Iterables.toArray;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
+
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
-import org.gradle.api.Buildable;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
-import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.internal.provider.ValueSupplier;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.Cast;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
-
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -43,9 +35,16 @@ import java.util.RandomAccess;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
-
-import static com.google.common.collect.Iterables.toArray;
-import static org.gradle.internal.UncheckedException.uncheckedCall;
+import org.gradle.api.Buildable;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.ValueSupplier;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Cast;
+import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A task dependency which can have both mutable and immutable dependency values.
@@ -65,17 +64,14 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     }
 
     public DefaultTaskDependency(
-        @Nullable TaskResolver resolver,
-        @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker
-    ) {
+            @Nullable TaskResolver resolver, @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker) {
         this(resolver, ImmutableSet.of(), taskDependencyUsageTracker);
     }
 
     public DefaultTaskDependency(
-        @Nullable TaskResolver resolver,
-        ImmutableSet<Object> immutableValues,
-        @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker
-    ) {
+            @Nullable TaskResolver resolver,
+            ImmutableSet<Object> immutableValues,
+            @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker) {
         super(taskDependencyUsageTracker);
         this.resolver = resolver;
         this.immutableValues = immutableValues;
@@ -164,7 +160,8 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 formats.add("A Closure instance that returns any of these types");
                 formats.add("A Callable instance that returns any of these types");
                 formats.add("An Iterable, Collection, Map or array instance that contains any of these types");
-                throw new UnsupportedNotationException(dependency, String.format("Cannot convert %s to a task.", dependency), null, formats);
+                throw new UnsupportedNotationException(
+                        dependency, String.format("Cannot convert %s to a task.", dependency), null, formats);
             }
         }
     }
@@ -214,7 +211,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
 
     private static class TaskDependencySet implements Set<Object> {
         private final Set<Object> delegate = new HashSet<>();
-        private final static String REMOVE_ERROR = "Removing a task dependency from a task instance is not supported.";
+        private static final String REMOVE_ERROR = "Removing a task dependency from a task instance is not supported.";
 
         @Override
         public int size() {

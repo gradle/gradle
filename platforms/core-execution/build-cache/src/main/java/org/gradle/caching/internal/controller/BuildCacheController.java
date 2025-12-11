@@ -16,17 +16,16 @@
 
 package org.gradle.caching.internal.controller;
 
+import java.io.Closeable;
+import java.time.Duration;
+import java.util.Map;
+import java.util.Optional;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-
-import java.io.Closeable;
-import java.time.Duration;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * High-level controller for build cache operations; can load and store {@link CacheableEntity}s with a given {@link BuildCacheKey}.
@@ -40,5 +39,9 @@ public interface BuildCacheController extends Closeable {
 
     Optional<BuildCacheLoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity);
 
-    void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime);
+    void store(
+            BuildCacheKey cacheKey,
+            CacheableEntity entity,
+            Map<String, FileSystemSnapshot> snapshots,
+            Duration executionTime);
 }

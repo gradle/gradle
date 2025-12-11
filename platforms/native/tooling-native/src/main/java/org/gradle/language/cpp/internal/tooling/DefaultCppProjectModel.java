@@ -16,16 +16,18 @@
 
 package org.gradle.language.cpp.internal.tooling;
 
-import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-
 import java.io.Serializable;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 
 public class DefaultCppProjectModel implements Serializable {
     private final DefaultProjectIdentifier projectIdentifier;
     private final DefaultCppComponentModel mainComponent;
     private final DefaultCppComponentModel testComponent;
 
-    public DefaultCppProjectModel(DefaultProjectIdentifier projectIdentifier, DefaultCppComponentModel mainComponent, DefaultCppComponentModel testComponent) {
+    public DefaultCppProjectModel(
+            DefaultProjectIdentifier projectIdentifier,
+            DefaultCppComponentModel mainComponent,
+            DefaultCppComponentModel testComponent) {
         this.projectIdentifier = projectIdentifier;
         this.mainComponent = mainComponent;
         this.testComponent = testComponent;

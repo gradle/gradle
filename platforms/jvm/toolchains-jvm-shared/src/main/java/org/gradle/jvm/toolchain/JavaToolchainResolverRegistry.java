@@ -35,5 +35,4 @@ public interface JavaToolchainResolverRegistry {
      * is registered, a <code>GradleException</code> will be thrown).
      */
     <T extends JavaToolchainResolver> void register(Class<T> implementationType);
-
 }

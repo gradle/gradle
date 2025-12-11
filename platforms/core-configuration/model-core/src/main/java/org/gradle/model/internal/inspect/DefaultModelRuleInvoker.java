@@ -16,10 +16,9 @@
 
 package org.gradle.model.internal.inspect;
 
+import java.lang.reflect.Modifier;
 import org.gradle.internal.Factory;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
-
-import java.lang.reflect.Modifier;
 
 class DefaultModelRuleInvoker<I, R> implements ModelRuleInvoker<R> {
     private final WeaklyTypeReferencingMethod<I, R> method;

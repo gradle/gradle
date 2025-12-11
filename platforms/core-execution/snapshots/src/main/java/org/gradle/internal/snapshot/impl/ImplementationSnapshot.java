@@ -16,16 +16,16 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import static org.gradle.internal.snapshot.impl.SerializedLambdaQueries.isLambdaClass;
+import static org.gradle.internal.snapshot.impl.SerializedLambdaQueries.isLambdaClassName;
+import static org.gradle.internal.snapshot.impl.SerializedLambdaQueries.serializedLambdaFor;
+
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot.UnknownReason;
 import org.jspecify.annotations.Nullable;
-
-import static org.gradle.internal.snapshot.impl.SerializedLambdaQueries.isLambdaClass;
-import static org.gradle.internal.snapshot.impl.SerializedLambdaQueries.isLambdaClassName;
-import static org.gradle.internal.snapshot.impl.SerializedLambdaQueries.serializedLambdaFor;
 
 /**
  * Identifies a type in a classloader hierarchy. The type is identified by its name,
@@ -50,19 +50,16 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
     }
 
     private static ImplementationSnapshot of(
-        String classIdentifier,
-        @Nullable HashCode classLoaderHash,
-        boolean isLambda,
-        @Nullable Object value
-    ) {
+            String classIdentifier, @Nullable HashCode classLoaderHash, boolean isLambda, @Nullable Object value) {
         if (classLoaderHash == null) {
             return new UnknownImplementationSnapshot(classIdentifier, UnknownReason.UNKNOWN_CLASSLOADER);
         }
 
         if (isLambda) {
             return serializedLambdaFor(value)
-                .<ImplementationSnapshot>map(it -> new LambdaImplementationSnapshot(classLoaderHash, it))
-                .orElseGet(() -> new UnknownImplementationSnapshot(classIdentifier, UnknownReason.UNTRACKED_LAMBDA));
+                    .<ImplementationSnapshot>map(it -> new LambdaImplementationSnapshot(classLoaderHash, it))
+                    .orElseGet(
+                            () -> new UnknownImplementationSnapshot(classIdentifier, UnknownReason.UNTRACKED_LAMBDA));
         }
 
         return new ClassImplementationSnapshot(classIdentifier, classLoaderHash);

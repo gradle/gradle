@@ -35,5 +35,4 @@ public class LoadOperationHitResult implements BuildCacheRemoteLoadBuildOperatio
     public long getArchiveSize() {
         return size;
     }
-
 }

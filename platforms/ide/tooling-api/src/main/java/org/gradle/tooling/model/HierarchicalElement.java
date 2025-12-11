@@ -41,5 +41,4 @@ public interface HierarchicalElement extends Element {
      * @since 1.0-milestone-5
      */
     DomainObjectSet<? extends HierarchicalElement> getChildren();
-
 }

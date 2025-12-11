@@ -16,10 +16,9 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
+import java.io.Serializable;
 import org.gradle.api.JavaVersion;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
-
-import java.io.Serializable;
 
 public class DefaultIdeaJavaLanguageSettings implements Serializable {
     private JavaVersion languageLevel;

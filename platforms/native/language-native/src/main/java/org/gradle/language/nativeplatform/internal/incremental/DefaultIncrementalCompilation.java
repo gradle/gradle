@@ -26,7 +26,12 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
     private final Set<File> existingHeaders;
     private final boolean macroIncludesUsedInSources;
 
-    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed, Set<File> existingHeaders, boolean macroIncludesUsedInSources) {
+    public DefaultIncrementalCompilation(
+            CompilationState finalState,
+            List<File> recompile,
+            List<File> removed,
+            Set<File> existingHeaders,
+            boolean macroIncludesUsedInSources) {
         this.finalState = finalState;
         this.recompile = recompile;
         this.removed = removed;

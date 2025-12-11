@@ -16,10 +16,9 @@
 
 package org.gradle.cache.internal;
 
+import java.util.function.Supplier;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.ObjectHolder;
-
-import java.util.function.Supplier;
 
 public class FileIntegrityViolationSuppressingObjectHolderDecorator<T> implements ObjectHolder<T> {
 

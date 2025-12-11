@@ -18,16 +18,17 @@ package org.gradle.integtests.tooling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Spec builder for asserting that a test task emitted the appropriate events.
  */
 interface TestEventsSpec {
-    void task(String path, @DelegatesTo(value = GroupTestEventSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> rootSpec);
+    void task(
+            String path,
+            @DelegatesTo(value = GroupTestEventSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> rootSpec);
 }
 
 /**
@@ -37,12 +38,15 @@ interface GroupTestEventSpec extends TestEventSpec {
     /**
      * The name of the group test event.
      */
-    void nested(String name, @DelegatesTo(value = GroupTestEventSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> spec);
+    void nested(
+            String name,
+            @DelegatesTo(value = GroupTestEventSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> spec);
 
     /**
      * The name of the test in the test event.
      */
-    void test(String name, @DelegatesTo(value = TestEventSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> spec);
+    void test(
+            String name, @DelegatesTo(value = TestEventSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> spec);
 
     /**
      * Convenience method for {@link #test(String, Closure)} without any additional configuration.

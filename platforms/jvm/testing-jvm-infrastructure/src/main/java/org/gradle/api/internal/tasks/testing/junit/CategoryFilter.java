@@ -15,15 +15,14 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.InvalidUserDataException;
-import org.junit.experimental.categories.Category;
-import org.junit.runner.Description;
-import org.junit.runner.manipulation.Filter;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import org.gradle.api.InvalidUserDataException;
+import org.junit.experimental.categories.Category;
+import org.junit.runner.Description;
+import org.junit.runner.manipulation.Filter;
 
 /**
  * This filter is used for filtering classes and methods that are annotated with the @Category annotation.
@@ -33,7 +32,8 @@ class CategoryFilter extends Filter {
     private final Set<String> inclusions;
     private final Set<String> exclusions;
 
-    CategoryFilter(final Set<String> inclusions, final Set<String> exclusions, final ClassLoader applicationClassLoader) {
+    CategoryFilter(
+            final Set<String> inclusions, final Set<String> exclusions, final ClassLoader applicationClassLoader) {
         this.inclusions = inclusions;
         this.exclusions = exclusions;
         this.applicationClassLoader = applicationClassLoader;
@@ -45,7 +45,7 @@ class CategoryFilter extends Filter {
      * @param classLoader The classloader to use to load the category classes.
      * @throws InvalidUserDataException if any of the category classes cannot be loaded.
      */
-    public void verifyCategories(ClassLoader classLoader) throws InvalidUserDataException{
+    public void verifyCategories(ClassLoader classLoader) throws InvalidUserDataException {
         for (String cls : inclusions) {
             loadClass(classLoader, cls);
         }
@@ -58,7 +58,8 @@ class CategoryFilter extends Filter {
     public boolean shouldRun(final Description description) {
         Class<?> testClass = description.getTestClass();
         verifyCategories(testClass);
-        Description parent = description.isSuite() || testClass == null ? null : Description.createSuiteDescription(testClass);
+        Description parent =
+                description.isSuite() || testClass == null ? null : Description.createSuiteDescription(testClass);
         return shouldRun(description, parent);
     }
 

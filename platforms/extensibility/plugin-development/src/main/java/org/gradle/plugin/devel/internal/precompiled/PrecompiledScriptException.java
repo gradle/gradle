@@ -16,11 +16,10 @@
 
 package org.gradle.plugin.devel.internal.precompiled;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.ResolutionProvider;
-
 import java.util.Collections;
 import java.util.List;
+import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.ResolutionProvider;
 
 public class PrecompiledScriptException extends GradleException implements ResolutionProvider {
     private final List<String> resolutions;

@@ -56,5 +56,4 @@ public interface ResolutionOutputs {
      * graph to adjacent artifacts.
      */
     ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> action);
-
 }

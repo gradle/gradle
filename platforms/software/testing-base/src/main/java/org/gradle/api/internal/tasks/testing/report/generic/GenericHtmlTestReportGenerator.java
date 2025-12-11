@@ -21,6 +21,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.inject.Inject;
 import org.apache.commons.io.file.PathUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
@@ -48,16 +57,6 @@ import org.gradle.reporting.HtmlReportBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
 
-import javax.inject.Inject;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 /**
  * Generates an HTML report based on test results based on binary results from {@link SerializableTestResultStore}.
  *
@@ -75,16 +74,19 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         } else if (isLeaf && !Objects.equals(path.getName(), "index")) {
             // Avoid using a directory for each leaf node unless its name clashes (i.e. "index")
             // This reduces VFS overhead from many directories for large test suites
-            String prefix = String.join("/", Iterables.transform(
-                path.getParent().segments(),
-                name -> SafeFileLocationUtils.toSafeFileName(name, true)
-            ));
-            filePath = prefix + (prefix.isEmpty() ? "" : "/") + SafeFileLocationUtils.toSafeFileName(path.getName() + ".html", false);
+            String prefix = String.join(
+                    "/",
+                    Iterables.transform(
+                            path.getParent().segments(), name -> SafeFileLocationUtils.toSafeFileName(name, true)));
+            filePath = prefix
+                    + (prefix.isEmpty() ? "" : "/")
+                    + SafeFileLocationUtils.toSafeFileName(path.getName() + ".html", false);
         } else {
-            filePath = String.join("/", Iterables.transform(
-                path.segments(),
-                name -> SafeFileLocationUtils.toSafeFileName(name, true)
-            )) + "/index.html";
+            filePath = String.join(
+                            "/",
+                            Iterables.transform(
+                                    path.segments(), name -> SafeFileLocationUtils.toSafeFileName(name, true)))
+                    + "/index.html";
         }
         return filePath;
     }
@@ -99,10 +101,9 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
     @Inject
     public GenericHtmlTestReportGenerator(
-        BuildOperationRunner buildOperationRunner,
-        BuildOperationExecutor buildOperationExecutor,
-        Path reportsDirectory
-    ) {
+            BuildOperationRunner buildOperationRunner,
+            BuildOperationExecutor buildOperationExecutor,
+            Path reportsDirectory) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
         this.reportsDirectory = reportsDirectory;
@@ -111,17 +112,18 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     @Override
     public Path generate(List<Path> resultsDirectories) {
         List<SerializableTestResultStore> stores = resultsDirectories.stream()
-            .distinct()
-            .map(SerializableTestResultStore::new)
-            .filter(SerializableTestResultStore::hasResults)
-            .collect(Collectors.toList());
+                .distinct()
+                .map(SerializableTestResultStore::new)
+                .filter(SerializableTestResultStore::hasResults)
+                .collect(Collectors.toList());
 
         try {
             Files.createDirectories(reportsDirectory);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        Serializer<TestOutputEvent> testOutputEventSerializer = TestEventSerializer.create().build(TestOutputEvent.class);
+        Serializer<TestOutputEvent> testOutputEventSerializer =
+                TestEventSerializer.create().build(TestOutputEvent.class);
         List<TestOutputReader> outputReaders = new ArrayList<>(stores.size());
         try {
             for (SerializableTestResultStore store : stores) {
@@ -152,7 +154,8 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
             buildOperationRunner.run(new DeleteOldReportOperation(reportsDirectory));
 
             ListMultimap<String, Integer> namesToIndexes = ArrayListMultimap.create();
-            List<String> rootDisplayNames = new ArrayList<>(model.getPerRootInfo().size());
+            List<String> rootDisplayNames =
+                    new ArrayList<>(model.getPerRootInfo().size());
             for (int i = 0; i < model.getPerRootInfo().size(); i++) {
                 // Roots should always have exactly one PerRootInfo entry
                 String displayName = getDisplayName(model, i);
@@ -169,36 +172,37 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                 }
             });
 
-            htmlRenderer.render(model, new ReportRenderer<TestTreeModel, HtmlReportBuilder>() {
-                @Override
-                public void render(final TestTreeModel model, final HtmlReportBuilder output) {
-                    buildOperationExecutor.runAll(
-                        queue -> queueTree(queue, model, output),
-                        // This is mostly I/O, so run this in UNCONSTRAINED mode to allow more parallelism
-                        BuildOperationConstraint.UNCONSTRAINED
-                    );
-                }
-
-                private void queueTree(BuildOperationQueue<RunnableBuildOperation> queue, TestTreeModel tree, HtmlReportBuilder output) {
-                    ImmutableList.Builder<TestTreeModel> requestsBuilder = ImmutableList.builder();
-                    requestsBuilder.add(tree);
-
-                    for (TestTreeModel childTree : tree.getChildren()) {
-                        // A container also emits all of its leaf children
-                        if (childTree.getChildren().isEmpty()) {
-                            requestsBuilder.add(childTree);
-                        } else {
-                            queueTree(queue, childTree, output);
+            htmlRenderer.render(
+                    model,
+                    new ReportRenderer<TestTreeModel, HtmlReportBuilder>() {
+                        @Override
+                        public void render(final TestTreeModel model, final HtmlReportBuilder output) {
+                            buildOperationExecutor.runAll(
+                                    queue -> queueTree(queue, model, output),
+                                    // This is mostly I/O, so run this in UNCONSTRAINED mode to allow more parallelism
+                                    BuildOperationConstraint.UNCONSTRAINED);
                         }
-                    }
-                    queue.add(new HtmlReportFileGenerator(
-                        requestsBuilder.build(),
-                        output,
-                        outputReaders,
-                        rootDisplayNames
-                    ));
-                }
-            }, reportsDirectory.toFile());
+
+                        private void queueTree(
+                                BuildOperationQueue<RunnableBuildOperation> queue,
+                                TestTreeModel tree,
+                                HtmlReportBuilder output) {
+                            ImmutableList.Builder<TestTreeModel> requestsBuilder = ImmutableList.builder();
+                            requestsBuilder.add(tree);
+
+                            for (TestTreeModel childTree : tree.getChildren()) {
+                                // A container also emits all of its leaf children
+                                if (childTree.getChildren().isEmpty()) {
+                                    requestsBuilder.add(childTree);
+                                } else {
+                                    queueTree(queue, childTree, output);
+                                }
+                            }
+                            queue.add(new HtmlReportFileGenerator(
+                                    requestsBuilder.build(), output, outputReaders, rootDisplayNames));
+                        }
+                    },
+                    reportsDirectory.toFile());
         } catch (Exception e) {
             throw new GradleException(String.format("Could not generate test report to '%s'.", reportsDirectory), e);
         }
@@ -210,7 +214,8 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
             throw new IllegalStateException("Root model is missing display name info for root index " + rootIndex);
         }
         if (perRootInfos.size() > 1) {
-            throw new IllegalStateException("Root model has multiple display name infos for root index " + rootIndex + ": " + Iterables.toString(perRootInfos));
+            throw new IllegalStateException("Root model has multiple display name infos for root index " + rootIndex
+                    + ": " + Iterables.toString(perRootInfos));
         }
         return SerializableTestResult.getCombinedDisplayName(perRootInfos.get(0).getResults());
     }
@@ -222,11 +227,10 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         private final List<String> rootDisplayNames;
 
         HtmlReportFileGenerator(
-            List<TestTreeModel> requests,
-            HtmlReportBuilder output,
-            List<TestOutputReader> outputReaders,
-            List<String> rootDisplayNames
-        ) {
+                List<TestTreeModel> requests,
+                HtmlReportBuilder output,
+                List<TestOutputReader> outputReaders,
+                List<String> rootDisplayNames) {
             this.requests = requests;
             this.output = output;
             this.outputReaders = outputReaders;
@@ -235,11 +239,8 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(
-                "Generate generic HTML test report for " + requests.stream()
-                    .map(r -> r.getPath().toString())
-                    .collect(Collectors.joining(", "))
-            );
+            return BuildOperationDescriptor.displayName("Generate generic HTML test report for "
+                    + requests.stream().map(r -> r.getPath().toString()).collect(Collectors.joining(", ")));
         }
 
         @Override

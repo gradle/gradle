@@ -24,5 +24,4 @@ import org.gradle.api.Incubating;
  * @since 9.4.0
  */
 @Incubating
-public interface NoSource extends TestSource {
-}
+public interface NoSource extends TestSource {}

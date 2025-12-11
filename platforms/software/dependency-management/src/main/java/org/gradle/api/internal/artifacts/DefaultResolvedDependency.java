@@ -19,6 +19,13 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 import org.apache.commons.lang3.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -33,14 +40,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Paral
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
-
 public class DefaultResolvedDependency implements ResolvedDependency {
     private final Set<DefaultResolvedDependency> children = new LinkedHashSet<>();
     private final Set<ResolvedDependency> parents = new LinkedHashSet<>();
@@ -54,11 +53,10 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     private Set<ResolvedArtifact> allModuleArtifactsCache;
 
     public DefaultResolvedDependency(
-        String variantName,
-        ModuleVersionIdentifier moduleVersionId,
-        BuildOperationExecutor buildOperationExecutor,
-        ResolutionHost resolutionHost
-    ) {
+            String variantName,
+            ModuleVersionIdentifier moduleVersionId,
+            BuildOperationExecutor buildOperationExecutor,
+            ResolutionHost resolutionHost) {
         this.moduleVersionId = moduleVersionId;
         this.variantName = variantName;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -68,7 +66,8 @@ public class DefaultResolvedDependency implements ResolvedDependency {
 
     @Override
     public String getName() {
-        return String.format("%s:%s:%s", moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion());
+        return String.format(
+                "%s:%s:%s", moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion());
     }
 
     @Override
@@ -124,7 +123,8 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
-        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(new TreeSet<>(new ResolvedArtifactComparator()));
+        ArtifactCollectingVisitor visitor =
+                new ArtifactCollectingVisitor(new TreeSet<>(new ResolvedArtifactComparator()));
         ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(visitor);
         if (!visitor.getFailures().isEmpty()) {
             resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
@@ -178,8 +178,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         }
 
         DefaultResolvedDependency that = (DefaultResolvedDependency) o;
-        return Objects.equals(variantName, that.variantName) &&
-            Objects.equals(moduleVersionId, that.moduleVersionId);
+        return Objects.equals(variantName, that.variantName) && Objects.equals(moduleVersionId, that.moduleVersionId);
     }
 
     @Override

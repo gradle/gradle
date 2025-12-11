@@ -20,7 +20,8 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.DisplayName;
 
-public class DefaultVirtualModuleComponentIdentifier implements VirtualComponentIdentifier, ModuleComponentIdentifier, DisplayName {
+public class DefaultVirtualModuleComponentIdentifier
+        implements VirtualComponentIdentifier, ModuleComponentIdentifier, DisplayName {
     private final ModuleIdentifier moduleIdentifier;
     private final String version;
     private final int hashCode;
@@ -101,6 +102,4 @@ public class DefaultVirtualModuleComponentIdentifier implements VirtualComponent
     public String toString() {
         return getDisplayName();
     }
-
 }
-

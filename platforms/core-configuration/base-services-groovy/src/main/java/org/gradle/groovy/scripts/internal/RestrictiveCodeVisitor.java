@@ -39,10 +39,9 @@ public class RestrictiveCodeVisitor extends CodeVisitorSupport {
     }
 
     protected void restrict(ASTNode astNode, String message) {
-        sourceUnit.getErrorCollector().addError(
-                new SyntaxException(message, astNode.getLineNumber(), astNode.getColumnNumber()),
-                sourceUnit
-        );
+        sourceUnit
+                .getErrorCollector()
+                .addError(new SyntaxException(message, astNode.getLineNumber(), astNode.getColumnNumber()), sourceUnit);
     }
 
     @Override

@@ -15,12 +15,12 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
+import static com.google.common.base.Strings.emptyToNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
-
-import static com.google.common.base.Strings.emptyToNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Link.
@@ -85,9 +85,9 @@ public class Link {
         }
         Link link = (Link) o;
         return Objects.equal(name, link.name)
-            && Objects.equal(type, link.type)
-            && Objects.equal(location, link.location)
-            && Objects.equal(locationUri, link.locationUri);
+                && Objects.equal(type, link.type)
+                && Objects.equal(location, link.location)
+                && Objects.equal(locationUri, link.locationUri);
     }
 
     @Override
@@ -103,10 +103,10 @@ public class Link {
     @Override
     public String toString() {
         return "Link{"
-            + "name='" + name + '\''
-            + ", type='" + type + '\''
-            + ", location='" + location + '\''
-            + ", locationUri='" + locationUri + '\''
-            + '}';
+                + "name='" + name + '\''
+                + ", type='" + type + '\''
+                + ", location='" + location + '\''
+                + ", locationUri='" + locationUri + '\''
+                + '}';
     }
 }

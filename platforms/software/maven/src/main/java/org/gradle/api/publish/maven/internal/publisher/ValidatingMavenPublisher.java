@@ -16,6 +16,14 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.newBufferedReader;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -26,15 +34,6 @@ import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.UncheckedException;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.HashSet;
-import java.util.Set;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.newBufferedReader;
 
 public class ValidatingMavenPublisher implements MavenPublisher {
     private static final java.lang.String ID_REGEX = "[A-Za-z0-9_\\-.]+";
@@ -61,8 +60,8 @@ public class ValidatingMavenPublisher implements MavenPublisher {
                 .matches(model.getArtifactId());
 
         boolean hasParentPom = model.getParent() != null;
-        MavenFieldValidator groupIdValidator = field(publication, "groupId", publication.getGroupId())
-                .validMavenIdentifier();
+        MavenFieldValidator groupIdValidator =
+                field(publication, "groupId", publication.getGroupId()).validMavenIdentifier();
         MavenFieldValidator versionValidator = field(publication, "version", publication.getVersion())
                 .notEmpty()
                 .validInFileName();
@@ -80,7 +79,8 @@ public class ValidatingMavenPublisher implements MavenPublisher {
             model.setPomFile(pomFile);
             return model;
         } catch (XmlPullParserException parseException) {
-            throw new InvalidMavenPublicationException(publication.getName(),
+            throw new InvalidMavenPublicationException(
+                    publication.getName(),
                     "POM file is invalid. Check any modifications you have made to the POM file.",
                     parseException);
         } catch (IOException ex) {
@@ -115,12 +115,14 @@ public class ValidatingMavenPublisher implements MavenPublisher {
         }
     }
 
-    private void checkNotDuplicate(MavenNormalizedPublication publication, Set<MavenArtifact> artifacts, String extension, String classifier) {
+    private void checkNotDuplicate(
+            MavenNormalizedPublication publication, Set<MavenArtifact> artifacts, String extension, String classifier) {
         for (MavenArtifact artifact : artifacts) {
-            if (ObjectUtils.equals(artifact.getExtension(), extension) && ObjectUtils.equals(artifact.getClassifier(), classifier)) {
+            if (ObjectUtils.equals(artifact.getExtension(), extension)
+                    && ObjectUtils.equals(artifact.getClassifier(), classifier)) {
                 String message = String.format(
-                        "multiple artifacts with the identical extension and classifier ('%s', '%s').", extension, classifier
-                );
+                        "multiple artifacts with the identical extension and classifier ('%s', '%s').",
+                        extension, classifier);
                 throw new InvalidMavenPublicationException(publication.getName(), message);
             }
         }
@@ -129,10 +131,12 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     private void checkCanPublish(String publicationName, PublicationArtifact artifact) {
         File artifactFile = artifact.getFile();
         if (artifactFile == null || !artifactFile.exists()) {
-            throw new InvalidMavenPublicationException(publicationName, String.format("artifact file does not exist: '%s'", artifactFile));
+            throw new InvalidMavenPublicationException(
+                    publicationName, String.format("artifact file does not exist: '%s'", artifactFile));
         }
         if (artifactFile.isDirectory()) {
-            throw new InvalidMavenPublicationException(publicationName, String.format("artifact file is a directory: '%s'", artifactFile));
+            throw new InvalidMavenPublicationException(
+                    publicationName, String.format("artifact file is a directory: '%s'", artifactFile));
         }
     }
 
@@ -156,7 +160,9 @@ public class ValidatingMavenPublisher implements MavenPublisher {
 
         public MavenFieldValidator matches(String valueFromPomFile) {
             if (!value.equals(valueFromPomFile)) {
-                throw failure(String.format("supplied %s (%s) does not match value from POM file (%s). Cannot edit %1$s directly in the POM file.", name, value, valueFromPomFile));
+                throw failure(String.format(
+                        "supplied %s (%s) does not match value from POM file (%s). Cannot edit %1$s directly in the POM file.",
+                        name, value, valueFromPomFile));
             }
             return this;
         }

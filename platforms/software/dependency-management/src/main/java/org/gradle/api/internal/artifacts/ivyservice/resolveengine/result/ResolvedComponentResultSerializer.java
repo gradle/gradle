@@ -16,6 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -32,13 +38,6 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-import javax.annotation.concurrent.NotThreadSafe;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * A serializer for {@link ResolvedComponentResult} that is not thread-safe and not reusable.
  */
@@ -51,12 +50,11 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
     private final Serializer<ComponentSelectionReason> componentSelectionReasonSerializer;
 
     public ResolvedComponentResultSerializer(
-        Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer,
-        Serializer<ComponentIdentifier> componentIdSerializer,
-        Serializer<ComponentSelector> componentSelectorSerializer,
-        Serializer<ResolvedVariantResult> resolvedVariantResultSerializer,
-        Serializer<ComponentSelectionReason> componentSelectionReasonSerializer
-    ) {
+            Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer,
+            Serializer<ComponentIdentifier> componentIdSerializer,
+            Serializer<ComponentSelector> componentSelectorSerializer,
+            Serializer<ResolvedVariantResult> resolvedVariantResultSerializer,
+            Serializer<ComponentSelectionReason> componentSelectionReasonSerializer) {
         this.moduleVersionIdSerializer = moduleVersionIdSerializer;
         this.componentIdSerializer = componentIdSerializer;
         this.componentSelectorSerializer = componentSelectorSerializer;
@@ -76,7 +74,9 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
         writeComponent(encoder, root, components);
     }
 
-    private void writeComponent(Encoder encoder, ResolvedComponentResult component, Map<ResolvedComponentResult, Integer> components) throws Exception {
+    private void writeComponent(
+            Encoder encoder, ResolvedComponentResult component, Map<ResolvedComponentResult, Integer> components)
+            throws Exception {
         Integer id = components.get(component);
         if (id != null) {
             // Already seen

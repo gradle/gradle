@@ -19,17 +19,6 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
-import net.rubygrapefruit.platform.MissingRegistryEntryException;
-import net.rubygrapefruit.platform.WindowsRegistry;
-import org.gradle.internal.FileUtils;
-import org.gradle.platform.base.internal.toolchain.ComponentFound;
-import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
-import org.gradle.platform.base.internal.toolchain.SearchResult;
-import org.gradle.util.internal.CollectionUtils;
-import org.gradle.util.internal.VersionNumber;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
@@ -44,9 +33,20 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.rubygrapefruit.platform.MissingRegistryEntryException;
+import net.rubygrapefruit.platform.WindowsRegistry;
+import org.gradle.internal.FileUtils;
+import org.gradle.platform.base.internal.toolchain.ComponentFound;
+import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
+import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.VersionNumber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitInstall> implements WindowsComponentLocator<T> {
-    static final String[] PLATFORMS = new String[]{"x86", "x64"};
+public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitInstall>
+        implements WindowsComponentLocator<T> {
+    static final String[] PLATFORMS = new String[] {"x86", "x64"};
 
     private static final String USER_PROVIDED = "User-provided";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractWindowsKitComponentLocator.class);
@@ -55,12 +55,12 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
     private final WindowsRegistry windowsRegistry;
     private boolean initialised;
 
-    protected enum DiscoveryType {REGISTRY, USER}
+    protected enum DiscoveryType {
+        REGISTRY,
+        USER
+    }
 
-    private static final String[] REGISTRY_BASEPATHS = {
-        "SOFTWARE\\",
-        "SOFTWARE\\Wow6432Node\\"
-    };
+    private static final String[] REGISTRY_BASEPATHS = {"SOFTWARE\\", "SOFTWARE\\Wow6432Node\\"};
     private static final String REGISTRY_ROOTPATH_KIT = "Microsoft\\Windows Kits\\Installed Roots";
     private static final String REGISTRY_KIT_10 = "KitsRoot10";
 
@@ -108,10 +108,13 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
             return new ComponentFound<T>(selected);
         }
         if (brokenComponents.isEmpty()) {
-            return new ComponentNotFound<T>("Could not locate a " + getDisplayName() + " installation using the Windows registry.");
+            return new ComponentNotFound<T>(
+                    "Could not locate a " + getDisplayName() + " installation using the Windows registry.");
         }
-        return new ComponentNotFound<T>("Could not locate a " + getDisplayName() + " installation. None of the following locations contain a valid installation",
-            CollectionUtils.collect(brokenComponents, File::getAbsolutePath));
+        return new ComponentNotFound<T>(
+                "Could not locate a " + getDisplayName()
+                        + " installation. None of the following locations contain a valid installation",
+                CollectionUtils.collect(brokenComponents, File::getAbsolutePath));
     }
 
     private T getBestComponent() {
@@ -128,7 +131,8 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
 
     private void locateComponentsInRegistry(String baseKey) {
         try {
-            File windowsKitDir = FileUtils.canonicalize(new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_KIT, REGISTRY_KIT_10)));
+            File windowsKitDir = FileUtils.canonicalize(new File(windowsRegistry.getStringValue(
+                    WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_KIT, REGISTRY_KIT_10)));
             Set<T> found = findIn(windowsKitDir, DiscoveryType.REGISTRY);
             if (found.isEmpty()) {
                 brokenComponents.add(windowsKitDir);
@@ -158,7 +162,10 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
             }
         }
         if (found.isEmpty()) {
-            LOGGER.debug("Ignoring candidate directory {} as it does not look like a {} installation.", windowsKitDir, getDisplayName());
+            LOGGER.debug(
+                    "Ignoring candidate directory {} as it does not look like a {} installation.",
+                    windowsKitDir,
+                    getDisplayName());
         }
         return found;
     }
@@ -170,7 +177,9 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
             candidates = findIn(windowsKitDir, DiscoveryType.USER);
         }
         if (candidates.isEmpty()) {
-            return new ComponentNotFound<T>(String.format("The specified installation directory '%s' does not appear to contain a %s installation.", candidate, getDisplayName()));
+            return new ComponentNotFound<T>(String.format(
+                    "The specified installation directory '%s' does not appear to contain a %s installation.",
+                    candidate, getDisplayName()));
         }
 
         Set<T> found = new TreeSet<T>(new DescendingComponentVersionComparator());
@@ -219,7 +228,8 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
             case REGISTRY:
                 return getDisplayName() + " " + version.getMajor();
             default:
-                throw new IllegalArgumentException("Unknown discovery method for " + getDisplayName() + ": " + discoveryType);
+                throw new IllegalArgumentException(
+                        "Unknown discovery method for " + getDisplayName() + ": " + discoveryType);
         }
     }
 

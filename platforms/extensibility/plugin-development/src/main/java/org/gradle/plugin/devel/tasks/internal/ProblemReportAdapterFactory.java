@@ -25,12 +25,11 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import java.io.IOException;
+import java.util.Map;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.internal.DefaultProblemDefinition;
 import org.jspecify.annotations.Nullable;
-
-import java.io.IOException;
-import java.util.Map;
 
 /**
  * Defines the Gson serialization and deserialization for {@link ProblemDefinition} based on the assumption that they have exactly one implementation.
@@ -47,10 +46,11 @@ public final class ProblemReportAdapterFactory implements TypeAdapterFactory {
         Class<?> rawType = type.getRawType();
         if (ProblemDefinition.class.equals(rawType)) {
             return (TypeAdapter<T>) new SingleImplTypeAdapter<>(
-                ProblemDefinition.class,
-                DefaultProblemDefinition.class,
-                gson.getAdapter(JsonElement.class),
-                gson.getDelegateAdapter(this, TypeToken.get(DefaultProblemDefinition.class))).nullSafe();
+                            ProblemDefinition.class,
+                            DefaultProblemDefinition.class,
+                            gson.getAdapter(JsonElement.class),
+                            gson.getDelegateAdapter(this, TypeToken.get(DefaultProblemDefinition.class)))
+                    .nullSafe();
         } else {
             return null;
         }
@@ -68,7 +68,11 @@ public final class ProblemReportAdapterFactory implements TypeAdapterFactory {
 
         private final TypeAdapter<U> implClassAdapter;
 
-        private SingleImplTypeAdapter(Class<T> baseClass, Class<U> implClass, TypeAdapter<JsonElement> jsonElementAdapter, TypeAdapter<U> implClassAdapter) {
+        private SingleImplTypeAdapter(
+                Class<T> baseClass,
+                Class<U> implClass,
+                TypeAdapter<JsonElement> jsonElementAdapter,
+                TypeAdapter<U> implClassAdapter) {
             this.baseClass = baseClass;
             this.implClass = implClass;
             this.label = baseClass.getSimpleName();
@@ -90,7 +94,8 @@ public final class ProblemReportAdapterFactory implements TypeAdapterFactory {
         @SuppressWarnings("unchecked")
         public void write(JsonWriter out, T value) throws IOException {
             if (!implClass.isInstance(value)) {
-                throw new JsonParseException("Unknown concrete type for " + baseClass + ". Expected: " + implClass + ", actual: " + value.getClass());
+                throw new JsonParseException("Unknown concrete type for " + baseClass + ". Expected: " + implClass
+                        + ", actual: " + value.getClass());
             }
             JsonObject jsonObject = implClassAdapter.toJsonTree((U) value).getAsJsonObject();
             JsonObject clone = new JsonObject();

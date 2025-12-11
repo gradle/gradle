@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import java.util.function.Function;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.internal.Cast;
@@ -23,8 +24,6 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.Function;
 
 /**
  * Provides a state pattern implementation for values that are finalizable and support conventions.
@@ -85,7 +84,7 @@ public abstract class ValueState<S> {
      * @param value the new explicitly assigned value
      * @return the very <code>value</code> given
      */
-    //TODO-RC rename this or the overload as they have significantly different semantics
+    // TODO-RC rename this or the overload as they have significantly different semantics
     public abstract S explicitValue(S value);
 
     /**
@@ -99,7 +98,7 @@ public abstract class ValueState<S> {
      * @param defaultValue the default value
      * @return the given value, if this value state is not explicit, or given default value
      */
-    //TODO-RC rename this or the overload as they have significantly different semantics
+    // TODO-RC rename this or the overload as they have significantly different semantics
     public abstract S explicitValue(S value, S defaultValue);
 
     /**
@@ -122,7 +121,8 @@ public abstract class ValueState<S> {
 
     public abstract S implicitValue();
 
-    public abstract boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer);
+    public abstract boolean maybeFinalizeOnRead(
+            Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer);
 
     public abstract void beforeMutate(Describable displayName);
 
@@ -137,7 +137,11 @@ public abstract class ValueState<S> {
      */
     public abstract boolean isFinalizing();
 
-    public void finalizeOnReadIfNeeded(Describable displayName, @Nullable ModelObject effectiveProducer, ValueSupplier.ValueConsumer consumer, Action<ValueSupplier.ValueConsumer> finalizeNow) {
+    public void finalizeOnReadIfNeeded(
+            Describable displayName,
+            @Nullable ModelObject effectiveProducer,
+            ValueSupplier.ValueConsumer consumer,
+            Action<ValueSupplier.ValueConsumer> finalizeNow) {
         if (maybeFinalizeOnRead(displayName, effectiveProducer, consumer)) {
             finalizeNow.execute(forUpstream(consumer));
         }
@@ -207,7 +211,8 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer) {
+        public boolean maybeFinalizeOnRead(
+                Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer) {
             if (disallowUnsafeRead || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead) {
                 String reason = host.beforeRead(producer);
                 if (reason != null) {
@@ -229,16 +234,19 @@ public abstract class ValueState<S> {
         @Override
         public void beforeMutate(Describable displayName) {
             if (disallowChanges) {
-                throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", displayName.getDisplayName()));
+                throw new IllegalStateException(
+                        String.format("The value for %s cannot be changed any further.", displayName.getDisplayName()));
             } else if (warnOnUpgradedPropertyChanges) {
                 String shownDisplayName = displayName.getDisplayName();
-                DeprecationLogger.deprecateBehaviour("Changing property value of " + shownDisplayName + " at execution time.")
-                    // this should only happen in Gradle 10, when Provider API migration will come to the mainline,
-                    // so forbidding it must wait until Gradle 11
-                    .startingWithGradle11("changing property value of " + shownDisplayName + " at execution time will become an error")
-                    // TODO add documentation
-                    .undocumented()
-                    .nagUser();
+                DeprecationLogger.deprecateBehaviour(
+                                "Changing property value of " + shownDisplayName + " at execution time.")
+                        // this should only happen in Gradle 10, when Provider API migration will come to the mainline,
+                        // so forbidding it must wait until Gradle 11
+                        .startingWithGradle11("changing property value of " + shownDisplayName
+                                + " at execution time will become an error")
+                        // TODO add documentation
+                        .undocumented()
+                        .nagUser();
             }
         }
 
@@ -398,14 +406,16 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer) {
+        public boolean maybeFinalizeOnRead(
+                Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer) {
             // Already finalized
             return false;
         }
 
         @Override
         public void beforeMutate(Describable displayName) {
-            throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.", displayName.getDisplayName()));
+            throw new IllegalStateException(String.format(
+                    "The value for %s is final and cannot be changed any further.", displayName.getDisplayName()));
         }
 
         @Override
@@ -480,7 +490,8 @@ public abstract class ValueState<S> {
 
         @Override
         public ValueState<S> finalState() {
-            // TODO - it is currently possible for multiple threads to finalize a property instance concurrently (https://github.com/gradle/gradle/issues/12811)
+            // TODO - it is currently possible for multiple threads to finalize a property instance concurrently
+            // (https://github.com/gradle/gradle/issues/12811)
             // This should be strict
             return this;
         }

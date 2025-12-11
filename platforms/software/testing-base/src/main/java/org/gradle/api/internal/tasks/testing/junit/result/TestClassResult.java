@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.time.Clock;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class TestClassResult {
     private final List<TestMethodResult> methodResults;
@@ -33,7 +32,8 @@ public class TestClassResult {
     private int skippedCount;
     private long id;
 
-    public TestClassResult(long id, String className, String classDisplayName, long startTime, List<TestMetadataEvent> metadatas) {
+    public TestClassResult(
+            long id, String className, String classDisplayName, long startTime, List<TestMetadataEvent> metadatas) {
         if (id < 1) {
             throw new IllegalArgumentException("id must be > 0");
         }
@@ -61,7 +61,7 @@ public class TestClassResult {
         if (methodResult.getResultType() == TestResult.ResultType.FAILURE) {
             failuresCount++;
         }
-        if(methodResult.getResultType() == TestResult.ResultType.SKIPPED) {
+        if (methodResult.getResultType() == TestResult.ResultType.SKIPPED) {
             skippedCount++;
         }
         methodResults.add(methodResult);

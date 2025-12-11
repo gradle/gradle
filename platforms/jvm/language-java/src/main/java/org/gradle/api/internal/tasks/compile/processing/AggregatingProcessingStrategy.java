@@ -16,21 +16,20 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
+import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.AGGREGATING;
 
-import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
-import javax.tools.JavaFileManager;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.AGGREGATING;
+import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+import javax.tools.JavaFileManager;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 
 /**
  * The strategy used for aggregating annotation processors.
@@ -44,7 +43,8 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
     }
 
     @Override
-    public void recordProcessingInputs(Set<String> supportedAnnotationTypes, Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+    public void recordProcessingInputs(
+            Set<String> supportedAnnotationTypes, Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         validateAnnotations(annotations);
         recordAggregatedTypes(supportedAnnotationTypes, annotations, roundEnv);
     }
@@ -53,12 +53,15 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
         for (TypeElement annotation : annotations) {
             Retention retention = annotation.getAnnotation(Retention.class);
             if (retention != null && retention.value() == RetentionPolicy.SOURCE) {
-                result.setFullRebuildCause("'@" + annotation.getSimpleName() + "' has source retention. Aggregating annotation processors require class or runtime retention");
+                result.setFullRebuildCause(
+                        "'@" + annotation.getSimpleName()
+                                + "' has source retention. Aggregating annotation processors require class or runtime retention");
             }
         }
     }
 
-    private void recordAggregatedTypes(Set<String> supportedAnnotationTypes, Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+    private void recordAggregatedTypes(
+            Set<String> supportedAnnotationTypes, Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         if (supportedAnnotationTypes.contains("*")) {
             result.getAggregatedTypes().addAll(namesOfElements(roundEnv.getRootElements()));
         } else {
@@ -72,12 +75,11 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
         if (orig == null || orig.isEmpty()) {
             return Collections.emptySet();
         }
-        return orig
-            .stream()
-            .map(ElementUtils::getTopLevelType)
-            .map(ElementUtils::getElementName)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
+        return orig.stream()
+                .map(ElementUtils::getTopLevelType)
+                .map(ElementUtils::getElementName)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -86,7 +88,11 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
     }
 
     @Override
-    public void recordGeneratedResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName, Element[] originatingElements) {
+    public void recordGeneratedResource(
+            JavaFileManager.Location location,
+            CharSequence pkg,
+            CharSequence relativeName,
+            Element[] originatingElements) {
         GeneratedResource.Location resourceLocation = GeneratedResource.Location.from(location);
         if (resourceLocation == null) {
             result.setFullRebuildCause(location + " is not supported for incremental annotation processing");

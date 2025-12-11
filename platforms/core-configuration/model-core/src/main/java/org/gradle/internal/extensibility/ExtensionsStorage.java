@@ -16,19 +16,18 @@
 
 package org.gradle.internal.extensibility;
 
-import org.gradle.api.Action;
-import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.plugins.ExtensionsSchema;
-import org.gradle.api.reflect.TypeOf;
-import org.jspecify.annotations.Nullable;
+import static java.lang.String.format;
+import static org.gradle.internal.Cast.uncheckedCast;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.lang.String.format;
-import static org.gradle.internal.Cast.uncheckedCast;
+import org.gradle.api.Action;
+import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.plugins.ExtensionsSchema;
+import org.gradle.api.reflect.TypeOf;
+import org.jspecify.annotations.Nullable;
 
 public class ExtensionsStorage {
 
@@ -36,8 +35,9 @@ public class ExtensionsStorage {
 
     public <T> void add(TypeOf<T> publicType, String name, T extension) {
         if (hasExtension(name)) {
-            throw new IllegalArgumentException(
-                format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
+            throw new IllegalArgumentException(format(
+                    "Cannot add extension with name '%s', as there is an extension already registered with that name.",
+                    name));
         }
         extensions.put(name, new ExtensionHolder<>(name, publicType, extension));
     }
@@ -85,16 +85,16 @@ public class ExtensionsStorage {
         if (found != null) {
             return found;
         }
-        throw new UnknownDomainObjectException(
-            "Extension of type '" + type.getSimpleName() + "' does not exist. Currently registered extension types: " + registeredExtensionTypeNames());
+        throw new UnknownDomainObjectException("Extension of type '" + type.getSimpleName()
+                + "' does not exist. Currently registered extension types: " + registeredExtensionTypeNames());
     }
 
     @Nullable
     private <T> ExtensionHolder<T> findHolderByType(TypeOf<T> type) {
         ExtensionHolder<T> firstHolderWithExactPublicType = firstHolderWithExactPublicType(type);
         return firstHolderWithExactPublicType != null
-            ? firstHolderWithExactPublicType
-            : firstHolderWithAssignableType(type);
+                ? firstHolderWithExactPublicType
+                : firstHolderWithAssignableType(type);
     }
 
     @Nullable
@@ -145,7 +145,8 @@ public class ExtensionsStorage {
      * @return Nothing.
      */
     private UnknownDomainObjectException unknownExtensionException(final String name) {
-        throw new UnknownDomainObjectException("Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
+        throw new UnknownDomainObjectException("Extension with name '" + name
+                + "' does not exist. Currently registered extension names: " + extensions.keySet());
     }
 
     private static class ExtensionHolder<T> implements ExtensionsSchema.ExtensionSchema {

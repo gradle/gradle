@@ -19,16 +19,15 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.TreeMap;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Comparator;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * The default implementation of {@link ImmutableAttributes}.
@@ -37,7 +36,8 @@ import java.util.TreeMap;
  * key matches the requested key's name and type. However, {@link #getAttribute(Attribute)}
  * attempts to coerce entries with a matching name to the requested type.
  */
-public final class DefaultImmutableAttributesContainer extends AbstractAttributeContainer implements ImmutableAttributes {
+public final class DefaultImmutableAttributesContainer extends AbstractAttributeContainer
+        implements ImmutableAttributes {
 
     private final ImmutableAttributesEntry<?> head;
     private final ImmutableMap<Attribute<?>, ImmutableAttributesEntry<?>> hierarchy;
@@ -51,8 +51,10 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     <T> DefaultImmutableAttributesContainer(ImmutableAttributes parent, ImmutableAttributesEntry<T> head) {
         this.head = head;
 
-        ImmutableMap.Builder<Attribute<?>, ImmutableAttributesEntry<?>> hierarchyBuilder =  ImmutableMap.builderWithExpectedSize(parent.getEntries().size() + 1);
-        ImmutableMap.Builder<String, ImmutableAttributesEntry<?>> hierarchyByNameBuilder = ImmutableMap.builderWithExpectedSize(parent.getEntries().size() + 1);
+        ImmutableMap.Builder<Attribute<?>, ImmutableAttributesEntry<?>> hierarchyBuilder =
+                ImmutableMap.builderWithExpectedSize(parent.getEntries().size() + 1);
+        ImmutableMap.Builder<String, ImmutableAttributesEntry<?>> hierarchyByNameBuilder =
+                ImmutableMap.builderWithExpectedSize(parent.getEntries().size() + 1);
         for (ImmutableAttributesEntry<?> entry : parent.getEntries()) {
             hierarchyBuilder.put(entry.getKey(), entry);
             hierarchyByNameBuilder.put(entry.getKey().getName(), entry);
@@ -142,7 +144,8 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
         Object value = isolatable.isolate();
 
         // TODO: Reuse the AttributeValue#coerce implementation here so we can reuse its coercion cache
-        // Ensure that the resulting value is of the requested type after coercion, to satisfy the promise of the method signature
+        // Ensure that the resulting value is of the requested type after coercion, to satisfy the promise of the method
+        // signature
         if (!isAppropriateType(value, key)) {
             value = isolatable.coerce(key.getType());
         }
@@ -194,7 +197,8 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     }
 
     @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     public @Nullable ImmutableAttributesEntry<?> findEntry(String name) {
         //noinspection StringEquality
         if (singleEntryName == name) {
@@ -250,5 +254,4 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
         }
         return sorted.toString();
     }
-
 }

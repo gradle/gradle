@@ -56,14 +56,13 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     @Provides
     void configure(ServiceRegistration registration) {
         registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
-        registration.add(WorkerLeaseService.class, ProjectParallelExecutionController.class, DefaultWorkerLeaseService.class);
+        registration.add(
+                WorkerLeaseService.class, ProjectParallelExecutionController.class, DefaultWorkerLeaseService.class);
     }
 
     @Provides
     ResourceLockStatistics createResourceLockStatistics(
-        BuildOperationRunner buildOperationRunner,
-        BuildOperationsParameters buildOperationsParameters
-    ) {
+            BuildOperationRunner buildOperationRunner, BuildOperationsParameters buildOperationsParameters) {
         if (buildOperationsParameters.emitLockingOperations()) {
             return new DefaultResourceLockStatistics(buildOperationRunner);
         } else {
@@ -73,24 +72,23 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
 
     @Provides
     WorkerLimits createWorkerLimits(CrossBuildSessionParameters buildSessionParameters) {
-        return new DefaultWorkerLimits(buildSessionParameters.getStartParameter().getMaxWorkerCount());
+        return new DefaultWorkerLimits(
+                buildSessionParameters.getStartParameter().getMaxWorkerCount());
     }
 
     @Provides
     BuildOperationExecutor createBuildOperationExecutor(
-        BuildOperationRunner buildOperationRunner,
-        CurrentBuildOperationRef currentBuildOperationRef,
-        WorkerLeaseService workerLeaseService,
-        ExecutorFactory executorFactory,
-        WorkerLimits workerLimits
-    ) {
+            BuildOperationRunner buildOperationRunner,
+            CurrentBuildOperationRef currentBuildOperationRef,
+            WorkerLeaseService workerLeaseService,
+            ExecutorFactory executorFactory,
+            WorkerLimits workerLimits) {
         return new DefaultBuildOperationExecutor(
-            buildOperationRunner,
-            currentBuildOperationRef,
-            new DefaultBuildOperationQueueFactory(workerLeaseService),
-            executorFactory,
-            workerLimits
-        );
+                buildOperationRunner,
+                currentBuildOperationRef,
+                new DefaultBuildOperationQueueFactory(workerLeaseService),
+                executorFactory,
+                workerLimits);
     }
 
     @Provides
@@ -99,32 +97,43 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    ListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+    ListenerBuildOperationDecorator createListenerBuildOperationDecorator(
+            BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
         return new DefaultListenerBuildOperationDecorator(buildOperationRunner, userCodeApplicationContext);
     }
 
     @Provides
-    CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+    CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(
+            BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
         return new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext);
     }
 
     @Provides
-    LoggingBuildOperationProgressBroadcaster createLoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
-        return new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationProgressEventEmitter);
+    LoggingBuildOperationProgressBroadcaster createLoggingBuildOperationProgressBroadcaster(
+            OutputEventListenerManager outputEventListenerManager,
+            BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+        return new LoggingBuildOperationProgressBroadcaster(
+                outputEventListenerManager, buildOperationProgressEventEmitter);
     }
 
     @Provides
-    BuildOperationTrace createBuildOperationTrace(InternalOptions internalOptions, CrossBuildSessionParameters parameters, BuildOperationListenerManager buildOperationListenerManager) {
-        return new BuildOperationTrace(parameters.getUserActionRootDirectory(), internalOptions, buildOperationListenerManager);
+    BuildOperationTrace createBuildOperationTrace(
+            InternalOptions internalOptions,
+            CrossBuildSessionParameters parameters,
+            BuildOperationListenerManager buildOperationListenerManager) {
+        return new BuildOperationTrace(
+                parameters.getUserActionRootDirectory(), internalOptions, buildOperationListenerManager);
     }
 
     @Provides
-    BuildOperationNotificationBridge createBuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, ListenerManager generalListenerManager) {
+    BuildOperationNotificationBridge createBuildOperationNotificationBridge(
+            BuildOperationListenerManager buildOperationListenerManager, ListenerManager generalListenerManager) {
         return new BuildOperationNotificationBridge(buildOperationListenerManager, generalListenerManager);
     }
 
     @Provides
-    BuildOperationNotificationValve createBuildOperationNotificationValve(BuildOperationNotificationBridge buildOperationNotificationBridge) {
+    BuildOperationNotificationValve createBuildOperationNotificationValve(
+            BuildOperationNotificationBridge buildOperationNotificationBridge) {
         return buildOperationNotificationBridge.getValve();
     }
 }

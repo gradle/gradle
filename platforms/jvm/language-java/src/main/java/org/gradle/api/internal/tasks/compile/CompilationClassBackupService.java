@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.internal.UncheckedException;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import org.gradle.internal.UncheckedException;
 
 /**
  * A service that backups a class just before new version of a class is generated.

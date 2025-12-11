@@ -17,12 +17,11 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Arrays;
+import java.util.Map;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-
-import java.util.Arrays;
-import java.util.Map;
 
 /**
  * Converts attributes to a stringy map preserving the order.
@@ -61,5 +60,4 @@ public class AttributesToMapConverter {
             return attributeValue.toString();
         }
     }
-
 }

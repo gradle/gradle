@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.classpath;
 
-import org.gradle.internal.classpath.ClassPath;
-
 import java.util.Set;
+import org.gradle.internal.classpath.ClassPath;
 
 /**
  * Meta-data about a dynamically loadable module.

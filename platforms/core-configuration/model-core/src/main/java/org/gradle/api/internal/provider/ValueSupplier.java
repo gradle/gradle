@@ -17,6 +17,10 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
@@ -25,11 +29,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 import org.jspecify.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Encapsulates the production of some value by some producer.
@@ -47,7 +46,8 @@ public interface ValueSupplier {
     boolean calculatePresence(ValueConsumer consumer);
 
     enum ValueConsumer {
-        DisallowUnsafeRead, IgnoreUnsafeRead
+        DisallowUnsafeRead,
+        IgnoreUnsafeRead
     }
 
     /**
@@ -164,14 +164,12 @@ public interface ValueSupplier {
         }
 
         @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
+        public void visitProducerTasks(Action<? super Task> visitor) {}
     }
 
     class NoProducer implements ValueProducer {
         @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
+        public void visitProducerTasks(Action<? super Task> visitor) {}
     }
 
     /**
@@ -476,6 +474,7 @@ public interface ValueSupplier {
 
     class Present<T> implements Value<T> {
         private final T result;
+
         @Nullable
         private final SideEffect<? super T> sideEffect;
 
@@ -530,7 +529,8 @@ public interface ValueSupplier {
                 return this;
             }
 
-            SideEffect<? super T> composedSideEffect = this.sideEffect == null ? sideEffect : SideEffect.composite(this.sideEffect, sideEffect);
+            SideEffect<? super T> composedSideEffect =
+                    this.sideEffect == null ? sideEffect : SideEffect.composite(this.sideEffect, sideEffect);
             // Using the direct constructor call, because `result` can be null due to `Value.SUCCESS`
             return new Present<>(result, composedSideEffect);
         }
@@ -570,8 +570,8 @@ public interface ValueSupplier {
         @Override
         public String toString() {
             return sideEffect == null
-                ? String.format("value(%s)", result)
-                : String.format("valueWithSideEffect(%s, %s)", result, sideEffect);
+                    ? String.format("value(%s)", result)
+                    : String.format("valueWithSideEffect(%s, %s)", result, sideEffect);
         }
     }
 
@@ -658,7 +658,8 @@ public interface ValueSupplier {
             if (other.path.isEmpty()) {
                 return this;
             }
-            ImmutableList.Builder<DisplayName> builder = ImmutableList.builderWithExpectedSize(path.size() + other.path.size());
+            ImmutableList.Builder<DisplayName> builder =
+                    ImmutableList.builderWithExpectedSize(path.size() + other.path.size());
             builder.addAll(path);
             builder.addAll(other.path);
             return new Missing<>(builder.build());
@@ -792,6 +793,7 @@ public interface ValueSupplier {
     class FixedExecutionTimeValue<T> extends ExecutionTimeValue<T> {
         private final T value;
         private final boolean changingContent;
+
         @Nullable
         private final SideEffect<? super T> sideEffect;
 
@@ -859,7 +861,8 @@ public interface ValueSupplier {
                 return new FixedExecutionTimeValue<>(value, changingContent, sideEffect);
             }
 
-            return new FixedExecutionTimeValue<>(value, changingContent, SideEffect.composite(this.sideEffect, sideEffect));
+            return new FixedExecutionTimeValue<>(
+                    value, changingContent, SideEffect.composite(this.sideEffect, sideEffect));
         }
     }
 

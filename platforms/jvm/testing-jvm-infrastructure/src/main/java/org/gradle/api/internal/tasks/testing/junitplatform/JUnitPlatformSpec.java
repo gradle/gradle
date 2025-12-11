@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 
 public class JUnitPlatformSpec implements Serializable {
     private final TestFilterSpec filter;
@@ -33,14 +32,13 @@ public class JUnitPlatformSpec implements Serializable {
     private final File baseDefinitionsDir;
 
     public JUnitPlatformSpec(
-        TestFilterSpec filter,
-        Set<String> includeEngines,
-        Set<String> excludeEngines,
-        Set<String> includeTags,
-        Set<String> excludeTags,
-        boolean isDryRun,
-        File baseDefinitionsDir
-    ) {
+            TestFilterSpec filter,
+            Set<String> includeEngines,
+            Set<String> excludeEngines,
+            Set<String> includeTags,
+            Set<String> excludeTags,
+            boolean isDryRun,
+            File baseDefinitionsDir) {
         this.filter = filter;
         this.includeEngines = includeEngines;
         this.excludeEngines = excludeEngines;

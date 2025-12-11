@@ -18,17 +18,16 @@ package org.gradle.process.internal.health.memory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.ManagedScheduledExecutor;
-import org.gradle.internal.event.ListenerManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedScheduledExecutor;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.event.ListenerManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultMemoryManager.class);
@@ -50,12 +49,22 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private OsMemoryStatus currentOsMemoryStatus;
     private final OsMemoryStatusListener osMemoryStatusListener;
 
-    public DefaultMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
+    public DefaultMemoryManager(
+            OsMemoryInfo osMemoryInfo,
+            JvmMemoryInfo jvmMemoryInfo,
+            ListenerManager listenerManager,
+            ExecutorFactory executorFactory) {
         this(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory, DEFAULT_MIN_FREE_MEMORY_PERCENTAGE, true);
     }
 
     @VisibleForTesting
-    DefaultMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory, double minFreeMemoryPercentage, boolean autoFree) {
+    DefaultMemoryManager(
+            OsMemoryInfo osMemoryInfo,
+            JvmMemoryInfo jvmMemoryInfo,
+            ListenerManager listenerManager,
+            ExecutorFactory executorFactory,
+            double minFreeMemoryPercentage,
+            boolean autoFree) {
         Preconditions.checkArgument(minFreeMemoryPercentage >= 0, "Free memory percentage must be >= 0");
         Preconditions.checkArgument(minFreeMemoryPercentage <= 1, "Free memory percentage must be <= 1");
         this.minFreeMemoryPercentage = minFreeMemoryPercentage;
@@ -80,12 +89,14 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     }
 
     private void start() {
-        ScheduledFuture<?> ignored = scheduler.scheduleAtFixedRate(new MemoryCheck(), STATUS_INTERVAL_SECONDS, STATUS_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        ScheduledFuture<?> ignored = scheduler.scheduleAtFixedRate(
+                new MemoryCheck(), STATUS_INTERVAL_SECONDS, STATUS_INTERVAL_SECONDS, TimeUnit.SECONDS);
         LOGGER.debug("Memory status broadcaster started");
         if (osMemoryStatusSupported) {
             addListener(osMemoryStatusListener);
         } else {
-            LOGGER.info("This JVM does not support getting OS memory, so no OS memory status updates will be broadcast");
+            LOGGER.info(
+                    "This JVM does not support getting OS memory, so no OS memory status updates will be broadcast");
         }
     }
 
@@ -99,14 +110,16 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     public void requestFreeMemory(long memoryAmountBytes) {
         synchronized (memoryLock) {
             if (currentOsMemoryStatus != null) {
-                boolean freedPhysical = freeSpecificMemory(currentOsMemoryStatus.getPhysicalMemory(), memoryAmountBytes);
+                boolean freedPhysical =
+                        freeSpecificMemory(currentOsMemoryStatus.getPhysicalMemory(), memoryAmountBytes);
                 boolean freedVirtual = freeSpecificMemory(currentOsMemoryStatus.getVirtualMemory(), memoryAmountBytes);
                 // If we've freed memory, invalidate the current OS memory snapshot
                 if (freedPhysical || freedVirtual) {
                     currentOsMemoryStatus = null;
                 }
             } else {
-                LOGGER.debug("There is no current snapshot of OS memory available - memory cannot be freed until a new memory status update occurs");
+                LOGGER.debug(
+                        "There is no current snapshot of OS memory available - memory cannot be freed until a new memory status update occurs");
             }
         }
     }
@@ -118,7 +131,8 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
         }
         long totalMemory = ((OsMemoryStatusAspect.Available) status).getTotal();
         long freeMemory = ((OsMemoryStatusAspect.Available) status).getFree();
-        long requestedFreeMemory = getMemoryThresholdInBytes(totalMemory) + (memoryAmountBytes > 0 ? memoryAmountBytes : 0);
+        long requestedFreeMemory =
+                getMemoryThresholdInBytes(totalMemory) + (memoryAmountBytes > 0 ? memoryAmountBytes : 0);
         long newFreeMemory = doRequestFreeMemory(status.getName(), requestedFreeMemory, freeMemory);
         return newFreeMemory > freeMemory;
     }
@@ -140,7 +154,12 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
                 }
             }
 
-            LOGGER.debug("{} {} memory requested, {} released, {} free", requestedFreeMemory, name, requestedFreeMemory - toReleaseMemory, freeMemory);
+            LOGGER.debug(
+                    "{} {} memory requested, {} released, {} free",
+                    requestedFreeMemory,
+                    name,
+                    requestedFreeMemory - toReleaseMemory,
+                    freeMemory);
         }
         return freeMemory;
     }

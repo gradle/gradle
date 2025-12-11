@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import java.util.List;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
@@ -24,8 +25,6 @@ import org.gradle.internal.component.resolution.failure.exception.AbstractResolu
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
-
-import java.util.List;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link ResolutionFailure} caused by a requested <strong>plugin</strong>
@@ -41,7 +40,8 @@ import java.util.List;
  */
 public abstract class TargetJVMVersionOnPluginTooNewFailureDescriber extends AbstractJVMVersionTooNewFailureDescriber {
     @SuppressWarnings("InlineFormatString")
-    private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "Dependency requires at least JVM runtime version %s. This build uses a Java %s JVM.";
+    private static final String JVM_VERSION_TOO_HIGH_TEMPLATE =
+            "Dependency requires at least JVM runtime version %s. This build uses a Java %s JVM.";
 
     private final JavaVersion currentJVMVersion = JavaVersion.current();
 
@@ -52,20 +52,25 @@ public abstract class TargetJVMVersionOnPluginTooNewFailureDescriber extends Abs
 
     @Override
     public boolean canDescribeFailure(NoCompatibleVariantsFailure failure) {
-        boolean isPluginRequest = failure.getRequestedAttributes().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
+        boolean isPluginRequest =
+                failure.getRequestedAttributes().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
         return isPluginRequest && isDueToJVMVersionTooNew(failure);
     }
 
     @Override
     public AbstractResolutionFailureException describeFailure(NoCompatibleVariantsFailure failure) {
-        JavaVersion minJVMVersionSupported = findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
+        JavaVersion minJVMVersionSupported =
+                findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
         String message = buildNeedsNewerJDKFailureMsg(minJVMVersionSupported);
         List<String> resolutions = buildResolutions(suggestUpdateJVM(minJVMVersionSupported));
         return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
 
     private String buildNeedsNewerJDKFailureMsg(JavaVersion minRequiredJVMVersion) {
-        return String.format(JVM_VERSION_TOO_HIGH_TEMPLATE, minRequiredJVMVersion.getMajorVersion(), currentJVMVersion.getMajorVersion());
+        return String.format(
+                JVM_VERSION_TOO_HIGH_TEMPLATE,
+                minRequiredJVMVersion.getMajorVersion(),
+                currentJVMVersion.getMajorVersion());
     }
 
     private String suggestUpdateJVM(JavaVersion minRequiredJVMVersion) {

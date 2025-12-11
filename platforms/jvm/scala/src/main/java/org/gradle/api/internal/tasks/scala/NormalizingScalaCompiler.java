@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.scala;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import java.io.File;
+import java.util.List;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
@@ -28,9 +30,6 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * A Scala {@link Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
@@ -69,7 +68,9 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
 
     private void resolveNonStringsInCompilerArgs(ScalaJavaJointCompileSpec spec) {
         // in particular, this is about GStrings
-        spec.getCompileOptions().setCompilerArgs(CollectionUtils.toStringList(spec.getCompileOptions().getCompilerArgs()));
+        spec.getCompileOptions()
+                .setCompilerArgs(
+                        CollectionUtils.toStringList(spec.getCompileOptions().getCompilerArgs()));
     }
 
     private void logSourceFiles(ScalaJavaJointCompileSpec spec) {
@@ -92,7 +93,10 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
             return;
         }
 
-        List<String> compilerArgs = new JavaCompilerArgumentsBuilder(spec).includeLauncherOptions(true).includeSourceFiles(true).build();
+        List<String> compilerArgs = new JavaCompilerArgumentsBuilder(spec)
+                .includeLauncherOptions(true)
+                .includeSourceFiles(true)
+                .build();
         String joinedArgs = Joiner.on(' ').join(compilerArgs);
         LOGGER.debug("Java compiler arguments: {}", joinedArgs);
     }
@@ -101,7 +105,8 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
         try {
             return delegate.execute(spec);
         } catch (CompilationFailedException e) {
-            if (spec.getCompileOptions().isFailOnError() && spec.getScalaCompileOptions().isFailOnError()) {
+            if (spec.getCompileOptions().isFailOnError()
+                    && spec.getScalaCompileOptions().isFailOnError()) {
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");

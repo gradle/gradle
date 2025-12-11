@@ -17,6 +17,9 @@
 package org.gradle.api.internal.file.collections;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
@@ -34,10 +37,6 @@ import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * Directory walker supporting {@link Spec}s for includes and excludes.
  * The file system is traversed in depth-first prefix order - all files in a directory will be
@@ -46,10 +45,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * A file or directory will only be visited if it matches all includes and no
  * excludes.
  */
-public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFileTree, RandomAccessFileCollection, LocalFileTree, DirectoryTree {
+public class DirectoryFileTree
+        implements MinimalFileTree,
+                PatternFilterableFileTree,
+                RandomAccessFileCollection,
+                LocalFileTree,
+                DirectoryTree {
     private static final Logger LOGGER = LoggerFactory.getLogger(DirectoryFileTree.class);
-    private static final DirectoryWalker DEFAULT_DIRECTORY_WALKER = new DefaultDirectoryWalker(FileSystems.getDefault());
-    private static final DirectoryWalker REPRODUCIBLE_DIRECTORY_WALKER = new ReproducibleDirectoryWalker(FileSystems.getDefault());
+    private static final DirectoryWalker DEFAULT_DIRECTORY_WALKER =
+            new DefaultDirectoryWalker(FileSystems.getDefault());
+    private static final DirectoryWalker REPRODUCIBLE_DIRECTORY_WALKER =
+            new ReproducibleDirectoryWalker(FileSystems.getDefault());
 
     private final File dir;
     private final PatternSet patternSet;
@@ -134,15 +140,18 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     private void processSingleFile(File file, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
         RelativePath path = new RelativePath(true, file.getName());
-        FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem);
+        FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(
+                file.toPath(), path, stopFlag, fileSystem);
         if (isAllowed(details, spec)) {
             visitor.visitFile(details);
         }
     }
 
-    private void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
+    private void walkDir(
+            File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
         DirectoryWalker directoryWalker;
-        if (visitor instanceof ReproducibleFileVisitor && ((ReproducibleFileVisitor) visitor).isReproducibleFileOrder()) {
+        if (visitor instanceof ReproducibleFileVisitor
+                && ((ReproducibleFileVisitor) visitor).isReproducibleFileOrder()) {
             directoryWalker = REPRODUCIBLE_DIRECTORY_WALKER;
         } else {
             directoryWalker = DEFAULT_DIRECTORY_WALKER;
@@ -169,5 +178,4 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     public PatternSet getPatternSet() {
         return patternSet;
     }
-
 }

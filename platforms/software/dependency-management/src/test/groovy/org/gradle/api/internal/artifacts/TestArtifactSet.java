@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.Collection;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -33,9 +35,6 @@ import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import java.io.File;
-import java.util.Collection;
-
 public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
 
     public static final String DEFAULT_TEST_VARIANT = "test variant";
@@ -43,17 +42,22 @@ public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet
     private final ImmutableAttributes variant;
     private final ImmutableSet<ResolvedArtifact> artifacts;
 
-    private TestArtifactSet(String variantName, ImmutableAttributes variant, Collection<? extends ResolvedArtifact> artifacts) {
+    private TestArtifactSet(
+            String variantName, ImmutableAttributes variant, Collection<? extends ResolvedArtifact> artifacts) {
         this.variantName = variantName;
         this.variant = variant;
         this.artifacts = ImmutableSet.copyOf(artifacts);
     }
 
-    public static ResolvedArtifactSet create(String variantName, ImmutableAttributes variantAttributes, Collection<? extends ResolvedArtifact> artifacts) {
+    public static ResolvedArtifactSet create(
+            String variantName,
+            ImmutableAttributes variantAttributes,
+            Collection<? extends ResolvedArtifact> artifacts) {
         return new TestArtifactSet(variantName, variantAttributes, artifacts);
     }
 
-    public static ResolvedArtifactSet create(ImmutableAttributes variantAttributes, Collection<? extends ResolvedArtifact> artifacts) {
+    public static ResolvedArtifactSet create(
+            ImmutableAttributes variantAttributes, Collection<? extends ResolvedArtifact> artifacts) {
         return new TestArtifactSet(DEFAULT_TEST_VARIANT, variantAttributes, artifacts);
     }
 
@@ -63,25 +67,23 @@ public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet
     }
 
     @Override
-    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
-    }
+    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {}
 
     @Override
     public void visit(ArtifactVisitor visitor) {
         for (final ResolvedArtifact artifact : artifacts) {
             ComponentIdentifier componentId = artifact.getId().getComponentIdentifier();
             NamedVariantIdentifier id = new NamedVariantIdentifier(componentId, variantName);
-            visitor.visitArtifact(Describables.of(variantName), id, variant, ImmutableCapabilities.EMPTY, new Adapter(artifact));
+            visitor.visitArtifact(
+                    Describables.of(variantName), id, variant, ImmutableCapabilities.EMPTY, new Adapter(artifact));
         }
     }
 
     @Override
-    public void visitTransformSources(TransformSourceVisitor visitor) {
-    }
+    public void visitTransformSources(TransformSourceVisitor visitor) {}
 
     @Override
-    public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
-    }
+    public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {}
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
@@ -103,8 +105,7 @@ public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet
         }
 
         @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-        }
+        public void visitDependencies(TaskDependencyResolveContext context) {}
 
         @Override
         public ComponentArtifactIdentifier getId() {
@@ -136,5 +137,4 @@ public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet
             return artifact;
         }
     }
-
 }

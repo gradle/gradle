@@ -18,15 +18,6 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
-import org.gradle.api.internal.DefaultMutationGuard;
-import org.gradle.api.internal.MutationGuard;
-import org.gradle.api.internal.provider.ChangingValue;
-import org.gradle.api.internal.provider.CollectionProviderInternal;
-import org.gradle.api.internal.provider.Collectors;
-import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.internal.Cast;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,6 +27,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import org.gradle.api.Action;
+import org.gradle.api.internal.DefaultMutationGuard;
+import org.gradle.api.internal.MutationGuard;
+import org.gradle.api.internal.provider.ChangingValue;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.Collectors;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.internal.Cast;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
@@ -236,8 +235,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         return added;
     }
 
-    private Collectors.TypedCollector<T> collectorFromCollectionProvider(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        return new Collectors.TypedCollector<>(provider.getElementType(), new Collectors.ElementsFromCollectionProvider<>(provider));
+    private Collectors.TypedCollector<T> collectorFromCollectionProvider(
+            final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        return new Collectors.TypedCollector<>(
+                provider.getElementType(), new Collectors.ElementsFromCollectionProvider<>(provider));
     }
 
     @Override

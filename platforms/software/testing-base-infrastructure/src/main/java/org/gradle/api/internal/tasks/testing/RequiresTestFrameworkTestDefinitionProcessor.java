@@ -28,7 +28,8 @@ import org.jspecify.annotations.NullMarked;
  * @since 9.0
  */
 @NullMarked
-public interface RequiresTestFrameworkTestDefinitionProcessor<D extends TestDefinition> extends TestDefinitionProcessor<D> {
+public interface RequiresTestFrameworkTestDefinitionProcessor<D extends TestDefinition>
+        extends TestDefinitionProcessor<D> {
     /**
      * Checks if the required framework dependencies for test class processing are available.
      *

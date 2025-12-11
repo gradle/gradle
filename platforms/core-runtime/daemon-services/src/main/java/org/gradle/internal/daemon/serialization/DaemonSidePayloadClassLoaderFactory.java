@@ -16,6 +16,12 @@
 
 package org.gradle.internal.daemon.serialization;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -23,18 +29,12 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.tooling.internal.provider.serialization.ClientOwnedClassLoaderSpec;
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFactory {
     private final PayloadClassLoaderFactory delegate;
     private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public DaemonSidePayloadClassLoaderFactory(PayloadClassLoaderFactory delegate, CachedClasspathTransformer cachedClasspathTransformer) {
+    public DaemonSidePayloadClassLoaderFactory(
+            PayloadClassLoaderFactory delegate, CachedClasspathTransformer cachedClasspathTransformer) {
         this.delegate = delegate;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
@@ -43,11 +43,13 @@ public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
         if (spec instanceof ClientOwnedClassLoaderSpec) {
             ClientOwnedClassLoaderSpec clientSpec = (ClientOwnedClassLoaderSpec) spec;
-            return createClassLoaderForClassPath("client-owned-daemon-payload-loader", parents, urls(clientSpec.getClasspath()));
+            return createClassLoaderForClassPath(
+                    "client-owned-daemon-payload-loader", parents, urls(clientSpec.getClasspath()));
         }
         if (spec instanceof VisitableURLClassLoader.Spec) {
             VisitableURLClassLoader.Spec urlSpec = (VisitableURLClassLoader.Spec) spec;
-            return createClassLoaderForClassPath(urlSpec.getName() + "-daemon-payload-loader", parents, urlSpec.getClasspath());
+            return createClassLoaderForClassPath(
+                    urlSpec.getName() + "-daemon-payload-loader", parents, urlSpec.getClasspath());
         }
         return delegate.getClassLoaderFor(spec, parents);
     }
@@ -64,7 +66,8 @@ public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
         return urls;
     }
 
-    private ClassLoader createClassLoaderForClassPath(String name, List<? extends ClassLoader> parents, List<URL> classpath) {
+    private ClassLoader createClassLoaderForClassPath(
+            String name, List<? extends ClassLoader> parents, List<URL> classpath) {
         if (parents.size() != 1) {
             throw new IllegalStateException("Expected exactly one parent ClassLoader");
         }

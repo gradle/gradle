@@ -16,7 +16,13 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.getUnsupportedPluginMessage;
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.getUnsupportedWithIsolatedProjectsMessage;
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.isUnsupportedPluginVersion;
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.isUnsupportedWithIsolatedProjects;
+
 import com.google.common.annotations.VisibleForTesting;
+import java.util.function.Supplier;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInResult;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService;
@@ -27,13 +33,6 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.Nullable;
 
-import java.util.function.Supplier;
-
-import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.getUnsupportedPluginMessage;
-import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.getUnsupportedWithIsolatedProjectsMessage;
-import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.isUnsupportedPluginVersion;
-import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.isUnsupportedWithIsolatedProjects;
-
 public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterprisePluginCheckInService {
 
     private final GradleEnterprisePluginManager manager;
@@ -42,10 +41,9 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     private final boolean isIsolatedProjectsEnabled;
 
     public DefaultGradleEnterprisePluginCheckInService(
-        BuildModelParameters buildModelParameters,
-        GradleEnterprisePluginManager manager,
-        DefaultGradleEnterprisePluginAdapterFactory pluginAdapterFactory
-    ) {
+            BuildModelParameters buildModelParameters,
+            GradleEnterprisePluginManager manager,
+            DefaultGradleEnterprisePluginAdapterFactory pluginAdapterFactory) {
         this.manager = manager;
         this.pluginAdapterFactory = pluginAdapterFactory;
         this.isConfigurationCacheEnabled = buildModelParameters.isConfigurationCache();
@@ -55,14 +53,17 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     // Used just for testing
     @VisibleForTesting
     public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-develocity-plugin";
+
     @VisibleForTesting
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Develocity plugin unsupported due to secret toggle";
 
-    private static final String DISABLE_TEST_ACCELERATION_PROPERTY = "gradle.internal.testacceleration.disableImplicitApplication";
+    private static final String DISABLE_TEST_ACCELERATION_PROPERTY =
+            "gradle.internal.testacceleration.disableImplicitApplication";
     private static final VersionNumber AUTO_DISABLE_TEST_ACCELERATION_SINCE_VERSION = VersionNumber.parse("3.14");
 
     @Override
-    public GradleEnterprisePluginCheckInResult checkIn(GradleEnterprisePluginMetadata pluginMetadata, GradleEnterprisePluginServiceFactory serviceFactory) {
+    public GradleEnterprisePluginCheckInResult checkIn(
+            GradleEnterprisePluginMetadata pluginMetadata, GradleEnterprisePluginServiceFactory serviceFactory) {
         String pluginVersion = pluginMetadata.getVersion();
         VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
 
@@ -75,7 +76,8 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         }
 
         if (isIsolatedProjectsEnabled && isUnsupportedWithIsolatedProjects(pluginBaseVersion)) {
-            return checkInUnsupportedResult(pluginBaseVersion, getUnsupportedWithIsolatedProjectsMessage(pluginVersion));
+            return checkInUnsupportedResult(
+                    pluginBaseVersion, getUnsupportedWithIsolatedProjectsMessage(pluginVersion));
         }
 
         DefaultGradleEnterprisePluginAdapter adapter = pluginAdapterFactory.create(serviceFactory);
@@ -84,7 +86,8 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         return checkInResult(null, () -> ref);
     }
 
-    private GradleEnterprisePluginCheckInResult checkInUnsupportedResult(VersionNumber pluginBaseVersion, String unsupportedMessage) {
+    private GradleEnterprisePluginCheckInResult checkInUnsupportedResult(
+            VersionNumber pluginBaseVersion, String unsupportedMessage) {
         // Test Acceleration can be applied even if the check-in returns an "unsupported" result.
         // We have to disable it manually, because it is not compatible with Configuration Cache
         if (isConfigurationCacheEnabled && !supportsAutoDisableTestAcceleration(pluginBaseVersion)) {
@@ -101,7 +104,8 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         return AUTO_DISABLE_TEST_ACCELERATION_SINCE_VERSION.compareTo(pluginBaseVersion) <= 0;
     }
 
-    private static GradleEnterprisePluginCheckInResult checkInResult(@Nullable String unsupportedMessage, Supplier<GradleEnterprisePluginServiceRef> pluginServiceRefSupplier) {
+    private static GradleEnterprisePluginCheckInResult checkInResult(
+            @Nullable String unsupportedMessage, Supplier<GradleEnterprisePluginServiceRef> pluginServiceRefSupplier) {
         return new GradleEnterprisePluginCheckInResult() {
             @Nullable
             @Override

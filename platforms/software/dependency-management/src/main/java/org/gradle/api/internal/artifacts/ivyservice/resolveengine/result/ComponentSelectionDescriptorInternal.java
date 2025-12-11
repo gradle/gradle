@@ -51,5 +51,4 @@ public interface ComponentSelectionDescriptorInternal extends ComponentSelection
     boolean isEquivalentToForce();
 
     Describable getDescribable();
-
 }

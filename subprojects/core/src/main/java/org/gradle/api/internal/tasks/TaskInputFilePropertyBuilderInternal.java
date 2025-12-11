@@ -22,10 +22,12 @@ import org.gradle.internal.fingerprint.FileNormalizer;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public interface TaskInputFilePropertyBuilderInternal extends TaskInputFilePropertyBuilder, TaskFilePropertyBuilderInternal {
+public interface TaskInputFilePropertyBuilderInternal
+        extends TaskInputFilePropertyBuilder, TaskFilePropertyBuilderInternal {
 
     @Override
-    TaskInputFilePropertyBuilderInternal withNormalizer(Class<? extends org.gradle.api.tasks.FileNormalizer> normalizer);
+    TaskInputFilePropertyBuilderInternal withNormalizer(
+            Class<? extends org.gradle.api.tasks.FileNormalizer> normalizer);
 
     TaskInputFilePropertyBuilderInternal withInternalNormalizer(FileNormalizer normalizer);
 

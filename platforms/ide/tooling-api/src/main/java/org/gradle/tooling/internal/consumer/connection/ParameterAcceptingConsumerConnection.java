@@ -29,10 +29,12 @@ import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection
 public class ParameterAcceptingConsumerConnection extends TestExecutionConsumerConnection {
     private final ActionRunner actionRunner;
 
-    public ParameterAcceptingConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
+    public ParameterAcceptingConsumerConnection(
+            ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, modelMapping, adapter);
         InternalParameterAcceptingConnection connection = (InternalParameterAcceptingConnection) delegate;
-        CancellationExceptionTransformer exceptionTransformer = CancellationExceptionTransformer.transformerFor(getVersionDetails());
+        CancellationExceptionTransformer exceptionTransformer =
+                CancellationExceptionTransformer.transformerFor(getVersionDetails());
         actionRunner = new ParameterizedActionRunner(connection, exceptionTransformer, getVersionDetails());
     }
 
@@ -40,5 +42,4 @@ public class ParameterAcceptingConsumerConnection extends TestExecutionConsumerC
     protected ActionRunner getActionRunner() {
         return actionRunner;
     }
-
 }

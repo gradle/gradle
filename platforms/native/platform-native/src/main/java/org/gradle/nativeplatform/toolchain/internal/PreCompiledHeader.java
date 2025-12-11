@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import java.io.File;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
@@ -30,8 +31,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class PreCompiledHeader extends AbstractBuildableComponentSpec {
     FileCollection pchObjects;
@@ -70,7 +69,9 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
         this.prefixHeaderFile = prefixHeaderFile;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getIncludeString() {
         return includeString;
     }

@@ -16,6 +16,10 @@
 
 package org.gradle.api.tasks;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DeleteSpec;
@@ -26,11 +30,6 @@ import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazy
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.Set;
 
 /**
  * <p>Deletes files or directories. Example:</p>
@@ -77,7 +76,9 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * @return The files. Never returns null.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Should be deprecated, users should use getTargetFiles()", willBeDeprecated = true)
+    @NotToBeReplacedByLazyProperty(
+            because = "Should be deprecated, users should use getTargetFiles()",
+            willBeDeprecated = true)
     public Set<Object> getDelete() {
         return paths.getFrom();
     }

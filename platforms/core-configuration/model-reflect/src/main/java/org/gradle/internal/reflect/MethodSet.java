@@ -16,6 +16,8 @@
 
 package org.gradle.internal.reflect;
 
+import static java.util.Collections.unmodifiableCollection;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -24,8 +26,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-
-import static java.util.Collections.unmodifiableCollection;
 
 public class MethodSet implements Iterable<Method> {
     private final Map<MethodKey, Method> methods = new LinkedHashMap<>();
@@ -82,8 +82,8 @@ public class MethodSet implements Iterable<Method> {
 
             MethodKey that = (MethodKey) obj;
             return Objects.equals(method.getName(), that.method.getName())
-                && Objects.equals(method.getReturnType(), that.method.getReturnType())
-                && Arrays.equals(parameterTypes, that.parameterTypes);
+                    && Objects.equals(method.getReturnType(), that.method.getReturnType())
+                    && Arrays.equals(parameterTypes, that.parameterTypes);
         }
 
         @Override

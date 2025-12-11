@@ -24,5 +24,4 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * A consumer for build events provided by the build requester. This can be used to forward events to the build requester.
  */
 @ServiceScope(Scope.BuildSession.class)
-public interface BuildEventConsumer extends Dispatch<Object> {
-}
+public interface BuildEventConsumer extends Dispatch<Object> {}

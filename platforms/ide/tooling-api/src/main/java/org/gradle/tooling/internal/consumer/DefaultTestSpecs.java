@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.TestSpec;
-import org.gradle.tooling.TestSpecs;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.tooling.TestSpec;
+import org.gradle.tooling.TestSpecs;
 
 public class DefaultTestSpecs implements TestSpecs {
 

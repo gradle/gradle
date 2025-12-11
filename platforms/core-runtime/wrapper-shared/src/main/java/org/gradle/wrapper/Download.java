@@ -59,16 +59,29 @@ public class Download implements IDownload {
     private static Map<String, String> convertSystemProperties(Properties properties) {
         Map<String, String> result = new HashMap<String, String>();
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
-            result.put(entry.getKey().toString(), entry.getValue() == null ? null : entry.getValue().toString());
+            result.put(
+                    entry.getKey().toString(),
+                    entry.getValue() == null ? null : entry.getValue().toString());
         }
         return result;
     }
 
-    public Download(Logger logger, DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties) {
+    public Download(
+            Logger logger,
+            DownloadProgressListener progressListener,
+            String appName,
+            String appVersion,
+            Map<String, String> systemProperties) {
         this(logger, progressListener, appName, appVersion, systemProperties, DEFAULT_NETWORK_TIMEOUT_MILLISECONDS);
     }
 
-    public Download(Logger logger, DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties, int networkTimeout) {
+    public Download(
+            Logger logger,
+            DownloadProgressListener progressListener,
+            String appName,
+            String appVersion,
+            Map<String, String> systemProperties,
+            int networkTimeout) {
         this.logger = logger;
         this.appName = appName;
         this.appVersion = appVersion;
@@ -80,7 +93,8 @@ public class Download implements IDownload {
 
     private void configureProxyAuthentication() {
         if (systemProperties.get("http.proxyUser") != null || systemProperties.get("https.proxyUser") != null) {
-            // Only an authenticator for proxies needs to be set. Basic authentication is supported by directly setting the request header field.
+            // Only an authenticator for proxies needs to be set. Basic authentication is supported by directly setting
+            // the request header field.
             Authenticator.setDefault(new ProxyAuthenticator(systemProperties));
         }
     }
@@ -89,7 +103,7 @@ public class Download implements IDownload {
         URL safeUrl = safeUri(uri).toURL();
         int responseCode = -1;
         try {
-            HttpURLConnection conn = (HttpURLConnection)safeUrl.openConnection();
+            HttpURLConnection conn = (HttpURLConnection) safeUrl.openConnection();
             conn.setRequestMethod("HEAD");
             addBasicAuthentication(uri, conn);
             conn.setRequestProperty("User-Agent", calculateUserAgent());
@@ -97,10 +111,14 @@ public class Download implements IDownload {
             conn.connect();
             responseCode = conn.getResponseCode();
             if (responseCode != 200) {
-                throw new RuntimeException("HEAD request to " + safeUrl + " failed: response code (" + responseCode + ")");
+                throw new RuntimeException(
+                        "HEAD request to " + safeUrl + " failed: response code (" + responseCode + ")");
             }
         } catch (IOException e) {
-            throw new RuntimeException("HEAD request to " + safeUrl + " failed: response code (" + responseCode + "), timeout (" + networkTimeout + "ms)", e);
+            throw new RuntimeException(
+                    "HEAD request to " + safeUrl + " failed: response code (" + responseCode + "), timeout ("
+                            + networkTimeout + "ms)",
+                    e);
         }
     }
 
@@ -110,8 +128,7 @@ public class Download implements IDownload {
         downloadInternal(address, destination);
     }
 
-    private void downloadInternal(URI address, File destination)
-        throws Exception {
+    private void downloadInternal(URI address, File destination) throws Exception {
         OutputStream out = null;
         URLConnection conn;
         InputStream in = null;
@@ -119,7 +136,8 @@ public class Download implements IDownload {
         try {
             out = new BufferedOutputStream(new FileOutputStream(destination));
 
-            // No proxy is passed here as proxies are set globally using the HTTP(S) proxy system properties. The respective protocol handler implementation then makes use of these properties.
+            // No proxy is passed here as proxies are set globally using the HTTP(S) proxy system properties. The
+            // respective protocol handler implementation then makes use of these properties.
             conn = safeUrl.openConnection();
 
             addBasicAuthentication(address, conn);
@@ -127,16 +145,17 @@ public class Download implements IDownload {
             conn.setRequestProperty("User-Agent", userAgentValue);
             conn.setConnectTimeout(networkTimeout);
             conn.setReadTimeout(networkTimeout);
-            
+
             // Check HTTP response code before downloading
             if (conn instanceof HttpURLConnection) {
                 HttpURLConnection httpConn = (HttpURLConnection) conn;
                 int responseCode = httpConn.getResponseCode();
                 if (responseCode != HttpURLConnection.HTTP_OK) {
-                    throw new IOException("Server returned HTTP response code: " + responseCode + " for URL: " + safeUrl);
+                    throw new IOException(
+                            "Server returned HTTP response code: " + responseCode + " for URL: " + safeUrl);
                 }
             }
-            
+
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
@@ -179,7 +198,14 @@ public class Download implements IDownload {
      */
     static URI safeUri(URI uri) {
         try {
-            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+            return new URI(
+                    uri.getScheme(),
+                    null,
+                    uri.getHost(),
+                    uri.getPort(),
+                    uri.getPath(),
+                    uri.getQuery(),
+                    uri.getFragment());
         } catch (URISyntaxException e) {
             throw new RuntimeException("Failed to parse URI", e);
         }
@@ -191,7 +217,8 @@ public class Download implements IDownload {
             return;
         }
         if (!"https".equals(address.getScheme())) {
-            logger.log("WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.");
+            logger.log(
+                    "WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.");
         }
         connection.setRequestProperty("Authorization", "Basic " + base64Encode(userInfo));
     }
@@ -212,15 +239,19 @@ public class Download implements IDownload {
         ClassLoader loader = getClass().getClassLoader();
         try {
             Method getEncoderMethod = loader.loadClass("java.util.Base64").getMethod("getEncoder");
-            Method encodeMethod = loader.loadClass("java.util.Base64$Encoder").getMethod("encodeToString", byte[].class);
+            Method encodeMethod =
+                    loader.loadClass("java.util.Base64$Encoder").getMethod("encodeToString", byte[].class);
             Object encoder = getEncoderMethod.invoke(null);
-            return (String) encodeMethod.invoke(encoder, new Object[]{userInfo.getBytes("UTF-8")});
+            return (String) encodeMethod.invoke(encoder, new Object[] {userInfo.getBytes("UTF-8")});
         } catch (Exception java7OrEarlier) {
             try {
-                Method encodeMethod = loader.loadClass("javax.xml.bind.DatatypeConverter").getMethod("printBase64Binary", byte[].class);
-                return (String) encodeMethod.invoke(null, new Object[]{userInfo.getBytes("UTF-8")});
+                Method encodeMethod = loader.loadClass("javax.xml.bind.DatatypeConverter")
+                        .getMethod("printBase64Binary", byte[].class);
+                return (String) encodeMethod.invoke(null, new Object[] {userInfo.getBytes("UTF-8")});
             } catch (Exception java5OrEarlier) {
-                throw new RuntimeException("Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.", java5OrEarlier);
+                throw new RuntimeException(
+                        "Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.",
+                        java5OrEarlier);
             }
         }
     }
@@ -241,7 +272,9 @@ public class Download implements IDownload {
         String osName = systemProperties.get("os.name");
         String osVersion = systemProperties.get("os.version");
         String osArch = systemProperties.get("os.arch");
-        return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)", appName, appVersion, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
+        return String.format(
+                "%s/%s (%s;%s;%s) (%s;%s;%s)",
+                appName, appVersion, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
     }
 
     private static class ProxyAuthenticator extends Authenticator {
@@ -283,7 +316,8 @@ public class Download implements IDownload {
 
         @Override
         public void downloadStatusChanged(URI address, long contentLength, long downloaded) {
-            // If the total size of distribution is known, but there's no advanced progress listener, provide extra progress information
+            // If the total size of distribution is known, but there's no advanced progress listener, provide extra
+            // progress information
             if (contentLength > 0 && delegate == null) {
                 appendPercentageSoFar(contentLength, downloaded);
             }

@@ -70,7 +70,8 @@ public class BlockDetailRenderer {
             link.setAttribute("linkend", blockDoc.getBlockProperty().getId());
             literal = document.createElement("literal");
             link.appendChild(literal);
-            literal.appendChild(document.createTextNode(blockDoc.getBlockProperty().getName()));
+            literal.appendChild(
+                    document.createTextNode(blockDoc.getBlockProperty().getName()));
         } else {
             seg.appendChild(linkRenderer.link(blockDoc.getType(), listener));
             seg.appendChild(document.createTextNode(" from "));
@@ -80,8 +81,8 @@ public class BlockDetailRenderer {
             link.setAttribute("linkend", blockDoc.getBlockProperty().getId());
             literal = document.createElement("literal");
             link.appendChild(literal);
-            literal.appendChild(document.createTextNode(blockDoc.getBlockProperty().getName()));
-
+            literal.appendChild(
+                    document.createTextNode(blockDoc.getBlockProperty().getName()));
         }
     }
 }

@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
-import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
-
+import java.util.Set;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileManager;
-import java.util.Set;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
 
 /**
  * The strategy used for dynamic processors.
@@ -48,7 +47,8 @@ public class DynamicProcessingStrategy extends IncrementalProcessingStrategy {
     }
 
     @Override
-    public void recordProcessingInputs(Set<String> supportedAnnotationTypes, Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+    public void recordProcessingInputs(
+            Set<String> supportedAnnotationTypes, Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         delegate.recordProcessingInputs(supportedAnnotationTypes, annotations, roundEnv);
     }
 
@@ -58,7 +58,11 @@ public class DynamicProcessingStrategy extends IncrementalProcessingStrategy {
     }
 
     @Override
-    public void recordGeneratedResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName, Element[] originatingElements) {
+    public void recordGeneratedResource(
+            JavaFileManager.Location location,
+            CharSequence pkg,
+            CharSequence relativeName,
+            Element[] originatingElements) {
         delegate.recordGeneratedResource(location, pkg, relativeName, originatingElements);
     }
 }

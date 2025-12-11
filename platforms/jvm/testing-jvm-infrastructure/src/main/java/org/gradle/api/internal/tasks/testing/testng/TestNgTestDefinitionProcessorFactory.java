@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import java.io.File;
+import java.io.Serializable;
+import java.util.List;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
@@ -23,15 +26,12 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 
-import java.io.File;
-import java.io.Serializable;
-import java.util.List;
-
 /**
  * Implementation of {@link WorkerTestDefinitionProcessorFactory} which instantiates a {@link TestNGTestDefinitionProcessor}.
  * This class is loaded on test workers themselves and acts as the entry-point to running TestNG tests on a test worker.
  */
-class TestNgTestDefinitionProcessorFactory implements WorkerTestDefinitionProcessorFactory<ClassTestDefinition>, Serializable {
+class TestNgTestDefinitionProcessorFactory
+        implements WorkerTestDefinitionProcessorFactory<ClassTestDefinition>, Serializable {
     private final File testReportDir;
     private final TestNGSpec options;
     private final List<File> suiteFiles;
@@ -43,7 +43,8 @@ class TestNgTestDefinitionProcessorFactory implements WorkerTestDefinitionProces
     }
 
     @Override
-    public TestDefinitionProcessor<ClassTestDefinition> create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
+    public TestDefinitionProcessor<ClassTestDefinition> create(
+            IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         return new TestNGTestDefinitionProcessor(testReportDir, options, suiteFiles, idGenerator, clock, actorFactory);
     }
 }

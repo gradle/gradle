@@ -16,22 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import com.google.common.base.Joiner;
-import junit.framework.AssertionFailedError;
-import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.internal.buildevents.ContextAwareExceptionHandler;
-import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.problems.failure.DefaultFailureFactory;
-import org.hamcrest.Matcher;
-import org.hamcrest.StringDescription;
-
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.regex.Pattern;
-
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.normalizeLambdaIds;
 import static org.gradle.util.Matchers.normalizedLineSeparators;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -40,6 +24,21 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+
+import com.google.common.base.Joiner;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
+import junit.framework.AssertionFailedError;
+import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.internal.buildevents.ContextAwareExceptionHandler;
+import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.internal.problems.failure.DefaultFailureFactory;
+import org.hamcrest.Matcher;
+import org.hamcrest.StringDescription;
 
 /**
  * An execution failure that wraps another failure, but also carries a throwable that caused the failure.
@@ -81,7 +80,8 @@ public class ExecutionFailureWithThrowable implements DelegatingExecutionFailure
         if (matcher.find()) {
             fileNames.add(matcher.group(1));
             lineNumbers.add(matcher.group(3));
-            failures.add(new FailureDetails(failure, failureMessage.substring(matcher.end()).trim(), causes));
+            failures.add(new FailureDetails(
+                    failure, failureMessage.substring(matcher.end()).trim(), causes));
         } else {
             failures.add(new FailureDetails(failure, failureMessage.trim(), causes));
         }
@@ -94,8 +94,10 @@ public class ExecutionFailureWithThrowable implements DelegatingExecutionFailure
                 extractCauses(componentFailure, causes);
             }
         } else if (failure instanceof LocationAwareException) {
-            org.gradle.internal.problems.failure.Failure richFailure = DefaultFailureFactory.withDefaultClassifier().create(failure);
-            for (org.gradle.internal.problems.failure.Failure cause : ContextAwareExceptionHandler.getReportableCauses(richFailure)) {
+            org.gradle.internal.problems.failure.Failure richFailure =
+                    DefaultFailureFactory.withDefaultClassifier().create(failure);
+            for (org.gradle.internal.problems.failure.Failure cause :
+                    ContextAwareExceptionHandler.getReportableCauses(richFailure)) {
                 causes.add(cause.getMessage());
             }
         } else {
@@ -164,7 +166,8 @@ public class ExecutionFailureWithThrowable implements DelegatingExecutionFailure
         for (FailureDetails failure : failures) {
             for (String cause : failure.causes) {
                 if (matcher.matches(cause)) {
-                    throw new AssertionFailedError(String.format("Expected no failure with description '%s', found: %s", description, cause));
+                    throw new AssertionFailedError(
+                            String.format("Expected no failure with description '%s', found: %s", description, cause));
                 }
             }
         }
@@ -214,7 +217,9 @@ public class ExecutionFailureWithThrowable implements DelegatingExecutionFailure
         }
         StringDescription description = new StringDescription();
         matcher.describeTo(description);
-        throw new AssertionFailedError(String.format("Could not find any failure with description %s, failures:%s\n", description, Joiner.on("\n").join(failures)));
+        throw new AssertionFailedError(String.format(
+                "Could not find any failure with description %s, failures:%s\n",
+                description, Joiner.on("\n").join(failures)));
     }
 
     private static class FailureDetails extends AbstractFailure {

@@ -16,10 +16,8 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.classloader.ClassLoaderUtils;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.gradle.internal.classpath.transforms.CommonTypes.OBJECT_TYPE;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,10 +25,10 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.gradle.internal.classpath.transforms.CommonTypes.OBJECT_TYPE;
-
+import org.gradle.api.GradleException;
+import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
 
 /**
  * Enriches class loading with empty interfaces for certain types that have been removed,
@@ -38,7 +36,8 @@ import static org.gradle.internal.classpath.transforms.CommonTypes.OBJECT_TYPE;
  */
 public class DefaultLegacyTypesSupport implements LegacyTypesSupport {
     private static final int JAVA_BYTE_CODE_COMPATIBILITY = Opcodes.V1_8;
-    private static final int INTERFACE_ACCESS_MODIFIERS = Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_INTERFACE | Opcodes.ACC_ABSTRACT;
+    private static final int INTERFACE_ACCESS_MODIFIERS =
+            Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_INTERFACE | Opcodes.ACC_ABSTRACT;
 
     private final ConventionInterfaceGenerator conventionGenerator = new ConventionInterfaceGenerator();
     private final Set<String> classesToMixInGroovyObject = readClassNames("converted-types.txt");
@@ -84,7 +83,13 @@ public class DefaultLegacyTypesSupport implements LegacyTypesSupport {
 
     private static byte[] generateEmptyInterface(String name) {
         ClassWriter visitor = new ClassWriter(0);
-        visitor.visit(JAVA_BYTE_CODE_COMPATIBILITY, INTERFACE_ACCESS_MODIFIERS, getInternalName(name), null, OBJECT_TYPE.getInternalName(), null);
+        visitor.visit(
+                JAVA_BYTE_CODE_COMPATIBILITY,
+                INTERFACE_ACCESS_MODIFIERS,
+                getInternalName(name),
+                null,
+                OBJECT_TYPE.getInternalName(),
+                null);
         visitor.visitEnd();
         return visitor.toByteArray();
     }

@@ -17,6 +17,18 @@
 package org.gradle.internal.jvm.inspection;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
@@ -39,19 +51,6 @@ import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.jspecify.annotations.NullMarked;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
 @NullMarked
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
     private final BuildOperationRunner buildOperationRunner;
@@ -64,46 +63,62 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
 
     @Inject
     public DefaultJavaInstallationRegistry(
-        ToolchainConfiguration toolchainConfiguration,
-        List<InstallationSupplier> suppliers,
-        JvmMetadataDetector metadataDetector,
-        BuildOperationRunner buildOperationRunner,
-        OperatingSystem os,
-        ProgressLoggerFactory progressLoggerFactory,
-        FileResolver fileResolver,
-        JdkCacheDirectory jdkCacheDirectory,
-        JvmInstallationProblemReporter problemReporter
-    ) {
-        this(toolchainConfiguration, suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, fileResolver, jdkCacheDirectory, problemReporter);
+            ToolchainConfiguration toolchainConfiguration,
+            List<InstallationSupplier> suppliers,
+            JvmMetadataDetector metadataDetector,
+            BuildOperationRunner buildOperationRunner,
+            OperatingSystem os,
+            ProgressLoggerFactory progressLoggerFactory,
+            FileResolver fileResolver,
+            JdkCacheDirectory jdkCacheDirectory,
+            JvmInstallationProblemReporter problemReporter) {
+        this(
+                toolchainConfiguration,
+                suppliers,
+                metadataDetector,
+                Logging.getLogger(JavaInstallationRegistry.class),
+                buildOperationRunner,
+                os,
+                progressLoggerFactory,
+                fileResolver,
+                jdkCacheDirectory,
+                problemReporter);
     }
 
     private DefaultJavaInstallationRegistry(
-        ToolchainConfiguration toolchainConfiguration,
-        List<InstallationSupplier> suppliers,
-        JvmMetadataDetector metadataDetector,
-        Logger logger,
-        BuildOperationRunner buildOperationRunner,
-        OperatingSystem os,
-        ProgressLoggerFactory progressLoggerFactory,
-        FileResolver fileResolver,
-        JdkCacheDirectory jdkCacheDirectory,
-        JvmInstallationProblemReporter problemReporter
-    ) {
-        this(toolchainConfiguration, builtInSuppliers(toolchainConfiguration, fileResolver, jdkCacheDirectory), suppliers, metadataDetector, logger, buildOperationRunner, os, progressLoggerFactory, problemReporter);
+            ToolchainConfiguration toolchainConfiguration,
+            List<InstallationSupplier> suppliers,
+            JvmMetadataDetector metadataDetector,
+            Logger logger,
+            BuildOperationRunner buildOperationRunner,
+            OperatingSystem os,
+            ProgressLoggerFactory progressLoggerFactory,
+            FileResolver fileResolver,
+            JdkCacheDirectory jdkCacheDirectory,
+            JvmInstallationProblemReporter problemReporter) {
+        this(
+                toolchainConfiguration,
+                builtInSuppliers(toolchainConfiguration, fileResolver, jdkCacheDirectory),
+                suppliers,
+                metadataDetector,
+                logger,
+                buildOperationRunner,
+                os,
+                progressLoggerFactory,
+                problemReporter);
     }
 
     @VisibleForTesting
     protected DefaultJavaInstallationRegistry(
-        ToolchainConfiguration toolchainConfiguration,
-        List<InstallationSupplier> suppliers,
-        List<InstallationSupplier> optionalSuppliers,
-        JvmMetadataDetector metadataDetector,
-        Logger logger,
-        BuildOperationRunner buildOperationRunner,
-        OperatingSystem os,
-        ProgressLoggerFactory progressLoggerFactory,
-        JvmInstallationProblemReporter problemReporter
-    ) {
+            ToolchainConfiguration toolchainConfiguration,
+            List<InstallationSupplier> suppliers,
+            List<InstallationSupplier> optionalSuppliers,
+            JvmMetadataDetector metadataDetector,
+            Logger logger,
+            BuildOperationRunner buildOperationRunner,
+            OperatingSystem os,
+            ProgressLoggerFactory progressLoggerFactory,
+            JvmInstallationProblemReporter problemReporter) {
         this.logger = logger;
         this.buildOperationRunner = buildOperationRunner;
         this.metadataDetector = metadataDetector;
@@ -117,7 +132,10 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         this.problemReporter = problemReporter;
     }
 
-    private static List<InstallationSupplier> builtInSuppliers(ToolchainConfiguration toolchainConfiguration, FileResolver fileResolver, JdkCacheDirectory jdkCacheDirectory) {
+    private static List<InstallationSupplier> builtInSuppliers(
+            ToolchainConfiguration toolchainConfiguration,
+            FileResolver fileResolver,
+            JdkCacheDirectory jdkCacheDirectory) {
         List<InstallationSupplier> allSuppliers = new ArrayList<>();
         allSuppliers.add(new EnvironmentVariableListInstallationSupplier(toolchainConfiguration, fileResolver));
         allSuppliers.add(new EnvironmentVariableJavaHomeInstallationSupplier(toolchainConfiguration));
@@ -141,12 +159,14 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
 
     @Override
     public List<JvmToolchainMetadata> toolchains() {
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(JavaInstallationRegistry.class).start("Discovering toolchains", "Discovering toolchains");
-        List<JvmToolchainMetadata> result = listInstallations()
-            .parallelStream()
-            .peek(location -> progressLogger.progress("Extracting toolchain metadata from " + location.getDisplayName()))
-            .map(this::resolveMetadata)
-            .collect(Collectors.toList());
+        ProgressLogger progressLogger = progressLoggerFactory
+                .newOperation(JavaInstallationRegistry.class)
+                .start("Discovering toolchains", "Discovering toolchains");
+        List<JvmToolchainMetadata> result = listInstallations().parallelStream()
+                .peek(location ->
+                        progressLogger.progress("Extracting toolchain metadata from " + location.getDisplayName()))
+                .map(this::resolveMetadata)
+                .collect(Collectors.toList());
         progressLogger.completed();
         return result;
     }
@@ -163,25 +183,33 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
 
     private Set<InstallationLocation> collectInstallations(List<InstallationSupplier> suppliers) {
         return suppliers.parallelStream()
-            .peek(x -> logger.debug("Discovering toolchains provided via {}", x.getSourceName()))
-            .map(InstallationSupplier::get)
-            .flatMap(Set::stream)
-            .filter(this::installationExists)
-            .map(this::canonicalize)
-            .map(this::maybeGetEnclosedInstallation)
-            .filter(this::installationHasExecutable)
-            .filter(distinctByKey(InstallationLocation::getLocation))
-            .collect(Collectors.toSet());
+                .peek(x -> logger.debug("Discovering toolchains provided via {}", x.getSourceName()))
+                .map(InstallationSupplier::get)
+                .flatMap(Set::stream)
+                .filter(this::installationExists)
+                .map(this::canonicalize)
+                .map(this::maybeGetEnclosedInstallation)
+                .filter(this::installationHasExecutable)
+                .filter(distinctByKey(InstallationLocation::getLocation))
+                .collect(Collectors.toSet());
     }
 
     protected boolean installationExists(InstallationLocation installationLocation) {
         File file = installationLocation.getLocation();
         if (!file.exists()) {
-            problemReporter.reportProblemIfNeeded(logger, installationLocation, "Directory " + installationLocation.getDisplayName() + " used for java installations does not exist");
+            problemReporter.reportProblemIfNeeded(
+                    logger,
+                    installationLocation,
+                    "Directory " + installationLocation.getDisplayName()
+                            + " used for java installations does not exist");
             return false;
         }
         if (!file.isDirectory()) {
-            problemReporter.reportProblemIfNeeded(logger, installationLocation, "Path for java installation " + installationLocation.getDisplayName() + " points to a file, not a directory");
+            problemReporter.reportProblemIfNeeded(
+                    logger,
+                    installationLocation,
+                    "Path for java installation " + installationLocation.getDisplayName()
+                            + " points to a file, not a directory");
             return false;
         }
         return true;
@@ -189,7 +217,11 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
 
     protected boolean installationHasExecutable(InstallationLocation installationLocation) {
         if (!hasJavaExecutable(installationLocation.getLocation())) {
-            problemReporter.reportProblemIfNeeded(logger, installationLocation, "Path for java installation " + installationLocation.getDisplayName() + " does not contain a java executable");
+            problemReporter.reportProblemIfNeeded(
+                    logger,
+                    installationLocation,
+                    "Path for java installation " + installationLocation.getDisplayName()
+                            + " does not contain a java executable");
             return false;
         }
         return true;
@@ -251,9 +283,8 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor
-                .displayName("Toolchain detection")
-                .progressDisplayName("Detecting local java toolchains");
+            return BuildOperationDescriptor.displayName("Toolchain detection")
+                    .progressDisplayName("Detecting local java toolchains");
         }
     }
 
@@ -283,7 +314,5 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
                 locations = initializer.get();
             }
         }
-
     }
-
 }

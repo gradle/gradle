@@ -16,11 +16,10 @@
 
 package org.gradle.internal.instantiation.generator;
 
+import java.util.List;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
-
-import java.util.List;
 
 class ParamsMatchingConstructorSelector implements ConstructorSelector {
     private final ClassGenerator classGenerator;
@@ -35,7 +34,8 @@ class ParamsMatchingConstructorSelector implements ConstructorSelector {
     }
 
     @Override
-    public <T> ClassGenerator.GeneratedConstructor<? extends T> forType(Class<T> type) throws UnsupportedOperationException {
+    public <T> ClassGenerator.GeneratedConstructor<? extends T> forType(Class<T> type)
+            throws UnsupportedOperationException {
         throw new UnsupportedOperationException("This constructor selector requires the construction parameters");
     }
 
@@ -43,7 +43,8 @@ class ParamsMatchingConstructorSelector implements ConstructorSelector {
     public <T> ClassGenerator.GeneratedConstructor<? extends T> forParams(final Class<T> type, Object[] params) {
         ClassGenerator.GeneratedClass<?> generatedClass = classGenerator.generate(type);
 
-        if (generatedClass.getOuterType() != null && (params.length == 0 || !generatedClass.getOuterType().isInstance(params[0]))) {
+        if (generatedClass.getOuterType() != null
+                && (params.length == 0 || !generatedClass.getOuterType().isInstance(params[0]))) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node(type);
             formatter.append(" is a non-static inner class.");

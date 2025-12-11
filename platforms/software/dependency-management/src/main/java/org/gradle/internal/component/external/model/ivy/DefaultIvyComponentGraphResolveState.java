@@ -17,6 +17,9 @@
 package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -29,16 +32,18 @@ import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-
 /**
  * External component state implementation for ivy components.
  */
-public class DefaultIvyComponentGraphResolveState extends DefaultExternalModuleComponentGraphResolveState<IvyModuleResolveMetadata, IvyModuleResolveMetadata> implements IvyComponentGraphResolveState {
+public class DefaultIvyComponentGraphResolveState
+        extends DefaultExternalModuleComponentGraphResolveState<IvyModuleResolveMetadata, IvyModuleResolveMetadata>
+        implements IvyComponentGraphResolveState {
 
-    public DefaultIvyComponentGraphResolveState(long instanceId, IvyModuleResolveMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
+    public DefaultIvyComponentGraphResolveState(
+            long instanceId,
+            IvyModuleResolveMetadata metadata,
+            AttributeDesugaring attributeDesugaring,
+            ComponentIdGenerator idGenerator) {
         super(instanceId, metadata, metadata, attributeDesugaring, idGenerator);
     }
 
@@ -67,7 +72,6 @@ public class DefaultIvyComponentGraphResolveState extends DefaultExternalModuleC
         return configuration.asVariant();
     }
 
-
     @Override
     public IvyComponentArtifactResolveMetadata getArtifactMetadata() {
         @SuppressWarnings("deprecation")
@@ -78,12 +82,11 @@ public class DefaultIvyComponentGraphResolveState extends DefaultExternalModuleC
     @Override
     public IvyGraphSelectionCandidates getCandidatesForGraphVariantSelection() {
         return new DefaultIvyGraphSelectionCandidates(
-            super.getCandidatesForGraphVariantSelection(),
-            this::getConfigurationAsVariant
-        );
+                super.getCandidatesForGraphVariantSelection(), this::getConfigurationAsVariant);
     }
 
-    private static class DefaultIvyComponentArtifactResolveMetadata extends ExternalArtifactResolveMetadata implements IvyComponentArtifactResolveMetadata {
+    private static class DefaultIvyComponentArtifactResolveMetadata extends ExternalArtifactResolveMetadata
+            implements IvyComponentArtifactResolveMetadata {
         private final IvyModuleResolveMetadata metadata;
 
         public DefaultIvyComponentArtifactResolveMetadata(IvyModuleResolveMetadata metadata) {
@@ -108,9 +111,7 @@ public class DefaultIvyComponentGraphResolveState extends DefaultExternalModuleC
         private final Function<String, VariantGraphResolveState> configurationSupplier;
 
         public DefaultIvyGraphSelectionCandidates(
-            GraphSelectionCandidates candidates,
-            Function<String, VariantGraphResolveState> configurationSupplier
-        ) {
+                GraphSelectionCandidates candidates, Function<String, VariantGraphResolveState> configurationSupplier) {
             this.candidates = candidates;
             this.configurationSupplier = configurationSupplier;
         }
@@ -131,7 +132,5 @@ public class DefaultIvyComponentGraphResolveState extends DefaultExternalModuleC
         public VariantGraphResolveState getVariantByConfigurationName(String name) {
             return configurationSupplier.apply(name);
         }
-
     }
-
 }

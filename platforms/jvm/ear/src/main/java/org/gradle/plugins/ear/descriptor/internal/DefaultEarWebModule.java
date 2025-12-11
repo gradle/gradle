@@ -23,8 +23,7 @@ public class DefaultEarWebModule extends DefaultEarModule implements EarWebModul
 
     private String contextRoot;
 
-    public DefaultEarWebModule() {
-    }
+    public DefaultEarWebModule() {}
 
     public DefaultEarWebModule(String path, String contextRoot) {
         super(path);

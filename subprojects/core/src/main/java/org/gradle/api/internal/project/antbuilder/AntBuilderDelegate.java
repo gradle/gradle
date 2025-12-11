@@ -22,17 +22,16 @@ import groovy.util.BuilderSupport;
 import groovy.util.Node;
 import groovy.util.NodeList;
 import groovy.xml.XmlParser;
-import org.gradle.internal.Cast;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.DynamicObjectUtil;
-
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.internal.Cast;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
 
 public class AntBuilderDelegate extends BuilderSupport {
 
@@ -121,7 +120,7 @@ public class AntBuilderDelegate extends BuilderSupport {
 
     @Override
     protected void nodeCompleted(Object parent, Object node) {
-        if (parent == null && node == null) {// happens when dispatching to taskdef via createNode()
+        if (parent == null && node == null) { // happens when dispatching to taskdef via createNode()
             return;
         }
         builder.invokeMethod("nodeCompleted", parent, node);
@@ -141,20 +140,24 @@ public class AntBuilderDelegate extends BuilderSupport {
     }
 
     public void invokeMethod(String methodName, Map<String, Object> parameters, Runnable closure) {
-        invokeMethod(methodName, new Object[]{parameters, new Closure<Object>(this, this) {
-            @SuppressWarnings("unused") // Magic Groovy method
-            public Object doCall(Object ignored) {
-                closure.run();
-                return null;
+        invokeMethod(methodName, new Object[] {
+            parameters,
+            new Closure<Object>(this, this) {
+                @SuppressWarnings("unused") // Magic Groovy method
+                public Object doCall(Object ignored) {
+                    closure.run();
+                    return null;
+                }
             }
-        }});
+        });
     }
 
     @SuppressWarnings("unchecked")
     public Map<String, Object> getProjectProperties() {
         try {
             Object project = this.getProperty("project");
-            return (Map<String, Object>) project.getClass().getDeclaredMethod("getProperties").invoke(project);
+            return (Map<String, Object>)
+                    project.getClass().getDeclaredMethod("getProperties").invoke(project);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }

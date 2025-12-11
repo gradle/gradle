@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.query;
 
+import javax.inject.Inject;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
-
-import javax.inject.Inject;
 
 public class DefaultArtifactResolutionQueryFactory implements ArtifactResolutionQueryFactory {
     private final ResolutionStrategyFactory resolutionStrategyFactory;
@@ -33,12 +32,11 @@ public class DefaultArtifactResolutionQueryFactory implements ArtifactResolution
 
     @Inject
     public DefaultArtifactResolutionQueryFactory(
-        ResolutionStrategyFactory resolutionStrategyFactory,
-        RepositoriesSupplier repositoriesSupplier,
-        ExternalModuleComponentResolverFactory ivyFactory,
-        ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
-        ComponentTypeRegistry componentTypeRegistry
-    ) {
+            ResolutionStrategyFactory resolutionStrategyFactory,
+            RepositoriesSupplier repositoriesSupplier,
+            ExternalModuleComponentResolverFactory ivyFactory,
+            ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
+            ComponentTypeRegistry componentTypeRegistry) {
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.repositoriesSupplier = repositoriesSupplier;
         this.ivyFactory = ivyFactory;
@@ -48,6 +46,11 @@ public class DefaultArtifactResolutionQueryFactory implements ArtifactResolution
 
     @Override
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
-        return new DefaultArtifactResolutionQuery(resolutionStrategyFactory, repositoriesSupplier, ivyFactory, componentMetadataProcessorFactory, componentTypeRegistry);
+        return new DefaultArtifactResolutionQuery(
+                resolutionStrategyFactory,
+                repositoriesSupplier,
+                ivyFactory,
+                componentMetadataProcessorFactory,
+                componentTypeRegistry);
     }
 }

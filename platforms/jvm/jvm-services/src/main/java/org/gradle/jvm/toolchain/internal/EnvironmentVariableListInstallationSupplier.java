@@ -16,14 +16,13 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.internal.file.FileResolver;
-import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import org.gradle.api.internal.file.FileResolver;
+import org.jspecify.annotations.Nullable;
 
 public class EnvironmentVariableListInstallationSupplier implements InstallationSupplier {
 
@@ -46,10 +45,11 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
     @Override
     public Set<InstallationLocation> get() {
         final Collection<String> possibleInstallations = buildOptions.getJavaInstallationsFromEnvironment();
-        return possibleInstallations.stream().map(this::resolveEnvironmentVariable)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .collect(Collectors.toSet());
+        return possibleInstallations.stream()
+                .map(this::resolveEnvironmentVariable)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
     }
 
     private Optional<InstallationLocation> resolveEnvironmentVariable(String environmentVariable) {
@@ -57,7 +57,8 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
         if (value != null) {
             final String path = value.trim();
             if (!path.isEmpty()) {
-                return Optional.of(InstallationLocation.userDefined(fileResolver.resolve(path), "environment variable '" + environmentVariable + "'"));
+                return Optional.of(InstallationLocation.userDefined(
+                        fileResolver.resolve(path), "environment variable '" + environmentVariable + "'"));
             }
         }
         return Optional.empty();
@@ -67,6 +68,4 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
     private String environmentVariableValue(String environmentVariable) {
         return buildOptions.getEnvironmentVariableValue(environmentVariable.trim());
     }
-
-
 }

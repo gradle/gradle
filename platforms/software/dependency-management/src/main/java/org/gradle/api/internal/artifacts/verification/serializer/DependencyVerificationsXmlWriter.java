@@ -15,29 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.verification.serializer;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
-import org.gradle.api.internal.artifacts.verification.model.Checksum;
-import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
-import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
-import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
-import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.xml.SimpleMarkupWriter;
-import org.gradle.internal.xml.SimpleXmlWriter;
-import org.jspecify.annotations.Nullable;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ALSO_TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
@@ -69,6 +46,28 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_SIGNATURES;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URI;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
+import org.gradle.api.internal.artifacts.verification.model.Checksum;
+import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
+import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.xml.SimpleMarkupWriter;
+import org.gradle.internal.xml.SimpleXmlWriter;
+import org.jspecify.annotations.Nullable;
+
 public class DependencyVerificationsXmlWriter {
     private static final String SPACES = "   ";
     private final SimpleXmlWriter writer;
@@ -97,7 +96,9 @@ public class DependencyVerificationsXmlWriter {
         writer.startElement(VERIFICATION_METADATA);
         writeAttribute("xmlns", "https://schema.gradle.org/dependency-verification");
         writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-        writeAttribute("xsi:schemaLocation", "https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd");
+        writeAttribute(
+                "xsi:schemaLocation",
+                "https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd");
         writeConfiguration(verifier.getConfiguration());
         writeVerifications(verifier.getVerificationMetadata());
         writer.endElement();
@@ -132,9 +133,9 @@ public class DependencyVerificationsXmlWriter {
             return;
         }
         writer.startElement(TRUSTED_KEYS);
-        Map<String, List<DependencyVerificationConfiguration.TrustedKey>> groupedByKeyId = keys
-            .stream()
-            .collect(Collectors.groupingBy(DependencyVerificationConfiguration.TrustedKey::getKeyId, TreeMap::new, Collectors.toList()));
+        Map<String, List<DependencyVerificationConfiguration.TrustedKey>> groupedByKeyId = keys.stream()
+                .collect(Collectors.groupingBy(
+                        DependencyVerificationConfiguration.TrustedKey::getKeyId, TreeMap::new, Collectors.toList()));
         for (Map.Entry<String, List<DependencyVerificationConfiguration.TrustedKey>> e : groupedByKeyId.entrySet()) {
             String key = e.getKey();
             List<DependencyVerificationConfiguration.TrustedKey> trustedKeys = e.getValue();
@@ -147,7 +148,8 @@ public class DependencyVerificationsXmlWriter {
         writer.endElement();
     }
 
-    private void writeGroupedTrustedKey(String keyId, List<DependencyVerificationConfiguration.TrustedKey> trustedKeys) throws IOException {
+    private void writeGroupedTrustedKey(String keyId, List<DependencyVerificationConfiguration.TrustedKey> trustedKeys)
+            throws IOException {
         writer.startElement(TRUSTED_KEY);
         writeAttribute(ID, keyId);
         trustedKeys.stream().sorted().forEach(trustedKey -> {
@@ -192,7 +194,8 @@ public class DependencyVerificationsXmlWriter {
     }
 
     private void writeTrustedArtifacts(DependencyVerificationConfiguration configuration) throws IOException {
-        List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = configuration.getTrustedArtifacts();
+        List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts =
+                configuration.getTrustedArtifacts();
         if (trustedArtifacts.isEmpty()) {
             return;
         }
@@ -211,7 +214,8 @@ public class DependencyVerificationsXmlWriter {
         }
     }
 
-    private void writeTrustCoordinates(DependencyVerificationConfiguration.TrustCoordinates trustedArtifact) throws IOException {
+    private void writeTrustCoordinates(DependencyVerificationConfiguration.TrustCoordinates trustedArtifact)
+            throws IOException {
         writeNullableAttribute(GROUP, trustedArtifact.getGroup());
         writeNullableAttribute(NAME, trustedArtifact.getName());
         writeNullableAttribute(VERSION, trustedArtifact.getVersion());
@@ -293,7 +297,6 @@ public class DependencyVerificationsXmlWriter {
         writeIgnoredKeys(verification.getIgnoredPgpKeys());
         writeChecksums(verification.getChecksums());
         writer.endElement();
-
     }
 
     private void writeIgnoredKeys(Set<IgnoredKey> ignoredPgpKeys) throws IOException {

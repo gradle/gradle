@@ -16,18 +16,19 @@
 
 package org.gradle.internal.rules;
 
-import org.gradle.model.internal.type.ModelType;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.gradle.model.internal.type.ModelType;
 
 public class DefaultRuleActionValidator implements RuleActionValidator {
     @SuppressWarnings("InlineFormatString")
     private static final String VALID_NO_TYPES = "Rule may not have an input parameter of type: %s.";
+
     @SuppressWarnings("InlineFormatString")
-    private static final String VALID_MULTIPLE_TYPES = "Rule may not have an input parameter of type: %s. Second parameter must be of type: %s.";
+    private static final String VALID_MULTIPLE_TYPES =
+            "Rule may not have an input parameter of type: %s. Second parameter must be of type: %s.";
 
     private final List<Class<?>> validInputType;
 
@@ -62,7 +63,9 @@ public class DefaultRuleActionValidator implements RuleActionValidator {
     }
 
     private String validTypeNames() {
-        return validInputType.stream().map(ModelType::of).map(ModelType::toString).collect(Collectors.joining(" or "));
+        return validInputType.stream()
+                .map(ModelType::of)
+                .map(ModelType::toString)
+                .collect(Collectors.joining(" or "));
     }
-
 }

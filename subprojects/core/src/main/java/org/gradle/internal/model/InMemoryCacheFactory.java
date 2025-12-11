@@ -16,16 +16,15 @@
 
 package org.gradle.internal.model;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import javax.inject.Inject;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.work.WorkerLimits;
-
-import javax.inject.Inject;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 /**
  * A factory for creating in-memory caches of various types.
@@ -41,9 +40,7 @@ public class InMemoryCacheFactory {
 
     @Inject
     public InMemoryCacheFactory(
-        WorkerLimits workerLimits,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
+            WorkerLimits workerLimits, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.workerLimits = workerLimits;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
@@ -78,11 +75,7 @@ public class InMemoryCacheFactory {
      */
     public <K, V> InMemoryLoadingCache<K, V> createCalculatedValueCache(DisplayName type, Function<K, V> loader) {
         return new CalculatedValueCache<>(
-            type,
-            calculatedValueContainerFactory,
-            workerLimits.getMaxWorkerCount(),
-            loader
-        );
+                type, calculatedValueContainerFactory, workerLimits.getMaxWorkerCount(), loader);
     }
 
     /**
@@ -127,9 +120,7 @@ public class InMemoryCacheFactory {
         private final InMemoryLoadingCache<IdentityKey<K>, V> delegate;
 
         public IdentityLoadingCache(int maxConcurrency, Function<K, V> loader) {
-            this.delegate = new DefaultLoadingCache<>(maxConcurrency, key ->
-                loader.apply(key.value)
-            );
+            this.delegate = new DefaultLoadingCache<>(maxConcurrency, key -> loader.apply(key.value));
         }
 
         @Override
@@ -166,17 +157,14 @@ public class InMemoryCacheFactory {
         private final InMemoryLoadingCache<K, CalculatedValue<V>> delegate;
 
         public CalculatedValueCache(
-            DisplayName type,
-            CalculatedValueContainerFactory calculatedValueContainerFactory,
-            int maxConcurrency,
-            Function<K, V> loader
-        ) {
-            this.delegate = new DefaultLoadingCache<>(maxConcurrency, key ->
-                calculatedValueContainerFactory.create(
-                    Describables.of(key, type),
-                    context -> loader.apply(key)
-                )
-            );
+                DisplayName type,
+                CalculatedValueContainerFactory calculatedValueContainerFactory,
+                int maxConcurrency,
+                Function<K, V> loader) {
+            this.delegate = new DefaultLoadingCache<>(
+                    maxConcurrency,
+                    key -> calculatedValueContainerFactory.create(
+                            Describables.of(key, type), context -> loader.apply(key)));
         }
 
         @Override
@@ -212,5 +200,4 @@ public class InMemoryCacheFactory {
             delegate.invalidate();
         }
     }
-
 }

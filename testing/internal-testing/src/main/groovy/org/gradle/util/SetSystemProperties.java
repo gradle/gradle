@@ -16,13 +16,12 @@
 
 package org.gradle.util;
 
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 /**
  * A JUnit rule which restores system properties at the end of the test.
@@ -30,7 +29,7 @@ import java.util.Properties;
 public class SetSystemProperties implements TestRule {
     private final Properties properties;
     private final Map<String, Object> customProperties = new HashMap<String, Object>();
-    private static final String[] IMMUTABLE_SYSTEM_PROPERTIES = new String[]{"java.io.tmpdir"};
+    private static final String[] IMMUTABLE_SYSTEM_PROPERTIES = new String[] {"java.io.tmpdir"};
 
     public SetSystemProperties() {
         properties = new Properties();
@@ -61,7 +60,8 @@ public class SetSystemProperties implements TestRule {
     private void validateCustomProperties() {
         for (String immutableProperty : IMMUTABLE_SYSTEM_PROPERTIES) {
             if (customProperties.containsKey(immutableProperty)) {
-                throw new IllegalArgumentException("'" + immutableProperty + "' should not be set via a rule as its value cannot be changed once it is initialized");
+                throw new IllegalArgumentException("'" + immutableProperty
+                        + "' should not be set via a rule as its value cannot be changed once it is initialized");
             }
         }
     }

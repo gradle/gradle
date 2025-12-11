@@ -16,13 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.collect.Interner;
-import org.gradle.internal.serialize.Decoder;
-import org.jspecify.annotations.Nullable;
-
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import org.gradle.internal.serialize.Decoder;
+import org.jspecify.annotations.Nullable;
 
 class StringDeduplicatingDecoder implements Decoder, Closeable {
     private final Decoder delegate;

@@ -16,6 +16,11 @@
 
 package org.gradle.tooling.internal.provider.continuous;
 
+import java.io.File;
+import java.util.EnumSet;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -25,12 +30,6 @@ import org.gradle.internal.execution.InputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkInputListener;
 import org.gradle.internal.properties.InputBehavior;
-
-import java.io.File;
-import java.util.EnumSet;
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
 
 public class AccumulateBuildInputsListener implements WorkInputListener {
 
@@ -46,7 +45,8 @@ public class AccumulateBuildInputsListener implements WorkInputListener {
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         work.visitMutableInputs(new InputVisitor() {
             @Override
-            public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
+            public void visitInputFileProperty(
+                    String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
                 if (relevantBehaviors.contains(behavior)) {
                     ((FileCollectionInternal) value.getFiles()).visitStructure(new FileCollectionStructureVisitor() {
                         @Override
@@ -64,7 +64,8 @@ public class AccumulateBuildInputsListener implements WorkInputListener {
                         }
 
                         @Override
-                        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                        public void visitFileTreeBackedByFile(
+                                File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                             taskInputs.add(file.getAbsolutePath());
                         }
                     });
@@ -72,7 +73,8 @@ public class AccumulateBuildInputsListener implements WorkInputListener {
             }
         });
         buildInputHierarchy.recordInputs(taskInputs);
-        filteredFileTreeTaskInputs.forEach(fileTree -> buildInputHierarchy.recordFilteredInput(fileTree.getRoot(), fileTree.getPatterns().getAsSpec()));
+        filteredFileTreeTaskInputs.forEach(fileTree -> buildInputHierarchy.recordFilteredInput(
+                fileTree.getRoot(), fileTree.getPatterns().getAsSpec()));
     }
 
     private static class FilteredTree {

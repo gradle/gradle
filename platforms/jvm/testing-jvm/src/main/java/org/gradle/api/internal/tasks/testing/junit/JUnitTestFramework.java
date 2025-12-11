@@ -17,6 +17,11 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.io.IOException;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
@@ -32,12 +37,6 @@ import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @UsedByScanPlugin("test-retry")
 public abstract class JUnitTestFramework implements TestFramework {
@@ -62,12 +61,8 @@ public abstract class JUnitTestFramework implements TestFramework {
     @UsedByScanPlugin("test-retry")
     @Override
     public TestFramework copyWithFilters(TestFilter newTestFilters) {
-        JUnitTestFramework newTestFramework = getObjectFactory().newInstance(
-            JUnitTestFramework.class,
-            newTestFilters,
-            testTaskTemporaryDir,
-            dryRun
-        );
+        JUnitTestFramework newTestFramework =
+                getObjectFactory().newInstance(JUnitTestFramework.class, newTestFilters, testTaskTemporaryDir, dryRun);
         newTestFramework.getOptions().copyFrom(getOptions());
         return newTestFramework;
     }
@@ -76,7 +71,10 @@ public abstract class JUnitTestFramework implements TestFramework {
     public WorkerTestDefinitionProcessorFactory<?> getProcessorFactory() {
         validateOptions();
         return new JUnitTestDefinitionProcessorFactory(new JUnitSpec(
-            filter.toSpec(), getOptions().getIncludeCategories(), getOptions().getExcludeCategories(), dryRun.get()));
+                filter.toSpec(),
+                getOptions().getIncludeCategories(),
+                getOptions().getExcludeCategories(),
+                dryRun.get()));
     }
 
     @Override
@@ -109,14 +107,15 @@ public abstract class JUnitTestFramework implements TestFramework {
         intersection.retainAll(getOptions().getExcludeCategories());
         if (!intersection.isEmpty()) {
             if (intersection.size() == 1) {
-                LOGGER.warn("The category '" + intersection.iterator().next() + "' is both included and excluded.  " +
-                    "This will result in the category being excluded, which may not be what was intended.  " +
-                    "Please either include or exclude the category but not both.");
+                LOGGER.warn("The category '" + intersection.iterator().next() + "' is both included and excluded.  "
+                        + "This will result in the category being excluded, which may not be what was intended.  "
+                        + "Please either include or exclude the category but not both.");
             } else {
-                String allCategories = intersection.stream().sorted().map(s -> "'" + s + "'").collect(Collectors.joining(", "));
-                LOGGER.warn("The categories " + allCategories + " are both included and excluded.  " +
-                    "This will result in the categories being excluded, which may not be what was intended. " +
-                    "Please either include or exclude the categories but not both.");
+                String allCategories =
+                        intersection.stream().sorted().map(s -> "'" + s + "'").collect(Collectors.joining(", "));
+                LOGGER.warn("The categories " + allCategories + " are both included and excluded.  "
+                        + "This will result in the categories being excluded, which may not be what was intended. "
+                        + "Please either include or exclude the categories but not both.");
             }
         }
     }

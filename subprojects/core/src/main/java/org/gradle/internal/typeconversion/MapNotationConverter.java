@@ -15,15 +15,6 @@
  */
 package org.gradle.internal.typeconversion;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.internal.Cast;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.reflect.CachedInvokable;
-import org.gradle.internal.reflect.ReflectionCache;
-import org.gradle.util.internal.ConfigureUtil;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.InvocationTargetException;
@@ -32,6 +23,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.reflect.CachedInvokable;
+import org.gradle.internal.reflect.ReflectionCache;
+import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Converts a {@code Map<String, Object>} to the target type. Subclasses should define a {@code T parseMap()} method which takes a parameter
@@ -84,9 +83,11 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
             params[i] = value;
         }
         if (missing != null) {
-            //below could be better.
-            //Throwing InvalidUserDataException here means that useful context information (including candidate formats, etc.) is not presented to the user
-            throw new InvalidUserDataException(String.format("Required keys %s are missing from map %s.", missing, values));
+            // below could be better.
+            // Throwing InvalidUserDataException here means that useful context information (including candidate
+            // formats, etc.) is not presented to the user
+            throw new InvalidUserDataException(
+                    String.format("Required keys %s are missing from map %s.", missing, values));
         }
 
         T result;
@@ -137,12 +138,14 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
                     return method;
                 }
             }
-            throw new UnsupportedOperationException(String.format("No parseMap() method found on class %s.", clazz.getSimpleName()));
+            throw new UnsupportedOperationException(
+                    String.format("No parseMap() method found on class %s.", clazz.getSimpleName()));
         }
 
         private static boolean nullable(Annotation[] annotations) {
             for (Annotation annotation : annotations) {
-                if (annotation instanceof javax.annotation.Nullable || annotation instanceof org.jspecify.annotations.Nullable) {
+                if (annotation instanceof javax.annotation.Nullable
+                        || annotation instanceof org.jspecify.annotations.Nullable) {
                     return true;
                 }
             }
@@ -157,11 +160,10 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
             }
             throw new UnsupportedOperationException("No @Key annotation on parameter of parseMap() method");
         }
-
     }
 
     private static class ConvertMethod extends CachedInvokable<Method> {
-        private final static ConvertMethodCache CONVERT_METHODS = new ConvertMethodCache();
+        private static final ConvertMethodCache CONVERT_METHODS = new ConvertMethodCache();
         public static final Class[] EMPTY = new Class[0];
 
         private final String[] keyNames;
@@ -177,6 +179,4 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
             return CONVERT_METHODS.get(clazz, EMPTY);
         }
     }
-
-
 }

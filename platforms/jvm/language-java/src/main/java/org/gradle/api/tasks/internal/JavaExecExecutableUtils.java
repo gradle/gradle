@@ -29,7 +29,8 @@ public class JavaExecExecutableUtils {
     public static JavaToolchainSpec getExecutableOverrideToolchainSpec(JavaExec task, PropertyFactory propertyFactory) {
         String customExecutable = task.getExecutable();
         if (customExecutable != null) {
-            return new SpecificExecutableToolchainSpec(propertyFactory, JavaExecutableUtils.resolveExecutable(customExecutable));
+            return new SpecificExecutableToolchainSpec(
+                    propertyFactory, JavaExecutableUtils.resolveExecutable(customExecutable));
         }
 
         return null;

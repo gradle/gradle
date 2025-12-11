@@ -21,6 +21,10 @@ import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SimpleType;
+import java.io.File;
+import java.time.Duration;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.ExtensionAware;
@@ -37,11 +41,6 @@ import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.time.Duration;
-import java.util.List;
-import java.util.Set;
 
 /**
  * <p>A <code>Task</code> represents a single atomic piece of work for a build, such as compiling classes or generating
@@ -414,9 +413,9 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doFirst(@DelegatesTo(Task.class)
-                 @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
-                 Closure action);
+    Task doFirst(
+            @DelegatesTo(Task.class) @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
+                    Closure action);
 
     /**
      * <p>Adds the given {@link Action} to the beginning of this task's action list.</p>
@@ -455,9 +454,9 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doLast(@DelegatesTo(Task.class)
-                @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
-                Closure action);
+    Task doLast(
+            @DelegatesTo(Task.class) @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
+                    Closure action);
 
     /**
      * <p>Returns if this task is enabled or not.</p>

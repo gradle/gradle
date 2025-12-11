@@ -39,7 +39,10 @@ import org.jspecify.annotations.Nullable;
  */
 public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
 
-    public MappingProvider(@Nullable Class<OUT> type, ProviderInternal<? extends IN> provider, Transformer<? extends OUT, ? super IN> transformer) {
+    public MappingProvider(
+            @Nullable Class<OUT> type,
+            ProviderInternal<? extends IN> provider,
+            Transformer<? extends OUT, ? super IN> transformer) {
         super(type, provider, transformer);
     }
 
@@ -56,7 +59,8 @@ public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
         try (EvaluationScopeContext context = openScope()) {
             ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();
             if (value.isChangingValue()) {
-                return ExecutionTimeValue.changingValue(new MappingProvider<OUT, IN>(type, value.getChangingValue(), transformer));
+                return ExecutionTimeValue.changingValue(
+                        new MappingProvider<OUT, IN>(type, value.getChangingValue(), transformer));
             }
 
             return ExecutionTimeValue.value(mapValue(context, value.toValue()));

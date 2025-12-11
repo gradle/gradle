@@ -28,5 +28,4 @@ public interface ModuleComponentIdentifier extends ComponentIdentifier {
     String getModule();
 
     String getVersion();
-
 }

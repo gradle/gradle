@@ -17,9 +17,8 @@
 package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Arrays;
+import org.jspecify.annotations.Nullable;
 
 class WildcardTypeWrapper implements WildcardWrapper {
     private final TypeWrapper[] upperBounds;
@@ -72,7 +71,8 @@ class WildcardTypeWrapper implements WildcardWrapper {
             return false;
         } else {
             WildcardTypeWrapper var2 = (WildcardTypeWrapper) o;
-            return Arrays.equals(this.lowerBounds, var2.lowerBounds) && Arrays.equals(this.upperBounds, var2.upperBounds);
+            return Arrays.equals(this.lowerBounds, var2.lowerBounds)
+                    && Arrays.equals(this.upperBounds, var2.upperBounds);
         }
     }
 

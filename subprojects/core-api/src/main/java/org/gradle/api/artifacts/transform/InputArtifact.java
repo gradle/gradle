@@ -16,15 +16,14 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.reflect.InjectionPointQualifier;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.reflect.InjectionPointQualifier;
 
 /**
  * Attach this annotation to an abstract getter that should receive the <em>input artifact</em> for an artifact transform.
@@ -54,6 +53,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 @Documented
-@InjectionPointQualifier(supportedProviderTypes = { FileSystemLocation.class })
-public @interface InputArtifact {
-}
+@InjectionPointQualifier(supportedProviderTypes = {FileSystemLocation.class})
+public @interface InputArtifact {}

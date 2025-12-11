@@ -21,14 +21,18 @@ public class TwoStageModuleMetadataCache extends AbstractModuleMetadataCache {
     private final AbstractModuleMetadataCache readOnlyCache;
     private final AbstractModuleMetadataCache writableCache;
 
-    public TwoStageModuleMetadataCache(BuildCommencedTimeProvider timeProvider, AbstractModuleMetadataCache readOnlyCache, AbstractModuleMetadataCache writableCache) {
+    public TwoStageModuleMetadataCache(
+            BuildCommencedTimeProvider timeProvider,
+            AbstractModuleMetadataCache readOnlyCache,
+            AbstractModuleMetadataCache writableCache) {
         super(timeProvider);
         this.readOnlyCache = readOnlyCache;
         this.writableCache = writableCache;
     }
 
     @Override
-    protected CachedMetadata store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData) {
+    protected CachedMetadata store(
+            ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData) {
         writableCache.store(key, entry, cachedMetaData);
         return cachedMetaData;
     }

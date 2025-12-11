@@ -16,6 +16,7 @@
 
 package org.gradle.internal.session;
 
+import java.util.List;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
@@ -31,12 +32,11 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.WorkerSharedBuildSessionScopeServices;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 
-import java.util.List;
-
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
  */
-public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServices implements ServiceRegistrationProvider {
+public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServices
+        implements ServiceRegistrationProvider {
 
     private final StartParameterInternal startParameter;
     private final BuildRequestMetaData buildRequestMetaData;
@@ -45,7 +45,13 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
     private final BuildClientMetaData buildClientMetaData;
     private final BuildEventConsumer buildEventConsumer;
 
-    public BuildSessionScopeServices(StartParameterInternal startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath, BuildCancellationToken buildCancellationToken, BuildClientMetaData buildClientMetaData, BuildEventConsumer buildEventConsumer) {
+    public BuildSessionScopeServices(
+            StartParameterInternal startParameter,
+            BuildRequestMetaData buildRequestMetaData,
+            ClassPath injectedPluginClassPath,
+            BuildCancellationToken buildCancellationToken,
+            BuildClientMetaData buildClientMetaData,
+            BuildEventConsumer buildEventConsumer) {
         this.startParameter = startParameter;
         this.buildRequestMetaData = buildRequestMetaData;
         this.injectedPluginClassPath = injectedPluginClassPath;

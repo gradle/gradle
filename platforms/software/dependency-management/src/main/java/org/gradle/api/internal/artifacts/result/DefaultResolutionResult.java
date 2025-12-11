@@ -16,7 +16,13 @@
 
 package org.gradle.api.internal.artifacts.result;
 
+import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
+
 import groovy.lang.Closure;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
@@ -29,22 +35,12 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.util.internal.ConfigureUtil;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
-
-import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
-
 public class DefaultResolutionResult implements ResolutionResult {
 
     private final ResolutionAccess resolutionAccess;
     private final AttributeDesugaring attributeDesugaring;
 
-    public DefaultResolutionResult(
-        ResolutionAccess resolutionAccess,
-        AttributeDesugaring attributeDesugaring
-    ) {
+    public DefaultResolutionResult(ResolutionAccess resolutionAccess, AttributeDesugaring attributeDesugaring) {
         this.resolutionAccess = resolutionAccess;
         this.attributeDesugaring = attributeDesugaring;
     }

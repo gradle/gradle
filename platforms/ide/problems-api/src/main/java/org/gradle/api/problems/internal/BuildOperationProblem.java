@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.operations.problems.DocumentationLink;
 import org.gradle.operations.problems.FileLocation;
 import org.gradle.operations.problems.LineInFileLocation;
@@ -28,8 +29,6 @@ import org.gradle.operations.problems.ProblemLocation;
 import org.gradle.operations.problems.ProblemSeverity;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 public class BuildOperationProblem implements Problem {
     private final InternalProblem problem;
@@ -53,7 +52,8 @@ public class BuildOperationProblem implements Problem {
             case ERROR:
                 return ProblemSeverity.ERROR;
             default:
-                throw new IllegalArgumentException("Unknown severity: " + problem.getDefinition().getSeverity());
+                throw new IllegalArgumentException(
+                        "Unknown severity: " + problem.getDefinition().getSeverity());
         }
     }
 
@@ -85,7 +85,8 @@ public class BuildOperationProblem implements Problem {
     }
 
     @NonNull
-    private ImmutableList<ProblemLocation> convertProblemLocations(List<org.gradle.api.problems.ProblemLocation> locations) {
+    private ImmutableList<ProblemLocation> convertProblemLocations(
+            List<org.gradle.api.problems.ProblemLocation> locations) {
         ImmutableList.Builder<ProblemLocation> builder = ImmutableList.builder();
         for (org.gradle.api.problems.ProblemLocation location : locations) {
             ProblemLocation buildOperationLocation = convertToLocation(location);
@@ -101,14 +102,16 @@ public class BuildOperationProblem implements Problem {
         if (location instanceof org.gradle.api.problems.FileLocation) {
             return convertToBuildOperationFileLocation(location);
         } else if (location instanceof TaskLocation) {
-            // The Develocity plugin will infer the task location from the build operation hierarchy - no need to send this contextual information
+            // The Develocity plugin will infer the task location from the build operation hierarchy - no need to send
+            // this contextual information
             return null;
         } else if (location instanceof org.gradle.api.problems.internal.PluginIdLocation) {
             return new BuildOperationPluginIdLocation((PluginIdLocation) location);
         } else if (location instanceof org.gradle.api.problems.internal.StackTraceLocation) {
             return new BuildOperationStackTraceLocation((StackTraceLocation) location);
         }
-        throw new IllegalArgumentException("Unknown location type: " + location.getClass() + ", location: '" + location + "'");
+        throw new IllegalArgumentException(
+                "Unknown location type: " + location.getClass() + ", location: '" + location + "'");
     }
 
     @NonNull
@@ -209,7 +212,8 @@ public class BuildOperationProblem implements Problem {
         }
     }
 
-    private static class BuildOperationLineInFileLocation extends BuildOperationFileLocation implements LineInFileLocation {
+    private static class BuildOperationLineInFileLocation extends BuildOperationFileLocation
+            implements LineInFileLocation {
         private final org.gradle.api.problems.LineInFileLocation lineInFileLocation;
 
         public BuildOperationLineInFileLocation(org.gradle.api.problems.LineInFileLocation lineInFileLocation) {
@@ -250,7 +254,8 @@ public class BuildOperationProblem implements Problem {
     private static class BuildOperationStackTraceLocation implements org.gradle.operations.problems.StackTraceLocation {
         private final org.gradle.api.problems.internal.StackTraceLocation stackTraceLocation;
 
-        public BuildOperationStackTraceLocation(org.gradle.api.problems.internal.StackTraceLocation stackTraceLocation) {
+        public BuildOperationStackTraceLocation(
+                org.gradle.api.problems.internal.StackTraceLocation stackTraceLocation) {
             this.stackTraceLocation = stackTraceLocation;
         }
 
@@ -258,8 +263,8 @@ public class BuildOperationProblem implements Problem {
         @Override
         public FileLocation getFileLocation() {
             return stackTraceLocation.getFileLocation() == null
-                ? null
-                : convertToBuildOperationFileLocation(stackTraceLocation.getFileLocation());
+                    ? null
+                    : convertToBuildOperationFileLocation(stackTraceLocation.getFileLocation());
         }
 
         @Override
@@ -273,7 +278,8 @@ public class BuildOperationProblem implements Problem {
         }
     }
 
-    private static class BuildOperationOffsetInFileLocation extends BuildOperationFileLocation implements OffsetInFileLocation {
+    private static class BuildOperationOffsetInFileLocation extends BuildOperationFileLocation
+            implements OffsetInFileLocation {
 
         private final org.gradle.api.problems.OffsetInFileLocation offsetInFileLocation;
 

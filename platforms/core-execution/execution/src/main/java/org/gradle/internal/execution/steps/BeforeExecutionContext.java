@@ -16,9 +16,8 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.history.BeforeExecutionState;
-
 import java.util.Optional;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 
 public interface BeforeExecutionContext extends IdentifyingContext {
     /**

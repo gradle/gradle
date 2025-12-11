@@ -16,7 +16,11 @@
 
 package org.gradle.internal.execution.steps;
 
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE;
+
 import com.google.common.collect.ImmutableList;
+import java.util.Formatter;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.Execution;
@@ -26,11 +30,6 @@ import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Formatter;
-import java.util.List;
-
-import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE;
 
 public class SkipUpToDateStep<C extends MutableChangesContext> implements Step<C, UpToDateResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateStep.class);
@@ -48,9 +47,9 @@ public class SkipUpToDateStep<C extends MutableChangesContext> implements Step<C
         }
         ImmutableList<String> reasons = context.getRebuildReasons();
         return context.getChanges()
-            .filter(__ -> reasons.isEmpty())
-            .map(changes -> skipExecution(work, context))
-            .orElseGet(() -> executeBecause(work, reasons, context));
+                .filter(__ -> reasons.isEmpty())
+                .map(changes -> skipExecution(work, context))
+                .orElseGet(() -> executeBecause(work, reasons, context));
     }
 
     private UpToDateResult skipExecution(UnitOfWork work, C context) {
@@ -58,16 +57,20 @@ public class SkipUpToDateStep<C extends MutableChangesContext> implements Step<C
             LOGGER.info("Skipping {} as it is up-to-date.", work.getDisplayName());
         }
         @SuppressWarnings("OptionalGetWithoutIsPresent")
-        PreviousExecutionState previousExecutionState = context.getPreviousExecutionState().get();
-        ExecutionOutputState executionOutputState = new DefaultExecutionOutputState(true, previousExecutionState.getOutputFilesProducedByWork(), previousExecutionState.getOriginMetadata(), true);
+        PreviousExecutionState previousExecutionState =
+                context.getPreviousExecutionState().get();
+        ExecutionOutputState executionOutputState = new DefaultExecutionOutputState(
+                true,
+                previousExecutionState.getOutputFilesProducedByWork(),
+                previousExecutionState.getOriginMetadata(),
+                true);
         Try<Execution> execution = Try.successful(Execution.skipped(UP_TO_DATE, work));
         return new UpToDateResult(
-            previousExecutionState.getOriginMetadata().getExecutionTime(),
-            execution,
-            executionOutputState,
-            ImmutableList.of(),
-            previousExecutionState.getOriginMetadata()
-        );
+                previousExecutionState.getOriginMetadata().getExecutionTime(),
+                execution,
+                executionOutputState,
+                ImmutableList.of(),
+                previousExecutionState.getOriginMetadata());
     }
 
     private UpToDateResult executeBecause(UnitOfWork work, ImmutableList<String> reasons, C context) {

@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.protocol;
 
+import java.util.List;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalContextualLabel;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
@@ -24,11 +25,10 @@ import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 @NullMarked
 public interface InternalProblemContextDetails {
     InternalAdditionalData getAdditionalData();
+
     @Nullable
     InternalDetails getDetails();
 

@@ -40,5 +40,4 @@ public interface BuildCancellationToken {
      * @param cancellationHandler removed callback.
      */
     void removeCallback(Runnable cancellationHandler);
-
 }

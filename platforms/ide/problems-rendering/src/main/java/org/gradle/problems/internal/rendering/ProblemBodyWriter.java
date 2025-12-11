@@ -17,15 +17,14 @@
 package org.gradle.problems.internal.rendering;
 
 import com.google.common.base.Strings;
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.LineInFileLocation;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
-
-import java.io.PrintWriter;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Writes the 'body' of a problem, i.e., details, solutions, and locations.
@@ -63,7 +62,10 @@ class ProblemBodyWriter implements PartialProblemWriter {
         }
 
         // print locations
-        List<FileLocation> fileLocations = problem.getOriginLocations().stream().filter(FileLocation.class::isInstance).map(FileLocation.class::cast).collect(Collectors.toList());
+        List<FileLocation> fileLocations = problem.getOriginLocations().stream()
+                .filter(FileLocation.class::isInstance)
+                .map(FileLocation.class::cast)
+                .collect(Collectors.toList());
         for (FileLocation location : fileLocations) {
             output.printf("%n");
             indent(output, "Location: " + location.getPath(), 4);

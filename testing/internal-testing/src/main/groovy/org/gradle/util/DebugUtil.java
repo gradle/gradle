@@ -16,15 +16,18 @@
 
 package org.gradle.util;
 
+import java.lang.management.ManagementFactory;
 import org.jspecify.annotations.NullMarked;
 
-import java.lang.management.ManagementFactory;
-
 @NullMarked
-abstract public class DebugUtil {
+public abstract class DebugUtil {
     public static final int DAEMON_DEBUG_PORT = 5005;
 
     public static boolean isDebuggerAttached() {
-        return ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
+        return ManagementFactory.getRuntimeMXBean()
+                        .getInputArguments()
+                        .toString()
+                        .indexOf("-agentlib:jdwp")
+                > 0;
     }
 }

@@ -25,6 +25,5 @@ public interface HasGroovySources extends HasSources<GroovyClasses> {
     @Override
     NamedDomainObjectContainer<GroovySources> getSources();
 
-    interface GroovySources extends Named, HasSources.Sources<GroovyClasses>, HasResources {
-    }
+    interface GroovySources extends Named, HasSources.Sources<GroovyClasses>, HasResources {}
 }

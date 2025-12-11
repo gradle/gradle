@@ -17,18 +17,17 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.taskgraph.NodeIdentity;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.taskgraph.NodeIdentity;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A Gradle user home level registry of {@link ToPlannedNodeConverter} instances.
@@ -44,7 +43,8 @@ public class ToPlannedNodeConverterRegistry {
 
     private final List<ToPlannedNodeConverter> converters;
 
-    private final ConcurrentMap<Class<? extends Node>, ToPlannedNodeConverter> convertersByNodeType = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Class<? extends Node>, ToPlannedNodeConverter> convertersByNodeType =
+            new ConcurrentHashMap<>();
 
     public ToPlannedNodeConverterRegistry(List<ToPlannedNodeConverter> converters) {
         validateConverters(converters);
@@ -60,8 +60,8 @@ public class ToPlannedNodeConverterRegistry {
      */
     public Set<NodeIdentity.NodeType> getConvertedNodeTypes() {
         return converters.stream()
-            .map(ToPlannedNodeConverter::getConvertedNodeType)
-            .collect(Collectors.toSet());
+                .map(ToPlannedNodeConverter::getConvertedNodeType)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -96,11 +96,14 @@ public class ToPlannedNodeConverterRegistry {
         }
     }
 
-    private static void checkOverlappingConverters(ToPlannedNodeConverter converter1, ToPlannedNodeConverter converter2) {
+    private static void checkOverlappingConverters(
+            ToPlannedNodeConverter converter1, ToPlannedNodeConverter converter2) {
         Class<? extends Node> supportedNodeType1 = converter1.getSupportedNodeType();
         Class<? extends Node> supportedNodeType2 = converter2.getSupportedNodeType();
-        if (supportedNodeType1.isAssignableFrom(supportedNodeType2) || supportedNodeType2.isAssignableFrom(supportedNodeType1)) {
-            throw new IllegalStateException("Converter " + converter1 + " overlaps by supported node type with converter " + converter2);
+        if (supportedNodeType1.isAssignableFrom(supportedNodeType2)
+                || supportedNodeType2.isAssignableFrom(supportedNodeType1)) {
+            throw new IllegalStateException(
+                    "Converter " + converter1 + " overlaps by supported node type with converter " + converter2);
         }
     }
 
@@ -130,5 +133,4 @@ public class ToPlannedNodeConverterRegistry {
             throw new UnsupportedOperationException();
         }
     }
-
 }

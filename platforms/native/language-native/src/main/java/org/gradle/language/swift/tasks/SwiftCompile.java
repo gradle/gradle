@@ -16,6 +16,15 @@
 
 package org.gradle.language.swift.tasks;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
@@ -59,16 +68,6 @@ import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * Compiles Swift source files into object files.
  *
@@ -82,10 +81,7 @@ public abstract class SwiftCompile extends DefaultTask {
     private final Property<Boolean> optimize;
 
     @Inject
-    public SwiftCompile(
-        CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
-        Deleter deleter
-    ) {
+    public SwiftCompile(CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, Deleter deleter) {
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.deleter = deleter;
         ObjectFactory objectFactory = getProject().getObjects();
@@ -170,7 +166,7 @@ public abstract class SwiftCompile extends DefaultTask {
     @Input
     public Property<Boolean> getOptimized() {
         return optimize;
-}
+    }
 
     /**
      * <em>Additional</em> arguments to provide to the compiler.
@@ -227,12 +223,14 @@ public abstract class SwiftCompile extends DefaultTask {
      */
     @Nested
     protected CompilerVersion getCompilerVersion() {
-        return ((VersionAwareCompiler)createCompiler()).getVersion();
+        return ((VersionAwareCompiler) createCompiler()).getVersion();
     }
 
     private Compiler<SwiftCompileSpec> createCompiler() {
-        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.getTargetPlatform().get());
-        NativeToolChainInternal toolChain = Cast.cast(NativeToolChainInternal.class, getToolChain().get());
+        NativePlatformInternal targetPlatform =
+                Cast.cast(NativePlatformInternal.class, this.getTargetPlatform().get());
+        NativeToolChainInternal toolChain =
+                Cast.cast(NativeToolChainInternal.class, getToolChain().get());
         PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
         return toolProvider.newCompiler(SwiftCompileSpec.class);
     }
@@ -257,22 +255,25 @@ public abstract class SwiftCompile extends DefaultTask {
             }
         }
 
-        BuildOperationLogger operationLogger = getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());
+        BuildOperationLogger operationLogger =
+                getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());
 
-        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.getTargetPlatform().get());
+        NativePlatformInternal targetPlatform =
+                Cast.cast(NativePlatformInternal.class, this.getTargetPlatform().get());
         SwiftCompileSpec spec = createSpec(operationLogger, isIncremental, changedFiles, removedFiles, targetPlatform);
         Compiler<SwiftCompileSpec> baseCompiler = new IncrementalSwiftCompiler(
-            createCompiler(),
-            getOutputs(),
-            compilerOutputFileNamingSchemeFactory,
-            deleter
-        );
+                createCompiler(), getOutputs(), compilerOutputFileNamingSchemeFactory, deleter);
         Compiler<SwiftCompileSpec> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(baseCompiler);
         WorkResult result = loggingCompiler.execute(spec);
         setDidWork(result.getDidWork());
     }
 
-    private SwiftCompileSpec createSpec(BuildOperationLogger operationLogger, boolean isIncremental, Collection<File> changedFiles, Collection<File> removedFiles, NativePlatformInternal targetPlatform) {
+    private SwiftCompileSpec createSpec(
+            BuildOperationLogger operationLogger,
+            boolean isIncremental,
+            Collection<File> changedFiles,
+            Collection<File> removedFiles,
+            NativePlatformInternal targetPlatform) {
         SwiftCompileSpec spec = new DefaultSwiftCompileSpec();
         spec.setModuleName(getModuleName().getOrNull());
         spec.setModuleFile(getModuleFile().get().getAsFile());

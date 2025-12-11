@@ -16,10 +16,9 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.util.Path;
-
 import java.io.File;
 import java.util.Objects;
+import org.gradle.util.Path;
 
 /**
  * Target for model building.
@@ -91,9 +90,7 @@ public abstract class BuildTreeModelTarget {
 
         @Override
         public String toString() {
-            return "Build{" +
-                "buildRootDir=" + buildRootDir +
-                '}';
+            return "Build{" + "buildRootDir=" + buildRootDir + '}';
         }
 
         @Override
@@ -142,10 +139,7 @@ public abstract class BuildTreeModelTarget {
 
         @Override
         public String toString() {
-            return "Project{" +
-                "buildRootDir=" + buildRootDir +
-                ", projectPath=" + projectPath +
-                '}';
+            return "Project{" + "buildRootDir=" + buildRootDir + ", projectPath=" + projectPath + '}';
         }
 
         @Override

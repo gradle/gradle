@@ -15,8 +15,13 @@
  */
 package org.gradle.api.artifacts;
 
+import static groovy.lang.Closure.DELEGATE_FIRST;
+
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
@@ -24,12 +29,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
  * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a component that exists
@@ -126,7 +125,8 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @see DependencyArtifact
      */
-    DependencyArtifact artifact(@DelegatesTo(value = DependencyArtifact.class, strategy = DELEGATE_FIRST) Closure configureClosure);
+    DependencyArtifact artifact(
+            @DelegatesTo(value = DependencyArtifact.class, strategy = DELEGATE_FIRST) Closure configureClosure);
 
     /**
      * <p>Adds an artifact to this dependency. The given action is passed a {@link

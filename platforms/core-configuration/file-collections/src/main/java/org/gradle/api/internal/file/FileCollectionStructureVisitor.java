@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.file;
 
+import java.io.File;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
-
-import java.io.File;
 
 /**
  * Used with {@link FileCollectionInternal#visitStructure(FileCollectionStructureVisitor)} this visitor
@@ -30,7 +29,8 @@ public interface FileCollectionStructureVisitor {
     enum VisitType {
         // Visitor is interested in the contents of the collection
         Visit,
-        // Visitor is not interested in the contents of the collection, but would like to receive the source and other metadata
+        // Visitor is not interested in the contents of the collection, but would like to receive the source and other
+        // metadata
         NoContents
     }
 
@@ -77,15 +77,13 @@ public interface FileCollectionStructureVisitor {
 
     FileCollectionStructureVisitor NO_OP = new FileCollectionStructureVisitor() {
         @Override
-        public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-        }
+        public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {}
 
         @Override
-        public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-        }
+        public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {}
 
         @Override
-        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-        }
+        public void visitFileTreeBackedByFile(
+                File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {}
     };
 }

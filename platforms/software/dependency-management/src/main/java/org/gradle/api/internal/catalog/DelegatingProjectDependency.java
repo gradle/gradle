@@ -16,6 +16,9 @@
 package org.gradle.api.internal.catalog;
 
 import groovy.lang.Closure;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -28,10 +31,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @SuppressWarnings("unused")
 public class DelegatingProjectDependency implements ProjectDependencyInternal {

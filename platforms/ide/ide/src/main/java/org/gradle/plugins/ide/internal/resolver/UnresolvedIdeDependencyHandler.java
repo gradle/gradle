@@ -16,12 +16,11 @@
 
 package org.gradle.plugins.ide.internal.resolver;
 
+import java.io.File;
+import java.util.Collection;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-
-import java.io.File;
-import java.util.Collection;
 
 public class UnresolvedIdeDependencyHandler {
 
@@ -39,6 +38,8 @@ public class UnresolvedIdeDependencyHandler {
     }
 
     public File asFile(UnresolvedDependencyResult dep, File parent) {
-        return new File(parent, "unresolved dependency - " + dep.getAttempted().getDisplayName().replaceAll(":", " "));
+        return new File(
+                parent,
+                "unresolved dependency - " + dep.getAttempted().getDisplayName().replaceAll(":", " "));
     }
 }

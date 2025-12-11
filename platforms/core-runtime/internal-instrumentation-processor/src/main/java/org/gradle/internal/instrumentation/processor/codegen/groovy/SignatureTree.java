@@ -16,23 +16,6 @@
 
 package org.gradle.internal.instrumentation.processor.codegen.groovy;
 
-import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
-import org.gradle.internal.instrumentation.model.CallableInfo;
-import org.gradle.internal.instrumentation.model.CallableKindInfo;
-import org.gradle.internal.instrumentation.model.ParameterInfo;
-import org.gradle.internal.instrumentation.model.ParameterKindInfo;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.AFTER_CONSTRUCTOR;
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY_GETTER;
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY_SETTER;
@@ -42,6 +25,22 @@ import static org.gradle.internal.instrumentation.processor.codegen.groovy.Param
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER_AS_CLASS;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.VARARG;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.model.CallableInfo;
+import org.gradle.internal.instrumentation.model.CallableKindInfo;
+import org.gradle.internal.instrumentation.model.ParameterInfo;
+import org.gradle.internal.instrumentation.model.ParameterKindInfo;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 class SignatureTree {
     private CallInterceptionRequest leaf = null;
@@ -65,7 +64,8 @@ class SignatureTree {
             if (current.childrenByMatchEntry == null) {
                 current.childrenByMatchEntry = new LinkedHashMap<>();
             }
-            if (matchEntry.kind == VARARG && current.childrenByMatchEntry.keySet().stream().anyMatch(it -> it.kind == VARARG)) {
+            if (matchEntry.kind == VARARG
+                    && current.childrenByMatchEntry.keySet().stream().anyMatch(it -> it.kind == VARARG)) {
                 // TODO better diagnostics reporting
                 throw new IllegalStateException("vararg overloads are not supported yet");
             }
@@ -80,21 +80,31 @@ class SignatureTree {
 
     @NonNull
     private static List<ParameterMatchEntry> parameterMatchEntries(CallableInfo callable) {
-        Optional<ParameterInfo> varargParameter = callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.VARARG_METHOD_PARAMETER).findAny();
+        Optional<ParameterInfo> varargParameter = callable.getParameters().stream()
+                .filter(it -> it.getKind() == ParameterKindInfo.VARARG_METHOD_PARAMETER)
+                .findAny();
         CallableKindInfo kind = callable.getKind();
         return Stream.of(
-            // Match the `Class<?>` in `receiver` for static methods and constructors
-            kind == STATIC_METHOD || kind == AFTER_CONSTRUCTOR
-                ? Stream.of(new ParameterMatchEntry(callable.getOwner().getType(), RECEIVER_AS_CLASS))
-                : Stream.<ParameterMatchEntry>empty(),
-            // Or match the receiver in the first parameter
-            kind == INSTANCE_METHOD || kind == GROOVY_PROPERTY_GETTER || kind == GROOVY_PROPERTY_SETTER
-                ? Stream.of(new ParameterMatchEntry(callable.getParameters().get(0).getParameterType(), RECEIVER))
-                : Stream.<ParameterMatchEntry>empty(),
-            // Then match the "normal" method parameters
-            callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.METHOD_PARAMETER).map(it -> new ParameterMatchEntry(it.getParameterType(), PARAMETER)),
-            // In the end, match the vararg parameter, if it is there:
-            varargParameter.map(parameterInfo -> Stream.of(new ParameterMatchEntry(parameterInfo.getParameterType().getElementType(), VARARG))).orElseGet(Stream::empty)
-        ).flatMap(Function.identity()).collect(Collectors.toList());
+                        // Match the `Class<?>` in `receiver` for static methods and constructors
+                        kind == STATIC_METHOD || kind == AFTER_CONSTRUCTOR
+                                ? Stream.of(new ParameterMatchEntry(
+                                        callable.getOwner().getType(), RECEIVER_AS_CLASS))
+                                : Stream.<ParameterMatchEntry>empty(),
+                        // Or match the receiver in the first parameter
+                        kind == INSTANCE_METHOD || kind == GROOVY_PROPERTY_GETTER || kind == GROOVY_PROPERTY_SETTER
+                                ? Stream.of(new ParameterMatchEntry(
+                                        callable.getParameters().get(0).getParameterType(), RECEIVER))
+                                : Stream.<ParameterMatchEntry>empty(),
+                        // Then match the "normal" method parameters
+                        callable.getParameters().stream()
+                                .filter(it -> it.getKind() == ParameterKindInfo.METHOD_PARAMETER)
+                                .map(it -> new ParameterMatchEntry(it.getParameterType(), PARAMETER)),
+                        // In the end, match the vararg parameter, if it is there:
+                        varargParameter
+                                .map(parameterInfo -> Stream.of(new ParameterMatchEntry(
+                                        parameterInfo.getParameterType().getElementType(), VARARG)))
+                                .orElseGet(Stream::empty))
+                .flatMap(Function.identity())
+                .collect(Collectors.toList());
     }
 }

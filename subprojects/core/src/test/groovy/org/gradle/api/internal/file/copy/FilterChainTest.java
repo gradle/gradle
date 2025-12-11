@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import com.google.common.io.ByteStreams;
-import org.apache.commons.io.IOUtils;
-import org.gradle.api.provider.Property;
-import org.gradle.util.TestUtil;
-import org.gradle.util.internal.WrapUtil;
-import org.junit.Test;
+import static org.gradle.util.internal.WrapUtil.toMap;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.MatcherAssert.assertThat;
 
+import com.google.common.io.ByteStreams;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FilterReader;
@@ -32,12 +32,11 @@ import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-
-import static org.gradle.util.internal.WrapUtil.toMap;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.hamcrest.MatcherAssert.assertThat;
+import org.apache.commons.io.IOUtils;
+import org.gradle.api.provider.Property;
+import org.gradle.util.TestUtil;
+import org.gradle.util.internal.WrapUtil;
+import org.junit.Test;
 
 public class FilterChainTest {
     private final FilterChain filterChain = new FilterChain();

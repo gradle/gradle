@@ -24,10 +24,7 @@ public class DefaultConditionalExecutionQueueFactory implements ConditionalExecu
     private final WorkerLeaseService workerLeaseService;
 
     public DefaultConditionalExecutionQueueFactory(
-        WorkerLimits workerLimits,
-        ExecutorFactory executorFactory,
-        WorkerLeaseService workerLeaseService
-    ) {
+            WorkerLimits workerLimits, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
         this.workerLimits = workerLimits;
         this.executorFactory = executorFactory;
         this.workerLeaseService = workerLeaseService;

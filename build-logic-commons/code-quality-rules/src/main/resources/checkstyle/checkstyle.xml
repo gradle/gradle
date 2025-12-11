@@ -20,10 +20,8 @@
     <module name="SuppressionFilter">
         <property name="file" value="${config_loc}/suppressions.xml"/>
     </module>
-    <!-- allows suppressing using the @SuppressWarnings("checkstyle:...") -->
     <module name="SuppressWarningsFilter"/>
     <module name="TreeWalker">
-        <!-- Blocks -->
         <module name="EmptyBlock">
             <property name="option" value="statement"/>
             <property name="tokens" value="LITERAL_DO,LITERAL_ELSE,LITERAL_FINALLY,LITERAL_IF,LITERAL_FOR,LITERAL_TRY,LITERAL_WHILE,INSTANCE_INIT,STATIC_INIT"/>
@@ -35,30 +33,17 @@
         <module name="AvoidNestedBlocks">
             <property name="allowInSwitchCase" value="true"/>
         </module>
-
-        <!-- Braces -->
         <module name="LeftCurly"/>
         <module name="RightCurly"/>
         <module name="NeedBraces"/>
-
-        <!-- Whitespace -->
         <module name="GenericWhitespace"/>
         <module name="EmptyForInitializerPad"/>
-        <module name="EmptyForIteratorPad"/>
         <module name="MethodParamPad"/>
-        <module name="NoWhitespaceBefore"/>
         <module name="NoWhitespaceAfter"/>
-        <module name="ParenPad"/>
         <module name="TypecastParenPad"/>
         <module name="WhitespaceAfter">
             <property name="tokens" value="COMMA, SEMI"/>
         </module>
-        <!--<module name="WhitespaceAround">-->
-            <!-- everything except { and } -->
-            <!--<property name="tokens" value="ASSIGN, BAND, BAND_ASSIGN, BOR, BOR_ASSIGN, BSR, BSR_ASSIGN, BXOR, BXOR_ASSIGN, COLON, DIV, DIV_ASSIGN, EQUAL, GE, GT, LAND, LE, LITERAL_ASSERT, LITERAL_CATCH, LITERAL_DO, LITERAL_ELSE, LITERAL_FINALLY, LITERAL_FOR, LITERAL_IF, LITERAL_RETURN, LITERAL_SYNCHRONIZED, LITERAL_TRY, LITERAL_WHILE, LOR, LT, MINUS, MINUS_ASSIGN, MOD, MOD_ASSIGN, NOT_EQUAL, PLUS, PLUS_ASSIGN, QUESTION, SL, SLIST, SL_ASSIGN, SR, SR_ASSIGN, STAR, STAR_ASSIGN, TYPE_EXTENSION_AND"/>-->
-        <!--</module>-->
-
-        <!-- Coding -->
         <module name="CovariantEquals"/>
         <module name="DefaultComesLast"/>
         <module name="EmptyStatement"/>
@@ -67,39 +52,18 @@
         <module name="MultipleVariableDeclarations"/>
         <module name="NoClone"/>
         <module name="NoFinalizer"/>
-        <!--<module name="RedundantThrows">-->
-            <!--<property name="allowUnchecked" value="true"/>-->
-        <!--</module>-->
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
         <module name="StringLiteralEquality"/>
         <module name="UnnecessaryParentheses">
-            <!-- defaults are too strict, see https://github.com/checkstyle/checkstyle/issues/10946 -->
             <property name="tokens" value="EXPR, IDENT, NUM_DOUBLE, NUM_FLOAT, NUM_INT, NUM_LONG, STRING_LITERAL, LITERAL_NULL, LITERAL_FALSE, LITERAL_TRUE, ASSIGN, BAND_ASSIGN, BOR_ASSIGN, BSR_ASSIGN, BXOR_ASSIGN, DIV_ASSIGN, MINUS_ASSIGN, MOD_ASSIGN, PLUS_ASSIGN, SL_ASSIGN, SR_ASSIGN, STAR_ASSIGN, LAMBDA, TEXT_BLOCK_LITERAL_BEGIN, UNARY_MINUS, UNARY_PLUS, INC, DEC, BNOT, POST_INC, POST_DEC" />
         </module>
-
-        <!-- Design -->
-        <!--
-        <module name="InterfaceIsType"/>
-        -->
-
-        <!-- Imports -->
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
         <module name="IllegalImport">
-            <!--
-                We shouldn't use jdk.internal types.
-
-                com.beust and org.testng.collections has classes that look like Guava.
-
-                We prefer to import javax.annotation and fully-qualify references to org.jetbrains.annotations.
-            -->
             <property name="illegalPkgs" value="jdk.internal,com.beust,org.testng.collections,org.jetbrains.annotations"/>
-            <!-- The variants from org.gradle.util.internal should be used instead-->
             <property name="illegalClasses" value="^org\.gradle\.util\.(CollectionUtils|NameMatcher|NameValidator|VersionNumber|TextUtil|WrapUtil|RelativePathUtil|DistributionLocator|SingleMessageLogger|ClosureBackedAction|ConfigureUtil)"/>
         </module>
-
-        <!-- Naming -->
         <module name="ConstantName"/>
         <module name="LocalFinalVariableName"/>
         <module name="LocalVariableName"/>
@@ -124,13 +88,8 @@
         <module name="MethodTypeParameterName">
             <property name="format" value="^([A-Z][a-z]*)+$"/>
         </module>
-
-        <!-- Annotations -->
         <module name="MissingOverride"/>
-
-        <!-- allows suppressing using the //CHECKSTYLE:ON //CHECKSTYLE:OFF -->
         <module name="SuppressionCommentFilter"/>
-        <!-- to enable SuppressWarningsFilter -->
         <module name="SuppressWarningsHolder"/>
     </module>
     <module name="RegexpHeader">

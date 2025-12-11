@@ -27,11 +27,7 @@ import org.jspecify.annotations.Nullable;
 public class DefaultSingleProblemEvent extends BaseProgressEvent implements SingleProblemEvent {
     private final Problem problem;
 
-    public DefaultSingleProblemEvent(
-        long eventTime,
-        @Nullable OperationDescriptor problemDescriptor,
-        Problem problem
-    ) {
+    public DefaultSingleProblemEvent(long eventTime, @Nullable OperationDescriptor problemDescriptor, Problem problem) {
         super(eventTime, problemDescriptor == null ? "<null>" : problemDescriptor.getDisplayName(), problemDescriptor);
         this.problem = problem;
     }

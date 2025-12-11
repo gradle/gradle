@@ -33,5 +33,4 @@ public class ContextAwareException extends GradleException {
     public ContextAwareException(Throwable t) {
         initCause(t);
     }
-
 }

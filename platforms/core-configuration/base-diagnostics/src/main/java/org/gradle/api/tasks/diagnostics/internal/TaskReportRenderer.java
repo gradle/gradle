@@ -16,15 +16,14 @@
 
 package org.gradle.api.tasks.diagnostics.internal;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
-
-import java.util.List;
-
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
 /**
  * <p>A {@code TaskReportRenderer} is responsible for rendering the model of a project task report.</p>

@@ -20,7 +20,8 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 public class ModuleComponentOptionalArtifactMetadata extends DefaultModuleComponentArtifactMetadata {
-    public ModuleComponentOptionalArtifactMetadata(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
+    public ModuleComponentOptionalArtifactMetadata(
+            ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
         super(componentIdentifier, artifact);
     }
 

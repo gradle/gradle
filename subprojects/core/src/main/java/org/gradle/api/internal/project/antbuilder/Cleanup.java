@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
+import java.lang.ref.PhantomReference;
+import java.lang.ref.ReferenceQueue;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.groovyloader.GroovySystemLoader;
-
-import java.lang.ref.PhantomReference;
-import java.lang.ref.ReferenceQueue;
 
 class Cleanup extends PhantomReference<CachedClassLoader> {
     enum Mode {
@@ -34,7 +33,8 @@ class Cleanup extends PhantomReference<CachedClassLoader> {
     private final GroovySystemLoader gradleApiGroovyLoader;
     private final GroovySystemLoader antBuilderGroovyLoader;
 
-    Cleanup(ClassPath classPath,
+    Cleanup(
+            ClassPath classPath,
             CachedClassLoader cachedClassLoader,
             ReferenceQueue<CachedClassLoader> referenceQueue,
             ClassLoader classLoader,

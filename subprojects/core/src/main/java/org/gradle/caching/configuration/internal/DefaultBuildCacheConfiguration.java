@@ -18,6 +18,8 @@ package org.gradle.caching.configuration.internal;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheServiceFactory;
@@ -30,9 +32,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Set;
-
 public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheConfiguration.class);
 
@@ -43,7 +42,8 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     private Set<BuildCacheServiceRegistration> registrations;
 
-    public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices) {
+    public DefaultBuildCacheConfiguration(
+            Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices) {
         this.instantiator = instantiator;
         this.registrations = Sets.newHashSet(allBuiltInBuildCacheServices);
         this.local = createLocalCacheConfiguration(instantiator, registrations);
@@ -84,7 +84,10 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     public <T extends BuildCache> T remote(Class<T> type, Action<? super T> configuration) {
         if (!type.isInstance(remote)) {
             if (remote != null) {
-                LOGGER.info("Replacing remote build cache type {} with {}", remote.getClass().getCanonicalName(), type.getCanonicalName());
+                LOGGER.info(
+                        "Replacing remote build cache type {} with {}",
+                        remote.getClass().getCanonicalName(),
+                        type.getCanonicalName());
             }
             remote = createRemoteCacheConfiguration(instantiator, type, registrations);
         }
@@ -111,43 +114,52 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         this.registrations = registrations;
     }
 
-    private static DirectoryBuildCache createLocalCacheConfiguration(Instantiator instantiator, Set<BuildCacheServiceRegistration> registrations) {
-        DirectoryBuildCache local = createBuildCacheConfiguration(instantiator, DirectoryBuildCache.class, registrations);
+    private static DirectoryBuildCache createLocalCacheConfiguration(
+            Instantiator instantiator, Set<BuildCacheServiceRegistration> registrations) {
+        DirectoryBuildCache local =
+                createBuildCacheConfiguration(instantiator, DirectoryBuildCache.class, registrations);
         // By default, we push to the local cache.
         local.setPush(true);
         return local;
     }
 
-    private static <T extends BuildCache> T createRemoteCacheConfiguration(Instantiator instantiator, Class<T> type, Set<BuildCacheServiceRegistration> registrations) {
+    private static <T extends BuildCache> T createRemoteCacheConfiguration(
+            Instantiator instantiator, Class<T> type, Set<BuildCacheServiceRegistration> registrations) {
         T remote = createBuildCacheConfiguration(instantiator, type, registrations);
         // By default, we do not push to the remote cache.
         remote.setPush(false);
         return remote;
     }
 
-    private static <T extends BuildCache> T createBuildCacheConfiguration(Instantiator instantiator, Class<T> type, Set<BuildCacheServiceRegistration> registrations) {
+    private static <T extends BuildCache> T createBuildCacheConfiguration(
+            Instantiator instantiator, Class<T> type, Set<BuildCacheServiceRegistration> registrations) {
         // ensure type is registered
         getBuildCacheServiceFactoryType(type, registrations);
         return instantiator.newInstance(type);
     }
 
     @Override
-    public <T extends BuildCache> void registerBuildCacheService(Class<T> configurationType, Class<? extends BuildCacheServiceFactory<? super T>> buildCacheServiceFactoryType) {
+    public <T extends BuildCache> void registerBuildCacheService(
+            Class<T> configurationType,
+            Class<? extends BuildCacheServiceFactory<? super T>> buildCacheServiceFactoryType) {
         Preconditions.checkNotNull(configurationType, "configurationType cannot be null.");
         Preconditions.checkNotNull(buildCacheServiceFactoryType, "buildCacheServiceFactoryType cannot be null.");
         registrations.add(new DefaultBuildCacheServiceRegistration(configurationType, buildCacheServiceFactoryType));
     }
 
     @Override
-    public <T extends BuildCache> Class<? extends BuildCacheServiceFactory<T>> getBuildCacheServiceFactoryType(Class<T> configurationType) {
+    public <T extends BuildCache> Class<? extends BuildCacheServiceFactory<T>> getBuildCacheServiceFactoryType(
+            Class<T> configurationType) {
         return getBuildCacheServiceFactoryType(configurationType, registrations);
     }
 
-    private static <T extends BuildCache> Class<? extends BuildCacheServiceFactory<T>> getBuildCacheServiceFactoryType(Class<T> configurationType, Set<BuildCacheServiceRegistration> registrations) {
+    private static <T extends BuildCache> Class<? extends BuildCacheServiceFactory<T>> getBuildCacheServiceFactoryType(
+            Class<T> configurationType, Set<BuildCacheServiceRegistration> registrations) {
         for (BuildCacheServiceRegistration registration : registrations) {
             Class<? extends BuildCache> registeredConfigurationType = registration.getConfigurationType();
             if (registeredConfigurationType.isAssignableFrom(configurationType)) {
-                Class<? extends BuildCacheServiceFactory<?>> buildCacheServiceFactoryType = registration.getFactoryType();
+                Class<? extends BuildCacheServiceFactory<?>> buildCacheServiceFactoryType =
+                        registration.getFactoryType();
                 LOGGER.debug("Found {} registered for {}", buildCacheServiceFactoryType, registeredConfigurationType);
                 return Cast.uncheckedNonnullCast(buildCacheServiceFactoryType);
             }

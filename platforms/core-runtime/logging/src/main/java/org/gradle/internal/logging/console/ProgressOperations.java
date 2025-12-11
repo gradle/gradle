@@ -16,16 +16,20 @@
 
 package org.gradle.internal.logging.console;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class ProgressOperations {
-    private final Map<OperationIdentifier, ProgressOperation> operationsById = new HashMap<OperationIdentifier, ProgressOperation>();
+    private final Map<OperationIdentifier, ProgressOperation> operationsById =
+            new HashMap<OperationIdentifier, ProgressOperation>();
 
-    public ProgressOperation start(String status, String category, OperationIdentifier operationId, @Nullable OperationIdentifier parentOperationId) {
+    public ProgressOperation start(
+            String status,
+            String category,
+            OperationIdentifier operationId,
+            @Nullable OperationIdentifier parentOperationId) {
         ProgressOperation parent = null;
         if (parentOperationId != null) {
             parent = operationsById.get(parentOperationId);
@@ -36,7 +40,8 @@ public class ProgressOperations {
         }
         ProgressOperation previous = operationsById.put(operationId, operation);
         if (previous != null) {
-            throw new IllegalStateException("Received start event for an operation that has already started (id: " + operationId + "). Currently in progress=" + operationsById.values());
+            throw new IllegalStateException("Received start event for an operation that has already started (id: "
+                    + operationId + "). Currently in progress=" + operationsById.values());
         }
         return operation;
     }
@@ -44,7 +49,8 @@ public class ProgressOperations {
     public ProgressOperation progress(String description, OperationIdentifier operationId) {
         ProgressOperation op = operationsById.get(operationId);
         if (op == null) {
-            throw new IllegalStateException("Received progress event for an unknown operation (id: " + operationId + "). Currently in progress=" + operationsById.values());
+            throw new IllegalStateException("Received progress event for an unknown operation (id: " + operationId
+                    + "). Currently in progress=" + operationsById.values());
         }
         op.setStatus(description);
         return op;
@@ -53,7 +59,8 @@ public class ProgressOperations {
     public ProgressOperation complete(OperationIdentifier operationId) {
         ProgressOperation op = operationsById.remove(operationId);
         if (op == null) {
-            throw new IllegalStateException("Received complete event for an unknown operation (id: " + operationId + "). Currently in progress=" + operationsById.values());
+            throw new IllegalStateException("Received complete event for an unknown operation (id: " + operationId
+                    + "). Currently in progress=" + operationsById.values());
         }
         if (op.getParent() != null) {
             op.getParent().removeChild(op);

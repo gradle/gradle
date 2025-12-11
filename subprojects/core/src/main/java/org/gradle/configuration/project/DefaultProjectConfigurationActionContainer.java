@@ -17,12 +17,11 @@
 package org.gradle.configuration.project;
 
 import groovy.lang.Closure;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.internal.ConfigureUtil;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DefaultProjectConfigurationActionContainer implements ProjectConfigurationActionContainer {
     private final List<Action<? super ProjectInternal>> actions = new ArrayList<Action<? super ProjectInternal>>();

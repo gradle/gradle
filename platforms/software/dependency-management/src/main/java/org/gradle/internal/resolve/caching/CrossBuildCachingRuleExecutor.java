@@ -17,6 +17,13 @@ package org.gradle.internal.resolve.caching;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
@@ -46,16 +53,9 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements CachingRuleExecutor<KEY, DETAILS, RESULT>, Closeable {
-    private final static Logger LOGGER = Logging.getLogger(CrossBuildCachingRuleExecutor.class);
+public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT>
+        implements CachingRuleExecutor<KEY, DETAILS, RESULT>, Closeable {
+    private static final Logger LOGGER = Logging.getLogger(CrossBuildCachingRuleExecutor.class);
 
     private final ValueSnapshotter snapshotter;
     private final Transformer<?, KEY> keyToSnapshottable;
@@ -65,35 +65,31 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     private final EntryValidator<RESULT> validator;
 
     public CrossBuildCachingRuleExecutor(
-        String name,
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-        ValueSnapshotter snapshotter,
-        BuildCommencedTimeProvider timeProvider,
-        EntryValidator<RESULT> validator,
-        Transformer<?, KEY> keyToSnapshottable,
-        Serializer<RESULT> resultSerializer
-    ) {
+            String name,
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+            ValueSnapshotter snapshotter,
+            BuildCommencedTimeProvider timeProvider,
+            EntryValidator<RESULT> validator,
+            Transformer<?, KEY> keyToSnapshottable,
+            Serializer<RESULT> resultSerializer) {
         this.snapshotter = snapshotter;
         this.validator = validator;
         this.keyToSnapshottable = keyToSnapshottable;
         this.timeProvider = timeProvider;
         this.cache = cacheBuilderFactory
-            .createCacheBuilder(name)
-            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-            .open();
-        IndexedCacheParameters<HashCode, CachedEntry<RESULT>> cacheParams = createCacheConfiguration(name, resultSerializer, cacheDecoratorFactory);
+                .createCacheBuilder(name)
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+                .open();
+        IndexedCacheParameters<HashCode, CachedEntry<RESULT>> cacheParams =
+                createCacheConfiguration(name, resultSerializer, cacheDecoratorFactory);
         this.store = this.cache.createIndexedCache(cacheParams);
     }
 
-    private IndexedCacheParameters<HashCode, CachedEntry<RESULT>> createCacheConfiguration(String name, Serializer<RESULT> resultSerializer, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
-        return IndexedCacheParameters.of(
-            name,
-            new HashCodeSerializer(),
-            createEntrySerializer(resultSerializer)
-        ).withCacheDecorator(
-            cacheDecoratorFactory.decorator(2000, true)
-        );
+    private IndexedCacheParameters<HashCode, CachedEntry<RESULT>> createCacheConfiguration(
+            String name, Serializer<RESULT> resultSerializer, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
+        return IndexedCacheParameters.of(name, new HashCodeSerializer(), createEntrySerializer(resultSerializer))
+                .withCacheDecorator(cacheDecoratorFactory.decorator(2000, true));
     }
 
     private Serializer<CachedEntry<RESULT>> createEntrySerializer(final Serializer<RESULT> resultSerializer) {
@@ -101,7 +97,12 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     }
 
     @Override
-    public <D extends DETAILS> RESULT execute(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss, CacheExpirationControl cacheExpirationControl) {
+    public <D extends DETAILS> RESULT execute(
+            KEY key,
+            InstantiatingAction<DETAILS> action,
+            Transformer<RESULT, D> detailsToResult,
+            Transformer<D, KEY> onCacheMiss,
+            CacheExpirationControl cacheExpirationControl) {
         if (action == null) {
             return null;
         }
@@ -113,7 +114,13 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         }
     }
 
-    private <D extends DETAILS> RESULT tryFromCache(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss, CacheExpirationControl cacheExpirationControl, ConfigurableRules<DETAILS> rules) {
+    private <D extends DETAILS> RESULT tryFromCache(
+            KEY key,
+            InstantiatingAction<DETAILS> action,
+            Transformer<RESULT, D> detailsToResult,
+            Transformer<D, KEY> onCacheMiss,
+            CacheExpirationControl cacheExpirationControl,
+            ConfigurableRules<DETAILS> rules) {
         final HashCode keyHash = computeExplicitInputsSnapshot(key, rules);
         DefaultImplicitInputRegistrar registrar = new DefaultImplicitInputRegistrar();
         ImplicitInputsCapturingInstantiator instantiator = findInputCapturingInstantiator(action);
@@ -126,9 +133,12 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Found result for rule {} and key {} in cache", rules, key);
             }
-            if (validator.isValid(cacheExpirationControl, entry) && areImplicitInputsUpToDate(instantiator, key, rules, entry)) {
-                // Here it means that we have validated that the entry is still up-to-date, and that means a couple of things:
-                // 1. the cache policy said that the entry is still valid (for example, `--refresh-dependencies` wasn't called)
+            if (validator.isValid(cacheExpirationControl, entry)
+                    && areImplicitInputsUpToDate(instantiator, key, rules, entry)) {
+                // Here it means that we have validated that the entry is still up-to-date, and that means a couple of
+                // things:
+                // 1. the cache policy said that the entry is still valid (for example, `--refresh-dependencies` wasn't
+                // called)
                 // 2. if the rule is cacheable, we have validated that its discovered inputs are still the same
                 return entry.getResult();
             } else if (LOGGER.isDebugEnabled()) {
@@ -150,7 +160,8 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
      * @return a snapshot of the inputs
      */
     private HashCode computeExplicitInputsSnapshot(KEY key, ConfigurableRules<DETAILS> rules) {
-        List<Object> toBeSnapshotted = new ArrayList<>(2 + 2 * rules.getConfigurableRules().size());
+        List<Object> toBeSnapshotted =
+                new ArrayList<>(2 + 2 * rules.getConfigurableRules().size());
         toBeSnapshotted.add(keyToSnapshottable.transform(key));
         for (ConfigurableRule<DETAILS> rule : rules.getConfigurableRules()) {
             Class<? extends Action<DETAILS>> ruleClass = rule.getRuleClass();
@@ -170,14 +181,24 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         return null;
     }
 
-    private boolean areImplicitInputsUpToDate(ImplicitInputsCapturingInstantiator serviceRegistry, KEY key, ConfigurableRules<DETAILS> rules, CachedEntry<RESULT> entry) {
-        for (Map.Entry<String, Collection<ImplicitInputRecord<?, ?>>> implicitEntry : entry.getImplicits().asMap().entrySet()) {
+    private boolean areImplicitInputsUpToDate(
+            ImplicitInputsCapturingInstantiator serviceRegistry,
+            KEY key,
+            ConfigurableRules<DETAILS> rules,
+            CachedEntry<RESULT> entry) {
+        for (Map.Entry<String, Collection<ImplicitInputRecord<?, ?>>> implicitEntry :
+                entry.getImplicits().asMap().entrySet()) {
             String serviceName = implicitEntry.getKey();
-            ImplicitInputsProvidingService<Object, Object, ?> provider = Cast.uncheckedCast(serviceRegistry.findInputCapturingServiceByName(serviceName));
+            ImplicitInputsProvidingService<Object, Object, ?> provider =
+                    Cast.uncheckedCast(serviceRegistry.findInputCapturingServiceByName(serviceName));
             for (ImplicitInputRecord<?, ?> list : implicitEntry.getValue()) {
                 if (!provider.isUpToDate(list.getInput(), list.getOutput())) {
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Invalidating result for rule {} and key {} in cache because implicit input provided by service {} changed", rules, key, provider.getClass());
+                        LOGGER.debug(
+                                "Invalidating result for rule {} and key {} in cache because implicit input provided by service {} changed",
+                                rules,
+                                key,
+                                provider.getClass());
                     }
                     return false;
                 }
@@ -186,7 +207,11 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         return true;
     }
 
-    private <D extends DETAILS> RESULT executeRule(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss) {
+    private <D extends DETAILS> RESULT executeRule(
+            KEY key,
+            InstantiatingAction<DETAILS> action,
+            Transformer<RESULT, D> detailsToResult,
+            Transformer<D, KEY> onCacheMiss) {
         D details = onCacheMiss.transform(key);
         action.execute(details);
         return detailsToResult.transform(details);
@@ -291,15 +316,18 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
             resultSerializer.write(encoder, value.result);
         }
 
-        private void writeImplicits(Encoder encoder, Multimap<String, ImplicitInputRecord<?, ?>> implicits) throws Exception {
+        private void writeImplicits(Encoder encoder, Multimap<String, ImplicitInputRecord<?, ?>> implicits)
+                throws Exception {
             encoder.writeSmallInt(implicits.size());
-            for (Map.Entry<String, Collection<ImplicitInputRecord<?, ?>>> entry : implicits.asMap().entrySet()) {
+            for (Map.Entry<String, Collection<ImplicitInputRecord<?, ?>>> entry :
+                    implicits.asMap().entrySet()) {
                 encoder.writeString(entry.getKey());
                 writeImplicitList(encoder, entry.getValue());
             }
         }
 
-        private void writeImplicitList(Encoder encoder, Collection<ImplicitInputRecord<?, ?>> implicits) throws Exception {
+        private void writeImplicitList(Encoder encoder, Collection<ImplicitInputRecord<?, ?>> implicits)
+                throws Exception {
             encoder.writeSmallInt(implicits.size());
             for (ImplicitInputRecord<?, ?> implicit : implicits) {
                 writeAny(encoder, implicit.getInput());
@@ -324,14 +352,8 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     private static class AnySerializer implements Serializer<Object> {
         private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory();
 
-        private static final Class<?>[] USUAL_TYPES = new Class<?>[]{
-            String.class,
-            Boolean.class,
-            Long.class,
-            File.class,
-            byte[].class,
-            HashCode.class,
-            Throwable.class
+        private static final Class<?>[] USUAL_TYPES = new Class<?>[] {
+            String.class, Boolean.class, Long.class, File.class, byte[].class, HashCode.class, Throwable.class
         };
 
         @Override

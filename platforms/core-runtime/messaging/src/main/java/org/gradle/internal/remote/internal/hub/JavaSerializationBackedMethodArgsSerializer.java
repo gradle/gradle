@@ -44,8 +44,7 @@ class JavaSerializationBackedMethodArgsSerializer implements MethodArgsSerialize
         }
 
         @Override
-        public void write(Encoder encoder, Object[] value) {
-        }
+        public void write(Encoder encoder, Object[] value) {}
     }
 
     private class ArraySerializer implements Serializer<Object[]> {

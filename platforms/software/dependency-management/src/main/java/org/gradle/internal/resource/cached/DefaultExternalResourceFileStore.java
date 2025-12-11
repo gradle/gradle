@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.resource.cached;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
@@ -25,10 +27,8 @@ import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.inject.Inject;
-import java.io.File;
-
-public class DefaultExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<String> implements ExternalResourceFileStore {
+public class DefaultExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<String>
+        implements ExternalResourceFileStore {
 
     private static final int NUMBER_OF_GROUPING_DIRS = 1;
     public static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = NUMBER_OF_GROUPING_DIRS + NUMBER_OF_CHECKSUM_DIRS;
@@ -47,7 +47,11 @@ public class DefaultExternalResourceFileStore extends GroupedAndNamedUniqueFileS
 
     private static final Namer<String> NAMER = s -> StringUtils.substringAfterLast(s, "/");
 
-    private DefaultExternalResourceFileStore(File baseDir, TemporaryFileProvider tmpProvider, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
+    private DefaultExternalResourceFileStore(
+            File baseDir,
+            TemporaryFileProvider tmpProvider,
+            FileAccessTimeJournal fileAccessTimeJournal,
+            ChecksumService checksumService) {
         super(baseDir, tmpProvider, fileAccessTimeJournal, GROUPER, NAMER, checksumService);
     }
 
@@ -58,7 +62,10 @@ public class DefaultExternalResourceFileStore extends GroupedAndNamedUniqueFileS
         private final ChecksumService checksumService;
 
         @Inject
-        public Factory(TemporaryFileProvider temporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
+        public Factory(
+                TemporaryFileProvider temporaryFileProvider,
+                FileAccessTimeJournal fileAccessTimeJournal,
+                ChecksumService checksumService) {
             this.temporaryFileProvider = temporaryFileProvider;
             this.fileAccessTimeJournal = fileAccessTimeJournal;
             this.checksumService = checksumService;
@@ -66,11 +73,10 @@ public class DefaultExternalResourceFileStore extends GroupedAndNamedUniqueFileS
 
         public DefaultExternalResourceFileStore create(ArtifactCacheMetadata artifactCacheMetadata) {
             return new DefaultExternalResourceFileStore(
-                artifactCacheMetadata.getExternalResourcesStoreDirectory(),
-                temporaryFileProvider,
-                fileAccessTimeJournal,
-                checksumService
-            );
+                    artifactCacheMetadata.getExternalResourcesStoreDirectory(),
+                    temporaryFileProvider,
+                    fileAccessTimeJournal,
+                    checksumService);
         }
     }
 }

@@ -36,9 +36,7 @@ public class ImmutableArtifactTypeRegistryFactory {
     private final InMemoryInterner<ImmutableArtifactTypeRegistry> registries;
 
     public ImmutableArtifactTypeRegistryFactory(
-        InMemoryCacheFactory cacheFactory,
-        AttributesFactory attributesFactory
-    ) {
+            InMemoryCacheFactory cacheFactory, AttributesFactory attributesFactory) {
         this.attributesFactory = attributesFactory;
         this.registries = cacheFactory.createInterner();
     }
@@ -47,10 +45,8 @@ public class ImmutableArtifactTypeRegistryFactory {
         ImmutableMap<String, ImmutableAttributes> artifactTypeMappings = registry.getArtifactTypeMappings();
 
         return registries.intern(new ImmutableArtifactTypeRegistry(
-            attributesFactory,
-            artifactTypeMappings,
-            registry.getDefaultArtifactAttributes().asImmutable()
-        ));
+                attributesFactory,
+                artifactTypeMappings,
+                registry.getDefaultArtifactAttributes().asImmutable()));
     }
-
 }

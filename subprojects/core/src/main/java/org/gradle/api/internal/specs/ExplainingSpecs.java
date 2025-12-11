@@ -25,6 +25,7 @@ public class ExplainingSpecs {
         public boolean isSatisfiedBy(Object element) {
             return true;
         }
+
         @Override
         public String whyUnsatisfied(Object element) {
             return null;
@@ -40,6 +41,7 @@ public class ExplainingSpecs {
         public boolean isSatisfiedBy(Object element) {
             return false;
         }
+
         @Override
         public String whyUnsatisfied(Object element) {
             return "Never satisfies any.";

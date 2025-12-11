@@ -17,13 +17,12 @@
 package org.gradle.plugins.ide.internal.tooling.idea;
 
 import com.google.common.collect.ImmutableList;
+import java.io.Serializable;
+import java.util.List;
 import org.gradle.api.JavaVersion;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.List;
 
 /**
  * Represents an IDEA module in isolation.
@@ -45,9 +44,7 @@ public class IsolatedIdeaModuleInternal implements Serializable {
 
     @Override
     public String toString() {
-        return "IsolatedIdeaModuleInternal{"
-            + "contentRoot='" + contentRoot.getRootDirectory() + '\''
-            + '}';
+        return "IsolatedIdeaModuleInternal{" + "contentRoot='" + contentRoot.getRootDirectory() + '\'' + '}';
     }
 
     public String getName() {

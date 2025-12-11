@@ -16,14 +16,13 @@
 
 package org.gradle.internal.classpath.transforms;
 
+import java.io.IOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.hash.Hasher;
 import org.objectweb.asm.ClassVisitor;
-
-import java.io.IOException;
 
 public class CompositeClassTransform implements ClassTransform {
     private final ClassTransform first;
@@ -41,7 +40,8 @@ public class CompositeClassTransform implements ClassTransform {
     }
 
     @Override
-    public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) throws IOException {
+    public Pair<RelativePath, ClassVisitor> apply(
+            ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) throws IOException {
         return first.apply(entry, second.apply(entry, visitor, classData).right, classData);
     }
 }

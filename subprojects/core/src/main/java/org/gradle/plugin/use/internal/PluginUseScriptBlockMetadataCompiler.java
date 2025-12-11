@@ -16,6 +16,11 @@
 
 package org.gradle.plugin.use.internal;
 
+import static org.gradle.groovy.scripts.internal.AstUtils.hasSingleConstantArgOfType;
+import static org.gradle.groovy.scripts.internal.AstUtils.hasSingleConstantStringArg;
+import static org.gradle.groovy.scripts.internal.AstUtils.hasSinglePropertyExpressionArgument;
+import static org.gradle.groovy.scripts.internal.AstUtils.isOfType;
+
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.ClosureExpression;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
@@ -33,26 +38,27 @@ import org.gradle.groovy.scripts.internal.Permits;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
 
-import static org.gradle.groovy.scripts.internal.AstUtils.hasSingleConstantArgOfType;
-import static org.gradle.groovy.scripts.internal.AstUtils.hasSingleConstantStringArg;
-import static org.gradle.groovy.scripts.internal.AstUtils.hasSinglePropertyExpressionArgument;
-import static org.gradle.groovy.scripts.internal.AstUtils.isOfType;
-
 public class PluginUseScriptBlockMetadataCompiler {
 
     public static final String NEED_SINGLE_BOOLEAN = "argument list must be exactly 1 literal boolean";
-    public static final String NEED_LITERAL_STRING = "argument list must be exactly 1 literal String or String with property replacement";
-    public static final String NEED_INTERPOLATED_STRING = "argument list must be exactly 1 literal String or String with property replacement";
-    public static final String BASE_MESSAGE = "only id(String), alias(Provider), or alias(ProviderConvertible) method calls allowed in plugins {} script block";
-    public static final String EXTENDED_MESSAGE = "only version(String) and apply(boolean) method calls allowed in plugins {} script block";
-    public static final String DISALLOWED_ALIAS_NOTATION = "only alias(libs.plugins.someAlias) plugin identifiers where `libs` is a valid version catalog";
+    public static final String NEED_LITERAL_STRING =
+            "argument list must be exactly 1 literal String or String with property replacement";
+    public static final String NEED_INTERPOLATED_STRING =
+            "argument list must be exactly 1 literal String or String with property replacement";
+    public static final String BASE_MESSAGE =
+            "only id(String), alias(Provider), or alias(ProviderConvertible) method calls allowed in plugins {} script block";
+    public static final String EXTENDED_MESSAGE =
+            "only version(String) and apply(boolean) method calls allowed in plugins {} script block";
+    public static final String DISALLOWED_ALIAS_NOTATION =
+            "only alias(libs.plugins.someAlias) plugin identifiers where `libs` is a valid version catalog";
     private static final String NOT_LITERAL_METHOD_NAME = "method name must be literal (i.e. not a variable)";
     private static final String NOT_LITERAL_ID_METHOD_NAME = BASE_MESSAGE + " - " + NOT_LITERAL_METHOD_NAME;
 
     private final DocumentationRegistry documentationRegistry;
     private final Permits pluginsBlockPermits;
 
-    public PluginUseScriptBlockMetadataCompiler(DocumentationRegistry documentationRegistry, Permits pluginsBlockPermits) {
+    public PluginUseScriptBlockMetadataCompiler(
+            DocumentationRegistry documentationRegistry, Permits pluginsBlockPermits) {
         this.documentationRegistry = documentationRegistry;
         this.pluginsBlockPermits = pluginsBlockPermits;
     }
@@ -93,7 +99,8 @@ public class PluginUseScriptBlockMetadataCompiler {
                                     // or <versionCatalog>.plugins.some.id
                                     // because the expression might be complex we rely on its textual representation
                                     String fullExpressionText = fullExpression.getText();
-                                    if (pluginsBlockPermits.getAllowedExtensions().stream().anyMatch(ext -> fullExpressionText.startsWith(ext + ".plugins."))) {
+                                    if (pluginsBlockPermits.getAllowedExtensions().stream()
+                                            .anyMatch(ext -> fullExpressionText.startsWith(ext + ".plugins."))) {
                                         return;
                                     }
                                 }
@@ -109,8 +116,10 @@ public class PluginUseScriptBlockMetadataCompiler {
                                 if (!call.isImplicitThis()) {
                                     restrict(call, formatErrorMessage(BASE_MESSAGE));
                                 } else {
-                                    ConstantExpression lineNumberExpression = new ConstantExpression(call.getLineNumber(), true);
-                                    call.setArguments(new ArgumentListExpression(argumentExpression, lineNumberExpression));
+                                    ConstantExpression lineNumberExpression =
+                                            new ConstantExpression(call.getLineNumber(), true);
+                                    call.setArguments(
+                                            new ArgumentListExpression(argumentExpression, lineNumberExpression));
                                 }
 
                                 break;
@@ -121,7 +130,8 @@ public class PluginUseScriptBlockMetadataCompiler {
                                     // or <versionCatalog>.versions.some.id
                                     // because the expression might be complex we rely on its textual representation
                                     String fullExpressionText = fullExpression.getText();
-                                    if (pluginsBlockPermits.getAllowedExtensions().stream().anyMatch(ext -> fullExpressionText.startsWith(ext + ".versions."))) {
+                                    if (pluginsBlockPermits.getAllowedExtensions().stream()
+                                            .anyMatch(ext -> fullExpressionText.startsWith(ext + ".versions."))) {
                                         return;
                                     }
                                 }
@@ -193,6 +203,10 @@ public class PluginUseScriptBlockMetadataCompiler {
     }
 
     public String formatErrorMessage(String message) {
-        return String.format("%s%n%n%s%n%n", message, documentationRegistry.getDocumentationRecommendationFor("information on the plugins {} block", "plugins_intermediate", "sec:plugins_block"));
+        return String.format(
+                "%s%n%n%s%n%n",
+                message,
+                documentationRegistry.getDocumentationRecommendationFor(
+                        "information on the plugins {} block", "plugins_intermediate", "sec:plugins_block"));
     }
 }

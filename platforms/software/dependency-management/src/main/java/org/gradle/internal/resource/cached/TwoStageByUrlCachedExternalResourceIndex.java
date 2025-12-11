@@ -15,18 +15,20 @@
  */
 package org.gradle.internal.resource.cached;
 
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.nio.file.Path;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.jspecify.annotations.Nullable;
 
 public class TwoStageByUrlCachedExternalResourceIndex implements CachedExternalResourceIndex<String> {
     private final Path readOnlyCachePath;
     private final CachedExternalResourceIndex<String> readOnlyCache;
     private final CachedExternalResourceIndex<String> writableCache;
 
-    public TwoStageByUrlCachedExternalResourceIndex(Path readOnlyCachePath, CachedExternalResourceIndex<String> readOnlyCache, CachedExternalResourceIndex<String> writableCache) {
+    public TwoStageByUrlCachedExternalResourceIndex(
+            Path readOnlyCachePath,
+            CachedExternalResourceIndex<String> readOnlyCache,
+            CachedExternalResourceIndex<String> writableCache) {
         this.readOnlyCachePath = readOnlyCachePath;
         this.readOnlyCache = readOnlyCache;
         this.writableCache = writableCache;

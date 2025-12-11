@@ -16,14 +16,13 @@
 
 package org.gradle.launcher.daemon.server;
 
+import java.util.Collection;
+import java.util.Date;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
-
-import java.util.Collection;
-import java.util.Date;
 
 public class NotMostRecentlyUsedDaemonExpirationStrategy implements DaemonExpirationStrategy {
     private final Daemon daemon;

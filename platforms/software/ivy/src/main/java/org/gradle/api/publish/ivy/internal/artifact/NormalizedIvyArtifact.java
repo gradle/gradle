@@ -16,24 +16,27 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
+import java.io.File;
+import java.io.Serializable;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.Serializable;
-
 public class NormalizedIvyArtifact implements IvyArtifactInternal, Serializable {
     private final File file;
     private final String extension;
+
     @Nullable
     private final String classifier;
+
     private final String name;
     private final String type;
+
     @Nullable
     private final String conf;
+
     private final Provider<Boolean> shouldBePublished;
 
     public NormalizedIvyArtifact(IvyArtifactInternal artifact) {

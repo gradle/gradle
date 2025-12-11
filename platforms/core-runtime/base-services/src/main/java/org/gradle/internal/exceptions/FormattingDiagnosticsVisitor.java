@@ -17,7 +17,6 @@
 package org.gradle.internal.exceptions;
 
 import com.google.common.base.Joiner;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -40,7 +39,9 @@ public class FormattingDiagnosticsVisitor implements DiagnosticsVisitor {
             if (candidate.examples.isEmpty()) {
                 formatted.add(candidate.description);
             } else {
-                formatted.add(String.format("%s, for example %s.", candidate.description, Joiner.on(", ").join(candidate.examples)));
+                formatted.add(String.format(
+                        "%s, for example %s.",
+                        candidate.description, Joiner.on(", ").join(candidate.examples)));
             }
         }
         return formatted;

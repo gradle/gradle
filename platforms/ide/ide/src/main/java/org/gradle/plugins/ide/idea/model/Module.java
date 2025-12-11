@@ -15,22 +15,21 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import groovy.util.Node;
-import org.gradle.internal.Cast;
-import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
+import org.gradle.internal.Cast;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents the customizable elements of an iml (via XML hooks everything of the iml is customizable).
@@ -216,13 +215,20 @@ public class Module extends XmlPersistableConfigurationObject {
         return "defaultModule.xml";
     }
 
-    protected Object configure(Path contentPath,
-                               Set<Path> sourceFolders, Set<Path> testSourceFolders,
-                               Set<Path> resourceFolders, Set<Path> testResourceFolders,
-                               Set<Path> generatedSourceFolders,
-                               Set<Path> excludeFolders,
-                               Boolean inheritOutputDirs, Path outputDir, Path testOutputDir,
-                               Set<Dependency> dependencies, String jdkName, String languageLevel) {
+    protected Object configure(
+            Path contentPath,
+            Set<Path> sourceFolders,
+            Set<Path> testSourceFolders,
+            Set<Path> resourceFolders,
+            Set<Path> testResourceFolders,
+            Set<Path> generatedSourceFolders,
+            Set<Path> excludeFolders,
+            Boolean inheritOutputDirs,
+            Path outputDir,
+            Path testOutputDir,
+            Set<Dependency> dependencies,
+            String jdkName,
+            String languageLevel) {
         this.languageLevel = languageLevel;
         this.contentPath = contentPath;
         this.sourceFolders.addAll(sourceFolders);
@@ -301,7 +307,6 @@ public class Module extends XmlPersistableConfigurationObject {
         for (Node excludeFolder : findExcludeFolder()) {
             excludeFolders.add(pathFactory.path((String) excludeFolder.attribute("url")));
         }
-
     }
 
     private boolean readInheritOutputDirsFromXml() {
@@ -336,13 +341,17 @@ public class Module extends XmlPersistableConfigurationObject {
                         readDependenciesPathsFromXml(sources, sourcesNode);
                     }
                     for (Node jarDirNode : getChildren(library, "jarDirectory")) {
-                        jarDirectories.add(new JarDirectory(pathFactory.path((String) jarDirNode.attribute("url")), Boolean.parseBoolean((String) jarDirNode.attribute("recursive"))));
+                        jarDirectories.add(new JarDirectory(
+                                pathFactory.path((String) jarDirNode.attribute("url")),
+                                Boolean.parseBoolean((String) jarDirNode.attribute("recursive"))));
                     }
                 }
-                ModuleLibrary moduleLibrary = new ModuleLibrary(classes, javadoc, sources, jarDirectories, (String) orderEntry.attribute("scope"));
+                ModuleLibrary moduleLibrary = new ModuleLibrary(
+                        classes, javadoc, sources, jarDirectories, (String) orderEntry.attribute("scope"));
                 dependencies.add(moduleLibrary);
             } else if ("module".equals(orderEntryType)) {
-                dependencies.add(new ModuleDependency((String) orderEntry.attribute("module-name"), (String) orderEntry.attribute("scope")));
+                dependencies.add(new ModuleDependency(
+                        (String) orderEntry.attribute("module-name"), (String) orderEntry.attribute("scope")));
             }
         }
     }
@@ -488,7 +497,8 @@ public class Module extends XmlPersistableConfigurationObject {
     }
 
     private Node getNewModuleRootManager() {
-        Node newModuleRootManager = findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "NewModuleRootManager");
+        Node newModuleRootManager =
+                findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "NewModuleRootManager");
         Preconditions.checkNotNull(newModuleRootManager);
         return newModuleRootManager;
     }
@@ -548,17 +558,17 @@ public class Module extends XmlPersistableConfigurationObject {
     @Override
     public String toString() {
         return "Module{"
-            + "dependencies=" + dependencies
-            + ", sourceFolders=" + sourceFolders
-            + ", testSourceFolders=" + testSourceFolders
-            + ", resourceFolders=" + resourceFolders
-            + ", testResourceFolders=" + testResourceFolders
-            + ", generatedSourceFolders=" + generatedSourceFolders
-            + ", excludeFolders=" + excludeFolders
-            + ", inheritOutputDirs=" + inheritOutputDirs
-            + ", jdkName=" + jdkName
-            + ", outputDir=" + outputDir
-            + ", testOutputDir=" + testOutputDir + "}";
+                + "dependencies=" + dependencies
+                + ", sourceFolders=" + sourceFolders
+                + ", testSourceFolders=" + testSourceFolders
+                + ", resourceFolders=" + resourceFolders
+                + ", testResourceFolders=" + testResourceFolders
+                + ", generatedSourceFolders=" + generatedSourceFolders
+                + ", excludeFolders=" + excludeFolders
+                + ", inheritOutputDirs=" + inheritOutputDirs
+                + ", jdkName=" + jdkName
+                + ", outputDir=" + outputDir
+                + ", testOutputDir=" + testOutputDir + "}";
     }
 
     @Override
@@ -571,30 +581,30 @@ public class Module extends XmlPersistableConfigurationObject {
         }
         Module module = (Module) o;
         return Objects.equal(dependencies, module.dependencies)
-            && Objects.equal(excludeFolders, module.excludeFolders)
-            && Objects.equal(outputDir, module.outputDir)
-            && Objects.equal(sourceFolders, module.sourceFolders)
-            && Objects.equal(generatedSourceFolders, module.generatedSourceFolders)
-            && Objects.equal(jdkName, module.jdkName)
-            && Objects.equal(testOutputDir, module.testOutputDir)
-            && Objects.equal(testSourceFolders, module.testSourceFolders)
-            && Objects.equal(resourceFolders, module.resourceFolders)
-            && Objects.equal(testResourceFolders, module.testResourceFolders);
+                && Objects.equal(excludeFolders, module.excludeFolders)
+                && Objects.equal(outputDir, module.outputDir)
+                && Objects.equal(sourceFolders, module.sourceFolders)
+                && Objects.equal(generatedSourceFolders, module.generatedSourceFolders)
+                && Objects.equal(jdkName, module.jdkName)
+                && Objects.equal(testOutputDir, module.testOutputDir)
+                && Objects.equal(testSourceFolders, module.testSourceFolders)
+                && Objects.equal(resourceFolders, module.resourceFolders)
+                && Objects.equal(testResourceFolders, module.testResourceFolders);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(sourceFolders,
-            generatedSourceFolders,
-            testSourceFolders,
-            resourceFolders,
-            testResourceFolders,
-            excludeFolders,
-            inheritOutputDirs,
-            jdkName,
-            outputDir,
-            testOutputDir,
-            dependencies);
+        return Objects.hashCode(
+                sourceFolders,
+                generatedSourceFolders,
+                testSourceFolders,
+                resourceFolders,
+                testResourceFolders,
+                excludeFolders,
+                inheritOutputDirs,
+                jdkName,
+                outputDir,
+                testOutputDir,
+                dependencies);
     }
-
 }

@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileSystemLocation;
-
 import java.io.File;
+import org.gradle.api.file.FileSystemLocation;
 
 public class DefaultFileSystemLocation implements FileSystemLocation {
     private final File file;

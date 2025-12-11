@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import java.util.function.LongFunction;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestEventReporterFactory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.LongFunction;
 
 @NullMarked
 public interface TestEventReporterFactoryInternal extends TestEventReporterFactory {
@@ -60,12 +59,11 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
      * @since 9.3.0
      */
     GroupTestEventReporterInternal createInternalTestEventReporter(
-        LongFunction<TestDescriptorInternal> rootDescriptor,
-        Directory binaryResultsDirectory,
-        @Nullable TestReportGenerator reportGenerator,
-        ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
-        int diskSkipLevels,
-        boolean closeThrowsOnTestFailures,
-        boolean addToAggregateReports
-    );
+            LongFunction<TestDescriptorInternal> rootDescriptor,
+            Directory binaryResultsDirectory,
+            @Nullable TestReportGenerator reportGenerator,
+            ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
+            int diskSkipLevels,
+            boolean closeThrowsOnTestFailures,
+            boolean addToAggregateReports);
 }

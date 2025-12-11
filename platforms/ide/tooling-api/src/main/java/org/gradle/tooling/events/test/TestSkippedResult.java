@@ -23,5 +23,4 @@ import org.gradle.tooling.events.SkippedResult;
  *
  * @since 2.4
  */
-public interface TestSkippedResult extends TestOperationResult, SkippedResult {
-}
+public interface TestSkippedResult extends TestOperationResult, SkippedResult {}

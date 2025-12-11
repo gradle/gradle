@@ -16,6 +16,13 @@
 package org.gradle.internal.nativeintegration.filesystem;
 
 import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Map;
+import java.util.UUID;
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.file.Files;
 import org.gradle.internal.UncheckedException;
@@ -37,14 +44,6 @@ import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Map;
-import java.util.UUID;
-
 @SuppressWarnings("Since15")
 @Threads(2)
 @Warmup(iterations = 5)
@@ -52,12 +51,15 @@ import java.util.UUID;
 @State(Scope.Benchmark)
 public class FileMetadataAccessorBenchmark {
     private static final Native NATIVE_INTEGRATION = Native.init(new File("build/tmp/jmh-benchmark"));
-    private static final Map<String, FileMetadataAccessor> ACCESSORS = ImmutableMap.<String, FileMetadataAccessor>builder()
-        .put(FallbackFileMetadataAccessor.class.getSimpleName(), new FallbackFileMetadataAccessor())
-        .put(NativePlatformBackedFileMetadataAccessor.class.getSimpleName(), new NativePlatformBackedFileMetadataAccessor(NATIVE_INTEGRATION.get(Files.class)))
-        .put(Jdk7FileMetadataAccessor.class.getSimpleName(), new Jdk7FileMetadataAccessor())
-        .put(NioFileMetadataAccessor.class.getSimpleName(), new NioFileMetadataAccessor())
-        .build();
+    private static final Map<String, FileMetadataAccessor> ACCESSORS =
+            ImmutableMap.<String, FileMetadataAccessor>builder()
+                    .put(FallbackFileMetadataAccessor.class.getSimpleName(), new FallbackFileMetadataAccessor())
+                    .put(
+                            NativePlatformBackedFileMetadataAccessor.class.getSimpleName(),
+                            new NativePlatformBackedFileMetadataAccessor(NATIVE_INTEGRATION.get(Files.class)))
+                    .put(Jdk7FileMetadataAccessor.class.getSimpleName(), new Jdk7FileMetadataAccessor())
+                    .put(NioFileMetadataAccessor.class.getSimpleName(), new NioFileMetadataAccessor())
+                    .build();
 
     @Param({
         "FallbackFileMetadataAccessor",

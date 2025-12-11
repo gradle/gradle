@@ -15,16 +15,6 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.Project;
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.util.TestUtil;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import static org.gradle.util.internal.WrapUtil.toSet;
 import static org.gradle.util.internal.WrapUtil.toSortedSet;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -33,6 +23,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+
+import java.util.SortedSet;
+import java.util.TreeSet;
+import org.gradle.api.Project;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.TestUtil;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class DefaultProjectRegistryTest {
     public static final String CHILD_NAME = "child";
@@ -59,18 +58,20 @@ public class DefaultProjectRegistryTest {
 
     @Test
     public void addProject() {
-        checkAccessMethods(rootMock, toSortedSet(rootMock, childMock, childChildMock), toSortedSet(childMock,
-                childChildMock), rootMock);
+        checkAccessMethods(
+                rootMock,
+                toSortedSet(rootMock, childMock, childChildMock),
+                toSortedSet(childMock, childChildMock),
+                rootMock);
         checkAccessMethods(childMock, toSortedSet(childMock, childChildMock), toSortedSet(childChildMock), childMock);
         checkAccessMethods(childChildMock, toSortedSet(childChildMock), new TreeSet<>(), childChildMock);
     }
 
     private void checkAccessMethods(
-        ProjectInternal project,
-        SortedSet<ProjectInternal> expectedAllProjects,
-        SortedSet<ProjectInternal> expectedSubProjects,
-        Project expectedGetProject
-    ) {
+            ProjectInternal project,
+            SortedSet<ProjectInternal> expectedAllProjects,
+            SortedSet<ProjectInternal> expectedSubProjects,
+            Project expectedGetProject) {
         assertSame(expectedGetProject, projectRegistry.getProject(project.getPath()));
         assertSame(expectedGetProject, projectRegistry.getProjectInternal(project.getPath()));
         assertEquals(expectedAllProjects, projectRegistry.getAllProjects(project.getPath()));
@@ -90,6 +91,8 @@ public class DefaultProjectRegistryTest {
 
     @Test
     public void canLocalAllProjects() {
-        assertThat(projectRegistry.getAllProjects(rootMock.getPath()), equalTo(toSet(rootMock, childMock, childChildMock)));
+        assertThat(
+                projectRegistry.getAllProjects(rootMock.getPath()),
+                equalTo(toSet(rootMock, childMock, childChildMock)));
     }
 }

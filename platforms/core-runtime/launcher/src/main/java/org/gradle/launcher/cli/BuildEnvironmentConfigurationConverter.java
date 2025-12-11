@@ -16,6 +16,9 @@
 
 package org.gradle.launcher.cli;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.cli.CommandLineArgumentException;
@@ -36,10 +39,6 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
 public class BuildEnvironmentConfigurationConverter {
 
     private final InitialPropertiesConverter initialPropertiesConverter;
@@ -51,40 +50,44 @@ public class BuildEnvironmentConfigurationConverter {
     private final BuildOptionBackedConverter<ToolchainConfiguration> toolchainConfigurationBuildOptionBackedConverter;
     private final FileCollectionFactory fileCollectionFactory;
 
-    BuildEnvironmentConfigurationConverter(InitialPropertiesConverter initialPropertiesConverter,
-                                           BuildLayoutConverter buildLayoutConverter,
-                                           LayoutToPropertiesConverter layoutToPropertiesConverter,
-                                           StartParameterConverter startParameterConverter,
-                                           BuildOptionBackedConverter<DaemonParameters> daemonParametersConverter,
-                                           FileCollectionFactory fileCollectionFactory
-    ) {
+    BuildEnvironmentConfigurationConverter(
+            InitialPropertiesConverter initialPropertiesConverter,
+            BuildLayoutConverter buildLayoutConverter,
+            LayoutToPropertiesConverter layoutToPropertiesConverter,
+            StartParameterConverter startParameterConverter,
+            BuildOptionBackedConverter<DaemonParameters> daemonParametersConverter,
+            FileCollectionFactory fileCollectionFactory) {
         this.initialPropertiesConverter = initialPropertiesConverter;
         this.buildLayoutConverter = buildLayoutConverter;
         this.layoutToPropertiesConverter = layoutToPropertiesConverter;
         this.startParameterConverter = startParameterConverter;
         this.daemonParametersConverter = daemonParametersConverter;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.toolchainConfigurationBuildOptionBackedConverter = new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration());
+        this.toolchainConfigurationBuildOptionBackedConverter =
+                new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration());
     }
 
-    public BuildEnvironmentConfigurationConverter(BuildLayoutFactory buildLayoutFactory, FileCollectionFactory fileCollectionFactory) {
-        this(new InitialPropertiesConverter(),
-            new BuildLayoutConverter(),
-            new LayoutToPropertiesConverter(buildLayoutFactory),
-            new StartParameterConverter(),
-            new BuildOptionBackedConverter<>(new DaemonBuildOptions()),
-            fileCollectionFactory
-        );
+    public BuildEnvironmentConfigurationConverter(
+            BuildLayoutFactory buildLayoutFactory, FileCollectionFactory fileCollectionFactory) {
+        this(
+                new InitialPropertiesConverter(),
+                new BuildLayoutConverter(),
+                new LayoutToPropertiesConverter(buildLayoutFactory),
+                new StartParameterConverter(),
+                new BuildOptionBackedConverter<>(new DaemonBuildOptions()),
+                fileCollectionFactory);
     }
 
-    public Parameters convertParameters(ParsedCommandLine args, @Nullable File currentDir) throws CommandLineArgumentException {
+    public Parameters convertParameters(ParsedCommandLine args, @Nullable File currentDir)
+            throws CommandLineArgumentException {
         InitialProperties initialProperties = initialPropertiesConverter.convert(args);
         BuildLayoutResult buildLayout = buildLayoutConverter.convert(initialProperties, args, currentDir);
         AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
         StartParameterInternal startParameter = new StartParameterInternal();
         startParameterConverter.convert(args, buildLayout, properties, startParameter);
 
-        DaemonParameters daemonParameters = new DaemonParameters(buildLayout.getGradleUserHomeDir(), fileCollectionFactory, properties.getRequestedSystemProperties());
+        DaemonParameters daemonParameters = new DaemonParameters(
+                buildLayout.getGradleUserHomeDir(), fileCollectionFactory, properties.getRequestedSystemProperties());
         daemonParametersConverter.convert(args, properties.getProperties(), daemonParameters);
 
         // This is a workaround to maintain existing behavior that allowed
@@ -92,7 +95,8 @@ public class BuildEnvironmentConfigurationConverter {
         Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
         gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectPropertiesUntracked());
-        toolchainConfigurationBuildOptionBackedConverter.convert(args, gradlePropertiesAsSeenByToolchains, daemonParameters.getToolchainConfiguration());
+        toolchainConfigurationBuildOptionBackedConverter.convert(
+                args, gradlePropertiesAsSeenByToolchains, daemonParameters.getToolchainConfiguration());
         daemonParameters.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties());
 
         return new Parameters(startParameter, daemonParameters, properties);

@@ -16,13 +16,6 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.api.resources.ResourceException;
-import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.ReadableContent;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -32,17 +25,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ReadableContent;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultExternalResourceConnector implements ExternalResourceConnector {
     private static final String SYSPROP_KEY = "gradle.externalresources.recordstats";
-    private final static ExternalResourceAccessStats.Mode STATS_MODE = ExternalResourceAccessStats.Mode.valueOf(System.getProperty(SYSPROP_KEY, "none"));
-    private final static ExternalResourceAccessStats STATS = STATS_MODE.create();
+    private static final ExternalResourceAccessStats.Mode STATS_MODE =
+            ExternalResourceAccessStats.Mode.valueOf(System.getProperty(SYSPROP_KEY, "none"));
+    private static final ExternalResourceAccessStats STATS = STATS_MODE.create();
 
     private final ExternalResourceAccessor accessor;
     private final ExternalResourceLister lister;
     private final ExternalResourceUploader uploader;
 
-    public DefaultExternalResourceConnector(ExternalResourceAccessor accessor, ExternalResourceLister lister, ExternalResourceUploader uploader) {
+    public DefaultExternalResourceConnector(
+            ExternalResourceAccessor accessor, ExternalResourceLister lister, ExternalResourceUploader uploader) {
         this.accessor = accessor;
         this.lister = lister;
         this.uploader = uploader;
@@ -54,7 +55,9 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
 
     @Nullable
     @Override
-    public <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
+    public <T> T withContent(
+            ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action)
+            throws ResourceException {
         STATS.resource(location.getUri());
         return accessor.withContent(location, revalidate, action);
     }
@@ -114,28 +117,24 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
         public static final NoOpStats INSTANCE = new NoOpStats();
 
         @Override
-        public void resource(URI location) {
-        }
+        public void resource(URI location) {}
 
         @Override
-        public void metadata(URI location) {
-        }
+        public void metadata(URI location) {}
 
         @Override
-        public void list(URI parent) {
-        }
+        public void list(URI parent) {}
 
         @Override
-        public void upload(URI destination) {
-        }
+        public void upload(URI destination) {}
 
         @Override
-        public void reset() {
-        }
+        public void reset() {}
 
         @Override
         public String toString() {
-            return "External resources access stats are not recorded. Run Gradle with -D" + SYSPROP_KEY + "=(count|trace) to record statistics";
+            return "External resources access stats are not recorded. Run Gradle with -D" + SYSPROP_KEY
+                    + "=(count|trace) to record statistics";
         }
     }
 
@@ -256,7 +255,11 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
             sb.append("Top ").append(max).append(" most ").append(label).append("\n");
             int cpt = 0;
             for (Map.Entry<URI, Integer> entry : entries) {
-                sb.append("   ").append(entry.getKey()).append(" (").append(entry.getValue()).append(" times)\n");
+                sb.append("   ")
+                        .append(entry.getKey())
+                        .append(" (")
+                        .append(entry.getValue())
+                        .append(" times)\n");
                 if (++cpt == max) {
                     break;
                 }

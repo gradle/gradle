@@ -16,6 +16,11 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.JavaVersion;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
@@ -33,12 +38,6 @@ import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 @NullMarked
 public class IdeaModuleBuilderSupport {
 
@@ -52,15 +51,20 @@ public class IdeaModuleBuilderSupport {
 
     public static DefaultIdeaContentRoot buildContentRoot(IdeaModule ideaModule) {
         return new DefaultIdeaContentRoot()
-            .setRootDirectory(ideaModule.getContentRoot())
-            .setSourceDirectories(buildSourceDirectories(ideaModule.getSourceDirs(), ideaModule.getGeneratedSourceDirs()))
-            .setTestDirectories(buildSourceDirectories(ideaModule.getTestSources().getFiles(), ideaModule.getGeneratedSourceDirs()))
-            .setResourceDirectories(buildSourceDirectories(ideaModule.getResourceDirs(), ideaModule.getGeneratedSourceDirs()))
-            .setTestResourceDirectories(buildSourceDirectories(ideaModule.getTestResources().getFiles(), ideaModule.getGeneratedSourceDirs()))
-            .setExcludeDirectories(ideaModule.getExcludeDirs());
+                .setRootDirectory(ideaModule.getContentRoot())
+                .setSourceDirectories(
+                        buildSourceDirectories(ideaModule.getSourceDirs(), ideaModule.getGeneratedSourceDirs()))
+                .setTestDirectories(buildSourceDirectories(
+                        ideaModule.getTestSources().getFiles(), ideaModule.getGeneratedSourceDirs()))
+                .setResourceDirectories(
+                        buildSourceDirectories(ideaModule.getResourceDirs(), ideaModule.getGeneratedSourceDirs()))
+                .setTestResourceDirectories(buildSourceDirectories(
+                        ideaModule.getTestResources().getFiles(), ideaModule.getGeneratedSourceDirs()))
+                .setExcludeDirectories(ideaModule.getExcludeDirs());
     }
 
-    private static Set<DefaultIdeaSourceDirectory> buildSourceDirectories(Set<File> sourceDirs, Set<File> generatedSourceDirs) {
+    private static Set<DefaultIdeaSourceDirectory> buildSourceDirectories(
+            Set<File> sourceDirs, Set<File> generatedSourceDirs) {
         Set<DefaultIdeaSourceDirectory> out = new LinkedHashSet<>();
         for (File s : sourceDirs) {
             DefaultIdeaSourceDirectory sourceDirectory = new DefaultIdeaSourceDirectory().setDirectory(s);
@@ -74,13 +78,10 @@ public class IdeaModuleBuilderSupport {
 
     public static DefaultIdeaCompilerOutput buildCompilerOutput(IdeaModule ideaModule) {
         return new DefaultIdeaCompilerOutput()
-            .setInheritOutputDirs(
-                ideaModule.getInheritOutputDirs() != null
-                    ? ideaModule.getInheritOutputDirs()
-                    : false
-            )
-            .setOutputDir(ideaModule.getOutputDir())
-            .setTestOutputDir(ideaModule.getTestOutputDir());
+                .setInheritOutputDirs(
+                        ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
+                .setOutputDir(ideaModule.getOutputDir())
+                .setTestOutputDir(ideaModule.getTestOutputDir());
     }
 
     public static List<DefaultIdeaDependency> buildDependencies(Set<Dependency> resolvedDependencies) {
@@ -97,13 +98,14 @@ public class IdeaModuleBuilderSupport {
         return dependencies;
     }
 
-    private static DefaultIdeaSingleEntryLibraryDependency ideaSingleEntryLibraryDependencyFor(SingleEntryModuleLibrary d) {
+    private static DefaultIdeaSingleEntryLibraryDependency ideaSingleEntryLibraryDependencyFor(
+            SingleEntryModuleLibrary d) {
         DefaultIdeaSingleEntryLibraryDependency defaultDependency = new DefaultIdeaSingleEntryLibraryDependency()
-            .setFile(d.getLibraryFile())
-            .setSource(d.getSourceFile())
-            .setJavadoc(d.getJavadocFile())
-            .setScope(new DefaultIdeaDependencyScope(d.getScope()))
-            .setExported(d.isExported());
+                .setFile(d.getLibraryFile())
+                .setSource(d.getSourceFile())
+                .setJavadoc(d.getJavadocFile())
+                .setScope(new DefaultIdeaDependencyScope(d.getScope()))
+                .setExported(d.isExported());
 
         if (d.getModuleVersion() != null) {
             defaultDependency.setGradleModuleVersion(new DefaultGradleModuleVersion(d.getModuleVersion()));
@@ -113,7 +115,7 @@ public class IdeaModuleBuilderSupport {
 
     private static DefaultIdeaModuleDependency ideaModuleDependencyFor(ModuleDependency d) {
         return new DefaultIdeaModuleDependency(d.getName())
-            .setExported(d.isExported())
-            .setScope(new DefaultIdeaDependencyScope(d.getScope()));
+                .setExported(d.isExported())
+                .setScope(new DefaultIdeaDependencyScope(d.getScope()));
     }
 }

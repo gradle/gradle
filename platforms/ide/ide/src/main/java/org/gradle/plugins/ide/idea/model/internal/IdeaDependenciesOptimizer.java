@@ -18,15 +18,13 @@ package org.gradle.plugins.ide.idea.model.internal;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.ModuleDependency;
 import org.gradle.plugins.ide.idea.model.ModuleLibrary;
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-
 
 /**
  * Minimizes a set of IDEA dependencies based on knowledge about how IDEA handles compilation and runtime of main and test classes:
@@ -56,7 +54,9 @@ class IdeaDependenciesOptimizer {
     }
 
     private Multimap<Object, GeneratedIdeaScope> collectScopesByDependency(Collection<Dependency> deps) {
-        Multimap<Object, GeneratedIdeaScope> scopesByDependencyKey = MultimapBuilder.hashKeys().enumSetValues(GeneratedIdeaScope.class).build();
+        Multimap<Object, GeneratedIdeaScope> scopesByDependencyKey = MultimapBuilder.hashKeys()
+                .enumSetValues(GeneratedIdeaScope.class)
+                .build();
         for (Dependency dep : deps) {
             scopesByDependencyKey.put(getKey(dep), GeneratedIdeaScope.nullSafeValueOf(dep.getScope()));
         }
@@ -64,18 +64,21 @@ class IdeaDependenciesOptimizer {
     }
 
     private void optimizeScopes(Multimap<Object, GeneratedIdeaScope> scopesByDependencyKey) {
-        for (Map.Entry<Object, Collection<GeneratedIdeaScope>> entry : scopesByDependencyKey.asMap().entrySet()) {
+        for (Map.Entry<Object, Collection<GeneratedIdeaScope>> entry :
+                scopesByDependencyKey.asMap().entrySet()) {
             optimizeScopes(entry.getValue());
         }
     }
 
-    private void applyScopesToDependencies(Collection<Dependency> deps, Multimap<Object, GeneratedIdeaScope> scopesByDependencyKey) {
-        for (Iterator<Dependency> iterator = deps.iterator(); iterator.hasNext();) {
+    private void applyScopesToDependencies(
+            Collection<Dependency> deps, Multimap<Object, GeneratedIdeaScope> scopesByDependencyKey) {
+        for (Iterator<Dependency> iterator = deps.iterator(); iterator.hasNext(); ) {
             applyScopeToNextDependency(iterator, scopesByDependencyKey);
         }
     }
 
-    private void applyScopeToNextDependency(Iterator<Dependency> iterator, Multimap<Object, GeneratedIdeaScope> scopesByDependencyKey) {
+    private void applyScopeToNextDependency(
+            Iterator<Dependency> iterator, Multimap<Object, GeneratedIdeaScope> scopesByDependencyKey) {
         Dependency dep = iterator.next();
         Object key = getKey(dep);
         Collection<GeneratedIdeaScope> ideaScopes = scopesByDependencyKey.get(key);
@@ -93,10 +96,11 @@ class IdeaDependenciesOptimizer {
             return ((ModuleDependency) dep).getName();
         } else if (dep instanceof SingleEntryModuleLibrary) {
             return ((SingleEntryModuleLibrary) dep).getLibraryFile();
-        }  else if (dep instanceof ModuleLibrary) {
-            return ((ModuleLibrary)dep).getClasses();
+        } else if (dep instanceof ModuleLibrary) {
+            return ((ModuleLibrary) dep).getClasses();
         } else {
-            throw new IllegalArgumentException("Unsupported type: " + dep.getClass().getName());
+            throw new IllegalArgumentException(
+                    "Unsupported type: " + dep.getClass().getName());
         }
     }
 

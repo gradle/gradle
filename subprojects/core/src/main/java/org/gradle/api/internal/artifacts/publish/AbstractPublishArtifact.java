@@ -24,10 +24,7 @@ import org.gradle.api.tasks.TaskDependency;
 public abstract class AbstractPublishArtifact implements PublishArtifactInternal {
     private final DefaultTaskDependency taskDependency;
 
-    public AbstractPublishArtifact(
-        TaskDependencyFactory taskDependencyFactory,
-        Object... dependencies
-    ) {
+    public AbstractPublishArtifact(TaskDependencyFactory taskDependencyFactory, Object... dependencies) {
         taskDependency = taskDependencyFactory.configurableDependency(ImmutableSet.copyOf(dependencies));
     }
 
@@ -43,6 +40,7 @@ public abstract class AbstractPublishArtifact implements PublishArtifactInternal
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + " " + getName() + ":" + getType() + ":" +getExtension()  + ":" + getClassifier();
+        return getClass().getSimpleName() + " " + getName() + ":" + getType() + ":" + getExtension() + ":"
+                + getClassifier();
     }
 }

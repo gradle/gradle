@@ -16,11 +16,10 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import java.util.List;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
-
-import java.util.List;
 
 public class HttpResourceLister implements ExternalResourceLister {
     private final HttpResourceAccessor accessor;
@@ -40,7 +39,10 @@ public class HttpResourceLister implements ExternalResourceLister {
             try {
                 return directoryListingParser.parse(directory.getUri(), inputStream, contentType);
             } catch (Exception e) {
-                throw new ResourceException(directory.getUri(), String.format("Unable to parse HTTP directory listing for '%s'.", directory.getUri()), e);
+                throw new ResourceException(
+                        directory.getUri(),
+                        String.format("Unable to parse HTTP directory listing for '%s'.", directory.getUri()),
+                        e);
             }
         });
     }

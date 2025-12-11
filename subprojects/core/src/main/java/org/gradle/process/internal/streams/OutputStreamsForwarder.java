@@ -16,13 +16,12 @@
 
 package org.gradle.process.internal.streams;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.process.internal.StreamsHandler;
-
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.process.internal.StreamsHandler;
 
 /**
  * Reads from the process' stdout and stderr (if not merged into stdout) and forwards to {@link OutputStream}.
@@ -46,19 +45,23 @@ public class OutputStreamsForwarder implements StreamsHandler {
     @Override
     public void connectStreams(Process process, String processName, Executor executor) {
         this.executor = executor;
-        standardOutputReader = new ExecOutputHandleRunner("read standard output of " + processName, process.getInputStream(), standardOutput, completed);
+        standardOutputReader = new ExecOutputHandleRunner(
+                "read standard output of " + processName, process.getInputStream(), standardOutput, completed);
         if (readErrorStream) {
-            standardErrorReader = new ExecOutputHandleRunner("read error output of " + processName, process.getErrorStream(), errorOutput, completed);
+            standardErrorReader = new ExecOutputHandleRunner(
+                    "read error output of " + processName, process.getErrorStream(), errorOutput, completed);
         }
     }
 
     @Override
     public void start() {
         if (readErrorStream) {
-            standardErrorReader.associateBuildOperation(CurrentBuildOperationRef.instance().get());
+            standardErrorReader.associateBuildOperation(
+                    CurrentBuildOperationRef.instance().get());
             executor.execute(standardErrorReader);
         }
-        standardOutputReader.associateBuildOperation(CurrentBuildOperationRef.instance().get());
+        standardOutputReader.associateBuildOperation(
+                CurrentBuildOperationRef.instance().get());
         executor.execute(standardOutputReader);
     }
 

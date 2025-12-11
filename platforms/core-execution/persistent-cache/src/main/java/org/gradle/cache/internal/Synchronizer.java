@@ -16,11 +16,10 @@
 
 package org.gradle.cache.internal;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+import org.jspecify.annotations.NullMarked;
 
 // TODO Replace the use of this with synchronized caches from Guava
 @NullMarked

@@ -49,7 +49,8 @@ public class BuildModelActionRunner implements BuildActionRunner {
         ModelCreateAction createAction = new ModelCreateAction(buildModelAction);
         try {
             if (buildModelAction.isCreateModel()) {
-                ToolingModelBuilderResultInternal result = buildController.fromBuildModel(buildModelAction.isRunTasks(), createAction);
+                ToolingModelBuilderResultInternal result =
+                        buildController.fromBuildModel(buildModelAction.isRunTasks(), createAction);
                 SerializedPayload serializedResult = payloadSerializer.serialize(result.getModel());
                 return Result.of(serializedResult);
             } else {
@@ -59,7 +60,8 @@ public class BuildModelActionRunner implements BuildActionRunner {
         } catch (RuntimeException e) {
             RuntimeException clientFailure = e;
             if (createAction.modelLookupFailure != null) {
-                clientFailure = (RuntimeException) new InternalUnsupportedModelException().initCause(createAction.modelLookupFailure);
+                clientFailure = (RuntimeException)
+                        new InternalUnsupportedModelException().initCause(createAction.modelLookupFailure);
             }
             return Result.failed(e, clientFailure);
         }

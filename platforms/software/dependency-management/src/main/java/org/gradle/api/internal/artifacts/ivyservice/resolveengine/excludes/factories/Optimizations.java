@@ -15,16 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
+import java.util.Collection;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 
-import java.util.Collection;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
 public abstract class Optimizations {
-    public static ExcludeSpec optimizeAnyOf(ExcludeSpec one, ExcludeSpec two, BiFunction<ExcludeSpec, ExcludeSpec, ExcludeSpec> onMiss) {
+    public static ExcludeSpec optimizeAnyOf(
+            ExcludeSpec one, ExcludeSpec two, BiFunction<ExcludeSpec, ExcludeSpec, ExcludeSpec> onMiss) {
         // fast path for two
         if (one == null) {
             return two;
@@ -50,7 +50,11 @@ public abstract class Optimizations {
         return onMiss.apply(one, two);
     }
 
-    public static ExcludeSpec optimizeAllOf(ExcludeFactory factory, ExcludeSpec one, ExcludeSpec two, BiFunction<ExcludeSpec, ExcludeSpec, ExcludeSpec> onMiss) {
+    public static ExcludeSpec optimizeAllOf(
+            ExcludeFactory factory,
+            ExcludeSpec one,
+            ExcludeSpec two,
+            BiFunction<ExcludeSpec, ExcludeSpec, ExcludeSpec> onMiss) {
         // fast path for two
         if (one == null) {
             return two;
@@ -76,7 +80,8 @@ public abstract class Optimizations {
         return onMiss.apply(one, two);
     }
 
-    public static <T extends Collection<ExcludeSpec>> ExcludeSpec optimizeCollection(ExcludeFactory factory, T specs, Function<T, ExcludeSpec> onMiss) {
+    public static <T extends Collection<ExcludeSpec>> ExcludeSpec optimizeCollection(
+            ExcludeFactory factory, T specs, Function<T, ExcludeSpec> onMiss) {
         if (specs.isEmpty()) {
             return factory.nothing();
         }

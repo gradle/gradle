@@ -16,14 +16,13 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.gradle.internal.file.FileModeAccessor;
 import org.gradle.internal.file.FileModeMutator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UnsupportedFilePermissions implements FileModeAccessor, FileModeMutator {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnsupportedFilePermissions.class);
@@ -45,7 +44,8 @@ public class UnsupportedFilePermissions implements FileModeAccessor, FileModeMut
 
     private void maybeWarn() {
         if (warned.compareAndSet(false, true)) {
-            LOGGER.warn("Support for reading or changing file permissions is only available on this platform using Java 7 or later.");
+            LOGGER.warn(
+                    "Support for reading or changing file permissions is only available on this platform using Java 7 or later.");
         }
     }
 }

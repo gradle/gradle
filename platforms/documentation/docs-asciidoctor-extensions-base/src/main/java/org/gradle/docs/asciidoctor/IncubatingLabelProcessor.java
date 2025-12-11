@@ -16,16 +16,15 @@
 
 package org.gradle.docs.asciidoctor;
 
+import static org.asciidoctor.extension.FormatType.SHORT;
+
+import java.util.HashMap;
+import java.util.Map;
 import org.asciidoctor.ast.ContentNode;
 import org.asciidoctor.ast.PhraseNode;
 import org.asciidoctor.extension.Format;
 import org.asciidoctor.extension.InlineMacroProcessor;
 import org.asciidoctor.extension.Name;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.asciidoctor.extension.FormatType.SHORT;
 
 /**
  * Processes {@code incubating-label} inline macros to add incubation badges.

@@ -16,9 +16,8 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
-
 import java.util.Map;
+import org.gradle.api.Incubating;
 
 /**
  * A tool that permits configuration of the C preprocessor.

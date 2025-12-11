@@ -63,7 +63,8 @@ public class IntegrationTestFixtureVisitor extends AbstractAstVisitor {
     }
 
     private void checkIndirectOutputContains(Expression objectExpr, MethodCallExpression call) {
-        if (objectExpr instanceof VariableExpression && ((VariableExpression) objectExpr).getName().equals("result")) {
+        if (objectExpr instanceof VariableExpression
+                && ((VariableExpression) objectExpr).getName().equals("result")) {
             String arg = AstUtil.getNodeText(call.getArguments(), getSourceCode());
             addViolation(call, "Should use outputContains(" + arg + ") or failure.assertHasCause(" + arg + ") instead");
         }

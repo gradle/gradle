@@ -16,18 +16,23 @@
 
 package org.gradle.api.internal.file;
 
+import java.io.File;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.file.Stat;
 
-import java.io.File;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public class AttributeBasedFileVisitDetails extends DefaultFileVisitDetails {
     private final BasicFileAttributes attributes;
 
-    public AttributeBasedFileVisitDetails(File file, RelativePath relativePath, AtomicBoolean stop, Chmod chmod, Stat stat, BasicFileAttributes attributes) {
+    public AttributeBasedFileVisitDetails(
+            File file,
+            RelativePath relativePath,
+            AtomicBoolean stop,
+            Chmod chmod,
+            Stat stat,
+            BasicFileAttributes attributes) {
         super(file, relativePath, stop, chmod, stat);
         this.attributes = attributes;
     }

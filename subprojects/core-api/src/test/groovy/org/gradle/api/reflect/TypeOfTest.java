@@ -16,15 +16,14 @@
 
 package org.gradle.api.reflect;
 
-import org.junit.Test;
-
-import java.util.List;
-
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+import org.junit.Test;
 
 public class TypeOfTest {
 
@@ -37,9 +36,7 @@ public class TypeOfTest {
         assertFalse(type.isSimple());
         assertFalse(type.isParameterized());
 
-        assertEquals(
-            new TypeOf<List<String[]>>() {},
-            type.getComponentType());
+        assertEquals(new TypeOf<List<String[]>>() {}, type.getComponentType());
     }
 
     @Test
@@ -51,9 +48,7 @@ public class TypeOfTest {
         assertFalse(type.isSimple());
         assertFalse(type.isParameterized());
 
-        assertEquals(
-            new TypeOf<String>() {},
-            type.getComponentType());
+        assertEquals(new TypeOf<String>() {}, type.getComponentType());
     }
 
     @Test
@@ -65,12 +60,8 @@ public class TypeOfTest {
         assertFalse(type.isSimple());
         assertEquals(type.getConcreteClass(), List.class);
 
-        assertEquals(
-            new TypeOf<List>() {},
-            type.getParameterizedTypeDefinition());
-        assertEquals(
-            type.getActualTypeArguments(),
-            singletonList(new TypeOf<String>() {}));
+        assertEquals(new TypeOf<List>() {}, type.getParameterizedTypeDefinition());
+        assertEquals(type.getActualTypeArguments(), singletonList(new TypeOf<String>() {}));
     }
 
     @Test
@@ -85,12 +76,11 @@ public class TypeOfTest {
 
     @Test
     public void canRepresentWildcardTypeExpression() {
-        TypeOf<?> type = new TypeOf<List<? extends Cloneable>>() {}.getActualTypeArguments().get(0);
+        TypeOf<?> type = new TypeOf<List<? extends Cloneable>>() {}.getActualTypeArguments()
+                .get(0);
 
         assertTrue(type.isWildcard());
-        assertEquals(
-            type.getUpperBound(),
-            new TypeOf<Cloneable>() {});
+        assertEquals(type.getUpperBound(), new TypeOf<Cloneable>() {});
 
         assertFalse(type.isSimple());
         assertFalse(type.isArray());

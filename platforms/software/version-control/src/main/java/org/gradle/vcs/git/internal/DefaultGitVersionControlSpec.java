@@ -16,12 +16,11 @@
 
 package org.gradle.vcs.git.internal;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 
 public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec implements GitVersionControlSpec {
     private URI url;
@@ -59,7 +58,7 @@ public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec imp
     @Override
     public String getRepoName() {
         String[] pathParts = url.getPath().split("/");
-        String repoPart = pathParts[pathParts.length-1];
+        String repoPart = pathParts[pathParts.length - 1];
         if (repoPart.endsWith(".git")) {
             repoPart = repoPart.substring(0, repoPart.indexOf(".git"));
         }
@@ -87,8 +86,6 @@ public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec imp
 
     @Override
     public String toString() {
-        return "GitVersionControlSpec{"
-            + "url=" + url
-            + '}';
+        return "GitVersionControlSpec{" + "url=" + url + '}';
     }
 }

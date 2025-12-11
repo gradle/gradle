@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.cache;
 
-import org.gradle.cache.CleanupFrequency;
-
 import java.io.Serializable;
+import org.gradle.cache.CleanupFrequency;
 
 public class DefaultCleanup implements CleanupInternal, Serializable {
     private final CleanupFrequency cleanupFrequency;

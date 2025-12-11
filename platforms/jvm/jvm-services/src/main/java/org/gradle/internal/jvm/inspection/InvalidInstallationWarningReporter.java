@@ -17,11 +17,10 @@
 package org.gradle.internal.jvm.inspection;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.function.BiConsumer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
-
-import java.util.function.BiConsumer;
 
 /**
  * Reports invalid JVM installations with the provided logger `warn` level.
@@ -43,11 +42,10 @@ public class InvalidInstallationWarningReporter implements BiConsumer<Installati
     public void accept(InstallationLocation installationLocation, JvmInstallationMetadata metadata) {
         if (!metadata.isValidInstallation()) {
             logger.warn(
-                "Invalid Java installation found at {}. " +
-                    "It will be re-checked in the next build. This might have performance impact if it keeps failing. " +
-                    "Run the 'javaToolchains' task for more details.",
-                installationLocation.getDisplayName()
-            );
+                    "Invalid Java installation found at {}. "
+                            + "It will be re-checked in the next build. This might have performance impact if it keeps failing. "
+                            + "Run the 'javaToolchains' task for more details.",
+                    installationLocation.getDisplayName());
         }
     }
 }

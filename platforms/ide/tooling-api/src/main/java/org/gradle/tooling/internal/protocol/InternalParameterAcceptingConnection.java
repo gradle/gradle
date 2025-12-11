@@ -45,12 +45,10 @@ public interface InternalParameterAcceptingConnection extends InternalProtocolIn
      * @throws IllegalStateException When this connection has been stopped.
      * @since 4.4
      */
-    <T> BuildResult<T> run(InternalBuildActionVersion2<T> action,
-                           InternalCancellationToken cancellationToken,
-                           BuildParameters operationParameters) throws
-        BuildExceptionVersion1,
-        InternalUnsupportedBuildArgumentException,
-        InternalBuildActionFailureException,
-        InternalBuildCancelledException,
-        IllegalStateException;
+    <T> BuildResult<T> run(
+            InternalBuildActionVersion2<T> action,
+            InternalCancellationToken cancellationToken,
+            BuildParameters operationParameters)
+            throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException,
+                    InternalBuildActionFailureException, InternalBuildCancelledException, IllegalStateException;
 }

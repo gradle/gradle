@@ -16,15 +16,14 @@
 
 package org.gradle.api.problems.internal;
 
+import static com.google.common.base.Objects.equal;
+
 import com.google.common.base.Objects;
+import java.io.Serializable;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
-
-import java.io.Serializable;
-
-import static com.google.common.base.Objects.equal;
 
 @Incubating
 public class DefaultProblemGroup extends ProblemGroup implements Serializable {

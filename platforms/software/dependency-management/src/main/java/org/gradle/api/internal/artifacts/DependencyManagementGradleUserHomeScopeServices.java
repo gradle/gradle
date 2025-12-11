@@ -52,7 +52,8 @@ public class DependencyManagementGradleUserHomeScopeServices implements ServiceR
     }
 
     @Provides
-    DefaultArtifactCaches.WritableArtifactCacheLockingParameters createWritableArtifactCacheLockingParameters(FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions) {
+    DefaultArtifactCaches.WritableArtifactCacheLockingParameters createWritableArtifactCacheLockingParameters(
+            FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions) {
         return new DefaultArtifactCaches.WritableArtifactCacheLockingParameters() {
             @Override
             public FileAccessTimeJournal getFileAccessTimeJournal() {
@@ -68,15 +69,20 @@ public class DependencyManagementGradleUserHomeScopeServices implements ServiceR
 
     @Provides
     ArtifactCachesProvider createArtifactCaches(
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
-        DefaultArtifactCaches.WritableArtifactCacheLockingParameters parameters,
-        ListenerManager listenerManager,
-        DocumentationRegistry documentationRegistry,
-        CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
-    ) {
-        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheBuilderFactory, unscopedCacheBuilderFactory, parameters, documentationRegistry, cacheConfigurations, cacheCleanupStrategyFactory);
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
+            DefaultArtifactCaches.WritableArtifactCacheLockingParameters parameters,
+            ListenerManager listenerManager,
+            DocumentationRegistry documentationRegistry,
+            CacheConfigurationsInternal cacheConfigurations,
+            CacheCleanupStrategyFactory cacheCleanupStrategyFactory) {
+        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(
+                cacheBuilderFactory,
+                unscopedCacheBuilderFactory,
+                parameters,
+                documentationRegistry,
+                cacheConfigurations,
+                cacheCleanupStrategyFactory);
         listenerManager.addListener(new BuildAdapter() {
             @SuppressWarnings("deprecation")
             @Override
@@ -91,18 +97,25 @@ public class DependencyManagementGradleUserHomeScopeServices implements ServiceR
 
     @Provides
     ImmutableTransformWorkspaceServices createTransformWorkspaceServices(
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
-    ) {
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
+            FileAccessTimeJournal fileAccessTimeJournal,
+            CacheConfigurationsInternal cacheConfigurations,
+            CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         CacheBuilder cacheBuilder = cacheBuilderFactory
-            .createCacheBuilder(CacheLayout.TRANSFORMS.getName())
-            .withDisplayName("Artifact transforms cache");
-        CrossBuildInMemoryCache<Identity, DeferredResult<TransformExecutionResult.TransformWorkspaceResult>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result.getResult().isSuccessful());
-        CacheBasedImmutableWorkspaceProvider workspaceProvider = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory, unscopedCacheBuilderFactory);
+                .createCacheBuilder(CacheLayout.TRANSFORMS.getName())
+                .withDisplayName("Artifact transforms cache");
+        CrossBuildInMemoryCache<Identity, DeferredResult<TransformExecutionResult.TransformWorkspaceResult>>
+                identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(
+                        result -> result.getResult().isSuccessful());
+        CacheBasedImmutableWorkspaceProvider workspaceProvider =
+                CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(
+                        cacheBuilder,
+                        fileAccessTimeJournal,
+                        cacheConfigurations,
+                        cacheCleanupStrategyFactory,
+                        unscopedCacheBuilderFactory);
         return new ImmutableTransformWorkspaceServices() {
             @Override
             public ImmutableWorkspaceProvider getWorkspaceProvider() {
@@ -110,7 +123,8 @@ public class DependencyManagementGradleUserHomeScopeServices implements ServiceR
             }
 
             @Override
-            public Cache<Identity, DeferredResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache() {
+            public Cache<Identity, DeferredResult<TransformExecutionResult.TransformWorkspaceResult>>
+                    getIdentityCache() {
                 return identityCache;
             }
 

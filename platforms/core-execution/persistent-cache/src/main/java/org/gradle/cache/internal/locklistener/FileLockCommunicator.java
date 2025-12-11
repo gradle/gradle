@@ -16,14 +16,13 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.util.Optional;
 import java.util.Set;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public interface FileLockCommunicator {

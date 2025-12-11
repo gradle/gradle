@@ -19,6 +19,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimaps;
+import java.util.Collection;
+import java.util.List;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
@@ -27,36 +29,40 @@ import org.gradle.language.nativeplatform.internal.MacroFunction;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-
 public class DefaultIncludeDirectives implements IncludeDirectives {
     private final ImmutableList<Include> allIncludes;
     private final ImmutableListMultimap<String, Macro> macros;
     private final ImmutableListMultimap<String, MacroFunction> macroFunctions;
 
-    public static IncludeDirectives of(ImmutableList<Include> allIncludes, ImmutableList<Macro> macros, ImmutableList<MacroFunction> macroFunctions) {
+    public static IncludeDirectives of(
+            ImmutableList<Include> allIncludes,
+            ImmutableList<Macro> macros,
+            ImmutableList<MacroFunction> macroFunctions) {
         if (allIncludes.isEmpty() && macros.isEmpty() && macroFunctions.isEmpty()) {
             return EMPTY;
         }
-        return new DefaultIncludeDirectives(allIncludes,
-            Multimaps.index(macros, new Function<Macro, String>() {
-                @Nullable
-                @Override
-                public String apply(@Nullable Macro input) {
-                    return input.getName();
-                }
-            }),
-            Multimaps.index(macroFunctions, new Function<MacroFunction, String>() {
-                @Nullable
-                @Override
-                public String apply(@Nullable MacroFunction input) {
-                    return input.getName();
-                }
-            }));
+        return new DefaultIncludeDirectives(
+                allIncludes,
+                Multimaps.index(macros, new Function<Macro, String>() {
+                    @Nullable
+                    @Override
+                    public String apply(@Nullable Macro input) {
+                        return input.getName();
+                    }
+                }),
+                Multimaps.index(macroFunctions, new Function<MacroFunction, String>() {
+                    @Nullable
+                    @Override
+                    public String apply(@Nullable MacroFunction input) {
+                        return input.getName();
+                    }
+                }));
     }
 
-    private DefaultIncludeDirectives(ImmutableList<Include> allIncludes, ImmutableListMultimap<String, Macro> macros, ImmutableListMultimap<String, MacroFunction> macroFunctions) {
+    private DefaultIncludeDirectives(
+            ImmutableList<Include> allIncludes,
+            ImmutableListMultimap<String, Macro> macros,
+            ImmutableListMultimap<String, MacroFunction> macroFunctions) {
         this.allIncludes = allIncludes;
         this.macros = macros;
         this.macroFunctions = macroFunctions;
@@ -133,7 +139,9 @@ public class DefaultIncludeDirectives implements IncludeDirectives {
 
         DefaultIncludeDirectives that = (DefaultIncludeDirectives) o;
 
-        return allIncludes.equals(that.allIncludes) && macros.equals(that.macros) && macroFunctions.equals(that.macroFunctions);
+        return allIncludes.equals(that.allIncludes)
+                && macros.equals(that.macros)
+                && macroFunctions.equals(that.macroFunctions);
     }
 
     @Override

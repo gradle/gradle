@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.worker;
 
+import java.io.EOFException;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
@@ -23,8 +24,6 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.health.memory.JvmMemoryStatusSnapshot;
-
-import java.io.EOFException;
 
 public class WorkerJvmMemoryInfoSerializer {
     public static SerializerRegistry create() {

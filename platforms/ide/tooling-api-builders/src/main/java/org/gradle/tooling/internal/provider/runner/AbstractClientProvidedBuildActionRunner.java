@@ -31,7 +31,8 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
     private final BuildControllerFactory buildControllerFactory;
     private final PayloadSerializer payloadSerializer;
 
-    public AbstractClientProvidedBuildActionRunner(BuildControllerFactory buildControllerFactory, PayloadSerializer payloadSerializer) {
+    public AbstractClientProvidedBuildActionRunner(
+            BuildControllerFactory buildControllerFactory, PayloadSerializer payloadSerializer) {
         this.buildControllerFactory = buildControllerFactory;
         this.payloadSerializer = payloadSerializer;
     }
@@ -86,7 +87,8 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
             return clientAction.getResult();
         }
 
-        private void runAction(BuildTreeModelController controller, @Nullable Object action, PhasedActionResult.Phase phase) {
+        private void runAction(
+                BuildTreeModelController controller, @Nullable Object action, PhasedActionResult.Phase phase) {
             if (action == null || actionFailure != null) {
                 return;
             }
@@ -107,7 +109,8 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
             if (action instanceof InternalBuildActionVersion2<?>) {
                 return ((InternalBuildActionVersion2) action).execute(internalBuildController);
             } else {
-                return ((org.gradle.tooling.internal.protocol.InternalBuildAction) action).execute(internalBuildController);
+                return ((org.gradle.tooling.internal.protocol.InternalBuildAction) action)
+                        .execute(internalBuildController);
             }
         }
     }

@@ -16,10 +16,9 @@
 
 package org.gradle.internal.vfs.impl;
 
+import javax.annotation.CheckReturnValue;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.VfsRelativePath;
-
-import javax.annotation.CheckReturnValue;
 
 /**
  * Structure for tracking modifications in a hierarchy.
@@ -48,8 +47,8 @@ public class VersionHierarchyRoot {
     public long getVersion(String location) {
         VfsRelativePath relativePath = VfsRelativePath.of(location);
         return relativePath.isEmpty()
-            ? rootNode.getMaxVersionInHierarchy()
-            : rootNode.getVersion(relativePath, caseSensitivity);
+                ? rootNode.getMaxVersionInHierarchy()
+                : rootNode.getVersion(relativePath, caseSensitivity);
     }
 
     /**
@@ -60,8 +59,8 @@ public class VersionHierarchyRoot {
         long newVersion = rootNode.getMaxVersionInHierarchy() + 1;
         VfsRelativePath relativePath = VfsRelativePath.of(location);
         VersionHierarchy newRootNode = relativePath.isEmpty()
-            ? VersionHierarchy.empty(newVersion)
-            : rootNode.updateVersion(relativePath, newVersion, caseSensitivity);
+                ? VersionHierarchy.empty(newVersion)
+                : rootNode.updateVersion(relativePath, newVersion, caseSensitivity);
         return new VersionHierarchyRoot(newRootNode, caseSensitivity);
     }
 }

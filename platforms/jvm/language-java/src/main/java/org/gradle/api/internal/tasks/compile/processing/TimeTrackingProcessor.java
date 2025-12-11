@@ -19,10 +19,8 @@ package org.gradle.api.internal.tasks.compile.processing;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
-import org.gradle.internal.Factory;
-import org.jspecify.annotations.Nullable;
-
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.processing.Completion;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
@@ -32,8 +30,9 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
+import org.gradle.internal.Factory;
+import org.jspecify.annotations.Nullable;
 
 public class TimeTrackingProcessor extends DelegatingProcessor {
 
@@ -104,7 +103,11 @@ public class TimeTrackingProcessor extends DelegatingProcessor {
     }
 
     @Override
-    public Iterable<? extends Completion> getCompletions(final Element element, final AnnotationMirror annotation, final ExecutableElement member, final String userText) {
+    public Iterable<? extends Completion> getCompletions(
+            final Element element,
+            final AnnotationMirror annotation,
+            final ExecutableElement member,
+            final String userText) {
         return track(new Factory<Iterable<? extends Completion>>() {
             @Override
             public Iterable<? extends Completion> create() {

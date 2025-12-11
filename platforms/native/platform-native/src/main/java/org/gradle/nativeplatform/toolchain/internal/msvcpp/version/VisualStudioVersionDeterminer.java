@@ -16,18 +16,19 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
-import org.gradle.api.specs.Spec;
-
 import java.io.File;
 import java.util.List;
-
+import org.gradle.api.specs.Spec;
 
 public class VisualStudioVersionDeterminer implements VisualStudioMetaDataProvider {
     private final VisualStudioVersionLocator commandLineLocator;
     private final VisualStudioVersionLocator windowsRegistryLocator;
     private final VisualCppMetadataProvider visualCppMetadataProvider;
 
-    public VisualStudioVersionDeterminer(VisualStudioVersionLocator commandLineLocator, VisualStudioVersionLocator windowsRegistryLocator, VisualCppMetadataProvider visualCppMetadataProvider) {
+    public VisualStudioVersionDeterminer(
+            VisualStudioVersionLocator commandLineLocator,
+            VisualStudioVersionLocator windowsRegistryLocator,
+            VisualCppMetadataProvider visualCppMetadataProvider) {
         this.commandLineLocator = commandLineLocator;
         this.windowsRegistryLocator = windowsRegistryLocator;
         this.visualCppMetadataProvider = visualCppMetadataProvider;
@@ -45,21 +46,22 @@ public class VisualStudioVersionDeterminer implements VisualStudioMetaDataProvid
 
         // If we can't discover the version from the normal metadata, make some assumptions
         if (install == null) {
-            VisualCppInstallCandidate visualCppMetadata = visualCppMetadataProvider.getVisualCppFromMetadataFile(installDir);
+            VisualCppInstallCandidate visualCppMetadata =
+                    visualCppMetadataProvider.getVisualCppFromMetadataFile(installDir);
             if (visualCppMetadata != null) {
                 return new VisualStudioMetadataBuilder()
-                    .installDir(installDir)
-                    .visualCppDir(visualCppMetadata.getVisualCppDir())
-                    .visualCppVersion(visualCppMetadata.getVersion())
-                    .compatibility(VisualStudioInstallCandidate.Compatibility.VS2017_OR_LATER)
-                    .build();
+                        .installDir(installDir)
+                        .visualCppDir(visualCppMetadata.getVisualCppDir())
+                        .visualCppVersion(visualCppMetadata.getVersion())
+                        .compatibility(VisualStudioInstallCandidate.Compatibility.VS2017_OR_LATER)
+                        .build();
             } else {
                 File visualCppDir = new File(installDir, "VC");
                 return new VisualStudioMetadataBuilder()
-                    .installDir(installDir)
-                    .visualCppDir(visualCppDir)
-                    .compatibility(VisualStudioInstallCandidate.Compatibility.LEGACY)
-                    .build();
+                        .installDir(installDir)
+                        .visualCppDir(visualCppDir)
+                        .compatibility(VisualStudioInstallCandidate.Compatibility.LEGACY)
+                        .build();
             }
         }
 
@@ -90,25 +92,26 @@ public class VisualStudioVersionDeterminer implements VisualStudioMetaDataProvid
         // If we can't discover the version from the normal metadata, make some assumptions
         if (install == null) {
             File installDir = getNthParent(compilerFile, 8);
-            VisualCppInstallCandidate visualCppMetadata = visualCppMetadataProvider.getVisualCppFromMetadataFile(installDir);
+            VisualCppInstallCandidate visualCppMetadata =
+                    visualCppMetadataProvider.getVisualCppFromMetadataFile(installDir);
             if (visualCppMetadata != null) {
                 File visualCppDir = visualCppMetadata.getVisualCppDir();
                 return new VisualStudioMetadataBuilder()
-                    .installDir(installDir)
-                    .visualCppDir(visualCppDir)
-                    .visualCppVersion(visualCppMetadata.getVersion())
-                    .compatibility(VisualStudioInstallCandidate.Compatibility.VS2017_OR_LATER)
-                    .build();
+                        .installDir(installDir)
+                        .visualCppDir(visualCppDir)
+                        .visualCppVersion(visualCppMetadata.getVersion())
+                        .compatibility(VisualStudioInstallCandidate.Compatibility.VS2017_OR_LATER)
+                        .build();
             } else {
                 File visualCppDir = getNthParent(compilerFile, 2);
-                if (!"VC".equals(visualCppDir.getName()))  {
+                if (!"VC".equals(visualCppDir.getName())) {
                     visualCppDir = getNthParent(compilerFile, 3);
                 }
                 return new VisualStudioMetadataBuilder()
-                    .installDir(visualCppDir.getParentFile())
-                    .visualCppDir(visualCppDir)
-                    .compatibility(VisualStudioInstallCandidate.Compatibility.LEGACY)
-                    .build();
+                        .installDir(visualCppDir.getParentFile())
+                        .visualCppDir(visualCppDir)
+                        .compatibility(VisualStudioInstallCandidate.Compatibility.LEGACY)
+                        .build();
             }
         }
 
@@ -133,7 +136,8 @@ public class VisualStudioVersionDeterminer implements VisualStudioMetaDataProvid
         return null;
     }
 
-    private VisualStudioInstallCandidate findMetadataForInstallDir(Spec<VisualStudioInstallCandidate> spec, List<VisualStudioInstallCandidate> installs) {
+    private VisualStudioInstallCandidate findMetadataForInstallDir(
+            Spec<VisualStudioInstallCandidate> spec, List<VisualStudioInstallCandidate> installs) {
         for (VisualStudioInstallCandidate install : installs) {
             if (spec.isSatisfiedBy(install)) {
                 return install;

@@ -16,6 +16,9 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
+import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -27,31 +30,25 @@ import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyArtifactSet;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> implements IvyArtifactSet, PublicationArtifactSet<IvyArtifact> {
+public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact>
+        implements IvyArtifactSet, PublicationArtifactSet<IvyArtifact> {
     private final String publicationName;
     private final FileCollection files;
     private final NotationParser<Object, IvyArtifact> ivyArtifactParser;
 
     public DefaultIvyArtifactSet(
-        String publicationName,
-        NotationParser<Object, IvyArtifact> ivyArtifactParser,
-        FileCollectionFactory fileCollectionFactory,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator
-    ) {
+            String publicationName,
+            NotationParser<Object, IvyArtifact> ivyArtifactParser,
+            FileCollectionFactory fileCollectionFactory,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(IvyArtifact.class, collectionCallbackActionDecorator);
         this.publicationName = publicationName;
         this.ivyArtifactParser = ivyArtifactParser;
-        this.files = fileCollectionFactory.create(
-            new ArtifactsFileCollection(), context -> {
-                for (IvyArtifact ivyArtifact : this) {
-                    context.add(ivyArtifact);
-                }
+        this.files = fileCollectionFactory.create(new ArtifactsFileCollection(), context -> {
+            for (IvyArtifact ivyArtifact : this) {
+                context.add(ivyArtifact);
             }
-        );
+        });
     }
 
     @Override

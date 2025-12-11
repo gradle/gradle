@@ -18,16 +18,15 @@ package org.gradle.test.fixtures.server.http;
 
 import com.google.common.io.Files;
 import com.sun.net.httpserver.HttpExchange;
-import org.gradle.test.fixtures.server.http.BlockingHttpServer.BlockingRequest;
-import org.gradle.test.fixtures.server.http.BlockingHttpServer.BuildableExpectedRequest;
-import org.hamcrest.Matcher;
-import org.hamcrest.StringDescription;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.locks.Lock;
+import org.gradle.test.fixtures.server.http.BlockingHttpServer.BlockingRequest;
+import org.gradle.test.fixtures.server.http.BlockingHttpServer.BuildableExpectedRequest;
+import org.hamcrest.Matcher;
+import org.hamcrest.StringDescription;
 
 class ExpectMethod implements ResourceHandler, BuildableExpectedRequest, ResourceExpectation, BlockingRequest {
     private final String method;
@@ -113,12 +112,16 @@ class ExpectMethod implements ResourceHandler, BuildableExpectedRequest, Resourc
         if (content.length < 1024) {
             throw new IllegalArgumentException("Content is too short.");
         }
-        SendPartialResponseThenBlock block = new SendPartialResponseThenBlock(lock, timeout, new WaitPrecondition() {
-            @Override
-            public void assertCanWait() throws IllegalStateException {
-                ExpectMethod.this.precondition.assertCanWait();
-            }
-        }, content);
+        SendPartialResponseThenBlock block = new SendPartialResponseThenBlock(
+                lock,
+                timeout,
+                new WaitPrecondition() {
+                    @Override
+                    public void assertCanWait() throws IllegalStateException {
+                        ExpectMethod.this.precondition.assertCanWait();
+                    }
+                },
+                content);
         replaceBody(block, block);
         return this;
     }

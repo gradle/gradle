@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.tooling.r812;
 
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class FetchBuildAndProjectModels implements BuildAction<List<Object>> {
     @Override

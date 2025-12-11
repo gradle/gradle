@@ -16,7 +16,16 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toCollection;
+
 import com.google.common.collect.ImmutableList;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType;
 import org.gradle.internal.build.event.types.DefaultPluginApplicationResult;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
@@ -28,23 +37,14 @@ import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
 import org.gradle.tooling.internal.provider.runner.PluginApplicationTracker.PluginApplication;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toCollection;
-
 class ProjectConfigurationTracker implements BuildOperationTracker {
 
     private final Map<OperationIdentifier, ProjectConfigurationResult> results = new ConcurrentHashMap<>();
     private final BuildOperationAncestryTracker ancestryTracker;
     private final PluginApplicationTracker pluginApplicationTracker;
 
-    ProjectConfigurationTracker(BuildOperationAncestryTracker ancestryTracker, PluginApplicationTracker pluginApplicationTracker) {
+    ProjectConfigurationTracker(
+            BuildOperationAncestryTracker ancestryTracker, PluginApplicationTracker pluginApplicationTracker) {
         this.ancestryTracker = ancestryTracker;
         this.pluginApplicationTracker = pluginApplicationTracker;
     }
@@ -57,7 +57,8 @@ class ProjectConfigurationTracker implements BuildOperationTracker {
     public List<InternalPluginApplicationResult> resultsFor(OperationIdentifier buildOperation) {
         ProjectConfigurationResult result = results.remove(buildOperation);
         if (result == null) {
-            throw new IllegalStateException("Project configuration results are not available for build operation " + buildOperation);
+            throw new IllegalStateException(
+                    "Project configuration results are not available for build operation " + buildOperation);
         }
         return result.toInternalPluginApplicationResults();
     }
@@ -71,35 +72,44 @@ class ProjectConfigurationTracker implements BuildOperationTracker {
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        PluginApplication pluginApplication = pluginApplicationTracker.getRunningPluginApplication(buildOperation.getId());
+        PluginApplication pluginApplication =
+                pluginApplicationTracker.getRunningPluginApplication(buildOperation.getId());
         if (pluginApplication != null) {
-            ancestryTracker.findClosestExistingAncestor(buildOperation.getParentId(), results::get).ifPresent(result -> {
-                if (hasNoEnclosingRunningPluginApplicationForSamePlugin(buildOperation, pluginApplication.getPlugin())) {
-                    result.increment(pluginApplication, finishEvent.getEndTime() - finishEvent.getStartTime());
-                }
-            });
+            ancestryTracker
+                    .findClosestExistingAncestor(buildOperation.getParentId(), results::get)
+                    .ifPresent(result -> {
+                        if (hasNoEnclosingRunningPluginApplicationForSamePlugin(
+                                buildOperation, pluginApplication.getPlugin())) {
+                            result.increment(pluginApplication, finishEvent.getEndTime() - finishEvent.getStartTime());
+                        }
+                    });
         }
     }
 
-    private boolean hasNoEnclosingRunningPluginApplicationForSamePlugin(BuildOperationDescriptor buildOperation, InternalPluginIdentifier plugin) {
-        return !pluginApplicationTracker.hasRunningPluginApplication(buildOperation.getParentId(), pluginApplication -> pluginApplication.getPlugin().equals(plugin));
+    private boolean hasNoEnclosingRunningPluginApplicationForSamePlugin(
+            BuildOperationDescriptor buildOperation, InternalPluginIdentifier plugin) {
+        return !pluginApplicationTracker.hasRunningPluginApplication(
+                buildOperation.getParentId(),
+                pluginApplication -> pluginApplication.getPlugin().equals(plugin));
     }
 
     private static class ProjectConfigurationResult {
-        private final Map<InternalPluginIdentifier, PluginApplicationResult> pluginApplicationResults = new ConcurrentHashMap<>();
+        private final Map<InternalPluginIdentifier, PluginApplicationResult> pluginApplicationResults =
+                new ConcurrentHashMap<>();
 
         void increment(PluginApplication pluginApplication, long duration) {
             InternalPluginIdentifier plugin = pluginApplication.getPlugin();
             pluginApplicationResults
-                .computeIfAbsent(plugin, key -> new PluginApplicationResult(plugin, pluginApplication.getApplicationId()))
-                .increment(duration);
+                    .computeIfAbsent(
+                            plugin, key -> new PluginApplicationResult(plugin, pluginApplication.getApplicationId()))
+                    .increment(duration);
         }
 
         List<InternalPluginApplicationResult> toInternalPluginApplicationResults() {
             return pluginApplicationResults.values().stream()
-                .sorted(comparing(PluginApplicationResult::getFirstApplicationId))
-                .map(PluginApplicationResult::toInternalPluginApplicationResult)
-                .collect(toCollection(ArrayList::new));
+                    .sorted(comparing(PluginApplicationResult::getFirstApplicationId))
+                    .map(PluginApplicationResult::toInternalPluginApplicationResult)
+                    .collect(toCollection(ArrayList::new));
         }
     }
 

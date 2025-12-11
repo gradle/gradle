@@ -16,6 +16,14 @@
 
 package org.gradle.swiftpm.plugins;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
@@ -58,15 +66,6 @@ import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.internal.VcsResolver;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Callable;
-
 /**
  * A plugin that produces a Swift Package Manager manifests from the Gradle model.
  *
@@ -81,7 +80,11 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
     private final VersionParser versionParser;
 
     @Inject
-    public SwiftPackageManagerExportPlugin(VcsResolver vcsResolver, VersionSelectorScheme versionSelectorScheme, ProjectDependencyPublicationResolver publicationResolver, VersionParser versionParser) {
+    public SwiftPackageManagerExportPlugin(
+            VcsResolver vcsResolver,
+            VersionSelectorScheme versionSelectorScheme,
+            ProjectDependencyPublicationResolver publicationResolver,
+            VersionParser versionParser) {
         this.vcsResolver = vcsResolver;
         this.versionSelectorScheme = versionSelectorScheme;
         this.publicationResolver = publicationResolver;
@@ -91,15 +94,19 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
     @Override
     public void apply(final Project project) {
         @SuppressWarnings("deprecation")
-        final GenerateSwiftPackageManagerManifest manifestTask = project.getTasks().create("generateSwiftPmManifest", GenerateSwiftPackageManagerManifest.class);
-        manifestTask.getManifestFile().set(project.getLayout().getProjectDirectory().file("Package.swift"));
+        final GenerateSwiftPackageManagerManifest manifestTask =
+                project.getTasks().create("generateSwiftPmManifest", GenerateSwiftPackageManagerManifest.class);
+        manifestTask
+                .getManifestFile()
+                .set(project.getLayout().getProjectDirectory().file("Package.swift"));
 
         // Defer attaching the model until all components have been (most likely) configured
         // TODO - make this relationship explicit to make this more reliable and offer better diagnostics
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(Project project) {
-                Provider<Package> products = project.getProviders().provider(new MemoizingCallable(new PackageFactory(project)));
+                Provider<Package> products =
+                        project.getProviders().provider(new MemoizingCallable(new PackageFactory(project)));
                 manifestTask.getPackage().set(products);
             }
         });
@@ -138,7 +145,8 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
             SwiftVersion swiftLanguageVersion = null;
             for (Project p : project.getAllprojects()) {
                 for (CppApplication application : p.getComponents().withType(CppApplication.class)) {
-                    DefaultTarget target = new DefaultTarget(application.getBaseName().get(), p.getProjectDir(), application.getCppSource());
+                    DefaultTarget target = new DefaultTarget(
+                            application.getBaseName().get(), p.getProjectDir(), application.getCppSource());
                     collectDependencies(application.getImplementationDependencies(), dependencies, target);
                     DefaultExecutableProduct product = new DefaultExecutableProduct(p.getName(), target);
                     // TODO - set header dir for applications
@@ -146,7 +154,8 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
                     targets.add(target);
                 }
                 for (CppLibrary library : p.getComponents().withType(CppLibrary.class)) {
-                    DefaultTarget target = new DefaultTarget(library.getBaseName().get(), p.getProjectDir(), library.getCppSource());
+                    DefaultTarget target =
+                            new DefaultTarget(library.getBaseName().get(), p.getProjectDir(), library.getCppSource());
                     collectDependencies(library.getImplementationDependencies(), dependencies, target);
                     Set<File> headerDirs = library.getPublicHeaderDirs().getFiles();
                     if (!headerDirs.isEmpty()) {
@@ -163,16 +172,22 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
                     }
                 }
                 for (SwiftApplication application : p.getComponents().withType(SwiftApplication.class)) {
-                    DefaultTarget target = new DefaultTarget(application.getModule().get(), p.getProjectDir(), application.getSwiftSource());
-                    swiftLanguageVersion = max(swiftLanguageVersion, application.getSourceCompatibility().getOrNull());
+                    DefaultTarget target = new DefaultTarget(
+                            application.getModule().get(), p.getProjectDir(), application.getSwiftSource());
+                    swiftLanguageVersion = max(
+                            swiftLanguageVersion,
+                            application.getSourceCompatibility().getOrNull());
                     collectDependencies(application.getImplementationDependencies(), dependencies, target);
                     DefaultExecutableProduct product = new DefaultExecutableProduct(p.getName(), target);
                     products.add(product);
                     targets.add(target);
                 }
                 for (SwiftLibrary library : p.getComponents().withType(SwiftLibrary.class)) {
-                    DefaultTarget target = new DefaultTarget(library.getModule().get(), p.getProjectDir(), library.getSwiftSource());
-                    swiftLanguageVersion = max(swiftLanguageVersion, library.getSourceCompatibility().getOrNull());
+                    DefaultTarget target =
+                            new DefaultTarget(library.getModule().get(), p.getProjectDir(), library.getSwiftSource());
+                    swiftLanguageVersion = max(
+                            swiftLanguageVersion,
+                            library.getSourceCompatibility().getOrNull());
                     collectDependencies(library.getImplementationDependencies(), dependencies, target);
                     targets.add(target);
 
@@ -200,35 +215,51 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
             return v2;
         }
 
-        private void collectDependencies(Configuration configuration, Collection<Dependency> dependencies, DefaultTarget target) {
+        private void collectDependencies(
+                Configuration configuration, Collection<Dependency> dependencies, DefaultTarget target) {
             for (org.gradle.api.artifacts.Dependency dependency : configuration.getAllDependencies()) {
                 if (dependency instanceof ProjectDependency) {
                     ProjectDependency projectDependency = (ProjectDependency) dependency;
-                    Path identityPath = ((ProjectDependencyInternal) projectDependency).getTargetProjectIdentity().getBuildTreePath();
+                    Path identityPath = ((ProjectDependencyInternal) projectDependency)
+                            .getTargetProjectIdentity()
+                            .getBuildTreePath();
                     SwiftPmTarget identifier = publicationResolver.resolveComponent(SwiftPmTarget.class, identityPath);
                     target.getRequiredTargets().add(identifier.getTargetName());
                 } else if (dependency instanceof ExternalModuleDependency) {
                     ExternalModuleDependency externalDependency = (ExternalModuleDependency) dependency;
-                    ModuleComponentSelector depSelector = DefaultModuleComponentSelector.newSelector(externalDependency.getModule(), externalDependency.getVersionConstraint());
+                    ModuleComponentSelector depSelector = DefaultModuleComponentSelector.newSelector(
+                            externalDependency.getModule(), externalDependency.getVersionConstraint());
                     VersionControlSpec vcsSpec = vcsResolver.locateVcsFor(depSelector);
                     if (vcsSpec == null || !(vcsSpec instanceof GitVersionControlSpec)) {
-                        throw new InvalidUserDataException(String.format("Cannot determine the Git URL for dependency on %s:%s.", dependency.getGroup(), dependency.getName()));
+                        throw new InvalidUserDataException(String.format(
+                                "Cannot determine the Git URL for dependency on %s:%s.",
+                                dependency.getGroup(), dependency.getName()));
                     }
                     GitVersionControlSpec gitSpec = (GitVersionControlSpec) vcsSpec;
                     dependencies.add(toSwiftPmDependency(externalDependency, gitSpec));
                     target.getRequiredProducts().add(externalDependency.getName());
                 } else {
-                    throw new InvalidUserDataException(String.format("Cannot map a dependency of type %s (%s)", dependency.getClass().getSimpleName(), dependency));
+                    throw new InvalidUserDataException(String.format(
+                            "Cannot map a dependency of type %s (%s)",
+                            dependency.getClass().getSimpleName(), dependency));
                 }
             }
         }
 
-        private Dependency toSwiftPmDependency(ExternalModuleDependency externalDependency, GitVersionControlSpec gitSpec) {
+        private Dependency toSwiftPmDependency(
+                ExternalModuleDependency externalDependency, GitVersionControlSpec gitSpec) {
             if (externalDependency.getVersionConstraint().getBranch() != null) {
                 if (externalDependency.getVersion() != null) {
-                    throw new InvalidUserDataException(String.format("Cannot map a dependency on %s:%s that defines both a branch (%s) and a version constraint (%s).", externalDependency.getGroup(), externalDependency.getName(), externalDependency.getVersionConstraint().getBranch(), externalDependency.getVersion()));
+                    throw new InvalidUserDataException(String.format(
+                            "Cannot map a dependency on %s:%s that defines both a branch (%s) and a version constraint (%s).",
+                            externalDependency.getGroup(),
+                            externalDependency.getName(),
+                            externalDependency.getVersionConstraint().getBranch(),
+                            externalDependency.getVersion()));
                 }
-                return new BranchDependency(gitSpec.getUrl(), externalDependency.getVersionConstraint().getBranch());
+                return new BranchDependency(
+                        gitSpec.getUrl(),
+                        externalDependency.getVersionConstraint().getBranch());
             }
 
             String versionSelectorString = externalDependency.getVersion();
@@ -243,7 +274,11 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
             } else if (versionSelector instanceof VersionRangeSelector) {
                 VersionRangeSelector versionRangeSelector = (VersionRangeSelector) versionSelector;
                 if (versionRangeSelector.isLowerInclusive()) {
-                    return new VersionDependency(gitSpec.getUrl(), versionRangeSelector.getLowerBound(), versionRangeSelector.getUpperBound(), versionRangeSelector.isUpperInclusive());
+                    return new VersionDependency(
+                            gitSpec.getUrl(),
+                            versionRangeSelector.getLowerBound(),
+                            versionRangeSelector.getUpperBound(),
+                            versionRangeSelector.isUpperInclusive());
                 }
             } else if (versionSelector instanceof SubVersionSelector) {
                 SubVersionSelector subVersionSelector = (SubVersionSelector) versionSelector;
@@ -259,11 +294,14 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
                     if (version.getNumericParts().length == 2) {
                         Long part1 = version.getNumericParts()[0];
                         Long part2 = version.getNumericParts()[1];
-                        return new VersionDependency(gitSpec.getUrl(), part1 + "." + part2 + ".0", part1 + "." + (part2 + 1) + ".0", false);
+                        return new VersionDependency(
+                                gitSpec.getUrl(), part1 + "." + part2 + ".0", part1 + "." + (part2 + 1) + ".0", false);
                     }
                 }
             }
-            throw new InvalidUserDataException(String.format("Cannot map a dependency on %s:%s with version constraint (%s).", externalDependency.getGroup(), externalDependency.getName(), externalDependency.getVersion()));
+            throw new InvalidUserDataException(String.format(
+                    "Cannot map a dependency on %s:%s with version constraint (%s).",
+                    externalDependency.getGroup(), externalDependency.getName(), externalDependency.getVersion()));
         }
     }
 }

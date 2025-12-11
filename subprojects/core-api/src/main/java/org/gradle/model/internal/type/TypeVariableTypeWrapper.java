@@ -18,9 +18,8 @@ package org.gradle.model.internal.type;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Arrays;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Wrapper for a {@link java.lang.reflect.TypeVariable}.
@@ -83,8 +82,7 @@ class TypeVariableTypeWrapper implements WildcardWrapper {
             return false;
         } else {
             TypeVariableTypeWrapper var2 = (TypeVariableTypeWrapper) o;
-            return Objects.equal(this.getName(), var2.getName())
-                && Arrays.equals(this.bounds, var2.bounds);
+            return Objects.equal(this.getName(), var2.getName()) && Arrays.equals(this.bounds, var2.bounds);
         }
     }
 

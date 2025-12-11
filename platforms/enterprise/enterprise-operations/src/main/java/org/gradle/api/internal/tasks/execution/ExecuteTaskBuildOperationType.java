@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import java.util.List;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.NotUsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * The overall execution of a task, including:
@@ -35,7 +34,8 @@ import java.util.List;
  * (i.e. beforeTask callbacks did not fail), then a result is expected.
  * If the task execution fails, or if afterTask callbacks fail, an operation failure is expected _in addition_.
  */
-public final class ExecuteTaskBuildOperationType implements BuildOperationType<ExecuteTaskBuildOperationType.Details, ExecuteTaskBuildOperationType.Result> {
+public final class ExecuteTaskBuildOperationType
+        implements BuildOperationType<ExecuteTaskBuildOperationType.Details, ExecuteTaskBuildOperationType.Result> {
 
     public interface Details {
 
@@ -55,7 +55,6 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         long getTaskId();
 
         Class<?> getTaskClass();
-
     }
 
     public interface Result {
@@ -150,11 +149,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
          */
         @NotUsedByScanPlugin("used to report incrementality to TAPI progress listeners")
         boolean isIncremental();
-
     }
 
-    private ExecuteTaskBuildOperationType() {
-
-    }
-
+    private ExecuteTaskBuildOperationType() {}
 }

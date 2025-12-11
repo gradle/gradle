@@ -16,11 +16,21 @@
 
 package org.gradle.internal.execution.history.impl;
 
+import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
+import static com.google.common.collect.Maps.transformEntries;
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
+import static org.gradle.internal.snapshot.SnapshotUtil.indexByAbsolutePath;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.BiPredicate;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
@@ -36,17 +46,6 @@ import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisit
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.BiPredicate;
-
-import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
-import static com.google.common.collect.Maps.transformEntries;
-import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
-import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
-import static org.gradle.internal.snapshot.SnapshotUtil.indexByAbsolutePath;
-
 public class OutputSnapshotUtil {
 
     /**
@@ -61,29 +60,28 @@ public class OutputSnapshotUtil {
      * @param unfilteredBeforeExecutionSnapshots snapshots of the outputs currently present in the work's output locations, indexed by property name.
      */
     public static ImmutableSortedMap<String, FileSystemSnapshot> findOutputsStillPresentSincePreviousExecution(
-        ImmutableSortedMap<String, FileSystemSnapshot> previousSnapshots,
-        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredBeforeExecutionSnapshots
-    ) {
+            ImmutableSortedMap<String, FileSystemSnapshot> previousSnapshots,
+            ImmutableSortedMap<String, FileSystemSnapshot> unfilteredBeforeExecutionSnapshots) {
         return ImmutableSortedMap.copyOfSorted(
-            Maps.transformEntries(unfilteredBeforeExecutionSnapshots, (key, unfilteredBeforeExecution) -> {
+                Maps.transformEntries(unfilteredBeforeExecutionSnapshots, (key, unfilteredBeforeExecution) -> {
                     FileSystemSnapshot previous = previousSnapshots.get(key);
                     // If the property was null before (can only happen for tasks with optional outputs)
                     if (previous == null) {
                         return FileSystemSnapshot.EMPTY;
                     }
                     return findOutputPropertyStillPresentSincePreviousExecution(previous, unfilteredBeforeExecution);
-                }
-            )
-        );
+                }));
     }
 
     @VisibleForTesting
-    static FileSystemSnapshot findOutputPropertyStillPresentSincePreviousExecution(FileSystemSnapshot previous, FileSystemSnapshot current) {
+    static FileSystemSnapshot findOutputPropertyStillPresentSincePreviousExecution(
+            FileSystemSnapshot previous, FileSystemSnapshot current) {
         Map<String, FileSystemLocationSnapshot> previousIndex = indexByAbsolutePath(previous);
-        return filterSnapshot(current, (currentSnapshot, isRoot) ->
-            // Include only outputs that we already considered outputs after the previous execution
-            previousIndex.containsKey(currentSnapshot.getAbsolutePath())
-        );
+        return filterSnapshot(
+                current,
+                (currentSnapshot, isRoot) ->
+                        // Include only outputs that we already considered outputs after the previous execution
+                        previousIndex.containsKey(currentSnapshot.getAbsolutePath()));
     }
 
     /**
@@ -101,42 +99,48 @@ public class OutputSnapshotUtil {
      * </ul>
      */
     public static ImmutableSortedMap<String, FileSystemSnapshot> filterOutputsAfterExecution(
-        ImmutableSortedMap<String, FileSystemSnapshot> previousSnapshots,
-        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredBeforeExecutionSnapshots,
-        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredAfterExecutionSnapshots
-    ) {
-        return copyOfSorted(transformEntries(
-            unfilteredAfterExecutionSnapshots,
-            (propertyName, unfilteredAfterExecution) -> {
-                FileSystemSnapshot previous = previousSnapshots.get(propertyName);
-                FileSystemSnapshot unfilteredBeforeExecution = unfilteredBeforeExecutionSnapshots.get(propertyName);
-                return filterOutputAfterExecution(previous, Objects.requireNonNull(unfilteredBeforeExecution), unfilteredAfterExecution);
-            }
-        ));
+            ImmutableSortedMap<String, FileSystemSnapshot> previousSnapshots,
+            ImmutableSortedMap<String, FileSystemSnapshot> unfilteredBeforeExecutionSnapshots,
+            ImmutableSortedMap<String, FileSystemSnapshot> unfilteredAfterExecutionSnapshots) {
+        return copyOfSorted(
+                transformEntries(unfilteredAfterExecutionSnapshots, (propertyName, unfilteredAfterExecution) -> {
+                    FileSystemSnapshot previous = previousSnapshots.get(propertyName);
+                    FileSystemSnapshot unfilteredBeforeExecution = unfilteredBeforeExecutionSnapshots.get(propertyName);
+                    return filterOutputAfterExecution(
+                            previous, Objects.requireNonNull(unfilteredBeforeExecution), unfilteredAfterExecution);
+                }));
     }
 
     @VisibleForTesting
-    static FileSystemSnapshot filterOutputAfterExecution(@Nullable FileSystemSnapshot previous, FileSystemSnapshot unfilteredBeforeExecution, FileSystemSnapshot unfilteredAfterExecution) {
+    static FileSystemSnapshot filterOutputAfterExecution(
+            @Nullable FileSystemSnapshot previous,
+            FileSystemSnapshot unfilteredBeforeExecution,
+            FileSystemSnapshot unfilteredAfterExecution) {
         Map<String, FileSystemLocationSnapshot> beforeExecutionIndex = indexByAbsolutePath(unfilteredBeforeExecution);
         if (beforeExecutionIndex.isEmpty()) {
             return unfilteredAfterExecution;
         }
 
-        Map<String, FileSystemLocationSnapshot> previousIndex = previous != null
-            ? indexByAbsolutePath(previous)
-            : ImmutableMap.of();
+        Map<String, FileSystemLocationSnapshot> previousIndex =
+                previous != null ? indexByAbsolutePath(previous) : ImmutableMap.of();
 
-        return filterSnapshot(unfilteredAfterExecution, (afterExecutionSnapshot, isRoot) ->
-            isOutputEntry(previousIndex.keySet(), beforeExecutionIndex, afterExecutionSnapshot, isRoot)
-        );
+        return filterSnapshot(
+                unfilteredAfterExecution,
+                (afterExecutionSnapshot, isRoot) ->
+                        isOutputEntry(previousIndex.keySet(), beforeExecutionIndex, afterExecutionSnapshot, isRoot));
     }
 
-    private static boolean isOutputEntry(Set<String> previousLocations, Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots, FileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
+    private static boolean isOutputEntry(
+            Set<String> previousLocations,
+            Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots,
+            FileSystemLocationSnapshot afterExecutionSnapshot,
+            Boolean isRoot) {
         // A root is always an output, even when it's missing or unchanged
         if (isRoot) {
             return true;
         }
-        FileSystemLocationSnapshot beforeSnapshot = beforeExecutionSnapshots.get(afterExecutionSnapshot.getAbsolutePath());
+        FileSystemLocationSnapshot beforeSnapshot =
+                beforeExecutionSnapshots.get(afterExecutionSnapshot.getAbsolutePath());
         // Was it created during execution?
         if (beforeSnapshot == null) {
             return true;
@@ -149,7 +153,8 @@ public class OutputSnapshotUtil {
         return previousLocations.contains(afterExecutionSnapshot.getAbsolutePath());
     }
 
-    private static FileSystemSnapshot filterSnapshot(FileSystemSnapshot root, BiPredicate<FileSystemLocationSnapshot, Boolean> predicate) {
+    private static FileSystemSnapshot filterSnapshot(
+            FileSystemSnapshot root, BiPredicate<FileSystemLocationSnapshot, Boolean> predicate) {
         SnapshotFilteringVisitor visitor = new SnapshotFilteringVisitor(predicate);
         root.accept(visitor);
 
@@ -166,9 +171,12 @@ public class OutputSnapshotUtil {
         private final ImmutableList.Builder<FileSystemSnapshot> newRootsBuilder = ImmutableList.builder();
 
         private boolean hasBeenFiltered;
+
         @Nullable
         private DirectorySnapshotBuilder directorySnapshotBuilder;
+
         private boolean currentRootFiltered;
+
         @Nullable
         private DirectorySnapshot currentRoot;
 
@@ -179,9 +187,8 @@ public class OutputSnapshotUtil {
         @Override
         public void enterDirectory(DirectorySnapshot directorySnapshot, boolean isRoot) {
             boolean isOutputDir = predicate.test(directorySnapshot, isRoot);
-            EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy = isOutputDir
-                ? INCLUDE_EMPTY_DIRS
-                : EXCLUDE_EMPTY_DIRS;
+            EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy =
+                    isOutputDir ? INCLUDE_EMPTY_DIRS : EXCLUDE_EMPTY_DIRS;
             if (directorySnapshotBuilder == null) {
                 throw new IllegalStateException("DirectorySnapshot builder has not been set");
             }
@@ -231,7 +238,7 @@ public class OutputSnapshotUtil {
         @Override
         public void leaveDirectory(DirectorySnapshot directorySnapshot, boolean isRoot) {
             if (directorySnapshotBuilder == null) {
-                throw new  IllegalStateException("DirectorySnapshot builder has not been set");
+                throw new IllegalStateException("DirectorySnapshot builder has not been set");
             }
             boolean excludedDir = directorySnapshotBuilder.leaveDirectory() == null;
             if (excludedDir) {

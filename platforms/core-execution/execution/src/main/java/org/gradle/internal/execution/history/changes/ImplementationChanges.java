@@ -29,12 +29,11 @@ public class ImplementationChanges implements ChangeContainer {
     private final Describable executable;
 
     public ImplementationChanges(
-        ClassImplementationSnapshot previousImplementation,
-        ImmutableList<ImplementationSnapshot> previousAdditionalImplementations,
-        ClassImplementationSnapshot currentImplementation,
-        ImmutableList<ImplementationSnapshot> currentAdditionalImplementations,
-        Describable executable
-    ) {
+            ClassImplementationSnapshot previousImplementation,
+            ImmutableList<ImplementationSnapshot> previousAdditionalImplementations,
+            ClassImplementationSnapshot currentImplementation,
+            ImmutableList<ImplementationSnapshot> currentAdditionalImplementations,
+            Describable executable) {
         this.previousImplementation = previousImplementation;
         this.previousAdditionalImplementations = previousAdditionalImplementations;
         this.currentImplementation = currentImplementation;
@@ -45,18 +44,24 @@ public class ImplementationChanges implements ChangeContainer {
     @Override
     public boolean accept(ChangeVisitor visitor) {
         if (!currentImplementation.getClassIdentifier().equals(previousImplementation.getClassIdentifier())) {
-            return visitor.visitChange(new DescriptiveChange("The type of %s has changed from '%s' to '%s'.",
-                executable.getDisplayName(), previousImplementation.getClassIdentifier(), currentImplementation.getClassIdentifier()));
+            return visitor.visitChange(new DescriptiveChange(
+                    "The type of %s has changed from '%s' to '%s'.",
+                    executable.getDisplayName(),
+                    previousImplementation.getClassIdentifier(),
+                    currentImplementation.getClassIdentifier()));
         }
 
         if (!currentImplementation.getClassLoaderHash().equals(previousImplementation.getClassLoaderHash())) {
-            return visitor.visitChange(new DescriptiveChange("Class path of %s has changed from %s to %s.",
-                executable.getDisplayName(), previousImplementation.getClassLoaderHash(), currentImplementation.getClassLoaderHash()));
+            return visitor.visitChange(new DescriptiveChange(
+                    "Class path of %s has changed from %s to %s.",
+                    executable.getDisplayName(),
+                    previousImplementation.getClassLoaderHash(),
+                    currentImplementation.getClassLoaderHash()));
         }
 
         if (!currentAdditionalImplementations.equals(previousAdditionalImplementations)) {
-            return visitor.visitChange(new DescriptiveChange("One or more additional actions for %s have changed.",
-                executable.getDisplayName()));
+            return visitor.visitChange(new DescriptiveChange(
+                    "One or more additional actions for %s have changed.", executable.getDisplayName()));
         }
         return true;
     }

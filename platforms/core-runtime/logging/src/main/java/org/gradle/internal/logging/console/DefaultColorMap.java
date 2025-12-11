@@ -16,17 +16,6 @@
 
 package org.gradle.internal.logging.console;
 
-import com.google.common.collect.Lists;
-import org.fusesource.jansi.Ansi;
-import org.gradle.internal.logging.text.Style;
-import org.gradle.internal.logging.text.StyledTextOutput;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import static org.fusesource.jansi.Ansi.Attribute;
 import static org.fusesource.jansi.Ansi.Color.DEFAULT;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
@@ -40,6 +29,16 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.ProgressSt
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Success;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.SuccessHeader;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
+
+import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import org.fusesource.jansi.Ansi;
+import org.gradle.internal.logging.text.Style;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 public class DefaultColorMap implements ColorMap {
     private static final String STATUS_BAR = "statusbar";
@@ -63,12 +62,10 @@ public class DefaultColorMap implements ColorMap {
 
     private final Color noDecoration = new Color() {
         @Override
-        public void on(Ansi ansi) {
-        }
+        public void on(Ansi ansi) {}
 
         @Override
-        public void off(Ansi ansi) {
-        }
+        public void off(Ansi ansi) {}
     };
 
     public DefaultColorMap() {
@@ -85,7 +82,6 @@ public class DefaultColorMap implements ColorMap {
         addDefault(FailureHeader, Failure, Header);
         addDefault(STATUS_BAR, "bold");
     }
-
 
     private void addDefault(StyledTextOutput.Style style, String colorSpec) {
         addDefault(style.name().toLowerCase(Locale.ROOT), colorSpec);

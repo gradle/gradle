@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.ide.api;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Specs;
@@ -30,9 +32,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ide.internal.generator.generator.Generator;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.File;
 
 /**
  * <p>A {@code GeneratorTask} generates a configuration file based on a domain object of type T.
@@ -87,9 +86,12 @@ public abstract class GeneratorTask<T> extends ConventionTask {
             try {
                 domainObject = generator.read(inputFile);
             } catch (RuntimeException e) {
-                throw new GradleException(String.format("Cannot parse file '%s'.\n"
-                        + "       Perhaps this file was tinkered with? In that case try delete this file and then retry.",
-                    inputFile), e);
+                throw new GradleException(
+                        String.format(
+                                "Cannot parse file '%s'.\n"
+                                        + "       Perhaps this file was tinkered with? In that case try delete this file and then retry.",
+                                inputFile),
+                        e);
             }
         } else {
             domainObject = generator.defaultInstance();
@@ -156,5 +158,4 @@ public abstract class GeneratorTask<T> extends ConventionTask {
     public void setOutputFile(File outputFile) {
         this.outputFile = outputFile;
     }
-
 }

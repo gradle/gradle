@@ -16,10 +16,9 @@
 
 package org.gradle.internal.component.resolution.failure.exception;
 
+import java.util.List;
 import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
 import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure;
-
-import java.util.List;
 
 /**
  * Represents a failure during variant selection when an artifact variant of a component cannot be selected
@@ -33,7 +32,8 @@ public class ArtifactSelectionException extends AbstractResolutionFailureExcepti
         super(message, failure, resolutions);
     }
 
-    public ArtifactSelectionException(String message, ArtifactSelectionFailure failure, List<String> resolutions, Throwable cause) {
+    public ArtifactSelectionException(
+            String message, ArtifactSelectionFailure failure, List<String> resolutions, Throwable cause) {
         super(message, failure, resolutions, cause);
     }
 

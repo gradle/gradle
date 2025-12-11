@@ -24,7 +24,7 @@ public interface DisambiguationRule<T> {
         }
 
         @Override
-        public void execute(MultipleCandidatesResult<Object> t) { }
+        public void execute(MultipleCandidatesResult<Object> t) {}
     };
 
     @SuppressWarnings("unchecked")

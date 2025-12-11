@@ -16,6 +16,13 @@
 
 package org.gradle.plugin.software.internal;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
+import javax.inject.Inject;
 import org.gradle.api.Named;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.plugins.BuildModel;
@@ -25,14 +32,6 @@ import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Supplier;
-
 public class ProjectFeatureSupportInternal {
 
     public interface ProjectFeatureDefinitionContext {
@@ -40,7 +39,8 @@ public class ProjectFeatureSupportInternal {
 
         Map<ProjectFeatureImplementation<?, ?>, Object> childrenDefinitions();
 
-        ChildDefinitionAdditionResult getOrAddChildDefinition(ProjectFeatureImplementation<?, ?> feature, Supplier<Object> definition);
+        ChildDefinitionAdditionResult getOrAddChildDefinition(
+                ProjectFeatureImplementation<?, ?> feature, Supplier<Object> definition);
 
         final class ChildDefinitionAdditionResult {
             public final boolean isNew;
@@ -72,7 +72,10 @@ public class ProjectFeatureSupportInternal {
             private final ObjectFactory objectFactory;
 
             @Inject
-            public Factory(ProjectFeatureApplicator projectFeatureApplicator, ProjectFeatureDeclarations projectFeatureDeclarations, ObjectFactory objectFactory) {
+            public Factory(
+                    ProjectFeatureApplicator projectFeatureApplicator,
+                    ProjectFeatureDeclarations projectFeatureDeclarations,
+                    ObjectFactory objectFactory) {
                 this.projectFeatureApplicator = projectFeatureApplicator;
                 this.projectFeatureDeclarations = projectFeatureDeclarations;
                 this.objectFactory = objectFactory;
@@ -80,20 +83,15 @@ public class ProjectFeatureSupportInternal {
 
             public DefaultProjectFeatureDefinitionContext create(Object buildModel) {
                 return new DefaultProjectFeatureDefinitionContext(
-                    projectFeatureApplicator,
-                    projectFeatureDeclarations,
-                    objectFactory,
-                    buildModel
-                );
+                        projectFeatureApplicator, projectFeatureDeclarations, objectFactory, buildModel);
             }
         }
 
         public DefaultProjectFeatureDefinitionContext(
-            ProjectFeatureApplicator projectFeatureApplicator,
-            ProjectFeatureDeclarations projectFeatureDeclarations,
-            ObjectFactory objectFactory,
-            Object buildModel
-        ) {
+                ProjectFeatureApplicator projectFeatureApplicator,
+                ProjectFeatureDeclarations projectFeatureDeclarations,
+                ObjectFactory objectFactory,
+                Object buildModel) {
             this.projectFeatureApplicator = projectFeatureApplicator;
             this.projectFeatureDeclarations = projectFeatureDeclarations;
             this.objectFactory = objectFactory;
@@ -111,7 +109,8 @@ public class ProjectFeatureSupportInternal {
         }
 
         @Override
-        public ChildDefinitionAdditionResult getOrAddChildDefinition(ProjectFeatureImplementation<?, ?> feature, Supplier<Object> computeDefinition) {
+        public ChildDefinitionAdditionResult getOrAddChildDefinition(
+                ProjectFeatureImplementation<?, ?> feature, Supplier<Object> computeDefinition) {
             if (childrenDefinitions.containsKey(feature)) {
                 return new ChildDefinitionAdditionResult(false, childrenDefinitions.get(feature));
             }
@@ -137,7 +136,9 @@ public class ProjectFeatureSupportInternal {
     }
 
     public static @Nullable ProjectFeatureDefinitionContext tryGetContext(Object definition) {
-        DynamicInvokeResult result = ((DynamicObjectAware) definition).getAsDynamicObject().tryInvokeMethod(ProjectFeaturesDynamicObject.CONTEXT_METHOD_NAME);
+        DynamicInvokeResult result = ((DynamicObjectAware) definition)
+                .getAsDynamicObject()
+                .tryInvokeMethod(ProjectFeaturesDynamicObject.CONTEXT_METHOD_NAME);
         if (result.isFound()) {
             return (ProjectFeatureDefinitionContext) Objects.requireNonNull(result.getValue());
         } else {
@@ -148,47 +149,48 @@ public class ProjectFeatureSupportInternal {
     public static ProjectFeatureDefinitionContext getContext(DynamicObjectAware definition) {
         Optional<ProjectFeatureDefinitionContext> maybeContext = Optional.ofNullable(tryGetContext(definition));
 
-        return maybeContext.orElseThrow(() ->
-            new IllegalStateException("Incorrect lifecycle state for definition '" + definition +
-                "'. Expected it to have the context and build model attached already, got none. " +
-                "Check that the feature's apply action registers the build model for this definition.")
-        );
+        return maybeContext.orElseThrow(() -> new IllegalStateException("Incorrect lifecycle state for definition '"
+                + definition + "'. Expected it to have the context and build model attached already, got none. "
+                + "Check that the feature's apply action registers the build model for this definition."));
     }
 
     public static <V extends BuildModel> void attachDefinitionContext(
-        Object target,
-        V buildModel,
-        ProjectFeatureApplicator projectFeatureApplicator,
-        ProjectFeatureDeclarations projectFeatureDeclarations,
-        ObjectFactory objectFactory
-    ) {
+            Object target,
+            V buildModel,
+            ProjectFeatureApplicator projectFeatureApplicator,
+            ProjectFeatureDeclarations projectFeatureDeclarations,
+            ObjectFactory objectFactory) {
         DynamicObjectAware targetDynamicObjectAware = (DynamicObjectAware) target;
-        DefaultProjectFeatureDefinitionContext context = new DefaultProjectFeatureDefinitionContext(projectFeatureApplicator, projectFeatureDeclarations, objectFactory, buildModel);
+        DefaultProjectFeatureDefinitionContext context = new DefaultProjectFeatureDefinitionContext(
+                projectFeatureApplicator, projectFeatureDeclarations, objectFactory, buildModel);
         addProjectFeatureDynamicObjectToDefinition(objectFactory, targetDynamicObjectAware, context);
     }
 
     public static void attachLegacyDefinitionContext(
-        Object target,
-        ProjectFeatureApplicator projectFeatureApplicator,
-        ProjectFeatureDeclarations projectFeatureDeclarations,
-        ObjectFactory objectFactory
-    ) {
-        DefaultProjectFeatureDefinitionContext.Factory factory = new DefaultProjectFeatureDefinitionContext.Factory(projectFeatureApplicator, projectFeatureDeclarations, objectFactory);
+            Object target,
+            ProjectFeatureApplicator projectFeatureApplicator,
+            ProjectFeatureDeclarations projectFeatureDeclarations,
+            ObjectFactory objectFactory) {
+        DefaultProjectFeatureDefinitionContext.Factory factory = new DefaultProjectFeatureDefinitionContext.Factory(
+                projectFeatureApplicator, projectFeatureDeclarations, objectFactory);
         DefaultProjectFeatureDefinitionContext context = factory.create(target);
         addProjectFeatureDynamicObjectToDefinition(objectFactory, (DynamicObjectAware) target, context);
     }
 
-
-    public static <T extends Definition<V>, V extends BuildModel> V createBuildModelInstance(ObjectFactory objectFactory, T definition, ProjectFeatureImplementation<T, V> projectFeature) {
+    public static <T extends Definition<V>, V extends BuildModel> V createBuildModelInstance(
+            ObjectFactory objectFactory, T definition, ProjectFeatureImplementation<T, V> projectFeature) {
         return createBuildModelInstance(objectFactory, definition, projectFeature.getBuildModelImplementationType());
     }
 
-    public static <V> V createBuildModelInstance(ObjectFactory factory, Object definition, Class<? extends V> buildModelType) {
+    public static <V> V createBuildModelInstance(
+            ObjectFactory factory, Object definition, Class<? extends V> buildModelType) {
         if (Named.class.isAssignableFrom(buildModelType)) {
             if (Named.class.isAssignableFrom(definition.getClass())) {
                 return factory.newInstance(buildModelType, ((Named) definition).getName());
             } else {
-                throw new IllegalArgumentException("Cannot infer a name for " + buildModelType.getSimpleName() + " because the parent object of type " + definition.getClass().getSimpleName() + " does not implement Named.");
+                throw new IllegalArgumentException("Cannot infer a name for " + buildModelType.getSimpleName()
+                        + " because the parent object of type "
+                        + definition.getClass().getSimpleName() + " does not implement Named.");
             }
         } else {
             return factory.newInstance(buildModelType);
@@ -196,13 +198,12 @@ public class ProjectFeatureSupportInternal {
     }
 
     private static void addProjectFeatureDynamicObjectToDefinition(
-        ObjectFactory objectFactory,
-        DynamicObjectAware dslObjectToInitialize,
-        ProjectFeatureDefinitionContext context
-    ) {
-        ((ExtensibleDynamicObject) dslObjectToInitialize.getAsDynamicObject()).addObject(
-            objectFactory.newInstance(ProjectFeaturesDynamicObject.class, dslObjectToInitialize, context),
-            ExtensibleDynamicObject.Location.BeforeConvention
-        );
+            ObjectFactory objectFactory,
+            DynamicObjectAware dslObjectToInitialize,
+            ProjectFeatureDefinitionContext context) {
+        ((ExtensibleDynamicObject) dslObjectToInitialize.getAsDynamicObject())
+                .addObject(
+                        objectFactory.newInstance(ProjectFeaturesDynamicObject.class, dslObjectToInitialize, context),
+                        ExtensibleDynamicObject.Location.BeforeConvention);
     }
 }

@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.gradle.util.internal.GUtil;
-
 import java.net.URI;
+import org.gradle.util.internal.GUtil;
 
 public class URIBuilder {
     private final URI uri;

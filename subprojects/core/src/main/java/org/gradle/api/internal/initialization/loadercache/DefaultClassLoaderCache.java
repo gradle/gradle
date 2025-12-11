@@ -22,6 +22,11 @@ import com.google.common.base.Objects;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -33,12 +38,6 @@ import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, BuildSessionLifecycleListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultClassLoaderCache.class);
@@ -56,25 +55,46 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Bui
     }
 
     @Override
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, FilteringClassLoader.@Nullable Spec filterSpec) {
+    public ClassLoader get(
+            ClassLoaderId id,
+            ClassPath classPath,
+            @Nullable ClassLoader parent,
+            FilteringClassLoader.@Nullable Spec filterSpec) {
         return get(id, classPath, parent, filterSpec, null);
     }
 
     @Override
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, FilteringClassLoader.@Nullable Spec filterSpec, @Nullable HashCode implementationHash) {
+    public ClassLoader get(
+            ClassLoaderId id,
+            ClassPath classPath,
+            @Nullable ClassLoader parent,
+            FilteringClassLoader.@Nullable Spec filterSpec,
+            @Nullable HashCode implementationHash) {
         return doGet(id, classPath, parent, filterSpec, implementationHash, this::createClassLoader);
     }
 
     @Override
-    public ClassLoader createIfAbsent(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, Function<ClassLoader, ClassLoader> factoryFunction, @Nullable HashCode implementationHash) {
+    public ClassLoader createIfAbsent(
+            ClassLoaderId id,
+            ClassPath classPath,
+            @Nullable ClassLoader parent,
+            Function<ClassLoader, ClassLoader> factoryFunction,
+            @Nullable HashCode implementationHash) {
         return doGet(id, classPath, parent, null, implementationHash, spec -> factoryFunction.apply(spec.parent));
     }
 
-    private ClassLoader doGet(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, FilteringClassLoader.@Nullable Spec filterSpec, @Nullable HashCode implementationHash, Function<ManagedClassLoaderSpec, ClassLoader> factoryFunction) {
+    private ClassLoader doGet(
+            ClassLoaderId id,
+            ClassPath classPath,
+            @Nullable ClassLoader parent,
+            FilteringClassLoader.@Nullable Spec filterSpec,
+            @Nullable HashCode implementationHash,
+            Function<ManagedClassLoaderSpec, ClassLoader> factoryFunction) {
         if (implementationHash == null) {
             implementationHash = classpathHasher.hash(classPath);
         }
-        ManagedClassLoaderSpec spec = new ManagedClassLoaderSpec(id.toString(), parent, classPath, implementationHash, filterSpec);
+        ManagedClassLoaderSpec spec =
+                new ManagedClassLoaderSpec(id.toString(), parent, classPath, implementationHash, filterSpec);
 
         synchronized (lock) {
             usedInThisBuild.add(id);
@@ -94,7 +114,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Bui
         }
     }
 
-
     @Override
     public void remove(ClassLoaderId id) {
         synchronized (lock) {
@@ -106,14 +125,18 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Bui
         }
     }
 
-    private CachedClassLoader getAndRetainLoader(ManagedClassLoaderSpec spec, ClassLoaderId id, Function<ManagedClassLoaderSpec, ClassLoader> factoryFunction) {
+    private CachedClassLoader getAndRetainLoader(
+            ManagedClassLoaderSpec spec,
+            ClassLoaderId id,
+            Function<ManagedClassLoaderSpec, ClassLoader> factoryFunction) {
         CachedClassLoader cachedLoader = bySpec.get(spec);
         if (cachedLoader == null) {
             ClassLoader classLoader;
             CachedClassLoader parentCachedLoader = null;
             if (spec.isFiltered()) {
                 parentCachedLoader = getAndRetainLoader(spec.unfiltered(), id, factoryFunction);
-                classLoader = classLoaderFactory.createFilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
+                classLoader =
+                        classLoaderFactory.createFilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
             } else {
                 classLoader = factoryFunction.apply(spec);
             }
@@ -125,7 +148,8 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Bui
     }
 
     private ClassLoader createClassLoader(ManagedClassLoaderSpec spec) {
-        return classLoaderFactory.createChildClassLoader(spec.name, spec.parent, spec.classPath, spec.implementationHash);
+        return classLoaderFactory.createChildClassLoader(
+                spec.name, spec.parent, spec.classPath, spec.implementationHash);
     }
 
     @VisibleForTesting
@@ -160,8 +184,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Bui
         assertInternalIntegrity();
     }
 
-    private static abstract class ClassLoaderSpec {
-    }
+    private abstract static class ClassLoaderSpec {}
 
     private static class ManagedClassLoaderSpec extends ClassLoaderSpec {
         private final String name;
@@ -170,7 +193,12 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Bui
         private final HashCode implementationHash;
         private final FilteringClassLoader.Spec filterSpec;
 
-        public ManagedClassLoaderSpec(String name, ClassLoader parent, ClassPath classPath, HashCode implementationHash, FilteringClassLoader.Spec filterSpec) {
+        public ManagedClassLoaderSpec(
+                String name,
+                ClassLoader parent,
+                ClassPath classPath,
+                HashCode implementationHash,
+                FilteringClassLoader.Spec filterSpec) {
             this.name = name;
             this.parent = parent;
             this.classPath = classPath;
@@ -196,9 +224,9 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Bui
             }
             ManagedClassLoaderSpec that = (ManagedClassLoaderSpec) o;
             return Objects.equal(this.parent, that.parent)
-                && this.implementationHash.equals(that.implementationHash)
-                && this.classPath.equals(that.classPath)
-                && Objects.equal(this.filterSpec, that.filterSpec);
+                    && this.implementationHash.equals(that.implementationHash)
+                    && this.classPath.equals(that.classPath)
+                    && Objects.equal(this.filterSpec, that.filterSpec);
         }
 
         @Override
@@ -260,7 +288,8 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Bui
             }
 
             if (!orphaned.isEmpty()) {
-                throw new IllegalStateException("The following class loaders are orphaned: " + Joiner.on(",").withKeyValueSeparator(":").join(orphaned));
+                throw new IllegalStateException("The following class loaders are orphaned: "
+                        + Joiner.on(",").withKeyValueSeparator(":").join(orphaned));
             }
         }
     }

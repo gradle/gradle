@@ -16,15 +16,14 @@
 
 package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.internal.nativeintegration.filesystem.Symlink;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.internal.nativeintegration.filesystem.Symlink;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Jdk7Symlink implements Symlink {
     private static final Logger LOGGER = LoggerFactory.getLogger(Jdk7Symlink.class);
@@ -59,8 +58,11 @@ public class Jdk7Symlink implements Symlink {
         Path sourceFile = null;
         Path linkFile = null;
         try {
-            sourceFile = temporaryFileProvider.createTemporaryFile("symlink", "test").toPath();
-            linkFile = temporaryFileProvider.createTemporaryFile("symlink", "test_link").toPath();
+            sourceFile =
+                    temporaryFileProvider.createTemporaryFile("symlink", "test").toPath();
+            linkFile = temporaryFileProvider
+                    .createTemporaryFile("symlink", "test_link")
+                    .toPath();
 
             Files.delete(linkFile);
             Files.createSymbolicLink(linkFile, sourceFile);
@@ -68,7 +70,9 @@ public class Jdk7Symlink implements Symlink {
         } catch (InternalError e) {
             if (e.getMessage().contains("Should not get here")) {
                 // probably facing JDK-8046686
-                LOGGER.debug("Unable to create a symlink. Your system is hitting JDK bug id JDK-8046686. Symlink support disabled.", e);
+                LOGGER.debug(
+                        "Unable to create a symlink. Your system is hitting JDK bug id JDK-8046686. Symlink support disabled.",
+                        e);
             } else {
                 LOGGER.debug("Unexpected internal error", e);
             }

@@ -20,7 +20,8 @@ import org.fusesource.jansi.internal.OSInfo;
 
 public class JansiLibraryFactory {
     public JansiLibrary create() {
-        // From https://github.com/fusesource/jansi/blob/3d2a9788fa48e4cecbbe28279d01111a125d2f66/src/main/java/org/fusesource/jansi/internal/JansiLoader.java#L294-L298
+        // From
+        // https://github.com/fusesource/jansi/blob/3d2a9788fa48e4cecbbe28279d01111a125d2f66/src/main/java/org/fusesource/jansi/internal/JansiLoader.java#L294-L298
         String jansiNativeLibraryName = System.mapLibraryName("jansi");
         if (jansiNativeLibraryName.endsWith(".dylib")) {
             jansiNativeLibraryName = jansiNativeLibraryName.replace(".dylib", ".jnilib");

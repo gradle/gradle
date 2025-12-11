@@ -16,9 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.Describable;
-
 import java.io.File;
+import org.gradle.api.Describable;
 
 public class InstallationLocation implements Describable {
     public static InstallationLocation userDefined(File location, String source) {
@@ -54,7 +53,8 @@ public class InstallationLocation implements Describable {
 
     @Override
     public String getDisplayName() {
-        return "'" + location.getAbsolutePath() + "' (" + source + ")" + (autoDetected? " auto-detected" : "") + (autoProvisioned? " auto-provisioned" : "");
+        return "'" + location.getAbsolutePath() + "' (" + source + ")" + (autoDetected ? " auto-detected" : "")
+                + (autoProvisioned ? " auto-provisioned" : "");
     }
 
     public String getSource() {

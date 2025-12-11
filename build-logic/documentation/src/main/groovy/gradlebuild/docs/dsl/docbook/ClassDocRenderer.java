@@ -17,10 +17,9 @@
 package gradlebuild.docs.dsl.docbook;
 
 import gradlebuild.docs.dsl.docbook.model.ClassDoc;
-import org.w3c.dom.Element;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.w3c.dom.Element;
 
 public class ClassDocRenderer {
     private final GenerationListener listener = new DefaultGenerationListener();

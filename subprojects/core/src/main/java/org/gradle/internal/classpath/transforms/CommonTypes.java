@@ -16,10 +16,10 @@
 
 package org.gradle.internal.classpath.transforms;
 
+import static org.objectweb.asm.Type.getType;
+
 import org.jspecify.annotations.NullMarked;
 import org.objectweb.asm.Type;
-
-import static org.objectweb.asm.Type.getType;
 
 /**
  * A collection of common types and method descriptors used when instrumenting bytecode.
@@ -30,6 +30,5 @@ public final class CommonTypes {
     public static final Type STRING_TYPE = getType(String.class);
     public static final String[] NO_EXCEPTIONS = new String[0];
 
-    private CommonTypes() {
-    }
+    private CommonTypes() {}
 }

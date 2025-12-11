@@ -16,18 +16,17 @@
 
 package org.gradle.initialization.buildsrc;
 
-import org.gradle.internal.UncheckedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.gradle.internal.scripts.ScriptFileUtil.getValidBuildFileNames;
+import static org.gradle.internal.scripts.ScriptFileUtil.getValidSettingsFileNames;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
-
-import static org.gradle.internal.scripts.ScriptFileUtil.getValidBuildFileNames;
-import static org.gradle.internal.scripts.ScriptFileUtil.getValidSettingsFileNames;
+import org.gradle.internal.UncheckedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BuildSrcDetector {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSrcDetector.class);
@@ -59,7 +58,8 @@ public class BuildSrcDetector {
         if (containsFiles(new File(buildSrcDir, "src"))) {
             return true;
         }
-        LOGGER.info("Ignoring buildSrc directory: does not contain 'settings.gradle[.kts]', 'build.gradle[.kts]', or a 'src' directory.");
+        LOGGER.info(
+                "Ignoring buildSrc directory: does not contain 'settings.gradle[.kts]', 'build.gradle[.kts]', or a 'src' directory.");
         return false;
     }
 

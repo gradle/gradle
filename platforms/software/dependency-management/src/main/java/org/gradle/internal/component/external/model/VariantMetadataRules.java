@@ -16,6 +16,10 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
@@ -38,11 +42,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class VariantMetadataRules {
     private final AttributesFactory attributesFactory;
     private final ModuleVersionIdentifier moduleVersionId;
@@ -63,7 +62,10 @@ public class VariantMetadataRules {
         this(attributesFactory, moduleVersionId, attributesFactory.mutable());
     }
 
-    private VariantMetadataRules(AttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId, AttributeContainerInternal baseAttributes) {
+    private VariantMetadataRules(
+            AttributesFactory attributesFactory,
+            ModuleVersionIdentifier moduleVersionId,
+            AttributeContainerInternal baseAttributes) {
         this.attributesFactory = attributesFactory;
         this.moduleVersionId = moduleVersionId;
         this.baseAttributes = baseAttributes;
@@ -77,12 +79,14 @@ public class VariantMetadataRules {
         }
     }
 
-    protected AttributeContainerInternal joinVariantAttributes(VariantResolveMetadata variant, AttributeContainerInternal parent) {
+    protected AttributeContainerInternal joinVariantAttributes(
+            VariantResolveMetadata variant, AttributeContainerInternal parent) {
         AttributeContainerInternal variantAttrs = getAttributes(variant.getName());
         return attributesFactory.join(parent, variantAttrs);
     }
 
-    public ImmutableAttributes applyVariantAttributeRules(VariantResolveMetadata variant, AttributeContainerInternal parent) {
+    public ImmutableAttributes applyVariantAttributeRules(
+            VariantResolveMetadata variant, AttributeContainerInternal parent) {
         AttributeContainerInternal joined = joinVariantAttributes(variant, parent);
         if (variantAttributesRules != null) {
             return variantAttributesRules.execute(variant, joined);
@@ -90,7 +94,8 @@ public class VariantMetadataRules {
         return joined.asImmutable();
     }
 
-    public ImmutableCapabilities applyCapabilitiesRules(VariantResolveMetadata variant, ImmutableCapabilities capabilities) {
+    public ImmutableCapabilities applyCapabilitiesRules(
+            VariantResolveMetadata variant, ImmutableCapabilities capabilities) {
         if (capabilitiesRules == null) {
             return capabilities;
         }
@@ -99,9 +104,9 @@ public class VariantMetadataRules {
         if (capabilities.asSet().isEmpty()) {
             // we must add the implicit capability here because it is assumed that if there's a rule
             // "addCapability" would effectively _add_ a capability, so the implicit one must not be forgotten
-            mutableCapabilities = new DefaultMutableCapabilitiesMetadata(ImmutableCapabilities.of(
-                new DefaultImmutableCapability(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()))
-            );
+            mutableCapabilities =
+                    new DefaultMutableCapabilitiesMetadata(ImmutableCapabilities.of(new DefaultImmutableCapability(
+                            moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion())));
         } else {
             mutableCapabilities = new DefaultMutableCapabilitiesMetadata(capabilities);
         }
@@ -113,42 +118,60 @@ public class VariantMetadataRules {
         return mutableCapabilities.asImmutableCapabilities();
     }
 
-    public <T extends ModuleDependencyMetadata> List<? extends ModuleDependencyMetadata> applyDependencyMetadataRules(VariantResolveMetadata variant, List<T> configDependencies) {
+    public <T extends ModuleDependencyMetadata> List<? extends ModuleDependencyMetadata> applyDependencyMetadataRules(
+            VariantResolveMetadata variant, List<T> configDependencies) {
         if (dependencyMetadataRules != null) {
             return dependencyMetadataRules.execute(variant, configDependencies);
         }
         return configDependencies;
     }
 
-    public <T extends ComponentArtifactMetadata> ImmutableList<T> applyVariantFilesMetadataRulesToArtifacts(VariantResolveMetadata variant, ImmutableList<T> declaredArtifacts, ModuleComponentIdentifier componentIdentifier) {
+    public <T extends ComponentArtifactMetadata> ImmutableList<T> applyVariantFilesMetadataRulesToArtifacts(
+            VariantResolveMetadata variant,
+            ImmutableList<T> declaredArtifacts,
+            ModuleComponentIdentifier componentIdentifier) {
         if (variantFilesRules != null) {
             return variantFilesRules.executeForArtifacts(variant, declaredArtifacts, componentIdentifier);
         }
         return declaredArtifacts;
     }
 
-    public <T extends ComponentVariant.File> ImmutableList<T> applyVariantFilesMetadataRulesToFiles(VariantResolveMetadata variant, ImmutableList<T> declaredFiles, ModuleComponentIdentifier componentIdentifier) {
+    public <T extends ComponentVariant.File> ImmutableList<T> applyVariantFilesMetadataRulesToFiles(
+            VariantResolveMetadata variant,
+            ImmutableList<T> declaredFiles,
+            ModuleComponentIdentifier componentIdentifier) {
         if (variantFilesRules != null) {
             return variantFilesRules.executeForFiles(variant, declaredFiles, componentIdentifier);
         }
         return declaredFiles;
     }
 
-    public void addDependencyAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, VariantAction<? super DirectDependenciesMetadata> action) {
+    public void addDependencyAction(
+            Instantiator instantiator,
+            NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
+            NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser,
+            VariantAction<? super DirectDependenciesMetadata> action) {
         if (dependencyMetadataRules == null) {
-            dependencyMetadataRules = new DependencyMetadataRules(instantiator, dependencyNotationParser, dependencyConstraintNotationParser, attributesFactory);
+            dependencyMetadataRules = new DependencyMetadataRules(
+                    instantiator, dependencyNotationParser, dependencyConstraintNotationParser, attributesFactory);
         }
         dependencyMetadataRules.addDependencyAction(action);
     }
 
-    public void addDependencyConstraintAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, VariantAction<? super DependencyConstraintsMetadata> action) {
+    public void addDependencyConstraintAction(
+            Instantiator instantiator,
+            NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
+            NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser,
+            VariantAction<? super DependencyConstraintsMetadata> action) {
         if (dependencyMetadataRules == null) {
-            dependencyMetadataRules = new DependencyMetadataRules(instantiator, dependencyNotationParser, dependencyConstraintNotationParser, attributesFactory);
+            dependencyMetadataRules = new DependencyMetadataRules(
+                    instantiator, dependencyNotationParser, dependencyConstraintNotationParser, attributesFactory);
         }
         dependencyMetadataRules.addDependencyConstraintAction(action);
     }
 
-    public void addAttributesAction(AttributesFactory attributesFactory, VariantAction<? super AttributeContainer> action) {
+    public void addAttributesAction(
+            AttributesFactory attributesFactory, VariantAction<? super AttributeContainer> action) {
         if (variantAttributesRules == null) {
             variantAttributesRules = new VariantAttributesRules(attributesFactory);
         }
@@ -216,7 +239,7 @@ public class VariantMetadataRules {
     }
 
     private static class ImmutableRules extends VariantMetadataRules {
-        private final static ImmutableRules INSTANCE = new ImmutableRules();
+        private static final ImmutableRules INSTANCE = new ImmutableRules();
 
         private ImmutableRules() {
             super(null, null, null);
@@ -228,29 +251,42 @@ public class VariantMetadataRules {
         }
 
         @Override
-        protected AttributeContainerInternal joinVariantAttributes(VariantResolveMetadata variant, AttributeContainerInternal parent) {
+        protected AttributeContainerInternal joinVariantAttributes(
+                VariantResolveMetadata variant, AttributeContainerInternal parent) {
             return parent;
         }
 
         @Override
-        public void addDependencyAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, VariantAction<? super DirectDependenciesMetadata> action) {
-            throw new UnsupportedOperationException("You are probably trying to add a dependency rule to something that wasn't supposed to be mutable");
+        public void addDependencyAction(
+                Instantiator instantiator,
+                NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
+                NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser,
+                VariantAction<? super DirectDependenciesMetadata> action) {
+            throw new UnsupportedOperationException(
+                    "You are probably trying to add a dependency rule to something that wasn't supposed to be mutable");
         }
 
         @Override
-        public void addDependencyConstraintAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, VariantAction<? super DependencyConstraintsMetadata> action) {
-            throw new UnsupportedOperationException("You are probably trying to add a dependency constraint rule to something that wasn't supposed to be mutable");
+        public void addDependencyConstraintAction(
+                Instantiator instantiator,
+                NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
+                NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser,
+                VariantAction<? super DependencyConstraintsMetadata> action) {
+            throw new UnsupportedOperationException(
+                    "You are probably trying to add a dependency constraint rule to something that wasn't supposed to be mutable");
         }
 
         @Override
-        public void addAttributesAction(AttributesFactory attributesFactory, VariantAction<? super AttributeContainer> action) {
-            throw new UnsupportedOperationException("You are probably trying to add a variant attribute to something that wasn't supposed to be mutable");
+        public void addAttributesAction(
+                AttributesFactory attributesFactory, VariantAction<? super AttributeContainer> action) {
+            throw new UnsupportedOperationException(
+                    "You are probably trying to add a variant attribute to something that wasn't supposed to be mutable");
         }
 
         @Override
         public void addCapabilitiesAction(VariantAction<? super MutableCapabilitiesMetadata> action) {
-            throw new UnsupportedOperationException("You are probably trying to change capabilities of something that wasn't supposed to be mutable");
+            throw new UnsupportedOperationException(
+                    "You are probably trying to change capabilities of something that wasn't supposed to be mutable");
         }
     }
-
 }

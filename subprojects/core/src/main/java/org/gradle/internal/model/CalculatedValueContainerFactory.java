@@ -16,6 +16,7 @@
 
 package org.gradle.internal.model;
 
+import java.util.function.Supplier;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
@@ -23,9 +24,6 @@ import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.function.Supplier;
-
 
 /**
  * Factory for {@link CalculatedValueContainer}.
@@ -35,7 +33,8 @@ public class CalculatedValueContainerFactory implements CalculatedValueFactory {
     private final ProjectLeaseRegistry projectLeaseRegistry;
     private final NodeExecutionContext globalContext;
 
-    public CalculatedValueContainerFactory(ProjectLeaseRegistry projectLeaseRegistry, ServiceRegistry buildScopeServices) {
+    public CalculatedValueContainerFactory(
+            ProjectLeaseRegistry projectLeaseRegistry, ServiceRegistry buildScopeServices) {
         this.projectLeaseRegistry = projectLeaseRegistry;
         this.globalContext = buildScopeServices::get;
     }
@@ -43,13 +42,16 @@ public class CalculatedValueContainerFactory implements CalculatedValueFactory {
     /**
      * Create a calculated value that may have dependencies or that may need to access mutable model state.
      */
-    public <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> create(DisplayName displayName, S supplier) {
+    public <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> create(
+            DisplayName displayName, S supplier) {
         return new CalculatedValueContainer<>(displayName, supplier, projectLeaseRegistry, globalContext);
     }
 
     @Override
-    public <T> CalculatedValueContainer<T, ValueCalculator<T>> create(DisplayName displayName, Supplier<? extends T> supplier) {
-        return new CalculatedValueContainer<>(displayName, new SupplierBackedCalculator<>(supplier), projectLeaseRegistry, globalContext);
+    public <T> CalculatedValueContainer<T, ValueCalculator<T>> create(
+            DisplayName displayName, Supplier<? extends T> supplier) {
+        return new CalculatedValueContainer<>(
+                displayName, new SupplierBackedCalculator<>(supplier), projectLeaseRegistry, globalContext);
     }
 
     @Override

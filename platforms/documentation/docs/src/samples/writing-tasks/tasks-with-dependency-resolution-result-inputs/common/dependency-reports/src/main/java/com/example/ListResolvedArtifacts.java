@@ -1,5 +1,12 @@
 package com.example;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.util.List;
+import java.util.stream.Stream;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -11,20 +18,12 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.util.List;
-import java.util.stream.Stream;
-
 public abstract class ListResolvedArtifacts extends DefaultTask {
 
-// tag::inputs[]
-@Input
-public abstract ListProperty<ComponentArtifactIdentifier> getArtifactIds();
-// end::inputs[]
+    // tag::inputs[]
+    @Input
+    public abstract ListProperty<ComponentArtifactIdentifier> getArtifactIds();
+    // end::inputs[]
 
     @Input
     public abstract ListProperty<ResolvedVariantResult> getArtifactVariants();

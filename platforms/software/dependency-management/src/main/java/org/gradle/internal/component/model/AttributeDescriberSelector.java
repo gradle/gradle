@@ -17,22 +17,23 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDescriber;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 
 public class AttributeDescriberSelector {
-    public static AttributeDescriber selectDescriber(AttributeContainerInternal consumerAttributes, List<AttributeDescriber> attributeDescribers) {
+    public static AttributeDescriber selectDescriber(
+            AttributeContainerInternal consumerAttributes, List<AttributeDescriber> attributeDescribers) {
         Set<Attribute<?>> consumerAttributeSet = consumerAttributes.keySet();
         AttributeDescriber current = null;
         int maxSize = 0;
         for (AttributeDescriber describer : attributeDescribers) {
-            int size = Sets.intersection(describer.getDescribableAttributes(), consumerAttributeSet).size();
+            int size = Sets.intersection(describer.getDescribableAttributes(), consumerAttributeSet)
+                    .size();
             if (size > maxSize) {
                 // Select the describer which handles the maximum number of attributes
                 current = describer;
@@ -52,7 +53,6 @@ public class AttributeDescriberSelector {
             this.delegate = delegate;
         }
 
-
         @Override
         public ImmutableSet<Attribute<?>> getDescribableAttributes() {
             return delegate.getDescribableAttributes();
@@ -67,18 +67,22 @@ public class AttributeDescriberSelector {
         @Override
         public String describeMissingAttribute(Attribute<?> attribute, Object producerValue) {
             String description = delegate.describeMissingAttribute(attribute, producerValue);
-            return description == null ? DefaultDescriber.INSTANCE.describeMissingAttribute(attribute, producerValue) : description;
+            return description == null
+                    ? DefaultDescriber.INSTANCE.describeMissingAttribute(attribute, producerValue)
+                    : description;
         }
 
         @Override
         public String describeExtraAttribute(Attribute<?> attribute, Object producerValue) {
             String description = delegate.describeExtraAttribute(attribute, producerValue);
-            return description == null ? DefaultDescriber.INSTANCE.describeExtraAttribute(attribute, producerValue) : description;
+            return description == null
+                    ? DefaultDescriber.INSTANCE.describeExtraAttribute(attribute, producerValue)
+                    : description;
         }
     }
 
     private static class DefaultDescriber implements AttributeDescriber {
-        private final static DefaultDescriber INSTANCE = new DefaultDescriber();
+        private static final DefaultDescriber INSTANCE = new DefaultDescriber();
 
         @Override
         public ImmutableSet<Attribute<?>> getDescribableAttributes() {
@@ -89,14 +93,18 @@ public class AttributeDescriberSelector {
         public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
             StringBuilder sb = new StringBuilder();
             attributes.entrySet().stream()
-                .sorted(Comparator.comparing(e -> e.getKey().getName()))
-                .forEach(entry -> {
-                    Attribute<?> attribute = entry.getKey();
-                    if (sb.length() > 0) {
-                        sb.append(", ");
-                    }
-                    sb.append("attribute '").append(attribute.getName()).append("' with value '").append(entry.getValue()).append("'");
-                });
+                    .sorted(Comparator.comparing(e -> e.getKey().getName()))
+                    .forEach(entry -> {
+                        Attribute<?> attribute = entry.getKey();
+                        if (sb.length() > 0) {
+                            sb.append(", ");
+                        }
+                        sb.append("attribute '")
+                                .append(attribute.getName())
+                                .append("' with value '")
+                                .append(entry.getValue())
+                                .append("'");
+                    });
             return sb.toString();
         }
 

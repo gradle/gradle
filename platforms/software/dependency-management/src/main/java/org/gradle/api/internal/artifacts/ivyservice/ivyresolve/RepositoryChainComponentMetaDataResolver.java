@@ -16,8 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.hasCriticalFailure;
+import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
@@ -36,28 +44,23 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.hasCriticalFailure;
-import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
-
 public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDataResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryChainComponentMetaDataResolver.class);
 
-    private final List<ModuleComponentRepository<ExternalModuleComponentGraphResolveState>> repositories = new ArrayList<>();
+    private final List<ModuleComponentRepository<ExternalModuleComponentGraphResolveState>> repositories =
+            new ArrayList<>();
     private final List<String> repositoryNames = new ArrayList<>();
     private final VersionedComponentChooser versionedComponentChooser;
     private final CalculatedValueFactory calculatedValueFactory;
-    private final Cache<ModuleComponentIdentifier, CalculatedValue<BuildableComponentResolveResult>> metadataValueContainerCache;
+    private final Cache<ModuleComponentIdentifier, CalculatedValue<BuildableComponentResolveResult>>
+            metadataValueContainerCache;
 
-    public RepositoryChainComponentMetaDataResolver(VersionedComponentChooser componentChooser, CalculatedValueFactory calculatedValueFactory) {
+    public RepositoryChainComponentMetaDataResolver(
+            VersionedComponentChooser componentChooser, CalculatedValueFactory calculatedValueFactory) {
         this.versionedComponentChooser = componentChooser;
         this.calculatedValueFactory = calculatedValueFactory;
-        this.metadataValueContainerCache = CacheBuilder.newBuilder().weakValues().build();
+        this.metadataValueContainerCache =
+                CacheBuilder.newBuilder().weakValues().build();
     }
 
     public void add(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository) {
@@ -66,14 +69,18 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     }
 
     @Override
-    public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
+    public void resolve(
+            ComponentIdentifier identifier,
+            ComponentOverrideMetadata componentOverrideMetadata,
+            BuildableComponentResolveResult result) {
         if (!(identifier instanceof ModuleComponentIdentifier)) {
             throw new UnsupportedOperationException("Can resolve meta-data for module components only.");
         }
 
         try {
-            CalculatedValue<BuildableComponentResolveResult> metadataValueContainer =
-                metadataValueContainerCache.get((ModuleComponentIdentifier) identifier, () -> createValueContainerFor(identifier, componentOverrideMetadata));
+            CalculatedValue<BuildableComponentResolveResult> metadataValueContainer = metadataValueContainerCache.get(
+                    (ModuleComponentIdentifier) identifier,
+                    () -> createValueContainerFor(identifier, componentOverrideMetadata));
             metadataValueContainer.finalizeIfNotAlready();
             metadataValueContainer.get().applyTo(result);
         } catch (ExecutionException e) {
@@ -81,16 +88,21 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         }
     }
 
-    private CalculatedValue<BuildableComponentResolveResult> createValueContainerFor(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata) {
-        return calculatedValueFactory.create(toDisplayName(identifier), () -> resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata));
+    private CalculatedValue<BuildableComponentResolveResult> createValueContainerFor(
+            ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata) {
+        return calculatedValueFactory.create(
+                toDisplayName(identifier),
+                () -> resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata));
     }
 
     @Override
     public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
         if (identifier instanceof ModuleComponentIdentifier) {
             for (ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository : repositories) {
-                ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> localAccess = repository.getLocalAccess();
-                MetadataFetchingCost fetchingCost = localAccess.estimateMetadataFetchingCost((ModuleComponentIdentifier) identifier);
+                ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> localAccess =
+                        repository.getLocalAccess();
+                MetadataFetchingCost fetchingCost =
+                        localAccess.estimateMetadataFetchingCost((ModuleComponentIdentifier) identifier);
                 if (fetchingCost.isFast()) {
                     return true;
                 } else if (fetchingCost.isExpensive()) {
@@ -101,7 +113,8 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         return true;
     }
 
-    private BuildableComponentResolveResult resolveModule(ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata) {
+    private BuildableComponentResolveResult resolveModule(
+            ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata) {
         LOGGER.debug("Attempting to resolve component for {} using repositories {}", identifier, repositoryNames);
 
         List<Throwable> errors = new ArrayList<>();
@@ -109,7 +122,8 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
 
         List<ComponentMetaDataResolveState> resolveStates = new ArrayList<>();
         for (ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository : repositories) {
-            resolveStates.add(new ComponentMetaDataResolveState(identifier, componentOverrideMetadata, repository, versionedComponentChooser));
+            resolveStates.add(new ComponentMetaDataResolveState(
+                    identifier, componentOverrideMetadata, repository, versionedComponentChooser));
         }
 
         final RepositoryChainModuleResolution latestResolved = findBestMatch(resolveStates, errors);
@@ -136,7 +150,8 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     }
 
     @Nullable
-    private RepositoryChainModuleResolution findBestMatch(List<ComponentMetaDataResolveState> resolveStates, Collection<Throwable> failures) {
+    private RepositoryChainModuleResolution findBestMatch(
+            List<ComponentMetaDataResolveState> resolveStates, Collection<Throwable> failures) {
         LinkedList<ComponentMetaDataResolveState> queue = new LinkedList<>(resolveStates);
 
         LinkedList<ComponentMetaDataResolveState> missing = new LinkedList<>();
@@ -157,12 +172,17 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     }
 
     @Nullable
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private RepositoryChainModuleResolution findBestMatch(LinkedList<ComponentMetaDataResolveState> queue, Collection<Throwable> failures, Collection<ComponentMetaDataResolveState> missing) {
+    @SuppressWarnings(
+            "NonApiType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    private RepositoryChainModuleResolution findBestMatch(
+            LinkedList<ComponentMetaDataResolveState> queue,
+            Collection<Throwable> failures,
+            Collection<ComponentMetaDataResolveState> missing) {
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {
             ComponentMetaDataResolveState request = queue.removeFirst();
-            BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> metaDataResolveResult;
+            BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState>
+                    metaDataResolveResult;
             metaDataResolveResult = request.resolve();
             switch (metaDataResolveResult.getState()) {
                 case Failed:
@@ -178,14 +198,16 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
                     }
                     break;
                 case Resolved:
-                    RepositoryChainModuleResolution moduleResolution = new RepositoryChainModuleResolution(request.repository, metaDataResolveResult.getMetaData());
+                    RepositoryChainModuleResolution moduleResolution = new RepositoryChainModuleResolution(
+                            request.repository, metaDataResolveResult.getMetaData());
                     if (!metaDataResolveResult.getMetaData().getMetadata().isMissing()) {
                         return moduleResolution;
                     }
                     best = best != null ? best : moduleResolution;
                     break;
                 default:
-                    throw new IllegalStateException("Unexpected state for resolution: " + metaDataResolveResult.getState());
+                    throw new IllegalStateException(
+                            "Unexpected state for resolution: " + metaDataResolveResult.getState());
             }
         }
 

@@ -16,12 +16,11 @@
 
 package org.gradle.caching.internal.tasks;
 
+import java.io.IOException;
+import java.util.List;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-
-import java.io.IOException;
-import java.util.List;
 
 public class CommonsTarPacker implements Packer {
 

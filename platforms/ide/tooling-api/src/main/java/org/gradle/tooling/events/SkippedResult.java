@@ -21,5 +21,4 @@ package org.gradle.tooling.events;
  *
  * @since 2.4
  */
-public interface SkippedResult extends OperationResult {
-}
+public interface SkippedResult extends OperationResult {}

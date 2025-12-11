@@ -16,7 +16,15 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.util.stream.Collectors.toMap;
+
 import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.LineInFileLocation;
@@ -71,15 +79,6 @@ import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static java.util.stream.Collectors.toMap;
-
 @NullMarked
 public class ProblemsProgressEventUtils {
 
@@ -87,29 +86,35 @@ public class ProblemsProgressEventUtils {
     private static final InternalSeverity WARNING = new DefaultSeverity(1);
     private static final InternalSeverity ERROR = new DefaultSeverity(2);
 
-    public ProblemsProgressEventUtils() {
-    }
+    public ProblemsProgressEventUtils() {}
 
-    static InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, DefaultProblemProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+    static InternalProblemEventVersion2 createProblemEvent(
+            OperationIdentifier buildOperationId,
+            DefaultProblemProgressDetails details,
+            Supplier<OperationIdentifier> operationIdentifierSupplier) {
         InternalProblem problem = details.getProblem();
         return new DefaultProblemEvent(
-            createDefaultProblemDescriptor(buildOperationId, operationIdentifierSupplier),
-            createDefaultProblemDetails(problem)
-        );
+                createDefaultProblemDescriptor(buildOperationId, operationIdentifierSupplier),
+                createDefaultProblemDetails(problem));
     }
 
-    static InternalProblemEventVersion2 createProblemSummaryEvent(@Nullable OperationIdentifier buildOperationId, DefaultProblemsSummaryProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+    static InternalProblemEventVersion2 createProblemSummaryEvent(
+            @Nullable OperationIdentifier buildOperationId,
+            DefaultProblemsSummaryProgressDetails details,
+            Supplier<OperationIdentifier> operationIdentifierSupplier) {
         return createProblemSummaryEvent(buildOperationId, details.getProblemIdCounts(), operationIdentifierSupplier);
     }
 
-    private static InternalProblemEventVersion2 createProblemSummaryEvent(OperationIdentifier buildOperationId, List<ProblemSummaryData> problemIdCounts, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+    private static InternalProblemEventVersion2 createProblemSummaryEvent(
+            OperationIdentifier buildOperationId,
+            List<ProblemSummaryData> problemIdCounts,
+            Supplier<OperationIdentifier> operationIdentifierSupplier) {
         List<InternalProblemSummary> internalIdCounts = problemIdCounts.stream()
-            .map(it -> new DefaultProblemSummary(toInternalId(it.getProblemId()), it.getCount()))
-            .collect(toImmutableList());
+                .map(it -> new DefaultProblemSummary(toInternalId(it.getProblemId()), it.getCount()))
+                .collect(toImmutableList());
         return new DefaultProblemEvent(
-            createDefaultProblemDescriptor(buildOperationId, operationIdentifierSupplier),
-            new DefaultProblemsSummariesDetails(internalIdCounts)
-        );
+                createDefaultProblemDescriptor(buildOperationId, operationIdentifierSupplier),
+                new DefaultProblemsSummariesDetails(internalIdCounts));
     }
 
     @Nullable
@@ -120,39 +125,40 @@ public class ProblemsProgressEventUtils {
         return DefaultFailure.fromThrowable(ex);
     }
 
-    private static InternalProblemDescriptor createDefaultProblemDescriptor(OperationIdentifier parentBuildOperationId, Supplier<OperationIdentifier> operationIdentifierSupplier) {
-        return new DefaultProblemDescriptor(
-            operationIdentifierSupplier.get(),
-            parentBuildOperationId);
+    private static InternalProblemDescriptor createDefaultProblemDescriptor(
+            OperationIdentifier parentBuildOperationId, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+        return new DefaultProblemDescriptor(operationIdentifierSupplier.get(), parentBuildOperationId);
     }
 
     static DefaultProblemDetails createDefaultProblemDetails(InternalProblem problem) {
         return new DefaultProblemDetails(
-            toInternalDefinition(problem.getDefinition()),
-            toInternalDetails(problem.getDetails()),
-            toInternalContextualLabel(problem.getContextualLabel()),
-            toInternalLocations(problem.getOriginLocations()),
-            toInternalLocations(problem.getContextualLocations()),
-            toInternalSolutions(problem.getSolutions()),
-            toInternalAdditionalData(problem),
-            toInternalFailure(problem.getException())
-        );
+                toInternalDefinition(problem.getDefinition()),
+                toInternalDetails(problem.getDetails()),
+                toInternalContextualLabel(problem.getContextualLabel()),
+                toInternalLocations(problem.getOriginLocations()),
+                toInternalLocations(problem.getContextualLocations()),
+                toInternalSolutions(problem.getSolutions()),
+                toInternalAdditionalData(problem),
+                toInternalFailure(problem.getException()));
     }
 
     private static InternalProblemDefinition toInternalDefinition(ProblemDefinition definition) {
         return new DefaultProblemDefinition(
-            toInternalId(definition.getId()),
-            toInternalSeverity(definition.getSeverity()),
-            toInternalDocumentationLink(definition.getDocumentationLink())
-        );
+                toInternalId(definition.getId()),
+                toInternalSeverity(definition.getSeverity()),
+                toInternalDocumentationLink(definition.getDocumentationLink()));
     }
 
     private static InternalProblemId toInternalId(ProblemId problemId) {
-        return new DefaultProblemId(problemId.getName(), problemId.getDisplayName(), toInternalGroup(problemId.getGroup()));
+        return new DefaultProblemId(
+                problemId.getName(), problemId.getDisplayName(), toInternalGroup(problemId.getGroup()));
     }
 
     private static InternalProblemGroup toInternalGroup(ProblemGroup group) {
-        return new DefaultProblemGroup(group.getName(), group.getDisplayName(), group.getParent() == null ? null : toInternalGroup(group.getParent()));
+        return new DefaultProblemGroup(
+                group.getName(),
+                group.getDisplayName(),
+                group.getParent() == null ? null : toInternalGroup(group.getParent()));
     }
 
     private static @Nullable InternalContextualLabel toInternalContextualLabel(@Nullable String contextualLabel) {
@@ -178,30 +184,42 @@ public class ProblemsProgressEventUtils {
 
     private static List<InternalLocation> toInternalLocations(List<ProblemLocation> locations) {
         return locations.stream()
-            .filter(location -> !(location instanceof StackTraceLocation && ((StackTraceLocation) location).getFileLocation() == null))
-            .map(location -> location instanceof StackTraceLocation
-                ? ((StackTraceLocation) location).getFileLocation()
-                : location)
-            .map(location -> {
-                if (location instanceof LineInFileLocation) {
-                    LineInFileLocation fileLocation = (LineInFileLocation) location;
-                    return new org.gradle.internal.build.event.types.DefaultLineInFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
-                } else if (location instanceof OffsetInFileLocation) {
-                    OffsetInFileLocation fileLocation = (OffsetInFileLocation) location;
-                    return new org.gradle.internal.build.event.types.DefaultOffsetInFileLocation(fileLocation.getPath(), fileLocation.getOffset(), fileLocation.getLength());
-                } else if (location instanceof FileLocation) { // generic class must be after the subclasses in the if-elseif chain.
-                    FileLocation fileLocation = (FileLocation) location;
-                    return new org.gradle.internal.build.event.types.DefaultFileLocation(fileLocation.getPath());
-                } else if (location instanceof PluginIdLocation) {
-                    PluginIdLocation pluginLocation = (PluginIdLocation) location;
-                    return new org.gradle.internal.build.event.types.DefaultPluginIdLocation(pluginLocation.getPluginId());
-                } else if (location instanceof TaskLocation) {
-                    TaskLocation taskLocation = (TaskLocation) location;
-                    return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(taskLocation.getBuildTreePath());
-                } else {
-                    throw new RuntimeException("No mapping defined for " + location.getClass().getName());
-                }
-            }).collect(toImmutableList());
+                .filter(location -> !(location instanceof StackTraceLocation
+                        && ((StackTraceLocation) location).getFileLocation() == null))
+                .map(location -> location instanceof StackTraceLocation
+                        ? ((StackTraceLocation) location).getFileLocation()
+                        : location)
+                .map(location -> {
+                    if (location instanceof LineInFileLocation) {
+                        LineInFileLocation fileLocation = (LineInFileLocation) location;
+                        return new org.gradle.internal.build.event.types.DefaultLineInFileLocation(
+                                fileLocation.getPath(),
+                                fileLocation.getLine(),
+                                fileLocation.getColumn(),
+                                fileLocation.getLength());
+                    } else if (location instanceof OffsetInFileLocation) {
+                        OffsetInFileLocation fileLocation = (OffsetInFileLocation) location;
+                        return new org.gradle.internal.build.event.types.DefaultOffsetInFileLocation(
+                                fileLocation.getPath(), fileLocation.getOffset(), fileLocation.getLength());
+                    } else if (location
+                            instanceof
+                            FileLocation) { // generic class must be after the subclasses in the if-elseif chain.
+                        FileLocation fileLocation = (FileLocation) location;
+                        return new org.gradle.internal.build.event.types.DefaultFileLocation(fileLocation.getPath());
+                    } else if (location instanceof PluginIdLocation) {
+                        PluginIdLocation pluginLocation = (PluginIdLocation) location;
+                        return new org.gradle.internal.build.event.types.DefaultPluginIdLocation(
+                                pluginLocation.getPluginId());
+                    } else if (location instanceof TaskLocation) {
+                        TaskLocation taskLocation = (TaskLocation) location;
+                        return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(
+                                taskLocation.getBuildTreePath());
+                    } else {
+                        throw new RuntimeException(
+                                "No mapping defined for " + location.getClass().getName());
+                    }
+                })
+                .collect(toImmutableList());
     }
 
     @Nullable
@@ -210,36 +228,35 @@ public class ProblemsProgressEventUtils {
     }
 
     private static List<InternalSolution> toInternalSolutions(List<String> solutions) {
-        return solutions.stream()
-            .map(DefaultSolution::new)
-            .collect(toImmutableList());
+        return solutions.stream().map(DefaultSolution::new).collect(toImmutableList());
     }
-
 
     private static InternalAdditionalData toInternalAdditionalData(InternalProblem problem) {
         Object additionalData = problem.getAdditionalData();
         if (additionalData instanceof DeprecationData) {
             // For now, we only expose deprecation data to the tooling API with generic additional data
             DeprecationData data = (DeprecationData) additionalData;
-            return new DefaultInternalAdditionalData(ImmutableMap.of("type", data.getType().name()));
+            return new DefaultInternalAdditionalData(
+                    ImmutableMap.of("type", data.getType().name()));
         } else if (additionalData instanceof TypeValidationData) {
             TypeValidationData data = (TypeValidationData) additionalData;
             ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
             Optional.ofNullable(data.getPluginId()).ifPresent(pluginId -> builder.put("pluginId", pluginId));
-            Optional.ofNullable(data.getPropertyName()).ifPresent(propertyName -> builder.put("propertyName", propertyName));
-            Optional.ofNullable(data.getParentPropertyName()).ifPresent(parentPropertyName -> builder.put("parentPropertyName", parentPropertyName));
+            Optional.ofNullable(data.getPropertyName())
+                    .ifPresent(propertyName -> builder.put("propertyName", propertyName));
+            Optional.ofNullable(data.getParentPropertyName())
+                    .ifPresent(parentPropertyName -> builder.put("parentPropertyName", parentPropertyName));
             Optional.ofNullable(data.getTypeName()).ifPresent(typeName -> builder.put("typeName", typeName));
             return new DefaultInternalAdditionalData(builder.build());
         } else if (additionalData instanceof GeneralData) {
             GeneralData data = (GeneralData) additionalData;
-            return new DefaultInternalAdditionalData(
-                data.getAsMap().entrySet().stream()
+            return new DefaultInternalAdditionalData(data.getAsMap().entrySet().stream()
                     .filter(entry -> isSupportedType(entry.getValue()))
-                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue))
-            );
+                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
         } else if (additionalData instanceof TypedAdditionalData) {
             TypedAdditionalData typedData = (TypedAdditionalData) additionalData;
-            return new DefaultInternalPayloadSerializedAdditionalData(typedData.getBytesForIsolatedObject(), typedData.getSerializedType());
+            return new DefaultInternalPayloadSerializedAdditionalData(
+                    typedData.getBytesForIsolatedObject(), typedData.getSerializedType());
         } else {
             return new DefaultInternalAdditionalData(Collections.emptyMap());
         }
@@ -248,5 +265,4 @@ public class ProblemsProgressEventUtils {
     private static boolean isSupportedType(Object type) {
         return type instanceof String;
     }
-
 }

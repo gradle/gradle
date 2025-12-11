@@ -16,9 +16,8 @@
 
 package org.gradle.internal.instantiation;
 
-import org.gradle.internal.service.ServiceLookup;
-
 import java.lang.annotation.Annotation;
+import org.gradle.internal.service.ServiceLookup;
 
 /**
  * Creates instances of the given type. This is similar to {@link org.gradle.internal.reflect.Instantiator}, but produces instances of the given type only. This allows it to provides some

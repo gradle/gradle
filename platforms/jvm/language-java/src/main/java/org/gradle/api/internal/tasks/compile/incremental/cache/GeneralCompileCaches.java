@@ -32,5 +32,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.UserHome.class)
 public interface GeneralCompileCaches {
     Cache<HashCode, ClassSetAnalysisData> getClassSetAnalysisCache();
+
     Cache<HashCode, ClassAnalysis> getClassAnalysisCache();
 }

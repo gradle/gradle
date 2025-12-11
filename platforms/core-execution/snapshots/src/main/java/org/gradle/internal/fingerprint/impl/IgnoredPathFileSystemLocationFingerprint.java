@@ -23,8 +23,10 @@ import org.gradle.internal.hash.Hasher;
 
 public class IgnoredPathFileSystemLocationFingerprint implements FileSystemLocationFingerprint {
 
-    public static final IgnoredPathFileSystemLocationFingerprint DIRECTORY = new IgnoredPathFileSystemLocationFingerprint(FileType.Directory, DIR_SIGNATURE);
-    private static final IgnoredPathFileSystemLocationFingerprint MISSING_FILE = new IgnoredPathFileSystemLocationFingerprint(FileType.Missing, MISSING_FILE_SIGNATURE);
+    public static final IgnoredPathFileSystemLocationFingerprint DIRECTORY =
+            new IgnoredPathFileSystemLocationFingerprint(FileType.Directory, DIR_SIGNATURE);
+    private static final IgnoredPathFileSystemLocationFingerprint MISSING_FILE =
+            new IgnoredPathFileSystemLocationFingerprint(FileType.Missing, MISSING_FILE_SIGNATURE);
 
     private final FileType type;
     private final HashCode normalizedContentHash;
@@ -94,6 +96,10 @@ public class IgnoredPathFileSystemLocationFingerprint implements FileSystemLocat
 
     @Override
     public String toString() {
-        return String.format("IGNORED / %s", getType() == FileType.Directory ? "DIR" : getType() == FileType.Missing ? "MISSING" : normalizedContentHash);
+        return String.format(
+                "IGNORED / %s",
+                getType() == FileType.Directory
+                        ? "DIR"
+                        : getType() == FileType.Missing ? "MISSING" : normalizedContentHash);
     }
 }

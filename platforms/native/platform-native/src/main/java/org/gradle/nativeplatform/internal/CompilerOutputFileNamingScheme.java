@@ -16,12 +16,11 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.apache.commons.io.FilenameUtils;
-import org.gradle.internal.file.RelativeFilePathResolver;
+import static org.gradle.internal.hash.Hashing.hashString;
 
 import java.io.File;
-
-import static org.gradle.internal.hash.Hashing.hashString;
+import org.apache.commons.io.FilenameUtils;
+import org.gradle.internal.file.RelativeFilePathResolver;
 
 public class CompilerOutputFileNamingScheme {
     private String objectFileNameSuffix;
@@ -37,7 +36,7 @@ public class CompilerOutputFileNamingScheme {
         return this;
     }
 
-    public CompilerOutputFileNamingScheme withObjectFileNameSuffix(String suffix){
+    public CompilerOutputFileNamingScheme withObjectFileNameSuffix(String suffix) {
         this.objectFileNameSuffix = suffix;
         return this;
     }

@@ -16,20 +16,23 @@
 
 package org.gradle.internal.instrumentation.processor.modelreader.impl;
 
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 
 public class AnnotationUtils {
-    public static Optional<? extends AnnotationMirror> findMetaAnnotationMirror(Element element, Class<? extends Annotation> annotationClass) {
-        return collectMetaAnnotations(element).stream().filter(it -> isAnnotationOfType(it, annotationClass)).findFirst();
+    public static Optional<? extends AnnotationMirror> findMetaAnnotationMirror(
+            Element element, Class<? extends Annotation> annotationClass) {
+        return collectMetaAnnotations(element).stream()
+                .filter(it -> isAnnotationOfType(it, annotationClass))
+                .findFirst();
     }
 
     private static Set<AnnotationMirror> collectMetaAnnotations(Element annotatedElement) {
@@ -50,16 +53,26 @@ public class AnnotationUtils {
         return result;
     }
 
-    public static Optional<? extends AnnotationMirror> findAnnotationMirror(Element element, Class<? extends Annotation> annotationClass) {
-        return element.getAnnotationMirrors().stream().filter(it -> isAnnotationOfType(it, annotationClass)).findFirst();
+    public static Optional<? extends AnnotationMirror> findAnnotationMirror(
+            Element element, Class<? extends Annotation> annotationClass) {
+        return element.getAnnotationMirrors().stream()
+                .filter(it -> isAnnotationOfType(it, annotationClass))
+                .findFirst();
     }
 
     public static Optional<? extends AnnotationValue> findAnnotationValue(AnnotationMirror annotation, String key) {
-        return annotation.getElementValues().entrySet().stream().filter(it -> it.getKey().getSimpleName().toString().equals(key)).map(Map.Entry::getValue).findFirst();
+        return annotation.getElementValues().entrySet().stream()
+                .filter(it -> it.getKey().getSimpleName().toString().equals(key))
+                .map(Map.Entry::getValue)
+                .findFirst();
     }
 
-    public static Optional<? extends AnnotationValue> findAnnotationValueWithDefaults(Elements elements, AnnotationMirror annotation, String key) {
-        return elements.getElementValuesWithDefaults(annotation).entrySet().stream().filter(it -> it.getKey().getSimpleName().toString().equals(key)).map(Map.Entry::getValue).findFirst();
+    public static Optional<? extends AnnotationValue> findAnnotationValueWithDefaults(
+            Elements elements, AnnotationMirror annotation, String key) {
+        return elements.getElementValuesWithDefaults(annotation).entrySet().stream()
+                .filter(it -> it.getKey().getSimpleName().toString().equals(key))
+                .map(Map.Entry::getValue)
+                .findFirst();
     }
 
     public static boolean isAnnotationOfType(AnnotationMirror annotation, Class<? extends Annotation> type) {

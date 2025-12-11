@@ -50,29 +50,30 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
 
         @Provides
         protected BuildScopeToolingModelBuilderRegistryAction createIdeBuildScopeToolingModelBuilderRegistryAction(
-            final ProjectTaskLister taskLister,
-            final ProjectPublicationRegistry projectPublicationRegistry,
-            final FileCollectionFactory fileCollectionFactory,
-            final BuildStateRegistry buildStateRegistry,
-            final ProjectStateRegistry projectStateRegistry,
-            BuildModelParameters buildModelParameters,
-            IntermediateToolingModelProvider intermediateToolingModelProvider,
-            BuildIncludeListener failedIncludedBuildsRegistry,
-            FailureFactory failureFactory
-        ) {
+                final ProjectTaskLister taskLister,
+                final ProjectPublicationRegistry projectPublicationRegistry,
+                final FileCollectionFactory fileCollectionFactory,
+                final BuildStateRegistry buildStateRegistry,
+                final ProjectStateRegistry projectStateRegistry,
+                BuildModelParameters buildModelParameters,
+                IntermediateToolingModelProvider intermediateToolingModelProvider,
+                BuildIncludeListener failedIncludedBuildsRegistry,
+                FailureFactory failureFactory) {
 
             return new BuildScopeToolingModelBuilderRegistryAction() {
                 @Override
                 public void execute(ToolingModelBuilderRegistry registry) {
                     boolean isolatedProjects = buildModelParameters.isIsolatedProjects();
                     GradleProjectBuilderInternal gradleProjectBuilder = createGradleProjectBuilder(isolatedProjects);
-                    IdeaModelBuilderInternal ideaModelBuilder = createIdeaModelBuilder(isolatedProjects, gradleProjectBuilder);
+                    IdeaModelBuilderInternal ideaModelBuilder =
+                            createIdeaModelBuilder(isolatedProjects, gradleProjectBuilder);
                     registry.register(new RunBuildDependenciesTaskBuilder());
                     registry.register(new RunEclipseTasksBuilder());
                     registry.register(new EclipseModelBuilder(gradleProjectBuilder, projectStateRegistry));
                     registry.register(ideaModelBuilder);
                     registry.register(gradleProjectBuilder);
-                    registry.register(new GradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry, failureFactory));
+                    registry.register(
+                            new GradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry, failureFactory));
                     registry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
                     registry.register(new BuildInvocationsBuilder(taskLister));
                     registry.register(new PublicationsBuilder(projectPublicationRegistry));
@@ -84,12 +85,18 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     registry.register(new GradleDslBaseScriptModelBuilder());
                 }
 
-                private IdeaModelBuilderInternal createIdeaModelBuilder(boolean isolatedProjects, GradleProjectBuilderInternal gradleProjectBuilder) {
-                    return isolatedProjects ? new IsolatedProjectsSafeIdeaModelBuilder(intermediateToolingModelProvider, gradleProjectBuilder) : new IdeaModelBuilder(gradleProjectBuilder);
+                private IdeaModelBuilderInternal createIdeaModelBuilder(
+                        boolean isolatedProjects, GradleProjectBuilderInternal gradleProjectBuilder) {
+                    return isolatedProjects
+                            ? new IsolatedProjectsSafeIdeaModelBuilder(
+                                    intermediateToolingModelProvider, gradleProjectBuilder)
+                            : new IdeaModelBuilder(gradleProjectBuilder);
                 }
 
                 private GradleProjectBuilderInternal createGradleProjectBuilder(boolean isolatedProjects) {
-                    return isolatedProjects ? new IsolatedProjectsSafeGradleProjectBuilder(intermediateToolingModelProvider) : new GradleProjectBuilder();
+                    return isolatedProjects
+                            ? new IsolatedProjectsSafeGradleProjectBuilder(intermediateToolingModelProvider)
+                            : new GradleProjectBuilder();
                 }
             };
         }

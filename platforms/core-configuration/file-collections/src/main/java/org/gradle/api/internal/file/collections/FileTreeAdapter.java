@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import java.io.File;
+import java.util.Set;
+import java.util.function.Consumer;
 import org.gradle.api.Buildable;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
@@ -29,10 +32,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import java.io.File;
-import java.util.Set;
-import java.util.function.Consumer;
-
 /**
  * Adapts a {@link MinimalFileTree} into a full {@link FileTree} implementation.
  */
@@ -40,13 +39,18 @@ public final class FileTreeAdapter extends AbstractFileTree {
     private final MinimalFileTree tree;
     private final FileCollectionObservationListener listener;
 
-    public FileTreeAdapter(MinimalFileTree tree, FileCollectionObservationListener listener, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
+    public FileTreeAdapter(
+            MinimalFileTree tree,
+            FileCollectionObservationListener listener,
+            TaskDependencyFactory taskDependencyFactory,
+            PatternSetFactory patternSetFactory) {
         super(taskDependencyFactory, patternSetFactory);
         this.tree = tree;
         this.listener = listener;
     }
 
-    public FileTreeAdapter(MinimalFileTree tree, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
+    public FileTreeAdapter(
+            MinimalFileTree tree, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
         this(tree, fileCollection -> {}, taskDependencyFactory, patternSetFactory);
     }
 
@@ -98,9 +102,14 @@ public final class FileTreeAdapter extends AbstractFileTree {
     public FileTreeInternal matching(PatternFilterable patterns) {
         if (tree instanceof PatternFilterableFileTree) {
             PatternFilterableFileTree filterableTree = (PatternFilterableFileTree) tree;
-            return new FileTreeAdapter(filterableTree.filter(patterns), listener, taskDependencyFactory, patternSetFactory);
+            return new FileTreeAdapter(
+                    filterableTree.filter(patterns), listener, taskDependencyFactory, patternSetFactory);
         } else if (tree instanceof FileSystemMirroringFileTree) {
-            return new FileTreeAdapter(new FilteredMinimalFileTree((PatternSet) patterns, (FileSystemMirroringFileTree) tree), listener, taskDependencyFactory, patternSetFactory);
+            return new FileTreeAdapter(
+                    new FilteredMinimalFileTree((PatternSet) patterns, (FileSystemMirroringFileTree) tree),
+                    listener,
+                    taskDependencyFactory,
+                    patternSetFactory);
         }
         throw new UnsupportedOperationException(String.format("Do not know how to filter %s.", tree));
     }
@@ -118,17 +127,20 @@ public final class FileTreeAdapter extends AbstractFileTree {
 
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
-        tree.visitStructure(new MinimalFileTree.MinimalFileTreeStructureVisitor() {
+        tree.visitStructure(
+                new MinimalFileTree.MinimalFileTreeStructureVisitor() {
 
-            @Override
-            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                visitor.visitFileTree(root, patterns, fileTree);
-            }
+                    @Override
+                    public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                        visitor.visitFileTree(root, patterns, fileTree);
+                    }
 
-            @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                visitor.visitFileTreeBackedByFile(file, fileTree, sourceTree);
-            }
-        }, this);
+                    @Override
+                    public void visitFileTreeBackedByFile(
+                            File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                        visitor.visitFileTreeBackedByFile(file, fileTree, sourceTree);
+                    }
+                },
+                this);
     }
 }

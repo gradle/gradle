@@ -17,14 +17,13 @@
 package org.gradle.plugins.ide.internal.tooling.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 
 /**
  * Structurally implements {@link org.gradle.tooling.model.GradleProject} model.
@@ -116,9 +115,7 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
 
     @Override
     public String toString() {
-        return "GradleProject{"
-            + "path='" + getPath() + '\''
-            + '}';
+        return "GradleProject{" + "path='" + getPath() + '\'' + '}';
     }
 
     public Collection<LaunchableGradleProjectTask> getTasks() {

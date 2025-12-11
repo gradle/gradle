@@ -25,5 +25,4 @@ import org.gradle.tooling.events.OperationDescriptor;
  * @since 8.6
  */
 @Incubating
-public interface BaseProblemDescriptor extends OperationDescriptor {
-}
+public interface BaseProblemDescriptor extends OperationDescriptor {}

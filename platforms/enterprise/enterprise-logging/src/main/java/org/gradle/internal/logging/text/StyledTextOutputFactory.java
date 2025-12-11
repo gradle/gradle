@@ -36,7 +36,6 @@ public interface StyledTextOutputFactory {
      * @param logCategory The log category.
      * @return the output
      */
-
     StyledTextOutput create(Class<?> logCategory);
 
     /**

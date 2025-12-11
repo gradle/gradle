@@ -17,13 +17,12 @@
 package org.gradle.model.internal.report.unbound;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Arrays;
+import java.util.Collection;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.type.ModelType;
-
-import java.util.Arrays;
-import java.util.Collection;
 
 @ThreadSafe
 public class UnboundRuleInput {
@@ -59,7 +58,13 @@ public class UnboundRuleInput {
         return scope;
     }
 
-    private UnboundRuleInput(String path, String type, boolean bound, ImmutableList<String> suggestedPaths, String description, String scope) {
+    private UnboundRuleInput(
+            String path,
+            String type,
+            boolean bound,
+            ImmutableList<String> suggestedPaths,
+            String description,
+            String scope) {
         this.path = path;
         this.type = type;
         this.bound = bound;

@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.file.copy;
 
+import static org.gradle.internal.UncheckedException.uncheckedCall;
+
+import java.io.File;
+import java.util.concurrent.Callable;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.NotationConvertResult;
@@ -23,11 +27,6 @@ import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
-
-import java.io.File;
-import java.util.concurrent.Callable;
-
-import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 public class PathNotationConverter implements NotationConverter<Object, String> {
 
@@ -43,8 +42,7 @@ public class PathNotationConverter implements NotationConverter<Object, String> 
     }
 
     public static NotationParser<Object, String> parser() {
-        return NotationParserBuilder
-                .toType(String.class)
+        return NotationParserBuilder.toType(String.class)
                 .noImplicitConverters()
                 .allowNullInput()
                 .converter(new PathNotationConverter())

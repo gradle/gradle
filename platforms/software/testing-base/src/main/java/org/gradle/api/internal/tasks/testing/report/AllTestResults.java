@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * The model for the test report.
@@ -52,9 +51,16 @@ public class AllTestResults extends CompositeTestResults {
         return addTest(classId, className, className, testName, testName, duration);
     }
 
-    public TestResult addTest(long classId, String className, String classDisplayName, String testName, String testDisplayName, long duration) {
+    public TestResult addTest(
+            long classId,
+            String className,
+            String classDisplayName,
+            String testName,
+            String testDisplayName,
+            long duration) {
         PackageTestResults packageResults = addPackageForClass(className);
-        return addTest(packageResults.addTest(classId, className, classDisplayName, testName, testDisplayName, duration));
+        return addTest(
+                packageResults.addTest(classId, className, classDisplayName, testName, testDisplayName, duration));
     }
 
     public ClassTestResults addTestClass(long classId, String className) {

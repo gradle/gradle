@@ -32,5 +32,4 @@ public class InjectedPluginClasspath {
     public ClassPath getClasspath() {
         return classPath;
     }
-
 }

@@ -22,5 +22,4 @@ import java.util.List;
  *
  * @since 6.8
  */
-public interface ExternalModuleDependencyBundle extends List<MinimalExternalModuleDependency> {
-}
+public interface ExternalModuleDependencyBundle extends List<MinimalExternalModuleDependency> {}

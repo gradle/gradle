@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform.filters;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestSource;
 import org.junit.platform.launcher.PostDiscoveryFilter;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A JUnit Platform {@link PostDiscoveryFilter} that delegates filtering to other
@@ -47,12 +46,15 @@ public final class DelegatingByTypeFilter implements PostDiscoveryFilter {
     public FilterResult apply(TestDescriptor descriptor) {
         TestSource source = descriptor.getSource().orElse(null);
         if (source == null) {
-            return FilterResult.included("absent source"); // No opinion on absent sources, so allow them to pass this filter
+            return FilterResult.included(
+                    "absent source"); // No opinion on absent sources, so allow them to pass this filter
         }
 
         PostDiscoveryFilter filter = delegates.get(source.getClass());
         if (filter == null) {
-            return FilterResult.included("unknown source"); // No opinion on sources that haven't had a delegate added, so allow them to pass this filter
+            return FilterResult.included(
+                    "unknown source"); // No opinion on sources that haven't had a delegate added, so allow them to pass
+            // this filter
         }
 
         return filter.apply(descriptor);

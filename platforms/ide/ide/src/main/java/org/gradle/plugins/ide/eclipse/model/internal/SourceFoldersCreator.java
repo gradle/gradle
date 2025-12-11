@@ -16,6 +16,10 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toList;
+
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
@@ -25,6 +29,15 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.BiFunction;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.SourceSet;
@@ -37,35 +50,22 @@ import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.BiFunction;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toList;
-
 public class SourceFoldersCreator {
 
     public List<SourceFolder> createSourceFolders(final EclipseClasspath classpath) {
 
-        List<SourceFolder> sourceFolders = configureProjectRelativeFolders(classpath.getSourceSets(),
-            classpath.getTestSourceSets().getOrElse(emptySet()),
-            input-> PathUtil.normalizePath(classpath.getProject().relativePath(input)),
-            classpath.getDefaultOutputDir(),
-            classpath.getBaseSourceOutputDir().get().getAsFile());
+        List<SourceFolder> sourceFolders = configureProjectRelativeFolders(
+                classpath.getSourceSets(),
+                classpath.getTestSourceSets().getOrElse(emptySet()),
+                input -> PathUtil.normalizePath(classpath.getProject().relativePath(input)),
+                classpath.getDefaultOutputDir(),
+                classpath.getBaseSourceOutputDir().get().getAsFile());
 
-        return collectRegularAndExternalSourceFolders(sourceFolders,
-            (sourceFoldersLeft, sourceFoldersRight) -> ImmutableList.<SourceFolder>builder()
-                .addAll(sourceFoldersLeft)
-                .addAll(sourceFoldersRight)
-                .build());
+        return collectRegularAndExternalSourceFolders(
+                sourceFolders, (sourceFoldersLeft, sourceFoldersRight) -> ImmutableList.<SourceFolder>builder()
+                        .addAll(sourceFoldersLeft)
+                        .addAll(sourceFoldersRight)
+                        .build());
     }
 
     /**
@@ -73,13 +73,19 @@ public class SourceFoldersCreator {
      *
      * @return source folders that live outside of the project
      */
-    public List<SourceFolder> getBasicExternalSourceFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
+    public List<SourceFolder> getBasicExternalSourceFolders(
+            Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
         List<SourceFolder> basicSourceFolders = basicProjectRelativeFolders(sourceSets, provideRelativePath);
-        return collectRegularAndExternalSourceFolders(basicSourceFolders, (sourceFoldersLeft, sourceFoldersRight) -> ImmutableList.copyOf(sourceFoldersRight));
+        return collectRegularAndExternalSourceFolders(
+                basicSourceFolders,
+                (sourceFoldersLeft, sourceFoldersRight) -> ImmutableList.copyOf(sourceFoldersRight));
     }
 
-    private <T> T collectRegularAndExternalSourceFolders(List<SourceFolder> sourceFolder, BiFunction<Collection<SourceFolder>, Collection<SourceFolder>, T> collector) {
-        Pair<Collection<SourceFolder>, Collection<SourceFolder>> partitionedFolders = CollectionUtils.partition(sourceFolder,  sf-> sf.getPath().contains(".."));
+    private <T> T collectRegularAndExternalSourceFolders(
+            List<SourceFolder> sourceFolder,
+            BiFunction<Collection<SourceFolder>, Collection<SourceFolder>, T> collector) {
+        Pair<Collection<SourceFolder>, Collection<SourceFolder>> partitionedFolders =
+                CollectionUtils.partition(sourceFolder, sf -> sf.getPath().contains(".."));
 
         Collection<SourceFolder> externalSourceFolders = partitionedFolders.getLeft();
         Collection<SourceFolder> regularSourceFolders = partitionedFolders.getRight();
@@ -90,22 +96,32 @@ public class SourceFoldersCreator {
         return collector.apply(regularSourceFolders, dedupedExternalSourceFolders);
     }
 
-    private List<SourceFolder> configureProjectRelativeFolders(Iterable<SourceSet> sourceSets,
-                                                               Collection<SourceSet> testSourceSets,
-                                                               Function<File, String> provideRelativePath,
-                                                               File defaultOutputDir,
-                                                               File baseSourceOutputDir) {
+    private List<SourceFolder> configureProjectRelativeFolders(
+            Iterable<SourceSet> sourceSets,
+            Collection<SourceSet> testSourceSets,
+            Function<File, String> provideRelativePath,
+            File defaultOutputDir,
+            File baseSourceOutputDir) {
         String defaultOutputPath = provideRelativePath.apply(defaultOutputDir);
         ImmutableList.Builder<SourceFolder> entries = ImmutableList.builder();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
-        Map<SourceSet, String> sourceSetOutputPaths = collectSourceSetOutputPaths(sortedSourceSets, defaultOutputPath, provideRelativePath.apply(baseSourceOutputDir));
+        Map<SourceSet, String> sourceSetOutputPaths = collectSourceSetOutputPaths(
+                sortedSourceSets, defaultOutputPath, provideRelativePath.apply(baseSourceOutputDir));
         Multimap<SourceSet, SourceSet> sourceSetUsages = getSourceSetUsages(sortedSourceSets);
         for (SourceSet sourceSet : sortedSourceSets) {
-            List<DirectoryTree> sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceSet.getAllSource().getSrcDirTrees());
+            List<DirectoryTree> sortedSourceDirs =
+                    sortSourceDirsAsPerUsualConvention(sourceSet.getAllSource().getSrcDirTrees());
             for (DirectoryTree tree : sortedSourceDirs) {
                 File dir = tree.getDir();
                 if (dir.isDirectory()) {
-                    SourceFolder folder = createSourceFolder(testSourceSets, provideRelativePath, sourceSetOutputPaths, sourceSetUsages, sourceSet, tree, dir);
+                    SourceFolder folder = createSourceFolder(
+                            testSourceSets,
+                            provideRelativePath,
+                            sourceSetOutputPaths,
+                            sourceSetUsages,
+                            sourceSet,
+                            tree,
+                            dir);
                     entries.add(folder);
                 }
             }
@@ -113,7 +129,14 @@ public class SourceFoldersCreator {
         return entries.build();
     }
 
-    private SourceFolder createSourceFolder(Collection<SourceSet> testSourceSets, Function<File, String> provideRelativePath, Map<SourceSet, String> sourceSetOutputPaths, Multimap<SourceSet, SourceSet> sourceSetUsages, SourceSet sourceSet, DirectoryTree tree, File dir) {
+    private SourceFolder createSourceFolder(
+            Collection<SourceSet> testSourceSets,
+            Function<File, String> provideRelativePath,
+            Map<SourceSet, String> sourceSetOutputPaths,
+            Multimap<SourceSet, SourceSet> sourceSetUsages,
+            SourceSet sourceSet,
+            DirectoryTree tree,
+            File dir) {
         String relativePath = provideRelativePath.apply(dir);
         SourceFolder folder = new SourceFolder(relativePath, null);
         folder.setDir(dir);
@@ -126,11 +149,13 @@ public class SourceFoldersCreator {
         return folder;
     }
 
-    private List<SourceFolder> basicProjectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath) {
+    private List<SourceFolder> basicProjectRelativeFolders(
+            Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath) {
         ImmutableList.Builder<SourceFolder> entries = ImmutableList.builder();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
         for (SourceSet sourceSet : sortedSourceSets) {
-            List<DirectoryTree> sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceSet.getAllSource().getSrcDirTrees());
+            List<DirectoryTree> sortedSourceDirs =
+                    sortSourceDirsAsPerUsualConvention(sourceSet.getAllSource().getSrcDirTrees());
             for (DirectoryTree tree : sortedSourceDirs) {
                 File dir = tree.getDir();
                 if (dir.isDirectory()) {
@@ -166,16 +191,22 @@ public class SourceFoldersCreator {
         return trimmedSourceFolders;
     }
 
-        private static final Joiner COMMA_JOINER = Joiner.on(',');
-    private void addScopeAttributes(SourceFolder folder, SourceSet sourceSet, Multimap<SourceSet, SourceSet> sourceSetUsages) {
-        folder.getEntryAttributes().put(EclipsePluginConstants.GRADLE_SCOPE_ATTRIBUTE_NAME, sanitizeNameForAttribute(sourceSet));
-        folder.getEntryAttributes().put(EclipsePluginConstants.GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME, COMMA_JOINER.join(getUsingSourceSetNames(sourceSet, sourceSetUsages)));
+    private static final Joiner COMMA_JOINER = Joiner.on(',');
+
+    private void addScopeAttributes(
+            SourceFolder folder, SourceSet sourceSet, Multimap<SourceSet, SourceSet> sourceSetUsages) {
+        folder.getEntryAttributes()
+                .put(EclipsePluginConstants.GRADLE_SCOPE_ATTRIBUTE_NAME, sanitizeNameForAttribute(sourceSet));
+        folder.getEntryAttributes()
+                .put(
+                        EclipsePluginConstants.GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME,
+                        COMMA_JOINER.join(getUsingSourceSetNames(sourceSet, sourceSetUsages)));
     }
 
     private List<String> getUsingSourceSetNames(SourceSet sourceSet, Multimap<SourceSet, SourceSet> sourceSetUsages) {
         return sourceSetUsages.get(sourceSet).stream()
-            .map(this::sanitizeNameForAttribute)
-            .collect(toList());
+                .map(this::sanitizeNameForAttribute)
+                .collect(toList());
     }
 
     private String sanitizeNameForAttribute(SourceSet sourceSet) {
@@ -211,13 +242,18 @@ public class SourceFoldersCreator {
         return true;
     }
 
-    private void addSourceSetAttributeIfNeeded(SourceSet sourceSet, SourceFolder folder, Collection<SourceSet> testSourceSets) {
+    private void addSourceSetAttributeIfNeeded(
+            SourceSet sourceSet, SourceFolder folder, Collection<SourceSet> testSourceSets) {
         if (testSourceSets.contains(sourceSet)) {
-            folder.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
+            folder.getEntryAttributes()
+                    .put(
+                            EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY,
+                            EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
         }
     }
 
-    private Map<SourceSet, String> collectSourceSetOutputPaths(Iterable<SourceSet> sourceSets, String defaultOutputPath, String baseSourceOutputDir) {
+    private Map<SourceSet, String> collectSourceSetOutputPaths(
+            Iterable<SourceSet> sourceSets, String defaultOutputPath, String baseSourceOutputDir) {
         Set<String> existingPaths = Sets.newHashSet(defaultOutputPath);
         Map<SourceSet, String> result = new HashMap<>();
         for (SourceSet sourceSet : sourceSets) {
@@ -229,9 +265,12 @@ public class SourceFoldersCreator {
         return result;
     }
 
-    private String collectSourceSetOutputPath(String sourceSetName, Set<String> existingPaths, String suffix, String baseSourceOutputDir) {
+    private String collectSourceSetOutputPath(
+            String sourceSetName, Set<String> existingPaths, String suffix, String baseSourceOutputDir) {
         String path = baseSourceOutputDir + "/" + sourceSetName + suffix;
-        return existingPaths.contains(path) ? collectSourceSetOutputPath(sourceSetName, existingPaths, suffix + "_", baseSourceOutputDir) : path;
+        return existingPaths.contains(path)
+                ? collectSourceSetOutputPath(sourceSetName, existingPaths, suffix + "_", baseSourceOutputDir)
+                : path;
     }
 
     private List<String> getExcludesForTree(SourceSet sourceSet, DirectoryTree directoryTree) {
@@ -241,7 +280,7 @@ public class SourceFoldersCreator {
 
     private List<String> getIncludesForTree(SourceSet sourceSet, DirectoryTree directoryTree) {
         List<Set<String>> includesByType = getFiltersForTreeGroupedByType(sourceSet, directoryTree, "includes");
-        if(includesByType.stream().anyMatch(Set::isEmpty)) {
+        if (includesByType.stream().anyMatch(Set::isEmpty)) {
             return emptyList();
         }
 
@@ -249,7 +288,8 @@ public class SourceFoldersCreator {
         return ImmutableSet.copyOf(allIncludes).asList();
     }
 
-    private List<Set<String>> getFiltersForTreeGroupedByType(SourceSet sourceSet, DirectoryTree directoryTree, String filterOperation) {
+    private List<Set<String>> getFiltersForTreeGroupedByType(
+            SourceSet sourceSet, DirectoryTree directoryTree, String filterOperation) {
         // check for duplicate entries in java and resources
         Set<File> javaSrcDirs = sourceSet.getAllJava().getSrcDirs();
         Set<File> resSrcDirs = sourceSet.getResources().getSrcDirs();
@@ -257,8 +297,10 @@ public class SourceFoldersCreator {
         if (!srcDirs.contains(directoryTree.getDir())) {
             return ImmutableList.of(collectFilters(directoryTree.getPatterns(), filterOperation));
         } else {
-            Set<String> resourcesFilter = collectFilters(sourceSet.getResources().getSrcDirTrees(), directoryTree.getDir(), filterOperation);
-            Set<String> sourceFilter = collectFilters(sourceSet.getAllJava().getSrcDirTrees(), directoryTree.getDir(), filterOperation);
+            Set<String> resourcesFilter =
+                    collectFilters(sourceSet.getResources().getSrcDirTrees(), directoryTree.getDir(), filterOperation);
+            Set<String> sourceFilter =
+                    collectFilters(sourceSet.getAllJava().getSrcDirTrees(), directoryTree.getDir(), filterOperation);
             return ImmutableList.of(resourcesFilter, sourceFilter);
         }
     }
@@ -274,7 +316,8 @@ public class SourceFoldersCreator {
     }
 
     private Set<String> collectFilters(PatternSet patterns, String filterOperation) {
-        return Cast.<Set<String>>uncheckedCast(DynamicObjectUtil.asDynamicObject(patterns).getProperty(filterOperation));
+        return Cast.<Set<String>>uncheckedCast(
+                DynamicObjectUtil.asDynamicObject(patterns).getProperty(filterOperation));
     }
 
     private List<SourceSet> sortSourceSetsAsPerUsualConvention(Iterable<SourceSet> sourceSets) {

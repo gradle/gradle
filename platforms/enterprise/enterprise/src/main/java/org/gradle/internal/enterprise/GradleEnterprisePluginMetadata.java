@@ -24,5 +24,4 @@ package org.gradle.internal.enterprise;
 public interface GradleEnterprisePluginMetadata {
 
     String getVersion();
-
 }

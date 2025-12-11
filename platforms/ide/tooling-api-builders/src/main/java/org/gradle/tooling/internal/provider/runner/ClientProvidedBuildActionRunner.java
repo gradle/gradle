@@ -25,11 +25,12 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.jspecify.annotations.Nullable;
 
-public class ClientProvidedBuildActionRunner extends AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
+public class ClientProvidedBuildActionRunner extends AbstractClientProvidedBuildActionRunner
+        implements BuildActionRunner {
     private final PayloadSerializer payloadSerializer;
 
-    public ClientProvidedBuildActionRunner(BuildControllerFactory buildControllerFactory,
-                                           PayloadSerializer payloadSerializer) {
+    public ClientProvidedBuildActionRunner(
+            BuildControllerFactory buildControllerFactory, PayloadSerializer payloadSerializer) {
         super(buildControllerFactory, payloadSerializer);
         this.payloadSerializer = payloadSerializer;
     }

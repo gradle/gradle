@@ -16,19 +16,19 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
-
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 public class TransportableActionExecutionSpecSerializer implements Serializer<TransportableActionExecutionSpec> {
     private static final byte FLAT = (byte) 0;
     private static final byte HIERARCHICAL = (byte) 1;
 
-    private final Serializer<HierarchicalClassLoaderStructure> hierarchicalClassLoaderStructureSerializer = new HierarchicalClassLoaderStructureSerializer();
+    private final Serializer<HierarchicalClassLoaderStructure> hierarchicalClassLoaderStructureSerializer =
+            new HierarchicalClassLoaderStructureSerializer();
 
     @Override
     public void write(Encoder encoder, TransportableActionExecutionSpec spec) throws Exception {
@@ -45,12 +45,14 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
         encoder.writeBinary(spec.getSerializedParameters());
         if (spec.getClassLoaderStructure() instanceof HierarchicalClassLoaderStructure) {
             encoder.writeByte(HIERARCHICAL);
-            hierarchicalClassLoaderStructureSerializer.write(encoder, (HierarchicalClassLoaderStructure) spec.getClassLoaderStructure());
+            hierarchicalClassLoaderStructureSerializer.write(
+                    encoder, (HierarchicalClassLoaderStructure) spec.getClassLoaderStructure());
         } else if (spec.getClassLoaderStructure() instanceof FlatClassLoaderStructure) {
             encoder.writeByte(FLAT);
             // If the classloader structure is flat, there's no need to send the classpath
         } else {
-            throw new IllegalArgumentException("Unknown classloader structure type: " + spec.getClassLoaderStructure().getClass().getSimpleName());
+            throw new IllegalArgumentException("Unknown classloader structure type: "
+                    + spec.getClassLoaderStructure().getClass().getSimpleName());
         }
     }
 
@@ -79,6 +81,12 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
             default:
                 throw new IllegalArgumentException("Unexpected payload type.");
         }
-        return new TransportableActionExecutionSpec(implementationClassName, serializedParameters, classLoaderStructure, new File(baseDirPath), new File(projectCacheDir), additionalWhitelistedServicesClassNames);
+        return new TransportableActionExecutionSpec(
+                implementationClassName,
+                serializedParameters,
+                classLoaderStructure,
+                new File(baseDirPath),
+                new File(projectCacheDir),
+                additionalWhitelistedServicesClassNames);
     }
 }

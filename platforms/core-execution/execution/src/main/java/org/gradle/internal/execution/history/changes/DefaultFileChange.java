@@ -17,12 +17,11 @@
 package org.gradle.internal.execution.history.changes;
 
 import com.google.common.base.Objects;
+import java.io.File;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.file.FileType;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
-
-import java.io.File;
 
 public class DefaultFileChange implements Change, FileChange, InputFileDetails {
     private final String path;
@@ -33,18 +32,29 @@ public class DefaultFileChange implements Change, FileChange, InputFileDetails {
     private final String normalizedPath;
 
     public static DefaultFileChange added(String path, String title, FileType currentFileType, String normalizedPath) {
-        return new DefaultFileChange(path, ChangeTypeInternal.ADDED, title, FileType.Missing, currentFileType, normalizedPath);
+        return new DefaultFileChange(
+                path, ChangeTypeInternal.ADDED, title, FileType.Missing, currentFileType, normalizedPath);
     }
 
-    public static DefaultFileChange removed(String path, String title, FileType previousFileType, String normalizedPath) {
-        return new DefaultFileChange(path, ChangeTypeInternal.REMOVED, title, previousFileType, FileType.Missing, normalizedPath);
+    public static DefaultFileChange removed(
+            String path, String title, FileType previousFileType, String normalizedPath) {
+        return new DefaultFileChange(
+                path, ChangeTypeInternal.REMOVED, title, previousFileType, FileType.Missing, normalizedPath);
     }
 
-    public static DefaultFileChange modified(String path, String title, FileType previousFileType, FileType currentFileType, String normalizedPath) {
-        return new DefaultFileChange(path, ChangeTypeInternal.MODIFIED, title, previousFileType, currentFileType, normalizedPath);
+    public static DefaultFileChange modified(
+            String path, String title, FileType previousFileType, FileType currentFileType, String normalizedPath) {
+        return new DefaultFileChange(
+                path, ChangeTypeInternal.MODIFIED, title, previousFileType, currentFileType, normalizedPath);
     }
 
-    private DefaultFileChange(String path, ChangeTypeInternal change, String title, FileType previousFileType, FileType currentFileType, String normalizedPath) {
+    private DefaultFileChange(
+            String path,
+            ChangeTypeInternal change,
+            String title,
+            FileType previousFileType,
+            FileType currentFileType,
+            String normalizedPath) {
         this.path = path;
         this.change = change;
         this.title = title;
@@ -143,11 +153,11 @@ public class DefaultFileChange implements Change, FileChange, InputFileDetails {
         }
         DefaultFileChange that = (DefaultFileChange) o;
         return Objects.equal(path, that.path)
-            && change == that.change
-            && Objects.equal(title, that.title)
-            && Objects.equal(previousFileType, that.previousFileType)
-            && Objects.equal(currentFileType, that.currentFileType)
-            && Objects.equal(normalizedPath, that.normalizedPath);
+                && change == that.change
+                && Objects.equal(title, that.title)
+                && Objects.equal(previousFileType, that.previousFileType)
+                && Objects.equal(currentFileType, that.currentFileType)
+                && Objects.equal(normalizedPath, that.normalizedPath);
     }
 
     @Override

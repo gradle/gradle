@@ -16,10 +16,9 @@
 
 package org.gradle.internal.fingerprint;
 
+import java.util.function.Predicate;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-
-import java.util.function.Predicate;
 
 /**
  * Specifies how a fingerprinter should handle directories that are found in a filecollection.

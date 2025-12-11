@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.file.archive;
 
+import java.io.File;
+import java.io.OutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.UnixStat;
@@ -29,9 +31,6 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
-
-import java.io.File;
-import java.io.OutputStream;
 
 public class TarCopyAction implements CopyAction {
     /**
@@ -106,10 +105,12 @@ public class TarCopyAction implements CopyAction {
 
         private void visitFile(FileCopyDetails fileDetails) {
             try {
-                TarArchiveEntry archiveEntry = new TarArchiveEntry(fileDetails.getRelativePath().getPathString());
+                TarArchiveEntry archiveEntry =
+                        new TarArchiveEntry(fileDetails.getRelativePath().getPathString());
                 archiveEntry.setModTime(getArchiveTimeFor(fileDetails));
                 archiveEntry.setSize(fileDetails.getSize());
-                archiveEntry.setMode(UnixStat.FILE_FLAG | fileDetails.getPermissions().toUnixNumeric());
+                archiveEntry.setMode(
+                        UnixStat.FILE_FLAG | fileDetails.getPermissions().toUnixNumeric());
                 tarOutStr.putArchiveEntry(archiveEntry);
                 fileDetails.copyTo(tarOutStr);
                 tarOutStr.closeArchiveEntry();
@@ -121,9 +122,11 @@ public class TarCopyAction implements CopyAction {
         private void visitDir(FileCopyDetails dirDetails) {
             try {
                 // Trailing slash on name indicates entry is a directory
-                TarArchiveEntry archiveEntry = new TarArchiveEntry(dirDetails.getRelativePath().getPathString() + '/');
+                TarArchiveEntry archiveEntry =
+                        new TarArchiveEntry(dirDetails.getRelativePath().getPathString() + '/');
                 archiveEntry.setModTime(getArchiveTimeFor(dirDetails));
-                archiveEntry.setMode(UnixStat.DIR_FLAG | dirDetails.getPermissions().toUnixNumeric());
+                archiveEntry.setMode(
+                        UnixStat.DIR_FLAG | dirDetails.getPermissions().toUnixNumeric());
                 tarOutStr.putArchiveEntry(archiveEntry);
                 tarOutStr.closeArchiveEntry();
             } catch (Exception e) {

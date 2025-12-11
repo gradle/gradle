@@ -17,17 +17,16 @@
 package org.gradle.internal.resource.transport.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.ReadableContent;
+import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 
 public class SftpResourceUploader implements ExternalResourceUploader {
 

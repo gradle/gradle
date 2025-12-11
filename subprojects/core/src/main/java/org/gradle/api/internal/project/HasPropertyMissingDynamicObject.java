@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.project;
 
+import java.util.function.Function;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.Function;
 
 class HasPropertyMissingDynamicObject extends BeanDynamicObject {
     private final Function<String, Boolean> hasPropertyMissing;
 
-    public HasPropertyMissingDynamicObject(Object bean, @Nullable Class<?> publicType, Function<String, Boolean> hasPropertyMissing) {
+    public HasPropertyMissingDynamicObject(
+            Object bean, @Nullable Class<?> publicType, Function<String, Boolean> hasPropertyMissing) {
         super(bean, publicType);
         this.hasPropertyMissing = hasPropertyMissing;
     }

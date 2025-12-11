@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks;
 
+import java.util.function.Consumer;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
-
-import java.util.function.Consumer;
 
 public class PropertyFileCollection extends CompositeFileCollection {
     private final String ownerDisplayName;
@@ -28,7 +27,8 @@ public class PropertyFileCollection extends CompositeFileCollection {
     private final FileCollectionInternal files;
     private String displayName;
 
-    public PropertyFileCollection(String ownerDisplayName, String propertyName, String type, FileCollectionInternal files) {
+    public PropertyFileCollection(
+            String ownerDisplayName, String propertyName, String type, FileCollectionInternal files) {
         this.ownerDisplayName = ownerDisplayName;
         this.type = type;
         this.propertyName = propertyName;

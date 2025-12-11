@@ -15,9 +15,7 @@
  */
 package org.gradle.internal.resource.transport.http.ntlm;
 
-
 import com.google.common.base.Preconditions;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Locale;
@@ -69,7 +67,6 @@ public class NTLMCredentials {
         int dotPos = val.indexOf('.');
         return dotPos == -1 ? val : val.substring(0, dotPos);
     }
-
 
     public String getDomain() {
         return domain;

@@ -16,6 +16,13 @@
 
 package org.gradle.vcs.internal.services;
 
+import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES;
+import static org.gradle.internal.hash.Hashing.hashString;
+import static org.gradle.internal.time.TimestampSuppliers.daysAgo;
+
+import java.io.File;
+import java.util.Set;
+import java.util.function.Supplier;
 import org.gradle.api.GradleException;
 import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.FileLockManager;
@@ -35,26 +42,21 @@ import org.gradle.vcs.internal.VersionControlSystem;
 import org.gradle.vcs.internal.VersionRef;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.Set;
-import java.util.function.Supplier;
-
-import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES;
-import static org.gradle.internal.hash.Hashing.hashString;
-import static org.gradle.internal.time.TimestampSuppliers.daysAgo;
-
 class DefaultVersionControlRepositoryFactory implements VersionControlRepositoryConnectionFactory, Stoppable {
     private final PersistentCache vcsWorkingDirCache;
 
-    DefaultVersionControlRepositoryFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, CacheCleanupStrategyFactory cacheCleanupStrategyFactory) {
+    DefaultVersionControlRepositoryFactory(
+            BuildTreeScopedCacheBuilderFactory cacheBuilderFactory,
+            CacheCleanupStrategyFactory cacheCleanupStrategyFactory) {
         this.vcsWorkingDirCache = cacheBuilderFactory
-            .createCrossVersionCacheBuilder("vcs-1")
-            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-            .withDisplayName("VCS Checkout Cache")
-            .withCleanupStrategy(cacheCleanupStrategyFactory.daily(
-                new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), new ModificationTimeFileAccessTimeJournal(), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES))
-            ))
-            .open();
+                .createCrossVersionCacheBuilder("vcs-1")
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+                .withDisplayName("VCS Checkout Cache")
+                .withCleanupStrategy(cacheCleanupStrategyFactory.daily(new LeastRecentlyUsedCacheCleanup(
+                        new SingleDepthFilesFinder(1),
+                        new ModificationTimeFileAccessTimeJournal(),
+                        daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES))))
+                .open();
     }
 
     @Override
@@ -79,7 +81,8 @@ class DefaultVersionControlRepositoryFactory implements VersionControlRepository
         private final VersionControlSystem delegate;
         private final PersistentCache cacheAccess;
 
-        private LockingVersionControlRepository(VersionControlSpec spec, VersionControlSystem delegate, PersistentCache cacheAccess) {
+        private LockingVersionControlRepository(
+                VersionControlSpec spec, VersionControlSystem delegate, PersistentCache cacheAccess) {
             this.spec = spec;
             this.delegate = delegate;
             this.cacheAccess = cacheAccess;
@@ -100,7 +103,8 @@ class DefaultVersionControlRepositoryFactory implements VersionControlRepository
             try {
                 return delegate.getDefaultBranch(spec);
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not locate default branch for %s.", spec.getDisplayName()), e);
+                throw new GradleException(
+                        String.format("Could not locate default branch for %s.", spec.getDisplayName()), e);
             }
         }
 
@@ -110,7 +114,8 @@ class DefaultVersionControlRepositoryFactory implements VersionControlRepository
             try {
                 return delegate.getBranch(spec, branch);
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not locate branch '%s' for %s.", branch, spec.getDisplayName()), e);
+                throw new GradleException(
+                        String.format("Could not locate branch '%s' for %s.", branch, spec.getDisplayName()), e);
             }
         }
 
@@ -119,7 +124,8 @@ class DefaultVersionControlRepositoryFactory implements VersionControlRepository
             try {
                 return delegate.getAvailableVersions(spec);
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not list available versions for %s.", spec.getDisplayName()), e);
+                throw new GradleException(
+                        String.format("Could not list available versions for %s.", spec.getDisplayName()), e);
             }
         }
 
@@ -131,7 +137,9 @@ class DefaultVersionControlRepositoryFactory implements VersionControlRepository
                     try {
                         String repoName = spec.getRepoName();
                         String prefix = repoName.length() <= 9 ? repoName : repoName.substring(0, 10);
-                        String versionId = prefix + "_" + hashString(getUniqueId() + "-" + ref.getCanonicalId()).toCompactString();
+                        String versionId = prefix + "_"
+                                + hashString(getUniqueId() + "-" + ref.getCanonicalId())
+                                        .toCompactString();
                         File baseDir = new File(cacheAccess.getBaseDir(), versionId);
                         File workingDir = new File(baseDir, repoName);
                         GFileUtils.mkdirs(workingDir);
@@ -140,7 +148,9 @@ class DefaultVersionControlRepositoryFactory implements VersionControlRepository
                         delegate.populate(workingDir, ref, spec);
                         return workingDir;
                     } catch (Exception e) {
-                        throw new GradleException(String.format("Could not populate working directory from %s.", spec.getDisplayName()), e);
+                        throw new GradleException(
+                                String.format("Could not populate working directory from %s.", spec.getDisplayName()),
+                                e);
                     }
                 }
             });

@@ -16,6 +16,17 @@
 package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Pair;
@@ -27,34 +38,27 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
 import org.spockframework.runtime.SpockAssertionError;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.regex.Pattern;
-
 public class OutputScrapingExecutionResult implements ExecutionResult {
     // This monster is to find lines in our logs that look like stack traces
     // We want to match lines that contain just packages and classes:
-    // at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:145)
+    // at
+    // org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:145)
     // and with module names:
     // at java.base/java.lang.Thread.dumpStack(Thread.java:1383)
-    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[a-zA-Z_][\\w.$]+\\.[\\w$_ =+'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
+    static final Pattern STACK_TRACE_ELEMENT =
+            Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[a-zA-Z_][\\w.$]+\\.[\\w$_ =+'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
     private static final String TASK_PREFIX = "> Task ";
 
-    //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
-    private static final Pattern SKIPPED_TASK_PATTERN = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE)|(NO-SOURCE)|(FROM-CACHE))");
+    // for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
+    private static final Pattern SKIPPED_TASK_PATTERN =
+            Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE)|(NO-SOURCE)|(FROM-CACHE))");
 
-    //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
-    private static final Pattern TASK_PATTERN = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+NO-SOURCE)|(\\s+FAILED)|(\\s*))");
+    // for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
+    private static final Pattern TASK_PATTERN = Pattern.compile(
+            "(> Task )?(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+NO-SOURCE)|(\\s+FAILED)|(\\s*))");
 
-    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("(BUILD|CONFIGURE) (SUCCESSFUL|FAILED) in( \\d+m?[smh])+");
+    private static final Pattern BUILD_RESULT_PATTERN =
+            Pattern.compile("(BUILD|CONFIGURE) (SUCCESSFUL|FAILED) in( \\d+m?[smh])+");
 
     private final LogContent output;
     private final LogContent error;
@@ -78,7 +82,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
      */
     public static OutputScrapingExecutionResult from(String output, String error) {
         // Should provide a Gradle version as parameter so this check can be more precise
-        if (output.contains("BUILD FAILED") || output.contains("FAILURE: Build failed with an exception.") || error.contains("BUILD FAILED") || error.contains("CONFIGURE FAILED")) {
+        if (output.contains("BUILD FAILED")
+                || output.contains("FAILURE: Build failed with an exception.")
+                || error.contains("BUILD FAILED")
+                || error.contains("CONFIGURE FAILED")) {
             return new OutputScrapingExecutionFailure(output, error, true);
         }
         return new OutputScrapingExecutionResult(LogContent.of(output), LogContent.of(error), true);
@@ -167,10 +174,11 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 i++;
             } else if (line.contains(HealthExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
                 // Remove the "The Daemon will expire" message
-                i+=7;
+                i += 7;
             } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)) {
-                // Remove the deprecations message: "Deprecated Gradle features...", "Use '--warning-mode all'...", "See https://docs.gradle.org...", and additional newline
-                i+=4;
+                // Remove the deprecations message: "Deprecated Gradle features...", "Use '--warning-mode all'...", "See
+                // https://docs.gradle.org...", and additional newline
+                i += 4;
             } else if (BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("$1 $2 in 0s"));
                 i++;
@@ -190,11 +198,14 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
      * Since we want to assert the Lambda class name for some deprecation warning tests, we replace the non-deterministic part by {@code <non-deterministic>}.
      */
     public static String normalizeLambdaIds(@Nullable String line) {
-        return line == null ? null : line.replaceAll("\\$\\$Lambda\\$[0-9]+/(0x)?[0-9a-f]+", "\\$\\$Lambda\\$<non-deterministic>");
+        return line == null
+                ? null
+                : line.replaceAll("\\$\\$Lambda\\$[0-9]+/(0x)?[0-9a-f]+", "\\$\\$Lambda\\$<non-deterministic>");
     }
 
     @Override
-    public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
+    public ExecutionResult assertOutputEquals(
+            String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
         SequentialOutputMatcher matcher = ignoreLineOrder ? new AnyOrderOutputMatcher() : new SequentialOutputMatcher();
         matcher.assertOutputMatches(expectedOutput, getNormalizedOutput(), ignoreExtraLines);
         return this;
@@ -209,7 +220,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public ExecutionResult assertNotPostBuildOutput(String expectedOutput) {
         String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
         if (postBuild.withNormalizedEol().contains(expectedText)) {
-            failureOnUnexpectedOutput(String.format("Found unexpected text in post-build output.%nExpected not present: %s%n", expectedText));
+            failureOnUnexpectedOutput(String.format(
+                    "Found unexpected text in post-build output.%nExpected not present: %s%n", expectedText));
         }
         return this;
     }
@@ -217,8 +229,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public ExecutionResult assertNotOutput(String expectedOutput) {
         String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
-        if (getOutput().contains(expectedText)|| getError().contains(expectedText)) {
-            failureOnUnexpectedOutput(String.format("Found unexpected text in build output.%nExpected not present: %s%n", expectedText));
+        if (getOutput().contains(expectedText) || getError().contains(expectedText)) {
+            failureOnUnexpectedOutput(
+                    String.format("Found unexpected text in build output.%nExpected not present: %s%n", expectedText));
         }
         return this;
     }
@@ -247,16 +260,20 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         if (!actualText.contains(expectedText)) {
             if (!expectedText.contains("\n")) {
                 Arrays.stream(actualText.split("\n"))
-                    // Measure Levenshtein distance for each line
-                    .map(line -> new LineWithDistance(line, StringUtils.getLevenshteinDistance(line, expectedText)))
-                    // Filter out lines that need more edits than half the length of the line
-                    .filter(pair -> pair.getDistance() < pair.getLine().length() / 2)
-                    // Find the closest match
-                    .min(Comparator.comparingInt(LineWithDistance::getDistance))
-                    .map(LineWithDistance::getLine)
-                    .ifPresent(similarLine -> failOnDifferentLine("Did not find expected text in " + label.toLowerCase() + ", found similar line.", expectedOutput, similarLine));
+                        // Measure Levenshtein distance for each line
+                        .map(line -> new LineWithDistance(line, StringUtils.getLevenshteinDistance(line, expectedText)))
+                        // Filter out lines that need more edits than half the length of the line
+                        .filter(pair -> pair.getDistance() < pair.getLine().length() / 2)
+                        // Find the closest match
+                        .min(Comparator.comparingInt(LineWithDistance::getDistance))
+                        .map(LineWithDistance::getLine)
+                        .ifPresent(similarLine -> failOnDifferentLine(
+                                "Did not find expected text in " + label.toLowerCase() + ", found similar line.",
+                                expectedOutput,
+                                similarLine));
             }
-            failOnMissingOutput("Did not find expected text in " + label.toLowerCase() + ".", label, expectedOutput, actualText);
+            failOnMissingOutput(
+                    "Did not find expected text in " + label.toLowerCase() + ".", label, expectedOutput, actualText);
         }
         return this;
     }
@@ -292,9 +309,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private String findLineThatContains(String text, LogContent content, String outputType) {
-        Optional<String> foundLine = content.getLines().stream()
-            .filter(line -> line.contains(text))
-            .findFirst();
+        Optional<String> foundLine =
+                content.getLines().stream().filter(line -> line.contains(text)).findFirst();
         return foundLine.orElseGet(() -> {
             failOnMissingOutput("Did not find expected text in " + outputType, "Build output", text, text);
             // never returned
@@ -324,8 +340,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public ExecutionResult assertTasksScheduled(Object... taskPaths) {
         if (taskPaths == null || taskPaths.length == 0) {
-            throw new IllegalArgumentException("taskPaths cannot be empty. To check no tasks were executed, use assertNoTasksExecuted() instead." +
-                " To check that at least one task was executed, use assertAnyTasksExecuted() instead.");
+            throw new IllegalArgumentException(
+                    "taskPaths cannot be empty. To check no tasks were executed, use assertNoTasksExecuted() instead."
+                            + " To check that at least one task was executed, use assertAnyTasksExecuted() instead.");
         }
         Set<String> expectedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
         Set<String> actualTasks = findExecutedTasksInOrderStarted();
@@ -348,8 +365,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public ExecutionResult assertNoTasksScheduled() {
         Set<String> actualTasks = findExecutedTasksInOrderStarted();
         if (!actualTasks.isEmpty()) {
-            failOnDifferentSets("Unexpected tasks were executed in the build output. " +
-                "Expected no tasks to be executed.", new TreeSet<>(), actualTasks);
+            failOnDifferentSets(
+                    "Unexpected tasks were executed in the build output. " + "Expected no tasks to be executed.",
+                    new TreeSet<>(),
+                    actualTasks);
         }
         return this;
     }
@@ -387,7 +406,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         Set<String> expectedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
         Set<String> skippedTasks = getSkippedTasks();
         if (!expectedTasks.equals(skippedTasks)) {
-            failOnDifferentSets("Build output does not contain the expected skipped tasks.", expectedTasks, skippedTasks);
+            failOnDifferentSets(
+                    "Build output does not contain the expected skipped tasks.", expectedTasks, skippedTasks);
         }
         return this;
     }
@@ -411,14 +431,16 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public ExecutionResult assertTasksExecuted(Object... taskPaths) {
         if (taskPaths == null || taskPaths.length == 0) {
-            throw new IllegalArgumentException("taskPaths cannot be empty. To check no tasks in the task graph, use assertNoTasksScheduled().\n" +
-                "To check that at least one task was executed, use assertAnyTasksExecuted()\n +" +
-                "To check that tasks are in the task graph but were skipped, use assertAllTasksSkipped().");
+            throw new IllegalArgumentException(
+                    "taskPaths cannot be empty. To check no tasks in the task graph, use assertNoTasksScheduled().\n"
+                            + "To check that at least one task was executed, use assertAnyTasksExecuted()\n +"
+                            + "To check that tasks are in the task graph but were skipped, use assertAllTasksSkipped().");
         }
         Set<String> expectedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
         Set<String> notSkippedTasks = new TreeSet<>(getNotSkippedTasks());
         if (!expectedTasks.equals(notSkippedTasks)) {
-            failOnDifferentSets("Build output does not contain the expected non skipped tasks.", expectedTasks, notSkippedTasks);
+            failOnDifferentSets(
+                    "Build output does not contain the expected non skipped tasks.", expectedTasks, notSkippedTasks);
         }
         return this;
     }
@@ -429,7 +451,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         Set<String> executedTasks = findExecutedTasksInOrderStarted();
         if (notSkippedTasks.isEmpty()) {
             if (executedTasks.isEmpty()) {
-                //In this case there were no executed tasks at all
+                // In this case there were no executed tasks at all
                 failureOnUnexpectedOutput("Build output does not contain any executed tasks.");
             } else {
                 // In this case there were executed tasks, but they were all skipped
@@ -444,7 +466,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public ExecutionResult assertAllTasksSkipped() {
         Set<String> notSkippedTasks = new TreeSet<>(getNotSkippedTasks());
         if (!notSkippedTasks.isEmpty()) {
-            failOnDifferentSets("Build output contains unexpected non skipped tasks.", new TreeSet<>(), notSkippedTasks);
+            failOnDifferentSets(
+                    "Build output contains unexpected non skipped tasks.", new TreeSet<>(), notSkippedTasks);
         }
         return this;
     }
@@ -459,8 +482,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
-    public void assertResultVisited() {
-    }
+    public void assertResultVisited() {}
 
     private void failOnDifferentSets(String message, Set<String> expected, Set<String> actual) {
         failureOnUnexpectedOutput(String.format("%s%nExpected: %s%nActual: %s", message, expected, actual));
@@ -471,7 +493,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private void failOnMissingOutput(String message, String type, String expected, String actual) {
-        throw new AssertionError(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual));
+        throw new AssertionError(
+                String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual));
     }
 
     private void failOnDifferentLine(String message, String expected, String actual) {
@@ -503,7 +526,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 // So don't add to the task list if this is an update to a previously added task.
 
                 // Find the status line for the previous record of this task
-                String previousTaskStatusLine = tasks.contains(taskName) ? taskStatusLines.get(tasks.lastIndexOf(taskName)) : "";
+                String previousTaskStatusLine =
+                        tasks.contains(taskName) ? taskStatusLines.get(tasks.lastIndexOf(taskName)) : "";
                 // Don't add if our last record has a `:taskName` status, and this one is `:taskName SOMETHING`
                 if (previousTaskStatusLine.equals(taskName) && !taskStatusLine.equals(taskName)) {
                     return;

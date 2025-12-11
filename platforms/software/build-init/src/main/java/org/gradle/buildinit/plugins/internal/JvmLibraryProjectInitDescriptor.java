@@ -16,16 +16,18 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.model.Description;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
-import java.util.Collections;
-import java.util.List;
-
 public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
 
-    public JvmLibraryProjectInitDescriptor(Description description, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+    public JvmLibraryProjectInitDescriptor(
+            Description description,
+            TemplateLibraryVersionProvider libraryVersionProvider,
+            DocumentationRegistry documentationRegistry) {
         super(description, libraryVersionProvider, documentationRegistry);
     }
 
@@ -35,30 +37,34 @@ public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
     }
 
     @Override
-    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generateProjectBuildScript(
+            String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
 
         applyLibraryPlugin(buildScriptBuilder);
-        if(!isSingleProject(settings)){
+        if (!isSingleProject(settings)) {
             buildScriptBuilder.plugin(
-                "Apply the java conventions plugin from build-logic.",
-                "buildlogic.java-library-conventions");
+                    "Apply the java conventions plugin from build-logic.", "buildlogic.java-library-conventions");
         }
         buildScriptBuilder.dependency(
-            "api",
-            "This dependency is exported to consumers, that is to say found on their compile classpath.",
-            BuildInitDependency.of("org.apache.commons:commons-math3", libraryVersionProvider.getVersion("commons-math")));
-        buildScriptBuilder.implementationDependency("This dependency is used internally, and not exposed to consumers on their own compile classpath.",
-            BuildInitDependency.of("com.google.guava:guava", libraryVersionProvider.getVersion("guava")));
+                "api",
+                "This dependency is exported to consumers, that is to say found on their compile classpath.",
+                BuildInitDependency.of(
+                        "org.apache.commons:commons-math3", libraryVersionProvider.getVersion("commons-math")));
+        buildScriptBuilder.implementationDependency(
+                "This dependency is used internally, and not exposed to consumers on their own compile classpath.",
+                BuildInitDependency.of("com.google.guava:guava", libraryVersionProvider.getVersion("guava")));
     }
 
     @Override
-    protected List<String> getSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
+    protected List<String> getSourceTemplates(
+            String subproject, InitSettings settings, TemplateFactory templateFactory) {
         return Collections.singletonList("Library");
     }
 
     @Override
-    protected List<String> getTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
+    protected List<String> getTestSourceTemplates(
+            String subproject, InitSettings settings, TemplateFactory templateFactory) {
         return Collections.singletonList(getUnitTestSourceTemplateName(settings));
     }
 

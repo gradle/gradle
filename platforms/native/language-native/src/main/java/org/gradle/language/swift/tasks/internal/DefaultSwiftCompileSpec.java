@@ -16,12 +16,11 @@
 
 package org.gradle.language.swift.tasks.internal;
 
+import java.io.File;
+import java.util.Collection;
 import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
 import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
-
-import java.io.File;
-import java.util.Collection;
 
 public class DefaultSwiftCompileSpec extends AbstractNativeCompileSpec implements SwiftCompileSpec {
     private String moduleName;

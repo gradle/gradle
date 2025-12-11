@@ -18,6 +18,10 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
@@ -31,11 +35,6 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-
 public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChain<T> {
 
     private final List<Action<? super MultipleCandidatesDetails<T>>> rules = new ArrayList<>();
@@ -48,8 +47,11 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
     }
 
     @Override
-    public void add(final Class<? extends AttributeDisambiguationRule<T>> ruleClass, Action<? super ActionConfiguration> configureAction) {
-        ConfigurableRule<MultipleCandidatesDetails<T>> rule = DefaultConfigurableRule.of(ruleClass, configureAction, isolatableFactory);
+    public void add(
+            final Class<? extends AttributeDisambiguationRule<T>> ruleClass,
+            Action<? super ActionConfiguration> configureAction) {
+        ConfigurableRule<MultipleCandidatesDetails<T>> rule =
+                DefaultConfigurableRule.of(ruleClass, configureAction, isolatableFactory);
         rules.add(createAction(rule, instantiator));
     }
 
@@ -61,13 +63,15 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
 
     @Override
     public void pickFirst(Comparator<? super T> comparator) {
-        Action<? super MultipleCandidatesDetails<T>> rule = AttributeMatchingRules.orderedDisambiguation(comparator, true);
+        Action<? super MultipleCandidatesDetails<T>> rule =
+                AttributeMatchingRules.orderedDisambiguation(comparator, true);
         rules.add(rule);
     }
 
     @Override
     public void pickLast(Comparator<? super T> comparator) {
-        Action<? super MultipleCandidatesDetails<T>> rule = AttributeMatchingRules.orderedDisambiguation(comparator, false);
+        Action<? super MultipleCandidatesDetails<T>> rule =
+                AttributeMatchingRules.orderedDisambiguation(comparator, false);
         rules.add(rule);
     }
 
@@ -76,13 +80,13 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
     }
 
     public static <T> Action<MultipleCandidatesDetails<T>> createAction(
-        ConfigurableRule<MultipleCandidatesDetails<T>> rule,
-        Instantiator instantiator
-    ) {
-        return new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(rule.getRuleClass()));
+            ConfigurableRule<MultipleCandidatesDetails<T>> rule, Instantiator instantiator) {
+        return new InstantiatingAction<>(
+                DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(rule.getRuleClass()));
     }
 
-    private static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<MultipleCandidatesDetails<T>> {
+    private static class ExceptionHandler<T>
+            implements InstantiatingAction.ExceptionHandler<MultipleCandidatesDetails<T>> {
 
         private final Class<?> rule;
 
@@ -94,9 +98,11 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
         public void handleException(MultipleCandidatesDetails<T> details, Throwable throwable) {
             Set<T> orderedValues = Sets.newTreeSet(Ordering.usingToString());
             orderedValues.addAll(details.getCandidateValues());
-            throw new AttributeMatchException(String.format("Could not select value from candidates %s using %s.", orderedValues, ModelType.of(rule).getDisplayName()), throwable);
+            throw new AttributeMatchException(
+                    String.format(
+                            "Could not select value from candidates %s using %s.",
+                            orderedValues, ModelType.of(rule).getDisplayName()),
+                    throwable);
         }
-
     }
-
 }

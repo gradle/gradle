@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import java.io.IOException;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -23,14 +24,13 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.jspecify.annotations.Nullable;
 
-import java.io.IOException;
-
 /**
  * Serializes and de-serializes {@link IvyArtifactName}s.
  */
-public class IvyArtifactNameSerializer extends AbstractSerializer<IvyArtifactName>  {
+public class IvyArtifactNameSerializer extends AbstractSerializer<IvyArtifactName> {
 
     public static final IvyArtifactNameSerializer INSTANCE = new IvyArtifactNameSerializer();
+
     private IvyArtifactNameSerializer() {
         // Private to enforce singleton.
     }

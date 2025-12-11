@@ -16,9 +16,8 @@
 
 package org.gradle.api.publish.internal.validation;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-
 import java.util.Objects;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 /**
  * A publication associated with a project's display text, for better error feedback.
@@ -28,7 +27,8 @@ final class PublicationWithProject {
     private final String publicationName;
     private final ModuleVersionIdentifier coordinates;
 
-    public PublicationWithProject(String projectDisplayText, String publicationName, ModuleVersionIdentifier coordinates) {
+    public PublicationWithProject(
+            String projectDisplayText, String publicationName, ModuleVersionIdentifier coordinates) {
         this.projectDisplayText = projectDisplayText;
         this.publicationName = publicationName;
         this.coordinates = coordinates;
@@ -52,7 +52,9 @@ final class PublicationWithProject {
             return false;
         }
         PublicationWithProject that = (PublicationWithProject) o;
-        return Objects.equals(projectDisplayText, that.projectDisplayText) && Objects.equals(publicationName, that.publicationName) && Objects.equals(coordinates, that.coordinates);
+        return Objects.equals(projectDisplayText, that.projectDisplayText)
+                && Objects.equals(publicationName, that.publicationName)
+                && Objects.equals(coordinates, that.coordinates);
     }
 
     @Override

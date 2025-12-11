@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file;
 
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -23,14 +25,15 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 public class FilteredFileTree extends CompositeFileTree implements FileCollectionInternal.Source {
     private final FileTreeInternal tree;
     private final Supplier<? extends PatternSet> patternSupplier;
 
-    public FilteredFileTree(FileTreeInternal tree, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory, Supplier<? extends PatternSet> patternSupplier) {
+    public FilteredFileTree(
+            FileTreeInternal tree,
+            TaskDependencyFactory taskDependencyFactory,
+            PatternSetFactory patternSetFactory,
+            Supplier<? extends PatternSet> patternSupplier) {
         super(taskDependencyFactory, patternSetFactory);
         this.tree = tree;
         this.patternSupplier = patternSupplier;

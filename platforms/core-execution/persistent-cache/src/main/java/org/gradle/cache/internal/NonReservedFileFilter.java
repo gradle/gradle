@@ -32,5 +32,4 @@ public class NonReservedFileFilter implements FileFilter {
     public boolean accept(File file) {
         return !reservedFiles.contains(file);
     }
-
 }

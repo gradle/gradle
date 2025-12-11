@@ -18,19 +18,6 @@ package org.gradle.api.internal.file.copy;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.Transformer;
-import org.gradle.api.file.ContentFilterable;
-import org.gradle.api.file.DuplicatesStrategy;
-import org.gradle.api.file.ExpandDetails;
-import org.gradle.api.file.ConfigurableFilePermissions;
-import org.gradle.api.file.FilePermissions;
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
-import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.file.Chmod;
-
 import java.io.File;
 import java.io.FilterReader;
 import java.io.InputStream;
@@ -40,6 +27,18 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
+import org.gradle.api.file.ConfigurableFilePermissions;
+import org.gradle.api.file.ContentFilterable;
+import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.ExpandDetails;
+import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
+import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.file.Chmod;
 
 /**
  * A {@link CopyAction} which cleans up the tree as it is visited. Removes duplicate directories and adds in missing directories. Removes empty directories if instructed to do so by copy
@@ -68,7 +67,12 @@ public class NormalizingCopyActionDecorator implements CopyAction {
                         pendingDirs.put(path, details);
                     }
                 } else {
-                    maybeVisit(details.getRelativePath().getParent(), details.isIncludeEmptyDirs(), action, visitedDirs, pendingDirs);
+                    maybeVisit(
+                            details.getRelativePath().getParent(),
+                            details.isIncludeEmptyDirs(),
+                            action,
+                            visitedDirs,
+                            pendingDirs);
                     action.processFile(details);
                 }
             });
@@ -87,7 +91,12 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         });
     }
 
-    private void maybeVisit(RelativePath path, boolean includeEmptyDirs, CopyActionProcessingStreamAction delegateAction, Set<RelativePath> visitedDirs, ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs) {
+    private void maybeVisit(
+            RelativePath path,
+            boolean includeEmptyDirs,
+            CopyActionProcessingStreamAction delegateAction,
+            Set<RelativePath> visitedDirs,
+            ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs) {
         if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
             return;
         }

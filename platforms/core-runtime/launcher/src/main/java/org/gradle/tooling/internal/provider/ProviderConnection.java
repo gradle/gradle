@@ -16,8 +16,19 @@
 
 package org.gradle.tooling.internal.provider;
 
+import static java.util.Collections.emptySet;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
@@ -97,18 +108,6 @@ import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import static java.util.Collections.emptySet;
-
 @ServiceScope(Scope.Global.class)
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
@@ -127,18 +126,17 @@ public class ProviderConnection {
     private GradleVersion consumerVersion;
 
     public ProviderConnection(
-        ServiceRegistry sharedServices,
-        BuildLayoutFactory buildLayoutFactory,
-        DaemonClientFactory daemonClientFactory,
-        BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor,
-        PayloadSerializer payloadSerializer,
-        FileCollectionFactory fileCollectionFactory,
-        GlobalUserInputReceiver userInputReceiver,
-        UserInputReader userInputReader,
-        ShutdownCoordinator shutdownCoordinator,
-        NotifyDaemonClientExecuter notifyDaemonClientExecuter,
-        IsolatableSerializerRegistry isolatableSerializerRegistry
-    ) {
+            ServiceRegistry sharedServices,
+            BuildLayoutFactory buildLayoutFactory,
+            DaemonClientFactory daemonClientFactory,
+            BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor,
+            PayloadSerializer payloadSerializer,
+            FileCollectionFactory fileCollectionFactory,
+            GlobalUserInputReceiver userInputReceiver,
+            UserInputReader userInputReader,
+            ShutdownCoordinator shutdownCoordinator,
+            NotifyDaemonClientExecuter notifyDaemonClientExecuter,
+            IsolatableSerializerRegistry isolatableSerializerRegistry) {
         this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
         this.embeddedExecutor = embeddedExecutor;
@@ -156,31 +154,35 @@ public class ProviderConnection {
         this.consumerVersion = consumerVersion;
         LogLevel providerLogLevel = parameters.getVerboseLogging() ? LogLevel.DEBUG : LogLevel.INFO;
         LOGGER.debug("Configuring logging to level: {}", providerLogLevel);
-        LoggingManagerInternal loggingManager = sharedServices.get(LoggingManagerFactory.class).createLoggingManager();
+        LoggingManagerInternal loggingManager =
+                sharedServices.get(LoggingManagerFactory.class).createLoggingManager();
         loggingManager.setLevelInternal(providerLogLevel);
         loggingManager.start();
     }
 
-    public Object run(String modelName, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
+    public Object run(
+            String modelName,
+            BuildCancellationToken cancellationToken,
+            ProviderOperationParameters providerParameters) {
         List<String> tasks = providerParameters.getTasks();
         if (modelName.equals(ModelIdentifier.NULL_MODEL) && tasks == null) {
             throw new IllegalArgumentException("No model type or tasks specified.");
         }
         Parameters params = initParams(providerParameters);
         if (BuildEnvironment.class.getName().equals(modelName)) {
-            //we don't really need to launch the daemon to acquire information needed for BuildEnvironment
+            // we don't really need to launch the daemon to acquire information needed for BuildEnvironment
             if (tasks != null) {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
             }
             File javaHome = reportableJavaHomeForBuild(params);
             return new DefaultBuildEnvironment(
-                new DefaultBuildIdentifier(providerParameters.getProjectDir()),
-                params.buildLayout.getGradleUserHomeDir(),
-                GradleVersion.current().getVersion(),
-                javaHome,
-                params.daemonParams.getEffectiveJvmArgs(),
-                VersionInfoRenderer.renderWithLauncherJvm(Jvm.forHome(javaHome).toString())
-            );
+                    new DefaultBuildIdentifier(providerParameters.getProjectDir()),
+                    params.buildLayout.getGradleUserHomeDir(),
+                    GradleVersion.current().getVersion(),
+                    javaHome,
+                    params.daemonParams.getEffectiveJvmArgs(),
+                    VersionInfoRenderer.renderWithLauncherJvm(
+                            Jvm.forHome(javaHome).toString()));
         }
 
         if (Help.class.getName().equals(modelName)) {
@@ -191,9 +193,17 @@ public class ProviderConnection {
             return new DefaultHelp(help);
         }
 
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
-        BuildAction action = new BuildModelAction(params.startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
-        return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(
+                providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
+        BuildAction action = new BuildModelAction(
+                params.startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
+        return run(
+                action,
+                cancellationToken,
+                listenerConfig,
+                listenerConfig.buildEventConsumer,
+                providerParameters,
+                params);
     }
 
     private static File reportableJavaHomeForBuild(Parameters params) {
@@ -209,63 +219,107 @@ public class ProviderConnection {
         } else if (criteria instanceof DaemonJvmCriteria.LauncherJvm) {
             return Jvm.current().getJavaHome();
         } else {
-            throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
+            throw new IllegalStateException(
+                    "Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
         }
     }
 
     @SuppressWarnings({"deprecation", "overloads"})
-    public Object run(org.gradle.tooling.internal.protocol.InternalBuildAction<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
+    public Object run(
+            org.gradle.tooling.internal.protocol.InternalBuildAction<?> clientAction,
+            BuildCancellationToken cancellationToken,
+            ProviderOperationParameters providerParameters) {
         return runClientAction(clientAction, cancellationToken, providerParameters);
     }
 
     @SuppressWarnings("overloads")
-    public Object run(InternalBuildActionVersion2<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
+    public Object run(
+            InternalBuildActionVersion2<?> clientAction,
+            BuildCancellationToken cancellationToken,
+            ProviderOperationParameters providerParameters) {
         return runClientAction(clientAction, cancellationToken, providerParameters);
     }
 
-    public Object runClientAction(Object clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
+    public Object runClientAction(
+            Object clientAction,
+            BuildCancellationToken cancellationToken,
+            ProviderOperationParameters providerParameters) {
         List<String> tasks = providerParameters.getTasks();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
-        BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
-        return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter()
+                .toStartParameter(providerParameters, params.buildLayout, params.properties);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(
+                providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
+        BuildAction action = new ClientProvidedBuildAction(
+                startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
+        return run(
+                action,
+                cancellationToken,
+                listenerConfig,
+                listenerConfig.buildEventConsumer,
+                providerParameters,
+                params);
     }
 
     public Object runPhasedAction(
-        InternalPhasedAction clientPhasedAction,
-        PhasedActionResultListener resultListener,
-        BuildCancellationToken cancellationToken,
-        ProviderOperationParameters providerParameters
-    ) {
+            InternalPhasedAction clientPhasedAction,
+            PhasedActionResultListener resultListener,
+            BuildCancellationToken cancellationToken,
+            ProviderOperationParameters providerParameters) {
         List<String> tasks = providerParameters.getTasks();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientPhasedAction);
         Parameters params = initParams(providerParameters);
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
-        FailsafePhasedActionResultListener failsafePhasedActionResultListener = new FailsafePhasedActionResultListener(resultListener);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
-        BuildAction action = new ClientProvidedPhasedAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter()
+                .toStartParameter(providerParameters, params.buildLayout, params.properties);
+        FailsafePhasedActionResultListener failsafePhasedActionResultListener =
+                new FailsafePhasedActionResultListener(resultListener);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(
+                providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
+        BuildAction action = new ClientProvidedPhasedAction(
+                startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         try {
-            return run(action, cancellationToken, listenerConfig, new PhasedActionEventConsumer(failsafePhasedActionResultListener, payloadSerializer, listenerConfig.buildEventConsumer),
-                providerParameters, params);
+            return run(
+                    action,
+                    cancellationToken,
+                    listenerConfig,
+                    new PhasedActionEventConsumer(
+                            failsafePhasedActionResultListener, payloadSerializer, listenerConfig.buildEventConsumer),
+                    providerParameters,
+                    params);
         } finally {
             failsafePhasedActionResultListener.rethrowErrors();
         }
     }
 
-    public Object runTests(ProviderInternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
+    public Object runTests(
+            ProviderInternalTestExecutionRequest testExecutionRequest,
+            BuildCancellationToken cancellationToken,
+            ProviderOperationParameters providerParameters) {
         Parameters params = initParams(providerParameters);
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
-        TestExecutionRequestAction action = TestExecutionRequestAction.create(listenerConfig.clientSubscriptions, startParameter, testExecutionRequest);
-        return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter()
+                .toStartParameter(providerParameters, params.buildLayout, params.properties);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(
+                providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
+        TestExecutionRequestAction action = TestExecutionRequestAction.create(
+                listenerConfig.clientSubscriptions, startParameter, testExecutionRequest);
+        return run(
+                action,
+                cancellationToken,
+                listenerConfig,
+                listenerConfig.buildEventConsumer,
+                providerParameters,
+                params);
     }
 
-    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ProviderOperationParameters providerParameters) {
+    public void notifyDaemonsAboutChangedPaths(
+            List<String> changedPaths, ProviderOperationParameters providerParameters) {
         ServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
-        notifyDaemonClientExecuter.execute(requestSpecificLoggingServices, params.daemonParams.getBaseDir(), client -> client.notifyDaemonsAboutChangedPaths(changedPaths));
+        notifyDaemonClientExecuter.execute(
+                requestSpecificLoggingServices,
+                params.daemonParams.getBaseDir(),
+                client -> client.notifyDaemonsAboutChangedPaths(changedPaths));
     }
 
     public void stopWhenIdle(ProviderOperationParameters providerParameters) {
@@ -275,17 +329,27 @@ public class ProviderConnection {
     }
 
     private Object run(
-        BuildAction action, BuildCancellationToken cancellationToken,
-        ProgressListenerConfiguration progressListenerConfiguration,
-        BuildEventConsumer buildEventConsumer,
-        ProviderOperationParameters providerParameters,
-        Parameters parameters
-    ) {
+            BuildAction action,
+            BuildCancellationToken cancellationToken,
+            ProgressListenerConfiguration progressListenerConfiguration,
+            BuildEventConsumer buildEventConsumer,
+            ProviderOperationParameters providerParameters,
+            Parameters parameters) {
         try {
-            BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> executor = createExecutor(providerParameters, parameters);
+            BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> executor =
+                    createExecutor(providerParameters, parameters);
             boolean interactive = providerParameters.getStandardInput() != null;
-            ClientBuildRequestContext context = new ClientBuildRequestContext(new GradleLauncherMetaData(), providerParameters.getStartTime(), interactive, cancellationToken, buildEventConsumer);
-            BuildActionResult result = executor.execute(action, new ConnectionOperationParameters(parameters.daemonParams, parameters.tapiSystemProperties, providerParameters), context);
+            ClientBuildRequestContext context = new ClientBuildRequestContext(
+                    new GradleLauncherMetaData(),
+                    providerParameters.getStartTime(),
+                    interactive,
+                    cancellationToken,
+                    buildEventConsumer);
+            BuildActionResult result = executor.execute(
+                    action,
+                    new ConnectionOperationParameters(
+                            parameters.daemonParams, parameters.tapiSystemProperties, providerParameters),
+                    context);
             throwFailure(result);
             return payloadSerializer.deserialize(result.getResult());
         } finally {
@@ -309,7 +373,9 @@ public class ProviderConnection {
         }
 
         // Forward special cases directly to consumer
-        if (exception instanceof InternalTestExecutionException || exception instanceof InternalBuildActionFailureException || exception instanceof InternalUnsupportedModelException) {
+        if (exception instanceof InternalTestExecutionException
+                || exception instanceof InternalBuildActionFailureException
+                || exception instanceof InternalUnsupportedModelException) {
             return exception;
         }
 
@@ -317,7 +383,8 @@ public class ProviderConnection {
         throw new BuildExceptionVersion1(exception);
     }
 
-    private BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> createExecutor(ProviderOperationParameters operationParameters, Parameters params) {
+    private BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> createExecutor(
+            ProviderOperationParameters operationParameters, Parameters params) {
         LoggingManagerInternal loggingManager;
         BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> executor;
         InputStream standardInput = operationParameters.getStandardInput();
@@ -328,16 +395,24 @@ public class ProviderConnection {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.get(LoggingManagerFactory.class).createLoggingManager();
             loggingManager.captureSystemSources();
-            executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor)));
+            executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(
+                    userInputReceiver, userInputReader, standardInput, embeddedExecutor)));
         } else {
             ServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
-            loggingManager = requestSpecificLogging.get(LoggingManagerFactory.class).createLoggingManager();
-            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, standardInput, Optional.ofNullable(operationParameters.getBuildProgressListener()));
+            loggingManager =
+                    requestSpecificLogging.get(LoggingManagerFactory.class).createLoggingManager();
+            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(
+                    requestSpecificLogging,
+                    params.daemonParams,
+                    params.requestContext,
+                    standardInput,
+                    Optional.ofNullable(operationParameters.getBuildProgressListener()));
             stoppable.add(clientServices);
             stoppable.add(requestSpecificLogging);
             executor = clientServices.get(DaemonClient.class);
         }
-        return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executor), loggingManager, stoppable);
+        return new LoggingBridgingBuildActionExecuter(
+                new DaemonBuildActionExecuter(executor), loggingManager, stoppable);
     }
 
     private Parameters initParams(ProviderOperationParameters operationParameters) {
@@ -350,19 +425,28 @@ public class ProviderConnection {
         initialPropertiesConverter.configure(commandLineParser);
         buildLayoutConverter.configure(commandLineParser);
 
-        ParsedCommandLine parsedCommandLine = commandLineParser.parse(operationParameters.getArguments() == null ? Collections.emptyList() : operationParameters.getArguments());
+        ParsedCommandLine parsedCommandLine = commandLineParser.parse(
+                operationParameters.getArguments() == null
+                        ? Collections.emptyList()
+                        : operationParameters.getArguments());
 
         InitialProperties initialProperties = initialPropertiesConverter.convert(parsedCommandLine);
-        BuildLayoutResult buildLayoutResult = buildLayoutConverter.convert(initialProperties, parsedCommandLine, operationParameters.getProjectDir(), layout -> {
-            if (operationParameters.getGradleUserHomeDir() != null) {
-                layout.setGradleUserHomeDir(operationParameters.getGradleUserHomeDir());
-            }
-            layout.setProjectDir(operationParameters.getProjectDir());
-        });
+        BuildLayoutResult buildLayoutResult = buildLayoutConverter.convert(
+                initialProperties, parsedCommandLine, operationParameters.getProjectDir(), layout -> {
+                    if (operationParameters.getGradleUserHomeDir() != null) {
+                        layout.setGradleUserHomeDir(operationParameters.getGradleUserHomeDir());
+                    }
+                    layout.setProjectDir(operationParameters.getProjectDir());
+                });
 
-        AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, buildLayoutResult);
+        AllProperties properties =
+                new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, buildLayoutResult);
 
-        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory, Collections.emptyMap(), operationParameters.getEnvironmentVariables(null));
+        DaemonParameters daemonParams = new DaemonParameters(
+                buildLayoutResult.getGradleUserHomeDir(),
+                fileCollectionFactory,
+                Collections.emptyMap(),
+                operationParameters.getEnvironmentVariables(null));
         new DaemonBuildOptions().propertiesConverter().convert(properties.getProperties(), daemonParams);
         if (operationParameters.getDaemonBaseDir() != null) {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
@@ -396,13 +480,17 @@ public class ProviderConnection {
 
         File javaHome = operationParameters.getJavaHome();
         if (javaHome != null) {
-            daemonParams.setRequestedJvmCriteria(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.TOOLING_API_CLIENT, javaHome));
+            daemonParams.setRequestedJvmCriteria(
+                    new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.TOOLING_API_CLIENT, javaHome));
         }
 
         DaemonRequestContext requestContext = daemonParams.toRequestContext();
 
-        if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
-            int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
+        if (operationParameters.getDaemonMaxIdleTimeValue() != null
+                && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
+            int idleTimeout = (int) operationParameters
+                    .getDaemonMaxIdleTimeUnits()
+                    .toMillis(operationParameters.getDaemonMaxIdleTimeValue());
             daemonParams.setIdleTimeout(idleTimeout);
         }
 
@@ -415,7 +503,8 @@ public class ProviderConnection {
             GUtil.addToMap(effectiveSystemProperties, System.getProperties());
             effectiveSystemProperties.putAll(daemonParams.getMutableAndImmutableSystemProperties());
         }
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(operationParameters, buildLayoutResult, properties);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter()
+                .toStartParameter(operationParameters, buildLayoutResult, properties);
         if (requestContext.getJvmCriteria() instanceof DaemonJvmCriteria.Spec) {
             startParameter.setDaemonJvmCriteriaConfigured(true);
         }
@@ -423,9 +512,14 @@ public class ProviderConnection {
         Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
         gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
-        new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
+        new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration())
+                .convert(
+                        parsedCommandLine,
+                        gradlePropertiesAsSeenByToolchains,
+                        daemonParams.getToolchainConfiguration());
 
-        return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, startParameter, requestContext);
+        return new Parameters(
+                daemonParams, buildLayoutResult, properties, effectiveSystemProperties, startParameter, requestContext);
     }
 
     private static class Parameters {
@@ -436,7 +530,13 @@ public class ProviderConnection {
         final StartParameterInternal startParameter;
         final DaemonRequestContext requestContext;
 
-        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties, StartParameterInternal startParameter, DaemonRequestContext requestContext) {
+        public Parameters(
+                DaemonParameters daemonParams,
+                BuildLayoutResult buildLayout,
+                AllProperties properties,
+                Map<String, String> tapiSystemProperties,
+                StartParameterInternal startParameter,
+                DaemonRequestContext requestContext) {
             this.daemonParams = daemonParams;
             this.buildLayout = buildLayout;
             this.properties = properties;
@@ -464,26 +564,32 @@ public class ProviderConnection {
     @VisibleForTesting
     static final class ProgressListenerConfiguration {
 
-        private static final Map<String, OperationType> OPERATION_TYPE_MAPPING = ImmutableMap.<String, OperationType>builderWithExpectedSize(OperationType.values().length)
-            .put(InternalBuildProgressListener.TEST_EXECUTION, OperationType.TEST)
-            .put(InternalBuildProgressListener.TASK_EXECUTION, OperationType.TASK)
-            .put(InternalBuildProgressListener.WORK_ITEM_EXECUTION, OperationType.WORK_ITEM)
-            .put(InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION, OperationType.PROJECT_CONFIGURATION)
-            .put(InternalBuildProgressListener.TRANSFORM_EXECUTION, OperationType.TRANSFORM)
-            .put(InternalBuildProgressListener.BUILD_EXECUTION, OperationType.GENERIC)
-            .put(InternalBuildProgressListener.TEST_OUTPUT, OperationType.TEST_OUTPUT)
-            .put(InternalBuildProgressListener.TEST_METADATA, OperationType.TEST_METADATA)
-            .put(InternalBuildProgressListener.FILE_DOWNLOAD, OperationType.FILE_DOWNLOAD)
-            .put(InternalBuildProgressListener.BUILD_PHASE, OperationType.BUILD_PHASE)
-            .put(InternalBuildProgressListener.PROBLEMS, OperationType.PROBLEMS)
-            .put(InternalBuildProgressListener.ROOT, OperationType.ROOT)
-            .build();
+        private static final Map<String, OperationType> OPERATION_TYPE_MAPPING =
+                ImmutableMap.<String, OperationType>builderWithExpectedSize(OperationType.values().length)
+                        .put(InternalBuildProgressListener.TEST_EXECUTION, OperationType.TEST)
+                        .put(InternalBuildProgressListener.TASK_EXECUTION, OperationType.TASK)
+                        .put(InternalBuildProgressListener.WORK_ITEM_EXECUTION, OperationType.WORK_ITEM)
+                        .put(
+                                InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION,
+                                OperationType.PROJECT_CONFIGURATION)
+                        .put(InternalBuildProgressListener.TRANSFORM_EXECUTION, OperationType.TRANSFORM)
+                        .put(InternalBuildProgressListener.BUILD_EXECUTION, OperationType.GENERIC)
+                        .put(InternalBuildProgressListener.TEST_OUTPUT, OperationType.TEST_OUTPUT)
+                        .put(InternalBuildProgressListener.TEST_METADATA, OperationType.TEST_METADATA)
+                        .put(InternalBuildProgressListener.FILE_DOWNLOAD, OperationType.FILE_DOWNLOAD)
+                        .put(InternalBuildProgressListener.BUILD_PHASE, OperationType.BUILD_PHASE)
+                        .put(InternalBuildProgressListener.PROBLEMS, OperationType.PROBLEMS)
+                        .put(InternalBuildProgressListener.ROOT, OperationType.ROOT)
+                        .build();
 
         private final BuildEventSubscriptions clientSubscriptions;
         private final FailsafeBuildProgressListenerAdapter failsafeWrapper;
         private final BuildEventConsumer buildEventConsumer;
 
-        ProgressListenerConfiguration(BuildEventSubscriptions clientSubscriptions, BuildEventConsumer buildEventConsumer, FailsafeBuildProgressListenerAdapter failsafeWrapper) {
+        ProgressListenerConfiguration(
+                BuildEventSubscriptions clientSubscriptions,
+                BuildEventConsumer buildEventConsumer,
+                FailsafeBuildProgressListenerAdapter failsafeWrapper) {
             this.clientSubscriptions = clientSubscriptions;
             this.buildEventConsumer = buildEventConsumer;
             this.failsafeWrapper = failsafeWrapper;
@@ -496,28 +602,32 @@ public class ProviderConnection {
 
         @VisibleForTesting
         static ProgressListenerConfiguration from(
-            ProviderOperationParameters providerParameters,
-            GradleVersion consumerVersion,
-            PayloadSerializer payloadSerializer,
-            IsolatableSerializerRegistry isolatableSerializerRegistry
-        ) {
+                ProviderOperationParameters providerParameters,
+                GradleVersion consumerVersion,
+                PayloadSerializer payloadSerializer,
+                IsolatableSerializerRegistry isolatableSerializerRegistry) {
             InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener();
             Set<OperationType> operationTypes = toOperationTypes(buildProgressListener, consumerVersion);
             BuildEventSubscriptions clientSubscriptions = new BuildEventSubscriptions(operationTypes);
-            FailsafeBuildProgressListenerAdapter progressListenerAdapter = new FailsafeBuildProgressListenerAdapter(buildProgressListener);
-            BuildEventConsumer
-                buildEventConsumer = clientSubscriptions.isAnyOperationTypeRequested() ? new BuildProgressListenerInvokingBuildEventConsumer(progressListenerAdapter) : new NoOpBuildEventConsumer();
-            buildEventConsumer = new ProblemAdditionalDataRemapper(payloadSerializer, buildEventConsumer, isolatableSerializerRegistry);
+            FailsafeBuildProgressListenerAdapter progressListenerAdapter =
+                    new FailsafeBuildProgressListenerAdapter(buildProgressListener);
+            BuildEventConsumer buildEventConsumer = clientSubscriptions.isAnyOperationTypeRequested()
+                    ? new BuildProgressListenerInvokingBuildEventConsumer(progressListenerAdapter)
+                    : new NoOpBuildEventConsumer();
+            buildEventConsumer = new ProblemAdditionalDataRemapper(
+                    payloadSerializer, buildEventConsumer, isolatableSerializerRegistry);
             buildEventConsumer = new StreamedValueConsumer(providerParameters, payloadSerializer, buildEventConsumer);
             if (Boolean.TRUE.equals(providerParameters.isEmbedded())) {
-                // Contract requires build events are delivered by a single thread. This is taken care of by the daemon client when not in embedded mode
+                // Contract requires build events are delivered by a single thread. This is taken care of by the daemon
+                // client when not in embedded mode
                 // Need to apply some synchronization when in embedded mode
                 buildEventConsumer = new SynchronizedConsumer(buildEventConsumer);
             }
             return new ProgressListenerConfiguration(clientSubscriptions, buildEventConsumer, progressListenerAdapter);
         }
 
-        private static Set<OperationType> toOperationTypes(InternalBuildProgressListener buildProgressListener, GradleVersion consumerVersion) {
+        private static Set<OperationType> toOperationTypes(
+                InternalBuildProgressListener buildProgressListener, GradleVersion consumerVersion) {
             if (buildProgressListener != null) {
                 Set<OperationType> operationTypes = EnumSet.noneOf(OperationType.class);
                 for (String operation : buildProgressListener.getSubscribedOperations()) {
@@ -526,7 +636,8 @@ public class ProviderConnection {
                     }
                 }
                 if (consumerVersion.compareTo(GradleVersion.version("5.1")) < 0) {
-                    // Some types were split out of 'generic' type in 5.1, so include these when an older consumer requests 'generic'
+                    // Some types were split out of 'generic' type in 5.1, so include these when an older consumer
+                    // requests 'generic'
                     if (operationTypes.contains(OperationType.GENERIC)) {
                         operationTypes.add(OperationType.PROJECT_CONFIGURATION);
                         operationTypes.add(OperationType.TRANSFORM);
@@ -534,13 +645,15 @@ public class ProviderConnection {
                     }
                 }
                 if (consumerVersion.compareTo(GradleVersion.version("7.3")) < 0) {
-                    // Some types were split out of 'generic' type in 7.3, so include these when an older consumer requests 'generic'
+                    // Some types were split out of 'generic' type in 7.3, so include these when an older consumer
+                    // requests 'generic'
                     if (operationTypes.contains(OperationType.GENERIC)) {
                         operationTypes.add(OperationType.FILE_DOWNLOAD);
                     }
                 }
                 if (consumerVersion.compareTo(GradleVersion.version("8.12")) < 0) {
-                    // The root type was split out of 'generic' type in 8.12, so include it when an older consumer requests 'generic'
+                    // The root type was split out of 'generic' type in 8.12, so include it when an older consumer
+                    // requests 'generic'
                     if (operationTypes.contains(OperationType.GENERIC)) {
                         operationTypes.add(OperationType.ROOT);
                     }

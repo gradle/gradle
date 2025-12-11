@@ -33,5 +33,4 @@ public interface ScriptingLanguage {
      * Implementations can benefit from injection using {@link javax.inject.Inject}.
      */
     String getProvider();
-
 }

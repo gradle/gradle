@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse;
 
+import javax.inject.Inject;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -22,8 +23,6 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.WtpComponent;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
 
 /**
  * Generates the org.eclipse.wst.common.component settings file for Eclipse WTP.
@@ -38,7 +37,8 @@ public abstract class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpCo
 
     public GenerateEclipseWtpComponent() {
         getXmlTransformer().setIndentation("\t");
-        component = getInstantiator().newInstance(EclipseWtpComponent.class, getProject(), new XmlFileContentMerger(getXmlTransformer()));
+        component = getInstantiator()
+                .newInstance(EclipseWtpComponent.class, getProject(), new XmlFileContentMerger(getXmlTransformer()));
     }
 
     @Inject

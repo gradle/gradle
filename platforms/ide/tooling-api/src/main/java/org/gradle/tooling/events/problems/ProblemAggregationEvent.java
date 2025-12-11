@@ -18,7 +18,6 @@ package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
 
-
 /**
  * Represents a list of aggregated problems. These are sent at the end of the build.
  * All Problems that occurred more than once during the build are aggregated and sent as a {@link ProblemAggregation}.

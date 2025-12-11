@@ -16,10 +16,9 @@
 
 package org.gradle.internal.buildoption;
 
+import java.util.Map;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-
-import java.util.Map;
 
 /**
  * A build option representing a boolean option with a enabled mode only e.g. {@code "--foreground"}.
@@ -32,7 +31,8 @@ public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOpti
         super(property, new CommandLineOptionConfiguration[] {});
     }
 
-    public EnabledOnlyBooleanBuildOption(String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+    public EnabledOnlyBooleanBuildOption(
+            String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
         super(property, commandLineOptionConfigurations);
     }
 
@@ -46,7 +46,12 @@ public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOpti
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.isDeprecated(), config.isIncubating());
+            configureCommandLineOption(
+                    parser,
+                    config.getAllOptions(),
+                    config.getDescription(),
+                    config.isDeprecated(),
+                    config.isIncubating());
         }
     }
 

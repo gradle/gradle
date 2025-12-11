@@ -16,20 +16,20 @@
 
 package org.gradle.internal.composite;
 
+import java.io.File;
 import org.gradle.api.internal.tasks.DefaultTaskReference;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 
-import java.io.File;
-
 public class IncludedRootBuild implements IncludedBuildInternal {
 
     private final CompositeBuildParticipantBuildState rootBuild;
     private final TaskDependencyFactory taskDependencyFactory;
 
-    public IncludedRootBuild(CompositeBuildParticipantBuildState rootBuild, TaskDependencyFactory taskDependencyFactory) {
+    public IncludedRootBuild(
+            CompositeBuildParticipantBuildState rootBuild, TaskDependencyFactory taskDependencyFactory) {
         this.rootBuild = rootBuild;
         this.taskDependencyFactory = taskDependencyFactory;
     }
@@ -72,5 +72,4 @@ public class IncludedRootBuild implements IncludedBuildInternal {
     public int hashCode() {
         return rootBuild.hashCode();
     }
-
 }

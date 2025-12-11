@@ -16,13 +16,12 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.Failure;
-import org.gradle.tooling.events.problems.Problem;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.tooling.Failure;
+import org.gradle.tooling.events.problems.Problem;
 
 public class DefaultFailure implements Failure {
 
@@ -67,19 +66,17 @@ public class DefaultFailure implements Failure {
         PrintWriter wrt = new PrintWriter(out);
         t.printStackTrace(wrt);
         Throwable cause = t.getCause();
-        List<DefaultFailure> causes = cause != null && cause != t
-            ? Collections.singletonList(fromThrowable(cause))
-            : Collections.emptyList();
+        List<DefaultFailure> causes =
+                cause != null && cause != t ? Collections.singletonList(fromThrowable(cause)) : Collections.emptyList();
         return new DefaultFailure(t.getMessage(), out.toString(), causes);
     }
 
     @Override
     public String toString() {
-        return "DefaultFailure{" +
-            "message='" + message + '\'' +
-            ", description='" + description + '\'' +
-            ", causes=" + causes +
-            ", problems=" + problems +
-            '}';
+        return "DefaultFailure{" + "message='"
+                + message + '\'' + ", description='"
+                + description + '\'' + ", causes="
+                + causes + ", problems="
+                + problems + '}';
     }
 }

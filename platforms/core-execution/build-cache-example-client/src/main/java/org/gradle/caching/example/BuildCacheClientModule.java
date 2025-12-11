@@ -16,12 +16,19 @@
 
 package org.gradle.caching.example;
 
+import static org.gradle.cache.FileLockManager.LockMode.OnDemandEagerRelease;
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
+
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.inject.AbstractModule;
 import com.google.inject.Exposed;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.function.Supplier;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -96,14 +103,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.function.Supplier;
-
-import static org.gradle.cache.FileLockManager.LockMode.OnDemandEagerRelease;
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
-
 @SuppressWarnings("CloseableProvides")
 class BuildCacheClientModule extends AbstractModule {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheClientModule.class);
@@ -121,25 +120,23 @@ class BuildCacheClientModule extends AbstractModule {
 
     @Provides
     BuildCacheController createBuildCacheController(
-        BuildCacheServicesConfiguration buildCacheServicesConfig,
-        BuildOperationRunner buildOperationRunner,
-        BuildOperationProgressEventEmitter eventEmitter,
-        TemporaryFileFactory temporaryFileProvider,
-        BuildCacheEntryPacker buildCacheEntryPacker,
-        OriginMetadataFactory originMetadataFactory,
-        Interner<String> stringInterner
-    ) {
+            BuildCacheServicesConfiguration buildCacheServicesConfig,
+            BuildOperationRunner buildOperationRunner,
+            BuildOperationProgressEventEmitter eventEmitter,
+            TemporaryFileFactory temporaryFileProvider,
+            BuildCacheEntryPacker buildCacheEntryPacker,
+            OriginMetadataFactory originMetadataFactory,
+            Interner<String> stringInterner) {
         return new DefaultBuildCacheController(
-            buildCacheServicesConfig,
-            buildOperationRunner,
-            eventEmitter,
-            temporaryFileProvider,
-            false,
-            true,
-            buildCacheEntryPacker,
-            originMetadataFactory,
-            stringInterner
-        );
+                buildCacheServicesConfig,
+                buildOperationRunner,
+                eventEmitter,
+                temporaryFileProvider,
+                false,
+                true,
+                buildCacheEntryPacker,
+                originMetadataFactory,
+                stringInterner);
     }
 
     @Provides
@@ -186,26 +183,23 @@ class BuildCacheClientModule extends AbstractModule {
 
     private static class LocalBuildCacheModule extends PrivateModule {
         @Override
-        protected void configure() {
-        }
+        protected void configure() {}
 
         @Provides
         @Exposed
-        LocalBuildCacheService createLocalBuildCacheService(FileAccessTracker fileAccessTracker, PersistentCache persistentCache) {
-            return new DirectoryBuildCacheService(
-                persistentCache,
-                fileAccessTracker,
-                ".failed"
-            );
+        LocalBuildCacheService createLocalBuildCacheService(
+                FileAccessTracker fileAccessTracker, PersistentCache persistentCache) {
+            return new DirectoryBuildCacheService(persistentCache, fileAccessTracker, ".failed");
         }
 
         @Provides
-        PersistentCache createPersistentCache(File buildCacheDir, CacheCleanupStrategy cacheCleanupStrategy, CacheFactory cacheFactory) {
+        PersistentCache createPersistentCache(
+                File buildCacheDir, CacheCleanupStrategy cacheCleanupStrategy, CacheFactory cacheFactory) {
             return new DefaultCacheBuilder(cacheFactory, buildCacheDir)
-                .withCleanupStrategy(cacheCleanupStrategy)
-                .withDisplayName("Build cache")
-                .withInitialLockMode(OnDemandEagerRelease)
-                .open();
+                    .withCleanupStrategy(cacheCleanupStrategy)
+                    .withDisplayName("Build cache")
+                    .withInitialLockMode(OnDemandEagerRelease)
+                    .open();
         }
 
         @Provides
@@ -222,40 +216,37 @@ class BuildCacheClientModule extends AbstractModule {
     }
 
     @Provides
-    CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal, CacheCleanupStrategyFactory factory) {
+    CacheCleanupStrategy createCacheCleanupStrategy(
+            FileAccessTimeJournal fileAccessTimeJournal, CacheCleanupStrategyFactory factory) {
         SingleDepthFilesFinder filesFinder = new SingleDepthFilesFinder(1);
         Supplier<Long> removeUnusedEntriesOlderThan = TimestampSuppliers.daysAgo(1);
-        LeastRecentlyUsedCacheCleanup cleanupAction = new LeastRecentlyUsedCacheCleanup(filesFinder, fileAccessTimeJournal, removeUnusedEntriesOlderThan);
+        LeastRecentlyUsedCacheCleanup cleanupAction =
+                new LeastRecentlyUsedCacheCleanup(filesFinder, fileAccessTimeJournal, removeUnusedEntriesOlderThan);
         return factory.daily(cleanupAction);
     }
 
     @Provides
-    BuildCacheServicesConfiguration createBuildCacheServicesConfig(
-        LocalBuildCacheService localBuildCacheService
-    ) {
+    BuildCacheServicesConfiguration createBuildCacheServicesConfig(LocalBuildCacheService localBuildCacheService) {
         return new BuildCacheServicesConfiguration(
-            ":",
-            localBuildCacheService,
-            true,
-            // TODO Add remote cache capability
-            null,
-            false
-        );
+                ":",
+                localBuildCacheService,
+                true,
+                // TODO Add remote cache capability
+                null,
+                false);
     }
 
     @Provides
     BuildOperationRunner createBuildOperationRunner(
-        CurrentBuildOperationRef currentBuildOperationRef,
-        Clock timeSupplier,
-        BuildOperationIdFactory buildOperationIdFactory,
-        DefaultBuildOperationRunner.BuildOperationExecutionListenerFactory buildOperationExecutionListenerFactory
-    ) {
+            CurrentBuildOperationRef currentBuildOperationRef,
+            Clock timeSupplier,
+            BuildOperationIdFactory buildOperationIdFactory,
+            DefaultBuildOperationRunner.BuildOperationExecutionListenerFactory buildOperationExecutionListenerFactory) {
         return new DefaultBuildOperationRunner(
-            currentBuildOperationRef,
-            timeSupplier,
-            buildOperationIdFactory,
-            buildOperationExecutionListenerFactory
-        );
+                currentBuildOperationRef,
+                timeSupplier,
+                buildOperationIdFactory,
+                buildOperationExecutionListenerFactory);
     }
 
     @Provides
@@ -277,12 +268,18 @@ class BuildCacheClientModule extends AbstractModule {
             }
 
             @Override
-            public void progress(BuildOperationDescriptor descriptor, long progress, long total, String units, String status) {
-                LOGGER.info("Progress: {} ({} / {} {} - {})", descriptor.getDisplayName(), progress, total, units, status);
+            public void progress(
+                    BuildOperationDescriptor descriptor, long progress, long total, String units, String status) {
+                LOGGER.info(
+                        "Progress: {} ({} / {} {} - {})", descriptor.getDisplayName(), progress, total, units, status);
             }
 
             @Override
-            public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationRunner.ReadableBuildOperationContext context) {
+            public void stop(
+                    BuildOperationDescriptor descriptor,
+                    BuildOperationState operationState,
+                    @Nullable BuildOperationState parent,
+                    DefaultBuildOperationRunner.ReadableBuildOperationContext context) {
                 LOGGER.info("Stop: {}", descriptor.getDisplayName());
             }
 
@@ -295,15 +292,11 @@ class BuildCacheClientModule extends AbstractModule {
 
     @Provides
     BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
-        Clock timeSupplier,
-        CurrentBuildOperationRef currentBuildOperationRef,
-        BuildOperationListener buildOperationListener
-    ) {
+            Clock timeSupplier,
+            CurrentBuildOperationRef currentBuildOperationRef,
+            BuildOperationListener buildOperationListener) {
         return new DefaultBuildOperationProgressEventEmitter(
-            timeSupplier,
-            currentBuildOperationRef,
-            buildOperationListener
-        );
+                timeSupplier, currentBuildOperationRef, buildOperationListener);
     }
 
     @Provides
@@ -341,10 +334,7 @@ class BuildCacheClientModule extends AbstractModule {
 
     @Provides
     BuildCacheEntryPacker createBuildCacheEntryPacker(
-        TarPackerFileSystemSupport fileSystemSupport,
-        StreamHasher streamHasher,
-        Interner<String> stringInterner
-    ) {
+            TarPackerFileSystemSupport fileSystemSupport, StreamHasher streamHasher, Interner<String> stringInterner) {
         FilePermissionHandler permissionHandler = NioFilePermissions.createFilePermissionHandler();
         FilePermissionAccess filePermissionAccess = new FilePermissionAccess() {
             @Override
@@ -365,15 +355,8 @@ class BuildCacheClientModule extends AbstractModule {
                 }
             }
         };
-        return new GZipBuildCacheEntryPacker(
-            new TarBuildCacheEntryPacker(
-                fileSystemSupport,
-                filePermissionAccess,
-                streamHasher,
-                stringInterner,
-                () -> new byte[4096]
-            )
-        );
+        return new GZipBuildCacheEntryPacker(new TarBuildCacheEntryPacker(
+                fileSystemSupport, filePermissionAccess, streamHasher, stringInterner, () -> new byte[4096]));
     }
 
     @Provides
@@ -405,10 +388,7 @@ class BuildCacheClientModule extends AbstractModule {
 
     @Provides
     OriginMetadataFactory createOriginMetadataFactory() {
-        return new OriginMetadataFactory(
-            buildInvocationId,
-            properties -> properties.put("client", "example-client")
-        );
+        return new OriginMetadataFactory(buildInvocationId, properties -> properties.put("client", "example-client"));
     }
 
     @Provides
@@ -474,19 +454,17 @@ class BuildCacheClientModule extends AbstractModule {
 
     @Provides
     FileSystemAccess createFileSystemAccess(
-        FileHasher fileHasher,
-        Interner<String> stringInterner,
-        FileMetadataAccessor stat,
-        VirtualFileSystem virtualFileSystem,
-        DirectorySnapshotterStatistics.Collector statisticsCollector
-    ) {
+            FileHasher fileHasher,
+            Interner<String> stringInterner,
+            FileMetadataAccessor stat,
+            VirtualFileSystem virtualFileSystem,
+            DirectorySnapshotterStatistics.Collector statisticsCollector) {
         return new DefaultFileSystemAccess(
-            fileHasher,
-            stringInterner,
-            stat,
-            virtualFileSystem,
-            locations -> locations.forEach(System.out::println),
-            statisticsCollector
-        );
+                fileHasher,
+                stringInterner,
+                stat,
+                virtualFileSystem,
+                locations -> locations.forEach(System.out::println),
+                statisticsCollector);
     }
 }

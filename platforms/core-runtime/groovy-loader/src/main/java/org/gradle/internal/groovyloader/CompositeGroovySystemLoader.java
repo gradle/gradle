@@ -16,9 +16,8 @@
 
 package org.gradle.internal.groovyloader;
 
-import org.gradle.util.internal.CollectionUtils;
-
 import java.util.List;
+import org.gradle.util.internal.CollectionUtils;
 
 public class CompositeGroovySystemLoader implements GroovySystemLoader {
     private final List<GroovySystemLoader> loaders;

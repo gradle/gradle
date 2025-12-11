@@ -30,7 +30,11 @@ import org.jspecify.annotations.Nullable;
  */
 public class MixInExtensibleDynamicObject extends ExtensibleDynamicObject {
     // Used by generated code
-    public MixInExtensibleDynamicObject(Object decoratedObject, Class<?> publicType, @Nullable DynamicObject selfProvidedDynamicObject, ServiceLookup services) {
+    public MixInExtensibleDynamicObject(
+            Object decoratedObject,
+            Class<?> publicType,
+            @Nullable DynamicObject selfProvidedDynamicObject,
+            ServiceLookup services) {
         super(decoratedObject, wrap(decoratedObject, publicType, selfProvidedDynamicObject), instantiator(services));
     }
 

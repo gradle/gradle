@@ -15,6 +15,15 @@
  */
 package org.gradle.api.internal.file.archive;
 
+import static java.lang.String.format;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
@@ -34,16 +43,6 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.util.internal.GFileUtils;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static java.lang.String.format;
-
 public class TarFileTree extends AbstractArchiveFileTree {
     private static final String TAR_ENTRY_PREFIX = "tar entry";
 
@@ -55,14 +54,13 @@ public class TarFileTree extends AbstractArchiveFileTree {
     private final TemporaryFileProvider temporaryExtractionDir;
 
     public TarFileTree(
-        Provider<File> tarFileProvider,
-        Provider<ReadableResourceInternal> resource,
-        Chmod chmod,
-        DirectoryFileTreeFactory directoryFileTreeFactory,
-        FileHasher fileHasher,
-        DecompressionCoordinator decompressionCoordinator,
-        TemporaryFileProvider temporaryExtractionDir
-        ) {
+            Provider<File> tarFileProvider,
+            Provider<ReadableResourceInternal> resource,
+            Chmod chmod,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            FileHasher fileHasher,
+            DecompressionCoordinator decompressionCoordinator,
+            TemporaryFileProvider temporaryExtractionDir) {
         super(decompressionCoordinator);
         this.tarFileProvider = tarFileProvider;
         this.resource = resource;
@@ -205,7 +203,13 @@ public class TarFileTree extends AbstractArchiveFileTree {
         private final ReadableResourceInternal resource;
         private boolean read;
 
-        public DetailsImpl(ReadableResourceInternal resource, File expandedDir, TarArchiveEntry entry, NoCloseTarArchiveInputStream tar, AtomicBoolean stopFlag, Chmod chmod) {
+        public DetailsImpl(
+                ReadableResourceInternal resource,
+                File expandedDir,
+                TarArchiveEntry entry,
+                NoCloseTarArchiveInputStream tar,
+                AtomicBoolean stopFlag,
+                Chmod chmod) {
             super(chmod, expandedDir, stopFlag);
             this.resource = resource;
             this.entry = entry;
@@ -218,13 +222,15 @@ public class TarFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+        @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+        // (https://github.com/gradle/gradle/issues/35864)
         public InputStream open() {
             if (read) {
                 getFile();
                 return GFileUtils.openInputStream(getFile());
             } else if (tar.getCurrentEntry() != entry) {
-                throw new UnsupportedOperationException(String.format("The contents of %s have already been read.", this));
+                throw new UnsupportedOperationException(
+                        String.format("The contents of %s have already been read.", this));
             } else {
                 read = true;
                 return tar;
@@ -252,8 +258,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
             }
 
             @Override
-            public void close() {
-            }
+            public void close() {}
         }
     }
 }

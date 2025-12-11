@@ -1,5 +1,12 @@
 package com.example;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -10,20 +17,12 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Stream;
-
 public abstract class GraphResolvedComponents extends DefaultTask {
 
-// tag::inputs[]
-@Input
-public abstract Property<ResolvedComponentResult> getRootComponent();
-// end::inputs[]
+    // tag::inputs[]
+    @Input
+    public abstract Property<ResolvedComponentResult> getRootComponent();
+    // end::inputs[]
 
     @OutputFile
     public abstract RegularFileProperty getOutputFile();
@@ -41,11 +40,7 @@ public abstract Property<ResolvedComponentResult> getRootComponent();
     }
 
     private void reportComponent(
-        ResolvedComponentResult component,
-        PrintWriter writer,
-        Set<ResolvedComponentResult> seen,
-        String indent
-    ) {
+            ResolvedComponentResult component, PrintWriter writer, Set<ResolvedComponentResult> seen, String indent) {
         writer.print(component.getId().getDisplayName());
         if (seen.add(component)) {
             writer.println();

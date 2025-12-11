@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import java.io.File;
+import java.io.IOException;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
-
-import java.io.File;
-import java.io.IOException;
 
 public class DefaultZipCompressor implements ZipCompressor {
     private final int entryCompressionMethod;
@@ -45,5 +44,4 @@ public class DefaultZipCompressor implements ZipCompressor {
             throw UncheckedException.throwAsUncheckedException(new IOException(message, e), true);
         }
     }
-
 }

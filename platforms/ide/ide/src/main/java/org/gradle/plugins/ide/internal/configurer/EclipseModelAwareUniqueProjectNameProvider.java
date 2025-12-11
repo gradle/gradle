@@ -15,11 +15,7 @@
  */
 package org.gradle.plugins.ide.internal.configurer;
 
-import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.project.ProjectState;
-import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.plugins.ide.eclipse.model.EclipseModel;
-import org.jspecify.annotations.Nullable;
+import static java.util.stream.Collectors.toMap;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,13 +23,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toMap;
+import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.plugins.ide.eclipse.model.EclipseModel;
+import org.jspecify.annotations.Nullable;
 
 public class EclipseModelAwareUniqueProjectNameProvider extends AbstractUniqueProjectNameProvider {
 
     @Nullable
     private Map<ProjectIdentity, String> deduplicated;
+
     private List<ProjectStateWrapper> reservedNames = Collections.emptyList();
     private Map<ProjectIdentity, ProjectStateWrapper> projectToInformationMap = Collections.emptyMap();
 
@@ -42,7 +42,8 @@ public class EclipseModelAwareUniqueProjectNameProvider extends AbstractUniquePr
     }
 
     public synchronized void setReservedProjectNames(List<String> reservedNames) {
-        this.reservedNames = reservedNames.stream().map(ProjectStateWrapper::new).collect(Collectors.toList());
+        this.reservedNames =
+                reservedNames.stream().map(ProjectStateWrapper::new).collect(Collectors.toList());
         deduplicated = null;
     }
 
@@ -70,13 +71,14 @@ public class EclipseModelAwareUniqueProjectNameProvider extends AbstractUniquePr
                 projectToInformationMap.put(state.getIdentity(), new ProjectStateWrapper(projectNameForEclipse, state));
             }
 
-            HierarchicalElementDeduplicator<ProjectStateWrapper> deduplicator = new HierarchicalElementDeduplicator<>(new ProjectPathDeduplicationAdapter(projectToInformationMap));
+            HierarchicalElementDeduplicator<ProjectStateWrapper> deduplicator =
+                    new HierarchicalElementDeduplicator<>(new ProjectPathDeduplicationAdapter(projectToInformationMap));
             List<ProjectStateWrapper> allElements = new ArrayList<>();
             allElements.addAll(reservedNames);
             allElements.addAll(projectToInformationMap.values());
 
             this.deduplicated = deduplicator.deduplicate(allElements).entrySet().stream()
-                .collect(toMap(e -> e.getKey().project.getIdentity(), Map.Entry::getValue));
+                    .collect(toMap(e -> e.getKey().project.getIdentity(), Map.Entry::getValue));
         }
         return deduplicated;
     }
@@ -96,6 +98,7 @@ public class EclipseModelAwareUniqueProjectNameProvider extends AbstractUniquePr
 
     private static class ProjectStateWrapper {
         private final String name;
+
         @Nullable
         private final ProjectState project;
 
@@ -137,5 +140,4 @@ public class EclipseModelAwareUniqueProjectNameProvider extends AbstractUniquePr
             return parentInBuildTree == null ? null : projectToInformationMap.get(parentInBuildTree);
         }
     }
-
 }

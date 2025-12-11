@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
+import static org.gradle.api.tasks.testing.TestResult.ResultType;
 
-import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.gradle.api.tasks.testing.TestResult.ResultType;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @deprecated Only present for compatibility with cashapp/paparazzi. No replacement.

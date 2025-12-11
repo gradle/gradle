@@ -16,6 +16,8 @@
 
 package gradlebuild.docs;
 
+import java.util.Arrays;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
@@ -31,9 +33,6 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
-import java.util.Arrays;
 
 /**
  * Serves the given directory with a simple HTTP server.
@@ -61,7 +60,11 @@ public abstract class ServeDocs extends DefaultTask {
             builder.getMainModule().set("jdk.httpserver");
             builder.setStandardOutput(System.out);
             builder.setErrorOutput(System.err);
-            builder.setArgs(Arrays.asList("-p", getPort().get(), "-d", getDocsDirectory().get().getAsFile().getAbsolutePath()));
+            builder.setArgs(Arrays.asList(
+                    "-p",
+                    getPort().get(),
+                    "-d",
+                    getDocsDirectory().get().getAsFile().getAbsolutePath()));
             registry.start(getPath(), DeploymentRegistry.ChangeBehavior.RESTART, JavaApplicationHandle.class, builder);
         }
     }

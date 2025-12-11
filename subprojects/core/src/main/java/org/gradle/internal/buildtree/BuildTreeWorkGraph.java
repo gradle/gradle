@@ -16,6 +16,9 @@
 
 package org.gradle.internal.buildtree;
 
+import java.util.Collection;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.composite.internal.TaskIdentifier;
@@ -25,10 +28,6 @@ import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
-
-import java.util.Collection;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * Represents a set of work to be executed across a build tree.
@@ -69,6 +68,7 @@ public interface BuildTreeWorkGraph {
         /**
          * Adds a {@link ExecutionPlan} finalization step to the given build.
          */
-        void addFinalization(BuildState target, BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization);
+        void addFinalization(
+                BuildState target, BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization);
     }
 }

@@ -19,15 +19,14 @@ package org.gradle.test.fixtures.server.http;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
-import org.gradle.test.fixtures.keystore.TestKeyStore;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLParameters;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.function.Predicate;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import org.gradle.test.fixtures.keystore.TestKeyStore;
 
 /**
  * An HTTPS server fixture for tests.

@@ -16,14 +16,13 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * This class is responsible for rendering multiple dependency graphs.
@@ -38,7 +37,11 @@ public class DependencyGraphsRenderer {
     private final LegendRenderer legendRenderer;
     private boolean showSinglePath;
 
-    public DependencyGraphsRenderer(StyledTextOutput output, GraphRenderer renderer, NodeRenderer rootRenderer, NodeRenderer dependenciesRenderer) {
+    public DependencyGraphsRenderer(
+            StyledTextOutput output,
+            GraphRenderer renderer,
+            NodeRenderer rootRenderer,
+            NodeRenderer dependenciesRenderer) {
         this.output = output;
         this.renderer = renderer;
         this.rootRenderer = rootRenderer;
@@ -114,10 +117,13 @@ public class DependencyGraphsRenderer {
             Set<? extends RenderableDependency> children = node.getChildren();
             renderChildren(children, visited);
         }
-
     }
 
-    private void renderNode(final RenderableDependency node, final boolean isLast, final boolean isDuplicate, final NodeRenderer dependenciesRenderer) {
+    private void renderNode(
+            final RenderableDependency node,
+            final boolean isLast,
+            final boolean isDuplicate,
+            final NodeRenderer dependenciesRenderer) {
         renderer.visit(output -> dependenciesRenderer.renderNode(output, node, isDuplicate), isLast);
     }
 

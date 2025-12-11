@@ -44,28 +44,34 @@ import org.jspecify.annotations.NullMarked;
     private final ProgressEventConsumer eventConsumer;
     private final BuildOperationIdFactory idFactory;
 
-    /* package */ ClientForwardingTestMetadataOperationListener(ProgressEventConsumer eventConsumer, BuildOperationIdFactory idFactory) {
+    /* package */ ClientForwardingTestMetadataOperationListener(
+            ProgressEventConsumer eventConsumer, BuildOperationIdFactory idFactory) {
         this.eventConsumer = eventConsumer;
         this.idFactory = idFactory;
     }
 
     @Override
-    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-    }
+    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {}
 
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         Object details = progressEvent.getDetails();
         if (details instanceof ExecuteTestBuildOperationType.Metadata) {
             ExecuteTestBuildOperationType.Metadata dataEvent = (ExecuteTestBuildOperationType.Metadata) details;
-            InternalTestMetadataDescriptor descriptor = new DefaultTestMetadataDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
+            InternalTestMetadataDescriptor descriptor =
+                    new DefaultTestMetadataDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
             TestMetadataEvent data = dataEvent.getMetadata();
             if (data instanceof DefaultTestKeyValueDataEvent) {
                 DefaultTestKeyValueDataEvent keyValueData = (DefaultTestKeyValueDataEvent) data;
-                eventConsumer.progress(new DefaultTestKeyValueDataMetadataEvent(progressEvent.getTime(), descriptor, Cast.uncheckedNonnullCast(keyValueData.getValues())));
+                eventConsumer.progress(new DefaultTestKeyValueDataMetadataEvent(
+                        progressEvent.getTime(), descriptor, Cast.uncheckedNonnullCast(keyValueData.getValues())));
             } else if (data instanceof DefaultTestFileAttachmentDataEvent) {
                 DefaultTestFileAttachmentDataEvent fileAttachment = (DefaultTestFileAttachmentDataEvent) data;
-                eventConsumer.progress(new DefaultTestFileAttachmentMetadataEvent(progressEvent.getTime(), descriptor, fileAttachment.getPath().toFile(), fileAttachment.getMediaType()));
+                eventConsumer.progress(new DefaultTestFileAttachmentMetadataEvent(
+                        progressEvent.getTime(),
+                        descriptor,
+                        fileAttachment.getPath().toFile(),
+                        fileAttachment.getMediaType()));
             } else {
                 throw new IllegalStateException("Unexpected test metadata event type: " + data.getClass());
             }
@@ -73,6 +79,5 @@ import org.jspecify.annotations.NullMarked;
     }
 
     @Override
-    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-    }
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {}
 }

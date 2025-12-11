@@ -36,7 +36,7 @@ import org.gradle.api.problems.internal.DefaultProblemId;
  *     Java compilation
  *         Foo.java#L10: unused variable a
  *         Foo.java#L20: unused variable b
-
+ *
  * </pre>
  *
  * @since 8.13

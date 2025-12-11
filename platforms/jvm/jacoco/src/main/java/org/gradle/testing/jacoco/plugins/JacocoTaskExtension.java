@@ -17,6 +17,12 @@
 package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.base.Joiner;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
@@ -34,13 +40,6 @@ import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.RelativePathUtil;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
 
 /**
  * Extension for tasks that should run with a Jacoco agent to generate coverage execution data.
@@ -363,9 +362,9 @@ public abstract class JacocoTaskExtension {
 
         public void append(String name, @Nullable Object value) {
             if (value != null
-                && !((value instanceof Collection) && ((Collection) value).isEmpty())
-                && !((value instanceof String) && StringUtils.isEmpty((String) value))
-                && !((value instanceof Integer) && ((Integer) value == 0))) {
+                    && !((value instanceof Collection) && ((Collection) value).isEmpty())
+                    && !((value instanceof String) && StringUtils.isEmpty((String) value))
+                    && !((value instanceof Integer) && ((Integer) value == 0))) {
                 if (anyArgs) {
                     builder.append(',');
                 }

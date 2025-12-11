@@ -50,7 +50,18 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Property<CppCompile> compileTaskProperty;
     private final NativeVariantIdentity identity;
 
-    public DefaultCppBinary(Names names, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, RoleBasedConfigurationContainerInternal configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+    public DefaultCppBinary(
+            Names names,
+            ObjectFactory objects,
+            Provider<String> baseName,
+            FileCollection sourceFiles,
+            FileCollection componentHeaderDirs,
+            RoleBasedConfigurationContainerInternal configurations,
+            Configuration componentImplementation,
+            CppPlatform targetPlatform,
+            NativeToolChainInternal toolChain,
+            PlatformToolProvider platformToolProvider,
+            NativeVariantIdentity identity) {
         super(names, objects, componentImplementation);
         this.baseName = baseName;
         this.sourceFiles = sourceFiles;
@@ -67,34 +78,55 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
             conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
             conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
             conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+            conf.getAttributes()
+                    .attribute(
+                            OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE,
+                            identity.getTargetMachine().getOperatingSystemFamily());
+            conf.getAttributes()
+                    .attribute(
+                            MachineArchitecture.ARCHITECTURE_ATTRIBUTE,
+                            identity.getTargetMachine().getArchitecture());
             conf.extendsFrom(getImplementationDependencies());
         });
         includePathConfiguration = ipc;
 
         @SuppressWarnings("deprecation")
-        Configuration nativeLink = configurations.resolvableDependencyScopeLocked(names.withPrefix("nativeLink"), conf -> {
-            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
-            conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
-            conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
-            conf.extendsFrom(getImplementationDependencies());
-        });
+        Configuration nativeLink =
+                configurations.resolvableDependencyScopeLocked(names.withPrefix("nativeLink"), conf -> {
+                    conf.getAttributes()
+                            .attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
+                    conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+                    conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+                    conf.getAttributes()
+                            .attribute(
+                                    OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE,
+                                    identity.getTargetMachine().getOperatingSystemFamily());
+                    conf.getAttributes()
+                            .attribute(
+                                    MachineArchitecture.ARCHITECTURE_ATTRIBUTE,
+                                    identity.getTargetMachine().getArchitecture());
+                    conf.extendsFrom(getImplementationDependencies());
+                });
 
         Configuration nativeRuntime = configurations.resolvableLocked(names.withPrefix("nativeRuntime"), conf -> {
             conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
             conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
             conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+            conf.getAttributes()
+                    .attribute(
+                            OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE,
+                            identity.getTargetMachine().getOperatingSystemFamily());
+            conf.getAttributes()
+                    .attribute(
+                            MachineArchitecture.ARCHITECTURE_ATTRIBUTE,
+                            identity.getTargetMachine().getArchitecture());
             conf.extendsFrom(getImplementationDependencies());
         });
 
         ArtifactView includeDirs = includePathConfiguration.getIncoming().artifactView(viewConfiguration -> {
             viewConfiguration.attributes(attributeContainer -> {
-                attributeContainer.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+                attributeContainer.attribute(
+                        ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
             });
         });
 

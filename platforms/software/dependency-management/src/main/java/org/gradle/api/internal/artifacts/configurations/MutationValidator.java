@@ -80,7 +80,6 @@ public interface MutationValidator {
         public String toString() {
             return displayName;
         }
-
     }
 
     /**
@@ -90,6 +89,5 @@ public interface MutationValidator {
      */
     void validateMutation(MutationType type);
 
-    MutationValidator IGNORE = type -> {
-    };
+    MutationValidator IGNORE = type -> {};
 }

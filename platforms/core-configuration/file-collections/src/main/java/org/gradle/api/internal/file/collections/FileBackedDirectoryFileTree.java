@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.file.collections;
 
+import java.io.File;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.nativeintegration.services.FileSystems;
-
-import java.io.File;
 
 public class FileBackedDirectoryFileTree extends DirectoryFileTree {
     private final File file;

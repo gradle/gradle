@@ -16,11 +16,10 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.internal.exceptions.Contextual;
-import org.gradle.model.internal.type.ModelType;
-
 import java.util.Deque;
 import java.util.LinkedList;
+import org.gradle.internal.exceptions.Contextual;
+import org.gradle.model.internal.type.ModelType;
 
 @Contextual
 public class InvalidManagedModelElementTypeException extends RuntimeException {
@@ -85,8 +84,8 @@ public class InvalidManagedModelElementTypeException extends RuntimeException {
         this(extractionContext, message, null);
     }
 
-    public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext, String message, Throwable throwable) {
+    public InvalidManagedModelElementTypeException(
+            ModelSchemaExtractionContext<?> extractionContext, String message, Throwable throwable) {
         super(getMessage((DefaultModelSchemaExtractionContext<?>) extractionContext, message), throwable);
     }
-
 }

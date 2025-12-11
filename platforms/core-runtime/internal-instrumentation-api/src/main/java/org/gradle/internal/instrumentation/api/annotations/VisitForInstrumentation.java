@@ -16,7 +16,6 @@
 
 package org.gradle.internal.instrumentation.api.annotations;
 
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

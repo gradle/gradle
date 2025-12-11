@@ -16,13 +16,12 @@
 
 package org.gradle.api.plugins;
 
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.jvm.toolchain.JvmToolchainManagement;
-
-import javax.inject.Inject;
 
 /**
  * A plugin that provides JVM specific {@link ToolchainManagement} configuration.
@@ -38,7 +37,8 @@ public abstract class JvmToolchainManagementPlugin implements Plugin<Settings> {
     @Override
     public void apply(Settings settings) {
         ToolchainManagement toolchainManagement = settings.getToolchainManagement();
-        toolchainManagement.getExtensions()
-            .add(JvmToolchainManagement.class, "jvm", getDefaultJvmToolchainManagement());
+        toolchainManagement
+                .getExtensions()
+                .add(JvmToolchainManagement.class, "jvm", getDefaultJvmToolchainManagement());
     }
 }

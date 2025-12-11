@@ -16,13 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.internal.process.ArgWriter;
-import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.gradle.internal.process.ArgWriter;
+import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
 
 /**
  * Uses an option file for arguments passed to GCC if possible.
@@ -39,7 +38,8 @@ class GccOptionsFileArgsWriter extends OptionsFileArgsWriter {
     public List<String> transformArgs(List<String> originalArgs, File tempDir) {
         List<String> commandLineOnlyArgs = getCommandLineOnlyArgs(originalArgs);
         List<String> finalArgs = new ArrayList<>();
-        finalArgs.addAll(ArgWriter.argsFileGenerator(new File(tempDir, "options.txt"), ArgWriter.unixStyleFactory()).apply(originalArgs));
+        finalArgs.addAll(ArgWriter.argsFileGenerator(new File(tempDir, "options.txt"), ArgWriter.unixStyleFactory())
+                .apply(originalArgs));
         finalArgs.addAll(commandLineOnlyArgs);
         return finalArgs;
     }

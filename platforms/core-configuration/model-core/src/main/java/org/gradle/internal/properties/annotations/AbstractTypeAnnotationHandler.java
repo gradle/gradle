@@ -16,15 +16,14 @@
 
 package org.gradle.internal.properties.annotations;
 
+import static java.util.stream.Collectors.joining;
+
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-
-import java.lang.annotation.Annotation;
-import java.util.Arrays;
-
-import static java.util.stream.Collectors.joining;
 
 public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHandler {
 
@@ -40,21 +39,21 @@ public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHan
     }
 
     protected static void reportInvalidUseOfTypeAnnotation(
-        Class<?> classWithAnnotationAttached,
-        TypeValidationContext visitor,
-        Class<? extends Annotation> annotationType,
-        Class<?>... appliesOnlyTo
-    ) {
-        visitor.visitTypeProblem(problem ->
-            problem.withAnnotationType(classWithAnnotationAttached)
-                .id("invalid-use-of-type-annotation", "Incorrect use of type annotation", GradleCoreProblemGroup.validation().type())
+            Class<?> classWithAnnotationAttached,
+            TypeValidationContext visitor,
+            Class<? extends Annotation> annotationType,
+            Class<?>... appliesOnlyTo) {
+        visitor.visitTypeProblem(problem -> problem.withAnnotationType(classWithAnnotationAttached)
+                .id(
+                        "invalid-use-of-type-annotation",
+                        "Incorrect use of type annotation",
+                        GradleCoreProblemGroup.validation().type())
                 .contextualLabel("is incorrectly annotated with @" + annotationType.getSimpleName())
                 .documentedAt(Documentation.userManual("validation_problems", "invalid_use_of_cacheable_annotation"))
                 .severity(Severity.ERROR)
-                .details(String.format("This annotation only makes sense on %s types", Arrays.stream(appliesOnlyTo)
-                    .map(Class::getSimpleName)
-                    .collect(joining(", "))))
-                .solution("Remove the annotation")
-        );
+                .details(String.format(
+                        "This annotation only makes sense on %s types",
+                        Arrays.stream(appliesOnlyTo).map(Class::getSimpleName).collect(joining(", "))))
+                .solution("Remove the annotation"));
     }
 }

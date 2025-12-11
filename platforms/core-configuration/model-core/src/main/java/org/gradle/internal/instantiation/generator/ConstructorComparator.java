@@ -36,7 +36,7 @@ public class ConstructorComparator implements Comparator<ClassGenerator.Generate
             for (Class<?> paramType : o1.getParameterTypes()) {
                 lhs += paramType.getCanonicalName().hashCode();
             }
-            long rhs=0;
+            long rhs = 0;
             for (Class<?> paramType : o2.getParameterTypes()) {
                 rhs += paramType.getCanonicalName().hashCode();
             }

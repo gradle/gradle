@@ -15,9 +15,8 @@
  */
 package gradlebuild.docs.dsl.source.model;
 
-import org.gradle.api.Action;
-
 import java.io.Serializable;
+import org.gradle.api.Action;
 
 /**
  * Static meta-data about a property extracted from the source for the class.
@@ -61,7 +60,9 @@ public class PropertyMetaData extends AbstractLanguageElement implements Seriali
 
     public boolean isProviderApi() {
         // TODO: Crude approximation
-        return setter == null && (getType().getName().contains("Provider") || getType().getName().contains("Property"));
+        return setter == null
+                && (getType().getName().contains("Provider")
+                        || getType().getName().contains("Property"));
     }
 
     public ClassMetaData getOwnerClass() {

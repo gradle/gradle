@@ -16,6 +16,8 @@
 
 package org.gradle.api.initialization;
 
+import java.io.File;
+import java.util.Arrays;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -38,9 +40,6 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.vcs.SourceControl;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.Arrays;
 
 /**
  * <p>Declares the configuration required to instantiate and configure the hierarchy of {@link
@@ -377,7 +376,8 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @since 6.8
      */
     @Configuring
-    void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration);
+    void dependencyResolutionManagement(
+            Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration);
 
     /**
      * Returns the dependency resolution management handler.

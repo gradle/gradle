@@ -16,6 +16,8 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import java.io.IOException;
+import java.util.Arrays;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.HasherExtensions;
 import org.gradle.internal.isolation.Isolatable;
@@ -28,9 +30,6 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.io.IOException;
-import java.util.Arrays;
 
 @NullMarked
 public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<Object> {
@@ -71,8 +70,7 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             return false;
         }
         ArrayOfPrimitiveValueSnapshot other = (ArrayOfPrimitiveValueSnapshot) obj;
-        return primitiveType == other.primitiveType
-            && primitiveType.equals(array, other.array);
+        return primitiveType == other.primitiveType && primitiveType.equals(array, other.array);
     }
 
     @Override

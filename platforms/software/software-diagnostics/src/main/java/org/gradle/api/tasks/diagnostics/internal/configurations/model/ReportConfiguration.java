@@ -17,18 +17,19 @@
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Lightweight, immutable model of a configuration for configuration reporting.
  */
 public final class ReportConfiguration {
     private final String name;
+
     @Nullable
     private final String description;
+
     @Nullable
     private final Type type;
 
@@ -39,13 +40,16 @@ public final class ReportConfiguration {
     private final ImmutableList<ReportSecondaryVariant> variants;
     private final ImmutableList<ReportConfiguration> extendedConfigurations;
 
-    ReportConfiguration(String name, @Nullable String description, @Nullable Type type,
-                                List<? extends GradleException> lenientErrors,
-                                List<ReportAttribute> attributes,
-                                List<ReportCapability> capabilities,
-                                List<ReportArtifact> artifacts,
-                                List<ReportSecondaryVariant> variants,
-                                List<ReportConfiguration> extendedConfigurations) {
+    ReportConfiguration(
+            String name,
+            @Nullable String description,
+            @Nullable Type type,
+            List<? extends GradleException> lenientErrors,
+            List<ReportAttribute> attributes,
+            List<ReportCapability> capabilities,
+            List<ReportArtifact> artifacts,
+            List<ReportSecondaryVariant> variants,
+            List<ReportConfiguration> extendedConfigurations) {
         this.name = name;
         this.description = description;
         this.type = type;

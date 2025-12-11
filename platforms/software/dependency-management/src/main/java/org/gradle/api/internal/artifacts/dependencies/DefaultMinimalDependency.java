@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import java.io.Serializable;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 
-import java.io.Serializable;
-
-public class DefaultMinimalDependency extends DefaultExternalModuleDependency implements MinimalExternalModuleDependencyInternal, Serializable {
+public class DefaultMinimalDependency extends DefaultExternalModuleDependency
+        implements MinimalExternalModuleDependencyInternal, Serializable {
     public DefaultMinimalDependency(ModuleIdentifier module, MutableVersionConstraint versionConstraint) {
         super(module, versionConstraint, null);
     }
@@ -48,7 +48,8 @@ public class DefaultMinimalDependency extends DefaultExternalModuleDependency im
     // Intentionally changes to the mutable version.
     @Override
     public DefaultMutableMinimalDependency copy() {
-        DefaultMutableMinimalDependency dependency = new DefaultMutableMinimalDependency(getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()), getTargetConfiguration());
+        DefaultMutableMinimalDependency dependency = new DefaultMutableMinimalDependency(
+                getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()), getTargetConfiguration());
         copyTo(dependency);
         return dependency;
     }
@@ -57,7 +58,7 @@ public class DefaultMinimalDependency extends DefaultExternalModuleDependency im
     public String toString() {
         String versionConstraintAsString = getVersionConstraint().toString();
         return versionConstraintAsString.isEmpty()
-            ? getModule().toString()
-            : getModule() + ":" + versionConstraintAsString;
+                ? getModule().toString()
+                : getModule() + ":" + versionConstraintAsString;
     }
 }

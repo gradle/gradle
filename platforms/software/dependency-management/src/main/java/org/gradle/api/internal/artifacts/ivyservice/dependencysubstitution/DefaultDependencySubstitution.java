@@ -16,7 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
+import static org.gradle.api.artifacts.result.ComponentSelectionCause.SELECTED_BY_RULE;
+
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ArtifactSelectionDetails;
@@ -32,15 +37,10 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.gradle.api.artifacts.result.ComponentSelectionCause.SELECTED_BY_RULE;
-
 public class DefaultDependencySubstitution implements DependencySubstitutionInternal {
 
-    private static final NotationParser<Object, ComponentSelector> COMPONENT_SELECTOR_PARSER = ComponentSelectorParsers.parser();
+    private static final NotationParser<Object, ComponentSelector> COMPONENT_SELECTOR_PARSER =
+            ComponentSelectorParsers.parser();
 
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
     private final ComponentSelector requestedSelector;
@@ -52,10 +52,9 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
 
     @Inject
     public DefaultDependencySubstitution(
-        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        ComponentSelector requestedSelector,
-        ImmutableList<IvyArtifactName> requestedArtifacts
-    ) {
+            ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+            ComponentSelector requestedSelector,
+            ImmutableList<IvyArtifactName> requestedArtifacts) {
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
         this.requestedSelector = requestedSelector;
         this.requestedArtifacts = requestedArtifacts;
@@ -131,5 +130,4 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
             throw new InvalidUserDataException("Must specify version for target of dependency substitution");
         }
     }
-
 }

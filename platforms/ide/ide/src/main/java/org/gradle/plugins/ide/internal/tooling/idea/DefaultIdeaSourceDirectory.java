@@ -45,9 +45,6 @@ public class DefaultIdeaSourceDirectory implements Serializable {
 
     @Override
     public String toString() {
-        return "DefaultIdeaSourceDirectory{"
-                + "directory=" + directory
-                + ", generated=" + generated
-                + '}';
+        return "DefaultIdeaSourceDirectory{" + "directory=" + directory + ", generated=" + generated + '}';
     }
 }

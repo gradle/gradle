@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.properties;
 
+import java.util.Map;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * Gradle properties of a build or a project. Only build-scoped properties when injected as a service.

@@ -18,10 +18,9 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.util.Node;
+import java.util.Objects;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
-
-import java.util.Objects;
 
 /**
  * A classpath entry representing a project dependency.
@@ -145,9 +144,9 @@ public class ProjectDependency extends AbstractClasspathEntry {
             return false;
         }
         ProjectDependency that = (ProjectDependency) o;
-        return Objects.equals(publication, that.publication) &&
-            Objects.equals(publicationSourcePath, that.publicationSourcePath) &&
-            Objects.equals(publicationJavadocPath, that.publicationJavadocPath);
+        return Objects.equals(publication, that.publication)
+                && Objects.equals(publicationSourcePath, that.publicationSourcePath)
+                && Objects.equals(publicationJavadocPath, that.publicationJavadocPath);
     }
 
     @Override
@@ -162,15 +161,14 @@ public class ProjectDependency extends AbstractClasspathEntry {
 
     @Override
     public String toString() {
-        return "ProjectDependency{" +
-            "publication=" + publication +
-            ", publicationSourcePath=" + publicationSourcePath +
-            ", publicationJavadocPath=" + publicationJavadocPath +
-            ", buildDependencies=" + buildDependencies +
-            ", path='" + path + '\'' +
-            ", exported=" + exported +
-            ", accessRules=" + accessRules +
-            ", entryAttributes=" + entryAttributes +
-            '}';
+        return "ProjectDependency{" + "publication="
+                + publication + ", publicationSourcePath="
+                + publicationSourcePath + ", publicationJavadocPath="
+                + publicationJavadocPath + ", buildDependencies="
+                + buildDependencies + ", path='"
+                + path + '\'' + ", exported="
+                + exported + ", accessRules="
+                + accessRules + ", entryAttributes="
+                + entryAttributes + '}';
     }
 }

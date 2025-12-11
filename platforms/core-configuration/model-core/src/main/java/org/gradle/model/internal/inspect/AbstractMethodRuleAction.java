@@ -16,12 +16,11 @@
 
 package org.gradle.model.internal.inspect;
 
+import java.util.List;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
-import java.util.List;
 
 public abstract class AbstractMethodRuleAction<T> implements MethodRuleAction {
     private final ModelReference<T> subject;
@@ -52,5 +51,4 @@ public abstract class AbstractMethodRuleAction<T> implements MethodRuleAction {
     }
 
     protected abstract void execute(ModelRuleInvoker<?> invoker, T subject, List<ModelView<?>> inputs);
-
 }

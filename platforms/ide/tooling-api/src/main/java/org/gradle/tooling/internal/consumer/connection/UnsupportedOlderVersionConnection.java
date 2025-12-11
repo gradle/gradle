@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import java.util.List;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -26,8 +27,6 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.model.build.BuildEnvironment;
-
-import java.util.List;
 
 /**
  * An adapter for unsupported connection using a {@code ConnectionVersion4} based provider.
@@ -46,8 +45,7 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
     }
 
     @Override
-    public void stop() {
-    }
+    public void stop() {}
 
     @Override
     public String getDisplayName() {
@@ -55,7 +53,8 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
     }
 
     @Override
-    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters)
+            throws UnsupportedOperationException, IllegalStateException {
         if (type.equals(BuildEnvironment.class)) {
             return adapter.adapt(type, doGetBuildEnvironment());
         }
@@ -67,7 +66,8 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
     }
 
     @Override
-    public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters)
+            throws UnsupportedOperationException, IllegalStateException {
         throw unsupported();
     }
 
@@ -82,7 +82,8 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
     }
 
     @Override
-    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters) {
+    public void notifyDaemonsAboutChangedPaths(
+            List<String> changedPaths, ConsumerOperationParameters operationParameters) {
         throw unsupported();
     }
 
@@ -92,7 +93,8 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
     }
 
     private UnsupportedVersionException unsupported() {
-        return new UnsupportedVersionException(String.format("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version %s. You should upgrade your Gradle build to use Gradle 2.6 or later.", version));
+        return new UnsupportedVersionException(String.format(
+                "Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version %s. You should upgrade your Gradle build to use Gradle 2.6 or later.",
+                version));
     }
-
 }

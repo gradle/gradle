@@ -17,6 +17,11 @@
 package org.gradle.api.internal.plugins;
 
 import com.google.common.collect.Lists;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
@@ -44,12 +49,6 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.jspecify.annotations.Nullable;
 
-import javax.annotation.concurrent.NotThreadSafe;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
-
 @NotThreadSafe
 public class DefaultPluginManager implements PluginManagerInternal {
 
@@ -68,7 +67,14 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator callbackDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    public DefaultPluginManager(
+            final PluginRegistry pluginRegistry,
+            Instantiator instantiator,
+            final PluginTarget target,
+            BuildOperationRunner buildOperationRunner,
+            UserCodeApplicationContext userCodeApplicationContext,
+            CollectionCallbackActionDecorator callbackDecorator,
+            DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.instantiator = instantiator;
         this.target = target;
         this.pluginRegistry = pluginRegistry;
@@ -82,7 +88,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
         try {
             return instantiator.newInstance(type);
         } catch (ObjectInstantiationException e) {
-            throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.", type.getSimpleName()), e.getCause());
+            throw new PluginInstantiationException(
+                    String.format("Could not create plugin of type '%s'.", type.getSimpleName()), e.getCause());
         }
     }
 
@@ -109,7 +116,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return new Runnable() {
             @Override
             public void run() {
-                // Take a copy because adding to an idMappings value may result in new mappings being added (i.e. ConcurrentModificationException)
+                // Take a copy because adding to an idMappings value may result in new mappings being added (i.e.
+                // ConcurrentModificationException)
                 Iterable<PluginId> pluginIds = Lists.newArrayList(idMappings.keySet());
                 for (PluginId id : pluginIds) {
                     if (plugin.isAlsoKnownAs(id)) {
@@ -161,13 +169,16 @@ public class DefaultPluginManager implements PluginManagerInternal {
         try {
             Thread.currentThread().setContextClassLoader(pluginClass.getClassLoader());
             if (plugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
-                throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
+                throw new InvalidPluginException(
+                        "'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
             } else {
                 final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
                     UserCodeSource source = new DefaultUserCodeSource(plugin.getDisplayName(), pluginIdStr);
-                    userCodeApplicationContext.apply(source, userCodeApplicationId ->
-                        buildOperationRunner.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId)));
+                    userCodeApplicationContext.apply(
+                            source,
+                            userCodeApplicationId -> buildOperationRunner.run(new AddPluginBuildOperation(
+                                    adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId)));
                 }
             }
         } catch (PluginApplicationException e) {
@@ -203,7 +214,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     private Plugin<?> producePluginInstance(Class<?> pluginClass) {
         // This insanity is needed for the case where someone calls pluginContainer.add(new SomePlugin())
-        // That is, the plugin container has the instance that we want, but we don't think (we can't know) it has been applied
+        // That is, the plugin container has the instance that we want, but we don't think (we can't know) it has been
+        // applied
         Object instance = findInstance(pluginClass, pluginContainer);
         if (instance == null) {
             instance = instantiatePlugin(pluginClass);
@@ -272,7 +284,12 @@ public class DefaultPluginManager implements PluginManagerInternal {
         private final Class<?> pluginClass;
         private final UserCodeApplicationId applicationId;
 
-        private AddPluginBuildOperation(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass, UserCodeApplicationId applicationId) {
+        private AddPluginBuildOperation(
+                Runnable adder,
+                PluginImplementation<?> plugin,
+                String pluginId,
+                Class<?> pluginClass,
+                UserCodeApplicationId applicationId) {
             this.adder = adder;
             this.plugin = plugin;
             this.pluginId = pluginId;
@@ -291,7 +308,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
             return computeApplyPluginBuildOperationDetails(plugin);
         }
 
-        private BuildOperationDescriptor.Builder computeApplyPluginBuildOperationDetails(final PluginImplementation<?> pluginImplementation) {
+        private BuildOperationDescriptor.Builder computeApplyPluginBuildOperationDetails(
+                final PluginImplementation<?> pluginImplementation) {
             String pluginIdentifier;
             if (pluginImplementation.getPluginId() != null) {
                 pluginIdentifier = pluginImplementation.getPluginId().toString();
@@ -300,18 +318,23 @@ public class DefaultPluginManager implements PluginManagerInternal {
             }
             String name = "Apply plugin " + pluginIdentifier;
             return BuildOperationDescriptor.displayName(name + " to " + target.toString())
-                .name(name)
-                .details(new OperationDetails(pluginImplementation, target.getConfigurationTargetIdentifier(), applicationId));
+                    .name(name)
+                    .details(new OperationDetails(
+                            pluginImplementation, target.getConfigurationTargetIdentifier(), applicationId));
         }
     }
 
-    public static class OperationDetails implements ApplyPluginBuildOperationType.Details, CustomOperationTraceSerialization {
+    public static class OperationDetails
+            implements ApplyPluginBuildOperationType.Details, CustomOperationTraceSerialization {
 
         private final PluginImplementation<?> pluginImplementation;
         private final ConfigurationTargetIdentifier targetIdentifier;
         private final UserCodeApplicationId applicationId;
 
-        private OperationDetails(PluginImplementation<?> pluginImplementation, ConfigurationTargetIdentifier targetIdentifier, UserCodeApplicationId applicationId) {
+        private OperationDetails(
+                PluginImplementation<?> pluginImplementation,
+                ConfigurationTargetIdentifier targetIdentifier,
+                UserCodeApplicationId applicationId) {
             this.pluginImplementation = pluginImplementation;
             this.targetIdentifier = targetIdentifier;
             this.applicationId = applicationId;
@@ -363,6 +386,6 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
     }
 
-    private static final ApplyPluginBuildOperationType.Result OPERATION_RESULT = new ApplyPluginBuildOperationType.Result() {
-    };
+    private static final ApplyPluginBuildOperationType.Result OPERATION_RESULT =
+            new ApplyPluginBuildOperationType.Result() {};
 }

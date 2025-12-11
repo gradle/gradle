@@ -37,7 +37,8 @@ public class PropertyReportRenderer extends TextReportRenderer {
             strValue = String.valueOf(value);
         } catch (Exception e) {
             String valueClass = value != null ? String.valueOf(value.getClass()) : "null";
-            LOGGER.warn("Rendering of the property '{}' with value type '{}' failed with exception", name, valueClass, e);
+            LOGGER.warn(
+                    "Rendering of the property '{}' with value type '{}' failed with exception", name, valueClass, e);
             strValue = valueClass + " [Rendering failed]";
         }
         getTextOutput().formatln("%s: %s", name, strValue);

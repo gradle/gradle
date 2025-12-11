@@ -35,7 +35,8 @@ import org.gradle.platform.base.component.internal.DefaultComponentSpec;
 public class BaseComponentSpec extends DefaultComponentSpec implements GeneralComponentSpec {
     private static final ModelType<BinarySpec> BINARY_SPEC_MODEL_TYPE = ModelType.of(BinarySpec.class);
     private static final ModelType<Binary> BINARY_MODEL_TYPE = ModelType.of(Binary.class);
-    private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODEL_TYPE = ModelType.of(LanguageSourceSet.class);
+    private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODEL_TYPE =
+            ModelType.of(LanguageSourceSet.class);
     private final MutableModelNode binaries;
     private final MutableModelNode sources;
 

@@ -27,19 +27,22 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
     private enum Impl implements Serializer<ImplementationSnapshot> {
         CLASS {
             @Override
-            protected ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder) throws Exception {
+            protected ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder)
+                    throws Exception {
                 HashCode classLoaderHash = hashCodeSerializer.read(decoder);
                 return new ClassImplementationSnapshot(classIdentifier, classLoaderHash);
             }
 
             @Override
-            public void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
+            public void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot)
+                    throws Exception {
                 hashCodeSerializer.write(encoder, implementationSnapshot.getClassLoaderHash());
             }
         },
         LAMBDA {
             @Override
-            protected ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder) throws Exception {
+            protected ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder)
+                    throws Exception {
                 HashCode classLoaderHash = hashCodeSerializer.read(decoder);
                 String functionalInterfaceClass = decoder.readString();
                 String implClass = decoder.readString();
@@ -47,18 +50,18 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
                 String implMethodSignature = decoder.readString();
                 int implMethodKind = decoder.readSmallInt();
                 return new LambdaImplementationSnapshot(
-                    classIdentifier,
-                    classLoaderHash,
-                    functionalInterfaceClass,
-                    implClass,
-                    implMethodName,
-                    implMethodSignature,
-                    implMethodKind
-                );
+                        classIdentifier,
+                        classLoaderHash,
+                        functionalInterfaceClass,
+                        implClass,
+                        implMethodName,
+                        implMethodSignature,
+                        implMethodKind);
             }
 
             @Override
-            protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
+            protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot)
+                    throws Exception {
                 LambdaImplementationSnapshot serLambda = (LambdaImplementationSnapshot) implementationSnapshot;
                 hashCodeSerializer.write(encoder, serLambda.getClassLoaderHash());
                 encoder.writeString(serLambda.getFunctionalInterfaceClass());
@@ -70,14 +73,18 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
         },
         UNKNOWN {
             @Override
-            protected ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder) throws Exception {
-                UnknownImplementationSnapshot.UnknownReason unknownReason = UnknownImplementationSnapshot.UnknownReason.values()[decoder.readSmallInt()];
+            protected ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder)
+                    throws Exception {
+                UnknownImplementationSnapshot.UnknownReason unknownReason =
+                        UnknownImplementationSnapshot.UnknownReason.values()[decoder.readSmallInt()];
                 return new UnknownImplementationSnapshot(classIdentifier, unknownReason);
             }
 
             @Override
-            protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
-                UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementationSnapshot;
+            protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot)
+                    throws Exception {
+                UnknownImplementationSnapshot unknownImplSnapshot =
+                        (UnknownImplementationSnapshot) implementationSnapshot;
                 encoder.writeSmallInt(unknownImplSnapshot.getUnknownReason().ordinal());
             }
         };
@@ -96,9 +103,11 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
 
         protected final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
 
-        protected abstract ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder) throws Exception;
+        protected abstract ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder)
+                throws Exception;
 
-        protected abstract void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception;
+        protected abstract void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot)
+                throws Exception;
     }
 
     @Override
@@ -124,6 +133,7 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
         if (implementationSnapshot instanceof UnknownImplementationSnapshot) {
             return Impl.UNKNOWN;
         }
-        throw new IllegalArgumentException("Unexpected implementation snapshot type: " + implementationSnapshot.getClass().getName());
+        throw new IllegalArgumentException("Unexpected implementation snapshot type: "
+                + implementationSnapshot.getClass().getName());
     }
 }

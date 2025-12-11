@@ -16,5 +16,4 @@
 
 package org.gradle.api.internal.tasks;
 
-public interface TaskDependencyContainerInternal extends TaskDependencyInternal, TaskDependencyContainer {
-}
+public interface TaskDependencyContainerInternal extends TaskDependencyInternal, TaskDependencyContainer {}

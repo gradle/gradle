@@ -16,13 +16,12 @@
 
 package org.gradle.api.artifacts.type;
 
+import java.util.Set;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
-
-import java.util.Set;
 
 /**
  * Meta-data about a particular type of artifacts.

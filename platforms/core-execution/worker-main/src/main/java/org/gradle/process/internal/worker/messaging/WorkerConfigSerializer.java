@@ -16,6 +16,11 @@
 
 package org.gradle.process.internal.worker.messaging;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
@@ -31,12 +36,6 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
 /**
  * Serializes and de-serializes {@link WorkerConfig}s.
@@ -54,18 +53,18 @@ public class WorkerConfigSerializer implements Serializer<WorkerConfig> {
         MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
         final long workerId = decoder.readSmallLong();
         final String displayName = decoder.readString();
-        Action<? super WorkerProcessContext> workerAction = deserializeWorker(decoder.readBinary(), getClass().getClassLoader());
+        Action<? super WorkerProcessContext> workerAction =
+                deserializeWorker(decoder.readBinary(), getClass().getClassLoader());
 
         return new WorkerConfig(
-            logLevel,
-            shouldPublishJvmMemoryInfo,
-            gradleUserHomeDirPath,
-            serverAddress,
-            workerId,
-            displayName,
-            workerAction,
-            nativeServicesMode
-        );
+                logLevel,
+                shouldPublishJvmMemoryInfo,
+                gradleUserHomeDirPath,
+                serverAddress,
+                workerId,
+                displayName,
+                workerAction,
+                nativeServicesMode);
     }
 
     @Override
@@ -80,7 +79,8 @@ public class WorkerConfigSerializer implements Serializer<WorkerConfig> {
         encoder.writeBinary(serializeWorker(config.getWorkerAction()));
     }
 
-    private static Action<? super WorkerProcessContext> deserializeWorker(byte[] serializedWorker, ClassLoader loader) throws IOException {
+    private static Action<? super WorkerProcessContext> deserializeWorker(byte[] serializedWorker, ClassLoader loader)
+            throws IOException {
         ByteArrayInputStream bais = new ByteArrayInputStream(serializedWorker);
         ObjectInputStream in = null;
         try {
@@ -96,11 +96,11 @@ public class WorkerConfigSerializer implements Serializer<WorkerConfig> {
             if (e instanceof UnsupportedClassVersionErrorWithJavaVersion) {
                 UnsupportedClassVersionErrorWithJavaVersion e2 = (UnsupportedClassVersionErrorWithJavaVersion) e;
                 message = String.format(
-                    "Unsupported worker JDK version. Required: %s. Current: %s",
-                    e2.getVersion().getMajorVersion(), JavaVersion.current().getMajorVersion()
-                );
+                        "Unsupported worker JDK version. Required: %s. Current: %s",
+                        e2.getVersion().getMajorVersion(), JavaVersion.current().getMajorVersion());
             } else {
-                message = "Unsupported worker JDK version: " + JavaVersion.current().getMajorVersion();
+                message = "Unsupported worker JDK version: "
+                        + JavaVersion.current().getMajorVersion();
             }
             throw new GradleException(message, e);
         } finally {

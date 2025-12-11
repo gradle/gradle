@@ -16,10 +16,9 @@
 
 package org.gradle.internal.execution.model;
 
+import java.util.Locale;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
-
-import java.util.Locale;
 
 // TODO Break this up between simple normalizers and Java classpath normalizers
 //      The latter should be moved to :normalization-java

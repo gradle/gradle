@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.events.task;
 
+import java.util.List;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Describes the result of a non-skipped task.
@@ -45,5 +44,4 @@ public interface TaskExecutionResult extends TaskOperationResult {
      */
     @Nullable
     List<String> getExecutionReasons();
-
 }

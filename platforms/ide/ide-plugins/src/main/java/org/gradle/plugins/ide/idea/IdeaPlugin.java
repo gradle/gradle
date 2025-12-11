@@ -20,6 +20,18 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
@@ -70,19 +82,6 @@ import org.gradle.plugins.ide.internal.IdePluginHelper;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.testing.base.TestingExtension;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-
 /**
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task. For projects that have the Java plugin applied, the tasks receive additional Java-specific
  * configuration.
@@ -93,7 +92,8 @@ public abstract class IdeaPlugin extends IdePlugin {
     private static final Predicate<Project> HAS_IDEA_AND_JAVA_PLUGINS = new Predicate<Project>() {
         @Override
         public boolean apply(Project project) {
-            return project.getPlugins().hasPlugin(IdeaPlugin.class) && project.getPlugins().hasPlugin(JavaBasePlugin.class);
+            return project.getPlugins().hasPlugin(IdeaPlugin.class)
+                    && project.getPlugins().hasPlugin(JavaBasePlugin.class);
         }
     };
     public static final Function<Project, JavaVersion> SOURCE_COMPATIBILITY = new Function<Project, JavaVersion>() {
@@ -123,7 +123,10 @@ public abstract class IdeaPlugin extends IdePlugin {
     protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    public IdeaPlugin(UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectPathRegistry) {
+    public IdeaPlugin(
+            UniqueProjectNameProvider uniqueProjectNameProvider,
+            IdeArtifactRegistry artifactRegistry,
+            ProjectStateRegistry projectPathRegistry) {
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
         this.artifactRegistry = artifactRegistry;
         this.projectPathRegistry = projectPathRegistry;
@@ -163,7 +166,8 @@ public abstract class IdeaPlugin extends IdePlugin {
         if (isRoot()) {
             workspace.setIws(new XmlFileContentMerger(new XmlTransformer()));
 
-            final TaskProvider<GenerateIdeaWorkspace> task = project.getTasks().register(IDEA_WORKSPACE_TASK_NAME, GenerateIdeaWorkspace.class, workspace);
+            final TaskProvider<GenerateIdeaWorkspace> task =
+                    project.getTasks().register(IDEA_WORKSPACE_TASK_NAME, GenerateIdeaWorkspace.class, workspace);
             task.configure(new Action<GenerateIdeaWorkspace>() {
                 @Override
                 public void execute(GenerateIdeaWorkspace task) {
@@ -180,7 +184,8 @@ public abstract class IdeaPlugin extends IdePlugin {
             XmlFileContentMerger ipr = new XmlFileContentMerger(new XmlTransformer());
             // Instantiating an internal subclass is required for Isolated Projects-safe model building
             final IdeaProject ideaProject = getObjectFactory().newInstance(IdeaProjectInternal.class, project, ipr);
-            final TaskProvider<GenerateIdeaProject> projectTask = project.getTasks().register(IDEA_PROJECT_TASK_NAME, GenerateIdeaProject.class, ideaProject);
+            final TaskProvider<GenerateIdeaProject> projectTask =
+                    project.getTasks().register(IDEA_PROJECT_TASK_NAME, GenerateIdeaProject.class, ideaProject);
             projectTask.configure(new Action<GenerateIdeaProject>() {
                 @Override
                 public void execute(GenerateIdeaProject projectTask) {
@@ -204,39 +209,41 @@ public abstract class IdeaPlugin extends IdePlugin {
                     JavaVersion maxSourceCompatibility = getMaxJavaModuleCompatibilityVersionFor(SOURCE_COMPATIBILITY);
                     return new IdeaLanguageLevel(maxSourceCompatibility);
                 }
-
             });
             conventionMapping.map("targetBytecodeVersion", new Callable<JavaVersion>() {
                 @Override
                 public JavaVersion call() {
                     return getMaxJavaModuleCompatibilityVersionFor(TARGET_COMPATIBILITY);
                 }
-
             });
 
             ideaProject.getWildcards().addAll(Arrays.asList("!?*.class", "!?*.scala", "!?*.groovy", "!?*.java"));
             conventionMapping.map("modules", new Callable<List<IdeaModule>>() {
                 @Override
                 public List<IdeaModule> call() {
-                    return Lists.newArrayList(Iterables.transform(Sets.filter(project.getRootProject().getAllprojects(), new Predicate<Project>() {
-                        @Override
-                        public boolean apply(Project p) {
-                            return p.getPlugins().hasPlugin(IdeaPlugin.class);
-                        }
-
-                    }), new Function<Project, IdeaModule>() {
-                        @Override
-                        public IdeaModule apply(Project p) {
-                            return ideaModelFor(p).getModule();
-                        }
-                    }));
+                    return Lists.newArrayList(Iterables.transform(
+                            Sets.filter(project.getRootProject().getAllprojects(), new Predicate<Project>() {
+                                @Override
+                                public boolean apply(Project p) {
+                                    return p.getPlugins().hasPlugin(IdeaPlugin.class);
+                                }
+                            }),
+                            new Function<Project, IdeaModule>() {
+                                @Override
+                                public IdeaModule apply(Project p) {
+                                    return ideaModelFor(p).getModule();
+                                }
+                            }));
                 }
             });
 
             conventionMapping.map("pathFactory", new Callable<PathFactory>() {
                 @Override
                 public PathFactory call() {
-                    return new PathFactory().addPathVariable("PROJECT_DIR", projectTask.get().getOutputFile().getParentFile());
+                    return new PathFactory()
+                            .addPathVariable(
+                                    "PROJECT_DIR",
+                                    projectTask.get().getOutputFile().getParentFile());
                 }
             });
 
@@ -264,7 +271,8 @@ public abstract class IdeaPlugin extends IdePlugin {
             // cache result because it is pretty expensive to compute
             return allJavaProjects;
         }
-        allJavaProjects = Lists.newArrayList(Iterables.filter(project.getRootProject().getAllprojects(), HAS_IDEA_AND_JAVA_PLUGINS));
+        allJavaProjects = Lists.newArrayList(
+                Iterables.filter(project.getRootProject().getAllprojects(), HAS_IDEA_AND_JAVA_PLUGINS));
         return allJavaProjects;
     }
 
@@ -273,7 +281,8 @@ public abstract class IdeaPlugin extends IdePlugin {
         // Instantiating an internal subclass is required for Isolated Projects-safe model building
         final IdeaModule module = getObjectFactory().newInstance(IdeaModuleInternal.class, project, iml);
 
-        final TaskProvider<GenerateIdeaModule> task = project.getTasks().register(IDEA_MODULE_TASK_NAME, GenerateIdeaModule.class, module);
+        final TaskProvider<GenerateIdeaModule> task =
+                project.getTasks().register(IDEA_MODULE_TASK_NAME, GenerateIdeaModule.class, module);
         task.configure(new Action<GenerateIdeaModule>() {
             @Override
             public void execute(GenerateIdeaModule task) {
@@ -312,7 +321,8 @@ public abstract class IdeaPlugin extends IdePlugin {
             @Override
             public Set<File> call() {
                 excludeDirs.add(project.file(".gradle"));
-                excludeDirs.add(project.getLayout().getBuildDirectory().getAsFile().get());
+                excludeDirs.add(
+                        project.getLayout().getBuildDirectory().getAsFile().get());
                 return excludeDirs;
             }
         });
@@ -327,7 +337,6 @@ public abstract class IdeaPlugin extends IdePlugin {
                 }
                 return factory;
             }
-
         });
 
         artifactRegistry.registerIdeProject(new IdeaModuleMetadata(module, task));
@@ -363,14 +372,17 @@ public abstract class IdeaPlugin extends IdePlugin {
     }
 
     private void configureIdeaModuleForJava(final Project project) {
-        JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
+        JvmFeatureInternal mainFeature =
+                JavaPluginHelper.getJavaComponent(project).getMainFeature();
         JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
 
         project.getTasks().withType(GenerateIdeaModule.class).configureEach(ideaModule -> {
             // Dependencies
-            ideaModule.dependsOn((Callable<FileCollection>) () ->
-                mainFeature.getSourceSet().getOutput().getDirs().plus(defaultTestSuite.getSources().getOutput().getDirs())
-            );
+            ideaModule.dependsOn((Callable<FileCollection>) () -> mainFeature
+                    .getSourceSet()
+                    .getOutput()
+                    .getDirs()
+                    .plus(defaultTestSuite.getSources().getOutput().getDirs()));
         });
 
         // Defaults
@@ -382,7 +394,9 @@ public abstract class IdeaPlugin extends IdePlugin {
         convention.map("sourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
-                SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+                SourceSetContainer sourceSets = project.getExtensions()
+                        .getByType(JavaPluginExtension.class)
+                        .getSourceSets();
                 sourceDirs.addAll(sourceSets.getByName("main").getAllJava().getSrcDirs());
                 return sourceDirs;
             }
@@ -391,7 +405,9 @@ public abstract class IdeaPlugin extends IdePlugin {
         convention.map("resourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
-                SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+                SourceSetContainer sourceSets = project.getExtensions()
+                        .getByType(JavaPluginExtension.class)
+                        .getSourceSets();
                 resourceDirs.addAll(sourceSets.getByName("main").getResources().getSrcDirs());
                 return resourceDirs;
             }
@@ -401,28 +417,37 @@ public abstract class IdeaPlugin extends IdePlugin {
         convention.map("singleEntryLibraries", new Callable<Map<String, FileCollection>>() {
             @Override
             public Map<String, FileCollection> call() {
-                SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                singleEntryLibraries.putIfAbsent("RUNTIME", sourceSets.getByName("main").getOutput().getDirs());
-                singleEntryLibraries.putIfAbsent("TEST", sourceSets.getByName("test").getOutput().getDirs());
+                SourceSetContainer sourceSets = project.getExtensions()
+                        .getByType(JavaPluginExtension.class)
+                        .getSourceSets();
+                singleEntryLibraries.putIfAbsent(
+                        "RUNTIME", sourceSets.getByName("main").getOutput().getDirs());
+                singleEntryLibraries.putIfAbsent(
+                        "TEST", sourceSets.getByName("test").getOutput().getDirs());
                 return singleEntryLibraries;
             }
-
         });
         convention.map("targetBytecodeVersion", new Callable<JavaVersion>() {
             @Override
             public JavaVersion call() {
-                JavaVersion moduleTargetBytecodeLevel = project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility();
-                return includeModuleBytecodeLevelOverride(project.getRootProject(), moduleTargetBytecodeLevel) ? moduleTargetBytecodeLevel : null;
+                JavaVersion moduleTargetBytecodeLevel = project.getExtensions()
+                        .getByType(JavaPluginExtension.class)
+                        .getTargetCompatibility();
+                return includeModuleBytecodeLevelOverride(project.getRootProject(), moduleTargetBytecodeLevel)
+                        ? moduleTargetBytecodeLevel
+                        : null;
             }
-
         });
         convention.map("languageLevel", new Callable<IdeaLanguageLevel>() {
             @Override
             public IdeaLanguageLevel call() {
-                IdeaLanguageLevel moduleLanguageLevel = new IdeaLanguageLevel(project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility());
-                return includeModuleLanguageLevelOverride(project.getRootProject(), moduleLanguageLevel) ? moduleLanguageLevel : null;
+                IdeaLanguageLevel moduleLanguageLevel = new IdeaLanguageLevel(project.getExtensions()
+                        .getByType(JavaPluginExtension.class)
+                        .getSourceCompatibility());
+                return includeModuleLanguageLevelOverride(project.getRootProject(), moduleLanguageLevel)
+                        ? moduleLanguageLevel
+                        : null;
             }
-
         });
     }
 
@@ -435,14 +460,17 @@ public abstract class IdeaPlugin extends IdePlugin {
             scopes.put(scope.name(), plusMinus);
         }
 
-        Collection<Configuration> provided = scopes.get(GeneratedIdeaScope.PROVIDED.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
+        Collection<Configuration> provided =
+                scopes.get(GeneratedIdeaScope.PROVIDED.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
         provided.add(mainFeature.getCompileClasspathConfiguration());
 
-        Collection<Configuration> runtime = scopes.get(GeneratedIdeaScope.RUNTIME.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
+        Collection<Configuration> runtime =
+                scopes.get(GeneratedIdeaScope.RUNTIME.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
         runtime.add(mainFeature.getRuntimeClasspathConfiguration());
 
         ConfigurationContainer configurations = project.getConfigurations();
-        Collection<Configuration> test = scopes.get(GeneratedIdeaScope.TEST.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
+        Collection<Configuration> test =
+                scopes.get(GeneratedIdeaScope.TEST.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
         test.add(configurations.getByName(defaultTestSuite.getSources().getCompileClasspathConfigurationName()));
         test.add(configurations.getByName(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName()));
 
@@ -464,17 +492,30 @@ public abstract class IdeaPlugin extends IdePlugin {
             public void execute(GenerateIdeaModule ideaModule) {
                 ConfigurationContainer configurations = project.getConfigurations();
                 Configuration providedRuntime = configurations.getByName(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME);
-                Collection<Configuration> providedPlus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.PROVIDED.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
+                Collection<Configuration> providedPlus = ideaModule
+                        .getModule()
+                        .getScopes()
+                        .get(GeneratedIdeaScope.PROVIDED.name())
+                        .get(IdeaDependenciesProvider.SCOPE_PLUS);
                 providedPlus.add(providedRuntime);
-                Collection<Configuration> runtimeMinus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.RUNTIME.name()).get(IdeaDependenciesProvider.SCOPE_MINUS);
+                Collection<Configuration> runtimeMinus = ideaModule
+                        .getModule()
+                        .getScopes()
+                        .get(GeneratedIdeaScope.RUNTIME.name())
+                        .get(IdeaDependenciesProvider.SCOPE_MINUS);
                 runtimeMinus.add(providedRuntime);
-                Collection<Configuration> testMinus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.TEST.name()).get(IdeaDependenciesProvider.SCOPE_MINUS);
+                Collection<Configuration> testMinus = ideaModule
+                        .getModule()
+                        .getScopes()
+                        .get(GeneratedIdeaScope.TEST.name())
+                        .get(IdeaDependenciesProvider.SCOPE_MINUS);
                 testMinus.add(providedRuntime);
             }
         });
     }
 
-    private static boolean includeModuleBytecodeLevelOverride(Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
+    private static boolean includeModuleBytecodeLevelOverride(
+            Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
         if (!rootProject.getPlugins().hasPlugin(IdeaPlugin.class)) {
             return true;
         }
@@ -483,7 +524,8 @@ public abstract class IdeaPlugin extends IdePlugin {
         return !moduleTargetBytecodeLevel.equals(ideaProject.getTargetBytecodeVersion());
     }
 
-    private static boolean includeModuleLanguageLevelOverride(Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
+    private static boolean includeModuleLanguageLevelOverride(
+            Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
         if (!rootProject.getPlugins().hasPlugin(IdeaPlugin.class)) {
             return true;
         }
@@ -493,7 +535,8 @@ public abstract class IdeaPlugin extends IdePlugin {
     }
 
     private void configureForScalaPlugin() {
-        boolean isolatedProjects = getBuildFeatures().getIsolatedProjects().getActive().get();
+        boolean isolatedProjects =
+                getBuildFeatures().getIsolatedProjects().getActive().get();
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
             @Override
             public void execute(ScalaBasePlugin scalaBasePlugin) {
@@ -502,10 +545,11 @@ public abstract class IdeaPlugin extends IdePlugin {
         });
         if (isRoot()) {
             new IdeaScalaConfigurer(project, scalaProjects -> {
-                if (!scalaProjects.isEmpty() && isolatedProjects) {
-                    failOnIncompatibleWithIsolatedProjects();
-                }
-            }).configure();
+                        if (!scalaProjects.isEmpty() && isolatedProjects) {
+                            failOnIncompatibleWithIsolatedProjects();
+                        }
+                    })
+                    .configure();
         }
     }
 
@@ -515,29 +559,35 @@ public abstract class IdeaPlugin extends IdePlugin {
         }
 
         // see IdeaScalaConfigurer which requires the ipr to be generated first
-        project.getTasks().named(IDEA_MODULE_TASK_NAME, dependsOn(project.getRootProject().getTasks().named(IDEA_PROJECT_TASK_NAME)));
+        project.getTasks()
+                .named(
+                        IDEA_MODULE_TASK_NAME,
+                        dependsOn(project.getRootProject().getTasks().named(IDEA_PROJECT_TASK_NAME)));
     }
 
     private static void failOnIncompatibleWithIsolatedProjects() {
-        throw new GradleException("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.");
+        throw new GradleException(
+                "Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.");
     }
 
     private void linkCompositeBuildDependencies(final ProjectInternal project) {
         if (isRoot()) {
-            getLifecycleTask().configure(
-                task -> task.dependsOn(
-                    (TaskDependencyContainer) context -> visitAllImlArtifactsInComposite(project, ideaModel.getProject(), context)
-                )
-            );
+            getLifecycleTask()
+                    .configure(task -> task.dependsOn((TaskDependencyContainer)
+                            context -> visitAllImlArtifactsInComposite(project, ideaModel.getProject(), context)));
         }
     }
 
-    private void visitAllImlArtifactsInComposite(ProjectInternal project, IdeaProject ideaProject, TaskDependencyResolveContext context) {
-        ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
-        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {
+    private void visitAllImlArtifactsInComposite(
+            ProjectInternal project, IdeaProject ideaProject, TaskDependencyResolveContext context) {
+        ProjectComponentIdentifier thisProjectId =
+                projectPathRegistry.stateFor(project).getComponentIdentifier();
+        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference :
+                artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {
             BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();
             if (thisProjectId.getBuild().equals(otherBuildId)) {
-                // IDEA Module for project in current build: don't include any module that has been excluded from project
+                // IDEA Module for project in current build: don't include any module that has been excluded from
+                // project
                 boolean found = false;
                 for (IdeaModule ideaModule : ideaProject.getModules()) {
                     if (reference.get().getFile().equals(ideaModule.getOutputFile())) {

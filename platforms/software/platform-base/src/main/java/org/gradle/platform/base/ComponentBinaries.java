@@ -16,12 +16,11 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.Incubating;
 
 /**
  * Declares the binaries that should be built for a custom {@link org.gradle.platform.base.ComponentSpec} type.
@@ -53,5 +52,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Incubating
-public @interface ComponentBinaries {
-}
+public @interface ComponentBinaries {}

@@ -56,5 +56,4 @@ public class DefaultSourceFileClassNameConverter implements SourceFileClassNameC
     public Set<String> getRelativeSourcePathsThatExist(String className) {
         return getRelativeSourcePaths(className);
     }
-
 }

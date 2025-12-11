@@ -25,6 +25,8 @@ public class DefaultBuildScanUserInputHandler implements BuildScanUserInputHandl
 
     @Override
     public Boolean askYesNoQuestion(String question) {
-        return userInputHandler.askUser(userPrompts -> userPrompts.askYesNoQuestion(question)).getOrNull();
+        return userInputHandler
+                .askUser(userPrompts -> userPrompts.askYesNoQuestion(question))
+                .getOrNull();
     }
 }

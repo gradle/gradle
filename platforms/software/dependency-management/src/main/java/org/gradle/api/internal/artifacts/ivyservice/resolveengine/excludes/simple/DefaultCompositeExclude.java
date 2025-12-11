@@ -17,10 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simp
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.CompositeExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-
-import java.util.Set;
 
 abstract class DefaultCompositeExclude implements CompositeExclude {
     private final ImmutableSet<ExcludeSpec> components;
@@ -64,9 +63,7 @@ abstract class DefaultCompositeExclude implements CompositeExclude {
 
     @Override
     public String toString() {
-        return "{\"" + getDisplayName() + "\": " +
-            " " + components +
-            '}';
+        return "{\"" + getDisplayName() + "\": " + " " + components + '}';
     }
 
     protected abstract String getDisplayName();

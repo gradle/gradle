@@ -19,10 +19,9 @@ package org.gradle.internal.evaluation;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This class keeps track of all objects being evaluated at the moment.
@@ -38,7 +37,8 @@ public final class EvaluationContext {
 
     private static final EvaluationContext INSTANCE = new EvaluationContext();
 
-    private final ThreadLocal<PerThreadContext> threadLocalContext = ThreadLocal.withInitial(() -> new PerThreadContext(null));
+    private final ThreadLocal<PerThreadContext> threadLocalContext =
+            ThreadLocal.withInitial(() -> new PerThreadContext(null));
 
     /**
      * Returns the current instance of EvaluationContext for this thread.
@@ -86,7 +86,8 @@ public final class EvaluationContext {
      * @throws E exception from the {@code evaluation} is propagated
      * @throws CircularEvaluationException if the owner is currently being evaluated in the outer scope
      */
-    public <R, E extends Exception> R evaluate(EvaluationOwner owner, ScopedEvaluation<? extends R, E> evaluation) throws E {
+    public <R, E extends Exception> R evaluate(EvaluationOwner owner, ScopedEvaluation<? extends R, E> evaluation)
+            throws E {
         try (EvaluationScopeContext ignored = open(owner)) {
             return evaluation.evaluate();
         }
@@ -106,12 +107,14 @@ public final class EvaluationContext {
      * @return the result of the evaluation
      * @throws E exception from the {@code evaluation} is propagated
      */
-    public <R, E extends Exception> R tryEvaluate(EvaluationOwner owner, R fallbackValue, ScopedEvaluation<? extends R, E> evaluation) throws E {
+    public <R, E extends Exception> R tryEvaluate(
+            EvaluationOwner owner, R fallbackValue, ScopedEvaluation<? extends R, E> evaluation) throws E {
         if (getContext().isInScope(owner)) {
             return fallbackValue;
         }
         // It is possible that the downstream chain itself forms a cycle.
-        // However, it should be its responsibility to be defined in terms of safe evaluation rather than us intercepting the failure here.
+        // However, it should be its responsibility to be defined in terms of safe evaluation rather than us
+        // intercepting the failure here.
         return evaluate(owner, evaluation);
     }
 
@@ -149,6 +152,7 @@ public final class EvaluationContext {
     private final class PerThreadContext implements EvaluationScopeContext {
         private final Set<EvaluationOwner> objectsInScope = new ReferenceOpenHashSet<>(EXPECTED_MAX_CONTEXT_SIZE);
         private final List<EvaluationOwner> evaluationStack = new ReferenceArrayList<>(EXPECTED_MAX_CONTEXT_SIZE);
+
         @Nullable
         private final PerThreadContext parent;
 
@@ -206,12 +210,12 @@ public final class EvaluationContext {
             int i = evaluationStack.indexOf(circular);
             assert i >= 0;
             List<EvaluationOwner> preCycleList = evaluationStack.subList(i, evaluationStack.size());
-            ImmutableList<EvaluationOwner> evaluationCycle = ImmutableList.<EvaluationOwner>builderWithExpectedSize(preCycleList.size() + 1)
-                .addAll(preCycleList)
-                .add(circular)
-                .build();
+            ImmutableList<EvaluationOwner> evaluationCycle = ImmutableList.<EvaluationOwner>builderWithExpectedSize(
+                            preCycleList.size() + 1)
+                    .addAll(preCycleList)
+                    .add(circular)
+                    .build();
             return new CircularEvaluationException(evaluationCycle);
         }
     }
-
 }

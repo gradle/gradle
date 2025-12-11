@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
 import java.util.Objects;
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
+import org.jspecify.annotations.Nullable;
 
 public final class DefaultJavaAppStartScriptGenerationDetails implements JavaAppStartScriptGenerationDetails {
 
@@ -34,8 +33,16 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
     private final String scriptRelPath;
     private final String appNameSystemProperty;
 
-    public DefaultJavaAppStartScriptGenerationDetails(String applicationName, String optsEnvironmentVar, String exitEnvironmentVar, AppEntryPoint entryPoint,
-                                                      List<String> defaultJvmOpts, List<String> classpath, List<String> modulePath, String scriptRelPath, @Nullable String appNameSystemProperty) {
+    public DefaultJavaAppStartScriptGenerationDetails(
+            String applicationName,
+            String optsEnvironmentVar,
+            String exitEnvironmentVar,
+            AppEntryPoint entryPoint,
+            List<String> defaultJvmOpts,
+            List<String> classpath,
+            List<String> modulePath,
+            String scriptRelPath,
+            @Nullable String appNameSystemProperty) {
         this.applicationName = applicationName;
         this.optsEnvironmentVar = optsEnvironmentVar;
         this.exitEnvironmentVar = exitEnvironmentVar;

@@ -18,6 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.HoldsProjectState;
@@ -25,18 +29,15 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.Cast;
 import org.gradle.util.Path;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 public class DefaultProjectPublicationRegistry implements ProjectPublicationRegistry, HoldsProjectState {
     private final SetMultimap<Path, ProjectPublication> publicationsByProjectId = LinkedHashMultimap.create();
-    private final SetMultimap<BuildIdentifier, PublicationForProject<?>> publicationsByBuildId = LinkedHashMultimap.create();
+    private final SetMultimap<BuildIdentifier, PublicationForProject<?>> publicationsByBuildId =
+            LinkedHashMultimap.create();
 
     @Override
     @SuppressWarnings("MixedMutabilityReturnType")
-    public <T extends ProjectPublication> Collection<T> getPublicationsForProject(Class<T> type, Path projectIdentityPath) {
+    public <T extends ProjectPublication> Collection<T> getPublicationsForProject(
+            Class<T> type, Path projectIdentityPath) {
         synchronized (publicationsByProjectId) {
             Collection<ProjectPublication> projectPublications = publicationsByProjectId.get(projectIdentityPath);
             if (projectPublications.isEmpty()) {
@@ -54,7 +55,8 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
 
     @Override
     @SuppressWarnings("MixedMutabilityReturnType")
-    public <T extends ProjectPublication> Collection<PublicationForProject<T>> getPublicationsForBuild(Class<T> type, BuildIdentifier buildIdentity) {
+    public <T extends ProjectPublication> Collection<PublicationForProject<T>> getPublicationsForBuild(
+            Class<T> type, BuildIdentifier buildIdentity) {
         synchronized (publicationsByBuildId) {
             Collection<PublicationForProject<?>> buildPublications = publicationsByBuildId.get(buildIdentity);
             if (buildPublications.isEmpty()) {
@@ -76,7 +78,8 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
             publicationsByProjectId.put(projectIdentity.getBuildTreePath(), publication);
         }
         synchronized (publicationsByBuildId) {
-            DefaultPublicationForProject publicationReference = new DefaultPublicationForProject(publication, projectIdentity);
+            DefaultPublicationForProject publicationReference =
+                    new DefaultPublicationForProject(publication, projectIdentity);
             publicationsByBuildId.put(new DefaultBuildIdentifier(projectIdentity.getBuildPath()), publicationReference);
         }
     }

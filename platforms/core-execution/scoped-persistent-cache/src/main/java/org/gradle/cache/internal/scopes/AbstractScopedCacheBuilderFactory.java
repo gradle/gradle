@@ -16,14 +16,13 @@
 
 package org.gradle.cache.internal.scopes;
 
+import java.io.File;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.util.GradleVersion;
-
-import java.io.File;
 
 /**
  * Abstract implementation of {@link ScopedCacheBuilderFactory}, implements interface using {@link CacheScopeMapping}.

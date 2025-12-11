@@ -17,19 +17,18 @@
 package org.gradle.api.internal.attributes.matching;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
-import org.gradle.internal.Cast;
-import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.IntFunction;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
+import org.gradle.internal.Cast;
+import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This is the heart of the attribute matching algorithm and is used whenever there are multiple candidates to choose from.
@@ -93,7 +92,11 @@ class MultipleCandidateMatcher {
 
     private BitSet remaining;
 
-    MultipleCandidateMatcher(AttributeSelectionSchema schema, ImmutableAttributes[] candidates, ImmutableAttributes requested, AttributeMatchingExplanationBuilder explanationBuilder) {
+    MultipleCandidateMatcher(
+            AttributeSelectionSchema schema,
+            ImmutableAttributes[] candidates,
+            ImmutableAttributes requested,
+            AttributeMatchingExplanationBuilder explanationBuilder) {
         this.schema = schema;
         this.candidates = candidates;
         this.requested = requested;
@@ -121,7 +124,8 @@ class MultipleCandidateMatcher {
         return disambiguateCompatibleCandidates();
     }
 
-    private static @Nullable Object[] getRequestedValues(List<Attribute<?>> requestedAttributes, ImmutableAttributes requested) {
+    private static @Nullable Object[] getRequestedValues(
+            List<Attribute<?>> requestedAttributes, ImmutableAttributes requested) {
         @Nullable Object[] requestedAttributeValues = new Object[requestedAttributes.size()];
         for (int a = 0; a < requestedAttributes.size(); a++) {
             Attribute<?> attribute = requestedAttributes.get(a);
@@ -182,16 +186,9 @@ class MultipleCandidateMatcher {
         return MatchResult.NO_MATCH;
     }
 
-    private boolean unsafeMatchValue(
-        Attribute<?> attribute,
-        Object requested,
-        Object candidate
-    ) {
+    private boolean unsafeMatchValue(Attribute<?> attribute, Object requested, Object candidate) {
         return schema.matchValue(
-            Cast.uncheckedCast(attribute),
-            Cast.uncheckedCast(requested),
-            Cast.uncheckedCast(candidate)
-        );
+                Cast.uncheckedCast(attribute), Cast.uncheckedCast(requested), Cast.uncheckedCast(candidate));
     }
 
     private boolean longestMatchIsSuperSetOfAllOthers() {
@@ -303,7 +300,8 @@ class MultipleCandidateMatcher {
             return;
         }
 
-        Set<Object> matches = unsafeDisambiguate(requestedAttributes.get(a), requestedAttributeValues[a], candidateValues);
+        Set<Object> matches =
+                unsafeDisambiguate(requestedAttributes.get(a), requestedAttributeValues[a], candidateValues);
         if (matches != null && matches.size() < candidateValues.size()) {
             // Remove any candidates which do not satisfy the disambiguation rule.
             for (int c = remaining.nextSetBit(0); c >= 0; c = remaining.nextSetBit(c + 1)) {
@@ -315,16 +313,9 @@ class MultipleCandidateMatcher {
     }
 
     @Nullable
-    Set<Object> unsafeDisambiguate(
-        Attribute<?> attribute,
-        @Nullable Object requested,
-        Set<Object> candidates
-    ) {
+    Set<Object> unsafeDisambiguate(Attribute<?> attribute, @Nullable Object requested, Set<Object> candidates) {
         return schema.disambiguate(
-            Cast.uncheckedCast(attribute),
-            Cast.uncheckedCast(requested),
-            Cast.uncheckedCast(candidates)
-        );
+                Cast.uncheckedCast(attribute), Cast.uncheckedCast(requested), Cast.uncheckedCast(candidates));
     }
 
     /**
@@ -397,7 +388,8 @@ class MultipleCandidateMatcher {
     }
 
     private void disambiguateWithExtraAttributes(Attribute<?>[] extraAttributes) {
-        final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(Arrays.asList(extraAttributes));
+        final AttributeSelectionSchema.PrecedenceResult precedenceResult =
+                schema.orderByPrecedence(Arrays.asList(extraAttributes));
 
         for (int a : precedenceResult.getSortedOrder()) {
             disambiguateExtraAttribute(extraAttributes[a], remaining);

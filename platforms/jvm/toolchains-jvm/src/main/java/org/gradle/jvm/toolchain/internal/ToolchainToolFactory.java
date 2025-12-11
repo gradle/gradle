@@ -24,5 +24,4 @@ import org.jspecify.annotations.Nullable;
 public interface ToolchainToolFactory {
     @Nullable
     <T> T create(Class<T> toolType, JavaToolchain javaToolchain);
-
 }

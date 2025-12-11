@@ -20,6 +20,12 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -51,13 +57,6 @@ import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 public class EclipseDependenciesCreator {
     private static final Logger LOGGER = LoggerFactory.getLogger(EclipseDependenciesCreator.class);
     private final EclipseClasspath classpath;
@@ -66,18 +65,32 @@ public class EclipseDependenciesCreator {
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
     private final boolean inferModulePath;
 
-    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, GradleApiSourcesResolver gradleApiSourcesResolver, boolean inferModulePath) {
+    public EclipseDependenciesCreator(
+            EclipseClasspath classpath,
+            IdeArtifactRegistry ideArtifactRegistry,
+            GradleApiSourcesResolver gradleApiSourcesResolver,
+            boolean inferModulePath) {
         this.classpath = classpath;
         this.projectDependencyBuilder = new ProjectDependencyBuilder(ideArtifactRegistry);
-        this.currentProjectId = ((ProjectInternal) classpath.getProject()).getOwner().getComponentIdentifier();
+        this.currentProjectId =
+                ((ProjectInternal) classpath.getProject()).getOwner().getComponentIdentifier();
         this.gradleApiSourcesResolver = gradleApiSourcesResolver;
         this.inferModulePath = inferModulePath;
     }
 
     public List<AbstractClasspathEntry> createDependencyEntries() {
         EclipseDependenciesVisitor visitor = new EclipseDependenciesVisitor(classpath.getProject());
-        Set<Configuration> testConfigurations = classpath.getTestConfigurations().getOrElse(Collections.emptySet());
-        new IdeDependencySet(classpath.getProject().getDependencies(), ((ProjectInternal) classpath.getProject()).getServices().get(JavaModuleDetector.class), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), inferModulePath, gradleApiSourcesResolver, testConfigurations).visit(visitor);
+        Set<Configuration> testConfigurations =
+                classpath.getTestConfigurations().getOrElse(Collections.emptySet());
+        new IdeDependencySet(
+                        classpath.getProject().getDependencies(),
+                        ((ProjectInternal) classpath.getProject()).getServices().get(JavaModuleDetector.class),
+                        classpath.getPlusConfigurations(),
+                        classpath.getMinusConfigurations(),
+                        inferModulePath,
+                        gradleApiSourcesResolver,
+                        testConfigurations)
+                .visit(visitor);
         return visitor.getDependencies();
     }
 
@@ -87,7 +100,8 @@ public class EclipseDependenciesCreator {
         private final List<AbstractClasspathEntry> modules = new ArrayList<>();
         private final List<AbstractClasspathEntry> files = new ArrayList<>();
         private final Multimap<String, String> pathToSourceSets = collectLibraryToSourceSetMapping();
-        private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
+        private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler =
+                new UnresolvedIdeDependencyHandler();
         private final Project project;
 
         public EclipseDependenciesVisitor(Project project) {
@@ -110,8 +124,10 @@ public class EclipseDependenciesCreator {
         }
 
         @Override
-        public void visitProjectDependency(ResolvedArtifactResult artifact, boolean testDependency, boolean asJavaModule) {
-            ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
+        public void visitProjectDependency(
+                ResolvedArtifactResult artifact, boolean testDependency, boolean asJavaModule) {
+            ProjectComponentIdentifier componentIdentifier =
+                    (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
             if (componentIdentifier.equals(currentProjectId)) {
                 return;
             }
@@ -129,32 +145,57 @@ public class EclipseDependenciesCreator {
                     asJavaModule = EclipseClassPathUtil.isInferModulePath(artifactProject);
                 }
             }
-            projects.add(projectDependencyBuilder.build(componentIdentifier, classpath.getFileReferenceFactory().fromFile(artifact.getFile()), buildDependencies, testDependency, asJavaModule));
+            projects.add(projectDependencyBuilder.build(
+                    componentIdentifier,
+                    classpath.getFileReferenceFactory().fromFile(artifact.getFile()),
+                    buildDependencies,
+                    testDependency,
+                    asJavaModule));
         }
 
         @Override
-        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, boolean testDependency, boolean asJavaModule) {
-            File sourceFile = sources.isEmpty() ? null : sources.iterator().next().getFile();
-            File javaDocFile = javaDoc.isEmpty() ? null : javaDoc.iterator().next().getFile();
-            ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
-            ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier.getModuleIdentifier(), componentIdentifier.getVersion());
-            modules.add(createLibraryEntry(artifact.getFile(), sourceFile, javaDocFile, classpath, moduleVersionIdentifier, pathToSourceSets, testDependency, asJavaModule));
+        public void visitModuleDependency(
+                ResolvedArtifactResult artifact,
+                Set<ResolvedArtifactResult> sources,
+                Set<ResolvedArtifactResult> javaDoc,
+                boolean testDependency,
+                boolean asJavaModule) {
+            File sourceFile =
+                    sources.isEmpty() ? null : sources.iterator().next().getFile();
+            File javaDocFile =
+                    javaDoc.isEmpty() ? null : javaDoc.iterator().next().getFile();
+            ModuleComponentIdentifier componentIdentifier =
+                    (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
+            ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(
+                    componentIdentifier.getModuleIdentifier(), componentIdentifier.getVersion());
+            modules.add(createLibraryEntry(
+                    artifact.getFile(),
+                    sourceFile,
+                    javaDocFile,
+                    classpath,
+                    moduleVersionIdentifier,
+                    pathToSourceSets,
+                    testDependency,
+                    asJavaModule));
         }
 
         @Override
         public void visitFileDependency(ResolvedArtifactResult artifact, boolean testDependency) {
-            files.add(createLibraryEntry(artifact.getFile(), null, null, classpath, null, pathToSourceSets, testDependency, false));
+            files.add(createLibraryEntry(
+                    artifact.getFile(), null, null, classpath, null, pathToSourceSets, testDependency, false));
         }
 
         @Override
         public void visitGradleApiDependency(ResolvedArtifactResult artifact, File sources, boolean testConfiguration) {
-            files.add(createLibraryEntry(artifact.getFile(), sources, null, classpath, null, pathToSourceSets, testConfiguration, false));
+            files.add(createLibraryEntry(
+                    artifact.getFile(), sources, null, classpath, null, pathToSourceSets, testConfiguration, false));
         }
 
         @Override
         public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
             File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency, project.getProjectDir());
-            UnresolvedLibrary unresolvedLib = (UnresolvedLibrary) createUnresolvedLibraryEntry(unresolvedFile, classpath, pathToSourceSets, false, false);
+            UnresolvedLibrary unresolvedLib = (UnresolvedLibrary)
+                    createUnresolvedLibraryEntry(unresolvedFile, classpath, pathToSourceSets, false, false);
             unresolvedLib.setAttemptedSelector(unresolvedDependency.getAttempted());
             files.add(unresolvedLib);
             unresolvedIdeDependencyHandler.log(unresolvedDependency);
@@ -167,7 +208,8 @@ public class EclipseDependenciesCreator {
          * that, so defer that until later.
          */
         public List<AbstractClasspathEntry> getDependencies() {
-            List<AbstractClasspathEntry> dependencies = new ArrayList<>(projects.size() + modules.size() + files.size());
+            List<AbstractClasspathEntry> dependencies =
+                    new ArrayList<>(projects.size() + modules.size() + files.size());
             dependencies.addAll(projects);
             dependencies.addAll(modules);
             dependencies.addAll(files);
@@ -185,7 +227,8 @@ public class EclipseDependenciesCreator {
 
             for (SourceSet sourceSet : sourceSets) {
                 for (File f : collectClasspathFiles(sourceSet)) {
-                    pathToSourceSetNames.put(f.getAbsolutePath(), sourceSet.getName().replace(",", ""));
+                    pathToSourceSetNames.put(
+                            f.getAbsolutePath(), sourceSet.getName().replace(",", ""));
                 }
             }
             return pathToSourceSetNames;
@@ -210,15 +253,39 @@ public class EclipseDependenciesCreator {
             return result.build();
         }
 
-        private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Multimap<String, String> pathToSourceSets, boolean testDependency, boolean asJavaModule) {
-            return createLibraryEntry(binary, source, javadoc, classpath, id, pathToSourceSets, testDependency, asJavaModule, true);
+        private AbstractLibrary createLibraryEntry(
+                File binary,
+                File source,
+                File javadoc,
+                EclipseClasspath classpath,
+                ModuleVersionIdentifier id,
+                Multimap<String, String> pathToSourceSets,
+                boolean testDependency,
+                boolean asJavaModule) {
+            return createLibraryEntry(
+                    binary, source, javadoc, classpath, id, pathToSourceSets, testDependency, asJavaModule, true);
         }
 
-        private AbstractLibrary createUnresolvedLibraryEntry(File binary, EclipseClasspath classpath, Multimap<String, String> pathToSourceSets, boolean testDependency, boolean asJavaModule) {
-            return createLibraryEntry(binary, null, null, classpath, null, pathToSourceSets, testDependency, asJavaModule, false);
+        private AbstractLibrary createUnresolvedLibraryEntry(
+                File binary,
+                EclipseClasspath classpath,
+                Multimap<String, String> pathToSourceSets,
+                boolean testDependency,
+                boolean asJavaModule) {
+            return createLibraryEntry(
+                    binary, null, null, classpath, null, pathToSourceSets, testDependency, asJavaModule, false);
         }
 
-        private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Multimap<String, String> pathToSourceSets, boolean testDependency, boolean asJavaModule, boolean resolved) {
+        private AbstractLibrary createLibraryEntry(
+                File binary,
+                File source,
+                File javadoc,
+                EclipseClasspath classpath,
+                ModuleVersionIdentifier id,
+                Multimap<String, String> pathToSourceSets,
+                boolean testDependency,
+                boolean asJavaModule,
+                boolean resolved) {
             FileReferenceFactory referenceFactory = classpath.getFileReferenceFactory();
 
             FileReference binaryRef = referenceFactory.fromFile(binary);
@@ -241,15 +308,24 @@ public class EclipseDependenciesCreator {
 
             Collection<String> sourceSets = pathToSourceSets.get(binary.getAbsolutePath());
             if (sourceSets != null) {
-                out.getEntryAttributes().put(EclipsePluginConstants.GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME, Joiner.on(',').join(sourceSets));
+                out.getEntryAttributes()
+                        .put(
+                                EclipsePluginConstants.GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME,
+                                Joiner.on(',').join(sourceSets));
             }
 
             if (testDependency) {
-                out.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
+                out.getEntryAttributes()
+                        .put(
+                                EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY,
+                                EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
             }
 
             if (asJavaModule) {
-                out.getEntryAttributes().put(EclipsePluginConstants.MODULE_ATTRIBUTE_KEY, EclipsePluginConstants.MODULE_ATTRIBUTE_VALUE);
+                out.getEntryAttributes()
+                        .put(
+                                EclipsePluginConstants.MODULE_ATTRIBUTE_KEY,
+                                EclipsePluginConstants.MODULE_ATTRIBUTE_VALUE);
             }
 
             return out;
@@ -257,8 +333,8 @@ public class EclipseDependenciesCreator {
     }
 
     private static boolean isNotJar(ResolvedArtifactResult artifact) {
-        LibraryElements libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
-        return libraryElements == null
-            || !libraryElements.getName().equals(LibraryElements.JAR);
+        LibraryElements libraryElements =
+                artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+        return libraryElements == null || !libraryElements.getName().equals(LibraryElements.JAR);
     }
 }

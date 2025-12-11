@@ -16,6 +16,9 @@
 
 package org.gradle.plugin.software.internal;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
@@ -25,15 +28,12 @@ import org.gradle.api.internal.plugins.ProjectFeatureApplyAction;
 import org.gradle.api.internal.plugins.TargetTypeInformation;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
 /**
  * Represents a resolved project type implementation.  Used by declarative DSL to understand which model types should be exposed for
  * which project types.
  */
-public class DefaultProjectFeatureImplementation<T extends Definition<V>, V extends BuildModel> implements ProjectFeatureImplementation<T, V> {
+public class DefaultProjectFeatureImplementation<T extends Definition<V>, V extends BuildModel>
+        implements ProjectFeatureImplementation<T, V> {
     private final String featureName;
     private final Class<T> definitionPublicType;
     private final Class<? extends T> definitionImplementationType;
@@ -43,22 +43,23 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
     private final Class<? extends Plugin<Project>> pluginClass;
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
     private final List<ModelDefault<?>> defaults = new ArrayList<>();
+
     @Nullable
     private final String registeringPluginId;
+
     private final ProjectFeatureApplyAction<T, V, ?> bindingTransform;
 
     public DefaultProjectFeatureImplementation(
-        String featureName,
-        Class<T> definitionPublicType,
-        Class<? extends T> definitionImplementationType,
-        TargetTypeInformation<?> targetDefinitionType,
-        Class<V> buildModelType,
-        Class<? extends V> buildModelImplementationType,
-        Class<? extends Plugin<Project>> pluginClass,
-        Class<? extends Plugin<Settings>> registeringPluginClass,
-        @Nullable String registeringPluginId,
-        ProjectFeatureApplyAction<T, V, ?> bindingTransform
-    ) {
+            String featureName,
+            Class<T> definitionPublicType,
+            Class<? extends T> definitionImplementationType,
+            TargetTypeInformation<?> targetDefinitionType,
+            Class<V> buildModelType,
+            Class<? extends V> buildModelImplementationType,
+            Class<? extends Plugin<Project>> pluginClass,
+            Class<? extends Plugin<Settings>> registeringPluginClass,
+            @Nullable String registeringPluginId,
+            ProjectFeatureApplyAction<T, V, ?> bindingTransform) {
         this.featureName = featureName;
         this.definitionPublicType = definitionPublicType;
         this.definitionImplementationType = definitionImplementationType;
@@ -128,11 +129,9 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
     }
 
     @Override
-    public <M extends ModelDefault.Visitor<?>> void visitModelDefaults(Class<? extends ModelDefault<M>> type, M visitor) {
-        defaults.stream()
-            .filter(type::isInstance)
-            .map(type::cast)
-            .forEach(modelDefault -> modelDefault.visit(visitor));
+    public <M extends ModelDefault.Visitor<?>> void visitModelDefaults(
+            Class<? extends ModelDefault<M>> type, M visitor) {
+        defaults.stream().filter(type::isInstance).map(type::cast).forEach(modelDefault -> modelDefault.visit(visitor));
     }
 
     @Override
@@ -144,7 +143,9 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
             return false;
         }
         DefaultProjectFeatureImplementation<?, ?> that = (DefaultProjectFeatureImplementation<?, ?>) o;
-        return Objects.equals(featureName, that.featureName) && Objects.equals(definitionPublicType, that.definitionPublicType) && Objects.equals(pluginClass, that.pluginClass);
+        return Objects.equals(featureName, that.featureName)
+                && Objects.equals(definitionPublicType, that.definitionPublicType)
+                && Objects.equals(pluginClass, that.pluginClass);
     }
 
     @Override

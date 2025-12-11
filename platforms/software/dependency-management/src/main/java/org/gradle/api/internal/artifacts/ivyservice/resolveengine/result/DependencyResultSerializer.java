@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import java.util.Map;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -25,32 +26,31 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-import java.util.Map;
-
 public class DependencyResultSerializer {
-    private final static byte SUCCESSFUL = 0;
-    private final static byte SUCCESSFUL_NOTHING_SELECTED = 1;
-    private final static byte FAILED = 2;
+    private static final byte SUCCESSFUL = 0;
+    private static final byte SUCCESSFUL_NOTHING_SELECTED = 1;
+    private static final byte FAILED = 2;
 
     private final ComponentSelectionReasonSerializer componentSelectionReasonSerializer;
     private final Serializer<ComponentSelector> componentSelectorSerializer;
 
     public DependencyResultSerializer(
-        ComponentSelectionReasonSerializer componentSelectionReasonSerializer,
-        Serializer<ComponentSelector> componentSelectorSerializer
-    ) {
+            ComponentSelectionReasonSerializer componentSelectionReasonSerializer,
+            Serializer<ComponentSelector> componentSelectorSerializer) {
         this.componentSelectionReasonSerializer = componentSelectionReasonSerializer;
         this.componentSelectorSerializer = componentSelectorSerializer;
     }
 
-    public ResolvedGraphDependency read(Decoder decoder, Map<ComponentSelector, ModuleVersionResolveException> failures) throws Exception {
+    public ResolvedGraphDependency read(Decoder decoder, Map<ComponentSelector, ModuleVersionResolveException> failures)
+            throws Exception {
         ComponentSelector requested = componentSelectorSerializer.read(decoder);
         boolean constraint = decoder.readBoolean();
         byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
             long selectedId = decoder.readSmallLong();
             long selectedVariantId = decoder.readSmallLong();
-            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint, selectedVariantId);
+            return new DetachedResolvedGraphDependency(
+                    requested, selectedId, null, null, constraint, selectedVariantId);
         } else if (resultByte == SUCCESSFUL_NOTHING_SELECTED) {
             long selectedId = decoder.readSmallLong();
             return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint, null);

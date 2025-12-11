@@ -16,8 +16,9 @@
 
 package org.gradle.internal.instrumentation.processor.modelreader.impl;
 
-import org.objectweb.asm.Type;
-
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.type.ArrayType;
@@ -34,9 +35,7 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.UnionType;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.AbstractTypeVisitor8;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import org.objectweb.asm.Type;
 
 public class TypeMirrorToType extends AbstractTypeVisitor8<Type, Void> {
 
@@ -95,11 +94,16 @@ public class TypeMirrorToType extends AbstractTypeVisitor8<Type, Void> {
         }
         Collections.reverse(typeNesting);
 
-        // TODO: replace with javax.lang.model.util.Elements.getBinaryName, which is a more universal way but requires refactoring and passing the utility around
+        // TODO: replace with javax.lang.model.util.Elements.getBinaryName, which is a more universal way but requires
+        // refactoring and passing the utility around
         StringBuilder typeName = new StringBuilder("L");
         typeNesting.forEach(element -> {
             if (element instanceof PackageElement) {
-                typeName.append(((PackageElement) element).getQualifiedName().toString().replace(".", "/")).append("/");
+                typeName.append(((PackageElement) element)
+                                .getQualifiedName()
+                                .toString()
+                                .replace(".", "/"))
+                        .append("/");
             } else {
                 typeName.append(element.getSimpleName().toString());
                 if (element != typeNesting.get(typeNesting.size() - 1)) {

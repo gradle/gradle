@@ -16,7 +16,13 @@
 
 package org.gradle.api.internal.artifacts;
 
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector;
+
 import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -29,21 +35,13 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector;
-
 public class ModuleComponentSelectorSerializer implements Serializer<ModuleComponentSelector> {
     private final AttributeContainerSerializer attributeContainerSerializer;
     private final CapabilitySelectorSerializer capabilitySelectorSerializer;
 
     public ModuleComponentSelectorSerializer(
-        AttributeContainerSerializer attributeContainerSerializer,
-        CapabilitySelectorSerializer capabilitySelectorSerializer
-    ) {
+            AttributeContainerSerializer attributeContainerSerializer,
+            CapabilitySelectorSerializer capabilitySelectorSerializer) {
         this.attributeContainerSerializer = attributeContainerSerializer;
         this.capabilitySelectorSerializer = capabilitySelectorSerializer;
     }
@@ -55,7 +53,8 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         VersionConstraint versionConstraint = readVersionConstraint(decoder);
         ImmutableAttributes attributes = readAttributes(decoder);
         ImmutableSet<CapabilitySelector> capabilitySelectors = readCapabilitySelectors(decoder);
-        return newSelector(DefaultModuleIdentifier.newId(group, name), versionConstraint, attributes, capabilitySelectors);
+        return newSelector(
+                DefaultModuleIdentifier.newId(group, name), versionConstraint, attributes, capabilitySelectors);
     }
 
     public VersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
@@ -76,11 +75,18 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getModule());
         writeVersionConstraint(encoder, value.getVersionConstraint());
-        writeAttributes(encoder, ((AttributeContainerInternal)value.getAttributes()).asImmutable());
+        writeAttributes(encoder, ((AttributeContainerInternal) value.getAttributes()).asImmutable());
         writeCapabilitySelectors(encoder, value.getCapabilitySelectors());
     }
 
-    public void write(Encoder encoder, String group, String module, VersionConstraint version, ImmutableAttributes attributes, Set<CapabilitySelector> capabilitySelectors) throws IOException {
+    public void write(
+            Encoder encoder,
+            String group,
+            String module,
+            VersionConstraint version,
+            ImmutableAttributes attributes,
+            Set<CapabilitySelector> capabilitySelectors)
+            throws IOException {
         encoder.writeString(group);
         encoder.writeString(module);
         writeVersionConstraint(encoder, version);
@@ -120,7 +126,8 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         return builder.build();
     }
 
-    private void writeCapabilitySelectors(Encoder encoder, Set<CapabilitySelector> capabilitySelectors) throws IOException {
+    private void writeCapabilitySelectors(Encoder encoder, Set<CapabilitySelector> capabilitySelectors)
+            throws IOException {
         encoder.writeSmallInt(capabilitySelectors.size());
         for (CapabilitySelector capabilitySelector : capabilitySelectors) {
             capabilitySelectorSerializer.write(encoder, capabilitySelector);

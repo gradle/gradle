@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import java.util.function.Function;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildCancellationToken;
@@ -39,8 +40,6 @@ import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
 import org.gradle.util.Path;
 
-import java.util.function.Function;
-
 public class DefaultNestedBuildTree implements NestedBuildTree {
 
     private final BuildInvocationScopeId buildInvocationScopeId;
@@ -52,14 +51,13 @@ public class DefaultNestedBuildTree implements NestedBuildTree {
     private final BuildCancellationToken buildCancellationToken;
 
     public DefaultNestedBuildTree(
-        BuildInvocationScopeId buildInvocationScopeId,
-        BuildDefinition buildDefinition,
-        Path identityPath,
-        BuildState owner,
-        GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
-        CrossBuildSessionState crossBuildSessionState,
-        BuildCancellationToken buildCancellationToken
-    ) {
+            BuildInvocationScopeId buildInvocationScopeId,
+            BuildDefinition buildDefinition,
+            Path identityPath,
+            BuildState owner,
+            GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
+            CrossBuildSessionState crossBuildSessionState,
+            BuildCancellationToken buildCancellationToken) {
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.buildDefinition = buildDefinition;
         this.identityPath = identityPath;
@@ -73,17 +71,28 @@ public class DefaultNestedBuildTree implements NestedBuildTree {
     public <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction) {
         StartParameterInternal startParameter = buildDefinition.getStartParameter();
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-        BuildSessionState session = new BuildSessionState(userHomeDirServiceRegistry, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
+        BuildSessionState session = new BuildSessionState(
+                userHomeDirServiceRegistry,
+                crossBuildSessionState,
+                startParameter,
+                buildRequestMetaData,
+                ClassPath.EMPTY,
+                buildCancellationToken,
+                buildRequestMetaData.getClient(),
+                new NoOpBuildEventConsumer());
         try {
             ServiceRegistry buildSessionServices = session.getServices();
             buildSessionServices.get(BuildLayoutValidator.class).validate(startParameter);
             RunTasksRequirements buildActionRequirements = new RunTasksRequirements(startParameter);
-            BuildModelParameters buildModelParameters = buildSessionServices.get(BuildModelParametersFactory.class)
-                .parametersForNestedBuildTree(buildActionRequirements);
+            BuildModelParameters buildModelParameters = buildSessionServices
+                    .get(BuildModelParametersFactory.class)
+                    .parametersForNestedBuildTree(buildActionRequirements);
             // Let the nested build tree inherits the same invocation ID
-            BuildTreeState buildTree = new BuildTreeState(buildSessionServices, buildActionRequirements, buildModelParameters, buildInvocationScopeId);
+            BuildTreeState buildTree = new BuildTreeState(
+                    buildSessionServices, buildActionRequirements, buildModelParameters, buildInvocationScopeId);
             try {
-                RootOfNestedBuildTree rootBuild = new RootOfNestedBuildTree(buildDefinition, identityPath, owner, buildTree);
+                RootOfNestedBuildTree rootBuild =
+                        new RootOfNestedBuildTree(buildDefinition, identityPath, owner, buildTree);
                 rootBuild.attach();
                 return rootBuild.run(buildAction);
             } finally {

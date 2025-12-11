@@ -30,7 +30,8 @@ public class TaskInstantiator implements NamedEntityInstantiator<Task> {
     private final ITaskFactory taskFactory;
     private final ProjectInternal project;
 
-    public TaskInstantiator(TaskIdentityFactory taskIdentityFactory, ITaskFactory taskFactory, ProjectInternal project) {
+    public TaskInstantiator(
+            TaskIdentityFactory taskIdentityFactory, ITaskFactory taskFactory, ProjectInternal project) {
         this.taskIdentityFactory = taskIdentityFactory;
         this.taskFactory = taskFactory;
         this.project = project;

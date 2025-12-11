@@ -16,14 +16,13 @@
 
 package org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.TransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.Transform;
-
-import javax.inject.Inject;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Factory for creating {@link ArtifactTransformReportModel} instances which represent the Artifact Transforms present in a project.
@@ -38,8 +37,8 @@ public abstract class ArtifactTransformReportModelFactory {
 
     public ArtifactTransformReportModel buildForProject(Project project) {
         List<ReportArtifactTransform> artifactTransformData = variantTransformRegistry.getRegistrations().stream()
-            .map(this::convertArtifactTransform)
-            .collect(Collectors.toList());
+                .map(this::convertArtifactTransform)
+                .collect(Collectors.toList());
 
         return new ArtifactTransformReportModel(project.getDisplayName(), artifactTransformData);
     }
@@ -47,11 +46,10 @@ public abstract class ArtifactTransformReportModelFactory {
     private ReportArtifactTransform convertArtifactTransform(TransformRegistration transformRegistration) {
         Transform transform = transformRegistration.getTransformStep().getTransform();
         return new ReportArtifactTransform(
-            transform.getImplementationClass().getSimpleName(),
-            transform.getImplementationClass(),
-            transform.getFromAttributes(),
-            transform.getToAttributes(),
-            transform.isCacheable()
-        );
+                transform.getImplementationClass().getSimpleName(),
+                transform.getImplementationClass(),
+                transform.getFromAttributes(),
+                transform.getToAttributes(),
+                transform.isCacheable());
     }
 }

@@ -17,10 +17,6 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.PropertyAccessorType;
-import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -31,6 +27,9 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 
 public class PropertyAccessorExtractionContext {
     private final PropertyAccessorType accessorType;
@@ -103,7 +102,7 @@ public class PropertyAccessorExtractionContext {
 
     public List<Method> getGetters() {
         List<Method> getters;
-        if (mostSpecificDeclaration.getReturnType()==Boolean.TYPE) {
+        if (mostSpecificDeclaration.getReturnType() == Boolean.TYPE) {
             getters = new ArrayList<>();
             for (Method getter : declaringMethods) {
                 if (Proxy.isProxyClass(getter.getDeclaringClass())) {
@@ -119,6 +118,10 @@ public class PropertyAccessorExtractionContext {
 
     @Override
     public String toString() {
-        return String.format("%s.%s()/%s", mostSpecificDeclaration.getDeclaringClass().getSimpleName(), mostSpecificDeclaration.getName(), accessorType);
+        return String.format(
+                "%s.%s()/%s",
+                mostSpecificDeclaration.getDeclaringClass().getSimpleName(),
+                mostSpecificDeclaration.getName(),
+                accessorType);
     }
 }

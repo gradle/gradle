@@ -23,7 +23,9 @@ public class ConstantDependentsConsumer {
     private final BiConsumer<String, String> accessibleDependentDelegate;
     private final BiConsumer<String, String> privateDependentDelegate;
 
-    public ConstantDependentsConsumer(BiConsumer<String, String> accessibleDependentConsumer, BiConsumer<String, String> privateDependentConsumer) {
+    public ConstantDependentsConsumer(
+            BiConsumer<String, String> accessibleDependentConsumer,
+            BiConsumer<String, String> privateDependentConsumer) {
         this.accessibleDependentDelegate = accessibleDependentConsumer;
         this.privateDependentDelegate = privateDependentConsumer;
     }
@@ -54,5 +56,4 @@ public class ConstantDependentsConsumer {
     public void consumePrivateDependent(String constantOrigin, String constantDependent) {
         privateDependentDelegate.accept(constantOrigin, constantDependent);
     }
-
 }

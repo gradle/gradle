@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.internal.component.model.VariantIdentifier;
+import java.io.File;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-
-import java.io.File;
+import org.gradle.internal.component.model.VariantIdentifier;
 
 public class ArtifactVisitorToResolvedFileVisitorAdapter implements ArtifactVisitor {
     private final ResolvedFileVisitor visitor;
@@ -42,7 +41,12 @@ public class ArtifactVisitorToResolvedFileVisitorAdapter implements ArtifactVisi
     }
 
     @Override
-    public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+    public void visitArtifact(
+            DisplayName artifactSetName,
+            VariantIdentifier sourceVariantId,
+            ImmutableAttributes attributes,
+            ImmutableCapabilities capabilities,
+            ResolvableArtifact artifact) {
         visitor.visitFile(artifact.getFile());
     }
 

@@ -15,12 +15,11 @@
  */
 package org.gradle.internal.hash;
 
-import org.gradle.internal.UncheckedException;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import org.gradle.internal.UncheckedException;
 
 class ChecksumHasher implements FileHasher {
 
@@ -51,5 +50,4 @@ class ChecksumHasher implements FileHasher {
     public HashCode hash(File file, long length, long lastModified) {
         return hash(file);
     }
-
 }

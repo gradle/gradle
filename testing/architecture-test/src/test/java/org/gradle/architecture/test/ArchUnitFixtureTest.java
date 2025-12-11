@@ -16,6 +16,14 @@
 
 package org.gradle.architecture.test;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrReturnTypesThatAre;
+import static org.gradle.architecture.test.ArchUnitFixture.primitive;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
@@ -23,6 +31,13 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.gradlebuild.AbstractClass;
 import org.gradlebuild.AllowedMethodTypesClass;
 import org.gradlebuild.ConcreteClass;
@@ -35,22 +50,6 @@ import org.gradlebuild.nonnullapi.notinpackage.NullUnmarkedApiType;
 import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrReturnTypesThatAre;
-import static org.gradle.architecture.test.ArchUnitFixture.primitive;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @NullMarked
 public class ArchUnitFixtureTest {
@@ -70,7 +69,8 @@ public class ArchUnitFixtureTest {
 
     @Test
     public void reports_invalid_parameter_types() {
-        ConditionEvent event = checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes("invalidParameterType", String.class, File.class);
+        ConditionEvent event = checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes(
+                "invalidParameterType", String.class, File.class);
 
         assertHasViolation(event, File.class);
     }
@@ -105,7 +105,8 @@ public class ArchUnitFixtureTest {
 
     @Test
     public void reports_invalid_generic_type_of_parameter() {
-        ConditionEvent event = checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes("invalidTypeParameterInParameterType", String.class, List.class);
+        ConditionEvent event = checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes(
+                "invalidTypeParameterInParameterType", String.class, List.class);
 
         // TODO: Should detect the violation
         Assertions.assertThrows(AssertionError.class, () -> assertHasViolation(event, File.class));
@@ -135,11 +136,13 @@ public class ArchUnitFixtureTest {
         ConditionEvents events = checkMethodCondition(ArchUnitFixture.useJSpecifyNullable(), WrongNullable.class);
         assertTrue(events.containViolation());
         assertThat(events.getViolating().size()).isEqualTo(2);
-        List<String> descriptions = events.getViolating().stream().map(ArchUnitFixtureTest::eventDescription).collect(Collectors.toList());
-        assertThat(descriptions).containsExactlyInAnyOrder(
-                "org.gradlebuild.WrongNullable.returnsNull() is using forbidden Nullable annotations: org.jetbrains.annotations.Nullable",
-                "parameter 0 for org.gradlebuild.WrongNullable.acceptsNull(java.lang.String) is using forbidden Nullable annotations: org.jetbrains.annotations.Nullable"
-        );
+        List<String> descriptions = events.getViolating().stream()
+                .map(ArchUnitFixtureTest::eventDescription)
+                .collect(Collectors.toList());
+        assertThat(descriptions)
+                .containsExactlyInAnyOrder(
+                        "org.gradlebuild.WrongNullable.returnsNull() is using forbidden Nullable annotations: org.jetbrains.annotations.Nullable",
+                        "parameter 0 for org.gradlebuild.WrongNullable.acceptsNull(java.lang.String) is using forbidden Nullable annotations: org.jetbrains.annotations.Nullable");
     }
 
     @Test
@@ -148,7 +151,9 @@ public class ArchUnitFixtureTest {
         assertNoViolation(checkClassCondition(condition, NullMarkedApiType.class));
         ConditionEvent event = checkClassCondition(condition, NotNullMarkedApiType.class);
         assertTrue(event.isViolation());
-        assertThat(eventDescription(event)).startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked");
+        assertThat(eventDescription(event))
+                .startsWith(
+                        "Class <org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked");
         // Cannot test on-package (not on the class) annotation, due to `ClasFileImporter` limitations
     }
 
@@ -161,17 +166,22 @@ public class ArchUnitFixtureTest {
         ConditionEvent notMarkedEvent = checkClassCondition(condition, NotNullMarkedApiType.class);
         assertTrue(notMarkedEvent.isViolation());
         assertThat(eventDescription(notMarkedEvent))
-            .startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked");
+                .startsWith(
+                        "Class <org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked");
 
         ConditionEvent unmarkedEvent = checkClassCondition(condition, NullUnmarkedApiType.class);
         assertTrue(unmarkedEvent.isViolation());
         assertThat(eventDescription(unmarkedEvent))
-            .startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NullUnmarkedApiType> is annotated with @NullUnmarked");
+                .startsWith(
+                        "Class <org.gradlebuild.nonnullapi.notinpackage.NullUnmarkedApiType> is annotated with @NullUnmarked");
 
-        ConditionEvents unmarkedMethodEvents = checkMethodCondition(not(ArchUnitFixture.beNullUnmarkedMethod()), NullUnmarkedApiMethod.class);
+        ConditionEvents unmarkedMethodEvents =
+                checkMethodCondition(not(ArchUnitFixture.beNullUnmarkedMethod()), NullUnmarkedApiMethod.class);
         assertEquals(1, unmarkedMethodEvents.getViolating().size());
-        assertThat(eventDescription(unmarkedMethodEvents.getViolating().iterator().next()))
-            .startsWith("Method <org.gradlebuild.nonnullapi.notinpackage.NullUnmarkedApiMethod.calculateSomeString()> is annotated with @NullUnmarked");
+        assertThat(eventDescription(
+                        unmarkedMethodEvents.getViolating().iterator().next()))
+                .startsWith(
+                        "Method <org.gradlebuild.nonnullapi.notinpackage.NullUnmarkedApiMethod.calculateSomeString()> is annotated with @NullUnmarked");
     }
 
     private static String eventDescription(ConditionEvent event) {
@@ -199,8 +209,12 @@ public class ArchUnitFixtureTest {
         return checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes(methodName, String.class, String.class);
     }
 
-    private ConditionEvent checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes(String methodName, Class<?>... arguments) {
-        ArchCondition<JavaMethod> archCondition = haveOnlyArgumentsOrReturnTypesThatAre(resideInAnyPackage("java.lang").or(primitive).or(resideInAnyPackage("java.util")).as("allowed"));
+    private ConditionEvent checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes(
+            String methodName, Class<?>... arguments) {
+        ArchCondition<JavaMethod> archCondition = haveOnlyArgumentsOrReturnTypesThatAre(resideInAnyPackage("java.lang")
+                .or(primitive)
+                .or(resideInAnyPackage("java.util"))
+                .as("allowed"));
         JavaClass javaClass = new ClassFileImporter().importClass(AllowedMethodTypesClass.class);
         JavaMethod validMethod = javaClass.getMethod(methodName, arguments);
         CollectingConditionEvents events = new CollectingConditionEvents();
@@ -216,7 +230,10 @@ public class ArchUnitFixtureTest {
     private static void assertHasViolation(ConditionEvent event, Class<?> violatedType) {
         assertThat(event.isViolation()).isTrue();
         String description = event.getDescriptionLines().get(0);
-        assertThat(description).matches(String.format(".* has arguments/return type %s that is not allowed in .*", Pattern.quote(violatedType.getName())));
+        assertThat(description)
+                .matches(String.format(
+                        ".* has arguments/return type %s that is not allowed in .*",
+                        Pattern.quote(violatedType.getName())));
     }
 
     private static class CollectingConditionEvents implements ConditionEvents {

@@ -25,7 +25,9 @@ class DependencyLockingNotationConverter {
     ModuleComponentIdentifier convertFromLockNotation(String notation) {
         String[] parts = notation.split(":");
         if (parts.length != 3) {
-            throw new IllegalArgumentException("The module notation does not respect the lock file format of 'group:name:version' - received '" + notation + "'");
+            throw new IllegalArgumentException(
+                    "The module notation does not respect the lock file format of 'group:name:version' - received '"
+                            + notation + "'");
         }
         return DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(parts[0], parts[1]), parts[2]);
     }

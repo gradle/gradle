@@ -16,22 +16,24 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.INCREMENTAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZE_LINE_ENDINGS;
+
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.internal.execution.model.annotations.AbstractInputFilePropertyAnnotationHandler;
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.properties.InputFilePropertyType;
 
-import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
-import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.INCREMENTAL;
-import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
-import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZE_LINE_ENDINGS;
-
-public class InputArtifactAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler implements InjectAnnotationHandler {
+public class InputArtifactAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler
+        implements InjectAnnotationHandler {
     public InputArtifactAnnotationHandler() {
         super(
-            InputArtifact.class,
-            InputFilePropertyType.FILE,
-            ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS));
+                InputArtifact.class,
+                InputFilePropertyType.FILE,
+                ModifierAnnotationCategory.annotationsOf(
+                        INCREMENTAL, NORMALIZATION, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS));
     }
 }

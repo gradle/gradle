@@ -24,14 +24,15 @@ import java.util.List;
  */
 public class JavaVersionParser {
 
-    public static int parseCurrentMajorVersion()  {
+    public static int parseCurrentMajorVersion() {
         return parseMajorVersion(System.getProperty("java.version"));
     }
 
     public static int parseMajorVersion(String fullVersion) {
         int firstNonVersionCharIndex = findFirstNonVersionCharIndex(fullVersion);
 
-        String[] versionStrings = fullVersion.substring(0, firstNonVersionCharIndex).split("\\.");
+        String[] versionStrings =
+                fullVersion.substring(0, firstNonVersionCharIndex).split("\\.");
         List<Integer> versions = convertToNumber(fullVersion, versionStrings);
 
         if (isLegacyVersion(versions)) {

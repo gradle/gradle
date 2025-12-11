@@ -15,6 +15,10 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
+import java.io.File;
+import java.util.Date;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -36,11 +40,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Date;
-import java.util.stream.Collectors;
-
 public class DefaultJvmPluginServices implements JvmPluginServices {
     private final ObjectFactory objectFactory;
     private final ProviderFactory providerFactory;
@@ -49,11 +48,10 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
     @Inject
     public DefaultJvmPluginServices(
-        ObjectFactory objectFactory,
-        ProviderFactory providerFactory,
-        InstanceGenerator instanceGenerator,
-        TaskDependencyFactory taskDependencyFactory
-    ) {
+            ObjectFactory objectFactory,
+            ProviderFactory providerFactory,
+            InstanceGenerator instanceGenerator,
+            TaskDependencyFactory taskDependencyFactory) {
         this.objectFactory = objectFactory;
         this.providerFactory = providerFactory;
         this.instanceGenerator = instanceGenerator;
@@ -63,47 +61,45 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     @Override
     public void configureAsCompileClasspath(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
-            configuration,
-            details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM()
-        );
+                configuration,
+                details ->
+                        details.library().apiUsage().withExternalDependencies().preferStandardJVM());
     }
 
     @Override
     public void configureAsRuntimeClasspath(HasConfigurableAttributes<?> configuration) {
-        configureAttributes(
-            configuration,
-            details -> details.library().runtimeUsage().asJar().withExternalDependencies().preferStandardJVM()
-        );
+        configureAttributes(configuration, details -> details.library()
+                .runtimeUsage()
+                .asJar()
+                .withExternalDependencies()
+                .preferStandardJVM());
     }
 
     @Override
     public void configureAsSources(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
-            configuration,
-            details -> details.withExternalDependencies().asSources()
-        );
+                configuration, details -> details.withExternalDependencies().asSources());
     }
 
     @Override
     public void configureAsApiElements(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
-            configuration,
-            details -> details.library().apiUsage().asJar().withExternalDependencies()
-        );
+                configuration, details -> details.library().apiUsage().asJar().withExternalDependencies());
     }
 
     @Override
     public void configureAsRuntimeElements(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
-            configuration,
-            details -> details.library().runtimeUsage().asJar().withExternalDependencies()
-        );
+                configuration,
+                details -> details.library().runtimeUsage().asJar().withExternalDependencies());
     }
 
     @Override
-    public <T> void configureAttributes(HasConfigurableAttributes<T> configurable, Action<? super JvmEcosystemAttributesDetails> configuration) {
+    public <T> void configureAttributes(
+            HasConfigurableAttributes<T> configurable, Action<? super JvmEcosystemAttributesDetails> configuration) {
         AttributeContainerInternal attributes = (AttributeContainerInternal) configurable.getAttributes();
-        DefaultJvmEcosystemAttributesDetails details = instanceGenerator.newInstance(DefaultJvmEcosystemAttributesDetails.class, objectFactory, attributes);
+        DefaultJvmEcosystemAttributesDetails details =
+                instanceGenerator.newInstance(DefaultJvmEcosystemAttributesDetails.class, objectFactory, attributes);
         configuration.execute(details);
     }
 
@@ -126,13 +122,22 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     @Override
     public ConfigurationVariant configureResourcesDirectoryVariant(Configuration configuration, SourceSet sourceSet) {
         ConfigurationPublications publications = configuration.getOutgoing();
-        ConfigurationVariantInternal variant = (ConfigurationVariantInternal) publications.getVariants().maybeCreate("resources");
-        variant.getDescription().convention("Directories containing assembled resource files for " + sourceSet.getName() + ".");
-        variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.RESOURCES));
+        ConfigurationVariantInternal variant =
+                (ConfigurationVariantInternal) publications.getVariants().maybeCreate("resources");
+        variant.getDescription()
+                .convention("Directories containing assembled resource files for " + sourceSet.getName() + ".");
+        variant.getAttributes()
+                .attribute(
+                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        objectFactory.named(LibraryElements.class, LibraryElements.RESOURCES));
         DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
         DefaultSourceSetOutput.DirectoryContribution resourcesContribution = output.getResourcesContribution();
         if (resourcesContribution != null) {
-            variant.artifact(new LazyJavaDirectoryArtifact(taskDependencyFactory, ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, resourcesContribution.getTask(), resourcesContribution.getDirectory()));
+            variant.artifact(new LazyJavaDirectoryArtifact(
+                    taskDependencyFactory,
+                    ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY,
+                    resourcesContribution.getTask(),
+                    resourcesContribution.getDirectory()));
         }
         return variant;
     }
@@ -140,14 +145,23 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     @Override
     public ConfigurationVariant configureClassesDirectoryVariant(Configuration configuration, SourceSet sourceSet) {
         ConfigurationPublications publications = configuration.getOutgoing();
-        ConfigurationVariantInternal variant = (ConfigurationVariantInternal) publications.getVariants().maybeCreate("classes");
-        variant.getDescription().convention("Directories containing compiled class files for " + sourceSet.getName() + ".");
-        variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
-        variant.artifactsProvider(() ->  {
+        ConfigurationVariantInternal variant =
+                (ConfigurationVariantInternal) publications.getVariants().maybeCreate("classes");
+        variant.getDescription()
+                .convention("Directories containing compiled class files for " + sourceSet.getName() + ".");
+        variant.getAttributes()
+                .attribute(
+                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
+        variant.artifactsProvider(() -> {
             FileCollection classesDirs = sourceSet.getOutput().getClassesDirs();
             return classesDirs.getFiles().stream()
-                .map(file -> new LazyJavaDirectoryArtifact(taskDependencyFactory, ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, providerFactory.provider(() -> file)))
-                .collect(Collectors.toList());
+                    .map(file -> new LazyJavaDirectoryArtifact(
+                            taskDependencyFactory,
+                            ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
+                            classesDirs,
+                            providerFactory.provider(() -> file)))
+                    .collect(Collectors.toList());
         });
         return variant;
     }
@@ -160,7 +174,11 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         private final String type;
         private final Provider<File> fileProvider;
 
-        public LazyJavaDirectoryArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, Provider<File> fileProvider) {
+        public LazyJavaDirectoryArtifact(
+                TaskDependencyFactory taskDependencyFactory,
+                String type,
+                Object dependency,
+                Provider<File> fileProvider) {
             super(taskDependencyFactory, dependency);
             this.type = type;
             this.fileProvider = fileProvider;

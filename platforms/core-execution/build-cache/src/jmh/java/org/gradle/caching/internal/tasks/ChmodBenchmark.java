@@ -16,6 +16,23 @@
 
 package org.gradle.caching.internal.tasks;
 
+import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_WRITE;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_READ;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.EnumSet;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.io.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
@@ -32,24 +49,6 @@ import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.EnumSet;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
-import static java.nio.file.attribute.PosixFilePermission.GROUP_WRITE;
-import static java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE;
-import static java.nio.file.attribute.PosixFilePermission.OTHERS_READ;
-import static java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
-
 @Fork(1)
 @Warmup(iterations = 10)
 @Measurement(iterations = 10)
@@ -57,14 +56,12 @@ import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 @SuppressWarnings("OctalInteger")
 public class ChmodBenchmark {
     private static final int DEFAULT_JAVA6_FILE_PERMISSIONS = 0644;
-    private static final Set<PosixFilePermission> DEFAULT_JAVA7_FILE_PERMISSIONS = EnumSet.of(
-        OWNER_READ, OWNER_WRITE, GROUP_READ, OTHERS_READ
-    );
+    private static final Set<PosixFilePermission> DEFAULT_JAVA7_FILE_PERMISSIONS =
+            EnumSet.of(OWNER_READ, OWNER_WRITE, GROUP_READ, OTHERS_READ);
 
     private static final int WEIRD_JAVA6_FILE_PERMISSIONS = 0123;
-    private static final Set<PosixFilePermission> WEIRD_JAVA7_FILE_PERMISSIONS = EnumSet.of(
-        OWNER_EXECUTE, GROUP_WRITE, OTHERS_WRITE, OTHERS_EXECUTE
-    );
+    private static final Set<PosixFilePermission> WEIRD_JAVA7_FILE_PERMISSIONS =
+            EnumSet.of(OWNER_EXECUTE, GROUP_WRITE, OTHERS_WRITE, OTHERS_EXECUTE);
 
     Path tempRootDir;
     Path tempDirPath;

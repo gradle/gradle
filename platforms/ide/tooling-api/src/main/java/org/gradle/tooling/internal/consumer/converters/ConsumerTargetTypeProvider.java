@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.tooling.internal.adapter.TargetTypeProvider;
 import org.gradle.tooling.internal.protocol.cpp.InternalCppApplication;
 import org.gradle.tooling.internal.protocol.cpp.InternalCppExecutable;
@@ -34,15 +36,14 @@ import org.gradle.tooling.model.cpp.CppTestSuite;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class ConsumerTargetTypeProvider implements TargetTypeProvider {
     private final Map<String, Class<?>> configuredTargetTypes = new HashMap<String, Class<?>>();
 
     public ConsumerTargetTypeProvider() {
-        configuredTargetTypes.put(IdeaSingleEntryLibraryDependency.class.getCanonicalName(), IdeaSingleEntryLibraryDependency.class);
-        configuredTargetTypes.put(IdeaModuleDependency.class.getCanonicalName(), BackwardsCompatibleIdeaModuleDependency.class);
+        configuredTargetTypes.put(
+                IdeaSingleEntryLibraryDependency.class.getCanonicalName(), IdeaSingleEntryLibraryDependency.class);
+        configuredTargetTypes.put(
+                IdeaModuleDependency.class.getCanonicalName(), BackwardsCompatibleIdeaModuleDependency.class);
     }
 
     @Override

@@ -39,5 +39,6 @@ public interface ProjectFeatureApplicator {
      * @param <T> the type of the public model object for the feature
      * @since 8.12
      */
-    <T extends Definition<V>, V extends BuildModel> T applyFeatureTo(DynamicObjectAware target, ProjectFeatureImplementation<T, V> projectFeature);
+    <T extends Definition<V>, V extends BuildModel> T applyFeatureTo(
+            DynamicObjectAware target, ProjectFeatureImplementation<T, V> projectFeature);
 }

@@ -45,5 +45,4 @@ public class CachingVersionSelectorScheme implements VersionSelectorScheme {
     public VersionSelector complementForRejection(VersionSelector selector) {
         return delegate.complementForRejection(selector);
     }
-
 }

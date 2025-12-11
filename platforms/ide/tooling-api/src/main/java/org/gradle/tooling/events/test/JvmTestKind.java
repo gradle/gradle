@@ -21,7 +21,6 @@ package org.gradle.tooling.events.test;
  * @since 2.4
  */
 public enum JvmTestKind {
-
     SUITE("Test suite"),
     ATOMIC("Atomic test"),
     UNKNOWN("Unknown test kind");
@@ -40,5 +39,4 @@ public enum JvmTestKind {
     public String getLabel() {
         return label;
     }
-
 }

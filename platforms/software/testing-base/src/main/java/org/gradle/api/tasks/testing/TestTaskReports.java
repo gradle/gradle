@@ -41,5 +41,4 @@ public interface TestTaskReports extends ReportContainer<Report> {
      */
     @Internal
     JUnitXmlReport getJunitXml();
-
 }

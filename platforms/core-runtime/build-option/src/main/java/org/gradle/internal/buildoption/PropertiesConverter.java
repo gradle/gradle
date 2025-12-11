@@ -16,9 +16,8 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.cli.CommandLineArgumentException;
-
 import java.util.Map;
+import org.gradle.cli.CommandLineArgumentException;
 
 public interface PropertiesConverter<T> {
     T convert(Map<String, String> properties, T target) throws CommandLineArgumentException;

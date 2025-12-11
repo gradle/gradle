@@ -18,6 +18,8 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
@@ -30,9 +32,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-
-import java.util.List;
-import java.util.Set;
 
 public abstract class AbstractConfigurationMetadata implements ModuleConfigurationMetadata {
 
@@ -54,19 +53,18 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     private Factory<List<ModuleDependencyMetadata>> configDependenciesFactory;
 
     AbstractConfigurationMetadata(
-        String name,
-        VariantIdentifier id,
-        ModuleComponentIdentifier componentId,
-        boolean transitive,
-        boolean visible,
-        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-        ImmutableSet<String> hierarchy,
-        ImmutableList<ExcludeMetadata> excludes,
-        ImmutableAttributes attributes,
-        ImmutableList<ModuleDependencyMetadata> configDependencies,
-        ImmutableCapabilities capabilities,
-        boolean externalVariant
-    ) {
+            String name,
+            VariantIdentifier id,
+            ModuleComponentIdentifier componentId,
+            boolean transitive,
+            boolean visible,
+            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+            ImmutableSet<String> hierarchy,
+            ImmutableList<ExcludeMetadata> excludes,
+            ImmutableAttributes attributes,
+            ImmutableList<ModuleDependencyMetadata> configDependencies,
+            ImmutableCapabilities capabilities,
+            boolean externalVariant) {
         this.name = name;
         this.id = id;
         this.componentId = componentId;
@@ -82,19 +80,18 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     AbstractConfigurationMetadata(
-        String name,
-        VariantIdentifier id,
-        ModuleComponentIdentifier componentId,
-        boolean transitive,
-        boolean visible,
-        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-        ImmutableSet<String> hierarchy,
-        ImmutableList<ExcludeMetadata> excludes,
-        ImmutableAttributes attributes,
-        Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
-        ImmutableCapabilities capabilities,
-        boolean externalVariant
-    ) {
+            String name,
+            VariantIdentifier id,
+            ModuleComponentIdentifier componentId,
+            boolean transitive,
+            boolean visible,
+            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+            ImmutableSet<String> hierarchy,
+            ImmutableList<ExcludeMetadata> excludes,
+            ImmutableAttributes attributes,
+            Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
+            ImmutableCapabilities capabilities,
+            boolean externalVariant) {
         this.name = name;
         this.id = id;
         this.componentId = componentId;
@@ -164,7 +161,8 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     public void setConfigDependenciesFactory(Factory<List<ModuleDependencyMetadata>> dependenciesFactory) {
         synchronized (lock) {
             assert this.configDependencies == null; // Can only set once: should really be part of the constructor
-            assert this.configDependenciesFactory == null; // Can only set once: should really be part of the constructor
+            assert this.configDependenciesFactory
+                    == null; // Can only set once: should really be part of the constructor
             this.configDependenciesFactory = dependenciesFactory;
         }
     }
@@ -176,7 +174,8 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
 
     @Override
     public Set<? extends VariantResolveMetadata> getArtifactVariants() {
-        return ImmutableSet.of(new DefaultVariantMetadata(name, getIdentifier(), asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
+        return ImmutableSet.of(new DefaultVariantMetadata(
+                name, getIdentifier(), asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
     }
 
     @Override
@@ -212,5 +211,4 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     protected ModuleComponentIdentifier getComponentId() {
         return componentId;
     }
-
 }

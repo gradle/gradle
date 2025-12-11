@@ -15,7 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.BY_ANCESTOR;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONSTRAINT;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED;
+
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -27,13 +33,6 @@ import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.BY_ANCESTOR;
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONSTRAINT;
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED;
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED;
 
 /**
  * A declared dependency, potentially transformed based on a substitution.
@@ -64,11 +63,10 @@ public class DependencyState {
     private boolean reasonsAlreadyAdded;
 
     public DependencyState(
-        DependencyMetadata dependency,
-        ComponentSelector requested,
-        ImmutableList<ComponentSelectionDescriptorInternal> ruleDescriptors,
-        @Nullable ModuleVersionResolveException substitutionFailure
-    ) {
+            DependencyMetadata dependency,
+            ComponentSelector requested,
+            ImmutableList<ComponentSelectionDescriptorInternal> ruleDescriptors,
+            @Nullable ModuleVersionResolveException substitutionFailure) {
         this.dependency = dependency;
         this.requested = requested;
         this.ruleDescriptors = ruleDescriptors;
@@ -100,7 +98,9 @@ public class DependencyState {
             if (componentSelector instanceof ModuleComponentSelector) {
                 moduleIdentifier = ((ModuleComponentSelector) componentSelector).getModuleIdentifier();
             } else {
-                moduleIdentifier = componentSelectorConverter.getModuleVersionId(componentSelector).getModule();
+                moduleIdentifier = componentSelectorConverter
+                        .getModuleVersionId(componentSelector)
+                        .getModule();
             }
         }
         return moduleIdentifier;
@@ -122,7 +122,8 @@ public class DependencyState {
     }
 
     public boolean isFromLock() {
-        return dependency instanceof LocalOriginDependencyMetadata && ((LocalOriginDependencyMetadata) dependency).isFromLock();
+        return dependency instanceof LocalOriginDependencyMetadata
+                && ((LocalOriginDependencyMetadata) dependency).isFromLock();
     }
 
     void addSelectionReasons(List<ComponentSelectionDescriptorInternal> reasons) {
@@ -160,7 +161,8 @@ public class DependencyState {
         maybeAddReason(reasons, dependencyDescriptor);
     }
 
-    private static void maybeAddReason(List<ComponentSelectionDescriptorInternal> reasons, ComponentSelectionDescriptorInternal reason) {
+    private static void maybeAddReason(
+            List<ComponentSelectionDescriptorInternal> reasons, ComponentSelectionDescriptorInternal reason) {
         if (reasons.isEmpty()) {
             reasons.add(reason);
         } else if (isNewReason(reasons, reason)) {
@@ -168,9 +170,8 @@ public class DependencyState {
         }
     }
 
-    private static boolean isNewReason(List<ComponentSelectionDescriptorInternal> reasons, ComponentSelectionDescriptorInternal reason) {
-        return (reasons.size() == 1 && !reason.equals(reasons.get(0)))
-            || !reasons.contains(reason);
+    private static boolean isNewReason(
+            List<ComponentSelectionDescriptorInternal> reasons, ComponentSelectionDescriptorInternal reason) {
+        return (reasons.size() == 1 && !reason.equals(reasons.get(0))) || !reasons.contains(reason);
     }
-
 }

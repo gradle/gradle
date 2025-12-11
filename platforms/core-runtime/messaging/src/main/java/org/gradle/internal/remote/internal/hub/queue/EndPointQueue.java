@@ -16,14 +16,13 @@
 
 package org.gradle.internal.remote.internal.hub.queue;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.dispatch.Dispatch;
-import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
 
 public class EndPointQueue implements Dispatch<InterHubMessage> {
     private final List<InterHubMessage> queue = new ArrayList<InterHubMessage>();

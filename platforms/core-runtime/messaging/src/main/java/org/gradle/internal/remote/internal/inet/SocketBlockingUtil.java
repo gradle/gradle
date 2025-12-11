@@ -16,17 +16,15 @@
 
 package org.gradle.internal.remote.internal.inet;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class SocketBlockingUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(SocketBlockingUtil.class);
 
-    private SocketBlockingUtil() {
-    }
+    private SocketBlockingUtil() {}
 
     static void configureNonblocking(SocketChannel socket) throws IOException {
         // NOTE: we use non-blocking IO as there is no reliable way when using blocking IO to shutdown reads while

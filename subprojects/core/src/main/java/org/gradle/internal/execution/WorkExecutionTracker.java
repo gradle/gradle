@@ -16,12 +16,11 @@
 
 package org.gradle.internal.execution;
 
+import java.util.Optional;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Optional;
 
 /**
  * Provides access to the work executing on the current thread.

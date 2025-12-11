@@ -16,6 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -30,12 +33,9 @@ import org.gradle.internal.component.external.model.maven.MutableMavenModuleReso
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.List;
-
 @ServiceScope(Scope.BuildSession.class)
-public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataFactory<MutableMavenModuleResolveMetadata> {
+public class MavenMutableModuleMetadataFactory
+        implements MutableModuleMetadataFactory<MutableMavenModuleResolveMetadata> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final AttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
@@ -43,11 +43,10 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
 
     @Inject
     public MavenMutableModuleMetadataFactory(
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        AttributesFactory attributesFactory,
-        NamedObjectInstantiator objectInstantiator,
-        PreferJavaRuntimeVariant schema
-    ) {
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            AttributesFactory attributesFactory,
+            NamedObjectInstantiator objectInstantiator,
+            PreferJavaRuntimeVariant schema) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributesFactory = attributesFactory;
         this.schema = schema.getSchema();
@@ -57,7 +56,8 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
     @Override
     public MutableMavenModuleResolveMetadata createForGradleModuleMetadata(ModuleComponentIdentifier from) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
-        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, Collections.emptyList(), attributesFactory, objectInstantiator, schema, ImmutableMap.of());
+        return new DefaultMutableMavenModuleResolveMetadata(
+                mvi, from, Collections.emptyList(), attributesFactory, objectInstantiator, schema, ImmutableMap.of());
     }
 
     private ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
@@ -71,8 +71,10 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
         return MavenResolver.processMetaData(metadata);
     }
 
-    public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier from, List<MavenDependencyDescriptor> dependencies) {
+    public MutableMavenModuleResolveMetadata create(
+            ModuleComponentIdentifier from, List<MavenDependencyDescriptor> dependencies) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
-        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, dependencies, attributesFactory, objectInstantiator, schema);
+        return new DefaultMutableMavenModuleResolveMetadata(
+                mvi, from, dependencies, attributesFactory, objectInstantiator, schema);
     }
 }

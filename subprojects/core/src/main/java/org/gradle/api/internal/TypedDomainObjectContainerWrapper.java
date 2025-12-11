@@ -27,11 +27,13 @@ import org.gradle.internal.metaobject.PropertyAccess;
 import org.gradle.internal.metaobject.PropertyMixIn;
 import org.gradle.util.internal.ConfigureUtil;
 
-public class TypedDomainObjectContainerWrapper<U> extends DelegatingNamedDomainObjectSet<U> implements NamedDomainObjectContainer<U>, MethodMixIn, PropertyMixIn {
+public class TypedDomainObjectContainerWrapper<U> extends DelegatingNamedDomainObjectSet<U>
+        implements NamedDomainObjectContainer<U>, MethodMixIn, PropertyMixIn {
     private final Class<U> type;
     private final AbstractPolymorphicDomainObjectContainer<? super U> parent;
 
-    public TypedDomainObjectContainerWrapper(Class<U> type, AbstractPolymorphicDomainObjectContainer<? super U> parent) {
+    public TypedDomainObjectContainerWrapper(
+            Class<U> type, AbstractPolymorphicDomainObjectContainer<? super U> parent) {
         super(parent.withType(type));
         this.parent = parent;
         this.type = type;
@@ -69,12 +71,14 @@ public class TypedDomainObjectContainerWrapper<U> extends DelegatingNamedDomainO
 
     @Override
     public NamedDomainObjectContainer<U> configure(Closure configureClosure) {
-        NamedDomainObjectContainerConfigureDelegate delegate = new NamedDomainObjectContainerConfigureDelegate(configureClosure, this);
+        NamedDomainObjectContainerConfigureDelegate delegate =
+                new NamedDomainObjectContainerConfigureDelegate(configureClosure, this);
         return ConfigureUtil.configureSelf(configureClosure, this, delegate);
     }
 
     @Override
-    public NamedDomainObjectProvider<U> register(String name, Action<? super U> configurationAction) throws InvalidUserDataException {
+    public NamedDomainObjectProvider<U> register(String name, Action<? super U> configurationAction)
+            throws InvalidUserDataException {
         return parent.register(name, type, configurationAction);
     }
 
@@ -82,5 +86,4 @@ public class TypedDomainObjectContainerWrapper<U> extends DelegatingNamedDomainO
     public NamedDomainObjectProvider<U> register(String name) throws InvalidUserDataException {
         return parent.register(name, type);
     }
-
 }

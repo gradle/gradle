@@ -29,5 +29,4 @@ public interface ConfigurationsProvider {
      * to be non-consumable are not realized.
      */
     void visitConsumable(Consumer<ConfigurationInternal> visitor);
-
 }

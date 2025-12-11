@@ -16,13 +16,12 @@
 
 package org.gradle.internal.work;
 
+import java.util.Collection;
 import org.gradle.internal.Factory;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Collection;
 
 @ServiceScope(Scope.CrossBuildSession.class)
 public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseRegistry, WorkerThreadRegistry {

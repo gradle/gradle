@@ -17,5 +17,5 @@
 package org.gradle.api.internal.tasks.compile.incremental.test;
 
 public class HasNonPrivateConstants extends UsedByNonPrivateConstantsClass {
-    final static int X = 1;
+    static final int X = 1;
 }

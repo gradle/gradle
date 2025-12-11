@@ -15,15 +15,14 @@
  */
 package org.gradle.plugins.ide.internal.configurer;
 
+import static java.util.stream.Collectors.toList;
+
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
-
-import static java.util.stream.Collectors.toList;
 
 public class DefaultUniqueProjectNameProvider extends AbstractUniqueProjectNameProvider {
 
@@ -42,10 +41,11 @@ public class DefaultUniqueProjectNameProvider extends AbstractUniqueProjectNameP
 
     private synchronized Map<ProjectIdentity, String> getDeduplicatedNames() {
         if (deduplicated == null) {
-            HierarchicalElementDeduplicator<ProjectIdentity> deduplicator = new HierarchicalElementDeduplicator<>(new ProjectPathDeduplicationAdapter());
+            HierarchicalElementDeduplicator<ProjectIdentity> deduplicator =
+                    new HierarchicalElementDeduplicator<>(new ProjectPathDeduplicationAdapter());
             List<ProjectIdentity> allProjects = projectRegistry.getAllProjects().stream()
-                .map(ProjectState::getIdentity)
-                .collect(toList());
+                    .map(ProjectState::getIdentity)
+                    .collect(toList());
             this.deduplicated = deduplicator.deduplicate(allProjects);
         }
         return deduplicated;

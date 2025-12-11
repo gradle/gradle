@@ -24,13 +24,12 @@ import java.io.Serializable;
  * @since 6.0
  */
 public enum Destination implements Serializable {
-
     StdOut(0),
     StdErr(1);
 
     private final int code;
 
-     Destination(int code) {
+    Destination(int code) {
         this.code = code;
     }
 
@@ -41,7 +40,7 @@ public enum Destination implements Serializable {
     public static Destination fromCode(int code) {
         for (Destination d : Destination.values()) {
             if (d.code == code) {
-                 return d;
+                return d;
             }
         }
         throw new IllegalArgumentException("Cannot find destination with code " + code);

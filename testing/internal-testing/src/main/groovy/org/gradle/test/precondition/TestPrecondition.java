@@ -42,9 +42,8 @@ public interface TestPrecondition {
      * @throws Exception if the precondition cannot be checked
      */
     static boolean satisfied(Class<? extends TestPrecondition> preconditionClass) throws Exception {
-        final TestPrecondition precondition = preconditionClass
-            .getDeclaredConstructor()
-            .newInstance();
+        final TestPrecondition precondition =
+                preconditionClass.getDeclaredConstructor().newInstance();
         return precondition.isSatisfied();
     }
 
@@ -73,4 +72,3 @@ public interface TestPrecondition {
         return !satisfied(preconditionClass);
     }
 }
-

@@ -16,17 +16,6 @@
 
 package org.gradle.internal.extensibility;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.util.TestTask;
-import org.gradle.util.TestUtil;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import java.util.List;
-import java.util.concurrent.Callable;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.gradle.util.internal.WrapUtil.toList;
@@ -37,6 +26,16 @@ import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+
+import java.util.List;
+import java.util.concurrent.Callable;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.TestTask;
+import org.gradle.util.TestUtil;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class ConventionAwareHelperTest {
     ConventionAwareHelper conventionAware;
@@ -91,7 +90,9 @@ public class ConventionAwareHelperTest {
     @Test
     public void canEnableCachingOfPropertyValue() {
         conventionAware.map("list1", () -> toList("a")).cache();
-        assertSame(conventionAware.getConventionValue(null, "list1", false), conventionAware.getConventionValue(null, "list1", false));
+        assertSame(
+                conventionAware.getConventionValue(null, "list1", false),
+                conventionAware.getConventionValue(null, "list1", false));
     }
 
     @Test

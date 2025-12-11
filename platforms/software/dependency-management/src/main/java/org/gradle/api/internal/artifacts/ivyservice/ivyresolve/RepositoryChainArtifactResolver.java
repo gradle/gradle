@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import java.io.File;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.component.ArtifactType;
@@ -30,10 +33,6 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactFileResolveResult;
 
-import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 class RepositoryChainArtifactResolver implements ArtifactResolver {
     private final Map<String, ModuleComponentRepository<?>> repositories = new LinkedHashMap<>();
     private final CalculatedValueFactory calculatedValueFactory;
@@ -47,7 +46,10 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     }
 
     @Override
-    public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifactsWithType(
+            ComponentArtifactResolveMetadata component,
+            ArtifactType artifactType,
+            BuildableArtifactSetResolveResult result) {
         ModuleComponentRepository<?> sourceRepository = findSourceRepository(component.getSources());
         // First try to determine the artifacts locally before going remote
         sourceRepository.getLocalAccess().resolveArtifactsWithType(component, artifactType, result);
@@ -57,17 +59,31 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(
+            ComponentArtifactResolveMetadata component,
+            ComponentArtifactMetadata artifact,
+            BuildableArtifactResolveResult result) {
         ModuleComponentRepository<?> sourceRepository = findSourceRepository(component.getSources());
-        ResolvableArtifact resolvableArtifact = sourceRepository.getArtifactCache().computeIfAbsent(artifact.getId(), id -> {
-            CalculatedValue<File> artifactSource = calculatedValueFactory.create(Describables.of(artifact.getId()), () -> resolveArtifactLater(artifact, component.getSources(), sourceRepository));
-            return new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueFactory);
-        });
+        ResolvableArtifact resolvableArtifact = sourceRepository
+                .getArtifactCache()
+                .computeIfAbsent(artifact.getId(), id -> {
+                    CalculatedValue<File> artifactSource = calculatedValueFactory.create(
+                            Describables.of(artifact.getId()),
+                            () -> resolveArtifactLater(artifact, component.getSources(), sourceRepository));
+                    return new DefaultResolvableArtifact(
+                            component.getModuleVersionId(),
+                            artifact.getName(),
+                            artifact.getId(),
+                            context -> context.add(artifact.getBuildDependencies()),
+                            artifactSource,
+                            calculatedValueFactory);
+                });
 
         result.resolved(resolvableArtifact);
     }
 
-    private File resolveArtifactLater(ComponentArtifactMetadata artifact, ModuleSources sources, ModuleComponentRepository<?> sourceRepository) {
+    private File resolveArtifactLater(
+            ComponentArtifactMetadata artifact, ModuleSources sources, ModuleComponentRepository<?> sourceRepository) {
         // First try to resolve the artifacts locally before going remote
         BuildableArtifactFileResolveResult artifactFile = new DefaultBuildableArtifactFileResolveResult();
         sourceRepository.getLocalAccess().resolveArtifact(artifact, sources, artifactFile);
@@ -78,15 +94,14 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     }
 
     private ModuleComponentRepository<?> findSourceRepository(ModuleSources sources) {
-        RepositoryChainModuleSource repositoryChainModuleSource =
-            sources.getSource(RepositoryChainModuleSource.class)
-                   .orElseThrow(() -> new IllegalArgumentException("No sources provided for artifact resolution"));
+        RepositoryChainModuleSource repositoryChainModuleSource = sources.getSource(RepositoryChainModuleSource.class)
+                .orElseThrow(() -> new IllegalArgumentException("No sources provided for artifact resolution"));
 
-        ModuleComponentRepository<?> moduleVersionRepository = repositories.get(repositoryChainModuleSource.getRepositoryId());
+        ModuleComponentRepository<?> moduleVersionRepository =
+                repositories.get(repositoryChainModuleSource.getRepositoryId());
         if (moduleVersionRepository == null) {
             throw new IllegalStateException("Attempting to resolve artifacts from invalid repository");
         }
         return moduleVersionRepository;
     }
-
 }

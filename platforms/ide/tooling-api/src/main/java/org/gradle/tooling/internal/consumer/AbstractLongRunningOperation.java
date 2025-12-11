@@ -17,6 +17,15 @@ package org.gradle.tooling.internal.consumer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.Failure;
@@ -28,17 +37,8 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-public abstract class AbstractLongRunningOperation<T extends AbstractLongRunningOperation<T>> implements LongRunningOperation {
+public abstract class AbstractLongRunningOperation<T extends AbstractLongRunningOperation<T>>
+        implements LongRunningOperation {
     private BuildFailedProgressAdapter buildFailedProgressAdapter = new BuildFailedProgressAdapter();
     protected final ConnectionParameters connectionParameters;
     protected final ConsumerOperationParameters.Builder operationParamsBuilder;
@@ -206,11 +206,14 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         operationParamsBuilder.copyFrom(operationParameters);
     }
 
-    protected ConnectionExceptionTransformer createExceptionTransformer(ConnectionExceptionTransformer.ConnectionFailureMessageProvider messageProvider) {
+    protected ConnectionExceptionTransformer createExceptionTransformer(
+            ConnectionExceptionTransformer.ConnectionFailureMessageProvider messageProvider) {
         return new ConnectionExceptionTransformer(messageProvider, new Supplier<List<Failure>>() {
             @Override
             public List<Failure> get() {
-                return buildFailedProgressAdapter == null ? Collections.<Failure>emptyList() : buildFailedProgressAdapter.failures;
+                return buildFailedProgressAdapter == null
+                        ? Collections.<Failure>emptyList()
+                        : buildFailedProgressAdapter.failures;
             }
         });
     }

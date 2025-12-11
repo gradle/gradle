@@ -16,20 +16,19 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.security.KeyStore;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.security.KeyStore;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This class contains SSLContext initialization similar to what SSLContext.getDefault() does.
@@ -65,13 +64,7 @@ public class SystemDefaultSSLContextFactory {
             keystorePassword = keyStorePasswordString.toCharArray();
         }
 
-        KeyStore keyStore = loadKeyStore(
-            keyStorePath,
-            keyStoreType,
-            keyStoreProvider,
-            keystorePassword,
-            true
-        );
+        KeyStore keyStore = loadKeyStore(keyStorePath, keyStoreType, keyStoreProvider, keystorePassword, true);
 
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         if (P11KEYSTORE.equals(keyStoreType)) {
@@ -84,12 +77,12 @@ public class SystemDefaultSSLContextFactory {
 
     @Nullable
     private static KeyStore loadKeyStore(
-        String keyStorePath,
-        String keyStoreType,
-        String keyStoreProvider,
-        char @Nullable [] keyStorePassword,
-        boolean errorOnMissingFile
-    ) throws Exception {
+            String keyStorePath,
+            String keyStoreType,
+            String keyStoreProvider,
+            char @Nullable [] keyStorePassword,
+            boolean errorOnMissingFile)
+            throws Exception {
         if (keyStoreType.isEmpty()) {
             return null;
         }
@@ -137,14 +130,16 @@ public class SystemDefaultSSLContextFactory {
 
         KeyStore keyStore = null;
         if (!NONE.equals(storePath)) {
-            String[] fileNames = new String[]{storePath, getDefaultTrustStore()};
+            String[] fileNames = new String[] {storePath, getDefaultTrustStore()};
             for (String fileName : fileNames) {
                 File candidate = new File(fileName);
                 if (candidate.isFile() && candidate.canRead()) {
                     storePath = fileName;
                     break;
                 } else if (!fileName.equals(getDefaultJsseTrustStore())) {
-                    LOGGER.warn("Trust store file {} does not exist or is not readable. This may lead to SSL connection failures.", fileName);
+                    LOGGER.warn(
+                            "Trust store file {} does not exist or is not readable. This may lead to SSL connection failures.",
+                            fileName);
                 }
             }
 
@@ -153,16 +148,11 @@ public class SystemDefaultSSLContextFactory {
                 storePassword = storePasswordString.toCharArray();
             }
 
-            keyStore = loadKeyStore(
-                storePath,
-                storeType,
-                storeProvider,
-                storePassword,
-                false
-            );
+            keyStore = loadKeyStore(storePath, storeType, storeProvider, storePassword, false);
         }
 
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        TrustManagerFactory trustManagerFactory =
+                TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(keyStore);
 
         return trustManagerFactory.getTrustManagers();

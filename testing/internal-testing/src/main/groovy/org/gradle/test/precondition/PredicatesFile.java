@@ -28,7 +28,8 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class PredicatesFile {
-    public static final Set<Set<String>> DEFAULT_ACCEPTED_COMBINATIONS = readAllowedCombinations("/valid-precondition-combinations.csv");
+    public static final Set<Set<String>> DEFAULT_ACCEPTED_COMBINATIONS =
+            readAllowedCombinations("/valid-precondition-combinations.csv");
     public static final String PREDICATE_PACKAGE_PREFIX = "org.gradle.test.preconditions.";
 
     /**
@@ -43,34 +44,31 @@ public class PredicatesFile {
      * @return a set of sets of strings representing the values in the file
      */
     public static Set<Set<String>> readAllowedCombinations(String resource) {
-        try (BufferedReader reader = new BufferedReader(
-            new InputStreamReader(
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                 Objects.requireNonNull(
-                    PredicatesFile.class.getResourceAsStream(resource),
-                    String.format("Predicate combination list resource '%s' cannot be found", resource)
-                ),
-                StandardCharsets.UTF_8
-            )
-        )) {
+                        PredicatesFile.class.getResourceAsStream(resource),
+                        String.format("Predicate combination list resource '%s' cannot be found", resource)),
+                StandardCharsets.UTF_8))) {
             return reader.lines()
-                // If a line starts with #, it's a comment
-                .filter(line -> !line.startsWith("#"))
-                // We are not interested in whitespaces on the line level
-                .map(String::trim)
-                // If the line was empty, or only contained space (which was cut by the trim before), we skip the line
-                .filter(line -> !line.isEmpty())
-                // We separate the values
-                .map(line -> line.split(","))
-                // For each array of entries...
-                .map(entries -> Arrays
-                    // We stream the entries
-                    .stream(entries)
-                    // Trim all unnecessary whitespaces off
+                    // If a line starts with #, it's a comment
+                    .filter(line -> !line.startsWith("#"))
+                    // We are not interested in whitespaces on the line level
                     .map(String::trim)
-                    // Prefix the package with the implicit name of the predicates
-                    .map(name -> PREDICATE_PACKAGE_PREFIX + name)
-                    .collect(Collectors.toCollection(TreeSet::new))
-                ).collect(Collectors.toSet());
+                    // If the line was empty, or only contained space (which was cut by the trim before), we skip the
+                    // line
+                    .filter(line -> !line.isEmpty())
+                    // We separate the values
+                    .map(line -> line.split(","))
+                    // For each array of entries...
+                    .map(entries -> Arrays
+                            // We stream the entries
+                            .stream(entries)
+                            // Trim all unnecessary whitespaces off
+                            .map(String::trim)
+                            // Prefix the package with the implicit name of the predicates
+                            .map(name -> PREDICATE_PACKAGE_PREFIX + name)
+                            .collect(Collectors.toCollection(TreeSet::new)))
+                    .collect(Collectors.toSet());
         } catch (IOException e) {
             throw new RuntimeException("Error parsing resource " + resource, e);
         }
@@ -84,9 +82,8 @@ public class PredicatesFile {
         if (predicateClasses.isEmpty()) {
             return;
         }
-        Set<String> predicateClassNames = predicateClasses.stream()
-            .map(Class::getName)
-            .collect(Collectors.toSet());
+        Set<String> predicateClassNames =
+                predicateClasses.stream().map(Class::getName).collect(Collectors.toSet());
         checkValidNameCombinations(predicateClassNames, acceptedCombinations);
     }
 
@@ -95,11 +92,10 @@ public class PredicatesFile {
 
         if (!found) {
             String message = String.format(
-                "Requested requirements [%s] were not in the list of accepted combinations. " +
-                    "Add it to 'subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv' to be accepted. " +
-                    "See the documentation of this class to learn more about this feature.",
-                String.join(", ", predicateClassNames)
-            );
+                    "Requested requirements [%s] were not in the list of accepted combinations. "
+                            + "Add it to 'subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv' to be accepted. "
+                            + "See the documentation of this class to learn more about this feature.",
+                    String.join(", ", predicateClassNames));
             throw new IllegalArgumentException(message);
         }
     }

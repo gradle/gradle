@@ -15,13 +15,12 @@
  */
 package gradlebuild.docs.dsl.source.model;
 
-import org.gradle.api.Action;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import org.gradle.api.Action;
 
 /**
  * Static meta-data about a method extracted from the source for the class.
@@ -58,10 +57,10 @@ public class MethodMetaData extends AbstractLanguageElement implements Serializa
             return false;
         }
         MethodMetaData that = (MethodMetaData) o;
-        return Objects.equals(name, that.name) &&
-            Objects.equals(ownerClass.getClassName(), that.ownerClass.getClassName()) &&
-            Objects.equals(parameters, that.parameters) &&
-            Objects.equals(returnType, that.returnType);
+        return Objects.equals(name, that.name)
+                && Objects.equals(ownerClass.getClassName(), that.ownerClass.getClassName())
+                && Objects.equals(parameters, that.parameters)
+                && Objects.equals(returnType, that.returnType);
     }
 
     @Override

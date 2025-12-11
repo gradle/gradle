@@ -16,5 +16,4 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.test;
 
-public class UsedByNonPrivateConstantsClass {
-}
+public class UsedByNonPrivateConstantsClass {}

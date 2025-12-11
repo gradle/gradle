@@ -16,15 +16,14 @@
 
 package org.gradle.external.javadoc.internal;
 
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.IoActions;
-import org.gradle.external.javadoc.JavadocOptionFileOption;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.gradle.external.javadoc.JavadocOptionFileOption;
+import org.gradle.internal.ErroringAction;
+import org.gradle.internal.IoActions;
 
 public class JavadocOptionFileWriter {
     private final JavadocOptionFile optionFile;

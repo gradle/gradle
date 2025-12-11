@@ -35,5 +35,4 @@ public interface TestTaskProperties {
     Stream<InputFileProperty> getInputFileProperties();
 
     Stream<OutputFileProperty> getOutputFileProperties();
-
 }

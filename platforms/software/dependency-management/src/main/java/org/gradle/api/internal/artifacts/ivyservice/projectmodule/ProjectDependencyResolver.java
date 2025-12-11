@@ -40,11 +40,13 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Project.class)
-public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, ComponentResolvers {
+public class ProjectDependencyResolver
+        implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
     private final ProjectArtifactResolver artifactResolver;
 
-    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ProjectArtifactResolver artifactResolver) {
+    public ProjectDependencyResolver(
+            LocalComponentRegistry localComponentRegistry, ProjectArtifactResolver artifactResolver) {
         this.localComponentRegistry = localComponentRegistry;
         this.artifactResolver = artifactResolver;
     }
@@ -65,12 +67,19 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     }
 
     @Override
-    public void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes) {
+    public void resolve(
+            ComponentSelector selector,
+            ComponentOverrideMetadata overrideMetadata,
+            VersionSelector acceptor,
+            @Nullable VersionSelector rejector,
+            BuildableComponentIdResolveResult result,
+            ImmutableAttributes consumerAttributes) {
         if (selector instanceof DefaultProjectComponentSelector) {
             DefaultProjectComponentSelector projectSelector = (DefaultProjectComponentSelector) selector;
             ProjectComponentIdentifier projectId = projectSelector.toIdentifier();
             LocalComponentGraphResolveState component = localComponentRegistry.getComponent(projectId);
-            if (rejector != null && rejector.accept(component.getModuleVersionId().getVersion())) {
+            if (rejector != null
+                    && rejector.accept(component.getModuleVersionId().getVersion())) {
                 result.rejected(projectId, component.getModuleVersionId());
             } else {
                 result.resolved(component, ComponentGraphSpecificResolveState.EMPTY_STATE);
@@ -79,7 +88,10 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     }
 
     @Override
-    public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, final BuildableComponentResolveResult result) {
+    public void resolve(
+            ComponentIdentifier identifier,
+            ComponentOverrideMetadata componentOverrideMetadata,
+            final BuildableComponentResolveResult result) {
         if (isProjectModule(identifier)) {
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) identifier;
             LocalComponentGraphResolveState component = localComponentRegistry.getComponent(projectId);
@@ -93,14 +105,21 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     }
 
     @Override
-    public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifactsWithType(
+            ComponentArtifactResolveMetadata component,
+            ArtifactType artifactType,
+            BuildableArtifactSetResolveResult result) {
         if (isProjectModule(component.getId())) {
-            throw new UnsupportedOperationException("Resolving artifacts by type is not yet supported for project modules");
+            throw new UnsupportedOperationException(
+                    "Resolving artifacts by type is not yet supported for project modules");
         }
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(
+            ComponentArtifactResolveMetadata component,
+            ComponentArtifactMetadata artifact,
+            BuildableArtifactResolveResult result) {
         if (isProjectModule(artifact.getComponentId())) {
             artifactResolver.resolveArtifact(component, artifact, result);
         }

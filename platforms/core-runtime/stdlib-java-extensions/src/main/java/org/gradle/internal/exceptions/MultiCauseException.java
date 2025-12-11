@@ -15,9 +15,8 @@
  */
 package org.gradle.internal.exceptions;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 import java.util.List;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 @UsedByScanPlugin
 public interface MultiCauseException extends ResolutionProvider {

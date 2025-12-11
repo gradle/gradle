@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
+import java.io.Serializable;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.model.GradleProject;
-
-import java.io.Serializable;
 
 public class GradleProjectIdentifierMixin implements Serializable {
     private final DefaultBuildIdentifier buildIdentifier;

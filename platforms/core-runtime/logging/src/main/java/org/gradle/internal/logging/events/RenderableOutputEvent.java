@@ -24,7 +24,8 @@ import org.jspecify.annotations.Nullable;
 public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
     private OperationIdentifier buildOperationId;
 
-    protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationId) {
+    protected RenderableOutputEvent(
+            long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationId) {
         super(timestamp, category, logLevel);
         this.buildOperationId = buildOperationId;
     }

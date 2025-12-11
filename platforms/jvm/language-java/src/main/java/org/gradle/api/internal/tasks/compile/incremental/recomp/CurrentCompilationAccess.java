@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClassSetAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
@@ -29,12 +34,6 @@ import org.gradle.internal.time.Timer;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class CurrentCompilationAccess {
 
@@ -55,7 +54,6 @@ public class CurrentCompilationAccess {
         return snapshot;
     }
 
-
     public ClassSetAnalysisData getClasspathSnapshot(final Iterable<File> entries) {
         if (classpathSnapshot == null) {
             Timer clock = Time.startTimer();
@@ -67,9 +65,9 @@ public class CurrentCompilationAccess {
 
     private List<ClassSetAnalysisData> doSnapshot(Iterable<File> entries) {
         return snapshotAll(entries).stream()
-            .map(CreateSnapshot::getSnapshot)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+                .map(CreateSnapshot::getSnapshot)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     private List<CreateSnapshot> snapshotAll(final Iterable<File> entries) {

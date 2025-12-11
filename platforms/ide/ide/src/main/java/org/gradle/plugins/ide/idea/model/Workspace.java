@@ -33,10 +33,8 @@ public class Workspace extends XmlPersistableConfigurationObject {
     }
 
     @Override
-    protected void load(Node xml) {
-    }
+    protected void load(Node xml) {}
 
     @Override
-    protected void store(Node xml) {
-    }
+    protected void store(Node xml) {}
 }

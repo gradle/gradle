@@ -16,11 +16,10 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import java.io.File;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.util.internal.VersionNumber;
-
-import java.io.File;
 
 public class WindowsKitWindowsSdkLocator extends AbstractWindowsKitComponentLocator<WindowsKitSdkInstall> {
     private static final String COMPONENT_NAME = "um";
@@ -70,6 +69,7 @@ public class WindowsKitWindowsSdkLocator extends AbstractWindowsKitComponentLoca
 
     @Override
     WindowsKitSdkInstall newComponent(File baseDir, File binDir, VersionNumber version, DiscoveryType discoveryType) {
-        return new WindowsKitSdkInstall(baseDir, version, binDir, getVersionedDisplayName(version, discoveryType), systemInfo);
+        return new WindowsKitSdkInstall(
+                baseDir, version, binDir, getVersionedDisplayName(version, discoveryType), systemInfo);
     }
 }

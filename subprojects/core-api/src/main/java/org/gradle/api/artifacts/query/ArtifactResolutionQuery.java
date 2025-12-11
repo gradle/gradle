@@ -15,13 +15,12 @@
  */
 package org.gradle.api.artifacts.query;
 
+import java.util.Collection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.component.Component;
-
-import java.util.Collection;
 
 /**
  * A builder to construct a query that can resolve selected software artifacts of the specified components.
@@ -88,7 +87,8 @@ public interface ArtifactResolutionQuery {
      * @param artifactTypes The artifacts to retrieve for the queried components.
      */
     @SuppressWarnings("unchecked")
-    ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes);
+    ArtifactResolutionQuery withArtifacts(
+            Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes);
 
     /**
      * Defines the type of component that is expected in the result, and the artifacts to retrieve for components of this type.
@@ -99,7 +99,8 @@ public interface ArtifactResolutionQuery {
      * @param artifactTypes The artifacts to retrieve for the queried components.
      * @since 4.5
      */
-    ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Collection<Class<? extends Artifact>> artifactTypes);
+    ArtifactResolutionQuery withArtifacts(
+            Class<? extends Component> componentType, Collection<Class<? extends Artifact>> artifactTypes);
 
     /**
      * Actually execute the query, returning a query result.

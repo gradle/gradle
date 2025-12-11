@@ -17,6 +17,9 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -25,16 +28,9 @@ import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 public class JavaUtilCollectionStrategy implements ModelSchemaExtractionStrategy {
 
-    public final static List<Class<?>> TYPES = ImmutableList.<Class<?>>of(
-        List.class,
-        Set.class
-    );
+    public static final List<Class<?>> TYPES = ImmutableList.<Class<?>>of(List.class, Set.class);
 
     @Override
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
@@ -46,17 +42,17 @@ public class JavaUtilCollectionStrategy implements ModelSchemaExtractionStrategy
                 extractionContext.found(createSchema(extractionContext, type, typeVariables.get(0)));
             } else {
                 extractionContext.found(new UnmanagedImplStructSchema<T>(
-                    type,
-                    Collections.<ModelProperty<?>>emptySet(),
-                    Collections.<WeaklyTypeReferencingMethod<?, ?>>emptySet(),
-                    Collections.<ModelSchemaAspect>emptySet(),
-                    false
-                ));
+                        type,
+                        Collections.<ModelProperty<?>>emptySet(),
+                        Collections.<WeaklyTypeReferencingMethod<?, ?>>emptySet(),
+                        Collections.<ModelSchemaAspect>emptySet(),
+                        false));
             }
         }
     }
 
-    private <T, E> ScalarCollectionSchema<T, E> createSchema(ModelSchemaExtractionContext<T> extractionContext, ModelType<T> type, ModelType<E> elementType) {
+    private <T, E> ScalarCollectionSchema<T, E> createSchema(
+            ModelSchemaExtractionContext<T> extractionContext, ModelType<T> type, ModelType<E> elementType) {
         final ScalarCollectionSchema<T, E> schema = new ScalarCollectionSchema<T, E>(type, elementType);
         extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
             @Override

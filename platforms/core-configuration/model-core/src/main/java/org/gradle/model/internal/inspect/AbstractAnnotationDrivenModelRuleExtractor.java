@@ -17,18 +17,19 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.reflect.TypeToken;
+import java.lang.annotation.Annotation;
 import org.gradle.model.internal.type.ModelType;
 
-import java.lang.annotation.Annotation;
-
-public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annotation> implements MethodModelRuleExtractor {
+public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annotation>
+        implements MethodModelRuleExtractor {
 
     private static final ModelType<Void> VOID = ModelType.of(Void.TYPE);
 
     private final Class<T> annotationType;
 
     protected AbstractAnnotationDrivenModelRuleExtractor() {
-        @SuppressWarnings("unchecked") Class<T> annotationType = (Class<T>) new TypeToken<T>(getClass()) {}.getRawType();
+        @SuppressWarnings("unchecked")
+        Class<T> annotationType = (Class<T>) new TypeToken<T>(getClass()) {}.getRawType();
         this.annotationType = annotationType;
     }
 
@@ -44,9 +45,10 @@ public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annot
     @Override
     public String getDescription() {
         return String.format("annotated with @%s", annotationType.getSimpleName());
-   }
+    }
 
-    protected void validateIsVoidMethod(MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
+    protected void validateIsVoidMethod(
+            MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         if (!isVoidMethod(ruleDefinition)) {
             problems.add(ruleDefinition, "A method " + getDescription() + " must have void return type.");
         }

@@ -21,5 +21,4 @@ import org.gradle.api.component.Component;
 /**
  * A Maven Module component.
  */
-public interface MavenModule extends Component {
-}
+public interface MavenModule extends Component {}

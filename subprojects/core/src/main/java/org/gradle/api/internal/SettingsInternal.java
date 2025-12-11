@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal;
 
+import java.net.URI;
+import java.util.List;
 import org.gradle.StartParameter;
 import org.gradle.api.Incubating;
 import org.gradle.api.initialization.Settings;
@@ -34,9 +36,6 @@ import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
-
-import java.net.URI;
-import java.util.List;
 
 public interface SettingsInternal extends Settings, PluginAwareInternal, FinalizableValue {
 
@@ -90,7 +89,7 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
     @Adding
     @Incubating
     default void include(String projectPath) {
-        include(new String[]{projectPath});
+        include(new String[] {projectPath});
     }
 
     /**

@@ -15,6 +15,8 @@
  */
 package org.gradle.language.objectivecpp.plugins;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -37,9 +39,6 @@ import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Adds core Objective-Cpp language support.
@@ -65,7 +64,8 @@ public abstract class ObjectiveCppLangPlugin implements Plugin<Project> {
         }
     }
 
-    private static class ObjectiveCpp extends NativeLanguageTransform<ObjectiveCppSourceSet> implements PchEnabledLanguageTransform<ObjectiveCppSourceSet> {
+    private static class ObjectiveCpp extends NativeLanguageTransform<ObjectiveCppSourceSet>
+            implements PchEnabledLanguageTransform<ObjectiveCppSourceSet> {
         @Override
         public Class<ObjectiveCppSourceSet> getSourceSetType() {
             return ObjectiveCppSourceSet.class;

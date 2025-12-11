@@ -28,7 +28,8 @@ import org.gradle.api.attributes.Attribute;
  * @since 7.0
  */
 public interface TargetJvmEnvironment extends Named {
-    Attribute<TargetJvmEnvironment> TARGET_JVM_ENVIRONMENT_ATTRIBUTE = Attribute.of("org.gradle.jvm.environment", TargetJvmEnvironment.class);
+    Attribute<TargetJvmEnvironment> TARGET_JVM_ENVIRONMENT_ATTRIBUTE =
+            Attribute.of("org.gradle.jvm.environment", TargetJvmEnvironment.class);
 
     /**
      * A standard JVM environment (e.g. running on desktop or server machines).

@@ -18,6 +18,7 @@ package org.gradle.internal.execution;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import java.util.Optional;
 import org.gradle.cache.Cache;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Deferrable;
@@ -26,8 +27,6 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Optional;
 
 @ServiceScope(Scope.Build.class)
 public interface ExecutionEngine {

@@ -16,9 +16,6 @@
 
 package org.gradle.integtests.fixtures.logging;
 
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.integtests.fixtures.executer.LogContent;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +25,8 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.integtests.fixtures.executer.LogContent;
 
 /**
  * Parses console output into its pieces for verification in functional tests
@@ -44,30 +43,33 @@ public class GroupedOutputFixture {
     /**
      * All tasks will start with {@code > Task}, captures everything starting with : and going until end of line
      */
-    private final static String TASK_HEADER = "> Task (:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n";
-    private final static String TRANSFORM_HEADER = "> Transform (file )?([^\\n]+) with ([^\\n]+)\\n";
+    private static final String TASK_HEADER = "> Task (:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n";
 
-    private final static String EMBEDDED_BUILD_START = "> :\\w* > [:\\w]+";
-    private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
-    private final static String BUILD_FAILED_FOOTER = "BUILD FAILED";
-    private final static String CONFIGURATION_CACHE_PROBLEMS_FOOTER = "\\d+ (problem was|problems were) found storing the configuration cache";
-    private final static String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER = "Some tasks or features in this build are not compatible with the configuration cache.";
-    private final static String ACTIONABLE_TASKS = "[0-9]+ actionable tasks?:";
+    private static final String TRANSFORM_HEADER = "> Transform (file )?([^\\n]+) with ([^\\n]+)\\n";
+
+    private static final String EMBEDDED_BUILD_START = "> :\\w* > [:\\w]+";
+    private static final String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
+    private static final String BUILD_FAILED_FOOTER = "BUILD FAILED";
+    private static final String CONFIGURATION_CACHE_PROBLEMS_FOOTER =
+            "\\d+ (problem was|problems were) found storing the configuration cache";
+    private static final String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER =
+            "Some tasks or features in this build are not compatible with the configuration cache.";
+    private static final String ACTIONABLE_TASKS = "[0-9]+ actionable tasks?:";
 
     /**
      * Various patterns to detect the end of the task output
      */
-    private final static String END_OF_GROUPED_OUTPUT = String.join("|",
-        TASK_HEADER,
-        TRANSFORM_HEADER,
-        BUILD_STATUS_FOOTER,
-        BUILD_FAILED_FOOTER,
-        EMBEDDED_BUILD_START,
-        ACTIONABLE_TASKS,
-        CONFIGURATION_CACHE_PROBLEMS_FOOTER,
-        CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER,
-        "\\z"
-    );
+    private static final String END_OF_GROUPED_OUTPUT = String.join(
+            "|",
+            TASK_HEADER,
+            TRANSFORM_HEADER,
+            BUILD_STATUS_FOOTER,
+            BUILD_FAILED_FOOTER,
+            EMBEDDED_BUILD_START,
+            ACTIONABLE_TASKS,
+            CONFIGURATION_CACHE_PROBLEMS_FOOTER,
+            CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER,
+            "\\z");
 
     /**
      * Pattern to extract task output.
@@ -131,7 +133,8 @@ public class GroupedOutputFixture {
         boolean foundTask = hasTask(taskName);
 
         if (!foundTask) {
-            throw new AssertionError(String.format("The grouped output for task '%s' could not be found.%nOutput:%n%s", taskName, originalOutput));
+            throw new AssertionError(String.format(
+                    "The grouped output for task '%s' could not be found.%nOutput:%n%s", taskName, originalOutput));
         }
 
         return tasks.get(taskName);
@@ -142,13 +145,17 @@ public class GroupedOutputFixture {
      */
     public GroupedTransformOutputFixture transform(String transformer) {
         List<GroupedTransformOutputFixture> foundTransforms = transforms.values().stream()
-            .filter(transform -> transform.getTransformer().equals(transformer))
-            .collect(Collectors.toList());
+                .filter(transform -> transform.getTransformer().equals(transformer))
+                .collect(Collectors.toList());
 
         if (foundTransforms.size() == 0) {
-            throw new AssertionError(String.format("The grouped output for transform '%s' could not be found.%nOutput:%n%s", transformer, originalOutput));
+            throw new AssertionError(String.format(
+                    "The grouped output for transform '%s' could not be found.%nOutput:%n%s",
+                    transformer, originalOutput));
         } else if (foundTransforms.size() > 1) {
-            throw new AssertionError(String.format("Multiple grouped outputs for transform '%s' were found. Consider specifying a subject.%nOutput:%n%s", transformer, originalOutput));
+            throw new AssertionError(String.format(
+                    "Multiple grouped outputs for transform '%s' were found. Consider specifying a subject.%nOutput:%n%s",
+                    transformer, originalOutput));
         }
 
         return foundTransforms.get(0);
@@ -159,13 +166,18 @@ public class GroupedOutputFixture {
      */
     public GroupedTransformOutputFixture transform(String transformer, String subject) {
         List<GroupedTransformOutputFixture> foundTransforms = transforms.values().stream()
-            .filter(transform -> transform.getTransformer().equals(transformer) && transform.getSubject().equals(subject))
-            .collect(Collectors.toList());
+                .filter(transform -> transform.getTransformer().equals(transformer)
+                        && transform.getSubject().equals(subject))
+                .collect(Collectors.toList());
 
         if (foundTransforms.size() == 0) {
-            throw new AssertionError(String.format("The grouped output for transform '%s' and subject '%s' could not be found.%nOutput:%n%s", transformer, subject, originalOutput));
+            throw new AssertionError(String.format(
+                    "The grouped output for transform '%s' and subject '%s' could not be found.%nOutput:%n%s",
+                    transformer, subject, originalOutput));
         } else if (foundTransforms.size() > 1) {
-            throw new AssertionError(String.format("Multiple grouped outputs for transform '%s' and subject '%s' were found.%nOutput:%n%s", transformer, subject, originalOutput));
+            throw new AssertionError(String.format(
+                    "Multiple grouped outputs for transform '%s' and subject '%s' were found.%nOutput:%n%s",
+                    transformer, subject, originalOutput));
         }
 
         return foundTransforms.get(0);
@@ -187,7 +199,8 @@ public class GroupedOutputFixture {
 
     @Override
     public String toString() {
-        return "Output for tasks: " + Arrays.deepToString(tasks.keySet().stream().sorted().toArray());
+        return "Output for tasks: "
+                + Arrays.deepToString(tasks.keySet().stream().sorted().toArray());
     }
 
     private void consumeTaskOutput(Matcher matcher) {

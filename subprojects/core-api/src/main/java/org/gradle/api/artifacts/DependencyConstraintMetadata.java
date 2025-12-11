@@ -23,6 +23,4 @@ package org.gradle.api.artifacts;
  *
  * @since 4.5
  */
-public interface DependencyConstraintMetadata extends DependencyMetadata<DependencyConstraintMetadata> {
-
-}
+public interface DependencyConstraintMetadata extends DependencyMetadata<DependencyConstraintMetadata> {}

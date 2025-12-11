@@ -29,7 +29,9 @@ public interface ComponentResultSerializer {
     /**
      * Serialize the component using the encoder.
      */
-    void writeComponentResult(Encoder encoder, ResolvedGraphComponent component, boolean includeAllSelectableVariantResults) throws Exception;
+    void writeComponentResult(
+            Encoder encoder, ResolvedGraphComponent component, boolean includeAllSelectableVariantResults)
+            throws Exception;
 
     /**
      * Deserialize the component from the decoder, passing the result to the visitor.

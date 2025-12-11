@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.jvm;
 
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -23,9 +24,6 @@ import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Nested;
-
-import javax.inject.Inject;
-
 
 /**
  * Dependency modifier APIs that can find platform and enforced platforms in other modules for {@code dependencies} blocks.
@@ -74,7 +72,8 @@ public interface PlatformDependencyModifiers {
         @Override
         protected void modifyImplementation(ModuleDependency dependency) {
             dependency.endorseStrictVersions();
-            dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.REGULAR_PLATFORM)));
+            dependency.attributes(attributeContainer -> attributeContainer.attribute(
+                    Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.REGULAR_PLATFORM)));
         }
     }
 
@@ -118,7 +117,8 @@ public interface PlatformDependencyModifiers {
                 String version = dependency.getVersion();
                 ((ExternalDependency) dependency).version(constraint -> constraint.strictly(version));
             }
-            dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.ENFORCED_PLATFORM)));
+            dependency.attributes(attributeContainer -> attributeContainer.attribute(
+                    Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.ENFORCED_PLATFORM)));
         }
     }
 }

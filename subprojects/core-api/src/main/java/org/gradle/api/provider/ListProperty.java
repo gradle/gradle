@@ -16,10 +16,9 @@
 
 package org.gradle.api.provider;
 
+import java.util.List;
 import org.gradle.api.model.ManagedType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Represents a property whose type is a {@link List} of elements of type {@link T}.

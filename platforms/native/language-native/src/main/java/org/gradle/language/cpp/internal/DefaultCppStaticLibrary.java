@@ -17,6 +17,8 @@
 package org.gradle.language.cpp.internal;
 
 import com.google.common.collect.Sets;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -45,10 +47,12 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.util.Set;
-
-public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStaticLibrary, ConfigurableComponentWithStaticLibrary, ConfigurableComponentWithLinkUsage, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
+public class DefaultCppStaticLibrary extends DefaultCppBinary
+        implements CppStaticLibrary,
+                ConfigurableComponentWithStaticLibrary,
+                ConfigurableComponentWithLinkUsage,
+                ConfigurableComponentWithRuntimeUsage,
+                SoftwareComponentInternal {
     private final RegularFileProperty linkFile;
     private final Property<Task> linkFileProducer;
     private final Property<CreateStaticLibrary> createTaskProperty;
@@ -57,8 +61,30 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultCppStaticLibrary(Names names, ObjectFactory objectFactory, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, RoleBasedConfigurationContainerInternal configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultCppStaticLibrary(
+            Names names,
+            ObjectFactory objectFactory,
+            Provider<String> baseName,
+            FileCollection sourceFiles,
+            FileCollection componentHeaderDirs,
+            RoleBasedConfigurationContainerInternal configurations,
+            Configuration implementation,
+            CppPlatform targetPlatform,
+            NativeToolChainInternal toolChain,
+            PlatformToolProvider platformToolProvider,
+            NativeVariantIdentity identity) {
+        super(
+                names,
+                objectFactory,
+                baseName,
+                sourceFiles,
+                componentHeaderDirs,
+                configurations,
+                implementation,
+                targetPlatform,
+                toolChain,
+                platformToolProvider,
+                identity);
         this.linkFile = objectFactory.fileProperty();
         this.linkFileProducer = objectFactory.property(Task.class);
         this.createTaskProperty = objectFactory.property(CreateStaticLibrary.class);
@@ -119,9 +145,10 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
         Configuration runtimeElements = getRuntimeElements().get();
         // TODO: Does a static library really have any runtime elements?
         return Sets.newHashSet(
-            new ConfigurationSoftwareComponentVariant(getIdentity().getLinkVariant(), linkElements.getAllArtifacts(), linkElements),
-            new ConfigurationSoftwareComponentVariant(getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements)
-        );
+                new ConfigurationSoftwareComponentVariant(
+                        getIdentity().getLinkVariant(), linkElements.getAllArtifacts(), linkElements),
+                new ConfigurationSoftwareComponentVariant(
+                        getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements));
     }
 
     @Override

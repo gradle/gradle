@@ -20,5 +20,6 @@ import java.util.List;
 
 public interface CustomParameter {
     void setTasks(List<String> tasks);
+
     List<String> getTasks();
 }

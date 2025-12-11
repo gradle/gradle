@@ -16,18 +16,17 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.file.FileMetadata.AccessType;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.Hashing;
-import org.jspecify.annotations.Nullable;
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-
-import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
+import org.gradle.internal.file.FileMetadata.AccessType;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A builder for {@link DirectorySnapshot} instances.
@@ -57,7 +56,11 @@ public class MerkleDirectorySnapshotBuilder implements DirectorySnapshotBuilder 
     }
 
     @Override
-    public void enterDirectory(AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
+    public void enterDirectory(
+            AccessType accessType,
+            String absolutePath,
+            String name,
+            EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
         directoryStack.addLast(new Directory(accessType, absolutePath, name, emptyDirectoryHandlingStrategy));
     }
 
@@ -102,7 +105,11 @@ public class MerkleDirectorySnapshotBuilder implements DirectorySnapshotBuilder 
         private final List<FileSystemLocationSnapshot> children;
         private final EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy;
 
-        public Directory(AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
+        public Directory(
+                AccessType accessType,
+                String absolutePath,
+                String name,
+                EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
             this.accessType = accessType;
             this.absolutePath = absolutePath;
             this.name = name;

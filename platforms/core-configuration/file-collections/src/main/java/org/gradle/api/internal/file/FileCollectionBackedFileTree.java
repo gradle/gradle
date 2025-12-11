@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.file;
 
+import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Consumer;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
@@ -29,15 +33,13 @@ import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
-import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Consumer;
-
 public class FileCollectionBackedFileTree extends AbstractFileTree {
     private final AbstractFileCollection collection;
 
-    public FileCollectionBackedFileTree(TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory, AbstractFileCollection collection) {
+    public FileCollectionBackedFileTree(
+            TaskDependencyFactory taskDependencyFactory,
+            PatternSetFactory patternSetFactory,
+            AbstractFileCollection collection) {
         super(taskDependencyFactory, patternSetFactory);
         this.collection = collection;
     }
@@ -83,7 +85,8 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
             }
 
             @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+            public void visitFileTreeBackedByFile(
+                    File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                 visitor.accept(fileTree);
             }
         });
@@ -99,7 +102,11 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
                 PatternSet patterns = patternSetFactory.createPatternSet();
                 for (File file : contents) {
                     if (seen.add(file)) {
-                        new FileTreeAdapter(new DirectoryFileTree(file, patterns, FileSystems.getDefault()), taskDependencyFactory, patternSetFactory).visitStructure(visitor);
+                        new FileTreeAdapter(
+                                        new DirectoryFileTree(file, patterns, FileSystems.getDefault()),
+                                        taskDependencyFactory,
+                                        patternSetFactory)
+                                .visitStructure(visitor);
                     }
                 }
             }
@@ -110,7 +117,8 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
             }
 
             @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+            public void visitFileTreeBackedByFile(
+                    File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                 visitor.visitFileTreeBackedByFile(file, fileTree, sourceTree);
             }
         });

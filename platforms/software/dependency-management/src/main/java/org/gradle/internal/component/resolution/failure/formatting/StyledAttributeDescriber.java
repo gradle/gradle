@@ -16,12 +16,11 @@
 package org.gradle.internal.component.resolution.failure.formatting;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Map;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.StyledTextOutput;
-
-import java.util.Map;
 
 /**
  * An {@link AttributeDescriber} decorator that styles the output of a delegate for the console.
@@ -45,11 +44,13 @@ public final class StyledAttributeDescriber implements AttributeDescriber {
 
     @Override
     public String describeMissingAttribute(Attribute<?> attribute, Object consumerValue) {
-        return StyledException.style(StyledTextOutput.Style.Info, delegate.describeMissingAttribute(attribute, consumerValue));
+        return StyledException.style(
+                StyledTextOutput.Style.Info, delegate.describeMissingAttribute(attribute, consumerValue));
     }
 
     @Override
     public String describeExtraAttribute(Attribute<?> attribute, Object producerValue) {
-        return StyledException.style(StyledTextOutput.Style.Info, delegate.describeExtraAttribute(attribute, producerValue));
+        return StyledException.style(
+                StyledTextOutput.Style.Info, delegate.describeExtraAttribute(attribute, producerValue));
     }
 }

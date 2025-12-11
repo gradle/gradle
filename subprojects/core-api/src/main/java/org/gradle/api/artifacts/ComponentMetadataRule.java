@@ -23,5 +23,4 @@ import org.gradle.api.Action;
  *
  * @since 4.9
  */
-public interface ComponentMetadataRule extends Action<ComponentMetadataContext> {
-}
+public interface ComponentMetadataRule extends Action<ComponentMetadataContext> {}

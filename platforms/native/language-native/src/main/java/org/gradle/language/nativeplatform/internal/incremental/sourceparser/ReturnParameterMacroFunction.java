@@ -16,9 +16,8 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
-import org.gradle.language.nativeplatform.internal.Expression;
-
 import java.util.List;
+import org.gradle.language.nativeplatform.internal.Expression;
 
 /**
  * A macro function that returns the value of one of its parameters.

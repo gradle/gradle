@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.NodeInitializer;
@@ -30,13 +31,12 @@ import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.typeregistration.InstanceFactory;
 
-import java.util.Set;
-
 public class FactoryBasedStructNodeInitializerExtractionStrategy<T> implements NodeInitializerExtractionStrategy {
     private final InstanceFactory<T> instanceFactory;
     private final StructBindingsStore bindingsStore;
 
-    public FactoryBasedStructNodeInitializerExtractionStrategy(InstanceFactory<T> instanceFactory, StructBindingsStore bindingsStore) {
+    public FactoryBasedStructNodeInitializerExtractionStrategy(
+            InstanceFactory<T> instanceFactory, StructBindingsStore bindingsStore) {
         this.instanceFactory = instanceFactory;
         this.bindingsStore = bindingsStore;
     }
@@ -48,7 +48,9 @@ public class FactoryBasedStructNodeInitializerExtractionStrategy<T> implements N
         }
         NodeInitializer nodeInitializer = getNodeInitializer(Cast.<ModelSchema<? extends T>>uncheckedCast(schema));
         if (nodeInitializer == null) {
-            throw new IllegalArgumentException(String.format("Cannot create an instance of type '%s' as this type is not known. Known types: %s.", schema.getType(), formatKnownTypes(context.getConstraints(), instanceFactory.getSupportedTypes())));
+            throw new IllegalArgumentException(String.format(
+                    "Cannot create an instance of type '%s' as this type is not known. Known types: %s.",
+                    schema.getType(), formatKnownTypes(context.getConstraints(), instanceFactory.getSupportedTypes())));
         }
         return nodeInitializer;
     }
@@ -84,8 +86,8 @@ public class FactoryBasedStructNodeInitializerExtractionStrategy<T> implements N
     private <S extends T> InstanceFactory.ImplementationInfo getImplementationInfo(StructSchema<S> schema) {
         ModelType<S> publicType = schema.getType();
         return schema instanceof ManagedImplSchema
-            ? instanceFactory.getManagedSubtypeImplementationInfo(publicType)
-            : instanceFactory.getImplementationInfo(publicType);
+                ? instanceFactory.getManagedSubtypeImplementationInfo(publicType)
+                : instanceFactory.getImplementationInfo(publicType);
     }
 
     @Override

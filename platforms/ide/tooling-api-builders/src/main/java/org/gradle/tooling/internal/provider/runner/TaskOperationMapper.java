@@ -16,7 +16,15 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
+
 import com.google.common.collect.ImmutableList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -45,22 +53,18 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgr
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
-
-class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperationDetails, DefaultTaskDescriptor>, OperationDependencyLookup {
+class TaskOperationMapper
+        implements BuildOperationMapper<ExecuteTaskBuildOperationDetails, DefaultTaskDescriptor>,
+                OperationDependencyLookup {
     private final Map<TaskIdentity<?>, DefaultTaskDescriptor> descriptors = new ConcurrentHashMap<>();
     private final PostProcessors operationResultPostProcessor;
     private final TaskOriginTracker taskOriginTracker;
     private final OperationDependenciesResolver operationDependenciesResolver;
 
-    TaskOperationMapper(List<OperationResultPostProcessor> operationResultPostProcessors, TaskOriginTracker taskOriginTracker, OperationDependenciesResolver operationDependenciesResolver) {
+    TaskOperationMapper(
+            List<OperationResultPostProcessor> operationResultPostProcessors,
+            TaskOriginTracker taskOriginTracker,
+            OperationDependenciesResolver operationDependenciesResolver) {
         this.operationResultPostProcessor = new PostProcessors(operationResultPostProcessors);
         this.taskOriginTracker = taskOriginTracker;
         this.operationDependenciesResolver = operationDependenciesResolver;
@@ -91,26 +95,39 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
     }
 
     @Override
-    public DefaultTaskDescriptor createDescriptor(ExecuteTaskBuildOperationDetails details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
+    public DefaultTaskDescriptor createDescriptor(
+            ExecuteTaskBuildOperationDetails details,
+            BuildOperationDescriptor buildOperation,
+            @Nullable OperationIdentifier parent) {
         OperationIdentifier id = buildOperation.getId();
         String taskIdentityPath = buildOperation.getName();
         String displayName = buildOperation.getDisplayName();
         String taskPath = details.getTask().getIdentityPath().asString();
-        Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(details.getTaskNode());
-        InternalPluginIdentifier originPlugin = taskOriginTracker.getOriginPlugin(details.getTask().getTaskIdentity());
-        DefaultTaskDescriptor descriptor = new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parent, dependencies, originPlugin);
-        DefaultTaskDescriptor descriptorWithoutDependencies = new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parent, emptySet(), originPlugin);
+        Set<InternalOperationDescriptor> dependencies =
+                operationDependenciesResolver.resolveDependencies(details.getTaskNode());
+        InternalPluginIdentifier originPlugin =
+                taskOriginTracker.getOriginPlugin(details.getTask().getTaskIdentity());
+        DefaultTaskDescriptor descriptor = new DefaultTaskDescriptor(
+                id, taskIdentityPath, taskPath, displayName, parent, dependencies, originPlugin);
+        DefaultTaskDescriptor descriptorWithoutDependencies = new DefaultTaskDescriptor(
+                id, taskIdentityPath, taskPath, displayName, parent, emptySet(), originPlugin);
         descriptors.put(details.getTask().getTaskIdentity(), descriptorWithoutDependencies);
         return descriptor;
     }
 
     @Override
-    public InternalOperationStartedProgressEvent createStartedEvent(DefaultTaskDescriptor descriptor, ExecuteTaskBuildOperationDetails details, OperationStartEvent startEvent) {
+    public InternalOperationStartedProgressEvent createStartedEvent(
+            DefaultTaskDescriptor descriptor,
+            ExecuteTaskBuildOperationDetails details,
+            OperationStartEvent startEvent) {
         return new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), descriptor);
     }
 
     @Override
-    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultTaskDescriptor descriptor, ExecuteTaskBuildOperationDetails details, OperationFinishEvent finishEvent) {
+    public InternalOperationFinishedProgressEvent createFinishedEvent(
+            DefaultTaskDescriptor descriptor,
+            ExecuteTaskBuildOperationDetails details,
+            OperationFinishEvent finishEvent) {
         TaskInternal task = details.getTask();
         AbstractTaskResult taskResult = operationResultPostProcessor.process(toTaskResult(task, finishEvent), task);
         return new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), descriptor, taskResult);
@@ -124,16 +141,29 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
         boolean incremental = result != null && result.isIncremental();
 
         if (state.getUpToDate()) {
-            return new DefaultTaskSuccessResult(startTime, endTime, true, state.isFromCache(), state.getSkipMessage(), incremental, Collections.emptyList());
+            return new DefaultTaskSuccessResult(
+                    startTime,
+                    endTime,
+                    true,
+                    state.isFromCache(),
+                    state.getSkipMessage(),
+                    incremental,
+                    Collections.emptyList());
         } else if (state.getSkipped()) {
             return new DefaultTaskSkippedResult(startTime, endTime, state.getSkipMessage(), incremental);
         } else {
             List<String> executionReasons = result != null ? result.getUpToDateMessages() : null;
             Throwable failure = finishEvent.getFailure();
             if (failure == null) {
-                return new DefaultTaskSuccessResult(startTime, endTime, false, state.isFromCache(), "SUCCESS", incremental, executionReasons);
+                return new DefaultTaskSuccessResult(
+                        startTime, endTime, false, state.isFromCache(), "SUCCESS", incremental, executionReasons);
             } else {
-                return new DefaultTaskFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), incremental, executionReasons);
+                return new DefaultTaskFailureResult(
+                        startTime,
+                        endTime,
+                        singletonList(DefaultFailure.fromThrowable(failure)),
+                        incremental,
+                        executionReasons);
             }
         }
     }

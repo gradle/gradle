@@ -24,17 +24,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentSetSerializer;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.serialize.AbstractSerializer;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.serialize.HierarchicalNameSerializer;
-
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,6 +34,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentSetSerializer;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.serialize.AbstractSerializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.serialize.HierarchicalNameSerializer;
 
 /**
  * Provides information about a set of classes, e.g. a JAR or a whole classpath.
@@ -86,8 +85,10 @@ public class ClassSetAnalysisData {
                 fullRebuildCause = data.fullRebuildCause;
             }
         }
-        ImmutableMap.Builder<String, DependentsSet> mergedDependents = ImmutableMap.builderWithExpectedSize(dependents.size());
-        for (Map.Entry<String, Collection<DependentsSet>> entry : dependents.asMap().entrySet()) {
+        ImmutableMap.Builder<String, DependentsSet> mergedDependents =
+                ImmutableMap.builderWithExpectedSize(dependents.size());
+        for (Map.Entry<String, Collection<DependentsSet>> entry :
+                dependents.asMap().entrySet()) {
             mergedDependents.put(entry.getKey(), DependentsSet.merge(entry.getValue()));
         }
         return new ClassSetAnalysisData(classHashes, mergedDependents.build(), classesToConstants, fullRebuildCause);
@@ -102,7 +103,11 @@ public class ClassSetAnalysisData {
         this(Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), null);
     }
 
-    public ClassSetAnalysisData(Map<String, HashCode> classHashes, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, String fullRebuildCause) {
+    public ClassSetAnalysisData(
+            Map<String, HashCode> classHashes,
+            Map<String, DependentsSet> dependents,
+            Map<String, IntSet> classesToConstants,
+            String fullRebuildCause) {
         this.classHashes = classHashes;
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
@@ -147,8 +152,11 @@ public class ClassSetAnalysisData {
         }
 
         Set<String> usedConstantSources = compilerApiData.isSupportsConstantsMapping()
-            ? compilerApiData.getConstantToClassMapping().getConstantDependents().keySet()
-            : classesToConstants.keySet();
+                ? compilerApiData
+                        .getConstantToClassMapping()
+                        .getConstantDependents()
+                        .keySet()
+                : classesToConstants.keySet();
 
         usedClasses.addAll(usedConstantSources);
 
@@ -164,10 +172,13 @@ public class ClassSetAnalysisData {
                     if (dependentsSet.isDependencyToAll()) {
                         dependents.put(usedClass, dependentsSet);
                     } else {
-                        Set<String> usedAccessibleClasses = new HashSet<>(dependentsSet.getAccessibleDependentClasses());
+                        Set<String> usedAccessibleClasses =
+                                new HashSet<>(dependentsSet.getAccessibleDependentClasses());
                         usedAccessibleClasses.retainAll(usedClasses);
                         if (!usedAccessibleClasses.isEmpty()) {
-                            dependents.put(usedClass, DependentsSet.dependentClasses(Collections.emptySet(), usedAccessibleClasses));
+                            dependents.put(
+                                    usedClass,
+                                    DependentsSet.dependentClasses(Collections.emptySet(), usedAccessibleClasses));
                         }
                     }
                 }
@@ -223,7 +234,8 @@ public class ClassSetAnalysisData {
                 changed.add(added);
             }
         }
-        for (Map.Entry<String, HashCode> removedOrChanged : Sets.difference(other.classHashes.entrySet(), classHashes.entrySet())) {
+        for (Map.Entry<String, HashCode> removedOrChanged :
+                Sets.difference(other.classHashes.entrySet(), classHashes.entrySet())) {
             DependentsSet dependents = getDependents(removedOrChanged.getKey());
             if (dependents.isDependencyToAll()) {
                 return dependents;
@@ -244,7 +256,8 @@ public class ClassSetAnalysisData {
             return DependentsSet.dependencyToAll("module-info has changed");
         }
         if (className.endsWith(PACKAGE_INFO)) {
-            String packageName = className.equals(PACKAGE_INFO) ? null : StringUtils.removeEnd(className, "." + PACKAGE_INFO);
+            String packageName =
+                    className.equals(PACKAGE_INFO) ? null : StringUtils.removeEnd(className, "." + PACKAGE_INFO);
             return getDependentsOfPackage(packageName);
         }
         DependentsSet dependentsSet = dependents.get(className);
@@ -285,7 +298,8 @@ public class ClassSetAnalysisData {
         @Override
         public ClassSetAnalysisData read(Decoder decoder) throws Exception {
             HierarchicalNameSerializer hierarchicalNameSerializer = classNameSerializerSupplier.get();
-            DependentSetSerializer dependentSetSerializer = new DependentSetSerializer(() -> hierarchicalNameSerializer);
+            DependentSetSerializer dependentSetSerializer =
+                    new DependentSetSerializer(() -> hierarchicalNameSerializer);
             int count = decoder.readSmallInt();
             ImmutableMap.Builder<String, HashCode> classHashes = ImmutableMap.builderWithExpectedSize(count);
             for (int i = 0; i < count; i++) {
@@ -303,7 +317,8 @@ public class ClassSetAnalysisData {
             }
 
             count = decoder.readSmallInt();
-            ImmutableMap.Builder<String, IntSet> classesToConstantsBuilder = ImmutableMap.builderWithExpectedSize(count);
+            ImmutableMap.Builder<String, IntSet> classesToConstantsBuilder =
+                    ImmutableMap.builderWithExpectedSize(count);
             for (int i = 0; i < count; i++) {
                 String className = hierarchicalNameSerializer.read(decoder);
                 IntSet constants = IntSetSerializer.INSTANCE.read(decoder);
@@ -312,13 +327,18 @@ public class ClassSetAnalysisData {
 
             String fullRebuildCause = decoder.readNullableString();
 
-            return new ClassSetAnalysisData(classHashes.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), fullRebuildCause);
+            return new ClassSetAnalysisData(
+                    classHashes.build(),
+                    dependentsBuilder.build(),
+                    classesToConstantsBuilder.build(),
+                    fullRebuildCause);
         }
 
         @Override
         public void write(Encoder encoder, ClassSetAnalysisData value) throws Exception {
             HierarchicalNameSerializer hierarchicalNameSerializer = classNameSerializerSupplier.get();
-            DependentSetSerializer dependentSetSerializer = new DependentSetSerializer(() -> hierarchicalNameSerializer);
+            DependentSetSerializer dependentSetSerializer =
+                    new DependentSetSerializer(() -> hierarchicalNameSerializer);
             encoder.writeSmallInt(value.classHashes.size());
             for (Map.Entry<String, HashCode> entry : value.classHashes.entrySet()) {
                 hierarchicalNameSerializer.write(encoder, entry.getKey());

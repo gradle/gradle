@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
@@ -34,9 +36,6 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
-import javax.inject.Inject;
-import java.util.List;
-
 public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSource<MutableMavenModuleResolveMetadata> {
 
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
@@ -45,7 +44,13 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
     private final ChecksumService checksumService;
 
     @Inject
-    public DefaultMavenPomMetadataSource(MetadataArtifactProvider metadataArtifactProvider, MetaDataParser<MutableMavenModuleResolveMetadata> pomParser, FileResourceRepository fileResourceRepository, MavenMetadataValidator validator, MavenMetadataLoader mavenMetadataLoader, ChecksumService checksumService) {
+    public DefaultMavenPomMetadataSource(
+            MetadataArtifactProvider metadataArtifactProvider,
+            MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+            FileResourceRepository fileResourceRepository,
+            MavenMetadataValidator validator,
+            MavenMetadataLoader mavenMetadataLoader,
+            ChecksumService checksumService) {
         super(metadataArtifactProvider, fileResourceRepository, checksumService);
         this.pomParser = pomParser;
         this.validator = validator;
@@ -54,13 +59,20 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
     }
 
     @Override
-    protected MetaDataParser.ParseResult<MutableMavenModuleResolveMetadata> parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, ExternalResourceArtifactResolver artifactResolver, DescriptorParseContext context, String repoName) {
-       MetaDataParser.ParseResult<MutableMavenModuleResolveMetadata> parseResult = pomParser.parseMetaData(context, cachedResource);
+    protected MetaDataParser.ParseResult<MutableMavenModuleResolveMetadata> parseMetaDataFromResource(
+            ModuleComponentIdentifier moduleComponentIdentifier,
+            LocallyAvailableExternalResource cachedResource,
+            ExternalResourceArtifactResolver artifactResolver,
+            DescriptorParseContext context,
+            String repoName) {
+        MetaDataParser.ParseResult<MutableMavenModuleResolveMetadata> parseResult =
+                pomParser.parseMetaData(context, cachedResource);
         MutableMavenModuleResolveMetadata metaData = parseResult.getResult();
         if (metaData != null) {
             if (moduleComponentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {
                 // Snapshot POMs use -SNAPSHOT instead of the timestamp as version, so validate against the expected id
-                MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier = (MavenUniqueSnapshotComponentIdentifier) moduleComponentIdentifier;
+                MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier =
+                        (MavenUniqueSnapshotComponentIdentifier) moduleComponentIdentifier;
                 checkMetadataConsistency(snapshotComponentIdentifier.getSnapshotComponent(), metaData);
 
                 metaData.setId(snapshotComponentIdentifier);
@@ -69,10 +81,9 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
                 checkMetadataConsistency(moduleComponentIdentifier, metaData);
             }
             MutableMavenModuleResolveMetadata result = MavenResolver.processMetaData(metaData);
-            result.getSources().add(new ModuleDescriptorHashModuleSource(
-                checksumService.md5(cachedResource.getFile()),
-                metaData.isChanging()
-            ));
+            result.getSources()
+                    .add(new ModuleDescriptorHashModuleSource(
+                            checksumService.md5(cachedResource.getFile()), metaData.isChanging()));
             if (validator.isUsableModule(repoName, result, artifactResolver)) {
                 return parseResult;
             }
@@ -82,7 +93,13 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
     }
 
     @Override
-    public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
+    public void listModuleVersions(
+            ModuleComponentSelector selector,
+            ComponentOverrideMetadata overrideMetadata,
+            List<ResourcePattern> ivyPatterns,
+            List<ResourcePattern> artifactPatterns,
+            VersionLister versionLister,
+            BuildableModuleVersionListingResolveResult result) {
         new MavenVersionLister(mavenMetadataLoader).listVersions(selector.getModuleIdentifier(), ivyPatterns, result);
     }
 
@@ -92,6 +109,9 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
      * do not have a corresponding artifact.
      */
     public interface MavenMetadataValidator {
-        boolean isUsableModule(String repoName, MutableMavenModuleResolveMetadata metadata, ExternalResourceArtifactResolver artifactResolver);
+        boolean isUsableModule(
+                String repoName,
+                MutableMavenModuleResolveMetadata metadata,
+                ExternalResourceArtifactResolver artifactResolver);
     }
 }

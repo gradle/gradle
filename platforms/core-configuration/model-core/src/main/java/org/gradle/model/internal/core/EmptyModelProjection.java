@@ -17,28 +17,28 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Optional;
+import java.util.Collections;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collections;
 
 public class EmptyModelProjection implements ModelProjection {
 
     public static final ModelProjection INSTANCE = new EmptyModelProjection();
 
-    private EmptyModelProjection() {
-    }
+    private EmptyModelProjection() {}
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
+    public <T> ModelView<? extends T> asImmutable(
+            ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
         return null;
     }
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
+    public <T> ModelView<? extends T> asMutable(
+            ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
         return null;
     }
 
@@ -56,5 +56,4 @@ public class EmptyModelProjection implements ModelProjection {
     public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
         return Optional.absent();
     }
-
 }

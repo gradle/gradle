@@ -23,5 +23,4 @@ import org.gradle.authentication.Authentication;
  *
  * @since 4.10
  */
-public interface HttpHeaderAuthentication extends Authentication {
-}
+public interface HttpHeaderAuthentication extends Authentication {}

@@ -24,7 +24,10 @@ import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 
 public class RelativePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public RelativePathFileCollectionFingerprinter(StringInterner stringInterner, DirectorySensitivity directorySensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
+    public RelativePathFileCollectionFingerprinter(
+            StringInterner stringInterner,
+            DirectorySensitivity directorySensitivity,
+            FileSystemLocationSnapshotHasher normalizedContentHasher) {
         super(new RelativePathFingerprintingStrategy(stringInterner, directorySensitivity, normalizedContentHasher));
     }
 

@@ -16,9 +16,9 @@
 
 package org.gradle.internal.tools.api.impl;
 
-import com.google.common.collect.ComparisonChain;
-
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.collect.ComparisonChain;
 
 /**
  * Models a single element of a codebase that may be inspected and acted upon with

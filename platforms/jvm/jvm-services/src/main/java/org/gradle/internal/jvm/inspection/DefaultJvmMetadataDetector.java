@@ -17,6 +17,11 @@
 package org.gradle.internal.jvm.inspection;
 
 import com.google.common.io.Files;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.util.Arrays;
+import java.util.EnumMap;
+import javax.inject.Inject;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.jvm.Jvm;
@@ -30,13 +35,6 @@ import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.util.Arrays;
-import java.util.EnumMap;
-
-
 public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
 
     private final ClientExecHandleBuilderFactory execHandleFactory;
@@ -46,9 +44,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
 
     @Inject
     public DefaultJvmMetadataDetector(
-        final ClientExecHandleBuilderFactory execHandleFactory,
-        final TemporaryFileProvider temporaryFileProvider
-    ) {
+            final ClientExecHandleBuilderFactory execHandleFactory, final TemporaryFileProvider temporaryFileProvider) {
         this.execHandleFactory = execHandleFactory;
         this.temporaryFileProvider = temporaryFileProvider;
     }
@@ -93,10 +89,20 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
         String jvmVersion = metadata.get(ProbedSystemProperty.VM_VERSION);
         String jvmVendor = metadata.get(ProbedSystemProperty.VM_VENDOR);
         String architecture = metadata.get(ProbedSystemProperty.OS_ARCH);
-        return JvmInstallationMetadata.from(javaHome, javaVersion, javaVendor, runtimeName, runtimeVersion, jvmName, jvmVersion, jvmVendor, architecture);
+        return JvmInstallationMetadata.from(
+                javaHome,
+                javaVersion,
+                javaVendor,
+                runtimeName,
+                runtimeVersion,
+                jvmName,
+                jvmVersion,
+                jvmVendor,
+                architecture);
     }
 
-    @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "DefaultCharset") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private JvmInstallationMetadata getMetadataFromInstallation(File jdkPath) {
         File tmpDir = temporaryFileProvider.createTemporaryDirectory("jvm", "probe");
         File probe = writeProbeClass(tmpDir);
@@ -115,7 +121,8 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
             if (exitValue == 0) {
                 return parseExecOutput(jdkPath, out.toString());
             }
-            String errorMessage = "Command returned unexpected result code: " + exitValue + "\nError output:\n" + errorOutput;
+            String errorMessage =
+                    "Command returned unexpected result code: " + exitValue + "\nError output:\n" + errorOutput;
             logger.debug("Failed to get metadata from JVM installation at '{}'. {}", jdkPath, errorMessage);
             return failure(jdkPath, errorMessage);
         } catch (ProcessExecutionException ex) {
@@ -125,7 +132,6 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
             GFileUtils.deleteQuietly(tmpDir);
         }
     }
-
 
     private static File javaExecutable(File jdkPath) {
         return new File(new File(jdkPath, "bin"), OperatingSystem.current().getExecutableName("java"));
@@ -162,5 +168,4 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     private File writeProbeClass(File tmpDir) {
         return new MetadataProbe().writeClass(tmpDir);
     }
-
 }

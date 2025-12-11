@@ -16,10 +16,9 @@
 
 package org.gradle.launcher.daemon.configuration;
 
-import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 
 public class DefaultDaemonServerConfiguration implements DaemonServerConfiguration {
 
@@ -36,18 +35,45 @@ public class DefaultDaemonServerConfiguration implements DaemonServerConfigurati
     /**
      * Creates the DefaultDaemonConfiguration that allows the use of the instrumentation agent if the latter is applied.
      */
-    public DefaultDaemonServerConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, int periodicCheckIntervalMs, boolean singleUse, DaemonPriority priority, List<String> jvmOptions, NativeServicesMode nativeServicesMode) {
+    public DefaultDaemonServerConfiguration(
+            String daemonUid,
+            File daemonBaseDir,
+            int idleTimeoutMs,
+            int periodicCheckIntervalMs,
+            boolean singleUse,
+            DaemonPriority priority,
+            List<String> jvmOptions,
+            NativeServicesMode nativeServicesMode) {
         // Using the available agent is correct for the forked daemon processes, because the forking
         // code takes the desired agent status into account when configuring the daemon command line.
         // The daemon that shouldn't use the agent won't have the agent applied.
-        this(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, jvmOptions, true, nativeServicesMode);
+        this(
+                daemonUid,
+                daemonBaseDir,
+                idleTimeoutMs,
+                periodicCheckIntervalMs,
+                singleUse,
+                priority,
+                jvmOptions,
+                true,
+                nativeServicesMode);
     }
 
-    public DefaultDaemonServerConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, int periodicCheckIntervalMs, boolean singleUse, DaemonPriority priority, List<String> jvmOptions, boolean instrumentationAgentAllowed, NativeServicesMode nativeServicesMode) {
+    public DefaultDaemonServerConfiguration(
+            String daemonUid,
+            File daemonBaseDir,
+            int idleTimeoutMs,
+            int periodicCheckIntervalMs,
+            boolean singleUse,
+            DaemonPriority priority,
+            List<String> jvmOptions,
+            boolean instrumentationAgentAllowed,
+            NativeServicesMode nativeServicesMode) {
         // There is at least one case when the daemon shouldn't use the available agent: if the foreground
         // daemon is started with feature flag disabled.
         // The start script cannot look into the feature flags, so the agent is always applied to the foreground daemon.
-        // The state of the flag has to be communicated to the daemon setup code explicitly, which is what this constructor allows.
+        // The state of the flag has to be communicated to the daemon setup code explicitly, which is what this
+        // constructor allows.
         this.daemonUid = daemonUid;
         this.daemonBaseDir = daemonBaseDir;
         this.idleTimeoutMs = idleTimeoutMs;

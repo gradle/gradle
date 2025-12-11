@@ -19,7 +19,12 @@ package org.gradle.language.cpp.internal.tooling;
 import org.gradle.tooling.internal.protocol.cpp.InternalCppStaticLibrary;
 
 public class DefaultCppStaticLibraryModel extends DefaultCppBinaryModel implements InternalCppStaticLibrary {
-    public DefaultCppStaticLibraryModel(String name, String variantName, String baseName, DefaultCompilationDetails compilationDetails, DefaultLinkageDetails linkageDetails) {
+    public DefaultCppStaticLibraryModel(
+            String name,
+            String variantName,
+            String baseName,
+            DefaultCompilationDetails compilationDetails,
+            DefaultLinkageDetails linkageDetails) {
         super(name, variantName, baseName, compilationDetails, linkageDetails);
     }
 }

@@ -41,7 +41,8 @@ public class ManagedProperty<T> {
     private final boolean declaredAsHavingUnmanagedType;
     private final boolean internal;
 
-    public ManagedProperty(String name, ModelType<T> type, boolean writable, boolean declaredAsHavingUnmanagedType, boolean internal) {
+    public ManagedProperty(
+            String name, ModelType<T> type, boolean writable, boolean declaredAsHavingUnmanagedType, boolean internal) {
         this.name = name;
         this.type = type;
         this.writable = writable;

@@ -16,14 +16,13 @@
 
 package org.gradle.internal.component;
 
+import java.util.Collections;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
 import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure;
 import org.gradle.internal.deprecation.DeprecationLogger;
-
-import java.util.Collections;
 
 /**
  * This type is {@code deprecated} and will be removed in Gradle 10.
@@ -69,9 +68,10 @@ public abstract class AmbiguousVariantSelectionException extends ArtifactSelecti
         super(message, EMPTY_RESOLUTION_FAILURE, Collections.emptyList());
 
         DeprecationLogger.deprecateType(AmbiguousVariantSelectionException.class)
-            .withAdvice("The " + AmbiguousVariantSelectionException.class.getName() + " type is temporarily available for migration only.")
-            .willBeRemovedInGradle10()
-            .withUserManual("feature_lifecycle", "sec:internal")
-            .nagUser();
+                .withAdvice("The " + AmbiguousVariantSelectionException.class.getName()
+                        + " type is temporarily available for migration only.")
+                .willBeRemovedInGradle10()
+                .withUserManual("feature_lifecycle", "sec:internal")
+                .nagUser();
     }
 }

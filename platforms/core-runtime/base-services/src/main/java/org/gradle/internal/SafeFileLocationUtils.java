@@ -22,9 +22,6 @@ import com.google.common.collect.Streams;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
-import org.apache.commons.io.FileSystem;
-import org.gradle.api.GradleException;
-
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -35,6 +32,8 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.IntStream;
+import org.apache.commons.io.FileSystem;
+import org.gradle.api.GradleException;
 
 /**
  * Sibling class to {@link FileUtils}, focused on obtaining safe file locations and names.
@@ -74,7 +73,8 @@ public final class SafeFileLocationUtils {
      * </p>
      */
     @VisibleForTesting
-    static final int MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES = MAX_FILE_NAME_LENGTH_IN_BYTES - TRUNCATED_PREFIX_BYTES.length - 1 - (HASHER.bits() + 4) / 5;
+    static final int MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES =
+            MAX_FILE_NAME_LENGTH_IN_BYTES - TRUNCATED_PREFIX_BYTES.length - 1 - (HASHER.bits() + 4) / 5;
 
     /**
      * The character used to replace illegal characters in file names.
@@ -87,29 +87,30 @@ public final class SafeFileLocationUtils {
      * There is no int hash set and boxing every code point would likely be too inefficient.
      */
     private static final int[] INVALID_CODE_POINTS;
+
     static {
         INVALID_CODE_POINTS = Streams.concat(
-            // Consider filesystem-illegal characters from all common OSes
-            // Currently Windows is a superset of the others, but we include all for future-proofing
-            IntStream.of(FileSystem.GENERIC.getIllegalFileNameCodePoints()),
-            IntStream.of(FileSystem.LINUX.getIllegalFileNameCodePoints()),
-            IntStream.of(FileSystem.MAC_OSX.getIllegalFileNameCodePoints()),
-            IntStream.of(FileSystem.WINDOWS.getIllegalFileNameCodePoints()),
-            // Drop whitespace characters that may cause problems in scripts or URLs
-            // We should consider excluding all Unicode whitespace, but it's likely not as problematic
-            IntStream.of(' ', '\t', '\n', '\r')
-        ).distinct().sorted().toArray();
+                        // Consider filesystem-illegal characters from all common OSes
+                        // Currently Windows is a superset of the others, but we include all for future-proofing
+                        IntStream.of(FileSystem.GENERIC.getIllegalFileNameCodePoints()),
+                        IntStream.of(FileSystem.LINUX.getIllegalFileNameCodePoints()),
+                        IntStream.of(FileSystem.MAC_OSX.getIllegalFileNameCodePoints()),
+                        IntStream.of(FileSystem.WINDOWS.getIllegalFileNameCodePoints()),
+                        // Drop whitespace characters that may cause problems in scripts or URLs
+                        // We should consider excluding all Unicode whitespace, but it's likely not as problematic
+                        IntStream.of(' ', '\t', '\n', '\r'))
+                .distinct()
+                .sorted()
+                .toArray();
     }
 
     private static boolean isInvalidCodePoint(int codePoint) {
         int type = Character.getType(codePoint);
         // Reject invalid, not visible, or non-portable characters
-        if (
-            type == Character.CONTROL ||
-                type == Character.PRIVATE_USE ||
-                type == Character.SURROGATE ||
-                type == Character.UNASSIGNED
-        ) {
+        if (type == Character.CONTROL
+                || type == Character.PRIVATE_USE
+                || type == Character.SURROGATE
+                || type == Character.UNASSIGNED) {
             return true;
         }
         // Check against our set of known invalid code points
@@ -119,11 +120,10 @@ public final class SafeFileLocationUtils {
     // CharsetEncoder is not thread-safe, so use ThreadLocal to hold one per thread
     // These are not very expensive memory-wise, so this should be OK
     private static final ThreadLocal<CharsetEncoder> REPORTING_UTF_8_ENCODER =
-        ThreadLocal.withInitial(() ->
-            StandardCharsets.UTF_8.newEncoder()
-                .onMalformedInput(CodingErrorAction.REPORT)
-                .onUnmappableCharacter(CodingErrorAction.REPORT)
-        );
+            ThreadLocal.withInitial(() -> StandardCharsets.UTF_8
+                    .newEncoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT));
 
     /**
      * Converts a string into a string that is safe to use as a file name.
@@ -223,7 +223,8 @@ public final class SafeFileLocationUtils {
      * @param result the byte buffer to encode into
      * @return the (possibly new) byte buffer containing the encoded bytes
      */
-    private static ByteBuffer doEncode(CharsetEncoder encoder, CharBuffer source, ByteBuffer result, boolean endOfInput) throws CharacterCodingException {
+    private static ByteBuffer doEncode(CharsetEncoder encoder, CharBuffer source, ByteBuffer result, boolean endOfInput)
+            throws CharacterCodingException {
         while (source.hasRemaining()) {
             CoderResult encodeResult = encoder.encode(source, result, endOfInput);
             if (encodeResult.isOverflow()) {
@@ -311,7 +312,8 @@ public final class SafeFileLocationUtils {
         int start = Math.max(1, rawName.length - (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 1));
         // Search only until the second last character to avoid treating a trailing dot as an extension
         for (int i = start; i < rawName.length - 1; i++) {
-            // Doing a raw byte comparison for '.' is safe as UTF-8 ensures that no other character will encode to contain it
+            // Doing a raw byte comparison for '.' is safe as UTF-8 ensures that no other character will encode to
+            // contain it
             if (rawName[i] == '.') {
                 return i;
             }
@@ -347,8 +349,9 @@ public final class SafeFileLocationUtils {
 
     public static File assertInWindowsPathLengthLimitation(File file) {
         if (file.getAbsolutePath().length() > WINDOWS_PATH_LIMIT) {
-            throw new GradleException(String.format("Cannot create file. '%s' exceeds windows path limitation of %d character.", file.getAbsolutePath(), WINDOWS_PATH_LIMIT));
-
+            throw new GradleException(String.format(
+                    "Cannot create file. '%s' exceeds windows path limitation of %d character.",
+                    file.getAbsolutePath(), WINDOWS_PATH_LIMIT));
         }
         return file;
     }

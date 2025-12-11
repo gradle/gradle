@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.AggregateTestReport;
 import org.gradle.api.tasks.testing.TestReport;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-
-import javax.inject.Inject;
 
 public abstract class DefaultAggregateTestReport implements AggregateTestReport {
     private final String name;
@@ -50,5 +49,4 @@ public abstract class DefaultAggregateTestReport implements AggregateTestReport 
     public TaskProvider<TestReport> getReportTask() {
         return reportTask;
     }
-
 }

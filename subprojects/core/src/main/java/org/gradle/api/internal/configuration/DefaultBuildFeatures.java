@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.configuration;
 
+import javax.inject.Inject;
 import org.gradle.api.configuration.BuildFeature;
 import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.internal.StartParameterInternal;
@@ -26,8 +27,6 @@ import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.lazy.Lazy;
 
-import javax.inject.Inject;
-
 public class DefaultBuildFeatures implements BuildFeatures {
 
     private final Lazy<BuildFeature> configurationCache;
@@ -35,7 +34,8 @@ public class DefaultBuildFeatures implements BuildFeatures {
 
     @Inject
     public DefaultBuildFeatures(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
-        this.configurationCache = Lazy.atomic().of(() -> createConfigurationCache(startParameter, buildModelParameters));
+        this.configurationCache =
+                Lazy.atomic().of(() -> createConfigurationCache(startParameter, buildModelParameters));
         this.isolatedProjects = Lazy.atomic().of(() -> createIsolatedProjects(startParameter, buildModelParameters));
     }
 
@@ -49,13 +49,15 @@ public class DefaultBuildFeatures implements BuildFeatures {
         return isolatedProjects.get();
     }
 
-    private static BuildFeature createConfigurationCache(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
+    private static BuildFeature createConfigurationCache(
+            StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
         Provider<Boolean> isRequested = getRequestedProvider(startParameter.getConfigurationCache());
         Provider<Boolean> isActive = Providers.of(buildModelParameters.isConfigurationCache());
         return new DefaultBuildFeature(isRequested, isActive);
     }
 
-    private static BuildFeature createIsolatedProjects(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
+    private static BuildFeature createIsolatedProjects(
+            StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
         Provider<Boolean> isRequested = getRequestedProvider(startParameter.getIsolatedProjects());
         Provider<Boolean> isActive = Providers.of(buildModelParameters.isIsolatedProjects());
         return new DefaultBuildFeature(isRequested, isActive);

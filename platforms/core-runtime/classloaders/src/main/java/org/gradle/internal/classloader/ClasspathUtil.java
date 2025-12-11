@@ -16,13 +16,6 @@
 
 package org.gradle.internal.classloader;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.reflect.JavaMethod;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -36,6 +29,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.GradleException;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.reflect.JavaMethod;
+import org.jspecify.annotations.Nullable;
 
 public class ClasspathUtil {
     public static void addUrl(URLClassLoader classLoader, Iterable<URL> classpathElements) {
@@ -44,14 +43,18 @@ public class ClasspathUtil {
             for (URL url : classLoader.getURLs()) {
                 original.add(toURI(url));
             }
-            JavaMethod<URLClassLoader, Object> method = JavaMethod.of(URLClassLoader.class, Object.class, "addURL", URL.class);
+            JavaMethod<URLClassLoader, Object> method =
+                    JavaMethod.of(URLClassLoader.class, Object.class, "addURL", URL.class);
             for (URL classpathElement : classpathElements) {
                 if (original.add(toURI(classpathElement))) {
                     method.invoke(classLoader, classpathElement);
                 }
             }
         } catch (Throwable t) {
-            throw new RuntimeException(String.format("Could not add URLs %s to class path for ClassLoader %s", classpathElements, classLoader), t);
+            throw new RuntimeException(
+                    String.format(
+                            "Could not add URLs %s to class path for ClassLoader %s", classpathElements, classLoader),
+                    t);
         }
     }
 
@@ -144,7 +147,8 @@ public class ClasspathUtil {
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        throw new GradleException(String.format("Cannot determine classpath for resource '%s' from location '%s'.", name, location));
+        throw new GradleException(
+                String.format("Cannot determine classpath for resource '%s' from location '%s'.", name, location));
     }
 
     private static URI toURI(URL url) throws URISyntaxException {
@@ -152,10 +156,12 @@ public class ClasspathUtil {
             return url.toURI();
         } catch (URISyntaxException e) {
             try {
-                return new URL(url.getProtocol(),
-                               url.getHost(),
-                               url.getPort(),
-                               url.getFile().replace(" ", "%20")).toURI();
+                return new URL(
+                                url.getProtocol(),
+                                url.getHost(),
+                                url.getPort(),
+                                url.getFile().replace(" ", "%20"))
+                        .toURI();
             } catch (MalformedURLException e1) {
                 throw UncheckedException.throwAsUncheckedException(e1);
             }
@@ -167,7 +173,8 @@ public class ClasspathUtil {
      *
      * If {@code stopAt} is not a parent of {@code startingClassloader}, this effectively collects all URLs from the classloader hierarchy.
      */
-    public static void collectClasspathUntil(ClassLoader startingClassloader, ClassLoader stopAt, final Set<URL> classpath) {
+    public static void collectClasspathUntil(
+            ClassLoader startingClassloader, ClassLoader stopAt, final Set<URL> classpath) {
         new ClassLoaderVisitor(stopAt) {
             @Override
             public void visitClassPath(URL[] classPath) {

@@ -85,12 +85,11 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     private final ScriptSourceListener scriptSourceListener;
 
     public ScriptPluginFactorySelector(
-        ScriptPluginFactory defaultScriptPluginFactory,
-        ProviderInstantiator providerInstantiator,
-        BuildOperationRunner buildOperationRunner,
-        UserCodeApplicationContext userCodeApplicationContext,
-        ScriptSourceListener scriptSourceListener
-    ) {
+            ScriptPluginFactory defaultScriptPluginFactory,
+            ProviderInstantiator providerInstantiator,
+            BuildOperationRunner buildOperationRunner,
+            UserCodeApplicationContext userCodeApplicationContext,
+            ScriptSourceListener scriptSourceListener) {
         this.defaultScriptPluginFactory = defaultScriptPluginFactory;
         this.providerInstantiator = providerInstantiator;
         this.buildOperationRunner = buildOperationRunner;
@@ -100,12 +99,14 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
 
     @Override
     public ScriptPlugin create(
-        ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope,
-        ClassLoaderScope baseScope, boolean topLevelScript
-    ) {
+            ScriptSource scriptSource,
+            ScriptHandler scriptHandler,
+            ClassLoaderScope targetScope,
+            ClassLoaderScope baseScope,
+            boolean topLevelScript) {
         scriptSourceListener.scriptSourceObserved(scriptSource);
         ScriptPlugin scriptPlugin = scriptPluginFactoryFor(scriptSource.getFileName())
-            .create(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript);
+                .create(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript);
         return new BuildOperationScriptPlugin(scriptPlugin, buildOperationRunner, userCodeApplicationContext);
     }
 

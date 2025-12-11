@@ -19,7 +19,6 @@ package org.gradle.testkit.runner.internal.feature;
 import org.gradle.util.GradleVersion;
 
 public enum TestKitFeature {
-
     RUN_BUILDS(GradleVersion.version("2.6")),
     CAPTURE_BUILD_RESULT_TASKS(GradleVersion.version("2.6")),
     PLUGIN_CLASSPATH_INJECTION(GradleVersion.version("2.8")),
@@ -35,5 +34,4 @@ public enum TestKitFeature {
     public GradleVersion getSince() {
         return since;
     }
-
 }

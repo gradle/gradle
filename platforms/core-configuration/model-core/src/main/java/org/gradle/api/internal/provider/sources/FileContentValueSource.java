@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.provider.sources;
 
+import java.io.File;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public abstract class FileContentValueSource<T> implements ValueSource<T, FileContentValueSource.Parameters> {
 

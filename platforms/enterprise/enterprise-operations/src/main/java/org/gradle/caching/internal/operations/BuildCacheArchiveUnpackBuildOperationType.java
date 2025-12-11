@@ -18,7 +18,9 @@ package org.gradle.caching.internal.operations;
 
 import org.gradle.internal.operations.BuildOperationType;
 
-public final class BuildCacheArchiveUnpackBuildOperationType implements BuildOperationType<BuildCacheArchiveUnpackBuildOperationType.Details, BuildCacheArchiveUnpackBuildOperationType.Result> {
+public final class BuildCacheArchiveUnpackBuildOperationType
+        implements BuildOperationType<
+                BuildCacheArchiveUnpackBuildOperationType.Details, BuildCacheArchiveUnpackBuildOperationType.Result> {
 
     public interface Details {
 
@@ -28,13 +30,10 @@ public final class BuildCacheArchiveUnpackBuildOperationType implements BuildOpe
         String getCacheKey();
 
         long getArchiveSize();
-
     }
 
     public interface Result {
 
         long getArchiveEntryCount();
-
     }
-
 }

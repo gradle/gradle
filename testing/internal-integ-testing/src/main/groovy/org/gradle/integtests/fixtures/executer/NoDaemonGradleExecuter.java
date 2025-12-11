@@ -16,6 +16,16 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.joining;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
@@ -32,28 +42,24 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.GradleVersion;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executors;
-
-import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.joining;
-import static org.junit.Assert.fail;
-
 public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     public NoDaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
     }
 
-    public NoDaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
+    public NoDaemonGradleExecuter(
+            GradleDistribution distribution,
+            TestDirectoryProvider testDirectoryProvider,
+            IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, buildContext);
     }
 
-    public NoDaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
+    public NoDaemonGradleExecuter(
+            GradleDistribution distribution,
+            TestDirectoryProvider testDirectoryProvider,
+            GradleVersion gradleVersion,
+            IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
     }
 
@@ -67,8 +73,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
-    public void assertCanExecute() throws AssertionError {
-    }
+    public void assertCanExecute() throws AssertionError {}
 
     @Override
     protected void transformInvocation(GradleInvocation invocation) {
@@ -92,7 +97,9 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
             jvmOptsEnvVar = "JAVA_OPTS";
         } else {
             // This could be handled, just not implemented yet
-            throw new UnsupportedOperationException(String.format("Both GRADLE_OPTS and JAVA_OPTS environment variables are being used. Cannot provide JVM args %s to Gradle command.", invocation.launcherJvmArgs));
+            throw new UnsupportedOperationException(String.format(
+                    "Both GRADLE_OPTS and JAVA_OPTS environment variables are being used. Cannot provide JVM args %s to Gradle command.",
+                    invocation.launcherJvmArgs));
         }
         final String value = toJvmArgsString(invocation.launcherJvmArgs);
         environmentVars.put(jvmOptsEnvVar, value);
@@ -106,7 +113,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<>(super.getAllArgs());
         addPropagatedSystemProperties(args);
-        if(!isQuiet() && isAllowExtraLogging()) {
+        if (!isQuiet() && isAllowExtraLogging()) {
             if (!containsLoggingArgument(args)) {
                 args.add(0, "-i");
             }
@@ -134,7 +141,8 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         List<String> buildJvmOptions = super.getImplicitBuildJvmArgs();
         if (!isUseDaemon() && !isSingleUseDaemonRequested()) {
             JavaVersion version = getJavaVersionFromJavaHome();
-            buildJvmOptions.addAll(JpmsConfiguration.forDaemonProcesses(Integer.parseInt(version.getMajorVersion()), true));
+            buildJvmOptions.addAll(
+                    JpmsConfiguration.forDaemonProcesses(Integer.parseInt(version.getMajorVersion()), true));
         }
         return buildJvmOptions;
     }
@@ -150,7 +158,8 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected GradleHandle createGradleHandle() {
-        return createForkingGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), getExecHandleFactory()).start();
+        return createForkingGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), getExecHandleFactory())
+                .start();
     }
 
     protected Factory<BaseExecHandleBuilder> getExecHandleFactory() {
@@ -159,19 +168,25 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
             public BaseExecHandleBuilder create() {
                 TestFile gradleHomeDir = getDistribution().getGradleHomeDir();
                 if (gradleHomeDir != null && !gradleHomeDir.isDirectory()) {
-                    fail(gradleHomeDir + " is not a directory.\n"
-                        + "The test is most likely not written in a way that it can run with the embedded executer.");
+                    fail(
+                            gradleHomeDir + " is not a directory.\n"
+                                    + "The test is most likely not written in a way that it can run with the embedded executer.");
                 }
 
                 NativeServicesTestFixture.initialize();
-                DefaultClientExecHandleBuilder builder = new DefaultClientExecHandleBuilder(TestFiles.pathToFileResolver(), Executors.newCachedThreadPool(), new DefaultBuildCancellationToken()) {
-                    @Override
-                    public File getWorkingDir() {
-                        // Override this, so that the working directory is not canonicalised. Some int tests require that
-                        // the working directory is not canonicalised
-                        return NoDaemonGradleExecuter.this.getWorkingDir();
-                    }
-                };
+                DefaultClientExecHandleBuilder builder =
+                        new DefaultClientExecHandleBuilder(
+                                TestFiles.pathToFileResolver(),
+                                Executors.newCachedThreadPool(),
+                                new DefaultBuildCancellationToken()) {
+                            @Override
+                            public File getWorkingDir() {
+                                // Override this, so that the working directory is not canonicalised. Some int tests
+                                // require that
+                                // the working directory is not canonicalised
+                                return NoDaemonGradleExecuter.this.getWorkingDir();
+                            }
+                        };
 
                 // Clear the user's environment
                 builder.environment("GRADLE_HOME", "");
@@ -188,16 +203,24 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
                 builder.args(invocation.args);
 
-                ExecHandlerConfigurer configurer = OperatingSystem.current().isWindows() ? new WindowsConfigurer() : new UnixConfigurer();
+                ExecHandlerConfigurer configurer =
+                        OperatingSystem.current().isWindows() ? new WindowsConfigurer() : new UnixConfigurer();
                 configurer.configure(builder);
-                getLogger().debug(String.format("Execute in %s with: %s %s", builder.getWorkingDir(), builder.getExecutable(), builder.getArgs()));
+                getLogger()
+                        .debug(String.format(
+                                "Execute in %s with: %s %s",
+                                builder.getWorkingDir(), builder.getExecutable(), builder.getArgs()));
                 return builder;
             }
         };
     }
 
-    protected ForkingGradleHandle createForkingGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<BaseExecHandleBuilder> execHandleFactory) {
-        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement());
+    protected ForkingGradleHandle createForkingGradleHandle(
+            Action<ExecutionResult> resultAssertion,
+            String encoding,
+            Factory<BaseExecHandleBuilder> execHandleFactory) {
+        return new ForkingGradleHandle(
+                getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement());
     }
 
     @Override
@@ -226,7 +249,8 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
             builder.setExecutable("cmd.exe");
 
             List<String> allArgs = builder.getArgs();
-            String actualCommand = quote(quote(cmd) + " " + allArgs.stream().map(NoDaemonGradleExecuter::quote).collect(joining(" ")));
+            String actualCommand = quote(quote(cmd) + " "
+                    + allArgs.stream().map(NoDaemonGradleExecuter::quote).collect(joining(" ")));
             builder.setArgs(Arrays.asList("/d", "/c", actualCommand));
 
             String gradleHome = getDistribution().getGradleHomeDir().getAbsolutePath();
@@ -246,12 +270,11 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     private static String quote(String arg) {
-        if(arg.isEmpty()){
+        if (arg.isEmpty()) {
             return "\"\"";
         }
         if (arg.contains(" ")) {
             return "\"" + arg + "\"";
-
         }
         return arg;
     }
@@ -267,9 +290,9 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
                     builder.setExecutable(String.format("%s/%s", getWorkingDir().getAbsolutePath(), getExecutable()));
                 }
             } else {
-                builder.setExecutable(String.format("%s/bin/gradle", getDistribution().getGradleHomeDir().getAbsolutePath()));
+                builder.setExecutable(String.format(
+                        "%s/bin/gradle", getDistribution().getGradleHomeDir().getAbsolutePath()));
             }
         }
     }
-
 }

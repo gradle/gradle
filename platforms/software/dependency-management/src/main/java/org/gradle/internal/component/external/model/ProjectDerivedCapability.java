@@ -71,7 +71,7 @@ public class ProjectDerivedCapability implements CapabilityInternal {
         int hash = getVersion().hashCode();
         hash = 31 * hash + getName().hashCode();
         hash = 31 * hash + getGroup().hashCode();
-        return  hash;
+        return hash;
     }
 
     @Override
@@ -85,9 +85,8 @@ public class ProjectDerivedCapability implements CapabilityInternal {
 
         Capability that = (Capability) o;
         return Objects.equal(getGroup(), that.getGroup())
-            && Objects.equal(getName(), that.getName())
-            && Objects.equal(getVersion(), that.getVersion());
-
+                && Objects.equal(getName(), that.getName())
+                && Objects.equal(getVersion(), that.getVersion());
     }
 
     private static String notNull(String id, Object o) {

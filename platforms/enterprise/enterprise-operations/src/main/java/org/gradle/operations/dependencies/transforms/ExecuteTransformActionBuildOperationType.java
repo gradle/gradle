@@ -26,13 +26,13 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 8.3
  */
-public final class ExecuteTransformActionBuildOperationType implements BuildOperationType<ExecuteTransformActionBuildOperationType.Details, ExecuteTransformActionBuildOperationType.Result> {
+public final class ExecuteTransformActionBuildOperationType
+        implements BuildOperationType<
+                ExecuteTransformActionBuildOperationType.Details, ExecuteTransformActionBuildOperationType.Result> {
 
-    public interface Details {
-    }
+    public interface Details {}
 
-    public interface Result {
-    }
+    public interface Result {}
 
     public static final Details DETAILS_INSTANCE = new Details() {};
     public static final Result RESULT_INSTANCE = new Result() {};

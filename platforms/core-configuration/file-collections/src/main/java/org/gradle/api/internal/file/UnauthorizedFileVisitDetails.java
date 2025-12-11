@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FilePermissions;
-import org.gradle.api.file.RelativePath;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.RelativePath;
 
 public class UnauthorizedFileVisitDetails implements FileVisitDetails {
     private File file;
@@ -34,8 +33,7 @@ public class UnauthorizedFileVisitDetails implements FileVisitDetails {
     }
 
     @Override
-    public void stopVisiting() {
-    }
+    public void stopVisiting() {}
 
     @Override
     public File getFile() {

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.type;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeContainer;
@@ -25,12 +26,14 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.Set;
-
-public class DefaultArtifactTypeContainer extends AbstractValidatingNamedDomainObjectContainer<ArtifactTypeDefinition> implements ArtifactTypeContainer {
+public class DefaultArtifactTypeContainer extends AbstractValidatingNamedDomainObjectContainer<ArtifactTypeDefinition>
+        implements ArtifactTypeContainer {
     private final AttributesFactory attributesFactory;
 
-    public DefaultArtifactTypeContainer(Instantiator instantiator, AttributesFactory attributesFactory, CollectionCallbackActionDecorator callbackActionDecorator) {
+    public DefaultArtifactTypeContainer(
+            Instantiator instantiator,
+            AttributesFactory attributesFactory,
+            CollectionCallbackActionDecorator callbackActionDecorator) {
         super(ArtifactTypeDefinition.class, instantiator, callbackActionDecorator);
         this.attributesFactory = attributesFactory;
     }

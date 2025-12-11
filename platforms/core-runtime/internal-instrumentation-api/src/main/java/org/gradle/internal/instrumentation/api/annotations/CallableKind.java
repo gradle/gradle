@@ -24,13 +24,11 @@ import java.lang.annotation.Target;
 public final class CallableKind {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.CLASS)
-    public @interface AfterConstructor {
-    }
+    public @interface AfterConstructor {}
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.CLASS)
-    public @interface InstanceMethod {
-    }
+    public @interface InstanceMethod {}
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.CLASS)
@@ -40,11 +38,9 @@ public final class CallableKind {
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.CLASS)
-    public @interface GroovyPropertyGetter {
-    }
+    public @interface GroovyPropertyGetter {}
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.CLASS)
-    public @interface GroovyPropertySetter {
-    }
+    public @interface GroovyPropertySetter {}
 }

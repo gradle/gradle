@@ -15,12 +15,11 @@
  */
 package org.gradle.plugins.signing.signatory;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * A signatory is an object capable of providing a signature for an arbitrary stream of bytes.

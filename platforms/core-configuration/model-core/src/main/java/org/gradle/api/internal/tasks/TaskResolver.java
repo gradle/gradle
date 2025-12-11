@@ -38,5 +38,4 @@ public interface TaskResolver {
      * task paths.
      */
     Task resolveTask(Path path);
-
 }

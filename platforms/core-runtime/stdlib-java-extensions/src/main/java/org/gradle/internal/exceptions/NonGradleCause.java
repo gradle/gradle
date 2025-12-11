@@ -20,5 +20,4 @@ package org.gradle.internal.exceptions;
  * An exception that is not caused by a Gradle specific problem. e.g. a problem caused by a compilation error.
  * This serves as a marker interface.
  */
-public interface NonGradleCause {
-}
+public interface NonGradleCause {}

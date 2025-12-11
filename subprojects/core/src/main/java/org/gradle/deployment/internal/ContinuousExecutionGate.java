@@ -23,6 +23,7 @@ public interface ContinuousExecutionGate {
 
     interface GateKeeper {
         void open();
+
         void close();
     }
 }

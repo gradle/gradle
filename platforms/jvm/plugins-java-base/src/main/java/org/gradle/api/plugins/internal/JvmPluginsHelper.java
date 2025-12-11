@@ -15,6 +15,12 @@
  */
 package org.gradle.api.plugins.internal;
 
+import static org.gradle.util.internal.TextUtil.camelToKebabCase;
+
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Project;
@@ -49,13 +55,6 @@ import org.gradle.internal.Cast;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
-
-import static org.gradle.util.internal.TextUtil.camelToKebabCase;
-
 /**
  * Helpers for Jvm plugins. They are in a separate class so that they don't leak
  * into the public API.
@@ -70,31 +69,53 @@ public class JvmPluginsHelper {
      * @param sourceSet The source set whose output contains the java classes to compile against.
      * @param objectFactory An {@link ObjectFactory}.
      */
-    public static void compileAgainstJavaOutputs(AbstractCompile compileTask, final SourceSet sourceSet, final ObjectFactory objectFactory) {
+    public static void compileAgainstJavaOutputs(
+            AbstractCompile compileTask, final SourceSet sourceSet, final ObjectFactory objectFactory) {
         ConfigurableFileCollection classpath = objectFactory.fileCollection();
-        classpath.from((Callable<Object>) () -> sourceSet.getCompileClasspath().plus(objectFactory.fileCollection().from(sourceSet.getJava().getClassesDirectory())));
+        classpath.from((Callable<Object>) () -> sourceSet
+                .getCompileClasspath()
+                .plus(objectFactory.fileCollection().from(sourceSet.getJava().getClassesDirectory())));
         compileTask.getConventionMapping().map("classpath", () -> classpath);
     }
 
-    public static void configureAnnotationProcessorPath(final SourceSet sourceSet, SourceDirectorySet sourceDirectorySet, CompileOptions options, final Project target) {
+    public static void configureAnnotationProcessorPath(
+            final SourceSet sourceSet,
+            SourceDirectorySet sourceDirectorySet,
+            CompileOptions options,
+            final Project target) {
         final ConventionMapping conventionMapping = new DslObject(options).getConventionMapping();
         conventionMapping.map("annotationProcessorPath", sourceSet::getAnnotationProcessorPath);
-        String annotationProcessorGeneratedSourcesChildPath = "generated/sources/annotationProcessor/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
-        options.getGeneratedSourceOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(annotationProcessorGeneratedSourcesChildPath));
+        String annotationProcessorGeneratedSourcesChildPath =
+                "generated/sources/annotationProcessor/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
+        options.getGeneratedSourceOutputDirectory()
+                .convention(target.getLayout().getBuildDirectory().dir(annotationProcessorGeneratedSourcesChildPath));
     }
 
-    public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, TaskProvider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
+    public static void configureOutputDirectoryForSourceSet(
+            final SourceSet sourceSet,
+            final SourceDirectorySet sourceDirectorySet,
+            final Project target,
+            TaskProvider<? extends AbstractCompile> compileTask,
+            Provider<CompileOptions> options) {
         final String sourceSetChildPath = "classes/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
-        sourceDirectorySet.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
+        sourceDirectorySet
+                .getDestinationDirectory()
+                .convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
 
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
         sourceSetOutput.getClassesDirs().from(sourceDirectorySet.getDestinationDirectory());
         sourceSetOutput.getClassesDirs().builtBy(compileTask);
-        sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(CompileOptions::getGeneratedSourceOutputDirectory));
+        sourceSetOutput
+                .getGeneratedSourcesDirs()
+                .from(options.flatMap(CompileOptions::getGeneratedSourceOutputDirectory));
         sourceDirectorySet.compiledBy(compileTask, AbstractCompile::getDestinationDirectory);
     }
 
-    public static void configureJavaDocTask(String displayName, SourceSet sourceSet, TaskContainer tasks, @Nullable JavaPluginExtension javaPluginExtension) {
+    public static void configureJavaDocTask(
+            String displayName,
+            SourceSet sourceSet,
+            TaskContainer tasks,
+            @Nullable JavaPluginExtension javaPluginExtension) {
         String javadocTaskName = sourceSet.getJavadocTaskName();
         if (!tasks.getNames().contains(javadocTaskName)) {
             tasks.register(javadocTaskName, Javadoc.class, javadoc -> {
@@ -103,35 +124,44 @@ public class JvmPluginsHelper {
                 javadoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
                 javadoc.setSource(sourceSet.getAllJava());
                 if (javaPluginExtension != null) {
-                    javadoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension.getDocsDir().dir(javadocTaskName).get().getAsFile());
-                    javadoc.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
+                    javadoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension
+                            .getDocsDir()
+                            .dir(javadocTaskName)
+                            .get()
+                            .getAsFile());
+                    javadoc.getModularity()
+                            .getInferModulePath()
+                            .convention(javaPluginExtension.getModularity().getInferModulePath());
                 }
             });
         }
     }
 
     public static NamedDomainObjectProvider<ConsumableConfiguration> createInternalDocumentationVariantWithArtifact(
-        String variantName,
-        @Nullable String featureName,
-        String docsType,
-        Set<Capability> capabilities,
-        String jarTaskName,
-        Object artifactSource,
-        ProjectInternal project
-    ) {
-        TaskProvider<Jar> jar = maybeRegisterDocumentationJarTask(featureName, docsType, jarTaskName, artifactSource, project.getTasks());
+            String variantName,
+            @Nullable String featureName,
+            String docsType,
+            Set<Capability> capabilities,
+            String jarTaskName,
+            Object artifactSource,
+            ProjectInternal project) {
+        TaskProvider<Jar> jar = maybeRegisterDocumentationJarTask(
+                featureName, docsType, jarTaskName, artifactSource, project.getTasks());
         return project.getConfigurations().consumable(variantName, variant -> {
             variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
 
             ObjectFactory objectFactory = project.getObjects();
             AttributeContainer attributes = variant.getAttributes();
             attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
+            attributes.attribute(
+                    Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
             attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
             attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, docsType));
             capabilities.forEach(variant.getOutgoing()::capability);
 
-            variant.getOutgoing().artifact(new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory()));
+            variant.getOutgoing()
+                    .artifact(new LazyPublishArtifact(
+                            jar, project.getFileResolver(), project.getTaskDependencyFactory()));
         });
     }
 
@@ -139,34 +169,38 @@ public class JvmPluginsHelper {
      * This was kept for backwards compatibility with https://github.com/vanniktech/gradle-maven-publish-plugin
      */
     public static Configuration createDocumentationVariantWithArtifact(
-        String variantName,
-        @Nullable String featureName,
-        String docsType,
-        Set<Capability> capabilities,
-        String jarTaskName,
-        Object artifactSource,
-        ProjectInternal project
-    ) {
-        return createInternalDocumentationVariantWithArtifact(variantName, featureName, docsType, capabilities, jarTaskName, artifactSource, project).get();
+            String variantName,
+            @Nullable String featureName,
+            String docsType,
+            Set<Capability> capabilities,
+            String jarTaskName,
+            Object artifactSource,
+            ProjectInternal project) {
+        return createInternalDocumentationVariantWithArtifact(
+                        variantName, featureName, docsType, capabilities, jarTaskName, artifactSource, project)
+                .get();
     }
 
     private static TaskProvider<Jar> maybeRegisterDocumentationJarTask(
-        @Nullable String featureName,
-        String docsType,
-        String jarTaskName,
-        Object artifactSource,
-        TaskContainer tasks
-    ) {
+            @Nullable String featureName,
+            String docsType,
+            String jarTaskName,
+            Object artifactSource,
+            TaskContainer tasks) {
         // TODO: Emit deprecation if this task already exists.
         if (tasks.getNames().contains(jarTaskName)) {
             return tasks.named(jarTaskName, Jar.class);
         }
 
         TaskProvider<Jar> jarTask = tasks.register(jarTaskName, Jar.class, jar -> {
-            jar.setDescription("Assembles a jar archive containing the " + (featureName == null ? "main " + docsType + "." : (docsType + " of the '" + featureName + "' feature.")));
+            jar.setDescription("Assembles a jar archive containing the "
+                    + (featureName == null
+                            ? "main " + docsType + "."
+                            : (docsType + " of the '" + featureName + "' feature.")));
             jar.setGroup(BasePlugin.BUILD_GROUP);
             jar.from(artifactSource);
-            jar.getArchiveClassifier().set(camelToKebabCase(featureName == null ? docsType : (featureName + "-" + docsType)));
+            jar.getArchiveClassifier()
+                    .set(camelToKebabCase(featureName == null ? docsType : (featureName + "-" + docsType)));
         });
 
         if (tasks.getNames().contains(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)) {
@@ -184,17 +218,30 @@ public class JvmPluginsHelper {
      * @param compatibilityComputer A function to compute the compatibility version to use as the convention
      *      given the raw version values and the current version property values set on the extension
      */
-    public static void configureCompileDefaults(AbstractCompile compile, DefaultJavaPluginExtension javaExtension, BiFunction<JavaVersion, Supplier<JavaVersion>, JavaVersion> compatibilityComputer) {
+    public static void configureCompileDefaults(
+            AbstractCompile compile,
+            DefaultJavaPluginExtension javaExtension,
+            BiFunction<JavaVersion, Supplier<JavaVersion>, JavaVersion> compatibilityComputer) {
         ConventionMapping conventionMapping = compile.getConventionMapping();
-        conventionMapping.map("sourceCompatibility", () -> computeSourceCompatibilityConvention(javaExtension, compatibilityComputer).toString());
-        conventionMapping.map("targetCompatibility", () -> computeTargetCompatibilityConvention(javaExtension, compile, compatibilityComputer).toString());
+        conventionMapping.map(
+                "sourceCompatibility", () -> computeSourceCompatibilityConvention(javaExtension, compatibilityComputer)
+                        .toString());
+        conventionMapping.map("targetCompatibility", () -> computeTargetCompatibilityConvention(
+                        javaExtension, compile, compatibilityComputer)
+                .toString());
     }
 
-    private static JavaVersion computeSourceCompatibilityConvention(DefaultJavaPluginExtension javaExtension, BiFunction<JavaVersion, Supplier<JavaVersion>, JavaVersion> compatibilityComputer) {
-        return compatibilityComputer.apply(javaExtension.getRawSourceCompatibility(), javaExtension::getSourceCompatibility);
+    private static JavaVersion computeSourceCompatibilityConvention(
+            DefaultJavaPluginExtension javaExtension,
+            BiFunction<JavaVersion, Supplier<JavaVersion>, JavaVersion> compatibilityComputer) {
+        return compatibilityComputer.apply(
+                javaExtension.getRawSourceCompatibility(), javaExtension::getSourceCompatibility);
     }
 
-    private static JavaVersion computeTargetCompatibilityConvention(DefaultJavaPluginExtension javaExtension, AbstractCompile compile, BiFunction<JavaVersion, Supplier<JavaVersion>, JavaVersion> compatibilityComputer) {
+    private static JavaVersion computeTargetCompatibilityConvention(
+            DefaultJavaPluginExtension javaExtension,
+            AbstractCompile compile,
+            BiFunction<JavaVersion, Supplier<JavaVersion>, JavaVersion> compatibilityComputer) {
         JavaVersion rawTargetCompatibility = javaExtension.getRawTargetCompatibility();
         if (rawTargetCompatibility == null) {
             rawTargetCompatibility = JavaVersion.toVersion(compile.getSourceCompatibility());

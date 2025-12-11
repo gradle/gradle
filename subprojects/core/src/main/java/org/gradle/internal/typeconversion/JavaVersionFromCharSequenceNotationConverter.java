@@ -19,9 +19,11 @@ package org.gradle.internal.typeconversion;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
-public class JavaVersionFromCharSequenceNotationConverter implements NotationConverter<CharSequence, JavaLanguageVersion> {
+public class JavaVersionFromCharSequenceNotationConverter
+        implements NotationConverter<CharSequence, JavaLanguageVersion> {
     @Override
-    public void convert(CharSequence notation, NotationConvertResult<? super JavaLanguageVersion> result) throws TypeConversionException {
+    public void convert(CharSequence notation, NotationConvertResult<? super JavaLanguageVersion> result)
+            throws TypeConversionException {
         try {
             result.converted(JavaLanguageVersion.of(notation.toString()));
         } catch (IllegalArgumentException e) {

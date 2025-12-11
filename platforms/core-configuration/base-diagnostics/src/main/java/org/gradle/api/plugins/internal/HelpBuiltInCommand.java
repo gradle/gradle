@@ -16,14 +16,13 @@
 
 package org.gradle.api.plugins.internal;
 
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NonNull;
-
-import java.util.Collections;
-import java.util.List;
 
 @ServiceScope(Scope.Global.class)
 public class HelpBuiltInCommand implements BuiltInCommand {
@@ -40,6 +39,9 @@ public class HelpBuiltInCommand implements BuiltInCommand {
 
     @Override
     public boolean commandLineMatches(List<String> taskNames) {
-        return taskNames.isEmpty() || taskNames.stream().anyMatch(taskName -> taskName.equals(ProjectInternal.HELP_TASK) || taskName.equals(":" + ProjectInternal.HELP_TASK));
+        return taskNames.isEmpty()
+                || taskNames.stream()
+                        .anyMatch(taskName -> taskName.equals(ProjectInternal.HELP_TASK)
+                                || taskName.equals(":" + ProjectInternal.HELP_TASK));
     }
 }

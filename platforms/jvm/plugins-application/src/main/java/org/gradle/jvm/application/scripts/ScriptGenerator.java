@@ -35,5 +35,4 @@ public interface ScriptGenerator {
      * @param destination the script destination
      */
     void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination);
-
 }

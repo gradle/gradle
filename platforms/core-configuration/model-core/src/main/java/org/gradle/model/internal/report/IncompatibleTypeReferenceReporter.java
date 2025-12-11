@@ -16,19 +16,18 @@
 
 package org.gradle.model.internal.report;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 @ThreadSafe
 public class IncompatibleTypeReferenceReporter {
 
-    private final static String INDENT = "  ";
+    private static final String INDENT = "  ";
 
     private final String creator;
     private final String path;
@@ -37,7 +36,13 @@ public class IncompatibleTypeReferenceReporter {
     private final boolean writable;
     private final Iterable<String> candidateTypes;
 
-    public IncompatibleTypeReferenceReporter(String creator, String path, String type, String description, boolean writable, Iterable<String> candidateTypes) {
+    public IncompatibleTypeReferenceReporter(
+            String creator,
+            String path,
+            String type,
+            String description,
+            boolean writable,
+            Iterable<String> candidateTypes) {
         this.creator = creator;
         this.path = path;
         this.type = type;
@@ -46,13 +51,17 @@ public class IncompatibleTypeReferenceReporter {
         this.candidateTypes = candidateTypes;
     }
 
-    public static IncompatibleTypeReferenceReporter of(MutableModelNode node, ModelType<?> type, String description, boolean writable) {
+    public static IncompatibleTypeReferenceReporter of(
+            MutableModelNode node, ModelType<?> type, String description, boolean writable) {
         ModelPath path = node.getPath();
         ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
         return new IncompatibleTypeReferenceReporter(
-            creatorDescriptor.toString(), path.toString(), type.toString(), description, writable,
-            node.getTypeDescriptions()
-        );
+                creatorDescriptor.toString(),
+                path.toString(),
+                type.toString(),
+                description,
+                writable,
+                node.getTypeDescriptions());
     }
 
     public String asString() {
@@ -62,7 +71,8 @@ public class IncompatibleTypeReferenceReporter {
     }
 
     public void writeTo(PrintWriter writer) {
-        //"type-only model reference of type '%s'%s is ambiguous as multiple model elements are available for this type:%n  %s (created by %s)%n  %s (created by %s)",
+        // "type-only model reference of type '%s'%s is ambiguous as multiple model elements are available for this
+        // type:%n  %s (created by %s)%n  %s (created by %s)",
         writer.print("Model reference to element '");
         writer.print(path);
         writer.print("' with type ");

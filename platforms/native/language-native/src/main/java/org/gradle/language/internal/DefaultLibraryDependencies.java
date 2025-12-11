@@ -16,6 +16,7 @@
 
 package org.gradle.language.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -23,13 +24,15 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.language.LibraryDependencies;
 
-import javax.inject.Inject;
-
 public class DefaultLibraryDependencies extends DefaultComponentDependencies implements LibraryDependencies {
     private final Configuration apiDependencies;
 
     @Inject
-    public DefaultLibraryDependencies(RoleBasedConfigurationContainerInternal configurations, String implementationName, String apiName, DependencyHandler dependencyHandler) {
+    public DefaultLibraryDependencies(
+            RoleBasedConfigurationContainerInternal configurations,
+            String implementationName,
+            String apiName,
+            DependencyHandler dependencyHandler) {
         super(configurations, implementationName, dependencyHandler);
         apiDependencies = configurations.dependencyScopeLocked(apiName);
         getImplementationDependencies().extendsFrom(apiDependencies);
@@ -46,7 +49,8 @@ public class DefaultLibraryDependencies extends DefaultComponentDependencies imp
 
     @Override
     public void api(Object notation, Action<? super ExternalModuleDependency> action) {
-        ExternalModuleDependency dependency = (ExternalModuleDependency) getDependencyHandler().create(notation);
+        ExternalModuleDependency dependency =
+                (ExternalModuleDependency) getDependencyHandler().create(notation);
         action.execute(dependency);
         apiDependencies.getDependencies().add(dependency);
     }

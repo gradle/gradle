@@ -15,14 +15,13 @@
  */
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.internal.operations.BuildOperation;
-import org.gradle.internal.operations.logging.BuildOperationLogger;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import org.gradle.internal.operations.BuildOperation;
+import org.gradle.internal.operations.logging.BuildOperationLogger;
 
-public interface CommandLineToolInvocation extends BuildOperation  {
+public interface CommandLineToolInvocation extends BuildOperation {
 
     List<File> getPath();
 

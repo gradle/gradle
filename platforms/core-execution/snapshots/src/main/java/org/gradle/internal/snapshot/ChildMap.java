@@ -27,21 +27,29 @@ public interface ChildMap<T> {
 
     Stream<Entry<T>> stream();
 
-    <RESULT> RESULT withNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, RESULT> handler);
+    <RESULT> RESULT withNode(
+            VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, RESULT> handler);
 
     interface NodeHandler<T, RESULT> {
         RESULT handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
+
         RESULT handleAsAncestorOfChild(String childPath, T child);
+
         RESULT handleExactMatchWithChild(T child);
+
         RESULT handleUnrelatedToAnyChild();
     }
 
-    <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler);
+    <RESULT> ChildMap<RESULT> invalidate(
+            VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler);
 
     interface InvalidationHandler<T, RESULT> {
         Optional<RESULT> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
+
         void handleAsAncestorOfChild(String childPath, T child);
+
         void handleExactMatchWithChild(T child);
+
         void handleUnrelatedToAnyChild();
     }
 
@@ -49,9 +57,13 @@ public interface ChildMap<T> {
 
     interface StoreHandler<T> {
         T handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
+
         T handleAsAncestorOfChild(String childPath, T child);
+
         T mergeWithExisting(T child);
+
         T createChild();
+
         T createNodeFromChildren(ChildMap<T> children);
     }
 
@@ -64,12 +76,14 @@ public interface ChildMap<T> {
             this.value = value;
         }
 
-        public <RESULT> RESULT withNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, RESULT> handler) {
+        public <RESULT> RESULT withNode(
+                VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, RESULT> handler) {
             return handleAncestorDescendantOrExactMatch(targetPath, caseSensitivity, handler)
-                .orElseGet(handler::handleUnrelatedToAnyChild);
+                    .orElseGet(handler::handleUnrelatedToAnyChild);
         }
 
-        public <RESULT> Optional<RESULT> handleAncestorDescendantOrExactMatch(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, RESULT> handler) {
+        public <RESULT> Optional<RESULT> handleAncestorDescendantOrExactMatch(
+                VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, RESULT> handler) {
             if (targetPath.hasPrefix(path, caseSensitivity)) {
                 if (targetPath.length() == path.length()) {
                     return Optional.of(handler.handleExactMatchWithChild(value));
@@ -82,7 +96,10 @@ public interface ChildMap<T> {
             return Optional.empty();
         }
 
-        public <RESULT> RESULT handlePath(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, PathRelationshipHandler<RESULT, T> handler) {
+        public <RESULT> RESULT handlePath(
+                VfsRelativePath targetPath,
+                CaseSensitivity caseSensitivity,
+                PathRelationshipHandler<RESULT, T> handler) {
             int pathToParentLength = path.length();
             int targetPathLength = targetPath.length();
             int maxPos = Math.min(pathToParentLength, targetPathLength);
@@ -104,9 +121,13 @@ public interface ChildMap<T> {
 
         public interface PathRelationshipHandler<RESULT, T> {
             RESULT handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, T child);
+
             RESULT handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, T child);
+
             RESULT handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, T child);
+
             RESULT handleSiblingOfChild(VfsRelativePath targetPath, String childPath, T child, int commonPrefixLength);
+
             RESULT handleUnrelatedToAnyChild(VfsRelativePath targetPath);
         }
 

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
@@ -26,9 +28,6 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Generates ProgressLogger updates for test events.
@@ -51,7 +50,8 @@ public class TestEventProgressListener implements TestListenerInternal {
         if (testDescriptor.getParent() == null) {
             progressLogger = factory.newOperation(TestEventProgressListener.class);
         } else {
-            ProgressLogger parentProgressLogger = progressLoggers.get(testDescriptor.getParent().getId());
+            ProgressLogger parentProgressLogger =
+                    progressLoggers.get(testDescriptor.getParent().getId());
             assert parentProgressLogger != null;
             progressLogger = factory.newOperation(TestEventProgressListener.class, parentProgressLogger);
         }
@@ -60,24 +60,25 @@ public class TestEventProgressListener implements TestListenerInternal {
         if (testDescriptor.isComposite()) {
             description = testDescriptor.getDisplayName();
         } else {
-            description = "Executing test " + JavaClassNameFormatter.abbreviateJavaPackage(testDescriptor.getDisplayName(), MAX_TEST_NAME_LENGTH);
+            description = "Executing test "
+                    + JavaClassNameFormatter.abbreviateJavaPackage(
+                            testDescriptor.getDisplayName(), MAX_TEST_NAME_LENGTH);
         }
         progressLogger.start(description, description);
         progressLoggers.put(testDescriptor.getId(), progressLogger);
     }
 
     @Override
-    public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
+    public void completed(
+            TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
         ProgressLogger progressLogger = progressLoggers.remove(testDescriptor.getId());
-        assert progressLogger!=null;
+        assert progressLogger != null;
         progressLogger.completed();
     }
 
     @Override
-    public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
-    }
+    public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {}
 
     @Override
-    public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {
-    }
+    public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {}
 }

@@ -17,6 +17,10 @@
 package gradlebuild.docs;
 
 import gradlebuild.basics.BuildEnvironmentKt;
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Locale;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -32,18 +36,14 @@ import org.jetbrains.dokka.gradle.engine.parameters.DokkaSourceSetSpec;
 import org.jetbrains.dokka.gradle.engine.plugins.DokkaHtmlPluginParameters;
 import org.jetbrains.dokka.gradle.tasks.DokkaGeneratePublicationTask;
 
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Locale;
-
 public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
     private static final String TASK_NAME = "dokkaGeneratePublicationHtml";
 
     @Override
     public void apply(Project project) {
-        GradleDocumentationExtension documentationExtension = project.getExtensions().getByType(GradleDocumentationExtension.class);
+        GradleDocumentationExtension documentationExtension =
+                project.getExtensions().getByType(GradleDocumentationExtension.class);
         applyPlugin(project);
         updateDocumentationExtension(project, documentationExtension);
         configurePlugin(project, documentationExtension);
@@ -55,7 +55,8 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
     private static void updateDocumentationExtension(Project project, GradleDocumentationExtension extension) {
         TaskProvider<Task> generateTask = project.getTasks().named(TASK_NAME);
-        Provider<? extends Directory> outputDirectory = generateTask.flatMap(t -> ((DokkaGeneratePublicationTask) t).getOutputDirectory());
+        Provider<? extends Directory> outputDirectory =
+                generateTask.flatMap(t -> ((DokkaGeneratePublicationTask) t).getOutputDirectory());
         extension.getKotlinDslReference().getRenderedDocumentation().set(outputDirectory);
     }
 
@@ -75,7 +76,8 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
     }
 
     private static void overrideDokkaVersion(Project project, GradleDocumentationExtension extension) {
-        Property<String> dokkaVersionOverride = extension.getKotlinDslReference().getDokkaVersionOverride();
+        Property<String> dokkaVersionOverride =
+                extension.getKotlinDslReference().getDokkaVersionOverride();
         Property<String> defaultDokkaVersion = getDokkaExtension(project).getDokkaEngineVersion();
         defaultDokkaVersion.set(dokkaVersionOverride.convention(defaultDokkaVersion.get()));
     }
@@ -90,23 +92,36 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
     private static void wireInArtificialSourceSet(Project project, GradleDocumentationExtension extension) {
         TaskProvider<GradleKotlinDslRuntimeGeneratedSources> runtimeExtensions = project.getTasks()
-            .register("gradleKotlinDslRuntimeGeneratedSources", GradleKotlinDslRuntimeGeneratedSources.class, task -> {
-                task.getGeneratedSources().set(project.getLayout().getBuildDirectory().dir("gradle-kotlin-dsl-extensions/sources"));
-                task.getGeneratedClasses().set(project.getLayout().getBuildDirectory().dir("gradle-kotlin-dsl-extensions/classes"));
-            });
+                .register(
+                        "gradleKotlinDslRuntimeGeneratedSources",
+                        GradleKotlinDslRuntimeGeneratedSources.class,
+                        task -> {
+                            task.getGeneratedSources()
+                                    .set(project.getLayout()
+                                            .getBuildDirectory()
+                                            .dir("gradle-kotlin-dsl-extensions/sources"));
+                            task.getGeneratedClasses()
+                                    .set(project.getLayout()
+                                            .getBuildDirectory()
+                                            .dir("gradle-kotlin-dsl-extensions/classes"));
+                        });
 
-        NamedDomainObjectContainer<DokkaSourceSetSpec> kotlinSourceSet = getDokkaExtension(project).getDokkaSourceSets();
+        NamedDomainObjectContainer<DokkaSourceSetSpec> kotlinSourceSet =
+                getDokkaExtension(project).getDokkaSourceSets();
         kotlinSourceSet.register("kotlin_dsl", spec -> {
             spec.getDisplayName().set("DSL");
             spec.getSourceRoots().from(extension.getKotlinDslSource());
-            spec.getSourceRoots().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedSources));
+            spec.getSourceRoots()
+                    .from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedSources));
             spec.getClasspath().from(extension.getClasspath());
-            spec.getClasspath().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedClasses));
+            spec.getClasspath()
+                    .from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedClasses));
             spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
             configureSourceLinks(project, extension, spec);
         });
 
-        NamedDomainObjectContainer<DokkaSourceSetSpec> javaSourceSet = getDokkaExtension(project).getDokkaSourceSets();
+        NamedDomainObjectContainer<DokkaSourceSetSpec> javaSourceSet =
+                getDokkaExtension(project).getDokkaSourceSets();
         javaSourceSet.register("java_api", spec -> {
             spec.getDisplayName().set("API");
             spec.getSourceRoots().from(extension.getDocumentedSource());
@@ -116,24 +131,25 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         });
     }
 
-    private static void configureSourceLinks(Project project, GradleDocumentationExtension extension, DokkaSourceSetSpec spec) {
-        String commitId = BuildEnvironmentKt.getBuildEnvironmentExtension(project).getGitCommitId().get();
+    private static void configureSourceLinks(
+            Project project, GradleDocumentationExtension extension, DokkaSourceSetSpec spec) {
+        String commitId = BuildEnvironmentKt.getBuildEnvironmentExtension(project)
+                .getGitCommitId()
+                .get();
         if (commitId.isBlank() || commitId.toLowerCase(Locale.ROOT).contains("unknown")) {
-            // we can't figure out the commit ID (probably this is a source distribution build), let's skip adding source links
+            // we can't figure out the commit ID (probably this is a source distribution build), let's skip adding
+            // source links
             return;
         }
 
-        extension.getSourceRoots().getFiles()
-            .forEach(
-                file -> {
-                    DokkaSourceLinkSpec sourceLinkSpec = project.getObjects().newInstance(DokkaSourceLinkSpec.class);
-                    sourceLinkSpec.getLocalDirectory().set(file);
-                    URI uri = toUri(project.getRootDir(), file, commitId);
-                    sourceLinkSpec.getRemoteUrl().set(uri);
-                    sourceLinkSpec.getRemoteLineSuffix().set("#L");
-                    spec.getSourceLinks().add(sourceLinkSpec);
-                }
-            );
+        extension.getSourceRoots().getFiles().forEach(file -> {
+            DokkaSourceLinkSpec sourceLinkSpec = project.getObjects().newInstance(DokkaSourceLinkSpec.class);
+            sourceLinkSpec.getLocalDirectory().set(file);
+            URI uri = toUri(project.getRootDir(), file, commitId);
+            sourceLinkSpec.getRemoteUrl().set(uri);
+            sourceLinkSpec.getRemoteLineSuffix().set("#L");
+            spec.getSourceLinks().add(sourceLinkSpec);
+        });
     }
 
     private static URI toUri(File projectRootDir, File file, String commitId) {
@@ -148,5 +164,4 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
     private static DokkaExtension getDokkaExtension(Project project) {
         return project.getExtensions().getByType(DokkaExtension.class);
     }
-
 }

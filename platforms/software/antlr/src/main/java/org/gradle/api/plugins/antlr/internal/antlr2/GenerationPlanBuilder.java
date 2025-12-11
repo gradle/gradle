@@ -15,14 +15,13 @@
  */
 package org.gradle.api.plugins.antlr.internal.antlr2;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Builder for the properly order list of {@link GenerationPlan generation plans}.
@@ -55,7 +54,8 @@ public class GenerationPlanBuilder {
     }
 
     private GenerationPlan locateOrBuildGenerationPlan(GrammarFileMetadata grammarFileMetadata) {
-        GenerationPlan generationPlan = generationPlans.get(grammarFileMetadata.getFilePath().getPath());
+        GenerationPlan generationPlan =
+                generationPlans.get(grammarFileMetadata.getFilePath().getPath());
         if (generationPlan == null) {
             generationPlan = buildGenerationPlan(grammarFileMetadata);
         }
@@ -63,8 +63,9 @@ public class GenerationPlanBuilder {
     }
 
     private GenerationPlan buildGenerationPlan(GrammarFileMetadata grammarFileMetadata) {
-        File generationDirectory = isEmpty(grammarFileMetadata.getPackageName()) ? outputDirectory : new File(
-                outputDirectory, grammarFileMetadata.getPackageName().replace('.', File.separatorChar));
+        File generationDirectory = isEmpty(grammarFileMetadata.getPackageName())
+                ? outputDirectory
+                : new File(outputDirectory, grammarFileMetadata.getPackageName().replace('.', File.separatorChar));
 
         GenerationPlan generationPlan = new GenerationPlan(grammarFileMetadata.getFilePath(), generationDirectory);
 
@@ -73,21 +74,24 @@ public class GenerationPlanBuilder {
 
             if (!generatedParserFile.exists()) {
                 generationPlan.markOutOfDate();
-            } else if (generatedParserFile.lastModified() < generationPlan.getSource().lastModified()) {
+            } else if (generatedParserFile.lastModified()
+                    < generationPlan.getSource().lastModified()) {
                 generationPlan.markOutOfDate();
             }
 
             // see if the grammar if out-of-date by way of its super-grammar(s) as gleaned from parsing the grammar file
             if (!grammarMetadata.extendsStandardGrammar()) {
-                final GrammarFileMetadata superGrammarGrammarFileMetadata = grammarMetadata.getSuperGrammarDelegate()
-                        .getAssociatedGrammarMetadata().getGrammarFile();
+                final GrammarFileMetadata superGrammarGrammarFileMetadata = grammarMetadata
+                        .getSuperGrammarDelegate()
+                        .getAssociatedGrammarMetadata()
+                        .getGrammarFile();
                 if (superGrammarGrammarFileMetadata != null) {
-                    final GenerationPlan superGrammarGenerationPlan = locateOrBuildGenerationPlan(
-                            superGrammarGrammarFileMetadata);
+                    final GenerationPlan superGrammarGenerationPlan =
+                            locateOrBuildGenerationPlan(superGrammarGrammarFileMetadata);
                     if (superGrammarGenerationPlan.isOutOfDate()) {
                         generationPlan.markOutOfDate();
-                    } else if (superGrammarGenerationPlan.getSource().lastModified() > generatedParserFile
-                            .lastModified()) {
+                    } else if (superGrammarGenerationPlan.getSource().lastModified()
+                            > generatedParserFile.lastModified()) {
                         generationPlan.markOutOfDate();
                     }
                 }
@@ -95,20 +99,20 @@ public class GenerationPlanBuilder {
 
             // see if the grammar if out-of-date by way of its importVocab
             if (isNotEmpty(grammarMetadata.getImportVocab())) {
-                final GrammarFileMetadata importVocabGrammarFileMetadata = metadataXRef.getGrammarFileByExportVocab(
-                        grammarMetadata.getImportVocab());
+                final GrammarFileMetadata importVocabGrammarFileMetadata =
+                        metadataXRef.getGrammarFileByExportVocab(grammarMetadata.getImportVocab());
                 if (importVocabGrammarFileMetadata == null) {
                     LOGGER.warn("unable to locate grammar exporting specified import vocab ["
                             + grammarMetadata.getImportVocab() + "]");
                 } else if (!importVocabGrammarFileMetadata.getFilePath().equals(grammarFileMetadata.getFilePath())) {
-                    final GenerationPlan importVocabGrammarGenerationPlan = locateOrBuildGenerationPlan(
-                            importVocabGrammarFileMetadata);
+                    final GenerationPlan importVocabGrammarGenerationPlan =
+                            locateOrBuildGenerationPlan(importVocabGrammarFileMetadata);
                     generationPlan.setImportVocabTokenTypesDirectory(
                             importVocabGrammarGenerationPlan.getGenerationDirectory());
                     if (importVocabGrammarGenerationPlan.isOutOfDate()) {
                         generationPlan.markOutOfDate();
-                    } else if (importVocabGrammarGenerationPlan.getSource().lastModified() > generatedParserFile
-                            .lastModified()) {
+                    } else if (importVocabGrammarGenerationPlan.getSource().lastModified()
+                            > generatedParserFile.lastModified()) {
                         generationPlan.markOutOfDate();
                     }
                 }

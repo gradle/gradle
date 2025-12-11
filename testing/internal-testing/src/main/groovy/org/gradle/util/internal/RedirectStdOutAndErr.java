@@ -16,16 +16,15 @@
 
 package org.gradle.util.internal;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.io.output.ProxyOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
-
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
 
 /**
  * A Junit rule which replaces stdout and stderr with mocks for the duration of the test, and restores them at the end

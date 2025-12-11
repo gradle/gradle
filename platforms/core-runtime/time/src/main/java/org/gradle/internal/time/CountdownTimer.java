@@ -23,5 +23,4 @@ public interface CountdownTimer extends Timer {
     long getRemainingMillis();
 
     long getTimeoutMillis();
-
 }

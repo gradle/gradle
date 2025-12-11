@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.test.internal.source;
 
-
 import org.gradle.tooling.events.test.source.OtherSource;
 
 public class DefaultOtherSource implements OtherSource {

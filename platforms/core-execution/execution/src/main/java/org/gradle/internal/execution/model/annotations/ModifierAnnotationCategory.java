@@ -18,6 +18,10 @@ package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -29,33 +33,13 @@ import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
-import java.lang.annotation.Annotation;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-
 public enum ModifierAnnotationCategory implements AnnotationCategory {
-    INCREMENTAL("incremental",
-        Incremental.class,
-        SkipWhenEmpty.class
-    ),
-    NORMALIZATION("normalization",
-        Classpath.class,
-        CompileClasspath.class,
-        PathSensitive.class
-    ),
-    OPTIONAL("optional",
-        Optional.class
-    ),
-    IGNORE_EMPTY_DIRECTORIES("ignore empty directories",
-        IgnoreEmptyDirectories.class
-    ),
-    NORMALIZE_LINE_ENDINGS("ignore line endings",
-        NormalizeLineEndings.class
-    ),
-    REPLACES_EAGER_PROPERTY("replaces eager property",
-        ReplacesEagerProperty.class
-    );
+    INCREMENTAL("incremental", Incremental.class, SkipWhenEmpty.class),
+    NORMALIZATION("normalization", Classpath.class, CompileClasspath.class, PathSensitive.class),
+    OPTIONAL("optional", Optional.class),
+    IGNORE_EMPTY_DIRECTORIES("ignore empty directories", IgnoreEmptyDirectories.class),
+    NORMALIZE_LINE_ENDINGS("ignore line endings", NormalizeLineEndings.class),
+    REPLACES_EAGER_PROPERTY("replaces eager property", ReplacesEagerProperty.class);
 
     private final String displayName;
     private final ImmutableSet<Class<? extends Annotation>> annotations;
@@ -69,9 +53,7 @@ public enum ModifierAnnotationCategory implements AnnotationCategory {
 
     public static ImmutableSet<Class<? extends Annotation>> annotationsOf(ModifierAnnotationCategory... categories) {
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
-        Arrays.stream(categories)
-            .map(category -> category.annotations)
-            .forEach(builder::addAll);
+        Arrays.stream(categories).map(category -> category.annotations).forEach(builder::addAll);
         return builder.build();
     }
 
@@ -80,7 +62,8 @@ public enum ModifierAnnotationCategory implements AnnotationCategory {
         return displayName;
     }
 
-    public static Map<Class<? extends Annotation>, AnnotationCategory> asMap(Collection<Class<? extends Annotation>> typeAnnotations) {
+    public static Map<Class<? extends Annotation>, AnnotationCategory> asMap(
+            Collection<Class<? extends Annotation>> typeAnnotations) {
         ImmutableMap.Builder<Class<? extends Annotation>, AnnotationCategory> builder = ImmutableMap.builder();
         for (Class<? extends Annotation> typeAnnotation : typeAnnotations) {
             builder.put(typeAnnotation, TYPE);

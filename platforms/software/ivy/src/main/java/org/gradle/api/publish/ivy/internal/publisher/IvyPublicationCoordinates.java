@@ -25,5 +25,4 @@ public interface IvyPublicationCoordinates {
     Property<String> getModule();
 
     Property<String> getRevision();
-
 }

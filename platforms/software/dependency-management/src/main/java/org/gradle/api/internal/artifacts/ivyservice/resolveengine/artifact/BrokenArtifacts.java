@@ -27,8 +27,7 @@ public class BrokenArtifacts implements ResolvedArtifactSet.Artifacts {
     }
 
     @Override
-    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
-    }
+    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {}
 
     @Override
     public void visit(ArtifactVisitor visitor) {

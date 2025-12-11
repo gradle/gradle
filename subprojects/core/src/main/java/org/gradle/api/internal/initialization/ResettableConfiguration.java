@@ -53,5 +53,4 @@ public interface ResettableConfiguration extends Configuration {
      */
     @Nullable
     <T> T callAndResetResolutionState(Factory<T> factory);
-
 }

@@ -16,26 +16,24 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.model.internal.asm.AsmConstants;
+import java.util.Set;
 import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.Set;
-
 class TestNGTestClassDetector extends TestClassVisitor {
-    private static final Set<String> TEST_METHOD_ANNOTATIONS =
-        ImmutableSet.<String>builder()
-        .add("Lorg/testng/annotations/Test;")
-        .add("Lorg/testng/annotations/BeforeSuite;")
-        .add("Lorg/testng/annotations/AfterSuite;")
-        .add("Lorg/testng/annotations/BeforeTest;")
-        .add("Lorg/testng/annotations/AfterTest;")
-        .add("Lorg/testng/annotations/BeforeGroups;")
-        .add("Lorg/testng/annotations/AfterGroups;")
-        .add("Lorg/testng/annotations/Factory;")
-        .build();
+    private static final Set<String> TEST_METHOD_ANNOTATIONS = ImmutableSet.<String>builder()
+            .add("Lorg/testng/annotations/Test;")
+            .add("Lorg/testng/annotations/BeforeSuite;")
+            .add("Lorg/testng/annotations/AfterSuite;")
+            .add("Lorg/testng/annotations/BeforeTest;")
+            .add("Lorg/testng/annotations/AfterTest;")
+            .add("Lorg/testng/annotations/BeforeGroups;")
+            .add("Lorg/testng/annotations/AfterGroups;")
+            .add("Lorg/testng/annotations/Factory;")
+            .build();
 
     TestNGTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);
@@ -66,7 +64,6 @@ class TestNGTestClassDetector extends TestClassVisitor {
     private class TestNGTestMethodDetector extends MethodVisitor {
         private TestNGTestMethodDetector() {
             super(AsmConstants.ASM_LEVEL);
-
         }
 
         @Override

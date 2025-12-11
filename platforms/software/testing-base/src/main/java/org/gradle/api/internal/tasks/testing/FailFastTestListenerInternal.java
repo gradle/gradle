@@ -39,7 +39,8 @@ public class FailFastTestListenerInternal implements TestListenerInternal {
     }
 
     @Override
-    public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
+    public void completed(
+            TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
         delegate.completed(testDescriptor, testResult, completeEvent);
 
         if (!failed && testResult.getResultType() == TestResult.ResultType.FAILURE) {

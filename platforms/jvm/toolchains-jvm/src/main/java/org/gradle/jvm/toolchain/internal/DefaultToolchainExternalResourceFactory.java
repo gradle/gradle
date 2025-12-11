@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import java.net.URI;
+import java.util.Collection;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.resource.ExternalResourceFactory;
@@ -23,15 +25,14 @@ import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainHttpRedirectVerifierFactory;
 
-import java.net.URI;
-import java.util.Collection;
-
 public class DefaultToolchainExternalResourceFactory implements ExternalResourceFactory {
 
     private final RepositoryTransportFactory repositoryTransportFactory;
     private final JavaToolchainHttpRedirectVerifierFactory httpRedirectVerifierFactory;
 
-    public DefaultToolchainExternalResourceFactory(RepositoryTransportFactory repositoryTransportFactory, JavaToolchainHttpRedirectVerifierFactory httpRedirectVerifierFactory) {
+    public DefaultToolchainExternalResourceFactory(
+            RepositoryTransportFactory repositoryTransportFactory,
+            JavaToolchainHttpRedirectVerifierFactory httpRedirectVerifierFactory) {
         this.repositoryTransportFactory = repositoryTransportFactory;
         this.httpRedirectVerifierFactory = httpRedirectVerifierFactory;
     }
@@ -39,6 +40,8 @@ public class DefaultToolchainExternalResourceFactory implements ExternalResource
     @Override
     public ExternalResourceRepository createExternalResource(URI source, Collection<Authentication> authentications) {
         final HttpRedirectVerifier redirectVerifier = httpRedirectVerifierFactory.createVerifier(source);
-        return repositoryTransportFactory.createTransport("https", "jdk toolchains", authentications, redirectVerifier).getRepository();
+        return repositoryTransportFactory
+                .createTransport("https", "jdk toolchains", authentications, redirectVerifier)
+                .getRepository();
     }
 }

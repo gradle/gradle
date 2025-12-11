@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 @SuppressWarnings("overloads")

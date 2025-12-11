@@ -16,6 +16,16 @@
 
 package org.gradle.internal.classpath.declarations;
 
+import static org.gradle.internal.classpath.MethodHandleUtils.invokeKotlinStaticDefault;
+import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
+import static org.gradle.internal.classpath.declarations.Handles.FOR_EACH_LINE_DEFAULT;
+import static org.gradle.internal.classpath.declarations.Handles.READ_LINES_DEFAULT;
+import static org.gradle.internal.classpath.declarations.Handles.USE_LINES_DEFAULT;
+
+import java.io.File;
+import java.lang.invoke.MethodHandle;
+import java.nio.charset.Charset;
+import java.util.List;
 import kotlin.io.FilesKt;
 import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
@@ -30,38 +40,22 @@ import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterc
 import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 import org.gradle.internal.lazy.Lazy;
 
-import java.io.File;
-import java.lang.invoke.MethodHandle;
-import java.nio.charset.Charset;
-import java.util.List;
-
-import static org.gradle.internal.classpath.MethodHandleUtils.invokeKotlinStaticDefault;
-import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
-import static org.gradle.internal.classpath.declarations.Handles.FOR_EACH_LINE_DEFAULT;
-import static org.gradle.internal.classpath.declarations.Handles.READ_LINES_DEFAULT;
-import static org.gradle.internal.classpath.declarations.Handles.USE_LINES_DEFAULT;
-
 @SuppressWarnings("NewMethodNamingConvention")
-@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
-@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificJvmCallInterceptors(
+        generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificGroovyCallInterceptors(
+        generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
 public class KotlinStdlibFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = FilesKt.class)
-    public static byte[] intercept_readBytes(
-        File self,
-        @CallerClassName String consumer
-    ) {
+    public static byte[] intercept_readBytes(File self, @CallerClassName String consumer) {
         Instrumented.fileOpened(self, consumer);
         return FilesKt.readBytes(self);
     }
 
     @InterceptCalls
     @StaticMethod(ofClass = FilesKt.class)
-    public static void intercept_forEachBlock(
-        File self,
-        Function2<?, ?, ?> action,
-        @CallerClassName String consumer
-    ) {
+    public static void intercept_forEachBlock(File self, Function2<?, ?, ?> action, @CallerClassName String consumer) {
         Instrumented.fileOpened(self, consumer);
         FilesKt.forEachBlock(self, Cast.uncheckedNonnullCast(action));
     }
@@ -69,11 +63,7 @@ public class KotlinStdlibFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = FilesKt.class)
     public static void intercept_forEachBlock(
-        File self,
-        int blockSize,
-        Function2<?, ?, ?> action,
-        @CallerClassName String consumer
-    ) {
+            File self, int blockSize, Function2<?, ?, ?> action, @CallerClassName String consumer) {
         Instrumented.fileOpened(self, consumer);
         FilesKt.forEachBlock(self, blockSize, Cast.uncheckedNonnullCast(action));
     }
@@ -81,12 +71,12 @@ public class KotlinStdlibFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = FilesKt.class)
     public static void intercept_forEachLine(
-        File self,
-        Charset charset,
-        Function1<?, ?> action,
-        @KotlinDefaultMask int mask,
-        @CallerClassName String consumer
-    ) throws Throwable {
+            File self,
+            Charset charset,
+            Function1<?, ?> action,
+            @KotlinDefaultMask int mask,
+            @CallerClassName String consumer)
+            throws Throwable {
         Instrumented.fileOpened(self, consumer);
         if (mask == 0) {
             FilesKt.forEachLine(self, charset, Cast.uncheckedNonnullCast(action));
@@ -98,41 +88,37 @@ public class KotlinStdlibFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = FilesKt.class)
     public static List<String> intercept_readLines(
-        File self,
-        Charset charset,
-        @KotlinDefaultMask int mask,
-        @CallerClassName String consumer
-    ) throws Throwable {
+            File self, Charset charset, @KotlinDefaultMask int mask, @CallerClassName String consumer)
+            throws Throwable {
         Instrumented.fileOpened(self, consumer);
         return mask == 0
-            ? FilesKt.readLines(self, charset)
-            : invokeKotlinStaticDefault(READ_LINES_DEFAULT, mask, self, charset);
+                ? FilesKt.readLines(self, charset)
+                : invokeKotlinStaticDefault(READ_LINES_DEFAULT, mask, self, charset);
     }
 
     @InterceptCalls
     @StaticMethod(ofClass = FilesKt.class)
     public static Object intercept_useLines(
-        File self,
-        Charset charset,
-        Function1<?, ?> block,
-        @KotlinDefaultMask int mask,
-        @CallerClassName String consumer
-    ) throws Throwable {
+            File self,
+            Charset charset,
+            Function1<?, ?> block,
+            @KotlinDefaultMask int mask,
+            @CallerClassName String consumer)
+            throws Throwable {
         Instrumented.fileOpened(self, consumer);
         return mask == 0
-            ? FilesKt.useLines(self, charset, Cast.uncheckedNonnullCast(block))
-            : invokeKotlinStaticDefault(USE_LINES_DEFAULT, mask, self, charset, block);
+                ? FilesKt.useLines(self, charset, Cast.uncheckedNonnullCast(block))
+                : invokeKotlinStaticDefault(USE_LINES_DEFAULT, mask, self, charset, block);
     }
-
 }
 
 class Handles {
-    public static final Lazy<MethodHandle> FOR_EACH_LINE_DEFAULT =
-        lazyKotlinStaticDefaultHandle(FilesKt.class, "forEachLine", void.class, File.class, Charset.class, Function1.class);
+    public static final Lazy<MethodHandle> FOR_EACH_LINE_DEFAULT = lazyKotlinStaticDefaultHandle(
+            FilesKt.class, "forEachLine", void.class, File.class, Charset.class, Function1.class);
 
     public static final Lazy<MethodHandle> READ_LINES_DEFAULT =
-        lazyKotlinStaticDefaultHandle(FilesKt.class, "readLines", List.class, File.class, Charset.class);
+            lazyKotlinStaticDefaultHandle(FilesKt.class, "readLines", List.class, File.class, Charset.class);
 
-    public static final Lazy<MethodHandle> USE_LINES_DEFAULT =
-        lazyKotlinStaticDefaultHandle(FilesKt.class, "useLines", Object.class, File.class, Charset.class, Function1.class);
+    public static final Lazy<MethodHandle> USE_LINES_DEFAULT = lazyKotlinStaticDefaultHandle(
+            FilesKt.class, "useLines", Object.class, File.class, Charset.class, Function1.class);
 }

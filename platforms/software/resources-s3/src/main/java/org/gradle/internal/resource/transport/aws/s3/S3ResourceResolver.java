@@ -22,7 +22,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -57,13 +56,10 @@ public class S3ResourceResolver {
     private List<String> resolveFileResourceNames(ObjectListing objectListing) {
         List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
         if (null != objectSummaries) {
-            return ImmutableList.copyOf(Iterables.filter(
-                Iterables.transform(objectSummaries, EXTRACT_FILE_NAME),
-                Predicates.notNull()
-            ));
+            return ImmutableList.copyOf(
+                    Iterables.filter(Iterables.transform(objectSummaries, EXTRACT_FILE_NAME), Predicates.notNull()));
         }
         return Collections.emptyList();
-
     }
 
     private List<String> resolveDirectoryResourceNames(ObjectListing objectListing) {

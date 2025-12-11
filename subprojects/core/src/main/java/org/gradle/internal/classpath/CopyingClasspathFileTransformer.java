@@ -16,12 +16,11 @@
 
 package org.gradle.internal.classpath;
 
+import java.io.File;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.util.internal.GFileUtils;
-
-import java.io.File;
 
 public class CopyingClasspathFileTransformer implements ClasspathFileTransformer {
     private final GlobalCacheLocations globalCacheLocations;
@@ -32,14 +31,16 @@ public class CopyingClasspathFileTransformer implements ClasspathFileTransformer
 
     @Override
     public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
-        // Copy files into the cache, if it is possible that loading the file in a ClassLoader may cause locking problems if the file is deleted
+        // Copy files into the cache, if it is possible that loading the file in a ClassLoader may cause locking
+        // problems if the file is deleted
 
         if (sourceSnapshot.getType() != FileType.RegularFile) {
             // Directories are ok to use outside the cache
             return source;
         }
         if (globalCacheLocations.isInsideGlobalCache(source.getAbsolutePath())) {
-            // The global caches are additive only, so we can use it directly since it shouldn't be deleted or changed during the build.
+            // The global caches are additive only, so we can use it directly since it shouldn't be deleted or changed
+            // during the build.
             return source;
         }
 

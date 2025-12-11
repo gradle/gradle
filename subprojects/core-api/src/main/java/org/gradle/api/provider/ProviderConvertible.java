@@ -33,5 +33,4 @@ public interface ProviderConvertible<T> {
      * Returns a {@link Provider} from this object.
      */
     Provider<T> asProvider();
-
 }

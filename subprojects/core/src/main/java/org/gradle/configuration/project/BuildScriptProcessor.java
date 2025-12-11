@@ -42,7 +42,12 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
 
         final Timer clock = Time.startTimer();
         try {
-            final ScriptPlugin configurer = configurerFactory.create(scriptSource, project.getBuildscript(), project.getClassLoaderScope(), project.getBaseClassLoaderScope(), true);
+            final ScriptPlugin configurer = configurerFactory.create(
+                    scriptSource,
+                    project.getBuildscript(),
+                    project.getClassLoaderScope(),
+                    project.getBaseClassLoaderScope(),
+                    true);
             project.getOwner().applyToMutableState(configurer::apply);
         } finally {
             if (LOGGER.isDebugEnabled()) {

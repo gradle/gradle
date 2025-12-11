@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-
 import java.util.Set;
 
 public final class ConsumerState {
@@ -44,5 +43,4 @@ public final class ConsumerState {
     Set<Node> getNodesYetToConsumeOutput() {
         return nodesYetToConsumeOutput;
     }
-
 }

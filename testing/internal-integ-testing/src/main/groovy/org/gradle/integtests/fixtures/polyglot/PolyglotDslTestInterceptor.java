@@ -15,12 +15,6 @@
  */
 package org.gradle.integtests.fixtures.polyglot;
 
-import org.apache.commons.lang3.stream.Streams;
-import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
-import org.gradle.test.fixtures.dsl.GradleDsl;
-import org.spockframework.runtime.extension.IMethodInvocation;
-
-import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Objects;
@@ -28,9 +22,14 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import org.apache.commons.lang3.stream.Streams;
+import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
+import org.gradle.test.fixtures.dsl.GradleDsl;
+import org.spockframework.runtime.extension.IMethodInvocation;
 
 public class PolyglotDslTestInterceptor extends AbstractMultiTestInterceptor {
-    private final static String DSL_LANGUAGE = "org.gradle.internal.runner.dsl";
+    private static final String DSL_LANGUAGE = "org.gradle.internal.runner.dsl";
 
     private final Set<GradleDsl> classSpecificSkippedDSLs;
 
@@ -41,7 +40,8 @@ public class PolyglotDslTestInterceptor extends AbstractMultiTestInterceptor {
 
     public static GradleDsl getCurrentDsl() {
         String property = System.getProperty(DSL_LANGUAGE);
-        Objects.requireNonNull(property, "Should be used from tests marked with @" + PolyglotDslTest.class.getSimpleName());
+        Objects.requireNonNull(
+                property, "Should be used from tests marked with @" + PolyglotDslTest.class.getSimpleName());
         return GradleDsl.valueOf(property);
     }
 
@@ -91,17 +91,17 @@ public class PolyglotDslTestInterceptor extends AbstractMultiTestInterceptor {
     @Nonnull
     private static Set<GradleDsl> skippedDSLs(Annotation[] annotations) {
         return Arrays.stream(annotations)
-            .flatMap((Function<Annotation, Stream<SkipDsl>>) a -> {
-                if (a instanceof SkipDsl) {
-                    return Streams.of((SkipDsl) a);
-                } else if (a instanceof SkipDsl.List) {
-                    SkipDsl.List al = (SkipDsl.List) a;
-                    return Arrays.stream(al.value());
-                } else {
-                    return null;
-                }
-            })
-            .map(SkipDsl::dsl)
-            .collect(Collectors.toSet());
+                .flatMap((Function<Annotation, Stream<SkipDsl>>) a -> {
+                    if (a instanceof SkipDsl) {
+                        return Streams.of((SkipDsl) a);
+                    } else if (a instanceof SkipDsl.List) {
+                        SkipDsl.List al = (SkipDsl.List) a;
+                        return Arrays.stream(al.value());
+                    } else {
+                        return null;
+                    }
+                })
+                .map(SkipDsl::dsl)
+                .collect(Collectors.toSet());
     }
 }

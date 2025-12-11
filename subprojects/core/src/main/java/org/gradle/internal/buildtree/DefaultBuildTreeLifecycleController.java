@@ -15,6 +15,9 @@
  */
 package org.gradle.internal.buildtree;
 
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -28,13 +31,10 @@ import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.jspecify.annotations.Nullable;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleController {
     private enum State implements StateTransitionController.State {
-        NotStarted, Complete
+        NotStarted,
+        Complete
     }
 
     private final BuildLifecycleController buildLifecycleController;
@@ -46,14 +46,13 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     private final BuildModelParameters buildModelParameters;
 
     public DefaultBuildTreeLifecycleController(
-        BuildLifecycleController buildLifecycleController,
-        BuildTreeWorkController workController,
-        BuildTreeModelCreator modelCreator,
-        BuildTreeFinishExecutor finishExecutor,
-        StateTransitionControllerFactory controllerFactory,
-        StartParameter startParameter,
-        BuildModelParameters buildModelParameters
-    ) {
+            BuildLifecycleController buildLifecycleController,
+            BuildTreeWorkController workController,
+            BuildTreeModelCreator modelCreator,
+            BuildTreeFinishExecutor finishExecutor,
+            StateTransitionControllerFactory controllerFactory,
+            StartParameter startParameter,
+            BuildModelParameters buildModelParameters) {
         this.buildLifecycleController = buildLifecycleController;
         this.workController = workController;
         this.modelCreator = modelCreator;
@@ -97,7 +96,8 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         TaskRunResult result = workController.scheduleAndRunRequestedTasks(null);
         if (!result.getScheduleResult().isSuccessful() && buildModelParameters.isResilientModelBuilding()) {
             // In resilient mode if scheduling fails, it means configuration failed. We don't propagate that failure,
-            // but we allow models to build. The configuration failure will be acquired from BuildState during model building.
+            // but we allow models to build. The configuration failure will be acquired from BuildState during model
+            // building.
             return ExecutionResult.succeeded();
         }
 
@@ -117,10 +117,10 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     // Must be removed as soon as IDEA will use appropriate API for avoiding any tasks to be executed.
     private Boolean isEligibleToRunTasks() {
         boolean isIsolatedProjectsEnabled = buildModelParameters.isIsolatedProjects();
-        boolean isDefaultTasksRequested = startParameter.getTaskRequests().size() == 1 &&
-            startParameter.getTaskRequests().get(0) instanceof RunDefaultTasksExecutionRequest;
-        boolean isHelpTaskOnly = startParameter.getTaskRequests().size() == 1 &&
-            startParameter.getTaskRequests().get(0).getArgs().contains("help");
+        boolean isDefaultTasksRequested = startParameter.getTaskRequests().size() == 1
+                && startParameter.getTaskRequests().get(0) instanceof RunDefaultTasksExecutionRequest;
+        boolean isHelpTaskOnly = startParameter.getTaskRequests().size() == 1
+                && startParameter.getTaskRequests().get(0).getArgs().contains("help");
 
         return !isIsolatedProjectsEnabled || !(isDefaultTasksRequested || isHelpTaskOnly);
     }

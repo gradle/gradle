@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.plugins;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
+import java.lang.reflect.Type;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.gradle.api.Plugin;
 import org.gradle.api.problems.ProblemId;
@@ -25,10 +28,6 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.deprecation.Documentation;
 import org.jspecify.annotations.Nullable;
-
-import java.lang.reflect.Type;
-
-import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implements PluginTarget {
 
@@ -60,7 +59,8 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
     }
 
     private void maybeThrowOnTargetMismatch(Plugin<?> plugin) {
-        Type typeParameter = TypeUtils.getTypeArguments(plugin.getClass(), Plugin.class).get(Plugin.class.getTypeParameters()[0]);
+        Type typeParameter = TypeUtils.getTypeArguments(plugin.getClass(), Plugin.class)
+                .get(Plugin.class.getTypeParameters()[0]);
         if (!(typeParameter instanceof Class<?>)) {
             return;
         }
@@ -70,20 +70,25 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
             return;
         }
 
-        String message = String.format("The plugin must be applied %s, but was applied %s", actualTargetType.getApplyTargetDescription(), targetType.getApplyTargetDescription());
-        ProblemId id = ProblemId.create("target-type-mismatch", "Unexpected plugin type", GradleCoreProblemGroup.pluginApplication());
-        throw problems.getInternalReporter()
-            .throwing(new IllegalArgumentException(message), id, spec -> {
-                spec.severity(Severity.ERROR)
+        String message = String.format(
+                "The plugin must be applied %s, but was applied %s",
+                actualTargetType.getApplyTargetDescription(), targetType.getApplyTargetDescription());
+        ProblemId id = ProblemId.create(
+                "target-type-mismatch", "Unexpected plugin type", GradleCoreProblemGroup.pluginApplication());
+        throw problems.getInternalReporter().throwing(new IllegalArgumentException(message), id, spec -> {
+            spec.severity(Severity.ERROR)
                     .withException(new IllegalArgumentException(message))
                     .contextualLabel(message)
-                    .documentedAt(Documentation.userManual("custom_plugins", "project_vs_settings_vs_init_plugins").toString());
-            });
+                    .documentedAt(Documentation.userManual("custom_plugins", "project_vs_settings_vs_init_plugins")
+                            .toString());
+        });
     }
 
     @Override
     public void applyRules(@Nullable String pluginId, Class<?> clazz) {
-        String message = String.format("Cannot apply model rules of plugin '%s' as the target '%s' is not model rule aware", clazz.getName(), target.toString());
+        String message = String.format(
+                "Cannot apply model rules of plugin '%s' as the target '%s' is not model rule aware",
+                clazz.getName(), target.toString());
         throw new UnsupportedOperationException(message);
     }
 

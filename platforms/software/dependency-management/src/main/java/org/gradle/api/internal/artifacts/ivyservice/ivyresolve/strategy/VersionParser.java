@@ -17,21 +17,19 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import com.google.common.primitives.Longs;
-import org.gradle.api.Transformer;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.gradle.api.Transformer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Global.class)
 public class VersionParser implements Transformer<Version, String> {
     private final Map<String, Version> cache = new ConcurrentHashMap<>();
 
-    public VersionParser() {
-    }
+    public VersionParser() {}
 
     @Override
     public Version transform(String original) {
@@ -126,7 +124,8 @@ public class VersionParser implements Transformer<Version, String> {
         }
 
         @Override
-        @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+        @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+        // (https://github.com/gradle/gradle/issues/35864)
         public boolean isQualified() {
             return baseVersion != this;
         }

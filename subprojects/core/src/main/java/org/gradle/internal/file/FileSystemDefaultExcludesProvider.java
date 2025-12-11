@@ -16,12 +16,11 @@
 
 package org.gradle.internal.file;
 
+import java.util.List;
+import java.util.Set;
 import org.gradle.internal.service.scopes.ListenerService;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * Provides default excludes for file system traversing

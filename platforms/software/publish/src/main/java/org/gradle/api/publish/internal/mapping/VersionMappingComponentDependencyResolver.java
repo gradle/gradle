@@ -16,6 +16,11 @@
 
 package org.gradle.api.publish.internal.mapping;
 
+import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
+
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -36,12 +41,6 @@ import org.gradle.internal.component.local.model.ProjectComponentSelectorInterna
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
-
 /**
  * A {@link VariantDependencyResolver} that performs version mapping.
  *
@@ -53,9 +52,7 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
     private final ResolvedComponentResult root;
 
     public VersionMappingComponentDependencyResolver(
-        ProjectDependencyPublicationResolver projectDependencyResolver,
-        ResolvedComponentResult root
-    ) {
+            ProjectDependencyPublicationResolver projectDependencyResolver, ResolvedComponentResult root) {
         this.projectDependencyResolver = projectDependencyResolver;
         this.root = root;
     }
@@ -68,9 +65,13 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
 
     @Override
     public ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
-        Path identityPath = ((ProjectDependencyInternal) dependency).getTargetProjectIdentity().getBuildTreePath();
-        ModuleVersionIdentifier coordinates = projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath);
-        ModuleVersionIdentifier resolved = maybeResolveVersion(coordinates.getGroup(), coordinates.getName(), identityPath);
+        Path identityPath = ((ProjectDependencyInternal) dependency)
+                .getTargetProjectIdentity()
+                .getBuildTreePath();
+        ModuleVersionIdentifier coordinates =
+                projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath);
+        ModuleVersionIdentifier resolved =
+                maybeResolveVersion(coordinates.getGroup(), coordinates.getName(), identityPath);
         return ResolvedCoordinates.create(resolved != null ? resolved : coordinates);
     }
 
@@ -101,7 +102,9 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
 
         for (ResolvedComponentResult selected : resolvedComponentResults) {
             ModuleVersionIdentifier moduleVersion = selected.getModuleVersion();
-            if (moduleVersion != null && group.equals(moduleVersion.getGroup()) && module.equals(moduleVersion.getName())) {
+            if (moduleVersion != null
+                    && group.equals(moduleVersion.getGroup())
+                    && module.equals(moduleVersion.getName())) {
                 return moduleVersion;
             }
         }
@@ -111,15 +114,18 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
 
         // If we reach this point it means we have a dependency which doesn't belong to the resolution result
         // Which can mean two things:
-        // 1. the graph used to get the resolved version has nothing to do with the dependencies we're trying to get versions for (likely user error)
-        // 2. the graph contains first-level dependencies which have been substituted (likely) so we're going to iterate on dependencies instead
+        // 1. the graph used to get the resolved version has nothing to do with the dependencies we're trying to get
+        // versions for (likely user error)
+        // 2. the graph contains first-level dependencies which have been substituted (likely) so we're going to iterate
+        // on dependencies instead
         for (DependencyResult dependencyResult : allDependencies) {
             if (dependencyResult instanceof ResolvedDependencyResult) {
                 ComponentSelector rcs = dependencyResult.getRequested();
                 ResolvedComponentResult selected = ((ResolvedDependencyResult) dependencyResult).getSelected();
                 if (rcs instanceof ModuleComponentSelector) {
                     ModuleComponentSelector requested = (ModuleComponentSelector) rcs;
-                    if (requested.getGroup().equals(group) && requested.getModule().equals(module)) {
+                    if (requested.getGroup().equals(group)
+                            && requested.getModule().equals(module)) {
                         return getModuleVersionId(selected);
                     }
                 } else if (rcs instanceof ProjectComponentSelector) {

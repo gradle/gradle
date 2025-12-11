@@ -36,7 +36,7 @@ import org.jspecify.annotations.Nullable;
 
 public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
 
-    private final static Logger LOG = Logging.getLogger(DefaultDependencyConstraint.class);
+    private static final Logger LOG = Logging.getLogger(DefaultDependencyConstraint.class);
 
     private final ModuleIdentifier moduleIdentifier;
     private final MutableVersionConstraint versionConstraint;
@@ -96,7 +96,8 @@ public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
     }
 
     private void warnAboutInternalApiUse() {
-        LOG.warn("Cannot set attributes for constraint \"" + this.getGroup() + ":" + this.getName() + ":" + this.getVersion() + "\": it was probably created by a plugin using internal APIs");
+        LOG.warn("Cannot set attributes for constraint \"" + this.getGroup() + ":" + this.getName() + ":"
+                + this.getVersion() + "\": it was probably created by a plugin using internal APIs");
     }
 
     public void setAttributesFactory(AttributesFactory attributesFactory) {
@@ -112,10 +113,10 @@ public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
             return false;
         }
         DefaultDependencyConstraint that = (DefaultDependencyConstraint) o;
-        return Objects.equal(moduleIdentifier, that.moduleIdentifier) &&
-            Objects.equal(versionConstraint, that.versionConstraint) &&
-            Objects.equal(attributes, that.attributes) &&
-            force == that.force;
+        return Objects.equal(moduleIdentifier, that.moduleIdentifier)
+                && Objects.equal(versionConstraint, that.versionConstraint)
+                && Objects.equal(attributes, that.attributes)
+                && force == that.force;
     }
 
     @Override
@@ -167,9 +168,7 @@ public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
 
     @Override
     public String toString() {
-        return "constraint " +
-            moduleIdentifier + ":" + versionConstraint +
-            ", attributes=" + attributes;
+        return "constraint " + moduleIdentifier + ":" + versionConstraint + ", attributes=" + attributes;
     }
 
     @Override

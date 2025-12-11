@@ -30,5 +30,6 @@ public interface InstanceGenerator extends Instantiator {
      *
      * @throws ObjectInstantiationException On failure to create the new instance.
      */
-    <T> T newInstanceWithDisplayName(Class<? extends T> type, Describable displayName, @Nullable Object... parameters) throws ObjectInstantiationException;
+    <T> T newInstanceWithDisplayName(Class<? extends T> type, Describable displayName, @Nullable Object... parameters)
+            throws ObjectInstantiationException;
 }

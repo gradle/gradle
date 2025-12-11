@@ -17,14 +17,13 @@
 package org.gradle.caching.internal.controller.service;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.local.internal.LocalBuildCacheService;
-import org.jspecify.annotations.Nullable;
-
 import java.io.Closeable;
 import java.io.File;
 import java.util.Optional;
 import java.util.function.Function;
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.local.internal.LocalBuildCacheService;
+import org.jspecify.annotations.Nullable;
 
 public interface LocalBuildCacheServiceHandle extends Closeable {
 
@@ -45,5 +44,4 @@ public interface LocalBuildCacheServiceHandle extends Closeable {
      * Returns true if store was completed.
      */
     boolean maybeStore(BuildCacheKey key, File file);
-
 }

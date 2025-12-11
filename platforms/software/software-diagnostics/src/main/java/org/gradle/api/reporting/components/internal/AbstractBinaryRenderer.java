@@ -16,6 +16,8 @@
 
 package org.gradle.api.reporting.components.internal;
 
+import java.util.Map;
+import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -34,12 +36,10 @@ import org.gradle.platform.base.internal.VariantAspect;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.internal.GUtil;
 
-import java.util.Map;
-import java.util.TreeMap;
-
 // TODO - bust up this hierarchy and compose using interfaces instead
 @ServiceScope(Scope.Global.class)
-public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends ReportRenderer<BinarySpec, TextReportBuilder> {
+public abstract class AbstractBinaryRenderer<T extends BinarySpec>
+        extends ReportRenderer<BinarySpec, TextReportBuilder> {
     private final ModelSchemaStore schemaStore;
 
     protected AbstractBinaryRenderer(ModelSchemaStore schemaStore) {
@@ -75,11 +75,10 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
 
     public abstract Class<T> getTargetType();
 
-    protected void renderOutputs(T binary, TextReportBuilder builder) {
-    }
+    protected void renderOutputs(T binary, TextReportBuilder builder) {}
 
     protected void renderVariants(T binary, TextReportBuilder builder) {
-        ModelSchema<?> schema = schemaStore.getSchema(((BinarySpecInternal)binary).getPublicType());
+        ModelSchema<?> schema = schemaStore.getSchema(((BinarySpecInternal) binary).getPublicType());
         if (!(schema instanceof StructSchema)) {
             return;
         }
@@ -97,11 +96,9 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
         }
     }
 
-    protected void renderDetails(T binary, TextReportBuilder builder) {
-    }
+    protected void renderDetails(T binary, TextReportBuilder builder) {}
 
-    protected void renderTasks(T binary, TextReportBuilder builder) {
-    }
+    protected void renderTasks(T binary, TextReportBuilder builder) {}
 
     private void renderBuildAbility(BinarySpec binary, TextReportBuilder builder) {
         BinaryBuildAbility buildAbility = ((BinarySpecInternal) binary).getBuildAbility();

@@ -23,7 +23,11 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 class OneOfTypeBinderCreationListener extends ModelBinding {
     private final Action<ModelBinding> bindAction;
 
-    public OneOfTypeBinderCreationListener(ModelRuleDescriptor descriptor, BindingPredicate predicate, boolean writable, Action<ModelBinding> bindAction) {
+    public OneOfTypeBinderCreationListener(
+            ModelRuleDescriptor descriptor,
+            BindingPredicate predicate,
+            boolean writable,
+            Action<ModelBinding> bindAction) {
         super(descriptor, predicate, writable);
         this.bindAction = bindAction;
     }

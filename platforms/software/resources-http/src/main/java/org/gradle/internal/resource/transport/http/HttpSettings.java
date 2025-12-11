@@ -15,12 +15,10 @@
  */
 package org.gradle.internal.resource.transport.http;
 
-
+import java.util.Collection;
+import javax.net.ssl.HostnameVerifier;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
-
-import javax.net.ssl.HostnameVerifier;
-import java.util.Collection;
 
 public interface HttpSettings {
     HttpProxySettings getProxySettings();

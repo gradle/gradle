@@ -17,13 +17,12 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Optional;
+import java.util.Collections;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collections;
 
 /**
  * Should be used along with {@code PolymorphicModelMapProjection}.
@@ -35,7 +34,11 @@ public class SpecializedModelMapProjection<P, E> implements ModelProjection {
     private final Class<? extends P> viewImpl;
     private final ChildNodeInitializerStrategyAccessor<? super E> creatorStrategyAccessor;
 
-    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, Class<? extends P> viewImpl, ChildNodeInitializerStrategyAccessor<? super E> creatorStrategyAccessor) {
+    public SpecializedModelMapProjection(
+            ModelType<P> publicType,
+            ModelType<E> elementType,
+            Class<? extends P> viewImpl,
+            ChildNodeInitializerStrategyAccessor<? super E> creatorStrategyAccessor) {
         this.publicType = publicType;
         this.elementType = elementType;
         this.viewImpl = viewImpl;
@@ -49,7 +52,8 @@ public class SpecializedModelMapProjection<P, E> implements ModelProjection {
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
+    public <T> ModelView<? extends T> asImmutable(
+            ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
         if (canBeViewedAs(type)) {
             return Cast.uncheckedCast(toView(node, ruleDescriptor, false));
         } else {
@@ -59,7 +63,8 @@ public class SpecializedModelMapProjection<P, E> implements ModelProjection {
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
+    public <T> ModelView<? extends T> asMutable(
+            ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
         if (canBeViewedAs(type)) {
             return Cast.uncheckedCast(toView(node, ruleDescriptor, true));
         } else {
@@ -69,8 +74,10 @@ public class SpecializedModelMapProjection<P, E> implements ModelProjection {
 
     private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
         ChildNodeInitializerStrategy<? super E> creatorStrategy = creatorStrategyAccessor.getStrategy(modelNode);
-        DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), publicType, ruleDescriptor, mutable, !mutable);
-        P instance = DirectInstantiator.instantiate(viewImpl, publicType, elementType, ruleDescriptor, modelNode, state, creatorStrategy);
+        DefaultModelViewState state =
+                new DefaultModelViewState(modelNode.getPath(), publicType, ruleDescriptor, mutable, !mutable);
+        P instance = DirectInstantiator.instantiate(
+                viewImpl, publicType, elementType, ruleDescriptor, modelNode, state, creatorStrategy);
         return InstanceModelView.of(modelNode.getPath(), publicType, instance, state.closer());
     }
 

@@ -15,11 +15,10 @@
  */
 package org.gradle.api.distribution.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.file.CopySpec;
-
-import javax.inject.Inject;
 
 /**
  * Allow user to declare a distribution.

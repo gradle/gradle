@@ -16,6 +16,10 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.Streams;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
@@ -33,11 +37,6 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.IncubationLogger;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 /**
  * A {@link BuildWorkExecutor} that does not execute any tasks, but prints the task graph instead.
  */
@@ -47,10 +46,9 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
     private final ConfigurationTimeBarrier configurationTimeBarrier;
 
     public TaskGraphBuildExecutionAction(
-        BuildWorkExecutor delegate,
-        StyledTextOutputFactory textOutputFactory,
-        ConfigurationTimeBarrier configurationTimeBarrier
-    ) {
+            BuildWorkExecutor delegate,
+            StyledTextOutputFactory textOutputFactory,
+            ConfigurationTimeBarrier configurationTimeBarrier) {
         this.delegate = delegate;
         this.textOutputFactory = textOutputFactory;
         this.configurationTimeBarrier = configurationTimeBarrier;
@@ -75,26 +73,24 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
         plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
             String invocation = renderRequestedTasks(gradle.getStartParameter());
             StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
-            DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
+            DirectedGraphRenderer<TaskInfo> renderer =
+                    new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
             renderer.renderTo(new RootNode(entryNodes, invocation), output);
         });
     }
 
     private static String renderRequestedTasks(StartParameterInternal startParameter) {
-        return startParameter
-            .getTaskRequests()
-            .stream()
-            .map(TaskExecutionRequest::getArgs)
-            .flatMap(List::stream)
-            .collect(Collectors.joining(" "));
+        return startParameter.getTaskRequests().stream()
+                .map(TaskExecutionRequest::getArgs)
+                .flatMap(List::stream)
+                .collect(Collectors.joining(" "));
     }
 
     private static class NodeRenderer implements GraphNodeRenderer<TaskInfo> {
 
         @Override
         public void renderTo(TaskInfo node, StyledTextOutput output, boolean alreadySeen) {
-            output
-                .withStyle(StyledTextOutput.Style.Identifier).text(node.getId());
+            output.withStyle(StyledTextOutput.Style.Identifier).text(node.getId());
 
             if (!alreadySeen) {
                 String description = node.getDescription();
@@ -109,7 +105,8 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
     private static class NodesGraph implements DirectedGraph<TaskInfo, TaskInfo> {
 
         @Override
-        public void getNodeValues(TaskInfo node, Collection<? super TaskInfo> values, Collection<? super TaskInfo> connectedNodes) {
+        public void getNodeValues(
+                TaskInfo node, Collection<? super TaskInfo> values, Collection<? super TaskInfo> connectedNodes) {
             values.add(node);
             connectedNodes.addAll(node.getDependencies());
         }
@@ -117,8 +114,8 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
 
     private static Stream<TaskInfo> extractTaskNodes(Collection<Node> collection, DependencyType type) {
         return collection.stream()
-            .filter(node -> node instanceof TaskNode && !node.isDoNotIncludeInPlan())
-            .map(taskNode -> new DefaultTaskInfo((TaskNode) taskNode, type));
+                .filter(node -> node instanceof TaskNode && !node.isDoNotIncludeInPlan())
+                .map(taskNode -> new DefaultTaskInfo((TaskNode) taskNode, type));
     }
 
     private enum DependencyType {
@@ -155,8 +152,7 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
 
         @Override
         public Collection<TaskInfo> getDependencies() {
-            return extractTaskNodes(entryNodes, DependencyType.REGULAR)
-                .collect(Collectors.toList());
+            return extractTaskNodes(entryNodes, DependencyType.REGULAR).collect(Collectors.toList());
         }
     }
 
@@ -196,9 +192,9 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
                 targetNode = ((TaskInAnotherBuild) node).getTargetNode();
             }
             return Streams.concat(
-                extractTaskNodes(targetNode.getDependencySuccessors(), DependencyType.REGULAR),
-                extractTaskNodes(targetNode.getFinalizers(), DependencyType.FINALIZING)
-            ).collect(Collectors.toList());
+                            extractTaskNodes(targetNode.getDependencySuccessors(), DependencyType.REGULAR),
+                            extractTaskNodes(targetNode.getFinalizers(), DependencyType.FINALIZING))
+                    .collect(Collectors.toList());
         }
 
         @Override

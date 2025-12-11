@@ -16,9 +16,8 @@
 
 package org.gradle.internal.classpath;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.util.function.Supplier;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class PerThreadInstrumentedClosuresTracker implements InstrumentedClosuresTracker {

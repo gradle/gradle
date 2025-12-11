@@ -16,18 +16,18 @@
 
 package org.gradle.internal.file;
 
-import org.gradle.internal.Combiners;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.internal.Combiners;
 
 public class DefaultReservedFileSystemLocationRegistry implements ReservedFileSystemLocationRegistry {
     private final FileHierarchySet reservedFileSystemLocations;
 
-    public DefaultReservedFileSystemLocationRegistry(List<ReservedFileSystemLocation> registeredReservedFileSystemLocations) {
+    public DefaultReservedFileSystemLocationRegistry(
+            List<ReservedFileSystemLocation> registeredReservedFileSystemLocations) {
         this.reservedFileSystemLocations = registeredReservedFileSystemLocations.stream()
-            .map(input -> input.getReservedFileSystemLocation().get())
-            .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, Combiners.nonCombining());
+                .map(input -> input.getReservedFileSystemLocation().get())
+                .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, Combiners.nonCombining());
     }
 
     @Override

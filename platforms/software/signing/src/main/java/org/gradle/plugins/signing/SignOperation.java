@@ -17,6 +17,9 @@ package org.gradle.plugins.signing;
 
 import com.google.common.base.Function;
 import groovy.lang.Closure;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
@@ -25,10 +28,6 @@ import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
 import org.gradle.util.internal.ConfigureUtil;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * A sign operation creates digital signatures for one or more files or {@link PublishArtifact publish artifacts}.
  *
@@ -36,7 +35,7 @@ import java.util.List;
  * operation manages one or more {@link Signature} objects. The {@code sign} methods are used to register things to generate signatures for. The {@link #execute()} method generates the signatures for
  * all of the registered items at that time.
  */
-abstract public class SignOperation implements SignatureSpec {
+public abstract class SignOperation implements SignatureSpec {
 
     /**
      * The file representation of the signature(s).
@@ -198,9 +197,12 @@ abstract public class SignOperation implements SignatureSpec {
             case 1:
                 return signatures.get(0);
             case 0:
-                throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains no signatures.");
+                throw new IllegalStateException(
+                        "Expected operation to contain exactly one signature, however, it contains no signatures.");
             default:
-                throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains " + String.valueOf(size) + " signatures.");
+                throw new IllegalStateException(
+                        "Expected operation to contain exactly one signature, however, it contains "
+                                + String.valueOf(size) + " signatures.");
         }
     }
 

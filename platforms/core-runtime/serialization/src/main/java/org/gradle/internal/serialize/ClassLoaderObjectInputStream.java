@@ -15,12 +15,11 @@
  */
 package org.gradle.internal.serialize;
 
-import org.gradle.api.JavaVersion;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
+import org.gradle.api.JavaVersion;
 
 public class ClassLoaderObjectInputStream extends ObjectInputStream {
     private final ClassLoader loader;
@@ -60,8 +59,9 @@ public class ClassLoaderObjectInputStream extends ObjectInputStream {
      * the class which is unsupported. The base class only includes the class version in the error message
      * and does not provide programmatic access.
      */
-    public static class UnsupportedClassVersionErrorWithJavaVersion extends UnsupportedClassVersionError  {
+    public static class UnsupportedClassVersionErrorWithJavaVersion extends UnsupportedClassVersionError {
         private final JavaVersion version;
+
         public UnsupportedClassVersionErrorWithJavaVersion(UnsupportedClassVersionError cause, JavaVersion version) {
             super(cause.getMessage());
             initCause(cause);

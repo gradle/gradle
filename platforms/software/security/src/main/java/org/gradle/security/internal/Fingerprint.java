@@ -15,9 +15,8 @@
  */
 package org.gradle.security.internal;
 
-import org.bouncycastle.openpgp.PGPPublicKey;
-
 import java.util.Arrays;
+import org.bouncycastle.openpgp.PGPPublicKey;
 
 public class Fingerprint {
     private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();

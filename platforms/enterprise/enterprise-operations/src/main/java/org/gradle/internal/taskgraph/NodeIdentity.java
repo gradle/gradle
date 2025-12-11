@@ -32,5 +32,4 @@ public interface NodeIdentity {
     }
 
     NodeType getNodeType();
-
 }

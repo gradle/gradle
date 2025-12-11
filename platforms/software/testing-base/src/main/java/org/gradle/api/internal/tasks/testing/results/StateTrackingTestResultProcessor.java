@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -25,11 +29,6 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class StateTrackingTestResultProcessor implements TestResultProcessor {
     private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
@@ -49,8 +48,8 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
         TestState state = new TestState(new DecoratingTestDescriptor(test, parent), event, executing);
         TestState oldState = executing.put(test.getId(), state);
         if (oldState != null) {
-            throw new IllegalArgumentException(String.format("Received a start event for %s with duplicate id '%s'.",
-                    test, test.getId()));
+            throw new IllegalArgumentException(
+                    String.format("Received a start event for %s with duplicate id '%s'.", test, test.getId()));
         }
 
         listener.started(state.test, event);
@@ -83,15 +82,15 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
                     testId, executing.keySet()));
         }
 
-        //In case the output event arrives after completion of the test
-        //and we need to have a matching descriptor to inform the user which test this output belongs to
-        //we will use the current parent
+        // In case the output event arrives after completion of the test
+        // and we need to have a matching descriptor to inform the user which test this output belongs to
+        // we will use the current parent
 
-        //(SF) This approach should generally work because at the moment we reset capturing output per suite
-        //(see CaptureTestOutputTestResultProcessor) and that reset happens earlier in the chain.
-        //So in theory when suite is completed, the output redirector has been already stopped
-        //and there shouldn't be any output events passed
-        //See also GRADLE-2035
+        // (SF) This approach should generally work because at the moment we reset capturing output per suite
+        // (see CaptureTestOutputTestResultProcessor) and that reset happens earlier in the chain.
+        // So in theory when suite is completed, the output redirector has been already stopped
+        // and there shouldn't be any output events passed
+        // See also GRADLE-2035
         currentParent = testState.test.getParent();
 
         testState.completed(event);
@@ -128,7 +127,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
             return currentParent;
         }
 
-        //in theory this should not happen
+        // in theory this should not happen
         return new UnknownTestDescriptor();
     }
 

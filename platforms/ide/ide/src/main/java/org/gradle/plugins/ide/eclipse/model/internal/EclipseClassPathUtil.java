@@ -16,6 +16,8 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
+import java.io.File;
+import java.util.List;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -25,9 +27,6 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
-import java.util.List;
-
 @NullMarked
 public class EclipseClassPathUtil {
 
@@ -36,7 +35,8 @@ public class EclipseClassPathUtil {
         if (javaCompileTask instanceof JavaCompile) {
             JavaCompile javaCompile = (JavaCompile) javaCompileTask;
             if (javaCompile.getModularity().getInferModulePath().get()) {
-                List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) javaCompile.getSource());
+                List<File> sourceRoots =
+                        CompilationSourceDirs.inferSourceRoots((FileTreeInternal) javaCompile.getSource());
                 return JavaModuleDetector.isModuleSource(true, sourceRoots);
             }
         }

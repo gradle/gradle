@@ -47,7 +47,8 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public <S> Provider<S> flatMap(final Transformer<? extends @Nullable Provider<? extends S>, ? super T> transformer) {
+    public <S> Provider<S> flatMap(
+            final Transformer<? extends @Nullable Provider<? extends S>, ? super T> transformer) {
         return new FlatMapProvider<>(this, transformer);
     }
 
@@ -142,12 +143,17 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public ProviderInternal<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
+    public ProviderInternal<T> asSupplier(
+            DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
         Class<T> selfType = getType();
         if (selfType != null && !targetType.isAssignableFrom(selfType)) {
-            throw new IllegalArgumentException(formatInvalidTypeException(owner.getDisplayName(), targetType, selfType));
+            throw new IllegalArgumentException(
+                    formatInvalidTypeException(owner.getDisplayName(), targetType, selfType));
         } else if (selfType == null) {
-            return new MappingProvider<>(Cast.uncheckedCast(targetType), this, new TypeSanitizingTransformer<>(owner, sanitizer, targetType));
+            return new MappingProvider<>(
+                    Cast.uncheckedCast(targetType),
+                    this,
+                    new TypeSanitizingTransformer<>(owner, sanitizer, targetType));
         } else {
             return this;
         }
@@ -161,7 +167,9 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
             targetTypeName = targetTypeName + " loaded with " + targetType.getClassLoader();
             selfTypeName = selfTypeName + " loaded with " + selfType.getClassLoader();
         }
-        return String.format("Cannot set the value of %s of type %s using a provider of type %s.", owner, targetTypeName, selfTypeName);
+        return String.format(
+                "Cannot set the value of %s of type %s using a provider of type %s.",
+                owner, targetTypeName, selfTypeName);
     }
 
     @Override
@@ -197,9 +205,15 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     private String cannotQueryValueOf(Value<? extends T> value) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
+        formatter
+                .node("Cannot query the value of ")
+                .append(getDisplayName().getDisplayName())
+                .append(" because it has no value available.");
         if (!value.getPathToOrigin().isEmpty()) {
-            formatter.node("The value of ").append(getTypedDisplayName().getDisplayName()).append(" is derived from");
+            formatter
+                    .node("The value of ")
+                    .append(getTypedDisplayName().getDisplayName())
+                    .append(" is derived from");
             formatter.startChildren();
             for (DisplayName displayName : value.getPathToOrigin()) {
                 formatter.node(displayName.getDisplayName());
@@ -224,7 +238,8 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
      * @return the string representation of the provider
      */
     protected String toStringNoReentrance() {
-        // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
+        // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and
+        // make debugging really frustrating.
         Class<?> type = getType();
         return String.format("provider(%s)", type == null ? "?" : type.getName());
     }

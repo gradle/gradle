@@ -18,15 +18,6 @@ package org.gradle.internal.daemon.client.serialization;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;
-import org.gradle.api.GradleException;
-import org.gradle.internal.classloader.ClassLoaderUtils;
-import org.gradle.internal.classloader.ClasspathUtil;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.InputStream;
 import java.net.JarURLConnection;
@@ -40,6 +31,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.api.GradleException;
+import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.classloader.ClasspathUtil;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ThreadSafe
 public class ClasspathInferer {
@@ -92,13 +91,16 @@ public class ClasspathInferer {
             File classPathRoot = ClasspathUtil.getClasspathForClass(target);
             dest.add(classPathRoot.toURI());
 
-            // To determine the dependencies of the class, load up the byte code and look for CONSTANT_Class entries in the constant pool
+            // To determine the dependencies of the class, load up the byte code and look for CONSTANT_Class entries in
+            // the constant pool
 
             ClassReader reader;
             URLConnection urlConnection = resource.openConnection();
             if (urlConnection instanceof JarURLConnection) {
-                // Using the caches for these connections leaves the Jar files open. Don't use the cache, so that the Jar file is closed when the stream is closed below
-                // There are other options for solving this that may be more performant. However a class is inspected this way once and the result reused, so this approach is probably fine
+                // Using the caches for these connections leaves the Jar files open. Don't use the cache, so that the
+                // Jar file is closed when the stream is closed below
+                // There are other options for solving this that may be more performant. However a class is inspected
+                // this way once and the result reused, so this approach is probably fine
                 urlConnection.setUseCaches(false);
             }
             try (InputStream inputStream = urlConnection.getInputStream()) {

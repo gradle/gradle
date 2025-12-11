@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import java.io.Serializable;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
@@ -23,13 +24,12 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 
-import java.io.Serializable;
-
 /**
  * Implementation of {@link WorkerTestDefinitionProcessorFactory} which instantiates a {@link JUnitTestDefinitionProcessor}.
  * This class is loaded on test workers themselves and acts as the entry-point to running JUnit 4 tests on a test worker.
  */
-public class JUnitTestDefinitionProcessorFactory implements WorkerTestDefinitionProcessorFactory<ClassTestDefinition>, Serializable {
+public class JUnitTestDefinitionProcessorFactory
+        implements WorkerTestDefinitionProcessorFactory<ClassTestDefinition>, Serializable {
     private final JUnitSpec spec;
 
     public JUnitTestDefinitionProcessorFactory(JUnitSpec spec) {
@@ -37,7 +37,8 @@ public class JUnitTestDefinitionProcessorFactory implements WorkerTestDefinition
     }
 
     @Override
-    public TestDefinitionProcessor<ClassTestDefinition> create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
+    public TestDefinitionProcessor<ClassTestDefinition> create(
+            IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         return new JUnitTestDefinitionProcessor(spec, idGenerator, actorFactory, clock);
     }
 }

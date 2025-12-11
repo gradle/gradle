@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.resolve.caching;
 
+import java.time.Duration;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
@@ -28,11 +29,11 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.time.Duration;
-
 @ServiceScope(Scope.Build.class)
-public class ComponentMetadataSupplierRuleExecutor extends CrossBuildCachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> {
-    private final static Transformer<String, ModuleVersionIdentifier> KEY_TO_SNAPSHOTTABLE = Object::toString;
+public class ComponentMetadataSupplierRuleExecutor
+        extends CrossBuildCachingRuleExecutor<
+                ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> {
+    private static final Transformer<String, ModuleVersionIdentifier> KEY_TO_SNAPSHOTTABLE = Object::toString;
 
     public ComponentMetadataSupplierRuleExecutor(
             GlobalScopedCacheBuilderFactory cacheBuilderFactory,
@@ -40,14 +41,23 @@ public class ComponentMetadataSupplierRuleExecutor extends CrossBuildCachingRule
             ValueSnapshotter snapshotter,
             BuildCommencedTimeProvider timeProvider,
             Serializer<ComponentMetadata> componentMetadataSerializer) {
-        super("md-supplier", cacheBuilderFactory, cacheDecoratorFactory, snapshotter, timeProvider, createValidator(timeProvider), KEY_TO_SNAPSHOTTABLE, componentMetadataSerializer);
+        super(
+                "md-supplier",
+                cacheBuilderFactory,
+                cacheDecoratorFactory,
+                snapshotter,
+                timeProvider,
+                createValidator(timeProvider),
+                KEY_TO_SNAPSHOTTABLE,
+                componentMetadataSerializer);
     }
 
     public static EntryValidator<ComponentMetadata> createValidator(final BuildCommencedTimeProvider timeProvider) {
         return (policy, entry) -> {
             Duration age = Duration.ofMillis(timeProvider.getCurrentTime() - entry.getTimestamp());
             final ComponentMetadata result = entry.getResult();
-            return !policy.moduleExpiry(new SimpleResolvedModuleVersion(result), age, result.isChanging()).isMustCheck();
+            return !policy.moduleExpiry(new SimpleResolvedModuleVersion(result), age, result.isChanging())
+                    .isMustCheck();
         };
     }
 

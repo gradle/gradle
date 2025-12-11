@@ -26,5 +26,4 @@ package org.gradle.tooling.model.eclipse;
  *
  * @since 5.4
  */
-public interface RunEclipseSynchronizationTasks {
-}
+public interface RunEclipseSynchronizationTasks {}

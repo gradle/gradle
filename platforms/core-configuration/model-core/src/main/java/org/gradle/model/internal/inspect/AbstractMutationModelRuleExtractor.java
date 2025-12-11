@@ -16,19 +16,20 @@
 
 package org.gradle.model.internal.inspect;
 
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.List;
-
-public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
+public abstract class AbstractMutationModelRuleExtractor<T extends Annotation>
+        extends AbstractAnnotationDrivenModelRuleExtractor<T> {
     @Nullable
     @Override
-    public <R, S> ExtractedModelRule registration(final MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
+    public <R, S> ExtractedModelRule registration(
+            final MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
         validateIsVoidMethod(ruleDefinition, context);
         if (ruleDefinition.getReferences().isEmpty()) {
             context.add(ruleDefinition, "A method " + getDescription() + " must have at least one parameter");
@@ -42,11 +43,14 @@ public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> e
 
     protected abstract ModelActionRole getMutationType();
 
-    private static class ExtractedMutationRule<S>  extends AbstractExtractedModelRule {
+    private static class ExtractedMutationRule<S> extends AbstractExtractedModelRule {
         private final ModelActionRole mutationType;
         private final RuleApplicationScope ruleApplicationScope;
 
-        public ExtractedMutationRule(ModelActionRole mutationType, MethodRuleDefinition<?, S> ruleDefinition, RuleApplicationScope ruleApplicationScope) {
+        public ExtractedMutationRule(
+                ModelActionRole mutationType,
+                MethodRuleDefinition<?, S> ruleDefinition,
+                RuleApplicationScope ruleApplicationScope) {
             super(ruleDefinition);
             this.mutationType = mutationType;
             this.ruleApplicationScope = ruleApplicationScope;
@@ -55,7 +59,10 @@ public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> e
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             MethodRuleDefinition<?, S> ruleDefinition = Cast.uncheckedCast(getRuleDefinition());
-            MethodBackedModelAction<S> ruleAction = new MethodBackedModelAction<S>(ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences());
+            MethodBackedModelAction<S> ruleAction = new MethodBackedModelAction<S>(
+                    ruleDefinition.getDescriptor(),
+                    ruleDefinition.getSubjectReference(),
+                    ruleDefinition.getTailReferences());
             RuleExtractorUtils.configureRuleAction(context, ruleApplicationScope, mutationType, ruleAction);
         }
 

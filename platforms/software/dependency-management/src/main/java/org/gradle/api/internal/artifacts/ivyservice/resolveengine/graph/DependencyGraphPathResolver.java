@@ -16,10 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.Describable;
-import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.internal.Describables;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -29,15 +25,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.gradle.api.Describable;
+import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.internal.Describables;
 
 public class DependencyGraphPathResolver {
 
     public static Collection<List<Describable>> calculatePaths(
-        List<DependencyGraphNode> fromNodes,
-        DependencyGraphNode toNode,
-        DomainObjectContext owner
-    ) {
-        // Include the shortest path from each version that has a direct dependency on the broken dependency, back to the root
+            List<DependencyGraphNode> fromNodes, DependencyGraphNode toNode, DomainObjectContext owner) {
+        // Include the shortest path from each version that has a direct dependency on the broken dependency, back to
+        // the root
 
         Map<ResolvedGraphComponent, List<Describable>> shortestPaths = new LinkedHashMap<>();
         List<Describable> rootPath = new ArrayList<>();
@@ -72,7 +69,6 @@ public class DependencyGraphPathResolver {
                     } else if (shortest.size() > candidate.size()) {
                         shortest = candidate;
                     }
-
                 }
                 if (shortest == null) {
                     continue;

@@ -46,5 +46,4 @@ public interface JavaToolchainRepository extends AuthenticationSupported {
      * Mandatory property.
      */
     Property<Class<? extends JavaToolchainResolver>> getResolverClass();
-
 }

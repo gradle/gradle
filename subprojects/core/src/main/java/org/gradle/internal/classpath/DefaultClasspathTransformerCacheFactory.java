@@ -16,79 +16,84 @@
 
 package org.gradle.internal.classpath;
 
+import static org.gradle.internal.versionedcache.CacheVersionMapping.introducedIn;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.internal.versionedcache.CacheVersionMapping;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.internal.versionedcache.UnusedVersionsCacheCleanup;
-import org.gradle.internal.versionedcache.UsedGradleVersions;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
-
-import static org.gradle.internal.versionedcache.CacheVersionMapping.introducedIn;
+import org.gradle.internal.versionedcache.CacheVersionMapping;
+import org.gradle.internal.versionedcache.UnusedVersionsCacheCleanup;
+import org.gradle.internal.versionedcache.UsedGradleVersions;
 
 public class DefaultClasspathTransformerCacheFactory implements ClasspathTransformerCacheFactory {
     private static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("2.2")
-        .incrementedIn("3.2-rc-1")
-        .incrementedIn("3.5-rc-1")
-        .changedTo(8, "6.5-rc-1")
-        .incrementedIn("7.1")
-        .build();
+            .incrementedIn("3.2-rc-1")
+            .incrementedIn("3.5-rc-1")
+            .changedTo(8, "6.5-rc-1")
+            .incrementedIn("7.1")
+            .build();
+
     @VisibleForTesting
     static final String CACHE_NAME = "jars";
+
     @VisibleForTesting
     static final String CACHE_KEY = CACHE_NAME + "-" + CACHE_VERSION_MAPPING.getLatestVersion();
+
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final UsedGradleVersions usedGradleVersions;
     private final CacheConfigurationsInternal cacheConfigurations;
     private final CacheCleanupStrategyFactory cacheCleanupStrategyFactory;
 
-    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CacheConfigurationsInternal cacheConfigurations, CacheCleanupStrategyFactory cacheCleanupStrategyFactory) {
+    public DefaultClasspathTransformerCacheFactory(
+            UsedGradleVersions usedGradleVersions,
+            CacheConfigurationsInternal cacheConfigurations,
+            CacheCleanupStrategyFactory cacheCleanupStrategyFactory) {
         this.usedGradleVersions = usedGradleVersions;
         this.cacheConfigurations = cacheConfigurations;
         this.cacheCleanupStrategyFactory = cacheCleanupStrategyFactory;
     }
 
     @Override
-    public PersistentCache createCache(GlobalScopedCacheBuilderFactory cacheBuilderFactory, FileAccessTimeJournal fileAccessTimeJournal) {
+    public PersistentCache createCache(
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory, FileAccessTimeJournal fileAccessTimeJournal) {
         return cacheBuilderFactory
-            .createCrossVersionCacheBuilder(CACHE_KEY)
-            .withDisplayName(CACHE_NAME)
-            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-            .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal))
-            .open();
+                .createCrossVersionCacheBuilder(CACHE_KEY)
+                .withDisplayName(CACHE_NAME)
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+                .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal))
+                .open();
     }
 
     private CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal) {
         return cacheCleanupStrategyFactory.create(
-            createCleanupAction(fileAccessTimeJournal),
-            cacheConfigurations.getCleanupFrequency()::get
-        );
+                createCleanupAction(fileAccessTimeJournal), cacheConfigurations.getCleanupFrequency()::get);
     }
 
     private CompositeCleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {
         return CompositeCleanupAction.builder()
-            .add(UnusedVersionsCacheCleanup.create(CACHE_NAME, CACHE_VERSION_MAPPING, usedGradleVersions))
-            .add(
-                new LeastRecentlyUsedCacheCleanup(
-                    new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
-                    fileAccessTimeJournal,
-                    cacheConfigurations.getCreatedResources().getEntryRetentionTimestampSupplier()
-                )
-            ).build();
+                .add(UnusedVersionsCacheCleanup.create(CACHE_NAME, CACHE_VERSION_MAPPING, usedGradleVersions))
+                .add(new LeastRecentlyUsedCacheCleanup(
+                        new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
+                        fileAccessTimeJournal,
+                        cacheConfigurations.getCreatedResources().getEntryRetentionTimestampSupplier()))
+                .build();
     }
 
     @Override
-    public FileAccessTracker createFileAccessTracker(PersistentCache persistentCache, FileAccessTimeJournal fileAccessTimeJournal) {
-        return new SingleDepthFileAccessTracker(fileAccessTimeJournal, persistentCache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+    public FileAccessTracker createFileAccessTracker(
+            PersistentCache persistentCache, FileAccessTimeJournal fileAccessTimeJournal) {
+        return new SingleDepthFileAccessTracker(
+                fileAccessTimeJournal, persistentCache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
     }
 }

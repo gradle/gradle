@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
  * An OutputStream which separates bytes written into lines of text. Uses the platform default encoding. Is not thread safe.
  */
 public class LineBufferingOutputStream extends OutputStream {
-    private final static int LINE_MAX_LENGTH = 1024 * 1024; // Split line if a single line goes over 1 MB
+    private static final int LINE_MAX_LENGTH = 1024 * 1024; // Split line if a single line goes over 1 MB
     private boolean hasBeenClosed;
     private final TextStream handler;
     private StreamByteBuffer buffer;

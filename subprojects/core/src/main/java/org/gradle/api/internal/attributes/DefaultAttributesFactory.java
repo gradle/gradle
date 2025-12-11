@@ -16,16 +16,15 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class DefaultAttributesFactory implements AttributesFactory {
 
@@ -43,11 +42,10 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     private final Map<ImmutableAttributes, ImmutableList<ImmutableAttributes>> concatCache;
 
     public DefaultAttributesFactory(
-        AttributeValueIsolator attributeValueIsolator,
-        IsolatableFactory isolatableFactory,
-        NamedObjectInstantiator instantiator,
-        PropertyFactory propertyFactory
-    ) {
+            AttributeValueIsolator attributeValueIsolator,
+            IsolatableFactory isolatableFactory,
+            NamedObjectInstantiator instantiator,
+            PropertyFactory propertyFactory) {
         this.attributeValueIsolator = attributeValueIsolator;
         this.propertyFactory = propertyFactory;
         this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
@@ -88,7 +86,8 @@ public final class DefaultAttributesFactory implements AttributesFactory {
 
     @Override
     @Deprecated
-    public <T> ImmutableAttributes concatUsageAttribute(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
+    public <T> ImmutableAttributes concatUsageAttribute(
+            ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
         return usageCompatibilityHandler.doConcat(this, node, key, value);
     }
 
@@ -127,15 +126,12 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     }
 
     private static @Nullable ImmutableAttributes findChild(
-        ImmutableList<ImmutableAttributes> nodeChildren,
-        ImmutableAttributesEntry<?> entry
-    ) {
+            ImmutableList<ImmutableAttributes> nodeChildren, ImmutableAttributesEntry<?> entry) {
         for (ImmutableAttributes child : nodeChildren) {
             ImmutableAttributesEntry<?> headEntry = child.getHead();
 
-            if (headEntry.getKey().equals(entry.getKey()) &&
-                headEntry.getValue().equals(entry.getValue())
-            ) {
+            if (headEntry.getKey().equals(entry.getKey())
+                    && headEntry.getValue().equals(entry.getValue())) {
                 return child;
             }
         }
@@ -144,13 +140,11 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     }
 
     private static ImmutableList<ImmutableAttributes> concatChild(
-        ImmutableList<ImmutableAttributes> nodeChildren,
-        ImmutableAttributes child
-    ) {
+            ImmutableList<ImmutableAttributes> nodeChildren, ImmutableAttributes child) {
         return ImmutableList.<ImmutableAttributes>builderWithExpectedSize(nodeChildren.size() + 1)
-            .addAll(nodeChildren)
-            .add(child)
-            .build();
+                .addAll(nodeChildren)
+                .add(child)
+                .build();
     }
 
     @Override
@@ -173,7 +167,8 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     }
 
     @Override
-    public ImmutableAttributes safeConcat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) throws AttributeMergingException {
+    public ImmutableAttributes safeConcat(ImmutableAttributes attributes1, ImmutableAttributes attributes2)
+            throws AttributeMergingException {
         if (attributes1 == ImmutableAttributes.EMPTY) {
             return attributes2;
         }
@@ -183,11 +178,14 @@ public final class DefaultAttributesFactory implements AttributesFactory {
 
         ImmutableAttributes current = attributes2;
         for (ImmutableAttributesEntry<?> toConcat : attributes1.getEntries()) {
-            ImmutableAttributesEntry<?> existing = current.findEntry(toConcat.getKey().getName());
+            ImmutableAttributesEntry<?> existing =
+                    current.findEntry(toConcat.getKey().getName());
             if (existing != null && !toConcat.getIsolatedValue().equals(existing.getIsolatedValue())) {
                 Attribute<?> attribute = toConcat.getKey();
-                String message = "An attribute named '" + attribute.getName() + "' of type '" + attribute.getType().getName() + "' already exists in this container";
-                throw new AttributeMergingException(attribute, toConcat.getIsolatedValue(), existing.getIsolatedValue(), message);
+                String message = "An attribute named '" + attribute.getName() + "' of type '"
+                        + attribute.getType().getName() + "' already exists in this container";
+                throw new AttributeMergingException(
+                        attribute, toConcat.getIsolatedValue(), existing.getIsolatedValue(), message);
             }
             current = doConcatEntry(current, toConcat);
         }
@@ -213,8 +211,9 @@ public final class DefaultAttributesFactory implements AttributesFactory {
 
     private String buildSameNameDifferentTypeErrorMsg(Attribute<?> newAttribute, Attribute<?> oldAttribute) {
         return "Cannot have two attributes with the same name but different types. "
-            + "This container already has an attribute named '" + newAttribute.getName() + "' of type '" + oldAttribute.getType().getName()
-            + "' and you are trying to store another one of type '" + newAttribute.getType().getName() + "'";
+                + "This container already has an attribute named '" + newAttribute.getName() + "' of type '"
+                + oldAttribute.getType().getName()
+                + "' and you are trying to store another one of type '"
+                + newAttribute.getType().getName() + "'";
     }
-
 }

@@ -45,5 +45,4 @@ public interface JacocoCoverageReport extends ReportSpec {
      * @since 8.13
      */
     Property<String> getTestSuiteName();
-
 }

@@ -25,8 +25,7 @@ import org.jspecify.annotations.Nullable;
 public class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
     public static final NullValueSnapshot INSTANCE = new NullValueSnapshot();
 
-    private NullValueSnapshot() {
-    }
+    private NullValueSnapshot() {}
 
     @Override
     public ValueSnapshot snapshot(@Nullable Object value, ValueSnapshotter snapshotter) {

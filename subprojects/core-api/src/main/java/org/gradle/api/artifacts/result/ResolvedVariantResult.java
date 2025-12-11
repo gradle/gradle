@@ -16,12 +16,11 @@
 
 package org.gradle.api.artifacts.result;
 
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * The result of successfully resolving a component variant.

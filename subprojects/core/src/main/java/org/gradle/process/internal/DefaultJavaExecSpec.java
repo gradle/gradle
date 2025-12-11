@@ -16,6 +16,14 @@
 
 package org.gradle.process.internal;
 
+import static org.gradle.process.internal.DefaultExecSpec.copyBaseExecSpecTo;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -28,17 +36,8 @@ import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaExecSpec;
 
-import javax.inject.Inject;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static org.gradle.process.internal.DefaultExecSpec.copyBaseExecSpecTo;
-
-
-public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaExecSpec, ProcessArgumentsSpec.HasExecutable {
+public class DefaultJavaExecSpec extends DefaultJavaForkOptions
+        implements JavaExecSpec, ProcessArgumentsSpec.HasExecutable {
 
     private boolean ignoreExitValue;
     private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
@@ -54,10 +53,7 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
 
     @Inject
     public DefaultJavaExecSpec(
-        ObjectFactory objectFactory,
-        PathToFileResolver resolver,
-        FileCollectionFactory fileCollectionFactory
-    ) {
+            ObjectFactory objectFactory, PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory) {
         super(objectFactory, resolver, fileCollectionFactory);
         this.jvmArguments = objectFactory.listProperty(String.class);
         this.mainClass = objectFactory.property(String.class);

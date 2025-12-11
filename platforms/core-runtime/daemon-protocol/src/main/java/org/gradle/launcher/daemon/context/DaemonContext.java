@@ -15,14 +15,13 @@
  */
 package org.gradle.launcher.daemon.context;
 
+import java.io.File;
+import java.util.Collection;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.daemon.configuration.DaemonPriority;
-
-import java.io.File;
-import java.util.Collection;
 
 /**
  * A value object that describes a daemons environment/context.

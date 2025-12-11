@@ -16,6 +16,13 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import static org.gradle.api.problems.Severity.WARNING;
+import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationId;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -40,22 +47,16 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-
-import static org.gradle.api.problems.Severity.WARNING;
-import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationId;
-
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
-    public static final String WARNING_SUMMARY = "Deprecated Gradle features were used in this build, making it incompatible with Gradle";
+    public static final String WARNING_SUMMARY =
+            "Deprecated Gradle features were used in this build, making it incompatible with Gradle";
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
-    private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
+    private static final String RUN_WITH_STACKTRACE_INFO =
+            "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
     private static boolean traceLoggingEnabled;
 
     private final Set<String> loggedMessages = new CopyOnWriteArraySet<String>();
@@ -68,7 +69,11 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private Problems problemsService;
     private GradleException error;
 
-    public void init(WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter, Problems problemsService, ProblemStream problemStream) {
+    public void init(
+            WarningMode warningMode,
+            BuildOperationProgressEventEmitter progressEventEmitter,
+            Problems problemsService,
+            ProblemStream problemStream) {
         this.warningMode = warningMode;
         this.problemStream = problemStream;
         this.progressEventEmitter = progressEventEmitter;
@@ -78,13 +83,15 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     @Override
     public void featureUsed(final DeprecatedFeatureUsage usage) {
         deprecationsFound = true;
-        final ProblemDiagnostics diagnostics = problemStream.forCurrentCaller(new StackTraceSanitizer(usage.getCalledFrom()));
+        final ProblemDiagnostics diagnostics =
+                problemStream.forCurrentCaller(new StackTraceSanitizer(usage.getCalledFrom()));
         if (warningMode.shouldDisplayMessages()) {
             maybeLogUsage(usage, diagnostics);
         }
         if (warningMode == WarningMode.Fail) {
             if (error == null) {
-                error = new GradleException(WARNING_SUMMARY + " " + DefaultGradleVersion.current().getNextMajorVersion().getMajorVersion());
+                error = new GradleException(WARNING_SUMMARY + " "
+                        + DefaultGradleVersion.current().getNextMajorVersion().getMajorVersion());
             }
         }
         if (problemsService != null) {
@@ -99,19 +106,23 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             @Override
             public void execute(InternalProblemSpec builder) {
                 InternalProblemSpec problemSpec = builder
-                    // usage.getKind() could be part of the problem ID, however it provides hints on the problem provenance which should be modeled differently, maybe as location data.
-                    .id(getDefaultDeprecationIdDisplayName(usage), usage.getProblemIdDisplayName(), GradleCoreProblemGroup.deprecation())
-                    .contextualLabel(usage.getSummary())
-                    .details(usage.getRemovalDetails())
-                    .documentedAt(usage.getDocumentationUrl())
-                    .diagnostics(diagnostics)
-                    .additionalDataInternal(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
-                        @Override
-                        public void execute(DeprecationDataSpec data) {
-                            data.type(usage.getType().toDeprecationDataType());
-                        }
-                    })
-                    .severity(WARNING);
+                        // usage.getKind() could be part of the problem ID, however it provides hints on the problem
+                        // provenance which should be modeled differently, maybe as location data.
+                        .id(
+                                getDefaultDeprecationIdDisplayName(usage),
+                                usage.getProblemIdDisplayName(),
+                                GradleCoreProblemGroup.deprecation())
+                        .contextualLabel(usage.getSummary())
+                        .details(usage.getRemovalDetails())
+                        .documentedAt(usage.getDocumentationUrl())
+                        .diagnostics(diagnostics)
+                        .additionalDataInternal(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
+                            @Override
+                            public void execute(DeprecationDataSpec data) {
+                                data.type(usage.getType().toDeprecationDataType());
+                            }
+                        })
+                        .severity(WARNING);
 
                 if (usage.getType() == DeprecatedFeatureUsage.Type.USER_CODE_DIRECT) {
                     builder.stackLocation();
@@ -139,24 +150,29 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
         String featureMessage = usage.formattedMessage();
         Location location = diagnostics.getLocation();
-        if (!loggedUsages.add(featureMessage) && location == null && diagnostics.getStack().isEmpty()) {
+        if (!loggedUsages.add(featureMessage)
+                && location == null
+                && diagnostics.getStack().isEmpty()) {
             // This usage does not contain any useful diagnostics and the usage has already been logged, so skip it
             return;
         }
         StringBuilder message = new StringBuilder();
         if (location != null) {
             message.append(location.getFormatted())
-                .append(SystemProperties.getInstance().getLineSeparator());
+                    .append(SystemProperties.getInstance().getLineSeparator());
         }
         message.append(featureMessage);
-        if (location != null && !loggedUsages.add(message.toString()) && diagnostics.getStack().isEmpty()) {
+        if (location != null
+                && !loggedUsages.add(message.toString())
+                && diagnostics.getStack().isEmpty()) {
             // This usage has no stack trace and has already been logged with the same location, so skip it
             return;
         }
         displayDeprecationIfSameMessageNotDisplayedBefore(message, diagnostics.getStack());
     }
 
-    private void displayDeprecationIfSameMessageNotDisplayedBefore(StringBuilder message, List<StackTraceElement> callStack) {
+    private void displayDeprecationIfSameMessageNotDisplayedBefore(
+            StringBuilder message, List<StackTraceElement> callStack) {
         // Let's cut the first 10 lines of stack traces as the "key" to identify a deprecation message uniquely.
         // Even when two deprecation messages are emitted from the same location,
         // the stack traces at very bottom might be different due to thread pool scheduling.
@@ -167,7 +183,8 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         }
     }
 
-    private void fireDeprecatedUsageBuildOperationProgress(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
+    private void fireDeprecatedUsageBuildOperationProgress(
+            DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
         if (progressEventEmitter != null) {
             progressEventEmitter.emitNowIfCurrent(new DefaultDeprecatedUsageProgressDetails(usage, diagnostics));
         }
@@ -184,14 +201,19 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     public void reportSuppressedDeprecations() {
         if (warningMode == WarningMode.Summary && deprecationsFound) {
-            LOGGER.warn("\n{} {}.\n\nYou can use '--{} {}' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\n{}",
-                WARNING_SUMMARY, DefaultGradleVersion.current().getNextMajorVersion().getMajorVersion(),
-                LoggingConfigurationBuildOptions.WarningsOption.LONG_OPTION, WarningMode.All.name().toLowerCase(Locale.ROOT),
-                DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings"));
+            LOGGER.warn(
+                    "\n{} {}.\n\nYou can use '--{} {}' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\n{}",
+                    WARNING_SUMMARY,
+                    DefaultGradleVersion.current().getNextMajorVersion().getMajorVersion(),
+                    LoggingConfigurationBuildOptions.WarningsOption.LONG_OPTION,
+                    WarningMode.All.name().toLowerCase(Locale.ROOT),
+                    DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor(
+                            "on this", "command_line_interface", "sec:command_line_warnings"));
         }
     }
 
-    private static void appendLogTraceIfNecessary(StringBuilder message, List<StackTraceElement> stack, int startIndexInclusive, int endIndexExclusive) {
+    private static void appendLogTraceIfNecessary(
+            StringBuilder message, List<StackTraceElement> stack, int startIndexInclusive, int endIndexExclusive) {
         final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
         int endIndex = Math.min(stack.size(), endIndexExclusive);
@@ -215,14 +237,11 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     private static void appendStackTraceElement(StackTraceElement frame, StringBuilder message, String lineSeparator) {
-        message.append(lineSeparator)
-            .append(ELEMENT_PREFIX)
-            .append(frame);
+        message.append(lineSeparator).append(ELEMENT_PREFIX).append(frame);
     }
 
     private static void appendRunWithStacktraceInfo(StringBuilder message, String lineSeparator) {
-        message.append(lineSeparator)
-            .append(RUN_WITH_STACKTRACE_INFO);
+        message.append(lineSeparator).append(RUN_WITH_STACKTRACE_INFO);
     }
 
     private static boolean isGradleScriptElement(StackTraceElement element) {
@@ -232,7 +251,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         }
         fileName = fileName.toLowerCase(Locale.US);
         return fileName.endsWith(".gradle") // ordinary Groovy Gradle script
-            || fileName.endsWith(".gradle.kts"); // Kotlin Gradle script
+                || fileName.endsWith(".gradle.kts"); // Kotlin Gradle script
     }
 
     /**

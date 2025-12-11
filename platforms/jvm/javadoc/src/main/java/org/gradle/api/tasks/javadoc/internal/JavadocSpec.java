@@ -16,11 +16,10 @@
 
 package org.gradle.api.tasks.javadoc.internal;
 
+import java.io.File;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class JavadocSpec implements CompileSpec {
     private MinimalJavadocOptions options;

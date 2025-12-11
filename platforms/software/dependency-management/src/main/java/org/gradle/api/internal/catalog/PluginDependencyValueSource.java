@@ -23,7 +23,8 @@ import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.plugin.use.PluginDependency;
 
-public abstract class PluginDependencyValueSource implements ValueSource<PluginDependency, PluginDependencyValueSource.Params> {
+public abstract class PluginDependencyValueSource
+        implements ValueSource<PluginDependency, PluginDependencyValueSource.Params> {
 
     interface Params extends ValueSourceParameters {
         Property<String> getPluginName();
@@ -36,8 +37,6 @@ public abstract class PluginDependencyValueSource implements ValueSource<PluginD
         String pluginName = getParameters().getPluginName().get();
         PluginModel data = getParameters().getConfig().get().getPlugin(pluginName);
         ImmutableVersionConstraint version = data.getVersion();
-        return new DefaultPluginDependency(
-            data.getId(), new DefaultMutableVersionConstraint(version)
-        );
+        return new DefaultPluginDependency(data.getId(), new DefaultMutableVersionConstraint(version));
     }
 }

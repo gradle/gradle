@@ -16,14 +16,13 @@
 
 package org.gradle.internal.instantiation;
 
+import java.lang.annotation.Annotation;
+import java.util.Collection;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.state.ManagedFactory;
-
-import java.lang.annotation.Annotation;
-import java.util.Collection;
 
 /**
  * Provides various mechanisms for instantiation of objects.

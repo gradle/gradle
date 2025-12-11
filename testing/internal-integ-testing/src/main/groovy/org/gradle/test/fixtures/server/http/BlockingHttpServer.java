@@ -19,13 +19,6 @@ import com.sun.net.httpserver.BasicAuthenticator;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-import org.gradle.api.Action;
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.test.fixtures.ResettableExpectations;
-import org.hamcrest.Matcher;
-import org.junit.rules.ExternalResource;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -48,6 +41,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.gradle.api.Action;
+import org.gradle.internal.ErroringAction;
+import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.test.fixtures.ResettableExpectations;
+import org.hamcrest.Matcher;
+import org.junit.rules.ExternalResource;
 
 /**
  * An HTTP server that allows a test to synchronize and make assertions about concurrent activities that happen in another process.
@@ -142,7 +141,8 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         writer.println("String " + urlVar + " = " + uriExpression + ";");
         writer.println("System.out.println(\"[G] calling \" + " + urlVar + ");");
         writer.println("try {");
-        writer.println("  java.net.URLConnection " + connectionVar + " = new java.net.URL(" + urlVar + ").openConnection();");
+        writer.println(
+                "  java.net.URLConnection " + connectionVar + " = new java.net.URL(" + urlVar + ").openConnection();");
         writer.println("  " + connectionVar + ".setReadTimeout(0);"); // to avoid silent retry
         writer.println("  " + connectionVar + ".connect();");
         writer.println("  java.io.InputStream " + streamVar + " = " + connectionVar + ".getInputStream();");
@@ -160,7 +160,8 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
     }
 
     public String callFromTaskAction(String resource) {
-        return "getServices().get(" + WorkerLeaseService.class.getCanonicalName() + ".class).blocking(new Runnable() { void run() { " + callFromBuild(resource) + " } });";
+        return "getServices().get(" + WorkerLeaseService.class.getCanonicalName()
+                + ".class).blocking(new Runnable() { void run() { " + callFromBuild(resource) + " } });";
     }
 
     /**
@@ -209,7 +210,8 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
     }
 
     private void addNonBlockingHandler(final Collection<? extends ResourceExpectation> expectations) {
-        handler.addHandler(previous -> new ExpectAllRequestsThenReleaseAll(lock, serverId, timeout, previous, expectations, EXECUTOR_SERVICE));
+        handler.addHandler(previous ->
+                new ExpectAllRequestsThenReleaseAll(lock, serverId, timeout, previous, expectations, EXECUTOR_SERVICE));
     }
 
     /**
@@ -220,7 +222,8 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         for (String request : expectedRequests) {
             expectations.add(doGet(request));
         }
-        return new DefaultExpectedRequests(previous -> new ExpectAllRequestsThenReleaseAll(lock, serverId, timeout, previous, expectations, EXECUTOR_SERVICE));
+        return new DefaultExpectedRequests(previous ->
+                new ExpectAllRequestsThenReleaseAll(lock, serverId, timeout, previous, expectations, EXECUTOR_SERVICE));
     }
 
     /**
@@ -243,7 +246,8 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         for (String request : expectedRequests) {
             expectations.add(doGet(request));
         }
-        handler.addHandler(previous -> new ExpectMaxNRequestsThenReleaseOne(lock, serverId, timeout, concurrent, previous, expectations, EXECUTOR_SERVICE));
+        handler.addHandler(previous -> new ExpectMaxNRequestsThenReleaseOne(
+                lock, serverId, timeout, concurrent, previous, expectations, EXECUTOR_SERVICE));
     }
 
     /**
@@ -342,12 +346,16 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         return addBlockingHandler(concurrent, expectations);
     }
 
-    private BlockingHandler addBlockingHandler(final int concurrent, final Collection<? extends ResourceExpectation> expectations) {
-        return handler.addHandler(previous -> new ExpectMaxNConcurrentRequests(lock, serverId, timeout, concurrent, previous, expectations));
+    private BlockingHandler addBlockingHandler(
+            final int concurrent, final Collection<? extends ResourceExpectation> expectations) {
+        return handler.addHandler(previous ->
+                new ExpectMaxNConcurrentRequests(lock, serverId, timeout, concurrent, previous, expectations));
     }
 
-    private BlockingHandler addBlockingOptionalHandler(final int concurrent, final Collection<? extends ResourceExpectation> expectations) {
-        return handler.addHandler(previous -> new MaybeNConcurrentRequests(lock, serverId, timeout, concurrent, previous, expectations));
+    private BlockingHandler addBlockingOptionalHandler(
+            final int concurrent, final Collection<? extends ResourceExpectation> expectations) {
+        return handler.addHandler(
+                previous -> new MaybeNConcurrentRequests(lock, serverId, timeout, concurrent, previous, expectations));
     }
 
     /**
@@ -437,14 +445,12 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         return path;
     }
 
-    public interface ExpectedRequests {
-    }
+    public interface ExpectedRequests {}
 
     /**
      * Represents an expectation about a particular HTTP request.
      */
-    public interface ExpectedRequest {
-    }
+    public interface ExpectedRequest {}
 
     /**
      * A mutable expectation about a particular HTTP request.

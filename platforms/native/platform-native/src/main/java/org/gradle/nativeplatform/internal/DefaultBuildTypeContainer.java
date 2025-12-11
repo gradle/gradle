@@ -22,9 +22,11 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.BuildTypeContainer;
 
-public class DefaultBuildTypeContainer extends AbstractNamedDomainObjectContainer<BuildType> implements BuildTypeContainer {
+public class DefaultBuildTypeContainer extends AbstractNamedDomainObjectContainer<BuildType>
+        implements BuildTypeContainer {
 
-    public DefaultBuildTypeContainer(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultBuildTypeContainer(
+            Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(BuildType.class, instantiator, collectionCallbackActionDecorator);
     }
 

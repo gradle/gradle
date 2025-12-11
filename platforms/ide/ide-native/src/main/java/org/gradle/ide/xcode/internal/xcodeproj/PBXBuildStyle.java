@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package org.gradle.ide.xcode.internal.xcodeproj;
 
 import com.dd.plist.NSDictionary;

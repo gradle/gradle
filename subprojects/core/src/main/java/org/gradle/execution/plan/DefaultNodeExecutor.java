@@ -41,16 +41,16 @@ public class DefaultNodeExecutor implements NodeExecutor {
     private static void executeLocalTaskNode(Node node, NodeExecutionContext context, LocalTaskNode localTaskNode) {
         TaskInternal task = localTaskNode.getTask();
         TaskStateInternal state = task.getState();
-        MissingTaskDependencyDetector missingTaskDependencyDetector = context.getService(MissingTaskDependencyDetector.class);
+        MissingTaskDependencyDetector missingTaskDependencyDetector =
+                context.getService(MissingTaskDependencyDetector.class);
         TaskExecutionContext ctx = new DefaultTaskExecutionContext(
-            localTaskNode,
-            localTaskNode.getTaskProperties(),
-            localTaskNode.getValidationContext(),
-            typeValidationContext ->
-                node.getMutationInfo().getOutputPaths().forEach(outputPath ->
-                    missingTaskDependencyDetector.visitOutputLocation(localTaskNode, typeValidationContext, outputPath)
-                )
-        );
+                localTaskNode,
+                localTaskNode.getTaskProperties(),
+                localTaskNode.getValidationContext(),
+                typeValidationContext -> node.getMutationInfo()
+                        .getOutputPaths()
+                        .forEach(outputPath -> missingTaskDependencyDetector.visitOutputLocation(
+                                localTaskNode, typeValidationContext, outputPath)));
         TaskExecuter taskExecuter = context.getService(TaskExecuter.class);
         taskExecuter.execute(task, state, ctx);
     }

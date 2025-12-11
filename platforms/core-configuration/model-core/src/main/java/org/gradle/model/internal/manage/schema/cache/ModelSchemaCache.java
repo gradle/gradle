@@ -16,14 +16,13 @@
 
 package org.gradle.model.internal.manage.schema.cache;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
  * A multi, volatile, classloader safe cache for model schemas.
@@ -72,7 +71,8 @@ public class ModelSchemaCache {
     }
 
     public void cleanUp() {
-        Iterator<Map.Entry<WeakClassSet, Map<ModelType<?>, ModelSchema<?>>>> iterator = cache.entrySet().iterator();
+        Iterator<Map.Entry<WeakClassSet, Map<ModelType<?>, ModelSchema<?>>>> iterator =
+                cache.entrySet().iterator();
         while (iterator.hasNext()) {
             if (iterator.next().getKey().isCollected()) {
                 iterator.remove();

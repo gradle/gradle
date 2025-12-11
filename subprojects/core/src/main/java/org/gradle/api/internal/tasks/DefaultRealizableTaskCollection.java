@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
@@ -31,18 +32,19 @@ import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-public class DefaultRealizableTaskCollection<T extends Task> extends DelegatingNamedDomainObjectSet<T> implements TaskCollection<T>, TaskDependencyContainer {
+public class DefaultRealizableTaskCollection<T extends Task> extends DelegatingNamedDomainObjectSet<T>
+        implements TaskCollection<T>, TaskDependencyContainer {
 
     private final Class<T> type;
     private final AtomicBoolean realized = new AtomicBoolean();
     private final MutableModelNode modelNode;
     private final Instantiator instantiator;
 
-    public DefaultRealizableTaskCollection(Class<T> type, TaskCollection<T> delegate, MutableModelNode modelNode, Instantiator instantiator) {
+    public DefaultRealizableTaskCollection(
+            Class<T> type, TaskCollection<T> delegate, MutableModelNode modelNode, Instantiator instantiator) {
         super(delegate);
-        assert !(delegate instanceof DefaultRealizableTaskCollection) : "Attempt to wrap already realizable task collection in realizable wrapper: " + delegate;
+        assert !(delegate instanceof DefaultRealizableTaskCollection)
+                : "Attempt to wrap already realizable task collection in realizable wrapper: " + delegate;
 
         this.type = type;
         this.modelNode = modelNode;
@@ -70,7 +72,8 @@ public class DefaultRealizableTaskCollection<T extends Task> extends DelegatingN
     }
 
     private <S extends T> TaskCollection<S> realizable(Class<S> type, TaskCollection<S> collection) {
-        return Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, type, collection, modelNode, instantiator));
+        return Cast.uncheckedCast(instantiator.newInstance(
+                DefaultRealizableTaskCollection.class, type, collection, modelNode, instantiator));
     }
 
     @Override
@@ -119,7 +122,8 @@ public class DefaultRealizableTaskCollection<T extends Task> extends DelegatingN
     }
 
     @Override
-    public <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownTaskException {
+    public <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction)
+            throws UnknownTaskException {
         return getDelegate().named(name, type, configurationAction);
     }
 }

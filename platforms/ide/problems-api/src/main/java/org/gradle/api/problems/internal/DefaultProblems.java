@@ -35,21 +35,26 @@ public class DefaultProblems implements InternalProblems {
     private final ProblemsInfrastructure infrastructure;
 
     public DefaultProblems(
-        ProblemSummarizer problemSummarizer,
-        ProblemStream problemStream,
-        CurrentBuildOperationRef currentBuildOperationRef,
-        ExceptionProblemRegistry exceptionProblemRegistry,
-        ExceptionAnalyser exceptionAnalyser,
-        Instantiator instantiator,
-        PayloadSerializer payloadSerializer,
-        IsolatableFactory isolatableFactory,
-        IsolatableToBytesSerializer isolatableSerializer
-    ) {
+            ProblemSummarizer problemSummarizer,
+            ProblemStream problemStream,
+            CurrentBuildOperationRef currentBuildOperationRef,
+            ExceptionProblemRegistry exceptionProblemRegistry,
+            ExceptionAnalyser exceptionAnalyser,
+            Instantiator instantiator,
+            PayloadSerializer payloadSerializer,
+            IsolatableFactory isolatableFactory,
+            IsolatableToBytesSerializer isolatableSerializer) {
         this.problemSummarizer = problemSummarizer;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.exceptionProblemRegistry = exceptionProblemRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
-        this.infrastructure = new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), instantiator, payloadSerializer, isolatableFactory, isolatableSerializer, problemStream);
+        this.infrastructure = new ProblemsInfrastructure(
+                new AdditionalDataBuilderFactory(),
+                instantiator,
+                payloadSerializer,
+                isolatableFactory,
+                isolatableSerializer,
+                problemStream);
         this.internalReporter = createReporter();
     }
 
@@ -57,14 +62,15 @@ public class DefaultProblems implements InternalProblems {
     public ProblemReporter getReporter() {
         return createReporter();
     }
+
     @NonNull
     private DefaultProblemReporter createReporter() {
         return new DefaultProblemReporter(
-            problemSummarizer,
-            currentBuildOperationRef,
-            exceptionProblemRegistry,
-            exceptionAnalyser,
-            infrastructure);
+                problemSummarizer,
+                currentBuildOperationRef,
+                exceptionProblemRegistry,
+                exceptionAnalyser,
+                infrastructure);
     }
 
     @Override
@@ -76,6 +82,7 @@ public class DefaultProblems implements InternalProblems {
     public ProblemsInfrastructure getInfrastructure() {
         return infrastructure;
     }
+
     @Override
     public InternalProblemBuilder getProblemBuilder() {
         return new DefaultProblemBuilder(infrastructure);

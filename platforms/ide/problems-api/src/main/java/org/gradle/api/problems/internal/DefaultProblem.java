@@ -16,17 +16,16 @@
 
 package org.gradle.api.problems.internal;
 
+import static com.google.common.base.Objects.equal;
+
 import com.google.common.base.Objects;
+import java.io.Serializable;
+import java.util.List;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemLocation;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.List;
-
-import static com.google.common.base.Objects.equal;
 
 @NullMarked
 public class DefaultProblem implements Serializable, InternalProblem {
@@ -40,15 +39,14 @@ public class DefaultProblem implements Serializable, InternalProblem {
     private final AdditionalData additionalData;
 
     public DefaultProblem(
-        ProblemDefinition problemDefinition,
-        @Nullable String contextualLabel,
-        List<String> solutions,
-        List<ProblemLocation> originLocations,
-        List<ProblemLocation> contextualLocations,
-        @Nullable String details,
-        @Nullable Throwable exception,
-        @Nullable AdditionalData additionalData
-    ) {
+            ProblemDefinition problemDefinition,
+            @Nullable String contextualLabel,
+            List<String> solutions,
+            List<ProblemLocation> originLocations,
+            List<ProblemLocation> contextualLocations,
+            @Nullable String details,
+            @Nullable Throwable exception,
+            @Nullable AdditionalData additionalData) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
         this.solutions = solutions;
@@ -117,31 +115,31 @@ public class DefaultProblem implements Serializable, InternalProblem {
             return false;
         }
         DefaultProblem that = (DefaultProblem) o;
-        return equal(problemDefinition, that.problemDefinition) &&
-            equal(contextualLabel, that.contextualLabel) &&
-            equal(solutions, that.solutions) &&
-            equal(originLocations, that.originLocations) &&
-            equal(details, that.details) &&
-            equal(exception, that.exception) &&
-            equal(additionalData, that.additionalData);
+        return equal(problemDefinition, that.problemDefinition)
+                && equal(contextualLabel, that.contextualLabel)
+                && equal(solutions, that.solutions)
+                && equal(originLocations, that.originLocations)
+                && equal(details, that.details)
+                && equal(exception, that.exception)
+                && equal(additionalData, that.additionalData);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(problemDefinition, contextualLabel, solutions, originLocations, details, exception, additionalData);
+        return Objects.hashCode(
+                problemDefinition, contextualLabel, solutions, originLocations, details, exception, additionalData);
     }
 
     @Override
     public String toString() {
-        return "DefaultProblem{" +
-            "problemDefinition=" + problemDefinition +
-            ", contextualLabel='" + contextualLabel + '\'' +
-            ", solutions=" + solutions +
-            ", originLocations=" + originLocations +
-            ", contextualLocations=" + contextualLocations +
-            ", details='" + details + '\'' +
-            ", exception=" + (exception != null ? exception.toString() : "null") +
-            ", additionalData=" + additionalData +
-            '}';
+        return "DefaultProblem{" + "problemDefinition="
+                + problemDefinition + ", contextualLabel='"
+                + contextualLabel + '\'' + ", solutions="
+                + solutions + ", originLocations="
+                + originLocations + ", contextualLocations="
+                + contextualLocations + ", details='"
+                + details + '\'' + ", exception="
+                + (exception != null ? exception.toString() : "null") + ", additionalData="
+                + additionalData + '}';
     }
 }

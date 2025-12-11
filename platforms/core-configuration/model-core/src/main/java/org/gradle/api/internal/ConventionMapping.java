@@ -16,9 +16,8 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import org.jspecify.annotations.Nullable;
-
 import java.util.concurrent.Callable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * <p>A {@code ConventionMapping} maintains the convention mappings for the properties of a particular object.</p>

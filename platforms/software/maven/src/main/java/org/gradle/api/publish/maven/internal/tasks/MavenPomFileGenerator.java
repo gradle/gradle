@@ -18,6 +18,15 @@ package org.gradle.api.publish.maven.internal.tasks;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Streams;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.maven.model.CiManagement;
 import org.apache.maven.model.Contributor;
 import org.apache.maven.model.Dependency;
@@ -57,16 +66,6 @@ import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinat
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.internal.GUtil;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public final class MavenPomFileGenerator {
 
@@ -256,8 +255,8 @@ public final class MavenPomFileGenerator {
         }
 
         List<Dependency> converted = dependencies.getDependencyManagement().stream()
-            .map(MavenPomFileGenerator::convertDependencyManagementDependency)
-            .collect(Collectors.toList());
+                .map(MavenPomFileGenerator::convertDependencyManagementDependency)
+                .collect(Collectors.toList());
 
         DependencyManagement dm = new DependencyManagement();
         dm.setDependencies(converted);
@@ -266,8 +265,8 @@ public final class MavenPomFileGenerator {
 
     private static List<Dependency> convertDependencies(MavenPomDependencies dependencies) {
         return dependencies.getDependencies().stream()
-            .map(MavenPomFileGenerator::convertDependency)
-            .collect(Collectors.toList());
+                .map(MavenPomFileGenerator::convertDependency)
+                .collect(Collectors.toList());
     }
 
     private static Dependency convertDependency(MavenDependency dependency) {
@@ -306,14 +305,12 @@ public final class MavenPomFileGenerator {
     }
 
     private static void insertGradleMetadataMarker(XmlProvider xmlProvider) {
-        String comment = Joiner.on("").join(
-            Streams.concat(
-                    MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES.stream(),
-                    Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER)
-                )
-                .map(content -> "<!-- " + content + " -->\n  ")
-                .iterator()
-        );
+        String comment = Joiner.on("")
+                .join(Streams.concat(
+                                MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES.stream(),
+                                Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER))
+                        .map(content -> "<!-- " + content + " -->\n  ")
+                        .iterator());
 
         StringBuilder builder = xmlProvider.asString();
         int idx = builder.indexOf("<modelVersion");

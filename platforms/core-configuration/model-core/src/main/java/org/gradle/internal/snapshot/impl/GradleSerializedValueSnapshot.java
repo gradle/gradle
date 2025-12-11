@@ -17,13 +17,12 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.base.Objects;
+import java.util.Arrays;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Arrays;
 
 /**
  * An immutable snapshot of the state of some value.
@@ -33,10 +32,7 @@ public class GradleSerializedValueSnapshot implements ValueSnapshot {
     private final HashCode implementationHash;
     private final byte[] serializedValue;
 
-    public GradleSerializedValueSnapshot(
-        @Nullable HashCode implementationHash,
-        byte[] serializedValue
-    ) {
+    public GradleSerializedValueSnapshot(@Nullable HashCode implementationHash, byte[] serializedValue) {
         this.implementationHash = implementationHash;
         this.serializedValue = serializedValue;
     }
@@ -93,7 +89,8 @@ public class GradleSerializedValueSnapshot implements ValueSnapshot {
             return false;
         }
         GradleSerializedValueSnapshot other = (GradleSerializedValueSnapshot) obj;
-        return Objects.equal(implementationHash, other.implementationHash) && Arrays.equals(serializedValue, other.serializedValue);
+        return Objects.equal(implementationHash, other.implementationHash)
+                && Arrays.equals(serializedValue, other.serializedValue);
     }
 
     @Override

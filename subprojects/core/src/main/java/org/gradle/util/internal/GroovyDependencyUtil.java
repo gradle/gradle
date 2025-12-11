@@ -30,9 +30,7 @@ public class GroovyDependencyUtil {
      * Returns Groovy artifact group name based on the Groovy version.
      */
     public static String groovyGroupName(VersionNumber version) {
-        return version.getMajor() >= 4
-            ? "org.apache.groovy"
-            : "org.codehaus.groovy";
+        return version.getMajor() >= 4 ? "org.apache.groovy" : "org.codehaus.groovy";
     }
 
     /**

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import java.io.File;
+import java.util.List;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -56,9 +58,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.List;
-
 @ServiceScope(Scope.BuildTree.class)
 public class StartParameterResolutionOverride {
     private final StartParameter startParameter;
@@ -69,7 +68,8 @@ public class StartParameterResolutionOverride {
         this.gradleDir = gradleDir;
     }
 
-    public ModuleComponentRepository<ModuleComponentResolveMetadata> overrideModuleVersionRepository(ModuleComponentRepository<ModuleComponentResolveMetadata> original) {
+    public ModuleComponentRepository<ModuleComponentResolveMetadata> overrideModuleVersionRepository(
+            ModuleComponentRepository<ModuleComponentResolveMetadata> original) {
         if (startParameter.isOffline()) {
             return new OfflineModuleComponentRepository(original);
         }
@@ -77,31 +77,46 @@ public class StartParameterResolutionOverride {
     }
 
     public DependencyVerificationOverride dependencyVerificationOverride(
-        BuildOperationExecutor buildOperationExecutor,
-        ChecksumService checksumService,
-        SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-        DocumentationRegistry documentationRegistry,
-        BuildCommencedTimeProvider timeProvider,
-        Factory<GradleProperties> gradlePropertiesFactory,
-        FileResourceListener fileResourceListener
-    ) {
+            BuildOperationExecutor buildOperationExecutor,
+            ChecksumService checksumService,
+            SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+            DocumentationRegistry documentationRegistry,
+            BuildCommencedTimeProvider timeProvider,
+            Factory<GradleProperties> gradlePropertiesFactory,
+            FileResourceListener fileResourceListener) {
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
         fileResourceListener.fileObserved(verificationsFile);
 
         if (!checksums.isEmpty() || startParameter.isExportKeys()) {
-            return new WriteDependencyVerificationFile(verificationsFile, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys());
+            return new WriteDependencyVerificationFile(
+                    verificationsFile,
+                    buildOperationExecutor,
+                    checksums,
+                    checksumService,
+                    signatureVerificationServiceFactory,
+                    startParameter.isDryRun(),
+                    startParameter.isExportKeys());
         }
 
-        if (!verificationsFile.exists() ||
-            startParameter.getDependencyVerificationMode() == DependencyVerificationMode.OFF
-        ) {
+        if (!verificationsFile.exists()
+                || startParameter.getDependencyVerificationMode() == DependencyVerificationMode.OFF) {
             return DependencyVerificationOverride.NO_VERIFICATION;
         }
 
         try {
             File sessionReportDir = computeReportDirectory(timeProvider);
-            return new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry, sessionReportDir, gradlePropertiesFactory, fileResourceListener);
+            return new ChecksumAndSignatureVerificationOverride(
+                    buildOperationExecutor,
+                    startParameter.getGradleUserHomeDir(),
+                    verificationsFile,
+                    checksumService,
+                    signatureVerificationServiceFactory,
+                    startParameter.getDependencyVerificationMode(),
+                    documentationRegistry,
+                    sessionReportDir,
+                    gradlePropertiesFactory,
+                    fileResourceListener);
         } catch (Exception e) {
             return new FailureVerificationOverride(e);
         }
@@ -117,7 +132,8 @@ public class StartParameterResolutionOverride {
         return new File(verifyReportsDirectory, "at-" + timeProvider.getCurrentTime());
     }
 
-    private static class OfflineModuleComponentRepository extends BaseModuleComponentRepository<ModuleComponentResolveMetadata> {
+    private static class OfflineModuleComponentRepository
+            extends BaseModuleComponentRepository<ModuleComponentResolveMetadata> {
 
         private final FailedRemoteAccess failedRemoteAccess = new FailedRemoteAccess();
 
@@ -138,23 +154,43 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
-            result.failed(new ModuleVersionResolveException(selector, () -> String.format("No cached version listing for %s available for offline mode.", selector)));
+        public void listModuleVersions(
+                ModuleComponentSelector selector,
+                ComponentOverrideMetadata overrideMetadata,
+                BuildableModuleVersionListingResolveResult result) {
+            result.failed(new ModuleVersionResolveException(
+                    selector,
+                    () -> String.format("No cached version listing for %s available for offline mode.", selector)));
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
-            result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, () -> String.format("No cached version of %s available for offline mode.", moduleComponentIdentifier.getDisplayName())));
+        public void resolveComponentMetaData(
+                ModuleComponentIdentifier moduleComponentIdentifier,
+                ComponentOverrideMetadata requestMetaData,
+                BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
+            result.failed(new ModuleVersionResolveException(
+                    moduleComponentIdentifier,
+                    () -> String.format(
+                            "No cached version of %s available for offline mode.",
+                            moduleComponentIdentifier.getDisplayName())));
         }
 
         @Override
-        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-            result.failed(new ArtifactResolveException(component.getId(), "No cached version available for offline mode"));
+        public void resolveArtifactsWithType(
+                ComponentArtifactResolveMetadata component,
+                ArtifactType artifactType,
+                BuildableArtifactSetResolveResult result) {
+            result.failed(
+                    new ArtifactResolveException(component.getId(), "No cached version available for offline mode"));
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
-            result.failed(new ArtifactResolveException(artifact.getId(), "No cached version available for offline mode"));
+        public void resolveArtifact(
+                ComponentArtifactMetadata artifact,
+                ModuleSources moduleSources,
+                BuildableArtifactFileResolveResult result) {
+            result.failed(
+                    new ArtifactResolveException(artifact.getId(), "No cached version available for offline mode"));
         }
 
         @Override
@@ -180,13 +216,16 @@ public class StartParameterResolutionOverride {
     private static class OfflineExternalResourceConnector implements ExternalResourceConnector {
         @Nullable
         @Override
-        public <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
+        public <T> T withContent(
+                ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action)
+                throws ResourceException {
             throw offlineResource(location);
         }
 
         @Nullable
         @Override
-        public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) throws ResourceException {
+        public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate)
+                throws ResourceException {
             throw offlineResource(location);
         }
 
@@ -198,11 +237,15 @@ public class StartParameterResolutionOverride {
 
         @Override
         public void upload(ReadableContent resource, ExternalResourceName destination) {
-            throw new ResourceException(destination.getUri(), String.format("Cannot upload to '%s' in offline mode.", destination.getUri()));
+            throw new ResourceException(
+                    destination.getUri(),
+                    String.format("Cannot upload to '%s' in offline mode.", destination.getUri()));
         }
 
         private ResourceException offlineResource(ExternalResourceName source) {
-            return new ResourceException(source.getUri(), String.format("No cached resource '%s' available for offline mode.", source.getUri()));
+            return new ResourceException(
+                    source.getUri(),
+                    String.format("No cached resource '%s' available for offline mode.", source.getUri()));
         }
     }
 
@@ -214,7 +257,8 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original) {
+        public ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(
+                ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original) {
             throw new DependencyVerificationException("Dependency verification cannot be performed", error);
         }
     }

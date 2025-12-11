@@ -30,5 +30,4 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface BuildScanBuildStartedTime {
 
     long getBuildStartedTime();
-
 }

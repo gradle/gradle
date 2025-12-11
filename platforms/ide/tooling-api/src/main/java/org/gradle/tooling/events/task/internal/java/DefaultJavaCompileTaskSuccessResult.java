@@ -16,18 +16,24 @@
 
 package org.gradle.tooling.events.task.internal.java;
 
+import java.util.List;
 import org.gradle.tooling.events.task.internal.DefaultTaskSuccessResult;
 import org.gradle.tooling.events.task.internal.TaskExecutionDetails;
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
-public class DefaultJavaCompileTaskSuccessResult extends DefaultTaskSuccessResult implements JavaCompileTaskOperationResult {
+public class DefaultJavaCompileTaskSuccessResult extends DefaultTaskSuccessResult
+        implements JavaCompileTaskOperationResult {
 
     private final List<AnnotationProcessorResult> annotationProcessorResults;
 
-    public DefaultJavaCompileTaskSuccessResult(long startTime, long endTime, boolean upToDate, boolean fromCache, TaskExecutionDetails taskExecutionDetails, List<AnnotationProcessorResult> annotationProcessorResults) {
+    public DefaultJavaCompileTaskSuccessResult(
+            long startTime,
+            long endTime,
+            boolean upToDate,
+            boolean fromCache,
+            TaskExecutionDetails taskExecutionDetails,
+            List<AnnotationProcessorResult> annotationProcessorResults) {
         super(startTime, endTime, upToDate, fromCache, taskExecutionDetails);
         this.annotationProcessorResults = annotationProcessorResults;
     }
@@ -37,5 +43,4 @@ public class DefaultJavaCompileTaskSuccessResult extends DefaultTaskSuccessResul
     public List<AnnotationProcessorResult> getAnnotationProcessorResults() {
         return annotationProcessorResults;
     }
-
 }

@@ -16,22 +16,20 @@
 
 package org.gradle.docs.asciidoctor;
 
-import org.apache.commons.io.IOUtils;
-
-import org.asciidoctor.ast.Document;
-import org.asciidoctor.extension.Postprocessor;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.apache.commons.io.IOUtils;
+import org.asciidoctor.ast.Document;
+import org.asciidoctor.extension.Postprocessor;
 
 /**
  * This processor adds the ability to copy code blocks to the clipboard
  */
 public class ClipboardPostprocessor extends Postprocessor {
 
-    public ClipboardPostprocessor(){ }
+    public ClipboardPostprocessor() {}
 
     @Override
     public String process(Document document, String output) {
@@ -62,31 +60,35 @@ public class ClipboardPostprocessor extends Postprocessor {
         }
     }
 
-    private static String addCss(String output, String resource){
+    private static String addCss(String output, String resource) {
         String css = readResource(resource);
         String replacement = new StringBuffer()
-            .append("<style>").append(css).append("</style>")
-            .append("</head>")
-            .toString();
-        return  output.replace("</head>", replacement);
+                .append("<style>")
+                .append(css)
+                .append("</style>")
+                .append("</head>")
+                .toString();
+        return output.replace("</head>", replacement);
     }
 
-    private static String addJs(String output, String resource){
+    private static String addJs(String output, String resource) {
         String javascript = readResource(resource);
         String replacement = new StringBuffer()
-            .append("<script type='text/javascript'>").append(javascript).append("</script>")
-            .append("</html>")
-            .toString();
+                .append("<script type='text/javascript'>")
+                .append(javascript)
+                .append("</script>")
+                .append("</html>")
+                .toString();
         return output.replace("</html>", replacement);
     }
 
-    private static String addExternalJs(String output, String url){
+    private static String addExternalJs(String output, String url) {
         String replacement = new StringBuffer()
-            .append("</body>")
-            .append("<script type='text/javascript' src='").append(url).append("'></script>")
-            .toString();
+                .append("</body>")
+                .append("<script type='text/javascript' src='")
+                .append(url)
+                .append("'></script>")
+                .toString();
         return output.replace("</body>", replacement);
     }
-
 }
-

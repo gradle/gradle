@@ -16,13 +16,12 @@
 
 package org.gradle.external.javadoc.internal;
 
-import org.gradle.internal.SystemProperties;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Iterator;
+import org.gradle.internal.SystemProperties;
 
 public class JavadocOptionFileWriterContext {
     private final Writer writer;
@@ -63,19 +62,25 @@ public class JavadocOptionFileWriterContext {
 
     public JavadocOptionFileWriterContext writeValue(String value) throws IOException {
         write("\'");
-        //First, we replace slashes because they have special meaning in the javadoc options file
-        //Then, we replace every linebreak with slash+linebreak. Slash is needed according to javadoc options file format
+        // First, we replace slashes because they have special meaning in the javadoc options file
+        // Then, we replace every linebreak with slash+linebreak. Slash is needed according to javadoc options file
+        // format
         write(value.replaceAll("\\\\", "\\\\\\\\")
-                //below does not help on windows environments. I was unable to get plain javadoc utility to work successfully with multiline options _in_ the options file.
-                //at least, it will work out of the box on linux or mac environments.
-                //on windows, the options file will have correct contents according to the javadoc spec but it may not work (the failure will be exactly the same as if we didn't replace line breaks)
-                .replaceAll(SystemProperties.getInstance().getLineSeparator(), "\\\\" + SystemProperties.getInstance().getLineSeparator())
+                // below does not help on windows environments. I was unable to get plain javadoc utility to work
+                // successfully with multiline options _in_ the options file.
+                // at least, it will work out of the box on linux or mac environments.
+                // on windows, the options file will have correct contents according to the javadoc spec but it may not
+                // work (the failure will be exactly the same as if we didn't replace line breaks)
+                .replaceAll(
+                        SystemProperties.getInstance().getLineSeparator(),
+                        "\\\\" + SystemProperties.getInstance().getLineSeparator())
                 .replace("\'", "\\'"));
         write("\'");
         return this;
     }
 
-    public JavadocOptionFileWriterContext writeValuesOption(String option, Collection<String> values, String joinValuesBy) throws IOException {
+    public JavadocOptionFileWriterContext writeValuesOption(
+            String option, Collection<String> values, String joinValuesBy) throws IOException {
         StringBuilder builder = new StringBuilder();
         Iterator<String> valuesIt = values.iterator();
         while (valuesIt.hasNext()) {
@@ -88,14 +93,16 @@ public class JavadocOptionFileWriterContext {
         return this;
     }
 
-    public JavadocOptionFileWriterContext writeMultilineValuesOption(String option, Collection<String> values) throws IOException {
+    public JavadocOptionFileWriterContext writeMultilineValuesOption(String option, Collection<String> values)
+            throws IOException {
         for (String value : values) {
             writeValueOption(option, value);
         }
         return this;
     }
 
-    public JavadocOptionFileWriterContext writePathOption(String option, Collection<File> files, String joinValuesBy) throws IOException {
+    public JavadocOptionFileWriterContext writePathOption(String option, Collection<File> files, String joinValuesBy)
+            throws IOException {
         StringBuilder builder = new StringBuilder();
         Iterator<File> filesIt = files.iterator();
         while (filesIt.hasNext()) {

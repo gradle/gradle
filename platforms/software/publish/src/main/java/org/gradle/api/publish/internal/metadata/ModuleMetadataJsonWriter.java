@@ -16,7 +16,13 @@
 
 package org.gradle.api.publish.internal.metadata;
 
+import static org.gradle.util.internal.GUtil.elvis;
+
 import com.google.gson.stream.JsonWriter;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
@@ -24,26 +30,20 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
-
-import static org.gradle.util.internal.GUtil.elvis;
-
 class ModuleMetadataJsonWriter extends JsonWriterScope {
 
     private final ModuleMetadataSpec metadata;
+
     @Nullable
     private final String buildId;
+
     private final ChecksumService checksumService;
 
     public ModuleMetadataJsonWriter(
-        JsonWriter jsonWriter,
-        ModuleMetadataSpec metadata,
-        @Nullable String buildId,
-        ChecksumService checksumService
-    ) {
+            JsonWriter jsonWriter,
+            ModuleMetadataSpec metadata,
+            @Nullable String buildId,
+            ChecksumService checksumService) {
         super(jsonWriter);
         this.metadata = metadata;
         this.buildId = buildId;
@@ -75,14 +75,14 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
     }
 
     private void writeCreator() throws IOException {
-        writeObject("createdBy", () ->
-            writeObject("gradle", () -> {
-                write("version", GradleVersion.current().getVersion());
-                if (buildId != null) {
-                    write("buildId", buildId);
-                }
-            })
-        );
+        writeObject(
+                "createdBy",
+                () -> writeObject("gradle", () -> {
+                    write("version", GradleVersion.current().getVersion());
+                    if (buildId != null) {
+                        write("buildId", buildId);
+                    }
+                }));
     }
 
     private void writeVariants() throws IOException {
@@ -244,21 +244,22 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
     }
 
     private void writeDependencyArtifact(ModuleMetadataSpec.ArtifactSelector artifactSelector) throws IOException {
-        writeObject("thirdPartyCompatibility", () ->
-            writeObject("artifactSelector", () -> {
-                write("name", artifactSelector.name);
-                write("type", artifactSelector.type);
-                if (artifactSelector.extension != null) {
-                    write("extension", artifactSelector.extension);
-                }
-                if (artifactSelector.classifier != null) {
-                    write("classifier", artifactSelector.classifier);
-                }
-            })
-        );
+        writeObject(
+                "thirdPartyCompatibility",
+                () -> writeObject("artifactSelector", () -> {
+                    write("name", artifactSelector.name);
+                    write("type", artifactSelector.type);
+                    if (artifactSelector.extension != null) {
+                        write("extension", artifactSelector.extension);
+                    }
+                    if (artifactSelector.classifier != null) {
+                        write("classifier", artifactSelector.classifier);
+                    }
+                }));
     }
 
-    private void writeDependencyConstraints(List<ModuleMetadataSpec.DependencyConstraint> constraints) throws IOException {
+    private void writeDependencyConstraints(List<ModuleMetadataSpec.DependencyConstraint> constraints)
+            throws IOException {
         if (constraints.isEmpty()) {
             return;
         }

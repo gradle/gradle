@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.management.internal;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.InternalBuildAdapter;
@@ -24,9 +26,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.plugin.management.PluginResolveDetails;
 import org.gradle.plugin.use.PluginId;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class DefaultPluginResolutionStrategy implements PluginResolutionStrategyInternal {
 
     private final MutableActionSet<PluginResolveDetails> resolutionRules = new MutableActionSet<PluginResolveDetails>();
@@ -34,7 +33,7 @@ public class DefaultPluginResolutionStrategy implements PluginResolutionStrategy
     private boolean locked;
 
     public DefaultPluginResolutionStrategy(ListenerManager listenerManager) {
-        listenerManager.addListener(new InternalBuildAdapter(){
+        listenerManager.addListener(new InternalBuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
                 locked = true;
@@ -45,7 +44,8 @@ public class DefaultPluginResolutionStrategy implements PluginResolutionStrategy
     @Override
     public void eachPlugin(Action<? super PluginResolveDetails> rule) {
         if (locked) {
-            throw new IllegalStateException("Cannot change the plugin resolution strategy after projects have been loaded.");
+            throw new IllegalStateException(
+                    "Cannot change the plugin resolution strategy after projects have been loaded.");
         }
         resolutionRules.add(rule);
     }

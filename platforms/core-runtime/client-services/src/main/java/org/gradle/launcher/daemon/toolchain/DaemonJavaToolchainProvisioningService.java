@@ -16,6 +16,10 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Locale;
 import org.gradle.cache.FileLock;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -31,11 +35,6 @@ import org.gradle.platform.internal.CurrentBuildPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Locale;
-
 public class DaemonJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
     private static final Object PROVISIONING_PROCESS_LOCK = new Object();
@@ -48,7 +47,13 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
     private final boolean isAutoDownloadEnabled;
     private final ProgressLoggerFactory progressLoggerFactory;
 
-    public DaemonJavaToolchainProvisioningService(SecureFileDownloader downloader, JdkCacheDirectory cacheDirProvider, CurrentBuildPlatform buildPlatform, ToolchainDownloadUrlProvider toolchainDownloadUrlProvider, Boolean isAutoDownloadEnabled, ProgressLoggerFactory progressLoggerFactory) {
+    public DaemonJavaToolchainProvisioningService(
+            SecureFileDownloader downloader,
+            JdkCacheDirectory cacheDirProvider,
+            CurrentBuildPlatform buildPlatform,
+            ToolchainDownloadUrlProvider toolchainDownloadUrlProvider,
+            Boolean isAutoDownloadEnabled,
+            ProgressLoggerFactory progressLoggerFactory) {
         this.downloader = downloader;
         this.cacheDirProvider = (DefaultJdkCacheDirectory) cacheDirProvider;
         this.buildPlatform = buildPlatform;
@@ -65,14 +70,18 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
     @Override
     public File tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
-            throw new ToolchainProvisioningException(spec, "Toolchain auto-provisioning is not enabled.",
-                ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION);
+            throw new ToolchainProvisioningException(
+                    spec,
+                    "Toolchain auto-provisioning is not enabled.",
+                    ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION);
         }
 
         synchronized (PROVISIONING_PROCESS_LOCK) {
             URI uri = getBuildPlatformToolchainUrl(spec);
-            // TODO: Would there be a way to have this progress logger be the parent of the one used for download progress logging
-            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DaemonJavaToolchainProvisioningService.class);
+            // TODO: Would there be a way to have this progress logger be the parent of the one used for download
+            // progress logging
+            ProgressLogger progressLogger =
+                    progressLoggerFactory.newOperation(DaemonJavaToolchainProvisioningService.class);
             progressLogger.start("Installing toolchain", null);
             try {
                 File downloadFolder = cacheDirProvider.getDownloadLocation();
@@ -90,7 +99,11 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
                         installedToolchainFile = cacheDirProvider.provisionFromArchive(spec, archiveFile, uri);
                     } catch (Exception e) {
                         if (archiveAlreadyExists) { // re-download and retry in case the archive is corrupted
-                            LOGGER.info("Re-downloading toolchain from URI {} because unpacking the existing archive {} failed with an exception", uri, archiveFile.getName(), e);
+                            LOGGER.info(
+                                    "Re-downloading toolchain from URI {} because unpacking the existing archive {} failed with an exception",
+                                    uri,
+                                    archiveFile.getName(),
+                                    e);
                             downloader.download(uri, archiveFile, resource);
                             installedToolchainFile = cacheDirProvider.provisionFromArchive(spec, archiveFile, uri);
                         } else {
@@ -110,14 +123,22 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
     }
 
     private URI getBuildPlatformToolchainUrl(JavaToolchainSpec spec) {
-        String stringUri = toolchainDownloadUrlProvider.getToolchainDownloadUrlByPlatform().get(buildPlatform.toBuildPlatform());
+        String stringUri =
+                toolchainDownloadUrlProvider.getToolchainDownloadUrlByPlatform().get(buildPlatform.toBuildPlatform());
         try {
             return new URI(stringUri);
         } catch (NullPointerException e) {
-            String cause = String.format("No defined toolchain download url for %s on %s architecture.", buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
+            String cause = String.format(
+                    "No defined toolchain download url for %s on %s architecture.",
+                    buildPlatform.getOperatingSystem(),
+                    buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
             throw new ToolchainDownloadException(spec, stringUri, cause);
         } catch (URISyntaxException e) {
-            String cause =  String.format("Invalid toolchain download url %s for %s on %s architecture.", stringUri, buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
+            String cause = String.format(
+                    "Invalid toolchain download url %s for %s on %s architecture.",
+                    stringUri,
+                    buildPlatform.getOperatingSystem(),
+                    buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
             throw new ToolchainDownloadException(spec, stringUri, cause);
         }
     }

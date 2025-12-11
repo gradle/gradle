@@ -20,14 +20,16 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 
-public class DefaultLanguageTransformContainer extends DefaultDomainObjectSet<LanguageTransform<?, ?>> implements LanguageTransformContainer {
+public class DefaultLanguageTransformContainer extends DefaultDomainObjectSet<LanguageTransform<?, ?>>
+        implements LanguageTransformContainer {
     public DefaultLanguageTransformContainer(CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(getLanguageTransformType(), collectionCallbackActionDecorator);
     }
 
     private static Class<LanguageTransform<?, ?>> getLanguageTransformType() {
         @SuppressWarnings("unchecked")
-        Class<LanguageTransform<?, ?>> rawType = (Class<LanguageTransform<?, ?>>) new TypeToken<LanguageTransform<?, ?>>() {}.getRawType();
+        Class<LanguageTransform<?, ?>> rawType =
+                (Class<LanguageTransform<?, ?>>) new TypeToken<LanguageTransform<?, ?>>() {}.getRawType();
         return rawType;
     }
 }

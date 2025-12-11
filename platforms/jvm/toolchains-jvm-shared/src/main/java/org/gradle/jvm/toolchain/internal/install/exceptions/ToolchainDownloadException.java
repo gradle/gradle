@@ -16,18 +16,17 @@
 
 package org.gradle.jvm.toolchain.internal.install.exceptions;
 
+import static java.util.Collections.emptyList;
+
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-
-import static java.util.Collections.emptyList;
 
 @Contextual
 public class ToolchainDownloadException extends GradleException implements ResolutionProvider {
@@ -36,7 +35,9 @@ public class ToolchainDownloadException extends GradleException implements Resol
 
     public ToolchainDownloadException(JavaToolchainSpec spec, String url, @Nullable String cause) {
         super(getMessage(spec, url, cause));
-        this.resolutions = Arrays.asList(ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION, ToolchainProvisioningException.DOWNLOAD_REPOSITORIES_RESOLUTION);
+        this.resolutions = Arrays.asList(
+                ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION,
+                ToolchainProvisioningException.DOWNLOAD_REPOSITORIES_RESOLUTION);
     }
 
     public ToolchainDownloadException(JavaToolchainSpec spec, URI uri, Throwable cause) {
@@ -51,6 +52,7 @@ public class ToolchainDownloadException extends GradleException implements Resol
 
     @NonNull
     private static String getMessage(JavaToolchainSpec spec, String url, @Nullable String cause) {
-        return "Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ") from '" + url + "'" + (cause != null && !cause.isEmpty() ? ", due to: " + cause : ".");
+        return "Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ") from '" + url
+                + "'" + (cause != null && !cause.isEmpty() ? ", due to: " + cause : ".");
     }
 }

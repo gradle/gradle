@@ -17,13 +17,12 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Cast;
-
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
+import org.gradle.internal.Cast;
 
 public class Types {
     private static final Collection<Class<?>> OBJECT_TYPE = ImmutableList.<Class<?>>of(Object.class);
@@ -45,7 +44,8 @@ public class Types {
      * @param excludedTypes the types not to walk when encountered in the hierarchy.
      * @param visitor the visitor to call for each type in the hierarchy.
      */
-    public static <T> void walkTypeHierarchy(Class<T> clazz, Collection<Class<?>> excludedTypes, TypeVisitor<? extends T> visitor) {
+    public static <T> void walkTypeHierarchy(
+            Class<T> clazz, Collection<Class<?>> excludedTypes, TypeVisitor<? extends T> visitor) {
         Set<Class<?>> seenInterfaces = new HashSet<>();
         Queue<Class<? super T>> queue = new ArrayDeque<Class<? super T>>();
         queue.add(clazz);

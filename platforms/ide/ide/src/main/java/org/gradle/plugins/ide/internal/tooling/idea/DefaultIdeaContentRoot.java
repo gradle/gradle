@@ -75,7 +75,6 @@ public class DefaultIdeaContentRoot implements Serializable {
         return this;
     }
 
-
     public Set<File> getExcludeDirectories() {
         return excludeDirectories;
     }

@@ -16,12 +16,8 @@
 
 package org.gradle.util.internal;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.UncheckedException;
-import org.jspecify.annotations.Nullable;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,9 +44,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Various utility methods.
@@ -84,7 +83,8 @@ public class GUtil {
         return flatten(elements, addTo, flattenMapsAndArrays, flattenMapsAndArrays);
     }
 
-    public static <T extends Collection<?>> T flatten(Collection<?> elements, T addTo, boolean flattenMaps, boolean flattenArrays) {
+    public static <T extends Collection<?>> T flatten(
+            Collection<?> elements, T addTo, boolean flattenMaps, boolean flattenArrays) {
         Iterator<?> iter = elements.iterator();
         while (iter.hasNext()) {
             Object element = iter.next();
@@ -170,7 +170,8 @@ public class GUtil {
         return isTrue(object) ? object : defaultValueSupplier.create();
     }
 
-    public static <V, T extends Collection<? super V>> T addToCollection(T dest, boolean failOnNull, Iterable<? extends V> src) {
+    public static <V, T extends Collection<? super V>> T addToCollection(
+            T dest, boolean failOnNull, Iterable<? extends V> src) {
         for (V v : src) {
             if (failOnNull && v == null) {
                 throw new IllegalArgumentException("Illegal null value provided in this collection: " + src);
@@ -384,14 +385,16 @@ public class GUtil {
                 return match;
             }
 
-            throw new IllegalArgumentException(
-                String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
-                    literal, enumType.getName(), CollectionUtils.join(", ", CollectionUtils.collect(Arrays.asList(enumType.getEnumConstants()), Enum::name))
-                )
-            );
+            throw new IllegalArgumentException(String.format(
+                    "Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
+                    literal,
+                    enumType.getName(),
+                    CollectionUtils.join(
+                            ", ", CollectionUtils.collect(Arrays.asList(enumType.getEnumConstants()), Enum::name))));
         }
-        throw new IllegalArgumentException(String.format("Cannot convert value '%s' of type '%s' to enum type '%s'",
-            value, value.getClass().getName(), enumType.getName()));
+        throw new IllegalArgumentException(String.format(
+                "Cannot convert value '%s' of type '%s' to enum type '%s'",
+                value, value.getClass().getName(), enumType.getName()));
     }
 
     @Nullable
@@ -442,7 +445,14 @@ public class GUtil {
 
     public static URI toSecureUrl(URI scriptUri) {
         try {
-            return new URI("https", null, scriptUri.getHost(), scriptUri.getPort(), scriptUri.getPath(), scriptUri.getQuery(), scriptUri.getFragment());
+            return new URI(
+                    "https",
+                    null,
+                    scriptUri.getHost(),
+                    scriptUri.getPort(),
+                    scriptUri.getPath(),
+                    scriptUri.getQuery(),
+                    scriptUri.getFragment());
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("could not make url use https", e);
         }

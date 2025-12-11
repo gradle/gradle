@@ -27,7 +27,10 @@ public interface ComponentMetaDataResolver {
     /**
      * Resolves the resolution state for a component instance. Failures should be attached to the returned result.
      */
-    void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result);
+    void resolve(
+            ComponentIdentifier identifier,
+            ComponentOverrideMetadata componentOverrideMetadata,
+            BuildableComponentResolveResult result);
 
     boolean isFetchingMetadataCheap(ComponentIdentifier identifier);
 }

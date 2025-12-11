@@ -16,6 +16,8 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
@@ -26,18 +28,12 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.jspecify.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
 public abstract class AbstractFingerprintingStrategy implements FingerprintingStrategy {
     private final String identifier;
     private final CurrentFileCollectionFingerprint emptyFingerprint;
     private final HashCode configurationHash;
 
-    public AbstractFingerprintingStrategy(
-        String identifier,
-        ConfigurableNormalizer configurableNormalizer
-    ) {
+    public AbstractFingerprintingStrategy(String identifier, ConfigurableNormalizer configurableNormalizer) {
         this.identifier = identifier;
         this.emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(identifier);
         Hasher hasher = Hashing.newHasher();
@@ -57,7 +53,8 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
     }
 
     @Nullable
-    protected HashCode getNormalizedContentHash(FileSystemLocationSnapshot snapshot, FileSystemLocationSnapshotHasher normalizedContentHasher) {
+    protected HashCode getNormalizedContentHash(
+            FileSystemLocationSnapshot snapshot, FileSystemLocationSnapshotHasher normalizedContentHasher) {
         try {
             return normalizedContentHasher.hash(snapshot);
         } catch (IOException e) {

@@ -16,11 +16,10 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.api.Transformer;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.gradle.api.Transformer;
 
 public class MacroArgsConverter implements Transformer<List<String>, Map<String, String>> {
     @Override

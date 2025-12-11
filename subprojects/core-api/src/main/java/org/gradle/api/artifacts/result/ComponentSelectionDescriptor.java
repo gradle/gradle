@@ -41,5 +41,4 @@ public interface ComponentSelectionDescriptor {
      * @return the description of this component selection
      */
     String getDescription();
-
 }

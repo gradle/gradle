@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
-
+import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;
-import java.util.Set;
-
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 
 /**
  * An aggregating processor can have zero to many originating elements for each generated file.
@@ -40,7 +38,8 @@ public final class AggregatingProcessor extends DelegatingProcessor {
     @Override
     public final void init(ProcessingEnvironment processingEnv) {
         IncrementalFiler incrementalFiler = new IncrementalFiler(processingEnv.getFiler(), strategy);
-        IncrementalProcessingEnvironment incrementalProcessingEnvironment = new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
+        IncrementalProcessingEnvironment incrementalProcessingEnvironment =
+                new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
         super.init(incrementalProcessingEnvironment);
     }
 
@@ -50,6 +49,4 @@ public final class AggregatingProcessor extends DelegatingProcessor {
         strategy.recordProcessingInputs(getSupportedAnnotationTypes(), annotations, roundEnv);
         return super.process(annotations, roundEnv);
     }
-
-
 }

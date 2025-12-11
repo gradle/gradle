@@ -15,16 +15,15 @@
  */
 package org.gradle.launcher.exec;
 
+import java.io.File;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.internal.GUtil;
-
-import java.io.File;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DefaultBuildActionParameters implements BuildActionParameters, Serializable {
     private final File currentDir;
@@ -35,7 +34,13 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     private final boolean useDaemon;
     private final ClassPath injectedPluginClasspath;
 
-    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, boolean useDaemon, ClassPath injectedPluginClasspath) {
+    public DefaultBuildActionParameters(
+            Map<?, ?> systemProperties,
+            Map<String, String> envVariables,
+            File currentDir,
+            LogLevel logLevel,
+            boolean useDaemon,
+            ClassPath injectedPluginClasspath) {
         this.currentDir = currentDir;
         this.logLevel = logLevel;
         this.useDaemon = useDaemon;
@@ -45,7 +50,8 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
 
-        this.envVariables = new HashMap<String, String>(Cast.uncheckedCast(Jvm.getInheritableEnvironmentVariables(envVariables)));
+        this.envVariables =
+                new HashMap<String, String>(Cast.uncheckedCast(Jvm.getInheritableEnvironmentVariables(envVariables)));
         this.injectedPluginClasspath = injectedPluginClasspath;
     }
 
@@ -72,13 +78,13 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     @Override
     public String toString() {
         return "DefaultBuildActionParameters{"
-            + ", currentDir=" + currentDir
-            + ", systemProperties size=" + systemProperties.size()
-            + ", envVariables size=" + envVariables.size()
-            + ", logLevel=" + logLevel
-            + ", useDaemon=" + useDaemon
-            + ", injectedPluginClasspath=" + injectedPluginClasspath
-            + '}';
+                + ", currentDir=" + currentDir
+                + ", systemProperties size=" + systemProperties.size()
+                + ", envVariables size=" + envVariables.size()
+                + ", logLevel=" + logLevel
+                + ", useDaemon=" + useDaemon
+                + ", injectedPluginClasspath=" + injectedPluginClasspath
+                + '}';
     }
 
     @Override

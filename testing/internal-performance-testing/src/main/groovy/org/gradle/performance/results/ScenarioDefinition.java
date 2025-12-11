@@ -16,9 +16,8 @@
 
 package org.gradle.performance.results;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 public interface ScenarioDefinition {
     /**

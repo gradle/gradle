@@ -17,6 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -26,20 +27,21 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.util.Map;
-
 /**
  * Fingerprint files normalizing the path to the file name.
  *
  * File names for root directories are ignored.
  */
 public class NameOnlyFingerprintingStrategy extends AbstractDirectorySensitiveFingerprintingStrategy {
-    public static final NameOnlyFingerprintingStrategy DEFAULT = new NameOnlyFingerprintingStrategy(DirectorySensitivity.DEFAULT);
-    public static final NameOnlyFingerprintingStrategy IGNORE_DIRECTORIES = new NameOnlyFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
+    public static final NameOnlyFingerprintingStrategy DEFAULT =
+            new NameOnlyFingerprintingStrategy(DirectorySensitivity.DEFAULT);
+    public static final NameOnlyFingerprintingStrategy IGNORE_DIRECTORIES =
+            new NameOnlyFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
     public static final String IDENTIFIER = "NAME_ONLY";
     private final FileSystemLocationSnapshotHasher normalizedContentHasher;
 
-    public NameOnlyFingerprintingStrategy(DirectorySensitivity directorySensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
+    public NameOnlyFingerprintingStrategy(
+            DirectorySensitivity directorySensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
         super(IDENTIFIER, directorySensitivity, normalizedContentHasher);
         this.normalizedContentHasher = normalizedContentHasher;
     }
@@ -61,7 +63,10 @@ public class NameOnlyFingerprintingStrategy extends AbstractDirectorySensitiveFi
                     } else {
                         HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
                         if (normalizedContentHash != null) {
-                            builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot.getType(), normalizedContentHash));
+                            builder.put(
+                                    absolutePath,
+                                    new DefaultFileSystemLocationFingerprint(
+                                            snapshot.getName(), snapshot.getType(), normalizedContentHash));
                         }
                     }
                 }

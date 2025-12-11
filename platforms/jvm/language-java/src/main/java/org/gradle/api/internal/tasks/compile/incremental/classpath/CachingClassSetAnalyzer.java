@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
+import java.io.File;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.cache.Cache;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
-
-import java.io.File;
 
 public class CachingClassSetAnalyzer implements ClassSetAnalyzer {
 
@@ -30,9 +29,8 @@ public class CachingClassSetAnalyzer implements ClassSetAnalyzer {
     private final FileSystemAccess fileSystemAccess;
     private final Cache<HashCode, ClassSetAnalysisData> cache;
 
-    public CachingClassSetAnalyzer(ClassSetAnalyzer delegate,
-                                   FileSystemAccess fileSystemAccess,
-                                   Cache<HashCode, ClassSetAnalysisData> cache) {
+    public CachingClassSetAnalyzer(
+            ClassSetAnalyzer delegate, FileSystemAccess fileSystemAccess, Cache<HashCode, ClassSetAnalysisData> cache) {
         this.delegate = delegate;
         this.fileSystemAccess = fileSystemAccess;
         this.cache = cache;

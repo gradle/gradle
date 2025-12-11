@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.testing.logging;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
@@ -26,9 +28,6 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Provides ability to log test events. Not thread safe.
@@ -87,22 +86,25 @@ public abstract class AbstractTestLogger {
             current = current.getParent();
         }
 
-        int effectiveDisplayGranularity = displayGranularity == -1
-                ? names.size() - 1 : Math.min(displayGranularity, names.size() - 1);
+        int effectiveDisplayGranularity =
+                displayGranularity == -1 ? names.size() - 1 : Math.min(displayGranularity, names.size() - 1);
         List<String> displayedNames = Lists.reverse(names).subList(effectiveDisplayGranularity, names.size());
         return Joiner.on(" > ").join(displayedNames) + " ";
     }
 
     private boolean isAtomicTestWithNoTestClassInAncestorDescriptors(TestDescriptor current) {
-        boolean isAtomicTestWhoseParentIsNotTheTestClass = !current.isComposite() && current.getClassName() != null &&
-            (current.getParent() == null || !current.getClassName().equals(current.getParent().getName()));
+        boolean isAtomicTestWhoseParentIsNotTheTestClass = !current.isComposite()
+                && current.getClassName() != null
+                && (current.getParent() == null
+                        || !current.getClassName().equals(current.getParent().getName()));
         if (!isAtomicTestWhoseParentIsNotTheTestClass) {
             return false;
         }
         if (current.getParent() != null) {
             // If there is a parent, then check that the grandparent has no test class.
             // There is currently no requirement to check further up the descriptor hierarchy than this.
-            return current.getParent().getParent() == null || current.getParent().getParent().getClassName() == null;
+            return current.getParent().getParent() == null
+                    || current.getParent().getParent().getClassName() == null;
         }
         // If there is no parent, then there's no need to check if the grandparent has a test class.
         return true;
@@ -110,10 +112,14 @@ public abstract class AbstractTestLogger {
 
     private StyledTextOutput.Style getStyle(TestLogEvent event) {
         switch (event) {
-            case PASSED: return StyledTextOutput.Style.Identifier;
-            case FAILED: return StyledTextOutput.Style.Failure;
-            case SKIPPED: return StyledTextOutput.Style.Info;
-            default: return StyledTextOutput.Style.Normal;
+            case PASSED:
+                return StyledTextOutput.Style.Identifier;
+            case FAILED:
+                return StyledTextOutput.Style.Failure;
+            case SKIPPED:
+                return StyledTextOutput.Style.Info;
+            default:
+                return StyledTextOutput.Style.Normal;
         }
     }
 }

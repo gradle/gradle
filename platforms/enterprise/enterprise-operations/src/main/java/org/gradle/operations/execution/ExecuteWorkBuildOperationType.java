@@ -16,10 +16,9 @@
 
 package org.gradle.operations.execution;
 
+import java.util.List;
 import org.gradle.internal.operations.BuildOperationType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * A {@link BuildOperationType} for executing any kind of work inside the execution engine.
@@ -33,7 +32,8 @@ import java.util.List;
  *
  * @since 8.3
  */
-public final class ExecuteWorkBuildOperationType implements BuildOperationType<ExecuteWorkBuildOperationType.Details, ExecuteWorkBuildOperationType.Result> {
+public final class ExecuteWorkBuildOperationType
+        implements BuildOperationType<ExecuteWorkBuildOperationType.Details, ExecuteWorkBuildOperationType.Result> {
 
     public interface Details {
 

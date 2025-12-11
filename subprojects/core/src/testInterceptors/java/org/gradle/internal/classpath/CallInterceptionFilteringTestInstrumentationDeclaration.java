@@ -22,14 +22,17 @@ import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 
-@SpecificJvmCallInterceptors(generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS)
-@SpecificGroovyCallInterceptors(generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS)
+@SpecificJvmCallInterceptors(
+        generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS)
+@SpecificGroovyCallInterceptors(
+        generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS)
 public class CallInterceptionFilteringTestInstrumentationDeclaration {
 
     @InterceptCalls
     @CallableKind.InstanceMethod
     @SuppressWarnings("NewMethodNamingConvention")
-    public static void intercept_testInstrumentation(@ParameterKind.Receiver CallInterceptionFilteringTestReceiver self) {
+    public static void intercept_testInstrumentation(
+            @ParameterKind.Receiver CallInterceptionFilteringTestReceiver self) {
         self.intercepted = "testInstrumentation()";
     }
 }

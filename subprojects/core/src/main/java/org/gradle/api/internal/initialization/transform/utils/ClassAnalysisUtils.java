@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.initialization.transform.utils;
 
-import org.objectweb.asm.ClassReader;
-
 import java.util.function.Consumer;
+import org.objectweb.asm.ClassReader;
 
 public class ClassAnalysisUtils {
 

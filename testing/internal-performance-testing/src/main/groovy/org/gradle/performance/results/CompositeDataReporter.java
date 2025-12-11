@@ -17,7 +17,6 @@
 package org.gradle.performance.results;
 
 import com.google.common.collect.ImmutableList;
-
 import java.io.IOException;
 
 public class CompositeDataReporter<T extends PerformanceTestResult> implements DataReporter<T> {

@@ -17,9 +17,6 @@ package org.gradle.performance.results;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,10 +24,13 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ResultsStoreHelper {
     public static final String SYSPROP_PERFORMANCE_TEST_CHANNEL = "org.gradle.performance.execution.channel";
-    public static final String SYSPROP_PERFORMANCE_TEST_CHANNEL_PATTERNS = "org.gradle.performance.execution.channel.patterns";
+    public static final String SYSPROP_PERFORMANCE_TEST_CHANNEL_PATTERNS =
+            "org.gradle.performance.execution.channel.patterns";
     private static final Logger LOGGER = LoggerFactory.getLogger(ResultsStoreHelper.class);
 
     public static List<String> split(String string) {
@@ -40,10 +40,9 @@ public class ResultsStoreHelper {
         return Collections.emptyList();
     }
 
-    public static <T extends PerformanceTestResult> WritableResultsStore<T> createResultsStoreWhenDatabaseAvailable(Supplier<WritableResultsStore<T>> supplier) {
-        return PerformanceDatabase.isAvailable()
-            ? supplier.get()
-            : NoResultsStore.getInstance();
+    public static <T extends PerformanceTestResult> WritableResultsStore<T> createResultsStoreWhenDatabaseAvailable(
+            Supplier<WritableResultsStore<T>> supplier) {
+        return PerformanceDatabase.isAvailable() ? supplier.get() : NoResultsStore.getInstance();
     }
 
     /**
@@ -86,8 +85,8 @@ public class ResultsStoreHelper {
             return OperatingSystem.LINUX;
         }
         String prefix = channel.startsWith("flakiness-detection")
-            ? "flakiness-detection"
-            : channel.substring(0, firstDashIndex);
+                ? "flakiness-detection"
+                : channel.substring(0, firstDashIndex);
         String channelWithoutPrefix = channel.substring(prefix.length());
         if (channelWithoutPrefix.startsWith(OperatingSystem.MAC_OS.getChannelSuffix())) {
             return OperatingSystem.MAC_OS;
@@ -96,7 +95,6 @@ public class ResultsStoreHelper {
         } else {
             return OperatingSystem.LINUX;
         }
-
     }
 
     public static List<String> determineChannelPatterns() {

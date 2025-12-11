@@ -15,10 +15,21 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
+import static org.gradle.util.internal.ConfigureUtil.configure;
+
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -28,18 +39,6 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning wtp component details of the Eclipse plugin
@@ -303,7 +302,8 @@ public abstract class EclipseWtpComponent {
      * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
      */
     public void resource(Map<String, String> args) {
-        resources = Lists.newArrayList(Iterables.concat(getResources(), Collections.singleton(new WbResource(args.get("deployPath"), args.get("sourcePath")))));
+        resources = Lists.newArrayList(Iterables.concat(
+                getResources(), Collections.singleton(new WbResource(args.get("deployPath"), args.get("sourcePath")))));
     }
 
     /**
@@ -327,7 +327,8 @@ public abstract class EclipseWtpComponent {
      * @param args A map that must contain a 'name' and 'value' key with corresponding values.
      */
     public void property(Map<String, String> args) {
-        properties = Lists.newArrayList(Iterables.concat(getProperties(), Collections.singleton(new WbProperty(args.get("name"), args.get("value")))));
+        properties = Lists.newArrayList(Iterables.concat(
+                getProperties(), Collections.singleton(new WbProperty(args.get("name"), args.get("value")))));
     }
 
     /**

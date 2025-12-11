@@ -15,6 +15,7 @@
  */
 package org.gradle.api.distribution.internal;
 
+import javax.inject.Inject;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
@@ -23,17 +24,21 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 
-import javax.inject.Inject;
-
 /**
  * Default implementation for {@link org.gradle.api.distribution.DistributionContainer}
  */
-public class DefaultDistributionContainer extends AbstractNamedDomainObjectContainer<Distribution> implements DistributionContainer {
+public class DefaultDistributionContainer extends AbstractNamedDomainObjectContainer<Distribution>
+        implements DistributionContainer {
     private final ObjectFactory objectFactory;
     private final FileOperations fileOperations;
 
     @Inject
-    public DefaultDistributionContainer(Class<Distribution> type, Instantiator instantiator, ObjectFactory objectFactory, FileOperations fileOperations, CollectionCallbackActionDecorator callbackDecorator) {
+    public DefaultDistributionContainer(
+            Class<Distribution> type,
+            Instantiator instantiator,
+            ObjectFactory objectFactory,
+            FileOperations fileOperations,
+            CollectionCallbackActionDecorator callbackDecorator) {
         super(type, instantiator, callbackDecorator);
         this.objectFactory = objectFactory;
         this.fileOperations = fileOperations;

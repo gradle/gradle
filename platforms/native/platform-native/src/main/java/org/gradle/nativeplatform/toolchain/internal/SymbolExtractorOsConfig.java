@@ -17,9 +17,8 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.os.OperatingSystem;
-
 import java.util.List;
+import org.gradle.internal.os.OperatingSystem;
 
 public enum SymbolExtractorOsConfig {
     OBJCOPY("objcopy", ImmutableList.of("--only-keep-debug"), ".debug"),

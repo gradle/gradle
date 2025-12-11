@@ -16,18 +16,18 @@
 
 package org.gradle.integtests.tooling.r48;
 
+import java.io.Serializable;
+import java.util.List;
+import javax.annotation.Nullable;
 import org.gradle.api.Action;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 
-import javax.annotation.Nullable;
-import java.io.Serializable;
-import java.util.List;
-
 public class CustomProjectsLoadedAction implements BuildAction<String>, Serializable {
     // Task graph is not calculated yet. Plugins can add tasks to it.
 
-    @Nullable private final List<String> tasks;
+    @Nullable
+    private final List<String> tasks;
 
     public CustomProjectsLoadedAction(@Nullable List<String> tasks) {
         this.tasks = tasks;
@@ -39,12 +39,13 @@ public class CustomProjectsLoadedAction implements BuildAction<String>, Serializ
         if (tasks == null || tasks.isEmpty()) {
             model = controller.getModel(CustomProjectsLoadedModel.class);
         } else {
-            model = controller.getModel(CustomProjectsLoadedModel.class, CustomParameter.class, new Action<CustomParameter>() {
-                @Override
-                public void execute(CustomParameter customParameter) {
-                    customParameter.setTasks(tasks);
-                }
-            });
+            model = controller.getModel(
+                    CustomProjectsLoadedModel.class, CustomParameter.class, new Action<CustomParameter>() {
+                        @Override
+                        public void execute(CustomParameter customParameter) {
+                            customParameter.setTasks(tasks);
+                        }
+                    });
         }
         return model.getValue();
     }

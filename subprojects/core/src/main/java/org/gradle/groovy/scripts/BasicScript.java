@@ -19,6 +19,8 @@ package org.gradle.groovy.scripts;
 import groovy.lang.Binding;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import java.io.PrintStream;
+import java.util.Map;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.project.DynamicLookupRoutine;
 import org.gradle.internal.logging.StandardOutputCapture;
@@ -31,10 +33,8 @@ import org.gradle.internal.scripts.GradleScript;
 import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.Nullable;
 
-import java.io.PrintStream;
-import java.util.Map;
-
-public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, DynamicObjectAware, GradleScript {
+public abstract class BasicScript extends org.gradle.groovy.scripts.Script
+        implements org.gradle.api.Script, DynamicObjectAware, GradleScript {
     private StandardOutputCapture standardOutputCapture;
     private Object target;
     private final ScriptDynamicObject dynamicObject = new ScriptDynamicObject(this);
@@ -181,7 +181,4 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
             return dynamicTarget.toString();
         }
     }
-
 }
-
-

@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic;
 
-import java.util.List;
-
 import static org.hamcrest.MatcherAssert.assertThat;
+
+import java.util.List;
 
 /**
  * Represents the result of executing a test path.

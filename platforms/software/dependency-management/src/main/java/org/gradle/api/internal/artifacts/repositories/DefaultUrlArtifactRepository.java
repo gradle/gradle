@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import java.net.URI;
+import java.util.function.Supplier;
+import javax.inject.Inject;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
@@ -28,10 +31,6 @@ import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.net.URI;
-import java.util.function.Supplier;
-
 public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
 
     private @Nullable Object url;
@@ -42,10 +41,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     private final Supplier<String> displayNameSupplier;
 
     DefaultUrlArtifactRepository(
-        final FileResolver fileResolver,
-        final String repositoryType,
-        final Supplier<String> displayNameSupplier
-    ) {
+            final FileResolver fileResolver, final String repositoryType, final Supplier<String> displayNameSupplier) {
         this.fileResolver = fileResolver;
         this.repositoryType = repositoryType;
         this.displayNameSupplier = displayNameSupplier;
@@ -91,50 +87,47 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     public URI validateUrl() {
         URI rootUri = getUrl();
         if (rootUri == null) {
-            throw new InvalidUserDataException(String.format(
-                "You must specify a URL for a %s repository.",
-                repositoryType
-            ));
+            throw new InvalidUserDataException(
+                    String.format("You must specify a URL for a %s repository.", repositoryType));
         }
         return rootUri;
     }
 
     private void throwExceptionDueToInsecureProtocol() throws InvalidUserCodeException {
         throw new InsecureProtocolException(
-            "Using insecure protocols with repositories, without explicit opt-in, is unsupported.",
-            String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.", repositoryType, displayNameSupplier.get()),
-            Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").getConsultDocumentationMessage()
-        );
+                "Using insecure protocols with repositories, without explicit opt-in, is unsupported.",
+                String.format(
+                        "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.",
+                        repositoryType, displayNameSupplier.get()),
+                Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol")
+                        .getConsultDocumentationMessage());
     }
 
-    private void throwExceptionDueToInsecureRedirect(@Nullable URI redirectFrom, URI redirectLocation) throws InvalidUserCodeException {
+    private void throwExceptionDueToInsecureRedirect(@Nullable URI redirectFrom, URI redirectLocation)
+            throws InvalidUserCodeException {
         final String contextualAdvice;
         if (redirectFrom != null) {
-            contextualAdvice = String.format(
-                " '%s' is redirecting to '%s'. ",
-                redirectFrom,
-                redirectLocation
-            );
+            contextualAdvice = String.format(" '%s' is redirecting to '%s'. ", redirectFrom, redirectLocation);
         } else {
             contextualAdvice = "";
         }
         throw new InsecureProtocolException(
-            "Redirecting from secure protocol to insecure protocol, without explicit opt-in, is unsupported." + contextualAdvice,
-            String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. ", repositoryType, displayNameSupplier.get()),
-            Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").getConsultDocumentationMessage()
-        );
+                "Redirecting from secure protocol to insecure protocol, without explicit opt-in, is unsupported."
+                        + contextualAdvice,
+                String.format(
+                        "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. ",
+                        repositoryType, displayNameSupplier.get()),
+                Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol")
+                        .getConsultDocumentationMessage());
     }
 
     HttpRedirectVerifier createRedirectVerifier() {
-        @Nullable
-        URI uri = getUrl();
-        return HttpRedirectVerifierFactory
-            .create(
+        @Nullable URI uri = getUrl();
+        return HttpRedirectVerifierFactory.create(
                 uri,
                 allowInsecureProtocol,
                 this::throwExceptionDueToInsecureProtocol,
-                redirection -> throwExceptionDueToInsecureRedirect(uri, redirection)
-            );
+                redirection -> throwExceptionDueToInsecureRedirect(uri, redirection));
     }
 
     @ServiceScope(Scope.Project.class)

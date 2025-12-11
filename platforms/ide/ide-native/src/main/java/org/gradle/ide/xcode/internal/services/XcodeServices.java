@@ -16,13 +16,12 @@
 
 package org.gradle.ide.xcode.internal.services;
 
+import java.util.Collections;
 import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
-
-import java.util.Collections;
 
 public class XcodeServices extends AbstractGradleModuleServices {
     @Override

@@ -16,6 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -51,10 +54,6 @@ import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 /**
  * Detects empty resolutions and skips a lot of work in those cases.
  */
@@ -65,47 +64,60 @@ public class ShortCircuitingResolutionExecutor {
     private final DependencyLockingProvider dependencyLockingProvider;
 
     public ShortCircuitingResolutionExecutor(
-        ResolutionExecutor delegate,
-        AttributeDesugaring attributeDesugaring,
-        DependencyLockingProvider dependencyLockingProvider
-    ) {
+            ResolutionExecutor delegate,
+            AttributeDesugaring attributeDesugaring,
+            DependencyLockingProvider dependencyLockingProvider) {
         this.delegate = delegate;
         this.attributeDesugaring = attributeDesugaring;
         this.dependencyLockingProvider = dependencyLockingProvider;
     }
 
-    public ResolverResults resolveBuildDependencies(LegacyResolutionParameters legacyParams, ResolutionParameters params, CalculatedValue<ResolverResults> futureCompleteResults) {
+    public ResolverResults resolveBuildDependencies(
+            LegacyResolutionParameters legacyParams,
+            ResolutionParameters params,
+            CalculatedValue<ResolverResults> futureCompleteResults) {
         if (hasDependencies(params)) {
             return delegate.resolveBuildDependencies(legacyParams, params, futureCompleteResults);
         }
 
         VisitedGraphResults graphResults = emptyGraphResults(params);
-        return DefaultResolverResults.buildDependenciesResolved(graphResults, EmptyResults.INSTANCE,
-            DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved()
-        );
+        return DefaultResolverResults.buildDependenciesResolved(
+                graphResults,
+                EmptyResults.INSTANCE,
+                DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved());
     }
 
-    public ResolverResults resolveGraph(LegacyResolutionParameters legacyParams, ResolutionParameters params, List<ResolutionAwareRepository> repositories) throws ResolveException {
+    public ResolverResults resolveGraph(
+            LegacyResolutionParameters legacyParams,
+            ResolutionParameters params,
+            List<ResolutionAwareRepository> repositories)
+            throws ResolveException {
         if (hasDependencies(params)) {
             return delegate.resolveGraph(legacyParams, params, repositories);
         }
 
         if (params.isDependencyLockingEnabled()) {
-            DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(params.getDependencyLockingId(), params.getResolutionHost().displayName());
-            if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
+            DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(
+                    params.getDependencyLockingId(), params.getResolutionHost().displayName());
+            if (lockingState.mustValidateLockState()
+                    && !lockingState.getLockedDependencies().isEmpty()) {
                 // Invalid lock state, need to do a real resolution to gather locking failures
                 return delegate.resolveGraph(legacyParams, params, repositories);
             }
-            dependencyLockingProvider.persistResolvedDependencies(params.getDependencyLockingId(), params.getResolutionHost().displayName(), Collections.emptySet(), Collections.emptySet());
+            dependencyLockingProvider.persistResolvedDependencies(
+                    params.getDependencyLockingId(),
+                    params.getResolutionHost().displayName(),
+                    Collections.emptySet(),
+                    Collections.emptySet());
         }
 
         VisitedGraphResults graphResults = emptyGraphResults(params);
         ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
-            graphResults, params.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration()
-        );
-        return DefaultResolverResults.graphResolved(graphResults, EmptyResults.INSTANCE,
-            DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(resolvedConfiguration)
-        );
+                graphResults, params.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration());
+        return DefaultResolverResults.graphResolved(
+                graphResults,
+                EmptyResults.INSTANCE,
+                DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(resolvedConfiguration));
     }
 
     private static boolean hasDependencies(ResolutionParameters params) {
@@ -130,20 +142,17 @@ public class ShortCircuitingResolutionExecutor {
         VariantGraphResolveState rootVariant = params.getRootVariant();
 
         MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
-            rootComponent.getModuleVersionId(),
-            rootComponent.getId(),
-            rootVariant.getAttributes(),
-            getCapabilities(rootComponent, rootVariant),
-            rootVariant.getName(),
-            attributeDesugaring
-        );
+                rootComponent.getModuleVersionId(),
+                rootComponent.getId(),
+                rootVariant.getAttributes(),
+                getCapabilities(rootComponent, rootVariant),
+                rootVariant.getName(),
+                attributeDesugaring);
         return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet());
     }
 
     private static ImmutableCapabilities getCapabilities(
-        LocalComponentGraphResolveState rootComponent,
-        VariantGraphResolveState rootVariant
-    ) {
+            LocalComponentGraphResolveState rootComponent, VariantGraphResolveState rootVariant) {
         ImmutableCapabilities capabilities = rootVariant.getMetadata().getCapabilities();
         if (capabilities.asSet().isEmpty()) {
             return ImmutableCapabilities.of(rootComponent.getDefaultCapability());
@@ -167,12 +176,10 @@ public class ShortCircuitingResolutionExecutor {
         }
 
         @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-        }
+        public void visitDependencies(TaskDependencyResolveContext context) {}
 
         @Override
-        public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
-        }
+        public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {}
 
         @Override
         public ResolvedArtifactSet getArtifacts() {
@@ -191,8 +198,7 @@ public class ShortCircuitingResolutionExecutor {
         @Override
         public ArtifactSelectionSpec getImplicitSelectionSpec() {
             return new ArtifactSelectionSpec(
-                ImmutableAttributes.EMPTY, Specs.satisfyAll(), false, false, ResolutionStrategy.SortOrder.DEFAULT
-            );
+                    ImmutableAttributes.EMPTY, Specs.satisfyAll(), false, false, ResolutionStrategy.SortOrder.DEFAULT);
         }
 
         @Override
@@ -214,6 +220,5 @@ public class ShortCircuitingResolutionExecutor {
         public Set<ResolvedArtifact> getArtifacts() {
             return Collections.emptySet();
         }
-
     }
 }

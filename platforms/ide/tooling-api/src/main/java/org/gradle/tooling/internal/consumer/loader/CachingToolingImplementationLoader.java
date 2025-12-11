@@ -17,6 +17,9 @@ package org.gradle.tooling.internal.consumer.loader;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.io.Closeable;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -28,28 +31,40 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.Closeable;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-
 public class CachingToolingImplementationLoader implements ToolingImplementationLoader, Closeable {
     private final ToolingImplementationLoader loader;
-    private final Cache<ClassPath, ConsumerConnection> connections = CacheBuilder.newBuilder()
-        .maximumSize(15)
-        .build();
+    private final Cache<ClassPath, ConsumerConnection> connections =
+            CacheBuilder.newBuilder().maximumSize(15).build();
 
     public CachingToolingImplementationLoader(ToolingImplementationLoader loader) {
         this.loader = loader;
     }
 
     @Override
-    public ConsumerConnection create(final Distribution distribution, final ProgressLoggerFactory progressLoggerFactory, final InternalBuildProgressListener progressListener, final ConnectionParameters connectionParameters, final BuildCancellationToken cancellationToken) {
-        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
+    public ConsumerConnection create(
+            final Distribution distribution,
+            final ProgressLoggerFactory progressLoggerFactory,
+            final InternalBuildProgressListener progressListener,
+            final ConnectionParameters connectionParameters,
+            final BuildCancellationToken cancellationToken) {
+        ClassPath classpath = distribution.getToolingImplementationClasspath(
+                progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
 
         try {
-            return connections.get(classpath, new ConsumerConnectionCreator(distribution, progressLoggerFactory, progressListener, connectionParameters, cancellationToken));
+            return connections.get(
+                    classpath,
+                    new ConsumerConnectionCreator(
+                            distribution,
+                            progressLoggerFactory,
+                            progressListener,
+                            connectionParameters,
+                            cancellationToken));
         } catch (ExecutionException e) {
-            throw new GradleConnectionException(String.format("Could not create an instance of Tooling API implementation using the specified %s.", distribution.getDisplayName()), e);
+            throw new GradleConnectionException(
+                    String.format(
+                            "Could not create an instance of Tooling API implementation using the specified %s.",
+                            distribution.getDisplayName()),
+                    e);
         }
     }
 
@@ -70,7 +85,12 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
         private final ConnectionParameters connectionParameters;
         private final BuildCancellationToken cancellationToken;
 
-        public ConsumerConnectionCreator(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
+        public ConsumerConnectionCreator(
+                Distribution distribution,
+                ProgressLoggerFactory progressLoggerFactory,
+                InternalBuildProgressListener progressListener,
+                ConnectionParameters connectionParameters,
+                BuildCancellationToken cancellationToken) {
             this.distribution = distribution;
             this.progressLoggerFactory = progressLoggerFactory;
             this.progressListener = progressListener;
@@ -80,8 +100,8 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
 
         @Override
         public ConsumerConnection call() throws Exception {
-            return loader.create(distribution, progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
+            return loader.create(
+                    distribution, progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
         }
-
     }
 }

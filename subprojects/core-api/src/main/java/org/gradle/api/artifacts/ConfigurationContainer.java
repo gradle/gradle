@@ -115,13 +115,15 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * {@inheritDoc}
      */
     @Override
-    Configuration getByName(String name, @DelegatesTo(Configuration.class) Closure configureClosure) throws UnknownConfigurationException;
+    Configuration getByName(String name, @DelegatesTo(Configuration.class) Closure configureClosure)
+            throws UnknownConfigurationException;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    Configuration getByName(String name, Action<? super Configuration> configureAction) throws UnknownConfigurationException;
+    Configuration getByName(String name, Action<? super Configuration> configureAction)
+            throws UnknownConfigurationException;
 
     /**
      * Creates a configuration, but does not add it to this container.
@@ -165,7 +167,8 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * @since 8.4
      */
     @Incubating
-    NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name, Action<? super ResolvableConfiguration> action);
+    NamedDomainObjectProvider<ResolvableConfiguration> resolvable(
+            String name, Action<? super ResolvableConfiguration> action);
 
     /**
      * Registers a new {@link ConsumableConfiguration} with an immutable role. Consumable configurations
@@ -202,7 +205,8 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * @since 8.4
      */
     @Incubating
-    NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name, Action<? super ConsumableConfiguration> action);
+    NamedDomainObjectProvider<ConsumableConfiguration> consumable(
+            String name, Action<? super ConsumableConfiguration> action);
 
     /**
      * Registers a new {@link DependencyScopeConfiguration} with an immutable role. Dependency scope configurations
@@ -240,6 +244,6 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * @since 8.4
      */
     @Incubating
-    NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name, Action<? super DependencyScopeConfiguration> action);
-
+    NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(
+            String name, Action<? super DependencyScopeConfiguration> action);
 }

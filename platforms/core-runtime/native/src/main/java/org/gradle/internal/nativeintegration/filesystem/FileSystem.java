@@ -16,5 +16,4 @@
 package org.gradle.internal.nativeintegration.filesystem;
 
 // TODO Kept to keep AbstractCopyTask binary compatible
-public interface FileSystem extends org.gradle.internal.file.FileSystem {
-}
+public interface FileSystem extends org.gradle.internal.file.FileSystem {}

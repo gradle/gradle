@@ -16,34 +16,28 @@
 
 package org.gradle.internal.reflect;
 
+import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
+
 import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import groovy.lang.GroovyObject;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Set;
-
-import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
+import org.jspecify.annotations.Nullable;
 
 public class GroovyMethods {
 
-    private static final Set<Equivalence.Wrapper<Method>> OBJECT_METHODS = ImmutableSet.copyOf(
-        Iterables.transform(
-            Iterables.concat(
-                Arrays.asList(Object.class.getMethods()),
-                Arrays.asList(GroovyObject.class.getMethods())
-            ), new Function<Method, Equivalence.Wrapper<Method>>() {
+    private static final Set<Equivalence.Wrapper<Method>> OBJECT_METHODS = ImmutableSet.copyOf(Iterables.transform(
+            Iterables.concat(Arrays.asList(Object.class.getMethods()), Arrays.asList(GroovyObject.class.getMethods())),
+            new Function<Method, Equivalence.Wrapper<Method>>() {
                 @Override
                 public Equivalence.Wrapper<Method> apply(@Nullable Method input) {
                     return SIGNATURE_EQUIVALENCE.wrap(input);
                 }
-            }
-        )
-    );
+            }));
 
     /**
      * Is defined by Object or GroovyObject?

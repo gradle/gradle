@@ -16,24 +16,23 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
+import static java.lang.System.getProperty;
+
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Locale;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.resource.transport.http.HttpProxySettings;
 import org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpProxySettings;
 import org.gradle.internal.resource.transport.http.JavaSystemPropertiesSecureHttpProxySettings;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Locale;
-import java.util.Set;
-
-import static java.lang.System.getProperty;
-
 public class S3ConnectionProperties {
     public static final String S3_ENDPOINT_PROPERTY = "org.gradle.s3.endpoint";
-    //The maximum number of times to retry a request when S3 responds with a http 5xx error
+    // The maximum number of times to retry a request when S3 responds with a http 5xx error
     public static final String S3_MAX_ERROR_RETRY = "org.gradle.s3.maxErrorRetry";
     private static final Set<String> SUPPORTED_SCHEMES = Sets.newHashSet("HTTP", "HTTPS");
     private static final long DEFAULT_PART_SIZE = 50 * 1024 * 1024;
@@ -52,7 +51,11 @@ public class S3ConnectionProperties {
         partSize = DEFAULT_PART_SIZE;
     }
 
-    public S3ConnectionProperties(HttpProxySettings proxySettings, HttpProxySettings secureProxySettings, URI endpoint, Integer maxErrorRetryCount) {
+    public S3ConnectionProperties(
+            HttpProxySettings proxySettings,
+            HttpProxySettings secureProxySettings,
+            URI endpoint,
+            Integer maxErrorRetryCount) {
         this.endpoint = Optional.fromNullable(endpoint);
         this.proxySettings = proxySettings;
         this.secureProxySettings = secureProxySettings;
@@ -65,11 +68,14 @@ public class S3ConnectionProperties {
         if (StringUtils.isNotBlank(property)) {
             try {
                 uri = new URI(property);
-                if (StringUtils.isBlank(uri.getScheme()) || !SUPPORTED_SCHEMES.contains(uri.getScheme().toUpperCase(Locale.ROOT))) {
-                    throw new IllegalArgumentException("System property [" + S3_ENDPOINT_PROPERTY + "=" + property + "] must have a scheme of 'http' or 'https'");
+                if (StringUtils.isBlank(uri.getScheme())
+                        || !SUPPORTED_SCHEMES.contains(uri.getScheme().toUpperCase(Locale.ROOT))) {
+                    throw new IllegalArgumentException("System property [" + S3_ENDPOINT_PROPERTY + "=" + property
+                            + "] must have a scheme of 'http' or 'https'");
                 }
             } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("System property [" + S3_ENDPOINT_PROPERTY + "=" + property + "]  must be a valid URI");
+                throw new IllegalArgumentException(
+                        "System property [" + S3_ENDPOINT_PROPERTY + "=" + property + "]  must be a valid URI");
             }
         }
         return Optional.fromNullable(uri);
@@ -95,8 +101,8 @@ public class S3ConnectionProperties {
         if (null != property) {
             count = Ints.tryParse(property);
             if (null == count || count < 0) {
-                throw new IllegalArgumentException("System property [" + S3_MAX_ERROR_RETRY + "=" + property + "]  must be a valid positive Integer");
-
+                throw new IllegalArgumentException("System property [" + S3_MAX_ERROR_RETRY + "=" + property
+                        + "]  must be a valid positive Integer");
             }
         }
         return Optional.fromNullable(count);

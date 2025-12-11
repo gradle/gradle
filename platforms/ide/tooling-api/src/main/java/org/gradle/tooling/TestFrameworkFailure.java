@@ -23,6 +23,4 @@ import org.gradle.api.Incubating;
  * @since 7.6
  */
 @Incubating
-public interface TestFrameworkFailure extends TestFailure {
-
-}
+public interface TestFrameworkFailure extends TestFailure {}

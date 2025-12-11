@@ -16,16 +16,15 @@
 
 package org.gradle.caching.internal;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * Left to keep H2BuildCacheService logic
@@ -48,7 +47,8 @@ public interface StatefulNextGenBuildCacheService extends BuildCacheService, Clo
             writer = new NextGenWriter() {
                 @Override
                 public InputStream openStream() throws IOException {
-                    UnsynchronizedByteArrayOutputStream data = UnsynchronizedByteArrayOutputStream.builder().get();
+                    UnsynchronizedByteArrayOutputStream data =
+                            UnsynchronizedByteArrayOutputStream.builder().get();
                     writeTo(data);
                     return data.toInputStream();
                 }

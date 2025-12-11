@@ -16,11 +16,10 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.publish.ivy.IvyArtifact;
-
 import java.io.File;
 import java.util.Set;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.publish.ivy.IvyArtifact;
 
 public class IvyNormalizedPublication {
 
@@ -29,7 +28,8 @@ public class IvyNormalizedPublication {
     private final Set<IvyArtifact> allArtifacts;
     private final ModuleVersionIdentifier coordinates;
 
-    public IvyNormalizedPublication(String name, ModuleVersionIdentifier coordinates, File ivyDescriptorFile, Set<IvyArtifact> allArtifacts) {
+    public IvyNormalizedPublication(
+            String name, ModuleVersionIdentifier coordinates, File ivyDescriptorFile, Set<IvyArtifact> allArtifacts) {
         this.name = name;
         this.coordinates = coordinates;
         this.ivyDescriptorFile = ivyDescriptorFile;

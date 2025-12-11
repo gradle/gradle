@@ -19,5 +19,4 @@ package org.gradle.language.c.internal;
 import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
 
-public class DefaultCPCHCompileSpec extends AbstractNativeCompileSpec implements CPCHCompileSpec {
-}
+public class DefaultCPCHCompileSpec extends AbstractNativeCompileSpec implements CPCHCompileSpec {}

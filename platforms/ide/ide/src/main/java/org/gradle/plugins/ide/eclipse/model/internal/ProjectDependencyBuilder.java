@@ -31,7 +31,12 @@ public class ProjectDependencyBuilder {
         this.ideArtifactRegistry = ideArtifactRegistry;
     }
 
-    public ProjectDependency build(ProjectComponentIdentifier componentIdentifier, FileReference publication, TaskDependency buildDependencies, boolean testDependency, boolean asJavaModule) {
+    public ProjectDependency build(
+            ProjectComponentIdentifier componentIdentifier,
+            FileReference publication,
+            TaskDependency buildDependencies,
+            boolean testDependency,
+            boolean asJavaModule) {
         ProjectDependency dependency = buildProjectDependency(determineTargetProjectPath(componentIdentifier));
         dependency.setPublication(publication);
         if (buildDependencies != null) {
@@ -39,11 +44,17 @@ public class ProjectDependencyBuilder {
         }
 
         if (testDependency) {
-            dependency.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
+            dependency
+                    .getEntryAttributes()
+                    .put(
+                            EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY,
+                            EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
         }
 
         if (asJavaModule) {
-            dependency.getEntryAttributes().put(EclipsePluginConstants.MODULE_ATTRIBUTE_KEY, EclipsePluginConstants.MODULE_ATTRIBUTE_VALUE);
+            dependency
+                    .getEntryAttributes()
+                    .put(EclipsePluginConstants.MODULE_ATTRIBUTE_KEY, EclipsePluginConstants.MODULE_ATTRIBUTE_VALUE);
         }
 
         if (containsTestFixtures(componentIdentifier)) {

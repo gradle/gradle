@@ -30,5 +30,4 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 public interface NodeInitializer {
 
     Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor);
-
 }

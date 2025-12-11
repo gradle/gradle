@@ -16,12 +16,11 @@
 
 package org.gradle.model;
 
-import org.gradle.api.Incubating;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.Incubating;
 
 /**
  * Denotes that the {@link RuleSource} method rule carrying this annotation defines additional rules based on its inputs.
@@ -29,5 +28,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Incubating
-public @interface Rules {
-}
+public @interface Rules {}

@@ -17,18 +17,17 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class JavaCompilerArgumentsBuilder {
     public static final Logger LOGGER = LoggerFactory.getLogger(JavaCompilerArgumentsBuilder.class);
@@ -84,10 +83,7 @@ public class JavaCompilerArgumentsBuilder {
         args = new ArrayList<>();
         // Take a deep copy of the compilerArgs because the following methods mutate it.
         List<Object> compilerArgs = Cast.uncheckedCast(spec.getCompileOptions().getCompilerArgs());
-        List<String> compArgs = compilerArgs
-            .stream()
-            .map(Object::toString)
-            .collect(Collectors.toList());
+        List<String> compArgs = compilerArgs.stream().map(Object::toString).collect(Collectors.toList());
 
         validateCompilerArgs(compArgs);
 
@@ -103,22 +99,25 @@ public class JavaCompilerArgumentsBuilder {
     private void validateCompilerArgs(List<String> compilerArgs) {
         for (String arg : compilerArgs) {
             if ("-sourcepath".equals(arg) || "--source-path".equals(arg)) {
-                throw new InvalidUserDataException("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. " +
-                    "Use the `CompileOptions.sourcepath` property instead.");
+                throw new InvalidUserDataException(
+                        "Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. "
+                                + "Use the `CompileOptions.sourcepath` property instead.");
             }
 
             if ("-processorpath".equals(arg) || "--processor-path".equals(arg)) {
-                throw new InvalidUserDataException("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. " +
-                    "Use the `CompileOptions.annotationProcessorPath` property instead.");
+                throw new InvalidUserDataException(
+                        "Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. "
+                                + "Use the `CompileOptions.annotationProcessorPath` property instead.");
             }
 
             if (arg != null && arg.startsWith("-J")) {
-                throw new InvalidUserDataException("Cannot specify -J flags via `CompileOptions.compilerArgs`. " +
-                    "Use the `CompileOptions.forkOptions.jvmArgs` property instead.");
+                throw new InvalidUserDataException("Cannot specify -J flags via `CompileOptions.compilerArgs`. "
+                        + "Use the `CompileOptions.forkOptions.jvmArgs` property instead.");
             }
 
             if ("--release".equals(arg) && spec.getRelease() != null) {
-                throw new InvalidUserDataException("Cannot specify --release via `CompileOptions.compilerArgs` when using `CompileOptions.release`.");
+                throw new InvalidUserDataException(
+                        "Cannot specify --release via `CompileOptions.compilerArgs` when using `CompileOptions.release`.");
             }
         }
     }
@@ -128,7 +127,8 @@ public class JavaCompilerArgumentsBuilder {
             return;
         }
 
-        MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        MinimalJavaCompilerDaemonForkOptions forkOptions =
+                spec.getCompileOptions().getForkOptions();
         if (forkOptions.getMemoryInitialSize() != null) {
             args.add("-J-Xms" + forkOptions.getMemoryInitialSize().trim());
         }
@@ -181,7 +181,7 @@ public class JavaCompilerArgumentsBuilder {
             args.add(compileOptions.getEncoding());
         }
         String bootClasspath = compileOptions.getBootClasspath();
-        if (bootClasspath != null) { //TODO: move bootclasspath to platform
+        if (bootClasspath != null) { // TODO: move bootclasspath to platform
             args.add("-bootclasspath");
             args.add(bootClasspath);
         }
@@ -196,7 +196,8 @@ public class JavaCompilerArgumentsBuilder {
 
         if (compileOptions.isDebug()) {
             if (compileOptions.getDebugOptions().getDebugLevel() != null) {
-                args.add("-g:" + compileOptions.getDebugOptions().getDebugLevel().trim());
+                args.add(
+                        "-g:" + compileOptions.getDebugOptions().getDebugLevel().trim());
             } else {
                 args.add("-g");
             }
@@ -206,7 +207,8 @@ public class JavaCompilerArgumentsBuilder {
 
         addSourcePathArg(compilerArgs, compileOptions);
 
-        if (spec.getSourceCompatibility() == null || JavaVersion.toVersion(spec.getSourceCompatibility()).compareTo(JavaVersion.VERSION_1_6) >= 0) {
+        if (spec.getSourceCompatibility() == null
+                || JavaVersion.toVersion(spec.getSourceCompatibility()).compareTo(JavaVersion.VERSION_1_6) >= 0) {
             List<File> annotationProcessorPath = spec.getAnnotationProcessorPath();
             if (annotationProcessorPath == null || annotationProcessorPath.isEmpty()) {
                 args.add("-proc:none");
@@ -216,7 +218,9 @@ public class JavaCompilerArgumentsBuilder {
             }
             if (compileOptions.getAnnotationProcessorGeneratedSourcesDirectory() != null) {
                 args.add("-s");
-                args.add(compileOptions.getAnnotationProcessorGeneratedSourcesDirectory().getPath());
+                args.add(compileOptions
+                        .getAnnotationProcessorGeneratedSourcesDirectory()
+                        .getPath());
             }
         }
 
@@ -237,7 +241,8 @@ public class JavaCompilerArgumentsBuilder {
 
         if (compilerArgs.contains("--module-source-path")) {
             if (!emptySourcePath) {
-                LOGGER.warn("You specified both --module-source-path and a sourcepath. These options are mutually exclusive. Ignoring sourcepath.");
+                LOGGER.warn(
+                        "You specified both --module-source-path and a sourcepath. These options are mutually exclusive. Ignoring sourcepath.");
             }
             return;
         }

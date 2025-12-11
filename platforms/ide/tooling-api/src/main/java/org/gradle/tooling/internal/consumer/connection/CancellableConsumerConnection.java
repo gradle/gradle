@@ -31,19 +31,25 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
     private final ActionRunner actionRunner;
     private final ModelProducer modelProducer;
 
-    public CancellableConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
+    public CancellableConsumerConnection(
+            ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, VersionDetails.from(delegate.getMetaData().getVersion()));
-        CancellationExceptionTransformer exceptionTransformer = CancellationExceptionTransformer.transformerFor(getVersionDetails());
+        CancellationExceptionTransformer exceptionTransformer =
+                CancellationExceptionTransformer.transformerFor(getVersionDetails());
         InternalCancellableConnection connection = (InternalCancellableConnection) delegate;
         modelProducer = createModelProducer(connection, modelMapping, adapter, exceptionTransformer);
         actionRunner = new CancellableActionRunner(connection, exceptionTransformer, getVersionDetails());
     }
 
-    private ModelProducer createModelProducer(InternalCancellableConnection connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter, CancellationExceptionTransformer exceptionTransformer) {
+    private ModelProducer createModelProducer(
+            InternalCancellableConnection connection,
+            ModelMapping modelMapping,
+            ProtocolToModelAdapter adapter,
+            CancellationExceptionTransformer exceptionTransformer) {
         return new PluginClasspathInjectionSupportedCheckModelProducer(
-                new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, connection, exceptionTransformer),
-                getVersionDetails()
-        );
+                new CancellableModelBuilderBackedModelProducer(
+                        adapter, getVersionDetails(), modelMapping, connection, exceptionTransformer),
+                getVersionDetails());
     }
 
     @Override

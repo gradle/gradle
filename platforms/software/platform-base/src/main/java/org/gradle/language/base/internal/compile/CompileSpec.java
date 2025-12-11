@@ -16,5 +16,4 @@
 
 package org.gradle.language.base.internal.compile;
 
-public interface CompileSpec {
-}
+public interface CompileSpec {}

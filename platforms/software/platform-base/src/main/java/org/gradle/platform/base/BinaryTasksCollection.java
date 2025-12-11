@@ -49,5 +49,4 @@ public interface BinaryTasksCollection extends DomainObjectSet<Task> {
     Task getCheck();
 
     <T extends Task> void create(String name, Class<T> type, Action<? super T> config);
-
 }

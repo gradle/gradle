@@ -16,9 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.nativeplatform.toolchain.internal.ExecutableTools;
-
 import java.io.File;
+import org.gradle.nativeplatform.toolchain.internal.ExecutableTools;
 
 /**
  * Windows SDK tools.

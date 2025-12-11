@@ -16,12 +16,11 @@
 
 package org.gradle.internal.execution.impl;
 
+import java.util.Objects;
 import org.gradle.internal.execution.FileCollectionFingerprinter;
 import org.gradle.internal.execution.FileNormalizationSpec;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-
-import java.util.Objects;
 
 public class FingerprinterRegistration {
     private final FileNormalizationSpec spec;
@@ -40,11 +39,14 @@ public class FingerprinterRegistration {
         return fingerprinter;
     }
 
-    public static FingerprinterRegistration registration(DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, FileCollectionFingerprinter fingerprinter) {
+    public static FingerprinterRegistration registration(
+            DirectorySensitivity directorySensitivity,
+            LineEndingSensitivity lineEndingSensitivity,
+            FileCollectionFingerprinter fingerprinter) {
         return new FingerprinterRegistration(
-            DefaultFileNormalizationSpec.from(fingerprinter.getNormalizer(), directorySensitivity, lineEndingSensitivity),
-            fingerprinter
-        );
+                DefaultFileNormalizationSpec.from(
+                        fingerprinter.getNormalizer(), directorySensitivity, lineEndingSensitivity),
+                fingerprinter);
     }
 
     @Override

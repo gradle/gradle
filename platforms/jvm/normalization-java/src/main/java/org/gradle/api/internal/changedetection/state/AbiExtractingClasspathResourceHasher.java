@@ -15,6 +15,10 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
@@ -30,17 +34,12 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbiExtractingClasspathResourceHasher.class);
-    public static final AbiExtractingClasspathResourceHasher DEFAULT = withFallback(
-        ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter())
-            .includePackagePrivateMembers()
-            .build());
+    public static final AbiExtractingClasspathResourceHasher DEFAULT =
+            withFallback(ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter())
+                    .includePackagePrivateMembers()
+                    .build());
 
     private final ApiClassExtractor extractor;
     private final FallbackStrategy fallbackStrategy;
@@ -61,9 +60,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     @Nullable
     private HashCode hashClassBytes(byte[] classBytes) {
         // Use the ABI as the hash
-        return extractor.extractApiClassFrom(classBytes)
-            .map(Hashing::hashBytes)
-            .orElse(null);
+        return extractor.extractApiClassFrom(classBytes).map(Hashing::hashBytes).orElse(null);
     }
 
     @Nullable
@@ -96,7 +93,8 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
 
         // If there is a problem with hashing the public api of the zip entry, use a fallback strategy (if available) to
         // calculate a fallback hash for the entry
-        return fallbackStrategy.handle(new ZipEntryContent(zipEntry.getName(), content), entry -> hashClassBytes(content));
+        return fallbackStrategy.handle(
+                new ZipEntryContent(zipEntry.getName(), content), entry -> hashClassBytes(content));
     }
 
     private static boolean isNotClassFile(String name) {
@@ -127,7 +125,10 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
                 try {
                     return function.apply(fileSnapshot);
                 } catch (Exception e) {
-                    LOGGER.debug("Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hashing.", fileSnapshot.getName(), e);
+                    LOGGER.debug(
+                            "Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hashing.",
+                            fileSnapshot.getName(),
+                            e);
                     return fileSnapshot.getHash();
                 }
             }
@@ -138,7 +139,10 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
                 try {
                     return function.apply(zipEntry);
                 } catch (Exception e) {
-                    LOGGER.debug("Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hashing.", zipEntry.name, e);
+                    LOGGER.debug(
+                            "Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hashing.",
+                            zipEntry.name,
+                            e);
                     return Hashing.hashBytes(zipEntry.content);
                 }
             }
@@ -146,21 +150,25 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         NONE() {
             @Nullable
             @Override
-            HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, HashCode> function) throws IOException {
+            HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, HashCode> function)
+                    throws IOException {
                 return function.apply(fileSnapshot);
             }
 
             @Nullable
             @Override
-            HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, HashCode> function) throws IOException {
+            HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, HashCode> function)
+                    throws IOException {
                 return function.apply(zipEntry);
             }
         };
 
         @Nullable
-        abstract HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, HashCode> function) throws IOException;
+        abstract HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, HashCode> function)
+                throws IOException;
 
         @Nullable
-        abstract HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, HashCode> function) throws IOException;
+        abstract HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, HashCode> function)
+                throws IOException;
     }
 }

@@ -17,6 +17,9 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -26,10 +29,6 @@ import org.gradle.internal.metaobject.CompositeDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * A {@link DynamicObject} implementation that provides extensibility.
@@ -41,7 +40,8 @@ import java.util.Map;
 public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject {
 
     public enum Location {
-        BeforeConvention, AfterConvention
+        BeforeConvention,
+        AfterConvention
     }
 
     private final AbstractDynamicObject dynamicDelegate;
@@ -55,14 +55,17 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         this(delegate, createDynamicObject(delegate, publicType), new DefaultExtensionContainer(instanceGenerator));
     }
 
-    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, InstanceGenerator instanceGenerator) {
+    public ExtensibleDynamicObject(
+            Object delegate, AbstractDynamicObject dynamicDelegate, InstanceGenerator instanceGenerator) {
         this(delegate, dynamicDelegate, new DefaultExtensionContainer(instanceGenerator));
     }
 
-    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, DefaultExtensionContainer convention) {
+    public ExtensibleDynamicObject(
+            Object delegate, AbstractDynamicObject dynamicDelegate, DefaultExtensionContainer convention) {
         this.dynamicDelegate = dynamicDelegate;
         this.extensionContainer = convention;
-        this.extraPropertiesDynamicObject = new ExtraPropertiesDynamicObjectAdapter(delegate.getClass(), convention.getExtraProperties());
+        this.extraPropertiesDynamicObject =
+                new ExtraPropertiesDynamicObjectAdapter(delegate.getClass(), convention.getExtraProperties());
 
         updateDelegates();
     }
@@ -180,8 +183,8 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     private class InheritedDynamicObject implements DynamicObject {
         @Override
         public void setProperty(String name, @Nullable Object value) {
-            throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
-                dynamicDelegate.getDisplayName()));
+            throw new MissingPropertyException(String.format(
+                    "Could not find property '%s' inherited from %s.", name, dynamicDelegate.getDisplayName()));
         }
 
         @Override
@@ -245,7 +248,5 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         public Object invokeMethod(String name, @Nullable Object... arguments) {
             return snapshotInheritable().invokeMethod(name, arguments);
         }
-
     }
 }
-

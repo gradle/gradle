@@ -16,9 +16,6 @@
 
 package org.gradle.internal.classloader;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -29,6 +26,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A ClassLoader which hides all non-system classes, packages and resources. Allows certain non-system packages and classes to be declared as visible. By default, only the Java system classes,
@@ -83,7 +82,14 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
     @Override
     public void visit(ClassLoaderVisitor visitor) {
-        visitor.visitSpec(new Spec(classNames, packageNames, packagePrefixes, resourcePrefixes, resourceNames, disallowedClassNames, disallowedPackagePrefixes));
+        visitor.visitSpec(new Spec(
+                classNames,
+                packageNames,
+                packagePrefixes,
+                resourcePrefixes,
+                resourceNames,
+                disallowedClassNames,
+                disallowedPackagePrefixes));
         visitor.visitParent(getParent());
     }
 
@@ -151,8 +157,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
     }
 
     private boolean isResourceAllowed(String resourceName) {
-        return resourceNames.contains(resourceName)
-            || resourcePrefixes.find(resourceName);
+        return resourceNames.contains(resourceName) || resourcePrefixes.find(resourceName);
     }
 
     private boolean isPackageAllowed(String packageName) {
@@ -161,8 +166,8 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         }
 
         return SYSTEM_PACKAGES.contains(packageName)
-            || packageNames.contains(packageName)
-            || packagePrefixes.find(packageName);
+                || packageNames.contains(packageName)
+                || packagePrefixes.find(packageName);
     }
 
     private boolean classAllowed(String className) {
@@ -179,7 +184,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         }
 
         return packagePrefixes.find(className)
-            || (packagePrefixes.contains(DEFAULT_PACKAGE + ".") && isInDefaultPackage(className));
+                || (packagePrefixes.contains(DEFAULT_PACKAGE + ".") && isInDefaultPackage(className));
     }
 
     private static boolean isInDefaultPackage(String className) {
@@ -196,22 +201,27 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         final Set<String> disallowedClassNames = new HashSet<String>();
         final Set<String> disallowedPackagePrefixes = new HashSet<String>();
 
-        public Spec() {
-        }
+        public Spec() {}
 
         public Spec(Spec spec) {
             this(
-                spec.classNames,
-                spec.packageNames,
-                spec.packagePrefixes,
-                spec.resourcePrefixes,
-                spec.resourceNames,
-                spec.disallowedClassNames,
-                spec.disallowedPackagePrefixes
-            );
+                    spec.classNames,
+                    spec.packageNames,
+                    spec.packagePrefixes,
+                    spec.resourcePrefixes,
+                    spec.resourceNames,
+                    spec.disallowedClassNames,
+                    spec.disallowedPackagePrefixes);
         }
 
-        public Spec(Iterable<String> classNames, Iterable<String> packageNames, Iterable<String> packagePrefixes, Iterable<String> resourcePrefixes, Iterable<String> resourceNames, Iterable<String> disallowedClassNames, Iterable<String> disallowedPackagePrefixes) {
+        public Spec(
+                Iterable<String> classNames,
+                Iterable<String> packageNames,
+                Iterable<String> packagePrefixes,
+                Iterable<String> resourcePrefixes,
+                Iterable<String> resourceNames,
+                Iterable<String> disallowedClassNames,
+                Iterable<String> disallowedPackagePrefixes) {
             addAll(this.classNames, classNames);
             addAll(this.packageNames, packageNames);
             addAll(this.packagePrefixes, packagePrefixes);
@@ -234,12 +244,12 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
          */
         public boolean isEmpty() {
             return classNames.isEmpty()
-                && packageNames.isEmpty()
-                && packagePrefixes.isEmpty()
-                && resourcePrefixes.isEmpty()
-                && resourceNames.isEmpty()
-                && disallowedClassNames.isEmpty()
-                && disallowedPackagePrefixes.isEmpty();
+                    && packageNames.isEmpty()
+                    && packagePrefixes.isEmpty()
+                    && resourcePrefixes.isEmpty()
+                    && resourceNames.isEmpty()
+                    && disallowedClassNames.isEmpty()
+                    && disallowedPackagePrefixes.isEmpty();
         }
 
         /**
@@ -308,23 +318,23 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             }
             Spec other = (Spec) obj;
             return other.packageNames.equals(packageNames)
-                && other.packagePrefixes.equals(packagePrefixes)
-                && other.resourceNames.equals(resourceNames)
-                && other.resourcePrefixes.equals(resourcePrefixes)
-                && other.classNames.equals(classNames)
-                && other.disallowedClassNames.equals(disallowedClassNames)
-                && other.disallowedPackagePrefixes.equals(disallowedPackagePrefixes);
+                    && other.packagePrefixes.equals(packagePrefixes)
+                    && other.resourceNames.equals(resourceNames)
+                    && other.resourcePrefixes.equals(resourcePrefixes)
+                    && other.classNames.equals(classNames)
+                    && other.disallowedClassNames.equals(disallowedClassNames)
+                    && other.disallowedPackagePrefixes.equals(disallowedPackagePrefixes);
         }
 
         @Override
         public int hashCode() {
             return packageNames.hashCode()
-                ^ packagePrefixes.hashCode()
-                ^ resourceNames.hashCode()
-                ^ resourcePrefixes.hashCode()
-                ^ classNames.hashCode()
-                ^ disallowedClassNames.hashCode()
-                ^ disallowedPackagePrefixes.hashCode();
+                    ^ packagePrefixes.hashCode()
+                    ^ resourceNames.hashCode()
+                    ^ resourcePrefixes.hashCode()
+                    ^ classNames.hashCode()
+                    ^ disallowedClassNames.hashCode()
+                    ^ disallowedPackagePrefixes.hashCode();
         }
 
         public Set<String> getPackageNames() {

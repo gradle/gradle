@@ -16,9 +16,8 @@
 
 package org.gradle.internal.instrumentation.processor.extensibility;
 
-import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
-
 import java.util.Collection;
+import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 
 public interface RequestPostProcessorExtension extends InstrumentationProcessorExtension {
     Collection<CallInterceptionRequest> postProcessRequest(CallInterceptionRequest originalRequest);

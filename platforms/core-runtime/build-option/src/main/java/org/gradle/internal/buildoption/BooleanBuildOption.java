@@ -16,11 +16,10 @@
 
 package org.gradle.internal.buildoption;
 
+import java.util.Map;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * A build option that takes a boolean value.
@@ -35,11 +34,15 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T, Boole
         this(property, (String) null);
     }
 
-    public BooleanBuildOption(String property, BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
+    public BooleanBuildOption(
+            String property, BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
         this(property, null, commandLineOptionConfigurations);
     }
 
-    public BooleanBuildOption(@Nullable String property, @Nullable String deprecatedProperty, BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
+    public BooleanBuildOption(
+            @Nullable String property,
+            @Nullable String deprecatedProperty,
+            BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
         super(property, deprecatedProperty, commandLineOptionConfigurations);
     }
 
@@ -55,9 +58,19 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T, Boole
     @Override
     public void configure(CommandLineParser parser) {
         for (BooleanCommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            configureCommandLineOption(parser, new String[] {config.getLongOption()}, config.getDescription(), config.isDeprecated(), config.isIncubating());
+            configureCommandLineOption(
+                    parser,
+                    new String[] {config.getLongOption()},
+                    config.getDescription(),
+                    config.isDeprecated(),
+                    config.isIncubating());
             String disabledOption = getDisabledCommandLineOption(config);
-            configureCommandLineOption(parser, new String[] {disabledOption}, config.getDisabledDescription(), config.isDeprecated(), config.isIncubating());
+            configureCommandLineOption(
+                    parser,
+                    new String[] {disabledOption},
+                    config.getDisabledDescription(),
+                    config.isDeprecated(),
+                    config.isIncubating());
             parser.allowOneOf(config.getLongOption(), disabledOption);
         }
     }

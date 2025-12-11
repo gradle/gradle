@@ -15,8 +15,7 @@
  */
 package org.gradle.internal.os;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-import org.jspecify.annotations.Nullable;
+import static org.gradle.internal.FileUtils.withExtension;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,9 +24,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
-
-import static org.gradle.internal.FileUtils.withExtension;
-
+import org.gradle.internal.scan.UsedByScanPlugin;
+import org.jspecify.annotations.Nullable;
 
 @SuppressWarnings("ClassInitializationDeadlock")
 public abstract class OperatingSystem {
@@ -409,8 +407,7 @@ public abstract class OperatingSystem {
         }
     }
 
-    static class FreeBSD extends Unix {
-    }
+    static class FreeBSD extends Unix {}
 
     static class Solaris extends Unix {
         @Override

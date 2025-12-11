@@ -16,6 +16,12 @@
 
 package org.gradle.security.internal.pgp;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.bouncycastle.openpgp.PGPSecretKey;
 import org.bouncycastle.openpgp.PGPSecretKeyRing;
 import org.bouncycastle.openpgp.PGPUtil;
@@ -24,17 +30,10 @@ import org.bouncycastle.openpgp.jcajce.JcaPGPSecretKeyRingCollection;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.internal.lazy.Lazy;
-import org.gradle.security.internal.BaseSignatoryProvider;
 import org.gradle.plugins.signing.signatory.pgp.PgpKeyId;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatory;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryFactory;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
+import org.gradle.security.internal.BaseSignatoryProvider;
 
 /**
  * A {@link BaseSignatoryProvider} of {@link PgpSignatory} instances read from
@@ -93,5 +92,4 @@ public class BaseInMemoryPgpSignatoryProvider implements BaseSignatoryProvider<P
             throw new InvalidUserDataException("Could not read PGP secret key", e);
         }
     }
-
 }

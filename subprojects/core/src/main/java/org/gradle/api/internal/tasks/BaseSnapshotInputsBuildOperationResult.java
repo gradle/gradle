@@ -21,6 +21,19 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -38,20 +51,6 @@ import org.gradle.operations.execution.FilePropertyVisitor;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.function.Function;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-
 @NullMarked
 public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOperationTraceSerialization {
 
@@ -67,37 +66,38 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
     @Nullable
     public Map<String, byte[]> getInputValueHashesBytes() {
         return getBeforeExecutionState()
-            .map(ExecutionInputState::getInputProperties)
-            .filter(inputValueFingerprints -> !inputValueFingerprints.isEmpty())
-            .map(inputValueFingerprints -> inputValueFingerprints.entrySet().stream()
-                .collect(toLinkedHashMap(valueSnapshot -> Hashing.hashHashable(valueSnapshot).toByteArray())))
-            .orElse(null);
+                .map(ExecutionInputState::getInputProperties)
+                .filter(inputValueFingerprints -> !inputValueFingerprints.isEmpty())
+                .map(inputValueFingerprints -> inputValueFingerprints.entrySet().stream()
+                        .collect(toLinkedHashMap(valueSnapshot ->
+                                Hashing.hashHashable(valueSnapshot).toByteArray())))
+                .orElse(null);
     }
 
     public byte @Nullable [] getClassLoaderHashBytes() {
         return getBeforeExecutionState()
-            .map(ExecutionInputState::getImplementation)
-            .map(BaseSnapshotInputsBuildOperationResult::getClassLoaderHashBytesOrNull)
-            .orElse(null);
+                .map(ExecutionInputState::getImplementation)
+                .map(BaseSnapshotInputsBuildOperationResult::getClassLoaderHashBytesOrNull)
+                .orElse(null);
     }
 
     @Nullable
     public String getImplementationClassName() {
         return getBeforeExecutionState()
-            .map(ExecutionInputState::getImplementation)
-            .map(ImplementationSnapshot::getClassIdentifier)
-            .orElse(null);
+                .map(ExecutionInputState::getImplementation)
+                .map(ImplementationSnapshot::getClassIdentifier)
+                .orElse(null);
     }
 
     @Nullable
     public List<byte[]> getActionClassLoaderHashesBytes() {
         return getBeforeExecutionState()
-            .map(BeforeExecutionState::getAdditionalImplementations)
-            .filter(additionalImplementation -> !additionalImplementation.isEmpty())
-            .map(additionalImplementations -> additionalImplementations.stream()
-                .map(BaseSnapshotInputsBuildOperationResult::getClassLoaderHashBytesOrNull) // preserve nulls
-                .collect(Collectors.toList()))
-            .orElse(null);
+                .map(BeforeExecutionState::getAdditionalImplementations)
+                .filter(additionalImplementation -> !additionalImplementation.isEmpty())
+                .map(additionalImplementations -> additionalImplementations.stream()
+                        .map(BaseSnapshotInputsBuildOperationResult::getClassLoaderHashBytesOrNull) // preserve nulls
+                        .collect(Collectors.toList()))
+                .orElse(null);
     }
 
     private static byte @Nullable [] getClassLoaderHashBytesOrNull(ImplementationSnapshot implementation) {
@@ -105,33 +105,29 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
         return hash == null ? null : hash.toByteArray();
     }
 
-
     @Nullable
     public List<String> getActionClassNames() {
         return getBeforeExecutionState()
-            .map(BeforeExecutionState::getAdditionalImplementations)
-            .filter(additionalImplementations -> !additionalImplementations.isEmpty())
-            .map(additionalImplementations -> additionalImplementations.stream()
-                .map(ImplementationSnapshot::getClassIdentifier)
-                .collect(Collectors.toList())
-            )
-            .orElse(null);
+                .map(BeforeExecutionState::getAdditionalImplementations)
+                .filter(additionalImplementations -> !additionalImplementations.isEmpty())
+                .map(additionalImplementations -> additionalImplementations.stream()
+                        .map(ImplementationSnapshot::getClassIdentifier)
+                        .collect(Collectors.toList()))
+                .orElse(null);
     }
 
     @Nullable
     public List<String> getOutputPropertyNames() {
         return getBeforeExecutionState()
-            .map(BeforeExecutionState::getOutputFileLocationSnapshots)
-            .map(ImmutableSortedMap::keySet)
-            .filter(outputPropertyNames -> !outputPropertyNames.isEmpty())
-            .map(ImmutableSet::asList)
-            .orElse(null);
+                .map(BeforeExecutionState::getOutputFileLocationSnapshots)
+                .map(ImmutableSortedMap::keySet)
+                .filter(outputPropertyNames -> !outputPropertyNames.isEmpty())
+                .map(ImmutableSet::asList)
+                .orElse(null);
     }
 
     public byte @Nullable [] getHashBytes() {
-        return getKey()
-            .map(BuildCacheKey::toByteArray)
-            .orElse(null);
+        return getKey().map(BuildCacheKey::toByteArray).orElse(null);
     }
 
     @Override
@@ -141,8 +137,8 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
         List<byte[]> actionClassLoaderHashesBytes = getActionClassLoaderHashesBytes();
         if (actionClassLoaderHashesBytes != null) {
             List<String> actionClassloaderHashes = getActionClassLoaderHashesBytes().stream()
-                .map(hash -> hash == null ? null : HashCode.fromBytes(hash).toString())
-                .collect(Collectors.toList());
+                    .map(hash -> hash == null ? null : HashCode.fromBytes(hash).toString())
+                    .collect(Collectors.toList());
             model.put("actionClassLoaderHashes", actionClassloaderHashes);
         } else {
             model.put("actionClassLoaderHashes", null);
@@ -159,7 +155,8 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
 
         byte[] classLoaderHashBytes = getClassLoaderHashBytes();
         if (classLoaderHashBytes != null) {
-            model.put("classLoaderHash", HashCode.fromBytes(classLoaderHashBytes).toString());
+            model.put(
+                    "classLoaderHash", HashCode.fromBytes(classLoaderHashBytes).toString());
         } else {
             model.put("classLoaderHash", null);
         }
@@ -170,7 +167,8 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
         Map<String, byte[]> inputValueHashesBytes = getInputValueHashesBytes();
         if (inputValueHashesBytes != null) {
             Map<String, String> inputValueHashes = inputValueHashesBytes.entrySet().stream()
-                .collect(toLinkedHashMap(value -> value == null ? null : HashCode.fromBytes(value).toString()));
+                    .collect(toLinkedHashMap(value ->
+                            value == null ? null : HashCode.fromBytes(value).toString()));
             model.put("inputValueHashes", inputValueHashes);
         } else {
             model.put("inputValueHashes", null);
@@ -181,28 +179,28 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
         return model;
     }
 
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private static <K, V, U> Collector<Map.Entry<K, V>, ?, LinkedHashMap<K, U>> toLinkedHashMap(Function<? super V, ? extends U> valueMapper) {
+    @SuppressWarnings(
+            "NonApiType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    private static <K, V, U> Collector<Map.Entry<K, V>, ?, LinkedHashMap<K, U>> toLinkedHashMap(
+            Function<? super V, ? extends U> valueMapper) {
         return Collectors.toMap(
-            Map.Entry::getKey,
-            entry -> valueMapper.apply(entry.getValue()),
-            (a, b) -> b,
-            LinkedHashMap::new
-        );
+                Map.Entry::getKey, entry -> valueMapper.apply(entry.getValue()), (a, b) -> b, LinkedHashMap::new);
     }
 
     protected Optional<BeforeExecutionState> getBeforeExecutionState() {
-        return cachingState.getCacheKeyCalculatedState()
-            .map(CachingState.CacheKeyCalculatedState::getBeforeExecutionState);
+        return cachingState
+                .getCacheKeyCalculatedState()
+                .map(CachingState.CacheKeyCalculatedState::getBeforeExecutionState);
     }
 
     private Optional<BuildCacheKey> getKey() {
-        return cachingState.getCacheKeyCalculatedState()
-            .map(CachingState.CacheKeyCalculatedState::getKey);
+        return cachingState.getCacheKeyCalculatedState().map(CachingState.CacheKeyCalculatedState::getKey);
     }
 
-    @UsedByScanPlugin("The value names are used as part of Build Scan data and cannot be changed - new values can be added")
-    @SuppressWarnings("NonCanonicalType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @UsedByScanPlugin(
+            "The value names are used as part of Build Scan data and cannot be changed - new values can be added")
+    @SuppressWarnings(
+            "NonCanonicalType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     enum FilePropertyAttribute {
 
         // When adding new values, be sure to comment which Gradle version started emitting the attribute.
@@ -224,29 +222,44 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
         LINE_ENDING_SENSITIVITY_DEFAULT,
         LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS;
 
-        private static final Map<FileNormalizer, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute> BY_NORMALIZER = ImmutableMap.<FileNormalizer, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute>builder()
-            .put(InputNormalizer.RUNTIME_CLASSPATH, FINGERPRINTING_STRATEGY_CLASSPATH)
-            .put(InputNormalizer.COMPILE_CLASSPATH, FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH)
-            .put(InputNormalizer.ABSOLUTE_PATH, FINGERPRINTING_STRATEGY_ABSOLUTE_PATH)
-            .put(InputNormalizer.RELATIVE_PATH, FINGERPRINTING_STRATEGY_RELATIVE_PATH)
-            .put(InputNormalizer.NAME_ONLY, FINGERPRINTING_STRATEGY_NAME_ONLY)
-            .put(InputNormalizer.IGNORE_PATH, FINGERPRINTING_STRATEGY_IGNORED_PATH)
-            .build();
+        private static final Map<FileNormalizer, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute>
+                BY_NORMALIZER =
+                        ImmutableMap
+                                .<FileNormalizer, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute>builder()
+                                .put(InputNormalizer.RUNTIME_CLASSPATH, FINGERPRINTING_STRATEGY_CLASSPATH)
+                                .put(InputNormalizer.COMPILE_CLASSPATH, FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH)
+                                .put(InputNormalizer.ABSOLUTE_PATH, FINGERPRINTING_STRATEGY_ABSOLUTE_PATH)
+                                .put(InputNormalizer.RELATIVE_PATH, FINGERPRINTING_STRATEGY_RELATIVE_PATH)
+                                .put(InputNormalizer.NAME_ONLY, FINGERPRINTING_STRATEGY_NAME_ONLY)
+                                .put(InputNormalizer.IGNORE_PATH, FINGERPRINTING_STRATEGY_IGNORED_PATH)
+                                .build();
 
-        private static final Map<DirectorySensitivity, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute> BY_DIRECTORY_SENSITIVITY = Maps.immutableEnumMap(ImmutableMap.<DirectorySensitivity, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute>builder()
-            .put(DirectorySensitivity.DEFAULT, DIRECTORY_SENSITIVITY_DEFAULT)
-            .put(DirectorySensitivity.IGNORE_DIRECTORIES, DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES)
-            .build());
+        private static final Map<DirectorySensitivity, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute>
+                BY_DIRECTORY_SENSITIVITY = Maps.immutableEnumMap(
+                        ImmutableMap
+                                .<DirectorySensitivity, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute>
+                                        builder()
+                                .put(DirectorySensitivity.DEFAULT, DIRECTORY_SENSITIVITY_DEFAULT)
+                                .put(DirectorySensitivity.IGNORE_DIRECTORIES, DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES)
+                                .build());
 
-        private static final Map<LineEndingSensitivity, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute> BY_LINE_ENDING_SENSITIVITY = Maps.immutableEnumMap(ImmutableMap.<LineEndingSensitivity, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute>builder()
-            .put(LineEndingSensitivity.DEFAULT, LINE_ENDING_SENSITIVITY_DEFAULT)
-            .put(LineEndingSensitivity.NORMALIZE_LINE_ENDINGS, LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS)
-            .build());
+        private static final Map<LineEndingSensitivity, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute>
+                BY_LINE_ENDING_SENSITIVITY = Maps.immutableEnumMap(
+                        ImmutableMap
+                                .<LineEndingSensitivity, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute>
+                                        builder()
+                                .put(LineEndingSensitivity.DEFAULT, LINE_ENDING_SENSITIVITY_DEFAULT)
+                                .put(
+                                        LineEndingSensitivity.NORMALIZE_LINE_ENDINGS,
+                                        LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS)
+                                .build());
 
-        private static <T> SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute findFor(T value, Map<T, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute> mapping) {
+        private static <T> SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute findFor(
+                T value, Map<T, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute> mapping) {
             SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute attribute = mapping.get(value);
             if (attribute == null) {
-                throw new IllegalStateException("Did not find property attribute mapping for '" + value + "' (from: " + mapping.keySet() + ")");
+                throw new IllegalStateException(
+                        "Did not find property attribute mapping for '" + value + "' (from: " + mapping.keySet() + ")");
             }
 
             return attribute;
@@ -256,14 +269,15 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
             return findFor(normalizer, BY_NORMALIZER);
         }
 
-        static SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute from(DirectorySensitivity directorySensitivity) {
+        static SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute from(
+                DirectorySensitivity directorySensitivity) {
             return findFor(directorySensitivity, BY_DIRECTORY_SENSITIVITY);
         }
 
-        static SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute from(LineEndingSensitivity lineEndingSensitivity) {
+        static SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute from(
+                LineEndingSensitivity lineEndingSensitivity) {
             return findFor(lineEndingSensitivity, BY_LINE_ENDING_SENSITIVITY);
         }
-
     }
 
     protected abstract static class BaseFilePropertyCollectingVisitor<STATE extends FilePropertyVisitor.VisitState> {
@@ -318,7 +332,6 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
             public String getPath() {
                 return path;
             }
-
         }
 
         static class FileEntry extends Entry {
@@ -353,9 +366,7 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
             fileProperties.put(state.getPropertyName(), property);
         }
 
-        public void preRoot(STATE state) {
-
-        }
+        public void preRoot(STATE state) {}
 
         public void preDirectory(STATE state) {
             boolean isRoot = dirStack.isEmpty();
@@ -371,7 +382,9 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
 
         public void file(STATE state) {
             boolean isRoot = dirStack.isEmpty();
-            FileEntry file = new FileEntry(isRoot ? state.getPath() : state.getName(), HashCode.fromBytes(state.getHashBytes()).toString());
+            FileEntry file = new FileEntry(
+                    isRoot ? state.getPath() : state.getName(),
+                    HashCode.fromBytes(state.getHashBytes()).toString());
             if (isRoot) {
                 property.roots.add(file);
             } else {
@@ -384,12 +397,8 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
             dirStack.pop();
         }
 
-        public void postRoot() {
+        public void postRoot() {}
 
-        }
-
-        public void postProperty() {
-
-        }
+        public void postProperty() {}
     }
 }

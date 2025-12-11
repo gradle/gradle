@@ -20,5 +20,6 @@ import java.net.InetAddress;
 
 public interface InetAddressProvider {
     InetAddress getWildcardBindingAddress();
+
     InetAddress getCommunicationAddress();
 }

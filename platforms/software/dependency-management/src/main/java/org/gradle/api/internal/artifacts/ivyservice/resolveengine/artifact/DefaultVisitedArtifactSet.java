@@ -51,51 +51,49 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
     private final ArtifactSelectionServices consumerServices;
 
     public DefaultVisitedArtifactSet(
-        VisitedGraphResults graphResults,
-        ResolutionHost resolutionHost,
-        VisitedArtifactResults artifactsResults,
-        ResolvedArtifactSetResolver artifactSetResolver,
-        TransformedVariantFactory transformedVariantFactory,
-        TransformUpstreamDependenciesResolver.Factory transformUpstreamDependenciesResolverFactory,
-        ImmutableAttributesSchema consumerSchema,
-        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
-        AttributesFactory attributesFactory,
-        AttributeSchemaServices attributeSchemaServices,
-        ResolutionFailureHandler resolutionFailureHandler,
-        ArtifactResolver artifactResolver,
-        ImmutableArtifactTypeRegistry artifactTypeRegistry,
-        ResolvedVariantCache resolvedVariantCache,
-        GraphVariantSelector graphVariantSelector,
-        VariantTransformRegistry transformRegistry
-    ) {
+            VisitedGraphResults graphResults,
+            ResolutionHost resolutionHost,
+            VisitedArtifactResults artifactsResults,
+            ResolvedArtifactSetResolver artifactSetResolver,
+            TransformedVariantFactory transformedVariantFactory,
+            TransformUpstreamDependenciesResolver.Factory transformUpstreamDependenciesResolverFactory,
+            ImmutableAttributesSchema consumerSchema,
+            ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
+            AttributesFactory attributesFactory,
+            AttributeSchemaServices attributeSchemaServices,
+            ResolutionFailureHandler resolutionFailureHandler,
+            ArtifactResolver artifactResolver,
+            ImmutableArtifactTypeRegistry artifactTypeRegistry,
+            ResolvedVariantCache resolvedVariantCache,
+            GraphVariantSelector graphVariantSelector,
+            VariantTransformRegistry transformRegistry) {
         this.graphResults = graphResults;
         this.resolutionHost = resolutionHost;
         this.artifactsResults = artifactsResults;
         this.artifactSetResolver = artifactSetResolver;
 
         ArtifactVariantSelector artifactVariantSelector = new AttributeMatchingArtifactVariantSelector(
-            consumerSchema,
-            consumerProvidedVariantFinder,
-            attributesFactory,
-            attributeSchemaServices,
-            resolutionFailureHandler
-        );
+                consumerSchema,
+                consumerProvidedVariantFinder,
+                attributesFactory,
+                attributeSchemaServices,
+                resolutionFailureHandler);
 
         this.consumerServices = new ArtifactSelectionServices(
-            artifactVariantSelector,
-            transformedVariantFactory,
-            transformUpstreamDependenciesResolverFactory.create(this), // Yuck
-            new DefaultVariantArtifactResolver(artifactResolver, artifactTypeRegistry, resolvedVariantCache),
-            graphVariantSelector,
-            consumerSchema,
-            transformRegistry
-        );
+                artifactVariantSelector,
+                transformedVariantFactory,
+                transformUpstreamDependenciesResolverFactory.create(this), // Yuck
+                new DefaultVariantArtifactResolver(artifactResolver, artifactTypeRegistry, resolvedVariantCache),
+                graphVariantSelector,
+                consumerSchema,
+                transformRegistry);
     }
 
     @Override
     public SelectedArtifactSet select(ArtifactSelectionSpec spec) {
         SelectedArtifactResults artifacts = artifactsResults.select(consumerServices, spec, false);
-        return new DefaultSelectedArtifactSet(artifactSetResolver, graphResults, artifacts.getArtifacts(), resolutionHost);
+        return new DefaultSelectedArtifactSet(
+                artifactSetResolver, graphResults, artifacts.getArtifacts(), resolutionHost);
     }
 
     @Override

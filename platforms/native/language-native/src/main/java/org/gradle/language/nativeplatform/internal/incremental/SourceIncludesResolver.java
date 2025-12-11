@@ -15,12 +15,11 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import java.io.File;
+import java.util.Collection;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.Collection;
 
 public interface SourceIncludesResolver {
     interface IncludeResolutionResult {
@@ -36,8 +35,11 @@ public interface SourceIncludesResolver {
 
     interface IncludeFile {
         boolean isQuotedInclude();
+
         String getPath();
+
         File getFile();
+
         HashCode getContentHash();
     }
 

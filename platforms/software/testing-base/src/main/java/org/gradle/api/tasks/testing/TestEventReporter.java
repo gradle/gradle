@@ -16,11 +16,10 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
-
 import java.time.Instant;
 import java.util.Map;
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Reports test events.

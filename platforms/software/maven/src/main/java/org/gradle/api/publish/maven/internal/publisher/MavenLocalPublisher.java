@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import java.io.File;
+import java.net.URI;
 import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.Snapshot;
 import org.apache.maven.artifact.repository.metadata.SnapshotVersion;
@@ -33,9 +35,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.net.URI;
-
 @NullMarked
 public class MavenLocalPublisher extends AbstractMavenPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenLocalPublisher.class);
@@ -43,7 +42,10 @@ public class MavenLocalPublisher extends AbstractMavenPublisher {
     private final RepositoryTransportFactory repositoryTransportFactory;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
-    public MavenLocalPublisher(Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+    public MavenLocalPublisher(
+            Factory<File> temporaryDirFactory,
+            RepositoryTransportFactory repositoryTransportFactory,
+            LocalMavenRepositoryLocator mavenRepositoryLocator) {
         super(temporaryDirFactory);
         this.repositoryTransportFactory = repositoryTransportFactory;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
@@ -61,7 +63,13 @@ public class MavenLocalPublisher extends AbstractMavenPublisher {
     }
 
     @Override
-    protected Metadata createSnapshotMetadata(MavenNormalizedPublication publication, String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource) {
+    protected Metadata createSnapshotMetadata(
+            MavenNormalizedPublication publication,
+            String groupId,
+            String artifactId,
+            String version,
+            ExternalResourceRepository repository,
+            ExternalResourceName metadataResource) {
         Metadata metadata = new Metadata();
         metadata.setModelVersion("1.1.0");
         metadata.setGroupId(groupId);

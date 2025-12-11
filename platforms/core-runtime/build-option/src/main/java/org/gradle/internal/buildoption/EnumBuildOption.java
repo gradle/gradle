@@ -16,35 +16,34 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A build option that takes a string value e.g. {@code "--max-workers=4"}.
  *
  * @since 4.3
  */
-public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
+public abstract class EnumBuildOption<E extends Enum<E>, T>
+        extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
     private final String displayName;
     private final Class<E> enumClass;
     private final List<E> possibleValues;
 
     public EnumBuildOption(
-        String displayName,
-        Class<E> enumClass,
-        E[] possibleValues,
-        String gradleProperty,
-        @Nullable String deprecatedProperty,
-        CommandLineOptionConfiguration... commandLineOptionConfigurations
-    ) {
+            String displayName,
+            Class<E> enumClass,
+            E[] possibleValues,
+            String gradleProperty,
+            @Nullable String deprecatedProperty,
+            CommandLineOptionConfiguration... commandLineOptionConfigurations) {
         super(gradleProperty, deprecatedProperty, commandLineOptionConfigurations);
         this.displayName = displayName;
         this.enumClass = enumClass;
@@ -52,12 +51,11 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
     }
 
     public EnumBuildOption(
-        String displayName,
-        Class<E> enumClass,
-        E[] possibleValues,
-        String gradleProperty,
-        CommandLineOptionConfiguration... commandLineOptionConfigurations
-    ) {
+            String displayName,
+            Class<E> enumClass,
+            E[] possibleValues,
+            String gradleProperty,
+            CommandLineOptionConfiguration... commandLineOptionConfigurations) {
         this(displayName, enumClass, possibleValues, gradleProperty, null, commandLineOptionConfigurations);
     }
 
@@ -73,7 +71,13 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.isDeprecated(), config.isIncubating()).hasArgument();
+            configureCommandLineOption(
+                            parser,
+                            config.getAllOptions(),
+                            config.getDescription(),
+                            config.isDeprecated(),
+                            config.isIncubating())
+                    .hasArgument();
         }
     }
 
@@ -103,7 +107,8 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
             }
         }
         if (enumValue == null) {
-            throw new RuntimeException("Option " + displayName + " doesn't accept value '" + value + "'. Possible values are " + possibleValues);
+            throw new RuntimeException("Option " + displayName + " doesn't accept value '" + value
+                    + "'. Possible values are " + possibleValues);
         }
         return enumValue;
     }

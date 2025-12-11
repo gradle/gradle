@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.component;
 
+import java.util.Collections;
+import java.util.Set;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-
-import java.util.Collections;
-import java.util.Set;
 
 /**
  * This extends {@link UsageContext} so that we can use it in {@link SoftwareComponentInternal#getUsages()}.

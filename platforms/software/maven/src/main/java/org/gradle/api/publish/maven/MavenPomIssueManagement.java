@@ -35,5 +35,4 @@ public interface MavenPomIssueManagement {
      * The URL of this issue management system.
      */
     Property<String> getUrl();
-
 }

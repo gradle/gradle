@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform.filters;
 
+import java.util.Optional;
+import java.util.Set;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.jspecify.annotations.NullMarked;
 import org.junit.platform.engine.FilterResult;
@@ -24,9 +26,6 @@ import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.PostDiscoveryFilter;
-
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * A JUnit Platform {@link PostDiscoveryFilter} filter that includes or excludes
@@ -45,7 +44,8 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
         if (classMatch(descriptor)) {
             return FilterResult.included("Class match");
         }
-        return FilterResult.includedIf(shouldRun(descriptor), () -> "Method or class match", () -> "Method or class mismatch");
+        return FilterResult.includedIf(
+                shouldRun(descriptor), () -> "Method or class match", () -> "Method or class mismatch");
     }
 
     private boolean shouldRun(TestDescriptor descriptor) {
@@ -83,7 +83,7 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
         if (children.isEmpty()) {
             String className = classSource.getClassName();
             return matcher.matchesTest(className, null)
-                || matcher.matchesTest(className, descriptor.getLegacyReportingName());
+                    || matcher.matchesTest(className, descriptor.getLegacyReportingName());
         }
         return true;
     }
@@ -91,14 +91,15 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
     private boolean shouldRun(TestDescriptor descriptor, MethodSource methodSource) {
         String methodName = methodSource.getMethodName();
         return matcher.matchesTest(methodSource.getClassName(), methodName)
-            || matchesParentMethod(descriptor, methodName);
+                || matchesParentMethod(descriptor, methodName);
     }
 
     private boolean matchesParentMethod(TestDescriptor descriptor, String methodName) {
-        return descriptor.getParent()
-            .flatMap(this::className)
-            .filter(className -> matcher.matchesTest(className, methodName))
-            .isPresent();
+        return descriptor
+                .getParent()
+                .flatMap(this::className)
+                .filter(className -> matcher.matchesTest(className, methodName))
+                .isPresent();
     }
 
     private boolean classMatch(TestDescriptor descriptor) {
@@ -118,13 +119,15 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
                     return true;
                 }
 
-                // If the current descriptor is a class, and it matches an exclude pattern, we can skip checking its parents
+                // If the current descriptor is a class, and it matches an exclude pattern, we can skip checking its
+                // parents
                 if (matcher.mayExcludeClass(className.get())) {
                     return false;
                 }
             }
 
-            // If the descriptor is a MethodSource, capture the method name to use when checking against parent class names
+            // If the descriptor is a MethodSource, capture the method name to use when checking against parent class
+            // names
             // (for instance, if the method is in a nested class).
             if (current.getSource().isPresent() && current.getSource().get() instanceof MethodSource) {
                 methodName = ((MethodSource) current.getSource().get()).getMethodName();
@@ -136,9 +139,10 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
     }
 
     private Optional<String> className(TestDescriptor descriptor) {
-        return descriptor.getSource()
-            .filter(ClassSource.class::isInstance)
-            .map(ClassSource.class::cast)
-            .map(ClassSource::getClassName);
+        return descriptor
+                .getSource()
+                .filter(ClassSource.class::isInstance)
+                .map(ClassSource.class::cast)
+                .map(ClassSource::getClassName);
     }
 }

@@ -16,12 +16,36 @@
 
 package org.gradle.model.internal.registry;
 
+import static org.gradle.model.internal.core.ModelNode.State.Created;
+import static org.gradle.model.internal.core.ModelNode.State.Discovered;
+import static org.gradle.model.internal.core.ModelNode.State.GraphClosed;
+import static org.gradle.model.internal.core.ModelNode.State.Registered;
+import static org.gradle.model.internal.core.ModelNode.State.SelfClosed;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.model.ConfigurationCycleException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
@@ -47,31 +71,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import static org.gradle.model.internal.core.ModelNode.State.Created;
-import static org.gradle.model.internal.core.ModelNode.State.Discovered;
-import static org.gradle.model.internal.core.ModelNode.State.GraphClosed;
-import static org.gradle.model.internal.core.ModelNode.State.Registered;
-import static org.gradle.model.internal.core.ModelNode.State.SelfClosed;
-
 @NotThreadSafe
 public class DefaultModelRegistry implements ModelRegistryInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModelRegistry.class);
@@ -93,7 +92,10 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         this.ruleExtractor = ruleExtractor;
         this.projectPath = projectPath;
         this.projectState = projectState;
-        ModelRegistration rootRegistration = ModelRegistrations.of(ModelPath.ROOT).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
+        ModelRegistration rootRegistration = ModelRegistrations.of(ModelPath.ROOT)
+                .descriptor("<root>")
+                .withProjection(EmptyModelProjection.INSTANCE)
+                .build();
         modelGraph = new ModelGraph(new ModelElementNode(this, rootRegistration, null));
         ruleBindings = new RuleBindings();
         transition(modelGraph.getRoot(), Created, false);
@@ -108,7 +110,10 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     public DefaultModelRegistry register(ModelRegistration registration) {
         ModelPath path = registration.getPath();
         if (!ModelPath.ROOT.isDirectChild(path)) {
-            throw new InvalidModelRuleDeclarationException(registration.getDescriptor(), "Cannot register element at '" + path + "', only top level is allowed (e.g. '" + path.getRootParent() + "')");
+            throw new InvalidModelRuleDeclarationException(
+                    registration.getDescriptor(),
+                    "Cannot register element at '" + path + "', only top level is allowed (e.g. '"
+                            + path.getRootParent() + "')");
         }
 
         ModelNodeInternal root = modelGraph.getRoot();
@@ -118,9 +123,14 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
     @Override
     public void registerNode(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction> actions) {
-        // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
+        // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at
+        // least not yet
         // ModelPath.validateName(name);
-        LOGGER.debug("Project {} - Registering model element '{}' (hidden = {})", projectPath, node.getPath(), node.isHidden());
+        LOGGER.debug(
+                "Project {} - Registering model element '{}' (hidden = {})",
+                projectPath,
+                node.getPath(),
+                node.isHidden());
         addRuleBindings(node, actions);
         modelGraph.add(node);
         ruleBindings.nodeCreated(node);
@@ -190,7 +200,9 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
     static void checkNodePath(ModelNodeInternal node, ModelAction action) {
         if (!node.getPath().equals(action.getSubject().getPath())) {
-            throw new IllegalArgumentException(String.format("Element action reference has path (%s) which does not reference this node (%s).", action.getSubject().getPath(), node.getPath()));
+            throw new IllegalArgumentException(String.format(
+                    "Element action reference has path (%s) which does not reference this node (%s).",
+                    action.getSubject().getPath(), node.getPath()));
         }
     }
 
@@ -233,7 +245,8 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
     @Override
     public <T> T atStateOrLater(ModelPath path, ModelType<T> type, ModelNode.State state) {
-        return toType(type, atStateOrMaybeLater(path, state, true), "atStateOrLater(ModelPath, ModelType, ModelNode.State)");
+        return toType(
+                type, atStateOrMaybeLater(path, state, true), "atStateOrLater(ModelPath, ModelType, ModelNode.State)");
     }
 
     private ModelNodeInternal atStateOrMaybeLater(ModelPath path, ModelNode.State state, boolean laterOk) {
@@ -302,7 +315,9 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             }
         }
         if (!Iterables.isEmpty(node.getDependents())) {
-            throw new IllegalStateException(String.format("Tried to remove model '%s' but it is depended on by: '%s'", node.getPath(), Joiner.on(", ").join(node.getDependents())));
+            throw new IllegalStateException(String.format(
+                    "Tried to remove model '%s' but it is depended on by: '%s'",
+                    node.getPath(), Joiner.on(", ").join(node.getDependents())));
         }
         nodesToRemove.add(node);
     }
@@ -342,7 +357,8 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     private UnboundModelRulesException unbound(Iterable<? extends RuleBinder> binders) {
-        ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(modelGraph.getFlattened().keySet());
+        ModelPathSuggestionProvider suggestionsProvider =
+                new ModelPathSuggestionProvider(modelGraph.getFlattened().keySet());
         List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
         return new UnboundModelRulesException(unboundRules);
     }
@@ -409,7 +425,9 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
                 newDependencies.clear();
                 goal.attachNode();
                 boolean done = goal.calculateDependencies(goalGraph, newDependencies);
-                goal.state = done || newDependencies.isEmpty() ? ModelGoal.State.VisitingDependencies : ModelGoal.State.DiscoveringDependencies;
+                goal.state = done || newDependencies.isEmpty()
+                        ? ModelGoal.State.VisitingDependencies
+                        : ModelGoal.State.DiscoveringDependencies;
 
                 // Add dependencies to the start of the queue
                 for (int i = newDependencies.size() - 1; i >= 0; i--) {
@@ -464,13 +482,19 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         ModelPath path = node.getPath();
         ModelNode.State state = node.getState();
 
-        LOGGER.debug("Project {} - Transitioning model element '{}' from state {} to {}", projectPath, path, state.name(), desired.name());
+        LOGGER.debug(
+                "Project {} - Transitioning model element '{}' from state {} to {}",
+                projectPath,
+                path,
+                state.name(),
+                desired.name());
 
         if (desired.ordinal() < state.ordinal()) {
             if (laterOk) {
                 return;
             } else {
-                throw new IllegalStateException("Cannot lifecycle model node '" + path + "' to state " + desired.name() + " as it is already at " + state.name());
+                throw new IllegalStateException("Cannot lifecycle model node '" + path + "' to state " + desired.name()
+                        + " as it is already at " + state.name());
             }
         }
 
@@ -483,7 +507,8 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     private void fireAction(RuleBinder boundMutator) {
-        final List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction().getDescriptor());
+        final List<ModelView<?>> inputs = toViews(
+                boundMutator.getInputBindings(), boundMutator.getAction().getDescriptor());
         ModelBinding subjectBinding = boundMutator.getSubjectBinding();
         final ModelNodeInternal node = subjectBinding.getNode();
         final ModelAction mutator = boundMutator.getAction();
@@ -506,14 +531,16 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
     private List<ModelView<?>> toViews(List<ModelBinding> bindings, ModelRuleDescriptor descriptor) {
         // hot path; create as little as possible…
-        @SuppressWarnings("unchecked") ModelView<?>[] array = new ModelView<?>[bindings.size()];
+        @SuppressWarnings("unchecked")
+        ModelView<?>[] array = new ModelView<?>[bindings.size()];
         int i = 0;
         for (ModelBinding binding : bindings) {
             ModelNodeInternal element = binding.getNode();
             ModelView<?> view = element.asImmutable(binding.getPredicate().getType(), descriptor);
             array[i++] = view;
         }
-        @SuppressWarnings("unchecked") List<ModelView<?>> views = Arrays.asList(array);
+        @SuppressWarnings("unchecked")
+        List<ModelView<?>> views = Arrays.asList(array);
         return views;
     }
 
@@ -529,7 +556,9 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
     private BindingPredicate mapSubject(ModelReference<?> subjectReference, ModelActionRole role) {
         if (!role.isSubjectViewAvailable() && !subjectReference.isUntyped()) {
-            throw new IllegalStateException(String.format("Cannot bind subject '%s' to role '%s' because it is targeting a type and subject types are not yet available in that role", subjectReference, role));
+            throw new IllegalStateException(String.format(
+                    "Cannot bind subject '%s' to role '%s' because it is targeting a type and subject types are not yet available in that role",
+                    subjectReference, role));
         }
         return new BindingPredicate(subjectReference.atState(role.getTargetState()));
     }
@@ -598,8 +627,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         /**
          * Invoked prior to calculating dependencies.
          */
-        public void attachNode() {
-        }
+        public void attachNode() {}
 
         /**
          * Calculates any dependencies for this goal. May be invoked multiple times, should only add newly dependencies discovered dependencies on each invocation.
@@ -617,12 +645,10 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         /**
          * Applies the action of this goal.
          */
-        void apply() {
-        }
+        void apply() {}
 
         // used in subclasses
-        void attachToCycle(List<String> displayValue) {
-        }
+        void attachToCycle(List<String> displayValue) {}
 
         @Override
         public abstract String toString();
@@ -720,7 +746,8 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         public final boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             if (!seenPredecessor) {
                 // Node must be at the predecessor state before calculating dependencies
-                NodeAtState predecessor = new NodeAtState(getPath(), getTargetState().previous());
+                NodeAtState predecessor =
+                        new NodeAtState(getPath(), getTargetState().previous());
                 dependencies.add(graph.nodeAtState(predecessor));
                 // Transition any other nodes that depend on the predecessor state
                 dependencies.add(new TransitionDependents(predecessor));
@@ -728,7 +755,9 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
                 return false;
             }
             if (node == null) {
-                throw new IllegalStateException(String.format("Cannot transition model element '%s' to state %s as it does not exist.", getPath(), getTargetState().name()));
+                throw new IllegalStateException(String.format(
+                        "Cannot transition model element '%s' to state %s as it does not exist.",
+                        getPath(), getTargetState().name()));
             }
             return doCalculateDependencies(dependencies);
         }
@@ -740,9 +769,15 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         @Override
         public final void apply() {
             if (!node.getState().equals(getTargetState().previous())) {
-                throw new IllegalStateException(String.format("Cannot transition model element '%s' to state %s as it is already at state %s.", node.getPath(), getTargetState(), node.getState()));
+                throw new IllegalStateException(String.format(
+                        "Cannot transition model element '%s' to state %s as it is already at state %s.",
+                        node.getPath(), getTargetState(), node.getState()));
             }
-            LOGGER.debug("Project {} - Transitioning model element '{}' to state {}.", projectPath, node.getPath(), getTargetState().name());
+            LOGGER.debug(
+                    "Project {} - Transitioning model element '{}' to state {}.",
+                    projectPath,
+                    node.getPath(),
+                    getTargetState().name());
             node.setState(getTargetState());
         }
 
@@ -974,7 +1009,8 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
         @Override
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            dependencies.add(new TryResolveAndDiscoverPath(parent.getTarget().getPath().child(path.getName())));
+            dependencies.add(
+                    new TryResolveAndDiscoverPath(parent.getTarget().getPath().child(path.getName())));
             return true;
         }
 
@@ -991,9 +1027,9 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             // show the type of the node if we do this for now. It should use the schema instead to find
             // the type of the property node instead.
             ModelRegistration registration = ModelRegistrations.of(path)
-                .descriptor(parent.getDescriptor())
-                .withProjection(childTarget.getProjection())
-                .build();
+                    .descriptor(parent.getDescriptor())
+                    .withProjection(childTarget.getProjection())
+                    .build();
             ModelReferenceNode childNode = new ModelReferenceNode(DefaultModelRegistry.this, registration, parent);
             childNode.setTarget(childTarget);
             registerNode(childNode, ImmutableMultimap.<ModelActionRole, ModelAction>of());
@@ -1136,7 +1172,8 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
         @Override
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            // Shouldn't really be here. Currently this goal is used by {@link #bindAllReferences} which also expects the subject to be bound
+            // Shouldn't really be here. Currently this goal is used by {@link #bindAllReferences} which also expects
+            // the subject to be bound
             maybeBind(binder.getSubjectBinding(), dependencies);
             for (ModelBinding binding : binder.getInputBindings()) {
                 maybeBind(binding, dependencies);
@@ -1167,7 +1204,8 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
         @Override
         public String toString() {
-            return "run action for " + binder.getSubjectBinding().getPredicate() + ", rule: " + binder.getDescriptor() + ", state: " + state;
+            return "run action for " + binder.getSubjectBinding().getPredicate() + ", rule: " + binder.getDescriptor()
+                    + ", state: " + state;
         }
 
         @Override
@@ -1183,7 +1221,8 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
                 throw unbound(Collections.singleton(binder));
             }
             for (ModelBinding binding : binder.getInputBindings()) {
-                dependencies.add(graph.nodeAtState(new NodeAtState(binding.getNode().getPath(), binding.getPredicate().getState())));
+                dependencies.add(graph.nodeAtState(new NodeAtState(
+                        binding.getNode().getPath(), binding.getPredicate().getState())));
             }
             return true;
         }
@@ -1195,7 +1234,11 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
         @Override
         void apply() {
-            LOGGER.debug("Project {} - Running model element '{}' rule action {}", projectPath, getPath(), binder.getDescriptor());
+            LOGGER.debug(
+                    "Project {} - Running model element '{}' rule action {}",
+                    projectPath,
+                    getPath(),
+                    binder.getDescriptor());
             fireAction(binder);
             node.notifyFired(binder);
         }

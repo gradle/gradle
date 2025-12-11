@@ -44,11 +44,7 @@ public abstract class SearchUtil {
             case 1:
                 T onlyElement = sortedElements.get(0);
                 int comparedToSearch = key.compareTo(onlyElement);
-                return comparedToSearch == 0
-                    ? 0
-                    : comparedToSearch < 0
-                        ? -1
-                        : -2;
+                return comparedToSearch == 0 ? 0 : comparedToSearch < 0 ? -1 : -2;
             default:
                 int low = 0;
                 int high = size - 1;
@@ -66,7 +62,7 @@ public abstract class SearchUtil {
                         return mid; // key found
                     }
                 }
-                return -(low + 1);  // key not found
+                return -(low + 1); // key not found
         }
     }
 }

@@ -55,5 +55,4 @@ public class DefaultRootComponentIdentifier implements RootComponentIdentifier {
     public int hashCode() {
         return Long.hashCode(instanceId);
     }
-
 }

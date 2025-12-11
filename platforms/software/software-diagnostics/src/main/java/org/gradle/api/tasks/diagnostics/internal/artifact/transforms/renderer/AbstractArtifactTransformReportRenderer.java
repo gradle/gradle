@@ -28,7 +28,8 @@ import org.gradle.reporting.ReportRenderer;
  *
  * @param <E> the destination type which will receive the model data and be responsible for writing it somewhere
  */
-public abstract class AbstractArtifactTransformReportRenderer<E> extends ReportRenderer<ArtifactTransformReportModel, E> {
+public abstract class AbstractArtifactTransformReportRenderer<E>
+        extends ReportRenderer<ArtifactTransformReportModel, E> {
     protected final ArtifactTransformReportSpec spec;
 
     protected AbstractArtifactTransformReportRenderer(ArtifactTransformReportSpec spec) {

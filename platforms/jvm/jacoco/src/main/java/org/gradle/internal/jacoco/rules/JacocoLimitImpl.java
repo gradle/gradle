@@ -16,9 +16,8 @@
 
 package org.gradle.internal.jacoco.rules;
 
-import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
-
 import java.math.BigDecimal;
+import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 
 public class JacocoLimitImpl implements JacocoLimit {
 
@@ -68,7 +67,8 @@ public class JacocoLimitImpl implements JacocoLimit {
     }
 
     @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("ReferenceEquality") // TODO: evaluate errorprone suppression
+    // (https://github.com/gradle/gradle/issues/35864)
     public boolean equals(Object o) {
         if (this == o) {
             return true;

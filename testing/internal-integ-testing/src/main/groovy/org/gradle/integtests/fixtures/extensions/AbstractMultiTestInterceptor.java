@@ -15,6 +15,10 @@
  */
 package org.gradle.integtests.fixtures.extensions;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import org.spockframework.runtime.extension.AbstractMethodInterceptor;
 import org.spockframework.runtime.extension.IDataDriver;
 import org.spockframework.runtime.extension.IMethodInvocation;
@@ -22,11 +26,6 @@ import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.IterationInfo;
 import org.spockframework.runtime.model.NameProvider;
 import org.spockframework.runtime.model.SpecInfo;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A base class for those test interceptors which execute a test multiple times.
@@ -62,12 +61,13 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         if (iterationNameProvider == null) {
             feature.setIterationNameProvider(p -> feature.getName() + " " + currentExecution);
         } else {
-            feature.setIterationNameProvider(iteration -> iterationNameProvider.getName(iteration) + " " + currentExecution);
+            feature.setIterationNameProvider(
+                    iteration -> iterationNameProvider.getName(iteration) + " " + currentExecution);
         }
 
         feature.setDataDriver((dataIterator, iterationRunner, parameters) -> {
             TestDetails testDetails = new TestDetails(feature);
-            while(dataIterator.hasNext()) {
+            while (dataIterator.hasNext()) {
                 Object[] arguments = dataIterator.next();
                 Object[] actualArguments = IDataDriver.prepareArgumentArray(arguments, parameters);
                 for (Execution execution : executions) {
@@ -122,18 +122,16 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         return true;
     }
 
-    public static abstract class Execution {
+    public abstract static class Execution {
         protected Class<?> target;
 
         final void init(Class<?> target) {
             this.target = target;
         }
 
-        protected void before(IMethodInvocation invocation) {
-        }
+        protected void before(IMethodInvocation invocation) {}
 
-        protected void after() {
-        }
+        protected void after() {}
 
         /**
          * Returns a display name for this execution. Used in the JUnit descriptions for test execution.
@@ -150,8 +148,7 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         /**
          * Checks that this execution can be executed, throwing an exception if not.
          */
-        protected void assertCanExecute() {
-        }
+        protected void assertCanExecute() {}
     }
 
     public static class TestDetails {

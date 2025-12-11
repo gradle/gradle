@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
-import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
-
+import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;
-import java.util.Set;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
 
 /**
  * An annotation processor which can decide whether it is isolating, aggregating or non-incremental at runtime.
@@ -41,7 +40,8 @@ public class DynamicProcessor extends DelegatingProcessor {
     @Override
     public void init(ProcessingEnvironment processingEnv) {
         IncrementalFiler incrementalFiler = new IncrementalFiler(processingEnv.getFiler(), strategy);
-        IncrementalProcessingEnvironment incrementalEnvironment = new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
+        IncrementalProcessingEnvironment incrementalEnvironment =
+                new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
         super.init(incrementalEnvironment);
         strategy.updateFromOptions(getSupportedOptions());
     }

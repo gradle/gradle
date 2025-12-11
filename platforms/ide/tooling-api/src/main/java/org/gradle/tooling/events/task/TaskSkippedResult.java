@@ -31,5 +31,4 @@ public interface TaskSkippedResult extends TaskOperationResult, SkippedResult {
      * @return the message describing the skip reason
      */
     String getSkipMessage();
-
 }

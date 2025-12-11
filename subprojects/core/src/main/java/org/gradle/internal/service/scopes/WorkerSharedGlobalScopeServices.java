@@ -16,6 +16,17 @@
 
 package org.gradle.internal.service.scopes;
 
+import static org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory;
+import static org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory;
+import static org.gradle.api.internal.file.ManagedFactories.RegularFileManagedFactory;
+import static org.gradle.api.internal.file.ManagedFactories.RegularFilePropertyManagedFactory;
+import static org.gradle.api.internal.file.collections.ManagedFactories.ConfigurableFileCollectionManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.ListPropertyManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.MapPropertyManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.PropertyManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.ProviderManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.SetPropertyManagedFactory;
+
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.GlobalCacheRootsProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -71,26 +82,13 @@ import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 
-import static org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory;
-import static org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory;
-import static org.gradle.api.internal.file.ManagedFactories.RegularFileManagedFactory;
-import static org.gradle.api.internal.file.ManagedFactories.RegularFilePropertyManagedFactory;
-import static org.gradle.api.internal.file.collections.ManagedFactories.ConfigurableFileCollectionManagedFactory;
-import static org.gradle.api.internal.provider.ManagedFactories.ListPropertyManagedFactory;
-import static org.gradle.api.internal.provider.ManagedFactories.MapPropertyManagedFactory;
-import static org.gradle.api.internal.provider.ManagedFactories.PropertyManagedFactory;
-import static org.gradle.api.internal.provider.ManagedFactories.ProviderManagedFactory;
-import static org.gradle.api.internal.provider.ManagedFactories.SetPropertyManagedFactory;
-
 public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     protected final ClassPath additionalModuleClassPath;
     private final CurrentGradleInstallation currentGradleInstallation;
 
     public WorkerSharedGlobalScopeServices(
-        ClassPath additionalModuleClassPath,
-        CurrentGradleInstallation currentGradleInstallation
-    ) {
+            ClassPath additionalModuleClassPath, CurrentGradleInstallation currentGradleInstallation) {
         this.additionalModuleClassPath = additionalModuleClassPath;
         this.currentGradleInstallation = currentGradleInstallation;
     }
@@ -101,7 +99,10 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     @Provides
-    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
+    protected CacheFactory createCacheFactory(
+            FileLockManager fileLockManager,
+            ExecutorFactory executorFactory,
+            BuildOperationRunner buildOperationRunner) {
         return new DefaultCacheFactory(fileLockManager, executorFactory);
     }
 
@@ -116,8 +117,10 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     @Provides
-    ProgressLoggerFactory createProgressLoggerFactory(OutputEventListener outputEventListener, Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
-        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
+    ProgressLoggerFactory createProgressLoggerFactory(
+            OutputEventListener outputEventListener, Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
+        return new DefaultProgressLoggerFactory(
+                new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
     }
 
     @Provides
@@ -141,7 +144,8 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     @Provides({FilePropertyFactory.class, FileFactory.class})
-    DefaultFilePropertyFactory createFilePropertyFactory(PropertyHost propertyHost, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+    DefaultFilePropertyFactory createFilePropertyFactory(
+            PropertyHost propertyHost, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         return new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);
     }
 
@@ -162,27 +166,26 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     @Provides
     ManagedFactoryRegistry createManagedFactoryRegistry(
-        NamedObjectInstantiator namedObjectInstantiator,
-        InstantiatorFactory instantiatorFactory,
-        PropertyFactory propertyFactory,
-        FileCollectionFactory fileCollectionFactory,
-        FileFactory fileFactory,
-        FilePropertyFactory filePropertyFactory
-    ) {
-        return new DefaultManagedFactoryRegistry().withFactories(
-            instantiatorFactory.getManagedFactory(),
-            new ConfigurableFileCollectionManagedFactory(fileCollectionFactory),
-            new RegularFileManagedFactory(fileFactory),
-            new RegularFilePropertyManagedFactory(filePropertyFactory),
-            new DirectoryManagedFactory(fileFactory),
-            new DirectoryPropertyManagedFactory(filePropertyFactory),
-            new SetPropertyManagedFactory(propertyFactory),
-            new ListPropertyManagedFactory(propertyFactory),
-            new MapPropertyManagedFactory(propertyFactory),
-            new PropertyManagedFactory(propertyFactory),
-            new ProviderManagedFactory(),
-            namedObjectInstantiator
-        );
+            NamedObjectInstantiator namedObjectInstantiator,
+            InstantiatorFactory instantiatorFactory,
+            PropertyFactory propertyFactory,
+            FileCollectionFactory fileCollectionFactory,
+            FileFactory fileFactory,
+            FilePropertyFactory filePropertyFactory) {
+        return new DefaultManagedFactoryRegistry()
+                .withFactories(
+                        instantiatorFactory.getManagedFactory(),
+                        new ConfigurableFileCollectionManagedFactory(fileCollectionFactory),
+                        new RegularFileManagedFactory(fileFactory),
+                        new RegularFilePropertyManagedFactory(filePropertyFactory),
+                        new DirectoryManagedFactory(fileFactory),
+                        new DirectoryPropertyManagedFactory(filePropertyFactory),
+                        new SetPropertyManagedFactory(propertyFactory),
+                        new ListPropertyManagedFactory(propertyFactory),
+                        new MapPropertyManagedFactory(propertyFactory),
+                        new PropertyManagedFactory(propertyFactory),
+                        new ProviderManagedFactory(),
+                        namedObjectInstantiator);
     }
 
     @Provides({ModuleRegistry.class, GlobalCacheRootsProvider.class})
@@ -212,18 +215,16 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     @Provides
     BuildOperationRunner createBuildOperationRunner(
-        Clock clock,
-        CurrentBuildOperationRef currentBuildOperationRef,
-        ProgressLoggerFactory progressLoggerFactory,
-        BuildOperationIdFactory buildOperationIdFactory,
-        BuildOperationListenerManager buildOperationListenerManager
-    ) {
+            Clock clock,
+            CurrentBuildOperationRef currentBuildOperationRef,
+            ProgressLoggerFactory progressLoggerFactory,
+            BuildOperationIdFactory buildOperationIdFactory,
+            BuildOperationListenerManager buildOperationListenerManager) {
         BuildOperationListener listener = buildOperationListenerManager.getBroadcaster();
         return new DefaultBuildOperationRunner(
-            currentBuildOperationRef,
-            clock,
-            buildOperationIdFactory,
-            () -> new BuildOperationProgressEventListenerAdapter(listener, progressLoggerFactory, clock)
-        );
+                currentBuildOperationRef,
+                clock,
+                buildOperationIdFactory,
+                () -> new BuildOperationProgressEventListenerAdapter(listener, progressLoggerFactory, clock));
     }
 }

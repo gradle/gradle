@@ -15,9 +15,8 @@
  */
 package org.gradle.initialization.layout;
 
-import org.gradle.initialization.BuildLayoutParameters;
-
 import java.io.File;
+import org.gradle.initialization.BuildLayoutParameters;
 
 /**
  * Configuration which affects the (static) layout of a build.

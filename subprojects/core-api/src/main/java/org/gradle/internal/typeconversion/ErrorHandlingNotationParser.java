@@ -25,7 +25,11 @@ class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
     private final boolean allowNullInput;
     private final NotationParser<N, T> delegate;
 
-    public ErrorHandlingNotationParser(Object targetTypeDisplayName, String invalidNotationMessage, boolean allowNullInput, NotationParser<N, T> delegate) {
+    public ErrorHandlingNotationParser(
+            Object targetTypeDisplayName,
+            String invalidNotationMessage,
+            boolean allowNullInput,
+            NotationParser<N, T> delegate) {
         this.targetTypeDisplayName = targetTypeDisplayName;
         this.invalidNotationMessage = invalidNotationMessage;
         this.allowNullInput = allowNullInput;
@@ -40,14 +44,15 @@ class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
     @Override
     public T parseNotation(N notation) {
         String failure;
-        //TODO SF add quotes to both formats (there will be *lots* of tests failing so I'm not sure if it is worth it).
+        // TODO SF add quotes to both formats (there will be *lots* of tests failing so I'm not sure if it is worth it).
         if (notation == null && !allowNullInput) {
             failure = String.format("Cannot convert a null value to %s.", targetTypeDisplayName);
         } else {
             try {
                 return delegate.parseNotation(notation);
             } catch (UnsupportedNotationException e) {
-                failure = String.format("Cannot convert the provided notation to %s: %s.", targetTypeDisplayName, e.getNotation());
+                failure = String.format(
+                        "Cannot convert the provided notation to %s: %s.", targetTypeDisplayName, e.getNotation());
             }
         }
 

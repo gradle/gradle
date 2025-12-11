@@ -16,11 +16,10 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
-import org.gradle.internal.process.ArgWriter;
-
 import java.io.File;
 import java.util.List;
+import org.gradle.internal.process.ArgWriter;
+import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
 
 /**
  * Uses an option file for arguments passed to Visual C++.
@@ -32,6 +31,7 @@ class VisualCppOptionsFileArgsWriter extends OptionsFileArgsWriter {
 
     @Override
     protected List<String> transformArgs(List<String> originalArgs, File tempDir) {
-        return ArgWriter.argsFileGenerator(new File(tempDir, "options.txt"), ArgWriter.windowsStyleFactory()).apply(originalArgs);
+        return ArgWriter.argsFileGenerator(new File(tempDir, "options.txt"), ArgWriter.windowsStyleFactory())
+                .apply(originalArgs);
     }
 }

@@ -16,14 +16,13 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.reflect.InjectionPointQualifier;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.reflect.InjectionPointQualifier;
 
 /**
  * Attach this annotation to an abstract getter that should receive the <em>artifact dependencies</em> of the {@link InputArtifact} of an artifact transform.
@@ -62,5 +61,4 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 @Documented
 @InjectionPointQualifier(supportedTypes = FileCollection.class)
-public @interface InputArtifactDependencies {
-}
+public @interface InputArtifactDependencies {}

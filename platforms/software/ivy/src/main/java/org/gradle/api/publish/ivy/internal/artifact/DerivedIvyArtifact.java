@@ -16,20 +16,22 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
+import static com.google.common.io.Files.getFileExtension;
+
+import java.io.File;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.tasks.TaskDependency;
 
-import java.io.File;
-
-import static com.google.common.io.Files.getFileExtension;
-
 public class DerivedIvyArtifact extends AbstractIvyArtifact {
     private final IvyArtifact original;
     private final PublicationInternal.DerivedArtifact derived;
 
-    public DerivedIvyArtifact(IvyArtifact original, PublicationInternal.DerivedArtifact derived, TaskDependencyFactory taskDependencyFactory) {
+    public DerivedIvyArtifact(
+            IvyArtifact original,
+            PublicationInternal.DerivedArtifact derived,
+            TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         this.original = original;
         this.derived = derived;

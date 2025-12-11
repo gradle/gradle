@@ -33,7 +33,8 @@ public interface DependencySubstitutionInternal extends DependencySubstitution {
      * Get the user-configured target, if any. Null if the user did not configure a target,
      * and the requested target should be used.
      */
-    @Nullable ComponentSelector getConfiguredTargetSelector();
+    @Nullable
+    ComponentSelector getConfiguredTargetSelector();
 
     /**
      * Get all descriptors describing the reasons for any substitutions performed.
@@ -41,13 +42,15 @@ public interface DependencySubstitutionInternal extends DependencySubstitution {
      * Non-null and non-empty if any substitutions were performed.
      * Null if no substitutions were performed.
      */
-    @Nullable ImmutableList<ComponentSelectionDescriptorInternal> getRuleDescriptors();
+    @Nullable
+    ImmutableList<ComponentSelectionDescriptorInternal> getRuleDescriptors();
 
     /**
      * Returns the user-configured artifact selectors, if any. Null if the user did not
      * configure any artifact selectors and the requested artifact selectors should be used.
      */
-    @Nullable ImmutableList<DependencyArtifactSelector> getConfiguredArtifactSelectors();
+    @Nullable
+    ImmutableList<DependencyArtifactSelector> getConfiguredArtifactSelectors();
 
     /**
      * Get the target of the dependency substitution.

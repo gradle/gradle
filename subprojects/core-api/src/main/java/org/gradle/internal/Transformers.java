@@ -16,13 +16,12 @@
 
 package org.gradle.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.Transformer;
-
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.regex.Pattern;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 
 /**
  * Utility transformers.
@@ -41,7 +40,7 @@ public abstract class Transformers {
         return new CastingTransformer<O, I>(outputType);
     }
 
-    //just returns the original object
+    // just returns the original object
     public static <T> Transformer<T, T> noOpTransformer() {
         return new Transformer<T, T>() {
             @Override
@@ -86,11 +85,13 @@ public abstract class Transformers {
     private static class CommandLineArgumentTransformer implements Transformer<String, String> {
         private static final Pattern SINGLE_QUOTED = Pattern.compile("^'.*'$");
         private static final Pattern DOUBLE_QUOTED = Pattern.compile("^\".*\"$");
-        private static final Pattern A_SINGLE_QUOTE =  Pattern.compile("'");
+        private static final Pattern A_SINGLE_QUOTE = Pattern.compile("'");
 
         @Override
         public String transform(String input) {
-            if (SINGLE_QUOTED.matcher(input).matches() || DOUBLE_QUOTED.matcher(input).matches() || !input.contains(" ")) {
+            if (SINGLE_QUOTED.matcher(input).matches()
+                    || DOUBLE_QUOTED.matcher(input).matches()
+                    || !input.contains(" ")) {
                 return input;
             } else {
                 return wrapWithSingleQuotes(input);

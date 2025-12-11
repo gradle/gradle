@@ -19,6 +19,17 @@ package org.gradle.internal.resource.local;
 import com.google.common.io.CountingInputStream;
 import com.google.common.io.CountingOutputStream;
 import com.google.common.io.Files;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.resources.ResourceException;
@@ -36,30 +47,17 @@ import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.jspecify.annotations.Nullable;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * A file backed {@link ExternalResource} implementation.
  */
-public class LocalFileStandInExternalResource extends AbstractExternalResource implements LocallyAvailableExternalResource, LocalBinaryResource {
+public class LocalFileStandInExternalResource extends AbstractExternalResource
+        implements LocallyAvailableExternalResource, LocalBinaryResource {
     private static final FileResourceListener NO_OP_LISTENER = new FileResourceListener() {
         @Override
-        public void fileObserved(File file) {
-        }
+        public void fileObserved(File file) {}
 
         @Override
-        public void directoryChildrenObserved(File file) {
-        }
+        public void directoryChildrenObserved(File file) {}
     };
     private final File localFile;
     private final FileSystem fileSystem;
@@ -118,7 +116,8 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
         if (fileMetadata.getType() == FileType.Missing) {
             return null;
         }
-        return new DefaultExternalResourceMetaData(localFile.toURI(), fileMetadata.getLastModified(), fileMetadata.getLength());
+        return new DefaultExternalResourceMetaData(
+                localFile.toURI(), fileMetadata.getLastModified(), fileMetadata.getLength());
     }
 
     @Override
@@ -167,7 +166,8 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
             throw ResourceExceptions.getMissing(getURI());
         }
         try {
-            CountingInputStream input = new CountingInputStream(new BufferedInputStream(new FileInputStream(localFile)));
+            CountingInputStream input =
+                    new CountingInputStream(new BufferedInputStream(new FileInputStream(localFile)));
             try {
                 readAction.execute(input);
             } finally {
@@ -181,12 +181,14 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
 
     @Nullable
     @Override
-    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException {
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAndMetadataAction<? extends T> readAction)
+            throws ResourceException {
         if (!localFile.exists()) {
             return null;
         }
         try {
-            try (CountingInputStream input = new CountingInputStream(new BufferedInputStream(new FileInputStream(localFile)))) {
+            try (CountingInputStream input =
+                    new CountingInputStream(new BufferedInputStream(new FileInputStream(localFile)))) {
                 T resourceReadResult = readAction.execute(input, getMetaData());
                 return ExternalResourceReadResult.of(input.getCount(), resourceReadResult);
             }
@@ -197,12 +199,14 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
 
     @Nullable
     @Override
-    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException {
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction)
+            throws ResourceException {
         if (!localFile.exists()) {
             return null;
         }
         try {
-            try (CountingInputStream input = new CountingInputStream(new BufferedInputStream(new FileInputStream(localFile)))) {
+            try (CountingInputStream input =
+                    new CountingInputStream(new BufferedInputStream(new FileInputStream(localFile)))) {
                 T resourceReadResult = readAction.execute(input);
                 return ExternalResourceReadResult.of(input.getCount(), resourceReadResult);
             }

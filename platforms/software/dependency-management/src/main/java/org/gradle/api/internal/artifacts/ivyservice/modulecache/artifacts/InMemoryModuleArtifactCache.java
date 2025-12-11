@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
-import org.gradle.internal.hash.HashCode;
-import org.gradle.util.internal.BuildCommencedTimeProvider;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.jspecify.annotations.Nullable;
 
 public class InMemoryModuleArtifactCache implements ModuleArtifactCache {
     private final Map<ArtifactAtRepositoryKey, CachedArtifact> inMemoryCache = new ConcurrentHashMap<>();
@@ -41,7 +40,8 @@ public class InMemoryModuleArtifactCache implements ModuleArtifactCache {
 
     @Override
     public void store(ArtifactAtRepositoryKey key, File artifactFile, HashCode moduleDescriptorHash) {
-        inMemoryCache.put(key, new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash));
+        inMemoryCache.put(
+                key, new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash));
         if (delegate != null) {
             delegate.store(key, artifactFile, moduleDescriptorHash);
         }
@@ -49,7 +49,8 @@ public class InMemoryModuleArtifactCache implements ModuleArtifactCache {
 
     @Override
     public void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, HashCode descriptorHash) {
-        inMemoryCache.put(key, new DefaultCachedArtifact(attemptedLocations, timeProvider.getCurrentTime(), descriptorHash));
+        inMemoryCache.put(
+                key, new DefaultCachedArtifact(attemptedLocations, timeProvider.getCurrentTime(), descriptorHash));
         if (delegate != null) {
             delegate.storeMissing(key, attemptedLocations, descriptorHash);
         }

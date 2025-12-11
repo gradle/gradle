@@ -27,8 +27,5 @@ public interface VisitedArtifactResults {
      * @param lenient If true, ignore artifacts that are resolved, but unavailable
      */
     SelectedArtifactResults select(
-        ArtifactSelectionServices consumerServices,
-        ArtifactSelectionSpec spec,
-        boolean lenient
-    );
+            ArtifactSelectionServices consumerServices, ArtifactSelectionSpec spec, boolean lenient);
 }

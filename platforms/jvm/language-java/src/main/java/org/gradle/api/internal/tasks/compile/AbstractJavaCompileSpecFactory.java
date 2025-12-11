@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import java.io.File;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.Jvm;
@@ -24,10 +25,8 @@ import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-
 public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> implements Factory<T> {
-    private final static Logger LOGGER = LoggerFactory.getLogger(AbstractJavaCompileSpecFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJavaCompileSpecFactory.class);
 
     private final CompileOptions compileOptions;
     private final JavaInstallationMetadata toolchain;
@@ -65,8 +64,10 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         }
 
         if (toolchain.isCurrentJvm() && JdkJavaCompiler.canBeUsed()) {
-            // Please keep it in mind, that when using TestKit with debug enabled (i.e. in embedded mode), this line won't be reached after Java 16 (JEP 396)
-            // If you need this to be executed, add the necessary configs from JPMSConfiguration to the test runner executing Gradle
+            // Please keep it in mind, that when using TestKit with debug enabled (i.e. in embedded mode), this line
+            // won't be reached after Java 16 (JEP 396)
+            // If you need this to be executed, add the necessary configs from JPMSConfiguration to the test runner
+            // executing Gradle
             LOGGER.info("Compilation mode: in-process compilation");
             return getInProcessSpec();
         }
@@ -75,9 +76,9 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         return getForkingSpec(toolchainJavaHome, toolchain.getLanguageVersion().asInt());
     }
 
-    abstract protected T getCommandLineSpec(File executable);
+    protected abstract T getCommandLineSpec(File executable);
 
-    abstract protected T getForkingSpec(File javaHome, int javaLanguageVersion);
+    protected abstract T getForkingSpec(File javaHome, int javaLanguageVersion);
 
-    abstract protected T getInProcessSpec();
+    protected abstract T getInProcessSpec();
 }

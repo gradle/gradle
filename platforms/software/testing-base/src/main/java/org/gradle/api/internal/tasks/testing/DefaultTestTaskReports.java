@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import com.google.common.collect.ImmutableList;
+import javax.inject.Inject;
 import org.gradle.api.Describable;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.ConfigurableReport;
@@ -28,16 +29,16 @@ import org.gradle.api.reporting.internal.SingleDirectoryReport;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.TestTaskReports;
 
-import javax.inject.Inject;
-
 public class DefaultTestTaskReports extends DelegatingReportContainer<Report> implements TestTaskReports {
 
     @Inject
     public DefaultTestTaskReports(Describable owner, ObjectFactory objectFactory) {
-        super(DefaultReportContainer.create(objectFactory, ConfigurableReport.class, factory -> ImmutableList.of(
-            factory.instantiateReport(DefaultJUnitXmlReport.class, "junitXml", owner),
-            factory.instantiateReport(SingleDirectoryReport.class, "html", owner, "index.html")
-        )));
+        super(DefaultReportContainer.create(
+                objectFactory,
+                ConfigurableReport.class,
+                factory -> ImmutableList.of(
+                        factory.instantiateReport(DefaultJUnitXmlReport.class, "junitXml", owner),
+                        factory.instantiateReport(SingleDirectoryReport.class, "html", owner, "index.html"))));
     }
 
     @Override
@@ -49,5 +50,4 @@ public class DefaultTestTaskReports extends DelegatingReportContainer<Report> im
     public JUnitXmlReport getJunitXml() {
         return (JUnitXmlReport) getByName("junitXml");
     }
-
 }

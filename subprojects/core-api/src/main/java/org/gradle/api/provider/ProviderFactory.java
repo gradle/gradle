@@ -16,6 +16,9 @@
 
 package org.gradle.api.provider;
 
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.credentials.AwsCredentials;
@@ -30,10 +33,6 @@ import org.gradle.process.ExecOutput;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.function.BiFunction;
 
 /**
  * A factory for creating instances of {@link Provider}.
@@ -272,11 +271,8 @@ public interface ProviderFactory {
      * @return the provider, never returns null
      * @since 6.1
      */
-    <T, P extends ValueSourceParameters>
-    Provider<T> of(
-        Class<? extends ValueSource<T, P>> valueSourceType,
-        Action<? super ValueSourceSpec<P>> configuration
-    );
+    <T, P extends ValueSourceParameters> Provider<T> of(
+            Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configuration);
 
     /**
      * Creates a {@link Provider} for the given {@link Credentials} type.
@@ -345,5 +341,6 @@ public interface ProviderFactory {
      * @return a combined provider
      * @since 6.6
      */
-    <A, B, R> Provider<R> zip(Provider<A> first, Provider<B> second, BiFunction<? super A, ? super B, ? extends R> combiner);
+    <A, B, R> Provider<R> zip(
+            Provider<A> first, Provider<B> second, BiFunction<? super A, ? super B, ? extends R> combiner);
 }

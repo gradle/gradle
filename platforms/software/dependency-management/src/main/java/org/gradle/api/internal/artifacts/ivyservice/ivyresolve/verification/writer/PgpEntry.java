@@ -16,16 +16,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
-import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
-import org.gradle.internal.Factory;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
+import org.gradle.internal.Factory;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
 class PgpEntry extends VerificationEntry {
     private final Factory<File> signatureFile;
@@ -38,7 +37,11 @@ class PgpEntry extends VerificationEntry {
     // this field is used during "grouping" of entries to tell if we should ignore writing this entry
     private final Set<String> keysDeclaredGlobally = new HashSet<>();
 
-    PgpEntry(ModuleComponentArtifactIdentifier id, ArtifactVerificationOperation.ArtifactKind artifactKind, File file, Factory<File> signatureFile) {
+    PgpEntry(
+            ModuleComponentArtifactIdentifier id,
+            ArtifactVerificationOperation.ArtifactKind artifactKind,
+            File file,
+            Factory<File> signatureFile) {
         super(id, artifactKind, file);
         this.signatureFile = () -> {
             File f = signatureFile.create();

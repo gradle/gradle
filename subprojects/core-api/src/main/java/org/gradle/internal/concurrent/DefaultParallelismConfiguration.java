@@ -16,11 +16,10 @@
 
 package org.gradle.internal.concurrent;
 
+import java.io.Serializable;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.gradle.concurrent.ParallelismConfiguration;
-
-import java.io.Serializable;
 
 public class DefaultParallelismConfiguration implements Serializable, ParallelismConfiguration {
 

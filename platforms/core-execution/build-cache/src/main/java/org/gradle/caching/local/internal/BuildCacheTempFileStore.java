@@ -16,10 +16,9 @@
 
 package org.gradle.caching.local.internal;
 
-import org.gradle.internal.hash.HashCode;
-
 import java.io.File;
 import java.util.function.Consumer;
+import org.gradle.internal.hash.HashCode;
 
 public interface BuildCacheTempFileStore {
 
@@ -30,5 +29,4 @@ public interface BuildCacheTempFileStore {
      * The temp file will be deleted once the action is completed.
      */
     void withTempFile(HashCode key, Consumer<? super File> action);
-
 }

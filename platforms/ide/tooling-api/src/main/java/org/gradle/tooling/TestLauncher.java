@@ -63,7 +63,6 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      */
     TestLauncher withJvmTestClasses(String... testClasses);
 
-
     /**
      * <p>Adds tests to be executed declared by class name.</p>
      *

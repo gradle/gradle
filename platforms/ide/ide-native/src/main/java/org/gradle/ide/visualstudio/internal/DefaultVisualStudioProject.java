@@ -17,6 +17,16 @@
 package org.gradle.ide.visualstudio.internal;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -32,17 +42,6 @@ import org.gradle.plugins.ide.internal.IdeProjectMetadata;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.VersionNumber;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
@@ -54,25 +53,41 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     private final Property<VersionNumber> visualStudioVersion;
     private final Property<VersionNumber> sdkVersion;
     private final List<File> additionalFiles = new ArrayList<>();
-    private final Map<VisualStudioTargetBinary, VisualStudioProjectConfiguration> configurations = new LinkedHashMap<VisualStudioTargetBinary, VisualStudioProjectConfiguration>();
+    private final Map<VisualStudioTargetBinary, VisualStudioProjectConfiguration> configurations =
+            new LinkedHashMap<VisualStudioTargetBinary, VisualStudioProjectConfiguration>();
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private final ConfigurableFileCollection sourceFiles;
     private final ConfigurableFileCollection headerFiles;
 
-    public DefaultVisualStudioProject(String name, String componentName, PathToFileResolver fileResolver, ObjectFactory objectFactory, ProviderFactory providerFactory) {
+    public DefaultVisualStudioProject(
+            String name,
+            String componentName,
+            PathToFileResolver fileResolver,
+            ObjectFactory objectFactory,
+            ProviderFactory providerFactory) {
         this.name = name;
         this.componentName = componentName;
-        this.visualStudioVersion = objectFactory.property(VersionNumber.class).convention(AbstractCppBinaryVisualStudioTargetBinary.DEFAULT_VISUAL_STUDIO_VERSION);
-        this.sdkVersion = objectFactory.property(VersionNumber.class).convention(AbstractCppBinaryVisualStudioTargetBinary.DEFAULT_SDK_VERSION);
+        this.visualStudioVersion = objectFactory
+                .property(VersionNumber.class)
+                .convention(AbstractCppBinaryVisualStudioTargetBinary.DEFAULT_VISUAL_STUDIO_VERSION);
+        this.sdkVersion = objectFactory
+                .property(VersionNumber.class)
+                .convention(AbstractCppBinaryVisualStudioTargetBinary.DEFAULT_SDK_VERSION);
         this.projectFile = objectFactory.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj");
-        this.filtersFile = objectFactory.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj.filters");
-        this.sourceFiles = objectFactory.fileCollection().from(providerFactory.provider(() -> {
-            Set<File> allSourcesFromBinaries = new LinkedHashSet<>();
-            for (VisualStudioTargetBinary binary : configurations.keySet()) {
-                allSourcesFromBinaries.addAll(binary.getSourceFiles().getFiles());
-            }
-            return allSourcesFromBinaries;
-        }), providerFactory.provider(() -> additionalFiles));
+        this.filtersFile =
+                objectFactory.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj.filters");
+        this.sourceFiles = objectFactory
+                .fileCollection()
+                .from(
+                        providerFactory.provider(() -> {
+                            Set<File> allSourcesFromBinaries = new LinkedHashSet<>();
+                            for (VisualStudioTargetBinary binary : configurations.keySet()) {
+                                allSourcesFromBinaries.addAll(
+                                        binary.getSourceFiles().getFiles());
+                            }
+                            return allSourcesFromBinaries;
+                        }),
+                        providerFactory.provider(() -> additionalFiles));
         this.headerFiles = objectFactory.fileCollection().from(providerFactory.provider(() -> {
             Set<File> allHeadersFromBinaries = new LinkedHashSet<File>();
             for (VisualStudioTargetBinary binary : configurations.keySet()) {
@@ -102,7 +117,10 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     }
 
     public static String getUUID(File projectFile) {
-        return "{" + UUID.nameUUIDFromBytes(projectFile.getAbsolutePath().getBytes()).toString().toUpperCase(Locale.ROOT) + "}";
+        return "{"
+                + UUID.nameUUIDFromBytes(projectFile.getAbsolutePath().getBytes())
+                        .toString()
+                        .toUpperCase(Locale.ROOT) + "}";
     }
 
     public ConfigurableFileCollection getSourceFiles() {
@@ -128,7 +146,8 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         return CollectionUtils.toList(configurations.values());
     }
 
-    public void addConfiguration(VisualStudioTargetBinary nativeBinary, VisualStudioProjectConfiguration configuration) {
+    public void addConfiguration(
+            VisualStudioTargetBinary nativeBinary, VisualStudioProjectConfiguration configuration) {
         configurations.put(nativeBinary, configuration);
         builtBy(nativeBinary.getSourceFiles());
         builtBy(nativeBinary.getResourceFiles());

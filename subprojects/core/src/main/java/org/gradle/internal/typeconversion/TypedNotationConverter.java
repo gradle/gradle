@@ -44,5 +44,5 @@ public abstract class TypedNotationConverter<N, T> implements NotationConverter<
         }
     }
 
-    abstract protected T parseType(N notation);
+    protected abstract T parseType(N notation);
 }

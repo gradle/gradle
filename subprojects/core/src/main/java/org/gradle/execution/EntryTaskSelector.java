@@ -23,8 +23,7 @@ import org.gradle.execution.plan.QueryableExecutionPlan;
 public interface EntryTaskSelector {
     void applyTasksTo(Context context, ExecutionPlan plan);
 
-    default void postProcessExecutionPlan(Context context, QueryableExecutionPlan plan) {
-    }
+    default void postProcessExecutionPlan(Context context, QueryableExecutionPlan plan) {}
 
     interface Context {
         TaskSelection getSelection(String taskPath);

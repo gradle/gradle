@@ -21,6 +21,8 @@ import groovy.lang.Closure;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SecondParam;
 import groovy.transform.stc.SimpleType;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
@@ -39,9 +41,6 @@ import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * This file is used to add <a href="https://groovy-lang.org/metaprogramming.html#_extension_modules">Groovy Extension Module</a> to {@link DependencyCollector} and {@link DependencyModifier} to make the Groovy DSL more idiomatic.
@@ -98,7 +97,8 @@ public class DependenciesExtensionModule {
     @Deprecated
     public static ExternalModuleDependency module(Dependencies self, Map<String, CharSequence> map) {
         if (!MODULE_LEGAL_MAP_KEYS.containsAll(map.keySet())) {
-            CollectionUtils.SetDiff<String> diff = CollectionUtils.diffSetsBy(MODULE_LEGAL_MAP_KEYS, map.keySet(), k -> k);
+            CollectionUtils.SetDiff<String> diff =
+                    CollectionUtils.diffSetsBy(MODULE_LEGAL_MAP_KEYS, map.keySet(), k -> k);
             throw new IllegalArgumentException("The map must not contain the following keys: " + diff.rightOnly);
         }
         if (!map.containsKey(NAME)) {
@@ -136,7 +136,9 @@ public class DependenciesExtensionModule {
      * @since 8.0
      */
     @Incubating
-    public static Provider<? extends MinimalExternalModuleDependency> call(DependencyModifier self, ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
+    public static Provider<? extends MinimalExternalModuleDependency> call(
+            DependencyModifier self,
+            ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
         return self.modify(providerConvertibleToDependency);
     }
 
@@ -147,7 +149,8 @@ public class DependenciesExtensionModule {
      * @return the modified dependency
      * @since 8.0
      */
-    public static <D extends ModuleDependency> Provider<D> call(DependencyModifier self, Provider<D> providerToDependency) {
+    public static <D extends ModuleDependency> Provider<D> call(
+            DependencyModifier self, Provider<D> providerToDependency) {
         return self.modify(providerToDependency);
     }
 
@@ -179,7 +182,11 @@ public class DependenciesExtensionModule {
      * @param configuration an action to configure the dependency
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
      */
-    public static void call(DependencyCollector self, CharSequence dependencyNotation, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
+    public static void call(
+            DependencyCollector self,
+            CharSequence dependencyNotation,
+            @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency")
+                    Closure<?> configuration) {
         self.add(dependencyNotation, ConfigureUtil.configureUsing(configuration));
     }
 
@@ -198,7 +205,11 @@ public class DependenciesExtensionModule {
      * @param files files to add as a dependency
      * @param configuration an action to configure the dependency
      */
-    public static void call(DependencyCollector self, FileCollection files, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.FileCollectionDependency") Closure<?> configuration) {
+    public static void call(
+            DependencyCollector self,
+            FileCollection files,
+            @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.FileCollectionDependency")
+                    Closure<?> configuration) {
         self.add(files, ConfigureUtil.configureUsing(configuration));
     }
 
@@ -208,7 +219,8 @@ public class DependenciesExtensionModule {
      * @param externalModule external module to add as a dependency
      */
     @Incubating
-    public static void call(DependencyCollector self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule) {
+    public static void call(
+            DependencyCollector self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule) {
         self.add(externalModule);
     }
 
@@ -219,7 +231,11 @@ public class DependenciesExtensionModule {
      * @param configuration an action to configure the dependency
      */
     @Incubating
-    public static void call(DependencyCollector self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
+    public static void call(
+            DependencyCollector self,
+            ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule,
+            @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency")
+                    Closure<?> configuration) {
         self.add(externalModule, ConfigureUtil.configureUsing(configuration));
     }
 
@@ -238,14 +254,15 @@ public class DependenciesExtensionModule {
      * @param dependency dependency to add
      * @param configuration an action to configure the dependency
      */
-    public static <D extends Dependency> void call(DependencyCollector self, D dependency, @ClosureParams(SecondParam.class) Closure<?> configuration) {
+    public static <D extends Dependency> void call(
+            DependencyCollector self, D dependency, @ClosureParams(SecondParam.class) Closure<?> configuration) {
         self.add(dependency, ConfigureUtil.configureUsing(configuration));
     }
 
     private static InvalidUserDataException badProviderError(Class<?> given) {
         return new InvalidUserDataException(
-            "Providers of type '" + given.getName() + "' are not supported. Only Provider<Dependency> and Provider<DependencyConstraint> are supported. Try using the Provider#map method to convert to a supported type."
-        );
+                "Providers of type '" + given.getName()
+                        + "' are not supported. Only Provider<Dependency> and Provider<DependencyConstraint> are supported. Try using the Provider#map method to convert to a supported type.");
     }
 
     /**
@@ -268,31 +285,43 @@ public class DependenciesExtensionModule {
      * @param dependencyOrDependencyConstraint dependency or dependency constraint to add
      * @param configuration an action to configure the dependency or dependency constraint
      */
-    public static <D> void call(DependencyCollector self, Provider<? extends D> dependencyOrDependencyConstraint, @ClosureParams(SecondParam.FirstGenericType.class) Closure<?> configuration) {
-        Class<?> providerType = Providers.internal(dependencyOrDependencyConstraint).getType();
+    public static <D> void call(
+            DependencyCollector self,
+            Provider<? extends D> dependencyOrDependencyConstraint,
+            @ClosureParams(SecondParam.FirstGenericType.class) Closure<?> configuration) {
+        Class<?> providerType =
+                Providers.internal(dependencyOrDependencyConstraint).getType();
         if (providerType == null) {
-            self.add(dependencyOrDependencyConstraint.map(it -> {
-                if (it instanceof Dependency) {
-                    return (Dependency) it;
-                }
-                if (it instanceof DependencyConstraint) {
-                    return null;
-                }
-                throw badProviderError(it.getClass());
-            }), ConfigureUtil.configureUsing(configuration));
-            self.addConstraint(dependencyOrDependencyConstraint.map(it -> {
-                if (it instanceof DependencyConstraint) {
-                    return (DependencyConstraint) it;
-                }
-                if (it instanceof Dependency) {
-                    return null;
-                }
-                throw badProviderError(it.getClass());
-            }), ConfigureUtil.configureUsing(configuration));
+            self.add(
+                    dependencyOrDependencyConstraint.map(it -> {
+                        if (it instanceof Dependency) {
+                            return (Dependency) it;
+                        }
+                        if (it instanceof DependencyConstraint) {
+                            return null;
+                        }
+                        throw badProviderError(it.getClass());
+                    }),
+                    ConfigureUtil.configureUsing(configuration));
+            self.addConstraint(
+                    dependencyOrDependencyConstraint.map(it -> {
+                        if (it instanceof DependencyConstraint) {
+                            return (DependencyConstraint) it;
+                        }
+                        if (it instanceof Dependency) {
+                            return null;
+                        }
+                        throw badProviderError(it.getClass());
+                    }),
+                    ConfigureUtil.configureUsing(configuration));
         } else if (Dependency.class.isAssignableFrom(providerType)) {
-            self.add(dependencyOrDependencyConstraint.map(it -> (Dependency) it), ConfigureUtil.configureUsing(configuration));
+            self.add(
+                    dependencyOrDependencyConstraint.map(it -> (Dependency) it),
+                    ConfigureUtil.configureUsing(configuration));
         } else if (DependencyConstraint.class.isAssignableFrom(providerType)) {
-            self.addConstraint(dependencyOrDependencyConstraint.map(it -> (DependencyConstraint) it), ConfigureUtil.configureUsing(configuration));
+            self.addConstraint(
+                    dependencyOrDependencyConstraint.map(it -> (DependencyConstraint) it),
+                    ConfigureUtil.configureUsing(configuration));
         } else {
             throw badProviderError(providerType);
         }
@@ -313,7 +342,10 @@ public class DependenciesExtensionModule {
      * @param dependencyConstraint dependency constraint to add
      * @param configuration an action to configure the dependency constraint
      */
-    public static void call(DependencyCollector self, DependencyConstraint dependencyConstraint, @ClosureParams(value = SecondParam.class) Closure<?> configuration) {
+    public static void call(
+            DependencyCollector self,
+            DependencyConstraint dependencyConstraint,
+            @ClosureParams(value = SecondParam.class) Closure<?> configuration) {
         self.addConstraint(dependencyConstraint, ConfigureUtil.configureUsing(configuration));
     }
 }

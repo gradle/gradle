@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
+import java.io.Closeable;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.internal.serialize.HierarchicalNameSerializer;
 import org.gradle.cache.Cache;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCacheParameters;
@@ -29,32 +29,32 @@ import org.gradle.cache.internal.MinimalPersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
-
-import java.io.Closeable;
+import org.gradle.internal.serialize.HierarchicalNameSerializer;
 
 public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closeable {
     private final Cache<HashCode, ClassSetAnalysisData> classpathEntrySnapshotCache;
     private final PersistentCache cache;
     private final Cache<HashCode, ClassAnalysis> classAnalysisCache;
 
-    public UserHomeScopedCompileCaches(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
+    public UserHomeScopedCompileCaches(
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+            StringInterner interner) {
         cache = cacheBuilderFactory
-            .createCacheBuilder("javaCompile")
-            .withDisplayName("Java compile cache")
-            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-            .open();
+                .createCacheBuilder("javaCompile")
+                .withDisplayName("Java compile cache")
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+                .open();
         IndexedCacheParameters<HashCode, ClassSetAnalysisData> jarCacheParameters = IndexedCacheParameters.of(
-            "jarAnalysis",
-            new HashCodeSerializer(),
-            new ClassSetAnalysisData.Serializer(() -> new HierarchicalNameSerializer(interner))
-        ).withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
+                        "jarAnalysis",
+                        new HashCodeSerializer(),
+                        new ClassSetAnalysisData.Serializer(() -> new HierarchicalNameSerializer(interner)))
+                .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
         this.classpathEntrySnapshotCache = new MinimalPersistentCache<>(cache.createIndexedCache(jarCacheParameters));
 
         IndexedCacheParameters<HashCode, ClassAnalysis> classCacheParameters = IndexedCacheParameters.of(
-            "classAnalysis",
-            new HashCodeSerializer(),
-            new ClassAnalysis.Serializer(interner)
-        ).withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(400000, true));
+                        "classAnalysis", new HashCodeSerializer(), new ClassAnalysis.Serializer(interner))
+                .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(400000, true));
         this.classAnalysisCache = new MinimalPersistentCache<>(cache.createIndexedCache(classCacheParameters));
     }
 

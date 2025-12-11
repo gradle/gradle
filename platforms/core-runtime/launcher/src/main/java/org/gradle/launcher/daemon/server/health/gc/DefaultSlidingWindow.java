@@ -17,7 +17,6 @@
 package org.gradle.launcher.daemon.server.health.gc;
 
 import com.google.common.collect.Sets;
-
 import java.util.Collection;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.locks.ReentrantLock;

@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.provider.sources;
 
-import java.io.File;
-
 import static org.gradle.util.internal.GFileUtils.readFile;
+
+import java.io.File;
 
 public abstract class FileTextValueSource extends FileContentValueSource<String> {
 

@@ -16,5 +16,4 @@
 
 package org.gradle.internal.execution.steps;
 
-public interface Context {
-}
+public interface Context {}

@@ -16,17 +16,16 @@
 
 package org.gradle.caching.internal.controller.service;
 
+import java.io.File;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.function.Function;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.function.Function;
 
 public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServiceHandle {
 
@@ -47,11 +46,13 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         }
 
         public String describe(BuildCacheKey key, BuildCacheServiceRole role) {
-            return capitalizedVerb + " entry " + key.getHashCode() + " " + preposition + " " + role.getDisplayName() + " build cache";
+            return capitalizedVerb + " entry " + key.getHashCode() + " " + preposition + " " + role.getDisplayName()
+                    + " build cache";
         }
 
         public String describeFailure(BuildCacheKey key, BuildCacheServiceRole role) {
-            return "Could not " + verb + " entry " + key.getHashCode() + " " + preposition + " " + role.getDisplayName() + " build cache";
+            return "Could not " + verb + " entry " + key.getHashCode() + " " + preposition + " " + role.getDisplayName()
+                    + " build cache";
         }
     }
 
@@ -65,12 +66,11 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
     private boolean disabled;
 
     public BaseRemoteBuildCacheServiceHandle(
-        BuildCacheService service,
-        boolean push,
-        BuildCacheServiceRole role,
-        boolean logStackTraces,
-        boolean disableOnError
-    ) {
+            BuildCacheService service,
+            boolean push,
+            BuildCacheServiceRole role,
+            boolean logStackTraces,
+            boolean disableOnError) {
         this.role = role;
         this.service = service;
         this.pushEnabled = push;
@@ -90,7 +90,8 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
     }
 
     @Override
-    public final Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, File loadTargetFile, Function<File, BuildCacheLoadResult> unpackFunction) {
+    public final Optional<BuildCacheLoadResult> maybeLoad(
+            BuildCacheKey key, File loadTargetFile, Function<File, BuildCacheLoadResult> unpackFunction) {
         if (!canLoad()) {
             return Optional.empty();
         }
@@ -113,7 +114,8 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         service.load(key, entryReader);
     }
 
-    private static Optional<BuildCacheLoadResult> maybeUnpack(LoadTarget loadTarget, Function<File, BuildCacheLoadResult> unpackFunction) {
+    private static Optional<BuildCacheLoadResult> maybeUnpack(
+            LoadTarget loadTarget, Function<File, BuildCacheLoadResult> unpackFunction) {
         if (loadTarget.isLoaded()) {
             return Optional.ofNullable(unpackFunction.apply(loadTarget.getFile()));
         }
@@ -161,8 +163,7 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         }
     }
 
-    protected void onCacheDisabledDueToFailure(BuildCacheKey key, Operation operation, Throwable failure) {
-    }
+    protected void onCacheDisabledDueToFailure(BuildCacheKey key, Operation operation, Throwable failure) {}
 
     @Override
     public void close() {
@@ -181,4 +182,3 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         }
     }
 }
-

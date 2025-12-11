@@ -16,9 +16,8 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-
 import java.io.File;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 public interface ClasspathFileTransformer {
     File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir);

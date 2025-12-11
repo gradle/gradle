@@ -17,14 +17,15 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
-
 import java.lang.annotation.Annotation;
 
 /**
  * Base class for function annotation handlers.
  */
-public abstract class AbstractFunctionAnnotationHandler extends AbstractAnnotationHandler implements FunctionAnnotationHandler {
-    public AbstractFunctionAnnotationHandler(Class<? extends Annotation> annotationType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
+public abstract class AbstractFunctionAnnotationHandler extends AbstractAnnotationHandler
+        implements FunctionAnnotationHandler {
+    public AbstractFunctionAnnotationHandler(
+            Class<? extends Annotation> annotationType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
         super(annotationType, allowedModifiers);
     }
 }

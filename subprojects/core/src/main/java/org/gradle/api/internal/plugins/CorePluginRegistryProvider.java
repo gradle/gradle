@@ -26,5 +26,4 @@ public interface CorePluginRegistryProvider {
      * Returns a plugin registry that can only identify and lookup Gradle's core plugins.
      */
     PluginRegistry getCorePluginRegistry();
-
 }

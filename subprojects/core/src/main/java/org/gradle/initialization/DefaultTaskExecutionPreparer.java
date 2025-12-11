@@ -16,6 +16,8 @@
 
 package org.gradle.initialization;
 
+import static org.gradle.configuration.DeferredProjectEvaluationCondition.skipEvaluationDuringProjectPreparation;
+
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.BuildTaskScheduler;
 import org.gradle.execution.EntryTaskSelector;
@@ -24,25 +26,23 @@ import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.jspecify.annotations.Nullable;
 
-import static org.gradle.configuration.DeferredProjectEvaluationCondition.skipEvaluationDuringProjectPreparation;
-
 public class DefaultTaskExecutionPreparer implements TaskExecutionPreparer {
     private final BuildOperationRunner buildOperationRunner;
     private final BuildTaskScheduler buildTaskScheduler;
     private final BuildModelParameters buildModelParameters;
 
     public DefaultTaskExecutionPreparer(
-        BuildTaskScheduler buildTaskScheduler,
-        BuildOperationRunner buildOperationRunner,
-        BuildModelParameters buildModelParameters
-    ) {
+            BuildTaskScheduler buildTaskScheduler,
+            BuildOperationRunner buildOperationRunner,
+            BuildModelParameters buildModelParameters) {
         this.buildTaskScheduler = buildTaskScheduler;
         this.buildOperationRunner = buildOperationRunner;
         this.buildModelParameters = buildModelParameters;
     }
 
     @Override
-    public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
+    public void scheduleRequestedTasks(
+            GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
         gradle.getOwner().getProjects().withMutableStateOfAllProjects(() -> {
             buildTaskScheduler.scheduleRequestedTasks(gradle, selector, plan);
 

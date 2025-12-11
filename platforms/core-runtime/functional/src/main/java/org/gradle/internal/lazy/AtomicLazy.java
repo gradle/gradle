@@ -16,11 +16,10 @@
 
 package org.gradle.internal.lazy;
 
-import org.gradle.internal.Cast;
-import org.jspecify.annotations.Nullable;
-
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
+import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @see Lazy#atomic()
@@ -48,7 +47,8 @@ class AtomicLazy<T extends @Nullable Object> implements Lazy<T> {
             supplier = null;
         }
         @SuppressWarnings("NullAway") // The value holds null only if T is nullable.
-        // The unchecked cast strips "@Nullable" from result to allow returning it without triggering another NullAway warning.
+        // The unchecked cast strips "@Nullable" from result to allow returning it without triggering another NullAway
+        // warning.
         T result = Cast.uncheckedNonnullCast(value.get());
         return result;
     }

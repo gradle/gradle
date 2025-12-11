@@ -15,7 +15,16 @@
  */
 package org.gradle.api.tasks;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.StreamSupport.stream;
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency;
+
 import com.google.common.collect.Iterables;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -31,16 +40,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import static java.util.stream.StreamSupport.stream;
-import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency;
 
 /**
  * Provides information related to the Groovy runtime(s) used in a project. Added by the
@@ -108,12 +107,9 @@ public abstract class GroovyRuntime {
             private FileCollection inferGroovyClasspath() {
                 GroovyJarFile groovyJar = findGroovyJarFile(classpath);
                 if (groovyJar == null) {
-                    throw new GradleException(
-                        String.format(
+                    throw new GradleException(String.format(
                             "Cannot infer Groovy class path because no Groovy Jar was found on class path: %s",
-                            Iterables.toString(classpath)
-                        )
-                    );
+                            Iterables.toString(classpath)));
                 }
 
                 if (groovyJar.isGroovyAll()) {
@@ -129,13 +125,15 @@ public abstract class GroovyRuntime {
                 }
             }
 
-            private void addGroovyDependency(String groovyDependencyNotion, List<Dependency> dependencies, String otherDependency) {
+            private void addGroovyDependency(
+                    String groovyDependencyNotion, List<Dependency> dependencies, String otherDependency) {
                 String notation = groovyDependencyNotion.replace(":groovy:", ":" + otherDependency + ":");
                 addDependencyTo(dependencies, notation);
             }
 
             private void addDependencyTo(List<Dependency> dependencies, String notation) {
-                // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier
+                // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency
+                // with a classifier
                 dependencies.add(project.getDependencies().create(notation));
             }
 
@@ -163,11 +161,10 @@ public abstract class GroovyRuntime {
                     return project.getLayout().files(groovyClasspath);
                 }
 
-                return detachedRuntimeClasspath(
-                    DependencyClassPathProvider.GROOVY_MODULES.stream()
-                        .map(libName -> project.getDependencies().create(groovyModuleDependency(libName, groovyVersion)))
-                        .toArray(Dependency[]::new)
-                );
+                return detachedRuntimeClasspath(DependencyClassPathProvider.GROOVY_MODULES.stream()
+                        .map(libName ->
+                                project.getDependencies().create(groovyModuleDependency(libName, groovyVersion)))
+                        .toArray(Dependency[]::new));
             }
 
             private Configuration detachedRuntimeClasspath(Dependency... dependencies) {
@@ -188,14 +185,14 @@ public abstract class GroovyRuntime {
 
     private static List<File> collectJarsFromClasspath(Iterable<File> classpath, Set<String> jarNames) {
         return stream(classpath.spliterator(), false)
-            .filter(file -> jarNames.contains(file.getName()))
-            .collect(toList());
+                .filter(file -> jarNames.contains(file.getName()))
+                .collect(toList());
     }
 
     private static Set<String> groovyJarNamesFor(VersionNumber groovyVersion) {
         return DependencyClassPathProvider.GROOVY_MODULES.stream()
-            .map(libName -> libName + "-" + groovyVersion + ".jar")
-            .collect(toSet());
+                .map(libName -> libName + "-" + groovyVersion + ".jar")
+                .collect(toSet());
     }
 
     @Nullable

@@ -16,12 +16,11 @@
 
 package org.gradle.internal.execution;
 
+import java.io.File;
+import java.util.Set;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
-import java.util.Set;
 
 @ServiceScope(Scope.Build.class)
 public interface BuildOutputCleanupRegistry {

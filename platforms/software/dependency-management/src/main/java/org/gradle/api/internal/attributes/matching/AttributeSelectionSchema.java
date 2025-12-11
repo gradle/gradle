@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.attributes.matching;
 
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Exposes operations for working with attributes. These operations are intended to be

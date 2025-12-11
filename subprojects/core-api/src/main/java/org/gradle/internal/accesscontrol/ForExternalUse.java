@@ -35,5 +35,4 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
-public @interface ForExternalUse {
-}
+public @interface ForExternalUse {}

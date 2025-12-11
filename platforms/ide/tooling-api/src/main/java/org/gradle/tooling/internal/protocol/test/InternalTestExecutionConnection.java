@@ -32,5 +32,8 @@ import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
  * @since 2.6-rc-1
  */
 public interface InternalTestExecutionConnection extends InternalProtocolInterface {
-    BuildResult<?> runTests(InternalTestExecutionRequest testExecutionRequest, InternalCancellationToken cancellationToken, BuildParameters operationParameters);
+    BuildResult<?> runTests(
+            InternalTestExecutionRequest testExecutionRequest,
+            InternalCancellationToken cancellationToken,
+            BuildParameters operationParameters);
 }

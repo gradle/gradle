@@ -31,5 +31,4 @@ public interface ProcessSettings {
     Map<String, String> getEnvironment();
 
     boolean getRedirectErrorStream();
-
 }

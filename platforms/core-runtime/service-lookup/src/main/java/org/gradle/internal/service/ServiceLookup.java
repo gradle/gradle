@@ -16,10 +16,9 @@
 
 package org.gradle.internal.service;
 
-import org.jspecify.annotations.Nullable;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A read-only supplier of services.
@@ -54,5 +53,6 @@ public interface ServiceLookup {
      * @throws UnknownServiceException When there is no service of the given type available.
      * @throws ServiceLookupException On failure to lookup the specified service.
      */
-    Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException;
+    Object get(Type serviceType, Class<? extends Annotation> annotatedWith)
+            throws UnknownServiceException, ServiceLookupException;
 }

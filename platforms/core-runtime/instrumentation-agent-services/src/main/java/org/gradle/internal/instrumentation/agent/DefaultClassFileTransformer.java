@@ -16,24 +16,22 @@
 
 package org.gradle.internal.instrumentation.agent;
 
-import org.gradle.internal.classloader.InstrumentingClassLoader;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.gradle.internal.classloader.InstrumentingClassLoader;
+import org.jspecify.annotations.Nullable;
 
 class DefaultClassFileTransformer implements ClassFileTransformer {
     private static final AtomicBoolean INSTALLED = new AtomicBoolean();
 
     @Override
     public byte @Nullable [] transform(
-        @Nullable ClassLoader loader,
-        @Nullable String className,
-        @Nullable Class<?> classBeingRedefined,
-        @Nullable ProtectionDomain protectionDomain,
-        byte[] classfileBuffer
-    ) {
+            @Nullable ClassLoader loader,
+            @Nullable String className,
+            @Nullable Class<?> classBeingRedefined,
+            @Nullable ProtectionDomain protectionDomain,
+            byte[] classfileBuffer) {
         if (!(loader instanceof InstrumentingClassLoader)) {
             return null;
         }
@@ -41,7 +39,8 @@ class DefaultClassFileTransformer implements ClassFileTransformer {
         try {
             return instrumentingLoader.instrumentClass(className, protectionDomain, classfileBuffer);
         } catch (Throwable th) {
-            // Throwing exception from the ClassFileTransformer has no effect - if it happens, the class is loaded unchanged silently.
+            // Throwing exception from the ClassFileTransformer has no effect - if it happens, the class is loaded
+            // unchanged silently.
             // This is not something we want, so we notify the class loader about this.
             instrumentingLoader.transformFailed(className, th);
             return null;
@@ -49,9 +48,11 @@ class DefaultClassFileTransformer implements ClassFileTransformer {
     }
 
     public static boolean tryInstall() {
-        // Installing the same transformer multiple times is very problematic, so additional correctness check is worth it.
+        // Installing the same transformer multiple times is very problematic, so additional correctness check is worth
+        // it.
         if (!INSTALLED.compareAndSet(false, true)) {
-            throw new IllegalStateException("The transformer is already installed in " + DefaultClassFileTransformer.class.getClassLoader());
+            throw new IllegalStateException(
+                    "The transformer is already installed in " + DefaultClassFileTransformer.class.getClassLoader());
         }
         return AgentControl.installTransformer(new DefaultClassFileTransformer());
     }

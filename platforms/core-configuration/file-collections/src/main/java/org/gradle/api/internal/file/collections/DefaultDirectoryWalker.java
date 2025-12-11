@@ -16,19 +16,18 @@
 
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.gradle.api.GradleException;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.RelativePath;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 public class DefaultDirectoryWalker implements DirectoryWalker {
     private final FileSystem fileSystem;
@@ -38,7 +37,13 @@ public class DefaultDirectoryWalker implements DirectoryWalker {
     }
 
     @Override
-    public void walkDir(Path rootDir, RelativePath rootPath, FileVisitor visitor, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
+    public void walkDir(
+            Path rootDir,
+            RelativePath rootPath,
+            FileVisitor visitor,
+            Spec<? super FileTreeElement> spec,
+            AtomicBoolean stopFlag,
+            boolean postfix) {
         try {
             PathVisitor pathVisitor = new PathVisitor(spec, postfix, visitor, stopFlag, rootPath, fileSystem);
             Files.walkFileTree(rootDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, pathVisitor);

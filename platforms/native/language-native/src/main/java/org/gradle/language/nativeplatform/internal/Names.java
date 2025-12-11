@@ -184,7 +184,14 @@ public abstract class Names {
             return Names.of(name + StringUtils.capitalize(suffix));
         }
 
-        private void append(String name, int start, int end, StringBuilder baseName, StringBuilder lowerBaseName, StringBuilder capBaseName, StringBuilder dirName) {
+        private void append(
+                String name,
+                int start,
+                int end,
+                StringBuilder baseName,
+                StringBuilder lowerBaseName,
+                StringBuilder capBaseName,
+                StringBuilder dirName) {
             dirName.append(Character.toLowerCase(name.charAt(start)));
             dirName.append(name.substring(start + 1, end));
             dirName.append('/');
@@ -203,5 +210,4 @@ public abstract class Names {
             }
         }
     }
-
 }

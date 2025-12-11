@@ -16,13 +16,13 @@
 
 package org.gradle.internal.component.local.model;
 
+import java.io.File;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.DisplayName;
 
-import java.io.File;
-
-public class OpaqueComponentArtifactIdentifier implements ComponentArtifactIdentifier, ComponentIdentifier, DisplayName {
+public class OpaqueComponentArtifactIdentifier
+        implements ComponentArtifactIdentifier, ComponentIdentifier, DisplayName {
     private final File file;
 
     public OpaqueComponentArtifactIdentifier(File file) {

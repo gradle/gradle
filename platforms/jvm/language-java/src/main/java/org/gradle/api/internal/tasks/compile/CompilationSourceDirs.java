@@ -17,6 +17,11 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -26,12 +31,6 @@ import org.gradle.util.internal.RelativePathUtil;
 import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Relativizes paths relative to a set of source directories in order to create a platform-independent mapping
@@ -54,7 +53,7 @@ public class CompilationSourceDirs {
         }
     }
 
-     @VisibleForTesting
+    @VisibleForTesting
     CompilationSourceDirs(List<File> sourceRoots) {
         this.sourceRoots = sourceRoots;
     }
@@ -70,10 +69,10 @@ public class CompilationSourceDirs {
      */
     public Optional<String> relativize(File sourceFile) {
         return sourceRoots.stream()
-            .filter(sourceDir -> sourceFile.getAbsolutePath().startsWith(sourceDir.getAbsolutePath()))
-            .map(sourceDir -> RelativePathUtil.relativePath(sourceDir, sourceFile))
-            .filter(relativePath -> !relativePath.startsWith(".."))
-            .findFirst();
+                .filter(sourceDir -> sourceFile.getAbsolutePath().startsWith(sourceDir.getAbsolutePath()))
+                .map(sourceDir -> RelativePathUtil.relativePath(sourceDir, sourceFile))
+                .filter(relativePath -> !relativePath.startsWith(".."))
+                .findFirst();
     }
 
     private static class SourceRoots implements FileCollectionStructureVisitor {
@@ -86,13 +85,15 @@ public class CompilationSourceDirs {
         }
 
         @Override
-        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+        public void visitFileTreeBackedByFile(
+                File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             cannotInferSourceRoots(fileTree);
         }
 
         @Override
         public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-            // We need to add missing files as source roots, since the package name for deleted files provided by InputChanges also need to be determined.
+            // We need to add missing files as source roots, since the package name for deleted files provided by
+            // InputChanges also need to be determined.
             if (!root.exists() || root.isDirectory()) {
                 sourceRoots.add(root);
             } else {
@@ -102,7 +103,9 @@ public class CompilationSourceDirs {
 
         private void cannotInferSourceRoots(Object fileCollection) {
             canInferSourceRoots = false;
-            LOG.info("Cannot infer source root(s) for source `{}`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.", fileCollection);
+            LOG.info(
+                    "Cannot infer source root(s) for source `{}`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.",
+                    fileCollection);
         }
     }
 }

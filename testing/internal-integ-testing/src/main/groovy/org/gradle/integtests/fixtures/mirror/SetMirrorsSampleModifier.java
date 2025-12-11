@@ -16,18 +16,17 @@
 
 package org.gradle.integtests.fixtures.mirror;
 
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
-import org.gradle.exemplar.model.Command;
-import org.gradle.exemplar.model.Sample;
-import org.gradle.exemplar.test.runner.SampleModifier;
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.isMirrorEnabled;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.isMirrorEnabled;
+import org.gradle.exemplar.model.Command;
+import org.gradle.exemplar.model.Sample;
+import org.gradle.exemplar.test.runner.SampleModifier;
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
 
 public class SetMirrorsSampleModifier implements SampleModifier {
 

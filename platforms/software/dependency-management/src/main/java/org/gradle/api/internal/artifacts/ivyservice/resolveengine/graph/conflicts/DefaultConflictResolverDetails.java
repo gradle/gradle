@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import java.util.Collection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
 
 public class DefaultConflictResolverDetails<T> implements ConflictResolverDetails<T> {
     private final Collection<? extends T> participants;

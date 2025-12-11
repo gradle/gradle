@@ -16,17 +16,19 @@
 
 package org.gradle.operations.configuration;
 
+import java.util.List;
 import org.gradle.internal.operations.BuildOperationType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Details about the configuration cache fingerprint check operation.
  *
  * @since 8.10
  */
-public final class ConfigurationCacheCheckFingerprintBuildOperationType implements BuildOperationType<ConfigurationCacheCheckFingerprintBuildOperationType.Details, ConfigurationCacheCheckFingerprintBuildOperationType.Result> {
+public final class ConfigurationCacheCheckFingerprintBuildOperationType
+        implements BuildOperationType<
+                ConfigurationCacheCheckFingerprintBuildOperationType.Details,
+                ConfigurationCacheCheckFingerprintBuildOperationType.Result> {
     /**
      * Build operation details.
      *

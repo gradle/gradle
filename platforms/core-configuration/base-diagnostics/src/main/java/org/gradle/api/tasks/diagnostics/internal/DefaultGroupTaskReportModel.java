@@ -17,12 +17,11 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
+import java.util.Comparator;
+import java.util.Set;
 import org.gradle.util.Path;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Comparator;
-import java.util.Set;
 
 public class DefaultGroupTaskReportModel implements TaskReportModel {
 
@@ -32,7 +31,8 @@ public class DefaultGroupTaskReportModel implements TaskReportModel {
         Comparator<TaskDetails> taskComparator = new Comparator<TaskDetails>() {
             @Override
             public int compare(TaskDetails task1, TaskDetails task2) {
-                int diff = STRING_COMPARATOR.compare(task1.getPath().getName(), task2.getPath().getName());
+                int diff = STRING_COMPARATOR.compare(
+                        task1.getPath().getName(), task2.getPath().getName());
                 if (diff != 0) {
                     return diff;
                 }

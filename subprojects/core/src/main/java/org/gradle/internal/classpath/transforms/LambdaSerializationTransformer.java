@@ -16,8 +16,27 @@
 
 package org.gradle.internal.classpath.transforms;
 
+import static org.gradle.internal.classpath.transforms.CommonTypes.NO_EXCEPTIONS;
+import static org.gradle.internal.classpath.transforms.CommonTypes.OBJECT_TYPE;
+import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
+import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
+import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getType;
+
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
+import java.lang.invoke.CallSite;
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.invoke.SerializedLambda;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.model.internal.asm.MethodVisitorScope;
@@ -29,26 +48,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.CodeSizeEvaluator;
-
-import java.lang.invoke.CallSite;
-import java.lang.invoke.LambdaMetafactory;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.invoke.SerializedLambda;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static org.gradle.internal.classpath.transforms.CommonTypes.NO_EXCEPTIONS;
-import static org.gradle.internal.classpath.transforms.CommonTypes.OBJECT_TYPE;
-import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
-import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
-import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
-import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
-import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
 
 /**
  * A class visitor that makes all lambdas in code serializable.
@@ -62,22 +61,23 @@ class LambdaSerializationTransformer extends ClassVisitor {
 
     private static final Type SERIALIZED_LAMBDA_TYPE = getType(SerializedLambda.class);
 
-    private static final String RETURN_OBJECT_FROM_SERIALIZED_LAMBDA = getMethodDescriptor(OBJECT_TYPE, SERIALIZED_LAMBDA_TYPE);
+    private static final String RETURN_OBJECT_FROM_SERIALIZED_LAMBDA =
+            getMethodDescriptor(OBJECT_TYPE, SERIALIZED_LAMBDA_TYPE);
     private static final String RETURN_STRING = getMethodDescriptor(CommonTypes.STRING_TYPE);
     private static final String RETURN_BOOLEAN_FROM_OBJECT = getMethodDescriptor(Type.BOOLEAN_TYPE, OBJECT_TYPE);
     private static final String RETURN_OBJECT_FROM_INT = getMethodDescriptor(OBJECT_TYPE, Type.INT_TYPE);
 
-    private static final String LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class).getInternalName();
+    private static final String LAMBDA_METAFACTORY_TYPE =
+            getType(LambdaMetafactory.class).getInternalName();
     private static final String LAMBDA_METAFACTORY_METHOD_DESCRIPTOR = getMethodDescriptor(
-        getType(CallSite.class),
-        getType(MethodHandles.Lookup.class),
-        STRING_TYPE,
-        getType(MethodType.class),
-        getType(Object[].class));
+            getType(CallSite.class),
+            getType(MethodHandles.Lookup.class),
+            STRING_TYPE,
+            getType(MethodType.class),
+            getType(Object[].class));
 
     private static final String DESERIALIZE_LAMBDA = "$deserializeLambda$";
     private static final String RENAMED_DESERIALIZE_LAMBDA = "$renamedDeserializeLambda$";
-
 
     private final List<LambdaFactoryDetails> lambdaFactories = new ArrayList<>();
     private String className;
@@ -89,14 +89,21 @@ class LambdaSerializationTransformer extends ClassVisitor {
     }
 
     @Override
-    public void visit(int version, int access, String name, @Nullable String signature, @Nullable String superName, @Nullable String[] interfaces) {
+    public void visit(
+            int version,
+            int access,
+            String name,
+            @Nullable String signature,
+            @Nullable String superName,
+            @Nullable String[] interfaces) {
         super.visit(version, access, name, signature, superName, interfaces);
         this.className = name;
         this.isInterface = (access & ACC_INTERFACE) != 0;
     }
 
     @Override
-    public MethodVisitor visitMethod(int access, String name, String descriptor, @Nullable String signature, @Nullable String[] exceptions) {
+    public MethodVisitor visitMethod(
+            int access, String name, String descriptor, @Nullable String signature, @Nullable String[] exceptions) {
         if (name.equals(DESERIALIZE_LAMBDA) && descriptor.equals(RETURN_OBJECT_FROM_SERIALIZED_LAMBDA)) {
             hasDeserializeLambda = true;
             return super.visitMethod(access, RENAMED_DESERIALIZE_LAMBDA, descriptor, signature, exceptions);
@@ -129,109 +136,133 @@ class LambdaSerializationTransformer extends ClassVisitor {
         } while (factoriesIterator.hasNext());
     }
 
-    private void generateSplitLambdaDeserializeMethod(String methodName, String nextSplitMethodName, PeekingIterator<LambdaFactoryDetails> factoriesIterator) {
-        CodeSizeEvaluator sizeEvaluator = new CodeSizeEvaluator(visitStaticPrivateMethod(methodName, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA));
-        new MethodVisitorScope(sizeEvaluator) {{
-            Label next = null;
-            while (factoriesIterator.hasNext()) {
-                LambdaFactoryDetails factory = factoriesIterator.peek();
-                Type[] argumentTypes = Type.getArgumentTypes(factory.descriptor);
+    private void generateSplitLambdaDeserializeMethod(
+            String methodName, String nextSplitMethodName, PeekingIterator<LambdaFactoryDetails> factoriesIterator) {
+        CodeSizeEvaluator sizeEvaluator =
+                new CodeSizeEvaluator(visitStaticPrivateMethod(methodName, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA));
+        new MethodVisitorScope(sizeEvaluator) {
+            {
+                Label next = null;
+                while (factoriesIterator.hasNext()) {
+                    LambdaFactoryDetails factory = factoriesIterator.peek();
+                    Type[] argumentTypes = Type.getArgumentTypes(factory.descriptor);
 
-                int codeSizeSoFar = sizeEvaluator.getMaxSize();
-                if (codeSizeSoFar + getEstimatedSingleLambdaHandlingCodeLength(argumentTypes) + getEstimatedEpilogueLength() >= MAX_CODE_SIZE) {
-                    // In theory, it is possible to have a lambda so big, its handling won't fit in a single method, and such a lambda will cause an infinite loop here.
-                    // However, the number of captured lambda variables is limited by the max number of method arguments allowed by the JVM.
-                    // This limit is 255 arguments as of Java 20. Deserializing that many is not a problem for the current implementation.
-                    // The check is here as a future-proofing measure, in case the limit is relaxed or the generated code size grows.
-                    if (codeSizeSoFar == 0) {
-                        // This is the first lambda to process in this method, but it doesn't fit already - cannot proceed.
-                        throw new InvalidUserCodeException(
-                            "Cannot generate the deserialization method for class " + className
-                                + " because lambda implementation " + factory.name + " has too many captured arguments (" + argumentTypes.length + ")");
+                    int codeSizeSoFar = sizeEvaluator.getMaxSize();
+                    if (codeSizeSoFar
+                                    + getEstimatedSingleLambdaHandlingCodeLength(argumentTypes)
+                                    + getEstimatedEpilogueLength()
+                            >= MAX_CODE_SIZE) {
+                        // In theory, it is possible to have a lambda so big, its handling won't fit in a single method,
+                        // and such a lambda will cause an infinite loop here.
+                        // However, the number of captured lambda variables is limited by the max number of method
+                        // arguments allowed by the JVM.
+                        // This limit is 255 arguments as of Java 20. Deserializing that many is not a problem for the
+                        // current implementation.
+                        // The check is here as a future-proofing measure, in case the limit is relaxed or the generated
+                        // code size grows.
+                        if (codeSizeSoFar == 0) {
+                            // This is the first lambda to process in this method, but it doesn't fit already - cannot
+                            // proceed.
+                            throw new InvalidUserCodeException("Cannot generate the deserialization method for class "
+                                    + className + " because lambda implementation " + factory.name
+                                    + " has too many captured arguments (" + argumentTypes.length + ")");
+                        }
+                        break;
                     }
-                    break;
+
+                    // Current lambda seems to fit, remove it from the sequence.
+                    factoriesIterator.next();
+
+                    if (next != null) {
+                        visitLabel(next);
+                        _F_SAME();
+                    }
+                    next = new Label();
+                    Handle implHandle = (Handle) factory.bootstrapMethodArguments.get(1);
+
+                    // Handling of a single lambda.
+                    // Let's estimate the generated bytecode size. When changing the code, don't forget to update the
+                    // estimation in
+                    // getEstimatedSingleLambdaHandlingCodeLength.
+                    // * Each ALOAD_0 is 1 byte.
+                    // * INVOKEVIRTUAL and INVOKESTATIC are 3 bytes.
+                    // * INVOKEDYNAMIC is 5.
+                    // * LDC can be 2 or 3 bytes (in which case it is actually LDC_W, but ASM hides this from us).
+                    //   It depends on how big is the argument, and we have no control over this, so let's be
+                    // pessimistic.
+                    // * IFEQ itself is 3 bytes. However, ASM's CodeSizeEvaluator gives an upper bound of 8, because
+                    // offsets
+                    //   that don't fit in SHORT type have to be encoded differently. We're unlikely to encounter such
+                    // offsets in this
+                    //   code, but it is better to be consistent with the CodeSizeEvaluator.
+                    // * _UNBOX takes 3 bytes if the target type is a reference and 6 if it is a primitive.
+                    // * ARETURN is 1 byte
+                    // * ACONST_NULL is one byte
+                    // Labels aren't represented in the code.
+
+                    _ALOAD(0);
+                    _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodName", RETURN_STRING);
+                    _LDC(implHandle.getName());
+                    _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
+                    _IFEQ(next);
+
+                    _ALOAD(0);
+                    _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodSignature", RETURN_STRING);
+                    _LDC(implHandle.getDesc());
+                    _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
+                    _IFEQ(next);
+                    // SerializedLambda check takes at most 36 bytes.
+
+                    // Primitive argument handling takes 13 bytes per argument, reference takes 10 bytes.
+                    // When changing this, update getEstimatedArgumentHandlingCodeLength.
+                    for (int i = 0; i < argumentTypes.length; i++) {
+                        _ALOAD(0);
+                        _LDC(i);
+                        _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getCapturedArg", RETURN_OBJECT_FROM_INT);
+                        _UNBOX(argumentTypes[i]);
+                    }
+
+                    _INVOKEDYNAMIC(
+                            factory.name,
+                            factory.descriptor,
+                            factory.bootstrapMethodHandle,
+                            factory.bootstrapMethodArguments);
+                    _ARETURN();
+                    // Creating the lambda and returning it take 6 bytes more, so 42 bytes + argument handling cost in
+                    // total for this lambda.
                 }
-
-                // Current lambda seems to fit, remove it from the sequence.
-                factoriesIterator.next();
-
                 if (next != null) {
                     visitLabel(next);
                     _F_SAME();
                 }
-                next = new Label();
-                Handle implHandle = (Handle) factory.bootstrapMethodArguments.get(1);
-
-                // Handling of a single lambda.
-                // Let's estimate the generated bytecode size. When changing the code, don't forget to update the estimation in
-                // getEstimatedSingleLambdaHandlingCodeLength.
-                // * Each ALOAD_0 is 1 byte.
-                // * INVOKEVIRTUAL and INVOKESTATIC are 3 bytes.
-                // * INVOKEDYNAMIC is 5.
-                // * LDC can be 2 or 3 bytes (in which case it is actually LDC_W, but ASM hides this from us).
-                //   It depends on how big is the argument, and we have no control over this, so let's be pessimistic.
-                // * IFEQ itself is 3 bytes. However, ASM's CodeSizeEvaluator gives an upper bound of 8, because offsets
-                //   that don't fit in SHORT type have to be encoded differently. We're unlikely to encounter such offsets in this
-                //   code, but it is better to be consistent with the CodeSizeEvaluator.
-                // * _UNBOX takes 3 bytes if the target type is a reference and 6 if it is a primitive.
-                // * ARETURN is 1 byte
-                // * ACONST_NULL is one byte
-                // Labels aren't represented in the code.
-
-                _ALOAD(0);
-                _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodName", RETURN_STRING);
-                _LDC(implHandle.getName());
-                _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
-                _IFEQ(next);
-
-                _ALOAD(0);
-                _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodSignature", RETURN_STRING);
-                _LDC(implHandle.getDesc());
-                _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
-                _IFEQ(next);
-                // SerializedLambda check takes at most 36 bytes.
-
-                // Primitive argument handling takes 13 bytes per argument, reference takes 10 bytes.
-                // When changing this, update getEstimatedArgumentHandlingCodeLength.
-                for (int i = 0; i < argumentTypes.length; i++) {
+                // Epilogue, its estimation is in getEstimatedEpilogueLength.
+                if (factoriesIterator.hasNext()) {
+                    // We failed to fit all remaining lambdas in this method, a new split has to be generated,
+                    // and this method must delegate to it.
                     _ALOAD(0);
-                    _LDC(i);
-                    _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getCapturedArg", RETURN_OBJECT_FROM_INT);
-                    _UNBOX(argumentTypes[i]);
+                    _INVOKESTATIC(className, nextSplitMethodName, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA, isInterface);
+                } else if (hasDeserializeLambda) {
+                    _ALOAD(0);
+                    _INVOKESTATIC(
+                            className, RENAMED_DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA, isInterface);
+                } else {
+                    _ACONST_NULL();
                 }
-
-                _INVOKEDYNAMIC(factory.name, factory.descriptor, factory.bootstrapMethodHandle, factory.bootstrapMethodArguments);
                 _ARETURN();
-                // Creating the lambda and returning it take 6 bytes more, so 42 bytes + argument handling cost in total for this lambda.
+                // Epilogue takes 5 bytes if we need to call the other method (next split or original), or 2 bytes to
+                // just return null.
+                visitMaxs(0, 0);
+                visitEnd();
             }
-            if (next != null) {
-                visitLabel(next);
-                _F_SAME();
-            }
-            // Epilogue, its estimation is in getEstimatedEpilogueLength.
-            if (factoriesIterator.hasNext()) {
-                // We failed to fit all remaining lambdas in this method, a new split has to be generated,
-                // and this method must delegate to it.
-                _ALOAD(0);
-                _INVOKESTATIC(className, nextSplitMethodName, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA, isInterface);
-            } else if (hasDeserializeLambda) {
-                _ALOAD(0);
-                _INVOKESTATIC(className, RENAMED_DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA, isInterface);
-            } else {
-                _ACONST_NULL();
-            }
-            _ARETURN();
-            // Epilogue takes 5 bytes if we need to call the other method (next split or original), or 2 bytes to just return null.
-            visitMaxs(0, 0);
-            visitEnd();
-        }};
+        };
     }
 
     int getEstimatedDeserializationPrologueLength() {
         return 0;
     }
 
-    // Estimated length of the $deserializeLambda*$ method's epilogue that calls the renamed original $deserializeLambda$ or the next split method.
+    // Estimated length of the $deserializeLambda*$ method's epilogue that calls the renamed original
+    // $deserializeLambda$ or the next split method.
     int getEstimatedEpilogueLength() {
         return hasDeserializeLambda ? 5 : 2;
     }
@@ -247,7 +278,7 @@ class LambdaSerializationTransformer extends ClassVisitor {
     }
 
     private static int getEstimatedArgumentHandlingCodeLength(Type argument) {
-        int loadSize = 7;  // size of SerializedLambda.getCapturedArg(<n>) call
+        int loadSize = 7; // size of SerializedLambda.getCapturedArg(<n>) call
         // unboxing of a primitive adds "invokevirtual" to "checkcast".
         int unboxingSize = isPrimitiveArgument(argument) ? 6 : 3;
         return loadSize + unboxingSize;
@@ -283,15 +314,16 @@ class LambdaSerializationTransformer extends ClassVisitor {
         }
 
         @Override
-        public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-            if (bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE) && bootstrapMethodHandle.getName().equals("metafactory")) {
+        public void visitInvokeDynamicInsn(
+                String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+            if (bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE)
+                    && bootstrapMethodHandle.getName().equals("metafactory")) {
                 Handle altMethod = new Handle(
-                    H_INVOKESTATIC,
-                    LAMBDA_METAFACTORY_TYPE,
-                    "altMetafactory",
-                    LAMBDA_METAFACTORY_METHOD_DESCRIPTOR,
-                    false
-                );
+                        H_INVOKESTATIC,
+                        LAMBDA_METAFACTORY_TYPE,
+                        "altMetafactory",
+                        LAMBDA_METAFACTORY_METHOD_DESCRIPTOR,
+                        false);
                 List<Object> args = new ArrayList<>(bootstrapMethodArguments.length + 1);
                 Collections.addAll(args, bootstrapMethodArguments);
                 args.add(LambdaMetafactory.FLAG_SERIALIZABLE);
@@ -310,7 +342,8 @@ class LambdaSerializationTransformer extends ClassVisitor {
         final Handle bootstrapMethodHandle;
         final List<?> bootstrapMethodArguments;
 
-        public LambdaFactoryDetails(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
+        public LambdaFactoryDetails(
+                String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
             this.name = name;
             this.descriptor = descriptor;
             this.bootstrapMethodHandle = bootstrapMethodHandle;

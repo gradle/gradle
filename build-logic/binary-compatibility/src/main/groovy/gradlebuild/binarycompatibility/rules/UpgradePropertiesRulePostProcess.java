@@ -16,27 +16,28 @@
 
 package gradlebuild.binarycompatibility.rules;
 
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES;
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES;
+
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.AccessorKey;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.BinaryCompatibility;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.ReplacedAccessor;
-import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.AccessorKey;
-import me.champeau.gradle.japicmp.report.PostProcessViolationsRule;
-import me.champeau.gradle.japicmp.report.ViolationCheckContextWithViolations;
-import org.gradle.util.internal.CollectionUtils;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES;
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES;
+import me.champeau.gradle.japicmp.report.PostProcessViolationsRule;
+import me.champeau.gradle.japicmp.report.ViolationCheckContextWithViolations;
+import org.gradle.util.internal.CollectionUtils;
 
 public class UpgradePropertiesRulePostProcess implements PostProcessViolationsRule {
 
     @Override
     @SuppressWarnings("unchecked")
     public void execute(ViolationCheckContextWithViolations context) {
-        Set<AccessorKey> seenUpgradedAccessorsChanges = (Set<AccessorKey>) context.getUserData().get(SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES);
-        Map<AccessorKey, ReplacedAccessor> oldAccessorsOfUpgradedProperties = (Map<AccessorKey, ReplacedAccessor>) context.getUserData().get(OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES);
+        Set<AccessorKey> seenUpgradedAccessorsChanges =
+                (Set<AccessorKey>) context.getUserData().get(SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES);
+        Map<AccessorKey, ReplacedAccessor> oldAccessorsOfUpgradedProperties = (Map<AccessorKey, ReplacedAccessor>)
+                context.getUserData().get(OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES);
 
         // Find accessors that were not removed but should be
         Map<AccessorKey, ReplacedAccessor> keptAccessors = new HashMap<>(oldAccessorsOfUpgradedProperties);
@@ -49,7 +50,9 @@ public class UpgradePropertiesRulePostProcess implements PostProcessViolationsRu
         });
         if (!keptAccessors.isEmpty()) {
             String formattedLeft = CollectionUtils.join("\n", keptAccessors.keySet());
-            throw new RuntimeException("The following accessors were upgraded, but didn't match any removed/changed method:\n\n" + formattedLeft);
+            throw new RuntimeException(
+                    "The following accessors were upgraded, but didn't match any removed/changed method:\n\n"
+                            + formattedLeft);
         }
 
         // Find accessors that were removed but shouldn't be
@@ -63,7 +66,9 @@ public class UpgradePropertiesRulePostProcess implements PostProcessViolationsRu
         });
         if (!removedAccessors.isEmpty()) {
             String formattedKept = CollectionUtils.join("\n", keptAccessors.keySet());
-            throw new RuntimeException("The following accessors were upgraded, but methods were removed although they shouldn't be:\n\n" + formattedKept);
+            throw new RuntimeException(
+                    "The following accessors were upgraded, but methods were removed although they shouldn't be:\n\n"
+                            + formattedKept);
         }
     }
 }

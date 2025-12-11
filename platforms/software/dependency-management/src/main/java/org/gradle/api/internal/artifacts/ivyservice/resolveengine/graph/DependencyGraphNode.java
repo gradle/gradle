@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
+import java.util.Collection;
+import java.util.Set;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
-
-import java.util.Collection;
-import java.util.Set;
 
 /**
  * A node in the dependency graph. Represents a variant.

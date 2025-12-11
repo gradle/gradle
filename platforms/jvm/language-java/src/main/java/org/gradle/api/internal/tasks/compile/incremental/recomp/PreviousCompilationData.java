@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
+import java.util.function.Supplier;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
-import org.gradle.internal.serialize.HierarchicalNameSerializer;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-
-import java.util.function.Supplier;
+import org.gradle.internal.serialize.HierarchicalNameSerializer;
 
 public class PreviousCompilationData {
     private final ClassSetAnalysisData outputSnapshot;
@@ -33,7 +32,11 @@ public class PreviousCompilationData {
     private final ClassSetAnalysisData classpathSnapshot;
     private final CompilerApiData compilerApiData;
 
-    public PreviousCompilationData(ClassSetAnalysisData outputSnapshot, AnnotationProcessingData annotationProcessingData, ClassSetAnalysisData classpathSnapshot, CompilerApiData compilerApiData) {
+    public PreviousCompilationData(
+            ClassSetAnalysisData outputSnapshot,
+            AnnotationProcessingData annotationProcessingData,
+            ClassSetAnalysisData classpathSnapshot,
+            CompilerApiData compilerApiData) {
         this.outputSnapshot = outputSnapshot;
         this.annotationProcessingData = annotationProcessingData;
         this.classpathSnapshot = classpathSnapshot;
@@ -68,24 +71,31 @@ public class PreviousCompilationData {
         public PreviousCompilationData read(Decoder decoder) throws Exception {
             HierarchicalNameSerializer hierarchicalNameSerializer = new HierarchicalNameSerializer(interner);
             Supplier<HierarchicalNameSerializer> classNameSerializerSupplier = () -> hierarchicalNameSerializer;
-            ClassSetAnalysisData.Serializer analysisSerializer = new ClassSetAnalysisData.Serializer(classNameSerializerSupplier);
-            AnnotationProcessingData.Serializer annotationProcessingDataSerializer = new AnnotationProcessingData.Serializer(classNameSerializerSupplier);
-            CompilerApiData.Serializer compilerApiDataSerializer = new CompilerApiData.Serializer(classNameSerializerSupplier);
+            ClassSetAnalysisData.Serializer analysisSerializer =
+                    new ClassSetAnalysisData.Serializer(classNameSerializerSupplier);
+            AnnotationProcessingData.Serializer annotationProcessingDataSerializer =
+                    new AnnotationProcessingData.Serializer(classNameSerializerSupplier);
+            CompilerApiData.Serializer compilerApiDataSerializer =
+                    new CompilerApiData.Serializer(classNameSerializerSupplier);
 
             ClassSetAnalysisData outputSnapshot = analysisSerializer.read(decoder);
             AnnotationProcessingData annotationProcessingData = annotationProcessingDataSerializer.read(decoder);
             ClassSetAnalysisData classpathSnapshot = analysisSerializer.read(decoder);
             CompilerApiData compilerApiData = compilerApiDataSerializer.read(decoder);
-            return new PreviousCompilationData(outputSnapshot, annotationProcessingData, classpathSnapshot, compilerApiData);
+            return new PreviousCompilationData(
+                    outputSnapshot, annotationProcessingData, classpathSnapshot, compilerApiData);
         }
 
         @Override
         public void write(Encoder encoder, PreviousCompilationData value) throws Exception {
             HierarchicalNameSerializer hierarchicalNameSerializer = new HierarchicalNameSerializer(interner);
             Supplier<HierarchicalNameSerializer> classNameSerializerSupplier = () -> hierarchicalNameSerializer;
-            ClassSetAnalysisData.Serializer analysisSerializer = new ClassSetAnalysisData.Serializer(classNameSerializerSupplier);
-            AnnotationProcessingData.Serializer annotationProcessingDataSerializer = new AnnotationProcessingData.Serializer(classNameSerializerSupplier);
-            CompilerApiData.Serializer compilerApiDataSerializer = new CompilerApiData.Serializer(classNameSerializerSupplier);
+            ClassSetAnalysisData.Serializer analysisSerializer =
+                    new ClassSetAnalysisData.Serializer(classNameSerializerSupplier);
+            AnnotationProcessingData.Serializer annotationProcessingDataSerializer =
+                    new AnnotationProcessingData.Serializer(classNameSerializerSupplier);
+            CompilerApiData.Serializer compilerApiDataSerializer =
+                    new CompilerApiData.Serializer(classNameSerializerSupplier);
 
             analysisSerializer.write(encoder, value.outputSnapshot);
             annotationProcessingDataSerializer.write(encoder, value.annotationProcessingData);

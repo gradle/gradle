@@ -16,9 +16,8 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.internal.concurrent.Stoppable;
-
 import java.util.concurrent.Executor;
+import org.gradle.internal.concurrent.Stoppable;
 
 public interface StreamsHandler extends Stoppable {
     /**

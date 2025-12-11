@@ -16,21 +16,24 @@
 
 package org.gradle.process.internal;
 
+import java.lang.management.ManagementFactory;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.instrumentation.agent.AgentUtils;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
-
-import java.lang.management.ManagementFactory;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class CurrentProcess {
     private final JavaInfo jvm;
     private final JvmOptions effectiveJvmOptions;
 
     public CurrentProcess(FileCollectionFactory fileCollectionFactory) {
-        this(Jvm.current(), inferJvmOptions(fileCollectionFactory, ManagementFactory.getRuntimeMXBean().getInputArguments()));
+        this(
+                Jvm.current(),
+                inferJvmOptions(
+                        fileCollectionFactory,
+                        ManagementFactory.getRuntimeMXBean().getInputArguments()));
     }
 
     protected CurrentProcess(JavaInfo jvm, JvmOptions effectiveJvmOptions) {
@@ -55,9 +58,12 @@ public class CurrentProcess {
         // We only care about 'managed' jvm args, anything else is unimportant to the running build
         JvmOptions jvmOptions = new JvmOptions(fileCollectionFactory);
         // TODO(mlopatkin) figure out a nicer way of handling the presence of agent in the foreground daemon.
-        //  Currently it is hard to have a proper "-javaagent:/path/to/jar" in clients that start the daemon, so all code deals with a boolean flag shouldApplyAgent instead.
+        //  Currently it is hard to have a proper "-javaagent:/path/to/jar" in clients that start the daemon, so all
+        // code deals with a boolean flag shouldApplyAgent instead.
         //  It is also possible to have the agent attached at runtime, without the flag, so flag checking is preferred.
-        jvmOptions.setAllJvmArgs(arguments.stream().filter(arg -> !AgentUtils.isGradleInstrumentationAgentSwitch(arg)).collect(Collectors.toList()));
+        jvmOptions.setAllJvmArgs(arguments.stream()
+                .filter(arg -> !AgentUtils.isGradleInstrumentationAgentSwitch(arg))
+                .collect(Collectors.toList()));
         return jvmOptions;
     }
 }

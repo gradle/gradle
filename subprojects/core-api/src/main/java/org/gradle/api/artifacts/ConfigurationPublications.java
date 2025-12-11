@@ -16,13 +16,12 @@
 
 package org.gradle.api.artifacts;
 
+import java.util.Collection;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.provider.Provider;
-
-import java.util.Collection;
 
 /**
  * Represents the outgoing artifacts associated with a configuration. These artifacts are used when the configuration is referenced during dependency resolution.
@@ -67,7 +66,8 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      * @param provider The provider of the artifacts to add.
      * @since 7.4
      */
-    void artifacts(Provider<? extends Iterable<?>> provider, Action<? super ConfigurablePublishArtifact> configureAction);
+    void artifacts(
+            Provider<? extends Iterable<?>> provider, Action<? super ConfigurablePublishArtifact> configureAction);
 
     /**
      * Returns the variants of this configuration, if any.

@@ -16,6 +16,14 @@
 
 package org.gradle.api.internal.file.collections;
 
+import java.io.IOException;
+import java.nio.file.FileSystemLoopException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
@@ -26,15 +34,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.jspecify.annotations.Nullable;
 
-import java.io.IOException;
-import java.nio.file.FileSystemLoopException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 class PathVisitor implements java.nio.file.FileVisitor<Path> {
     private final Deque<FileVisitDetails> directoryDetailsHolder = new ArrayDeque<>();
     private final Spec<? super FileTreeElement> spec;
@@ -44,7 +43,13 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
     private final RelativePath rootPath;
     private final FileSystem fileSystem;
 
-    public PathVisitor(Spec<? super FileTreeElement> spec, boolean postfix, FileVisitor visitor, AtomicBoolean stopFlag, RelativePath rootPath, FileSystem fileSystem) {
+    public PathVisitor(
+            Spec<? super FileTreeElement> spec,
+            boolean postfix,
+            FileVisitor visitor,
+            AtomicBoolean stopFlag,
+            RelativePath rootPath,
+            FileSystem fileSystem) {
         this.spec = spec;
         this.postfix = postfix;
         this.visitor = visitor;
@@ -72,9 +77,7 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
     }
 
     private FileVisitResult checkStopFlag() {
-        return stopFlag.get()
-            ? FileVisitResult.TERMINATE
-            : FileVisitResult.CONTINUE;
+        return stopFlag.get() ? FileVisitResult.TERMINATE : FileVisitResult.CONTINUE;
     }
 
     @Override
@@ -93,9 +96,11 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
     private FileVisitDetails getFileVisitDetails(Path file, @Nullable BasicFileAttributes attrs) {
         FileVisitDetails dirDetails = directoryDetailsHolder.peek();
         if (dirDetails != null) {
-            return AttributeBasedFileVisitDetailsFactory.getFileVisitDetails(file, dirDetails.getRelativePath(), attrs, stopFlag, fileSystem);
+            return AttributeBasedFileVisitDetailsFactory.getFileVisitDetails(
+                    file, dirDetails.getRelativePath(), attrs, stopFlag, fileSystem);
         } else {
-            return AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file, rootPath, attrs, stopFlag, fileSystem);
+            return AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(
+                    file, rootPath, attrs, stopFlag, fileSystem);
         }
     }
 

@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.cli.internal;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -28,23 +30,22 @@ import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 /**
  * Renders the output of {@code --help}.
  */
 @NullMarked
 public final class HelpRenderer {
 
-    private HelpRenderer() {
-    }
+    private HelpRenderer() {}
 
     public static String render(@Nullable String suggestedTaskSelector, boolean includeHintToExecuteHelpTaskOnProject) {
         return render(commandLineParser(), suggestedTaskSelector, includeHintToExecuteHelpTaskOnProject);
     }
 
-    public static String render(CommandLineParser parser, @Nullable String suggestedTaskSelector, boolean includeHintToExecuteHelpTaskOnProject) {
+    public static String render(
+            CommandLineParser parser,
+            @Nullable String suggestedTaskSelector,
+            boolean includeHintToExecuteHelpTaskOnProject) {
         BuildClientMetaData metaData = new DefaultBuildClientMetaData(new GradleLauncherMetaData());
 
         StringWriter sw = new StringWriter();

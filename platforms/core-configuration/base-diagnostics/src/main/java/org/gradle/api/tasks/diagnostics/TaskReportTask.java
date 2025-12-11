@@ -15,8 +15,17 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import static java.util.Collections.emptyList;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSetMultimap;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -43,16 +52,6 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.Path;
 import org.gradle.work.DisableCachingByDefault;
-
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.Collections.emptyList;
 
 /**
  * <p>Displays a list of tasks in the project. An instance of this type is used when you execute the {@code tasks} task
@@ -95,7 +94,8 @@ public abstract class TaskReportTask extends ConventionReportTask {
         this.detail = detail;
     }
 
-    // TODO config-cache - should invalidate the cache or the filtering and merging should be moved to task execution time
+    // TODO config-cache - should invalidate the cache or the filtering and merging should be moved to task execution
+    // time
     @Console
     @ToBeReplacedByLazyProperty
     public boolean isDetail() {
@@ -132,7 +132,9 @@ public abstract class TaskReportTask extends ConventionReportTask {
      * @since 7.5
      */
     @Incubating
-    @Option(option = "groups", description = "Show tasks for specific groups (can be used multiple times to specify multiple groups).")
+    @Option(
+            option = "groups",
+            description = "Show tasks for specific groups (can be used multiple times to specify multiple groups).")
     public void setDisplayGroups(List<String> groups) {
         if (this.groups == null) {
             this.groups = new ArrayList<>();
@@ -169,14 +171,11 @@ public abstract class TaskReportTask extends ConventionReportTask {
 
     @TaskAction
     void generate() {
-        reportGenerator().generateReport(
-            model.get().projects,
-            projectModel -> projectModel.get().project,
-            projectModel -> {
-                render(projectModel.get());
-                logClickableOutputFileUrl();
-            }
-        );
+        reportGenerator()
+                .generateReport(model.get().projects, projectModel -> projectModel.get().project, projectModel -> {
+                    render(projectModel.get());
+                    logClickableOutputFileUrl();
+                });
     }
 
     private ComputedTaskReportModel computeTaskReportModel() {
@@ -206,11 +205,10 @@ public abstract class TaskReportTask extends ConventionReportTask {
         public final List<RuleDetails> rules;
 
         public ProjectReportModel(
-            ProjectDetails project,
-            List<String> defaultTasks,
-            DefaultGroupTaskReportModel tasks,
-            List<RuleDetails> rules
-        ) {
+                ProjectDetails project,
+                List<String> defaultTasks,
+                DefaultGroupTaskReportModel tasks,
+                List<RuleDetails> rules) {
             this.project = project;
             this.defaultTasks = defaultTasks;
             this.tasks = tasks;
@@ -220,11 +218,12 @@ public abstract class TaskReportTask extends ConventionReportTask {
 
     private ProjectReportModel projectReportModelFor(Project project) {
         return new ProjectReportModel(
-            ProjectDetails.of(project),
-            project.getDefaultTasks(),
-            taskReportModelFor(project, isDetail()),
-            (Strings.isNullOrEmpty(group) && (groups == null || groups.isEmpty())) ? ruleDetailsFor(project) : emptyList()
-        );
+                ProjectDetails.of(project),
+                project.getDefaultTasks(),
+                taskReportModelFor(project, isDetail()),
+                (Strings.isNullOrEmpty(group) && (groups == null || groups.isEmpty()))
+                        ? ruleDetailsFor(project)
+                        : emptyList());
     }
 
     private void render(ProjectReportModel reportModel) {
@@ -247,17 +246,20 @@ public abstract class TaskReportTask extends ConventionReportTask {
     }
 
     private List<RuleDetails> ruleDetailsFor(Project project) {
-        return project.getTasks().getRules().stream().map(rule -> RuleDetails.of(rule.getDescription())).collect(Collectors.toList());
+        return project.getTasks().getRules().stream()
+                .map(rule -> RuleDetails.of(rule.getDescription()))
+                .collect(Collectors.toList());
     }
 
     private DefaultGroupTaskReportModel taskReportModelFor(Project project, boolean detail) {
-        final AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!detail, detail, getDisplayGroup(), getDisplayGroups());
+        final AggregateMultiProjectTaskReportModel aggregateModel =
+                new AggregateMultiProjectTaskReportModel(!detail, detail, getDisplayGroup(), getDisplayGroups());
 
         ProjectIdentity relativeProjectIdentity = ((ProjectInternal) project).getProjectIdentity();
 
         Stream.concat(Stream.of(project), project.getSubprojects().stream())
-            .map(p -> buildTaskReportModelFor(relativeProjectIdentity, p))
-            .forEach(aggregateModel::add);
+                .map(p -> buildTaskReportModelFor(relativeProjectIdentity, p))
+                .forEach(aggregateModel::add);
 
         aggregateModel.build();
 
@@ -266,15 +268,13 @@ public abstract class TaskReportTask extends ConventionReportTask {
 
     private SingleProjectTaskReportModel buildTaskReportModelFor(ProjectIdentity relativeProjectIdentity, Project p) {
         return ((ProjectInternal) p).getOwner().fromMutableState(project -> {
-            ImmutableSetMultimap.Builder<String, TaskDetails> groups = ImmutableSetMultimap.<String, TaskDetails>builder()
-                .orderKeysBy(String::compareToIgnoreCase)
-                .orderValuesBy(Comparator.comparing(TaskDetails::getPath));
+            ImmutableSetMultimap.Builder<String, TaskDetails> groups =
+                    ImmutableSetMultimap.<String, TaskDetails>builder()
+                            .orderKeysBy(String::compareToIgnoreCase)
+                            .orderValuesBy(Comparator.comparing(TaskDetails::getPath));
 
             for (Task task : getProjectTaskLister().listProjectTasks(project)) {
-                groups.put(
-                    getGroupFor(task),
-                    TaskDetails.of(getPathFor(relativeProjectIdentity, task), task)
-                );
+                groups.put(getGroupFor(task), TaskDetails.of(getPathFor(relativeProjectIdentity, task), task));
             }
 
             return new SingleProjectTaskReportModel(groups.build());
@@ -288,12 +288,12 @@ public abstract class TaskReportTask extends ConventionReportTask {
         TaskIdentity<?> taskId = ((TaskInternal) task).getTaskIdentity();
         ProjectIdentity taskProjectIdentity = taskId.getProjectIdentity();
 
-        boolean isParentProject = taskProjectIdentity.getBuildTreePath()
-            .startsWith(relativeProjectIdentity.getBuildTreePath());
+        boolean isParentProject =
+                taskProjectIdentity.getBuildTreePath().startsWith(relativeProjectIdentity.getBuildTreePath());
 
         return isParentProject
-            ? relativeProjectIdentity.getProjectPath().relativePath(taskId.getPath())
-            : taskId.getPath();
+                ? relativeProjectIdentity.getProjectPath().relativePath(taskId.getPath())
+                : taskId.getPath();
     }
 
     /**
@@ -310,5 +310,4 @@ public abstract class TaskReportTask extends ConventionReportTask {
 
     @Inject
     protected abstract ProjectTaskLister getProjectTaskLister();
-
 }

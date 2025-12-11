@@ -27,19 +27,18 @@ public class ValidationServicesFixture {
 
     public static ServiceRegistry getServices() {
         return ServiceRegistryBuilder.builder()
-            .displayName("validation fixture services")
-            .provider(new ServiceRegistrationProvider() {
-                @Provides
-                ExecutionGlobalServices.AnnotationHandlerRegistration createAnnotationRegistration() {
-                    return () -> ImmutableList.of(ValidationProblem.class);
-                }
+                .displayName("validation fixture services")
+                .provider(new ServiceRegistrationProvider() {
+                    @Provides
+                    ExecutionGlobalServices.AnnotationHandlerRegistration createAnnotationRegistration() {
+                        return () -> ImmutableList.of(ValidationProblem.class);
+                    }
 
-                @Provides
-                PropertyAnnotationHandler createValidationProblemAnnotationHandler() {
-                    return new ValidationProblemPropertyAnnotationHandler();
-                }
-            })
-            .build();
+                    @Provides
+                    PropertyAnnotationHandler createValidationProblemAnnotationHandler() {
+                        return new ValidationProblemPropertyAnnotationHandler();
+                    }
+                })
+                .build();
     }
-
 }

@@ -39,7 +39,8 @@ public abstract class SwiftCompilerPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
-        NativeToolChainRegistryInternal toolChainRegistry = Cast.uncheckedCast(project.getExtensions().getByType(NativeToolChainRegistry.class));
+        NativeToolChainRegistryInternal toolChainRegistry =
+                Cast.uncheckedCast(project.getExtensions().getByType(NativeToolChainRegistry.class));
         toolChainRegistry.registerBinding(Swiftc.class, SwiftcToolChain.class);
         toolChainRegistry.registerDefaultToolChain(SwiftcToolChain.DEFAULT_NAME, Swiftc.class);
     }

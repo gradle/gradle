@@ -18,13 +18,12 @@ package org.gradle.ide.xcode.tasks.internal;
 
 import groovy.util.Node;
 import groovy.util.NodeList;
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
     public XcodeSchemeFile(XmlTransformer xmlTransformer) {
@@ -76,12 +75,14 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         }
 
         public void entry(Action<BuildActionEntry> action) {
-            action.execute(new BuildActionEntry(getOrAppendNode(xml, "BuildActionEntries").appendNode("BuildActionEntry")));
+            action.execute(new BuildActionEntry(
+                    getOrAppendNode(xml, "BuildActionEntries").appendNode("BuildActionEntry")));
         }
     }
 
     private static final String YES = "YES";
     private static final String NO = "NO";
+
     private static String toYesNo(boolean value) {
         if (value) {
             return YES;

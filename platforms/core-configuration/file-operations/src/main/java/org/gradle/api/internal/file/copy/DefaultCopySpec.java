@@ -19,6 +19,18 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
+import java.io.File;
+import java.io.FilterReader;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonExtensible;
@@ -55,19 +67,6 @@ import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.FilterReader;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-
 @NonExtensible
 public class DefaultCopySpec implements CopySpecInternal {
     private static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationConverter.parser();
@@ -92,11 +91,25 @@ public class DefaultCopySpec implements CopySpecInternal {
     private PatternFilterable preserve = new PatternSet();
 
     @Inject
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, PatternSetFactory patternSetFactory) {
-        this(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, patternSetFactory.createPatternSet());
+    public DefaultCopySpec(
+            FileCollectionFactory fileCollectionFactory,
+            PropertyFactory propertyFactory,
+            Instantiator instantiator,
+            PatternSetFactory patternSetFactory) {
+        this(
+                fileCollectionFactory,
+                propertyFactory,
+                instantiator,
+                patternSetFactory,
+                patternSetFactory.createPatternSet());
     }
 
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, PatternSetFactory patternSetFactory, PatternSet patternSet) {
+    public DefaultCopySpec(
+            FileCollectionFactory fileCollectionFactory,
+            PropertyFactory propertyFactory,
+            Instantiator instantiator,
+            PatternSetFactory patternSetFactory,
+            PatternSet patternSet) {
         this.sourcePaths = fileCollectionFactory.configurableFiles();
         this.fileCollectionFactory = fileCollectionFactory;
         this.propertyFactory = propertyFactory;
@@ -107,7 +120,16 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.dirPermissions = propertyFactory.property(ConfigurableFilePermissions.class);
     }
 
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, PatternSetFactory patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
+    public DefaultCopySpec(
+            FileCollectionFactory fileCollectionFactory,
+            PropertyFactory propertyFactory,
+            Instantiator instantiator,
+            PatternSetFactory patternSetFactory,
+            @Nullable String destPath,
+            FileCollection source,
+            PatternSet patternSet,
+            Collection<? extends Action<? super FileCopyDetails>> copyActions,
+            Collection<CopySpecInternal> children) {
         this(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, patternSet);
         sourcePaths.from(source);
         destDir = destPath;
@@ -162,7 +184,9 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
-        Preconditions.checkNotNull(configureAction, "Gradle does not allow passing null for the configuration action for CopySpec.from().");
+        Preconditions.checkNotNull(
+                configureAction,
+                "Gradle does not allow passing null for the configuration action for CopySpec.from().");
         CopySpecInternal child = addChild();
         child.from(sourcePath);
         CopySpecWrapper wrapper = instantiator.newInstance(CopySpecWrapper.class, child);
@@ -176,14 +200,26 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     protected CopySpecInternal addChildAtPosition(int position) {
-        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, buildRootResolver());
+        DefaultCopySpec child = instantiator.newInstance(
+                SingleParentCopySpec.class,
+                fileCollectionFactory,
+                propertyFactory,
+                instantiator,
+                patternSetFactory,
+                buildRootResolver());
         addChildSpec(position, child);
         return child;
     }
 
     @Override
     public CopySpecInternal addChild() {
-        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, buildRootResolver());
+        DefaultCopySpec child = instantiator.newInstance(
+                SingleParentCopySpec.class,
+                fileCollectionFactory,
+                propertyFactory,
+                instantiator,
+                patternSetFactory,
+                buildRootResolver());
         addChildSpec(child);
         return child;
     }
@@ -207,7 +243,8 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         // In case more descendants are added to downward hierarchy, make sure they'll notify us
         childSpec.addChildSpecListener((path, spec) -> {
-            CopySpecAddress childPath = new DefaultCopySpecAddress(null, DefaultCopySpec.this, additionIndex).append(path);
+            CopySpecAddress childPath =
+                    new DefaultCopySpecAddress(null, DefaultCopySpec.this, additionIndex).append(path);
             fireChildSpecListeners(childPath, spec);
         });
 
@@ -270,7 +307,8 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
-        Preconditions.checkNotNull(copySpec, "Gradle does not allow passing null for the configuration action for CopySpec.into().");
+        Preconditions.checkNotNull(
+                copySpec, "Gradle does not allow passing null for the configuration action for CopySpec.into().");
         CopySpecInternal child = addChild();
         child.into(destPath);
         CopySpecWrapper wrapper = instantiator.newInstance(CopySpecWrapper.class, child);
@@ -481,7 +519,9 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopyProcessingSpec filePermissions(Action<? super ConfigurableFilePermissions> configureAction) {
-        DefaultConfigurableFilePermissions permissions = instantiator.newInstance(DefaultConfigurableFilePermissions.class, DefaultConfigurableFilePermissions.getDefaultUnixNumeric(false));
+        DefaultConfigurableFilePermissions permissions = instantiator.newInstance(
+                DefaultConfigurableFilePermissions.class,
+                DefaultConfigurableFilePermissions.getDefaultUnixNumeric(false));
         configureAction.execute(permissions);
         filePermissions.set(permissions);
         return this;
@@ -494,7 +534,9 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopyProcessingSpec dirPermissions(Action<? super ConfigurableFilePermissions> configureAction) {
-        DefaultConfigurableFilePermissions permissions = instantiator.newInstance(DefaultConfigurableFilePermissions.class, DefaultConfigurableFilePermissions.getDefaultUnixNumeric(true));
+        DefaultConfigurableFilePermissions permissions = instantiator.newInstance(
+                DefaultConfigurableFilePermissions.class,
+                DefaultConfigurableFilePermissions.getDefaultUnixNumeric(true));
         configureAction.execute(permissions);
         dirPermissions.set(permissions);
         return this;
@@ -566,7 +608,8 @@ public class DefaultCopySpec implements CopySpecInternal {
     public void setFilteringCharset(String charset) {
         Preconditions.checkNotNull(charset, "filteringCharset must not be null");
         if (!Charset.isSupported(charset)) {
-            throw new InvalidUserDataException(String.format("filteringCharset %s is not supported by your JVM", charset));
+            throw new InvalidUserDataException(
+                    String.format("filteringCharset %s is not supported by your JVM", charset));
         }
         this.filteringCharset = charset;
     }
@@ -700,7 +743,6 @@ public class DefaultCopySpec implements CopySpecInternal {
             return result;
         }
 
-
         @Override
         public List<Spec<FileTreeElement>> getAllExcludeSpecs() {
             List<Spec<FileTreeElement>> result = new ArrayList<>();
@@ -764,7 +806,9 @@ public class DefaultCopySpec implements CopySpecInternal {
             return getPermissions(dirPermissions, CopySpecResolver::getImmutableDirPermissions);
         }
 
-        private Provider<FilePermissions> getPermissions(Property<ConfigurableFilePermissions> property, Function<CopySpecResolver, Provider<FilePermissions>> parentMapper) {
+        private Provider<FilePermissions> getPermissions(
+                Property<ConfigurableFilePermissions> property,
+                Function<CopySpecResolver, Provider<FilePermissions>> parentMapper) {
             if (property.isPresent() || parentResolver == null) {
                 property.finalizeValueOnRead();
                 return Cast.uncheckedCast(property);
@@ -828,7 +872,8 @@ public class DefaultCopySpec implements CopySpecInternal {
         private final CopySpecInternal spec;
         private final int additionIndex;
 
-        public DefaultCopySpecAddress(@Nullable DefaultCopySpecAddress parent, CopySpecInternal spec, int additionIndex) {
+        public DefaultCopySpecAddress(
+                @Nullable DefaultCopySpecAddress parent, CopySpecInternal spec, int additionIndex) {
             this.parent = parent;
             this.spec = spec;
             this.additionIndex = additionIndex;
@@ -880,9 +925,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public String toString() {
-            String parentPath = parent == null
-                ? ""
-                : parent.toString();
+            String parentPath = parent == null ? "" : parent.toString();
             return parentPath + "$" + (additionIndex + 1);
         }
     }

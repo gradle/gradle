@@ -16,17 +16,21 @@
 
 package org.gradle.tooling.events.configuration.internal;
 
+import java.util.List;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.configuration.ProjectConfigurationFailureResult;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 
-import java.util.List;
-
-public class DefaultProjectConfigurationFailureResult extends DefaultOperationFailureResult implements ProjectConfigurationFailureResult {
+public class DefaultProjectConfigurationFailureResult extends DefaultOperationFailureResult
+        implements ProjectConfigurationFailureResult {
 
     private final List<? extends PluginApplicationResult> pluginApplicationResults;
 
-    public DefaultProjectConfigurationFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<? extends PluginApplicationResult> pluginApplicationResults) {
+    public DefaultProjectConfigurationFailureResult(
+            long startTime,
+            long endTime,
+            List<? extends Failure> failures,
+            List<? extends PluginApplicationResult> pluginApplicationResults) {
         super(startTime, endTime, failures);
         this.pluginApplicationResults = pluginApplicationResults;
     }
@@ -35,5 +39,4 @@ public class DefaultProjectConfigurationFailureResult extends DefaultOperationFa
     public List<? extends PluginApplicationResult> getPluginApplicationResults() {
         return pluginApplicationResults;
     }
-
 }

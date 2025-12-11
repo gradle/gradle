@@ -27,5 +27,4 @@ public interface BuildIdentifier {
      * @since 8.2
      */
     String getBuildPath();
-
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks;
 
+import java.util.Set;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 public class TaskDependencyUtil {
     /**
@@ -35,10 +34,11 @@ public class TaskDependencyUtil {
      * @return the set of task dependencies, as {@link TaskDependency#getDependencies(Task)} would.
      */
     @AllowUsingApiForExternalUse
-    public static Set<? extends Task> getDependenciesForInternalUse(TaskDependency taskDependency, @Nullable Task task) {
-        return taskDependency instanceof TaskDependencyInternal ?
-            ((TaskDependencyInternal) taskDependency).getDependenciesForInternalUse(task) :
-            taskDependency.getDependencies(task);
+    public static Set<? extends Task> getDependenciesForInternalUse(
+            TaskDependency taskDependency, @Nullable Task task) {
+        return taskDependency instanceof TaskDependencyInternal
+                ? ((TaskDependencyInternal) taskDependency).getDependenciesForInternalUse(task)
+                : taskDependency.getDependencies(task);
     }
 
     public static Set<? extends Task> getDependenciesForInternalUse(Buildable buildable) {

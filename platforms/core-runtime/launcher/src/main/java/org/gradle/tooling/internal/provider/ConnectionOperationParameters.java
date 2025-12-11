@@ -16,17 +16,19 @@
 
 package org.gradle.tooling.internal.provider;
 
+import java.util.Map;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
-
-import java.util.Map;
 
 public class ConnectionOperationParameters {
     private final DaemonParameters daemonParameters;
     private final Map<String, String> tapiSystemProperties;
     private final ProviderOperationParameters operationParameters;
 
-    public ConnectionOperationParameters(DaemonParameters daemonParameters, Map<String, String> tapiSystemProperties, ProviderOperationParameters operationParameters) {
+    public ConnectionOperationParameters(
+            DaemonParameters daemonParameters,
+            Map<String, String> tapiSystemProperties,
+            ProviderOperationParameters operationParameters) {
         this.daemonParameters = daemonParameters;
         this.tapiSystemProperties = tapiSystemProperties;
         this.operationParameters = operationParameters;

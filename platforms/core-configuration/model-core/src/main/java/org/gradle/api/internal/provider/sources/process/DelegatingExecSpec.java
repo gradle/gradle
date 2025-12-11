@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
+import java.util.List;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecSpec;
-
-import java.util.List;
 
 interface DelegatingExecSpec extends DelegatingBaseExecSpec, ExecSpec {
     @Override

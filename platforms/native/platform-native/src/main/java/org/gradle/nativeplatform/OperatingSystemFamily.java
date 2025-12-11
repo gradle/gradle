@@ -27,7 +27,8 @@ import org.gradle.api.tasks.Input;
  * @since 5.1
  */
 public abstract class OperatingSystemFamily implements Named {
-    public static final Attribute<OperatingSystemFamily> OPERATING_SYSTEM_ATTRIBUTE = Attribute.of("org.gradle.native.operatingSystem", OperatingSystemFamily.class);
+    public static final Attribute<OperatingSystemFamily> OPERATING_SYSTEM_ATTRIBUTE =
+            Attribute.of("org.gradle.native.operatingSystem", OperatingSystemFamily.class);
 
     /**
      * {@inheritDoc}

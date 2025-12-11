@@ -16,13 +16,12 @@
 
 package org.gradle.swiftpm.internal;
 
-import org.gradle.language.swift.SwiftVersion;
-import org.gradle.swiftpm.Package;
-import org.jspecify.annotations.Nullable;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
+import org.gradle.language.swift.SwiftVersion;
+import org.gradle.swiftpm.Package;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultPackage implements Package, Serializable {
     private final Set<AbstractProduct> products;
@@ -30,7 +29,11 @@ public class DefaultPackage implements Package, Serializable {
     private final List<DefaultTarget> targets;
     private final SwiftVersion swiftLanguageVersion;
 
-    public DefaultPackage(Set<AbstractProduct> products, List<DefaultTarget> targets, List<Dependency> dependencies, @Nullable SwiftVersion swiftLanguageVersion) {
+    public DefaultPackage(
+            Set<AbstractProduct> products,
+            List<DefaultTarget> targets,
+            List<Dependency> dependencies,
+            @Nullable SwiftVersion swiftLanguageVersion) {
         this.products = products;
         this.targets = targets;
         this.dependencies = dependencies;

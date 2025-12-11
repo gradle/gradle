@@ -18,14 +18,13 @@ package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentResolveMetadata {
     /**
@@ -43,7 +42,6 @@ public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentR
      * Returns the Ivy definitions for artifacts of this module.
      */
     ImmutableList<Artifact> getArtifactDefinitions();
-
 
     /**
      * Returns the dependency declarations of this component.

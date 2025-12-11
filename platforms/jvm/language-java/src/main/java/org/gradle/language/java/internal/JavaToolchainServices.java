@@ -41,27 +41,25 @@ public class JavaToolchainServices extends AbstractGradleModuleServices {
     private static class ProjectScopeCompileServices implements ServiceRegistrationProvider {
         @Provides
         JavaCompilerFactory createJavaCompilerFactory(
-            WorkerDaemonFactory workerDaemonFactory,
-            JavaForkOptionsFactory forkOptionsFactory,
-            WorkerDirectoryProvider workerDirectoryProvider,
-            ClientExecHandleBuilderFactory execHandleFactory,
-            AnnotationProcessorDetector processorDetector,
-            ClassPathRegistry classPathRegistry,
-            ActionExecutionSpecFactory actionExecutionSpecFactory,
-            InternalProblems problems,
-            ProjectCacheDir projectCacheDir
-        ) {
+                WorkerDaemonFactory workerDaemonFactory,
+                JavaForkOptionsFactory forkOptionsFactory,
+                WorkerDirectoryProvider workerDirectoryProvider,
+                ClientExecHandleBuilderFactory execHandleFactory,
+                AnnotationProcessorDetector processorDetector,
+                ClassPathRegistry classPathRegistry,
+                ActionExecutionSpecFactory actionExecutionSpecFactory,
+                InternalProblems problems,
+                ProjectCacheDir projectCacheDir) {
             return new DefaultJavaCompilerFactory(
-                workerDirectoryProvider,
-                workerDaemonFactory,
-                forkOptionsFactory,
-                execHandleFactory,
-                processorDetector,
-                classPathRegistry,
-                actionExecutionSpecFactory,
-                problems,
-                projectCacheDir
-            );
+                    workerDirectoryProvider,
+                    workerDaemonFactory,
+                    forkOptionsFactory,
+                    execHandleFactory,
+                    processorDetector,
+                    classPathRegistry,
+                    actionExecutionSpecFactory,
+                    problems,
+                    projectCacheDir);
         }
     }
 }

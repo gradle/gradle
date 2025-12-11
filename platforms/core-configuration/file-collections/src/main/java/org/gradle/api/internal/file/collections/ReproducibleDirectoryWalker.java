@@ -17,13 +17,6 @@
 package org.gradle.api.internal.file.collections;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -33,11 +26,16 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.RelativePath;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.jspecify.annotations.Nullable;
 
 public class ReproducibleDirectoryWalker implements DirectoryWalker {
-    private final static Comparator<PathWithAttributes> FILES_FIRST = Comparator
-        .comparing(PathWithAttributes::isDirectory)
-        .thenComparing(p -> p.path.toString());
+    private static final Comparator<PathWithAttributes> FILES_FIRST =
+            Comparator.comparing(PathWithAttributes::isDirectory).thenComparing(p -> p.path.toString());
 
     private final FileSystem fileSystem;
 
@@ -46,7 +44,13 @@ public class ReproducibleDirectoryWalker implements DirectoryWalker {
     }
 
     @Override
-    public void walkDir(Path rootDir, RelativePath rootPath, FileVisitor visitor, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
+    public void walkDir(
+            Path rootDir,
+            RelativePath rootPath,
+            FileVisitor visitor,
+            Spec<? super FileTreeElement> spec,
+            AtomicBoolean stopFlag,
+            boolean postfix) {
         PathVisitor pathVisitor = new PathVisitor(spec, postfix, visitor, stopFlag, rootPath, fileSystem);
         visit(toPathWithAttributes(rootDir), pathVisitor);
     }
@@ -66,9 +70,9 @@ public class ReproducibleDirectoryWalker implements DirectoryWalker {
             IOException exception = null;
             try (Stream<Path> fileStream = Files.list(path)) {
                 Iterable<PathWithAttributes> files = () -> fileStream
-                    .map(ReproducibleDirectoryWalker::toPathWithAttributes)
-                    .sorted(FILES_FIRST)
-                    .iterator();
+                        .map(ReproducibleDirectoryWalker::toPathWithAttributes)
+                        .sorted(FILES_FIRST)
+                        .iterator();
                 for (PathWithAttributes child : files) {
                     FileVisitResult childResult = visit(child, pathVisitor);
                     if (childResult == FileVisitResult.TERMINATE) {
@@ -93,7 +97,8 @@ public class ReproducibleDirectoryWalker implements DirectoryWalker {
             return new PathWithAttributes(path, attributes, null);
         } catch (IOException ignored) {
             try {
-                BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+                BasicFileAttributes attributes =
+                        Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
                 return new PathWithAttributes(path, attributes, null);
             } catch (IOException e) {
                 return new PathWithAttributes(path, null, e);
@@ -103,8 +108,10 @@ public class ReproducibleDirectoryWalker implements DirectoryWalker {
 
     private static class PathWithAttributes {
         private final Path path;
+
         @Nullable
         private final BasicFileAttributes attributes;
+
         @Nullable
         private final IOException exception;
 

@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.idea.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import groovy.util.Node;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 

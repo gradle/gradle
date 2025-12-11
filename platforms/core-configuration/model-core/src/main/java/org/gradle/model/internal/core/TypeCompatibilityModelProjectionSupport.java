@@ -16,14 +16,13 @@
 
 package org.gradle.model.internal.core;
 
+import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.isPrimitiveType;
+
+import java.util.Collections;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.util.Collections;
-
-import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.isPrimitiveType;
 
 @ThreadSafe
 public abstract class TypeCompatibilityModelProjectionSupport<M> implements ModelProjection {
@@ -44,12 +43,12 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
     }
 
     private <T> boolean canBeAssignedTo(ModelType<T> targetType) {
-        return targetType.isAssignableFrom(type)
-            || (ModelType.UNTYPED.equals(targetType) && isPrimitiveType(type));
+        return targetType.isAssignableFrom(type) || (ModelType.UNTYPED.equals(targetType) && isPrimitiveType(type));
     }
 
     @Override
-    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
+    public <T> ModelView<? extends T> asMutable(
+            ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
         if (canBeViewedAs(type)) {
             return Cast.uncheckedCast(toView(modelNode, ruleDescriptor, true));
         } else {
@@ -58,7 +57,8 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
     }
 
     @Override
-    public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
+    public <T> ModelView<? extends T> asImmutable(
+            ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
         if (canBeViewedAs(type)) {
             return Cast.uncheckedCast(toView(modelNode, ruleDescriptor, false));
         } else {
@@ -66,7 +66,8 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
         }
     }
 
-    protected abstract ModelView<M> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable);
+    protected abstract ModelView<M> toView(
+            MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable);
 
     @Override
     public Iterable<String> getTypeDescriptions(MutableModelNode node) {

@@ -18,17 +18,17 @@ package org.gradle.cache.internal.btree;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 public class CachingBlockStore implements BlockStore {
     private final BlockStore store;
     private final Map<BlockPointer, BlockPayload> dirty = new LinkedHashMap<BlockPointer, BlockPayload>();
-    private final Cache<BlockPointer, BlockPayload> indexBlockCache = CacheBuilder.newBuilder().maximumSize(100).concurrencyLevel(1).build();
+    private final Cache<BlockPointer, BlockPayload> indexBlockCache =
+            CacheBuilder.newBuilder().maximumSize(100).concurrencyLevel(1).build();
     private final ImmutableSet<Class<? extends BlockPayload>> cacheableBlockTypes;
 
     public CachingBlockStore(BlockStore store, Collection<Class<? extends BlockPayload>> cacheableBlockTypes) {

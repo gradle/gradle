@@ -15,6 +15,10 @@
  */
 package org.gradle.execution;
 
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -29,11 +33,6 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.NameMatcher;
 import org.jspecify.annotations.NonNull;
-
-import javax.inject.Inject;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
 public abstract class DefaultTaskSelector implements TaskSelector {
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskSelector.class);
@@ -52,22 +51,26 @@ public abstract class DefaultTaskSelector implements TaskSelector {
     protected abstract InternalProblems getProblemsService();
 
     @Override
-    public Spec<Task> getFilter(SelectionContext context, ProjectState project, String taskName, boolean includeSubprojects) {
+    public Spec<Task> getFilter(
+            SelectionContext context, ProjectState project, String taskName, boolean includeSubprojects) {
         if (includeSubprojects) {
             // Try to delay configuring all the subprojects
             getConfigurer().configure(project.getMutableModel());
             if (taskNameResolver.tryFindUnqualifiedTaskCheaply(taskName, project.getMutableModel())) {
-                // An exact match in the target project - can just filter tasks by path to avoid configuring subprojects at this point
+                // An exact match in the target project - can just filter tasks by path to avoid configuring subprojects
+                // at this point
                 return new TaskPathSpec(project.getMutableModel(), taskName);
             }
         }
 
-        Set<Task> selectedTasks = getSelection(context, project, taskName, includeSubprojects).getTasks();
+        Set<Task> selectedTasks =
+                getSelection(context, project, taskName, includeSubprojects).getTasks();
         return element -> !selectedTasks.contains(element);
     }
 
     @Override
-    public TaskSelection getSelection(SelectionContext context, ProjectState targetProject, String taskName, boolean includeSubprojects) {
+    public TaskSelection getSelection(
+            SelectionContext context, ProjectState targetProject, String taskName, boolean includeSubprojects) {
         if (!includeSubprojects) {
             getConfigurer().configure(targetProject.getMutableModel());
         } else {
@@ -91,27 +94,42 @@ public abstract class DefaultTaskSelector implements TaskSelector {
         return new TaskSelection(targetProject.getProjectPath().asString(), taskName, tasksByName.get(actualName));
     }
 
-    private RuntimeException throwTaskSelectionException(SelectionContext context, ProjectState targetProject, String taskName, boolean includeSubprojects, NameMatcher matcher) {
+    private RuntimeException throwTaskSelectionException(
+            SelectionContext context,
+            ProjectState targetProject,
+            String taskName,
+            boolean includeSubprojects,
+            NameMatcher matcher) {
         String searchContext = getSearchContext(targetProject, includeSubprojects);
 
         if (context.getOriginalPath().asString().equals(taskName)) {
             String message = matcher.formatErrorMessage("Task", searchContext);
-            throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message), matcher.problemId(), spec -> {
-                configureProblem(spec, context);
-                spec.contextualLabel(message);
-            });
+            throw getProblemsService()
+                    .getInternalReporter()
+                    .throwing(new TaskSelectionException(message), matcher.problemId(), spec -> {
+                        configureProblem(spec, context);
+                        spec.contextualLabel(message);
+                    });
         }
-        String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(),
-            matcher.formatErrorMessage("task", searchContext));
+        String message = String.format(
+                "Cannot locate %s that match '%s' as %s",
+                context.getType(), context.getOriginalPath(), matcher.formatErrorMessage("task", searchContext));
 
-        throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message) /* this instead of cause */, matcher.problemId(), spec ->
-            configureProblem(spec, context)
-                .contextualLabel(message)
-        );
+        throw getProblemsService()
+                .getInternalReporter()
+                .throwing(
+                        new TaskSelectionException(message) /* this instead of cause */,
+                        matcher.problemId(),
+                        spec -> configureProblem(spec, context).contextualLabel(message));
     }
 
     private static ProblemSpec configureProblem(ProblemSpec spec, SelectionContext context) {
-        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().asString())));
+        ((InternalProblemSpec) spec)
+                .additionalDataInternal(
+                        GeneralDataSpec.class,
+                        data -> data.put(
+                                "requestedPath",
+                                Objects.requireNonNull(context.getOriginalPath().asString())));
         spec.severity(Severity.ERROR);
         return spec;
     }

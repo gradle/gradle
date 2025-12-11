@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
-import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -26,9 +28,6 @@ import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.dispatch.DispatchException;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Manages a set of parallel {@link TestDefinitionProcessor}s.
@@ -49,7 +48,8 @@ public class MaxNParallelTestDefinitionProcessor<D extends TestDefinition> imple
     private Actor resultProcessorActor;
     private volatile boolean stoppedNow;
 
-    public MaxNParallelTestDefinitionProcessor(int maxProcessors, Factory<TestDefinitionProcessor<D>> factory, ActorFactory actorFactory) {
+    public MaxNParallelTestDefinitionProcessor(
+            int maxProcessors, Factory<TestDefinitionProcessor<D>> factory, ActorFactory actorFactory) {
         this.maxProcessors = maxProcessors;
         this.factory = factory;
         this.actorFactory = actorFactory;
@@ -87,7 +87,10 @@ public class MaxNParallelTestDefinitionProcessor<D extends TestDefinition> imple
     @Override
     public void stop() {
         try {
-            CompositeStoppable.stoppable(processors).add(actors).add(resultProcessorActor).stop();
+            CompositeStoppable.stoppable(processors)
+                    .add(actors)
+                    .add(resultProcessorActor)
+                    .stop();
         } catch (DispatchException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         }

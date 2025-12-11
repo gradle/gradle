@@ -66,7 +66,7 @@ public class FixedStepPathMatcher implements PathMatcher {
             // Does not match element, will never match when more elements added
             return false;
         }
-        if (startIndex +1 == segments.length) {
+        if (startIndex + 1 == segments.length) {
             // End of path, might match when more elements added
             return true;
         }

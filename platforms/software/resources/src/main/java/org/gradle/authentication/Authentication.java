@@ -23,5 +23,4 @@ import org.gradle.internal.HasInternalProtocol;
  * Base interface for transport authentication schemes.
  */
 @HasInternalProtocol
-public interface Authentication extends Named {
-}
+public interface Authentication extends Named {}

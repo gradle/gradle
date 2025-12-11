@@ -37,5 +37,4 @@ public interface ComponentSelectorConverter {
      * @throws IllegalArgumentException if an unknown selector type is provided.
      */
     ModuleVersionIdentifier getModuleVersionId(ComponentSelector selector);
-
 }

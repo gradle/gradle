@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import java.util.List;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
-
-import java.util.List;
 
 public interface ConfigurationVariantInternal extends ConfigurationVariant {
 

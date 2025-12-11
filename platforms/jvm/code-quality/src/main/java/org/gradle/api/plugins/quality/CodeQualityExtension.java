@@ -15,11 +15,10 @@
  */
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
 import java.io.File;
 import java.util.Collection;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * Base Code Quality Extension.

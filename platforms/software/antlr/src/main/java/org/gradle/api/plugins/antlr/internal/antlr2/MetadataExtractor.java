@@ -15,9 +15,11 @@
  */
 package org.gradle.api.plugins.antlr.internal.antlr2;
 
-import antlr.preprocessor.Hierarchy;
-import org.jspecify.annotations.Nullable;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.newBufferedReader;
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
+import antlr.preprocessor.Hierarchy;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,10 +29,7 @@ import java.io.UncheckedIOException;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.newBufferedReader;
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Preprocess an Antlr grammar file so that dependencies between grammars can be properly determined such that they can
@@ -52,12 +51,8 @@ public class MetadataExtractor {
         // now, do our processing using the antlr preprocessor results whenever possible.
         XRef xref = new XRef(hierarchy);
         for (File grammarFile : sources) {
-            xref.addGrammarFile(
-                new GrammarFileMetadata(
-                    grammarFile,
-                    hierarchy.getFile(grammarFile.getPath()),
-                    getPackageName(grammarFile))
-            );
+            xref.addGrammarFile(new GrammarFileMetadata(
+                    grammarFile, hierarchy.getFile(grammarFile.getPath()), getPackageName(grammarFile)));
         }
         return xref;
     }
@@ -87,7 +82,6 @@ public class MetadataExtractor {
                         grammarPackageName = m.group(1);
                     }
                 }
-
             }
         } catch (IOException e) {
             throw throwAsUncheckedException(e);

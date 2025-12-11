@@ -17,10 +17,9 @@
 package org.gradle.listener;
 
 import groovy.lang.Closure;
+import java.util.Arrays;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
-
-import java.util.Arrays;
 
 public class ClosureBackedMethodInvocationDispatch implements Dispatch<MethodInvocation> {
     private final String methodName;
@@ -36,7 +35,9 @@ public class ClosureBackedMethodInvocationDispatch implements Dispatch<MethodInv
         if (message.getMethodName().equals(methodName)) {
             Object[] parameters = message.getArguments();
             if (closure.getMaximumNumberOfParameters() < parameters.length) {
-                parameters = Arrays.asList(parameters).subList(0, closure.getMaximumNumberOfParameters()).toArray();
+                parameters = Arrays.asList(parameters)
+                        .subList(0, closure.getMaximumNumberOfParameters())
+                        .toArray();
             }
             closure.call(parameters);
         }

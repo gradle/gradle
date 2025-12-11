@@ -25,5 +25,4 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface GradleEnterprisePluginServiceRefInternal extends GradleEnterprisePluginServiceRef {
 
     void set(GradleEnterprisePluginService service);
-
 }

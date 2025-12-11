@@ -26,5 +26,4 @@ public interface StackFramePredicate {
     };
 
     boolean test(StackTraceElement frame, StackTraceRelevance relevance);
-
 }

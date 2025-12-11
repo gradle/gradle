@@ -16,15 +16,14 @@
 
 package org.gradle.process.internal.worker;
 
-import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.stream.EncodedStream;
-
 import java.io.DataInputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.stream.EncodedStream;
 
 /**
  * The main entry point for a worker process that is using the system ClassLoader strategy. Reads worker configuration and a serialized worker action from stdin,
@@ -56,7 +55,8 @@ public class GradleWorkerMain {
             for (String sharedPackage : sharedPackages) {
                 filteringClassLoaderSpec.allowPackage(sharedPackage);
             }
-            FilteringClassLoader filteringClassLoader = new FilteringClassLoader(getClass().getClassLoader(), filteringClassLoaderSpec);
+            FilteringClassLoader filteringClassLoader =
+                    new FilteringClassLoader(getClass().getClassLoader(), filteringClassLoaderSpec);
             implementationClassLoader = new URLClassLoader(implementationClassPath, filteringClassLoader);
         } else {
             // If no implementation classpath has been provided, just use the application classloader
@@ -64,7 +64,9 @@ public class GradleWorkerMain {
         }
 
         @SuppressWarnings("unchecked")
-        Class<? extends Callable<Void>> workerClass = (Class<? extends Callable<Void>>) implementationClassLoader.loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
+        Class<? extends Callable<Void>> workerClass = (Class<? extends Callable<Void>>) implementationClassLoader
+                .loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker")
+                .asSubclass(Callable.class);
         Callable<Void> main = workerClass.getConstructor(DataInputStream.class).newInstance(instr);
         main.call();
     }

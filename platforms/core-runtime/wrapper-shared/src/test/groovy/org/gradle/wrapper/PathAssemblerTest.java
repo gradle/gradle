@@ -15,21 +15,21 @@
  */
 package org.gradle.wrapper;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.File;
-import java.net.URI;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.net.URI;
+import org.junit.Before;
+import org.junit.Test;
+
 public class PathAssemblerTest {
     public static final String TEST_GRADLE_USER_HOME = "someUserHome";
     public static final String TEST_PROJECT_DIR = "someProjectDir";
-    private PathAssembler pathAssembler = new PathAssembler(new File(TEST_GRADLE_USER_HOME), new File(TEST_PROJECT_DIR));
+    private PathAssembler pathAssembler =
+            new PathAssembler(new File(TEST_GRADLE_USER_HOME), new File(TEST_PROJECT_DIR));
     final WrapperConfiguration configuration = new WrapperConfiguration();
 
     @Before

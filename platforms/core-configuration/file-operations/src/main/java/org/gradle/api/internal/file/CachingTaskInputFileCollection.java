@@ -17,6 +17,8 @@
 package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.function.Consumer;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.ListBackedFileSet;
@@ -25,9 +27,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.file.PathToFileResolver;
-
-import java.io.File;
-import java.util.function.Consumer;
 
 /**
  * A {@link org.gradle.api.file.ConfigurableFileCollection} that can be used as a task input property. Caches the matching set of files during task execution, and discards the result after task execution.
@@ -40,7 +39,11 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
     private FileCollectionInternal cachedValue;
 
     // TODO - display name
-    public CachingTaskInputFileCollection(PathToFileResolver fileResolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost) {
+    public CachingTaskInputFileCollection(
+            PathToFileResolver fileResolver,
+            PatternSetFactory patternSetFactory,
+            TaskDependencyFactory taskDependencyFactory,
+            PropertyHost propertyHost) {
         super(null, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost);
     }
 
@@ -50,7 +53,8 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
             if (cachedValue == null) {
                 ImmutableSet.Builder<File> files = ImmutableSet.builder();
                 super.visitChildren(files::addAll);
-                this.cachedValue = new FileCollectionAdapter(new ListBackedFileSet(files.build()), taskDependencyFactory, patternSetFactory);
+                this.cachedValue = new FileCollectionAdapter(
+                        new ListBackedFileSet(files.build()), taskDependencyFactory, patternSetFactory);
             }
             visitor.accept(cachedValue);
         } else {

@@ -15,6 +15,22 @@
  */
 package org.gradle.process.internal;
 
+import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.jar.Attributes;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -37,23 +53,6 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.jar.Attributes;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-
-import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
-
 /**
  * Use {@link JavaExecHandleFactory} instead.
  */
@@ -74,13 +73,12 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     private final ModularitySpec modularity;
 
     public JavaExecHandleBuilder(
-        FileCollectionFactory fileCollectionFactory,
-        ObjectFactory objectFactory,
-        TemporaryFileProvider temporaryFileProvider,
-        @Nullable JavaModuleDetector javaModuleDetector,
-        JavaForkOptionsInternal javaOptions,
-        ClientExecHandleBuilder execHandleBuilder
-    ) {
+            FileCollectionFactory fileCollectionFactory,
+            ObjectFactory objectFactory,
+            TemporaryFileProvider temporaryFileProvider,
+            @Nullable JavaModuleDetector javaModuleDetector,
+            JavaForkOptionsInternal javaOptions,
+            ClientExecHandleBuilder execHandleBuilder) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.javaModuleDetector = javaModuleDetector;
@@ -132,8 +130,10 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         if (javaModuleDetector == null) {
             throw new IllegalStateException("Running a Java module is not supported in this context.");
         }
-        FileCollection rtModulePath = javaModuleDetector.inferModulePath(modularity.getInferModulePath().get(), classpath);
-        FileCollection rtClasspath = javaModuleDetector.inferClasspath(modularity.getInferModulePath().get(), classpath);
+        FileCollection rtModulePath = javaModuleDetector.inferModulePath(
+                modularity.getInferModulePath().get(), classpath);
+        FileCollection rtClasspath = javaModuleDetector.inferClasspath(
+                modularity.getInferModulePath().get(), classpath);
 
         if (rtClasspath != null && !rtClasspath.isEmpty()) {
             allArgs.add("-cp");
@@ -256,7 +256,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         javaOptions.debugOptions(action);
     }
 
-
     @Override
     public String getExecutable() {
         return javaOptions.getExecutable();
@@ -341,7 +340,8 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     }
 
     public JavaExecHandleBuilder setClasspath(FileCollection classpath) {
-        // we need to create a new file collection container to avoid cycles. See: https://github.com/gradle/gradle/issues/8755
+        // we need to create a new file collection container to avoid cycles. See:
+        // https://github.com/gradle/gradle/issues/8755
         ConfigurableFileCollection newClasspath = fileCollectionFactory.configurableFiles("classpath");
         newClasspath.setFrom(classpath);
         this.classpath = newClasspath;
@@ -445,7 +445,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     private File writePathingJarFile(FileCollection classpath) throws IOException {
         File pathingJarFile = temporaryFileProvider.createTemporaryFile("gradle-javaexec-classpath", ".jar");
         try (FileOutputStream fileOutputStream = new FileOutputStream(pathingJarFile);
-             JarOutputStream jarOutputStream = new JarOutputStream(fileOutputStream, toManifest(classpath))) {
+                JarOutputStream jarOutputStream = new JarOutputStream(fileOutputStream, toManifest(classpath))) {
             jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
         }
         return pathingJarFile;
@@ -455,7 +455,12 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         Manifest manifest = new Manifest();
         Attributes attributes = manifest.getMainAttributes();
         attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        attributes.putValue("Class-Path", classpath.getFiles().stream().map(File::toURI).map(URI::toString).collect(Collectors.joining(" ")));
+        attributes.putValue(
+                "Class-Path",
+                classpath.getFiles().stream()
+                        .map(File::toURI)
+                        .map(URI::toString)
+                        .collect(Collectors.joining(" ")));
         return manifest;
     }
 

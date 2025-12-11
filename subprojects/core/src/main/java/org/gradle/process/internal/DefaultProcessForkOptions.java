@@ -16,12 +16,11 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
-import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.process.ProcessForkOptions;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.process.ProcessForkOptions;
 
 public class DefaultProcessForkOptions implements ProcessForkOptions {
     protected final PathToFileResolver resolver;

@@ -17,13 +17,16 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
-
 import java.lang.annotation.Annotation;
 
-public abstract class AbstractPropertyAnnotationHandler extends AbstractAnnotationHandler implements PropertyAnnotationHandler {
+public abstract class AbstractPropertyAnnotationHandler extends AbstractAnnotationHandler
+        implements PropertyAnnotationHandler {
     private final Kind kind;
 
-    protected AbstractPropertyAnnotationHandler(Class<? extends Annotation> annotationType, Kind kind, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
+    protected AbstractPropertyAnnotationHandler(
+            Class<? extends Annotation> annotationType,
+            Kind kind,
+            ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
         super(annotationType, allowedModifiers);
         this.kind = kind;
     }

@@ -16,25 +16,35 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.StripperSpec;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 public class Stripper extends AbstractCompiler<StripperSpec> {
-    public Stripper(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new StripperArgsTransformer(), false, workerLeaseService);
+    public Stripper(
+            BuildOperationExecutor buildOperationExecutor,
+            CommandLineToolInvocationWorker commandLineToolInvocationWorker,
+            CommandLineToolContext invocationContext,
+            WorkerLeaseService workerLeaseService) {
+        super(
+                buildOperationExecutor,
+                commandLineToolInvocationWorker,
+                invocationContext,
+                new StripperArgsTransformer(),
+                false,
+                workerLeaseService);
     }
 
     @Override
-    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final StripperSpec spec, List<String> args) {
-        final CommandLineToolInvocation invocation = newInvocation(
-            "Stripping " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(
+            final StripperSpec spec, List<String> args) {
+        final CommandLineToolInvocation invocation =
+                newInvocation("Stripping " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
 
         return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override
@@ -46,7 +56,7 @@ public class Stripper extends AbstractCompiler<StripperSpec> {
     }
 
     @Override
-    protected void addOptionsFileArgs(List<String> args, File tempDir) { }
+    protected void addOptionsFileArgs(List<String> args, File tempDir) {}
 
     private static class StripperArgsTransformer implements ArgsTransformer<StripperSpec> {
         @Override

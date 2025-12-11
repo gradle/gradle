@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.provider.views;
 
-import org.gradle.api.provider.SetProperty;
-
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.gradle.api.provider.SetProperty;
 
 /**
  * Implementation of Set, that is used for Property upgrades
@@ -98,6 +97,7 @@ public class SetPropertySetView<E> extends AbstractSet<E> {
         Iterator<E> it = set.iterator();
         return new Iterator<E>() {
             E previousValue = null;
+
             @Override
             public boolean hasNext() {
                 return it.hasNext();

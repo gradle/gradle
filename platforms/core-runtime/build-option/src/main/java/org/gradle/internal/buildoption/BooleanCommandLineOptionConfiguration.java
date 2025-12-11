@@ -31,18 +31,22 @@ public class BooleanCommandLineOptionConfiguration extends CommandLineOptionConf
         this(longOption, null, enabledDescription, disabledDescription);
     }
 
-    BooleanCommandLineOptionConfiguration(String longOption, @Nullable String shortOption, String enabledDescription, String disabledDescription) {
+    BooleanCommandLineOptionConfiguration(
+            String longOption, @Nullable String shortOption, String enabledDescription, String disabledDescription) {
         super(longOption, shortOption, enabledDescription);
         assert disabledDescription != null : "disabled description cannot be null";
         this.disabledDescription = disabledDescription;
     }
 
-    public static BooleanCommandLineOptionConfiguration create(String longOption, String enabledDescription, String disabledDescription) {
+    public static BooleanCommandLineOptionConfiguration create(
+            String longOption, String enabledDescription, String disabledDescription) {
         return new BooleanCommandLineOptionConfiguration(longOption, enabledDescription, disabledDescription);
     }
 
-    public static BooleanCommandLineOptionConfiguration create(String longOption, String shortOption, String enabledDescription, String disabledDescription) {
-        return new BooleanCommandLineOptionConfiguration(longOption, shortOption, enabledDescription, disabledDescription);
+    public static BooleanCommandLineOptionConfiguration create(
+            String longOption, String shortOption, String enabledDescription, String disabledDescription) {
+        return new BooleanCommandLineOptionConfiguration(
+                longOption, shortOption, enabledDescription, disabledDescription);
     }
 
     public String getDisabledDescription() {

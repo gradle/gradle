@@ -67,5 +67,4 @@ public class GnupgSignatoryFactory {
     private String buildQualifiedProperty(String propertyPrefix, String property) {
         return "signing.gnupg." + propertyPrefix + (propertyPrefix.isEmpty() ? "" : ".") + property;
     }
-
 }

@@ -32,6 +32,7 @@ public class IntQuestionPromptEventSerializer implements Serializer<IntQuestionP
 
     @Override
     public IntQuestionPromptEvent read(Decoder decoder) throws Exception {
-        return new IntQuestionPromptEvent(decoder.readLong(), decoder.readString(), decoder.readSmallInt(), decoder.readSmallInt());
+        return new IntQuestionPromptEvent(
+                decoder.readLong(), decoder.readString(), decoder.readSmallInt(), decoder.readSmallInt());
     }
 }

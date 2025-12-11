@@ -49,7 +49,9 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
 
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
         project.getTasks().withType(Test.class).configureEach(test -> {
-            test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
+            test.getModularity()
+                    .getInferModulePath()
+                    .convention(java.getModularity().getInferModulePath());
         });
 
         TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
@@ -58,12 +60,16 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         testing.getSuites().withType(JvmTestSuite.class).all(testSuite -> {
             testSuite.getTargets().all(target -> {
                 target.getTestTask().configure(test -> {
-                    test.getConventionMapping().map("testClassesDirs", () -> testSuite.getSources().getOutput().getClassesDirs());
-                    test.getConventionMapping().map("classpath", () -> testSuite.getSources().getRuntimeClasspath());
+                    test.getConventionMapping()
+                            .map(
+                                    "testClassesDirs",
+                                    () -> testSuite.getSources().getOutput().getClassesDirs());
+                    test.getConventionMapping()
+                            .map("classpath", () -> testSuite.getSources().getRuntimeClasspath());
                 });
-                target.getBinaryResultsDirectory().convention(target.getTestTask().flatMap(Test::getBinaryResultsDirectory));
+                target.getBinaryResultsDirectory()
+                        .convention(target.getTestTask().flatMap(Test::getBinaryResultsDirectory));
             });
         });
     }
-
 }

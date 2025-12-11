@@ -25,7 +25,9 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 4.0
  */
-public final class ExternalResourceListBuildOperationType implements BuildOperationType<ExternalResourceListBuildOperationType.Details, ExternalResourceListBuildOperationType.Result> {
+public final class ExternalResourceListBuildOperationType
+        implements BuildOperationType<
+                ExternalResourceListBuildOperationType.Details, ExternalResourceListBuildOperationType.Result> {
 
     public interface Details {
 
@@ -34,16 +36,9 @@ public final class ExternalResourceListBuildOperationType implements BuildOperat
          * A valid URI.
          */
         String getLocation();
-
     }
 
-    public interface Result {
+    public interface Result {}
 
-    }
-
-
-
-    private ExternalResourceListBuildOperationType() {
-    }
-
+    private ExternalResourceListBuildOperationType() {}
 }

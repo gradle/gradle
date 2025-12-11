@@ -16,6 +16,14 @@
 
 package org.gradle.internal.jvm;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
+import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.cache.internal.FileContentCache;
@@ -25,15 +33,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.jar.JarInputStream;
-import java.util.jar.Manifest;
-import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-
 @ServiceScope(Scope.UserHome.class)
 public class JavaModuleDetector {
 
@@ -42,13 +41,18 @@ public class JavaModuleDetector {
     private static final String AUTOMATIC_MODULE_NAME_ATTRIBUTE = "Automatic-Module-Name";
     private static final String MULTI_RELEASE_ATTRIBUTE = "Multi-Release";
 
-    private static final Pattern MODULE_INFO_CLASS_MRJAR_PATH = Pattern.compile("META-INF/versions/\\d+/module-info.class");
+    private static final Pattern MODULE_INFO_CLASS_MRJAR_PATH =
+            Pattern.compile("META-INF/versions/\\d+/module-info.class");
 
     private final FileContentCache<Boolean> cache;
     private final FileCollectionFactory fileCollectionFactory;
 
     public JavaModuleDetector(FileContentCacheFactory cacheFactory, FileCollectionFactory fileCollectionFactory) {
-        this.cache = cacheFactory.newCache("java-modules", 20000, new ModuleInfoLocator(), new BaseSerializerFactory().getSerializerFor(Boolean.class));
+        this.cache = cacheFactory.newCache(
+                "java-modules",
+                20000,
+                new ModuleInfoLocator(),
+                new BaseSerializerFactory().getSerializerFor(Boolean.class));
         this.fileCollectionFactory = fileCollectionFactory;
     }
 
@@ -159,7 +163,10 @@ public class JavaModuleDetector {
                     if (MODULE_INFO_CLASS_FILE.equals(next.getName())) {
                         return true;
                     }
-                    if (isMultiReleaseJar && MODULE_INFO_CLASS_MRJAR_PATH.matcher(next.getName()).matches()) {
+                    if (isMultiReleaseJar
+                            && MODULE_INFO_CLASS_MRJAR_PATH
+                                    .matcher(next.getName())
+                                    .matches()) {
                         return true;
                     }
                     next = jarStream.getNextEntry();
@@ -172,7 +179,8 @@ public class JavaModuleDetector {
 
         private static boolean containsMultiReleaseJarEntry(JarInputStream jarStream) {
             Manifest manifest = jarStream.getManifest();
-            return manifest != null && Boolean.parseBoolean(manifest.getMainAttributes().getValue(MULTI_RELEASE_ATTRIBUTE));
+            return manifest != null
+                    && Boolean.parseBoolean(manifest.getMainAttributes().getValue(MULTI_RELEASE_ATTRIBUTE));
         }
 
         private static boolean containsAutomaticModuleName(JarInputStream jarStream) {

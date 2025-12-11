@@ -16,18 +16,17 @@
 
 package org.gradle.internal.event;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ReflectionDispatch;
 import org.gradle.util.internal.CollectionUtils;
-
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 /**
  * An immutable composite {@link org.gradle.internal.dispatch.Dispatch} implementation. Optimized for a small number of elements, and for infrequent modification.
@@ -72,8 +71,8 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
                 return;
             }
         }
-        throw new IllegalArgumentException(String.format("Method %s() not found for listener type %s.", methodName,
-            type.getSimpleName()));
+        throw new IllegalArgumentException(
+                String.format("Method %s() not found for listener type %s.", methodName, type.getSimpleName()));
     }
 
     public abstract BroadcastDispatch<T> remove(Object listener);
@@ -139,18 +138,17 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
-        public void visitListeners(Action<T> visitor) {
-        }
+        public void visitListeners(Action<T> visitor) {}
 
         @Override
-        public void visitListenersUntyped(Action<Object> visitor) {
-        }
+        public void visitListenersUntyped(Action<Object> visitor) {}
 
         @Override
         public BroadcastDispatch<T> addAll(Collection<? extends T> listeners) {
             List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
             for (T listener : listeners) {
-                SingletonDispatch<T> dispatch = new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener));
+                SingletonDispatch<T> dispatch =
+                        new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener));
                 if (!result.contains(dispatch)) {
                     result.add(dispatch);
                 }
@@ -165,8 +163,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
-        public void dispatch(MethodInvocation message) {
-        }
+        public void dispatch(MethodInvocation message) {}
     }
 
     private static class SingletonDispatch<T> extends BroadcastDispatch<T> {
@@ -214,7 +211,8 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
                 if (sameOrEquals(handler, listener)) {
                     continue;
                 }
-                SingletonDispatch<T> dispatch = new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener));
+                SingletonDispatch<T> dispatch =
+                        new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener));
                 if (!result.contains(dispatch)) {
                     result.add(dispatch);
                 }
@@ -301,7 +299,8 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         public BroadcastDispatch<T> addAll(Collection<? extends T> listeners) {
             List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>(dispatchers);
             for (T listener : listeners) {
-                SingletonDispatch<T> dispatch = new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener));
+                SingletonDispatch<T> dispatch =
+                        new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener));
                 if (!result.contains(dispatch)) {
                     result.add(dispatch);
                 }

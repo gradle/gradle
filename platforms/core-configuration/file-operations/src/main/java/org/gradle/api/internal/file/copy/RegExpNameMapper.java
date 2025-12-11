@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.Transformer;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.gradle.api.Transformer;
 
 public class RegExpNameMapper implements Transformer<String, String> {
     private final Pattern pattern;

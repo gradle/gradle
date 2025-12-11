@@ -17,14 +17,13 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.io.File;
 
 @ServiceScope(Scope.Project.class)
 @ThreadSafe
@@ -33,9 +32,9 @@ public interface TransformInvocationFactory {
      * Returns an invocation which allows invoking the actual transformer.
      */
     Deferrable<Try<ImmutableList<File>>> createInvocation(
-        Transform transform,
-        File inputArtifact,
-        TransformDependencies dependencies,
-        TransformStepSubject subject,
-        InputFingerprinter inputFingerprinter);
+            Transform transform,
+            File inputArtifact,
+            TransformDependencies dependencies,
+            TransformStepSubject subject,
+            InputFingerprinter inputFingerprinter);
 }

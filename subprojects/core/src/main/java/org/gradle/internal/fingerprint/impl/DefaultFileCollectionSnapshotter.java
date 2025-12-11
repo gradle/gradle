@@ -16,6 +16,9 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.DelegatingFileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -28,10 +31,6 @@ import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
     private final FileSystemAccess fileSystemAccess;
@@ -67,15 +66,14 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         @Override
         public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
             super.visitFileTree(root, patterns, fileTree);
-            fileSystemAccess.read(
-                    root.getAbsolutePath(),
-                    new PatternSetSnapshottingFilter(patterns, stat)
-                )
-                .ifPresent(roots::add);
+            fileSystemAccess
+                    .read(root.getAbsolutePath(), new PatternSetSnapshottingFilter(patterns, stat))
+                    .ifPresent(roots::add);
         }
 
         @Override
-        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+        public void visitFileTreeBackedByFile(
+                File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             super.visitFileTreeBackedByFile(file, fileTree, sourceTree);
             roots.add(fileSystemAccess.read(file.getAbsolutePath()));
         }

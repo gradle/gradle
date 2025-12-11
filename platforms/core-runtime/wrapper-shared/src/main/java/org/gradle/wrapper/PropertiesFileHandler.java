@@ -15,8 +15,6 @@
  */
 package org.gradle.wrapper;
 
-import org.gradle.util.internal.ArgumentsSplitter;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -26,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import org.gradle.util.internal.ArgumentsSplitter;
 
 public class PropertiesFileHandler {
     private static final String SYSTEM_PROP_PREFIX = "systemProp.";

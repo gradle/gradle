@@ -16,10 +16,9 @@
 
 package org.gradle.internal.concurrent;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides meaningful names to threads created in a thread pool.
@@ -27,6 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ThreadFactoryImpl implements ThreadFactory {
     private final AtomicLong counter = new AtomicLong();
     private final String displayName;
+
     @Nullable
     private final ClassLoader contextClassloader;
 

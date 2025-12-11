@@ -54,7 +54,8 @@ public class SkipOnlyIfTaskExecuter implements TaskExecuter {
                 }
             }
         } catch (Throwable t) {
-            state.setOutcome(new GradleException(String.format("Could not evaluate onlyIf predicate for %s.", task), t));
+            state.setOutcome(
+                    new GradleException(String.format("Could not evaluate onlyIf predicate for %s.", task), t));
             return TaskExecuterResult.WITHOUT_OUTPUTS;
         }
 

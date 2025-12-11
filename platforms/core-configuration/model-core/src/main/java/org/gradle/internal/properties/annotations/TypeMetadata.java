@@ -16,11 +16,10 @@
 
 package org.gradle.internal.properties.annotations;
 
+import java.util.Set;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 public interface TypeMetadata {
     void visitValidationFailures(@Nullable String ownerPropertyPath, TypeValidationContext validationContext);

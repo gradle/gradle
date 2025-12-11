@@ -20,7 +20,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
 public class SwiftLibraryProjectInitDescriptor extends SwiftProjectInitDescriptor {
-    public SwiftLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
+    public SwiftLibraryProjectInitDescriptor(
+            TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
         super(templateOperationFactory, documentationRegistry);
     }
 
@@ -52,11 +53,10 @@ public class SwiftLibraryProjectInitDescriptor extends SwiftProjectInitDescripto
     @Override
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
-            .plugin(
-                "Apply the swift-library plugin to add support for building Swift libraries",
-                "swift-library")
-            .plugin("Apply the xctest plugin to add support for building and running Swift test executables (Linux) or bundles (macOS)",
-                "xctest")
-            .block(null, "library", this::configureTargetMachineDefinition);
+                .plugin("Apply the swift-library plugin to add support for building Swift libraries", "swift-library")
+                .plugin(
+                        "Apply the xctest plugin to add support for building and running Swift test executables (Linux) or bundles (macOS)",
+                        "xctest")
+                .block(null, "library", this::configureTargetMachineDefinition);
     }
 }

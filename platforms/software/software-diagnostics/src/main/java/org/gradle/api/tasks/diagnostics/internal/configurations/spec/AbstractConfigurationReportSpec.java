@@ -16,22 +16,24 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.spec;
 
+import java.util.Optional;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Optional;
 
 /**
  * This is the base class for all configuration report specs, which describe how the report was run and what features of the configuration data model for
  * a project should be rendered in the output.
  */
 public abstract class AbstractConfigurationReportSpec {
-    @Nullable private final String searchTarget;
+    @Nullable
+    private final String searchTarget;
+
     private final boolean showLegacy;
 
     private final boolean showAttributePrecedence;
 
-    public AbstractConfigurationReportSpec(@Nullable String searchTarget, boolean showLegacy, boolean showAttributePrecedence) {
+    public AbstractConfigurationReportSpec(
+            @Nullable String searchTarget, boolean showLegacy, boolean showAttributePrecedence) {
         this.searchTarget = searchTarget;
         this.showLegacy = showLegacy;
         this.showAttributePrecedence = showAttributePrecedence;
@@ -46,19 +48,27 @@ public abstract class AbstractConfigurationReportSpec {
     }
 
     public abstract String getReportedTypeAlias();
+
     public abstract String getFullReportedTypeDesc();
+
     public abstract String getReportedConfigurationDirection();
 
     public abstract boolean isIncludeCapabilities();
+
     public abstract boolean isIncludeArtifacts();
+
     public abstract boolean isIncludeVariants();
+
     public abstract boolean isIncludeRuleSchema();
+
     public abstract boolean isIncludeExtensions();
+
     public abstract boolean isIncludeExtensionsRecursively();
 
     public Optional<String> getSearchTarget() {
         return Optional.ofNullable(searchTarget);
     }
+
     public boolean isSearchForSpecificVariant() {
         return null != searchTarget;
     }

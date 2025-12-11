@@ -17,11 +17,10 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.base.Objects;
+import java.util.List;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * An expression with arguments.

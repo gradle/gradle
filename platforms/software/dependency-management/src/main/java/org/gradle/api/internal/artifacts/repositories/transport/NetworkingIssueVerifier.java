@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.artifacts.repositories.transport;
 
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.util.List;
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 import org.apache.http.NoHttpResponseException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
-
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.util.List;
 
 public class NetworkingIssueVerifier {
 
@@ -40,7 +39,10 @@ public class NetworkingIssueVerifier {
      * </ul>
      */
     public static <E extends Throwable> boolean isLikelyTransientNetworkingIssue(E failure) {
-        if (failure instanceof SocketException || failure instanceof SocketTimeoutException || failure instanceof NoHttpResponseException || failure instanceof ConnectionClosedException) {
+        if (failure instanceof SocketException
+                || failure instanceof SocketTimeoutException
+                || failure instanceof NoHttpResponseException
+                || failure instanceof ConnectionClosedException) {
             return true;
         }
         if (failure instanceof DefaultMultiCauseException) {

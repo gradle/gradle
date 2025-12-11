@@ -16,12 +16,11 @@
 
 package org.gradle.internal.logging.console;
 
+import java.io.Flushable;
+import java.io.IOException;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
-
-import java.io.Flushable;
-import java.io.IOException;
 
 public class AnsiConsole implements Console {
     private final Action<AnsiContext> redrawAction = new Action<AnsiContext>() {
@@ -39,13 +38,24 @@ public class AnsiConsole implements Console {
     private final DefaultTextArea buildOutputArea;
     private final AnsiExecutor ansiExecutor;
 
-    public AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap, ConsoleMetaData consoleMetaData, boolean forceAnsi) {
+    public AnsiConsole(
+            Appendable target,
+            Flushable flushable,
+            ColorMap colorMap,
+            ConsoleMetaData consoleMetaData,
+            boolean forceAnsi) {
         this(target, flushable, colorMap, consoleMetaData, new DefaultAnsiFactory(forceAnsi));
     }
 
-    private AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap, ConsoleMetaData consoleMetaData, AnsiFactory factory) {
+    private AnsiConsole(
+            Appendable target,
+            Flushable flushable,
+            ColorMap colorMap,
+            ConsoleMetaData consoleMetaData,
+            AnsiFactory factory) {
         this.flushable = flushable;
-        this.ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, consoleMetaData, Cursor.newBottomLeft(), new Listener());
+        this.ansiExecutor = new DefaultAnsiExecutor(
+                target, colorMap, factory, consoleMetaData, Cursor.newBottomLeft(), new Listener());
 
         buildOutputArea = new DefaultTextArea(ansiExecutor);
     }

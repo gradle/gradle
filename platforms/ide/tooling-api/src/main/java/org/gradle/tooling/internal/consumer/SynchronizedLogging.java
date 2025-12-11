@@ -29,8 +29,10 @@ import org.gradle.internal.time.Clock;
  * Provides logging services per thread.
  */
 public class SynchronizedLogging implements LoggingProvider {
-    @SuppressWarnings("ThreadLocalUsage") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "ThreadLocalUsage") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private final ThreadLocal<ThreadLoggingServices> services = new ThreadLocal<>();
+
     private final Clock clock;
     private final BuildOperationIdFactory buildOperationIdFactory;
 
@@ -53,7 +55,8 @@ public class SynchronizedLogging implements LoggingProvider {
         ThreadLoggingServices threadServices = services.get();
         if (threadServices == null) {
             DefaultListenerManager manager = new DefaultListenerManager(Global.class);
-            DefaultProgressLoggerFactory progressLoggerFactory = new DefaultProgressLoggerFactory(manager.getBroadcaster(ProgressListener.class), clock, buildOperationIdFactory);
+            DefaultProgressLoggerFactory progressLoggerFactory = new DefaultProgressLoggerFactory(
+                    manager.getBroadcaster(ProgressListener.class), clock, buildOperationIdFactory);
             threadServices = new ThreadLoggingServices(manager, progressLoggerFactory);
             services.set(threadServices);
         }

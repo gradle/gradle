@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
+import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicLong;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.logging.progress.ProgressLoggingInputStream;
 import org.gradle.internal.resource.ExternalResource;
@@ -27,15 +29,13 @@ import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.Nullable;
 
-import java.io.InputStream;
-import java.util.concurrent.atomic.AtomicLong;
-
 public class ToolchainExternalResourceAccessor extends HttpResourceAccessor {
 
     private final DownloadProgressListener downloadProgressListener;
     private final Clock clock;
 
-    public ToolchainExternalResourceAccessor(HttpClientHelper httpClientHelper, Clock clock, DownloadProgressListener downloadProgressListener) {
+    public ToolchainExternalResourceAccessor(
+            HttpClientHelper httpClientHelper, Clock clock, DownloadProgressListener downloadProgressListener) {
         super(httpClientHelper);
         this.clock = clock;
         this.downloadProgressListener = downloadProgressListener;
@@ -43,7 +43,9 @@ public class ToolchainExternalResourceAccessor extends HttpResourceAccessor {
 
     @Nullable
     @Override
-    public <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
+    public <T> T withContent(
+            ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action)
+            throws ResourceException {
         ExternalResourceReadResponse response = openResource(location, revalidate);
         if (response == null) {
             return null;
@@ -51,21 +53,30 @@ public class ToolchainExternalResourceAccessor extends HttpResourceAccessor {
 
         long startTime = clock.getCurrentTime();
         AtomicLong downloadedBytes = new AtomicLong(0);
-        try (InputStream inputStream = response.openStream(); ExternalResourceReadResponse responseCloser = response) {
-            ProgressLoggingInputStream progressLoggingInputStream = new ProgressLoggingInputStream(inputStream, processedBytes -> {
-                if (downloadedBytes.get() == 0) {
-                    downloadProgressListener.downloadStarted(location.getUri(), response.getMetaData().getContentLength(), startTime);
-                }
-                downloadedBytes.addAndGet(processedBytes);
-                downloadProgressListener.downloadStatusChanged(location.getUri(), downloadedBytes.get(), response.getMetaData().getContentLength(), clock.getCurrentTime());
+        try (InputStream inputStream = response.openStream();
+                ExternalResourceReadResponse responseCloser = response) {
+            ProgressLoggingInputStream progressLoggingInputStream =
+                    new ProgressLoggingInputStream(inputStream, processedBytes -> {
+                        if (downloadedBytes.get() == 0) {
+                            downloadProgressListener.downloadStarted(
+                                    location.getUri(), response.getMetaData().getContentLength(), startTime);
+                        }
+                        downloadedBytes.addAndGet(processedBytes);
+                        downloadProgressListener.downloadStatusChanged(
+                                location.getUri(),
+                                downloadedBytes.get(),
+                                response.getMetaData().getContentLength(),
+                                clock.getCurrentTime());
 
-                if (downloadedBytes.get() == response.getMetaData().getContentLength()) {
-                    downloadProgressListener.downloadFinished(location.getUri(), downloadedBytes.get(), startTime, clock.getCurrentTime());
-                }
-            });
+                        if (downloadedBytes.get() == response.getMetaData().getContentLength()) {
+                            downloadProgressListener.downloadFinished(
+                                    location.getUri(), downloadedBytes.get(), startTime, clock.getCurrentTime());
+                        }
+                    });
             return action.execute(progressLoggingInputStream, responseCloser.getMetaData());
         } catch (Exception e) {
-            downloadProgressListener.downloadFailed(location.getUri(), e, downloadedBytes.get(), startTime, clock.getCurrentTime());
+            downloadProgressListener.downloadFailed(
+                    location.getUri(), e, downloadedBytes.get(), startTime, clock.getCurrentTime());
             throw ResourceExceptions.getFailed(location.getUri(), e);
         }
     }

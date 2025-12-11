@@ -18,7 +18,6 @@ package org.gradle.internal.tools.api.impl;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableSortedSet;
-
 import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -50,8 +49,7 @@ public class AnnotationMember extends Member implements Comparable<AnnotationMem
     }
 
     protected ComparisonChain compare(AnnotationMember o) {
-        return super.compare(o)
-            .compareFalseFirst(visible, o.visible);
+        return super.compare(o).compareFalseFirst(visible, o.visible);
     }
 
     @Override

@@ -37,7 +37,8 @@ public abstract class ClangCompilerPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
-        NativeToolChainRegistryInternal toolChainRegistry = Cast.uncheckedCast(project.getExtensions().getByType(NativeToolChainRegistry.class));
+        NativeToolChainRegistryInternal toolChainRegistry =
+                Cast.uncheckedCast(project.getExtensions().getByType(NativeToolChainRegistry.class));
         toolChainRegistry.registerBinding(Clang.class, ClangToolChain.class);
         toolChainRegistry.registerDefaultToolChain(ClangToolChain.DEFAULT_NAME, Clang.class);
     }

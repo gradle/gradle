@@ -16,6 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
@@ -27,13 +33,6 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
-
-import javax.annotation.concurrent.NotThreadSafe;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * A serializer for {@link ResolvedVariantResult} that is not thread safe and not reusable.
@@ -47,7 +46,9 @@ public class ResolvedVariantResultSerializer implements Serializer<ResolvedVaria
     private final AttributeContainerSerializer attributeContainerSerializer;
     private final CapabilitySerializer capabilitySerializer;
 
-    public ResolvedVariantResultSerializer(ComponentIdentifierSerializer componentIdentifierSerializer, AttributeContainerSerializer attributeContainerSerializer) {
+    public ResolvedVariantResultSerializer(
+            ComponentIdentifierSerializer componentIdentifierSerializer,
+            AttributeContainerSerializer attributeContainerSerializer) {
         this.componentIdentifierSerializer = componentIdentifierSerializer;
         this.attributeContainerSerializer = attributeContainerSerializer;
         this.capabilitySerializer = new CapabilitySerializer();
@@ -66,7 +67,8 @@ public class ResolvedVariantResultSerializer implements Serializer<ResolvedVaria
             ImmutableCapabilities capabilities = readCapabilities(decoder);
             read.add(null);
             ResolvedVariantResult externalVariant = read(decoder);
-            DefaultResolvedVariantResult result = new DefaultResolvedVariantResult(owner, Describables.of(variantName), attributes, capabilities, externalVariant);
+            DefaultResolvedVariantResult result = new DefaultResolvedVariantResult(
+                    owner, Describables.of(variantName), attributes, capabilities, externalVariant);
             this.read.set(index, result);
             return result;
         }

@@ -17,9 +17,8 @@
 package org.gradle.plugins.ide.internal.tooling.idea;
 
 import com.google.common.base.Objects;
-import org.gradle.tooling.model.idea.IdeaLanguageLevel;
-
 import java.io.Serializable;
+import org.gradle.tooling.model.idea.IdeaLanguageLevel;
 
 public class DefaultIdeaLanguageLevel implements IdeaLanguageLevel, Serializable {
 

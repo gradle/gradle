@@ -17,12 +17,11 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.initialization.GradleApiSpecProvider.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceLocator;
-
-import java.util.List;
-import java.util.Set;
 
 class GradleApiSpecAggregator {
 
@@ -70,12 +69,11 @@ class GradleApiSpecAggregator {
             unexportedPackages.addAll(spec.getUnexportedPackages());
         }
         return new DefaultSpec(
-            exportedClasses.build(),
-            exportedPackages.build(),
-            exportedResources.build(),
-            exportedResourcePrefixes.build(),
-            unexportedPackages.build()
-        );
+                exportedClasses.build(),
+                exportedPackages.build(),
+                exportedResources.build(),
+                exportedResourcePrefixes.build(),
+                unexportedPackages.build());
     }
 
     private List<Class<? extends GradleApiSpecProvider>> providers() {
@@ -95,12 +93,11 @@ class GradleApiSpecAggregator {
         private final ImmutableSet<String> unexportedPackages;
 
         DefaultSpec(
-            ImmutableSet<Class<?>> exportedClasses,
-            ImmutableSet<String> exportedPackages,
-            ImmutableSet<String> exportedResources,
-            ImmutableSet<String> exportedResourcePrefixes,
-            ImmutableSet<String> unexportedPackages
-        ) {
+                ImmutableSet<Class<?>> exportedClasses,
+                ImmutableSet<String> exportedPackages,
+                ImmutableSet<String> exportedResources,
+                ImmutableSet<String> exportedResourcePrefixes,
+                ImmutableSet<String> unexportedPackages) {
             this.exportedClasses = exportedClasses;
             this.exportedPackages = exportedPackages;
             this.exportedResources = exportedResources;

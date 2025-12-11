@@ -16,10 +16,9 @@
 
 package org.gradle.internal.operations;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.ObjectStreamException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.jspecify.annotations.Nullable;
 
 public class BuildOperationState implements BuildOperationRef {
     private final BuildOperationDescriptor description;

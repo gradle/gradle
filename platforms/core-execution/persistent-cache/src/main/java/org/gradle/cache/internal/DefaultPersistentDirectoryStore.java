@@ -15,6 +15,12 @@
  */
 package org.gradle.cache.internal;
 
+import static org.gradle.cache.internal.CacheInitializationAction.NO_INIT_REQUIRED;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.function.Supplier;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
@@ -25,13 +31,6 @@ import org.gradle.cache.LockOptions;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.serialize.Serializer;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.function.Supplier;
-
-import static org.gradle.cache.internal.CacheInitializationAction.NO_INIT_REQUIRED;
 
 public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
 
@@ -50,20 +49,21 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private DefaultCacheCoordinator cacheAccess;
 
     public DefaultPersistentDirectoryStore(
-        File dir,
-        @Nullable String displayName,
-        LockOptions lockOptions,
-        CacheCleanupStrategy cacheCleanupStrategy,
-        FileLockManager fileLockManager,
-        ExecutorFactory executorFactory
-    ) {
+            File dir,
+            @Nullable String displayName,
+            LockOptions lockOptions,
+            CacheCleanupStrategy cacheCleanupStrategy,
+            FileLockManager fileLockManager,
+            ExecutorFactory executorFactory) {
         this.dir = dir;
         this.lockOptions = lockOptions;
         this.lockManager = fileLockManager;
         this.executorFactory = executorFactory;
         this.propertiesFile = new File(dir, "cache.properties");
         this.gcFile = new File(dir, "gc.properties");
-        this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
+        this.displayName = displayName != null
+                ? (displayName + " (" + dir + ")")
+                : ("cache directory " + dir.getName() + " (" + dir + ")");
         this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cacheCleanupStrategy);
     }
 
@@ -81,7 +81,15 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private DefaultCacheCoordinator createCacheAccess() {
-        return new DefaultCacheCoordinator(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), cleanupExecutor, executorFactory);
+        return new DefaultCacheCoordinator(
+                displayName,
+                getLockTarget(),
+                lockOptions,
+                dir,
+                lockManager,
+                getInitAction(),
+                cleanupExecutor,
+                executorFactory);
     }
 
     private File getLockTarget() {
@@ -166,5 +174,4 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     public void cleanup() {
         cacheAccess.cleanup();
     }
-
 }

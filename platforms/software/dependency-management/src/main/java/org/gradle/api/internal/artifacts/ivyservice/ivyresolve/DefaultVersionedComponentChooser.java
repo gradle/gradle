@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
@@ -42,10 +45,6 @@ import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     private final ComponentSelectionRulesProcessor rulesProcessor = new ComponentSelectionRulesProcessor();
     private final VersionComparator versionComparator;
@@ -55,12 +54,11 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     private final ImmutableAttributesSchema consumerSchema;
 
     DefaultVersionedComponentChooser(
-        VersionComparator versionComparator,
-        VersionParser versionParser,
-        AttributeSchemaServices attributeSchemaServices,
-        ComponentSelectionRulesInternal componentSelectionRules,
-        ImmutableAttributesSchema consumerSchema
-    ) {
+            VersionComparator versionComparator,
+            VersionParser versionParser,
+            AttributeSchemaServices attributeSchemaServices,
+            ComponentSelectionRulesInternal componentSelectionRules,
+            ImmutableAttributesSchema consumerSchema) {
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
         this.attributeSchemaServices = attributeSchemaServices;
@@ -69,12 +67,16 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     }
 
     @Override
-    public ComponentGraphResolveMetadata selectNewestComponent(@Nullable ExternalModuleComponentGraphResolveMetadata one, @Nullable ExternalModuleComponentGraphResolveMetadata two) {
+    public ComponentGraphResolveMetadata selectNewestComponent(
+            @Nullable ExternalModuleComponentGraphResolveMetadata one,
+            @Nullable ExternalModuleComponentGraphResolveMetadata two) {
         if (one == null || two == null) {
             return two == null ? one : two;
         }
 
-        int comparison = versionComparator.compare(new VersionInfo(versionParser.transform(one.getModuleVersionId().getVersion())), new VersionInfo(versionParser.transform(two.getModuleVersionId().getVersion())));
+        int comparison = versionComparator.compare(
+                new VersionInfo(versionParser.transform(one.getModuleVersionId().getVersion())),
+                new VersionInfo(versionParser.transform(two.getModuleVersionId().getVersion())));
 
         if (comparison == 0) {
             if (isMissingModuleDescriptor(one) && !isMissingModuleDescriptor(two)) {
@@ -91,7 +93,12 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     }
 
     @Override
-    public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, VersionSelector requestedVersionMatcher, VersionSelector rejectedVersionSelector, ImmutableAttributes consumerAttributes) {
+    public void selectNewestMatchingComponent(
+            Collection<? extends ModuleComponentResolveState> versions,
+            ComponentSelectionContext result,
+            VersionSelector requestedVersionMatcher,
+            VersionSelector rejectedVersionSelector,
+            ImmutableAttributes consumerAttributes) {
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
         // Loop over all listed versions, sorted by LATEST first
@@ -132,12 +139,14 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 result.rejectedByRule(rejectedByRules);
 
                 if (requestedVersionMatcher.matchesUniqueVersion()) {
-                    // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
+                    // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the
+                    // version number
                     break;
                 }
             } else {
                 // This last check always requires the metadata
-                RejectedByAttributesVersion maybeRejectByAttributes = tryRejectByAttributes(candidateId, metadataProvider, consumerAttributes);
+                RejectedByAttributesVersion maybeRejectByAttributes =
+                        tryRejectByAttributes(candidateId, metadataProvider, consumerAttributes);
                 if (maybeRejectByAttributes != null) {
                     result.doesNotMatchConsumerAttributes(maybeRejectByAttributes);
                 } else {
@@ -153,7 +162,8 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     }
 
     @Nullable
-    private RejectedByAttributesVersion tryRejectByAttributes(ModuleComponentIdentifier id, MetadataProvider provider, ImmutableAttributes consumerAttributes) {
+    private RejectedByAttributesVersion tryRejectByAttributes(
+            ModuleComponentIdentifier id, MetadataProvider provider, ImmutableAttributes consumerAttributes) {
         if (consumerAttributes.isEmpty()) {
             return null;
         }
@@ -167,7 +177,8 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
             ImmutableAttributesSchema producerSchema = ImmutableAttributesSchema.EMPTY;
             AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, producerSchema);
 
-            ImmutableAttributes attributes = ((AttributeContainerInternal) componentMetadata.getAttributes()).asImmutable();
+            ImmutableAttributes attributes =
+                    ((AttributeContainerInternal) componentMetadata.getAttributes()).asImmutable();
             boolean matching = matcher.isMatchingCandidate(attributes.asImmutable(), consumerAttributes);
             if (!matching) {
                 return new RejectedByAttributesVersion(id, matcher.describeMatching(attributes, consumerAttributes));
@@ -212,7 +223,8 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         }
     }
 
-    private static boolean versionMatches(VersionSelector selector, ModuleComponentResolveState component, MetadataProvider metadataProvider) {
+    private static boolean versionMatches(
+            VersionSelector selector, ModuleComponentResolveState component, MetadataProvider metadataProvider) {
         if (selector.requiresMetadata()) {
             ComponentMetadata componentMetadata = metadataProvider.getComponentMetadata();
             return componentMetadata != null && selector.accept(componentMetadata);
@@ -222,12 +234,16 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     }
 
     @Override
-    public RejectedByRuleVersion isRejectedComponent(ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {
+    public RejectedByRuleVersion isRejectedComponent(
+            ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {
         return isRejectedByRule(candidateIdentifier, componentSelectionRules.getRules(), metadataProvider);
     }
 
     @Nullable
-    private RejectedByRuleVersion isRejectedByRule(ModuleComponentIdentifier candidateIdentifier, Collection<SpecRuleAction<? super ComponentSelection>> rules, MetadataProvider metadataProvider) {
+    private RejectedByRuleVersion isRejectedByRule(
+            ModuleComponentIdentifier candidateIdentifier,
+            Collection<SpecRuleAction<? super ComponentSelection>> rules,
+            MetadataProvider metadataProvider) {
         ComponentSelectionInternal selection = new DefaultComponentSelection(candidateIdentifier, metadataProvider);
         rulesProcessor.apply(selection, rules, metadataProvider);
         if (selection.isRejected()) {
@@ -236,11 +252,13 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return null;
     }
 
-    private boolean isRejectedBySelector(ModuleComponentIdentifier candidateIdentifier, VersionSelector rejectedVersionSelector) {
+    private boolean isRejectedBySelector(
+            ModuleComponentIdentifier candidateIdentifier, VersionSelector rejectedVersionSelector) {
         return rejectedVersionSelector != null && rejectedVersionSelector.accept(candidateIdentifier.getVersion());
     }
 
-    private List<ModuleComponentResolveState> sortLatestFirst(Collection<? extends ModuleComponentResolveState> listing) {
+    private List<ModuleComponentResolveState> sortLatestFirst(
+            Collection<? extends ModuleComponentResolveState> listing) {
         return CollectionUtils.sort(listing, Collections.reverseOrder(versionComparator));
     }
 

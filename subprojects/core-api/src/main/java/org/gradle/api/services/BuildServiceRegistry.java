@@ -42,7 +42,8 @@ public interface BuildServiceRegistry {
      * @param configureAction An action to configure the registration. You can use this to provide parameters to the service instance.
      * @return A {@link Provider} that will create the service instance when queried.
      */
-    <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> registerIfAbsent(String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction);
+    <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> registerIfAbsent(
+            String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction);
 
     /**
      * Registers a service, if a service with the given name is not already registered. The service is not created until required, when the returned {@link Provider} is queried.
@@ -52,7 +53,8 @@ public interface BuildServiceRegistry {
      * @return A {@link Provider} that will create the service instance when queried.
      * @since 8.7
      */
-    default <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> registerIfAbsent(String name, Class<T> implementationType) {
+    default <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> registerIfAbsent(
+            String name, Class<T> implementationType) {
         return registerIfAbsent(name, implementationType, ignore -> {});
     }
 }

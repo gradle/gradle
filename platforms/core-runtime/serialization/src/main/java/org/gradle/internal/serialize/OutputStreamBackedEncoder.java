@@ -77,8 +77,7 @@ public class OutputStreamBackedEncoder extends AbstractEncoder implements Closea
     }
 
     @Override
-    public void flush() throws IOException {
-    }
+    public void flush() throws IOException {}
 
     @Override
     public void close() throws IOException {

@@ -15,11 +15,10 @@
  */
 package org.gradle.internal.service;
 
+import java.util.List;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 @ServiceScope(Scope.Global.class)
 public interface ServiceLocator {

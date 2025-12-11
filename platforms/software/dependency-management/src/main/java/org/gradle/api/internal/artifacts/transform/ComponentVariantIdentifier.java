@@ -29,7 +29,8 @@ public class ComponentVariantIdentifier {
     private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
 
-    public ComponentVariantIdentifier(ComponentIdentifier componentId, ImmutableAttributes attributes, ImmutableCapabilities capabilities) {
+    public ComponentVariantIdentifier(
+            ComponentIdentifier componentId, ImmutableAttributes attributes, ImmutableCapabilities capabilities) {
         this.componentId = componentId;
         this.attributes = attributes;
         this.capabilities = capabilities;

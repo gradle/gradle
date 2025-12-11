@@ -35,7 +35,8 @@ public class ReadOnlyModelViewException extends GradleException {
         super(createMessage("read only", path, type, ruleDescriptor));
     }
 
-    protected static String createMessage(String viewType, ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
+    protected static String createMessage(
+            String viewType, ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
         StringBuilder result = new StringBuilder();
         result.append("Attempt to modify a ").append(viewType).append(" view of model element '");
         result.append(path);

@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
-import org.gradle.internal.hash.HashCode;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.internal.hash.HashCode;
 
 public class DefaultCachedArtifact implements CachedArtifact, Serializable {
     private final File cachedFile;

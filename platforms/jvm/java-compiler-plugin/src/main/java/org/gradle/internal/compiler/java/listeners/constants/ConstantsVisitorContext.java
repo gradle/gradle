@@ -37,5 +37,4 @@ class ConstantsVisitorContext {
             consumer.accept(constantOrigin, visitedClass);
         }
     }
-
 }

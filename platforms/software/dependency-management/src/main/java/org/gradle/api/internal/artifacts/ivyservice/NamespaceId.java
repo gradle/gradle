@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -25,6 +23,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Base64;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * Represents an identifier containing a tuple of namespace and name for use when
@@ -36,7 +35,8 @@ public class NamespaceId implements Serializable {
 
     public static NamespaceId decode(String encoding) {
         byte[] data = Base64.getDecoder().decode(encoding);
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(data); DataInputStream dis = new DataInputStream(bais)) {
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(data);
+                DataInputStream dis = new DataInputStream(bais)) {
             String namespace = dis.readUTF();
             String name = dis.readUTF();
             return new NamespaceId(namespace, name);
@@ -51,7 +51,8 @@ public class NamespaceId implements Serializable {
     }
 
     public String encode() {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(baos)) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                DataOutputStream dos = new DataOutputStream(baos)) {
             dos.writeUTF(namespace);
             dos.writeUTF(name);
             return Base64.getEncoder().encodeToString(baos.toByteArray());
@@ -117,9 +118,6 @@ public class NamespaceId implements Serializable {
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 31)
-                .append(namespace)
-                .append(name)
-                .toHashCode();
+        return new HashCodeBuilder(17, 31).append(namespace).append(name).toHashCode();
     }
 }

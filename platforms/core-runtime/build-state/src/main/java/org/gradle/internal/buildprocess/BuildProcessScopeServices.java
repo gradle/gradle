@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildprocess;
 
+import java.util.List;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.buildevents.BuildLoggerFactory;
 import org.gradle.internal.buildprocess.execution.BuildSessionLifecycleBuildActionExecutor;
@@ -32,11 +33,11 @@ import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.exec.BuildExecutor;
 
-import java.util.List;
-
 public class BuildProcessScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration, ClassLoaderRegistry classLoaderRegistry) {
-        List<GradleModuleServices> servicesProviders = new DefaultServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(GradleModuleServices.class);
+        List<GradleModuleServices> servicesProviders = new DefaultServiceLocator(
+                        classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader())
+                .getAll(GradleModuleServices.class);
         for (GradleModuleServices services : servicesProviders) {
             registration.add(GradleModuleServices.class, services);
             services.registerGlobalServices(registration);
@@ -45,19 +46,15 @@ public class BuildProcessScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     BuildExecutor createBuildExecuter(
-        LoggingManagerInternal loggingManager,
-        BuildLoggerFactory buildLoggerFactory,
-        GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
-        ServiceRegistry globalServices
-    ) {
+            LoggingManagerInternal loggingManager,
+            BuildLoggerFactory buildLoggerFactory,
+            GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
+            ServiceRegistry globalServices) {
         return new SetupLoggingActionExecutor(
-            loggingManager,
-            new SessionFailureReportingActionExecutor(
-                buildLoggerFactory,
-                new StartParamsValidatingActionExecutor(
-                    new BuildSessionLifecycleBuildActionExecutor(userHomeServiceRegistry, globalServices)
-                )
-            )
-        );
+                loggingManager,
+                new SessionFailureReportingActionExecutor(
+                        buildLoggerFactory,
+                        new StartParamsValidatingActionExecutor(new BuildSessionLifecycleBuildActionExecutor(
+                                userHomeServiceRegistry, globalServices))));
     }
 }

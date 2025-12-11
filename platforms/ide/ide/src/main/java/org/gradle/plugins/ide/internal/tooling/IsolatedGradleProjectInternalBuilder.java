@@ -16,6 +16,11 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import static java.util.stream.Collectors.toList;
+import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
+
+import java.util.List;
+import java.util.Objects;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
@@ -26,17 +31,12 @@ import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.List;
-import java.util.Objects;
-
-import static java.util.stream.Collectors.toList;
-import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
-
 /**
  * Builds the {@link IsolatedGradleProjectInternal} that contains information about a project and its tasks.
  */
 @NullMarked
-public class IsolatedGradleProjectInternalBuilder implements ParameterizedToolingModelBuilder<IsolatedGradleProjectParameter> {
+public class IsolatedGradleProjectInternalBuilder
+        implements ParameterizedToolingModelBuilder<IsolatedGradleProjectParameter> {
 
     @Override
     public Class<IsolatedGradleProjectParameter> getParameterType() {
@@ -49,7 +49,8 @@ public class IsolatedGradleProjectInternalBuilder implements ParameterizedToolin
     }
 
     @Override
-    public IsolatedGradleProjectInternal buildAll(String modelName, IsolatedGradleProjectParameter parameter, Project project) {
+    public IsolatedGradleProjectInternal buildAll(
+            String modelName, IsolatedGradleProjectParameter parameter, Project project) {
         return build(project, parameter.getRealizeTasks());
     }
 
@@ -60,11 +61,12 @@ public class IsolatedGradleProjectInternalBuilder implements ParameterizedToolin
 
     private static IsolatedGradleProjectInternal build(Project project, boolean realizeTasks) {
         IsolatedGradleProjectInternal gradleProject = new IsolatedGradleProjectInternal()
-            .setProjectIdentifier(new DefaultProjectIdentifier(project.getRootDir(), project.getPath()))
-            .setName(project.getName())
-            .setDescription(project.getDescription())
-            .setBuildDirectory(project.getLayout().getBuildDirectory().getAsFile().get())
-            .setProjectDirectory(project.getProjectDir());
+                .setProjectIdentifier(new DefaultProjectIdentifier(project.getRootDir(), project.getPath()))
+                .setName(project.getName())
+                .setDescription(project.getDescription())
+                .setBuildDirectory(
+                        project.getLayout().getBuildDirectory().getAsFile().get())
+                .setProjectDirectory(project.getProjectDir());
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
 
@@ -78,19 +80,18 @@ public class IsolatedGradleProjectInternalBuilder implements ParameterizedToolin
 
     private static List<LaunchableGradleTask> buildTasks(IsolatedGradleProjectInternal owner, TaskContainer tasks) {
         return tasks.getNames().stream()
-            .map(tasks::findByName)
-            .filter(Objects::nonNull)
-            .map(task -> buildTask(owner, task))
-            .collect(toList());
+                .map(tasks::findByName)
+                .filter(Objects::nonNull)
+                .map(task -> buildTask(owner, task))
+                .collect(toList());
     }
 
     private static LaunchableGradleTask buildTask(IsolatedGradleProjectInternal owner, Task task) {
         return buildFromTask(new LaunchableGradleTask(), owner.getProjectIdentifier(), task)
-            .setBuildTreePath(getBuildTreePath(task));
+                .setBuildTreePath(getBuildTreePath(task));
     }
 
     private static String getBuildTreePath(Task task) {
         return ((TaskInternal) task).getIdentityPath().asString();
     }
-
 }

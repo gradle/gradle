@@ -22,5 +22,4 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 interface OperationDependencyLookup {
 
     InternalOperationDescriptor lookupExistingOperationDescriptor(Node node);
-
 }

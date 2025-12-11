@@ -16,6 +16,12 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.ElementSource;
@@ -24,13 +30,6 @@ import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * A domain object collection that presents a combined view of one or more collections.
@@ -46,13 +45,18 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
     @SafeVarargs
     @SuppressWarnings("varargs")
-    public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
+    public static <T> CompositeDomainObjectSet<T> create(
+            Class<T> type, DomainObjectCollection<? extends T>... collections) {
         return create(type, CollectionCallbackActionDecorator.NOOP, collections);
     }
 
     @SafeVarargs
-    public static <T> CompositeDomainObjectSet<T> create(Class<T> type, CollectionCallbackActionDecorator callbackActionDecorator, DomainObjectCollection<? extends T>... collections) {
-        DefaultDomainObjectSet<T> delegate = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), callbackActionDecorator);
+    public static <T> CompositeDomainObjectSet<T> create(
+            Class<T> type,
+            CollectionCallbackActionDecorator callbackActionDecorator,
+            DomainObjectCollection<? extends T>... collections) {
+        DefaultDomainObjectSet<T> delegate =
+                new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), callbackActionDecorator);
         CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(delegate, callbackActionDecorator);
         for (DomainObjectCollection<? extends T> c : collections) {
             out.addCollection(c);
@@ -60,7 +64,8 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         return out;
     }
 
-    private CompositeDomainObjectSet(DefaultDomainObjectSet<T> delegate, CollectionCallbackActionDecorator callbackActionDecorator) {
+    private CompositeDomainObjectSet(
+            DefaultDomainObjectSet<T> delegate, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(delegate);
         this.callbackActionDecorator = callbackActionDecorator;
     }
@@ -157,7 +162,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
     @Override
     public void all(Action<? super T> action) {
-        //calling overloaded method with extra behavior:
+        // calling overloaded method with extra behavior:
         whenObjectAdded(action);
         for (T t : this) {
             callbackActionDecorator.decorate(action).execute(t);
@@ -165,7 +170,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     }
 
     // TODO Make this work with pending elements
-    private final static class DomainObjectCompositeCollection<T> implements ElementSource<T> {
+    private static final class DomainObjectCompositeCollection<T> implements ElementSource<T> {
 
         private final List<DomainObjectCollectionInternal<? extends T>> store = new LinkedList<>();
 
@@ -282,14 +287,10 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         }
 
         @Override
-        public void realizePending() {
-
-        }
+        public void realizePending() {}
 
         @Override
-        public void realizePending(Class<?> type) {
-
-        }
+        public void realizePending(Class<?> type) {}
 
         @Override
         public boolean addPending(ProviderInternal<? extends T> provider) {
@@ -312,19 +313,13 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         }
 
         @Override
-        public void onPendingAdded(Action<T> action) {
-
-        }
+        public void onPendingAdded(Action<T> action) {}
 
         @Override
-        public void setSubscriptionVerifier(EventSubscriptionVerifier<T> immediateRealizationSpec) {
-
-        }
+        public void setSubscriptionVerifier(EventSubscriptionVerifier<T> immediateRealizationSpec) {}
 
         @Override
-        public void realizeExternal(ProviderInternal<? extends T> provider) {
-
-        }
+        public void realizeExternal(ProviderInternal<? extends T> provider) {}
 
         @Override
         public MutationGuard getLazyBehaviorGuard() {

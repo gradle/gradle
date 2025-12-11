@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
+import java.util.Collection;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.rules.SpecRuleAction;
-
-import java.util.Collection;
 
 interface MetadataRuleWrapper {
     DisplayName getDisplayName();

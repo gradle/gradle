@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import java.util.List;
+import javax.inject.Inject;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.inject.Inject;
-import java.util.List;
 
 /**
  * Injecting parameterized types, like {@code List<ResolverProviderFactory>} is very expensive for the
@@ -44,5 +43,4 @@ public class ResolverProviderFactories {
     public List<ResolverProviderFactory> getFactories() {
         return factories;
     }
-
 }

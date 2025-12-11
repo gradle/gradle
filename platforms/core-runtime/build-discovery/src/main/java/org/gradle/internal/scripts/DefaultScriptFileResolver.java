@@ -15,14 +15,13 @@
  */
 package org.gradle.internal.scripts;
 
-import org.jspecify.annotations.Nullable;
+import static java.util.Collections.emptyList;
+import static org.gradle.internal.FileUtils.hasExtension;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.Collections.emptyList;
-import static org.gradle.internal.FileUtils.hasExtension;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultScriptFileResolver implements ScriptFileResolver {
 
@@ -70,7 +69,6 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
         }
         return found;
     }
-
 
     private void notifyListener(File scriptFile) {
         if (scriptFileResolvedListener != null) {

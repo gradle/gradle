@@ -16,11 +16,10 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.io.File;
 import java.util.Set;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Build.class)
 public interface OsXJavaHomeCommand {

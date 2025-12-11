@@ -121,5 +121,4 @@ public abstract class PluginDeclaration implements Named {
      * @since 7.6
      */
     public abstract SetProperty<String> getTags();
-
 }

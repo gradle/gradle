@@ -16,6 +16,9 @@
 
 package org.gradle.language.nativeplatform.internal;
 
+import java.util.List;
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -24,10 +27,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.DisplayName;
-
-import javax.inject.Inject;
-import java.util.List;
-import java.util.concurrent.Callable;
 
 public abstract class DefaultNativeComponent {
     private final ConfigurableFileCollection source;
@@ -69,7 +68,10 @@ public abstract class DefaultNativeComponent {
             public Object call() {
                 FileTree tree;
                 if (source.getFrom().isEmpty()) {
-                    tree = getProjectLayout().getProjectDirectory().dir(defaultLocation).getAsFileTree();
+                    tree = getProjectLayout()
+                            .getProjectDirectory()
+                            .dir(defaultLocation)
+                            .getAsFileTree();
                 } else {
                     tree = source.getAsFileTree();
                 }

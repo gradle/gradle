@@ -18,6 +18,11 @@ package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -35,18 +40,14 @@ import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * Holds the resolution state for a local component. The state is calculated as required, and an instance can be used for multiple resolutions across a build tree.
  *
  * <p>The aim is to create only a single instance of this type per project and reuse that for all resolution that happens in a build tree. This isn't quite the case yet.
  */
-public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentGraphResolveMetadata> implements LocalComponentGraphResolveState {
+public class DefaultLocalComponentGraphResolveState
+        extends AbstractComponentGraphResolveState<LocalComponentGraphResolveMetadata>
+        implements LocalComponentGraphResolveState {
 
     private final boolean adHoc;
 
@@ -54,19 +55,18 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private final CalculatedValue<LocalComponentGraphSelectionCandidates> graphSelectionCandidates;
 
     public DefaultLocalComponentGraphResolveState(
-        long instanceId,
-        LocalComponentGraphResolveMetadata metadata,
-        AttributeDesugaring attributeDesugaring,
-        boolean adHoc,
-        LocalVariantGraphResolveStateFactory variantFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
+            long instanceId,
+            LocalComponentGraphResolveMetadata metadata,
+            AttributeDesugaring attributeDesugaring,
+            boolean adHoc,
+            LocalVariantGraphResolveStateFactory variantFactory,
+            CalculatedValueContainerFactory calculatedValueContainerFactory) {
         super(instanceId, metadata, attributeDesugaring);
         this.adHoc = adHoc;
 
-        this.graphSelectionCandidates = calculatedValueContainerFactory.create(Describables.of("variants of", getMetadata()), context ->
-            computeGraphSelectionCandidates(variantFactory)
-        );
+        this.graphSelectionCandidates = calculatedValueContainerFactory.create(
+                Describables.of("variants of", getMetadata()),
+                context -> computeGraphSelectionCandidates(variantFactory));
     }
 
     @Override
@@ -91,10 +91,10 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     private static LocalComponentGraphSelectionCandidates computeGraphSelectionCandidates(
-        LocalVariantGraphResolveStateFactory variantFactory
-    ) {
+            LocalVariantGraphResolveStateFactory variantFactory) {
         ImmutableList.Builder<LocalVariantGraphResolveState> variantsWithAttributes = new ImmutableList.Builder<>();
-        ImmutableMap.Builder<String, LocalVariantGraphResolveState> variantsByConfigurationName = ImmutableMap.builder();
+        ImmutableMap.Builder<String, LocalVariantGraphResolveState> variantsByConfigurationName =
+                ImmutableMap.builder();
 
         variantFactory.visitConsumableVariants(variantState -> {
             if (!variantState.getAttributes().isEmpty()) {
@@ -107,9 +107,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         });
 
         return new DefaultLocalComponentGraphSelectionCandidates(
-            variantsWithAttributes.build(),
-            variantsByConfigurationName.build()
-        );
+                variantsWithAttributes.build(), variantsByConfigurationName.build());
     }
 
     private static class LocalComponentArtifactResolveMetadata implements ComponentArtifactResolveMetadata {
@@ -145,14 +143,14 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         }
     }
 
-    private static class DefaultLocalComponentGraphSelectionCandidates implements LocalComponentGraphSelectionCandidates {
+    private static class DefaultLocalComponentGraphSelectionCandidates
+            implements LocalComponentGraphSelectionCandidates {
         private final List<? extends LocalVariantGraphResolveState> variantsWithAttributes;
         private final Map<String, LocalVariantGraphResolveState> variantsByConfigurationName;
 
         public DefaultLocalComponentGraphSelectionCandidates(
-            List<? extends LocalVariantGraphResolveState> variantsWithAttributes,
-            Map<String, LocalVariantGraphResolveState> variantsByConfigurationName
-        ) {
+                List<? extends LocalVariantGraphResolveState> variantsWithAttributes,
+                Map<String, LocalVariantGraphResolveState> variantsByConfigurationName) {
             this.variantsWithAttributes = variantsWithAttributes;
             this.variantsByConfigurationName = variantsByConfigurationName;
         }
@@ -193,5 +191,4 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             return result;
         }
     }
-
 }

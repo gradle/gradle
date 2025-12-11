@@ -16,19 +16,18 @@
 
 package org.gradle.cache.internal;
 
+import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.Map;
+import java.util.function.Consumer;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.filelock.DefaultLockOptions;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.Map;
-import java.util.function.Consumer;
-
-import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
 
 public class DefaultCacheBuilder implements CacheBuilder {
     private final CacheFactory factory;

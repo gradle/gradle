@@ -16,6 +16,9 @@
 
 package org.gradle.model.dsl.internal;
 
+import static org.gradle.model.internal.core.DefaultNodeInitializerRegistry.DEFAULT_REFERENCE;
+import static org.gradle.model.internal.core.NodeInitializerContext.forType;
+
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
@@ -38,14 +41,12 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.internal.ClosureBackedAction;
 
-import static org.gradle.model.internal.core.DefaultNodeInitializerRegistry.DEFAULT_REFERENCE;
-import static org.gradle.model.internal.core.NodeInitializerContext.forType;
-
 @NotThreadSafe
 public class NonTransformedModelDslBacking extends GroovyObjectSupport {
 
     // TODO include link to documentation giving more explanation of what's going on here.
-    public static final String ATTEMPTED_INPUT_SYNTAX_USED_MESSAGE = "$() syntax cannot be used when model {} block is not a top level statement in the script";
+    public static final String ATTEMPTED_INPUT_SYNTAX_USED_MESSAGE =
+            "$() syntax cannot be used when model {} block is not a top level statement in the script";
 
     private final ModelPath modelPath;
     private final ModelRegistry modelRegistry;
@@ -55,7 +56,8 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
         this(new MutableBoolean(), null, modelRegistry);
     }
 
-    private NonTransformedModelDslBacking(MutableBoolean executingDsl, ModelPath modelPath, ModelRegistry modelRegistry) {
+    private NonTransformedModelDslBacking(
+            MutableBoolean executingDsl, ModelPath modelPath, ModelRegistry modelRegistry) {
         this.executingDsl = executingDsl;
         this.modelPath = modelPath;
         this.modelRegistry = modelRegistry;
@@ -67,11 +69,12 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
     }
 
     private void registerConfigurationAction(final Closure<?> action) {
-        modelRegistry.configure(ModelActionRole.Mutate,
-            new NoInputsModelAction<Object>(
-                ModelReference.untyped(modelPath),
-                new SimpleModelRuleDescriptor("model." + modelPath), new ClosureBackedAction<Object>(action)
-            ));
+        modelRegistry.configure(
+                ModelActionRole.Mutate,
+                new NoInputsModelAction<Object>(
+                        ModelReference.untyped(modelPath),
+                        new SimpleModelRuleDescriptor("model." + modelPath),
+                        new ClosureBackedAction<Object>(action)));
     }
 
     private <T> void register(Class<T> type, Closure<?> closure) {
@@ -80,15 +83,16 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
 
     private <T> void register(Class<T> type, Action<? super T> action) {
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("model." + modelPath);
-        NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DEFAULT_REFERENCE.getPath(), DEFAULT_REFERENCE.getType());
+        NodeInitializerRegistry nodeInitializerRegistry =
+                modelRegistry.realize(DEFAULT_REFERENCE.getPath(), DEFAULT_REFERENCE.getType());
         ModelType<T> modelType = ModelType.of(type);
         NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(forType(modelType));
-        modelRegistry.register(
-            ModelRegistrations.of(modelPath, nodeInitializer)
+        modelRegistry.register(ModelRegistrations.of(modelPath, nodeInitializer)
                 .descriptor(descriptor)
-                .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(modelPath, modelType), descriptor, action))
-                .build()
-        );
+                .action(
+                        ModelActionRole.Initialize,
+                        NoInputsModelAction.of(ModelReference.of(modelPath, modelType), descriptor, action))
+                .build());
     }
 
     public void configure(Closure<?> action) {
@@ -135,5 +139,4 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
             }
         }
     }
-
 }

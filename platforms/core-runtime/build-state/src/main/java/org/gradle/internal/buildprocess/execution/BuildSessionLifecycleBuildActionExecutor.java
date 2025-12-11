@@ -16,6 +16,8 @@
 
 package org.gradle.internal.buildprocess.execution;
 
+import java.io.File;
+import java.util.function.Function;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.layout.BuildLayout;
@@ -36,23 +38,23 @@ import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
-import java.io.File;
-import java.util.function.Function;
-
 /**
  * A {@link BuildExecutor} responsible for establishing the {@link BuildSessionState} to execute a {@link BuildAction} within.
  */
-public class BuildSessionLifecycleBuildActionExecutor implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
+public class BuildSessionLifecycleBuildActionExecutor
+        implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
     private final ServiceRegistry globalServices;
     private final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
 
-    public BuildSessionLifecycleBuildActionExecutor(GradleUserHomeScopeServiceRegistry userHomeServiceRegistry, ServiceRegistry globalServices) {
+    public BuildSessionLifecycleBuildActionExecutor(
+            GradleUserHomeScopeServiceRegistry userHomeServiceRegistry, ServiceRegistry globalServices) {
         this.userHomeServiceRegistry = userHomeServiceRegistry;
         this.globalServices = globalServices;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
+    public BuildActionResult execute(
+            BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         StartParameterInternal startParameter = action.getStartParameter();
         if (action.isCreateModel()) {
             // When creating a model, do not use continuous mode
@@ -62,22 +64,37 @@ public class BuildSessionLifecycleBuildActionExecutor implements BuildActionExec
         File userActionRoot = getUserActionRootDirectory(startParameter);
         ActionImpl actionWrapper = new ActionImpl(action, requestContext);
         try {
-            try (CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter, userActionRoot)) {
-                try (BuildSessionState buildSessionState = new BuildSessionState(userHomeServiceRegistry, crossBuildSessionState, startParameter, requestContext, actionParameters.getInjectedPluginClasspath(), requestContext.getCancellationToken(), requestContext.getClient(), requestContext.getEventConsumer())) {
+            try (CrossBuildSessionState crossBuildSessionState =
+                    new CrossBuildSessionState(globalServices, startParameter, userActionRoot)) {
+                try (BuildSessionState buildSessionState = new BuildSessionState(
+                        userHomeServiceRegistry,
+                        crossBuildSessionState,
+                        startParameter,
+                        requestContext,
+                        actionParameters.getInjectedPluginClasspath(),
+                        requestContext.getCancellationToken(),
+                        requestContext.getClient(),
+                        requestContext.getEventConsumer())) {
                     return buildSessionState.run(actionWrapper);
                 }
             }
         } catch (Throwable t) {
             if (actionWrapper.result == null) {
                 // Did not create a result
-                // Note: throw the failure rather than returning a result object containing the failure, as console failure logging based on the _result_ happens down in the root build scope
-                // whereas console failure logging based on the _thrown exception_ happens up outside session scope. It would be better to refactor so that a result can be returned from here
+                // Note: throw the failure rather than returning a result object containing the failure, as console
+                // failure logging based on the _result_ happens down in the root build scope
+                // whereas console failure logging based on the _thrown exception_ happens up outside session scope. It
+                // would be better to refactor so that a result can be returned from here
                 throw UncheckedException.throwAsUncheckedException(t);
             } else {
-                // Created a result which may contain failures. Combine this failure with any failures that happen to be packaged in the result
-                // Note: throw the failure rather than returning a result object containing the failure, as console failure logging based on the _result_ happens down in the root build scope
-                // whereas console failure logging based on the _thrown exception_ happens up outside session scope. It would be better to refactor so that a result can be returned from here
-                throw UncheckedException.throwAsUncheckedException(actionWrapper.result.addFailure(t).getBuildFailure());
+                // Created a result which may contain failures. Combine this failure with any failures that happen to be
+                // packaged in the result
+                // Note: throw the failure rather than returning a result object containing the failure, as console
+                // failure logging based on the _result_ happens down in the root build scope
+                // whereas console failure logging based on the _thrown exception_ happens up outside session scope. It
+                // would be better to refactor so that a result can be returned from here
+                throw UncheckedException.throwAsUncheckedException(
+                        actionWrapper.result.addFailure(t).getBuildFailure());
             }
         }
     }

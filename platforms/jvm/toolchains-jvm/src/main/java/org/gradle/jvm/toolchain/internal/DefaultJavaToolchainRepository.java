@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import java.util.Collection;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
@@ -25,9 +27,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.jvm.toolchain.JavaToolchainResolver;
-
-import javax.inject.Inject;
-import java.util.Collection;
 
 public abstract class DefaultJavaToolchainRepository implements JavaToolchainRepositoryInternal {
 
@@ -44,8 +43,7 @@ public abstract class DefaultJavaToolchainRepository implements JavaToolchainRep
             String name,
             AuthenticationContainer authenticationContainer,
             AuthenticationSupporter authenticationSupporter,
-            ProviderFactory providerFactory
-    ) {
+            ProviderFactory providerFactory) {
         this.name = name;
         this.authenticationContainer = authenticationContainer;
         this.authenticationSupporter = authenticationSupporter;

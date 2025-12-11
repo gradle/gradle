@@ -24,5 +24,4 @@ public class DuplicateModelException extends GradleException {
     public DuplicateModelException(String message) {
         super(message);
     }
-
 }

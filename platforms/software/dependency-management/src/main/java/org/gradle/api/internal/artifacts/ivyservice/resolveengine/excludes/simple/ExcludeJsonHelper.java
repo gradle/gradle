@@ -20,8 +20,6 @@ import java.util.stream.Collectors;
 
 class ExcludeJsonHelper {
     static String toJson(Collection<?> objects) {
-        return objects.stream()
-            .map(o -> "\"" + o + "\"")
-            .collect(Collectors.joining(", "));
+        return objects.stream().map(o -> "\"" + o + "\"").collect(Collectors.joining(", "));
     }
 }

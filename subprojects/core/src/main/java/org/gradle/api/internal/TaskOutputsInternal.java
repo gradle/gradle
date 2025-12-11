@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal;
 
+import java.io.File;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.File;
-import java.util.List;
-import java.util.Set;
 
 @NullMarked
 public interface TaskOutputsInternal extends TaskOutputs {
@@ -47,5 +46,4 @@ public interface TaskOutputsInternal extends TaskOutputs {
     List<SelfDescribingSpec<TaskInternal>> getCacheIfSpecs();
 
     List<SelfDescribingSpec<TaskInternal>> getDoNotCacheIfSpecs();
-
 }

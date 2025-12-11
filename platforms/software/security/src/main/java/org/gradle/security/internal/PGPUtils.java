@@ -16,19 +16,18 @@
 
 package org.gradle.security.internal;
 
-import org.bouncycastle.openpgp.PGPPublicKey;
-import org.bouncycastle.openpgp.PGPPublicKeyRing;
-
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPPublicKeyRing;
 
 public final class PGPUtils {
 
     private static final Field KEYS_FIELD = getKeysField();
-    private PGPUtils() {
-    }
+
+    private PGPUtils() {}
 
     /**
      * A custom method to get user ids since original method `PGPPublicKey.getUserIDs()` can fail fast in case user id is not correctly encoded in UTF-8.
@@ -67,5 +66,4 @@ public final class PGPUtils {
             throw new RuntimeException(e);
         }
     }
-
 }

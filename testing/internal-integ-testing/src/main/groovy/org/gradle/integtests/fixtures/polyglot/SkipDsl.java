@@ -16,14 +16,13 @@
 
 package org.gradle.integtests.fixtures.polyglot;
 
-import org.gradle.test.fixtures.dsl.GradleDsl;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.gradle.test.fixtures.dsl.GradleDsl;
 
 /**
  * Used to mark a test method in a @DeclarativeDslTest as not needing
@@ -35,6 +34,7 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface SkipDsl {
     GradleDsl dsl();
+
     String because();
 
     @Retention(RetentionPolicy.RUNTIME)

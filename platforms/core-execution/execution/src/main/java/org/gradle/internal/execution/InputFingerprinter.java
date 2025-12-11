@@ -18,6 +18,7 @@ package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import java.util.function.Consumer;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -25,18 +26,16 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
-import java.util.function.Consumer;
-
 @ServiceScope(Scope.BuildSession.class)
 public interface InputFingerprinter {
     Result fingerprintInputProperties(
-        ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
-        ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousFingerprints,
-        ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
-        Consumer<InputVisitor> inputs,
-        FileCollectionStructureVisitor validatingVisitor
-    ) throws InputFingerprintingException, InputFileFingerprintingException;
+            ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
+            ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousFingerprints,
+            ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
+            Consumer<InputVisitor> inputs,
+            FileCollectionStructureVisitor validatingVisitor)
+            throws InputFingerprintingException, InputFileFingerprintingException;
 
     interface Result {
         /**
@@ -84,7 +83,9 @@ public interface InputFingerprinter {
         private final String propertyName;
 
         public InputFileFingerprintingException(String propertyName, Throwable cause) {
-            super(String.format("Cannot fingerprint input file property '%s': %s", propertyName, cause.getMessage()), cause);
+            super(
+                    String.format("Cannot fingerprint input file property '%s': %s", propertyName, cause.getMessage()),
+                    cause);
             this.propertyName = propertyName;
         }
 

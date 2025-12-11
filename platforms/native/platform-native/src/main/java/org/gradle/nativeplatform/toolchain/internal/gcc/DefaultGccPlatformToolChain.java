@@ -15,6 +15,12 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
@@ -24,19 +30,13 @@ import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @NullMarked
 public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRegistry {
     private final NativePlatform platform;
     private boolean canUseCommandFile = true;
     private List<String> compilerProbeArgs = new ArrayList<String>();
-    private final Map<ToolType, GccCommandLineToolConfigurationInternal> tools = new HashMap<ToolType, GccCommandLineToolConfigurationInternal>();
+    private final Map<ToolType, GccCommandLineToolConfigurationInternal> tools =
+            new HashMap<ToolType, GccCommandLineToolConfigurationInternal>();
 
     public DefaultGccPlatformToolChain(NativePlatform platform) {
         this.platform = platform;
@@ -69,7 +69,11 @@ public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRe
     }
 
     public Collection<GccCommandLineToolConfigurationInternal> getCompilers() {
-        return Arrays.asList(tools.get(ToolType.C_COMPILER), tools.get(ToolType.CPP_COMPILER), tools.get(ToolType.OBJECTIVEC_COMPILER), tools.get(ToolType.OBJECTIVECPP_COMPILER));
+        return Arrays.asList(
+                tools.get(ToolType.C_COMPILER),
+                tools.get(ToolType.CPP_COMPILER),
+                tools.get(ToolType.OBJECTIVEC_COMPILER),
+                tools.get(ToolType.OBJECTIVECPP_COMPILER));
     }
 
     public void add(DefaultGccCommandLineToolConfiguration tool) {

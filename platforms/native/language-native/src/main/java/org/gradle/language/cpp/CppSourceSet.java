@@ -50,5 +50,4 @@ import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
  * </pre>
  */
 @Incubating
-public interface CppSourceSet extends HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
-}
+public interface CppSourceSet extends HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {}

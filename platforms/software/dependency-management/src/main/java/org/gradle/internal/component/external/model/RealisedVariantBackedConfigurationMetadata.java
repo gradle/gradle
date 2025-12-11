@@ -19,15 +19,23 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 public class RealisedVariantBackedConfigurationMetadata extends AbstractVariantBackedConfigurationMetadata {
 
-    public RealisedVariantBackedConfigurationMetadata(ModuleComponentIdentifier id, ComponentVariant variant, ImmutableAttributes componentLevelAttributes, AttributesFactory attributesFactory) {
-        super(id, new ComponentAttributesAwareVariant(variant, attributesFactory, componentLevelAttributes), ((AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl)variant).getDependencyMetadata());
+    public RealisedVariantBackedConfigurationMetadata(
+            ModuleComponentIdentifier id,
+            ComponentVariant variant,
+            ImmutableAttributes componentLevelAttributes,
+            AttributesFactory attributesFactory) {
+        super(
+                id,
+                new ComponentAttributesAwareVariant(variant, attributesFactory, componentLevelAttributes),
+                ((AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl) variant)
+                        .getDependencyMetadata());
     }
 
     /**
@@ -42,7 +50,10 @@ public class RealisedVariantBackedConfigurationMetadata extends AbstractVariantB
 
         private ImmutableAttributes computedAttributes;
 
-        ComponentAttributesAwareVariant(ComponentVariant delegate, AttributesFactory attributesFactory, ImmutableAttributes componentLevelAttributes) {
+        ComponentAttributesAwareVariant(
+                ComponentVariant delegate,
+                AttributesFactory attributesFactory,
+                ImmutableAttributes componentLevelAttributes) {
             this.attributesFactory = attributesFactory;
             this.delegate = delegate;
             this.componentLevelAttributes = componentLevelAttributes;

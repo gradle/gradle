@@ -18,13 +18,12 @@ package org.gradle.internal.serialize.kryo;
 
 import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Input;
-import org.gradle.internal.serialize.AbstractDecoder;
-import org.gradle.internal.serialize.Decoder;
-
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import org.gradle.internal.serialize.AbstractDecoder;
+import org.gradle.internal.serialize.Decoder;
 
 /**
  * Note that this decoder uses buffering, so will attempt to read beyond the end of the encoded data. This means you should use this type only when this decoder will be used to decode the entire

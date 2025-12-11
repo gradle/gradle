@@ -29,5 +29,4 @@ public abstract class CppCompile extends AbstractNativeSourceCompileTask {
     protected NativeCompileSpec createCompileSpec() {
         return new DefaultCppCompileSpec();
     }
-
 }

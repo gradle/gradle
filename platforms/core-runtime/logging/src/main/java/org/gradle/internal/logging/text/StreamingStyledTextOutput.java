@@ -16,10 +16,9 @@
 
 package org.gradle.internal.logging.text;
 
-import org.gradle.api.logging.StandardOutputListener;
-
 import java.io.Closeable;
 import java.io.IOException;
+import org.gradle.api.logging.StandardOutputListener;
 
 /**
  * A {@link StyledTextOutput} implementation which writes text to some char stream. Ignores any

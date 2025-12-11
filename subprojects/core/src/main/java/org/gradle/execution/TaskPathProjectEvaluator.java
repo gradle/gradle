@@ -16,6 +16,7 @@
 
 package org.gradle.execution;
 
+import java.util.concurrent.LinkedBlockingQueue;
 import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.Project;
@@ -34,8 +35,6 @@ import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.WorkerLimits;
 
-import java.util.concurrent.LinkedBlockingQueue;
-
 public class TaskPathProjectEvaluator implements ProjectConfigurer {
 
     /**
@@ -47,7 +46,7 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
      * Default is {@code jit}.
      */
     private static final InternalOption<String> PARALLEL_CONFIGURATION_SCHEDULER =
-        StringInternalOption.of("org.gradle.internal.isolated-projects.scheduler", "jit");
+            StringInternalOption.of("org.gradle.internal.isolated-projects.scheduler", "jit");
 
     private final BuildCancellationToken cancellationToken;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -55,11 +54,10 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
     private final InternalOptions internalOptions;
 
     public TaskPathProjectEvaluator(
-        BuildCancellationToken cancellationToken,
-        BuildOperationExecutor buildOperationExecutor,
-        WorkerLimits workerLimits,
-        InternalOptions internalOptions
-    ) {
+            BuildCancellationToken cancellationToken,
+            BuildOperationExecutor buildOperationExecutor,
+            WorkerLimits workerLimits,
+            InternalOptions internalOptions) {
         this.cancellationToken = cancellationToken;
         this.buildOperationExecutor = buildOperationExecutor;
         this.workerLimits = workerLimits;
@@ -128,7 +126,6 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
     private void scheduleProjectsJustInTime(ProjectState root) {
         assert maxWorkerCount() > 1 : "Parallel traversal requires more than one worker!";
         runAllWithAccessToProjectState(queue -> {
-
             final LinkedBlockingQueue<ProjectState> readyQueue = new LinkedBlockingQueue<>();
             queue.add(traverseProject(root, readyQueue));
 
@@ -152,7 +149,8 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
         });
     }
 
-    private static RunnableBuildOperation traverseProject(ProjectState project, LinkedBlockingQueue<ProjectState> readyQueue) {
+    private static RunnableBuildOperation traverseProject(
+            ProjectState project, LinkedBlockingQueue<ProjectState> readyQueue) {
         return new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
@@ -173,7 +171,8 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
         };
     }
 
-    private void runAllWithAccessToProjectState(Action<BuildOperationQueue<RunnableBuildOperation>> buildOperationQueueAction) {
+    private void runAllWithAccessToProjectState(
+            Action<BuildOperationQueue<RunnableBuildOperation>> buildOperationQueueAction) {
         try {
             buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueueAction);
         } catch (MultipleBuildOperationFailures e) {

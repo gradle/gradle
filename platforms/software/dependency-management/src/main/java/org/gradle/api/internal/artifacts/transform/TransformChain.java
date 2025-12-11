@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 public class TransformChain {
     @Nullable
     private final TransformChain init;
+
     private final TransformStep last;
 
     /**
@@ -57,9 +58,7 @@ public class TransformChain {
 
     public String getDisplayName() {
         String lastDisplayName = last.getDisplayName();
-        return init == null
-            ? lastDisplayName
-            : init.getDisplayName() + " -> " + lastDisplayName;
+        return init == null ? lastDisplayName : init.getDisplayName() + " -> " + lastDisplayName;
     }
 
     public void visitTransformSteps(Action<? super TransformStep> action) {

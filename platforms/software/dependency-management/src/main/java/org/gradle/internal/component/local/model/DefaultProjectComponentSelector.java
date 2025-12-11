@@ -17,6 +17,7 @@ package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -30,8 +31,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.util.Path;
 
-import java.util.List;
-
 public class DefaultProjectComponentSelector implements ProjectComponentSelectorInternal {
 
     private final ProjectIdentity projectIdentity;
@@ -41,10 +40,9 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     private final int hashCode;
 
     public DefaultProjectComponentSelector(
-        ProjectIdentity projectIdentity,
-        ImmutableAttributes attributes,
-        ImmutableSet<CapabilitySelector> capabilitySelectors
-    ) {
+            ProjectIdentity projectIdentity,
+            ImmutableAttributes attributes,
+            ImmutableSet<CapabilitySelector> capabilitySelectors) {
         this.projectIdentity = projectIdentity;
         this.attributes = attributes;
         this.capabilitySelectors = capabilitySelectors;
@@ -52,10 +50,9 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     }
 
     private static int computeHashCode(
-        ImmutableAttributes attributes,
-        ImmutableSet<CapabilitySelector> capabilitySelectors,
-        ProjectIdentity projectIdentity
-    ) {
+            ImmutableAttributes attributes,
+            ImmutableSet<CapabilitySelector> capabilitySelectors,
+            ProjectIdentity projectIdentity) {
         int result = projectIdentity.hashCode();
         result = 31 * result + attributes.hashCode();
         result = 31 * result + capabilitySelectors.hashCode();
@@ -92,7 +89,8 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         assert identifier != null : "identifier cannot be null";
 
         if (identifier instanceof ProjectComponentIdentifier) {
-            ProjectComponentIdentifierInternal projectComponentIdentifier = (ProjectComponentIdentifierInternal) identifier;
+            ProjectComponentIdentifierInternal projectComponentIdentifier =
+                    (ProjectComponentIdentifierInternal) identifier;
             return projectComponentIdentifier.getProjectIdentity().equals(projectIdentity);
         }
 
@@ -108,9 +106,9 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     @SuppressWarnings("deprecation")
     public List<Capability> getRequestedCapabilities() {
         return capabilitySelectors.stream()
-            .filter(c -> c instanceof SpecificCapabilitySelector)
-            .map(c -> ((DefaultSpecificCapabilitySelector) c).getBackingCapability())
-            .collect(ImmutableList.toImmutableList());
+                .filter(c -> c instanceof SpecificCapabilitySelector)
+                .map(c -> ((DefaultSpecificCapabilitySelector) c).getBackingCapability())
+                .collect(ImmutableList.toImmutableList());
     }
 
     @Override
@@ -128,9 +126,9 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         }
 
         DefaultProjectComponentSelector that = (DefaultProjectComponentSelector) o;
-        return projectIdentity.equals(that.projectIdentity) &&
-            attributes.equals(that.attributes) &&
-            capabilitySelectors.equals(that.capabilitySelectors);
+        return projectIdentity.equals(that.projectIdentity)
+                && attributes.equals(that.attributes)
+                && capabilitySelectors.equals(that.capabilitySelectors);
     }
 
     @Override
@@ -143,31 +141,26 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return getDisplayName();
     }
 
-    public static ProjectComponentSelector withAttributes(ProjectComponentSelector selector, ImmutableAttributes attributes) {
+    public static ProjectComponentSelector withAttributes(
+            ProjectComponentSelector selector, ImmutableAttributes attributes) {
         ProjectComponentSelectorInternal current = (ProjectComponentSelectorInternal) selector;
         return new DefaultProjectComponentSelector(
-            current.getProjectIdentity(),
-            attributes,
-            current.getCapabilitySelectors()
-        );
+                current.getProjectIdentity(), attributes, current.getCapabilitySelectors());
     }
 
-    public static ProjectComponentSelector withCapabilities(ProjectComponentSelector selector, ImmutableSet<CapabilitySelector> capabilitySelectors) {
+    public static ProjectComponentSelector withCapabilities(
+            ProjectComponentSelector selector, ImmutableSet<CapabilitySelector> capabilitySelectors) {
         ProjectComponentSelectorInternal current = (ProjectComponentSelectorInternal) selector;
         return new DefaultProjectComponentSelector(
-            current.getProjectIdentity(),
-            current.getAttributes(),
-            capabilitySelectors
-        );
+                current.getProjectIdentity(), current.getAttributes(), capabilitySelectors);
     }
 
-    public static ProjectComponentSelector withAttributesAndCapabilities(ProjectComponentSelector selector, ImmutableAttributes attributes, ImmutableSet<CapabilitySelector> capabilitySelectors) {
+    public static ProjectComponentSelector withAttributesAndCapabilities(
+            ProjectComponentSelector selector,
+            ImmutableAttributes attributes,
+            ImmutableSet<CapabilitySelector> capabilitySelectors) {
         ProjectComponentSelectorInternal current = (ProjectComponentSelectorInternal) selector;
-        return new DefaultProjectComponentSelector(
-            current.getProjectIdentity(),
-            attributes,
-            capabilitySelectors
-        );
+        return new DefaultProjectComponentSelector(current.getProjectIdentity(), attributes, capabilitySelectors);
     }
 
     // TODO: It seems fishy to be able to go directly from a selector to an identifier.
@@ -175,5 +168,4 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     public ProjectComponentIdentifier toIdentifier() {
         return new DefaultProjectComponentIdentifier(projectIdentity);
     }
-
 }

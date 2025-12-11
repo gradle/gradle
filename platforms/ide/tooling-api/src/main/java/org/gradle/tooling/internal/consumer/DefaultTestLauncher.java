@@ -19,6 +19,14 @@ package org.gradle.tooling.internal.consumer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestExecutionException;
@@ -34,15 +42,6 @@ import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTestLauncher> implements TestLauncher {
 
     private final AsyncConsumerActionExecutor connection;
@@ -50,7 +49,8 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     private final Set<String> testClassNames = new LinkedHashSet<String>();
     private final Set<InternalJvmTestRequest> internalJvmTestRequests = new LinkedHashSet<InternalJvmTestRequest>();
     private final DefaultDebugOptions debugOptions = new DefaultDebugOptions();
-    private final Map<String, List<InternalJvmTestRequest>> tasksAndTests = new HashMap<String, List<InternalJvmTestRequest>>();
+    private final Map<String, List<InternalJvmTestRequest>> tasksAndTests =
+            new HashMap<String, List<InternalJvmTestRequest>>();
     private boolean isRunDefaultTasks = false;
     private final List<InternalTaskSpec> taskSpecs = new ArrayList<InternalTaskSpec>();
 
@@ -86,7 +86,8 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     @Override
     public TestLauncher withJvmTestClasses(Iterable<String> testClasses) {
-        List<InternalJvmTestRequest> newRequests = CollectionUtils.collect(testClasses, testClass -> new DefaultInternalJvmTestRequest(testClass, null, null));
+        List<InternalJvmTestRequest> newRequests = CollectionUtils.collect(
+                testClasses, testClass -> new DefaultInternalJvmTestRequest(testClass, null, null));
         internalJvmTestRequests.addAll(newRequests);
         testClassNames.addAll(CollectionUtils.toList(testClasses));
         return this;
@@ -100,7 +101,8 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     @Override
     public TestLauncher withJvmTestMethods(final String testClass, Iterable<String> methods) {
-        List<InternalJvmTestRequest> newRequests = CollectionUtils.collect(methods, methodName -> new DefaultInternalJvmTestRequest(testClass, methodName, null));
+        List<InternalJvmTestRequest> newRequests = CollectionUtils.collect(
+                methods, methodName -> new DefaultInternalJvmTestRequest(testClass, methodName, null));
         this.internalJvmTestRequests.addAll(newRequests);
         this.testClassNames.add(testClass);
         return this;
@@ -108,7 +110,8 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     @Override
     public TestLauncher withTaskAndTestClasses(String task, Iterable<String> testClasses) {
-        List<InternalJvmTestRequest> tests = CollectionUtils.collect(testClasses, testClass -> new DefaultInternalJvmTestRequest(testClass, null, null));
+        List<InternalJvmTestRequest> tests = CollectionUtils.collect(
+                testClasses, testClass -> new DefaultInternalJvmTestRequest(testClass, null, null));
 
         addTests(task, tests);
         return this;
@@ -116,7 +119,8 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     @Override
     public TestLauncher withTaskAndTestMethods(String task, final String testClass, Iterable<String> methods) {
-        List<InternalJvmTestRequest> tests = CollectionUtils.collect(methods, methodName -> new DefaultInternalJvmTestRequest(testClass, methodName, null));
+        List<InternalJvmTestRequest> tests = CollectionUtils.collect(
+                methods, methodName -> new DefaultInternalJvmTestRequest(testClass, methodName, null));
         addTests(task, tests);
         return this;
     }
@@ -155,7 +159,10 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     @Override
     public void run(final ResultHandler<? super Void> handler) {
-        if (operationDescriptors.isEmpty() && internalJvmTestRequests.isEmpty() && tasksAndTests.isEmpty() && taskSpecs.isEmpty()) {
+        if (operationDescriptors.isEmpty()
+                && internalJvmTestRequests.isEmpty()
+                && tasksAndTests.isEmpty()
+                && taskSpecs.isEmpty()) {
             throw new TestExecutionException("No test declared for execution.");
         }
         for (Map.Entry<String, List<InternalJvmTestRequest>> entry : tasksAndTests.entrySet()) {
@@ -165,35 +172,41 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
         }
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
         final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(
-            operationDescriptors,
-            ImmutableList.copyOf(testClassNames),
-            ImmutableSet.copyOf(internalJvmTestRequests),
-            debugOptions, ImmutableMap.copyOf(tasksAndTests),
-            isRunDefaultTasks,
-            taskSpecs
-        );
-        connection.run(new ConsumerAction<Void>() {
-            @Override
-            public ConsumerOperationParameters getParameters() {
-                return operationParameters;
-            }
+                operationDescriptors,
+                ImmutableList.copyOf(testClassNames),
+                ImmutableSet.copyOf(internalJvmTestRequests),
+                debugOptions,
+                ImmutableMap.copyOf(tasksAndTests),
+                isRunDefaultTasks,
+                taskSpecs);
+        connection.run(
+                new ConsumerAction<Void>() {
+                    @Override
+                    public ConsumerOperationParameters getParameters() {
+                        return operationParameters;
+                    }
 
-            @Override
-            public Void run(ConsumerConnection connection) {
-                connection.runTests(testExecutionRequest, getParameters());
-                return null;
-            }
-        }, new ResultHandlerAdapter(handler));
+                    @Override
+                    public Void run(ConsumerConnection connection) {
+                        connection.runTests(testExecutionRequest, getParameters());
+                        return null;
+                    }
+                },
+                new ResultHandlerAdapter(handler));
     }
 
     private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {
         public ResultHandlerAdapter(ResultHandler<? super Void> handler) {
-            super(handler, DefaultTestLauncher.this.createExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
-                @Override
-                public String getConnectionFailureMessage(Throwable throwable) {
-                    return String.format("Could not execute tests using %s.", connection.getDisplayName());
-                }
-            }));
+            super(
+                    handler,
+                    DefaultTestLauncher.this.createExceptionTransformer(
+                            new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
+                                @Override
+                                public String getConnectionFailureMessage(Throwable throwable) {
+                                    return String.format(
+                                            "Could not execute tests using %s.", connection.getDisplayName());
+                                }
+                            }));
         }
     }
 

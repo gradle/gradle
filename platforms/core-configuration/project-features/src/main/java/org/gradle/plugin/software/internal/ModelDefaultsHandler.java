@@ -25,5 +25,10 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface ModelDefaultsHandler {
-    void apply(Object target, Object definition, ModelDefaultsApplicator.ClassLoaderContext classLoaderScope, String projectFeatureName, Plugin<?> plugin);
+    void apply(
+            Object target,
+            Object definition,
+            ModelDefaultsApplicator.ClassLoaderContext classLoaderScope,
+            String projectFeatureName,
+            Plugin<?> plugin);
 }

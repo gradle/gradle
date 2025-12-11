@@ -24,7 +24,9 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.0
  */
-public final class ExternalResourceWriteBuildOperationType implements BuildOperationType<ExternalResourceWriteBuildOperationType.Details, ExternalResourceWriteBuildOperationType.Result> {
+public final class ExternalResourceWriteBuildOperationType
+        implements BuildOperationType<
+                ExternalResourceWriteBuildOperationType.Details, ExternalResourceWriteBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -34,7 +36,6 @@ public final class ExternalResourceWriteBuildOperationType implements BuildOpera
          * A valid URI.
          */
         String getLocation();
-
     }
 
     @UsedByScanPlugin
@@ -44,10 +45,7 @@ public final class ExternalResourceWriteBuildOperationType implements BuildOpera
          * The number of bytes that were written to the resource
          */
         long getBytesWritten();
-
     }
 
-    private ExternalResourceWriteBuildOperationType() {
-    }
-
+    private ExternalResourceWriteBuildOperationType() {}
 }

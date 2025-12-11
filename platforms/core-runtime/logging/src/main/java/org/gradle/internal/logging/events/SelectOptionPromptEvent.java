@@ -16,9 +16,8 @@
 
 package org.gradle.internal.logging.events;
 
-import org.gradle.util.internal.TextUtil;
-
 import java.util.List;
+import org.gradle.util.internal.TextUtil;
 
 public class SelectOptionPromptEvent extends PromptOutputEvent {
     private final String question;

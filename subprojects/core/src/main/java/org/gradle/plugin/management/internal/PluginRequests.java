@@ -68,5 +68,4 @@ public interface PluginRequests extends Iterable<PluginRequestInternal> {
             return new MultiPluginRequests(list);
         }
     }
-
 }

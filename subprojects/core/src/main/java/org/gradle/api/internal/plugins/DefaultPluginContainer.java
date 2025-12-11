@@ -40,7 +40,10 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     private final PluginRegistry pluginRegistry;
     private final PluginManagerInternal pluginManager;
 
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager, CollectionCallbackActionDecorator callbackActionDecorator) {
+    public DefaultPluginContainer(
+            PluginRegistry pluginRegistry,
+            final PluginManagerInternal pluginManager,
+            CollectionCallbackActionDecorator callbackActionDecorator) {
         super(Plugin.class, callbackActionDecorator);
         this.pluginRegistry = pluginRegistry;
         this.pluginManager = pluginManager;
@@ -65,9 +68,12 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
         }
 
         if (!Plugin.class.isAssignableFrom(plugin.asClass())) {
-            throw new IllegalArgumentException("Plugin implementation '" + plugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
+            throw new IllegalArgumentException(
+                    "Plugin implementation '" + plugin.asClass().getName()
+                            + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
         } else {
-            return pluginManager.addImperativePlugin(Cast.<PluginImplementation<Plugin<?>>>uncheckedNonnullCast(plugin));
+            return pluginManager.addImperativePlugin(
+                    Cast.<PluginImplementation<Plugin<?>>>uncheckedNonnullCast(plugin));
         }
     }
 
@@ -90,12 +96,13 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     private Plugin<?> doFindPlugin(String id) {
         for (final PluginManagerInternal.PluginWithId pluginWithId : pluginManager.pluginsForId(id)) {
             Plugin<?> plugin = Iterables.tryFind(DefaultPluginContainer.this, new Predicate<Plugin>() {
-                @Override
-                public boolean apply(Plugin plugin) {
-                    Class<?> pluginType = GeneratedSubclasses.unpackType(plugin);
-                    return pluginWithId.clazz.equals(pluginType);
-                }
-            }).orNull();
+                        @Override
+                        public boolean apply(Plugin plugin) {
+                            Class<?> pluginType = GeneratedSubclasses.unpackType(plugin);
+                            return pluginWithId.clazz.equals(pluginType);
+                        }
+                    })
+                    .orNull();
 
             if (plugin != null) {
                 return plugin;
@@ -150,18 +157,20 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     @Override
-    @SuppressWarnings("NonCanonicalType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings(
+            "NonCanonicalType") // TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public void withId(final String pluginId, final Action<? super Plugin> action) {
         Action<DefaultPluginManager.PluginWithId> wrappedAction = new Action<DefaultPluginManager.PluginWithId>() {
             @Override
             public void execute(final DefaultPluginManager.PluginWithId pluginWithId) {
                 matching(new Spec<Plugin>() {
-                    @Override
-                    public boolean isSatisfiedBy(Plugin plugin) {
-                        Class<?> pluginType = GeneratedSubclasses.unpackType(plugin);
-                        return pluginWithId.clazz.equals(pluginType);
-                    }
-                }).all(action);
+                            @Override
+                            public boolean isSatisfiedBy(Plugin plugin) {
+                                Class<?> pluginType = GeneratedSubclasses.unpackType(plugin);
+                                return pluginWithId.clazz.equals(pluginType);
+                            }
+                        })
+                        .all(action);
             }
         };
 
@@ -172,7 +181,8 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     public <S extends Plugin> PluginCollection<S> withType(Class<S> type) {
         // runtime check because method is used from Groovy where type bounds are not respected
         if (!Plugin.class.isAssignableFrom(type)) {
-            throw new IllegalArgumentException(String.format("'%s' does not implement the Plugin interface.", type.getName()));
+            throw new IllegalArgumentException(
+                    String.format("'%s' does not implement the Plugin interface.", type.getName()));
         }
 
         return super.withType(type);

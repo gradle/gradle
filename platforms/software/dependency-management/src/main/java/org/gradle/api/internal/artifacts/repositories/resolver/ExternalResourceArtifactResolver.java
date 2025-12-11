@@ -22,7 +22,8 @@ import org.jspecify.annotations.Nullable;
 
 public interface ExternalResourceArtifactResolver {
     @Nullable
-    LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result);
+    LocallyAvailableExternalResource resolveArtifact(
+            ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result);
 
     boolean artifactExists(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result);
 }

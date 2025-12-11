@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal;
 
+import static org.gradle.api.reflect.TypeOf.parameterizedTypeOf;
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -30,16 +33,19 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
-import static org.gradle.api.reflect.TypeOf.parameterizedTypeOf;
-import static org.gradle.api.reflect.TypeOf.typeOf;
+public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamedDomainObjectSet<T>
+        implements NamedDomainObjectContainer<T>, HasPublicType {
 
-public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamedDomainObjectSet<T> implements NamedDomainObjectContainer<T>, HasPublicType {
-
-    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
+    protected AbstractNamedDomainObjectContainer(
+            Class<T> type,
+            Instantiator instantiator,
+            Namer<? super T> namer,
+            CollectionCallbackActionDecorator callbackDecorator) {
         super(type, instantiator, namer, callbackDecorator);
     }
 
-    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
+    protected AbstractNamedDomainObjectContainer(
+            Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(type, instantiator, Named.Namer.forType(type), callbackActionDecorator);
     }
 
@@ -114,23 +120,30 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     }
 
     @Override
-    public NamedDomainObjectProvider<T> register(String name, Action<? super T> configurationAction) throws InvalidUserDataException {
+    public NamedDomainObjectProvider<T> register(String name, Action<? super T> configurationAction)
+            throws InvalidUserDataException {
         assertCanMutate("register(String, Action)");
         return createDomainObjectProvider(name, configurationAction);
     }
 
-    protected NamedDomainObjectProvider<T> createDomainObjectProvider(String name, @Nullable Action<? super T> configurationAction) {
+    protected NamedDomainObjectProvider<T> createDomainObjectProvider(
+            String name, @Nullable Action<? super T> configurationAction) {
         assertElementNotPresent(name);
-        NamedDomainObjectProvider<T> provider = Cast.uncheckedCast(
-            getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, AbstractNamedDomainObjectContainer.this, name, getType(), configurationAction)
-        );
+        NamedDomainObjectProvider<T> provider = Cast.uncheckedCast(getInstantiator()
+                .newInstance(
+                        NamedDomainObjectCreatingProvider.class,
+                        AbstractNamedDomainObjectContainer.this,
+                        name,
+                        getType(),
+                        configurationAction));
         doAddLater(provider);
         return provider;
     }
 
     // Cannot be private due to reflective instantiation
     public class NamedDomainObjectCreatingProvider<I extends T> extends AbstractDomainObjectCreatingProvider<I> {
-        public NamedDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
+        public NamedDomainObjectCreatingProvider(
+                String name, Class<I> type, @Nullable Action<? super I> configureAction) {
             super(name, type, configureAction);
         }
 

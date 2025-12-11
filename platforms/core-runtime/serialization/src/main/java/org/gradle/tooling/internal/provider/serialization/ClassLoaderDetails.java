@@ -16,15 +16,15 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
-import org.gradle.internal.classloader.ClassLoaderSpec;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.gradle.internal.classloader.ClassLoaderSpec;
 
 public class ClassLoaderDetails implements Serializable {
-    // TODO:ADAM - using a UUID means we create a ClassLoader hierarchy for each daemon process we talk to. Instead, use the spec to decide whether to reuse a ClassLoader
+    // TODO:ADAM - using a UUID means we create a ClassLoader hierarchy for each daemon process we talk to. Instead, use
+    // the spec to decide whether to reuse a ClassLoader
     public final UUID uuid;
     public final ClassLoaderSpec spec;
     public final List<ClassLoaderDetails> parents = new ArrayList<ClassLoaderDetails>();

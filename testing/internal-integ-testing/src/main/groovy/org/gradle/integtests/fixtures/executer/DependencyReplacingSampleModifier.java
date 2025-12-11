@@ -16,21 +16,20 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import com.google.common.io.Files;
-import org.gradle.exemplar.model.Sample;
-import org.gradle.exemplar.test.runner.SampleModifier;
-import org.gradle.integtests.fixtures.versions.PublishedVersionDeterminer;
-import org.gradle.util.GradleVersion;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.walk;
 
+import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.walk;
+import org.gradle.exemplar.model.Sample;
+import org.gradle.exemplar.test.runner.SampleModifier;
+import org.gradle.integtests.fixtures.versions.PublishedVersionDeterminer;
+import org.gradle.util.GradleVersion;
 
 /**
  * This forces the samples to use the latest nightly build of the TAPI during test execution.
@@ -40,16 +39,16 @@ public class DependencyReplacingSampleModifier implements SampleModifier {
 
     @Override
     public Sample modify(Sample sample) {
-        listBuildScripts(sample.getProjectDir())
-            .forEach(DependencyReplacingSampleModifier::replaceDependencies);
+        listBuildScripts(sample.getProjectDir()).forEach(DependencyReplacingSampleModifier::replaceDependencies);
         return sample;
     }
 
     private static Stream<File> listBuildScripts(File projectDir) {
         try {
             return walk(projectDir.toPath())
-                .map(f -> f.toFile())
-                .filter(f -> f.isFile() && (f.getName().endsWith(".gradle") || f.getName().endsWith(".gradle.kts")));
+                    .map(f -> f.toFile())
+                    .filter(f -> f.isFile()
+                            && (f.getName().endsWith(".gradle") || f.getName().endsWith(".gradle.kts")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -89,10 +88,11 @@ public class DependencyReplacingSampleModifier implements SampleModifier {
     }
 
     // Pattern to match the tooling API dependency
-    static Pattern toolingApiPattern = Pattern.compile("org\\.gradle:gradle-tooling-api:(\\d+(\\.\\d+)*)(-[0-9A-Za-z\\.\\+]+)?");
+    static Pattern toolingApiPattern =
+            Pattern.compile("org\\.gradle:gradle-tooling-api:(\\d+(\\.\\d+)*)(-[0-9A-Za-z\\.\\+]+)?");
 
     // Placeholder for the latest versions
     static String latestNightlyVersion = PublishedVersionDeterminer.getLatestNightlyVersion();
-    static GradleVersion latestReleasedVersion = GradleVersion.version(PublishedVersionDeterminer.getLatestReleasedVersion());
-
+    static GradleVersion latestReleasedVersion =
+            GradleVersion.version(PublishedVersionDeterminer.getLatestReleasedVersion());
 }

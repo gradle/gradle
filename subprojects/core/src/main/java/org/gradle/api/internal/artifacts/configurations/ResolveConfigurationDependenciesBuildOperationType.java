@@ -16,21 +16,23 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import java.util.List;
+import java.util.Map;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * Resolution of a configuration's dependencies.
  *
  * @since 4.4
  */
-public final class ResolveConfigurationDependenciesBuildOperationType implements BuildOperationType<ResolveConfigurationDependenciesBuildOperationType.Details, ResolveConfigurationDependenciesBuildOperationType.Result> {
+public final class ResolveConfigurationDependenciesBuildOperationType
+        implements BuildOperationType<
+                ResolveConfigurationDependenciesBuildOperationType.Details,
+                ResolveConfigurationDependenciesBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -56,7 +58,6 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
          */
         @Nullable
         List<Repository> getRepositories();
-
     }
 
     @UsedByScanPlugin
@@ -110,7 +111,5 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
          * Ordered by key lexicographically.
          */
         Map<String, ?> getProperties();
-
     }
-
 }

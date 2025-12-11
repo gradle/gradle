@@ -19,20 +19,19 @@ package org.gradle.internal.instrumentation.processor.modelreader.impl;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import org.jspecify.annotations.NonNull;
-import org.objectweb.asm.Type;
-
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.jspecify.annotations.NonNull;
+import org.objectweb.asm.Type;
 
 public class TypeUtils {
     public static Type extractType(TypeMirror typeMirror) {
@@ -86,44 +85,55 @@ public class TypeUtils {
 
     public static String extractMethodDescriptor(ExecutableElement methodElement) {
         return Type.getMethodDescriptor(
-            extractReturnType(methodElement),
-            methodElement.getParameters().stream().map(it -> extractType(it.asType())).toArray(Type[]::new)
-        );
+                extractReturnType(methodElement),
+                methodElement.getParameters().stream()
+                        .map(it -> extractType(it.asType()))
+                        .toArray(Type[]::new));
     }
 
     public static Optional<TypeName> getTypeParameter(TypeMirror typeMirror, int index) {
-        if (typeMirror instanceof DeclaredType && ((DeclaredType) typeMirror).getTypeArguments().size() > index) {
-            return Optional.of(TypeName.get(((DeclaredType) typeMirror).getTypeArguments().get(index)));
+        if (typeMirror instanceof DeclaredType
+                && ((DeclaredType) typeMirror).getTypeArguments().size() > index) {
+            return Optional.of(
+                    TypeName.get(((DeclaredType) typeMirror).getTypeArguments().get(index)));
         }
         return Optional.empty();
     }
 
     public static TypeName getTypeParameterOrThrow(TypeMirror typeMirror, int index) {
-        return getTypeParameter(typeMirror, index).orElseThrow(() -> new IllegalArgumentException(String.format("Missing type parameter with index %s for %s", index, typeMirror)));
+        return getTypeParameter(typeMirror, index)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("Missing type parameter with index %s for %s", index, typeMirror)));
     }
 
     @NonNull
     public static List<ExecutableElement> getExecutableElementsFromElements(Stream<? extends Element> elements) {
-        return elements
-            .flatMap(element -> element.getKind() == ElementKind.METHOD ? Stream.of(element) : element.getEnclosedElements().stream())
-            .filter(it -> it.getKind() == ElementKind.METHOD)
-            .map(it -> (ExecutableElement) it)
-            // Ensure that the elements have a stable order, as the annotation processing engine does not guarantee that for type elements.
-            // The order in which the executable elements are listed should be the order in which they appear in the code but
-            // we take an extra measure of care here and ensure the ordering between all elements.
-            .sorted(Comparator.comparing(TypeUtils::elementQualifiedName))
-            .distinct()
-            .collect(Collectors.toList());
+        return elements.flatMap(element -> element.getKind() == ElementKind.METHOD
+                        ? Stream.of(element)
+                        : element.getEnclosedElements().stream())
+                .filter(it -> it.getKind() == ElementKind.METHOD)
+                .map(it -> (ExecutableElement) it)
+                // Ensure that the elements have a stable order, as the annotation processing engine does not guarantee
+                // that for type elements.
+                // The order in which the executable elements are listed should be the order in which they appear in the
+                // code but
+                // we take an extra measure of care here and ensure the ordering between all elements.
+                .sorted(Comparator.comparing(TypeUtils::elementQualifiedName))
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     public static String elementQualifiedName(Element element) {
         if (element instanceof ExecutableElement) {
-            String enclosingTypeName = ((TypeElement) element.getEnclosingElement()).getQualifiedName().toString();
+            String enclosingTypeName = ((TypeElement) element.getEnclosingElement())
+                    .getQualifiedName()
+                    .toString();
             return enclosingTypeName + "." + element.getSimpleName();
         } else if (element instanceof TypeElement) {
             return ((TypeElement) element).getQualifiedName().toString();
         } else {
-            throw new IllegalArgumentException("Unsupported element type to read qualified name from: " + element.getClass());
+            throw new IllegalArgumentException(
+                    "Unsupported element type to read qualified name from: " + element.getClass());
         }
     }
 }

@@ -67,7 +67,6 @@ final class DefaultModuleIdExclude implements ModuleIdExclude {
             return false;
         }
         return moduleId.equals(that.moduleId);
-
     }
 
     @Override

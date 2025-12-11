@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import java.io.File;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
@@ -39,42 +42,57 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.File;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 @ServiceScope(Scope.BuildTree.class)
 public class ProjectArtifactResolver implements ArtifactResolver, HoldsProjectState {
     private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts = new ConcurrentHashMap<>();
     private final ProjectStateRegistry projectStateRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public ProjectArtifactResolver(ProjectStateRegistry projectStateRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public ProjectArtifactResolver(
+            ProjectStateRegistry projectStateRegistry,
+            CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     @Override
-    public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifactsWithType(
+            ComponentArtifactResolveMetadata component,
+            ArtifactType artifactType,
+            BuildableArtifactSetResolveResult result) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
-        // NOTE: This isn't thread-safe because we're not locking around allResolvedArtifacts to ensure we're not inserting multiple resolvableArtifacts for
+    public void resolveArtifact(
+            ComponentArtifactResolveMetadata component,
+            ComponentArtifactMetadata artifact,
+            BuildableArtifactResolveResult result) {
+        // NOTE: This isn't thread-safe because we're not locking around allResolvedArtifacts to ensure we're not
+        // inserting multiple resolvableArtifacts for
         // the same artifact id.
         //
-        // This should be replaced by a computeIfAbsent(...) to be thread-safe and ensure there's only ever one DefaultResolvableArtifact created for a single id.
-        // This is not thread-safe because of lock juggling that happens for project state. When calculating the dependencies for an IDEA model, we can easily
+        // This should be replaced by a computeIfAbsent(...) to be thread-safe and ensure there's only ever one
+        // DefaultResolvableArtifact created for a single id.
+        // This is not thread-safe because of lock juggling that happens for project state. When calculating the
+        // dependencies for an IDEA model, we can easily
         // deadlock when there are multiple projects that need to be locked at the same time.
         ResolvableArtifact resolvableArtifact = allResolvedArtifacts.get(artifact.getId());
         if (resolvableArtifact == null) {
             LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getComponentId();
-            File localArtifactFile = projectStateRegistry.stateFor(projectId).fromMutableState(p -> projectArtifact.getFile());
+            File localArtifactFile =
+                    projectStateRegistry.stateFor(projectId).fromMutableState(p -> projectArtifact.getFile());
             if (localArtifactFile != null) {
-                CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), resolveArtifactLater(artifact));
-                resolvableArtifact = new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
+                CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(
+                        Describables.of(artifact.getId()), resolveArtifactLater(artifact));
+                resolvableArtifact = new DefaultResolvableArtifact(
+                        component.getModuleVersionId(),
+                        artifact.getName(),
+                        artifact.getId(),
+                        context -> context.add(artifact.getBuildDependencies()),
+                        artifactSource,
+                        calculatedValueContainerFactory);
                 allResolvedArtifacts.put(artifact.getId(), resolvableArtifact);
             }
         }

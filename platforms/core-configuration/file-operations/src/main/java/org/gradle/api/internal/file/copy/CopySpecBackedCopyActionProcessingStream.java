@@ -29,7 +29,12 @@ public class CopySpecBackedCopyActionProcessingStream implements CopyActionProce
     private final FileSystem fileSystem;
     private final boolean reproducibleFileOrder;
 
-    public CopySpecBackedCopyActionProcessingStream(CopySpecInternal spec, Instantiator instantiator, PropertyFactory propertyFactory, FileSystem fileSystem, boolean reproducibleFileOrder) {
+    public CopySpecBackedCopyActionProcessingStream(
+            CopySpecInternal spec,
+            Instantiator instantiator,
+            PropertyFactory propertyFactory,
+            FileSystem fileSystem,
+            boolean reproducibleFileOrder) {
         this.spec = spec;
         this.instantiator = instantiator;
         this.propertyFactory = propertyFactory;

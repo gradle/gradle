@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform.filters;
 
+import java.io.File;
+import java.nio.file.Path;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
@@ -24,9 +26,6 @@ import org.junit.platform.engine.support.descriptor.DirectorySource;
 import org.junit.platform.engine.support.descriptor.FileSource;
 import org.junit.platform.engine.support.descriptor.FileSystemSource;
 import org.junit.platform.launcher.PostDiscoveryFilter;
-
-import java.io.File;
-import java.nio.file.Path;
 
 /**
  * A JUnit Platform {@link PostDiscoveryFilter} filter that includes or excludes
@@ -48,7 +47,9 @@ public final class FilePathFilter implements PostDiscoveryFilter {
     }
 
     private boolean shouldRun(TestDescriptor descriptor) {
-        TestSource testSource = descriptor.getSource().orElseThrow(() -> new IllegalArgumentException("No test source found for " + descriptor));
+        TestSource testSource = descriptor
+                .getSource()
+                .orElseThrow(() -> new IllegalArgumentException("No test source found for " + descriptor));
         if (testSource instanceof FileSource || testSource instanceof DirectorySource) {
             return fileMatch(((FileSystemSource) testSource).getFile());
         }

@@ -16,10 +16,9 @@
 
 package org.gradle.api.artifacts.result;
 
+import java.util.List;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
-
-import java.util.List;
 
 /**
  * Answers the question why a component was selected during the dependency resolution.

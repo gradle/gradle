@@ -22,5 +22,6 @@ import groovy.util.Node;
  */
 public interface ClasspathEntry {
     String getKind();
+
     void appendNode(Node node);
 }

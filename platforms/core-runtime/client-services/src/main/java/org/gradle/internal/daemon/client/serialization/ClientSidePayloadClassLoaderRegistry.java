@@ -17,15 +17,6 @@
 package org.gradle.internal.daemon.client.serialization;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
-import org.gradle.tooling.internal.provider.serialization.ClassLoaderDetails;
-import org.gradle.tooling.internal.provider.serialization.ClientOwnedClassLoaderSpec;
-import org.gradle.tooling.internal.provider.serialization.DeserializeMap;
-import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegistry;
-import org.gradle.tooling.internal.provider.serialization.SerializeMap;
-import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.ArrayList;
@@ -37,6 +28,14 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
+import org.gradle.tooling.internal.provider.serialization.ClassLoaderDetails;
+import org.gradle.tooling.internal.provider.serialization.ClientOwnedClassLoaderSpec;
+import org.gradle.tooling.internal.provider.serialization.DeserializeMap;
+import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegistry;
+import org.gradle.tooling.internal.provider.serialization.SerializeMap;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link PayloadClassLoaderRegistry} used in the client JVM that maps classes loaded by application ClassLoaders. Inspects each class to calculate a minimal classpath to send across to the daemon process to recreate the ClassLoaders.
@@ -53,7 +52,8 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
     // Contains only application owned ClassLoaders
     private final Map<UUID, LocalClassLoaderMapping> classLoaders = new LinkedHashMap<>();
 
-    public ClientSidePayloadClassLoaderRegistry(PayloadClassLoaderRegistry delegate, ClasspathInferer classpathInferer, ClassLoaderCache classLoaderCache) {
+    public ClientSidePayloadClassLoaderRegistry(
+            PayloadClassLoaderRegistry delegate, ClasspathInferer classpathInferer, ClassLoaderCache classLoaderCache) {
         this.delegate = delegate;
         this.classpathInferer = classpathInferer;
         this.classLoaderCache = classLoaderCache;
@@ -103,7 +103,8 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
         final DeserializeMap deserializeMap = delegate.newDeserializeSession();
         return new DeserializeMap() {
             @Override
-            public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
+            public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className)
+                    throws ClassNotFoundException {
                 Set<ClassLoader> candidates = getClassLoaders(classLoaderDetails);
                 if (candidates != null) {
                     // TODO:ADAM - This isn't quite right
@@ -135,7 +136,8 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
             }
 
             // Try to locate by classloader spec
-            // A match by classloader spec means the entry in the daemon was created by another client with exactly the same classloader structure as this client
+            // A match by classloader spec means the entry in the daemon was created by another client with exactly the
+            // same classloader structure as this client
             for (LocalClassLoaderMapping classLoaderMapping : new ArrayList<>(classLoaders.values())) {
                 if (classLoaderMapping.details.spec.equals(details.spec)) {
                     // Found an entry with the same spec, so reuse it
@@ -170,13 +172,16 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
                 }
                 if (localCandidates.equals(candidates)) {
                     // A match. Because the entry is reused, add any additional classpath entries
-                    return new ClassLoaderDetails(localClassLoaderMapping.details.uuid, new ClientOwnedClassLoaderSpec(ImmutableList.copyOf(classPath)));
+                    return new ClassLoaderDetails(
+                            localClassLoaderMapping.details.uuid,
+                            new ClientOwnedClassLoaderSpec(ImmutableList.copyOf(classPath)));
                 }
             }
 
             // Haven't seen the classloaders before - add a new entry
             UUID uuid = UUID.randomUUID();
-            ClassLoaderDetails clientClassLoaders = new ClassLoaderDetails(uuid, new ClientOwnedClassLoaderSpec(ImmutableList.copyOf(classPath)));
+            ClassLoaderDetails clientClassLoaders =
+                    new ClassLoaderDetails(uuid, new ClientOwnedClassLoaderSpec(ImmutableList.copyOf(classPath)));
             LocalClassLoaderMapping mapping = new LocalClassLoaderMapping(clientClassLoaders);
             for (ClassLoader candidate : candidates) {
                 mapping.classLoaders.add(new WeakReference<>(candidate));

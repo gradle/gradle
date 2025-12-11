@@ -17,44 +17,48 @@
 package org.gradle.testkit.runner.internal;
 
 import com.google.common.io.ByteSource;
+import java.nio.charset.Charset;
+import java.util.List;
 import org.gradle.testkit.runner.BuildTask;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import java.nio.charset.Charset;
-import java.util.List;
 
 public class GradleExecutionResult {
 
     private final BuildOperationParameters buildOperationParameters;
     private final ByteSource outputSource;
     private final List<BuildTask> tasks;
+
     @Nullable
     private final Throwable throwable;
 
-    public GradleExecutionResult(BuildOperationParameters buildOperationParameters, String standardOutput, List<BuildTask> tasks) {
+    public GradleExecutionResult(
+            BuildOperationParameters buildOperationParameters, String standardOutput, List<BuildTask> tasks) {
         this(buildOperationParameters, standardOutput, tasks, null);
     }
 
     public GradleExecutionResult(
-        BuildOperationParameters buildOperationParameters,
-        String standardOutput,
-        List<BuildTask> tasks,
-        @Nullable Throwable throwable
-    ) {
-        this(buildOperationParameters, ByteSource.wrap(standardOutput.getBytes(Charset.defaultCharset())), tasks, throwable);
+            BuildOperationParameters buildOperationParameters,
+            String standardOutput,
+            List<BuildTask> tasks,
+            @Nullable Throwable throwable) {
+        this(
+                buildOperationParameters,
+                ByteSource.wrap(standardOutput.getBytes(Charset.defaultCharset())),
+                tasks,
+                throwable);
     }
 
-    public GradleExecutionResult(BuildOperationParameters buildOperationParameters, ByteSource outputSource, List<BuildTask> tasks) {
+    public GradleExecutionResult(
+            BuildOperationParameters buildOperationParameters, ByteSource outputSource, List<BuildTask> tasks) {
         this(buildOperationParameters, outputSource, tasks, null);
     }
 
     public GradleExecutionResult(
-        BuildOperationParameters buildOperationParameters,
-        ByteSource outputSource,
-        List<BuildTask> tasks,
-        @Nullable Throwable throwable
-    ) {
+            BuildOperationParameters buildOperationParameters,
+            ByteSource outputSource,
+            List<BuildTask> tasks,
+            @Nullable Throwable throwable) {
         this.buildOperationParameters = buildOperationParameters;
         this.outputSource = outputSource;
         this.tasks = tasks;
